@@ -5,7 +5,11 @@ import {
   FirebaseAppCheck,
   InitializeOptions,
 } from "@capacitor-firebase/app-check";
-import { ReCaptchaEnterpriseProvider } from "firebase/app-check";
+import {
+  AppCheckOptions,
+  ReCaptchaEnterpriseProvider,
+  initializeAppCheck,
+} from "firebase/app-check";
 import { environment } from "../../../environments/environment.default";
 import { PlatformService } from "../platform.service";
 
@@ -15,9 +19,8 @@ export interface FirebaseAppCheckSettings {
   debugToken?: boolean | string;
 }
 
-export function buildFirebaseAppCheckInitializeOptions(
+export function buildFirebaseAppCheckNativeInitializeOptions(
   settings: FirebaseAppCheckSettings | undefined,
-  platform: "web" | "ios" | "android",
 ): InitializeOptions | null {
   if (!settings?.enabled) {
     return null;
@@ -31,8 +34,14 @@ export function buildFirebaseAppCheckInitializeOptions(
     options.debugToken = settings.debugToken;
   }
 
-  if (platform !== "web") {
-    return options;
+  return options;
+}
+
+export function buildFirebaseAppCheckWebInitializeOptions(
+  settings: FirebaseAppCheckSettings | undefined,
+): AppCheckOptions | null {
+  if (!settings?.enabled) {
+    return null;
   }
 
   const siteKey = settings.recaptchaEnterpriseSiteKey?.trim();
@@ -41,7 +50,7 @@ export function buildFirebaseAppCheckInitializeOptions(
   }
 
   return {
-    ...options,
+    isTokenAutoRefreshEnabled: true,
     provider: new ReCaptchaEnterpriseProvider(siteKey),
   };
 }
@@ -78,22 +87,60 @@ export class FirebaseAppCheckService {
       return;
     }
 
-    // Force FirebaseApp injection before the Capacitor plugin's web wrapper calls getApp().
-    void this.app;
+    const platform = this.platformService.getPlatform();
 
-    const options = buildFirebaseAppCheckInitializeOptions(
-      settings,
-      this.platformService.getPlatform(),
-    );
+    if (platform === "web") {
+      this.initializeWeb(settings);
+      return;
+    }
+
+    await this.initializeNative(settings);
+  }
+
+  private initializeWeb(
+    settings: FirebaseAppCheckSettings | undefined,
+  ): void {
+    const options = buildFirebaseAppCheckWebInitializeOptions(settings);
     if (!options) {
-      if (settings?.enabled && this.platformService.getPlatform() === "web") {
-        console.warn(
-          "[AppCheck] Web App Check is enabled but no reCAPTCHA Enterprise site key is configured.",
-        );
-      }
+      this.warnAboutMissingWebConfiguration(settings);
+      return;
+    }
+
+    this.configureWebDebugToken(settings);
+    initializeAppCheck(this.app, options);
+  }
+
+  private async initializeNative(
+    settings: FirebaseAppCheckSettings | undefined,
+  ): Promise<void> {
+    const options = buildFirebaseAppCheckNativeInitializeOptions(settings);
+    if (!options) {
       return;
     }
 
     await FirebaseAppCheck.initialize(options);
+  }
+
+  private warnAboutMissingWebConfiguration(
+    settings: FirebaseAppCheckSettings | undefined,
+  ): void {
+    if (settings?.enabled) {
+      console.warn(
+        "[AppCheck] Web App Check is enabled but no reCAPTCHA Enterprise site key is configured.",
+      );
+    }
+  }
+
+  private configureWebDebugToken(
+    settings: FirebaseAppCheckSettings | undefined,
+  ): void {
+    if (!settings?.debugToken) {
+      return;
+    }
+
+    const appCheckGlobal = globalThis as typeof globalThis & {
+      FIREBASE_APPCHECK_DEBUG_TOKEN?: boolean | string;
+    };
+    appCheckGlobal.FIREBASE_APPCHECK_DEBUG_TOKEN = settings.debugToken;
   }
 }

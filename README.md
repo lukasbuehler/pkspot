@@ -79,6 +79,7 @@ To setup for local development, duplicate the file `src/environments/environment
 Replace the `firebaseConfig` with your own from Firebase.
 Under `keys.firebaseConfig.apiKey` you will need to add your own Google API Key, with the following APIs enabled for full functionality:
 
+- Firebase App Check API 
 - IAM Service Account Credentials
 - Identity and Access Management (IAM) API
 - Identity Toolkit API

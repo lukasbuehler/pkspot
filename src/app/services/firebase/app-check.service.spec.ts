@@ -3,11 +3,15 @@ import { PLATFORM_ID } from "@angular/core";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { FirebaseApp } from "@angular/fire/app";
 import { FirebaseAppCheck } from "@capacitor-firebase/app-check";
-import { ReCaptchaEnterpriseProvider } from "firebase/app-check";
+import {
+  ReCaptchaEnterpriseProvider,
+  initializeAppCheck,
+} from "firebase/app-check";
 import { PlatformService } from "../platform.service";
 import {
   FirebaseAppCheckService,
-  buildFirebaseAppCheckInitializeOptions,
+  buildFirebaseAppCheckNativeInitializeOptions,
+  buildFirebaseAppCheckWebInitializeOptions,
 } from "./app-check.service";
 
 vi.mock("@capacitor-firebase/app-check", () => ({
@@ -17,6 +21,7 @@ vi.mock("@capacitor-firebase/app-check", () => ({
 }));
 
 vi.mock("firebase/app-check", () => ({
+  initializeAppCheck: vi.fn(),
   ReCaptchaEnterpriseProvider: class MockReCaptchaEnterpriseProvider {
     constructor(public siteKey: string) {}
   },
@@ -29,27 +34,23 @@ const createPlatformService = (platform: "web" | "ios" | "android") => ({
 describe("buildFirebaseAppCheckInitializeOptions", () => {
   it("returns null when App Check is disabled", () => {
     expect(
-      buildFirebaseAppCheckInitializeOptions(
-        { enabled: false, recaptchaEnterpriseSiteKey: "site-key" },
-        "web"
-      )
+      buildFirebaseAppCheckWebInitializeOptions({
+        enabled: false,
+        recaptchaEnterpriseSiteKey: "site-key",
+      })
     ).toBeNull();
   });
 
   it("builds a reCAPTCHA Enterprise provider for web", () => {
-    const options = buildFirebaseAppCheckInitializeOptions(
-      {
-        enabled: true,
-        recaptchaEnterpriseSiteKey: "site-key",
-        debugToken: "debug-token",
-      },
-      "web"
-    );
+    const options = buildFirebaseAppCheckWebInitializeOptions({
+      enabled: true,
+      recaptchaEnterpriseSiteKey: "site-key",
+      debugToken: "debug-token",
+    });
 
     expect(options).toEqual(
       expect.objectContaining({
         isTokenAutoRefreshEnabled: true,
-        debugToken: "debug-token",
       })
     );
     expect(options?.provider).toBeInstanceOf(ReCaptchaEnterpriseProvider);
@@ -58,16 +59,16 @@ describe("buildFirebaseAppCheckInitializeOptions", () => {
 
   it("returns null for web when the site key is missing", () => {
     expect(
-      buildFirebaseAppCheckInitializeOptions({ enabled: true }, "web")
+      buildFirebaseAppCheckWebInitializeOptions({ enabled: true })
     ).toBeNull();
   });
 
   it("builds native options without a web provider", () => {
     expect(
-      buildFirebaseAppCheckInitializeOptions(
-        { enabled: true, debugToken: true },
-        "ios"
-      )
+      buildFirebaseAppCheckNativeInitializeOptions({
+        enabled: true,
+        debugToken: true,
+      })
     ).toEqual({
       isTokenAutoRefreshEnabled: true,
       debugToken: true,
@@ -78,6 +79,11 @@ describe("buildFirebaseAppCheckInitializeOptions", () => {
 describe("FirebaseAppCheckService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    delete (
+      globalThis as typeof globalThis & {
+        FIREBASE_APPCHECK_DEBUG_TOKEN?: boolean | string;
+      }
+    ).FIREBASE_APPCHECK_DEBUG_TOKEN;
   });
 
   it("skips initialization during SSR", async () => {
@@ -96,9 +102,36 @@ describe("FirebaseAppCheckService", () => {
     });
 
     expect(FirebaseAppCheck.initialize).not.toHaveBeenCalled();
+    expect(initializeAppCheck).not.toHaveBeenCalled();
   });
 
   it("initializes web App Check when configured", async () => {
+    const firebaseApp = { options: { appId: "expected-app-id" } };
+    TestBed.configureTestingModule({
+      providers: [
+        FirebaseAppCheckService,
+        { provide: FirebaseApp, useValue: firebaseApp },
+        { provide: PLATFORM_ID, useValue: "browser" },
+        { provide: PlatformService, useValue: createPlatformService("web") },
+      ],
+    });
+
+    await TestBed.inject(FirebaseAppCheckService).initialize({
+      enabled: true,
+      recaptchaEnterpriseSiteKey: "site-key",
+    });
+
+    expect(initializeAppCheck).toHaveBeenCalledWith(
+      firebaseApp,
+      expect.objectContaining({
+        isTokenAutoRefreshEnabled: true,
+        provider: expect.any(ReCaptchaEnterpriseProvider),
+      })
+    );
+    expect(FirebaseAppCheck.initialize).not.toHaveBeenCalled();
+  });
+
+  it("sets the web debug token before direct web initialization", async () => {
     TestBed.configureTestingModule({
       providers: [
         FirebaseAppCheckService,
@@ -111,14 +144,16 @@ describe("FirebaseAppCheckService", () => {
     await TestBed.inject(FirebaseAppCheckService).initialize({
       enabled: true,
       recaptchaEnterpriseSiteKey: "site-key",
+      debugToken: "debug-token",
     });
 
-    expect(FirebaseAppCheck.initialize).toHaveBeenCalledWith(
-      expect.objectContaining({
-        isTokenAutoRefreshEnabled: true,
-        provider: expect.any(ReCaptchaEnterpriseProvider),
-      })
-    );
+    expect(
+      (
+        globalThis as typeof globalThis & {
+          FIREBASE_APPCHECK_DEBUG_TOKEN?: boolean | string;
+        }
+      ).FIREBASE_APPCHECK_DEBUG_TOKEN
+    ).toBe("debug-token");
   });
 
   it("initializes native App Check without requiring a web site key", async () => {
@@ -138,6 +173,7 @@ describe("FirebaseAppCheckService", () => {
     expect(FirebaseAppCheck.initialize).toHaveBeenCalledWith({
       isTokenAutoRefreshEnabled: true,
     });
+    expect(initializeAppCheck).not.toHaveBeenCalled();
   });
 
   it("does not initialize twice", async () => {
