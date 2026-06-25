@@ -3,6 +3,10 @@ set -eu
 
 current_branch="$(git symbolic-ref --quiet --short HEAD || true)"
 
+export PKSPOT_LINT_CHUNK_SIZE="${PKSPOT_LINT_CHUNK_SIZE:-40}"
+export PKSPOT_LINT_MAX_OLD_SPACE_MB="${PKSPOT_LINT_MAX_OLD_SPACE_MB:-4096}"
+export PKSPOT_VITEST_MAX_WORKERS="${PKSPOT_VITEST_MAX_WORKERS:-4}"
+
 if [ "$current_branch" = "main" ]; then
   echo "Running GitHub CI-equivalent pre-push verification for main..."
   npm run test:ci

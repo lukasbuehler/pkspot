@@ -150,6 +150,25 @@ describe("SpotsService", () => {
       expect(spot.location().lat).toBe(43.125069239165526);
       expect(spot.location().lng).toBe(141.43403324056948);
     });
+
+    it("should not fetch REST data when loading a spot by id", async () => {
+      const fetchSpy = vi.spyOn(globalThis, "fetch");
+      mockFirestoreAdapter.getDocument.mockResolvedValueOnce({
+        id: "spot-123",
+        name: { en: "Test Spot" },
+        location_raw: { lat: 48.1234, lng: 11.5678 },
+      });
+
+      const spot = await service.getSpotById("spot-123" as SpotId, "en");
+
+      expect(mockFirestoreAdapter.getDocument).toHaveBeenCalledWith(
+        "spots/spot-123"
+      );
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(spot).toBeInstanceOf(Spot);
+      expect(spot.id).toBe("spot-123");
+      fetchSpy.mockRestore();
+    });
   });
 
   describe("getSpotById$", () => {

@@ -1,24 +1,9 @@
-import {
-  Injectable,
-  inject,
-  Injector,
-  runInInjectionContext,
-} from "@angular/core";
+import { Injectable, inject, Injector } from "@angular/core";
 import {
   Firestore,
   doc,
-  addDoc,
-  getDoc,
-  collection,
-  collectionData,
-  docData,
-  where,
-  query,
   QuerySnapshot,
   DocumentData,
-  limit,
-  getDocs,
-  deleteField,
 } from "@angular/fire/firestore";
 import { Observable, forkJoin, of, from, throwError } from "rxjs";
 import { map, take, timeout, catchError } from "rxjs/operators";
@@ -26,23 +11,11 @@ import { Spot } from "../../../../db/models/Spot";
 import { SpotId } from "../../../../db/schemas/SpotSchema";
 import { SpotSchema } from "../../../../db/schemas/SpotSchema";
 import { LocaleCode } from "../../../../db/models/Interfaces";
-import {
-  transformFirestoreData,
-  cleanDataForFirestore,
-  parseFirestoreGeoPoint,
-} from "../../../../scripts/Helpers";
+import { parseFirestoreGeoPoint } from "../../../../scripts/Helpers";
 import { StorageService } from "../storage.service";
-import {
-  AnyMedia,
-  StorageImage,
-  StorageVideo,
-} from "../../../../db/models/Media";
-import { MediaSchema } from "../../../../db/schemas/Media";
+import { StorageImage } from "../../../../db/models/Media";
 import { ConsentAwareService } from "../../consent-aware.service";
-import { SpotEditsService } from "./spot-edits.service";
-import { UserReferenceSchema } from "../../../../db/schemas/UserSchema";
 import { SpotSlugSchema } from "../../../../db/schemas/SpotSlugSchema";
-import { PlatformService } from "../../platform.service";
 import {
   FirestoreAdapterService,
   QueryFilter,
@@ -53,16 +26,11 @@ import {
 })
 export class SpotsService extends ConsentAwareService {
   private _injector = inject(Injector);
-  private _platformService = inject(PlatformService);
   private _firestoreAdapter = inject(FirestoreAdapterService);
   private get storageService(): StorageService {
     // Lazily resolve to avoid circular DI during construction
     return this._injector.get(StorageService);
   }
-
-  // Firestore REST API base URL for HTTP fallback (legacy, can be removed later)
-  private readonly FIRESTORE_REST_URL =
-    "https://firestore.googleapis.com/v1/projects/parkour-base-project/databases/(default)/documents";
 
   constructor(private firestore: Firestore) {
     super();
@@ -83,38 +51,6 @@ export class SpotsService extends ConsentAwareService {
           throw new Error("Error! This Spot does not exist.");
         }
       });
-  }
-
-  getSpotByIdHttp(spotId: SpotId, locale: LocaleCode): Promise<Spot> {
-    return this.getSpotById(spotId, locale).catch((adapterError) => {
-      console.warn(
-        "SpotsService: adapter-backed spot load failed, falling back to HTTP fetch.",
-        adapterError
-      );
-
-      return fetch(
-        `https://firestore.googleapis.com/v1/projects/parkour-base-project/databases/(default)/documents/spots/${spotId}`
-      )
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Network response was not ok");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (!data.fields) {
-            throw new Error("No 'fields' property in JSON response");
-          }
-
-          const spotData = transformFirestoreData(data.fields) as SpotSchema;
-
-          return this.hydrateSpot(spotId, spotData, locale);
-        })
-        .catch((error) => {
-          console.error("There was a problem with the fetch operation:", error);
-          throw error;
-        });
-    });
   }
 
   getSpotById$(spotId: SpotId, locale: LocaleCode): Observable<Spot> {
@@ -272,113 +208,6 @@ export class SpotsService extends ConsentAwareService {
         return Array.from(allSpots.values());
       })
     );
-  }
-
-  /**
-   * HTTP-based alternative for getSpotsForTiles that uses the Firestore REST API.
-   * This is used on native platforms where the Firebase JS SDK has connection issues.
-   */
-  private getSpotsForTilesHttp(
-    tiles: { x: number; y: number }[],
-    locale: LocaleCode
-  ): Observable<Spot[]> {
-    const promises = tiles.map((tile) =>
-      this.getSpotsForTileHttp(tile, locale)
-    );
-    return from(
-      Promise.all(promises).then((arrays) => {
-        const allSpots = new Map<string, Spot>();
-        arrays.forEach((spots) => {
-          spots.forEach((spot) => {
-            allSpots.set(spot.id, spot);
-          });
-        });
-        return Array.from(allSpots.values());
-      })
-    );
-  }
-
-  /**
-   * Fetch spots for a single tile using the Firestore REST API.
-   */
-  private async getSpotsForTileHttp(
-    tile: { x: number; y: number },
-    locale: LocaleCode
-  ): Promise<Spot[]> {
-    try {
-      // Build the structured query for the REST API
-      const queryBody = {
-        structuredQuery: {
-          from: [{ collectionId: "spots" }],
-          where: {
-            compositeFilter: {
-              op: "AND",
-              filters: [
-                {
-                  fieldFilter: {
-                    field: { fieldPath: "tile_coordinates.z16.x" },
-                    op: "EQUAL",
-                    value: { integerValue: tile.x.toString() },
-                  },
-                },
-                {
-                  fieldFilter: {
-                    field: { fieldPath: "tile_coordinates.z16.y" },
-                    op: "EQUAL",
-                    value: { integerValue: tile.y.toString() },
-                  },
-                },
-              ],
-            },
-          },
-        },
-      };
-
-      const response = await fetch(`${this.FIRESTORE_REST_URL}:runQuery`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(queryBody),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      const spots: Spot[] = [];
-
-      // Parse the REST API response
-      for (const result of data) {
-        if (result.document) {
-          // Extract document ID from the name field (format: projects/{project}/databases/{db}/documents/{collection}/{id})
-          const nameParts = result.document.name.split("/");
-          const spotId = nameParts[nameParts.length - 1] as SpotId;
-
-          // Transform the Firestore REST format to normal objects
-          const spotData = transformFirestoreData(
-            result.document.fields
-          ) as SpotSchema;
-          try {
-            spots.push(this.hydrateSpot(spotId, spotData, locale));
-          } catch (error) {
-            console.error(
-              `[SpotsService HTTP] Failed to hydrate spot ${spotId}`,
-              error
-            );
-          }
-        }
-      }
-
-      return spots;
-    } catch (error) {
-      console.error(
-        `[SpotsService HTTP] Tile ${tile.x},${tile.y} FAILED:`,
-        error
-      );
-      return [];
-    }
   }
 
   private _parseSpots(

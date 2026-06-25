@@ -1,6 +1,8 @@
 export const CLIENT_REGION_HEADER = "x-pkspot-client-region";
 export const LONG_LIVED_ASSET_CACHE_CONTROL =
   "public, max-age=31536000, immutable";
+export const REVALIDATING_ASSET_CACHE_CONTROL =
+  "public, max-age=0, must-revalidate";
 export const MISSING_ASSET_CACHE_CONTROL = "no-store";
 export const QR_STICKER_CAMPAIGNS = {
   nice: {
@@ -79,6 +81,38 @@ export function handleQrStickerRequest(req, res, next) {
 
   res.setHeader("Cache-Control", "no-store");
   return res.redirect(302, target);
+}
+
+function hasVersionQuery(req) {
+  const originalUrl = req?.originalUrl ?? req?.url;
+  if (typeof originalUrl !== "string") {
+    return false;
+  }
+
+  const queryStart = originalUrl.indexOf("?");
+  if (queryStart === -1) {
+    return false;
+  }
+
+  const params = new URLSearchParams(originalUrl.slice(queryStart + 1));
+  return params.has("v");
+}
+
+function hasFingerprintInFilename(filePath) {
+  if (typeof filePath !== "string") {
+    return false;
+  }
+
+  const filename = filePath.split(/[\\/]/u).pop() ?? "";
+  return /-[a-z0-9]{8,}(?=\.[^.]+$)/iu.test(filename);
+}
+
+export function getStaticAssetCacheControl(req, filePath) {
+  if (hasVersionQuery(req) || hasFingerprintInFilename(filePath)) {
+    return LONG_LIVED_ASSET_CACHE_CONTROL;
+  }
+
+  return REVALIDATING_ASSET_CACHE_CONTROL;
 }
 
 export function sendMissingAssetResponse(res, requestPath) {

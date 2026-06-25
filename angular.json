@@ -155,6 +155,7 @@
                 }
               },
               "sourceMap": false,
+              "outputHashing": "all",
 
               "budgets": [
                 {

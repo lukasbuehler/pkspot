@@ -256,7 +256,7 @@ async function resolveUserContent(
 
   if (userId) {
     try {
-      const user = await services.usersService.getUserByIdHttp(userId);
+      const user = await services.usersService.getUserByIdOnce(userId);
       if (user) {
         result.user = user;
         metaTagService.setUserMetaTags(user, `/u/${userId}`);

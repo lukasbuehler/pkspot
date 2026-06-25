@@ -1,11 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   applyTrustedClientRegionHeader,
+  getStaticAssetCacheControl,
   getQrStickerRedirectTarget,
   getTrustedClientRegionFromHeaders,
   handleQrStickerRequest,
+  LONG_LIVED_ASSET_CACHE_CONTROL,
   MISSING_ASSET_CACHE_CONTROL,
   normalizeClientRegionHeader,
+  REVALIDATING_ASSET_CACHE_CONTROL,
   sendMissingAssetResponse,
 } from "./proxy-server-helpers.mjs";
 
@@ -96,6 +99,38 @@ describe("proxy-server client region helpers", () => {
     expect(res.setHeader).not.toHaveBeenCalled();
     expect(res.redirect).not.toHaveBeenCalled();
     expect(next).toHaveBeenCalled();
+  });
+
+  it("should cache fingerprinted browser assets for a long time", () => {
+    expect(
+      getStaticAssetCacheControl(
+        { originalUrl: "/en/main-AB12CD34.js" },
+        "/app/browser/en/main-AB12CD34.js"
+      )
+    ).toBe(LONG_LIVED_ASSET_CACHE_CONTROL);
+
+    expect(
+      getStaticAssetCacheControl(
+        { originalUrl: "/en/assets/fonts/material-symbols.woff2?v=e781ea4e6f" },
+        "/app/browser/en/assets/fonts/material-symbols.woff2"
+      )
+    ).toBe(LONG_LIVED_ASSET_CACHE_CONTROL);
+  });
+
+  it("should require revalidation for stable browser asset URLs", () => {
+    expect(
+      getStaticAssetCacheControl(
+        { originalUrl: "/en/main.js" },
+        "/app/browser/en/main.js"
+      )
+    ).toBe(REVALIDATING_ASSET_CACHE_CONTROL);
+
+    expect(
+      getStaticAssetCacheControl(
+        { originalUrl: "/en/manifest.webmanifest" },
+        "/app/browser/en/manifest.webmanifest"
+      )
+    ).toBe(REVALIDATING_ASSET_CACHE_CONTROL);
   });
 
   it("should not let missing browser assets inherit immutable cache headers", () => {

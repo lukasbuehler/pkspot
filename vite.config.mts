@@ -20,6 +20,10 @@ const generatedOutputGlobs = [
   "playwright-report/**",
 ];
 const testFileGlobs = ["src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"];
+const maxTestWorkers = readPositiveInteger(
+  process.env["PKSPOT_VITEST_MAX_WORKERS"],
+  process.env["CI"] ? 2 : 4
+);
 
 export default defineConfig(({ mode }) => ({
   // Vitest does not need dependency prebundling. Leaving discovery enabled makes
@@ -36,6 +40,7 @@ export default defineConfig(({ mode }) => ({
     setupFiles: ["src/test-setup.ts"],
     include: testFileGlobs,
     exclude: ["node_modules/**", ...generatedOutputGlobs],
+    maxWorkers: maxTestWorkers,
     reporters: ["default"],
     server: {
       deps: {
@@ -50,3 +55,16 @@ export default defineConfig(({ mode }) => ({
     "import.meta.vitest": mode !== "production",
   },
 }));
+
+function readPositiveInteger(value: string | undefined, fallback: number): number {
+  if (!value) {
+    return fallback;
+  }
+
+  const parsedValue = Number.parseInt(value, 10);
+  if (!Number.isInteger(parsedValue) || parsedValue < 1) {
+    throw new Error(`Expected a positive integer, received: ${value}`);
+  }
+
+  return parsedValue;
+}

@@ -11,7 +11,6 @@ import { PrivateUserDataSchema } from "../../../../db/schemas/PrivateUserDataSch
 import { ConsentAwareService } from "../../consent-aware.service";
 import { StorageImage } from "../../../../db/models/Media";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
-import { transformFirestoreData } from "../../../../scripts/Helpers";
 
 @Injectable({
   providedIn: "root",
@@ -71,11 +70,11 @@ export class UsersService extends ConsentAwareService {
             innerSub = null;
 
             console.warn(
-              "UsersService: Falling back to HTTP profile fetch after Firestore listener failure.",
+              "UsersService: Falling back to adapter-backed profile fetch after Firestore listener failure.",
               e
             );
 
-            this.getUserByIdHttp(userId)
+            this.getUserByIdOnce(userId)
               .then((fallbackUser) => {
                 if (!isUnsubscribed) {
                   observer.next(fallbackUser);
@@ -120,35 +119,22 @@ export class UsersService extends ConsentAwareService {
     );
   }
 
-  async getUserByIdHttp(userId: string): Promise<User | null> {
+  async getUserByIdOnce(userId: string): Promise<User | null> {
     if (!userId) {
       return null;
     }
 
     try {
-      const encodedUserId = encodeURIComponent(userId);
-      const response = await fetch(
-        `https://firestore.googleapis.com/v1/projects/parkour-base-project/databases/(default)/documents/users/${encodedUserId}`
-      );
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          return null;
-        }
-        throw new Error(
-          `Failed to fetch user ${userId}: ${response.status} ${response.statusText}`
-        );
-      }
-
-      const data = await response.json();
-      if (!data?.fields) {
+      const data = await this._firestoreAdapter.getDocument<
+        UserSchema & { id: string }
+      >(`users/${userId}`);
+      if (!data) {
         return null;
       }
 
-      const userData = transformFirestoreData(data.fields) as UserSchema;
-      return new User(userId, userData);
+      return new User(data.id, data as UserSchema);
     } catch (error) {
-      console.error("UsersService HTTP fetch failed:", error);
+      console.error("UsersService adapter-backed user fetch failed:", error);
       return null;
     }
   }

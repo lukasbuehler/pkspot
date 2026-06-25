@@ -47,7 +47,7 @@
     "test:emulator:user-flows": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only auth,firestore,functions --project demo-pkspot \"node scripts/emulator_run_spot_create_user_flow.js\"",
     "emulators:test:community": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only firestore,functions --project demo-pkspot \"node scripts/emulator_run_community_flow.js\"",
     "test:emulator:spot-edits": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only firestore,functions --project demo-pkspot \"node scripts/emulator_run_spot_edit_flow.js\"",
-    "lint": "ng lint",
+    "lint": "node scripts/run-eslint.mjs",
     "e2e": "ng e2e",
     "deploy:rules:firestore": "npx firebase deploy --only firestore:rules",
     "deploy:rules:storage": "npx firebase deploy --only storage",

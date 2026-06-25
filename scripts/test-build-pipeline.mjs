@@ -319,6 +319,40 @@ function assertImmutableAssetCacheHeaders(response, assetUrl) {
   );
 }
 
+function assertRevalidatingAssetCacheHeaders(response, assetUrl) {
+  assert.equal(
+    response.headers.get("cache-control"),
+    "public, max-age=0, must-revalidate",
+    `Stable asset URL should require revalidation: ${assetUrl}`
+  );
+}
+
+function isVersionedAssetUrl(assetUrl) {
+  const url = new URL(assetUrl, baseUrl);
+  const filename = path.basename(url.pathname);
+  return (
+    url.searchParams.has("v") ||
+    /-[a-z0-9]{8,}(?=\.[^.]+$)/iu.test(filename)
+  );
+}
+
+function assertBrowserAssetCacheHeaders(response, assetUrl) {
+  const pathname = new URL(assetUrl, baseUrl).pathname;
+  const extension = path.extname(pathname);
+  const isVersioned = isVersionedAssetUrl(assetUrl);
+
+  if ((extension === ".js" || extension === ".css") && !isVersioned) {
+    assert.fail(`Browser JS/CSS asset should be fingerprinted: ${assetUrl}`);
+  }
+
+  if (isVersioned) {
+    assertImmutableAssetCacheHeaders(response, assetUrl);
+    return;
+  }
+
+  assertRevalidatingAssetCacheHeaders(response, assetUrl);
+}
+
 async function assertBrowserAssetsLoad(html, locale, serverLogs, serverLogOffset) {
   const assetUrls = extractLocalBrowserAssetUrls(html, locale);
   assert.ok(
@@ -339,7 +373,7 @@ async function assertBrowserAssetsLoad(html, locale, serverLogs, serverLogOffset
       200,
       `${locale} browser asset referenced by SSR HTML should be served: ${assetUrl}`
     );
-    assertImmutableAssetCacheHeaders(response, assetUrl);
+    assertBrowserAssetCacheHeaders(response, assetUrl);
     assert.ok(
       (await response.arrayBuffer()).byteLength > 0,
       `${locale} browser asset referenced by SSR HTML should not be empty: ${assetUrl}`
@@ -771,7 +805,7 @@ async function main() {
       "favicon.ico"
     );
     assert.equal(faviconResponse.status, 200, "Root favicon should be served");
-    assertImmutableAssetCacheHeaders(faviconResponse, "/favicon.ico");
+    assertRevalidatingAssetCacheHeaders(faviconResponse, "/favicon.ico");
     const faviconBytes = await faviconResponse.arrayBuffer();
     assert.ok(faviconBytes.byteLength > 0, "Favicon response should not be empty");
 
@@ -787,7 +821,7 @@ async function main() {
         200,
         `${locale} language-specific assets should be served`
       );
-      assertImmutableAssetCacheHeaders(assetResponse, assetUrl);
+      assertRevalidatingAssetCacheHeaders(assetResponse, assetUrl);
       const assetText = await assetResponse.text();
       assert.ok(
         assetText.includes("location_on") || assetText.length > 0,
