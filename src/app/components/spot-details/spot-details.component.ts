@@ -449,6 +449,7 @@ export class SpotDetailsComponent
   loadingTitle = input<string>("");
   loadingSubtitle = input<string>("");
   loadingImageSrc = input<string | null | undefined>(null);
+  liveUpdates = input<boolean>(true);
 
   /**
    * Controls the visibility of collapsible header info when used in bottom sheet.
@@ -1000,7 +1001,7 @@ export class SpotDetailsComponent
       this.newSlug = "";
       this.addingSlug.set(false);
 
-      if (spot instanceof Spot) {
+      if (spot instanceof Spot && this.liveUpdates()) {
         // Ensure live updates subscription for this spot id
         this._subscribeToLiveSpot(spot);
 
@@ -1013,7 +1014,7 @@ export class SpotDetailsComponent
           }
         });
       } else {
-        // Not a persisted spot: stop any live subscription
+        // Local spots and fixture spots do not need Firestore live updates.
         this._unsubscribeFromLiveSpot();
       }
     });

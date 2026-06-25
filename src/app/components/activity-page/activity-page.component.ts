@@ -5,7 +5,7 @@ import {
   OnDestroy,
   OnInit,
   signal,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
 } from "@angular/core";
 import { AsyncPipe, DatePipe, KeyValuePipe } from "@angular/common";
 import { Router, RouterLink } from "@angular/router";
@@ -24,6 +24,8 @@ import { MatChipsModule } from "@angular/material/chips";
 import { ProfileButtonComponent } from "../profile-button/profile-button.component";
 import { SpotEditSummaryComponent } from "../spot-edit-summary/spot-edit-summary.component";
 import { buildSpotCanonicalPath } from "../../../scripts/SpotRouteHelpers";
+import { AuthenticationService } from "../../services/firebase/authentication.service";
+import { SpotId } from "../../../db/schemas/SpotSchema";
 
 interface FeedItem {
   editId?: string;
@@ -56,8 +58,12 @@ const ACTIVITY_PAGE_SIZE = 25;
 export class ActivityPageComponent implements OnInit, OnDestroy {
   private _spotEditsService = inject(SpotEditsService);
   private _spotsService = inject(SpotsService);
+  private _authService = inject(AuthenticationService);
   private _locale = inject(LOCALE_ID) as LocaleCode;
   private _router = inject(Router);
+
+  readonly authResolved = this._authService.initialAuthStateResolved;
+  readonly isAdmin = this._authService.isAdmin;
 
   // Feed State
   items$ = new BehaviorSubject<FeedItem[]>([]);
@@ -65,10 +71,12 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
   isLoading$ = new BehaviorSubject<boolean>(false);
   hasMore$ = new BehaviorSubject<boolean>(true);
 
-  private _lastDoc: any = null;
+  private _lastDoc: unknown = null;
+  private _hasLoaded = false;
   private _spotCache = new Map<string, Promise<Spot | null>>();
   private _destroyed$ = new Subject<void>();
   private _realtimeSubscription?: Subscription;
+  private _authSubscription?: Subscription;
 
   categories = {
     all: $localize`All`,
@@ -80,7 +88,17 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
     signal<(typeof this.categories)[keyof typeof this.categories]>("all");
 
   ngOnInit() {
-    this.initialLoad();
+    this._authSubscription = this._authService.authState$
+      .pipe(takeUntil(this._destroyed$))
+      .subscribe(() => {
+        if (this._authService.isAdmin()) {
+          if (!this._hasLoaded) {
+            void this.initialLoad();
+          }
+        } else {
+          this._resetFeed();
+        }
+      });
   }
 
   ngOnDestroy() {
@@ -89,10 +107,18 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
     if (this._realtimeSubscription) {
       this._realtimeSubscription.unsubscribe();
     }
+    if (this._authSubscription) {
+      this._authSubscription.unsubscribe();
+    }
     this._spotCache.clear();
   }
 
   async initialLoad() {
+    if (!this._authService.isAdmin()) {
+      return;
+    }
+
+    this._hasLoaded = true;
     this.isLoading$.next(true);
     try {
       const result =
@@ -117,7 +143,9 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
   }
 
   async loadMore() {
-    if (this.isLoading$.value || !this.hasMore$.value) return;
+    if (!this._authService.isAdmin() || this.isLoading$.value || !this.hasMore$.value) {
+      return;
+    }
 
     this.isLoading$.next(true);
     try {
@@ -141,6 +169,10 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
   }
 
   showNewItems() {
+    if (!this._authService.isAdmin()) {
+      return;
+    }
+
     const buffer = this.newItemsBuffer$.value;
     if (buffer.length === 0) return;
 
@@ -155,6 +187,10 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
   }
 
   private _startRealtimeListener(latestTimestamp: number) {
+    if (this._realtimeSubscription) {
+      this._realtimeSubscription.unsubscribe();
+    }
+
     this._realtimeSubscription = this._spotEditsService
       .getNewSpotEditsSince(latestTimestamp)
       .pipe(
@@ -192,7 +228,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
   }
 
   private async _enrichEditsWithSpotData(
-    edits: Array<{ edit: SpotEditSchema; spotId: string }>
+    edits: { edit: SpotEditSchema; spotId: string }[]
   ): Promise<FeedItem[]> {
     if (edits.length === 0) return [];
 
@@ -229,7 +265,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
     }
 
     const request = firstValueFrom(
-      this._spotsService.getSpotById$(spotId as any, this._locale)
+      this._spotsService.getSpotById$(spotId as SpotId, this._locale)
     )
       .then((spot) => spot || null)
       .catch((error) => {
@@ -241,28 +277,17 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
     return request;
   }
 
-  private _getJsDate(editOrTimestamp: SpotEditSchema | Timestamp | any): Date {
-    const rawMs =
-      editOrTimestamp &&
-      typeof editOrTimestamp === "object" &&
-      "timestamp_raw_ms" in editOrTimestamp
-        ? Number((editOrTimestamp as any).timestamp_raw_ms)
-        : undefined;
-
-    const timestamp =
-      editOrTimestamp &&
-      typeof editOrTimestamp === "object" &&
-      "timestamp" in editOrTimestamp
-        ? (editOrTimestamp as any).timestamp
-        : editOrTimestamp;
+  private _getJsDate(editOrTimestamp: unknown): Date {
+    const rawMs = this._getRawMs(editOrTimestamp);
+    const timestamp = this._getTimestampValue(editOrTimestamp);
 
     if (timestamp instanceof Timestamp) {
       return timestamp.toDate();
     } else if (timestamp instanceof Date) {
       return timestamp;
-    } else if (timestamp && typeof timestamp.toDate === "function") {
+    } else if (this._hasToDate(timestamp)) {
       return timestamp.toDate();
-    } else if (timestamp && typeof timestamp.seconds === "number") {
+    } else if (this._hasSeconds(timestamp)) {
       return new Date(timestamp.seconds * 1000);
     } else if (typeof rawMs === "number" && Number.isFinite(rawMs)) {
       return new Date(rawMs);
@@ -270,28 +295,17 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
     return new Date();
   }
 
-  private _getTimestampMs(editOrTimestamp: SpotEditSchema | Timestamp | any): number {
-    const rawMs =
-      editOrTimestamp &&
-      typeof editOrTimestamp === "object" &&
-      "timestamp_raw_ms" in editOrTimestamp
-        ? Number((editOrTimestamp as any).timestamp_raw_ms)
-        : undefined;
-
-    const timestamp =
-      editOrTimestamp &&
-      typeof editOrTimestamp === "object" &&
-      "timestamp" in editOrTimestamp
-        ? (editOrTimestamp as any).timestamp
-        : editOrTimestamp;
+  private _getTimestampMs(editOrTimestamp: unknown): number {
+    const rawMs = this._getRawMs(editOrTimestamp);
+    const timestamp = this._getTimestampValue(editOrTimestamp);
 
     if (timestamp instanceof Timestamp) {
       return timestamp.toMillis();
     } else if (timestamp instanceof Date) {
       return timestamp.getTime();
-    } else if (timestamp && typeof timestamp.toMillis === "function") {
+    } else if (this._hasToMillis(timestamp)) {
       return timestamp.toMillis();
-    } else if (timestamp && typeof timestamp.seconds === "number") {
+    } else if (this._hasSeconds(timestamp)) {
       return timestamp.seconds * 1000;
     } else if (typeof rawMs === "number" && Number.isFinite(rawMs)) {
       return rawMs;
@@ -307,11 +321,57 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
     });
   }
 
+  private _getRawMs(value: unknown): number | undefined {
+    if (!this._isRecord(value) || !("timestamp_raw_ms" in value)) {
+      return undefined;
+    }
+
+    return Number(value["timestamp_raw_ms"]);
+  }
+
+  private _getTimestampValue(value: unknown): unknown {
+    if (this._isRecord(value) && "timestamp" in value) {
+      return value["timestamp"];
+    }
+
+    return value;
+  }
+
+  private _isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
+  }
+
+  private _hasToDate(value: unknown): value is { toDate: () => Date } {
+    return this._isRecord(value) && typeof value["toDate"] === "function";
+  }
+
+  private _hasToMillis(value: unknown): value is { toMillis: () => number } {
+    return this._isRecord(value) && typeof value["toMillis"] === "function";
+  }
+
+  private _hasSeconds(value: unknown): value is { seconds: number } {
+    return this._isRecord(value) && typeof value["seconds"] === "number";
+  }
+
   private _itemKey(item: FeedItem): string {
     if (item.editId) {
       return `${item.spotId}_${item.editId}`;
     }
     return `${item.spotId}_${this._getTimestampMs(item.edit)}_${item.edit.type}_${item.edit.user.uid}`;
+  }
+
+  private _resetFeed(): void {
+    this._hasLoaded = false;
+    this._lastDoc = null;
+    this._spotCache.clear();
+    this.items$.next([]);
+    this.newItemsBuffer$.next([]);
+    this.isLoading$.next(false);
+    this.hasMore$.next(true);
+    if (this._realtimeSubscription) {
+      this._realtimeSubscription.unsubscribe();
+      this._realtimeSubscription = undefined;
+    }
   }
 
   openSpot(spot: Spot | null) {

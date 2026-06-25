@@ -77,6 +77,14 @@ describe("Cloud Functions generation policy", () => {
     expect(rulesSource).not.toContain("spot.verification.status");
   });
 
+  it("keeps collection-group spot edit feeds admin-only", () => {
+    const rulesSource = readFileSync(resolve(repoRoot, "firestore.rules"), "utf8");
+
+    expect(rulesSource).toMatch(
+      /match\s+\/\{path=\*\*\}\/edits\/\{editId\}\s*\{\s*allow read: if isAdmin\(\);/u
+    );
+  });
+
   it("keeps organization review callables publicly invokable for browser preflight", () => {
     const spotEditSource = readFileSync(
       resolve(functionsSourceRoot, "spotEditFunctions.ts"),

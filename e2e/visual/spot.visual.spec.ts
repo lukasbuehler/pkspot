@@ -1,135 +1,118 @@
-import { test, expect } from "@playwright/test";
-import { MapPage } from "../pages/map.page";
-import { SpotDetailsPage } from "../pages/spot-details.page";
+import { test, expect, type Page } from "@playwright/test";
 
-/**
- * Visual regression tests for Spot Details.
- * Tag with @visual for selective test runs.
- * Uses 'de' locale for SSR dev build compatibility.
- */
-test.describe("Spot Details Visual Regression @visual", () => {
-  let mapPage: MapPage;
-  let spotDetails: SpotDetailsPage;
-
-  test.beforeEach(async ({ page }) => {
-    mapPage = new MapPage(page);
-    spotDetails = new SpotDetailsPage(page);
+async function openSpotFixture(page: Page, viewport = { width: 390, height: 844 }) {
+  await page.setViewportSize(viewport);
+  await page.addInitScript(() => {
+    localStorage.setItem("acceptedVersion", "5");
   });
-
-  test("should match spot details panel when opened", async ({ page }) => {
-    await page.setViewportSize({ width: 1920, height: 1080 });
-
-    await mapPage.goto("de");
-    await mapPage.waitForMapReady();
-    await page.waitForTimeout(1000);
-
-    // Try to open a spot by clicking on the map
-    const isMapVisible = await mapPage.isMapVisible();
-
-    if (isMapVisible) {
-      const mapBounds = await mapPage.spotMap.boundingBox();
-      if (mapBounds) {
-        // Click in center-ish area
-        await page.mouse.click(
-          mapBounds.x + mapBounds.width * 0.4,
-          mapBounds.y + mapBounds.height * 0.4
-        );
-        await page.waitForTimeout(2000);
-
-        // If spot details opened, take screenshot
-        if (await spotDetails.isVisible()) {
-          await expect(spotDetails.container).toHaveScreenshot(
-            "spot-details-panel.png",
-            {
-              maxDiffPixels: 200,
-              animations: "disabled",
-              mask: [
-                // Mask images which may load differently
-                page.locator("app-spot-details img"),
-                page.locator("app-spot-details swiper-container"),
-                page.locator("app-img-carousel"),
-              ],
-            }
-          );
-        } else {
-          // No spot clicked, skip this test
-          test.skip();
-        }
+  await page.goto("/de/__visual/spot-bottom-sheet", {
+    waitUntil: "domcontentloaded",
+  });
+  await page.addStyleTag({
+    content: `
+      app-nav-rail,
+      mat-toolbar,
+      #alainMenuButton,
+      app-footer,
+      footer,
+      .terms-footer,
+      .footer,
+      .app-footer {
+        visibility: hidden !important;
       }
-    } else {
-      test.skip();
-    }
+    `,
   });
+  await expect(page.locator("app-map-spot-details-panel")).toBeVisible();
+  await expect(page.locator("app-spot-details")).toContainText(
+    "Riverside Training Walls",
+  );
+  await page.waitForTimeout(700);
+}
 
-  test("should match spot details - mobile bottom sheet", async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 });
-    await page.addInitScript(() => {
-      localStorage.setItem("acceptedVersion", "5");
-    });
-    await page.goto("/de/__visual/spot-bottom-sheet", {
-      waitUntil: "domcontentloaded",
-    });
-    await page.addStyleTag({
-      content: `
-        app-nav-rail,
-        app-footer,
-        footer,
-        .terms-footer,
-        .footer,
-        .app-footer {
-          visibility: hidden !important;
-        }
-      `,
-    });
+async function expandSheetForFullContentSnapshot(page: Page): Promise<void> {
+  await page.addStyleTag({
+    content: `
+      app-nav-rail-content,
+      app-nav-rail-content .main-content,
+      .spot-bottom-sheet-visual-page,
+      app-bottom-sheet.visual-bottom-sheet {
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+      }
 
-    const bottomSheet = page.locator("app-bottom-sheet");
-    const sheet = bottomSheet.locator(".sheet");
-    const details = bottomSheet.locator("app-spot-details");
-    await expect(details).toBeVisible();
-    await page.waitForTimeout(700);
+      .spot-bottom-sheet-visual-page {
+        padding: 0 !important;
+      }
+
+      .map-backdrop {
+        display: none !important;
+      }
+
+      app-bottom-sheet.visual-bottom-sheet {
+        position: static !important;
+        display: block !important;
+        inset: auto !important;
+        width: 390px !important;
+        background: transparent !important;
+      }
+
+      app-bottom-sheet.visual-bottom-sheet .sheet {
+        position: static !important;
+        transform: none !important;
+        opacity: 1 !important;
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        border-radius: 28px !important;
+      }
+
+      app-bottom-sheet.visual-bottom-sheet .content {
+        height: auto !important;
+        overflow: visible !important;
+      }
+    `,
+  });
+  await page.waitForTimeout(200);
+}
+
+test.describe("Spot Details Visual Regression @visual", () => {
+  test("should match full rich persisted spot details", async ({
+    page,
+  }) => {
+    await openSpotFixture(page, { width: 390, height: 1800 });
+    await expandSheetForFullContentSnapshot(page);
+
+    const sheet = page.locator("app-bottom-sheet .sheet");
+    const details = sheet.locator("app-spot-details");
+
+    await expect(details).toContainText(/Details|Eigenschaften/u);
+    await expect(details).toContainText(
+      /Features and amenities|Eigenschaften und Annehmlichkeiten/u,
+    );
+    await expect(details).toContainText(
+      /Rating and user reviews|Bewertung und user Rezensionen/u,
+    );
+    await expect(details).toContainText(/edits are waiting|Bearbeitungen warten/u);
+    await expect(details).toContainText(/License|Lizenz/u);
 
     await expect(sheet).toHaveScreenshot("spot-details-bottom-sheet.png", {
-      maxDiffPixels: 200,
+      maxDiffPixels: 250,
       animations: "disabled",
-      mask: [details.locator("img")],
     });
   });
-});
 
-test.describe("Spot Details Components Visual @visual", () => {
-  test("should match spot rating component", async ({ page }) => {
-    await page.setViewportSize({ width: 1920, height: 1080 });
+  test("should keep the collapsed sheet header readable", async ({ page }) => {
+    await openSpotFixture(page, { width: 390, height: 844 });
 
-    await page.goto("/de/map");
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(2000);
+    const sheet = page.locator("app-bottom-sheet .sheet");
+    await page.locator("app-bottom-sheet .handle-region").click();
+    await page.waitForTimeout(400);
 
-    // Find rating component if visible
-    const rating = page.locator("app-spot-rating").first();
-
-    if (await rating.isVisible()) {
-      await expect(rating).toHaveScreenshot("spot-rating-component.png", {
-        maxDiffPixels: 50,
-        animations: "disabled",
-      });
-    }
-  });
-
-  test("should match amenities section", async ({ page }) => {
-    await page.setViewportSize({ width: 1920, height: 1080 });
-
-    await page.goto("/de/map");
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(2000);
-
-    // Find amenities section if visible
-    const amenities = page.locator('[class*="amenities"]').first();
-
-    if (await amenities.isVisible()) {
-      await expect(amenities).toHaveScreenshot("spot-amenities-section.png", {
-        maxDiffPixels: 100,
-        animations: "disabled",
-      });
-    }
+    await expect(sheet).toContainText("Riverside Training Walls");
+    await expect(sheet).toHaveScreenshot("spot-details-bottom-sheet-collapsed.png", {
+      maxDiffPixels: 150,
+      animations: "disabled",
+    });
   });
 });

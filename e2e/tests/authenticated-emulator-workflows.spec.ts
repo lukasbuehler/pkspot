@@ -6,14 +6,12 @@ import {
   firebaseEmulatorE2eEnabled,
   resetFirebaseEmulators,
   seedFirestoreDocument,
+  signInThroughAccount,
   type CreatedEmulatorUser,
 } from "../fixtures/firebase-emulators";
 import {
   expectAppRendered,
   expectRoute,
-  gotoWorkflow,
-  localizedPath,
-  workflowViewports,
 } from "../fixtures/workflow";
 
 test.describe("authenticated Firebase emulator workflows", () => {
@@ -97,30 +95,6 @@ test.describe("authenticated Firebase emulator workflows", () => {
     await expect(page.locator('button:has-text("Save changes")')).toBeAttached();
   });
 });
-
-async function signInThroughAccount(
-  page: Page,
-  user: CreatedEmulatorUser,
-  returnUrl: string,
-): Promise<void> {
-  await gotoWorkflow(
-    page,
-    `/account?returnUrl=${encodeURIComponent(returnUrl)}`,
-    workflowViewports[0],
-  );
-
-  await page.locator('input[formControlName="email"]').fill(user.email);
-  await page
-    .locator('input[formControlName="password"]')
-    .fill("correct-horse-battery-staple");
-
-  await Promise.all([
-    page.waitForURL(new RegExp(`${localizedPath(returnUrl)}$`, "u"), {
-      timeout: 30_000,
-    }),
-    page.locator('form button[type="submit"]').click(),
-  ]);
-}
 
 async function seedMapViewport(page: Page): Promise<void> {
   await page.addInitScript((settings) => {

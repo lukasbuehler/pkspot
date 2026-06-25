@@ -8,10 +8,16 @@
     </div>
 
     @if (isAdmin()) {
-      <button matButton="outlined" type="button" (click)="reload()">
-        <mat-icon>refresh</mat-icon>
-        <span i18n>Refresh</span>
-      </button>
+      <div class="moderation-dashboard__actions">
+        <a matButton="outlined" routerLink="/moderation/activity">
+          <mat-icon>vital_signs</mat-icon>
+          <span>Activity feed</span>
+        </a>
+        <button matButton="outlined" type="button" (click)="reload()">
+          <mat-icon>refresh</mat-icon>
+          <span i18n>Refresh</span>
+        </button>
+      </div>
     }
   </header>
 

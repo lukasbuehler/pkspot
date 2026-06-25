@@ -1,60 +1,207 @@
+:host {
+  display: block;
+}
+
 .age-policy-visual-page {
   min-height: 100dvh;
-  padding: 32px;
   background: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
 }
 
-.age-policy-surface {
-  width: min(920px, 100%);
+.age-policy-profile-fixture {
+  display: flex;
+  justify-content: center;
+  padding: clamp(24px, 5vw, 48px) clamp(16px, 6vw, 72px);
+}
+
+.profile-grid {
+  width: min(1120px, 100%);
   display: grid;
-  gap: 20px;
+  gap: 24px;
 }
 
-.age-policy-card {
-  border-radius: 8px;
-}
-
-.profile-preview {
+.profile-primary,
+.profile-secondary {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
-  gap: 20px;
-  align-items: start;
+  gap: 24px;
 }
 
-.profile-avatar {
-  width: 96px;
-  height: 96px;
+.profile-overview__card {
+  overflow: hidden;
+}
+
+.profile-overview__content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+}
+
+.profile-overview__avatar {
+  width: 160px;
+  height: 160px;
   border-radius: 50%;
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.profile-overview__avatar--placeholder {
   display: grid;
   place-items: center;
-  background: var(--mat-sys-secondary-container);
-  color: var(--mat-sys-on-secondary-container);
-  font-size: 42px;
+  text-transform: uppercase;
   font-weight: 600;
 }
 
-.profile-main {
+.profile-overview__details {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+}
+
+.profile-overview__heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-overview__name {
+  flex: 1 1 auto;
+}
+
+.profile-facts {
+  display: grid;
+  gap: 4px;
+}
+
+.profile-overview__location,
+.profile-overview__tenure {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.profile-stats {
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+  padding-block: 8px;
+}
+
+.clickable-stat {
+  display: flex;
+  flex-direction: column;
+  min-width: 100px;
+}
+
+.profile-overview__actions {
   display: grid;
   gap: 12px;
 }
 
-.action-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+.profile-overview__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-.muted {
+.profile-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-section__header.mat-mdc-card-header {
+  padding: 20px 24px 0;
+}
+
+.profile-section__header .mat-mdc-card-title {
+  margin: 0 0 8px;
+}
+
+.profile-section__content.mat-mdc-card-content {
+  padding: 12px 24px 24px;
+  margin: 0;
+}
+
+.contribution-grid {
+  display: grid;
+  gap: 12px;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.age-policy-settings-fixture {
+  padding-bottom: 100px;
+}
+
+.settings-grid {
+  display: grid;
+  gap: 24px;
+}
+
+div.menu {
+  overflow: hidden;
+}
+
+button.menuButton {
+  justify-content: flex-start;
+  text-align: left;
+  height: 48px;
+  border-radius: 0;
+  padding-left: 18px;
+
+  mat-icon {
+    margin-right: 10px;
+  }
+}
+
+button.menuButton.selected {
+  border-left: 2px solid;
+  border-color: var(--mat-sys-primary);
+  padding-left: 16px;
+}
+
+.text-muted {
   color: var(--mat-sys-on-surface-variant);
 }
 
-@media (max-width: 599px) {
-  .age-policy-visual-page {
-    padding: 18px;
+@media (min-width: 768px) {
+  .profile-overview__content {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+@media (min-width: 960px) {
+  .profile-grid {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    align-items: start;
   }
 
-  .profile-preview {
-    grid-template-columns: 1fr;
+  .settings-grid {
+    grid-template-columns: minmax(220px, 1fr) minmax(0, 2fr);
+  }
+}
+
+@media (min-width: 560px) {
+  .profile-overview__actions {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+}
+
+@media (max-width: 599px) {
+  .age-policy-profile-fixture {
+    padding: 18px 16px;
+  }
+
+  .age-policy-settings-fixture .container {
+    padding-inline: 16px !important;
   }
 }

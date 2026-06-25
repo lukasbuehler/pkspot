@@ -5,7 +5,6 @@ export const environment = {
   mapId: "e2926e5bfb22860c",
   features: {
     checkIns: false,
-    activity: false,
     mapPerformanceProfiling: false,
     streetView: {
       preview: false,

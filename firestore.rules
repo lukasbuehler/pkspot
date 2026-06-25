@@ -688,7 +688,7 @@ service cloud.firestore {
     }
 
     match /{path=**}/edits/{editId} {
-      allow read: if canReadSpotEdit();
+      allow read: if isAdmin();
     }
   }
 }

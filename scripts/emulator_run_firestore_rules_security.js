@@ -299,13 +299,16 @@ async function seedSecurityFixture() {
   await batch.commit();
 }
 
-async function testPublicReadSurface(anon) {
+async function testPublicReadSurface(anon, adminUser) {
   await assertAllowed("anonymous spot read", () => getDoc(doc(anon.db, "spots/public-spot")));
   await assertAllowed("anonymous edit read", () =>
     getDoc(doc(anon.db, "spots/public-spot/edits/public-edit"))
   );
-  await assertAllowed("anonymous collection group edits read", async () => {
-    const snapshot = await getDocs(collectionGroup(anon.db, "edits"));
+  await assertDenied("anonymous collection group edits read", () =>
+    getDocs(collectionGroup(anon.db, "edits"))
+  );
+  await assertAllowed("admin collection group edits read", async () => {
+    const snapshot = await getDocs(collectionGroup(adminUser.db, "edits"));
     assert.ok(snapshot.docs.some((item) => item.id === "public-edit"));
   });
   await assertAllowed("anonymous spot cluster read", () =>
@@ -1108,7 +1111,7 @@ async function main() {
   const adminUser = await createClient("admin");
 
   console.log("Running Firestore rules security tests...");
-  await testPublicReadSurface(anon);
+  await testPublicReadSurface(anon, adminUser);
   await testSpotWriteGuards(anon, owner, other, adminUser);
   await testOrganizationGuards(anon, owner, other, adminUser);
   await testPrivateOrganizationReviewEdits(anon, owner, other, adminUser);

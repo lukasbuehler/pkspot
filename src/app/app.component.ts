@@ -204,7 +204,6 @@ export class AppComponent implements OnInit, AfterViewInit {
   private _mapProfiler = inject(MapPerformanceProfilerService);
   public checkInService = inject(CheckInService);
   readonly checkInEnabled = environment.features.checkIns;
-  readonly activityEnabled = environment.features.activity;
 
   constructor(
     public router: Router,
@@ -1425,14 +1424,6 @@ html.pkspot-roboto-loaded body {
         icon: "map",
       },
     ];
-    if (this.activityEnabled) {
-      buttons.push({
-        name: $localize`Activity`,
-        link: "/activity",
-        icon: "vital_signs",
-      });
-    }
-
     buttons.push({
       name: $localize`:Events navbar button label|A very short label for the navbar events page button@@events_label:Events`,
       link: "/events",

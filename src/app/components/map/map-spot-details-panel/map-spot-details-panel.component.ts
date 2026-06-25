@@ -27,6 +27,7 @@ export class MapSpotDetailsPanelComponent {
   pendingVoteCount = input(0);
   openProgress = input(1);
   mapQueryParams = input<Record<string, string> | null>(null);
+  liveUpdates = input(true);
 
   challenge = model<SpotChallenge | LocalSpotChallenge | null>(null);
 

@@ -51,8 +51,6 @@ import { MatTooltipModule } from "@angular/material/tooltip";
 import { NgOptimizedImage } from "@angular/common";
 import { PrivateSpotListsDialogComponent } from "../private-spot-lists-dialog/private-spot-lists-dialog.component";
 import { AnalyticsService } from "../../services/analytics.service";
-import { UserActivityComponent } from "../user-activity/user-activity.component";
-import { MatExpansionModule } from "@angular/material/expansion";
 import {
   ProfileReportDialogComponent,
   ProfileReportDialogResult,
@@ -89,8 +87,6 @@ type ProfileSocialLink = {
     MatRippleModule,
     MatTooltipModule,
     NgOptimizedImage,
-    UserActivityComponent,
-    MatExpansionModule,
     ContributionStatusNoteComponent,
   ],
 })

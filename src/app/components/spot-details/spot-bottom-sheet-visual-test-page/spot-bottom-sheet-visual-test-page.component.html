@@ -8,11 +8,16 @@
     <span class="map-label map-label--two">Limmat</span>
   </div>
 
-  <app-bottom-sheet class="visual-bottom-sheet" [closedHeight]="90">
+  <app-bottom-sheet
+    class="visual-bottom-sheet"
+    [closedHeight]="90"
+    (openProgressChange)="openProgress.set($event)"
+  >
     <app-map-spot-details-panel
       [spot]="spot"
-      [openProgress]="1"
+      [openProgress]="openProgress()"
       [pendingVoteCount]="3"
+      [liveUpdates]="false"
     ></app-map-spot-details-panel>
   </app-bottom-sheet>
 </main>

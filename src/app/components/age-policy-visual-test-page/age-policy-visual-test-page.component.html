@@ -1,41 +1,152 @@
 <main class="age-policy-visual-page">
-  <section class="age-policy-surface" aria-label="Age policy visual regression">
-    <mat-card class="age-policy-card">
-      <mat-card-header>
-        <mat-card-title>Own profile</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="profile-preview">
-          <div class="profile-avatar" aria-hidden="true">P</div>
-          <div class="profile-main">
-            <h1 class="mat-headline-small m-0">Parkour Tester</h1>
-            <p class="mat-body-medium m-0 muted">Public profile preview</p>
-            <app-contribution-status-note></app-contribution-status-note>
-            <div class="action-row">
-              <button matButton="filled" color="primary">
-                <mat-icon>settings</mat-icon>
-                <span>Settings</span>
-              </button>
-              <button mat-stroked-button color="warn">
-                <mat-icon>logout</mat-icon>
-                <span>Log out</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
+  <section
+    class="profile-page age-policy-profile-fixture"
+    aria-label="Restricted own profile visual regression"
+  >
+    <div class="profile-grid">
+      <section class="profile-primary" aria-label="Profile overview">
+        <mat-card class="profile-overview__card mat-elevation-z1">
+          <mat-card-content>
+            <div class="profile-overview__content position-relative">
+              <div
+                class="profile-overview__avatar profile-overview__avatar--placeholder mat-display-small flex-shrink-0"
+                aria-hidden="true"
+              >
+                P
+              </div>
 
-    <mat-card class="age-policy-card">
-      <mat-card-header>
-        <mat-card-title>Settings profile tab</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <p class="mat-body-medium muted">
-          Profile editing is hidden while public contributions are unavailable.
-        </p>
-        <app-contribution-status-note></app-contribution-status-note>
-      </mat-card-content>
-    </mat-card>
+              <div class="profile-overview__details">
+                <div class="profile-overview__heading">
+                  <span class="mat-headline-small profile-overview__name mb-0">
+                    Parkour Tester
+                  </span>
+                  <mat-chip-set aria-label="Profile status">
+                    <mat-chip color="primary" class="mat-label-large"
+                      >You</mat-chip
+                    >
+                  </mat-chip-set>
+                </div>
+
+                <span class="mat-body-large">
+                  Visual fixture for the real own-profile contribution state.
+                </span>
+
+                <div class="profile-facts">
+                  <div class="mat-body-large profile-overview__location">
+                    <mat-icon class="m-1 icon-size-small">location_on</mat-icon>
+                    <span>from</span>&nbsp;<strong>Switzerland</strong>&nbsp;CH
+                  </div>
+                  <div class="mat-body-large profile-overview__tenure">
+                    <mat-icon class="m-1 icon-size-small">history</mat-icon>
+                    <span>Freerunner since</span>&nbsp;<strong>7 years</strong>
+                  </div>
+                  <div class="mat-body-large profile-overview__tenure">
+                    <mat-icon class="m-1 icon-size-small">beenhere</mat-icon>
+                    <strong>34</strong>&nbsp;<span>spots visited</span>
+                  </div>
+                </div>
+
+                <div class="profile-stats" aria-label="Profile stats">
+                  <div class="clickable-stat p-2 rounded">
+                    <span class="mat-headline-medium mb-0">12</span>
+                    <span class="mat-body-small text-muted">Followers</span>
+                  </div>
+                  <div class="clickable-stat p-2 rounded">
+                    <span class="mat-headline-medium mb-0">8</span>
+                    <span class="mat-body-small text-muted">Following</span>
+                  </div>
+                </div>
+
+                <app-contribution-status-note></app-contribution-status-note>
+
+                <div
+                  class="profile-overview__actions w-100"
+                  aria-label="Profile management actions"
+                >
+                  <button
+                    matButton="filled"
+                    color="primary"
+                    class="profile-overview__action"
+                  >
+                    <mat-icon>settings</mat-icon>
+                    <span>Settings</span>
+                  </button>
+                  <button
+                    mat-stroked-button
+                    color="warn"
+                    class="profile-overview__action"
+                  >
+                    <mat-icon>logout</mat-icon>
+                    <span>Log out</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </section>
+
+      <section class="profile-secondary" aria-label="Additional profile details">
+        <mat-card class="profile-section mat-elevation-z1">
+          <mat-card-header class="profile-section__header">
+            <mat-card-title class="mat-title-small">Contributions</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="profile-section__content">
+            <div class="contribution-grid">
+              <div>
+                <span class="mat-headline-medium">21</span>
+                <span class="mat-body-small text-muted">Spots Created</span>
+              </div>
+              <div>
+                <span class="mat-headline-medium">53</span>
+                <span class="mat-body-small text-muted">Edits Made</span>
+              </div>
+              <div>
+                <span class="mat-headline-medium">17</span>
+                <span class="mat-body-small text-muted">Media Added</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </section>
+    </div>
+  </section>
+
+  <section
+    class="settings-page-container age-policy-settings-fixture"
+    aria-label="Restricted settings profile tab visual regression"
+  >
+    <div class="container p-4">
+      <div class="settings-grid">
+        <div class="menu d-flex flex-column rounded border">
+          <button mat-button class="menuButton selected">
+            <mat-icon>person</mat-icon>
+            <span>Public profile</span>
+          </button>
+          <button mat-button class="menuButton">
+            <mat-icon>manage_accounts</mat-icon>
+            <span>Account</span>
+          </button>
+          <button mat-button class="menuButton">
+            <mat-icon>settings</mat-icon>
+            <span>General</span>
+          </button>
+        </div>
+
+        <div>
+          <h1 class="mat-h1 mb-2">Settings</h1>
+          <mat-divider class="mb-3"></mat-divider>
+          <h2 class="mat-h2">Public profile</h2>
+          <span class="mat-body">
+            You can edit your public profile here. The information on your
+            public profile can be seen by everyone, even unauthenticated
+            visitors.
+          </span>
+          <app-contribution-status-note
+            class="mt-4 d-block"
+          ></app-contribution-status-note>
+        </div>
+      </div>
+    </div>
   </section>
 </main>

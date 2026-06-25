@@ -39,6 +39,8 @@ import { EventsService } from "./events.service";
 const firestoreHost = process.env["FIRESTORE_EMULATOR_HOST"];
 const authHost = process.env["FIREBASE_AUTH_EMULATOR_HOST"];
 const runWithEmulator = firestoreHost && authHost ? describe : describe.skip;
+const rsvpIntegrationTimeoutMs = 45_000;
+const eventTypesenseIntegrationTimeoutMs = 20_000;
 let adminApp: admin.app.App | undefined;
 
 function adminDb(): admin.firestore.Firestore {
@@ -313,7 +315,7 @@ runWithEmulator("EventsService emulator integration", () => {
       notgoing: 0,
       total: 1,
     });
-  }, 20_000);
+  }, rsvpIntegrationTimeoutMs);
 
   it("updates event edit fields through the real web Firestore adapter", async () => {
     const uid = authService.user.uid;
@@ -488,7 +490,7 @@ runWithEmulator("EventsService emulator integration", () => {
         },
       }),
     );
-  });
+  }, eventTypesenseIntegrationTimeoutMs);
 
   it("derives Typesense bounds from custom markers when an event has no area or spots", async () => {
     const eventId = `typesense-no-area-${Date.now()}-${Math.random()
@@ -554,5 +556,5 @@ runWithEmulator("EventsService emulator integration", () => {
         bounds_radius_m: expect.any(Number),
       }),
     );
-  });
+  }, eventTypesenseIntegrationTimeoutMs);
 });

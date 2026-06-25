@@ -203,16 +203,6 @@
       </mat-card>
       }
 
-      @if (userId && isAdmin()) {
-      <mat-accordion>
-        <mat-expansion-panel>
-          <mat-expansion-panel-header>
-            <mat-panel-title i18n>Admin only activity feed</mat-panel-title>
-          </mat-expansion-panel-header>
-          <app-user-activity [userId]="userId" [displayName]="user.displayName || ''"></app-user-activity>
-        </mat-expansion-panel>
-      </mat-accordion>
-      }
       <!-- 
       <mat-card class="profile-section mat-elevation-z1">
         <mat-card-header class="profile-section__header">

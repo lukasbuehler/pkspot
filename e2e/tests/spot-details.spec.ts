@@ -1,87 +1,69 @@
-import { test, expect } from "@playwright/test";
-import { MapPage } from "../pages/map.page";
-import { SpotDetailsPage } from "../pages/spot-details.page";
+import { test, expect, type Page } from "@playwright/test";
 
-/**
- * Spot Details E2E Tests
- * Note: SSR server uses 'de' locale in dev configuration.
- */
+async function openSpotDetailsFixture(page: Page): Promise<void> {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.addInitScript(() => {
+    localStorage.setItem("acceptedVersion", "5");
+  });
+  await page.goto("/de/__visual/spot-bottom-sheet", {
+    waitUntil: "domcontentloaded",
+  });
+  await expect(page.locator("app-spot-details")).toBeVisible({
+    timeout: 15_000,
+  });
+}
+
 test.describe("Spot Details", () => {
-  let mapPage: MapPage;
-  let spotDetails: SpotDetailsPage;
+  test("renders a deterministic rich persisted spot fixture", async ({ page }) => {
+    await openSpotDetailsFixture(page);
 
-  test.beforeEach(async ({ page }) => {
-    mapPage = new MapPage(page);
-    spotDetails = new SpotDetailsPage(page);
+    const details = page.locator("app-spot-details");
+    await expect(details).toContainText("Riverside Training Walls");
+    await expect(details).toContainText("Spot");
+    await expect(details).toContainText(/Public|Öffentlich/u);
+    await expect(details).toContainText(/Urban Landscape|Urbane Landschaft/u);
+    await expect(details).toContainText(/Limmatstrasse 271/u);
+    await expect(details).toContainText(
+      /Features and amenities|Eigenschaften und Annehmlichkeiten/u,
+    );
+    await expect(details).toContainText(
+      /Rating and user reviews|Bewertung und user Rezensionen/u,
+    );
+    await expect(details).toContainText(/24 reviews|24 Bewertungen/u);
+    await expect(details).toContainText(
+      /3 edits are waiting|3 Bearbeitungen warten/u,
+    );
+    await expect(details).toContainText(/Source|Quelle/u);
+    await expect(details).toContainText(/License|Lizenz/u);
   });
 
-  test("should have spot details component structure", async ({ page }) => {
-    // Navigate to map
-    await mapPage.goto("de");
-    await mapPage.waitForMapReady();
+  test("keeps the bottom-sheet header usable when collapsed", async ({ page }) => {
+    await openSpotDetailsFixture(page);
 
-    // The spot details component should be present (may be hidden initially)
-    const detailsComponent = page.locator("app-spot-details");
+    const sheet = page.locator("app-bottom-sheet .sheet");
+    await page.locator("app-bottom-sheet .handle-region").click();
+    await page.waitForTimeout(500);
 
-    // Just check the app doesn't crash
-    await expect(page.locator("app-root")).toBeAttached();
-  });
-
-  test("should try to click on map to open spot details", async ({ page }) => {
-    await mapPage.goto("de");
-    await mapPage.waitForMapReady();
-
-    const isMapVisible = await mapPage.isMapVisible();
-
-    if (isMapVisible) {
-      const mapBounds = await mapPage.spotMap.boundingBox();
-      if (mapBounds) {
-        // Click in center of map
-        await page.mouse.click(
-          mapBounds.x + mapBounds.width * 0.5,
-          mapBounds.y + mapBounds.height * 0.5
-        );
-        await page.waitForTimeout(1500);
-
-        // Check if spot details panel appeared
-        const detailsVisible = await spotDetails.isVisible();
-
-        // Either details should be visible or page should still be functional
-        await expect(page.locator("app-root")).toBeAttached();
-      }
-    }
+    await expect(sheet).toContainText("Riverside Training Walls");
+    await expect(sheet.locator(".collapsible-header-info").first()).toHaveAttribute(
+      "data-collapsed",
+      "true",
+    );
   });
 });
 
 test.describe("Spot Details - Direct Navigation", () => {
   test("should handle invalid spot ID gracefully", async ({ page }) => {
-    // Navigate to a non-existent spot
-    await page.goto("/de/map/this-spot-definitely-does-not-exist-12345", {
+    await page.goto("/de/map/spots/this-spot-definitely-does-not-exist-12345", {
       waitUntil: "domcontentloaded",
     });
 
-    // Page should still load without crashing
     await page.waitForSelector("app-root", {
       state: "attached",
-      timeout: 15000,
+      timeout: 15_000,
     });
 
-    // App should still be functional
     await expect(page.locator("app-root")).toBeAttached();
-  });
-
-  test("should show map page for invalid spot", async ({ page }) => {
-    await page.goto("/de/map/invalid-spot-xyz", {
-      waitUntil: "domcontentloaded",
-    });
-
-    await page.waitForSelector("app-root", {
-      state: "attached",
-      timeout: 15000,
-    });
-
-    // Should be on a map page
-    const isOnMap = page.url().includes("/map");
-    expect(isOnMap).toBeTruthy();
+    await expect.poll(() => new URL(page.url()).pathname).toContain("/de/map");
   });
 });

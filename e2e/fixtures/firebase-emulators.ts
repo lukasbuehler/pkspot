@@ -1,4 +1,5 @@
 import { expect, type APIRequestContext, type Page } from "@playwright/test";
+import { localizedPath, workflowViewports } from "./workflow";
 
 export const FIREBASE_EMULATOR_STORAGE_KEY = "pkspot:e2e:firebaseEmulators";
 
@@ -163,6 +164,32 @@ export async function seedFirestoreDocument(
   );
 
   expect(response.ok(), await response.text()).toBe(true);
+}
+
+export async function signInThroughAccount(
+  page: Page,
+  user: Pick<CreatedEmulatorUser, "email">,
+  returnUrl: string,
+  password = "correct-horse-battery-staple",
+): Promise<void> {
+  await page.setViewportSize({
+    width: workflowViewports[0].width,
+    height: workflowViewports[0].height,
+  });
+  await page.goto(`/de/account?returnUrl=${encodeURIComponent(returnUrl)}`, {
+    waitUntil: "domcontentloaded",
+  });
+  await page.waitForSelector("app-root", { state: "attached", timeout: 20_000 });
+
+  await page.locator('input[formControlName="email"]').fill(user.email);
+  await page.locator('input[formControlName="password"]').fill(password);
+
+  await Promise.all([
+    page.waitForURL(new RegExp(`${localizedPath(returnUrl)}$`, "u"), {
+      timeout: 30_000,
+    }),
+    page.locator('form button[type="submit"]').click(),
+  ]);
 }
 
 async function deleteIfAvailable(

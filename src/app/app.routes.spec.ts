@@ -88,6 +88,22 @@ describe("app routes", () => {
     );
   });
 
+  it("should expose activity only under the moderation section", () => {
+    const publicActivityRoute = routes.find((route) => route.path === "activity");
+    const moderationActivityRoute = routes.find(
+      (route) => route.path === "moderation/activity"
+    );
+
+    expect(publicActivityRoute).toBeUndefined();
+    expect(moderationActivityRoute).toBeDefined();
+    expect(moderationActivityRoute?.data).toEqual(
+      expect.objectContaining({
+        routeName: "Moderation Activity",
+        discoverable: false,
+      })
+    );
+  });
+
   it("should register the contact page as an acceptance-free static route", () => {
     const contactRoute = routes.find((route) => route.path === "contact");
 

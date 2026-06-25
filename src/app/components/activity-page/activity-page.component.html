@@ -1,72 +1,94 @@
 <div class="activity-feed d-flex flex-column gap-3">
   <div>
-    <h1 class="p-0 mat-headline-medium m-0 mb-3">Activity</h1>
+    <h1 class="p-0 mat-headline-medium m-0 mb-3">Moderation activity</h1>
+    <p class="mat-body-medium text-secondary">
+      Recent spot edit activity for moderation review.
+    </p>
 
-    <mat-chip-listbox class="p-0" [value]="category()">
-      @for (tabKeyVal of (categories | keyvalue); track $index) {
-      <mat-chip-option
-        i18n
-        [value]="tabKeyVal.key"
-        (selectionChange)="category.set(tabKeyVal.key)"
-        [disabled]="tabKeyVal.key !== 'community'"
-        >{{ tabKeyVal.value }}</mat-chip-option
-      >
-      }
-    </mat-chip-listbox>
-  </div>
-
-  @if (newItemsBuffer$ | async; as buffer) { @if (buffer.length > 0) {
-  <button class="new-items-btn" (click)="showNewItems()">
-    Show {{ buffer.length }} new activities ↑
-  </button>
-  } } @if (items$ | async; as items) { @if (items.length === 0 && (isLoading$ |
-  async) === false) {
-  <div class="empty-state">No activity yet.</div>
-  } @for (item of items; track item.editId || (item.spotId + '_' +
-  item.formattedTimestamp.getTime() + '_' + item.edit.type + '_' +
-  item.edit.user.uid)) {
-  <mat-card class="feed-item">
-    <mat-card-header class="d-flex flex-column gap-1 pb-3">
-      <div
-        class="user-action mat-body-large d-flex align-items-center pb-1 gap-1"
-      >
-        <app-profile-button
-          [user]="item.edit.user"
-          class="me-2"
-        ></app-profile-button>
-        <span>{{ getActionText(item.edit) }}</span
-        >@if (item.spot?.localityString()) {
-        <span> in {{ item.spot!.localityString() }}</span>
+    @if (isAdmin()) {
+      <mat-chip-listbox class="p-0" [value]="category()">
+        @for (tabKeyVal of (categories | keyvalue); track $index) {
+          <mat-chip-option
+            i18n
+            [value]="tabKeyVal.key"
+            (selectionChange)="category.set(tabKeyVal.key)"
+            [disabled]="tabKeyVal.key !== 'community'"
+            >{{ tabKeyVal.value }}</mat-chip-option
+          >
         }
-      </div>
-      <div class="timestamp mat-body-small">
-        {{ item.formattedTimestamp | date : "short" }}
-      </div>
-    </mat-card-header>
-    <mat-card-content>
-      <a
-        [routerLink]="['/map', 'spots', item.spot?.slug || item.spotId]"
-        class="activity-preview-link"
-      >
-        <app-spot-preview-card
-          [spotData]="item.spot"
-          [clickable]="true"
-          [imgSize]="200"
-          [isCompact]="true"
-        ></app-spot-preview-card>
-      </a>
-      <app-spot-edit-summary
-        class="d-block mt-2"
-        [edit]="item.edit"
-        [compact]="true"
-      ></app-spot-edit-summary>
-    </mat-card-content>
-  </mat-card>
-  } } @if (isLoading$ | async) {
-  <div class="loading-state">Loading activities...</div>
-  } @if (hasMore$ | async) { @if ((isLoading$ | async) === false) {
-  <div class="load-more-container">
-    <button matButton="filled" (click)="loadMore()">Load More</button>
+      </mat-chip-listbox>
+    }
   </div>
-  } }
+
+  @if (!authResolved()) {
+    <div class="loading-state" i18n>Checking admin access...</div>
+  } @else if (!isAdmin()) {
+    <div class="empty-state" i18n>Admin access required.</div>
+  } @else {
+    @if (newItemsBuffer$ | async; as buffer) {
+      @if (buffer.length > 0) {
+        <button class="new-items-btn" type="button" (click)="showNewItems()">
+          Show {{ buffer.length }} new activities ↑
+        </button>
+      }
+    }
+    @if (items$ | async; as items) {
+      @if (items.length === 0 && (isLoading$ | async) === false) {
+        <div class="empty-state">No activity yet.</div>
+      }
+      @for (item of items; track item.editId || (item.spotId + '_' +
+      item.formattedTimestamp.getTime() + '_' + item.edit.type + '_' +
+      item.edit.user.uid)) {
+        <mat-card class="feed-item">
+          <mat-card-header class="d-flex flex-column gap-1 pb-3">
+            <div
+              class="user-action mat-body-large d-flex align-items-center pb-1 gap-1"
+            >
+              <app-profile-button
+                [user]="item.edit.user"
+                class="me-2"
+              ></app-profile-button>
+              <span>{{ getActionText(item.edit) }}</span
+              >@if (item.spot?.localityString()) {
+                <span> in {{ item.spot!.localityString() }}</span>
+              }
+            </div>
+            <div class="timestamp mat-body-small">
+              {{ item.formattedTimestamp | date : "short" }}
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <a
+              [routerLink]="['/map', 'spots', item.spot?.slug || item.spotId]"
+              class="activity-preview-link"
+            >
+              <app-spot-preview-card
+                [spotData]="item.spot"
+                [clickable]="true"
+                [imgSize]="200"
+                [isCompact]="true"
+              ></app-spot-preview-card>
+            </a>
+            <app-spot-edit-summary
+              class="d-block mt-2"
+              [edit]="item.edit"
+              [compact]="true"
+            ></app-spot-edit-summary>
+          </mat-card-content>
+        </mat-card>
+      }
+    }
+    @if (isLoading$ | async) {
+      <div class="loading-state">Loading activities...</div>
+    }
+    @if (hasMore$ | async) {
+      @if ((isLoading$ | async) === false) {
+        <div class="load-more-container">
+          <button matButton="filled" type="button" (click)="loadMore()">
+            Load More
+          </button>
+        </div>
+      }
+    }
+  }
 </div>

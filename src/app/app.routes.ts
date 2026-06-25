@@ -62,20 +62,6 @@ export const routes: Routes = [
     resolve: { content: contentResolver },
   },
 
-  ...(environment.features.activity
-    ? [
-        {
-          path: "activity",
-          loadComponent: () =>
-            import("./components/activity-page/activity-page.component").then(
-              (m) => m.ActivityPageComponent,
-            ),
-          resolve: { content: contentResolver },
-          data: { routeName: "Activity" },
-        },
-      ]
-    : []),
-
   // Community on map. Plural "communities" matches /events for URL
   // consistency. Crawlers get a real HTTP 301 via server-redirects.ts
   // (SSR Express middleware); the function-form redirect below covers
@@ -262,6 +248,15 @@ export const routes: Routes = [
         (m) => m.ModerationReportsPageComponent,
       ),
     data: { routeName: "Moderation Reports" },
+  },
+  {
+    path: "moderation/activity",
+    loadComponent: () =>
+      import("./components/activity-page/activity-page.component").then(
+        (m) => m.ActivityPageComponent,
+      ),
+    resolve: { content: contentResolver },
+    data: { routeName: "Moderation Activity", discoverable: false },
   },
 
   // Embedded stuff
