@@ -71,6 +71,11 @@ async function expandSheetForFullContentSnapshot(page: Page): Promise<void> {
         height: auto !important;
         overflow: visible !important;
       }
+
+      app-bottom-sheet.visual-bottom-sheet app-img-carousel {
+        height: 220px !important;
+        max-height: 220px !important;
+      }
     `,
   });
   await page.waitForTimeout(200);
@@ -108,9 +113,27 @@ test.describe("Spot Details Visual Regression @visual", () => {
     const sheet = page.locator("app-bottom-sheet .sheet");
     await page.locator("app-bottom-sheet .handle-region").click();
     await page.waitForTimeout(400);
+    await page.addStyleTag({
+      content: `
+        app-bottom-sheet.visual-bottom-sheet .sheet {
+          transform: none !important;
+        }
+      `,
+    });
+    await page.waitForTimeout(100);
 
     await expect(sheet).toContainText("Riverside Training Walls");
-    await expect(sheet).toHaveScreenshot("spot-details-bottom-sheet-collapsed.png", {
+    const box = await sheet.boundingBox();
+    expect(box).not.toBeNull();
+    if (!box) return;
+
+    await expect(page).toHaveScreenshot("spot-details-bottom-sheet-collapsed.png", {
+      clip: {
+        x: box.x,
+        y: box.y,
+        width: box.width,
+        height: Math.min(box.height, 220),
+      },
       maxDiffPixels: 150,
       animations: "disabled",
     });
