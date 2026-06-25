@@ -3,6 +3,7 @@ export const LONG_LIVED_ASSET_CACHE_CONTROL =
   "public, max-age=31536000, immutable";
 export const REVALIDATING_ASSET_CACHE_CONTROL =
   "public, max-age=0, must-revalidate";
+export const DYNAMIC_SSR_CACHE_CONTROL = "no-cache";
 export const MISSING_ASSET_CACHE_CONTROL = "no-store";
 export const QR_STICKER_CAMPAIGNS = {
   nice: {
@@ -12,6 +13,20 @@ export const QR_STICKER_CAMPAIGNS = {
     targetPath: "/map",
   },
 };
+const STATIC_SSR_PATHS = new Set([
+  "/",
+  "/about",
+  "/support",
+  "/contact",
+  "/sign-in",
+  "/sign-up",
+  "/forgot-password",
+  "/terms-of-service",
+  "/tos",
+  "/privacy-policy",
+  "/pp",
+  "/impressum",
+]);
 
 export function normalizeClientRegionHeader(value) {
   if (Array.isArray(value)) {
@@ -113,6 +128,44 @@ export function getStaticAssetCacheControl(req, filePath) {
   }
 
   return REVALIDATING_ASSET_CACHE_CONTROL;
+}
+
+function stripLocalePrefix(pathname, supportedLanguageCodes = []) {
+  const normalizedPath = pathname || "/";
+  const cleanPath = normalizedPath.split("?")[0].split("#")[0] || "/";
+  const segments = cleanPath.split("/").filter(Boolean);
+
+  if (
+    segments.length > 0 &&
+    supportedLanguageCodes.includes(segments[0])
+  ) {
+    const withoutLocale = `/${segments.slice(1).join("/")}`;
+    return withoutLocale === "/" ? "/" : withoutLocale.replace(/\/+$/u, "");
+  }
+
+  return cleanPath === "/" ? "/" : cleanPath.replace(/\/+$/u, "");
+}
+
+export function isStaticSsrPath(pathname, supportedLanguageCodes = []) {
+  return STATIC_SSR_PATHS.has(
+    stripLocalePrefix(pathname, supportedLanguageCodes)
+  );
+}
+
+export function applySsrDocumentCacheHeaders(
+  res,
+  pathname,
+  lastModified,
+  supportedLanguageCodes = []
+) {
+  if (isStaticSsrPath(pathname, supportedLanguageCodes)) {
+    res.setHeader("Cache-Control", REVALIDATING_ASSET_CACHE_CONTROL);
+    res.setHeader("Last-Modified", lastModified);
+    return;
+  }
+
+  res.setHeader("Cache-Control", DYNAMIC_SSR_CACHE_CONTROL);
+  res.removeHeader("Last-Modified");
 }
 
 export function sendMissingAssetResponse(res, requestPath) {

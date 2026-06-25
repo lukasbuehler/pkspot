@@ -299,7 +299,7 @@ function extractLocalBrowserAssetUrls(html, locale) {
   return [...assetUrls].sort();
 }
 
-function assertSsrCacheHeaders(response, description) {
+function assertStaticSsrCacheHeaders(response, description) {
   assert.equal(
     response.headers.get("cache-control"),
     "public, max-age=0, must-revalidate",
@@ -308,6 +308,19 @@ function assertSsrCacheHeaders(response, description) {
   assert.ok(
     !Number.isNaN(Date.parse(response.headers.get("last-modified") || "")),
     `${description} should include a valid Last-Modified header`
+  );
+}
+
+function assertDynamicSsrCacheHeaders(response, description) {
+  assert.equal(
+    response.headers.get("cache-control"),
+    "no-cache",
+    `${description} should require fresh revalidation`
+  );
+  assert.equal(
+    response.headers.get("last-modified"),
+    null,
+    `${description} should not expose build-time Last-Modified`
   );
 }
 
@@ -488,7 +501,7 @@ async function main() {
         200,
         `${locale} SSR route should render`
       );
-      assertSsrCacheHeaders(ssrResponse, `${locale} SSR route`);
+      assertStaticSsrCacheHeaders(ssrResponse, `${locale} SSR route`);
       const ssrHtml = await ssrResponse.text();
       assert.match(ssrHtml, /<!doctype html>/i, `${locale} SSR should return HTML`);
       assert.match(
@@ -524,11 +537,26 @@ async function main() {
         200,
         `${locale} SSR HTML should render fresh content instead of returning 304 from the proxy`
       );
-      assertSsrCacheHeaders(
+      assertStaticSsrCacheHeaders(
         staleHtmlRevalidationResponse,
         `${locale} revalidated SSR route`
       );
     }
+
+    const staticAboutResponse = await fetchWithTimeout(
+      `${baseUrl}/en/about`,
+      {
+        redirect: "manual",
+      },
+      "static about SSR route"
+    );
+    assert.equal(
+      staticAboutResponse.status,
+      200,
+      "Static about SSR route should render"
+    );
+    assertStaticSsrCacheHeaders(staticAboutResponse, "Static about SSR route");
+    await staticAboutResponse.text();
 
     const socialPreviewResponse = await fetchWithTimeout(
       `${baseUrl}/en/map/spots/josefhalle`,
@@ -545,6 +573,7 @@ async function main() {
       200,
       "Spot SSR route should render for social crawlers"
     );
+    assertDynamicSsrCacheHeaders(socialPreviewResponse, "Spot SSR route");
     const socialPreviewHtml = await socialPreviewResponse.text();
     assertCrawlerSurface(socialPreviewHtml, "Spot SSR route", {
       title: /Sportzentrum Josef - Zürich \| PK Spot/,
@@ -587,6 +616,7 @@ async function main() {
       200,
       "Community SSR route should render for social crawlers"
     );
+    assertDynamicSsrCacheHeaders(communityPreviewResponse, "Community SSR route");
     const communityPreviewHtml = await communityPreviewResponse.text();
     assertCrawlerSurface(communityPreviewHtml, "Community SSR route", {
       title: /Switzerland/i,
@@ -614,6 +644,10 @@ async function main() {
       200,
       "Zurich community SSR route should render for crawlers"
     );
+    assertDynamicSsrCacheHeaders(
+      zurichCommunityResponse,
+      "Zurich community SSR route"
+    );
     const zurichCommunityHtml = await zurichCommunityResponse.text();
     assertCrawlerSurface(zurichCommunityHtml, "Zurich community SSR route", {
       title: /Parkour in Zürich, Switzerland \| PK Spot Community/,
@@ -638,6 +672,7 @@ async function main() {
       "map SSR route"
     );
     assert.equal(mapResponse.status, 200, "Map SSR route should render");
+    assertDynamicSsrCacheHeaders(mapResponse, "Map SSR route");
     const mapHtml = await mapResponse.text();
     assert.match(mapHtml, /<!doctype html>/i, "Map SSR route should return HTML");
     assertBodyCrawlerContent(mapHtml, "Map SSR route", [
@@ -660,6 +695,7 @@ async function main() {
       200,
       "Events SSR route should render for social crawlers"
     );
+    assertDynamicSsrCacheHeaders(eventsPageResponse, "Events SSR route");
     const eventsPageHtml = await eventsPageResponse.text();
     assert.match(
       eventsPageHtml,
@@ -691,6 +727,7 @@ async function main() {
       200,
       "Event SSR route should render for social crawlers"
     );
+    assertDynamicSsrCacheHeaders(eventPreviewResponse, "Event SSR route");
     const eventPreviewHtml = await eventPreviewResponse.text();
     assertCrawlerSurface(eventPreviewHtml, "Event SSR route", {
       title: /Swiss Jam 2025 \| PK Spot/,
@@ -733,6 +770,10 @@ async function main() {
       200,
       "Map event SSR route should render for crawlers"
     );
+    assertDynamicSsrCacheHeaders(
+      mapEventPreviewResponse,
+      "Map event SSR route"
+    );
     const mapEventPreviewHtml = await mapEventPreviewResponse.text();
     assert.match(
       mapEventPreviewHtml,
@@ -759,6 +800,7 @@ async function main() {
       200,
       "Profile SSR route should render for social crawlers"
     );
+    assertDynamicSsrCacheHeaders(profilePreviewResponse, "Profile SSR route");
     const profilePreviewHtml = await profilePreviewResponse.text();
     assertCrawlerSurface(profilePreviewHtml, "Profile SSR route", {
       title: /\| PK Spot/,
@@ -795,7 +837,7 @@ async function main() {
       "robots.txt"
     );
     assert.equal(robotsResponse.status, 200, "robots.txt should be served");
-    assertSsrCacheHeaders(robotsResponse, "robots.txt");
+    assertStaticSsrCacheHeaders(robotsResponse, "robots.txt");
     const robotsText = await robotsResponse.text();
     assert.match(robotsText, /User-agent/i, "robots.txt should have content");
 

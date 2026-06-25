@@ -2,9 +2,11 @@ import path from "node:path";
 import express from "express";
 import compression from "compression";
 import {
+  applySsrDocumentCacheHeaders,
   applyTrustedClientRegionHeader,
   handleQrStickerRequest,
   getStaticAssetCacheControl,
+  REVALIDATING_ASSET_CACHE_CONTROL,
   sendMissingAssetResponse,
 } from "./proxy-server-helpers.mjs";
 import {
@@ -170,16 +172,6 @@ function run() {
     return handleQrStickerRequest(req, res, next);
   });
 
-  // Global caching middleware that sets Cache-Control and Last-Modified,
-  // and checks for a conditional GET request.
-  server.use((req, res, next) => {
-    // Set cache header so browsers revalidate before using the cache.
-    res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
-    res.setHeader("Last-Modified", LAST_MODIFIED);
-
-    next();
-  });
-
   const rootIconPaths = {
     "/favicon.ico": "../browser/en/favicon.ico",
     "/favicon-16x16.png": "../browser/en/assets/icons/favicon-16x16.png",
@@ -319,6 +311,8 @@ function run() {
   });
 
   server.get("/robots.txt", (req, res) => {
+    res.setHeader("Cache-Control", REVALIDATING_ASSET_CACHE_CONTROL);
+    res.setHeader("Last-Modified", LAST_MODIFIED);
     res.sendFile(path.join(__dirname, "../browser/en/robots.txt"));
   });
 
@@ -351,6 +345,16 @@ function run() {
       301,
       "https://play.google.com/store/apps/details?id=com.pkspot.app",
     );
+  });
+
+  server.use((req, res, next) => {
+    applySsrDocumentCacheHeaders(
+      res,
+      req.path,
+      LAST_MODIFIED,
+      supportedLanguageCodes,
+    );
+    next();
   });
 
   // Redirect based on preffered language

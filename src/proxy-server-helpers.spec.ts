@@ -1,10 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  applySsrDocumentCacheHeaders,
   applyTrustedClientRegionHeader,
+  DYNAMIC_SSR_CACHE_CONTROL,
   getStaticAssetCacheControl,
   getQrStickerRedirectTarget,
   getTrustedClientRegionFromHeaders,
   handleQrStickerRequest,
+  isStaticSsrPath,
   LONG_LIVED_ASSET_CACHE_CONTROL,
   MISSING_ASSET_CACHE_CONTROL,
   normalizeClientRegionHeader,
@@ -131,6 +134,66 @@ describe("proxy-server client region helpers", () => {
         "/app/browser/en/manifest.webmanifest"
       )
     ).toBe(REVALIDATING_ASSET_CACHE_CONTROL);
+  });
+
+  it("should classify static SSR paths after stripping locale prefixes", () => {
+    const languages = ["en", "de", "de-CH"];
+
+    expect(isStaticSsrPath("/", languages)).toBe(true);
+    expect(isStaticSsrPath("/en/about", languages)).toBe(true);
+    expect(isStaticSsrPath("/de-CH/privacy-policy/", languages)).toBe(true);
+    expect(isStaticSsrPath("/en/map", languages)).toBe(false);
+    expect(isStaticSsrPath("/de/map/spots/josefhalle", languages)).toBe(false);
+    expect(isStaticSsrPath("/en/events/swissjam25", languages)).toBe(false);
+  });
+
+  it("should keep build freshness headers for static SSR pages", () => {
+    const headers: Record<string, string> = {};
+    const res = {
+      removeHeader: vi.fn((key: string) => {
+        delete headers[key];
+      }),
+      setHeader: vi.fn((key: string, value: string) => {
+        headers[key] = value;
+      }),
+    };
+    const lastModified = "Wed, 24 Jun 2026 18:21:21 GMT";
+
+    applySsrDocumentCacheHeaders(
+      res,
+      "/en/terms-of-service",
+      lastModified,
+      ["en"]
+    );
+
+    expect(headers["Cache-Control"]).toBe(REVALIDATING_ASSET_CACHE_CONTROL);
+    expect(headers["Last-Modified"]).toBe(lastModified);
+    expect(res.removeHeader).not.toHaveBeenCalled();
+  });
+
+  it("should omit build freshness headers for dynamic SSR pages", () => {
+    const headers: Record<string, string> = {
+      "Last-Modified": "Wed, 24 Jun 2026 18:21:21 GMT",
+    };
+    const res = {
+      removeHeader: vi.fn((key: string) => {
+        delete headers[key];
+      }),
+      setHeader: vi.fn((key: string, value: string) => {
+        headers[key] = value;
+      }),
+    };
+
+    applySsrDocumentCacheHeaders(
+      res,
+      "/en/map/spots/josefhalle",
+      "Wed, 24 Jun 2026 18:21:21 GMT",
+      ["en"]
+    );
+
+    expect(headers["Cache-Control"]).toBe(DYNAMIC_SSR_CACHE_CONTROL);
+    expect(headers).not.toHaveProperty("Last-Modified");
+    expect(res.removeHeader).toHaveBeenCalledWith("Last-Modified");
   });
 
   it("should not let missing browser assets inherit immutable cache headers", () => {
