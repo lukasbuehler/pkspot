@@ -4968,7 +4968,7 @@
     <unit id="events.status.live_with_end">
       <segment state="initial">
         <source>Ongoing — ends <ph id="0" equiv="PH" disp="relative"/></source>
-        <target>Läuft - endet &lt;ph id=&quot;0&quot; equiv=&quot;PH&quot; disp=&quot;relative&quot; /&gt;</target>
+        <target>Läuft - endet <ph id="0" equiv="PH" disp="relative"/></target>
       </segment>
     </unit>
     <unit id="events.status.past">
@@ -4980,7 +4980,7 @@
     <unit id="events.status.upcoming_starts">
       <segment state="initial">
         <source>Starts <ph id="0" equiv="PH" disp="relative"/></source>
-        <target>Startet &lt;ph id=&quot;0&quot; equiv=&quot;PH&quot; disp=&quot;relative&quot; /&gt;</target>
+        <target>Startet <ph id="0" equiv="PH" disp="relative"/></target>
       </segment>
     </unit>
     <unit id="events.status.upcoming_event_relative">
@@ -5906,7 +5906,7 @@
     <unit id="user-activity.title.named">
       <segment state="initial">
         <source><ph id="0" equiv="PH" disp="name"/>&apos;s activity</source>
-        <target>Aktivität von &lt;ph id=&quot;0&quot; equiv=&quot;PH&quot; disp=&quot;name&quot; /&gt;</target>
+        <target>Aktivität von <ph id="0" equiv="PH" disp="name"/></target>
       </segment>
     </unit>
     <unit id="8726138323871139597">
@@ -6940,7 +6940,7 @@
     <unit id="611564526184434442">
       <segment state="initial">
         <source> in <ph id="0" equiv="PH" disp="challenge.spot.localityString()"/></source>
-        <target> bei &lt;ph id=&quot;0&quot; equiv=&quot;PH&quot; disp=&quot;challenge.spot.localityString()&quot; /&gt;</target>
+        <target> bei <ph id="0" equiv="PH" disp="challenge.spot.localityString()"/></target>
       </segment>
     </unit>
     <unit id="6116080434907209479">
