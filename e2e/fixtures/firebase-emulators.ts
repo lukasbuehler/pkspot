@@ -151,12 +151,33 @@ export async function seedFirestoreDocument(
   data: Record<string, unknown>,
   settings: FirebaseEmulatorBrowserSettings = defaultFirebaseEmulatorSettings,
 ): Promise<void> {
+  await writeFirestoreDocument(request, path, data, settings);
+}
+
+export async function seedAuthenticatedFirestoreDocument(
+  request: APIRequestContext,
+  path: string,
+  data: Record<string, unknown>,
+  idToken: string,
+  settings: FirebaseEmulatorBrowserSettings = defaultFirebaseEmulatorSettings,
+): Promise<void> {
+  await writeFirestoreDocument(request, path, data, settings, idToken);
+}
+
+async function writeFirestoreDocument(
+  request: APIRequestContext,
+  path: string,
+  data: Record<string, unknown>,
+  settings: FirebaseEmulatorBrowserSettings,
+  idToken?: string,
+): Promise<void> {
   const response = await request.patch(
     firestoreEmulatorUrl(
       settings,
       `/v1/projects/${settings.firebaseConfig.projectId}/databases/(default)/documents/${path}`,
     ),
     {
+      headers: idToken ? { Authorization: `Bearer ${idToken}` } : undefined,
       data: {
         fields: toFirestoreFields(data),
       },

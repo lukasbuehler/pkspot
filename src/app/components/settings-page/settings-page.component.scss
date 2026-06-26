@@ -33,6 +33,12 @@ button.menuButton.selected {
   padding-left: 16px;
 }
 
+.profile-access-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
 #saveSpeedDial {
   position: absolute;
   z-index: 2;

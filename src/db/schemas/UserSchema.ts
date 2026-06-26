@@ -95,3 +95,14 @@ export interface FollowingDataSchema {
 export interface FollowingSchema extends FollowingDataSchema {
   uid: string;
 }
+
+export interface FollowRequestDataSchema {
+  display_name?: string;
+  profile_picture?: string;
+  requested_at?: Timestamp;
+  requested_at_raw_ms?: number;
+}
+
+export interface FollowRequestSchema extends FollowRequestDataSchema {
+  uid: string;
+}

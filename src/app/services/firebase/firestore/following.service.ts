@@ -2,6 +2,8 @@ import { Injectable, inject } from "@angular/core";
 import { Timestamp } from "@angular/fire/firestore";
 import { map, Observable, from, Subscription } from "rxjs";
 import {
+  FollowRequestDataSchema,
+  FollowRequestSchema,
   FollowingDataSchema,
   FollowingSchema,
   UserSchema,
@@ -80,6 +82,17 @@ export class FollowingService extends ConsentAwareService {
       .pipe(map((d) => !!d));
   }
 
+  hasPendingFollowRequest$(
+    myUserId: string,
+    otherUserId: string
+  ): Observable<boolean> {
+    return this._firestoreAdapter
+      .documentSnapshots<{ id: string }>(
+        `users/${otherUserId}/follow_requests/${myUserId}`
+      )
+      .pipe(map((d) => !!d));
+  }
+
   getFollowingCount(userId: string): Promise<number> {
     return this._firestoreAdapter
       .getCollection<{ id: string }>(`users/${userId}/following`)
@@ -127,6 +140,82 @@ export class FollowingService extends ConsentAwareService {
           followerData
         );
       });
+  }
+
+  requestToFollowUser(
+    myUserId: string,
+    myUserData: UserSchema,
+    otherUserId: string
+  ): Promise<void> {
+    if (!myUserId) {
+      return Promise.reject("Your User ID is empty");
+    }
+    if (!otherUserId) {
+      return Promise.reject(
+        "The User ID of the user you want to follow is empty"
+      );
+    }
+    if (!myUserData || !myUserData.display_name) {
+      return Promise.reject("Your user data is not valid");
+    }
+
+    const requestData: FollowRequestDataSchema = {
+      display_name: myUserData.display_name,
+      requested_at: new Timestamp(Date.now() / 1000, 0),
+      requested_at_raw_ms: Date.now(),
+    };
+
+    return this._firestoreAdapter.setDocument(
+      `users/${otherUserId}/follow_requests/${myUserId}`,
+      requestData
+    );
+  }
+
+  cancelFollowRequest(myUserId: string, otherUserId: string): Promise<void> {
+    return this._firestoreAdapter.deleteDocument(
+      `users/${otherUserId}/follow_requests/${myUserId}`
+    );
+  }
+
+  approveFollowRequest(
+    myUserId: string,
+    myUserData: UserSchema,
+    request: FollowRequestSchema
+  ): Promise<void> {
+    if (!myUserId || !request.uid) {
+      return Promise.reject("The follow request is not valid");
+    }
+    if (!myUserData?.display_name) {
+      return Promise.reject("Your user data is not valid");
+    }
+
+    const now = Date.now();
+    const followingData: FollowingDataSchema = {
+      display_name: myUserData.display_name,
+      start_following: new Timestamp(now / 1000, 0),
+      start_following_raw_ms: now,
+    };
+    const followerData: FollowingDataSchema = {
+      display_name: request.display_name,
+      start_following: new Timestamp(now / 1000, 0),
+      start_following_raw_ms: now,
+    };
+
+    return this._firestoreAdapter
+      .setDocument(`users/${request.uid}/following/${myUserId}`, followingData)
+      .then(() =>
+        this._firestoreAdapter.setDocument(
+          `users/${myUserId}/followers/${request.uid}`,
+          followerData
+        )
+      )
+      .then(() => this.rejectFollowRequest(myUserId, request.uid));
+  }
+
+  rejectFollowRequest(myUserId: string, requesterId: string): Promise<void> {
+    return this._firestoreAdapter.deleteDocument(
+      `users/${myUserId}/follow_requests/${requesterId}`
+    );
   }
 
   unfollowUser(myUserId: string, otherUserId: string) {
@@ -229,6 +318,40 @@ export class FollowingService extends ConsentAwareService {
           return timeB - timeA;
         });
       })
+    );
+  }
+
+  getFollowRequestsForUser(
+    userId: string,
+    chunkSize: number = 50
+  ): Observable<FollowRequestSchema[]> {
+    const constraints: QueryConstraintOptions[] = [
+      { type: "limit", limit: chunkSize },
+    ];
+
+    return from(
+      this._firestoreAdapter.getCollection<FollowRequestSchema & { id: string }>(
+        `users/${userId}/follow_requests`,
+        undefined,
+        constraints
+      )
+    ).pipe(
+      map((arr) =>
+        arr
+          .map((d) => ({
+            ...(d as FollowRequestSchema),
+            uid: d.id,
+          }))
+          .sort((a, b) => {
+            const timeA =
+              a.requested_at_raw_ms ??
+              (((a.requested_at as any)?.seconds ?? 0) * 1000);
+            const timeB =
+              b.requested_at_raw_ms ??
+              (((b.requested_at as any)?.seconds ?? 0) * 1000);
+            return timeB - timeA;
+          })
+      )
     );
   }
 }

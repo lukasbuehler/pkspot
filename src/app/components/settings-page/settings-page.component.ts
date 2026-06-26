@@ -26,6 +26,7 @@ import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { AppSettingsService } from "../../services/app-settings.service";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
+import { MatSelectModule } from "@angular/material/select";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { languageCodes } from "../../../scripts/Languages";
 import { UiLanguageService } from "../../services/ui-language.service";
@@ -34,6 +35,11 @@ import { ContributionStatusNoteComponent } from "../contribution-status-note/con
 import { version } from "../../../../package.json";
 import crew from "../../../assets/data/crew.json";
 import { AnalyticsService } from "../../services/analytics.service";
+import { UsersService } from "../../services/firebase/firestore/users.service";
+import {
+  UserAccountPrivacy,
+  UserProfileVisibility,
+} from "../../../db/schemas/UserSchema";
 
 @Component({
   selector: "app-settings-page",
@@ -58,6 +64,7 @@ import { AnalyticsService } from "../../services/analytics.service";
     FormsModule,
     MatProgressSpinner,
     MatSlideToggleModule,
+    MatSelectModule,
     MatExpansionModule,
     RouterLink,
     ContributionStatusNoteComponent,
@@ -81,7 +88,8 @@ export class SettingsPageComponent implements OnInit {
     public appSettings: AppSettingsService,
     private _uiLanguageService: UiLanguageService,
     public ageAssurance: AgeAssuranceService,
-    private _analytics: AnalyticsService
+    private _analytics: AnalyticsService,
+    private _usersService: UsersService
   ) {}
   languageCodes = languageCodes;
 
@@ -161,6 +169,19 @@ export class SettingsPageComponent implements OnInit {
   isEmailExpanded: boolean = false;
   isPasswordExpanded: boolean = false;
 
+  accountPrivacy: UserAccountPrivacy = "public";
+  profileVisibility: UserProfileVisibility = "public";
+  savedAccountPrivacy: UserAccountPrivacy = "public";
+  savedProfileVisibility: UserProfileVisibility = "public";
+  isSavingProfileAccess: boolean = false;
+
+  get hasProfileAccessChanges(): boolean {
+    return (
+      this.accountPrivacy !== this.savedAccountPrivacy ||
+      this.profileVisibility !== this.savedProfileVisibility
+    );
+  }
+
   get isOAuthUser(): boolean {
     const providerId = this.authService.user.providerId;
     // If providerId is missing or is 'password', it's not an OAuth user
@@ -187,6 +208,7 @@ export class SettingsPageComponent implements OnInit {
     this.emailAddress = this.authService?.user?.email || "";
     this.authService.authState$.subscribe((user) => {
       this.emailAddress = user?.email;
+      this.syncProfileAccessSettings();
       if (!user || !user.uid) {
         this.router.navigate(["/account"]);
       }
@@ -223,6 +245,54 @@ export class SettingsPageComponent implements OnInit {
 
   changeLanguage() {
     this._uiLanguageService.changeLanguage();
+  }
+
+  syncProfileAccessSettings() {
+    const userData = this.authService.user.data?.data;
+    this.accountPrivacy = userData?.account_privacy ?? "public";
+    this.profileVisibility = userData?.profile_visibility ?? "public";
+    this.savedAccountPrivacy = this.accountPrivacy;
+    this.savedProfileVisibility = this.profileVisibility;
+  }
+
+  saveProfileAccessSettings() {
+    const userId = this.authService.user.uid;
+    if (!userId || !this.hasProfileAccessChanges) {
+      return;
+    }
+
+    this.isSavingProfileAccess = true;
+    this._usersService
+      .updateUser(userId, {
+        account_privacy: this.accountPrivacy,
+        profile_visibility: this.profileVisibility,
+      })
+      .then(() => {
+        const currentUser = this.authService.user.data;
+        const currentUserData = currentUser?.data;
+        if (currentUserData) {
+          currentUserData.account_privacy = this.accountPrivacy;
+          currentUserData.profile_visibility = this.profileVisibility;
+          currentUser.setUserData(currentUserData);
+        }
+        this.savedAccountPrivacy = this.accountPrivacy;
+        this.savedProfileVisibility = this.profileVisibility;
+        this._snackbar.open($localize`Profile access saved`, "OK", {
+          duration: 3000,
+        });
+        this.authService.refetchUserData();
+      })
+      .catch((error) => {
+        console.error("Error saving profile access settings:", error);
+        this._snackbar.open(
+          $localize`Error saving profile access settings.`,
+          "OK",
+          { duration: 5000 }
+        );
+      })
+      .finally(() => {
+        this.isSavingProfileAccess = false;
+      });
   }
 
   logOut() {

@@ -651,10 +651,69 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh) 
   await assertDenied("other user reads owner following", () =>
     getDocs(collection(other.db, "users/owner/following"))
   );
-  await assertAllowed("other user writes owner follower edge for themself", () =>
-    setDoc(doc(other.db, "users/owner/followers/other"), {
+  await assertAllowed("other user writes public following edge for themself", () =>
+    setDoc(doc(other.db, "users/other/following/admin"), {
       created_at_raw_ms: 2,
     })
+  );
+  await assertAllowed("other user writes public follower edge for themself", () =>
+    setDoc(doc(other.db, "users/admin/followers/other"), {
+      created_at_raw_ms: 2,
+    })
+  );
+  await assertDenied("other user cannot directly follow private account", () =>
+    setDoc(doc(other.db, "users/other/following/owner"), {
+      display_name: "Owner Updated",
+      start_following: Timestamp.now(),
+      start_following_raw_ms: Date.now(),
+    })
+  );
+  await assertDenied("other user cannot directly write private account follower edge", () =>
+    setDoc(doc(other.db, "users/owner/followers/other"), {
+      display_name: "Other",
+      start_following: Timestamp.now(),
+      start_following_raw_ms: Date.now(),
+    })
+  );
+  await assertAllowed("other user creates follow request for private account", () =>
+    setDoc(doc(other.db, "users/owner/follow_requests/other"), {
+      display_name: "Other",
+      requested_at: Timestamp.now(),
+      requested_at_raw_ms: Date.now(),
+    })
+  );
+  await assertAllowed("owner reads follow requests", () =>
+    getDocs(collection(owner.db, "users/owner/follow_requests"))
+  );
+  await assertAllowed("requester reads own follow request", () =>
+    getDoc(doc(other.db, "users/owner/follow_requests/other"))
+  );
+  await assertDenied("anonymous cannot read follow request", () =>
+    getDoc(doc(anon.db, "users/owner/follow_requests/other"))
+  );
+  await assertDenied("other user cannot request to follow public account", () =>
+    setDoc(doc(other.db, "users/admin/follow_requests/other"), {
+      display_name: "Other",
+      requested_at: Timestamp.now(),
+      requested_at_raw_ms: Date.now(),
+    })
+  );
+  await assertAllowed("owner approves requested following edge", () =>
+    setDoc(doc(owner.db, "users/other/following/owner"), {
+      display_name: "Owner Updated",
+      start_following: Timestamp.now(),
+      start_following_raw_ms: Date.now(),
+    })
+  );
+  await assertAllowed("owner approves requested follower edge", () =>
+    setDoc(doc(owner.db, "users/owner/followers/other"), {
+      display_name: "Other",
+      start_following: Timestamp.now(),
+      start_following_raw_ms: Date.now(),
+    })
+  );
+  await assertAllowed("owner deletes approved follow request", () =>
+    deleteDoc(doc(owner.db, "users/owner/follow_requests/other"))
   );
   await assertDenied("other user writes owner follower edge for third party", () =>
     setDoc(doc(other.db, "users/owner/followers/attacker-controlled"), {

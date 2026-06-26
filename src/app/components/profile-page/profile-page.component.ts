@@ -6,7 +6,7 @@ import {
   LOCALE_ID,
   Inject,
   ChangeDetectorRef,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
 } from "@angular/core";
 import {
   MatDialog,
@@ -18,6 +18,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Post } from "../../../db/models/Post";
 import { User } from "../../../db/models/User";
+import { FollowRequestSchema } from "../../../db/schemas/UserSchema";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { Subscription } from "rxjs";
 import { Timestamp } from "firebase/firestore";
@@ -30,6 +31,7 @@ import {
   MatCard,
   MatCardContent,
   MatCardHeader,
+  MatCardSubtitle,
   MatCardTitle,
 } from "@angular/material/card";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
@@ -80,6 +82,7 @@ type ProfileSocialLink = {
     MatButton,
     RouterLink,
     MatCardHeader,
+    MatCardSubtitle,
     MatCardTitle,
     MatIconModule,
     MatTabsModule,
@@ -122,9 +125,14 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   isMyProfile: boolean = false;
   loadingFollowing: boolean = false;
   isFollowing: boolean = false;
+  isFollowedByProfile: boolean = false;
+  isPendingFollowRequest: boolean = false;
   privateDataLoading: boolean = false;
   savedSpotIds: string[] = [];
   visitedSpotIds: string[] = [];
+  followRequestsLoading: boolean = false;
+  followRequests: FollowRequestSchema[] = [];
+  updatingFollowRequestIds = new Set<string>();
 
   createdSpotsCount: number = 0;
   editedSpotsCount: number = 0;
@@ -140,6 +148,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   private _subscriptions = new Subscription();
   private _profileSubscriptions = new Subscription();
   private _privateDataSubscription: Subscription | null = null;
+  private _followRequestsSubscription: Subscription | null = null;
 
   followDialogRef: MatDialogRef<FollowListComponent> | null = null;
 
@@ -197,6 +206,29 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
 
   get profileVisibilityIcon(): string {
     return this.user?.profileVisibility === "public" ? "public" : "groups";
+  }
+
+  get isPrivateAccount(): boolean {
+    return this.user?.accountPrivacy === "private";
+  }
+
+  get followActionButtonType(): "filled" | "outlined" {
+    return this.isFollowing || this.isPendingFollowRequest
+      ? "outlined"
+      : "filled";
+  }
+
+  get relationshipLabel(): string | null {
+    if (this.isMyProfile) {
+      return null;
+    }
+    if (this.isFollowing && this.isFollowedByProfile) {
+      return $localize`Friends`;
+    }
+    if (this.isFollowedByProfile) {
+      return $localize`Follows you`;
+    }
+    return null;
   }
 
   ngOnInit(): void {
@@ -275,7 +307,10 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     this.postsFromUser = [];
     this.profilePicture = "";
     this.isFollowing = false;
+    this.isFollowedByProfile = false;
+    this.isPendingFollowRequest = false;
     this.profileSocialLinks = [];
+    this.followRequests = [];
 
     this.followingCount = 0;
     this.user = null; // Ensure user is null so UI shows loading or empty state correctly for counts that rely on user object
@@ -355,6 +390,42 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
               }
             );
           this._profileSubscriptions.add(followingSub);
+
+          const followedBySub = this._followingService
+            .userIsFollowingYou$(myUserId, userId)
+            .subscribe(
+              (isFollowedByProfile) => {
+                this.isFollowedByProfile = isFollowedByProfile;
+                this._cdr.detectChanges();
+              },
+              (err) => {
+                console.error(
+                  "There was an error checking if this user follows you"
+                );
+                console.error(err);
+                this._cdr.detectChanges();
+              }
+            );
+          this._profileSubscriptions.add(followedBySub);
+
+          if (!this.isMyProfile) {
+            const requestSub = this._followingService
+              .hasPendingFollowRequest$(myUserId, userId)
+              .subscribe(
+                (isPendingFollowRequest) => {
+                  this.isPendingFollowRequest = isPendingFollowRequest;
+                  this._cdr.detectChanges();
+                },
+                (err) => {
+                  console.error(
+                    "There was an error checking your follow request"
+                  );
+                  console.error(err);
+                  this._cdr.detectChanges();
+                }
+              );
+            this._profileSubscriptions.add(requestSub);
+          }
         }
 
         // Load User Stats
@@ -373,6 +444,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
 
         // Compute badges for this user
         this.badges = this._badgeService.getDisplayBadges(this.user.data);
+        this._loadFollowRequests();
 
         // Load the groups of this user
         // TODO
@@ -432,6 +504,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
           .unfollowUser(this._authService.user.uid, this.userId)
           .then(() => {
             this.isFollowing = false;
+            this.isPendingFollowRequest = false;
             this.loadingFollowing = false;
           })
           .catch((err) => {
@@ -463,18 +536,42 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
 
         if (!this.user.data) {
           console.log("User data is null");
+          this.loadingFollowing = false;
           return;
         }
 
-        this._followingService
-          .followUser(
-            this._authService.user.uid,
-            this._authService.user.data.data,
-            this.userId,
-            this.user.data
-          )
+        const followPromise = this.isPendingFollowRequest
+          ? this._followingService.cancelFollowRequest(
+              this._authService.user.uid,
+              this.userId
+            )
+          : this.isPrivateAccount
+            ? this._followingService.requestToFollowUser(
+                this._authService.user.uid,
+                this._authService.user.data.data,
+                this.userId
+              )
+            : this._followingService.followUser(
+                this._authService.user.uid,
+                this._authService.user.data.data,
+                this.userId,
+                this.user.data
+              );
+
+        followPromise
           .then(() => {
-            this.isFollowing = true;
+            if (this.isPendingFollowRequest) {
+              this.isPendingFollowRequest = false;
+            } else if (this.isPrivateAccount) {
+              this.isPendingFollowRequest = true;
+              this._snackbar.open($localize`Follow request sent`, "OK", {
+                duration: 3000,
+                verticalPosition: "bottom",
+                horizontalPosition: "center",
+              });
+            } else {
+              this.isFollowing = true;
+            }
             this.loadingFollowing = false;
           })
           .catch((err) => {
@@ -492,6 +589,92 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
           });
       }
     }
+  }
+
+  private _loadFollowRequests() {
+    this._followRequestsSubscription?.unsubscribe();
+    this._followRequestsSubscription = null;
+    this.followRequests = [];
+    this.followRequestsLoading = false;
+    if (!this.isMyProfile || !this.userId) {
+      return;
+    }
+
+    this.followRequestsLoading = true;
+    this._followRequestsSubscription = this._followingService
+      .getFollowRequestsForUser(this.userId)
+      .subscribe(
+        (requests) => {
+          this.followRequests = requests;
+          this.followRequestsLoading = false;
+          this._cdr.detectChanges();
+        },
+        (error) => {
+          console.error("Failed to load follow requests", error);
+          this.followRequestsLoading = false;
+          this._cdr.detectChanges();
+        }
+      );
+  }
+
+  approveFollowRequest(request: FollowRequestSchema) {
+    if (!this.user?.data || this.updatingFollowRequestIds.has(request.uid)) {
+      return;
+    }
+
+    this.updatingFollowRequestIds.add(request.uid);
+    this._followingService
+      .approveFollowRequest(this.userId, this.user.data, request)
+      .then(() => {
+        this.followRequests = this.followRequests.filter(
+          (item) => item.uid !== request.uid
+        );
+        this._snackbar.open($localize`Follow request approved`, "OK", {
+          duration: 3000,
+        });
+      })
+      .catch((error) => {
+        console.error("Failed to approve follow request", error);
+        this._snackbar.open(
+          $localize`There was an error approving the follow request.`,
+          "OK",
+          { duration: 5000 }
+        );
+      })
+      .finally(() => {
+        this.updatingFollowRequestIds.delete(request.uid);
+        this._cdr.detectChanges();
+      });
+  }
+
+  rejectFollowRequest(request: FollowRequestSchema) {
+    if (!this.user?.data || this.updatingFollowRequestIds.has(request.uid)) {
+      return;
+    }
+
+    this.updatingFollowRequestIds.add(request.uid);
+    this._followingService
+      .rejectFollowRequest(this.userId, request.uid)
+      .then(() => {
+        this.followRequests = this.followRequests.filter(
+          (item) => item.uid !== request.uid
+        );
+        this._snackbar.open($localize`Follow request declined`, "OK", {
+          duration: 3000,
+        });
+      })
+      .catch((error) => {
+        console.error("Failed to decline follow request", error);
+        this._snackbar.open(
+          $localize`There was an error declining the follow request.`,
+          "OK",
+          { duration: 5000 }
+        );
+      })
+      .finally(() => {
+        this.updatingFollowRequestIds.delete(request.uid);
+        this._cdr.detectChanges();
+      });
   }
 
   logOut() {
@@ -931,6 +1114,8 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     this._profileSubscriptions.unsubscribe();
     this._privateDataSubscription?.unsubscribe();
     this._privateDataSubscription = null;
+    this._followRequestsSubscription?.unsubscribe();
+    this._followRequestsSubscription = null;
     this._userSubscription?.unsubscribe();
     this._userSubscription = null;
   }

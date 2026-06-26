@@ -80,6 +80,51 @@
           </p>
 
           <div class="my-4 p-3 rounded border">
+            <h3 class="mat-h3 m-0" i18n>Profile access</h3>
+            <p class="mat-body mt-2 mb-3" i18n>
+              Choose how follows work and who should see expanded profile
+              details as profile sections grow.
+            </p>
+            <div class="profile-access-grid">
+              <mat-form-field appearance="outline">
+                <mat-label i18n>Account privacy</mat-label>
+                <mat-select [(ngModel)]="accountPrivacy">
+                  <mat-option value="public" i18n>Public</mat-option>
+                  <mat-option value="private" i18n>Private</mat-option>
+                </mat-select>
+                <mat-hint i18n>
+                  Private accounts approve follow requests before someone can
+                  follow them.
+                </mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label i18n>Profile visibility</mat-label>
+                <mat-select [(ngModel)]="profileVisibility">
+                  <mat-option value="public" i18n>Public</mat-option>
+                  <mat-option value="followers" i18n>Followers</mat-option>
+                  <mat-option value="mutuals" i18n>Mutuals</mat-option>
+                </mat-select>
+                <mat-hint i18n>
+                  This prepares profile-only sections for audience controls.
+                </mat-hint>
+              </mat-form-field>
+            </div>
+            <button
+              mat-flat-button
+              color="primary"
+              [disabled]="isSavingProfileAccess || !hasProfileAccessChanges"
+              (click)="saveProfileAccessSettings()"
+            >
+              @if(isSavingProfileAccess) {
+              <mat-spinner diameter="20" strokeWidth="2"></mat-spinner>
+              } @else {
+              <span i18n>Save profile access</span>
+              }
+            </button>
+          </div>
+
+          <div class="my-4 p-3 rounded border">
             <div class="d-flex justify-content-between align-items-center gap-3">
               <div>
                 <h3 class="mat-h3 m-0" i18n>Session</h3>

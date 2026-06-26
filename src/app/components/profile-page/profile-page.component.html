@@ -51,6 +51,12 @@
                   @if (isMyProfile) {
                   <mat-chip color="primary" class="mat-label-large" i18n>You</mat-chip>
                   }
+                  @if (relationshipLabel) {
+                  <mat-chip color="primary" class="mat-label-large">
+                    <mat-icon class="profile-overview__chip-icon">groups</mat-icon>
+                    {{ relationshipLabel }}
+                  </mat-chip>
+                  }
                   <mat-chip class="mat-label-large">
                     <mat-icon class="profile-overview__chip-icon">{{ user.accountPrivacy === "private" ? "lock" : "public" }}</mat-icon>
                     {{ profileAccessLabel }}
@@ -139,13 +145,17 @@
               @if (!isMyProfile) {
               <div class="profile-overview__actions" aria-label="Profile actions">
                 @if (ageAssurance.canParticipatePublicly()) {
-                <button [matButton]="isFollowing ? 'outlined' : 'filled'" color="primary"
+                <button [matButton]="followActionButtonType" color="primary"
                   class="profile-overview__action" (click)="followButtonClick()">
                   @if (loadingFollowing) {
                   <mat-spinner diameter="20" strokeWidth="3" class="profile-overview__action-spinner"
                     aria-label="Updating follow status"></mat-spinner>
                   } @if (isFollowing) {
                   <span i18n>Unfollow</span>
+                  } @else if (isPendingFollowRequest) {
+                  <span i18n>Requested</span>
+                  } @else if (isPrivateAccount) {
+                  <span i18n>Request follow</span>
                   } @else {
                   <span i18n>Follow</span>
                   }
@@ -176,7 +186,7 @@
                 </button>
                 }
                 <button mat-stroked-button color="primary" class="profile-overview__action"
-                  routerLink="/settings/general">
+                  routerLink="/settings/account">
                   <mat-icon>settings</mat-icon>
                   <span i18n>Settings</span>
                 </button>
@@ -197,9 +207,64 @@
       <mat-card class="profile-section mat-elevation-z1">
         <mat-card-header class="profile-section__header">
           <mat-card-title class="mat-title-small" i18n>
+            Follow requests
+          </mat-card-title>
+          <mat-card-subtitle class="mat-body-small text-muted" i18n>
+            Private accounts can approve who follows them.
+          </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content class="profile-section__content">
+          @if (followRequestsLoading) {
+          <div class="private-spot-loading">
+            <mat-spinner diameter="28" strokeWidth="3"></mat-spinner>
+          </div>
+          } @else if (followRequests.length > 0) {
+          <div class="d-grid gap-2">
+            @for (request of followRequests; track request.uid) {
+            <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-between gap-3 p-3 rounded border">
+              <div class="d-flex align-items-center gap-2 min-w-0">
+                <div
+                  class="d-grid flex-shrink-0 rounded-circle text-uppercase fw-semibold"
+                  style="place-items: center; width: 40px; aspect-ratio: 1; background: var(--mat-sys-primary-container); color: var(--mat-sys-on-primary-container)"
+                  aria-hidden="true">
+                  {{ request.display_name ? request.display_name.charAt(0) : "?" }}
+                </div>
+                <div style="min-width: 0">
+                  <p class="mat-body-medium m-0" style="overflow-wrap: anywhere">
+                    {{ request.display_name || request.uid }}
+                  </p>
+                  <p class="mat-body-small text-muted m-0" style="overflow-wrap: anywhere">{{ "/u/" + request.uid }}</p>
+                </div>
+              </div>
+              <div class="follow-request-actions d-flex flex-wrap justify-content-end gap-2">
+                <button mat-stroked-button color="primary" (click)="approveFollowRequest(request)"
+                  [disabled]="updatingFollowRequestIds.has(request.uid)">
+                  <mat-icon>check</mat-icon>
+                  <span i18n>Approve</span>
+                </button>
+                <button mat-stroked-button color="warn" (click)="rejectFollowRequest(request)"
+                  [disabled]="updatingFollowRequestIds.has(request.uid)">
+                  <mat-icon>close</mat-icon>
+                  <span i18n>Decline</span>
+                </button>
+              </div>
+            </div>
+            }
+          </div>
+          } @else {
+          <p class="profile-section__placeholder mat-body-medium" i18n>
+            No pending follow requests.
+          </p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="profile-section mat-elevation-z1">
+        <mat-card-header class="profile-section__header">
+          <mat-card-title class="mat-title-small" i18n>
             Your Private Spot Lists
           </mat-card-title>
-          <p class="mat-body-small text-muted m-0" i18n>Only visible to you.</p>
+          <mat-card-subtitle class="mat-body-small text-muted" i18n>Only visible to you.</mat-card-subtitle>
         </mat-card-header>
         <mat-card-content class="profile-section__content">
           @if(privateDataLoading) {

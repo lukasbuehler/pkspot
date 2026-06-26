@@ -189,6 +189,66 @@ service cloud.firestore {
           || request.resource.data.profile_visibility in ['public', 'followers', 'mutuals']);
     }
 
+    function validFollowRequest(userId, requesterId) {
+      return request.resource.data.keys().hasOnly([
+          'display_name',
+          'profile_picture',
+          'requested_at',
+          'requested_at_raw_ms'
+        ])
+        && requesterId != userId
+        && get(/databases/$(database)/documents/users/$(userId)).data.get('account_privacy', 'public') == 'private'
+        && (!('display_name' in request.resource.data) || (
+          request.resource.data.display_name is string
+          && request.resource.data.display_name.size() <= 120
+        ))
+        && (!('profile_picture' in request.resource.data) || (
+          request.resource.data.profile_picture is string
+          && request.resource.data.profile_picture.size() <= 500
+        ))
+        && (!('requested_at' in request.resource.data) || request.resource.data.requested_at is timestamp)
+        && (!('requested_at_raw_ms' in request.resource.data) || request.resource.data.requested_at_raw_ms is number);
+    }
+
+    function canApproveFollowRequest(userId, requesterId) {
+      return request.auth.uid != null
+        && request.auth.uid == userId
+        && request.auth.uid != requesterId
+        && exists(/databases/$(database)/documents/users/$(userId)/follow_requests/$(requesterId));
+    }
+
+    function validApprovedFollowingEdge(userId) {
+      return request.resource.data.keys().hasOnly([
+          'display_name',
+          'profile_picture',
+          'start_following',
+          'start_following_raw_ms'
+        ])
+        && request.resource.data.display_name == get(/databases/$(database)/documents/users/$(userId)).data.display_name
+        && (!('profile_picture' in request.resource.data) || (
+          request.resource.data.profile_picture is string
+          && request.resource.data.profile_picture.size() <= 500
+        ))
+        && (!('start_following' in request.resource.data) || request.resource.data.start_following is timestamp)
+        && (!('start_following_raw_ms' in request.resource.data) || request.resource.data.start_following_raw_ms is number);
+    }
+
+    function validApprovedFollowerEdge(userId, requesterId) {
+      return request.resource.data.keys().hasOnly([
+          'display_name',
+          'profile_picture',
+          'start_following',
+          'start_following_raw_ms'
+        ])
+        && request.resource.data.display_name == get(/databases/$(database)/documents/users/$(userId)/follow_requests/$(requesterId)).data.display_name
+        && (!('profile_picture' in request.resource.data) || (
+          request.resource.data.profile_picture is string
+          && request.resource.data.profile_picture.size() <= 500
+        ))
+        && (!('start_following' in request.resource.data) || request.resource.data.start_following is timestamp)
+        && (!('start_following_raw_ms' in request.resource.data) || request.resource.data.start_following_raw_ms is number);
+    }
+
     function userCustomSocialLinksUnchanged() {
       return request.resource.data.get('socials', {}).get('other', []) ==
         resource.data.get('socials', {}).get('other', []);
@@ -562,8 +622,19 @@ service cloud.firestore {
         // A user can only see and update his own following
         allow read: if request.auth.uid != null && request.auth.uid == userId;
         allow create, update: if request.auth.uid != null
-        && agePolicyAllowsPublicParticipation()
-        && request.auth.uid == userId && request.auth.uid != otherUserId;
+        && (
+          (
+            agePolicyAllowsPublicParticipation()
+            && request.auth.uid == userId
+            && request.auth.uid != otherUserId
+            && get(/databases/$(database)/documents/users/$(otherUserId)).data.get('account_privacy', 'public') != 'private'
+          )
+          || (
+            request.auth.uid == otherUserId
+            && canApproveFollowRequest(otherUserId, userId)
+            && validApprovedFollowingEdge(otherUserId)
+          )
+        );
         allow delete: if request.auth.uid != null
         && request.auth.uid == userId && request.auth.uid != otherUserId;
       }
@@ -572,10 +643,32 @@ service cloud.firestore {
         allow read: if request.auth.uid != null && request.auth.uid == userId;
         // TODO write cloud function to handle updating followers and remove this permission to write.
         allow create, update: if request.auth.uid != null
-        && agePolicyAllowsPublicParticipation()
-        && request.auth.uid == otherUserId && request.auth.uid != userId;
+        && (
+          (
+            agePolicyAllowsPublicParticipation()
+            && request.auth.uid == otherUserId
+            && request.auth.uid != userId
+            && get(/databases/$(database)/documents/users/$(userId)).data.get('account_privacy', 'public') != 'private'
+          )
+          || (
+            request.auth.uid == userId
+            && canApproveFollowRequest(userId, otherUserId)
+            && validApprovedFollowerEdge(userId, otherUserId)
+          )
+        );
         allow delete: if request.auth.uid != null &&
         request.auth.uid == otherUserId && request.auth.uid != userId;
+      }
+
+      match /follow_requests/{requesterId} {
+        allow read: if request.auth.uid != null
+          && (request.auth.uid == userId || request.auth.uid == requesterId);
+        allow create, update: if request.auth.uid != null
+          && agePolicyAllowsPublicParticipation()
+          && request.auth.uid == requesterId
+          && validFollowRequest(userId, requesterId);
+        allow delete: if request.auth.uid != null
+          && (request.auth.uid == userId || request.auth.uid == requesterId);
       }
 
       match /check_ins/{checkInId} {
