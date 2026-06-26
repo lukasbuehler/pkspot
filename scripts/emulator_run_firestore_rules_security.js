@@ -247,6 +247,10 @@ async function seedSecurityFixture() {
     display_name: "Other",
     is_admin: false,
   });
+  batch.set(adminDb.doc("users/attacker"), {
+    display_name: "Attacker",
+    is_admin: false,
+  });
   batch.set(adminDb.doc("users/admin"), {
     display_name: "Admin",
     is_admin: true,
@@ -561,7 +565,7 @@ async function testPrivateOrganizationReviewEdits(anon, owner, other, adminUser)
   );
 }
 
-async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh) {
+async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh, attacker) {
   await assertAllowed("anonymous public user profile read", () =>
     getDoc(doc(anon.db, "users/owner"))
   );
@@ -682,11 +686,51 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh) 
       requested_at_raw_ms: Date.now(),
     })
   );
+  await assertDenied("anonymous cannot create follow request", () =>
+    setDoc(doc(anon.db, "users/owner/follow_requests/anonymous"), {
+      display_name: "Anonymous",
+      requested_at: Timestamp.now(),
+      requested_at_raw_ms: Date.now(),
+    })
+  );
+  await assertDenied("attacker cannot create follow request for another requester id", () =>
+    setDoc(doc(attacker.db, "users/owner/follow_requests/other"), {
+      display_name: "Other",
+      requested_at: Timestamp.now(),
+      requested_at_raw_ms: Date.now(),
+    })
+  );
+  await assertDenied("user cannot request to follow themself", () =>
+    setDoc(doc(owner.db, "users/owner/follow_requests/owner"), {
+      display_name: "Owner",
+      requested_at: Timestamp.now(),
+      requested_at_raw_ms: Date.now(),
+    })
+  );
+  await assertDenied("follow request cannot include extra fields", () =>
+    setDoc(doc(attacker.db, "users/owner/follow_requests/attacker"), {
+      display_name: "Attacker",
+      role: "approved",
+      requested_at: Timestamp.now(),
+      requested_at_raw_ms: Date.now(),
+    })
+  );
+  await assertDenied("follow request cannot include oversized profile picture", () =>
+    setDoc(doc(attacker.db, "users/owner/follow_requests/attacker"), {
+      display_name: "Attacker",
+      profile_picture: "x".repeat(501),
+      requested_at: Timestamp.now(),
+      requested_at_raw_ms: Date.now(),
+    })
+  );
   await assertAllowed("owner reads follow requests", () =>
     getDocs(collection(owner.db, "users/owner/follow_requests"))
   );
   await assertAllowed("requester reads own follow request", () =>
     getDoc(doc(other.db, "users/owner/follow_requests/other"))
+  );
+  await assertDenied("third party cannot read someone else's follow request", () =>
+    getDoc(doc(attacker.db, "users/owner/follow_requests/other"))
   );
   await assertDenied("anonymous cannot read follow request", () =>
     getDoc(doc(anon.db, "users/owner/follow_requests/other"))
@@ -696,6 +740,41 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh) 
       display_name: "Other",
       requested_at: Timestamp.now(),
       requested_at_raw_ms: Date.now(),
+    })
+  );
+  await assertDenied("requester cannot approve their own private follow request", () =>
+    setDoc(doc(other.db, "users/other/following/owner"), {
+      display_name: "Owner Updated",
+      start_following: Timestamp.now(),
+      start_following_raw_ms: Date.now(),
+    })
+  );
+  await assertDenied("profile owner cannot approve requester with forged target display name", () =>
+    setDoc(doc(owner.db, "users/other/following/owner"), {
+      display_name: "Forged Owner",
+      start_following: Timestamp.now(),
+      start_following_raw_ms: Date.now(),
+    })
+  );
+  await assertDenied("profile owner cannot approve requester with forged requester display name", () =>
+    setDoc(doc(owner.db, "users/owner/followers/other"), {
+      display_name: "Forged Requester",
+      start_following: Timestamp.now(),
+      start_following_raw_ms: Date.now(),
+    })
+  );
+  await assertDenied("profile owner cannot approve user without a follow request", () =>
+    setDoc(doc(owner.db, "users/attacker/following/owner"), {
+      display_name: "Owner Updated",
+      start_following: Timestamp.now(),
+      start_following_raw_ms: Date.now(),
+    })
+  );
+  await assertDenied("attacker cannot approve another user's follow request", () =>
+    setDoc(doc(attacker.db, "users/other/following/owner"), {
+      display_name: "Owner Updated",
+      start_following: Timestamp.now(),
+      start_following_raw_ms: Date.now(),
     })
   );
   await assertAllowed("owner approves requested following edge", () =>
@@ -711,6 +790,9 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh) 
       start_following: Timestamp.now(),
       start_following_raw_ms: Date.now(),
     })
+  );
+  await assertDenied("third party cannot delete someone else's follow request", () =>
+    deleteDoc(doc(attacker.db, "users/owner/follow_requests/other"))
   );
   await assertAllowed("owner deletes approved follow request", () =>
     deleteDoc(doc(owner.db, "users/owner/follow_requests/other"))
@@ -1176,6 +1258,7 @@ async function main() {
   const anon = await createClient(null);
   const owner = await createClient("owner");
   const other = await createClient("other");
+  const attacker = await createClient("attacker");
   const fresh = await createClient("fresh");
   const restricted = await createClient("restricted");
   const adminUser = await createClient("admin");
@@ -1185,7 +1268,7 @@ async function main() {
   await testSpotWriteGuards(anon, owner, other, adminUser);
   await testOrganizationGuards(anon, owner, other, adminUser);
   await testPrivateOrganizationReviewEdits(anon, owner, other, adminUser);
-  await testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh);
+  await testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh, attacker);
   await testUserReportGuards(anon, owner, other);
   await testAgePolicyParticipationGuards(restricted);
   await testReadOnlyBackendCollections(owner);

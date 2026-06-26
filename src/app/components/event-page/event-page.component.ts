@@ -759,15 +759,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       description,
       url: `${environment.baseUrl}/${this._locale}${canonicalPath}`,
       sameAs: event.url ?? event.externalSource?.url,
-      organizer: event.organizer
-        ? {
-            "@type": "Organization",
-            name: event.organizer.organization.name,
-            url: event.organizer.organization.slug
-              ? `${environment.baseUrl}/${this._locale}/organizations/${event.organizer.organization.slug}`
-              : undefined,
-          }
-        : undefined,
+      organizer: this._buildOrganizerStructuredData(event),
       offers: this._buildEventOffers(event),
       superEvent: this._buildEventSeriesStructuredData(event),
       subEvent: this._buildProgramStructuredData(event),
@@ -1148,8 +1140,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       return offers.length === 1 ? offers[0] : offers;
     }
 
-    const url = this._safeExternalUrl(event.url ?? event.externalSource?.url);
-    return url ? { "@type": "Offer", url } : undefined;
+    return undefined;
   }
 
   private _buildTicketOffer(
@@ -1157,7 +1148,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   ): Record<string, unknown> | null {
     const url = this._safeExternalUrl(ticket.url);
     const price = ticket.price;
-    if (!url && !price) return null;
+    if (!price) return null;
 
     return {
       "@type": "Offer",
@@ -1175,6 +1166,32 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         : undefined,
       validFrom: ticket.saleStartsAt?.toISOString(),
       priceValidUntil: ticket.saleEndsAt?.toISOString(),
+    };
+  }
+
+  private _buildOrganizerStructuredData(event: PkEvent): unknown {
+    if (event.organizer) {
+      return {
+        "@type": "Organization",
+        name: event.organizer.organization.name,
+        url: event.organizer.organization.slug
+          ? `${environment.baseUrl}/${this._locale}/organizations/${event.organizer.organization.slug}`
+          : undefined,
+      };
+    }
+
+    const seriesOrganizer = event.seriesIds
+      .map((seriesId) => this.seriesById()[seriesId])
+      .find((item) => !!item?.organizer);
+
+    if (!seriesOrganizer?.organizer) {
+      return undefined;
+    }
+
+    return {
+      "@type": "Organization",
+      name: seriesOrganizer.organizer,
+      url: seriesOrganizer.organizer_url,
     };
   }
 

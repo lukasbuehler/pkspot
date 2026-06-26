@@ -890,6 +890,7 @@ describe("EventInfoPageComponent", () => {
     );
 
     const event = buildEvent("media-event", "Media Event", {
+      url: "https://example.com/media-event",
       banner_src: undefined,
       media: [
         {
@@ -917,6 +918,8 @@ describe("EventInfoPageComponent", () => {
       "event",
       expect.objectContaining({
         image: ["https://cdn.example.com/event-photo.jpg"],
+        sameAs: "https://example.com/media-event",
+        offers: undefined,
       }),
     );
     expect(
@@ -1013,6 +1016,11 @@ describe("EventInfoPageComponent", () => {
             price: { amount: 45, currency: "CHF" },
             availability: "coming_soon",
           },
+          {
+            id: "info",
+            label: "Registration info",
+            url: "https://tickets.example.com/info",
+          },
         ],
         program: {
           active_plan_id: "main",
@@ -1060,6 +1068,11 @@ describe("EventInfoPageComponent", () => {
             availability: "https://schema.org/PreOrder",
           }),
         ],
+        organizer: expect.objectContaining({
+          "@type": "Organization",
+          name: "Swiss Parkour Association",
+          url: "https://swissparkour.ch",
+        }),
         sameAs: "https://eventfrog.ch/ticket-event",
         superEvent: expect.objectContaining({
           "@type": "EventSeries",
