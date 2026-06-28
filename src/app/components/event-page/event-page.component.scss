@@ -112,6 +112,7 @@
   gap: 0.25rem;
 }
 .ticket-option,
+.featured-participant,
 .map-preview,
 app-event-program-timeline {
   display: block;
@@ -122,6 +123,64 @@ app-event-program-timeline {
 
 .ticket-option {
   padding: 1rem;
+}
+
+.featured-participant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.featured-participant {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.75rem;
+}
+
+.featured-participant-image,
+.featured-participant-placeholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  background: var(--mat-sys-surface-container-high);
+}
+
+.featured-participant-image {
+  object-fit: cover;
+}
+
+.featured-participant-placeholder {
+  display: grid;
+  place-items: center;
+  color: var(--mat-sys-on-surface-variant);
+  border: 1px solid var(--mat-sys-outline-variant);
+}
+
+.featured-participant-role,
+.featured-participant-name,
+.featured-participant-description {
+  margin: 0;
+}
+
+.featured-participant-role,
+.featured-participant-description {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.featured-participant-name {
+  display: inline-block;
+  color: var(--mat-sys-on-surface);
+  text-decoration: none;
+}
+
+a.featured-participant-name {
+  color: var(--mat-sys-primary);
+}
+
+.featured-participant-description {
+  margin-top: 0.25rem;
 }
 
 .qualification-block + .qualification-block {

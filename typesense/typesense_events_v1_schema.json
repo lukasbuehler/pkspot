@@ -28,6 +28,41 @@
       "optional": true,
       "index": false
     },
+    {
+      "name": "featured_participants.name",
+      "type": "string[]",
+      "optional": true
+    },
+    {
+      "name": "featured_participants.type",
+      "type": "string[]",
+      "facet": true,
+      "optional": true
+    },
+    {
+      "name": "featured_participants.role",
+      "type": "string[]",
+      "facet": true,
+      "optional": true
+    },
+    {
+      "name": "featured_participants.description",
+      "type": "string[]",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "featured_participants.url",
+      "type": "string[]",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "featured_participants.image_src",
+      "type": "string[]",
+      "optional": true,
+      "index": false
+    },
     { "name": "sponsor.name", "type": "string", "optional": true },
     {
       "name": "sponsor.logo_src",

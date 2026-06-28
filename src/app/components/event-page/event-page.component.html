@@ -219,6 +219,63 @@
         </button>
       </section>
 
+      @if (featuredParticipants().length > 0) {
+        <section class="event-section featured-participants-section">
+          <div class="section-heading-row">
+            <h2
+              class="mat-title-large m-0"
+              i18n="@@event_featured_participants.heading"
+            >
+              Featured people, groups & acts
+            </h2>
+            <mat-icon>diversity_3</mat-icon>
+          </div>
+          <div class="featured-participant-grid">
+            @for (participant of featuredParticipants(); track participant.name + participant.role) {
+              <article class="featured-participant">
+                @if (featuredParticipantImageSrc(participant); as imageSrc) {
+                  <img
+                    class="featured-participant-image"
+                    [src]="imageSrc"
+                    [alt]="participant.name"
+                  />
+                } @else {
+                  <div class="featured-participant-placeholder" aria-hidden="true">
+                    <mat-icon>
+                      {{ participant.type === "group" ? "groups" : "person" }}
+                    </mat-icon>
+                  </div>
+                }
+                <div class="featured-participant-copy">
+                  <p class="mat-label-small featured-participant-role">
+                    {{ featuredParticipantRoleLabel(participant.role) }}
+                  </p>
+                  @if (featuredParticipantUrl(participant); as url) {
+                    <a
+                      class="mat-title-small featured-participant-name"
+                      [href]="url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {{ participant.name }}
+                    </a>
+                  } @else {
+                    <h3 class="mat-title-small featured-participant-name">
+                      {{ participant.name }}
+                    </h3>
+                  }
+                  @if (participant.description) {
+                    <p class="mat-body-small featured-participant-description">
+                      {{ participant.description }}
+                    </p>
+                  }
+                </div>
+              </article>
+            }
+          </div>
+        </section>
+      }
+
       @if (hasMapPreview()) {
         @defer (on viewport) {
           <section class="event-section map-preview">

@@ -3,6 +3,7 @@ import {
   EventBoundsSchema,
   EventCustomMarkerSchema,
   EventCategory,
+  EventFeaturedParticipantSchema,
   EventProgramItemSchema,
   EventProgramPlanSchema,
   EventProgramRuntimeOverrideSchema,
@@ -70,6 +71,8 @@ export interface EventProgram extends Omit<EventProgramSchema, "plans"> {
   plans: EventProgramPlan[];
 }
 
+export type EventFeaturedParticipant = EventFeaturedParticipantSchema;
+
 /**
  * An Event is a parkour-community event (jam, camp, competition) that
  * highlights one or more spots and runs over a defined time window.
@@ -91,6 +94,7 @@ export class Event {
   readonly logoBackgroundColor?: string;
   readonly media: MediaSchema[];
   readonly organizer?: EventOrganizerSchema;
+  readonly featuredParticipants: EventFeaturedParticipant[];
 
   readonly venueString: string;
   readonly localityString: string;
@@ -145,6 +149,7 @@ export class Event {
     this.logoBackgroundColor = data.logo_background_color;
     this.media = data.media ?? [];
     this.organizer = data.organizer;
+    this.featuredParticipants = data.featured_participants ?? [];
     this.venueString = data.venue_string;
     this.localityString = data.locality_string;
     this.location =

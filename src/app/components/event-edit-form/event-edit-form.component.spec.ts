@@ -357,6 +357,58 @@ describe("EventEditFormComponent", () => {
     ]);
   });
 
+  it("serializes featured people, groups and acts on submit", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    fixture.componentRef.setInput("event", eventWith("event-1"));
+    fixture.detectChanges();
+
+    component.addFeaturedParticipant();
+    const athleteId = component.featuredParticipants()[0].id;
+    component.updateFeaturedParticipant(athleteId, {
+      name: "Featured Athlete",
+      role: "athlete",
+      type: "person",
+      description: "Guest athlete.",
+      url: "https://athlete.example/profile",
+      imageSrc: "https://athlete.example/photo.jpg",
+    });
+
+    component.addFeaturedParticipant();
+    const hostId = component.featuredParticipants()[1].id;
+    component.updateFeaturedParticipant(hostId, {
+      name: "Invalid URL Host",
+      role: "host",
+      type: "group",
+      url: "javascript:alert(1)",
+    });
+
+    component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0].featured_participants).toEqual([
+      {
+        name: "Featured Athlete",
+        role: "athlete",
+        type: "person",
+        description: "Guest athlete.",
+        url: "https://athlete.example/profile",
+        image_src: "https://athlete.example/photo.jpg",
+      },
+      {
+        name: "Invalid URL Host",
+        role: "host",
+        type: "group",
+        description: undefined,
+        url: undefined,
+        image_src: undefined,
+      },
+    ]);
+  });
+
   it("writes promoted state with the legacy sponsored mirror", async () => {
     const fixture = await setup();
     const component = fixture.componentInstance;

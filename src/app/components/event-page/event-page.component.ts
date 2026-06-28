@@ -20,7 +20,11 @@ import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { Subscription, firstValueFrom, take } from "rxjs";
-import { Event as PkEvent, EventProgramItem } from "../../../db/models/Event";
+import {
+  Event as PkEvent,
+  EventFeaturedParticipant,
+  EventProgramItem,
+} from "../../../db/models/Event";
 import {
   EventCategory,
   EventBoundsSchema,
@@ -236,6 +240,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       .filter((link) => !!this._safeExternalUrl(link.url));
   });
   readonly ticketOptions = computed(() => this.event()?.ticketOptions ?? []);
+  readonly featuredParticipants = computed(
+    () => this.event()?.featuredParticipants ?? [],
+  );
   readonly activeProgramItems = computed<EventProgramItem[]>(() => {
     const event = this.event();
     if (!event?.program) return [];
@@ -760,6 +767,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       url: `${environment.baseUrl}/${this._locale}${canonicalPath}`,
       sameAs: event.url ?? event.externalSource?.url,
       organizer: this._buildOrganizerStructuredData(event),
+      performer: this._buildEventPerformers(event),
       offers: this._buildEventOffers(event),
       superEvent: this._buildEventSeriesStructuredData(event),
       subEvent: this._buildProgramStructuredData(event),
@@ -812,6 +820,47 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       default:
         return "";
     }
+  }
+
+  featuredParticipantRoleLabel(
+    role: EventFeaturedParticipant["role"],
+  ): string {
+    switch (role) {
+      case "athlete":
+        return $localize`:@@event_featured_participant.role.athlete:Athlete`;
+      case "judge":
+        return $localize`:@@event_featured_participant.role.judge:Judge`;
+      case "coach":
+        return $localize`:@@event_featured_participant.role.coach:Coach`;
+      case "instructor":
+        return $localize`:@@event_featured_participant.role.instructor:Instructor`;
+      case "speaker":
+        return $localize`:@@event_featured_participant.role.speaker:Speaker`;
+      case "artist":
+        return $localize`:@@event_featured_participant.role.artist:Artist`;
+      case "dj":
+        return $localize`:@@event_featured_participant.role.dj:DJ`;
+      case "performer":
+        return $localize`:@@event_featured_participant.role.performer:Performer`;
+      case "host":
+        return $localize`:@@event_featured_participant.role.host:Host`;
+      case "guest":
+        return $localize`:@@event_featured_participant.role.guest:Guest`;
+    }
+  }
+
+  featuredParticipantUrl(
+    participant: EventFeaturedParticipant,
+  ): string | undefined {
+    return this._safeExternalUrl(participant.url) ?? undefined;
+  }
+
+  featuredParticipantImageSrc(
+    participant: EventFeaturedParticipant,
+  ): string | undefined {
+    return participant.image_src
+      ? this._absoluteUrl(participant.image_src)
+      : undefined;
   }
 
   eventLinkIcon(link: EventLinkSchema): string {
@@ -1193,6 +1242,27 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       name: seriesOrganizer.organizer,
       url: seriesOrganizer.organizer_url,
     };
+  }
+
+  private _buildEventPerformers(event: PkEvent): unknown {
+    const performers = event.featuredParticipants
+      .map((participant) => {
+        const url = this._safeExternalUrl(participant.url);
+        const image = participant.image_src
+          ? this._absoluteUrl(participant.image_src)
+          : undefined;
+        return {
+          "@type":
+            participant.type === "group" ? "PerformingGroup" : "Person",
+          name: participant.name,
+          description: participant.description,
+          url,
+          image,
+        };
+      });
+
+    if (performers.length === 0) return undefined;
+    return performers;
   }
 
   private _schemaAvailability(availability: string): string {

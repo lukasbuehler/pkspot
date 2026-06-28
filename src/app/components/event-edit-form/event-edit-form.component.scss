@@ -38,6 +38,7 @@ input[type="number"] {
 }
 
 .event-link-list,
+.featured-participant-edit-list,
 .ticket-edit-list,
 .program-plan-list,
 .program-item-list,
@@ -50,6 +51,7 @@ input[type="number"] {
 }
 
 .event-link-editor,
+.featured-participant-editor,
 .ticket-editor,
 .program-plan-editor,
 .program-item-editor,
@@ -106,6 +108,7 @@ input[type="number"] {
 }
 
 .event-link-editor mat-checkbox,
+.featured-participant-editor .span-2,
 .ticket-editor .span-2,
 .program-item-editor .span-2,
 .tmp-fields .span-2 {
@@ -184,6 +187,7 @@ input[type="number"] {
 
 @media (max-width: 599.99px) {
   .event-link-editor,
+  .featured-participant-editor,
   .ticket-editor,
   .program-item-editor,
   .qualification-ref-editor,
@@ -198,6 +202,8 @@ input[type="number"] {
 
   .event-link-editor mat-form-field,
   .event-link-editor mat-checkbox,
+  .featured-participant-editor mat-form-field,
+  .featured-participant-editor .span-2,
   .ticket-editor mat-form-field,
   .ticket-editor .span-2,
   .program-item-editor mat-form-field,

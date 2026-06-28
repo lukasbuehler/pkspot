@@ -1000,6 +1000,32 @@ describe("EventInfoPageComponent", () => {
           url: "https://eventfrog.ch/ticket-event",
         },
         series_ids: ["swiss-parkour-tour"],
+        featured_participants: [
+          {
+            name: "Featured Athlete",
+            role: "athlete",
+            type: "person",
+            description: "Guest athlete and coach.",
+            url: "https://athlete.example/profile",
+            image_src: "assets/athletes/featured.jpg",
+          },
+          {
+            name: "Night Session DJs",
+            role: "dj",
+            type: "group",
+            url: "https://djs.example",
+          },
+          {
+            name: "Head Judge",
+            role: "judge",
+            type: "person",
+          },
+          {
+            name: "Host Crew",
+            role: "host",
+            type: "group",
+          },
+        ],
         ticket_options: [
           {
             id: "early",
@@ -1046,7 +1072,7 @@ describe("EventInfoPageComponent", () => {
             },
           ],
         },
-      } as Partial<EventSchema>),
+      } as unknown as Partial<EventSchema>),
     );
     flushSignalEffects();
 
@@ -1073,6 +1099,28 @@ describe("EventInfoPageComponent", () => {
           name: "Swiss Parkour Association",
           url: "https://swissparkour.ch",
         }),
+        performer: [
+          expect.objectContaining({
+            "@type": "Person",
+            name: "Featured Athlete",
+            description: "Guest athlete and coach.",
+            url: "https://athlete.example/profile",
+            image: "https://pkspot.app/assets/athletes/featured.jpg",
+          }),
+          expect.objectContaining({
+            "@type": "PerformingGroup",
+            name: "Night Session DJs",
+            url: "https://djs.example/",
+          }),
+          expect.objectContaining({
+            "@type": "Person",
+            name: "Head Judge",
+          }),
+          expect.objectContaining({
+            "@type": "PerformingGroup",
+            name: "Host Crew",
+          }),
+        ],
         sameAs: "https://eventfrog.ch/ticket-event",
         superEvent: expect.objectContaining({
           "@type": "EventSeries",

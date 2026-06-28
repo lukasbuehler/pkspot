@@ -130,6 +130,29 @@ export interface EventOrganizerSchema {
   organization: OrganizationReferenceSchema;
 }
 
+export type EventFeaturedParticipantType = "person" | "group";
+
+export type EventFeaturedParticipantRole =
+  | "athlete"
+  | "judge"
+  | "coach"
+  | "instructor"
+  | "speaker"
+  | "artist"
+  | "dj"
+  | "performer"
+  | "host"
+  | "guest";
+
+export interface EventFeaturedParticipantSchema {
+  name: string;
+  type: EventFeaturedParticipantType;
+  role: EventFeaturedParticipantRole;
+  description?: string;
+  url?: string;
+  image_src?: string;
+}
+
 /**
  * Marks an event whose canonical home lives outside PK Spot (e.g. an
  * EventFrog ticket page hosted by a partner). Used for two patterns:
@@ -389,6 +412,8 @@ export interface EventSchema {
 
   /** Organizer responsible for the event. User organizers can be added later. */
   organizer?: EventOrganizerSchema;
+  /** Featured people, groups, and acts visible on the event page. */
+  featured_participants?: EventFeaturedParticipantSchema[];
 
   venue_string: string;
   locality_string: string;

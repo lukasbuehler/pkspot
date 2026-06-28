@@ -343,6 +343,112 @@
         }
 
         <div class="d-flex flex-row align-items-center gap-2 flex-wrap mt-2">
+          <h4 class="mat-title-small m-0 flex-grow-1" i18n="@@event_edit.featured_participants_heading">
+            Featured people, groups & acts
+          </h4>
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="addFeaturedParticipant()"
+            [disabled]="saving()"
+          >
+            <mat-icon>diversity_3</mat-icon>
+            <span i18n="@@event_edit.featured_participant_add">Add featured</span>
+          </button>
+        </div>
+        @if (featuredParticipants().length > 0) {
+          <div class="featured-participant-edit-list">
+            @for (participant of featuredParticipants(); track participant.id) {
+              <div class="featured-participant-editor">
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@event_edit.featured_participant_name">
+                    Name
+                  </mat-label>
+                  <input
+                    matInput
+                    [value]="participant.name"
+                    (input)="updateFeaturedParticipant(participant.id, { name: $any($event.target).value })"
+                  />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@event_edit.featured_participant_type">
+                    Type
+                  </mat-label>
+                  <mat-select
+                    [value]="participant.type"
+                    (selectionChange)="updateFeaturedParticipantType(participant.id, $event.value)"
+                  >
+                    @for (type of featuredParticipantTypes; track type) {
+                      <mat-option [value]="type">
+                        {{ featuredParticipantTypeLabel(type) }}
+                      </mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@event_edit.featured_participant_role">
+                    Role
+                  </mat-label>
+                  <mat-select
+                    [value]="participant.role"
+                    (selectionChange)="updateFeaturedParticipantRole(participant.id, $event.value)"
+                  >
+                    @for (role of featuredParticipantRoles; track role) {
+                      <mat-option [value]="role">
+                        {{ featuredParticipantRoleLabel(role) }}
+                      </mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@event_edit.featured_participant_url">
+                    URL
+                  </mat-label>
+                  <input
+                    matInput
+                    [value]="participant.url"
+                    placeholder="https://…"
+                    (input)="updateFeaturedParticipant(participant.id, { url: $any($event.target).value })"
+                  />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="span-2">
+                  <mat-label i18n="@@event_edit.featured_participant_description">
+                    Short note
+                  </mat-label>
+                  <textarea
+                    matInput
+                    rows="2"
+                    [value]="participant.description"
+                    (input)="updateFeaturedParticipant(participant.id, { description: $any($event.target).value })"
+                  ></textarea>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@event_edit.featured_participant_image">
+                    Image URL
+                  </mat-label>
+                  <input
+                    matInput
+                    [value]="participant.imageSrc"
+                    placeholder="https://…"
+                    (input)="updateFeaturedParticipant(participant.id, { imageSrc: $any($event.target).value })"
+                  />
+                </mat-form-field>
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="removeFeaturedParticipant(participant.id)"
+                  [disabled]="saving()"
+                  aria-label="Remove featured person, group or act"
+                  i18n-aria-label="@@event_edit.featured_participant_remove"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        <div class="d-flex flex-row align-items-center gap-2 flex-wrap mt-2">
           <h4 class="mat-title-small m-0 flex-grow-1" i18n="@@event_edit.tickets_heading">
             Ticket options
           </h4>

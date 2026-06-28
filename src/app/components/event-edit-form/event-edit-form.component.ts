@@ -40,6 +40,9 @@ import {
   EventBoundsSchema,
   EventCategory,
   EventCustomMarkerSchema,
+  EventFeaturedParticipantRole,
+  EventFeaturedParticipantSchema,
+  EventFeaturedParticipantType,
   EventLinkKind,
   EventLinkSchema,
   EventOrganizerSchema,
@@ -125,6 +128,15 @@ type EditableTicketOption = {
   badge: EventTicketBadge | "";
   saleStartsAt: string;
   saleEndsAt: string;
+};
+type EditableFeaturedParticipant = {
+  id: string;
+  name: string;
+  type: EventFeaturedParticipantType;
+  role: EventFeaturedParticipantRole;
+  description: string;
+  url: string;
+  imageSrc: string;
 };
 type EditableProgramItem = {
   id: string;
@@ -362,6 +374,7 @@ export class EventEditFormComponent {
   autoSuggestedCommunityKeys = signal<string[]>([]);
   customMarkers = signal<EditableEventMarker[]>([]);
   inlineSpots = signal<EditableInlineEventSpot[]>([]);
+  featuredParticipants = signal<EditableFeaturedParticipant[]>([]);
   externalMedia = signal<MediaSchema[]>([]);
   eventLinks = signal<EditableEventLink[]>([]);
   ticketOptions = signal<EditableTicketOption[]>([]);
@@ -369,6 +382,22 @@ export class EventEditFormComponent {
   activeProgramPlanId = signal<string>("");
   seriesMemberships = signal<EditableSeriesMembership[]>([]);
   private _descriptionLocaleMap = signal<LocaleMap | undefined>(undefined);
+  readonly featuredParticipantTypes = [
+    "person",
+    "group",
+  ] as const satisfies readonly EventFeaturedParticipantType[];
+  readonly featuredParticipantRoles = [
+    "athlete",
+    "judge",
+    "coach",
+    "instructor",
+    "speaker",
+    "artist",
+    "dj",
+    "performer",
+    "host",
+    "guest",
+  ] as const satisfies readonly EventFeaturedParticipantRole[];
 
   /** Whether the parent passed in an existing event (vs. create mode). */
   readonly isEditMode = computed(() => this.event() !== null);
@@ -392,6 +421,7 @@ export class EventEditFormComponent {
       e.slug ||
       e.url ||
       e.organizer ||
+      e.featuredParticipants.length > 0 ||
       e.location ||
       e.bannerSrc ||
       e.logoSrc ||
@@ -432,6 +462,40 @@ export class EventEditFormComponent {
     return value.name;
   };
 
+  featuredParticipantTypeLabel(type: EventFeaturedParticipantType): string {
+    switch (type) {
+      case "group":
+        return $localize`:@@event_featured_participant.type.group:Group or act`;
+      case "person":
+        return $localize`:@@event_featured_participant.type.person:Person`;
+    }
+  }
+
+  featuredParticipantRoleLabel(role: EventFeaturedParticipantRole): string {
+    switch (role) {
+      case "athlete":
+        return $localize`:@@event_featured_participant.role.athlete:Athlete`;
+      case "judge":
+        return $localize`:@@event_featured_participant.role.judge:Judge`;
+      case "coach":
+        return $localize`:@@event_featured_participant.role.coach:Coach`;
+      case "instructor":
+        return $localize`:@@event_featured_participant.role.instructor:Instructor`;
+      case "speaker":
+        return $localize`:@@event_featured_participant.role.speaker:Speaker`;
+      case "artist":
+        return $localize`:@@event_featured_participant.role.artist:Artist`;
+      case "dj":
+        return $localize`:@@event_featured_participant.role.dj:DJ`;
+      case "performer":
+        return $localize`:@@event_featured_participant.role.performer:Performer`;
+      case "host":
+        return $localize`:@@event_featured_participant.role.host:Host`;
+      case "guest":
+        return $localize`:@@event_featured_participant.role.guest:Guest`;
+    }
+  }
+
   constructor() {
     // Sync the form to the input event whenever it changes (or arrives).
     effect(() => {
@@ -453,6 +517,7 @@ export class EventEditFormComponent {
         this.organizerQuery.set("");
         this.customMarkers.set([]);
         this.inlineSpots.set([]);
+        this.featuredParticipants.set([]);
         this.externalMedia.set([]);
         this.eventLinks.set([]);
         this.ticketOptions.set([]);
@@ -539,6 +604,17 @@ export class EventEditFormComponent {
             lat: point.lat,
             lng: point.lng,
           })),
+        })),
+      );
+      this.featuredParticipants.set(
+        e.featuredParticipants.map((participant, index) => ({
+          id: `featured-participant-${index}`,
+          name: participant.name,
+          type: participant.type,
+          role: participant.role,
+          description: participant.description ?? "",
+          url: participant.url ?? "",
+          imageSrc: participant.image_src ?? "",
         })),
       );
       this.externalMedia.set([...e.media]);
@@ -970,6 +1046,50 @@ export class EventEditFormComponent {
 
   removeEventLink(id: string): void {
     this.eventLinks.update((links) => links.filter((link) => link.id !== id));
+  }
+
+  addFeaturedParticipant(): void {
+    this.featuredParticipants.update((participants) => [
+      ...participants,
+      {
+        id: `featured-participant-${Date.now()}-${participants.length}`,
+        name: "",
+        type: "person",
+        role: "athlete",
+        description: "",
+        url: "",
+        imageSrc: "",
+      },
+    ]);
+  }
+
+  updateFeaturedParticipant(
+    id: string,
+    patch: Partial<Omit<EditableFeaturedParticipant, "id">>,
+  ): void {
+    this.featuredParticipants.update((participants) =>
+      participants.map((participant) =>
+        participant.id === id ? { ...participant, ...patch } : participant,
+      ),
+    );
+  }
+
+  updateFeaturedParticipantType(id: string, type: string): void {
+    if (isFeaturedParticipantType(type)) {
+      this.updateFeaturedParticipant(id, { type });
+    }
+  }
+
+  updateFeaturedParticipantRole(id: string, role: string): void {
+    if (isFeaturedParticipantRole(role)) {
+      this.updateFeaturedParticipant(id, { role });
+    }
+  }
+
+  removeFeaturedParticipant(id: string): void {
+    this.featuredParticipants.update((participants) =>
+      participants.filter((participant) => participant.id !== id),
+    );
   }
 
   addTicketOption(): void {
@@ -1455,6 +1575,7 @@ export class EventEditFormComponent {
       end: Timestamp.fromDate(end),
       url: trimOrUndefined(v.url),
       event_links: this._buildEventLinksPatch(),
+      featured_participants: this._buildFeaturedParticipantsPatch(),
       ticket_options: this._buildTicketOptionsPatch(),
       program: this._buildProgramPatch(),
       published: v.published === true,
@@ -1687,6 +1808,25 @@ export class EventEditFormComponent {
       });
       return links;
     }, []);
+  }
+
+  private _buildFeaturedParticipantsPatch(): EventFeaturedParticipantSchema[] {
+    return this.featuredParticipants().reduce<EventFeaturedParticipantSchema[]>(
+      (participants, participant) => {
+        const name = trimOrUndefined(participant.name);
+        if (!name) return participants;
+        participants.push({
+          name,
+          type: participant.type,
+          role: participant.role,
+          description: trimOrUndefined(participant.description),
+          url: safeExternalUrl(participant.url) ?? undefined,
+          image_src: trimOrUndefined(participant.imageSrc),
+        });
+        return participants;
+      },
+      [],
+    );
   }
 
   private _buildTicketOptionsPatch(): EventTicketOptionSchema[] {
@@ -2055,6 +2195,29 @@ function isEventCategory(value: string): value is EventCategory {
     value === "social" ||
     value === "travel" ||
     value === "other"
+  );
+}
+
+function isFeaturedParticipantType(
+  value: string,
+): value is EventFeaturedParticipantType {
+  return value === "person" || value === "group";
+}
+
+function isFeaturedParticipantRole(
+  value: string,
+): value is EventFeaturedParticipantRole {
+  return (
+    value === "athlete" ||
+    value === "judge" ||
+    value === "coach" ||
+    value === "instructor" ||
+    value === "speaker" ||
+    value === "artist" ||
+    value === "dj" ||
+    value === "performer" ||
+    value === "host" ||
+    value === "guest"
   );
 }
 
