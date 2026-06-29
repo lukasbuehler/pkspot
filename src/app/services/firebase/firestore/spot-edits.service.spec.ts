@@ -109,6 +109,54 @@ describe("SpotEditsService", () => {
     expect(result).toEqual({ edits: [], lastDoc: null });
   });
 
+  it("splits pending moderation spot edits into vote and organization queues", async () => {
+    const voteEdit = {
+      ...buildEdit("vote", "user-1", 10),
+      approved: false,
+      visibility: "public",
+      vote_summary: {
+        yes_count: 1,
+        no_count: 0,
+        total_count: 1,
+        ratio_yes_to_no: null,
+        submitter_vote: "yes",
+        eligible_for_auto_approval: false,
+      },
+    };
+    const orgReviewEdit = {
+      ...buildEdit("org", "user-2", 20),
+      approved: false,
+      visibility: "private",
+      review_status: "pending",
+      review_organization_ids: ["org-1"],
+    };
+    const createEdit = {
+      ...buildEdit("create", "user-3", 30),
+      type: "CREATE" as const,
+      approved: false,
+    };
+    const approvedEdit = {
+      ...buildEdit("approved", "user-4", 40),
+      approved: true,
+    };
+    mockFirestoreAdapter.getCollectionGroupWithMetadata.mockResolvedValueOnce({
+      data: [createEdit, voteEdit, approvedEdit, orgReviewEdit],
+      lastDoc: null,
+    });
+
+    const result = await service.getPendingModerationSpotEditQueues(20);
+
+    expect(mockFirestoreAdapter.getCollectionGroupWithMetadata).toHaveBeenCalledWith(
+      "edits",
+      [{ fieldPath: "approved", opStr: "==", value: false }],
+      [{ type: "limit", limit: 20 }]
+    );
+    expect(result.voting).toEqual([{ edit: voteEdit, spotId: "spot-vote" }]);
+    expect(result.organizationReview).toEqual([
+      { edit: orgReviewEdit, spotId: "spot-org" },
+    ]);
+  });
+
   it("creates new spots through a setDocument placeholder before the CREATE edit", async () => {
     mockFirestoreAdapter.addDocument.mockResolvedValueOnce("create-edit-id");
 

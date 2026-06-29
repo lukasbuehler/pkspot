@@ -25,6 +25,11 @@ import {
   QueryConstraintOptions,
 } from "../firestore-adapter.service";
 
+export interface ModerationSpotEditQueueItem {
+  edit: SpotEditSchema & { id: string };
+  spotId: string;
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -449,6 +454,76 @@ export class SpotEditsService extends ConsentAwareService {
       edit,
       spotId: this._extractSpotIdFromPath(edit.path),
     }));
+  }
+
+  async getPendingModerationSpotEditQueues(
+    limitCount: number = 100
+  ): Promise<{
+    voting: ModerationSpotEditQueueItem[];
+    organizationReview: ModerationSpotEditQueueItem[];
+  }> {
+    const constraints: QueryConstraintOptions[] = [
+      { type: "limit", limit: limitCount },
+    ];
+    const result = await this._firestoreAdapter.getCollectionGroupWithMetadata<
+      SpotEditSchema & { id: string }
+    >(
+      "edits",
+      [{ fieldPath: "approved", opStr: "==", value: false }],
+      constraints
+    );
+
+    const pendingItems = result.data
+      .map((edit) => ({
+        edit,
+        spotId: this._extractSpotIdFromPath(edit.path),
+      }))
+      .filter((item) => item.edit.type === "UPDATE")
+      .sort(
+        (left, right) =>
+          this._spotEditTimestampMillis(right.edit) -
+          this._spotEditTimestampMillis(left.edit)
+      );
+
+    return {
+      voting: pendingItems.filter((item) => this._isPendingVoteEdit(item.edit)),
+      organizationReview: pendingItems.filter((item) =>
+        this._isPendingOrganizationReviewEdit(item.edit)
+      ),
+    };
+  }
+
+  private _isPendingVoteEdit(edit: SpotEditSchema): boolean {
+    return (
+      edit.review_status !== "pending" &&
+      edit.visibility !== "private" &&
+      edit.approved === false
+    );
+  }
+
+  private _isPendingOrganizationReviewEdit(edit: SpotEditSchema): boolean {
+    return (
+      edit.approved === false &&
+      edit.review_status === "pending" &&
+      (edit.review_organization_ids?.length ?? 0) +
+        (edit.review_organization_id ? 1 : 0) >
+        0
+    );
+  }
+
+  private _spotEditTimestampMillis(edit: SpotEditSchema): number {
+    if (typeof edit.timestamp_raw_ms === "number") {
+      return edit.timestamp_raw_ms;
+    }
+    if (edit.timestamp && typeof edit.timestamp.toMillis === "function") {
+      return edit.timestamp.toMillis();
+    }
+    const timestamp = edit.timestamp as
+      | { seconds?: unknown; nanoseconds?: unknown }
+      | undefined;
+    return typeof timestamp?.seconds === "number"
+      ? timestamp.seconds * 1000
+      : 0;
   }
 
   async reviewVerifiedSpotEdit(

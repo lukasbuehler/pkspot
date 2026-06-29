@@ -65,7 +65,159 @@
           <span class="stat-card__label" i18n>Contact messages</span>
         </mat-card-content>
       </mat-card>
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <span class="stat-card__value">{{ pendingCommunityQueueCount() }}</span>
+          <span class="stat-card__label" i18n>Review queues</span>
+        </mat-card-content>
+      </mat-card>
     </div>
+
+    <section class="moderation-dashboard__panel">
+      <div class="moderation-dashboard__panel-header">
+        <div>
+          <h2 class="mat-title-large" i18n>Review queues</h2>
+          <p class="mat-body-medium text-secondary" i18n>
+            Community cards, spot edit votes, and organization approval.
+          </p>
+        </div>
+      </div>
+
+      <div class="moderation-dashboard__queue-grid">
+        <section class="moderation-dashboard__queue-column">
+          <div class="moderation-dashboard__queue-title">
+            <mat-icon>checklist</mat-icon>
+            <div>
+              <h3 class="mat-title-medium" i18n>Community cards</h3>
+              <p class="mat-body-small text-secondary">
+                {{ communityCardSuggestions().length }}
+                <span i18n>pending approval</span>
+              </p>
+            </div>
+          </div>
+
+          @if (recentCommunityCardSuggestions().length === 0) {
+            <p class="mat-body-medium" i18n>No community card suggestions.</p>
+          } @else {
+            <div class="moderation-dashboard__list">
+              @for (suggestion of recentCommunityCardSuggestions(); track suggestion.id) {
+                <mat-card class="queue-card queue-card--compact">
+                  <mat-card-header>
+                    <mat-card-title>
+                      {{ communityCardTitle(suggestion) }}
+                    </mat-card-title>
+                    <mat-card-subtitle>
+                      {{ suggestion.created_at_millis | date: "medium" }} ·
+                      {{ suggestion.created_by.display_name || suggestion.created_by.uid }}
+                    </mat-card-subtitle>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <mat-chip-set>
+                      <mat-chip>{{ suggestion.card.category || "other" }}</mat-chip>
+                      <mat-chip>{{ communityCardCommunityLabel(suggestion) }}</mat-chip>
+                    </mat-chip-set>
+                  </mat-card-content>
+                  @if (communityCardCommunityPath(suggestion); as communityPath) {
+                    <mat-card-actions align="end">
+                      <a matButton="outlined" [routerLink]="communityPath">
+                        <mat-icon>open_in_new</mat-icon>
+                        <span i18n>Community</span>
+                      </a>
+                    </mat-card-actions>
+                  }
+                </mat-card>
+              }
+            </div>
+          }
+        </section>
+
+        <section class="moderation-dashboard__queue-column">
+          <div class="moderation-dashboard__queue-title">
+            <mat-icon>where_to_vote</mat-icon>
+            <div>
+              <h3 class="mat-title-medium" i18n>Spot edit votes</h3>
+              <p class="mat-body-small text-secondary">
+                {{ spotEditVotes().length }}
+                <span i18n>waiting on votes</span>
+              </p>
+            </div>
+          </div>
+
+          @if (recentSpotEditVotes().length === 0) {
+            <p class="mat-body-medium" i18n>No spot edit votes waiting.</p>
+          } @else {
+            <div class="moderation-dashboard__list">
+              @for (item of recentSpotEditVotes(); track item.spotId + item.edit.id) {
+                <mat-card class="queue-card queue-card--compact">
+                  <mat-card-header>
+                    <mat-card-title>{{ item.spotId }}</mat-card-title>
+                    <mat-card-subtitle>
+                      {{ spotEditSubmittedAtMillis(item) | date: "medium" }} ·
+                      {{ spotEditSubmitterLabel(item) }}
+                    </mat-card-subtitle>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <mat-chip-set>
+                      <mat-chip>{{ item.edit.processing_status || "voting" }}</mat-chip>
+                      <mat-chip>{{ spotEditVoteLabel(item) }}</mat-chip>
+                    </mat-chip-set>
+                  </mat-card-content>
+                  <mat-card-actions align="end">
+                    <a matButton="outlined" [routerLink]="spotEditPath(item)">
+                      <mat-icon>open_in_new</mat-icon>
+                      <span i18n>Open edit</span>
+                    </a>
+                  </mat-card-actions>
+                </mat-card>
+              }
+            </div>
+          }
+        </section>
+
+        <section class="moderation-dashboard__queue-column">
+          <div class="moderation-dashboard__queue-title">
+            <mat-icon>verified_user</mat-icon>
+            <div>
+              <h3 class="mat-title-medium" i18n>Org approval</h3>
+              <p class="mat-body-small text-secondary">
+                {{ organizationSpotEdits().length }}
+                <span i18n>waiting on organizations</span>
+              </p>
+            </div>
+          </div>
+
+          @if (recentOrganizationSpotEdits().length === 0) {
+            <p class="mat-body-medium" i18n>No organization approvals waiting.</p>
+          } @else {
+            <div class="moderation-dashboard__list">
+              @for (item of recentOrganizationSpotEdits(); track item.spotId + item.edit.id) {
+                <mat-card class="queue-card queue-card--compact">
+                  <mat-card-header>
+                    <mat-card-title>{{ item.spotId }}</mat-card-title>
+                    <mat-card-subtitle>
+                      {{ spotEditSubmittedAtMillis(item) | date: "medium" }} ·
+                      {{ spotEditSubmitterLabel(item) }}
+                    </mat-card-subtitle>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <mat-chip-set>
+                      <mat-chip>{{ organizationReviewLabel(item) }}</mat-chip>
+                      <mat-chip>{{ item.edit.review_kind || "review" }}</mat-chip>
+                    </mat-chip-set>
+                  </mat-card-content>
+                  <mat-card-actions align="end">
+                    <a matButton="outlined" [routerLink]="spotEditPath(item)">
+                      <mat-icon>open_in_new</mat-icon>
+                      <span i18n>Open edit</span>
+                    </a>
+                  </mat-card-actions>
+                </mat-card>
+              }
+            </div>
+          }
+        </section>
+      </div>
+    </section>
 
     <div class="moderation-dashboard__grid">
       <section class="moderation-dashboard__panel">

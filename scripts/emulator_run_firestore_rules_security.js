@@ -935,6 +935,83 @@ async function testReadOnlyBackendCollections(owner) {
   }
 }
 
+async function testCommunityCardSuggestionGuards(
+  anon,
+  owner,
+  other,
+  restricted,
+  adminUser
+) {
+  const suggestionRef = await assertAllowed("owner community card suggestion create", () =>
+    addDoc(collection(owner.db, "community_card_suggestions"), {
+      community_key: "locality:ch:zurich",
+      community_display_name: "Zurich",
+      community_path: "/map/communities/zurich",
+      status: "pending",
+      created_by: { uid: "owner", display_name: "Owner" },
+      created_at: Timestamp.now(),
+      card: {
+        id: "zurich-chat",
+        title: { en: "Zurich chat" },
+        category: "chat",
+      },
+    })
+  );
+
+  await assertDenied("anonymous cannot read community card suggestions", () =>
+    getDoc(suggestionRef)
+  );
+  await assertDenied("other user cannot read community card suggestions", () =>
+    getDoc(doc(other.db, suggestionRef.path))
+  );
+  await assertAllowed("admin reads community card suggestions", () =>
+    getDoc(doc(adminUser.db, suggestionRef.path))
+  );
+  await assertAllowed("admin updates community card suggestion review state", () =>
+    updateDoc(doc(adminUser.db, suggestionRef.path), {
+      status: "approved",
+      reviewed_by: { uid: "admin", display_name: "Admin" },
+      reviewed_at: Timestamp.now(),
+    })
+  );
+  await assertDenied("user cannot create approved community card suggestion", () =>
+    addDoc(collection(owner.db, "community_card_suggestions"), {
+      community_key: "locality:ch:zurich",
+      status: "approved",
+      created_by: { uid: "owner" },
+      created_at: Timestamp.now(),
+      card: {
+        id: "bad-status",
+        title: { en: "Bad status" },
+      },
+    })
+  );
+  await assertDenied("community card suggestion user spoofing", () =>
+    addDoc(collection(other.db, "community_card_suggestions"), {
+      community_key: "locality:ch:zurich",
+      status: "pending",
+      created_by: { uid: "owner" },
+      created_at: Timestamp.now(),
+      card: {
+        id: "spoof",
+        title: { en: "Spoof" },
+      },
+    })
+  );
+  await assertDenied("restricted user cannot create community card suggestion", () =>
+    addDoc(collection(restricted.db, "community_card_suggestions"), {
+      community_key: "locality:ch:zurich",
+      status: "pending",
+      created_by: { uid: "restricted" },
+      created_at: Timestamp.now(),
+      card: {
+        id: "restricted",
+        title: { en: "Restricted" },
+      },
+    })
+  );
+}
+
 async function testContactMessageGuards(anon, owner, other) {
   const anonymousMessageRef = await assertAllowed("anonymous contact message create", () =>
     addDoc(collection(anon.db, "contact_messages"), {
@@ -1272,6 +1349,7 @@ async function main() {
   await testUserReportGuards(anon, owner, other);
   await testAgePolicyParticipationGuards(restricted);
   await testReadOnlyBackendCollections(owner);
+  await testCommunityCardSuggestionGuards(anon, owner, other, restricted, adminUser);
   await testContactMessageGuards(anon, owner, other);
   await testEventWriteGuards(owner, adminUser);
   await testEventRsvpPrivacy(anon, owner, other, adminUser);

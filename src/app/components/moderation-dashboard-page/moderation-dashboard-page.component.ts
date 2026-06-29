@@ -24,6 +24,16 @@ import {
 } from "../../services/firebase/firestore/moderation-reports.service";
 import { ModerationActionType } from "../../../db/schemas/ModerationActionSchema";
 import { AnalyticsService } from "../../services/analytics.service";
+import {
+  CommunityCardSuggestionItem,
+  CommunityCardSuggestionsService,
+} from "../../services/firebase/firestore/community-card-suggestions.service";
+import {
+  ModerationSpotEditQueueItem,
+  SpotEditsService,
+} from "../../services/firebase/firestore/spot-edits.service";
+import type { CommunityLocalizedTextSchema } from "../../../db/schemas/CommunityPageSchema";
+import type { SpotEditSchema } from "../../../db/schemas/SpotEditSchema";
 
 @Component({
   selector: "app-moderation-dashboard-page",
@@ -43,6 +53,10 @@ import { AnalyticsService } from "../../services/analytics.service";
 })
 export class ModerationDashboardPageComponent implements OnDestroy {
   private readonly _reportsService = inject(ModerationReportsService);
+  private readonly _communityCardSuggestionsService = inject(
+    CommunityCardSuggestionsService,
+  );
+  private readonly _spotEditsService = inject(SpotEditsService);
   private readonly _snackbar = inject(MatSnackBar);
   private readonly _analytics = inject(AnalyticsService);
   readonly authService = inject(AuthenticationService);
@@ -53,6 +67,9 @@ export class ModerationDashboardPageComponent implements OnDestroy {
   readonly actionPath = signal<string | null>(null);
   readonly reports = signal<ModerationReportItem[]>([]);
   readonly contactMessages = signal<ModerationContactMessageItem[]>([]);
+  readonly communityCardSuggestions = signal<CommunityCardSuggestionItem[]>([]);
+  readonly spotEditVotes = signal<ModerationSpotEditQueueItem[]>([]);
+  readonly organizationSpotEdits = signal<ModerationSpotEditQueueItem[]>([]);
   private readonly _authSubscription: Subscription;
 
   readonly openReportCount = computed(
@@ -74,6 +91,19 @@ export class ModerationDashboardPageComponent implements OnDestroy {
   );
   readonly recentContactMessages = computed(() =>
     this.contactMessages().slice(0, 8),
+  );
+  readonly recentCommunityCardSuggestions = computed(() =>
+    this.communityCardSuggestions().slice(0, 5),
+  );
+  readonly recentSpotEditVotes = computed(() => this.spotEditVotes().slice(0, 5));
+  readonly recentOrganizationSpotEdits = computed(() =>
+    this.organizationSpotEdits().slice(0, 5),
+  );
+  readonly pendingCommunityQueueCount = computed(
+    () =>
+      this.communityCardSuggestions().length +
+      this.spotEditVotes().length +
+      this.organizationSpotEdits().length,
   );
 
   constructor() {
@@ -97,12 +127,22 @@ export class ModerationDashboardPageComponent implements OnDestroy {
 
     this.isLoading.set(true);
     try {
-      const [reports, contactMessages] = await Promise.all([
+      const [
+        reports,
+        contactMessages,
+        communityCardSuggestions,
+        spotEditQueues,
+      ] = await Promise.all([
         this._reportsService.getReports(),
         this._reportsService.getContactMessages(),
+        this._communityCardSuggestionsService.getPendingSuggestions(),
+        this._spotEditsService.getPendingModerationSpotEditQueues(),
       ]);
       this.reports.set(reports);
       this.contactMessages.set(contactMessages);
+      this.communityCardSuggestions.set(communityCardSuggestions);
+      this.spotEditVotes.set(spotEditQueues.voting);
+      this.organizationSpotEdits.set(spotEditQueues.organizationReview);
     } catch (error) {
       console.error("Failed to load moderation dashboard", error);
       this._snackbar.open($localize`Failed to load moderation dashboard`, undefined, {
@@ -163,5 +203,100 @@ export class ModerationDashboardPageComponent implements OnDestroy {
     } finally {
       this.actionPath.set(null);
     }
+  }
+
+  communityCardTitle(suggestion: CommunityCardSuggestionItem): string {
+    return this._localizedText(suggestion.card.title) || suggestion.card.id;
+  }
+
+  communityCardCommunityLabel(suggestion: CommunityCardSuggestionItem): string {
+    return suggestion.community_display_name || suggestion.community_key;
+  }
+
+  communityCardCommunityPath(
+    suggestion: CommunityCardSuggestionItem,
+  ): string | null {
+    return suggestion.community_path || null;
+  }
+
+  spotEditPath(item: ModerationSpotEditQueueItem): string[] {
+    return ["/map", "spots", item.spotId, "edits"];
+  }
+
+  spotEditSubmittedAtMillis(item: ModerationSpotEditQueueItem): number {
+    return this._spotEditTimestampMillis(item.edit);
+  }
+
+  spotEditSubmitterLabel(item: ModerationSpotEditQueueItem): string {
+    return (
+      item.edit.user.display_name ||
+      item.edit.user.uid ||
+      $localize`Unknown editor`
+    );
+  }
+
+  spotEditVoteLabel(item: ModerationSpotEditQueueItem): string {
+    const summary = item.edit.vote_summary;
+    if (!summary) {
+      return $localize`No votes yet`;
+    }
+    return $localize`${summary.yes_count} yes · ${summary.no_count} no`;
+  }
+
+  organizationReviewLabel(item: ModerationSpotEditQueueItem): string {
+    const organizationIds = item.edit.review_organization_ids?.length
+      ? item.edit.review_organization_ids
+      : item.edit.review_organization_id
+      ? [item.edit.review_organization_id]
+      : [];
+    return organizationIds.length > 0
+      ? organizationIds.join(", ")
+      : $localize`Organization review`;
+  }
+
+  private _localizedText(value: CommunityLocalizedTextSchema | undefined): string {
+    if (!value) {
+      return "";
+    }
+    const english = this._localizedTextValue(value, "en");
+    if (english) {
+      return english;
+    }
+    for (const key of Object.keys(value)) {
+      const text = this._localizedTextValue(value, key);
+      if (text) {
+        return text;
+      }
+    }
+    return "";
+  }
+
+  private _localizedTextValue(
+    value: CommunityLocalizedTextSchema,
+    locale: string,
+  ): string {
+    const entry = value[locale];
+    if (typeof entry === "string") {
+      return entry.trim();
+    }
+    if (entry && typeof entry === "object" && "text" in entry) {
+      return String(entry.text ?? "").trim();
+    }
+    return "";
+  }
+
+  private _spotEditTimestampMillis(edit: SpotEditSchema): number {
+    if (typeof edit.timestamp_raw_ms === "number") {
+      return edit.timestamp_raw_ms;
+    }
+    if (edit.timestamp && typeof edit.timestamp.toMillis === "function") {
+      return edit.timestamp.toMillis();
+    }
+    const timestamp = edit.timestamp as
+      | { seconds?: unknown; nanoseconds?: unknown }
+      | undefined;
+    return typeof timestamp?.seconds === "number"
+      ? timestamp.seconds * 1000
+      : 0;
   }
 }

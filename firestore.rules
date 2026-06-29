@@ -576,6 +576,16 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /community_card_suggestions/{suggestionId} {
+      allow create: if request.auth.uid != null
+        && agePolicyAllowsPublicParticipation()
+        && request.resource.data.status == 'pending'
+        && request.resource.data.created_by.uid == request.auth.uid
+        && request.resource.data.community_key is string
+        && request.resource.data.card is map;
+      allow read, update, delete: if isAdmin();
+    }
+
     match /posts/{post}
     {
       // every post is publicy available to everyone.
