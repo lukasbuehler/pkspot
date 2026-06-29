@@ -13,6 +13,11 @@ PK Spot is growing toward one app for Parkour spots, training, events, jams, and
 
 ## Release Notes
 
+### Version 1.1.3 - "Profiles, Moderation, and more"
+- Updated Profile pages and following mechanics
+- Users can submit community card suggestions
+- Moderation queue for admins to view community and spot votes
+
 ### Version 1.1.2 - "Events & Communities polish"
 
 - Event info pages
