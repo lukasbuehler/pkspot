@@ -4,6 +4,8 @@ import {
   CommunityChildSummarySchema,
   CommunityEventPreviewSchema,
   CommunityInfoCardSchema,
+  CommunityMergeInfoCardMode,
+  CommunityMergeIntoSchema,
   CommunityPickSectionSchema,
   CommunityPageSchema,
 } from "../../../../db/schemas/CommunityPageSchema";
@@ -64,6 +66,12 @@ export interface CommunityLandingPageData {
   events: CommunityPageSchema["events"];
   childCommunities: CommunityChildSummary[];
   eventPreviews: PkEvent[];
+  merge_into?: CommunityMergeIntoSchema;
+  merged_community_keys?: string[];
+  search_aliases?: string[];
+  redirected_from_slugs?: string[];
+  redirect_to_community_key?: string;
+  redirect_to_path?: string;
   generatedAt?: CommunityPageSchema["generatedAt"];
   sourceMaxUpdatedAt?: CommunityPageSchema["sourceMaxUpdatedAt"];
   boundsCenter?: CommunityPageSchema["bounds_center"];
@@ -200,6 +208,12 @@ export class LandingPagesService {
       eventPreviews: (pageDoc.eventPreviews ?? []).map((eventPreview) =>
         this._mapEventPreview(eventPreview),
       ),
+      merge_into: pageDoc.merge_into,
+      merged_community_keys: pageDoc.merged_community_keys ?? [],
+      search_aliases: pageDoc.search_aliases ?? [],
+      redirected_from_slugs: pageDoc.redirected_from_slugs ?? [],
+      redirect_to_community_key: pageDoc.redirect_to_community_key,
+      redirect_to_path: pageDoc.redirect_to_path,
       generatedAt: pageDoc.generatedAt,
       sourceMaxUpdatedAt: pageDoc.sourceMaxUpdatedAt,
       boundsCenter: pageDoc.bounds_center,
@@ -215,6 +229,23 @@ export class LandingPagesService {
     await this._firestoreAdapter.updateDocument(
       `community_pages/${communityKey}`,
       { infoCards },
+    );
+  }
+
+  async updateCommunityMergeInto(
+    communityKey: string,
+    target_community_key: string,
+    infoCards: CommunityMergeInfoCardMode,
+  ): Promise<void> {
+    await this._firestoreAdapter.updateDocument(
+      `community_pages/${communityKey}`,
+      {
+        merge_into: {
+          target_community_key,
+          info_cards: infoCards,
+          status: "pending",
+        },
+      },
     );
   }
 

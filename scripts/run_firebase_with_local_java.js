@@ -1,5 +1,6 @@
 const {
   existsSync,
+  mkdirSync,
   readdirSync,
   readFileSync,
   unlinkSync,
@@ -21,6 +22,10 @@ const resolvedJavaHome = candidateJavaHomes.find((candidate) =>
 );
 
 const env = { ...process.env };
+const firebaseConfigHome = path.join(os.tmpdir(), "pkspot-firebase-cli-config");
+
+mkdirSync(firebaseConfigHome, { recursive: true });
+env.XDG_CONFIG_HOME = firebaseConfigHome;
 
 if (resolvedJavaHome) {
   env.JAVA_HOME = resolvedJavaHome;

@@ -57,8 +57,8 @@ export class SearchService {
 
   communitySearchParameters = {
     query_by:
-      "displayName,allSlugs,geography.localityName,geography.regionName,geography.countryName,title,description",
-    query_by_weights: "6,6,4,3,3,2,1",
+      "displayName,allSlugs,search_aliases,geography.localityName,geography.regionName,geography.countryName,title,description",
+    query_by_weights: "6,6,5,4,3,3,2,1",
     filter_by: "published:!=false",
     sort_by: this.COMMUNITY_SORT_BY_RELEVANCE_AND_SIZE,
     per_page: 3,

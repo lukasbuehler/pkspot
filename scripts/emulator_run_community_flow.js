@@ -259,6 +259,7 @@ async function fetchCollection(collectionName) {
 async function main() {
   console.log("Resetting emulator collections...");
   await deleteCollection("community_slugs");
+  await deleteCollection("community_merges");
   await deleteCollection("community_pages");
   await deleteCollection("maintenance");
   await deleteCollection("spots");
@@ -393,6 +394,259 @@ async function main() {
   if (!rebuildDoc || rebuildDoc.status !== "DONE") {
     throw new Error("Expected maintenance rebuild document to finish with DONE.");
   }
+
+  console.log("Testing configurable community merge patching...");
+  await db
+    .collection("community_pages")
+    .doc("locality:ch:zh:pfaffikon")
+    .set(
+      {
+        infoCards: [
+          {
+            id: "local-chat",
+            title: { en: "Pfaffikon chat" },
+            category: "chat",
+            visibility: "public",
+          },
+        ],
+        merge_into: {
+          target_community_key: "locality:ch:zh:zurich",
+          info_cards: "move",
+          status: "pending",
+        },
+      },
+      { merge: true }
+    );
+
+  await waitFor(async () => {
+    const mergeDoc = await db
+      .collection("community_merges")
+      .doc("locality:ch:zh:pfaffikon")
+      .get();
+    return mergeDoc.data()?.status === "active" ? mergeDoc.data() : null;
+  }, "community merge patch completion", 30000, 1000);
+
+  await waitFor(async () => {
+    const mergeDoc = await db.collection("maintenance").doc("last-community-merge").get();
+    return mergeDoc.data()?.status === "DONE" ? mergeDoc.data() : null;
+  }, "community merge rebuild completion", 30000, 1000);
+
+  const mergedSourcePage = (
+    await db.collection("community_pages").doc("locality:ch:zh:pfaffikon").get()
+  ).data();
+  const mergedTargetPage = (
+    await db.collection("community_pages").doc("locality:ch:zh:zurich").get()
+  ).data();
+  const forwardedPfaeffikonSlug = (
+    await db.collection("community_slugs").doc("pfaeffikon").get()
+  ).data();
+
+  if (mergedSourcePage?.published !== false) {
+    throw new Error("Expected merged source community to be unpublished.");
+  }
+
+  if (
+    mergedSourcePage?.redirect_to_community_key !== "locality:ch:zh:zurich" ||
+    mergedSourcePage?.merge_into?.status !== "active"
+  ) {
+    throw new Error("Expected merged source community to redirect to Zurich.");
+  }
+
+  if (mergedTargetPage?.counts?.totalSpots !== 10) {
+    throw new Error(
+      `Expected Zurich to contain merged Zurich + Pfaffikon spots, got ${mergedTargetPage?.counts?.totalSpots}.`
+    );
+  }
+
+  if (
+    !mergedTargetPage?.merged_community_keys?.includes("locality:ch:zh:pfaffikon") ||
+    !mergedTargetPage?.search_aliases?.includes("Pfaffikon") ||
+    !mergedTargetPage?.redirected_from_slugs?.includes("pfaeffikon")
+  ) {
+    throw new Error("Expected Zurich target page to retain merge metadata.");
+  }
+
+  if (
+    !mergedTargetPage?.infoCards?.some(
+      (card) =>
+        card.origin_community_key === "locality:ch:zh:pfaffikon" &&
+        card.title?.en === "Pfaffikon chat"
+    )
+  ) {
+    throw new Error("Expected source info card to move into the target community.");
+  }
+
+  if (
+    forwardedPfaeffikonSlug?.communityKey !== "locality:ch:zh:zurich" ||
+    forwardedPfaeffikonSlug?.alias_for_community_key !== "locality:ch:zh:pfaffikon"
+  ) {
+    throw new Error("Expected source community slugs to forward to the target.");
+  }
+
+  console.log("Re-running manual rebuild to verify merge stability...");
+  await db.collection("maintenance").doc("run-rebuild-community-pages").delete().catch(() => {});
+  await db.collection("maintenance").doc("run-rebuild-community-pages").set({
+    created_at: FieldValue.serverTimestamp(),
+  });
+
+  await waitFor(async () => {
+    const triggerDoc = await db
+      .collection("maintenance")
+      .doc("run-rebuild-community-pages")
+      .get();
+    const data = triggerDoc.data();
+    return data?.status === "DONE" ? data : null;
+  }, "second community rebuild completion", 30000, 1000);
+
+  const stableSourcePage = (
+    await db.collection("community_pages").doc("locality:ch:zh:pfaffikon").get()
+  ).data();
+  const stableTargetPage = (
+    await db.collection("community_pages").doc("locality:ch:zh:zurich").get()
+  ).data();
+
+  if (stableSourcePage?.published !== false) {
+    throw new Error("Expected merged source to remain unpublished after rebuild.");
+  }
+
+  if (
+    stableTargetPage?.counts?.totalSpots !== 10 ||
+    !stableTargetPage?.search_aliases?.includes("Pfaffikon")
+  ) {
+    throw new Error("Expected target merge behavior to remain stable after rebuild.");
+  }
+
+  console.log("Testing rejected community merge inputs...");
+  await db
+    .collection("community_pages")
+    .doc("locality:ch:zh:zurich")
+    .set(
+      {
+        merge_into: {
+          target_community_key: "locality:ch:zh:zurich",
+          info_cards: "move",
+          status: "pending",
+        },
+      },
+      { merge: true }
+    );
+
+  await waitFor(async () => {
+    const page = await db
+      .collection("community_pages")
+      .doc("locality:ch:zh:zurich")
+      .get();
+    return page.data()?.merge_into?.status === "failed" ? page.data() : null;
+  }, "self merge rejection", 30000, 1000);
+
+  await db
+    .collection("community_merges")
+    .doc("locality:ch:sz:pfaffikon")
+    .set({
+      source_community_key: "locality:ch:sz:pfaffikon",
+      target_community_key: "locality:ch:zh:zurich",
+      status: "active",
+      source_scope: "locality",
+      target_scope: "locality",
+      source_display_name: "Pfaffikon SZ",
+      target_display_name: "Zurich",
+      source_geography: {
+        countryCode: "CH",
+        countryName: "Switzerland",
+        regionCode: "SZ",
+        regionName: "Schwyz",
+        regionSlug: "sz",
+        localityName: "Pfaffikon",
+        localitySlug: "pfaffikon",
+      },
+      target_geography: {
+        countryCode: "CH",
+        countryName: "Switzerland",
+        regionCode: "ZH",
+        regionName: "Zurich",
+        regionSlug: "zh",
+        localityName: "Zurich",
+        localitySlug: "zurich",
+      },
+      source_slugs: ["pfaeffikon-sz"],
+      source_search_aliases: ["Pfaffikon SZ"],
+      info_cards: "skip",
+    });
+
+  await db
+    .collection("community_pages")
+    .doc("locality:ch:zh:zurich")
+    .set(
+      {
+        merge_into: {
+          target_community_key: "locality:ch:sz:pfaffikon",
+          info_cards: "skip",
+          status: "pending",
+        },
+      },
+      { merge: true }
+    );
+
+  await waitFor(async () => {
+    const page = await db
+      .collection("community_pages")
+      .doc("locality:ch:zh:zurich")
+      .get();
+    const merge_into = page.data()?.merge_into;
+    return merge_into?.status === "failed" &&
+      String(merge_into.error ?? "").includes("cycle")
+      ? page.data()
+      : null;
+  }, "cycle merge rejection", 30000, 1000);
+
+  console.log("Testing rebuild resilience with corrupt active merge cycles...");
+  await db
+    .collection("community_merges")
+    .doc("locality:ch:zh:zurich")
+    .set({
+      source_community_key: "locality:ch:zh:zurich",
+      target_community_key: "locality:ch:sz:pfaffikon",
+      status: "active",
+      source_scope: "locality",
+      target_scope: "locality",
+      source_display_name: "Zurich",
+      target_display_name: "Pfaffikon SZ",
+      source_geography: {
+        countryCode: "CH",
+        countryName: "Switzerland",
+        regionCode: "ZH",
+        regionName: "Zurich",
+        regionSlug: "zh",
+        localityName: "Zurich",
+        localitySlug: "zurich",
+      },
+      target_geography: {
+        countryCode: "CH",
+        countryName: "Switzerland",
+        regionCode: "SZ",
+        regionName: "Schwyz",
+        regionSlug: "sz",
+        localityName: "Pfaffikon",
+        localitySlug: "pfaffikon",
+      },
+      source_slugs: ["zurich"],
+      source_search_aliases: ["Zurich"],
+      info_cards: "skip",
+    });
+
+  await db.collection("maintenance").doc("run-rebuild-community-pages").delete().catch(() => {});
+  await db.collection("maintenance").doc("run-rebuild-community-pages").set({
+    created_at: FieldValue.serverTimestamp(),
+  });
+
+  await waitFor(async () => {
+    const triggerDoc = await db
+      .collection("maintenance")
+      .doc("run-rebuild-community-pages")
+      .get();
+    const data = triggerDoc.data();
+    return data?.status === "DONE" ? data : null;
+  }, "corrupt active-cycle rebuild completion", 30000, 1000);
 
   console.log("Emulator community flow completed successfully.");
 }

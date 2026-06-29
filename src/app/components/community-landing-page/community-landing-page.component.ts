@@ -16,6 +16,8 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatTooltipModule } from "@angular/material/tooltip";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatSelectModule } from "@angular/material/select";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { map } from "rxjs/operators";
 import { SpotListComponent } from "../spot-list/spot-list.component";
@@ -26,7 +28,10 @@ import {
 import { Event as PkEvent } from "../../../db/models/Event";
 import { MapInfoPanelComponent } from "../map-info-panel/map-info-panel.component";
 import { EventCardComponent } from "../event-card/event-card.component";
-import { CommunityInfoCardSchema } from "../../../db/schemas/CommunityPageSchema";
+import {
+  CommunityInfoCardSchema,
+  CommunityMergeInfoCardMode,
+} from "../../../db/schemas/CommunityPageSchema";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { countries } from "../../../scripts/Countries";
@@ -39,6 +44,10 @@ import { AuthenticationService } from "../../services/firebase/authentication.se
 import { CommunityKnowledgeEditorComponent } from "../community-knowledge-editor/community-knowledge-editor.component";
 import { collectCommunitySpotDirectory } from "../../shared/community-spot-directory";
 import { AnalyticsService } from "../../services/analytics.service";
+import {
+  CommunitySearchPreview,
+  SearchService,
+} from "../../services/search.service";
 
 type CommunityExploreMode = "all" | "dry";
 
@@ -75,6 +84,8 @@ interface CommunityInfoCardView {
     MatProgressSpinnerModule,
     MatSnackBarModule,
     MatTooltipModule,
+    MatFormFieldModule,
+    MatSelectModule,
     RouterLink,
     SpotListComponent,
     EventCardComponent,
@@ -95,6 +106,7 @@ export class CommunityLandingPageComponent {
   private _snackbar = inject(MatSnackBar);
   private _locale = inject(LOCALE_ID);
   private _analytics = inject(AnalyticsService);
+  private _searchService = inject(SearchService);
 
   communityDataInput = input<CommunityPanelData | null | undefined>(undefined);
   panelMode = input(false);
@@ -126,6 +138,11 @@ export class CommunityLandingPageComponent {
   isAdmin = computed(() => this._authService.isAdmin());
   isEditingKnowledge = signal(false);
   isSavingKnowledge = signal(false);
+  isSavingCommunityMerge = signal(false);
+  isLoadingMergeTargets = signal(false);
+  mergeTargetOptions = signal<CommunitySearchPreview[]>([]);
+  selectedMergeTargetKey = signal("");
+  mergeInfoCardMode = signal<CommunityMergeInfoCardMode>("move");
   private _infoCardsOverride = signal<{
     communityKey: string;
     infoCards: CommunityInfoCardSchema[];
@@ -379,7 +396,11 @@ export class CommunityLandingPageComponent {
     this._analytics.trackEvent("community_knowledge_edit_opened", {
       ...this._communityAnalyticsProperties(),
     });
+    const data = this.communityData();
+    this.selectedMergeTargetKey.set(data?.merge_into?.target_community_key ?? "");
+    this.mergeInfoCardMode.set(data?.merge_into?.info_cards ?? "move");
     this.isEditingKnowledge.set(true);
+    void this.loadMergeTargetOptions();
   }
 
   cancelKnowledgeEdit(): void {
@@ -430,6 +451,67 @@ export class CommunityLandingPageComponent {
       );
     } finally {
       this.isSavingKnowledge.set(false);
+    }
+  }
+
+  async loadMergeTargetOptions(): Promise<void> {
+    if (this.mergeTargetOptions().length > 0 || this.isLoadingMergeTargets()) {
+      return;
+    }
+
+    this.isLoadingMergeTargets.set(true);
+    try {
+      const current = this.communityData();
+      const communities = await this._searchService.listCommunities(500);
+      this.mergeTargetOptions.set(
+        communities
+          .filter(
+            (community) =>
+              community.communityKey !== current?.communityKey &&
+              community.scope === current?.scope &&
+              community.scope === "locality",
+          )
+          .sort((left, right) => {
+            if (right.totalSpots !== left.totalSpots) {
+              return right.totalSpots - left.totalSpots;
+            }
+            return left.displayName.localeCompare(right.displayName);
+          }),
+      );
+    } catch (error) {
+      console.warn("Failed to load community merge targets", error);
+      this._snackbar.open($localize`Failed to load communities`, undefined, {
+        duration: 5000,
+      });
+    } finally {
+      this.isLoadingMergeTargets.set(false);
+    }
+  }
+
+  async saveCommunityMerge(): Promise<void> {
+    const data = this.communityData();
+    const target_community_key = this.selectedMergeTargetKey().trim();
+    if (!data || !this.canEditKnowledge() || !target_community_key) {
+      return;
+    }
+
+    this.isSavingCommunityMerge.set(true);
+    try {
+      await this._landingPagesService.updateCommunityMergeInto(
+        data.communityKey,
+        target_community_key,
+        this.mergeInfoCardMode(),
+      );
+      this._snackbar.open($localize`Community merge queued`, undefined, {
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Failed to queue community merge", error);
+      this._snackbar.open($localize`Failed to queue community merge`, undefined, {
+        duration: 5000,
+      });
+    } finally {
+      this.isSavingCommunityMerge.set(false);
     }
   }
 

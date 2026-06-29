@@ -12,6 +12,7 @@ import {
   CommunityPickSectionSchema,
 } from "../../src/db/schemas/CommunityPageSchema";
 import { CommunitySlugSchema } from "../../src/db/schemas/CommunitySlugSchema";
+import { CommunityMergeSchema } from "../../src/db/schemas/CommunityMergeSchema";
 import { EventSchema } from "../../src/db/schemas/EventSchema";
 import { SpotPreviewData } from "../../src/db/schemas/SpotPreviewData";
 import {
@@ -24,6 +25,7 @@ import {
   buildCommunityPageTitle,
   buildCommunitySlugCandidates,
   getSpotCommunityCandidates,
+  normalizeCommunitySlug,
 } from "../../src/scripts/CommunityHelpers";
 import {
   computeCommunityBounds,
@@ -41,6 +43,7 @@ import {
 
 const COMMUNITY_PAGES_COLLECTION = "community_pages";
 const COMMUNITY_SLUGS_COLLECTION = "community_slugs";
+const COMMUNITY_MERGES_COLLECTION = "community_merges";
 const MAINTENANCE_COLLECTION = "maintenance";
 const EVENTS_COLLECTION = "events";
 const SPOTS_COLLECTION = "spots";
@@ -53,6 +56,7 @@ const MAX_FALLBACK_COMMUNITY_PICKS = 4;
 const MAX_CHILD_COMMUNITIES = 8;
 const MAX_COMMUNITY_EVENT_PREVIEWS = 2;
 const COMMUNITY_EVENT_LOOKAHEAD_MONTHS = 6;
+const warnedInvalidCommunityMergeChains = new Set<string>();
 const COMMUNITY_EVENT_PREVIEW_SOURCE_FIELDS = [
   "community_keys",
   "published",
@@ -103,6 +107,9 @@ const PURPOSE_BUILT_SPOT_TYPES = new Set([
 ]);
 
 type CommunitySlugDoc = CommunitySlugSchema & { id: string };
+type CommunityMergeDoc = CommunityMergeSchema & { id: string };
+
+const VALID_INFO_CARD_MERGE_MODES = new Set(["move", "copy", "skip"]);
 
 const isSpotRuntimeDoc = (docId: string): boolean =>
   docId !== "typesense" && !docId.startsWith("run-");
@@ -508,6 +515,167 @@ const buildSpotPreview = (
     bounds_raw: spot.bounds_raw,
   }) as SpotPreviewData;
 
+const uniqueNonEmptyStrings = (values: Iterable<unknown>): string[] => {
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  for (const value of values) {
+    const normalized = String(value ?? "").trim();
+    if (!normalized || seen.has(normalized)) {
+      continue;
+    }
+    seen.add(normalized);
+    result.push(normalized);
+  }
+
+  return result;
+};
+
+const humanizeSlug = (slug: string): string =>
+  slug
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+
+const buildCommunityCandidateFromPage = (
+  page: CommunityPageSchema
+): CommunityCandidate => ({
+  communityKey: page.communityKey,
+  scope: page.scope,
+  displayName: page.displayName,
+  geography: page.geography,
+});
+
+const buildCommunityCandidateFromMergeTarget = (
+  merge: CommunityMergeSchema
+): CommunityCandidate => ({
+  communityKey: merge.target_community_key,
+  scope: merge.target_scope,
+  displayName: merge.target_display_name,
+  geography: merge.target_geography,
+});
+
+const buildCommunityCandidateFromMergeSource = (
+  merge: CommunityMergeSchema
+): CommunityCandidate => ({
+  communityKey: merge.source_community_key,
+  scope: merge.source_scope,
+  displayName: merge.source_display_name,
+  geography: merge.source_geography,
+});
+
+const getActiveCommunityMerges = async (
+  db: admin.firestore.Firestore
+): Promise<Map<string, CommunityMergeDoc>> => {
+  const snapshot = await db
+    .collection(COMMUNITY_MERGES_COLLECTION)
+    .where("status", "==", "active")
+    .get();
+
+  return new Map(
+    snapshot.docs
+      .map((doc) => ({ id: doc.id, ...(doc.data() as CommunityMergeSchema) }))
+      .filter(
+        (merge): merge is CommunityMergeDoc =>
+          !!merge.source_community_key &&
+          !!merge.target_community_key &&
+          merge.source_community_key === merge.id
+      )
+      .map((merge) => [merge.source_community_key, merge])
+  );
+};
+
+const resolveCommunityCandidate = (
+  candidate: CommunityCandidate,
+  activeMerges: Map<string, CommunityMergeDoc>
+): CommunityCandidate => {
+  const seen = new Set<string>([candidate.communityKey]);
+  let current = candidate;
+
+  for (let depth = 0; depth < 20; depth += 1) {
+    const merge = activeMerges.get(current.communityKey);
+    if (!merge) {
+      return current;
+    }
+
+    if (seen.has(merge.target_community_key)) {
+      const warningKey = `cycle:${candidate.communityKey}:${merge.target_community_key}`;
+      if (!warnedInvalidCommunityMergeChains.has(warningKey)) {
+        warnedInvalidCommunityMergeChains.add(warningKey);
+        console.warn("Ignoring cyclic active community merge chain", {
+          source_community_key: candidate.communityKey,
+          target_community_key: merge.target_community_key,
+        });
+      }
+      return candidate;
+    }
+
+    seen.add(merge.target_community_key);
+    current = buildCommunityCandidateFromMergeTarget(merge);
+  }
+
+  const warningKey = `depth:${candidate.communityKey}`;
+  if (!warnedInvalidCommunityMergeChains.has(warningKey)) {
+    warnedInvalidCommunityMergeChains.add(warningKey);
+    console.warn("Ignoring too-deep active community merge chain", {
+      source_community_key: candidate.communityKey,
+    });
+  }
+  return candidate;
+};
+
+const getMergesResolvedToCommunity = (
+  activeMerges: Map<string, CommunityMergeDoc>,
+  target_community_key: string
+): CommunityMergeDoc[] =>
+  [...activeMerges.values()].filter(
+    (merge) =>
+      merge.source_community_key !== target_community_key &&
+      resolveCommunityCandidate(
+        buildCommunityCandidateFromMergeSource(merge),
+        activeMerges
+      ).communityKey === target_community_key
+  );
+
+const getMergedCommunityKeysForTarget = (
+  activeMerges: Map<string, CommunityMergeDoc>,
+  target_community_key: string
+): string[] =>
+  getMergesResolvedToCommunity(activeMerges, target_community_key)
+    .map((merge) => merge.source_community_key)
+    .sort();
+
+const getSearchAliasesForTarget = (
+  activeMerges: Map<string, CommunityMergeDoc>,
+  target_community_key: string
+): string[] =>
+  uniqueNonEmptyStrings(
+    getMergesResolvedToCommunity(activeMerges, target_community_key).flatMap(
+      (merge) => [
+        merge.source_display_name,
+        merge.source_geography.localityName,
+        merge.source_geography.localityLocalName,
+        merge.source_geography.regionName && merge.source_display_name
+          ? `${merge.source_display_name}, ${merge.source_geography.regionName}`
+          : "",
+        ...(merge.source_slugs ?? []),
+        ...(merge.source_slugs ?? []).map(humanizeSlug),
+        ...(merge.source_search_aliases ?? []),
+      ]
+    )
+  );
+
+const getRedirectedSlugsForTarget = (
+  activeMerges: Map<string, CommunityMergeDoc>,
+  target_community_key: string
+): string[] =>
+  uniqueNonEmptyStrings(
+    getMergesResolvedToCommunity(activeMerges, target_community_key).flatMap(
+      (merge) => merge.source_slugs ?? []
+    )
+  ).sort();
+
 const buildCommunityChildSummary = (
   pageId: string,
   page: CommunityPageSchema
@@ -621,12 +789,17 @@ const getCommunityEventPreviews = async (
 
 const isSpotPartOfCommunity = (
   spot: SpotSchema,
-  candidate: CommunityCandidate
+  candidate: CommunityCandidate,
+  activeMerges: Map<string, CommunityMergeDoc> = new Map()
 ): boolean => {
   const spotCandidates = getSpotCommunityCandidates(spot);
-  return spotCandidates.some(
-    (spotCandidate) => spotCandidate.communityKey === candidate.communityKey
-  );
+  return spotCandidates.some((spotCandidate) => {
+    const resolvedCandidate = resolveCommunityCandidate(
+      spotCandidate,
+      activeMerges
+    );
+    return resolvedCandidate.communityKey === candidate.communityKey;
+  });
 };
 
 const getSourceMaxUpdatedAt = (
@@ -808,7 +981,8 @@ const getCountryPagePath = async (
 const buildCommunityPageDoc = async (
   db: admin.firestore.Firestore,
   candidate: CommunityCandidate,
-  spots: Array<{ id: string; data: SpotSchema }>
+  spots: Array<{ id: string; data: SpotSchema }>,
+  activeMerges: Map<string, CommunityMergeDoc> = new Map()
 ): Promise<CommunityPageSchema | null> => {
   if (spots.length < COMMUNITY_PAGE_MIN_SPOTS) {
     return null;
@@ -884,6 +1058,18 @@ const buildCommunityPageDoc = async (
       ? await getEmbeddedChildCommunities(db, candidate.communityKey)
       : [];
   const eventPreviews = await getCommunityEventPreviews(db, candidate.communityKey);
+  const merged_community_keys = getMergedCommunityKeysForTarget(
+    activeMerges,
+    candidate.communityKey
+  );
+  const search_aliases = getSearchAliasesForTarget(
+    activeMerges,
+    candidate.communityKey
+  );
+  const redirected_from_slugs = getRedirectedSlugsForTarget(
+    activeMerges,
+    candidate.communityKey
+  );
 
   return removeUndefinedValues({
     communityKey: candidate.communityKey,
@@ -947,6 +1133,11 @@ const buildCommunityPageDoc = async (
     eventPreviews,
     image,
     published: true,
+    merged_community_keys:
+      merged_community_keys.length > 0 ? merged_community_keys : undefined,
+    search_aliases: search_aliases.length > 0 ? search_aliases : undefined,
+    redirected_from_slugs:
+      redirected_from_slugs.length > 0 ? redirected_from_slugs : undefined,
     generatedAt: Timestamp.now(),
     sourceMaxUpdatedAt: sourceMaxUpdatedAt ?? undefined,
     bounds_center: communityBounds?.bounds_center,
@@ -967,7 +1158,8 @@ const buildCommunityPageDoc = async (
 
 const fetchSpotsForCommunity = async (
   db: admin.firestore.Firestore,
-  candidate: CommunityCandidate
+  candidate: CommunityCandidate,
+  activeMerges: Map<string, CommunityMergeDoc> = new Map()
 ): Promise<Array<{ id: string; data: SpotSchema }>> => {
   if (!candidate.geography.countryCode) {
     return [];
@@ -981,16 +1173,29 @@ const fetchSpotsForCommunity = async (
   return countrySpots.docs
     .filter((doc) => isSpotRuntimeDoc(doc.id))
     .map((doc) => ({ id: doc.id, data: doc.data() as SpotSchema }))
-    .filter((spot) => isSpotPartOfCommunity(spot.data, candidate));
+    .filter((spot) => isSpotPartOfCommunity(spot.data, candidate, activeMerges));
 };
 
 const writeOrDeleteCommunityPage = async (
   db: admin.firestore.Firestore,
   candidate: CommunityCandidate
 ): Promise<void> => {
-  const spots = await fetchSpotsForCommunity(db, candidate);
-  const pageDoc = await buildCommunityPageDoc(db, candidate, spots);
-  const pageRef = db.collection(COMMUNITY_PAGES_COLLECTION).doc(candidate.communityKey);
+  const activeMerges = await getActiveCommunityMerges(db);
+  const resolvedCandidate = resolveCommunityCandidate(candidate, activeMerges);
+  const spots = await fetchSpotsForCommunity(
+    db,
+    resolvedCandidate,
+    activeMerges
+  );
+  const pageDoc = await buildCommunityPageDoc(
+    db,
+    resolvedCandidate,
+    spots,
+    activeMerges
+  );
+  const pageRef = db
+    .collection(COMMUNITY_PAGES_COLLECTION)
+    .doc(resolvedCandidate.communityKey);
 
   if (!pageDoc) {
     await pageRef.delete().catch(() => undefined);
@@ -1048,7 +1253,8 @@ const refreshCommunityEventPreviews = async (
 };
 
 const collectGeneratedCommunities = (
-  spots: Array<{ id: string; data: SpotSchema }>
+  spots: Array<{ id: string; data: SpotSchema }>,
+  activeMerges: Map<string, CommunityMergeDoc> = new Map()
 ): Map<string, { candidate: CommunityCandidate; spots: Array<{ id: string; data: SpotSchema }> }> => {
   const communities = new Map<
     string,
@@ -1056,7 +1262,8 @@ const collectGeneratedCommunities = (
   >();
 
   for (const spot of spots) {
-    for (const candidate of getSpotCommunityCandidates(spot.data)) {
+    for (const rawCandidate of getSpotCommunityCandidates(spot.data)) {
+      const candidate = resolveCommunityCandidate(rawCandidate, activeMerges);
       const existing = communities.get(candidate.communityKey);
       if (existing) {
         existing.spots.push(spot);
@@ -1317,77 +1524,446 @@ const detectOverlappingCommunities = (
   return warnings;
 };
 
+const getInfoCardMergeMode = (value: unknown): "move" | "copy" | "skip" =>
+  typeof value === "string" && VALID_INFO_CARD_MERGE_MODES.has(value)
+    ? (value as "move" | "copy" | "skip")
+    : "move";
+
+const getMergeTargetCommunityKey = (
+  page: CommunityPageSchema | null | undefined
+): string | null => {
+  const target = page?.merge_into?.target_community_key;
+  return typeof target === "string" && target.trim() ? target.trim() : null;
+};
+
+const shouldPatchCommunityMerge = (
+  beforePage: CommunityPageSchema | null,
+  afterPage: CommunityPageSchema | null
+): boolean => {
+  const target_community_key = getMergeTargetCommunityKey(afterPage);
+  if (!afterPage || !target_community_key) {
+    return false;
+  }
+
+  if (afterPage.merge_into?.status === "active") {
+    return false;
+  }
+
+  return (
+    beforePage?.merge_into?.target_community_key !== target_community_key ||
+    beforePage?.merge_into?.info_cards !== afterPage.merge_into?.info_cards ||
+    afterPage.merge_into?.status === "pending" ||
+    !afterPage.merge_into?.status
+  );
+};
+
+const failCommunityMergeRequest = async (
+  sourceRef: admin.firestore.DocumentReference,
+  page: CommunityPageSchema,
+  error: string
+): Promise<void> => {
+  await sourceRef.set(
+    {
+      merge_into: {
+        ...(page.merge_into ?? {}),
+        status: "failed",
+        error,
+      },
+    },
+    { merge: true }
+  );
+};
+
+const assertNoCommunityMergeCycle = async (
+  db: admin.firestore.Firestore,
+  source_community_key: string,
+  target_community_key: string
+): Promise<void> => {
+  const seen = new Set<string>([source_community_key]);
+  let cursor: string | null = target_community_key;
+
+  for (let depth = 0; cursor && depth < 20; depth += 1) {
+    if (seen.has(cursor)) {
+      throw new Error("Community merge would create a cycle.");
+    }
+
+    seen.add(cursor);
+    const merge = (
+      await db.collection(COMMUNITY_MERGES_COLLECTION).doc(cursor).get()
+    ).data() as CommunityMergeSchema | undefined;
+    cursor =
+      merge?.status === "active" && merge.target_community_key
+        ? merge.target_community_key
+        : null;
+  }
+
+  if (cursor) {
+    throw new Error("Community merge chain is too deep.");
+  }
+};
+
+const getSourceCommunitySlugs = async (
+  db: admin.firestore.Firestore,
+  source_community_key: string,
+  sourceCandidate: CommunityCandidate
+): Promise<string[]> => {
+  const existingSlugs = await getExistingCommunitySlugs(db, source_community_key);
+  return uniqueNonEmptyStrings([
+    ...existingSlugs.map((slug) => slug.id),
+    ...buildCommunitySlugCandidates(sourceCandidate),
+  ]);
+};
+
+const mergeInfoCardsForCommunity = (
+  targetCards: CommunityPageSchema["infoCards"] = [],
+  sourceCards: CommunityPageSchema["infoCards"] = [],
+  source_community_key: string,
+  sourceSlug: string
+): CommunityPageSchema["infoCards"] => {
+  const usedIds = new Set(targetCards.map((card) => card.id));
+  const mergedCards = [...targetCards];
+
+  for (const card of sourceCards) {
+    const baseId = normalizeCommunitySlug(`${sourceSlug}-${card.id}`) || card.id;
+    let nextId = baseId;
+    let suffix = 2;
+    while (usedIds.has(nextId)) {
+      nextId = `${baseId}-${suffix}`;
+      suffix += 1;
+    }
+    usedIds.add(nextId);
+    mergedCards.push({
+      ...card,
+      id: nextId,
+      origin_community_key: card.origin_community_key ?? source_community_key,
+    });
+  }
+
+  return mergedCards;
+};
+
+const applyCommunityMergePatch = async (
+  db: admin.firestore.Firestore,
+  source_community_key: string,
+  sourcePage: CommunityPageSchema,
+  target_community_key: string
+): Promise<void> => {
+  if (source_community_key !== sourcePage.communityKey) {
+    throw new Error("Community page key does not match document id.");
+  }
+
+  if (source_community_key === target_community_key) {
+    throw new Error("A community cannot be merged into itself.");
+  }
+
+  const sourceRef = db.collection(COMMUNITY_PAGES_COLLECTION).doc(source_community_key);
+  const targetRef = db.collection(COMMUNITY_PAGES_COLLECTION).doc(target_community_key);
+  const targetSnapshot = await targetRef.get();
+  const targetPage = targetSnapshot.data() as CommunityPageSchema | undefined;
+
+  if (!targetPage) {
+    throw new Error("Target community does not exist.");
+  }
+
+  if (targetPage.published === false || targetPage.redirect_to_community_key) {
+    throw new Error("Target community is not an active community page.");
+  }
+
+  if (sourcePage.scope !== "locality" || targetPage.scope !== "locality") {
+    throw new Error("Only locality communities can be merged right now.");
+  }
+
+  if (
+    sourcePage.geography.countryCode &&
+    targetPage.geography.countryCode &&
+    sourcePage.geography.countryCode !== targetPage.geography.countryCode
+  ) {
+    throw new Error("Communities can only be merged within the same country.");
+  }
+
+  await assertNoCommunityMergeCycle(
+    db,
+    source_community_key,
+    target_community_key
+  );
+
+  const infoCardMode = getInfoCardMergeMode(sourcePage.merge_into?.info_cards);
+  const sourceCandidate = buildCommunityCandidateFromPage(sourcePage);
+  const source_slugs = await getSourceCommunitySlugs(
+    db,
+    source_community_key,
+    sourceCandidate
+  );
+  const source_search_aliases = uniqueNonEmptyStrings([
+    sourcePage.displayName,
+    sourcePage.geography.localityName,
+    sourcePage.geography.localityLocalName,
+    sourcePage.geography.regionName && sourcePage.displayName
+      ? `${sourcePage.displayName}, ${sourcePage.geography.regionName}`
+      : "",
+    ...source_slugs,
+    ...source_slugs.map(humanizeSlug),
+  ]);
+  const targetSearchAliases = uniqueNonEmptyStrings([
+    ...(targetPage.search_aliases ?? []),
+    ...source_search_aliases,
+  ]);
+  const targetMergedCommunityKeys = uniqueNonEmptyStrings([
+    ...(targetPage.merged_community_keys ?? []),
+    source_community_key,
+  ]).sort();
+  const targetRedirectedFromSlugs = uniqueNonEmptyStrings([
+    ...(targetPage.redirected_from_slugs ?? []),
+    ...source_slugs,
+  ]).sort();
+  const sourceSlug = source_slugs[0] ?? normalizeCommunitySlug(sourcePage.displayName);
+  const nextTargetInfoCards =
+    infoCardMode === "copy" || infoCardMode === "move"
+      ? mergeInfoCardsForCommunity(
+          targetPage.infoCards ?? [],
+          sourcePage.infoCards ?? [],
+          source_community_key,
+          sourceSlug
+        )
+      : targetPage.infoCards ?? [];
+
+  const batch = db.batch();
+  const mergeRef = db
+    .collection(COMMUNITY_MERGES_COLLECTION)
+    .doc(source_community_key);
+
+  batch.set(
+    mergeRef,
+    removeUndefinedValues({
+      source_community_key,
+      target_community_key,
+      status: "active",
+      source_scope: sourcePage.scope,
+      target_scope: targetPage.scope,
+      source_display_name: sourcePage.displayName,
+      target_display_name: targetPage.displayName,
+      source_geography: sourcePage.geography,
+      target_geography: targetPage.geography,
+      source_slugs,
+      source_search_aliases,
+      info_cards: infoCardMode,
+      merged_at: FieldValue.serverTimestamp(),
+    }) as CommunityMergeSchema
+  );
+
+  batch.set(
+    targetRef,
+    removeUndefinedValues({
+      merged_community_keys: targetMergedCommunityKeys,
+      search_aliases: targetSearchAliases,
+      redirected_from_slugs: targetRedirectedFromSlugs,
+      infoCards: nextTargetInfoCards,
+    }),
+    { merge: true }
+  );
+
+  batch.set(
+    sourceRef,
+    removeUndefinedValues({
+      published: false,
+      redirect_to_community_key: target_community_key,
+      redirect_to_path: targetPage.canonicalPath,
+      infoCards: infoCardMode === "move" ? [] : sourcePage.infoCards,
+      merge_into: {
+        target_community_key,
+        info_cards: infoCardMode,
+        status: "active",
+        applied_at: FieldValue.serverTimestamp(),
+      },
+    }),
+    { merge: true }
+  );
+
+  for (const slug of source_slugs) {
+    const slugRef = db.collection(COMMUNITY_SLUGS_COLLECTION).doc(slug);
+    batch.set(
+      slugRef,
+      {
+        communityKey: target_community_key,
+        isPreferred: false,
+        alias_for_community_key: source_community_key,
+        createdAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+  }
+
+  await batch.commit();
+};
+
+const rebuildAllCommunityPagesForDb = async (
+  db: admin.firestore.Firestore
+): Promise<{ generatedCount: number; warnings: OverlapWarning[] }> => {
+  const spotsSnapshot = await db.collection(SPOTS_COLLECTION).get();
+  const spots = spotsSnapshot.docs
+    .filter((doc) => isSpotRuntimeDoc(doc.id))
+    .map((doc) => ({
+      id: doc.id,
+      data: doc.data() as SpotSchema,
+    }));
+  const activeMerges = await getActiveCommunityMerges(db);
+  const communities = collectGeneratedCommunities(spots, activeMerges);
+  const writtenKeys = new Set<string>();
+  const writtenCountryKeys = new Set<string>();
+
+  for (const { candidate, spots: candidateSpots } of communities.values()) {
+    const pageDoc = await buildCommunityPageDoc(
+      db,
+      candidate,
+      candidateSpots,
+      activeMerges
+    );
+    const pageRef = db.collection(COMMUNITY_PAGES_COLLECTION).doc(candidate.communityKey);
+
+    if (!pageDoc) {
+      await pageRef.delete().catch(() => undefined);
+      continue;
+    }
+
+    await pageRef.set(pageDoc, { merge: true });
+    writtenKeys.add(candidate.communityKey);
+    if (candidate.scope === "country") {
+      writtenCountryKeys.add(candidate.communityKey);
+    }
+  }
+
+  const existingPages = await db.collection(COMMUNITY_PAGES_COLLECTION).get();
+  for (const page of existingPages.docs) {
+    if (page.id.startsWith("run-")) {
+      continue;
+    }
+    if (!writtenKeys.has(page.id)) {
+      const activeMerge = activeMerges.get(page.id);
+      if (activeMerge) {
+        await page.ref.set(
+          {
+            published: false,
+            redirect_to_community_key: activeMerge.target_community_key,
+            redirect_to_path: buildCommunityLandingPath(
+              buildCommunitySlugCandidates(
+                buildCommunityCandidateFromMergeTarget(activeMerge)
+              )[0] || activeMerge.target_display_name
+            ),
+            merge_into: {
+              target_community_key: activeMerge.target_community_key,
+              info_cards: activeMerge.info_cards,
+              status: "active",
+              applied_at: FieldValue.serverTimestamp(),
+            },
+          },
+          { merge: true }
+        );
+        continue;
+      }
+      await page.ref.delete().catch(() => undefined);
+    }
+  }
+
+  await refreshCountryChildCommunities(db, writtenCountryKeys);
+
+  const warnings = detectOverlappingCommunities(communities);
+  if (warnings.length > 0) {
+    console.warn(
+      `[rebuildAllCommunityPages] Detected ${warnings.length} overlapping/duplicate communities:`,
+      JSON.stringify(warnings, null, 2)
+    );
+    await db
+      .collection(MAINTENANCE_COLLECTION)
+      .doc("community-warnings")
+      .set({
+        warnings,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+  } else {
+    await db
+      .collection(MAINTENANCE_COLLECTION)
+      .doc("community-warnings")
+      .delete()
+      .catch(() => undefined);
+  }
+
+  return { generatedCount: writtenKeys.size, warnings };
+};
+
+export const patchCommunityPageOnWrite = onDocumentWritten(
+  { document: "community_pages/{communityKey}" },
+  async (event) => {
+    const source_community_key = String(event.params.communityKey ?? "");
+    if (!source_community_key || source_community_key.startsWith("run-")) {
+      return null;
+    }
+
+    const beforePage = event.data?.before?.exists
+      ? ((event.data.before.data() as CommunityPageSchema) ?? null)
+      : null;
+    const afterPage = event.data?.after?.exists
+      ? ((event.data.after.data() as CommunityPageSchema) ?? null)
+      : null;
+
+    if (!shouldPatchCommunityMerge(beforePage, afterPage)) {
+      return null;
+    }
+
+    const db = admin.firestore();
+    const sourceRef = db
+      .collection(COMMUNITY_PAGES_COLLECTION)
+      .doc(source_community_key);
+    const target_community_key = getMergeTargetCommunityKey(afterPage);
+
+    try {
+      await applyCommunityMergePatch(
+        db,
+        source_community_key,
+        afterPage!,
+        target_community_key!
+      );
+      const result = await rebuildAllCommunityPagesForDb(db);
+      await db
+        .collection(MAINTENANCE_COLLECTION)
+        .doc("last-community-merge")
+        .set(
+          {
+            source_community_key,
+            target_community_key,
+            status: "DONE",
+            generated_count: result.generatedCount,
+            warnings: result.warnings.length > 0 ? result.warnings : null,
+            completed_at: FieldValue.serverTimestamp(),
+          },
+          { merge: true }
+        );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unknown community merge error";
+      console.warn("Failed to patch community merge", {
+        source_community_key,
+        target_community_key,
+        message,
+      });
+      await failCommunityMergeRequest(sourceRef, afterPage!, message);
+    }
+
+    return null;
+  }
+);
+
 export const rebuildAllCommunityPages = onDocumentCreated(
   { document: MANUAL_REBUILD_DOC },
   async (event) => {
     const db = admin.firestore();
-    const spotsSnapshot = await db.collection(SPOTS_COLLECTION).get();
-    const spots = spotsSnapshot.docs
-      .filter((doc) => isSpotRuntimeDoc(doc.id))
-      .map((doc) => ({
-        id: doc.id,
-        data: doc.data() as SpotSchema,
-      }));
-    const communities = collectGeneratedCommunities(spots);
-    const writtenKeys = new Set<string>();
-    const writtenCountryKeys = new Set<string>();
-
-    for (const { candidate, spots: candidateSpots } of communities.values()) {
-      const pageDoc = await buildCommunityPageDoc(db, candidate, candidateSpots);
-      const pageRef = db.collection(COMMUNITY_PAGES_COLLECTION).doc(candidate.communityKey);
-
-      if (!pageDoc) {
-        await pageRef.delete().catch(() => undefined);
-        continue;
-      }
-
-      await pageRef.set(pageDoc, { merge: true });
-      writtenKeys.add(candidate.communityKey);
-      if (candidate.scope === "country") {
-        writtenCountryKeys.add(candidate.communityKey);
-      }
-    }
-
-    const existingPages = await db.collection(COMMUNITY_PAGES_COLLECTION).get();
-    for (const page of existingPages.docs) {
-      if (page.id.startsWith("run-")) {
-        continue;
-      }
-      if (!writtenKeys.has(page.id)) {
-        await page.ref.delete().catch(() => undefined);
-      }
-    }
-
-    await refreshCountryChildCommunities(db, writtenCountryKeys);
-
-    // Audit overlapping communities
-    const warnings = detectOverlappingCommunities(communities);
-    if (warnings.length > 0) {
-      console.warn(
-        `[rebuildAllCommunityPages] Detected ${warnings.length} overlapping/duplicate communities:`,
-        JSON.stringify(warnings, null, 2)
-      );
-      await db
-        .collection(MAINTENANCE_COLLECTION)
-        .doc("community-warnings")
-        .set({
-          warnings,
-          updatedAt: FieldValue.serverTimestamp(),
-        });
-    } else {
-      await db
-        .collection(MAINTENANCE_COLLECTION)
-        .doc("community-warnings")
-        .delete()
-        .catch(() => undefined);
-    }
+    const result = await rebuildAllCommunityPagesForDb(db);
 
     await event.data?.ref.set(
       {
         status: "DONE",
-        generated_count: writtenKeys.size,
+        generated_count: result.generatedCount,
         completed_at: FieldValue.serverTimestamp(),
-        warnings: warnings.length > 0 ? warnings : null,
+        warnings: result.warnings.length > 0 ? result.warnings : null,
       },
       { merge: true }
     );

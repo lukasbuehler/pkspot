@@ -114,7 +114,7 @@ export function getSpotRegionMetadata(
 }
 
 export function getSpotCommunityCandidates(
-  spotLike: Pick<SpotSchema, "address" | "landing" | "location_raw">
+  spotLike: Pick<SpotSchema, "address" | "landing">
 ): CommunityCandidate[] {
   const country = getCountryMetadata(
     spotLike.address?.country?.code || spotLike.landing?.countryCode,
@@ -138,7 +138,6 @@ export function getSpotCommunityCandidates(
     regionCode: initialRegionCode,
     regionName: initialRegionName,
     localityName: initialLocalityName,
-    locationRaw: spotLike.location_raw,
   });
 
   const regionCode = canonicalGeography.regionCode;

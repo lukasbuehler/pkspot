@@ -106,7 +106,6 @@ type CommunityGeographyFields = {
   regionCode?: string;
   regionName?: string;
   localityName?: string;
-  locationRaw?: { lat: number; lng: number };
 };
 
 type CanonicalCommunityGeographyFields = CommunityGeographyFields & {
@@ -124,23 +123,6 @@ type LocalityAlias = {
   canonicalRegionCode?: string;
   canonicalRegionName?: string;
   canonicalRegionSlug?: string;
-};
-
-type MetroCommunityAlias = {
-  countryCode: string;
-  localitySlugs: readonly string[];
-  canonicalLocalityName: string;
-  canonicalLocalitySlug: string;
-  regionSlugs: readonly string[];
-  canonicalRegionCode: string;
-  canonicalRegionName: string;
-  canonicalRegionSlug: string;
-  bounds?: {
-    north: number;
-    south: number;
-    east: number;
-    west: number;
-  };
 };
 
 const LOCALITY_ALIASES: readonly LocalityAlias[] = [
@@ -193,38 +175,6 @@ const LOCALITY_ALIASES: readonly LocalityAlias[] = [
     canonicalRegionCode: "CABA",
     canonicalRegionName: "Autonomous City of Buenos Aires",
     canonicalRegionSlug: "autonomous-city-of-buenos-aires",
-  },
-];
-
-const METRO_COMMUNITY_ALIASES: readonly MetroCommunityAlias[] = [
-  {
-    countryCode: "AU",
-    localitySlugs: [
-      "brunswick",
-      "bundoora",
-      "doncaster",
-      "essendon",
-      "footscray",
-      "glenroy",
-      "port-melbourne",
-      "preston",
-      "reservoir",
-      "templestowe",
-      "tullamarine",
-      "williamstown",
-    ],
-    canonicalLocalityName: "Melbourne",
-    canonicalLocalitySlug: "melbourne",
-    regionSlugs: ["vic", "victoria"],
-    canonicalRegionCode: "VICTORIA",
-    canonicalRegionName: "Victoria",
-    canonicalRegionSlug: "victoria",
-    bounds: {
-      north: -37.45,
-      south: -38.35,
-      east: 145.65,
-      west: 144.45,
-    },
   },
 ];
 
@@ -312,49 +262,6 @@ function getMatchingLocalityAlias(
   });
 }
 
-function isWithinAliasBounds(
-  locationRaw: CommunityGeographyFields["locationRaw"],
-  bounds: MetroCommunityAlias["bounds"],
-): boolean {
-  if (!locationRaw || !bounds) {
-    return false;
-  }
-
-  return (
-    Number.isFinite(locationRaw.lat) &&
-    Number.isFinite(locationRaw.lng) &&
-    locationRaw.lat <= bounds.north &&
-    locationRaw.lat >= bounds.south &&
-    locationRaw.lng <= bounds.east &&
-    locationRaw.lng >= bounds.west
-  );
-}
-
-function getMatchingMetroAlias(
-  countryCode: string,
-  localitySlug: string | undefined,
-  regionSlug: string | undefined,
-  locationRaw: CommunityGeographyFields["locationRaw"],
-): MetroCommunityAlias | undefined {
-  return METRO_COMMUNITY_ALIASES.find((alias) => {
-    if (alias.countryCode !== countryCode) {
-      return false;
-    }
-
-    const regionMatches =
-      !regionSlug || alias.regionSlugs.includes(regionSlug);
-    if (!regionMatches) {
-      return false;
-    }
-
-    const localityMatches =
-      !!localitySlug && alias.localitySlugs.includes(localitySlug);
-    const boundsMatch = isWithinAliasBounds(locationRaw, alias.bounds);
-
-    return localityMatches || boundsMatch;
-  });
-}
-
 export function canonicalizeCommunityGeography(
   fields: CommunityGeographyFields,
 ): CanonicalCommunityGeographyFields {
@@ -404,22 +311,6 @@ export function canonicalizeCommunityGeography(
     regionSlug = localityAlias.canonicalRegionSlug ?? regionSlug;
   }
 
-  const metroAlias = getMatchingMetroAlias(
-    countryCode,
-    localitySlug,
-    regionSlug,
-    fields.locationRaw,
-  );
-
-  if (metroAlias) {
-    localityName = metroAlias.canonicalLocalityName;
-    localitySlug = metroAlias.canonicalLocalitySlug;
-    displayLocalityName = metroAlias.canonicalLocalityName;
-    regionCode = metroAlias.canonicalRegionCode;
-    regionName = metroAlias.canonicalRegionName;
-    regionSlug = metroAlias.canonicalRegionSlug;
-  }
-
   return {
     countryCode,
     regionCode,
@@ -450,7 +341,6 @@ export function deriveSpotCommunityData(
   spotLike: Pick<
     SpotSchema,
     | "address"
-    | "location_raw"
     | "type"
     | "amenities"
     | "stewardship"
@@ -471,7 +361,6 @@ export function deriveSpotCommunityData(
     localityName: getSpotLocalityName(spotLike.address),
     regionCode: spotLike.address?.region?.code,
     regionName: spotLike.address?.region?.name,
-    locationRaw: spotLike.location_raw,
   });
 
   return {

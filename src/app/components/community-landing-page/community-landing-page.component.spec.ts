@@ -14,6 +14,7 @@ import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { StorageService } from "../../services/firebase/storage.service";
 import { MapsApiService } from "../../services/maps-api.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
+import { SearchService } from "../../services/search.service";
 
 const communityData: CommunityLandingPageData = {
   communityKey: "country:ch",
@@ -60,8 +61,10 @@ const communityData: CommunityLandingPageData = {
 
 describe("CommunityLandingPageComponent", () => {
   let fixture: ComponentFixture<CommunityLandingPageComponent>;
+  let isAdmin: ReturnType<typeof signal<boolean>>;
 
   beforeEach(async () => {
+    isAdmin = signal(false);
     await TestBed.configureTestingModule({
       imports: [CommunityLandingPageComponent],
       providers: [
@@ -89,11 +92,18 @@ describe("CommunityLandingPageComponent", () => {
         },
         {
           provide: AuthenticationService,
-          useValue: { user: { data: null }, isAdmin: signal(false) },
+          useValue: { user: { data: null }, isAdmin },
         },
         {
           provide: LandingPagesService,
-          useValue: { updateCommunityInfoCards: vi.fn() },
+          useValue: {
+            updateCommunityInfoCards: vi.fn(),
+            updateCommunityMergeInto: vi.fn(),
+          },
+        },
+        {
+          provide: SearchService,
+          useValue: { listCommunities: vi.fn().mockResolvedValue([]) },
         },
         {
           provide: MatSnackBar,
@@ -410,5 +420,30 @@ describe("CommunityLandingPageComponent", () => {
       link.textContent?.includes("Share community info"),
     );
     expect(cta).toBeDefined();
+  });
+
+  it("opens the community knowledge editor from the empty-state admin CTA", () => {
+    isAdmin.set(true);
+    fixture.componentRef.setInput("communityDataInput", {
+      ...communityData,
+      infoCards: [],
+    });
+    fixture.detectChanges();
+
+    const addButton = [
+      ...fixture.nativeElement.querySelectorAll("button"),
+    ].find((button: HTMLButtonElement) =>
+      button.textContent?.includes("Add community knowledge"),
+    ) as HTMLButtonElement | undefined;
+
+    expect(addButton).toBeDefined();
+    addButton?.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain("Local Knowledge");
+    expect(
+      fixture.nativeElement.querySelector("app-community-knowledge-editor"),
+    ).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain("No knowledge cards yet.");
   });
 });

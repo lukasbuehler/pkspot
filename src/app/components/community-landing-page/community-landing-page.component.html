@@ -204,7 +204,7 @@
     }
 
     @if (!data.notFound) {
-      @if (communityInfoCards().length > 0) {
+      @if (communityInfoCards().length > 0 || isEditingKnowledge()) {
         <section class="content-section local-info-section">
           <div class="section-heading section-heading-row">
             <h2
@@ -228,6 +228,61 @@
           </div>
 
           @if (isEditingKnowledge()) {
+            @if (canEditKnowledge() && data.scope === "locality") {
+              <div class="community-admin-settings border">
+                <h3 class="mat-title-medium m-0">Community settings</h3>
+                <div class="community-admin-settings-grid">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Is part of community</mat-label>
+                    <mat-select
+                      [value]="selectedMergeTargetKey()"
+                      [disabled]="
+                        isLoadingMergeTargets() || isSavingCommunityMerge()
+                      "
+                      (selectionChange)="
+                        selectedMergeTargetKey.set($event.value)
+                      "
+                    >
+                      <mat-option value="">Not merged</mat-option>
+                      @for (community of mergeTargetOptions(); track community.communityKey) {
+                        <mat-option [value]="community.communityKey">
+                          {{ community.displayName }}
+                        </mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Knowledge cards</mat-label>
+                    <mat-select
+                      [value]="mergeInfoCardMode()"
+                      [disabled]="isSavingCommunityMerge()"
+                      (selectionChange)="mergeInfoCardMode.set($event.value)"
+                    >
+                      <mat-option value="move">Move</mat-option>
+                      <mat-option value="copy">Copy</mat-option>
+                      <mat-option value="skip">Skip</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    [disabled]="
+                      !selectedMergeTargetKey() || isSavingCommunityMerge()
+                    "
+                    (click)="saveCommunityMerge()"
+                  >
+                    <mat-icon>merge_type</mat-icon>
+                    <span>{{
+                      isSavingCommunityMerge()
+                        ? "Saving..."
+                        : "Save community merge"
+                    }}</span>
+                  </button>
+                </div>
+              </div>
+            }
             <app-community-knowledge-editor
               [cards]="communityKnowledgeCards()"
               [saving]="isSavingKnowledge()"

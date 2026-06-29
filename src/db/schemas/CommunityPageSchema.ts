@@ -86,6 +86,19 @@ export interface CommunityInfoCardSchema {
   commercialDisclosure?: CommunityInfoCardDisclosure;
   priority?: number;
   visibility?: "public" | "hidden";
+  origin_community_key?: string;
+}
+
+export type CommunityMergeInfoCardMode = "move" | "copy" | "skip";
+export type CommunityMergeStatus = "pending" | "active" | "failed";
+
+export interface CommunityMergeIntoSchema {
+  target_community_key: string;
+  info_cards?: CommunityMergeInfoCardMode;
+  status?: CommunityMergeStatus;
+  requested_at?: Timestamp | { seconds: number; nanoseconds: number };
+  applied_at?: Timestamp | { seconds: number; nanoseconds: number };
+  error?: string;
 }
 
 export interface CommunityChildSummarySchema {
@@ -150,6 +163,17 @@ export interface CommunityPageSchema {
   eventPreviews?: CommunityEventPreviewSchema[];
   image: CommunityImageSchema;
   published: boolean;
+  /**
+   * Admin-authored request to merge this generated community into another
+   * community. A Cloud Function validates and expands it into durable merge
+   * metadata, redirects, slug aliases, search aliases, and a rebuild.
+   */
+  merge_into?: CommunityMergeIntoSchema;
+  merged_community_keys?: string[];
+  search_aliases?: string[];
+  redirected_from_slugs?: string[];
+  redirect_to_community_key?: string;
+  redirect_to_path?: string;
   generatedAt?: Timestamp | { seconds: number; nanoseconds: number };
   sourceMaxUpdatedAt?: Timestamp | { seconds: number; nanoseconds: number };
 

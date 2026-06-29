@@ -26,6 +26,7 @@ export {
 } from "./spotAddressFunctions";
 
 export {
+  patchCommunityPageOnWrite,
   rebuildCommunityPagesOnSpotWrite,
   rebuildAllCommunityPages,
   rebuildCommunityEventPreviewsOnEventWrite,

@@ -8,6 +8,11 @@
     { "name": "description", "type": "string", "optional": false },
     { "name": "preferredSlug", "type": "string", "optional": false },
     { "name": "allSlugs", "type": "string[]", "optional": false },
+    { "name": "search_aliases", "type": "string[]", "optional": true },
+    { "name": "merged_community_keys", "type": "string[]", "optional": true, "facet": true },
+    { "name": "redirected_from_slugs", "type": "string[]", "optional": true },
+    { "name": "redirect_to_community_key", "type": "string", "optional": true },
+    { "name": "redirect_to_path", "type": "string", "optional": true },
     { "name": "canonicalPath", "type": "string", "optional": false },
 
     {
