@@ -1,19 +1,19 @@
+@if (displayUser(); as user) {
 <a
-  [routerLink]="['/u', displayUser()!.uid]"
-  target="_blank"
+  [routerLink]="['/u', user.uid]"
   matButton="outlined"
-  [style.padding-left]="displayUser()!.profile_picture ? '3px' : null"
+  [style.padding-left]="user.profile_picture ? '3px' : null"
 >
-  <!-- <mat-icon>person</mat-icon> -->
-  @if(displayUser()!.profile_picture) {
+  @if (user.profile_picture) {
   <img
-    [ngSrc]="displayUser()!.profile_picture!"
+    [ngSrc]="user.profile_picture"
     width="30"
     height="30"
     class="rounded-circle me-2"
   />
   }
   <span class="mat-title-small text-truncate" style="vertical-align: middle">{{
-    displayUser()!.display_name
+    user.display_name || user.uid
   }}</span>
 </a>
+}

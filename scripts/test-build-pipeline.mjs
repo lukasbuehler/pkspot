@@ -841,6 +841,42 @@ async function main() {
     const robotsText = await robotsResponse.text();
     assert.match(robotsText, /User-agent/i, "robots.txt should have content");
 
+    const llmsResponse = await fetchWithTimeout(
+      `${baseUrl}/llms.txt`,
+      {},
+      "llms.txt"
+    );
+    assert.equal(llmsResponse.status, 200, "llms.txt should be served");
+    assertRevalidatingAssetCacheHeaders(llmsResponse, "llms.txt");
+    const llmsText = await llmsResponse.text();
+    assert.match(llmsText, /^# PK Spot/m, "llms.txt should describe PK Spot");
+    assert.match(
+      llmsText,
+      /https:\/\/pkspot\.app\/sitemap\.xml/,
+      "llms.txt should link the sitemap"
+    );
+
+    const indexNowKeyResponse = await fetchWithTimeout(
+      `${baseUrl}/82fdb2d7e4c14ed3b16a03f9fe6d3295.txt`,
+      {},
+      "IndexNow key file"
+    );
+    assert.equal(
+      indexNowKeyResponse.status,
+      200,
+      "IndexNow key file should be served"
+    );
+    assertRevalidatingAssetCacheHeaders(
+      indexNowKeyResponse,
+      "IndexNow key file"
+    );
+    const indexNowKeyText = await indexNowKeyResponse.text();
+    assert.equal(
+      indexNowKeyText.trim(),
+      "82fdb2d7e4c14ed3b16a03f9fe6d3295",
+      "IndexNow key file should contain the submitted key"
+    );
+
     const faviconResponse = await fetchWithTimeout(
       `${baseUrl}/favicon.ico`,
       {},

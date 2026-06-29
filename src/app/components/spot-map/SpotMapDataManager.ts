@@ -13,6 +13,7 @@ import { Injector, signal, computed, NgZone } from "@angular/core";
 import { SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
+import { UsersService } from "../../services/firebase/firestore/users.service";
 import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { OsmDataService } from "../../services/osm-data.service";
 import { MapHelpers } from "../../../scripts/MapHelpers";
@@ -58,6 +59,7 @@ interface SpotPreviewSearchOptions {
 export class SpotMapDataManager {
   private _spotsService: SpotsService;
   private _spotEditsService: SpotEditsService;
+  private _usersService: UsersService;
   private _osmDataService: OsmDataService;
   private _authService: AuthenticationService;
   private _searchService: SearchService;
@@ -181,6 +183,7 @@ export class SpotMapDataManager {
   ) {
     this._spotsService = injector.get(SpotsService);
     this._spotEditsService = injector.get(SpotEditsService);
+    this._usersService = injector.get(UsersService);
     this._osmDataService = injector.get(OsmDataService);
     this._authService = injector.get(AuthenticationService);
     this._searchService = injector.get(SearchService);
@@ -449,7 +452,7 @@ export class SpotMapDataManager {
       throw new Error("User not authenticated");
     }
 
-    const userReference = this._createAuthenticatedUserReference(authUid);
+    const userReference = await this._createAuthenticatedUserReference(authUid);
 
     if (spot instanceof Spot) {
       // Existing spot - create an UPDATE edit with only changed fields
@@ -490,28 +493,36 @@ export class SpotMapDataManager {
     }
   }
 
-  private _createAuthenticatedUserReference(uid: string): UserReferenceSchema {
+  private async _createAuthenticatedUserReference(
+    uid: string
+  ): Promise<UserReferenceSchema> {
     const profileUser = this._authService.user.data;
 
-    if (!profileUser) {
+    if (profileUser) {
+      const userReference = createUserReference(profileUser);
+      if (userReference.uid !== uid) {
+        console.warn("Authenticated user uid differs from profile uid", {
+          authUid: uid,
+          profileUid: userReference.uid,
+        });
+      }
+
       return {
+        ...userReference,
         uid,
-        display_name: this._authService.user.email ?? "",
       };
     }
 
-    const userReference = createUserReference(profileUser);
-    if (userReference.uid !== uid) {
-      console.warn("Authenticated user uid differs from profile uid", {
-        authUid: uid,
-        profileUid: userReference.uid,
-      });
+    try {
+      const loadedProfile = await this._usersService.getUserByIdOnce(uid);
+      if (loadedProfile) {
+        return createUserReference(loadedProfile);
+      }
+    } catch (error) {
+      console.warn("Could not load profile for spot edit user reference", error);
     }
 
-    return {
-      ...userReference,
-      uid,
-    };
+    return { uid };
   }
 
   /**

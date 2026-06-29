@@ -26,6 +26,8 @@ import { SpotEditSummaryComponent } from "../spot-edit-summary/spot-edit-summary
 import { buildSpotCanonicalPath } from "../../../scripts/SpotRouteHelpers";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { SpotId } from "../../../db/schemas/SpotSchema";
+import { UsersService } from "../../services/firebase/firestore/users.service";
+import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 
 interface FeedItem {
   editId?: string;
@@ -59,6 +61,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
   private _spotEditsService = inject(SpotEditsService);
   private _spotsService = inject(SpotsService);
   private _authService = inject(AuthenticationService);
+  private _usersService = inject(UsersService);
   private _locale = inject(LOCALE_ID) as LocaleCode;
   private _router = inject(Router);
 
@@ -74,6 +77,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
   private _lastDoc: unknown = null;
   private _hasLoaded = false;
   private _spotCache = new Map<string, Promise<Spot | null>>();
+  private _userReferenceCache = new Map<string, Promise<UserReferenceSchema | null>>();
   private _destroyed$ = new Subject<void>();
   private _realtimeSubscription?: Subscription;
   private _authSubscription?: Subscription;
@@ -111,6 +115,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
       this._authSubscription.unsubscribe();
     }
     this._spotCache.clear();
+    this._userReferenceCache.clear();
   }
 
   async initialLoad() {
@@ -234,11 +239,17 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
 
     const promises = edits.map(async (item) => {
       try {
-        const spot = await this._getSpotWithCache(item.spotId);
+        const [spot, user] = await Promise.all([
+          this._getSpotWithCache(item.spotId),
+          this._getUserReferenceWithCache(item.edit.user),
+        ]);
 
         return {
           editId: (item.edit as SpotEditSchema & { id?: string }).id,
-          edit: item.edit,
+          edit: {
+            ...item.edit,
+            user,
+          },
           spot: spot || null,
           spotId: item.spotId,
           formattedTimestamp: this._getJsDate(item.edit),
@@ -275,6 +286,44 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
 
     this._spotCache.set(spotId, request);
     return request;
+  }
+
+  private _getUserReferenceWithCache(
+    editUser: UserReferenceSchema
+  ): Promise<UserReferenceSchema> {
+    const cached = this._userReferenceCache.get(editUser.uid);
+    if (cached) {
+      return cached.then((user) => this._mergeUserReference(editUser, user));
+    }
+
+    const request = this._usersService
+      .getUserRefernceById(editUser.uid)
+      .then((user) => user ?? null)
+      .catch((error) => {
+        this._userReferenceCache.delete(editUser.uid);
+        console.error(`Could not load user ${editUser.uid}`, error);
+        return null;
+      });
+
+    this._userReferenceCache.set(editUser.uid, request);
+    return request.then((user) => this._mergeUserReference(editUser, user));
+  }
+
+  private _mergeUserReference(
+    editUser: UserReferenceSchema,
+    profileUser: UserReferenceSchema | null
+  ): UserReferenceSchema {
+    if (!profileUser) {
+      return editUser;
+    }
+
+    return {
+      ...editUser,
+      display_name: profileUser.display_name?.trim()
+        ? profileUser.display_name
+        : editUser.display_name,
+      profile_picture: profileUser.profile_picture ?? editUser.profile_picture,
+    };
   }
 
   private _getJsDate(editOrTimestamp: unknown): Date {
@@ -364,6 +413,7 @@ export class ActivityPageComponent implements OnInit, OnDestroy {
     this._hasLoaded = false;
     this._lastDoc = null;
     this._spotCache.clear();
+    this._userReferenceCache.clear();
     this.items$.next([]);
     this.newItemsBuffer$.next([]);
     this.isLoading$.next(false);

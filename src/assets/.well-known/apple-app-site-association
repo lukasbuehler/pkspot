@@ -11,6 +11,21 @@
             "comment": "QR sticker links open in the browser first so the server can track and redirect."
           },
           {
+            "/": "/embed",
+            "exclude": true,
+            "comment": "Embed builder pages stay browser-first."
+          },
+          {
+            "/": "/embed/*",
+            "exclude": true,
+            "comment": "Embed builder pages stay browser-first."
+          },
+          {
+            "/": "/embedded/*",
+            "exclude": true,
+            "comment": "Embedded content pages stay browser-first."
+          },
+          {
             "/": "/",
             "comment": "The bare host should still open the app."
           },

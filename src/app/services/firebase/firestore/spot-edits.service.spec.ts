@@ -6,6 +6,7 @@ import { AnalyticsService } from "../../analytics.service";
 import { ConsentService } from "../../consent.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
 import { SpotEditsService } from "./spot-edits.service";
+import { UsersService } from "./users.service";
 
 const createMockFirestoreAdapter = () => ({
   createDocumentId: vi.fn().mockReturnValue("generated-spot-id"),
@@ -25,6 +26,10 @@ const createMockConsentService = () => ({
 
 const createMockAnalyticsService = () => ({
   trackEvent: vi.fn(),
+});
+
+const createMockUsersService = () => ({
+  getUserRefernceById: vi.fn().mockResolvedValue(null),
 });
 
 const buildEdit = (
@@ -48,14 +53,17 @@ const buildEdit = (
 describe("SpotEditsService", () => {
   let service: SpotEditsService;
   let mockFirestoreAdapter: ReturnType<typeof createMockFirestoreAdapter>;
+  let mockUsersService: ReturnType<typeof createMockUsersService>;
 
   beforeEach(() => {
     mockFirestoreAdapter = createMockFirestoreAdapter();
+    mockUsersService = createMockUsersService();
 
     TestBed.configureTestingModule({
       providers: [
         SpotEditsService,
         { provide: FirestoreAdapterService, useValue: mockFirestoreAdapter },
+        { provide: UsersService, useValue: mockUsersService },
         { provide: ConsentService, useValue: createMockConsentService() },
         { provide: AnalyticsService, useValue: createMockAnalyticsService() },
       ],
@@ -344,6 +352,71 @@ describe("SpotEditsService", () => {
           media: [],
         },
       }
+    );
+  });
+
+  it("hydrates email-like edit user display names from the current profile before writing", async () => {
+    mockUsersService.getUserRefernceById.mockResolvedValueOnce({
+      uid: "user-1",
+      display_name: "Profile Name",
+      profile_picture: "profile.jpg",
+    });
+    mockFirestoreAdapter.addDocument.mockResolvedValueOnce("edit-id");
+
+    await service.addSpotEdit("spot-1", {
+      type: "UPDATE",
+      timestamp: {} as SpotEditSchema["timestamp"],
+      timestamp_raw_ms: 1,
+      user: {
+        uid: "user-1",
+        display_name: "person@example.test",
+      },
+      data: {
+        name: {
+          en: "Updated Park",
+        },
+      },
+    });
+
+    expect(mockUsersService.getUserRefernceById).toHaveBeenCalledWith("user-1");
+    expect(mockFirestoreAdapter.addDocument).toHaveBeenCalledWith(
+      "spots/spot-1/edits",
+      expect.objectContaining({
+        user: {
+          uid: "user-1",
+          display_name: "Profile Name",
+          profile_picture: "profile.jpg",
+        },
+      })
+    );
+  });
+
+  it("strips email-like edit user display names when no profile name can be loaded", async () => {
+    mockUsersService.getUserRefernceById.mockResolvedValueOnce(null);
+    mockFirestoreAdapter.addDocument.mockResolvedValueOnce("edit-id");
+
+    await service.addSpotEdit("spot-1", {
+      type: "UPDATE",
+      timestamp: {} as SpotEditSchema["timestamp"],
+      timestamp_raw_ms: 1,
+      user: {
+        uid: "user-1",
+        display_name: "person@example.test",
+      },
+      data: {
+        name: {
+          en: "Updated Park",
+        },
+      },
+    });
+
+    expect(mockFirestoreAdapter.addDocument).toHaveBeenCalledWith(
+      "spots/spot-1/edits",
+      expect.objectContaining({
+        user: {
+          uid: "user-1",
+        },
+      })
     );
   });
 });

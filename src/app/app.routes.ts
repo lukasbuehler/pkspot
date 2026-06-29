@@ -57,7 +57,7 @@ export const routes: Routes = [
   // Home page (redirects to spot map)
   {
     path: "",
-    redirectTo: "map",
+    redirectTo: () => "/map",
     pathMatch: "full",
     resolve: { content: contentResolver },
   },
@@ -98,37 +98,38 @@ export const routes: Routes = [
   },
   {
     path: "map/event/:eventId",
-    redirectTo: "map/events/:eventId",
+    redirectTo: (route) => `/map/events/${route.params["eventId"]}`,
     pathMatch: "full",
     data: { routeName: "Event on Map (legacy redirect)" },
   },
   {
     path: "map/spots",
-    redirectTo: "map",
+    redirectTo: () => "/map",
     pathMatch: "full",
     data: { routeName: "Spot map" },
   },
   {
     path: "map/:spot/edits",
-    redirectTo: "map/spots/:spot/edits",
+    redirectTo: (route) => `/map/spots/${route.params["spot"]}/edits`,
     pathMatch: "full",
     data: { routeName: "Spot map (legacy redirect)" },
   },
   {
     path: "map/:spot/c/:challenge",
-    redirectTo: "map/spots/:spot/c/:challenge",
+    redirectTo: (route) =>
+      `/map/spots/${route.params["spot"]}/c/${route.params["challenge"]}`,
     pathMatch: "full",
     data: { routeName: "Challenge (legacy redirect)" },
   },
   {
     path: "map/:spot/c",
-    redirectTo: "map/spots/:spot/c",
+    redirectTo: (route) => `/map/spots/${route.params["spot"]}/c`,
     pathMatch: "full",
     data: { routeName: "Spot challenges (legacy redirect)" },
   },
   {
     path: "map/:spot",
-    redirectTo: "map/spots/:spot",
+    redirectTo: (route) => `/map/spots/${route.params["spot"]}`,
     pathMatch: "full",
     data: { routeName: "Spot map (legacy redirect)" },
   },
@@ -196,7 +197,7 @@ export const routes: Routes = [
 
   {
     path: "s/:slug",
-    redirectTo: "map/spots/:slug",
+    redirectTo: (route) => `/map/spots/${route.params["slug"]}`,
     pathMatch: "full",
     data: { routeName: "Spot map" },
   },
@@ -342,7 +343,7 @@ export const routes: Routes = [
   },
   {
     path: "event/swissjam25",
-    redirectTo: "events/swissjam25",
+    redirectTo: () => "/events/swissjam25",
     pathMatch: "full",
     data: { routeName: "Event" },
   },
@@ -366,7 +367,7 @@ export const routes: Routes = [
   },
   {
     path: "e/:slug",
-    redirectTo: "events/:slug",
+    redirectTo: (route) => `/events/${route.params["slug"]}`,
     pathMatch: "full",
     data: { routeName: "Event" },
   },
@@ -516,7 +517,7 @@ export const routes: Routes = [
     resolve: { content: contentResolver },
     data: { routeName: "Terms of Service", acceptanceFree: true },
   },
-  { path: "tos", redirectTo: "terms-of-service", pathMatch: "full" },
+  { path: "tos", redirectTo: () => "/terms-of-service", pathMatch: "full" },
   {
     path: "privacy-policy",
     loadComponent: () =>
@@ -526,7 +527,7 @@ export const routes: Routes = [
     resolve: { content: contentResolver },
     data: { routeName: "Privacy Policy", acceptanceFree: true },
   },
-  { path: "pp", redirectTo: "privacy-policy", pathMatch: "full" },
+  { path: "pp", redirectTo: () => "/privacy-policy", pathMatch: "full" },
   {
     path: "impressum",
     pathMatch: "full",

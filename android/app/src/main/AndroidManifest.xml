@@ -1,78 +1,81 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application
-        android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme">
-        <activity
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
-            android:windowSoftInputMode="adjustNothing"
-            android:name=".MainActivity"
-            android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBarLaunch"
-            android:launchMode="singleTask"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+  <application
+    android:allowBackup="true"
+    android:icon="@mipmap/ic_launcher"
+    android:label="@string/app_name"
+    android:roundIcon="@mipmap/ic_launcher_round"
+    android:supportsRtl="true"
+    android:theme="@style/AppTheme">
+    <activity
+      android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
+      android:windowSoftInputMode="adjustNothing"
+      android:name=".MainActivity"
+      android:label="@string/title_activity_main"
+      android:theme="@style/AppTheme.NoActionBarLaunch"
+      android:launchMode="singleTask"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
 
-            <!-- App Links for pkspot.app deep linking. Keep this path-scoped so /qr/* opens in the browser first. -->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="pkspot.app" android:path="/" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/map" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/s" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/e" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/events" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/event" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/activity" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/kml-import" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/moderation" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/organizations" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/embed" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/embedded" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/profile" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/u" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/account" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/sign-in" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/sign-up" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/forgot-password" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/settings" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/about" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/support" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/contact" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/terms-of-service" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/tos" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/privacy-policy" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/pp" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/impressum" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/leaderboard" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/__/auth/action" />
-                <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/oauth/callback" />
-            </intent-filter>
-        </activity>
+      <!-- App Links for pkspot.app deep linking. Keep this path-scoped so browser-first paths such
+      as /qr/* and embedded pages are not claimed by the app. -->
+      <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="https" android:host="pkspot.app" android:path="/" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/map" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/s" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/e" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/events" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/event" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/activity" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/kml-import" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/moderation" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/organizations" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/embed" />
 
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
-        </provider>
-    </application>
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/profile" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/u" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/account" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/sign-in" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/sign-up" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/forgot-password" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/settings" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/about" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/support" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/contact" />
+        <data android:scheme="https" android:host="pkspot.app"
+          android:pathPrefix="/terms-of-service" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/tos" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/privacy-policy" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/pp" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/impressum" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/leaderboard" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/__/auth/action" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/oauth/callback" />
+      </intent-filter>
+    </activity>
 
-    <!-- Permissions -->
+    <provider
+      android:name="androidx.core.content.FileProvider"
+      android:authorities="${applicationId}.fileprovider"
+      android:exported="false"
+      android:grantUriPermissions="true">
+      <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
+        android:resource="@xml/file_paths" />
+    </provider>
+  </application>
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+  <!-- Permissions -->
+
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+  <uses-permission android:name="android.permission.CAMERA" />
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 </manifest>

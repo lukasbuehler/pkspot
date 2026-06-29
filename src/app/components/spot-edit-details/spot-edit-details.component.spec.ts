@@ -10,6 +10,7 @@ import { SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
+import { UsersService } from "../../services/firebase/firestore/users.service";
 import { SpotEditDetailsComponent } from "./spot-edit-details.component";
 
 describe("SpotEditDetailsComponent", () => {
@@ -21,6 +22,9 @@ describe("SpotEditDetailsComponent", () => {
   let organizationsService: {
     getReviewerOrganizations: ReturnType<typeof vi.fn>;
   };
+  let usersService: {
+    getUserRefernceById: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(async () => {
     spotEditsService = {
@@ -30,6 +34,9 @@ describe("SpotEditDetailsComponent", () => {
     };
     organizationsService = {
       getReviewerOrganizations: vi.fn().mockResolvedValue([]),
+    };
+    usersService = {
+      getUserRefernceById: vi.fn().mockResolvedValue(null),
     };
 
     await TestBed.configureTestingModule({
@@ -51,6 +58,7 @@ describe("SpotEditDetailsComponent", () => {
         },
         { provide: SpotEditsService, useValue: spotEditsService },
         { provide: OrganizationsService, useValue: organizationsService },
+        { provide: UsersService, useValue: usersService },
       ],
     }).compileComponents();
 
@@ -102,13 +110,42 @@ describe("SpotEditDetailsComponent", () => {
       "Waiting for an organization reviewer."
     );
   });
+
+  it("hydrates email-like submitter names from the current profile", async () => {
+    usersService.getUserRefernceById.mockResolvedValueOnce({
+      uid: "submitter-user",
+      display_name: "Submitter Name",
+    });
+    const fixture = createFixture();
+    fixture.componentRef.setInput("spotId", "spot-1");
+    fixture.componentRef.setInput(
+      "spotEdit",
+      makeOrganizationReviewEdit("person@example.test")
+    );
+
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain(
+      "person@example.test"
+    );
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(usersService.getUserRefernceById).toHaveBeenCalledWith(
+      "submitter-user"
+    );
+    expect(fixture.nativeElement.textContent).toContain("Submitter Name");
+    expect(fixture.nativeElement.textContent).not.toContain(
+      "person@example.test"
+    );
+  });
 });
 
 function createFixture(): ComponentFixture<SpotEditDetailsComponent> {
   return TestBed.createComponent(SpotEditDetailsComponent);
 }
 
-function makeOrganizationReviewEdit(): SpotEdit {
+function makeOrganizationReviewEdit(displayName = "Submitter"): SpotEdit {
   const edit: SpotEditSchema = {
     type: "UPDATE",
     timestamp: Timestamp.fromMillis(1_718_800_000_000),
@@ -120,7 +157,7 @@ function makeOrganizationReviewEdit(): SpotEdit {
     review_kind: "stewarded",
     user: {
       uid: "submitter-user",
-      display_name: "Submitter",
+      display_name: displayName,
     },
     data: {
       type: SpotTypes.PkPark,

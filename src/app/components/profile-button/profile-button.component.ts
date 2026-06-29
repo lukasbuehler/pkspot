@@ -1,4 +1,10 @@
-import { Component, input, inject, computed, ChangeDetectionStrategy } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+} from "@angular/core";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 import { RouterLink } from "@angular/router";

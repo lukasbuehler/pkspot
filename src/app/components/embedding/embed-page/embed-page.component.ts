@@ -165,7 +165,7 @@ export class EmbedPageComponent {
   <iframe src="${url}" title="PK Spot embedded event" loading="lazy" style="display:block;width:100%;height:calc(100% - 22px);border:0;overflow:hidden;"></iframe>
   <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 12px 0;font:11px/1.35 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#6f7378;">
     <span>Interactive event embed</span>
-    <span>Event data by <a href="${publicUrl}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">PK Spot</a></span>
+    <span>Event data by <a href="${publicUrl}" target="_top" rel="noopener" style="color:inherit;text-decoration:underline;">PK Spot</a></span>
   </div>
 </div>`;
   });

@@ -11,6 +11,7 @@ import {
 } from "../../../../scripts/Helpers";
 import { SpotId, SpotSchema } from "../../../../db/schemas/SpotSchema";
 import { UserReferenceSchema } from "../../../../db/schemas/UserSchema";
+import { UsersService } from "./users.service";
 import { AnyMedia } from "../../../../db/models/Media";
 import { MediaSchema } from "../../../../db/schemas/Media";
 import {
@@ -29,6 +30,7 @@ import {
 })
 export class SpotEditsService extends ConsentAwareService {
   private _firestoreAdapter = inject(FirestoreAdapterService);
+  private _usersService = inject(UsersService);
   private _functions = inject(Functions, { optional: true });
   private _reviewVerifiedSpotEditCallable = this._functions
     ? httpsCallable<
@@ -308,9 +310,11 @@ export class SpotEditsService extends ConsentAwareService {
       (spot?.management?.status === "managed" ||
         (spot?.stewardship?.organization_ids?.length ?? 0) > 0);
     const visibility = requiresOrganizationReview ? "private" : "public";
+    const user = await this._resolveEditUserReference(edit.user);
     const cleanEdit = cleanDataForFirestore({
       visibility,
       ...edit,
+      user,
     }) as SpotEditSchema;
 
     // Check if the edit data is empty - if so, don't create an edit
@@ -332,6 +336,63 @@ export class SpotEditsService extends ConsentAwareService {
       `spots/${spotId}/edits`,
       cleanEdit
     );
+  }
+
+  private async _resolveEditUserReference(
+    user: UserReferenceSchema
+  ): Promise<UserReferenceSchema> {
+    if (!user.uid) {
+      return user;
+    }
+
+    if (this._hasPublicDisplayName(user.display_name)) {
+      return user;
+    }
+
+    try {
+      const profileUser = await this._usersService.getUserRefernceById(user.uid);
+      if (profileUser) {
+        return this._mergeUserReference(user, profileUser);
+      }
+    } catch (error) {
+      console.warn("Could not load profile for spot edit user reference", error);
+    }
+
+    return this._withoutEmailLikeDisplayName(user);
+  }
+
+  private _mergeUserReference(
+    editUser: UserReferenceSchema,
+    profileUser: UserReferenceSchema
+  ): UserReferenceSchema {
+    const displayName = this._hasPublicDisplayName(profileUser.display_name)
+      ? profileUser.display_name
+      : undefined;
+
+    return this._withoutEmailLikeDisplayName({
+      ...editUser,
+      ...(displayName ? { display_name: displayName } : {}),
+      profile_picture: profileUser.profile_picture ?? editUser.profile_picture,
+    });
+  }
+
+  private _withoutEmailLikeDisplayName(
+    user: UserReferenceSchema
+  ): UserReferenceSchema {
+    if (!user.display_name || !this._looksLikeEmail(user.display_name)) {
+      return user;
+    }
+
+    const { display_name: _displayName, ...safeUser } = user;
+    return safeUser;
+  }
+
+  private _hasPublicDisplayName(displayName: string | undefined): boolean {
+    return !!displayName?.trim() && !this._looksLikeEmail(displayName);
+  }
+
+  private _looksLikeEmail(value: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(value.trim());
   }
 
   updateSpotEdit(

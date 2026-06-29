@@ -9,6 +9,7 @@ import { SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
+import { UsersService } from "../../services/firebase/firestore/users.service";
 import { OsmDataService } from "../../services/osm-data.service";
 import { SearchService } from "../../services/search.service";
 import { getClusterTileKey } from "../../../db/schemas/SpotClusterTile";
@@ -24,6 +25,7 @@ function makeInjector(overrides: Map<unknown, unknown> = new Map()): Injector {
   const providers = new Map<unknown, unknown>([
     [SpotsService, {}],
     [SpotEditsService, {}],
+    [UsersService, { getUserByIdOnce: vi.fn().mockResolvedValue(null) }],
     [OsmDataService, { getAmenityMarkers: vi.fn(() => of([])) }],
     [AuthenticationService, {}],
     [
@@ -154,6 +156,88 @@ describe("SpotMapDataManager filters", () => {
 
     expect(spotId).toBe("spot-1");
     expect(spotEditsService.createSpotUpdateEdit).not.toHaveBeenCalled();
+  });
+
+  it("loads the profile before saving when auth state has no hydrated user data", async () => {
+    const spotEditsService = {
+      createSpotUpdateEdit: vi.fn().mockResolvedValue("edit-id"),
+    };
+    const usersService = {
+      getUserByIdOnce: vi.fn().mockResolvedValue(
+        new User("live-auth-uid", {
+          display_name: "Live User",
+        })
+      ),
+    };
+    const authService = {
+      isSignedIn: true,
+      user: {
+        uid: "live-auth-uid",
+        email: "live@example.test",
+        data: undefined,
+      },
+    };
+    const manager = new SpotMapDataManager(
+      "en",
+      makeInjector(
+        new Map<unknown, unknown>([
+          [SpotEditsService, spotEditsService],
+          [UsersService, usersService],
+          [AuthenticationService, authService],
+        ])
+      )
+    );
+    const spot = makeSpot("spot-1", SpotTypes.Park);
+
+    await manager.saveSpot(spot);
+
+    expect(usersService.getUserByIdOnce).toHaveBeenCalledWith("live-auth-uid");
+    expect(spotEditsService.createSpotUpdateEdit).toHaveBeenCalledWith(
+      "spot-1",
+      expect.any(Object),
+      {
+        uid: "live-auth-uid",
+        display_name: "Live User",
+      },
+      undefined
+    );
+  });
+
+  it("does not store the auth email as a spot edit display name when the profile cannot be loaded", async () => {
+    const spotEditsService = {
+      createSpotUpdateEdit: vi.fn().mockResolvedValue("edit-id"),
+    };
+    const usersService = {
+      getUserByIdOnce: vi.fn().mockResolvedValue(null),
+    };
+    const authService = {
+      isSignedIn: true,
+      user: {
+        uid: "live-auth-uid",
+        email: "live@example.test",
+        data: undefined,
+      },
+    };
+    const manager = new SpotMapDataManager(
+      "en",
+      makeInjector(
+        new Map<unknown, unknown>([
+          [SpotEditsService, spotEditsService],
+          [UsersService, usersService],
+          [AuthenticationService, authService],
+        ])
+      )
+    );
+    const spot = makeSpot("spot-1", SpotTypes.Park);
+
+    await manager.saveSpot(spot);
+
+    expect(spotEditsService.createSpotUpdateEdit).toHaveBeenCalledWith(
+      "spot-1",
+      expect.any(Object),
+      { uid: "live-auth-uid" },
+      undefined
+    );
   });
 
   it("keeps cached full spots visible when a preset filter is active", () => {

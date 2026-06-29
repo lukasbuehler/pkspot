@@ -1043,6 +1043,12 @@ describe("EventInfoPageComponent", () => {
             availability: "coming_soon",
           },
           {
+            id: "door",
+            label: "Door ticket",
+            price: { amount: 50, currency: "CHF" },
+            availability: "available",
+          },
+          {
             id: "info",
             label: "Registration info",
             url: "https://tickets.example.com/info",
@@ -1092,6 +1098,13 @@ describe("EventInfoPageComponent", () => {
           expect.objectContaining({
             name: "Regular",
             availability: "https://schema.org/PreOrder",
+          }),
+          expect.objectContaining({
+            name: "Door ticket",
+            url: "https://eventfrog.ch/ticket-event",
+            price: 50,
+            priceCurrency: "CHF",
+            availability: "https://schema.org/InStock",
           }),
         ],
         organizer: expect.objectContaining({

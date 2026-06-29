@@ -19,6 +19,8 @@ import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.s
 import { createUserReference } from "../../../scripts/Helpers";
 import { SpotEditVoteValue } from "../../../db/schemas/SpotEditVoteSchema";
 import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
+import { UsersService } from "../../services/firebase/firestore/users.service";
+import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 
 @Component({
   selector: "app-spot-edit-details",
@@ -39,6 +41,7 @@ export class SpotEditDetailsComponent {
   authenticationService = inject(AuthenticationService);
   private _spotEditsService = inject(SpotEditsService);
   private _organizationsService = inject(OrganizationsService);
+  private _usersService = inject(UsersService);
   private _snackBar = inject(MatSnackBar);
 
   isSubmittingVote = signal(false);
@@ -46,6 +49,7 @@ export class SpotEditDetailsComponent {
   isLoadingReviewEligibility = signal(false);
   userVoteValue = signal<SpotEditVoteValue | null>(null);
   reviewerOrganizationIds = signal<ReadonlySet<string>>(new Set());
+  private _hydratedUser = signal<UserReferenceSchema | null>(null);
 
   yesVotes = computed(() => this.spotEdit()?.vote_summary?.yes_count ?? 0);
   noVotes = computed(() => this.spotEdit()?.vote_summary?.no_count ?? 0);
@@ -77,6 +81,11 @@ export class SpotEditDetailsComponent {
       ? $localize`Review for your organization`
       : $localize`Organization review`
   );
+  displayUser = computed(() => {
+    const edit = this.spotEdit();
+    if (!edit) return null;
+    return this._hydratedUser() ?? this._withoutEmailLikeDisplayName(edit.user);
+  });
 
   statusText = computed(() => {
     const edit = this.spotEdit();
@@ -126,6 +135,33 @@ export class SpotEditDetailsComponent {
   constructor() {
     void this._loadReviewerOrganizations();
 
+    effect(() => {
+      const editUser = this.spotEdit()?.user;
+      this._hydratedUser.set(null);
+
+      if (
+        !editUser?.uid ||
+        this._hasPublicDisplayName(editUser.display_name)
+      ) {
+        return;
+      }
+
+      void this._usersService
+        .getUserRefernceById(editUser.uid)
+        .then((profileUser) => {
+          if (!profileUser || this.spotEdit()?.user.uid !== editUser.uid) {
+            return;
+          }
+
+          this._hydratedUser.set(
+            this._mergeUserReference(editUser, profileUser)
+          );
+        })
+        .catch((error) => {
+          console.warn("Could not load spot edit user profile", error);
+        });
+    });
+
     effect((onCleanup) => {
       const edit = this.spotEdit();
       const spotId = this.spotId();
@@ -151,6 +187,40 @@ export class SpotEditDetailsComponent {
         sub.unsubscribe();
       });
     });
+  }
+
+  private _mergeUserReference(
+    editUser: UserReferenceSchema,
+    profileUser: UserReferenceSchema
+  ): UserReferenceSchema {
+    const displayName = this._hasPublicDisplayName(profileUser.display_name)
+      ? profileUser.display_name
+      : undefined;
+
+    return this._withoutEmailLikeDisplayName({
+      ...editUser,
+      ...(displayName ? { display_name: displayName } : {}),
+      profile_picture: profileUser.profile_picture ?? editUser.profile_picture,
+    });
+  }
+
+  private _withoutEmailLikeDisplayName(
+    user: UserReferenceSchema
+  ): UserReferenceSchema {
+    if (!user.display_name || !this._looksLikeEmail(user.display_name)) {
+      return user;
+    }
+
+    const { display_name: _displayName, ...safeUser } = user;
+    return safeUser;
+  }
+
+  private _hasPublicDisplayName(displayName: string | undefined): boolean {
+    return !!displayName?.trim() && !this._looksLikeEmail(displayName);
+  }
+
+  private _looksLikeEmail(value: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(value.trim());
   }
 
   async voteYes() {

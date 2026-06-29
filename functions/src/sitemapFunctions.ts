@@ -5,6 +5,10 @@ import { getStorage } from "firebase-admin/storage";
 import { once } from "node:events";
 import type { Writable } from "node:stream";
 import {
+  buildLocalizedIndexNowUrls,
+  submitUrlsToIndexNow,
+} from "./indexNow";
+import {
   STATIC_PAGES,
   SUPPORTED_LOCALES,
   buildCommunitySitemapEntry,
@@ -74,6 +78,7 @@ async function _generateAndUploadSitemap(): Promise<{
   const bucket = storage.bucket(BUCKET_NAME);
   const file = bucket.file("sitemap.xml");
   const now = getNowDateString();
+  const indexNowUrls: string[] = [];
 
   const writeStream = file.createWriteStream({
     resumable: false,
@@ -103,6 +108,7 @@ async function _generateAndUploadSitemap(): Promise<{
       await writer.append(
         generateUrlWithHreflang(page.path, now, page.changefreq, page.priority)
       );
+      indexNowUrls.push(...buildLocalizedIndexNowUrls(page.path));
     }
 
     console.log("Streaming spots from Firestore...");
@@ -129,6 +135,7 @@ async function _generateAndUploadSitemap(): Promise<{
           entry.priority
         )
       );
+      indexNowUrls.push(...buildLocalizedIndexNowUrls(entry.path));
     }
 
     console.log(`Streamed ${spotCount} spots`);
@@ -151,6 +158,7 @@ async function _generateAndUploadSitemap(): Promise<{
           entry.priority
         )
       );
+      indexNowUrls.push(...buildLocalizedIndexNowUrls(entry.path));
     }
     console.log(`Streamed ${userCount} users with public profiles`);
 
@@ -183,6 +191,7 @@ async function _generateAndUploadSitemap(): Promise<{
           entry.priority
         )
       );
+      indexNowUrls.push(...buildLocalizedIndexNowUrls(entry.path));
     }
     console.log(`Streamed ${communityCount} published communities`);
 
@@ -216,6 +225,7 @@ async function _generateAndUploadSitemap(): Promise<{
           entry.priority
         )
       );
+      indexNowUrls.push(...buildLocalizedIndexNowUrls(entry.path));
     }
     console.log(`Streamed ${eventCount} published events`);
 
@@ -256,6 +266,13 @@ async function _generateAndUploadSitemap(): Promise<{
       `${stats.communityCount} communities + ${stats.eventCount} events) × ` +
       `${SUPPORTED_LOCALES.length} locales`
   );
+
+  try {
+    await submitUrlsToIndexNow(indexNowUrls);
+    console.log(`Submitted ${indexNowUrls.length} sitemap URLs to IndexNow`);
+  } catch (error) {
+    console.error("IndexNow submission failed:", error);
+  }
 
   return {
     success: true,

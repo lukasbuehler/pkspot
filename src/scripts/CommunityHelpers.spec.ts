@@ -199,6 +199,64 @@ describe("CommunityHelpers", () => {
     );
   });
 
+  it("should collapse Melbourne suburb localities into the Melbourne community", () => {
+    expect(
+      getSpotCommunityCandidates({
+        address: {
+          locality: "Brunswick",
+          region: {
+            code: "VIC",
+            name: "Victoria",
+          },
+          country: {
+            code: "au",
+            name: "Australia",
+          },
+        },
+        landing: null,
+        location_raw: { lat: -37.766, lng: 144.962 },
+      } as any)
+    ).toContainEqual(
+      expect.objectContaining({
+        communityKey: "locality:au:victoria:melbourne",
+        scope: "locality",
+        displayName: "Melbourne",
+        geography: expect.objectContaining({
+          localityName: "Melbourne",
+          localitySlug: "melbourne",
+          regionName: "Victoria",
+          regionSlug: "victoria",
+        }),
+      })
+    );
+  });
+
+  it("should collapse unknown Melbourne metro localities by coordinate", () => {
+    expect(
+      getSpotCommunityCandidates({
+        address: {
+          locality: "Example Inner Suburb",
+          region: {
+            code: "VIC",
+            name: "Victoria",
+          },
+          country: {
+            code: "au",
+            name: "Australia",
+          },
+        },
+        landing: null,
+        location_raw: { lat: -37.81, lng: 144.96 },
+      } as any)
+    ).toContainEqual(
+      expect.objectContaining({
+        communityKey: "locality:au:victoria:melbourne",
+        scope: "locality",
+        displayName: "Melbourne",
+      })
+    );
+  });
+
   it("should collapse Czech numbered postal districts for community candidates", () => {
     expect(
       getSpotCommunityCandidates({

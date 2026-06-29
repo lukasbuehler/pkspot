@@ -83,6 +83,38 @@ describe("sitemapXml", () => {
     ).toBeNull();
   });
 
+  it("normalizes absolute app canonical URLs before adding sitemap entries", () => {
+    expect(
+      buildCommunitySitemapEntry(
+        {
+          canonicalPath: "https://origin.pkspot.app/de/map/community/zurich",
+          scope: "locality",
+        },
+        "2026-04-17"
+      )
+    ).toEqual({
+      path: "/map/communities/zurich",
+      lastmod: "2026-04-17",
+      changefreq: "weekly",
+      priority: "0.7",
+    });
+
+    expect(
+      buildEventSitemapEntry(
+        "fallback-event",
+        {
+          canonicalPath: "https://origin.pkspot.app/en/events/city-jam",
+        },
+        "2026-04-17"
+      )
+    ).toEqual({
+      path: "/events/city-jam",
+      lastmod: "2026-04-17",
+      changefreq: "weekly",
+      priority: "0.7",
+    });
+  });
+
   it("does not include user profiles in sitemap entries", () => {
     expect(
       buildUserSitemapEntry(
@@ -197,6 +229,7 @@ describe("sitemapXml", () => {
           id: "city-jam",
           data: {
             slug: "city-jam",
+            canonicalPath: "https://origin.pkspot.app/en/events/city-jam",
             updatedAt: { seconds: 1775001600, nanoseconds: 0 },
           },
         },
@@ -218,6 +251,7 @@ describe("sitemapXml", () => {
     expect(xml).not.toContain(`${BASE_URL}/en/map/communities/lausanne-old`);
     expect(xml).toContain(`${BASE_URL}/en/map/communities/switzerland`);
     expect(xml).toContain(`${BASE_URL}/en/events/city-jam`);
+    expect(xml).not.toContain("origin.pkspot.app");
     expect(
       xml.match(/https:\/\/pkspot\.app\/en\/events\/swissjam25/g)
     )?.toHaveLength(SUPPORTED_LOCALES.length * 2 + 1);

@@ -255,7 +255,7 @@
   </div>
   <div class="embedded-promo">
     <a
-      target="_blank"
+      target="_top"
       href="https://pkspot.app"
       class="embedded-promo__brand"
       aria-label="PK Spot"
@@ -273,7 +273,7 @@
     @if(responsive.isNotMobile()) {
     <a
       mat-flat-button
-      target="_blank"
+      target="_top"
       [href]="getUnembeddedUrl()"
       class="embedded-promo__cta"
     >
@@ -285,7 +285,7 @@
     } @else {
     <a
       [href]="getUnembeddedUrl()"
-      target="_blank"
+      target="_top"
       mat-mini-fab
       color="primary"
       aria-label="Open this on PK Spot"

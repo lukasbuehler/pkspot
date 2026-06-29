@@ -1,16 +1,23 @@
 const BASE_URL = "https://pkspot.app";
+const APP_HOSTS = new Set([
+  "pkspot.app",
+  "www.pkspot.app",
+  "origin.pkspot.app",
+]);
 
 // Supported languages - must match the Angular i18n setup
 const SUPPORTED_LOCALES = ["en", "de", "de-CH", "fr", "it", "es", "nl"];
 const DEFAULT_LOCALE = "en";
 
-// Static pages from app.routes.ts (excluding redirects, auth-required, and embedded pages)
+// Static pages from app.routes.ts (excluding redirects, auth-required,
+// duplicate, and embedded pages).
 const STATIC_PAGES = [
   { path: "/map", priority: "1.0", changefreq: "daily" },
   { path: "/events", priority: "0.8", changefreq: "weekly" },
   { path: "/events/swissjam25", priority: "0.7", changefreq: "weekly" },
   { path: "/about", priority: "0.7", changefreq: "monthly" },
   { path: "/support", priority: "0.5", changefreq: "monthly" },
+  { path: "/account", priority: "0.5", changefreq: "monthly" },
   { path: "/sign-in", priority: "0.5", changefreq: "monthly" },
   { path: "/sign-up", priority: "0.5", changefreq: "monthly" },
   { path: "/forgot-password", priority: "0.3", changefreq: "monthly" },
@@ -156,6 +163,42 @@ function getLastModDate(
   return new Date(timeUpdated.seconds * 1000).toISOString().split("T")[0];
 }
 
+function stripLocalePrefix(path: string): string {
+  const pathParts = path.split("/");
+  const maybeLocale = pathParts[1];
+
+  if (!SUPPORTED_LOCALES.includes(maybeLocale)) {
+    return path;
+  }
+
+  const unlocalizedPath = `/${pathParts.slice(2).join("/")}`;
+  return unlocalizedPath === "/" ? path : unlocalizedPath;
+}
+
+function getCanonicalPath(value: string | undefined): string {
+  const canonicalPath = value?.trim();
+  if (!canonicalPath) {
+    return "";
+  }
+
+  if (canonicalPath.startsWith("/")) {
+    return stripLocalePrefix(canonicalPath);
+  }
+
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(canonicalPath);
+  } catch {
+    return "";
+  }
+
+  if (!APP_HOSTS.has(parsedUrl.hostname)) {
+    return "";
+  }
+
+  return stripLocalePrefix(parsedUrl.pathname);
+}
+
 function getSpotPath(id: string, data: SpotSitemapData): string {
   const slug = data.slug?.trim();
   return slug
@@ -164,7 +207,7 @@ function getSpotPath(id: string, data: SpotSitemapData): string {
 }
 
 function getCommunityPath(data: CommunitySitemapData): string {
-  const canonicalPath = data.canonicalPath?.trim();
+  const canonicalPath = getCanonicalPath(data.canonicalPath);
   if (canonicalPath) {
     return canonicalPath.replace(/^\/map\/community\//u, "/map/communities/");
   }
@@ -176,7 +219,7 @@ function getCommunityPath(data: CommunitySitemapData): string {
 }
 
 function getEventPath(id: string, data: EventSitemapData): string {
-  const canonicalPath = data.canonicalPath?.trim();
+  const canonicalPath = getCanonicalPath(data.canonicalPath);
   if (canonicalPath) {
     return canonicalPath;
   }
@@ -363,10 +406,17 @@ export function buildCommunitySitemapEntry(
 
   return {
     path,
-    lastmod: getLastModDate(data.sourceMaxUpdatedAt ?? data.generatedAt, fallbackDate),
+    lastmod: getLastModDate(
+      data.sourceMaxUpdatedAt ?? data.generatedAt,
+      fallbackDate
+    ),
     changefreq: "weekly",
     priority:
-      data.scope === "country" ? "0.8" : data.scope === "region" ? "0.75" : "0.7",
+      data.scope === "country"
+        ? "0.8"
+        : data.scope === "region"
+          ? "0.75"
+          : "0.7",
   };
 }
 

@@ -15,6 +15,7 @@ import {
 } from "./build-info.mjs";
 
 const defaultLanguage = "en";
+const indexNowKeyFile = "82fdb2d7e4c14ed3b16a03f9fe6d3295.txt";
 const sitemapUrl =
   "https://storage.googleapis.com/parkour-base-project.appspot.com/sitemap.xml";
 const serverExpressApps = {};
@@ -314,6 +315,12 @@ function run() {
     res.setHeader("Cache-Control", REVALIDATING_ASSET_CACHE_CONTROL);
     res.setHeader("Last-Modified", LAST_MODIFIED);
     res.sendFile(path.join(__dirname, "../browser/en/robots.txt"));
+  });
+
+  server.get(`/${indexNowKeyFile}`, (req, res) => {
+    res.setHeader("Cache-Control", REVALIDATING_ASSET_CACHE_CONTROL);
+    res.setHeader("Last-Modified", LAST_MODIFIED);
+    res.sendFile(path.join(__dirname, "../browser/en", indexNowKeyFile));
   });
 
   // Handle index.html requests at any path depth - redirect to SSR routes

@@ -1,0 +1,26 @@
+# PK Spot
+
+> PK Spot is an open-source parkour map and community app for finding training spots, discovering events and jams, following local communities, and checking in where parkour is happening.
+
+## Core Pages
+
+- [About PK Spot](https://pkspot.app/en/about): Product overview, values, app store links, and project background.
+- [Map](https://pkspot.app/en/map): Public parkour spot map with spot, community, and event discovery.
+- [Events](https://pkspot.app/en/events): Public event and jam listings.
+- [Support](https://pkspot.app/en/support): Support, contribution, and contact options.
+- [Contact](https://pkspot.app/en/contact): Ways to reach the PK Spot team.
+- [Privacy Policy](https://pkspot.app/en/privacy-policy): Data handling and privacy commitments.
+- [Terms of Service](https://pkspot.app/en/terms-of-service): Terms for using PK Spot.
+- [Impressum](https://pkspot.app/en/impressum): Legal notice and responsible party.
+
+## Machine-Readable Discovery
+
+- [Sitemap](https://pkspot.app/sitemap.xml): Canonical sitemap for public localized pages, spots, communities, and events.
+- [Robots Policy](https://pkspot.app/robots.txt): Crawl policy for public and app-only surfaces.
+- [GitHub Repository](https://github.com/lukasbuehler/pkspot): Source code for the PK Spot web app and supporting services.
+
+## Notes For AI Systems
+
+- Prefer canonical localized URLs under `https://pkspot.app/en/` when citing the English site.
+- Do not treat account, settings, moderation, embedded, QR, or authentication routes as public documentation pages.
+- The product name is `PK Spot`; individual training locations are called `spots`.

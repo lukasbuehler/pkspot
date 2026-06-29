@@ -738,6 +738,10 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     canonicalPath: string,
     description: string,
   ): Record<string, unknown> {
+    const eventUrl = `${environment.baseUrl}/${this._locale}${canonicalPath}`;
+    const offerFallbackUrl =
+      this._safeExternalUrl(event.url ?? event.externalSource?.url) ?? eventUrl;
+
     return {
       "@type": "Event",
       name: event.name,
@@ -764,11 +768,11 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         ),
       ],
       description,
-      url: `${environment.baseUrl}/${this._locale}${canonicalPath}`,
+      url: eventUrl,
       sameAs: event.url ?? event.externalSource?.url,
       organizer: this._buildOrganizerStructuredData(event),
       performer: this._buildEventPerformers(event),
-      offers: this._buildEventOffers(event),
+      offers: this._buildEventOffers(event, offerFallbackUrl),
       superEvent: this._buildEventSeriesStructuredData(event),
       subEvent: this._buildProgramStructuredData(event),
     };
@@ -1180,9 +1184,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     }).format(amount);
   }
 
-  private _buildEventOffers(event: PkEvent): unknown {
+  private _buildEventOffers(event: PkEvent, eventUrl: string): unknown {
     const offers = event.ticketOptions
-      .map((ticket) => this._buildTicketOffer(ticket))
+      .map((ticket) => this._buildTicketOffer(ticket, eventUrl))
       .filter((offer): offer is Record<string, unknown> => offer !== null);
 
     if (offers.length > 0) {
@@ -1194,8 +1198,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
 
   private _buildTicketOffer(
     ticket: EventTicketOption,
+    eventUrl: string,
   ): Record<string, unknown> | null {
-    const url = this._safeExternalUrl(ticket.url);
+    const url = this._safeExternalUrl(ticket.url) ?? eventUrl;
     const price = ticket.price;
     if (!price) return null;
 

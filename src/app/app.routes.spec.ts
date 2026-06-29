@@ -47,7 +47,12 @@ describe("app routes", () => {
     expect(eventIndex).toBeGreaterThanOrEqual(0);
     expect(legacyEventIndex).toBeGreaterThanOrEqual(0);
     expect(legacyEventIndex).toBeLessThan(mapIndex);
-    expect(routes[legacyEventIndex].redirectTo).toBe("map/events/:eventId");
+    expect(typeof routes[legacyEventIndex].redirectTo).toBe("function");
+    expect(
+      getRedirectTarget(routes[legacyEventIndex], {
+        params: { eventId: "swissjam25" },
+      })
+    ).toBe("/map/events/swissjam25");
   });
 
   it("should register organization pages", () => {
@@ -178,4 +183,57 @@ describe("app routes", () => {
     expect(legacyIndex).toBeGreaterThanOrEqual(0);
     expect(legacyIndex).toBeLessThan(mapIndex);
   });
+
+  it("should use function redirects so localized base href does not duplicate URL segments", () => {
+    const redirectRoutes = routes.filter((route) => route.redirectTo);
+
+    expect(redirectRoutes.length).toBeGreaterThan(0);
+    expect(
+      redirectRoutes.filter((route) => typeof route.redirectTo === "string")
+    ).toEqual([]);
+
+    expect(
+      getRedirectTarget(findRoute("map/:spot/edits"), {
+        params: { spot: "josefhalle" },
+      })
+    ).toBe("/map/spots/josefhalle/edits");
+    expect(
+      getRedirectTarget(findRoute("map/:spot/c/:challenge"), {
+        params: { spot: "josefhalle", challenge: "cat-pass" },
+      })
+    ).toBe("/map/spots/josefhalle/c/cat-pass");
+    expect(
+      getRedirectTarget(findRoute("e/:slug"), {
+        params: { slug: "swissjam25" },
+      })
+    ).toBe("/events/swissjam25");
+    expect(getRedirectTarget(findRoute("tos"))).toBe("/terms-of-service");
+    expect(getRedirectTarget(findRoute("pp"))).toBe("/privacy-policy");
+  });
 });
+
+function findRoute(path: string) {
+  const route = routes.find((candidate) => candidate.path === path);
+  if (!route) {
+    throw new Error(`Route not found: ${path}`);
+  }
+  return route;
+}
+
+function getRedirectTarget(
+  route: { redirectTo?: unknown },
+  routeSnapshot: {
+    params?: Record<string, string>;
+    queryParams?: Record<string, string>;
+  } = {}
+): string {
+  if (typeof route.redirectTo !== "function") {
+    throw new Error("Route does not use a function redirect.");
+  }
+
+  return route.redirectTo({
+    params: {},
+    queryParams: {},
+    ...routeSnapshot,
+  } as never) as string;
+}

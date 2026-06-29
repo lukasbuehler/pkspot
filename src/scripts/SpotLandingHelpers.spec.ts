@@ -259,4 +259,31 @@ describe("SpotLandingHelpers", () => {
       regionSlug: "victoria",
     });
   });
+
+  it("should derive Melbourne landing data for suburb-locality spots in the metro area", () => {
+    expect(
+      deriveSpotCommunityData({
+        address: {
+          locality: "Footscray",
+          region: {
+            code: "VIC",
+            name: "Victoria",
+          },
+          country: {
+            code: "au",
+            name: "Australia",
+          },
+        },
+        location_raw: { lat: -37.8, lng: 144.9 },
+        type: "urban landscape",
+        amenities: {},
+      }),
+    ).toMatchObject({
+      countryCode: "AU",
+      localityName: "Melbourne",
+      localitySlug: "melbourne",
+      regionName: "Victoria",
+      regionSlug: "victoria",
+    });
+  });
 });
