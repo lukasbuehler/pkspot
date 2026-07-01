@@ -6,19 +6,20 @@ Find spots, check in, discover what is happening nearby, and connect with your l
 
 PK Spot is growing toward one app for Parkour spots, training, events, jams, and community.
 
-## Download on the App Store and Google Play
+<!-- ## Download on the App Store and Google Play -->
 
 <!-- <a href="https://apps.apple.com/app/pk-spot-parkour-freerunning/id6757597683"><img style="height: 50px;" src="https://developer.apple.com/app-store/marketing/guidelines/images/badge-example-preferred_2x.png"></a>
 <a href="https://play.google.com/store/apps/details?id=com.pkspot.app"><img style="height: 50px; margin-top: -10px; margin-bottom: -5px" src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png"></a> -->
 
 ## Release Notes
 
-### Version 1.1.3 - "Profiles, Moderation, and more"
+### Version 1.1.3 - "Profiles & Community Submissions"
+
 - Updated Profile pages and following mechanics
 - Users can submit community card suggestions
 - Moderation queue for admins to view community and spot votes
 
-### Version 1.1.2 - "Events & Communities polish"
+### Version 1.1.2 - 25.6.2026 "Events & Communities"
 
 - Event info pages
 - Community info cards
@@ -84,7 +85,7 @@ To setup for local development, duplicate the file `src/environments/environment
 Replace the `firebaseConfig` with your own from Firebase.
 Under `keys.firebaseConfig.apiKey` you will need to add your own Google API Key, with the following APIs enabled for full functionality:
 
-- Firebase App Check API 
+- Firebase App Check API
 - IAM Service Account Credentials
 - Identity and Access Management (IAM) API
 - Identity Toolkit API
@@ -93,7 +94,6 @@ Under `keys.firebaseConfig.apiKey` you will need to add your own Google API Key,
 - Secret Manager API
 - Street View Static API
 - Token Service API
-
 
 ### Translation
 
@@ -251,11 +251,11 @@ For production, use the Firebase Console:
 
 #### Storage images
 
-| Job | Firestore document | Payload | Completion |
-| --- | --- | --- | --- |
-| Backfill missing image sizes (`200`, `400`, `800`) for spot, profile, post, and event images. Reads originals from the public media path and from `resized_originals/`. | `maintenance/run-backfill-storage-image-sizes` | `{}` | Deletes the run doc and writes `maintenance/last-storage-image-size-backfill`. |
-| Backfill optional `1600` images too. | `maintenance/run-backfill-storage-image-sizes` | `{ "include1600": true }` | Deletes the run doc and writes `maintenance/last-storage-image-size-backfill`. |
-| Backfill only selected image sizes. | `maintenance/run-backfill-storage-image-sizes` | `{ "sizes": [1600] }` | Deletes the run doc and writes `maintenance/last-storage-image-size-backfill`. |
+| Job                                                                                                                                                                     | Firestore document                             | Payload                   | Completion                                                                     |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------ |
+| Backfill missing image sizes (`200`, `400`, `800`) for spot, profile, post, and event images. Reads originals from the public media path and from `resized_originals/`. | `maintenance/run-backfill-storage-image-sizes` | `{}`                      | Deletes the run doc and writes `maintenance/last-storage-image-size-backfill`. |
+| Backfill optional `1600` images too.                                                                                                                                    | `maintenance/run-backfill-storage-image-sizes` | `{ "include1600": true }` | Deletes the run doc and writes `maintenance/last-storage-image-size-backfill`. |
+| Backfill only selected image sizes.                                                                                                                                     | `maintenance/run-backfill-storage-image-sizes` | `{ "sizes": [1600] }`     | Deletes the run doc and writes `maintenance/last-storage-image-size-backfill`. |
 
 Example image backfill payload:
 
@@ -267,29 +267,29 @@ Example image backfill payload:
 
 #### Spots and search fields
 
-| Job | Firestore document | Payload | Completion |
-| --- | --- | --- | --- |
-| Recompute spot Typesense helper fields. | `maintenance/run-backfill-typesense-fields` | `{}` | Deletes the run doc. |
-| Recompute spot landing/search helper fields. | `maintenance/run-backfill-landing` | `{}` | Updates the run doc with `status: "DONE"`. |
-| Refresh spot addresses from geocoding. | `maintenance/run-update-addresses` | `{}` | Deletes the run doc on success; otherwise leaves `status: "DONE_WITH_ERRORS"`. |
-| Audit reserved spot slugs. | `maintenance/run-audit-reserved-slugs` | `{}` | Updates the run doc with `status: "DONE"` or `status: "FAILED"`. |
-| Detect possible duplicate spots within the duplicate radius. | `maintenance/run-detect-duplicate-spots` | `{}` | Check Cloud Functions logs. |
+| Job                                                          | Firestore document                          | Payload | Completion                                                                     |
+| ------------------------------------------------------------ | ------------------------------------------- | ------- | ------------------------------------------------------------------------------ |
+| Recompute spot Typesense helper fields.                      | `maintenance/run-backfill-typesense-fields` | `{}`    | Deletes the run doc.                                                           |
+| Recompute spot landing/search helper fields.                 | `maintenance/run-backfill-landing`          | `{}`    | Updates the run doc with `status: "DONE"`.                                     |
+| Refresh spot addresses from geocoding.                       | `maintenance/run-update-addresses`          | `{}`    | Deletes the run doc on success; otherwise leaves `status: "DONE_WITH_ERRORS"`. |
+| Audit reserved spot slugs.                                   | `maintenance/run-audit-reserved-slugs`      | `{}`    | Updates the run doc with `status: "DONE"` or `status: "FAILED"`.               |
+| Detect possible duplicate spots within the duplicate radius. | `maintenance/run-detect-duplicate-spots`    | `{}`    | Check Cloud Functions logs.                                                    |
 
 #### Events and communities
 
-| Job | Firestore document | Payload | Completion |
-| --- | --- | --- | --- |
-| Recompute event Typesense helper fields. | `maintenance/run-backfill-event-typesense-fields` | `{}` | Deletes the run doc. |
-| Rebuild generated community pages. | `maintenance/run-rebuild-community-pages` | `{}` | Updates the run doc with `status: "DONE"` and writes warnings to `maintenance/community-warnings` when needed. |
+| Job                                      | Firestore document                                | Payload | Completion                                                                                                     |
+| ---------------------------------------- | ------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------- |
+| Recompute event Typesense helper fields. | `maintenance/run-backfill-event-typesense-fields` | `{}`    | Deletes the run doc.                                                                                           |
+| Rebuild generated community pages.       | `maintenance/run-rebuild-community-pages`         | `{}`    | Updates the run doc with `status: "DONE"` and writes warnings to `maintenance/community-warnings` when needed. |
 
 #### One-off migrations
 
-| Job | Firestore document | Payload | Completion |
-| --- | --- | --- | --- |
-| Convert spot `location` maps back to Firestore GeoPoints. | `spots/run-fix-locations` | `{}` | Deletes the run doc. |
-| Normalize old spot locale maps. | `spots/run-fix-locale-maps` | `{}` | Deletes the run doc. |
-| Backfill user signup numbers from Auth creation time. | `users/run-backfill-signup-numbers` | `{}` | Deletes the run doc. |
-| Recalculate user edit statistics from edit documents. | `users/run-recalculate-edit-stats` | `{}` | Deletes the run doc. |
+| Job                                                       | Firestore document                  | Payload | Completion           |
+| --------------------------------------------------------- | ----------------------------------- | ------- | -------------------- |
+| Convert spot `location` maps back to Firestore GeoPoints. | `spots/run-fix-locations`           | `{}`    | Deletes the run doc. |
+| Normalize old spot locale maps.                           | `spots/run-fix-locale-maps`         | `{}`    | Deletes the run doc. |
+| Backfill user signup numbers from Auth creation time.     | `users/run-backfill-signup-numbers` | `{}`    | Deletes the run doc. |
+| Recalculate user edit statistics from edit documents.     | `users/run-recalculate-edit-stats`  | `{}`    | Deletes the run doc. |
 
 ### Icon fonts
 
