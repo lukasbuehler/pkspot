@@ -1,0 +1,2 @@
+app_identifier("com.pkspot.app")
+package_name("com.pkspot.app")

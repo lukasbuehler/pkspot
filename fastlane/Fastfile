@@ -1,0 +1,43 @@
+PKSPOT_VERSION_NAME = "1.1.3"
+PKSPOT_ANDROID_VERSION_CODE = 16
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Upload App Store metadata and screenshots for PK Spot 1.1.3"
+  lane :metadata do
+    deliver(
+      app_identifier: "com.pkspot.app",
+      app_version: PKSPOT_VERSION_NAME,
+      metadata_path: "fastlane/metadata/ios",
+      screenshots_path: "fastlane/screenshots/ios",
+      skip_binary_upload: true,
+      submit_for_review: false
+    )
+  end
+end
+
+platform :android do
+  desc "Validate Google Play metadata and screenshots for PK Spot 1.1.3"
+  lane :validate_metadata do
+    supply(
+      package_name: "com.pkspot.app",
+      version_code: PKSPOT_ANDROID_VERSION_CODE,
+      metadata_path: "fastlane/metadata/android",
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      validate_only: true
+    )
+  end
+
+  desc "Upload Google Play metadata and screenshots for PK Spot 1.1.3"
+  lane :metadata do
+    supply(
+      package_name: "com.pkspot.app",
+      version_code: PKSPOT_ANDROID_VERSION_CODE,
+      metadata_path: "fastlane/metadata/android",
+      skip_upload_apk: true,
+      skip_upload_aab: true
+    )
+  end
+end

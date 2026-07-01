@@ -65,7 +65,65 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "/assets",
-                "ignore": ["sitemap.xml"]
+                "ignore": [
+                  "sitemap.xml",
+                  "**/.DS_Store",
+                  "brand/**",
+                  "events/**",
+                  "partners/**",
+                  "social/**",
+                  "third-party/**"
+                ]
+              },
+              {
+                "glob": "*",
+                "input": "src/assets/brand/pkspot",
+                "output": "/assets/logos/pkspot"
+              },
+              {
+                "glob": "*",
+                "input": "src/assets/brand/stores",
+                "output": "/assets/logos"
+              },
+              {
+                "glob": "*",
+                "input": "src/assets/social",
+                "output": "/assets/logos"
+              },
+              {
+                "glob": "*",
+                "input": "src/assets/third-party/google-maps",
+                "output": "/assets/logos/google-maps"
+              },
+              {
+                "glob": "*",
+                "input": "src/assets/partners/parkour-earth",
+                "output": "/assets/logos"
+              },
+              {
+                "glob": "*",
+                "input": "src/assets/partners/spka",
+                "output": "/assets/logos"
+              },
+              {
+                "glob": "*",
+                "input": "src/assets/partners/sph",
+                "output": "/assets/logos"
+              },
+              {
+                "glob": "*",
+                "input": "src/assets/partners/spl",
+                "output": "/assets/logos"
+              },
+              {
+                "glob": "*",
+                "input": "src/assets/partners/wpf",
+                "output": "/assets/logos"
+              },
+              {
+                "glob": "*",
+                "input": "src/assets/events/swissjam",
+                "output": "/assets/swissjam"
               },
               "src/manifest.webmanifest",
               "src/robots.txt",
@@ -222,7 +280,65 @@
                   "glob": "**/*",
                   "input": "src/assets",
                   "output": "/assets",
-                  "ignore": ["sitemap.xml"]
+                  "ignore": [
+                    "sitemap.xml",
+                    "**/.DS_Store",
+                    "brand/**",
+                    "events/**",
+                    "partners/**",
+                    "social/**",
+                    "third-party/**"
+                  ]
+                },
+                {
+                  "glob": "*",
+                  "input": "src/assets/brand/pkspot",
+                  "output": "/assets/logos/pkspot"
+                },
+                {
+                  "glob": "*",
+                  "input": "src/assets/brand/stores",
+                  "output": "/assets/logos"
+                },
+                {
+                  "glob": "*",
+                  "input": "src/assets/social",
+                  "output": "/assets/logos"
+                },
+                {
+                  "glob": "*",
+                  "input": "src/assets/third-party/google-maps",
+                  "output": "/assets/logos/google-maps"
+                },
+                {
+                  "glob": "*",
+                  "input": "src/assets/partners/parkour-earth",
+                  "output": "/assets/logos"
+                },
+                {
+                  "glob": "*",
+                  "input": "src/assets/partners/spka",
+                  "output": "/assets/logos"
+                },
+                {
+                  "glob": "*",
+                  "input": "src/assets/partners/sph",
+                  "output": "/assets/logos"
+                },
+                {
+                  "glob": "*",
+                  "input": "src/assets/partners/spl",
+                  "output": "/assets/logos"
+                },
+                {
+                  "glob": "*",
+                  "input": "src/assets/partners/wpf",
+                  "output": "/assets/logos"
+                },
+                {
+                  "glob": "*",
+                  "input": "src/assets/events/swissjam",
+                  "output": "/assets/swissjam"
                 }
               ],
               "budgets": [
@@ -278,7 +394,65 @@
                   "glob": "**/*",
                   "input": "src/assets",
                   "output": "/assets",
-                  "ignore": ["sitemap.xml"]
+                  "ignore": [
+                    "sitemap.xml",
+                    "**/.DS_Store",
+                    "brand/**",
+                    "events/**",
+                    "partners/**",
+                    "social/**",
+                    "third-party/**"
+                  ]
+                },
+                {
+                  "glob": "*",
+                  "input": "src/assets/brand/pkspot",
+                  "output": "/assets/logos/pkspot"
+                },
+                {
+                  "glob": "*",
+                  "input": "src/assets/brand/stores",
+                  "output": "/assets/logos"
+                },
+                {
+                  "glob": "*",
+                  "input": "src/assets/social",
+                  "output": "/assets/logos"
+                },
+                {
+                  "glob": "*",
+                  "input": "src/assets/third-party/google-maps",
+                  "output": "/assets/logos/google-maps"
+                },
+                {
+                  "glob": "*",
+                  "input": "src/assets/partners/parkour-earth",
+                  "output": "/assets/logos"
+                },
+                {
+                  "glob": "*",
+                  "input": "src/assets/partners/spka",
+                  "output": "/assets/logos"
+                },
+                {
+                  "glob": "*",
+                  "input": "src/assets/partners/sph",
+                  "output": "/assets/logos"
+                },
+                {
+                  "glob": "*",
+                  "input": "src/assets/partners/spl",
+                  "output": "/assets/logos"
+                },
+                {
+                  "glob": "*",
+                  "input": "src/assets/partners/wpf",
+                  "output": "/assets/logos"
+                },
+                {
+                  "glob": "*",
+                  "input": "src/assets/events/swissjam",
+                  "output": "/assets/swissjam"
                 }
               ],
               "budgets": [

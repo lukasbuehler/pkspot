@@ -150,3 +150,55 @@ src-tauri*
 e2e/**/*.png-snapshots/
 
 __pycache__
+
+# Keep source/design/store-prep files in /asset-workspace instead of the
+# root /assets folder, which is easy to confuse with Angular's public /assets.
+/assets/
+
+# Fastlane metadata: only track locales currently supported by the app.
+/fastlane/metadata/*
+!/fastlane/metadata/android/
+!/fastlane/metadata/ios/
+
+/fastlane/metadata/ios/*
+!/fastlane/metadata/ios/de-DE/
+!/fastlane/metadata/ios/de-DE/**
+!/fastlane/metadata/ios/en-US/
+!/fastlane/metadata/ios/en-US/**
+!/fastlane/metadata/ios/es-ES/
+!/fastlane/metadata/ios/es-ES/**
+!/fastlane/metadata/ios/fr-FR/
+!/fastlane/metadata/ios/fr-FR/**
+!/fastlane/metadata/ios/it-IT/
+!/fastlane/metadata/ios/it-IT/**
+!/fastlane/metadata/ios/nl-NL/
+!/fastlane/metadata/ios/nl-NL/**
+
+/fastlane/metadata/android/*
+!/fastlane/metadata/android/de-DE/
+!/fastlane/metadata/android/de-DE/**
+!/fastlane/metadata/android/en-US/
+!/fastlane/metadata/android/en-US/**
+!/fastlane/metadata/android/es-ES/
+!/fastlane/metadata/android/es-ES/**
+!/fastlane/metadata/android/fr-FR/
+!/fastlane/metadata/android/fr-FR/**
+!/fastlane/metadata/android/it-IT/
+!/fastlane/metadata/android/it-IT/**
+!/fastlane/metadata/android/nl-NL/
+!/fastlane/metadata/android/nl-NL/**
+
+/fastlane/screenshots/*
+!/fastlane/screenshots/ios/
+
+/fastlane/screenshots/ios/*
+!/fastlane/screenshots/ios/en-US/
+!/fastlane/screenshots/ios/en-US/**
+
+# Fastlane local output and credentials.
+/fastlane/report.xml
+/fastlane/Preview.html
+/fastlane/test_output/
+/fastlane/*.p8
+/fastlane/*credentials*.json
+/fastlane/*api_key*.json
