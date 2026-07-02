@@ -34,8 +34,6 @@ const config: CapacitorConfig = {
       androidSplashResourceName: "splash",
       androidScaleType: "CENTER_CROP",
       showSpinner: false,
-      splashFullScreen: true,
-      splashImmersive: true,
     },
     FirebaseAuthentication: {
       skipNativeAuth: false,
@@ -44,6 +42,11 @@ const config: CapacitorConfig = {
     Keyboard: {
       resize: KeyboardResize.None,
       resizeOnFullScreen: false,
+    },
+    SystemBars: {
+      insetsHandling: "disable",
+      style: "DARK",
+      hidden: false,
     },
   },
 };

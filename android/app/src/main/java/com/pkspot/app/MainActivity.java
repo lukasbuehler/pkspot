@@ -28,9 +28,9 @@ public class MainActivity extends BridgeActivity {
     registerPlugin(AgeAssurancePlugin.class);
     super.onCreate(savedInstanceState);
     logWebViewStartupDiagnostics();
-    // Enable edge-to-edge display for proper safe-area-inset CSS support
-    WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-    Log.d(TAG, "onCreate: decorFitsSystemWindows=false");
+    // Enable edge-to-edge on Android versions before SDK 35, where it is not automatic.
+    WindowCompat.enableEdgeToEdge(getWindow());
+    Log.d(TAG, "onCreate: edge-to-edge enabled");
     setupImeInsetsGuard();
   }
 

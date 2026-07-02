@@ -75,7 +75,12 @@ import { PlatformService } from "./services/platform.service";
 import { firstValueFrom } from "rxjs";
 import { AnalyticsService } from "./services/analytics.service";
 import { ConsentService } from "./services/consent.service";
-import { Capacitor } from "@capacitor/core";
+import {
+  Capacitor,
+  SystemBars,
+  SystemBarType,
+  SystemBarsStyle,
+} from "@capacitor/core";
 import { BackHandlingService } from "./services/back-handling.service";
 import { CheckInService } from "./services/check-in.service";
 import { SpotId } from "../db/schemas/SpotSchema";
@@ -414,28 +419,25 @@ export class AppComponent implements OnInit, AfterViewInit {
         `[Platform] Native: ${platform}, isMacOSOrIPad: ${isMacOSOrIPad}`,
       );
 
-      // Set status bar style to use light (white) icons on Android
-      // Style.Dark = light/white icons (for dark backgrounds)
-      // Style.Light = dark/black icons (for light backgrounds)
-      import("@capacitor/status-bar").then(({ StatusBar, Style }) => {
-        StatusBar.setStyle({ style: Style.Dark });
-
-        // Initial check for orientation
-        this.updateStatusBarVisibility();
-
-        // Listen for orientation changes to hide/show status bar
-        // standard window.screen.orientation API works in Android WebView
-        if (screen && screen.orientation) {
-          screen.orientation.addEventListener("change", () => {
-            this.updateStatusBarVisibility();
-          });
-        } else {
-          // Fallback to resize event if orientation API not supported
-          window.addEventListener("resize", () => {
-            this.updateStatusBarVisibility();
-          });
-        }
+      // Set system bar style to use light icons on Android edge-to-edge layouts.
+      SystemBars.setStyle({ style: SystemBarsStyle.Dark }).catch((error) => {
+        console.debug("SystemBars style update failed", error);
       });
+
+      this.updateSystemBarsVisibility();
+
+      // Listen for orientation changes to hide/show status bar.
+      // Standard window.screen.orientation API works in Android WebView.
+      if (screen && screen.orientation) {
+        screen.orientation.addEventListener("change", () => {
+          this.updateSystemBarsVisibility();
+        });
+      } else {
+        // Fallback to resize event if orientation API not supported.
+        window.addEventListener("resize", () => {
+          this.updateSystemBarsVisibility();
+        });
+      }
 
       // Listen for hardware back button
       import("@capacitor/app").then(({ App }) => {
@@ -1083,16 +1085,16 @@ html.pkspot-roboto-loaded body {
     });
   }
 
-  private updateStatusBarVisibility() {
+  private updateSystemBarsVisibility() {
     // Logic to hide status bar in landscape mode on Android
     if (Capacitor.getPlatform() === "android") {
-      import("@capacitor/status-bar").then(({ StatusBar }) => {
-        const isLandscape = window.innerWidth > window.innerHeight;
-        if (isLandscape) {
-          StatusBar.hide();
-        } else {
-          StatusBar.show();
-        }
+      const isLandscape = window.innerWidth > window.innerHeight;
+      const visibilityUpdate = isLandscape
+        ? SystemBars.hide({ bar: SystemBarType.StatusBar })
+        : SystemBars.show({ bar: SystemBarType.StatusBar });
+
+      visibilityUpdate.catch((error) => {
+        console.debug("SystemBars visibility update failed", error);
       });
     }
   }
