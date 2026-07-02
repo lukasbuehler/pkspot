@@ -6,8 +6,10 @@ import {
   InitializeOptions,
 } from "@capacitor-firebase/app-check";
 import {
+  AppCheck,
   AppCheckOptions,
   ReCaptchaEnterpriseProvider,
+  getToken,
   initializeAppCheck,
 } from "firebase/app-check";
 import { environment } from "../../../environments/environment.default";
@@ -100,6 +102,7 @@ export class FirebaseAppCheckService {
   private initializeWeb(
     settings: FirebaseAppCheckSettings | undefined,
   ): void {
+    const platform = this.platformService.getPlatform();
     const options = buildFirebaseAppCheckWebInitializeOptions(settings);
     if (!options) {
       this.warnAboutMissingWebConfiguration(settings);
@@ -107,18 +110,86 @@ export class FirebaseAppCheckService {
     }
 
     this.configureWebDebugToken(settings);
-    initializeAppCheck(this.app, options);
+    const appCheck = initializeAppCheck(this.app, options);
+    this.verifyWebToken(appCheck, platform);
   }
 
   private async initializeNative(
     settings: FirebaseAppCheckSettings | undefined,
   ): Promise<void> {
+    const platform = this.platformService.getPlatform();
     const options = buildFirebaseAppCheckNativeInitializeOptions(settings);
     if (!options) {
+      this.logSkipped(platform, settings);
       return;
     }
 
-    await FirebaseAppCheck.initialize(options);
+    try {
+      await FirebaseAppCheck.initialize(options);
+      await this.verifyNativeToken(platform);
+    } catch (error) {
+      this.logFailure(platform, "initialize", error);
+      throw error;
+    }
+  }
+
+  private verifyWebToken(appCheck: AppCheck, platform: string): void {
+    void getToken(appCheck)
+      .then((result) => {
+        this.logSuccess(platform, result.token);
+      })
+      .catch((error) => {
+        this.logFailure(platform, "getToken", error);
+      });
+  }
+
+  private async verifyNativeToken(platform: string): Promise<void> {
+    try {
+      const result = await FirebaseAppCheck.getToken();
+      this.logSuccess(platform, result.token, result.expireTimeMillis);
+    } catch (error) {
+      this.logFailure(platform, "getToken", error);
+    }
+  }
+
+  private logSuccess(
+    platform: string,
+    token: string,
+    expireTimeMillis?: number,
+  ): void {
+    console.info("[AppCheck] Token check succeeded.", {
+      platform,
+      appId: this.getFirebaseAppId(),
+      projectId: this.getFirebaseProjectId(),
+      tokenLength: token.length,
+      expireTimeMillis,
+    });
+  }
+
+  private logFailure(
+    platform: string,
+    phase: "initialize" | "getToken",
+    error: unknown,
+  ): void {
+    console.error("[AppCheck] Token check failed.", {
+      platform,
+      phase,
+      appId: this.getFirebaseAppId(),
+      projectId: this.getFirebaseProjectId(),
+      error,
+    });
+  }
+
+  private logSkipped(
+    platform: string,
+    settings: FirebaseAppCheckSettings | undefined,
+  ): void {
+    console.warn("[AppCheck] Initialization skipped.", {
+      platform,
+      appId: this.getFirebaseAppId(),
+      projectId: this.getFirebaseProjectId(),
+      enabled: settings?.enabled ?? false,
+    });
   }
 
   private warnAboutMissingWebConfiguration(
@@ -142,5 +213,20 @@ export class FirebaseAppCheckService {
       FIREBASE_APPCHECK_DEBUG_TOKEN?: boolean | string;
     };
     appCheckGlobal.FIREBASE_APPCHECK_DEBUG_TOKEN = settings.debugToken;
+  }
+
+  private getFirebaseAppId(): string | undefined {
+    return this.getFirebaseOption("appId");
+  }
+
+  private getFirebaseProjectId(): string | undefined {
+    return this.getFirebaseOption("projectId");
+  }
+
+  private getFirebaseOption(key: "appId" | "projectId"): string | undefined {
+    const value = (this.app as FirebaseApp & {
+      options?: Record<string, unknown>;
+    }).options?.[key];
+    return typeof value === "string" ? value : undefined;
   }
 }

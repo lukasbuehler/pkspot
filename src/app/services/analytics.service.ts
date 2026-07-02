@@ -7,7 +7,7 @@ import { environment } from "../../environments/environment.default";
 import { Capacitor } from "@capacitor/core";
 import { Posthog as CapacitorPostHog } from "@capawesome/capacitor-posthog";
 import { filter } from "rxjs/operators";
-import { version } from "../../../package.json";
+import { dependencies, version } from "../../../package.json";
 
 /**
  * Analytics service wrapping PostHog for event tracking.
@@ -57,7 +57,10 @@ export class AnalyticsService {
   private _initialized = false;
   private _posthog: typeof import("posthog-js").default | null = null;
   private readonly _nativeSuperProperties = new Map<string, unknown>();
+  private _lastNativeScreenUrl: string | null = null;
   private readonly appVersion = version;
+  private readonly nativePostHogBridgeVersion =
+    dependencies["@capawesome/capacitor-posthog"].replace(/^[^\d]*/, "");
   private readonly distinctIdStorageKey = "ph_distinct_id_v1";
   private readonly initialReferrerStorageKey = "ph_initial_referrer_v1";
   private readonly initialReferringDomainStorageKey =
@@ -119,19 +122,34 @@ export class AnalyticsService {
 
     if (this.isNative()) {
       // Prepend base URL for consistent reporting in PostHog
-      const baseUrl = environment.baseUrl || "https://pkspot.app";
-      const fullUrl = `${baseUrl}${
-        screenName.startsWith("/") ? "" : "/"
-      }${screenName}`;
+      const fullUrl = this.getFullUrlFromScreenName(screenName);
+      if (this._lastNativeScreenUrl === fullUrl) {
+        return;
+      }
+      this._lastNativeScreenUrl = fullUrl;
+      const pathname = this.getPathnameFromScreenName(screenName);
+
       const normalizedProperties = {
         ...(properties ?? {}),
         ...this.getPlatformProperties(),
         ...this.getAppVersionProperties(),
+        ...this.getNativePostHogBridgeProperties(),
+        $current_url: fullUrl,
+        $pathname: pathname,
+        current_url: fullUrl,
+        path: pathname,
+        source: "native_router",
       };
-      CapacitorPostHog.screen({
+      console.log("[AnalyticsDebug] Native route analytics queued", {
         screenTitle: fullUrl,
-        properties: normalizedProperties,
+        path: pathname,
+        events: ["$screen", "$pageview"],
+        requiredProps: this.getNativeAnalyticsRequiredPropertySummary(
+          normalizedProperties,
+        ),
       });
+      this.sendNativeScreen(fullUrl, normalizedProperties);
+      this.sendNativeCapture("$pageview", normalizedProperties);
 
       // Register current URL/Screen as super properties so they are attached to all subsequent events (like trackEvent)
       this.registerNativeSuperProperty({
@@ -164,9 +182,14 @@ export class AnalyticsService {
    * Initialize Native PostHog (Capacitor)
    */
   private async initNative(apiKey: string, host: string): Promise<void> {
+    console.log("[AnalyticsDebug] Native PostHog setup starting", {
+      apiHost: host,
+      platform: Capacitor.getPlatform(),
+    });
+
     await CapacitorPostHog.setup({
       apiKey,
-      host,
+      apiHost: host,
       captureApplicationLifecycleEvents: false,
       enableSessionReplay: false,
       sessionReplayConfig: {
@@ -174,10 +197,16 @@ export class AnalyticsService {
       },
     });
 
+    console.log("[AnalyticsDebug] Native PostHog setup completed", {
+      apiHost: host,
+      platform: Capacitor.getPlatform(),
+    });
+
     // Register native platform globals immediately after setup so they are present on all $screen events.
     await this.registerNativeSuperProperty({
       ...this.getPlatformProperties(),
       ...this.getAppVersionProperties(),
+      ...this.getNativePostHogBridgeProperties(),
     });
 
     // Auto-track screen views for Native (router-driven)
@@ -186,6 +215,8 @@ export class AnalyticsService {
       .subscribe((event: NavigationEnd) => {
         this.trackScreen(event.urlAfterRedirects);
       });
+
+    this.trackScreen(this.router.url);
   }
 
   /**
@@ -324,10 +355,7 @@ export class AnalyticsService {
     );
 
     if (this.isNative()) {
-      CapacitorPostHog.capture({
-        event: eventName,
-        properties: normalizedProperties,
-      });
+      this.sendNativeCapture(eventName, normalizedProperties);
     } else {
       this._posthog?.capture(eventName, normalizedProperties);
     }
@@ -371,16 +399,10 @@ export class AnalyticsService {
 
     try {
       if (this.isNative()) {
-        CapacitorPostHog.capture({
-          event: "$exception",
-          properties,
-        });
+        this.sendNativeCapture("$exception", properties);
 
         if (options.userFacing) {
-          CapacitorPostHog.capture({
-            event: "User Encountered Error",
-            properties,
-          });
+          this.sendNativeCapture("User Encountered Error", properties);
         }
       } else {
         this._posthog?.captureException(error, properties);
@@ -405,9 +427,11 @@ export class AnalyticsService {
     }
 
     if (this.isNative()) {
-      CapacitorPostHog.identify({
+      void CapacitorPostHog.identify({
         distinctId: userId,
         userProperties: properties,
+      }).catch((error) => {
+        console.warn("AnalyticsService: failed to identify native user", error);
       });
       // Register authenticated super property
       this.registerNativeSuperProperty({ authenticated: true });
@@ -440,7 +464,9 @@ export class AnalyticsService {
     }
 
     if (this.isNative()) {
-      CapacitorPostHog.reset();
+      void CapacitorPostHog.reset().catch((error) => {
+        console.warn("AnalyticsService: failed to reset native user", error);
+      });
       this.registerNativeSuperProperty({
         authenticated: false,
         ...this.getAppVersionProperties(),
@@ -540,7 +566,9 @@ export class AnalyticsService {
     // Only web supports synchronous opt-out easily via posthog-js
     // For native, we can just stop sending events if we check this flag manually or rely on proper init
     if (this.isNative()) {
-      CapacitorPostHog.optOut();
+      void CapacitorPostHog.optOut().catch((error) => {
+        console.warn("AnalyticsService: failed to opt out native analytics", error);
+      });
     } else {
       this._posthog?.opt_out_capturing();
     }
@@ -554,7 +582,9 @@ export class AnalyticsService {
       return;
     }
     if (this.isNative()) {
-      CapacitorPostHog.optIn();
+      void CapacitorPostHog.optIn().catch((error) => {
+        console.warn("AnalyticsService: failed to opt in native analytics", error);
+      });
     } else {
       this._posthog?.opt_in_capturing();
     }
@@ -621,6 +651,124 @@ export class AnalyticsService {
     return Capacitor.isNativePlatform();
   }
 
+  private getFullUrlFromScreenName(screenName: string): string {
+    if (screenName.startsWith("http://") || screenName.startsWith("https://")) {
+      return screenName;
+    }
+
+    const baseUrl = environment.baseUrl || "https://pkspot.app";
+    return `${baseUrl}${screenName.startsWith("/") ? "" : "/"}${screenName}`;
+  }
+
+  private getPathnameFromScreenName(screenName: string): string {
+    if (screenName.startsWith("http://") || screenName.startsWith("https://")) {
+      try {
+        return new URL(screenName).pathname;
+      } catch {
+        return "/";
+      }
+    }
+
+    const normalizedPath = screenName.startsWith("/")
+      ? screenName
+      : `/${screenName}`;
+
+    try {
+      return new URL(normalizedPath, environment.baseUrl || "https://pkspot.app")
+        .pathname;
+    } catch {
+      return normalizedPath.split("?")[0]?.split("#")[0] || "/";
+    }
+  }
+
+  private getNativePostHogBridgeProperties(): Record<string, string> {
+    return {
+      $lib: "capawesome-capacitor-posthog",
+      $lib_version: this.nativePostHogBridgeVersion,
+    };
+  }
+
+  private sendNativeScreen(
+    screenTitle: string,
+    properties?: Record<string, unknown>,
+  ): void {
+    const nativeProperties = this.withRequiredNativeAnalyticsProperties(
+      properties,
+    );
+
+    void CapacitorPostHog.screen({
+      screenTitle,
+      properties: nativeProperties,
+    })
+      .then(() => {
+        console.log("[AnalyticsDebug] Native screen accepted by plugin", {
+          screenTitle,
+          requiredProps:
+            this.getNativeAnalyticsRequiredPropertySummary(nativeProperties),
+        });
+      })
+      .catch((error) => {
+        console.warn("AnalyticsService: failed to send native screen", error);
+      });
+  }
+
+  private sendNativeCapture(
+    event: string,
+    properties?: Record<string, unknown>,
+  ): void {
+    const nativeProperties = this.withRequiredNativeAnalyticsProperties(
+      properties,
+    );
+
+    void CapacitorPostHog.capture({
+      event,
+      properties: nativeProperties,
+    })
+      .then(() => {
+        console.log("[AnalyticsDebug] Native event accepted by plugin", {
+          event,
+          path:
+            nativeProperties["path"] ??
+            nativeProperties["$pathname"] ??
+            nativeProperties["current_url"] ??
+            null,
+          requiredProps:
+            this.getNativeAnalyticsRequiredPropertySummary(nativeProperties),
+        });
+      })
+      .catch((error) => {
+        console.warn("AnalyticsService: failed to send native event", {
+          event,
+          error,
+        });
+      });
+  }
+
+  private withRequiredNativeAnalyticsProperties(
+    properties?: Record<string, unknown>,
+  ): Record<string, unknown> {
+    return {
+      ...(properties ?? {}),
+      ...this.getPlatformProperties(),
+      ...this.getAppVersionProperties(),
+      ...this.getNativePostHogBridgeProperties(),
+    };
+  }
+
+  private getNativeAnalyticsRequiredPropertySummary(
+    properties?: Record<string, unknown>,
+  ): Record<string, unknown> {
+    return {
+      app_version: properties?.["app_version"] ?? null,
+      $app_version: properties?.["$app_version"] ?? null,
+      platform: properties?.["platform"] ?? null,
+      app_type: properties?.["app_type"] ?? null,
+      is_native: properties?.["is_native"] ?? null,
+      $lib: properties?.["$lib"] ?? null,
+      $lib_version: properties?.["$lib_version"] ?? null,
+    };
+  }
+
   private getPlatformProperties(): Record<string, string | boolean> {
     const platform = Capacitor.getPlatform();
     const isNative = this.isNative();
@@ -683,6 +831,14 @@ export class AnalyticsService {
     }
 
     Object.assign(normalized, this.getAppVersionProperties());
+
+    if (this.isNative()) {
+      Object.assign(
+        normalized,
+        this.getPlatformProperties(),
+        this.getNativePostHogBridgeProperties(),
+      );
+    }
 
     return Object.keys(normalized).length > 0 ? normalized : undefined;
   }

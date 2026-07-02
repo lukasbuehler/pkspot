@@ -5,6 +5,7 @@ import { FirebaseApp } from "@angular/fire/app";
 import { FirebaseAppCheck } from "@capacitor-firebase/app-check";
 import {
   ReCaptchaEnterpriseProvider,
+  getToken,
   initializeAppCheck,
 } from "firebase/app-check";
 import { PlatformService } from "../platform.service";
@@ -17,11 +18,16 @@ import {
 vi.mock("@capacitor-firebase/app-check", () => ({
   FirebaseAppCheck: {
     initialize: vi.fn().mockResolvedValue(undefined),
+    getToken: vi.fn().mockResolvedValue({
+      token: "native-token",
+      expireTimeMillis: 123,
+    }),
   },
 }));
 
 vi.mock("firebase/app-check", () => ({
-  initializeAppCheck: vi.fn(),
+  initializeAppCheck: vi.fn(() => ({ app: "app-check" })),
+  getToken: vi.fn().mockResolvedValue({ token: "web-token" }),
   ReCaptchaEnterpriseProvider: class MockReCaptchaEnterpriseProvider {
     constructor(public siteKey: string) {}
   },
@@ -79,6 +85,9 @@ describe("buildFirebaseAppCheckInitializeOptions", () => {
 describe("FirebaseAppCheckService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(console, "info").mockImplementation(() => undefined);
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
     delete (
       globalThis as typeof globalThis & {
         FIREBASE_APPCHECK_DEBUG_TOKEN?: boolean | string;
@@ -128,6 +137,7 @@ describe("FirebaseAppCheckService", () => {
         provider: expect.any(ReCaptchaEnterpriseProvider),
       })
     );
+    expect(getToken).toHaveBeenCalledWith({ app: "app-check" });
     expect(FirebaseAppCheck.initialize).not.toHaveBeenCalled();
   });
 
@@ -173,7 +183,84 @@ describe("FirebaseAppCheckService", () => {
     expect(FirebaseAppCheck.initialize).toHaveBeenCalledWith({
       isTokenAutoRefreshEnabled: true,
     });
+    expect(FirebaseAppCheck.getToken).toHaveBeenCalledWith();
     expect(initializeAppCheck).not.toHaveBeenCalled();
+  });
+
+  it("logs a native App Check token failure without failing initialization", async () => {
+    vi.mocked(FirebaseAppCheck.getToken).mockRejectedValueOnce(
+      new Error("token failed")
+    );
+
+    TestBed.configureTestingModule({
+      providers: [
+        FirebaseAppCheckService,
+        {
+          provide: FirebaseApp,
+          useValue: {
+            options: {
+              appId: "native-app-id",
+              projectId: "parkour-base-project",
+            },
+          },
+        },
+        { provide: PLATFORM_ID, useValue: "browser" },
+        { provide: PlatformService, useValue: createPlatformService("ios") },
+      ],
+    });
+
+    await expect(
+      TestBed.inject(FirebaseAppCheckService).initialize({ enabled: true })
+    ).resolves.toBeUndefined();
+
+    expect(console.error).toHaveBeenCalledWith(
+      "[AppCheck] Token check failed.",
+      expect.objectContaining({
+        platform: "ios",
+        phase: "getToken",
+        appId: "native-app-id",
+        projectId: "parkour-base-project",
+        error: expect.any(Error),
+      })
+    );
+  });
+
+  it("logs and rethrows a native App Check initialization failure", async () => {
+    vi.mocked(FirebaseAppCheck.initialize).mockRejectedValueOnce(
+      new Error("init failed")
+    );
+
+    TestBed.configureTestingModule({
+      providers: [
+        FirebaseAppCheckService,
+        {
+          provide: FirebaseApp,
+          useValue: {
+            options: {
+              appId: "native-app-id",
+              projectId: "parkour-base-project",
+            },
+          },
+        },
+        { provide: PLATFORM_ID, useValue: "browser" },
+        { provide: PlatformService, useValue: createPlatformService("android") },
+      ],
+    });
+
+    await expect(
+      TestBed.inject(FirebaseAppCheckService).initialize({ enabled: true })
+    ).rejects.toThrow("init failed");
+
+    expect(console.error).toHaveBeenCalledWith(
+      "[AppCheck] Token check failed.",
+      expect.objectContaining({
+        platform: "android",
+        phase: "initialize",
+        appId: "native-app-id",
+        projectId: "parkour-base-project",
+        error: expect.any(Error),
+      })
+    );
   });
 
   it("does not initialize twice", async () => {
