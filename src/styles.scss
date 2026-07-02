@@ -56,7 +56,7 @@ html {
   --app-access-private: rgb(250, 238, 79);
 }
 
-html.platform-ios {
+html.map-glass-blur-disabled {
   --map-glass-surface: var(--map-glass-surface-base);
   --map-glass-blur: none;
 }

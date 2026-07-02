@@ -53,6 +53,8 @@ build/Release
 
 # Dependency directories
 node_modules/
+/vendor/bundle/
+/.bundle/
 
 # Optional npm cache directory
 .npm
@@ -199,6 +201,10 @@ __pycache__
 /fastlane/report.xml
 /fastlane/Preview.html
 /fastlane/test_output/
+/fastlane/.env
+/fastlane/.env.*
+!/fastlane/.env.example
 /fastlane/*.p8
+/fastlane/*.json
 /fastlane/*credentials*.json
 /fastlane/*api_key*.json

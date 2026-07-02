@@ -302,6 +302,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     // Wire initial layout-affecting state before any awaited startup work.
     if (typeof window !== "undefined") {
       this.setEmbeddedStateFromUrl(window.location.pathname);
+      this.setMapGlassBlurClass(Capacitor.getPlatform());
     } else {
       this.isEmbedded.set(false);
     }
@@ -395,10 +396,9 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     if (this.isNativePlatform && typeof window !== "undefined") {
+      const platform = Capacitor.getPlatform();
       document.documentElement.classList.add("native-platform");
-      document.documentElement.classList.add(
-        `platform-${Capacitor.getPlatform()}`,
-      );
+      document.documentElement.classList.add(`platform-${platform}`);
 
       // Detect if running on macOS (iOS app via "Designed for iPad" / Mac Catalyst)
       // navigator.platform is deprecated but still works and is useful here
@@ -411,7 +411,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       }
 
       console.log(
-        `[Platform] Native: ${Capacitor.getPlatform()}, isMacOSOrIPad: ${isMacOSOrIPad}`,
+        `[Platform] Native: ${platform}, isMacOSOrIPad: ${isMacOSOrIPad}`,
       );
 
       // Set status bar style to use light (white) icons on Android
@@ -1094,6 +1094,30 @@ html.pkspot-roboto-loaded body {
           StatusBar.show();
         }
       });
+    }
+  }
+
+  private setMapGlassBlurClass(platform: string): void {
+    const features = environment.features as {
+      mapGlassBlur?: boolean;
+      nativeMapGlassBlur?: boolean;
+    };
+    const mapGlassBlur =
+      features.mapGlassBlur ?? features.nativeMapGlassBlur ?? false;
+
+    document.documentElement.classList.toggle(
+      "map-glass-blur-enabled",
+      mapGlassBlur,
+    );
+    document.documentElement.classList.toggle(
+      "map-glass-blur-disabled",
+      !mapGlassBlur,
+    );
+
+    if (platform === "ios" && mapGlassBlur) {
+      console.warn(
+        "[Platform] Map glass blur is enabled on iOS. This has previously caused WebKit flicker or navigation rendering issues; keep environment.features.mapGlassBlur disabled unless you are testing that path.",
+      );
     }
   }
 

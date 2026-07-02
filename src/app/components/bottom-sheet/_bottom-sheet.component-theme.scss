@@ -15,7 +15,7 @@
     -webkit-backface-visibility: hidden;
   }
 
-  html.platform-ios app-bottom-sheet > div.sheet {
+  html.map-glass-blur-disabled app-bottom-sheet > div.sheet {
     background: mat.get-theme-color($theme, surface-container-low);
   }
 }

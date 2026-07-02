@@ -18,8 +18,8 @@
     -webkit-backface-visibility: hidden;
   }
 
-  // Disable backdrop-filter on iOS to prevent flickering during navigation
-  html.platform-ios {
+  // Disable live backdrop blur to avoid expensive map compositing.
+  html.map-glass-blur-disabled {
     .spot-search-field,
     .glass {
       backdrop-filter: none;

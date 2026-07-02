@@ -1,5 +1,7 @@
 package com.pkspot.app;
 
+import android.content.pm.PackageInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -25,6 +27,7 @@ public class MainActivity extends BridgeActivity {
     Log.d(TAG, "onCreate: set SOFT_INPUT_ADJUST_NOTHING before BridgeActivity setup");
     registerPlugin(AgeAssurancePlugin.class);
     super.onCreate(savedInstanceState);
+    logWebViewStartupDiagnostics();
     // Enable edge-to-edge display for proper safe-area-inset CSS support
     WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
     Log.d(TAG, "onCreate: decorFitsSystemWindows=false");
@@ -171,6 +174,66 @@ public class MainActivity extends BridgeActivity {
         Log.d(TAG, "imeGuard: failed to install listeners", e);
       }
     });
+  }
+
+  private void logWebViewStartupDiagnostics() {
+    runOnUiThread(() -> {
+      try {
+        WebView webView = getBridge().getWebView();
+        if (webView == null) {
+          Log.i(TAG, "webViewStartupDiagnostics: WebView not ready");
+          return;
+        }
+
+        webView.post(() -> {
+          View decorView = getWindow().getDecorView();
+          Log.i(
+              TAG,
+              "webViewStartupDiagnostics: webViewHardwareAccelerated=" + webView.isHardwareAccelerated() +
+                  " decorHardwareAccelerated=" + decorView.isHardwareAccelerated() +
+                  " layerType=" + layerTypeToString(webView.getLayerType()) +
+                  " webViewPackage=" + getWebViewPackageDescription() +
+                  " sdk=" + Build.VERSION.SDK_INT +
+                  " device=" + Build.MANUFACTURER + " " + Build.MODEL);
+        });
+      } catch (Exception e) {
+        Log.i(TAG, "webViewStartupDiagnostics: failed to log diagnostics", e);
+      }
+    });
+  }
+
+  private String getWebViewPackageDescription() {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+      return "unavailable-before-api-26";
+    }
+
+    PackageInfo packageInfo = WebView.getCurrentWebViewPackage();
+    if (packageInfo == null) {
+      return "unavailable";
+    }
+
+    return packageInfo.packageName + "/" + packageInfo.versionName + " (" + getPackageVersionCode(packageInfo) + ")";
+  }
+
+  private String getPackageVersionCode(PackageInfo packageInfo) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+      return String.valueOf(packageInfo.getLongVersionCode());
+    }
+
+    return String.valueOf(packageInfo.versionCode);
+  }
+
+  private String layerTypeToString(int layerType) {
+    switch (layerType) {
+      case View.LAYER_TYPE_HARDWARE:
+        return "hardware";
+      case View.LAYER_TYPE_SOFTWARE:
+        return "software";
+      case View.LAYER_TYPE_NONE:
+        return "none";
+      default:
+        return "unknown-" + layerType;
+    }
   }
 
 }

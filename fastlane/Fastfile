@@ -1,19 +1,59 @@
-PKSPOT_VERSION_NAME = "1.1.3"
-PKSPOT_ANDROID_VERSION_CODE = 16
+PKSPOT_VERSION_NAME = "1.1.3" # Marketing version on iOS
+PKSPOT_VERSION_CODE = 16 # Version Code on Android and iOS Project version
+PKSPOT_APP_IDENTIFIER = ENV.fetch("PKSPOT_APP_IDENTIFIER", "com.pkspot.app")
+PKSPOT_APPLE_APP_ID = ENV.fetch("PKSPOT_APPLE_APP_ID", "6757597683")
+PKSPOT_ANDROID_PACKAGE_NAME = ENV.fetch("PKSPOT_ANDROID_PACKAGE_NAME", "com.pkspot.app")
 
 default_platform(:ios)
+
+def app_store_connect_api_key_from_env
+  key_id = ENV["APP_STORE_CONNECT_API_KEY_ID"]
+  issuer_id = ENV["APP_STORE_CONNECT_ISSUER_ID"]
+  key_filepath = ENV["APP_STORE_CONNECT_API_KEY_PATH"]
+  key_content = ENV["APP_STORE_CONNECT_API_KEY_CONTENT"]
+
+  return nil if key_id.to_s.empty? || issuer_id.to_s.empty?
+
+  if !key_content.to_s.empty?
+    app_store_connect_api_key(
+      key_id: key_id,
+      issuer_id: issuer_id,
+      key_content: key_content,
+      is_key_content_base64: ENV["APP_STORE_CONNECT_API_KEY_CONTENT_BASE64"] == "true"
+    )
+  elsif !key_filepath.to_s.empty?
+    app_store_connect_api_key(
+      key_id: key_id,
+      issuer_id: issuer_id,
+      key_filepath: key_filepath
+    )
+  end
+end
+
+def google_play_credential_options
+  options = {}
+  options[:json_key] = ENV["GOOGLE_PLAY_JSON_KEY_FILE"] unless ENV["GOOGLE_PLAY_JSON_KEY_FILE"].to_s.empty?
+  options[:json_key_data] = ENV["GOOGLE_PLAY_JSON_KEY_DATA"] unless ENV["GOOGLE_PLAY_JSON_KEY_DATA"].to_s.empty?
+  options
+end
 
 platform :ios do
   desc "Upload App Store metadata and screenshots for PK Spot 1.1.3"
   lane :metadata do
-    deliver(
-      app_identifier: "com.pkspot.app",
+    options = {
+      app_identifier: PKSPOT_APP_IDENTIFIER,
+      app: PKSPOT_APPLE_APP_ID,
       app_version: PKSPOT_VERSION_NAME,
       metadata_path: "fastlane/metadata/ios",
       screenshots_path: "fastlane/screenshots/ios",
       skip_binary_upload: true,
       submit_for_review: false
-    )
+    }
+
+    api_key = app_store_connect_api_key_from_env
+    options[:api_key] = api_key unless api_key.nil?
+
+    deliver(**options)
   end
 end
 
@@ -21,8 +61,9 @@ platform :android do
   desc "Validate Google Play metadata and screenshots for PK Spot 1.1.3"
   lane :validate_metadata do
     supply(
-      package_name: "com.pkspot.app",
-      version_code: PKSPOT_ANDROID_VERSION_CODE,
+      **google_play_credential_options,
+      package_name: PKSPOT_ANDROID_PACKAGE_NAME,
+      version_code: PKSPOT_VERSION_CODE,
       metadata_path: "fastlane/metadata/android",
       skip_upload_apk: true,
       skip_upload_aab: true,
@@ -33,8 +74,9 @@ platform :android do
   desc "Upload Google Play metadata and screenshots for PK Spot 1.1.3"
   lane :metadata do
     supply(
-      package_name: "com.pkspot.app",
-      version_code: PKSPOT_ANDROID_VERSION_CODE,
+      **google_play_credential_options,
+      package_name: PKSPOT_ANDROID_PACKAGE_NAME,
+      version_code: PKSPOT_VERSION_CODE,
       metadata_path: "fastlane/metadata/android",
       skip_upload_apk: true,
       skip_upload_aab: true

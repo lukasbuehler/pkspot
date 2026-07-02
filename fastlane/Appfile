@@ -1,2 +1,3 @@
-app_identifier("com.pkspot.app")
-package_name("com.pkspot.app")
+app_identifier(ENV.fetch("PKSPOT_APP_IDENTIFIER", "com.pkspot.app"))
+apple_id(ENV.fetch("PKSPOT_APPLE_APP_ID", "6757597683"))
+package_name(ENV.fetch("PKSPOT_ANDROID_PACKAGE_NAME", "com.pkspot.app"))
