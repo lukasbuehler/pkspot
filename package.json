@@ -20,6 +20,7 @@
     "build:ios:dev": "node scripts/build-mobile.js iosdev && npx cap sync ios",
     "build:mobile:prod": "node scripts/build-mobile.js ios && npx cap sync ios && node scripts/build-mobile.js android && npx cap sync android",
     "prepare": "git config core.hooksPath .githooks || true",
+    "screenshots:store": "node scripts/render-store-screenshots.mjs",
     "test": "npm run test:all",
     "test:all": "npm run test:unit && npm run test:build && npm run test:emulator && npm run test:e2e && npm run test:visual",
     "test:ci": "npm run test:unit && npm run lint && npm run test:build && npm --prefix functions run build && npm run test:emulator:spot-edits && npm run emulators:test:community && npm run test:e2e -- --project=chromium && npm run test:visual -- --project=chromium",

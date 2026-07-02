@@ -150,6 +150,7 @@ src-tauri*
 /playwright-report/
 /playwright/.cache/
 e2e/**/*.png-snapshots/
+/output/store-screenshots/
 
 __pycache__
 
@@ -171,8 +172,8 @@ __pycache__
 !/fastlane/metadata/ios/es-ES/**
 !/fastlane/metadata/ios/fr-FR/
 !/fastlane/metadata/ios/fr-FR/**
-!/fastlane/metadata/ios/it-IT/
-!/fastlane/metadata/ios/it-IT/**
+!/fastlane/metadata/ios/it/
+!/fastlane/metadata/ios/it/**
 !/fastlane/metadata/ios/nl-NL/
 !/fastlane/metadata/ios/nl-NL/**
 
@@ -200,6 +201,7 @@ __pycache__
 # Fastlane local output and credentials.
 /fastlane/report.xml
 /fastlane/Preview.html
+/fastlane/README.md
 /fastlane/test_output/
 /fastlane/.env
 /fastlane/.env.*

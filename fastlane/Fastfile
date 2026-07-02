@@ -38,7 +38,7 @@ def google_play_credential_options
 end
 
 platform :ios do
-  desc "Upload App Store metadata and screenshots for PK Spot 1.1.3"
+  desc "Upload App Store metadata for PK Spot 1.1.3"
   lane :metadata do
     options = {
       app_identifier: PKSPOT_APP_IDENTIFIER,
@@ -47,7 +47,34 @@ platform :ios do
       metadata_path: "fastlane/metadata/ios",
       screenshots_path: "fastlane/screenshots/ios",
       skip_binary_upload: true,
-      submit_for_review: false
+      skip_screenshots: true,
+      submit_for_review: false,
+      run_precheck_before_submit: true,
+      precheck_include_in_app_purchases: false,
+      force: true
+    }
+
+    api_key = app_store_connect_api_key_from_env
+    options[:api_key] = api_key unless api_key.nil?
+
+    deliver(**options)
+  end
+
+  desc "Upload App Store screenshots for PK Spot 1.1.3"
+  lane :screenshots do
+    options = {
+      app_identifier: PKSPOT_APP_IDENTIFIER,
+      app: PKSPOT_APPLE_APP_ID,
+      app_version: PKSPOT_VERSION_NAME,
+      metadata_path: "fastlane/metadata/ios",
+      screenshots_path: "fastlane/screenshots/ios",
+      skip_binary_upload: true,
+      skip_metadata: true,
+      overwrite_screenshots: true,
+      submit_for_review: false,
+      run_precheck_before_submit: true,
+      precheck_include_in_app_purchases: false,
+      force: true
     }
 
     api_key = app_store_connect_api_key_from_env
