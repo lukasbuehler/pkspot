@@ -1,0 +1,15 @@
+{
+  "brand": "PK Spot",
+  "discover": {
+    "title": "Entdecke legendare Spots",
+    "subtitle": "Finde echte Parkour-Orte mit Fotos, Details, Bewertungen und Community-Updates."
+  },
+  "weather": {
+    "title": "Regen oder Schnee",
+    "subtitle": "Filtere trockene oder Indoor-Spots mit einem Tap."
+  },
+  "filters": {
+    "title": "Nicht nur schauen. Finden.",
+    "subtitle": "Alles, was du fur deine nachste Session brauchst."
+  }
+}

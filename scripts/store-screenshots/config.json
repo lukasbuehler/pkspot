@@ -1,0 +1,161 @@
+{
+  "baseUrl": "http://localhost:4300",
+  "outputRoot": "fastlane/generated/screenshots/ios",
+  "deviceScreenshotRoot": "fastlane/generated/device-screenshots/ios",
+  "captureRoot": "output/store-screenshots/captures",
+  "outputMode": "composed",
+  "localStorage": {
+    "acceptedVersion": "5",
+    "lastLocationAndZoom": {
+      "location": { "lat": 47.3769, "lng": 8.5417 },
+      "zoom": 13
+    },
+    "mapStyle": "roadmap"
+  },
+  "ssr": {
+    "port": 4300,
+    "script": "scripts/store-screenshots/ssr-server.mjs",
+    "buildCommand": ["npm", "run", "build:store-screenshots"]
+  },
+  "defaultLocale": "en-US",
+  "locales": [
+    { "id": "en-US", "appLocale": "en" },
+    { "id": "de-DE", "appLocale": "de" },
+    { "id": "es-ES", "appLocale": "es" },
+    { "id": "fr-FR", "appLocale": "fr" },
+    { "id": "it", "appLocale": "it" },
+    { "id": "nl-NL", "appLocale": "nl" }
+  ],
+  "devices": [
+    {
+      "id": "iphone65",
+      "name": "iPhone 6.5 Display",
+      "outputFilePattern": "Apple iPhone 16 Pro Max Screenshot {index}.png",
+      "output": { "width": 1242, "height": 2688 },
+      "viewport": {
+        "width": 414,
+        "height": 896,
+        "deviceScaleFactor": 3,
+        "isMobile": true,
+        "hasTouch": true
+      },
+      "nativePlatform": "ios",
+      "safeArea": { "top": 59, "right": 0, "bottom": 34, "left": 0 },
+      "frame": { "kind": "iphone", "border": 18, "radius": 72 }
+    },
+    {
+      "id": "ipad129",
+      "name": "iPad Pro 12.9 Display",
+      "outputFilePattern": "Apple iPad Pro 12.9 Inch Screenshot {index}.png",
+      "output": { "width": 2048, "height": 2732 },
+      "viewport": {
+        "width": 1024,
+        "height": 1366,
+        "deviceScaleFactor": 2,
+        "isMobile": true,
+        "hasTouch": true
+      },
+      "nativePlatform": "ios",
+      "safeArea": { "top": 24, "right": 0, "bottom": 20, "left": 0 },
+      "frame": { "kind": "ipad", "border": 18, "radius": 44 }
+    }
+  ],
+  "captures": [
+    {
+      "id": "spot",
+      "path": "/{appLocale}/__visual/spot-bottom-sheet",
+      "waitForSelector": "app-map-spot-details-panel, app-spot-details",
+      "settleMs": 5000,
+      "hideSelectors": [
+        ".dev-mode-banner",
+        "app-footer",
+        "footer",
+        ".terms-footer"
+      ]
+    },
+    {
+      "id": "map",
+      "path": "/{appLocale}/map",
+      "waitForSelector": "app-root",
+      "settleMs": 5000,
+      "hideSelectors": [".dev-mode-banner"]
+    },
+    {
+      "id": "filters",
+      "path": "/{appLocale}/__visual/map-overlay",
+      "waitForSelector": "app-filter-chips-bar, app-search-field",
+      "settleMs": 5000,
+      "hideSelectors": [".dev-mode-banner"]
+    }
+  ],
+  "deviceScreenshots": [
+    {
+      "capture": "map",
+      "index": 1
+    }
+  ],
+  "scenes": [
+    {
+      "id": "discover",
+      "copyKey": "discover",
+      "index": 1,
+      "accent": "#a9b7ff",
+      "layouts": {
+        "iphone65": {
+          "text": { "x": 88, "y": 1900, "width": 720, "align": "left" },
+          "placements": [
+            { "capture": "map", "x": 230, "y": 500, "width": 660, "rotate": -9, "imageScale": 1 }
+          ]
+        },
+        "ipad129": {
+          "text": { "x": 170, "y": 220, "width": 940, "align": "left" },
+          "placements": [
+            { "capture": "map", "x": 820, "y": 500, "width": 900, "rotate": -7, "imageScale": 1 }
+          ]
+        }
+      }
+    },
+    {
+      "id": "weather",
+      "copyKey": "weather",
+      "index": 2,
+      "accent": "#8dd8ff",
+      "layouts": {
+        "iphone65": {
+          "text": { "x": 120, "y": 200, "width": 1000, "align": "center" },
+          "placements": [
+            { "capture": "map", "x": 330, "y": 690, "width": 585, "rotate": 0 }
+          ]
+        },
+        "ipad129": {
+          "text": { "x": 300, "y": 240, "width": 1448, "align": "center" },
+          "placements": [
+            { "capture": "map", "x": 620, "y": 620, "width": 820, "rotate": 0 }
+          ]
+        }
+      }
+    },
+    {
+      "id": "filters",
+      "copyKey": "filters",
+      "index": 3,
+      "accent": "#7ef0a4",
+      "layouts": {
+        "iphone65": {
+          "text": { "x": 120, "y": 200, "width": 1000, "align": "center" },
+          "placements": [
+            { "capture": "filters", "x": 120, "y": 760, "width": 500, "rotate": -4 },
+            { "capture": "map", "x": 570, "y": 840, "width": 500, "rotate": 4 }
+          ]
+        },
+        "ipad129": {
+          "text": { "x": 300, "y": 240, "width": 1448, "align": "center" },
+          "placements": [
+            { "capture": "filters", "x": 390, "y": 680, "width": 760, "rotate": -5 },
+            { "capture": "map", "x": 940, "y": 760, "width": 760, "rotate": 5 }
+          ]
+        }
+      }
+    }
+  ]
+}

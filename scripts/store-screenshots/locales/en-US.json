@@ -1,0 +1,15 @@
+{
+  "brand": "PK Spot",
+  "discover": {
+    "title": "Discover legendary spots",
+    "subtitle": "Find real parkour places with photos, details, ratings, and community updates."
+  },
+  "weather": {
+    "title": "Rain or snow",
+    "subtitle": "Filter for dry or indoor spots with one tap."
+  },
+  "filters": {
+    "title": "Don't just look. Find.",
+    "subtitle": "Everything you need for your next session."
+  }
+}

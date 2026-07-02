@@ -191,12 +191,39 @@ __pycache__
 !/fastlane/metadata/android/nl-NL/
 !/fastlane/metadata/android/nl-NL/**
 
-/fastlane/screenshots/*
-!/fastlane/screenshots/ios/
+/fastlane/generated/*
+!/fastlane/generated/device-screenshots/
+!/fastlane/generated/device-screenshots/ios/
+!/fastlane/generated/screenshots/
+!/fastlane/generated/screenshots/ios/
 
-/fastlane/screenshots/ios/*
-!/fastlane/screenshots/ios/en-US/
-!/fastlane/screenshots/ios/en-US/**
+/fastlane/generated/device-screenshots/ios/*
+!/fastlane/generated/device-screenshots/ios/de-DE/
+!/fastlane/generated/device-screenshots/ios/de-DE/**
+!/fastlane/generated/device-screenshots/ios/en-US/
+!/fastlane/generated/device-screenshots/ios/en-US/**
+!/fastlane/generated/device-screenshots/ios/es-ES/
+!/fastlane/generated/device-screenshots/ios/es-ES/**
+!/fastlane/generated/device-screenshots/ios/fr-FR/
+!/fastlane/generated/device-screenshots/ios/fr-FR/**
+!/fastlane/generated/device-screenshots/ios/it/
+!/fastlane/generated/device-screenshots/ios/it/**
+!/fastlane/generated/device-screenshots/ios/nl-NL/
+!/fastlane/generated/device-screenshots/ios/nl-NL/**
+
+/fastlane/generated/screenshots/ios/*
+!/fastlane/generated/screenshots/ios/de-DE/
+!/fastlane/generated/screenshots/ios/de-DE/**
+!/fastlane/generated/screenshots/ios/en-US/
+!/fastlane/generated/screenshots/ios/en-US/**
+!/fastlane/generated/screenshots/ios/es-ES/
+!/fastlane/generated/screenshots/ios/es-ES/**
+!/fastlane/generated/screenshots/ios/fr-FR/
+!/fastlane/generated/screenshots/ios/fr-FR/**
+!/fastlane/generated/screenshots/ios/it/
+!/fastlane/generated/screenshots/ios/it/**
+!/fastlane/generated/screenshots/ios/nl-NL/
+!/fastlane/generated/screenshots/ios/nl-NL/**
 
 # Fastlane local output and credentials.
 /fastlane/report.xml

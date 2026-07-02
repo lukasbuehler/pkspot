@@ -176,6 +176,16 @@
               "localize": ["de"],
               "baseHref": "/de/"
             },
+            "store-screenshots": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.default.ts",
+                  "with": "src/environments/environment.ci.generated.ts"
+                }
+              ],
+              "optimization": false,
+              "localize": ["en", "de", "it", "fr", "es", "nl"]
+            },
             "staging": {
               "fileReplacements": [
                 {
