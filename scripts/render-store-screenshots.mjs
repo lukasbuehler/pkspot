@@ -91,7 +91,7 @@ try {
   }
 } finally {
   if (browser) {
-    await browser.close();
+    await closeBrowser(browser);
   }
   await stopManagedProcess(managedSsrServer);
 }
@@ -110,11 +110,7 @@ async function writeDeviceScreenshots() {
           throw new Error(`Missing capture ${path.relative(repoRoot, capturePath)}.`);
         }
 
-        const outputPath = path.join(
-          outputRoot,
-          locale.id,
-          device.outputFilePattern.replace("{index}", String(screenshot.index)),
-        );
+        const outputPath = getFinalScreenshotPath(locale, device, screenshot.index);
         await ensureDir(path.dirname(outputPath));
         await copyFile(capturePath, outputPath);
         console.log(`[store-screenshots] wrote ${path.relative(repoRoot, outputPath)}`);
@@ -193,7 +189,6 @@ async function captureAppRoutes(browserInstance) {
 }
 
 async function composeStoreScreenshots(browserInstance) {
-  const iconDataUrl = await optionalDataUrl("src/assets/icons/icon-192.webp", "image/webp");
   const permanentMarkerUrl = fileUrl("src/assets/fonts/PermanentMarker-Regular.ttf");
   const robotoUrl = fileUrl("src/assets/fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf");
 
@@ -205,11 +200,7 @@ async function composeStoreScreenshots(browserInstance) {
         const layout = scene.layouts[device.id];
         if (!layout) continue;
 
-        const outputPath = path.join(
-          outputRoot,
-          locale.id,
-          device.outputFilePattern.replace("{index}", String(scene.index)),
-        );
+        const outputPath = getFinalScreenshotPath(locale, device, scene.index);
         await ensureDir(path.dirname(outputPath));
 
         const html = await buildSceneHtml({
@@ -218,7 +209,6 @@ async function composeStoreScreenshots(browserInstance) {
           layout,
           copy,
           locale,
-          iconDataUrl,
           permanentMarkerUrl,
           robotoUrl,
         });
@@ -244,7 +234,6 @@ async function buildSceneHtml({
   layout,
   copy,
   locale,
-  iconDataUrl,
   permanentMarkerUrl,
   robotoUrl,
 }) {
@@ -267,16 +256,14 @@ async function buildSceneHtml({
         device,
         placement,
         imageDataUrl: await dataUrl(capturePath, "image/png"),
+        frameDataUrl: await loadFrameAssetDataUrl(device),
       }),
     );
   }
 
-  const brand = copy.brand ?? "PK Spot";
   const text = layout.text;
   const textAlign = text.align ?? "left";
-  const brandMarkup = iconDataUrl
-    ? `<div class="brand"><img src="${iconDataUrl}" alt="">${escapeHtml(brand)}</div>`
-    : `<div class="brand">${escapeHtml(brand)}</div>`;
+  const isTablet = isTabletDevice(device);
 
   return `<!doctype html>
 <html>
@@ -315,25 +302,6 @@ async function buildSceneHtml({
         linear-gradient(20deg, rgba(126, 240, 164, 0.09), transparent 45%),
         #12161f;
     }
-    .brand {
-      position: absolute;
-      left: 72px;
-      top: 70px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      color: rgba(247, 248, 255, 0.78);
-      font-size: 27px;
-      font-weight: 800;
-      letter-spacing: 0;
-      z-index: 20;
-    }
-    .brand img {
-      width: 54px;
-      height: 54px;
-      border-radius: 14px;
-      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
-    }
     .copy {
       position: absolute;
       left: ${text.x}px;
@@ -346,7 +314,7 @@ async function buildSceneHtml({
       margin: 0;
       color: ${scene.accent ?? "#a9b7ff"};
       font-family: "Permanent Marker Store", "Roboto Store", system-ui, sans-serif;
-      font-size: ${device.id === "ipad129" ? 118 : 96}px;
+      font-size: ${isTablet ? 118 : 96}px;
       line-height: 0.9;
       letter-spacing: 0;
       text-transform: uppercase;
@@ -357,7 +325,7 @@ async function buildSceneHtml({
       max-width: 940px;
       margin: 34px ${textAlign === "center" ? "auto" : "0"} 0;
       color: rgba(247, 248, 255, 0.86);
-      font-size: ${device.id === "ipad129" ? 52 : 42}px;
+      font-size: ${isTablet ? 52 : 42}px;
       line-height: 1.12;
       font-weight: 800;
       letter-spacing: 0;
@@ -368,11 +336,43 @@ async function buildSceneHtml({
       left: var(--x);
       top: var(--y);
       width: var(--w);
-      aspect-ratio: ${device.viewport.width + device.frame.border * 2} / ${device.viewport.height + device.frame.border * 2};
+      aspect-ratio: ${getDeviceFrameAspectRatio(device)};
       transform: rotate(var(--rotate));
       transform-origin: center;
       z-index: var(--z, 10);
       filter: drop-shadow(0 50px 60px rgba(0, 0, 0, 0.48));
+    }
+    .device.frame-asset {
+      aspect-ratio: var(--frame-w) / var(--frame-h);
+      overflow: hidden;
+      border-radius: var(--frame-clip-radius, 0);
+    }
+    .frame-screen {
+      position: absolute;
+      left: calc(var(--screen-x) / var(--frame-w) * 100%);
+      top: calc(var(--screen-y) / var(--frame-h) * 100%);
+      width: calc(var(--screen-w) / var(--frame-w) * 100%);
+      height: calc(var(--screen-h) / var(--frame-h) * 100%);
+      overflow: hidden;
+      border-radius: var(--screen-clip-radius, 0);
+      z-index: 1;
+    }
+    .frame-capture {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(var(--image-scale, 1));
+      transform-origin: center;
+    }
+    .frame-overlay {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      z-index: 2;
+      pointer-events: none;
     }
     .shell {
       position: absolute;
@@ -428,7 +428,6 @@ async function buildSceneHtml({
 </head>
 <body>
   <main class="canvas">
-    ${brandMarkup}
     <section class="copy">
       <h1 class="title">${escapeHtml(sceneCopy.title)}</h1>
       <p class="subtitle">${escapeHtml(sceneCopy.subtitle)}</p>
@@ -439,9 +438,31 @@ async function buildSceneHtml({
 </html>`;
 }
 
-function renderDeviceFrame({ device, placement, imageDataUrl }) {
+async function loadFrameAssetDataUrl(device) {
+  if (!device.frame.asset?.path) return null;
+
+  return dataUrl(path.join(repoRoot, device.frame.asset.path), "image/png");
+}
+
+function renderDeviceFrame({ device, placement, imageDataUrl, frameDataUrl }) {
   const rotate = placement.rotate ?? 0;
   const z = placement.z ?? 10;
+  if (frameDataUrl) {
+    const asset = device.frame.asset;
+    const clipRadius = asset.clipRadius
+      ? `${placement.width * asset.clipRadius / asset.width}px`
+      : "0";
+    const screenClipRadius = asset.screenClipRadius
+      ? `${placement.width * asset.screenClipRadius / asset.width}px`
+      : "0";
+    return `<div class="device frame-asset ${escapeHtml(device.frame.kind)}" style="--x: ${placement.x}px; --y: ${placement.y}px; --w: ${placement.width}px; --rotate: ${rotate}deg; --z: ${z}; --frame-w: ${asset.width}; --frame-h: ${asset.height}; --frame-clip-radius: ${clipRadius}; --screen-clip-radius: ${screenClipRadius}; --screen-x: ${asset.screen.x}; --screen-y: ${asset.screen.y}; --screen-w: ${asset.screen.width}; --screen-h: ${asset.screen.height};">
+  <div class="frame-screen">
+    <img class="frame-capture" src="${imageDataUrl}" alt="" style="--image-scale: ${placement.imageScale ?? 1};">
+  </div>
+  <img class="frame-overlay" src="${frameDataUrl}" alt="">
+</div>`;
+  }
+
   return `<div class="device ${escapeHtml(device.frame.kind)}" style="--x: ${placement.x}px; --y: ${placement.y}px; --w: ${placement.width}px; --rotate: ${rotate}deg; --z: ${z};">
   <div class="shell">
     <div class="screen" style="--image-scale: ${placement.imageScale ?? 1};">
@@ -450,6 +471,14 @@ function renderDeviceFrame({ device, placement, imageDataUrl }) {
     </div>
   </div>
 </div>`;
+}
+
+function getDeviceFrameAspectRatio(device) {
+  if (device.frame.asset) {
+    return `${device.frame.asset.width} / ${device.frame.asset.height}`;
+  }
+
+  return `${device.viewport.width + device.frame.border * 2} / ${device.viewport.height + device.frame.border * 2}`;
 }
 
 async function installNativeLikeEnvironment(page, device, localStorageSeed) {
@@ -560,7 +589,32 @@ function getCapturePath(locale, device, captureId) {
 }
 
 function getDeviceScreenshotPath(locale, device, captureId) {
-  return path.join(deviceScreenshotRoot, locale.id, device.id, `${captureId}.png`);
+  const root = path.resolve(
+    repoRoot,
+    args.deviceScreenshotRoot ?? device.deviceScreenshotRoot ?? config.deviceScreenshotRoot ?? config.captureRoot,
+  );
+  return path.join(root, locale.id, device.id, `${captureId}.png`);
+}
+
+function getFinalScreenshotPath(locale, device, index) {
+  const root = path.resolve(repoRoot, args.outputRoot ?? device.outputRoot ?? config.outputRoot);
+  const pattern = device.outputPathPattern ?? path.join("{locale}", device.outputFilePattern);
+  return path.join(
+    root,
+    renderPathPattern(pattern, locale, device).replaceAll("{index}", String(index)),
+  );
+}
+
+function renderPathPattern(pattern, locale, device) {
+  return pattern
+    .replaceAll("{locale}", locale.id)
+    .replaceAll("{iosLocale}", locale.iosLocale ?? locale.id)
+    .replaceAll("{androidLocale}", locale.androidLocale ?? locale.id)
+    .replaceAll("{device}", device.id);
+}
+
+function isTabletDevice(device) {
+  return device.viewport.width >= 700 || device.frame.kind.includes("tablet") || device.frame.kind === "ipad";
 }
 
 async function loadLocaleCopy(locale) {
@@ -621,12 +675,6 @@ async function dataUrl(filePath, mimeType) {
   return `data:${mimeType};base64,${buffer.toString("base64")}`;
 }
 
-async function optionalDataUrl(relativePath, mimeType) {
-  const absolutePath = path.join(repoRoot, relativePath);
-  if (!existsSync(absolutePath)) return null;
-  return dataUrl(absolutePath, mimeType);
-}
-
 function fileUrl(relativePath) {
   return pathToFileURL(path.join(repoRoot, relativePath)).href;
 }
@@ -650,8 +698,13 @@ function printSelection() {
   console.log(`Devices: ${selectedDevices.map((device) => device.id).join(", ")}`);
   console.log(`Scenes: ${selectedScenes.map((scene) => scene.id).join(", ")}`);
   console.log(`Captures: ${selectedCaptures.map((capture) => capture.id).join(", ")}`);
-  console.log(`Output: ${path.relative(repoRoot, outputRoot)}`);
-  console.log(`Device screenshots: ${path.relative(repoRoot, deviceScreenshotRoot)}`);
+  console.log("Outputs:");
+  for (const device of selectedDevices) {
+    const outputExample = getFinalScreenshotPath(selectedLocales[0], device, 1);
+    const captureExample = getDeviceScreenshotPath(selectedLocales[0], device, "map");
+    console.log(`  ${device.id}: ${path.relative(repoRoot, outputExample)}`);
+    console.log(`  ${device.id} device capture: ${path.relative(repoRoot, captureExample)}`);
+  }
   console.log(`Output mode: ${outputMode}`);
   console.log(
     `SSR server: ${shouldManageSsrServer() ? "managed from dist/pkspot" : "external"}`,
@@ -818,6 +871,13 @@ async function stopManagedProcess(child) {
   });
 }
 
+async function closeBrowser(browserInstance) {
+  await Promise.race([
+    browserInstance.close(),
+    sleep(5000),
+  ]);
+}
+
 function sleep(ms) {
   return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
 }
@@ -833,22 +893,22 @@ function prefixLines(chunk, prefix) {
 }
 
 async function launchBrowser() {
-  const preferredChannel = process.env["STORE_SCREENSHOT_BROWSER_CHANNEL"] ?? "chrome";
+  const requestedChannel = process.env["STORE_SCREENSHOT_BROWSER_CHANNEL"];
+
+  if (requestedChannel) {
+    return chromium.launch({ channel: requestedChannel });
+  }
 
   try {
-    return await chromium.launch({ channel: preferredChannel });
-  } catch (channelError) {
-    if (process.env["STORE_SCREENSHOT_BROWSER_CHANNEL"]) {
-      throw channelError;
-    }
-
+    return await chromium.launch();
+  } catch (managedBrowserError) {
     try {
-      return await chromium.launch();
-    } catch (managedBrowserError) {
+      return await chromium.launch({ channel: "chrome" });
+    } catch (channelError) {
       throw new Error(
-        `Could not start Playwright Chromium. Tried system Chrome first, then the managed Playwright browser.\n\n` +
-          `System Chrome error: ${channelError.message}\n\n` +
+        `Could not start Playwright Chromium. Tried the managed Playwright browser first, then system Chrome.\n\n` +
           `Managed browser error: ${managedBrowserError.message}\n\n` +
+          `System Chrome error: ${channelError.message}\n\n` +
           `Install Playwright's browser with "npx playwright install chromium", or set STORE_SCREENSHOT_BROWSER_CHANNEL to an installed Chromium channel.`,
       );
     }

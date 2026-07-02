@@ -19,18 +19,18 @@
   },
   "defaultLocale": "en-US",
   "locales": [
-    { "id": "en-US", "appLocale": "en" },
-    { "id": "de-DE", "appLocale": "de" },
-    { "id": "es-ES", "appLocale": "es" },
-    { "id": "fr-FR", "appLocale": "fr" },
-    { "id": "it", "appLocale": "it" },
-    { "id": "nl-NL", "appLocale": "nl" }
+    { "id": "en-US", "appLocale": "en", "androidLocale": "en-US" },
+    { "id": "de-DE", "appLocale": "de", "androidLocale": "de-DE" },
+    { "id": "es-ES", "appLocale": "es", "androidLocale": "es-ES" },
+    { "id": "fr-FR", "appLocale": "fr", "androidLocale": "fr-FR" },
+    { "id": "it", "appLocale": "it", "androidLocale": "it-IT" },
+    { "id": "nl-NL", "appLocale": "nl", "androidLocale": "nl-NL" }
   ],
   "devices": [
     {
       "id": "iphone65",
-      "name": "iPhone 6.5 Display",
-      "outputFilePattern": "Apple iPhone 16 Pro Max Screenshot {index}.png",
+      "name": "iPhone 17",
+      "outputFilePattern": "Apple iPhone 17 Screenshot {index}.png",
       "output": { "width": 1242, "height": 2688 },
       "viewport": {
         "width": 414,
@@ -41,7 +41,19 @@
       },
       "nativePlatform": "ios",
       "safeArea": { "top": 59, "right": 0, "bottom": 34, "left": 0 },
-      "frame": { "kind": "iphone", "border": 18, "radius": 72 }
+      "frame": {
+        "kind": "iphone",
+        "border": 18,
+        "radius": 72,
+        "asset": {
+          "path": "scripts/store-screenshots/assets/devices/ios/iPhone 17 - Black - Portrait.png",
+          "width": 1350,
+          "height": 2760,
+          "clipRadius": 170,
+          "screenClipRadius": 118,
+          "screen": { "x": 72, "y": 69, "width": 1206, "height": 2622 }
+        }
+      }
     },
     {
       "id": "ipad129",
@@ -57,7 +69,67 @@
       },
       "nativePlatform": "ios",
       "safeArea": { "top": 24, "right": 0, "bottom": 20, "left": 0 },
-      "frame": { "kind": "ipad", "border": 18, "radius": 44 }
+      "frame": {
+        "kind": "ipad",
+        "border": 18,
+        "radius": 44,
+        "asset": {
+          "path": "scripts/store-screenshots/assets/devices/ios/iPad Pro (M5) 13\" - Space Black - Portrait.png",
+          "width": 2300,
+          "height": 3000,
+          "clipRadius": 120,
+          "screenClipRadius": 72,
+          "screen": { "x": 118, "y": 124, "width": 2064, "height": 2752 }
+        }
+      }
+    },
+    {
+      "id": "androidPhone",
+      "name": "Google Pixel 7",
+      "outputRoot": "fastlane/metadata/android",
+      "outputPathPattern": "{androidLocale}/images/phoneScreenshots/Google Pixel 7 Screenshot {index}.png",
+      "deviceScreenshotRoot": "fastlane/generated/device-screenshots/android",
+      "output": { "width": 1080, "height": 1920 },
+      "viewport": {
+        "width": 360,
+        "height": 800,
+        "deviceScaleFactor": 3,
+        "isMobile": true,
+        "hasTouch": true
+      },
+      "nativePlatform": "android",
+      "safeArea": { "top": 48, "right": 0, "bottom": 24, "left": 0 },
+      "frame": {
+        "kind": "android-phone",
+        "border": 14,
+        "radius": 48,
+        "asset": {
+          "path": "scripts/store-screenshots/assets/devices/android/Google Pixel 7 - Black - Portrait.png",
+          "width": 1118,
+          "height": 2361,
+          "clipRadius": 58,
+          "screenClipRadius": 42,
+          "screen": { "x": 36, "y": 47, "width": 1034, "height": 2253 }
+        }
+      }
+    },
+    {
+      "id": "androidTablet10",
+      "name": "Android Tablet 10 Inch",
+      "outputRoot": "fastlane/metadata/android",
+      "outputPathPattern": "{androidLocale}/images/tenInchScreenshots/Samsung Galaxy Tab S7 Screenshot {index}.png",
+      "deviceScreenshotRoot": "fastlane/generated/device-screenshots/android",
+      "output": { "width": 1600, "height": 2560 },
+      "viewport": {
+        "width": 800,
+        "height": 1280,
+        "deviceScaleFactor": 2,
+        "isMobile": true,
+        "hasTouch": true
+      },
+      "nativePlatform": "android",
+      "safeArea": { "top": 24, "right": 0, "bottom": 24, "left": 0 },
+      "frame": { "kind": "android-tablet", "border": 16, "radius": 34 }
     }
   ],
   "captures": [
@@ -75,7 +147,7 @@
     },
     {
       "id": "map",
-      "path": "/{appLocale}/map",
+      "path": "/{appLocale}/map?filters=dry",
       "waitForSelector": "app-root",
       "settleMs": 5000,
       "hideSelectors": [".dev-mode-banner"]
@@ -104,13 +176,53 @@
         "iphone65": {
           "text": { "x": 88, "y": 1900, "width": 720, "align": "left" },
           "placements": [
-            { "capture": "map", "x": 230, "y": 500, "width": 660, "rotate": -9, "imageScale": 1 }
+            {
+              "capture": "map",
+              "x": 230,
+              "y": 500,
+              "width": 660,
+              "rotate": -9,
+              "imageScale": 1
+            }
           ]
         },
         "ipad129": {
-          "text": { "x": 170, "y": 220, "width": 940, "align": "left" },
+          "text": { "x": 170, "y": 220, "width": 740, "align": "left" },
           "placements": [
-            { "capture": "map", "x": 820, "y": 500, "width": 900, "rotate": -7, "imageScale": 1 }
+            {
+              "capture": "map",
+              "x": 1030,
+              "y": 520,
+              "width": 760,
+              "rotate": -7,
+              "imageScale": 1
+            }
+          ]
+        },
+        "androidPhone": {
+          "text": { "x": 78, "y": 1370, "width": 720, "align": "left" },
+          "placements": [
+            {
+              "capture": "map",
+              "x": 320,
+              "y": 260,
+              "width": 500,
+              "rotate": -7,
+              "imageScale": 1
+            }
+          ]
+        },
+        "androidTablet10": {
+          "text": { "x": 130, "y": 220, "width": 640, "align": "left" },
+          "placements": [
+            {
+              "capture": "map",
+              "x": 840,
+              "y": 540,
+              "width": 590,
+              "rotate": -6,
+              "imageScale": 1
+            }
           ]
         }
       }
@@ -132,6 +244,18 @@
           "placements": [
             { "capture": "map", "x": 620, "y": 620, "width": 820, "rotate": 0 }
           ]
+        },
+        "androidPhone": {
+          "text": { "x": 110, "y": 170, "width": 860, "align": "center" },
+          "placements": [
+            { "capture": "map", "x": 285, "y": 500, "width": 510, "rotate": 0 }
+          ]
+        },
+        "androidTablet10": {
+          "text": { "x": 250, "y": 220, "width": 1100, "align": "center" },
+          "placements": [
+            { "capture": "map", "x": 475, "y": 610, "width": 650, "rotate": 0 }
+          ]
         }
       }
     },
@@ -144,15 +268,53 @@
         "iphone65": {
           "text": { "x": 120, "y": 200, "width": 1000, "align": "center" },
           "placements": [
-            { "capture": "filters", "x": 120, "y": 760, "width": 500, "rotate": -4 },
+            {
+              "capture": "filters",
+              "x": 120,
+              "y": 760,
+              "width": 500,
+              "rotate": -4
+            },
             { "capture": "map", "x": 570, "y": 840, "width": 500, "rotate": 4 }
           ]
         },
         "ipad129": {
           "text": { "x": 300, "y": 240, "width": 1448, "align": "center" },
           "placements": [
-            { "capture": "filters", "x": 390, "y": 680, "width": 760, "rotate": -5 },
+            {
+              "capture": "filters",
+              "x": 390,
+              "y": 680,
+              "width": 760,
+              "rotate": -5
+            },
             { "capture": "map", "x": 940, "y": 760, "width": 760, "rotate": 5 }
+          ]
+        },
+        "androidPhone": {
+          "text": { "x": 110, "y": 170, "width": 860, "align": "center" },
+          "placements": [
+            {
+              "capture": "filters",
+              "x": 105,
+              "y": 570,
+              "width": 430,
+              "rotate": -4
+            },
+            { "capture": "map", "x": 540, "y": 640, "width": 430, "rotate": 4 }
+          ]
+        },
+        "androidTablet10": {
+          "text": { "x": 250, "y": 220, "width": 1100, "align": "center" },
+          "placements": [
+            {
+              "capture": "filters",
+              "x": 285,
+              "y": 650,
+              "width": 590,
+              "rotate": -5
+            },
+            { "capture": "map", "x": 735, "y": 730, "width": 590, "rotate": 5 }
           ]
         }
       }
