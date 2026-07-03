@@ -8,16 +8,10 @@ import { CommonModule } from "@angular/common";
 import { MediaUpload } from "../media-upload/media-upload.component";
 import { StorageBucket, MediaSchema } from "../../../db/schemas/Media";
 import { MediaType } from "../../../db/models/Interfaces";
-import { SpotsService } from "../../services/firebase/firestore/spots.service";
-import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
 import { SpotId } from "../../../db/schemas/SpotSchema";
-import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
-import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
-import { createUserReference } from "../../../scripts/Helpers";
-import { AnalyticsService } from "../../services/analytics.service";
 
 export interface MediaUploadDialogData {
   spotId: SpotId;
@@ -42,10 +36,7 @@ export interface MediaUploadDialogData {
   templateUrl: "./media-upload-dialog.component.html",
 })
 export class MediaUploadDialogComponent {
-  private _spotEditsService = inject(SpotEditsService);
-  private _auth = inject(AuthenticationService);
   private _snackBar = inject(MatSnackBar);
-  private _analytics = inject(AnalyticsService);
 
   storageFolder: StorageBucket;
   allowedMimeTypes: string[];
@@ -86,84 +77,15 @@ export class MediaUploadDialogComponent {
     events: { src: string; is_sized: boolean; type: MediaType }[]
   ) {
     console.log("MediaUploadDialog: onMediaBatchUploaded called", events);
-    const uid = this._auth.user?.uid;
-    if (!uid) {
-      console.error("Cannot append media: user not signed in");
-      return;
-    }
-
-    if (!this._auth.user?.data) {
-      console.error(
-        "Cannot append media: user data not loaded",
-        this._auth.user
-      );
-      this._snackBar.open(
-        "User profile not loaded. Please try again.",
-        "Dismiss",
-        { duration: 3000 }
-      );
-      return;
-    }
-
-    const currentMedia = this.data.currentMedia || [];
-
-    const newMediaItems: MediaSchema[] = events.map((event) => ({
-      src: event.src,
-      type: event.type,
-      uid,
-      origin: "user",
-      isInStorage: true,
-    }));
-
-    const newMediaList = [...currentMedia, ...newMediaItems];
-    console.log(
-      "MediaUploadDialog: newMediaList prepared",
-      newMediaList.length
+    this._snackBar.open(
+      $localize`Media uploaded. It will appear after the safety check finishes.`,
+      $localize`Dismiss`,
+      {
+        duration: 4000,
+        horizontalPosition: "center",
+        verticalPosition: "bottom",
+      }
     );
-
-    try {
-      console.log(
-        "MediaUploadDialog: Creating user reference for",
-        this._auth.user.data
-      );
-      const userReference = createUserReference(this._auth.user.data!);
-
-      console.log("MediaUploadDialog: calling createSpotUpdateEdit");
-      await this._spotEditsService.createSpotUpdateEdit(
-        this.data.spotId,
-        { media: newMediaList },
-        userReference
-      );
-      console.log("MediaUploadDialog: createSpotUpdateEdit success");
-
-      this.data.currentMedia = newMediaList;
-
-      this._snackBar.open(
-        `${newMediaItems.length} media item(s) added successfully!`,
-        "Dismiss",
-        {
-          duration: 3000,
-          horizontalPosition: "center",
-          verticalPosition: "bottom",
-        }
-      );
-    } catch (e) {
-      console.error("Failed to append media to spot:", e);
-      this._analytics.reportError(e, {
-        context: "spot_media_append_failed",
-        feature: "spots",
-        action: "add_spot_media",
-        userFacing: true,
-        properties: {
-          spot_id: this.data.spotId,
-          attempted_media_count: newMediaItems.length,
-          resulting_media_count: newMediaList.length,
-        },
-      });
-      this._snackBar.open("Failed to add media. Please try again.", "Dismiss", {
-        duration: 3000,
-      });
-    }
   }
 
   close() {

@@ -11,8 +11,12 @@ export interface MediaReportSchema {
     spotId?: string;
     /** Optional explicit storage hint for moderation; old reports may not have it. */
     is_in_storage?: boolean;
+    /** Storage object path for internal scanner reports. */
+    storage_path?: string;
+    /** Exact content hash recorded by the media safety pipeline. */
+    sha256?: string;
     // ... other media fields
-    [key: string]: any;
+    [key: string]: unknown;
   };
   spotId?: string;
   context?: "spot" | "event" | "media";
@@ -24,6 +28,11 @@ export interface MediaReportSchema {
     | UserReferenceSchema // Authenticated user
     | { email: string; uid?: never }; // Unauthenticated with email
   createdAt: Date;
+  /** Omitted or "user" for community reports; "scanner" for internal safety findings. */
+  source?: "user" | "scanner";
+  scanner_source?: "upload" | "audit";
+  review_path?: string;
+  incident_path?: string;
   /** Locale/language code of the reporter (e.g., 'de-CH', 'en', 'fr') */
   locale?: string;
   status?: ReportModerationStatus;

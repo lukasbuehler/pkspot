@@ -199,18 +199,20 @@
                       <mat-icon>done</mat-icon>
                       <span i18n>Close report</span>
                     </button>
-                    <button
-                      matButton="filled"
-                      type="button"
-                      [disabled]="actionPath() === report.path"
-                      matTooltip="Record the report as handled, remove it from the queue, and keep the warning on the target."
-                      i18n-matTooltip="@@moderation.reports.keep_warning_tooltip"
-                      (click)="handle(report, 'keep_warning')"
-                    >
-                      <mat-icon>report</mat-icon>
-                      <span i18n>Keep warning</span>
-                    </button>
-                    @if (report.kind === "media") {
+                    @if (report.canKeepWarning) {
+                      <button
+                        matButton="filled"
+                        type="button"
+                        [disabled]="actionPath() === report.path"
+                        matTooltip="Record the report as handled, remove it from the queue, and keep the warning on the target."
+                        i18n-matTooltip="@@moderation.reports.keep_warning_tooltip"
+                        (click)="handle(report, 'keep_warning')"
+                      >
+                        <mat-icon>report</mat-icon>
+                        <span i18n>Keep warning</span>
+                      </button>
+                    }
+                    @if (report.canDeleteMedia) {
                       <button
                         matButton="outlined"
                         type="button"

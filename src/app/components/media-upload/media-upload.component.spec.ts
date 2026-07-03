@@ -106,7 +106,9 @@ describe("MediaUpload", () => {
       expect.any(Function),
       expect.any(String),
       "jpg",
-      "public, max-age=31536000"
+      "public, max-age=31536000",
+      undefined,
+      undefined
     );
     expect(component.mediaList()[0]?.uploadProgress).toBe(100);
     expect(mediaEvents).toEqual([

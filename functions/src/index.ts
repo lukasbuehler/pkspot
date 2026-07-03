@@ -71,6 +71,10 @@ export {
   backfillStorageImageSizes,
   processImageUpload,
 } from "./imageProcessingFunctions";
+export {
+  processMediaIntakeUpload,
+  runMediaModerationAudit,
+} from "./mediaModerationFunctions";
 
 // spot challenge functions
 export { setTopChallengesForSpotOnWrite } from "./spotChallengeFunctions";

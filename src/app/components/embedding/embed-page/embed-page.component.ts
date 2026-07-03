@@ -5,7 +5,9 @@ import {
   PLATFORM_ID,
   signal,
   afterNextRender,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  effect,
+  LOCALE_ID,
 } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
@@ -29,8 +31,21 @@ import {
 } from "../../chip-selector/chip-selector.component";
 import { buildUnembeddedUrlFromHref } from "../../../shared/embedded-url";
 import { AnalyticsService } from "../../../services/analytics.service";
-
-type EmbedType = "map" | "event" | "event-map";
+import { ActivatedRoute, ParamMap, Router } from "@angular/router";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import {
+  buildEmbedPageQueryParams,
+  defaultEmbedType as defaultEmbedTypeValue,
+  embedCreditTextForLanguage,
+  EmbedLanguage,
+  EmbedType,
+  normalizeEmbedLanguage,
+  readEmbedPageEventId,
+  readEmbedPageLanguage,
+  readEmbedPageType,
+  SupportedEmbedLanguage,
+  supportedEmbedLanguageCodes,
+} from "./embed-page.helpers";
 
 @Component({
   selector: "app-embed-page",
@@ -70,11 +85,15 @@ export class EmbedPageComponent {
   private _platformId = inject(PLATFORM_ID);
   private _eventsService = inject(EventsService);
   private _analytics = inject(AnalyticsService);
+  private _locale = inject<LocaleCode>(LOCALE_ID);
+  private _route = inject(ActivatedRoute);
+  private _router = inject(Router);
+  private _queryParamsReady = signal<boolean>(false);
 
-  supportedLanguageCodes = ["en", "de", "de-CH", "fr", "it", "nl", "es"];
+  supportedLanguageCodes = supportedEmbedLanguageCodes;
   languages: Record<string, { name_english: string; name_native?: string }> =
     languageCodes;
-  embedLanguage = signal<LocaleCode | "auto">("auto");
+  embedLanguage = signal<EmbedLanguage>("auto");
 
   showSatelliteToggle = signal<boolean>(true);
   showGeolocation = signal<boolean>(false);
@@ -94,7 +113,7 @@ export class EmbedPageComponent {
     return event?.name ?? "";
   });
 
-  defaultEmbedType: EmbedType = "event";
+  defaultEmbedType: EmbedType = defaultEmbedTypeValue;
   embedTypes: EmbedType[] = ["event", "event-map"]; // "map",
   embedTypeName: Record<EmbedType, string> = {
     map: $localize`Map`,
@@ -110,6 +129,15 @@ export class EmbedPageComponent {
   embedTypeSelectorLabel = "Embed type";
 
   tab = signal<EmbedType>(this.defaultEmbedType);
+
+  effectiveEmbedLanguage = computed<SupportedEmbedLanguage>(() => {
+    const language = this.embedLanguage();
+    return language === "auto" ? normalizeEmbedLanguage(this._locale) : language;
+  });
+
+  embedCreditText = computed(() =>
+    embedCreditTextForLanguage(this.effectiveEmbedLanguage()),
+  );
 
   unsafeIframeUrl = computed<string>(() => {
     const baseUrl = `${this.baseHref}`;
@@ -161,11 +189,12 @@ export class EmbedPageComponent {
     const url = this.unsafeIframeUrl();
     const publicUrl = this.publicContentUrl();
     if (!url) return "";
+    const creditText = this.embedCreditText();
     return `<div style="width:100%;max-width:100%;height:620px;border-radius:8px;overflow:hidden;">
-  <iframe src="${url}" title="PK Spot embedded event" loading="lazy" style="display:block;width:100%;height:calc(100% - 22px);border:0;overflow:hidden;"></iframe>
+  <iframe src="${url}" title="${creditText.iframeTitle}" loading="lazy" style="display:block;width:100%;height:calc(100% - 22px);border:0;overflow:hidden;"></iframe>
   <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 12px 0;font:11px/1.35 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#6f7378;">
-    <span>Interactive event embed</span>
-    <span>Event data by <a href="${publicUrl}" target="_top" rel="noopener" style="color:inherit;text-decoration:underline;">PK Spot</a></span>
+    <span>${creditText.interactiveLabel}</span>
+    <span>${creditText.dataByLabel} <a href="${publicUrl}" target="_top" rel="noopener" style="color:inherit;text-decoration:underline;">PK Spot</a></span>
   </div>
 </div>`;
   });
@@ -180,6 +209,33 @@ export class EmbedPageComponent {
   }));
 
   constructor() {
+    this._applyEmbedPageQueryParams(this._route.snapshot.queryParamMap);
+    this._route.queryParamMap
+      .pipe(takeUntilDestroyed())
+      .subscribe((paramMap) => this._applyEmbedPageQueryParams(paramMap));
+
+    effect(() => {
+      if (!isPlatformBrowser(this._platformId) || !this._queryParamsReady()) {
+        return;
+      }
+
+      const queryParams = buildEmbedPageQueryParams({
+        eventId: this.eventId(),
+        embedType: this.tab(),
+        language: this.embedLanguage(),
+      });
+
+      if (this._queryParamsMatch(queryParams)) {
+        return;
+      }
+
+      void this._router.navigate([], {
+        relativeTo: this._route,
+        queryParams,
+        replaceUrl: true,
+      });
+    });
+
     if (isPlatformBrowser(this._platformId)) {
       afterNextRender(() => {
         void this._loadEvents();
@@ -207,7 +263,7 @@ export class EmbedPageComponent {
     });
   }
 
-  onLanguageChange(value: LocaleCode | "auto"): void {
+  onLanguageChange(value: EmbedLanguage): void {
     this.embedLanguage.set(value);
     this._analytics.trackEvent("embed_option_changed", {
       ...this.embedAnalyticsProperties(),
@@ -259,7 +315,7 @@ export class EmbedPageComponent {
       this.events.set(events);
       // Default-select the first non-past event, or the first event if all are past.
       const firstUpcoming = events.find((e) => !e.isPast()) ?? events[0];
-      if (firstUpcoming) {
+      if (firstUpcoming && !this.eventId()) {
         this.eventId.set(firstUpcoming.slug ?? firstUpcoming.id);
       }
     } catch (err) {
@@ -267,5 +323,34 @@ export class EmbedPageComponent {
     } finally {
       this.eventsLoading.set(false);
     }
+  }
+
+  private _applyEmbedPageQueryParams(paramMap: ParamMap): void {
+    this.tab.set(readEmbedPageType(paramMap) ?? this.defaultEmbedType);
+    this.eventId.set(readEmbedPageEventId(paramMap) ?? "");
+
+    const language = readEmbedPageLanguage(paramMap);
+    this.embedLanguage.set(language ?? "auto");
+
+    this._queryParamsReady.set(true);
+  }
+
+  private _queryParamsMatch(
+    queryParams: Record<string, string | null>,
+  ): boolean {
+    const current = this._route.snapshot.queryParamMap;
+    const expectedKeys = new Set(
+      Object.entries(queryParams)
+        .filter(([, value]) => value !== null)
+        .map(([key]) => key),
+    );
+
+    if (current.keys.some((key) => !expectedKeys.has(key))) {
+      return false;
+    }
+
+    return Object.entries(queryParams).every(([key, value]) => {
+      return (current.get(key) ?? null) === value;
+    });
   }
 }

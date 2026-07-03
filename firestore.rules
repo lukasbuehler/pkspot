@@ -791,6 +791,16 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /media_upload_reviews/{reviewId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /csam_incidents/{incidentId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
     match /imports/{importId} {
       allow read, create, update: if isAdmin();
       allow delete: if false;
