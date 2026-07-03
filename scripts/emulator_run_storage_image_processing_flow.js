@@ -21,7 +21,7 @@ const PROJECT_ID = process.env.GCLOUD_PROJECT;
 const STORAGE_BUCKET = `${PROJECT_ID}.appspot.com`;
 const ORIGINAL_IMAGE = path.resolve(
   __dirname,
-  "../src/assets/swissjam/swissjam0.jpg"
+  "../src/assets/events/swissjam/swissjam0.jpg"
 );
 const SIZES = [200, 400, 800];
 const ARCHIVE_PREFIX = "resized_originals";
