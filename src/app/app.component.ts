@@ -93,6 +93,8 @@ import { buildUnembeddedUrlFromHref } from "./shared/embedded-url";
 import { MapPerformanceProfilerService } from "./services/map-performance-profiler.service";
 import { AppSettingsService } from "./services/app-settings.service";
 import { UiLanguageService } from "./services/ui-language.service";
+import { FirebaseAppCheckService } from "./services/firebase/app-check.service";
+import { AppCheckErrorDialogComponent } from "./components/app-check-error-dialog/app-check-error-dialog.component";
 
 interface ButtonBase {
   name: string;
@@ -182,6 +184,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   readonly responsive = inject(ResponsiveService);
   private readonly _platformService = inject(PlatformService);
   private readonly _uiLanguageService = inject(UiLanguageService);
+  private readonly _appCheckService = inject(FirebaseAppCheckService);
 
   // Inject AuthService immediately to ensure auth state restoration works
   private _authService = inject(AuthenticationService);
@@ -236,6 +239,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   >();
   private _activeNavigationPerfId: number | null = null;
   private _mapProfileEnabledFromDebug = false;
+  private _appCheckDialogOpen = false;
   private readonly _mapProfileSettingsEffect = effect(() => {
     if (this._appSettings.debugMode()) {
       this._mapProfileEnabledFromDebug = true;
@@ -247,6 +251,29 @@ export class AppComponent implements OnInit, AfterViewInit {
       this._mapProfileEnabledFromDebug = false;
       this._mapProfiler.disable();
     }
+  });
+  private readonly _appCheckFailureDialogEffect = effect(() => {
+    const status = this._appCheckService.status();
+    if (
+      status.state !== "failed" ||
+      this._appCheckDialogOpen ||
+      typeof window === "undefined"
+    ) {
+      return;
+    }
+
+    this._appCheckDialogOpen = true;
+    queueMicrotask(() => {
+      const dialogRef = this.dialog.open(AppCheckErrorDialogComponent, {
+        data: status,
+        hasBackdrop: true,
+        disableClose: true,
+        maxWidth: "420px",
+      });
+      dialogRef.afterClosed().subscribe(() => {
+        this._appCheckDialogOpen = false;
+      });
+    });
   });
 
   alainMode: boolean = false;

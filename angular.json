@@ -254,7 +254,7 @@
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.default.ts",
-                  "with": "src/environments/environment.development.ts"
+                  "with": "src/environments/environment.ios.dev.ts"
                 }
               ],
               "optimization": true,
@@ -368,7 +368,7 @@
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.default.ts",
-                  "with": "src/environments/environment.development.ts"
+                  "with": "src/environments/environment.android.dev.ts"
                 }
               ],
               "optimization": true,

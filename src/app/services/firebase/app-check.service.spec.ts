@@ -225,7 +225,7 @@ describe("FirebaseAppCheckService", () => {
     );
   });
 
-  it("logs and rethrows a native App Check initialization failure", async () => {
+  it("logs and exposes a native App Check initialization failure", async () => {
     vi.mocked(FirebaseAppCheck.initialize).mockRejectedValueOnce(
       new Error("init failed")
     );
@@ -247,9 +247,9 @@ describe("FirebaseAppCheckService", () => {
       ],
     });
 
-    await expect(
-      TestBed.inject(FirebaseAppCheckService).initialize({ enabled: true })
-    ).rejects.toThrow("init failed");
+    const service = TestBed.inject(FirebaseAppCheckService);
+
+    await expect(service.initialize({ enabled: true })).resolves.toBeUndefined();
 
     expect(console.error).toHaveBeenCalledWith(
       "[AppCheck] Token check failed.",
@@ -258,6 +258,17 @@ describe("FirebaseAppCheckService", () => {
         phase: "initialize",
         appId: "native-app-id",
         projectId: "parkour-base-project",
+        error: expect.any(Error),
+      })
+    );
+    expect(service.status()).toEqual(
+      expect.objectContaining({
+        state: "failed",
+        platform: "android",
+        phase: "initialize",
+        appId: "native-app-id",
+        projectId: "parkour-base-project",
+        message: "init failed",
         error: expect.any(Error),
       })
     );

@@ -1,4 +1,6 @@
 environment.*.ts
 !environment.ci.ts
 !environment.default.ts
+!environment.android.dev.ts
+!environment.ios.dev.ts
 !environment.production.ts

@@ -7,7 +7,7 @@ import { environment } from "../../environments/environment.default";
 import { Capacitor } from "@capacitor/core";
 import { Posthog as CapacitorPostHog } from "@capawesome/capacitor-posthog";
 import { filter } from "rxjs/operators";
-import { dependencies, version } from "../../../package.json";
+import { version } from "../../../package.json";
 
 /**
  * Analytics service wrapping PostHog for event tracking.
@@ -64,8 +64,6 @@ export class AnalyticsService {
   private readonly _nativeSuperProperties = new Map<string, unknown>();
   private _lastNativeScreenUrl: string | null = null;
   private readonly appVersion = version;
-  private readonly nativePostHogBridgeVersion =
-    dependencies["@capawesome/capacitor-posthog"].replace(/^[^\d]*/, "");
   private readonly distinctIdStorageKey = "ph_distinct_id_v1";
   private readonly initialReferrerStorageKey = "ph_initial_referrer_v1";
   private readonly initialReferringDomainStorageKey =
@@ -142,7 +140,6 @@ export class AnalyticsService {
         ...(properties ?? {}),
         ...this.getPlatformProperties(),
         ...this.getAppVersionProperties(),
-        ...this.getNativePostHogBridgeProperties(),
         $current_url: fullUrl,
         $pathname: pathname,
         current_url: fullUrl,
@@ -212,7 +209,6 @@ export class AnalyticsService {
     await this.registerNativeSuperProperty({
       ...this.getPlatformProperties(),
       ...this.getAppVersionProperties(),
-      ...this.getNativePostHogBridgeProperties(),
     });
 
     // Auto-track screen views for Native (router-driven)
@@ -773,13 +769,6 @@ export class AnalyticsService {
     }
   }
 
-  private getNativePostHogBridgeProperties(): Record<string, string> {
-    return {
-      $lib: "capawesome-capacitor-posthog",
-      $lib_version: this.nativePostHogBridgeVersion,
-    };
-  }
-
   private sendNativeScreen(
     screenTitle: string,
     properties?: Record<string, unknown>,
@@ -843,7 +832,6 @@ export class AnalyticsService {
       ...(properties ?? {}),
       ...this.getPlatformProperties(),
       ...this.getAppVersionProperties(),
-      ...this.getNativePostHogBridgeProperties(),
     };
   }
 
@@ -856,8 +844,7 @@ export class AnalyticsService {
       platform: properties?.["platform"] ?? null,
       app_type: properties?.["app_type"] ?? null,
       is_native: properties?.["is_native"] ?? null,
-      $lib: properties?.["$lib"] ?? null,
-      $lib_version: properties?.["$lib_version"] ?? null,
+      expected_sdk_$lib: "posthog-android",
     };
   }
 
@@ -925,11 +912,7 @@ export class AnalyticsService {
     Object.assign(normalized, this.getAppVersionProperties());
 
     if (this.isNative()) {
-      Object.assign(
-        normalized,
-        this.getPlatformProperties(),
-        this.getNativePostHogBridgeProperties(),
-      );
+      Object.assign(normalized, this.getPlatformProperties());
     }
 
     return Object.keys(normalized).length > 0 ? normalized : undefined;

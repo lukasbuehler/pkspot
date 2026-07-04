@@ -61,9 +61,15 @@ html.map-glass-blur-disabled {
   --map-glass-blur: none;
 }
 
-// When nav bar has native-platform class, increase the nav bar height variable globally
+// When the nav bar has native-platform class, expose its full occupied height
+// globally so fixed map/content layers stop above the gesture safe area too.
 body:has(mat-toolbar.native-platform) {
-  --nav-bar-height: calc(80px + var(--toolbar-native-extra));
+  --nav-bar-height: calc(
+    80px + var(
+        --safe-area-inset-bottom,
+        env(safe-area-inset-bottom, var(--toolbar-native-extra))
+      )
+  );
 }
 
 // When alain mode is active (presence of #alainMenuButton), there's no bottom nav bar
