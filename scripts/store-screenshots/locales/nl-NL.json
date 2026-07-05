@@ -8,8 +8,8 @@
     "title": "Regen of sneeuw",
     "subtitle": "Filter droge of indoor spots met een tik."
   },
-  "filters": {
-    "title": "Niet alleen kijken. Vinden.",
-    "subtitle": "Alles wat je nodig hebt voor je volgende sessie."
+  "event": {
+    "title": "Vind events en jams",
+    "subtitle": "Open details, kaarten, data en registratielinks op een plek."
   }
 }

@@ -8,8 +8,8 @@
     "title": "Pluie ou neige",
     "subtitle": "Filtre les spots secs ou en interieur en un geste."
   },
-  "filters": {
-    "title": "Ne regarde pas seulement. Trouve.",
-    "subtitle": "Tout ce qu'il te faut pour ta prochaine session."
+  "event": {
+    "title": "Trouve evenements et jams",
+    "subtitle": "Ouvre details, cartes, dates et liens d'inscription au meme endroit."
   }
 }

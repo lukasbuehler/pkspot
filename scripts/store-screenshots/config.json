@@ -12,6 +12,22 @@
     },
     "mapStyle": "roadmap"
   },
+  "fixedTime": "2026-07-04T08:00:00.000Z",
+  "mockAuthUser": {
+    "uid": "store-screenshot-user",
+    "email": "screenshot@pkspot.app",
+    "emailVerified": true,
+    "providerId": "store-screenshot"
+  },
+  "mockEventRsvps": {
+    "wpfcamp": "interested",
+    "wpf-camp": "interested"
+  },
+  "systemUi": {
+    "time": "13:37",
+    "statusBar": true,
+    "gestureBar": true
+  },
   "ssr": {
     "port": 4300,
     "script": "scripts/store-screenshots/ssr-server.mjs",
@@ -41,6 +57,10 @@
       },
       "nativePlatform": "ios",
       "safeArea": { "top": 59, "right": 0, "bottom": 34, "left": 0 },
+      "systemUi": {
+        "statusInsetX": 36,
+        "statusTopOffset": 4
+      },
       "frame": {
         "kind": "iphone",
         "border": 18,
@@ -153,9 +173,9 @@
       "hideSelectors": [".dev-mode-banner"]
     },
     {
-      "id": "filters",
-      "path": "/{appLocale}/__visual/map-overlay",
-      "waitForSelector": "app-filter-chips-bar, app-search-field",
+      "id": "event",
+      "path": "/{appLocale}/events/wpf-camp",
+      "waitForSelector": "app-event-info-page, app-event-display",
       "settleMs": 5000,
       "hideSelectors": [".dev-mode-banner"]
     }
@@ -260,8 +280,8 @@
       }
     },
     {
-      "id": "filters",
-      "copyKey": "filters",
+      "id": "event",
+      "copyKey": "event",
       "index": 3,
       "accent": "#7ef0a4",
       "layouts": {
@@ -269,7 +289,7 @@
           "text": { "x": 120, "y": 200, "width": 1000, "align": "center" },
           "placements": [
             {
-              "capture": "filters",
+              "capture": "event",
               "x": 120,
               "y": 760,
               "width": 500,
@@ -282,7 +302,7 @@
           "text": { "x": 300, "y": 240, "width": 1448, "align": "center" },
           "placements": [
             {
-              "capture": "filters",
+              "capture": "event",
               "x": 390,
               "y": 680,
               "width": 760,
@@ -295,7 +315,7 @@
           "text": { "x": 110, "y": 170, "width": 860, "align": "center" },
           "placements": [
             {
-              "capture": "filters",
+              "capture": "event",
               "x": 105,
               "y": 570,
               "width": 430,
@@ -308,7 +328,7 @@
           "text": { "x": 250, "y": 220, "width": 1100, "align": "center" },
           "placements": [
             {
-              "capture": "filters",
+              "capture": "event",
               "x": 285,
               "y": 650,
               "width": 590,
