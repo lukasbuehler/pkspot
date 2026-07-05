@@ -62,23 +62,27 @@ public class MainActivity extends BridgeActivity {
     View decorView = getWindow().getDecorView();
 
     ViewCompat.setOnApplyWindowInsetsListener(decorView, (view, windowInsetsCompat) -> {
-      // Get display cutout insets (the notch/camera hole) in physical pixels
+      // Get native safe regions in physical pixels. Android WebView's CSS
+      // env(safe-area-inset-*) is unreliable after rotation, and displayCutout
+      // alone does not include gesture or 3-button navigation bars.
       Insets cutout = windowInsetsCompat.getInsets(WindowInsetsCompat.Type.displayCutout());
+      Insets systemBars = windowInsetsCompat.getInsets(WindowInsetsCompat.Type.systemBars());
+      Insets mandatorySystemGestures = windowInsetsCompat.getInsets(WindowInsetsCompat.Type.mandatorySystemGestures());
+      Insets ime = windowInsetsCompat.getInsets(WindowInsetsCompat.Type.ime());
+      boolean imeVisible = windowInsetsCompat.isVisible(WindowInsetsCompat.Type.ime());
 
       // Convert from physical pixels to CSS pixels (divide by density)
       float density = getResources().getDisplayMetrics().density;
-      int topCss = Math.round(cutout.top / density);
-      int bottomCss = Math.round(cutout.bottom / density);
-      int leftCss = Math.round(cutout.left / density);
-      int rightCss = Math.round(cutout.right / density);
-      Insets systemBars = windowInsetsCompat.getInsets(WindowInsetsCompat.Type.systemBars());
-      Insets ime = windowInsetsCompat.getInsets(WindowInsetsCompat.Type.ime());
-      boolean imeVisible = windowInsetsCompat.isVisible(WindowInsetsCompat.Type.ime());
+      int topCss = pxToCss(maxInset(cutout.top, systemBars.top), density);
+      int bottomCss = pxToCss(maxInset(cutout.bottom, systemBars.bottom, mandatorySystemGestures.bottom), density);
+      int leftCss = pxToCss(maxInset(cutout.left, systemBars.left, mandatorySystemGestures.left), density);
+      int rightCss = pxToCss(maxInset(cutout.right, systemBars.right, mandatorySystemGestures.right), density);
 
       Log.d(
           TAG,
           "safeAreaInsets: cutoutCss=(" + topCss + "," + rightCss + "," + bottomCss + "," + leftCss + ")" +
               " systemBars=(" + systemBars.top + "," + systemBars.right + "," + systemBars.bottom + "," + systemBars.left + ")" +
+              " mandatoryGestures=(" + mandatorySystemGestures.top + "," + mandatorySystemGestures.right + "," + mandatorySystemGestures.bottom + "," + mandatorySystemGestures.left + ")" +
               " imeBottom=" + ime.bottom +
               " imeVisible=" + imeVisible);
 
@@ -117,6 +121,18 @@ public class MainActivity extends BridgeActivity {
 
     // Request insets to be applied
     ViewCompat.requestApplyInsets(decorView);
+  }
+
+  private int pxToCss(int pixels, float density) {
+    return Math.round(pixels / density);
+  }
+
+  private int maxInset(int... values) {
+    int max = 0;
+    for (int value : values) {
+      max = Math.max(max, value);
+    }
+    return max;
   }
 
   /**

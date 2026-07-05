@@ -10,8 +10,6 @@ $toolbar-height: 80px;
 $toolbar-native-extra: 20px;
 
 mat-toolbar {
-  --bottom-nav-safe-area: 0px;
-
   position: relative;
   z-index: 1000;
   display: flex;
@@ -27,14 +25,13 @@ mat-toolbar {
 
   // Extra padding on native platforms (iOS/Android) for gesture bar spacing
   &.native-platform {
-    --bottom-nav-safe-area: var(
-      --safe-area-inset-bottom,
-      env(safe-area-inset-bottom, #{$toolbar-native-extra})
+    padding-bottom: var(--bottom-nav-safe-area, #{$toolbar-native-extra});
+    height: calc(
+      #{$toolbar-height} + var(--bottom-nav-safe-area, #{$toolbar-native-extra})
     );
-
-    padding-bottom: var(--bottom-nav-safe-area);
-    height: calc(#{$toolbar-height} + var(--bottom-nav-safe-area));
-    --nav-bar-height: calc(#{$toolbar-height} + var(--bottom-nav-safe-area));
+    --nav-bar-height: calc(
+      #{$toolbar-height} + var(--bottom-nav-safe-area, #{$toolbar-native-extra})
+    );
   }
 }
 

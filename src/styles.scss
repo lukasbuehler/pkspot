@@ -38,6 +38,7 @@ html {
   // Default nav bar height (80px). Changed by mat-toolbar.native-platform to 95px.
   --nav-bar-height: 80px;
   --toolbar-native-extra: 20px;
+  --bottom-nav-safe-area: 0px;
 
   // Height of the on-screen keyboard. Updated at runtime by KeyboardService
   // (0 when no keyboard is visible). Components that anchor UI to the bottom
@@ -61,15 +62,32 @@ html.map-glass-blur-disabled {
   --map-glass-blur: none;
 }
 
+html.native-platform,
+html.native-platform body {
+  --bottom-nav-safe-area: var(
+    --safe-area-inset-bottom,
+    env(safe-area-inset-bottom, var(--toolbar-native-extra))
+  );
+}
+
+html.native-platform.platform-ios:not(.running-on-macos-or-ipad) {
+  @media (orientation: portrait) {
+    &,
+    body {
+      --bottom-nav-safe-area: max(
+        0px,
+        calc(
+          var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) - 14px
+        )
+      );
+    }
+  }
+}
+
 // When the nav bar has native-platform class, expose its full occupied height
 // globally so fixed map/content layers stop above the gesture safe area too.
 body:has(mat-toolbar.native-platform) {
-  --nav-bar-height: calc(
-    80px + var(
-        --safe-area-inset-bottom,
-        env(safe-area-inset-bottom, var(--toolbar-native-extra))
-      )
-  );
+  --nav-bar-height: calc(80px + var(--bottom-nav-safe-area, 0px));
 }
 
 // When alain mode is active (presence of #alainMenuButton), there's no bottom nav bar
