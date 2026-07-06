@@ -140,6 +140,15 @@ async function seedSecurityFixture() {
   batch.set(adminDb.doc("event_slugs/public-event"), { event_id: "event-1" });
   batch.set(adminDb.doc("series/series-1"), { name: "Public Series" });
   batch.set(adminDb.doc("community_pages/ch-zurich"), { title: "Zurich" });
+  batch.set(adminDb.doc("community_pages/ch-zurich/private_info/link_cards"), {
+    infoCards: [
+      {
+        id: "zurich-chat",
+        title: { en: "Zurich chat" },
+        category: "chat",
+      },
+    ],
+  });
   batch.set(adminDb.doc("community_slugs/zurich"), { key: "ch-zurich" });
   batch.set(adminDb.doc("leaderboards/spots_edited"), { entries: [] });
   batch.set(adminDb.doc("organizations/pk-spot"), {
@@ -303,7 +312,7 @@ async function seedSecurityFixture() {
   await batch.commit();
 }
 
-async function testPublicReadSurface(anon, adminUser) {
+async function testPublicReadSurface(anon, owner, adminUser) {
   await assertAllowed("anonymous spot read", () => getDoc(doc(anon.db, "spots/public-spot")));
   await assertAllowed("anonymous edit read", () =>
     getDoc(doc(anon.db, "spots/public-spot/edits/public-edit"))
@@ -322,6 +331,15 @@ async function testPublicReadSurface(anon, adminUser) {
   await assertAllowed("anonymous series read", () => getDoc(doc(anon.db, "series/series-1")));
   await assertAllowed("anonymous community page read", () =>
     getDoc(doc(anon.db, "community_pages/ch-zurich"))
+  );
+  await assertDenied("anonymous community private info read", () =>
+    getDoc(doc(anon.db, "community_pages/ch-zurich/private_info/link_cards"))
+  );
+  await assertAllowed("authenticated community private info read", () =>
+    getDoc(doc(owner.db, "community_pages/ch-zurich/private_info/link_cards"))
+  );
+  await assertAllowed("admin community private info read", () =>
+    getDoc(doc(adminUser.db, "community_pages/ch-zurich/private_info/link_cards"))
   );
   await assertAllowed("anonymous leaderboard read", () =>
     getDoc(doc(anon.db, "leaderboards/spots_edited"))
@@ -926,6 +944,10 @@ async function testReadOnlyBackendCollections(owner) {
     ["event slug", "event_slugs/client-event"],
     ["series", "series/client-series"],
     ["community page", "community_pages/client-community"],
+    [
+      "community private info",
+      "community_pages/client-community/private_info/link_cards",
+    ],
     ["community slug", "community_slugs/client-community"],
     ["leaderboard", "leaderboards/client-board"],
   ]) {
@@ -1341,7 +1363,7 @@ async function main() {
   const adminUser = await createClient("admin");
 
   console.log("Running Firestore rules security tests...");
-  await testPublicReadSurface(anon, adminUser);
+  await testPublicReadSurface(anon, owner, adminUser);
   await testSpotWriteGuards(anon, owner, other, adminUser);
   await testOrganizationGuards(anon, owner, other, adminUser);
   await testPrivateOrganizationReviewEdits(anon, owner, other, adminUser);

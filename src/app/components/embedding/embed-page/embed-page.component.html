@@ -47,7 +47,7 @@
             [ngModel]="embedLanguage()"
             (ngModelChange)="onLanguageChange($event)"
           >
-            <mat-option value="auto">Automatic</mat-option>
+            <mat-option value="auto">Default language</mat-option>
             @for(code of supportedLanguageCodes; track $index) {
             <mat-option [value]="code"
               >{{ languages[code].name_native }} ({{ code }})</mat-option
@@ -91,17 +91,13 @@
         <iframe
           class="bg-black overflow-hidden d-block"
           [src]="safeIframeUrl()"
-          title="PK Spot embedded event preview"
-          i18n-title="@@embed_preview_iframe_title"
+          [title]="embedCreditText().iframeTitle"
         ></iframe>
         @if (publicContentUrl()) {
-          <div
-            class="embed-preview__credit"
-            i18n="@@embed_preview_event_data_by_pkspot"
-          >
-            <span>Interactive event embed</span>
+          <div class="embed-preview__credit">
+            <span>{{ embedCreditText().interactiveLabel }}</span>
             <span
-              >Event data by
+              >{{ embedCreditText().dataByLabel }}
               <a
                 [href]="publicContentUrl()"
                 target="_top"

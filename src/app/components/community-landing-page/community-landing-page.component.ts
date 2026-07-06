@@ -4,6 +4,7 @@ import {
   Component,
   LOCALE_ID,
   computed,
+  effect,
   inject,
   input,
   output,
@@ -19,7 +20,7 @@ import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatSelectModule } from "@angular/material/select";
 import { ActivatedRoute, RouterLink } from "@angular/router";
-import { map } from "rxjs/operators";
+import { map, startWith } from "rxjs/operators";
 import { SpotListComponent } from "../spot-list/spot-list.component";
 import {
   CommunityLandingPageData as CommunityPanelData,
@@ -70,6 +71,7 @@ interface CommunityInfoCardView {
   icon: string;
   disclosure: string | null;
   cta: CommunityInfoCardCtaView | null;
+  requiresSignInForCta: boolean;
   priority: number;
 }
 
@@ -136,6 +138,13 @@ export class CommunityLandingPageComponent {
   exploreCommunitySpots = output<CommunityExploreMode>();
 
   isAdmin = computed(() => this._authService.isAdmin());
+  private _authUser = toSignal(
+    this._authService.authState$.pipe(
+      startWith(this._authService.authState$.getValue()),
+    ),
+    { initialValue: this._authService.authState$.getValue() },
+  );
+  isSignedIn = computed(() => !!this._authUser());
   isEditingKnowledge = signal(false);
   isSavingKnowledge = signal(false);
   isSavingCommunityMerge = signal(false);
@@ -147,6 +156,28 @@ export class CommunityLandingPageComponent {
     communityKey: string;
     infoCards: CommunityInfoCardSchema[];
   } | null>(null);
+  private _privateInfoCards = signal<{
+    communityKey: string;
+    infoCards: CommunityInfoCardSchema[];
+  } | null>(null);
+  private _privateInfoCardLoads = new Set<string>();
+
+  constructor() {
+    effect(() => {
+      const communityKey = this.communityData()?.communityKey;
+      if (!this.isSignedIn()) {
+        this._privateInfoCards.set(null);
+        this._privateInfoCardLoads.clear();
+        return;
+      }
+
+      if (!communityKey) {
+        return;
+      }
+
+      void this._loadPrivateInfoCards(communityKey);
+    });
+  }
 
   onClose() {
     this.closePanel.emit();
@@ -263,11 +294,12 @@ export class CommunityLandingPageComponent {
     () => this.communityData()?.childCommunities ?? [],
   );
   communityInfoCards = computed(() =>
-    this._toCommunityInfoCards(this.communityData()?.infoCards ?? []),
+    this._toCommunityInfoCards(this._allInfoCards()),
   );
-  communityKnowledgeCards = computed(
-    () => this.communityData()?.infoCards ?? [],
-  );
+  communityKnowledgeCards = computed(() => this._allInfoCards());
+  signInQueryParams = computed(() => ({
+    returnUrl: this.communityData()?.canonicalPath ?? "/map",
+  }));
   contactQueryParams = computed(() => {
     const data = this.communityData();
     return {
@@ -426,9 +458,21 @@ export class CommunityLandingPageComponent {
         data.communityKey,
         cards,
       );
+      const publicInfoCards = cards.map((card) =>
+        this._hasSignedInOnlyCta(card)
+          ? this._publicCommunityInfoCard(card)
+          : card,
+      );
+      const privateInfoCards = cards.filter((card) =>
+        this._hasSignedInOnlyCta(card),
+      );
       this._infoCardsOverride.set({
         communityKey: data.communityKey,
-        infoCards: cards,
+        infoCards: publicInfoCards,
+      });
+      this._privateInfoCards.set({
+        communityKey: data.communityKey,
+        infoCards: privateInfoCards,
       });
       this.isEditingKnowledge.set(false);
       this._snackbar.open($localize`Community knowledge saved`, undefined, {
@@ -567,13 +611,16 @@ export class CommunityLandingPageComponent {
       .filter((card) => card.visibility !== "hidden")
       .map((card, index) => {
         const title = communityLocalizedText(card.title, this._locale);
+        const cta = this._communityInfoCardCta(card);
         return {
           id: card.id || `${index}-${title}`,
           title,
           body: communityLocalizedText(card.body, this._locale) || null,
           icon: communityInfoCardCategoryIcon(card.category),
           disclosure: this._communityInfoDisclosure(card),
-          cta: this._communityInfoCardCta(card),
+          cta,
+          requiresSignInForCta:
+            !this.isSignedIn() && !cta && card.ctaVisibility === "signed-in",
           priority: card.priority ?? index,
         };
       })
@@ -582,6 +629,68 @@ export class CommunityLandingPageComponent {
         (left, right) =>
           left.priority - right.priority || left.id.localeCompare(right.id),
       );
+  }
+
+  private _allInfoCards(): CommunityInfoCardSchema[] {
+    const data = this.communityData();
+    if (!data) {
+      return [];
+    }
+
+    const privateCards = this._privateInfoCards();
+    if (privateCards?.communityKey !== data.communityKey) {
+      return data.infoCards ?? [];
+    }
+
+    const mergedCards = new Map<string, CommunityInfoCardSchema>();
+    for (const card of data.infoCards ?? []) {
+      mergedCards.set(card.id, card);
+    }
+    for (const privateCard of privateCards.infoCards) {
+      const publicCard = mergedCards.get(privateCard.id);
+      mergedCards.set(privateCard.id, {
+        ...publicCard,
+        ...privateCard,
+      });
+    }
+
+    return Array.from(mergedCards.values());
+  }
+
+  private _hasSignedInOnlyCta(card: CommunityInfoCardSchema): boolean {
+    return (
+      card.cta?.target === "url" &&
+      (card.ctaVisibility === "signed-in" ||
+        (card.ctaVisibility !== "public" && card.category === "chat"))
+    );
+  }
+
+  private _publicCommunityInfoCard(
+    card: CommunityInfoCardSchema,
+  ): CommunityInfoCardSchema {
+    const { cta: _cta, ...publicCard } = card;
+    return {
+      ...publicCard,
+      ctaVisibility: "signed-in",
+    };
+  }
+
+  private async _loadPrivateInfoCards(communityKey: string): Promise<void> {
+    if (this._privateInfoCardLoads.has(communityKey)) {
+      return;
+    }
+
+    this._privateInfoCardLoads.add(communityKey);
+    try {
+      const infoCards =
+        await this._landingPagesService.getCommunityPrivateInfoCards(
+          communityKey,
+        );
+      this._privateInfoCards.set({ communityKey, infoCards });
+    } catch (error) {
+      this._privateInfoCardLoads.delete(communityKey);
+      console.warn("Failed to load private community info cards", error);
+    }
   }
 
   private _communityInfoDisclosure(

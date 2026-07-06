@@ -41,6 +41,8 @@ export interface ModerationReportItem {
   profileImageSrc?: string;
   mediaSource?: "storage" | "external";
   mediaSourceLabel?: string;
+  canKeepWarning: boolean;
+  canDeleteMedia: boolean;
   raw: SpotReportSchema | MediaReportSchema | UserReportSchema;
 }
 
@@ -186,6 +188,8 @@ export class ModerationReportsService {
       previewImageSrc: report.spot?.imageSrc,
       spotLocality: report.spot?.locality,
       spotType: report.spot?.type,
+      canKeepWarning: true,
+      canDeleteMedia: false,
       raw: report,
     };
   }
@@ -208,7 +212,7 @@ export class ModerationReportsService {
       createdAt: report.createdAt,
       createdAtMillis,
       reporterLabel: this._formatUser(report.user),
-      targetLabel: targetId ?? report.media?.src ?? "Media",
+      targetLabel: targetId ?? report.media?.src ?? report.media?.storage_path ?? "Media",
       targetPath,
       comment: report.comment,
       mediaSrc: report.media?.src,
@@ -216,6 +220,8 @@ export class ModerationReportsService {
       spotId: report.spotId,
       mediaSource,
       mediaSourceLabel: mediaSource === "storage" ? "Storage media" : "External media",
+      canKeepWarning: Boolean(report.media?.src && targetPath),
+      canDeleteMedia: Boolean(report.media?.src && targetPath),
       raw: report,
     };
   }
@@ -243,6 +249,8 @@ export class ModerationReportsService {
       profileUserId,
       profileImageSrc: report.reportedUser?.profile_picture,
       previewImageSrc: report.reportedUser?.profile_picture,
+      canKeepWarning: false,
+      canDeleteMedia: false,
       raw: report,
     };
   }
@@ -254,7 +262,7 @@ export class ModerationReportsService {
       return undefined;
     }
 
-    const schema = media as MediaSchema;
+    const schema = media as unknown as MediaSchema;
     if (schema.type === MediaType.Video) {
       return undefined;
     }

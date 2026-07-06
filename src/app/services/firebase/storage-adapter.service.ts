@@ -97,6 +97,14 @@ export class StorageAdapterService {
     return this.uploadFileWeb(options);
   }
 
+  buildPublicUrl(path: string): string {
+    const bucket = this.storage.app.options.storageBucket;
+    const encodedPath = encodeURIComponent(path);
+    return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedPath}?alt=media`
+      .replace(/\.MP4\?/, ".mp4?")
+      .replace(/\.mov\?/i, ".mp4?");
+  }
+
   private async uploadFileWeb(options: UploadFileOptions): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       runInInjectionContext(this.injector, () => {
@@ -148,16 +156,7 @@ export class StorageAdapterService {
           },
           () => {
             // Generate public URL without token
-            const bucket = this.storage.app.options.storageBucket;
-            const encodedPath = encodeURIComponent(options.path);
-            const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedPath}?alt=media`;
-
-            // Normalize extensions
-            const normalizedUrl = publicUrl
-              .replace(/\.MP4\?/, ".mp4?")
-              .replace(/\.mov\?/i, ".mp4?");
-
-            resolve(normalizedUrl);
+            resolve(this.buildPublicUrl(options.path));
           }
         );
       });
@@ -214,15 +213,11 @@ export class StorageAdapterService {
             if (event.completed) {
               // Generate public URL without token (same format as web)
               // This matches the token-less URL format used in uploadFileWeb
-              const bucket = this.storage.app.options.storageBucket;
-              const encodedPath = encodeURIComponent(options.path);
-              const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedPath}?alt=media`;
-
               // Clean up temporary file if we created one
               if (typeof options.data !== "string") {
                 this.cleanupTempFile(options.path).catch(console.warn);
               }
-              resolve(publicUrl);
+              resolve(this.buildPublicUrl(options.path));
             }
           }
         }

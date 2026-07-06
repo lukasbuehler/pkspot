@@ -93,6 +93,11 @@ describe("FirebaseAppCheckService", () => {
         FIREBASE_APPCHECK_DEBUG_TOKEN?: boolean | string;
       }
     ).FIREBASE_APPCHECK_DEBUG_TOKEN;
+    delete (
+      globalThis as typeof globalThis & {
+        __PKSPOT_STORE_SCREENSHOT__?: boolean;
+      }
+    ).__PKSPOT_STORE_SCREENSHOT__;
   });
 
   it("skips initialization during SSR", async () => {
@@ -139,6 +144,39 @@ describe("FirebaseAppCheckService", () => {
     );
     expect(getToken).toHaveBeenCalledWith({ app: "app-check" });
     expect(FirebaseAppCheck.initialize).not.toHaveBeenCalled();
+  });
+
+  it("skips initialization during store screenshot rendering", async () => {
+    (
+      globalThis as typeof globalThis & {
+        __PKSPOT_STORE_SCREENSHOT__?: boolean;
+      }
+    ).__PKSPOT_STORE_SCREENSHOT__ = true;
+
+    TestBed.configureTestingModule({
+      providers: [
+        FirebaseAppCheckService,
+        { provide: FirebaseApp, useValue: {} },
+        { provide: PLATFORM_ID, useValue: "browser" },
+        { provide: PlatformService, useValue: createPlatformService("web") },
+      ],
+    });
+
+    const service = TestBed.inject(FirebaseAppCheckService);
+    await service.initialize({
+      enabled: true,
+      recaptchaEnterpriseSiteKey: "site-key",
+    });
+
+    expect(FirebaseAppCheck.initialize).not.toHaveBeenCalled();
+    expect(initializeAppCheck).not.toHaveBeenCalled();
+    expect(getToken).not.toHaveBeenCalled();
+    expect(service.status()).toEqual(
+      expect.objectContaining({
+        state: "skipped",
+        platform: "store-screenshot",
+      })
+    );
   });
 
   it("sets the web debug token before direct web initialization", async () => {
@@ -225,7 +263,7 @@ describe("FirebaseAppCheckService", () => {
     );
   });
 
-  it("logs and rethrows a native App Check initialization failure", async () => {
+  it("logs and exposes a native App Check initialization failure", async () => {
     vi.mocked(FirebaseAppCheck.initialize).mockRejectedValueOnce(
       new Error("init failed")
     );
@@ -247,9 +285,9 @@ describe("FirebaseAppCheckService", () => {
       ],
     });
 
-    await expect(
-      TestBed.inject(FirebaseAppCheckService).initialize({ enabled: true })
-    ).rejects.toThrow("init failed");
+    const service = TestBed.inject(FirebaseAppCheckService);
+
+    await expect(service.initialize({ enabled: true })).resolves.toBeUndefined();
 
     expect(console.error).toHaveBeenCalledWith(
       "[AppCheck] Token check failed.",
@@ -258,6 +296,17 @@ describe("FirebaseAppCheckService", () => {
         phase: "initialize",
         appId: "native-app-id",
         projectId: "parkour-base-project",
+        error: expect.any(Error),
+      })
+    );
+    expect(service.status()).toEqual(
+      expect.objectContaining({
+        state: "failed",
+        platform: "android",
+        phase: "initialize",
+        appId: "native-app-id",
+        projectId: "parkour-base-project",
+        message: "init failed",
         error: expect.any(Error),
       })
     );

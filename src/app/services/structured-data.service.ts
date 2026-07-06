@@ -205,7 +205,7 @@ export class StructuredDataService {
         if (text) {
           part["text"] = text;
         }
-        const url = this.buildCommunityInfoCardUrl(card.cta);
+        const url = this.buildCommunityInfoCardUrl(card);
         if (url) {
           part["url"] = url;
         }
@@ -214,8 +214,9 @@ export class StructuredDataService {
   }
 
   private buildCommunityInfoCardUrl(
-    cta: CommunityLandingPageData["infoCards"][number]["cta"],
+    card: CommunityLandingPageData["infoCards"][number],
   ): string | undefined {
+    const cta = card.cta;
     if (!cta) {
       return undefined;
     }
@@ -228,6 +229,12 @@ export class StructuredDataService {
           `/events/${encodeURIComponent(cta.eventId)}`,
         );
       case "url":
+        if (
+          card.ctaVisibility === "signed-in" ||
+          (card.ctaVisibility !== "public" && card.category === "chat")
+        ) {
+          return undefined;
+        }
         return this.normalizeHttpUrl(cta.url);
     }
   }

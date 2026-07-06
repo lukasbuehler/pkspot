@@ -121,6 +121,36 @@ async function uploadAs(client, path, contentType, options = {}) {
   await uploadBytes(ref(client.storage, path), blobOf(contentType), metadata);
 }
 
+async function uploadIntakeAs(
+  client,
+  uploadId,
+  filename,
+  contentType,
+  destinationFolder,
+  destinationFilename,
+  options = {}
+) {
+  const uid = options.metadataUid ?? client.uid;
+  const pathUid = options.pathUid ?? client.uid;
+  const metadata = {
+    contentType,
+    customMetadata: {
+      ...(uid ? { uid } : {}),
+      upload_id: options.uploadIdMetadata ?? uploadId,
+      destination_folder: destinationFolder,
+      destination_filename: destinationFilename,
+      target_kind: options.targetKind ?? destinationFolder,
+      ...(options.targetId ? { target_id: options.targetId } : {}),
+    },
+  };
+
+  await uploadBytes(
+    ref(client.storage, `media_intake/${pathUid}/${uploadId}/${filename}`),
+    blobOf(contentType),
+    metadata
+  );
+}
+
 async function assertDenied(label, operation) {
   try {
     await operation();
@@ -169,90 +199,281 @@ async function main() {
   const anonymous = await createClient("anonymous");
   const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
 
-  console.log("Checking profile picture owner rules...");
+  console.log("Checking profile picture intake rules...");
   const profilePath = `profile_pictures/${USERS.uploader}`;
   await uploadAs(uploader, profilePath, "image/png");
-  assert.match(await getDownloadURL(ref(anonymous.storage, profilePath)), /^http/);
-  await deleteObject(ref(uploader.storage, profilePath));
+  await uploadIntakeAs(
+    uploader,
+    `profile-${suffix}`,
+    `profile-${suffix}.png`,
+    "image/png",
+    "profile_pictures",
+    USERS.uploader,
+    { targetKind: "profile" }
+  );
+  await assertDenied("anonymous intake read", () =>
+    getDownloadURL(
+      ref(
+        anonymous.storage,
+        `media_intake/${USERS.uploader}/profile-${suffix}/profile-${suffix}.png`
+      )
+    )
+  );
 
   await assertDenied("profile picture path for another user", () =>
-    uploadAs(uploader, `profile_pictures/${USERS.other}`, "image/png")
+    uploadIntakeAs(
+      uploader,
+      `profile-other-${suffix}`,
+      `profile-other-${suffix}.png`,
+      "image/png",
+      "profile_pictures",
+      USERS.other,
+      { targetKind: "profile" }
+    )
   );
   await assertDenied("profile picture with forged metadata uid", () =>
-    uploadAs(uploader, `profile_pictures/${USERS.uploader}`, "image/png", {
-      metadataUid: USERS.other,
-    })
+    uploadIntakeAs(
+      uploader,
+      `profile-forged-${suffix}`,
+      `profile-forged-${suffix}.png`,
+      "image/png",
+      "profile_pictures",
+      USERS.uploader,
+      {
+        targetKind: "profile",
+        pathUid: USERS.uploader,
+        uploadIdMetadata: `profile-forged-${suffix}`,
+        metadataUid: USERS.other,
+      }
+    )
   );
   await assertDenied("profile picture text upload", () =>
-    uploadAs(uploader, `profile_pictures/${USERS.uploader}.txt`, "text/plain")
+    uploadIntakeAs(
+      uploader,
+      `profile-text-${suffix}`,
+      `profile-text-${suffix}.txt`,
+      "text/plain",
+      "profile_pictures",
+      USERS.uploader,
+      { targetKind: "profile" }
+    )
   );
   await assertDenied("profile picture svg upload", () =>
-    uploadAs(uploader, `profile_pictures/${USERS.uploader}`, "image/svg+xml")
+    uploadIntakeAs(
+      uploader,
+      `profile-svg-${suffix}`,
+      `profile-svg-${suffix}.svg`,
+      "image/svg+xml",
+      "profile_pictures",
+      USERS.uploader,
+      { targetKind: "profile" }
+    )
   );
   await assertDenied("restricted profile picture upload", () =>
-    uploadAs(restricted, `profile_pictures/${USERS.restricted}`, "image/png")
+    uploadIntakeAs(
+      restricted,
+      `profile-restricted-${suffix}`,
+      `profile-restricted-${suffix}.png`,
+      "image/png",
+      "profile_pictures",
+      USERS.restricted,
+      { targetKind: "profile" }
+    )
   );
 
-  console.log("Checking spot media upload rules...");
+  console.log("Checking spot media intake rules...");
   const spotImagePath = `spot_pictures/${suffix}.jpg`;
   await uploadAs(uploader, spotImagePath, "image/jpeg");
-  assert.match(await getDownloadURL(ref(anonymous.storage, spotImagePath)), /^http/);
+  await uploadIntakeAs(
+    uploader,
+    `spot-${suffix}`,
+    `spot-${suffix}.jpg`,
+    "image/jpeg",
+    "spot_pictures",
+    `spot-${suffix}`,
+    { targetKind: "spot", targetId: "spot-id" }
+  );
 
   await assertDenied("anonymous spot image upload", () =>
-    uploadAs(anonymous, `spot_pictures/anon-${suffix}.jpg`, "image/jpeg")
+    uploadIntakeAs(
+      anonymous,
+      `anon-${suffix}`,
+      `anon-${suffix}.jpg`,
+      "image/jpeg",
+      "spot_pictures",
+      `anon-${suffix}`,
+      { targetKind: "spot", targetId: "spot-id" }
+    )
   );
   await assertDenied("spot text upload", () =>
-    uploadAs(uploader, `spot_pictures/${suffix}.txt`, "text/plain")
+    uploadIntakeAs(
+      uploader,
+      `spot-text-${suffix}`,
+      `spot-text-${suffix}.txt`,
+      "text/plain",
+      "spot_pictures",
+      `spot-text-${suffix}`,
+      { targetKind: "spot" }
+    )
   );
   await assertDenied("spot svg upload", () =>
-    uploadAs(uploader, `spot_pictures/${suffix}.svg`, "image/svg+xml")
+    uploadIntakeAs(
+      uploader,
+      `spot-svg-${suffix}`,
+      `spot-svg-${suffix}.svg`,
+      "image/svg+xml",
+      "spot_pictures",
+      `spot-svg-${suffix}`,
+      { targetKind: "spot" }
+    )
   );
   await assertDenied("spot image upload without expected extension", () =>
-    uploadAs(uploader, `spot_pictures/${suffix}`, "image/jpeg")
+    uploadIntakeAs(
+      uploader,
+      `spot-noext-${suffix}`,
+      `spot-noext-${suffix}`,
+      "image/jpeg",
+      "spot_pictures",
+      `spot-noext-${suffix}`,
+      { targetKind: "spot" }
+    )
   );
   await assertDenied("spot image upload with forged metadata uid", () =>
-    uploadAs(uploader, `spot_pictures/forged-${suffix}.jpg`, "image/jpeg", {
-      metadataUid: USERS.other,
-    })
+    uploadIntakeAs(
+      uploader,
+      `spot-forged-${suffix}`,
+      `spot-forged-${suffix}.jpg`,
+      "image/jpeg",
+      "spot_pictures",
+      `spot-forged-${suffix}`,
+      { targetKind: "spot", metadataUid: USERS.other }
+    )
   );
   await assertDenied("restricted spot image upload", () =>
-    uploadAs(restricted, `spot_pictures/restricted-${suffix}.jpg`, "image/jpeg")
+    uploadIntakeAs(
+      restricted,
+      `spot-restricted-${suffix}`,
+      `spot-restricted-${suffix}.jpg`,
+      "image/jpeg",
+      "spot_pictures",
+      `spot-restricted-${suffix}`,
+      { targetKind: "spot" }
+    )
   );
   await assertDenied("signed-in upload to unknown path", () =>
     uploadAs(uploader, `random_bucket/${suffix}.jpg`, "image/jpeg")
   );
 
   console.log("Checking post and challenge media paths...");
-  await uploadAs(uploader, `post_media/${suffix}.mp4`, "video/mp4");
-  await uploadAs(uploader, `challenges/${suffix}.mov`, "video/quicktime");
+  await uploadAs(uploader, `post_media/direct-${suffix}.mp4`, "video/mp4");
+  await uploadAs(uploader, `challenges/direct-${suffix}.mov`, "video/quicktime");
+  await uploadIntakeAs(
+    uploader,
+    `post-${suffix}`,
+    `post-${suffix}.mp4`,
+    "video/mp4",
+    "post_media",
+    `post-${suffix}`,
+    { targetKind: "post" }
+  );
+  await uploadIntakeAs(
+    uploader,
+    `challenge-${suffix}`,
+    `challenge-${suffix}.mov`,
+    "video/quicktime",
+    "challenges",
+    `challenge-${suffix}`,
+    { targetKind: "challenge" }
+  );
   await assertDenied("restricted post media upload", () =>
-    uploadAs(restricted, `post_media/restricted-${suffix}.mp4`, "video/mp4")
+    uploadIntakeAs(
+      restricted,
+      `post-restricted-${suffix}`,
+      `post-restricted-${suffix}.mp4`,
+      "video/mp4",
+      "post_media",
+      `post-restricted-${suffix}`,
+      { targetKind: "post" }
+    )
   );
   await assertDenied("restricted challenge media upload", () =>
-    uploadAs(restricted, `challenges/restricted-${suffix}.mov`, "video/quicktime")
+    uploadIntakeAs(
+      restricted,
+      `challenge-restricted-${suffix}`,
+      `challenge-restricted-${suffix}.mov`,
+      "video/quicktime",
+      "challenges",
+      `challenge-restricted-${suffix}`,
+      { targetKind: "challenge" }
+    )
   );
   await assertDenied("post media extension/content type mismatch", () =>
-    uploadAs(uploader, `post_media/mismatch-${suffix}.mp4`, "image/jpeg")
+    uploadIntakeAs(
+      uploader,
+      `post-mismatch-${suffix}`,
+      `post-mismatch-${suffix}.mp4`,
+      "image/jpeg",
+      "post_media",
+      `post-mismatch-${suffix}`,
+      { targetKind: "post" }
+    )
   );
   await assertDenied("challenge non-media upload", () =>
-    uploadAs(uploader, `challenges/${suffix}.txt`, "text/plain")
+    uploadIntakeAs(
+      uploader,
+      `challenge-text-${suffix}`,
+      `challenge-text-${suffix}.txt`,
+      "text/plain",
+      "challenges",
+      `challenge-text-${suffix}`,
+      { targetKind: "challenge" }
+    )
   );
 
   console.log("Checking admin-only event and import media rules...");
   await assertDenied("regular user event media upload", () =>
-    uploadAs(uploader, `event_media/${suffix}.webp`, "image/webp")
+    uploadIntakeAs(
+      uploader,
+      `event-${suffix}`,
+      `event-${suffix}.webp`,
+      "image/webp",
+      "event_media",
+      `event-${suffix}`,
+      { targetKind: "event_media" }
+    )
   );
   const eventMediaPath = `event_media/${suffix}.webp`;
   await uploadAs(adminClient, eventMediaPath, "image/webp");
-  assert.match(
-    await getDownloadURL(ref(anonymous.storage, eventMediaPath)),
-    /^http/
+  await uploadIntakeAs(
+    adminClient,
+    `event-admin-${suffix}`,
+    `event-admin-${suffix}.webp`,
+    "image/webp",
+    "event_media",
+    `event-admin-${suffix}`,
+    { targetKind: "event_media" }
   );
   await assertDenied("admin event text upload", () =>
-    uploadAs(adminClient, `event_media/${suffix}.txt`, "text/plain")
+    uploadIntakeAs(
+      adminClient,
+      `event-text-${suffix}`,
+      `event-text-${suffix}.txt`,
+      "text/plain",
+      "event_media",
+      `event-text-${suffix}`,
+      { targetKind: "event_media" }
+    )
   );
   await assertDenied("admin event svg upload", () =>
-    uploadAs(adminClient, `event_media/${suffix}.svg`, "image/svg+xml")
+    uploadIntakeAs(
+      adminClient,
+      `event-svg-${suffix}`,
+      `event-svg-${suffix}.svg`,
+      "image/svg+xml",
+      "event_media",
+      `event-svg-${suffix}`,
+      { targetKind: "event_media" }
+    )
   );
 
   await assertDenied("regular user import source upload", () =>

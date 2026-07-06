@@ -83,10 +83,15 @@ export interface CommunityInfoCardSchema {
   icon?: string;
   category?: CommunityInfoCardCategory;
   cta?: CommunityInfoCardCta;
+  ctaVisibility?: "public" | "signed-in";
   commercialDisclosure?: CommunityInfoCardDisclosure;
   priority?: number;
   visibility?: "public" | "hidden";
   origin_community_key?: string;
+}
+
+export interface CommunityPrivateInfoSchema {
+  infoCards?: CommunityInfoCardSchema[];
 }
 
 export type CommunityMergeInfoCardMode = "move" | "copy" | "skip";

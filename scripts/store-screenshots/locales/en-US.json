@@ -8,8 +8,8 @@
     "title": "Rain or snow",
     "subtitle": "Filter for dry or indoor spots with one tap."
   },
-  "filters": {
-    "title": "Don't just look. Find.",
-    "subtitle": "Everything you need for your next session."
+  "event": {
+    "title": "Find events and jams",
+    "subtitle": "Open details, maps, dates, and registration links in one place."
   }
 }

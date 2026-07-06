@@ -75,6 +75,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             return
         }
 
+        #if DEBUG
+        AppCheck.setAppCheckProviderFactory(AppCheckDebugProviderFactory())
+        print("Firebase App Check configured with debug provider.")
+        #else
+        AppCheck.setAppCheckProviderFactory(PKSpotAppCheckProviderFactory())
+        print("Firebase App Check configured with production provider.")
+        #endif
+
         FirebaseApp.configure()
     }
 
@@ -91,6 +99,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
 
         return nil
+    }
+}
+
+private final class PKSpotAppCheckProviderFactory: NSObject, AppCheckProviderFactory {
+    func createProvider(with app: FirebaseApp) -> AppCheckProvider? {
+        if #available(iOS 14.0, *) {
+            return AppAttestProvider(app: app)
+        }
+
+        return DeviceCheckProvider(app: app)
     }
 }
 

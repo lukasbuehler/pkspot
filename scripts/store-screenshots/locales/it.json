@@ -8,8 +8,8 @@
     "title": "Pioggia o neve",
     "subtitle": "Filtra spot asciutti o indoor con un tap."
   },
-  "filters": {
-    "title": "Non guardare soltanto. Trova.",
-    "subtitle": "Tutto quello che ti serve per la prossima sessione."
+  "event": {
+    "title": "Trova eventi e jam",
+    "subtitle": "Apri dettagli, mappe, date e link di iscrizione in un unico posto."
   }
 }

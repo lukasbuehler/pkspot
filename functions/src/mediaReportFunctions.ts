@@ -4,7 +4,12 @@ import { defineSecret } from "firebase-functions/params";
 import * as admin from "firebase-admin";
 
 interface MediaReportSchema {
-  media: any;
+  media: {
+    type?: string;
+    userId?: string;
+    src?: string;
+    source_page_url?: string;
+  };
   reason: string;
   comment: string;
   user: {
@@ -12,7 +17,8 @@ interface MediaReportSchema {
     email?: string;
     display_name?: string;
   };
-  createdAt: any;
+  createdAt: unknown;
+  source?: "user" | "scanner";
   locale?: string;
   spotId?: string;
   context?: "spot" | "event" | "media";
@@ -31,11 +37,15 @@ interface MediaReportSchema {
  * 5. Deploy: npm run deploy
  */
 const discordWebhookUrl = defineSecret("DISCORD_WEBHOOK_URL");
+const isEmulatorEnvironment =
+  process.env.FUNCTIONS_EMULATOR === "true" ||
+  !!process.env.FIRESTORE_EMULATOR_HOST;
+const mediaReportTriggerSecrets = isEmulatorEnvironment ? [] : [discordWebhookUrl];
 
 export const onMediaReportCreate = onDocumentCreated(
   {
     document: "media_reports/{reportId}",
-    secrets: [discordWebhookUrl],
+    secrets: mediaReportTriggerSecrets,
   },
   async (event) => {
     const reportId = event.params.reportId;
@@ -50,8 +60,16 @@ export const onMediaReportCreate = onDocumentCreated(
       logger.info(`New media report created: ${reportId}`, {
         reason: reportData.reason,
         reportedBy: reportData.user.uid,
-        mediaUserId: reportData.media.userId,
+        mediaUserId: reportData.media?.userId,
+        source: reportData.source ?? "user",
       });
+
+      if (reportData.source === "scanner") {
+        logger.info("Skipping Discord notification for scanner media report", {
+          reportId,
+        });
+        return;
+      }
 
       // Get Discord webhook URL from params secret
       const webhookUrl = discordWebhookUrl.value();
@@ -71,8 +89,13 @@ export const onMediaReportCreate = onDocumentCreated(
             const currentMedia = spotData?.["media"] || [];
             let found = false;
 
-            const updatedMedia = currentMedia.map((m: any) => {
-              if (m.src === reportData.media.src) {
+            const updatedMedia = currentMedia.map((m: unknown) => {
+              if (
+                m &&
+                typeof m === "object" &&
+                "src" in m &&
+                m.src === reportData.media.src
+              ) {
                 found = true;
                 return { ...m, isReported: true };
               }
@@ -118,8 +141,13 @@ export const onMediaReportCreate = onDocumentCreated(
             const currentMedia = eventData?.["media"] || [];
             let found = false;
 
-            const updatedMedia = currentMedia.map((m: any) => {
-              if (m.src === reportData.media.src) {
+            const updatedMedia = currentMedia.map((m: unknown) => {
+              if (
+                m &&
+                typeof m === "object" &&
+                "src" in m &&
+                m.src === reportData.media.src
+              ) {
                 found = true;
                 return { ...m, isReported: true };
               }
@@ -150,11 +178,13 @@ export const onMediaReportCreate = onDocumentCreated(
           "DISCORD_WEBHOOK_URL secret not set. Set it with: firebase functions:secrets:set DISCORD_WEBHOOK_URL"
         );
         return;
-      } // Create Discord embed message
+      }
+
+      // Create Discord embed message
       const reporterName =
-        ((reportData.user as any).display_name ||
-          (reportData.user as any).uid ||
-          "Unauthenticated") + ` (${(reportData.user as any).email})`;
+        (reportData.user.display_name ||
+          reportData.user.uid ||
+          "Unauthenticated") + ` (${reportData.user.email})`;
 
       const embed = {
         title: "🚨 New Media Report",

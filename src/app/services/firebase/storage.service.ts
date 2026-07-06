@@ -3,6 +3,7 @@ import { Observable } from "rxjs";
 import { AuthenticationService } from "./authentication.service";
 import { StorageMedia } from "../../../db/models/Media";
 import { StorageBucket } from "../../../db/schemas/Media";
+import type { MediaUploadTargetKind } from "../../../db/schemas/MediaModerationSchema";
 import { generateUUID } from "../../../scripts/Helpers";
 import { StorageAdapterService } from "./storage-adapter.service";
 
@@ -35,7 +36,9 @@ export class StorageService {
     progressCallback?: (progressPercent: number) => void,
     filename?: string,
     fileEnding?: string,
-    cacheControl?: string
+    cacheControl?: string,
+    targetKind?: MediaUploadTargetKind,
+    targetId?: string
   ): Promise<string> {
     if (!this.isBrowser) {
       return Promise.reject(
@@ -54,13 +57,13 @@ export class StorageService {
       return Promise.reject("User is not signed in");
     }
 
-    const normalizedFileEnding = fileEnding?.toLowerCase();
+    const normalizedFileEnding =
+      fileEnding?.toLowerCase() ?? this.getExtensionFromContentType(blob.type);
 
     // Build the full storage path
     const storageFilename = filename ?? generateUUID();
-    const storagePath = `${location}/${storageFilename}${
-      normalizedFileEnding ? "." + normalizedFileEnding : ""
-    }`;
+    const extension = normalizedFileEnding ? "." + normalizedFileEnding : "";
+    const storagePath = `${location}/${storageFilename}${extension}`;
 
     // Determine content type from blob or file extension
     let contentType = blob.type;
@@ -80,6 +83,38 @@ export class StorageService {
       contentType = mimeTypes[normalizedFileEnding] || "";
     }
 
+    if (this.requiresModeration(location)) {
+      const uploadId = generateUUID();
+      const intakeExtension =
+        normalizedFileEnding ?? this.getExtensionFromContentType(contentType);
+      const intakeFilename = `${uploadId}${intakeExtension ? "." + intakeExtension : ""}`;
+      const intakePath = `${StorageBucket.MediaIntake}/${uid}/${uploadId}/${intakeFilename}`;
+      const approvedPath = `${location}/${storageFilename}${
+        location === StorageBucket.ProfilePictures ? "" : extension
+      }`;
+
+      return this.storageAdapter
+        .uploadFile({
+          data: blob,
+          path: intakePath,
+          metadata: {
+            uid: uid,
+            contentType: contentType || undefined,
+            cacheControl: cacheControl,
+            customMetadata: {
+              upload_id: uploadId,
+              destination_folder: location,
+              destination_filename: storageFilename,
+              target_kind: targetKind ?? this.defaultTargetKind(location),
+              ...(targetId ? { target_id: targetId } : {}),
+              ...(cacheControl ? { cache_control: cacheControl } : {}),
+            },
+          },
+          onProgress: progressCallback,
+        })
+        .then(() => this.storageAdapter.buildPublicUrl(approvedPath));
+    }
+
     return this.storageAdapter.uploadFile({
       data: blob,
       path: storagePath,
@@ -90,6 +125,49 @@ export class StorageService {
       },
       onProgress: progressCallback,
     });
+  }
+
+  private requiresModeration(location: StorageBucket): boolean {
+    return [
+      StorageBucket.ProfilePictures,
+      StorageBucket.SpotPictures,
+      StorageBucket.PostMedia,
+      StorageBucket.Challenges,
+      StorageBucket.EventMedia,
+    ].includes(location);
+  }
+
+  private defaultTargetKind(location: StorageBucket): MediaUploadTargetKind {
+    switch (location) {
+      case StorageBucket.ProfilePictures:
+        return "profile";
+      case StorageBucket.SpotPictures:
+        return "spot";
+      case StorageBucket.PostMedia:
+        return "post";
+      case StorageBucket.Challenges:
+        return "challenge";
+      case StorageBucket.EventMedia:
+        return "event_media";
+      default:
+        return "post";
+    }
+  }
+
+  private getExtensionFromContentType(contentType: string | undefined): string | undefined {
+    const mimeTypes: Record<string, string> = {
+      "image/jpeg": "jpg",
+      "image/jpg": "jpg",
+      "image/png": "png",
+      "image/gif": "gif",
+      "image/webp": "webp",
+      "video/mp4": "mp4",
+      "video/quicktime": "mov",
+      "video/webm": "webm",
+      "application/vnd.google-earth.kml+xml": "kml",
+      "application/vnd.google-earth.kmz": "kmz",
+    };
+    return contentType ? mimeTypes[contentType] : undefined;
   }
 
   deleteFromStorage(bucket: StorageBucket, filename: string): Promise<void>;

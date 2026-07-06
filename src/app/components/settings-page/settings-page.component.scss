@@ -39,6 +39,30 @@ button.menuButton.selected {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.app-check-status {
+  align-items: flex-start;
+  background: var(--mat-sys-surface-container);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  color: var(--mat-sys-on-surface-variant);
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+
+  mat-icon {
+    color: var(--mat-sys-outline);
+    flex: 0 0 auto;
+  }
+
+  &.app-check-status-ready mat-icon {
+    color: var(--mat-sys-primary);
+  }
+
+  &.app-check-status-failed mat-icon {
+    color: var(--mat-sys-error);
+  }
+}
+
 #saveSpeedDial {
   position: absolute;
   z-index: 2;

@@ -93,6 +93,55 @@ async function assertFileMissing(filePath) {
   assert.equal(exists, false, `${filePath} should not exist`);
 }
 
+async function waitForReviewStatus(reviewId, status, timeoutMs = 60_000) {
+  const startedAt = Date.now();
+  const reviewRef = db.collection("media_upload_reviews").doc(reviewId);
+
+  while (Date.now() - startedAt < timeoutMs) {
+    const snapshot = await reviewRef.get();
+    if (snapshot.exists && snapshot.data().status === status) {
+      return snapshot;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  throw new Error(`Timed out waiting for media_upload_reviews/${reviewId}=${status}`);
+}
+
+async function waitForIncident(reviewPath, timeoutMs = 60_000) {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeoutMs) {
+    const snapshot = await db
+      .collection("csam_incidents")
+      .where("review_path", "==", reviewPath)
+      .get();
+    if (!snapshot.empty) {
+      return snapshot.docs[0];
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  throw new Error(`Timed out waiting for csam incident for ${reviewPath}`);
+}
+
+async function waitForMediaReport(reviewPath, timeoutMs = 60_000) {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeoutMs) {
+    const snapshot = await db
+      .collection("media_reports")
+      .where("review_path", "==", reviewPath)
+      .get();
+    if (!snapshot.empty) {
+      return snapshot.docs[0];
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  throw new Error(`Timed out waiting for media report for ${reviewPath}`);
+}
+
 async function assertDerivative(
   originalPath,
   size,
@@ -166,6 +215,68 @@ async function main() {
     customMetadata
   );
   await assertOriginalArchived(originalPath, customMetadata);
+
+  console.log("Checking moderated intake approval promotes image before resizing...");
+  const moderatedUploadId = `moderated-${suffix}`;
+  const moderatedIntakePath = `media_intake/${uid}/${moderatedUploadId}/${moderatedUploadId}.jpg`;
+  const moderatedApprovedPath = `spot_pictures/${moderatedUploadId}.jpg`;
+  await bucket.upload(ORIGINAL_IMAGE, {
+    destination: moderatedIntakePath,
+    resumable: false,
+    metadata: {
+      contentType: "image/jpeg",
+      metadata: {
+        uid,
+        upload_id: moderatedUploadId,
+        destination_folder: "spot_pictures",
+        destination_filename: moderatedUploadId,
+        target_kind: "post",
+      },
+    },
+  });
+  const moderatedReview = await waitForReviewStatus(moderatedUploadId, "approved");
+  assert.equal(moderatedReview.data().approved_path, moderatedApprovedPath);
+  await assertFileMissing(moderatedIntakePath);
+  await assertDerivativesForOriginal(moderatedApprovedPath, {
+    uid,
+    upload_id: moderatedUploadId,
+    moderated: "true",
+  });
+  await assertOriginalArchived(moderatedApprovedPath, {
+    uid,
+    upload_id: moderatedUploadId,
+    moderated: "true",
+  });
+
+  console.log("Checking reportable safety matches stay quarantined and create incidents...");
+  const blockedUploadId = `blocked-${suffix}`;
+  const blockedIntakePath = `media_intake/${uid}/${blockedUploadId}/${blockedUploadId}.jpg`;
+  const blockedApprovedPath = `spot_pictures/${blockedUploadId}.jpg`;
+  await bucket.upload(ORIGINAL_IMAGE, {
+    destination: blockedIntakePath,
+    resumable: false,
+    metadata: {
+      contentType: "image/jpeg",
+      metadata: {
+        uid,
+        upload_id: blockedUploadId,
+        destination_folder: "spot_pictures",
+        destination_filename: blockedUploadId,
+        target_kind: "post",
+        emulator_safety_result: "reportable_match",
+      },
+    },
+  });
+  const blockedReview = await waitForReviewStatus(blockedUploadId, "blocked");
+  assert.equal(blockedReview.data().scan_result.decision, "reportable_match");
+  const blockedReviewPath = `media_upload_reviews/${blockedUploadId}`;
+  await waitForIncident(blockedReviewPath);
+  const blockedReport = await waitForMediaReport(blockedReviewPath);
+  assert.equal(blockedReport.data().source, "scanner");
+  assert.equal(blockedReport.data().reason, "known_csam_match");
+  assert.equal(blockedReport.data().media.storage_path, blockedIntakePath);
+  await assertFileMissing(blockedIntakePath);
+  await assertFileMissing(blockedApprovedPath);
 
   console.log("Checking extensionless profile picture derivatives and archiving...");
   const profilePath = `profile_pictures/${uid}`;

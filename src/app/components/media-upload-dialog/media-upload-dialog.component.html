@@ -4,6 +4,8 @@
     [allowedMimeTypes]="allowedMimeTypes"
     [multipleAllowed]="multipleAllowed"
     [storageFolder]="storageFolder"
+    [moderationTargetKind]="'spot'"
+    [moderationTargetId]="data.spotId"
     (mediaBatchUploaded)="onMediaBatchUploaded($event)"
     (isUploading)="onUploadingChange($event)"
   ></app-media-upload>

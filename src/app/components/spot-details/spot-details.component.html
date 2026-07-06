@@ -1125,17 +1125,20 @@
             (change)="setHideStreetviewFromToggle($event)"
             >Hide Streetview</mat-slide-toggle
           >
-        </div>
 
-        <!-- Iconic -->
-        <!-- <mat-slide-toggle
-      i18n
-      class="mb-4"
-      [checked]="spot()!.isIconic"
-      color="primary"
-      (change)="setSpotIconicFromToggle($event)"
-      >Iconic Spot</mat-slide-toggle
-    > -->
+          @if (isAdmin() && !isNewSpot) {
+            <mat-slide-toggle
+              i18n="
+                iconic spot toggle|Admin toggle for marking a spot as
+                iconic@@spot.edit.is_iconic"
+              class="mb-4"
+              [checked]="spot()!.isIconic"
+              color="primary"
+              (change)="setSpotIconicFromToggle($event)"
+              >Iconic Spot</mat-slide-toggle
+            >
+          }
+        </div>
 
         <!-- Description -->
         <h4

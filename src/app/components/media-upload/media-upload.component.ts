@@ -29,6 +29,7 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { StorageService } from "../../services/firebase/storage.service";
 import { MediaType } from "../../../db/models/Interfaces";
 import { StorageBucket } from "../../../db/schemas/Media";
+import type { MediaUploadTargetKind } from "../../../db/schemas/MediaModerationSchema";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 
 export interface UploadMedia {
@@ -69,6 +70,8 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
   @Input() maximumSizeInBytes: number = 500 * 1024 * 1024; // 500 MB
   @Input() allowedMimeTypes: string[] | null = null;
   @Input() acceptString: string | null = null;
+  @Input() moderationTargetKind: MediaUploadTargetKind | null = null;
+  @Input() moderationTargetId: string | null = null;
   @Output() changed = new EventEmitter<void>();
   @Output() newMedia = new EventEmitter<{
     src: string;
@@ -256,7 +259,9 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
         },
         filename,
         fileEnding,
-        "public, max-age=31536000"
+        "public, max-age=31536000",
+        this.moderationTargetKind ?? undefined,
+        this.moderationTargetId ?? undefined
       )
       .then(
         (imageLink) => {

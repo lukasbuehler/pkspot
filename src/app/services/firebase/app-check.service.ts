@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from "@angular/common";
-import { Injectable, PLATFORM_ID, inject } from "@angular/core";
+import { Injectable, PLATFORM_ID, inject, signal } from "@angular/core";
 import { FirebaseApp } from "@angular/fire/app";
 import {
   FirebaseAppCheck,
@@ -20,6 +20,20 @@ export interface FirebaseAppCheckSettings {
   recaptchaEnterpriseSiteKey?: string;
   debugToken?: boolean | string;
 }
+
+export interface FirebaseAppCheckStatus {
+  state: "idle" | "initializing" | "ready" | "skipped" | "failed";
+  platform?: string;
+  phase?: "initialize" | "getToken";
+  appId?: string;
+  projectId?: string;
+  message?: string;
+  error?: unknown;
+}
+
+type ScreenshotGlobal = typeof globalThis & {
+  __PKSPOT_STORE_SCREENSHOT__?: unknown;
+};
 
 export function buildFirebaseAppCheckNativeInitializeOptions(
   settings: FirebaseAppCheckSettings | undefined,
@@ -65,6 +79,11 @@ export class FirebaseAppCheckService {
   private readonly platformService = inject(PlatformService);
   private readonly app = inject(FirebaseApp);
   private initializationPromise: Promise<void> | null = null;
+  private readonly _status = signal<FirebaseAppCheckStatus>({
+    state: "idle",
+  });
+
+  readonly status = this._status.asReadonly();
 
   initialize(
     settings: FirebaseAppCheckSettings | undefined = environment.appCheck,
@@ -86,10 +105,26 @@ export class FirebaseAppCheckService {
     settings: FirebaseAppCheckSettings | undefined,
   ): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) {
+      this._status.set({ state: "skipped", platform: "server" });
+      return;
+    }
+
+    if (this.isStoreScreenshotRun()) {
+      this._status.set({
+        state: "skipped",
+        platform: "store-screenshot",
+        message: "App Check is skipped for local store screenshot rendering.",
+      });
       return;
     }
 
     const platform = this.platformService.getPlatform();
+    this._status.set({
+      state: "initializing",
+      platform,
+      appId: this.getFirebaseAppId(),
+      projectId: this.getFirebaseProjectId(),
+    });
 
     if (platform === "web") {
       this.initializeWeb(settings);
@@ -110,8 +145,12 @@ export class FirebaseAppCheckService {
     }
 
     this.configureWebDebugToken(settings);
-    const appCheck = initializeAppCheck(this.app, options);
-    this.verifyWebToken(appCheck, platform);
+    try {
+      const appCheck = initializeAppCheck(this.app, options);
+      this.verifyWebToken(appCheck, platform);
+    } catch (error) {
+      this.logFailure(platform, "initialize", error);
+    }
   }
 
   private async initializeNative(
@@ -129,7 +168,6 @@ export class FirebaseAppCheckService {
       await this.verifyNativeToken(platform);
     } catch (error) {
       this.logFailure(platform, "initialize", error);
-      throw error;
     }
   }
 
@@ -157,6 +195,12 @@ export class FirebaseAppCheckService {
     token: string,
     expireTimeMillis?: number,
   ): void {
+    this._status.set({
+      state: "ready",
+      platform,
+      appId: this.getFirebaseAppId(),
+      projectId: this.getFirebaseProjectId(),
+    });
     console.info("[AppCheck] Token check succeeded.", {
       platform,
       appId: this.getFirebaseAppId(),
@@ -171,6 +215,15 @@ export class FirebaseAppCheckService {
     phase: "initialize" | "getToken",
     error: unknown,
   ): void {
+    this._status.set({
+      state: "failed",
+      platform,
+      phase,
+      appId: this.getFirebaseAppId(),
+      projectId: this.getFirebaseProjectId(),
+      message: this.formatErrorMessage(error),
+      error,
+    });
     console.error("[AppCheck] Token check failed.", {
       platform,
       phase,
@@ -184,12 +237,33 @@ export class FirebaseAppCheckService {
     platform: string,
     settings: FirebaseAppCheckSettings | undefined,
   ): void {
+    this._status.set({
+      state: "skipped",
+      platform,
+      appId: this.getFirebaseAppId(),
+      projectId: this.getFirebaseProjectId(),
+      message: settings?.enabled
+        ? "App Check configuration is incomplete."
+        : "App Check is disabled.",
+    });
     console.warn("[AppCheck] Initialization skipped.", {
       platform,
       appId: this.getFirebaseAppId(),
       projectId: this.getFirebaseProjectId(),
       enabled: settings?.enabled ?? false,
     });
+  }
+
+  private isStoreScreenshotRun(): boolean {
+    if ((globalThis as ScreenshotGlobal).__PKSPOT_STORE_SCREENSHOT__ !== true) {
+      return false;
+    }
+
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
   }
 
   private warnAboutMissingWebConfiguration(
@@ -228,5 +302,22 @@ export class FirebaseAppCheckService {
       options?: Record<string, unknown>;
     }).options?.[key];
     return typeof value === "string" ? value : undefined;
+  }
+
+  private formatErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "message" in error &&
+      typeof (error as { message?: unknown }).message === "string"
+    ) {
+      return (error as { message: string }).message;
+    }
+
+    return String(error ?? "Unknown App Check error");
   }
 }

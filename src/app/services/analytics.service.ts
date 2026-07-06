@@ -7,7 +7,7 @@ import { environment } from "../../environments/environment.default";
 import { Capacitor } from "@capacitor/core";
 import { Posthog as CapacitorPostHog } from "@capawesome/capacitor-posthog";
 import { filter } from "rxjs/operators";
-import { dependencies, version } from "../../../package.json";
+import { version } from "../../../package.json";
 
 /**
  * Analytics service wrapping PostHog for event tracking.
@@ -35,6 +35,11 @@ export interface AnalyticsContext {
 
 export type ContactChannel = "contact_form" | "discord" | "instagram";
 
+interface PendingUserIdentity {
+  userId: string;
+  properties?: Record<string, unknown>;
+}
+
 export function stripUtmParametersFromUrl(url: string): string {
   const parsedUrl = new URL(url, "https://pkspot.app");
 
@@ -59,13 +64,14 @@ export class AnalyticsService {
   private readonly _nativeSuperProperties = new Map<string, unknown>();
   private _lastNativeScreenUrl: string | null = null;
   private readonly appVersion = version;
-  private readonly nativePostHogBridgeVersion =
-    dependencies["@capawesome/capacitor-posthog"].replace(/^[^\d]*/, "");
   private readonly distinctIdStorageKey = "ph_distinct_id_v1";
   private readonly initialReferrerStorageKey = "ph_initial_referrer_v1";
   private readonly initialReferringDomainStorageKey =
     "ph_initial_referring_domain_v1";
   private readonly stickerScanSessionPrefix = "ph_sticker_scan_sent_v1:";
+  private _pendingUserIdentity: PendingUserIdentity | null = null;
+  private _pendingUserProperties: Record<string, unknown> | null = null;
+  private _identifiedUserId: string | null = null;
   readonly utmSource = "pkspot";
 
   constructor() {
@@ -109,6 +115,7 @@ export class AnalyticsService {
       }
       this._initialized = true;
       await this.registerSuperProperties();
+      this.flushPendingUserIdentity();
     } catch (e) {
       console.error("[Analytics] Initialization failed", e);
     }
@@ -133,7 +140,6 @@ export class AnalyticsService {
         ...(properties ?? {}),
         ...this.getPlatformProperties(),
         ...this.getAppVersionProperties(),
-        ...this.getNativePostHogBridgeProperties(),
         $current_url: fullUrl,
         $pathname: pathname,
         current_url: fullUrl,
@@ -192,9 +198,6 @@ export class AnalyticsService {
       apiHost: host,
       captureApplicationLifecycleEvents: false,
       enableSessionReplay: false,
-      sessionReplayConfig: {
-        captureNetworkTelemetry: false,
-      },
     });
 
     console.log("[AnalyticsDebug] Native PostHog setup completed", {
@@ -206,7 +209,6 @@ export class AnalyticsService {
     await this.registerNativeSuperProperty({
       ...this.getPlatformProperties(),
       ...this.getAppVersionProperties(),
-      ...this.getNativePostHogBridgeProperties(),
     });
 
     // Auto-track screen views for Native (router-driven)
@@ -423,8 +425,18 @@ export class AnalyticsService {
    */
   identifyUser(userId: string, properties?: Record<string, unknown>): void {
     if (!this.isAvailable()) {
+      this.queueUserIdentity(userId, properties);
       return;
     }
+
+    this.applyUserIdentity(userId, properties);
+  }
+
+  private applyUserIdentity(
+    userId: string,
+    properties?: Record<string, unknown>,
+  ): void {
+    this._identifiedUserId = userId;
 
     if (this.isNative()) {
       void CapacitorPostHog.identify({
@@ -460,8 +472,15 @@ export class AnalyticsService {
    */
   resetUser(): void {
     if (!this.isAvailable()) {
+      this._pendingUserIdentity = null;
+      this._pendingUserProperties = null;
+      this._identifiedUserId = null;
       return;
     }
+
+    this._pendingUserIdentity = null;
+    this._pendingUserProperties = null;
+    this._identifiedUserId = null;
 
     if (this.isNative()) {
       void CapacitorPostHog.reset().catch((error) => {
@@ -545,12 +564,24 @@ export class AnalyticsService {
    */
   setUserProperties(properties: Record<string, unknown>): void {
     if (!this.isAvailable()) {
+      this.queueUserProperties(properties);
       return;
     }
     if (this.isNative()) {
-      // NOTE: Wrapper might not expose people.set directly
-      // fallback to capture $set if needed, but for now just logging as not fully supported without identify
-      console.warn("setUserProperties not fully implemented for Native");
+      if (!this._identifiedUserId) {
+        this.queueUserProperties(properties);
+        return;
+      }
+
+      void CapacitorPostHog.identify({
+        distinctId: this._identifiedUserId,
+        userProperties: properties,
+      }).catch((error) => {
+        console.warn(
+          "AnalyticsService: failed to set native user properties",
+          error,
+        );
+      });
     } else {
       this._posthog?.people.set(properties);
     }
@@ -647,6 +678,63 @@ export class AnalyticsService {
   // Private Helpers
   // ========================================================================
 
+  private queueUserIdentity(
+    userId: string,
+    properties?: Record<string, unknown>,
+  ): void {
+    this._pendingUserIdentity = {
+      userId,
+      properties: this.mergeUserProperties(
+        this._pendingUserProperties,
+        properties,
+      ),
+    };
+    this._pendingUserProperties = null;
+  }
+
+  private queueUserProperties(properties: Record<string, unknown>): void {
+    if (this._pendingUserIdentity) {
+      this._pendingUserIdentity = {
+        ...this._pendingUserIdentity,
+        properties: this.mergeUserProperties(
+          this._pendingUserIdentity.properties,
+          properties,
+        ),
+      };
+      return;
+    }
+
+    this._pendingUserProperties =
+      this.mergeUserProperties(this._pendingUserProperties, properties) ?? null;
+  }
+
+  private mergeUserProperties(
+    existing?: Record<string, unknown> | null,
+    next?: Record<string, unknown>,
+  ): Record<string, unknown> | undefined {
+    const merged = {
+      ...(existing ?? {}),
+      ...(next ?? {}),
+    };
+
+    return Object.keys(merged).length > 0 ? merged : undefined;
+  }
+
+  private flushPendingUserIdentity(): void {
+    const pendingIdentity = this._pendingUserIdentity;
+    if (pendingIdentity) {
+      this._pendingUserIdentity = null;
+      this.applyUserIdentity(pendingIdentity.userId, pendingIdentity.properties);
+      return;
+    }
+
+    if (this._pendingUserProperties) {
+      const pendingProperties = this._pendingUserProperties;
+      this._pendingUserProperties = null;
+      this.setUserProperties(pendingProperties);
+    }
+  }
+
   private isNative(): boolean {
     return Capacitor.isNativePlatform();
   }
@@ -679,13 +767,6 @@ export class AnalyticsService {
     } catch {
       return normalizedPath.split("?")[0]?.split("#")[0] || "/";
     }
-  }
-
-  private getNativePostHogBridgeProperties(): Record<string, string> {
-    return {
-      $lib: "capawesome-capacitor-posthog",
-      $lib_version: this.nativePostHogBridgeVersion,
-    };
   }
 
   private sendNativeScreen(
@@ -751,21 +832,26 @@ export class AnalyticsService {
       ...(properties ?? {}),
       ...this.getPlatformProperties(),
       ...this.getAppVersionProperties(),
-      ...this.getNativePostHogBridgeProperties(),
     };
   }
 
   private getNativeAnalyticsRequiredPropertySummary(
     properties?: Record<string, unknown>,
   ): Record<string, unknown> {
+    const platform = properties?.["platform"];
+
     return {
       app_version: properties?.["app_version"] ?? null,
       $app_version: properties?.["$app_version"] ?? null,
-      platform: properties?.["platform"] ?? null,
+      platform: platform ?? null,
       app_type: properties?.["app_type"] ?? null,
       is_native: properties?.["is_native"] ?? null,
-      $lib: properties?.["$lib"] ?? null,
-      $lib_version: properties?.["$lib_version"] ?? null,
+      expected_sdk_$lib:
+        platform === "android"
+          ? "posthog-android"
+          : platform === "ios"
+            ? "posthog-ios"
+            : null,
     };
   }
 
@@ -833,11 +919,7 @@ export class AnalyticsService {
     Object.assign(normalized, this.getAppVersionProperties());
 
     if (this.isNative()) {
-      Object.assign(
-        normalized,
-        this.getPlatformProperties(),
-        this.getNativePostHogBridgeProperties(),
-      );
+      Object.assign(normalized, this.getPlatformProperties());
     }
 
     return Object.keys(normalized).length > 0 ? normalized : undefined;

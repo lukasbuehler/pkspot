@@ -36,6 +36,9 @@ import { LocaleMapEditFieldComponent } from "../locale-map-edit-field/locale-map
 type CommunityInfoCardVisibility = NonNullable<
   CommunityInfoCardSchema["visibility"]
 >;
+type CommunityInfoCardCtaVisibility = NonNullable<
+  CommunityInfoCardSchema["ctaVisibility"]
+>;
 type CommunityInfoCardCtaTarget = CommunityInfoCardCta["target"] | "none";
 
 interface CommunityKnowledgeCardControls {
@@ -44,6 +47,7 @@ interface CommunityKnowledgeCardControls {
   visibility: FormControl<CommunityInfoCardVisibility>;
   commercialDisclosure: FormControl<CommunityInfoCardDisclosure>;
   ctaTarget: FormControl<CommunityInfoCardCtaTarget>;
+  ctaVisibility: FormControl<CommunityInfoCardCtaVisibility>;
   ctaUrl: FormControl<string>;
   ctaSpotId: FormControl<string>;
   ctaEventId: FormControl<string>;
@@ -104,6 +108,10 @@ export class CommunityKnowledgeEditorComponent {
     "spot",
     "event",
   ];
+  readonly ctaVisibilities: CommunityInfoCardCtaVisibility[] = [
+    "public",
+    "signed-in",
+  ];
 
   readonly validationMessage = signal<string | null>(null);
 
@@ -130,6 +138,10 @@ export class CommunityKnowledgeEditorComponent {
 
   ctaTarget(card: CommunityKnowledgeCardForm): CommunityInfoCardCtaTarget {
     return card.controls.ctaTarget.value;
+  }
+
+  isChatCard(card: CommunityKnowledgeCardForm): boolean {
+    return card.controls.category.value === "chat";
   }
 
   categoryIcon(category: CommunityInfoCardCategory): string {
@@ -229,6 +241,13 @@ export class CommunityKnowledgeEditorComponent {
         nonNullable: true,
       }),
       ctaTarget: new FormControl(cta?.target ?? "none", { nonNullable: true }),
+      ctaVisibility: new FormControl(
+        card.ctaVisibility ??
+          (card.category === "chat" && cta?.target === "url"
+            ? "signed-in"
+            : "public"),
+        { nonNullable: true },
+      ),
       ctaUrl: new FormControl(cta?.target === "url" ? cta.url : "", {
         nonNullable: true,
       }),
@@ -266,6 +285,9 @@ export class CommunityKnowledgeEditorComponent {
       ...(Object.keys(body).length > 0 ? { body } : {}),
       category: group.controls.category.value,
       ...(cta ? { cta } : {}),
+      ...(cta?.target === "url"
+        ? { ctaVisibility: group.controls.ctaVisibility.value }
+        : {}),
       commercialDisclosure: group.controls.commercialDisclosure.value,
       priority: index,
       visibility: group.controls.visibility.value,

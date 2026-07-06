@@ -107,6 +107,7 @@ If you hit the Codex sandbox error "Abort trap: 6", you need to run it outside t
 ## Testing
 
 - Before considering work complete, both the relevant tests and the build/SSR smoke test must pass. Do not report a change as done if `npm run test:unit` passes but `npm run test:build` is failing; either fix the build or clearly call out the blocker.
+- When adding a new user-facing app route or first-level page, add or update route-level visual coverage in `e2e/visual/routes.visual.spec.ts`. Include stable fixture data for dynamic pages and cover authenticated route states with the screenshot auth fixture instead of relying on live Firebase data.
 - For Firestore write-path changes, especially event editing or payload serialization, add or run an emulator integration test that performs the real client write through the app service and adapter. Do not rely only on mocked adapter tests or Firestore rules tests for changes involving `Timestamp`, `GeoPoint`, `deleteField()`, nested arrays/objects, or client/server-owned fields.
 - Use `npm run test:unit` for the Vitest unit suite.
 - Use `npm run test:build` for the build and SSR smoke test. This verifies `npm run build`, copied proxy server files, generated `dist/pkspot/server/build-info.mjs`, localized build output, and that SSR serves real HTML without falling back to client-side rendering.

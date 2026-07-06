@@ -137,10 +137,13 @@ async function captureAppRoutes(browserInstance) {
         for (const capture of selectedCaptures) {
           const page = await context.newPage();
           logBrowserDiagnostics(page, locale, device, capture);
+          await installFixedClock(page, getFixedTime(capture));
           await installNativeLikeEnvironment(
             page,
             device,
             getLocalStorageSeed(capture),
+            getMockAuthUser(capture),
+            getMockEventRsvps(capture),
           );
           const url = routeUrl(capture.path, locale);
           const capturePath = getDeviceScreenshotPath(locale, device, capture.id);
@@ -356,6 +359,7 @@ async function buildSceneHtml({
       overflow: hidden;
       border-radius: var(--screen-clip-radius, 0);
       z-index: 1;
+      isolation: isolate;
     }
     .frame-capture {
       display: block;
@@ -393,6 +397,7 @@ async function buildSceneHtml({
       overflow: hidden;
       border-radius: ${Math.max(18, device.frame.radius - device.frame.border * 1.75)}px;
       background: #070910;
+      isolation: isolate;
     }
     .screen img {
       display: block;
@@ -423,6 +428,87 @@ async function buildSceneHtml({
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.72);
       z-index: 2;
+    }
+    .device-system-ui {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      color: rgba(246, 248, 255, 0.92);
+      text-shadow: 0 1px 7px rgba(0, 0, 0, 0.5);
+    }
+    .device-status-bar {
+      position: absolute;
+      left: var(--status-x);
+      right: var(--status-x);
+      top: var(--status-top);
+      height: var(--status-height);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: var(--status-font);
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+    .device-status-time {
+      min-width: 4.8em;
+    }
+    .device-status-icons {
+      display: flex;
+      align-items: center;
+      gap: var(--status-icon-gap);
+    }
+    .device-signal-icon {
+      width: var(--status-icon-size);
+      height: var(--status-icon-size);
+      display: inline-flex;
+      align-items: flex-end;
+      gap: var(--status-bar-gap);
+    }
+    .device-signal-icon span {
+      width: 18%;
+      border-radius: 999px 999px 1px 1px;
+      background: currentColor;
+    }
+    .device-signal-icon span:nth-child(1) { height: 34%; opacity: 0.74; }
+    .device-signal-icon span:nth-child(2) { height: 54%; opacity: 0.82; }
+    .device-signal-icon span:nth-child(3) { height: 74%; opacity: 0.9; }
+    .device-signal-icon span:nth-child(4) { height: 96%; }
+    .device-battery-icon {
+      position: relative;
+      width: calc(var(--status-icon-size) * 1.34);
+      height: calc(var(--status-icon-size) * 0.72);
+      border: var(--battery-stroke) solid currentColor;
+      border-radius: calc(var(--status-icon-size) * 0.17);
+    }
+    .device-battery-icon::before {
+      content: "";
+      position: absolute;
+      inset: 18% 20% 18% 16%;
+      border-radius: 999px;
+      background: currentColor;
+    }
+    .device-battery-icon::after {
+      content: "";
+      position: absolute;
+      right: calc(var(--battery-stroke) * -2.25);
+      top: 28%;
+      width: calc(var(--battery-stroke) * 1.2);
+      height: 44%;
+      border-radius: 0 999px 999px 0;
+      background: currentColor;
+    }
+    .device-gesture-bar {
+      position: absolute;
+      left: 50%;
+      bottom: var(--gesture-bottom);
+      width: var(--gesture-width);
+      height: var(--gesture-height);
+      transform: translateX(-50%);
+      border-radius: 999px;
+      background: rgba(246, 248, 255, 0.68);
+      box-shadow: 0 1px 8px rgba(0, 0, 0, 0.42);
     }
   </style>
 </head>
@@ -458,6 +544,7 @@ function renderDeviceFrame({ device, placement, imageDataUrl, frameDataUrl }) {
     return `<div class="device frame-asset ${escapeHtml(device.frame.kind)}" style="--x: ${placement.x}px; --y: ${placement.y}px; --w: ${placement.width}px; --rotate: ${rotate}deg; --z: ${z}; --frame-w: ${asset.width}; --frame-h: ${asset.height}; --frame-clip-radius: ${clipRadius}; --screen-clip-radius: ${screenClipRadius}; --screen-x: ${asset.screen.x}; --screen-y: ${asset.screen.y}; --screen-w: ${asset.screen.width}; --screen-h: ${asset.screen.height};">
   <div class="frame-screen">
     <img class="frame-capture" src="${imageDataUrl}" alt="" style="--image-scale: ${placement.imageScale ?? 1};">
+    ${renderSystemUiOverlay({ device, placement, asset })}
   </div>
   <img class="frame-overlay" src="${frameDataUrl}" alt="">
 </div>`;
@@ -467,10 +554,97 @@ function renderDeviceFrame({ device, placement, imageDataUrl, frameDataUrl }) {
   <div class="shell">
     <div class="screen" style="--image-scale: ${placement.imageScale ?? 1};">
       <img src="${imageDataUrl}" alt="">
+      ${renderSystemUiOverlay({ device, placement })}
       ${device.frame.kind === "iphone" ? '<div class="dynamic-island"></div><div class="home-indicator"></div>' : ""}
     </div>
   </div>
 </div>`;
+}
+
+function renderSystemUiOverlay({ device, placement, asset }) {
+  const systemUi = getSystemUi(device, placement);
+  if (!systemUi.statusBar && !systemUi.gestureBar) {
+    return "";
+  }
+
+  const style = getSystemUiStyle(device, placement, asset, systemUi);
+  const statusBar = systemUi.statusBar
+    ? `<div class="device-status-bar">
+        <span class="device-status-time">${escapeHtml(systemUi.time ?? "13:37")}</span>
+        <span class="device-status-icons">
+          <span class="device-signal-icon"><span></span><span></span><span></span><span></span></span>
+          <span class="device-battery-icon"></span>
+        </span>
+      </div>`
+    : "";
+  const gestureBar = systemUi.gestureBar
+    ? '<div class="device-gesture-bar"></div>'
+    : "";
+
+  return `<div class="device-system-ui" style="${style}" aria-hidden="true">${statusBar}${gestureBar}</div>`;
+}
+
+function getSystemUi(device, placement) {
+  if (config.systemUi === false || device.systemUi === false || placement.systemUi === false) {
+    return { statusBar: false, gestureBar: false };
+  }
+
+  return {
+    time: "13:37",
+    statusBar: true,
+    gestureBar: true,
+    ...(config.systemUi ?? {}),
+    ...(device.systemUi ?? {}),
+    ...(placement.systemUi ?? {}),
+  };
+}
+
+function getSystemUiStyle(device, placement, asset, systemUi) {
+  const screenWidth = asset
+    ? placement.width * asset.screen.width / asset.width
+    : Math.max(1, placement.width - device.frame.border * 2);
+  const screenHeight = asset
+    ? placement.width * asset.screen.height / asset.width
+    : screenWidth * device.viewport.height / device.viewport.width;
+  const scaleX = screenWidth / device.viewport.width;
+  const scaleY = screenHeight / device.viewport.height;
+  const safeTop = device.safeArea?.top ?? 0;
+  const safeBottom = device.safeArea?.bottom ?? 0;
+  const isTablet = isTabletDevice(device);
+
+  const statusHeight = Math.max(18 * scaleY, safeTop * scaleY);
+  const statusFont = Math.max(9, (isTablet ? 14 : 13) * scaleX);
+  const statusInsetX = typeof systemUi.statusInsetX === "number"
+    ? systemUi.statusInsetX
+    : isTablet
+      ? 22
+      : 16;
+  const statusTopOffset = typeof systemUi.statusTopOffset === "number"
+    ? systemUi.statusTopOffset
+    : 0;
+  const statusX = Math.max(10, statusInsetX * scaleX);
+  const statusTop = statusTopOffset * scaleY;
+  const statusIconSize = Math.max(11, (isTablet ? 16 : 15) * scaleX);
+  const statusIconGap = Math.max(3, 4 * scaleX);
+  const statusBarGap = Math.max(1.2, 1.6 * scaleX);
+  const batteryStroke = Math.max(1.1, 1.35 * scaleX);
+  const gestureWidth = (device.nativePlatform === "ios" ? 132 : 108) * scaleX;
+  const gestureHeight = Math.max(3, (device.nativePlatform === "ios" ? 5 : 4) * scaleY);
+  const gestureBottom = Math.max(5, safeBottom * 0.42 * scaleY);
+
+  return [
+    `--status-x: ${formatCssPx(statusX)}`,
+    `--status-top: ${formatCssPx(statusTop)}`,
+    `--status-height: ${formatCssPx(statusHeight)}`,
+    `--status-font: ${formatCssPx(statusFont)}`,
+    `--status-icon-size: ${formatCssPx(statusIconSize)}`,
+    `--status-icon-gap: ${formatCssPx(statusIconGap)}`,
+    `--status-bar-gap: ${formatCssPx(statusBarGap)}`,
+    `--battery-stroke: ${formatCssPx(batteryStroke)}`,
+    `--gesture-width: ${formatCssPx(gestureWidth)}`,
+    `--gesture-height: ${formatCssPx(gestureHeight)}`,
+    `--gesture-bottom: ${formatCssPx(gestureBottom)}`,
+  ].join("; ");
 }
 
 function getDeviceFrameAspectRatio(device) {
@@ -481,14 +655,69 @@ function getDeviceFrameAspectRatio(device) {
   return `${device.viewport.width + device.frame.border * 2} / ${device.viewport.height + device.frame.border * 2}`;
 }
 
-async function installNativeLikeEnvironment(page, device, localStorageSeed) {
-  await page.addInitScript(({ localStorageSeed, nativePlatform, safeArea }) => {
+async function installFixedClock(page, fixedTime) {
+  if (!fixedTime) return;
+
+  const fixedDate = new Date(fixedTime);
+  if (Number.isNaN(fixedDate.getTime())) {
+    throw new Error(`Invalid store screenshot fixedTime: ${fixedTime}`);
+  }
+
+  if (page.clock?.setFixedTime) {
+    await page.clock.setFixedTime(fixedDate);
+    return;
+  }
+
+  await page.addInitScript(({ now }) => {
+    const RealDate = Date;
+
+    function FixedDate(...args) {
+      if (this instanceof FixedDate) {
+        return args.length > 0 ? new RealDate(...args) : new RealDate(now);
+      }
+
+      return new RealDate(now).toString();
+    }
+
+    Object.setPrototypeOf(FixedDate, RealDate);
+    FixedDate.prototype = RealDate.prototype;
+    FixedDate.now = () => now;
+    FixedDate.parse = RealDate.parse;
+    FixedDate.UTC = RealDate.UTC;
+    globalThis.Date = FixedDate;
+  }, { now: fixedDate.getTime() });
+}
+
+async function installNativeLikeEnvironment(
+  page,
+  device,
+  localStorageSeed,
+  mockAuthUser,
+  mockEventRsvps,
+) {
+  await page.addInitScript(({
+    localStorageSeed,
+    mockAuthUser,
+    mockEventRsvps,
+    nativePlatform,
+    safeArea,
+  }) => {
     for (const [key, value] of Object.entries(localStorageSeed)) {
       localStorage.setItem(
         key,
         typeof value === "string" ? value : JSON.stringify(value),
       );
     }
+
+    if (mockAuthUser) {
+      globalThis.__PKSPOT_SCREENSHOT_AUTH_USER__ = mockAuthUser;
+    }
+
+    if (mockEventRsvps) {
+      globalThis.__PKSPOT_SCREENSHOT_EVENT_RSVPS__ = mockEventRsvps;
+    }
+
+    globalThis.__PKSPOT_STORE_SCREENSHOT__ = true;
 
     const applySafeArea = () => {
       const root = document.documentElement;
@@ -504,6 +733,8 @@ async function installNativeLikeEnvironment(page, device, localStorageSeed) {
     document.addEventListener("DOMContentLoaded", applySafeArea, { once: true });
   }, {
     localStorageSeed,
+    mockAuthUser,
+    mockEventRsvps,
     nativePlatform: device.nativePlatform ?? "ios",
     safeArea: device.safeArea,
   });
@@ -553,6 +784,22 @@ function getLocalStorageSeed(capture) {
     ...(config.localStorage ?? {}),
     ...(capture.localStorage ?? {}),
   };
+}
+
+function getFixedTime(capture) {
+  return capture.fixedTime ?? config.fixedTime ?? null;
+}
+
+function getMockAuthUser(capture) {
+  return capture.mockAuthUser === null
+    ? null
+    : capture.mockAuthUser ?? config.mockAuthUser ?? null;
+}
+
+function getMockEventRsvps(capture) {
+  return capture.mockEventRsvps === null
+    ? null
+    : capture.mockEventRsvps ?? config.mockEventRsvps ?? null;
 }
 
 function logBrowserDiagnostics(page, locale, device, capture) {
@@ -689,6 +936,10 @@ function escapeHtml(value) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+}
+
+function formatCssPx(value) {
+  return `${Number(value).toFixed(2)}px`;
 }
 
 function printSelection() {

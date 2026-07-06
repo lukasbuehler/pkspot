@@ -28,6 +28,35 @@ service firebase.storage {
         && request.resource.metadata.uid == request.auth.uid;
     }
 
+    // Temporary migration switch while released clients move to media_intake.
+    // Flip this to false when direct public UGC writes should be fully blocked.
+    function allowLegacyPublicMediaWrites() {
+      return true;
+    }
+
+    function hasModerationMetadata() {
+      return request.resource != null
+        && request.resource.metadata.upload_id is string
+        && request.resource.metadata.upload_id.size() > 0
+        && request.resource.metadata.destination_folder in [
+          'profile_pictures',
+          'spot_pictures',
+          'post_media',
+          'challenges',
+          'event_media'
+        ]
+        && request.resource.metadata.destination_filename is string
+        && request.resource.metadata.destination_filename.matches('^[A-Za-z0-9_-]+$')
+        && request.resource.metadata.target_kind in [
+          'profile',
+          'spot',
+          'post',
+          'challenge',
+          'event',
+          'event_media'
+        ];
+    }
+
     function isUnderSize(maxBytes) {
       return request.resource != null
         && request.resource.size < maxBytes;
@@ -82,7 +111,8 @@ service firebase.storage {
 
     match /profile_pictures/{filename} {
       allow read: if true;
-      allow create, update: if isProfilePictureFilename(filename)
+      allow create, update: if allowLegacyPublicMediaWrites()
+        && isProfilePictureFilename(filename)
         && agePolicyAllowsPublicParticipation()
         && hasOwnerMetadata()
         && isAllowedImage()
@@ -92,29 +122,35 @@ service firebase.storage {
 
     match /spot_pictures/{filename} {
       allow read: if true;
-      allow create: if isSignedIn()
+      allow create: if allowLegacyPublicMediaWrites()
+        && isSignedIn()
         && agePolicyAllowsPublicParticipation()
         && hasOwnerMetadata()
         && isAllowedImageUpload(filename)
         && isUnderSize(50 * 1024 * 1024);
+      allow update: if false;
     }
 
     match /post_media/{filename} {
       allow read: if true;
-      allow create: if isSignedIn()
+      allow create: if allowLegacyPublicMediaWrites()
+        && isSignedIn()
         && agePolicyAllowsPublicParticipation()
         && hasOwnerMetadata()
         && (isAllowedImageUpload(filename) || isAllowedVideoUpload(filename))
         && isUnderSize(500 * 1024 * 1024);
+      allow update: if false;
     }
 
     match /challenges/{filename} {
       allow read: if true;
-      allow create: if isSignedIn()
+      allow create: if allowLegacyPublicMediaWrites()
+        && isSignedIn()
         && agePolicyAllowsPublicParticipation()
         && hasOwnerMetadata()
         && (isAllowedImageUpload(filename) || isAllowedVideoUpload(filename))
         && isUnderSize(500 * 1024 * 1024);
+      allow update: if false;
     }
 
     match /imports/{filename} {
@@ -131,10 +167,49 @@ service firebase.storage {
     // today, so only admins should upload event media.
     match /event_media/{filename} {
       allow read: if true;
-      allow create: if isAdmin()
+      allow create: if allowLegacyPublicMediaWrites()
+        && isAdmin()
         && isAllowedImageUpload(filename)
         && isUnderSize(50 * 1024 * 1024)
         && hasOwnerMetadata();
+      allow update: if false;
+    }
+
+    match /media_intake/{uid}/{uploadId}/{filename} {
+      allow read: if false;
+      allow create: if isSignedIn()
+        && request.auth.uid == uid
+        && uploadId.matches('^[A-Za-z0-9_-]+$')
+        && hasOwnerMetadata()
+        && hasModerationMetadata()
+        && request.resource.metadata.upload_id == uploadId
+        && (
+          (
+            request.resource.metadata.destination_folder == 'profile_pictures'
+            && request.resource.metadata.destination_filename == request.auth.uid
+            && isAllowedImageUpload(filename)
+            && agePolicyAllowsPublicParticipation()
+            && isUnderSize(10 * 1024 * 1024)
+          )
+          || (
+            request.resource.metadata.destination_folder == 'spot_pictures'
+            && isAllowedImageUpload(filename)
+            && agePolicyAllowsPublicParticipation()
+            && isUnderSize(50 * 1024 * 1024)
+          )
+          || (
+            request.resource.metadata.destination_folder in ['post_media', 'challenges']
+            && (isAllowedImageUpload(filename) || isAllowedVideoUpload(filename))
+            && agePolicyAllowsPublicParticipation()
+            && isUnderSize(500 * 1024 * 1024)
+          )
+          || (
+            request.resource.metadata.destination_folder == 'event_media'
+            && isAdmin()
+            && isAllowedImageUpload(filename)
+            && isUnderSize(50 * 1024 * 1024)
+          )
+        );
     }
 
     match /{allPaths=**} {

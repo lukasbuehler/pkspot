@@ -564,6 +564,13 @@ service cloud.firestore {
       allow read: if true;
       allow update: if isAdmin() && onlyCommunityInfoCardsChanged();
       allow create, delete: if false;
+
+      match /private_info/{privateInfoId} {
+        allow read: if request.auth.uid != null;
+        allow create, update: if isAdmin()
+          && request.resource.data.keys().hasOnly(['infoCards']);
+        allow delete: if isAdmin();
+      }
     }
 
     match /community_slugs/{slug} {
@@ -787,6 +794,16 @@ service cloud.firestore {
     }
 
     match /moderation_actions/{actionId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /media_upload_reviews/{reviewId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /csam_incidents/{incidentId} {
       allow read: if isAdmin();
       allow write: if false;
     }

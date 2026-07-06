@@ -10,6 +10,7 @@ import {
   CommunityEventPreviewSchema,
   CommunityPickCategory,
   CommunityPickSectionSchema,
+  CommunityPrivateInfoSchema,
 } from "../../src/db/schemas/CommunityPageSchema";
 import { CommunitySlugSchema } from "../../src/db/schemas/CommunitySlugSchema";
 import { CommunityMergeSchema } from "../../src/db/schemas/CommunityMergeSchema";
@@ -57,6 +58,39 @@ const MAX_CHILD_COMMUNITIES = 8;
 const MAX_COMMUNITY_EVENT_PREVIEWS = 2;
 const COMMUNITY_EVENT_LOOKAHEAD_MONTHS = 6;
 const warnedInvalidCommunityMergeChains = new Set<string>();
+type CommunityInfoCards = NonNullable<CommunityPageSchema["infoCards"]>;
+const privateCommunityInfoDoc = (
+  db: admin.firestore.Firestore,
+  communityKey: string
+) =>
+  db
+    .collection(COMMUNITY_PAGES_COLLECTION)
+    .doc(communityKey)
+    .collection("private_info")
+    .doc("link_cards");
+const hasSignedInOnlyCommunityCta = (
+  card: CommunityInfoCards[number]
+): boolean =>
+  card.cta?.target === "url" &&
+  (card.ctaVisibility === "signed-in" ||
+    (card.ctaVisibility !== "public" && card.category === "chat"));
+const publicCommunityInfoCard = (
+  card: CommunityInfoCards[number]
+): CommunityInfoCards[number] => {
+  if (!hasSignedInOnlyCommunityCta(card)) {
+    return card;
+  }
+
+  const { cta: _cta, ...publicCard } = card;
+  return {
+    ...publicCard,
+    ctaVisibility: "signed-in",
+  };
+};
+const getPublicCommunityInfoCards = (
+  cards: CommunityPageSchema["infoCards"] = []
+): CommunityInfoCards =>
+  cards.map(publicCommunityInfoCard);
 const COMMUNITY_EVENT_PREVIEW_SOURCE_FIELDS = [
   "community_keys",
   "published",
@@ -1124,7 +1158,7 @@ const buildCommunityPageDoc = async (
       .slice(0, MAX_SPOTS_PER_LEGACY_SECTION)
       .map((spot) => buildSpotPreview(spot.id, spot.data)),
     links: existingPage?.links ?? {},
-    infoCards: existingPage?.infoCards ?? [],
+    infoCards: getPublicCommunityInfoCards(existingPage?.infoCards),
     resources: existingPage?.resources ?? [],
     organisations: existingPage?.organisations ?? [],
     athletes: existingPage?.athletes ?? [],
@@ -1620,10 +1654,12 @@ const mergeInfoCardsForCommunity = (
   source_community_key: string,
   sourceSlug: string
 ): CommunityPageSchema["infoCards"] => {
-  const usedIds = new Set(targetCards.map((card) => card.id));
-  const mergedCards = [...targetCards];
+  const publicTargetCards = getPublicCommunityInfoCards(targetCards);
+  const publicSourceCards = getPublicCommunityInfoCards(sourceCards);
+  const usedIds = new Set(publicTargetCards.map((card) => card.id));
+  const mergedCards = [...publicTargetCards];
 
-  for (const card of sourceCards) {
+  for (const card of publicSourceCards) {
     const baseId = normalizeCommunitySlug(`${sourceSlug}-${card.id}`) || card.id;
     let nextId = baseId;
     let suffix = 2;
@@ -1658,8 +1694,18 @@ const applyCommunityMergePatch = async (
 
   const sourceRef = db.collection(COMMUNITY_PAGES_COLLECTION).doc(source_community_key);
   const targetRef = db.collection(COMMUNITY_PAGES_COLLECTION).doc(target_community_key);
+  const sourcePrivateRef = privateCommunityInfoDoc(db, source_community_key);
+  const targetPrivateRef = privateCommunityInfoDoc(db, target_community_key);
   const targetSnapshot = await targetRef.get();
+  const [sourcePrivateSnapshot, targetPrivateSnapshot] = await Promise.all([
+    sourcePrivateRef.get(),
+    targetPrivateRef.get(),
+  ]);
   const targetPage = targetSnapshot.data() as CommunityPageSchema | undefined;
+  const sourcePrivateInfo =
+    sourcePrivateSnapshot.data() as CommunityPrivateInfoSchema | undefined;
+  const targetPrivateInfo =
+    targetPrivateSnapshot.data() as CommunityPrivateInfoSchema | undefined;
 
   if (!targetPage) {
     throw new Error("Target community does not exist.");
@@ -1717,6 +1763,8 @@ const applyCommunityMergePatch = async (
     ...source_slugs,
   ]).sort();
   const sourceSlug = source_slugs[0] ?? normalizeCommunitySlug(sourcePage.displayName);
+  const sourcePrivateCards = sourcePrivateInfo?.infoCards ?? [];
+  const targetPrivateCards = targetPrivateInfo?.infoCards ?? [];
   const nextTargetInfoCards =
     infoCardMode === "copy" || infoCardMode === "move"
       ? mergeInfoCardsForCommunity(
@@ -1725,7 +1773,16 @@ const applyCommunityMergePatch = async (
           source_community_key,
           sourceSlug
         )
-      : targetPage.infoCards ?? [];
+      : getPublicCommunityInfoCards(targetPage.infoCards);
+  const nextTargetPrivateCards =
+    infoCardMode === "copy" || infoCardMode === "move"
+      ? mergeInfoCardsForCommunity(
+          targetPrivateCards,
+          sourcePrivateCards,
+          source_community_key,
+          sourceSlug
+        )
+      : targetPrivateCards;
 
   const batch = db.batch();
   const mergeRef = db
@@ -1761,6 +1818,13 @@ const applyCommunityMergePatch = async (
     }),
     { merge: true }
   );
+  batch.set(
+    targetPrivateRef,
+    {
+      infoCards: nextTargetPrivateCards,
+    },
+    { merge: true }
+  );
 
   batch.set(
     sourceRef,
@@ -1768,7 +1832,10 @@ const applyCommunityMergePatch = async (
       published: false,
       redirect_to_community_key: target_community_key,
       redirect_to_path: targetPage.canonicalPath,
-      infoCards: infoCardMode === "move" ? [] : sourcePage.infoCards,
+      infoCards:
+        infoCardMode === "move"
+          ? []
+          : getPublicCommunityInfoCards(sourcePage.infoCards),
       merge_into: {
         target_community_key,
         info_cards: infoCardMode,
@@ -1776,6 +1843,13 @@ const applyCommunityMergePatch = async (
         applied_at: FieldValue.serverTimestamp(),
       },
     }),
+    { merge: true }
+  );
+  batch.set(
+    sourcePrivateRef,
+    {
+      infoCards: infoCardMode === "move" ? [] : sourcePrivateCards,
+    },
     { merge: true }
   );
 

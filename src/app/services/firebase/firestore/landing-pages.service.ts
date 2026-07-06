@@ -8,6 +8,7 @@ import {
   CommunityMergeIntoSchema,
   CommunityPickSectionSchema,
   CommunityPageSchema,
+  CommunityPrivateInfoSchema,
 } from "../../../../db/schemas/CommunityPageSchema";
 import { EventId, EventSchema } from "../../../../db/schemas/EventSchema";
 import { CommunitySlugSchema } from "../../../../db/schemas/CommunitySlugSchema";
@@ -81,7 +82,30 @@ export interface CommunityLandingPageData {
 }
 
 type CommunityPageDocument = CommunityPageSchema & { id: string };
+type CommunityPrivateInfoDocument = CommunityPrivateInfoSchema & { id: string };
 type CommunitySlugDocument = CommunitySlugSchema & { id: string };
+
+const privateCommunityInfoPath = (communityKey: string): string =>
+  `community_pages/${communityKey}/private_info/link_cards`;
+
+const hasSignedInOnlyCta = (card: CommunityInfoCardSchema): boolean =>
+  card.cta?.target === "url" &&
+  (card.ctaVisibility === "signed-in" ||
+    (card.ctaVisibility !== "public" && card.category === "chat"));
+
+const publicCommunityInfoCard = (
+  card: CommunityInfoCardSchema,
+): CommunityInfoCardSchema => {
+  if (!hasSignedInOnlyCta(card)) {
+    return card;
+  }
+
+  const { cta: _cta, ...publicCard } = card;
+  return {
+    ...publicCard,
+    ctaVisibility: "signed-in",
+  };
+};
 
 @Injectable({
   providedIn: "root",
@@ -199,7 +223,7 @@ export class LandingPagesService {
       topRatedSpots,
       drySpots,
       links: pageDoc.links ?? {},
-      infoCards: pageDoc.infoCards ?? [],
+      infoCards: this._publicInfoCards(pageDoc.infoCards),
       resources: pageDoc.resources ?? [],
       organisations: pageDoc.organisations ?? [],
       athletes: pageDoc.athletes ?? [],
@@ -226,10 +250,30 @@ export class LandingPagesService {
     communityKey: string,
     infoCards: CommunityInfoCardSchema[],
   ): Promise<void> {
-    await this._firestoreAdapter.updateDocument(
-      `community_pages/${communityKey}`,
-      { infoCards },
-    );
+    const publicInfoCards = this._publicInfoCards(infoCards);
+    const privateInfoCards = this._privateInfoCards(infoCards);
+
+    await Promise.all([
+      this._firestoreAdapter.updateDocument(`community_pages/${communityKey}`, {
+        infoCards: publicInfoCards,
+      }),
+      this._firestoreAdapter.setDocument(
+        privateCommunityInfoPath(communityKey),
+        { infoCards: privateInfoCards },
+        { merge: true },
+      ),
+    ]);
+  }
+
+  async getCommunityPrivateInfoCards(
+    communityKey: string,
+  ): Promise<CommunityInfoCard[]> {
+    const privateDoc =
+      await this._firestoreAdapter.getDocument<CommunityPrivateInfoDocument>(
+        privateCommunityInfoPath(communityKey),
+      );
+
+    return privateDoc?.infoCards ?? [];
   }
 
   async updateCommunityMergeInto(
@@ -251,6 +295,18 @@ export class LandingPagesService {
 
   private _normalizeCommunityPath(path: string): string {
     return path.replace(/^\/map\/community\//u, "/map/communities/");
+  }
+
+  private _publicInfoCards(
+    cards: CommunityInfoCardSchema[] | null | undefined,
+  ): CommunityInfoCard[] {
+    return (cards ?? []).map(publicCommunityInfoCard);
+  }
+
+  private _privateInfoCards(
+    cards: CommunityInfoCardSchema[] | null | undefined,
+  ): CommunityInfoCard[] {
+    return (cards ?? []).filter(hasSignedInOnlyCta);
   }
 
   async getChildCommunities(

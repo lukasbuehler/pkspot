@@ -7,6 +7,10 @@ import { AuthenticationService } from "../../services/firebase/authentication.se
 import { EventsService } from "../../services/firebase/firestore/events.service";
 import { EventRsvpComponent } from "./event-rsvp.component";
 
+type ScreenshotGlobal = typeof globalThis & {
+  __PKSPOT_SCREENSHOT_EVENT_RSVPS__?: unknown;
+};
+
 describe("EventRsvpComponent", () => {
   let component: EventRsvpComponent;
   let fixture: ComponentFixture<EventRsvpComponent>;
@@ -21,6 +25,7 @@ describe("EventRsvpComponent", () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    delete (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_EVENT_RSVPS__;
     authState$.next({ uid: "user-1" });
     eventsService.getMyRsvp.mockResolvedValue(null);
     eventsService.setMyRsvp.mockResolvedValue(undefined);
@@ -163,6 +168,21 @@ describe("EventRsvpComponent", () => {
       fixture.nativeElement.querySelector(".rsvp-menu-button"),
     ).toBeTruthy();
     expect(fixture.nativeElement.textContent).toContain("I'm");
+  });
+
+  it("uses an injected store screenshot RSVP without loading remote user data", async () => {
+    (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_EVENT_RSVPS__ = {
+      "event-1": "interested",
+    };
+
+    fixture.componentRef.setInput("eventId", "event-1");
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(eventsService.getMyRsvp).not.toHaveBeenCalled();
+    expect(component.selectedRsvp()).toBe("interested");
+    expect(fixture.nativeElement.textContent).toContain("interested");
   });
 
   it("prompts for an RSVP in the menu button when no response is loaded", async () => {

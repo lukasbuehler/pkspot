@@ -21,6 +21,10 @@ import { AuthenticationService } from "../../services/firebase/authentication.se
 import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
 import { AnalyticsService } from "../../services/analytics.service";
 
+type ScreenshotGlobal = typeof globalThis & {
+  __PKSPOT_SCREENSHOT_EVENT_RSVPS__?: unknown;
+};
+
 @Component({
   selector: "app-event-rsvp",
   imports: [
@@ -96,6 +100,15 @@ export class EventRsvpComponent {
         this.loadedRsvp.set(null);
         return;
       }
+
+      const screenshotRsvp = this._readScreenshotRsvp(eventId);
+      if (screenshotRsvp !== undefined) {
+        this.selectedRsvp.set(screenshotRsvp);
+        this.loadedRsvp.set(screenshotRsvp);
+        this.errorMessage.set("");
+        return;
+      }
+
       void this._loadRsvp(eventId);
     });
   }
@@ -227,6 +240,24 @@ export class EventRsvpComponent {
     return value === "going" || value === "interested" || value === "notgoing"
       ? value
       : null;
+  }
+
+  private _readScreenshotRsvp(
+    eventId: string,
+  ): EventRSVPOption | null | undefined {
+    const candidate = (globalThis as ScreenshotGlobal)
+      .__PKSPOT_SCREENSHOT_EVENT_RSVPS__;
+    if (!candidate || typeof candidate !== "object") {
+      return undefined;
+    }
+
+    const rsvp = (candidate as Record<string, unknown>)[eventId];
+    if (rsvp === null) {
+      return null;
+    }
+
+    const normalized = this._normalizeRsvp(rsvp);
+    return normalized ?? undefined;
   }
 
   private _events(): EventsService {
