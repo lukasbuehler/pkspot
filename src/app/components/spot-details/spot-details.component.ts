@@ -445,6 +445,7 @@ export class SpotDetailsComponent
   @Input() border: boolean = false;
   @Input() clickable: boolean = false;
   @Input() editable: boolean = false;
+  showRating = input<boolean>(true);
   loading = input(false);
   loadingTitle = input<string>("");
   loadingSubtitle = input<string>("");

@@ -202,14 +202,14 @@
               [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
             >
               @if (
-                spot()?.rating ||
+                (showRating() && spot()?.rating) ||
                 spot()!.importantAmenitiesArray().length > 0 ||
                 spot()?.type() !== "other" ||
                 spot()?.access() !== "other"
               ) {
                 <div class="d-flex flex-row gap-1 align-items-center pb-1">
                   <!-- <span class="mat-label-small px-1 border rounded me-1">Spot</span> -->
-                  @if (spot()?.rating) {
+                  @if (showRating() && spot()?.rating) {
                     <span class="d-flex align-items-center gap-1 flex-shrink-0">
                       <app-fancy-counter
                         [number]="spot()!.rating!"
@@ -225,6 +225,7 @@
                     </span>
                   }
                   {{
+                    showRating() &&
                     spot()?.rating &&
                     spot()!.importantAmenitiesArray().length > 0
                       ? "⸱"
@@ -245,7 +246,7 @@
                     </div>
                   }
                   {{
-                    (spot()?.rating ||
+                    ((showRating() && spot()?.rating) ||
                       spot()!.importantAmenitiesArray().length > 0) &&
                     spot()?.type() !== "other"
                       ? "⸱"
@@ -267,7 +268,7 @@
                     </div>
                   }
                   {{
-                    (spot()?.rating ||
+                    ((showRating() && spot()?.rating) ||
                       spot()!.importantAmenitiesArray().length > 0 ||
                       spot()?.type() !== "other") &&
                     spot()?.access() !== "other"
@@ -699,7 +700,9 @@
 
         <!-- Ratings -->
         @if (
-          !isLocalSpot() && (spot()?.rating || authenticationService.isSignedIn)
+          showRating() &&
+          !isLocalSpot() &&
+          (spot()?.rating || authenticationService.isSignedIn)
         ) {
           <div class="mb-4">
             <mat-divider class="my-3"></mat-divider>

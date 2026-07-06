@@ -1,6 +1,9 @@
+import type { MediaSchema } from "../../../../db/schemas/Media";
+
 export type MapMarkerColor = "primary" | "secondary" | "tertiary" | "gray";
 
 export interface MapMarkerSchema {
+  id?: string;
   name?: string;
   color?: MapMarkerColor;
   location: google.maps.LatLngLiteral;
@@ -18,6 +21,10 @@ export interface MapMarkerSchema {
   ignoreCollisions?: boolean;
   type?: string;
   description?: string;
+  locality?: string;
+  media?: MediaSchema[];
+  googlePlaceId?: string;
+  url?: string;
 }
 
 export type MarkerSchema = MapMarkerSchema;

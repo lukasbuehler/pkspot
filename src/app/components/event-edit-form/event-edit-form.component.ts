@@ -83,6 +83,11 @@ type OrganizationDocument = OrganizationSchema & { id: string };
 type EditableEventMarker = {
   id: string;
   name: string;
+  description: string;
+  locality: string;
+  googlePlaceId: string;
+  url: string;
+  imageUrl: string;
   lat: number | null;
   lng: number | null;
   icons: string;
@@ -580,8 +585,15 @@ export class EventEditFormComponent {
       this.organizerQuery.set(e.organizer?.organization.name ?? "");
       this.customMarkers.set(
         e.customMarkers.map((marker, index) => ({
-          id: `marker-${index}`,
+          id: marker.id || `marker-${index}`,
           name: marker.name ?? "",
+          description: marker.description ?? "",
+          locality: marker.locality ?? "",
+          googlePlaceId: marker.google_place_id ?? "",
+          url: marker.url ?? "",
+          imageUrl:
+            marker.media?.find((media) => media.type === MediaType.Image)
+              ?.src ?? "",
           lat: marker.location.lat,
           lng: marker.location.lng,
           icons: (marker.icons ?? ["info"]).join(", "),
@@ -815,9 +827,9 @@ export class EventEditFormComponent {
         key: `temporary-spot-${Date.now()}-${spots.length}`,
         id: `temporary-spot-${spots.length + 1}`,
         name: "",
+        description: "",
         lat: location?.lat ?? null,
         lng: location?.lng ?? null,
-        description: "",
         imagesCsv: "",
         isIconic: spots.length === 0,
         bounds: [],
@@ -914,6 +926,11 @@ export class EventEditFormComponent {
       {
         id: `marker-${Date.now()}-${markers.length}`,
         name: "",
+        description: "",
+        locality: "",
+        googlePlaceId: "",
+        url: "",
+        imageUrl: "",
         lat: location?.lat ?? null,
         lng: location?.lng ?? null,
         icons: "info",
@@ -1749,8 +1766,25 @@ export class EventEditFormComponent {
         if (lat === undefined || lng === undefined) return markers;
 
         const icons = csvToArray(marker.icons);
+        const url = safeExternalUrl(marker.url);
+        const imageUrl = safeExternalUrl(marker.imageUrl);
         markers.push({
+          id: trimOrUndefined(marker.id) ?? slugifyId(marker.name || "marker"),
           name: trimOrUndefined(marker.name),
+          description: trimOrUndefined(marker.description),
+          locality: trimOrUndefined(marker.locality),
+          google_place_id: trimOrUndefined(marker.googlePlaceId),
+          url: url ?? undefined,
+          media: imageUrl
+            ? [
+                {
+                  src: imageUrl,
+                  type: MediaType.Image,
+                  isInStorage: false,
+                  origin: "other",
+                },
+              ]
+            : undefined,
           location: { lat, lng },
           icons: icons.length > 0 ? icons : undefined,
           color: marker.color,

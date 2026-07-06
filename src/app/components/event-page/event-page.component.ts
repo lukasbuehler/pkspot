@@ -42,6 +42,7 @@ import {
 } from "../../../db/models/Interfaces";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
+import { SpotId } from "../../../db/schemas/SpotSchema";
 import { MarkerSchema } from "../map/markers/map-marker.model";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
@@ -466,6 +467,40 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
 
   updateMapPreviewViewportBounds(bounds: google.maps.LatLngBounds): void {
     this.mapPreviewViewportBounds.set(bounds.toJSON());
+  }
+
+  openMapForSpot(spot: Spot | LocalSpot | SpotPreviewData | SpotId): void {
+    const spotId = this._eventMapSpotQueryParam(spot);
+    if (!spotId) return;
+
+    void this._router.navigate(this.mapRoute(), {
+      queryParams: { spotId },
+    });
+  }
+
+  private _eventMapSpotQueryParam(
+    spot: Spot | LocalSpot | SpotPreviewData | SpotId,
+  ): string | null {
+    if (typeof spot === "string") {
+      return spot;
+    }
+
+    if (spot instanceof Spot) {
+      return spot.slug ?? spot.id;
+    }
+
+    if (spot instanceof LocalSpot) {
+      const index = this.spots().findIndex((candidate) => candidate === spot);
+      return index >= 0 ? (this.event()?.inlineSpots[index]?.id ?? null) : null;
+    }
+
+    const id = String(spot.id);
+    const localIndexMatch = /^event-local-spot-(\d+)$/u.exec(id);
+    if (localIndexMatch) {
+      return this.event()?.inlineSpots[Number(localIndexMatch[1])]?.id ?? id;
+    }
+
+    return id;
   }
 
   ngOnInit(): void {

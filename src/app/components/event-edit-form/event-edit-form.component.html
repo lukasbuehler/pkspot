@@ -1682,6 +1682,59 @@
                     />
                   </mat-form-field>
                   <mat-form-field appearance="outline">
+                    <mat-label i18n="@@event_edit.custom_marker_locality">
+                      Locality
+                    </mat-label>
+                    <input
+                      matInput
+                      [value]="marker.locality"
+                      (input)="updateCustomMarker(marker.id, { locality: $any($event.target).value })"
+                    />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n="@@event_edit.custom_marker_description">
+                      Description
+                    </mat-label>
+                    <textarea
+                      matInput
+                      rows="2"
+                      [value]="marker.description"
+                      (input)="updateCustomMarker(marker.id, { description: $any($event.target).value })"
+                    ></textarea>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n="@@event_edit.custom_marker_google_place_id">
+                      Google Place ID
+                    </mat-label>
+                    <input
+                      matInput
+                      [value]="marker.googlePlaceId"
+                      (input)="updateCustomMarker(marker.id, { googlePlaceId: $any($event.target).value })"
+                    />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n="@@event_edit.custom_marker_url">
+                      External URL
+                    </mat-label>
+                    <input
+                      matInput
+                      type="url"
+                      [value]="marker.url"
+                      (input)="updateCustomMarker(marker.id, { url: $any($event.target).value })"
+                    />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n="@@event_edit.custom_marker_image_url">
+                      Image URL
+                    </mat-label>
+                    <input
+                      matInput
+                      type="url"
+                      [value]="marker.imageUrl"
+                      (input)="updateCustomMarker(marker.id, { imageUrl: $any($event.target).value })"
+                    />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
                     <mat-label i18n="@@event_edit.custom_marker_icons">
                       Icons
                     </mat-label>

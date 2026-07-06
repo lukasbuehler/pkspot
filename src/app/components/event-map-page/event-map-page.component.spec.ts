@@ -34,7 +34,7 @@ const flushSignalEffects = () => {
   maybeFlushEffects.flushEffects?.();
 };
 
-const buildEvent = (id: string): PkEvent =>
+const buildEvent = (id: string, extra: Partial<EventSchema> = {}): PkEvent =>
   new PkEvent(id as EventId, {
     name: "Swiss Jam 2026",
     slug: id,
@@ -48,6 +48,7 @@ const buildEvent = (id: string): PkEvent =>
       east: 8.6,
       west: 8.5,
     },
+    ...extra,
   } as unknown as EventSchema);
 
 const buildLocalSpot = (name: string): LocalSpot =>
@@ -259,5 +260,98 @@ describe("EventMapPageComponent", () => {
     } satisfies SpotPreviewData);
 
     expect(component.selectedSpot()).toBe(localSpot);
+  });
+
+  it("syncs selected event spots to the spotId query param", () => {
+    const router = { navigate: vi.fn() };
+    const route = {
+      paramMap: of(convertToParamMap({ slug: "swissjam26" })),
+      queryParams: of({ showHeader: "false" }),
+      data: of({ routeName: "Event Map" }),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: EventPageDataService,
+          useValue: {
+            eventCanonicalPath: vi.fn(() => "/events/swissjam26"),
+            customMarkers: vi.fn(() => []),
+            eventLocationMarker: vi.fn(() => null),
+            spotMapMarkers: vi.fn(() => []),
+          },
+        },
+        { provide: EventsService, useValue: {} },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        {
+          provide: AuthenticationService,
+          useValue: { user: { data: null }, isAdmin: signal(false) },
+        },
+        { provide: ActivatedRoute, useValue: route },
+        { provide: Router, useValue: router },
+        { provide: LocationStrategy, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        {
+          provide: MetaTagService,
+          useValue: {
+            setEventMetaTags: vi.fn(),
+            setRobotsContent: vi.fn(),
+          },
+        },
+        {
+          provide: MapsApiService,
+          useValue: {
+            isApiLoaded: vi.fn(() => true),
+            loadGoogleMapsApi: vi.fn(),
+          },
+        },
+        {
+          provide: AnalyticsService,
+          useValue: {
+            addUtmToUrl: vi.fn((url?: string) => url),
+            trackEvent: vi.fn(),
+          },
+        },
+        { provide: ResponsiveService, useValue: { isDesktop: signal(true) } },
+        { provide: LOCALE_ID, useValue: "en" },
+        { provide: PLATFORM_ID, useValue: "server" },
+      ],
+    });
+
+    const component = TestBed.runInInjectionContext(
+      () => new EventMapPageComponent(),
+    );
+    const localSpot = buildLocalSpot("Inline spot");
+    component.event.set(
+      buildEvent("swissjam26", {
+        inline_spots: [
+          {
+            id: "main-stage",
+            name: "Main stage",
+            location: { lat: 47.3, lng: 8.5 },
+          },
+        ],
+      }),
+    );
+    component.spots.set([localSpot]);
+
+    component.selectSpot(localSpot);
+
+    expect(router.navigate).toHaveBeenLastCalledWith([], {
+      relativeTo: route,
+      queryParams: { spotId: "main-stage" },
+      queryParamsHandling: "merge",
+      replaceUrl: true,
+    });
+
+    component.deselectSpot();
+
+    expect(router.navigate).toHaveBeenLastCalledWith([], {
+      relativeTo: route,
+      queryParams: { spotId: null },
+      queryParamsHandling: "merge",
+      replaceUrl: true,
+    });
   });
 });

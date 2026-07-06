@@ -19,6 +19,8 @@ import { ResponsiveService } from "../../services/responsive.service";
 import { StructuredDataService } from "../../services/structured-data.service";
 import { eventHeroMedia } from "../event-display/event-display.helpers";
 import { EventInfoPageComponent } from "./event-page.component";
+import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
+import { GeoPoint } from "firebase/firestore";
 
 const flushPromises = () =>
   new Promise((resolve) => {
@@ -306,6 +308,86 @@ describe("EventInfoPageComponent", () => {
         name: "WPF Camp",
         url: "https://pkspot.app/en/events/wpf-camp",
       }),
+    );
+  });
+
+  it("opens the full event map with the clicked preview spot selected", () => {
+    const router = { navigate: vi.fn() };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SeriesService, useValue: seriesServiceStub() },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        {
+          provide: AuthenticationService,
+          useValue: { user: { data: null }, isAdmin: signal(false) },
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: of(convertToParamMap({ slug: "swissjam26" })),
+            queryParams: of({}),
+            data: of({ routeName: "Event" }),
+            snapshot: { paramMap: convertToParamMap({ slug: "swissjam26" }) },
+          },
+        },
+        { provide: Router, useValue: router },
+        { provide: LocationStrategy, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: MetaTagService, useValue: { setEventMetaTags: vi.fn() } },
+        {
+          provide: StructuredDataService,
+          useValue: { addStructuredData: vi.fn(), removeStructuredData: vi.fn() },
+        },
+        {
+          provide: MapsApiService,
+          useValue: {
+            isApiLoaded: vi.fn(() => true),
+            loadGoogleMapsApi: vi.fn(),
+          },
+        },
+        {
+          provide: AnalyticsService,
+          useValue: {
+            addUtmToUrl: vi.fn((url?: string) => url),
+          },
+        },
+        { provide: ResponsiveService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+        { provide: PLATFORM_ID, useValue: "server" },
+      ],
+    });
+
+    const component = TestBed.runInInjectionContext(
+      () => new EventInfoPageComponent(),
+    );
+    component.event.set(
+      buildEvent("swissjam26", "Swiss Jam 2026", {
+        inline_spots: [
+          {
+            id: "main-stage",
+            name: "Main stage",
+            location: { lat: 47.3, lng: 8.5 },
+          },
+        ],
+      }),
+    );
+
+    component.openMapForSpot({
+      id: "event-local-spot-0",
+      name: "Main stage",
+      location: new GeoPoint(47.3, 8.5),
+      locality: "Zurich",
+      isIconic: false,
+    } as SpotPreviewData);
+
+    expect(router.navigate).toHaveBeenCalledWith(
+      ["/events", "swissjam26", "map"],
+      {
+        queryParams: { spotId: "main-stage" },
+      },
     );
   });
 

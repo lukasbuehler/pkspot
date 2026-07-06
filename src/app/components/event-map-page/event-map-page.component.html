@@ -204,20 +204,34 @@
                       @fadeInOut
                       class="custom-marker-card d-flex flex-column gap-3"
                     >
-                      <div
-                        class="d-flex flex-row justify-content-between gap-2 align-items-start"
-                      >
-                        <div
-                          class="d-flex flex-row justify-content-start gap-2 align-items-center min-w-0"
-                        >
+                      @if (customMarkerPrimaryImageSrc(marker); as imageSrc) {
+                        <div class="custom-marker-media">
+                          <img [src]="imageSrc" [alt]="marker.name || 'Event marker'" />
+                        </div>
+                      } @else {
+                        <div class="custom-marker-media custom-marker-media-placeholder">
                           <app-marker
                             [clickable]="false"
                             [color]="marker.color ?? 'primary'"
                             [icons]="marker.icons"
                           ></app-marker>
+                        </div>
+                      }
+                      <div
+                        class="d-flex flex-row justify-content-between gap-2 align-items-start"
+                      >
+                        <div
+                          class="d-flex flex-column justify-content-start gap-1 min-w-0"
+                        >
                           <h3 class="mat-title-medium m-0 text-truncate">
                             {{ marker.name || "Event marker" }}
                           </h3>
+                          @if (marker.locality) {
+                            <p class="mat-label-large m-0 custom-marker-locality text-truncate">
+                              <mat-icon>location_on</mat-icon>
+                              <span>{{ marker.locality }}</span>
+                            </p>
+                          }
                         </div>
                         <div class="d-flex flex-row gap-1 flex-shrink-0">
                           <button
@@ -254,6 +268,27 @@
                           {{ marker.description }}
                         </p>
                       }
+                      @if (marker.googlePlaceId) {
+                        <div class="custom-marker-place">
+                          <h4 class="mat-title-small m-0" i18n>
+                            This location on Google Maps®
+                          </h4>
+                          <app-google-place-preview
+                            [placeId]="marker.googlePlaceId"
+                          />
+                        </div>
+                      }
+                      @if (marker.url) {
+                        <a
+                          matButton="outlined"
+                          [href]="marker.url"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <mat-icon>open_in_new</mat-icon>
+                          <span i18n>Open link</span>
+                        </a>
+                      }
                     </div>
                   } @else {
                     @for (marker of customMarkers(); track $index) {
@@ -267,9 +302,16 @@
                           [color]="marker.color ?? 'primary'"
                           [icons]="marker.icons"
                         ></app-marker>
-                        <span class="text-truncate">{{
-                          marker.name || "Event marker"
-                        }}</span>
+                        <span class="custom-marker-row-copy">
+                          <span class="text-truncate">{{
+                            marker.name || "Event marker"
+                          }}</span>
+                          @if (marker.locality || marker.description) {
+                            <span class="mat-label-small text-truncate">
+                              {{ marker.locality || marker.description }}
+                            </span>
+                          }
+                        </span>
                         <mat-icon>chevron_right</mat-icon>
                       </button>
                     }
@@ -290,7 +332,8 @@
                       [isEditing]="false"
                       [dismissable]="true"
                       [border]="false"
-                      (dismiss)="selectedSpot.set(null)"
+                      [showRating]="false"
+                      (dismiss)="deselectSpot()"
                       class="w-100 d-block overflow-x-hidden h-100"
                     ></app-spot-details>
                   </div>
