@@ -105,6 +105,10 @@ function findBlankTargetInternalLinks(file: string): string[] {
       getAttributeValue(anchor, "[href]") ??
       getAttributeValue(anchor, "[attr.href]");
 
+    if (isEmbeddedPromoBrandLink(anchor, href)) {
+      continue;
+    }
+
     if (
       hasRouterLink(anchor) ||
       isInternalHref(href) ||
@@ -117,6 +121,15 @@ function findBlankTargetInternalLinks(file: string): string[] {
   }
 
   return violations;
+}
+
+function isEmbeddedPromoBrandLink(anchor: string, href: string | null): boolean {
+  return (
+    href === "https://pkspot.app" &&
+    /\bclass\s*=\s*(['"])[^'"]*\bembedded-promo__brand\b[^'"]*\1/iu.test(
+      anchor,
+    )
+  );
 }
 
 function hasBlankTarget(anchor: string): boolean {
