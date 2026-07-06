@@ -330,6 +330,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   showAllChallenges: WritableSignal<boolean> = signal(false);
   allSpotChallenges: WritableSignal<SpotChallenge[]> = signal([]);
   showSpotEditHistory: WritableSignal<boolean> = signal(false);
+  private _routeChallengeId: string | null = null;
   searchPreviewPlaceId = signal<string | null>(null);
 
   mapPanelView = computed<MapPanelView>(() =>
@@ -2852,6 +2853,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     resolvedSpot: Spot | null = null,
     resolvedChallenge: SpotChallenge | null = null,
   ): Promise<void> {
+    this._routeChallengeId = challengeId;
+
     if (
       showEditHistory &&
       spotIdOrSlug &&
@@ -2861,6 +2864,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if (challengeId && spotIdOrSlug) {
+      this.showAllChallenges.set(true);
       // open the spot on a challenge
       if (resolvedChallenge) {
         this.selectChallenge(resolvedChallenge, false);
@@ -2878,6 +2882,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       }
     } else if (spotIdOrSlug) {
+      this._routeChallengeId = null;
       if (this.selectedChallenge()) this.closeChallenge();
       this.showAllChallenges.set(showChallenges);
       this.showSpotEditHistory.set(showEditHistory);
@@ -2904,6 +2909,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         await this.loadSpotById(spotId as SpotId, false, pendingPreview);
       }
     } else {
+      this._routeChallengeId = null;
       // close the spot
       this.closeSpot(false);
       this.showAllChallenges.set(false);
@@ -3874,6 +3880,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       );
     } else if (spot && showEditHistory) {
       path = buildSpotEditHistoryCanonicalPath(spot.slug ?? spot.id);
+    } else if (spot && this._routeChallengeId) {
+      path = buildSpotChallengeCanonicalPath(
+        spot.slug ?? spot.id,
+        this._routeChallengeId,
+      );
     } else if (spot && this.showAllChallenges()) {
       path = buildSpotChallengeCanonicalPath(spot.slug ?? spot.id);
     } else if (spot) {
@@ -5035,6 +5046,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       return this.closeChallenge(updateUrl);
     } else {
       this.showSpotEditHistory.set(false);
+      this._routeChallengeId = challenge.id;
       this.selectedChallenge.set(challenge);
 
       // also open the info panel
@@ -5069,6 +5081,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   closeChallenge(updateUrl: boolean = true) {
+    this._routeChallengeId = null;
     this.selectedChallenge.set(null);
     this.resetPanelContentToTop();
 

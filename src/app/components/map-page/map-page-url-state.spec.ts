@@ -176,6 +176,22 @@ describe("MapPageComponent URL-driven panel state", () => {
     expect(source).toContain("const maxAttempts = preview ? 60 : 1;");
   });
 
+  it("preserves route challenge URLs while challenge data is unresolved", () => {
+    const source = readFileSync(componentPath, "utf8");
+    const handleUrlMethod = source.match(
+      /async _handleURLParamsChange\([\s\S]*?\n  \}/
+    )?.[0];
+    const updateMethod = source.match(/\n  updateMapURL\([\s\S]*?\n  \}/)?.[0];
+
+    expect(source).toContain("private _routeChallengeId: string | null = null");
+    expect(handleUrlMethod).toContain("this._routeChallengeId = challengeId");
+    expect(handleUrlMethod).toContain("this.showAllChallenges.set(true)");
+    expect(updateMethod).toContain("spot && this._routeChallengeId");
+    expect(updateMethod).toContain(
+      "buildSpotChallengeCanonicalPath(\n        spot.slug ?? spot.id,\n        this._routeChallengeId,"
+    );
+  });
+
   it("stores contextual panel back targets for community and event transitions", () => {
     const source = readFileSync(componentPath, "utf8");
     const template = readFileSync(templatePath, "utf8");
