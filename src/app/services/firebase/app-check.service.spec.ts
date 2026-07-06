@@ -115,6 +115,7 @@ describe("FirebaseAppCheckService", () => {
         __PKSPOT_STORE_SCREENSHOT__?: boolean;
       }
     ).__PKSPOT_STORE_SCREENSHOT__;
+    globalThis.localStorage?.clear();
   });
 
   it("skips initialization during SSR", async () => {
@@ -247,6 +248,109 @@ describe("FirebaseAppCheckService", () => {
       expect.objectContaining({
         state: "ready",
         platform: "web",
+      })
+    );
+  });
+
+  it("stores the web App Check throttle after Firebase rejects token exchange", async () => {
+    const throttleError = Object.assign(
+      new Error(
+        "AppCheck: 403 error. Attempts allowed again after 01d:00m:00s (appCheck/initial-throttle)."
+      ),
+      { code: "appCheck/initial-throttle" }
+    );
+    vi.mocked(getToken).mockRejectedValueOnce(throttleError);
+
+    const firebaseApp = {
+      options: {
+        appId: "web-app-id",
+        projectId: "parkour-base-project",
+      },
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        FirebaseAppCheckService,
+        { provide: FirebaseApp, useValue: firebaseApp },
+        { provide: PLATFORM_ID, useValue: "browser" },
+        { provide: PlatformService, useValue: createPlatformService("web") },
+      ],
+    });
+
+    const service = TestBed.inject(FirebaseAppCheckService);
+    await service.initialize({
+      enabled: true,
+      recaptchaEnterpriseSiteKey: "site-key",
+      attachToFirebaseSdk: false,
+    });
+
+    const rawThrottle = globalThis.localStorage?.getItem(
+      "pkspot:app-check:web-throttle:web-app-id:site-key"
+    );
+
+    expect(rawThrottle).toBeTruthy();
+    expect(JSON.parse(rawThrottle ?? "{}")).toEqual(
+      expect.objectContaining({
+        message: throttleError.message,
+      })
+    );
+    expect(service.status()).toEqual(
+      expect.objectContaining({
+        state: "failed",
+        platform: "web",
+        phase: "getToken",
+        message: throttleError.message,
+      })
+    );
+  });
+
+  it("skips the web App Check probe while a local throttle is active", async () => {
+    const firebaseApp = {
+      options: {
+        appId: "web-app-id",
+        projectId: "parkour-base-project",
+      },
+    };
+
+    globalThis.localStorage?.setItem(
+      "pkspot:app-check:web-throttle:web-app-id:site-key",
+      JSON.stringify({
+        retryAt: Date.now() + 60_000,
+        message: "Previous App Check request was throttled.",
+      })
+    );
+
+    TestBed.configureTestingModule({
+      providers: [
+        FirebaseAppCheckService,
+        { provide: FirebaseApp, useValue: firebaseApp },
+        { provide: PLATFORM_ID, useValue: "browser" },
+        { provide: PlatformService, useValue: createPlatformService("web") },
+      ],
+    });
+
+    const service = TestBed.inject(FirebaseAppCheckService);
+    await service.initialize({
+      enabled: true,
+      recaptchaEnterpriseSiteKey: "site-key",
+      attachToFirebaseSdk: false,
+    });
+
+    expect(initializeAppCheck).not.toHaveBeenCalled();
+    expect(getToken).not.toHaveBeenCalled();
+    expect(console.warn).toHaveBeenCalledWith(
+      "[AppCheck] Token check skipped due to local throttle.",
+      expect.objectContaining({
+        platform: "web",
+        appId: "web-app-id",
+        projectId: "parkour-base-project",
+      })
+    );
+    expect(service.status()).toEqual(
+      expect.objectContaining({
+        state: "failed",
+        platform: "web",
+        phase: "getToken",
       })
     );
   });

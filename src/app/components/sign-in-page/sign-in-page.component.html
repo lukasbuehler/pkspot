@@ -148,6 +148,25 @@
           </div>
         </form>
       }
+
+      @if (appCheckStatus().state !== "idle") {
+        <div
+          class="app-check-status"
+          [class.app-check-status-ready]="appCheckStatus().state === 'ready'"
+          [class.app-check-status-failed]="appCheckStatus().state === 'failed'"
+        >
+          <mat-icon>shield</mat-icon>
+          <div>
+            <p class="mat-title-small m-0">
+              <span i18n="@@account.app_check.label">App verification</span>
+              <span> · {{ appCheckStatusLabel(appCheckStatus()) }}</span>
+            </p>
+            <p class="mat-body-small m-0">
+              {{ appCheckDetail(appCheckStatus()) }}
+            </p>
+          </div>
+        </div>
+      }
     </section>
 
     <section class="account-panel benefits-panel">

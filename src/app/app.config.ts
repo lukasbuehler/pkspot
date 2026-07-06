@@ -57,7 +57,6 @@ import { routes } from "./app.routes";
 import { provideRouter } from "@angular/router";
 import { WINDOW, windowProvider } from "./providers/window";
 import { ApplicationErrorHandler } from "./services/application-error-handler.service";
-import { FirebaseAppCheckService } from "./services/firebase/app-check.service";
 import { MapPerformanceProfilerService } from "./services/map-performance-profiler.service";
 import {
   getFirebaseConfig,
@@ -76,7 +75,6 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       inject(MapPerformanceProfilerService).ensureInstalled();
     }),
-    provideAppInitializer(() => inject(FirebaseAppCheckService).initialize()),
     // Bind Firestore/Storage/Functions to the injected FirebaseApp to enforce init ordering
     provideFirestore(() => {
       // Return cached instance if already initialized

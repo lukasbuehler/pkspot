@@ -94,6 +94,30 @@
   }
 }
 
+.app-check-status {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 0.75rem;
+  align-items: start;
+  margin-top: 1rem;
+  padding: 0.875rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  color: var(--mat-sys-on-surface-variant);
+
+  mat-icon {
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  &.app-check-status-ready mat-icon {
+    color: var(--mat-sys-primary);
+  }
+
+  &.app-check-status-failed mat-icon {
+    color: var(--mat-sys-error);
+  }
+}
+
 // Why-join benefits
 .benefits-list {
   display: grid;

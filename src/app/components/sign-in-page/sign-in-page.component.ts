@@ -31,6 +31,10 @@ import { languageCodes } from "../../../scripts/Languages";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { AutoScrollOnFocusDirective } from "../../directives/auto-scroll-on-focus.directive";
 import { AnalyticsService } from "../../services/analytics.service";
+import {
+  FirebaseAppCheckService,
+  FirebaseAppCheckStatus,
+} from "../../services/firebase/app-check.service";
 
 @Component({
   selector: "app-sign-in-page",
@@ -58,6 +62,8 @@ export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
   readonly uiLanguage = inject(UiLanguageService);
   private readonly _metaTagService = inject(MetaTagService);
   private readonly _analytics = inject(AnalyticsService);
+  private readonly _appCheckService = inject(FirebaseAppCheckService);
+  readonly appCheckStatus = this._appCheckService.status;
 
   @ViewChild(OAuthSignInButtonsComponent)
   oauthButtons?: OAuthSignInButtonsComponent;
@@ -222,6 +228,40 @@ export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
   startAuthAttempt() {
     this.signInError.set("");
     this.isSubmitting.set(true);
+  }
+
+  appCheckStatusLabel(status: FirebaseAppCheckStatus): string {
+    switch (status.state) {
+      case "ready":
+        return $localize`:@@account.app_check.status.ready:Verified`;
+      case "failed":
+        return $localize`:@@account.app_check.status.failed:Failed`;
+      case "initializing":
+        return $localize`:@@account.app_check.status.initializing:Checking`;
+      case "skipped":
+        return $localize`:@@account.app_check.status.skipped:Skipped`;
+      case "idle":
+        return $localize`:@@account.app_check.status.idle:Not checked`;
+    }
+  }
+
+  appCheckDetail(status: FirebaseAppCheckStatus): string {
+    if (status.message) {
+      return status.message;
+    }
+
+    switch (status.state) {
+      case "ready":
+        return $localize`:@@account.app_check.detail.ready:This browser can request Firebase App Check tokens.`;
+      case "failed":
+        return $localize`:@@account.app_check.detail.failed:Firebase App Check failed in this browser. Sign-in may still work while enforcement is off.`;
+      case "initializing":
+        return $localize`:@@account.app_check.detail.initializing:Checking Firebase App Check for this browser.`;
+      case "skipped":
+        return $localize`:@@account.app_check.detail.skipped:Firebase App Check was not run in this context.`;
+      case "idle":
+        return "";
+    }
   }
 
   private _getAuthErrorCode(err: unknown): string | undefined {
