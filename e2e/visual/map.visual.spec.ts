@@ -23,12 +23,21 @@ test.describe("Map Page Visual Regression @visual", () => {
     await mapPage.waitForMapReady();
     await page.waitForTimeout(2000);
     const mapSurface = page.locator("app-google-map-2d").first();
+    const dynamicObjectPanelContent = page.locator(
+      [
+        "app-map-object-panel app-filter-chips-bar",
+        "app-map-object-panel app-map-event-list",
+        "app-map-object-panel app-map-community-list",
+        "app-map-object-panel app-spot-list",
+        "app-map-object-panel .show-more-spots",
+      ].join(", "),
+    );
 
     await expect(page).toHaveScreenshot("map-page-desktop.png", {
       maxDiffPixels: 80_000, // Higher tolerance for the masked map edge.
       fullPage: false,
       animations: "disabled",
-      mask: [mapSurface],
+      mask: [mapSurface, dynamicObjectPanelContent],
     });
   });
 
