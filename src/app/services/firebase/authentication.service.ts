@@ -186,6 +186,7 @@ export class AuthenticationService extends ConsentAwareService {
 
     const email = record["email"];
     const providerId = record["providerId"];
+    const data = this._readScreenshotUserData(uid, record["data"]);
 
     return {
       uid,
@@ -193,7 +194,16 @@ export class AuthenticationService extends ConsentAwareService {
       emailVerified: record["emailVerified"] === true,
       providerId:
         typeof providerId === "string" ? providerId : "store-screenshot",
+      ...(data ? { data } : {}),
     };
+  }
+
+  private _readScreenshotUserData(uid: string, data: unknown): User | undefined {
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
+      return undefined;
+    }
+
+    return new User(uid, data as UserSchema);
   }
 
   private _checkExistingSessionSafely() {
