@@ -20,7 +20,7 @@ import {
   model,
   inject,
   OnDestroy,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
 } from "@angular/core";
 import {
   MatProgressBar,
@@ -108,11 +108,7 @@ import { SpotRatingComponent } from "../spot-rating/spot-rating.component";
 import { MatIcon } from "@angular/material/icon";
 import { MatTooltip } from "@angular/material/tooltip";
 import { MatIconButton, MatButton } from "@angular/material/button";
-import {
-  KeyValuePipe,
-  LocationStrategy,
-  JsonPipe,
-} from "@angular/common";
+import { KeyValuePipe, LocationStrategy, JsonPipe } from "@angular/common";
 import {
   MatChipListbox,
   MatChipsModule,
@@ -219,7 +215,7 @@ type OrganizationRelationshipSaveResult = "unchanged" | "changed" | "failed";
       transition(
         "* <=> *",
         [style({ height: "{{startHeight}}px" }), animate(".3s ease")],
-        { params: { startHeight: 0 } }
+        { params: { startHeight: 0 } },
       ),
     ]),
     // Fade/slide when bound value changes
@@ -238,7 +234,7 @@ type OrganizationRelationshipSaveResult = "unchanged" | "changed" | "failed";
             style({ transform: "scale(1)", offset: 0 }),
             style({ transform: "scale(1.06)", offset: 0.35 }),
             style({ transform: "scale(1)", offset: 1 }),
-          ])
+          ]),
         ),
       ]),
     ]),
@@ -251,7 +247,7 @@ type OrganizationRelationshipSaveResult = "unchanged" | "changed" | "failed";
       transition(":leave", [
         animate(
           "100ms ease-in",
-          style({ opacity: 0, transform: "translateY(-4px)" })
+          style({ opacity: 0, transform: "translateY(-4px)" }),
         ),
       ]),
     ]),
@@ -351,7 +347,7 @@ export class SpotDetailsComponent
   challenge = model<SpotChallenge | LocalSpotChallenge | null>(null);
   isEditing = model<boolean>(false);
   isLocalSpot = computed(
-    () => this.spot() !== null && !(this.spot() instanceof Spot)
+    () => this.spot() !== null && !(this.spot() instanceof Spot),
   );
   upcomingEvents = computed(() => this.spot()?.upcomingEvents() ?? []);
 
@@ -434,7 +430,7 @@ export class SpotDetailsComponent
       .filter(
         (media) =>
           (media instanceof StorageImage || media instanceof ExternalImage) &&
-          (!media.userId || !blockedUsers.includes(media.userId))
+          (!media.userId || !blockedUsers.includes(media.userId)),
       );
   });
 
@@ -564,7 +560,7 @@ export class SpotDetailsComponent
       this._snackbar.open(
         e?.message || e || $localize`Failed to add custom URL`,
         undefined,
-        { duration: 3000 }
+        { duration: 3000 },
       );
     } finally {
       this.addingSlug.set(false);
@@ -618,7 +614,9 @@ export class SpotDetailsComponent
           id: spot.id,
           name: spot.name(),
         },
-        reason: spot.reportReason ?? $localize`:@@spot.report.reason.unknown:reported`,
+        reason:
+          spot.reportReason ??
+          $localize`:@@spot.report.reason.unknown:reported`,
         user: {
           uid: "",
         },
@@ -668,18 +666,19 @@ export class SpotDetailsComponent
     if (!(spot instanceof Spot)) return [];
 
     const stewardship = spot.stewardship;
-    const organizations = stewardship?.organization_ids
-      .map((organizationId) => stewardship.organizations[organizationId])
-      .filter(
-        (organization): organization is SpotStewardshipSchema =>
-          organization !== undefined
-      ) ?? [];
+    const organizations =
+      stewardship?.organization_ids
+        .map((organizationId) => stewardship.organizations[organizationId])
+        .filter(
+          (organization): organization is SpotStewardshipSchema =>
+            organization !== undefined,
+        ) ?? [];
 
     return organizations;
   });
   readonly managedOrganization = computed((): SpotManagementSchema | null => {
     const spot = this.spot();
-    return spot instanceof Spot ? spot.management ?? null : null;
+    return spot instanceof Spot ? (spot.management ?? null) : null;
   });
   private _organizationsLoaded = false;
 
@@ -740,7 +739,7 @@ export class SpotDetailsComponent
       query,
       undefined,
       biasRect,
-      loc
+      loc,
     );
 
     return {
@@ -772,7 +771,7 @@ export class SpotDetailsComponent
         const places = await this._mapsApiService.getNearbyPlacesByDistance(
           spot.location(),
           undefined, // No type filter - get all nearby POIs
-          5
+          5,
         );
 
         const currentSpot = this.spot();
@@ -809,12 +808,12 @@ export class SpotDetailsComponent
     this.linkingPlace.set(true);
     try {
       const userReference = createUserReference(
-        this.authenticationService.user.data!
+        this.authenticationService.user.data!,
       );
       await this._spotEditsService.updateSpotExternalReferenceEdit(
         spot.id,
         { google_maps_place_id: pred.place_id },
-        userReference
+        userReference,
       );
       this.placeSearch.setValue("");
       this.placePredictions = [];
@@ -854,14 +853,14 @@ export class SpotDetailsComponent
     this.unlinkingPlace.set(true);
     try {
       const userReference = createUserReference(
-        this.authenticationService.user.data!
+        this.authenticationService.user.data!,
       );
       // To unlink, we need to send an edit that will clear the google_maps_place_id
       // The cloud function will need to handle this appropriately
       await this._spotEditsService.updateSpotExternalReferenceEdit(
         spot.id,
         { google_maps_place_id: null as any }, // null to indicate deletion
-        userReference
+        userReference,
       );
       this.googlePlace.set(undefined);
       this._snackbar.open($localize`Unlinked Google Place`, undefined, {
@@ -891,7 +890,7 @@ export class SpotDetailsComponent
   }
 
   getPredictionDistanceText(
-    pred: google.maps.places.AutocompletePrediction
+    pred: google.maps.places.AutocompletePrediction,
   ): string | null {
     const meters = (pred as any)?.distance_meters;
     if (typeof meters !== "number" || !Number.isFinite(meters)) return null;
@@ -929,7 +928,7 @@ export class SpotDetailsComponent
 
   private _haversineDistanceMeters(
     from: google.maps.LatLngLiteral,
-    to: google.maps.LatLngLiteral
+    to: google.maps.LatLngLiteral,
   ): number {
     const toRadians = (value: number) => (value * Math.PI) / 180;
     const earthRadiusMeters = 6_371_000;
@@ -970,13 +969,13 @@ export class SpotDetailsComponent
     private _postsService: PostsService,
     private _storageService: StorageService,
     private _mapsApiService: MapsApiService,
-    private _snackbar: MatSnackBar
+    private _snackbar: MatSnackBar,
   ) {
     this.filteredCountries = this.stateCtrl.valueChanges.pipe(
       startWith(""),
       map((country) =>
-        country ? this._filterCountries(country) : this.countries.slice()
-      )
+        country ? this._filterCountries(country) : this.countries.slice(),
+      ),
     );
 
     effect(() => {
@@ -992,7 +991,7 @@ export class SpotDetailsComponent
         this.placeSearch.setValue("", { emitEvent: false });
         this.selectedStewardOrganizationId.set("");
         this.selectedManagerOrganizationId.set(
-          spot instanceof Spot ? spot.management?.organization_id ?? "" : ""
+          spot instanceof Spot ? (spot.management?.organization_id ?? "") : "",
         );
       }
 
@@ -1104,9 +1103,9 @@ export class SpotDetailsComponent
                 predictions: [],
                 nearbyPlaces: null,
               });
-            })
-          )
-        )
+            }),
+          ),
+        ),
       )
       .subscribe(({ predictions, nearbyPlaces }) => {
         this.placePredictions = predictions;
@@ -1152,7 +1151,7 @@ export class SpotDetailsComponent
     const filterValue = value.toLowerCase();
 
     return this.countries.filter(
-      (country) => country.name.toLowerCase().indexOf(filterValue) === 0
+      (country) => country.name.toLowerCase().indexOf(filterValue) === 0,
     );
   }
 
@@ -1179,7 +1178,7 @@ export class SpotDetailsComponent
         this._snackbar.open(
           this._ageAssuranceService.getRestrictionMessage(),
           $localize`Dismiss`,
-          { duration: 6000 }
+          { duration: 6000 },
         );
         return;
       }
@@ -1215,7 +1214,8 @@ export class SpotDetailsComponent
     this._analyticsService.trackEvent("spot_edit_save_clicked", {
       spot_id: spot instanceof Spot ? spot.id : null,
       is_new_spot: this.isNewSpot,
-      organization_admin_changes_available: spot instanceof Spot && this.isAdmin(),
+      organization_admin_changes_available:
+        spot instanceof Spot && this.isAdmin(),
     });
     this.isSaving = true;
 
@@ -1244,10 +1244,15 @@ export class SpotDetailsComponent
 
     this.isLoadingOrganizations.set(true);
     try {
-      this.organizations.set(await this._organizationsService.getOrganizations());
+      this.organizations.set(
+        await this._organizationsService.getOrganizations(),
+      );
       this._organizationsLoaded = true;
     } catch (error) {
-      console.warn("Failed to load organizations for spot relationships", error);
+      console.warn(
+        "Failed to load organizations for spot relationships",
+        error,
+      );
       this._snackbar.open($localize`Could not load organizations`, undefined, {
         duration: 2500,
       });
@@ -1257,7 +1262,7 @@ export class SpotDetailsComponent
   }
 
   private async _saveOrganizationRelationshipChangesIfNeeded(
-    spot: Spot
+    spot: Spot,
   ): Promise<OrganizationRelationshipSaveResult> {
     if (!this.isAdmin()) {
       return "unchanged";
@@ -1270,27 +1275,27 @@ export class SpotDetailsComponent
       if (nextManagerId !== currentManagerId) {
         await this._organizationsService.setSpotManagement(
           spot.id,
-          nextManagerId
+          nextManagerId,
         );
         this._snackbar.open(
           nextManagerId
             ? $localize`Managed organization updated`
             : $localize`Managed organization removed`,
           undefined,
-          { duration: 2200 }
+          { duration: 2200 },
         );
         hasChanges = true;
       }
 
       const nextStewardId = this.selectedStewardOrganizationId();
       const currentStewardIds = new Set(
-        spot.stewardship?.organization_ids ?? []
+        spot.stewardship?.organization_ids ?? [],
       );
       if (nextStewardId && !currentStewardIds.has(nextStewardId)) {
         await this._organizationsService.setSpotStewardship(
           spot.id,
           nextStewardId,
-          true
+          true,
         );
         this.selectedStewardOrganizationId.set("");
         this._snackbar.open($localize`Verified organization added`, undefined, {
@@ -1305,7 +1310,7 @@ export class SpotDetailsComponent
       this._snackbar.open(
         $localize`Failed to update spot organization settings`,
         undefined,
-        { duration: 3000 }
+        { duration: 3000 },
       );
       return "failed";
     }
@@ -1321,16 +1326,20 @@ export class SpotDetailsComponent
       await this._organizationsService.setSpotStewardship(
         spot.id,
         organizationId,
-        false
+        false,
       );
       this._snackbar.open($localize`Verified organization removed`, undefined, {
         duration: 2200,
       });
     } catch (error) {
       console.error("Failed to remove stewarded organization", error);
-      this._snackbar.open($localize`Failed to remove verified organization`, undefined, {
-        duration: 3000,
-      });
+      this._snackbar.open(
+        $localize`Failed to remove verified organization`,
+        undefined,
+        {
+          duration: 3000,
+        },
+      );
     }
   }
 
@@ -1344,7 +1353,7 @@ export class SpotDetailsComponent
       spot.access() !== SpotAccess.Other ||
       Boolean(spot.googlePlaceId()) ||
       Object.values(spot.amenities() ?? {}).some(
-        (value) => value !== null && value !== undefined
+        (value) => value !== null && value !== undefined,
       )
     );
   }
@@ -1359,7 +1368,7 @@ export class SpotDetailsComponent
 
   private _hasDescription(spot: LocalSpot): boolean {
     return Object.values(spot.descriptions() ?? {}).some((entry) =>
-      Boolean(entry?.text.trim())
+      Boolean(entry?.text.trim()),
     );
   }
 
@@ -1380,7 +1389,7 @@ export class SpotDetailsComponent
 
   descriptionTextChanged(
     spot: LocalSpot | Spot,
-    eventTarget: EventTarget | null
+    eventTarget: EventTarget | null,
   ) {
     const value = getValueFromEventTarget(eventTarget);
 
@@ -1419,7 +1428,7 @@ export class SpotDetailsComponent
     }
 
     const confirmed = window.confirm(
-      $localize`Delete this spot and all of its reviews and edits? This cannot be undone.`
+      $localize`Delete this spot and all of its reviews and edits? This cannot be undone.`,
     );
     if (!confirmed) {
       return;
@@ -1588,18 +1597,18 @@ export class SpotDetailsComponent
           media.type,
           this.authenticationService.user.uid,
           true,
-          true // isProcessing = true for newly uploaded images
+          true, // isProcessing = true for newly uploaded images
         );
       }
       if (spot instanceof Spot && this.authenticationService.user?.uid) {
         // if possible, already save the uploaded media via a spot edit
         const userReference = createUserReference(
-          this.authenticationService.user.data!
+          this.authenticationService.user.data!,
         );
         this._spotEditsService.updateSpotMediaEdit(
           spot.id,
           spot.userMedia(),
-          userReference
+          userReference,
         );
       }
 
@@ -1627,9 +1636,8 @@ export class SpotDetailsComponent
     }
 
     // Build domain-agnostic share link without locale prefix
-    const { buildAbsoluteUrlNoLocale } = await import(
-      "../../../scripts/Helpers"
-    );
+    const { buildAbsoluteUrlNoLocale } =
+      await import("../../../scripts/Helpers");
     const idOrSlug = spot.slug ?? spot.id;
     const link = buildAbsoluteUrlNoLocale(buildSpotCanonicalPath(idOrSlug));
 
@@ -1673,19 +1681,22 @@ export class SpotDetailsComponent
           duration: 3000,
           horizontalPosition: "center",
           verticalPosition: "top",
-        }
+        },
       );
     }
 
     this._analyticsService.trackEvent("Share Spot", { spotId: spot.id });
   }
 
-  openSpotInMaps() {
+  openSpotInMaps(mapsType?: "google" | "apple") {
     const spot = this.spot();
     if (spot instanceof Spot) {
-      this._analyticsService.trackEvent("Opening in Maps", { spotId: spot.id });
+      this._analyticsService.trackEvent("Opening in Maps", {
+        spotId: spot.id,
+        mapsType: mapsType ?? "unknown",
+      });
     }
-    if (spot) this._mapsApiService.openLatLngInMaps(spot.location());
+    if (spot) this._mapsApiService.openLatLngInMaps(spot.location(), mapsType);
   }
 
   openMediaUploadDialog() {
@@ -1693,7 +1704,7 @@ export class SpotDetailsComponent
       this._snackbar.open(
         this._ageAssuranceService.getRestrictionMessage(),
         $localize`Dismiss`,
-        { duration: 6000 }
+        { duration: 6000 },
       );
       return;
     }
@@ -1751,9 +1762,8 @@ export class SpotDetailsComponent
     this._latestReportRequestSpotId = spotId;
 
     try {
-      const reports = await this._spotReportsService.getSpotReportsBySpotId(
-        spotId
-      );
+      const reports =
+        await this._spotReportsService.getSpotReportsBySpotId(spotId);
 
       if (this._latestReportRequestSpotId !== spotId) {
         // Spot changed while we were loading; ignore stale data
@@ -1856,24 +1866,30 @@ export class SpotDetailsComponent
     });
     dialogRef
       .afterClosed()
-      .subscribe((result?: { report?: SpotReportSchema; reportId?: string }) => {
-        if (!result?.report) {
-          return;
-        }
+      .subscribe(
+        (result?: { report?: SpotReportSchema; reportId?: string }) => {
+          if (!result?.report) {
+            return;
+          }
 
-        this.report.set(result.report);
-        spot.isReported = true;
-        spot.reportReason = result.report.reason;
-        spot.reportCount += 1;
-        this._analyticsService.trackEvent("spot_report_submitted", {
-          spot_id: spot.id,
-          report_id: result.reportId,
-          reason: result.report.reason,
-        });
-        this._snackbar.open($localize`Report submitted. Thanks for helping keep spots accurate.`, undefined, {
-          duration: 4000,
-        });
-      });
+          this.report.set(result.report);
+          spot.isReported = true;
+          spot.reportReason = result.report.reason;
+          spot.reportCount += 1;
+          this._analyticsService.trackEvent("spot_report_submitted", {
+            spot_id: spot.id,
+            report_id: result.reportId,
+            reason: result.report.reason,
+          });
+          this._snackbar.open(
+            $localize`Report submitted. Thanks for helping keep spots accurate.`,
+            undefined,
+            {
+              duration: 4000,
+            },
+          );
+        },
+      );
   }
 
   openSpotReviewDialog() {
@@ -1954,7 +1970,7 @@ export class SpotDetailsComponent
   trackVerificationBadgeClick(
     relationship: "managed" | "stewarded",
     organizationId: string,
-    organizationName: string
+    organizationName: string,
   ): void {
     const spot = this.spot();
     this._analyticsService.trackEvent("spot_verification_badge_clicked", {
@@ -2014,7 +2030,7 @@ export class SpotDetailsComponent
       const newChallenge: LocalSpotChallenge = new LocalSpotChallenge(
         newChallengeData,
         spot,
-        this.locale
+        this.locale,
       );
       this.challenge.set(newChallenge);
       this.isEditing.set(true);
@@ -2028,7 +2044,9 @@ export class SpotDetailsComponent
       throw new Error("The spot is a local spot, it has no challenges");
     }
 
-    this._router.navigateByUrl(buildSpotChallengeCanonicalPath(spot.slug ?? spot.id));
+    this._router.navigateByUrl(
+      buildSpotChallengeCanonicalPath(spot.slug ?? spot.id),
+    );
   }
 
   setSpotIconicFromToggle(event: MatSlideToggleChange) {
@@ -2069,7 +2087,7 @@ export class SpotDetailsComponent
 
   updateAmenityFromToggle(
     amenityKey: keyof AmenitiesMap,
-    selected: boolean | null | undefined
+    selected: boolean | null | undefined,
   ) {
     this.spot!.update((spot) => {
       if (!spot) return spot;
@@ -2134,7 +2152,7 @@ export class SpotDetailsComponent
       if (covered === true) return "covered";
       if (covered === false) return "not_covered";
       return "unknown";
-    }
+    },
   );
 
   public setCovered(selection: "covered" | "not_covered" | "unknown") {
@@ -2217,9 +2235,9 @@ export class SpotDetailsComponent
           },
           (error) => {
             console.error("Failed to load private user data", error);
-          }
+          },
         );
-      }
+      },
     );
   }
 

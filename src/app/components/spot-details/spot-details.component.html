@@ -126,7 +126,13 @@
                 matTooltip="Managed by {{ managed.organization.name }}"
                 i18n-matTooltip="@@spot.managed.tooltip"
                 [attr.aria-label]="'Managed by ' + managed.organization.name"
-                (click)="trackVerificationBadgeClick('managed', managed.organization_id, managed.organization.name)"
+                (click)="
+                  trackVerificationBadgeClick(
+                    'managed',
+                    managed.organization_id,
+                    managed.organization.name
+                  )
+                "
               >
                 <mat-icon>verified_user</mat-icon>
                 @if (managed.organization.logo_url) {
@@ -156,7 +162,13 @@
                   matTooltip="Verified by {{ steward.organization.name }}"
                   i18n-matTooltip="@@spot.verified.tooltip"
                   [attr.aria-label]="'Verified by ' + steward.organization.name"
-                  (click)="trackVerificationBadgeClick('stewarded', steward.organization_id, steward.organization.name)"
+                  (click)="
+                    trackVerificationBadgeClick(
+                      'stewarded',
+                      steward.organization_id,
+                      steward.organization.name
+                    )
+                  "
                 >
                   <mat-icon>verified_user</mat-icon>
                   @if (steward.organization.logo_url) {
@@ -204,8 +216,8 @@
               @if (
                 spot()?.rating ||
                 spot()!.importantAmenitiesArray().length > 0 ||
-                spot()?.type() !== "other" ||
-                spot()?.access() !== "other"
+                spot()?.access() !== "other" ||
+                spot()?.type() !== "other"
               ) {
                 <div class="d-flex flex-row gap-1 align-items-center pb-1">
                   <!-- <span class="mat-label-small px-1 border rounded me-1">Spot</span> -->
@@ -247,29 +259,6 @@
                   {{
                     (spot()?.rating ||
                       spot()!.importantAmenitiesArray().length > 0) &&
-                    spot()?.type() !== "other"
-                      ? "⸱"
-                      : null
-                  }}
-                  @if (spot()?.type() !== "other") {
-                    <div
-                      class="d-flex align-items-center"
-                      [@fadeSlideOnChange]="typeAnimKey()"
-                      style="min-width: 0"
-                    >
-                      <mat-icon class="amenity-icon me-1 flex-shrink-0">{{
-                        spotTypesIcons[spot()!.type()]
-                      }}</mat-icon>
-
-                      <span class="mat-label-large text-nowrap text-truncate">{{
-                        spotTypeNames[spot()!.type()]
-                      }}</span>
-                    </div>
-                  }
-                  {{
-                    (spot()?.rating ||
-                      spot()!.importantAmenitiesArray().length > 0 ||
-                      spot()?.type() !== "other") &&
                     spot()?.access() !== "other"
                       ? "⸱"
                       : null
@@ -284,9 +273,11 @@
                       [@fadeSlideOnChange]="accessAnimKey()"
                       style="min-width: 0"
                     >
-                      <mat-icon class="amenity-icon me-1 flex-shrink-0">{{
-                        spotAccessIcons[spot()!.access()]
-                      }}</mat-icon>
+                      <mat-icon
+                        class="amenity-icon me-1 flex-shrink-0"
+                        [matTooltip]="spotAccessNames[spot()!.access()]"
+                        >{{ spotAccessIcons[spot()!.access()] }}</mat-icon
+                      >
 
                       <span class="mat-label-large text-nowrap text-truncate">{{
                         spotAccessNames[spot()!.access()]
@@ -461,6 +452,52 @@
         </div>
         } -->
 
+        <!-- Navigate and open in google buttons -->
+        <div class="d-flex flex-column flex-xl-row gap-2 mb-4">
+          <button
+            mat-stroked-button
+            color="primary"
+            class="flex-grow-1 flex-basis-0 py-2"
+            i18n-matTooltip="
+              Open in Google maps button tooltip|Tooltip of button to open the
+              spot in Google Maps
+            "
+            matTooltip="Open the location of this spot in Maps"
+            (click)="openSpotInMaps('google')"
+          >
+            <mat-icon>place</mat-icon>
+            <span
+              i18n="
+                Open in Google maps button|Button to open the spot in Google
+                Maps
+              "
+              >Open in Google Maps</span
+            >
+          </button>
+          @if (isAppleMaps) {
+            <button
+              mat-stroked-button
+              color="primary"
+              class="flex-grow-1 flex-basis-0 py-2"
+              i18n-matTooltip="
+                Open in Apple maps button tooltip|Tooltip of button to open the
+                spot in Apple Maps
+              "
+              matTooltip="Open the location of this spot in Maps"
+              (click)="openSpotInMaps('apple')"
+            >
+              <mat-icon>place</mat-icon>
+              <span
+                i18n="
+                  Open in Apple maps button|Button to open the spot in Apple
+                  Maps
+                "
+                >Open in Apple Maps</span
+              >
+            </button>
+          }
+        </div>
+
         <!-- Google place (reusable component) -->
         @if (spot()?.googlePlaceId()) {
           <div class="mb-4">
@@ -476,46 +513,6 @@
           </div>
         }
 
-        <!-- Navigate and open in google buttons -->
-        <div class="d-flex flex-column flex-xl-row gap-2 mb-4">
-          <button
-            mat-stroked-button
-            color="primary"
-            class="flex-grow-1 flex-basis-0 py-2"
-            i18n-matTooltip="
-              Open in maps button tooltip|Tooltip of button to open the spot in
-              maps@@open_maps_tooltip"
-            matTooltip="Open the location of this spot in Maps"
-            (click)="openSpotInMaps()"
-          >
-            <mat-icon>place</mat-icon>
-            <span
-              i18n="
-                Open in maps button|Button to open the spot in
-                maps@@open_maps_button_label"
-              >Open in {{ isAppleMaps ? "Apple Maps" : "Google Maps" }}</span
-            >
-          </button>
-          <button
-            mat-stroked-button
-            color="primary"
-            class="flex-grow-1 flex-basis-0 py-2"
-            i18n-matTooltip="
-              navigate to spot tooltip|Tooltip for navigate to spot
-              button@@spot.navigate.tooltip"
-            matTooltip="Navigate to this spot"
-            (click)="openDirectionsInMaps()"
-          >
-            <mat-icon>directions</mat-icon>
-            <span
-              i18n="
-                navigate to spot button|Button text for navigate to
-                spot@@spot.navigate.button"
-              >Navigate to spot</span
-            >
-          </button>
-        </div>
-
         <h3
           class="mat-title-medium"
           i18n="
@@ -525,46 +522,10 @@
           Details
         </h3>
 
-        <!-- Type and Access -->
-        @if (spot()?.type() !== "other" || spot()!.access() !== "other") {
+        <!-- Access and Type -->
+        @if (spot()?.access() !== "other" || spot()!.type() !== "other") {
           <div class="mb-4">
             <div class="d-flex flex-row gap-2">
-              @if (spot()?.type() !== "other") {
-                <div
-                  class="d-flex flex-column justify-content-start align-items-start gap-2 pt-2 flex-grow-1 flex-basis-0"
-                  style="min-width: 0"
-                >
-                  <h4
-                    class="mat-title-small m-0"
-                    i18n="@@spot.details.spot_type_chip"
-                  >
-                    Spot Type
-                  </h4>
-                  <h4
-                    class="mat-title-medium m-0 d-flex align-items-center gap-2"
-                    style="min-width: 0; max-width: 100%"
-                  >
-                    <mat-icon class="flex-shrink-0">{{
-                      spotTypesIcons[spot()!.type()]
-                    }}</mat-icon>
-                    <span class="text-truncate flex-shrink-1">{{
-                      spotTypeNames[spot()!.type()]
-                    }}</span>
-                    <button
-                      mat-icon-button
-                      type="button"
-                      class="spot-help-button flex-shrink-0"
-                      [matTooltip]="spotTypeDescriptions[spot()!.type()]"
-                      matTooltipTouchGestures="on"
-                      #spotTypeTooltip="matTooltip"
-                      [attr.aria-label]="spotTypeDescriptions[spot()!.type()]"
-                      (click)="spotTypeTooltip.show(0); $event.stopPropagation()"
-                    >
-                      <mat-icon class="help-icon">help_outline</mat-icon>
-                    </button>
-                  </h4>
-                </div>
-              }
               @if (spot()?.access() !== "other") {
                 <div
                   class="d-flex flex-column justify-content-start align-items-start gap-2 pt-2 flex-grow-1 flex-basis-0"
@@ -597,8 +558,50 @@
                       [matTooltip]="spotAccessDescriptions[spot()!.access()]"
                       matTooltipTouchGestures="on"
                       #spotAccessTooltip="matTooltip"
-                      [attr.aria-label]="spotAccessDescriptions[spot()!.access()]"
-                      (click)="spotAccessTooltip.show(0); $event.stopPropagation()"
+                      [attr.aria-label]="
+                        spotAccessDescriptions[spot()!.access()]
+                      "
+                      (click)="
+                        spotAccessTooltip.show(0); $event.stopPropagation()
+                      "
+                    >
+                      <mat-icon class="help-icon">help_outline</mat-icon>
+                    </button>
+                  </h4>
+                </div>
+              }
+              @if (spot()?.type() !== "other") {
+                <div
+                  class="d-flex flex-column justify-content-start align-items-start gap-2 pt-2 flex-grow-1 flex-basis-0"
+                  style="min-width: 0"
+                >
+                  <h4
+                    class="mat-title-small m-0"
+                    i18n="@@spot.details.spot_type_chip"
+                  >
+                    Spot Type
+                  </h4>
+                  <h4
+                    class="mat-title-medium m-0 d-flex align-items-center gap-2"
+                    style="min-width: 0; max-width: 100%"
+                  >
+                    <mat-icon class="flex-shrink-0">{{
+                      spotTypesIcons[spot()!.type()]
+                    }}</mat-icon>
+                    <span class="text-truncate flex-shrink-1">{{
+                      spotTypeNames[spot()!.type()]
+                    }}</span>
+                    <button
+                      mat-icon-button
+                      type="button"
+                      class="spot-help-button flex-shrink-0"
+                      [matTooltip]="spotTypeDescriptions[spot()!.type()]"
+                      matTooltipTouchGestures="on"
+                      #spotTypeTooltip="matTooltip"
+                      [attr.aria-label]="spotTypeDescriptions[spot()!.type()]"
+                      (click)="
+                        spotTypeTooltip.show(0); $event.stopPropagation()
+                      "
                     >
                       <mat-icon class="help-icon">help_outline</mat-icon>
                     </button>
@@ -1280,43 +1283,17 @@
           }
         </div>
 
-        <!-- Type and Access? -->
+        <!-- Access and Type -->
         <div class="mb-4">
           <h4
             class="mat-title-small"
             i18n="
-              type and access edit header|Header for type and access editing
-              section@@spot.edit.type_access.header"
+              access and type edit header|Header for access and type editing
+              section@@spot.edit.access_type.header"
           >
-            Type and Access
+            Access and Type
           </h4>
           <div class="d-flex flex-column gap-4 align-items-stretch">
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-              <mat-label
-                i18n="
-                  Spot type label|Label for the spot type selection
-                  field@@spot_type_label"
-                >Spot Type</mat-label
-              >
-              <mat-select
-                [value]="spot()!.type()"
-                (valueChange)="spot()!.type.set($event)"
-              >
-                <mat-select-trigger>
-                  <span class="d-flex align-items-center gap-2">
-                    <mat-icon>{{ spotTypesIcons[spot()!.type()] }}</mat-icon>
-                    <span>{{ spotTypeNames[spot()!.type()] }}</span>
-                  </span>
-                </mat-select-trigger>
-                @for (spotType of spotTypes; track $index) {
-                  <mat-option [value]="spotType">
-                    <mat-icon>{{ spotTypesIcons[spotType] }}</mat-icon>
-                    <span>{{ spotTypeNames[spotType] }}</span>
-                  </mat-option>
-                }
-              </mat-select>
-              <mat-hint>{{ spotTypeDescriptions[spot()!.type()] }}</mat-hint>
-            </mat-form-field>
             <mat-form-field appearance="outline" subscriptSizing="dynamic">
               <mat-label
                 i18n="
@@ -1344,6 +1321,32 @@
               <mat-hint>{{
                 spotAccessDescriptions[spot()!.access()]
               }}</mat-hint>
+            </mat-form-field>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label
+                i18n="
+                  Spot type label|Label for the spot type selection
+                  field@@spot_type_label"
+                >Spot Type</mat-label
+              >
+              <mat-select
+                [value]="spot()!.type()"
+                (valueChange)="spot()!.type.set($event)"
+              >
+                <mat-select-trigger>
+                  <span class="d-flex align-items-center gap-2">
+                    <mat-icon>{{ spotTypesIcons[spot()!.type()] }}</mat-icon>
+                    <span>{{ spotTypeNames[spot()!.type()] }}</span>
+                  </span>
+                </mat-select-trigger>
+                @for (spotType of spotTypes; track $index) {
+                  <mat-option [value]="spotType">
+                    <mat-icon>{{ spotTypesIcons[spotType] }}</mat-icon>
+                    <span>{{ spotTypeNames[spotType] }}</span>
+                  </mat-option>
+                }
+              </mat-select>
+              <mat-hint>{{ spotTypeDescriptions[spot()!.type()] }}</mat-hint>
             </mat-form-field>
           </div>
         </div>

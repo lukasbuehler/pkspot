@@ -42,6 +42,10 @@ import {
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
 
+type SpotPreviewCardData = SpotPreviewData & {
+  is_iconic?: unknown;
+};
+
 @Component({
   selector: "app-spot-preview-card",
   templateUrl: "./spot-preview-card.component.html",
@@ -77,7 +81,17 @@ export class SpotPreviewCardComponent
   mapZoom = input<number | null>(null);
   forcePlaceholderContainer = input<boolean>(false);
 
-  spotData = input<Spot | LocalSpot | SpotPreviewData | null>(null);
+  spotData = input<Spot | LocalSpot | SpotPreviewCardData | null>(null);
+  isIconicSpot = computed(() => {
+    const spot = this.spotData();
+    if (!spot) return false;
+
+    if (spot instanceof Spot || spot instanceof LocalSpot) {
+      return spot.isIconic;
+    }
+
+    return spot.isIconic === true || spot.is_iconic === true;
+  });
   spotAmenitiesArray = computed<
     {
       name?: string;
@@ -559,7 +573,7 @@ export class SpotPreviewCardComponent
   }
 
   private _getSpotId(
-    spot: Spot | LocalSpot | SpotPreviewData | null
+    spot: Spot | LocalSpot | SpotPreviewCardData | null
   ): string | undefined {
     if (!spot) return undefined;
 
@@ -575,7 +589,7 @@ export class SpotPreviewCardComponent
   }
 
   private _getSpotCacheKey(
-    spot: Spot | LocalSpot | SpotPreviewData | null
+    spot: Spot | LocalSpot | SpotPreviewCardData | null
   ): string | null {
     if (!spot) return null;
 
@@ -599,7 +613,7 @@ export class SpotPreviewCardComponent
   }
 
   private _getSpotLocation(
-    spot: Spot | LocalSpot | SpotPreviewData
+    spot: Spot | LocalSpot | SpotPreviewCardData
   ): google.maps.LatLngLiteral | null {
     if (spot instanceof Spot || spot instanceof LocalSpot) {
       return spot.location();
@@ -615,7 +629,9 @@ export class SpotPreviewCardComponent
     };
   }
 
-  private _spotHasImageMedia(spot: Spot | LocalSpot | SpotPreviewData): boolean {
+  private _spotHasImageMedia(
+    spot: Spot | LocalSpot | SpotPreviewCardData
+  ): boolean {
     const allowStreetViewPreview = this._allowStreetViewPreview();
 
     if (spot instanceof Spot || spot instanceof LocalSpot) {
@@ -645,7 +661,7 @@ export class SpotPreviewCardComponent
   }
 
   private _isStreetViewHidden(
-    spot: Spot | LocalSpot | SpotPreviewData
+    spot: Spot | LocalSpot | SpotPreviewCardData
   ): boolean {
     if (spot instanceof Spot || spot instanceof LocalSpot) {
       return !!spot.hideStreetview;

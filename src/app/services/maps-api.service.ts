@@ -172,7 +172,10 @@ export class MapsApiService extends ConsentAwareService {
         !Number.isFinite(parsed?.zoom)
       ) {
         localStorage.removeItem("lastLocationAndZoom");
-        reportInvalidMapCoordinate("Removed invalid saved map viewport", parsed);
+        reportInvalidMapCoordinate(
+          "Removed invalid saved map viewport",
+          parsed,
+        );
         return Promise.resolve(null);
       }
 
@@ -217,10 +220,13 @@ export class MapsApiService extends ConsentAwareService {
     return RegExp(`/${appleDevices.join("|")}/`).test(navigator.userAgent);
   }
 
-  openLatLngInMaps(location: google.maps.LatLngLiteral) {
+  openLatLngInMaps(
+    location: google.maps.LatLngLiteral,
+    mapsType?: "google" | "apple",
+  ) {
     if (typeof window === "undefined") return; // abort if not in browser
 
-    if (this.isMacOSOriOS()) {
+    if (this.isMacOSOriOS() || mapsType === "apple") {
       this._openLatLngInAppleMaps(location);
     } else {
       this._openLatLngInGoogleMaps(location);
@@ -228,6 +234,7 @@ export class MapsApiService extends ConsentAwareService {
   }
 
   private _openLatLngInAppleMaps(location: google.maps.LatLngLiteral) {
+    console.debug("opening in apple maps");
     const url = `https://maps.apple.com/?address=${location.lat},${location.lng}`;
     const taggedUrl = this._analytics.addUtmToUrl(
       url,
@@ -245,6 +252,7 @@ export class MapsApiService extends ConsentAwareService {
   }
 
   private _openLatLngInGoogleMaps(location: google.maps.LatLngLiteral) {
+    console.debug("opening in google maps");
     const url = `https://www.google.com/maps/search/?api=1&query=${location.lat},${location.lng}`;
     const taggedUrl = this._analytics.addUtmToUrl(
       url,
@@ -772,7 +780,7 @@ export class MapsApiService extends ConsentAwareService {
    */
   async getNearbyPlacesByDistance(
     location: google.maps.LatLngLiteral,
-    type: string = "restaurant",
+    type?: string,
     maxResults: number = 5,
   ): Promise<google.maps.places.Place[]> {
     console.log("Fetching nearby places by distance:", location, type);
@@ -785,18 +793,65 @@ export class MapsApiService extends ConsentAwareService {
 
     return this.executeWithConsent(async () => {
       const request: google.maps.places.SearchNearbyRequest = {
-        fields: ["displayName", "location", "businessStatus"],
+        fields: ["id", "displayName", "location", "businessStatus", "types"],
         locationRestriction: {
           center: location,
-          radius: 50000, // 50km radius for distance-based search
+          radius: 1000,
         },
-        includedPrimaryTypes: [type],
         maxResultCount: maxResults,
         rankPreference: google.maps.places.SearchNearbyRankPreference.DISTANCE,
       };
 
+      if (type) {
+        request.includedPrimaryTypes = [type];
+      }
+
       const { places } = await google.maps.places.Place.searchNearby(request);
-      return places;
+      return places.sort(
+        (a, b) =>
+          this._getDistanceFromPlaceMeters(location, a) -
+          this._getDistanceFromPlaceMeters(location, b),
+      );
     });
+  }
+
+  private _getDistanceFromPlaceMeters(
+    from: google.maps.LatLngLiteral,
+    place: google.maps.places.Place,
+  ): number {
+    const location = this._placeLocationToLiteral(place);
+    if (!location) return Number.POSITIVE_INFINITY;
+
+    const toRadians = (value: number) => (value * Math.PI) / 180;
+    const earthRadiusMeters = 6_371_000;
+
+    const dLat = toRadians(location.lat - from.lat);
+    const dLng = toRadians(location.lng - from.lng);
+    const fromLatRad = toRadians(from.lat);
+    const toLatRad = toRadians(location.lat);
+
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(fromLatRad) *
+        Math.cos(toLatRad) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return earthRadiusMeters * c;
+  }
+
+  private _placeLocationToLiteral(
+    place: google.maps.places.Place,
+  ): google.maps.LatLngLiteral | null {
+    const location = place.location;
+    if (!location) return null;
+
+    const lat = location.lat();
+    const lng = location.lng();
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+
+    return { lat, lng };
   }
 }
