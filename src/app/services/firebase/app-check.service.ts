@@ -31,6 +31,10 @@ export interface FirebaseAppCheckStatus {
   error?: unknown;
 }
 
+type ScreenshotGlobal = typeof globalThis & {
+  __PKSPOT_STORE_SCREENSHOT__?: unknown;
+};
+
 export function buildFirebaseAppCheckNativeInitializeOptions(
   settings: FirebaseAppCheckSettings | undefined,
 ): InitializeOptions | null {
@@ -102,6 +106,15 @@ export class FirebaseAppCheckService {
   ): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) {
       this._status.set({ state: "skipped", platform: "server" });
+      return;
+    }
+
+    if (this.isStoreScreenshotRun()) {
+      this._status.set({
+        state: "skipped",
+        platform: "store-screenshot",
+        message: "App Check is skipped for local store screenshot rendering.",
+      });
       return;
     }
 
@@ -239,6 +252,18 @@ export class FirebaseAppCheckService {
       projectId: this.getFirebaseProjectId(),
       enabled: settings?.enabled ?? false,
     });
+  }
+
+  private isStoreScreenshotRun(): boolean {
+    if ((globalThis as ScreenshotGlobal).__PKSPOT_STORE_SCREENSHOT__ !== true) {
+      return false;
+    }
+
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
   }
 
   private warnAboutMissingWebConfiguration(

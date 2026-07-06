@@ -239,6 +239,7 @@ describe("StructuredDataService", () => {
         {
           id: "chat",
           title: { en: "WhatsApp group chat" },
+          category: "chat",
           cta: {
             label: { en: "Open WhatsApp" },
             target: "url",
@@ -275,7 +276,6 @@ describe("StructuredDataService", () => {
       {
         "@type": "CreativeWork",
         name: "WhatsApp group chat",
-        url: "https://chat.whatsapp.com/example",
       },
       {
         "@type": "CreativeWork",

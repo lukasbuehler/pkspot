@@ -7,6 +7,7 @@ import { PlatformService } from "../../platform.service";
 const createMockFirestoreAdapter = () => ({
   getDocument: vi.fn(),
   getCollection: vi.fn(),
+  setDocument: vi.fn(),
   updateDocument: vi.fn(),
 });
 
@@ -196,11 +197,64 @@ describe("LandingPagesService", () => {
     ]);
   });
 
-  it("updates only community info cards", async () => {
-    await service.updateCommunityInfoCards("locality:gb:london", [
+  it("strips signed-in-only chat URLs from public community page data", async () => {
+    mockFirestoreAdapter.getDocument
+      .mockResolvedValueOnce({
+        id: "london",
+        communityKey: "locality:gb:london",
+        isPreferred: true,
+      })
+      .mockResolvedValueOnce(
+        buildCommunityDoc({
+          infoCards: [
+            {
+              id: "public-jam",
+              title: { en: "Public jam" },
+              category: "jams",
+            },
+            {
+              id: "chat",
+              title: { en: "London group chat" },
+              category: "chat",
+              cta: {
+                label: { en: "Join chat" },
+                target: "url",
+                url: "https://chat.whatsapp.com/example",
+              },
+            },
+          ],
+        }),
+      );
+
+    const result = await service.getCommunityPage("london");
+
+    expect(result?.infoCards).toEqual([
+      {
+        id: "public-jam",
+        title: { en: "Public jam" },
+        category: "jams",
+      },
       {
         id: "chat",
         title: { en: "London group chat" },
+        category: "chat",
+        ctaVisibility: "signed-in",
+      },
+    ]);
+  });
+
+  it("updates public and private community info cards separately", async () => {
+    await service.updateCommunityInfoCards("locality:gb:london", [
+      {
+        id: "public-jam",
+        title: { en: "Public jam" },
+        category: "jams",
+      },
+      {
+        id: "chat",
+        title: { en: "London group chat" },
+        category: "chat",
+        ctaVisibility: "signed-in",
         cta: {
           label: { en: "Join chat" },
           target: "url",
@@ -214,8 +268,28 @@ describe("LandingPagesService", () => {
       {
         infoCards: [
           {
+            id: "public-jam",
+            title: { en: "Public jam" },
+            category: "jams",
+          },
+          {
             id: "chat",
             title: { en: "London group chat" },
+            category: "chat",
+            ctaVisibility: "signed-in",
+          },
+        ],
+      },
+    );
+    expect(mockFirestoreAdapter.setDocument).toHaveBeenCalledWith(
+      "community_pages/locality:gb:london/private_info/link_cards",
+      {
+        infoCards: [
+          {
+            id: "chat",
+            title: { en: "London group chat" },
+            category: "chat",
+            ctaVisibility: "signed-in",
             cta: {
               label: { en: "Join chat" },
               target: "url",
@@ -224,7 +298,36 @@ describe("LandingPagesService", () => {
           },
         ],
       },
+      { merge: true },
     );
+  });
+
+  it("reads private community info cards from the authenticated companion document", async () => {
+    mockFirestoreAdapter.getDocument.mockResolvedValueOnce({
+      id: "locality:gb:london",
+      infoCards: [
+        {
+          id: "chat",
+          title: { en: "London group chat" },
+          category: "chat",
+        },
+      ],
+    });
+
+    const result = await service.getCommunityPrivateInfoCards(
+      "locality:gb:london",
+    );
+
+    expect(mockFirestoreAdapter.getDocument).toHaveBeenCalledWith(
+      "community_pages/locality:gb:london/private_info/link_cards",
+    );
+    expect(result).toEqual([
+      {
+        id: "chat",
+        title: { en: "London group chat" },
+        category: "chat",
+      },
+    ]);
   });
 
   it("falls back to top rated spots for older community documents", async () => {

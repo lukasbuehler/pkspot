@@ -12,6 +12,7 @@ import {
 import { SpotId, SpotSchema } from "../../../../db/schemas/SpotSchema";
 import { UserReferenceSchema } from "../../../../db/schemas/UserSchema";
 import { UsersService } from "./users.service";
+import { AuthenticationService } from "../authentication.service";
 import { AnyMedia } from "../../../../db/models/Media";
 import { MediaSchema } from "../../../../db/schemas/Media";
 import {
@@ -36,6 +37,7 @@ export interface ModerationSpotEditQueueItem {
 export class SpotEditsService extends ConsentAwareService {
   private _firestoreAdapter = inject(FirestoreAdapterService);
   private _usersService = inject(UsersService);
+  private _authenticationService = inject(AuthenticationService, { optional: true });
   private _functions = inject(Functions, { optional: true });
   private _reviewVerifiedSpotEditCallable = this._functions
     ? httpsCallable<
@@ -581,8 +583,12 @@ export class SpotEditsService extends ConsentAwareService {
    * These are metadata, computed, and system fields that should only be set by cloud functions.
    */
   private _removeForbiddenFieldsFromSpotData(
-    spotData: Partial<SpotSchema>
+    spotData: Partial<SpotSchema>,
+    options?: { allowAdminProtectedFields?: boolean }
   ): Partial<SpotSchema> {
+    const allowedProtectedFields = new Set<string>(
+      options?.allowAdminProtectedFields ? ["is_iconic"] : []
+    );
     // Only these fields are allowed in spot edits according to SpotEditDataSchema
     const fieldsToRemove: string[] = [
       // Metadata fields (should not be in edits)
@@ -610,7 +616,7 @@ export class SpotEditsService extends ConsentAwareService {
       "report_reason",
       "report_count",
       "latest_report_at",
-    ];
+    ].filter((field) => !allowedProtectedFields.has(field));
     return cleanDataForFirestore(
       spotData,
       fieldsToRemove
@@ -782,7 +788,10 @@ export class SpotEditsService extends ConsentAwareService {
     userReference: UserReferenceSchema,
     prevData?: Partial<SpotSchema>
   ): Promise<string> {
-    spotUpdateData = this._removeForbiddenFieldsFromSpotData(spotUpdateData);
+    spotUpdateData = this._removeForbiddenFieldsFromSpotData(spotUpdateData, {
+      allowAdminProtectedFields:
+        this._authenticationService?.user.data?.isAdmin === true,
+    });
     // Clean the data to remove undefined values and convert class instances
     spotUpdateData = cleanDataForFirestore(
       spotUpdateData

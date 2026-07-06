@@ -2,8 +2,10 @@ import { TestBed } from "@angular/core/testing";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GeoPoint } from "firebase/firestore";
 import { SpotEditSchema } from "../../../../db/schemas/SpotEditSchema";
+import { SpotId } from "../../../../db/schemas/SpotSchema";
 import { AnalyticsService } from "../../analytics.service";
 import { ConsentService } from "../../consent.service";
+import { AuthenticationService } from "../authentication.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
 import { SpotEditsService } from "./spot-edits.service";
 import { UsersService } from "./users.service";
@@ -32,6 +34,14 @@ const createMockUsersService = () => ({
   getUserRefernceById: vi.fn().mockResolvedValue(null),
 });
 
+const createMockAuthenticationService = () => ({
+  user: {
+    data: {
+      isAdmin: false,
+    },
+  },
+});
+
 const buildEdit = (
   id: string,
   userId: string,
@@ -54,16 +64,19 @@ describe("SpotEditsService", () => {
   let service: SpotEditsService;
   let mockFirestoreAdapter: ReturnType<typeof createMockFirestoreAdapter>;
   let mockUsersService: ReturnType<typeof createMockUsersService>;
+  let mockAuthenticationService: ReturnType<typeof createMockAuthenticationService>;
 
   beforeEach(() => {
     mockFirestoreAdapter = createMockFirestoreAdapter();
     mockUsersService = createMockUsersService();
+    mockAuthenticationService = createMockAuthenticationService();
 
     TestBed.configureTestingModule({
       providers: [
         SpotEditsService,
         { provide: FirestoreAdapterService, useValue: mockFirestoreAdapter },
         { provide: UsersService, useValue: mockUsersService },
+        { provide: AuthenticationService, useValue: mockAuthenticationService },
         { provide: ConsentService, useValue: createMockConsentService() },
         { provide: AnalyticsService, useValue: createMockAnalyticsService() },
       ],
@@ -353,6 +366,50 @@ describe("SpotEditsService", () => {
 
     expect(editId).toBe("");
     expect(mockFirestoreAdapter.addDocument).not.toHaveBeenCalled();
+  });
+
+  it("strips iconic spot changes from non-admin update edits", async () => {
+    mockFirestoreAdapter.addDocument.mockResolvedValueOnce("edit-id");
+
+    await service.createSpotUpdateEdit(
+      "spot-1" as SpotId,
+      {
+        name: { en: "Updated Park" },
+        is_iconic: true,
+      },
+      { uid: "user-1", display_name: "Test User" }
+    );
+
+    expect(mockFirestoreAdapter.addDocument).toHaveBeenCalledWith(
+      "spots/spot-1/edits",
+      expect.objectContaining({
+        data: {
+          name: { en: "Updated Park" },
+        },
+      })
+    );
+  });
+
+  it("keeps iconic spot changes in admin update edits", async () => {
+    mockAuthenticationService.user.data.isAdmin = true;
+    mockFirestoreAdapter.addDocument.mockResolvedValueOnce("edit-id");
+
+    await service.createSpotUpdateEdit(
+      "spot-1" as SpotId,
+      {
+        is_iconic: true,
+      },
+      { uid: "admin-1", display_name: "Admin User" }
+    );
+
+    expect(mockFirestoreAdapter.addDocument).toHaveBeenCalledWith(
+      "spots/spot-1/edits",
+      expect.objectContaining({
+        data: {
+          is_iconic: true,
+        },
+      })
+    );
   });
 
   it("recursively removes undefined values from edit documents", async () => {

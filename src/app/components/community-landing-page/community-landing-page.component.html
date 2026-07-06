@@ -341,6 +341,19 @@
                             </a>
                           }
                         </div>
+                      } @else if (card.requiresSignInForCta) {
+                        <div class="local-info-actions">
+                          <a
+                            mat-stroked-button
+                            routerLink="/sign-in"
+                            [queryParams]="signInQueryParams()"
+                          >
+                            <mat-icon>login</mat-icon>
+                            <span i18n="@@community.sign_in_to_see_link"
+                              >Sign in to see link</span
+                            >
+                          </a>
+                        </div>
                       }
                     </mat-card-content>
                   </mat-card>

@@ -838,13 +838,20 @@ export class AnalyticsService {
   private getNativeAnalyticsRequiredPropertySummary(
     properties?: Record<string, unknown>,
   ): Record<string, unknown> {
+    const platform = properties?.["platform"];
+
     return {
       app_version: properties?.["app_version"] ?? null,
       $app_version: properties?.["$app_version"] ?? null,
-      platform: properties?.["platform"] ?? null,
+      platform: platform ?? null,
       app_type: properties?.["app_type"] ?? null,
       is_native: properties?.["is_native"] ?? null,
-      expected_sdk_$lib: "posthog-android",
+      expected_sdk_$lib:
+        platform === "android"
+          ? "posthog-android"
+          : platform === "ios"
+            ? "posthog-ios"
+            : null,
     };
   }
 

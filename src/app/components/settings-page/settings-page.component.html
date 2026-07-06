@@ -490,6 +490,23 @@
                 </p>
               </div>
             </div>
+
+            <div
+              class="app-check-status"
+              [class.app-check-status-ready]="appCheckStatus().state === 'ready'"
+              [class.app-check-status-failed]="appCheckStatus().state === 'failed'"
+            >
+              <mat-icon>shield</mat-icon>
+              <div>
+                <div class="mat-body-medium">
+                  <span i18n="@@settings.app_check.label">App verification</span>
+                  <span> · {{ appCheckStatusLabel(appCheckStatus()) }}</span>
+                </div>
+                <p class="mat-body-small m-0">
+                  {{ appCheckDetail(appCheckStatus()) }}
+                </p>
+              </div>
+            </div>
             
             <p class="mat-body-medium m-0" i18n>
               PK Spot is a free, privacy-first, community-owned map for parkour.

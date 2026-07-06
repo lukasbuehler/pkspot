@@ -1,4 +1,4 @@
-import { of } from "rxjs";
+import { BehaviorSubject, of } from "rxjs";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
@@ -62,9 +62,13 @@ const communityData: CommunityLandingPageData = {
 describe("CommunityLandingPageComponent", () => {
   let fixture: ComponentFixture<CommunityLandingPageComponent>;
   let isAdmin: ReturnType<typeof signal<boolean>>;
+  let authState$: BehaviorSubject<{ uid: string } | null>;
+  let getCommunityPrivateInfoCards: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     isAdmin = signal(false);
+    authState$ = new BehaviorSubject<{ uid: string } | null>(null);
+    getCommunityPrivateInfoCards = vi.fn().mockResolvedValue([]);
     await TestBed.configureTestingModule({
       imports: [CommunityLandingPageComponent],
       providers: [
@@ -92,13 +96,14 @@ describe("CommunityLandingPageComponent", () => {
         },
         {
           provide: AuthenticationService,
-          useValue: { user: { data: null }, isAdmin },
+          useValue: { user: { data: null }, isAdmin, authState$ },
         },
         {
           provide: LandingPagesService,
           useValue: {
             updateCommunityInfoCards: vi.fn(),
             updateCommunityMergeInto: vi.fn(),
+            getCommunityPrivateInfoCards,
           },
         },
         {
@@ -310,7 +315,7 @@ describe("CommunityLandingPageComponent", () => {
     ).toBeNull();
   });
 
-  it("renders curated info cards with one sanitized CTA", () => {
+  it("shows group chat cards without invite links while signed out", () => {
     fixture.componentRef.setInput("communityDataInput", {
       ...communityData,
       infoCards: [
@@ -331,11 +336,7 @@ describe("CommunityLandingPageComponent", () => {
           title: { en: "WhatsApp group chat" },
           category: "chat",
           priority: 1,
-          cta: {
-            label: { en: "Open WhatsApp" },
-            target: "url",
-            url: "https://chat.whatsapp.com/example",
-          },
+          ctaVisibility: "signed-in",
         },
         {
           id: "unsafe",
@@ -365,17 +366,65 @@ describe("CommunityLandingPageComponent", () => {
       ...fixture.nativeElement.querySelectorAll(".local-info-actions a"),
     ] as HTMLAnchorElement[];
     expect(links.map((link) => link.textContent?.trim())).toEqual([
-      "linkOpen WhatsApp",
+      "loginSign in to see link",
       "eventView event",
+    ]);
+    expect(links[0].getAttribute("href")).toBe(
+      "/sign-in?returnUrl=%2Fmap%2Fcommunities%2Fswitzerland",
+    );
+    expect(links[1].getAttribute("href")).toBe("/events/zurich-tuesday-jam");
+    expect(text).not.toContain("Unsafe LinkOpen");
+    expect(fixture.nativeElement.innerHTML).not.toContain(
+      "https://chat.whatsapp.com/example",
+    );
+  });
+
+  it("renders private group chat info cards for signed-in users", async () => {
+    getCommunityPrivateInfoCards.mockResolvedValueOnce([
+      {
+        id: "chat",
+        title: { en: "WhatsApp group chat" },
+        category: "chat",
+        priority: 1,
+        cta: {
+          label: { en: "Open WhatsApp" },
+          target: "url",
+          url: "https://chat.whatsapp.com/example",
+        },
+      },
+    ]);
+    authState$.next({ uid: "user-1" });
+    fixture.componentRef.setInput("communityDataInput", {
+      ...communityData,
+      infoCards: [
+        {
+          id: "chat",
+          title: { en: "WhatsApp group chat" },
+          category: "chat",
+          priority: 1,
+          ctaVisibility: "signed-in",
+        },
+      ],
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const links = [
+      ...fixture.nativeElement.querySelectorAll(".local-info-actions a"),
+    ] as HTMLAnchorElement[];
+
+    expect(getCommunityPrivateInfoCards).toHaveBeenCalledWith("country:ch");
+    expect(fixture.nativeElement.textContent).toContain("WhatsApp group chat");
+    expect(links.map((link) => link.textContent?.trim())).toEqual([
+      "linkOpen WhatsApp",
     ]);
     expect(links[0].getAttribute("href")).toBe(
       "https://chat.whatsapp.com/example",
     );
-    expect(links[1].getAttribute("href")).toBe("/events/zurich-tuesday-jam");
-    expect(text).not.toContain("Unsafe LinkOpen");
   });
 
-  it("shows the community knowledge contact CTA after info cards", () => {
+  it("shows the community knowledge contact CTA after chat cards", () => {
     fixture.componentRef.setInput("communityDataInput", {
       ...communityData,
       infoCards: [

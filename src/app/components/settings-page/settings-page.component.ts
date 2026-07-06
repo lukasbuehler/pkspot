@@ -1,4 +1,9 @@
-import { Component, OnInit, ViewChild, ChangeDetectionStrategy } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { NgClass, NgSwitch, NgSwitchCase } from "@angular/common";
@@ -40,6 +45,10 @@ import {
   UserAccountPrivacy,
   UserProfileVisibility,
 } from "../../../db/schemas/UserSchema";
+import {
+  FirebaseAppCheckService,
+  FirebaseAppCheckStatus,
+} from "../../services/firebase/app-check.service";
 
 @Component({
   selector: "app-settings-page",
@@ -75,6 +84,7 @@ import {
 export class SettingsPageComponent implements OnInit {
   readonly appVersion = version;
   readonly crew = crew;
+  readonly appCheckStatus = this._appCheckService.status;
   @ViewChild("editProfileComponent") editProfileComponent:
     | EditProfileComponent
     | undefined;
@@ -89,7 +99,8 @@ export class SettingsPageComponent implements OnInit {
     private _uiLanguageService: UiLanguageService,
     public ageAssurance: AgeAssuranceService,
     private _analytics: AnalyticsService,
-    private _usersService: UsersService
+    private _usersService: UsersService,
+    private _appCheckService: FirebaseAppCheckService
   ) {}
   languageCodes = languageCodes;
 
@@ -123,6 +134,38 @@ export class SettingsPageComponent implements OnInit {
   selectedPoint: string = "profile";
 
   hasChanges: boolean = false;
+
+  appCheckStatusLabel(status: FirebaseAppCheckStatus): string {
+    switch (status.state) {
+      case "ready":
+        return $localize`:@@settings.app_check.status.ready:Verified`;
+      case "failed":
+        return $localize`:@@settings.app_check.status.failed:Failed`;
+      case "initializing":
+        return $localize`:@@settings.app_check.status.initializing:Checking`;
+      case "skipped":
+        return $localize`:@@settings.app_check.status.skipped:Skipped`;
+      case "idle":
+      default:
+        return $localize`:@@settings.app_check.status.idle:Not checked`;
+    }
+  }
+
+  appCheckDetail(status: FirebaseAppCheckStatus): string {
+    if (status.message) {
+      return status.message;
+    }
+
+    if (status.state === "ready") {
+      return $localize`:@@settings.app_check.detail.ready:This app installation can request App Check tokens.`;
+    }
+
+    if (status.state === "failed") {
+      return $localize`:@@settings.app_check.detail.failed:App Check is not enforced yet, so the app can continue loading while this is tested.`;
+    }
+
+    return $localize`:@@settings.app_check.detail.default:App Check status is shown here for release testing.`;
+  }
 
   speedDialButtonConfig: SpeedDialFabButtonConfig = {
     mainButton: {

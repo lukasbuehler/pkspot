@@ -56,6 +56,14 @@ interface AuthServiceUser {
   providerId?: string;
 }
 
+type ScreenshotGlobal = typeof globalThis & {
+  __PKSPOT_SCREENSHOT_AUTH_USER__?: unknown;
+};
+
+interface ScreenshotAuthUser extends AuthServiceUser {
+  uid: string;
+}
+
 let authEmulatorConnected = false;
 
 @Injectable({
@@ -133,6 +141,15 @@ export class AuthenticationService extends ConsentAwareService {
       return;
     }
 
+    const screenshotAuthUser = this._readScreenshotAuthUser();
+    if (screenshotAuthUser) {
+      this.user = screenshotAuthUser;
+      this.isSignedIn = true;
+      this.initialAuthStateResolved.set(true);
+      this.authState$.next(screenshotAuthUser);
+      return;
+    }
+
     // Check for existing session without triggering Firebase API calls
     this._checkExistingSessionSafely();
 
@@ -151,6 +168,32 @@ export class AuthenticationService extends ConsentAwareService {
         this.restorePendingSession();
       }
     });
+  }
+
+  private _readScreenshotAuthUser(): ScreenshotAuthUser | null {
+    const candidate = (globalThis as ScreenshotGlobal)
+      .__PKSPOT_SCREENSHOT_AUTH_USER__;
+
+    if (!candidate || typeof candidate !== "object") {
+      return null;
+    }
+
+    const record = candidate as Record<string, unknown>;
+    const uid = record["uid"];
+    if (typeof uid !== "string" || !uid.trim()) {
+      return null;
+    }
+
+    const email = record["email"];
+    const providerId = record["providerId"];
+
+    return {
+      uid,
+      email: typeof email === "string" ? email : undefined,
+      emailVerified: record["emailVerified"] === true,
+      providerId:
+        typeof providerId === "string" ? providerId : "store-screenshot",
+    };
   }
 
   private _checkExistingSessionSafely() {

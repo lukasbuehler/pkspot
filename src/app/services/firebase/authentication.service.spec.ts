@@ -46,6 +46,10 @@ type FirebaseAuthStateCallback = (user: {
   displayName?: string | null;
 } | null) => void;
 
+type ScreenshotGlobal = typeof globalThis & {
+  __PKSPOT_SCREENSHOT_AUTH_USER__?: unknown;
+};
+
 const firebaseUser = {
   uid: "auth-user-1",
   email: "auth-user@example.test",
@@ -76,6 +80,7 @@ describe("AuthenticationService", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    delete (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_AUTH_USER__;
     authMock.currentUser = null;
     authMock.setPersistence.mockResolvedValue(undefined);
 
@@ -124,6 +129,47 @@ describe("AuthenticationService", () => {
     expect(service.user).toEqual({});
     expect(service.authState$.getValue()).toBeNull();
     expect(authMock.onAuthStateChanged).toHaveBeenCalled();
+  });
+
+  it("uses an injected store screenshot auth user without initializing Firebase auth", () => {
+    TestBed.resetTestingModule();
+    vi.clearAllMocks();
+    (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_AUTH_USER__ = {
+      uid: "store-screenshot-user",
+      email: "screenshot@pkspot.app",
+      emailVerified: true,
+      providerId: "store-screenshot",
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        AuthenticationService,
+        { provide: UsersService, useValue: usersServiceSpy },
+        {
+          provide: FirebaseApp,
+          useValue: {
+            name: "test-app",
+            options: {},
+            automaticDataCollectionEnabled: false,
+          } satisfies Partial<FirebaseApp>,
+        },
+        { provide: ConsentService, useValue: consentServiceSpy },
+        { provide: AnalyticsService, useValue: analyticsServiceSpy },
+        { provide: PLATFORM_ID, useValue: "browser" },
+      ],
+    });
+
+    const screenshotService = TestBed.inject(AuthenticationService);
+
+    expect(screenshotService.isSignedIn).toBe(true);
+    expect(screenshotService.initialAuthStateResolved()).toBe(true);
+    expect(screenshotService.authState$.getValue()).toEqual({
+      uid: "store-screenshot-user",
+      email: "screenshot@pkspot.app",
+      emailVerified: true,
+      providerId: "store-screenshot",
+    });
+    expect(authMock.onAuthStateChanged).not.toHaveBeenCalled();
   });
 
   it("signs in with email and password through Firebase Auth", async () => {

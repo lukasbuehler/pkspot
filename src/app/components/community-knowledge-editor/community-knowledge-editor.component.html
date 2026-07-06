@@ -61,6 +61,11 @@
                   </mat-option>
                 }
               </mat-select>
+              @if (isChatCard(card)) {
+                <mat-hint>
+                  Group chat URL links default to signed-in only.
+                </mat-hint>
+              }
             </mat-form-field>
 
             <mat-form-field appearance="outline">
@@ -137,12 +142,33 @@
 
                 @switch (ctaTarget(card)) {
                   @case ("url") {
+                    <mat-form-field appearance="outline">
+                      <mat-label>URL visibility</mat-label>
+                      <mat-select formControlName="ctaVisibility">
+                        @for (visibility of ctaVisibilities; track visibility) {
+                          <mat-option [value]="visibility">
+                            {{ visibility }}
+                          </mat-option>
+                        }
+                      </mat-select>
+                      @if (card.controls.ctaVisibility.value === "signed-in") {
+                        <mat-hint>
+                          The card stays public, but the URL is only visible to
+                          signed-in users.
+                        </mat-hint>
+                      }
+                    </mat-form-field>
                     <mat-form-field
                       appearance="outline"
                       class="knowledge-editor-wide-field"
                     >
                       <mat-label>URL</mat-label>
                       <input matInput formControlName="ctaUrl" />
+                      @if (card.controls.ctaVisibility.value === "signed-in") {
+                        <mat-hint>
+                          This URL is stored outside the public community page.
+                        </mat-hint>
+                      }
                     </mat-form-field>
                   }
                   @case ("spot") {

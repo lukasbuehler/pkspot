@@ -564,6 +564,13 @@ service cloud.firestore {
       allow read: if true;
       allow update: if isAdmin() && onlyCommunityInfoCardsChanged();
       allow create, delete: if false;
+
+      match /private_info/{privateInfoId} {
+        allow read: if request.auth.uid != null;
+        allow create, update: if isAdmin()
+          && request.resource.data.keys().hasOnly(['infoCards']);
+        allow delete: if isAdmin();
+      }
     }
 
     match /community_slugs/{slug} {

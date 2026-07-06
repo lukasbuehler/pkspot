@@ -114,6 +114,7 @@ const PROTECTED_SPOT_EDIT_FIELDS = new Set([
   "time_updated",
   "top_challenges",
 ]);
+const ADMIN_PROTECTED_SPOT_EDIT_FIELDS = new Set(["is_iconic"]);
 
 /**
  * Triggered when a new spot edit is created.
@@ -423,10 +424,20 @@ function buildNestedMergeUpdate(
 }
 
 function removeProtectedSpotEditFields(
-  data: Record<string, unknown>
+  data: Record<string, unknown>,
+  options?: { allowAdminProtectedFields?: boolean }
 ): Record<string, unknown> {
   return Object.fromEntries(
-    Object.entries(data).filter(([key]) => !PROTECTED_SPOT_EDIT_FIELDS.has(key))
+    Object.entries(data).filter(([key]) => {
+      if (!PROTECTED_SPOT_EDIT_FIELDS.has(key)) {
+        return true;
+      }
+
+      return (
+        options?.allowAdminProtectedFields === true &&
+        ADMIN_PROTECTED_SPOT_EDIT_FIELDS.has(key)
+      );
+    })
   );
 }
 
@@ -493,13 +504,17 @@ async function applyUpdateEditToSpot(
   spotId: string
 ): Promise<AppliedEditSummary> {
   const summary: AppliedEditSummary = {};
+  const submitterUid = editData.user?.uid;
+  const submitterIsAdmin =
+    typeof submitterUid === "string" && (await isAdminUser(submitterUid));
   // Extract fields that need special merge logic
   const { media, external_references, amenities, ...regularData } =
     editData.data;
   const { source: _ignoredSource, ...rawRegularDataWithoutSource } =
     regularData || {};
   const regularDataWithoutSource = removeProtectedSpotEditFields(
-    rawRegularDataWithoutSource
+    rawRegularDataWithoutSource,
+    { allowAdminProtectedFields: submitterIsAdmin }
   );
 
   let updateData: any = {

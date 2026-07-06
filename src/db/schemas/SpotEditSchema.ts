@@ -18,6 +18,7 @@ export type SpotEditDataSchema = Partial<
     | "bounds_raw"
     | "slug"
     | "hide_streetview"
+    | "is_iconic"
   > & {
     location?:
       | { latitude: number; longitude: number }
