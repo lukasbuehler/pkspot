@@ -12,6 +12,8 @@ const db = admin.firestore();
 const { GeoPoint, Timestamp, FieldValue } = admin.firestore;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const DEFAULT_WAIT_TIMEOUT_MS = 30000;
+const COMMUNITY_MERGE_WAIT_TIMEOUT_MS = 90000;
 
 async function deleteCollection(collectionName) {
   while (true) {
@@ -26,7 +28,7 @@ async function deleteCollection(collectionName) {
   }
 }
 
-async function waitFor(predicate, label, timeoutMs = 30000, intervalMs = 500) {
+async function waitFor(predicate, label, timeoutMs = DEFAULT_WAIT_TIMEOUT_MS, intervalMs = 500) {
   const start = Date.now();
 
   while (Date.now() - start < timeoutMs) {
@@ -424,12 +426,12 @@ async function main() {
       .doc("locality:ch:zh:pfaffikon")
       .get();
     return mergeDoc.data()?.status === "active" ? mergeDoc.data() : null;
-  }, "community merge patch completion", 30000, 1000);
+  }, "community merge patch completion", COMMUNITY_MERGE_WAIT_TIMEOUT_MS, 1000);
 
   await waitFor(async () => {
     const mergeDoc = await db.collection("maintenance").doc("last-community-merge").get();
     return mergeDoc.data()?.status === "DONE" ? mergeDoc.data() : null;
-  }, "community merge rebuild completion", 30000, 1000);
+  }, "community merge rebuild completion", COMMUNITY_MERGE_WAIT_TIMEOUT_MS, 1000);
 
   const mergedSourcePage = (
     await db.collection("community_pages").doc("locality:ch:zh:pfaffikon").get()
