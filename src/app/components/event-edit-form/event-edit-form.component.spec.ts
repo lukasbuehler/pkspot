@@ -357,6 +357,58 @@ describe("EventEditFormComponent", () => {
     ]);
   });
 
+  it("serializes rich custom marker fields on submit", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    fixture.componentRef.setInput("event", eventWith("event-1"));
+    fixture.detectChanges();
+
+    component.addCustomMarker();
+    const markerId = component.customMarkers()[0].id;
+    component.updateCustomMarker(markerId, {
+      name: "Info stand",
+      description: "Pick up your wristband here.",
+      locality: "Main hall",
+      googlePlaceId: "google-place-1",
+      url: "https://example.com/info",
+      imageUrl: "https://example.com/info.jpg",
+      icons: "info, help",
+      color: "tertiary",
+      priority: "required",
+    });
+    component.updateCustomMarkerCoordinate(markerId, "lat", 47.37);
+    component.updateCustomMarkerCoordinate(markerId, "lng", 8.54);
+
+    component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0].custom_markers).toEqual([
+      {
+        id: markerId,
+        name: "Info stand",
+        description: "Pick up your wristband here.",
+        locality: "Main hall",
+        google_place_id: "google-place-1",
+        url: "https://example.com/info",
+        media: [
+          {
+            src: "https://example.com/info.jpg",
+            type: "image",
+            isInStorage: false,
+            origin: "other",
+          },
+        ],
+        location: { lat: 47.37, lng: 8.54 },
+        icons: ["info", "help"],
+        color: "tertiary",
+        priority: "required",
+      },
+    ]);
+  });
+
   it("serializes featured people, groups and acts on submit", async () => {
     const fixture = await setup();
     const component = fixture.componentInstance;

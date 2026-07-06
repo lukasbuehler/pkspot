@@ -60,8 +60,14 @@ export interface EventPromoRegionSchema {
 }
 
 export interface EventCustomMarkerSchema {
+  id?: string;
   name?: string;
+  description?: string;
   location: { lat: number; lng: number };
+  locality?: string;
+  media?: MediaSchema[];
+  google_place_id?: string;
+  url?: string;
   icons?: string[];
   color?: "primary" | "secondary" | "tertiary" | "gray";
   priority?: "required" | number;

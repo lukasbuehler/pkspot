@@ -302,8 +302,14 @@ export class EventPageDataService {
   }
 
   customMarkers(event: PkEvent | null): MarkerSchema[] {
-    return (event?.customMarkers ?? []).map((marker) => ({
+    return (event?.customMarkers ?? []).map((marker, index) => ({
+      id: marker.id ?? `event-custom-marker-${index}`,
       name: marker.name,
+      description: marker.description,
+      locality: marker.locality,
+      media: marker.media,
+      googlePlaceId: marker.google_place_id,
+      url: marker.url,
       color: marker.color,
       location: marker.location,
       icons: marker.icons,

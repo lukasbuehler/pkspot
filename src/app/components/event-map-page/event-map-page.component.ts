@@ -24,7 +24,7 @@ import { SpotListComponent } from "../spot-list/spot-list.component";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { ResponsiveService } from "../../services/responsive.service";
 import { firstValueFrom, Subscription, take } from "rxjs";
-import { LocaleCode } from "../../../db/models/Interfaces";
+import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { MarkerComponent } from "../marker/marker.component";
 import { MarkerSchema } from "../map/markers/map-marker.model";
 import { MetaTagService } from "../../services/meta-tag.service";
@@ -82,6 +82,7 @@ import {
   type EventStatus,
 } from "../event-display/event-display.helpers";
 import { EventSummaryMetaComponent } from "../event-display/event-summary-meta.component";
+import { GooglePlacePreviewComponent } from "../google-place-preview/google-place-preview.component";
 
 type EventPageMapMarker = MarkerSchema & {
   spotIndex?: number;
@@ -110,6 +111,7 @@ type EventMapTab = "event" | "spots" | "challenges";
     ChipSelectComponent,
     EventEditFormComponent,
     EventSummaryMetaComponent,
+    GooglePlacePreviewComponent,
   ],
   animations: [
     trigger("fadeInOut", [
@@ -171,6 +173,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   selectedSpot = signal<Spot | LocalSpot | null>(null);
   selectedChallenge = signal<(SpotChallenge & { number: number }) | null>(null);
   selectedCustomMarker = signal<MarkerSchema | null>(null);
+  private readonly requestedSpotIdOrSlug = signal<string | null>(null);
 
   sidenavOpen = signal<boolean>(false);
   tabs: Record<EventMapTab, string> = {
@@ -293,9 +296,14 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   constructor() {
     this._queryParamsSubscription = this._route.queryParams.subscribe(
       (params) => {
-        if (params["showHeader"]) {
+        if (params["showHeader"] !== undefined) {
           this.showHeader.set(params["showHeader"] === "true");
         }
+        this.requestedSpotIdOrSlug.set(
+          typeof params["spotId"] === "string" && params["spotId"].trim()
+            ? params["spotId"].trim()
+            : null,
+        );
       },
     );
 
@@ -345,6 +353,25 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
               behavior: "smooth",
             });
           });
+        }
+      });
+
+      effect(() => {
+        const requestedSpotIdOrSlug = this.requestedSpotIdOrSlug();
+        const spots = this.spots();
+        if (!requestedSpotIdOrSlug || spots.length === 0) return;
+
+        const selected = this.selectedSpot();
+        if (
+          selected &&
+          this._spotMatchesIdOrSlug(selected, requestedSpotIdOrSlug)
+        ) {
+          return;
+        }
+
+        const spot = this._resolveSpotByIdOrSlug(requestedSpotIdOrSlug);
+        if (spot) {
+          this.selectSpot(spot, false);
         }
       });
 
@@ -620,7 +647,10 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  selectSpot(spot: Spot | LocalSpot | SpotId | SpotPreviewData) {
+  selectSpot(
+    spot: Spot | LocalSpot | SpotId | SpotPreviewData,
+    updateUrl = true,
+  ) {
     this.tab.set("spots");
     this.sidenavOpen.set(true);
     this.selectedCustomMarker.set(null);
@@ -629,23 +659,21 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     if (this._isSpotPreviewData(spot)) {
       const resolvedSpot = this._resolveSpotPreviewSelection(spot);
       if (resolvedSpot) {
-        this._selectResolvedSpot(resolvedSpot);
+        this._selectResolvedSpot(resolvedSpot, updateUrl);
       }
       return;
     }
 
     if (typeof spot === "string") {
-      const resolvedSpot = this.spots().find(
-        (eventSpot) => eventSpot instanceof Spot && eventSpot.id === spot,
-      );
+      const resolvedSpot = this._resolveSpotByIdOrSlug(spot);
       if (resolvedSpot) {
-        this._selectResolvedSpot(resolvedSpot);
+        this._selectResolvedSpot(resolvedSpot, updateUrl);
       }
       return;
     }
 
     if (spot instanceof Spot || spot instanceof LocalSpot) {
-      this._selectResolvedSpot(spot);
+      this._selectResolvedSpot(spot, updateUrl);
     }
   }
 
@@ -668,9 +696,11 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     );
     if (directSpot) return directSpot;
 
-    const localIndexMatch = /^event-local-spot-(\d+)$/u.exec(
-      String(preview.id),
-    );
+    const id = String(preview.id);
+    const directLocalSpot = this._resolveInlineSpotById(id);
+    if (directLocalSpot) return directLocalSpot;
+
+    const localIndexMatch = /^event-local-spot-(\d+)$/u.exec(id);
     if (!localIndexMatch) return null;
 
     const index = Number(localIndexMatch[1]);
@@ -678,13 +708,66 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     return localSpot instanceof LocalSpot ? localSpot : null;
   }
 
-  private _selectResolvedSpot(spot: Spot | LocalSpot): void {
+  private _selectResolvedSpot(spot: Spot | LocalSpot, updateUrl: boolean): void {
     this.selectedSpot.set(spot);
+    if (updateUrl) {
+      this._syncSelectedSpotUrl(spot);
+    }
     if (this.spotMap instanceof SpotMapComponent) {
       this.spotMap?.focusSpot(spot);
     } else if (this.spotMap instanceof GoogleMap2dComponent) {
       this.spotMap?.focusOnLocation(spot.location());
     }
+  }
+
+  private _resolveSpotByIdOrSlug(idOrSlug: string): Spot | LocalSpot | null {
+    return (
+      this.spots().find((spot) => this._spotMatchesIdOrSlug(spot, idOrSlug)) ??
+      null
+    );
+  }
+
+  private _spotMatchesIdOrSlug(
+    spot: Spot | LocalSpot,
+    idOrSlug: string,
+  ): boolean {
+    if (spot instanceof Spot) {
+      return spot.id === idOrSlug || spot.slug === idOrSlug;
+    }
+
+    return this._inlineSpotIdForSpot(spot) === idOrSlug;
+  }
+
+  private _resolveInlineSpotById(id: string): LocalSpot | null {
+    const index = this.event()?.inlineSpots.findIndex((spot) => spot.id === id);
+    if (index === undefined || index < 0) return null;
+    const spot = this.spots()[index];
+    return spot instanceof LocalSpot ? spot : null;
+  }
+
+  private _inlineSpotIdForSpot(spot: LocalSpot): string | null {
+    const index = this.spots().findIndex((candidate) => candidate === spot);
+    return index >= 0 ? (this.event()?.inlineSpots[index]?.id ?? null) : null;
+  }
+
+  private _spotQueryParamForSpot(spot: Spot | LocalSpot): string | null {
+    if (spot instanceof Spot) {
+      return spot.slug ?? spot.id;
+    }
+
+    return this._inlineSpotIdForSpot(spot);
+  }
+
+  private _syncSelectedSpotUrl(spot: Spot | LocalSpot): void {
+    const spotId = this._spotQueryParamForSpot(spot);
+    if (!spotId) return;
+
+    void this._router.navigate([], {
+      relativeTo: this._route,
+      queryParams: { spotId },
+      queryParamsHandling: "merge",
+      replaceUrl: true,
+    });
   }
 
   getSpotPreviewZoom(): number | null {
@@ -717,6 +800,12 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     this.selectedSpot.set(null);
     this.selectedChallenge.set(null);
     this.selectedCustomMarker.set(null);
+    void this._router.navigate([], {
+      relativeTo: this._route,
+      queryParams: { spotId: null },
+      queryParamsHandling: "merge",
+      replaceUrl: true,
+    });
   }
 
   toggleSidenav() {
@@ -771,6 +860,12 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     } else if (this.spotMap instanceof GoogleMap2dComponent) {
       this.spotMap.focusOnLocation(marker.location, this.focusZoom());
     }
+  }
+
+  customMarkerPrimaryImageSrc(marker: MarkerSchema): string | null {
+    return (
+      marker.media?.find((media) => media.type === MediaType.Image)?.src ?? null
+    );
   }
 
   tabChanged(event: MatChipListboxChange) {

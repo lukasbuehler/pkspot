@@ -4,6 +4,7 @@ import { firstValueFrom, of } from "rxjs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
+import { MediaType } from "../../../db/models/Interfaces";
 import { EventsService } from "../firebase/firestore/events.service";
 import { SpotsService } from "../firebase/firestore/spots.service";
 import { SpotChallengesService } from "../firebase/firestore/spot-challenges.service";
@@ -103,7 +104,19 @@ describe("EventPageDataService", () => {
     const event = buildEvent("city-jam", {
       custom_markers: [
         {
+          id: "info-stand",
           name: "Info stand",
+          description: "Pick up your wristband here.",
+          locality: "Main hall",
+          google_place_id: "google-place-1",
+          url: "https://example.com/info",
+          media: [
+            {
+              src: "https://example.com/info.jpg",
+              type: MediaType.Image,
+              isInStorage: false,
+            },
+          ],
           location: { lat: 47.31, lng: 8.51 },
           icons: ["info"],
           color: "secondary",
@@ -122,7 +135,19 @@ describe("EventPageDataService", () => {
     ]);
     expect(service.customMarkers(event)).toEqual([
       expect.objectContaining({
+        id: "info-stand",
         name: "Info stand",
+        description: "Pick up your wristband here.",
+        locality: "Main hall",
+        googlePlaceId: "google-place-1",
+        url: "https://example.com/info",
+        media: [
+          {
+            src: "https://example.com/info.jpg",
+            type: MediaType.Image,
+            isInStorage: false,
+          },
+        ],
         icons: ["info"],
         priority: 3000,
         type: "event-custom",

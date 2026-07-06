@@ -318,6 +318,7 @@
                 [hideRegularSpotPins]="true"
                 [showSpotPreview]="true"
                 (boundsChange)="updateMapPreviewViewportBounds($event)"
+                (spotClick)="openMapForSpot($event)"
               ></app-google-map-2d>
 
               <a

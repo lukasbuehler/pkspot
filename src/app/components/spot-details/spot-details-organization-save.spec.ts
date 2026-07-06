@@ -8,6 +8,24 @@ const componentPath = join(
 );
 
 describe("SpotDetailsComponent organization relationship saving", () => {
+  it("lets map surfaces hide ratings without hiding spot metadata", () => {
+    const source = readFileSync(componentPath, "utf8");
+    const template = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/spot-details/spot-details.component.html"
+      ),
+      "utf8"
+    );
+
+    expect(source).toContain("showRating = input<boolean>(true)");
+    expect(template).toContain("showRating() && spot()?.rating");
+    expect(template).toContain("showRating() &&");
+    expect(template).toContain("<app-google-place-preview");
+    expect(template).toContain("<app-spot-provenance");
+    expect(template).toContain("managedOrganization()");
+  });
+
   it("does not emit a normal spot save after organization-only relationship changes", () => {
     const source = readFileSync(componentPath, "utf8");
     const saveButtonClick = source.match(
