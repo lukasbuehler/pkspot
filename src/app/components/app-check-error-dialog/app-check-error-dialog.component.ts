@@ -52,7 +52,7 @@ import { FirebaseAppCheckStatus } from "../../services/firebase/app-check.servic
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       @if (isNativePlatform()) {
-        <a mat-button href="https://pkspot.app" target="_blank" rel="noopener">
+        <a mat-button [href]="webUrl()">
           <span i18n="@@app_check_error.open_web">Open website</span>
         </a>
       }
@@ -85,6 +85,12 @@ export class AppCheckErrorDialogComponent {
     }
 
     view.location.reload();
+  }
+
+  webUrl(): string {
+    return `/${this.getNativeReloadLocale(
+      this.document.defaultView?.location.pathname ?? "",
+    )}/`;
   }
 
   private getNativeReloadLocale(pathname: string): string {

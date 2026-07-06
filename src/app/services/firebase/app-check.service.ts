@@ -12,6 +12,12 @@ import {
   getToken,
   initializeAppCheck,
 } from "firebase/app-check";
+import {
+  FirebaseApp as FirebaseJsApp,
+  FirebaseOptions,
+  getApps,
+  initializeApp as initializeFirebaseApp,
+} from "firebase/app";
 import { environment } from "../../../environments/environment.default";
 import { PlatformService } from "../platform.service";
 
@@ -19,6 +25,7 @@ export interface FirebaseAppCheckSettings {
   enabled: boolean;
   recaptchaEnterpriseSiteKey?: string;
   debugToken?: boolean | string;
+  attachToFirebaseSdk?: boolean;
 }
 
 export interface FirebaseAppCheckStatus {
@@ -34,6 +41,8 @@ export interface FirebaseAppCheckStatus {
 type ScreenshotGlobal = typeof globalThis & {
   __PKSPOT_STORE_SCREENSHOT__?: unknown;
 };
+
+const WEB_APPCHECK_PROBE_APP_NAME = "pkspot-app-check-probe";
 
 export function buildFirebaseAppCheckNativeInitializeOptions(
   settings: FirebaseAppCheckSettings | undefined,
@@ -127,30 +136,36 @@ export class FirebaseAppCheckService {
     });
 
     if (platform === "web") {
-      this.initializeWeb(settings);
+      await this.initializeWeb(settings);
       return;
     }
 
     await this.initializeNative(settings);
   }
 
-  private initializeWeb(
+  private async initializeWeb(
     settings: FirebaseAppCheckSettings | undefined,
-  ): void {
+  ): Promise<void> {
     const platform = this.platformService.getPlatform();
     const options = buildFirebaseAppCheckWebInitializeOptions(settings);
     if (!options) {
-      this.warnAboutMissingWebConfiguration(settings);
+      this.logSkipped(platform, settings);
       return;
     }
 
     this.configureWebDebugToken(settings);
+    let appCheck: AppCheck;
     try {
-      const appCheck = initializeAppCheck(this.app, options);
-      this.verifyWebToken(appCheck, platform);
+      appCheck = initializeAppCheck(
+        this.getWebAppCheckApp(settings),
+        this.getWebAppCheckOptions(settings, options),
+      );
     } catch (error) {
       this.logFailure(platform, "initialize", error);
+      return;
     }
+
+    await this.verifyWebToken(appCheck, platform);
   }
 
   private async initializeNative(
@@ -171,14 +186,16 @@ export class FirebaseAppCheckService {
     }
   }
 
-  private verifyWebToken(appCheck: AppCheck, platform: string): void {
-    void getToken(appCheck)
-      .then((result) => {
-        this.logSuccess(platform, result.token);
-      })
-      .catch((error) => {
-        this.logFailure(platform, "getToken", error);
-      });
+  private async verifyWebToken(
+    appCheck: AppCheck,
+    platform: string,
+  ): Promise<void> {
+    try {
+      const result = await getToken(appCheck);
+      this.logSuccess(platform, result.token);
+    } catch (error) {
+      this.logFailure(platform, "getToken", error);
+    }
   }
 
   private async verifyNativeToken(platform: string): Promise<void> {
@@ -266,16 +283,6 @@ export class FirebaseAppCheckService {
     return ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
   }
 
-  private warnAboutMissingWebConfiguration(
-    settings: FirebaseAppCheckSettings | undefined,
-  ): void {
-    if (settings?.enabled) {
-      console.warn(
-        "[AppCheck] Web App Check is enabled but no reCAPTCHA Enterprise site key is configured.",
-      );
-    }
-  }
-
   private configureWebDebugToken(
     settings: FirebaseAppCheckSettings | undefined,
   ): void {
@@ -289,6 +296,42 @@ export class FirebaseAppCheckService {
     appCheckGlobal.FIREBASE_APPCHECK_DEBUG_TOKEN = settings.debugToken;
   }
 
+  private getWebAppCheckApp(
+    settings: FirebaseAppCheckSettings | undefined,
+  ): FirebaseJsApp {
+    if (settings?.attachToFirebaseSdk !== false) {
+      return this.app;
+    }
+
+    const existingProbeApp = getApps().find(
+      (app) => app.name === WEB_APPCHECK_PROBE_APP_NAME,
+    );
+    if (existingProbeApp) {
+      return existingProbeApp;
+    }
+
+    const options = this.getFirebaseOptions();
+    if (!options) {
+      throw new Error("Firebase app options are unavailable.");
+    }
+
+    return initializeFirebaseApp(options, WEB_APPCHECK_PROBE_APP_NAME);
+  }
+
+  private getWebAppCheckOptions(
+    settings: FirebaseAppCheckSettings | undefined,
+    options: AppCheckOptions,
+  ): AppCheckOptions {
+    if (settings?.attachToFirebaseSdk !== false) {
+      return options;
+    }
+
+    return {
+      ...options,
+      isTokenAutoRefreshEnabled: false,
+    };
+  }
+
   private getFirebaseAppId(): string | undefined {
     return this.getFirebaseOption("appId");
   }
@@ -298,10 +341,14 @@ export class FirebaseAppCheckService {
   }
 
   private getFirebaseOption(key: "appId" | "projectId"): string | undefined {
-    const value = (this.app as FirebaseApp & {
-      options?: Record<string, unknown>;
-    }).options?.[key];
+    const value = this.getFirebaseOptions()?.[key];
     return typeof value === "string" ? value : undefined;
+  }
+
+  private getFirebaseOptions(): FirebaseOptions | undefined {
+    return (this.app as FirebaseApp & {
+      options?: FirebaseOptions;
+    }).options;
   }
 
   private formatErrorMessage(error: unknown): string {

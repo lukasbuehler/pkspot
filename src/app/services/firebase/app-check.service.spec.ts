@@ -8,12 +8,17 @@ import {
   getToken,
   initializeAppCheck,
 } from "firebase/app-check";
+import {
+  getApps,
+  initializeApp as initializeFirebaseApp,
+} from "firebase/app";
 import { PlatformService } from "../platform.service";
 import {
   FirebaseAppCheckService,
   buildFirebaseAppCheckNativeInitializeOptions,
   buildFirebaseAppCheckWebInitializeOptions,
 } from "./app-check.service";
+import { environment as productionEnvironment } from "../../../environments/environment.production";
 
 vi.mock("@capacitor-firebase/app-check", () => ({
   FirebaseAppCheck: {
@@ -32,6 +37,18 @@ vi.mock("firebase/app-check", () => ({
     constructor(public siteKey: string) {}
   },
 }));
+
+vi.mock("firebase/app", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("firebase/app")>();
+  return {
+    ...actual,
+    getApps: vi.fn(() => []),
+    initializeApp: vi.fn((options: unknown, name?: string) => ({
+      name,
+      options,
+    })),
+  };
+});
 
 const createPlatformService = (platform: "web" | "ios" | "android") => ({
   getPlatform: vi.fn().mockReturnValue(platform),
@@ -144,6 +161,94 @@ describe("FirebaseAppCheckService", () => {
     );
     expect(getToken).toHaveBeenCalledWith({ app: "app-check" });
     expect(FirebaseAppCheck.initialize).not.toHaveBeenCalled();
+  });
+
+  it("does not resolve web initialization before token verification settles", async () => {
+    let resolveToken!: (value: { token: string }) => void;
+    vi.mocked(getToken).mockReturnValueOnce(
+      new Promise<{ token: string }>((resolve) => {
+        resolveToken = resolve;
+      })
+    );
+
+    TestBed.configureTestingModule({
+      providers: [
+        FirebaseAppCheckService,
+        { provide: FirebaseApp, useValue: {} },
+        { provide: PLATFORM_ID, useValue: "browser" },
+        { provide: PlatformService, useValue: createPlatformService("web") },
+      ],
+    });
+
+    const service = TestBed.inject(FirebaseAppCheckService);
+    let initialized = false;
+    const initializePromise = service
+      .initialize({
+        enabled: true,
+        recaptchaEnterpriseSiteKey: "site-key",
+      })
+      .then(() => {
+        initialized = true;
+      });
+
+    await Promise.resolve();
+
+    expect(initialized).toBe(false);
+    expect(service.status()).toEqual(
+      expect.objectContaining({ state: "initializing" })
+    );
+
+    resolveToken({ token: "web-token" });
+    await initializePromise;
+
+    expect(initialized).toBe(true);
+    expect(service.status()).toEqual(expect.objectContaining({ state: "ready" }));
+  });
+
+  it("keeps production web App Check enabled without binding it to the Firestore app while enforcement is off", async () => {
+    expect(productionEnvironment.appCheck.enabled).toBe(true);
+    expect(productionEnvironment.appCheck.attachToFirebaseSdk).toBe(false);
+
+    const firebaseApp = {
+      name: "[DEFAULT]",
+      options: {
+        appId: "production-app-id",
+        projectId: "parkour-base-project",
+      },
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        FirebaseAppCheckService,
+        { provide: FirebaseApp, useValue: firebaseApp },
+        { provide: PLATFORM_ID, useValue: "browser" },
+        { provide: PlatformService, useValue: createPlatformService("web") },
+      ],
+    });
+
+    const service = TestBed.inject(FirebaseAppCheckService);
+    await service.initialize(productionEnvironment.appCheck);
+
+    expect(initializeFirebaseApp).toHaveBeenCalledWith(
+      firebaseApp.options,
+      "pkspot-app-check-probe"
+    );
+    expect(initializeAppCheck).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "pkspot-app-check-probe" }),
+      expect.objectContaining({ isTokenAutoRefreshEnabled: false })
+    );
+    expect(initializeAppCheck).not.toHaveBeenCalledWith(
+      firebaseApp,
+      expect.anything()
+    );
+    expect(getApps).toHaveBeenCalled();
+    expect(getToken).toHaveBeenCalledWith({ app: "app-check" });
+    expect(service.status()).toEqual(
+      expect.objectContaining({
+        state: "ready",
+        platform: "web",
+      })
+    );
   });
 
   it("skips initialization during store screenshot rendering", async () => {
