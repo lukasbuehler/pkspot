@@ -219,6 +219,18 @@ export class ModerationDashboardPageComponent implements OnDestroy {
     return suggestion.community_path || null;
   }
 
+  async approveCommunityCardSuggestion(
+    suggestion: CommunityCardSuggestionItem,
+  ): Promise<void> {
+    await this._handleCommunityCardSuggestionAction(suggestion, "approve");
+  }
+
+  async rejectCommunityCardSuggestion(
+    suggestion: CommunityCardSuggestionItem,
+  ): Promise<void> {
+    await this._handleCommunityCardSuggestionAction(suggestion, "reject");
+  }
+
   spotEditPath(item: ModerationSpotEditQueueItem): string[] {
     return ["/map", "spots", item.spotId, "edits"];
   }
@@ -252,6 +264,59 @@ export class ModerationDashboardPageComponent implements OnDestroy {
     return organizationIds.length > 0
       ? organizationIds.join(", ")
       : $localize`Organization review`;
+  }
+
+  private async _handleCommunityCardSuggestionAction(
+    suggestion: CommunityCardSuggestionItem,
+    action: "approve" | "reject",
+  ): Promise<void> {
+    const actionKey = `community_card_suggestions/${suggestion.id}:${action}`;
+    if (this.actionPath()) {
+      return;
+    }
+
+    this.actionPath.set(actionKey);
+    this._analytics.trackEvent("community_card_suggestion_action_started", {
+      action,
+      suggestion_id: suggestion.id,
+      community_key: suggestion.community_key,
+    });
+    try {
+      if (action === "approve") {
+        await this._communityCardSuggestionsService.approveSuggestion(
+          suggestion,
+        );
+      } else {
+        await this._communityCardSuggestionsService.rejectSuggestion(suggestion);
+      }
+      await this.reload();
+      this._analytics.trackEvent("community_card_suggestion_action_succeeded", {
+        action,
+        suggestion_id: suggestion.id,
+        community_key: suggestion.community_key,
+      });
+      this._snackbar.open(
+        action === "approve"
+          ? $localize`Community card approved`
+          : $localize`Community card rejected`,
+        undefined,
+        { duration: 3000 },
+      );
+    } catch (error) {
+      console.error("Failed to update community card suggestion", error);
+      this._analytics.trackEvent("community_card_suggestion_action_failed", {
+        action,
+        suggestion_id: suggestion.id,
+        community_key: suggestion.community_key,
+      });
+      this._snackbar.open(
+        $localize`Failed to update community card suggestion`,
+        undefined,
+        { duration: 4000 },
+      );
+    } finally {
+      this.actionPath.set(null);
+    }
   }
 
   private _localizedText(value: CommunityLocalizedTextSchema | undefined): string {

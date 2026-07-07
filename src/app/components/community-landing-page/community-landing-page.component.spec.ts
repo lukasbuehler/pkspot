@@ -17,6 +17,7 @@ import { StorageService } from "../../services/firebase/storage.service";
 import { MapsApiService } from "../../services/maps-api.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { SearchService } from "../../services/search.service";
+import { CommunityCardSuggestionsService } from "../../services/firebase/firestore/community-card-suggestions.service";
 
 const communityData: CommunityLandingPageData = {
   communityKey: "country:ch",
@@ -66,11 +67,15 @@ describe("CommunityLandingPageComponent", () => {
   let isAdmin: ReturnType<typeof signal<boolean>>;
   let authState$: BehaviorSubject<{ uid: string } | null>;
   let getCommunityPrivateInfoCards: ReturnType<typeof vi.fn>;
+  let updateCommunityInfoCards: ReturnType<typeof vi.fn>;
+  let submitSuggestion: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     isAdmin = signal(false);
     authState$ = new BehaviorSubject<{ uid: string } | null>(null);
     getCommunityPrivateInfoCards = vi.fn().mockResolvedValue([]);
+    updateCommunityInfoCards = vi.fn();
+    submitSuggestion = vi.fn().mockResolvedValue("suggestion-1");
     await TestBed.configureTestingModule({
       imports: [CommunityLandingPageComponent],
       providers: [
@@ -104,7 +109,7 @@ describe("CommunityLandingPageComponent", () => {
         {
           provide: LandingPagesService,
           useValue: {
-            updateCommunityInfoCards: vi.fn(),
+            updateCommunityInfoCards,
             updateCommunityMergeInto: vi.fn(),
             getCommunityPrivateInfoCards,
           },
@@ -112,6 +117,10 @@ describe("CommunityLandingPageComponent", () => {
         {
           provide: SearchService,
           useValue: { listCommunities: vi.fn().mockResolvedValue([]) },
+        },
+        {
+          provide: CommunityCardSuggestionsService,
+          useValue: { submitSuggestion },
         },
         {
           provide: MatSnackBar,
@@ -489,7 +498,7 @@ describe("CommunityLandingPageComponent", () => {
     const addButton = [
       ...fixture.nativeElement.querySelectorAll("button"),
     ].find((button: HTMLButtonElement) =>
-      button.textContent?.includes("Add community knowledge"),
+      button.textContent?.includes("Edit community cards"),
     ) as HTMLButtonElement | undefined;
 
     expect(addButton).toBeDefined();
@@ -502,5 +511,60 @@ describe("CommunityLandingPageComponent", () => {
       dialog?.querySelector("app-community-knowledge-editor"),
     ).not.toBeNull();
     expect(dialog?.textContent).toContain("No knowledge cards yet.");
+    expect(dialog?.textContent).toContain("Danger zone");
+    expect(dialog?.textContent).toContain(
+      "Merge this community into another one",
+    );
+  });
+
+  it("submits community card suggestions for signed-in non-admin users", async () => {
+    authState$.next({ uid: "user-1" });
+    fixture.componentRef.setInput("communityDataInput", {
+      ...communityData,
+      infoCards: [
+        {
+          id: "existing",
+          title: { en: "Existing card" },
+          category: "other",
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    const suggestButton = [
+      ...fixture.nativeElement.querySelectorAll("button"),
+    ].find((button: HTMLButtonElement) =>
+      button.textContent?.includes("Suggest community card"),
+    ) as HTMLButtonElement | undefined;
+
+    expect(suggestButton).toBeDefined();
+    suggestButton?.click();
+    fixture.detectChanges();
+
+    const dialog = document.body.querySelector(".community-knowledge-dialog");
+    expect(dialog?.textContent).toContain("Suggest a card for Switzerland");
+    expect(dialog?.textContent).toContain(
+      "Submitted cards are reviewed by admins",
+    );
+
+    await fixture.componentInstance.saveKnowledgeCards([
+      {
+        id: "suggested",
+        title: { en: "Suggested card" },
+        category: "jams",
+      },
+    ]);
+
+    expect(submitSuggestion).toHaveBeenCalledWith({
+      communityKey: "country:ch",
+      communityDisplayName: "Switzerland",
+      communityPath: "/map/communities/switzerland",
+      card: {
+        id: "suggested",
+        title: { en: "Suggested card" },
+        category: "jams",
+      },
+    });
+    expect(updateCommunityInfoCards).not.toHaveBeenCalled();
   });
 });

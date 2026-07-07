@@ -53,7 +53,10 @@ import {
   SearchService,
 } from "../../services/search.service";
 import { CommunityMapMarker } from "../map/community-dot-marker/community-dot-marker.component";
-import { rankMapIslandEventsForViewport } from "./map-island-event-ranking";
+import {
+  rankMapIslandEventsForViewport,
+  rankMapPanelEvents,
+} from "./map-island-event-ranking";
 import {
   buildSelectedEventBoundsOverlays,
   buildSelectedEventPolygonOverlays,
@@ -615,9 +618,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const mode = this.mapObjectMode();
     return mode === "all" ? null : this._mapObjectModeLabel(mode);
   });
-  visibleMapEvents = computed(() => this._visibleMapEvents());
+  visibleMapEvents = computed(() =>
+    rankMapPanelEvents(this._visibleMapEvents()),
+  );
   filteredVisibleMapEvents = computed(() =>
-    this._filterEvents(this._visibleMapEvents(), this.selectedEventFilter()),
+    this._filterEvents(this.visibleMapEvents(), this.selectedEventFilter()),
   );
   visibleEventSeriesById = computed(() => this._visibleEventSeriesById());
   visibleMapCommunities = computed(() => this._visibleMapCommunities());

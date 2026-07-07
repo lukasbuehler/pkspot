@@ -3,6 +3,7 @@ import { Event as PkEvent } from "../../../db/models/Event";
 import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
 import {
   getMapEventMarkerPriority,
+  rankMapPanelEvents,
   rankMapIslandEventsForPoint,
   rankMapIslandEventsForViewport,
 } from "./map-island-event-ranking";
@@ -139,7 +140,7 @@ describe("rankMapIslandEventsForPoint", () => {
     ).toBeGreaterThan(500);
   });
 
-  it("lets active sponsored venue events overtake iconic five-star spots", () => {
+  it("does not give sponsored disclosure an extra marker priority boost", () => {
     const liveEvent = event(
       "live-jam",
       { lat: 47.5596, lng: 7.5886 },
@@ -154,7 +155,73 @@ describe("rankMapIslandEventsForPoint", () => {
       },
     );
 
-    expect(getMapEventMarkerPriority(liveEvent, now)).toBe(815);
+    expect(getMapEventMarkerPriority(liveEvent, now)).toBe(685);
+  });
+
+  it("sorts an upcoming promoted event before a normal event one week earlier in the map panel", () => {
+    const normalEvent = event(
+      "british-parkour-championships",
+      { lat: 52.5, lng: -1.9 },
+      150_000,
+      "2026-08-01T10:00:00.000Z",
+      "2026-08-02T18:00:00.000Z",
+      {
+        promo_region: undefined,
+        promo_starts_at: undefined,
+      },
+    );
+    const promotedEvent = event(
+      "wpf-camp",
+      { lat: 47.5596, lng: 7.5886 },
+      150_000,
+      "2026-08-08T10:00:00.000Z",
+      "2026-08-09T18:00:00.000Z",
+      {
+        is_promoted: true,
+        promo_starts_at: "2026-06-01T10:00:00.000Z",
+      },
+    );
+
+    expect(getMapEventMarkerPriority(promotedEvent, now)).toBeGreaterThan(
+      getMapEventMarkerPriority(normalEvent, now),
+    );
+    expect(rankMapPanelEvents([normalEvent, promotedEvent], now)[0].id).toBe(
+      "wpf-camp",
+    );
+  });
+
+  it("does not give the map panel promotion boost before the promotion starts", () => {
+    const normalEvent = event(
+      "british-parkour-championships",
+      { lat: 52.5, lng: -1.9 },
+      150_000,
+      "2026-08-01T10:00:00.000Z",
+      "2026-08-02T18:00:00.000Z",
+      {
+        promo_region: undefined,
+        promo_starts_at: undefined,
+      },
+    );
+    const futurePromotion = event(
+      "swissjam26",
+      { lat: 46.8, lng: 8.2 },
+      150_000,
+      "2026-08-08T10:00:00.000Z",
+      "2026-08-09T18:00:00.000Z",
+      {
+        is_promoted: true,
+        promo_starts_at: "2026-08-05T10:00:00.000Z",
+      },
+    );
+
+    expect(futurePromotion.isPromoted).toBe(true);
+    expect(futurePromotion.isPromotable(now)).toBe(false);
+    expect(getMapEventMarkerPriority(futurePromotion, now)).toBeLessThan(
+      getMapEventMarkerPriority(normalEvent, now),
+    );
+    expect(rankMapPanelEvents([futurePromotion, normalEvent], now)[0].id).toBe(
+      "british-parkour-championships",
+    );
   });
 });
 

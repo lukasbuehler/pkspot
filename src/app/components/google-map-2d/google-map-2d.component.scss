@@ -19,25 +19,40 @@
 }
 
 .geolocation-marker {
+  position: relative;
   height: 20px;
   width: 20px;
   border: solid white 3px;
   background-color: #0044ff;
   border-radius: 100%;
-  transform: translateY(50%);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 35%);
+  transform: translateY(50%) translateZ(0);
+}
 
-  animation: pulse 5s infinite;
+.geolocation-marker::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border: 2px solid #0044ff;
+  border-radius: inherit;
+  opacity: 0;
+  transform: scale(0.7) translateZ(0);
+  transform-origin: center;
+  animation: geolocationPulse 2.4s cubic-bezier(0.2, 0, 0, 1) infinite;
+  pointer-events: none;
+  will-change: opacity, transform;
+}
 
-  @keyframes pulse {
-    0% {
-      transform: translateY(50%) scale(1);
-    }
-    50% {
-      transform: translateY(50%) scale(1.2);
-    }
-    100% {
-      transform: translateY(50%) scale(1);
-    }
+@keyframes geolocationPulse {
+  0% {
+    opacity: 0.45;
+    transform: scale(0.7) translateZ(0);
+  }
+
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.8) translateZ(0);
   }
 }
 

@@ -67,38 +67,6 @@
       </mat-form-field>
     </div>
 
-    <div class="d-flex flex-row gap-2 flex-wrap">
-      <mat-form-field appearance="outline" class="flex-grow-1">
-        <mat-label i18n="@@event_edit.location_lat">
-          Event pin latitude
-        </mat-label>
-        <input
-          matInput
-          type="number"
-          step="0.000001"
-          formControlName="location_lat"
-          (input)="onLocationInputChange()"
-          placeholder="47.3769"
-        />
-        <mat-hint i18n="@@event_edit.location_hint">
-          Required. Used for the map event pin.
-        </mat-hint>
-      </mat-form-field>
-      <mat-form-field appearance="outline" class="flex-grow-1">
-        <mat-label i18n="@@event_edit.location_lng">
-          Event pin longitude
-        </mat-label>
-        <input
-          matInput
-          type="number"
-          step="0.000001"
-          formControlName="location_lng"
-          (input)="onLocationInputChange()"
-          placeholder="8.5417"
-        />
-      </mat-form-field>
-    </div>
-
     <div class="d-flex flex-column gap-2">
       <p class="mat-label-medium m-0 text-muted" i18n="@@event_edit.dates_label">
         Start
@@ -159,7 +127,66 @@
 
     <div class="d-flex flex-column gap-2">
       <p class="mat-label-medium m-0 text-muted" i18n="@@event_edit.area_label">
-        Event area
+        Meeting point and event area
+      </p>
+      <p class="mat-body-small location-explanation m-0" i18n="@@event_edit.location_explanation">
+        Set the main event location by selecting a spot, Google Place, or by
+        clicking the map. This is the meeting point or center of the event:
+        traceurs who go here should see the event and be able to find things
+        like the info desk or other traceurs.
+      </p>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label i18n="@@event_edit.location_search_label">
+          Search spots and Google Places
+        </mat-label>
+        <input
+          matInput
+          [formControl]="locationSearchControl"
+          [matAutocomplete]="locationSearchAutocomplete"
+          [placeholder]="'Search by venue, spot, park, address, or city'"
+          i18n-placeholder="@@event_edit.location_search_placeholder"
+          (input)="onLocationSearchInput($event)"
+        />
+        <mat-icon matSuffix>search</mat-icon>
+        <mat-autocomplete
+          #locationSearchAutocomplete="matAutocomplete"
+          [displayWith]="displayLocationSearchOption"
+          (optionSelected)="onLocationSearchSelected($event)"
+        >
+          @if (locationSearchLoading()) {
+            <mat-option disabled>
+              <span i18n="@@event_edit.location_search_loading">
+                Searching places…
+              </span>
+            </mat-option>
+          }
+          @for (option of locationSearchResults(); track option.type + option.id) {
+            <mat-option [value]="option">
+              <div class="location-search-option">
+                <mat-icon>
+                  {{ option.type === "spot" ? "location_on" : "place" }}
+                </mat-icon>
+                <span class="location-search-option__text">
+                  <span class="mat-body-medium">{{ option.label }}</span>
+                  @if (option.subtitle) {
+                    <span class="mat-label-small text-muted">
+                      {{ option.subtitle }}
+                    </span>
+                  }
+                </span>
+              </div>
+            </mat-option>
+          }
+        </mat-autocomplete>
+        <mat-hint i18n="@@event_edit.location_search_hint">
+          Use this when the map is not already showing a relevant place.
+        </mat-hint>
+      </mat-form-field>
+      <p class="mat-label-small location-coordinate-readout m-0">
+        <span i18n="@@event_edit.location_coordinates_label">
+          Main location:
+        </span>
+        <strong>{{ formattedLocation() }}</strong>
       </p>
       <app-bounds-picker
         [bounds]="bounds()"
@@ -184,23 +211,21 @@
   </section>
 
   <!-- ============================ Optional ============================ -->
-  <mat-expansion-panel
-    class="optional-panel"
-    [expanded]="hasAnyOptionalValues() || isEditMode()"
-  >
-    <mat-expansion-panel-header>
-      <mat-panel-title
-        class="mat-title-medium"
+  <section class="form-section optional-section">
+    <div class="optional-section-heading">
+      <h3
+        class="mat-title-medium section-title"
         i18n="@@event_edit.optional_section"
       >
         Optional details
-      </mat-panel-title>
-      <mat-panel-description i18n="@@event_edit.optional_section_hint">
-        Description, banner, spots, promotion, …
-      </mat-panel-description>
-    </mat-expansion-panel-header>
+      </h3>
+      <p class="mat-body-small text-muted m-0" i18n="@@event_edit.optional_section_hint">
+        Add richer event copy, media, map details, schedule, and organizer data
+        when available.
+      </p>
+    </div>
 
-    <div class="d-flex flex-column gap-3 pt-2">
+    <div class="d-flex flex-column gap-3">
       <app-locale-map-edit-field
         class="w-100"
         i18n-placeholder="@@event_edit.description"
@@ -1889,57 +1914,66 @@
 
       <mat-divider />
 
-      <!-- ----------------- Promotion ----------------- -->
-      <mat-expansion-panel class="nested-panel">
-        <mat-expansion-panel-header>
-          <mat-panel-title
-            class="mat-title-small"
-            i18n="@@event_edit.promote_heading"
-          >
-            Promote
-          </mat-panel-title>
-          <mat-panel-description i18n="@@event_edit.promote_hint">
-            Boosting and map-island radius
-          </mat-panel-description>
-        </mat-expansion-panel-header>
-
-        <div class="d-flex flex-column gap-3 pt-2">
-          <p
-            class="mat-label-small text-muted m-0"
-            i18n="@@event_edit.promote_description"
-          >
-            Promotion is admin-only for now. The radius controls where the event
-            can surface in promoted map-island placements.
-          </p>
-
-          <div class="d-flex flex-row gap-2 flex-wrap">
-            <mat-form-field appearance="outline" class="flex-grow-1">
-              <mat-label i18n="@@event_edit.promo_radius">
-                Promotion radius (m)
-              </mat-label>
-              <input
-                matInput
-                type="number"
-                min="0"
-                step="100"
-                formControlName="promo_radius_m"
-                placeholder="30000"
-              />
-              <mat-hint i18n="@@event_edit.promo_radius_hint">
-                Centered on the event pin. Leave empty for no radius promotion.
-              </mat-hint>
-            </mat-form-field>
-            <mat-checkbox
-              formControlName="is_promoted"
-              i18n="@@event_edit.is_promoted"
+      @if (isAdmin()) {
+        <!-- ----------------- Promotion ----------------- -->
+        <mat-expansion-panel class="nested-panel">
+          <mat-expansion-panel-header>
+            <mat-panel-title
+              class="mat-title-small"
+              i18n="@@event_edit.promote_heading"
             >
-              Promote in the map island
-            </mat-checkbox>
-          </div>
-        </div>
-      </mat-expansion-panel>
+              Promote
+            </mat-panel-title>
+            <mat-panel-description i18n="@@event_edit.promote_hint">
+              Boosting and map-island radius
+            </mat-panel-description>
+          </mat-expansion-panel-header>
 
-      <mat-divider />
+          <div class="d-flex flex-column gap-3 pt-2">
+            <p
+              class="promotion-disclaimer mat-body-medium m-0"
+              i18n="@@event_edit.promote_disclaimer"
+            >
+              Disclaimer: enabling promotion can activate the map island for
+              users who are allowed to see this promoted event.
+            </p>
+            <p
+              class="mat-label-small text-muted m-0"
+              i18n="@@event_edit.promote_description"
+            >
+              The radius controls where the event can surface in promoted
+              map-island placements.
+            </p>
+
+            <div class="d-flex flex-row gap-2 flex-wrap">
+              <mat-form-field appearance="outline" class="flex-grow-1">
+                <mat-label i18n="@@event_edit.promo_radius">
+                  Promotion radius (m)
+                </mat-label>
+                <input
+                  matInput
+                  type="number"
+                  min="0"
+                  step="100"
+                  formControlName="promo_radius_m"
+                  placeholder="30000"
+                />
+                <mat-hint i18n="@@event_edit.promo_radius_hint">
+                  Centered on the event pin. Leave empty for no radius promotion.
+                </mat-hint>
+              </mat-form-field>
+              <mat-checkbox
+                formControlName="is_promoted"
+                i18n="@@event_edit.is_promoted"
+              >
+                Promote in the map island
+              </mat-checkbox>
+            </div>
+          </div>
+        </mat-expansion-panel>
+
+        <mat-divider />
+      }
 
       <!-- ----------------- Misc ----------------- -->
       <div class="d-flex flex-row gap-2 flex-wrap">
@@ -1958,7 +1992,7 @@
         </mat-form-field>
       </div>
     </div>
-  </mat-expansion-panel>
+  </section>
 
   <ng-template
     #qualificationRefFields

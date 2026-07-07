@@ -51,6 +51,7 @@ import {
 } from "../../../scripts/CommunityInfoCardHelpers";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { CommunityKnowledgeEditorComponent } from "../community-knowledge-editor/community-knowledge-editor.component";
+import { CommunityCardSuggestionsService } from "../../services/firebase/firestore/community-card-suggestions.service";
 import { collectCommunitySpotDirectory } from "../../shared/community-spot-directory";
 import { AnalyticsService } from "../../services/analytics.service";
 import {
@@ -115,6 +116,9 @@ export class CommunityLandingPageComponent {
   private _route = inject(ActivatedRoute);
   private _authService = inject(AuthenticationService);
   private _landingPagesService = inject(LandingPagesService);
+  private _communityCardSuggestionsService = inject(
+    CommunityCardSuggestionsService,
+  );
   private _snackbar = inject(MatSnackBar);
   private _dialog = inject(MatDialog);
   private _locale = inject(LOCALE_ID);
@@ -325,6 +329,14 @@ export class CommunityLandingPageComponent {
   canEditKnowledge = computed(
     () => this.isAdmin() && !!this.communityData()?.communityKey,
   );
+  canSuggestKnowledge = computed(
+    () =>
+      (this.isSignedIn() || this.isAdmin()) &&
+      !!this.communityData()?.communityKey,
+  );
+  knowledgeEditorCards = computed(() =>
+    this.canEditKnowledge() ? this._allInfoCards() : [],
+  );
   hasFeaturedSpots = computed(() => {
     const data = this.communityData();
     return (
@@ -436,18 +448,23 @@ export class CommunityLandingPageComponent {
   }
 
   startKnowledgeEdit(): void {
-    if (!this.canEditKnowledge()) {
+    if (!this.canSuggestKnowledge()) {
       return;
     }
     this._analytics.trackEvent("community_knowledge_edit_opened", {
       ...this._communityAnalyticsProperties(),
+      publishes_immediately: this.canEditKnowledge(),
     });
     const data = this.communityData();
-    this.selectedMergeTargetKey.set(data?.merge_into?.target_community_key ?? "");
-    this.mergeInfoCardMode.set(data?.merge_into?.info_cards ?? "move");
+    if (this.canEditKnowledge()) {
+      this.selectedMergeTargetKey.set(
+        data?.merge_into?.target_community_key ?? "",
+      );
+      this.mergeInfoCardMode.set(data?.merge_into?.info_cards ?? "move");
+      void this.loadMergeTargetOptions();
+    }
     this.isEditingKnowledge.set(true);
     this._openCommunityKnowledgeDialog();
-    void this.loadMergeTargetOptions();
   }
 
   cancelKnowledgeEdit(): void {
@@ -460,7 +477,16 @@ export class CommunityLandingPageComponent {
 
   async saveKnowledgeCards(cards: CommunityInfoCardSchema[]): Promise<void> {
     const data = this.communityData();
-    if (!data || !this.canEditKnowledge()) {
+    if (!data || !this.canSuggestKnowledge()) {
+      return;
+    }
+
+    if (!this.canEditKnowledge() && cards.length === 0) {
+      this._snackbar.open(
+        $localize`Add at least one community card before submitting`,
+        undefined,
+        { duration: 3000 },
+      );
       return;
     }
 
@@ -468,8 +494,34 @@ export class CommunityLandingPageComponent {
     this._analytics.trackEvent("community_knowledge_save_clicked", {
       ...this._communityAnalyticsProperties(),
       card_count: cards.length,
+      publishes_immediately: this.canEditKnowledge(),
     });
     try {
+      if (!this.canEditKnowledge()) {
+        await Promise.all(
+          cards.map((card) =>
+            this._communityCardSuggestionsService.submitSuggestion({
+              communityKey: data.communityKey,
+              communityDisplayName: data.displayName,
+              communityPath: data.canonicalPath,
+              card,
+            }),
+          ),
+        );
+        this.isEditingKnowledge.set(false);
+        this._communityKnowledgeDialogRef?.close();
+        this._snackbar.open(
+          $localize`Community card suggestion submitted for review`,
+          undefined,
+          { duration: 3000 },
+        );
+        this._analytics.trackEvent("community_knowledge_suggested", {
+          ...this._communityAnalyticsProperties(),
+          card_count: cards.length,
+        });
+        return;
+      }
+
       await this._landingPagesService.updateCommunityInfoCards(
         data.communityKey,
         cards,
@@ -529,8 +581,7 @@ export class CommunityLandingPageComponent {
           .filter(
             (community) =>
               community.communityKey !== current?.communityKey &&
-              community.scope === current?.scope &&
-              community.scope === "locality",
+              community.scope === current?.scope,
           )
           .sort((left, right) => {
             if (right.totalSpots !== left.totalSpots) {

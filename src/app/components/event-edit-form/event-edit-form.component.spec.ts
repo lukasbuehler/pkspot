@@ -2,7 +2,9 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
+import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
+import { MapsApiService } from "../../services/maps-api.service";
 import { SearchService } from "../../services/search.service";
 import { EventEditFormComponent } from "./event-edit-form.component";
 
@@ -41,6 +43,21 @@ describe("EventEditFormComponent", () => {
           provide: SearchService,
           useValue: {
             listCommunities: vi.fn().mockResolvedValue([]),
+            searchPlaces: vi.fn().mockResolvedValue([]),
+            searchSpots: vi.fn().mockResolvedValue({ hits: [], found: 0 }),
+            getSpotPreviewFromHit: vi.fn(),
+          },
+        },
+        {
+          provide: AuthenticationService,
+          useValue: {
+            isAdmin: vi.fn(() => true),
+          },
+        },
+        {
+          provide: MapsApiService,
+          useValue: {
+            getGooglePlaceById: vi.fn(),
           },
         },
         {

@@ -13,6 +13,7 @@ import {
 import { CommonModule } from "@angular/common";
 import {
   FormBuilder,
+  FormControl,
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
@@ -72,12 +73,15 @@ import { LocaleMap, MediaType } from "../../../db/models/Interfaces";
 import { makeLocaleMapFromObject } from "../../../scripts/LanguageHelpers";
 import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
 import { SearchService } from "../../services/search.service";
+import { AuthenticationService } from "../../services/firebase/authentication.service";
+import { MapsApiService } from "../../services/maps-api.service";
 import { BoundsPickerComponent } from "../bounds-picker/bounds-picker.component";
 import { MediaUpload } from "../media-upload/media-upload.component";
 import { MarkerComponent } from "../marker/marker.component";
 import { SpotPickerComponent } from "../spot-picker/spot-picker.component";
 import { LocaleMapEditFieldComponent } from "../locale-map-edit-field/locale-map-edit-field.component";
 import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
+import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 
 type OrganizationDocument = OrganizationSchema & { id: string };
 type EditableEventMarker = {
@@ -110,6 +114,20 @@ type EditableInlineEventSpot = {
   isIconic: boolean;
   bounds: EditableInlineSpotBoundsPoint[];
 };
+type EventLocationSearchOption =
+  | {
+      type: "spot";
+      id: string;
+      label: string;
+      subtitle: string;
+      location: { lat: number; lng: number };
+    }
+  | {
+      type: "place";
+      id: string;
+      label: string;
+      subtitle: string;
+    };
 type EditableEventLink = {
   id: string;
   label: string;
@@ -300,7 +318,11 @@ export class EventEditFormComponent {
   private _fb = inject(FormBuilder);
   private _searchService = inject(SearchService);
   private _organizationsService = inject(OrganizationsService);
+  private _authService = inject(AuthenticationService);
+  private _mapsApiService = inject(MapsApiService);
   private _loadedEventId: string | null = null;
+  private _locationSearchTimer: ReturnType<typeof setTimeout> | null = null;
+  private _locationSearchRequestId = 0;
   @ViewChild(BoundsPickerComponent) private _boundsPicker?: BoundsPickerComponent;
 
   /** Storage folder for banner / logo / sponsor-logo uploads. */
@@ -351,6 +373,9 @@ export class EventEditFormComponent {
     external_media_source_url: [""],
     external_media_attribution_text: [""],
   });
+  locationSearchControl = new FormControl<string | EventLocationSearchOption>(
+    "",
+  );
 
   /**
    * Event location and optional area state — kept outside the FormGroup
@@ -386,6 +411,8 @@ export class EventEditFormComponent {
   programPlans = signal<EditableProgramPlan[]>([]);
   activeProgramPlanId = signal<string>("");
   seriesMemberships = signal<EditableSeriesMembership[]>([]);
+  locationSearchResults = signal<EventLocationSearchOption[]>([]);
+  locationSearchLoading = signal<boolean>(false);
   private _descriptionLocaleMap = signal<LocaleMap | undefined>(undefined);
   readonly featuredParticipantTypes = [
     "person",
@@ -406,6 +433,7 @@ export class EventEditFormComponent {
 
   /** Whether the parent passed in an existing event (vs. create mode). */
   readonly isEditMode = computed(() => this.event() !== null);
+  readonly isAdmin = computed(() => this._authService.isAdmin());
 
   /** Center of the bounds rectangle — used for community auto-suggest. */
   readonly boundsCenter = computed(() => {
@@ -466,6 +494,19 @@ export class EventEditFormComponent {
     if (typeof value === "string") return value;
     return value.name;
   };
+  readonly displayLocationSearchOption = (
+    value: EventLocationSearchOption | string | null,
+  ): string => {
+    if (!value) return "";
+    return typeof value === "string" ? value : value.label;
+  };
+
+  readonly formattedLocation = computed(() => {
+    const location = this.location();
+    return location
+      ? `${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`
+      : $localize`:@@event_edit.location_not_set:Not set`;
+  });
 
   featuredParticipantTypeLabel(type: EventFeaturedParticipantType): string {
     switch (type) {
@@ -530,6 +571,8 @@ export class EventEditFormComponent {
         this.activeProgramPlanId.set("");
         this.seriesMemberships.set([]);
         this._descriptionLocaleMap.set(undefined);
+        this.locationSearchControl.setValue("", { emitEvent: false });
+        this.locationSearchResults.set([]);
         return;
       }
       if (this._loadedEventId === e.id) {
@@ -715,6 +758,8 @@ export class EventEditFormComponent {
         ),
       );
       this._descriptionLocaleMap.set(e.descriptions);
+      this.locationSearchControl.setValue("", { emitEvent: false });
+      this.locationSearchResults.set([]);
     });
 
     this._loadOrganizations();
@@ -755,11 +800,48 @@ export class EventEditFormComponent {
   }
 
   onLocationChange(location: { lat: number; lng: number }): void {
-    this.location.set(location);
-    this.form.patchValue({
-      location_lat: location.lat,
-      location_lng: location.lng,
-    });
+    this._setEventLocation(location);
+  }
+
+  onLocationSearchInput(event: Event): void {
+    const input = event.target instanceof HTMLInputElement ? event.target : null;
+    const query = input?.value.trim() ?? "";
+    if (this._locationSearchTimer) {
+      clearTimeout(this._locationSearchTimer);
+    }
+    if (query.length < 2) {
+      this.locationSearchResults.set([]);
+      this.locationSearchLoading.set(false);
+      return;
+    }
+    this.locationSearchLoading.set(true);
+    this._locationSearchTimer = setTimeout(() => {
+      void this._searchLocationOptions(query);
+    }, 250);
+  }
+
+  async onLocationSearchSelected(
+    event: MatAutocompleteSelectedEvent,
+  ): Promise<void> {
+    const option = event.option.value as EventLocationSearchOption;
+    this.locationSearchResults.set([]);
+    this.locationSearchControl.setValue(option.label, { emitEvent: false });
+    if (option.type === "spot") {
+      this._setEventLocation(option.location);
+      return;
+    }
+
+    try {
+      const place = await this._mapsApiService.getGooglePlaceById(option.id);
+      const location = place.location;
+      const lat = location?.lat();
+      const lng = location?.lng();
+      if (typeof lat === "number" && typeof lng === "number") {
+        this._setEventLocation({ lat, lng });
+      }
+    } catch (err) {
+      console.warn("EventEditForm: location place lookup failed", err);
+    }
   }
 
   onSpotIdsChange(ids: string[]): void {
@@ -1711,6 +1793,76 @@ export class EventEditFormComponent {
     }
   }
 
+  private _setEventLocation(location: { lat: number; lng: number }): void {
+    this.location.set(location);
+    this.form.patchValue({
+      location_lat: location.lat,
+      location_lng: location.lng,
+    });
+  }
+
+  private async _searchLocationOptions(query: string): Promise<void> {
+    const requestId = ++this._locationSearchRequestId;
+    try {
+      const [spotsResult, places] = await Promise.all([
+        this._searchService.searchSpots(query),
+        this._searchService.searchPlaces(query),
+      ]);
+      if (requestId !== this._locationSearchRequestId) return;
+
+      const spotOptions = this._spotLocationOptionsFromResult(spotsResult);
+      const placeOptions = places.slice(0, 5).map((place) => ({
+        type: "place" as const,
+        id: place.place_id,
+        label:
+          place.structured_formatting?.main_text ||
+          place.description ||
+          $localize`:@@event_edit.location_search_google_place:Google Place`,
+        subtitle: place.structured_formatting?.secondary_text || place.description || "",
+      }));
+
+      this.locationSearchResults.set([...spotOptions, ...placeOptions]);
+    } catch (err) {
+      if (requestId === this._locationSearchRequestId) {
+        console.warn("EventEditForm: location search failed", err);
+        this.locationSearchResults.set([]);
+      }
+    } finally {
+      if (requestId === this._locationSearchRequestId) {
+        this.locationSearchLoading.set(false);
+      }
+    }
+  }
+
+  private _spotLocationOptionsFromResult(
+    result: unknown,
+  ): EventLocationSearchOption[] {
+    const hits = Array.isArray((result as { hits?: unknown })?.hits)
+      ? ((result as { hits: unknown[] }).hits)
+      : [];
+    return hits.reduce<EventLocationSearchOption[]>((options, hit) => {
+      const preview = this._spotPreviewFromHit(hit);
+      const location = spotPreviewLocation(preview);
+      if (!preview?.id || !location) return options;
+      options.push({
+        type: "spot",
+        id: preview.id,
+        label: preview.name || $localize`:@@event_edit.location_search_unnamed_spot:Unnamed spot`,
+        subtitle: preview.locality || preview.countryName || "PK Spot",
+        location,
+      });
+      return options;
+    }, []);
+  }
+
+  private _spotPreviewFromHit(hit: unknown): SpotPreviewData | null {
+    const hitRecord = hit as { preview?: unknown } | null;
+    if (hitRecord?.preview) {
+      return hitRecord.preview as SpotPreviewData;
+    }
+    return this._searchService.getSpotPreviewFromHit(hit);
+  }
+
   private _buildOrganizerPatch(): EventOrganizerSchema | undefined {
     const organization = this.selectedOrganizer();
     return organization
@@ -2161,6 +2313,51 @@ function trimOrUndefined(value: string | null | undefined): string | undefined {
 
 function numberOrUndefined(value: number | null | undefined): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function spotPreviewLocation(
+  preview: SpotPreviewData | null,
+): { lat: number; lng: number } | null {
+  if (!preview) return null;
+  const raw = preview.location_raw;
+  if (
+    typeof raw?.lat === "number" &&
+    Number.isFinite(raw.lat) &&
+    typeof raw.lng === "number" &&
+    Number.isFinite(raw.lng)
+  ) {
+    return { lat: raw.lat, lng: raw.lng };
+  }
+
+  const location = preview.location as
+    | {
+        lat?: (() => number) | number;
+        lng?: (() => number) | number;
+        latitude?: number;
+        longitude?: number;
+      }
+    | undefined;
+  if (!location) return null;
+
+  const lat =
+    typeof location.lat === "function"
+      ? location.lat()
+      : typeof location.lat === "number"
+        ? location.lat
+        : location.latitude;
+  const lng =
+    typeof location.lng === "function"
+      ? location.lng()
+      : typeof location.lng === "number"
+        ? location.lng
+        : location.longitude;
+
+  return typeof lat === "number" &&
+    Number.isFinite(lat) &&
+    typeof lng === "number" &&
+    Number.isFinite(lng)
+    ? { lat, lng }
+    : null;
 }
 
 function csvToArray(value: string | null | undefined): string[] {

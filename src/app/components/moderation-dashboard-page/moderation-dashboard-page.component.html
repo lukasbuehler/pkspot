@@ -117,14 +117,32 @@
                       <mat-chip>{{ communityCardCommunityLabel(suggestion) }}</mat-chip>
                     </mat-chip-set>
                   </mat-card-content>
-                  @if (communityCardCommunityPath(suggestion); as communityPath) {
-                    <mat-card-actions align="end">
+                  <mat-card-actions align="end">
+                    <button
+                      matButton="outlined"
+                      type="button"
+                      [disabled]="!!actionPath()"
+                      (click)="rejectCommunityCardSuggestion(suggestion)"
+                    >
+                      <mat-icon>close</mat-icon>
+                      <span i18n>Reject</span>
+                    </button>
+                    <button
+                      matButton="filled"
+                      type="button"
+                      [disabled]="!!actionPath()"
+                      (click)="approveCommunityCardSuggestion(suggestion)"
+                    >
+                      <mat-icon>check</mat-icon>
+                      <span i18n>Approve</span>
+                    </button>
+                    @if (communityCardCommunityPath(suggestion); as communityPath) {
                       <a matButton="outlined" [routerLink]="communityPath">
                         <mat-icon>open_in_new</mat-icon>
                         <span i18n>Community</span>
                       </a>
-                    </mat-card-actions>
-                  }
+                    }
+                  </mat-card-actions>
                 </mat-card>
               }
             </div>

@@ -16,7 +16,6 @@ export interface MapIslandEventRank {
 const EVENT_MARKER_PRIORITY_BASE = 250;
 const EVENT_RECENCY_MAX_BOOST = 125;
 const EVENT_PROMO_ACTIVE_BOOST = 175;
-const EVENT_SPONSORED_BOOST = 130;
 const EVENT_ORGANIZATION_BOOST = 35;
 const EVENT_VENUE_BOOST = 50;
 const EVENT_ACTIVE_VENUE_BOOST = 50;
@@ -29,6 +28,7 @@ export function getMapEventMarkerPriority(
   now: Date = new Date(),
 ): number {
   const live = event.isLive(now);
+  const activePromotion = event.isPromotable(now);
   const daysUntilStart = (event.start.getTime() - now.getTime()) / ONE_DAY_MS;
   const recencyProgress = live
     ? 1
@@ -43,8 +43,7 @@ export function getMapEventMarkerPriority(
   const score =
     EVENT_MARKER_PRIORITY_BASE +
     recencyProgress * EVENT_RECENCY_MAX_BOOST +
-    (event.isPromotable(now) ? EVENT_PROMO_ACTIVE_BOOST : 0) +
-    (event.isSponsored ? EVENT_SPONSORED_BOOST : 0) +
+    (activePromotion ? EVENT_PROMO_ACTIVE_BOOST : 0) +
     (event.hasOrganization ? EVENT_ORGANIZATION_BOOST : 0) +
     (event.hasVenueSpot ? EVENT_VENUE_BOOST : 0) +
     (live && event.hasVenueSpot ? EVENT_ACTIVE_VENUE_BOOST : 0);
@@ -53,6 +52,27 @@ export function getMapEventMarkerPriority(
     0,
     Math.min(EVENT_MARKER_PRIORITY_CLAMP, Math.round(score)),
   );
+}
+
+export function rankMapPanelEvents(
+  events: readonly PkEvent[],
+  now: Date = new Date(),
+): PkEvent[] {
+  return [...events].sort((left, right) => {
+    const statusDelta =
+      getMapIslandStatusRank(left, now) - getMapIslandStatusRank(right, now);
+    if (statusDelta !== 0) return statusDelta;
+
+    const priorityDelta =
+      getMapEventMarkerPriority(right, now) -
+      getMapEventMarkerPriority(left, now);
+    if (priorityDelta !== 0) return priorityDelta;
+
+    const startDelta = left.start.getTime() - right.start.getTime();
+    if (startDelta !== 0) return startDelta;
+
+    return left.id.localeCompare(right.id);
+  });
 }
 
 function getMapIslandStatusRank(event: PkEvent, now: Date): number {

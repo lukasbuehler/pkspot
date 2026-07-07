@@ -27,6 +27,7 @@ import {
   limit,
   getDocs,
   onSnapshot,
+  deleteField,
   QueryConstraint as AngularFireQueryConstraint,
 } from "@angular/fire/firestore";
 
@@ -76,6 +77,10 @@ export interface QueryConstraintOptions {
   limit?: number;
 }
 
+export type FirestoreDeleteFieldValue =
+  | ReturnType<typeof deleteField>
+  | { __type__: "delete" };
+
 /**
  * FirestoreAdapterService provides a unified API for Firestore operations
  * that works on both web (via @angular/fire) and native platforms
@@ -104,6 +109,13 @@ export class FirestoreAdapterService {
     console.log(
       `[FirestoreAdapter] Initialized for platform: ${this.platformService.getPlatform()}`
     );
+  }
+
+  deleteFieldValue(): FirestoreDeleteFieldValue {
+    if (this.platformService.isNative()) {
+      return { __type__: "delete" };
+    }
+    return runInInjectionContext(this.injector, () => deleteField());
   }
 
   private ensureAppCheckReady(): Promise<void> {

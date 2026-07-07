@@ -18,6 +18,61 @@
   font-weight: 600;
 }
 
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.optional-section-heading {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.section-title {
+  margin: 0;
+}
+
+.location-explanation {
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1.45;
+}
+
+.location-coordinate-readout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.location-search-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.location-search-option__text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+
+  > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.promotion-disclaimer {
+  border: 1px solid var(--mat-sys-error);
+  border-radius: 8px;
+  padding: 0.75rem;
+  color: var(--mat-sys-error);
+  background: color-mix(in srgb, var(--mat-sys-error) 10%, transparent);
+  font-weight: 700;
+}
+
 // Number-input arrow spinners on Firefox are jarring next to text inputs;
 // hide them so the bounds + zoom rows feel like the rest of the form.
 input[type="number"] {

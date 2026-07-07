@@ -1,5 +1,5 @@
 import { Injectable, LOCALE_ID, inject } from "@angular/core";
-import { deleteField, Timestamp } from "@angular/fire/firestore";
+import { Timestamp } from "@angular/fire/firestore";
 import { Observable, from, map, of, switchMap } from "rxjs";
 import { Event } from "../../../../db/models/Event";
 import {
@@ -179,11 +179,12 @@ export class EventsService extends ConsentAwareService {
     const cleaned = stripUndefined({
       ...clientPatch,
       description_i18n: shouldDeleteDescription
-        ? deleteField()
+        ? this._firestoreAdapter.deleteFieldValue()
         : clientPatch.description_i18n,
-      description: shouldDeleteDescription ? deleteField() : undefined,
       area_polygon:
-        clientPatch.area_polygon === null ? deleteField() : clientPatch.area_polygon,
+        clientPatch.area_polygon === null
+          ? this._firestoreAdapter.deleteFieldValue()
+          : clientPatch.area_polygon,
       time_updated: Timestamp.now(),
     }) as Partial<EventSchema>;
 

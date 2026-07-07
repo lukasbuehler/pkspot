@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { signal } from "@angular/core";
-import { deleteField, Timestamp } from "@angular/fire/firestore";
+import { Timestamp } from "@angular/fire/firestore";
 import { BehaviorSubject, Observable } from "rxjs";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { EventId, EventSchema } from "../../../../db/schemas/EventSchema";
@@ -10,6 +10,8 @@ import { ConsentService } from "../../consent.service";
 import { AuthenticationService } from "../authentication.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
 import { EventsService } from "./events.service";
+
+const deleteFieldMarker = { __type__: "delete" } as const;
 
 const buildEventDoc = (
   id: string,
@@ -38,6 +40,7 @@ describe("EventsService", () => {
     deleteDocument: Mock;
     addDocument: Mock;
     documentSnapshots: Mock;
+    deleteFieldValue: Mock;
   };
   let consentService: {
     hasConsent: Mock;
@@ -57,6 +60,7 @@ describe("EventsService", () => {
       deleteDocument: vi.fn(),
       addDocument: vi.fn(),
       documentSnapshots: vi.fn(),
+      deleteFieldValue: vi.fn(() => deleteFieldMarker),
     };
     consentService = {
       hasConsent: vi.fn(() => true),
@@ -422,7 +426,7 @@ describe("EventsService", () => {
     );
   });
 
-  it("deletes localized and derived event descriptions when descriptions are cleared", async () => {
+  it("deletes localized event descriptions without touching derived descriptions", async () => {
     await service.updateEvent("event-1" as EventId, {
       description_i18n: null,
     });
@@ -431,8 +435,60 @@ describe("EventsService", () => {
       string,
       Record<string, unknown>,
     ];
-    expect(payload.description_i18n).toEqual(deleteField());
-    expect(payload.description).toEqual(deleteField());
+    expect(payload.description_i18n).toEqual(deleteFieldMarker);
+    expect(payload).not.toHaveProperty("description");
+    expect(firestoreAdapter.deleteFieldValue).toHaveBeenCalledOnce();
+  });
+
+  it("updates links and ticket options while clearing localized descriptions", async () => {
+    await service.updateEvent("event-1" as EventId, {
+      description_i18n: null,
+      event_links: [
+        {
+          label: "Schedule",
+          url: "https://example.com/schedule",
+          kind: "schedule",
+          primary: true,
+        },
+      ],
+      ticket_options: [
+        {
+          id: "early",
+          label: "Early bird",
+          url: "https://example.com/tickets",
+          price: { amount: 35, currency: "CHF" },
+          availability: "available",
+          sale_ends_at: Timestamp.fromDate(new Date("2026-06-01T00:00:00Z")),
+          badge: "early_bird",
+        },
+      ],
+    });
+
+    const [, payload] = firestoreAdapter.updateDocument.mock.calls[0] as [
+      string,
+      Record<string, unknown>,
+    ];
+    expect(payload.description_i18n).toEqual(deleteFieldMarker);
+    expect(payload).not.toHaveProperty("description");
+    expect(payload.event_links).toEqual([
+      {
+        label: "Schedule",
+        url: "https://example.com/schedule",
+        kind: "schedule",
+        primary: true,
+      },
+    ]);
+    expect(payload.ticket_options).toEqual([
+      {
+        id: "early",
+        label: "Early bird",
+        url: "https://example.com/tickets",
+        price: { amount: 35, currency: "CHF" },
+        availability: "available",
+        sale_ends_at: expect.any(Timestamp),
+        badge: "early_bird",
+      },
+    ]);
   });
 
   it("does not write an RSVP while signed out", async () => {
