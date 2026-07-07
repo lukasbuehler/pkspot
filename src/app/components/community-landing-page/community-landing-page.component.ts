@@ -3,12 +3,14 @@ import {
   ChangeDetectionStrategy,
   Component,
   LOCALE_ID,
+  TemplateRef,
   computed,
   effect,
   inject,
   input,
   output,
   signal,
+  viewChild,
 } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { MatCardModule } from "@angular/material/card";
@@ -19,6 +21,12 @@ import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatSelectModule } from "@angular/material/select";
+import { MatExpansionModule } from "@angular/material/expansion";
+import {
+  MatDialog,
+  MatDialogModule,
+  MatDialogRef,
+} from "@angular/material/dialog";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { map, startWith } from "rxjs/operators";
 import { SpotListComponent } from "../spot-list/spot-list.component";
@@ -88,6 +96,8 @@ interface CommunityInfoCardView {
     MatTooltipModule,
     MatFormFieldModule,
     MatSelectModule,
+    MatExpansionModule,
+    MatDialogModule,
     RouterLink,
     SpotListComponent,
     EventCardComponent,
@@ -106,6 +116,7 @@ export class CommunityLandingPageComponent {
   private _authService = inject(AuthenticationService);
   private _landingPagesService = inject(LandingPagesService);
   private _snackbar = inject(MatSnackBar);
+  private _dialog = inject(MatDialog);
   private _locale = inject(LOCALE_ID);
   private _analytics = inject(AnalyticsService);
   private _searchService = inject(SearchService);
@@ -152,6 +163,9 @@ export class CommunityLandingPageComponent {
   mergeTargetOptions = signal<CommunitySearchPreview[]>([]);
   selectedMergeTargetKey = signal("");
   mergeInfoCardMode = signal<CommunityMergeInfoCardMode>("move");
+  private _communityKnowledgeDialogTemplate =
+    viewChild<TemplateRef<unknown>>("communityKnowledgeDialog");
+  private _communityKnowledgeDialogRef: MatDialogRef<unknown> | null = null;
   private _infoCardsOverride = signal<{
     communityKey: string;
     infoCards: CommunityInfoCardSchema[];
@@ -432,6 +446,7 @@ export class CommunityLandingPageComponent {
     this.selectedMergeTargetKey.set(data?.merge_into?.target_community_key ?? "");
     this.mergeInfoCardMode.set(data?.merge_into?.info_cards ?? "move");
     this.isEditingKnowledge.set(true);
+    this._openCommunityKnowledgeDialog();
     void this.loadMergeTargetOptions();
   }
 
@@ -440,6 +455,7 @@ export class CommunityLandingPageComponent {
       ...this._communityAnalyticsProperties(),
     });
     this.isEditingKnowledge.set(false);
+    this._communityKnowledgeDialogRef?.close();
   }
 
   async saveKnowledgeCards(cards: CommunityInfoCardSchema[]): Promise<void> {
@@ -475,6 +491,7 @@ export class CommunityLandingPageComponent {
         infoCards: privateInfoCards,
       });
       this.isEditingKnowledge.set(false);
+      this._communityKnowledgeDialogRef?.close();
       this._snackbar.open($localize`Community knowledge saved`, undefined, {
         duration: 3000,
       });
@@ -629,6 +646,31 @@ export class CommunityLandingPageComponent {
         (left, right) =>
           left.priority - right.priority || left.id.localeCompare(right.id),
       );
+  }
+
+  private _openCommunityKnowledgeDialog(): void {
+    if (this._communityKnowledgeDialogRef) {
+      return;
+    }
+
+    const template = this._communityKnowledgeDialogTemplate();
+    if (!template) {
+      return;
+    }
+
+    this._communityKnowledgeDialogRef = this._dialog.open(template, {
+      width: "min(960px, calc(100vw - 32px))",
+      maxWidth: "960px",
+      maxHeight: "calc(100vh - 32px)",
+      autoFocus: "dialog",
+      restoreFocus: true,
+      panelClass: "community-knowledge-dialog-panel",
+    });
+
+    this._communityKnowledgeDialogRef.afterClosed().subscribe(() => {
+      this._communityKnowledgeDialogRef = null;
+      this.isEditingKnowledge.set(false);
+    });
   }
 
   private _allInfoCards(): CommunityInfoCardSchema[] {

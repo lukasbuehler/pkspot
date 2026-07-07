@@ -278,7 +278,7 @@ export class GoogleMap2dComponent
   private _isInternalZoomChange = false;
   private _isRecoveringInvalidCamera = false;
   private _hasInitializedNativeMap = false;
-  private _hasStartedAutoLocationWatch = false;
+  private _hasStartedPassiveLocationWatch = false;
   private _invalidCameraRecoveryCount = 0;
   private _invalidCameraRecoveryTimeoutId: ReturnType<typeof setTimeout> | null =
     null;
@@ -300,7 +300,6 @@ export class GoogleMap2dComponent
   private _pendingCameraOperation: PendingCameraOperation | null = null;
   private _pendingCameraOperationFrameId: number | null = null;
 
-  readonly autoStartLocationWatch = environment.features.checkIns;
   // @ViewChildren(MapPolygon) spotPolygons: QueryList<MapPolygon> | undefined;
   // @ViewChildren(MapPolygon, { read: ElementRef })
   polygonElements: QueryList<ElementRef> | undefined;
@@ -2007,10 +2006,7 @@ export class GoogleMap2dComponent
       this._hasInitializedNativeMap = true;
     }
 
-    if (this.autoStartLocationWatch && !this._hasStartedAutoLocationWatch) {
-      this._hasStartedAutoLocationWatch = true;
-      this.initGeolocation();
-    }
+    this._ensurePassiveGeolocationWatch();
 
     if (this.boundRestriction) {
       this.mapOptions.restriction = {
@@ -2235,6 +2231,10 @@ export class GoogleMap2dComponent
 
     if (changes["featureBoundaryOverlay"]) {
       void this._updateFeatureBoundaryStyle();
+    }
+
+    if (changes["showGeolocation"]) {
+      this._ensurePassiveGeolocationWatch();
     }
 
     if (changes["isDebug"]) {
@@ -2724,7 +2724,15 @@ export class GoogleMap2dComponent
     const hasPermission = await this.geolocationService.checkPermissions();
     if (hasPermission) {
       await this.geolocationService.startWatching();
+      this._geolocationStarted = true;
     }
+  }
+
+  private _ensurePassiveGeolocationWatch(): void {
+    if (!this.showGeolocation || this._hasStartedPassiveLocationWatch) return;
+
+    this._hasStartedPassiveLocationWatch = true;
+    void this.initGeolocation();
   }
 
   private _geolocationStarted = false;

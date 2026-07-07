@@ -83,6 +83,7 @@ interface CommunityKnowledgeLocaleModel {
 export class CommunityKnowledgeEditorComponent {
   readonly cards = input<CommunityInfoCardSchema[]>([]);
   readonly saving = input(false);
+  readonly publishesImmediately = input(false);
 
   readonly save = output<CommunityInfoCardSchema[]>();
   readonly cancel = output<void>();

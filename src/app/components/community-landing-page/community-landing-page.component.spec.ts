@@ -1,10 +1,12 @@
 import { BehaviorSubject, of } from "rxjs";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
 import { ActivatedRoute } from "@angular/router";
 import { signal } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { MatDialog } from "@angular/material/dialog";
+import { provideNoopAnimations } from "@angular/platform-browser/animations";
 import { CommunityLandingPageComponent } from "./community-landing-page.component";
 import {
   CommunityLandingPageData,
@@ -73,6 +75,7 @@ describe("CommunityLandingPageComponent", () => {
       imports: [CommunityLandingPageComponent],
       providers: [
         provideRouter([]),
+        provideNoopAnimations(),
         {
           provide: ActivatedRoute,
           useValue: {
@@ -120,6 +123,11 @@ describe("CommunityLandingPageComponent", () => {
     fixture = TestBed.createComponent(CommunityLandingPageComponent);
   });
 
+  afterEach(() => {
+    TestBed.inject(MatDialog).closeAll();
+    fixture.destroy();
+  });
+
   it("emits child community paths from panel-mode links", () => {
     const openCommunityPath = vi.fn();
     fixture.componentRef.setInput("communityDataInput", communityData);
@@ -149,8 +157,7 @@ describe("CommunityLandingPageComponent", () => {
       ".community-link-card"
     ) as HTMLAnchorElement;
     expect(link.tagName).toBe("A");
-
-    link.click();
+    expect(link.getAttribute("href")).toBe("/map/communities/zuerich");
 
     expect(openCommunityPath).not.toHaveBeenCalled();
   });
@@ -489,10 +496,11 @@ describe("CommunityLandingPageComponent", () => {
     addButton?.click();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain("Local Knowledge");
+    const dialog = document.body.querySelector(".community-knowledge-dialog");
+    expect(dialog?.textContent).toContain("Community knowledge");
     expect(
-      fixture.nativeElement.querySelector("app-community-knowledge-editor"),
+      dialog?.querySelector("app-community-knowledge-editor"),
     ).not.toBeNull();
-    expect(fixture.nativeElement.textContent).toContain("No knowledge cards yet.");
+    expect(dialog?.textContent).toContain("No knowledge cards yet.");
   });
 });

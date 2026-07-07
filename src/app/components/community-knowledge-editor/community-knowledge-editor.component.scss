@@ -80,6 +80,10 @@
   color: var(--mat-sys-error);
 }
 
+.knowledge-editor-submit-note {
+  color: var(--mat-sys-on-surface-variant);
+}
+
 @media (max-width: 600px) {
   .knowledge-editor-card-header,
   .knowledge-editor-actions {

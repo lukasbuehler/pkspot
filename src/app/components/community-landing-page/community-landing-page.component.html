@@ -204,7 +204,7 @@
     }
 
     @if (!data.notFound) {
-      @if (communityInfoCards().length > 0 || isEditingKnowledge()) {
+      @if (communityInfoCards().length > 0) {
         <section class="content-section local-info-section">
           <div class="section-heading section-heading-row">
             <h2
@@ -214,7 +214,7 @@
             >
               Local Knowledge
             </h2>
-            @if (canEditKnowledge() && !isEditingKnowledge()) {
+            @if (canEditKnowledge()) {
               <button
                 mat-icon-button
                 type="button"
@@ -227,140 +227,74 @@
             }
           </div>
 
-          @if (isEditingKnowledge()) {
-            @if (canEditKnowledge() && data.scope === "locality") {
-              <div class="community-admin-settings border">
-                <h3 class="mat-title-medium m-0">Community settings</h3>
-                <div class="community-admin-settings-grid">
-                  <mat-form-field appearance="outline">
-                    <mat-label>Is part of community</mat-label>
-                    <mat-select
-                      [value]="selectedMergeTargetKey()"
-                      [disabled]="
-                        isLoadingMergeTargets() || isSavingCommunityMerge()
-                      "
-                      (selectionChange)="
-                        selectedMergeTargetKey.set($event.value)
-                      "
-                    >
-                      <mat-option value="">Not merged</mat-option>
-                      @for (community of mergeTargetOptions(); track community.communityKey) {
-                        <mat-option [value]="community.communityKey">
-                          {{ community.displayName }}
-                        </mat-option>
+          <div class="local-info-grid">
+            @for (card of communityInfoCards(); track card.id) {
+              <mat-card class="local-info-card border">
+                <mat-card-content>
+                  <div class="local-info-card-header">
+                    <span class="local-info-icon" aria-hidden="true">
+                      <mat-icon>{{ card.icon }}</mat-icon>
+                    </span>
+                    <div class="local-info-title-block">
+                      <h3 class="mat-title-medium m-0">{{ card.title }}</h3>
+                      @if (card.disclosure) {
+                        <span class="local-info-disclosure">{{
+                          card.disclosure
+                        }}</span>
                       }
-                    </mat-select>
-                  </mat-form-field>
+                    </div>
+                  </div>
 
-                  <mat-form-field appearance="outline">
-                    <mat-label>Knowledge cards</mat-label>
-                    <mat-select
-                      [value]="mergeInfoCardMode()"
-                      [disabled]="isSavingCommunityMerge()"
-                      (selectionChange)="mergeInfoCardMode.set($event.value)"
-                    >
-                      <mat-option value="move">Move</mat-option>
-                      <mat-option value="copy">Copy</mat-option>
-                      <mat-option value="skip">Skip</mat-option>
-                    </mat-select>
-                  </mat-form-field>
+                  @if (card.body) {
+                    <p class="mat-body-medium local-info-body">
+                      {{ card.body }}
+                    </p>
+                  }
 
-                  <button
-                    mat-stroked-button
-                    type="button"
-                    [disabled]="
-                      !selectedMergeTargetKey() || isSavingCommunityMerge()
-                    "
-                    (click)="saveCommunityMerge()"
-                  >
-                    <mat-icon>merge_type</mat-icon>
-                    <span>{{
-                      isSavingCommunityMerge()
-                        ? "Saving..."
-                        : "Save community merge"
-                    }}</span>
-                  </button>
-                </div>
-              </div>
+                  @if (card.cta; as cta) {
+                    <div class="local-info-actions">
+                      @if (cta.target === "url") {
+                        <a
+                          mat-stroked-button
+                          [href]="cta.url"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          (click)="trackCommunityInfoCtaClick(card, cta)"
+                        >
+                          <mat-icon>link</mat-icon>
+                          <span>{{ cta.label }}</span>
+                        </a>
+                      } @else {
+                        <a
+                          mat-stroked-button
+                          [routerLink]="cta.path"
+                          (click)="trackCommunityInfoCtaClick(card, cta)"
+                        >
+                          <mat-icon>{{
+                            cta.target === "spot" ? "place" : "event"
+                          }}</mat-icon>
+                          <span>{{ cta.label }}</span>
+                        </a>
+                      }
+                    </div>
+                  } @else if (card.requiresSignInForCta) {
+                    <div class="local-info-actions">
+                      <a
+                        mat-stroked-button
+                        routerLink="/sign-in"
+                        [queryParams]="signInQueryParams()"
+                      >
+                        <mat-icon>login</mat-icon>
+                        <span i18n="@@community.sign_in_to_see_link"
+                          >Sign in to see link</span
+                        >
+                      </a>
+                    </div>
+                  }
+                </mat-card-content>
+              </mat-card>
             }
-            <app-community-knowledge-editor
-              [cards]="communityKnowledgeCards()"
-              [saving]="isSavingKnowledge()"
-              (save)="saveKnowledgeCards($event)"
-              (cancel)="cancelKnowledgeEdit()"
-            ></app-community-knowledge-editor>
-          } @else {
-            @if (communityInfoCards().length > 0) {
-              <div class="local-info-grid">
-                @for (card of communityInfoCards(); track card.id) {
-                  <mat-card class="local-info-card border">
-                    <mat-card-content>
-                      <div class="local-info-card-header">
-                        <span class="local-info-icon" aria-hidden="true">
-                          <mat-icon>{{ card.icon }}</mat-icon>
-                        </span>
-                        <div class="local-info-title-block">
-                          <h3 class="mat-title-medium m-0">{{ card.title }}</h3>
-                          @if (card.disclosure) {
-                            <span class="local-info-disclosure">{{
-                              card.disclosure
-                            }}</span>
-                          }
-                        </div>
-                      </div>
-
-                      @if (card.body) {
-                        <p class="mat-body-medium local-info-body">
-                          {{ card.body }}
-                        </p>
-                      }
-
-                      @if (card.cta; as cta) {
-                        <div class="local-info-actions">
-                          @if (cta.target === "url") {
-                            <a
-                              mat-stroked-button
-                              [href]="cta.url"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              (click)="trackCommunityInfoCtaClick(card, cta)"
-                            >
-                              <mat-icon>link</mat-icon>
-                              <span>{{ cta.label }}</span>
-                            </a>
-                          } @else {
-                            <a
-                              mat-stroked-button
-                              [routerLink]="cta.path"
-                              (click)="trackCommunityInfoCtaClick(card, cta)"
-                            >
-                              <mat-icon>{{
-                                cta.target === "spot" ? "place" : "event"
-                              }}</mat-icon>
-                              <span>{{ cta.label }}</span>
-                            </a>
-                          }
-                        </div>
-                      } @else if (card.requiresSignInForCta) {
-                        <div class="local-info-actions">
-                          <a
-                            mat-stroked-button
-                            routerLink="/sign-in"
-                            [queryParams]="signInQueryParams()"
-                          >
-                            <mat-icon>login</mat-icon>
-                            <span i18n="@@community.sign_in_to_see_link"
-                              >Sign in to see link</span
-                            >
-                          </a>
-                        </div>
-                      }
-                    </mat-card-content>
-                  </mat-card>
-                }
-              </div>
-            }
-          }
+          </div>
         </section>
       }
 
@@ -627,4 +561,112 @@
       </p>
     }
   </div>
+
+  <ng-template #communityKnowledgeDialog>
+    <div class="community-knowledge-dialog">
+      <div class="community-knowledge-dialog-header">
+        <div>
+          <h2 class="mat-title-large m-0">Community knowledge</h2>
+          @if (communityData(); as dialogData) {
+            <p class="mat-body-medium m-0">{{ dialogData.displayName }}</p>
+          }
+        </div>
+        <button
+          mat-icon-button
+          type="button"
+          aria-label="Close community knowledge editor"
+          matTooltip="Close"
+          [disabled]="isSavingKnowledge() || isSavingCommunityMerge()"
+          (click)="cancelKnowledgeEdit()"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="community-knowledge-dialog-content">
+        <app-community-knowledge-editor
+          [cards]="communityKnowledgeCards()"
+          [saving]="isSavingKnowledge()"
+          [publishesImmediately]="canEditKnowledge()"
+          (save)="saveKnowledgeCards($event)"
+          (cancel)="cancelKnowledgeEdit()"
+        ></app-community-knowledge-editor>
+
+        @if (communityData(); as dialogData) {
+          @if (canEditKnowledge() && dialogData.scope === "locality") {
+            <mat-expansion-panel
+              class="community-danger-zone mat-elevation-z0 border"
+            >
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon>warning</mat-icon>
+                  <span>Danger zone</span>
+                </mat-panel-title>
+                <mat-panel-description>
+                  Merge this community into another one
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+
+              <div class="community-admin-settings">
+                <p class="mat-body-medium m-0">
+                  Community merges rewrite the public community relationship and
+                  can move, copy, or skip its knowledge cards.
+                </p>
+                <div class="community-admin-settings-grid">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Is part of community</mat-label>
+                    <mat-select
+                      [value]="selectedMergeTargetKey()"
+                      [disabled]="
+                        isLoadingMergeTargets() || isSavingCommunityMerge()
+                      "
+                      (selectionChange)="
+                        selectedMergeTargetKey.set($event.value)
+                      "
+                    >
+                      <mat-option value="">Not merged</mat-option>
+                      @for (community of mergeTargetOptions(); track community.communityKey) {
+                        <mat-option [value]="community.communityKey">
+                          {{ community.displayName }}
+                        </mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Knowledge cards</mat-label>
+                    <mat-select
+                      [value]="mergeInfoCardMode()"
+                      [disabled]="isSavingCommunityMerge()"
+                      (selectionChange)="mergeInfoCardMode.set($event.value)"
+                    >
+                      <mat-option value="move">Move</mat-option>
+                      <mat-option value="copy">Copy</mat-option>
+                      <mat-option value="skip">Skip</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    [disabled]="
+                      !selectedMergeTargetKey() || isSavingCommunityMerge()
+                    "
+                    (click)="saveCommunityMerge()"
+                  >
+                    <mat-icon>merge_type</mat-icon>
+                    <span>{{
+                      isSavingCommunityMerge()
+                        ? "Saving..."
+                        : "Save community merge"
+                    }}</span>
+                  </button>
+                </div>
+              </div>
+            </mat-expansion-panel>
+          }
+        }
+      </div>
+    </div>
+  </ng-template>
 }

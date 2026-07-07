@@ -208,13 +208,30 @@
     <p class="mat-body-small knowledge-editor-error m-0">{{ message }}</p>
   }
 
+  <p class="mat-body-small knowledge-editor-submit-note m-0">
+    @if (publishesImmediately()) {
+      Admin changes are added to the community page instantly when saved.
+    } @else {
+      Submitted cards are reviewed by admins before they appear on the
+      community page.
+    }
+  </p>
+
   <div class="knowledge-editor-actions">
     <button mat-button type="button" [disabled]="saving()" (click)="cancel.emit()">
       Cancel
     </button>
     <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
       <mat-icon>save</mat-icon>
-      <span>{{ saving() ? "Saving..." : "Save cards" }}</span>
+      <span>{{
+        saving()
+          ? publishesImmediately()
+            ? "Saving..."
+            : "Submitting..."
+          : publishesImmediately()
+            ? "Save cards"
+            : "Submit for review"
+      }}</span>
     </button>
   </div>
 </form>

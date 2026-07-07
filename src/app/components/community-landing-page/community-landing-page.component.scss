@@ -190,9 +190,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 14px;
-  border-radius: 8px;
-  background: var(--mat-sys-surface-container-low);
+  padding-top: 12px;
 }
 
 .community-admin-settings-grid {
@@ -206,6 +204,51 @@
   min-height: 56px;
 }
 
+.community-danger-zone {
+  border-color: var(--mat-sys-error);
+  border-radius: 8px;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.community-danger-zone mat-panel-title {
+  align-items: center;
+  color: var(--mat-sys-error);
+  display: flex;
+  gap: 8px;
+}
+
+.community-danger-zone .community-admin-settings p {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.community-knowledge-dialog {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 32px);
+  min-width: min(720px, calc(100vw - 32px));
+  color: var(--mat-sys-on-surface);
+}
+
+.community-knowledge-dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px 12px;
+}
+
+.community-knowledge-dialog-header p {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.community-knowledge-dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: auto;
+  padding: 0 24px 24px;
+}
+
 .community-directory-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -215,6 +258,16 @@
 @media (max-width: 720px) {
   .community-admin-settings-grid {
     grid-template-columns: 1fr;
+  }
+
+  .community-knowledge-dialog {
+    min-width: 0;
+  }
+
+  .community-knowledge-dialog-header,
+  .community-knowledge-dialog-content {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 }
 
