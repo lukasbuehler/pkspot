@@ -1,4 +1,4 @@
-const { execSync } = require("child_process");
+const { execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
@@ -25,7 +25,10 @@ const buildConfig = CONFIGS[targetConfig];
 // 1. Run Angular Build
 console.log(`Building Angular application for ${targetConfig}...`);
 try {
-  execSync(`ng build --configuration=${buildConfig}`, { stdio: "inherit" });
+  execFileSync("node", ["scripts/run-angular-build.mjs", `--configuration=${buildConfig}`], {
+    cwd: path.resolve(__dirname, ".."),
+    stdio: "inherit",
+  });
 } catch (error) {
   console.error("Build failed:", error);
   process.exit(1);

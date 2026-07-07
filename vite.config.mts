@@ -22,7 +22,17 @@ const generatedOutputGlobs = [
 const testFileGlobs = ["src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"];
 const maxTestWorkers = readPositiveInteger(
   process.env["PKSPOT_VITEST_MAX_WORKERS"],
-  process.env["CI"] ? 2 : 4
+  2
+);
+const maxTestHeapMb = readPositiveInteger(
+  process.env["PKSPOT_VITEST_MAX_OLD_SPACE_MB"],
+  4096
+);
+
+process.env["ESBUILD_WORKER_THREADS"] ??= "0";
+process.env["NODE_OPTIONS"] = withMaxOldSpaceSize(
+  process.env["NODE_OPTIONS"],
+  maxTestHeapMb
 );
 
 export default defineConfig(({ mode }) => ({
@@ -67,4 +77,13 @@ function readPositiveInteger(value: string | undefined, fallback: number): numbe
   }
 
   return parsedValue;
+}
+
+function withMaxOldSpaceSize(nodeOptions: string | undefined, maxOldSpaceSizeMb: number): string {
+  const sanitizedOptions = (nodeOptions || "")
+    .replace(/(?:^|\s)--max-old-space-size=\S+/g, " ")
+    .trim();
+  const heapOption = `--max-old-space-size=${maxOldSpaceSizeMb}`;
+
+  return [sanitizedOptions, heapOption].filter(Boolean).join(" ");
 }
