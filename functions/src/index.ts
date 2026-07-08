@@ -73,6 +73,7 @@ export {
 } from "./imageProcessingFunctions";
 export {
   processMediaIntakeUpload,
+  runMediaIntakeBackfill,
   runMediaModerationAudit,
 } from "./mediaModerationFunctions";
 

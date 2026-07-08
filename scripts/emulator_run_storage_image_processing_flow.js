@@ -278,6 +278,21 @@ async function main() {
   await assertFileMissing(blockedIntakePath);
   await assertFileMissing(blockedApprovedPath);
 
+  console.log("Checking media intake backfill maintenance trigger...");
+  const intakeBackfillDoc = db
+    .collection("maintenance")
+    .doc("run-process-media-intake-backfill");
+  await intakeBackfillDoc.set({
+    requestedAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+  await waitForDeletedDoc(intakeBackfillDoc);
+  const intakeBackfillSummary = await db
+    .collection("maintenance")
+    .doc("last-media-intake-backfill")
+    .get();
+  assert.equal(intakeBackfillSummary.exists, true);
+  assert.equal(intakeBackfillSummary.data().scan_failed, 0);
+
   console.log("Checking extensionless profile picture derivatives and archiving...");
   const profilePath = `profile_pictures/${uid}`;
   await bucket.upload(ORIGINAL_IMAGE, {

@@ -75,12 +75,43 @@ interface AuditSummary {
   skipped: number;
 }
 
+type IntakeProcessOutcome =
+  | "approved"
+  | "blocked"
+  | "needs_review"
+  | "scan_failed"
+  | "skipped";
+
+interface IntakeProcessResult {
+  outcome: IntakeProcessOutcome;
+  uploadId?: string;
+  filePath: string;
+  reason?: string;
+}
+
+interface IntakeBackfillSummary {
+  scanned: number;
+  approved: number;
+  blocked: number;
+  needs_review: number;
+  scan_failed: number;
+  skipped: number;
+}
+
 const INTAKE_PREFIX = "media_intake/";
 const REVIEW_COLLECTION = "media_upload_reviews";
 const INCIDENT_COLLECTION = "csam_incidents";
 const MEDIA_REPORT_COLLECTION = "media_reports";
 const MAINTENANCE_COLLECTION = "maintenance";
 const RUN_AUDIT_DOC = `${MAINTENANCE_COLLECTION}/run-audit-media-moderation`;
+const RUN_INTAKE_BACKFILL_DOC =
+  `${MAINTENANCE_COLLECTION}/run-process-media-intake-backfill`;
+const INTAKE_FINAL_STATUSES = new Set([
+  "approved",
+  "blocked",
+  "needs_review",
+  "audit_flagged",
+]);
 const AUDIT_PREFIXES = [
   "spot_pictures/",
   "profile_pictures/",
@@ -108,6 +139,7 @@ const VIDEO_CONTENT_TYPES = new Set([
 const RESIZED_IMAGE_SUFFIX_RE = /_\d+x\d+$/;
 
 const db = admin.firestore();
+type StorageBucketHandle = ReturnType<ReturnType<typeof getStorage>["bucket"]>;
 
 const isEmulator = (): boolean => process.env.FUNCTIONS_EMULATOR === "true";
 const mediaModerationSecrets = isEmulator() ? [] : [googleAPIKey];
@@ -118,7 +150,7 @@ const sha256 = (bytes: Buffer): string =>
   crypto.createHash("sha256").update(bytes).digest("hex");
 
 const normalizeMetadata = (
-  metadata: Record<string, string | undefined> | undefined
+  metadata: Record<string, unknown> | undefined
 ): Record<string, string> => {
   const normalized: Record<string, string> = {};
   for (const [key, value] of Object.entries(metadata ?? {})) {
@@ -144,7 +176,7 @@ const parseIntakePath = (
 
 const parseIntakeMetadata = (
   filePath: string,
-  rawMetadata: Record<string, string | undefined> | undefined
+  rawMetadata: Record<string, unknown> | undefined
 ): IntakeMetadata => {
   const parsedPath = parseIntakePath(filePath);
   const metadata = normalizeMetadata(rawMetadata);
@@ -537,6 +569,213 @@ const applyApprovalSideEffects = async (
   }
 };
 
+const processIntakeObject = async (params: {
+  bucket: StorageBucketHandle;
+  filePath: string;
+  contentType?: string;
+  rawMetadata?: Record<string, unknown>;
+  skipFinalReview?: boolean;
+}): Promise<IntakeProcessResult> => {
+  const parsedPath = parseIntakePath(params.filePath);
+  if (!parsedPath) {
+    return {
+      outcome: "skipped",
+      filePath: params.filePath,
+      reason: "not-intake-path",
+    };
+  }
+
+  const review = reviewRef(parsedPath.uploadId);
+  if (params.skipFinalReview) {
+    const existingReview = await review.get();
+    const existingStatus = existingReview.data()?.["status"];
+    if (
+      typeof existingStatus === "string" &&
+      INTAKE_FINAL_STATUSES.has(existingStatus)
+    ) {
+      return {
+        outcome: "skipped",
+        uploadId: parsedPath.uploadId,
+        filePath: params.filePath,
+        reason: `review-${existingStatus}`,
+      };
+    }
+  }
+
+  let intake: IntakeMetadata;
+  try {
+    intake = parseIntakeMetadata(params.filePath, params.rawMetadata);
+  } catch (error) {
+    await review.set(
+      {
+        status: "scan_failed",
+        source: "upload",
+        intake_path: params.filePath,
+        failure_reason:
+          error instanceof Error ? error.message : String(error),
+        completed_at: now(),
+      },
+      { merge: true }
+    );
+    return {
+      outcome: "scan_failed",
+      uploadId: parsedPath.uploadId,
+      filePath: params.filePath,
+      reason: "invalid-intake-metadata",
+    };
+  }
+
+  const sourceFile = params.bucket.file(params.filePath);
+  const contentType = params.contentType;
+  const kind = contentKind(contentType);
+
+  await review.set({
+    status: "scanning",
+    source: "upload",
+    uid: intake.uid,
+    target_kind: intake.targetKind,
+    ...(intake.targetId ? { target_id: intake.targetId } : {}),
+    intake_path: params.filePath,
+    content_type: contentType,
+    destination_folder: intake.destinationFolder,
+    destination_filename: intake.destinationFilename,
+    created_at: now(),
+  });
+
+  try {
+    if (!kind) {
+      throw new Error(`Unsupported content type: ${contentType ?? "missing"}`);
+    }
+
+    const [bytes] = await sourceFile.download();
+    const hash = sha256(bytes);
+    if (kind === "image") {
+      await validateImage(bytes);
+    }
+    const frames =
+      kind === "video"
+        ? await validateVideoAndExtractFrames(bytes, parsedPath.filename)
+        : [];
+    const emulatorDecision = normalizeMetadata(params.rawMetadata)[
+      "emulator_safety_result"
+    ] as MediaSafetyDecision | undefined;
+    const scanResult =
+      kind === "image"
+        ? await mediaSafetyProvider.scanImage(bytes, {
+            contentType,
+            storagePath: params.filePath,
+            sha256: hash,
+            source: "upload",
+            emulatorDecision,
+          })
+        : await mediaSafetyProvider.scanVideoFrames(frames, {
+            contentType,
+            storagePath: params.filePath,
+            sha256: hash,
+            source: "upload",
+            emulatorDecision,
+          });
+
+    const incidentPath = await writeIncidentIfNeeded(
+      review.path,
+      "upload",
+      intake.uid,
+      params.filePath,
+      hash,
+      scanResult
+    );
+
+    if (scanResult.decision !== "allow") {
+      const status =
+        scanResult.decision === "reportable_match" ? "blocked" : "needs_review";
+      await review.set(
+        {
+          status,
+          sha256: hash,
+          scan_result: scanResult,
+          completed_at: now(),
+        },
+        { merge: true }
+      );
+      await writeScannerMediaReport({
+        review,
+        source: "upload",
+        uid: intake.uid,
+        storagePath: params.filePath,
+        contentType,
+        mediaType: kind,
+        hash,
+        result: scanResult,
+        targetKind: intake.targetKind,
+        targetId: intake.targetId,
+        incidentPath,
+      });
+      await sourceFile.delete().catch(() => undefined);
+      return {
+        outcome: status,
+        uploadId: intake.uploadId,
+        filePath: params.filePath,
+      };
+    }
+
+    const approvedPath = destinationPathFor(intake, parsedPath.filename);
+    const approvedUrl = publicUrlFor(params.bucket.name, approvedPath);
+    const approvedFile = params.bucket.file(approvedPath);
+    await approvedFile.save(bytes, {
+      resumable: false,
+      metadata: {
+        contentType,
+        cacheControl: intake.cacheControl,
+        metadata: {
+          uid: intake.uid,
+          upload_id: intake.uploadId,
+          moderated: "true",
+        },
+      },
+    });
+
+    await applyApprovalSideEffects(intake, approvedUrl, kind);
+    await review.set(
+      {
+        status: "approved",
+        sha256: hash,
+        scan_result: scanResult,
+        approved_path: approvedPath,
+        approved_url: approvedUrl,
+        completed_at: now(),
+      },
+      { merge: true }
+    );
+    await sourceFile.delete().catch(() => undefined);
+    return {
+      outcome: "approved",
+      uploadId: intake.uploadId,
+      filePath: params.filePath,
+    };
+  } catch (error) {
+    await review.set(
+      {
+        status: "scan_failed",
+        failure_reason:
+          error instanceof Error ? error.message : String(error),
+        completed_at: now(),
+      },
+      { merge: true }
+    );
+    await sourceFile.delete().catch(() => undefined);
+    console.error("Media intake moderation failed", {
+      filePath: params.filePath,
+      error,
+    });
+    return {
+      outcome: "scan_failed",
+      uploadId: intake.uploadId,
+      filePath: params.filePath,
+      reason: error instanceof Error ? error.message : String(error),
+    };
+  }
+};
+
 export const processMediaIntakeUpload = onObjectFinalized(
   {
     bucket: DEFAULT_STORAGE_BUCKET,
@@ -549,148 +788,76 @@ export const processMediaIntakeUpload = onObjectFinalized(
   },
   async (event) => {
     const filePath = event.data.name;
-    const parsedPath = parseIntakePath(filePath);
-    if (!filePath || !parsedPath) return;
+    if (!filePath || !parseIntakePath(filePath)) return;
 
     const bucket = getStorage().bucket(event.data.bucket);
-    const sourceFile = bucket.file(filePath);
-    const intake = parseIntakeMetadata(filePath, event.data.metadata);
-    const contentType = event.data.contentType;
-    const kind = contentKind(contentType);
-    const review = reviewRef(intake.uploadId);
-
-    await review.set({
-      status: "scanning",
-      source: "upload",
-      uid: intake.uid,
-      target_kind: intake.targetKind,
-      ...(intake.targetId ? { target_id: intake.targetId } : {}),
-      intake_path: filePath,
-      content_type: contentType,
-      destination_folder: intake.destinationFolder,
-      destination_filename: intake.destinationFilename,
-      created_at: now(),
+    await processIntakeObject({
+      bucket,
+      filePath,
+      contentType: event.data.contentType,
+      rawMetadata: event.data.metadata,
     });
+  }
+);
 
-    try {
-      if (!kind) {
-        throw new Error(`Unsupported content type: ${contentType ?? "missing"}`);
+export const runMediaIntakeBackfill = onDocumentCreated(
+  {
+    document: RUN_INTAKE_BACKFILL_DOC,
+    timeoutSeconds: 540,
+    memory: "2GiB",
+    cpu: 2,
+    secrets: mediaModerationSecrets,
+  },
+  async (event) => {
+    const requestData = event.data?.data() as { limit?: unknown } | undefined;
+    const limit =
+      typeof requestData?.limit === "number" && requestData.limit > 0
+        ? Math.floor(requestData.limit)
+        : undefined;
+    const bucket = getStorage().bucket(DEFAULT_STORAGE_BUCKET);
+    const [files] = await bucket.getFiles({ prefix: INTAKE_PREFIX });
+    const summary: IntakeBackfillSummary = {
+      scanned: 0,
+      approved: 0,
+      blocked: 0,
+      needs_review: 0,
+      scan_failed: 0,
+      skipped: 0,
+    };
+
+    for (const file of files) {
+      if (limit !== undefined && summary.scanned >= limit) {
+        break;
       }
+      summary.scanned++;
 
-      const [bytes] = await sourceFile.download();
-      const hash = sha256(bytes);
-      if (kind === "image") {
-        await validateImage(bytes);
-      }
-      const frames =
-        kind === "video"
-          ? await validateVideoAndExtractFrames(bytes, parsedPath.filename)
-          : [];
-      const scanResult =
-        kind === "image"
-          ? await mediaSafetyProvider.scanImage(bytes, {
-              contentType,
-              storagePath: filePath,
-              sha256: hash,
-              source: "upload",
-              emulatorDecision: normalizeMetadata(event.data.metadata)[
-                "emulator_safety_result"
-              ] as MediaSafetyDecision | undefined,
-            })
-          : await mediaSafetyProvider.scanVideoFrames(frames, {
-              contentType,
-              storagePath: filePath,
-              sha256: hash,
-              source: "upload",
-              emulatorDecision: normalizeMetadata(event.data.metadata)[
-                "emulator_safety_result"
-              ] as MediaSafetyDecision | undefined,
-            });
-
-      const incidentPath = await writeIncidentIfNeeded(
-        review.path,
-        "upload",
-        intake.uid,
-        filePath,
-        hash,
-        scanResult
-      );
-
-      if (scanResult.decision !== "allow") {
-        await review.set(
-          {
-            status:
-              scanResult.decision === "reportable_match"
-                ? "blocked"
-                : "needs_review",
-            sha256: hash,
-            scan_result: scanResult,
-            completed_at: now(),
-          },
-          { merge: true }
-        );
-        await writeScannerMediaReport({
-          review,
-          source: "upload",
-          uid: intake.uid,
-          storagePath: filePath,
-          contentType,
-          mediaType: kind,
-          hash,
-          result: scanResult,
-          targetKind: intake.targetKind,
-          targetId: intake.targetId,
-          incidentPath,
+      try {
+        const [metadata] = await file.getMetadata();
+        const result = await processIntakeObject({
+          bucket,
+          filePath: file.name,
+          contentType: metadata.contentType,
+          rawMetadata: metadata.metadata,
+          skipFinalReview: true,
         });
-        await sourceFile.delete().catch(() => undefined);
-        return;
+        summary[result.outcome]++;
+      } catch (error) {
+        summary.scan_failed++;
+        console.error("Media intake backfill failed for file", {
+          filePath: file.name,
+          error,
+        });
       }
-
-      const approvedPath = destinationPathFor(intake, parsedPath.filename);
-      const approvedUrl = publicUrlFor(bucket.name, approvedPath);
-      const approvedFile = bucket.file(approvedPath);
-      await approvedFile.save(bytes, {
-        resumable: false,
-        metadata: {
-          contentType,
-          cacheControl: intake.cacheControl,
-          metadata: {
-            uid: intake.uid,
-            upload_id: intake.uploadId,
-            moderated: "true",
-          },
-        },
-      });
-
-      await applyApprovalSideEffects(intake, approvedUrl, kind);
-      await review.set(
-        {
-          status: "approved",
-          sha256: hash,
-          scan_result: scanResult,
-          approved_path: approvedPath,
-          approved_url: approvedUrl,
-          completed_at: now(),
-        },
-        { merge: true }
-      );
-      await sourceFile.delete().catch(() => undefined);
-    } catch (error) {
-      await review.set(
-        {
-          status: "scan_failed",
-          failure_reason:
-            error instanceof Error ? error.message : String(error),
-          completed_at: now(),
-        },
-        { merge: true }
-      );
-      await sourceFile.delete().catch(() => undefined);
-      console.error("Media intake moderation failed", {
-        filePath,
-        error,
-      });
     }
+
+    await db
+      .collection(MAINTENANCE_COLLECTION)
+      .doc("last-media-intake-backfill")
+      .set({
+        ...summary,
+        completedAt: new Date(),
+      });
+    await event.data?.ref.delete();
   }
 );
 

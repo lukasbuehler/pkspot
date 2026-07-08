@@ -461,14 +461,9 @@ describe("FirebaseAppCheckService", () => {
     ).resolves.toBeUndefined();
 
     expect(console.error).toHaveBeenCalledWith(
-      "[AppCheck] Token check failed.",
-      expect.objectContaining({
-        platform: "ios",
-        phase: "getToken",
-        appId: "native-app-id",
-        projectId: "parkour-base-project",
-        error: expect.any(Error),
-      })
+      expect.stringContaining(
+        '[AppCheck] Token check failed. {"platform":"ios","phase":"getToken","appId":"native-app-id","projectId":"parkour-base-project","error":{"name":"Error","message":"token failed"}}'
+      )
     );
   });
 
@@ -499,14 +494,9 @@ describe("FirebaseAppCheckService", () => {
     await expect(service.initialize({ enabled: true })).resolves.toBeUndefined();
 
     expect(console.error).toHaveBeenCalledWith(
-      "[AppCheck] Token check failed.",
-      expect.objectContaining({
-        platform: "android",
-        phase: "initialize",
-        appId: "native-app-id",
-        projectId: "parkour-base-project",
-        error: expect.any(Error),
-      })
+      expect.stringContaining(
+        '[AppCheck] Token check failed. {"platform":"android","phase":"initialize","appId":"native-app-id","projectId":"parkour-base-project","error":{"name":"Error","message":"init failed"}}'
+      )
     );
     expect(service.status()).toEqual(
       expect.objectContaining({
@@ -518,6 +508,41 @@ describe("FirebaseAppCheckService", () => {
         message: "init failed",
         error: expect.any(Error),
       })
+    );
+  });
+
+  it("serializes native plugin error objects in App Check failure logs", async () => {
+    vi.mocked(FirebaseAppCheck.getToken).mockRejectedValueOnce({
+      errorMessage: "Error returned from API. code: 403 body: App attestation failed.",
+      code: "app-check/attestation-failed",
+    });
+
+    TestBed.configureTestingModule({
+      providers: [
+        FirebaseAppCheckService,
+        {
+          provide: FirebaseApp,
+          useValue: {
+            options: {
+              appId: "native-app-id",
+              projectId: "parkour-base-project",
+            },
+          },
+        },
+        { provide: PLATFORM_ID, useValue: "browser" },
+        { provide: PlatformService, useValue: createPlatformService("android") },
+      ],
+    });
+
+    await TestBed.inject(FirebaseAppCheckService).initialize({ enabled: true });
+
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining(
+        '"errorMessage":"Error returned from API. code: 403 body: App attestation failed."'
+      )
+    );
+    expect(console.error).toHaveBeenCalledWith(
+      expect.not.stringContaining("[object Object]")
     );
   });
 

@@ -257,13 +257,13 @@ export class FirebaseAppCheckService {
       message: this.formatErrorMessage(error),
       error,
     });
-    console.error("[AppCheck] Token check failed.", {
+    console.error(`[AppCheck] Token check failed. ${this.stringifyLogDetails({
       platform,
       phase,
       appId: this.getFirebaseAppId(),
       projectId: this.getFirebaseProjectId(),
-      error,
-    });
+      error: this.summarizeErrorForLog(error),
+    })}`);
   }
 
   private logSkipped(
@@ -540,5 +540,53 @@ export class FirebaseAppCheckService {
     }
 
     return String(error ?? "Unknown App Check error");
+  }
+
+  private summarizeErrorForLog(error: unknown): unknown {
+    if (error instanceof Error) {
+      return {
+        name: error.name,
+        message: error.message,
+        code: this.getObjectString(error, "code"),
+      };
+    }
+
+    if (typeof error !== "object" || error === null) {
+      return error;
+    }
+
+    const summary: Record<string, unknown> = {};
+    for (const key of [
+      "name",
+      "message",
+      "errorMessage",
+      "code",
+      "status",
+      "details",
+    ]) {
+      const value = (error as Record<string, unknown>)[key];
+      if (
+        typeof value === "string" ||
+        typeof value === "number" ||
+        typeof value === "boolean"
+      ) {
+        summary[key] = value;
+      }
+    }
+
+    return Object.keys(summary).length > 0 ? summary : String(error);
+  }
+
+  private getObjectString(error: object, key: string): string | undefined {
+    const value = (error as Record<string, unknown>)[key];
+    return typeof value === "string" ? value : undefined;
+  }
+
+  private stringifyLogDetails(details: unknown): string {
+    try {
+      return JSON.stringify(details);
+    } catch {
+      return String(details);
+    }
   }
 }
