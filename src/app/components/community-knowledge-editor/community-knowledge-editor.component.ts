@@ -299,27 +299,33 @@ export class CommunityKnowledgeEditorComponent {
     group: CommunityKnowledgeCardForm,
     index: number,
   ): CommunityInfoCardCta | undefined {
-    const label = this._localeMapToRecord(this.localeModels()[index]?.ctaLabel());
-    if (Object.keys(label).length === 0) {
-      return undefined;
-    }
-
     switch (group.controls.ctaTarget.value) {
       case "spot": {
         const spotId = group.controls.ctaSpotId.value.trim();
+        const label = this._ctaLabelOrDefault(index, "View spot");
         return spotId ? { label, target: "spot", spotId } : undefined;
       }
       case "event": {
         const eventId = group.controls.ctaEventId.value.trim();
+        const label = this._ctaLabelOrDefault(index, "View event");
         return eventId ? { label, target: "event", eventId } : undefined;
       }
       case "url": {
         const url = group.controls.ctaUrl.value.trim();
+        const label = this._ctaLabelOrDefault(index, "Open link");
         return url ? { label, target: "url", url } : undefined;
       }
       default:
         return undefined;
     }
+  }
+
+  private _ctaLabelOrDefault(
+    index: number,
+    defaultLabel: string,
+  ): Record<string, string> {
+    const label = this._localeMapToRecord(this.localeModels()[index]?.ctaLabel());
+    return Object.keys(label).length > 0 ? label : { en: defaultLabel };
   }
 
   private _toLocaleMap(
