@@ -1,0 +1,1241 @@
+/* eslint-disable max-len, object-curly-spacing, operator-linebreak, require-jsdoc */
+import * as admin from "firebase-admin";
+import { onSchedule } from "firebase-functions/v2/scheduler";
+import { CallableRequest, HttpsError, onCall } from "firebase-functions/v2/https";
+import { googleAPIKey } from "./secrets";
+
+export type WeatherProvider = "google" | "open-meteo";
+export type WeatherMode =
+  | "current-and-near-future"
+  | "forecast-at"
+  | "event-forecast";
+
+export interface WeatherLocation {
+  lat: number;
+  lng: number;
+}
+
+export interface WeatherScheduleItem {
+  id?: string;
+  title?: string;
+  start: string;
+  end: string;
+}
+
+export type WeatherRequest =
+  | {
+      mode: "current-and-near-future";
+      location: WeatherLocation;
+      nearFutureHours?: number;
+      providerOverride?: WeatherProvider;
+    }
+  | {
+      mode: "forecast-at";
+      location: WeatherLocation;
+      targetTime: string;
+      providerOverride?: WeatherProvider;
+    }
+  | {
+      mode: "event-forecast";
+      location: WeatherLocation;
+      eventStart: string;
+      eventEnd: string;
+      scheduleItems?: WeatherScheduleItem[];
+      providerOverride?: WeatherProvider;
+    };
+
+export interface WeatherPoint {
+  time: string;
+  temperatureC?: number;
+  apparentTemperatureC?: number;
+  relativeHumidityPercent?: number;
+  precipitationMm?: number;
+  precipitationProbabilityPercent?: number;
+  uvIndex?: number;
+  solarRadiationWm2?: number;
+  cloudCoverPercent?: number;
+  windSpeedKmh?: number;
+  weatherCode?: string;
+  sunrise?: string;
+  sunset?: string;
+  isDay?: boolean;
+}
+
+export interface WeatherInsights {
+  summary: string;
+  rainStartsAt?: string;
+  rainStopsAt?: string;
+  likelyDryUntil?: string;
+  precipitationRisk: "none" | "low" | "medium" | "high";
+  sunExposure: "dark" | "low" | "moderate" | "harsh";
+  surfaceDrying: {
+    status: "unknown" | "wet" | "drying" | "likely_dry";
+    estimatedDryAt?: string;
+    confidence: "low" | "medium";
+    factors: string[];
+  };
+}
+
+export interface WeatherEventInsights extends WeatherInsights {
+  wettestHour?: WeatherPoint;
+  hottestHour?: WeatherPoint;
+  harshestSunHour?: WeatherPoint;
+  likelyDryWindows: Array<{ start: string; end: string }>;
+  rainPeriods: Array<{ start: string; end: string }>;
+}
+
+export interface WeatherScheduleForecast {
+  id?: string;
+  title?: string;
+  start: string;
+  end: string;
+  forecast: WeatherPoint[];
+  insights: WeatherInsights;
+}
+
+export interface WeatherResponse {
+  provider: WeatherProvider;
+  mode: WeatherMode;
+  location: WeatherLocation;
+  generatedAt: string;
+  expiresAt: string;
+  attribution?: string;
+  current?: WeatherPoint;
+  forecast?: WeatherPoint[];
+  target?: WeatherPoint;
+  schedule?: WeatherScheduleForecast[];
+  insights: WeatherInsights | WeatherEventInsights;
+}
+
+interface ProviderFetchRequest {
+  mode: WeatherMode;
+  location: WeatherLocation;
+  startTime: Date;
+  endTime: Date;
+  includeCurrent: boolean;
+}
+
+interface ProviderFetchResult {
+  current?: WeatherPoint;
+  forecast: WeatherPoint[];
+  attribution?: string;
+}
+
+interface CacheDocument {
+  provider: WeatherProvider;
+  mode: WeatherMode;
+  expires_at: admin.firestore.Timestamp;
+  fetched_at: admin.firestore.Timestamp;
+  response: WeatherResponse;
+}
+
+interface DailySunWindow {
+  startTime: string;
+  endTime: string;
+  sunrise?: string;
+  sunset?: string;
+}
+
+const WEATHER_CACHE_COLLECTION = "weather_cache";
+const DEFAULT_NEAR_FUTURE_HOURS = 12;
+const MAX_NEAR_FUTURE_HOURS = 24;
+const GOOGLE_MAX_FORECAST_HOURS = 240;
+const OPEN_METEO_MAX_FORECAST_HOURS = 16 * 24;
+const GOOGLE_HOURLY_CACHE_MS = 45 * 60 * 1000;
+const OPEN_METEO_HOURLY_CACHE_MS = 60 * 60 * 1000;
+const OPEN_METEO_SUMMARY_CACHE_MS = 6 * 60 * 60 * 1000;
+const GOOGLE_DAILY_SUMMARY_CACHE_MS = 23.5 * 60 * 60 * 1000;
+const RAIN_PROBABILITY_THRESHOLD = 40;
+const RAIN_MM_THRESHOLD = 0.2;
+
+export const getWeather = onCall(
+  { secrets: [googleAPIKey] },
+  async (request: CallableRequest<unknown>) => {
+    const now = new Date();
+    const parsedRequest = parseWeatherRequest(request.data);
+    const provider = resolveWeatherProvider(
+      parsedRequest.providerOverride,
+      request.auth?.token?.admin === true
+    );
+    const window = resolveRequestWindow(parsedRequest, provider, now);
+    const cacheKey = buildWeatherCacheKey(parsedRequest, provider, window);
+    const cacheRef = admin
+      .firestore()
+      .collection(WEATHER_CACHE_COLLECTION)
+      .doc(cacheKey);
+    const cached = await cacheRef.get();
+
+    if (cached.exists) {
+      const data = cached.data() as Partial<CacheDocument> | undefined;
+      const expiresAt = data?.expires_at?.toDate();
+      if (expiresAt && expiresAt.getTime() > now.getTime() && data?.response) {
+        return data.response;
+      }
+      await cacheRef.delete();
+    }
+
+    const response = await fetchWeatherResponse(
+      parsedRequest,
+      provider,
+      window,
+      now
+    );
+    await cacheRef.set({
+      provider,
+      mode: parsedRequest.mode,
+      expires_at: admin.firestore.Timestamp.fromDate(
+        new Date(response.expiresAt)
+      ),
+      fetched_at: admin.firestore.Timestamp.fromDate(now),
+      response,
+    } satisfies CacheDocument);
+
+    return response;
+  }
+);
+
+export const cleanupExpiredWeatherCache = onSchedule(
+  "every 5 minutes",
+  async () => {
+    const now = admin.firestore.Timestamp.now();
+    const snapshot = await admin
+      .firestore()
+      .collection(WEATHER_CACHE_COLLECTION)
+      .where("expires_at", "<=", now)
+      .limit(300)
+      .get();
+
+    if (snapshot.empty) {
+      return;
+    }
+
+    const batch = admin.firestore().batch();
+    snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+    await batch.commit();
+  }
+);
+
+export function parseWeatherRequest(value: unknown): WeatherRequest {
+  if (!isRecord(value)) {
+    throw new HttpsError("invalid-argument", "request must be an object");
+  }
+
+  const mode = value["mode"];
+  if (
+    mode !== "current-and-near-future" &&
+    mode !== "forecast-at" &&
+    mode !== "event-forecast"
+  ) {
+    throw new HttpsError("invalid-argument", "invalid weather mode");
+  }
+
+  const location = parseLocation(value["location"]);
+  const providerOverride = parseProviderOverride(value["providerOverride"]);
+
+  if (mode === "current-and-near-future") {
+    const nearFutureHours =
+      value["nearFutureHours"] === undefined
+        ? undefined
+        : parseIntegerInRange(
+          value["nearFutureHours"],
+          1,
+          MAX_NEAR_FUTURE_HOURS,
+          "nearFutureHours"
+        );
+    return { mode, location, nearFutureHours, providerOverride };
+  }
+
+  if (mode === "forecast-at") {
+    return {
+      mode,
+      location,
+      targetTime: parseIsoDate(value["targetTime"], "targetTime").toISOString(),
+      providerOverride,
+    };
+  }
+
+  const eventStart = parseIsoDate(value["eventStart"], "eventStart");
+  const eventEnd = parseIsoDate(value["eventEnd"], "eventEnd");
+  if (eventEnd.getTime() <= eventStart.getTime()) {
+    throw new HttpsError("invalid-argument", "eventEnd must be after eventStart");
+  }
+
+  const scheduleItems = parseScheduleItems(value["scheduleItems"]);
+  return {
+    mode,
+    location,
+    eventStart: eventStart.toISOString(),
+    eventEnd: eventEnd.toISOString(),
+    scheduleItems,
+    providerOverride,
+  };
+}
+
+export function resolveWeatherProvider(
+  override: WeatherProvider | undefined,
+  isAdmin: boolean
+): WeatherProvider {
+  if (override) {
+    if (!isAdmin) {
+      throw new HttpsError(
+        "permission-denied",
+        "providerOverride requires admin privileges"
+      );
+    }
+    return override;
+  }
+
+  return process.env.WEATHER_PROVIDER === "open-meteo" ? "open-meteo" : "google";
+}
+
+export function resolveRequestWindow(
+  request: WeatherRequest,
+  provider: WeatherProvider,
+  now: Date
+): { startTime: Date; endTime: Date; includeCurrent: boolean } {
+  if (request.mode === "current-and-near-future") {
+    const hours = request.nearFutureHours ?? DEFAULT_NEAR_FUTURE_HOURS;
+    return {
+      startTime: floorToHour(now),
+      endTime: addHours(floorToHour(now), hours),
+      includeCurrent: true,
+    };
+  }
+
+  if (request.mode === "forecast-at") {
+    const target = new Date(request.targetTime);
+    if (target.getTime() < floorToHour(now).getTime()) {
+      throw new HttpsError("invalid-argument", "targetTime is in the past");
+    }
+    const startTime = addHours(floorToHour(target), -2);
+    const endTime = addHours(floorToHour(target), 4);
+    assertForecastWindowSupported(startTime, endTime, provider, now);
+    return { startTime, endTime, includeCurrent: false };
+  }
+
+  const startTime = floorToHour(new Date(request.eventStart));
+  const endTime = ceilToHour(new Date(request.eventEnd));
+  assertForecastWindowSupported(startTime, endTime, provider, now);
+  return { startTime, endTime, includeCurrent: false };
+}
+
+export function buildWeatherCacheKey(
+  request: WeatherRequest,
+  provider: WeatherProvider,
+  window: { startTime: Date; endTime: Date }
+): string {
+  const roundedLat = roundCoordinate(request.location.lat);
+  const roundedLng = roundCoordinate(request.location.lng);
+  const scheduleFingerprint =
+    request.mode === "event-forecast" && request.scheduleItems?.length
+      ? request.scheduleItems
+        .map((item) => `${item.id ?? ""}:${item.start}:${item.end}`)
+        .join(",")
+      : "no-schedule";
+  const raw = [
+    provider,
+    request.mode,
+    roundedLat,
+    roundedLng,
+    window.startTime.toISOString(),
+    window.endTime.toISOString(),
+    "metric",
+    "v1",
+    scheduleFingerprint,
+  ].join("|");
+
+  return Buffer.from(raw).toString("base64url").slice(0, 180);
+}
+
+export function getProviderCacheDurationMs(
+  provider: WeatherProvider,
+  mode: WeatherMode
+): number {
+  if (provider === "google") {
+    return mode === "current-and-near-future"
+      ? GOOGLE_HOURLY_CACHE_MS
+      : Math.min(GOOGLE_DAILY_SUMMARY_CACHE_MS, GOOGLE_HOURLY_CACHE_MS);
+  }
+
+  return mode === "current-and-near-future"
+    ? OPEN_METEO_HOURLY_CACHE_MS
+    : OPEN_METEO_SUMMARY_CACHE_MS;
+}
+
+export function buildWeatherInsights(points: WeatherPoint[]): WeatherInsights {
+  const ordered = points
+    .slice()
+    .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
+  const current = ordered[0];
+  const rainPeriods = findRainPeriods(ordered);
+  const firstFutureRain = ordered.find(isMeaningfulRain);
+  const firstDryAfterRain = firstFutureRain
+    ? ordered
+      .filter((point) => new Date(point.time) > new Date(firstFutureRain.time))
+      .find((point) => !isMeaningfulRain(point))
+    : undefined;
+  const maxRainRisk = Math.max(
+    0,
+    ...ordered.map((point) => point.precipitationProbabilityPercent ?? 0)
+  );
+  const precipitationRisk = classifyPrecipitationRisk(ordered, maxRainRisk);
+  const sunExposure = classifySunExposure(current);
+  const summary = buildSummary(current, precipitationRisk, sunExposure);
+
+  return removeUndefinedValues({
+    summary,
+    rainStartsAt: rainPeriods[0]?.start,
+    rainStopsAt: rainPeriods[0]?.end,
+    likelyDryUntil: firstFutureRain?.time,
+    precipitationRisk,
+    sunExposure,
+    surfaceDrying: estimateSurfaceDrying(ordered, firstDryAfterRain),
+  });
+}
+
+export function buildEventInsights(points: WeatherPoint[]): WeatherEventInsights {
+  const base = buildWeatherInsights(points);
+  const ordered = points
+    .slice()
+    .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
+  const wettestHour = maxBy(
+    ordered,
+    (point) =>
+      (point.precipitationMm ?? 0) * 100 +
+      (point.precipitationProbabilityPercent ?? 0)
+  );
+  const hottestHour = maxBy(ordered, (point) => point.temperatureC ?? -Infinity);
+  const harshestSunHour = maxBy(
+    ordered,
+    (point) => sunExposureScore(point)
+  );
+
+  return {
+    ...base,
+    wettestHour,
+    hottestHour,
+    harshestSunHour,
+    likelyDryWindows: findDryWindows(ordered),
+    rainPeriods: findRainPeriods(ordered),
+  };
+}
+
+async function fetchWeatherResponse(
+  request: WeatherRequest,
+  provider: WeatherProvider,
+  window: { startTime: Date; endTime: Date; includeCurrent: boolean },
+  now: Date
+): Promise<WeatherResponse> {
+  const providerRequest: ProviderFetchRequest = {
+    mode: request.mode,
+    location: request.location,
+    startTime: window.startTime,
+    endTime: window.endTime,
+    includeCurrent: window.includeCurrent,
+  };
+  const result =
+    provider === "google"
+      ? await fetchGoogleWeather(providerRequest)
+      : await fetchOpenMeteoWeather(providerRequest);
+  const forecast = filterForecastWindow(
+    result.forecast,
+    window.startTime,
+    window.endTime
+  );
+  const expiresAt = new Date(
+    now.getTime() + getProviderCacheDurationMs(provider, request.mode)
+  ).toISOString();
+  const baseResponse = {
+    provider,
+    mode: request.mode,
+    location: request.location,
+    generatedAt: now.toISOString(),
+    expiresAt,
+    attribution: result.attribution,
+  };
+
+  if (request.mode === "current-and-near-future") {
+    const insightPoints = [result.current, ...forecast].filter(
+      (point): point is WeatherPoint => point !== undefined
+    );
+    return removeUndefinedValues({
+      ...baseResponse,
+      current: result.current,
+      forecast,
+      insights: buildWeatherInsights(insightPoints),
+    });
+  }
+
+  if (request.mode === "forecast-at") {
+    const target = nearestPoint(forecast, new Date(request.targetTime));
+    return removeUndefinedValues({
+      ...baseResponse,
+      target,
+      forecast,
+      insights: buildWeatherInsights(forecast),
+    });
+  }
+
+  return removeUndefinedValues({
+    ...baseResponse,
+    forecast,
+    schedule: buildScheduleForecasts(request.scheduleItems, forecast),
+    insights: buildEventInsights(forecast),
+  });
+}
+
+async function fetchGoogleWeather(
+  request: ProviderFetchRequest
+): Promise<ProviderFetchResult> {
+  const apiKey = googleAPIKey.value();
+  if (!apiKey) {
+    throw new HttpsError("failed-precondition", "GOOGLE_API_KEY is not set");
+  }
+
+  const currentPromise = request.includeCurrent
+    ? fetchGoogleJson<GoogleCurrentResponse>(
+      "https://weather.googleapis.com/v1/currentConditions:lookup",
+      apiKey,
+      request.location
+    )
+    : Promise.resolve(undefined);
+  const hours = clamp(
+    Math.ceil(
+      (request.endTime.getTime() - new Date().getTime()) / (60 * 60 * 1000)
+    ) + 2,
+    1,
+    GOOGLE_MAX_FORECAST_HOURS
+  );
+  const forecastPromise = fetchGoogleJson<GoogleHourlyResponse>(
+    "https://weather.googleapis.com/v1/forecast/hours:lookup",
+    apiKey,
+    request.location,
+    { hours: String(hours), pageSize: String(Math.min(hours, 240)) }
+  );
+  const days = clamp(
+    Math.ceil(
+      (request.endTime.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000)
+    ) + 2,
+    1,
+    10
+  );
+  const dailyPromise = fetchGoogleJson<GoogleDailyResponse>(
+    "https://weather.googleapis.com/v1/forecast/days:lookup",
+    apiKey,
+    request.location,
+    { days: String(days), pageSize: String(days) }
+  );
+  const [current, forecast, daily] = await Promise.all([
+    currentPromise,
+    forecastPromise,
+    dailyPromise,
+  ]);
+  const sunWindows = normalizeGoogleSunWindows(daily);
+  const normalizedForecast = (forecast.forecastHours ?? []).map((hour) =>
+    attachSunWindow(normalizeGoogleWeatherPoint(hour), sunWindows)
+  );
+
+  return {
+    current: current
+      ? attachSunWindow(normalizeGoogleCurrentPoint(current), sunWindows)
+      : undefined,
+    forecast: normalizedForecast,
+    attribution: "Weather: Google Weather",
+  };
+}
+
+async function fetchOpenMeteoWeather(
+  request: ProviderFetchRequest
+): Promise<ProviderFetchResult> {
+  const baseUrl =
+    process.env.OPEN_METEO_BASE_URL ?? "https://api.open-meteo.com/v1/forecast";
+  const url = new URL(baseUrl);
+  const forecastHours = clamp(
+    Math.ceil(
+      (request.endTime.getTime() - new Date().getTime()) / (60 * 60 * 1000)
+    ) + 2,
+    1,
+    OPEN_METEO_MAX_FORECAST_HOURS
+  );
+  url.searchParams.set("latitude", String(request.location.lat));
+  url.searchParams.set("longitude", String(request.location.lng));
+  url.searchParams.set("timezone", "UTC");
+  url.searchParams.set("forecast_hours", String(forecastHours));
+  url.searchParams.set(
+    "current",
+    [
+      "temperature_2m",
+      "relative_humidity_2m",
+      "apparent_temperature",
+      "is_day",
+      "precipitation",
+      "weather_code",
+      "cloud_cover",
+      "wind_speed_10m",
+    ].join(",")
+  );
+  url.searchParams.set(
+    "hourly",
+    [
+      "temperature_2m",
+      "relative_humidity_2m",
+      "apparent_temperature",
+      "precipitation_probability",
+      "precipitation",
+      "weather_code",
+      "cloud_cover",
+      "wind_speed_10m",
+      "uv_index",
+      "shortwave_radiation",
+      "is_day",
+    ].join(",")
+  );
+  url.searchParams.set("daily", "sunrise,sunset");
+
+  const apiKey = process.env.OPEN_METEO_API_KEY;
+  if (apiKey) {
+    url.searchParams.set("apikey", apiKey);
+  }
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new HttpsError(
+      "unavailable",
+      `Open-Meteo request failed: ${response.status} ${response.statusText}`
+    );
+  }
+
+  const data = (await response.json()) as OpenMeteoResponse;
+  const sunByDate = new Map<string, { sunrise?: string; sunset?: string }>();
+  data.daily?.time?.forEach((date, index) => {
+    sunByDate.set(date, {
+      sunrise: data.daily?.sunrise?.[index],
+      sunset: data.daily?.sunset?.[index],
+    });
+  });
+
+  return {
+    current: data.current
+      ? normalizeOpenMeteoCurrentPoint(data.current, sunByDate)
+      : undefined,
+    forecast: normalizeOpenMeteoHourlyPoints(data, sunByDate),
+    attribution: "Weather: Open-Meteo",
+  };
+}
+
+async function fetchGoogleJson<T>(
+  endpoint: string,
+  apiKey: string,
+  location: WeatherLocation,
+  extraParams: Record<string, string> = {}
+): Promise<T> {
+  const url = new URL(endpoint);
+  url.searchParams.set("key", apiKey);
+  url.searchParams.set("location.latitude", String(location.lat));
+  url.searchParams.set("location.longitude", String(location.lng));
+  url.searchParams.set("unitsSystem", "METRIC");
+  for (const [key, value] of Object.entries(extraParams)) {
+    url.searchParams.set(key, value);
+  }
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new HttpsError(
+      "unavailable",
+      `Google Weather request failed: ${response.status} ${response.statusText}`
+    );
+  }
+
+  return (await response.json()) as T;
+}
+
+function normalizeGoogleCurrentPoint(value: GoogleCurrentResponse): WeatherPoint {
+  return removeUndefinedValues({
+    time: value.currentTime,
+    temperatureC: value.temperature?.degrees,
+    apparentTemperatureC: value.feelsLikeTemperature?.degrees,
+    relativeHumidityPercent: value.relativeHumidity,
+    precipitationMm: value.precipitation?.qpf?.quantity,
+    precipitationProbabilityPercent: value.precipitation?.probability?.percent,
+    uvIndex: value.uvIndex,
+    cloudCoverPercent: value.cloudCover,
+    windSpeedKmh: value.wind?.speed?.value,
+    weatherCode: value.weatherCondition?.type,
+    isDay: value.isDaytime,
+  });
+}
+
+function normalizeGoogleWeatherPoint(value: GoogleHour): WeatherPoint {
+  const time = value.interval?.startTime;
+  if (!time) {
+    throw new HttpsError("internal", "Google hourly forecast missing startTime");
+  }
+
+  return removeUndefinedValues({
+    time,
+    temperatureC: value.temperature?.degrees,
+    apparentTemperatureC: value.feelsLikeTemperature?.degrees,
+    relativeHumidityPercent: value.relativeHumidity,
+    precipitationMm: value.precipitation?.qpf?.quantity,
+    precipitationProbabilityPercent: value.precipitation?.probability?.percent,
+    uvIndex: value.uvIndex,
+    cloudCoverPercent: value.cloudCover,
+    windSpeedKmh: value.wind?.speed?.value,
+    weatherCode: value.weatherCondition?.type,
+    isDay: value.isDaytime,
+  });
+}
+
+function normalizeGoogleSunWindows(value: GoogleDailyResponse): DailySunWindow[] {
+  return (value.forecastDays ?? []).flatMap((day) => {
+    const startTime = day.interval?.startTime;
+    const endTime = day.interval?.endTime;
+    if (!startTime || !endTime) {
+      return [];
+    }
+    return [
+      {
+        startTime,
+        endTime,
+        sunrise: day.sunEvents?.sunriseTime,
+        sunset: day.sunEvents?.sunsetTime,
+      },
+    ];
+  });
+}
+
+function normalizeOpenMeteoCurrentPoint(
+  value: OpenMeteoCurrent,
+  sunByDate: Map<string, { sunrise?: string; sunset?: string }>
+): WeatherPoint {
+  const sun = sunByDate.get(value.time.slice(0, 10));
+  return removeUndefinedValues({
+    time: normalizeOpenMeteoTime(value.time),
+    temperatureC: value.temperature_2m,
+    apparentTemperatureC: value.apparent_temperature,
+    relativeHumidityPercent: value.relative_humidity_2m,
+    precipitationMm: value.precipitation,
+    cloudCoverPercent: value.cloud_cover,
+    windSpeedKmh: value.wind_speed_10m,
+    weatherCode: value.weather_code?.toString(),
+    sunrise: sun?.sunrise ? normalizeOpenMeteoTime(sun.sunrise) : undefined,
+    sunset: sun?.sunset ? normalizeOpenMeteoTime(sun.sunset) : undefined,
+    isDay: value.is_day === undefined ? undefined : value.is_day === 1,
+  });
+}
+
+function normalizeOpenMeteoHourlyPoints(
+  data: OpenMeteoResponse,
+  sunByDate: Map<string, { sunrise?: string; sunset?: string }>
+): WeatherPoint[] {
+  const hourly = data.hourly;
+  if (!hourly?.time?.length) {
+    return [];
+  }
+
+  return hourly.time.map((time, index) => {
+    const sun = sunByDate.get(time.slice(0, 10));
+    return removeUndefinedValues({
+      time: normalizeOpenMeteoTime(time),
+      temperatureC: hourly.temperature_2m?.[index],
+      apparentTemperatureC: hourly.apparent_temperature?.[index],
+      relativeHumidityPercent: hourly.relative_humidity_2m?.[index],
+      precipitationMm: hourly.precipitation?.[index],
+      precipitationProbabilityPercent: hourly.precipitation_probability?.[index],
+      uvIndex: hourly.uv_index?.[index],
+      solarRadiationWm2: hourly.shortwave_radiation?.[index],
+      cloudCoverPercent: hourly.cloud_cover?.[index],
+      windSpeedKmh: hourly.wind_speed_10m?.[index],
+      weatherCode: hourly.weather_code?.[index]?.toString(),
+      sunrise: sun?.sunrise ? normalizeOpenMeteoTime(sun.sunrise) : undefined,
+      sunset: sun?.sunset ? normalizeOpenMeteoTime(sun.sunset) : undefined,
+      isDay: hourly.is_day?.[index] === undefined ? undefined : hourly.is_day[index] === 1,
+    });
+  });
+}
+
+function buildScheduleForecasts(
+  scheduleItems: WeatherScheduleItem[] | undefined,
+  forecast: WeatherPoint[]
+): WeatherScheduleForecast[] | undefined {
+  if (!scheduleItems?.length) {
+    return undefined;
+  }
+
+  return scheduleItems.map((item) => {
+    const start = new Date(item.start);
+    const end = new Date(item.end);
+    const itemForecast = forecast.filter((point) => {
+      const time = new Date(point.time);
+      return time.getTime() < end.getTime() && addHours(time, 1).getTime() > start.getTime();
+    });
+
+    return removeUndefinedValues({
+      id: item.id,
+      title: item.title,
+      start: item.start,
+      end: item.end,
+      forecast: itemForecast,
+      insights: buildWeatherInsights(itemForecast),
+    });
+  });
+}
+
+function normalizeOpenMeteoTime(value: string): string {
+  if (/[zZ]$|[+-]\d\d:?\d\d$/.test(value)) {
+    return new Date(value).toISOString();
+  }
+  return new Date(`${value}Z`).toISOString();
+}
+
+function filterForecastWindow(
+  forecast: WeatherPoint[],
+  startTime: Date,
+  endTime: Date
+): WeatherPoint[] {
+  return forecast.filter((point) => {
+    const time = new Date(point.time).getTime();
+    return time >= startTime.getTime() && time <= endTime.getTime();
+  });
+}
+
+function nearestPoint(
+  points: WeatherPoint[],
+  target: Date
+): WeatherPoint | undefined {
+  return minBy(points, (point) =>
+    Math.abs(new Date(point.time).getTime() - target.getTime())
+  );
+}
+
+function attachSunWindow(
+  point: WeatherPoint,
+  sunWindows: DailySunWindow[]
+): WeatherPoint {
+  const time = new Date(point.time).getTime();
+  const match = sunWindows.find(
+    (window) =>
+      time >= new Date(window.startTime).getTime() &&
+      time < new Date(window.endTime).getTime()
+  );
+
+  return removeUndefinedValues({
+    ...point,
+    sunrise: match?.sunrise,
+    sunset: match?.sunset,
+  });
+}
+
+function isMeaningfulRain(point: WeatherPoint): boolean {
+  return (
+    (point.precipitationProbabilityPercent ?? 0) >= RAIN_PROBABILITY_THRESHOLD ||
+    (point.precipitationMm ?? 0) >= RAIN_MM_THRESHOLD
+  );
+}
+
+function findRainPeriods(points: WeatherPoint[]): Array<{ start: string; end: string }> {
+  const periods: Array<{ start: string; end: string }> = [];
+  let activeStart: string | undefined;
+  let lastRainTime: string | undefined;
+
+  for (const point of points) {
+    if (isMeaningfulRain(point)) {
+      activeStart ??= point.time;
+      lastRainTime = point.time;
+    } else if (activeStart && lastRainTime) {
+      periods.push({ start: activeStart, end: addHours(new Date(lastRainTime), 1).toISOString() });
+      activeStart = undefined;
+      lastRainTime = undefined;
+    }
+  }
+
+  if (activeStart && lastRainTime) {
+    periods.push({ start: activeStart, end: addHours(new Date(lastRainTime), 1).toISOString() });
+  }
+
+  return periods;
+}
+
+function findDryWindows(points: WeatherPoint[]): Array<{ start: string; end: string }> {
+  const windows: Array<{ start: string; end: string }> = [];
+  let activeStart: string | undefined;
+  let lastDryTime: string | undefined;
+
+  for (const point of points) {
+    if (!isMeaningfulRain(point)) {
+      activeStart ??= point.time;
+      lastDryTime = point.time;
+    } else if (activeStart && lastDryTime) {
+      windows.push({ start: activeStart, end: addHours(new Date(lastDryTime), 1).toISOString() });
+      activeStart = undefined;
+      lastDryTime = undefined;
+    }
+  }
+
+  if (activeStart && lastDryTime) {
+    windows.push({ start: activeStart, end: addHours(new Date(lastDryTime), 1).toISOString() });
+  }
+
+  return windows;
+}
+
+function estimateSurfaceDrying(
+  points: WeatherPoint[],
+  firstDryAfterRain: WeatherPoint | undefined
+): WeatherInsights["surfaceDrying"] {
+  const current = points[0];
+  if (!current) {
+    return { status: "unknown", confidence: "low", factors: ["no forecast data"] };
+  }
+
+  const factors: string[] = [];
+  if ((current.temperatureC ?? 10) <= 0) {
+    factors.push("freezing risk");
+    return { status: "wet", confidence: "low", factors };
+  }
+
+  if (isMeaningfulRain(current)) {
+    factors.push("active precipitation");
+    return { status: "wet", confidence: "medium", factors };
+  }
+
+  if (!firstDryAfterRain) {
+    factors.push("no recent forecast rain in window");
+    return { status: "likely_dry", confidence: "low", factors };
+  }
+
+  const dryingScore =
+    Math.max(0, (firstDryAfterRain.temperatureC ?? 10) - 5) * 0.5 +
+    Math.max(0, 100 - (firstDryAfterRain.relativeHumidityPercent ?? 70)) * 0.05 +
+    Math.max(0, firstDryAfterRain.windSpeedKmh ?? 0) * 0.1 +
+    Math.max(0, firstDryAfterRain.solarRadiationWm2 ?? 0) * 0.005 -
+    Math.max(0, firstDryAfterRain.cloudCoverPercent ?? 50) * 0.02;
+  const dryingHours = dryingScore >= 8 ? 1 : dryingScore >= 4 ? 2 : 4;
+  factors.push("heuristic from temperature, humidity, wind, cloud cover, and solar radiation");
+
+  return {
+    status: "drying",
+    estimatedDryAt: addHours(new Date(firstDryAfterRain.time), dryingHours).toISOString(),
+    confidence: "low",
+    factors,
+  };
+}
+
+function classifyPrecipitationRisk(
+  points: WeatherPoint[],
+  maxProbability: number
+): WeatherInsights["precipitationRisk"] {
+  if (points.some((point) => (point.precipitationMm ?? 0) >= 2 || maxProbability >= 70)) {
+    return "high";
+  }
+  if (points.some((point) => isMeaningfulRain(point))) {
+    return "medium";
+  }
+  if (maxProbability >= 20 || points.some((point) => (point.precipitationMm ?? 0) > 0)) {
+    return "low";
+  }
+  return "none";
+}
+
+function classifySunExposure(point: WeatherPoint | undefined): WeatherInsights["sunExposure"] {
+  if (!point?.isDay) {
+    return "dark";
+  }
+  const score = sunExposureScore(point);
+  if (score >= 8) {
+    return "harsh";
+  }
+  if (score >= 4) {
+    return "moderate";
+  }
+  return "low";
+}
+
+function sunExposureScore(point: WeatherPoint): number {
+  const uvScore = point.uvIndex ?? 0;
+  const radiationScore = (point.solarRadiationWm2 ?? 0) / 100;
+  const cloudPenalty = (point.cloudCoverPercent ?? 50) / 25;
+  return Math.max(0, uvScore + radiationScore - cloudPenalty);
+}
+
+function buildSummary(
+  point: WeatherPoint | undefined,
+  precipitationRisk: WeatherInsights["precipitationRisk"],
+  sunExposure: WeatherInsights["sunExposure"]
+): string {
+  if (!point) {
+    return "Weather forecast unavailable";
+  }
+  if (isMeaningfulRain(point)) {
+    return "Rain likely";
+  }
+  if (precipitationRisk === "medium" || precipitationRisk === "high") {
+    return "Rain possible later";
+  }
+  if (sunExposure === "harsh") {
+    return "Harsh sun";
+  }
+  return point.weatherCode ? formatWeatherCode(point.weatherCode) : "Dry conditions";
+}
+
+function formatWeatherCode(code: string): string {
+  return code
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function parseLocation(value: unknown): WeatherLocation {
+  if (!isRecord(value)) {
+    throw new HttpsError("invalid-argument", "location must be an object");
+  }
+  const lat = value["lat"];
+  const lng = value["lng"];
+  if (
+    typeof lat !== "number" ||
+    !Number.isFinite(lat) ||
+    lat < -90 ||
+    lat > 90 ||
+    typeof lng !== "number" ||
+    !Number.isFinite(lng) ||
+    lng < -180 ||
+    lng > 180
+  ) {
+    throw new HttpsError("invalid-argument", "location must contain valid lat/lng");
+  }
+  return { lat, lng };
+}
+
+function parseProviderOverride(value: unknown): WeatherProvider | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (value === "google" || value === "open-meteo") {
+    return value;
+  }
+  throw new HttpsError("invalid-argument", "invalid providerOverride");
+}
+
+function parseScheduleItems(value: unknown): WeatherScheduleItem[] | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!Array.isArray(value)) {
+    throw new HttpsError("invalid-argument", "scheduleItems must be an array");
+  }
+  if (value.length > 50) {
+    throw new HttpsError("invalid-argument", "scheduleItems may contain at most 50 items");
+  }
+  return value.map((item, index) => {
+    if (!isRecord(item)) {
+      throw new HttpsError("invalid-argument", `scheduleItems[${index}] must be an object`);
+    }
+    const start = parseIsoDate(item["start"], `scheduleItems[${index}].start`);
+    const end = parseIsoDate(item["end"], `scheduleItems[${index}].end`);
+    if (end.getTime() <= start.getTime()) {
+      throw new HttpsError(
+        "invalid-argument",
+        `scheduleItems[${index}].end must be after start`
+      );
+    }
+    return removeUndefinedValues({
+      id: typeof item["id"] === "string" ? item["id"].slice(0, 120) : undefined,
+      title: typeof item["title"] === "string" ? item["title"].slice(0, 200) : undefined,
+      start: start.toISOString(),
+      end: end.toISOString(),
+    });
+  });
+}
+
+function parseIsoDate(value: unknown, fieldName: string): Date {
+  if (typeof value !== "string") {
+    throw new HttpsError("invalid-argument", `${fieldName} must be an ISO timestamp`);
+  }
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) {
+    throw new HttpsError("invalid-argument", `${fieldName} must be a valid ISO timestamp`);
+  }
+  return date;
+}
+
+function parseIntegerInRange(
+  value: unknown,
+  min: number,
+  max: number,
+  fieldName: string
+): number {
+  if (
+    typeof value !== "number" ||
+    !Number.isInteger(value) ||
+    value < min ||
+    value > max
+  ) {
+    throw new HttpsError(
+      "invalid-argument",
+      `${fieldName} must be an integer from ${min} to ${max}`
+    );
+  }
+  return value;
+}
+
+function assertForecastWindowSupported(
+  startTime: Date,
+  endTime: Date,
+  provider: WeatherProvider,
+  now: Date
+): void {
+  if (endTime.getTime() < floorToHour(now).getTime()) {
+    throw new HttpsError("invalid-argument", "weather forecast window is in the past");
+  }
+  const maxHours =
+    provider === "google" ? GOOGLE_MAX_FORECAST_HOURS : OPEN_METEO_MAX_FORECAST_HOURS;
+  const maxEnd = addHours(floorToHour(now), maxHours);
+  if (startTime.getTime() > maxEnd.getTime() || endTime.getTime() > maxEnd.getTime()) {
+    throw new HttpsError(
+      "invalid-argument",
+      `weather forecast window exceeds ${provider} forecast range`
+    );
+  }
+}
+
+function roundCoordinate(value: number): string {
+  return (Math.round(value * 100) / 100).toFixed(2);
+}
+
+function floorToHour(date: Date): Date {
+  const next = new Date(date);
+  next.setUTCMinutes(0, 0, 0);
+  return next;
+}
+
+function ceilToHour(date: Date): Date {
+  const floored = floorToHour(date);
+  return floored.getTime() === date.getTime() ? floored : addHours(floored, 1);
+}
+
+function addHours(date: Date, hours: number): Date {
+  return new Date(date.getTime() + hours * 60 * 60 * 1000);
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function removeUndefinedValues<T extends Record<string, unknown>>(value: T): T {
+  return Object.fromEntries(
+    Object.entries(value).filter(([, entryValue]) => entryValue !== undefined)
+  ) as T;
+}
+
+function maxBy<T>(items: T[], score: (item: T) => number): T | undefined {
+  return items.reduce<T | undefined>((best, item) => {
+    if (!best || score(item) > score(best)) {
+      return item;
+    }
+    return best;
+  }, undefined);
+}
+
+function minBy<T>(items: T[], score: (item: T) => number): T | undefined {
+  return items.reduce<T | undefined>((best, item) => {
+    if (!best || score(item) < score(best)) {
+      return item;
+    }
+    return best;
+  }, undefined);
+}
+
+interface GoogleTemperature {
+  degrees?: number;
+}
+
+interface GooglePrecipitation {
+  probability?: { percent?: number };
+  qpf?: { quantity?: number };
+}
+
+interface GoogleWind {
+  speed?: { value?: number };
+}
+
+interface GoogleWeatherCondition {
+  type?: string;
+}
+
+interface GoogleCurrentResponse {
+  currentTime: string;
+  isDaytime?: boolean;
+  weatherCondition?: GoogleWeatherCondition;
+  temperature?: GoogleTemperature;
+  feelsLikeTemperature?: GoogleTemperature;
+  relativeHumidity?: number;
+  uvIndex?: number;
+  precipitation?: GooglePrecipitation;
+  wind?: GoogleWind;
+  cloudCover?: number;
+}
+
+interface GoogleHour {
+  interval?: { startTime?: string; endTime?: string };
+  isDaytime?: boolean;
+  weatherCondition?: GoogleWeatherCondition;
+  temperature?: GoogleTemperature;
+  feelsLikeTemperature?: GoogleTemperature;
+  relativeHumidity?: number;
+  uvIndex?: number;
+  precipitation?: GooglePrecipitation;
+  wind?: GoogleWind;
+  cloudCover?: number;
+}
+
+interface GoogleHourlyResponse {
+  forecastHours?: GoogleHour[];
+}
+
+interface GoogleDailyResponse {
+  forecastDays?: Array<{
+    interval?: { startTime?: string; endTime?: string };
+    sunEvents?: { sunriseTime?: string; sunsetTime?: string };
+  }>;
+}
+
+interface OpenMeteoCurrent {
+  time: string;
+  temperature_2m?: number;
+  relative_humidity_2m?: number;
+  apparent_temperature?: number;
+  is_day?: number;
+  precipitation?: number;
+  weather_code?: number;
+  cloud_cover?: number;
+  wind_speed_10m?: number;
+}
+
+interface OpenMeteoHourly {
+  time?: string[];
+  temperature_2m?: number[];
+  relative_humidity_2m?: number[];
+  apparent_temperature?: number[];
+  precipitation_probability?: number[];
+  precipitation?: number[];
+  weather_code?: number[];
+  cloud_cover?: number[];
+  wind_speed_10m?: number[];
+  uv_index?: number[];
+  shortwave_radiation?: number[];
+  is_day?: number[];
+}
+
+interface OpenMeteoResponse {
+  current?: OpenMeteoCurrent;
+  hourly?: OpenMeteoHourly;
+  daily?: {
+    time?: string[];
+    sunrise?: string[];
+    sunset?: string[];
+  };
+}

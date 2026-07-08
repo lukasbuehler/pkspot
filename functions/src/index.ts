@@ -117,3 +117,5 @@ export {
 } from "./userFunctions";
 
 export { cleanupAllOrphanedMedia } from "./mediaCleanupFunctions";
+
+export { cleanupExpiredWeatherCache, getWeather } from "./weatherFunctions";
