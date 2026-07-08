@@ -22,6 +22,7 @@ import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholde
 export class EventHeroMediaComponent {
   event = input.required<PkEvent>();
   hideExternalMedia = input(false);
+  showPlaceholder = input(true);
   readonly heroMedia = computed(() => {
     const media = eventHeroMedia(this.event());
     if (!this.hideExternalMedia()) {

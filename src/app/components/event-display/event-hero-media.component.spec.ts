@@ -157,4 +157,14 @@ describe("EventHeroMediaComponent", () => {
     expect(placeholder.variant()).toBe("event");
     expect(placeholder.label()).toBe("Preview Event");
   });
+
+  it("can suppress the placeholder when no hero media is available", () => {
+    const fixture = createFixture(buildEvent());
+    fixture.componentRef.setInput("showPlaceholder", false);
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.query(By.directive(MediaPlaceholderStubComponent)),
+    ).toBeNull();
+  });
 });

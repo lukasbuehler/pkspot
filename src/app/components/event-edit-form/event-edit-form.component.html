@@ -277,6 +277,51 @@
         </mat-form-field>
       </div>
 
+      <div class="d-flex flex-row gap-2 flex-wrap">
+        <mat-form-field appearance="outline" class="flex-grow-1">
+          <mat-label i18n="@@event_edit.external_source_provider">
+            External source provider
+          </mat-label>
+          <mat-select formControlName="external_source_provider">
+            <mat-option value="" i18n="@@event_edit.external_source_provider.none">
+              None
+            </mat-option>
+            <mat-option value="eventfrog">EventFrog</mat-option>
+            <mat-option value="spt">Swiss Parkour Tour</mat-option>
+            <mat-option value="spl">Sport Parkour League</mat-option>
+            <mat-option value="parkour_earth">Parkour Earth</mat-option>
+            <mat-option value="other" i18n="@@event_edit.external_source_provider.other">
+              Other
+            </mat-option>
+          </mat-select>
+          <mat-hint i18n="@@event_edit.external_source_provider_hint">
+            Drives provider-specific map preview labels when no primary event
+            link is set.
+          </mat-hint>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="flex-grow-1">
+          <mat-label i18n="@@event_edit.external_source_id">
+            External source id
+          </mat-label>
+          <input matInput formControlName="external_source_id" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="flex-grow-1">
+          <mat-label i18n="@@event_edit.external_source_url">
+            External source URL
+          </mat-label>
+          <input
+            matInput
+            formControlName="external_source_url"
+            placeholder="https://…"
+          />
+          @if (form.controls["external_source_url"].hasError("url")) {
+            <mat-error i18n="@@event_edit.external_source_url_invalid">
+              Use a public http or https link.
+            </mat-error>
+          }
+        </mat-form-field>
+      </div>
+
       <mat-checkbox formControlName="published" i18n="@@event_edit.published">
         Published — visible to the public
       </mat-checkbox>

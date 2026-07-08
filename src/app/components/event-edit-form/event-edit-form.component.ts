@@ -46,6 +46,7 @@ import {
   EventFeaturedParticipantType,
   EventLinkKind,
   EventLinkSchema,
+  EventExternalSourceSchema,
   EventOrganizerSchema,
   EventProgramItemSchema,
   EventProgramPlanKind,
@@ -242,10 +243,11 @@ type EditableSeriesMembership = {
 };
 export type EventEditPatch = Omit<
   Partial<EventSchema>,
-  "bounds" | "area_polygon" | "location" | "description_i18n"
+  "bounds" | "area_polygon" | "location" | "description_i18n" | "external_source"
 > & {
   area_polygon?: EventSchema["area_polygon"] | null;
   description_i18n?: EventSchema["description_i18n"] | null;
+  external_source?: EventSchema["external_source"] | null;
 };
 
 /**
@@ -355,6 +357,9 @@ export class EventEditFormComponent {
     slug: ["", [Validators.pattern(/^[a-z0-9-]*$/)]],
     organizer_query: [""],
     url: [""],
+    external_source_provider: [""],
+    external_source_id: [""],
+    external_source_url: [""],
     published: [true],
     banner_src: [""],
     banner_fit: ["cover"],
@@ -453,6 +458,7 @@ export class EventEditFormComponent {
       e.description ||
       e.slug ||
       e.url ||
+      e.externalSource ||
       e.organizer ||
       e.featuredParticipants.length > 0 ||
       e.location ||
@@ -596,6 +602,9 @@ export class EventEditFormComponent {
           e.areaPolygon,
         ),
         url: e.url ?? "",
+        external_source_provider: e.externalSource?.provider ?? "",
+        external_source_id: e.externalSource?.id ?? "",
+        external_source_url: e.externalSource?.url ?? "",
         published: e.published,
         banner_src: e.bannerSrc ?? "",
         banner_fit: e.bannerFit,
@@ -1660,6 +1669,14 @@ export class EventEditFormComponent {
       this.form.markAllAsTouched();
       return;
     }
+    if (
+      isExternalSourceProvider(v.external_source_provider) &&
+      !safeExternalUrl(v.external_source_url)
+    ) {
+      this.form.controls["external_source_url"].setErrors({ url: true });
+      this.form.controls["external_source_url"].markAsTouched();
+      return;
+    }
     this._syncAreaFromPickerForSubmit();
 
     const patch: EventEditPatch = {
@@ -1673,6 +1690,7 @@ export class EventEditFormComponent {
       start: Timestamp.fromDate(start),
       end: Timestamp.fromDate(end),
       url: trimOrUndefined(v.url),
+      external_source: this._buildExternalSourcePatch(),
       event_links: this._buildEventLinksPatch(),
       featured_participants: this._buildFeaturedParticipantsPatch(),
       ticket_options: this._buildTicketOptionsPatch(),
@@ -1994,6 +2012,23 @@ export class EventEditFormComponent {
       });
       return links;
     }, []);
+  }
+
+  private _buildExternalSourcePatch():
+    | EventExternalSourceSchema
+    | null
+    | undefined {
+    const provider = this.form.value.external_source_provider;
+    const url = safeExternalUrl(this.form.value.external_source_url);
+    if (isExternalSourceProvider(provider) && url) {
+      return {
+        provider,
+        id: trimOrUndefined(this.form.value.external_source_id),
+        url,
+      };
+    }
+
+    return this.event()?.externalSource ? null : undefined;
   }
 
   private _buildFeaturedParticipantsPatch(): EventFeaturedParticipantSchema[] {
@@ -2411,6 +2446,18 @@ function isEventLinkKind(value: string): value is EventLinkKind {
     value === "schedule" ||
     value === "results" ||
     value === "livestream" ||
+    value === "other"
+  );
+}
+
+function isExternalSourceProvider(
+  value: unknown,
+): value is EventExternalSourceSchema["provider"] {
+  return (
+    value === "eventfrog" ||
+    value === "spt" ||
+    value === "spl" ||
+    value === "parkour_earth" ||
     value === "other"
   );
 }

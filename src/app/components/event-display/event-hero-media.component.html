@@ -7,7 +7,7 @@
       [imageFits]="imageFits()"
       [imageBackgroundColors]="imageBackgroundColors()"
     ></app-img-carousel>
-  } @else {
+  } @else if (showPlaceholder()) {
     <app-media-placeholder
       [src]="null"
       variant="event"

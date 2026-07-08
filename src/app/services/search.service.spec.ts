@@ -770,8 +770,26 @@ describe("SearchService", () => {
           promo_region_radius_m: "1200",
           external_source: {
             provider: "instagram",
+            url: "https://instagram.example/source",
           },
           url: "https://example.test/swissjam",
+          event_links: [
+            {
+              label: "Registration",
+              url: "https://example.test/register",
+              kind: "website",
+              primary: true,
+              provider: "Organizer",
+            },
+          ],
+          ticket_options: [
+            {
+              id: "adult",
+              label: "Adult ticket",
+              url: "https://example.test/tickets",
+              availability: "available",
+            },
+          ],
           spot_ids: ["spot-a"],
           community_keys: ["ch/zurich"],
           series_ids: ["swissjam"],
@@ -811,7 +829,25 @@ describe("SearchService", () => {
         promoRegionCenter: [47.38, 8.54],
         promoRegionRadiusM: 1200,
         externalProvider: "instagram",
+        externalSourceUrl: "https://instagram.example/source",
         url: "https://example.test/swissjam",
+        eventLinks: [
+          {
+            label: "Registration",
+            url: "https://example.test/register",
+            kind: "website",
+            primary: true,
+            provider: "Organizer",
+          },
+        ],
+        ticketOptions: [
+          {
+            id: "adult",
+            label: "Adult ticket",
+            url: "https://example.test/tickets",
+            availability: "available",
+          },
+        ],
         spotIds: ["spot-a"],
         communityKeys: ["ch/zurich"],
         seriesIds: ["swissjam"],

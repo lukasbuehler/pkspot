@@ -491,6 +491,19 @@ describe("EventsService", () => {
     ]);
   });
 
+  it("clears external source metadata when requested", async () => {
+    await service.updateEvent("event-1" as EventId, {
+      external_source: null,
+    });
+
+    const [, payload] = firestoreAdapter.updateDocument.mock.calls[0] as [
+      string,
+      Record<string, unknown>,
+    ];
+    expect(payload.external_source).toEqual(deleteFieldMarker);
+    expect(firestoreAdapter.deleteFieldValue).toHaveBeenCalledOnce();
+  });
+
   it("does not write an RSVP while signed out", async () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({

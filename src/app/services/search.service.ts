@@ -17,6 +17,13 @@ import {
 import { Event as PkEvent } from "../../db/models/Event";
 import { AssetUrlService } from "./asset-url.service";
 import type { EventRSVPCountsSchema } from "../../db/schemas/EventRSVPSchema";
+import type {
+  EventLinkKind,
+  EventLinkSchema,
+  EventTicketAvailability,
+  EventTicketBadge,
+  EventTicketOptionSchema,
+} from "../../db/schemas/EventSchema";
 import { getSpotPriority } from "../../db/schemas/SpotPriority";
 
 @Injectable({
@@ -1025,7 +1032,13 @@ export class SearchService {
         typeof externalSource?.provider === "string"
           ? externalSource.provider
           : undefined,
+      externalSourceUrl:
+        typeof externalSource?.url === "string"
+          ? externalSource.url
+          : undefined,
       url: typeof doc?.url === "string" ? doc.url : undefined,
+      eventLinks: readEventLinks(doc?.event_links),
+      ticketOptions: readEventTicketOptions(doc?.ticket_options),
       spotIds,
       communityKeys: Array.isArray(doc?.community_keys)
         ? doc.community_keys
@@ -1101,6 +1114,8 @@ export class SearchService {
           ? { seconds: preview.promoStartsAtSeconds, nanoseconds: 0 }
           : undefined,
       url: preview.url,
+      event_links: preview.eventLinks,
+      ticket_options: preview.ticketOptions,
       spot_ids: preview.spotIds,
       community_keys: preview.communityKeys,
       series_ids: preview.seriesIds,
@@ -1133,7 +1148,10 @@ export class SearchService {
       has_venue_spot: preview.hasVenueSpot,
       venue_spot_count: preview.venueSpotCount,
       external_source: preview.externalProvider
-        ? { provider: preview.externalProvider, url: preview.url ?? "" }
+        ? {
+            provider: preview.externalProvider,
+            url: preview.externalSourceUrl ?? "",
+          }
         : undefined,
       published: true,
     };
@@ -1376,11 +1394,14 @@ export class SearchService {
       "promo_region_center",
       "promo_region_radius_m",
       "url",
+      "event_links",
+      "ticket_options",
       "spot_ids",
       "community_keys",
       "series_ids",
       "event_categories",
       "external_source.provider",
+      "external_source.url",
     ].join(",");
 
     const communityIncludeFields = [
@@ -1956,6 +1977,122 @@ export class SearchService {
   }
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function readString(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim().length > 0
+    ? value
+    : undefined;
+}
+
+function readEventLinkKind(value: unknown): EventLinkKind {
+  return (
+    value === "website" ||
+    value === "tickets" ||
+    value === "schedule" ||
+    value === "results" ||
+    value === "livestream" ||
+    value === "other"
+  )
+    ? value
+    : "other";
+}
+
+function readEventLinks(value: unknown): EventLinkSchema[] {
+  if (!Array.isArray(value)) return [];
+  return value.reduce<EventLinkSchema[]>((links, item) => {
+    if (!isRecord(item)) return links;
+    const label = readString(item["label"]);
+    const url = readString(item["url"]);
+    if (!label || !url) return links;
+    links.push({
+      label,
+      url,
+      kind: readEventLinkKind(item["kind"]),
+      primary: item["primary"] === true || undefined,
+      provider: readString(item["provider"]),
+    });
+    return links;
+  }, []);
+}
+
+function readTicketAvailability(
+  value: unknown,
+): EventTicketAvailability | undefined {
+  return (
+    value === "available" ||
+    value === "coming_soon" ||
+    value === "sold_out" ||
+    value === "waitlist" ||
+    value === "ended"
+  )
+    ? value
+    : undefined;
+}
+
+function readTicketBadge(value: unknown): EventTicketBadge | undefined {
+  return (
+    value === "early_bird" ||
+    value === "discount" ||
+    value === "regular" ||
+    value === "late" ||
+    value === "member"
+  )
+    ? value
+    : undefined;
+}
+
+function readTicketPrice(
+  value: unknown,
+): EventTicketOptionSchema["price"] | undefined {
+  if (!isRecord(value)) return undefined;
+  const currency = readString(value["currency"]);
+  if (!currency) return undefined;
+
+  if (typeof value["amount"] === "number" && Number.isFinite(value["amount"])) {
+    return {
+      amount: value["amount"],
+      currency,
+    };
+  }
+
+  if (
+    typeof value["min_amount"] === "number" &&
+    Number.isFinite(value["min_amount"]) &&
+    typeof value["max_amount"] === "number" &&
+    Number.isFinite(value["max_amount"])
+  ) {
+    return {
+      min_amount: value["min_amount"],
+      max_amount: value["max_amount"],
+      currency,
+    };
+  }
+
+  return undefined;
+}
+
+function readEventTicketOptions(value: unknown): EventTicketOptionSchema[] {
+  if (!Array.isArray(value)) return [];
+  return value.reduce<EventTicketOptionSchema[]>((tickets, item, index) => {
+    if (!isRecord(item)) return tickets;
+    const label = readString(item["label"]);
+    if (!label) return tickets;
+    tickets.push({
+      id: readString(item["id"]) ?? `ticket-${index + 1}`,
+      label,
+      description: readString(item["description"]),
+      url: readString(item["url"]),
+      price: readTicketPrice(item["price"]),
+      availability: readTicketAvailability(item["availability"]),
+      badge: readTicketBadge(item["badge"]),
+    });
+    return tickets;
+  }, []);
+}
+
 export interface CommunitySearchPreview {
   id: string;
   communityKey: string;
@@ -2016,7 +2153,10 @@ export interface EventSearchPreview {
   promoRegionCenter?: [number, number];
   promoRegionRadiusM?: number;
   externalProvider?: string;
+  externalSourceUrl?: string;
   url?: string;
+  eventLinks: EventLinkSchema[];
+  ticketOptions: EventTicketOptionSchema[];
   spotIds: string[];
   communityKeys: string[];
   seriesIds: string[];

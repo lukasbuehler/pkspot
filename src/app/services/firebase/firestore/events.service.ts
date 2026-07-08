@@ -24,10 +24,11 @@ type EventSlugDocument = EventSlugSchema & { id: string };
 type EventRSVPDocument = EventRSVPSchema & { id: string };
 export type EventWritePatch = Omit<
   Partial<EventSchema>,
-  "bounds" | "area_polygon" | "location" | "description_i18n"
+  "bounds" | "area_polygon" | "location" | "description_i18n" | "external_source"
 > & {
   area_polygon?: EventSchema["area_polygon"] | null;
   description_i18n?: EventSchema["description_i18n"] | null;
+  external_source?: EventSchema["external_source"] | null;
 };
 
 /**
@@ -129,6 +130,10 @@ export class EventsService extends ConsentAwareService {
         clientData.description_i18n === null
           ? undefined
           : clientData.description_i18n,
+      external_source:
+        clientData.external_source === null
+          ? undefined
+          : clientData.external_source,
       published: data.published ?? true,
       time_created: now,
       time_updated: now,
@@ -176,11 +181,15 @@ export class EventsService extends ConsentAwareService {
 
     const clientPatch = stripServerDerivedEventFields(patch);
     const shouldDeleteDescription = clientPatch.description_i18n === null;
+    const shouldDeleteExternalSource = clientPatch.external_source === null;
     const cleaned = stripUndefined({
       ...clientPatch,
       description_i18n: shouldDeleteDescription
         ? this._firestoreAdapter.deleteFieldValue()
         : clientPatch.description_i18n,
+      external_source: shouldDeleteExternalSource
+        ? this._firestoreAdapter.deleteFieldValue()
+        : clientPatch.external_source,
       area_polygon:
         clientPatch.area_polygon === null
           ? this._firestoreAdapter.deleteFieldValue()

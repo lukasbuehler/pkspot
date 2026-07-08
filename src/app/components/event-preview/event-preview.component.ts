@@ -11,11 +11,23 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { RouterLink } from "@angular/router";
 import { Event as PkEvent, EventTicketOption } from "../../../db/models/Event";
+import type { EventLinkSchema } from "../../../db/schemas/EventSchema";
 import { MapInfoPanelComponent } from "../map-info-panel/map-info-panel.component";
 import { AnalyticsService } from "../../services/analytics.service";
 import { EventHeroMediaComponent } from "../event-display/event-hero-media.component";
 import { EventSummaryMetaComponent } from "../event-display/event-summary-meta.component";
-import { type EventStatus } from "../event-display/event-display.helpers";
+import {
+  eventHeroMedia,
+  isRemoteExternalMedia,
+  type EventStatus,
+} from "../event-display/event-display.helpers";
+
+interface PreviewExternalLink {
+  url: string;
+  label: string;
+  kind: EventLinkSchema["kind"];
+  provider?: string;
+}
 
 /**
  * Event preview panel for the map page sidebar (desktop) or bottom-sheet
@@ -88,11 +100,59 @@ export class EventPreviewComponent {
     return ["/events", e.slug ?? e.id];
   });
 
-  readonly websiteUrl = computed<string | null>(() => {
+  readonly hasPreviewHeroMedia = computed(() => {
+    const event = this.event();
+    if (!event) return false;
+    return eventHeroMedia(event).some((item) => !isRemoteExternalMedia(item));
+  });
+
+  readonly websiteLink = computed<PreviewExternalLink | null>(() => {
     const event = this.event();
     if (!event) return null;
-    const url = this._safeExternalUrl(event.url ?? event.externalSource?.url);
-    return this._analytics.addUtmToUrl(url, "map_event_preview");
+
+    const editableLink =
+      event.eventLinks.find((link) => link.primary === true) ??
+      event.eventLinks.find((link) => link.kind !== "tickets");
+    const editableUrl = this._safeExternalUrl(editableLink?.url);
+    if (editableLink && editableUrl) {
+      return {
+        url:
+          this._analytics.addUtmToUrl(editableUrl, "map_event_preview") ??
+          editableUrl,
+        label: editableLink.label,
+        kind: editableLink.kind,
+        provider: editableLink.provider,
+      };
+    }
+
+    const eventUrl = this._safeExternalUrl(event.url);
+    if (eventUrl) {
+      return {
+        url:
+          this._analytics.addUtmToUrl(eventUrl, "map_event_preview") ??
+          eventUrl,
+        label: $localize`:@@event_preview.website:Website`,
+        kind: "website",
+      };
+    }
+
+    const sourceUrl = this._safeExternalUrl(event.externalSource?.url);
+    if (sourceUrl) {
+      return {
+        url:
+          this._analytics.addUtmToUrl(sourceUrl, "map_event_preview") ??
+          sourceUrl,
+        label: this._externalSourceLabel(event.externalSource?.provider),
+        kind: "other",
+        provider: event.externalSource?.provider,
+      };
+    }
+
+    return null;
+  });
+
+  readonly websiteUrl = computed<string | null>(() => {
+    return this.websiteLink()?.url ?? null;
   });
 
   readonly ticketLink = computed<EventTicketOption | null>(() => {
@@ -109,10 +169,11 @@ export class EventPreviewComponent {
    * the template stays declarative.
    */
   readonly websiteLabel = computed<string>(() => {
-    const event = this.event();
-    const source = event?.externalSource;
-    if (!source) return $localize`:@@event_preview.website:Website`;
-    switch (source.provider) {
+    return this.websiteLink()?.label ?? $localize`:@@event_preview.website:Website`;
+  });
+
+  private _externalSourceLabel(provider: string | undefined): string {
+    switch (provider) {
       case "eventfrog":
         return $localize`:@@event_preview.view_eventfrog:View on EventFrog`;
       case "spt":
@@ -124,7 +185,7 @@ export class EventPreviewComponent {
       default:
         return $localize`:@@event_preview.view_source:View source`;
     }
-  });
+  }
 
   private _safeExternalUrl(value: string | undefined): string | null {
     if (!value) return null;
@@ -149,7 +210,9 @@ export class EventPreviewComponent {
       event_status: this.status(),
       is_sponsored: event?.isSponsored ?? false,
       sponsor_name: event?.sponsor?.name,
-      external_provider: event?.externalSource?.provider,
+      external_provider: this.websiteLink()?.provider,
+      link_kind: this.websiteLink()?.kind,
+      link_label: this.websiteLink()?.label,
       url: this.websiteUrl(),
     });
     return true;

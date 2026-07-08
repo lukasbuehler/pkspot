@@ -54,11 +54,14 @@
     </div>
 
     <div class="event-preview-body px-3 pb-3">
-      <app-event-hero-media
-        class="event-preview-hero px-3"
-        [event]="event"
-        [hideExternalMedia]="true"
-      ></app-event-hero-media>
+      @if (hasPreviewHeroMedia()) {
+        <app-event-hero-media
+          class="event-preview-hero px-3"
+          [event]="event"
+          [hideExternalMedia]="true"
+          [showPlaceholder]="false"
+        ></app-event-hero-media>
+      }
 
       @if (event.description) {
         <p class="mat-body-medium description mt-2">{{ event.description }}</p>

@@ -509,6 +509,56 @@ describe("EventEditFormComponent", () => {
     );
   });
 
+  it("serializes and clears the editable external source", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    fixture.componentRef.setInput(
+      "event",
+      eventWith("event-1", {
+        external_source: {
+          provider: "parkour_earth",
+          id: "old-source",
+          url: "https://parkour.earth/events/old",
+        },
+      }),
+    );
+    fixture.detectChanges();
+
+    expect(component.form.value.external_source_provider).toBe("parkour_earth");
+    expect(component.form.value.external_source_id).toBe("old-source");
+    expect(component.form.value.external_source_url).toBe(
+      "https://parkour.earth/events/old",
+    );
+
+    component.form.patchValue({
+      external_source_provider: "other",
+      external_source_id: "new-source",
+      external_source_url: "https://organizer.example/events/new",
+    });
+    component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0].external_source).toEqual({
+      provider: "other",
+      id: "new-source",
+      url: "https://organizer.example/events/new",
+    });
+
+    saveSpy.mockClear();
+    component.form.patchValue({
+      external_source_provider: "",
+      external_source_id: "",
+      external_source_url: "",
+    });
+    component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0].external_source).toBeNull();
+  });
+
   it("serializes edited program plans and items on submit", async () => {
     const fixture = await setup();
     const component = fixture.componentInstance;
