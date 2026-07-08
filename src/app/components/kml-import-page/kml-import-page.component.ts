@@ -312,6 +312,33 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
   spotsToImport = toSignal(this.kmlParserService.spotsToImport$, {
     initialValue: [],
   });
+  private readonly _authState = toSignal(this._authService.authState$, {
+    initialValue: this._authService.authState$.value,
+  });
+  private readonly _signedInUid = computed(() => {
+    const authState = this._authState();
+    if (!this._authService.isSignedIn || !authState?.uid) {
+      return null;
+    }
+
+    return authState.uid;
+  });
+  private readonly _canUploadImport = computed(
+    () => !!this._signedInUid() && this._hasAdminAccess()
+  );
+  private readonly _uploadAccessMessage = computed(() => {
+    if (!this._authService.initialAuthStateResolved()) {
+      return "Checking admin access...";
+    }
+    if (!this._signedInUid()) {
+      return "Please sign in to import KML/KMZ files.";
+    }
+    if (!this._hasAdminAccess()) {
+      return "KML import is restricted to PK Spot admins.";
+    }
+
+    return null;
+  });
 
   selectedSpotMedia = computed<AnyMedia[]>(() => {
     const selectedItem = this.selectedVerificationItem();
@@ -461,25 +488,22 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
 
   /** True when the current user is signed in AND has admin rights. */
   private _isAdminUser(): boolean {
-    return this._authService.user.data?.isAdmin === true;
+    return this._hasAdminAccess();
   }
 
-  canUploadImport(): boolean {
-    return !!(
-      this._authService.isSignedIn &&
-      this._authService.user.uid &&
-      this._isAdminUser()
+  private _hasAdminAccess(): boolean {
+    return (
+      this._authService.isAdmin() ||
+      this._authService.user.data?.isAdmin === true
     );
   }
 
+  canUploadImport(): boolean {
+    return this._canUploadImport();
+  }
+
   uploadAccessMessage(): string | null {
-    if (!this._authService.isSignedIn || !this._authService.user.uid) {
-      return "Please sign in to import KML/KMZ files.";
-    }
-    if (!this._isAdminUser()) {
-      return "KML import is restricted to PK Spot admins.";
-    }
-    return null;
+    return this._uploadAccessMessage();
   }
 
   private _ensureAuthenticatedForUpload(): boolean {

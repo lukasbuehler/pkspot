@@ -31,6 +31,10 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { getImportantAmenities } from "../../../db/models/Amenities";
 import { isoCountryCodeToFlagEmoji } from "../../../scripts/Helpers";
 import {
+  getDisplayCountryName,
+  getDisplayLocalityName,
+} from "../../../scripts/AddressHelpers";
+import {
   SpotTypes,
   SpotAccess,
   SpotTypesIcons,
@@ -269,39 +273,40 @@ export class SpotPreviewCardComponent
   countryTooltip = computed(() => {
     const spot = this.spotData();
     if (!spot) return "";
-    let name = "";
     if (spot instanceof Spot || spot instanceof LocalSpot) {
-      name = spot.address()?.country?.name || "";
+      return getDisplayCountryName(spot.address()) ?? "";
     } else {
-      name = (spot as any).countryName || "";
+      return spot.countryName ?? "";
     }
-    return name;
   });
 
   displayLocality = computed(() => {
     const spot = this.spotData();
     if (!spot) return "";
-    let loc = "";
-    let code = this.countryCode();
 
     if (spot instanceof Spot || spot instanceof LocalSpot) {
-      loc = spot.localityString();
-    } else {
-      loc = spot.locality;
+      return getDisplayLocalityName(spot.address()) ?? "";
     }
 
-    // If we have a code and the locality ends with it, strip it
-    if (code && loc.endsWith(code.toUpperCase())) {
-      // Also strip the comma/space before it if present
-      const suffix = code.toUpperCase();
-      loc = loc.substring(0, loc.length - suffix.length);
-      loc = loc.trim();
-      if (loc.endsWith(",")) {
-        loc = loc.substring(0, loc.length - 1);
-      }
-    }
-    return loc;
+    return this.getPreviewLocalityName(spot.locality, this.countryCode());
   });
+
+  private getPreviewLocalityName(
+    locality: string,
+    countryCode: string | undefined
+  ): string {
+    const parts = locality
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean);
+
+    if (countryCode && parts.at(-1)?.toUpperCase() === countryCode) {
+      parts.pop();
+      return parts[parts.length - 1] ?? "";
+    }
+
+    return locality.trim();
+  }
 
   reportLabel = computed(() => {
     const spot = this.spotData();

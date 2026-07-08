@@ -1,4 +1,4 @@
-import { SpotSchema } from "../db/schemas/SpotSchema";
+import type { SpotSchema } from "../db/schemas/SpotSchema";
 
 type SpotAddress = SpotSchema["address"];
 

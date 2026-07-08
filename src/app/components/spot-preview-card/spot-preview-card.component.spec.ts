@@ -56,4 +56,23 @@ describe("SpotPreviewCardComponent", () => {
       icons.some((icon) => icon.nativeElement.textContent.trim() === "stars"),
     ).toBe(true);
   });
+
+  it("shows city and country flag without the country code", () => {
+    const spot = {
+      id: "main" as SpotId,
+      name: "Main Spot",
+      locality: "Kreis 5, Zurich, CH",
+      countryCode: "CH",
+      countryName: "Switzerland",
+      imageSrc: "",
+      isIconic: false,
+    } satisfies SpotPreviewData;
+
+    fixture.componentRef.setInput("spotData", spot);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.displayLocality()).toBe("Zurich");
+    expect(fixture.componentInstance.countryFlagEmoji()).toBe("🇨🇭");
+    expect(fixture.componentInstance.countryTooltip()).toBe("Switzerland");
+  });
 });

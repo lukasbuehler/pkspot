@@ -289,19 +289,15 @@
               }
               @if (spot()?.address()) {
                 <span class="text-truncate d-flex align-items-center gap-1">
-                  <span
-                    >{{ displayLocality()
-                    }}{{ displayLocality() && countryCode() ? "," : "" }}</span
-                  >
-                  @if (countryCode()) {
+                  @if (displayLocality()) {
+                    <span>{{ displayLocality() }}</span>
+                  }
+                  @if (countryFlagEmoji()) {
                     <span
-                      class="country-badge"
-                      [matTooltip]="spot()?.address()?.country?.name || ''"
+                      class="flag-emoji"
+                      [matTooltip]="countryTooltip()"
                     >
-                      <span class="country-code">{{ countryCode() }}</span>
-                      <span class="flag-emoji ms-1">{{
-                        countryFlagEmoji()
-                      }}</span>
+                      {{ countryFlagEmoji() }}
                     </span>
                   }
                 </span>

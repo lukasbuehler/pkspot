@@ -76,6 +76,10 @@ import {
   isoCountryCodeToFlagEmoji,
   isMobileDevice,
 } from "../../../scripts/Helpers";
+import {
+  getDisplayCountryName,
+  getDisplayLocalityName,
+} from "../../../scripts/AddressHelpers";
 import { UntypedFormControl, FormsModule } from "@angular/forms";
 import {
   catchError,
@@ -378,20 +382,14 @@ export class SpotDetailsComponent
     return code ? isoCountryCodeToFlagEmoji(code) : undefined;
   });
 
+  countryTooltip = computed(() => {
+    return getDisplayCountryName(this.spot()?.address() ?? null) ?? "";
+  });
+
   displayLocality = computed(() => {
     const spot = this.spot();
     if (!spot) return "";
-    let loc = spot.localityString();
-    const code = this.countryCode();
-
-    if (code && loc.endsWith(code.toUpperCase())) {
-      const suffix = code.toUpperCase();
-      loc = loc.substring(0, loc.length - suffix.length).trim();
-      if (loc.endsWith(",")) {
-        loc = loc.substring(0, loc.length - 1);
-      }
-    }
-    return loc;
+    return getDisplayLocalityName(spot.address()) ?? "";
   });
 
   // Expose centralized questions for potential dynamic UI

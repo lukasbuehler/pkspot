@@ -50,6 +50,34 @@ type GeocodeApiResponse = {
   results?: AddressAPIResultType[];
 };
 
+const getAddressComponentName = (
+  component: AddressAPIResultType["address_components"][number]
+): string | undefined => {
+  return component.short_name?.trim() || component.long_name?.trim() || undefined;
+};
+
+const getAddressComponentByType = (
+  components: AddressAPIResultType["address_components"],
+  type: string
+): AddressAPIResultType["address_components"][number] | undefined => {
+  return components.find((component) => component.types.includes(type));
+};
+
+const getPreferredLocalityComponent = (
+  components: AddressAPIResultType["address_components"]
+): AddressAPIResultType["address_components"][number] | undefined => {
+  return [
+    "locality",
+    "postal_town",
+    "administrative_area_level_3",
+    "administrative_area_level_2",
+    "administrative_area_level_1",
+  ].reduce<AddressAPIResultType["address_components"][number] | undefined>(
+    (match, type) => match ?? getAddressComponentByType(components, type),
+    undefined
+  );
+};
+
 const hasAddressData = (address: AddressType | null | undefined): boolean => {
   if (!address) return false;
   return Boolean(
@@ -280,43 +308,59 @@ const extractAddressFromGeocodeResponse = (
       address.formatted = result.formatted_address;
     }
 
-    for (const component of result.address_components) {
-      if (!address.country && component.types.includes("country")) {
+    if (!address.country) {
+      const component = getAddressComponentByType(
+        result.address_components,
+        "country"
+      );
+      const countryCode = component?.short_name?.trim();
+      const countryName = component?.long_name?.trim();
+      if (countryCode && countryName) {
         address.country = {
-          code: component.short_name,
-          name: component.long_name,
+          code: countryCode,
+          name: countryName,
         };
-      } else if (
-        !address.region &&
-        component.types.includes("administrative_area_level_1")
-      ) {
+      }
+    }
+
+    if (!address.region) {
+      const component = getAddressComponentByType(
+        result.address_components,
+        "administrative_area_level_1"
+      );
+      const regionName = component
+        ? getAddressComponentName(component)
+        : undefined;
+      if (component && regionName) {
         address.region = {
-          code: component.short_name,
-          name: component.long_name,
+          code: component.short_name?.trim(),
+          name: regionName,
         };
-      } else if (!address.locality && component.types.includes("locality")) {
-        address.locality = component.short_name;
-      } else if (
-        !address.locality &&
-        (component.types.includes("postal_town") ||
-          component.types.includes("administrative_area_level_3") ||
-          component.types.includes("administrative_area_level_2") ||
-          component.types.includes("administrative_area_level_1"))
-      ) {
-        address.locality = component.short_name;
-      } else if (
-        !address.sublocality &&
-        (component.types.includes("sublocality") ||
-          component.types.includes("sublocality_level_1"))
-      ) {
-        address.sublocality = component.short_name;
-      } else if (
-        !!address.country &&
-        !!address.region &&
-        !!address.locality &&
-        !!address.sublocality
-      ) {
-        break;
+      }
+    }
+
+    if (!address.locality) {
+      const component = getPreferredLocalityComponent(result.address_components);
+      const localityName = component
+        ? getAddressComponentName(component)
+        : undefined;
+      if (localityName) {
+        address.locality = localityName;
+      }
+    }
+
+    if (!address.sublocality) {
+      const component =
+        getAddressComponentByType(result.address_components, "sublocality") ??
+        getAddressComponentByType(
+          result.address_components,
+          "sublocality_level_1"
+        );
+      const sublocalityName = component
+        ? getAddressComponentName(component)
+        : undefined;
+      if (sublocalityName) {
+        address.sublocality = sublocalityName;
       }
     }
 
