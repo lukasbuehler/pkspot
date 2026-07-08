@@ -185,6 +185,7 @@ import {
 } from "../../../scripts/SpotRouteHelpers";
 import { SpotProvenanceComponent } from "../spot-provenance/spot-provenance.component";
 import { EventCardComponent } from "../event-card/event-card.component";
+import { MediaUploadStatusService } from "../../services/firebase/firestore/media-upload-status.service";
 
 @Pipe({ name: "reverse" })
 export class ReversePipe implements PipeTransform {
@@ -316,6 +317,7 @@ export class SpotDetailsComponent
   private _usersService = inject(UsersService);
   private _organizationsService = inject(OrganizationsService);
   private _ageAssuranceService = inject(AgeAssuranceService);
+  private _mediaUploadStatusService = inject(MediaUploadStatusService);
 
   /**
    * Sets the --open-progress CSS custom property on the host element.
@@ -343,6 +345,22 @@ export class SpotDetailsComponent
     } else {
       return "";
     }
+  });
+  processingSpotMedia = computed(() => {
+    const spot = this.spot();
+    if (!(spot instanceof Spot)) return [];
+    return this._mediaUploadStatusService.processingMediaForTarget(
+      "spot",
+      spot.id,
+    );
+  });
+  failedSpotMediaUploads = computed(() => {
+    const spot = this.spot();
+    if (!(spot instanceof Spot)) return [];
+    return this._mediaUploadStatusService.failedLocalUploadsForTarget(
+      "spot",
+      spot.id,
+    );
   });
   challenge = model<SpotChallenge | LocalSpotChallenge | null>(null);
   isEditing = model<boolean>(false);
@@ -1016,6 +1034,13 @@ export class SpotDetailsComponent
       } else {
         // Local spots and fixture spots do not need Firestore live updates.
         this._unsubscribeFromLiveSpot();
+      }
+    });
+
+    effect(() => {
+      const spot = this.spot();
+      if (spot instanceof Spot && this.authenticationService.isSignedIn) {
+        this._watchSpotMediaUploadStatus();
       }
     });
 
@@ -2223,6 +2248,7 @@ export class SpotDetailsComponent
         this._bookmarkedSpotIds.clear();
         this._visitedSpotIds.clear();
         this._syncPrivateSpotButtonState();
+        this._watchSpotMediaUploadStatus();
 
         if (!uid) {
           return;
@@ -2250,6 +2276,13 @@ export class SpotDetailsComponent
     if (this._authStateSub) {
       this._authStateSub.unsubscribe();
       this._authStateSub = null;
+    }
+  }
+
+  private _watchSpotMediaUploadStatus(): void {
+    const spot = this.spot();
+    if (spot instanceof Spot && this.authenticationService.user?.uid) {
+      this._mediaUploadStatusService.watchTarget("spot", spot.id);
     }
   }
 

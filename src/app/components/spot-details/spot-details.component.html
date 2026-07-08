@@ -411,14 +411,23 @@
       @if (!isEditing()) {
         <div class="mb-1 mt-1">
           <!-- spot media carousel  -->
-          @if (spot()?.media() && spot()!.media().length > 0) {
+          @if (
+            (spot()?.media() && spot()!.media().length > 0) ||
+            processingSpotMedia().length > 0
+          ) {
             <app-img-carousel
               [media]="$safeNavigationMigration(spot()?.media())"
+              [processingMedia]="processingSpotMedia()"
               [spotId]="getSpotId()"
               class="mb-3"
               (mediaRemove)="mediaRemoved($event)"
             >
             </app-img-carousel>
+          }
+          @if (failedSpotMediaUploads().length > 0) {
+            <div class="media-processing-note mat-body-small mb-3" i18n>
+              Some uploads could not be processed.
+            </div>
           }
           <!-- if the user is signed in, show an add media button to upload new media -->
           @if (
@@ -1100,6 +1109,16 @@
               [spotId]="getSpotId()"
               (mediaChanged)="mediaChanged($event)"
             ></app-media-preview-grid>
+          }
+          @if (processingSpotMedia().length > 0) {
+            <div class="media-processing-note mat-body-small mt-2 mb-2" i18n>
+              Media is processing and will appear here when it is ready.
+            </div>
+          }
+          @if (failedSpotMediaUploads().length > 0) {
+            <div class="media-processing-note mat-body-small mt-2 mb-2" i18n>
+              Some uploads could not be processed.
+            </div>
           }
 
           <!-- Image upload -->

@@ -39,6 +39,17 @@ export interface UploadMedia {
   uploadProgress: number;
   type: MediaType;
 }
+
+export interface MediaUploadEvent {
+  src: string;
+  is_sized: boolean;
+  type: MediaType;
+  uploadId?: string;
+  previewSrc?: string;
+  targetKind?: MediaUploadTargetKind;
+  targetId?: string;
+}
+
 @Component({
   selector: "app-media-upload",
   templateUrl: "./media-upload.component.html",
@@ -73,11 +84,7 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
   @Input() moderationTargetKind: MediaUploadTargetKind | null = null;
   @Input() moderationTargetId: string | null = null;
   @Output() changed = new EventEmitter<void>();
-  @Output() newMedia = new EventEmitter<{
-    src: string;
-    is_sized: boolean;
-    type: MediaType;
-  }>();
+  @Output() newMedia = new EventEmitter<MediaUploadEvent>();
   @Output() fileSelected = new EventEmitter<File>();
 
   private _storageService = inject(StorageService);
@@ -244,7 +251,7 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
     let filename = generateUUID();
 
     this._storageService
-      .setUploadToStorage(
+      .setUploadToStorageWithResult(
         media.file,
         this.storageFolder,
         (progress: number) => {
@@ -264,9 +271,9 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
         this.moderationTargetId ?? undefined
       )
       .then(
-        (imageLink) => {
+        (uploadResult) => {
           if (this._activeUploadCount <= 0) return; // Ignore if cancelled
-          this.mediaFinishedUploading(media, imageLink);
+          this.mediaFinishedUploading(media, uploadResult);
           this.mediaList.update((list) => {
             list[index] = {
               ...list[index],
@@ -298,10 +305,18 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
     this.isUploading.emit(false);
   }
 
-  mediaFinishedUploading(media: UploadMedia, url: string) {
+  mediaFinishedUploading(
+    media: UploadMedia,
+    uploadResult: {
+      url: string;
+      uploadId?: string;
+      targetKind?: MediaUploadTargetKind;
+      targetId?: string;
+    }
+  ) {
     let isSized = false;
 
-    console.log("downloadUrl", url);
+    console.log("downloadUrl", uploadResult.url);
 
     if (
       [StorageBucket.SpotPictures, StorageBucket.ProfilePictures].includes(
@@ -310,24 +325,26 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
     ) {
       isSized = true;
     }
-    this.newMedia.emit({ src: url, is_sized: isSized, type: media.type });
-
-    // Handle batch logic
-    this._currentBatch.push({
-      src: url,
+    const event: MediaUploadEvent = {
+      src: uploadResult.url,
       is_sized: isSized,
       type: media.type,
-    });
+      uploadId: uploadResult.uploadId,
+      previewSrc: media.previewSrc,
+      targetKind: uploadResult.targetKind,
+      targetId: uploadResult.targetId,
+    };
+    this.newMedia.emit(event);
+
+    // Handle batch logic
+    this._currentBatch.push(event);
     this._checkBatchCompletion();
   }
 
   private _activeUploadCount = 0;
-  private _currentBatch: { src: string; is_sized: boolean; type: MediaType }[] =
-    [];
+  private _currentBatch: MediaUploadEvent[] = [];
 
-  @Output() mediaBatchUploaded = new EventEmitter<
-    { src: string; is_sized: boolean; type: MediaType }[]
-  >();
+  @Output() mediaBatchUploaded = new EventEmitter<MediaUploadEvent[]>();
 
   @Output() isUploading = new EventEmitter<boolean>();
 

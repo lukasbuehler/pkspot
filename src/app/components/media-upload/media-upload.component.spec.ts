@@ -8,7 +8,7 @@ import { MediaUpload } from "./media-upload.component";
 
 describe("MediaUpload", () => {
   let storageService: {
-    setUploadToStorage: ReturnType<typeof vi.fn>;
+    setUploadToStorageWithResult: ReturnType<typeof vi.fn>;
   };
   let snackBar: {
     open: ReturnType<typeof vi.fn>;
@@ -16,7 +16,7 @@ describe("MediaUpload", () => {
 
   beforeEach(() => {
     storageService = {
-      setUploadToStorage: vi.fn(),
+      setUploadToStorageWithResult: vi.fn(),
     };
     snackBar = {
       open: vi.fn(),
@@ -85,7 +85,7 @@ describe("MediaUpload", () => {
     component.newMedia.subscribe((event) => mediaEvents.push(event));
     component.mediaBatchUploaded.subscribe((event) => batchEvents.push(event));
     component.isUploading.subscribe((event) => uploadingEvents.push(event));
-    storageService.setUploadToStorage.mockImplementation(
+    storageService.setUploadToStorageWithResult.mockImplementation(
       async (
         _file: File,
         _bucket: StorageBucket,
@@ -93,14 +93,19 @@ describe("MediaUpload", () => {
       ) => {
         await Promise.resolve();
         onProgress?.(42);
-        return "https://storage.example/spot_pictures%2Fspot.jpg?alt=media";
+        return {
+          url: "https://storage.example/spot_pictures%2Fspot.jpg?alt=media",
+          uploadId: "upload-1",
+          path: "spot_pictures/spot.jpg",
+          targetKind: "spot",
+        };
       }
     );
 
     component.onSelectFiles(inputWithFiles([file]));
     await flushPromises();
 
-    expect(storageService.setUploadToStorage).toHaveBeenCalledWith(
+    expect(storageService.setUploadToStorageWithResult).toHaveBeenCalledWith(
       file,
       StorageBucket.SpotPictures,
       expect.any(Function),
@@ -116,6 +121,10 @@ describe("MediaUpload", () => {
         src: "https://storage.example/spot_pictures%2Fspot.jpg?alt=media",
         is_sized: true,
         type: MediaType.Image,
+        uploadId: "upload-1",
+        previewSrc: "blob:preview",
+        targetKind: "spot",
+        targetId: undefined,
       },
     ]);
     expect(batchEvents).toEqual([mediaEvents]);
@@ -136,7 +145,7 @@ describe("MediaUpload", () => {
     component.onSelectFiles(inputWithFiles([file]));
 
     expect(selectedFiles).toEqual([file]);
-    expect(storageService.setUploadToStorage).not.toHaveBeenCalled();
+    expect(storageService.setUploadToStorageWithResult).not.toHaveBeenCalled();
     expect(component.mediaList()[0]?.uploadProgress).toBe(100);
     expect(uploadingEvents).toEqual([]);
   });
@@ -155,7 +164,7 @@ describe("MediaUpload", () => {
     expect(component.hasError).toBe(true);
     expect(component.errorMessage).toBe("The type of this file is not allowed");
     expect(snackBar.open).toHaveBeenCalledWith("File mimetype is not allowed!");
-    expect(storageService.setUploadToStorage).not.toHaveBeenCalled();
+    expect(storageService.setUploadToStorageWithResult).not.toHaveBeenCalled();
     expect(component.mediaList()).toEqual([]);
     expect(uploadingEvents).toEqual([]);
   });
@@ -174,7 +183,7 @@ describe("MediaUpload", () => {
 
     expect(component.hasError).toBe(true);
     expect(component.errorMessage).toContain("too big");
-    expect(storageService.setUploadToStorage).not.toHaveBeenCalled();
+    expect(storageService.setUploadToStorageWithResult).not.toHaveBeenCalled();
     expect(component.mediaList()).toEqual([]);
     expect(uploadingEvents).toEqual([]);
   });
@@ -187,7 +196,7 @@ describe("MediaUpload", () => {
     component.storageFolder = StorageBucket.SpotPictures;
     component.allowedMimeTypes = ["image/jpeg"];
     component.isUploading.subscribe((event) => uploadingEvents.push(event));
-    storageService.setUploadToStorage.mockRejectedValue(
+    storageService.setUploadToStorageWithResult.mockRejectedValue(
       new Error("storage denied")
     );
 

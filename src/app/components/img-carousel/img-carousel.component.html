@@ -141,6 +141,29 @@
         </div>
       }
     }
+    @for (upload of processingMedia(); track upload.uploadId) {
+      <div
+        class="spot-img-container processing-media-card"
+        [style.aspect-ratio]="1"
+        [attr.data-media-index]="(media()?.length ?? 0) + $index"
+      >
+        <div class="spot-img-frame">
+          @if (upload.previewSrc && upload.type === "image") {
+            <img [src]="upload.previewSrc" alt="" />
+          } @else {
+            <div class="processing-media-placeholder">
+              <mat-icon>{{
+                upload.type === "video" ? "movie" : "image"
+              }}</mat-icon>
+            </div>
+          }
+        </div>
+        <div class="processing-overlay processing-overlay-with-label">
+          <mat-spinner diameter="34"></mat-spinner>
+          <span i18n="@@media.processing.status">Processing</span>
+        </div>
+      </div>
+    }
   </div>
 
   <div

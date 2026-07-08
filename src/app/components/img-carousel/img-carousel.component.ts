@@ -11,6 +11,7 @@ import {
   inject,
   signal,
   computed,
+  effect,
   input,
   output,
 } from "@angular/core";
@@ -40,6 +41,7 @@ import { MediaReportDialogComponent } from "../../media-report-dialog/media-repo
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MapsApiService } from "../../services/maps-api.service";
 import { isFirstPartyStorageUrl } from "../../utils/first-party-media-url";
+import type { PendingMediaPreview } from "../../services/firebase/firestore/media-upload-status.service";
 
 export type ImgCarouselImageFit = "cover" | "contain";
 
@@ -64,6 +66,7 @@ interface ExternalMediaPreference {
 })
 export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   media = input<AnyMedia[] | undefined>();
+  processingMedia = input<PendingMediaPreview[]>([]);
   spotId = input<string | undefined>();
   reportContext = input<"spot" | "event" | "media">("media");
   reportTargetId = input<string | undefined>();
@@ -135,7 +138,12 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
   constructor(
     public dialog: MatDialog,
     public storageService: StorageService,
-  ) {}
+  ) {
+    effect(() => {
+      this.processingMedia();
+      this.queuePreviewResize();
+    });
+  }
 
   ngAfterViewInit(): void {
     if (
@@ -944,6 +952,7 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
     viewportHeight: number,
   ): { startInset: number; trackWidth: number } {
     const mediaItems = this.media() ?? [];
+    const processingItems = this.processingMedia();
     const widths: number[] = [];
 
     for (let index = 0; index < mediaItems.length; index++) {
@@ -970,6 +979,16 @@ export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
               viewportHeight,
               this.imageAspectRatios().get(index) ?? 1,
             ),
+      );
+    }
+
+    for (let index = 0; index < processingItems.length; index++) {
+      widths.push(
+        this.getPreviewFullWidth(
+          viewportWidth,
+          viewportHeight,
+          this.imageAspectRatios().get(mediaItems.length + index) ?? 1,
+        ),
       );
     }
 

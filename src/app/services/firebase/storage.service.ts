@@ -7,6 +7,14 @@ import type { MediaUploadTargetKind } from "../../../db/schemas/MediaModerationS
 import { generateUUID } from "../../../scripts/Helpers";
 import { StorageAdapterService } from "./storage-adapter.service";
 
+export interface StorageUploadResult {
+  url: string;
+  uploadId?: string;
+  path: string;
+  targetKind?: MediaUploadTargetKind;
+  targetId?: string;
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -40,6 +48,28 @@ export class StorageService {
     targetKind?: MediaUploadTargetKind,
     targetId?: string
   ): Promise<string> {
+    return this.setUploadToStorageWithResult(
+      blob,
+      location,
+      progressCallback,
+      filename,
+      fileEnding,
+      cacheControl,
+      targetKind,
+      targetId
+    ).then((result) => result.url);
+  }
+
+  setUploadToStorageWithResult(
+    blob: Blob,
+    location: StorageBucket,
+    progressCallback?: (progressPercent: number) => void,
+    filename?: string,
+    fileEnding?: string,
+    cacheControl?: string,
+    targetKind?: MediaUploadTargetKind,
+    targetId?: string
+  ): Promise<StorageUploadResult> {
     if (!this.isBrowser) {
       return Promise.reject(
         "Firebase Storage is not available on the server (SSR)"
@@ -64,6 +94,7 @@ export class StorageService {
     const storageFilename = filename ?? generateUUID();
     const extension = normalizedFileEnding ? "." + normalizedFileEnding : "";
     const storagePath = `${location}/${storageFilename}${extension}`;
+    const resolvedTargetKind = targetKind ?? this.defaultTargetKind(location);
 
     // Determine content type from blob or file extension
     let contentType = blob.type;
@@ -105,26 +136,37 @@ export class StorageService {
               upload_id: uploadId,
               destination_folder: location,
               destination_filename: storageFilename,
-              target_kind: targetKind ?? this.defaultTargetKind(location),
+              target_kind: resolvedTargetKind,
               ...(targetId ? { target_id: targetId } : {}),
               ...(cacheControl ? { cache_control: cacheControl } : {}),
             },
           },
           onProgress: progressCallback,
         })
-        .then(() => this.storageAdapter.buildPublicUrl(approvedPath));
+        .then(() => ({
+          url: this.storageAdapter.buildPublicUrl(approvedPath),
+          uploadId,
+          path: approvedPath,
+          targetKind: resolvedTargetKind,
+          ...(targetId ? { targetId } : {}),
+        }));
     }
 
-    return this.storageAdapter.uploadFile({
-      data: blob,
-      path: storagePath,
-      metadata: {
-        uid: uid,
-        contentType: contentType || undefined,
-        cacheControl: cacheControl,
-      },
-      onProgress: progressCallback,
-    });
+    return this.storageAdapter
+      .uploadFile({
+        data: blob,
+        path: storagePath,
+        metadata: {
+          uid: uid,
+          contentType: contentType || undefined,
+          cacheControl: cacheControl,
+        },
+        onProgress: progressCallback,
+      })
+      .then((url) => ({
+        url,
+        path: storagePath,
+      }));
   }
 
   private requiresModeration(location: StorageBucket): boolean {

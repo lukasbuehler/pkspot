@@ -100,6 +100,7 @@ interface IntakeBackfillSummary {
 
 const INTAKE_PREFIX = "media_intake/";
 const REVIEW_COLLECTION = "media_upload_reviews";
+const STATUS_COLLECTION = "media_upload_status";
 const INCIDENT_COLLECTION = "csam_incidents";
 const MEDIA_REPORT_COLLECTION = "media_reports";
 const MAINTENANCE_COLLECTION = "maintenance";
@@ -420,6 +421,38 @@ const publicUrlFor = (bucketName: string, path: string): string => {
 const reviewRef = (uploadId: string): admin.firestore.DocumentReference =>
   db.collection(REVIEW_COLLECTION).doc(uploadId);
 
+const uploadStatusRef = (uploadId: string): admin.firestore.DocumentReference =>
+  db.collection(STATUS_COLLECTION).doc(uploadId);
+
+const writeUploadStatus = async (
+  uploadId: string,
+  status: "received" | "processing" | "published" | "failed",
+  data: {
+    uid?: string;
+    targetKind?: string;
+    targetId?: string;
+    mediaType?: "image" | "video";
+    publicUrl?: string;
+  } = {}
+): Promise<void> => {
+  const timestamp = now();
+  const isInitialStatus = status === "received" || status === "processing";
+  await uploadStatusRef(uploadId).set(
+    {
+      upload_id: uploadId,
+      status,
+      ...(data.uid ? { uid: data.uid } : {}),
+      ...(data.targetKind ? { target_kind: data.targetKind } : {}),
+      ...(data.targetId ? { target_id: data.targetId } : {}),
+      ...(data.mediaType ? { media_type: data.mediaType } : {}),
+      ...(data.publicUrl ? { public_url: data.publicUrl } : {}),
+      ...(isInitialStatus ? { created_at: timestamp } : {}),
+      updated_at: timestamp,
+    },
+    { merge: true }
+  );
+};
+
 const writeIncidentIfNeeded = async (
   reviewPath: string,
   source: "upload" | "audit",
@@ -617,6 +650,7 @@ const processIntakeObject = async (params: {
       },
       { merge: true }
     );
+    await writeUploadStatus(parsedPath.uploadId, "failed");
     return {
       outcome: "scan_failed",
       uploadId: parsedPath.uploadId,
@@ -640,6 +674,11 @@ const processIntakeObject = async (params: {
     destination_folder: intake.destinationFolder,
     destination_filename: intake.destinationFilename,
     created_at: now(),
+  });
+  await writeUploadStatus(parsedPath.uploadId, "processing", {
+    uid: intake.uid,
+    targetKind: intake.targetKind,
+    targetId: intake.targetId,
   });
 
   try {
@@ -710,6 +749,12 @@ const processIntakeObject = async (params: {
         targetId: intake.targetId,
         incidentPath,
       });
+      await writeUploadStatus(intake.uploadId, "failed", {
+        uid: intake.uid,
+        targetKind: intake.targetKind,
+        targetId: intake.targetId,
+        mediaType: kind,
+      });
       await sourceFile.delete().catch(() => undefined);
       return {
         outcome: status,
@@ -746,6 +791,13 @@ const processIntakeObject = async (params: {
       },
       { merge: true }
     );
+    await writeUploadStatus(intake.uploadId, "published", {
+      uid: intake.uid,
+      targetKind: intake.targetKind,
+      targetId: intake.targetId,
+      mediaType: kind,
+      publicUrl: approvedUrl,
+    });
     await sourceFile.delete().catch(() => undefined);
     return {
       outcome: "approved",
@@ -762,6 +814,12 @@ const processIntakeObject = async (params: {
       },
       { merge: true }
     );
+    await writeUploadStatus(intake.uploadId, "failed", {
+      uid: intake.uid,
+      targetKind: intake.targetKind,
+      targetId: intake.targetId,
+      mediaType: kind ?? undefined,
+    });
     await sourceFile.delete().catch(() => undefined);
     console.error("Media intake moderation failed", {
       filePath: params.filePath,

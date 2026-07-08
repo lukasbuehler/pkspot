@@ -7,6 +7,12 @@ export type MediaUploadReviewStatus =
   | "scan_failed"
   | "audit_flagged";
 
+export type MediaUploadProcessingStatus =
+  | "received"
+  | "processing"
+  | "published"
+  | "failed";
+
 export type MediaSafetyDecision =
   | "allow"
   | "block"
@@ -56,6 +62,18 @@ export interface MediaUploadReviewSchema {
   created_at: unknown;
   completed_at?: unknown;
   failure_reason?: string;
+}
+
+export interface MediaUploadStatusSchema {
+  uid: string;
+  upload_id: string;
+  status: MediaUploadProcessingStatus;
+  target_kind?: MediaUploadTargetKind;
+  target_id?: string;
+  media_type?: "image" | "video";
+  public_url?: string;
+  created_at: unknown;
+  updated_at: unknown;
 }
 
 export interface CsamIncidentSchema {

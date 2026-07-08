@@ -5,13 +5,16 @@ import {
   MatDialogModule,
 } from "@angular/material/dialog";
 import { CommonModule } from "@angular/common";
-import { MediaUpload } from "../media-upload/media-upload.component";
+import {
+  MediaUpload,
+  type MediaUploadEvent,
+} from "../media-upload/media-upload.component";
 import { StorageBucket, MediaSchema } from "../../../db/schemas/Media";
-import { MediaType } from "../../../db/models/Interfaces";
 import { SpotId } from "../../../db/schemas/SpotSchema";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
+import { MediaUploadStatusService } from "../../services/firebase/firestore/media-upload-status.service";
 
 export interface MediaUploadDialogData {
   spotId: SpotId;
@@ -37,6 +40,7 @@ export interface MediaUploadDialogData {
 })
 export class MediaUploadDialogComponent {
   private _snackBar = inject(MatSnackBar);
+  private mediaUploadStatusService = inject(MediaUploadStatusService);
 
   storageFolder: StorageBucket;
   allowedMimeTypes: string[];
@@ -73,12 +77,23 @@ export class MediaUploadDialogComponent {
     this.close();
   }
 
-  async onMediaBatchUploaded(
-    events: { src: string; is_sized: boolean; type: MediaType }[]
-  ) {
+  async onMediaBatchUploaded(events: MediaUploadEvent[]) {
     console.log("MediaUploadDialog: onMediaBatchUploaded called", events);
+    for (const event of events) {
+      if (!event.uploadId) {
+        continue;
+      }
+      this.mediaUploadStatusService.trackLocalUpload({
+        uploadId: event.uploadId,
+        targetKind: event.targetKind ?? "spot",
+        targetId: event.targetId ?? this.data.spotId,
+        type: event.type,
+        publicUrl: event.src,
+        previewSrc: event.previewSrc,
+      });
+    }
     this._snackBar.open(
-      $localize`Media uploaded. It will appear after the safety check finishes.`,
+      $localize`Media received. It will appear when processing finishes.`,
       $localize`Dismiss`,
       {
         duration: 4000,

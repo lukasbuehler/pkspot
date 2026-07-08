@@ -803,6 +803,12 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /media_upload_status/{uploadId} {
+      allow read: if request.auth.uid != null
+        && resource.data.uid == request.auth.uid;
+      allow write: if false;
+    }
+
     match /csam_incidents/{incidentId} {
       allow read: if isAdmin();
       allow write: if false;

@@ -87,6 +87,14 @@ form {
   gap: 12px;
 }
 
+.media-processing-note {
+  padding: 8px 10px;
+  color: var(--mat-sys-on-surface-variant);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  background: var(--mat-sys-surface-container);
+}
+
 .spot-loading-body {
   display: flex;
   flex-direction: column;

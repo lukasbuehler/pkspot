@@ -7,6 +7,7 @@ import {
   MediaUploadDialogComponent,
   MediaUploadDialogData,
 } from "./media-upload-dialog.component";
+import { MediaUploadStatusService } from "../../services/firebase/firestore/media-upload-status.service";
 
 describe("MediaUploadDialogComponent", () => {
   let snackBar: {
@@ -15,6 +16,9 @@ describe("MediaUploadDialogComponent", () => {
   let dialogRef: {
     close: ReturnType<typeof vi.fn>;
     disableClose: boolean;
+  };
+  let mediaUploadStatusService: {
+    trackLocalUpload: ReturnType<typeof vi.fn>;
   };
   let data: MediaUploadDialogData;
 
@@ -25,6 +29,9 @@ describe("MediaUploadDialogComponent", () => {
     dialogRef = {
       close: vi.fn(),
       disableClose: false,
+    };
+    mediaUploadStatusService = {
+      trackLocalUpload: vi.fn(),
     };
     data = {
       spotId: "spot-1",
@@ -42,6 +49,7 @@ describe("MediaUploadDialogComponent", () => {
         { provide: MatSnackBar, useValue: snackBar },
         { provide: MatDialogRef, useValue: dialogRef },
         { provide: MAT_DIALOG_DATA, useValue: data },
+        { provide: MediaUploadStatusService, useValue: mediaUploadStatusService },
       ],
     });
   });
@@ -64,6 +72,8 @@ describe("MediaUploadDialogComponent", () => {
         src: "https://storage.example/new.jpg",
         is_sized: true,
         type: MediaType.Image,
+        uploadId: "upload-1",
+        previewSrc: "blob:preview",
       },
       {
         src: "https://storage.example/clip.mp4",
@@ -73,8 +83,16 @@ describe("MediaUploadDialogComponent", () => {
     ]);
 
     expect(data.currentMedia).toHaveLength(1);
+    expect(mediaUploadStatusService.trackLocalUpload).toHaveBeenCalledWith({
+      uploadId: "upload-1",
+      targetKind: "spot",
+      targetId: "spot-1",
+      type: MediaType.Image,
+      publicUrl: "https://storage.example/new.jpg",
+      previewSrc: "blob:preview",
+    });
     expect(snackBar.open).toHaveBeenCalledWith(
-      "Media uploaded. It will appear after the safety check finishes.",
+      "Media received. It will appear when processing finishes.",
       "Dismiss",
       {
         duration: 4000,
