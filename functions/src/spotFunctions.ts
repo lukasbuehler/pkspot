@@ -15,6 +15,7 @@ import {
   RESERVED_SPOT_SLUGS,
   deriveSpotCommunityData,
 } from "../../src/scripts/SpotLandingHelpers";
+import { computeTileCoordinates } from "../../src/scripts/TileCoordinateHelpers";
 
 import { googleAPIKey } from "./secrets";
 import { getAddressAndLocaleFromGeopoint } from "./spotAddressFunctions";
@@ -116,6 +117,28 @@ const _areValuesEqual = (left: unknown, right: unknown): boolean => {
     JSON.stringify(_normalizeComparableValue(left)) ===
     JSON.stringify(_normalizeComparableValue(right))
   );
+};
+
+const _readSpotCoordinate = (
+  spotData: SpotSchema,
+): { lat: number; lng: number } | null => {
+  const location = spotData.location as unknown;
+  if (isGeoPointValue(location)) {
+    return { lat: location.latitude, lng: location.longitude };
+  }
+
+  const raw = spotData.location_raw;
+  if (
+    raw &&
+    typeof raw.lat === "number" &&
+    Number.isFinite(raw.lat) &&
+    typeof raw.lng === "number" &&
+    Number.isFinite(raw.lng)
+  ) {
+    return { lat: raw.lat, lng: raw.lng };
+  }
+
+  return null;
 };
 
 const _toRadians = (degrees: number): number => (degrees * Math.PI) / 180;
@@ -358,6 +381,14 @@ const _addTypesenseFields = (spotData: SpotSchema): Partial<SpotSchema> => {
 
   if (spotData.num_reviews === undefined || spotData.num_reviews === null) {
     spotDataToUpdate.num_reviews = 0;
+  }
+
+  const coordinate = _readSpotCoordinate(spotData);
+  if (coordinate) {
+    spotDataToUpdate.tile_coordinates = computeTileCoordinates(
+      coordinate.lat,
+      coordinate.lng,
+    );
   }
 
   //// 8. Landing page helper fields

@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const functionsRoot = resolve(repoRoot, "functions");
 const functionsSourceRoot = resolve(repoRoot, "functions/src");
 const allowedV1Files = new Set(["functions/src/authFunctions.ts"]);
 
@@ -106,5 +107,76 @@ describe("Cloud Functions generation policy", () => {
     expect(source).toContain("onDocumentCreated");
     expect(source).not.toContain("functions.auth");
     expect(source).not.toContain("firebase-functions/v1");
+  });
+
+  it("keeps media moderation functions exported as gen 2 triggers", () => {
+    const indexSource = readFileSync(
+      resolve(functionsSourceRoot, "index.ts"),
+      "utf8"
+    );
+    const source = readFileSync(
+      resolve(functionsSourceRoot, "mediaModerationFunctions.ts"),
+      "utf8"
+    );
+
+    expect(indexSource).toContain("processMediaIntakeUpload");
+    expect(indexSource).toContain("runMediaIntakeBackfill");
+    expect(indexSource).toContain("runMediaModerationAudit");
+    expect(source).toContain("firebase-functions/v2/storage");
+    expect(source).toContain("firebase-functions/v2/firestore");
+    expect(source).toContain("onObjectFinalized");
+    expect(source).toContain("onDocumentCreated");
+    expect(source).toContain("secrets: mediaModerationSecrets");
+    expect(source).toContain("bucket: DEFAULT_STORAGE_BUCKET");
+  });
+
+  it("initializes Firebase Admin before media moderation functions are loaded", () => {
+    const indexSource = readFileSync(
+      resolve(functionsSourceRoot, "index.ts"),
+      "utf8"
+    );
+    const source = readFileSync(
+      resolve(functionsSourceRoot, "mediaModerationFunctions.ts"),
+      "utf8"
+    );
+
+    expect(indexSource.indexOf("admin.initializeApp();")).toBeGreaterThanOrEqual(
+      0
+    );
+    expect(indexSource.indexOf("admin.initializeApp();")).toBeLessThan(
+      indexSource.indexOf('from "./mediaModerationFunctions"')
+    );
+    expect(source).not.toContain("admin.initializeApp");
+    expect(source).not.toContain("credential.cert");
+    expect(source).not.toContain("process.env.GCE_METADATA_HOST =");
+    expect(source).not.toContain("process.env.GCE_METADATA_HOST ??=");
+  });
+
+  it("keeps Storage metadata auth on a gaxios version with compatible headers", () => {
+    const functionsPackage = JSON.parse(
+      readFileSync(resolve(functionsRoot, "package.json"), "utf8")
+    ) as { overrides?: Record<string, unknown> };
+    const functionsLock = JSON.parse(
+      readFileSync(resolve(functionsRoot, "package-lock.json"), "utf8")
+    ) as {
+      packages?: Record<
+        string,
+        {
+          version?: string;
+          dependencies?: Record<string, string>;
+        }
+      >;
+    };
+    const packages = functionsLock.packages ?? {};
+
+    expect(functionsPackage.overrides?.["gaxios"]).toBeUndefined();
+    expect(
+      packages["node_modules/@google-cloud/storage/node_modules/gcp-metadata"]
+        ?.version
+    ).toBe("6.1.1");
+    expect(
+      packages["node_modules/@google-cloud/storage/node_modules/gaxios"]?.version
+    ).toMatch(/^6\./u);
+    expect(packages["node_modules/gaxios"]?.version).toMatch(/^7\./u);
   });
 });

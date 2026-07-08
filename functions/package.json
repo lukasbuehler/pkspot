@@ -38,7 +38,6 @@
   "overrides": {
     "fast-xml-parser": "^5.8.0",
     "@google-cloud/firestore": "^8.6.0",
-    "gaxios": "^7.1.5",
     "google-gax": "^5.0.7",
     "node-forge": "^1.4.0",
     "protobufjs": "^7.6.1",

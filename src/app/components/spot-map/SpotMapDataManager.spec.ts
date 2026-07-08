@@ -397,7 +397,8 @@ describe("SpotMapDataManager filters", () => {
       undefined,
       undefined,
       undefined,
-      false
+      false,
+      16
     );
     expect(manager.visibleHighlightedSpots()).toEqual([preview]);
 

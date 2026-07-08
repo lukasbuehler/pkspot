@@ -50,6 +50,7 @@ interface SpotSearchHit {
 interface SpotPreviewSearchOptions {
   limit: number;
   onlyWithImages: boolean;
+  viewportZoom: number;
 }
 
 /**
@@ -164,18 +165,26 @@ export class SpotMapDataManager {
 
   private _getSpotPreviewSearchOptions(zoom: number): SpotPreviewSearchOptions {
     if (zoom < 10) {
-      return { limit: this.HIGHLIGHT_MAX_COUNT, onlyWithImages: true };
+      return {
+        limit: this.HIGHLIGHT_MAX_COUNT,
+        onlyWithImages: true,
+        viewportZoom: zoom,
+      };
     }
 
     if (zoom < 12) {
-      return { limit: 48, onlyWithImages: false };
+      return { limit: 48, onlyWithImages: false, viewportZoom: zoom };
     }
 
     if (zoom < 14) {
-      return { limit: 96, onlyWithImages: false };
+      return { limit: 96, onlyWithImages: false, viewportZoom: zoom };
     }
 
-    return { limit: this.SPOT_PREVIEW_MAX_COUNT, onlyWithImages: false };
+    return {
+      limit: this.SPOT_PREVIEW_MAX_COUNT,
+      onlyWithImages: false,
+      viewportZoom: zoom,
+    };
   }
 
   constructor(
@@ -957,7 +966,8 @@ export class SpotMapDataManager {
               undefined,
               undefined,
               undefined,
-              options.onlyWithImages
+              options.onlyWithImages,
+              options.viewportZoom
             )
           );
           queries.push(
@@ -971,7 +981,8 @@ export class SpotMapDataManager {
               undefined,
               undefined,
               undefined,
-              options.onlyWithImages
+              options.onlyWithImages,
+              options.viewportZoom
             )
           );
         } else {
@@ -986,7 +997,8 @@ export class SpotMapDataManager {
               undefined,
               undefined,
               undefined,
-              options.onlyWithImages
+              options.onlyWithImages,
+              options.viewportZoom
             )
           );
         }
@@ -1006,7 +1018,8 @@ export class SpotMapDataManager {
               undefined,
               undefined,
               undefined,
-              options.onlyWithImages
+              options.onlyWithImages,
+              options.viewportZoom
             )
           );
           queries.push(
@@ -1020,7 +1033,8 @@ export class SpotMapDataManager {
               undefined,
               undefined,
               undefined,
-              options.onlyWithImages
+              options.onlyWithImages,
+              options.viewportZoom
             )
           );
         } else {
@@ -1035,7 +1049,8 @@ export class SpotMapDataManager {
               undefined,
               undefined,
               undefined,
-              options.onlyWithImages
+              options.onlyWithImages,
+              options.viewportZoom
             )
           );
         }
@@ -1057,7 +1072,8 @@ export class SpotMapDataManager {
               undefined,
               undefined,
               undefined,
-              options.onlyWithImages
+              options.onlyWithImages,
+              options.viewportZoom
             )
           );
           queries.push(
@@ -1071,7 +1087,8 @@ export class SpotMapDataManager {
               undefined,
               undefined,
               undefined,
-              options.onlyWithImages
+              options.onlyWithImages,
+              options.viewportZoom
             )
           );
         } else {
@@ -1086,7 +1103,8 @@ export class SpotMapDataManager {
               undefined,
               undefined,
               undefined,
-              options.onlyWithImages
+              options.onlyWithImages,
+              options.viewportZoom
             )
           );
         }
