@@ -107,7 +107,6 @@ interface CommunityAreaOverlay {
   templateUrl: "./spot-map.component.html",
   styleUrls: ["./spot-map.component.scss"],
   imports: [GoogleMap2dComponent, MatSnackBarModule],
-  standalone: true,
   animations: [],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

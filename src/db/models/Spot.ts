@@ -438,6 +438,8 @@ export class LocalSpot {
     }
 
     this.location.set(newLocation);
+    this.tileCoordinates =
+      data.tile_coordinates ?? MapHelpers.getTileCoordinates(newLocation);
 
     const descMap = data.description
       ? makeLocaleMapFromObject(data.description)

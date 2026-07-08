@@ -482,6 +482,7 @@ export class SpotDetailsComponent
     Spot | LocalSpot
   >();
   @Output() discardClick: EventEmitter<void> = new EventEmitter<void>();
+  @Output() reviewSubmitted: EventEmitter<Spot> = new EventEmitter<Spot>();
 
   // Media upload is handled in a dialog now
 
@@ -1936,6 +1937,7 @@ export class SpotDetailsComponent
 
     let isUpdate: boolean = false;
     let review: SpotReviewSchema | undefined;
+    let previousReviewRating: number | null = null;
 
     // TODO somehow show that we are loading the review
 
@@ -1945,6 +1947,8 @@ export class SpotDetailsComponent
       .then((_review) => {
         review = _review;
         isUpdate = true;
+        previousReviewRating =
+          typeof _review.rating === "number" ? _review.rating : null;
       })
       .finally(() => {
         if (!spot) {
@@ -1990,7 +1994,71 @@ export class SpotDetailsComponent
             isUpdate: isUpdate,
           },
         });
+
+        dialogRef
+          .afterClosed()
+          .subscribe((submittedReview?: SpotReviewSchema) => {
+            if (
+              !submittedReview ||
+              typeof submittedReview.rating !== "number" ||
+              submittedReview.rating <= 0
+            ) {
+              return;
+            }
+
+            this._applyOptimisticSpotRating(
+              spot,
+              submittedReview.rating,
+              previousReviewRating,
+              isUpdate,
+            );
+            this.reviewSubmitted.emit(spot);
+          });
       });
+  }
+
+  private _applyOptimisticSpotRating(
+    spot: Spot,
+    submittedRating: number,
+    previousReviewRating: number | null,
+    isUpdate: boolean,
+  ): void {
+    const previousReviewCount = Math.max(0, spot.numReviews ?? 0);
+    const nextReviewCount = isUpdate
+      ? Math.max(1, previousReviewCount)
+      : previousReviewCount + 1;
+    const previousRatingSum = (spot.rating ?? 0) * previousReviewCount;
+    const nextRatingSum = isUpdate
+      ? previousRatingSum -
+        (previousReviewRating ?? spot.rating ?? 0) +
+        submittedRating
+      : previousRatingSum + submittedRating;
+
+    spot.rating =
+      nextReviewCount > 0
+        ? Math.round((nextRatingSum / nextReviewCount) * 10) / 10
+        : 0;
+    spot.numReviews = nextReviewCount;
+
+    const histogram = { ...spot.ratingHistogram() };
+    if (
+      isUpdate &&
+      previousReviewRating &&
+      previousReviewRating >= 1 &&
+      previousReviewRating <= 5
+    ) {
+      const previousKey = String(
+        previousReviewRating,
+      ) as keyof typeof histogram;
+      histogram[previousKey] = Math.max(0, (histogram[previousKey] ?? 0) - 1);
+    }
+
+    if (submittedRating >= 1 && submittedRating <= 5) {
+      const nextKey = String(submittedRating) as keyof typeof histogram;
+      histogram[nextKey] = (histogram[nextKey] ?? 0) + 1;
+    }
+
+    spot.ratingHistogram.set(histogram);
   }
 
   trackVerificationBadgeClick(

@@ -36,4 +36,5 @@ export class MapSpotDetailsPanelComponent {
   addBoundsClick = output<void>();
   focusClick = output<void>();
   saveClick = output<Spot | LocalSpot>();
+  reviewSubmitted = output<Spot>();
 }

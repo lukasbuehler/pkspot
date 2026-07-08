@@ -72,6 +72,7 @@ export class SpotMapDataManager {
    * Cache for SpotPreviewData objects to maintain reference stability.
    */
   private _spotPreviewCache: Map<SpotId, SpotPreviewData> = new Map();
+  private _spotPreviewLocalOverrideExpiresAt: Map<SpotId, number> = new Map();
 
   private _visibleSpots = signal<Spot[]>([]);
   private _visibleAmenityMarkers = signal<MarkerSchema[]>([]);
@@ -104,6 +105,7 @@ export class SpotMapDataManager {
    */
   private readonly HIGHLIGHT_MAX_COUNT = 24;
   private readonly SPOT_PREVIEW_MAX_COUNT = 250;
+  private readonly SPOT_PREVIEW_LOCAL_OVERRIDE_TTL_MS = 120_000;
   private _lastHighlightFetchTime: number = 0;
   private _spotPreviewRequestId = 0;
 
@@ -201,6 +203,10 @@ export class SpotMapDataManager {
    */
   clearPreviewCache(): void {
     this._spotPreviewCache.clear();
+  }
+
+  updatePreviewFromSpot(spot: Spot): void {
+    this._addOrUpdatePreviewFromSpot(spot);
   }
 
   /**
@@ -853,16 +859,66 @@ export class SpotMapDataManager {
    * Helper to map a Search Hit to SpotPreviewData, using cache to maintain references.
    */
   private _getOrCreateSpotPreviewFromHit(hit: SpotSearchHit): SpotPreviewData {
-    const id = hit.document?.id || hit.id;
-    if (id && this._spotPreviewCache.has(id as SpotId)) {
-      return this._spotPreviewCache.get(id as SpotId)!;
-    }
-
     const preview = this._searchService.getSpotPreviewFromHit(hit);
+
     if (preview && preview.id) {
+      const cachedPreview = this._spotPreviewCache.get(preview.id);
+      if (
+        cachedPreview &&
+        this._getSpotPreviewRenderSignature(cachedPreview) ===
+          this._getSpotPreviewRenderSignature(preview)
+      ) {
+        this._spotPreviewLocalOverrideExpiresAt.delete(preview.id);
+        return cachedPreview;
+      }
+
+      const localOverrideExpiresAt =
+        this._spotPreviewLocalOverrideExpiresAt.get(preview.id) ?? 0;
+      if (cachedPreview && localOverrideExpiresAt > Date.now()) {
+        return cachedPreview;
+      }
+
       this._spotPreviewCache.set(preview.id, preview);
     }
+
     return preview;
+  }
+
+  private _getSpotPreviewRenderSignature(spot: SpotPreviewData): string {
+    return JSON.stringify({
+      id: spot.id,
+      location: this._pointSignature(spot.location),
+      locationRaw: this._pointSignature(spot.location_raw),
+      bounds: spot.bounds?.map((point) => this._pointSignature(point)) ?? null,
+      boundsRaw:
+        spot.bounds_raw?.map((point) => this._pointSignature(point)) ?? null,
+      boundsCenter: this._pointSignature(spot.bounds_center),
+      boundsRadiusM: spot.bounds_radius_m ?? null,
+      rating: spot.rating ?? null,
+      access: spot.access ?? null,
+      type: spot.type ?? null,
+      imageSrc: spot.imageSrc ?? null,
+      isIconic: spot.isIconic,
+      isReported: spot.isReported ?? false,
+    });
+  }
+
+  private _pointSignature(
+    point:
+      | google.maps.LatLngLiteral
+      | { latitude: number; longitude: number }
+      | null
+      | undefined
+  ): string | null {
+    if (!point) {
+      return null;
+    }
+
+    if ("lat" in point && "lng" in point) {
+      return `${point.lat}:${point.lng}`;
+    }
+
+    return `${point.latitude}:${point.longitude}`;
   }
 
   private _loadHighlightsForTiles(
@@ -1070,24 +1126,8 @@ export class SpotMapDataManager {
           .sort((a, b) => this._sortPreviewsByRatingThenImage(a, b))
           .slice(0, options.limit);
 
-        // Check for equality to prevent unnecessary signal updates
-        const currentSpots = this._visibleHighlightedSpots();
-        if (currentSpots.length === previews.length) {
-          let hasChanged = false;
-          // Since we recycle object references, reliable strict equality check is possible if order is preserved
-          // But search results might change order slightly. Set checking ID is safer.
-          const currentIds = new Set(currentSpots.map((s) => s.id));
-          for (const p of previews) {
-            if (!currentIds.has(p.id)) {
-              hasChanged = true;
-              break;
-            }
-          }
-
-          if (!hasChanged) {
-            // console.log(`[${Date.now()}] DataManager: highlights update skipped (identical content) count=${previews.length}`);
-            return;
-          }
+        if (this._hasSameHighlightedPreviewRenderData(previews)) {
+          return;
         }
 
         // console.log(`[${Date.now()}] DataManager: highlights updated count=${previews.length}`);
@@ -1100,6 +1140,50 @@ export class SpotMapDataManager {
           this._visibleHighlightedSpots.set([]);
         }
       });
+  }
+
+  private _hasSameHighlightedPreviewRenderData(
+    previews: SpotPreviewData[]
+  ): boolean {
+    const currentSpots = this._visibleHighlightedSpots();
+    if (currentSpots.length !== previews.length) {
+      return false;
+    }
+
+    const currentById = new Map(currentSpots.map((spot) => [spot.id, spot]));
+    return previews.every((preview) => {
+      const current = currentById.get(preview.id);
+      return (
+        current !== undefined &&
+        this._getSpotPreviewRenderSignature(current) ===
+          this._getSpotPreviewRenderSignature(preview)
+      );
+    });
+  }
+
+  private _addOrUpdatePreviewFromSpot(spot: Spot): void {
+    if (!spot.id) {
+      return;
+    }
+
+    const preview = spot.makePreviewData();
+    this._spotPreviewCache.set(preview.id, preview);
+    this._spotPreviewLocalOverrideExpiresAt.set(
+      preview.id,
+      Date.now() + this.SPOT_PREVIEW_LOCAL_OVERRIDE_TTL_MS
+    );
+
+    const currentSpots = this._visibleHighlightedSpots();
+    const currentIndex = currentSpots.findIndex(
+      (currentSpot) => currentSpot.id === preview.id
+    );
+    if (currentIndex < 0) {
+      return;
+    }
+
+    const updatedSpots = [...currentSpots];
+    updatedSpots[currentIndex] = preview;
+    this._visibleHighlightedSpots.set(updatedSpots);
   }
 
   private _enumerateXRange(start: number, end: number, zoom: number): number[] {
@@ -1231,23 +1315,18 @@ export class SpotMapDataManager {
     }
 
     spots.forEach((spot: Spot) => {
-      let spotTile = spot.tileCoordinates?.z16;
-
-      if (!spotTile) {
-        // If tile coordinates are missing (e.g. new spot), compute them client-side
-        const calculatedTileCoords = MapHelpers.getTileCoordinates(
-          spot.location()
-        );
-
-        if (calculatedTileCoords) {
-          spot.tileCoordinates = calculatedTileCoords;
-          spotTile = calculatedTileCoords.z16;
-        }
+      const calculatedTileCoords = MapHelpers.getTileCoordinates(
+        spot.location()
+      );
+      if (calculatedTileCoords) {
+        spot.tileCoordinates = calculatedTileCoords;
       }
+      const spotTile = calculatedTileCoords?.z16 ?? spot.tileCoordinates?.z16;
 
       if (!spotTile) return;
 
       const key: MapTileKey = getClusterTileKey(16, spotTile.x, spotTile.y);
+      this._removeLoadedSpotFromOtherTiles(spot.id, key);
       if (!this._spots.has(key)) {
         this._spots.set(key, []);
       }
@@ -1261,11 +1340,29 @@ export class SpotMapDataManager {
         // Add new spot
         spotsInTile.push(spot);
       }
+
+      this._addOrUpdatePreviewFromSpot(spot);
     });
 
     const _lastVisibleTiles = this._lastVisibleTiles();
     if (_lastVisibleTiles) {
       this._showCachedLoadedSpotsAndMarkersForTiles(_lastVisibleTiles);
+    }
+  }
+
+  private _removeLoadedSpotFromOtherTiles(
+    spotId: string,
+    targetTileKey: MapTileKey
+  ): void {
+    for (const [tileKey, spots] of this._spots.entries()) {
+      if (tileKey === targetTileKey) {
+        continue;
+      }
+
+      const filteredSpots = spots.filter((spot) => spot.id !== spotId);
+      if (filteredSpots.length !== spots.length) {
+        this._spots.set(tileKey, filteredSpots);
+      }
     }
   }
 
@@ -1307,20 +1404,24 @@ export class SpotMapDataManager {
   addOrUpdateNewSpotToLoadedSpotsAndUpdate(newSpot: Spot) {
     // First, try to find the spot by ID if it has one
     const ref = this.getReferenceToLoadedSpotById(newSpot.id);
+    const tile = MapHelpers.getTileCoordinatesForLocationAndZoom(
+      newSpot.location(),
+      16
+    );
+    const tileKey = getClusterTileKey(16, tile.x, tile.y);
+    this._removeLoadedSpotFromOtherTiles(newSpot.id, tileKey);
 
-    if (ref?.spot && ref.indexInTileArray >= 0 && ref.tile) {
+    if (
+      ref?.spot &&
+      ref.indexInTileArray >= 0 &&
+      ref.tile &&
+      getClusterTileKey(16, ref.tile.x, ref.tile.y) === tileKey
+    ) {
       // The spot exists and should be updated
       // Update the spot
-      this._spots.get(getClusterTileKey(16, ref.tile.x, ref.tile.y))![
-        ref.indexInTileArray
-      ] = newSpot;
+      this._spots.get(tileKey)![ref.indexInTileArray] = newSpot;
     } else {
       // The spot doesn't exist by ID, check if there's a LocalSpot at the same location that needs to be replaced
-      const tile = MapHelpers.getTileCoordinatesForLocationAndZoom(
-        newSpot.location(),
-        16
-      );
-      const tileKey = getClusterTileKey(16, tile.x, tile.y);
       let spots = this._spots.get(tileKey);
 
       if (spots && spots.length > 0) {
@@ -1380,6 +1481,8 @@ export class SpotMapDataManager {
         console.debug("Added new spot to empty tile", newSpot);
       }
     }
+
+    this._addOrUpdatePreviewFromSpot(newSpot);
 
     // update the map to show the new spot on the loaded spots array.
     const lastVisibleTiles = this._lastVisibleTiles();

@@ -31,6 +31,7 @@
         (addBoundsClick)="onSpotPanelAddBounds()"
         (focusClick)="onSpotPanelFocus()"
         (saveClick)="onSpotPanelSave($event)"
+        (reviewSubmitted)="onSpotPanelReviewSubmitted($event)"
       ></app-map-spot-details-panel>
     }
     @case ("spot-challenges") {

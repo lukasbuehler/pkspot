@@ -87,6 +87,22 @@ function renderCachedSpots(manager: SpotMapDataManager): void {
   )._showCachedLoadedSpotsAndMarkersForTiles(visibleTile);
 }
 
+function renderCachedSpotsForTile(
+  manager: SpotMapDataManager,
+  tile: { x: number; y: number }
+): void {
+  (
+    manager as unknown as {
+      _showCachedLoadedSpotsAndMarkersForTiles: (tiles: TilesObject) => void;
+    }
+  )._showCachedLoadedSpotsAndMarkersForTiles({
+    zoom: 16,
+    tiles: [tile],
+    sw: tile,
+    ne: tile,
+  });
+}
+
 describe("SpotMapDataManager filters", () => {
   it("uses the live auth uid for spot edit user references", async () => {
     const staleProfileUser = new User("stale-profile-uid", {
@@ -387,5 +403,78 @@ describe("SpotMapDataManager filters", () => {
 
     vi.clearAllTimers();
     vi.useRealTimers();
+  });
+
+  it("moves a loaded spot to its new z16 tile when its location changes", () => {
+    const originalSpot = makeSpot("moved", SpotTypes.PkPark, {
+      lat: 47.38973830840186,
+      lng: 8.51731398695088,
+    });
+    const updatedSpot = makeSpot("moved", SpotTypes.PkPark, {
+      lat: 47.39973830840186,
+      lng: 8.52731398695088,
+    });
+    const manager = new SpotMapDataManager("en", makeInjector());
+
+    manager.addLoadedSpot(originalSpot);
+    const oldTile = originalSpot.tileCoordinates?.z16;
+    expect(oldTile).toBeDefined();
+
+    manager.addLoadedSpot(updatedSpot);
+    const newTile = updatedSpot.tileCoordinates?.z16;
+    expect(newTile).toBeDefined();
+    expect(newTile).not.toEqual(oldTile);
+
+    renderCachedSpotsForTile(manager, oldTile!);
+    expect(manager.visibleSpots()).toEqual([]);
+
+    renderCachedSpotsForTile(manager, newTile!);
+    expect(manager.visibleSpots()).toEqual([updatedSpot]);
+  });
+
+  it("keeps a local preview update when Typesense still returns stale spot data", () => {
+    const stalePreview = makeSpot("rated", SpotTypes.PkPark, {
+      lat: 47.3897,
+      lng: 8.5173,
+    }).makePreviewData();
+    stalePreview.rating = 3;
+
+    const updatedSpot = makeSpot("rated", SpotTypes.PkPark, {
+      lat: 47.3997,
+      lng: 8.5273,
+    });
+    updatedSpot.rating = 4.5;
+    updatedSpot.numReviews = 2;
+
+    const searchService = {
+      searchSpotsInBoundsWithFilter: vi.fn(),
+      searchSpotsInRawBounds: vi.fn().mockResolvedValue({ hits: [] }),
+      getSpotPreviewFromHit: vi.fn(() => stalePreview),
+    };
+    const manager = new SpotMapDataManager(
+      "en",
+      makeInjector(
+        new Map<unknown, unknown>([[SearchService, searchService]])
+      )
+    );
+
+    manager.setManualHighlightedSpots([stalePreview]);
+    manager.updatePreviewFromSpot(updatedSpot);
+
+    const locallyUpdatedPreview = manager.visibleHighlightedSpots()[0];
+    expect(locallyUpdatedPreview?.location_raw).toEqual(updatedSpot.location());
+    expect(locallyUpdatedPreview?.rating).toBe(4.5);
+
+    const staleSearchPreview = (
+      manager as unknown as {
+        _getOrCreateSpotPreviewFromHit: (hit: {
+          document: { id: string };
+        }) => SpotPreviewData;
+      }
+    )._getOrCreateSpotPreviewFromHit({ document: { id: "rated" } });
+
+    expect(staleSearchPreview).toBe(locallyUpdatedPreview);
+    expect(staleSearchPreview.location_raw).toEqual(updatedSpot.location());
+    expect(staleSearchPreview.rating).toBe(4.5);
   });
 });

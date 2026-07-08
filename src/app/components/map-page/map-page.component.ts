@@ -407,6 +407,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.spotMap?.saveSpot(spot);
   }
 
+  onSpotPanelReviewSubmitted(spot: Spot) {
+    this.spotMap?.spotMapData.updatePreviewFromSpot(spot);
+  }
+
   alainMode: boolean = false;
 
   isServer: boolean;
