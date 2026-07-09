@@ -36,40 +36,23 @@
     "uuid": "^11.1.1"
   },
   "overrides": {
-    "fast-xml-parser": "^5.8.0",
-    "@google-cloud/firestore": "^8.6.0",
-    "google-gax": "^5.0.7",
-    "node-forge": "^1.4.0",
-    "protobufjs": "^7.6.1",
-    "@protobufjs/utf8": "^1.1.1",
-    "@tootallnate/once": "^2.0.1",
-    "minimatch@3.1.5": {
-      "brace-expansion": "^1.1.14"
+    "firebase-admin": {
+      "@google-cloud/firestore": "^8.6.0"
     },
-    "minimatch@9.0.9": {
-      "brace-expansion": "^2.0.3"
+    "@google-cloud/storage": {
+      "retry-request": "^8.0.3",
+      "teeny-request": "^10.1.3"
     },
-    "flatted": "^3.4.2",
+    "google-gax": {
+      "retry-request": "^8.0.3"
+    },
+    "gaxios": {
+      "uuid": "^11.1.1"
+    },
+    "teeny-request": {
+      "uuid": "^11.1.1"
+    },
     "js-yaml": "^4.2.0",
-    "lodash": "^4.18.1",
-    "retry-request": "^8.0.3",
-    "teeny-request": "^10.1.3",
-    "ts-deepmerge": "^8.0.0",
-    "uuid": "^11.1.1",
-    "express": {
-      "path-to-regexp": "0.1.13"
-    },
-    "anymatch": {
-      "picomatch": "^2.3.2"
-    },
-    "readdirp": {
-      "picomatch": "^2.3.2"
-    },
-    "micromatch": {
-      "picomatch": "^2.3.2"
-    },
-    "jest-util": {
-      "picomatch": "^4.0.4"
-    }
+    "ts-deepmerge": "^8.0.0"
   }
 }

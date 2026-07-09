@@ -13,7 +13,7 @@ const ngBin = path.join(
   process.platform === "win32" ? "ng.cmd" : "ng"
 );
 
-const maxWorkers = readPositiveInteger("PKSPOT_NG_BUILD_MAX_WORKERS", 2);
+const maxWorkers = readPositiveInteger("PKSPOT_NG_BUILD_MAX_WORKERS", 1);
 const maxOldSpaceMb = readPositiveInteger("PKSPOT_NG_BUILD_MAX_OLD_SPACE_MB", 4096);
 
 if (!existsSync(ngBin)) {

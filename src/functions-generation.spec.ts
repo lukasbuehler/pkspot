@@ -169,7 +169,9 @@ describe("Cloud Functions generation policy", () => {
     };
     const packages = functionsLock.packages ?? {};
 
-    expect(functionsPackage.overrides?.["gaxios"]).toBeUndefined();
+    expect(functionsPackage.overrides?.["gaxios"]).toEqual({
+      uuid: "^11.1.1",
+    });
     expect(
       packages["node_modules/@google-cloud/storage/node_modules/gcp-metadata"]
         ?.version

@@ -423,6 +423,20 @@ const compareSpotsForCommunityPicks = (
 const hasSpotImage = (spot: SpotSchema): boolean =>
   getSpotPreviewImage(spot).trim().length > 0;
 
+const compareSpotsForCommunityPicksWithMediaPriority = (
+  left: SpotSchema,
+  right: SpotSchema,
+  center: { lat: number; lng: number } | null
+): number => {
+  const leftHasImage = hasSpotImage(left);
+  const rightHasImage = hasSpotImage(right);
+  if (rightHasImage !== leftHasImage) {
+    return rightHasImage ? 1 : -1;
+  }
+
+  return compareSpotsForCommunityPicks(left, right, center);
+};
+
 const hasPurposeBuiltParkourType = (spot: SpotSchema): boolean =>
   PURPOSE_BUILT_SPOT_TYPES.has(
     String(spot.type ?? "")
@@ -446,7 +460,11 @@ const buildCommunityPickSections = (
   const pickedSpotIds = new Set<string>();
   const sortCandidates = (candidates: Array<{ id: string; data: SpotSchema }>) =>
     [...candidates].sort((left, right) =>
-      compareSpotsForCommunityPicks(left.data, right.data, center)
+      compareSpotsForCommunityPicksWithMediaPriority(
+        left.data,
+        right.data,
+        center
+      )
     );
   const takeSection = (
     category: CommunityPickCategory,
@@ -471,24 +489,23 @@ const buildCommunityPickSections = (
       : null;
   };
 
-  const imageSpots = spots.filter((spot) => hasSpotImage(spot.data));
   const sections = [
     takeSection(
       "standout",
       "Standout Spots",
-      imageSpots.filter((spot) => getRatingValue(spot.data) > 0),
+      spots.filter((spot) => getRatingValue(spot.data) > 0),
       MAX_STANDOUT_COMMUNITY_PICKS
     ),
     takeSection(
       "parkour",
       "Built for Parkour",
-      imageSpots.filter((spot) => hasPurposeBuiltParkourType(spot.data)),
+      spots.filter((spot) => hasPurposeBuiltParkourType(spot.data)),
       MAX_CATEGORY_COMMUNITY_PICKS
     ),
     takeSection(
       "dry",
       "Rainy Day Spots",
-      imageSpots.filter(
+      spots.filter(
         (spot) =>
           spot.data.landing?.isDry === true || isDrySpotCandidate(spot.data)
       ),
@@ -497,13 +514,13 @@ const buildCommunityPickSections = (
     takeSection(
       "night",
       "After Dark Spots",
-      imageSpots.filter((spot) => hasNightTrainingSignal(spot.data)),
+      spots.filter((spot) => hasNightTrainingSignal(spot.data)),
       MAX_CATEGORY_COMMUNITY_PICKS
     ),
     takeSection(
       "summer",
       "Summer Spots",
-      imageSpots.filter((spot) => hasSummerWaterSignal(spot.data)),
+      spots.filter((spot) => hasSummerWaterSignal(spot.data)),
       MAX_CATEGORY_COMMUNITY_PICKS
     ),
   ].filter(

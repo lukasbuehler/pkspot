@@ -95,6 +95,17 @@ Under `keys.firebaseConfig.apiKey` you will need to add your own Google API Key,
 - Street View Static API
 - Token Service API
 
+#### Firebase Development Setup
+
+You will need a different Google API Key that you pass as a secret to your
+Firebase cloud functions as `GOOGLE_API_KEY`.
+
+It needs the following APIs enabled:
+
+- Geocoding API (reverse geocoding for addresses)
+- Cloud Vision API (for automated image content checking)
+- Weather API (for weather)
+
 ### Translation
 
 The translation files are in [`src/locale`](./src/locale/) and

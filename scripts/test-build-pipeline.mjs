@@ -404,7 +404,7 @@ async function assertBrowserAssetsLoad(html, locale, serverLogs, serverLogOffset
 async function main() {
   const supportedLanguageCodes = getSupportedLanguageCodes();
 
-  runNpmScript("build");
+  runNpmScript("build:prod");
 
   console.log("\n==> verifying copied server files and build info");
   assertFileExists(distProxyServerPath, "Copied proxy server");

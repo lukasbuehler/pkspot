@@ -55,6 +55,7 @@ function buildSpotSeed({
   rating,
   numReviews,
   covered = false,
+  media = [],
   boundsRaw,
 }) {
   const now = Timestamp.now();
@@ -81,7 +82,7 @@ function buildSpotSeed({
       type: covered ? "parkour gym" : "urban landscape",
       time_created: now,
       time_updated: now,
-      media: [],
+      media,
   };
 
   if (boundsRaw) {
@@ -161,6 +162,29 @@ function assertCommunityRadiusContainsSpots(page, spots, label) {
   }
 }
 
+function assertCommunityPicksPreferMediaButUseFallback(page) {
+  const standoutSection = page.communityPicks?.find(
+    (section) => section.category === "standout"
+  );
+
+  if (!standoutSection) {
+    throw new Error("Expected Zurich community picks to include standout spots.");
+  }
+
+  const spotIds = standoutSection.spots.map((spot) => spot.id);
+  if (spotIds[0] !== "zh-zurich-1") {
+    throw new Error(
+      `Expected media-backed Zurich spot to rank first in community picks, got ${spotIds.join(", ")}.`
+    );
+  }
+
+  if (!standoutSection.spots.some((spot) => !spot.imageSrc)) {
+    throw new Error(
+      "Expected community picks to include media-less spots when not enough media-backed spots are available."
+    );
+  }
+}
+
 function buildSeedSpots() {
   const spots = [];
 
@@ -179,6 +203,16 @@ function buildSeedSpots() {
         rating: 4.9 - index * 0.1,
         numReviews: 20 - index,
         covered: index % 2 === 0,
+        media:
+          index === 0
+            ? [
+                {
+                  type: "image",
+                  src: "https://example.test/zurich-spot-1.jpg",
+                  isInStorage: false,
+                },
+              ]
+            : [],
         boundsRaw:
           index === 4
             ? [
@@ -387,6 +421,7 @@ async function main() {
     zurichSpots,
     "Zurich locality community"
   );
+  assertCommunityPicksPreferMediaButUseFallback(zurichPage);
 
   const maintenanceDocs = await fetchCollection("maintenance");
   const rebuildDoc = maintenanceDocs.find(

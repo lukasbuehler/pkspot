@@ -29,3 +29,9 @@ env:
     availability:
       - BUILD
       - RUNTIME
+
+  # App Hosting's Angular adapter calls `npm run build`; force that path to stay production-only.
+  - variable: PKSPOT_BUILD_CONFIGURATION
+    value: "production"
+    availability:
+      - BUILD

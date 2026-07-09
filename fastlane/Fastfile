@@ -85,7 +85,7 @@ platform :ios do
 end
 
 platform :android do
-  desc "Validate Google Play metadata and screenshots for PK Spot 1.1.3"
+  desc "Validate Google Play text metadata for PK Spot 1.1.3"
   lane :validate_metadata do
     supply(
       **google_play_credential_options,
@@ -94,11 +94,13 @@ platform :android do
       metadata_path: "fastlane/metadata/android",
       skip_upload_apk: true,
       skip_upload_aab: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
       validate_only: true
     )
   end
 
-  desc "Upload Google Play metadata and screenshots for PK Spot 1.1.3"
+  desc "Upload Google Play text metadata for PK Spot 1.1.3"
   lane :metadata do
     supply(
       **google_play_credential_options,
@@ -106,7 +108,23 @@ platform :android do
       version_code: PKSPOT_VERSION_CODE,
       metadata_path: "fastlane/metadata/android",
       skip_upload_apk: true,
-      skip_upload_aab: true
+      skip_upload_aab: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Upload Google Play screenshots and images for PK Spot 1.1.3"
+  lane :screenshots do
+    supply(
+      **google_play_credential_options,
+      package_name: PKSPOT_ANDROID_PACKAGE_NAME,
+      version_code: PKSPOT_VERSION_CODE,
+      metadata_path: "fastlane/metadata/android",
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true
     )
   end
 end
