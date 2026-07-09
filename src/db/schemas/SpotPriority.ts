@@ -3,11 +3,13 @@ export interface SpotPriorityInput {
   access?: string | null;
   isIconic?: boolean;
   isReported?: boolean;
+  hasMedia?: boolean;
 }
 
 export const DEFAULT_UNRATED_SPOT_SCORE = 150;
 export const ICONIC_SPOT_BOOST = 75;
 export const ICONIC_SPOT_MIN_SCORE = 275;
+export const MEDIA_SPOT_BOOST = 50;
 export const REPORTED_SPOT_PENALTY = -200;
 
 const ACCESS_PENALTIES: Record<string, number> = {
@@ -28,9 +30,11 @@ export function getSpotPriority(spot: SpotPriorityInput): number {
   const access = spot.access?.trim().toLowerCase() ?? "";
   const accessPenalty = ACCESS_PENALTIES[access] ?? 0;
   const iconicBoost = spot.isIconic === true ? ICONIC_SPOT_BOOST : 0;
+  const mediaBoost = spot.hasMedia === true ? MEDIA_SPOT_BOOST : 0;
   const reportPenalty =
     spot.isReported === true ? REPORTED_SPOT_PENALTY : 0;
-  const score = base + iconicBoost + accessPenalty + reportPenalty;
+  const score =
+    base + iconicBoost + mediaBoost + accessPenalty + reportPenalty;
   const minimumScore =
     spot.isIconic === true ? Math.max(score, ICONIC_SPOT_MIN_SCORE) : score;
 

@@ -14,7 +14,7 @@ import { SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
 import { UsersService } from "../../services/firebase/firestore/users.service";
-import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
+import { LocaleCode } from "../../../db/models/Interfaces";
 import { OsmDataService } from "../../services/osm-data.service";
 import { MapHelpers } from "../../../scripts/MapHelpers";
 import { createUserReference } from "../../../scripts/Helpers";
@@ -112,28 +112,31 @@ export class SpotMapDataManager {
 
   private _updateRequestId = 0;
 
-  private _hasUserProvidedImage(spot: Spot): boolean {
-    return spot
-      .userMedia()
-      .some((media) => media.type === MediaType.Image && !media.isReported);
+  private _hasUserProvidedMedia(spot: Spot): boolean {
+    return spot.userMedia().some((media) => !media.isReported);
   }
 
-  private _sortByRatingThenImage(a: Spot, b: Spot): number {
-    const ratingDifference =
-      (b.rating ?? this.defaultRating) - (a.rating ?? this.defaultRating);
-    if (ratingDifference !== 0) {
-      return ratingDifference;
-    }
+  private _sortByPriority(a: Spot, b: Spot): number {
+    const priorityDifference =
+      getSpotMarkerPriority({
+        rating: b.rating ?? this.defaultRating,
+        access: b.access(),
+        isIconic: b.isIconic,
+        isReported: b.isReported,
+        hasMedia: this._hasUserProvidedMedia(b),
+      }) -
+      getSpotMarkerPriority({
+        rating: a.rating ?? this.defaultRating,
+        access: a.access(),
+        isIconic: a.isIconic,
+        isReported: a.isReported,
+        hasMedia: this._hasUserProvidedMedia(a),
+      });
 
-    const aHasImage = this._hasUserProvidedImage(a);
-    const bHasImage = this._hasUserProvidedImage(b);
-    if (aHasImage === bHasImage) {
-      return 0;
-    }
-    return aHasImage ? -1 : 1;
+    return priorityDifference;
   }
 
-  private _sortPreviewsByRatingThenImage(
+  private _sortPreviewsByPriority(
     a: SpotPreviewData,
     b: SpotPreviewData
   ): number {
@@ -143,12 +146,14 @@ export class SpotMapDataManager {
         access: b.access,
         isIconic: b.isIconic,
         isReported: b.isReported,
+        hasMedia: !!b.imageSrc,
       }) -
       getSpotMarkerPriority({
         rating: a.rating,
         access: a.access,
         isIconic: a.isIconic,
         isReported: a.isReported,
+        hasMedia: !!a.imageSrc,
       });
 
     if (priorityDifference !== 0) {
@@ -692,7 +697,7 @@ export class SpotMapDataManager {
       }
     });
 
-    return spots.sort((a, b) => this._sortByRatingThenImage(a, b));
+    return spots.sort((a, b) => this._sortByPriority(a, b));
   }
 
   private _getCachedAmenityMarkersForTiles(tiles: TilesObject): MarkerSchema[] {
@@ -1141,7 +1146,7 @@ export class SpotMapDataManager {
 
         const previews = Array.from(uniqueHits.values())
           .map((hit) => this._getOrCreateSpotPreviewFromHit(hit))
-          .sort((a, b) => this._sortPreviewsByRatingThenImage(a, b))
+          .sort((a, b) => this._sortPreviewsByPriority(a, b))
           .slice(0, options.limit);
 
         if (this._hasSameHighlightedPreviewRenderData(previews)) {

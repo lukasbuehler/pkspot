@@ -7,6 +7,7 @@ import { AnalyticsService } from "../../analytics.service";
 import { ConsentService } from "../../consent.service";
 import { AuthenticationService } from "../authentication.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
+import { FunctionsAdapterService } from "../functions-adapter.service";
 import { SpotEditsService } from "./spot-edits.service";
 import { UsersService } from "./users.service";
 
@@ -32,6 +33,10 @@ const createMockAnalyticsService = () => ({
 
 const createMockUsersService = () => ({
   getUserRefernceById: vi.fn().mockResolvedValue(null),
+});
+
+const createMockFunctionsAdapter = () => ({
+  call: vi.fn().mockResolvedValue({ ok: true }),
 });
 
 const createMockAuthenticationService = () => ({
@@ -77,6 +82,7 @@ describe("SpotEditsService", () => {
         { provide: FirestoreAdapterService, useValue: mockFirestoreAdapter },
         { provide: UsersService, useValue: mockUsersService },
         { provide: AuthenticationService, useValue: mockAuthenticationService },
+        { provide: FunctionsAdapterService, useValue: createMockFunctionsAdapter() },
         { provide: ConsentService, useValue: createMockConsentService() },
         { provide: AnalyticsService, useValue: createMockAnalyticsService() },
       ],

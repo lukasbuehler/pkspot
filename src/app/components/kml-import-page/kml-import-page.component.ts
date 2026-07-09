@@ -2189,9 +2189,11 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
         )
       );
 
-      await this._importsService.updateImport(importId, {
-        status: chunks.length > 0 ? "PROCESSING" : "COMPLETED",
-      });
+      if (chunks.length === 0) {
+        await this._importsService.updateImport(importId, {
+          status: "COMPLETED",
+        });
+      }
 
       this._spotImportSuccessful(importId);
     } catch (error) {
@@ -2268,7 +2270,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     }
 
     const importDoc: Omit<ImportSchema, "created_at"> = {
-      status: "PENDING",
+      status: chunkCount > 0 ? "PROCESSING" : "COMPLETED",
       user: createUserReference(this._authService.user.data!),
       file_name: this.kmlUploadFile?.name ?? "unknown",
       file_type:

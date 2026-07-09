@@ -1,5 +1,4 @@
 import { inject, Injectable } from "@angular/core";
-import { Functions, httpsCallable } from "@angular/fire/functions";
 import { Timestamp } from "@angular/fire/firestore";
 import { MediaType } from "../../../../db/models/Interfaces";
 import { StorageImage } from "../../../../db/models/Media";
@@ -15,6 +14,7 @@ import {
   FirestoreAdapterService,
   QueryConstraintOptions,
 } from "../firestore-adapter.service";
+import { FunctionsAdapterService } from "../functions-adapter.service";
 
 export type ModerationReportKind = "spot" | "media" | "profile";
 export type ModerationReportStatus = "open" | "resolved" | "dismissed";
@@ -61,23 +61,21 @@ export interface ModerationContactMessageItem {
   raw: ContactMessageSchema;
 }
 
+type HandleModerationActionRequest = {
+  action_type: ModerationActionType;
+  source_path: string;
+  note?: string;
+};
+
+type HandleModerationActionResponse = { ok: boolean };
+
 @Injectable({
   providedIn: "root",
 })
 export class ModerationReportsService {
   private readonly _firestoreAdapter = inject(FirestoreAdapterService);
   private readonly _searchService = inject(SearchService);
-  private readonly _functions = inject(Functions, { optional: true });
-  private readonly _handleModerationActionCallable = this._functions
-    ? httpsCallable<
-        {
-          action_type: ModerationActionType;
-          source_path: string;
-          note?: string;
-        },
-        { ok: boolean }
-      >(this._functions, "handleModerationAction")
-    : null;
+  private readonly _functionsAdapter = inject(FunctionsAdapterService);
 
   async getReports(limitCount: number = 200): Promise<ModerationReportItem[]> {
     const constraints: QueryConstraintOptions[] = [
@@ -134,11 +132,10 @@ export class ModerationReportsService {
     >,
     note?: string,
   ): Promise<void> {
-    if (!this._handleModerationActionCallable) {
-      throw new Error("Moderation actions are unavailable.");
-    }
-
-    await this._handleModerationActionCallable({
+    await this._functionsAdapter.call<
+      HandleModerationActionRequest,
+      HandleModerationActionResponse
+    >("handleModerationAction", {
       action_type: actionType,
       source_path: item.path,
       ...(note ? { note } : {}),
@@ -153,11 +150,10 @@ export class ModerationReportsService {
     >,
     note?: string,
   ): Promise<void> {
-    if (!this._handleModerationActionCallable) {
-      throw new Error("Moderation actions are unavailable.");
-    }
-
-    await this._handleModerationActionCallable({
+    await this._functionsAdapter.call<
+      HandleModerationActionRequest,
+      HandleModerationActionResponse
+    >("handleModerationAction", {
       action_type: actionType,
       source_path: item.path,
       ...(note ? { note } : {}),

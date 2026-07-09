@@ -388,13 +388,13 @@ export class LocalSpot {
     this.amenities = signal(data.amenities);
     this.amenitiesArray = computed(() => {
       const amenities = this.amenities();
-      return makeAmenitiesArray(amenities);
+      return makeAmenitiesArray(amenities, this.access());
     });
 
     // Add smart amenities array that considers context and conflicts
     this.smartAmenitiesArray = computed(() => {
       const amenities = this.amenities();
-      return makeSmartAmenitiesArray(amenities, this.type());
+      return makeSmartAmenitiesArray(amenities, this.type(), this.access());
     });
 
     // Use bounds_raw as fallback for mobile (Capacitor can't deserialize GeoPoints)

@@ -92,8 +92,12 @@ export class MediaUploadStatusService implements OnDestroy {
   processingMediaForTarget(
     targetKind: MediaUploadTargetKind,
     targetId?: string,
+    publishedMediaSources: readonly string[] = [],
   ): PendingMediaPreview[] {
     const key = this.targetKey(targetKind, targetId);
+    const publishedSourceSet = new Set(publishedMediaSources);
+    const isAlreadyPublished = (source: string | undefined): boolean =>
+      source !== undefined && publishedSourceSet.has(source);
     const remoteByUploadId = new Map(
       (this.remoteStatuses()[key] ?? []).map((status) => [
         status.upload_id,
@@ -111,7 +115,11 @@ export class MediaUploadStatusService implements OnDestroy {
         localUploadIds.add(upload.uploadId);
         const remote = remoteByUploadId.get(upload.uploadId);
         const status = remote?.status ?? upload.status;
-        if (status === "published" || status === "failed") {
+        if (
+          status === "published" ||
+          status === "failed" ||
+          isAlreadyPublished(upload.publicUrl)
+        ) {
           return [];
         }
         return [{ ...upload, status }];
@@ -122,7 +130,8 @@ export class MediaUploadStatusService implements OnDestroy {
         if (
           localUploadIds.has(status.upload_id) ||
           status.status === "published" ||
-          status.status === "failed"
+          status.status === "failed" ||
+          isAlreadyPublished(status.public_url)
         ) {
           return [];
         }

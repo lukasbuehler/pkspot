@@ -4,6 +4,7 @@ import {
   AmenityIcons,
   AmenityNegativeIcons,
 } from "../schemas/Amenities";
+import { SpotAccess } from "../schemas/SpotTypeAndAccess";
 
 export { AmenitiesMap };
 
@@ -45,11 +46,13 @@ export const AmenityNegativeNames: { [key in keyof AmenitiesMap]: string } = {
 };
 
 export function makeAmenitiesArray(
-  amenities: AmenitiesMap
+  amenities: AmenitiesMap,
+  spotAccess?: string
 ): { name?: string; icon?: string }[] {
   if (!amenities) return [];
 
   return AmenitiesOrder.map((key) => {
+    if (shouldHideEntryFeeAmenity(key, spotAccess)) return null;
     const value = amenities[key as keyof AmenitiesMap];
     if (value !== true) return null; // Only show explicitly true values
     return { name: AmenityNames[key], icon: AmenityIcons[key] };
@@ -59,7 +62,8 @@ export function makeAmenitiesArray(
 // Smart amenity display logic with nullable booleans
 export function makeSmartAmenitiesArray(
   amenities: AmenitiesMap,
-  spotType?: string
+  spotType?: string,
+  spotAccess?: string
 ): {
   name?: string;
   icon?: string;
@@ -125,14 +129,20 @@ export function makeSmartAmenitiesArray(
   }
 
   // Entry fee
-  if (amenities.entry_fee === true) {
+  if (
+    !shouldHideEntryFeeAmenity("entry_fee", spotAccess) &&
+    amenities.entry_fee === true
+  ) {
     result.push({
       name: AmenityNames.entry_fee,
       icon: AmenityIcons.entry_fee,
       priority: "high",
       // Not marking as negative since it's important information to show
     });
-  } else if (amenities.entry_fee === false) {
+  } else if (
+    !shouldHideEntryFeeAmenity("entry_fee", spotAccess) &&
+    amenities.entry_fee === false
+  ) {
     if (env === "indoor" || env === "both") {
       result.push({
         name: AmenityNegativeNames.entry_fee,
@@ -256,18 +266,30 @@ export function makeSmartAmenitiesArray(
  */
 export function getImportantAmenities(
   amenities: AmenitiesMap,
-  spotType?: string
+  spotType?: string,
+  spotAccess?: string
 ): {
   name?: string;
   icon?: string;
   priority?: "high" | "medium" | "low";
   isNegative?: boolean;
 }[] {
-  const smartAmenities = makeSmartAmenitiesArray(amenities, spotType);
+  const smartAmenities = makeSmartAmenitiesArray(
+    amenities,
+    spotType,
+    spotAccess
+  );
   // Filter to high priority AND exclude negative amenities
   return smartAmenities.filter(
     (amenity) => amenity.priority === "high" && !amenity.isNegative
   );
+}
+
+function shouldHideEntryFeeAmenity(
+  key: keyof AmenitiesMap,
+  spotAccess?: string
+): boolean {
+  return key === "entry_fee" && spotAccess === SpotAccess.Commercial;
 }
 
 // ---- Centralized amenity questions config for edit flow ----

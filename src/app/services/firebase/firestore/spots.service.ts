@@ -1,10 +1,5 @@
 import { Injectable, inject, Injector } from "@angular/core";
-import {
-  Firestore,
-  doc,
-  QuerySnapshot,
-  DocumentData,
-} from "@angular/fire/firestore";
+import type { QuerySnapshot, DocumentData } from "@angular/fire/firestore";
 import { Observable, forkJoin, of, from, throwError } from "rxjs";
 import { map, take, timeout, catchError } from "rxjs/operators";
 import { Spot } from "../../../../db/models/Spot";
@@ -32,12 +27,12 @@ export class SpotsService extends ConsentAwareService {
     return this._injector.get(StorageService);
   }
 
-  constructor(private firestore: Firestore) {
+  constructor() {
     super();
   }
 
   docRef(path: string) {
-    return doc(this.firestore, path);
+    return this._firestoreAdapter.documentReference(path);
   }
 
   getSpotById(spotId: SpotId, locale: LocaleCode): Promise<Spot> {

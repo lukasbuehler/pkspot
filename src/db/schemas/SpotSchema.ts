@@ -145,6 +145,8 @@ export interface SpotSchema {
   hide_streetview?: boolean;
 
   source?: string;
+  import_id?: string;
+  community_rebuild_deferred?: boolean;
 
   // Typesense helper fields
   amenities_true?: string[];

@@ -9,6 +9,11 @@ describe("getSpotMarkerPriority", () => {
     expect(getSpotMarkerPriority({})).toBe(150);
   });
 
+  it("adds a 50 point boost for spots with media", () => {
+    expect(getSpotMarkerPriority({ rating: 4.5, hasMedia: true })).toBe(500);
+    expect(getSpotMarkerPriority({ rating: 0, hasMedia: true })).toBe(200);
+  });
+
   it("boosts iconic spots and penalizes sensitive access types", () => {
     expect(getSpotMarkerPriority({ rating: 5, isIconic: true })).toBe(575);
     expect(

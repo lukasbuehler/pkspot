@@ -237,8 +237,30 @@
                     </span>
                   }
                   {{
-                    showRating() &&
-                    spot()?.rating &&
+                    showRating() && spot()?.rating && spot()?.type() !== "other"
+                      ? "⸱"
+                      : null
+                  }}
+                  @if (spot()?.type() !== "other") {
+                    <div
+                      class="d-flex align-items-center"
+                      [@fadeSlideOnChange]="typeAnimKey()"
+                      style="min-width: 0"
+                    >
+                      <mat-icon
+                        class="amenity-icon me-1 flex-shrink-0"
+                        [matTooltip]="spotTypeNames[spot()!.type()]"
+                        >{{ spotTypesIcons[spot()!.type()] }}</mat-icon
+                      >
+
+                      <span class="mat-label-large text-nowrap text-truncate">{{
+                        spotTypeNames[spot()!.type()]
+                      }}</span>
+                    </div>
+                  }
+                  {{
+                    ((showRating() && spot()?.rating) ||
+                      spot()?.type() !== "other") &&
                     spot()!.importantAmenitiesArray().length > 0
                       ? "⸱"
                       : null
@@ -259,6 +281,7 @@
                   }
                   {{
                     ((showRating() && spot()?.rating) ||
+                      spot()?.type() !== "other" ||
                       spot()!.importantAmenitiesArray().length > 0) &&
                     spot()?.access() !== "other"
                       ? "⸱"

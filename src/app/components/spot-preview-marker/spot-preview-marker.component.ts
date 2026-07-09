@@ -322,12 +322,14 @@ export class SpotPreviewMarkerComponent {
             access: spot.access(),
             isIconic: spot.isIconic,
             isReported: spot.isReported,
+            hasMedia: spot.userMedia().some((media) => !media.isReported),
           })
         : getSpotMarkerPriority({
             rating: spot.rating,
             access: spot.access,
             isIconic: spot.isIconic,
             isReported: spot.isReported,
+            hasMedia: !!spot.imageSrc,
           });
     const hoverBoost = this.effectivePreviewVisible() ? 1_000_000 : 0;
     return this.zIndexBase() + priority + hoverBoost;

@@ -292,12 +292,134 @@ async function fetchCollection(collectionName) {
   return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
 
+async function testImportedSpotCommunityRebuild() {
+  console.log("Testing deferred community rebuild for imported spots...");
+  const importId = "community-import-regression";
+  const communityKey = "locality:ch:zh:zurich";
+  const importRef = db.collection("imports").doc(importId);
+  await importRef.set({
+    status: "PROCESSING",
+    spot_count_total: 5,
+    spot_count_imported: 0,
+    spot_count_skipped: 0,
+    chunk_count_total: 1,
+    chunk_count_processed: 0,
+    created_at: FieldValue.serverTimestamp(),
+  });
+
+  const batch = db.batch();
+  for (let index = 0; index < 5; index += 1) {
+    const spot = buildSpotSeed({
+      id: `import-regression-${index + 1}`,
+      name: `Import Regression Spot ${index + 1}`,
+      lat: 47.3769 + index * 0.001,
+      lng: 8.5417 + index * 0.001,
+      locality: "Importdorf",
+      regionCode: "ZH",
+      regionName: "Zurich",
+      countryCode: "CH",
+      countryName: "Switzerland",
+      rating: 0,
+      numReviews: 0,
+    });
+    batch.set(db.collection("spots").doc(spot.id), {
+      ...spot.data,
+      source: importId,
+      import_id: importId,
+      community_rebuild_deferred: true,
+      landing: {
+        countryCode: "CH",
+        countryNameEn: "Switzerland",
+        countrySlug: "switzerland",
+        regionCode: "ZH",
+        regionName: "Zurich",
+        regionSlug: "zh",
+        localityName: "Importdorf",
+        localitySlug: "importdorf",
+        isDry: false,
+        organizationVerified: false,
+      },
+    });
+  }
+  await batch.commit();
+
+  await sleep(5000);
+  const prematurePages = await fetchCollection("community_pages");
+  if (prematurePages.length > 0) {
+    throw new Error(
+      "Expected imported spot creates to wait for import completion before rebuilding community pages."
+    );
+  }
+
+  await importRef.set(
+    {
+      status: "COMPLETED",
+      spot_count_imported: 5,
+      chunk_count_processed: 1,
+      updated_at: FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+
+  await waitFor(async () => {
+    const snapshot = await db
+      .collection("maintenance")
+      .doc(`last-import-community-rebuild-${importId}`)
+      .get();
+    return snapshot.data()?.generated_count ? snapshot.data() : null;
+  }, "import community rebuild completion", 30000, 1000);
+
+  const communityPages = await fetchCollection("community_pages");
+  const page = communityPages.find((candidate) => candidate.id === communityKey);
+  if (!page) {
+    console.table(
+      communityPages.map((candidate) => ({
+        id: candidate.id,
+        displayName: candidate.displayName,
+        totalSpots: candidate.counts?.totalSpots,
+      }))
+    );
+    throw new Error(`Expected imported community page ${communityKey} to exist.`);
+  }
+
+  if (page.displayName !== "Z\u00fcrich") {
+    throw new Error(
+      `Expected imported community display name to be Z\u00fcrich, got ${page.displayName}.`
+    );
+  }
+  if (page.counts?.totalSpots !== 5) {
+    throw new Error(
+      `Expected imported community to contain 5 spots, got ${page.counts?.totalSpots}.`
+    );
+  }
+
+  const importedSpots = await fetchCollection("spots");
+  const stillDeferred = importedSpots.filter(
+    (spot) =>
+      String(spot.id).startsWith("import-regression-") &&
+      spot.community_rebuild_deferred === true
+  );
+  if (stillDeferred.length > 0) {
+    throw new Error("Expected import completion to clear deferred rebuild flags.");
+  }
+}
+
 async function main() {
   console.log("Resetting emulator collections...");
   await deleteCollection("community_slugs");
   await deleteCollection("community_merges");
   await deleteCollection("community_pages");
   await deleteCollection("maintenance");
+  await deleteCollection("imports");
+  await deleteCollection("spots");
+
+  await testImportedSpotCommunityRebuild();
+
+  await deleteCollection("community_slugs");
+  await deleteCollection("community_merges");
+  await deleteCollection("community_pages");
+  await deleteCollection("maintenance");
+  await deleteCollection("imports");
   await deleteCollection("spots");
 
   console.log("Seeding spots...");

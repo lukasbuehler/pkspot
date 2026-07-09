@@ -15,30 +15,26 @@ import {
 } from "../../../../db/schemas/UserSchema";
 import { AuthenticationService } from "../authentication.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
-import { Functions, httpsCallable } from "@angular/fire/functions";
+import { FunctionsAdapterService } from "../functions-adapter.service";
 import { Spot } from "../../../../db/models/Spot";
 import { LocaleCode } from "../../../../db/models/Interfaces";
 import { SpotId, SpotSchema } from "../../../../db/schemas/SpotSchema";
 
 export type OrganizationDocument = OrganizationSchema & { id: string };
+type SetSpotOrganizationRelationshipRequest = {
+  spotId: string;
+  organizationId: string | null;
+  relationship: "steward" | "manager" | "used";
+  enabled?: boolean;
+};
+type SetSpotOrganizationRelationshipResponse = { ok: true };
 
 @Injectable({ providedIn: "root" })
 export class OrganizationsService {
   private _firestoreAdapter = inject(FirestoreAdapterService);
   private _authService = inject(AuthenticationService);
-  private _functions = inject(Functions, { optional: true });
+  private _functionsAdapter = inject(FunctionsAdapterService);
   private _locale = inject<LocaleCode>(LOCALE_ID);
-  private _setSpotOrganizationRelationshipCallable = this._functions
-    ? httpsCallable<
-        {
-          spotId: string;
-          organizationId: string | null;
-          relationship: "steward" | "manager" | "used";
-          enabled?: boolean;
-        },
-        { ok: true }
-      >(this._functions, "setSpotOrganizationRelationship")
-    : null;
 
   private _requireAdmin(action: string): void {
     if (this._authService.user.data?.isAdmin !== true) {
@@ -333,10 +329,10 @@ export class OrganizationsService {
     enabled = organizationId !== null
   ): Promise<void> {
     this._requireAdmin("setSpotOrganizationRelationship");
-    if (!this._setSpotOrganizationRelationshipCallable) {
-      throw new Error("Functions are unavailable in this environment.");
-    }
-    await this._setSpotOrganizationRelationshipCallable({
+    await this._functionsAdapter.call<
+      SetSpotOrganizationRelationshipRequest,
+      SetSpotOrganizationRelationshipResponse
+    >("setSpotOrganizationRelationship", {
       spotId,
       organizationId,
       relationship,

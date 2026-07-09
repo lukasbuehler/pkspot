@@ -6,6 +6,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MetaTagService } from "./meta-tag.service";
 import { PlatformService } from "./platform.service";
 import { User } from "../../db/models/User";
+import { Spot } from "../../db/models/Spot";
+import { SpotId, SpotSchema } from "../../db/schemas/SpotSchema";
+import { SpotAccess, SpotTypes } from "../../db/schemas/SpotTypeAndAccess";
 
 const createDocumentMetaMock = (doc: Document) => ({
   updateTag: vi.fn(
@@ -39,6 +42,31 @@ const metaContent = (doc: Document, selector: string): string | null =>
 
 const linkHref = (doc: Document, selector: string): string | null =>
   doc.head.querySelector(selector)?.getAttribute("href") ?? null;
+
+const buildSpot = (data: Partial<SpotSchema> = {}): Spot =>
+  new Spot(
+    "spot-1" as SpotId,
+    {
+      name: { en: { text: "Nurf", provider: "test" } },
+      description: {
+        en: {
+          text: "A purpose-built training area with modular obstacles.",
+          provider: "test",
+        },
+      },
+      location_raw: { lat: 47.3769, lng: 8.5417 },
+      type: SpotTypes.PkPark,
+      access: SpotAccess.Commercial,
+      address: {
+        locality: "Aarau",
+        country: { code: "CH", name: "Switzerland" },
+        formatted: "Aarau, Switzerland",
+      },
+      slug: "nurf",
+      ...data,
+    },
+    "en",
+  );
 
 describe("MetaTagService", () => {
   let doc: Document;
@@ -126,6 +154,20 @@ describe("MetaTagService", () => {
     );
     expect(linkHref(doc, 'link[rel="canonical"]')).toBe(
       "https://pkspot.app/en/events/swissjam26",
+    );
+  });
+
+  it("includes spot type and access in crawler-readable spot metadata", () => {
+    service.setSpotMetaTags(buildSpot(), "/map/spots/nurf");
+
+    expect(metaContent(doc, 'meta[name="description"]')).toContain(
+      "Type: Parkour Park. Access: Membership/Fee.",
+    );
+    expect(metaContent(doc, 'meta[property="og:description"]')).toContain(
+      "Type: Parkour Park. Access: Membership/Fee.",
+    );
+    expect(metaContent(doc, 'meta[name="twitter:description"]')).toContain(
+      "Type: Parkour Park. Access: Membership/Fee.",
     );
   });
 

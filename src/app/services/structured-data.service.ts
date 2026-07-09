@@ -9,7 +9,9 @@ import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 import { environment } from "../../environments/environment.default";
 import {
   SpotAccess,
+  SpotAccessNames,
   SpotTypes,
+  SpotTypesNames,
   parseSpotAccess,
   parseSpotType,
 } from "../../db/schemas/SpotTypeAndAccess";
@@ -291,6 +293,13 @@ export class StructuredDataService {
       keywords: "parkour,freerunning,spot,training",
       // additionalType: "https://schema.org/LocalBusiness", // only when it has an entry/fee value for the spot access
     };
+    const classificationProperties = this.buildSpotClassificationProperties(
+      spot.type(),
+      spot.access(),
+    );
+    if (classificationProperties.length > 0) {
+      placeData["additionalProperty"] = classificationProperties;
+    }
 
     // Add URL if spot has an id (is persisted)
     if (spot instanceof Spot) {
@@ -367,6 +376,33 @@ export class StructuredDataService {
     }
 
     return placeData;
+  }
+
+  private buildSpotClassificationProperties(
+    rawType?: string | null,
+    rawAccess?: string | null,
+  ): Record<string, unknown>[] {
+    const type = parseSpotType(rawType);
+    const access = parseSpotAccess(rawAccess);
+    const properties: Record<string, unknown>[] = [];
+
+    if (type !== SpotTypes.Other) {
+      properties.push({
+        "@type": "PropertyValue",
+        name: "Spot type",
+        value: SpotTypesNames[type],
+      });
+    }
+
+    if (access !== SpotAccess.Other) {
+      properties.push({
+        "@type": "PropertyValue",
+        name: "Spot access",
+        value: SpotAccessNames[access],
+      });
+    }
+
+    return properties;
   }
 
   private getSpotLocality(spot: Spot | LocalSpot): string | undefined {
@@ -538,6 +574,13 @@ export class StructuredDataService {
           )}`,
           keywords: "parkour,freerunning,spot,training",
         };
+        const classificationProperties = this.buildSpotClassificationProperties(
+          spot.type,
+          spot.access,
+        );
+        if (classificationProperties.length > 0) {
+          placeItem["additionalProperty"] = classificationProperties;
+        }
 
         const rawLocation = spot.location_raw;
         if (rawLocation) {

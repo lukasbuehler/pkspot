@@ -1,14 +1,9 @@
 import { TestBed } from "@angular/core/testing";
-import { Functions, httpsCallable } from "@angular/fire/functions";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthenticationService } from "../authentication.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
+import { FunctionsAdapterService } from "../functions-adapter.service";
 import { OrganizationsService } from "./organizations.service";
-
-vi.mock("@angular/fire/functions", () => ({
-  Functions: class {},
-  httpsCallable: vi.fn(),
-}));
 
 const createMockFirestoreAdapter = () => ({
   getCollection: vi.fn(),
@@ -28,12 +23,13 @@ const createMockAuthService = (isAdmin: boolean) => ({
 });
 
 describe("OrganizationsService", () => {
-  let mockCallable: ReturnType<typeof vi.fn>;
+  let mockFunctionsAdapter: { call: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockCallable = vi.fn().mockResolvedValue({ data: { ok: true } });
-    vi.mocked(httpsCallable).mockReturnValue(mockCallable);
+    mockFunctionsAdapter = {
+      call: vi.fn().mockResolvedValue({ ok: true }),
+    };
   });
 
   function configure(isAdmin = true): OrganizationsService {
@@ -42,7 +38,7 @@ describe("OrganizationsService", () => {
         OrganizationsService,
         { provide: FirestoreAdapterService, useValue: createMockFirestoreAdapter() },
         { provide: AuthenticationService, useValue: createMockAuthService(isAdmin) },
-        { provide: Functions, useValue: {} },
+        { provide: FunctionsAdapterService, useValue: mockFunctionsAdapter },
       ],
     });
 
@@ -80,7 +76,7 @@ describe("OrganizationsService", () => {
         OrganizationsService,
         { provide: FirestoreAdapterService, useValue: adapter },
         { provide: AuthenticationService, useValue: createMockAuthService(true) },
-        { provide: Functions, useValue: {} },
+        { provide: FunctionsAdapterService, useValue: mockFunctionsAdapter },
       ],
     });
     const service = TestBed.inject(OrganizationsService);
@@ -113,7 +109,7 @@ describe("OrganizationsService", () => {
         OrganizationsService,
         { provide: FirestoreAdapterService, useValue: adapter },
         { provide: AuthenticationService, useValue: createMockAuthService(true) },
-        { provide: Functions, useValue: {} },
+        { provide: FunctionsAdapterService, useValue: mockFunctionsAdapter },
       ],
     });
     const service = TestBed.inject(OrganizationsService);
@@ -130,16 +126,15 @@ describe("OrganizationsService", () => {
 
     await service.setSpotStewardship("spot-1", "pkspot");
 
-    expect(httpsCallable).toHaveBeenCalledWith(
-      {},
-      "setSpotOrganizationRelationship"
+    expect(mockFunctionsAdapter.call).toHaveBeenCalledWith(
+      "setSpotOrganizationRelationship",
+      {
+        spotId: "spot-1",
+        organizationId: "pkspot",
+        relationship: "steward",
+        enabled: true,
+      }
     );
-    expect(mockCallable).toHaveBeenCalledWith({
-      spotId: "spot-1",
-      organizationId: "pkspot",
-      relationship: "steward",
-      enabled: true,
-    });
   });
 
   it("sets one managing organization through the trusted callable", async () => {
@@ -147,12 +142,15 @@ describe("OrganizationsService", () => {
 
     await service.setSpotManagement("spot-1", "venue-org");
 
-    expect(mockCallable).toHaveBeenCalledWith({
-      spotId: "spot-1",
-      organizationId: "venue-org",
-      relationship: "manager",
-      enabled: true,
-    });
+    expect(mockFunctionsAdapter.call).toHaveBeenCalledWith(
+      "setSpotOrganizationRelationship",
+      {
+        spotId: "spot-1",
+        organizationId: "venue-org",
+        relationship: "manager",
+        enabled: true,
+      }
+    );
   });
 
   it("sets organization used spots through the trusted callable", async () => {
@@ -160,12 +158,15 @@ describe("OrganizationsService", () => {
 
     await service.setOrganizationUsedSpot("pkspot", "spot-1");
 
-    expect(mockCallable).toHaveBeenCalledWith({
-      spotId: "spot-1",
-      organizationId: "pkspot",
-      relationship: "used",
-      enabled: true,
-    });
+    expect(mockFunctionsAdapter.call).toHaveBeenCalledWith(
+      "setSpotOrganizationRelationship",
+      {
+        spotId: "spot-1",
+        organizationId: "pkspot",
+        relationship: "used",
+        enabled: true,
+      }
+    );
   });
 
   it("adds a member using the target user's stored profile", async () => {
@@ -179,7 +180,7 @@ describe("OrganizationsService", () => {
         OrganizationsService,
         { provide: FirestoreAdapterService, useValue: adapter },
         { provide: AuthenticationService, useValue: createMockAuthService(true) },
-        { provide: Functions, useValue: {} },
+        { provide: FunctionsAdapterService, useValue: mockFunctionsAdapter },
       ],
     });
     const service = TestBed.inject(OrganizationsService);
@@ -206,6 +207,6 @@ describe("OrganizationsService", () => {
     await expect(
       service.setSpotStewardship("spot-1", "pkspot")
     ).rejects.toThrow("requires admin privileges");
-    expect(mockCallable).not.toHaveBeenCalled();
+    expect(mockFunctionsAdapter.call).not.toHaveBeenCalled();
   });
 });

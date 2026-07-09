@@ -2,7 +2,6 @@ import { inject, Injectable } from "@angular/core";
 import { Timestamp } from "@angular/fire/firestore";
 import { map } from "rxjs/operators";
 import { Observable } from "rxjs";
-import { Functions, httpsCallable } from "@angular/fire/functions";
 import { SpotEditSchema } from "../../../../db/schemas/SpotEditSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
 import {
@@ -25,11 +24,21 @@ import {
   QueryFilter,
   QueryConstraintOptions,
 } from "../firestore-adapter.service";
+import { FunctionsAdapterService } from "../functions-adapter.service";
 
 export interface ModerationSpotEditQueueItem {
   edit: SpotEditSchema & { id: string };
   spotId: string;
 }
+
+type ReviewVerifiedSpotEditRequest = {
+  spotId: string;
+  editId: string;
+  decision: "approve" | "reject";
+  reviewNote?: string;
+};
+
+type ReviewVerifiedSpotEditResponse = { ok: true };
 
 @Injectable({
   providedIn: "root",
@@ -38,18 +47,7 @@ export class SpotEditsService extends ConsentAwareService {
   private _firestoreAdapter = inject(FirestoreAdapterService);
   private _usersService = inject(UsersService);
   private _authenticationService = inject(AuthenticationService, { optional: true });
-  private _functions = inject(Functions, { optional: true });
-  private _reviewVerifiedSpotEditCallable = this._functions
-    ? httpsCallable<
-        {
-          spotId: string;
-          editId: string;
-          decision: "approve" | "reject";
-          reviewNote?: string;
-        },
-        { ok: true }
-      >(this._functions, "reviewVerifiedSpotEdit")
-    : null;
+  private _functionsAdapter = inject(FunctionsAdapterService);
 
   constructor() {
     super();
@@ -534,15 +532,10 @@ export class SpotEditsService extends ConsentAwareService {
     decision: "approve" | "reject",
     reviewNote?: string
   ): Promise<void> {
-    if (!this._reviewVerifiedSpotEditCallable) {
-      throw new Error("Functions are unavailable in this environment.");
-    }
-    await this._reviewVerifiedSpotEditCallable({
-      spotId,
-      editId,
-      decision,
-      reviewNote,
-    });
+    await this._functionsAdapter.call<
+      ReviewVerifiedSpotEditRequest,
+      ReviewVerifiedSpotEditResponse
+    >("reviewVerifiedSpotEdit", { spotId, editId, decision, reviewNote });
   }
 
   setSpotEditVote(

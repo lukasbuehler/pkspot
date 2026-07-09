@@ -1,5 +1,4 @@
 import { Injectable, inject } from "@angular/core";
-import { Firestore, doc } from "@angular/fire/firestore";
 import { Observable, from, Subscription } from "rxjs";
 import { map } from "rxjs/operators";
 import { Post } from "../../../../db/models/Post";
@@ -17,14 +16,13 @@ import {
 })
 export class PostsService extends ConsentAwareService {
   private _firestoreAdapter = inject(FirestoreAdapterService);
-  private firestore = inject(Firestore);
 
   constructor() {
     super();
   }
 
   docRef(path: string) {
-    return doc(this.firestore, path);
+    return this._firestoreAdapter.documentReference(path);
   }
 
   addPost(newPost: Post.Schema) {

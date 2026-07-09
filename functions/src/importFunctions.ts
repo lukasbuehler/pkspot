@@ -151,6 +151,8 @@ async function processImportChunk(
         amenities: spot.amenities ?? {},
         external_references: spot.external_references,
         source: importId,
+        import_id: importId,
+        community_rebuild_deferred: true,
         is_iconic: false,
         rating: 0,
         num_reviews: 0,

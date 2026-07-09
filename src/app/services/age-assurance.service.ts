@@ -1,6 +1,5 @@
 import { Injectable, inject } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
-import { Functions, httpsCallable } from "@angular/fire/functions";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { PLATFORM_ID } from "@angular/core";
 import {
@@ -13,10 +12,20 @@ import {
   isAgeParticipationAllowed,
 } from "./age-policy";
 import { AuthenticationService } from "./firebase/authentication.service";
+import { FunctionsAdapterService } from "./firebase/functions-adapter.service";
 import { environment } from "../../environments/environment.default";
 
 type AgeAssurancePlugin = {
   getAgeSignal(): Promise<PlatformAgeSignal>;
+};
+
+type UpdateAgePolicyRequest = {
+  policy: UserAgePolicySchema;
+  signal?: Record<string, unknown>;
+};
+
+type UpdateAgePolicyResponse = {
+  ok: true;
 };
 
 const NativeAgeAssurance = registerPlugin<AgeAssurancePlugin>("AgeAssurance");
@@ -27,18 +36,11 @@ const NativeAgeAssurance = registerPlugin<AgeAssurancePlugin>("AgeAssurance");
 export class AgeAssuranceService {
   static readonly mockPolicyStateStorageKey = "pkspot.mockAgePolicyState.v1";
 
-  private _functions = inject(Functions, { optional: true });
+  private _functionsAdapter = inject(FunctionsAdapterService);
   private _authService = inject(AuthenticationService);
   private _platformId = inject(PLATFORM_ID);
   private _lastSyncedUid: string | null = null;
   private _syncInFlight = false;
-
-  private _updateAgePolicyCallable = this._functions
-    ? httpsCallable<
-        { policy: UserAgePolicySchema; signal?: Record<string, unknown> },
-        { ok: true }
-      >(this._functions, "updateAgePolicy")
-    : null;
 
   async syncNativeAgePolicyForCurrentUser(): Promise<void> {
     const uid = this._authService.user.uid;
@@ -55,12 +57,8 @@ export class AgeAssuranceService {
       const signal = await NativeAgeAssurance.getAgeSignal();
       console.log("[AgeAssurance] Native age signal", signal);
       const policy = buildAgePolicyFromSignal(signal);
-      if (!this._updateAgePolicyCallable) {
-        console.warn("[AgeAssurance] Functions unavailable; policy not synced");
-        return;
-      }
 
-      await this._updateAgePolicyCallable({
+      await this._syncAgePolicy({
         policy,
         signal: this._sanitizeSignalForFunction(signal),
       });
@@ -70,6 +68,13 @@ export class AgeAssuranceService {
     } finally {
       this._syncInFlight = false;
     }
+  }
+
+  private async _syncAgePolicy(payload: UpdateAgePolicyRequest): Promise<void> {
+    await this._functionsAdapter.call<
+      UpdateAgePolicyRequest,
+      UpdateAgePolicyResponse
+    >("updateAgePolicy", payload);
   }
 
   canParticipatePublicly(): boolean {

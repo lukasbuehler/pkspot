@@ -662,7 +662,7 @@ describe("SearchService", () => {
       );
     });
 
-    it("should prioritize media within same-rating hits while keeping higher ratings first", () => {
+    it("should apply the media boost while keeping non-media spots in the results", () => {
       const hits = [
         {
           document: {
@@ -674,6 +674,13 @@ describe("SearchService", () => {
           document: {
             id: "higher-rated-no-media",
             rating: 4.8,
+          },
+        },
+        {
+          document: {
+            id: "near-rating-with-media",
+            rating: 4.4,
+            thumbnail_small_url: "https://example.com/near-thumb.jpg",
           },
         },
         {
@@ -702,6 +709,7 @@ describe("SearchService", () => {
       const orderedIds = ordered.map((hit: any) => hit.document.id);
 
       expect(orderedIds).toEqual([
+        "near-rating-with-media",
         "higher-rated-no-media",
         "same-rating-with-media",
         "same-rating-no-media",

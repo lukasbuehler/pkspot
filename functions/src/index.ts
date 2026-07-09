@@ -27,6 +27,7 @@ export {
 
 export {
   patchCommunityPageOnWrite,
+  rebuildCommunityPagesOnImportWrite,
   rebuildCommunityPagesOnSpotWrite,
   rebuildAllCommunityPages,
   rebuildCommunityEventPreviewsOnEventWrite,

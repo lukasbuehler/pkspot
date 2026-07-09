@@ -310,6 +310,18 @@ describe("StructuredDataService", () => {
     const placeData = service.generateSpotPlaceData(spot);
 
     expectGoogleAggregateRating(placeData as Record<string, unknown>, 4.7, 9);
+    expect(placeData["additionalProperty"]).toEqual([
+      {
+        "@type": "PropertyValue",
+        name: "Spot type",
+        value: "Parkour Gym",
+      },
+      {
+        "@type": "PropertyValue",
+        name: "Spot access",
+        value: "Membership/Fee",
+      },
+    ]);
   });
 
   it("should keep non-commercial outdoor spots as Place without review rich-result markup", () => {
@@ -397,6 +409,18 @@ describe("StructuredDataService", () => {
 
     expectGoogleAggregateRating(firstItem, 4.8, 12);
     expect(firstItem["keywords"]).toBe("parkour,freerunning,spot,training");
+    expect(firstItem["additionalProperty"]).toEqual([
+      {
+        "@type": "PropertyValue",
+        name: "Spot type",
+        value: "Parkour Gym",
+      },
+      {
+        "@type": "PropertyValue",
+        name: "Spot access",
+        value: "Membership/Fee",
+      },
+    ]);
     expect(firstItem["geo"]).toEqual({
       "@type": "GeoCoordinates",
       latitude: 47.3769,

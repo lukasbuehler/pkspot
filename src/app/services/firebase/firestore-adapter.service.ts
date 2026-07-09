@@ -118,6 +118,10 @@ export class FirestoreAdapterService {
     return runInInjectionContext(this.injector, () => deleteField());
   }
 
+  documentReference(path: string): ReturnType<typeof doc> {
+    return runInInjectionContext(this.injector, () => doc(this.firestore, path));
+  }
+
   private ensureAppCheckReady(): Promise<void> {
     return this.appCheckService.initialize();
   }

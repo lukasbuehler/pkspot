@@ -12,6 +12,12 @@ import { environment } from "../../environments/environment.default";
 import { getDisplayLocalityName } from "../../scripts/AddressHelpers";
 import { normalizeLegacySpotMapPath } from "../../scripts/SpotRouteHelpers";
 import { AssetUrlService } from "./asset-url.service";
+import {
+  SpotAccess,
+  SpotAccessNames,
+  SpotTypes,
+  SpotTypesNames,
+} from "../../db/schemas/SpotTypeAndAccess";
 
 export interface MetaTagData {
   title: string;
@@ -229,6 +235,10 @@ export class MetaTagService {
       : "Parkour spot on PK Spot.";
 
     const detailSegments: string[] = [];
+    const classification = this.buildSpotClassificationText(spot);
+    if (classification) {
+      detailSegments.push(classification);
+    }
     if (spot.rating) {
       detailSegments.push(
         `Rated ${Math.round(spot.rating * 10) / 10} out of 5`,
@@ -249,6 +259,20 @@ export class MetaTagService {
       ? this.buildCanonicalUrl(canonicalPath)
       : undefined;
     this.setMetaTags(title, image, description, canonical);
+  }
+
+  private buildSpotClassificationText(spot: Spot | LocalSpot): string {
+    const segments: string[] = [];
+
+    if (spot.type() !== SpotTypes.Other) {
+      segments.push(`Type: ${SpotTypesNames[spot.type()]}`);
+    }
+
+    if (spot.access() !== SpotAccess.Other) {
+      segments.push(`Access: ${SpotAccessNames[spot.access()]}`);
+    }
+
+    return segments.join(". ");
   }
 
   /**

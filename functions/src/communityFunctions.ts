@@ -142,6 +142,8 @@ const PURPOSE_BUILT_SPOT_TYPES = new Set([
 
 type CommunitySlugDoc = CommunitySlugSchema & { id: string };
 type CommunityMergeDoc = CommunityMergeSchema & { id: string };
+type ImportRebuildStatus = "COMPLETED" | "PARTIAL";
+type ImportRebuildDoc = { status?: ImportRebuildStatus | string };
 
 const VALID_INFO_CARD_MERGE_MODES = new Set(["move", "copy", "skip"]);
 
@@ -282,6 +284,18 @@ const didAnyFieldChange = <T extends Record<string, unknown>>(
     (fieldName) => !areValuesEqual(beforeData[fieldName], afterData[fieldName])
   );
 };
+
+const isDeferredCommunityRebuildSpotWrite = (
+  beforeData: SpotSchema | null,
+  afterData: SpotSchema | null
+): boolean =>
+  beforeData?.community_rebuild_deferred === true ||
+  afterData?.community_rebuild_deferred === true;
+
+const isImportRebuildStatus = (
+  status: unknown
+): status is ImportRebuildStatus =>
+  status === "COMPLETED" || status === "PARTIAL";
 
 const toMillis = (
   value:
@@ -1331,6 +1345,53 @@ const collectGeneratedCommunities = (
   return communities;
 };
 
+const rebuildCommunityPagesForImportedSpots = async (
+  db: admin.firestore.Firestore,
+  importId: string
+): Promise<number> => {
+  const spotsSnapshot = await db
+    .collection(SPOTS_COLLECTION)
+    .where("import_id", "==", importId)
+    .get();
+  const importedSpots = spotsSnapshot.docs
+    .filter((doc) => isSpotRuntimeDoc(doc.id))
+    .map((doc) => ({ id: doc.id, data: doc.data() as SpotSchema }));
+  const activeMerges = await getActiveCommunityMerges(db);
+  const communities = collectGeneratedCommunities(importedSpots, activeMerges);
+
+  for (const { candidate } of communities.values()) {
+    await writeOrDeleteCommunityPage(db, candidate);
+  }
+
+  const impactedCountryKeys = new Set<string>();
+  for (const { candidate } of communities.values()) {
+    const countryCommunityKey = getCountryCommunityKey(candidate);
+    if (countryCommunityKey) {
+      impactedCountryKeys.add(countryCommunityKey);
+    }
+  }
+  await refreshCountryChildCommunities(db, impactedCountryKeys);
+
+  let batch = db.batch();
+  let batchSize = 0;
+  for (const spotDoc of spotsSnapshot.docs) {
+    batch.update(spotDoc.ref, {
+      community_rebuild_deferred: FieldValue.delete(),
+    });
+    batchSize += 1;
+    if (batchSize >= 450) {
+      await batch.commit();
+      batch = db.batch();
+      batchSize = 0;
+    }
+  }
+  if (batchSize > 0) {
+    await batch.commit();
+  }
+
+  return communities.size;
+};
+
 export const rebuildCommunityPagesOnSpotWrite = onDocumentWritten(
   { document: "spots/{spotId}" },
   async (event) => {
@@ -1346,6 +1407,10 @@ export const rebuildCommunityPagesOnSpotWrite = onDocumentWritten(
     const afterData = event.data?.after?.exists
       ? ((event.data.after.data() as SpotSchema) ?? null)
       : null;
+
+    if (isDeferredCommunityRebuildSpotWrite(beforeData, afterData)) {
+      return null;
+    }
 
     if (
       !didAnyFieldChange(
@@ -1381,6 +1446,50 @@ export const rebuildCommunityPagesOnSpotWrite = onDocumentWritten(
       }
     }
     await refreshCountryChildCommunities(db, impactedCountryKeys);
+
+    return null;
+  }
+);
+
+export const rebuildCommunityPagesOnImportWrite = onDocumentWritten(
+  { document: "imports/{importId}" },
+  async (event) => {
+    const importId = String(event.params.importId ?? "").trim();
+    if (!importId) {
+      return null;
+    }
+
+    const beforeData = event.data?.before?.exists
+      ? ((event.data.before.data() as ImportRebuildDoc) ?? null)
+      : null;
+    const afterData = event.data?.after?.exists
+      ? ((event.data.after.data() as ImportRebuildDoc) ?? null)
+      : null;
+
+    if (
+      !isImportRebuildStatus(afterData?.status) ||
+      beforeData?.status === afterData.status
+    ) {
+      return null;
+    }
+
+    const db = admin.firestore();
+    const generatedCount = await rebuildCommunityPagesForImportedSpots(
+      db,
+      importId
+    );
+    await db
+      .collection(MAINTENANCE_COLLECTION)
+      .doc(`last-import-community-rebuild-${importId}`)
+      .set(
+        {
+          import_id: importId,
+          import_status: afterData.status,
+          generated_count: generatedCount,
+          completed_at: FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
 
     return null;
   }

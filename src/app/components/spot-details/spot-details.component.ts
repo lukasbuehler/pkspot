@@ -356,6 +356,7 @@ export class SpotDetailsComponent
     return this._mediaUploadStatusService.processingMediaForTarget(
       "spot",
       spot.id,
+      spot.userMedia().map((media) => media.baseSrc),
     );
   });
   failedSpotMediaUploads = computed(() => {

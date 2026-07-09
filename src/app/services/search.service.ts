@@ -92,11 +92,16 @@ export class SearchService {
 
   private hasSpotMedia(hit: any): boolean {
     const doc = hit?.document || hit;
-    return !!(doc?.thumbnail_small_url || doc?.thumbnail_medium_url);
+    return [
+      doc?.thumbnail_small_url,
+      doc?.thumbnail_medium_url,
+      doc?.thumbnail_url,
+      doc?.image_url,
+    ].some((value) => typeof value === "string" && value.trim().length > 0);
   }
 
   /**
-   * Sort spots by derived priority (desc). When priorities match, prioritize spots with media.
+   * Sort spots by derived priority (desc), including the shared media boost.
    */
   private sortHitsByPriorityThenMedia(hits: any[]): any[] {
     return hits.sort((a, b) => {
@@ -121,6 +126,7 @@ export class SearchService {
       access: doc?.access,
       isIconic: doc?.is_iconic ?? doc?.isIconic,
       isReported: doc?.is_reported ?? doc?.isReported,
+      hasMedia: this.hasSpotMedia(hit),
     });
   }
 
