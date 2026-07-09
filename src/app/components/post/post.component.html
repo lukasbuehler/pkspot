@@ -1,7 +1,7 @@
 @if(post) {
 <mat-card
-  class="text-left border rounded mat-elevation-z0"
-  ng-class="{mat-elevation-z0: !showCard}"
+  class="text-left border rounded"
+  [class.mat-elevation-z0]="!showCard"
 >
   <mat-card-header>
     <mat-card-title>{{ post.title }}</mat-card-title>

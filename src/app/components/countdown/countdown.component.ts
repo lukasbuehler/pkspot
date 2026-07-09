@@ -1,10 +1,12 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   input,
   InputSignal,
   signal,
   WritableSignal,
   AfterViewInit,
+  OnDestroy,
 } from "@angular/core";
 import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
 
@@ -13,8 +15,9 @@ import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component"
   imports: [FancyCounterComponent],
   templateUrl: "./countdown.component.html",
   styleUrl: "./countdown.component.scss",
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CountdownComponent implements AfterViewInit {
+export class CountdownComponent implements AfterViewInit, OnDestroy {
   timestamp: InputSignal<Date> = input<Date>(new Date());
   days: WritableSignal<number> = signal<number>(0);
   hours: WritableSignal<number> = signal<number>(0);

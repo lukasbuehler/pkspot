@@ -1,6 +1,11 @@
 /// <reference types="vitest" />
 import { defineConfig } from "vite";
 import angular from "@analogjs/vite-plugin-angular";
+import {
+  appHtmlEntry,
+  generatedOutputGlobs,
+  testFileGlobs,
+} from "./vite-scan-boundaries.mjs";
 
 // Pin tests to UTC so Intl.DateTimeFormat / Date.toLocale*() output is
 // deterministic across developer machines and CI runners. Several specs
@@ -12,14 +17,6 @@ import angular from "@analogjs/vite-plugin-angular";
 // test-setup.ts.
 process.env["TZ"] = "UTC";
 
-const generatedOutputGlobs = [
-  "android/**",
-  "coverage/**",
-  "dist/**",
-  "ios/**",
-  "playwright-report/**",
-];
-const testFileGlobs = ["src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"];
 const maxTestWorkers = readPositiveInteger(
   process.env["PKSPOT_VITEST_MAX_WORKERS"],
   2
@@ -40,10 +37,16 @@ export default defineConfig(({ mode }) => ({
   // Vite crawl every HTML file under the repo, including generated mobile and
   // SSR build outputs, which can make esbuild consume multiple GB of memory.
   optimizeDeps: {
+    entries: [appHtmlEntry],
     include: [],
     noDiscovery: true,
   },
-  plugins: [angular()],
+  build: {
+    rollupOptions: {
+      input: appHtmlEntry,
+    },
+  },
+  plugins: [angular(), disableVitestDependencyScan()],
   test: {
     globals: true,
     environment: "jsdom",
@@ -52,6 +55,16 @@ export default defineConfig(({ mode }) => ({
     exclude: ["node_modules/**", ...generatedOutputGlobs],
     maxWorkers: maxTestWorkers,
     reporters: ["default"],
+    deps: {
+      optimizer: {
+        client: {
+          enabled: false,
+        },
+        ssr: {
+          enabled: false,
+        },
+      },
+    },
     server: {
       deps: {
         inline: ["rxfire", "@angular/fire"],
@@ -65,6 +78,43 @@ export default defineConfig(({ mode }) => ({
     "import.meta.vitest": mode !== "production",
   },
 }));
+
+function disableVitestDependencyScan() {
+  return {
+    name: "pkspot-disable-vitest-dependency-scan",
+    enforce: "post" as const,
+    config() {
+      if (!isVitestProcess()) {
+        return;
+      }
+
+      return {
+        optimizeDeps: {
+          entries: [],
+          include: [],
+          noDiscovery: true,
+        },
+      };
+    },
+    configResolved(config) {
+      if (!isVitestProcess()) {
+        return;
+      }
+
+      config.optimizeDeps.include = [];
+      config.optimizeDeps.entries = [];
+      config.optimizeDeps.noDiscovery = true;
+    },
+  };
+}
+
+function isVitestProcess(): boolean {
+  return (
+    process.env["PKSPOT_RUNNING_VITEST"] === "1" ||
+    process.env["VITEST"] === "true" ||
+    process.argv.some((arg) => arg.includes("vitest"))
+  );
+}
 
 function readPositiveInteger(value: string | undefined, fallback: number): number {
   if (!value) {

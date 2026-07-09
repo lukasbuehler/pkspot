@@ -2,8 +2,6 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  HostBinding,
-  HostListener,
   Input,
   OnInit,
   Output,
@@ -34,6 +32,10 @@ export interface SpeedDialFabButtonConfig {
 
 @Component({
   selector: "app-speed-dial-fab",
+  host: {
+    tabindex: "-1",
+    "(document:click)": "onClick($event.target)",
+  },
   templateUrl: "./speed-dial-fab.component.html",
   styleUrls: ["./speed-dial-fab.component.scss"],
   animations: speedDialFabAnimations,
@@ -59,7 +61,6 @@ export class SpeedDialFabComponent implements OnInit {
    */
   isOpen: boolean = false;
 
-  @HostListener("document:click", ["$event.target"])
   public onClick(target: any) {
     const clickedInside = this.fabContainer?.nativeElement.contains(target);
     if (!clickedInside) {
@@ -67,8 +68,6 @@ export class SpeedDialFabComponent implements OnInit {
       this.onClickOutside();
     }
   }
-
-  @HostBinding("attr.tabindex") tabindex = -1;
 
   constructor() {}
 

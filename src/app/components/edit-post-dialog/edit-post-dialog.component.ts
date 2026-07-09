@@ -1,8 +1,6 @@
 import {
+  ChangeDetectionStrategy,
   Component,
-  OnInit,
-  Input,
-  ViewChild,
   Inject,
   AfterViewInit,
   LOCALE_ID,
@@ -16,12 +14,10 @@ import {
   MatDialogClose,
 } from "@angular/material/dialog";
 
-import { Post } from "../../../db/models/Post";
 import { Spot } from "../../../db/models/Spot";
 import { SpotId } from "../../../db/schemas/SpotSchema";
 
 import { StorageService } from "../../services/firebase/storage.service";
-import { PostsService } from "../../services/firebase/firestore/posts.service";
 
 import {
   UntypedFormControl,
@@ -33,7 +29,6 @@ import {
   MatAutocompleteTrigger,
 } from "@angular/material/autocomplete";
 import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
-import { Observable } from "rxjs";
 import { MatButton } from "@angular/material/button";
 import { MatOption } from "@angular/material/core";
 import { MatIcon } from "@angular/material/icon";
@@ -82,14 +77,14 @@ export interface PostDialogData {
     MatDialogClose,
     AutocompleteOverlayRepositionDirective,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditPostDialogComponent implements AfterViewInit {
   constructor(
     @Inject(LOCALE_ID) public locale: LocaleCode,
     @Inject(MAT_DIALOG_DATA) public data: PostDialogData,
     public dialogRef: MatDialogRef<EditPostDialogComponent>,
-    private _storageService: StorageService,
-    private _postsService: PostsService
+    private _storageService: StorageService
   ) {
     this.isCreating = Boolean(data.isCreating);
   }

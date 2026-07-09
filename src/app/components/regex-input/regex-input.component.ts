@@ -4,7 +4,6 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  HostBinding,
   Input,
   OnDestroy,
   Optional,
@@ -70,6 +69,10 @@ export function regexValidator(): ValidatorFn {
 
 @Component({
   selector: "app-regex-input",
+  host: {
+    "[id]": "id",
+    "[class.floating]": "shouldLabelFloat",
+  },
   templateUrl: "./regex-input.component.html",
   styleUrls: ["./regex-input.component.scss"],
   providers: [
@@ -90,13 +93,12 @@ export class RegexInputComponent
 
   // id
   static nextId = 0;
-  @HostBinding() id = `regex-input-${RegexInputComponent.nextId++}`;
+  id = `regex-input-${RegexInputComponent.nextId++}`;
 
   // focused
   focused = false;
 
   // shouldLabelFloat
-  @HostBinding("class.floating")
   get shouldLabelFloat() {
     return this.focused || !this.empty;
   }

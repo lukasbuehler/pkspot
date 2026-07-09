@@ -1,4 +1,6 @@
 import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   Inject,
   LOCALE_ID,
@@ -34,6 +36,7 @@ import { PostsService } from "../../services/firebase/firestore/posts.service";
     MatFabButton,
     MatIcon,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePageComponent implements OnInit, OnDestroy {
   constructor(
@@ -41,7 +44,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
     public authService: AuthenticationService,
     private _postsService: PostsService,
     private _storageService: StorageService,
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    private _cdr: ChangeDetectorRef
   ) {}
 
   private _updatesSubscription: Subscription | null = null;
@@ -67,6 +71,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
       (user) => {
         console.log("User, changed, getting new updates");
         this.updatePosts = [];
+        this._cdr.markForCheck();
 
         if (user) {
           this._subscribeToUpdates(user.uid!);
@@ -124,32 +129,32 @@ export class HomePageComponent implements OnInit, OnDestroy {
         .subscribe(
           (changes: { type: DocumentChangeType; post: Post.Class }[]) => {
             this.loadingUpdates = false;
+            let nextPosts = [...this.updatePosts];
             changes.forEach((change) => {
-              const index2 = this.updatePosts.findIndex((post, index, obj) => {
-                return post.id === change.post.id;
-              });
+              const index2 = nextPosts.findIndex(
+                (post) => post.id === change.post.id
+              );
               if (index2 >= 0) {
-                // the document already exists already in this array
-                this.updatePosts[index2].updateData(change.post.getData());
+                nextPosts[index2] = change.post;
               } else {
-                // create and add new Post
-                this.updatePosts.push(change.post);
-
-                // sort
-                this.updatePosts.sort((a, b) => {
-                  return b.timePosted!.getTime() - a.timePosted!.getTime();
-                });
+                nextPosts = [...nextPosts, change.post];
               }
             });
+            this.updatePosts = nextPosts.sort((a, b) => {
+              return b.timePosted!.getTime() - a.timePosted!.getTime();
+            });
+            this._cdr.markForCheck();
           },
           (error) => {
             this.loadingUpdates = false;
             console.error("Error loading updates");
             console.error(error);
+            this._cdr.markForCheck();
           },
           () => {
             this.loadingUpdates = false;
             console.log("Post loading complete");
+            this._cdr.markForCheck();
           } // complete
         );
     } else {
@@ -169,34 +174,35 @@ export class HomePageComponent implements OnInit, OnDestroy {
       .getTodaysTopPosts()
       .subscribe(
       (postMap) => {
+        let nextPosts = [...this.todaysTopPosts];
         for (let postId in postMap) {
-          let docIndex = this.todaysTopPosts.findIndex((post, index, obj) => {
+          let docIndex = nextPosts.findIndex((post) => {
             return post.id === postId;
           });
+          const nextPost = new Post.Class(postId, postMap[postId]);
           if (docIndex >= 0) {
-            // the document already exists already in this array
-            this.todaysTopPosts[docIndex].updateData(postMap[postId]);
+            nextPosts[docIndex] = nextPost;
           } else {
-            // create and add new Post
-            this.todaysTopPosts.push(new Post.Class(postId, postMap[postId]));
-
-            // sort
-            this.todaysTopPosts.sort((a, b) => {
-              return (
-                b.likeCount - a.likeCount ||
-                b.timePosted!.getTime() - a.timePosted!.getTime()
-              );
-            });
+            nextPosts = [...nextPosts, nextPost];
           }
         }
+        this.todaysTopPosts = nextPosts.sort((a, b) => {
+          return (
+            b.likeCount - a.likeCount ||
+            b.timePosted!.getTime() - a.timePosted!.getTime()
+          );
+        });
         this.loadingTodaysTopPosts = false;
+        this._cdr.markForCheck();
       },
       (error) => {
         this.loadingTodaysTopPosts = false;
         console.error(error);
+        this._cdr.markForCheck();
       },
       () => {
         this.loadingTodaysTopPosts = false;
+        this._cdr.markForCheck();
       } // complete
     );
   }

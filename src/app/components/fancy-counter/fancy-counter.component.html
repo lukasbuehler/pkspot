@@ -1,5 +1,5 @@
 <span class="counter">
-  @for(digit of displayString.split(''); track digit + '-' + $index) {
+  @for(digit of displayDigits; track digit + '-' + $index) {
   <span
     [@digitChange]="{
       value: number,

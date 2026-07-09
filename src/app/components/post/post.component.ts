@@ -1,4 +1,12 @@
-import { Component, OnInit, Input, ViewChild, ElementRef } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  Input,
+  OnInit,
+  ViewChild,
+} from "@angular/core";
 import { Post } from "../../../db/models/Post";
 import { PostsService } from "../../services/firebase/firestore/posts.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
@@ -42,6 +50,7 @@ import {
     MatMenu,
     MatMenuItem,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PostComponent implements OnInit {
   @Input() post: Post.Class | null = null;
@@ -61,7 +70,8 @@ export class PostComponent implements OnInit {
     private _postService: PostsService,
     private _authenticationService: AuthenticationService,
     private _snackbar: MatSnackBar,
-    private _router: Router
+    private _router: Router,
+    private _cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -81,6 +91,7 @@ export class PostComponent implements OnInit {
           .userHasLikedPost(this.post.id, this.currentlyAuthenticatedUserId)
           .then((bool) => {
             this.likedByUser = bool;
+            this._cdr.markForCheck();
           })
           .catch((err) => {
             console.error(err);

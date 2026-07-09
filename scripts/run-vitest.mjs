@@ -35,6 +35,7 @@ withHeavyCommandLock(repoRoot, "Vitest", () => {
       ESBUILD_WORKER_THREADS: process.env["ESBUILD_WORKER_THREADS"] ?? "0",
       NODE_OPTIONS: withMaxOldSpaceSize(process.env["NODE_OPTIONS"], maxOldSpaceMb),
       PKSPOT_VITEST_MAX_WORKERS: String(maxWorkers),
+      PKSPOT_RUNNING_VITEST: "1",
     },
     stdio: "inherit",
   });

@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, HostBinding } from "@angular/core";
+import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
 import {
   animate,
   animateChild,
@@ -43,13 +43,10 @@ import { PostComponent } from "../post/post.component";
     ]),
   ],
   imports: [PostComponent, MatProgressSpinner],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PostCollectionComponent implements OnInit {
+export class PostCollectionComponent {
   @Input() posts: Post.Class[] = [];
   @Input() title: string = "";
   @Input() loading: boolean = false;
-
-  constructor() {}
-
-  ngOnInit() {}
 }

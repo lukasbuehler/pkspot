@@ -1,16 +1,11 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   computed,
-  input,
-  signal,
-  Output,
-  EventEmitter,
-  Input,
-  OnChanges,
-  SimpleChanges,
-  model,
   effect,
-  ChangeDetectionStrategy
+  input,
+  model,
+  output,
 } from "@angular/core";
 import {
   ChallengeLabelNames,
@@ -20,10 +15,7 @@ import {
 } from "../../../db/models/SpotChallenge";
 import { NgOptimizedImage } from "@angular/common";
 import { RouterLink } from "@angular/router";
-import { ChallengePreviewSchema } from "../../../db/schemas/SpotChallengeSchema";
 import { Spot } from "../../../db/models/Spot";
-import { AnyMedia } from "../../../db/models/Media";
-import { SpotId } from "../../../db/schemas/SpotSchema";
 import { MatIconModule } from "@angular/material/icon";
 import {
   ChallengeLabelIcons,
@@ -38,13 +30,20 @@ import { FormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatDividerModule } from "@angular/material/divider";
 import { ChipSelectComponent } from "../chip-select/chip-select.component";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
 type ChallengeType =
   | SpotChallenge
   | ((SpotChallengePreview & { spot?: Spot }) & { number?: number });
+
+interface ChallengeListItem {
+  challenge: ChallengeType;
+  originalIndex: number;
+  displayNumber: number;
+}
+
 @Component({
   selector: "app-challenge-list",
-  standalone: true,
   imports: [
     NgOptimizedImage,
     RouterLink,
@@ -72,8 +71,7 @@ export class ChallengeListComponent {
   showIndexAsNumber = input<boolean>(false);
 
   withHrefLink = input(true);
-  @Output("challengeClickIndex") challengeClickIndexEvent =
-    new EventEmitter<number>();
+  challengeClickIndex = output<number>();
 
   readonly challengeLabels = ChallengeLabelValues as string[];
   readonly challengeLabelNames = ChallengeLabelNames as Record<string, string>;
@@ -105,58 +103,73 @@ export class ChallengeListComponent {
         emitEvent: false,
       });
     });
-    this.labelCtrl.valueChanges.subscribe((value) => {
-      this.selectedLabels.set(value ?? []);
-    });
-    this.participantTypeCtrl.valueChanges.subscribe((value) => {
-      this.selectedParticipantTypes.set(value ?? []);
-    });
+    this.labelCtrl.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe((value) => {
+        this.selectedLabels.set(value ?? []);
+      });
+    this.participantTypeCtrl.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe((value) => {
+        this.selectedParticipantTypes.set(value ?? []);
+      });
   }
 
-  filteredChallenges = computed<ChallengeType[]>(() => {
+  filteredChallengeItems = computed<ChallengeListItem[]>(() => {
     const challenges = this.challenges();
     const labels = this.selectedLabels();
     const participantTypes = this.selectedParticipantTypes();
 
-    return challenges.filter((challenge) => {
-      const c = challenge as SpotChallenge;
-      if (
-        (labels?.length === this.challengeLabels.length &&
-          participantTypes?.length === this.challengeParticipantTypes.length) ||
-        (labels?.length === 0 && participantTypes?.length === 0) ||
-        !labels ||
-        !participantTypes
-      ) {
-        return true;
-      }
-      const labelMatch =
-        !labels ||
-        labels.length === 0 ||
-        (Array.isArray(labels)
-          ? labels.includes(c.label as string)
-          : c.label === labels);
-      const participantTypeMatch =
-        !participantTypes ||
-        participantTypes.length === 0 ||
-        (Array.isArray(participantTypes)
-          ? participantTypes.includes(c.participantType as string)
-          : c.participantType === participantTypes);
-      return labelMatch && participantTypeMatch;
-    });
+    return challenges
+      .map((challenge, originalIndex) => ({
+        challenge: challenge as ChallengeType,
+        originalIndex,
+      }))
+      .filter(({ challenge }) => {
+        const c = challenge as SpotChallenge;
+        if (
+          (labels?.length === this.challengeLabels.length &&
+            participantTypes?.length ===
+              this.challengeParticipantTypes.length) ||
+          (labels?.length === 0 && participantTypes?.length === 0) ||
+          !labels ||
+          !participantTypes
+        ) {
+          return true;
+        }
+        const labelMatch =
+          !labels ||
+          labels.length === 0 ||
+          (Array.isArray(labels)
+            ? labels.includes(c.label as string)
+            : c.label === labels);
+        const participantTypeMatch =
+          !participantTypes ||
+          participantTypes.length === 0 ||
+          (Array.isArray(participantTypes)
+            ? participantTypes.includes(c.participantType as string)
+            : c.participantType === participantTypes);
+        return labelMatch && participantTypeMatch;
+      })
+      .map((item, filteredIndex) => ({
+        ...item,
+        displayNumber: this.getChallengeDisplayNumber(
+          item.challenge,
+          filteredIndex
+        ),
+      }));
   });
+
+  filteredChallenges = computed<ChallengeType[]>(() =>
+    this.filteredChallengeItems().map((item) => item.challenge)
+  );
 
   // Helper method to get the display number for a challenge
   getChallengeDisplayNumber(challenge: ChallengeType, index: number): number {
-    return (challenge as any).number ?? index;
-  }
-
-  // Helper method to get the index of a challenge in the original challenges array
-  getOriginalIndex(challenge: ChallengeType): number {
-    const challenges = this.challenges();
-    return challenges.findIndex((c) => c === challenge);
+    return (challenge as { number?: number }).number ?? index;
   }
 
   onChallengeClick(index: number) {
-    this.challengeClickIndexEvent.emit(index);
+    this.challengeClickIndex.emit(index);
   }
 }

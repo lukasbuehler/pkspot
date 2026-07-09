@@ -1,9 +1,13 @@
 import { animate, style, transition, trigger } from "@angular/animations";
-import { Component, Input, OnInit, ChangeDetectionStrategy } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Input,
+  OnChanges,
+} from "@angular/core";
 
 @Component({
   selector: "app-fancy-counter",
-  standalone: true,
   templateUrl: "./fancy-counter.component.html",
   styleUrls: ["./fancy-counter.component.scss"],
   animations: [
@@ -39,44 +43,53 @@ import { Component, Input, OnInit, ChangeDetectionStrategy } from "@angular/core
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [],
 })
-export class FancyCounterComponent implements OnInit {
+export class FancyCounterComponent implements OnChanges {
   private _number: number = 0;
+  private _displayString = "0";
+
   previousNumber: number = 0;
+  displayDigits: string[] = ["0"];
+
   @Input() decimals: number | null = null; // when set, display number with fixed decimals
 
   @Input() set number(newNumber: number) {
     this.previousNumber = this._number;
     this._number = newNumber;
+    this.updateDisplayString();
   }
 
   get number() {
     return this._number;
   }
 
-  constructor() {}
-
-  ngOnInit(): void {}
-
-  get displayString(): string {
-    if (this.decimals === null || this.decimals === undefined) {
-      return "" + this._number;
-    }
-    if (Number.isFinite(this._number)) {
-      return this._number.toFixed(this.decimals);
-    }
-    return "" + this._number;
+  ngOnChanges(): void {
+    this.updateDisplayString();
   }
 
-  getMinusIfIncrementing(newNumber: number, enterAnimation: boolean) {
-    // We want to return a minus if we are incrementing
-    let numberIsGreater: boolean = newNumber > this.previousNumber;
+  get displayString(): string {
+    return this._displayString;
+  }
 
-    let minus =
+  private updateDisplayString(): void {
+    if (this.decimals === null || this.decimals === undefined) {
+      this._displayString = "" + this._number;
+    } else if (Number.isFinite(this._number)) {
+      this._displayString = this._number.toFixed(this.decimals);
+    } else {
+      this._displayString = "" + this._number;
+    }
+
+    this.displayDigits = this._displayString.split("");
+  }
+
+  getMinusIfIncrementing(newNumber: number, enterAnimation: boolean): string {
+    // We want to return a minus if we are incrementing
+    const numberIsGreater = newNumber > this.previousNumber;
+    return (
       !(numberIsGreater || enterAnimation) ||
       (numberIsGreater && enterAnimation)
         ? "-"
-        : "";
-
-    return minus;
+        : ""
+    );
   }
 }
