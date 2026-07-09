@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
+import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 import {
   animate,
   animateChild,
@@ -46,7 +46,7 @@ import { PostComponent } from "../post/post.component";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PostCollectionComponent {
-  @Input() posts: Post.Class[] = [];
-  @Input() title: string = "";
-  @Input() loading: boolean = false;
+  readonly posts = input<Post.Class[]>([]);
+  readonly title = input("");
+  readonly loading = input(false);
 }

@@ -1,24 +1,24 @@
 <div class="rating-container d-flex align-items-center">
-  @if(showRating) {
+  @if(showRating()) {
   <span style="padding-right: 2px">
-    {{ rating1to5rounded }}
+    {{ rating1to5rounded() }}
   </span>
-  } @if(isCompact) {
+  } @if(isCompact()) {
   <mat-icon style="width: 1em; height: 1em; font-size: 1em"> star </mat-icon>
-  } @else { @for(item of fullStars; track item) {
+  } @else { @for(item of fullStars(); track item) {
   <mat-icon style="width: 1em; height: 1em; font-size: 1em"> star </mat-icon>
-  } @if(showHalfStar) {
+  } @if(showHalfStar()) {
   <mat-icon style="width: 1em; height: 1em; font-size: 1em">
     star_half
   </mat-icon>
-  } @if(showEmptyStars && emptyStars.length > 0) { @for(item of emptyStars; track item) {
+  } @if(showEmptyStars() && emptyStars().length > 0) { @for(item of emptyStars(); track item) {
   <mat-icon
     class="rating-star rating-star--empty"
     style="width: 1em; height: 1em; font-size: 1em"
   >
     star_border
   </mat-icon>
-  } } @if(showNumReviews) {
-  <span class="ps-1"> ({{ numReviews }}) </span>
+  } } @if(showNumReviews()) {
+  <span class="ps-1"> ({{ numReviews() }}) </span>
   } }
 </div>

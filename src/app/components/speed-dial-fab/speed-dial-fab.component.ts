@@ -1,15 +1,13 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,
-  Input,
-  OnInit,
-  Output,
-  ViewChild,
-  ChangeDetectionStrategy
+  input,
+  output,
+  signal,
+  viewChild,
 } from "@angular/core";
 import { speedDialFabAnimations } from "./speed-dial-fab.animations";
-import { NgIf, NgFor } from "@angular/common";
 import { MatIcon } from "@angular/material/icon";
 import { MatTooltip, TooltipPosition } from "@angular/material/tooltip";
 import { MatFabButton, MatMiniFabButton } from "@angular/material/button";
@@ -42,55 +40,51 @@ export interface SpeedDialFabButtonConfig {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatFabButton, MatTooltip, MatIcon, MatMiniFabButton],
 })
-export class SpeedDialFabComponent implements OnInit {
-  @ViewChild("fabContainer") fabContainer: ElementRef | undefined;
-  @Input("buttonConfig") buttonConfig: SpeedDialFabButtonConfig | undefined;
-  @Input("rotationDegrees") rotationDegrees: number = 45;
-  @Input("openOnHover") openOnHover: boolean = false;
+export class SpeedDialFabComponent {
+  readonly fabContainer = viewChild<ElementRef<HTMLElement>>("fabContainer");
+  readonly buttonConfig = input<SpeedDialFabButtonConfig>();
+  readonly rotationDegrees = input(45);
+  readonly openOnHover = input(false);
 
-  @Output("mainFabClick")
-  mainFabClick: EventEmitter<void> = new EventEmitter<void>();
-  @Output("miniFabClick")
-  miniFabClick: EventEmitter<number> = new EventEmitter<number>();
+  readonly mainFabClick = output<void>();
+  readonly miniFabClick = output<number>();
 
-  defaultTootltipPosition: TooltipPosition = "left";
+  readonly defaultTooltipPosition: TooltipPosition = "left";
 
   /**
    * Whether the speed dial is open or closed.
    * Default is closed.
    */
-  isOpen: boolean = false;
+  readonly isOpen = signal(false);
 
-  public onClick(target: any) {
-    const clickedInside = this.fabContainer?.nativeElement.contains(target);
+  public onClick(target: EventTarget | null) {
+    const clickedInside =
+      target instanceof Node &&
+      this.fabContainer()?.nativeElement.contains(target);
     if (!clickedInside) {
       // this click event from outside
       this.onClickOutside();
     }
   }
 
-  constructor() {}
-
-  ngOnInit(): void {}
-
   open() {
-    this.isOpen = true;
+    this.isOpen.set(true);
   }
 
   close() {
-    this.isOpen = false;
+    this.isOpen.set(false);
   }
 
   toggle() {
-    this.isOpen ? this.close() : this.open();
+    this.isOpen() ? this.close() : this.open();
   }
 
   onMainClick() {
-    if (this.openOnHover && this.isOpen) {
+    if (this.openOnHover() && this.isOpen()) {
       // call the action function provided for the mainButton
       this.mainFabClick.emit();
     } else {
-      if (!this.isOpen) {
+      if (!this.isOpen()) {
         this.open();
       } else {
         this.toggle();
@@ -100,14 +94,14 @@ export class SpeedDialFabComponent implements OnInit {
 
   onMouseEnter() {
     // open the fab button if it is configured to
-    if (this.openOnHover) {
+    if (this.openOnHover()) {
       this.open();
     }
   }
 
   onMouseLeave() {
     // we want to close it anyhow
-    if (this.openOnHover) {
+    if (this.openOnHover()) {
       this.close();
     }
   }

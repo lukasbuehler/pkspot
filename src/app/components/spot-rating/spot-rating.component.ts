@@ -1,4 +1,9 @@
-import { Component, Input, OnChanges, ChangeDetectionStrategy } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+} from "@angular/core";
 import { MatIcon } from "@angular/material/icon";
 
 @Component({
@@ -8,51 +13,40 @@ import { MatIcon } from "@angular/material/icon";
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatIcon],
 })
-export class SpotRatingComponent implements OnChanges {
-  @Input() rating1to5: number | null = null; // floating point number between 1 and 5
-  @Input() showEmptyStars: boolean = true;
-  @Input() numReviews: number = 0; // integer number of reviews
-  @Input() showNumReviews: boolean = false;
-  @Input() isCompact: boolean = false;
-  @Input() showRating: boolean = true;
+export class SpotRatingComponent {
+  readonly rating1to5 = input<number | null>(null); // floating point number between 1 and 5
+  readonly showEmptyStars = input(true);
+  readonly numReviews = input(0); // integer number of reviews
+  readonly showNumReviews = input(false);
+  readonly isCompact = input(false);
+  readonly showRating = input(true);
 
-  constructor() {}
+  private readonly clampedRating = computed(() => {
+    const rating = this.rating1to5();
+    return rating ? Math.min(5, Math.max(1, rating)) : null;
+  });
 
-  rating1to5rounded: string | null = null;
-  rating1to10rounded: string | null = null;
-  numFullStars: number = 0;
-  showHalfStar: boolean = false;
-  numEmptyStars: number = 0;
-  fullStars: readonly number[] = [];
-  emptyStars: readonly number[] = [];
+  private readonly roundedHalfStep = computed(() => {
+    const rating = this.clampedRating();
+    return rating ? Math.round(rating * 2) / 2 : 0;
+  });
 
-  ngOnChanges() {
-    // clamp rating to 1-5
-    if (!this.rating1to5) {
-      this.rating1to5rounded = null;
-      this.rating1to10rounded = null;
-      this.numFullStars = 0;
-      this.showHalfStar = false;
-      this.numEmptyStars = 0;
-      this.fullStars = [];
-      this.emptyStars = [];
-      return;
-    }
+  readonly rating1to5rounded = computed(() =>
+    this.clampedRating()?.toFixed(1) ?? null
+  );
+  readonly rating1to10rounded = computed(() => {
+    const rating = this.clampedRating();
+    return rating ? (rating * 2).toFixed(1) : null;
+  });
+  readonly numFullStars = computed(() => Math.floor(this.roundedHalfStep()));
+  readonly showHalfStar = computed(() => this.roundedHalfStep() % 1 !== 0);
+  readonly numEmptyStars = computed(
+    () => 5 - this.numFullStars() - (this.showHalfStar() ? 1 : 0)
+  );
+  readonly fullStars = computed(() => this.range(this.numFullStars()));
+  readonly emptyStars = computed(() => this.range(this.numEmptyStars()));
 
-    const clampedRating = Math.min(5, Math.max(1, this.rating1to5));
-    const roundedHalfStep = Math.round(clampedRating * 2) / 2;
-    this.rating1to5rounded = clampedRating.toFixed(1);
-    this.rating1to10rounded = (clampedRating * 2).toFixed(1);
-    this.numFullStars = Math.floor(roundedHalfStep);
-    this.showHalfStar = roundedHalfStep % 1 !== 0;
-    this.numEmptyStars = 5 - this.numFullStars - (this.showHalfStar ? 1 : 0);
-    this.fullStars = Array.from(
-      { length: this.numFullStars },
-      (_, index) => index
-    );
-    this.emptyStars = Array.from(
-      { length: this.numEmptyStars },
-      (_, index) => index
-    );
+  private range(length: number): readonly number[] {
+    return Array.from({ length }, (_, index) => index);
   }
 }

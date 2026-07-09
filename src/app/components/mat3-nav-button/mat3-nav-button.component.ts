@@ -2,8 +2,8 @@ import { NgOptimizedImage } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   input,
-  Input,
 } from "@angular/core";
 import { MatIcon } from "@angular/material/icon";
 
@@ -18,12 +18,10 @@ import { MatIcon } from "@angular/material/icon";
   imports: [MatIcon, NgOptimizedImage],
 })
 export class Mat3NavButtonComponent {
-  @Input() icon: string = "info";
-  @Input() label: string = "label";
-  image = input<string>("");
-  active = input(false);
+  readonly icon = input("info");
+  readonly label = input("label");
+  readonly image = input("");
+  readonly active = input(false);
 
-  get isOutlineIcon(): boolean {
-    return this.icon.endsWith("_border");
-  }
+  readonly isOutlineIcon = computed(() => this.icon().endsWith("_border"));
 }

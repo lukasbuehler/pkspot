@@ -3,7 +3,7 @@
     <mat-card-content class="crop-content">
       <div class="cropper-wrapper">
         <image-cropper
-          [imageBase64]="imageSource"
+          [imageBase64]="imageSource()"
           [maintainAspectRatio]="true"
           [aspectRatio]="1"
           [cropperMinHeight]="100"
@@ -20,9 +20,9 @@
         >
           Preview
         </h4>
-        @if (croppedImage) {
+        @if (croppedImage()) {
         <img
-          [src]="croppedImage"
+          [src]="croppedImage()"
           alt="Cropped preview"
           class="cropped-preview"
         />
@@ -46,7 +46,7 @@
       <button
         mat-stroked-button
         (click)="cancelCrop()"
-        [disabled]="isProcessing"
+        [disabled]="isProcessing()"
         i18n="cancel button|Cancel action@@crop.cancel"
       >
         Cancel
@@ -55,9 +55,9 @@
         mat-flat-button
         color="accent"
         (click)="saveCroppedImage()"
-        [disabled]="!croppedImage || isProcessing"
+        [disabled]="!croppedImage() || isProcessing()"
       >
-        @if (isProcessing) {
+        @if (isProcessing()) {
         <span class="d-flex flex-row">
           <mat-icon class="me-2">hourglass_empty</mat-icon>
           <span

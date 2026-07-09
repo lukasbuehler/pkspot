@@ -1,4 +1,10 @@
-import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  input,
+  output,
+  signal,
+} from "@angular/core";
 import { ImageCroppedEvent, ImageCropperComponent } from "ngx-image-cropper";
 import { MatButton } from "@angular/material/button";
 import { MatCard, MatCardContent } from "@angular/material/card";
@@ -12,55 +18,52 @@ import { MatIcon } from "@angular/material/icon";
   selector: "app-crop-image",
   templateUrl: "./crop-image.component.html",
   styleUrls: ["./crop-image.component.scss"],
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ImageCropperComponent, MatButton, MatCard, MatCardContent, MatIcon],
 })
-export class CropImageComponent implements OnInit {
+export class CropImageComponent {
   /** The image source (base64 data URL) */
-  @Input() imageSource: string = "";
+  readonly imageSource = input("");
 
   /** Emits the cropped image blob when user confirms */
-  @Output() imageCropped = new EventEmitter<Blob>();
+  readonly imageCropped = output<Blob>();
 
   /** Emits when the user cancels */
-  @Output() cancelled = new EventEmitter<void>();
+  readonly cancelled = output<void>();
 
-  croppedImage: string = "";
-  isProcessing: boolean = false;
-
-  ngOnInit() {
-    // Reset states
-    this.croppedImage = "";
-    this.isProcessing = false;
-  }
+  readonly croppedImage = signal("");
+  readonly isProcessing = signal(false);
 
   /**
    * Handle image cropped event from the cropper
    */
   imageCroppedEventHandler(event: ImageCroppedEvent) {
-    this.croppedImage = event.objectUrl || "";
+    this.croppedImage.set(event.objectUrl || "");
   }
 
   /**
    * Convert the cropped image to a blob and emit it
    */
   saveCroppedImage() {
-    this.isProcessing = true;
+    const croppedImage = this.croppedImage();
 
-    if (this.croppedImage) {
-      // Convert the cropped image URL to a blob
-      fetch(this.croppedImage)
-        .then((response) => response.blob())
-        .then((blob) => {
-          this.imageCropped.emit(blob);
-          this.isProcessing = false;
-        })
-        .catch((error) => {
-          console.error("Error converting cropped image to blob:", error);
-          this.isProcessing = false;
-        });
+    if (!croppedImage) {
+      return;
     }
+
+    this.isProcessing.set(true);
+
+    fetch(croppedImage)
+      .then((response) => response.blob())
+      .then((blob) => {
+        this.imageCropped.emit(blob);
+      })
+      .catch((error) => {
+        console.error("Error converting cropped image to blob:", error);
+      })
+      .finally(() => {
+        this.isProcessing.set(false);
+      });
   }
 
   /**

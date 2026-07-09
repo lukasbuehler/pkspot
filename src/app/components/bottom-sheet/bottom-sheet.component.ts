@@ -1,17 +1,16 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,
+  output,
   input,
   OnDestroy,
-  Output,
   Renderer2,
   effect,
   inject,
   signal,
   ViewChild,
-  ChangeDetectionStrategy
 } from "@angular/core";
 
 @Component({
@@ -21,8 +20,8 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BottomSheetComponent implements AfterViewInit, OnDestroy {
-  @Output() isAtTopChange = new EventEmitter<boolean>();
-  @Output() openProgressChange = new EventEmitter<number>(); // 0 = bottom (closed), 1 = top (open)
+  readonly isAtTopChange = output<boolean>();
+  readonly openProgressChange = output<number>(); // 0 = bottom (closed), 1 = top (open)
 
   /**
    * Toggles the sheet state between open and closed/peek.
