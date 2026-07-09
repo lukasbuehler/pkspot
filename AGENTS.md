@@ -4,14 +4,19 @@ These instructions apply to all work in this repository.
 
 ## Angular standards
 
+- This repository uses Angular 22. For Angular-specific work, prefer the official `angular-developer` Codex skill when available and check the installed Angular version before applying version-sensitive guidance.
 - Write clean, readable, and well-documented code.
 - Do not create separate Markdown documentation files for code changes. Keep durable explanations in code comments when needed, and use chat for temporary explanation.
 - Use strict TypeScript settings and prefer type inference when the type is obvious.
 - Avoid `any`; use `unknown` when the type is uncertain.
+- Use the Angular CLI for scaffolding components, services, directives, pipes, and routes when it fits the task, then adapt the generated code to the repository's conventions.
 - Always use standalone Angular components rather than NgModules.
 - Do not set `standalone: true` inside Angular decorators. It is the default.
 - Use signals for local state and `computed()` for derived state.
+- Expose writable service state as readonly signals with `.asReadonly()` unless callers intentionally need to write to it.
 - Do not use `mutate` on signals; use `update` or `set` instead.
+- Do not use `effect()` to propagate state from one signal into another. Use `computed()` for purely derived state and `linkedSignal()` when derived state also needs user overrides.
+- Use `resource()` / `httpResource()` for signal-driven async loading when it fits the data flow, and pass the provided abort signal to cancellable fetches.
 - Implement lazy loading for feature routes where appropriate.
 - Do not use `@HostBinding` or `@HostListener`; put host bindings in the `host` object of the `@Component` or `@Directive` decorator instead.
 - Use `NgOptimizedImage` for static images when compatible.
@@ -20,11 +25,14 @@ These instructions apply to all work in this repository.
 - Use `input()` and `output()` instead of decorator-based inputs and outputs.
 - Set `changeDetection: ChangeDetectionStrategy.OnPush` in component decorators.
 - Prefer inline templates for small components.
-- Prefer reactive forms instead of template-driven forms.
+- Prefer signal forms for new isolated forms on Angular 21+ when the surrounding feature can support them. For existing form-heavy features, keep using typed reactive forms unless a broader migration is intentional.
+- Avoid template-driven forms for complex flows.
 - Do not use `ngClass`; use `class` bindings instead.
 - Do not use `ngStyle`; use `style` bindings instead.
-- Keep templates simple and avoid complex logic.
+- Keep templates simple and avoid complex logic. Do not call expensive methods from templates; move filtering, sorting, grouping, formatting, or allocation-heavy work into `computed()` signals, memoized helpers, or pure pipes.
+- Template method calls are acceptable only for cheap event handlers, stable `track` functions, or trivial reads. If a method allocates arrays/objects, filters data, searches collections, reads layout, or touches services, do not call it from interpolation or bindings.
 - Prefer modern Angular template control flow (`@if`, `@for`, `@switch`) instead of structural directives (`*ngIf`, `*ngFor`, `*ngSwitch`) unless explicitly required by framework/tooling constraints.
+- Always use a stable identity in `@for` `track` expressions when the list can be reordered, inserted into, or removed from. Use `$index` only for truly static lists.
 - Use the async pipe to handle observables in templates.
 - Design services around a single responsibility.
 - Use `providedIn: 'root'` for singleton services.
