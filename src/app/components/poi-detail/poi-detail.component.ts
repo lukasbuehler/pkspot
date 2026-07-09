@@ -20,7 +20,6 @@ import { getGooglePlaceOpeningHoursStatus } from "../../shared/google-place-open
 
 @Component({
   selector: "app-poi-detail",
-  standalone: true,
   imports: [
     CommonModule,
     MatButtonModule,

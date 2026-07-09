@@ -1,11 +1,11 @@
 <span class="counter">
-  @for(digit of displayDigits; track digit + '-' + $index) {
+  @for(digit of displayDigits(); track digit + '-' + $index) {
   <span
     [@digitChange]="{
-      value: number,
+      value: number(),
       params: {
-        incrementMinus: getMinusIfIncrementing(number, true),
-        decrementMinus: getMinusIfIncrementing(number, false)
+        incrementMinus: getMinusIfIncrementing(true),
+        decrementMinus: getMinusIfIncrementing(false)
       }
     }"
     class="digit-container"

@@ -29,16 +29,20 @@ describe("MediaUpload", () => {
         { provide: MatSnackBar, useValue: snackBar },
       ],
     });
+    TestBed.overrideComponent(MediaUpload, {
+      add: {
+        providers: [
+          { provide: StorageService, useValue: storageService },
+          { provide: MatSnackBar, useValue: snackBar },
+        ],
+      },
+    });
 
     Object.defineProperty(URL, "createObjectURL", {
       configurable: true,
       value: vi.fn(() => "blob:preview"),
     });
   });
-
-  function createComponent(): MediaUpload {
-    return TestBed.runInInjectionContext(() => new MediaUpload());
-  }
 
   async function createFixture(): Promise<ComponentFixture<MediaUpload>> {
     await TestBed.compileComponents();
@@ -72,7 +76,8 @@ describe("MediaUpload", () => {
   });
 
   it("uploads selected spot images to storage and emits individual and batch media", async () => {
-    const component = createComponent();
+    const fixture = await createFixture();
+    const component = fixture.componentInstance;
     const file = new File(["image"], "spot.jpg", { type: "image/jpeg" });
     const mediaEvents: { src: string; is_sized: boolean; type: MediaType }[] =
       [];
@@ -80,8 +85,8 @@ describe("MediaUpload", () => {
       [];
     const uploadingEvents: boolean[] = [];
 
-    component.storageFolder = StorageBucket.SpotPictures;
-    component.allowedMimeTypes = ["image/jpeg"];
+    fixture.componentRef.setInput("storageFolder", StorageBucket.SpotPictures);
+    fixture.componentRef.setInput("allowedMimeTypes", ["image/jpeg"]);
     component.newMedia.subscribe((event) => mediaEvents.push(event));
     component.mediaBatchUploaded.subscribe((event) => batchEvents.push(event));
     component.isUploading.subscribe((event) => uploadingEvents.push(event));
@@ -131,14 +136,15 @@ describe("MediaUpload", () => {
     expect(uploadingEvents).toEqual([true, false]);
   });
 
-  it("emits selected files without entering upload state when storage upload is disabled", () => {
-    const component = createComponent();
+  it("emits selected files without entering upload state when storage upload is disabled", async () => {
+    const fixture = await createFixture();
+    const component = fixture.componentInstance;
     const file = new File(["video"], "clip.mp4", { type: "video/mp4" });
     const selectedFiles: File[] = [];
     const uploadingEvents: boolean[] = [];
 
-    component.uploadToStorage = false;
-    component.allowedMimeTypes = ["video/mp4"];
+    fixture.componentRef.setInput("uploadToStorage", false);
+    fixture.componentRef.setInput("allowedMimeTypes", ["video/mp4"]);
     component.fileSelected.subscribe((event) => selectedFiles.push(event));
     component.isUploading.subscribe((event) => uploadingEvents.push(event));
 
@@ -150,13 +156,14 @@ describe("MediaUpload", () => {
     expect(uploadingEvents).toEqual([]);
   });
 
-  it("rejects invalid mime types before starting upload state", () => {
-    const component = createComponent();
+  it("rejects invalid mime types before starting upload state", async () => {
+    const fixture = await createFixture();
+    const component = fixture.componentInstance;
     const file = new File(["image"], "spot.jpg", { type: "image/jpeg" });
     const uploadingEvents: boolean[] = [];
 
-    component.storageFolder = StorageBucket.SpotPictures;
-    component.allowedMimeTypes = ["image/png"];
+    fixture.componentRef.setInput("storageFolder", StorageBucket.SpotPictures);
+    fixture.componentRef.setInput("allowedMimeTypes", ["image/png"]);
     component.isUploading.subscribe((event) => uploadingEvents.push(event));
 
     component.onSelectFiles(inputWithFiles([file]));
@@ -169,14 +176,15 @@ describe("MediaUpload", () => {
     expect(uploadingEvents).toEqual([]);
   });
 
-  it("rejects oversized files before starting upload state", () => {
-    const component = createComponent();
+  it("rejects oversized files before starting upload state", async () => {
+    const fixture = await createFixture();
+    const component = fixture.componentInstance;
     const file = new File(["too large"], "spot.png", { type: "image/png" });
     const uploadingEvents: boolean[] = [];
 
-    component.storageFolder = StorageBucket.SpotPictures;
-    component.allowedMimeTypes = ["image/png"];
-    component.maximumSizeInBytes = 1;
+    fixture.componentRef.setInput("storageFolder", StorageBucket.SpotPictures);
+    fixture.componentRef.setInput("allowedMimeTypes", ["image/png"]);
+    fixture.componentRef.setInput("maximumSizeInBytes", 1);
     component.isUploading.subscribe((event) => uploadingEvents.push(event));
 
     component.onSelectFiles(inputWithFiles([file]));
@@ -189,12 +197,13 @@ describe("MediaUpload", () => {
   });
 
   it("clears upload state and shows feedback when storage upload fails", async () => {
-    const component = createComponent();
+    const fixture = await createFixture();
+    const component = fixture.componentInstance;
     const file = new File(["image"], "spot.jpg", { type: "image/jpeg" });
     const uploadingEvents: boolean[] = [];
 
-    component.storageFolder = StorageBucket.SpotPictures;
-    component.allowedMimeTypes = ["image/jpeg"];
+    fixture.componentRef.setInput("storageFolder", StorageBucket.SpotPictures);
+    fixture.componentRef.setInput("allowedMimeTypes", ["image/jpeg"]);
     component.isUploading.subscribe((event) => uploadingEvents.push(event));
     storageService.setUploadToStorageWithResult.mockRejectedValue(
       new Error("storage denied")

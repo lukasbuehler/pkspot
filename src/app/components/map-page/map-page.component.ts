@@ -14,6 +14,7 @@ import {
   effect,
   computed,
   NgZone,
+  Injector,
   ChangeDetectionStrategy,
   untracked,
   ElementRef,
@@ -44,7 +45,6 @@ import {
   lastValueFrom,
   Subscription,
   SubscriptionLike,
-  take,
 } from "rxjs";
 import { animate, style, transition, trigger } from "@angular/animations";
 import { FormControl } from "@angular/forms";
@@ -289,6 +289,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   pendingTasks = inject(PendingTasks);
   responsiveService = inject(ResponsiveService);
   private ngZone = inject(NgZone);
+  private readonly injector = inject(Injector);
   private _structuredDataService = inject(StructuredDataService);
   private _backHandlingService = inject(BackHandlingService);
   private _analytics = inject(AnalyticsService);
@@ -2795,38 +2796,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           // Move logic into a reusable method so we can re-run it on breakpoint changes
           this._attachChipsMeasurement();
 
-          // Trigger an immediate measurement now that the view is initialized.
-          // Call the installed window-resize listener (it schedules a measurement).
-          try {
-            // Wait for Angular to stabilize so projected/async chip elements are present
-            try {
-              this.ngZone.onStable.pipe(take(1)).subscribe(() => {
-                try {
-                  if (!this._chipsWindowResizeListener) {
-                    // In case the listener wasn't installed, re-run attachment once more
-                    this._attachChipsMeasurement();
-                  }
-                  // Run the usual scheduled measurement and also a direct immediate measure
-                  this._chipsWindowResizeListener?.();
-                  this._chipsDirectMeasure?.();
-                } catch (e) {
-                  /* ignore */
-                }
-              });
-            } catch (e) {
-              // Fallback to setTimeout if onStable isn't available for some reason
-              setTimeout(() => {
-                try {
-                  if (this._chipsWindowResizeListener)
-                    this._chipsWindowResizeListener();
-                } catch (e) {
-                  /* ignore */
-                }
-              }, 50);
-            }
-          } catch (e) {
-            /* ignore */
-          }
+          afterNextRender(
+            () => {
+              if (!this._chipsWindowResizeListener) {
+                this._attachChipsMeasurement();
+              }
+              this._chipsWindowResizeListener?.();
+              this._chipsDirectMeasure?.();
+            },
+            { injector: this.injector },
+          );
 
           // Measurement attached once on view init. We do not re-attach
           // repeatedly from a reactive effect to avoid periodic re-runs.

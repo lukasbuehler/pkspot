@@ -1,3 +1,7 @@
+@let control = formCtrl();
+@let selectedOptions = control.value ?? [];
+@let icons = optionIcons();
+
 <div class="chip-select">
   <mat-chip
     clickable
@@ -7,19 +11,19 @@
     color="primary"
     selected
   >
-    @if(!formCtrl.value.length) {
-    {{ label }}
-    } @if (showSummary) { @if (formCtrl.value.length === options.length) {
-    {{ allLabel || "All" }}
+    @if(!selectedOptions.length) {
+    {{ label() }}
+    } @if (showSummary()) { @if (selectedOptions.length === options().length) {
+    {{ allLabel() || "All" }}
     } @else {
-    {{ formCtrl.value[0] ? optionNames[formCtrl.value[0] + ""] : "" }}
-    @if ((formCtrl.value.length || 0) > 1) {
+    {{ selectedOptions[0] ? optionNames()[selectedOptions[0]] : "" }}
+    @if (selectedOptions.length > 1) {
     <span class="example-additional-selection">
-      (+{{ (formCtrl.value.length || 0) - 1 }}
-      {{ formCtrl.value.length === 2 ? "other" : "others" }})
+      (+{{ selectedOptions.length - 1 }}
+      {{ selectedOptions.length === 2 ? "other" : "others" }})
     </span>
     } } }
-    <mat-icon matChipAvatar>{{ icon }}</mat-icon>
+    <mat-icon matChipAvatar>{{ icon() }}</mat-icon>
   </mat-chip>
   <mat-form-field
     appearance="fill"
@@ -28,17 +32,17 @@
   >
     <mat-select
       #select
-      [formControl]="formCtrl"
-      [multiple]="multiple"
+      [formControl]="control"
+      [multiple]="multiple()"
       panelClass="visible-select-panel"
     >
       <mat-select-trigger></mat-select-trigger>
-      @for (option of options; track $index) {
+      @for (option of options(); track option) {
       <mat-option [value]="option">
-        @if(optionIcons) {
-        <mat-icon class="me-2">{{ optionIcons[option + ""] }}</mat-icon>
+        @if(icons[option]; as optionIcon) {
+        <mat-icon class="me-2">{{ optionIcon }}</mat-icon>
         }
-        {{ optionNames[option + ""] }}
+        {{ optionNames()[option] }}
       </mat-option>
       }
     </mat-select>

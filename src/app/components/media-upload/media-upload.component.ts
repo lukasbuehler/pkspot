@@ -1,5 +1,5 @@
-import { effect, inject, Optional, Self, signal, ChangeDetectionStrategy } from "@angular/core";
-import { Component, OnInit, Output, EventEmitter, Input } from "@angular/core";
+import { effect, inject, Optional, Self, signal, ChangeDetectionStrategy, output, input } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import {
   ControlValueAccessor,
   UntypedFormControl,
@@ -74,18 +74,18 @@ export interface MediaUploadEvent {
 export class MediaUpload implements OnInit, ControlValueAccessor {
   private _snackbar: MatSnackBar = inject(MatSnackBar);
 
-  @Input() required: boolean = false;
-  @Input() multipleAllowed: boolean = false;
-  @Input() storageFolder: StorageBucket | null = null;
-  @Input() uploadToStorage: boolean = true;
-  @Input() maximumSizeInBytes: number = 500 * 1024 * 1024; // 500 MB
-  @Input() allowedMimeTypes: string[] | null = null;
-  @Input() acceptString: string | null = null;
-  @Input() moderationTargetKind: MediaUploadTargetKind | null = null;
-  @Input() moderationTargetId: string | null = null;
-  @Output() changed = new EventEmitter<void>();
-  @Output() newMedia = new EventEmitter<MediaUploadEvent>();
-  @Output() fileSelected = new EventEmitter<File>();
+  readonly required = input<boolean>(false);
+  readonly multipleAllowed = input<boolean>(false);
+  readonly storageFolder = input<StorageBucket | null>(null);
+  readonly uploadToStorage = input<boolean>(true);
+  readonly maximumSizeInBytes = input<number>(500 * 1024 * 1024); // 500 MB
+  readonly allowedMimeTypes = input<string[] | null>(null);
+  readonly acceptString = input<string | null>(null);
+  readonly moderationTargetKind = input<MediaUploadTargetKind | null>(null);
+  readonly moderationTargetId = input<string | null>(null);
+  readonly changed = output<void>();
+  readonly newMedia = output<MediaUploadEvent>();
+  readonly fileSelected = output<File>();
 
   private _storageService = inject(StorageService);
 
@@ -109,7 +109,7 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
   }
 
   ngOnInit() {
-    if (this.storageFolder === null && this.uploadToStorage) {
+    if (this.storageFolder() === null && this.uploadToStorage()) {
       console.error("No storage folder specified for media upload");
     }
   }
@@ -138,19 +138,21 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
         this.hasError = false;
         let type = file.type;
         console.debug("file type", type);
-        if (!this.allowedMimeTypes || this.allowedMimeTypes.includes(type)) {
+        const allowedMimeTypes = this.allowedMimeTypes();
+        if (!allowedMimeTypes || allowedMimeTypes.includes(type)) {
+          const maximumSizeInBytes = this.maximumSizeInBytes();
           if (
-            this.maximumSizeInBytes !== null &&
-            file.size > this.maximumSizeInBytes
+            maximumSizeInBytes !== null &&
+            file.size > maximumSizeInBytes
           ) {
             // The selected file is too large
             console.log(
               `The selected file was too big. (Max: ${humanFileSize(
-                this.maximumSizeInBytes
+                maximumSizeInBytes
               )})`
             );
             this._errorMessage = `The selected file was too big. (It needs to be less than ${humanFileSize(
-              this.maximumSizeInBytes
+              maximumSizeInBytes
             )})`;
             this.hasError = true;
             return;
@@ -162,8 +164,8 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
               "Mimetype of selected file is '" +
               type +
               "', allowed mime types are: " +
-              (this.allowedMimeTypes
-                ? this.allowedMimeTypes.join(", ")
+              (allowedMimeTypes
+                ? allowedMimeTypes.join(", ")
                 : "undefined") +
               "\n"
           );
@@ -194,7 +196,9 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
         return;
       }
 
-      if (this.uploadToStorage && this.storageFolder) {
+      const storageFolder = this.storageFolder();
+      const uploadToStorage = this.uploadToStorage();
+      if (uploadToStorage && storageFolder) {
         this.isUploading.emit(true);
       }
 
@@ -203,7 +207,7 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
         if (!newMedia) {
           continue;
         }
-        if (this.uploadToStorage && this.storageFolder) {
+        if (uploadToStorage && storageFolder) {
           this.uploadMedia(newMedia, i);
         } else {
           // just emit the file
@@ -241,7 +245,8 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
   uploadMedia(media: UploadMedia, index: number) {
     console.log("Starting media upload", media);
 
-    if (!this.storageFolder) {
+    const storageFolder = this.storageFolder();
+    if (!storageFolder) {
       console.error("No storage folder specified for media upload");
       return;
     }
@@ -253,7 +258,7 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
     this._storageService
       .setUploadToStorageWithResult(
         media.file,
-        this.storageFolder,
+        storageFolder,
         (progress: number) => {
           if (this._activeUploadCount <= 0) return; // Ignore if cancelled
           this.mediaList.update((list) => {
@@ -267,8 +272,8 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
         filename,
         fileEnding,
         "public, max-age=31536000",
-        this.moderationTargetKind ?? undefined,
-        this.moderationTargetId ?? undefined
+        this.moderationTargetKind() ?? undefined,
+        this.moderationTargetId() ?? undefined
       )
       .then(
         (uploadResult) => {
@@ -320,7 +325,7 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
 
     if (
       [StorageBucket.SpotPictures, StorageBucket.ProfilePictures].includes(
-        this.storageFolder!
+        this.storageFolder()!
       )
     ) {
       isSized = true;
@@ -344,9 +349,9 @@ export class MediaUpload implements OnInit, ControlValueAccessor {
   private _activeUploadCount = 0;
   private _currentBatch: MediaUploadEvent[] = [];
 
-  @Output() mediaBatchUploaded = new EventEmitter<MediaUploadEvent[]>();
+  readonly mediaBatchUploaded = output<MediaUploadEvent[]>();
 
-  @Output() isUploading = new EventEmitter<boolean>();
+  readonly isUploading = output<boolean>();
 
   private _checkBatchCompletion() {
     this._activeUploadCount--;

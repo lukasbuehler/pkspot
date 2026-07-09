@@ -1,5 +1,5 @@
 <div class="d-flex flex-column gap-4">
-  @if (user) {
+@if (user(); as user) {
   <!-- Cropping mode: show cropper after image is selected -->
   @if (newProfilePictureSrc && !croppingComplete) {
   <app-crop-image

@@ -26,7 +26,6 @@ export interface MediaUploadDialogData {
 
 @Component({
   selector: "app-media-upload-dialog",
-  standalone: true,
   imports: [
     CommonModule,
     MatDialogModule,

@@ -1,12 +1,12 @@
 import {
   Component,
-  EventEmitter,
   Inject,
-  Input,
   LOCALE_ID,
   OnInit,
-  Output,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  input,
+  linkedSignal,
+  output,
 } from "@angular/core";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { User } from "../../../db/models/User";
@@ -83,8 +83,11 @@ type NormalizedSocials = {
   ],
 })
 export class EditProfileComponent implements OnInit {
-  @Input() user: User | undefined;
-  @Output() changes = new EventEmitter<boolean>();
+  protected readonly userInput = input<User | undefined>(undefined, {
+    alias: "user",
+  });
+  readonly user = linkedSignal(() => this.userInput());
+  readonly changes = output<boolean>();
 
   displayName: string = "";
   biography: string = "";
@@ -123,14 +126,14 @@ export class EditProfileComponent implements OnInit {
   ngOnInit(): void {
     // Check if user is already available
     if (this.authService?.user?.data) {
-      this.user = this.authService.user.data;
+      this.user.set(this.authService.user.data);
       this._updateInfoOnView();
     }
 
     // Subscribe to auth state changes
     this.authService.authState$.subscribe((authUser) => {
       if (authUser?.data) {
-        this.user = authUser.data;
+        this.user.set(authUser.data);
         this._updateInfoOnView();
       }
     });
@@ -176,13 +179,14 @@ export class EditProfileComponent implements OnInit {
   }
 
   private _updateInfoOnView() {
-    if (this.user) {
-      this.displayName = this.user.displayName ?? "";
-      this.startDate = this.user.startDate ?? null;
-      this.biography = this.user.biography ?? "";
-      this.nationalityCode = this.user.nationalityCode ?? null;
-      this.instagramHandle = this.user.socials?.instagram_handle ?? "";
-      this.youtubeHandle = this.user.socials?.youtube_handle ?? "";
+    const user = this.user();
+    if (user) {
+      this.displayName = user.displayName ?? "";
+      this.startDate = user.startDate ?? null;
+      this.biography = user.biography ?? "";
+      this.nationalityCode = user.nationalityCode ?? null;
+      this.instagramHandle = user.socials?.instagram_handle ?? "";
+      this.youtubeHandle = user.socials?.youtube_handle ?? "";
 
       if (this.nationalityCode && this.countries[this.nationalityCode]) {
         this.countryControl.setValue(this.countries[this.nationalityCode].name);
@@ -313,11 +317,12 @@ export class EditProfileComponent implements OnInit {
   }
 
   private async _performProfilePictureUploadAndSave(): Promise<void> {
-    if (!this.user || !this.user.uid || !this.newProfilePicture) {
+    const user = this.user();
+    if (!user?.uid || !this.newProfilePicture) {
       throw new Error("Missing user ID or profile picture");
     }
 
-    const userId = this.user.uid;
+    const userId = user.uid;
     this.isUpdatingProfilePicture = true;
 
     try {
@@ -355,18 +360,18 @@ export class EditProfileComponent implements OnInit {
       this.newProfilePicture = null;
 
       // Refresh user data with new profile picture
-      if (this.user?.data) {
+      if (user.data) {
         // Update the data object reference with the new URL string
-        this.user.data.profile_picture = profilePictureUrl;
+        user.data.profile_picture = profilePictureUrl;
 
         if (this.tempProfilePictureSrc) {
           // Use ExternalImage with the local data URL for immediate, reliable update across the app (Nav Bar)
           // AND set it as an override in AuthService so it persists through Firestore updates
           const override = new ExternalImage(this.tempProfilePictureSrc);
           this.authService.overrideProfilePicture = override;
-          this.user.profilePicture = override;
+          user.profilePicture = override;
         } else {
-          this.user.setProfilePicture(profilePictureUrl);
+          user.setProfilePicture(profilePictureUrl);
         }
 
         // Notify subscribers (like the Nav Bar) that the user data has changed
@@ -393,14 +398,15 @@ export class EditProfileComponent implements OnInit {
   }
 
   detectIfChanges() {
+    const user = this.user();
     const currentSocials = this._buildCurrentSocials();
     const originalSocials = this._buildOriginalSocials();
 
     if (
-      this.displayName !== this.user?.displayName ||
-      this.startDate !== this.user?.startDate ||
-      this.biography !== this.user?.biography ||
-      this.nationalityCode !== (this.user?.nationalityCode ?? null) ||
+      this.displayName !== user?.displayName ||
+      this.startDate !== user?.startDate ||
+      this.biography !== user?.biography ||
+      this.nationalityCode !== (user?.nationalityCode ?? null) ||
       JSON.stringify(currentSocials) !== JSON.stringify(originalSocials)
     ) {
       this.changes.emit(true);
@@ -417,7 +423,8 @@ export class EditProfileComponent implements OnInit {
   }
 
   saveAllChanges(): Promise<void> {
-    if (!this.user || !this.user.uid) return Promise.reject("No user");
+    const user = this.user();
+    if (!user?.uid) return Promise.reject("No user");
     if (!this._ageAssuranceService.canParticipatePublicly()) {
       this._snackbar.open(
         this._ageAssuranceService.getRestrictionMessage(),
@@ -433,21 +440,21 @@ export class EditProfileComponent implements OnInit {
 
     const data: Partial<UserSchema> = {};
 
-    if (this.displayName !== this.user.displayName) {
+    if (this.displayName !== user.displayName) {
       data.display_name = this.displayName;
     }
 
-    if (this.startDate !== this.user.startDate) {
+    if (this.startDate !== user.startDate) {
       data.start_date = this.startDate
         ? Timestamp.fromDate(this.startDate)
         : undefined;
     }
 
-    if (this.biography !== this.user.biography) {
+    if (this.biography !== user.biography) {
       data.biography = this.biography;
     }
 
-    if (this.nationalityCode !== this.user.nationalityCode) {
+    if (this.nationalityCode !== user.nationalityCode) {
       data.nationality_code = this.nationalityCode ?? undefined;
     }
 
@@ -461,8 +468,8 @@ export class EditProfileComponent implements OnInit {
       if (currentSocials.youtube_handle) {
         socials.youtube_handle = currentSocials.youtube_handle;
       }
-      if (this.user.socials?.other) {
-        socials.other = this.user.socials.other;
+      if (user.socials?.other) {
+        socials.other = user.socials.other;
       }
       data.socials = socials;
     }
@@ -475,7 +482,7 @@ export class EditProfileComponent implements OnInit {
 
     return promise.then(() => {
       if (Object.keys(data).length > 0) {
-        return this._userService.updateUser(this.user!.uid, data);
+        return this._userService.updateUser(user.uid, data);
       }
       return Promise.resolve();
     });
@@ -489,7 +496,7 @@ export class EditProfileComponent implements OnInit {
   }
 
   private _buildOriginalSocials(): NormalizedSocials {
-    return this._normalizeSocials(this.user?.socials);
+    return this._normalizeSocials(this.user()?.socials);
   }
 
   private _normalizeSocials(socials?: UserSocialsSchema | null): NormalizedSocials {

@@ -56,7 +56,7 @@
             "outputPath": "dist/pkspot",
             "index": { "input": "src/index.html", "output": "index.html" },
             "browser": "src/main.ts",
-            "polyfills": ["zone.js", "@angular/localize/init"],
+            "polyfills": ["@angular/localize/init"],
             "tsConfig": "tsconfig.app.json",
             "sourceMap": true,
             "assets": [

@@ -46,7 +46,7 @@ import { PostComponent } from "../post/post.component";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PostCollectionComponent {
-  readonly posts = input<Post.Class[]>([]);
+  readonly posts = input<readonly Post.Class[]>([]);
   readonly title = input("");
   readonly loading = input(false);
 }

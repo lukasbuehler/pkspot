@@ -10,7 +10,6 @@ import autoAnimate from "@formkit/auto-animate";
 
 @Directive({
   selector: "[appAutoAnimate]",
-  standalone: true,
 })
 export class AutoAnimateDirective implements AfterViewInit, OnChanges {
   private el = inject(ElementRef);

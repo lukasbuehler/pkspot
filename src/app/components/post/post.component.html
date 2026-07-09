@@ -1,30 +1,32 @@
-@if(post) {
+@let currentPost = post();
+
+@if(currentPost) {
 <mat-card
   class="text-left border rounded"
-  [class.mat-elevation-z0]="!showCard"
+  [class.mat-elevation-z0]="!showCard()"
 >
   <mat-card-header>
-    <mat-card-title>{{ post.title }}</mat-card-title>
+    <mat-card-title>{{ currentPost.title }}</mat-card-title>
     <mat-card-subtitle>
       <span>
-        <a routerLink="/u/{{ post.user?.uid }}">{{
-          post.user?.display_name || "A Traceur"
+        <a routerLink="/u/{{ currentPost.user?.uid }}">{{
+          currentPost.user?.display_name || "A Traceur"
         }}</a>
       </span>
-      <span>{{ timeAgoString }}</span></mat-card-subtitle
+      <span>{{ timeAgoString() }}</span></mat-card-subtitle
     >
   </mat-card-header>
 
   <!-- Media display -->
-  @if(post.mediaSrc) {
+  @if(currentPost.mediaSrc) {
   <div #matCardMedia id="matCardMedia" class="mat-card-media">
     <!-- (resized)="onResized($event)" -->
-    @if(post.mediaSrc && post.mediaIsImage) {
-    <img src="{{ post.mediaSrc }}" [alt]="post.title + ' Image'" />
-    } @if(!post.mediaIsImage && post.mediaSrc) {
+    @if(currentPost.mediaIsImage) {
+    <img [src]="currentPost.mediaSrc" [alt]="currentPost.title + ' Image'" />
+    } @else {
     <vg-player #videoPlayer class="mat-card-video fill">
       <!-- <video [vgMedia]="media" #media id="singleVideo" preload="auto" controls>
-        <source [src]="post.mediaSrc" type="video/mp4" />
+        <source [src]="currentPost.mediaSrc" type="video/mp4" />
       </video> -->
     </vg-player>
     } @if(false) {
@@ -42,59 +44,59 @@
   }
 
   <!-- Location display -->
-  @if(post.location) {
+  @if(currentPost.location) {
   <span class="location-text">
     <a
       [routerLink]="
-        '/map?lat=' + post.location.lat + '&lng=' + post.location.lng + '&z=19'
+        '/map?lat=' +
+        currentPost.location.lat +
+        '&lng=' +
+        currentPost.location.lng +
+        '&z=19'
       "
-      >{{ getLocationDisplayCoordinates(post.location) }}</a
+      >{{ locationDisplayCoordinates() }}</a
     >
   </span>
   }
 
   <!-- Spot display -->
-  @if(post.spot && (post.spot.ref || post.spot.spot_location)) {
+  @if(currentPost.spot &&
+  (currentPost.spot.ref || currentPost.spot.spot_location)) {
   <a
     class="spot-container-link"
     [routerLink]="
-      post.spot.ref
-        ? '/map/spots/' + post.spot.ref.id
+      currentPost.spot.ref
+        ? '/map/spots/' + currentPost.spot.ref.id
         : '/map?lat=' +
-          post.spot.spot_location.latitude +
+          currentPost.spot.spot_location.latitude +
           '&lng=' +
-          post.spot.spot_location.longitude +
+          currentPost.spot.spot_location.longitude +
           '&z=19'
     "
   >
     <div class="spot-container border rounded">
       <div class="spot-container-image">
-        <img [src]="post.spot.image_src" alt="" />
+        <img [src]="currentPost.spot.image_src" alt="" />
       </div>
 
       <div class="spot-container-text">
-        <h5>{{ post.spot.name }}</h5>
-        <span>{{
-          post.spot.spot_location
-            ? getLocationDisplayCoordinates({
-                lat: post.spot.spot_location.latitude,
-                lng: post.spot.spot_location.longitude
-              })
-            : ""
-        }}</span>
+        <h5>{{ currentPost.spot.name }}</h5>
+        <span>{{ spotDisplayCoordinates() }}</span>
       </div>
     </div>
   </a>
   }
 
-  <mat-card-content class="text-left">{{ post.body }}</mat-card-content>
+  <mat-card-content class="text-left">{{ currentPost.body }}</mat-card-content>
   <mat-card-actions>
     <div class="mr-2">
       <button mat-icon-button (click)="likeButtonPress()">
-        <mat-icon [color]="likedByUser ? 'primary' : ''"> thumb_up </mat-icon>
+        <mat-icon [color]="likedByUser() ? 'primary' : ''"> thumb_up </mat-icon>
       </button>
       <strong class="mat-b"
-        ><app-fancy-counter [number]="post.likeCount || 0"></app-fancy-counter
+        ><app-fancy-counter
+          [number]="currentPost.likeCount || 0"
+        ></app-fancy-counter
       ></strong>
     </div>
 
@@ -125,19 +127,19 @@
     <mat-icon>info</mat-icon>
     <span>More Information</span>
   </button>
-  @if(post?.location || post?.spot) {
+  @if(currentPost?.location || currentPost?.spot) {
   <button mat-menu-item routerLink="/map">
     <mat-icon>place</mat-icon>
     <span>Open on Map</span>
   </button>
-  } @if( currentlyAuthenticatedUserId && post?.user?.uid !==
-  currentlyAuthenticatedUserId ) {
+  } @if( currentlyAuthenticatedUserId() && currentPost?.user?.uid !==
+  currentlyAuthenticatedUserId() ) {
   <button mat-menu-item>
     <mat-icon>report</mat-icon>
     <span i18n>Report post</span>
   </button>
-  } @if( currentlyAuthenticatedUserId && post?.user?.uid ===
-  currentlyAuthenticatedUserId ) {
+  } @if( currentlyAuthenticatedUserId() && currentPost?.user?.uid ===
+  currentlyAuthenticatedUserId() ) {
   <button mat-menu-item (click)="deletePost()" color="warn">
     <mat-icon>delete</mat-icon>
     <span>Delete post</span>

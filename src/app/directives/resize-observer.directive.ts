@@ -1,22 +1,18 @@
 import {
   Directive,
   ElementRef,
-  EventEmitter,
   OnDestroy,
-  Output,
   inject,
-  NgZone,
+  output,
 } from "@angular/core";
 
 @Directive({
   selector: "[appResizeObserver]",
-  standalone: true,
 })
 export class ResizeObserverDirective implements OnDestroy {
-  @Output() resize = new EventEmitter<DOMRectReadOnly>();
+  readonly resize = output<DOMRectReadOnly>();
 
   private el = inject(ElementRef<HTMLElement>);
-  private ngZone = inject(NgZone);
   private observer: ResizeObserver | null = null;
 
   constructor() {
@@ -27,9 +23,7 @@ export class ResizeObserverDirective implements OnDestroy {
     ) {
       this.observer = new ResizeObserver((entries) => {
         for (const entry of entries) {
-          this.ngZone.run(() => {
-            this.resize.emit(entry.contentRect);
-          });
+          this.resize.emit(entry.contentRect);
         }
       });
 

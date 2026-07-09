@@ -13,6 +13,13 @@ These instructions apply to all work in this repository.
 - Always use standalone Angular components rather than NgModules.
 - Do not set `standalone: true` inside Angular decorators. It is the default.
 - Use signals for local state and `computed()` for derived state.
+- Angular 22 uses zoneless change detection by default. Do not add ZoneJS or
+  `provideZoneChangeDetection()` without a documented compatibility reason.
+- Async callbacks that update rendered state must write to a template-read
+  signal, emit through an Angular output/listener, use `AsyncPipe`, or call
+  `ChangeDetectorRef.markForCheck()` explicitly.
+- Do not use `NgZone.onStable`, `onUnstable`, or `onMicrotaskEmpty`; use render
+  hooks such as `afterNextRender()` or direct browser observers instead.
 - Expose writable service state as readonly signals with `.asReadonly()` unless callers intentionally need to write to it.
 - Do not use `mutate` on signals; use `update` or `set` instead.
 - Do not use `effect()` to propagate state from one signal into another. Use `computed()` for purely derived state and `linkedSignal()` when derived state also needs user overrides.
@@ -118,6 +125,8 @@ If you hit the Codex sandbox error "Abort trap: 6", you need to run it outside t
 - When adding a new user-facing app route or first-level page, add or update route-level visual coverage in `e2e/visual/routes.visual.spec.ts`. Include stable fixture data for dynamic pages and cover authenticated route states with the screenshot auth fixture instead of relying on live Firebase data.
 - For Firestore write-path changes, especially event editing or payload serialization, add or run an emulator integration test that performs the real client write through the app service and adapter. Do not rely only on mocked adapter tests or Firestore rules tests for changes involving `Timestamp`, `GeoPoint`, `deleteField()`, nested arrays/objects, or client/server-owned fields.
 - Use `npm run test:unit` for the Vitest unit suite.
+- Keep Angular component tests zoneless via the shared Analog TestBed setup so
+  tests exercise the same notification model as production.
 - Use `npm run test:build` for the build and SSR smoke test. This verifies `npm run build`, copied proxy server files, generated `dist/pkspot/server/build-info.mjs`, localized build output, and that SSR serves real HTML without falling back to client-side rendering.
 - Use `npm run test:all` for the main local verification pass before shipping changes. It runs the unit suite and the build/SSR smoke test.
 - End-to-end browser coverage remains available via `npm run test:e2e` when needed.

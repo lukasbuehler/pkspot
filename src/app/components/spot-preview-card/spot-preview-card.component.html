@@ -2,10 +2,10 @@
 
 <mat-card
   matRipple
-  [matRippleDisabled]="!clickable"
+  [matRippleDisabled]="!clickable()"
   [class.mat-elevation-z0]="true"
-  [class.compact]="isCompact"
-  [class.clickable]="clickable"
+  [class.compact]="isCompact()"
+  [class.clickable]="clickable()"
   [class.border]="hasBorder()"
   [class.rounded]="true"
 >
@@ -125,11 +125,11 @@
       <mat-icon>share</mat-icon>
     </button>
   </div> -->
-  @if(primaryMediaSrc() || !isCompact) {
+  @if(primaryMediaSrc() || !isCompact()) {
   <div
-    [attr.mat-card-sm-image]="isCompact ? '' : null"
+    [attr.mat-card-sm-image]="isCompact() ? '' : null"
     class="img-container"
-    [class.isCompact]="isCompact"
+    [class.isCompact]="isCompact()"
   >
     @if(shouldLoadMedia() && primaryMediaSrc()) {
     <app-media-placeholder

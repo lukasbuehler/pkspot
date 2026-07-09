@@ -580,7 +580,7 @@
 
                   <div class="verify-map-content">
                     <app-spot-map #spotMap [spots]="[]" [selectedSpot]="selectedVerificationSpot()" [isEditing]="true"
-                      [mapStyle]="'hybrid'" [priorityMarkers]="getSpotMarkers(includedSpots())"
+                      [mapStyle]="'hybrid'" [priorityMarkers]="verificationMarkers()"
                       [boundRestriction]="importedSpotsBounds()" [polygons]="polygons()"
                       (markerClickEvent)="onVerifyMapMarkerClick($event)" class="w-100 h-100 d-block"></app-spot-map>
                   </div>

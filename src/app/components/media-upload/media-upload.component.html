@@ -60,12 +60,12 @@
       #fileInput
       hidden="true"
       type="file"
-      [accept]="acceptString ?? allowedMimeTypes?.join(',')"
+      [accept]="acceptString() ?? allowedMimeTypes()?.join(',')"
       onclick="value=null"
       (change)="onSelectFiles($event.target)"
       formControlName="input"
       required
-      [multiple]="multipleAllowed"
+      [multiple]="multipleAllowed()"
     />
     <mat-form-field appearance="outline">
       <mat-label i18n>Please select a file to upload</mat-label>
@@ -78,7 +78,7 @@
         (click)="fileInput.click()"
         readonly
         placeholder="Click to select a file"
-        [multiple]="multipleAllowed"
+        [multiple]="multipleAllowed()"
       />
       <mat-icon matSuffix>upload</mat-icon>
       <!-- @if(!hasError || formGroup.get('input')?.invalid) {
