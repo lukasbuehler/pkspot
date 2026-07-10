@@ -32,6 +32,10 @@ export {
   rebuildAllCommunityPages,
   rebuildCommunityEventPreviewsOnEventWrite,
 } from "./communityFunctions";
+export {
+  reviewCommunityEdit,
+  saveCommunityKnowledge,
+} from "./communityEditFunctions";
 
 // event functions
 export {
@@ -65,6 +69,7 @@ export {
   backfillSignupNumbers,
   recalculateUserEditStats,
 } from "./fixFunctions";
+export { backfillEditTargetMetadata } from "./editMaintenanceFunctions";
 
 // storage triggers
 export { processVideoUpload } from "./storageFunctions";

@@ -937,7 +937,7 @@ async function testAgePolicyParticipationGuards(restricted) {
   );
 }
 
-async function testReadOnlyBackendCollections(owner) {
+async function testReadOnlyBackendCollections(owner, adminUser) {
   for (const [label, path] of [
     ["spot cluster", "spot_clusters/z16_1_2"],
     ["event", "events/client-event"],
@@ -955,80 +955,165 @@ async function testReadOnlyBackendCollections(owner) {
       setDoc(doc(owner.db, path), { attacker: true })
     );
   }
+
+  await assertDenied("admin cannot bypass community knowledge edits", () =>
+    updateDoc(doc(adminUser.db, "community_pages/ch-zurich"), {
+      infoCards: [{ id: "bypass", title: { en: "Bypass" } }],
+    })
+  );
+  await assertDenied("admin cannot bypass private community knowledge edits", () =>
+    updateDoc(
+      doc(adminUser.db, "community_pages/ch-zurich/private_info/link_cards"),
+      { infoCards: [{ id: "bypass", title: { en: "Bypass" } }] }
+    )
+  );
+  await assertAllowed("admin can still request a community merge", () =>
+    updateDoc(doc(adminUser.db, "community_pages/ch-zurich"), {
+      merge_into: {
+        target_community_key: "ch-bern",
+        info_cards: "skip",
+        status: "pending",
+      },
+    })
+  );
 }
 
-async function testCommunityCardSuggestionGuards(
+async function testCommunityEditGuards(
   anon,
   owner,
   other,
   restricted,
   adminUser
 ) {
-  const suggestionRef = await assertAllowed("owner community card suggestion create", () =>
-    addDoc(collection(owner.db, "community_card_suggestions"), {
-      community_key: "locality:ch:zurich",
+  const communityKey = "ch-zurich";
+  const suggestionRef = await assertAllowed("owner community knowledge edit create", () =>
+    addDoc(collection(owner.db, `community_pages/${communityKey}/edits`), {
+      target_type: "community",
+      target_id: communityKey,
+      schema_version: 1,
+      type: "UPDATE",
+      edit_kind: "knowledge",
+      operation: "UPSERT_KNOWLEDGE_CARD",
+      data: {
+        card: {
+          id: "zurich-chat",
+          title: { en: "Zurich chat" },
+          category: "chat",
+        },
+      },
+      status: "pending",
+      approved: false,
+      visibility: "private",
+      review_policy: "admin",
+      user: { uid: "owner", display_name: "Owner" },
+      timestamp: Timestamp.now(),
+      timestamp_raw_ms: Date.now(),
       community_display_name: "Zurich",
       community_path: "/map/communities/zurich",
-      status: "pending",
-      created_by: { uid: "owner", display_name: "Owner" },
-      created_at: Timestamp.now(),
-      card: {
-        id: "zurich-chat",
-        title: { en: "Zurich chat" },
-        category: "chat",
-      },
     })
   );
 
-  await assertDenied("anonymous cannot read community card suggestions", () =>
-    getDoc(suggestionRef)
+  await assertDenied("anonymous cannot read pending community edits", () =>
+    getDoc(doc(anon.db, suggestionRef.path))
   );
-  await assertDenied("other user cannot read community card suggestions", () =>
+  await assertAllowed("submitter reads own pending community edit", () =>
+    getDoc(doc(owner.db, suggestionRef.path))
+  );
+  await assertDenied("other user cannot read pending community edits", () =>
     getDoc(doc(other.db, suggestionRef.path))
   );
-  await assertAllowed("admin reads community card suggestions", () =>
+  await assertAllowed("admin reads pending community edits", () =>
     getDoc(doc(adminUser.db, suggestionRef.path))
   );
-  await assertAllowed("admin updates community card suggestion review state", () =>
+  await assertDenied("clients cannot update community edit review state", () =>
     updateDoc(doc(adminUser.db, suggestionRef.path), {
       status: "approved",
       reviewed_by: { uid: "admin", display_name: "Admin" },
       reviewed_at: Timestamp.now(),
     })
   );
-  await assertDenied("user cannot create approved community card suggestion", () =>
-    addDoc(collection(owner.db, "community_card_suggestions"), {
-      community_key: "locality:ch:zurich",
+  await assertDenied("clients cannot delete community edit history", () =>
+    deleteDoc(doc(adminUser.db, suggestionRef.path))
+  );
+  await assertDenied("user cannot create approved community edit", () =>
+    addDoc(collection(owner.db, `community_pages/${communityKey}/edits`), {
+      target_type: "community",
+      target_id: communityKey,
+      schema_version: 1,
+      type: "UPDATE",
+      edit_kind: "knowledge",
+      operation: "UPSERT_KNOWLEDGE_CARD",
+      data: {
+        card: {
+          id: "bad-status",
+          title: { en: "Bad status" },
+        },
+      },
       status: "approved",
-      created_by: { uid: "owner" },
-      created_at: Timestamp.now(),
-      card: {
-        id: "bad-status",
-        title: { en: "Bad status" },
-      },
+      approved: true,
+      visibility: "public",
+      review_policy: "admin",
+      user: { uid: "owner" },
+      timestamp: Timestamp.now(),
+      timestamp_raw_ms: Date.now(),
     })
   );
-  await assertDenied("community card suggestion user spoofing", () =>
-    addDoc(collection(other.db, "community_card_suggestions"), {
-      community_key: "locality:ch:zurich",
+  await assertDenied("community edit user spoofing", () =>
+    addDoc(collection(other.db, `community_pages/${communityKey}/edits`), {
+      target_type: "community",
+      target_id: communityKey,
+      schema_version: 1,
+      type: "UPDATE",
+      edit_kind: "knowledge",
+      operation: "UPSERT_KNOWLEDGE_CARD",
+      data: {
+        card: {
+          id: "spoof",
+          title: { en: "Spoof" },
+        },
+      },
+      status: "pending",
+      approved: false,
+      visibility: "private",
+      review_policy: "admin",
+      user: { uid: "owner" },
+      timestamp: Timestamp.now(),
+      timestamp_raw_ms: Date.now(),
+    })
+  );
+  await assertDenied("restricted user cannot create community edit", () =>
+    addDoc(collection(restricted.db, `community_pages/${communityKey}/edits`), {
+      target_type: "community",
+      target_id: communityKey,
+      schema_version: 1,
+      type: "UPDATE",
+      edit_kind: "knowledge",
+      operation: "UPSERT_KNOWLEDGE_CARD",
+      data: {
+        card: {
+          id: "restricted",
+          title: { en: "Restricted" },
+        },
+      },
+      status: "pending",
+      approved: false,
+      visibility: "private",
+      review_policy: "admin",
+      user: { uid: "restricted" },
+      timestamp: Timestamp.now(),
+      timestamp_raw_ms: Date.now(),
+    })
+  );
+
+  await assertAllowed("legacy suggestion writes remain compatible", () =>
+    addDoc(collection(owner.db, "community_card_suggestions"), {
+      community_key: communityKey,
       status: "pending",
       created_by: { uid: "owner" },
       created_at: Timestamp.now(),
       card: {
-        id: "spoof",
-        title: { en: "Spoof" },
-      },
-    })
-  );
-  await assertDenied("restricted user cannot create community card suggestion", () =>
-    addDoc(collection(restricted.db, "community_card_suggestions"), {
-      community_key: "locality:ch:zurich",
-      status: "pending",
-      created_by: { uid: "restricted" },
-      created_at: Timestamp.now(),
-      card: {
-        id: "restricted",
-        title: { en: "Restricted" },
+        id: "legacy",
+        title: { en: "Legacy" },
       },
     })
   );
@@ -1370,8 +1455,8 @@ async function main() {
   await testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh, attacker);
   await testUserReportGuards(anon, owner, other);
   await testAgePolicyParticipationGuards(restricted);
-  await testReadOnlyBackendCollections(owner);
-  await testCommunityCardSuggestionGuards(anon, owner, other, restricted, adminUser);
+  await testReadOnlyBackendCollections(owner, adminUser);
+  await testCommunityEditGuards(anon, owner, other, restricted, adminUser);
   await testContactMessageGuards(anon, owner, other);
   await testEventWriteGuards(owner, adminUser);
   await testEventRsvpPrivacy(anon, owner, other, adminUser);

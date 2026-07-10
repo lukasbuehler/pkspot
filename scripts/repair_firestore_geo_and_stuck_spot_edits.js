@@ -175,6 +175,7 @@ async function repairSpotGeoDocs() {
 async function loadBuggedPendingEdits() {
   const snapshot = await db
     .collectionGroup("edits")
+    .where("target_type", "==", "spot")
     .where("approved", "==", false)
     .select(
       "type",

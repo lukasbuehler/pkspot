@@ -54,6 +54,9 @@ const buildEdit = (
 ): SpotEditSchema & { id: string; path: string } => ({
   id,
   path: `spots/spot-${id}/edits/${id}`,
+  target_type: "spot",
+  target_id: `spot-${id}`,
+  schema_version: 1,
   type: "UPDATE",
   timestamp: { seconds: timestampSeconds, nanoseconds: 0 } as SpotEditSchema["timestamp"],
   user: {
@@ -103,7 +106,10 @@ describe("SpotEditsService", () => {
 
     expect(mockFirestoreAdapter.getCollectionGroupWithMetadata).toHaveBeenCalledWith(
       "edits",
-      [{ fieldPath: "user.uid", opStr: "==", value: "user-1" }],
+      [
+        { fieldPath: "target_type", opStr: "==", value: "spot" },
+        { fieldPath: "user.uid", opStr: "==", value: "user-1" },
+      ],
       [
         { type: "orderBy", fieldPath: "timestamp_raw_ms", direction: "desc" },
         { type: "limit", limit: 5 },
@@ -167,7 +173,10 @@ describe("SpotEditsService", () => {
 
     expect(mockFirestoreAdapter.getCollectionGroupWithMetadata).toHaveBeenCalledWith(
       "edits",
-      [{ fieldPath: "approved", opStr: "==", value: false }],
+      [
+        { fieldPath: "target_type", opStr: "==", value: "spot" },
+        { fieldPath: "approved", opStr: "==", value: false },
+      ],
       [{ type: "limit", limit: 20 }]
     );
     expect(result.voting).toEqual([{ edit: voteEdit, spotId: "spot-vote" }]);
@@ -453,6 +462,9 @@ describe("SpotEditsService", () => {
         user: {
           uid: "user-1",
         },
+        target_type: "spot",
+        target_id: "spot-1",
+        schema_version: 1,
         data: {
           name: {
             en: "Undefined Cleanup Park",

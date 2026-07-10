@@ -51,7 +51,7 @@ import {
 } from "../../../scripts/CommunityInfoCardHelpers";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { CommunityKnowledgeEditorComponent } from "../community-knowledge-editor/community-knowledge-editor.component";
-import { CommunityCardSuggestionsService } from "../../services/firebase/firestore/community-card-suggestions.service";
+import { CommunityEditsService } from "../../services/firebase/firestore/community-edits.service";
 import { collectCommunitySpotDirectory } from "../../shared/community-spot-directory";
 import { AnalyticsService } from "../../services/analytics.service";
 import {
@@ -117,9 +117,7 @@ export class CommunityLandingPageComponent {
   private _route = inject(ActivatedRoute);
   private _authService = inject(AuthenticationService);
   private _landingPagesService = inject(LandingPagesService);
-  private _communityCardSuggestionsService = inject(
-    CommunityCardSuggestionsService,
-  );
+  private _communityEditsService = inject(CommunityEditsService);
   private _snackbar = inject(MatSnackBar);
   private _dialog = inject(MatDialog);
   private _locale = inject(LOCALE_ID);
@@ -506,7 +504,7 @@ export class CommunityLandingPageComponent {
       if (!this.canEditKnowledge()) {
         await Promise.all(
           cards.map((card) =>
-            this._communityCardSuggestionsService.submitSuggestion({
+            this._communityEditsService.submitKnowledgeSuggestion({
               communityKey: data.communityKey,
               communityDisplayName: data.displayName,
               communityPath: data.canonicalPath,
@@ -528,10 +526,12 @@ export class CommunityLandingPageComponent {
         return;
       }
 
-      await this._landingPagesService.updateCommunityInfoCards(
-        data.communityKey,
+      await this._communityEditsService.saveKnowledgeCards({
+        communityKey: data.communityKey,
+        communityDisplayName: data.displayName,
+        communityPath: data.canonicalPath,
         cards,
-      );
+      });
       const publicInfoCards = cards.map((card) =>
         this._hasSignedInOnlyCta(card)
           ? this._publicCommunityInfoCard(card)

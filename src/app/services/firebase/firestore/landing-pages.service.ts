@@ -246,25 +246,6 @@ export class LandingPagesService {
     };
   }
 
-  async updateCommunityInfoCards(
-    communityKey: string,
-    infoCards: CommunityInfoCardSchema[],
-  ): Promise<void> {
-    const publicInfoCards = this._publicInfoCards(infoCards);
-    const privateInfoCards = this._privateInfoCards(infoCards);
-
-    await Promise.all([
-      this._firestoreAdapter.updateDocument(`community_pages/${communityKey}`, {
-        infoCards: publicInfoCards,
-      }),
-      this._firestoreAdapter.setDocument(
-        privateCommunityInfoPath(communityKey),
-        { infoCards: privateInfoCards },
-        { merge: true },
-      ),
-    ]);
-  }
-
   async getCommunityPrivateInfoCards(
     communityKey: string,
   ): Promise<CommunityInfoCard[]> {
@@ -301,12 +282,6 @@ export class LandingPagesService {
     cards: CommunityInfoCardSchema[] | null | undefined,
   ): CommunityInfoCard[] {
     return (cards ?? []).map(publicCommunityInfoCard);
-  }
-
-  private _privateInfoCards(
-    cards: CommunityInfoCardSchema[] | null | undefined,
-  ): CommunityInfoCard[] {
-    return (cards ?? []).filter(hasSignedInOnlyCta);
   }
 
   async getChildCommunities(

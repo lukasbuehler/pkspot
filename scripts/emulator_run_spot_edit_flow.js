@@ -84,7 +84,17 @@ function editPayload({ type, data, offsetMs, user = USER, modificationType }) {
 }
 
 async function createEdit(spotId, editId, payload) {
-  await db.collection("spots").doc(spotId).collection("edits").doc(editId).set(payload);
+  await db
+    .collection("spots")
+    .doc(spotId)
+    .collection("edits")
+    .doc(editId)
+    .set({
+      ...payload,
+      target_type: "spot",
+      target_id: spotId,
+      schema_version: 1,
+    });
   return waitFor(async () => {
     const snap = await db
       .collection("spots")
@@ -779,6 +789,7 @@ async function testActivityQueriesUseRawTimestampDeterministically() {
 
   const globalSnapshot = await db
     .collectionGroup("edits")
+    .where("target_type", "==", "spot")
     .orderBy("timestamp_raw_ms", "desc")
     .limit(4)
     .get();
@@ -791,6 +802,7 @@ async function testActivityQueriesUseRawTimestampDeterministically() {
 
   const userSnapshot = await db
     .collectionGroup("edits")
+    .where("target_type", "==", "spot")
     .where("user.uid", "==", USER.uid)
     .orderBy("timestamp_raw_ms", "desc")
     .limit(3)
@@ -805,12 +817,14 @@ async function testActivityQueriesUseRawTimestampDeterministically() {
 
   const firstPage = await db
     .collectionGroup("edits")
+    .where("target_type", "==", "spot")
     .where("user.uid", "==", USER.uid)
     .orderBy("timestamp_raw_ms", "desc")
     .limit(2)
     .get();
   const secondPage = await db
     .collectionGroup("edits")
+    .where("target_type", "==", "spot")
     .where("user.uid", "==", USER.uid)
     .orderBy("timestamp_raw_ms", "desc")
     .startAfter(firstPage.docs[firstPage.docs.length - 1])

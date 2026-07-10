@@ -1,4 +1,9 @@
-import { Injectable, inject } from "@angular/core";
+import {
+  Injectable,
+  Injector,
+  inject,
+  runInInjectionContext,
+} from "@angular/core";
 import { FirebaseApp } from "@angular/fire/app";
 import { Functions, httpsCallable } from "@angular/fire/functions";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
@@ -24,6 +29,7 @@ export class FunctionsAdapterService {
   private readonly functions = inject(Functions, { optional: true });
   private readonly firebaseApp = inject(FirebaseApp);
   private readonly platformService = inject(PlatformService);
+  private readonly injector = inject(Injector);
 
   async call<TRequest, TResponse>(
     functionName: string,
@@ -33,16 +39,19 @@ export class FunctionsAdapterService {
       return this.callNative<TRequest, TResponse>(functionName, payload);
     }
 
-    if (!this.functions) {
+    const functions = this.functions;
+    if (!functions) {
       throw new Error("Functions are unavailable in this environment.");
     }
 
-    const callable = httpsCallable<TRequest, TResponse>(
-      this.functions,
-      functionName,
-    );
-    const result = await callable(payload);
-    return result.data;
+    return runInInjectionContext(this.injector, async () => {
+      const callable = httpsCallable<TRequest, TResponse>(
+        functions,
+        functionName,
+      );
+      const result = await callable(payload);
+      return result.data;
+    });
   }
 
   private async callNative<TRequest, TResponse>(

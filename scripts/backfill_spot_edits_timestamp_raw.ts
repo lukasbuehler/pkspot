@@ -68,6 +68,10 @@ async function backfillSpotEditsTimestampRaw() {
     let batchCount = 0;
 
     for (const doc of snapshot.docs) {
+      const targetRef = doc.ref.parent.parent;
+      if (targetRef?.parent.id !== "spots") {
+        continue;
+      }
       const data = doc.data();
       const timestamp = data["timestamp"]; // Timestamp
       const timestampRaw = data["timestamp_raw_ms"];
@@ -98,9 +102,10 @@ async function backfillSpotEditsTimestampRaw() {
         }
       }
 
-      lastDoc = doc;
       processedCount++;
     }
+
+    lastDoc = snapshot.docs[snapshot.docs.length - 1];
 
     if (batchCount > 0) {
       if (!isDryRun) {

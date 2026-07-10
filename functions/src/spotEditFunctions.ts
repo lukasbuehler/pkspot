@@ -19,6 +19,9 @@ import {
 } from "./organizationVerificationHelpers";
 
 interface SpotEditSchema {
+  target_type?: "spot";
+  target_id?: string;
+  schema_version?: number;
   type: "CREATE" | "UPDATE";
   timestamp: any;
   likes: number;
@@ -136,6 +139,21 @@ export const applySpotEditOnCreate = onDocumentCreated(
       }
 
       const editData = editSnapshot.data() as SpotEditSchema;
+
+      if (editData.target_type !== "spot" || editData.target_id !== spotId) {
+        await editSnapshot.ref.set(
+          {
+            target_type: "spot",
+            target_id: spotId,
+            ...(typeof editData.schema_version === "number"
+              ? {}
+              : { schema_version: 1 }),
+          },
+          { merge: true },
+        );
+      } else if (typeof editData.schema_version !== "number") {
+        await editSnapshot.ref.set({ schema_version: 1 }, { merge: true });
+      }
 
       console.log(
         `Processing spot edit ${editId} for spot ${spotId}`,
@@ -1220,6 +1238,7 @@ export const evaluatePendingSpotEditVotesOnSchedule = onSchedule(
     try {
       const pendingEditsSnap = await db
         .collectionGroup("edits")
+        .where("target_type", "==", "spot")
         .where("approved", "==", false)
         .limit(PENDING_VOTE_EDITS_LIMIT)
         .get();
@@ -1255,7 +1274,11 @@ export const evaluatePendingSpotEditVotesOnSchedule = onSchedule(
         .limit(PENDING_VOTE_EDITS_FALLBACK_SCAN_LIMIT)
         .get();
       pendingEditDocs = fallbackSnap.docs
-        .filter((doc) => doc.get("approved") === false)
+        .filter(
+          (doc) =>
+            doc.get("target_type") === "spot" &&
+            doc.get("approved") === false,
+        )
         .slice(0, PENDING_VOTE_EDITS_LIMIT);
       console.warn("Running scheduled vote evaluation with fallback query result", {
         scanned: fallbackSnap.size,

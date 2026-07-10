@@ -25,14 +25,17 @@ import {
 import { ModerationActionType } from "../../../db/schemas/ModerationActionSchema";
 import { AnalyticsService } from "../../services/analytics.service";
 import {
-  CommunityCardSuggestionItem,
-  CommunityCardSuggestionsService,
-} from "../../services/firebase/firestore/community-card-suggestions.service";
+  CommunityEditsService,
+  CommunityKnowledgeEditItem,
+} from "../../services/firebase/firestore/community-edits.service";
 import {
   ModerationSpotEditQueueItem,
   SpotEditsService,
 } from "../../services/firebase/firestore/spot-edits.service";
-import type { CommunityLocalizedTextSchema } from "../../../db/schemas/CommunityPageSchema";
+import type {
+  CommunityInfoCardSchema,
+  CommunityLocalizedTextSchema,
+} from "../../../db/schemas/CommunityPageSchema";
 import type { SpotEditSchema } from "../../../db/schemas/SpotEditSchema";
 
 @Component({
@@ -53,9 +56,7 @@ import type { SpotEditSchema } from "../../../db/schemas/SpotEditSchema";
 })
 export class ModerationDashboardPageComponent implements OnDestroy {
   private readonly _reportsService = inject(ModerationReportsService);
-  private readonly _communityCardSuggestionsService = inject(
-    CommunityCardSuggestionsService,
-  );
+  private readonly _communityEditsService = inject(CommunityEditsService);
   private readonly _spotEditsService = inject(SpotEditsService);
   private readonly _snackbar = inject(MatSnackBar);
   private readonly _analytics = inject(AnalyticsService);
@@ -67,7 +68,7 @@ export class ModerationDashboardPageComponent implements OnDestroy {
   readonly actionPath = signal<string | null>(null);
   readonly reports = signal<ModerationReportItem[]>([]);
   readonly contactMessages = signal<ModerationContactMessageItem[]>([]);
-  readonly communityCardSuggestions = signal<CommunityCardSuggestionItem[]>([]);
+  readonly communityCardSuggestions = signal<CommunityKnowledgeEditItem[]>([]);
   readonly spotEditVotes = signal<ModerationSpotEditQueueItem[]>([]);
   readonly organizationSpotEdits = signal<ModerationSpotEditQueueItem[]>([]);
   private readonly _authSubscription: Subscription;
@@ -135,7 +136,7 @@ export class ModerationDashboardPageComponent implements OnDestroy {
       ] = await Promise.all([
         this._reportsService.getReports(),
         this._reportsService.getContactMessages(),
-        this._communityCardSuggestionsService.getPendingSuggestions(),
+        this._communityEditsService.getPendingKnowledgeEdits(),
         this._spotEditsService.getPendingModerationSpotEditQueues(),
       ]);
       this.reports.set(reports);
@@ -205,28 +206,33 @@ export class ModerationDashboardPageComponent implements OnDestroy {
     }
   }
 
-  communityCardTitle(suggestion: CommunityCardSuggestionItem): string {
-    return this._localizedText(suggestion.card.title) || suggestion.card.id;
+  communityCardTitle(suggestion: CommunityKnowledgeEditItem): string {
+    const card = this._suggestedCard(suggestion);
+    return this._localizedText(card?.title) || card?.id || suggestion.id;
   }
 
-  communityCardCommunityLabel(suggestion: CommunityCardSuggestionItem): string {
-    return suggestion.community_display_name || suggestion.community_key;
+  communityCardCommunityLabel(suggestion: CommunityKnowledgeEditItem): string {
+    return suggestion.community_display_name || suggestion.target_id;
   }
 
   communityCardCommunityPath(
-    suggestion: CommunityCardSuggestionItem,
+    suggestion: CommunityKnowledgeEditItem,
   ): string | null {
     return suggestion.community_path || null;
   }
 
+  communityCardCategory(suggestion: CommunityKnowledgeEditItem): string {
+    return this._suggestedCard(suggestion)?.category || "other";
+  }
+
   async approveCommunityCardSuggestion(
-    suggestion: CommunityCardSuggestionItem,
+    suggestion: CommunityKnowledgeEditItem,
   ): Promise<void> {
     await this._handleCommunityCardSuggestionAction(suggestion, "approve");
   }
 
   async rejectCommunityCardSuggestion(
-    suggestion: CommunityCardSuggestionItem,
+    suggestion: CommunityKnowledgeEditItem,
   ): Promise<void> {
     await this._handleCommunityCardSuggestionAction(suggestion, "reject");
   }
@@ -267,10 +273,10 @@ export class ModerationDashboardPageComponent implements OnDestroy {
   }
 
   private async _handleCommunityCardSuggestionAction(
-    suggestion: CommunityCardSuggestionItem,
+    suggestion: CommunityKnowledgeEditItem,
     action: "approve" | "reject",
   ): Promise<void> {
-    const actionKey = `community_card_suggestions/${suggestion.id}:${action}`;
+    const actionKey = `${suggestion.path}:${action}`;
     if (this.actionPath()) {
       return;
     }
@@ -279,21 +285,19 @@ export class ModerationDashboardPageComponent implements OnDestroy {
     this._analytics.trackEvent("community_card_suggestion_action_started", {
       action,
       suggestion_id: suggestion.id,
-      community_key: suggestion.community_key,
+      community_key: suggestion.target_id,
     });
     try {
       if (action === "approve") {
-        await this._communityCardSuggestionsService.approveSuggestion(
-          suggestion,
-        );
+        await this._communityEditsService.approveEdit(suggestion);
       } else {
-        await this._communityCardSuggestionsService.rejectSuggestion(suggestion);
+        await this._communityEditsService.rejectEdit(suggestion);
       }
       await this.reload();
       this._analytics.trackEvent("community_card_suggestion_action_succeeded", {
         action,
         suggestion_id: suggestion.id,
-        community_key: suggestion.community_key,
+        community_key: suggestion.target_id,
       });
       this._snackbar.open(
         action === "approve"
@@ -307,7 +311,7 @@ export class ModerationDashboardPageComponent implements OnDestroy {
       this._analytics.trackEvent("community_card_suggestion_action_failed", {
         action,
         suggestion_id: suggestion.id,
-        community_key: suggestion.community_key,
+        community_key: suggestion.target_id,
       });
       this._snackbar.open(
         $localize`Failed to update community card suggestion`,
@@ -317,6 +321,14 @@ export class ModerationDashboardPageComponent implements OnDestroy {
     } finally {
       this.actionPath.set(null);
     }
+  }
+
+  private _suggestedCard(
+    edit: CommunityKnowledgeEditItem,
+  ): CommunityInfoCardSchema | undefined {
+    return edit.operation === "UPSERT_KNOWLEDGE_CARD"
+      ? edit.data.card
+      : undefined;
   }
 
   private _localizedText(value: CommunityLocalizedTextSchema | undefined): string {

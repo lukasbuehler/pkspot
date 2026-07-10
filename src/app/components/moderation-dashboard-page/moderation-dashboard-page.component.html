@@ -107,13 +107,13 @@
                       {{ communityCardTitle(suggestion) }}
                     </mat-card-title>
                     <mat-card-subtitle>
-                      {{ suggestion.created_at_millis | date: "medium" }} ·
-                      {{ suggestion.created_by.display_name || suggestion.created_by.uid }}
+                      {{ suggestion.timestamp_millis | date: "medium" }} ·
+                      {{ suggestion.user.display_name || suggestion.user.uid }}
                     </mat-card-subtitle>
                   </mat-card-header>
                   <mat-card-content>
                     <mat-chip-set>
-                      <mat-chip>{{ suggestion.card.category || "other" }}</mat-chip>
+                      <mat-chip>{{ communityCardCategory(suggestion) }}</mat-chip>
                       <mat-chip>{{ communityCardCommunityLabel(suggestion) }}</mat-chip>
                     </mat-chip-set>
                   </mat-card-content>

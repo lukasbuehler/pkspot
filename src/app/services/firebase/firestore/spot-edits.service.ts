@@ -25,6 +25,7 @@ import {
   QueryConstraintOptions,
 } from "../firestore-adapter.service";
 import { FunctionsAdapterService } from "../functions-adapter.service";
+import { EDIT_SCHEMA_VERSION } from "../../../../db/schemas/EditSchema";
 
 export interface ModerationSpotEditQueueItem {
   edit: SpotEditSchema & { id: string };
@@ -82,6 +83,7 @@ export class SpotEditsService extends ConsentAwareService {
   getSpotEditsByUserId(userId: string): Promise<SpotEditSchema[]> {
     console.log("getting all edits for a user");
     const filters: QueryFilter[] = [
+      { fieldPath: "target_type", opStr: "==", value: "spot" },
       { fieldPath: "user.uid", opStr: "==", value: userId },
     ];
 
@@ -132,6 +134,7 @@ export class SpotEditsService extends ConsentAwareService {
   getSpotEditsByUserId$(userId: string): Observable<SpotEditSchema[]> {
     console.debug("Getting all edits for user: ", userId);
     const filters: QueryFilter[] = [
+      { fieldPath: "target_type", opStr: "==", value: "spot" },
       { fieldPath: "user.uid", opStr: "==", value: userId },
     ];
 
@@ -161,6 +164,7 @@ export class SpotEditsService extends ConsentAwareService {
     ];
 
     const publicFilters: QueryFilter[] = [
+      { fieldPath: "target_type", opStr: "==", value: "spot" },
       { fieldPath: "visibility", opStr: "==", value: "public" },
     ];
     const result = await this._firestoreAdapter.getCollectionGroupWithMetadata<
@@ -195,6 +199,7 @@ export class SpotEditsService extends ConsentAwareService {
     lastDoc: unknown;
   }> {
     const filters: QueryFilter[] = [
+      { fieldPath: "target_type", opStr: "==", value: "spot" },
       { fieldPath: "user.uid", opStr: "==", value: userId },
     ];
     const constraints: QueryConstraintOptions[] = [
@@ -229,6 +234,7 @@ export class SpotEditsService extends ConsentAwareService {
     ];
 
     const filters: QueryFilter[] = [
+      { fieldPath: "target_type", opStr: "==", value: "spot" },
       { fieldPath: "visibility", opStr: "==", value: "public" },
       { fieldPath: "timestamp_raw_ms", opStr: ">", value: timestampRawMs },
     ];
@@ -280,7 +286,10 @@ export class SpotEditsService extends ConsentAwareService {
     return this._firestoreAdapter
       .collectionGroupSnapshotsWithMetadata<SpotEditSchema & { id: string }>(
         "edits",
-        [{ fieldPath: "visibility", opStr: "==", value: "public" }],
+        [
+          { fieldPath: "target_type", opStr: "==", value: "spot" },
+          { fieldPath: "visibility", opStr: "==", value: "public" },
+        ],
         constraints
       )
       .pipe(
@@ -320,6 +329,9 @@ export class SpotEditsService extends ConsentAwareService {
       visibility,
       ...edit,
       user,
+      target_type: "spot",
+      target_id: spotId,
+      schema_version: EDIT_SCHEMA_VERSION,
     }) as SpotEditSchema;
 
     // Check if the edit data is empty - if so, don't create an edit
@@ -437,6 +449,7 @@ export class SpotEditsService extends ConsentAwareService {
     organizationId: string
   ): Promise<Array<{ edit: SpotEditSchema & { id: string }; spotId: string }>> {
     const filters: QueryFilter[] = [
+      { fieldPath: "target_type", opStr: "==", value: "spot" },
       {
         fieldPath: "review_organization_ids",
         opStr: "array-contains",
@@ -469,7 +482,10 @@ export class SpotEditsService extends ConsentAwareService {
       SpotEditSchema & { id: string }
     >(
       "edits",
-      [{ fieldPath: "approved", opStr: "==", value: false }],
+      [
+        { fieldPath: "target_type", opStr: "==", value: "spot" },
+        { fieldPath: "approved", opStr: "==", value: false },
+      ],
       constraints
     );
 

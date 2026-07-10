@@ -78,6 +78,64 @@ service cloud.firestore {
         );
     }
 
+    function validCommunityKnowledgeEdit(communityKey) {
+      return request.resource.data.keys().hasAll([
+          'target_type',
+          'target_id',
+          'schema_version',
+          'type',
+          'edit_kind',
+          'operation',
+          'data',
+          'status',
+          'approved',
+          'visibility',
+          'review_policy',
+          'user',
+          'timestamp',
+          'timestamp_raw_ms'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'target_type',
+          'target_id',
+          'schema_version',
+          'type',
+          'edit_kind',
+          'operation',
+          'data',
+          'status',
+          'approved',
+          'visibility',
+          'review_policy',
+          'user',
+          'timestamp',
+          'timestamp_raw_ms',
+          'community_display_name',
+          'community_path'
+        ])
+        && request.resource.data.target_type == 'community'
+        && request.resource.data.target_id == communityKey
+        && request.resource.data.schema_version == 1
+        && request.resource.data.type == 'UPDATE'
+        && request.resource.data.edit_kind == 'knowledge'
+        && request.resource.data.operation == 'UPSERT_KNOWLEDGE_CARD'
+        && request.resource.data.data is map
+        && request.resource.data.data.keys().hasOnly(['card'])
+        && request.resource.data.data.card is map
+        && request.resource.data.status == 'pending'
+        && request.resource.data.approved == false
+        && request.resource.data.visibility == 'private'
+        && request.resource.data.review_policy == 'admin'
+        && validReportUserReference(request.resource.data.user)
+        && request.resource.data.user.uid == request.auth.uid
+        && request.resource.data.timestamp is timestamp
+        && request.resource.data.timestamp_raw_ms is number
+        && (!('community_display_name' in request.resource.data)
+          || request.resource.data.community_display_name is string)
+        && (!('community_path' in request.resource.data)
+          || request.resource.data.community_path is string);
+    }
+
     function validContactUser() {
       return !('user' in request.resource.data)
         || (
@@ -492,6 +550,10 @@ service cloud.firestore {
         allow create: if request.auth.uid != null 
           && agePolicyAllowsPublicParticipation()
           && request.auth.uid == request.resource.data.user.uid
+          && (!('target_type' in request.resource.data)
+            || request.resource.data.target_type == 'spot')
+          && (!('target_id' in request.resource.data)
+            || request.resource.data.target_id == spotId)
           && (
             isAdmin()
             ||
@@ -550,26 +612,33 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
-    function onlyCommunityInfoCardsChanged() {
+    function onlyCommunityMergeRequestChanged() {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-        'infoCards',
         'merge_into'
       ]);
     }
 
     // Materialized community landing pages and slug aliases are public read-only
-    // data used by SSR and crawlers. Admin clients may curate infoCards and
-    // request merge patches; generated fields stay owned by backend jobs.
+    // data used by SSR and crawlers. Knowledge changes go through community
+    // edits; admin clients may still request merge patches directly.
     match /community_pages/{communityKey} {
       allow read: if true;
-      allow update: if isAdmin() && onlyCommunityInfoCardsChanged();
+      allow update: if isAdmin() && onlyCommunityMergeRequestChanged();
       allow create, delete: if false;
 
       match /private_info/{privateInfoId} {
         allow read: if request.auth.uid != null;
-        allow create, update: if isAdmin()
-          && request.resource.data.keys().hasOnly(['infoCards']);
-        allow delete: if isAdmin();
+        allow write: if false;
+      }
+
+      match /edits/{editId} {
+        allow read: if isAdmin()
+          || (request.auth.uid != null && resource.data.user.uid == request.auth.uid);
+        allow create: if request.auth.uid != null
+          && agePolicyAllowsPublicParticipation()
+          && exists(/databases/$(database)/documents/community_pages/$(communityKey))
+          && validCommunityKnowledgeEdit(communityKey);
+        allow update, delete: if false;
       }
     }
 

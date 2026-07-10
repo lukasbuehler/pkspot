@@ -7,6 +7,7 @@ export type CommunityCardSuggestionStatus =
   | "approved"
   | "rejected";
 
+/** @deprecated New suggestions are stored as community edit documents. */
 export interface CommunityCardSuggestionSchema {
   community_key: string;
   community_display_name?: string;

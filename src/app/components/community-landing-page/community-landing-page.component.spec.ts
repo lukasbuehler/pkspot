@@ -17,7 +17,7 @@ import { StorageService } from "../../services/firebase/storage.service";
 import { MapsApiService } from "../../services/maps-api.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { SearchService } from "../../services/search.service";
-import { CommunityCardSuggestionsService } from "../../services/firebase/firestore/community-card-suggestions.service";
+import { CommunityEditsService } from "../../services/firebase/firestore/community-edits.service";
 
 const communityData: CommunityLandingPageData = {
   communityKey: "country:ch",
@@ -67,15 +67,15 @@ describe("CommunityLandingPageComponent", () => {
   let isAdmin: ReturnType<typeof signal<boolean>>;
   let authState$: BehaviorSubject<{ uid: string } | null>;
   let getCommunityPrivateInfoCards: ReturnType<typeof vi.fn>;
-  let updateCommunityInfoCards: ReturnType<typeof vi.fn>;
-  let submitSuggestion: ReturnType<typeof vi.fn>;
+  let saveKnowledgeCards: ReturnType<typeof vi.fn>;
+  let submitKnowledgeSuggestion: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     isAdmin = signal(false);
     authState$ = new BehaviorSubject<{ uid: string } | null>(null);
     getCommunityPrivateInfoCards = vi.fn().mockResolvedValue([]);
-    updateCommunityInfoCards = vi.fn();
-    submitSuggestion = vi.fn().mockResolvedValue("suggestion-1");
+    saveKnowledgeCards = vi.fn().mockResolvedValue("edit-1");
+    submitKnowledgeSuggestion = vi.fn().mockResolvedValue("suggestion-1");
     await TestBed.configureTestingModule({
       imports: [CommunityLandingPageComponent],
       providers: [
@@ -109,7 +109,6 @@ describe("CommunityLandingPageComponent", () => {
         {
           provide: LandingPagesService,
           useValue: {
-            updateCommunityInfoCards,
             updateCommunityMergeInto: vi.fn(),
             getCommunityPrivateInfoCards,
           },
@@ -119,8 +118,8 @@ describe("CommunityLandingPageComponent", () => {
           useValue: { listCommunities: vi.fn().mockResolvedValue([]) },
         },
         {
-          provide: CommunityCardSuggestionsService,
-          useValue: { submitSuggestion },
+          provide: CommunityEditsService,
+          useValue: { submitKnowledgeSuggestion, saveKnowledgeCards },
         },
         {
           provide: MatSnackBar,
@@ -576,7 +575,7 @@ describe("CommunityLandingPageComponent", () => {
       },
     ]);
 
-    expect(submitSuggestion).toHaveBeenCalledWith({
+    expect(submitKnowledgeSuggestion).toHaveBeenCalledWith({
       communityKey: "country:ch",
       communityDisplayName: "Switzerland",
       communityPath: "/map/communities/switzerland",
@@ -586,6 +585,30 @@ describe("CommunityLandingPageComponent", () => {
         category: "jams",
       },
     });
-    expect(updateCommunityInfoCards).not.toHaveBeenCalled();
+    expect(saveKnowledgeCards).not.toHaveBeenCalled();
+  });
+
+  it("records admin knowledge changes through the community edit service", async () => {
+    isAdmin.set(true);
+    authState$.next({ uid: "admin-1" });
+    fixture.componentRef.setInput("communityDataInput", communityData);
+    await fixture.whenStable();
+    const cards = [
+      {
+        id: "admin-card",
+        title: { en: "Admin card" },
+        category: "safety" as const,
+      },
+    ];
+
+    await fixture.componentInstance.saveKnowledgeCards(cards);
+
+    expect(saveKnowledgeCards).toHaveBeenCalledWith({
+      communityKey: "country:ch",
+      communityDisplayName: "Switzerland",
+      communityPath: "/map/communities/switzerland",
+      cards,
+    });
+    expect(submitKnowledgeSuggestion).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,7 @@
 import { Timestamp } from "firebase/firestore";
 import { UserReferenceSchema } from "./UserSchema";
 import { SpotSchema } from "./SpotSchema";
+import type { LegacyCompatibleEditTargetMetadata } from "./EditSchema";
 
 export type SpotEditDataSchema = Partial<
   Pick<
@@ -27,7 +28,8 @@ export type SpotEditDataSchema = Partial<
   }
 >;
 
-export interface SpotEditSchema {
+export interface SpotEditSchema
+  extends LegacyCompatibleEditTargetMetadata<"spot"> {
   type: "CREATE" | "UPDATE";
   timestamp: Timestamp;
   timestamp_raw_ms?: number;

@@ -206,7 +206,10 @@ export const recalculateUserEditStats = onDocumentCreated(
 
     try {
       // Query all edits via collection group
-      const editsSnapshot = await db.collectionGroup("edits").get();
+      const editsSnapshot = await db
+        .collectionGroup("edits")
+        .where("target_type", "==", "spot")
+        .get();
 
       console.log(`Found ${editsSnapshot.size} total edits to process`);
 
