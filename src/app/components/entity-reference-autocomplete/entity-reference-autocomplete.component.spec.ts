@@ -1,5 +1,11 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { provideNoopAnimations } from "@angular/platform-browser/animations";
+import { provideRouter } from "@angular/router";
 import { describe, expect, it, vi } from "vitest";
+import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
+import { SpotId } from "../../../db/schemas/SpotSchema";
+import { MapsApiService } from "../../services/maps-api.service";
+import { StorageService } from "../../services/firebase/storage.service";
 import { SearchService } from "../../services/search.service";
 import {
   EntityReferenceAutocompleteComponent,
@@ -13,6 +19,16 @@ describe("EntityReferenceAutocompleteComponent", () => {
     await TestBed.configureTestingModule({
       imports: [EntityReferenceAutocompleteComponent],
       providers: [
+        provideRouter([]),
+        provideNoopAnimations(),
+        {
+          provide: MapsApiService,
+          useValue: {
+            isStreetViewPreviewEnabled: vi.fn(() => false),
+            isStreetViewPreviewAllowedAtZoom: vi.fn(() => false),
+          },
+        },
+        { provide: StorageService, useValue: {} },
         {
           provide: SearchService,
           useValue: {
@@ -46,6 +62,51 @@ describe("EntityReferenceAutocompleteComponent", () => {
 
     expect(component.selected()).toEqual(option);
     expect(valueChange).toHaveBeenCalledWith("spot-slug");
+  });
+
+  it("renders a selected spot with the existing compact spot preview card", async () => {
+    const component = await createComponent();
+    const spotPreview = {
+      id: "spot-id" as SpotId,
+      slug: "spot-slug",
+      name: "Central Park",
+      locality: "Zürich, CH",
+      imageSrc: "",
+      isIconic: false,
+    } satisfies SpotPreviewData;
+
+    component.selectOption({
+      option: {
+        value: {
+          id: "spot-slug",
+          label: "Central Park",
+          subtitle: "Zürich",
+          spotPreview,
+        },
+      },
+    } as never);
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector("app-spot-preview-card")).toBeTruthy();
+  });
+
+  it("renders a selected event with a compact event preview card", async () => {
+    const component = await createComponent("event");
+
+    component.selectOption({
+      option: {
+        value: {
+          id: "event-slug",
+          label: "Swiss Jam",
+          subtitle: "Zürich",
+          meta: "12 Jul 2026",
+          imageSrc: "https://example.com/banner.jpg",
+        },
+      },
+    } as never);
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector("app-entity-preview-card")).toBeTruthy();
   });
 
   it("clears a selected destination", async () => {

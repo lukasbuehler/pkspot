@@ -2,7 +2,6 @@
   display: block;
 }
 
-.entity-reference-selection,
 .entity-reference-loading,
 .entity-reference-option {
   display: flex;
@@ -11,44 +10,25 @@
 }
 
 .entity-reference-selection {
-  min-height: 64px;
-  padding: 8px 10px;
-  border: 1px solid var(--mat-sys-primary);
-  border-radius: 18px;
-  color: var(--mat-sys-on-primary-container);
-  background: var(--mat-sys-primary-container);
+  position: relative;
+
+  app-spot-preview-card,
+  app-entity-preview-card {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    padding-right: 52px;
+  }
 }
 
-.entity-reference-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  width: 40px;
-  height: 40px;
-  border-radius: 13px;
-  color: var(--mat-sys-on-primary);
-  background: var(--mat-sys-primary);
-}
-
-.entity-reference-copy,
-.entity-reference-option > span {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.entity-reference-copy span,
-.entity-reference-option small {
-  overflow: hidden;
-  color: var(--mat-sys-on-surface-variant);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.entity-reference-selection button {
-  flex: 0 0 auto;
+.entity-reference-clear {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  z-index: 2;
+  color: var(--mat-sys-on-surface);
+  background: var(--mat-sys-surface-container-highest);
+  transform: translateY(-50%);
 }
 
 .entity-reference-loading {
@@ -60,6 +40,20 @@
 .entity-reference-option {
   min-width: 0;
   padding: 6px 0;
+}
+
+.entity-reference-option > span {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.entity-reference-option small {
+  overflow: hidden;
+  color: var(--mat-sys-on-surface-variant);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .entity-reference-option mat-icon {

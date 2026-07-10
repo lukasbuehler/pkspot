@@ -1,16 +1,33 @@
 <div class="entity-reference">
   @if (selected(); as selection) {
     <div class="entity-reference-selection">
-      <span class="entity-reference-icon" aria-hidden="true">
-        <mat-icon>{{ icon() }}</mat-icon>
-      </span>
-      <span class="entity-reference-copy">
-        <strong class="mat-label-large">{{ selection.label }}</strong>
-        <span class="mat-body-small">{{ selection.subtitle }}</span>
-      </span>
+      @if (selection.spotPreview; as spot) {
+        <app-spot-preview-card
+          [spotData]="spot"
+          [isCompact]="true"
+          [clickable]="false"
+          [showInfoButton]="false"
+          [hasBorder]="true"
+        />
+      } @else {
+        <app-entity-preview-card
+          [title]="selection.label"
+          [subtitle]="selection.subtitle"
+          [meta]="selection.meta ?? ''"
+          [icon]="icon()"
+          [imageSrc]="selection.imageSrc"
+          [imageAlt]="selection.label"
+          [imageFit]="selection.imageFit ?? 'cover'"
+          [imageAccentColor]="selection.imageAccentColor"
+          [fallbackLabel]="selection.label"
+          [isCompact]="true"
+          [clickable]="false"
+        />
+      }
       <button
         mat-icon-button
         type="button"
+        class="entity-reference-clear"
         [disabled]="disabled()"
         (click)="clearSelection()"
         aria-label="Change selection"

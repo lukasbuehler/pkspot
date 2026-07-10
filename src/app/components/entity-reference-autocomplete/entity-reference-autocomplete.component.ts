@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  LOCALE_ID,
   computed,
   effect,
   inject,
@@ -23,6 +24,8 @@ import { debounceTime, distinctUntilChanged, map } from "rxjs/operators";
 import type { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { SearchService } from "../../services/search.service";
 import type { EventSearchPreview } from "../../services/search.service";
+import { EntityPreviewCardComponent } from "../entity-preview-card/entity-preview-card.component";
+import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 
 export type EntityReferenceKind = "spot" | "event";
 
@@ -30,6 +33,11 @@ export interface EntityReferenceOption {
   id: string;
   label: string;
   subtitle: string;
+  meta?: string;
+  imageSrc?: string;
+  imageFit?: "cover" | "contain";
+  imageAccentColor?: string;
+  spotPreview?: SpotPreviewData;
 }
 
 @Component({
@@ -42,6 +50,8 @@ export interface EntityReferenceOption {
     MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
+    EntityPreviewCardComponent,
+    SpotPreviewCardComponent,
   ],
   templateUrl: "./entity-reference-autocomplete.component.html",
   styleUrl: "./entity-reference-autocomplete.component.scss",
@@ -49,6 +59,7 @@ export interface EntityReferenceOption {
 })
 export class EntityReferenceAutocompleteComponent {
   private readonly _searchService = inject(SearchService);
+  private readonly _locale = inject(LOCALE_ID);
   private _searchRequestId = 0;
   private _resolveRequestId = 0;
 
@@ -234,10 +245,12 @@ export class EntityReferenceAutocompleteComponent {
         preview.locality ||
         preview.countryName ||
         $localize`:@@community.destination_pk_spot:PK Spot`,
+      spotPreview: preview,
     };
   }
 
   private _eventOption(event: EventSearchPreview): EntityReferenceOption {
+    const logoSrc = event.sponsorLogoSrc || event.logoSrc;
     return {
       id: event.slug || event.id,
       label: event.name,
@@ -245,6 +258,23 @@ export class EntityReferenceAutocompleteComponent {
         event.venueString ||
         event.localityString ||
         $localize`:@@community.destination_pk_event:PK Spot event`,
+      meta: this._eventDate(event),
+      imageSrc: logoSrc || event.bannerSrc,
+      imageFit: logoSrc ? "contain" : (event.bannerFit ?? "cover"),
+      imageAccentColor: event.sponsorLogoSrc
+        ? event.sponsorLogoBackgroundColor
+        : event.logoSrc
+          ? event.logoBackgroundColor
+          : event.bannerAccentColor,
     };
+  }
+
+  private _eventDate(event: EventSearchPreview): string {
+    if (event.startSeconds === undefined) {
+      return "";
+    }
+    return new Intl.DateTimeFormat(this._locale, {
+      dateStyle: "medium",
+    }).format(new Date(event.startSeconds * 1000));
   }
 }
