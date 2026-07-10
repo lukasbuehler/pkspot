@@ -27,14 +27,17 @@
       />}
     </mat-form-field>
 
-    <button
-      mat-icon-button
-      type="button"
-      (click)="removeTranslation(locale)"
-      class="mt-2"
-    >
-      <mat-icon>delete</mat-icon>
-    </button>
+    @if (localeKeys().length > 1 || canRemoveLastTranslation()) {
+      <button
+        mat-icon-button
+        type="button"
+        (click)="removeTranslation(locale)"
+        class="mt-2"
+        [attr.aria-label]="'Remove ' + localeLabel(locale) + ' translation'"
+      >
+        <mat-icon>delete</mat-icon>
+      </button>
+    }
   </div>
   } @if(localeKeys().length > 1) { @if(isExpanded()) {
   <button mat-button type="button" (click)="isExpanded.set(false)">

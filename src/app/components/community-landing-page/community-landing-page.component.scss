@@ -170,11 +170,24 @@
 }
 
 .local-info-disclosure {
-  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 4px 9px;
+  border-radius: 999px;
   color: var(--mat-sys-on-surface-variant);
+  background: var(--mat-sys-surface-container-high);
   font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.local-info-disclosure mat-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--mat-sys-primary);
+  font-size: 16px;
 }
 
 .local-info-body {
@@ -235,6 +248,25 @@
   justify-content: space-between;
   gap: 16px;
   padding: 20px 24px 12px;
+}
+
+.community-knowledge-dialog-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.community-knowledge-dialog-title-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 15px;
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
 }
 
 .community-knowledge-dialog-header p {

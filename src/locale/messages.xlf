@@ -1176,17 +1176,17 @@
     </unit>
     <unit id="community.info_disclosure_classes">
       <segment>
-        <source>Classes</source>
+        <source>Classes or coaching</source>
       </segment>
     </unit>
     <unit id="community.info_disclosure_paid">
       <segment>
-        <source>Paid partnership</source>
+        <source>Paid promotion</source>
       </segment>
     </unit>
     <unit id="community.info_disclosure_shop">
       <segment>
-        <source>Shop</source>
+        <source>Shop or service</source>
       </segment>
     </unit>
     <unit id="community.knowledge_cta.body">
@@ -7329,6 +7329,526 @@
     <unit id="search_field_default_placeholder">
       <segment>
         <source>Find spots and more</source>
+      </segment>
+    </unit>
+    <unit id="community.destination_change_selection">
+      <segment>
+        <source>Change selection</source>
+      </segment>
+    </unit>
+    <unit id="community.destination_event_search_empty">
+      <segment>
+        <source>No matching events found</source>
+      </segment>
+    </unit>
+    <unit id="community.destination_event_search_label">
+      <segment>
+        <source>Search for an event</source>
+      </segment>
+    </unit>
+    <unit id="community.destination_event_search_placeholder">
+      <segment>
+        <source>Start typing an event name</source>
+      </segment>
+    </unit>
+    <unit id="community.destination_loading_selection">
+      <segment>
+        <source> Loading selection… </source>
+      </segment>
+    </unit>
+    <unit id="community.destination_pk_event">
+      <segment>
+        <source>PK Spot event</source>
+      </segment>
+    </unit>
+    <unit id="community.destination_pk_spot">
+      <segment>
+        <source>PK Spot</source>
+      </segment>
+    </unit>
+    <unit id="community.destination_saved_reference">
+      <segment>
+        <source>Saved selection</source>
+      </segment>
+    </unit>
+    <unit id="community.destination_search_hint">
+      <segment>
+        <source> Choose a result so PK Spot can save the correct destination. </source>
+      </segment>
+    </unit>
+    <unit id="community.destination_spot_search_empty">
+      <segment>
+        <source>No matching spots found</source>
+      </segment>
+    </unit>
+    <unit id="community.destination_spot_search_label">
+      <segment>
+        <source>Search for a spot</source>
+      </segment>
+    </unit>
+    <unit id="community.destination_spot_search_placeholder">
+      <segment>
+        <source>Start typing a spot name or place</source>
+      </segment>
+    </unit>
+    <unit id="community.destination_unnamed_spot">
+      <segment>
+        <source>Unnamed spot</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_add_another_card">
+      <segment>
+        <source>Add another card</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_add_card">
+      <segment>
+        <source>Add card</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_button_label">
+      <segment>
+        <source> Button label </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_button_placeholder">
+      <segment>
+        <source>e.g. View schedule</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_cancel">
+      <segment>
+        <source>Cancel</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_card_id">
+      <segment>
+        <source>Card ID</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_card_number">
+      <segment>
+        <source> Card <ph id="0" equiv="INTERPOLATION" disp="{{ index + 1 }}"/> </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_card_preview_hint">
+      <segment>
+        <source> This will appear as a separate card on the community page. </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_chat">
+      <segment>
+        <source>Community chat</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_chat_description">
+      <segment>
+        <source>A group chat or online space</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_events">
+      <segment>
+        <source>Events</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_events_description">
+      <segment>
+        <source>Competitions, workshops, and more</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_heading">
+      <segment>
+        <source> What kind of info is this? </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_hint">
+      <segment>
+        <source> Choose the closest match. This sets the icon people see. </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_jams">
+      <segment>
+        <source>Jams &amp; meetups</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_jams_description">
+      <segment>
+        <source>Open sessions and gatherings</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_other">
+      <segment>
+        <source>Something else</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_other_description">
+      <segment>
+        <source>Anything else locals should know</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_safety">
+      <segment>
+        <source>Safety</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_safety_description">
+      <segment>
+        <source>Local risks, rules, or access notes</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_spots">
+      <segment>
+        <source>Local spots</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_spots_description">
+      <segment>
+        <source>Useful context about places to train</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_training">
+      <segment>
+        <source>Training</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_training_description">
+      <segment>
+        <source>Classes, coaching, or club sessions</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_chat_link_hint">
+      <segment>
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon aria-hidden=&quot;true&quot;&gt;" dispEnd="&lt;/mat-icon&gt;">lock</pc> Group chat links can be limited to signed-in members below. </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_close">
+      <segment>
+        <source>Close community knowledge editor</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_close_short">
+      <segment>
+        <source>Close</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_content_heading">
+      <segment>
+        <source> What should people see? </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_content_hint">
+      <segment>
+        <source> Use a clear headline, then add only the details that help. </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_default_open_link">
+      <segment>
+        <source>Open link</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_default_view_event">
+      <segment>
+        <source>View event</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_default_view_spot">
+      <segment>
+        <source>View spot</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_destination_event">
+      <segment>
+        <source>PK Spot event</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_destination_event_description">
+      <segment>
+        <source>Open an event in the app</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_destination_heading">
+      <segment>
+        <source> Link or destination </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_destination_hint">
+      <segment>
+        <source> Give people somewhere useful to go next </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_destination_none">
+      <segment>
+        <source>No destination</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_destination_none_description">
+      <segment>
+        <source>The card is useful on its own</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_destination_spot">
+      <segment>
+        <source>PK Spot spot</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_destination_spot_description">
+      <segment>
+        <source>Open a spot in the app</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_destination_url">
+      <segment>
+        <source>Web link</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_destination_url_description">
+      <segment>
+        <source>Open a website or community chat</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_details">
+      <segment>
+        <source> Helpful details </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_details_placeholder">
+      <segment>
+        <source>Add times, meeting points, who it is for, or anything people should know</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_dialog_admin_subtitle">
+      <segment>
+        <source> <ph id="0" equiv="INTERPOLATION" disp="{{ dialogData.displayName }}"/> community page </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_dialog_admin_title">
+      <segment>
+        <source> Manage community cards </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_dialog_subtitle">
+      <segment>
+        <source> Help people discover what matters in <ph id="0" equiv="INTERPOLATION" disp="{{ dialogData.displayName }}"/> </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_dialog_title">
+      <segment>
+        <source> Share local knowledge </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_disclosure_classes">
+      <segment>
+        <source>Classes or coaching</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_disclosure_classes_description">
+      <segment>
+        <source>Training offered by a club or coach</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_disclosure_heading">
+      <segment>
+        <source> How should it be labelled? </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_disclosure_hint">
+      <segment>
+        <source> This keeps commercial and organized offers transparent without making the card feel like an ad. </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_disclosure_none">
+      <segment>
+        <source>Community info</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_disclosure_none_description">
+      <segment>
+        <source>No commercial relationship</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_disclosure_paid">
+      <segment>
+        <source>Paid promotion</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_disclosure_paid_description">
+      <segment>
+        <source>Paid or partnered placement</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_disclosure_shop">
+      <segment>
+        <source>Shop or service</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_disclosure_shop_description">
+      <segment>
+        <source>A business selling something</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_empty_body">
+      <segment>
+        <source> Add a jam, chat, training offer, safety note, or another local tip. </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_empty_title">
+      <segment>
+        <source> Start with one useful card </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_headline">
+      <segment>
+        <source> Headline </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_headline_placeholder">
+      <segment>
+        <source>e.g. Weekly open training</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_hidden">
+      <segment>
+        <source> Hidden </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_intro_body">
+      <segment>
+        <source> Keep each card focused on one useful thing. You can add more cards for separate topics. </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_intro_title">
+      <segment>
+        <source> Share what locals would want to know </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_move_down">
+      <segment>
+        <source>Move card down</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_move_down_short">
+      <segment>
+        <source>Move down</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_move_up">
+      <segment>
+        <source>Move card up</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_move_up_short">
+      <segment>
+        <source>Move up</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_open_admin">
+      <segment>
+        <source>Edit community cards</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_open_suggestion">
+      <segment>
+        <source>Suggest community card</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_optional">
+      <segment>
+        <source>Optional</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_publish_note">
+      <segment>
+        <source> Saving publishes these changes to the community page immediately. </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_publishing_heading">
+      <segment>
+        <source> Publishing settings </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_publishing_hint">
+      <segment>
+        <source> Admin-only card details </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_remove_card">
+      <segment>
+        <source>Remove card</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_required">
+      <segment>
+        <source> Required </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_review_note">
+      <segment>
+        <source> A moderator will review your suggestion before it appears on the community page. </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_save_cards">
+      <segment>
+        <source>Save cards</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_saving">
+      <segment>
+        <source>Saving…</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_submit_suggestion">
+      <segment>
+        <source> Submit suggestion </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_submitting">
+      <segment>
+        <source>Submitting…</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_url_everyone">
+      <segment>
+        <source> Everyone </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_url_label">
+      <segment>
+        <source> Website or chat link </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_url_private_hint">
+      <segment>
+        <source> The card stays public, but the link is only shown to signed-in members. </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_url_signed_in">
+      <segment>
+        <source> Signed-in members only </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_url_visibility">
+      <segment>
+        <source> Who can open the link? </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_validation_title">
+      <segment>
+        <source>Every card needs at least one title.</source>
+      </segment>
+    </unit>
+    <unit id="community.editor_visibility">
+      <segment>
+        <source> Visibility </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_visible">
+      <segment>
+        <source> Visible </source>
+      </segment>
+    </unit>
+    <unit id="community.editor_your_suggestion">
+      <segment>
+        <source> Your suggestion </source>
       </segment>
     </unit>
   </file>

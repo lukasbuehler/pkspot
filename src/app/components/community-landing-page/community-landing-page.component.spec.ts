@@ -395,6 +395,27 @@ describe("CommunityLandingPageComponent", () => {
     );
   });
 
+  it("renders disclosure copy as text instead of stringifying its view model", () => {
+    fixture.componentRef.setInput("communityDataInput", {
+      ...communityData,
+      infoCards: [
+        {
+          id: "classes",
+          title: { en: "Member training" },
+          category: "classes",
+          commercialDisclosure: "classes",
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    const disclosure = fixture.nativeElement.querySelector(
+      ".local-info-disclosure",
+    ) as HTMLElement | null;
+    expect(disclosure?.textContent).toContain("Classes or coaching");
+    expect(disclosure?.textContent).not.toContain("[object Object]");
+  });
+
   it("renders private group chat info cards for signed-in users", async () => {
     getCommunityPrivateInfoCards.mockResolvedValueOnce([
       {
@@ -506,11 +527,11 @@ describe("CommunityLandingPageComponent", () => {
     fixture.detectChanges();
 
     const dialog = document.body.querySelector(".community-knowledge-dialog");
-    expect(dialog?.textContent).toContain("Community knowledge");
+    expect(dialog?.textContent).toContain("Manage community cards");
     expect(
       dialog?.querySelector("app-community-knowledge-editor"),
     ).not.toBeNull();
-    expect(dialog?.textContent).toContain("No knowledge cards yet.");
+    expect(dialog?.textContent).toContain("Start with one useful card");
     expect(dialog?.textContent).toContain("Danger zone");
     expect(dialog?.textContent).toContain(
       "Merge this community into another one",
@@ -542,9 +563,9 @@ describe("CommunityLandingPageComponent", () => {
     fixture.detectChanges();
 
     const dialog = document.body.querySelector(".community-knowledge-dialog");
-    expect(dialog?.textContent).toContain("Suggest a card for Switzerland");
+    expect(dialog?.textContent).toContain("Share local knowledge");
     expect(dialog?.textContent).toContain(
-      "Submitted cards are reviewed by admins",
+      "A moderator will review your suggestion",
     );
 
     await fixture.componentInstance.saveKnowledgeCards([

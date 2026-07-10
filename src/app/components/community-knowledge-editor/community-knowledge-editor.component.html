@@ -1,23 +1,91 @@
 <form class="knowledge-editor" [formGroup]="form" (ngSubmit)="onSubmit()">
-  <div class="knowledge-editor-toolbar">
-    <button mat-stroked-button type="button" (click)="addCard()">
-      <mat-icon>add</mat-icon>
-      <span>Add card</span>
-    </button>
-  </div>
+  <section
+    class="knowledge-editor-intro"
+    aria-labelledby="knowledge-editor-intro-title"
+  >
+    <span class="knowledge-editor-intro-icon" aria-hidden="true">
+      <mat-icon>lightbulb</mat-icon>
+    </span>
+    <div>
+      <h3
+        id="knowledge-editor-intro-title"
+        class="mat-title-medium m-0"
+        i18n="@@community.editor_intro_title"
+      >
+        Share what locals would want to know
+      </h3>
+      <p class="mat-body-medium m-0" i18n="@@community.editor_intro_body">
+        Keep each card focused on one useful thing. You can add more cards for
+        separate topics.
+      </p>
+    </div>
+  </section>
+
+  @if (cardGroups().length === 0) {
+    <section class="knowledge-editor-empty" aria-labelledby="empty-card-title">
+      <span class="knowledge-editor-empty-icon" aria-hidden="true">
+        <mat-icon>add</mat-icon>
+      </span>
+      <div>
+        <h3
+          id="empty-card-title"
+          class="mat-title-medium m-0"
+          i18n="@@community.editor_empty_title"
+        >
+          Start with one useful card
+        </h3>
+        <p class="mat-body-medium m-0" i18n="@@community.editor_empty_body">
+          Add a jam, chat, training offer, safety note, or another local tip.
+        </p>
+      </div>
+      <button mat-flat-button type="button" (click)="addCard()">
+        <mat-icon>add</mat-icon>
+        <span i18n="@@community.editor_add_card">Add card</span>
+      </button>
+    </section>
+  }
 
   <div formArrayName="cards" class="knowledge-editor-list">
-    @for (card of cardGroups(); track card.controls.id.value; let index = $index) {
-      <mat-card class="knowledge-editor-card border" [formGroupName]="index">
-        <mat-card-content>
-          <div class="knowledge-editor-card-header">
-            <h3 class="mat-title-medium m-0">Card {{ index + 1 }}</h3>
-            <div class="knowledge-editor-icon-actions">
+    @for (
+      card of cardGroups();
+      track card.controls.id.value;
+      let index = $index
+    ) {
+      <mat-card class="knowledge-editor-card" [formGroupName]="index">
+        <header class="knowledge-editor-card-header">
+          <span class="knowledge-editor-card-icon" aria-hidden="true">
+            <mat-icon>{{
+              categoryIcon(card.controls.category.value)
+            }}</mat-icon>
+          </span>
+          <div class="knowledge-editor-card-heading">
+            <h3 class="mat-title-medium m-0">
+              @if (cardGroups().length === 1) {
+                <span i18n="@@community.editor_your_suggestion">
+                  Your suggestion
+                </span>
+              } @else {
+                <span i18n="@@community.editor_card_number">
+                  Card {{ index + 1 }}
+                </span>
+              }
+            </h3>
+            <p
+              class="mat-body-small m-0"
+              i18n="@@community.editor_card_preview_hint"
+            >
+              This will appear as a separate card on the community page.
+            </p>
+          </div>
+          <div class="knowledge-editor-icon-actions">
+            @if (cardGroups().length > 1) {
               <button
                 mat-icon-button
                 type="button"
                 aria-label="Move card up"
+                i18n-aria-label="@@community.editor_move_up"
                 matTooltip="Move up"
+                i18n-matTooltip="@@community.editor_move_up_short"
                 [disabled]="index === 0"
                 (click)="moveCard(index, -1)"
               >
@@ -27,211 +95,426 @@
                 mat-icon-button
                 type="button"
                 aria-label="Move card down"
+                i18n-aria-label="@@community.editor_move_down"
                 matTooltip="Move down"
+                i18n-matTooltip="@@community.editor_move_down_short"
                 [disabled]="index === cardGroups().length - 1"
                 (click)="moveCard(index, 1)"
               >
                 <mat-icon>arrow_downward</mat-icon>
               </button>
-              <button
-                mat-icon-button
-                type="button"
-                aria-label="Delete card"
-                matTooltip="Delete"
-                (click)="removeCard(index)"
-              >
-                <mat-icon>delete</mat-icon>
-              </button>
-            </div>
+            }
+            <button
+              mat-icon-button
+              type="button"
+              matTooltip="Remove card"
+              i18n-matTooltip="@@community.editor_remove_card"
+              aria-label="Remove card"
+              i18n-aria-label="@@community.editor_remove_card"
+              (click)="removeCard(index)"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
           </div>
+        </header>
 
-          <div class="knowledge-editor-grid">
-            <mat-form-field appearance="outline">
-              <mat-label>ID</mat-label>
-              <input matInput formControlName="id" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Category</mat-label>
-              <mat-select formControlName="category">
-                @for (category of categories; track category) {
-                  <mat-option [value]="category">
-                    <mat-icon>{{ categoryIcon(category) }}</mat-icon>
-                    <span>{{ category }}</span>
-                  </mat-option>
-                }
-              </mat-select>
-              @if (isChatCard(card)) {
-                <mat-hint>
-                  Group chat URL links default to signed-in only.
-                </mat-hint>
+        <mat-card-content>
+          <fieldset class="knowledge-editor-section">
+            <legend
+              class="mat-title-small"
+              i18n="@@community.editor_category_heading"
+            >
+              What kind of info is this?
+            </legend>
+            <p
+              class="mat-body-small knowledge-editor-section-description"
+              i18n="@@community.editor_category_hint"
+            >
+              Choose the closest match. This sets the icon people see.
+            </p>
+            <div
+              class="knowledge-editor-choice-grid knowledge-editor-category-grid"
+            >
+              @for (option of categoryOptions; track option.value) {
+                <label class="knowledge-editor-choice">
+                  <input
+                    type="radio"
+                    formControlName="category"
+                    [value]="option.value"
+                  />
+                  <span class="knowledge-editor-choice-icon" aria-hidden="true">
+                    <mat-icon>{{ option.icon }}</mat-icon>
+                  </span>
+                  <span class="knowledge-editor-choice-copy">
+                    <strong class="mat-label-large">{{ option.label }}</strong>
+                    <span class="mat-body-small">{{ option.description }}</span>
+                  </span>
+                </label>
               }
-            </mat-form-field>
+            </div>
+            @if (isChatCard(card)) {
+              <p
+                class="knowledge-editor-context-note mat-body-small m-0"
+                i18n="@@community.editor_chat_link_hint"
+              >
+                <mat-icon aria-hidden="true">lock</mat-icon>
+                Group chat links can be limited to signed-in members below.
+              </p>
+            }
+          </fieldset>
 
-            <mat-form-field appearance="outline">
-              <mat-label>Visibility</mat-label>
-              <mat-select formControlName="visibility">
-                <mat-option value="public">public</mat-option>
-                <mat-option value="hidden">hidden</mat-option>
-              </mat-select>
-            </mat-form-field>
+          <div class="knowledge-editor-divider"></div>
 
-            <mat-form-field appearance="outline">
-              <mat-label>Disclosure</mat-label>
-              <mat-select formControlName="commercialDisclosure">
-                @for (disclosure of disclosures; track disclosure) {
-                  <mat-option [value]="disclosure">{{ disclosure }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-          </div>
+          <section class="knowledge-editor-section">
+            <div class="knowledge-editor-section-heading">
+              <div>
+                <h4
+                  class="mat-title-small m-0"
+                  i18n="@@community.editor_content_heading"
+                >
+                  What should people see?
+                </h4>
+                <p
+                  class="mat-body-small m-0"
+                  i18n="@@community.editor_content_hint"
+                >
+                  Use a clear headline, then add only the details that help.
+                </p>
+              </div>
+            </div>
 
-          <div class="knowledge-editor-map-field">
-            <h4 class="mat-label-large m-0">Title</h4>
-            <app-locale-map-edit-field
-              class="w-100"
-              placeholder="Title"
-              [localeMap]="localeModels()[index].title()"
-              (localeMapChange)="updateLocaleMap(index, 'title', $event)"
-            ></app-locale-map-edit-field>
-          </div>
+            <div class="knowledge-editor-map-field">
+              <div class="knowledge-editor-field-heading">
+                <h5
+                  class="mat-label-large m-0"
+                  i18n="@@community.editor_headline"
+                >
+                  Headline
+                </h5>
+                <span class="mat-body-small" i18n="@@community.editor_required">
+                  Required
+                </span>
+              </div>
+              <app-locale-map-edit-field
+                class="w-100"
+                placeholder="e.g. Weekly open training"
+                i18n-placeholder="@@community.editor_headline_placeholder"
+                [canRemoveLastTranslation]="false"
+                [localeMap]="localeModels()[index].title()"
+                (localeMapChange)="updateLocaleMap(index, 'title', $event)"
+              ></app-locale-map-edit-field>
+            </div>
 
-          <div class="knowledge-editor-map-field">
-            <h4 class="mat-label-large m-0">Body</h4>
-            <app-locale-map-edit-field
-              class="w-100"
-              placeholder="Body"
-              [isTextArea]="true"
-              [localeMap]="localeModels()[index].body()"
-              (localeMapChange)="updateLocaleMap(index, 'body', $event)"
-            ></app-locale-map-edit-field>
-          </div>
+            <div class="knowledge-editor-map-field">
+              <div class="knowledge-editor-field-heading">
+                <h5
+                  class="mat-label-large m-0"
+                  i18n="@@community.editor_details"
+                >
+                  Helpful details
+                </h5>
+                <span class="mat-body-small" i18n="@@community.editor_optional">Optional</span>
+              </div>
+              <app-locale-map-edit-field
+                class="w-100"
+                placeholder="Add times, meeting points, who it is for, or anything people should know"
+                i18n-placeholder="@@community.editor_details_placeholder"
+                [isTextArea]="true"
+                [canRemoveLastTranslation]="false"
+                [localeMap]="localeModels()[index].body()"
+                (localeMapChange)="updateLocaleMap(index, 'body', $event)"
+              ></app-locale-map-edit-field>
+            </div>
+          </section>
 
-          <mat-expansion-panel
-            class="knowledge-editor-cta-panel mat-elevation-z0 border"
-          >
+          <div class="knowledge-editor-divider"></div>
+
+          <fieldset class="knowledge-editor-section">
+            <legend
+              class="mat-title-small"
+              i18n="@@community.editor_disclosure_heading"
+            >
+              How should it be labelled?
+            </legend>
+            <p
+              class="mat-body-small knowledge-editor-section-description"
+              i18n="@@community.editor_disclosure_hint"
+            >
+              This keeps commercial and organized offers transparent without
+              making the card feel like an ad.
+            </p>
+            <div
+              class="knowledge-editor-choice-grid knowledge-editor-disclosure-grid"
+            >
+              @for (option of disclosureOptions; track option.value) {
+                <label
+                  class="knowledge-editor-choice knowledge-editor-choice-compact"
+                >
+                  <input
+                    type="radio"
+                    formControlName="commercialDisclosure"
+                    [value]="option.value"
+                  />
+                  <span class="knowledge-editor-choice-icon" aria-hidden="true">
+                    <mat-icon>{{ option.icon }}</mat-icon>
+                  </span>
+                  <span class="knowledge-editor-choice-copy">
+                    <strong class="mat-label-large">{{ option.label }}</strong>
+                    <span class="mat-body-small">{{ option.description }}</span>
+                  </span>
+                </label>
+              }
+            </div>
+          </fieldset>
+
+          <mat-expansion-panel class="knowledge-editor-panel mat-elevation-z0">
             <mat-expansion-panel-header>
-              <mat-panel-title>CTA</mat-panel-title>
-              <mat-panel-description>
-                {{ ctaTarget(card) === "none" ? "Optional" : ctaTarget(card) }}
-              </mat-panel-description>
+              <mat-panel-title>
+                <span class="knowledge-editor-panel-icon" aria-hidden="true">
+                  <mat-icon>link</mat-icon>
+                </span>
+                <span class="knowledge-editor-panel-heading">
+                  <strong i18n="@@community.editor_destination_heading">
+                    Link or destination
+                  </strong>
+                  <small i18n="@@community.editor_destination_hint">
+                    Give people somewhere useful to go next
+                  </small>
+                </span>
+              </mat-panel-title>
+              <mat-panel-description>{{
+                ctaTargetLabel(card)
+              }}</mat-panel-description>
             </mat-expansion-panel-header>
 
-            <div class="knowledge-editor-cta-content">
-              <mat-form-field appearance="outline">
-                <mat-label>CTA target</mat-label>
-                <mat-select formControlName="ctaTarget">
-                  @for (target of ctaTargets; track target) {
-                    <mat-option [value]="target">{{ target }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
+            <div class="knowledge-editor-panel-content">
+              <div
+                class="knowledge-editor-choice-grid knowledge-editor-disclosure-grid"
+              >
+                @for (option of ctaTargetOptions; track option.value) {
+                  <label
+                    class="knowledge-editor-choice knowledge-editor-choice-compact"
+                  >
+                    <input
+                      type="radio"
+                      formControlName="ctaTarget"
+                      [value]="option.value"
+                    />
+                    <span
+                      class="knowledge-editor-choice-icon"
+                      aria-hidden="true"
+                    >
+                      <mat-icon>{{ option.icon }}</mat-icon>
+                    </span>
+                    <span class="knowledge-editor-choice-copy">
+                      <strong class="mat-label-large">{{
+                        option.label
+                      }}</strong>
+                      <span class="mat-body-small">{{
+                        option.description
+                      }}</span>
+                    </span>
+                  </label>
+                }
+              </div>
 
               @if (ctaTarget(card) !== "none") {
+                @switch (ctaTarget(card)) {
+                  @case ("url") {
+                    <mat-form-field
+                      appearance="outline"
+                      class="knowledge-editor-wide-field"
+                    >
+                      <mat-label i18n="@@community.editor_url_label">
+                        Website or chat link
+                      </mat-label>
+                      <input matInput formControlName="ctaUrl" type="url" />
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                      <mat-label i18n="@@community.editor_url_visibility">
+                        Who can open the link?
+                      </mat-label>
+                      <mat-select formControlName="ctaVisibility">
+                        <mat-option
+                          value="public"
+                          i18n="@@community.editor_url_everyone"
+                        >
+                          Everyone
+                        </mat-option>
+                        <mat-option
+                          value="signed-in"
+                          i18n="@@community.editor_url_signed_in"
+                        >
+                          Signed-in members only
+                        </mat-option>
+                      </mat-select>
+                      @if (card.controls.ctaVisibility.value === "signed-in") {
+                        <mat-hint i18n="@@community.editor_url_private_hint">
+                          The card stays public, but the link is only shown to
+                          signed-in members.
+                        </mat-hint>
+                      }
+                    </mat-form-field>
+                  }
+                  @case ("spot") {
+                    <app-entity-reference-autocomplete
+                      kind="spot"
+                      [value]="card.controls.ctaSpotId.value"
+                      [disabled]="saving()"
+                      (valueChange)="updateDestination(card, 'spot', $event)"
+                    />
+                  }
+                  @case ("event") {
+                    <app-entity-reference-autocomplete
+                      kind="event"
+                      [value]="card.controls.ctaEventId.value"
+                      [disabled]="saving()"
+                      (valueChange)="updateDestination(card, 'event', $event)"
+                    />
+                  }
+                }
+
                 <div class="knowledge-editor-map-field">
-                  <h4 class="mat-label-large m-0">CTA label</h4>
+                  <div class="knowledge-editor-field-heading">
+                    <h5
+                      class="mat-label-large m-0"
+                      i18n="@@community.editor_button_label"
+                    >
+                      Button label
+                    </h5>
+                    <span class="mat-body-small" i18n="@@community.editor_optional">Optional</span>
+                  </div>
                   <app-locale-map-edit-field
                     class="w-100"
-                    placeholder="CTA label"
+                    placeholder="e.g. View schedule"
+                    i18n-placeholder="@@community.editor_button_placeholder"
+                    [canRemoveLastTranslation]="false"
                     [localeMap]="localeModels()[index].ctaLabel()"
                     (localeMapChange)="
                       updateLocaleMap(index, 'ctaLabel', $event)
                     "
                   ></app-locale-map-edit-field>
                 </div>
-
-                @switch (ctaTarget(card)) {
-                  @case ("url") {
-                    <mat-form-field appearance="outline">
-                      <mat-label>URL visibility</mat-label>
-                      <mat-select formControlName="ctaVisibility">
-                        @for (visibility of ctaVisibilities; track visibility) {
-                          <mat-option [value]="visibility">
-                            {{ visibility }}
-                          </mat-option>
-                        }
-                      </mat-select>
-                      @if (card.controls.ctaVisibility.value === "signed-in") {
-                        <mat-hint>
-                          The card stays public, but the URL is only visible to
-                          signed-in users.
-                        </mat-hint>
-                      }
-                    </mat-form-field>
-                    <mat-form-field
-                      appearance="outline"
-                      class="knowledge-editor-wide-field"
-                    >
-                      <mat-label>URL</mat-label>
-                      <input matInput formControlName="ctaUrl" />
-                      @if (card.controls.ctaVisibility.value === "signed-in") {
-                        <mat-hint>
-                          This URL is stored outside the public community page.
-                        </mat-hint>
-                      }
-                    </mat-form-field>
-                  }
-                  @case ("spot") {
-                    <mat-form-field
-                      appearance="outline"
-                      class="knowledge-editor-wide-field"
-                    >
-                      <mat-label>Spot ID</mat-label>
-                      <input matInput formControlName="ctaSpotId" />
-                    </mat-form-field>
-                  }
-                  @case ("event") {
-                    <mat-form-field
-                      appearance="outline"
-                      class="knowledge-editor-wide-field"
-                    >
-                      <mat-label>Event ID</mat-label>
-                      <input matInput formControlName="ctaEventId" />
-                    </mat-form-field>
-                  }
-                }
               }
             </div>
           </mat-expansion-panel>
+
+          @if (publishesImmediately()) {
+            <mat-expansion-panel
+              class="knowledge-editor-panel mat-elevation-z0"
+            >
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <span class="knowledge-editor-panel-icon" aria-hidden="true">
+                    <mat-icon>tune</mat-icon>
+                  </span>
+                  <span class="knowledge-editor-panel-heading">
+                    <strong i18n="@@community.editor_publishing_heading">
+                      Publishing settings
+                    </strong>
+                    <small i18n="@@community.editor_publishing_hint">
+                      Admin-only card details
+                    </small>
+                  </span>
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <div class="knowledge-editor-admin-grid">
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@community.editor_card_id">Card ID</mat-label>
+                  <input matInput formControlName="id" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@community.editor_visibility">
+                    Visibility
+                  </mat-label>
+                  <mat-select formControlName="visibility">
+                    <mat-option value="public" i18n="@@community.editor_visible">
+                      Visible
+                    </mat-option>
+                    <mat-option value="hidden" i18n="@@community.editor_hidden">
+                      Hidden
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </mat-expansion-panel>
+          }
         </mat-card-content>
       </mat-card>
     }
   </div>
 
-  @if (cardGroups().length === 0) {
-    <p class="mat-body-medium knowledge-editor-empty m-0">
-      No knowledge cards yet.
-    </p>
+  @if (cardGroups().length > 0) {
+    <button
+      mat-stroked-button
+      type="button"
+      class="knowledge-editor-add-card"
+      (click)="addCard()"
+    >
+      <mat-icon>add</mat-icon>
+      @if (cardGroups().length === 1) {
+        <span i18n="@@community.editor_add_another_card">Add another card</span>
+      } @else {
+        <span i18n="@@community.editor_add_card">Add card</span>
+      }
+    </button>
   }
 
   @if (validationMessage(); as message) {
-    <p class="mat-body-small knowledge-editor-error m-0">{{ message }}</p>
+    <p class="mat-body-medium knowledge-editor-error m-0" role="alert">
+      <mat-icon aria-hidden="true">info</mat-icon>
+      <span>{{ message }}</span>
+    </p>
   }
 
-  <p class="mat-body-small knowledge-editor-submit-note m-0">
-    @if (publishesImmediately()) {
-      Admin changes are added to the community page instantly when saved.
-    } @else {
-      Submitted cards are reviewed by admins before they appear on the
-      community page.
-    }
-  </p>
+  <div class="knowledge-editor-submit-note">
+    <mat-icon aria-hidden="true">verified_user</mat-icon>
+    <p class="mat-body-small m-0">
+      @if (publishesImmediately()) {
+        <span i18n="@@community.editor_publish_note">
+          Saving publishes these changes to the community page immediately.
+        </span>
+      } @else {
+        <span i18n="@@community.editor_review_note">
+          A moderator will review your suggestion before it appears on the
+          community page.
+        </span>
+      }
+    </p>
+  </div>
 
   <div class="knowledge-editor-actions">
-    <button mat-button type="button" [disabled]="saving()" (click)="cancel.emit()">
-      Cancel
+    <button
+      mat-button
+      type="button"
+      [disabled]="saving()"
+      (click)="cancel.emit()"
+    >
+      <span i18n="@@community.editor_cancel">Cancel</span>
     </button>
-    <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
-      <mat-icon>save</mat-icon>
-      <span>{{
-        saving()
-          ? publishesImmediately()
-            ? "Saving..."
-            : "Submitting..."
-          : publishesImmediately()
-            ? "Save cards"
-            : "Submit for review"
-      }}</span>
+    <button
+      mat-flat-button
+      color="primary"
+      type="submit"
+      [disabled]="saving() || cardGroups().length === 0"
+    >
+      <mat-icon>{{
+        publishesImmediately() ? "save" : "check_circle"
+      }}</mat-icon>
+      @if (saving()) {
+        @if (publishesImmediately()) {
+          <span i18n="@@community.editor_saving">Saving…</span>
+        } @else {
+          <span i18n="@@community.editor_submitting">Submitting…</span>
+        }
+      } @else if (publishesImmediately()) {
+        <span i18n="@@community.editor_save_cards">Save cards</span>
+      } @else {
+        <span i18n="@@community.editor_submit_suggestion">
+          Submit suggestion
+        </span>
+      }
     </button>
   </div>
 </form>

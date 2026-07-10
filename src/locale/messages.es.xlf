@@ -5509,20 +5509,20 @@
     </unit>
     <unit id="community.info_disclosure_classes">
       <segment state="initial">
-        <source>Classes</source>
-        <target>Clases</target>
+        <source>Classes or coaching</source>
+        <target>Clases o entrenamiento</target>
       </segment>
     </unit>
     <unit id="community.info_disclosure_paid">
       <segment state="initial">
-        <source>Paid partnership</source>
-        <target>Colaboración pagada</target>
+        <source>Paid promotion</source>
+        <target>Promoción pagada</target>
       </segment>
     </unit>
     <unit id="community.info_disclosure_shop">
       <segment state="initial">
-        <source>Shop</source>
-        <target>Tienda</target>
+        <source>Shop or service</source>
+        <target>Tienda o servicio</target>
       </segment>
     </unit>
     <unit id="community.knowledge_cta.body">
@@ -8696,6 +8696,630 @@
       <segment state="initial">
         <source> Event map </source>
         <target> Mapa del evento </target>
+      </segment>
+    </unit>
+    <unit id="community.destination_change_selection">
+      <segment state="initial">
+        <source>Change selection</source>
+        <target>Cambiar selección</target>
+      </segment>
+    </unit>
+    <unit id="community.destination_event_search_empty">
+      <segment state="initial">
+        <source>No matching events found</source>
+        <target>No se encontraron eventos</target>
+      </segment>
+    </unit>
+    <unit id="community.destination_event_search_label">
+      <segment state="initial">
+        <source>Search for an event</source>
+        <target>Buscar un evento</target>
+      </segment>
+    </unit>
+    <unit id="community.destination_event_search_placeholder">
+      <segment state="initial">
+        <source>Start typing an event name</source>
+        <target>Escribe el nombre de un evento</target>
+      </segment>
+    </unit>
+    <unit id="community.destination_loading_selection">
+      <segment state="initial">
+        <source> Loading selection… </source>
+        <target>Cargando selección…</target>
+      </segment>
+    </unit>
+    <unit id="community.destination_pk_event">
+      <segment state="initial">
+        <source>PK Spot event</source>
+        <target>Evento de PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="community.destination_pk_spot">
+      <segment state="initial">
+        <source>PK Spot</source>
+        <target>PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="community.destination_saved_reference">
+      <segment state="initial">
+        <source>Saved selection</source>
+        <target>Selección guardada</target>
+      </segment>
+    </unit>
+    <unit id="community.destination_search_hint">
+      <segment state="initial">
+        <source> Choose a result so PK Spot can save the correct destination. </source>
+        <target>Elige un resultado para que PK Spot guarde el destino correcto.</target>
+      </segment>
+    </unit>
+    <unit id="community.destination_spot_search_empty">
+      <segment state="initial">
+        <source>No matching spots found</source>
+        <target>No se encontraron Spots</target>
+      </segment>
+    </unit>
+    <unit id="community.destination_spot_search_label">
+      <segment state="initial">
+        <source>Search for a spot</source>
+        <target>Buscar un Spot</target>
+      </segment>
+    </unit>
+    <unit id="community.destination_spot_search_placeholder">
+      <segment state="initial">
+        <source>Start typing a spot name or place</source>
+        <target>Escribe el nombre de un Spot o lugar</target>
+      </segment>
+    </unit>
+    <unit id="community.destination_unnamed_spot">
+      <segment state="initial">
+        <source>Unnamed spot</source>
+        <target>Spot sin nombre</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_add_another_card">
+      <segment state="initial">
+        <source>Add another card</source>
+        <target>Añadir otra tarjeta</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_add_card">
+      <segment state="initial">
+        <source>Add card</source>
+        <target>Añadir tarjeta</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_button_label">
+      <segment state="initial">
+        <source> Button label </source>
+        <target>Texto del botón</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_button_placeholder">
+      <segment state="initial">
+        <source>e.g. View schedule</source>
+        <target>p. ej., Ver horario</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_cancel">
+      <segment state="initial">
+        <source>Cancel</source>
+        <target>Cancelar</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_card_id">
+      <segment state="initial">
+        <source>Card ID</source>
+        <target>ID de la tarjeta</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_card_number">
+      <segment state="initial">
+        <source> Card <ph id="0" equiv="INTERPOLATION" disp="{{ index + 1 }}"/> </source>
+        <target>Tarjeta <ph id="0" equiv="INTERPOLATION" disp="{{ index + 1 }}"/></target>
+      </segment>
+    </unit>
+    <unit id="community.editor_card_preview_hint">
+      <segment state="initial">
+        <source> This will appear as a separate card on the community page. </source>
+        <target>Esto aparecerá como una tarjeta separada en la página de la comunidad.</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_chat">
+      <segment state="initial">
+        <source>Community chat</source>
+        <target>Chat de la comunidad</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_chat_description">
+      <segment state="initial">
+        <source>A group chat or online space</source>
+        <target>Un chat de grupo o espacio en línea</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_events">
+      <segment state="initial">
+        <source>Events</source>
+        <target>Eventos</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_events_description">
+      <segment state="initial">
+        <source>Competitions, workshops, and more</source>
+        <target>Competiciones, talleres y más</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_heading">
+      <segment state="initial">
+        <source> What kind of info is this? </source>
+        <target>¿Qué tipo de información es?</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_hint">
+      <segment state="initial">
+        <source> Choose the closest match. This sets the icon people see. </source>
+        <target>Elige la opción más adecuada. Define el icono que se muestra.</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_jams">
+      <segment state="initial">
+        <source>Jams &amp; meetups</source>
+        <target>Jams y encuentros</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_jams_description">
+      <segment state="initial">
+        <source>Open sessions and gatherings</source>
+        <target>Sesiones abiertas y encuentros</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_other">
+      <segment state="initial">
+        <source>Something else</source>
+        <target>Otra cosa</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_other_description">
+      <segment state="initial">
+        <source>Anything else locals should know</source>
+        <target>Cualquier otra cosa que la gente local deba saber</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_safety">
+      <segment state="initial">
+        <source>Safety</source>
+        <target>Seguridad</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_safety_description">
+      <segment state="initial">
+        <source>Local risks, rules, or access notes</source>
+        <target>Riesgos, normas o indicaciones de acceso locales</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_spots">
+      <segment state="initial">
+        <source>Local spots</source>
+        <target>Spots locales</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_spots_description">
+      <segment state="initial">
+        <source>Useful context about places to train</source>
+        <target>Contexto útil sobre lugares para entrenar</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_training">
+      <segment state="initial">
+        <source>Training</source>
+        <target>Entrenamiento</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_category_training_description">
+      <segment state="initial">
+        <source>Classes, coaching, or club sessions</source>
+        <target>Clases, entrenamiento o sesiones de club</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_chat_link_hint">
+      <segment state="initial">
+        <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon aria-hidden=&quot;true&quot;&gt;" dispEnd="&lt;/mat-icon&gt;">lock</pc> Group chat links can be limited to signed-in members below. </source>
+        <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon aria-hidden=&quot;true&quot;&gt;" dispEnd="&lt;/mat-icon&gt;">lock</pc> Los enlaces a chats de grupo pueden limitarse a miembros con sesión iniciada.</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_close">
+      <segment state="initial">
+        <source>Close community knowledge editor</source>
+        <target>Cerrar el editor de información comunitaria</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_close_short">
+      <segment state="initial">
+        <source>Close</source>
+        <target>Cerrar</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_content_heading">
+      <segment state="initial">
+        <source> What should people see? </source>
+        <target>¿Qué debería ver la gente?</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_content_hint">
+      <segment state="initial">
+        <source> Use a clear headline, then add only the details that help. </source>
+        <target>Usa un título claro y añade solo los detalles útiles.</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_default_open_link">
+      <segment state="initial">
+        <source>Open link</source>
+        <target>Abrir enlace</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_default_view_event">
+      <segment state="initial">
+        <source>View event</source>
+        <target>Ver evento</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_default_view_spot">
+      <segment state="initial">
+        <source>View spot</source>
+        <target>Ver Spot</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_destination_event">
+      <segment state="initial">
+        <source>PK Spot event</source>
+        <target>Evento de PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_destination_event_description">
+      <segment state="initial">
+        <source>Open an event in the app</source>
+        <target>Abrir un evento en la aplicación</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_destination_heading">
+      <segment state="initial">
+        <source> Link or destination </source>
+        <target>Enlace o destino</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_destination_hint">
+      <segment state="initial">
+        <source> Give people somewhere useful to go next </source>
+        <target>Ofrece un lugar útil al que ir después</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_destination_none">
+      <segment state="initial">
+        <source>No destination</source>
+        <target>Sin destino</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_destination_none_description">
+      <segment state="initial">
+        <source>The card is useful on its own</source>
+        <target>La tarjeta es útil por sí sola</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_destination_spot">
+      <segment state="initial">
+        <source>PK Spot spot</source>
+        <target>Spot de PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_destination_spot_description">
+      <segment state="initial">
+        <source>Open a spot in the app</source>
+        <target>Abrir un Spot en la aplicación</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_destination_url">
+      <segment state="initial">
+        <source>Web link</source>
+        <target>Enlace web</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_destination_url_description">
+      <segment state="initial">
+        <source>Open a website or community chat</source>
+        <target>Abrir un sitio web o chat comunitario</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_details">
+      <segment state="initial">
+        <source> Helpful details </source>
+        <target>Detalles útiles</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_details_placeholder">
+      <segment state="initial">
+        <source>Add times, meeting points, who it is for, or anything people should know</source>
+        <target>Añade horarios, puntos de encuentro, para quién es u otros datos importantes</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_dialog_admin_subtitle">
+      <segment state="initial">
+        <source> <ph id="0" equiv="INTERPOLATION" disp="{{ dialogData.displayName }}"/> community page </source>
+        <target>Página de la comunidad de <ph id="0" equiv="INTERPOLATION" disp="{{ dialogData.displayName }}"/></target>
+      </segment>
+    </unit>
+    <unit id="community.editor_dialog_admin_title">
+      <segment state="initial">
+        <source> Manage community cards </source>
+        <target>Gestionar tarjetas de la comunidad</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_dialog_subtitle">
+      <segment state="initial">
+        <source> Help people discover what matters in <ph id="0" equiv="INTERPOLATION" disp="{{ dialogData.displayName }}"/> </source>
+        <target>Ayuda a descubrir lo importante en <ph id="0" equiv="INTERPOLATION" disp="{{ dialogData.displayName }}"/></target>
+      </segment>
+    </unit>
+    <unit id="community.editor_dialog_title">
+      <segment state="initial">
+        <source> Share local knowledge </source>
+        <target>Compartir información local</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_disclosure_classes">
+      <segment state="initial">
+        <source>Classes or coaching</source>
+        <target>Clases o entrenamiento</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_disclosure_classes_description">
+      <segment state="initial">
+        <source>Training offered by a club or coach</source>
+        <target>Entrenamiento ofrecido por un club o entrenador</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_disclosure_heading">
+      <segment state="initial">
+        <source> How should it be labelled? </source>
+        <target>¿Cómo debería etiquetarse?</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_disclosure_hint">
+      <segment state="initial">
+        <source> This keeps commercial and organized offers transparent without making the card feel like an ad. </source>
+        <target>Así las ofertas comerciales y organizadas son transparentes sin parecer anuncios.</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_disclosure_none">
+      <segment state="initial">
+        <source>Community info</source>
+        <target>Información comunitaria</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_disclosure_none_description">
+      <segment state="initial">
+        <source>No commercial relationship</source>
+        <target>Sin relación comercial</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_disclosure_paid">
+      <segment state="initial">
+        <source>Paid promotion</source>
+        <target>Promoción pagada</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_disclosure_paid_description">
+      <segment state="initial">
+        <source>Paid or partnered placement</source>
+        <target>Contenido pagado o asociado</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_disclosure_shop">
+      <segment state="initial">
+        <source>Shop or service</source>
+        <target>Tienda o servicio</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_disclosure_shop_description">
+      <segment state="initial">
+        <source>A business selling something</source>
+        <target>Una empresa vende algo</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_empty_body">
+      <segment state="initial">
+        <source> Add a jam, chat, training offer, safety note, or another local tip. </source>
+        <target>Añade un jam, chat, entrenamiento, aviso de seguridad u otro consejo local.</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_empty_title">
+      <segment state="initial">
+        <source> Start with one useful card </source>
+        <target>Empieza con una tarjeta útil</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_headline">
+      <segment state="initial">
+        <source> Headline </source>
+        <target>Título</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_headline_placeholder">
+      <segment state="initial">
+        <source>e.g. Weekly open training</source>
+        <target>p. ej., Entrenamiento abierto semanal</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_hidden">
+      <segment state="initial">
+        <source> Hidden </source>
+        <target>Oculta</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_intro_body">
+      <segment state="initial">
+        <source> Keep each card focused on one useful thing. You can add more cards for separate topics. </source>
+        <target>Dedica cada tarjeta a una información útil. Puedes añadir más tarjetas para temas distintos.</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_intro_title">
+      <segment state="initial">
+        <source> Share what locals would want to know </source>
+        <target>Comparte lo que la gente local quiere saber</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_move_down">
+      <segment state="initial">
+        <source>Move card down</source>
+        <target>Mover tarjeta hacia abajo</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_move_down_short">
+      <segment state="initial">
+        <source>Move down</source>
+        <target>Bajar</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_move_up">
+      <segment state="initial">
+        <source>Move card up</source>
+        <target>Mover tarjeta hacia arriba</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_move_up_short">
+      <segment state="initial">
+        <source>Move up</source>
+        <target>Subir</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_open_admin">
+      <segment state="initial">
+        <source>Edit community cards</source>
+        <target>Editar tarjetas de la comunidad</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_open_suggestion">
+      <segment state="initial">
+        <source>Suggest community card</source>
+        <target>Sugerir una tarjeta comunitaria</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_optional">
+      <segment state="initial">
+        <source>Optional</source>
+        <target>Opcional</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_publish_note">
+      <segment state="initial">
+        <source> Saving publishes these changes to the community page immediately. </source>
+        <target>Al guardar, estos cambios se publican inmediatamente en la página de la comunidad.</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_publishing_heading">
+      <segment state="initial">
+        <source> Publishing settings </source>
+        <target>Ajustes de publicación</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_publishing_hint">
+      <segment state="initial">
+        <source> Admin-only card details </source>
+        <target>Detalles solo para administradores</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_remove_card">
+      <segment state="initial">
+        <source>Remove card</source>
+        <target>Eliminar tarjeta</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_required">
+      <segment state="initial">
+        <source> Required </source>
+        <target>Obligatorio</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_review_note">
+      <segment state="initial">
+        <source> A moderator will review your suggestion before it appears on the community page. </source>
+        <target>Un moderador revisará tu sugerencia antes de que aparezca en la página de la comunidad.</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_save_cards">
+      <segment state="initial">
+        <source>Save cards</source>
+        <target>Guardar tarjetas</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_saving">
+      <segment state="initial">
+        <source>Saving…</source>
+        <target>Guardando…</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_submit_suggestion">
+      <segment state="initial">
+        <source> Submit suggestion </source>
+        <target>Enviar sugerencia</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_submitting">
+      <segment state="initial">
+        <source>Submitting…</source>
+        <target>Enviando…</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_url_everyone">
+      <segment state="initial">
+        <source> Everyone </source>
+        <target>Todos</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_url_label">
+      <segment state="initial">
+        <source> Website or chat link </source>
+        <target>Enlace a sitio web o chat</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_url_private_hint">
+      <segment state="initial">
+        <source> The card stays public, but the link is only shown to signed-in members. </source>
+        <target>La tarjeta sigue siendo pública, pero el enlace solo se muestra a miembros con sesión iniciada.</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_url_signed_in">
+      <segment state="initial">
+        <source> Signed-in members only </source>
+        <target>Solo miembros con sesión iniciada</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_url_visibility">
+      <segment state="initial">
+        <source> Who can open the link? </source>
+        <target>¿Quién puede abrir el enlace?</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_validation_title">
+      <segment state="initial">
+        <source>Every card needs at least one title.</source>
+        <target>Cada tarjeta necesita al menos un título.</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_visibility">
+      <segment state="initial">
+        <source> Visibility </source>
+        <target>Visibilidad</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_visible">
+      <segment state="initial">
+        <source> Visible </source>
+        <target>Visible</target>
+      </segment>
+    </unit>
+    <unit id="community.editor_your_suggestion">
+      <segment state="initial">
+        <source> Your suggestion </source>
+        <target>Tu sugerencia</target>
       </segment>
     </unit>
   </file>

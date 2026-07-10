@@ -79,6 +79,7 @@ interface CommunityInfoCardView {
   body: string | null;
   icon: string;
   disclosure: string | null;
+  disclosureIcon: string | null;
   cta: CommunityInfoCardCtaView | null;
   requiresSignInForCta: boolean;
   priority: number;
@@ -333,6 +334,11 @@ export class CommunityLandingPageComponent {
     () =>
       (this.isSignedIn() || this.isAdmin()) &&
       !!this.communityData()?.communityKey,
+  );
+  knowledgeEditActionLabel = computed(() =>
+    this.canEditKnowledge()
+      ? $localize`:@@community.editor_open_admin:Edit community cards`
+      : $localize`:@@community.editor_open_suggestion:Suggest community card`,
   );
   knowledgeEditorCards = computed(() =>
     this.canEditKnowledge() ? this._allInfoCards() : [],
@@ -686,6 +692,7 @@ export class CommunityLandingPageComponent {
           body: communityLocalizedText(card.body, this._locale) || null,
           icon: communityInfoCardCategoryIcon(card.category),
           disclosure: this._communityInfoDisclosure(card),
+          disclosureIcon: this._communityInfoDisclosureIcon(card),
           cta,
           requiresSignInForCta:
             !this.isSignedIn() && !cta && card.ctaVisibility === "signed-in",
@@ -710,8 +717,10 @@ export class CommunityLandingPageComponent {
     }
 
     this._communityKnowledgeDialogRef = this._dialog.open(template, {
-      width: "min(960px, calc(100vw - 32px))",
-      maxWidth: "960px",
+      width: this.canEditKnowledge()
+        ? "min(960px, calc(100vw - 32px))"
+        : "min(800px, calc(100vw - 32px))",
+      maxWidth: this.canEditKnowledge() ? "960px" : "800px",
       maxHeight: "calc(100vh - 32px)",
       autoFocus: "dialog",
       restoreFocus: true,
@@ -761,7 +770,8 @@ export class CommunityLandingPageComponent {
   private _publicCommunityInfoCard(
     card: CommunityInfoCardSchema,
   ): CommunityInfoCardSchema {
-    const { cta: _cta, ...publicCard } = card;
+    const publicCard = { ...card };
+    delete publicCard.cta;
     return {
       ...publicCard,
       ctaVisibility: "signed-in",
@@ -791,11 +801,26 @@ export class CommunityLandingPageComponent {
   ): string | null {
     switch (card.commercialDisclosure) {
       case "classes":
-        return $localize`:@@community.info_disclosure_classes:Classes`;
+        return $localize`:@@community.info_disclosure_classes:Classes or coaching`;
       case "paid-partnership":
-        return $localize`:@@community.info_disclosure_paid:Paid partnership`;
+        return $localize`:@@community.info_disclosure_paid:Paid promotion`;
       case "shop":
-        return $localize`:@@community.info_disclosure_shop:Shop`;
+        return $localize`:@@community.info_disclosure_shop:Shop or service`;
+      default:
+        return null;
+    }
+  }
+
+  private _communityInfoDisclosureIcon(
+    card: CommunityInfoCardSchema,
+  ): string | null {
+    switch (card.commercialDisclosure) {
+      case "classes":
+        return "school";
+      case "paid-partnership":
+        return "paid";
+      case "shop":
+        return "storefront";
       default:
         return null;
     }
@@ -809,7 +834,9 @@ export class CommunityLandingPageComponent {
       return null;
     }
 
-    const label = communityLocalizedText(cta.label, this._locale);
+    const label = this._localizedCommunityCtaLabel(
+      communityLocalizedText(cta.label, this._locale),
+    );
     if (!label) {
       return null;
     }
@@ -859,6 +886,19 @@ export class CommunityLandingPageComponent {
       return null;
     } catch {
       return null;
+    }
+  }
+
+  private _localizedCommunityCtaLabel(label: string): string {
+    switch (label.trim().toLowerCase()) {
+      case "open link":
+        return $localize`:@@community.editor_default_open_link:Open link`;
+      case "view spot":
+        return $localize`:@@community.editor_default_view_spot:View spot`;
+      case "view event":
+        return $localize`:@@community.editor_default_view_event:View event`;
+      default:
+        return label;
     }
   }
 

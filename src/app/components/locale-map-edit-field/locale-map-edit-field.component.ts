@@ -75,6 +75,7 @@ export class LocaleMapEditFieldComponent {
   >({});
   isTextArea: InputSignal<boolean> = input(false);
   placeholder: InputSignal<string> = input("");
+  canRemoveLastTranslation: InputSignal<boolean> = input(true);
 
   languages = languageCodes;
 

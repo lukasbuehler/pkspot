@@ -218,16 +218,9 @@
               <button
                 mat-icon-button
                 type="button"
-                [attr.aria-label]="
-                  canEditKnowledge()
-                    ? 'Edit community cards'
-                    : 'Suggest community card'
-                "
-                [matTooltip]="
-                  canEditKnowledge()
-                    ? 'Edit community cards'
-                    : 'Suggest community card'
-                "
+                class="d-flex"
+                [attr.aria-label]="knowledgeEditActionLabel()"
+                [matTooltip]="knowledgeEditActionLabel()"
                 (click)="startKnowledgeEdit()"
               >
                 <mat-icon>{{ canEditKnowledge() ? "edit" : "add" }}</mat-icon>
@@ -246,9 +239,14 @@
                     <div class="local-info-title-block">
                       <h3 class="mat-title-medium m-0">{{ card.title }}</h3>
                       @if (card.disclosure) {
-                        <span class="local-info-disclosure">{{
-                          card.disclosure
-                        }}</span>
+                        <span class="local-info-disclosure">
+                          @if (card.disclosureIcon) {
+                            <mat-icon aria-hidden="true">{{
+                              card.disclosureIcon
+                            }}</mat-icon>
+                          }
+                          <span>{{ card.disclosure }}</span>
+                        </span>
                       }
                     </div>
                   </div>
@@ -592,23 +590,42 @@
   <ng-template #communityKnowledgeDialog>
     <div class="community-knowledge-dialog">
       <div class="community-knowledge-dialog-header">
-        <div>
-          <h2 class="mat-title-large m-0">Community knowledge</h2>
-          @if (communityData(); as dialogData) {
-            <p class="mat-body-medium m-0">
-              {{
-                canEditKnowledge()
-                  ? dialogData.displayName
-                  : "Suggest a card for " + dialogData.displayName
-              }}
-            </p>
-          }
+        <div class="community-knowledge-dialog-title">
+          <div>
+            <h2 class="mat-title-large m-0">
+              @if (canEditKnowledge()) {
+                <span i18n="@@community.editor_dialog_admin_title">
+                  Manage community cards
+                </span>
+              } @else {
+                <span i18n="@@community.editor_dialog_title">
+                  Share local knowledge
+                </span>
+              }
+            </h2>
+            @if (communityData(); as dialogData) {
+              <p class="mat-body-medium m-0">
+                @if (canEditKnowledge()) {
+                  <span i18n="@@community.editor_dialog_admin_subtitle">
+                    {{ dialogData.displayName }} community page
+                  </span>
+                } @else {
+                  <span i18n="@@community.editor_dialog_subtitle">
+                    Help people discover what matters in
+                    {{ dialogData.displayName }}
+                  </span>
+                }
+              </p>
+            }
+          </div>
         </div>
         <button
           mat-icon-button
           type="button"
           aria-label="Close community knowledge editor"
+          i18n-aria-label="@@community.editor_close"
           matTooltip="Close"
+          i18n-matTooltip="@@community.editor_close_short"
           [disabled]="isSavingKnowledge() || isSavingCommunityMerge()"
           (click)="cancelKnowledgeEdit()"
         >
@@ -658,7 +675,10 @@
                       "
                     >
                       <mat-option value="">Not merged</mat-option>
-                      @for (community of mergeTargetOptions(); track community.communityKey) {
+                      @for (
+                        community of mergeTargetOptions();
+                        track community.communityKey
+                      ) {
                         <mat-option [value]="community.communityKey">
                           {{ community.displayName }}
                         </mat-option>

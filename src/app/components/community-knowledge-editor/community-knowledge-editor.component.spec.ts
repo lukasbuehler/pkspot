@@ -27,6 +27,12 @@ describe("CommunityKnowledgeEditorComponent", () => {
     component = fixture.componentInstance;
   });
 
+  it("starts contributors with one focused card instead of an empty state", () => {
+    component.ngOnInit();
+
+    expect(component.cardGroups()).toHaveLength(1);
+  });
+
   it("emits public URL CTAs with their URL and visibility", () => {
     const save = vi.fn();
     component.save.subscribe(save);
@@ -82,4 +88,33 @@ describe("CommunityKnowledgeEditorComponent", () => {
       }),
     ]);
   });
+
+  it.each([
+    ["spot", "ctaSpotId", "central-park", "View spot"],
+    ["event", "ctaEventId", "summer-jam", "View event"],
+  ] as const)(
+    "emits a selected %s destination without exposing its raw id field",
+    (target, controlName, id, defaultLabel) => {
+      const save = vi.fn();
+      component.save.subscribe(save);
+      component.addCard();
+      const card = component.cardGroups()[0];
+      component.updateLocaleMap(0, "title", localeMap("Useful destination"));
+      card.controls.ctaTarget.setValue(target);
+
+      component.updateDestination(card, target, id);
+      component.onSubmit();
+
+      expect(card.controls[controlName].value).toBe(id);
+      expect(save).toHaveBeenCalledWith([
+        expect.objectContaining({
+          cta: {
+            label: { en: defaultLabel },
+            target,
+            [target === "spot" ? "spotId" : "eventId"]: id,
+          },
+        }),
+      ]);
+    },
+  );
 });

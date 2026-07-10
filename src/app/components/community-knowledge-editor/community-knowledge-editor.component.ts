@@ -1,8 +1,11 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  LOCALE_ID,
+  OnInit,
   WritableSignal,
   effect,
+  inject,
   input,
   output,
   signal,
@@ -21,7 +24,7 @@ import { MatInputModule } from "@angular/material/input";
 import { MatExpansionModule } from "@angular/material/expansion";
 import { MatSelectModule } from "@angular/material/select";
 import { MatTooltipModule } from "@angular/material/tooltip";
-import type { LocaleMap } from "../../../db/models/Interfaces";
+import type { LocaleCode, LocaleMap } from "../../../db/models/Interfaces";
 import type {
   CommunityInfoCardCategory,
   CommunityInfoCardCta,
@@ -31,6 +34,7 @@ import type {
 } from "../../../db/schemas/CommunityPageSchema";
 import { communityInfoCardCategoryIcon } from "../../../scripts/CommunityInfoCardHelpers";
 import { makeLocaleMapFromObject } from "../../../scripts/LanguageHelpers";
+import { EntityReferenceAutocompleteComponent } from "../entity-reference-autocomplete/entity-reference-autocomplete.component";
 import { LocaleMapEditFieldComponent } from "../locale-map-edit-field/locale-map-edit-field.component";
 
 type CommunityInfoCardVisibility = NonNullable<
@@ -62,6 +66,13 @@ interface CommunityKnowledgeLocaleModel {
   ctaLabel: WritableSignal<LocaleMap | undefined | null>;
 }
 
+interface CommunityKnowledgeChoice<T extends string> {
+  value: T;
+  label: string;
+  description: string;
+  icon: string;
+}
+
 @Component({
   selector: "app-community-knowledge-editor",
   imports: [
@@ -74,13 +85,19 @@ interface CommunityKnowledgeLocaleModel {
     MatInputModule,
     MatSelectModule,
     MatTooltipModule,
+    EntityReferenceAutocompleteComponent,
     LocaleMapEditFieldComponent,
   ],
   templateUrl: "./community-knowledge-editor.component.html",
   styleUrl: "./community-knowledge-editor.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CommunityKnowledgeEditorComponent {
+export class CommunityKnowledgeEditorComponent implements OnInit {
+  private readonly _locale = inject<LocaleCode>(LOCALE_ID);
+  private readonly _contentLocale = this._locale.startsWith("en-")
+    ? "en"
+    : this._locale;
+
   readonly cards = input<CommunityInfoCardSchema[]>([]);
   readonly saving = input(false);
   readonly publishesImmediately = input(false);
@@ -88,26 +105,101 @@ export class CommunityKnowledgeEditorComponent {
   readonly save = output<CommunityInfoCardSchema[]>();
   readonly cancel = output<void>();
 
-  readonly categories: CommunityInfoCardCategory[] = [
-    "jams",
-    "chat",
-    "classes",
-    "safety",
-    "spots",
-    "events",
-    "other",
+  readonly categoryOptions: CommunityKnowledgeChoice<CommunityInfoCardCategory>[] = [
+    {
+      value: "jams",
+      label: $localize`:@@community.editor_category_jams:Jams & meetups`,
+      description: $localize`:@@community.editor_category_jams_description:Open sessions and gatherings`,
+      icon: "person_celebrate",
+    },
+    {
+      value: "chat",
+      label: $localize`:@@community.editor_category_chat:Community chat`,
+      description: $localize`:@@community.editor_category_chat_description:A group chat or online space`,
+      icon: "forum",
+    },
+    {
+      value: "classes",
+      label: $localize`:@@community.editor_category_training:Training`,
+      description: $localize`:@@community.editor_category_training_description:Classes, coaching, or club sessions`,
+      icon: "school",
+    },
+    {
+      value: "spots",
+      label: $localize`:@@community.editor_category_spots:Local spots`,
+      description: $localize`:@@community.editor_category_spots_description:Useful context about places to train`,
+      icon: "place",
+    },
+    {
+      value: "events",
+      label: $localize`:@@community.editor_category_events:Events`,
+      description: $localize`:@@community.editor_category_events_description:Competitions, workshops, and more`,
+      icon: "event",
+    },
+    {
+      value: "safety",
+      label: $localize`:@@community.editor_category_safety:Safety`,
+      description: $localize`:@@community.editor_category_safety_description:Local risks, rules, or access notes`,
+      icon: "health_and_safety",
+    },
+    {
+      value: "other",
+      label: $localize`:@@community.editor_category_other:Something else`,
+      description: $localize`:@@community.editor_category_other_description:Anything else locals should know`,
+      icon: "info",
+    },
   ];
-  readonly disclosures: CommunityInfoCardDisclosure[] = [
-    "none",
-    "classes",
-    "paid-partnership",
-    "shop",
+  readonly disclosureOptions: CommunityKnowledgeChoice<CommunityInfoCardDisclosure>[] = [
+    {
+      value: "none",
+      label: $localize`:@@community.editor_disclosure_none:Community info`,
+      description: $localize`:@@community.editor_disclosure_none_description:No commercial relationship`,
+      icon: "info",
+    },
+    {
+      value: "classes",
+      label: $localize`:@@community.editor_disclosure_classes:Classes or coaching`,
+      description: $localize`:@@community.editor_disclosure_classes_description:Training offered by a club or coach`,
+      icon: "school",
+    },
+    {
+      value: "paid-partnership",
+      label: $localize`:@@community.editor_disclosure_paid:Paid promotion`,
+      description: $localize`:@@community.editor_disclosure_paid_description:Paid or partnered placement`,
+      icon: "paid",
+    },
+    {
+      value: "shop",
+      label: $localize`:@@community.editor_disclosure_shop:Shop or service`,
+      description: $localize`:@@community.editor_disclosure_shop_description:A business selling something`,
+      icon: "storefront",
+    },
   ];
-  readonly ctaTargets: CommunityInfoCardCtaTarget[] = [
-    "none",
-    "url",
-    "spot",
-    "event",
+  readonly ctaTargetOptions: CommunityKnowledgeChoice<CommunityInfoCardCtaTarget>[] = [
+    {
+      value: "none",
+      label: $localize`:@@community.editor_destination_none:No destination`,
+      description: $localize`:@@community.editor_destination_none_description:The card is useful on its own`,
+      icon: "info",
+    },
+    {
+      value: "url",
+      label: $localize`:@@community.editor_destination_url:Web link`,
+      description: $localize`:@@community.editor_destination_url_description:Open a website or community chat`,
+      icon: "link",
+    },
+    {
+      value: "spot",
+      label: $localize`:@@community.editor_destination_spot:PK Spot spot`,
+      description: $localize`:@@community.editor_destination_spot_description:Open a spot in the app`,
+      icon: "place",
+    },
+    {
+      value: "event",
+      label: $localize`:@@community.editor_destination_event:PK Spot event`,
+      description: $localize`:@@community.editor_destination_event_description:Open an event in the app`,
+      icon: "event",
+    },
   ];
   readonly ctaVisibilities: CommunityInfoCardCtaVisibility[] = [
     "public",
@@ -133,6 +225,14 @@ export class CommunityKnowledgeEditorComponent {
     });
   }
 
+  ngOnInit(): void {
+    const currentCards = this.cards();
+    this._resetForm(currentCards);
+    if (currentCards.length === 0 && !this.publishesImmediately()) {
+      this.addCard();
+    }
+  }
+
   cardGroups(): CommunityKnowledgeCardForm[] {
     return this.form.controls.cards.controls;
   }
@@ -149,18 +249,27 @@ export class CommunityKnowledgeEditorComponent {
     return communityInfoCardCategoryIcon(category);
   }
 
+  ctaTargetLabel(card: CommunityKnowledgeCardForm): string {
+    return (
+      this.ctaTargetOptions.find(
+        (option) => option.value === this.ctaTarget(card),
+      )?.label ?? $localize`:@@community.editor_optional:Optional`
+    );
+  }
+
   addCard(): void {
+    const locale = this._contentLocale;
     this.form.controls.cards.push(
       this._createCardForm({
         id: `knowledge-${Date.now()}`,
-        title: { en: "" },
+        title: { [locale]: "" },
         category: "other",
         visibility: "public",
       }),
     );
     this.localeModels.update((models) => [
       ...models,
-      this._createLocaleModel({ title: { en: "" } }),
+      this._createLocaleModel({ title: { [locale]: "" } }),
     ]);
     this.form.markAsDirty();
   }
@@ -201,6 +310,20 @@ export class CommunityKnowledgeEditorComponent {
     this.form.markAsDirty();
   }
 
+  updateDestination(
+    card: CommunityKnowledgeCardForm,
+    target: "spot" | "event",
+    id: string,
+  ): void {
+    if (target === "spot") {
+      card.controls.ctaSpotId.setValue(id);
+    } else {
+      card.controls.ctaEventId.setValue(id);
+    }
+    card.markAsDirty();
+    this.form.markAsDirty();
+  }
+
   onSubmit(): void {
     const cards = this.form.controls.cards.controls.map((group, index) =>
       this._formToCard(group, index),
@@ -210,7 +333,9 @@ export class CommunityKnowledgeEditorComponent {
       (card) => Object.keys(card.title).length === 0,
     );
     if (invalidCard) {
-      this.validationMessage.set("Every card needs at least one title.");
+      this.validationMessage.set(
+        $localize`:@@community.editor_validation_title:Every card needs at least one title.`,
+      );
       return;
     }
 
@@ -265,10 +390,24 @@ export class CommunityKnowledgeEditorComponent {
     card: Partial<CommunityInfoCardSchema>,
   ): CommunityKnowledgeLocaleModel {
     return {
-      title: signal(this._toLocaleMap(card.title)),
-      body: signal(this._toLocaleMap(card.body)),
-      ctaLabel: signal(this._toLocaleMap(card.cta?.label)),
+      title: signal(this._toEditableLocaleMap(card.title)),
+      body: signal(this._toEditableLocaleMap(card.body)),
+      ctaLabel: signal(this._toEditableLocaleMap(card.cta?.label)),
     };
+  }
+
+  private _toEditableLocaleMap(
+    value: CommunityLocalizedTextSchema | null | undefined,
+  ): LocaleMap {
+    const localeMap = this._toLocaleMap(value);
+    return Object.keys(localeMap).length > 0
+      ? localeMap
+      : {
+          [this._contentLocale]: {
+            text: "",
+            provider: "manual",
+          },
+        };
   }
 
   private _formToCard(
@@ -302,17 +441,26 @@ export class CommunityKnowledgeEditorComponent {
     switch (group.controls.ctaTarget.value) {
       case "spot": {
         const spotId = group.controls.ctaSpotId.value.trim();
-        const label = this._ctaLabelOrDefault(index, "View spot");
+        const label = this._ctaLabelOrDefault(
+          index,
+          $localize`:@@community.editor_default_view_spot:View spot`,
+        );
         return spotId ? { label, target: "spot", spotId } : undefined;
       }
       case "event": {
         const eventId = group.controls.ctaEventId.value.trim();
-        const label = this._ctaLabelOrDefault(index, "View event");
+        const label = this._ctaLabelOrDefault(
+          index,
+          $localize`:@@community.editor_default_view_event:View event`,
+        );
         return eventId ? { label, target: "event", eventId } : undefined;
       }
       case "url": {
         const url = group.controls.ctaUrl.value.trim();
-        const label = this._ctaLabelOrDefault(index, "Open link");
+        const label = this._ctaLabelOrDefault(
+          index,
+          $localize`:@@community.editor_default_open_link:Open link`,
+        );
         return url ? { label, target: "url", url } : undefined;
       }
       default:
@@ -325,7 +473,9 @@ export class CommunityKnowledgeEditorComponent {
     defaultLabel: string,
   ): Record<string, string> {
     const label = this._localeMapToRecord(this.localeModels()[index]?.ctaLabel());
-    return Object.keys(label).length > 0 ? label : { en: defaultLabel };
+    return Object.keys(label).length > 0
+      ? label
+      : { [this._contentLocale]: defaultLabel };
   }
 
   private _toLocaleMap(

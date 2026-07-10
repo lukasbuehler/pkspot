@@ -1,0 +1,69 @@
+<div class="entity-reference">
+  @if (selected(); as selection) {
+    <div class="entity-reference-selection">
+      <span class="entity-reference-icon" aria-hidden="true">
+        <mat-icon>{{ icon() }}</mat-icon>
+      </span>
+      <span class="entity-reference-copy">
+        <strong class="mat-label-large">{{ selection.label }}</strong>
+        <span class="mat-body-small">{{ selection.subtitle }}</span>
+      </span>
+      <button
+        mat-icon-button
+        type="button"
+        [disabled]="disabled()"
+        (click)="clearSelection()"
+        aria-label="Change selection"
+        i18n-aria-label="@@community.destination_change_selection"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  } @else if (resolvingSelection()) {
+    <div class="entity-reference-loading">
+      <mat-progress-spinner mode="indeterminate" diameter="20" />
+      <span class="mat-body-medium" i18n="@@community.destination_loading_selection">
+        Loading selection…
+      </span>
+    </div>
+  } @else {
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>{{ fieldLabel() }}</mat-label>
+      <input
+        matInput
+        [formControl]="searchControl"
+        [matAutocomplete]="entityAutocomplete"
+        [placeholder]="placeholder()"
+      />
+      @if (searching()) {
+        <mat-progress-spinner matSuffix mode="indeterminate" diameter="18" />
+      } @else {
+        <mat-icon matSuffix>search</mat-icon>
+      }
+      <mat-autocomplete
+        #entityAutocomplete="matAutocomplete"
+        [autoActiveFirstOption]="true"
+        [displayWith]="displayOption"
+        (optionSelected)="selectOption($event)"
+      >
+        @for (option of results(); track option.id) {
+          <mat-option [value]="option">
+            <div class="entity-reference-option">
+              <mat-icon aria-hidden="true">{{ icon() }}</mat-icon>
+              <span>
+                <strong class="mat-body-medium">{{ option.label }}</strong>
+                <small class="mat-body-small">{{ option.subtitle }}</small>
+              </span>
+            </div>
+          </mat-option>
+        }
+        @if (!searching() && query().length >= 2 && results().length === 0) {
+          <mat-option disabled>{{ emptyLabel() }}</mat-option>
+        }
+      </mat-autocomplete>
+      <mat-hint i18n="@@community.destination_search_hint">
+        Choose a result so PK Spot can save the correct destination.
+      </mat-hint>
+    </mat-form-field>
+  }
+</div>
