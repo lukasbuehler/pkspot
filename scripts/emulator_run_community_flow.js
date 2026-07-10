@@ -402,6 +402,111 @@ async function testImportedSpotCommunityRebuild() {
   if (stillDeferred.length > 0) {
     throw new Error("Expected import completion to clear deferred rebuild flags.");
   }
+
+  console.log("Testing established community retention below five spots...");
+  const pageRef = db.collection("community_pages").doc(communityKey);
+  const privateInfoRef = pageRef.collection("private_info").doc("link_cards");
+  const publicInfoCards = [
+    {
+      id: "aarau-regression-public",
+      title: { en: "Established community knowledge" },
+      category: "spots",
+    },
+  ];
+  const privateInfoCards = [
+    {
+      id: "aarau-regression-private",
+      title: { en: "Private community chat" },
+      category: "chat",
+      ctaVisibility: "signed-in",
+      cta: {
+        label: { en: "Join" },
+        target: "url",
+        url: "https://example.test/community-chat",
+      },
+    },
+  ];
+  await Promise.all([
+    pageRef.set({ infoCards: publicInfoCards }, { merge: true }),
+    privateInfoRef.set({ infoCards: privateInfoCards }),
+  ]);
+
+  await db.collection("spots").doc("import-regression-5").delete();
+  const retainedPage = await waitFor(async () => {
+    const snapshot = await pageRef.get();
+    const data = snapshot.data();
+    return data?.counts?.totalSpots === 4 ? data : null;
+  }, "established community rebuild below creation threshold");
+  if (retainedPage.published !== true) {
+    throw new Error("Expected an established community with four spots to remain published.");
+  }
+  if (JSON.stringify(retainedPage.infoCards) !== JSON.stringify(publicInfoCards)) {
+    throw new Error("Expected public community knowledge to survive spot deduplication.");
+  }
+
+  const retainedPrivateInfo = (await privateInfoRef.get()).data();
+  if (
+    JSON.stringify(retainedPrivateInfo?.infoCards) !==
+    JSON.stringify(privateInfoCards)
+  ) {
+    throw new Error("Expected private community knowledge to survive spot deduplication.");
+  }
+
+  console.log("Testing recovery of a previously deleted established community...");
+  await pageRef.delete();
+  await db
+    .collection("spots")
+    .doc("import-regression-1")
+    .update({ "name.en": "Import Regression Spot 1 updated" });
+  const recoveredPage = await waitFor(async () => {
+    const snapshot = await pageRef.get();
+    const data = snapshot.data();
+    return data?.published === true && data?.counts?.totalSpots === 4
+      ? data
+      : null;
+  }, "previously deleted community recovery");
+  const recoveredPublicInfoCards = [
+    {
+      id: "aarau-regression-private",
+      title: { en: "Private community chat" },
+      category: "chat",
+      ctaVisibility: "signed-in",
+    },
+  ];
+  if (
+    JSON.stringify(recoveredPage.infoCards) !==
+    JSON.stringify(recoveredPublicInfoCards)
+  ) {
+    throw new Error(
+      "Expected a recovered community to rebuild safe public cards from private knowledge."
+    );
+  }
+
+  const remainingSpotIds = [1, 2, 3, 4].map(
+    (index) => `import-regression-${index}`
+  );
+  const deleteBatch = db.batch();
+  for (const spotId of remainingSpotIds) {
+    deleteBatch.delete(db.collection("spots").doc(spotId));
+  }
+  await deleteBatch.commit();
+
+  const dormantPage = await waitFor(async () => {
+    const snapshot = await pageRef.get();
+    const data = snapshot.data();
+    return data?.published === false && data?.counts?.totalSpots === 0
+      ? data
+      : null;
+  }, "empty community deactivation");
+  if (
+    JSON.stringify(dormantPage.infoCards) !==
+    JSON.stringify(recoveredPublicInfoCards)
+  ) {
+    throw new Error("Expected dormant community knowledge to remain stored.");
+  }
+  if (!(await privateInfoRef.get()).exists) {
+    throw new Error("Expected dormant private community knowledge to remain stored.");
+  }
 }
 
 async function main() {

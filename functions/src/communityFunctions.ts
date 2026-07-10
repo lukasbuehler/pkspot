@@ -1049,10 +1049,6 @@ const buildCommunityPageDoc = async (
   spots: Array<{ id: string; data: SpotSchema }>,
   activeMerges: Map<string, CommunityMergeDoc> = new Map()
 ): Promise<CommunityPageSchema | null> => {
-  if (spots.length < COMMUNITY_PAGE_MIN_SPOTS) {
-    return null;
-  }
-
   const existingPageSnapshot = await db
     .collection(COMMUNITY_PAGES_COLLECTION)
     .doc(candidate.communityKey)
@@ -1060,8 +1056,30 @@ const buildCommunityPageDoc = async (
   const existingPage = existingPageSnapshot.exists
     ? ((existingPageSnapshot.data() as CommunityPageSchema) ?? null)
     : null;
+  const existingSlugs = await getExistingCommunitySlugs(
+    db,
+    candidate.communityKey
+  );
 
-  const existingSlugs = await getExistingCommunitySlugs(db, candidate.communityKey);
+  // The threshold gates creation, not the lifetime of an established page.
+  // Existing slugs also count as establishment evidence so a page deleted by
+  // the previous lifecycle behavior can be reconstructed below the threshold.
+  if (
+    spots.length === 0 ||
+    (!existingPage &&
+      existingSlugs.length === 0 &&
+      spots.length < COMMUNITY_PAGE_MIN_SPOTS)
+  ) {
+    return null;
+  }
+
+  const recoveredPrivateInfo = !existingPage
+    ? ((await privateCommunityInfoDoc(db, candidate.communityKey).get()).data() as
+        | CommunityPrivateInfoSchema
+        | undefined)
+    : undefined;
+  const existingInfoCards =
+    existingPage?.infoCards ?? recoveredPrivateInfo?.infoCards ?? [];
   const preferredSlug = await choosePreferredSlug(
     db,
     candidate,
@@ -1189,7 +1207,7 @@ const buildCommunityPageDoc = async (
       .slice(0, MAX_SPOTS_PER_LEGACY_SECTION)
       .map((spot) => buildSpotPreview(spot.id, spot.data)),
     links: existingPage?.links ?? {},
-    infoCards: getPublicCommunityInfoCards(existingPage?.infoCards),
+    infoCards: getPublicCommunityInfoCards(existingInfoCards),
     resources: existingPage?.resources ?? [],
     organisations: existingPage?.organisations ?? [],
     athletes: existingPage?.athletes ?? [],
@@ -1221,6 +1239,42 @@ const buildCommunityPageDoc = async (
   }) as CommunityPageSchema;
 };
 
+const deactivateCommunityPage = async (
+  pageRef: admin.firestore.DocumentReference
+): Promise<void> => {
+  const snapshot = await pageRef.get();
+  if (!snapshot.exists) {
+    return;
+  }
+
+  const page = snapshot.data() as CommunityPageSchema;
+  const emptyCounts = { totalSpots: 0, topRated: 0, dry: 0 };
+  if (
+    page.published === false &&
+    areValuesEqual(page.counts, emptyCounts) &&
+    (page.spots?.length ?? 0) === 0 &&
+    (page.communityPicks?.length ?? 0) === 0 &&
+    (page.topRatedSpots?.length ?? 0) === 0 &&
+    (page.drySpots?.length ?? 0) === 0
+  ) {
+    return;
+  }
+
+  await pageRef.set(
+    {
+      published: false,
+      counts: emptyCounts,
+      spots: [],
+      communityPicks: [],
+      topRatedSpots: [],
+      drySpots: [],
+      generatedAt: Timestamp.now(),
+      sourceMaxUpdatedAt: FieldValue.delete(),
+    },
+    { merge: true }
+  );
+};
+
 const fetchSpotsForCommunity = async (
   db: admin.firestore.Firestore,
   candidate: CommunityCandidate,
@@ -1241,7 +1295,7 @@ const fetchSpotsForCommunity = async (
     .filter((spot) => isSpotPartOfCommunity(spot.data, candidate, activeMerges));
 };
 
-const writeOrDeleteCommunityPage = async (
+const writeOrDeactivateCommunityPage = async (
   db: admin.firestore.Firestore,
   candidate: CommunityCandidate
 ): Promise<void> => {
@@ -1263,7 +1317,7 @@ const writeOrDeleteCommunityPage = async (
     .doc(resolvedCandidate.communityKey);
 
   if (!pageDoc) {
-    await pageRef.delete().catch(() => undefined);
+    await deactivateCommunityPage(pageRef);
     return;
   }
 
@@ -1360,7 +1414,7 @@ const rebuildCommunityPagesForImportedSpots = async (
   const communities = collectGeneratedCommunities(importedSpots, activeMerges);
 
   for (const { candidate } of communities.values()) {
-    await writeOrDeleteCommunityPage(db, candidate);
+    await writeOrDeactivateCommunityPage(db, candidate);
   }
 
   const impactedCountryKeys = new Set<string>();
@@ -1435,7 +1489,7 @@ export const rebuildCommunityPagesOnSpotWrite = onDocumentWritten(
     }
 
     for (const candidate of impactedCandidates.values()) {
-      await writeOrDeleteCommunityPage(db, candidate);
+      await writeOrDeactivateCommunityPage(db, candidate);
     }
 
     const impactedCountryKeys = new Set<string>();
@@ -2021,7 +2075,7 @@ const rebuildAllCommunityPagesForDb = async (
     const pageRef = db.collection(COMMUNITY_PAGES_COLLECTION).doc(candidate.communityKey);
 
     if (!pageDoc) {
-      await pageRef.delete().catch(() => undefined);
+      await deactivateCommunityPage(pageRef);
       continue;
     }
 
@@ -2060,7 +2114,7 @@ const rebuildAllCommunityPagesForDb = async (
         );
         continue;
       }
-      await page.ref.delete().catch(() => undefined);
+      await deactivateCommunityPage(page.ref);
     }
   }
 
