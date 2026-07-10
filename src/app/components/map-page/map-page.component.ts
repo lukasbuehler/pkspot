@@ -156,6 +156,7 @@ import {
 } from "../map/map-panel-view.model";
 import { MapCheckInBannerComponent } from "../map/map-check-in-banner/map-check-in-banner.component";
 import type { MapPointMarker } from "../maps/map-overlays";
+import { parseMapSpotRouteState } from "./map-route-state";
 
 interface EventPromoDismissalRecord {
   showAgainAt: string;
@@ -1573,7 +1574,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.panelBackTarget.set(this._getCurrentPanelBackTarget(nextPath));
     this._location.go(nextPath);
 
-    const routeState = this._parseMapRouteState(nextPath);
+    const routeState = parseMapSpotRouteState(nextPath);
     void this._handleURLParamsChange(
       routeState.spotIdOrSlug,
       routeState.showChallenges,
@@ -2667,7 +2668,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Parse URL to handle legacy `/map/:spot` and canonical
     // `/map/spots/:spot` shapes consistently.
-    const routeState = this._parseMapRouteState(this.router.url);
+    const routeState = parseMapSpotRouteState(this.router.url);
     const urlParts = this.router.url.split("/").filter((segment) => segment);
     // urlParts will be like ['map', 'spotId', 'edits'] or ['map', 'spotId', 'c', 'challengeId']
 
@@ -4345,79 +4346,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }, 0);
   }
 
-  private _parseMapRouteState(url: string): {
-    spotIdOrSlug: string | null;
-    showChallenges: boolean;
-    challengeId: string | null;
-    showEditHistory: boolean;
-  } {
-    const cleanUrl = (url || "").split("?")[0].split("#")[0];
-
-    // Short-circuit for canonical community-on-map and event-on-map routes.
-    if (
-      /^\/map\/communities\/[^/]+$/u.test(cleanUrl) ||
-      /^\/map\/events\/[^/]+$/u.test(cleanUrl)
-    ) {
-      return {
-        spotIdOrSlug: null,
-        showChallenges: false,
-        challengeId: null,
-        showEditHistory: false,
-      };
-    }
-
-    const urlParts = cleanUrl.split("/").filter((segment) => segment);
-
-    let spotIdOrSlug: string | null = null;
-    let showChallenges = false;
-    let challengeId: string | null = null;
-    let showEditHistory = false;
-
-    if (urlParts.length >= 2 && urlParts[0] === "map") {
-      const hasSpotPrefix = urlParts[1] === "spots";
-      const spotSegmentIndex = hasSpotPrefix ? 2 : 1;
-      const actionSegmentIndex = spotSegmentIndex + 1;
-      const potentialSpot = urlParts[spotSegmentIndex]
-        ? decodeURIComponent(urlParts[spotSegmentIndex])
-        : null;
-
-      if (!potentialSpot) {
-        return {
-          spotIdOrSlug,
-          showChallenges,
-          challengeId,
-          showEditHistory,
-        };
-      }
-
-      if (urlParts.length === spotSegmentIndex + 1) {
-        spotIdOrSlug = potentialSpot;
-      } else if (urlParts.length >= actionSegmentIndex + 1) {
-        const nextSegment = urlParts[actionSegmentIndex];
-
-        if (nextSegment === "c") {
-          spotIdOrSlug = potentialSpot;
-          showChallenges = true;
-          if (urlParts.length >= actionSegmentIndex + 2) {
-            challengeId = decodeURIComponent(urlParts[actionSegmentIndex + 1]);
-          }
-        } else if (nextSegment === "edits") {
-          spotIdOrSlug = potentialSpot;
-          showEditHistory = true;
-        } else {
-          spotIdOrSlug = potentialSpot;
-        }
-      }
-    }
-
-    return {
-      spotIdOrSlug,
-      showChallenges,
-      challengeId,
-      showEditHistory,
-    };
-  }
-
   private _redirectSignedOutSpotEditHistory(
     spotIdOrSlug?: string | null,
   ): boolean {
@@ -4434,7 +4362,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           spotIdOrSlug,
           showEditHistory: true,
         }
-      : this._parseMapRouteState(this.router.url);
+      : parseMapSpotRouteState(this.router.url);
 
     if (!routeState.showEditHistory || !routeState.spotIdOrSlug) {
       return false;
@@ -4552,7 +4480,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private async _syncFullMapStateFromUrl(url: string): Promise<void> {
     this.panelBackTarget.set(null);
     await this._syncMapPanelStateFromUrl(url);
-    const routeState = this._parseMapRouteState(url);
+    const routeState = parseMapSpotRouteState(url);
     await this._handleURLParamsChange(
       routeState.spotIdOrSlug,
       routeState.showChallenges,

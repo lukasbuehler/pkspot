@@ -164,7 +164,7 @@ describe("MapPageComponent URL-driven panel state", () => {
 
     expect(locationSubscription).toContain("void this._syncFullMapStateFromUrl(url)");
     expect(syncMethod).toContain("await this._syncMapPanelStateFromUrl(url)");
-    expect(syncMethod).toContain("this._parseMapRouteState(url)");
+    expect(syncMethod).toContain("parseMapSpotRouteState(url)");
     expect(syncMethod).toContain("await this._handleURLParamsChange(");
   });
 
