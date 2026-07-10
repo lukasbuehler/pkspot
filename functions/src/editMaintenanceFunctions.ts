@@ -1,7 +1,11 @@
 import * as admin from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
+import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { CallableRequest, HttpsError, onCall } from "firebase-functions/v2/https";
 import { buildCommunityEditFromLegacySuggestion } from "./communityEditFunctions";
+
+const BACKFILL_MAINTENANCE_DOCUMENT =
+  "maintenance/run-backfill-edit-target-metadata";
 
 interface BackfillEditTargetMetadataRequest {
   dryRun?: unknown;
@@ -18,6 +22,16 @@ interface BackfillEditTargetMetadataResult {
   scannedLegacySuggestions: number;
   migratedLegacySuggestions: number;
   skippedLegacySuggestions: number;
+}
+
+interface BackfillEditTargetMetadataOptions {
+  dryRun: boolean;
+  migrateLegacyCommunitySuggestions: boolean;
+}
+
+interface BackfillEditTargetMetadataMaintenanceDocument {
+  dry_run?: unknown;
+  migrate_legacy_community_suggestions?: unknown;
 }
 
 type EditTarget = {
@@ -107,12 +121,12 @@ const migrateLegacyCommunitySuggestions = async (
 };
 
 const backfillEditTargetMetadataImpl = async (
-  request: CallableRequest<BackfillEditTargetMetadataRequest>,
+  options: BackfillEditTargetMetadataOptions,
 ): Promise<BackfillEditTargetMetadataResult> => {
-  await requireAdmin(request.auth?.uid);
-  const dryRun = request.data?.dryRun !== false;
-  const shouldMigrateLegacy =
-    request.data?.migrateLegacyCommunitySuggestions === true;
+  const {
+    dryRun,
+    migrateLegacyCommunitySuggestions: shouldMigrateLegacyCommunitySuggestions,
+  } = options;
   const db = admin.firestore();
   const snapshot = await db.collectionGroup("edits").get();
   const writer = dryRun ? null : db.bulkWriter();
@@ -171,7 +185,7 @@ const backfillEditTargetMetadataImpl = async (
       `Failed to update ${writeFailures} edit documents.`,
     );
   }
-  const legacy = shouldMigrateLegacy
+  const legacy = shouldMigrateLegacyCommunitySuggestions
     ? await migrateLegacyCommunitySuggestions(dryRun)
     : { scanned: 0, migrated: 0, skipped: 0 };
 
@@ -194,5 +208,82 @@ export const backfillEditTargetMetadata = onCall(
     invoker: "public",
     timeoutSeconds: 540,
   },
-  backfillEditTargetMetadataImpl,
+  async (request: CallableRequest<BackfillEditTargetMetadataRequest>) => {
+    await requireAdmin(request.auth?.uid);
+    return backfillEditTargetMetadataImpl({
+      dryRun: request.data?.dryRun !== false,
+      migrateLegacyCommunitySuggestions:
+        request.data?.migrateLegacyCommunitySuggestions === true,
+    });
+  },
+);
+
+export const backfillEditTargetMetadataOnCreate = onDocumentCreated(
+  {
+    document: BACKFILL_MAINTENANCE_DOCUMENT,
+    timeoutSeconds: 540,
+  },
+  async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) {
+      return null;
+    }
+
+    const request = snapshot.data() as
+      | BackfillEditTargetMetadataMaintenanceDocument
+      | undefined;
+    if (!request) {
+      return null;
+    }
+    const options: BackfillEditTargetMetadataOptions = {
+      dryRun: request.dry_run !== false,
+      migrateLegacyCommunitySuggestions:
+        request.migrate_legacy_community_suggestions === true,
+    };
+
+    await snapshot.ref.set(
+      {
+        status: "RUNNING",
+        dry_run: options.dryRun,
+        migrate_legacy_community_suggestions:
+          options.migrateLegacyCommunitySuggestions,
+        started_at: FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
+
+    try {
+      const result = await backfillEditTargetMetadataImpl(options);
+      await snapshot.ref.set(
+        {
+          status: "DONE",
+          result: {
+            scanned_edits: result.scannedEdits,
+            updated_edits: result.updatedEdits,
+            conflicting_edits: result.conflictingEdits,
+            unsupported_edit_paths: result.unsupportedEditPaths,
+            scanned_legacy_suggestions: result.scannedLegacySuggestions,
+            migrated_legacy_suggestions: result.migratedLegacySuggestions,
+            skipped_legacy_suggestions: result.skippedLegacySuggestions,
+          },
+          completed_at: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unknown maintenance error";
+      await snapshot.ref.set(
+        {
+          status: "ERROR",
+          error: message,
+          completed_at: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+      throw error;
+    }
+
+    return null;
+  },
 );

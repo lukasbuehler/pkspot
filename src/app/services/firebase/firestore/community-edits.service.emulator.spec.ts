@@ -64,6 +64,23 @@ function parseHostPort(value: string): [string, number] {
   return [host, port];
 }
 
+async function waitForAdminDocument<T>(
+  path: string,
+  predicate: (data: FirebaseFirestore.DocumentData | undefined) => T | null,
+  timeoutMs = 30_000,
+): Promise<T> {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    const snapshot = await adminDb().doc(path).get();
+    const match = predicate(snapshot.data());
+    if (match !== null) {
+      return match;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error(`Timed out waiting for ${path}`);
+}
+
 runWithEmulator("CommunityEditsService emulator integration", () => {
   let app: FirebaseApp;
   let auth: Auth;
@@ -420,6 +437,60 @@ runWithEmulator("CommunityEditsService emulator integration", () => {
           collection: "community_card_suggestions",
           id: legacySuggestionId,
         },
+      }),
+    );
+  }, integrationTimeoutMs);
+
+  it("runs the edit metadata backfill from the Firestore maintenance sentinel", async () => {
+    const uid = auth.currentUser?.uid;
+    expect(uid).toBeTruthy();
+    const eventId = `maintenance-backfill-${uid}-${Date.now()}`;
+    const timestamp = admin.firestore.Timestamp.now();
+    const editRef = adminDb().doc(`events/${eventId}/edits/edit-1`);
+    const maintenanceRef = adminDb().doc(
+      "maintenance/run-backfill-edit-target-metadata",
+    );
+
+    await maintenanceRef.delete();
+    await adminDb().doc(`events/${eventId}`).set({
+      name: { en: "Maintenance backfill event" },
+    });
+    await editRef.set({
+      type: "UPDATE",
+      timestamp,
+      timestamp_raw_ms: timestamp.toMillis(),
+      approved: false,
+      user: { uid, display_name: "Legacy Editor" },
+      data: { description: { en: "After migration" } },
+    });
+
+    await maintenanceRef.create({
+      dry_run: false,
+      migrate_legacy_community_suggestions: false,
+    });
+
+    const result = await waitForAdminDocument(
+      maintenanceRef.path,
+      (data) => {
+        if (data?.["status"] === "ERROR") {
+          throw new Error(String(data["error"] ?? "Maintenance backfill failed"));
+        }
+        return data?.["status"] === "DONE" ? data["result"] : null;
+      },
+    );
+    expect(result).toEqual(
+      expect.objectContaining({
+        updated_edits: expect.any(Number),
+        conflicting_edits: 0,
+        unsupported_edit_paths: 0,
+      }),
+    );
+    expect(result["updated_edits"]).toBeGreaterThanOrEqual(1);
+    expect((await editRef.get()).data()).toEqual(
+      expect.objectContaining({
+        target_type: "event",
+        target_id: eventId,
+        schema_version: 1,
       }),
     );
   }, integrationTimeoutMs);

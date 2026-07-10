@@ -69,7 +69,10 @@ export {
   backfillSignupNumbers,
   recalculateUserEditStats,
 } from "./fixFunctions";
-export { backfillEditTargetMetadata } from "./editMaintenanceFunctions";
+export {
+  backfillEditTargetMetadata,
+  backfillEditTargetMetadataOnCreate,
+} from "./editMaintenanceFunctions";
 
 // storage triggers
 export { processVideoUpload } from "./storageFunctions";
