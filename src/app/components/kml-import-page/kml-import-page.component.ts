@@ -47,7 +47,6 @@ import {
 } from "../../../db/schemas/SpotTypeAndAccess";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
 import {
-  combineLatest,
   firstValueFrom,
   map,
   Observable,
@@ -101,6 +100,11 @@ import { ImgCarouselComponent } from "../img-carousel/img-carousel.component";
 import { AnyMedia, ExternalImage } from "../../../db/models/Media";
 import { AutocompleteOverlayRepositionDirective } from "../../directives/autocomplete-overlay-reposition.directive";
 import { AnalyticsService } from "../../services/analytics.service";
+import {
+  extractGoogleMyMapsId,
+  isHighVolumeImport,
+  validateImportPolicy,
+} from "./kml-import-policy";
 // KML import is gated by the `isAdmin` flag on the user document
 // (see UserSchema.is_admin). Previously a hardcoded uid whitelist; now
 // any admin can import. The check below mirrors spot-details and other
@@ -387,7 +391,12 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     });
     this.legalFormGroup = this._formBuilder.group({
       permissionStatusCtrl: [null as "yes" | "no" | null],
-      abandonwareStatusCtrl: [null as "yes" | "no" | null],
+      publicSourceConfirmedCtrl: [false],
+      contactAttemptedCtrl: [false],
+      contactTargetCtrl: [""],
+      noObjectionReceivedCtrl: [false],
+      removalOnRequestConfirmedCtrl: [false],
+      highVolumeReviewConfirmedCtrl: [false],
       imageRightsStatusCtrl: ["no" as "yes" | "no"],
       allowFutureAutoUpdateCtrl: [true],
     });
@@ -397,7 +406,6 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       attributionTextCtrl: [""],
       viewerMapIdCtrl: [""],
       instagramHandleCtrl: [""],
-      licenseCtrl: ["CC BY-NC-SA 4.0", Validators.required],
       autoUpdateUrlCtrl: [""],
     });
 
@@ -414,22 +422,14 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     const permissionStatusCtrl = this.legalFormGroup.get(
       "permissionStatusCtrl"
     );
-    const abandonwareStatusCtrl = this.legalFormGroup.get(
-      "abandonwareStatusCtrl"
-    );
     const imageRightsStatusCtrl = this.legalFormGroup.get(
       "imageRightsStatusCtrl"
     );
 
-    if (permissionStatusCtrl && abandonwareStatusCtrl && imageRightsStatusCtrl) {
-      combineLatest([
-        permissionStatusCtrl.valueChanges.pipe(
-          startWith(permissionStatusCtrl.value)
-        ),
-        abandonwareStatusCtrl.valueChanges.pipe(
-          startWith(abandonwareStatusCtrl.value)
-        ),
-      ]).subscribe(() => this._syncLegalControlState());
+    if (permissionStatusCtrl && imageRightsStatusCtrl) {
+      permissionStatusCtrl.valueChanges
+        .pipe(startWith(permissionStatusCtrl.value))
+        .subscribe(() => this._syncLegalControlState());
 
       this._syncLegalControlState();
     }
@@ -517,7 +517,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
   }
 
   isHighVolumeImport(): boolean {
-    return this.importStats.spotCount > 100;
+    return isHighVolumeImport(this.importStats.spotCount);
   }
 
   hasDetectedImages(): boolean {
@@ -547,37 +547,17 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     const permissionStatusCtrl = this.legalFormGroup.get(
       "permissionStatusCtrl"
     );
-    const abandonwareStatusCtrl = this.legalFormGroup.get(
-      "abandonwareStatusCtrl"
-    );
     const imageRightsStatusCtrl = this.legalFormGroup.get(
       "imageRightsStatusCtrl"
     );
 
-    if (!permissionStatusCtrl || !abandonwareStatusCtrl || !imageRightsStatusCtrl) {
+    if (!permissionStatusCtrl || !imageRightsStatusCtrl) {
       return;
     }
 
     const permissionStatus = permissionStatusCtrl.value as "yes" | "no" | null;
-    const abandonwareStatus = abandonwareStatusCtrl.value as
-      | "yes"
-      | "no"
-      | null;
-
-    const allowAbandonware = permissionStatus === "no" && !this.isHighVolumeImport();
-    if (!allowAbandonware) {
-      if (abandonwareStatusCtrl.value !== null) {
-        abandonwareStatusCtrl.setValue(null, { emitEvent: false });
-      }
-      if (abandonwareStatusCtrl.enabled) {
-        abandonwareStatusCtrl.disable({ emitEvent: false });
-      }
-    } else if (abandonwareStatusCtrl.disabled) {
-      abandonwareStatusCtrl.enable({ emitEvent: false });
-    }
-
-    const isAbandonwarePath = allowAbandonware && abandonwareStatus === "yes";
-    const disableImageRights = isAbandonwarePath || !this.hasDetectedImages();
+    const disableImageRights =
+      permissionStatus !== "yes" || !this.hasDetectedImages();
     if (disableImageRights && imageRightsStatusCtrl.value !== "no") {
       imageRightsStatusCtrl.setValue("no", { emitEvent: false });
     }
@@ -862,34 +842,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
   }
 
   private _extractViewerMapId(value: string | null | undefined): string | undefined {
-    const raw = (value ?? "").trim();
-    if (!raw) {
-      return undefined;
-    }
-
-    try {
-      if (/^https?:\/\//i.test(raw)) {
-        const parsed = new URL(raw);
-        const mid = parsed.searchParams.get("mid");
-        if (mid) {
-          return mid.trim();
-        }
-      }
-    } catch {
-      // fall through to regex parsing
-    }
-
-    const midMatch = raw.match(/[?&]mid=([A-Za-z0-9_-]+)/i);
-    if (midMatch?.[1]) {
-      return midMatch[1];
-    }
-
-    const candidate = raw.replace(/^@+/, "").trim();
-    if (/^[A-Za-z0-9_-]{8,}$/.test(candidate)) {
-      return candidate;
-    }
-
-    return undefined;
+    return extractGoogleMyMapsId(value);
   }
 
   private _viewerUrlFromMapId(
@@ -966,7 +919,12 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     return this._sanitizeUrl(urlMatch?.[0]);
   }
 
-  private _detectViewerUrl(): string | undefined {
+  private _detectViewerUrl(kmlData?: string): string | undefined {
+    const embeddedMapId = extractGoogleMyMapsId(kmlData);
+    if (embeddedMapId) {
+      return this._viewerUrlFromMapId(embeddedMapId);
+    }
+
     const fromDescription = this._extractFirstUrlFromText(
       this.kmlParserService.setupInfo?.description
     );
@@ -975,16 +933,17 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     }
 
     const firstNetworkLink = this.kmlParserService.setupInfo?.networkLinks?.[0];
-    if (!firstNetworkLink) {
-      return undefined;
+    if (firstNetworkLink) {
+      const normalized = this._sanitizeUrl(firstNetworkLink);
+      if (normalized) {
+        return this._toViewerUrlFromKmlUrl(normalized);
+      }
     }
 
-    const normalized = this._sanitizeUrl(firstNetworkLink);
-    if (!normalized) {
-      return undefined;
-    }
-
-    return this._toViewerUrlFromKmlUrl(normalized);
+    const mapIdFromFilename = extractGoogleMyMapsId(
+      this.kmlUploadFile?.name.replace(/\.(?:kml|kmz|xml)$/i, "")
+    );
+    return this._viewerUrlFromMapId(mapIdFromFilename);
   }
 
   private _spotKey(spot: KMLSpot): string {
@@ -1836,7 +1795,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
 
       const viewerMapIdControl = this.creditsFormGroup?.get("viewerMapIdCtrl");
       if (viewerMapIdControl && !viewerMapIdControl.value) {
-        const detectedViewerUrl = this._detectViewerUrl();
+        const detectedViewerUrl = this._detectViewerUrl(data);
         const detectedMapId = this._extractViewerMapId(detectedViewerUrl);
         if (detectedMapId) {
           viewerMapIdControl.setValue(detectedMapId);
@@ -1868,14 +1827,6 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     );
   }
 
-  private _isAbandonwareImport(): boolean {
-    return (
-      this.legalFormGroup?.get("permissionStatusCtrl")?.value === "no" &&
-      this.legalFormGroup?.get("abandonwareStatusCtrl")?.value === "yes" &&
-      !this.isHighVolumeImport()
-    );
-  }
-
   private _shouldStripDescriptionsForImport(): boolean {
     return !this._hasDirectImportPermission();
   }
@@ -1894,28 +1845,30 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       return "Legal confirmation form is not ready.";
     }
 
-    const permissionStatus = this.legalFormGroup.get("permissionStatusCtrl")
-      ?.value as "yes" | "no" | null;
-    const abandonwareStatus = this.legalFormGroup.get("abandonwareStatusCtrl")
-      ?.value as "yes" | "no" | null;
-
-    if (!permissionStatus) {
-      return "Please answer whether you have permission to import this data.";
-    }
-
-    if (permissionStatus === "yes") {
-      return null;
-    }
-
-    if (this.isHighVolumeImport()) {
-      return "Imports with more than 100 spots require explicit permission from the author.";
-    }
-
-    if (permissionStatus === "no" && abandonwareStatus !== "yes") {
-      return "Without explicit permission, you can proceed only for an abandonware/public map.";
-    }
-
-    return null;
+    return validateImportPolicy({
+      permissionStatus: this.legalFormGroup.get("permissionStatusCtrl")
+        ?.value as "yes" | "no" | null,
+      spotCount: this.importStats.spotCount,
+      publicSourceConfirmed: !!this.legalFormGroup.get(
+        "publicSourceConfirmedCtrl"
+      )?.value,
+      contactAttempted: !!this.legalFormGroup.get("contactAttemptedCtrl")
+        ?.value,
+      contactTarget:
+        this.legalFormGroup.get("contactTargetCtrl")?.value ?? "",
+      noObjectionReceived: !!this.legalFormGroup.get(
+        "noObjectionReceivedCtrl"
+      )?.value,
+      removalOnRequestConfirmed: !!this.legalFormGroup.get(
+        "removalOnRequestConfirmedCtrl"
+      )?.value,
+      highVolumeReviewConfirmed: !!this.legalFormGroup.get(
+        "highVolumeReviewConfirmedCtrl"
+      )?.value,
+      viewerMapId: this._extractViewerMapId(
+        this.creditsFormGroup?.get("viewerMapIdCtrl")?.value
+      ),
+    });
   }
 
   isSetupNextDisabled(): boolean {
@@ -2246,7 +2199,6 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     const instagramUrl = this._instagramUrlFromHandle(
       this.creditsFormGroup?.get("instagramHandleCtrl")?.value
     );
-    const license = this.creditsFormGroup?.get("licenseCtrl")?.value;
     const sourceUrl = this._sanitizeUrl(
       this.creditsFormGroup?.get("autoUpdateUrlCtrl")?.value
     );
@@ -2286,12 +2238,33 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
         attribution_text: attributionText || undefined,
         website_url: websiteUrl,
         instagram_url: instagramUrl,
-        license: license,
       },
       legal: {
         confirmed_rights: ownershipPermission,
         confirmed_external_image_rights: hasImageRights,
-        public_abandoned_clause_used: this._isAbandonwareImport(),
+        public_abandoned_clause_used: false,
+        review_policy: ownershipPermission
+          ? "explicit_permission"
+          : "good_faith_public_map_v1",
+        public_source_confirmed: ownershipPermission
+          ? undefined
+          : !!this.legalFormGroup?.get("publicSourceConfirmedCtrl")?.value,
+        contact_attempted: ownershipPermission
+          ? undefined
+          : !!this.legalFormGroup?.get("contactAttemptedCtrl")?.value,
+        contact_target: ownershipPermission
+          ? undefined
+          : this.legalFormGroup?.get("contactTargetCtrl")?.value?.trim(),
+        no_objection_received: ownershipPermission
+          ? undefined
+          : !!this.legalFormGroup?.get("noObjectionReceivedCtrl")?.value,
+        removal_on_request_confirmed: ownershipPermission
+          ? undefined
+          : !!this.legalFormGroup?.get("removalOnRequestConfirmedCtrl")?.value,
+        high_volume_review_confirmed:
+          ownershipPermission || !this.isHighVolumeImport()
+            ? undefined
+            : !!this.legalFormGroup?.get("highVolumeReviewConfirmedCtrl")?.value,
       },
       source_url: sourceUrl,
       viewer_url: viewerUrl,

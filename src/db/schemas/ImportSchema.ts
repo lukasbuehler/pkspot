@@ -31,6 +31,13 @@ export interface ImportLegalSchema {
   stripping_consent_confirmed?: boolean;
   non_competitor_confirmed?: boolean;
   public_abandoned_clause_used?: boolean;
+  review_policy?: "explicit_permission" | "good_faith_public_map_v1";
+  public_source_confirmed?: boolean;
+  contact_attempted?: boolean;
+  contact_target?: string;
+  no_objection_received?: boolean;
+  removal_on_request_confirmed?: boolean;
+  high_volume_review_confirmed?: boolean;
 }
 
 export interface ImportSchema {

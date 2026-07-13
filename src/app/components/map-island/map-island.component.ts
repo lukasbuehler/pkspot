@@ -10,6 +10,7 @@ import {
 import { animate, style, transition, trigger } from "@angular/animations";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import {
@@ -58,7 +59,7 @@ export type MapIslandContent =
  */
 @Component({
   selector: "app-map-island",
-  imports: [MatButtonModule, MatIconModule],
+  imports: [MatButtonModule, MatIconModule, MatTooltipModule],
   templateUrl: "./map-island.component.html",
   styleUrl: "./map-island.component.scss",
   animations: [
@@ -106,6 +107,13 @@ export class MapIslandComponent {
   });
 
   readonly promotedEventLabel = computed(() => promotedEventLabel("short"));
+
+  readonly dismissEventLabel = computed(() => {
+    const c = this.content();
+    return c?.kind === "event" && c.event.isSponsored
+      ? $localize`:Accessible label and tooltip for hiding a promoted event@@map_island.event_hide_promoted:Hide this promotion`
+      : $localize`:Accessible label and tooltip for hiding an event@@map_island.event_hide:Hide this event`;
+  });
 
   eventLogoSrc(event: PkEvent): string | undefined {
     return eventImageDisplaySrc(event.effectiveBadgeLogoSrc());

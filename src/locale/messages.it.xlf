@@ -890,6 +890,36 @@
         <target>Vedi</target>
       </segment>
     </unit>
+    <unit id="map_island.event_hide_promoted">
+      <segment state="translated">
+        <source>Hide this promotion</source>
+        <target>Nascondi questa promozione</target>
+      </segment>
+    </unit>
+    <unit id="map_island.event_hide">
+      <segment state="translated">
+        <source>Hide this event</source>
+        <target>Nascondi questo evento</target>
+      </segment>
+    </unit>
+    <unit id="map_island.event_hidden_one_day">
+      <segment state="translated">
+        <source>Promotion hidden for 24 hours.</source>
+        <target>Promozione nascosta per 24 ore.</target>
+      </segment>
+    </unit>
+    <unit id="map_island.event_hidden_seven_days">
+      <segment state="translated">
+        <source>Promotion hidden for 7 days.</source>
+        <target>Promozione nascosta per 7 giorni.</target>
+      </segment>
+    </unit>
+    <unit id="map_island.event_hidden_until_end">
+      <segment state="translated">
+        <source>Promotion hidden for the rest of this event.</source>
+        <target>Promozione nascosta per il resto di questo evento.</target>
+      </segment>
+    </unit>
     <unit id="map_island.event_live">
       <segment state="initial">
         <source>Live Event</source>

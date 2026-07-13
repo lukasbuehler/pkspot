@@ -18,6 +18,24 @@ function listTypeScriptFiles(dir: string): string[] {
 }
 
 describe("Cloud Functions generation policy", () => {
+  it("does not use deprecated Cloud Runtime Config", () => {
+    const sourceFiles = listTypeScriptFiles(functionsSourceRoot).map((path) => ({
+      path: relative(repoRoot, path),
+      source: readFileSync(path, "utf8"),
+    }));
+    const runtimeConfigUsers = sourceFiles
+      .filter(
+        ({ source }) =>
+          /\bfunctions\.config\s*\(/u.test(source) ||
+          /\bconfig\s*\(\s*\)/u.test(source),
+      )
+      .map(({ path }) => path);
+    const combinedSource = sourceFiles.map(({ source }) => source).join("\n");
+
+    expect(runtimeConfigUsers).toEqual([]);
+    expect(combinedSource).toContain('defineSecret("DISCORD_WEBHOOK_URL")');
+  });
+
   it("uses gen 2 functions outside the explicit Auth delete exception", () => {
     const v1Imports = listTypeScriptFiles(functionsSourceRoot)
       .map((path) => ({

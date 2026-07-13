@@ -51,6 +51,46 @@
         <source>View</source>
       </segment>
     </unit>
+    <unit id="map_island.event_hide_promoted">
+      <notes>
+        <note category="description">Accessible label and tooltip for hiding a promoted event</note>
+      </notes>
+      <segment>
+        <source>Hide this promotion</source>
+      </segment>
+    </unit>
+    <unit id="map_island.event_hide">
+      <notes>
+        <note category="description">Accessible label and tooltip for hiding an event</note>
+      </notes>
+      <segment>
+        <source>Hide this event</source>
+      </segment>
+    </unit>
+    <unit id="map_island.event_hidden_one_day">
+      <notes>
+        <note category="description">Snackbar shown after first event promotion dismissal</note>
+      </notes>
+      <segment>
+        <source>Promotion hidden for 24 hours.</source>
+      </segment>
+    </unit>
+    <unit id="map_island.event_hidden_seven_days">
+      <notes>
+        <note category="description">Snackbar shown after second event promotion dismissal</note>
+      </notes>
+      <segment>
+        <source>Promotion hidden for 7 days.</source>
+      </segment>
+    </unit>
+    <unit id="map_island.event_hidden_until_end">
+      <notes>
+        <note category="description">Snackbar shown after third event promotion dismissal</note>
+      </notes>
+      <segment>
+        <source>Promotion hidden for the rest of this event.</source>
+      </segment>
+    </unit>
     <unit id="map_island.event_live">
       <segment>
         <source>Live Event</source>

@@ -134,24 +134,56 @@
                 <mat-button-toggle value="no">No</mat-button-toggle>
               </mat-button-toggle-group>
 
-              @if(legalFormGroup?.get("permissionStatusCtrl")?.value === "no" &&
-              !isHighVolumeImport()) {
-              <div class="mat-body-medium mt-2">
-                1a. Is this an abandonware/public map import?
-              </div>
-              <mat-button-toggle-group formControlName="abandonwareStatusCtrl" [multiple]="false"
-                aria-label="Abandonware import">
-                <mat-button-toggle value="yes">Yes</mat-button-toggle>
-                <mat-button-toggle value="no">No</mat-button-toggle>
-              </mat-button-toggle-group>
-              }
+              @if(legalFormGroup?.get("permissionStatusCtrl")?.value === "no") {
+              <section class="import-policy-review mt-2" aria-labelledby="public-map-review-title">
+                <h3 id="public-map-review-title" class="mat-title-medium mb-1">
+                  Good-faith public map review
+                </h3>
+                <p class="mat-body-small text-muted mb-3">
+                  Only import factual spot names and locations. Source descriptions
+                  and images are removed automatically. Preserve attribution and a
+                  link to the original public map on every imported Spot.
+                </p>
 
-              @if(legalFormGroup?.get("permissionStatusCtrl")?.value === "no" &&
-              isHighVolumeImport()) {
-              <p class="mat-body-small text-danger mt-2 mb-0">
-                Imports with more than 100 spots require explicit permission
-                from the author.
-              </p>
+                @if(isHighVolumeImport()) {
+                <div class="high-volume-notice mb-3">
+                  <strong class="mat-body-medium">Heightened review: {{ importStats.spotCount }} spots</strong>
+                  <p class="mat-body-small mb-0 mt-1">
+                    EU database rights can protect a database built with substantial
+                    investment and restrict extraction or reuse of a substantial part.
+                    The law does not define a 100-spot threshold; PK Spot uses more than
+                    100 as a conservative internal trigger for additional review.
+                  </p>
+                </div>
+                }
+
+                <div class="policy-checklist">
+                  <mat-checkbox formControlName="publicSourceConfirmedCtrl">
+                    The map was publicly shared for the parkour community.
+                  </mat-checkbox>
+                  <mat-checkbox formControlName="contactAttemptedCtrl">
+                    I made a reasonable effort to identify and contact its creator.
+                  </mat-checkbox>
+
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Person or account contacted</mat-label>
+                    <input matInput formControlName="contactTargetCtrl" />
+                    <mat-hint>For example: Parkour Mirafiori via @parkourspot.it</mat-hint>
+                  </mat-form-field>
+
+                  <mat-checkbox formControlName="noObjectionReceivedCtrl">
+                    PK Spot has not received an objection or removal request.
+                  </mat-checkbox>
+                  <mat-checkbox formControlName="removalOnRequestConfirmedCtrl">
+                    PK Spot will promptly correct or remove this imported data if requested.
+                  </mat-checkbox>
+                  @if(isHighVolumeImport()) {
+                  <mat-checkbox formControlName="highVolumeReviewConfirmedCtrl">
+                    I completed the heightened review and consider this limited factual import proportionate.
+                  </mat-checkbox>
+                  }
+                </div>
+              </section>
               }
 
               @if(hasDetectedImages()) {
@@ -169,9 +201,8 @@
 
             @if(hasDetectedImages()) {
             <p class="mat-body-small text-muted mb-2">
-              For abandonware/public imports, descriptions and images are
-              stripped automatically. If image rights are not confirmed, images
-              are stripped.
+              Without explicit permission, descriptions and images are stripped
+              automatically. If image rights are not confirmed, images are stripped.
             </p>
             } @else {
             <p class="mat-body-small text-muted mb-2">
@@ -207,8 +238,8 @@
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>Viewer Map ID</mat-label>
               <input matInput formControlName="viewerMapIdCtrl" />
-              <mat-hint>Paste map ID or a full Google My Maps URL; we build the
-                viewer link automatically.</mat-hint>
+              <mat-hint>Detected from the KML/KMZ when present. Otherwise paste the
+                map ID or full Google My Maps URL.</mat-hint>
             </mat-form-field>
             <div class="mb-2">
               <button mat-stroked-button type="button" (click)="openViewerUrl()"
@@ -224,10 +255,6 @@
               <mat-hint>Enter handle with or without @ (for example: `pkspot`).</mat-hint>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="w-100">
-              <mat-label>License</mat-label>
-              <input matInput formControlName="licenseCtrl" />
-            </mat-form-field>
           </form>
 
           <form [formGroup]="setupFormGroup!" class="setup-form">

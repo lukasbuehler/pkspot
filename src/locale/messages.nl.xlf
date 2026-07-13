@@ -926,6 +926,36 @@
         <target>Bekijken</target>
       </segment>
     </unit>
+    <unit id="map_island.event_hide_promoted">
+      <segment state="translated">
+        <source>Hide this promotion</source>
+        <target>Deze promotie verbergen</target>
+      </segment>
+    </unit>
+    <unit id="map_island.event_hide">
+      <segment state="translated">
+        <source>Hide this event</source>
+        <target>Dit evenement verbergen</target>
+      </segment>
+    </unit>
+    <unit id="map_island.event_hidden_one_day">
+      <segment state="translated">
+        <source>Promotion hidden for 24 hours.</source>
+        <target>Promotie 24 uur verborgen.</target>
+      </segment>
+    </unit>
+    <unit id="map_island.event_hidden_seven_days">
+      <segment state="translated">
+        <source>Promotion hidden for 7 days.</source>
+        <target>Promotie 7 dagen verborgen.</target>
+      </segment>
+    </unit>
+    <unit id="map_island.event_hidden_until_end">
+      <segment state="translated">
+        <source>Promotion hidden for the rest of this event.</source>
+        <target>Promotie verborgen voor de rest van dit evenement.</target>
+      </segment>
+    </unit>
     <unit id="map_island.event_live">
       <segment state="initial">
         <source>Live Event</source>

@@ -940,6 +940,36 @@
         <target>Voir</target>
       </segment>
     </unit>
+    <unit id="map_island.event_hide_promoted">
+      <segment state="translated">
+        <source>Hide this promotion</source>
+        <target>Masquer cette promotion</target>
+      </segment>
+    </unit>
+    <unit id="map_island.event_hide">
+      <segment state="translated">
+        <source>Hide this event</source>
+        <target>Masquer cet événement</target>
+      </segment>
+    </unit>
+    <unit id="map_island.event_hidden_one_day">
+      <segment state="translated">
+        <source>Promotion hidden for 24 hours.</source>
+        <target>Promotion masquée pendant 24 heures.</target>
+      </segment>
+    </unit>
+    <unit id="map_island.event_hidden_seven_days">
+      <segment state="translated">
+        <source>Promotion hidden for 7 days.</source>
+        <target>Promotion masquée pendant 7 jours.</target>
+      </segment>
+    </unit>
+    <unit id="map_island.event_hidden_until_end">
+      <segment state="translated">
+        <source>Promotion hidden for the rest of this event.</source>
+        <target>Promotion masquée pour le reste de cet événement.</target>
+      </segment>
+    </unit>
     <unit id="map_island.event_live">
       <segment state="initial">
         <source>Live Event</source>

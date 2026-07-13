@@ -156,11 +156,13 @@ import {
 } from "../map/map-panel-view.model";
 import { MapCheckInBannerComponent } from "../map/map-check-in-banner/map-check-in-banner.component";
 import type { MapPointMarker } from "../maps/map-overlays";
-
-interface EventPromoDismissalRecord {
-  showAgainAt: string;
-  dismissCount: number;
-}
+import type {
+  EventPromoDismissal,
+  EventPromoDismissalRecord,
+} from "./map-event-promo-dismissal";
+import {
+  getNextEventPromoDismissal,
+} from "./map-event-promo-dismissal";
 
 type MapEventFilter = "live" | "competition" | "jam" | "camp";
 
@@ -274,7 +276,6 @@ const DENSE_MAP_PERFORMANCE_VARIANTS = new Set<DenseMapPerformanceVariant>([
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly _eventPromoDismissalsStorageKey =
     "pkspot.eventPromoDismissals.v1";
-  private readonly _eventPromoDismissalDurationMs = 24 * 60 * 60 * 1000;
 
   @ViewChild("spotMap", { static: false }) spotMap: SpotMapComponent | null =
     null;
@@ -1201,6 +1202,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onIslandDismissEvent(event: PkEvent): void {
     const dismissal = this._dismissEventPromo(event);
+    this._showEventPromoDismissalConfirmation(dismissal);
     this._trackMapIslandInteraction("dismiss", {
       kind: "event",
       event,
@@ -1388,21 +1390,37 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     return Number.isFinite(showAgainAt) && showAgainAt > Date.now();
   }
 
-  private _dismissEventPromo(event: PkEvent): EventPromoDismissalRecord {
+  private _dismissEventPromo(event: PkEvent): EventPromoDismissal {
     const previous = this._eventPromoDismissals()[event.id];
-    const dismissal: EventPromoDismissalRecord = {
-      showAgainAt: new Date(
-        Date.now() + this._eventPromoDismissalDurationMs,
-      ).toISOString(),
-      dismissCount: (previous?.dismissCount ?? 0) + 1,
-    };
+    const dismissal = getNextEventPromoDismissal(previous, event.end);
+    const { showAgainAt, dismissCount } = dismissal;
 
     this._eventPromoDismissals.update((dismissals) => ({
       ...dismissals,
-      [event.id]: dismissal,
+      [event.id]: { showAgainAt, dismissCount },
     }));
     this._saveEventPromoDismissals();
     return dismissal;
+  }
+
+  private _showEventPromoDismissalConfirmation(
+    dismissal: EventPromoDismissal,
+  ): void {
+    const message =
+      dismissal.stage === "one-day"
+        ? $localize`:Snackbar shown after first event promotion dismissal@@map_island.event_hidden_one_day:Promotion hidden for 24 hours.`
+        : dismissal.stage === "seven-days"
+          ? $localize`:Snackbar shown after second event promotion dismissal@@map_island.event_hidden_seven_days:Promotion hidden for 7 days.`
+          : $localize`:Snackbar shown after third event promotion dismissal@@map_island.event_hidden_until_end:Promotion hidden for the rest of this event.`;
+
+    this._snackbar.open(
+      message,
+      $localize`:@@common.dismiss:Dismiss`,
+      {
+        duration: 5000,
+        verticalPosition: "bottom",
+      },
+    );
   }
 
   private _loadEventPromoDismissals(): void {
