@@ -1,6 +1,13 @@
 import { Injectable, signal, effect, PLATFORM_ID, Inject } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 
+type StoredAppSettings = {
+  debugMode?: unknown;
+  mapProfileMode?: unknown;
+  enableVectorMaps?: unknown;
+  enableMapGlassBlur?: unknown;
+};
+
 @Injectable({
   providedIn: "root",
 })
@@ -10,6 +17,7 @@ export class AppSettingsService {
   // Signals for settings
   debugMode = signal<boolean>(false);
   enableVectorMaps = signal<boolean>(false);
+  enableMapGlassBlur = signal<boolean>(false);
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     this._loadSettings();
@@ -28,7 +36,7 @@ export class AppSettingsService {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored);
+        const parsed = JSON.parse(stored) as StoredAppSettings;
         if (typeof parsed.debugMode === "boolean") {
           this.debugMode.set(parsed.debugMode);
         }
@@ -40,6 +48,9 @@ export class AppSettingsService {
         }
         if (typeof parsed.enableVectorMaps === "boolean") {
           this.enableVectorMaps.set(parsed.enableVectorMaps);
+        }
+        if (typeof parsed.enableMapGlassBlur === "boolean") {
+          this.enableMapGlassBlur.set(parsed.enableMapGlassBlur);
         }
       }
     } catch (e) {
@@ -56,6 +67,7 @@ export class AppSettingsService {
       const settings = {
         debugMode: this.debugMode(),
         enableVectorMaps: this.enableVectorMaps(),
+        enableMapGlassBlur: this.enableMapGlassBlur(),
       };
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(settings));
     } catch (e) {

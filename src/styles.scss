@@ -47,19 +47,19 @@ html {
   --keyboard-scroll-space: 0px;
 
   --map-glass-surface-base: var(--mat-sys-surface-container-highest);
+  --map-glass-surface: var(--map-glass-surface-base);
+  --map-glass-blur: none;
+  --app-access-off-limits: var(--mat-sys-error);
+  --app-access-private: rgb(250, 238, 79);
+}
+
+html.map-glass-blur-enabled {
   --map-glass-surface: color-mix(
     in srgb,
     var(--map-glass-surface-base) 85%,
     transparent
   );
   --map-glass-blur: blur(10px);
-  --app-access-off-limits: var(--mat-sys-error);
-  --app-access-private: rgb(250, 238, 79);
-}
-
-html.map-glass-blur-disabled {
-  --map-glass-surface: var(--map-glass-surface-base);
-  --map-glass-blur: none;
 }
 
 html.native-platform,

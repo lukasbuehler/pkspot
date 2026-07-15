@@ -2,11 +2,7 @@
 
 @mixin color($theme) {
   app-bottom-sheet > div.sheet {
-    background: color-mix(
-      in srgb,
-      #{mat.get-theme-color($theme, surface-container-low)} 88%,
-      transparent
-    );
+    background: mat.get-theme-color($theme, surface-container-low);
     backdrop-filter: var(--map-glass-blur);
     -webkit-backdrop-filter: var(--map-glass-blur);
     transform: translateZ(0);
@@ -15,8 +11,12 @@
     -webkit-backface-visibility: hidden;
   }
 
-  html.map-glass-blur-disabled app-bottom-sheet > div.sheet {
-    background: mat.get-theme-color($theme, surface-container-low);
+  html.map-glass-blur-enabled app-bottom-sheet > div.sheet {
+    background: color-mix(
+      in srgb,
+      #{mat.get-theme-color($theme, surface-container-low)} 88%,
+      transparent
+    );
   }
 }
 

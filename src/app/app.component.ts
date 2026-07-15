@@ -309,7 +309,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     // Wire initial layout-affecting state before any awaited startup work.
     if (typeof window !== "undefined") {
       this.setEmbeddedStateFromUrl(window.location.pathname);
-      this.setMapGlassBlurClass(Capacitor.getPlatform());
     } else {
       this.isEmbedded.set(false);
     }
@@ -1104,14 +1103,12 @@ html.pkspot-roboto-loaded body {
     }
   }
 
-  private setMapGlassBlurClass(platform: string): void {
-    const features = environment.features as {
-      mapGlassBlur?: boolean;
-      nativeMapGlassBlur?: boolean;
-    };
-    const mapGlassBlur =
-      features.mapGlassBlur ?? features.nativeMapGlassBlur ?? false;
+  private readonly _mapGlassBlurSettingsEffect = effect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
 
+    const mapGlassBlur = this._appSettings.enableMapGlassBlur();
     document.documentElement.classList.toggle(
       "map-glass-blur-enabled",
       mapGlassBlur,
@@ -1120,13 +1117,7 @@ html.pkspot-roboto-loaded body {
       "map-glass-blur-disabled",
       !mapGlassBlur,
     );
-
-    if (platform === "ios" && mapGlassBlur) {
-      console.warn(
-        "[Platform] Map glass blur is enabled on iOS. This has previously caused WebKit flicker or navigation rendering issues; keep environment.features.mapGlassBlur disabled unless you are testing that path.",
-      );
-    }
-  }
+  });
 
   private installNavigationPerformanceLogging(): void {
     if (!this.isNativePlatform || typeof window === "undefined") {

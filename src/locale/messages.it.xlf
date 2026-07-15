@@ -26,7 +26,7 @@
     </unit>
     <unit id="3789771835244333891">
       <segment state="initial">
-        <source> — No black-box algorithms, no hidden tracking. <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://github.com/lukasbuehler/pkspot&quot;&gt;" dispEnd="&lt;/a &gt;">View on GitHub</pc>. </source>
+        <source> — No black-box algorithms, no hidden tracking. <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://github.com/lukasbuehler/pkspot&quot; (click)=&quot;trackOutboundLinkClick(&apos;github&apos;, &apos;https://github.com/lukasbuehler/pkspot&apos;, &apos;View on GitHub&apos;)&quot; &gt;" dispEnd="&lt;/a &gt;">View on GitHub</pc>. </source>
         <target> — Nessun algoritmo opaco, nessun tracciamento nascosto. <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://github.com/lukasbuehler/pkspot&quot;&gt;" dispEnd="&lt;/a &gt;">Vedi su GitHub</pc>. </target>
       </segment>
     </unit>
@@ -70,6 +70,12 @@
         <target>E-mail</target>
       </segment>
     </unit>
+    <unit id="8116175184239166510">
+      <segment state="initial">
+        <source>Decline</source>
+        <target>Decline</target>
+      </segment>
+    </unit>
     <unit id="8124605615260157091">
       <segment state="initial">
         <source>Documenter</source>
@@ -95,10 +101,10 @@
         <target>Inserisci un&apos;email valida</target>
       </segment>
     </unit>
-    <unit id="open_maps_tooltip">
+    <unit id="1779696877741891389">
       <notes>
-        <note category="description">Tooltip of button to open the spot in maps</note>
-        <note category="meaning">Open in maps button tooltip</note>
+        <note category="description">Tooltip of button to open the spot in Google Maps</note>
+        <note category="meaning">Open in Google maps button tooltip</note>
       </notes>
       <segment state="initial">
         <source>Open the location of this spot in Maps</source>
@@ -115,16 +121,6 @@
       <segment state="initial">
         <source>Open in Google Maps</source>
         <target>Apri in Google Maps</target>
-      </segment>
-    </unit>
-    <unit id="open_maps_button_label">
-      <notes>
-        <note category="description">Button to open the spot in maps</note>
-        <note category="meaning">Open in maps button</note>
-      </notes>
-      <segment state="initial">
-        <source>Open in <ph id="0" equiv="INTERPOLATION" disp="{{ isAppleMaps ? &quot;Apple Maps&quot; : &quot;Google Maps&quot; }}"/></source>
-        <target>Apri in <ph id="0" equiv="INTERPOLATION" disp="{{ isAppleMaps ? &quot;Apple Maps&quot; : &quot;Google Maps&quot; }}"/></target>
       </segment>
     </unit>
     <unit id="spot.edit.tooltip">
@@ -175,12 +171,6 @@
       <segment state="initial">
         <source> Sign out </source>
         <target> Disconnetti </target>
-      </segment>
-    </unit>
-    <unit id="3211354897773594472">
-      <segment state="initial">
-        <source> Loading activity... </source>
-        <target>Caricamento attività...</target>
       </segment>
     </unit>
     <unit id="5945359866777111462">
@@ -253,6 +243,12 @@
         <target>Descrizione</target>
       </segment>
     </unit>
+    <unit id="4914577418256256836">
+      <segment state="initial">
+        <source>Followers</source>
+        <target>Followers</target>
+      </segment>
+    </unit>
     <unit id="4915431133669985304">
       <segment state="initial">
         <source>Profile</source>
@@ -265,10 +261,22 @@
         <target>Impostazioni</target>
       </segment>
     </unit>
+    <unit id="4939271577655832680">
+      <segment state="initial">
+        <source>There was an error approving the follow request.</source>
+        <target>There was an error approving the follow request.</target>
+      </segment>
+    </unit>
     <unit id="4939428286618017421">
       <segment state="initial">
         <source>Back to sign in</source>
         <target>Torna all&apos;accesso</target>
+      </segment>
+    </unit>
+    <unit id="8928816882866356838">
+      <segment state="initial">
+        <source>Public</source>
+        <target>Public</target>
       </segment>
     </unit>
     <unit id="8942517704279686805">
@@ -291,6 +299,12 @@
       <segment state="initial">
         <source>Settings - </source>
         <target>Impostazioni - </target>
+      </segment>
+    </unit>
+    <unit id="6874746901040347382">
+      <segment state="initial">
+        <source>Private account</source>
+        <target>Private account</target>
       </segment>
     </unit>
     <unit id="6876434298853499564">
@@ -317,6 +331,12 @@
       <segment state="initial">
         <source> Discard changes </source>
         <target> Annulla modifiche </target>
+      </segment>
+    </unit>
+    <unit id="4481769637105317205">
+      <segment state="initial">
+        <source>waiting on votes</source>
+        <target>waiting on votes</target>
       </segment>
     </unit>
     <unit id="8470446025763473581">
@@ -365,6 +385,18 @@
       <segment state="initial">
         <source> Public profile </source>
         <target> Profilo pubblico </target>
+      </segment>
+    </unit>
+    <unit id="settings.map_glass_blur.description">
+      <segment state="initial">
+        <source> Apply a translucent blur to map controls. This can use more battery and may be less stable on some mobile devices. </source>
+        <target> Applica una sfocatura traslucida ai controlli della mappa. Può consumare più batteria ed essere meno stabile su alcuni dispositivi mobili. </target>
+      </segment>
+    </unit>
+    <unit id="settings.map_glass_blur.heading">
+      <segment state="initial">
+        <source> Map glass blur </source>
+        <target> Effetto vetro sfocato sulla mappa </target>
       </segment>
     </unit>
     <unit id="settings.profile.description">
@@ -546,16 +578,34 @@
         <target> Useremo la tua email solo per contattarti riguardo a questa segnalazione. </target>
       </segment>
     </unit>
+    <unit id="1388712764439031120">
+      <segment state="initial">
+        <source>Open link</source>
+        <target>Open link</target>
+      </segment>
+    </unit>
     <unit id="1389550100207768929">
       <segment state="initial">
         <source>No account found for this email address.</source>
         <target>Nessun account trovato per questo indirizzo email.</target>
       </segment>
     </unit>
+    <unit id="1393288181273188560">
+      <segment state="initial">
+        <source>Org approval</source>
+        <target>Org approval</target>
+      </segment>
+    </unit>
     <unit id="2551128161531504907">
       <segment state="initial">
         <source> The <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary&quot;&gt;" dispEnd="&lt;/span &gt;">spot</pc> for everything parkour<pc id="1" equivStart="START_TAG_SPAN_1" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot; &gt;" dispEnd="&lt;/span &gt;">.</pc></source>
         <target> Lo <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary&quot;&gt;" dispEnd="&lt;/span &gt;">spot</pc> per tutto il parkour<pc id="1" equivStart="START_TAG_SPAN_1" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot; &gt;" dispEnd="&lt;/span &gt;">.</pc></target>
+      </segment>
+    </unit>
+    <unit id="2599075381042572471">
+      <segment state="initial">
+        <source>No organization approvals waiting.</source>
+        <target>No organization approvals waiting.</target>
       </segment>
     </unit>
     <unit id="5881351283414819200">
@@ -702,9 +752,63 @@
         <target> Profilo account </target>
       </segment>
     </unit>
-    <unit id="4250467317941972098">
+    <unit id="settings.app_check.detail.default">
       <segment state="initial">
-        <source> Log out </source>
+        <source>App Check status is shown here for release testing.</source>
+        <target>App Check status is shown here for release testing.</target>
+      </segment>
+    </unit>
+    <unit id="settings.app_check.detail.failed">
+      <segment state="initial">
+        <source>App Check is not enforced yet, so the app can continue loading while this is tested.</source>
+        <target>App Check is not enforced yet, so the app can continue loading while this is tested.</target>
+      </segment>
+    </unit>
+    <unit id="settings.app_check.detail.ready">
+      <segment state="initial">
+        <source>This app installation can request App Check tokens.</source>
+        <target>This app installation can request App Check tokens.</target>
+      </segment>
+    </unit>
+    <unit id="settings.app_check.label">
+      <segment state="initial">
+        <source>App verification</source>
+        <target>App verification</target>
+      </segment>
+    </unit>
+    <unit id="settings.app_check.status.failed">
+      <segment state="initial">
+        <source>Failed</source>
+        <target>Failed</target>
+      </segment>
+    </unit>
+    <unit id="settings.app_check.status.idle">
+      <segment state="initial">
+        <source>Not checked</source>
+        <target>Not checked</target>
+      </segment>
+    </unit>
+    <unit id="settings.app_check.status.initializing">
+      <segment state="initial">
+        <source>Checking</source>
+        <target>Checking</target>
+      </segment>
+    </unit>
+    <unit id="settings.app_check.status.ready">
+      <segment state="initial">
+        <source>Verified</source>
+        <target>Verified</target>
+      </segment>
+    </unit>
+    <unit id="settings.app_check.status.skipped">
+      <segment state="initial">
+        <source>Skipped</source>
+        <target>Skipped</target>
+      </segment>
+    </unit>
+    <unit id="7507948636555938109">
+      <segment state="initial">
+        <source>Log out</source>
         <target>Esci</target>
       </segment>
     </unit>
@@ -891,30 +995,45 @@
       </segment>
     </unit>
     <unit id="map_island.event_hide_promoted">
+      <notes>
+        <note category="description">Accessible label and tooltip for hiding a promoted event</note>
+      </notes>
       <segment state="translated">
         <source>Hide this promotion</source>
         <target>Nascondi questa promozione</target>
       </segment>
     </unit>
     <unit id="map_island.event_hide">
+      <notes>
+        <note category="description">Accessible label and tooltip for hiding an event</note>
+      </notes>
       <segment state="translated">
         <source>Hide this event</source>
         <target>Nascondi questo evento</target>
       </segment>
     </unit>
     <unit id="map_island.event_hidden_one_day">
+      <notes>
+        <note category="description">Snackbar shown after first event promotion dismissal</note>
+      </notes>
       <segment state="translated">
         <source>Promotion hidden for 24 hours.</source>
         <target>Promozione nascosta per 24 ore.</target>
       </segment>
     </unit>
     <unit id="map_island.event_hidden_seven_days">
+      <notes>
+        <note category="description">Snackbar shown after second event promotion dismissal</note>
+      </notes>
       <segment state="translated">
         <source>Promotion hidden for 7 days.</source>
         <target>Promozione nascosta per 7 giorni.</target>
       </segment>
     </unit>
     <unit id="map_island.event_hidden_until_end">
+      <notes>
+        <note category="description">Snackbar shown after third event promotion dismissal</note>
+      </notes>
       <segment state="translated">
         <source>Promotion hidden for the rest of this event.</source>
         <target>Promozione nascosta per il resto di questo evento.</target>
@@ -1038,6 +1157,12 @@
       <segment state="initial">
         <source>Mark this spot as visited</source>
         <target>Segna questo Spot come visitato</target>
+      </segment>
+    </unit>
+    <unit id="media.processing.status">
+      <segment state="initial">
+        <source>Processing</source>
+        <target>Processing</target>
       </segment>
     </unit>
     <unit id="media.upload.disclaimer">
@@ -1294,6 +1419,66 @@
         <target>Chi siamo</target>
       </segment>
     </unit>
+    <unit id="account.app_check.detail.failed">
+      <segment state="initial">
+        <source>Firebase App Check failed in this browser. Sign-in may still work while enforcement is off.</source>
+        <target>Firebase App Check failed in this browser. Sign-in may still work while enforcement is off.</target>
+      </segment>
+    </unit>
+    <unit id="account.app_check.detail.initializing">
+      <segment state="initial">
+        <source>Checking Firebase App Check for this browser.</source>
+        <target>Checking Firebase App Check for this browser.</target>
+      </segment>
+    </unit>
+    <unit id="account.app_check.detail.ready">
+      <segment state="initial">
+        <source>This browser can request Firebase App Check tokens.</source>
+        <target>This browser can request Firebase App Check tokens.</target>
+      </segment>
+    </unit>
+    <unit id="account.app_check.detail.skipped">
+      <segment state="initial">
+        <source>Firebase App Check was not run in this context.</source>
+        <target>Firebase App Check was not run in this context.</target>
+      </segment>
+    </unit>
+    <unit id="account.app_check.label">
+      <segment state="initial">
+        <source>App verification</source>
+        <target>App verification</target>
+      </segment>
+    </unit>
+    <unit id="account.app_check.status.failed">
+      <segment state="initial">
+        <source>Failed</source>
+        <target>Failed</target>
+      </segment>
+    </unit>
+    <unit id="account.app_check.status.idle">
+      <segment state="initial">
+        <source>Not checked</source>
+        <target>Not checked</target>
+      </segment>
+    </unit>
+    <unit id="account.app_check.status.initializing">
+      <segment state="initial">
+        <source>Checking</source>
+        <target>Checking</target>
+      </segment>
+    </unit>
+    <unit id="account.app_check.status.ready">
+      <segment state="initial">
+        <source>Verified</source>
+        <target>Verified</target>
+      </segment>
+    </unit>
+    <unit id="account.app_check.status.skipped">
+      <segment state="initial">
+        <source>Skipped</source>
+        <target>Skipped</target>
+      </segment>
+    </unit>
     <unit id="account.auth.kicker">
       <notes>
         <note category="description">account auth kicker</note>
@@ -1340,15 +1525,6 @@
       <segment state="initial">
         <source> Why create an account? </source>
         <target>Perché creare un account?</target>
-      </segment>
-    </unit>
-    <unit id="account.language.inline_label">
-      <notes>
-        <note category="description">account language inline label</note>
-      </notes>
-      <segment state="initial">
-        <source> App language </source>
-        <target>Lingua dell’app</target>
       </segment>
     </unit>
     <unit id="account.privacy_policy.button">
@@ -1417,6 +1593,12 @@
         <target>Segnala profilo</target>
       </segment>
     </unit>
+    <unit id="7728834599660689787">
+      <segment state="initial">
+        <source>Failed to queue community merge</source>
+        <target>Failed to queue community merge</target>
+      </segment>
+    </unit>
     <unit id="7730768294447572928">
       <segment state="initial">
         <source>Delete this spot and all of its reviews and edits? This cannot be undone.</source>
@@ -1433,6 +1615,12 @@
       <segment state="initial">
         <source>Current password is incorrect.</source>
         <target>La password attuale non è corretta.</target>
+      </segment>
+    </unit>
+    <unit id="7322684769836148535">
+      <segment state="initial">
+        <source>Find parkour spots, events, and local community info for <ph id="0" equiv="PH" disp="data.displayName"/>.</source>
+        <target>Find parkour spots, events, and local community info for <ph id="0" equiv="PH" disp="data.displayName"/>.</target>
       </segment>
     </unit>
     <unit id="7323901917278002498">
@@ -1513,10 +1701,22 @@
         <target>Scegli una password sicura.</target>
       </segment>
     </unit>
+    <unit id="4507617241018363752">
+      <segment state="initial">
+        <source>Request follow</source>
+        <target>Request follow</target>
+      </segment>
+    </unit>
     <unit id="4518031035032344779">
       <segment state="initial">
         <source>Create and improve spots</source>
         <target>Crea e migliora spot</target>
+      </segment>
+    </unit>
+    <unit id="4522831263356539404">
+      <segment state="initial">
+        <source>Add at least one community card before submitting</source>
+        <target>Add at least one community card before submitting</target>
       </segment>
     </unit>
     <unit id="4541118533130714111">
@@ -1561,6 +1761,18 @@
         <target>Modifica approvata</target>
       </segment>
     </unit>
+    <unit id="1034243481849045297">
+      <segment state="initial">
+        <source>Public map activity from this profile.</source>
+        <target>Public map activity from this profile.</target>
+      </segment>
+    </unit>
+    <unit id="1035459065824093652">
+      <segment state="initial">
+        <source>Open edit</source>
+        <target>Open edit</target>
+      </segment>
+    </unit>
     <unit id="1038551913502372916">
       <segment state="initial">
         <source> Create organizations and manage who can review organization-routed spot edits. Verified-by and managed-by settings live on each spot&apos;s admin edit form. </source>
@@ -1597,6 +1809,12 @@
         <target>Prima</target>
       </segment>
     </unit>
+    <unit id="1263548881803803113">
+      <segment state="initial">
+        <source><ph id="0" equiv="PH" disp="summary.yes_count"/> yes · <ph id="1" equiv="PH_1" disp="summary.no_count"/> no</source>
+        <target><ph id="0" equiv="PH" disp="summary.yes_count"/> yes · <ph id="1" equiv="PH_1" disp="summary.no_count"/> no</target>
+      </segment>
+    </unit>
     <unit id="1267967133679326155">
       <segment state="initial">
         <source>Create Account</source>
@@ -1631,6 +1849,12 @@
       <segment state="initial">
         <source>View source</source>
         <target>Visualizza fonte</target>
+      </segment>
+    </unit>
+    <unit id="6496554534263466402">
+      <segment state="initial">
+        <source>Follow request declined</source>
+        <target>Follow request declined</target>
       </segment>
     </unit>
     <unit id="1927584134608367160">
@@ -1685,6 +1909,12 @@
       <segment state="initial">
         <source>Shown amenities</source>
         <target>Servizi visualizzati</target>
+      </segment>
+    </unit>
+    <unit id="3686284950598311784">
+      <segment state="initial">
+        <source>Private</source>
+        <target>Private</target>
       </segment>
     </unit>
     <unit id="share_spot_tooltip">
@@ -1870,6 +2100,18 @@
         <target>Segnala spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data.spot?.name }}"/> &apos;</target>
       </segment>
     </unit>
+    <unit id="6090595749329244912">
+      <segment state="initial">
+        <source>Community card approved</source>
+        <target>Community card approved</target>
+      </segment>
+    </unit>
+    <unit id="8411563267246095898">
+      <segment state="initial">
+        <source> Some uploads could not be processed. </source>
+        <target> Some uploads could not be processed. </target>
+      </segment>
+    </unit>
     <unit id="8425534745547037864">
       <segment state="initial">
         <source>Awaiting steward review</source>
@@ -1922,6 +2164,12 @@
       <segment state="initial">
         <source> Duplicate </source>
         <target> Duplicato </target>
+      </segment>
+    </unit>
+    <unit id="4172689758346256013">
+      <segment state="initial">
+        <source>There was an error declining the follow request.</source>
+        <target>There was an error declining the follow request.</target>
       </segment>
     </unit>
     <unit id="4178793080892122578">
@@ -1996,10 +2244,26 @@
         <target> Nessuna modifica ancora per questo Spot. </target>
       </segment>
     </unit>
+    <unit id="8640413159088021987">
+      <segment state="initial">
+        <source>Profile access saved</source>
+        <target>Profile access saved</target>
+      </segment>
+    </unit>
     <unit id="8656126574213649581">
       <segment state="initial">
         <source>Confirm new password</source>
         <target>Conferma nuova password</target>
+      </segment>
+    </unit>
+    <unit id="8661229474911203378">
+      <notes>
+        <note category="description">Tooltip of button to open the spot in Apple Maps</note>
+        <note category="meaning">Open in Apple maps button tooltip</note>
+      </notes>
+      <segment state="initial">
+        <source>Open the location of this spot in Maps</source>
+        <target>Open the location of this spot in Maps</target>
       </segment>
     </unit>
     <unit id="8665225557897160418">
@@ -2012,6 +2276,12 @@
       <segment state="initial">
         <source>This link has expired. Please request a new one.</source>
         <target>Questo link è scaduto. Richiedine uno nuovo.</target>
+      </segment>
+    </unit>
+    <unit id="3253302203274992288">
+      <segment state="initial">
+        <source>Public account</source>
+        <target>Public account</target>
       </segment>
     </unit>
     <unit id="3255718056802293269">
@@ -2084,6 +2354,12 @@
       <segment state="initial">
         <source> For private questions, partnerships, spot map imports, or joining the crew, send us a message directly. </source>
         <target> Per domande private, partnership, import di mappe Spot o per unirti al team, inviaci un messaggio diretto. </target>
+      </segment>
+    </unit>
+    <unit id="4412828079367710507">
+      <segment state="initial">
+        <source>Spot edit votes</source>
+        <target>Spot edit votes</target>
       </segment>
     </unit>
     <unit id="4416413576346763682">
@@ -3084,26 +3360,6 @@
         <target> Valutazioni e recensioni degli utenti </target>
       </segment>
     </unit>
-    <unit id="spot.navigate.button">
-      <notes>
-        <note category="description">Button text for navigate to spot</note>
-        <note category="meaning">navigate to spot button</note>
-      </notes>
-      <segment state="initial">
-        <source>Navigate to spot</source>
-        <target>Naviga allo spot</target>
-      </segment>
-    </unit>
-    <unit id="spot.navigate.tooltip">
-      <notes>
-        <note category="description">Tooltip for navigate to spot button</note>
-        <note category="meaning">navigate to spot tooltip</note>
-      </notes>
-      <segment state="initial">
-        <source>Navigate to this spot</source>
-        <target>Naviga a questo spot</target>
-      </segment>
-    </unit>
     <unit id="spot.no_reviews.message">
       <notes>
         <note category="description">Message shown when there are no reviews yet</note>
@@ -3144,6 +3400,12 @@
       <segment state="initial">
         <source>Early Adopter</source>
         <target>Pioniere</target>
+      </segment>
+    </unit>
+    <unit id="9023791413043930148">
+      <segment state="initial">
+        <source>No community card suggestions.</source>
+        <target>No community card suggestions.</target>
       </segment>
     </unit>
     <unit id="9058496705928443158">
@@ -3202,7 +3464,7 @@
     </unit>
     <unit id="9156829285909106416">
       <segment state="initial">
-        <source> Can&apos;t find what you&apos;re looking for? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [href]=&quot;discordUrl&quot; target=&quot;_blank&quot;&gt;" dispEnd="&lt;/a&gt;">Join our Discord</pc> and we&apos;ll help you out! </source>
+        <source> Can&apos;t find what you&apos;re looking for? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [href]=&quot;discordUrl&quot; target=&quot;_blank&quot; (click)=&quot;trackContactChannelClick(&apos;discord&apos;, &apos;support_footer_discord&apos;)&quot; &gt;" dispEnd="&lt;/a &gt;">Join our Discord</pc> and we&apos;ll help you out! </source>
         <target> Non trovi quello che cerchi? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [href]=&quot;discordUrl&quot; target=&quot;_blank&quot;&gt;" dispEnd="&lt;/a&gt;">Unisciti al nostro Discord</pc> e ti aiuteremo! </target>
       </segment>
     </unit>
@@ -3378,6 +3640,12 @@
       <segment state="initial">
         <source>Organization members</source>
         <target>Membri dell’organizzazione</target>
+      </segment>
+    </unit>
+    <unit id="6155919473084909937">
+      <segment state="initial">
+        <source>Follows you</source>
+        <target>Follows you</target>
       </segment>
     </unit>
     <unit id="7049904563073707059">
@@ -3597,18 +3865,6 @@
         <target>Questa è la data in cui hai iniziato a praticare Parkour e Freerunning. Verrà arrotondata ad anni interi dopo un anno o più, quindi non preoccuparti troppo.</target>
       </segment>
     </unit>
-    <unit id="embed_preview_event_data_by_pkspot">
-      <segment state="initial">
-        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span &gt;" dispEnd="&lt;/span &gt;">Interactive event embed</pc><pc id="1" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span &gt;" dispEnd="&lt;/span &gt;">Event data by <pc id="2" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [href]=&quot;publicContentUrl()&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot; &gt;" dispEnd="&lt;/a &gt;">PK Spot</pc></pc></source>
-        <target>&lt;pc id=&quot;0&quot; equivInizio=&quot;START_TAG_SPAN&quot; equivFine=&quot;CLOSE_TAG_SPAN&quot; type=&quot;other&quot; dispInizio=&quot;&lt;span &gt;&quot; dispFine=&quot;&lt;/span &gt;&quot;&gt;Interactive event embed&lt;/pc&gt;&lt;pc id=&quot;1&quot; equivInizio=&quot;START_TAG_SPAN&quot; equivFine=&quot;CLOSE_TAG_SPAN&quot; type=&quot;other&quot; dispInizio=&quot;&lt;span &gt;&quot; dispFine=&quot;&lt;/span &gt;&quot;&gt;Dati evento di &lt;pc id=&quot;2&quot; equivInizio=&quot;START_LINK&quot; equivFine=&quot;CLOSE_LINK&quot; type=&quot;link&quot; dispInizio=&quot;&lt;a [href]=&quot;publicContentUrl()&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot; &gt;&quot; dispFine=&quot;&lt;/a &gt;&quot;&gt;PK Spot&lt;/pc&gt;&lt;/pc&gt;</target>
-      </segment>
-    </unit>
-    <unit id="embed_preview_iframe_title">
-      <segment state="initial">
-        <source>PK Spot embedded event preview</source>
-        <target>Anteprima evento incorporata di PK Spot</target>
-      </segment>
-    </unit>
     <unit id="embedded-promo-powered-by">
       <segment state="initial">
         <source>Powered by</source>
@@ -3749,7 +4005,7 @@
     </unit>
     <unit id="event_edit.area_label">
       <segment state="initial">
-        <source> Event area </source>
+        <source> Meeting point and event area </source>
         <target> Area evento </target>
       </segment>
     </unit>
@@ -3837,10 +4093,28 @@
         <target> Colore </target>
       </segment>
     </unit>
+    <unit id="event_edit.custom_marker_description">
+      <segment state="initial">
+        <source> Description </source>
+        <target> Description </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.custom_marker_google_place_id">
+      <segment state="initial">
+        <source> Google Place ID </source>
+        <target> Google Place ID </target>
+      </segment>
+    </unit>
     <unit id="event_edit.custom_marker_icons">
       <segment state="initial">
         <source> Icons </source>
         <target> Iconos </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.custom_marker_image_url">
+      <segment state="initial">
+        <source> Image URL </source>
+        <target> Image URL </target>
       </segment>
     </unit>
     <unit id="event_edit.custom_marker_lat">
@@ -3853,6 +4127,12 @@
       <segment state="initial">
         <source> Longitude </source>
         <target> Longitudine </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.custom_marker_locality">
+      <segment state="initial">
+        <source> Locality </source>
+        <target> Locality </target>
       </segment>
     </unit>
     <unit id="event_edit.custom_marker_name">
@@ -3871,6 +4151,12 @@
       <segment state="initial">
         <source>Remove marker</source>
         <target>Rimuovi marker</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.custom_marker_url">
+      <segment state="initial">
+        <source> External URL </source>
+        <target> External URL </target>
       </segment>
     </unit>
     <unit id="event_edit.custom_markers_empty">
@@ -3991,6 +4277,102 @@
       <segment state="initial">
         <source> Image or video URL </source>
         <target> URL de imagen o video </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.external_source_id">
+      <segment state="initial">
+        <source> External source id </source>
+        <target> External source id </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.external_source_provider">
+      <segment state="initial">
+        <source> External source provider </source>
+        <target> External source provider </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.external_source_provider.none">
+      <segment state="initial">
+        <source> None </source>
+        <target> None </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.external_source_provider.other">
+      <segment state="initial">
+        <source> Other </source>
+        <target> Other </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.external_source_provider_hint">
+      <segment state="initial">
+        <source> Drives provider-specific map preview labels when no primary event link is set. </source>
+        <target> Drives provider-specific map preview labels when no primary event link is set. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.external_source_url">
+      <segment state="initial">
+        <source> External source URL </source>
+        <target> External source URL </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.external_source_url_invalid">
+      <segment state="initial">
+        <source> Use a public http or https link. </source>
+        <target> Use a public http or https link. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.featured_participant_add">
+      <segment state="initial">
+        <source>Add featured</source>
+        <target>Add featured</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.featured_participant_description">
+      <segment state="initial">
+        <source> Short note </source>
+        <target> Short note </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.featured_participant_image">
+      <segment state="initial">
+        <source> Image URL </source>
+        <target> Image URL </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.featured_participant_name">
+      <segment state="initial">
+        <source> Name </source>
+        <target> Name </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.featured_participant_remove">
+      <segment state="initial">
+        <source>Remove featured person, group or act</source>
+        <target>Remove featured person, group or act</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.featured_participant_role">
+      <segment state="initial">
+        <source> Role </source>
+        <target> Role </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.featured_participant_type">
+      <segment state="initial">
+        <source> Type </source>
+        <target> Type </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.featured_participant_url">
+      <segment state="initial">
+        <source> URL </source>
+        <target> URL </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.featured_participants_heading">
+      <segment state="initial">
+        <source> Featured people, groups &amp; acts </source>
+        <target> Featured people, groups &amp; acts </target>
       </segment>
     </unit>
     <unit id="event_edit.focus_zoom">
@@ -4125,22 +4507,52 @@
         <target>Località</target>
       </segment>
     </unit>
-    <unit id="event_edit.location_hint">
+    <unit id="event_edit.location_coordinates_label">
       <segment state="initial">
-        <source> Required. Used for the map event pin. </source>
-        <target> Obbligatorio. Usato per il pin evento sulla mappa. </target>
+        <source> Main location: </source>
+        <target> Main location: </target>
       </segment>
     </unit>
-    <unit id="event_edit.location_lat">
+    <unit id="event_edit.location_explanation">
       <segment state="initial">
-        <source> Event pin latitude </source>
-        <target> Latitudine pin evento </target>
+        <source> Set the main event location by selecting a spot, Google Place, or by clicking the map. This is the meeting point or center of the event: traceurs who go here should see the event and be able to find things like the info desk or other traceurs. </source>
+        <target> Set the main event location by selecting a spot, Google Place, or by clicking the map. This is the meeting point or center of the event: traceurs who go here should see the event and be able to find things like the info desk or other traceurs. </target>
       </segment>
     </unit>
-    <unit id="event_edit.location_lng">
+    <unit id="event_edit.location_not_set">
       <segment state="initial">
-        <source> Event pin longitude </source>
-        <target> Longitudine pin evento </target>
+        <source>Not set</source>
+        <target>Not set</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.location_search_google_place">
+      <segment state="initial">
+        <source>Google Place</source>
+        <target>Google Place</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.location_search_hint">
+      <segment state="initial">
+        <source> Use this when the map is not already showing a relevant place. </source>
+        <target> Use this when the map is not already showing a relevant place. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.location_search_label">
+      <segment state="initial">
+        <source> Search spots and Google Places </source>
+        <target> Search spots and Google Places </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.location_search_loading">
+      <segment state="initial">
+        <source> Searching places… </source>
+        <target> Searching places… </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.location_search_unnamed_spot">
+      <segment state="initial">
+        <source>Unnamed spot</source>
+        <target>Unnamed spot</target>
       </segment>
     </unit>
     <unit id="event_edit.logo_background_color">
@@ -4217,7 +4629,7 @@
     </unit>
     <unit id="event_edit.optional_section_hint">
       <segment state="initial">
-        <source> Description, banner, spots, promotion, … </source>
+        <source> Add richer event copy, media, map details, schedule, and organizer data when available. </source>
         <target> Descrizione, banner, spot, promozione, … </target>
       </segment>
     </unit>
@@ -4863,6 +5275,84 @@
         <target>Nome luogo</target>
       </segment>
     </unit>
+    <unit id="event_featured_participant.role.artist">
+      <segment state="initial">
+        <source>Artist</source>
+        <target>Artist</target>
+      </segment>
+    </unit>
+    <unit id="event_featured_participant.role.athlete">
+      <segment state="initial">
+        <source>Athlete</source>
+        <target>Athlete</target>
+      </segment>
+    </unit>
+    <unit id="event_featured_participant.role.coach">
+      <segment state="initial">
+        <source>Coach</source>
+        <target>Coach</target>
+      </segment>
+    </unit>
+    <unit id="event_featured_participant.role.dj">
+      <segment state="initial">
+        <source>DJ</source>
+        <target>DJ</target>
+      </segment>
+    </unit>
+    <unit id="event_featured_participant.role.guest">
+      <segment state="initial">
+        <source>Guest</source>
+        <target>Guest</target>
+      </segment>
+    </unit>
+    <unit id="event_featured_participant.role.host">
+      <segment state="initial">
+        <source>Host</source>
+        <target>Host</target>
+      </segment>
+    </unit>
+    <unit id="event_featured_participant.role.instructor">
+      <segment state="initial">
+        <source>Instructor</source>
+        <target>Instructor</target>
+      </segment>
+    </unit>
+    <unit id="event_featured_participant.role.judge">
+      <segment state="initial">
+        <source>Judge</source>
+        <target>Judge</target>
+      </segment>
+    </unit>
+    <unit id="event_featured_participant.role.performer">
+      <segment state="initial">
+        <source>Performer</source>
+        <target>Performer</target>
+      </segment>
+    </unit>
+    <unit id="event_featured_participant.role.speaker">
+      <segment state="initial">
+        <source>Speaker</source>
+        <target>Speaker</target>
+      </segment>
+    </unit>
+    <unit id="event_featured_participant.type.group">
+      <segment state="initial">
+        <source>Group or act</source>
+        <target>Group or act</target>
+      </segment>
+    </unit>
+    <unit id="event_featured_participant.type.person">
+      <segment state="initial">
+        <source>Person</source>
+        <target>Person</target>
+      </segment>
+    </unit>
+    <unit id="event_featured_participants.heading">
+      <segment state="initial">
+        <source> Featured people, groups &amp; acts </source>
+        <target> Featured people, groups &amp; acts </target>
+      </segment>
+    </unit>
     <unit id="event_page.back_to_events">
       <segment state="initial">
         <source>Back to all events</source>
@@ -5020,10 +5510,10 @@
         <target>Controllo di sicurezza fallito. Accedi nuovamente e prova a eliminare il tuo account.</target>
       </segment>
     </unit>
-    <unit id="4223406000078729869">
+    <unit id="420763834450076269">
       <segment state="initial">
-        <source>Dismiss event chip</source>
-        <target>Nascondi chip evento</target>
+        <source>Block</source>
+        <target>Block</target>
       </segment>
     </unit>
     <unit id="4234811560247297731">
@@ -5407,10 +5897,22 @@
         <target>Impossibile caricare questa organizzazione.</target>
       </segment>
     </unit>
+    <unit id="7995306732519397725">
+      <segment state="initial">
+        <source>Visible to mutuals</source>
+        <target>Visible to mutuals</target>
+      </segment>
+    </unit>
     <unit id="8202652744541567309">
       <segment state="initial">
         <source>Password Reset Successful</source>
         <target>Reimpostazione password riuscita</target>
+      </segment>
+    </unit>
+    <unit id="8207799228641053586">
+      <segment state="initial">
+        <source>Failed to update community card suggestion</source>
+        <target>Failed to update community card suggestion</target>
       </segment>
     </unit>
     <unit id="822217384326702238">
@@ -5507,12 +6009,6 @@
         <target>Chiudi</target>
       </segment>
     </unit>
-    <unit id="community.add_community_knowledge">
-      <segment state="initial">
-        <source>Add community knowledge</source>
-        <target>Aggiungi conoscenza della community</target>
-      </segment>
-    </unit>
     <unit id="community.discover_more_events">
       <segment state="initial">
         <source> Discover more events → </source>
@@ -5577,6 +6073,12 @@
       <segment state="initial">
         <source> Local Knowledge </source>
         <target> Conocimiento local </target>
+      </segment>
+    </unit>
+    <unit id="community.sign_in_to_see_link">
+      <segment state="initial">
+        <source>Sign in to see link</source>
+        <target>Sign in to see link</target>
       </segment>
     </unit>
     <unit id="contact.aside.crew.body">
@@ -5857,46 +6359,10 @@
         <target>Aggiorna recensione</target>
       </segment>
     </unit>
-    <unit id="user-activity.action.added-media">
+    <unit id="8707887448880467422">
       <segment state="initial">
-        <source>Added media to a spot</source>
-        <target>Ha aggiunto media a uno spot</target>
-      </segment>
-    </unit>
-    <unit id="user-activity.action.added-spot">
-      <segment state="initial">
-        <source>Added a spot</source>
-        <target>Ha aggiunto uno spot</target>
-      </segment>
-    </unit>
-    <unit id="user-activity.action.edited-spot">
-      <segment state="initial">
-        <source>Edited a spot</source>
-        <target>Ha modificato uno spot</target>
-      </segment>
-    </unit>
-    <unit id="user-activity.action.removed-media">
-      <segment state="initial">
-        <source>Removed spot media</source>
-        <target>Ha rimosso media dallo spot</target>
-      </segment>
-    </unit>
-    <unit id="user-activity.action.updated-spot">
-      <segment state="initial">
-        <source>Updated a spot</source>
-        <target>Ha aggiornato uno spot</target>
-      </segment>
-    </unit>
-    <unit id="user-activity.title">
-      <segment state="initial">
-        <source>Activity</source>
-        <target>Attività</target>
-      </segment>
-    </unit>
-    <unit id="user-activity.title.named">
-      <segment state="initial">
-        <source><ph id="0" equiv="PH" disp="name"/>&apos;s activity</source>
-        <target>Attività di <ph id="0" equiv="PH" disp="name"/></target>
+        <source>Friends</source>
+        <target>Friends</target>
       </segment>
     </unit>
     <unit id="8726138323871139597">
@@ -5977,6 +6443,12 @@
         <target>In attesa di revisione del manager</target>
       </segment>
     </unit>
+    <unit id="6682201029912811079">
+      <segment state="initial">
+        <source>This profile does not exist or is no longer available.</source>
+        <target>This profile does not exist or is no longer available.</target>
+      </segment>
+    </unit>
     <unit id="6684903098036930968">
       <segment state="initial">
         <source>Delete media</source>
@@ -5993,12 +6465,6 @@
       <segment state="initial">
         <source>Beginner friendly</source>
         <target>Adatto ai principianti</target>
-      </segment>
-    </unit>
-    <unit id="4790823050110460547">
-      <segment state="initial">
-        <source> No public edits yet. </source>
-        <target>Ancora nessuna modifica pubblica.</target>
       </segment>
     </unit>
     <unit id="4813152754732689397">
@@ -6031,6 +6497,12 @@
         <target>Destinazione</target>
       </segment>
     </unit>
+    <unit id="4859202148272511129">
+      <segment state="initial">
+        <source>Unblock</source>
+        <target>Unblock</target>
+      </segment>
+    </unit>
     <unit id="4867740992596809732">
       <segment state="initial">
         <source>Verified organization removed</source>
@@ -6053,6 +6525,12 @@
       <segment state="initial">
         <source>Session replay</source>
         <target>Repetición de sesión</target>
+      </segment>
+    </unit>
+    <unit id="7058244463262851448">
+      <segment state="initial">
+        <source> Unblock User </source>
+        <target> Unblock User </target>
       </segment>
     </unit>
     <unit id="7059749880989073519">
@@ -6079,6 +6557,18 @@
         <target>Licencia de datos abiertos</target>
       </segment>
     </unit>
+    <unit id="2473567849440268466">
+      <segment state="initial">
+        <source>Community merge queued</source>
+        <target>Community merge queued</target>
+      </segment>
+    </unit>
+    <unit id="2494595604764120182">
+      <segment state="initial">
+        <source>waiting on organizations</source>
+        <target>waiting on organizations</target>
+      </segment>
+    </unit>
     <unit id="2496518471623524249">
       <segment state="initial">
         <source>Uploaded by: </source>
@@ -6087,7 +6577,7 @@
     </unit>
     <unit id="2496919597985327178">
       <segment state="initial">
-        <source> — We never sell your data. No tracking cookies, no shady ad networks. <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Privacy Policy</pc>. </source>
+        <source> — We never sell your data. No tracking cookies, no shady ad networks. <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot; (click)=&quot;trackInternalCtaClick(&apos;about_privacy_policy&apos;, &apos;/privacy-policy&apos;)&quot; &gt;" dispEnd="&lt;/a &gt;">Privacy Policy</pc>. </source>
         <target> — Non vendiamo mai i tuoi dati. Niente cookie di tracciamento, niente reti pubblicitarie losche. <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot;&gt;" dispEnd="&lt;/a&gt;">Informativa sulla privacy</pc>. </target>
       </segment>
     </unit>
@@ -6117,7 +6607,7 @@
     </unit>
     <unit id="5982693261061871155">
       <segment state="initial">
-        <source> — All community spot data is <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en&quot; &gt;" dispEnd="&lt;/a &gt;">CC BY-NC-SA 4.0</pc> licensed. Open, shareable, yours forever. </source>
+        <source> — All community spot data is <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en&quot; (click)=&quot;trackOutboundLinkClick(&apos;license&apos;, &apos;https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en&apos;, &apos;CC BY-NC-SA 4.0&apos;)&quot; &gt;" dispEnd="&lt;/a &gt;">CC BY-NC-SA 4.0</pc> licensed. Open, shareable, yours forever. </source>
         <target> — Tutti i dati degli spot della community sono concessi in licenza <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en&quot; &gt;" dispEnd="&lt;/a &gt;">CC BY-NC-SA 4.0</pc>. Aperti, condivisibili e tuoi per sempre. </target>
       </segment>
     </unit>
@@ -6133,6 +6623,12 @@
         <target>Nome Challenge</target>
       </segment>
     </unit>
+    <unit id="325006844299723146">
+      <segment state="initial">
+        <source>pending approval</source>
+        <target>pending approval</target>
+      </segment>
+    </unit>
     <unit id="3250391385569692601">
       <segment state="initial">
         <source>Media</source>
@@ -6145,10 +6641,26 @@
         <target> Aggiungi un confine modificabile per questo spot. Dopo l&apos;aggiunta, puoi regolare la forma del poligono sulla mappa. </target>
       </segment>
     </unit>
+    <unit id="2135214670546321857">
+      <segment state="initial">
+        <source> Private accounts approve follow requests before someone can follow them. </source>
+        <target> Private accounts approve follow requests before someone can follow them. </target>
+      </segment>
+    </unit>
     <unit id="2136736395651055980">
       <segment state="initial">
         <source>Checking organization access...</source>
         <target>Verifica dell’accesso all’organizzazione...</target>
+      </segment>
+    </unit>
+    <unit id="2140524575884770731">
+      <notes>
+        <note category="description">Button to open the spot in Apple Maps</note>
+        <note category="meaning">Open in Apple maps button</note>
+      </notes>
+      <segment state="initial">
+        <source>Open in Apple Maps</source>
+        <target>Open in Apple Maps</target>
       </segment>
     </unit>
     <unit id="2143027146062629863">
@@ -6283,6 +6795,12 @@
         <target>Nuovo Challenge salvato con successo</target>
       </segment>
     </unit>
+    <unit id="5061749540188881037">
+      <segment state="initial">
+        <source> Community cards, spot edit votes, and organization approval. </source>
+        <target> Community cards, spot edit votes, and organization approval. </target>
+      </segment>
+    </unit>
     <unit id="5075169696278804374">
       <segment state="initial">
         <source>Error sending reset email. Please try again.</source>
@@ -6305,6 +6823,12 @@
       <segment state="initial">
         <source> Frequently Asked Questions </source>
         <target> Domande Frequenti </target>
+      </segment>
+    </unit>
+    <unit id="8326056696429051273">
+      <segment state="initial">
+        <source>Account privacy</source>
+        <target>Account privacy</target>
       </segment>
     </unit>
     <unit id="8333618256474808727">
@@ -6358,6 +6882,12 @@
         <target>Badge</target>
       </segment>
     </unit>
+    <unit id="2689184560704057247">
+      <segment state="initial">
+        <source>Follow request sent</source>
+        <target>Follow request sent</target>
+      </segment>
+    </unit>
     <unit id="2736531674722915416">
       <segment state="initial">
         <source>Add Spot</source>
@@ -6386,6 +6916,12 @@
       <segment state="initial">
         <source>Unlinked Google Place</source>
         <target>Google Place scollegato</target>
+      </segment>
+    </unit>
+    <unit id="2788894705152239347">
+      <segment state="initial">
+        <source> This location on Google Maps® </source>
+        <target> This location on Google Maps® </target>
       </segment>
     </unit>
     <unit id="pk.home.description">
@@ -6448,10 +6984,28 @@
         <target> Continua </target>
       </segment>
     </unit>
+    <unit id="2943033819969004159">
+      <segment state="initial">
+        <source>Requested</source>
+        <target>Requested</target>
+      </segment>
+    </unit>
+    <unit id="2963309575410053263">
+      <segment state="initial">
+        <source> Add a short bio so your public profile tells people who you are. </source>
+        <target> Add a short bio so your public profile tells people who you are. </target>
+      </segment>
+    </unit>
     <unit id="2969365666988952758">
       <segment state="initial">
         <source>Recovering Email</source>
         <target>Recupero email</target>
+      </segment>
+    </unit>
+    <unit id="2984628903434675339">
+      <segment state="initial">
+        <source>Edit Profile</source>
+        <target>Edit Profile</target>
       </segment>
     </unit>
     <unit id="2996324673054626783">
@@ -6600,6 +7154,16 @@
         <target>Gestito da <ph id="0" equiv="INTERPOLATION" disp="{{ managed.organization.name }}"/></target>
       </segment>
     </unit>
+    <unit id="spot.edit.access_type.header">
+      <notes>
+        <note category="description">Header for access and type editing section</note>
+        <note category="meaning">access and type edit header</note>
+      </notes>
+      <segment state="initial">
+        <source> Access and Type </source>
+        <target> Access and Type </target>
+      </segment>
+    </unit>
     <unit id="spot.edit.aria_label">
       <notes>
         <note category="description">Aria label for edit spot button</note>
@@ -6636,22 +7200,28 @@
         <target>Pulsante Segnala con icona di avviso</target>
       </segment>
     </unit>
-    <unit id="5306473977542913614">
-      <segment state="initial">
-        <source>Activity</source>
-        <target>Attività</target>
-      </segment>
-    </unit>
     <unit id="5306728370945378331">
       <segment state="initial">
         <source>Go Home</source>
         <target>Vai alla Home</target>
       </segment>
     </unit>
+    <unit id="5307137022448766473">
+      <segment state="initial">
+        <source>Failed to load communities</source>
+        <target>Failed to load communities</target>
+      </segment>
+    </unit>
     <unit id="5311639828224503795">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="{{ pendingVoteCount() }}"/> edits are waiting for community voting.</source>
         <target><ph id="0" equiv="INTERPOLATION" disp="{{ pendingVoteCount() }}"/> modifiche attendono il voto della comunità.</target>
+      </segment>
+    </unit>
+    <unit id="5320512330509370228">
+      <segment state="initial">
+        <source>Follow request approved</source>
+        <target>Follow request approved</target>
       </segment>
     </unit>
     <unit id="5324713868940196306">
@@ -6734,6 +7304,16 @@
         <target>Nascondi Streetview</target>
       </segment>
     </unit>
+    <unit id="spot.edit.is_iconic">
+      <notes>
+        <note category="description">Admin toggle for marking a spot as iconic</note>
+        <note category="meaning">iconic spot toggle</note>
+      </notes>
+      <segment state="initial">
+        <source>Iconic Spot</source>
+        <target>Iconic Spot</target>
+      </segment>
+    </unit>
     <unit id="spot.edit.url.header">
       <notes>
         <note category="description">Header for spot URL editing section</note>
@@ -6798,10 +7378,22 @@
         <target>Link allo Spot copiato negli appunti</target>
       </segment>
     </unit>
+    <unit id="7529731886943932642">
+      <segment state="initial">
+        <source> Choose how follows work and who should see expanded profile details as profile sections grow. </source>
+        <target> Choose how follows work and who should see expanded profile details as profile sections grow. </target>
+      </segment>
+    </unit>
     <unit id="7536618650694716867">
       <segment state="initial">
         <source> Find answers to common questions or reach out to us directly. </source>
         <target> Trova risposte alle domande comuni o contattaci direttamente. </target>
+      </segment>
+    </unit>
+    <unit id="2502246313488671541">
+      <segment state="initial">
+        <source> Private accounts can approve who follows them. </source>
+        <target> Private accounts can approve who follows them. </target>
       </segment>
     </unit>
     <unit id="250704833554562493">
@@ -6867,10 +7459,10 @@
         <target>Moderazione</target>
       </segment>
     </unit>
-    <unit id="6523645604640002372">
+    <unit id="6529676412063915412">
       <segment state="initial">
-        <source>Admin only activity feed</source>
-        <target>Feed de actividad solo para admins</target>
+        <source> Follow requests </source>
+        <target> Follow requests </target>
       </segment>
     </unit>
     <unit id="6554529363159797991">
@@ -6919,6 +7511,12 @@
       <segment state="initial">
         <source>Your display name is public. Use a nickname if you prefer.</source>
         <target>Il tuo nome visualizzato è pubblico. Usa un nickname se preferisci.</target>
+      </segment>
+    </unit>
+    <unit id="6179206102292432387">
+      <segment state="initial">
+        <source>Community cards</source>
+        <target>Community cards</target>
       </segment>
     </unit>
     <unit id="6179528187219959958">
@@ -7017,6 +7615,12 @@
         <target>Votazione della community in attesa (Spot iconico)</target>
       </segment>
     </unit>
+    <unit id="5111937580799923602">
+      <segment state="initial">
+        <source>Media received. It will appear when processing finishes.</source>
+        <target>Media received. It will appear when processing finishes.</target>
+      </segment>
+    </unit>
     <unit id="5133096532155335173">
       <segment state="initial">
         <source> Start Exploring </source>
@@ -7059,10 +7663,32 @@
         <target>da</target>
       </segment>
     </unit>
+    <unit id="2361381507645842011">
+      <notes>
+        <note category="description">Button to open the spot in Google Maps</note>
+        <note category="meaning">Open in Google maps button</note>
+      </notes>
+      <segment state="initial">
+        <source>Open in Google Maps</source>
+        <target>Open in Google Maps</target>
+      </segment>
+    </unit>
     <unit id="2369409944839137310">
       <segment state="initial">
         <source>A core challenge of this spot. An essential challenge for anyone seeking to master this spot.</source>
         <target>Un Challenge core di questo Spot. Un Challenge essenziale per chiunque cerchi di padroneggiare questo Spot.</target>
+      </segment>
+    </unit>
+    <unit id="3909136360386442402">
+      <segment state="initial">
+        <source>You have blocked this user</source>
+        <target>You have blocked this user</target>
+      </segment>
+    </unit>
+    <unit id="3926626271480005146">
+      <segment state="initial">
+        <source>No votes yet</source>
+        <target>No votes yet</target>
       </segment>
     </unit>
     <unit id="3935646276054511852">
@@ -7107,22 +7733,6 @@
         <target>Supporto</target>
       </segment>
     </unit>
-    <unit id="229373374824614747">
-      <segment state="initial">
-        <source> Activity could not be loaded. </source>
-        <target>Impossibile caricare l’attività.</target>
-      </segment>
-    </unit>
-    <unit id="spot.edit.type_access.header">
-      <notes>
-        <note category="description">Header for type and access editing section</note>
-        <note category="meaning">type and access edit header</note>
-      </notes>
-      <segment state="initial">
-        <source> Type and Access </source>
-        <target> Tipo e Accesso </target>
-      </segment>
-    </unit>
     <unit id="7374538640222631357">
       <segment state="initial">
         <source>This challenge is still private to you!</source>
@@ -7139,6 +7749,12 @@
       <segment state="initial">
         <source>Reject</source>
         <target>Rifiuta</target>
+      </segment>
+    </unit>
+    <unit id="7387583161384879704">
+      <segment state="initial">
+        <source> This prepares profile-only sections for audience controls. </source>
+        <target> This prepares profile-only sections for audience controls. </target>
       </segment>
     </unit>
     <unit id="7408374932533578639">
@@ -7217,6 +7833,12 @@
       <segment state="initial">
         <source>Failed to unlink Google Place</source>
         <target>Impossibile scollegare Google Place</target>
+      </segment>
+    </unit>
+    <unit id="8894493214990278764">
+      <segment state="initial">
+        <source>Error saving profile access settings.</source>
+        <target>Error saving profile access settings.</target>
       </segment>
     </unit>
     <unit id="501118076159295384">
@@ -7410,9 +8032,15 @@
         <target>Challenge in <ph id="0" equiv="PH" disp="spotName"/></target>
       </segment>
     </unit>
+    <unit id="720557322859638078">
+      <segment state="initial">
+        <source>You</source>
+        <target>You</target>
+      </segment>
+    </unit>
     <unit id="7214717827274759008">
       <segment state="initial">
-        <source> This spot&apos;s data is made available under the <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; &gt;" dispEnd="&lt;/a &gt;">CC BY-NC-SA 4.0</pc> license. </source>
+        <source> This spot&apos;s data is made available under the <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; (click)=&quot;trackSourceLinkClick(&apos;license&apos;, &apos;https://creativecommons.org/licenses/by-nc-sa/4.0/&apos;)&quot; &gt;" dispEnd="&lt;/a &gt;">CC BY-NC-SA 4.0</pc> license. </source>
         <target> I dati di questo Spot sono resi disponibili con licenza <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; &gt;" dispEnd="&lt;/a &gt;">CC BY-NC-SA 4.0</pc>. </target>
       </segment>
     </unit>
@@ -7434,10 +8062,28 @@
         <target>modifiche</target>
       </segment>
     </unit>
+    <unit id="7295769845403931650">
+      <segment state="initial">
+        <source>No spot edit votes waiting.</source>
+        <target>No spot edit votes waiting.</target>
+      </segment>
+    </unit>
     <unit id="6607382385355290684">
       <segment state="initial">
         <source>New passwords do not match</source>
         <target>Le nuove password non corrispondono</target>
+      </segment>
+    </unit>
+    <unit id="6609600842422660590">
+      <segment state="initial">
+        <source>Profile visibility</source>
+        <target>Profile visibility</target>
+      </segment>
+    </unit>
+    <unit id="6617774460788833577">
+      <segment state="initial">
+        <source>Save profile access</source>
+        <target>Save profile access</target>
       </segment>
     </unit>
     <unit id="4681995929347025511">
@@ -7491,22 +8137,28 @@
         <target> La tua bio è pubblica. Evita contatti privati e luoghi esatti in cui ti alleni. </target>
       </segment>
     </unit>
-    <unit id="5688462374174490321">
-      <segment state="initial">
-        <source> Load more </source>
-        <target>Carica altro</target>
-      </segment>
-    </unit>
     <unit id="5690746890584837020">
       <segment state="initial">
         <source>Event map</source>
         <target>Mappa evento</target>
       </segment>
     </unit>
+    <unit id="5693332593672944029">
+      <segment state="initial">
+        <source> No pending follow requests. </source>
+        <target> No pending follow requests. </target>
+      </segment>
+    </unit>
     <unit id="4565748598505088180">
       <segment state="initial">
         <source>This link is invalid or has already been used. Please request a new one.</source>
         <target>Questo link non è valido o è già stato utilizzato. Richiedine uno nuovo.</target>
+      </segment>
+    </unit>
+    <unit id="4570454655933825601">
+      <segment state="initial">
+        <source>Review queues</source>
+        <target>Review queues</target>
       </segment>
     </unit>
     <unit id="4570725150232607497">
@@ -7516,6 +8168,12 @@
       <segment state="initial">
         <source>All Participants</source>
         <target>Tutti i partecipanti</target>
+      </segment>
+    </unit>
+    <unit id="8972434095994344487">
+      <segment state="initial">
+        <source>Community card rejected</source>
+        <target>Community card rejected</target>
       </segment>
     </unit>
     <unit id="8981724482694536509">
@@ -7739,6 +8397,12 @@
         <target>Impossibile aggiornare lo Spot salvato</target>
       </segment>
     </unit>
+    <unit id="settings.map_glass_blur.toggle">
+      <segment state="initial">
+        <source> Enable glass blur on the map </source>
+        <target> Attiva l'effetto vetro sfocato sulla mappa </target>
+      </segment>
+    </unit>
     <unit id="1737753151350322492">
       <segment state="initial">
         <source><ph id="0" equiv="PH" disp="this.label"/></source>
@@ -7875,6 +8539,12 @@
         <target>Impossibile aggiornare lo Spot visitato</target>
       </segment>
     </unit>
+    <unit id="1678413991696096733">
+      <segment state="initial">
+        <source>Profile access</source>
+        <target>Profile access</target>
+      </segment>
+    </unit>
     <unit id="3849719587486813146">
       <segment state="initial">
         <source> PK Spot is a free, privacy-first, community-owned map for parkour. The project is built entirely by volunteers to help athletes find spots, connect, and share their local scene. </source>
@@ -7953,6 +8623,12 @@
         <target>Dati aperti</target>
       </segment>
     </unit>
+    <unit id="2715740819906435675">
+      <segment state="initial">
+        <source> Media is processing and will appear here when it is ready. </source>
+        <target> Media is processing and will appear here when it is ready. </target>
+      </segment>
+    </unit>
     <unit id="5753174679285423997">
       <segment state="initial">
         <source>Smart Scorecard</source>
@@ -7971,10 +8647,22 @@
         <target>Rifiutato dall’organizzazione</target>
       </segment>
     </unit>
+    <unit id="1823464937400620836">
+      <segment state="initial">
+        <source> Unblock them to see their profile and posts. </source>
+        <target> Unblock them to see their profile and posts. </target>
+      </segment>
+    </unit>
     <unit id="1826181746940790026">
       <segment state="initial">
         <source>Please wait while we recover your email address...</source>
         <target>Attendi mentre recuperiamo il tuo indirizzo email...</target>
+      </segment>
+    </unit>
+    <unit id="1833519671749660117">
+      <segment state="initial">
+        <source> Public spot contributions will show up here once this profile adds to the map. </source>
+        <target> Public spot contributions will show up here once this profile adds to the map. </target>
       </segment>
     </unit>
     <unit id="1868606282505332204">
@@ -7995,10 +8683,22 @@
         <target><ph id="0" equiv="INTERPOLATION" disp="{{ member.role }}"/></target>
       </segment>
     </unit>
+    <unit id="1898900891846930901">
+      <segment state="initial">
+        <source>Community card suggestion submitted for review</source>
+        <target>Community card suggestion submitted for review</target>
+      </segment>
+    </unit>
     <unit id="3483311644139102304">
       <segment state="initial">
         <source>All Event Challenges</source>
         <target>Tutte le challenge dell&apos;evento</target>
+      </segment>
+    </unit>
+    <unit id="3491250523952834442">
+      <segment state="initial">
+        <source>Mutuals</source>
+        <target>Mutuals</target>
       </segment>
     </unit>
     <unit id="3493126540529865490">
@@ -8034,6 +8734,12 @@
         <target>Interno / Esterno</target>
       </segment>
     </unit>
+    <unit id="4648618547655278196">
+      <segment state="initial">
+        <source>Unknown editor</source>
+        <target>Unknown editor</target>
+      </segment>
+    </unit>
     <unit id="4658982717700339898">
       <segment state="initial">
         <source>Unlink</source>
@@ -8044,6 +8750,12 @@
       <segment state="initial">
         <source>Community knowledge saved</source>
         <target>Conocimiento de comunidad guardado</target>
+      </segment>
+    </unit>
+    <unit id="4667715772382848347">
+      <segment state="initial">
+        <source>Profile not found</source>
+        <target>Profile not found</target>
       </segment>
     </unit>
     <unit id="7435704556903111313">
@@ -8074,6 +8786,12 @@
       <segment state="initial">
         <source>Keep typing to search</source>
         <target>Continua a digitare per cercare</target>
+      </segment>
+    </unit>
+    <unit id="843060855191322991">
+      <segment state="initial">
+        <source>Visible to followers</source>
+        <target>Visible to followers</target>
       </segment>
     </unit>
     <unit id="8431151318560186465">
@@ -8676,8 +9394,14 @@
     </unit>
     <unit id="event_edit.promote_description">
       <segment state="initial">
-        <source> Promotion is admin-only for now. The radius controls where the event can surface in promoted map-island placements. </source>
+        <source> The radius controls where the event can surface in promoted map-island placements. </source>
         <target> La promozione è per ora solo admin. Il raggio controlla dove l’evento può apparire nei posizionamenti promossi della map island. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.promote_disclaimer">
+      <segment state="initial">
+        <source> Disclaimer: enabling promotion can activate the map island for users who are allowed to see this promoted event. </source>
+        <target> Disclaimer: enabling promotion can activate the map island for users who are allowed to see this promoted event. </target>
       </segment>
     </unit>
     <unit id="event_edit.promote_heading">

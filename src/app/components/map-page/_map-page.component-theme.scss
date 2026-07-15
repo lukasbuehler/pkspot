@@ -4,13 +4,7 @@
 @mixin color($theme) {
   .spot-search-field,
   .glass {
-    background-color: color-mix(
-      in srgb,
-      #{mat.get-theme-color($theme, surface-container-high)} 90%,
-      transparent
-    );
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background-color: mat.get-theme-color($theme, surface-container-high);
     // WebKit GPU acceleration to prevent blur flickering during animations
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
@@ -18,13 +12,16 @@
     -webkit-backface-visibility: hidden;
   }
 
-  // Disable live backdrop blur to avoid expensive map compositing.
-  html.map-glass-blur-disabled {
+  html.map-glass-blur-enabled {
     .spot-search-field,
     .glass {
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
-      background-color: mat.get-theme-color($theme, surface-container-high);
+      background-color: color-mix(
+        in srgb,
+        #{mat.get-theme-color($theme, surface-container-high)} 90%,
+        transparent
+      );
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
   }
 

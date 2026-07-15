@@ -417,6 +417,24 @@
             </mat-slide-toggle>
           </div>
 
+          <div class="my-4">
+            <h3 class="mat-h3" i18n="@@settings.map_glass_blur.heading">
+              Map glass blur
+            </h3>
+            <p class="mat-body" i18n="@@settings.map_glass_blur.description">
+              Apply a translucent blur to map controls. This can use more
+              battery and may be less stable on some mobile devices.
+            </p>
+            <mat-slide-toggle
+              [checked]="appSettings.enableMapGlassBlur()"
+              (change)="appSettings.enableMapGlassBlur.set($event.checked)"
+              color="primary"
+              i18n="@@settings.map_glass_blur.toggle"
+            >
+              Enable glass blur on the map
+            </mat-slide-toggle>
+          </div>
+
           <mat-expansion-panel class="my-4">
             <mat-expansion-panel-header>
               <mat-panel-title>Developer options</mat-panel-title>
