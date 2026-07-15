@@ -62,6 +62,10 @@ import { ThemeService } from "../../services/theme.service";
 import { HighlightMarkerComponent } from "../highlight-marker/highlight-marker.component";
 import { AdvancedMapMarkerComponent } from "../map/advanced-map-marker/advanced-map-marker.component";
 import { EventDotMarkerComponent } from "../map/event-dot-marker/event-dot-marker.component";
+import {
+  CommunityDotMarkerComponent,
+  CommunityMapMarker,
+} from "../map/community-dot-marker/community-dot-marker.component";
 import { MapPresenceDotMarkerComponent } from "../map/map-presence-dot-marker/map-presence-dot-marker.component";
 import { GeolocationService } from "../../services/geolocation.service";
 import { SpotPreviewMarkerComponent } from "../spot-preview-marker/spot-preview-marker.component";
@@ -131,7 +135,6 @@ const COMMUNITY_DOT_COLLISION_SIZE_PX = 24;
 const POINT_MARKER_DOT_COLLISION_SIZE_PX = 28;
 const POINT_MARKER_FULL_COLLISION_SIZE_PX = 48;
 const MAP_PROFILE_FULL_SNAPSHOT_INTERVAL_MS = 1_000;
-const POINT_MARKER_NATIVE_CIRCLE_MAX_ZOOM = 13;
 
 interface MarkerCollisionLayoutCache {
   highlightedSpots: SpotPreviewData[];
@@ -189,14 +192,6 @@ interface CircleOverlayRenderState {
   visualZoom: number;
 }
 
-interface PointMarkerCircleRenderState {
-  darkMode: boolean;
-  marker: MapPointMarker;
-  options: google.maps.CircleOptions;
-  radiusM: number;
-  visualZoom: number;
-}
-
 export interface TilesObject {
   zoom: number;
   tiles: { x: number; y: number }[];
@@ -249,6 +244,7 @@ interface WatchedMapCanvas {
     HighlightMarkerComponent,
     AdvancedMapMarkerComponent,
     EventDotMarkerComponent,
+    CommunityDotMarkerComponent,
     MapPresenceDotMarkerComponent,
     SpotPreviewMarkerComponent,
     MatSnackBarModule,
@@ -862,16 +858,8 @@ export class GoogleMap2dComponent
     });
   }
 
-  getVisibleNativeCirclePointMarkers(): MapPointMarker[] {
-    return this.getVisiblePointMarkers().filter((marker) =>
-      this._isPointMarkerRenderedAsNativeCircle(marker),
-    );
-  }
-
   getVisibleHtmlPointMarkers(): MapPointMarker[] {
-    return this.getVisiblePointMarkers().filter(
-      (marker) => !this._isPointMarkerRenderedAsNativeCircle(marker),
-    );
+    return this.getVisiblePointMarkers();
   }
 
   private _getVisibleHighlightedSpotPreviews(): SpotPreviewData[] {
@@ -1104,7 +1092,8 @@ export class GoogleMap2dComponent
       .filter(
         (marker) =>
           this._isCommunityCollisionMarker(marker) &&
-          this._isPointMarkerVisibleAtZoom(marker, zoom),
+          this._isPointMarkerVisibleAtZoom(marker, zoom) &&
+          marker.ignoreCollisions !== true,
       )
       .map((marker): MapMarkerCollisionCandidate => {
         const sizePx = marker.forceFullMarker
@@ -1229,28 +1218,6 @@ export class GoogleMap2dComponent
     );
   }
 
-  private _isPointMarkerRenderedAsNativeCircle(
-    marker: MapPointMarker,
-  ): boolean {
-    const zoom = this.googleMap?.getZoom() ?? this.zoom;
-    if (zoom > POINT_MARKER_NATIVE_CIRCLE_MAX_ZOOM) {
-      return false;
-    }
-
-    if (
-      marker.forceFullMarker ||
-      marker.priority === "required" ||
-      marker.ignoreCollisions
-    ) {
-      return false;
-    }
-
-    return (
-      this._isEventCollisionMarker(marker) ||
-      this._isCommunityCollisionMarker(marker)
-    );
-  }
-
   private _getPointMarkerCollisionSize(
     marker: MapPointMarker,
     zoom: number,
@@ -1367,11 +1334,13 @@ export class GoogleMap2dComponent
   @Input() bottomSheetOffset: boolean = false;
 
   @Input() pointMarkers: MapPointMarker[] = [];
+  @Input() communityDotMarkers: CommunityMapMarker[] = [];
   @Input() circleOverlays: MapCircleOverlay[] = [];
   @Input() boundsOverlays: MapBoundsOverlay[] = [];
   @Input() polygonOverlays: MapPolygonOverlay[] = [];
   @Input() featureBoundaryOverlay: MapFeatureBoundaryOverlay | null = null;
   @Output() pointMarkerClick = new EventEmitter<MapPointMarker>();
+  @Output() communityMarkerClick = new EventEmitter<string>();
   @Output() circleOverlayClick = new EventEmitter<MapCircleOverlay>();
   @Output() boundsOverlayClick = new EventEmitter<MapBoundsOverlay>();
   @Output() polygonOverlayClick = new EventEmitter<MapPolygonOverlay>();
@@ -1395,11 +1364,6 @@ export class GoogleMap2dComponent
     MapCircleOverlay,
     CircleOverlayRenderState
   >();
-  private readonly _pointMarkerCircleRenderStateCache = new WeakMap<
-    MapPointMarker,
-    PointMarkerCircleRenderState
-  >();
-
   /**
    * Passive locality circles begin with the stronger dot treatment while
    * they are tiny, then ease toward the softer active-circle treatment as
@@ -1408,14 +1372,6 @@ export class GoogleMap2dComponent
    */
   circleOverlayOptions(circle: MapCircleOverlay): google.maps.CircleOptions {
     return this._getCircleOverlayRenderState(circle).options;
-  }
-
-  pointMarkerCircleOptions(marker: MapPointMarker): google.maps.CircleOptions {
-    return this._getPointMarkerCircleRenderState(marker).options;
-  }
-
-  pointMarkerCircleRadius(marker: MapPointMarker): number {
-    return this._getPointMarkerCircleRenderState(marker).radiusM;
   }
 
   isCircleOverlayClickable(circle: MapCircleOverlay): boolean {
@@ -1438,10 +1394,13 @@ export class GoogleMap2dComponent
     }
 
     const diameterPx = this._circleDiameterPx(circle);
-    const fade = this._smoothstep(10, 320, diameterPx);
-    const primary = this._getCssColorAsHex("--mat-sys-primary", "#0036ba");
-    const primaryBorder = this._getCssColorAsHex(
-      "--mat-sys-on-primary-container",
+    const fade = this._smoothstep(8, 320, diameterPx);
+    const lightBlue = this._getCssColorAsHex(
+      "--mat-sys-primary-fixed",
+      "#dbe1ff",
+    );
+    const darkBlueBorder = this._getCssColorAsHex(
+      "--mat-sys-on-primary-fixed-variant",
       "#001a67",
     );
 
@@ -1449,10 +1408,10 @@ export class GoogleMap2dComponent
       (circle.options?.clickable ?? true) &&
       diameterPx <= this.COMMUNITY_CIRCLE_CLICK_MAX_DIAMETER_PX;
     const options: google.maps.CircleOptions = {
-      fillColor: primary,
-      fillOpacity: this._lerp(0.85, 0.08, fade),
-      strokeColor: this._mixHexColor(primaryBorder, primary, fade),
-      strokeOpacity: this._lerp(1, 0.28, fade),
+      fillColor: lightBlue,
+      fillOpacity: this._lerp(0.85, 0, fade),
+      strokeColor: darkBlueBorder,
+      strokeOpacity: this._lerp(1, 0, fade),
       strokeWeight: this._lerp(1, 1, fade),
       ...circle.options,
       clickable,
@@ -1469,49 +1428,6 @@ export class GoogleMap2dComponent
     return state;
   }
 
-  private _getPointMarkerCircleRenderState(
-    marker: MapPointMarker,
-  ): PointMarkerCircleRenderState {
-    const darkMode = this.resolvedDarkMode();
-    const visualZoom = this._communityVisualZoom();
-    const cached = this._pointMarkerCircleRenderStateCache.get(marker);
-    if (
-      cached &&
-      cached.darkMode === darkMode &&
-      cached.marker === marker &&
-      cached.visualZoom === visualZoom
-    ) {
-      return cached;
-    }
-
-    const fillColor = this._getMarkerCssColor(marker.color);
-    const strokeColor = this._getMarkerCssStrokeColor(marker.color);
-    const radiusPx = this._isEventCollisionMarker(marker) ? 7 : 5;
-    const radiusM = Math.max(
-      1,
-      radiusPx *
-        this._metersPerPixelAtLatitude(marker.location.lat, visualZoom),
-    );
-    const options: google.maps.CircleOptions = {
-      clickable: true,
-      fillColor,
-      fillOpacity: this._isEventCollisionMarker(marker) ? 0.9 : 0.82,
-      strokeColor,
-      strokeOpacity: 1,
-      strokeWeight: this._isEventCollisionMarker(marker) ? 2 : 1,
-      zIndex: getMapMarkerPriority(marker),
-    };
-    const state: PointMarkerCircleRenderState = {
-      darkMode,
-      marker,
-      options,
-      radiusM,
-      visualZoom,
-    };
-    this._pointMarkerCircleRenderStateCache.set(marker, state);
-    return state;
-  }
-
   private _circleDiameterPx(circle: MapCircleOverlay): number {
     return (
       (circle.radiusM * 2) /
@@ -1520,43 +1436,6 @@ export class GoogleMap2dComponent
         this._communityVisualZoom(),
       )
     );
-  }
-
-  private _getMarkerCssColor(color: MapPointMarker["color"]): string {
-    switch (color) {
-      case "secondary":
-        return this._getCssColorAsHex("--mat-sys-secondary", "#1a6c19");
-      case "tertiary":
-        return this._getCssColorAsHex("--mat-sys-tertiary", "#625b71");
-      case "gray":
-        return this._getCssColorAsHex("--mat-sys-outline", "#79747e");
-      case "primary":
-      default:
-        return this._getCssColorAsHex("--mat-sys-primary", "#0036ba");
-    }
-  }
-
-  private _getMarkerCssStrokeColor(color: MapPointMarker["color"]): string {
-    switch (color) {
-      case "secondary":
-        return this._getCssColorAsHex(
-          "--mat-sys-on-secondary-container",
-          "#002204",
-        );
-      case "tertiary":
-        return this._getCssColorAsHex(
-          "--mat-sys-on-tertiary-container",
-          "#1d192b",
-        );
-      case "gray":
-        return this._getCssColorAsHex("--mat-sys-surface", "#ffffff");
-      case "primary":
-      default:
-        return this._getCssColorAsHex(
-          "--mat-sys-on-primary-container",
-          "#001a67",
-        );
-    }
   }
 
   private _metersPerPixelAtLatitude(latitude: number, zoom: number): number {

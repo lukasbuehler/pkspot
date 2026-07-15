@@ -119,6 +119,7 @@
 .advanced-map-marker-shell.preview-enabled.preview-visible
   .advanced-map-marker-preview {
   opacity: 1;
+  pointer-events: auto;
   transform: translateX(-50%);
   transition: opacity 0.18s ease;
 }

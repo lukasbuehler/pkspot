@@ -4153,6 +4153,36 @@
         <target> Community’s waarin dit evenement zichtbaar moet zijn. Automatisch voorgesteld vanuit het evenementgebied — pas aan waar nodig. </target>
       </segment>
     </unit>
+    <unit id="event_edit.community_search_empty">
+      <segment state="initial">
+        <source> No matching communities found </source>
+        <target> Geen overeenkomende communities gevonden </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.community_search_hint">
+      <segment state="initial">
+        <source> Select a community to link this event to it. </source>
+        <target> Selecteer een community om aan dit evenement te koppelen. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.community_search_label">
+      <segment state="initial">
+        <source> Search communities to link </source>
+        <target> Communities zoeken om te koppelen </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.community_search_loading">
+      <segment state="initial">
+        <source> Searching communities… </source>
+        <target> Communities zoeken… </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.community_search_placeholder">
+      <segment state="initial">
+        <source>Search by community, city, region, or country</source>
+        <target>Zoek op community, stad, regio of land</target>
+      </segment>
+    </unit>
     <unit id="event_edit.community_suggestions">
       <segment state="initial">
         <source> Suggested: </source>

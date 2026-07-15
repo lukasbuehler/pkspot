@@ -43,6 +43,7 @@ describe("EventEditFormComponent", () => {
           provide: SearchService,
           useValue: {
             listCommunities: vi.fn().mockResolvedValue([]),
+            searchCommunities: vi.fn().mockResolvedValue([]),
             searchPlaces: vi.fn().mockResolvedValue([]),
             searchSpots: vi.fn().mockResolvedValue({ hits: [], found: 0 }),
             getSpotPreviewFromHit: vi.fn(),
@@ -107,6 +108,40 @@ describe("EventEditFormComponent", () => {
 
     expect(component.areaPath()).toEqual(drawnArea);
     expect(component.areaTouched()).toBe(true);
+  });
+
+  it("searches published communities and links the selected community key", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const searchService = TestBed.inject(SearchService) as unknown as {
+      searchCommunities: ReturnType<typeof vi.fn>;
+    };
+    const community = {
+      id: "zurich",
+      communityKey: "locality:zurich",
+      slug: "zurich",
+      displayName: "Zurich",
+      scope: "locality" as const,
+      countryName: "Switzerland",
+      totalSpots: 42,
+    };
+    searchService.searchCommunities.mockResolvedValue([community]);
+    const editor = component as unknown as {
+      _communitySearchRequestId: number;
+      _searchCommunityOptions(query: string, requestId: number): Promise<void>;
+    };
+
+    await editor._searchCommunityOptions("zur", editor._communitySearchRequestId);
+
+    expect(searchService.searchCommunities).toHaveBeenCalledWith("zur");
+    expect(component.communitySearchResults()).toEqual([community]);
+
+    component.onCommunitySearchSelected({
+      option: { value: community },
+    } as never);
+
+    expect(component.communityKeys()).toEqual(["locality:zurich"]);
+    expect(component.communitySearchControl.value).toBe("");
   });
 
   it("includes a live picker area on submit even when areaChange did not fire", async () => {

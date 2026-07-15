@@ -20,8 +20,10 @@
 <map-advanced-marker
   [position]="marker().location"
   [content]="eventMarker"
+  [title]="ariaLabel()"
+  [gmpClickable]="true"
   [zIndex]="zIndex()"
   [options]="markerOptions()"
-  (mapClick)="markerClick.emit(marker())"
+  (gmpClick)="markerClick.emit(marker())"
   (markerInitialized)="centerMarkerAnchor($event)"
 ></map-advanced-marker>

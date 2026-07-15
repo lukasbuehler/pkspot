@@ -798,10 +798,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   });
 
   /**
-   * Community map areas show for localities in All and Communities modes.
-   * Communities mode additionally decorates every community with a full pin.
-   * Hide the currently-selected community's marker because the area overlay
-   * and panel already convey it.
+   * All mode includes every loaded community as a compact map presence;
+   * locality dots hand off to their geographic area as the map approaches.
+   * Communities mode decorates every community with a full pin instead.
    */
   availableCommunityMarkers = computed<CommunityMapMarker[]>(() => {
     const mode = this.mapObjectMode();

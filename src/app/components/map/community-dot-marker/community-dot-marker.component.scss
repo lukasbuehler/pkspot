@@ -4,9 +4,14 @@
 
 .community-dot {
   border-radius: 50%;
-  background-color: var(--mat-sys-primary-container);
-  border: 1px solid var(--mat-sys-primary);
-  box-shadow: 0 0 4px var(--mat-sys-primary);
+  background-color: var(
+    --mat-sys-primary-fixed,
+    var(--mat-sys-primary-container)
+  );
+  border: 1px solid
+    var(--mat-sys-on-primary-fixed-variant, var(--mat-sys-primary));
+  box-shadow: 0 0 4px
+    var(--mat-sys-on-primary-fixed-variant, var(--mat-sys-primary));
   opacity: 0.85;
   cursor: pointer;
   transition:

@@ -73,7 +73,10 @@ import { MediaSchema, StorageBucket } from "../../../db/schemas/Media";
 import { LocaleMap, MediaType } from "../../../db/models/Interfaces";
 import { makeLocaleMapFromObject } from "../../../scripts/LanguageHelpers";
 import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
-import { SearchService } from "../../services/search.service";
+import {
+  CommunitySearchPreview,
+  SearchService,
+} from "../../services/search.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { MapsApiService } from "../../services/maps-api.service";
 import { BoundsPickerComponent } from "../bounds-picker/bounds-picker.component";
@@ -325,6 +328,8 @@ export class EventEditFormComponent {
   private _loadedEventId: string | null = null;
   private _locationSearchTimer: ReturnType<typeof setTimeout> | null = null;
   private _locationSearchRequestId = 0;
+  private _communitySearchTimer: ReturnType<typeof setTimeout> | null = null;
+  private _communitySearchRequestId = 0;
   @ViewChild(BoundsPickerComponent) private _boundsPicker?: BoundsPickerComponent;
 
   /** Storage folder for banner / logo / sponsor-logo uploads. */
@@ -381,6 +386,9 @@ export class EventEditFormComponent {
   locationSearchControl = new FormControl<string | EventLocationSearchOption>(
     "",
   );
+  communitySearchControl = new FormControl<string | CommunitySearchPreview>(
+    "",
+  );
 
   /**
    * Event location and optional area state — kept outside the FormGroup
@@ -418,6 +426,9 @@ export class EventEditFormComponent {
   seriesMemberships = signal<EditableSeriesMembership[]>([]);
   locationSearchResults = signal<EventLocationSearchOption[]>([]);
   locationSearchLoading = signal<boolean>(false);
+  communitySearchQuery = signal<string>("");
+  communitySearchResults = signal<CommunitySearchPreview[]>([]);
+  communitySearchLoading = signal<boolean>(false);
   private _descriptionLocaleMap = signal<LocaleMap | undefined>(undefined);
   readonly featuredParticipantTypes = [
     "person",
@@ -506,6 +517,14 @@ export class EventEditFormComponent {
     if (!value) return "";
     return typeof value === "string" ? value : value.label;
   };
+  readonly displayCommunitySearchOption = (
+    value: CommunitySearchPreview | string | null,
+  ): string => {
+    if (!value) return "";
+    return typeof value === "string"
+      ? value
+      : value.displayName || value.communityKey;
+  };
 
   readonly formattedLocation = computed(() => {
     const location = this.location();
@@ -579,6 +598,7 @@ export class EventEditFormComponent {
         this._descriptionLocaleMap.set(undefined);
         this.locationSearchControl.setValue("", { emitEvent: false });
         this.locationSearchResults.set([]);
+        this._resetCommunitySearch();
         return;
       }
       if (this._loadedEventId === e.id) {
@@ -769,6 +789,7 @@ export class EventEditFormComponent {
       this._descriptionLocaleMap.set(e.descriptions);
       this.locationSearchControl.setValue("", { emitEvent: false });
       this.locationSearchResults.set([]);
+      this._resetCommunitySearch();
     });
 
     this._loadOrganizations();
@@ -872,6 +893,41 @@ export class EventEditFormComponent {
     this.selectedOrganizer.set(reference);
     this.organizerQuery.set(reference.name);
     this.form.patchValue({ organizer_query: reference.name });
+  }
+
+  onCommunitySearchInput(event: Event): void {
+    const input = event.target instanceof HTMLInputElement ? event.target : null;
+    const query = input?.value.trim() ?? "";
+    const requestId = ++this._communitySearchRequestId;
+    this.communitySearchQuery.set(query);
+
+    if (this._communitySearchTimer) {
+      clearTimeout(this._communitySearchTimer);
+    }
+    if (query.length < 2) {
+      this.communitySearchResults.set([]);
+      this.communitySearchLoading.set(false);
+      return;
+    }
+
+    this.communitySearchLoading.set(true);
+    this._communitySearchTimer = setTimeout(() => {
+      void this._searchCommunityOptions(query, requestId);
+    }, 250);
+  }
+
+  onCommunitySearchSelected(event: MatAutocompleteSelectedEvent): void {
+    const community = event.option.value as CommunitySearchPreview;
+    this.addCommunityKey(community.communityKey);
+    this._resetCommunitySearch();
+  }
+
+  communitySearchSubtitle(community: CommunitySearchPreview): string {
+    const parts = [
+      community.scope === "locality" ? community.regionName : undefined,
+      community.scope !== "country" ? community.countryName : undefined,
+    ].filter((part): part is string => !!part);
+    return parts.join(", ");
   }
 
   removeCommunityKey(key: string): void {
@@ -1850,6 +1906,44 @@ export class EventEditFormComponent {
         this.locationSearchLoading.set(false);
       }
     }
+  }
+
+  private async _searchCommunityOptions(
+    query: string,
+    requestId: number,
+  ): Promise<void> {
+    try {
+      const results = await this._searchService.searchCommunities(query);
+      if (requestId !== this._communitySearchRequestId) return;
+      const selected = new Set(this.communityKeys());
+
+      this.communitySearchResults.set(
+        results
+          .filter((community) => !selected.has(community.communityKey))
+          .slice(0, 10),
+      );
+    } catch (err) {
+      if (requestId === this._communitySearchRequestId) {
+        console.warn("EventEditForm: community search failed", err);
+        this.communitySearchResults.set([]);
+      }
+    } finally {
+      if (requestId === this._communitySearchRequestId) {
+        this.communitySearchLoading.set(false);
+      }
+    }
+  }
+
+  private _resetCommunitySearch(): void {
+    ++this._communitySearchRequestId;
+    if (this._communitySearchTimer) {
+      clearTimeout(this._communitySearchTimer);
+      this._communitySearchTimer = null;
+    }
+    this.communitySearchControl.setValue("", { emitEvent: false });
+    this.communitySearchQuery.set("");
+    this.communitySearchResults.set([]);
+    this.communitySearchLoading.set(false);
   }
 
   private _spotLocationOptionsFromResult(

@@ -9,11 +9,9 @@ import {
 } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
-import { ImportSchema } from "../../../db/schemas/ImportSchema";
+import { PublicImportProvenance } from "../../../db/schemas/ImportSchema";
 import { ImportsService } from "../../services/firebase/firestore/imports.service";
 import { AnalyticsService } from "../../services/analytics.service";
-
-type ImportDocument = ImportSchema & { id: string };
 
 @Component({
   selector: "app-spot-provenance",
@@ -28,7 +26,7 @@ export class SpotProvenanceComponent {
   private _importsService = inject(ImportsService);
   private _analytics = inject(AnalyticsService);
   private _importLookupRequestId = 0;
-  private _importDoc = signal<ImportDocument | null>(null);
+  private _importProvenance = signal<PublicImportProvenance | null>(null);
 
   sourceRaw = computed(() => this.spot()?.source()?.trim() ?? "");
 
@@ -41,9 +39,9 @@ export class SpotProvenanceComponent {
   });
 
   sourceDisplayText = computed(() => {
-    const importDoc = this._importDoc();
-    if (importDoc?.credits?.source_name) {
-      return importDoc.credits.source_name;
+    const provenance = this._importProvenance();
+    if (provenance?.source_name) {
+      return provenance.source_name;
     }
 
     const source = this.sourceRaw();
@@ -60,19 +58,19 @@ export class SpotProvenanceComponent {
   });
 
   importedAttributionText = computed(() => {
-    const text = this._importDoc()?.credits?.attribution_text?.trim();
+    const text = this._importProvenance()?.attribution_text?.trim();
     return text && text.length > 0 ? text : null;
   });
 
   importViewerUrl = computed(() =>
-    this._safeExternalUrl(this._importDoc()?.viewer_url)
+    this._safeExternalUrl(this._importProvenance()?.viewer_url)
   );
 
   sourceUrl = computed(() => {
-    const importDoc = this._importDoc();
+    const provenance = this._importProvenance();
     const importWebsite =
-      this._safeExternalUrl(importDoc?.credits?.website_url) ??
-      this._safeExternalUrl(importDoc?.source_url);
+      this._safeExternalUrl(provenance?.website_url) ??
+      this._safeExternalUrl(provenance?.source_url);
     return importWebsite ?? this._safeExternalUrl(this.sourceRaw());
   });
 
@@ -83,7 +81,7 @@ export class SpotProvenanceComponent {
   });
 
   instagramUrl = computed(() =>
-    this._safeExternalUrl(this._importDoc()?.credits?.instagram_url)
+    this._safeExternalUrl(this._importProvenance()?.instagram_url)
   );
 
   trackSourceLinkClick(
@@ -104,26 +102,26 @@ export class SpotProvenanceComponent {
       const requestId = ++this._importLookupRequestId;
       const importId = this._importId();
 
-      this._importDoc.set(null);
+      this._importProvenance.set(null);
 
       if (!importId) {
         return;
       }
 
       void this._importsService
-        .getImportById(importId)
-        .then((importDoc) => {
+        .getPublicProvenanceById(importId)
+        .then((provenance) => {
           if (requestId !== this._importLookupRequestId) {
             return;
           }
-          this._importDoc.set(importDoc);
+          this._importProvenance.set(provenance);
         })
         .catch((error) => {
           if (requestId !== this._importLookupRequestId) {
             return;
           }
           console.warn("Could not load import provenance", importId, error);
-          this._importDoc.set(null);
+          this._importProvenance.set(null);
         });
     });
   }

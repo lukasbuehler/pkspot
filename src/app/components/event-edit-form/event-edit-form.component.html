@@ -1916,6 +1916,63 @@
           the event's area — adjust as needed.
         </p>
 
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label i18n="@@event_edit.community_search_label">
+            Search communities to link
+          </mat-label>
+          <input
+            matInput
+            [formControl]="communitySearchControl"
+            [matAutocomplete]="communitySearchAutocomplete"
+            i18n-placeholder="@@event_edit.community_search_placeholder"
+            placeholder="Search by community, city, region, or country"
+            (input)="onCommunitySearchInput($event)"
+          />
+          <mat-icon matSuffix>search</mat-icon>
+          <mat-autocomplete
+            #communitySearchAutocomplete="matAutocomplete"
+            [displayWith]="displayCommunitySearchOption"
+            (optionSelected)="onCommunitySearchSelected($event)"
+          >
+            @if (communitySearchLoading()) {
+              <mat-option disabled>
+                <span i18n="@@event_edit.community_search_loading">
+                  Searching communities…
+                </span>
+              </mat-option>
+            }
+            @for (community of communitySearchResults(); track community.communityKey) {
+              <mat-option [value]="community">
+                <div class="location-search-option">
+                  <mat-icon>groups</mat-icon>
+                  <span class="location-search-option__text">
+                    <span class="mat-body-medium">
+                      {{ community.displayName || community.communityKey }}
+                    </span>
+                    @if (communitySearchSubtitle(community)) {
+                      <span class="mat-label-small text-muted">
+                        {{ communitySearchSubtitle(community) }}
+                      </span>
+                    }
+                  </span>
+                </div>
+              </mat-option>
+            }
+            @if (
+              communitySearchQuery().length >= 2 &&
+              !communitySearchLoading() &&
+              communitySearchResults().length === 0
+            ) {
+              <mat-option disabled i18n="@@event_edit.community_search_empty">
+                No matching communities found
+              </mat-option>
+            }
+          </mat-autocomplete>
+          <mat-hint i18n="@@event_edit.community_search_hint">
+            Select a community to link this event to it.
+          </mat-hint>
+        </mat-form-field>
+
         @if (communityKeys().length > 0) {
           <mat-chip-set class="community-chips">
             @for (key of communityKeys(); track key) {

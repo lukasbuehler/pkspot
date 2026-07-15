@@ -25,6 +25,20 @@ export interface ImportCreditSchema {
   license?: string;
 }
 
+/**
+ * The attribution fields that may be shown wherever an imported spot is public.
+ * Import records also contain uploader and review data, so clients must retrieve
+ * this shape through the public provenance endpoint instead of reading imports.
+ */
+export interface PublicImportProvenance {
+  source_name: string;
+  attribution_text?: string;
+  website_url?: string;
+  instagram_url?: string;
+  source_url?: string;
+  viewer_url?: string;
+}
+
 export interface ImportLegalSchema {
   confirmed_rights: boolean;
   confirmed_external_image_rights: boolean;

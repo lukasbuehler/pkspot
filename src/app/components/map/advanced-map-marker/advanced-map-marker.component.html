@@ -5,13 +5,8 @@
   [class.advanced-map-marker-shell--full]="!useDotMode()"
   [class.preview-enabled]="!useDotMode() && hoverPreviewEnabled()"
   [class.preview-visible]="!useDotMode() && previewVisible()"
-  tabindex="0"
-  role="button"
-  [attr.aria-label]="marker().name"
   (mouseenter)="showPreview()"
   (mouseleave)="hidePreview()"
-  (focus)="showPreview()"
-  (blur)="hidePreview()"
 >
   @if(useDotMode()) {
   <div
@@ -22,7 +17,10 @@
   ></div>
   } @else {
   @if(hoverPreviewEnabled() && marker().name) {
-  <div class="advanced-map-marker-preview">
+  <div
+    class="advanced-map-marker-preview"
+    (click)="onPreviewClick($event)"
+  >
     <div class="advanced-map-marker-card">
       <div class="advanced-map-marker-card__heading">
         <span class="mat-title-medium">{{ marker().name }}</span>
@@ -73,13 +71,14 @@
     [color]="marker().color ?? 'primary'"
     [size]="marker().size ?? 0.8"
     [title]="marker().name"
-    (click)="onMarkerContentClick(markerShell)"
   />
   }
 </div>
 <map-advanced-marker
+  [title]="marker().name ?? ''"
   [position]="marker().location"
   [content]="markerShell"
+  [gmpClickable]="true"
   [options]="markerOptions()"
-  (mapClick)="onMapMarkerClick(markerShell, $event)"
+  (gmpClick)="onMapMarkerClick($event)"
 />

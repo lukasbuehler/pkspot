@@ -41,6 +41,7 @@ import {
   TilesObject,
 } from "../google-map-2d/google-map-2d.component";
 import { CommunityMapMarker } from "../map/community-dot-marker/community-dot-marker.component";
+import { shouldShowCommunityDot } from "../map/community-dot-marker/community-map-rendering";
 import { VisibleViewport } from "../maps/map-base";
 import {
   MapBoundsOverlay,
@@ -384,9 +385,12 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         center: communityArea.center,
         radiusM: communityArea.radiusM,
         options: {
-          fillColor: this._getCssColorAsHex("--mat-sys-primary", "#0036ba"),
+          fillColor: this._getCssColorAsHex(
+            "--mat-sys-primary-fixed",
+            "#dbe1ff",
+          ),
           strokeColor: this._getCssColorAsHex(
-            "--mat-sys-on-primary-container",
+            "--mat-sys-on-primary-fixed-variant",
             "#001a67",
           ),
           fillOpacity: 0.04,
@@ -433,76 +437,35 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   private _shouldShowCommunityCenterDot(
     community: CommunityMapMarker,
   ): boolean {
-    return (
-      this._communityCircleDiameterPx(community) <=
-      this._communityDotDiameterPx(community)
-    );
+    return shouldShowCommunityDot(community, this.mapZoom());
   }
 
-  private _isCommunityCircleClickable(community: CommunityMapMarker): boolean {
-    return this._communityCircleDiameterPx(community) <= 320;
-  }
-
-  private _communityCircleDiameterPx(community: CommunityMapMarker): number {
-    return (
-      (community.radiusM * 2) /
-      this._metersPerPixelAtLatitude(community.center.lat, this.mapZoom())
-    );
-  }
-
-  private _communityDotDiameterPx(community: CommunityMapMarker): number {
-    switch (community.scope) {
-      case "country":
-        return 20;
-      case "region":
-        return 14;
-      case "locality":
-        return 10;
-      default:
-        return 12;
-    }
-  }
-
-  private _metersPerPixelAtLatitude(latitude: number, zoom: number): number {
-    const latitudeRadians = (latitude * Math.PI) / 180;
-    return (156_543.033_92 * Math.cos(latitudeRadians)) / Math.pow(2, zoom);
-  }
+  readonly communityDotMarkers = computed<CommunityMapMarker[]>(() =>
+    this.availableCommunities.filter(
+      (community) =>
+        !community.pinVisible && this._shouldShowCommunityCenterDot(community),
+    ),
+  );
 
   readonly communityPointMarkers = computed<MapPointMarker[]>(() =>
     this.availableCommunities
-      .filter(
-        (community) =>
-          community.pinVisible || this._shouldShowCommunityCenterDot(community),
-      )
+      .filter((community) => community.pinVisible)
       .map((community) => ({
         id: `community:${community.communityKey}`,
         name: community.displayName,
         location: community.center,
         color: "primary",
         type: "community",
-        number: community.pinVisible ? community.pinLabel : undefined,
-        numberVariant:
-          community.pinVisible && community.pinLabel ? "flag" : "default",
-        icons: community.pinVisible
-          ? community.pinLabel
-            ? undefined
-            : [community.pinIcon ?? "location_city"]
-          : undefined,
-        forceFullMarker: community.pinVisible ?? false,
-        maxZoom: undefined,
-        dotModeThreshold: community.pinVisible
+        number: community.pinLabel,
+        numberVariant: community.pinLabel ? "flag" : "default",
+        icons: community.pinLabel
           ? undefined
-          : Number.POSITIVE_INFINITY,
-        priority: community.pinVisible
-          ? community.scope === "country"
-            ? "required"
-            : 340
-          : 40,
-        ignoreCollisions: community.pinVisible ? undefined : true,
-        size: community.pinVisible
-          ? (community.pinSize ??
-            (community.scope === "country" ? 0.94 : 0.86))
-          : undefined,
+          : [community.pinIcon ?? "location_city"],
+        forceFullMarker: true,
+        priority: community.scope === "country" ? "required" : 340,
+        size:
+          community.pinSize ??
+          (community.scope === "country" ? 0.94 : 0.86),
       })),
   );
 
@@ -510,28 +473,19 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     this.availableCommunities
       .filter(
         (community) =>
+          !community.pinVisible &&
           community.scope === "locality" &&
           !this._shouldShowCommunityCenterDot(community),
       )
-      .map((community) => {
-        const clickable = this._isCommunityCircleClickable(community);
-
-        return {
-          id: `community:${community.communityKey}`,
-          center: community.center,
-          radiusM: community.radiusM,
-          options: {
-            clickable,
-            zIndex: 1,
-            ...(clickable
-              ? {}
-              : {
-                  fillOpacity: 0,
-                  strokeOpacity: 0,
-                }),
-          },
-        };
-      }),
+      .map((community) => ({
+        id: `community:${community.communityKey}`,
+        center: community.center,
+        radiusM: community.radiusM,
+        options: {
+          clickable: true,
+          zIndex: 1,
+        },
+      })),
   );
 
   headingIsNotNorth: Signal<boolean> = computed(() => {

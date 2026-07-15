@@ -491,7 +491,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
 
     if (spot instanceof LocalSpot) {
       const index = this.spots().findIndex((candidate) => candidate === spot);
-      return index >= 0 ? (this.event()?.inlineSpots[index]?.id ?? null) : null;
+      return index >= 0
+        ? (this.event()?.inlineSpots[index]?.id ?? `event-local-spot-${index}`)
+        : null;
     }
 
     const id = String(spot.id);

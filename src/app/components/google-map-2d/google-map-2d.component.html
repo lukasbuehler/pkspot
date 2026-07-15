@@ -40,6 +40,11 @@
 
   }
 
+  @for (community of communityDotMarkers; track community.communityKey) {
+  <app-community-dot-marker [community]="community" [zIndex]="2"
+    (markerClick)="communityMarkerClick.emit($event)" />
+  }
+
   <!-- Preserve community density without creating a marker component for every collided spot. -->
   @for (marker of getCollapsedCommunityMarkers(); track marker.id) {
   <app-map-presence-dot-marker [position]="marker.location" [label]="marker.name ?? marker.id" [size]="6"
@@ -142,8 +147,8 @@
     <!-- Check-In Marker (show when there's a proximity spot and it's not the selected spot) -->
     @if(shouldShowCheckInMarker()) {
     <map-advanced-marker [position]="getCheckInSpotLocation()!"
-      [content]="checkInSpotMarkerNode.elementRef.nativeElement" [zIndex]="60001"
-      (mapClick)="spotClick.emit(checkInSpot()!)"></map-advanced-marker>
+      [content]="checkInSpotMarkerNode.elementRef.nativeElement" [zIndex]="60001" [gmpClickable]="true"
+      (gmpClick)="spotClick.emit(checkInSpot()!)"></map-advanced-marker>
     <app-marker #checkInSpotMarkerNode class="fade-in" [isCheckIn]="true" [clickable]="true"
       (click)="spotClick.emit(checkInSpot()!)"></app-marker>
     }
@@ -176,23 +181,20 @@
       [hoverPreviewEnabled]="marker.type === 'event-custom'"
       (markerClick)="markerClick($event)"></app-advanced-map-marker>
     }
-    @for(marker of getVisibleNativeCirclePointMarkers(); track marker.id) {
-    <map-circle [center]="marker.location" [radius]="pointMarkerCircleRadius(marker)"
-      [options]="pointMarkerCircleOptions(marker)" (circleClick)="pointMarkerClick.emit(marker)"></map-circle>
-    }
     @for(marker of getVisibleHtmlPointMarkers(); track marker.id) {
     @if(marker.type === "event") {
     <app-event-dot-marker [marker]="marker" (markerClick)="pointMarkerClick.emit($event)"></app-event-dot-marker>
     } @else {
     <app-advanced-map-marker [marker]="marker" [index]="$index" [zoom]="zoom"
-      [forceFullMarker]="marker.forceFullMarker ?? false" [dotModeThreshold]="marker.dotModeThreshold ?? 17"
+      [forceFullMarker]="marker.type !== 'community' || (marker.forceFullMarker ?? false)"
+      [dotModeThreshold]="marker.dotModeThreshold ?? 17"
       [emitDotClick]="true" (markerClick)="pointMarkerClick.emit(marker)"></app-advanced-map-marker>
     }
     }
     <!-- Additional Markers (amenities, custom markers, etc.) -->
     @if(zoom >= 16) { @for(marker of markers(); track trackMarker($index, marker))
     {
-    <app-advanced-map-marker [marker]="marker" [index]="$index" [zoom]="zoom"
+    <app-advanced-map-marker [marker]="marker" [index]="$index" [zoom]="zoom" [forceFullMarker]="true"
       (markerClick)="markerClick($event)"></app-advanced-map-marker>
     } }
 

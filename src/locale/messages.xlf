@@ -2107,6 +2107,31 @@
         <source> Communities that should surface this event. Auto-suggested from the event&apos;s area — adjust as needed. </source>
       </segment>
     </unit>
+    <unit id="event_edit.community_search_empty">
+      <segment>
+        <source> No matching communities found </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.community_search_hint">
+      <segment>
+        <source> Select a community to link this event to it. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.community_search_label">
+      <segment>
+        <source> Search communities to link </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.community_search_loading">
+      <segment>
+        <source> Searching communities… </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.community_search_placeholder">
+      <segment>
+        <source>Search by community, city, region, or country</source>
+      </segment>
+    </unit>
     <unit id="event_edit.community_suggestions">
       <segment>
         <source> Suggested: </source>

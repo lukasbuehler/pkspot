@@ -130,10 +130,26 @@ type EventMapTab = "event" | "spots" | "challenges";
   styleUrl: "./event-map-page.component.scss",
 })
 export class EventMapPageComponent implements OnInit, OnDestroy {
-  @ViewChild("spotMap") spotMap:
-    | SpotMapComponent
-    | GoogleMap2dComponent
-    | undefined;
+  private _spotMap: SpotMapComponent | GoogleMap2dComponent | undefined;
+
+  /**
+   * The event map is deferred. When navigation selects a spot via `spotId`,
+   * the spot can resolve before this view child exists. Focus it as soon as
+   * the map becomes available so the selected spot is actually in view.
+   */
+  @ViewChild("spotMap")
+  set spotMap(map: SpotMapComponent | GoogleMap2dComponent | undefined) {
+    this._spotMap = map;
+    const selectedSpot = this.selectedSpot();
+    if (map && selectedSpot) {
+      this._focusMapOnSpot(map, selectedSpot);
+    }
+  }
+
+  get spotMap(): SpotMapComponent | GoogleMap2dComponent | undefined {
+    return this._spotMap;
+  }
+
   @ViewChild("scrollContainer") scrollContainer:
     | ElementRef<HTMLElement>
     | undefined;
@@ -713,10 +729,17 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     if (updateUrl) {
       this._syncSelectedSpotUrl(spot);
     }
-    if (this.spotMap instanceof SpotMapComponent) {
-      this.spotMap?.focusSpot(spot);
-    } else if (this.spotMap instanceof GoogleMap2dComponent) {
-      this.spotMap?.focusOnLocation(spot.location());
+    this._focusMapOnSpot(this.spotMap, spot);
+  }
+
+  private _focusMapOnSpot(
+    map: SpotMapComponent | GoogleMap2dComponent | undefined,
+    spot: Spot | LocalSpot,
+  ): void {
+    if (map instanceof SpotMapComponent) {
+      map.focusSpot(spot);
+    } else if (map instanceof GoogleMap2dComponent) {
+      map.focusOnLocation(spot.location());
     }
   }
 
@@ -747,7 +770,9 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   private _inlineSpotIdForSpot(spot: LocalSpot): string | null {
     const index = this.spots().findIndex((candidate) => candidate === spot);
-    return index >= 0 ? (this.event()?.inlineSpots[index]?.id ?? null) : null;
+    return index >= 0
+      ? (this.event()?.inlineSpots[index]?.id ?? `event-local-spot-${index}`)
+      : null;
   }
 
   private _spotQueryParamForSpot(spot: Spot | LocalSpot): string | null {

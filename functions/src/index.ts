@@ -61,6 +61,7 @@ export {
   processImportChunkOnCreate,
   retryFailedImportChunksOnCreate,
 } from "./importFunctions";
+export { getPublicImportProvenance } from "./importProvenanceFunctions";
 
 // fixes and migrations
 export {

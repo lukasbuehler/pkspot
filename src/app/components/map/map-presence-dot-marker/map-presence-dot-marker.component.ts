@@ -28,9 +28,11 @@ import { MapAdvancedMarker } from "@angular/google-maps";
     <map-advanced-marker
       [position]="position()"
       [content]="dot"
+      [title]="label()"
+      [gmpClickable]="true"
       [options]="markerOptions()"
       [zIndex]="zIndex()"
-      (mapClick)="markerClick.emit()"
+      (gmpClick)="markerClick.emit()"
       (markerInitialized)="centerMarkerAnchor($event)"
     />
   `,
@@ -45,8 +47,12 @@ import { MapAdvancedMarker } from "@angular/google-maps";
       cursor: pointer;
       opacity: 0.82;
       pointer-events: auto;
-      background: var(--mat-sys-primary-container);
-      border: 1px solid var(--mat-sys-primary);
+      background: var(
+        --mat-sys-primary-fixed,
+        var(--mat-sys-primary-container)
+      );
+      border: 1px solid
+        var(--mat-sys-on-primary-fixed-variant, var(--mat-sys-primary));
       transition:
         opacity 120ms ease,
         transform 120ms ease;

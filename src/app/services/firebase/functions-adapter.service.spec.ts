@@ -95,6 +95,28 @@ describe("FunctionsAdapterService", () => {
     expect(httpsCallable).not.toHaveBeenCalled();
   });
 
+  it("sends public native callable requests without an auth token", async () => {
+    platformService.isNative.mockReturnValue(true);
+    vi.mocked(FirebaseAuthentication.getIdToken).mockResolvedValue({});
+    const service = TestBed.inject(FunctionsAdapterService);
+
+    await service.callPublic<{ importId: string }, { source_name: string }>(
+      "getPublicImportProvenance",
+      { importId: "picos-parkour-mutano" },
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://europe-west1-parkour-base-project.cloudfunctions.net/getPublicImportProvenance",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          data: { importId: "picos-parkour-mutano" },
+        }),
+      },
+    );
+  });
+
   it("surfaces native callable error messages", async () => {
     platformService.isNative.mockReturnValue(true);
     vi.mocked(FirebaseAuthentication.getIdToken).mockResolvedValue({

@@ -51,31 +51,21 @@ export class AdvancedMapMarkerComponent {
       };
     });
 
-  onDotMapClick(el: HTMLElement | null | undefined, event?: unknown): void {
-    this.focusMarkerShell(el);
+  onMapMarkerClick(event?: unknown): void {
     this.stopPropagation(event);
-    if (this.emitDotClick()) {
-      this.markerClick.emit(this.index());
-    }
-  }
-
-  onMapMarkerClick(el: HTMLElement | null | undefined, event?: unknown): void {
     if (this.useDotMode()) {
-      this.onDotMapClick(el, event);
+      if (this.emitDotClick()) {
+        this.markerClick.emit(this.index());
+      }
       return;
     }
 
-    this.onMarkerContentClick(el, event);
+    this.markerClick.emit(this.index());
   }
 
-  onMarkerContentClick(
-    markerContent: HTMLElement | null | undefined,
-    event?: unknown,
-  ): void {
-    if (!markerContent) return;
-
-    this.focusMarkerShell(markerContent);
-    this.stopPropagation(event);
+  onPreviewClick(event: MouseEvent): void {
+    event.stopPropagation();
+    this.hidePreview();
     this.markerClick.emit(this.index());
   }
 
@@ -87,10 +77,6 @@ export class AdvancedMapMarkerComponent {
 
   hidePreview(): void {
     this.previewVisible.set(false);
-  }
-
-  private focusMarkerShell(el: HTMLElement | null | undefined): void {
-    el?.focus();
   }
 
   private stopPropagation(event: unknown): void {

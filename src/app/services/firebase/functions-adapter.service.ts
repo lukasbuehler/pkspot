@@ -36,9 +36,27 @@ export class FunctionsAdapterService {
     payload: TRequest,
   ): Promise<TResponse> {
     if (this.platformService.isNative()) {
-      return this.callNative<TRequest, TResponse>(functionName, payload);
+      return this.callNative<TRequest, TResponse>(functionName, payload, true);
     }
 
+    return this.callWeb<TRequest, TResponse>(functionName, payload);
+  }
+
+  async callPublic<TRequest, TResponse>(
+    functionName: string,
+    payload: TRequest,
+  ): Promise<TResponse> {
+    if (this.platformService.isNative()) {
+      return this.callNative<TRequest, TResponse>(functionName, payload, false);
+    }
+
+    return this.callWeb<TRequest, TResponse>(functionName, payload);
+  }
+
+  private async callWeb<TRequest, TResponse>(
+    functionName: string,
+    payload: TRequest,
+  ): Promise<TResponse> {
     const functions = this.functions;
     if (!functions) {
       throw new Error("Functions are unavailable in this environment.");
@@ -57,16 +75,17 @@ export class FunctionsAdapterService {
   private async callNative<TRequest, TResponse>(
     functionName: string,
     payload: TRequest,
+    requiresAuthentication: boolean,
   ): Promise<TResponse> {
     const { token } = await FirebaseAuthentication.getIdToken();
-    if (!token) {
+    if (!token && requiresAuthentication) {
       throw new Error("Native Firebase auth did not return an ID token");
     }
 
     const response = await fetch(this.getCallableUrl(functionName), {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ data: payload }),

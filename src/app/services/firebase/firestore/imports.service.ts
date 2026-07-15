@@ -4,7 +4,9 @@ import { FirestoreAdapterService } from "../firestore-adapter.service";
 import {
   ImportChunkSchema,
   ImportSchema,
+  PublicImportProvenance,
 } from "../../../../db/schemas/ImportSchema";
+import { FunctionsAdapterService } from "../functions-adapter.service";
 
 type ImportDocument = ImportSchema & { id: string };
 
@@ -13,7 +15,12 @@ type ImportDocument = ImportSchema & { id: string };
 })
 export class ImportsService {
   private _firestoreAdapter = inject(FirestoreAdapterService);
+  private _functionsAdapter = inject(FunctionsAdapterService);
   private _importCache = new Map<string, ImportDocument | null>();
+  private _publicProvenanceCache = new Map<
+    string,
+    Promise<PublicImportProvenance | null>
+  >();
   private _inFlightImportRequests = new Map<
     string,
     Promise<ImportDocument | null>
@@ -113,6 +120,28 @@ export class ImportsService {
       });
 
     this._inFlightImportRequests.set(importId, request);
+    return request;
+  }
+
+  getPublicProvenanceById(
+    importId: string
+  ): Promise<PublicImportProvenance | null> {
+    const cached = this._publicProvenanceCache.get(importId);
+    if (cached) {
+      return cached;
+    }
+
+    const request = this._functionsAdapter
+      .callPublic<{ importId: string }, PublicImportProvenance | null>(
+        "getPublicImportProvenance",
+        { importId }
+      )
+      .catch((error: unknown) => {
+        this._publicProvenanceCache.delete(importId);
+        throw error;
+      });
+
+    this._publicProvenanceCache.set(importId, request);
     return request;
   }
 

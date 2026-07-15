@@ -6,6 +6,7 @@ import {
   output,
 } from "@angular/core";
 import { MapAdvancedMarker } from "@angular/google-maps";
+import { COMMUNITY_DOT_SIZE_PX } from "./community-map-rendering";
 
 /**
  * Lightweight community marker data for map overlays. Sits at the community's
@@ -49,18 +50,7 @@ export class CommunityDotMarkerComponent {
       zIndex: this.zIndex(),
     }));
 
-  readonly dotSize = computed<number>(() => {
-    switch (this.community().scope) {
-      case "country":
-        return 20;
-      case "region":
-        return 14;
-      case "locality":
-        return 10;
-      default:
-        return 12;
-    }
-  });
+  readonly dotSizePx = COMMUNITY_DOT_SIZE_PX;
 
   centerMarkerAnchor(marker: google.maps.marker.AdvancedMarkerElement): void {
     const centeredMarker =

@@ -6,7 +6,9 @@ import { ActivatedRoute, convertToParamMap, Router } from "@angular/router";
 import { BehaviorSubject, of } from "rxjs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
+import { LocalSpot } from "../../../db/models/Spot";
 import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
+import { SpotSchema } from "../../../db/schemas/SpotSchema";
 import { AnalyticsService } from "../../services/analytics.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { EventsService } from "../../services/firebase/firestore/events.service";
@@ -387,6 +389,40 @@ describe("EventInfoPageComponent", () => {
       ["/events", "swissjam26", "map"],
       {
         queryParams: { spotId: "main-stage" },
+      },
+    );
+
+    component.event.set(
+      buildEvent("uk-nationals-2026", "British Parkour Championships", {
+        inline_spots: [
+          {
+            name: "Street Monkeys Academy",
+            location: { lat: 53.765416, lng: -2.714367 },
+          },
+        ],
+      }),
+    );
+    const localSpot = new LocalSpot(
+      {
+        name: {
+          en: { text: "Street Monkeys Academy", provider: "user" },
+        },
+        location: new GeoPoint(53.765416, -2.714367),
+        location_raw: { lat: 53.765416, lng: -2.714367 },
+        address: null,
+        media: [],
+        amenities: {},
+      } as SpotSchema,
+      "en",
+    );
+    component.spots.set([localSpot]);
+
+    component.openMapForSpot(localSpot);
+
+    expect(router.navigate).toHaveBeenLastCalledWith(
+      ["/events", "uk-nationals-2026", "map"],
+      {
+        queryParams: { spotId: "event-local-spot-0" },
       },
     );
   });

@@ -4069,6 +4069,36 @@
         <target> Communities, in denen dieses Event erscheinen soll. Automatisch aus dem Eventbereich vorgeschlagen — bei Bedarf anpassen. </target>
       </segment>
     </unit>
+    <unit id="event_edit.community_search_empty">
+      <segment state="initial">
+        <source> No matching communities found </source>
+        <target> Keine passenden Communities gefunden </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.community_search_hint">
+      <segment state="initial">
+        <source> Select a community to link this event to it. </source>
+        <target> Wähle eine Community aus, um dieses Event mit ihr zu verknüpfen. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.community_search_label">
+      <segment state="initial">
+        <source> Search communities to link </source>
+        <target> Communities zum Verknüpfen suchen </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.community_search_loading">
+      <segment state="initial">
+        <source> Searching communities… </source>
+        <target> Communities werden gesucht… </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.community_search_placeholder">
+      <segment state="initial">
+        <source>Search by community, city, region, or country</source>
+        <target>Suche nach Community, Stadt, Region oder Land</target>
+      </segment>
+    </unit>
     <unit id="event_edit.community_suggestions">
       <segment state="initial">
         <source> Suggested: </source>

@@ -34,20 +34,16 @@ import { getSpotMarkerPriority } from "../map/markers/spot-marker-priority";
       [class.force-preview-visible]="forcePreviewVisible()"
       [class.has-media]="hasMedia()"
       [class.no-media]="!hasMedia()"
-      tabindex="0"
-      role="button"
-      [attr.aria-label]="spotName()"
       (mouseenter)="showPreview()"
       (mouseleave)="hidePreview()"
-      (focus)="showPreview()"
-      (blur)="hidePreview()"
-      (keydown.enter)="triggerMarkerFromKeyboard($event)"
-      (keydown.space)="triggerMarkerFromKeyboard($event)"
     >
       <div class="spot-preview-marker__visual">
         <div class="spot-preview-marker__content">
           @if(effectivePreviewVisible()) {
-          <div class="spot-preview-marker__preview">
+          <div
+            class="spot-preview-marker__preview"
+            (click)="onPreviewClick($event)"
+          >
             <app-spot-preview-card
               class="spot-preview-marker__card"
               [spotData]="spot()"
@@ -86,11 +82,13 @@ import { getSpotMarkerPriority } from "../map/markers/spot-marker-priority";
     </div>
 
     <map-advanced-marker
+      [title]="spotName()"
       [position]="position()!"
       [content]="markerShell"
       [zIndex]="computedZIndex()"
+      [gmpClickable]="true"
       [options]="markerOptions()"
-      (mapClick)="onMarkerClick()"
+      (gmpClick)="onMarkerClick()"
     />
     }
   `,
@@ -186,16 +184,13 @@ import { getSpotMarkerPriority } from "../map/markers/spot-marker-priority";
     .spot-preview-marker.preview-enabled.preview-visible
       .spot-preview-marker__preview {
       opacity: 1;
+      pointer-events: auto;
       transform: translateX(-50%);
     }
 
     .spot-preview-marker.preview-enabled.preview-visible
       .spot-preview-marker__pin {
       opacity: 0;
-    }
-
-    .spot-preview-marker:focus-visible {
-      outline: none;
     }
 
     @media (hover: none), (pointer: coarse) {
@@ -355,15 +350,14 @@ export class SpotPreviewMarkerComponent {
     this.previewVisible.set(false);
   }
 
-  triggerMarkerFromKeyboard(event: Event) {
-    event.preventDefault();
+  onMarkerClick() {
     this.hidePreview();
     this.markerClick.emit(this.spot());
   }
 
-  onMarkerClick() {
-    this.hidePreview();
-    this.markerClick.emit(this.spot());
+  onPreviewClick(event: MouseEvent) {
+    event.stopPropagation();
+    this.onMarkerClick();
   }
 
   private getEnvironmentIcons(amenities: AmenitiesMap | undefined): string[] {

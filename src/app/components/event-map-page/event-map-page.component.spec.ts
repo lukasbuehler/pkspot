@@ -20,6 +20,7 @@ import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { MapsApiService } from "../../services/maps-api.service";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { ResponsiveService } from "../../services/responsive.service";
+import { GoogleMap2dComponent } from "../google-map-2d/google-map-2d.component";
 import { EventMapPageComponent } from "./event-map-page.component";
 
 const flushPromises = () =>
@@ -262,7 +263,7 @@ describe("EventMapPageComponent", () => {
     expect(component.selectedSpot()).toBe(localSpot);
   });
 
-  it("syncs selected event spots to the spotId query param", () => {
+  it("syncs selected event spots to the spotId query param and focuses them when the deferred map loads", () => {
     const router = { navigate: vi.fn() };
     const route = {
       paramMap: of(convertToParamMap({ slug: "swissjam26" })),
@@ -345,6 +346,14 @@ describe("EventMapPageComponent", () => {
       replaceUrl: true,
     });
 
+    const focusOnLocation = vi.fn();
+    const map = Object.assign(Object.create(GoogleMap2dComponent.prototype), {
+      focusOnLocation,
+    }) as GoogleMap2dComponent;
+    component.spotMap = map;
+
+    expect(focusOnLocation).toHaveBeenCalledWith(localSpot.location());
+
     component.deselectSpot();
 
     expect(router.navigate).toHaveBeenLastCalledWith([], {
@@ -353,5 +362,29 @@ describe("EventMapPageComponent", () => {
       queryParamsHandling: "merge",
       replaceUrl: true,
     });
+
+    component.event.set(
+      buildEvent("swissjam26", {
+        inline_spots: [
+          {
+            name: "Main stage",
+            location: { lat: 47.3, lng: 8.5 },
+          },
+        ],
+      }),
+    );
+    component.selectSpot(localSpot);
+
+    expect(router.navigate).toHaveBeenLastCalledWith([], {
+      relativeTo: route,
+      queryParams: { spotId: "event-local-spot-0" },
+      queryParamsHandling: "merge",
+      replaceUrl: true,
+    });
+
+    component.selectedSpot.set(null);
+    component.selectSpot("event-local-spot-0" as SpotId, false);
+
+    expect(component.selectedSpot()).toBe(localSpot);
   });
 });
