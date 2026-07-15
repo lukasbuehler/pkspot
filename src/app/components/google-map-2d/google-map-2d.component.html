@@ -40,6 +40,26 @@
 
   }
 
+  <!-- Preserve geographic density without letting colliding rich markers crowd the map. -->
+  @for (marker of getCollapsedCommunityMarkers(); track marker.id) {
+  <app-map-presence-dot-marker [position]="marker.location" [label]="marker.name ?? marker.id" variant="community"
+    [size]="6" [zIndex]="-20" (markerClick)="pointMarkerClick.emit(marker)" />
+  }
+  @for (spot of getCollapsedHighlightedSpots(); track spot.id) {
+  @let position = getSpotMarkerLocation(spot);
+  @if (position) {
+  <app-map-presence-dot-marker [position]="position" [label]="getSpotMarkerLabel(spot)" variant="spot" [size]="8"
+    [zIndex]="-10" (markerClick)="spotClick.emit(spot)" />
+  }
+  }
+  @for (spot of getCollapsedSpotMarkers(); track trackSpotMarker($index, spot)) {
+  @let position = getSpotMarkerLocation(spot);
+  @if (position) {
+  <app-map-presence-dot-marker [position]="position" [label]="getSpotMarkerLabel(spot)" variant="spot" [size]="8"
+    [zIndex]="-10" (markerClick)="spotClick.emit(spot)" />
+  }
+  }
+
   <!-- Highlight markers: rated/iconic spots shown at all zoom levels -->
   @for (spot of getVisibleHighlightedSpots(); track spot.id) {
   <app-highlight-marker [spot]="spot" [zIndex]="getHighlightZIndex(spot)" [mapZoom]="zoom"

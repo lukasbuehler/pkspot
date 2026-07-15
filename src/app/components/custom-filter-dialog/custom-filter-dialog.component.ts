@@ -51,7 +51,7 @@ const AmenityNames: Record<keyof AmenitiesMap, string> = {
   entry_fee: $localize`:@@amenity.entry_fee:Entry Fee`,
   indoor: $localize`:@@amenity.indoor:Indoor`,
   outdoor: $localize`:@@amenity.outdoor:Outdoor`,
-  covered: $localize`:@@amenity.covered:Covered`,
+  covered: $localize`:@@amenity.covered:Dry spot`,
   lighting: $localize`:@@amenity.lighting:Lighting`,
   wc: $localize`:@@amenity.wc:Toilets`,
   changing_room: $localize`:@@amenity.changing_room:Changing Room`,

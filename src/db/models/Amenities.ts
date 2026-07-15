@@ -9,7 +9,7 @@ import { SpotAccess } from "../schemas/SpotTypeAndAccess";
 export { AmenitiesMap };
 
 export const AmenityNames: { [key in keyof AmenitiesMap]: string } = {
-  covered: $localize`:@@amenities.covered:Covered`,
+  covered: $localize`:@@amenities.covered:Dry spot`,
   outdoor: $localize`:@@amenities.outdoor:Outdoor`,
   indoor: $localize`:@@amenities.indoor:Indoor`,
   lighting: $localize`:@@amenities.lighting:Lighting`,
@@ -28,7 +28,7 @@ export const AmenityNames: { [key in keyof AmenitiesMap]: string } = {
 
 // Names for negative states
 export const AmenityNegativeNames: { [key in keyof AmenitiesMap]: string } = {
-  covered: $localize`:@@amenities.not_covered:Not covered`,
+  covered: $localize`:@@amenities.not_covered:Gets wet`,
   outdoor: $localize`:@@amenities.not_outdoor:Not outdoor`,
   indoor: $localize`:@@amenities.not_indoor:Not indoor`,
   lighting: $localize`:@@amenities.no_lighting:No lighting`,
@@ -126,6 +126,17 @@ export function makeSmartAmenitiesArray(
         priority: "high",
       });
     }
+  }
+
+  // Covered is still useful when a spot spans indoor and outdoor areas, or
+  // when older data has not classified the environment yet. Outdoor-only
+  // spots already use the covered icon in place of the generic outdoor icon.
+  if (amenities.covered === true && (env === "both" || env === "unknown")) {
+    result.push({
+      name: AmenityNames.covered,
+      icon: AmenityIcons.covered,
+      priority: "high",
+    });
   }
 
   // Entry fee
@@ -372,17 +383,17 @@ export const AmenityQuestions: AmenityQuestion[] = [
   },
   {
     id: "covered",
-    text: $localize`:@@question.covered:Is the area covered?`,
+    text: $localize`:@@question.covered:Does this spot stay dry when it rains?`,
     options: [
       {
         value: "covered",
-        label: $localize`:@@amenities.covered:Covered`,
+        label: $localize`:@@amenities.covered:Dry spot`,
         icon: AmenityIcons.covered,
         apply: (a) => ({ ...(a ?? {}), covered: true }),
       },
       {
         value: "not_covered",
-        label: $localize`:@@amenities.not_covered:Not covered`,
+        label: $localize`:@@amenities.not_covered:Gets wet`,
         icon: AmenityNegativeIcons.covered,
         apply: (a) => ({ ...(a ?? {}), covered: false }),
       },

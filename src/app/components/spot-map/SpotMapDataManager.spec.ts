@@ -104,6 +104,25 @@ function renderCachedSpotsForTile(
 }
 
 describe("SpotMapDataManager filters", () => {
+  it("loads a broad geographic spot sample at world zoom", () => {
+    const manager = new SpotMapDataManager("en", makeInjector());
+    const getOptions = (
+      manager as unknown as {
+        _getSpotPreviewSearchOptions: (zoom: number) => {
+          limit: number;
+          onlyWithImages: boolean;
+          viewportZoom: number;
+        };
+      }
+    )._getSpotPreviewSearchOptions.bind(manager);
+
+    expect(getOptions(4)).toEqual({
+      limit: 160,
+      onlyWithImages: false,
+      viewportZoom: 4,
+    });
+  });
+
   it("uses the live auth uid for spot edit user references", async () => {
     const staleProfileUser = new User("stale-profile-uid", {
       display_name: "Stale Profile",

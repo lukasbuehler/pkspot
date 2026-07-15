@@ -3,6 +3,26 @@ import { SpotAccess } from "../schemas/SpotTypeAndAccess";
 import { makeSmartAmenitiesArray } from "./Amenities";
 
 describe("makeSmartAmenitiesArray", () => {
+  it.each([
+    {
+      environment: "indoor and outdoor",
+      amenities: { indoor: true, outdoor: true, covered: true },
+    },
+    {
+      environment: "not classified",
+      amenities: { covered: true },
+    },
+  ])("keeps a covered $environment spot visible in compact headers", ({ amenities }) => {
+    const smartAmenities = makeSmartAmenitiesArray(amenities);
+
+    expect(smartAmenities).toContainEqual(
+      expect.objectContaining({
+        name: "Dry spot",
+        priority: "high",
+      })
+    );
+  });
+
   it("does not duplicate entry fee when commercial access already shows paid access", () => {
     const amenities = makeSmartAmenitiesArray(
       {

@@ -2240,8 +2240,8 @@
     </unit>
     <unit id="amenities.covered">
       <segment state="initial">
-        <source>Covered</source>
-        <target>Couvert</target>
+        <source>Dry spot</source>
+        <target>Spot au sec</target>
       </segment>
     </unit>
     <unit id="amenities.no_ac">
@@ -2300,8 +2300,8 @@
     </unit>
     <unit id="amenities.not_covered">
       <segment state="initial">
-        <source>Not covered</source>
-        <target>Pas couvert</target>
+        <source>Gets wet</source>
+        <target>Prend la pluie</target>
       </segment>
     </unit>
     <unit id="amenities.not_heated">
@@ -2366,8 +2366,8 @@
     </unit>
     <unit id="amenity.covered">
       <segment state="initial">
-        <source>Covered</source>
-        <target>Couvert</target>
+        <source>Dry spot</source>
+        <target>Spot au sec</target>
       </segment>
     </unit>
     <unit id="amenity.drinking_water">
@@ -3176,8 +3176,8 @@
     </unit>
     <unit id="question.covered">
       <segment state="initial">
-        <source>Is the area covered?</source>
-        <target>La zone est-elle couverte?</target>
+        <source>Does this spot stay dry when it rains?</source>
+        <target>Ce Spot reste-t-il au sec quand il pleut ?</target>
       </segment>
     </unit>
     <unit id="question.drinking_water">

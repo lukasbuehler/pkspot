@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { filterEventSpotCollisions } from "./map-marker-collision-filter";
+import {
+  filterEventSpotCollisions,
+  getSpotMarkerCollisionDimensions,
+} from "./map-marker-collision-filter";
 import type {
   MapMarkerCollisionCandidate,
   MapMarkerCollisionKind,
@@ -62,6 +65,21 @@ const point = (
 });
 
 describe("filterEventSpotCollisions", () => {
+  it("uses denser spot spacing at broad zooms", () => {
+    expect(getSpotMarkerCollisionDimensions(4)).toEqual({
+      widthPx: 104,
+      heightPx: 46,
+    });
+    expect(getSpotMarkerCollisionDimensions(10)).toEqual({
+      widthPx: 114,
+      heightPx: 49,
+    });
+    expect(getSpotMarkerCollisionDimensions(14)).toEqual({
+      widthPx: 124,
+      heightPx: 52,
+    });
+  });
+
   it("keeps a higher-priority event over an overlapping spot", () => {
     const layout = filterEventSpotCollisions(
       [spot("low-spot", 100), event("event", 250)],

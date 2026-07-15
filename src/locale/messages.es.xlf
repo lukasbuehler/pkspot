@@ -2112,8 +2112,8 @@
     </unit>
     <unit id="amenities.covered">
       <segment state="initial">
-        <source>Covered</source>
-        <target>Cubierto</target>
+        <source>Dry spot</source>
+        <target>Spot seco</target>
       </segment>
     </unit>
     <unit id="amenities.no_ac">
@@ -2172,8 +2172,8 @@
     </unit>
     <unit id="amenities.not_covered">
       <segment state="initial">
-        <source>Not covered</source>
-        <target>No cubierto</target>
+        <source>Gets wet</source>
+        <target>Se moja</target>
       </segment>
     </unit>
     <unit id="amenities.not_heated">
@@ -2238,8 +2238,8 @@
     </unit>
     <unit id="amenity.covered">
       <segment state="initial">
-        <source>Covered</source>
-        <target>Cubierto</target>
+        <source>Dry spot</source>
+        <target>Spot seco</target>
       </segment>
     </unit>
     <unit id="amenity.drinking_water">
@@ -2995,8 +2995,8 @@
     </unit>
     <unit id="question.covered">
       <segment state="initial">
-        <source>Is the area covered?</source>
-        <target>¿Está el área cubierta?</target>
+        <source>Does this spot stay dry when it rains?</source>
+        <target>¿Este Spot se mantiene seco cuando llueve?</target>
       </segment>
     </unit>
     <unit id="question.drinking_water">

@@ -99,12 +99,6 @@ export class SpotMapDataManager {
   private _clusterDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly CLUSTER_DEBOUNCE_MS = 200;
   private readonly HIGHLIGHT_THROTTLE_MS = 500;
-  /**
-   * Load a broad candidate pool and let Advanced Marker collision handling
-   * decide what is visible. Higher-rated markers already get higher z-indexes,
-   * so overlapping lower-rated candidates naturally drop out on the map.
-   */
-  private readonly HIGHLIGHT_MAX_COUNT = 24;
   private readonly SPOT_PREVIEW_MAX_COUNT = 250;
   private readonly SPOT_PREVIEW_LOCAL_OVERRIDE_TTL_MS = 120_000;
   private _lastHighlightFetchTime: number = 0;
@@ -169,20 +163,24 @@ export class SpotMapDataManager {
   }
 
   private _getSpotPreviewSearchOptions(zoom: number): SpotPreviewSearchOptions {
-    if (zoom < 10) {
+    if (zoom < 6) {
       return {
-        limit: this.HIGHLIGHT_MAX_COUNT,
-        onlyWithImages: true,
+        limit: 160,
+        onlyWithImages: false,
         viewportZoom: zoom,
       };
     }
 
+    if (zoom < 10) {
+      return { limit: 120, onlyWithImages: false, viewportZoom: zoom };
+    }
+
     if (zoom < 12) {
-      return { limit: 48, onlyWithImages: false, viewportZoom: zoom };
+      return { limit: 160, onlyWithImages: false, viewportZoom: zoom };
     }
 
     if (zoom < 14) {
-      return { limit: 96, onlyWithImages: false, viewportZoom: zoom };
+      return { limit: 200, onlyWithImages: false, viewportZoom: zoom };
     }
 
     return {

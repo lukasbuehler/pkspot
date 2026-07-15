@@ -32,6 +32,21 @@ interface CollisionGrid {
 
 const TILE_SIZE_PX = 256;
 const COLLISION_GRID_CELL_SIZE_PX = 128;
+const FULL_SPOT_MARKER_COLLISION_WIDTH_PX = 124;
+const FULL_SPOT_MARKER_COLLISION_HEIGHT_PX = 52;
+
+export function getSpotMarkerCollisionDimensions(zoom: number): {
+  widthPx: number;
+  heightPx: number;
+} {
+  if (zoom <= 8) return { widthPx: 104, heightPx: 46 };
+  if (zoom <= 12) return { widthPx: 114, heightPx: 49 };
+
+  return {
+    widthPx: FULL_SPOT_MARKER_COLLISION_WIDTH_PX,
+    heightPx: FULL_SPOT_MARKER_COLLISION_HEIGHT_PX,
+  };
+}
 
 export function filterEventSpotCollisions(
   candidates: readonly MapMarkerCollisionCandidate[],

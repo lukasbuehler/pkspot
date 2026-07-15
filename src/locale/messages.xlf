@@ -1463,7 +1463,7 @@
     </unit>
     <unit id="amenity.covered">
       <segment>
-        <source>Covered</source>
+        <source>Dry spot</source>
       </segment>
     </unit>
     <unit id="amenity.lighting">
@@ -6591,7 +6591,7 @@
     </unit>
     <unit id="amenities.covered">
       <segment>
-        <source>Covered</source>
+        <source>Dry spot</source>
       </segment>
     </unit>
     <unit id="amenities.outdoor">
@@ -6666,7 +6666,7 @@
     </unit>
     <unit id="amenities.not_covered">
       <segment>
-        <source>Not covered</source>
+        <source>Gets wet</source>
       </segment>
     </unit>
     <unit id="amenities.not_outdoor">
@@ -6775,7 +6775,7 @@
     </unit>
     <unit id="question.covered">
       <segment>
-        <source>Is the area covered?</source>
+        <source>Does this spot stay dry when it rains?</source>
       </segment>
     </unit>
     <unit id="question.lighting">

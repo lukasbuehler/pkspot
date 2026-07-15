@@ -58,7 +58,7 @@ export const OutdoorAmenities = [
 ] as (keyof AmenitiesMap)[];
 
 export const AmenityIcons: { [key in keyof AmenitiesMap]: string } = {
-  covered: "roofing",
+  covered: "umbrella",
   outdoor: "nature_people",
   indoor: "home",
   lighting: "lightbulb",
@@ -77,7 +77,7 @@ export const AmenityIcons: { [key in keyof AmenitiesMap]: string } = {
 
 // Icons for negative states
 export const AmenityNegativeIcons: { [key in keyof AmenitiesMap]: string } = {
-  covered: "umbrella",
+  covered: "rainy",
   outdoor: "macro_off",
   indoor: "no_meeting_room",
   lighting: "flashlight_off",

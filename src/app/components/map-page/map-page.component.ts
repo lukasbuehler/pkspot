@@ -1151,14 +1151,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     communities: number;
   } {
     if (viewport.zoom <= 5) {
-      return { events: 120, communities: 160 };
+      return { events: 120, communities: 250 };
     }
 
     if (viewport.zoom <= 8) {
-      return { events: 80, communities: 120 };
+      return { events: 80, communities: 200 };
     }
 
-    return { events: 30, communities: 80 };
+    return { events: 30, communities: 120 };
   }
 
   private _distanceMeters(
