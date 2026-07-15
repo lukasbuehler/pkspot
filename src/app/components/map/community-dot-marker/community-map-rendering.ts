@@ -2,6 +2,12 @@ import type { CommunityMapMarker } from "./community-dot-marker.component";
 
 export const COMMUNITY_DOT_SIZE_PX = 8;
 
+export function shouldShowCommunityAreaPresence(
+  community: CommunityMapMarker,
+): boolean {
+  return !community.pinVisible || community.showAreaPresence === true;
+}
+
 export function shouldShowCommunityDot(
   community: CommunityMapMarker,
   zoom: number,

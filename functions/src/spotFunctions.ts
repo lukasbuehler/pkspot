@@ -20,6 +20,7 @@ import { computeTileCoordinates } from "../../src/scripts/TileCoordinateHelpers"
 import { googleAPIKey } from "./secrets";
 import { getAddressAndLocaleFromGeopoint } from "./spotAddressFunctions";
 import { calculateBoundsData } from "./boundsHelpers";
+import { rebuildCommunityPagesForSpotWrite } from "./communityFunctions";
 
 const isEmulatorEnvironment =
   process.env.FUNCTIONS_EMULATOR === "true" ||
@@ -459,12 +460,21 @@ const _hasUsableAddress = (address: SpotSchema["address"]): boolean => {
 export const updateSpotFieldsOnWrite = onDocumentWritten(
   { document: "spots/{spotId}", secrets: geocodeTriggerSecrets },
   async (event) => {
+    const spotId = String(event.params.spotId ?? "");
     if (!event.data?.after?.exists) {
-      // Ignore deletes.
+      const beforeData = event.data?.before?.exists
+        ? ((event.data.before.data() as SpotSchema) ?? null)
+        : null;
+      await rebuildCommunityPagesForSpotWrite(
+        admin.firestore(),
+        spotId,
+        beforeData,
+        null
+      );
       return null;
     }
 
-    if (!isSpotRuntimeDoc(String(event.params.spotId ?? ""))) {
+    if (!isSpotRuntimeDoc(spotId)) {
       return null;
     }
 
@@ -554,6 +564,15 @@ export const updateSpotFieldsOnWrite = onDocumentWritten(
     }
 
     const changedFields = _getChangedFields(afterData, spotDataToUpdate);
+
+    // Keep spot normalization and community maintenance on one Firestore
+    // listener. Separate listeners doubled invocations for every import write.
+    await rebuildCommunityPagesForSpotWrite(
+      admin.firestore(),
+      spotId,
+      beforeData ?? null,
+      afterData
+    );
 
     if (Object.keys(changedFields).length > 0) {
       return event.data?.after?.ref.update(changedFields);

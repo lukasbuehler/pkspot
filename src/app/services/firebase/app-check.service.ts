@@ -19,6 +19,7 @@ import {
   initializeApp as initializeFirebaseApp,
 } from "firebase/app";
 import { environment } from "../../../environments/environment.default";
+import { AnalyticsService } from "../analytics.service";
 import { PlatformService } from "../platform.service";
 
 export interface FirebaseAppCheckSettings {
@@ -93,6 +94,9 @@ export function buildFirebaseAppCheckWebInitializeOptions(
 export class FirebaseAppCheckService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly platformService = inject(PlatformService);
+  private readonly analyticsService = inject(AnalyticsService, {
+    optional: true,
+  });
   private readonly app = inject(FirebaseApp);
   private initializationPromise: Promise<void> | null = null;
   private readonly _status = signal<FirebaseAppCheckStatus>({
@@ -241,6 +245,9 @@ export class FirebaseAppCheckService {
       tokenLength: token.length,
       expireTimeMillis,
     });
+    this.trackStatus("ready", platform, {
+      expire_time_millis: expireTimeMillis,
+    });
   }
 
   private logFailure(
@@ -264,6 +271,10 @@ export class FirebaseAppCheckService {
       projectId: this.getFirebaseProjectId(),
       error: this.summarizeErrorForLog(error),
     })}`);
+    this.trackStatus("failed", platform, {
+      phase,
+      ...this.getErrorAnalyticsProperties(error),
+    });
   }
 
   private logSkipped(
@@ -284,6 +295,16 @@ export class FirebaseAppCheckService {
       appId: this.getFirebaseAppId(),
       projectId: this.getFirebaseProjectId(),
       enabled: settings?.enabled ?? false,
+    });
+    this.trackStatus("skipped", platform, {
+      enabled: settings?.enabled ?? false,
+      has_recaptcha_enterprise_site_key:
+        !!settings?.recaptchaEnterpriseSiteKey?.trim(),
+      debug_token_enabled: !!settings?.debugToken,
+      attach_to_firebase_sdk: settings?.attachToFirebaseSdk !== false,
+      reason: settings?.enabled
+        ? "configuration_incomplete"
+        : "app_check_disabled",
     });
   }
 
@@ -308,6 +329,26 @@ export class FirebaseAppCheckService {
       projectId: this.getFirebaseProjectId(),
       retryAt: retryAt.toISOString(),
       previousMessage: throttle.message,
+    });
+    this.trackStatus("web_throttled", platform, {
+      phase: "getToken",
+      retry_at: retryAt.toISOString(),
+      previous_message: throttle.message,
+    });
+  }
+
+  private trackStatus(
+    state: FirebaseAppCheckStatus["state"] | "web_throttled",
+    platform: string,
+    properties: Record<string, unknown> = {},
+  ): void {
+    this.analyticsService?.trackEvent("app_check_status_changed", {
+      app_check_state: state,
+      app_check_platform: platform,
+      app_check_app_id: this.getFirebaseAppId(),
+      app_check_project_id: this.getFirebaseProjectId(),
+      app_check_environment: environment.name,
+      ...properties,
     });
   }
 
@@ -540,6 +581,38 @@ export class FirebaseAppCheckService {
     }
 
     return String(error ?? "Unknown App Check error");
+  }
+
+  private getErrorAnalyticsProperties(error: unknown): Record<string, string> {
+    const summary = this.summarizeErrorForLog(error);
+    if (typeof summary === "object" && summary !== null) {
+      const record = summary as Record<string, unknown>;
+      const properties: Record<string, string> = {};
+
+      for (const [sourceKey, targetKey] of [
+        ["name", "error_name"],
+        ["message", "error_message"],
+        ["errorMessage", "error_message"],
+        ["code", "error_code"],
+        ["status", "error_status"],
+        ["details", "error_details"],
+      ] as const) {
+        const value = record[sourceKey];
+        if (
+          typeof value === "string" ||
+          typeof value === "number" ||
+          typeof value === "boolean"
+        ) {
+          properties[targetKey] = String(value);
+        }
+      }
+
+      return properties;
+    }
+
+    return {
+      error_message: String(summary ?? "Unknown App Check error"),
+    };
   }
 
   private summarizeErrorForLog(error: unknown): unknown {

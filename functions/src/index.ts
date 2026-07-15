@@ -28,7 +28,6 @@ export {
 export {
   patchCommunityPageOnWrite,
   rebuildCommunityPagesOnImportWrite,
-  rebuildCommunityPagesOnSpotWrite,
   rebuildAllCommunityPages,
   rebuildCommunityEventPreviewsOnEventWrite,
 } from "./communityFunctions";

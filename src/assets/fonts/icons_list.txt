@@ -193,3 +193,4 @@ volume_off
 volume_up
 local_activity
 merge
+warning

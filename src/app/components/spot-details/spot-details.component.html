@@ -288,32 +288,22 @@
                       : null
                   }}
                   @if (spot()?.access() !== "other") {
-                    <div
-                      class="d-flex align-items-center"
+                    <mat-icon
+                      class="amenity-icon flex-shrink-0"
                       [class.access-off-limits]="
                         spot()!.access() === 'off-limits'
                       "
                       [class.access-private]="spot()!.access() === 'private'"
-                      [@fadeSlideOnChange]="accessAnimKey()"
-                      style="min-width: 0"
+                      [matTooltip]="spotAccessNames[spot()!.access()]"
+                      >{{ spotAccessIcons[spot()!.access()] }}</mat-icon
                     >
-                      <mat-icon
-                        class="amenity-icon me-1 flex-shrink-0"
-                        [matTooltip]="spotAccessNames[spot()!.access()]"
-                        >{{ spotAccessIcons[spot()!.access()] }}</mat-icon
-                      >
-
-                      <span class="mat-label-large text-nowrap text-truncate">{{
-                        spotAccessNames[spot()!.access()]
-                      }}</span>
-                    </div>
                   }
                 </div>
               }
               @if (spot()?.address()) {
                 <span class="text-truncate d-flex align-items-center gap-1">
-                  @if (displayLocality()) {
-                    <span>{{ displayLocality() }}</span>
+                  @if (displayLocation()) {
+                    <span>{{ displayLocation() }}</span>
                   }
                   @if (countryFlagEmoji()) {
                     <span
@@ -429,6 +419,15 @@
     <mat-card-content class="pt-0">
       @if (!isEditing()) {
         <div class="mb-1 mt-1">
+          @if (spot()?.access() === "off-limits") {
+            <div class="spot-access-warning mb-3" role="alert">
+              <mat-icon>warning</mat-icon>
+              <span i18n="@@spot.access.off_limits.warning"
+                >This spot is marked as off-limits. Do not train here without
+                clear permission from the owner or manager.</span
+              >
+            </div>
+          }
           <!-- spot media carousel  -->
           @if (
             (spot()?.media() && spot()!.media().length > 0) ||

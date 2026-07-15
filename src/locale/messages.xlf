@@ -5668,6 +5668,11 @@
         <source>Iconic Spot</source>
       </segment>
     </unit>
+    <unit id="spot.access.off_limits.warning">
+      <segment>
+        <source>This spot is marked as off-limits. Do not train here without clear permission from the owner or manager.</source>
+      </segment>
+    </unit>
     <unit id="spot.close.tooltip">
       <notes>
         <note category="description">Tooltip for close spot button</note>

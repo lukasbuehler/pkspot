@@ -800,7 +800,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   /**
    * All mode includes every loaded community as a compact map presence;
    * locality dots hand off to their geographic area as the map approaches.
-   * Communities mode decorates every community with a full pin instead.
+   * Communities mode adds full pins while retaining locality area presence.
    */
   availableCommunityMarkers = computed<CommunityMapMarker[]>(() => {
     const mode = this.mapObjectMode();
@@ -813,6 +813,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         ? this._denseMapPerformanceCommunityMarkers.map((community) => ({
             ...community,
             pinVisible: showFullPins,
+            showAreaPresence: showFullPins,
           }))
         : [];
     }
@@ -838,6 +839,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         scope: c.scope,
         countryCode: c.countryCode,
         pinVisible: showFullPins,
+        showAreaPresence: showFullPins && c.scope === "locality",
         pinIcon: showFullPins ? this._communityPinIcon(c) : undefined,
         pinLabel: showFullPins ? this._communityPinLabel(c) : undefined,
         pinSize: showFullPins

@@ -1,4 +1,6 @@
 import * as admin from "firebase-admin";
+import { createHash } from "node:crypto";
+import { FieldValue, GeoPoint } from "firebase-admin/firestore";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { computeTileCoordinates } from "../../src/scripts/TileCoordinateHelpers";
 
@@ -26,6 +28,34 @@ interface ImportChunk {
   imported_count?: number;
   error_message?: string;
 }
+
+interface ImportDocument {
+  credits?: {
+    attribution_text?: string;
+    source_name?: string;
+    website_url?: string;
+    license?: string;
+  };
+  legal?: { public_abandoned_clause_used?: boolean };
+  stripping_mode?: boolean;
+  viewer_url?: string;
+  source_url?: string;
+  chunk_count_total?: number;
+  chunk_count_processed?: number;
+  chunk_count_failed?: number;
+  spot_count_imported?: number;
+  error_message?: string;
+}
+
+const deterministicSpotId = (
+  importId: string,
+  chunkId: string,
+  spotIndex: number
+): string =>
+  createHash("sha256")
+    .update(`${importId}:${chunkId}:${spotIndex}`)
+    .digest("hex")
+    .slice(0, 32);
 
 function isPlainObject(
   value: unknown
@@ -66,7 +96,7 @@ async function processImportChunk(
   const db = admin.firestore();
   const importRef = db.collection("imports").doc(importId);
   const importSnap = await importRef.get();
-  const importData = importSnap.data() as any;
+  const importData = importSnap.data() as ImportDocument | undefined;
   const importCredits = importData?.credits || {};
   const strippingMode =
     importData?.stripping_mode === true ||
@@ -83,17 +113,18 @@ async function processImportChunk(
       importData?.source_url,
     license: importCredits.license || undefined,
   });
+  const wasFailed = chunkData.status === "FAILED";
 
   try {
     await chunkRef.update({
       status: "PROCESSING",
-      error_message: admin.firestore.FieldValue.delete(),
+      error_message: FieldValue.delete(),
     });
 
     const batch = db.batch();
     let importedCount = 0;
 
-    for (const spot of chunkData.spots ?? []) {
+    for (const [spotIndex, spot] of (chunkData.spots ?? []).entries()) {
       if (!spot?.location) continue;
 
       const latitude = Number(spot.location.lat);
@@ -102,15 +133,19 @@ async function processImportChunk(
         continue;
       }
 
-      const spotRef = db.collection("spots").doc();
-      const location = new admin.firestore.GeoPoint(latitude, longitude);
+      // Stable IDs make event redelivery and manual chunk retries overwrite
+      // the same spots instead of silently duplicating a committed batch.
+      const spotRef = db
+        .collection("spots")
+        .doc(deterministicSpotId(importId, chunkRef.id, spotIndex));
+      const location = new GeoPoint(latitude, longitude);
 
       const boundsGeoPoints = Array.isArray(spot.bounds)
         ? spot.bounds
             .filter(
               (p) => typeof p?.lat === "number" && typeof p?.lng === "number"
             )
-            .map((p) => new admin.firestore.GeoPoint(p.lat, p.lng))
+            .map((p) => new GeoPoint(p.lat, p.lng))
         : undefined;
       const boundsRaw =
         spot.bounds?.filter(
@@ -156,8 +191,8 @@ async function processImportChunk(
         is_iconic: false,
         rating: 0,
         num_reviews: 0,
-        time_created: admin.firestore.FieldValue.serverTimestamp(),
-        time_updated: admin.firestore.FieldValue.serverTimestamp(),
+        time_created: FieldValue.serverTimestamp(),
+        time_updated: FieldValue.serverTimestamp(),
       });
       batch.set(spotRef, spotPayload);
       importedCount++;
@@ -165,39 +200,78 @@ async function processImportChunk(
 
     await batch.commit();
 
-    await chunkRef.update({
-      status: "COMPLETED",
-      imported_count: importedCount,
-      error_message: admin.firestore.FieldValue.delete(),
-    });
-
     await db.runTransaction(async (tx) => {
-      const latestImportSnap = await tx.get(importRef);
-      const latestImportData = latestImportSnap.data() as any;
+      const [latestImportSnap, latestChunkSnap] = await Promise.all([
+        tx.get(importRef),
+        tx.get(chunkRef),
+      ]);
+      if (latestChunkSnap.data()?.status === "COMPLETED") {
+        return;
+      }
+
+      const latestImportData = latestImportSnap.data() as
+        | ImportDocument
+        | undefined;
       const nextProcessed = (latestImportData?.chunk_count_processed ?? 0) + 1;
+      const nextFailed = Math.max(
+        0,
+        (latestImportData?.chunk_count_failed ?? 0) - (wasFailed ? 1 : 0)
+      );
       const totalChunks = latestImportData?.chunk_count_total ?? 0;
-      const nextImported = (latestImportData?.spot_count_imported ?? 0) + importedCount;
+      const nextImported =
+        (latestImportData?.spot_count_imported ?? 0) + importedCount;
       const nextStatus =
-        totalChunks > 0 && nextProcessed >= totalChunks
+        totalChunks > 0 && nextProcessed >= totalChunks && nextFailed === 0
           ? "COMPLETED"
+          : nextProcessed + nextFailed >= totalChunks
+          ? "PARTIAL"
           : "PROCESSING";
 
+      tx.update(chunkRef, {
+        status: "COMPLETED",
+        imported_count: importedCount,
+        error_message: FieldValue.delete(),
+      });
       tx.update(importRef, {
         chunk_count_processed: nextProcessed,
+        chunk_count_failed: nextFailed,
         spot_count_imported: nextImported,
         status: nextStatus,
-        updated_at: admin.firestore.FieldValue.serverTimestamp(),
+        error_message:
+          nextStatus === "COMPLETED"
+            ? FieldValue.delete()
+            : latestImportData?.error_message ?? FieldValue.delete(),
+        updated_at: FieldValue.serverTimestamp(),
       });
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : String(error);
     await chunkRef.update({
       status: "FAILED",
-      error_message: error?.message ?? String(error),
+      error_message: errorMessage,
     });
-    await importRef.update({
-      status: "PARTIAL",
-      error_message: error?.message ?? String(error),
-      updated_at: admin.firestore.FieldValue.serverTimestamp(),
+    await db.runTransaction(async (tx) => {
+      const latestImportSnap = await tx.get(importRef);
+      const latestImportData = latestImportSnap.data() as
+        | ImportDocument
+        | undefined;
+      const processed = latestImportData?.chunk_count_processed ?? 0;
+      const failed = Math.max(
+        0,
+        (latestImportData?.chunk_count_failed ?? 0) + (wasFailed ? 0 : 1)
+      );
+      const total = latestImportData?.chunk_count_total ?? 0;
+
+      tx.update(importRef, {
+        chunk_count_failed: failed,
+        status:
+          total > 0 && processed + failed >= total
+            ? "PARTIAL"
+            : "PROCESSING",
+        error_message: errorMessage,
+        updated_at: FieldValue.serverTimestamp(),
+      });
     });
     throw error;
   }

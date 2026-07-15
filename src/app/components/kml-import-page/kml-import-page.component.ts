@@ -2289,6 +2289,7 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
       ),
       chunk_count_total: chunkCount,
       chunk_count_processed: 0,
+      chunk_count_failed: 0,
     };
 
     return this._importsService.createImport(importDoc, importId);

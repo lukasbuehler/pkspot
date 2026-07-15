@@ -15,6 +15,8 @@ import { COMMUNITY_DOT_SIZE_PX } from "./community-map-rendering";
  *
  * All mode uses locality area markers. Communities mode can additionally set
  * `pinVisible` and pin metadata for full country, region, and locality pins.
+ * `showAreaPresence` keeps the locality dot/circle handoff visible alongside
+ * that full pin.
  *
  * Distinct from the active-community area circle (`communityArea` on the map)
  * which is a visual area overlay; this is the persistent click target.
@@ -25,6 +27,7 @@ export interface CommunityMapMarker {
   scope?: "country" | "region" | "locality";
   countryCode?: string;
   pinVisible?: boolean;
+  showAreaPresence?: boolean;
   pinIcon?: string;
   pinLabel?: string;
   pinSize?: number;

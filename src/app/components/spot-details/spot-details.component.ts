@@ -78,7 +78,7 @@ import {
 } from "../../../scripts/Helpers";
 import {
   getDisplayCountryName,
-  getDisplayLocalityName,
+  getDisplayLocationName,
 } from "../../../scripts/AddressHelpers";
 import { UntypedFormControl, FormsModule } from "@angular/forms";
 import {
@@ -387,10 +387,8 @@ export class SpotDetailsComponent
     return getDisplayCountryName(this.spot()?.address() ?? null) ?? "";
   });
 
-  displayLocality = computed(() => {
-    const spot = this.spot();
-    if (!spot) return "";
-    return getDisplayLocalityName(spot.address()) ?? "";
+  displayLocation = computed(() => {
+    return getDisplayLocationName(this.spot()?.address() ?? null) ?? "";
   });
 
   // Expose centralized questions for potential dynamic UI
@@ -704,11 +702,9 @@ export class SpotDetailsComponent
   // Animation keys to force transitions on content changes
   nameAnimKey = signal<number>(0);
   typeAnimKey = signal<number>(0);
-  accessAnimKey = signal<number>(0);
 
   private _lastNameValue: string | null = null;
   private _lastTypeValue: string | null = null;
-  private _lastAccessValue: string | null = null;
 
   // Live updates subscription for the current Spot
   private _spotSnapshotSub: Subscription | null = null;
@@ -1066,7 +1062,7 @@ export class SpotDetailsComponent
     //   }
     // });
 
-    // Kick animations when name/type/access change
+    // Kick animations when name or type changes
     effect(() => {
       const n = this.spot()?.name() ?? null;
       if (n !== this._lastNameValue) {
@@ -1081,14 +1077,6 @@ export class SpotDetailsComponent
         this.typeAnimKey.update((v) => v + 1);
       }
     });
-    effect(() => {
-      const a = this.spot()?.access() ?? null;
-      if (a !== this._lastAccessValue) {
-        this._lastAccessValue = a;
-        this.accessAnimKey.update((v) => v + 1);
-      }
-    });
-
     // Load nearby Google Places only when entering edit mode (to save API costs)
     effect(() => {
       const editing = this.isEditing();

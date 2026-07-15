@@ -95,6 +95,20 @@ form {
   background: var(--mat-sys-surface-container);
 }
 
+.spot-access-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
+
+  mat-icon {
+    flex: 0 0 auto;
+  }
+}
+
 .spot-loading-body {
   display: flex;
   flex-direction: column;

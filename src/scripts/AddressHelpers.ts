@@ -42,6 +42,13 @@ export function getDisplayLocalityName(
   );
 }
 
+/** Returns the most specific available location label for compact UI. */
+export function getDisplayLocationName(
+  address: SpotAddress
+): string | undefined {
+  return getDisplayLocalityName(address) ?? getDisplayCountryName(address);
+}
+
 export function getCanonicalLocalityName(
   address: SpotAddress
 ): string | undefined {

@@ -292,6 +292,80 @@ async function fetchCollection(collectionName) {
   return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
 
+async function testImportChunkRetryIdempotency() {
+  console.log("Testing import chunk retry idempotency...");
+  const importId = "missing-parent-import-regression";
+  const chunkRef = db
+    .collection("imports")
+    .doc(importId)
+    .collection("chunks")
+    .doc("chunk-00001");
+  const spots = [
+    { name: "Retry Spot 1", language: "en", location: { lat: 47.37, lng: 8.54 } },
+    { name: "Retry Spot 2", language: "en", location: { lat: 47.38, lng: 8.55 } },
+  ];
+
+  // The missing parent makes final import accounting fail after the spot batch
+  // commits. Retrying must overwrite those same spot IDs rather than duplicate them.
+  await chunkRef.set({
+    status: "PENDING",
+    spots,
+    chunk_index: 0,
+    spot_count: spots.length,
+    created_at: FieldValue.serverTimestamp(),
+  });
+  await waitFor(async () => {
+    const snapshot = await chunkRef.get();
+    return snapshot.data()?.status === "FAILED" ? snapshot.data() : null;
+  }, "missing-parent import chunk failure");
+
+  const spotsAfterFailedAttempt = (await fetchCollection("spots")).filter(
+    (spot) => spot.import_id === importId
+  );
+  if (spotsAfterFailedAttempt.length !== spots.length) {
+    throw new Error(
+      `Expected ${spots.length} committed spots before retry, got ${spotsAfterFailedAttempt.length}.`
+    );
+  }
+
+  await db.collection("imports").doc(importId).set({
+    status: "PROCESSING",
+    spot_count_total: spots.length,
+    spot_count_imported: 0,
+    spot_count_skipped: 0,
+    chunk_count_total: 1,
+    chunk_count_processed: 0,
+    chunk_count_failed: 1,
+    created_at: FieldValue.serverTimestamp(),
+  });
+  await chunkRef.parent.doc("retry").set({
+    created_at: FieldValue.serverTimestamp(),
+  });
+
+  await waitFor(async () => {
+    const snapshot = await db.collection("imports").doc(importId).get();
+    return snapshot.data()?.status === "COMPLETED" ? snapshot.data() : null;
+  }, "retried import completion");
+
+  const spotsAfterRetry = (await fetchCollection("spots")).filter(
+    (spot) => spot.import_id === importId
+  );
+  if (spotsAfterRetry.length !== spots.length) {
+    throw new Error(
+      `Expected retry to preserve ${spots.length} deterministic spots, got ${spotsAfterRetry.length}.`
+    );
+  }
+
+  await waitFor(async () => {
+    const snapshot = await db
+      .collection("maintenance")
+      .doc(`last-import-community-rebuild-${importId}`)
+      .get();
+    return snapshot.exists ? snapshot.data() : null;
+  }, "retried import community finalization");
+  await sleep(1000);
+}
+
 async function testImportedSpotCommunityRebuild() {
   console.log("Testing deferred community rebuild for imported spots...");
   const importId = "community-import-regression";
@@ -302,8 +376,9 @@ async function testImportedSpotCommunityRebuild() {
     spot_count_total: 5,
     spot_count_imported: 0,
     spot_count_skipped: 0,
-    chunk_count_total: 1,
+    chunk_count_total: 2,
     chunk_count_processed: 0,
+    chunk_count_failed: 0,
     created_at: FieldValue.serverTimestamp(),
   });
 
@@ -345,7 +420,7 @@ async function testImportedSpotCommunityRebuild() {
 
   await sleep(5000);
   const prematurePages = await fetchCollection("community_pages");
-  if (prematurePages.length > 0) {
+  if (prematurePages.some((page) => page.id === communityKey)) {
     throw new Error(
       "Expected imported spot creates to wait for import completion before rebuilding community pages."
     );
@@ -353,9 +428,26 @@ async function testImportedSpotCommunityRebuild() {
 
   await importRef.set(
     {
+      status: "PARTIAL",
+      chunk_count_failed: 1,
+      updated_at: FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+  await sleep(3000);
+  const nonTerminalPartialPages = await fetchCollection("community_pages");
+  if (nonTerminalPartialPages.some((page) => page.id === communityKey)) {
+    throw new Error(
+      "Expected a non-terminal partial import to keep community rebuilding deferred."
+    );
+  }
+
+  await importRef.set(
+    {
       status: "COMPLETED",
       spot_count_imported: 5,
-      chunk_count_processed: 1,
+      chunk_count_processed: 2,
+      chunk_count_failed: 0,
       updated_at: FieldValue.serverTimestamp(),
     },
     { merge: true }
@@ -517,6 +609,16 @@ async function main() {
   await deleteCollection("maintenance");
   await deleteCollection("imports");
   await deleteCollection("spots");
+
+  await testImportChunkRetryIdempotency();
+
+  await deleteCollection("spots");
+  await sleep(1000);
+  await deleteCollection("community_slugs");
+  await deleteCollection("community_merges");
+  await deleteCollection("community_pages");
+  await deleteCollection("maintenance");
+  await deleteCollection("imports");
 
   await testImportedSpotCommunityRebuild();
 

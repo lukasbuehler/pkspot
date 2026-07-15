@@ -85,6 +85,7 @@ export interface ImportSchema {
 
   chunk_count_total?: number;
   chunk_count_processed?: number;
+  chunk_count_failed?: number;
 
   error_message?: string;
 }

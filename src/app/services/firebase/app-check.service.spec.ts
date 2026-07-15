@@ -19,6 +19,7 @@ import {
   buildFirebaseAppCheckWebInitializeOptions,
 } from "./app-check.service";
 import { environment as productionEnvironment } from "../../../environments/environment.production";
+import { AnalyticsService } from "../analytics.service";
 
 vi.mock("@capacitor-firebase/app-check", () => ({
   FirebaseAppCheck: {
@@ -52,6 +53,10 @@ vi.mock("firebase/app", async (importOriginal) => {
 
 const createPlatformService = (platform: "web" | "ios" | "android") => ({
   getPlatform: vi.fn().mockReturnValue(platform),
+});
+
+const createAnalyticsService = () => ({
+  trackEvent: vi.fn(),
 });
 
 describe("buildFirebaseAppCheckInitializeOptions", () => {
@@ -135,6 +140,46 @@ describe("FirebaseAppCheckService", () => {
 
     expect(FirebaseAppCheck.initialize).not.toHaveBeenCalled();
     expect(initializeAppCheck).not.toHaveBeenCalled();
+  });
+
+  it("tracks skipped App Check initialization when web config is incomplete", async () => {
+    const analytics = createAnalyticsService();
+
+    TestBed.configureTestingModule({
+      providers: [
+        FirebaseAppCheckService,
+        {
+          provide: FirebaseApp,
+          useValue: {
+            options: {
+              appId: "web-app-id",
+              projectId: "parkour-base-project",
+            },
+          },
+        },
+        { provide: PLATFORM_ID, useValue: "browser" },
+        { provide: PlatformService, useValue: createPlatformService("web") },
+        { provide: AnalyticsService, useValue: analytics },
+      ],
+    });
+
+    await TestBed.inject(FirebaseAppCheckService).initialize({
+      enabled: true,
+      recaptchaEnterpriseSiteKey: "",
+    });
+
+    expect(analytics.trackEvent).toHaveBeenCalledWith(
+      "app_check_status_changed",
+      expect.objectContaining({
+        app_check_state: "skipped",
+        app_check_platform: "web",
+        app_check_app_id: "web-app-id",
+        app_check_project_id: "parkour-base-project",
+        reason: "configuration_incomplete",
+        enabled: true,
+        has_recaptcha_enterprise_site_key: false,
+      })
+    );
   });
 
   it("initializes web App Check when configured", async () => {

@@ -5648,6 +5648,12 @@
         <target> Kom je aan in een nieuwe stad? Vind trainingsplekken, zie wat locals hoog waarderen, volg aankomende events en gebruik communitypagina’s om de scene om je heen te begrijpen. </target>
       </segment>
     </unit>
+    <unit id="spot.access.off_limits.warning">
+      <segment state="initial">
+        <source>This spot is marked as off-limits. Do not train here without clear permission from the owner or manager.</source>
+        <target>Deze Spot is gemarkeerd als verboden terrein. Train hier niet zonder duidelijke toestemming van de eigenaar of beheerder.</target>
+      </segment>
+    </unit>
     <unit id="spot.close.tooltip">
       <notes>
         <note category="description">Tooltip for close spot button</note>

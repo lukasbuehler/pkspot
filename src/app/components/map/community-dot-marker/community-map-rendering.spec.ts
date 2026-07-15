@@ -3,6 +3,7 @@ import type { CommunityMapMarker } from "./community-dot-marker.component";
 import {
   COMMUNITY_DOT_SIZE_PX,
   communityCircleDiameterPx,
+  shouldShowCommunityAreaPresence,
   shouldShowCommunityDot,
 } from "./community-map-rendering";
 
@@ -38,5 +39,18 @@ describe("community map rendering", () => {
     expect(
       shouldShowCommunityDot({ ...locality, scope: "country" }, 4),
     ).toBe(false);
+  });
+
+  it("keeps area presence alongside an opted-in full community pin", () => {
+    expect(
+      shouldShowCommunityAreaPresence({ ...locality, pinVisible: true }),
+    ).toBe(false);
+    expect(
+      shouldShowCommunityAreaPresence({
+        ...locality,
+        pinVisible: true,
+        showAreaPresence: true,
+      }),
+    ).toBe(true);
   });
 });

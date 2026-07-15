@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   getDisplayCountryName,
   getDisplayFormattedAddress,
+  getDisplayLocationName,
   getDisplayLocalityName,
   getDisplayLocalityString,
 } from "./AddressHelpers";
@@ -34,5 +35,13 @@ describe("AddressHelpers", () => {
     expect(getDisplayFormattedAddress(address as any)).toBe(
       "日本、〒150-0002 東京都渋谷区"
     );
+  });
+
+  it("falls back to the country name when no locality is available", () => {
+    expect(
+      getDisplayLocationName({
+        country: { code: "NO", name: "Norway", localName: "Norge" },
+      }),
+    ).toBe("Norge");
   });
 });

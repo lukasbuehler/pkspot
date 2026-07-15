@@ -5564,6 +5564,12 @@
         <target> Neu in einer Stadt? Finde Trainingsorte, sieh, was Locals empfehlen, folge kommenden Events und nutze Community-Seiten, um die Szene vor Ort zu verstehen. </target>
       </segment>
     </unit>
+    <unit id="spot.access.off_limits.warning">
+      <segment state="initial">
+        <source>This spot is marked as off-limits. Do not train here without clear permission from the owner or manager.</source>
+        <target>Dieser Spot ist als gesperrt markiert. Trainiere hier nicht ohne ausdrückliche Erlaubnis des Eigentümers oder der verantwortlichen Stelle.</target>
+      </segment>
+    </unit>
     <unit id="spot.close.tooltip">
       <notes>
         <note category="description">Tooltip for close spot button</note>

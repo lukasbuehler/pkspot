@@ -143,7 +143,12 @@ const PURPOSE_BUILT_SPOT_TYPES = new Set([
 type CommunitySlugDoc = CommunitySlugSchema & { id: string };
 type CommunityMergeDoc = CommunityMergeSchema & { id: string };
 type ImportRebuildStatus = "COMPLETED" | "PARTIAL";
-type ImportRebuildDoc = { status?: ImportRebuildStatus | string };
+type ImportRebuildDoc = {
+  status?: ImportRebuildStatus | string;
+  chunk_count_total?: number;
+  chunk_count_processed?: number;
+  chunk_count_failed?: number;
+};
 
 const VALID_INFO_CARD_MERGE_MODES = new Set(["move", "copy", "skip"]);
 
@@ -296,6 +301,25 @@ const isImportRebuildStatus = (
   status: unknown
 ): status is ImportRebuildStatus =>
   status === "COMPLETED" || status === "PARTIAL";
+
+const isTerminalImportRebuild = (
+  importData: ImportRebuildDoc | null
+): importData is ImportRebuildDoc & { status: ImportRebuildStatus } => {
+  if (!importData || !isImportRebuildStatus(importData.status)) {
+    return false;
+  }
+  if (importData.status === "COMPLETED") {
+    return true;
+  }
+
+  const total = importData.chunk_count_total ?? 0;
+  return (
+    total > 0 &&
+    (importData.chunk_count_processed ?? 0) +
+      (importData.chunk_count_failed ?? 0) >=
+      total
+  );
+};
 
 const toMillis = (
   value:
@@ -977,6 +1001,7 @@ const syncCommunitySlugs = async (
   existingSlugs: CommunitySlugDoc[]
 ): Promise<string[]> => {
   const batch = db.batch();
+  let batchSize = 0;
   const desiredSlugs = new Set<string>([
     preferredSlug,
     ...buildCommunitySlugCandidates(candidate),
@@ -998,20 +1023,33 @@ const syncCommunitySlugs = async (
       continue;
     }
 
+    const isPreferred = slug === preferredSlug;
+    if (
+      existingSlugData?.communityKey === communityKey &&
+      existingSlugData.isPreferred === isPreferred &&
+      existingSlugData.createdAt
+    ) {
+      syncedSlugs.add(slug);
+      continue;
+    }
+
     batch.set(
       slugRef,
       {
         communityKey,
-        isPreferred: slug === preferredSlug,
+        isPreferred,
         createdAt:
           createdAtBySlug.get(slug) ?? FieldValue.serverTimestamp(),
       },
       { merge: true }
     );
+    batchSize += 1;
     syncedSlugs.add(slug);
   }
 
-  await batch.commit();
+  if (batchSize > 0) {
+    await batch.commit();
+  }
 
   return [...syncedSlugs].sort((left, right) => {
     if (left === preferredSlug) {
@@ -1306,15 +1344,29 @@ const writeOrDeactivateCommunityPage = async (
     resolvedCandidate,
     activeMerges
   );
-  const pageDoc = await buildCommunityPageDoc(
+  await writeOrDeactivateCommunityPageFromSpots(
     db,
     resolvedCandidate,
     spots,
     activeMerges
   );
+};
+
+const writeOrDeactivateCommunityPageFromSpots = async (
+  db: admin.firestore.Firestore,
+  candidate: CommunityCandidate,
+  spots: Array<{ id: string; data: SpotSchema }>,
+  activeMerges: Map<string, CommunityMergeDoc>
+): Promise<void> => {
+  const pageDoc = await buildCommunityPageDoc(
+    db,
+    candidate,
+    spots,
+    activeMerges
+  );
   const pageRef = db
     .collection(COMMUNITY_PAGES_COLLECTION)
-    .doc(resolvedCandidate.communityKey);
+    .doc(candidate.communityKey);
 
   if (!pageDoc) {
     await deactivateCommunityPage(pageRef);
@@ -1413,8 +1465,41 @@ const rebuildCommunityPagesForImportedSpots = async (
   const activeMerges = await getActiveCommunityMerges(db);
   const communities = collectGeneratedCommunities(importedSpots, activeMerges);
 
+  const spotsByCountryCode = new Map<
+    string,
+    Array<{ id: string; data: SpotSchema }>
+  >();
   for (const { candidate } of communities.values()) {
-    await writeOrDeactivateCommunityPage(db, candidate);
+    const countryCode = candidate.geography.countryCode;
+    if (!countryCode || spotsByCountryCode.has(countryCode)) {
+      continue;
+    }
+
+    const snapshot = await db
+      .collection(SPOTS_COLLECTION)
+      .where("landing.countryCode", "==", countryCode)
+      .get();
+    spotsByCountryCode.set(
+      countryCode,
+      snapshot.docs
+        .filter((doc) => isSpotRuntimeDoc(doc.id))
+        .map((doc) => ({ id: doc.id, data: doc.data() as SpotSchema }))
+    );
+  }
+
+  for (const { candidate } of communities.values()) {
+    const resolvedCandidate = resolveCommunityCandidate(candidate, activeMerges);
+    const countrySpots =
+      spotsByCountryCode.get(resolvedCandidate.geography.countryCode ?? "") ?? [];
+    const spots = countrySpots.filter((spot) =>
+      isSpotPartOfCommunity(spot.data, resolvedCandidate, activeMerges)
+    );
+    await writeOrDeactivateCommunityPageFromSpots(
+      db,
+      resolvedCandidate,
+      spots,
+      activeMerges
+    );
   }
 
   const impactedCountryKeys = new Set<string>();
@@ -1446,64 +1531,45 @@ const rebuildCommunityPagesForImportedSpots = async (
   return communities.size;
 };
 
-export const rebuildCommunityPagesOnSpotWrite = onDocumentWritten(
-  { document: "spots/{spotId}" },
-  async (event) => {
-    if (!isSpotRuntimeDoc(String(event.params.spotId ?? ""))) {
-      return null;
-    }
-
-    const db = admin.firestore();
-    const impactedCandidates = new Map<string, CommunityCandidate>();
-    const beforeData = event.data?.before?.exists
-      ? ((event.data.before.data() as SpotSchema) ?? null)
-      : null;
-    const afterData = event.data?.after?.exists
-      ? ((event.data.after.data() as SpotSchema) ?? null)
-      : null;
-
-    if (isDeferredCommunityRebuildSpotWrite(beforeData, afterData)) {
-      return null;
-    }
-
-    if (
-      !didAnyFieldChange(
-        beforeData as unknown as Record<string, unknown> | null,
-        afterData as unknown as Record<string, unknown> | null,
-        SPOT_COMMUNITY_PAGE_SOURCE_FIELDS
-      )
-    ) {
-      return null;
-    }
-
-    if (beforeData) {
-      for (const candidate of getSpotCommunityCandidates(beforeData)) {
-        impactedCandidates.set(candidate.communityKey, candidate);
-      }
-    }
-
-    if (afterData) {
-      for (const candidate of getSpotCommunityCandidates(afterData)) {
-        impactedCandidates.set(candidate.communityKey, candidate);
-      }
-    }
-
-    for (const candidate of impactedCandidates.values()) {
-      await writeOrDeactivateCommunityPage(db, candidate);
-    }
-
-    const impactedCountryKeys = new Set<string>();
-    for (const candidate of impactedCandidates.values()) {
-      const countryCommunityKey = getCountryCommunityKey(candidate);
-      if (countryCommunityKey) {
-        impactedCountryKeys.add(countryCommunityKey);
-      }
-    }
-    await refreshCountryChildCommunities(db, impactedCountryKeys);
-
-    return null;
+export const rebuildCommunityPagesForSpotWrite = async (
+  db: admin.firestore.Firestore,
+  spotId: string,
+  beforeData: SpotSchema | null,
+  afterData: SpotSchema | null
+): Promise<void> => {
+  if (
+    !isSpotRuntimeDoc(spotId) ||
+    isDeferredCommunityRebuildSpotWrite(beforeData, afterData) ||
+    !didAnyFieldChange(
+      beforeData as unknown as Record<string, unknown> | null,
+      afterData as unknown as Record<string, unknown> | null,
+      SPOT_COMMUNITY_PAGE_SOURCE_FIELDS
+    )
+  ) {
+    return;
   }
-);
+
+  const impactedCandidates = new Map<string, CommunityCandidate>();
+  for (const spotData of [beforeData, afterData]) {
+    if (!spotData) continue;
+    for (const candidate of getSpotCommunityCandidates(spotData)) {
+      impactedCandidates.set(candidate.communityKey, candidate);
+    }
+  }
+
+  for (const candidate of impactedCandidates.values()) {
+    await writeOrDeactivateCommunityPage(db, candidate);
+  }
+
+  const impactedCountryKeys = new Set<string>();
+  for (const candidate of impactedCandidates.values()) {
+    const countryCommunityKey = getCountryCommunityKey(candidate);
+    if (countryCommunityKey) {
+      impactedCountryKeys.add(countryCommunityKey);
+    }
+  }
+  await refreshCountryChildCommunities(db, impactedCountryKeys);
+};
 
 export const rebuildCommunityPagesOnImportWrite = onDocumentWritten(
   { document: "imports/{importId}" },
@@ -1520,9 +1586,11 @@ export const rebuildCommunityPagesOnImportWrite = onDocumentWritten(
       ? ((event.data.after.data() as ImportRebuildDoc) ?? null)
       : null;
 
+    const completedAfterPartial =
+      beforeData?.status === "PARTIAL" && afterData?.status === "COMPLETED";
     if (
-      !isImportRebuildStatus(afterData?.status) ||
-      beforeData?.status === afterData.status
+      !isTerminalImportRebuild(afterData) ||
+      (isTerminalImportRebuild(beforeData) && !completedAfterPartial)
     ) {
       return null;
     }

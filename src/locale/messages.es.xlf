@@ -5564,6 +5564,12 @@
         <target> ¿Llegas a una ciudad nueva? Encuentra lugares para entrenar, mira lo que recomiendan los locales, sigue próximos eventos y usa las páginas de comunidad para entender la escena a tu alrededor. </target>
       </segment>
     </unit>
+    <unit id="spot.access.off_limits.warning">
+      <segment state="initial">
+        <source>This spot is marked as off-limits. Do not train here without clear permission from the owner or manager.</source>
+        <target>Este Spot está marcado como fuera de límites. No entrenes aquí sin permiso explícito de la persona propietaria o administradora.</target>
+      </segment>
+    </unit>
     <unit id="spot.close.tooltip">
       <notes>
         <note category="description">Tooltip for close spot button</note>
