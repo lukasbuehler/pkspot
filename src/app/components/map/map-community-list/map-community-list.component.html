@@ -20,6 +20,11 @@
           @if (subtitle(community)) {
             <span class="mat-body-small community-subtitle">
               {{ subtitle(community) }}
+              @if (countryFlagEmoji(community)) {
+                <span class="community-country-flag" aria-hidden="true">
+                  {{ countryFlagEmoji(community) }}
+                </span>
+              }
             </span>
           }
           <span class="mat-label-small community-meta">

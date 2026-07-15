@@ -37,10 +37,12 @@ export class MapCommunityListComponent {
   }
 
   flagEmoji(community: CommunitySearchPreview): string {
-    if (community.scope !== "country") {
-      return "";
-    }
+    return community.scope === "country"
+      ? this.countryFlagEmoji(community)
+      : "";
+  }
 
+  countryFlagEmoji(community: CommunitySearchPreview): string {
     const countryCode = String(community.countryCode ?? "")
       .trim()
       .toUpperCase();

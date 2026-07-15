@@ -58,7 +58,7 @@
   width: 32px;
   height: 32px;
   padding: 0;
-  background: transparent;
+  background: var(--map-glass-surface-base);
   color: var(--mat-sys-on-surface);
   border: 1px solid var(--mat-chip-outline-color, var(--mat-sys-outline));
   border-radius: 50%;
@@ -67,21 +67,6 @@
   overflow: hidden;
   clip-path: circle(50% at 50% 50%);
   isolation: isolate;
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    background: color-mix(
-      in srgb,
-      var(--map-glass-surface-base) 25%,
-      transparent
-    );
-    backdrop-filter: var(--map-glass-blur);
-    -webkit-backdrop-filter: var(--map-glass-blur);
-    pointer-events: none;
-  }
 
   mat-icon {
     position: relative;
@@ -98,6 +83,27 @@
   }
 }
 
+html.map-glass-blur-enabled
+  .filter-chips-container:not(.solid-appearance)
+  .scroll-button {
+  background: transparent;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: color-mix(
+      in srgb,
+      var(--map-glass-surface-base) 25%,
+      transparent
+    );
+    backdrop-filter: var(--map-glass-blur);
+    -webkit-backdrop-filter: var(--map-glass-blur);
+    pointer-events: none;
+  }
+}
+
 .solid-appearance {
   .chips-scroll-area {
     border-radius: 8px;
@@ -109,14 +115,6 @@
     border-color: var(--mat-chip-outline-color, var(--mat-sys-outline));
     border-radius: 8px;
     clip-path: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-
-    &::before {
-      background: transparent;
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
-    }
   }
 }
 
@@ -185,8 +183,6 @@ mat-chip {
     border-radius: 20px;
     overflow: hidden;
     clip-path: inset(0 round 20px);
-    backdrop-filter: var(--map-glass-blur) !important;
-    -webkit-backdrop-filter: var(--map-glass-blur) !important;
     // WebKit GPU acceleration to prevent blur flickering during animations
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
@@ -201,6 +197,12 @@ mat-chip {
     --mat-chip-elevated-container-color: var(--map-glass-surface);
     --mdc-chip-outline-color: transparent;
     background-color: transparent !important;
+  }
+
+  html.map-glass-blur-enabled .glass .mdc-evolution-chip__action--primary,
+  html.map-glass-blur-enabled .glass .mdc-evolution-chip__action--secondary {
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
   }
 
   // Remove border on glass chips
@@ -222,8 +224,6 @@ mat-chip {
     border-radius: 8px;
     overflow: hidden;
     clip-path: inset(0 round 8px);
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
   }
 
   .solid-chip.mat-mdc-standard-chip,

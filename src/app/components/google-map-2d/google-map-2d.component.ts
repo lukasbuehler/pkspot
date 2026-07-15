@@ -160,14 +160,12 @@ interface FilteredHighlightedSpotMarkersCache {
   spots: SpotPreviewData[];
   layout: MapMarkerCollisionLayout;
   visibleSpots: SpotPreviewData[];
-  collapsedSpots: SpotPreviewData[];
 }
 
 interface FilteredRegularSpotMarkersCache {
   spots: (LocalSpot | Spot)[];
   layout: MapMarkerCollisionLayout;
   visibleSpots: (LocalSpot | Spot)[];
-  collapsedSpots: (LocalSpot | Spot)[];
 }
 
 interface FilteredPointMarkersCache {
@@ -763,26 +761,10 @@ export class GoogleMap2dComponent
       .visibleSpots;
   }
 
-  getCollapsedHighlightedSpots(): SpotPreviewData[] {
-    if (this.showAllHighlightedSpotPins()) return [];
-
-    const spots = this._getVisibleHighlightedSpotPreviews();
-    const layout = this._getMarkerCollisionLayout();
-    return this._getHighlightedSpotCollisionPartition(spots, layout)
-      .collapsedSpots;
-  }
-
   getVisibleSpotMarkers(): (LocalSpot | Spot)[] {
     const spots = this._getVisibleRegularSpotMarkers();
     const layout = this._getMarkerCollisionLayout();
     return this._getRegularSpotCollisionPartition(spots, layout).visibleSpots;
-  }
-
-  getCollapsedSpotMarkers(): (LocalSpot | Spot)[] {
-    const spots = this._getVisibleRegularSpotMarkers();
-    const layout = this._getMarkerCollisionLayout();
-    return this._getRegularSpotCollisionPartition(spots, layout)
-      .collapsedSpots;
   }
 
   getVisiblePointMarkers(): MapPointMarker[] {
@@ -805,22 +787,15 @@ export class GoogleMap2dComponent
     const cached = this._filteredHighlightedSpotMarkersCache;
     if (cached?.spots === spots && cached.layout === layout) return cached;
 
-    const visibleSpots: SpotPreviewData[] = [];
-    const collapsedSpots: SpotPreviewData[] = [];
-    for (const spot of spots) {
-      const target = layout.hiddenSpotIds.has(
-        this._getSpotPreviewCollisionId(spot),
-      )
-        ? collapsedSpots
-        : visibleSpots;
-      target.push(spot);
-    }
+    const visibleSpots = spots.filter(
+      (spot) =>
+        !layout.hiddenSpotIds.has(this._getSpotPreviewCollisionId(spot)),
+    );
 
     return (this._filteredHighlightedSpotMarkersCache = {
       spots,
       layout,
       visibleSpots,
-      collapsedSpots,
     });
   }
 
@@ -831,22 +806,14 @@ export class GoogleMap2dComponent
     const cached = this._filteredRegularSpotMarkersCache;
     if (cached?.spots === spots && cached.layout === layout) return cached;
 
-    const visibleSpots: (LocalSpot | Spot)[] = [];
-    const collapsedSpots: (LocalSpot | Spot)[] = [];
-    for (const spot of spots) {
-      const target = layout.hiddenSpotIds.has(
-        this._getSpotModelCollisionId(spot),
-      )
-        ? collapsedSpots
-        : visibleSpots;
-      target.push(spot);
-    }
+    const visibleSpots = spots.filter(
+      (spot) => !layout.hiddenSpotIds.has(this._getSpotModelCollisionId(spot)),
+    );
 
     return (this._filteredRegularSpotMarkersCache = {
       spots,
       layout,
       visibleSpots,
-      collapsedSpots,
     });
   }
 

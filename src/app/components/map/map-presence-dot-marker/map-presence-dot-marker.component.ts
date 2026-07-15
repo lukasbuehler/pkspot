@@ -19,8 +19,6 @@ import { MapAdvancedMarker } from "@angular/google-maps";
     <div
       #dot
       class="presence-dot"
-      [class.presence-dot--community]="variant() === 'community'"
-      [class.presence-dot--spot]="variant() === 'spot'"
       [style.height.px]="size()"
       [style.width.px]="size()"
       [attr.aria-label]="label()"
@@ -47,6 +45,8 @@ import { MapAdvancedMarker } from "@angular/google-maps";
       cursor: pointer;
       opacity: 0.82;
       pointer-events: auto;
+      background: var(--mat-sys-primary-container);
+      border: 1px solid var(--mat-sys-primary);
       transition:
         opacity 120ms ease,
         transform 120ms ease;
@@ -57,24 +57,12 @@ import { MapAdvancedMarker } from "@angular/google-maps";
       transform: scale(1.35);
     }
 
-    .presence-dot--spot {
-      background: var(--mat-sys-primary);
-      border: 1px solid var(--mat-sys-on-primary);
-      box-shadow: 0 1px 3px
-        color-mix(in srgb, var(--mat-sys-shadow) 35%, transparent);
-    }
-
-    .presence-dot--community {
-      background: var(--mat-sys-primary-container);
-      border: 1px solid var(--mat-sys-primary);
-    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MapPresenceDotMarkerComponent {
   readonly position = input.required<google.maps.LatLngLiteral>();
   readonly label = input.required<string>();
-  readonly variant = input.required<"community" | "spot">();
   readonly size = input<number>(8);
   readonly zIndex = input<number>(5);
   readonly markerClick = output<void>();

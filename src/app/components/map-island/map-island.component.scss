@@ -28,8 +28,6 @@
   --map-island-max-width: 480px;
 
   background: var(--map-glass-surface) !important;
-  backdrop-filter: var(--map-glass-blur) !important;
-  -webkit-backdrop-filter: var(--map-glass-blur) !important;
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   backface-visibility: hidden;
@@ -46,6 +44,11 @@
     min-height 220ms ease,
     padding 220ms ease,
     gap 220ms ease;
+}
+
+html.map-glass-blur-enabled .map-island {
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
 }
 
 .filter-island {

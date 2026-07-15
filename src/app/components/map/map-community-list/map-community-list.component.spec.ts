@@ -43,7 +43,7 @@ describe("MapCommunityListComponent", () => {
     expect(fixture.debugElement.query(By.css(".community-subtitle"))).toBeNull();
   });
 
-  it("uses locality icon and parent-place subtitle for locality communities", () => {
+  it("uses locality icon and parent-place subtitle with its country flag", () => {
     fixture.componentRef.setInput("communities", [
       community({
         communityKey: "locality:ch:ag:zofingen",
@@ -70,5 +70,9 @@ describe("MapCommunityListComponent", () => {
       fixture.debugElement.query(By.css(".community-subtitle")).nativeElement
         .textContent,
     ).toContain("Aargau, Switzerland");
+    expect(
+      fixture.debugElement.query(By.css(".community-country-flag"))
+        .nativeElement.textContent,
+    ).toContain("🇨🇭");
   });
 });

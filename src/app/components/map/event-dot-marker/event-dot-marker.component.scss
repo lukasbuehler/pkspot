@@ -14,8 +14,6 @@
 
 .event-map-marker {
   align-items: center;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
   border: 2px solid var(--mat-sys-primary);
   border-radius: 12px;
   box-shadow: 0 4px 12px
@@ -31,6 +29,11 @@
     transform 120ms ease,
     box-shadow 120ms ease;
   width: 36px;
+}
+
+html.map-glass-blur-enabled .event-map-marker {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .event-map-marker:hover {

@@ -3,11 +3,14 @@
 @mixin color($theme) {
   div.info-panel {
     background: var(--map-glass-surface);
-    backdrop-filter: var(--map-glass-blur);
-    -webkit-backdrop-filter: var(--map-glass-blur);
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
+  }
+
+  html.map-glass-blur-enabled div.info-panel {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 }

@@ -3,8 +3,6 @@
 @mixin color($theme) {
   app-bottom-sheet > div.sheet {
     background: mat.get-theme-color($theme, surface-container-low);
-    backdrop-filter: var(--map-glass-blur);
-    -webkit-backdrop-filter: var(--map-glass-blur);
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
     backface-visibility: hidden;
@@ -17,6 +15,8 @@
       #{mat.get-theme-color($theme, surface-container-low)} 88%,
       transparent
     );
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 }
 
