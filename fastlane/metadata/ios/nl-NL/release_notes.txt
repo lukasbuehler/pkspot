@@ -1,7 +1,7 @@
-PK Spot v1.1.3 — Profielen en communitybijdragen
+PK Spot v1.1.3 — Communitybijdragen
 
 Nieuw:
 
-• Bijgewerkte profielpagina's en volgfuncties.
 • Gebruikers kunnen nu suggesties voor communitykaarten indienen.
 • Moderatiewachtrij voor admins om community- en spotstemmen te beoordelen.
+• Profielpagina's en volgfuncties kregen kleine updates.

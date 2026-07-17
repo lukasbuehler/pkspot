@@ -1,7 +1,7 @@
-PK Spot v1.1.3 — Profiles & Community Submissions
+PK Spot v1.1.3 — Community Submissions
 
 What’s new:
 
-• Updated profile pages and following mechanics.
 • Community card suggestions can now be submitted by users.
 • Admin moderation queue for reviewing community and spot votes.
+• Profile pages and following mechanics received small updates.

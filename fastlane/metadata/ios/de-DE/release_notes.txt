@@ -1,7 +1,7 @@
-PK Spot v1.1.3 — Profile & Community-Einreichungen
+PK Spot v1.1.3 — Community-Einreichungen
 
 Was ist neu:
 
-• Aktualisierte Profilseiten und Following-Funktionen.
 • Nutzer können jetzt Vorschläge für Community-Karten einreichen.
 • Moderations-Warteschlange für Admins zur Prüfung von Community- und Spot-Votes.
+• Profilseiten und Following-Funktionen wurden leicht aktualisiert.

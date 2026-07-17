@@ -1,300 +1,526 @@
 <div class="profile-page">
   @if (isLoading) {
-  <div class="profile-state" aria-live="polite">
-    <mat-spinner diameter="48" strokeWidth="4" aria-label="Loading profile"></mat-spinner>
-  </div>
-  } @else { @if (user) {
-  <div class="profile-grid">
-    @if(isBlocked) {
-    <div
-      class="profile-blocked-container profile-state profile-state--panel">
-      <mat-icon class="profile-state__icon">block_border</mat-icon>
-      <h2 class="mat-headline-small" i18n>You have blocked this user</h2>
-      <p class="mat-body-large" i18n>
-        Unblock them to see their profile and posts.
-      </p>
-      <button mat-stroked-button color="warn" class="profile-state__action" (click)="toggleBlockUser()" i18n>
-        Unblock User
-      </button>
+    <div class="profile-state" aria-live="polite">
+      <mat-spinner
+        diameter="48"
+        strokeWidth="4"
+        aria-label="Loading profile"
+      ></mat-spinner>
     </div>
-    } @else {
-    <section class="profile-primary" aria-label="Profile overview">
-      <mat-card class="profile-overview__card mat-elevation-z1">
-        <mat-card-content>
-          <div class="profile-overview__content">
-            <div class="profile-overview__media">
-              @if (profilePicture) {
-              <div class="profile-overview__avatar">
-                <img [ngSrc]="profilePicture" [alt]="
-                    user.displayName
-                      ? user.displayName + ' profile picture'
-                      : 'Profile picture'
-                  " fill />
-              </div>
-              } @else {
-              <div class="profile-overview__avatar profile-overview__avatar--placeholder mat-display-small"
-                aria-hidden="true">
-                {{ user.displayName ? user.displayName.charAt(0) : "?" }}
-              </div>
-              }
-            </div>
-
-            <div class="profile-overview__details">
-              <div class="profile-overview__identity">
-                <div>
-                  <h1 class="mat-headline-medium profile-overview__name">
-                    {{ user.displayName || "PK Spot user" }}
-                  </h1>
-                  <p class="mat-body-medium profile-overview__handle">{{ profileIdentity }}</p>
-                </div>
-                <mat-chip-set aria-label="Profile status" class="profile-overview__chips">
-                  @if (isMyProfile) {
-                  <mat-chip color="primary" class="mat-label-large" i18n>You</mat-chip>
-                  }
-                  @if (relationshipLabel) {
-                  <mat-chip color="primary" class="mat-label-large">
-                    <mat-icon class="profile-overview__chip-icon">groups</mat-icon>
-                    {{ relationshipLabel }}
-                  </mat-chip>
-                  }
-                  <mat-chip class="mat-label-large">
-                    <mat-icon class="profile-overview__chip-icon">{{ user.accountPrivacy === "private" ? "lock" : "public" }}</mat-icon>
-                    {{ profileAccessLabel }}
-                  </mat-chip>
-                  <mat-chip class="mat-label-large">
-                    <mat-icon class="profile-overview__chip-icon">{{ profileVisibilityIcon }}</mat-icon>
-                    {{ profileVisibilityLabel }}
-                  </mat-chip>
-                </mat-chip-set>
-              </div>
-              @if (user.biography) {
-              <p class="mat-body-large profile-overview__bio">
-                {{ user.biography }}
-              </p>
-              } @else if (isMyProfile) {
-              <p class="mat-body-medium profile-overview__empty-copy" i18n>
-                Add a short bio so your public profile tells people who you are.
-              </p>
-              }
-
-              @if (hasProfileMetadata) {
-              <div class="profile-overview__metadata" aria-label="Profile metadata">
-                @if (user.nationalityCode && countries[user.nationalityCode]) {
-                <div class="mat-body-medium profile-overview__metadata-item">
-                  <mat-icon>location_on</mat-icon>
-                  <span i18n>from</span>
-                  <strong>{{
-                    countries[user.nationalityCode].name
-                    }}</strong>
-                  <span>{{ countries[user.nationalityCode].emoji }}</span>
-                </div>
-                } @if (user.startTimeDiffString) {
-                <div class="mat-body-medium profile-overview__metadata-item">
-                  <mat-icon>history</mat-icon>
-                  <span i18n>Freerunner since</span>
-                  <strong>{{ user.startTimeDiffString }}</strong>
-                </div>
-                } @if (user.visitedSpotsCount) {
-                <div class="mat-body-medium profile-overview__metadata-item">
-                  <mat-icon>beenhere</mat-icon>
-                  <strong>{{ user.visitedSpotsCount }}</strong>
-                  <span i18n>spots visited</span>
-                </div>
-                }
-              </div>
-              }
-
-              @if (profileSocialLinks.length > 0) {
-              <div class="profile-overview__socials">
-                @for (socialLink of profileSocialLinks; track socialLink.id) {
-                <a mat-stroked-button class="profile-social-link" [href]="socialLink.url" target="_blank"
-                  rel="noopener noreferrer nofollow">
-                  <mat-icon>{{ socialLink.icon }}</mat-icon>
-                  <span>{{ socialLink.label }}</span>
-                </a>
-                }
-              </div>
-              }
-
-              <div class="profile-stats" aria-label="Profile summary">
-                <button type="button" class="profile-stat clickable-stat" matRipple (click)="viewFollowers()"
-                  [disabled]="!isMyProfile">
-                  <span class="profile-stat__value mat-headline-small">
-                    <app-fancy-counter [number]="user.followerCount || 0"></app-fancy-counter>
-                  </span>
-                  <span class="profile-stat__label mat-body-small" i18n>{user.followerCount, plural, =1 {Follower} other
-                    {Followers}}</span>
-                </button>
-                <button type="button" class="profile-stat clickable-stat" matRipple (click)="viewFollowing()"
-                  [disabled]="!isMyProfile">
-                  <span class="profile-stat__value mat-headline-small">
-                    <app-fancy-counter [number]="followingCount || 0"></app-fancy-counter>
-                  </span>
-                  <span class="profile-stat__label mat-body-small" i18n>Following</span>
-                </button>
-                <div class="profile-stat">
-                  <span class="profile-stat__value mat-headline-small">{{ totalContributions }}</span>
-                  <span class="profile-stat__label mat-body-small" i18n>Contributions</span>
-                </div>
-              </div>
-
-              @if (isMyProfile && !ageAssurance.canParticipatePublicly()) {
-              <app-contribution-status-note></app-contribution-status-note>
-              }
-
-              @if (!isMyProfile) {
-              <div class="profile-overview__actions" aria-label="Profile actions">
-                @if (ageAssurance.canParticipatePublicly()) {
-                <button [matButton]="followActionButtonType" color="primary"
-                  class="profile-overview__action" (click)="followButtonClick()">
-                  @if (loadingFollowing) {
-                  <mat-spinner diameter="20" strokeWidth="3" class="profile-overview__action-spinner"
-                    aria-label="Updating follow status"></mat-spinner>
-                  } @if (isFollowing) {
-                  <span i18n>Unfollow</span>
-                  } @else if (isPendingFollowRequest) {
-                  <span i18n>Requested</span>
-                  } @else if (isPrivateAccount) {
-                  <span i18n>Request follow</span>
-                  } @else {
-                  <span i18n>Follow</span>
-                  }
-                </button>
-                }
-                <button mat-stroked-button color="warn" class="profile-overview__action"
-                  (click)="toggleBlockUser()">
-                  @if (isBlocked) {
-                  <span i18n>Unblock</span>
-                  } @else {
-                  <span i18n>Block</span>
-                  }
-                </button>
-                <button mat-stroked-button color="warn" class="profile-overview__action"
-                  (click)="openProfileReportDialog()">
-                  <mat-icon>report</mat-icon>
-                  <span i18n>Report</span>
-                </button>
-              </div>
-              } @else {
-              <div class="profile-overview__actions profile-overview__actions--owner"
-                aria-label="Profile management actions">
-                @if (ageAssurance.canParticipatePublicly()) {
-                <button matButton="filled" color="primary" class="profile-overview__action"
-                  routerLink="/settings/profile">
-                  <mat-icon>edit</mat-icon>
-                  <span i18n>Edit Profile</span>
-                </button>
-                }
-                <button mat-stroked-button color="primary" class="profile-overview__action"
-                  routerLink="/settings/account">
-                  <mat-icon>settings</mat-icon>
-                  <span i18n>Settings</span>
-                </button>
-                <button mat-stroked-button color="warn" class="profile-overview__action"
-                  (click)="logOut()">
-                  <mat-icon>logout</mat-icon>
-                  <span i18n>Log out</span>
-                </button>
-              </div>
-              }
-            </div>
+  } @else {
+    @if (user) {
+      <div class="profile-grid">
+        @if (isBlocked) {
+          <div
+            class="profile-blocked-container profile-state profile-state--panel"
+          >
+            <mat-icon class="profile-state__icon">block_border</mat-icon>
+            <h2 class="mat-headline-small" i18n>You have blocked this user</h2>
+            <p class="mat-body-large" i18n>
+              Unblock them to see their profile and posts.
+            </p>
+            <button
+              mat-stroked-button
+              color="warn"
+              class="profile-state__action"
+              (click)="toggleBlockUser()"
+              i18n
+            >
+              Unblock User
+            </button>
           </div>
-        </mat-card-content>
-      </mat-card>
+        } @else {
+          <section class="profile-primary" aria-label="Profile overview">
+            <mat-card class="profile-overview__card mat-elevation-z1">
+              <mat-card-content>
+                <div class="profile-overview__content">
+                  <div class="profile-overview__media">
+                    @if (profilePicture) {
+                      <div class="profile-overview__avatar">
+                        <img
+                          [ngSrc]="profilePicture"
+                          [alt]="
+                            user.displayName
+                              ? user.displayName + ' profile picture'
+                              : 'Profile picture'
+                          "
+                          fill
+                        />
+                      </div>
+                    } @else {
+                      <div
+                        class="profile-overview__avatar profile-overview__avatar--placeholder mat-display-small"
+                        aria-hidden="true"
+                      >
+                        {{
+                          user.displayName ? user.displayName.charAt(0) : "?"
+                        }}
+                      </div>
+                    }
+                  </div>
 
-      <!-- saved and visited spots -->
-      @if (isMyProfile) {
-      <mat-card class="profile-section mat-elevation-z1">
-        <mat-card-header class="profile-section__header">
-          <mat-card-title class="mat-title-small" i18n>
-            Follow requests
-          </mat-card-title>
-          <mat-card-subtitle class="mat-body-small text-muted" i18n>
-            Private accounts can approve who follows them.
-          </mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content class="profile-section__content">
-          @if (followRequestsLoading) {
-          <div class="private-spot-loading">
-            <mat-spinner diameter="28" strokeWidth="3"></mat-spinner>
-          </div>
-          } @else if (followRequests.length > 0) {
-          <div class="d-grid gap-2">
-            @for (request of followRequests; track request.uid) {
-            <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-between gap-3 p-3 rounded border">
-              <div class="d-flex align-items-center gap-2 min-w-0">
-                <div
-                  class="d-grid flex-shrink-0 rounded-circle text-uppercase fw-semibold"
-                  style="place-items: center; width: 40px; aspect-ratio: 1; background: var(--mat-sys-primary-container); color: var(--mat-sys-on-primary-container)"
-                  aria-hidden="true">
-                  {{ request.display_name ? request.display_name.charAt(0) : "?" }}
+                  <div class="profile-overview__details">
+                    <div class="profile-overview__identity">
+                      <div>
+                        <h1 class="mat-headline-medium profile-overview__name">
+                          {{ user.displayName || "PK Spot user" }}
+                        </h1>
+                        <p class="mat-body-medium profile-overview__handle">
+                          {{ profileIdentity }}
+                        </p>
+                      </div>
+                      <mat-chip-set
+                        aria-label="Profile status"
+                        class="profile-overview__chips"
+                      >
+                        @if (isMyProfile) {
+                          <mat-chip color="primary" class="mat-label-large">
+                            <mat-icon
+                              matChipAvatar
+                              class="profile-overview__chip-icon"
+                              >person</mat-icon
+                            >
+                            <span i18n>You</span>
+                          </mat-chip>
+                        }
+                        @if (relationshipLabel) {
+                          <mat-chip color="primary" class="mat-label-large">
+                            <mat-icon
+                              matChipAvatar
+                              class="profile-overview__chip-icon"
+                              >groups</mat-icon
+                            >
+                            {{ relationshipLabel }}
+                          </mat-chip>
+                        }
+                        @if (showAccountPrivacyChip) {
+                          <mat-chip class="mat-label-large">
+                            <mat-icon
+                              matChipAvatar
+                              class="profile-overview__chip-icon"
+                              >{{
+                                user.accountPrivacy === "private"
+                                  ? "lock"
+                                  : "public"
+                              }}</mat-icon
+                            >
+                            {{ profileAccessLabel }}
+                          </mat-chip>
+                        }
+                        <mat-chip class="mat-label-large">
+                          <mat-icon
+                            matChipAvatar
+                            class="profile-overview__chip-icon"
+                            >{{ profileVisibilityIcon }}</mat-icon
+                          >
+                          {{ profileVisibilityLabel }}
+                        </mat-chip>
+                      </mat-chip-set>
+                    </div>
+                    @if (user.biography) {
+                      <p class="mat-body-large profile-overview__bio">
+                        {{ user.biography }}
+                      </p>
+                    } @else if (isMyProfile) {
+                      <p
+                        class="mat-body-medium profile-overview__empty-copy"
+                        i18n
+                      >
+                        Add a short bio so your public profile tells people who
+                        you are.
+                      </p>
+                    }
+
+                    @if (hasProfileMetadata) {
+                      <div
+                        class="profile-overview__metadata"
+                        aria-label="Profile metadata"
+                      >
+                        @if (
+                          user.nationalityCode &&
+                          countries[user.nationalityCode]
+                        ) {
+                          <div
+                            class="mat-body-medium profile-overview__metadata-item"
+                          >
+                            <mat-icon>location_on</mat-icon>
+                            <span i18n>from</span>
+                            <strong>{{
+                              countries[user.nationalityCode].name
+                            }}</strong>
+                            <span>{{
+                              countries[user.nationalityCode].emoji
+                            }}</span>
+                          </div>
+                        }
+                        @if (user.startTimeDiffString) {
+                          <div
+                            class="mat-body-medium profile-overview__metadata-item"
+                          >
+                            <mat-icon>history</mat-icon>
+                            <span i18n>Freerunner since</span>
+                            <strong>{{ user.startTimeDiffString }}</strong>
+                          </div>
+                        }
+                        @if (user.visitedSpotsCount) {
+                          <div
+                            class="mat-body-medium profile-overview__metadata-item"
+                          >
+                            <mat-icon>beenhere</mat-icon>
+                            <strong>{{ user.visitedSpotsCount }}</strong>
+                            <span i18n>spots visited</span>
+                          </div>
+                        }
+                      </div>
+                    }
+
+                    @if (profileSocialLinks.length > 0) {
+                      <div class="profile-overview__socials">
+                        @for (
+                          socialLink of profileSocialLinks;
+                          track socialLink.id
+                        ) {
+                          <a
+                            mat-stroked-button
+                            class="profile-social-link"
+                            [href]="socialLink.url"
+                            target="_blank"
+                            rel="noopener noreferrer nofollow"
+                          >
+                            <mat-icon>{{ socialLink.icon }}</mat-icon>
+                            <span>{{ socialLink.label }}</span>
+                          </a>
+                        }
+                      </div>
+                    }
+
+                    <div class="profile-stats" aria-label="Profile summary">
+                      <button
+                        type="button"
+                        class="profile-stat clickable-stat"
+                        matRipple
+                        (click)="viewFollowers()"
+                        [disabled]="!isMyProfile"
+                      >
+                        <span class="profile-stat__value mat-headline-small">
+                          <app-fancy-counter
+                            [number]="user.followerCount || 0"
+                          ></app-fancy-counter>
+                        </span>
+                        <span
+                          class="profile-stat__label mat-body-small"
+                          i18n
+                          >{user.followerCount, plural,
+                            =1 {Follower}
+                            other {Followers}
+                          }</span
+                        >
+                      </button>
+                      <button
+                        type="button"
+                        class="profile-stat clickable-stat"
+                        matRipple
+                        (click)="viewFollowing()"
+                        [disabled]="!isMyProfile"
+                      >
+                        <span class="profile-stat__value mat-headline-small">
+                          <app-fancy-counter
+                            [number]="followingCount || 0"
+                          ></app-fancy-counter>
+                        </span>
+                        <span class="profile-stat__label mat-body-small" i18n
+                          >Following</span
+                        >
+                      </button>
+                      <div class="profile-stat">
+                        <span class="profile-stat__value mat-headline-small">{{
+                          totalContributions
+                        }}</span>
+                        <span class="profile-stat__label mat-body-small" i18n
+                          >Contributions</span
+                        >
+                      </div>
+                    </div>
+
+                    @if (
+                      isMyProfile && !ageAssurance.canParticipatePublicly()
+                    ) {
+                      <app-contribution-status-note></app-contribution-status-note>
+                    }
+
+                    @if (!isMyProfile) {
+                      <div
+                        class="profile-overview__actions"
+                        aria-label="Profile actions"
+                      >
+                        @if (ageAssurance.canParticipatePublicly()) {
+                          <button
+                            [matButton]="followActionButtonType"
+                            color="primary"
+                            class="profile-overview__action"
+                            (click)="followButtonClick()"
+                          >
+                            @if (loadingFollowing) {
+                              <mat-spinner
+                                diameter="20"
+                                strokeWidth="3"
+                                class="profile-overview__action-spinner"
+                                aria-label="Updating follow status"
+                              ></mat-spinner>
+                            }
+                            @if (isFollowing) {
+                              <span i18n>Unfollow</span>
+                            } @else if (isPendingFollowRequest) {
+                              <span i18n>Requested</span>
+                            } @else if (isPrivateAccount) {
+                              <span i18n>Request follow</span>
+                            } @else {
+                              <span i18n>Follow</span>
+                            }
+                          </button>
+                        }
+                        <button
+                          mat-stroked-button
+                          color="warn"
+                          class="profile-overview__action"
+                          (click)="toggleBlockUser()"
+                        >
+                          @if (isBlocked) {
+                            <span i18n>Unblock</span>
+                          } @else {
+                            <span i18n>Block</span>
+                          }
+                        </button>
+                        <button
+                          mat-stroked-button
+                          color="warn"
+                          class="profile-overview__action"
+                          (click)="openProfileReportDialog()"
+                        >
+                          <mat-icon>report</mat-icon>
+                          <span i18n>Report</span>
+                        </button>
+                      </div>
+                    } @else {
+                      <div
+                        class="profile-overview__actions profile-overview__actions--owner"
+                        aria-label="Profile management actions"
+                      >
+                        @if (ageAssurance.canParticipatePublicly()) {
+                          <button
+                            matButton="filled"
+                            color="primary"
+                            class="profile-overview__action"
+                            routerLink="/settings/profile"
+                          >
+                            <mat-icon>edit</mat-icon>
+                            <span i18n>Edit Profile</span>
+                          </button>
+                        }
+                        <button
+                          mat-stroked-button
+                          color="primary"
+                          class="profile-overview__action"
+                          routerLink="/settings/account"
+                        >
+                          <mat-icon>settings</mat-icon>
+                          <span i18n>Settings</span>
+                        </button>
+                        <button
+                          mat-stroked-button
+                          color="warn"
+                          class="profile-overview__action"
+                          (click)="logOut()"
+                        >
+                          <mat-icon>logout</mat-icon>
+                          <span i18n>Log out</span>
+                        </button>
+                      </div>
+                    }
+                  </div>
                 </div>
-                <div style="min-width: 0">
-                  <p class="mat-body-medium m-0" style="overflow-wrap: anywhere">
-                    {{ request.display_name || request.uid }}
-                  </p>
-                  <p class="mat-body-small text-muted m-0" style="overflow-wrap: anywhere">{{ "/u/" + request.uid }}</p>
-                </div>
-              </div>
-              <div class="follow-request-actions d-flex flex-wrap justify-content-end gap-2">
-                <button mat-stroked-button color="primary" (click)="approveFollowRequest(request)"
-                  [disabled]="updatingFollowRequestIds.has(request.uid)">
-                  <mat-icon>check</mat-icon>
-                  <span i18n>Approve</span>
-                </button>
-                <button mat-stroked-button color="warn" (click)="rejectFollowRequest(request)"
-                  [disabled]="updatingFollowRequestIds.has(request.uid)">
-                  <mat-icon>close</mat-icon>
-                  <span i18n>Decline</span>
-                </button>
-              </div>
-            </div>
+              </mat-card-content>
+            </mat-card>
+
+            <!-- saved and visited spots -->
+            @if (isMyProfile) {
+              <mat-card class="profile-section mat-elevation-z1">
+                <mat-card-header class="profile-section__header">
+                  <mat-card-title class="mat-title-small" i18n>
+                    Follow requests
+                  </mat-card-title>
+                  <mat-card-subtitle class="mat-body-small text-muted" i18n>
+                    Private accounts can approve who follows them.
+                  </mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content class="profile-section__content">
+                  @if (followRequestsLoading) {
+                    <div class="private-spot-loading">
+                      <mat-spinner diameter="28" strokeWidth="3"></mat-spinner>
+                    </div>
+                  } @else if (followRequestsLoadFailed) {
+                    <div class="profile-section__load-error">
+                      <p
+                        class="profile-section__placeholder mat-body-medium"
+                        i18n
+                      >
+                        Unable to process this request. Please try again later.
+                      </p>
+                      <button
+                        mat-stroked-button
+                        color="primary"
+                        (click)="retryFollowRequests()"
+                      >
+                        <mat-icon>refresh</mat-icon>
+                        <span i18n>Refresh</span>
+                      </button>
+                    </div>
+                  } @else if (followRequests.length > 0) {
+                    <div class="d-grid gap-2">
+                      @for (request of followRequests; track request.uid) {
+                        <div
+                          class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-between gap-3 p-3 rounded border"
+                        >
+                          <div class="d-flex align-items-center gap-2 min-w-0">
+                            <div
+                              class="d-grid flex-shrink-0 rounded-circle text-uppercase fw-semibold"
+                              style="
+                                place-items: center;
+                                width: 40px;
+                                aspect-ratio: 1;
+                                background: var(--mat-sys-primary-container);
+                                color: var(--mat-sys-on-primary-container);
+                              "
+                              aria-hidden="true"
+                            >
+                              {{
+                                request.display_name
+                                  ? request.display_name.charAt(0)
+                                  : "?"
+                              }}
+                            </div>
+                            <div style="min-width: 0">
+                              <p
+                                class="mat-body-medium m-0"
+                                style="overflow-wrap: anywhere"
+                              >
+                                {{ request.display_name || request.uid }}
+                              </p>
+                              <p
+                                class="mat-body-small text-muted m-0"
+                                style="overflow-wrap: anywhere"
+                              >
+                                {{ "/u/" + request.uid }}
+                              </p>
+                            </div>
+                          </div>
+                          <div
+                            class="follow-request-actions d-flex flex-wrap justify-content-end gap-2"
+                          >
+                            <button
+                              mat-stroked-button
+                              color="primary"
+                              (click)="approveFollowRequest(request)"
+                              [disabled]="
+                                updatingFollowRequestIds.has(request.uid)
+                              "
+                            >
+                              <mat-icon>check</mat-icon>
+                              <span i18n>Approve</span>
+                            </button>
+                            <button
+                              mat-stroked-button
+                              color="warn"
+                              (click)="rejectFollowRequest(request)"
+                              [disabled]="
+                                updatingFollowRequestIds.has(request.uid)
+                              "
+                            >
+                              <mat-icon>close</mat-icon>
+                              <span i18n>Decline</span>
+                            </button>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  } @else {
+                    <p
+                      class="profile-section__placeholder mat-body-medium"
+                      i18n
+                    >
+                      No pending follow requests.
+                    </p>
+                  }
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="profile-section mat-elevation-z1">
+                <mat-card-header class="profile-section__header">
+                  <mat-card-title class="mat-title-small" i18n>
+                    Your Private Spot Lists
+                  </mat-card-title>
+                  <mat-card-subtitle class="mat-body-small text-muted" i18n
+                    >Only visible to you.</mat-card-subtitle
+                  >
+                </mat-card-header>
+                <mat-card-content class="profile-section__content">
+                  @if (privateDataLoading) {
+                    <div class="private-spot-loading">
+                      <mat-spinner diameter="28" strokeWidth="3"></mat-spinner>
+                    </div>
+                  } @else if (privateDataLoadFailed) {
+                    <div class="profile-section__load-error">
+                      <p
+                        class="profile-section__placeholder mat-body-medium"
+                        i18n
+                      >
+                        Unable to process this request. Please try again later.
+                      </p>
+                      <button
+                        mat-stroked-button
+                        color="primary"
+                        (click)="retryPrivateData()"
+                      >
+                        <mat-icon>refresh</mat-icon>
+                        <span i18n>Refresh</span>
+                      </button>
+                    </div>
+                  }
+
+                  <div class="private-spot-actions">
+                    <button
+                      mat-stroked-button
+                      color="primary"
+                      (click)="openPrivateSpotListsDialog('saved')"
+                      [disabled]="privateDataLoading || privateDataLoadFailed"
+                      class="private-spot-action"
+                    >
+                      <mat-icon>bookmark</mat-icon>
+                      <span i18n>Saved Spots</span>
+                      <span class="private-spot-count">
+                        ({{ savedSpotIds.length }})</span
+                      >
+                    </button>
+
+                    <button
+                      mat-stroked-button
+                      color="primary"
+                      (click)="openPrivateSpotListsDialog('visited')"
+                      [disabled]="privateDataLoading || privateDataLoadFailed"
+                      class="private-spot-action"
+                    >
+                      <mat-icon>beenhere</mat-icon>
+                      <span i18n>Visited Spots</span>
+                      <span class="private-spot-count">
+                        ({{ visitedSpotIds.length }})</span
+                      >
+                    </button>
+                  </div>
+                </mat-card-content>
+              </mat-card>
             }
-          </div>
-          } @else {
-          <p class="profile-section__placeholder mat-body-medium" i18n>
-            No pending follow requests.
-          </p>
-          }
-        </mat-card-content>
-      </mat-card>
 
-      <mat-card class="profile-section mat-elevation-z1">
-        <mat-card-header class="profile-section__header">
-          <mat-card-title class="mat-title-small" i18n>
-            Your Private Spot Lists
-          </mat-card-title>
-          <mat-card-subtitle class="mat-body-small text-muted" i18n>Only visible to you.</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content class="profile-section__content">
-          @if(privateDataLoading) {
-          <div class="private-spot-loading">
-            <mat-spinner diameter="28" strokeWidth="3"></mat-spinner>
-          </div>
-          }
-
-          <div class="private-spot-actions">
-            <button mat-stroked-button color="primary" (click)="openPrivateSpotListsDialog('saved')"
-              [disabled]="privateDataLoading" class="private-spot-action">
-              <mat-icon>bookmark</mat-icon>
-              <span i18n>Saved Spots</span>
-              <span class="private-spot-count">
-                ({{ savedSpotIds.length }})</span>
-            </button>
-
-            <button mat-stroked-button color="primary" (click)="openPrivateSpotListsDialog('visited')"
-              [disabled]="privateDataLoading" class="private-spot-action">
-              <mat-icon>beenhere</mat-icon>
-              <span i18n>Visited Spots</span>
-              <span class="private-spot-count">
-                ({{ visitedSpotIds.length }})</span>
-            </button>
-          </div>
-        </mat-card-content>
-      </mat-card>
-      }
-
-      <!-- 
+            <!-- 
       <mat-card class="profile-section mat-elevation-z1">
         <mat-card-header class="profile-section__header">
           <mat-card-title class="mat-title-small">Posts</mat-card-title>
@@ -306,74 +532,105 @@
           </p>
         </mat-card-content>
       </mat-card> -->
-    </section>
+          </section>
 
-    <section class="profile-secondary" aria-label="Additional profile details">
-      @if (badges.length > 0) {
-      <mat-card class="profile-section mat-elevation-z1">
-        <mat-card-header class="profile-section__header">
-          <mat-card-title i18n class="mat-title-small">Badges</mat-card-title>
-        </mat-card-header>
-        <mat-card-content class="profile-section__content">
-          <div class="badge-grid">
-            @for (badge of badges; track badge.id) {
-            <div class="badge-item" [title]="badge.name" [matTooltip]="badge.name + ' (Level ' + badge.tier + ')'">
-              <img [src]="badge.icon" [alt]="badge.name" class="badge-icon" />
-              <span class="badge-name mat-body-small">{{ badge.name }}</span>
-            </div>
+          <section
+            class="profile-secondary"
+            aria-label="Additional profile details"
+          >
+            @if (badges.length > 0) {
+              <mat-card class="profile-section mat-elevation-z1">
+                <mat-card-header class="profile-section__header">
+                  <mat-card-title i18n class="mat-title-small"
+                    >Badges</mat-card-title
+                  >
+                </mat-card-header>
+                <mat-card-content class="profile-section__content">
+                  <div class="badge-grid">
+                    @for (badge of badges; track badge.id) {
+                      <div
+                        class="badge-item"
+                        [title]="badge.name"
+                        [matTooltip]="
+                          badge.name + ' (Level ' + badge.tier + ')'
+                        "
+                      >
+                        <img
+                          [src]="badge.icon"
+                          [alt]="badge.name"
+                          class="badge-icon"
+                        />
+                        <span class="badge-name mat-body-small">{{
+                          badge.name
+                        }}</span>
+                      </div>
+                    }
+                  </div>
+                </mat-card-content>
+              </mat-card>
             }
-          </div>
-        </mat-card-content>
-      </mat-card>
-      }
 
-      <mat-card class="profile-section mat-elevation-z1">
-        <mat-card-header class="profile-section__header profile-section__header--split">
-          <div>
-            <mat-card-title class="mat-title-small" i18n>Contributions</mat-card-title>
-            <p class="mat-body-small text-muted m-0" i18n>Public map activity from this profile.</p>
-          </div>
-          <a [routerLink]="['/leaderboard']" matButton="outlined" color="primary">
-            <mat-icon>leaderboard</mat-icon>
-            <span i18n>Leaderboard</span>
-          </a>
-        </mat-card-header>
-        <mat-card-content class="profile-section__content">
-          <div class="contribution-grid">
-            <div class="contribution-stat">
-              <span class="mat-headline-small">{{
-                createdSpotsCount
-                }}</span>
-              <span class="mat-body-small" i18n>Spots Created</span>
-            </div>
-            <div class="contribution-stat">
-              <span class="mat-headline-small">{{
-                editedSpotsCount
-                }}</span>
-              <span class="mat-body-small" i18n>Edits Made</span>
-            </div>
-            <div class="contribution-stat">
-              <span class="mat-headline-small">{{
-                mediaAddedCount
-                }}</span>
-              <span class="mat-body-small" i18n>Media Added</span>
-            </div>
-          </div>
-          @if (totalContributions === 0) {
-          <p class="profile-section__placeholder mat-body-medium" i18n>
-            Public spot contributions will show up here once this profile adds to the map.
-          </p>
-          }
-        </mat-card-content>
-      </mat-card>
-    </section>
+            <mat-card class="profile-section mat-elevation-z1">
+              <mat-card-header
+                class="profile-section__header profile-section__header--split"
+              >
+                <div>
+                  <mat-card-title class="mat-title-small" i18n
+                    >Contributions</mat-card-title
+                  >
+                  <p class="mat-body-small text-muted m-0" i18n>
+                    Public map activity from this profile.
+                  </p>
+                </div>
+                <a
+                  [routerLink]="['/leaderboard']"
+                  matButton="outlined"
+                  color="primary"
+                >
+                  <mat-icon>leaderboard</mat-icon>
+                  <span i18n>Leaderboard</span>
+                </a>
+              </mat-card-header>
+              <mat-card-content class="profile-section__content">
+                <div class="contribution-grid">
+                  <div class="contribution-stat">
+                    <span class="mat-headline-small">{{
+                      createdSpotsCount
+                    }}</span>
+                    <span class="mat-body-small" i18n>Spots Created</span>
+                  </div>
+                  <div class="contribution-stat">
+                    <span class="mat-headline-small">{{
+                      editedSpotsCount
+                    }}</span>
+                    <span class="mat-body-small" i18n>Edits Made</span>
+                  </div>
+                  <div class="contribution-stat">
+                    <span class="mat-headline-small">{{
+                      mediaAddedCount
+                    }}</span>
+                    <span class="mat-body-small" i18n>Media Added</span>
+                  </div>
+                </div>
+                @if (totalContributions === 0) {
+                  <p class="profile-section__placeholder mat-body-medium" i18n>
+                    Public spot contributions will show up here once this
+                    profile adds to the map.
+                  </p>
+                }
+              </mat-card-content>
+            </mat-card>
+          </section>
+        }
+      </div>
+    } @else {
+      <div class="profile-state" aria-live="polite">
+        <mat-icon class="profile-state__icon">person</mat-icon>
+        <h2 class="mat-headline-small" i18n>Profile not found</h2>
+        <p class="mat-body-medium" i18n>
+          This profile does not exist or is no longer available.
+        </p>
+      </div>
     }
-  </div>
-  } @else {
-  <div class="profile-state" aria-live="polite">
-    <mat-icon class="profile-state__icon">person</mat-icon>
-    <h2 class="mat-headline-small" i18n>Profile not found</h2>
-    <p class="mat-body-medium" i18n>This profile does not exist or is no longer available.</p>
-  </div>
-  } }
+  }
 </div>

@@ -1,7 +1,7 @@
-PK Spot v1.1.3 — Profils et contributions communautaires
+PK Spot v1.1.3 — Contributions communautaires
 
 Nouveautés :
 
-• Pages de profil et mécaniques de suivi mises à jour.
 • Les utilisateurs peuvent proposer des cartes de communauté.
 • File de modération pour que les admins examinent les votes de communautés et de spots.
+• Les pages de profil et le suivi ont reçu de petites améliorations.

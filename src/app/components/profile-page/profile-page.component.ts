@@ -20,13 +20,17 @@ import { Post } from "../../../db/models/Post";
 import { User } from "../../../db/models/User";
 import { FollowRequestSchema } from "../../../db/schemas/UserSchema";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
-import { Subscription } from "rxjs";
+import { Subscription, timeout } from "rxjs";
 import { Timestamp } from "firebase/firestore";
 import { FollowListComponent } from "../follow-list/follow-list.component";
 import { StorageService } from "../../services/firebase/storage.service";
 import { MatButton } from "@angular/material/button";
 import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
-import { MatChipSet, MatChip } from "@angular/material/chips";
+import {
+  MatChip,
+  MatChipAvatar,
+  MatChipSet,
+} from "@angular/material/chips";
 import {
   MatCard,
   MatCardContent,
@@ -78,6 +82,7 @@ type ProfileSocialLink = {
     MatCardContent,
     MatChipSet,
     MatChip,
+    MatChipAvatar,
     FancyCounterComponent,
     MatButton,
     RouterLink,
@@ -128,9 +133,11 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   isFollowedByProfile: boolean = false;
   isPendingFollowRequest: boolean = false;
   privateDataLoading: boolean = false;
+  privateDataLoadFailed: boolean = false;
   savedSpotIds: string[] = [];
   visitedSpotIds: string[] = [];
   followRequestsLoading: boolean = false;
+  followRequestsLoadFailed: boolean = false;
   followRequests: FollowRequestSchema[] = [];
   updatingFollowRequestIds = new Set<string>();
 
@@ -148,7 +155,10 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   private _subscriptions = new Subscription();
   private _profileSubscriptions = new Subscription();
   private _privateDataSubscription: Subscription | null = null;
+  private _privateDataUserId: string | null = null;
   private _followRequestsSubscription: Subscription | null = null;
+  private _followRequestsUserId: string | null = null;
+  private readonly _protectedProfileLoadTimeoutMs = 15_000;
 
   followDialogRef: MatDialogRef<FollowListComponent> | null = null;
 
@@ -191,6 +201,13 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     return this.user?.accountPrivacy === "private"
       ? $localize`Private account`
       : $localize`Public account`;
+  }
+
+  get showAccountPrivacyChip(): boolean {
+    return (
+      this.user?.accountPrivacy === "private" ||
+      this.user?.profileVisibility !== "public"
+    );
   }
 
   get profileVisibilityLabel(): string {
@@ -591,30 +608,48 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     }
   }
 
-  private _loadFollowRequests() {
+  private _loadFollowRequests(force = false) {
+    if (
+      !force &&
+      this._followRequestsSubscription &&
+      this._followRequestsUserId === this.userId
+    ) {
+      return;
+    }
+
     this._followRequestsSubscription?.unsubscribe();
     this._followRequestsSubscription = null;
+    this._followRequestsUserId = null;
     this.followRequests = [];
     this.followRequestsLoading = false;
+    this.followRequestsLoadFailed = false;
     if (!this.isMyProfile || !this.userId) {
       return;
     }
 
+    this._followRequestsUserId = this.userId;
     this.followRequestsLoading = true;
     this._followRequestsSubscription = this._followingService
       .getFollowRequestsForUser(this.userId)
+      .pipe(timeout({ first: this._protectedProfileLoadTimeoutMs }))
       .subscribe(
         (requests) => {
           this.followRequests = requests;
           this.followRequestsLoading = false;
+          this.followRequestsLoadFailed = false;
           this._cdr.detectChanges();
         },
         (error) => {
           console.error("Failed to load follow requests", error);
           this.followRequestsLoading = false;
+          this.followRequestsLoadFailed = true;
           this._cdr.detectChanges();
         }
       );
+  }
+
+  retryFollowRequests() {
+    this._loadFollowRequests(true);
   }
 
   approveFollowRequest(request: FollowRequestSchema) {
@@ -750,10 +785,20 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     });
   }
 
-  private _syncPrivateDataSubscription() {
+  private _syncPrivateDataSubscription(force = false) {
+    if (
+      !force &&
+      this._privateDataSubscription &&
+      this._privateDataUserId === this.userId
+    ) {
+      return;
+    }
+
     this._privateDataSubscription?.unsubscribe();
     this._privateDataSubscription = null;
+    this._privateDataUserId = null;
     this.privateDataLoading = false;
+    this.privateDataLoadFailed = false;
     this.savedSpotIds = [];
     this.visitedSpotIds = [];
 
@@ -761,9 +806,11 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this._privateDataUserId = this.userId;
     this.privateDataLoading = true;
     this._privateDataSubscription = this._usersService
       .getPrivateData(this.userId)
+      .pipe(timeout({ first: this._protectedProfileLoadTimeoutMs }))
       .subscribe(
         (privateData) => {
           this.savedSpotIds = Array.from(
@@ -773,14 +820,20 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
             new Set((privateData?.visited_spots || []).filter((id) => !!id))
           );
           this.privateDataLoading = false;
+          this.privateDataLoadFailed = false;
           this._cdr.detectChanges();
         },
         (error) => {
           console.error("Failed to load private spot lists", error);
           this.privateDataLoading = false;
+          this.privateDataLoadFailed = true;
           this._cdr.detectChanges();
         }
       );
+  }
+
+  retryPrivateData() {
+    this._syncPrivateDataSubscription(true);
   }
 
   toggleBlockUser() {
@@ -1114,8 +1167,10 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     this._profileSubscriptions.unsubscribe();
     this._privateDataSubscription?.unsubscribe();
     this._privateDataSubscription = null;
+    this._privateDataUserId = null;
     this._followRequestsSubscription?.unsubscribe();
     this._followRequestsSubscription = null;
+    this._followRequestsUserId = null;
     this._userSubscription?.unsubscribe();
     this._userSubscription = null;
   }

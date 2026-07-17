@@ -17,6 +17,7 @@ import {
 import { isPlatformBrowser } from "@angular/common";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
+import { AmenityIcons } from "../../../db/schemas/Amenities";
 import { SpotFilterMode } from "../spot-map/spot-filter-config";
 
 /**
@@ -117,7 +118,7 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
       mode: SpotFilterMode.Dry,
       urlParam: "dry",
       label: $localize`:@@dry_spots_chip_label:Dry`,
-      icon: "roofing",
+      icon: AmenityIcons.covered,
     },
     {
       mode: SpotFilterMode.Indoor,

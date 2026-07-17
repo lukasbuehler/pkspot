@@ -1,7 +1,7 @@
-PK Spot v1.1.3 — Perfiles y aportes de comunidades
+PK Spot v1.1.3 — Aportes de comunidades
 
 Novedades:
 
-• Páginas de perfil y funciones de seguimiento actualizadas.
 • Los usuarios ahora pueden enviar sugerencias para tarjetas de comunidad.
 • Cola de moderación para que admins revisen votos de comunidades y spots.
+• Las páginas de perfil y las funciones de seguimiento recibieron pequeños ajustes.

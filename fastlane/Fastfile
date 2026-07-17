@@ -22,11 +22,13 @@ def app_store_connect_api_key_from_env
       is_key_content_base64: ENV["APP_STORE_CONNECT_API_KEY_CONTENT_BASE64"] == "true"
     )
   elsif !key_filepath.to_s.empty?
-    app_store_connect_api_key(
+    api_key = app_store_connect_api_key(
       key_id: key_id,
       issuer_id: issuer_id,
       key_filepath: key_filepath
     )
+    ENV.delete("APP_STORE_CONNECT_API_KEY_PATH")
+    api_key
   end
 end
 
@@ -110,7 +112,10 @@ platform :android do
       skip_upload_apk: true,
       skip_upload_aab: true,
       skip_upload_images: true,
-      skip_upload_screenshots: true
+      skip_upload_screenshots: true,
+      track: "production",
+      release_status: "draft",
+      changes_not_sent_for_review: true
     )
   end
 

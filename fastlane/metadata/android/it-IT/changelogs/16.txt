@@ -1,5 +1,5 @@
-PK Spot v1.1.3 — Profili e contributi della community
+PK Spot v1.1.3 — Contributi della community
 
-• Pagine profilo e funzioni di follow aggiornate.
 • Gli utenti possono inviare suggerimenti per le schede community.
 • Coda di moderazione per voti di community e spot.
+• Le pagine profilo e le funzioni di follow hanno ricevuto piccoli aggiornamenti.

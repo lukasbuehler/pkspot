@@ -109,7 +109,6 @@
   width: 18px;
   height: 18px;
   font-size: 18px;
-  margin-inline-end: 4px;
 }
 
 .profile-overview__bio {
@@ -124,9 +123,9 @@
 }
 
 .profile-overview__metadata {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 14px;
+  display: grid;
+  justify-items: start;
+  gap: 8px;
 }
 
 .profile-overview__metadata-item {
@@ -233,6 +232,14 @@
 .profile-section__placeholder {
   margin: 0;
   color: var(--mat-sys-on-surface-variant);
+}
+
+.profile-section__load-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .profile-section__header.mat-mdc-card-header {
@@ -379,6 +386,10 @@
   .profile-overview__metadata,
   .profile-overview__socials {
     justify-content: center;
+  }
+
+  .profile-overview__metadata {
+    justify-items: center;
   }
 
   .profile-section__header--split.mat-mdc-card-header {
