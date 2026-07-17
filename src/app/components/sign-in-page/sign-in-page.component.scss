@@ -105,6 +105,16 @@
   border-radius: 8px;
   color: var(--mat-sys-on-surface-variant);
 
+  > div {
+    min-width: 0;
+  }
+
+  .mat-title-small,
+  .mat-body-small {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
   mat-icon {
     color: var(--mat-sys-on-surface-variant);
   }

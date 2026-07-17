@@ -49,6 +49,16 @@ button.menuButton.selected {
   gap: 12px;
   padding: 12px;
 
+  > div {
+    min-width: 0;
+  }
+
+  .mat-body-medium,
+  .mat-body-small {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
   mat-icon {
     color: var(--mat-sys-outline);
     flex: 0 0 auto;

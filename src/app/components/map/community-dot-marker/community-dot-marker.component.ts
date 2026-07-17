@@ -49,7 +49,8 @@ export class CommunityDotMarkerComponent {
   readonly markerOptions =
     computed<google.maps.marker.AdvancedMarkerElementOptions>(() => ({
       gmpClickable: true,
-      collisionBehavior: google.maps.CollisionBehavior.REQUIRED,
+      collisionBehavior:
+        google.maps.CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY,
       zIndex: this.zIndex(),
     }));
 

@@ -42,6 +42,7 @@ import {
 } from "../google-map-2d/google-map-2d.component";
 import { CommunityMapMarker } from "../map/community-dot-marker/community-dot-marker.component";
 import {
+  limitCommunityDotsPerTile,
   shouldShowCommunityAreaPresence,
   shouldShowCommunityDot,
 } from "../map/community-dot-marker/community-map-rendering";
@@ -444,10 +445,13 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   }
 
   readonly communityDotMarkers = computed<CommunityMapMarker[]>(() =>
-    this.availableCommunities.filter(
-      (community) =>
-        shouldShowCommunityAreaPresence(community) &&
-        this._shouldShowCommunityCenterDot(community),
+    limitCommunityDotsPerTile(
+      this.availableCommunities.filter(
+        (community) =>
+          shouldShowCommunityAreaPresence(community) &&
+          this._shouldShowCommunityCenterDot(community),
+      ),
+      this.mapZoom(),
     ),
   );
 
