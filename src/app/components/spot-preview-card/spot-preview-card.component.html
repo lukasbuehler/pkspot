@@ -69,13 +69,13 @@
             }
           </div>
         </div>
-        @if(displayLocality() || countryFlagEmoji()) {
+        @if(displayLocation() || countryFlagEmoji()) {
         <span
           class="mat-title-small d-flex align-items-center gap-1"
           style="flex-shrink: 1; min-width: 0"
         >
-          @if(displayLocality()) {
-          <span class="text-truncate">{{ displayLocality() }}</span>
+          @if(displayLocation()) {
+          <span class="text-truncate">{{ displayLocation() }}</span>
           } @if(countryFlagEmoji()) {
           <span
             class="flag-emoji flex-shrink-0"

@@ -75,4 +75,25 @@ describe("SpotPreviewCardComponent", () => {
     expect(fixture.componentInstance.countryFlagEmoji()).toBe("🇨🇭");
     expect(fixture.componentInstance.countryTooltip()).toBe("Switzerland");
   });
+
+  it("uses a standalone locality country code as a flag", () => {
+    const spot = {
+      id: "main" as SpotId,
+      name: "OMFG FlowPark",
+      locality: "NO",
+      imageSrc: "",
+      isIconic: false,
+    } satisfies SpotPreviewData;
+
+    fixture.componentRef.setInput("spotData", spot);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.displayLocality()).toBe("");
+    expect(fixture.componentInstance.displayLocation()).toBe("Norway");
+    expect(fixture.componentInstance.countryFlagEmoji()).toBe("🇳🇴");
+    expect(
+      fixture.debugElement.query(By.css(".flag-emoji")).nativeElement
+        .textContent,
+    ).toContain("🇳🇴");
+  });
 });

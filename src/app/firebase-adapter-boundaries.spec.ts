@@ -157,4 +157,30 @@ describe("Firebase adapter boundaries", () => {
 
     expect(violations).toEqual([]);
   });
+
+  it("keeps AngularFire isolated from the newer Capacitor Firebase runtime", () => {
+    const packageJson = JSON.parse(
+      readFileSync(resolve(repoRoot, "package.json"), "utf8"),
+    ) as { overrides?: Record<string, unknown> };
+    const packageLock = JSON.parse(
+      readFileSync(resolve(repoRoot, "package-lock.json"), "utf8"),
+    ) as { packages?: Record<string, { version?: string }> };
+
+    expect(packageJson.overrides?.["firebase"]).toBeUndefined();
+    expect(packageLock.packages?.["node_modules/firebase"]?.version).toMatch(
+      /^12\./,
+    );
+    expect(
+      packageLock.packages?.["node_modules/@angular/fire/node_modules/firebase"]
+        ?.version,
+    ).toMatch(/^11\./);
+
+    const appCheckService = readFileSync(
+      resolve(repoRoot, "src/app/services/firebase/app-check.service.ts"),
+      "utf8",
+    );
+    expect(appCheckService).not.toMatch(/from ["']firebase\/app(?:-check)?["']/);
+    expect(appCheckService).toContain('from "@angular/fire/app"');
+    expect(appCheckService).toContain('from "@angular/fire/app-check"');
+  });
 });

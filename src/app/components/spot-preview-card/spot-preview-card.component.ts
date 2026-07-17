@@ -29,6 +29,7 @@ import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { getImportantAmenities } from "../../../db/models/Amenities";
+import { countries } from "../../../scripts/Countries";
 import { isoCountryCodeToFlagEmoji } from "../../../scripts/Helpers";
 import {
   getDisplayCountryName,
@@ -254,9 +255,9 @@ export class SpotPreviewCardComponent
       // SpotPreviewData
       code = spot.countryCode;
 
-      // Fallback: try to extract from locality string if it ends with ", XX"
+      // Fallback: try to extract a standalone or trailing country code from the locality.
       if (!code && spot.locality) {
-        const match = spot.locality.trim().match(/, ([A-Za-z]{2})$/);
+        const match = spot.locality.trim().match(/(?:^|,\s*)([A-Za-z]{2})$/);
         if (match && match[1]) {
           code = match[1];
         }
@@ -270,15 +271,17 @@ export class SpotPreviewCardComponent
     return code ? isoCountryCodeToFlagEmoji(code) : undefined;
   });
 
-  countryTooltip = computed(() => {
+  countryDisplayName = computed(() => {
     const spot = this.spotData();
     if (!spot) return "";
     if (spot instanceof Spot || spot instanceof LocalSpot) {
       return getDisplayCountryName(spot.address()) ?? "";
-    } else {
-      return spot.countryName ?? "";
     }
+
+    return spot.countryName?.trim() ?? countries[this.countryCode() ?? ""]?.name ?? "";
   });
+
+  countryTooltip = this.countryDisplayName;
 
   displayLocality = computed(() => {
     const spot = this.spotData();
@@ -290,6 +293,10 @@ export class SpotPreviewCardComponent
 
     return this.getPreviewLocalityName(spot.locality, this.countryCode());
   });
+
+  displayLocation = computed(
+    () => this.displayLocality() || this.countryDisplayName()
+  );
 
   private getPreviewLocalityName(
     locality: string,

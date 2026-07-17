@@ -495,7 +495,7 @@ async function testImportedSpotCommunityRebuild() {
     throw new Error("Expected import completion to clear deferred rebuild flags.");
   }
 
-  console.log("Testing established community retention below five spots...");
+  console.log("Testing community deactivation below five spots...");
   const pageRef = db.collection("community_pages").doc(communityKey);
   const privateInfoRef = pageRef.collection("private_info").doc("link_cards");
   const publicInfoCards = [
@@ -524,80 +524,99 @@ async function testImportedSpotCommunityRebuild() {
   ]);
 
   await db.collection("spots").doc("import-regression-5").delete();
-  const retainedPage = await waitFor(async () => {
-    const snapshot = await pageRef.get();
-    const data = snapshot.data();
-    return data?.counts?.totalSpots === 4 ? data : null;
-  }, "established community rebuild below creation threshold");
-  if (retainedPage.published !== true) {
-    throw new Error("Expected an established community with four spots to remain published.");
-  }
-  if (JSON.stringify(retainedPage.infoCards) !== JSON.stringify(publicInfoCards)) {
-    throw new Error("Expected public community knowledge to survive spot deduplication.");
-  }
-
-  const retainedPrivateInfo = (await privateInfoRef.get()).data();
-  if (
-    JSON.stringify(retainedPrivateInfo?.infoCards) !==
-    JSON.stringify(privateInfoCards)
-  ) {
-    throw new Error("Expected private community knowledge to survive spot deduplication.");
-  }
-
-  console.log("Testing recovery of a previously deleted established community...");
-  await pageRef.delete();
-  await db
-    .collection("spots")
-    .doc("import-regression-1")
-    .update({ "name.en": "Import Regression Spot 1 updated" });
-  const recoveredPage = await waitFor(async () => {
-    const snapshot = await pageRef.get();
-    const data = snapshot.data();
-    return data?.published === true && data?.counts?.totalSpots === 4
-      ? data
-      : null;
-  }, "previously deleted community recovery");
-  const recoveredPublicInfoCards = [
-    {
-      id: "aarau-regression-private",
-      title: { en: "Private community chat" },
-      category: "chat",
-      ctaVisibility: "signed-in",
-    },
-  ];
-  if (
-    JSON.stringify(recoveredPage.infoCards) !==
-    JSON.stringify(recoveredPublicInfoCards)
-  ) {
-    throw new Error(
-      "Expected a recovered community to rebuild safe public cards from private knowledge."
-    );
-  }
-
-  const remainingSpotIds = [1, 2, 3, 4].map(
-    (index) => `import-regression-${index}`
-  );
-  const deleteBatch = db.batch();
-  for (const spotId of remainingSpotIds) {
-    deleteBatch.delete(db.collection("spots").doc(spotId));
-  }
-  await deleteBatch.commit();
-
-  const dormantPage = await waitFor(async () => {
+  const dormantBelowThresholdPage = await waitFor(async () => {
     const snapshot = await pageRef.get();
     const data = snapshot.data();
     return data?.published === false && data?.counts?.totalSpots === 0
       ? data
       : null;
-  }, "empty community deactivation");
+  }, "community deactivation below creation threshold");
+  if (JSON.stringify(dormantBelowThresholdPage.infoCards) !== JSON.stringify(publicInfoCards)) {
+    throw new Error("Expected public community knowledge to survive deactivation.");
+  }
+
+  const dormantBelowThresholdPrivateInfo = (await privateInfoRef.get()).data();
   if (
-    JSON.stringify(dormantPage.infoCards) !==
-    JSON.stringify(recoveredPublicInfoCards)
+    JSON.stringify(dormantBelowThresholdPrivateInfo?.infoCards) !==
+    JSON.stringify(privateInfoCards)
   ) {
-    throw new Error("Expected dormant community knowledge to remain stored.");
+    throw new Error("Expected private community knowledge to survive deactivation.");
+  }
+
+  console.log("Testing that aliases cannot revive a community below five spots...");
+  await db
+    .collection("spots")
+    .doc("import-regression-1")
+    .update({ "name.en": "Import Regression Spot 1 updated" });
+  await sleep(1000);
+  const pageAfterBelowThresholdUpdate = (await pageRef.get()).data();
+  if (pageAfterBelowThresholdUpdate?.published !== false) {
+    throw new Error("Expected aliases to keep a below-threshold community unpublished.");
+  }
+
+  console.log("Testing recovery once the community reaches five spots again...");
+  const restoredSpot = buildSpotSeed({
+    id: "import-regression-5",
+    name: "Import Regression Spot 5 restored",
+    lat: 47.382,
+    lng: 8.547,
+    locality: "Importdorf",
+    regionCode: "ZH",
+    regionName: "Zurich",
+    countryCode: "CH",
+    countryName: "Switzerland",
+    rating: 0,
+    numReviews: 0,
+  });
+  await db.collection("spots").doc(restoredSpot.id).set(restoredSpot.data);
+  const recoveredPage = await waitFor(async () => {
+    const snapshot = await pageRef.get();
+    const data = snapshot.data();
+    return data?.published === true && data?.counts?.totalSpots === 5
+      ? data
+      : null;
+  }, "community recovery at creation threshold");
+  if (
+    JSON.stringify(recoveredPage.infoCards) !== JSON.stringify(publicInfoCards)
+  ) {
+    throw new Error("Expected recovered community knowledge to remain stored.");
   }
   if (!(await privateInfoRef.get()).exists) {
-    throw new Error("Expected dormant private community knowledge to remain stored.");
+    throw new Error("Expected recovered private community knowledge to remain stored.");
+  }
+
+  console.log("Testing that a new one-spot country creates no placeholder page...");
+  const icelandSpot = buildSpotSeed({
+    id: "is-reykjavik-1",
+    name: "Reykjavik Spot",
+    lat: 64.1466,
+    lng: -21.9426,
+    locality: "Reykjavik",
+    regionCode: "1",
+    regionName: "Capital Region",
+    countryCode: "IS",
+    countryName: "Iceland",
+    rating: 0,
+    numReviews: 0,
+  });
+  await db.collection("spots").doc(icelandSpot.id).set({
+    ...icelandSpot.data,
+    landing: {
+      countryCode: "IS",
+      countryNameEn: "Iceland",
+      countrySlug: "iceland",
+      regionCode: "1",
+      regionName: "Capital Region",
+      regionSlug: "1",
+      localityName: "Reykjavik",
+      localitySlug: "reykjavik",
+      isDry: false,
+      organizationVerified: false,
+    },
+  });
+  await sleep(1000);
+  if ((await db.collection("community_pages").doc("country:is").get()).exists) {
+    throw new Error("Expected a one-spot country to have no community page document.");
   }
 }
 

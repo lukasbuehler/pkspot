@@ -1099,15 +1099,10 @@ const buildCommunityPageDoc = async (
     candidate.communityKey
   );
 
-  // The threshold gates creation, not the lifetime of an established page.
-  // Existing slugs also count as establishment evidence so a page deleted by
-  // the previous lifecycle behavior can be reconstructed below the threshold.
-  if (
-    spots.length === 0 ||
-    (!existingPage &&
-      existingSlugs.length === 0 &&
-      spots.length < COMMUNITY_PAGE_MIN_SPOTS)
-  ) {
+  // A community is only public once it has enough spots to be useful. Keep
+  // dormant pages and their aliases intact below the threshold so authored
+  // knowledge can return if the community grows again.
+  if (spots.length < COMMUNITY_PAGE_MIN_SPOTS) {
     return null;
   }
 
@@ -1395,14 +1390,23 @@ const refreshCountryChildCommunities = async (
   countryCommunityKeys: Iterable<string>
 ): Promise<void> => {
   for (const countryCommunityKey of countryCommunityKeys) {
+    const pageRef = db
+      .collection(COMMUNITY_PAGES_COLLECTION)
+      .doc(countryCommunityKey);
+    const pageSnapshot = await pageRef.get();
+
+    // Do not create placeholder country documents for below-threshold
+    // communities. A later rebuild must not mistake one for an established
+    // public community.
+    if (!pageSnapshot.exists || pageSnapshot.data()?.published === false) {
+      continue;
+    }
+
     const childCommunities = await getEmbeddedChildCommunities(
       db,
       countryCommunityKey
     );
-    await db
-      .collection(COMMUNITY_PAGES_COLLECTION)
-      .doc(countryCommunityKey)
-      .set({ childCommunities }, { merge: true });
+    await pageRef.set({ childCommunities }, { merge: true });
   }
 };
 

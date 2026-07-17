@@ -199,6 +199,12 @@ jobs:
           npm ci --ignore-scripts --omit=dev --prefix "$tmp_dir"
           node -e "require('$tmp_dir/lib/functions/src/index.js'); console.log('functions module loaded')"
 
+      - name: Run Firestore rules security tests
+        run: npm run test:emulator:rules
+
+      - name: Run community edit emulator tests
+        run: npm run test:emulator:community-edits
+
       - name: Run spot edit emulator tests
         run: npm run test:emulator:spot-edits
 

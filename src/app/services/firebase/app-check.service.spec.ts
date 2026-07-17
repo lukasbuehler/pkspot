@@ -1,17 +1,17 @@
 import { TestBed } from "@angular/core/testing";
 import { PLATFORM_ID } from "@angular/core";
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { FirebaseApp } from "@angular/fire/app";
+import {
+  FirebaseApp,
+  getApps,
+  initializeApp as initializeFirebaseApp,
+} from "@angular/fire/app";
 import { FirebaseAppCheck } from "@capacitor-firebase/app-check";
 import {
   ReCaptchaEnterpriseProvider,
   getToken,
   initializeAppCheck,
-} from "firebase/app-check";
-import {
-  getApps,
-  initializeApp as initializeFirebaseApp,
-} from "firebase/app";
+} from "@angular/fire/app-check";
 import { PlatformService } from "../platform.service";
 import {
   FirebaseAppCheckService,
@@ -31,7 +31,7 @@ vi.mock("@capacitor-firebase/app-check", () => ({
   },
 }));
 
-vi.mock("firebase/app-check", () => ({
+vi.mock("@angular/fire/app-check", () => ({
   initializeAppCheck: vi.fn(() => ({ app: "app-check" })),
   getToken: vi.fn().mockResolvedValue({ token: "web-token" }),
   ReCaptchaEnterpriseProvider: class MockReCaptchaEnterpriseProvider {
@@ -39,8 +39,8 @@ vi.mock("firebase/app-check", () => ({
   },
 }));
 
-vi.mock("firebase/app", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("firebase/app")>();
+vi.mock("@angular/fire/app", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@angular/fire/app")>();
   return {
     ...actual,
     getApps: vi.fn(() => []),
