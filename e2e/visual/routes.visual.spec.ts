@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 interface RouteVisualCase {
   name: string;
@@ -9,6 +9,7 @@ interface RouteVisualCase {
   fullPage?: boolean;
   clip?: { x: number; y: number; width: number; height: number };
   maxDiffPixels?: number;
+  eventMapLayout?: "full" | "embedded";
 }
 
 const desktopViewport = { width: 1280, height: 900 };
@@ -27,7 +28,8 @@ const routeVisualCases: RouteVisualCase[] = [
   {
     name: "event-map",
     path: "/events/swissjam25/map",
-    maxDiffPixels: 20_000,
+    maxDiffPixels: 2_000,
+    eventMapLayout: "full",
   },
   {
     name: "settings-profile",
@@ -94,7 +96,8 @@ const routeVisualCases: RouteVisualCase[] = [
     name: "embedded-event-map",
     path: "/embedded/events/swissjam25/map",
     viewport: mobileViewport,
-    maxDiffPixels: 8_000,
+    maxDiffPixels: 1_000,
+    eventMapLayout: "embedded",
   },
   {
     name: "not-found",
@@ -111,13 +114,14 @@ test.describe("Route visual regression @visual", () => {
 
       const mapSurfaces = page.locator("app-google-map-2d, google-map, .gm-style");
       const spinners = page.locator("mat-spinner, mat-progress-spinner");
+      const masks = route.eventMapLayout ? [] : [mapSurfaces, spinners];
 
       await expect(page).toHaveScreenshot(`${route.name}-route.png`, {
         animations: "disabled",
         clip: route.clip,
         fullPage: route.fullPage ?? false,
         maxDiffPixels: route.maxDiffPixels ?? 1_000,
-        mask: [mapSurfaces, spinners],
+        mask: masks,
       });
     });
   }
@@ -187,4 +191,72 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
     .toBeGreaterThan(20);
   await page.waitForLoadState("load");
   await page.waitForTimeout(900);
+
+  if (route.eventMapLayout) {
+    await waitForStableEventMap(page, route.eventMapLayout);
+  }
+}
+
+async function waitForStableEventMap(
+  page: Page,
+  layout: "full" | "embedded",
+): Promise<void> {
+  const eventMap = page.locator("app-event-map-page");
+  const mapSurface = eventMap.locator("app-google-map-2d");
+
+  await expect(eventMap).toBeVisible();
+  await expect(mapSurface).toBeVisible();
+
+  if (layout === "embedded") {
+    const promo = page.locator(".embedded-promo");
+    const brand = promo.locator(".embedded-promo__brand");
+    await expect(promo).toBeVisible();
+    await expect(brand).toBeVisible();
+    await expect(brand).toBeInViewport();
+    await expect
+      .poll(async () => {
+        const box = await promo.boundingBox();
+        const viewport = page.viewportSize();
+        return !!box && !!viewport && box.y + box.height <= viewport.height;
+      })
+      .toBe(true);
+  } else {
+    await expect(eventMap.locator("mat-drawer.mat-drawer-opened")).toBeVisible();
+    await expect(eventMap.locator("app-spot-preview-card").first()).toBeVisible();
+  }
+
+  await waitForResizeToSettle(mapSurface);
+  await page.addStyleTag({
+    content: `
+      app-event-map-page app-google-map-2d {
+        visibility: hidden !important;
+      }
+    `,
+  });
+}
+
+async function waitForResizeToSettle(locator: Locator): Promise<void> {
+  await locator.evaluate(
+    (element, quietPeriodMs) =>
+      new Promise<void>((resolve) => {
+        let quietTimer = 0;
+        let timeoutTimer = 0;
+
+        const finish = () => {
+          window.clearTimeout(quietTimer);
+          window.clearTimeout(timeoutTimer);
+          observer.disconnect();
+          resolve();
+        };
+        const observer = new ResizeObserver(() => {
+          window.clearTimeout(quietTimer);
+          quietTimer = window.setTimeout(finish, quietPeriodMs);
+        });
+
+        observer.observe(element);
+        quietTimer = window.setTimeout(finish, quietPeriodMs);
+        timeoutTimer = window.setTimeout(finish, 5_000);
+      }),
+    500,
+  );
 }
