@@ -10,7 +10,12 @@
     [style.background-color]="marker().imageBackgroundColor ?? 'var(--mat-sys-surface-container-highest)'"
   >
     @if(marker().imageSrc) {
-    <img [src]="marker().imageSrc" alt="" class="event-map-marker-logo" />
+    <img
+      [src]="marker().imageSrc"
+      [style.object-fit]="marker().imageFit ?? 'contain'"
+      alt=""
+      class="event-map-marker-logo"
+    />
     } @else {
     <mat-icon class="event-map-marker-icon">{{ fallbackIcon() }}</mat-icon>
     }

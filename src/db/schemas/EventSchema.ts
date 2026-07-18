@@ -6,6 +6,7 @@ import { EventRSVPCountsSchema } from "./EventRSVPSchema";
 
 export type EventId = string & { __brand: "EventId" };
 export type EventSlug = string & { __brand: "EventSlug" };
+export type EventImageFit = "cover" | "contain";
 
 export type EventCategory =
   | "jam"
@@ -96,6 +97,8 @@ export interface EventSponsorSchema {
   name: string;
   /** Small logo shown on event spot pins and inside the map-island chip. */
   logo_src?: string;
+  /** How the sponsor logo fills its badge. Defaults to `contain`. */
+  logo_fit?: EventImageFit;
   /** Optional hex background color behind sponsor logos. Transparent when absent. */
   logo_background_color?: string;
   /** Where the sponsor links to (defaults to event url if absent). */
@@ -109,9 +112,11 @@ export interface EventCardPreviewSchema {
   description?: string;
   description_i18n?: LocaleMap | Record<string, string>;
   banner_src?: string;
-  banner_fit?: "cover" | "contain";
+  banner_fit?: EventImageFit;
   banner_accent_color?: string;
   logo_src?: string;
+  logo_fit?: EventImageFit;
+  logo_background_color?: string;
   venue_string?: string;
   locality_string: string;
   start: Timestamp | { seconds: number; nanoseconds: number };
@@ -397,7 +402,7 @@ export interface EventSchema {
    *  - `cover` (default): image fills the area, may be cropped.
    *  - `contain`: image is fully visible, gaps filled with `banner_accent_color`.
    */
-  banner_fit?: "cover" | "contain";
+  banner_fit?: EventImageFit;
   /**
    * Hex color (e.g. "#1a1a1a") used as the background behind a `contain`
    * banner. Ignored when `banner_fit` is `cover`. Lets sponsors match the
@@ -406,6 +411,8 @@ export interface EventSchema {
   banner_accent_color?: string;
   /** Optional event-specific logo (distinct from sponsor logo). */
   logo_src?: string;
+  /** How the event logo fills its map badge. Defaults to `contain`. */
+  logo_fit?: EventImageFit;
   /** Optional background color behind the event-specific logo. */
   logo_background_color?: string;
 

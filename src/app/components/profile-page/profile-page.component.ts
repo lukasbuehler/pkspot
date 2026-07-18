@@ -256,6 +256,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
       if (authUser) {
         this.isMyProfile = this.userId === authUser.uid;
         this._syncPrivateDataSubscription();
+        this._loadFollowRequests();
 
         // Load blocked users list for UI state
         if (authUser.data?.data?.blocked_users) {
@@ -274,6 +275,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
         this.isMyProfile = false;
         this.isFollowing = false;
         this._syncPrivateDataSubscription();
+        this._loadFollowRequests();
 
         // Auth has now loaded and user is null (not signed in)
         // If we're on /profile without a specific userID, redirect to account
@@ -611,8 +613,9 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   private _loadFollowRequests(force = false) {
     if (
       !force &&
-      this._followRequestsSubscription &&
-      this._followRequestsUserId === this.userId
+      this.isMyProfile &&
+      this._followRequestsUserId === this.userId &&
+      !this.followRequestsLoadFailed
     ) {
       return;
     }
@@ -788,8 +791,9 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   private _syncPrivateDataSubscription(force = false) {
     if (
       !force &&
-      this._privateDataSubscription &&
-      this._privateDataUserId === this.userId
+      this.isMyProfile &&
+      this._privateDataUserId === this.userId &&
+      !this.privateDataLoadFailed
     ) {
       return;
     }

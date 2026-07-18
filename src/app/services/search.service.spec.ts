@@ -759,9 +759,11 @@ describe("SearchService", () => {
           banner_fit: "contain",
           banner_accent_color: "#f8f8f8",
           logo_src: "assets/swissjam/logo.png",
+          logo_fit: "cover",
           sponsor: {
             name: "Sponsor",
             logo_src: "assets/sponsors/sponsor.png",
+            logo_fit: "contain",
             logo_background_color: "#ffffff",
           },
           is_sponsored: true,
@@ -821,8 +823,10 @@ describe("SearchService", () => {
         bannerFit: "contain",
         bannerAccentColor: "#f8f8f8",
         logoSrc: "assets/swissjam/logo.png",
+        logoFit: "cover",
         sponsorName: "Sponsor",
         sponsorLogoSrc: "assets/sponsors/sponsor.png",
+        sponsorLogoFit: "contain",
         sponsorLogoBackgroundColor: "#ffffff",
         isSponsored: true,
         hasOrganization: true,
@@ -992,6 +996,8 @@ describe("SearchService", () => {
       expect(searches[1].filter_by).not.toContain("location:(");
       expect(searches[1].include_fields).toContain("banner_fit");
       expect(searches[1].include_fields).toContain("banner_accent_color");
+      expect(searches[1].include_fields).toContain("logo_fit");
+      expect(searches[1].include_fields).toContain("sponsor.logo_fit");
       expect(searches[1].per_page).toBe(250);
       expect(events.map((event) => event.id)).toEqual(["visible-event"]);
 

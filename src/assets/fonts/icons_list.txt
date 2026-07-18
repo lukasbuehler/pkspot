@@ -194,3 +194,4 @@ volume_up
 local_activity
 merge
 warning
+playlist_add

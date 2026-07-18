@@ -4,6 +4,7 @@ import {
   EventCustomMarkerSchema,
   EventCategory,
   EventFeaturedParticipantSchema,
+  EventImageFit,
   EventProgramItemSchema,
   EventProgramPlanSchema,
   EventProgramRuntimeOverrideSchema,
@@ -88,9 +89,10 @@ export class Event {
   readonly descriptions?: LocaleMap;
 
   readonly bannerSrc?: string;
-  readonly bannerFit: "cover" | "contain";
+  readonly bannerFit: EventImageFit;
   readonly bannerAccentColor?: string;
   readonly logoSrc?: string;
+  readonly logoFit: EventImageFit;
   readonly logoBackgroundColor?: string;
   readonly media: MediaSchema[];
   readonly organizer?: EventOrganizerSchema;
@@ -146,6 +148,7 @@ export class Event {
     this.bannerFit = data.banner_fit ?? "cover";
     this.bannerAccentColor = data.banner_accent_color;
     this.logoSrc = data.logo_src;
+    this.logoFit = data.logo_fit ?? "contain";
     this.logoBackgroundColor = data.logo_background_color;
     this.media = data.media ?? [];
     this.organizer = data.organizer;
@@ -267,6 +270,13 @@ export class Event {
   /** Sponsor logo if available, otherwise the event's own logo. */
   effectiveBadgeLogoSrc(): string | undefined {
     return this.sponsor?.logo_src ?? this.logoSrc;
+  }
+
+  /** Fit belonging to whichever event or sponsor logo is displayed. */
+  effectiveBadgeLogoFit(): EventImageFit {
+    return this.sponsor?.logo_src
+      ? (this.sponsor.logo_fit ?? "contain")
+      : this.logoFit;
   }
 
   /** Optional sponsor-provided background for badge/logo treatments. */

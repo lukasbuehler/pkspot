@@ -1,6 +1,7 @@
 import type { MediaSchema } from "../../../../db/schemas/Media";
 
 export type MapMarkerColor = "primary" | "secondary" | "tertiary" | "gray";
+export type MapMarkerImageFit = "cover" | "contain";
 
 export interface MapMarkerSchema {
   id?: string;
@@ -13,6 +14,7 @@ export interface MapMarkerSchema {
    * Used for event/sponsor logos on map pins.
    */
   imageSrc?: string;
+  imageFit?: MapMarkerImageFit;
   imageBackgroundColor?: string;
   number?: number | string;
   numberVariant?: "default" | "flag";

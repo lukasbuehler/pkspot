@@ -49,6 +49,7 @@ export function buildVisibleEventMarkers({
         location: event.location,
         icons: [status === "live" ? "stars" : "event"],
         imageSrc: eventImageDisplaySrc(event.effectiveBadgeLogoSrc()),
+        imageFit: event.effectiveBadgeLogoFit(),
         imageBackgroundColor: event.effectiveBadgeLogoBackgroundColor(),
         color: status === "live" ? "secondary" : "primary",
         type: "event",

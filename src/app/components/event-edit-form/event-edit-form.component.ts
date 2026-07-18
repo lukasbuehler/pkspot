@@ -370,6 +370,7 @@ export class EventEditFormComponent {
     banner_fit: ["cover"],
     banner_accent_color: [""],
     logo_src: [""],
+    logo_fit: ["contain"],
     logo_background_color: [""],
     focus_zoom: [null as number | null],
     series_ids_csv: [""],
@@ -378,6 +379,7 @@ export class EventEditFormComponent {
     sponsor_name: [""],
     sponsor_url: [""],
     sponsor_logo_src: [""],
+    sponsor_logo_fit: ["contain"],
     sponsor_logo_background_color: [""],
     external_media_url: [""],
     external_media_source_url: [""],
@@ -576,6 +578,8 @@ export class EventEditFormComponent {
         this.form.reset({
           published: true,
           banner_fit: "cover",
+          logo_fit: "contain",
+          sponsor_logo_fit: "contain",
           legacy_area_polygon_outer_ring: false,
         });
         this.location.set(null);
@@ -630,6 +634,7 @@ export class EventEditFormComponent {
         banner_fit: e.bannerFit,
         banner_accent_color: e.bannerAccentColor ?? "",
         logo_src: e.logoSrc ?? "",
+        logo_fit: e.logoFit,
         logo_background_color: e.logoBackgroundColor ?? "",
         focus_zoom: e.focusZoom ?? null,
         series_ids_csv: e.seriesIds.join(", "),
@@ -641,6 +646,7 @@ export class EventEditFormComponent {
         sponsor_name: e.sponsor?.name ?? "",
         sponsor_url: e.sponsor?.url ?? "",
         sponsor_logo_src: e.sponsor?.logo_src ?? "",
+        sponsor_logo_fit: e.sponsor?.logo_fit ?? "contain",
         sponsor_logo_background_color:
           e.sponsor?.logo_background_color ?? "",
         external_media_url: "",
@@ -1756,6 +1762,7 @@ export class EventEditFormComponent {
       banner_fit: v.banner_fit ?? "cover",
       banner_accent_color: trimOrUndefined(v.banner_accent_color),
       logo_src: trimOrUndefined(v.logo_src),
+      logo_fit: v.logo_fit ?? "contain",
       logo_background_color: trimOrUndefined(v.logo_background_color),
       focus_zoom: numberOrUndefined(v.focus_zoom),
       media: [...this.externalMedia()],
@@ -1781,6 +1788,7 @@ export class EventEditFormComponent {
               name: (v.sponsor_name ?? "").trim() || "Sponsor",
               url: trimOrUndefined(v.sponsor_url),
               logo_src: trimOrUndefined(v.sponsor_logo_src),
+              logo_fit: v.sponsor_logo_fit ?? "contain",
               logo_background_color: trimOrUndefined(
                 v.sponsor_logo_background_color,
               ),

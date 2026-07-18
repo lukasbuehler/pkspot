@@ -1005,6 +1005,10 @@ export class SearchService {
         typeof doc?.logo_src === "string"
           ? this._assetUrls.resolveBundledAssetUrl(doc.logo_src)
           : undefined,
+      logoFit:
+        doc?.logo_fit === "cover" || doc?.logo_fit === "contain"
+          ? doc.logo_fit
+          : undefined,
       logoBackgroundColor:
         typeof doc?.logo_background_color === "string"
           ? doc.logo_background_color
@@ -1013,6 +1017,10 @@ export class SearchService {
       sponsorLogoSrc:
         typeof sponsor?.logo_src === "string"
           ? this._assetUrls.resolveBundledAssetUrl(sponsor.logo_src)
+          : undefined,
+      sponsorLogoFit:
+        sponsor?.logo_fit === "cover" || sponsor?.logo_fit === "contain"
+          ? sponsor.logo_fit
           : undefined,
       sponsorLogoBackgroundColor:
         typeof sponsor?.logo_background_color === "string"
@@ -1110,6 +1118,7 @@ export class SearchService {
       banner_fit: preview.bannerFit,
       banner_accent_color: preview.bannerAccentColor,
       logo_src: preview.logoSrc,
+      logo_fit: preview.logoFit,
       logo_background_color: preview.logoBackgroundColor,
       venue_string: preview.venueString ?? "",
       locality_string: preview.localityString,
@@ -1145,6 +1154,7 @@ export class SearchService {
           ? {
               name: preview.sponsorName ?? "",
               logo_src: preview.sponsorLogoSrc,
+              logo_fit: preview.sponsorLogoFit,
               logo_background_color: preview.sponsorLogoBackgroundColor,
             }
           : undefined,
@@ -1381,8 +1391,10 @@ export class SearchService {
       "banner_fit",
       "banner_accent_color",
       "logo_src",
+      "logo_fit",
       "sponsor.name",
       "sponsor.logo_src",
+      "sponsor.logo_fit",
       "sponsor.logo_background_color",
       "is_promoted",
       "is_sponsored",
@@ -2141,9 +2153,11 @@ export interface EventSearchPreview {
   bannerFit?: "cover" | "contain";
   bannerAccentColor?: string;
   logoSrc?: string;
+  logoFit?: "cover" | "contain";
   logoBackgroundColor?: string;
   sponsorName?: string;
   sponsorLogoSrc?: string;
+  sponsorLogoFit?: "cover" | "contain";
   sponsorLogoBackgroundColor?: string;
   isSponsored: boolean;
   hasOrganization: boolean;

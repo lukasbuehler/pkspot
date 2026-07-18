@@ -35,7 +35,12 @@
             'var(--mat-sys-surface-container-highest)'
           "
         >
-          <img [src]="marker().imageSrc" alt="" class="marker-image" />
+          <img
+            [src]="marker().imageSrc"
+            [style.object-fit]="marker().imageFit ?? 'contain'"
+            alt=""
+            class="marker-image"
+          />
         </span>
         } @for(icon of marker().icons ?? []; track $index) {
         <mat-icon class="advanced-map-marker-card__icon">{{ icon }}</mat-icon>
@@ -65,6 +70,7 @@
     style="pointer-events: none"
     [icons]="marker().icons"
     [imageSrc]="marker().imageSrc"
+    [imageFit]="marker().imageFit ?? 'contain'"
     [imageBackgroundColor]="marker().imageBackgroundColor"
     [number]="marker().number"
     [numberVariant]="marker().numberVariant ?? 'default'"

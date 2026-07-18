@@ -58,6 +58,7 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "banner_fit",
     "banner_accent_color",
     "logo_src",
+    "logo_fit",
     "logo_background_color",
     "media",
     "organizer",
@@ -161,6 +162,7 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "sponsor",
     "sponsor.name",
     "sponsor.logo_src",
+    "sponsor.logo_fit",
     "sponsor.logo_background_color",
     "sponsor.url",
     "is_promoted",
@@ -276,6 +278,7 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     url: "string",
     banner_src: "string",
     logo_src: "string",
+    logo_fit: "string",
     logo_background_color: "string",
     "featured_participants.name": "string[]",
     "featured_participants.type": "string[]",
@@ -285,6 +288,7 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "featured_participants.image_src": "string[]",
     "sponsor.name": "string",
     "sponsor.logo_src": "string",
+    "sponsor.logo_fit": "string",
     "sponsor.logo_background_color": "string",
     "sponsor.url": "string",
     is_promoted: "bool",
@@ -329,6 +333,7 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
 
     banner_src: { kind: "direct", source: "banner_src" },
     logo_src: { kind: "direct", source: "logo_src" },
+    logo_fit: { kind: "direct", source: "logo_fit" },
     logo_background_color: {
       kind: "direct",
       source: "logo_background_color",
@@ -359,6 +364,10 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     },
     "sponsor.name": { kind: "direct", source: "sponsor.name" },
     "sponsor.logo_src": { kind: "direct", source: "sponsor.logo_src" },
+    "sponsor.logo_fit": {
+      kind: "direct",
+      source: "sponsor.logo_fit",
+    },
     "sponsor.logo_background_color": {
       kind: "direct",
       source: "sponsor.logo_background_color",

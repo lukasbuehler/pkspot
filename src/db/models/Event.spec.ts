@@ -52,6 +52,30 @@ describe("Event", () => {
     expect(event.location).toEqual({ lat: 47.3769, lng: 8.5417 });
   });
 
+  it("contains legacy logos by default and respects the displayed logo setting", () => {
+    const legacyEvent = new Event("event-1" as EventId, {
+      ...baseEvent,
+      start: "2026-06-14T10:00:00.000Z",
+      end: "2026-06-15T10:00:00.000Z",
+      logo_src: "event-logo.png",
+    } as EventSchema);
+    const sponsoredEvent = new Event("event-2" as EventId, {
+      ...baseEvent,
+      start: "2026-06-14T10:00:00.000Z",
+      end: "2026-06-15T10:00:00.000Z",
+      logo_src: "event-logo.png",
+      logo_fit: "cover",
+      sponsor: {
+        name: "Sponsor",
+        logo_src: "sponsor-logo.png",
+        logo_fit: "contain",
+      },
+    } as EventSchema);
+
+    expect(legacyEvent.effectiveBadgeLogoFit()).toBe("contain");
+    expect(sponsoredEvent.effectiveBadgeLogoFit()).toBe("contain");
+  });
+
   it("exposes circle promo geometry for ranking overlapping promotions", () => {
     const event = new Event("event-1" as EventId, {
       ...baseEvent,

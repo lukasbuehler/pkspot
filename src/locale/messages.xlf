@@ -272,9 +272,9 @@
         <source>Edit approved</source>
       </segment>
     </unit>
-    <unit id="1034243481849045297">
+    <unit id="208754813279042651">
       <segment>
-        <source>Public map activity from this profile.</source>
+        <source> Public map activity from this profile. </source>
       </segment>
     </unit>
     <unit id="1035459065824093652">
@@ -322,9 +322,9 @@
         <source>Sign in to vote on this edit.</source>
       </segment>
     </unit>
-    <unit id="6682201029912811079">
+    <unit id="7774690298639065150">
       <segment>
-        <source>This profile does not exist or is no longer available.</source>
+        <source> This profile does not exist or is no longer available. </source>
       </segment>
     </unit>
     <unit id="6684903098036930968">
@@ -1831,6 +1831,11 @@
         <source>Now</source>
       </segment>
     </unit>
+    <unit id="8275049945387417668">
+      <segment>
+        <source> Unable to process this request. Please try again later. </source>
+      </segment>
+    </unit>
     <unit id="5176605689144016167">
       <segment>
         <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Important:</pc> When embedding this content on your website, you are responsible for obtaining user consent for third-party services (Google Maps, analytics, etc.). Ensure your site has a clear consent banner or terms that users agree to before viewing embedded content. </source>
@@ -2542,6 +2547,11 @@
         <source> Event logo background </source>
       </segment>
     </unit>
+    <unit id="event_edit.logo_fit">
+      <segment>
+        <source>Event logo fit</source>
+      </segment>
+    </unit>
     <unit id="event_edit.logo_label">
       <segment>
         <source> Event marker logo </source>
@@ -2865,6 +2875,11 @@
     <unit id="event_edit.sponsor_logo_background_color">
       <segment>
         <source> Partner logo background </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.sponsor_logo_fit">
+      <segment>
+        <source> Partner logo fit </source>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_logo_preview">

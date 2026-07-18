@@ -22,6 +22,7 @@
       "index": false
     },
     { "name": "logo_src", "type": "string", "optional": true, "index": false },
+    { "name": "logo_fit", "type": "string", "optional": true, "index": false },
     {
       "name": "logo_background_color",
       "type": "string",
@@ -66,6 +67,12 @@
     { "name": "sponsor.name", "type": "string", "optional": true },
     {
       "name": "sponsor.logo_src",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "sponsor.logo_fit",
       "type": "string",
       "optional": true,
       "index": false

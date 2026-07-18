@@ -22,6 +22,7 @@ function eventStub(
     start: new Date("2026-06-01T10:00:00Z"),
     status: () => "upcoming",
     effectiveBadgeLogoSrc: () => undefined,
+    effectiveBadgeLogoFit: () => "contain",
     effectiveBadgeLogoBackgroundColor: () => undefined,
     ...overrides,
   } as PkEvent;
@@ -104,6 +105,25 @@ describe("map event map items", () => {
     expect(markers[0].imageSrc).toBe(
       "https://firebasestorage.googleapis.com/v0/b/parkour-base-project.appspot.com/o/event_media%2Fbadge_800x800.png?alt=media",
     );
+    expect(markers[0].imageFit).toBe("contain");
+  });
+
+  it("preserves an event logo cover setting", () => {
+    const markers = buildVisibleEventMarkers({
+      visibleEvents: [
+        eventStub({
+          id: "event-2",
+          effectiveBadgeLogoSrc: () => storageEventImageUrl,
+          effectiveBadgeLogoFit: () => "cover",
+        }),
+      ],
+      selectedEvent: null,
+      pendingEventRef: null,
+      mode: "events",
+      now,
+    });
+
+    expect(markers[0].imageFit).toBe("cover");
   });
 
   it("builds area overlays from event bounds or polygon data", () => {

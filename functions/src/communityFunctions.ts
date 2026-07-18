@@ -823,6 +823,8 @@ const buildCommunityEventPreview = (
     banner_fit: event.banner_fit,
     banner_accent_color: event.banner_accent_color,
     logo_src: event.logo_src,
+    logo_fit: event.logo_fit,
+    logo_background_color: event.logo_background_color,
     venue_string: event.venue_string,
     locality_string: event.locality_string,
     start: event.start,

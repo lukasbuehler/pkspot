@@ -767,8 +767,10 @@
             <img
               [src]="logoPreviewSrc"
               alt=""
-              style="width: 100%; aspect-ratio: 1; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; background: var(--mat-sys-surface-container-high); object-fit: contain; overflow: hidden; padding: 0.75rem"
+              style="width: 100%; aspect-ratio: 1; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; background: var(--mat-sys-surface-container-high); overflow: hidden"
               [style.background]="form.value.logo_background_color || 'var(--mat-sys-surface-container-high)'"
+              [style.object-fit]="form.value.logo_fit === 'cover' ? 'cover' : 'contain'"
+              [style.padding]="form.value.logo_fit === 'cover' ? '0' : '0.75rem'"
             />
             <figcaption class="mat-label-small text-muted" i18n="@@event_edit.logo_preview">
               Event logo preview
@@ -776,16 +778,29 @@
           </figure>
         }
 
-        <mat-form-field appearance="outline">
-          <mat-label i18n="@@event_edit.logo_background_color">
-            Event logo background
-          </mat-label>
-          <input
-            matInput
-            formControlName="logo_background_color"
-            placeholder="#ffffff"
-          />
-        </mat-form-field>
+        <div class="d-flex flex-row gap-2 flex-wrap">
+          <mat-form-field appearance="outline" class="flex-grow-1">
+            <mat-label i18n="@@event_edit.logo_fit">Event logo fit</mat-label>
+            <mat-select formControlName="logo_fit">
+              <mat-option value="contain" i18n="@@event_edit.banner_fit.contain">
+                Contain (fit fully, gap-fill)
+              </mat-option>
+              <mat-option value="cover" i18n="@@event_edit.banner_fit.cover">
+                Cover (fill, may crop)
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="flex-grow-1">
+            <mat-label i18n="@@event_edit.logo_background_color">
+              Event logo background
+            </mat-label>
+            <input
+              matInput
+              formControlName="logo_background_color"
+              placeholder="#ffffff"
+            />
+          </mat-form-field>
+        </div>
 
         <div class="d-flex flex-row gap-2 flex-wrap">
           <mat-form-field appearance="outline" class="flex-grow-1">
@@ -831,24 +846,41 @@
             <img
               [src]="sponsorLogoPreviewSrc"
               alt=""
-              style="width: 100%; aspect-ratio: 1; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; background: var(--mat-sys-surface-container-high); object-fit: contain; overflow: hidden; padding: 0.75rem"
+              style="width: 100%; aspect-ratio: 1; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; background: var(--mat-sys-surface-container-high); overflow: hidden"
               [style.background]="form.value.sponsor_logo_background_color || 'var(--mat-sys-surface-container-high)'"
+              [style.object-fit]="form.value.sponsor_logo_fit === 'cover' ? 'cover' : 'contain'"
+              [style.padding]="form.value.sponsor_logo_fit === 'cover' ? '0' : '0.75rem'"
             />
             <figcaption class="mat-label-small text-muted" i18n="@@event_edit.sponsor_logo_preview">
               Partner logo preview
             </figcaption>
           </figure>
         }
-        <mat-form-field appearance="outline">
-          <mat-label i18n="@@event_edit.sponsor_logo_background_color">
-            Partner logo background
-          </mat-label>
-          <input
-            matInput
-            formControlName="sponsor_logo_background_color"
-            placeholder="#ffffff"
-          />
-        </mat-form-field>
+        <div class="d-flex flex-row gap-2 flex-wrap">
+          <mat-form-field appearance="outline" class="flex-grow-1">
+            <mat-label i18n="@@event_edit.sponsor_logo_fit">
+              Partner logo fit
+            </mat-label>
+            <mat-select formControlName="sponsor_logo_fit">
+              <mat-option value="contain" i18n="@@event_edit.banner_fit.contain">
+                Contain (fit fully, gap-fill)
+              </mat-option>
+              <mat-option value="cover" i18n="@@event_edit.banner_fit.cover">
+                Cover (fill, may crop)
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="flex-grow-1">
+            <mat-label i18n="@@event_edit.sponsor_logo_background_color">
+              Partner logo background
+            </mat-label>
+            <input
+              matInput
+              formControlName="sponsor_logo_background_color"
+              placeholder="#ffffff"
+            />
+          </mat-form-field>
+        </div>
 
         <p class="mat-label-medium text-muted m-0 mt-2" i18n="@@event_edit.external_media_label">
           External media links

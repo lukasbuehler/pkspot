@@ -4,6 +4,13 @@ import { Observable } from "rxjs";
 import { map, timeout } from "rxjs/operators";
 import { MarkerSchema } from "../components/map/markers/map-marker.model";
 
+// Preserve toilet relevance ordering within a layer below Spot markers.
+const TOILET_MARKER_PRIORITY = {
+  free: -10,
+  unknown: -20,
+  paid: -30,
+} as const;
+
 export interface NodeTags {
   amenity?: string;
   name?: string;
@@ -174,7 +181,11 @@ export class OsmDataService {
                 name: element.tags.name ?? $localize`Unnamed Toilet`,
                 description: detailsParts.join(" • "),
                 color: "tertiary",
-                priority: isFree ? 350 : isPaid ? 250 : 300, // Free toilets > unknown > paid
+                priority: isFree
+                  ? TOILET_MARKER_PRIORITY.free
+                  : isPaid
+                    ? TOILET_MARKER_PRIORITY.paid
+                    : TOILET_MARKER_PRIORITY.unknown,
                 type: "wc",
               };
               return marker;

@@ -11,6 +11,7 @@ import { MatRippleModule } from "@angular/material/core";
 import { MatIconModule } from "@angular/material/icon";
 import type {
   MapMarkerColor,
+  MapMarkerImageFit,
   MapMarkerSchema,
 } from "../map/markers/map-marker.model";
 
@@ -29,6 +30,7 @@ export class MarkerComponent {
   icons = input<string[] | null | undefined>(null);
   /** Image source — when set, renders an inline image badge in the marker. */
   imageSrc = input<string | null | undefined>(null);
+  imageFit = input<MapMarkerImageFit>("contain");
   imageBackgroundColor = input<string | null | undefined>(null);
   // Can be number or pre-formatted string (e.g., rating with one decimal)
   number = input<number | string | null | undefined>(null);

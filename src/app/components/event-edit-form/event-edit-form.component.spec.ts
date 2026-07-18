@@ -325,6 +325,7 @@ describe("EventEditFormComponent", () => {
           name: "Original Sponsor",
           url: "https://sponsor.example",
           logo_src: "assets/sponsors/original.png",
+          logo_fit: "cover",
           logo_background_color: "#ffffff",
         },
       }),
@@ -341,6 +342,7 @@ describe("EventEditFormComponent", () => {
       name: "Updated Sponsor",
       url: "https://sponsor.example",
       logo_src: "assets/sponsors/original.png",
+      logo_fit: "cover",
       logo_background_color: "#ffffff",
     });
   });

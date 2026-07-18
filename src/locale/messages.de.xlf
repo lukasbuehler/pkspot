@@ -1761,10 +1761,10 @@
         <target>Bearbeitung genehmigt</target>
       </segment>
     </unit>
-    <unit id="1034243481849045297">
+    <unit id="208754813279042651">
       <segment state="initial">
-        <source>Public map activity from this profile.</source>
-        <target>Public map activity from this profile.</target>
+        <source> Public map activity from this profile. </source>
+        <target> Public map activity from this profile. </target>
       </segment>
     </unit>
     <unit id="1035459065824093652">
@@ -4591,6 +4591,12 @@
         <target> Event-Logo-Hintergrund </target>
       </segment>
     </unit>
+    <unit id="event_edit.logo_fit">
+      <segment state="initial">
+        <source>Event logo fit</source>
+        <target>Skalierung des Event-Logos</target>
+      </segment>
+    </unit>
     <unit id="event_edit.logo_label">
       <segment state="initial">
         <source> Event marker logo </source>
@@ -4979,6 +4985,12 @@
       <segment state="initial">
         <source> Partner logo background </source>
         <target> Partner-Logo-Hintergrund </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.sponsor_logo_fit">
+      <segment state="initial">
+        <source> Partner logo fit </source>
+        <target> Skalierung des Partner-Logos </target>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_logo_preview">
@@ -5963,6 +5975,12 @@
         <target>Jetzt</target>
       </segment>
     </unit>
+    <unit id="8275049945387417668">
+      <segment state="initial">
+        <source> Unable to process this request. Please try again later. </source>
+        <target> Diese Anfrage konnte nicht verarbeitet werden. Bitte versuche es später erneut. </target>
+      </segment>
+    </unit>
     <unit id="5804136287826733566">
       <segment state="initial">
         <source>No open reports.</source>
@@ -6469,10 +6487,10 @@
         <target>Wartet auf Manager-Prüfung</target>
       </segment>
     </unit>
-    <unit id="6682201029912811079">
+    <unit id="7774690298639065150">
       <segment state="initial">
-        <source>This profile does not exist or is no longer available.</source>
-        <target>This profile does not exist or is no longer available.</target>
+        <source> This profile does not exist or is no longer available. </source>
+        <target> This profile does not exist or is no longer available. </target>
       </segment>
     </unit>
     <unit id="6684903098036930968">
