@@ -1,4 +1,12 @@
-import { Component, inject, Input, Output, EventEmitter, ChangeDetectionStrategy } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from "@angular/core";
 import { CommonModule, NgOptimizedImage } from "@angular/common";
 import { MatButton } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
@@ -23,29 +31,29 @@ export class OAuthSignInButtonsComponent {
   private _authService = inject(AuthenticationService);
   private _analytics = inject(AnalyticsService);
 
-  @Input() disabled: boolean = false;
-  @Input() layout: "row" | "column" = "column";
+  readonly disabled = input(false);
+  readonly layout = input<"row" | "column">("column");
 
-  @Output() start = new EventEmitter<void>();
-  @Output() success = new EventEmitter<void>();
-  @Output() error = new EventEmitter<{
+  readonly start = output<void>();
+  readonly success = output<void>();
+  readonly error = output<{
     provider: "google" | "apple";
     message: string;
   }>();
 
-  isSigningInGoogle = false;
-  isSigningInApple = false;
+  readonly isSigningInGoogle = signal(false);
+  readonly isSigningInApple = signal(false);
 
-  get isSubmitting(): boolean {
-    return this.isSigningInGoogle || this.isSigningInApple;
-  }
+  readonly isSubmitting = computed(
+    () => this.isSigningInGoogle() || this.isSigningInApple(),
+  );
 
   trySignInGoogle() {
-    if (this.isSubmitting || this.disabled) {
+    if (this.isSubmitting() || this.disabled()) {
       return;
     }
 
-    this.isSigningInGoogle = true;
+    this.isSigningInGoogle.set(true);
     this.start.emit();
     this._analytics.trackEvent("auth_oauth_attempted", {
       provider: "google",
@@ -106,16 +114,16 @@ export class OAuthSignInButtonsComponent {
         );
       })
       .finally(() => {
-        this.isSigningInGoogle = false;
+        this.isSigningInGoogle.set(false);
       });
   }
 
   trySignInApple() {
-    if (this.isSubmitting || this.disabled) {
+    if (this.isSubmitting() || this.disabled()) {
       return;
     }
 
-    this.isSigningInApple = true;
+    this.isSigningInApple.set(true);
     this.start.emit();
     this._analytics.trackEvent("auth_oauth_attempted", {
       provider: "apple",
@@ -169,7 +177,7 @@ export class OAuthSignInButtonsComponent {
         );
       })
       .finally(() => {
-        this.isSigningInApple = false;
+        this.isSigningInApple.set(false);
       });
   }
 

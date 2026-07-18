@@ -3,9 +3,6 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
-  EventEmitter,
-  Input,
-  Output,
   QueryList,
   ViewChild,
   ViewChildren,
@@ -23,6 +20,7 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   NgZone,
+  output
 } from "@angular/core";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotId } from "../../../db/schemas/SpotSchema";
@@ -262,7 +260,7 @@ interface WatchedMapCanvas {
     ]),
   ],
   host: {
-    "[class.with-bottom-offset]": "bottomSheetOffset",
+    "[class.with-bottom-offset]": "bottomSheetOffset()",
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -350,13 +348,18 @@ export class GoogleMap2dComponent
   markers: InputSignal<MarkerSchema[]> = input<MarkerSchema[]>([]);
   priorityMarkers: InputSignal<MarkerSchema[]> = input<MarkerSchema[]>([]);
   // Optional parallel spot IDs for markers to allow opening a spot on marker click.
-  @Input() markerSpotIds: (SpotId | null)[] | null = null;
+  readonly markerSpotIds = input<(SpotId | null)[] | null>(null);
 
   private _center: google.maps.LatLngLiteral = {
     lat: 48.6270939,
     lng: 2.4305363,
   };
-  @Input() set center(coords: google.maps.LatLngLiteral) {
+  protected readonly centerInput = input<google.maps.LatLngLiteral>(
+    this._center,
+    { alias: "center" },
+  );
+
+  private _applyCenter(coords: google.maps.LatLngLiteral): void {
     if (!isUsableMapCenterLiteral(coords)) {
       reportInvalidMapCoordinate("Ignoring invalid map center", coords);
       return;
@@ -369,7 +372,7 @@ export class GoogleMap2dComponent
       });
     }
   }
-  @Output() centerChange = new EventEmitter<google.maps.LatLngLiteral>();
+  readonly centerChange = output<google.maps.LatLngLiteral>();
   get center(): google.maps.LatLngLiteral {
     return this._center;
   }
@@ -382,7 +385,9 @@ export class GoogleMap2dComponent
   private readonly COMMUNITY_VISUAL_ZOOM_STEP = 0.1;
   private readonly COMMUNITY_CIRCLE_CLICK_MAX_DIAMETER_PX = 320;
 
-  @Input() set zoom(newZoom: number) {
+  protected readonly zoomInput = input(4, { alias: "zoom" });
+
+  private _applyZoom(newZoom: number): void {
     if (!Number.isFinite(newZoom)) {
       reportInvalidMapCoordinate("Ignoring invalid map zoom", newZoom);
       return;
@@ -409,12 +414,12 @@ export class GoogleMap2dComponent
       }
     }
   }
-  @Output() zoomChange = new EventEmitter<number>();
+  readonly zoomChange = output<number>();
   get zoom() {
     return this._zoom();
   }
   setZoom(newZoom: number) {
-    this.zoom = newZoom;
+    this._applyZoom(newZoom);
     this.zoomChange.emit(this._zoom());
   }
 
@@ -478,7 +483,7 @@ export class GoogleMap2dComponent
       return;
     }
 
-    this.center = center;
+    this._applyCenter(center);
   }
 
   onViewportChanged(_viewport: VisibleViewport): void {
@@ -701,35 +706,28 @@ export class GoogleMap2dComponent
     this.mapClick.emit(event.latLng.toJSON());
   }
 
-  @Output() boundsChange = new EventEmitter<google.maps.LatLngBounds>();
-  @Output() visibleTilesChange = new EventEmitter<TilesObject>();
-  @Output() visibleViewportChange = new EventEmitter<VisibleViewport>();
-  @Output() mapClick = new EventEmitter<google.maps.LatLngLiteral>();
-  @Output() poiClick = new EventEmitter<{
+  readonly boundsChange = output<google.maps.LatLngBounds>();
+  readonly visibleTilesChange = output<TilesObject>();
+  readonly visibleViewportChange = output<VisibleViewport>();
+  readonly mapClick = output<google.maps.LatLngLiteral>();
+  readonly poiClick = output<{
     location: google.maps.LatLngLiteral;
     placeId: string;
-  }>();
-  @Output() spotClick = new EventEmitter<
-    LocalSpot | Spot | SpotPreviewData | SpotId
-  >();
-  @Output() polygonChanged = new EventEmitter<{
+}>();
+  readonly spotClick = output<LocalSpot | Spot | SpotPreviewData | SpotId>();
+  readonly polygonChanged = output<{
     spotId: string;
     path: google.maps.LatLngLiteral[][];
-  }>();
-  @Output() hasGeolocationChange = new EventEmitter<boolean>();
-  @Output() markerClickEvent = new EventEmitter<number>();
+}>();
+  readonly hasGeolocationChange = output<boolean>();
+  readonly markerClickEvent = output<number>();
 
-  @Input() spots: (LocalSpot | Spot)[] = [];
+  readonly spots = input<(LocalSpot | Spot)[]>([]);
 
-  private readonly _highlightedSpotsSignal = signal<SpotPreviewData[]>([]);
-
-  @Input()
-  set highlightedSpots(value: SpotPreviewData[] | null | undefined) {
-    this._highlightedSpotsSignal.set(value ? [...value] : []);
-  }
-  get highlightedSpots(): SpotPreviewData[] {
-    return this._highlightedSpotsSignal();
-  }
+  readonly highlightedSpots = input<
+    SpotPreviewData[],
+    SpotPreviewData[] | null | undefined
+  >([], { transform: (value) => (value ? [...value] : []) });
   // Optional mapping from marker index -> SpotId to open spot directly on marker click.
 
   /**
@@ -817,9 +815,10 @@ export class GoogleMap2dComponent
     layout: MapMarkerCollisionLayout,
     zoom: number,
   ): FilteredPointMarkersCache {
+    const pointMarkers = this.pointMarkers();
     const cached = this._filteredPointMarkersCache;
     if (
-      cached?.markers === this.pointMarkers &&
+      cached?.markers === pointMarkers &&
       cached.layout === layout &&
       cached.zoom === zoom
     ) {
@@ -828,7 +827,7 @@ export class GoogleMap2dComponent
 
     const visibleMarkers: MapPointMarker[] = [];
     const collapsedCommunityMarkers: MapPointMarker[] = [];
-    for (const marker of this.pointMarkers) {
+    for (const marker of pointMarkers) {
       if (!this._isPointMarkerVisibleAtZoom(marker, zoom)) continue;
 
       if (
@@ -850,7 +849,7 @@ export class GoogleMap2dComponent
     }
 
     return (this._filteredPointMarkersCache = {
-      markers: this.pointMarkers,
+      markers: pointMarkers,
       layout,
       zoom,
       visibleMarkers,
@@ -863,7 +862,7 @@ export class GoogleMap2dComponent
   }
 
   private _getVisibleHighlightedSpotPreviews(): SpotPreviewData[] {
-    const spots = this._highlightedSpotsSignal();
+    const spots = this.highlightedSpots();
     if (spots.length === 0) {
       return spots;
     }
@@ -908,9 +907,10 @@ export class GoogleMap2dComponent
       return [];
     }
 
+    const spots = this.spots();
     if (
       this._visibleRegularSpotMarkersCache &&
-      this._visibleRegularSpotMarkersCache.spots === this.spots &&
+      this._visibleRegularSpotMarkersCache.spots === spots &&
       this._visibleRegularSpotMarkersCache.highlightedSpots ===
         highlightedSpots &&
       this._visibleRegularSpotMarkersCache.selectedSpot === selectedSpot &&
@@ -922,7 +922,7 @@ export class GoogleMap2dComponent
     }
 
     const highlightedSpotIds = new Set(highlightedSpots.map((spot) => spot.id));
-    const visibleSpots = this.spots.filter(
+    const visibleSpots = spots.filter(
       (spot) =>
         !this.isSelectedSpotBeingEdited(spot) &&
         !this.isSameAsSelectedSpot(spot) &&
@@ -930,7 +930,7 @@ export class GoogleMap2dComponent
     );
 
     this._visibleRegularSpotMarkersCache = {
-      spots: this.spots,
+      spots: spots,
       highlightedSpots,
       selectedSpot,
       isEditing,
@@ -953,11 +953,12 @@ export class GoogleMap2dComponent
     const regularSpots = this._getVisibleRegularSpotMarkers();
     const zoom = this._getMarkerCollisionZoom();
 
+    const pointMarkers = this.pointMarkers();
     if (
       this._markerCollisionLayoutCache &&
       this._markerCollisionLayoutCache.highlightedSpots === highlightedSpots &&
       this._markerCollisionLayoutCache.regularSpots === regularSpots &&
-      this._markerCollisionLayoutCache.pointMarkers === this.pointMarkers &&
+      this._markerCollisionLayoutCache.pointMarkers === pointMarkers &&
       this._markerCollisionLayoutCache.zoom === zoom
     ) {
       return this._markerCollisionLayoutCache.layout;
@@ -984,7 +985,7 @@ export class GoogleMap2dComponent
 
     this._markerCollisionLayoutCache = {
       highlightedSpots,
-      pointMarkers: this.pointMarkers,
+      pointMarkers: pointMarkers,
       regularSpots,
       zoom,
       layout,
@@ -1066,7 +1067,7 @@ export class GoogleMap2dComponent
   private _getEventCollisionCandidates(
     zoom: number,
   ): MapMarkerCollisionCandidate[] {
-    return this.pointMarkers
+    return this.pointMarkers()
       .filter(
         (marker) =>
           this._isEventCollisionMarker(marker) &&
@@ -1088,7 +1089,7 @@ export class GoogleMap2dComponent
   private _getCommunityCollisionCandidates(
     zoom: number,
   ): MapMarkerCollisionCandidate[] {
-    return this.pointMarkers
+    return this.pointMarkers()
       .filter(
         (marker) =>
           this._isCommunityCollisionMarker(marker) &&
@@ -1115,7 +1116,7 @@ export class GoogleMap2dComponent
   private _getPointCollisionCandidates(
     zoom: number,
   ): MapMarkerCollisionCandidate[] {
-    return this.pointMarkers
+    return this.pointMarkers()
       .filter(
         (marker) =>
           !this._isEventCollisionMarker(marker) &&
@@ -1311,39 +1312,41 @@ export class GoogleMap2dComponent
   selectedSpot = input<Spot | LocalSpot | null>(null);
   selectedSpotChallenges = input<SpotChallengePreview[]>([]);
   checkInSpot = input<Spot | SpotPreviewData | null>(null);
-  @Input() selectedChallenge: SpotChallenge | LocalSpotChallenge | null = null;
+  readonly selectedChallenge = input<
+    SpotChallenge | LocalSpotChallenge | null
+  >(null);
 
-  @Input() showGeolocation: boolean = false;
-  @Input() selectedMarker: google.maps.LatLngLiteral | null = null;
+  readonly showGeolocation = input<boolean>(false);
+  readonly selectedMarker = input<google.maps.LatLngLiteral | null>(null);
   hideRegularSpotPins = input(false);
   showVisibleSpotPins = input(false);
   readonly hoveredCircleSpot = signal<Spot | LocalSpot | null>(null);
 
-  @Input() boundRestriction: {
+  readonly boundRestriction = input<{
     north: number;
     south: number;
     west: number;
     east: number;
-  } | null = null;
-  @Input() fitToBounds: google.maps.LatLngBoundsLiteral | null = null;
-  @Input() minZoom: number | null = null;
+} | null>(null);
+  readonly fitToBounds = input<google.maps.LatLngBoundsLiteral | null>(null);
+  readonly minZoom = input<number | null>(null);
   /**
    * Whether to apply a bottom offset (via CSS) to the Google Maps logo/copyright.
    * Useful when a bottom sheet is overlaying the map on mobile.
-   */
-  @Input() bottomSheetOffset: boolean = false;
+  */
+  readonly bottomSheetOffset = input<boolean>(false);
 
-  @Input() pointMarkers: MapPointMarker[] = [];
-  @Input() communityDotMarkers: CommunityMapMarker[] = [];
-  @Input() circleOverlays: MapCircleOverlay[] = [];
-  @Input() boundsOverlays: MapBoundsOverlay[] = [];
-  @Input() polygonOverlays: MapPolygonOverlay[] = [];
-  @Input() featureBoundaryOverlay: MapFeatureBoundaryOverlay | null = null;
-  @Output() pointMarkerClick = new EventEmitter<MapPointMarker>();
-  @Output() communityMarkerClick = new EventEmitter<string>();
-  @Output() circleOverlayClick = new EventEmitter<MapCircleOverlay>();
-  @Output() boundsOverlayClick = new EventEmitter<MapBoundsOverlay>();
-  @Output() polygonOverlayClick = new EventEmitter<MapPolygonOverlay>();
+  readonly pointMarkers = input<MapPointMarker[]>([]);
+  readonly communityDotMarkers = input<CommunityMapMarker[]>([]);
+  readonly circleOverlays = input<MapCircleOverlay[]>([]);
+  readonly boundsOverlays = input<MapBoundsOverlay[]>([]);
+  readonly polygonOverlays = input<MapPolygonOverlay[]>([]);
+  readonly featureBoundaryOverlay = input<MapFeatureBoundaryOverlay | null>(null);
+  readonly pointMarkerClick = output<MapPointMarker>();
+  readonly communityMarkerClick = output<string>();
+  readonly circleOverlayClick = output<MapCircleOverlay>();
+  readonly boundsOverlayClick = output<MapBoundsOverlay>();
+  readonly polygonOverlayClick = output<MapPolygonOverlay>();
   private _featureBoundaryLayer: google.maps.FeatureLayer | null = null;
   private _featureBoundaryRequestVersion = 0;
   private _featureBoundaryPlaceIdCache = new Map<string, string | null>();
@@ -1735,6 +1738,9 @@ export class GoogleMap2dComponent
   ) {
     super();
 
+    effect(() => this._applyCenter(this.centerInput()));
+    effect(() => this._applyZoom(this.zoomInput()));
+
     // Clear any stale error state from previous sessions
     this.geolocationService.error.set(null);
 
@@ -1932,18 +1938,20 @@ export class GoogleMap2dComponent
 
     this._ensurePassiveGeolocationWatch();
 
-    if (this.boundRestriction) {
+    const boundRestriction = this.boundRestriction();
+    if (boundRestriction) {
       this.mapOptions.restriction = {
-        latLngBounds: this.boundRestriction,
+        latLngBounds: boundRestriction,
         strictBounds: false,
       };
       // Apply restriction dynamically after map is initialized using setOptions
       this._applyBoundRestriction();
     }
-    if (this.minZoom) {
-      this.mapOptions.minZoom = this.minZoom;
+    const minZoom = this.minZoom();
+    if (minZoom) {
+      this.mapOptions.minZoom = minZoom;
       // Also apply minZoom dynamically
-      this.googleMap.googleMap?.setOptions({ minZoom: this.minZoom });
+      this.googleMap.googleMap?.setOptions({ minZoom: minZoom });
     }
     this._applyFitBounds();
 
@@ -2109,29 +2117,31 @@ export class GoogleMap2dComponent
    * This ensures the restriction is applied even after map initialization.
    */
   private _applyBoundRestriction(): void {
-    if (!this.googleMap?.googleMap || !this.boundRestriction) return;
+    const boundRestriction = this.boundRestriction();
+    if (!this.googleMap?.googleMap || !boundRestriction) return;
 
     this.googleMap.googleMap.setOptions({
       restriction: {
-        latLngBounds: this.boundRestriction,
+        latLngBounds: boundRestriction,
         strictBounds: false,
       },
     });
   }
 
   private _applyFitBounds(): void {
-    if (!this.googleMap?.googleMap || !this.fitToBounds) return;
-    if (!isFiniteBoundsLiteral(this.fitToBounds)) {
+    const fitToBounds = this.fitToBounds();
+    if (!this.googleMap?.googleMap || !fitToBounds) return;
+    if (!isFiniteBoundsLiteral(fitToBounds)) {
       reportInvalidMapCoordinate(
         "Ignoring invalid fitToBounds input",
-        this.fitToBounds,
+        fitToBounds,
       );
       return;
     }
 
     this._allowProgrammaticCameraJump("fit-to-bounds-input");
     this._runWhenMapViewportReady("fit-to-bounds-input", () => {
-      this.googleMap?.fitBounds(this.fitToBounds!, 40);
+      this.googleMap?.fitBounds(this.fitToBounds()!, 40);
     });
   }
 
@@ -2197,7 +2207,7 @@ export class GoogleMap2dComponent
     const requestVersion = ++this._featureBoundaryRequestVersion;
     this._clearFeatureBoundaryStyle();
 
-    const boundary = this.featureBoundaryOverlay;
+    const boundary = this.featureBoundaryOverlay();
     const map = this.googleMap?.googleMap;
     if (!boundary || !map || typeof google === "undefined") {
       return;
@@ -2653,7 +2663,7 @@ export class GoogleMap2dComponent
   }
 
   private _ensurePassiveGeolocationWatch(): void {
-    if (!this.showGeolocation || this._hasStartedPassiveLocationWatch) return;
+    if (!this.showGeolocation() || this._hasStartedPassiveLocationWatch) return;
 
     this._hasStartedPassiveLocationWatch = true;
     void this.initGeolocation();
@@ -3165,7 +3175,7 @@ export class GoogleMap2dComponent
       zoom: this.googleMap.getZoom(),
       bounds: bounds.toJSON(),
     });
-    this.boundsChange.emit(this.boundsToRender() ?? undefined);
+    this.boundsChange.emit(bounds);
   }
 
   centerChanged() {
@@ -3213,9 +3223,10 @@ export class GoogleMap2dComponent
   }
 
   editingChallengePositionChanged(position: google.maps.LatLng) {
-    if (!this.selectedChallenge) return;
+    const selectedChallenge = this.selectedChallenge();
+    if (!selectedChallenge) return;
 
-    this.selectedChallenge.location.set(position.toJSON());
+    selectedChallenge.location.set(position.toJSON());
   }
   showSelectedSpotPolygon(): boolean {
     const hasSpot = !!this.selectedSpot;
@@ -3494,8 +3505,9 @@ export class GoogleMap2dComponent
   markerClick(markerIndex: number) {
     this.markerClickEvent.emit(markerIndex);
     // If we have a mapped spot id, emit spotClick too so parent can open it directly
-    if (this.markerSpotIds && this.markerSpotIds[markerIndex]) {
-      this.spotClick.emit(this.markerSpotIds[markerIndex]!);
+    const markerSpotIds = this.markerSpotIds();
+    if (markerSpotIds && markerSpotIds[markerIndex]) {
+      this.spotClick.emit(markerSpotIds[markerIndex]!);
     }
   }
 
@@ -3844,17 +3856,17 @@ export class GoogleMap2dComponent
       actualRenderingType: nativeMap?.getRenderingType?.() ?? null,
       capabilities: nativeMap?.getMapCapabilities?.() ?? null,
       inputs: {
-        circleOverlays: this.circleOverlays.length,
-        highlightedSpots: this.highlightedSpots.length,
-        pointMarkers: this.pointMarkers.length,
+        circleOverlays: this.circleOverlays().length,
+        highlightedSpots: this.highlightedSpots().length,
+        pointMarkers: this.pointMarkers().length,
         priorityMarkers: this.priorityMarkers().length,
-        regularSpots: this.spots.length,
+        regularSpots: this.spots().length,
       },
       mapIdPresent: !!environment.mapId,
       mapTypeId: this.mapTypeId(),
       overlays: {
-        bounds: this.boundsOverlays.length,
-        polygons: this.polygonOverlays.length,
+        bounds: this.boundsOverlays().length,
+        polygons: this.polygonOverlays().length,
       },
       requestedRenderingType: this.mapOptions.renderingType ?? null,
       zoom: {

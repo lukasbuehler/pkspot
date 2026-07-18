@@ -1,9 +1,6 @@
 import {
   Component,
   OnInit,
-  Input,
-  Output,
-  EventEmitter,
   ViewChild,
   OnChanges,
   ElementRef,
@@ -21,6 +18,7 @@ import {
   inject,
   OnDestroy,
   ChangeDetectionStrategy,
+  output
 } from "@angular/core";
 import {
   MatProgressBar,
@@ -451,11 +449,11 @@ export class SpotDetailsComponent
 
   languages = languageCodes;
 
-  @Input() infoOnly: boolean = false;
-  @Input() dismissable: boolean = false;
-  @Input() border: boolean = false;
-  @Input() clickable: boolean = false;
-  @Input() editable: boolean = false;
+  readonly infoOnly = input<boolean>(false);
+  readonly dismissable = input<boolean>(false);
+  readonly border = input<boolean>(false);
+  readonly clickable = input<boolean>(false);
+  readonly editable = input<boolean>(false);
   showRating = input<boolean>(true);
   loading = input(false);
   loadingTitle = input<string>("");
@@ -472,14 +470,12 @@ export class SpotDetailsComponent
   pendingVoteCount = input<number>(0);
   mapQueryParams = input<Record<string, string> | null>(null);
 
-  @Output() dismiss: EventEmitter<boolean> = new EventEmitter<boolean>();
-  @Output() addBoundsClick: EventEmitter<void> = new EventEmitter<void>();
-  @Output() focusClick: EventEmitter<void> = new EventEmitter<void>();
-  @Output() saveClick: EventEmitter<Spot | LocalSpot> = new EventEmitter<
-    Spot | LocalSpot
-  >();
-  @Output() discardClick: EventEmitter<void> = new EventEmitter<void>();
-  @Output() reviewSubmitted: EventEmitter<Spot> = new EventEmitter<Spot>();
+  readonly dismiss = output<boolean>();
+  readonly addBoundsClick = output<void>();
+  readonly focusClick = output<void>();
+  readonly saveClick = output<Spot | LocalSpot>();
+  readonly discardClick = output<void>();
+  readonly reviewSubmitted = output<Spot>();
 
   // Media upload is handled in a dialog now
 
@@ -1179,7 +1175,7 @@ export class SpotDetailsComponent
   }
 
   dismissed() {
-    if (this.dismissable) {
+    if (this.dismissable()) {
       this.isEditing.set(false);
 
       this.dismiss.emit(true);
@@ -1187,7 +1183,7 @@ export class SpotDetailsComponent
   }
 
   editButtonClick() {
-    if (this.editable && this.authenticationService.isSignedIn) {
+    if (this.editable() && this.authenticationService.isSignedIn) {
       if (!this._ageAssuranceService.canParticipatePublicly()) {
         this._snackbar.open(
           this._ageAssuranceService.getRestrictionMessage(),

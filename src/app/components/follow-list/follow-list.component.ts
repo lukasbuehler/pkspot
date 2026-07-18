@@ -62,7 +62,6 @@ export interface FollowListDialogData {
 @Pipe({
   name: "followDuration",
   pure: true,
-  standalone: true,
 })
 export class FollowDurationPipe implements PipeTransform {
   private _locale = inject(LOCALE_ID);

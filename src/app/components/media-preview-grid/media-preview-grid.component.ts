@@ -10,20 +10,15 @@ import {
 import {
   Component,
   computed,
-  EventEmitter,
   inject,
   input,
-  Signal,
-  InputSignal,
-  OnInit,
-  Output,
   signal,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  output,
 } from "@angular/core";
 import { MatIcon } from "@angular/material/icon";
 import { MatIconButton } from "@angular/material/button";
-import { NgIf, NgFor, NgOptimizedImage } from "@angular/common";
-import { StorageService } from "../../services/firebase/storage.service";
+import { NgOptimizedImage } from "@angular/common";
 import { AnyMedia, StorageImage, StorageVideo } from "../../../db/models/Media";
 import { MatDialog } from "@angular/material/dialog";
 import { MediaReportDialogComponent } from "../../media-report-dialog/media-report-dialog.component";
@@ -42,18 +37,17 @@ import { MediaReportDialogComponent } from "../../media-report-dialog/media-repo
     NgOptimizedImage,
   ],
 })
-export class MediaPreviewGridComponent implements OnInit {
-  media: InputSignal<AnyMedia[]> = input<AnyMedia[]>([]);
-  spotId = input<string | undefined>(undefined);
-  @Output() mediaChanged: EventEmitter<AnyMedia[]> = new EventEmitter<
-    AnyMedia[]
-  >();
+export class MediaPreviewGridComponent {
+  readonly media = input<readonly AnyMedia[]>([]);
+  readonly spotId = input<string>();
+  readonly mediaChanged = output<AnyMedia[]>();
 
-  storageService = inject(StorageService);
-  dialog = inject(MatDialog);
-  fallbackImageIndices = signal<Set<number>>(new Set());
+  private readonly dialog = inject(MatDialog);
+  private readonly fallbackImageIndices = signal<ReadonlySet<number>>(
+    new Set(),
+  );
 
-  mediaSources: Signal<string[]> = computed<string[]>(() => {
+  readonly mediaSources = computed(() => {
     const media = this.media();
 
     return media
@@ -72,35 +66,21 @@ export class MediaPreviewGridComponent implements OnInit {
       .filter((src) => !!src) as string[];
   });
 
-  constructor() {}
-
-  ngOnInit(): void {}
-
-  drop(event: CdkDragDrop<number>) {
+  drop(event: CdkDragDrop<number>): void {
     const newMedia = [...this.media()];
     moveItemInArray(
       newMedia,
       event.previousContainer.data,
-      event.container.data
+      event.container.data,
     );
 
     this.mediaChanged.emit(newMedia);
   }
 
-  reportMedia(index: number) {
+  reportMedia(index: number): void {
     const mediaItem = this.media()[index];
-    const dialogRef = this.dialog.open(MediaReportDialogComponent, {
+    this.dialog.open(MediaReportDialogComponent, {
       data: { media: mediaItem, spotId: this.spotId() },
-      // width: "400px",
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        // Report submitted successfully
-        // We do not remove it locally anymore.
-        // The Cloud Function updates the DB, and the live subscription receives the update
-        // with isReported: true, which updates the UI.
-      }
     });
   }
 

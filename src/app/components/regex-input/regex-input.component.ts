@@ -3,14 +3,14 @@ import { coerceBooleanProperty } from "@angular/cdk/coercion";
 import {
   Component,
   ElementRef,
-  EventEmitter,
-  HostBinding,
-  Input,
   OnDestroy,
   Optional,
-  Output,
   Self,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  booleanAttribute,
+  effect,
+  input,
+  output,
 } from "@angular/core";
 import {
   AbstractControl,
@@ -54,13 +54,13 @@ export interface MyRegex {
 }
 
 export function regexValidator(): ValidatorFn {
-  return (control: AbstractControl): { [key: string]: any } | null => {
+  return (control: AbstractControl): ValidationErrors | null => {
     let isValid = true;
-    let regexStr = control.value;
+    const regexStr = control.value;
 
     try {
-      let regex = new RegExp(regexStr);
-    } catch (e) {
+      new RegExp(regexStr);
+    } catch {
       isValid = false;
     }
 
@@ -70,6 +70,10 @@ export function regexValidator(): ValidatorFn {
 
 @Component({
   selector: "app-regex-input",
+  host: {
+    "[id]": "id",
+    "[class.floating]": "shouldLabelFloat",
+  },
   templateUrl: "./regex-input.component.html",
   styleUrls: ["./regex-input.component.scss"],
   providers: [
@@ -90,13 +94,12 @@ export class RegexInputComponent
 
   // id
   static nextId = 0;
-  @HostBinding() id = `regex-input-${RegexInputComponent.nextId++}`;
+  id = `regex-input-${RegexInputComponent.nextId++}`;
 
   // focused
   focused = false;
 
   // shouldLabelFloat
-  @HostBinding("class.floating")
   get shouldLabelFloat() {
     return this.focused || !this.empty;
   }
@@ -118,14 +121,44 @@ export class RegexInputComponent
 
   parts: UntypedFormGroup;
 
-  @Input() get value(): MyRegex | null {
-    let parts: {
+  protected readonly valueInput = input<MyRegex | null | undefined>(undefined, {
+    alias: "value",
+  });
+  protected readonly flagsInput = input<ExpressionFlags | undefined>(
+    undefined,
+    { alias: "flags" },
+  );
+  protected readonly flagsStringInput = input<string | undefined>(undefined, {
+    alias: "flagsString",
+  });
+  protected readonly placeholderInput = input<string | undefined>(undefined, {
+    alias: "placeholder",
+  });
+  protected readonly requiredInput = input(false, {
+    alias: "required",
+    transform: booleanAttribute,
+  });
+  protected readonly disabledInput = input(false, {
+    alias: "disabled",
+    transform: booleanAttribute,
+  });
+  protected readonly disabledFlagsInput = input(false, {
+    alias: "disabledFlags",
+    transform: booleanAttribute,
+  });
+  protected readonly ariaDescribedByInput = input("", {
+    alias: "aria-describedby",
+  });
+  userAriaDescribedBy = "";
+
+  get value(): MyRegex | null {
+    const parts: {
       regularExpression: string;
       expressionFlags: string;
     } = this.parts.value;
     if (parts.regularExpression) {
-      let regex = parts.regularExpression;
-      let flags = parts.expressionFlags;
+      const regex = parts.regularExpression;
+      const flags = parts.expressionFlags;
 
       return { regularExpression: regex, expressionFlags: flags };
     }
@@ -142,9 +175,9 @@ export class RegexInputComponent
     }
   }
 
-  @Output() valueChange = new EventEmitter<MyRegex>();
+  readonly valueChange = output<MyRegex>();
 
-  @Input() get flags(): string {
+  get flags(): string {
     if (!this.value) {
       console.error("value is null");
       return "";
@@ -152,38 +185,38 @@ export class RegexInputComponent
 
     return this.value.expressionFlags;
   }
-  set flags(flags: ExpressionFlags) {
+  set flags(_flags: ExpressionFlags) {
     //this.value.expressionFlags = flags;
     this.stateChanges.next();
   }
 
-  @Input() get flagsString(): string {
-    return this.parts.get("experssionFlags")?.value;
+  get flagsString(): string {
+    return this.parts.get("expressionFlags")?.value;
   }
   set flagsString(flagsString: string) {
     this.parts.get("expressionFlags")?.setValue(flagsString);
     this.stateChanges.next();
   }
 
-  @Input() get placeholder() {
+  get placeholder(): string {
     return this._placeholder;
   }
-  set placeholder(plh) {
+  set placeholder(plh: string) {
     this._placeholder = plh;
     this.stateChanges.next();
   }
   private _placeholder: string = "";
 
-  @Input() get required() {
+  get required(): boolean {
     return this._required;
   }
-  set required(req) {
+  set required(req: boolean) {
     this._required = coerceBooleanProperty(req);
     this.stateChanges.next();
   }
   private _required = false;
 
-  @Input() get disabled(): boolean {
+  get disabled(): boolean {
     return this._disabled;
   }
   set disabled(value: boolean) {
@@ -199,7 +232,7 @@ export class RegexInputComponent
   }
   private _disabled = false;
 
-  @Input() get disabledFlags() {
+  get disabledFlags(): boolean {
     return this._disabledFlags;
   }
   set disabledFlags(value: boolean) {
@@ -211,7 +244,6 @@ export class RegexInputComponent
   }
   private _disabledFlags = false;
 
-  @Input("aria-describedby") userAriaDescribedBy: string = ""; // TODO
   setDescribedByIds(ids: string[]) {
     // const controlElement =
     //   this._elementRef.nativeElement.querySelector("regularExpression")!;
@@ -219,7 +251,7 @@ export class RegexInputComponent
   }
 
   get empty() {
-    let parts: {
+    const parts: {
       regularExpression: string;
       expressionFlags: string;
     } = this.parts.value;
@@ -253,6 +285,36 @@ export class RegexInputComponent
       { validators: [] }
     );
 
+    effect(() => {
+      const value = this.valueInput();
+      if (value !== undefined) this.value = value;
+    });
+    effect(() => {
+      const flags = this.flagsInput();
+      if (flags !== undefined) this.flags = flags;
+    });
+    effect(() => {
+      const flagsString = this.flagsStringInput();
+      if (flagsString !== undefined) this.flagsString = flagsString;
+    });
+    effect(() => {
+      const placeholder = this.placeholderInput();
+      if (placeholder !== undefined) this.placeholder = placeholder;
+    });
+    effect(() => {
+      this.required = this.requiredInput();
+    });
+    effect(() => {
+      this.disabledFlags = this.disabledFlagsInput();
+    });
+    effect(() => {
+      this.disabled = this.disabledInput();
+    });
+    effect(() => {
+      this.userAriaDescribedBy = this.ariaDescribedByInput();
+      this.stateChanges.next();
+    });
+
     // focused
     fm.monitor(_elementRef.nativeElement, true).subscribe((origin) => {
       this.focused = !!origin;
@@ -263,21 +325,23 @@ export class RegexInputComponent
     return this.parts.errors;
   }
   registerOnValidatorChange?(fn: () => void): void {}
-  writeValue(value: any): void {
+  writeValue(value: MyRegex | null): void {
     this.value = value;
   }
-  registerOnChange(fn: (_: any) => void): void {
+  registerOnChange(fn: (value: MyRegex | null) => void): void {
     this._onChange = fn;
   }
-  private _onChange: (_: any) => void = () => {};
+  private _onChange: (value: MyRegex | null) => void = () => {};
 
-  registerOnTouched(fn: any): void {}
-  setDisabledState?(isDisabled: boolean): void {}
+  registerOnTouched(_fn: () => void): void {}
+  setDisabledState(isDisabled: boolean): void {
+    this.disabled = isDisabled;
+  }
 
   private _makeExpressionFlags(flagString: string): ExpressionFlags {
-    let expressionFlags: ExpressionFlags = {};
+    const expressionFlags: ExpressionFlags = {};
 
-    for (let char in expressionFlagsChars) {
+    for (const char in expressionFlagsChars) {
       if (flagString?.includes(char)) {
         const flag: keyof ExpressionFlags = expressionFlagsChars[
           char

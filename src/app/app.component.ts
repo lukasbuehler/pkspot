@@ -3,7 +3,6 @@ import {
   ApplicationRef,
   Component,
   computed,
-  HostListener,
   inject,
   OnInit,
   signal,
@@ -128,6 +127,9 @@ type NavigationPerfDetails = Record<string, unknown>;
 
 @Component({
   selector: "app-root",
+  host: {
+    "(window:resize)": "onResize()",
+  },
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.scss"],
   imports: [
@@ -271,8 +273,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     "nl",
   ];
 
-  @HostListener("window:resize", ["$event"])
-  onResize(event: Event) {
+  onResize() {
     this.enforceAlainMode();
   }
 

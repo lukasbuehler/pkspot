@@ -110,7 +110,8 @@ describe("MapPageComponent URL-driven panel state", () => {
     );
 
     expect(template).toContain('(spotOpenRequested)="onSpotOpenRequested($event)"');
-    expect(spotMapComponent).toContain("spotOpenRequested = new EventEmitter");
+    expect(template).toContain('[delegateSpotOpening]="true"');
+    expect(spotMapComponent).toContain("spotOpenRequested = output<");
     expect(spotMapComponent).toContain("this.spotOpenRequested.emit(spot)");
     expect(component).toContain("this._openPendingSpotPanel(");
   });
@@ -163,7 +164,7 @@ describe("MapPageComponent URL-driven panel state", () => {
 
     expect(locationSubscription).toContain("void this._syncFullMapStateFromUrl(url)");
     expect(syncMethod).toContain("await this._syncMapPanelStateFromUrl(url)");
-    expect(syncMethod).toContain("this._parseMapRouteState(url)");
+    expect(syncMethod).toContain("parseMapSpotRouteState(url)");
     expect(syncMethod).toContain("await this._handleURLParamsChange(");
   });
 

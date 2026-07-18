@@ -3,12 +3,12 @@
     <div class="row">
       <div class="col-md-4">
         <div class="menu d-flex flex-column rounded border mb-5">
-          @for(menuPoint of menuPoints; track $index) {
+          @for(menuPoint of menuPoints; track menuPoint.id) {
           <button
             mat-button
             (click)="openMenuPoint(menuPoint.id)"
             class="menuButton"
-            [ngClass]="menuPoint.id === selectedPoint ? 'selected' : ''"
+            [class.selected]="menuPoint.id === selectedPoint"
           >
             <mat-icon
               matBadge="&#8288;"
@@ -25,7 +25,7 @@
           }
         </div>
       </div>
-      <div [ngSwitch]="selectedPoint" class="col-md-8">
+      <div class="col-md-8">
         <h1
           class="mat-h1 mb-2"
           i18n="settings page title|Title of the settings page@@settings.title"
@@ -64,7 +64,9 @@
           ></app-edit-profile>
           }
         </div>
-        <div *ngSwitchCase="'account'">
+        @switch (selectedPoint) {
+        @case ("account") {
+        <div>
           <h2
             class="mat-h2"
             i18n="account section header@@settings.account.header"
@@ -380,7 +382,9 @@
             }
           </div>
         </div>
-        <div *ngSwitchCase="'general'">
+        }
+        @case ("general") {
+        <div>
           <h2 class="mat-h2" i18n>General settings</h2>
           <h3 class="mat-body" i18n>
             General settings to tune your experience on PK Spot.
@@ -472,7 +476,9 @@
           </div>
           -->
         </div>
-        <div *ngSwitchCase="'about'">
+        }
+        @case ("about") {
+        <div>
           <h2
             class="mat-h2"
             i18n="about section header@@settings.about.header"
@@ -597,9 +603,13 @@
             </p>
           </div>
         </div>
-        <div *ngSwitchCase="'notifications'">
+        }
+        @case ("notifications") {
+        <div>
           <h2 class="mat-h2" i18n>Notifications</h2>
         </div>
+        }
+        }
       </div>
     </div>
   </div>

@@ -7,10 +7,10 @@
 
 <mat-card
   matRipple
-  [matRippleDisabled]="!clickable"
+  [matRippleDisabled]="!clickable()"
   class="pt-0 bg-transparent d-block"
-  [class.border]="border"
-  [class.clickable]="clickable"
+  [class.border]="border()"
+  [class.clickable]="clickable()"
   style="box-shadow: none"
 >
   @if (loading()) {
@@ -33,7 +33,7 @@
           </span>
         </span>
 
-        @if (dismissable) {
+        @if (dismissable()) {
           <button
             mat-icon-button
             (click)="dismissed()"
@@ -188,7 +188,7 @@
           </span>
 
           <!-- dismiss button -->
-          @if (dismissable) {
+          @if (dismissable()) {
             <button
               mat-icon-button
               (click)="dismissed()"
@@ -855,7 +855,7 @@
         }
 
         <!-- Action buttons -->
-        @if (authenticationService.isSignedIn && editable) {
+        @if (authenticationService.isSignedIn && editable()) {
           <mat-divider></mat-divider>
           <div class="d-flex my-3 gap-2">
             @if (canParticipatePublicly()) {
@@ -1052,7 +1052,7 @@
         <!-- Saving actions -->
         @if (isEditing()) {
           <mat-card-actions class="mb-3 gap-2">
-            @if (editable) {
+            @if (editable()) {
               <button
                 matButton="outlined"
                 color="warn"
@@ -1602,7 +1602,7 @@
       <!-- Saving actions -->
       @if (isEditing()) {
         <mat-card-actions class="mt-3 gap-2">
-          @if (editable) {
+          @if (editable()) {
             <button
               matButton="outlined"
               color="warn"

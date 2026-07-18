@@ -5,7 +5,6 @@ import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
     templateUrl: './terms-of-service.component.html',
     styleUrls: ['./terms-of-service.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true
 })
 export class TermsOfServiceComponent implements OnInit {
 

@@ -2,8 +2,6 @@ import {
   AfterViewInit,
   Component,
   Input,
-  Output,
-  EventEmitter,
   Inject,
   LOCALE_ID,
   ElementRef,
@@ -13,7 +11,8 @@ import {
   signal,
   OnDestroy,
   effect,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  output
 } from "@angular/core";
 import { Router } from "@angular/router";
 import { MapsApiService } from "../../services/maps-api.service";
@@ -122,15 +121,13 @@ export class SpotPreviewCardComponent
   });
   showInfoButton = input<boolean>(true);
   showRating = input<boolean>(true);
-  @Input() infoOnly: boolean = false;
-  @Input() clickable: boolean = false;
-  @Input() isCompact: boolean = false;
+  readonly infoOnly = input<boolean>(false);
+  readonly clickable = input<boolean>(false);
+  readonly isCompact = input(false);
 
-  @Output() spotClick: EventEmitter<Spot | LocalSpot> = new EventEmitter<
-    Spot | LocalSpot
-  >();
-  @Output() dismiss: EventEmitter<boolean> = new EventEmitter<boolean>();
-  @Output() edit: EventEmitter<any> = new EventEmitter<any>();
+  readonly spotClick = output<Spot | LocalSpot>();
+  readonly dismiss = output<boolean>();
+  readonly edit = output<void>();
 
   fallbackImgSrc = "assets/spot_placeholder.png";
   private _intersectionObserver: IntersectionObserver | null = null;

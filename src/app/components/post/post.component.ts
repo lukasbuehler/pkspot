@@ -1,4 +1,14 @@
-import { Component, OnInit, Input, ViewChild, ElementRef } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  input,
+  OnInit,
+  signal,
+  viewChild,
+} from "@angular/core";
 import { Post } from "../../../db/models/Post";
 import { PostsService } from "../../services/firebase/firestore/posts.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
@@ -42,103 +52,80 @@ import {
     MatMenu,
     MatMenuItem,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PostComponent implements OnInit {
-  @Input() post: Post.Class | null = null;
-  @Input() showCard: boolean = true;
+  readonly post = input<Post.Class | null>(null);
+  readonly showCard = input(true);
 
-  @ViewChild("matCardMedia") matCardMedia: ElementRef | undefined;
+  readonly likedByUser = signal<boolean | null>(false);
+  readonly currentlyAuthenticatedUserId = signal("");
+  readonly timeAgoString = computed(() => {
+    const timePosted = this.post()?.timePosted;
+    return timePosted ? humanTimeSince(timePosted) : "";
+  });
+  readonly locationDisplayCoordinates = computed(() => {
+    const location = this.post()?.location;
+    return location ? MapHelpers.getHumanReadableCoordinates(location) : "";
+  });
+  readonly spotDisplayCoordinates = computed(() => {
+    const location = this.post()?.spot?.spot_location;
+    return location
+      ? MapHelpers.getHumanReadableCoordinates({
+          lat: location.latitude,
+          lng: location.longitude,
+        })
+      : "";
+  });
 
-  dateAndTimeString?: string;
-  timeAgoString?: string;
-  likedByUser: boolean | null = null;
+  private readonly matCardMedia =
+    viewChild<ElementRef<HTMLElement>>("matCardMedia");
+  private readonly postService = inject(PostsService);
+  private readonly authenticationService = inject(AuthenticationService);
+  private readonly snackbar = inject(MatSnackBar);
+  private readonly router = inject(Router);
+  private maxHeightToWidthRatio = 0;
 
-  currentlyAuthenticatedUserId: string = "";
+  ngOnInit(): void {
+    const post = this.post();
+    const userId = this.authenticationService.user.uid;
+    this.currentlyAuthenticatedUserId.set(userId ?? "");
 
-  maxHeightToWidthRatio: number = 0;
-
-  constructor(
-    private _postService: PostsService,
-    private _authenticationService: AuthenticationService,
-    private _snackbar: MatSnackBar,
-    private _router: Router
-  ) {}
-
-  ngOnInit() {
-    this.dateAndTimeString = this.getDateAndTimeString();
-    this.timeAgoString = this.getTimeAgoString();
-
-    this.likedByUser = false;
-
-    // Check if posts are liked by the user if a user is authenticated, every time the uid changes
-
-    if (this.post) {
-      if (this._authenticationService.user.uid) {
-        this.currentlyAuthenticatedUserId =
-          this._authenticationService.user.uid;
-
-        this._postService
-          .userHasLikedPost(this.post.id, this.currentlyAuthenticatedUserId)
-          .then((bool) => {
-            this.likedByUser = bool;
-          })
-          .catch((err) => {
-            console.error(err);
-          });
-      }
+    if (!post || !userId) {
+      return;
     }
+
+    const postId = post.id;
+    this.postService
+      .userHasLikedPost(postId, userId)
+      .then((liked) => {
+        if (this.post()?.id === postId) {
+          this.likedByUser.set(liked);
+        }
+      })
+      .catch((error: unknown) => console.error(error));
   }
 
-  //   onResized(event: ResizedEvent) {
-  //     this.updateMediaHeight(event.newWidth, event.newHeight);
-  //   }
-
-  getTimeAgoString(): string {
-    if (!this.post) {
-      console.error("Post is null");
-      return "";
-    }
-
-    if (!this.post.timePosted) {
-      console.error("Post time is null");
-      return "";
-    }
-
-    return humanTimeSince(this.post.timePosted);
-  }
-
-  getDateAndTimeString(): string {
-    if (!this.post) {
-      console.error("Post is null");
-      return "";
-    }
-
-    if (!this.post.timePosted) {
-      console.error("Post time is null");
-      return "";
-    }
-
-    return humanTimeSince(this.post.timePosted);
-  }
-
-  likeButtonPress() {
+  likeButtonPress(): void {
+    const post = this.post();
+    const likedByUser = this.likedByUser();
     if (
-      this.post &&
-      this._authenticationService.isSignedIn &&
-      this._authenticationService.user.uid
+      post &&
+      this.authenticationService.isSignedIn &&
+      this.authenticationService.user.uid
     ) {
-      if (this.likedByUser !== null) {
-        if (!this.likedByUser) {
+      if (likedByUser !== null) {
+        if (!likedByUser) {
           // show the like
-          this.likedByUser = true;
-          this.post.like();
+          this.likedByUser.set(true);
+          post.like();
 
           // save the like
-          this._postService
-            .addLike(this.post.id, this._authenticationService.user.uid, {
+          this.postService
+            .addLike(post.id, this.authenticationService.user.uid, {
               time: Timestamp.now(),
               user: {
-                uid: this._authenticationService.user.uid,
+                uid: this.authenticationService.user.uid,
               },
             })
             .then(() => {
@@ -147,7 +134,7 @@ export class PostComponent implements OnInit {
             })
             .catch((err) => {
               // There was an error adding the like
-              this._snackbar.open(
+              this.snackbar.open(
                 "Your like could not be cast! " + err,
                 "Dismiss",
                 {
@@ -159,17 +146,17 @@ export class PostComponent implements OnInit {
             });
         } else {
           // show the unlike
-          this.likedByUser = false;
-          this.post.unlike();
+          this.likedByUser.set(false);
+          post.unlike();
 
           // save the unlike
-          this._postService
-            .removeLike(this.post.id, this._authenticationService.user.uid)
+          this.postService
+            .removeLike(post.id, this.authenticationService.user.uid)
             .then(() => {
               console.log("Your like was removed successfully");
             })
             .catch((err) => {
-              this._snackbar.open(
+              this.snackbar.open(
                 "Your like could not be removed! " + err,
                 "Dismiss",
                 {
@@ -183,7 +170,7 @@ export class PostComponent implements OnInit {
       }
     } else {
       // TODO show that you need to sign in
-      this._snackbar
+      this.snackbar
         .open("Please sign in to like this post!", "Sign in", {
           duration: 5000,
           horizontalPosition: "center",
@@ -191,22 +178,16 @@ export class PostComponent implements OnInit {
         })
         .onAction()
         .subscribe(() => {
-          this._router.navigate(["/account"], {
-            queryParams: { returnUrl: this._router.url },
+          void this.router.navigate(["/account"], {
+            queryParams: { returnUrl: this.router.url },
           });
         });
     }
   }
 
-  getLocationDisplayCoordinates(coords: google.maps.LatLngLiteral) {
-    if (coords) {
-      return MapHelpers.getHumanReadableCoordinates(coords);
-    }
-    return "";
-  }
-
-  updateMediaHeight(width: number, height: number) {
-    if (!this.matCardMedia) {
+  updateMediaHeight(width: number, height: number): void {
+    const matCardMedia = this.matCardMedia();
+    if (!matCardMedia) {
       console.error("matCardMedia is null");
       return;
     }
@@ -216,20 +197,21 @@ export class PostComponent implements OnInit {
     }
 
     if (this.maxHeightToWidthRatio > 1 && height / width !== 1) {
-      this.matCardMedia.nativeElement.style.height = width + "px";
+      matCardMedia.nativeElement.style.height = width + "px";
     }
   }
 
-  deletePost() {
-    if (!this.post) {
+  deletePost(): void {
+    const post = this.post();
+    if (!post) {
       console.error("Post is null");
       return;
     }
 
-    this._postService
-      .deletePost(this.post.id)
+    this.postService
+      .deletePost(post.id)
       .then(() => {
-        this._snackbar.open("Your post was successfully deleted", "Dismiss", {
+        this.snackbar.open("Your post was successfully deleted", "Dismiss", {
           duration: 3000,
           verticalPosition: "bottom",
           horizontalPosition: "center",
@@ -237,7 +219,7 @@ export class PostComponent implements OnInit {
       })
       .catch((err) => {
         console.error(err);
-        this._snackbar.open(
+        this.snackbar.open(
           "Error. Your post could not be deleted!",
           "Dismiss",
           {

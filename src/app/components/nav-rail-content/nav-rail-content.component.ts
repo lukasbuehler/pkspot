@@ -5,7 +5,6 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
     templateUrl: './nav-rail-content.component.html',
     styleUrls: ['./nav-rail-content.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true
 })
 export class NavRailContentComponent {
 

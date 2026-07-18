@@ -1,15 +1,17 @@
 <div [@postCollectionAnimation] class="collection-container pt-3">
-  @if(title) {
+  @if(title(); as collectionTitle) {
   <h2 class="mat-h2 mb-0 mt-3 text-center">
-    {{ title }}
+    {{ collectionTitle }}
   </h2>
-  } @for(post of posts; track post.id) {
+  } @for(post of posts(); track post.id) {
   <app-post [@postAnimation] [post]="post" class="app-post mt-2"></app-post>
-  } @if((!posts || posts.length === 0) && !loading) {
-  <p class="noPostsText" class="text-center">No posts</p>
+  } @empty {
+  @if(!loading()) {
+  <p class="noPostsText text-center">No posts</p>
+  }
   }
   <div class="spinner">
-    @if(loading) {
+    @if(loading()) {
     <mat-spinner color="accent" [diameter]="50"></mat-spinner>
     }
   </div>

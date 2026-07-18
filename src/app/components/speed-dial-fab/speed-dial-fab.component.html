@@ -4,40 +4,41 @@
   (mouseenter)="onMouseEnter()"
   (mouseleave)="onMouseLeave()"
 >
+  @let config = buttonConfig();
   <button
     mat-fab
-    [extended]="$safeNavigationMigration(buttonConfig?.mainButton?.isExtended)"
+    [extended]="$safeNavigationMigration(config?.mainButton?.isExtended)"
     class="sd-toggler"
-    [color]="buttonConfig?.mainButton?.color || 'primary'"
-    [matTooltipDisabled]="!buttonConfig?.mainButton?.tooltip || !openOnHover"
-    [matTooltip]="buttonConfig?.mainButton?.tooltip || ''"
+    [color]="config?.mainButton?.color || 'primary'"
+    [matTooltipDisabled]="!config?.mainButton?.tooltip || !openOnHover()"
+    [matTooltip]="config?.mainButton?.tooltip || ''"
     [matTooltipPosition]="
-      buttonConfig?.tooltipPosition || defaultTootltipPosition
+      config?.tooltipPosition || defaultTooltipPosition
     "
     (click)="onMainClick()"
   >
     <mat-icon
       [@mainFabButtonIconRotation]="{
-        value: isOpen ? 'open' : 'closed',
-        params: { degrees: rotationDegrees }
+        value: isOpen() ? 'open' : 'closed',
+        params: { degrees: rotationDegrees() }
       }"
-      >{{ buttonConfig?.mainButton?.icon ?? "add" }}</mat-icon
+      >{{ config?.mainButton?.icon ?? "add" }}</mat-icon
     >
-    @if(buttonConfig?.mainButton?.isExtended) {
-    {{ buttonConfig?.mainButton?.label }} }
+    @if(config?.mainButton?.isExtended) {
+    {{ config?.mainButton?.label }} }
   </button>
-  @if(isOpen) {
+  @if(isOpen()) {
   <div
     class="mini-fab-container"
-    [@speedDialStagger]="{ value: buttonConfig?.miniButtons?.length || 0 }"
+    [@speedDialStagger]="{ value: config?.miniButtons?.length || 0 }"
   >
-    @for(miniBtn of buttonConfig?.miniButtons ?? []; track $index) {
+    @for(miniBtn of config?.miniButtons ?? []; track $index) {
     <button
       mat-mini-fab
       class="mini-fab"
-      [color]="buttonConfig?.miniButtonColor || 'accent'"
+      [color]="config?.miniButtonColor || 'accent'"
       [matTooltip]="miniBtn.tooltip"
-      [matTooltipPosition]="buttonConfig?.tooltipPosition || 'left'"
+      [matTooltipPosition]="config?.tooltipPosition || 'left'"
       (click)="miniButtonClick($index)"
     >
       <mat-icon>{{ miniBtn.icon }}</mat-icon></button

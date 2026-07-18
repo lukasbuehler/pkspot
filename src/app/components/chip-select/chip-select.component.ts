@@ -1,13 +1,15 @@
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
-  Input,
-  Output,
-  EventEmitter,
+  effect,
+  inject,
+  input,
+  output,
 } from "@angular/core";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { MatChipsModule } from "@angular/material/chips";
-import { MatSelectModule } from "@angular/material/select";
+import { MatSelect, MatSelectModule } from "@angular/material/select";
 import { MatIconModule } from "@angular/material/icon";
 
 @Component({
@@ -23,50 +25,40 @@ import { MatIconModule } from "@angular/material/icon";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChipSelectComponent {
-  @Input() icon: string = "arrow_drop_down";
-  @Input() label: string = "";
-  @Input() options: string[] = [];
-  @Input() optionNames: Record<string, string> = {};
-  @Input() optionIcons?: Record<string, string>;
-  @Input() formCtrl!: FormControl<string[]>;
-  @Input() allLabel?: string;
-  @Input() multiple: boolean = true;
-  @Input() showSummary: boolean = true;
-  @Input() trackBy: ((index: number, item: string) => any) | undefined;
-  private _selected: string[] = [];
-  @Input()
-  get selected(): string[] {
-    return this._selected;
-  }
-  set selected(val: string[]) {
-    this._selected = val;
-    if (this.formCtrl && val && this.formCtrl.value !== val) {
-      this.formCtrl.setValue(val, { emitEvent: false });
-    }
-  }
-  @Output() opened = new EventEmitter<void>();
-  @Output() selectedChange = new EventEmitter<string[]>();
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
-  get localizedLabel(): string {
-    return this.label ? $localize`${this.label}` : "";
-  }
-  get localizedAllLabel(): string {
-    return this.allLabel ? $localize`${this.allLabel}` : $localize`All`;
-  }
-  get otherLabel(): string {
-    return $localize`other`;
-  }
-  get othersLabel(): string {
-    return $localize`others`;
-  }
+  readonly icon = input("arrow_drop_down");
+  readonly label = input("");
+  readonly options = input<readonly string[]>([]);
+  readonly optionNames = input<Record<string, string>>({});
+  readonly optionIcons = input<Record<string, string>>({});
+  readonly formCtrl = input.required<FormControl<string[]>>();
+  readonly allLabel = input<string>();
+  readonly multiple = input(true);
+  readonly showSummary = input(true);
+  readonly selected = input<readonly string[]>();
 
-  ngOnInit() {
-    this.formCtrl.valueChanges.subscribe((value) => {
-      this.selectedChange.emit(value ?? []);
+  readonly opened = output<void>();
+  readonly selectedChange = output<string[]>();
+
+  constructor() {
+    effect((onCleanup) => {
+      const formCtrl = this.formCtrl();
+      const selected = this.selected();
+
+      if (selected && formCtrl.value !== selected) {
+        formCtrl.setValue([...selected], { emitEvent: false });
+      }
+
+      const subscription = formCtrl.valueChanges.subscribe((value) => {
+        this.selectedChange.emit(value ?? []);
+        this.changeDetectorRef.markForCheck();
+      });
+      onCleanup(() => subscription.unsubscribe());
     });
   }
 
-  openSelect(select: any) {
+  openSelect(select: MatSelect): void {
     select.open();
     this.opened.emit();
   }

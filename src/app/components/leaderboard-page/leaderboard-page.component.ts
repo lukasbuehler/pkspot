@@ -38,7 +38,6 @@ interface UserData {
 
 @Component({
   selector: "app-leaderboard-page",
-  standalone: true,
   imports: [
     CommonModule,
     RouterLink,

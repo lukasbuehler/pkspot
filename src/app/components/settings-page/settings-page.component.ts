@@ -6,7 +6,6 @@ import {
 } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { NgClass, NgSwitch, NgSwitchCase } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { EditProfileComponent } from "../edit-profile/edit-profile.component";
@@ -56,13 +55,10 @@ import {
   styleUrls: ["./settings-page.component.scss"],
   imports: [
     MatButtonModule,
-    NgClass,
     MatIcon,
     MatBadge,
-    NgSwitch,
     MatDivider,
     EditProfileComponent,
-    NgSwitchCase,
     MatFormField,
     MatLabel,
     MatInput,

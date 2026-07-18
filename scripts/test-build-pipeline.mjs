@@ -86,11 +86,18 @@ function runNpmScript(scriptName) {
   if (preferredNodeBinDir) {
     console.log(`Using Node runtime from ${preferredNodeBinDir}`);
   }
-  execFileSync(npmCommand, ["run", scriptName], {
-    cwd: repoRoot,
-    stdio: "inherit",
-    env: runtimeEnv,
-  });
+  try {
+    execFileSync(npmCommand, ["run", scriptName], {
+      cwd: repoRoot,
+      stdio: "inherit",
+      env: runtimeEnv,
+    });
+  } catch (error) {
+    if (error?.status === 86) {
+      process.exit(86);
+    }
+    throw error;
+  }
 }
 
 function getSupportedLanguageCodes() {

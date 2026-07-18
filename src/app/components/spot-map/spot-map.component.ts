@@ -3,17 +3,14 @@ import {
   Component,
   computed,
   effect,
-  EventEmitter,
   inject,
   Inject,
   input,
-  Input,
   InputSignal,
   LOCALE_ID,
   model,
   ModelSignal,
   OnChanges,
-  Output,
   PLATFORM_ID,
   Signal,
   ViewChild,
@@ -23,6 +20,7 @@ import {
   Injector,
   ChangeDetectionStrategy,
   untracked,
+  output
 } from "@angular/core";
 import {
   LocalSpot,
@@ -107,6 +105,11 @@ interface CommunityAreaOverlay {
   };
 }
 
+interface MarkerClickPayload {
+  marker: MarkerSchema | MapPointMarker;
+  index?: number;
+}
+
 @Component({
   selector: "app-spot-map",
   templateUrl: "./spot-map.component.html",
@@ -154,127 +157,86 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   isDebug = input<boolean>(false);
   showSpots = input(true);
   showVisibleSpotPins = input(false);
+  delegateSpotOpening = input(false);
 
-  @Input() showGeolocation: boolean = true;
-  @Input() showSatelliteToggle: boolean = false;
-  @Input() minZoom: number | null = null; // If null, no enforced min zoom; cluster logic will handle low zooms
-  @Input() boundRestriction: {
+  readonly showGeolocation = input<boolean>(true);
+  readonly showSatelliteToggle = input<boolean>(false);
+  readonly minZoom = input<number | null>(null); // If null, no enforced min zoom; cluster logic will handle low zooms
+  readonly boundRestriction = input<{
     north: number;
     south: number;
     west: number;
     east: number;
-  } | null = null;
-  @Input() spots: (Spot | LocalSpot)[] = [];
+} | null>(null);
+  readonly spots = input<(Spot | LocalSpot)[]>([]);
 
   /**
    * Geographic extent of the currently-active community, drawn as a low-
    * opacity circle on the map. Pass-through to google-map-2d. Driven by
    * the community page's `bounds_center` + `bounds_radius_m`.
    */
-  private readonly _communityArea = signal<CommunityAreaOverlay | null>(null);
-
-  @Input()
-  set communityArea(value: CommunityAreaOverlay | null | undefined) {
-    this._communityArea.set(value ?? null);
-  }
-
-  get communityArea(): CommunityAreaOverlay | null {
-    return this._communityArea();
-  }
+  readonly communityArea = input<
+    CommunityAreaOverlay | null,
+    CommunityAreaOverlay | null | undefined
+  >(null, { transform: (value) => value ?? null });
 
   /**
    * Clickable community chip markers shown across the map (every
    * published community with bounds info). Replaces the prior map-island
    * community variant — communities live on the map itself now.
    */
-  private readonly _availableCommunities = signal<CommunityMapMarker[]>([]);
-  private readonly _focusedSpotPreviews = signal<SpotPreviewData[] | null>(
-    null,
-  );
-
-  @Input()
-  set availableCommunities(value: CommunityMapMarker[] | null | undefined) {
-    this._availableCommunities.set(value ? [...value] : []);
-  }
-
-  get availableCommunities(): CommunityMapMarker[] {
-    return this._availableCommunities();
-  }
-
-  @Input()
-  set focusedSpotPreviews(value: SpotPreviewData[] | null | undefined) {
-    this._focusedSpotPreviews.set(
-      value === null || value === undefined ? null : [...value],
-    );
-  }
-
-  get focusedSpotPreviews(): SpotPreviewData[] | null {
-    return this._focusedSpotPreviews();
-  }
+  readonly availableCommunities = input<
+    CommunityMapMarker[],
+    CommunityMapMarker[] | null | undefined
+  >([], { transform: (value) => (value ? [...value] : []) });
+  readonly focusedSpotPreviews = input<
+    SpotPreviewData[] | null,
+    SpotPreviewData[] | null | undefined
+  >(null, {
+    transform: (value) => (value == null ? null : [...value]),
+  });
 
   /** Emits the community key when the user clicks one of the chips. */
-  @Output() communityMarkerClick = new EventEmitter<string>();
+  readonly communityMarkerClick = output<string>();
 
-  private readonly _eventPointMarkers = signal<MapPointMarker[]>([]);
-  private readonly _boundsOverlays = signal<MapBoundsOverlay[]>([]);
-  private readonly _polygonOverlays = signal<MapPolygonOverlay[]>([]);
+  readonly eventPointMarkers = input<
+    MapPointMarker[],
+    MapPointMarker[] | null | undefined
+  >([], { transform: (value) => (value ? [...value] : []) });
+  readonly boundsOverlays = input<
+    MapBoundsOverlay[],
+    MapBoundsOverlay[] | null | undefined
+  >([], { transform: (value) => (value ? [...value] : []) });
+  readonly polygonOverlays = input<
+    MapPolygonOverlay[],
+    MapPolygonOverlay[] | null | undefined
+  >([], { transform: (value) => (value ? [...value] : []) });
+  readonly eventMarkerClick = output<string>();
 
-  @Input()
-  set eventPointMarkers(value: MapPointMarker[] | null | undefined) {
-    this._eventPointMarkers.set(value ? [...value] : []);
-  }
+  readonly hasGeolocationChange = output<boolean>();
+  readonly visibleSpotsChange = output<Spot[]>();
+  readonly hightlightedSpotsChange = output<SpotPreviewData[]>();
+  readonly spotOpenRequested = output<LocalSpot | Spot | SpotPreviewData | SpotId>();
+  readonly markerClickEvent = output<number | MarkerClickPayload>();
 
-  get eventPointMarkers(): MapPointMarker[] {
-    return this._eventPointMarkers();
-  }
-
-  @Input()
-  set boundsOverlays(value: MapBoundsOverlay[] | null | undefined) {
-    this._boundsOverlays.set(value ? [...value] : []);
-  }
-
-  get boundsOverlays(): MapBoundsOverlay[] {
-    return this._boundsOverlays();
-  }
-
-  @Input()
-  set polygonOverlays(value: MapPolygonOverlay[] | null | undefined) {
-    this._polygonOverlays.set(value ? [...value] : []);
-  }
-
-  get polygonOverlays(): MapPolygonOverlay[] {
-    return this._polygonOverlays();
-  }
-  @Output() eventMarkerClick = new EventEmitter<string>();
-
-  @Output() hasGeolocationChange = new EventEmitter<boolean>();
-  @Output() visibleSpotsChange = new EventEmitter<Spot[]>();
-  @Output() hightlightedSpotsChange = new EventEmitter<SpotPreviewData[]>();
-  @Output() spotOpenRequested = new EventEmitter<
-    LocalSpot | Spot | SpotPreviewData | SpotId
-  >();
-  @Output() markerClickEvent = new EventEmitter<
-    number | { marker: any; index?: number }
-  >();
-
-  @Output() poiClick = new EventEmitter<{
+  readonly poiClick = output<{
     location: google.maps.LatLngLiteral;
     placeId: string;
-  }>();
+}>();
 
-  @Output() mapClickEvent = new EventEmitter<google.maps.LatLngLiteral>();
+  readonly mapClickEvent = output<google.maps.LatLngLiteral>();
   /**
    * Emits when map bounds change while a filter is active.
    * Parent component should re-run the filter search for the new bounds.
    */
-  @Output() filterBoundsChange = new EventEmitter<google.maps.LatLngBounds>();
+  readonly filterBoundsChange = output<google.maps.LatLngBounds>();
   /**
    * Emits whenever the visible viewport changes, regardless of filter state.
    * Used by map-page to drive the map-island content (events near here,
    * matching community, etc.).
    */
-  @Output() viewportBoundsChange = new EventEmitter<google.maps.LatLngBounds>();
-  @Output() visibleViewportChange = new EventEmitter<VisibleViewport>();
+  readonly viewportBoundsChange = output<google.maps.LatLngBounds>();
+  readonly visibleViewportChange = output<VisibleViewport>();
 
   uneditedSpot?: Spot | LocalSpot;
 
@@ -338,17 +300,17 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     () =>
       !this.showSpots() ||
       this.spotFilterMode() !== SpotFilterMode.None ||
-      this._focusedSpotPreviews() !== null,
+      this.focusedSpotPreviews() !== null,
   );
   readonly renderedVisibleSpots = computed(() =>
-    this.showSpots() && this._focusedSpotPreviews() === null
+    this.showSpots() && this.focusedSpotPreviews() === null
       ? this.visibleSpots()
       : [],
   );
   readonly renderedHighlightedSpots = computed(() => {
     if (!this.showSpots()) return [];
 
-    const focusedPreviews = this._focusedSpotPreviews();
+    const focusedPreviews = this.focusedSpotPreviews();
     if (focusedPreviews !== null) {
       return focusedPreviews;
     }
@@ -359,7 +321,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   visibleMarkers = signal<MarkerSchema[]>([]);
   readonly pointMarkers = computed<MapPointMarker[]>(() => [
     ...this.communityPointMarkers(),
-    ...this._eventPointMarkers(),
+    ...this.eventPointMarkers(),
   ]);
 
   readonly circleOverlays = computed<MapCircleOverlay[]>(() => [
@@ -369,7 +331,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   readonly featureBoundaryOverlay = computed<MapFeatureBoundaryOverlay | null>(
     () => {
-      const boundary = this._communityArea()?.googleBoundary;
+      const boundary = this.communityArea()?.googleBoundary;
       if (!boundary) return null;
 
       return {
@@ -380,7 +342,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   );
 
   readonly activeAreaCircleOverlays = computed<MapCircleOverlay[]>(() => {
-    const communityArea = this._communityArea();
+    const communityArea = this.communityArea();
     if (!communityArea || communityArea.googleBoundary) return [];
 
     return [
@@ -446,7 +408,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   readonly communityDotMarkers = computed<CommunityMapMarker[]>(() =>
     limitCommunityDotsPerTile(
-      this.availableCommunities.filter(
+      this.availableCommunities().filter(
         (community) =>
           shouldShowCommunityAreaPresence(community) &&
           this._shouldShowCommunityCenterDot(community),
@@ -456,7 +418,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   );
 
   readonly communityPointMarkers = computed<MapPointMarker[]>(() =>
-    this.availableCommunities
+    this.availableCommunities()
       .filter((community) => community.pinVisible)
       .map((community) => ({
         id: `community:${community.communityKey}`,
@@ -478,7 +440,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   );
 
   readonly communityCircleOverlays = computed<MapCircleOverlay[]>(() =>
-    this.availableCommunities
+    this.availableCommunities()
       .filter(
         (community) =>
           shouldShowCommunityAreaPresence(community) &&
@@ -696,7 +658,8 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
     let lastLocationAndZoom: StoredMapViewport | null = null;
 
-    if (!selectedSpot && !centerStart && !this.boundRestriction) {
+    const boundRestriction = this.boundRestriction();
+    if (!selectedSpot && !centerStart && !boundRestriction) {
       try {
         lastLocationAndZoom =
           await this.mapsAPIService.loadLastLocationAndZoom();
@@ -710,9 +673,9 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
     if (this._isDestroyed) return;
 
-    const boundsCenter = isFiniteBoundsLiteral(this.boundRestriction)
+    const boundsCenter = isFiniteBoundsLiteral(boundRestriction)
       ? toFiniteLatLngLiteral(
-          new google.maps.LatLngBounds(this.boundRestriction).getCenter(),
+          new google.maps.LatLngBounds(boundRestriction).getCenter(),
         )
       : null;
     const viewport = resolveInitialMapViewport({
@@ -783,7 +746,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   }
 
   // Normalize passthrough for map marker click events
-  onMarkerClickFromMap(evt: number | { marker: any; index?: number }) {
+  onMarkerClickFromMap(evt: number | MarkerClickPayload) {
     // Simply forward; the Output already supports both shapes
     this.markerClickEvent.emit(evt);
   }
@@ -892,14 +855,14 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       zoom,
       storedCenter: this._lastStoredMapViewport?.location ?? null,
       storedZoom: this._lastStoredMapViewport?.zoom ?? null,
-      selectedCommunity: Boolean(this.communityArea),
+      selectedCommunity: Boolean(this.communityArea()),
     });
     this._mapProfiler.recordThrottled(
       "spot-map:bounds-changed",
       {
         bounds: bounds.toJSON(),
         center,
-        selectedCommunity: Boolean(this.communityArea),
+        selectedCommunity: Boolean(this.communityArea()),
         zoom,
       },
       750,
@@ -908,7 +871,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     // Always emit viewport change so map-page can drive the map-island.
     this.viewportBoundsChange.emit(bounds);
 
-    if (!this.boundRestriction) {
+    if (!this.boundRestriction()) {
       // store the new last location in the browser memory to restore it on next visit
       const newCenter: google.maps.LatLngLiteral = center;
       if (this.isInitiated && newCenter !== this.centerStart()) {
@@ -995,7 +958,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   openSpotByWhateverMeansNecessary(
     spot: LocalSpot | Spot | SpotPreviewData | SpotId,
   ) {
-    if (this.spotOpenRequested.observed) {
+    if (this.delegateSpotOpening()) {
       this.spotOpenRequested.emit(spot);
       return;
     }

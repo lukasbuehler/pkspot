@@ -13,7 +13,6 @@ type AutocompleteKeyboardPosition = "auto" | "preserve";
 
 @Directive({
   selector: "input[matAutocomplete], textarea[matAutocomplete]",
-  standalone: true,
   host: {
     "(focus)": "startTracking()",
     "(blur)": "stopTrackingSoon()",

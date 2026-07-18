@@ -14,6 +14,7 @@ import {
   effect,
   computed,
   NgZone,
+  Injector,
   ChangeDetectionStrategy,
   untracked,
   ElementRef,
@@ -44,7 +45,6 @@ import {
   lastValueFrom,
   Subscription,
   SubscriptionLike,
-  take,
 } from "rxjs";
 import { animate, style, transition, trigger } from "@angular/animations";
 import { FormControl } from "@angular/forms";
@@ -163,6 +163,7 @@ import type {
 import {
   getNextEventPromoDismissal,
 } from "./map-event-promo-dismissal";
+import { parseMapSpotRouteState } from "./map-route-state";
 
 type MapEventFilter = "live" | "competition" | "jam" | "camp";
 
@@ -290,6 +291,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   pendingTasks = inject(PendingTasks);
   responsiveService = inject(ResponsiveService);
   private ngZone = inject(NgZone);
+  private readonly injector = inject(Injector);
   private _structuredDataService = inject(StructuredDataService);
   private _backHandlingService = inject(BackHandlingService);
   private _analytics = inject(AnalyticsService);
@@ -1591,7 +1593,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.panelBackTarget.set(this._getCurrentPanelBackTarget(nextPath));
     this._location.go(nextPath);
 
-    const routeState = this._parseMapRouteState(nextPath);
+    const routeState = parseMapSpotRouteState(nextPath);
     void this._handleURLParamsChange(
       routeState.spotIdOrSlug,
       routeState.showChallenges,
@@ -2685,7 +2687,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Parse URL to handle legacy `/map/:spot` and canonical
     // `/map/spots/:spot` shapes consistently.
-    const routeState = this._parseMapRouteState(this.router.url);
+    const routeState = parseMapSpotRouteState(this.router.url);
     const urlParts = this.router.url.split("/").filter((segment) => segment);
     // urlParts will be like ['map', 'spotId', 'edits'] or ['map', 'spotId', 'c', 'challengeId']
 
@@ -2814,38 +2816,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           // Move logic into a reusable method so we can re-run it on breakpoint changes
           this._attachChipsMeasurement();
 
-          // Trigger an immediate measurement now that the view is initialized.
-          // Call the installed window-resize listener (it schedules a measurement).
-          try {
-            // Wait for Angular to stabilize so projected/async chip elements are present
-            try {
-              this.ngZone.onStable.pipe(take(1)).subscribe(() => {
-                try {
-                  if (!this._chipsWindowResizeListener) {
-                    // In case the listener wasn't installed, re-run attachment once more
-                    this._attachChipsMeasurement();
-                  }
-                  // Run the usual scheduled measurement and also a direct immediate measure
-                  this._chipsWindowResizeListener?.();
-                  this._chipsDirectMeasure?.();
-                } catch (e) {
-                  /* ignore */
-                }
-              });
-            } catch (e) {
-              // Fallback to setTimeout if onStable isn't available for some reason
-              setTimeout(() => {
-                try {
-                  if (this._chipsWindowResizeListener)
-                    this._chipsWindowResizeListener();
-                } catch (e) {
-                  /* ignore */
-                }
-              }, 50);
-            }
-          } catch (e) {
-            /* ignore */
-          }
+          afterNextRender(
+            () => {
+              if (!this._chipsWindowResizeListener) {
+                this._attachChipsMeasurement();
+              }
+              this._chipsWindowResizeListener?.();
+              this._chipsDirectMeasure?.();
+            },
+            { injector: this.injector },
+          );
 
           // Measurement attached once on view init. We do not re-attach
           // repeatedly from a reactive effect to avoid periodic re-runs.
@@ -4385,79 +4365,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }, 0);
   }
 
-  private _parseMapRouteState(url: string): {
-    spotIdOrSlug: string | null;
-    showChallenges: boolean;
-    challengeId: string | null;
-    showEditHistory: boolean;
-  } {
-    const cleanUrl = (url || "").split("?")[0].split("#")[0];
-
-    // Short-circuit for canonical community-on-map and event-on-map routes.
-    if (
-      /^\/map\/communities\/[^/]+$/u.test(cleanUrl) ||
-      /^\/map\/events\/[^/]+$/u.test(cleanUrl)
-    ) {
-      return {
-        spotIdOrSlug: null,
-        showChallenges: false,
-        challengeId: null,
-        showEditHistory: false,
-      };
-    }
-
-    const urlParts = cleanUrl.split("/").filter((segment) => segment);
-
-    let spotIdOrSlug: string | null = null;
-    let showChallenges = false;
-    let challengeId: string | null = null;
-    let showEditHistory = false;
-
-    if (urlParts.length >= 2 && urlParts[0] === "map") {
-      const hasSpotPrefix = urlParts[1] === "spots";
-      const spotSegmentIndex = hasSpotPrefix ? 2 : 1;
-      const actionSegmentIndex = spotSegmentIndex + 1;
-      const potentialSpot = urlParts[spotSegmentIndex]
-        ? decodeURIComponent(urlParts[spotSegmentIndex])
-        : null;
-
-      if (!potentialSpot) {
-        return {
-          spotIdOrSlug,
-          showChallenges,
-          challengeId,
-          showEditHistory,
-        };
-      }
-
-      if (urlParts.length === spotSegmentIndex + 1) {
-        spotIdOrSlug = potentialSpot;
-      } else if (urlParts.length >= actionSegmentIndex + 1) {
-        const nextSegment = urlParts[actionSegmentIndex];
-
-        if (nextSegment === "c") {
-          spotIdOrSlug = potentialSpot;
-          showChallenges = true;
-          if (urlParts.length >= actionSegmentIndex + 2) {
-            challengeId = decodeURIComponent(urlParts[actionSegmentIndex + 1]);
-          }
-        } else if (nextSegment === "edits") {
-          spotIdOrSlug = potentialSpot;
-          showEditHistory = true;
-        } else {
-          spotIdOrSlug = potentialSpot;
-        }
-      }
-    }
-
-    return {
-      spotIdOrSlug,
-      showChallenges,
-      challengeId,
-      showEditHistory,
-    };
-  }
-
   private _redirectSignedOutSpotEditHistory(
     spotIdOrSlug?: string | null,
   ): boolean {
@@ -4474,7 +4381,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           spotIdOrSlug,
           showEditHistory: true,
         }
-      : this._parseMapRouteState(this.router.url);
+      : parseMapSpotRouteState(this.router.url);
 
     if (!routeState.showEditHistory || !routeState.spotIdOrSlug) {
       return false;
@@ -4592,7 +4499,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private async _syncFullMapStateFromUrl(url: string): Promise<void> {
     this.panelBackTarget.set(null);
     await this._syncMapPanelStateFromUrl(url);
-    const routeState = this._parseMapRouteState(url);
+    const routeState = parseMapSpotRouteState(url);
     await this._handleURLParamsChange(
       routeState.spotIdOrSlug,
       routeState.showChallenges,

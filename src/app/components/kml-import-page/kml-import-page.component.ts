@@ -270,6 +270,17 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     );
     return existing?.localSpot ?? this.kmlSpotToLocalSpot(s);
   });
+  verificationMarkerSpots = computed(() =>
+    this._spotsShownAsVerifyMarkers(this.includedSpots())
+  );
+  verificationMarkers = computed<MarkerSchema[]>(() =>
+    this.verificationMarkerSpots().map((spot) => ({
+      color: "tertiary",
+      location: spot.spot.location,
+      icons: ["location_on"],
+      priority: 100000,
+    }))
+  );
   selectedVerificationItem = computed<VerificationSpotItem | null>(() => {
     const selected = this.selectedSpot();
     if (!selected) {
@@ -714,9 +725,9 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
   }
 
   onVerifyMapMarkerClick(
-    event: number | { marker: MarkerSchema; index?: number }
+    event: number | { marker: unknown; index?: number }
   ) {
-    const markerSpots = this._spotsShownAsVerifyMarkers(this.includedSpots());
+    const markerSpots = this.verificationMarkerSpots();
     const markerIndex =
       typeof event === "number"
         ? event
@@ -1033,23 +1044,6 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     });
     this.kmlUploadFile = file;
     this.continueToSetup();
-  }
-
-  getSpotLocations(spots: KMLSpot[]): google.maps.LatLngLiteral[] {
-    return spots.map((spot) => spot.spot.location);
-  }
-
-  getSpotMarkers(spots: KMLSpot[] | null): MarkerSchema[] {
-    return this._spotsShownAsVerifyMarkers(spots).map((spot) => ({
-      color: "tertiary",
-      location: spot.spot.location,
-      icons: ["location_on"],
-      priority: 100000,
-    }));
-  }
-
-  get totalBounds() {
-    return this.importedSpotsBounds;
   }
 
   private _spotsShownAsVerifyMarkers(spots: KMLSpot[] | null): KMLSpot[] {

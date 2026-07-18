@@ -129,6 +129,7 @@
         #spotMap
         id="spotMap"
         [isClickable]="true"
+        [delegateSpotOpening]="true"
         [selectedSpot]="selectedSpot()"
         [selectedChallenge]="selectedChallenge()"
         [selectedSpotChallenges]="selectedSpot()?.topChallenges() ?? []"
