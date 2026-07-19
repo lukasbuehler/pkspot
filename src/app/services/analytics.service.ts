@@ -40,6 +40,8 @@ interface PendingUserIdentity {
   properties?: Record<string, unknown>;
 }
 
+const LEGACY_NATIVE_SDK_PROPERTY_KEYS = ["$lib", "$lib_version"] as const;
+
 export function stripUtmParametersFromUrl(url: string): string {
   const parsedUrl = new URL(url, "https://pkspot.app");
 
@@ -199,6 +201,8 @@ export class AnalyticsService {
       captureApplicationLifecycleEvents: false,
       enableSessionReplay: false,
     });
+
+    await this.clearLegacyNativeSdkProperties();
 
     console.log("[AnalyticsDebug] Native PostHog setup completed", {
       apiHost: host,
@@ -828,11 +832,36 @@ export class AnalyticsService {
   private withRequiredNativeAnalyticsProperties(
     properties?: Record<string, unknown>,
   ): Record<string, unknown> {
+    const nativeProperties = { ...(properties ?? {}) };
+    for (const key of LEGACY_NATIVE_SDK_PROPERTY_KEYS) {
+      delete nativeProperties[key];
+    }
+
     return {
-      ...(properties ?? {}),
+      ...nativeProperties,
       ...this.getPlatformProperties(),
       ...this.getAppVersionProperties(),
     };
+  }
+
+  /**
+   * Builds from 1.1.2 briefly persisted the Capacitor bridge name as `$lib`.
+   * Native PostHog super properties survive app updates, so upgraded installs
+   * need an explicit migration before their first event is captured.
+   */
+  private async clearLegacyNativeSdkProperties(): Promise<void> {
+    try {
+      await Promise.all(
+        LEGACY_NATIVE_SDK_PROPERTY_KEYS.map((key) =>
+          CapacitorPostHog.unregister({ key }),
+        ),
+      );
+    } catch (error) {
+      console.warn(
+        "AnalyticsService: failed to clear legacy native SDK properties",
+        error,
+      );
+    }
   }
 
   private getNativeAnalyticsRequiredPropertySummary(

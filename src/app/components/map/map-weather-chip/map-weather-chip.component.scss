@@ -1,0 +1,59 @@
+:host {
+  display: block;
+  max-width: min(300px, calc(100vw - 40px));
+}
+
+.map-weather-chip {
+  max-width: 100%;
+  min-height: 40px;
+  border-color: var(--mat-sys-outline-variant);
+  color: var(--mat-sys-on-surface);
+  background: var(--mat-sys-surface-container);
+  box-shadow: var(--mat-sys-level2);
+  padding-left: 16px;
+  padding-right: 16px;
+  --mat-button-outlined-label-text-color: var(--mat-sys-on-surface);
+  --mat-button-outlined-outline-color: var(--mat-sys-outline-variant);
+  --mat-button-outlined-ripple-color: color-mix(
+    in srgb,
+    var(--mat-sys-on-surface) 12%,
+    transparent
+  );
+  --mat-button-outlined-state-layer-color: var(--mat-sys-on-surface);
+
+  mat-icon,
+  .temperature,
+  .separator,
+  .change-summary {
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  &.is-wet mat-icon,
+  &.is-wet .temperature {
+    color: var(--mat-sys-primary);
+  }
+
+  &.has-warning mat-icon,
+  &.has-warning .temperature {
+    color: var(--mat-sys-error);
+  }
+}
+
+:host ::ng-deep .map-weather-chip .mdc-button__label,
+:host ::ng-deep .map-weather-chip .mdc-button__label span {
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.chip-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.change-summary {
+  white-space: nowrap;
+  font-weight: normal;
+}

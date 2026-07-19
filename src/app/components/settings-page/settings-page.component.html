@@ -88,7 +88,7 @@
               details as profile sections grow.
             </p>
             <div class="profile-access-grid">
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
                 <mat-label i18n>Account privacy</mat-label>
                 <mat-select [(ngModel)]="accountPrivacy">
                   <mat-option value="public" i18n>Public</mat-option>
@@ -100,7 +100,7 @@
                 </mat-hint>
               </mat-form-field>
 
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
                 <mat-label i18n>Profile visibility</mat-label>
                 <mat-select [(ngModel)]="profileVisibility">
                   <mat-option value="public" i18n>Public</mat-option>

@@ -1,11 +1,15 @@
 <div class="weather-dialog-header">
   <div>
-    <span class="mat-label-medium" i18n="@@weather.dialog.eyebrow"
+    <span class="mat-title-small" i18n="@@weather.dialog.eyebrow"
       >Conditions now</span
     >
     <h2 mat-dialog-title>
-      <span i18n="@@weather.dialog.title">Weather at</span>
-      {{ data.spotName }}
+      @if (data.context === "map-region") {
+        <span i18n="@@weather.dialog.region_title">Weather in the area</span>
+      } @else {
+        <span i18n="@@weather.dialog.title">Weather at</span>
+        {{ data.spotName }}
+      }
     </h2>
   </div>
   <button
@@ -41,6 +45,17 @@
       @if (surfaceNote) {
         <p class="surface-note mat-body-medium">{{ surfaceNote }}</p>
       }
+      @if (daylightSummary) {
+        <div class="daylight-summary mat-body-medium">
+          <mat-icon aria-hidden="true">schedule</mat-icon>
+          <span>
+            {{ daylightSummary }}
+            @if (cloudCoverSummary) {
+              {{ cloudCoverSummary }}
+            }
+          </span>
+        </div>
+      }
     </div>
   </section>
 
@@ -62,20 +77,24 @@
     </section>
   }
 
-  @if (warnings.length > 0) {
+  @if (warningGroups.length > 0) {
     <section class="warning-list" aria-label="Weather warnings" i18n-aria-label>
-      @for (warning of warnings; track warning.label) {
+      @for (group of warningGroups; track group.tone) {
         <div
           class="weather-warning"
-          [class.is-primary]="warning.tone === 'primary'"
+          [class.is-primary]="group.tone === 'primary'"
         >
-          <span class="weather-warning-icon" aria-hidden="true">
-            <mat-icon>{{ warning.icon }}</mat-icon>
-          </span>
-          <div class="weather-warning-copy">
-            <strong class="mat-title-small">{{ warning.label }}</strong>
-            <p class="mat-body-small">{{ warning.message }}</p>
-          </div>
+          @for (warning of group.warnings; track warning.label) {
+            <div class="weather-warning-item">
+              <span class="weather-warning-icon" aria-hidden="true">
+                <mat-icon>{{ warning.icon }}</mat-icon>
+              </span>
+              <div class="weather-warning-copy">
+                <strong class="mat-title-small">{{ warning.label }}</strong>
+                <p class="mat-body-small">{{ warning.message }}</p>
+              </div>
+            </div>
+          }
         </div>
       }
     </section>
@@ -94,7 +113,7 @@
       }
       @if (current.relativeHumidityPercent !== undefined) {
         <div class="weather-metric">
-          <mat-icon aria-hidden="true">water_drop</mat-icon>
+          <mat-icon aria-hidden="true">humidity_percentage</mat-icon>
           <span class="mat-label-small" i18n="@@weather.dialog.humidity"
             >Humidity</span
           >
@@ -128,7 +147,14 @@
       @for (hour of hours; track hour.time) {
         <div class="weather-hour">
           <time class="mat-label-medium">{{ hour.time }}</time>
-          <mat-icon [attr.aria-label]="hour.condition">{{ hour.icon }}</mat-icon>
+          <mat-icon
+            class="forecast-icon"
+            [class.is-wet]="hour.iconTone === 'wet'"
+            [class.has-warning]="hour.iconTone === 'warning'"
+            [class.is-night]="hour.iconTone === 'night'"
+            [attr.aria-label]="hour.condition"
+            >{{ hour.icon }}</mat-icon
+          >
           @if (hour.temperature !== undefined) {
             <strong>{{ hour.temperature }}°</strong>
           }
@@ -158,9 +184,13 @@
               <strong class="mat-label-large">{{ day.weekday }}</strong>
               <span class="mat-label-small">{{ day.date }}</span>
             </div>
-            <mat-icon [attr.aria-label]="day.condition">{{
-              day.icon
-            }}</mat-icon>
+            <mat-icon
+              class="forecast-icon"
+              [class.is-wet]="day.iconTone === 'wet'"
+              [class.has-warning]="day.iconTone === 'warning'"
+              [attr.aria-label]="day.condition"
+              >{{ day.icon }}</mat-icon
+            >
             @if (
               day.maxTemperature !== undefined ||
               day.minTemperature !== undefined

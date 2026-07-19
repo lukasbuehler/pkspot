@@ -3,6 +3,10 @@ import { FunctionsAdapterService } from "../services/firebase/functions-adapter.
 import { WeatherService } from "./weather.service";
 
 describe("WeatherService", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("calls the normalized weather endpoint", async () => {
     const response = {
       provider: "google",
@@ -110,6 +114,65 @@ describe("WeatherService", () => {
     await expect(service.getCurrentAndNearFuture(location)).resolves.toBe(
       response,
     );
+    expect(functions.callPublic).toHaveBeenCalledTimes(2);
+  });
+
+  it("reuses a completed tile response until it expires", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime("2026-07-19T10:00:00Z");
+    const response = {
+      provider: "google",
+      mode: "current-and-near-future",
+      location: { lat: 47.37, lng: 8.57 },
+      generatedAt: "2026-07-19T10:00:00Z",
+      expiresAt: "2026-07-19T10:45:00Z",
+      insights: {
+        summary: "Dry conditions",
+        precipitationRisk: "none",
+        sunExposure: "low",
+        surfaceDrying: {
+          status: "likely_dry",
+          confidence: "low",
+          factors: [],
+        },
+      },
+    };
+    const functions = {
+      callPublic: vi.fn().mockResolvedValue(response),
+    };
+    TestBed.configureTestingModule({
+      providers: [
+        WeatherService,
+        { provide: FunctionsAdapterService, useValue: functions },
+      ],
+    });
+    const service = TestBed.inject(WeatherService);
+    const tile = {
+      type: "mercator-tile" as const,
+      zoom: 12,
+      x: 2145,
+      y: 1432,
+      center: { lat: 47.37, lng: 8.57 },
+      key: "12/2145/1432",
+    };
+
+    await service.getCurrentAndNearFutureForTile(tile);
+    await service.getCurrentAndNearFutureForTile(tile);
+    expect(functions.callPublic).toHaveBeenCalledOnce();
+    expect(functions.callPublic).toHaveBeenCalledWith("getWeather", {
+      mode: "current-and-near-future",
+      location: tile.center,
+      nearFutureHours: 12,
+      spatialScope: {
+        type: "mercator-tile",
+        zoom: 12,
+        x: 2145,
+        y: 1432,
+      },
+    });
+
+    vi.setSystemTime("2026-07-19T10:46:00Z");
+    await service.getCurrentAndNearFutureForTile(tile);
     expect(functions.callPublic).toHaveBeenCalledTimes(2);
   });
 });

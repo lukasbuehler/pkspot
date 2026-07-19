@@ -970,6 +970,54 @@
         <target> Spotdetails werden geladen </target>
       </segment>
     </unit>
+    <unit id="map.weather.dry_now">
+      <segment state="final">
+        <source>Dry for now</source>
+        <target>Vorerst trocken</target>
+      </segment>
+    </unit>
+    <unit id="map.weather.open">
+      <segment state="final">
+        <source>Weather near map center: <ph id="0" equiv="PH" disp="parts.join(&quot;, &quot;)"/></source>
+        <target>Wetter nahe der Kartenmitte: <ph id="0" equiv="PH" disp="parts.join(&quot;, &quot;)"/></target>
+      </segment>
+    </unit>
+    <unit id="map.weather.rain_at">
+      <segment state="final">
+        <source>Rain at <ph id="0" equiv="PH" disp="this.formatTime(nextRain.time)"/></source>
+        <target>Regen ab <ph id="0" equiv="PH" disp="this.formatTime(nextRain.time)"/></target>
+      </segment>
+    </unit>
+    <unit id="map.weather.rain_now">
+      <segment state="final">
+        <source>Rain now</source>
+        <target>Jetzt Regen</target>
+      </segment>
+    </unit>
+    <unit id="map.weather.rain_until">
+      <segment state="final">
+        <source>Rain until <ph id="0" equiv="PH" disp="this.formatTime(rainStopsAt)"/></source>
+        <target>Regen bis <ph id="0" equiv="PH" disp="this.formatTime(rainStopsAt)"/></target>
+      </segment>
+    </unit>
+    <unit id="map.weather.sunrise_at">
+      <segment state="final">
+        <source>Sunrise <ph id="0" equiv="PH" disp="this.formatTime(sunEvent)"/></source>
+        <target>Sonnenaufgang <ph id="0" equiv="PH" disp="this.formatTime(sunEvent)"/></target>
+      </segment>
+    </unit>
+    <unit id="map.weather.sunset_at">
+      <segment state="final">
+        <source>Sunset <ph id="0" equiv="PH" disp="this.formatTime(sunEvent)"/></source>
+        <target>Sonnenuntergang <ph id="0" equiv="PH" disp="this.formatTime(sunEvent)"/></target>
+      </segment>
+    </unit>
+    <unit id="map.weather.unavailable">
+      <segment state="final">
+        <source>Weather unavailable</source>
+        <target>Wetter nicht verfügbar</target>
+      </segment>
+    </unit>
     <unit id="map_event_filter.live">
       <segment state="initial">
         <source>Live</source>
@@ -3722,6 +3770,12 @@
         <target>Wettervorhersage schließen</target>
       </segment>
     </unit>
+    <unit id="weather.dialog.cloud_cover">
+      <segment state="final">
+        <source>Current cloud cover: <ph id="0" equiv="PH" disp="Math.round(this.current.cloudCoverPercent)"/>%.</source>
+        <target>Aktuelle Bewölkung: <ph id="0" equiv="PH" disp="Math.round(this.current.cloudCoverPercent)"/> %.</target>
+      </segment>
+    </unit>
     <unit id="weather.dialog.covered.message">
       <segment state="final">
         <source> This training area should stay protected from rain and may be shaded from direct sunlight. The forecast shows the surrounding outdoor conditions. </source>
@@ -3732,6 +3786,24 @@
       <segment state="final">
         <source>Covered spot</source>
         <target>Überdachter Spot</target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.daylight.dark">
+      <segment state="final">
+        <source>It is dark now.</source>
+        <target>Es ist jetzt dunkel.</target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.daylight.sunrise">
+      <segment state="final">
+        <source>It is dark now. Sunrise is at <ph id="0" equiv="PH" disp="time"/>.</source>
+        <target>Es ist jetzt dunkel. Sonnenaufgang ist um <ph id="0" equiv="PH" disp="time"/>.</target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.daylight.sunset">
+      <segment state="final">
+        <source>Sunset at <ph id="0" equiv="PH" disp="time"/> (<ph id="1" equiv="PH_1" disp="remaining"/>).</source>
+        <target>Sonnenuntergang um <ph id="0" equiv="PH" disp="time"/> (<ph id="1" equiv="PH_1" disp="remaining"/>).</target>
       </segment>
     </unit>
     <unit id="weather.dialog.dry_until">
@@ -3792,6 +3864,12 @@
       <segment state="translated">
         <source>Rain is likely now and should ease around <ph id="0" equiv="PH" disp="time"/>.</source>
         <target>Wahrscheinlich regnet es jetzt. Gegen <ph id="0" equiv="PH" disp="time"/> sollte der Regen nachlassen.</target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.region_title">
+      <segment state="final">
+        <source>Weather in the area</source>
+        <target>Wetter in der Region</target>
       </segment>
     </unit>
     <unit id="weather.dialog.surface_dry">
@@ -3966,6 +4044,18 @@
       <segment state="initial">
         <source>Heavy rain could make training surfaces unsafe.</source>
         <target>Starkregen könnte Trainingsflächen unsicher machen.</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.high_temperature.label">
+      <segment state="initial">
+        <source>Hot conditions</source>
+        <target>Hohe Temperaturen</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.high_temperature.message">
+      <segment state="initial">
+        <source>Temperatures may make intense training more demanding. Take breaks and stay hydrated.</source>
+        <target>Hohe Temperaturen können intensives Training belastender machen. Lege Pausen ein und trinke ausreichend.</target>
       </segment>
     </unit>
     <unit id="weather.warning.high_uv.label">

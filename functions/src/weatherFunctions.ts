@@ -33,6 +33,13 @@ export interface WeatherLocation {
   lng: number;
 }
 
+export interface WeatherTileScope {
+  type: "mercator-tile";
+  zoom: number;
+  x: number;
+  y: number;
+}
+
 export interface WeatherScheduleItem {
   id?: string;
   title?: string;
@@ -46,6 +53,7 @@ export type WeatherRequest =
       location: WeatherLocation;
       nearFutureHours?: number;
       providerOverride?: WeatherProvider;
+      spatialScope?: WeatherTileScope;
     }
   | {
       mode: "forecast-at";
@@ -264,7 +272,22 @@ export function parseWeatherRequest(value: unknown): WeatherRequest {
     throw new HttpsError("invalid-argument", "invalid weather mode");
   }
 
-  const location = parseLocation(value["location"]);
+  if (
+    mode !== "current-and-near-future" &&
+    value["spatialScope"] !== undefined
+  ) {
+    throw new HttpsError(
+      "invalid-argument",
+      "spatialScope is only supported for current weather"
+    );
+  }
+  const spatialScope =
+    mode === "current-and-near-future"
+      ? parseWeatherTileScope(value["spatialScope"])
+      : undefined;
+  const location = spatialScope
+    ? getWeatherTileCenter(spatialScope)
+    : parseLocation(value["location"]);
   const providerOverride = parseProviderOverride(value["providerOverride"]);
 
   if (mode === "current-and-near-future") {
@@ -277,7 +300,13 @@ export function parseWeatherRequest(value: unknown): WeatherRequest {
           MAX_NEAR_FUTURE_HOURS,
           "nearFutureHours"
         );
-    return { mode, location, nearFutureHours, providerOverride };
+    return {
+      mode,
+      location,
+      nearFutureHours,
+      providerOverride,
+      spatialScope,
+    };
   }
 
   if (mode === "forecast-at") {
@@ -359,8 +388,18 @@ export function buildWeatherCacheKey(
   provider: WeatherProvider,
   window: { startTime: Date; endTime: Date }
 ): string {
-  const roundedLat = roundCoordinate(request.location.lat);
-  const roundedLng = roundCoordinate(request.location.lng);
+  const locationKey =
+    request.mode === "current-and-near-future" && request.spatialScope
+      ? [
+        request.spatialScope.type,
+        request.spatialScope.zoom,
+        request.spatialScope.x,
+        request.spatialScope.y,
+      ].join(":")
+      : [
+        roundCoordinate(request.location.lat),
+        roundCoordinate(request.location.lng),
+      ].join(":");
   const scheduleFingerprint =
     request.mode === "event-forecast" && request.scheduleItems?.length
       ? request.scheduleItems
@@ -370,8 +409,7 @@ export function buildWeatherCacheKey(
   const raw = [
     provider,
     request.mode,
-    roundedLat,
-    roundedLng,
+    locationKey,
     window.startTime.toISOString(),
     window.endTime.toISOString(),
     "metric",
@@ -1306,6 +1344,43 @@ function parseIntegerInRange(
     );
   }
   return value;
+}
+
+function parseWeatherTileScope(value: unknown): WeatherTileScope | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!isRecord(value) || value["type"] !== "mercator-tile") {
+    throw new HttpsError(
+      "invalid-argument",
+      "spatialScope must be a mercator tile"
+    );
+  }
+
+  const zoom = parseIntegerInRange(value["zoom"], 0, 22, "spatialScope.zoom");
+  const maxTileIndex = 2 ** zoom - 1;
+  const x = parseIntegerInRange(
+    value["x"],
+    0,
+    maxTileIndex,
+    "spatialScope.x"
+  );
+  const y = parseIntegerInRange(
+    value["y"],
+    0,
+    maxTileIndex,
+    "spatialScope.y"
+  );
+  return { type: "mercator-tile", zoom, x, y };
+}
+
+function getWeatherTileCenter(scope: WeatherTileScope): WeatherLocation {
+  const tileCount = 2 ** scope.zoom;
+  const lng = ((scope.x + 0.5) / tileCount) * 360 - 180;
+  const mercatorY =
+    Math.PI * (1 - (2 * (scope.y + 0.5)) / tileCount);
+  const lat = (Math.atan(Math.sinh(mercatorY)) * 180) / Math.PI;
+  return { lat, lng };
 }
 
 function assertForecastWindowSupported(

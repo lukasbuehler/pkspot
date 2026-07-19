@@ -7,6 +7,18 @@ export interface WeatherLocation {
   lng: number;
 }
 
+export interface WeatherTileScope {
+  type: "mercator-tile";
+  zoom: number;
+  x: number;
+  y: number;
+}
+
+export interface WeatherTile extends WeatherTileScope {
+  center: WeatherLocation;
+  key: string;
+}
+
 export interface WeatherPoint {
   time: string;
   temperatureC?: number;
@@ -72,4 +84,5 @@ export interface CurrentWeatherRequest {
   mode: "current-and-near-future";
   location: WeatherLocation;
   nearFutureHours: number;
+  spatialScope?: WeatherTileScope;
 }

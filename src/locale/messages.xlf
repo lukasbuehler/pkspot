@@ -4323,6 +4323,46 @@
         <source> Loading spot details </source>
       </segment>
     </unit>
+    <unit id="map.weather.dry_now">
+      <segment>
+        <source>Dry for now</source>
+      </segment>
+    </unit>
+    <unit id="map.weather.open">
+      <segment>
+        <source>Weather near map center: <ph id="0" equiv="PH" disp="parts.join(&quot;, &quot;)"/></source>
+      </segment>
+    </unit>
+    <unit id="map.weather.rain_at">
+      <segment>
+        <source>Rain at <ph id="0" equiv="PH" disp="this.formatTime(nextRain.time)"/></source>
+      </segment>
+    </unit>
+    <unit id="map.weather.rain_now">
+      <segment>
+        <source>Rain now</source>
+      </segment>
+    </unit>
+    <unit id="map.weather.rain_until">
+      <segment>
+        <source>Rain until <ph id="0" equiv="PH" disp="this.formatTime(rainStopsAt)"/></source>
+      </segment>
+    </unit>
+    <unit id="map.weather.sunrise_at">
+      <segment>
+        <source>Sunrise <ph id="0" equiv="PH" disp="this.formatTime(sunEvent)"/></source>
+      </segment>
+    </unit>
+    <unit id="map.weather.sunset_at">
+      <segment>
+        <source>Sunset <ph id="0" equiv="PH" disp="this.formatTime(sunEvent)"/></source>
+      </segment>
+    </unit>
+    <unit id="map.weather.unavailable">
+      <segment>
+        <source>Weather unavailable</source>
+      </segment>
+    </unit>
     <unit id="map.h1">
       <segment>
         <source> PK Spot — find spots, communities, and events near you </source>
@@ -6764,6 +6804,11 @@
         <source>Close weather forecast</source>
       </segment>
     </unit>
+    <unit id="weather.dialog.cloud_cover">
+      <segment>
+        <source>Current cloud cover: <ph id="0" equiv="PH" disp="Math.round(this.current.cloudCoverPercent)"/>%.</source>
+      </segment>
+    </unit>
     <unit id="weather.dialog.covered.message">
       <segment>
         <source> This training area should stay protected from rain and may be shaded from direct sunlight. The forecast shows the surrounding outdoor conditions. </source>
@@ -6772,6 +6817,21 @@
     <unit id="weather.dialog.covered.title">
       <segment>
         <source>Covered spot</source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.daylight.dark">
+      <segment>
+        <source>It is dark now.</source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.daylight.sunrise">
+      <segment>
+        <source>It is dark now. Sunrise is at <ph id="0" equiv="PH" disp="time"/>.</source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.daylight.sunset">
+      <segment>
+        <source>Sunset at <ph id="0" equiv="PH" disp="time"/> (<ph id="1" equiv="PH_1" disp="remaining"/>).</source>
       </segment>
     </unit>
     <unit id="weather.dialog.dry_until">
@@ -6822,6 +6882,11 @@
     <unit id="weather.dialog.raining_until">
       <segment>
         <source>Rain is likely now and should ease around <ph id="0" equiv="PH" disp="time"/>.</source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.region_title">
+      <segment>
+        <source>Weather in the area</source>
       </segment>
     </unit>
     <unit id="weather.dialog.surface_dry">
@@ -6967,6 +7032,16 @@
     <unit id="weather.warning.heavy_rain.message">
       <segment>
         <source>Heavy rain could make training surfaces unsafe.</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.high_temperature.label">
+      <segment>
+        <source>Hot conditions</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.high_temperature.message">
+      <segment>
+        <source>Temperatures may make intense training more demanding. Take breaks and stay hydrated.</source>
       </segment>
     </unit>
     <unit id="weather.warning.high_uv.label">

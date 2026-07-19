@@ -164,6 +164,20 @@ import {
   getNextEventPromoDismissal,
 } from "./map-event-promo-dismissal";
 import { parseMapSpotRouteState } from "./map-route-state";
+import { WeatherService } from "../../weather/weather.service";
+import {
+  getViewportCenter,
+  getWeatherTile,
+} from "../../weather/weather-map-tile";
+import type {
+  WeatherResponse,
+  WeatherTile,
+} from "../../weather/weather.models";
+import {
+  WeatherForecastDialogComponent,
+  type WeatherForecastDialogData,
+} from "../weather-forecast-dialog/weather-forecast-dialog.component";
+import { MapWeatherChipComponent } from "../map/map-weather-chip/map-weather-chip.component";
 
 type MapEventFilter = "live" | "competition" | "jam" | "camp";
 
@@ -271,6 +285,7 @@ const DENSE_MAP_PERFORMANCE_VARIANTS = new Set<DenseMapPerformanceVariant>([
     MapCommunityLandingPanelComponent,
     MapCheckInBannerComponent,
     MapFloatingControlsComponent,
+    MapWeatherChipComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -554,6 +569,19 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _visibleMapCommunities = signal<CommunitySearchPreview[]>([]);
   /** Latest visible viewport. Drives the map-island event/community context. */
   private _viewport = signal<VisibleViewport | null>(null);
+  private _mapWeatherRequestVersion = 0;
+  private _mapWeatherTile = computed<WeatherTile | null>(
+    () => {
+      const viewport = this._viewport();
+      return viewport && viewport.zoom >= 12
+        ? getWeatherTile(getViewportCenter(viewport.bbox), 12)
+        : null;
+    },
+    {
+      equal: (left, right) => left?.key === right?.key,
+    },
+  );
+  readonly mapWeatherResponse = signal<WeatherResponse | null>(null);
   private _communitySpotSearchVersion = 0;
   focusedCommunitySpotPreviews = signal<SpotPreviewData[] | null>(null);
   communitySpotPreviewsForMap = computed<SpotPreviewData[] | null>(() =>
@@ -1203,6 +1231,34 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this._viewport.set(viewport);
   }
 
+  openMapWeather(): void {
+    const response = this.mapWeatherResponse();
+    const tile = this._mapWeatherTile();
+    if (!response || !tile) return;
+
+    this._dialog.open<
+      WeatherForecastDialogComponent,
+      WeatherForecastDialogData
+    >(WeatherForecastDialogComponent, {
+      data: {
+        spotName: "",
+        response,
+        context: "map-region",
+      },
+      width: "680px",
+      maxWidth: "calc(100vw - 24px)",
+      maxHeight: "calc(100dvh - 24px)",
+      autoFocus: "dialog",
+      restoreFocus: true,
+    });
+    this._analytics.trackEvent("map_weather_opened", {
+      provider: response.provider,
+      tileZoom: tile.zoom,
+      tileX: tile.x,
+      tileY: tile.y,
+    });
+  }
+
   onIslandDismissEvent(event: PkEvent): void {
     const dismissal = this._dismissEventPromo(event);
     this._showEventPromoDismissalConfirmation(dismissal);
@@ -1730,6 +1786,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** MatDialog for opening the custom filter dialog */
   private _dialog = inject(MatDialog);
+  private _weatherService = inject(WeatherService);
   private _searchPreviewRequestVersion = 0;
 
   /**
@@ -2039,6 +2096,40 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       onCleanup(() => {
         clearTimeout(handle);
         this._mapObjectSearchVersion++;
+      });
+    });
+
+    effect((onCleanup) => {
+      const tile = this._mapWeatherTile();
+      const requestVersion = ++this._mapWeatherRequestVersion;
+      let refreshHandle: ReturnType<typeof setTimeout> | undefined;
+      this.mapWeatherResponse.set(null);
+      if (!tile) return;
+
+      const loadWeather = () => {
+        void this._weatherService
+          .getCurrentAndNearFutureForTile(tile)
+          .then((response) => {
+            if (requestVersion !== this._mapWeatherRequestVersion) return;
+            this.mapWeatherResponse.set(response);
+            const refreshInMs = Math.max(
+              60_000,
+              Date.parse(response.expiresAt) - Date.now() + 1_000,
+            );
+            refreshHandle = setTimeout(loadWeather, refreshInMs);
+          })
+          .catch(() => {
+            if (requestVersion === this._mapWeatherRequestVersion) {
+              this.mapWeatherResponse.set(null);
+            }
+          });
+      };
+      const debounceHandle = setTimeout(loadWeather, 600);
+
+      onCleanup(() => {
+        clearTimeout(debounceHandle);
+        if (refreshHandle) clearTimeout(refreshHandle);
+        this._mapWeatherRequestVersion++;
       });
     });
 

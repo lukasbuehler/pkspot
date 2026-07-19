@@ -90,6 +90,7 @@ thermostat
 paid
 water_full
 water_drop
+humidity_percentage
 air
 local_parking
 power

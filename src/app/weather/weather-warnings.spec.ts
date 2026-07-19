@@ -72,6 +72,30 @@ describe("weather warning presentation", () => {
     expect(getWeatherWarnings(nighttime)).not.toContain("high-uv");
   });
 
+  it("warns when actual or apparent temperature reaches 30 degrees", () => {
+    const actualHeat = response({
+      forecast: [
+        {
+          time: "2026-07-19T12:00:00Z",
+          condition: "clear",
+          temperatureC: 30,
+        },
+      ],
+    });
+    const apparentHeat = response({
+      current: {
+        time: "2026-07-19T10:00:00Z",
+        condition: "clear",
+        temperatureC: 28,
+        apparentTemperatureC: 31,
+      },
+    });
+
+    expect(getWeatherWarnings(actualHeat)).toContain("high-temperature");
+    expect(getWeatherWarnings(apparentHeat)).toContain("high-temperature");
+    expect(getWeatherVisualStatus(apparentHeat)).toBe("warning");
+  });
+
   it("uses wet status for wet surfaces without escalating them to warning", () => {
     const weather = response({
       insights: {

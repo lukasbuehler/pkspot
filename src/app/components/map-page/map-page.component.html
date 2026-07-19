@@ -334,9 +334,21 @@
 
     <div class="position-relative overflow-hidden h-100 w-100">
       <ng-container *ngTemplateOutlet="mapContent"></ng-container>
-      @if (visibleIslandContent()) {
-        <div @fadeInOut class="map-island-host">
-          <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
+      @if (visibleIslandContent() || mapWeatherResponse()) {
+        <div class="map-context-host">
+          @if (visibleIslandContent()) {
+            <div @fadeInOut class="map-island-host">
+              <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
+            </div>
+          }
+          @if (mapWeatherResponse(); as weather) {
+            <app-map-weather-chip
+              @fadeInOut
+              class="map-weather-chip-host"
+              [response]="weather"
+              (pressed)="openMapWeather()"
+            ></app-map-weather-chip>
+          }
         </div>
       }
 
@@ -380,9 +392,21 @@
         ></app-search-field>
       </div>
       <ng-container *ngTemplateOutlet="chips"></ng-container>
-      @if (visibleIslandContent()) {
-        <div @fadeInOut class="map-island-mobile-host">
-          <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
+      @if (visibleIslandContent() || mapWeatherResponse()) {
+        <div class="map-context-mobile-host">
+          @if (visibleIslandContent()) {
+            <div @fadeInOut class="map-island-mobile-host">
+              <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
+            </div>
+          }
+          @if (mapWeatherResponse(); as weather) {
+            <app-map-weather-chip
+              @fadeInOut
+              class="map-weather-chip-host"
+              [response]="weather"
+              (pressed)="openMapWeather()"
+            ></app-map-weather-chip>
+          }
         </div>
       }
     </div>

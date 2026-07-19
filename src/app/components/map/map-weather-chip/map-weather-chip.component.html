@@ -1,0 +1,20 @@
+<button
+  mat-stroked-button
+  type="button"
+  class="map-weather-chip"
+  [class.is-wet]="status() === 'wet'"
+  [class.has-warning]="status() === 'warning'"
+  [attr.aria-label]="accessibleLabel()"
+  [matTooltip]="accessibleLabel()"
+  matTooltipPosition="left"
+  (click)="pressed.emit()"
+>
+  <span class="chip-content">
+    <mat-icon aria-hidden="true">{{ icon() }}</mat-icon>
+    @if (temperature() !== undefined) {
+      <strong class="temperature">{{ temperature() }}°</strong>
+    }
+    <span class="separator" aria-hidden="true">⸱</span>
+    <span class="change-summary">{{ changeSummary() }}</span>
+  </span>
+</button>

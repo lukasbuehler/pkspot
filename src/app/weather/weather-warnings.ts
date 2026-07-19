@@ -18,6 +18,7 @@ const ATTENTION_WARNINGS = new Set<WeatherWarning>([
   "ice-risk",
   "harsh-sun",
   "high-uv",
+  "high-temperature",
   "strong-wind",
   "poor-air-quality",
 ]);
@@ -63,6 +64,17 @@ export function getWeatherWarnings(
   }
   if (points.some((point) => (point.windSpeedKmh ?? 0) >= 40)) {
     warnings.add("strong-wind");
+  }
+  if (
+    points.some(
+      (point) =>
+        Math.max(
+          point.temperatureC ?? -Infinity,
+          point.apparentTemperatureC ?? -Infinity,
+        ) >= 30,
+    )
+  ) {
+    warnings.add("high-temperature");
   }
   if (!context.covered && response.insights.surfaceDrying.status === "wet") {
     warnings.add("wet-surface");

@@ -113,6 +113,64 @@ describe("weather functions", () => {
     );
   });
 
+  it("uses a canonical map tile center and cache key", () => {
+    const request = parseWeatherRequest({
+      mode: "current-and-near-future",
+      location: { lat: 0, lng: 0 },
+      nearFutureHours: 12,
+      spatialScope: {
+        type: "mercator-tile",
+        zoom: 12,
+        x: 2145,
+        y: 1432,
+      },
+    });
+    const window = {
+      startTime: new Date("2026-07-08T10:00:00Z"),
+      endTime: new Date("2026-07-08T22:00:00Z"),
+    };
+    const sameTile = {
+      ...request,
+      location: { lat: 40, lng: 12 },
+    };
+
+    expect(request.location).not.toEqual({ lat: 0, lng: 0 });
+    expect(buildWeatherCacheKey(request, "google", window)).toBe(
+      buildWeatherCacheKey(sameTile, "google", window)
+    );
+  });
+
+  it("rejects invalid map tile coordinates", () => {
+    expect(() =>
+      parseWeatherRequest({
+        mode: "current-and-near-future",
+        location: { lat: 47.37, lng: 8.54 },
+        spatialScope: {
+          type: "mercator-tile",
+          zoom: 12,
+          x: 4096,
+          y: 1432,
+        },
+      })
+    ).toThrow(/spatialScope.x/);
+  });
+
+  it("rejects map tile scope for non-current forecast modes", () => {
+    expect(() =>
+      parseWeatherRequest({
+        mode: "forecast-at",
+        location: { lat: 47.37, lng: 8.54 },
+        targetTime: "2026-07-09T10:00:00Z",
+        spatialScope: {
+          type: "mercator-tile",
+          zoom: 12,
+          x: 2145,
+          y: 1432,
+        },
+      })
+    ).toThrow(/only supported for current weather/);
+  });
+
   it("keeps Google cached weather below the hourly provider limit", () => {
     expect(getProviderCacheDurationMs("google", "current-and-near-future")).toBe(
       45 * 60 * 1000

@@ -1,10 +1,19 @@
 import { PLATFORM_ID } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { Router } from "@angular/router";
+import { Posthog as CapacitorPostHog } from "@capawesome/capacitor-posthog";
 import { NEVER } from "rxjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ConsentService } from "./consent.service";
 import { AnalyticsService, stripUtmParametersFromUrl } from "./analytics.service";
+
+const capacitorPostHogMock = vi.hoisted(() => ({
+  unregister: vi.fn(),
+}));
+
+vi.mock("@capawesome/capacitor-posthog", () => ({
+  Posthog: capacitorPostHogMock,
+}));
 
 describe("AnalyticsService URL helpers", () => {
   it("removes UTM parameters while preserving other query params and hash", () => {
@@ -116,5 +125,69 @@ describe("AnalyticsService queued identity", () => {
     makeAnalyticsAvailable(posthog);
 
     expect(posthog.identify).not.toHaveBeenCalled();
+  });
+});
+
+describe("AnalyticsService native SDK metadata migration", () => {
+  let service: AnalyticsService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        AnalyticsService,
+        {
+          provide: ConsentService,
+          useValue: {
+            hasConsent: vi.fn(() => true),
+          },
+        },
+        {
+          provide: Router,
+          useValue: {
+            events: NEVER,
+            url: "/",
+          },
+        },
+        { provide: PLATFORM_ID, useValue: "browser" },
+      ],
+    });
+
+    service = TestBed.inject(AnalyticsService);
+  });
+
+  it("removes SDK metadata left behind by older native builds", async () => {
+    const unregister = vi.mocked(CapacitorPostHog.unregister);
+    unregister.mockResolvedValue();
+    const internals = service as unknown as {
+      clearLegacyNativeSdkProperties: () => Promise<void>;
+    };
+
+    await internals.clearLegacyNativeSdkProperties();
+
+    expect(unregister).toHaveBeenCalledTimes(2);
+    expect(unregister).toHaveBeenCalledWith({ key: "$lib" });
+    expect(unregister).toHaveBeenCalledWith({ key: "$lib_version" });
+  });
+
+  it("does not forward caller-provided SDK metadata to the native SDK", () => {
+    Object.defineProperty(window, "matchMedia", {
+      configurable: true,
+      value: vi.fn(() => ({ matches: false })),
+    });
+    const internals = service as unknown as {
+      withRequiredNativeAnalyticsProperties: (
+        properties?: Record<string, unknown>,
+      ) => Record<string, unknown>;
+    };
+
+    const properties = internals.withRequiredNativeAnalyticsProperties({
+      $lib: "capawesome-capacitor-posthog",
+      $lib_version: "8.5.0",
+      action: "open",
+    });
+
+    expect(properties).not.toHaveProperty("$lib");
+    expect(properties).not.toHaveProperty("$lib_version");
+    expect(properties["action"]).toBe("open");
   });
 });

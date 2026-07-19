@@ -17,6 +17,20 @@ export type WeatherCondition =
   | "unknown";
 
 export type WeatherTone = "neutral" | "sun" | "wet" | "cold" | "severe";
+export type WeatherForecastIconTone =
+  | "neutral"
+  | "wet"
+  | "warning"
+  | "night";
+
+export interface WeatherForecastIconContext {
+  condition: WeatherCondition;
+  temperatureC?: number;
+  uvIndex?: number;
+  precipitationMm?: number;
+  precipitationProbabilityPercent?: number;
+  isDay?: boolean;
+}
 
 export interface WeatherStateDefinition {
   dayIcon: string;
@@ -118,6 +132,7 @@ export type WeatherWarning =
   | "ice-risk"
   | "harsh-sun"
   | "high-uv"
+  | "high-temperature"
   | "strong-wind"
   | "poor-air-quality"
   | "wet-surface";
@@ -183,6 +198,13 @@ export const WEATHER_WARNINGS = {
     severity: "caution",
     tone: "error",
   },
+  "high-temperature": {
+    icon: "thermostat",
+    label: $localize`:@@weather.warning.high_temperature.label:Hot conditions`,
+    message: $localize`:@@weather.warning.high_temperature.message:Temperatures may make intense training more demanding. Take breaks and stay hydrated.`,
+    severity: "caution",
+    tone: "error",
+  },
   "strong-wind": {
     icon: "warning",
     label: $localize`:@@weather.warning.strong_wind.label:Strong wind`,
@@ -212,4 +234,32 @@ export function getWeatherStateIcon(
 ): string {
   const state: WeatherStateDefinition = WEATHER_STATES[condition];
   return isDay ? state.dayIcon : state.nightIcon ?? state.dayIcon;
+}
+
+const WET_FORECAST_CONDITIONS = new Set<WeatherCondition>([
+  "drizzle",
+  "rain",
+  "heavy-rain",
+  "freezing-rain",
+  "sleet",
+  "snow",
+  "heavy-snow",
+  "thunderstorm",
+  "hail",
+]);
+
+export function getWeatherForecastIconTone(
+  point: WeatherForecastIconContext,
+): WeatherForecastIconTone {
+  if (
+    WET_FORECAST_CONDITIONS.has(point.condition) ||
+    (point.precipitationProbabilityPercent ?? 0) >= 40 ||
+    (point.precipitationMm ?? 0) >= 0.2
+  ) {
+    return "wet";
+  }
+  if ((point.temperatureC ?? -Infinity) >= 30 || (point.uvIndex ?? 0) >= 6) {
+    return "warning";
+  }
+  return point.isDay === false ? "night" : "neutral";
 }
