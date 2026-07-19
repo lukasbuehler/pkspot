@@ -40,10 +40,6 @@ import { MatButtonToggleModule } from "@angular/material/button-toggle";
 import {
   SpotAccess,
   SpotTypes,
-  SpotAccessIcons,
-  SpotAccessNames,
-  SpotTypesIcons,
-  SpotTypesNames,
 } from "../../../db/schemas/SpotTypeAndAccess";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
 import {
@@ -76,11 +72,10 @@ import {
 } from "@angular/material/autocomplete";
 import { MatInput } from "@angular/material/input";
 import { MatFormField, MatLabel, MatHint } from "@angular/material/form-field";
-import { AsyncPipe, KeyValuePipe } from "@angular/common";
+import { AsyncPipe } from "@angular/common";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { MediaUpload } from "../media-upload/media-upload.component";
 import { MatIcon, MatIconModule } from "@angular/material/icon";
-import { MatSelect } from "@angular/material/select";
 import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { MarkerSchema } from "../map/markers/map-marker.model";
 import { createUserReference, generateUUID } from "../../../scripts/Helpers";
@@ -105,6 +100,8 @@ import {
   isHighVolumeImport,
   validateImportPolicy,
 } from "./kml-import-policy";
+import { SpotAccessPickerComponent } from "../spot-access-picker/spot-access-picker.component";
+import { SpotTypePickerComponent } from "../spot-type-picker/spot-type-picker.component";
 // KML import is gated by the `isAdmin` flag on the user document
 // (see UserSchema.is_admin). Previously a hardcoded uid whitelist; now
 // any admin can import. The check below mirrors spot-details and other
@@ -168,8 +165,6 @@ type SetupMediaValidationStatus = "valid" | "invalid" | "unknown";
     SpotMapComponent,
     MatStepperPrevious,
     AsyncPipe,
-    MatSelect,
-    KeyValuePipe,
     MatProgressSpinnerModule,
     MatProgressBarModule,
     MatButtonToggleModule,
@@ -177,10 +172,14 @@ type SetupMediaValidationStatus = "valid" | "invalid" | "unknown";
     ImgCarouselComponent,
     MatSidenavModule,
     AutocompleteOverlayRepositionDirective,
+    SpotAccessPickerComponent,
+    SpotTypePickerComponent,
   ],
 })
 export class KmlImportPageComponent implements OnInit, AfterViewInit {
   readonly responsive = inject(ResponsiveService);
+  readonly defaultSpotType = SpotTypes.Other;
+  readonly defaultSpotAccess = SpotAccess.Other;
   @ViewChild("stepperHorizontal") stepperHorizontal: MatStepper | undefined;
   @ViewChild("spotMap") spotMap: SpotMapComponent | undefined;
   @ViewChild("regex") regex: RegexInputComponent | undefined;
@@ -192,13 +191,6 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
 
   kmlUploadFile: File | null = null;
 
-  // Expose to template
-  readonly SpotTypes = SpotTypes;
-  readonly SpotAccess = SpotAccess;
-  readonly spotTypesNames = SpotTypesNames;
-  readonly spotTypesIcons = SpotTypesIcons;
-  readonly spotAccessNames = SpotAccessNames;
-  readonly spotAccessIcons = SpotAccessIcons;
   readonly languages = languageCodes;
 
   verificationItems = signal<VerificationSpotItem[]>([]);

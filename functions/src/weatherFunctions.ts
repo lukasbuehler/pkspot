@@ -5,6 +5,23 @@ import { CallableRequest, HttpsError, onCall } from "firebase-functions/v2/https
 import { googleAPIKey } from "./secrets";
 
 export type WeatherProvider = "google" | "open-meteo";
+export type WeatherCondition =
+  | "clear"
+  | "mostly-clear"
+  | "partly-cloudy"
+  | "cloudy"
+  | "fog"
+  | "drizzle"
+  | "rain"
+  | "heavy-rain"
+  | "freezing-rain"
+  | "sleet"
+  | "snow"
+  | "heavy-snow"
+  | "thunderstorm"
+  | "hail"
+  | "windy"
+  | "unknown";
 export type WeatherMode =
   | "current-and-near-future"
   | "forecast-at"
@@ -56,6 +73,7 @@ export interface WeatherPoint {
   cloudCoverPercent?: number;
   windSpeedKmh?: number;
   weatherCode?: string;
+  condition?: WeatherCondition;
   sunrise?: string;
   sunset?: string;
   isDay?: boolean;
@@ -100,6 +118,7 @@ export interface WeatherResponse {
   generatedAt: string;
   expiresAt: string;
   attribution?: string;
+  timeZone?: string;
   current?: WeatherPoint;
   forecast?: WeatherPoint[];
   target?: WeatherPoint;
@@ -119,6 +138,7 @@ interface ProviderFetchResult {
   current?: WeatherPoint;
   forecast: WeatherPoint[];
   attribution?: string;
+  timeZone?: string;
 }
 
 interface CacheDocument {
@@ -452,6 +472,7 @@ async function fetchWeatherResponse(
     generatedAt: now.toISOString(),
     expiresAt,
     attribution: result.attribution,
+    timeZone: result.timeZone,
   };
 
   if (request.mode === "current-and-near-future") {
@@ -541,6 +562,7 @@ async function fetchGoogleWeather(
       : undefined,
     forecast: normalizedForecast,
     attribution: "Weather: Google Weather",
+    timeZone: forecast.timeZone?.id ?? current?.timeZone?.id,
   };
 }
 
@@ -559,7 +581,7 @@ async function fetchOpenMeteoWeather(
   );
   url.searchParams.set("latitude", String(request.location.lat));
   url.searchParams.set("longitude", String(request.location.lng));
-  url.searchParams.set("timezone", "UTC");
+  url.searchParams.set("timezone", "auto");
   url.searchParams.set("forecast_hours", String(forecastHours));
   url.searchParams.set(
     "current",
@@ -606,6 +628,7 @@ async function fetchOpenMeteoWeather(
   }
 
   const data = (await response.json()) as OpenMeteoResponse;
+  const utcOffsetSeconds = data.utc_offset_seconds ?? 0;
   const sunByDate = new Map<string, { sunrise?: string; sunset?: string }>();
   data.daily?.time?.forEach((date, index) => {
     sunByDate.set(date, {
@@ -616,10 +639,19 @@ async function fetchOpenMeteoWeather(
 
   return {
     current: data.current
-      ? normalizeOpenMeteoCurrentPoint(data.current, sunByDate)
+      ? normalizeOpenMeteoCurrentPoint(
+        data.current,
+        sunByDate,
+        utcOffsetSeconds
+      )
       : undefined,
-    forecast: normalizeOpenMeteoHourlyPoints(data, sunByDate),
+    forecast: normalizeOpenMeteoHourlyPoints(
+      data,
+      sunByDate,
+      utcOffsetSeconds
+    ),
     attribution: "Weather: Open-Meteo",
+    timeZone: data.timezone,
   };
 }
 
@@ -661,6 +693,10 @@ function normalizeGoogleCurrentPoint(value: GoogleCurrentResponse): WeatherPoint
     cloudCoverPercent: value.cloudCover,
     windSpeedKmh: value.wind?.speed?.value,
     weatherCode: value.weatherCondition?.type,
+    condition: normalizeWeatherCondition(
+      "google",
+      value.weatherCondition?.type
+    ),
     isDay: value.isDaytime,
   });
 }
@@ -682,6 +718,10 @@ function normalizeGoogleWeatherPoint(value: GoogleHour): WeatherPoint {
     cloudCoverPercent: value.cloudCover,
     windSpeedKmh: value.wind?.speed?.value,
     weatherCode: value.weatherCondition?.type,
+    condition: normalizeWeatherCondition(
+      "google",
+      value.weatherCondition?.type
+    ),
     isDay: value.isDaytime,
   });
 }
@@ -706,11 +746,12 @@ function normalizeGoogleSunWindows(value: GoogleDailyResponse): DailySunWindow[]
 
 function normalizeOpenMeteoCurrentPoint(
   value: OpenMeteoCurrent,
-  sunByDate: Map<string, { sunrise?: string; sunset?: string }>
+  sunByDate: Map<string, { sunrise?: string; sunset?: string }>,
+  utcOffsetSeconds: number
 ): WeatherPoint {
   const sun = sunByDate.get(value.time.slice(0, 10));
   return removeUndefinedValues({
-    time: normalizeOpenMeteoTime(value.time),
+    time: normalizeOpenMeteoTime(value.time, utcOffsetSeconds),
     temperatureC: value.temperature_2m,
     apparentTemperatureC: value.apparent_temperature,
     relativeHumidityPercent: value.relative_humidity_2m,
@@ -718,15 +759,21 @@ function normalizeOpenMeteoCurrentPoint(
     cloudCoverPercent: value.cloud_cover,
     windSpeedKmh: value.wind_speed_10m,
     weatherCode: value.weather_code?.toString(),
-    sunrise: sun?.sunrise ? normalizeOpenMeteoTime(sun.sunrise) : undefined,
-    sunset: sun?.sunset ? normalizeOpenMeteoTime(sun.sunset) : undefined,
+    condition: normalizeWeatherCondition("open-meteo", value.weather_code),
+    sunrise: sun?.sunrise
+      ? normalizeOpenMeteoTime(sun.sunrise, utcOffsetSeconds)
+      : undefined,
+    sunset: sun?.sunset
+      ? normalizeOpenMeteoTime(sun.sunset, utcOffsetSeconds)
+      : undefined,
     isDay: value.is_day === undefined ? undefined : value.is_day === 1,
   });
 }
 
 function normalizeOpenMeteoHourlyPoints(
   data: OpenMeteoResponse,
-  sunByDate: Map<string, { sunrise?: string; sunset?: string }>
+  sunByDate: Map<string, { sunrise?: string; sunset?: string }>,
+  utcOffsetSeconds: number
 ): WeatherPoint[] {
   const hourly = data.hourly;
   if (!hourly?.time?.length) {
@@ -736,7 +783,7 @@ function normalizeOpenMeteoHourlyPoints(
   return hourly.time.map((time, index) => {
     const sun = sunByDate.get(time.slice(0, 10));
     return removeUndefinedValues({
-      time: normalizeOpenMeteoTime(time),
+      time: normalizeOpenMeteoTime(time, utcOffsetSeconds),
       temperatureC: hourly.temperature_2m?.[index],
       apparentTemperatureC: hourly.apparent_temperature?.[index],
       relativeHumidityPercent: hourly.relative_humidity_2m?.[index],
@@ -747,8 +794,16 @@ function normalizeOpenMeteoHourlyPoints(
       cloudCoverPercent: hourly.cloud_cover?.[index],
       windSpeedKmh: hourly.wind_speed_10m?.[index],
       weatherCode: hourly.weather_code?.[index]?.toString(),
-      sunrise: sun?.sunrise ? normalizeOpenMeteoTime(sun.sunrise) : undefined,
-      sunset: sun?.sunset ? normalizeOpenMeteoTime(sun.sunset) : undefined,
+      condition: normalizeWeatherCondition(
+        "open-meteo",
+        hourly.weather_code?.[index]
+      ),
+      sunrise: sun?.sunrise
+        ? normalizeOpenMeteoTime(sun.sunrise, utcOffsetSeconds)
+        : undefined,
+      sunset: sun?.sunset
+        ? normalizeOpenMeteoTime(sun.sunset, utcOffsetSeconds)
+        : undefined,
       isDay: hourly.is_day?.[index] === undefined ? undefined : hourly.is_day[index] === 1,
     });
   });
@@ -781,11 +836,78 @@ function buildScheduleForecasts(
   });
 }
 
-function normalizeOpenMeteoTime(value: string): string {
+function normalizeOpenMeteoTime(
+  value: string,
+  utcOffsetSeconds = 0
+): string {
   if (/[zZ]$|[+-]\d\d:?\d\d$/.test(value)) {
     return new Date(value).toISOString();
   }
-  return new Date(`${value}Z`).toISOString();
+  return new Date(
+    new Date(`${value}Z`).getTime() - utcOffsetSeconds * 1000
+  ).toISOString();
+}
+
+export function normalizeWeatherCondition(
+  provider: WeatherProvider,
+  value: string | number | undefined
+): WeatherCondition {
+  if (value === undefined) {
+    return "unknown";
+  }
+
+  return provider === "google"
+    ? normalizeGoogleCondition(String(value))
+    : normalizeOpenMeteoCondition(Number(value));
+}
+
+function normalizeGoogleCondition(value: string): WeatherCondition {
+  if (value === "CLEAR") return "clear";
+  if (value === "MOSTLY_CLEAR") return "mostly-clear";
+  if (value === "PARTLY_CLOUDY") return "partly-cloudy";
+  if (value === "MOSTLY_CLOUDY" || value === "CLOUDY") return "cloudy";
+  if (value === "WINDY") return "windy";
+  if (value === "RAIN_AND_SNOW") return "sleet";
+  if (value === "HAIL" || value === "HAIL_SHOWERS") return "hail";
+  if (value.includes("THUNDER") || value.includes("SNOWSTORM")) {
+    return "thunderstorm";
+  }
+  if (value.includes("HEAVY_RAIN") || value === "RAIN_PERIODICALLY_HEAVY") {
+    return "heavy-rain";
+  }
+  if (
+    value.includes("RAIN") ||
+    value.includes("SHOWERS") ||
+    value === "WIND_AND_RAIN"
+  ) {
+    return "rain";
+  }
+  if (
+    value.includes("HEAVY_SNOW") ||
+    value === "SNOW_PERIODICALLY_HEAVY" ||
+    value === "BLOWING_SNOW"
+  ) {
+    return "heavy-snow";
+  }
+  if (value.includes("SNOW")) return "snow";
+  return "unknown";
+}
+
+function normalizeOpenMeteoCondition(value: number): WeatherCondition {
+  if (value === 0) return "clear";
+  if (value === 1) return "mostly-clear";
+  if (value === 2) return "partly-cloudy";
+  if (value === 3) return "cloudy";
+  if (value === 45 || value === 48) return "fog";
+  if ([51, 53, 55].includes(value)) return "drizzle";
+  if ([56, 57, 66, 67].includes(value)) return "freezing-rain";
+  if ([61, 63, 80, 81].includes(value)) return "rain";
+  if (value === 65 || value === 82) return "heavy-rain";
+  if ([71, 73, 77, 85].includes(value)) return "snow";
+  if (value === 75 || value === 86) return "heavy-snow";
+  if (value === 95) return "thunderstorm";
+  if (value === 96 || value === 99) return "hail";
+  return "unknown";
 }
 
 function filterForecastWindow(
@@ -1168,6 +1290,7 @@ interface GoogleWeatherCondition {
 
 interface GoogleCurrentResponse {
   currentTime: string;
+  timeZone?: { id?: string };
   isDaytime?: boolean;
   weatherCondition?: GoogleWeatherCondition;
   temperature?: GoogleTemperature;
@@ -1194,6 +1317,7 @@ interface GoogleHour {
 
 interface GoogleHourlyResponse {
   forecastHours?: GoogleHour[];
+  timeZone?: { id?: string };
 }
 
 interface GoogleDailyResponse {
@@ -1231,6 +1355,8 @@ interface OpenMeteoHourly {
 }
 
 interface OpenMeteoResponse {
+  timezone?: string;
+  utc_offset_seconds?: number;
   current?: OpenMeteoCurrent;
   hourly?: OpenMeteoHourly;
   daily?: {

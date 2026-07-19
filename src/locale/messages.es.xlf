@@ -2296,6 +2296,12 @@
         <target> Ninguna organización verifica todavía este spot público. </target>
       </segment>
     </unit>
+    <unit id="6869127349879377425">
+      <segment state="translated">
+        <source>Weather warnings</source>
+        <target>Avisos meteorológicos</target>
+      </segment>
+    </unit>
     <unit id="8693603235657020323">
       <segment state="initial">
         <source>Other</source>
@@ -3712,6 +3718,336 @@
       <segment state="initial">
         <source> Before you continue </source>
         <target> Antes de continuar </target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.close">
+      <segment state="translated">
+        <source>Close weather forecast</source>
+        <target>Cerrar el pronóstico del tiempo</target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.dry_until">
+      <segment state="translated">
+        <source>Conditions should stay dry until around <ph id="0" equiv="PH" disp="time"/>, when rain is expected.</source>
+        <target>Se espera que siga seco hasta aproximadamente las <ph id="0" equiv="PH" disp="time"/>. Después se espera lluvia.</target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.eyebrow">
+      <segment state="translated">
+        <source>Conditions now</source>
+        <target>Condiciones actuales</target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.feels_like">
+      <segment state="translated">
+        <source>Feels like</source>
+        <target>Sensación térmica</target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.humidity">
+      <segment state="translated">
+        <source>Humidity</source>
+        <target>Humedad</target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.next_hours">
+      <segment state="translated">
+        <source> Next 12 hours </source>
+        <target> Próximas 12 horas </target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.no_rain">
+      <segment state="translated">
+        <source>No meaningful rain is expected in the next 12 hours.</source>
+        <target>No se esperan precipitaciones significativas en las próximas 12 horas.</target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.rain_possible">
+      <segment state="translated">
+        <source>Rain is possible later.</source>
+        <target>Puede llover más tarde.</target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.raining_now">
+      <segment state="translated">
+        <source>Rain is likely now.</source>
+        <target>Es probable que llueva ahora.</target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.raining_until">
+      <segment state="translated">
+        <source>Rain is likely now and should ease around <ph id="0" equiv="PH" disp="time"/>.</source>
+        <target>Es probable que llueva ahora y que disminuya hacia las <ph id="0" equiv="PH" disp="time"/>.</target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.surface_dry">
+      <segment state="translated">
+        <source>Exposed surfaces are likely dry.</source>
+        <target>Las superficies expuestas probablemente estén secas.</target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.surface_drying">
+      <segment state="translated">
+        <source>Exposed surfaces may dry around <ph id="0" equiv="PH" disp="time"/>. This is only an estimate.</source>
+        <target>Las superficies expuestas podrían secarse hacia las <ph id="0" equiv="PH" disp="time"/>. Esto es solo una estimación.</target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.surface_drying_unknown">
+      <segment state="translated">
+        <source>Exposed surfaces are probably drying, but the timing is uncertain.</source>
+        <target>Las superficies expuestas probablemente se estén secando, pero no se sabe cuándo.</target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.surface_wet">
+      <segment state="translated">
+        <source>Training surfaces are likely wet.</source>
+        <target>Las superficies de entrenamiento probablemente estén mojadas.</target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.title">
+      <segment state="translated">
+        <source>Weather at</source>
+        <target>Tiempo en</target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.uv_index">
+      <segment state="translated">
+        <source>UV index</source>
+        <target>Índice UV</target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.wind">
+      <segment state="translated">
+        <source>Wind</source>
+        <target>Viento</target>
+      </segment>
+    </unit>
+    <unit id="weather.spot.loading">
+      <segment state="translated">
+        <source>Loading weather</source>
+        <target>Cargando el tiempo</target>
+      </segment>
+    </unit>
+    <unit id="weather.spot.unavailable">
+      <segment state="translated">
+        <source>Weather unavailable. Tap to retry.</source>
+        <target>Tiempo no disponible. Toca para volver a intentarlo.</target>
+      </segment>
+    </unit>
+    <unit id="weather.state.clear">
+      <segment state="initial">
+        <source>Clear</source>
+        <target>Despejado</target>
+      </segment>
+    </unit>
+    <unit id="weather.state.cloudy">
+      <segment state="initial">
+        <source>Cloudy</source>
+        <target>Nublado</target>
+      </segment>
+    </unit>
+    <unit id="weather.state.drizzle">
+      <segment state="initial">
+        <source>Drizzle</source>
+        <target>Llovizna</target>
+      </segment>
+    </unit>
+    <unit id="weather.state.fog">
+      <segment state="initial">
+        <source>Foggy</source>
+        <target>Con niebla</target>
+      </segment>
+    </unit>
+    <unit id="weather.state.freezing_rain">
+      <segment state="initial">
+        <source>Freezing rain</source>
+        <target>Lluvia helada</target>
+      </segment>
+    </unit>
+    <unit id="weather.state.hail">
+      <segment state="initial">
+        <source>Hail</source>
+        <target>Granizo</target>
+      </segment>
+    </unit>
+    <unit id="weather.state.heavy_rain">
+      <segment state="initial">
+        <source>Heavy rain</source>
+        <target>Lluvia intensa</target>
+      </segment>
+    </unit>
+    <unit id="weather.state.heavy_snow">
+      <segment state="initial">
+        <source>Heavy snow</source>
+        <target>Nevada intensa</target>
+      </segment>
+    </unit>
+    <unit id="weather.state.mostly_clear">
+      <segment state="initial">
+        <source>Mostly clear</source>
+        <target>Mayormente despejado</target>
+      </segment>
+    </unit>
+    <unit id="weather.state.partly_cloudy">
+      <segment state="initial">
+        <source>Partly cloudy</source>
+        <target>Parcialmente nublado</target>
+      </segment>
+    </unit>
+    <unit id="weather.state.rain">
+      <segment state="initial">
+        <source>Rain</source>
+        <target>Lluvia</target>
+      </segment>
+    </unit>
+    <unit id="weather.state.sleet">
+      <segment state="initial">
+        <source>Sleet</source>
+        <target>Aguanieve</target>
+      </segment>
+    </unit>
+    <unit id="weather.state.snow">
+      <segment state="initial">
+        <source>Snow</source>
+        <target>Nieve</target>
+      </segment>
+    </unit>
+    <unit id="weather.state.thunderstorm">
+      <segment state="initial">
+        <source>Thunderstorm</source>
+        <target>Tormenta</target>
+      </segment>
+    </unit>
+    <unit id="weather.state.unknown">
+      <segment state="initial">
+        <source>Weather unavailable</source>
+        <target>Tiempo no disponible</target>
+      </segment>
+    </unit>
+    <unit id="weather.state.windy">
+      <segment state="initial">
+        <source>Windy</source>
+        <target>Ventoso</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.hail.label">
+      <segment state="initial">
+        <source>Hail risk</source>
+        <target>Riesgo de granizo</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.hail.message">
+      <segment state="initial">
+        <source>Hail is possible during this forecast.</source>
+        <target>Puede haber granizo durante este periodo de previsión.</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.harsh_sun.label">
+      <segment state="initial">
+        <source>Harsh sunlight</source>
+        <target>Sol intenso</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.harsh_sun.message">
+      <segment state="initial">
+        <source>Exposed obstacles may become very hot in direct sunlight.</source>
+        <target>Los obstáculos expuestos pueden calentarse mucho bajo la luz solar directa.</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.heavy_rain.label">
+      <segment state="initial">
+        <source>Heavy rain</source>
+        <target>Lluvia intensa</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.heavy_rain.message">
+      <segment state="initial">
+        <source>Heavy rain could make training surfaces unsafe.</source>
+        <target>La lluvia intensa podría hacer que las superficies de entrenamiento no sean seguras.</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.high_uv.label">
+      <segment state="initial">
+        <source>High UV</source>
+        <target>Radiación UV alta</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.high_uv.message">
+      <segment state="initial">
+        <source>UV exposure is high. Consider sun protection.</source>
+        <target>La exposición UV es alta. Considera usar protección solar.</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.ice_risk.label">
+      <segment state="initial">
+        <source>Ice risk</source>
+        <target>Riesgo de hielo</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.ice_risk.message">
+      <segment state="initial">
+        <source>Surfaces may be icy or freezing.</source>
+        <target>Las superficies pueden estar heladas o congelarse.</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.poor_air_quality.label">
+      <segment state="initial">
+        <source>Poor air quality</source>
+        <target>Mala calidad del aire</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.poor_air_quality.message">
+      <segment state="initial">
+        <source>Air quality may be unsuitable for intense outdoor exercise.</source>
+        <target>La calidad del aire puede no ser adecuada para el ejercicio intenso al aire libre.</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.rain_expected.label">
+      <segment state="initial">
+        <source>Rain expected</source>
+        <target>Se espera lluvia</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.rain_expected.message">
+      <segment state="initial">
+        <source>Rain is expected during this forecast.</source>
+        <target>Se espera lluvia durante este periodo de previsión.</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.strong_wind.label">
+      <segment state="initial">
+        <source>Strong wind</source>
+        <target>Viento fuerte</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.strong_wind.message">
+      <segment state="initial">
+        <source>Strong wind may affect balance and exposed training.</source>
+        <target>El viento fuerte puede afectar al equilibrio y al entrenamiento en zonas expuestas.</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.thunderstorm.label">
+      <segment state="initial">
+        <source>Thunderstorm risk</source>
+        <target>Riesgo de tormenta</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.thunderstorm.message">
+      <segment state="initial">
+        <source>Avoid exposed structures while thunderstorms are possible.</source>
+        <target>Evita las estructuras expuestas mientras exista posibilidad de tormenta.</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.wet_surface.label">
+      <segment state="initial">
+        <source>Wet surfaces</source>
+        <target>Superficies mojadas</target>
+      </segment>
+    </unit>
+    <unit id="weather.warning.wet_surface.message">
+      <segment state="initial">
+        <source>Training surfaces are likely to be wet or slippery.</source>
+        <target>Es probable que las superficies de entrenamiento estén mojadas o resbaladizas.</target>
       </segment>
     </unit>
     <unit id="welcomeDialogAboutButton">
@@ -6786,6 +7122,12 @@
         <target> Rails cubiertos para noches de lluvia. Spots iluminados para sesiones de invierno. Gimnasios de parkour para días de técnica. Filtra exactamente lo que necesitas. </target>
       </segment>
     </unit>
+    <unit id="3828438401203209618">
+      <segment state="translated">
+        <source>Current weather details</source>
+        <target>Datos meteorológicos actuales</target>
+      </segment>
+    </unit>
     <unit id="7801350351736394974">
       <notes>
         <note category="meaning">report button label</note>
@@ -8457,12 +8799,6 @@
         <target> Activar el desenfoque de cristal en el mapa </target>
       </segment>
     </unit>
-    <unit id="1737753151350322492">
-      <segment state="initial">
-        <source><ph id="0" equiv="PH" disp="this.label"/></source>
-        <target><ph id="0" equiv="PH" disp="this.label"/></target>
-      </segment>
-    </unit>
     <unit id="1744316082077040772">
       <segment state="initial">
         <source>Loading Google Maps® API...</source>
@@ -8623,12 +8959,6 @@
         <target>Spot eliminado</target>
       </segment>
     </unit>
-    <unit id="3881818169480672345">
-      <segment state="initial">
-        <source>other</source>
-        <target>otro</target>
-      </segment>
-    </unit>
     <unit id="3894305924320774026">
       <segment state="initial">
         <source>@pkspot.app</source>
@@ -8657,12 +8987,6 @@
       <segment state="initial">
         <source>Only visible to you.</source>
         <target>Solo visible para ti.</target>
-      </segment>
-    </unit>
-    <unit id="7796156979263266819">
-      <segment state="initial">
-        <source>others</source>
-        <target>otros</target>
       </segment>
     </unit>
     <unit id="2704103786825350604">

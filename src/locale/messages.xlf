@@ -1109,6 +1109,11 @@
         <source> Covered rails for rainy nights. Lit spots for winter sessions. Parkour gyms for drill days. Filter for exactly what you need. </source>
       </segment>
     </unit>
+    <unit id="3828438401203209618">
+      <segment>
+        <source>Current weather details</source>
+      </segment>
+    </unit>
     <unit id="7801350351736394974">
       <notes>
         <note category="meaning">report button label</note>
@@ -1225,29 +1230,14 @@
         <source> Enable glass blur on the map </source>
       </segment>
     </unit>
-    <unit id="1737753151350322492">
-      <segment>
-        <source><ph id="0" equiv="PH" disp="this.label"/></source>
-      </segment>
-    </unit>
     <unit id="1616102757855967475">
       <segment>
         <source>All</source>
       </segment>
     </unit>
-    <unit id="3881818169480672345">
-      <segment>
-        <source>other</source>
-      </segment>
-    </unit>
     <unit id="7793821153334609761">
       <segment>
         <source>Only visible to you.</source>
-      </segment>
-    </unit>
-    <unit id="7796156979263266819">
-      <segment>
-        <source>others</source>
       </segment>
     </unit>
     <unit id="4323470180912194028">
@@ -6501,6 +6491,11 @@
         <source> No organization verifies this public spot yet. </source>
       </segment>
     </unit>
+    <unit id="6869127349879377425">
+      <segment>
+        <source>Weather warnings</source>
+      </segment>
+    </unit>
     <unit id="8693603235657020323">
       <segment>
         <source>Other</source>
@@ -6770,6 +6765,281 @@
     <unit id="welcomeDialogBeforeHeading">
       <segment>
         <source> Before you continue </source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.close">
+      <segment>
+        <source>Close weather forecast</source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.dry_until">
+      <segment>
+        <source>Conditions should stay dry until around <ph id="0" equiv="PH" disp="time"/>, when rain is expected.</source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.eyebrow">
+      <segment>
+        <source>Conditions now</source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.feels_like">
+      <segment>
+        <source>Feels like</source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.humidity">
+      <segment>
+        <source>Humidity</source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.next_hours">
+      <segment>
+        <source> Next 12 hours </source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.no_rain">
+      <segment>
+        <source>No meaningful rain is expected in the next 12 hours.</source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.rain_possible">
+      <segment>
+        <source>Rain is possible later.</source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.raining_now">
+      <segment>
+        <source>Rain is likely now.</source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.raining_until">
+      <segment>
+        <source>Rain is likely now and should ease around <ph id="0" equiv="PH" disp="time"/>.</source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.surface_dry">
+      <segment>
+        <source>Exposed surfaces are likely dry.</source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.surface_drying">
+      <segment>
+        <source>Exposed surfaces may dry around <ph id="0" equiv="PH" disp="time"/>. This is only an estimate.</source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.surface_drying_unknown">
+      <segment>
+        <source>Exposed surfaces are probably drying, but the timing is uncertain.</source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.surface_wet">
+      <segment>
+        <source>Training surfaces are likely wet.</source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.title">
+      <segment>
+        <source>Weather at</source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.uv_index">
+      <segment>
+        <source>UV index</source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.wind">
+      <segment>
+        <source>Wind</source>
+      </segment>
+    </unit>
+    <unit id="weather.spot.loading">
+      <segment>
+        <source>Loading weather</source>
+      </segment>
+    </unit>
+    <unit id="weather.spot.unavailable">
+      <segment>
+        <source>Weather unavailable. Tap to retry.</source>
+      </segment>
+    </unit>
+    <unit id="weather.state.clear">
+      <segment>
+        <source>Clear</source>
+      </segment>
+    </unit>
+    <unit id="weather.state.cloudy">
+      <segment>
+        <source>Cloudy</source>
+      </segment>
+    </unit>
+    <unit id="weather.state.drizzle">
+      <segment>
+        <source>Drizzle</source>
+      </segment>
+    </unit>
+    <unit id="weather.state.fog">
+      <segment>
+        <source>Foggy</source>
+      </segment>
+    </unit>
+    <unit id="weather.state.freezing_rain">
+      <segment>
+        <source>Freezing rain</source>
+      </segment>
+    </unit>
+    <unit id="weather.state.hail">
+      <segment>
+        <source>Hail</source>
+      </segment>
+    </unit>
+    <unit id="weather.state.heavy_rain">
+      <segment>
+        <source>Heavy rain</source>
+      </segment>
+    </unit>
+    <unit id="weather.state.heavy_snow">
+      <segment>
+        <source>Heavy snow</source>
+      </segment>
+    </unit>
+    <unit id="weather.state.mostly_clear">
+      <segment>
+        <source>Mostly clear</source>
+      </segment>
+    </unit>
+    <unit id="weather.state.partly_cloudy">
+      <segment>
+        <source>Partly cloudy</source>
+      </segment>
+    </unit>
+    <unit id="weather.state.rain">
+      <segment>
+        <source>Rain</source>
+      </segment>
+    </unit>
+    <unit id="weather.state.sleet">
+      <segment>
+        <source>Sleet</source>
+      </segment>
+    </unit>
+    <unit id="weather.state.snow">
+      <segment>
+        <source>Snow</source>
+      </segment>
+    </unit>
+    <unit id="weather.state.thunderstorm">
+      <segment>
+        <source>Thunderstorm</source>
+      </segment>
+    </unit>
+    <unit id="weather.state.unknown">
+      <segment>
+        <source>Weather unavailable</source>
+      </segment>
+    </unit>
+    <unit id="weather.state.windy">
+      <segment>
+        <source>Windy</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.hail.label">
+      <segment>
+        <source>Hail risk</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.hail.message">
+      <segment>
+        <source>Hail is possible during this forecast.</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.harsh_sun.label">
+      <segment>
+        <source>Harsh sunlight</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.harsh_sun.message">
+      <segment>
+        <source>Exposed obstacles may become very hot in direct sunlight.</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.heavy_rain.label">
+      <segment>
+        <source>Heavy rain</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.heavy_rain.message">
+      <segment>
+        <source>Heavy rain could make training surfaces unsafe.</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.high_uv.label">
+      <segment>
+        <source>High UV</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.high_uv.message">
+      <segment>
+        <source>UV exposure is high. Consider sun protection.</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.ice_risk.label">
+      <segment>
+        <source>Ice risk</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.ice_risk.message">
+      <segment>
+        <source>Surfaces may be icy or freezing.</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.poor_air_quality.label">
+      <segment>
+        <source>Poor air quality</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.poor_air_quality.message">
+      <segment>
+        <source>Air quality may be unsuitable for intense outdoor exercise.</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.rain_expected.label">
+      <segment>
+        <source>Rain expected</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.rain_expected.message">
+      <segment>
+        <source>Rain is expected during this forecast.</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.strong_wind.label">
+      <segment>
+        <source>Strong wind</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.strong_wind.message">
+      <segment>
+        <source>Strong wind may affect balance and exposed training.</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.thunderstorm.label">
+      <segment>
+        <source>Thunderstorm risk</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.thunderstorm.message">
+      <segment>
+        <source>Avoid exposed structures while thunderstorms are possible.</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.wet_surface.label">
+      <segment>
+        <source>Wet surfaces</source>
+      </segment>
+    </unit>
+    <unit id="weather.warning.wet_surface.message">
+      <segment>
+        <source>Training surfaces are likely to be wet or slippery.</source>
       </segment>
     </unit>
     <unit id="welcomeDialogAboutButton">

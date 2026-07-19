@@ -1,0 +1,133 @@
+<div class="weather-dialog-header">
+  <div>
+    <span class="mat-label-medium" i18n="@@weather.dialog.eyebrow"
+      >Conditions now</span
+    >
+    <h2 mat-dialog-title>
+      <span i18n="@@weather.dialog.title">Weather at</span>
+      {{ data.spotName }}
+    </h2>
+  </div>
+  <button
+    type="button"
+    mat-icon-button
+    mat-dialog-close
+    aria-label="Close weather forecast"
+    i18n-aria-label="@@weather.dialog.close"
+  >
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content>
+  <section class="current-conditions">
+    <mat-icon class="current-icon" aria-hidden="true">{{
+      currentIcon
+    }}</mat-icon>
+    <div class="current-copy">
+      <div class="current-heading">
+        @if (currentTemperature !== undefined) {
+          <span class="mat-display-small">{{ currentTemperature }} °C</span>
+        }
+        <span class="mat-title-medium">{{ currentState.label }}</span>
+      </div>
+      <p class="mat-body-large">{{ narrative }}</p>
+      @if (surfaceNote) {
+        <p class="surface-note mat-body-medium">{{ surfaceNote }}</p>
+      }
+    </div>
+  </section>
+
+  @if (warnings.length > 0) {
+    <section class="warning-list" aria-label="Weather warnings" i18n-aria-label>
+      @for (warning of warnings; track warning.label) {
+        <div
+          class="weather-warning"
+          [class.high]="warning.severity === 'high'"
+        >
+          <mat-icon aria-hidden="true">{{ warning.icon }}</mat-icon>
+          <div>
+            <strong class="mat-title-small">{{ warning.label }}</strong>
+            <p class="mat-body-small">{{ warning.message }}</p>
+          </div>
+        </div>
+      }
+    </section>
+  }
+
+  @if (current) {
+    <section class="metric-grid" aria-label="Current weather details" i18n-aria-label>
+      @if (apparentTemperature !== undefined) {
+        <div class="weather-metric">
+          <mat-icon aria-hidden="true">thermostat</mat-icon>
+          <span class="mat-label-small" i18n="@@weather.dialog.feels_like"
+            >Feels like</span
+          >
+          <strong>{{ apparentTemperature }} °C</strong>
+        </div>
+      }
+      @if (current.relativeHumidityPercent !== undefined) {
+        <div class="weather-metric">
+          <mat-icon aria-hidden="true">water_drop</mat-icon>
+          <span class="mat-label-small" i18n="@@weather.dialog.humidity"
+            >Humidity</span
+          >
+          <strong>{{ current.relativeHumidityPercent }}%</strong>
+        </div>
+      }
+      @if (current.uvIndex !== undefined) {
+        <div class="weather-metric">
+          <mat-icon aria-hidden="true">sunny</mat-icon>
+          <span class="mat-label-small" i18n="@@weather.dialog.uv_index"
+            >UV index</span
+          >
+          <strong>{{ current.uvIndex }}</strong>
+        </div>
+      }
+      @if (current.windSpeedKmh !== undefined) {
+        <div class="weather-metric">
+          <mat-icon aria-hidden="true">air</mat-icon>
+          <span class="mat-label-small" i18n="@@weather.dialog.wind">Wind</span>
+          <strong>{{ current.windSpeedKmh }} km/h</strong>
+        </div>
+      }
+    </section>
+  }
+
+  <section class="hourly-section">
+    <h3 class="mat-title-medium" i18n="@@weather.dialog.next_hours">
+      Next 12 hours
+    </h3>
+    <div class="hourly-strip">
+      @for (hour of hours; track hour.time) {
+        <div class="weather-hour">
+          <time class="mat-label-medium">{{ hour.time }}</time>
+          <mat-icon [attr.aria-label]="hour.condition">{{ hour.icon }}</mat-icon>
+          @if (hour.temperature !== undefined) {
+            <strong>{{ hour.temperature }}°</strong>
+          }
+          @if (
+            hour.rainProbability !== undefined ||
+            (hour.precipitationMm ?? 0) > 0
+          ) {
+            <span class="rain-detail mat-label-small">
+              <mat-icon aria-hidden="true">water_drop</mat-icon>
+              {{ hour.rainProbability ?? 0 }}%
+            </span>
+          }
+        </div>
+      }
+    </div>
+  </section>
+
+  <a
+    mat-button
+    class="attribution"
+    [href]="providerUrl"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    {{ attribution }}
+    <mat-icon>open_in_new</mat-icon>
+  </a>
+</mat-dialog-content>

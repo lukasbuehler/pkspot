@@ -18,7 +18,9 @@ import {
   inject,
   OnDestroy,
   ChangeDetectionStrategy,
-  output
+  output,
+  PLATFORM_ID,
+  resource,
 } from "@angular/core";
 import {
   MatProgressBar,
@@ -110,7 +112,12 @@ import { SpotRatingComponent } from "../spot-rating/spot-rating.component";
 import { MatIcon } from "@angular/material/icon";
 import { MatTooltip } from "@angular/material/tooltip";
 import { MatIconButton, MatButton } from "@angular/material/button";
-import { KeyValuePipe, LocationStrategy, JsonPipe } from "@angular/common";
+import {
+  isPlatformBrowser,
+  JsonPipe,
+  KeyValuePipe,
+  LocationStrategy,
+} from "@angular/common";
 import {
   MatChipListbox,
   MatChipsModule,
@@ -188,6 +195,17 @@ import {
 import { SpotProvenanceComponent } from "../spot-provenance/spot-provenance.component";
 import { EventCardComponent } from "../event-card/event-card.component";
 import { MediaUploadStatusService } from "../../services/firebase/firestore/media-upload-status.service";
+import {
+  WeatherIconButtonComponent,
+  type WeatherIconData,
+} from "../weather-icon-button/weather-icon-button.component";
+import { WeatherService } from "../../weather/weather.service";
+import {
+  WeatherForecastDialogComponent,
+  type WeatherForecastDialogData,
+} from "../weather-forecast-dialog/weather-forecast-dialog.component";
+import { SpotAccessPickerComponent } from "../spot-access-picker/spot-access-picker.component";
+import { SpotTypePickerComponent } from "../spot-type-picker/spot-type-picker.component";
 
 @Pipe({ name: "reverse" })
 export class ReversePipe implements PipeTransform {
@@ -300,6 +318,9 @@ type OrganizationRelationshipSaveResult = "unchanged" | "changed" | "failed";
     RouterLink,
     SpotProvenanceComponent,
     EventCardComponent,
+    WeatherIconButtonComponent,
+    SpotAccessPickerComponent,
+    SpotTypePickerComponent,
   ],
   host: {
     "[style.--open-progress]": "openProgressStyle",
@@ -320,6 +341,8 @@ export class SpotDetailsComponent
   private _organizationsService = inject(OrganizationsService);
   private _ageAssuranceService = inject(AgeAssuranceService);
   private _mediaUploadStatusService = inject(MediaUploadStatusService);
+  private readonly _platformId = inject(PLATFORM_ID);
+  private readonly _weatherService = inject(WeatherService);
 
   /**
    * Sets the --open-progress CSS custom property on the host element.
@@ -330,6 +353,49 @@ export class SpotDetailsComponent
   }
 
   spot = model<Spot | LocalSpot | null>(null);
+  readonly weatherResource = resource({
+    params: () => {
+      const location = this.spot()?.location();
+      if (
+        !isPlatformBrowser(this._platformId) ||
+        !location ||
+        !Number.isFinite(location.lat) ||
+        !Number.isFinite(location.lng)
+      ) {
+        return undefined;
+      }
+      return location;
+    },
+    loader: ({ params }) =>
+      this._weatherService.getCurrentAndNearFuture(params),
+  });
+  readonly weatherIconData = computed<WeatherIconData>(() => {
+    if (!this.weatherResource.hasValue()) {
+      return { condition: "unknown" };
+    }
+    const response = this.weatherResource.value();
+    const point = response?.current ?? response?.forecast?.[0];
+    if (!point) {
+      return { condition: "unknown" };
+    }
+    return {
+      condition: point.condition ?? "unknown",
+      isDay: point.isDay,
+      temperatureC: point.temperatureC,
+    };
+  });
+  readonly weatherIconOverride = computed(() =>
+    this.weatherResource.error() ? "refresh" : undefined,
+  );
+  readonly weatherIconLabel = computed(() => {
+    if (this.weatherResource.error()) {
+      return $localize`:@@weather.spot.unavailable:Weather unavailable. Tap to retry.`;
+    }
+    if (!this.weatherResource.hasValue()) {
+      return $localize`:@@weather.spot.loading:Loading weather`;
+    }
+    return undefined;
+  });
   notLocalSpotOrNull = computed(() => {
     const spot = this.spot();
 
@@ -594,12 +660,10 @@ export class SpotDetailsComponent
   // Stable empty LocaleMap to avoid identity churn in templates when descriptions are unset
   private readonly _EMPTY_LOCALE_MAP = Object.freeze({}) as LocaleMap;
 
-  spotTypes = Object.values(SpotTypes);
   spotTypeNames = SpotTypesNames;
   spotTypesIcons = SpotTypesIcons;
   spotTypeDescriptions = SpotTypesDescriptions;
 
-  spotAccesses = Object.values(SpotAccess);
   spotAccessNames = SpotAccessNames;
   spotAccessIcons = SpotAccessIcons;
   spotAccessDescriptions = SpotAccessDescriptions;
@@ -964,6 +1028,40 @@ export class SpotDetailsComponent
 
   get grow() {
     return { value: this.spot(), params: { startHeight: this.startHeight } };
+  }
+
+  openWeatherDialog(): void {
+    if (!this.weatherResource.hasValue()) {
+      if (this.weatherResource.error()) {
+        this.weatherResource.reload();
+      }
+      return;
+    }
+
+    const response = this.weatherResource.value();
+    const spot = this.spot();
+    if (!response || !spot) {
+      return;
+    }
+
+    this.dialog.open<
+      WeatherForecastDialogComponent,
+      WeatherForecastDialogData
+    >(WeatherForecastDialogComponent, {
+      data: {
+        spotName: spot.name(),
+        response,
+      },
+      width: "680px",
+      maxWidth: "calc(100vw - 24px)",
+      maxHeight: "calc(100dvh - 24px)",
+      autoFocus: "dialog",
+      restoreFocus: true,
+    });
+    this._analyticsService.trackEvent("spot_weather_opened", {
+      provider: response.provider,
+      spotId: spot instanceof Spot ? spot.id : "local",
+    });
   }
 
   constructor(

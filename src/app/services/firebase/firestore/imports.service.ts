@@ -136,10 +136,7 @@ export class ImportsService {
         "getPublicImportProvenance",
         { importId }
       )
-      .catch((error: unknown) => {
-        this._publicProvenanceCache.delete(importId);
-        throw error;
-      });
+      .catch(() => null);
 
     this._publicProvenanceCache.set(importId, request);
     return request;

@@ -4,6 +4,7 @@ import {
   buildWeatherCacheKey,
   buildWeatherInsights,
   getProviderCacheDurationMs,
+  normalizeWeatherCondition,
   parseWeatherRequest,
   resolveRequestWindow,
   resolveWeatherProvider,
@@ -122,6 +123,20 @@ describe("weather functions", () => {
     expect(getProviderCacheDurationMs("open-meteo", "event-forecast")).toBe(
       6 * 60 * 60 * 1000
     );
+  });
+
+  it("normalizes provider weather conditions", () => {
+    expect(normalizeWeatherCondition("google", "MOSTLY_CLEAR")).toBe(
+      "mostly-clear"
+    );
+    expect(normalizeWeatherCondition("google", "HEAVY_RAIN_SHOWERS")).toBe(
+      "heavy-rain"
+    );
+    expect(normalizeWeatherCondition("google", "RAIN_AND_SNOW")).toBe("sleet");
+    expect(normalizeWeatherCondition("open-meteo", 45)).toBe("fog");
+    expect(normalizeWeatherCondition("open-meteo", 67)).toBe("freezing-rain");
+    expect(normalizeWeatherCondition("open-meteo", 99)).toBe("hail");
+    expect(normalizeWeatherCondition("open-meteo", 999)).toBe("unknown");
   });
 
   it("derives rain, dry-until, sun, and drying insights", () => {

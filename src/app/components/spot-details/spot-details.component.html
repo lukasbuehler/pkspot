@@ -306,10 +306,7 @@
                     <span>{{ displayLocation() }}</span>
                   }
                   @if (countryFlagEmoji()) {
-                    <span
-                      class="flag-emoji"
-                      [matTooltip]="countryTooltip()"
-                    >
+                    <span class="flag-emoji" [matTooltip]="countryTooltip()">
                       {{ countryFlagEmoji() }}
                     </span>
                   }
@@ -324,6 +321,13 @@
               class="spot-button-row collapsible-header-info flex-shrink-0"
               [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
             >
+              <app-weather-icon-button
+                [weather]="weatherIconData()"
+                [icon]="weatherIconOverride()"
+                [label]="weatherIconLabel()"
+                (pressed)="openWeatherDialog()"
+              />
+
               @if (!isLocalSpot()) {
                 @if (authenticationService.isSignedIn) {
                   <button
@@ -1334,60 +1338,14 @@
             Access and Type
           </h4>
           <div class="d-flex flex-column gap-4 align-items-stretch">
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-              <mat-label
-                i18n="
-                  Spot access label|Label for the spot access selection
-                  field@@spot_access_label"
-                >Spot Access</mat-label
-              >
-              <mat-select
-                [value]="spot()!.access()"
-                (valueChange)="spot()!.access.set($event)"
-              >
-                <mat-select-trigger>
-                  <span class="d-flex align-items-center gap-2">
-                    <mat-icon>{{ spotAccessIcons[spot()!.access()] }}</mat-icon>
-                    <span>{{ spotAccessNames[spot()!.access()] }}</span>
-                  </span>
-                </mat-select-trigger>
-                @for (spotAccess of spotAccesses; track $index) {
-                  <mat-option [value]="spotAccess">
-                    <mat-icon>{{ spotAccessIcons[spotAccess] }}</mat-icon>
-                    <span>{{ spotAccessNames[spotAccess] }}</span>
-                  </mat-option>
-                }
-              </mat-select>
-              <mat-hint>{{
-                spotAccessDescriptions[spot()!.access()]
-              }}</mat-hint>
-            </mat-form-field>
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-              <mat-label
-                i18n="
-                  Spot type label|Label for the spot type selection
-                  field@@spot_type_label"
-                >Spot Type</mat-label
-              >
-              <mat-select
-                [value]="spot()!.type()"
-                (valueChange)="spot()!.type.set($event)"
-              >
-                <mat-select-trigger>
-                  <span class="d-flex align-items-center gap-2">
-                    <mat-icon>{{ spotTypesIcons[spot()!.type()] }}</mat-icon>
-                    <span>{{ spotTypeNames[spot()!.type()] }}</span>
-                  </span>
-                </mat-select-trigger>
-                @for (spotType of spotTypes; track $index) {
-                  <mat-option [value]="spotType">
-                    <mat-icon>{{ spotTypesIcons[spotType] }}</mat-icon>
-                    <span>{{ spotTypeNames[spotType] }}</span>
-                  </mat-option>
-                }
-              </mat-select>
-              <mat-hint>{{ spotTypeDescriptions[spot()!.type()] }}</mat-hint>
-            </mat-form-field>
+            <app-spot-access-picker
+              [value]="spot()!.access()"
+              (valueChange)="spot()!.access.set($event)"
+            />
+            <app-spot-type-picker
+              [value]="spot()!.type()"
+              (valueChange)="spot()!.type.set($event)"
+            />
           </div>
         </div>
 

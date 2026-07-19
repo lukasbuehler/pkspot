@@ -31,7 +31,8 @@ These instructions apply to all work in this repository.
 - Keep components focused on a single responsibility.
 - Use `input()` and `output()` instead of decorator-based inputs and outputs.
 - Set `changeDetection: ChangeDetectionStrategy.OnPush` in component decorators.
-- Prefer inline templates for small components.
+- Create a separate `.html` template file for every new component, including
+  small components. Keep component TypeScript focused on state and behavior.
 - Prefer signal forms for new isolated forms on Angular 21+ when the surrounding feature can support them. For existing form-heavy features, keep using typed reactive forms unless a broader migration is intentional.
 - Avoid template-driven forms for complex flows.
 - Do not use `ngClass`; use `class` bindings instead.

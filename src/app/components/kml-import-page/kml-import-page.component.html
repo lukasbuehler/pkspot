@@ -269,37 +269,16 @@
                 </div>
 
                 <div class="d-flex gap-2 flex-wrap">
-                  <mat-form-field appearance="outline" subscriptSizing="dynamic" style="width: 220px">
-                    <mat-label>Type</mat-label>
-                    <mat-select [(value)]="folder.type">
-                      @for(type of SpotTypes | keyvalue; track type) {
-                      <mat-option [value]="type.value">
-                        <div class="d-flex align-items-center">
-                          <!-- <mat-icon class="mr-2">{{
-                                spotTypesIcons[type.value]
-                              }}</mat-icon> -->
-                          {{ spotTypesNames[type.value] }}
-                        </div>
-                      </mat-option>
-                      }
-                    </mat-select>
-                  </mat-form-field>
-
-                  <mat-form-field appearance="outline" subscriptSizing="dynamic" style="width: 220px">
-                    <mat-label>Access</mat-label>
-                    <mat-select [(value)]="folder.access">
-                      @for(access of SpotAccess | keyvalue; track access) {
-                      <mat-option [value]="access.value">
-                        <div class="d-flex align-items-center">
-                          <!-- <mat-icon class="mr-2">{{
-                                spotAccessIcons[access.value]
-                              }}</mat-icon> -->
-                          {{ spotAccessNames[access.value] }}
-                        </div>
-                      </mat-option>
-                      }
-                    </mat-select>
-                  </mat-form-field>
+                  <app-spot-type-picker
+                    class="folder-picker"
+                    [value]="folder.type ?? defaultSpotType"
+                    (valueChange)="folder.type = $event"
+                  />
+                  <app-spot-access-picker
+                    class="folder-picker"
+                    [value]="folder.access ?? defaultSpotAccess"
+                    (valueChange)="folder.access = $event"
+                  />
                 </div>
 
                 <div class="folder-amenities mt-1 d-flex align-items-center gap-2">
@@ -482,30 +461,17 @@
                           " />
                       </mat-form-field>
 
-                      <mat-form-field appearance="outline" class="w-100 mt-2">
-                        <mat-label>Type</mat-label>
-                        <mat-select [value]="selectedVerificationSpot()!.type()"
-                          (valueChange)="setSelectedVerificationType($event)">
-                          @for(type of SpotTypes | keyvalue; track type.key) {
-                          <mat-option [value]="type.value">
-                            {{ spotTypesNames[type.value] }}
-                          </mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
+                      <app-spot-type-picker
+                        class="w-100 mt-2"
+                        [value]="selectedVerificationSpot()!.type()"
+                        (valueChange)="setSelectedVerificationType($event)"
+                      />
 
-                      <mat-form-field appearance="outline" class="w-100">
-                        <mat-label>Access</mat-label>
-                        <mat-select [value]="selectedVerificationSpot()!.access()"
-                          (valueChange)="setSelectedVerificationAccess($event)">
-                          @for(access of SpotAccess | keyvalue; track access.key)
-                          {
-                          <mat-option [value]="access.value">
-                            {{ spotAccessNames[access.value] }}
-                          </mat-option>
-                          }
-                        </mat-select>
-                      </mat-form-field>
+                      <app-spot-access-picker
+                        class="w-100"
+                        [value]="selectedVerificationSpot()!.access()"
+                        (valueChange)="setSelectedVerificationAccess($event)"
+                      />
 
                       <div class="d-flex flex-wrap gap-2 mb-2">
                         <button mat-stroked-button type="button" (click)="applySelectedTypeAndAccessToFolder()">

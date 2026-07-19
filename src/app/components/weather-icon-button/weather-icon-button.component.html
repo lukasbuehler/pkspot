@@ -1,0 +1,14 @@
+<button
+  type="button"
+  mat-icon-button
+  class="weather-button"
+  [class.compact]="size() === 'compact'"
+  [class.is-clear]="state().tone === 'sun'"
+  [class.is-wet]="state().tone === 'wet'"
+  [class.is-severe]="state().tone === 'severe'"
+  [attr.aria-label]="accessibleLabel()"
+  [matTooltip]="accessibleLabel()"
+  (click)="onPress($event)"
+>
+  <mat-icon aria-hidden="true">{{ resolvedIcon() }}</mat-icon>
+</button>
