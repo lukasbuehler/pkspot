@@ -39,6 +39,7 @@ import { MapsApiService } from "../../services/maps-api.service";
 import { MapPerformanceProfilerService } from "../../services/map-performance-profiler.service";
 import { ConsentService } from "../../services/consent.service";
 import { AppSettingsService } from "../../services/app-settings.service";
+import { bindSignalToImperativeApi } from "../../shared/imperative-signal-sync";
 import { GeoPoint } from "firebase/firestore";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { trigger, transition, style, animate } from "@angular/animations";
@@ -1738,8 +1739,10 @@ export class GoogleMap2dComponent
   ) {
     super();
 
-    effect(() => this._applyCenter(this.centerInput()));
-    effect(() => this._applyZoom(this.zoomInput()));
+    bindSignalToImperativeApi(this.centerInput, (center) =>
+      this._applyCenter(center),
+    );
+    bindSignalToImperativeApi(this.zoomInput, (zoom) => this._applyZoom(zoom));
 
     // Clear any stale error state from previous sessions
     this.geolocationService.error.set(null);

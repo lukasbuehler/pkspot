@@ -6,6 +6,7 @@ import {
   getStaticAssetCacheControl,
   getQrStickerRedirectTarget,
   getTrustedClientRegionFromHeaders,
+  handlePublicCallableRequest,
   handleQrStickerRequest,
   isStaticSsrPath,
   LONG_LIVED_ASSET_CACHE_CONTROL,
@@ -102,6 +103,60 @@ describe("proxy-server client region helpers", () => {
     expect(res.setHeader).not.toHaveBeenCalled();
     expect(res.redirect).not.toHaveBeenCalled();
     expect(next).toHaveBeenCalled();
+  });
+
+  it("should proxy the allowlisted public provenance callable", async () => {
+    const headers = new Map([["content-type", "application/json"]]);
+    const fetchImpl = vi.fn().mockResolvedValue({
+      headers: { get: (name: string) => headers.get(name) ?? null },
+      status: 200,
+      text: vi.fn().mockResolvedValue('{"result":null}'),
+    });
+    const res = {
+      send: vi.fn(),
+      setHeader: vi.fn(),
+      status: vi.fn(() => res),
+    };
+
+    await handlePublicCallableRequest(
+      {
+        body: { data: { importId: "pkspot-import" } },
+        params: { functionName: "getPublicImportProvenance" },
+      },
+      res,
+      fetchImpl,
+    );
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      "https://europe-west1-parkour-base-project.cloudfunctions.net/getPublicImportProvenance",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: '{"data":{"importId":"pkspot-import"}}',
+      },
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.send).toHaveBeenCalledWith('{"result":null}');
+  });
+
+  it("should reject public callable names that are not allowlisted", async () => {
+    const fetchImpl = vi.fn();
+    const res = {
+      send: vi.fn(),
+      status: vi.fn(() => res),
+    };
+
+    await handlePublicCallableRequest(
+      {
+        body: { data: {} },
+        params: { functionName: "adminFunction" },
+      },
+      res,
+      fetchImpl,
+    );
+
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(404);
   });
 
   it("should cache fingerprinted browser assets for a long time", () => {

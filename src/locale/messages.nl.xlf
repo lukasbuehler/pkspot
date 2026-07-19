@@ -54,12 +54,6 @@
         <target>Community card suggestion submitted for review</target>
       </segment>
     </unit>
-    <unit id="3753871980492025915">
-      <segment state="initial">
-        <source>spots visited</source>
-        <target>spots bezocht</target>
-      </segment>
-    </unit>
     <unit id="3762050401268226469">
       <segment state="initial">
         <source>Unknown Action</source>
@@ -3522,6 +3516,12 @@
         <target>Hulp</target>
       </segment>
     </unit>
+    <unit id="9103544018838053799">
+      <segment state="initial">
+        <source>{VAR_PLURAL, plural, =1 {spot visited} other {spots visited}}</source>
+        <target>{VAR_PLURAL, plural, =1 {spot bezocht} other {spots bezocht}}</target>
+      </segment>
+    </unit>
     <unit id="9107902639851774121">
       <segment state="initial">
         <source>Checking admin access...</source>
@@ -3687,10 +3687,6 @@
       </segment>
     </unit>
     <unit id="spot_access_label">
-      <notes>
-        <note category="description">Label for the spot access selection field</note>
-        <note category="meaning">Spot access label</note>
-      </notes>
       <segment state="initial">
         <source>Spot Access</source>
         <target>Toegang tot Spot</target>
@@ -3810,6 +3806,18 @@
         <target>Weersverwachting sluiten</target>
       </segment>
     </unit>
+    <unit id="weather.dialog.covered.message">
+      <segment state="final">
+        <source> This training area should stay protected from rain and may be shaded from direct sunlight. The forecast shows the surrounding outdoor conditions. </source>
+        <target> Deze trainingsplek zou beschermd moeten blijven tegen regen en kan ook beschut zijn tegen direct zonlicht. De voorspelling toont de buitenomstandigheden in de omgeving. </target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.covered.title">
+      <segment state="final">
+        <source>Covered spot</source>
+        <target>Overdekte Spot</target>
+      </segment>
+    </unit>
     <unit id="weather.dialog.dry_until">
       <segment state="translated">
         <source>Conditions should stay dry until around <ph id="0" equiv="PH" disp="time"/>, when rain is expected.</source>
@@ -3832,6 +3840,12 @@
       <segment state="translated">
         <source>Humidity</source>
         <target>Luchtvochtigheid</target>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.next_days">
+      <segment state="final">
+        <source> Next 7 days </source>
+        <target> Komende 7 dagen </target>
       </segment>
     </unit>
     <unit id="weather.dialog.next_hours">
@@ -3904,18 +3918,6 @@
       <segment state="translated">
         <source>Wind</source>
         <target>Windsnelheid</target>
-      </segment>
-    </unit>
-    <unit id="weather.spot.loading">
-      <segment state="translated">
-        <source>Loading weather</source>
-        <target>Weer laden</target>
-      </segment>
-    </unit>
-    <unit id="weather.spot.unavailable">
-      <segment state="translated">
-        <source>Weather unavailable. Tap to retry.</source>
-        <target>Weer niet beschikbaar. Tik om opnieuw te proberen.</target>
       </segment>
     </unit>
     <unit id="weather.state.clear">
@@ -8484,10 +8486,6 @@
       </segment>
     </unit>
     <unit id="spot_type_label">
-      <notes>
-        <note category="description">Label for the spot type selection field</note>
-        <note category="meaning">Spot type label</note>
-      </notes>
       <segment state="initial">
         <source>Spot Type</source>
         <target>Type Spot</target>

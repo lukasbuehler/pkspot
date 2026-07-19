@@ -4,6 +4,7 @@ import compression from "compression";
 import {
   applySsrDocumentCacheHeaders,
   applyTrustedClientRegionHeader,
+  handlePublicCallableRequest,
   handleQrStickerRequest,
   getStaticAssetCacheControl,
   REVALIDATING_ASSET_CACHE_CONTROL,
@@ -172,6 +173,12 @@ function run() {
   server.get("/qr/:slug", async (req, res, next) => {
     return handleQrStickerRequest(req, res, next);
   });
+
+  server.post(
+    "/api/functions/:functionName",
+    express.json({ limit: "4kb" }),
+    handlePublicCallableRequest,
+  );
 
   const rootIconPaths = {
     "/favicon.ico": "../browser/en/favicon.ico",

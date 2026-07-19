@@ -123,12 +123,14 @@ export type WeatherWarning =
   | "wet-surface";
 
 export type WeatherWarningSeverity = "info" | "caution" | "high";
+export type WeatherWarningTone = "primary" | "error";
 
 export interface WeatherWarningDefinition {
   icon: string;
   label: string;
   message: string;
   severity: WeatherWarningSeverity;
+  tone: WeatherWarningTone;
 }
 
 export const WEATHER_WARNINGS = {
@@ -137,60 +139,70 @@ export const WEATHER_WARNINGS = {
     label: $localize`:@@weather.warning.rain_expected.label:Rain expected`,
     message: $localize`:@@weather.warning.rain_expected.message:Rain is expected during this forecast.`,
     severity: "caution",
+    tone: "primary",
   },
   "heavy-rain": {
     icon: "umbrella",
     label: $localize`:@@weather.warning.heavy_rain.label:Heavy rain`,
     message: $localize`:@@weather.warning.heavy_rain.message:Heavy rain could make training surfaces unsafe.`,
     severity: "high",
+    tone: "error",
   },
   thunderstorm: {
     icon: "warning",
     label: $localize`:@@weather.warning.thunderstorm.label:Thunderstorm risk`,
     message: $localize`:@@weather.warning.thunderstorm.message:Avoid exposed structures while thunderstorms are possible.`,
     severity: "high",
+    tone: "error",
   },
   hail: {
     icon: "warning",
     label: $localize`:@@weather.warning.hail.label:Hail risk`,
     message: $localize`:@@weather.warning.hail.message:Hail is possible during this forecast.`,
     severity: "high",
+    tone: "error",
   },
   "ice-risk": {
     icon: "ac_unit",
     label: $localize`:@@weather.warning.ice_risk.label:Ice risk`,
     message: $localize`:@@weather.warning.ice_risk.message:Surfaces may be icy or freezing.`,
     severity: "high",
+    tone: "error",
   },
   "harsh-sun": {
     icon: "sunny",
     label: $localize`:@@weather.warning.harsh_sun.label:Harsh sunlight`,
     message: $localize`:@@weather.warning.harsh_sun.message:Exposed obstacles may become very hot in direct sunlight.`,
     severity: "caution",
+    tone: "error",
   },
   "high-uv": {
     icon: "sunny",
     label: $localize`:@@weather.warning.high_uv.label:High UV`,
     message: $localize`:@@weather.warning.high_uv.message:UV exposure is high. Consider sun protection.`,
     severity: "caution",
+    tone: "error",
   },
   "strong-wind": {
     icon: "warning",
     label: $localize`:@@weather.warning.strong_wind.label:Strong wind`,
     message: $localize`:@@weather.warning.strong_wind.message:Strong wind may affect balance and exposed training.`,
     severity: "caution",
+    tone: "error",
   },
   "poor-air-quality": {
     icon: "warning",
     label: $localize`:@@weather.warning.poor_air_quality.label:Poor air quality`,
     message: $localize`:@@weather.warning.poor_air_quality.message:Air quality may be unsuitable for intense outdoor exercise.`,
     severity: "high",
+    tone: "error",
   },
   "wet-surface": {
     icon: "water_drop",
     label: $localize`:@@weather.warning.wet_surface.label:Wet surfaces`,
     message: $localize`:@@weather.warning.wet_surface.message:Training surfaces are likely to be wet or slippery.`,
     severity: "caution",
+    tone: "primary",
   },
 } satisfies Record<WeatherWarning, WeatherWarningDefinition>;
 

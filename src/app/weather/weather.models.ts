@@ -25,6 +25,19 @@ export interface WeatherPoint {
   isDay?: boolean;
 }
 
+export interface DailyWeatherPoint {
+  date: string;
+  maxTemperatureC?: number;
+  minTemperatureC?: number;
+  precipitationMm?: number;
+  precipitationProbabilityPercent?: number;
+  uvIndex?: number;
+  weatherCode?: string;
+  condition?: WeatherCondition;
+  sunrise?: string;
+  sunset?: string;
+}
+
 export interface WeatherInsights {
   summary: string;
   rainStartsAt?: string;
@@ -50,6 +63,7 @@ export interface WeatherResponse {
   timeZone?: string;
   current?: WeatherPoint;
   forecast?: WeatherPoint[];
+  dailyForecast?: DailyWeatherPoint[];
   target?: WeatherPoint;
   insights: WeatherInsights;
 }

@@ -49,6 +49,34 @@ describe("WeatherIconButtonComponent", () => {
     expect(
       fixture.nativeElement.querySelector("button").getAttribute("aria-label"),
     ).toBe("Clear");
+    expect(fixture.nativeElement.querySelector("button").classList).not.toContain(
+      "is-wet",
+    );
+    expect(fixture.nativeElement.querySelector("button").classList).not.toContain(
+      "has-warning",
+    );
+  });
+
+  it("applies wet and warning status colors", async () => {
+    fixture.componentRef.setInput("weather", {
+      condition: "rain",
+      status: "wet",
+    } satisfies WeatherIconData);
+    await fixture.whenStable();
+
+    const button = fixture.nativeElement.querySelector(
+      "button",
+    ) as HTMLButtonElement;
+    expect(button.classList).toContain("is-wet");
+
+    fixture.componentRef.setInput("weather", {
+      condition: "clear",
+      status: "warning",
+    } satisfies WeatherIconData);
+    await fixture.whenStable();
+
+    expect(button.classList).toContain("has-warning");
+    expect(button.classList).not.toContain("is-wet");
   });
 
   it("allows callers to override the selected Material icon", async () => {

@@ -168,7 +168,11 @@
                           >
                             <mat-icon>beenhere</mat-icon>
                             <strong>{{ user.visitedSpotsCount }}</strong>
-                            <span i18n>spots visited</span>
+                            <span i18n
+                              >{user.visitedSpotsCount, plural,
+                              =1 {spot visited}
+                              other {spots visited}}</span
+                            >
                           </div>
                         }
                       </div>

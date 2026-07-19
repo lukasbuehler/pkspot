@@ -5,6 +5,9 @@ export const REVALIDATING_ASSET_CACHE_CONTROL =
   "public, max-age=0, must-revalidate";
 export const DYNAMIC_SSR_CACHE_CONTROL = "no-cache";
 export const MISSING_ASSET_CACHE_CONTROL = "no-store";
+export const PUBLIC_CALLABLE_FUNCTIONS = new Set([
+  "getPublicImportProvenance",
+]);
 export const QR_STICKER_CAMPAIGNS = {
   nice: {
     campaign: "nice-spot-v1",
@@ -96,6 +99,45 @@ export function handleQrStickerRequest(req, res, next) {
 
   res.setHeader("Cache-Control", "no-store");
   return res.redirect(302, target);
+}
+
+export async function handlePublicCallableRequest(
+  req,
+  res,
+  fetchImpl = fetch,
+) {
+  const functionName = req?.params?.functionName;
+  if (!PUBLIC_CALLABLE_FUNCTIONS.has(functionName)) {
+    return res.status(404).send("Unknown public function");
+  }
+
+  const projectId = process.env["GCLOUD_PROJECT"] || "parkour-base-project";
+  const functionUrl =
+    `https://europe-west1-${projectId}.cloudfunctions.net/${functionName}`;
+
+  try {
+    const upstream = await fetchImpl(functionUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(req.body),
+    });
+    const responseBody = await upstream.text();
+
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader(
+      "Content-Type",
+      upstream.headers.get("content-type") || "application/json",
+    );
+    return res.status(upstream.status).send(responseBody);
+  } catch (error) {
+    console.error(`Failed to proxy public function ${functionName}:`, error);
+    return res.status(502).json({
+      error: {
+        status: "UNAVAILABLE",
+        message: "The public function is temporarily unavailable.",
+      },
+    });
+  }
 }
 
 function hasVersionQuery(req) {

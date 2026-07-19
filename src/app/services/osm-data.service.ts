@@ -4,11 +4,14 @@ import { Observable } from "rxjs";
 import { map, timeout } from "rxjs/operators";
 import { MarkerSchema } from "../components/map/markers/map-marker.model";
 
-// Preserve toilet relevance ordering within a layer below Spot markers.
-const TOILET_MARKER_PRIORITY = {
-  free: -10,
-  unknown: -20,
-  paid: -30,
+// Supporting OSM amenities must never obscure the primary Spot layer.
+const OSM_AMENITY_MARKER_PRIORITY = {
+  drinkingWater: -10,
+  toilet: {
+    free: -20,
+    unknown: -30,
+    paid: -40,
+  },
 } as const;
 
 export interface NodeTags {
@@ -118,6 +121,7 @@ export class OsmDataService {
                 name: element.tags.name,
                 description: operator,
                 color: "tertiary",
+                priority: OSM_AMENITY_MARKER_PRIORITY.drinkingWater,
                 type: "drinking_water",
               };
               return marker;
@@ -141,6 +145,7 @@ export class OsmDataService {
                   element.tags?.name ?? $localize`Unnamed Drinking Water spot`,
                 description: operator,
                 color: "tertiary",
+                priority: OSM_AMENITY_MARKER_PRIORITY.drinkingWater,
                 type: "drinking_water",
               };
               return marker;
@@ -182,10 +187,10 @@ export class OsmDataService {
                 description: detailsParts.join(" • "),
                 color: "tertiary",
                 priority: isFree
-                  ? TOILET_MARKER_PRIORITY.free
+                  ? OSM_AMENITY_MARKER_PRIORITY.toilet.free
                   : isPaid
-                    ? TOILET_MARKER_PRIORITY.paid
-                    : TOILET_MARKER_PRIORITY.unknown,
+                    ? OSM_AMENITY_MARKER_PRIORITY.toilet.paid
+                    : OSM_AMENITY_MARKER_PRIORITY.toilet.unknown,
                 type: "wc",
               };
               return marker;

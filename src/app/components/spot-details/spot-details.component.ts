@@ -200,6 +200,8 @@ import {
   type WeatherIconData,
 } from "../weather-icon-button/weather-icon-button.component";
 import { WeatherService } from "../../weather/weather.service";
+import { getWeatherVisualStatus } from "../../weather/weather-warnings";
+import { getSpotWeatherContext } from "../../weather/spot-weather-context";
 import {
   WeatherForecastDialogComponent,
   type WeatherForecastDialogData,
@@ -353,11 +355,15 @@ export class SpotDetailsComponent
   }
 
   spot = model<Spot | LocalSpot | null>(null);
+  readonly spotWeatherContext = computed(() =>
+    getSpotWeatherContext(this.spot()?.amenities()),
+  );
   readonly weatherResource = resource({
     params: () => {
       const location = this.spot()?.location();
       if (
         !isPlatformBrowser(this._platformId) ||
+        !this.spotWeatherContext().available ||
         !location ||
         !Number.isFinite(location.lat) ||
         !Number.isFinite(location.lng)
@@ -382,19 +388,20 @@ export class SpotDetailsComponent
       condition: point.condition ?? "unknown",
       isDay: point.isDay,
       temperatureC: point.temperatureC,
+      status: getWeatherVisualStatus(response, {
+        covered: this.spotWeatherContext().covered,
+      }),
     };
   });
-  readonly weatherIconOverride = computed(() =>
-    this.weatherResource.error() ? "refresh" : undefined,
-  );
-  readonly weatherIconLabel = computed(() => {
-    if (this.weatherResource.error()) {
-      return $localize`:@@weather.spot.unavailable:Weather unavailable. Tap to retry.`;
+  readonly weatherAvailable = computed(() => {
+    if (
+      !this.spotWeatherContext().available ||
+      !this.weatherResource.hasValue()
+    ) {
+      return false;
     }
-    if (!this.weatherResource.hasValue()) {
-      return $localize`:@@weather.spot.loading:Loading weather`;
-    }
-    return undefined;
+    const response = this.weatherResource.value();
+    return Boolean(response?.current ?? response?.forecast?.[0]);
   });
   notLocalSpotOrNull = computed(() => {
     const spot = this.spot();
@@ -1032,9 +1039,6 @@ export class SpotDetailsComponent
 
   openWeatherDialog(): void {
     if (!this.weatherResource.hasValue()) {
-      if (this.weatherResource.error()) {
-        this.weatherResource.reload();
-      }
       return;
     }
 
@@ -1051,6 +1055,7 @@ export class SpotDetailsComponent
       data: {
         spotName: spot.name(),
         response,
+        covered: this.spotWeatherContext().covered,
       },
       width: "680px",
       maxWidth: "calc(100vw - 24px)",

@@ -3,6 +3,7 @@ import { FirebaseApp } from "@angular/fire/app";
 import { Functions, httpsCallable } from "@angular/fire/functions";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+import { environment } from "../../../environments/environment.default";
 import { PlatformService } from "../platform.service";
 import { FunctionsAdapterService } from "./functions-adapter.service";
 
@@ -24,6 +25,7 @@ describe("FunctionsAdapterService", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    environment.production = false;
     platformService = {
       isNative: vi.fn(() => false),
     };
@@ -115,6 +117,29 @@ describe("FunctionsAdapterService", () => {
         }),
       },
     );
+  });
+
+  it("uses the same-origin proxy for production public provenance requests", async () => {
+    environment.production = true;
+    const service = TestBed.inject(FunctionsAdapterService);
+
+    const result = await service.callPublic<
+      { importId: string },
+      { ok: boolean }
+    >("getPublicImportProvenance", { importId: "picos-parkour-mutano" });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/functions/getPublicImportProvenance",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          data: { importId: "picos-parkour-mutano" },
+        }),
+      },
+    );
+    expect(httpsCallable).not.toHaveBeenCalled();
+    expect(result).toEqual({ ok: true });
   });
 
   it("surfaces native callable error messages", async () => {

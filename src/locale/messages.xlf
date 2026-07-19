@@ -622,11 +622,6 @@
         <source>Unable to process this request. Please try again later.</source>
       </segment>
     </unit>
-    <unit id="3753871980492025915">
-      <segment>
-        <source>spots visited</source>
-      </segment>
-    </unit>
     <unit id="3762050401268226469">
       <segment>
         <source>Unknown Action</source>
@@ -700,6 +695,11 @@
     <unit id="9147694429145547851">
       <segment>
         <source>Validating your reset link...</source>
+      </segment>
+    </unit>
+    <unit id="9103544018838053799">
+      <segment>
+        <source>{VAR_PLURAL, plural, =1 {spot visited} other {spots visited}}</source>
       </segment>
     </unit>
     <unit id="9107902639851774121">
@@ -6193,10 +6193,6 @@
       </segment>
     </unit>
     <unit id="spot_type_label">
-      <notes>
-        <note category="description">Label for the spot type selection field</note>
-        <note category="meaning">Spot type label</note>
-      </notes>
       <segment>
         <source>Spot Type</source>
       </segment>
@@ -6212,10 +6208,6 @@
       </segment>
     </unit>
     <unit id="spot_access_label">
-      <notes>
-        <note category="description">Label for the spot access selection field</note>
-        <note category="meaning">Spot access label</note>
-      </notes>
       <segment>
         <source>Spot Access</source>
       </segment>
@@ -6772,6 +6764,16 @@
         <source>Close weather forecast</source>
       </segment>
     </unit>
+    <unit id="weather.dialog.covered.message">
+      <segment>
+        <source> This training area should stay protected from rain and may be shaded from direct sunlight. The forecast shows the surrounding outdoor conditions. </source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.covered.title">
+      <segment>
+        <source>Covered spot</source>
+      </segment>
+    </unit>
     <unit id="weather.dialog.dry_until">
       <segment>
         <source>Conditions should stay dry until around <ph id="0" equiv="PH" disp="time"/>, when rain is expected.</source>
@@ -6790,6 +6792,11 @@
     <unit id="weather.dialog.humidity">
       <segment>
         <source>Humidity</source>
+      </segment>
+    </unit>
+    <unit id="weather.dialog.next_days">
+      <segment>
+        <source> Next 7 days </source>
       </segment>
     </unit>
     <unit id="weather.dialog.next_hours">
@@ -6850,16 +6857,6 @@
     <unit id="weather.dialog.wind">
       <segment>
         <source>Wind</source>
-      </segment>
-    </unit>
-    <unit id="weather.spot.loading">
-      <segment>
-        <source>Loading weather</source>
-      </segment>
-    </unit>
-    <unit id="weather.spot.unavailable">
-      <segment>
-        <source>Weather unavailable. Tap to retry.</source>
       </segment>
     </unit>
     <unit id="weather.state.clear">

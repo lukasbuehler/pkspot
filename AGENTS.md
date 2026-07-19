@@ -101,6 +101,7 @@ If you hit the Codex sandbox error "Abort trap: 6", you need to run it outside t
 ## Theme colors
 
 - Use Material 3 system tokens (`var(--mat-sys-primary)`, `var(--mat-sys-secondary)`, etc.) — never hardcoded hex unless used as a fallback.
+- Style colored information and status cards as tonal cards: use the matching Material 3 container/on-container colors with a one-pixel role-color outline, an 18px radius, and a separate 40px tonal icon tile with a 13px radius. Keep this structure consistent across primary information, warnings, errors, and other semantic color roles.
 - **Green (`--mat-sys-secondary`) is reserved for live / "happening now" things**: active check-ins, live events, the active nav-rail item, "ongoing" status badges, anything indicating a real-time presence.
 - **Blue (`--mat-sys-primary`) is the highlight color**: spot pins, primary CTAs ("Sign in", "Add Spot"), important buttons, active selections, links inside body copy.
 - **Red (`--mat-sys-error`) is reserved for destructive / past / error states**: past-event banners, validation errors, delete confirmations.

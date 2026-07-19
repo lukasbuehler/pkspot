@@ -7,8 +7,11 @@ import {
 import { FirebaseApp } from "@angular/fire/app";
 import { Functions, httpsCallable } from "@angular/fire/functions";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
+import { environment } from "../../../environments/environment.default";
 import { PlatformService } from "../platform.service";
 import { getFirebaseEmulatorSettings } from "./firebase-emulator.config";
+
+const SAME_ORIGIN_PUBLIC_CALLABLES = new Set(["getPublicImportProvenance"]);
 
 type CallableErrorResponse = {
   error?: {
@@ -50,7 +53,36 @@ export class FunctionsAdapterService {
       return this.callNative<TRequest, TResponse>(functionName, payload, false);
     }
 
+    if (
+      environment.production &&
+      typeof window !== "undefined" &&
+      SAME_ORIGIN_PUBLIC_CALLABLES.has(functionName)
+    ) {
+      return this.callSameOriginPublic<TRequest, TResponse>(
+        functionName,
+        payload,
+      );
+    }
+
     return this.callWeb<TRequest, TResponse>(functionName, payload);
+  }
+
+  private async callSameOriginPublic<TRequest, TResponse>(
+    functionName: string,
+    payload: TRequest,
+  ): Promise<TResponse> {
+    const response = await fetch(`/api/functions/${functionName}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: payload }),
+    });
+
+    if (!response.ok) {
+      throw new Error(await this.readCallableError(functionName, response));
+    }
+
+    const body = (await response.json()) as CallableSuccessResponse;
+    return (body.result ?? body.data) as TResponse;
   }
 
   private async callWeb<TRequest, TResponse>(

@@ -20,7 +20,7 @@
   [polygonOverlays]="polygonOverlays()"
   [featureBoundaryOverlay]="featureBoundaryOverlay()"
   (pointMarkerClick)="onPointMarkerClick($event)"
-  (communityMarkerClick)="communityMarkerClick.emit($event)"
+  (communityMarkerClick)="onCommunityMarkerClick($event)"
   (circleOverlayClick)="onCircleOverlayClick($event)"
   [selectedMarker]="selectedMarker()"
   [isEditing]="isEditing()"
@@ -37,9 +37,9 @@
   (zoomChange)="zoomChanged($event)"
   (mapClick)="isClickable() ? mapClick($event) : null"
   (spotClick)="isClickable() ? openSpotByWhateverMeansNecessary($event) : null"
-  (hasGeolocationChange)="hasGeolocationChange.emit($event)"
+  (hasGeolocationChange)="onHasGeolocationChange($event)"
   (markerClickEvent)="onMarkerClickFromMap($event)"
-  (poiClick)="poiClick.emit($event)"
+  (poiClick)="onPoiClick($event)"
 ></app-google-map-2d>
 
 }

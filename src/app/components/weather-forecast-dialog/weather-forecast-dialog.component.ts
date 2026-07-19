@@ -16,18 +16,23 @@ import {
   WEATHER_STATES,
   WEATHER_WARNINGS,
   type WeatherCondition,
-  type WeatherWarning,
   type WeatherWarningDefinition,
   getWeatherStateIcon,
 } from "../../weather/weather-display";
 import type {
+  DailyWeatherPoint,
   WeatherPoint,
   WeatherResponse,
 } from "../../weather/weather.models";
+import {
+  getWeatherVisualStatus,
+  getWeatherWarnings,
+} from "../../weather/weather-warnings";
 
 export interface WeatherForecastDialogData {
   spotName: string;
   response: WeatherResponse;
+  covered?: boolean;
 }
 
 interface WeatherHourView {
@@ -35,6 +40,17 @@ interface WeatherHourView {
   icon: string;
   condition: string;
   temperature?: number;
+  rainProbability?: number;
+  precipitationMm?: number;
+}
+
+interface WeatherDayView {
+  date: string;
+  weekday: string;
+  icon: string;
+  condition: string;
+  maxTemperature?: number;
+  minTemperature?: number;
   rainProbability?: number;
   precipitationMm?: number;
 }
@@ -58,6 +74,15 @@ export class WeatherForecastDialogComponent {
   private readonly locale = inject(LOCALE_ID);
   private readonly response = this.data.response;
   private readonly timeFormatter = this.createTimeFormatter();
+  private readonly weekdayFormatter = new Intl.DateTimeFormat(this.locale, {
+    weekday: "short",
+    timeZone: "UTC",
+  });
+  private readonly dateFormatter = new Intl.DateTimeFormat(this.locale, {
+    day: "numeric",
+    month: "numeric",
+    timeZone: "UTC",
+  });
 
   protected readonly current =
     this.response.current ?? this.response.forecast?.[0];
@@ -67,6 +92,9 @@ export class WeatherForecastDialogComponent {
     this.currentCondition,
     this.current?.isDay,
   );
+  protected readonly visualStatus = getWeatherVisualStatus(this.response, {
+    covered: this.data.covered,
+  });
   protected readonly currentTemperature =
     this.current?.temperatureC === undefined
       ? undefined
@@ -91,6 +119,9 @@ export class WeatherForecastDialogComponent {
       precipitationMm: point.precipitationMm,
     }),
   );
+  protected readonly days = (this.response.dailyForecast ?? [])
+    .slice(0, 7)
+    .map((point) => this.toDayView(point));
   protected readonly providerUrl =
     this.response.provider === "open-meteo"
       ? "https://open-meteo.com/"
@@ -103,6 +134,27 @@ export class WeatherForecastDialogComponent {
 
   private getCondition(point: WeatherPoint | undefined): WeatherCondition {
     return point?.condition ?? "unknown";
+  }
+
+  private toDayView(point: DailyWeatherPoint): WeatherDayView {
+    const condition = point.condition ?? "unknown";
+    const date = new Date(`${point.date}T12:00:00Z`);
+    return {
+      date: this.dateFormatter.format(date),
+      weekday: this.weekdayFormatter.format(date),
+      icon: getWeatherStateIcon(condition),
+      condition: WEATHER_STATES[condition].label,
+      maxTemperature:
+        point.maxTemperatureC === undefined
+          ? undefined
+          : Math.round(point.maxTemperatureC),
+      minTemperature:
+        point.minTemperatureC === undefined
+          ? undefined
+          : Math.round(point.minTemperatureC),
+      rainProbability: point.precipitationProbabilityPercent,
+      precipitationMm: point.precipitationMm,
+    };
   }
 
   private buildNarrative(): string {
@@ -132,6 +184,9 @@ export class WeatherForecastDialogComponent {
   }
 
   private buildSurfaceNote(): string | undefined {
+    if (this.data.covered) {
+      return undefined;
+    }
     const drying = this.response.insights.surfaceDrying;
     if (drying.status === "wet") {
       return $localize`:@@weather.dialog.surface_wet:Training surfaces are likely wet.`;
@@ -150,38 +205,11 @@ export class WeatherForecastDialogComponent {
   }
 
   private buildWarnings(): WeatherWarningDefinition[] {
-    const warnings = new Set<WeatherWarning>();
-    const points = [this.current, ...(this.response.forecast ?? [])].filter(
-      (point): point is WeatherPoint => point !== undefined,
+    return getWeatherWarnings(this.response, {
+      covered: this.data.covered,
+    }).map(
+      (warning) => WEATHER_WARNINGS[warning],
     );
-    const conditions = new Set(points.map((point) => this.getCondition(point)));
-
-    if (conditions.has("thunderstorm")) warnings.add("thunderstorm");
-    if (conditions.has("hail")) warnings.add("hail");
-    if (conditions.has("heavy-rain")) warnings.add("heavy-rain");
-    if (
-      conditions.has("freezing-rain") ||
-      points.some(
-        (point) =>
-          (point.temperatureC ?? Infinity) <= 0 &&
-          (point.precipitationMm ?? 0) > 0,
-      )
-    ) {
-      warnings.add("ice-risk");
-    }
-    if (this.response.insights.sunExposure === "harsh") {
-      warnings.add("harsh-sun");
-    } else if ((this.current?.uvIndex ?? 0) >= 6) {
-      warnings.add("high-uv");
-    }
-    if (points.some((point) => (point.windSpeedKmh ?? 0) >= 40)) {
-      warnings.add("strong-wind");
-    }
-    if (this.response.insights.surfaceDrying.status === "wet") {
-      warnings.add("wet-surface");
-    }
-
-    return [...warnings].map((warning) => WEATHER_WARNINGS[warning]);
   }
 
   private formatTime(value: string): string {

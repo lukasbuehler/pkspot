@@ -19,7 +19,10 @@ describe("weather display definitions", () => {
       expect(warning.label).toBeTruthy();
       expect(warning.message).toBeTruthy();
       expect(warning.severity).toBeTruthy();
+      expect(warning.tone).toBeTruthy();
     }
+    expect(WEATHER_WARNINGS["wet-surface"].tone).toBe("primary");
+    expect(WEATHER_WARNINGS["high-uv"].tone).toBe("error");
   });
 
   it("uses the night icon when one is configured", () => {

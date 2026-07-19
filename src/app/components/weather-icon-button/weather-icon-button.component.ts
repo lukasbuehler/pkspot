@@ -14,11 +14,13 @@ import {
   type WeatherCondition,
   getWeatherStateIcon,
 } from "../../weather/weather-display";
+import type { WeatherVisualStatus } from "../../weather/weather-warnings";
 
 export interface WeatherIconData {
   condition: WeatherCondition;
   isDay?: boolean;
   temperatureC?: number;
+  status?: WeatherVisualStatus;
 }
 
 @Component({
@@ -44,17 +46,12 @@ export interface WeatherIconData {
       --mat-icon-button-state-layer-size: 32px;
     }
 
-    .weather-button.is-clear {
-      color: var(--mat-sys-tertiary);
-    }
-
     .weather-button.is-wet {
       color: var(--mat-sys-primary);
     }
 
-    .weather-button.is-severe {
-      color: var(--mat-sys-on-error-container);
-      background: var(--mat-sys-error-container);
+    .weather-button.has-warning {
+      color: var(--mat-sys-error);
     }
 
     mat-icon {
@@ -77,6 +74,19 @@ export class WeatherIconButtonComponent {
   protected readonly state = computed(
     () => WEATHER_STATES[this.weather().condition],
   );
+  protected readonly status = computed<WeatherVisualStatus>(() => {
+    const weather = this.weather();
+    if (weather.status) {
+      return weather.status;
+    }
+    if (this.state().tone === "severe") {
+      return "warning";
+    }
+    if (this.state().tone === "wet") {
+      return "wet";
+    }
+    return this.state().tone === "sun" ? "great" : "neutral";
+  });
 
   protected readonly resolvedIcon = computed(() => {
     const weather = this.weather();

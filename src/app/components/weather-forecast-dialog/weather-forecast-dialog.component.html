@@ -21,9 +21,13 @@
 
 <mat-dialog-content>
   <section class="current-conditions">
-    <mat-icon class="current-icon" aria-hidden="true">{{
-      currentIcon
-    }}</mat-icon>
+    <mat-icon
+      class="current-icon"
+      [class.is-wet]="visualStatus === 'wet'"
+      [class.has-warning]="visualStatus === 'warning'"
+      aria-hidden="true"
+      >{{ currentIcon }}</mat-icon
+    >
     <div class="current-copy">
       <div class="current-heading">
         @if (currentTemperature !== undefined) {
@@ -31,22 +35,44 @@
         }
         <span class="mat-title-medium">{{ currentState.label }}</span>
       </div>
-      <p class="mat-body-large">{{ narrative }}</p>
+      @if (narrative) {
+        <p class="mat-body-large">{{ narrative }}</p>
+      }
       @if (surfaceNote) {
         <p class="surface-note mat-body-medium">{{ surfaceNote }}</p>
       }
     </div>
   </section>
 
+  @if (data.covered) {
+    <section class="covered-info" role="note">
+      <span class="covered-info-icon" aria-hidden="true">
+        <mat-icon>roofing</mat-icon>
+      </span>
+      <div>
+        <strong class="mat-title-small" i18n="@@weather.dialog.covered.title"
+          >Covered spot</strong
+        >
+        <p class="mat-body-small" i18n="@@weather.dialog.covered.message">
+          This training area should stay protected from rain and may be shaded
+          from direct sunlight. The forecast shows the surrounding outdoor
+          conditions.
+        </p>
+      </div>
+    </section>
+  }
+
   @if (warnings.length > 0) {
     <section class="warning-list" aria-label="Weather warnings" i18n-aria-label>
       @for (warning of warnings; track warning.label) {
         <div
           class="weather-warning"
-          [class.high]="warning.severity === 'high'"
+          [class.is-primary]="warning.tone === 'primary'"
         >
-          <mat-icon aria-hidden="true">{{ warning.icon }}</mat-icon>
-          <div>
+          <span class="weather-warning-icon" aria-hidden="true">
+            <mat-icon>{{ warning.icon }}</mat-icon>
+          </span>
+          <div class="weather-warning-copy">
             <strong class="mat-title-small">{{ warning.label }}</strong>
             <p class="mat-body-small">{{ warning.message }}</p>
           </div>
@@ -107,8 +133,8 @@
             <strong>{{ hour.temperature }}°</strong>
           }
           @if (
-            hour.rainProbability !== undefined ||
-            (hour.precipitationMm ?? 0) > 0
+            (hour.rainProbability !== undefined ||
+              (hour.precipitationMm ?? 0) > 0)
           ) {
             <span class="rain-detail mat-label-small">
               <mat-icon aria-hidden="true">water_drop</mat-icon>
@@ -119,6 +145,49 @@
       }
     </div>
   </section>
+
+  @if (days.length > 0) {
+    <section class="daily-section">
+      <h3 class="mat-title-medium" i18n="@@weather.dialog.next_days">
+        Next 7 days
+      </h3>
+      <div class="daily-strip">
+        @for (day of days; track day.date) {
+          <div class="weather-day">
+            <div class="day-heading">
+              <strong class="mat-label-large">{{ day.weekday }}</strong>
+              <span class="mat-label-small">{{ day.date }}</span>
+            </div>
+            <mat-icon [attr.aria-label]="day.condition">{{
+              day.icon
+            }}</mat-icon>
+            @if (
+              day.maxTemperature !== undefined ||
+              day.minTemperature !== undefined
+            ) {
+              <div class="temperature-range">
+                @if (day.maxTemperature !== undefined) {
+                  <strong>{{ day.maxTemperature }}°</strong>
+                }
+                @if (day.minTemperature !== undefined) {
+                  <span>{{ day.minTemperature }}°</span>
+                }
+              </div>
+            }
+            @if (
+              (day.rainProbability !== undefined ||
+                (day.precipitationMm ?? 0) > 0)
+            ) {
+              <span class="rain-detail mat-label-small">
+                <mat-icon aria-hidden="true">water_drop</mat-icon>
+                {{ day.rainProbability ?? 0 }}%
+              </span>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  }
 
   <a
     mat-button

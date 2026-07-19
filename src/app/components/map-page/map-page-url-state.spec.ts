@@ -112,7 +112,9 @@ describe("MapPageComponent URL-driven panel state", () => {
     expect(template).toContain('(spotOpenRequested)="onSpotOpenRequested($event)"');
     expect(template).toContain('[delegateSpotOpening]="true"');
     expect(spotMapComponent).toContain("spotOpenRequested = output<");
-    expect(spotMapComponent).toContain("this.spotOpenRequested.emit(spot)");
+    expect(spotMapComponent).toContain(
+      "this._emitWhileAlive(this.spotOpenRequested, spot)",
+    );
     expect(component).toContain("this._openPendingSpotPanel(");
   });
 

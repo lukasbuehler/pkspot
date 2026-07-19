@@ -47,7 +47,7 @@ describe("OsmDataService", () => {
     service = TestBed.inject(OsmDataService);
   });
 
-  it("keeps every toilet tier below Spot markers", async () => {
+  it("keeps every OSM amenity below Spot markers", async () => {
     const response: OverpassResponse = {
       version: 0.6,
       geneartor: "Overpass API",
@@ -56,9 +56,11 @@ describe("OsmDataService", () => {
         copytight: "",
       },
       elements: [
-        toilet(1, "no"),
-        toilet(2),
-        toilet(3, "yes"),
+        amenity(1, "drinking_water"),
+        amenity(2, "fountain"),
+        toilet(3, "no"),
+        toilet(4),
+        toilet(5, "yes"),
       ],
     };
     http.post.mockReturnValue(of(response));
@@ -72,7 +74,13 @@ describe("OsmDataService", () => {
       }),
     );
 
-    expect(markers.map((marker) => marker.priority)).toEqual([-10, -20, -30]);
+    expect(markers.map((marker) => marker.priority)).toEqual([
+      -10,
+      -10,
+      -20,
+      -30,
+      -40,
+    ]);
     expect(
       Math.max(...markers.map((marker) => Number(marker.priority))),
     ).toBeLessThan(
@@ -84,6 +92,22 @@ describe("OsmDataService", () => {
     );
   });
 });
+
+function amenity(
+  id: number,
+  type: "drinking_water" | "fountain",
+): OverpassResponse["elements"][number] {
+  return {
+    type: "node",
+    id,
+    lat: 47.37,
+    lon: 8.54,
+    tags: {
+      amenity: type,
+      drinking_water: type === "fountain" ? "yes" : undefined,
+    },
+  };
+}
 
 function toilet(
   id: number,

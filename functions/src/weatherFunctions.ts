@@ -80,6 +80,19 @@ export interface WeatherPoint {
   isDay?: boolean;
 }
 
+export interface DailyWeatherPoint {
+  date: string;
+  maxTemperatureC?: number;
+  minTemperatureC?: number;
+  precipitationMm?: number;
+  precipitationProbabilityPercent?: number;
+  uvIndex?: number;
+  weatherCode?: string;
+  condition?: WeatherCondition;
+  sunrise?: string;
+  sunset?: string;
+}
+
 export interface WeatherInsights {
   summary: string;
   rainStartsAt?: string;
@@ -122,6 +135,7 @@ export interface WeatherResponse {
   timeZone?: string;
   current?: WeatherPoint;
   forecast?: WeatherPoint[];
+  dailyForecast?: DailyWeatherPoint[];
   target?: WeatherPoint;
   schedule?: WeatherScheduleForecast[];
   insights: WeatherInsights | WeatherEventInsights;
@@ -138,6 +152,7 @@ interface ProviderFetchRequest {
 interface ProviderFetchResult {
   current?: WeatherPoint;
   forecast: WeatherPoint[];
+  dailyForecast: DailyWeatherPoint[];
   attribution?: string;
   timeZone?: string;
 }
@@ -159,6 +174,7 @@ interface DailySunWindow {
 
 const WEATHER_CACHE_COLLECTION = "weather_cache";
 const DEFAULT_NEAR_FUTURE_HOURS = 12;
+const DEFAULT_DAILY_FORECAST_DAYS = 7;
 const MAX_NEAR_FUTURE_HOURS = 24;
 const GOOGLE_MAX_FORECAST_HOURS = 240;
 const OPEN_METEO_MAX_FORECAST_HOURS = 16 * 24;
@@ -359,7 +375,7 @@ export function buildWeatherCacheKey(
     window.startTime.toISOString(),
     window.endTime.toISOString(),
     "metric",
-    "v1",
+    "v2",
     scheduleFingerprint,
   ].join("|");
 
@@ -472,6 +488,7 @@ async function fetchWeatherResponse(
     expiresAt,
     attribution: result.attribution,
     timeZone: result.timeZone,
+    dailyForecast: result.dailyForecast,
   };
 
   if (request.mode === "current-and-near-future") {
@@ -533,9 +550,12 @@ async function fetchGoogleWeather(
     { hours: String(hours), pageSize: String(Math.min(hours, 240)) }
   );
   const days = clamp(
-    Math.ceil(
-      (request.endTime.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000)
-    ) + 2,
+    request.mode === "current-and-near-future"
+      ? DEFAULT_DAILY_FORECAST_DAYS
+      : Math.ceil(
+        (request.endTime.getTime() - new Date().getTime()) /
+          (24 * 60 * 60 * 1000)
+      ) + 2,
     1,
     10
   );
@@ -560,6 +580,7 @@ async function fetchGoogleWeather(
       ? attachSunWindow(normalizeGoogleCurrentPoint(current), sunWindows)
       : undefined,
     forecast: normalizedForecast,
+    dailyForecast: normalizeGoogleDailyPoints(daily),
     attribution: "Weather: Google Weather",
     timeZone: forecast.timeZone?.id ?? current?.timeZone?.id,
   };
@@ -582,6 +603,14 @@ async function fetchOpenMeteoWeather(
   url.searchParams.set("longitude", String(request.location.lng));
   url.searchParams.set("timezone", "auto");
   url.searchParams.set("forecast_hours", String(forecastHours));
+  url.searchParams.set(
+    "forecast_days",
+    String(
+      request.mode === "current-and-near-future"
+        ? DEFAULT_DAILY_FORECAST_DAYS
+        : clamp(Math.ceil(forecastHours / 24) + 1, 1, 16)
+    )
+  );
   url.searchParams.set(
     "current",
     [
@@ -611,7 +640,19 @@ async function fetchOpenMeteoWeather(
       "is_day",
     ].join(",")
   );
-  url.searchParams.set("daily", "sunrise,sunset");
+  url.searchParams.set(
+    "daily",
+    [
+      "weather_code",
+      "temperature_2m_max",
+      "temperature_2m_min",
+      "precipitation_sum",
+      "precipitation_probability_max",
+      "uv_index_max",
+      "sunrise",
+      "sunset",
+    ].join(",")
+  );
 
   const apiKey = process.env.OPEN_METEO_API_KEY;
   if (apiKey) {
@@ -649,6 +690,7 @@ async function fetchOpenMeteoWeather(
       sunByDate,
       utcOffsetSeconds
     ),
+    dailyForecast: normalizeOpenMeteoDailyPoints(data, utcOffsetSeconds),
     attribution: "Weather: Open-Meteo",
     timeZone: data.timezone,
   };
@@ -743,6 +785,42 @@ function normalizeGoogleSunWindows(value: GoogleDailyResponse): DailySunWindow[]
   });
 }
 
+export function normalizeGoogleDailyPoints(
+  value: GoogleDailyResponse
+): DailyWeatherPoint[] {
+  return (value.forecastDays ?? []).flatMap((day) => {
+    const date = formatGoogleDisplayDate(day.displayDate);
+    if (!date) {
+      return [];
+    }
+    const daytime = day.daytimeForecast;
+    const nighttime = day.nighttimeForecast;
+    const weatherCode =
+      daytime?.weatherCondition?.type ?? nighttime?.weatherCondition?.type;
+
+    return [
+      removeUndefinedValues({
+        date,
+        maxTemperatureC: day.maxTemperature?.degrees,
+        minTemperatureC: day.minTemperature?.degrees,
+        precipitationMm: sumDefined(
+          daytime?.precipitation?.qpf?.quantity,
+          nighttime?.precipitation?.qpf?.quantity
+        ),
+        precipitationProbabilityPercent: maxDefined(
+          daytime?.precipitation?.probability?.percent,
+          nighttime?.precipitation?.probability?.percent
+        ),
+        uvIndex: daytime?.uvIndex,
+        weatherCode,
+        condition: normalizeWeatherCondition("google", weatherCode),
+        sunrise: day.sunEvents?.sunriseTime,
+        sunset: day.sunEvents?.sunsetTime,
+      }),
+    ];
+  });
+}
+
 function normalizeOpenMeteoCurrentPoint(
   value: OpenMeteoCurrent,
   sunByDate: Map<string, { sunrise?: string; sunset?: string }>,
@@ -804,6 +882,37 @@ function normalizeOpenMeteoHourlyPoints(
         ? normalizeOpenMeteoTime(sun.sunset, utcOffsetSeconds)
         : undefined,
       isDay: hourly.is_day?.[index] === undefined ? undefined : hourly.is_day[index] === 1,
+    });
+  });
+}
+
+export function normalizeOpenMeteoDailyPoints(
+  data: OpenMeteoResponse,
+  utcOffsetSeconds: number
+): DailyWeatherPoint[] {
+  const daily = data.daily;
+  if (!daily?.time?.length) {
+    return [];
+  }
+
+  return daily.time.map((date, index) => {
+    const weatherCode = daily.weather_code?.[index];
+    return removeUndefinedValues({
+      date,
+      maxTemperatureC: daily.temperature_2m_max?.[index],
+      minTemperatureC: daily.temperature_2m_min?.[index],
+      precipitationMm: daily.precipitation_sum?.[index],
+      precipitationProbabilityPercent:
+        daily.precipitation_probability_max?.[index],
+      uvIndex: daily.uv_index_max?.[index],
+      weatherCode: weatherCode?.toString(),
+      condition: normalizeWeatherCondition("open-meteo", weatherCode),
+      sunrise: daily.sunrise?.[index]
+        ? normalizeOpenMeteoTime(daily.sunrise[index], utcOffsetSeconds)
+        : undefined,
+      sunset: daily.sunset?.[index]
+        ? normalizeOpenMeteoTime(daily.sunset[index], utcOffsetSeconds)
+        : undefined,
     });
   });
 }
@@ -1252,6 +1361,43 @@ function removeUndefinedValues<T extends Record<string, unknown>>(value: T): T {
   ) as T;
 }
 
+function maxDefined(
+  ...values: Array<number | undefined>
+): number | undefined {
+  const defined = values.filter((value): value is number => value !== undefined);
+  return defined.length ? Math.max(...defined) : undefined;
+}
+
+function sumDefined(
+  ...values: Array<number | undefined>
+): number | undefined {
+  const defined = values.filter((value): value is number => value !== undefined);
+  return defined.length
+    ? defined.reduce((total, value) => total + value, 0)
+    : undefined;
+}
+
+function formatGoogleDisplayDate(
+  value: GoogleDate | undefined
+): string | undefined {
+  if (
+    !value?.year ||
+    !value.month ||
+    !value.day ||
+    value.month < 1 ||
+    value.month > 12 ||
+    value.day < 1 ||
+    value.day > 31
+  ) {
+    return undefined;
+  }
+  return [
+    value.year.toString().padStart(4, "0"),
+    value.month.toString().padStart(2, "0"),
+    value.day.toString().padStart(2, "0"),
+  ].join("-");
+}
+
 function maxBy<T>(items: T[], score: (item: T) => number): T | undefined {
   return items.reduce<T | undefined>((best, item) => {
     if (!best || score(item) > score(best)) {
@@ -1285,6 +1431,18 @@ interface GoogleWind {
 
 interface GoogleWeatherCondition {
   type?: string;
+}
+
+interface GoogleDate {
+  year?: number;
+  month?: number;
+  day?: number;
+}
+
+interface GoogleDayPart {
+  weatherCondition?: GoogleWeatherCondition;
+  precipitation?: GooglePrecipitation;
+  uvIndex?: number;
 }
 
 interface GoogleCurrentResponse {
@@ -1322,6 +1480,11 @@ interface GoogleHourlyResponse {
 interface GoogleDailyResponse {
   forecastDays?: Array<{
     interval?: { startTime?: string; endTime?: string };
+    displayDate?: GoogleDate;
+    daytimeForecast?: GoogleDayPart;
+    nighttimeForecast?: GoogleDayPart;
+    maxTemperature?: GoogleTemperature;
+    minTemperature?: GoogleTemperature;
     sunEvents?: { sunriseTime?: string; sunsetTime?: string };
   }>;
 }
@@ -1360,6 +1523,12 @@ interface OpenMeteoResponse {
   hourly?: OpenMeteoHourly;
   daily?: {
     time?: string[];
+    weather_code?: number[];
+    temperature_2m_max?: number[];
+    temperature_2m_min?: number[];
+    precipitation_sum?: number[];
+    precipitation_probability_max?: number[];
+    uv_index_max?: number[];
     sunrise?: string[];
     sunset?: string[];
   };

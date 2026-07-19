@@ -321,12 +321,12 @@
               class="spot-button-row collapsible-header-info flex-shrink-0"
               [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
             >
-              <app-weather-icon-button
-                [weather]="weatherIconData()"
-                [icon]="weatherIconOverride()"
-                [label]="weatherIconLabel()"
-                (pressed)="openWeatherDialog()"
-              />
+              @if (weatherAvailable()) {
+                <app-weather-icon-button
+                  [weather]="weatherIconData()"
+                  (pressed)="openWeatherDialog()"
+                />
+              }
 
               @if (!isLocalSpot()) {
                 @if (authenticationService.isSignedIn) {
