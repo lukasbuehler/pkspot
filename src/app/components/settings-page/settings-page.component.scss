@@ -39,6 +39,39 @@ button.menuButton.selected {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.account-id-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 18px;
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+
+  > div:last-child {
+    min-width: 0;
+  }
+}
+
+.account-id-card__icon {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 13px;
+  color: var(--mat-sys-primary);
+  background: var(--mat-sys-surface);
+}
+
+.account-id-card__value {
+  display: block;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+  color: inherit;
+}
+
 .app-check-status {
   align-items: flex-start;
   background: var(--mat-sys-surface-container);

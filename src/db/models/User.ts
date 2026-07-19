@@ -76,6 +76,8 @@ export class User {
       ? {
           instagram_handle: this._data.socials.instagram_handle,
           youtube_handle: this._data.socials.youtube_handle,
+          tiktok_handle: this._data.socials.tiktok_handle,
+          discord_url: this._data.socials.discord_url,
           other: (this._data.socials.other ?? []).filter(
             (link) => !!link?.name && !!link?.url,
           ),

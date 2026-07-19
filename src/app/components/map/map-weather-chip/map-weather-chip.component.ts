@@ -20,6 +20,8 @@ import type {
   WeatherResponse,
 } from "../../../weather/weather.models";
 import { getWeatherVisualStatus } from "../../../weather/weather-warnings";
+import { AccountPreferencesService } from "../../../services/account-preferences.service";
+import { formatTemperature } from "../../../weather/weather-temperature";
 
 @Component({
   selector: "app-map-weather-chip",
@@ -33,6 +35,7 @@ export class MapWeatherChipComponent {
   readonly pressed = output<void>();
 
   private readonly locale = inject(LOCALE_ID);
+  private readonly accountPreferences = inject(AccountPreferencesService);
   protected readonly current = computed(
     () => this.response().current ?? this.response().forecast?.[0],
   );
@@ -42,9 +45,18 @@ export class MapWeatherChipComponent {
   protected readonly icon = computed(() =>
     getWeatherStateIcon(this.condition(), this.current()?.isDay),
   );
+  protected readonly temperatureC = computed(
+    () => this.current()?.temperatureC,
+  );
   protected readonly temperature = computed(() => {
-    const temperature = this.current()?.temperatureC;
-    return temperature === undefined ? undefined : Math.round(temperature);
+    const temperatureC = this.temperatureC();
+    return temperatureC === undefined
+      ? undefined
+      : formatTemperature(
+          temperatureC,
+          this.accountPreferences.temperatureUnit(),
+          false,
+        );
   });
   protected readonly status = computed(() =>
     getWeatherVisualStatus(this.response()),
@@ -55,9 +67,12 @@ export class MapWeatherChipComponent {
   protected readonly accessibleLabel = computed(() => {
     const parts = [
       WEATHER_STATES[this.condition()].label,
-      this.temperature() === undefined
+      this.temperatureC() === undefined
         ? undefined
-        : `${this.temperature()} °C`,
+        : formatTemperature(
+            this.temperatureC()!,
+            this.accountPreferences.temperatureUnit(),
+          ),
       this.changeSummary(),
     ].filter((part): part is string => part !== undefined);
     return $localize`:@@map.weather.open:Weather near map center: ${parts.join(", ")}`;

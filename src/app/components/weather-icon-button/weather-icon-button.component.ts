@@ -3,6 +3,7 @@ import {
   Component,
   booleanAttribute,
   computed,
+  inject,
   input,
   output,
 } from "@angular/core";
@@ -15,6 +16,8 @@ import {
   getWeatherStateIcon,
 } from "../../weather/weather-display";
 import type { WeatherVisualStatus } from "../../weather/weather-warnings";
+import { AccountPreferencesService } from "../../services/account-preferences.service";
+import { formatTemperature } from "../../weather/weather-temperature";
 
 export interface WeatherIconData {
   condition: WeatherCondition;
@@ -63,6 +66,8 @@ export interface WeatherIconData {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WeatherIconButtonComponent {
+  private readonly accountPreferences = inject(AccountPreferencesService);
+
   readonly weather = input.required<WeatherIconData>();
   readonly label = input<string>();
   readonly icon = input<string>();
@@ -102,7 +107,10 @@ export class WeatherIconButtonComponent {
     const label = this.label() ?? this.state().label;
     return temperature === undefined
       ? label
-      : `${label}, ${Math.round(temperature)} °C`;
+      : `${label}, ${formatTemperature(
+          temperature,
+          this.accountPreferences.temperatureUnit(),
+        )}`;
   });
 
   protected onPress(event: MouseEvent): void {

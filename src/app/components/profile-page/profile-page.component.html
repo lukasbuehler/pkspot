@@ -36,7 +36,14 @@
                 <div class="profile-overview__content">
                   <div class="profile-overview__media">
                     @if (profilePicture) {
-                      <div class="profile-overview__avatar">
+                      <button
+                        type="button"
+                        class="profile-overview__avatar"
+                        matRipple
+                        (click)="openProfilePicture()"
+                        aria-label="View profile picture"
+                        i18n-aria-label
+                      >
                         <img
                           [ngSrc]="profilePicture"
                           [alt]="
@@ -46,7 +53,7 @@
                           "
                           fill
                         />
-                      </div>
+                      </button>
                     } @else {
                       <div
                         class="profile-overview__avatar profile-overview__avatar--placeholder mat-display-small"
@@ -60,63 +67,10 @@
                   </div>
 
                   <div class="profile-overview__details">
-                    <div class="profile-overview__identity">
-                      <div>
-                        <h1 class="mat-headline-medium profile-overview__name">
-                          {{ user.displayName || "PK Spot user" }}
-                        </h1>
-                        <p class="mat-body-medium profile-overview__handle">
-                          {{ profileIdentity }}
-                        </p>
-                      </div>
-                      <mat-chip-set
-                        aria-label="Profile status"
-                        class="profile-overview__chips"
-                      >
-                        @if (isMyProfile) {
-                          <mat-chip color="primary" class="mat-label-large">
-                            <mat-icon
-                              matChipAvatar
-                              class="profile-overview__chip-icon"
-                              >person</mat-icon
-                            >
-                            <span i18n>You</span>
-                          </mat-chip>
-                        }
-                        @if (relationshipLabel) {
-                          <mat-chip color="primary" class="mat-label-large">
-                            <mat-icon
-                              matChipAvatar
-                              class="profile-overview__chip-icon"
-                              >groups</mat-icon
-                            >
-                            {{ relationshipLabel }}
-                          </mat-chip>
-                        }
-                        @if (showAccountPrivacyChip) {
-                          <mat-chip class="mat-label-large">
-                            <mat-icon
-                              matChipAvatar
-                              class="profile-overview__chip-icon"
-                              >{{
-                                user.accountPrivacy === "private"
-                                  ? "lock"
-                                  : "public"
-                              }}</mat-icon
-                            >
-                            {{ profileAccessLabel }}
-                          </mat-chip>
-                        }
-                        <mat-chip class="mat-label-large">
-                          <mat-icon
-                            matChipAvatar
-                            class="profile-overview__chip-icon"
-                            >{{ profileVisibilityIcon }}</mat-icon
-                          >
-                          {{ profileVisibilityLabel }}
-                        </mat-chip>
-                      </mat-chip-set>
-                    </div>
+                    <h1 class="mat-headline-medium profile-overview__name">
+                      {{ user.displayName || "PK Spot user" }}
+                    </h1>
+
                     @if (user.biography) {
                       <p class="mat-body-large profile-overview__bio">
                         {{ user.biography }}
@@ -162,19 +116,6 @@
                             <strong>{{ user.startTimeDiffString }}</strong>
                           </div>
                         }
-                        @if (user.visitedSpotsCount) {
-                          <div
-                            class="mat-body-medium profile-overview__metadata-item"
-                          >
-                            <mat-icon>beenhere</mat-icon>
-                            <strong>{{ user.visitedSpotsCount }}</strong>
-                            <span i18n
-                              >{user.visitedSpotsCount, plural,
-                              =1 {spot visited}
-                              other {spots visited}}</span
-                            >
-                          </div>
-                        }
                       </div>
                     }
 
@@ -191,7 +132,20 @@
                             target="_blank"
                             rel="noopener noreferrer nofollow"
                           >
-                            <mat-icon>{{ socialLink.icon }}</mat-icon>
+                            @if (socialLink.iconAsset; as iconAsset) {
+                              <span class="profile-social-link__icon-tile">
+                                <img
+                                  [ngSrc]="iconAsset"
+                                  width="18"
+                                  height="18"
+                                  alt=""
+                                />
+                              </span>
+                            } @else if (socialLink.icon; as icon) {
+                              <span class="profile-social-link__icon-tile">
+                                <mat-icon>{{ icon }}</mat-icon>
+                              </span>
+                            }
                             <span>{{ socialLink.label }}</span>
                           </a>
                         }
@@ -237,11 +191,26 @@
                         >
                       </button>
                       <div class="profile-stat">
-                        <span class="profile-stat__value mat-headline-small">{{
-                          totalContributions
-                        }}</span>
+                        <span class="profile-stat__value mat-headline-small">
+                          <app-fancy-counter
+                            [number]="totalContributions"
+                          ></app-fancy-counter>
+                        </span>
                         <span class="profile-stat__label mat-body-small" i18n
                           >Contributions</span
+                        >
+                      </div>
+                      <div class="profile-stat">
+                        <span class="profile-stat__value mat-headline-small">
+                          <app-fancy-counter
+                            [number]="user.visitedSpotsCount || 0"
+                          ></app-fancy-counter>
+                        </span>
+                        <span class="profile-stat__label mat-body-small" i18n
+                          >{user.visitedSpotsCount, plural,
+                            =1 {Spot visited}
+                            other {Spots visited}
+                          }</span
                         >
                       </div>
                     </div>
@@ -251,100 +220,100 @@
                     ) {
                       <app-contribution-status-note></app-contribution-status-note>
                     }
-
-                    @if (!isMyProfile) {
-                      <div
-                        class="profile-overview__actions"
-                        aria-label="Profile actions"
-                      >
-                        @if (ageAssurance.canParticipatePublicly()) {
-                          <button
-                            [matButton]="followActionButtonType"
-                            color="primary"
-                            class="profile-overview__action"
-                            (click)="followButtonClick()"
-                          >
-                            @if (loadingFollowing) {
-                              <mat-spinner
-                                diameter="20"
-                                strokeWidth="3"
-                                class="profile-overview__action-spinner"
-                                aria-label="Updating follow status"
-                              ></mat-spinner>
-                            }
-                            @if (isFollowing) {
-                              <span i18n>Unfollow</span>
-                            } @else if (isPendingFollowRequest) {
-                              <span i18n>Requested</span>
-                            } @else if (isPrivateAccount) {
-                              <span i18n>Request follow</span>
-                            } @else {
-                              <span i18n>Follow</span>
-                            }
-                          </button>
-                        }
-                        <button
-                          mat-stroked-button
-                          color="warn"
-                          class="profile-overview__action"
-                          (click)="toggleBlockUser()"
-                        >
-                          @if (isBlocked) {
-                            <span i18n>Unblock</span>
-                          } @else {
-                            <span i18n>Block</span>
-                          }
-                        </button>
-                        <button
-                          mat-stroked-button
-                          color="warn"
-                          class="profile-overview__action"
-                          (click)="openProfileReportDialog()"
-                        >
-                          <mat-icon>report</mat-icon>
-                          <span i18n>Report</span>
-                        </button>
-                      </div>
-                    } @else {
-                      <div
-                        class="profile-overview__actions profile-overview__actions--owner"
-                        aria-label="Profile management actions"
-                      >
-                        @if (ageAssurance.canParticipatePublicly()) {
-                          <button
-                            matButton="filled"
-                            color="primary"
-                            class="profile-overview__action"
-                            routerLink="/settings/profile"
-                          >
-                            <mat-icon>edit</mat-icon>
-                            <span i18n>Edit Profile</span>
-                          </button>
-                        }
-                        <button
-                          mat-stroked-button
-                          color="primary"
-                          class="profile-overview__action"
-                          routerLink="/settings/account"
-                        >
-                          <mat-icon>settings</mat-icon>
-                          <span i18n>Settings</span>
-                        </button>
-                        <button
-                          mat-stroked-button
-                          color="warn"
-                          class="profile-overview__action"
-                          (click)="logOut()"
-                        >
-                          <mat-icon>logout</mat-icon>
-                          <span i18n>Log out</span>
-                        </button>
-                      </div>
-                    }
                   </div>
                 </div>
               </mat-card-content>
             </mat-card>
+
+            @if (!isMyProfile) {
+              <div
+                class="profile-overview__actions"
+                aria-label="Profile actions"
+              >
+                @if (ageAssurance.canParticipatePublicly()) {
+                  <button
+                    [matButton]="followActionButtonType"
+                    color="primary"
+                    class="profile-overview__action"
+                    (click)="followButtonClick()"
+                  >
+                    @if (loadingFollowing) {
+                      <mat-spinner
+                        diameter="20"
+                        strokeWidth="3"
+                        class="profile-overview__action-spinner"
+                        aria-label="Updating follow status"
+                      ></mat-spinner>
+                    }
+                    @if (isFollowing) {
+                      <span i18n>Unfollow</span>
+                    } @else if (isPendingFollowRequest) {
+                      <span i18n>Requested</span>
+                    } @else if (isPrivateAccount) {
+                      <span i18n>Request follow</span>
+                    } @else {
+                      <span i18n>Follow</span>
+                    }
+                  </button>
+                }
+                <button
+                  mat-stroked-button
+                  color="warn"
+                  class="profile-overview__action"
+                  (click)="toggleBlockUser()"
+                >
+                  @if (isBlocked) {
+                    <span i18n>Unblock</span>
+                  } @else {
+                    <span i18n>Block</span>
+                  }
+                </button>
+                <button
+                  mat-stroked-button
+                  color="warn"
+                  class="profile-overview__action"
+                  (click)="openProfileReportDialog()"
+                >
+                  <mat-icon>report</mat-icon>
+                  <span i18n>Report</span>
+                </button>
+              </div>
+            } @else {
+              <div
+                class="profile-overview__actions profile-overview__actions--owner"
+                aria-label="Profile management actions"
+              >
+                @if (ageAssurance.canParticipatePublicly()) {
+                  <button
+                    matButton="filled"
+                    color="primary"
+                    class="profile-overview__action"
+                    routerLink="/settings/profile"
+                  >
+                    <mat-icon>edit</mat-icon>
+                    <span i18n>Edit Profile</span>
+                  </button>
+                }
+                <button
+                  mat-stroked-button
+                  color="primary"
+                  class="profile-overview__action"
+                  routerLink="/settings/account"
+                >
+                  <mat-icon>settings</mat-icon>
+                  <span i18n>Settings</span>
+                </button>
+                <button
+                  mat-stroked-button
+                  color="warn"
+                  class="profile-overview__action"
+                  (click)="logOut()"
+                >
+                  <mat-icon>logout</mat-icon>
+                  <span i18n>Log out</span>
+                </button>
+              </div>
+            }
 
             <!-- saved and visited spots -->
             @if (isMyProfile) {

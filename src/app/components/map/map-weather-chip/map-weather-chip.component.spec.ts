@@ -1,10 +1,12 @@
-import { LOCALE_ID } from "@angular/core";
+import { LOCALE_ID, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { MapWeatherChipComponent } from "./map-weather-chip.component";
 import type { WeatherResponse } from "../../../weather/weather.models";
+import { AccountPreferencesService } from "../../../services/account-preferences.service";
 
 describe("MapWeatherChipComponent", () => {
+  const temperatureUnit = signal<"celsius" | "fahrenheit">("celsius");
   const response: WeatherResponse = {
     provider: "google",
     mode: "current-and-near-future",
@@ -40,8 +42,15 @@ describe("MapWeatherChipComponent", () => {
   };
 
   beforeEach(() => {
+    temperatureUnit.set("celsius");
     TestBed.configureTestingModule({
-      providers: [{ provide: LOCALE_ID, useValue: "de" }],
+      providers: [
+        { provide: LOCALE_ID, useValue: "de" },
+        {
+          provide: AccountPreferencesService,
+          useValue: { temperatureUnit },
+        },
+      ],
     });
   });
 
@@ -66,6 +75,18 @@ describe("MapWeatherChipComponent", () => {
 
     fixture.nativeElement.querySelector("button").click();
     expect(pressed).toHaveBeenCalledOnce();
+  });
+
+  it("uses the preferred temperature unit", async () => {
+    temperatureUnit.set("fahrenheit");
+    const fixture = TestBed.createComponent(MapWeatherChipComponent);
+    fixture.componentRef.setInput("response", response);
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).toContain("72°");
+    expect(
+      fixture.debugElement.query(By.css("button")).attributes["aria-label"],
+    ).toContain("72 °F");
   });
 
   it("targets wet and warning colors at the icon and temperature only", async () => {

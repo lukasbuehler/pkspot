@@ -29,31 +29,25 @@
 
 .profile-overview__card {
   overflow: hidden;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 20px;
+  background: var(--mat-sys-surface-container-low);
 }
 
 .profile-overview__card .mat-mdc-card-content {
-  padding: clamp(20px, 4vw, 32px);
+  padding: clamp(24px, 6vw, 48px);
 }
 
 .profile-overview__content {
   display: grid;
-  gap: clamp(20px, 4vw, 32px);
-  align-items: start;
-}
-
-@media (min-width: 768px) {
-  .profile-overview__content {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-}
-
-.profile-overview__media {
-  display: flex;
-  justify-content: center;
+  justify-items: center;
+  gap: clamp(20px, 4vw, 28px);
 }
 
 .profile-overview__avatar {
   width: clamp(112px, 24vw, 168px);
+  padding: 0;
+  border: 0;
   aspect-ratio: 1;
   border-radius: 50%;
   background-color: var(--mat-sys-primary-container);
@@ -62,10 +56,16 @@
   overflow: hidden;
   flex-shrink: 0;
   box-shadow: 0 0 0 6px var(--mat-sys-surface-container-high);
+  cursor: zoom-in;
 
   > img {
     object-fit: cover;
   }
+}
+
+.profile-overview__avatar:focus-visible {
+  outline: 3px solid var(--mat-sys-primary);
+  outline-offset: 5px;
 }
 
 .profile-overview__avatar--placeholder {
@@ -73,59 +73,44 @@
   place-items: center;
   text-transform: uppercase;
   font-weight: 600;
+  cursor: default;
 }
 
 .profile-overview__details {
   display: grid;
-  gap: 18px;
+  justify-items: center;
+  gap: 20px;
   width: 100%;
   min-width: 0;
 }
 
-.profile-overview__identity {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
-}
-
 .profile-overview__name {
   margin: 0;
+  text-align: center;
   overflow-wrap: anywhere;
 }
 
-.profile-overview__handle {
-  margin: 4px 0 0;
-  color: var(--mat-sys-on-surface-variant);
-  overflow-wrap: anywhere;
-}
-
-.profile-overview__chips {
-  max-width: 100%;
-}
-
-.profile-overview__chip-icon {
-  width: 18px;
-  height: 18px;
-  font-size: 18px;
+.profile-overview__bio,
+.profile-overview__empty-copy {
+  max-width: 620px;
+  margin: 0;
+  text-align: center;
 }
 
 .profile-overview__bio {
-  margin: 0;
   white-space: pre-line;
   overflow-wrap: anywhere;
 }
 
 .profile-overview__empty-copy {
-  margin: 0;
   color: var(--mat-sys-on-surface-variant);
 }
 
 .profile-overview__metadata {
-  display: grid;
-  justify-items: start;
-  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 20px;
 }
 
 .profile-overview__metadata-item {
@@ -151,11 +136,33 @@
 .profile-overview__socials {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
 }
 
 .profile-social-link {
-  text-decoration: none;
+  --mdc-outlined-button-container-height: 44px;
+}
+
+.profile-social-link__icon-tile {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  margin-inline-start: -8px;
+  border-radius: 9px;
+  color: var(--mat-sys-on-primary);
+  background: var(--mat-sys-primary);
+
+  mat-icon,
+  img {
+    width: 18px;
+    height: 18px;
+  }
+
+  mat-icon {
+    font-size: 18px;
+  }
 }
 
 @media (min-width: 560px) {
@@ -169,30 +176,31 @@
 }
 
 .profile-overview__action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
   min-height: 44px;
 }
 
 .profile-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: min(560px, 100%);
   border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 8px;
+  border-radius: 14px;
   overflow: hidden;
+  background: var(--mat-sys-surface);
 }
 
 .profile-stat {
   appearance: none;
   border: 0;
-  border-inline-end: 1px solid var(--mat-sys-outline-variant);
   color: var(--mat-sys-on-surface);
   width: 100%;
 
-  &:last-child {
-    border-inline-end: 0;
+  &:nth-child(odd) {
+    border-inline-end: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  &:nth-child(n + 3) {
+    border-top: 1px solid var(--mat-sys-outline-variant);
   }
 }
 
@@ -218,10 +226,6 @@
   &:disabled {
     cursor: default;
   }
-}
-
-.profile-overview__action-spinner {
-  --mdc-circular-progress-active-indicator-color: currentColor;
 }
 
 .profile-section {
@@ -378,20 +382,6 @@
 }
 
 @media (max-width: 559px) {
-  .profile-overview__identity {
-    justify-content: center;
-    text-align: center;
-  }
-
-  .profile-overview__metadata,
-  .profile-overview__socials {
-    justify-content: center;
-  }
-
-  .profile-overview__metadata {
-    justify-items: center;
-  }
-
   .profile-section__header--split.mat-mdc-card-header {
     flex-direction: column;
   }

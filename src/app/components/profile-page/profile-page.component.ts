@@ -27,11 +27,6 @@ import { StorageService } from "../../services/firebase/storage.service";
 import { MatButton } from "@angular/material/button";
 import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
 import {
-  MatChip,
-  MatChipAvatar,
-  MatChipSet,
-} from "@angular/material/chips";
-import {
   MatCard,
   MatCardContent,
   MatCardHeader,
@@ -63,11 +58,18 @@ import {
 } from "../profile-report-dialog/profile-report-dialog.component";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { ContributionStatusNoteComponent } from "../contribution-status-note/contribution-status-note.component";
+import {
+  buildInstagramProfileUrl,
+  buildTikTokProfileUrl,
+  buildYouTubeProfileUrl,
+  normalizeDiscordUrl,
+} from "../../utils/profile-social-links";
 
 type ProfileSocialLink = {
   id: string;
   label: string;
-  icon: string;
+  icon?: string;
+  iconAsset?: string;
   url: string;
 };
 
@@ -80,9 +82,6 @@ type ProfileSocialLink = {
     MatProgressSpinner,
     MatCard,
     MatCardContent,
-    MatChipSet,
-    MatChip,
-    MatChipAvatar,
     FancyCounterComponent,
     MatButton,
     RouterLink,
@@ -130,7 +129,6 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   isMyProfile: boolean = false;
   loadingFollowing: boolean = false;
   isFollowing: boolean = false;
-  isFollowedByProfile: boolean = false;
   isPendingFollowRequest: boolean = false;
   privateDataLoading: boolean = false;
   privateDataLoadFailed: boolean = false;
@@ -174,20 +172,11 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
 
   private lastLoadedFollowing?: Timestamp;
 
-  get profileIdentity(): string {
-    return this.user?.uid
-      ? `/u/${this.user.uid}`
-      : this.userId
-        ? `/u/${this.userId}`
-        : "";
-  }
-
   get hasProfileMetadata(): boolean {
     return !!(
       (this.user?.nationalityCode &&
         this.countries[this.user.nationalityCode]) ||
-      this.user?.startTimeDiffString ||
-      this.user?.visitedSpotsCount
+      this.user?.startTimeDiffString
     );
   }
 
@@ -195,34 +184,6 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     return (
       this.createdSpotsCount + this.editedSpotsCount + this.mediaAddedCount
     );
-  }
-
-  get profileAccessLabel(): string {
-    return this.user?.accountPrivacy === "private"
-      ? $localize`Private account`
-      : $localize`Public account`;
-  }
-
-  get showAccountPrivacyChip(): boolean {
-    return (
-      this.user?.accountPrivacy === "private" ||
-      this.user?.profileVisibility !== "public"
-    );
-  }
-
-  get profileVisibilityLabel(): string {
-    switch (this.user?.profileVisibility) {
-      case "followers":
-        return $localize`Visible to followers`;
-      case "mutuals":
-        return $localize`Visible to mutuals`;
-      default:
-        return $localize`Public profile`;
-    }
-  }
-
-  get profileVisibilityIcon(): string {
-    return this.user?.profileVisibility === "public" ? "public" : "groups";
   }
 
   get isPrivateAccount(): boolean {
@@ -233,19 +194,6 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     return this.isFollowing || this.isPendingFollowRequest
       ? "outlined"
       : "filled";
-  }
-
-  get relationshipLabel(): string | null {
-    if (this.isMyProfile) {
-      return null;
-    }
-    if (this.isFollowing && this.isFollowedByProfile) {
-      return $localize`Friends`;
-    }
-    if (this.isFollowedByProfile) {
-      return $localize`Follows you`;
-    }
-    return null;
   }
 
   ngOnInit(): void {
@@ -326,7 +274,6 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     this.postsFromUser = [];
     this.profilePicture = "";
     this.isFollowing = false;
-    this.isFollowedByProfile = false;
     this.isPendingFollowRequest = false;
     this.profileSocialLinks = [];
     this.followRequests = [];
@@ -409,23 +356,6 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
               }
             );
           this._profileSubscriptions.add(followingSub);
-
-          const followedBySub = this._followingService
-            .userIsFollowingYou$(myUserId, userId)
-            .subscribe(
-              (isFollowedByProfile) => {
-                this.isFollowedByProfile = isFollowedByProfile;
-                this._cdr.detectChanges();
-              },
-              (err) => {
-                console.error(
-                  "There was an error checking if this user follows you"
-                );
-                console.error(err);
-                this._cdr.detectChanges();
-              }
-            );
-          this._profileSubscriptions.add(followedBySub);
 
           if (!this.isMyProfile) {
             const requestSub = this._followingService
@@ -769,6 +699,30 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     }
   }
 
+  openProfilePicture(): void {
+    const picture = this.user?.profilePicture;
+    if (!picture) {
+      return;
+    }
+
+    import(
+      "../profile-picture-dialog/profile-picture-dialog.component"
+    ).then(({ ProfilePictureDialogComponent }) => {
+      this.followListDialog.open(ProfilePictureDialogComponent, {
+        data: {
+          src: picture.getSrc(800),
+          alt: this.user?.displayName
+            ? `${this.user.displayName} profile picture`
+            : $localize`Profile picture`,
+        },
+        hasBackdrop: true,
+        maxWidth: "95vw",
+        maxHeight: "95dvh",
+        panelClass: "profile-picture-dialog-panel",
+      });
+    });
+  }
+
   openPrivateSpotListsDialog(initialTab: "saved" | "visited") {
     if (!this.isMyProfile) {
       return;
@@ -990,22 +944,36 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   private _buildProfileSocialLinks(user: User): ProfileSocialLink[] {
     const links: ProfileSocialLink[] = [];
 
-    const instagramUrl = this._buildInstagramUrl(user.socials?.instagram_handle);
     this._pushProfileSocialLink(links, {
       id: "instagram",
       label: "Instagram",
-      icon: "photo_camera",
-      url: instagramUrl,
+      iconAsset: "assets/logos/instagram.svg",
+      url: buildInstagramProfileUrl(user.socials?.instagram_handle),
       campaign: "profile_social_instagram",
     });
 
-    const youtubeUrl = this._buildYoutubeUrl(user.socials?.youtube_handle);
     this._pushProfileSocialLink(links, {
       id: "youtube",
       label: "YouTube",
       icon: "smart_display",
-      url: youtubeUrl,
+      url: buildYouTubeProfileUrl(user.socials?.youtube_handle),
       campaign: "profile_social_youtube",
+    });
+
+    this._pushProfileSocialLink(links, {
+      id: "tiktok",
+      label: "TikTok",
+      iconAsset: "assets/logos/tiktok.svg",
+      url: buildTikTokProfileUrl(user.socials?.tiktok_handle),
+      campaign: "profile_social_tiktok",
+    });
+
+    this._pushProfileSocialLink(links, {
+      id: "discord",
+      label: "Discord",
+      iconAsset: "assets/logos/discord_white.svg",
+      url: normalizeDiscordUrl(user.socials?.discord_url),
+      campaign: "profile_social_discord",
     });
 
     for (const [index, custom] of (user.socials?.other ?? []).entries()) {
@@ -1026,7 +994,8 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     config: {
       id: string;
       label: string;
-      icon: string;
+      icon?: string;
+      iconAsset?: string;
       url: string | null;
       campaign: string;
     }
@@ -1048,95 +1017,9 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
       id: config.id,
       label: config.label,
       icon: config.icon,
+      iconAsset: config.iconAsset,
       url: taggedUrl,
     });
-  }
-
-  private _buildInstagramUrl(handle?: string): string | null {
-    const normalizedHandle = this._normalizeInstagramHandle(handle);
-    if (!normalizedHandle) {
-      return null;
-    }
-    return `https://instagram.com/${normalizedHandle}`;
-  }
-
-  private _buildYoutubeUrl(handle?: string): string | null {
-    const normalizedHandle = this._normalizeYoutubeHandle(handle);
-    if (!normalizedHandle) {
-      return null;
-    }
-
-    if (normalizedHandle.startsWith("http://") || normalizedHandle.startsWith("https://")) {
-      return this._normalizeExternalUrl(normalizedHandle);
-    }
-
-    return `https://www.youtube.com/${normalizedHandle}`;
-  }
-
-  private _normalizeInstagramHandle(value?: string | null): string | null {
-    const trimmed = value?.trim();
-    if (!trimmed) {
-      return null;
-    }
-
-    if (/^https?:\/\//i.test(trimmed)) {
-      try {
-        const parsed = new URL(trimmed);
-        const firstPathSegment = parsed.pathname
-          .split("/")
-          .map((segment) => segment.trim())
-          .filter(Boolean)[0];
-        if (firstPathSegment) {
-          return firstPathSegment.replace(/^@+/, "").trim();
-        }
-      } catch (error) {
-        console.warn("Invalid Instagram URL", trimmed, error);
-      }
-    }
-
-    return trimmed.replace(/^@+/, "").split("/")[0].trim() || null;
-  }
-
-  private _normalizeYoutubeHandle(value?: string | null): string | null {
-    const trimmed = value?.trim();
-    if (!trimmed) {
-      return null;
-    }
-
-    if (/^https?:\/\//i.test(trimmed)) {
-      try {
-        const parsed = new URL(trimmed);
-        const pathParts = parsed.pathname
-          .split("/")
-          .map((segment) => segment.trim())
-          .filter(Boolean);
-
-        if (pathParts.length === 0) {
-          return null;
-        }
-
-        if (pathParts[0].startsWith("@")) {
-          return pathParts[0];
-        }
-
-        if (
-          ["channel", "c", "user"].includes(pathParts[0]) &&
-          pathParts[1]
-        ) {
-          return `${pathParts[0]}/${pathParts[1]}`;
-        }
-
-        return pathParts.join("/");
-      } catch (error) {
-        console.warn("Invalid YouTube URL", trimmed, error);
-      }
-    }
-
-    if (trimmed.startsWith("@")) {
-      return trimmed;
-    }
-
-    return trimmed.includes("/") ? trimmed : `@${trimmed}`;
   }
 
   private _normalizeExternalUrl(value?: string | null): string | null {

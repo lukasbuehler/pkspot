@@ -241,9 +241,6 @@ mat-dialog-content {
   padding: 8px 6px;
   border-right: 1px solid var(--mat-sys-outline-variant);
 
-  > mat-icon {
-    color: var(--mat-sys-on-surface-variant);
-  }
 }
 
 .daily-strip {
@@ -260,12 +257,11 @@ mat-dialog-content {
   padding: 8px 6px;
   border-right: 1px solid var(--mat-sys-outline-variant);
 
-  > mat-icon {
-    color: var(--mat-sys-on-surface-variant);
-  }
 }
 
 .forecast-icon {
+  color: var(--mat-sys-on-surface-variant);
+
   &.is-wet {
     color: var(--mat-sys-primary);
   }

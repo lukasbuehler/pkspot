@@ -1,5 +1,5 @@
-PKSPOT_VERSION_NAME = "1.1.3" # Marketing version on iOS
-PKSPOT_VERSION_CODE = 16 # Version Code on Android and iOS Project version
+PKSPOT_VERSION_NAME = "1.1.4" # Marketing version on iOS
+PKSPOT_VERSION_CODE = 17 # Version Code on Android and iOS Project version
 PKSPOT_APP_IDENTIFIER = ENV.fetch("PKSPOT_APP_IDENTIFIER", "com.pkspot.app")
 PKSPOT_APPLE_APP_ID = ENV.fetch("PKSPOT_APPLE_APP_ID", "6757597683")
 PKSPOT_ANDROID_PACKAGE_NAME = ENV.fetch("PKSPOT_ANDROID_PACKAGE_NAME", "com.pkspot.app")
@@ -40,7 +40,7 @@ def google_play_credential_options
 end
 
 platform :ios do
-  desc "Upload App Store metadata for PK Spot 1.1.3"
+  desc "Upload App Store metadata for PK Spot"
   lane :metadata do
     options = {
       app_identifier: PKSPOT_APP_IDENTIFIER,
@@ -62,7 +62,7 @@ platform :ios do
     deliver(**options)
   end
 
-  desc "Upload App Store screenshots for PK Spot 1.1.3"
+  desc "Upload App Store screenshots for PK Spot"
   lane :screenshots do
     options = {
       app_identifier: PKSPOT_APP_IDENTIFIER,
@@ -87,7 +87,7 @@ platform :ios do
 end
 
 platform :android do
-  desc "Validate Google Play text metadata for PK Spot 1.1.3"
+  desc "Validate Google Play text metadata for PK Spot"
   lane :validate_metadata do
     supply(
       **google_play_credential_options,
@@ -102,7 +102,7 @@ platform :android do
     )
   end
 
-  desc "Upload Google Play text metadata for PK Spot 1.1.3"
+  desc "Upload Google Play text metadata for PK Spot"
   lane :metadata do
     supply(
       **google_play_credential_options,
@@ -119,7 +119,7 @@ platform :android do
     )
   end
 
-  desc "Upload Google Play screenshots and images for PK Spot 1.1.3"
+  desc "Upload Google Play screenshots and images for PK Spot"
   lane :screenshots do
     supply(
       **google_play_credential_options,

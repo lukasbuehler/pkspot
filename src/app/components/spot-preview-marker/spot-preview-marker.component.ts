@@ -25,71 +25,71 @@ import { getSpotMarkerPriority } from "../map/markers/spot-marker-priority";
   selector: "app-spot-preview-marker",
   imports: [MapAdvancedMarker, MarkerComponent, SpotPreviewCardComponent],
   template: `
-    @if(position()) {
-    <div
-      #markerShell
-      class="spot-preview-marker"
-      [class.preview-enabled]="hoverPreviewActive()"
-      [class.preview-visible]="effectivePreviewVisible()"
-      [class.force-preview-visible]="forcePreviewVisible()"
-      [class.has-media]="hasMedia()"
-      [class.no-media]="!hasMedia()"
-      (mouseenter)="showPreview()"
-      (mouseleave)="hidePreview()"
-    >
-      <div class="spot-preview-marker__visual">
-        <div class="spot-preview-marker__content">
-          @if(effectivePreviewVisible()) {
-          <div
-            class="spot-preview-marker__preview"
-            (click)="onPreviewClick($event)"
-          >
-            <app-spot-preview-card
-              class="spot-preview-marker__card"
-              [spotData]="spot()"
-              [mapZoom]="mapZoom()"
-              [hasBorder]="false"
-              [isCompact]="true"
-              [imgSize]="200"
-              [loadingPriority]="effectivePreviewVisible()"
-            ></app-spot-preview-card>
-            <svg
-              class="spot-preview-marker__tail"
-              width="18"
-              height="12"
-              viewBox="0 0 18 12"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
-              <path
-                d="M6.88614 10.6061C7.4508 11.2455 7.73313 11.5653 8.04116 11.7336C8.63871 12.06 9.36129 12.06 9.95884 11.7336C10.2669 11.5653 10.5492 11.2455 11.1139 10.6061L16.1201 4.93655C17.1337 3.78859 17.6406 3.21461 17.7605 2.75071C17.9955 1.84214 17.5671 0.8924 16.7305 0.467134C16.3034 0.25 15.5377 0.25 14.0062 0.25H3.99378C2.46234 0.25 1.69663 0.25 1.26948 0.467134C0.432911 0.8924 0.00453424 1.84214 0.239482 2.75071C0.359444 3.21461 0.86627 3.78859 1.87992 4.93655L6.88614 10.6061Z"
-              />
-            </svg>
-          </div>
-          }
+    @if (position()) {
+      <div
+        #markerShell
+        class="spot-preview-marker"
+        [class.preview-enabled]="hoverPreviewActive()"
+        [class.preview-visible]="effectivePreviewVisible()"
+        [class.force-preview-visible]="forcePreviewVisible()"
+        [class.has-media]="hasMedia()"
+        [class.no-media]="!hasMedia()"
+        (mouseenter)="showPreview()"
+        (mouseleave)="hidePreview()"
+      >
+        <div class="spot-preview-marker__visual">
+          <div class="spot-preview-marker__content">
+            @if (effectivePreviewVisible()) {
+              <div
+                class="spot-preview-marker__preview"
+                (click)="onPreviewClick($event)"
+              >
+                <app-spot-preview-card
+                  class="spot-preview-marker__card"
+                  [spotData]="spot()"
+                  [mapZoom]="mapZoom()"
+                  [hasBorder]="false"
+                  [isCompact]="true"
+                  [imgSize]="200"
+                  [loadingPriority]="effectivePreviewVisible()"
+                ></app-spot-preview-card>
+                <svg
+                  class="spot-preview-marker__tail"
+                  width="18"
+                  height="12"
+                  viewBox="0 0 18 12"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M6.88614 10.6061C7.4508 11.2455 7.73313 11.5653 8.04116 11.7336C8.63871 12.06 9.36129 12.06 9.95884 11.7336C10.2669 11.5653 10.5492 11.2455 11.1139 10.6061L16.1201 4.93655C17.1337 3.78859 17.6406 3.21461 17.7605 2.75071C17.9955 1.84214 17.5671 0.8924 16.7305 0.467134C16.3034 0.25 15.5377 0.25 14.0062 0.25H3.99378C2.46234 0.25 1.69663 0.25 1.26948 0.467134C0.432911 0.8924 0.00453424 1.84214 0.239482 2.75071C0.359444 3.21461 0.86627 3.78859 1.87992 4.93655L6.88614 10.6061Z"
+                  />
+                </svg>
+              </div>
+            }
 
-          <app-marker
-            class="spot-preview-marker__pin"
-            [icons]="markerIcons()"
-            [number]="markerNumber()"
-            [isRating]="true"
-            [color]="markerColor()"
-            [size]="0.82"
-            [title]="spotName()"
-          ></app-marker>
+            <app-marker
+              class="spot-preview-marker__pin"
+              [icons]="markerIcons()"
+              [number]="markerNumber()"
+              [isRating]="true"
+              [color]="markerColor()"
+              [size]="0.82"
+              [title]="spotName()"
+            ></app-marker>
+          </div>
         </div>
       </div>
-    </div>
 
-    <map-advanced-marker
-      [title]="spotName()"
-      [position]="position()!"
-      [content]="markerShell"
-      [zIndex]="computedZIndex()"
-      [gmpClickable]="true"
-      [options]="markerOptions()"
-      (gmpClick)="onMarkerClick()"
-    />
+      <map-advanced-marker
+        [title]="spotName()"
+        [position]="position()!"
+        [content]="markerShell"
+        [zIndex]="computedZIndex()"
+        [gmpClickable]="true"
+        [options]="markerOptions()"
+        (gmpClick)="onMarkerClick()"
+      />
     }
   `,
   styles: `
@@ -219,7 +219,7 @@ export class SpotPreviewMarkerComponent {
   effectivePreviewVisible = computed(
     () =>
       this.hoverPreviewActive() &&
-      (this.previewVisible() || this.forcePreviewVisible())
+      (this.previewVisible() || this.forcePreviewVisible()),
   );
 
   position = computed<google.maps.LatLngLiteral | null>(() => {
@@ -335,7 +335,7 @@ export class SpotPreviewMarkerComponent {
       gmpClickable: true,
       collisionBehavior: this.collisionBehavior(),
       zIndex: this.computedZIndex(),
-    })
+    }),
   );
 
   showPreview() {
@@ -367,7 +367,7 @@ export class SpotPreviewMarkerComponent {
     if (amenities.indoor === true) {
       icons.push(AmenityIcons.indoor ?? "home");
     } else if (amenities.covered === true) {
-      icons.push(AmenityIcons.covered ?? "roofing");
+      icons.push(AmenityIcons.covered ?? "umbrella");
     }
     return icons;
   }

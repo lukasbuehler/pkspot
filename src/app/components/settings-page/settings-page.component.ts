@@ -29,8 +29,10 @@ import { MatIcon } from "@angular/material/icon";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { AppSettingsService } from "../../services/app-settings.service";
+import { AccountPreferencesService } from "../../services/account-preferences.service";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatSelectModule } from "@angular/material/select";
+import { MatButtonToggleModule } from "@angular/material/button-toggle";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { languageCodes } from "../../../scripts/Languages";
 import { UiLanguageService } from "../../services/ui-language.service";
@@ -48,6 +50,7 @@ import {
   FirebaseAppCheckService,
   FirebaseAppCheckStatus,
 } from "../../services/firebase/app-check.service";
+import type { TemperatureUnit } from "../../weather/weather-temperature";
 
 @Component({
   selector: "app-settings-page",
@@ -70,6 +73,7 @@ import {
     MatProgressSpinner,
     MatSlideToggleModule,
     MatSelectModule,
+    MatButtonToggleModule,
     MatExpansionModule,
     RouterLink,
     ContributionStatusNoteComponent,
@@ -92,6 +96,7 @@ export class SettingsPageComponent implements OnInit {
     private _snackbar: MatSnackBar,
     private _metaTagService: MetaTagService,
     public appSettings: AppSettingsService,
+    public accountPreferences: AccountPreferencesService,
     private _uiLanguageService: UiLanguageService,
     public ageAssurance: AgeAssuranceService,
     private _analytics: AnalyticsService,
@@ -284,6 +289,17 @@ export class SettingsPageComponent implements OnInit {
 
   changeLanguage() {
     this._uiLanguageService.changeLanguage();
+  }
+
+  setTemperatureUnit(unit: TemperatureUnit): void {
+    void this.accountPreferences.setTemperatureUnit(unit).catch((error) => {
+      console.error("Error saving temperature unit:", error);
+      this._snackbar.open(
+        $localize`:@@settings.temperature.save_error:Could not save temperature preference.`,
+        "OK",
+        { duration: 5000 },
+      );
+    });
   }
 
   syncProfileAccessSettings() {

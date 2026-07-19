@@ -13,6 +13,12 @@ PK Spot is growing toward one app for Parkour spots, training, events, jams, and
 
 ## Release Notes
 
+### Version 1.1.4 - "Event submissions & Weather"
+
+- Users can submit events
+- Polished events and profiles
+- Added weather information to the map
+
 ### Version 1.1.3 - "Profiles & Community Submissions"
 
 - Updated Profile pages and following mechanics

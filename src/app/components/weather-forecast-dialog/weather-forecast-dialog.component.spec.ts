@@ -1,3 +1,4 @@
+import { signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import {
   MAT_DIALOG_DATA,
@@ -7,12 +8,15 @@ import {
   WeatherForecastDialogComponent,
   WeatherForecastDialogData,
 } from "./weather-forecast-dialog.component";
+import { AccountPreferencesService } from "../../services/account-preferences.service";
 
 describe("WeatherForecastDialogComponent", () => {
   let fixture: ComponentFixture<WeatherForecastDialogComponent>;
   let dialogData: WeatherForecastDialogData;
+  const temperatureUnit = signal<"celsius" | "fahrenheit">("celsius");
 
   beforeEach(() => {
+    temperatureUnit.set("celsius");
     dialogData = {
       spotName: "Josefhalle",
       response: {
@@ -90,6 +94,10 @@ describe("WeatherForecastDialogComponent", () => {
           useFactory: () => dialogData,
         },
         { provide: MatDialogRef, useValue: { close: vi.fn() } },
+        {
+          provide: AccountPreferencesService,
+          useValue: { temperatureUnit },
+        },
       ],
     });
   });
@@ -153,6 +161,18 @@ describe("WeatherForecastDialogComponent", () => {
     expect(fixture.nativeElement.textContent).not.toContain(
       "Exposed surfaces may dry around",
     );
+  });
+
+  it("renders forecasts in the preferred temperature unit", async () => {
+    temperatureUnit.set("fahrenheit");
+    fixture = TestBed.createComponent(WeatherForecastDialogComponent);
+    await fixture.whenStable();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain("75 °F");
+    expect(text).toContain("77 °F");
+    expect(text).toContain("72°");
+    expect(text).toContain("86°");
   });
 
   it("groups heat and UV warnings into one warning card", async () => {

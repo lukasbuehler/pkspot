@@ -601,6 +601,8 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh, 
     updateDoc(doc(owner.db, "users/owner"), {
       "socials.instagram_handle": "owner",
       "socials.youtube_handle": "@owner",
+      "socials.tiktok_handle": "owner",
+      "socials.discord_url": "https://discord.gg/example",
     })
   );
   await assertAllowed("owner updates profile access scaffold fields", () =>
@@ -660,6 +662,23 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh, 
   );
   await assertDenied("anonymous reads owner private data", () =>
     getDoc(doc(anon.db, "users/owner/private_data/profile"))
+  );
+  await assertAllowed("owner writes private temperature preference", () =>
+    setDoc(
+      doc(owner.db, "users/owner/private_data/main"),
+      { settings: { temperature_unit: "fahrenheit" } },
+      { merge: true }
+    )
+  );
+  await assertDenied("other user writes owner temperature preference", () =>
+    setDoc(
+      doc(other.db, "users/owner/private_data/main"),
+      { settings: { temperature_unit: "celsius" } },
+      { merge: true }
+    )
+  );
+  await assertAllowed("owner removes private temperature test data", () =>
+    deleteDoc(doc(owner.db, "users/owner/private_data/main"))
   );
   await assertAllowed("owner reads own check-ins", () =>
     getDocs(collection(owner.db, "users/owner/check_ins"))

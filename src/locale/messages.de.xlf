@@ -295,12 +295,6 @@
         <target>Einstellungen - </target>
       </segment>
     </unit>
-    <unit id="6874746901040347382">
-      <segment state="initial">
-        <source>Private account</source>
-        <target>Private account</target>
-      </segment>
-    </unit>
     <unit id="6876434298853499564">
       <notes>
         <note category="description">Label of the button to add bounds to a spot</note>
@@ -359,6 +353,42 @@
       <segment state="initial">
         <source> Save changes </source>
         <target> Speichern </target>
+      </segment>
+    </unit>
+    <unit id="settings.temperature.aria_label">
+      <segment state="initial">
+        <source>Temperature unit</source>
+        <target>Temperatureinheit</target>
+      </segment>
+    </unit>
+    <unit id="settings.temperature.celsius">
+      <segment state="initial">
+        <source> Celsius (°C) </source>
+        <target> Grad Celsius (°C) </target>
+      </segment>
+    </unit>
+    <unit id="settings.temperature.description">
+      <segment state="initial">
+        <source> Choose how temperatures are displayed in weather forecasts. </source>
+        <target> Wähle aus, wie Temperaturen in Wettervorhersagen angezeigt werden. </target>
+      </segment>
+    </unit>
+    <unit id="settings.temperature.fahrenheit">
+      <segment state="initial">
+        <source> Fahrenheit (°F) </source>
+        <target> Grad Fahrenheit (°F) </target>
+      </segment>
+    </unit>
+    <unit id="settings.temperature.heading">
+      <segment state="initial">
+        <source> Temperature </source>
+        <target> Temperatur </target>
+      </segment>
+    </unit>
+    <unit id="settings.temperature.save_error">
+      <segment state="initial">
+        <source>Could not save temperature preference.</source>
+        <target>Die Temperatureinstellung konnte nicht gespeichert werden.</target>
       </segment>
     </unit>
     <unit id="settings.title">
@@ -744,6 +774,18 @@
       <segment state="initial">
         <source> Account </source>
         <target> Konto </target>
+      </segment>
+    </unit>
+    <unit id="settings.account.userId">
+      <segment state="initial">
+        <source> User ID </source>
+        <target> Benutzer-ID </target>
+      </segment>
+    </unit>
+    <unit id="settings.account.userIdDescription">
+      <segment state="initial">
+        <source> Your unique account identifier. </source>
+        <target> Deine eindeutige Konto-ID. </target>
       </segment>
     </unit>
     <unit id="settings.app_check.detail.default">
@@ -2320,12 +2362,6 @@
         <target>Dieser Link ist abgelaufen. Bitte fordere einen neuen an.</target>
       </segment>
     </unit>
-    <unit id="3253302203274992288">
-      <segment state="initial">
-        <source>Public account</source>
-        <target>Public account</target>
-      </segment>
-    </unit>
     <unit id="3255718056802293269">
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">search</pc> Explore the Map </source>
@@ -3480,9 +3516,9 @@
         <target>Helfer</target>
       </segment>
     </unit>
-    <unit id="9103544018838053799">
+    <unit id="5251570247844942910">
       <segment state="initial">
-        <source>{VAR_PLURAL, plural, =1 {spot visited} other {spots visited}}</source>
+        <source>{VAR_PLURAL, plural, =1 {Spot visited} other {Spots visited}}</source>
         <target>{VAR_PLURAL, plural, =1 {Spot besucht} other {Spots besucht}}</target>
       </segment>
     </unit>
@@ -3690,12 +3726,6 @@
       <segment state="initial">
         <source>Organization members</source>
         <target>Organisationsmitglieder</target>
-      </segment>
-    </unit>
-    <unit id="6155919473084909937">
-      <segment state="initial">
-        <source>Follows you</source>
-        <target>Follows you</target>
       </segment>
     </unit>
     <unit id="7049904563073707059">
@@ -4054,8 +4084,8 @@
     </unit>
     <unit id="weather.warning.high_temperature.message">
       <segment state="initial">
-        <source>Temperatures may make intense training more demanding. Take breaks and stay hydrated.</source>
-        <target>Hohe Temperaturen können intensives Training belastender machen. Lege Pausen ein und trinke ausreichend.</target>
+        <source>Current heat may make intense training more demanding. Take breaks and stay hydrated.</source>
+        <target>Die aktuelle Hitze kann intensives Training belastender machen. Lege Pausen ein und trinke ausreichend.</target>
       </segment>
     </unit>
     <unit id="weather.warning.high_uv.label">
@@ -4244,6 +4274,18 @@
         <target> Dein aktuelles Profilbild </target>
       </segment>
     </unit>
+    <unit id="editProfile.discord.hint">
+      <segment state="initial">
+        <source> Discord usernames cannot be linked; use an invite or profile URL. </source>
+        <target> Discord-Benutzernamen können nicht verlinkt werden; verwende einen Einladungs- oder Profil-Link. </target>
+      </segment>
+    </unit>
+    <unit id="editProfile.discord.placeholder">
+      <segment state="initial">
+        <source>Invite code, invite URL, or profile URL</source>
+        <target>Einladungscode, Einladungs-Link oder Profil-Link</target>
+      </segment>
+    </unit>
     <unit id="editProfile.displayName">
       <notes>
         <note category="description">Label for display name field</note>
@@ -4252,6 +4294,12 @@
       <segment state="initial">
         <source>Display Name</source>
         <target>Anzeigename</target>
+      </segment>
+    </unit>
+    <unit id="editProfile.instagram.placeholder">
+      <segment state="initial">
+        <source>@yourhandle or full profile URL</source>
+        <target>@deinname oder vollständige Profil-URL</target>
       </segment>
     </unit>
     <unit id="editProfile.nationalityCode">
@@ -4273,6 +4321,18 @@
         <target><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">image</pc> Profilbild auswählen </target>
       </segment>
     </unit>
+    <unit id="editProfile.socialLinks.description">
+      <segment state="initial">
+        <source> Optional public links shown on your profile </source>
+        <target> Optionale öffentliche Links, die in deinem Profil angezeigt werden </target>
+      </segment>
+    </unit>
+    <unit id="editProfile.socialLinks.title">
+      <segment state="initial">
+        <source>Social links</source>
+        <target>Social-Media-Links</target>
+      </segment>
+    </unit>
     <unit id="editProfile.startDate">
       <notes>
         <note category="description">Label for start date field</note>
@@ -4291,6 +4351,18 @@
       <segment state="initial">
         <source>This is the date you started practicing Parkour and Freerunning. It will be rounded to full years after one year or more so don&apos;t sweat it.</source>
         <target>Dies ist das Datum, an dem du mit Parkour und Freerunning angefangen hast. Nach einem Jahr oder mehr wird es auf volle Jahre gerundet, also mach dir keine Sorge über die Genauigkeit.</target>
+      </segment>
+    </unit>
+    <unit id="editProfile.tiktok.placeholder">
+      <segment state="initial">
+        <source>@yourhandle or full profile URL</source>
+        <target>@deinname oder vollständige Profil-URL</target>
+      </segment>
+    </unit>
+    <unit id="editProfile.youtube.placeholder">
+      <segment state="initial">
+        <source>@yourhandle, channel/id, or full profile URL</source>
+        <target>@deinname, Kanal/ID oder vollständige Profil-URL</target>
       </segment>
     </unit>
     <unit id="embedded-promo-powered-by">
@@ -6373,12 +6445,6 @@
         <target>Diese Organisation konnte nicht geladen werden.</target>
       </segment>
     </unit>
-    <unit id="7995306732519397725">
-      <segment state="initial">
-        <source>Visible to mutuals</source>
-        <target>Visible to mutuals</target>
-      </segment>
-    </unit>
     <unit id="8202652744541567309">
       <segment state="initial">
         <source>Password Reset Successful</source>
@@ -6829,12 +6895,6 @@
       <segment state="initial">
         <source>Update Review</source>
         <target>Bewertung aktualisieren</target>
-      </segment>
-    </unit>
-    <unit id="8707887448880467422">
-      <segment state="initial">
-        <source>Friends</source>
-        <target>Friends</target>
       </segment>
     </unit>
     <unit id="8726138323871139597">
@@ -8015,6 +8075,12 @@
         <target>Spaß</target>
       </segment>
     </unit>
+    <unit id="5454879334049027667">
+      <segment state="initial">
+        <source>Close profile picture</source>
+        <target>Profilbild schließen</target>
+      </segment>
+    </unit>
     <unit id="5464118521750361406">
       <segment state="initial">
         <source>Public profile</source>
@@ -8506,12 +8572,6 @@
         <target>Challenge bei <ph id="0" equiv="PH" disp="spotName"/></target>
       </segment>
     </unit>
-    <unit id="720557322859638078">
-      <segment state="initial">
-        <source>You</source>
-        <target>You</target>
-      </segment>
-    </unit>
     <unit id="7214717827274759008">
       <segment state="initial">
         <source> This spot&apos;s data is made available under the <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; (click)=&quot;trackSourceLinkClick(&apos;license&apos;, &apos;https://creativecommons.org/licenses/by-nc-sa/4.0/&apos;)&quot; &gt;" dispEnd="&lt;/a &gt;">CC BY-NC-SA 4.0</pc> license. </source>
@@ -8729,6 +8789,12 @@
       <segment state="initial">
         <source>File mimetype is not allowed!</source>
         <target>Dateityp ist nicht erlaubt!</target>
+      </segment>
+    </unit>
+    <unit id="7019624680291867971">
+      <segment state="initial">
+        <source>View profile picture</source>
+        <target>Profilbild ansehen</target>
       </segment>
     </unit>
     <unit id="7334091550966090385">
@@ -9244,12 +9310,6 @@
         <target>Tippe weiter, um zu suchen</target>
       </segment>
     </unit>
-    <unit id="843060855191322991">
-      <segment state="initial">
-        <source>Visible to followers</source>
-        <target>Visible to followers</target>
-      </segment>
-    </unit>
     <unit id="8431151318560186465">
       <segment state="initial">
         <source> Enter at least 2 characters. </source>
@@ -9296,6 +9356,12 @@
       <segment state="initial">
         <source>Searching spots...</source>
         <target>Spots werden gesucht...</target>
+      </segment>
+    </unit>
+    <unit id="4703848376604347254">
+      <segment state="initial">
+        <source>Profile picture</source>
+        <target>Profilbild</target>
       </segment>
     </unit>
     <unit id="1644771681227658602">

@@ -66,13 +66,11 @@ export function getWeatherWarnings(
     warnings.add("strong-wind");
   }
   if (
-    points.some(
-      (point) =>
-        Math.max(
-          point.temperatureC ?? -Infinity,
-          point.apparentTemperatureC ?? -Infinity,
-        ) >= 30,
-    )
+    current &&
+    Math.max(
+      current.temperatureC ?? -Infinity,
+      current.apparentTemperatureC ?? -Infinity,
+    ) >= 30
   ) {
     warnings.add("high-temperature");
   }

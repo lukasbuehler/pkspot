@@ -858,6 +858,8 @@ describe("Typesense users_v1 ↔ UserSchema", () => {
     "socials",
     "socials.instagram_handle",
     "socials.youtube_handle",
+    "socials.tiktok_handle",
+    "socials.discord_url",
     "socials.other",
     "creationDate",
     // `public_search` is a settings-side flag (lives in PrivateUserDataSchema
@@ -902,6 +904,14 @@ describe("Typesense users_v1 ↔ UserSchema", () => {
     "socials.youtube_handle": {
       kind: "direct",
       source: "socials.youtube_handle",
+    },
+    "socials.tiktok_handle": {
+      kind: "direct",
+      source: "socials.tiktok_handle",
+    },
+    "socials.discord_url": {
+      kind: "direct",
+      source: "socials.discord_url",
     },
     public_search: { kind: "direct", source: "public_search" },
     _force_sync: {

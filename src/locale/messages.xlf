@@ -242,14 +242,14 @@
         <source>Searching spots...</source>
       </segment>
     </unit>
+    <unit id="4703848376604347254">
+      <segment>
+        <source>Profile picture</source>
+      </segment>
+    </unit>
     <unit id="4709722575878250034">
       <segment>
         <source> The <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">crew</pc>. </source>
-      </segment>
-    </unit>
-    <unit id="3253302203274992288">
-      <segment>
-        <source>Public account</source>
       </segment>
     </unit>
     <unit id="3255718056802293269">
@@ -355,11 +355,6 @@
     <unit id="613943582301222071">
       <segment>
         <source>Organization members</source>
-      </segment>
-    </unit>
-    <unit id="6155919473084909937">
-      <segment>
-        <source>Follows you</source>
       </segment>
     </unit>
     <unit id="6943542297023366963">
@@ -697,9 +692,9 @@
         <source>Validating your reset link...</source>
       </segment>
     </unit>
-    <unit id="9103544018838053799">
+    <unit id="5251570247844942910">
       <segment>
-        <source>{VAR_PLURAL, plural, =1 {spot visited} other {spots visited}}</source>
+        <source>{VAR_PLURAL, plural, =1 {Spot visited} other {Spots visited}}</source>
       </segment>
     </unit>
     <unit id="9107902639851774121">
@@ -1708,6 +1703,16 @@
         <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">image</pc> Select Profile Picture </source>
       </segment>
     </unit>
+    <unit id="editProfile.discord.hint">
+      <segment>
+        <source> Discord usernames cannot be linked; use an invite or profile URL. </source>
+      </segment>
+    </unit>
+    <unit id="editProfile.discord.placeholder">
+      <segment>
+        <source>Invite code, invite URL, or profile URL</source>
+      </segment>
+    </unit>
     <unit id="editProfile.displayName">
       <notes>
         <note category="description">Label for display name field</note>
@@ -1735,12 +1740,27 @@
         <source>Write your Bio here...</source>
       </segment>
     </unit>
+    <unit id="editProfile.instagram.placeholder">
+      <segment>
+        <source>@yourhandle or full profile URL</source>
+      </segment>
+    </unit>
     <unit id="editProfile.nationalityCode">
       <notes>
         <note category="description">nationality code label</note>
       </notes>
       <segment>
         <source>Country (optional, public)</source>
+      </segment>
+    </unit>
+    <unit id="editProfile.socialLinks.description">
+      <segment>
+        <source> Optional public links shown on your profile </source>
+      </segment>
+    </unit>
+    <unit id="editProfile.socialLinks.title">
+      <segment>
+        <source>Social links</source>
       </segment>
     </unit>
     <unit id="editProfile.startDate">
@@ -1759,6 +1779,16 @@
       </notes>
       <segment>
         <source>This is the date you started practicing Parkour and Freerunning. It will be rounded to full years after one year or more so don&apos;t sweat it.</source>
+      </segment>
+    </unit>
+    <unit id="editProfile.tiktok.placeholder">
+      <segment>
+        <source>@yourhandle or full profile URL</source>
+      </segment>
+    </unit>
+    <unit id="editProfile.youtube.placeholder">
+      <segment>
+        <source>@yourhandle, channel/id, or full profile URL</source>
       </segment>
     </unit>
     <unit id="embedded-promo-powered-by">
@@ -4125,11 +4155,6 @@
         <source>Show less</source>
       </segment>
     </unit>
-    <unit id="720557322859638078">
-      <segment>
-        <source>You</source>
-      </segment>
-    </unit>
     <unit id="7214717827274759008">
       <segment>
         <source> This spot&apos;s data is made available under the <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; (click)=&quot;trackSourceLinkClick(&apos;license&apos;, &apos;https://creativecommons.org/licenses/by-nc-sa/4.0/&apos;)&quot; &gt;" dispEnd="&lt;/a &gt;">CC BY-NC-SA 4.0</pc> license. </source>
@@ -4471,6 +4496,11 @@
         <source>File mimetype is not allowed!</source>
       </segment>
     </unit>
+    <unit id="7019624680291867971">
+      <segment>
+        <source>View profile picture</source>
+      </segment>
+    </unit>
     <unit id="7334091550966090385">
       <segment>
         <source>Error uploading media!</source>
@@ -4569,11 +4599,6 @@
     <unit id="643839708130168383">
       <segment>
         <source>{VAR_PLURAL, plural, =1 {Follower} other {Followers}}</source>
-      </segment>
-    </unit>
-    <unit id="8707887448880467422">
-      <segment>
-        <source>Friends</source>
       </segment>
     </unit>
     <unit id="8726138323871139597">
@@ -4686,6 +4711,36 @@
         <source> Continue </source>
       </segment>
     </unit>
+    <unit id="settings.temperature.aria_label">
+      <segment>
+        <source>Temperature unit</source>
+      </segment>
+    </unit>
+    <unit id="settings.temperature.celsius">
+      <segment>
+        <source> Celsius (°C) </source>
+      </segment>
+    </unit>
+    <unit id="settings.temperature.description">
+      <segment>
+        <source> Choose how temperatures are displayed in weather forecasts. </source>
+      </segment>
+    </unit>
+    <unit id="settings.temperature.fahrenheit">
+      <segment>
+        <source> Fahrenheit (°F) </source>
+      </segment>
+    </unit>
+    <unit id="settings.temperature.heading">
+      <segment>
+        <source> Temperature </source>
+      </segment>
+    </unit>
+    <unit id="settings.temperature.save_error">
+      <segment>
+        <source>Could not save temperature preference.</source>
+      </segment>
+    </unit>
     <unit id="settings.title">
       <notes>
         <note category="description">Title of the settings page</note>
@@ -4729,6 +4784,16 @@
       </notes>
       <segment>
         <source> Account </source>
+      </segment>
+    </unit>
+    <unit id="settings.account.userId">
+      <segment>
+        <source> User ID </source>
+      </segment>
+    </unit>
+    <unit id="settings.account.userIdDescription">
+      <segment>
+        <source> Your unique account identifier. </source>
       </segment>
     </unit>
     <unit id="settings.app_check.detail.default">
@@ -6208,11 +6273,6 @@
         <source> Add an editable boundary for this spot. After adding, you can adjust the polygon shape on the map. </source>
       </segment>
     </unit>
-    <unit id="6874746901040347382">
-      <segment>
-        <source>Private account</source>
-      </segment>
-    </unit>
     <unit id="6876434298853499564">
       <notes>
         <note category="description">Label of the button to add bounds to a spot</note>
@@ -7041,7 +7101,7 @@
     </unit>
     <unit id="weather.warning.high_temperature.message">
       <segment>
-        <source>Temperatures may make intense training more demanding. Take breaks and stay hydrated.</source>
+        <source>Current heat may make intense training more demanding. Take breaks and stay hydrated.</source>
       </segment>
     </unit>
     <unit id="weather.warning.high_uv.label">
@@ -7182,11 +7242,6 @@
         <source>Could not load this organization.</source>
       </segment>
     </unit>
-    <unit id="7995306732519397725">
-      <segment>
-        <source>Visible to mutuals</source>
-      </segment>
-    </unit>
     <unit id="4819272857647882401">
       <segment>
         <source>Loading events…</source>
@@ -7291,11 +7346,6 @@
       </notes>
       <segment>
         <source>Submitting...</source>
-      </segment>
-    </unit>
-    <unit id="843060855191322991">
-      <segment>
-        <source>Visible to followers</source>
       </segment>
     </unit>
     <unit id="8431151318560186465">
@@ -7795,6 +7845,11 @@
     <unit id="5451766476743569122">
       <segment>
         <source>Fun</source>
+      </segment>
+    </unit>
+    <unit id="5454879334049027667">
+      <segment>
+        <source>Close profile picture</source>
       </segment>
     </unit>
     <unit id="7027401708987643293">

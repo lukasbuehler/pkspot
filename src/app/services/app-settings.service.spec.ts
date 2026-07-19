@@ -51,4 +51,13 @@ describe("AppSettingsService", () => {
       { enableMapGlassBlur: true },
     );
   });
+
+  it("does not retain a legacy device-local temperature preference", () => {
+    createSettingsService({ temperatureUnit: "fahrenheit" });
+    flushSignalEffects();
+
+    expect(
+      JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? "{}"),
+    ).not.toHaveProperty("temperatureUnit");
+  });
 });

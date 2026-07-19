@@ -1,0 +1,21 @@
+<div #swiper class="profile-picture-swiper swiper">
+  <div class="swiper-wrapper">
+    <div class="swiper-slide">
+      <div class="swiper-zoom-container">
+        <div class="profile-picture-dialog__image">
+          <img [ngSrc]="data.src" [alt]="data.alt" fill />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button
+    mat-icon-button
+    class="profile-picture-dialog__close"
+    aria-label="Close profile picture"
+    i18n-aria-label
+    (click)="close()"
+  >
+    <mat-icon>close</mat-icon>
+  </button>
+</div>

@@ -1,9 +1,11 @@
+import { signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import {
   WeatherIconButtonComponent,
   WeatherIconData,
 } from "./weather-icon-button.component";
 import { WeatherCondition } from "../../weather/weather-display";
+import { AccountPreferencesService } from "../../services/account-preferences.service";
 
 const weather = (condition: WeatherCondition): WeatherIconData => ({
   condition,
@@ -11,9 +13,18 @@ const weather = (condition: WeatherCondition): WeatherIconData => ({
 
 describe("WeatherIconButtonComponent", () => {
   let fixture: ComponentFixture<WeatherIconButtonComponent>;
+  const temperatureUnit = signal<"celsius" | "fahrenheit">("celsius");
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    temperatureUnit.set("celsius");
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: AccountPreferencesService,
+          useValue: { temperatureUnit },
+        },
+      ],
+    });
     fixture = TestBed.createComponent(WeatherIconButtonComponent);
   });
 
@@ -55,6 +66,19 @@ describe("WeatherIconButtonComponent", () => {
     expect(fixture.nativeElement.querySelector("button").classList).not.toContain(
       "has-warning",
     );
+  });
+
+  it("uses the preferred unit in the accessible label", async () => {
+    temperatureUnit.set("fahrenheit");
+    fixture.componentRef.setInput("weather", {
+      condition: "clear",
+      temperatureC: 30,
+    } satisfies WeatherIconData);
+    await fixture.whenStable();
+
+    expect(
+      fixture.nativeElement.querySelector("button").getAttribute("aria-label"),
+    ).toBe("Clear, 86 °F");
   });
 
   it("applies wet and warning status colors", async () => {

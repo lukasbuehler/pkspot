@@ -72,8 +72,8 @@ describe("weather warning presentation", () => {
     expect(getWeatherWarnings(nighttime)).not.toContain("high-uv");
   });
 
-  it("warns when actual or apparent temperature reaches 30 degrees", () => {
-    const actualHeat = response({
+  it("warns only when the current actual or apparent temperature reaches 30 degrees", () => {
+    const laterHeat = response({
       forecast: [
         {
           time: "2026-07-19T12:00:00Z",
@@ -91,7 +91,7 @@ describe("weather warning presentation", () => {
       },
     });
 
-    expect(getWeatherWarnings(actualHeat)).toContain("high-temperature");
+    expect(getWeatherWarnings(laterHeat)).not.toContain("high-temperature");
     expect(getWeatherWarnings(apparentHeat)).toContain("high-temperature");
     expect(getWeatherVisualStatus(apparentHeat)).toBe("warning");
   });

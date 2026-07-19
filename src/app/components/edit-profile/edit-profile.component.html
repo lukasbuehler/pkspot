@@ -174,8 +174,12 @@
   <mat-accordion>
     <mat-expansion-panel>
       <mat-expansion-panel-header>
-        <mat-panel-title>Social Links</mat-panel-title>
-        <mat-panel-description>
+        <mat-panel-title i18n="@@editProfile.socialLinks.title"
+          >Social links</mat-panel-title
+        >
+        <mat-panel-description
+          i18n="@@editProfile.socialLinks.description"
+        >
           Optional public links shown on your profile
         </mat-panel-description>
       </mat-expansion-panel-header>
@@ -188,6 +192,7 @@
             type="text"
             [value]="instagramHandle"
             placeholder="@yourhandle or full profile URL"
+            i18n-placeholder="@@editProfile.instagram.placeholder"
             (input)="
               instagramHandle = getValueFromEventTarget($event.target) ?? '';
               detectIfChanges()
@@ -202,6 +207,7 @@
             type="text"
             [value]="youtubeHandle"
             placeholder="@yourhandle, channel/id, or full profile URL"
+            i18n-placeholder="@@editProfile.youtube.placeholder"
             (input)="
               youtubeHandle = getValueFromEventTarget($event.target) ?? '';
               detectIfChanges()
@@ -209,6 +215,38 @@
           />
         </mat-form-field>
 
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>TikTok</mat-label>
+          <input
+            matInput
+            type="text"
+            [value]="tiktokHandle"
+            placeholder="@yourhandle or full profile URL"
+            i18n-placeholder="@@editProfile.tiktok.placeholder"
+            (input)="
+              tiktokHandle = getValueFromEventTarget($event.target) ?? '';
+              detectIfChanges()
+            "
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Discord</mat-label>
+          <input
+            matInput
+            type="url"
+            [value]="discordUrl"
+            placeholder="Invite code, invite URL, or profile URL"
+            i18n-placeholder="@@editProfile.discord.placeholder"
+            (input)="
+              discordUrl = getValueFromEventTarget($event.target) ?? '';
+              detectIfChanges()
+            "
+          />
+          <mat-hint i18n="@@editProfile.discord.hint">
+            Discord usernames cannot be linked; use an invite or profile URL.
+          </mat-hint>
+        </mat-form-field>
       </div>
     </mat-expansion-panel>
   </mat-accordion>

@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   LOCALE_ID,
+  computed,
   inject,
 } from "@angular/core";
 import { MatButton, MatIconButton } from "@angular/material/button";
@@ -30,6 +31,8 @@ import {
   getWeatherVisualStatus,
   getWeatherWarnings,
 } from "../../weather/weather-warnings";
+import { AccountPreferencesService } from "../../services/account-preferences.service";
+import { formatTemperature } from "../../weather/weather-temperature";
 
 export interface WeatherForecastDialogData {
   spotName: string;
@@ -42,7 +45,7 @@ interface WeatherHourView {
   time: string;
   icon: string;
   condition: string;
-  temperature?: number;
+  temperature?: string;
   rainProbability?: number;
   precipitationMm?: number;
   iconTone: WeatherForecastIconTone;
@@ -53,8 +56,8 @@ interface WeatherDayView {
   weekday: string;
   icon: string;
   condition: string;
-  maxTemperature?: number;
-  minTemperature?: number;
+  maxTemperature?: string;
+  minTemperature?: string;
   rainProbability?: number;
   precipitationMm?: number;
   iconTone: WeatherForecastIconTone;
@@ -82,6 +85,7 @@ interface WeatherWarningGroup {
 export class WeatherForecastDialogComponent {
   readonly data = inject<WeatherForecastDialogData>(MAT_DIALOG_DATA);
   private readonly locale = inject(LOCALE_ID);
+  private readonly accountPreferences = inject(AccountPreferencesService);
   private readonly response = this.data.response;
   private readonly timeFormatter = this.createTimeFormatter();
   private readonly weekdayFormatter = new Intl.DateTimeFormat(this.locale, {
@@ -109,14 +113,12 @@ export class WeatherForecastDialogComponent {
   protected readonly visualStatus = getWeatherVisualStatus(this.response, {
     covered: this.data.covered,
   });
-  protected readonly currentTemperature =
-    this.current?.temperatureC === undefined
-      ? undefined
-      : Math.round(this.current.temperatureC);
-  protected readonly apparentTemperature =
-    this.current?.apparentTemperatureC === undefined
-      ? undefined
-      : Math.round(this.current.apparentTemperatureC);
+  protected readonly currentTemperature = computed(() =>
+    this.displayTemperature(this.current?.temperatureC, true),
+  );
+  protected readonly apparentTemperature = computed(() =>
+    this.displayTemperature(this.current?.apparentTemperatureC, true),
+  );
   protected readonly narrative = this.buildNarrative();
   protected readonly surfaceNote = this.buildSurfaceNote();
   protected readonly daylightSummary = this.buildDaylightSummary();
@@ -125,31 +127,32 @@ export class WeatherForecastDialogComponent {
       ? undefined
       : $localize`:@@weather.dialog.cloud_cover:Current cloud cover: ${Math.round(this.current.cloudCoverPercent)}%.`;
   protected readonly warningGroups = this.groupWarnings(this.buildWarnings());
-  protected readonly hours = (this.response.forecast ?? []).map(
-    (point): WeatherHourView => ({
-      time: this.formatTime(point.time),
-      icon: getWeatherStateIcon(this.getCondition(point), point.isDay),
-      condition: WEATHER_STATES[this.getCondition(point)].label,
-      temperature:
-        point.temperatureC === undefined
-          ? undefined
-          : Math.round(point.temperatureC),
-      rainProbability: point.precipitationProbabilityPercent,
-      precipitationMm: point.precipitationMm,
-      iconTone: getWeatherForecastIconTone({
-        condition: this.getCondition(point),
-        temperatureC: point.temperatureC,
-        uvIndex: point.uvIndex,
+  protected readonly hours = computed(() =>
+    (this.response.forecast ?? []).map(
+      (point): WeatherHourView => ({
+        time: this.formatTime(point.time),
+        icon: getWeatherStateIcon(this.getCondition(point), point.isDay),
+        condition: WEATHER_STATES[this.getCondition(point)].label,
+        temperature: this.displayTemperature(point.temperatureC),
+        rainProbability: point.precipitationProbabilityPercent,
         precipitationMm: point.precipitationMm,
-        precipitationProbabilityPercent:
-          point.precipitationProbabilityPercent,
-        isDay: point.isDay,
+        iconTone: getWeatherForecastIconTone({
+          condition: this.getCondition(point),
+          temperatureC: point.temperatureC,
+          uvIndex: point.uvIndex,
+          precipitationMm: point.precipitationMm,
+          precipitationProbabilityPercent:
+            point.precipitationProbabilityPercent,
+          isDay: point.isDay,
+        }),
       }),
-    }),
+    ),
   );
-  protected readonly days = (this.response.dailyForecast ?? [])
-    .slice(0, 7)
-    .map((point) => this.toDayView(point));
+  protected readonly days = computed(() =>
+    (this.response.dailyForecast ?? [])
+      .slice(0, 7)
+      .map((point) => this.toDayView(point)),
+  );
   protected readonly providerUrl =
     this.response.provider === "open-meteo"
       ? "https://open-meteo.com/"
@@ -172,14 +175,8 @@ export class WeatherForecastDialogComponent {
       weekday: this.weekdayFormatter.format(date),
       icon: getWeatherStateIcon(condition),
       condition: WEATHER_STATES[condition].label,
-      maxTemperature:
-        point.maxTemperatureC === undefined
-          ? undefined
-          : Math.round(point.maxTemperatureC),
-      minTemperature:
-        point.minTemperatureC === undefined
-          ? undefined
-          : Math.round(point.minTemperatureC),
+      maxTemperature: this.displayTemperature(point.maxTemperatureC),
+      minTemperature: this.displayTemperature(point.minTemperatureC),
       rainProbability: point.precipitationProbabilityPercent,
       precipitationMm: point.precipitationMm,
       iconTone: getWeatherForecastIconTone({
@@ -359,6 +356,19 @@ export class WeatherForecastDialogComponent {
 
   private formatTime(value: string): string {
     return this.timeFormatter.format(new Date(value));
+  }
+
+  private displayTemperature(
+    value: number | undefined,
+    includeUnit = false,
+  ): string | undefined {
+    return value === undefined
+      ? undefined
+      : formatTemperature(
+          value,
+          this.accountPreferences.temperatureUnit(),
+          includeUnit,
+        );
   }
 
   private createTimeFormatter(): Intl.DateTimeFormat {

@@ -48,11 +48,10 @@ import {
 } from "../../../db/schemas/UserSchema";
 import { AutocompleteOverlayRepositionDirective } from "../../directives/autocomplete-overlay-reposition.directive";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
-
-type NormalizedSocials = {
-  instagram_handle?: string;
-  youtube_handle?: string;
-};
+import {
+  NormalizedProfileSocials,
+  normalizeProfileSocials,
+} from "../../utils/profile-social-links";
 
 @Component({
   selector: "app-edit-profile",
@@ -95,6 +94,8 @@ export class EditProfileComponent implements OnInit {
   nationalityCode: string | null = null;
   instagramHandle: string = "";
   youtubeHandle: string = "";
+  tiktokHandle: string = "";
+  discordUrl: string = "";
 
   newProfilePicture: File | null = null;
   newProfilePictureSrc: string = "";
@@ -187,6 +188,8 @@ export class EditProfileComponent implements OnInit {
       this.nationalityCode = user.nationalityCode ?? null;
       this.instagramHandle = user.socials?.instagram_handle ?? "";
       this.youtubeHandle = user.socials?.youtube_handle ?? "";
+      this.tiktokHandle = user.socials?.tiktok_handle ?? "";
+      this.discordUrl = user.socials?.discord_url ?? "";
 
       if (this.nationalityCode && this.countries[this.nationalityCode]) {
         this.countryControl.setValue(this.countries[this.nationalityCode].name);
@@ -468,6 +471,12 @@ export class EditProfileComponent implements OnInit {
       if (currentSocials.youtube_handle) {
         socials.youtube_handle = currentSocials.youtube_handle;
       }
+      if (currentSocials.tiktok_handle) {
+        socials.tiktok_handle = currentSocials.tiktok_handle;
+      }
+      if (currentSocials.discord_url) {
+        socials.discord_url = currentSocials.discord_url;
+      }
       if (user.socials?.other) {
         socials.other = user.socials.other;
       }
@@ -488,94 +497,16 @@ export class EditProfileComponent implements OnInit {
     });
   }
 
-  private _buildCurrentSocials(): NormalizedSocials {
-    return this._normalizeSocials({
+  private _buildCurrentSocials(): NormalizedProfileSocials {
+    return normalizeProfileSocials({
       instagram_handle: this.instagramHandle,
       youtube_handle: this.youtubeHandle,
+      tiktok_handle: this.tiktokHandle,
+      discord_url: this.discordUrl,
     });
   }
 
-  private _buildOriginalSocials(): NormalizedSocials {
-    return this._normalizeSocials(this.user()?.socials);
+  private _buildOriginalSocials(): NormalizedProfileSocials {
+    return normalizeProfileSocials(this.user()?.socials);
   }
-
-  private _normalizeSocials(socials?: UserSocialsSchema | null): NormalizedSocials {
-    const instagramHandle = this._normalizeInstagramHandle(
-      socials?.instagram_handle
-    );
-    const youtubeHandle = this._normalizeYoutubeHandle(socials?.youtube_handle);
-
-    return {
-      instagram_handle: instagramHandle,
-      youtube_handle: youtubeHandle,
-    };
-  }
-
-  private _normalizeInstagramHandle(value?: string | null): string | undefined {
-    const trimmed = value?.trim();
-    if (!trimmed) {
-      return undefined;
-    }
-
-    if (/^https?:\/\//i.test(trimmed)) {
-      try {
-        const parsed = new URL(trimmed);
-        const firstPathSegment = parsed.pathname
-          .split("/")
-          .map((segment) => segment.trim())
-          .filter(Boolean)[0];
-        if (firstPathSegment) {
-          return firstPathSegment.replace(/^@+/, "").trim() || undefined;
-        }
-      } catch (error) {
-        console.warn("Invalid Instagram URL", trimmed, error);
-      }
-    }
-
-    const cleaned = trimmed.replace(/^@+/, "").split("/")[0].trim();
-    return cleaned || undefined;
-  }
-
-  private _normalizeYoutubeHandle(value?: string | null): string | undefined {
-    const trimmed = value?.trim();
-    if (!trimmed) {
-      return undefined;
-    }
-
-    if (/^https?:\/\//i.test(trimmed)) {
-      try {
-        const parsed = new URL(trimmed);
-        const pathParts = parsed.pathname
-          .split("/")
-          .map((segment) => segment.trim())
-          .filter(Boolean);
-
-        if (pathParts.length === 0) {
-          return undefined;
-        }
-
-        if (pathParts[0].startsWith("@")) {
-          return pathParts[0];
-        }
-
-        if (
-          ["channel", "c", "user"].includes(pathParts[0]) &&
-          pathParts[1]
-        ) {
-          return `${pathParts[0]}/${pathParts[1]}`;
-        }
-
-        return pathParts.join("/");
-      } catch (error) {
-        console.warn("Invalid YouTube URL", trimmed, error);
-      }
-    }
-
-    if (trimmed.startsWith("@")) {
-      return trimmed;
-    }
-
-    return trimmed.includes("/") ? trimmed : `@${trimmed}`;
-  }
-
 }

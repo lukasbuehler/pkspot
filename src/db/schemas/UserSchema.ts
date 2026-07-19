@@ -8,6 +8,8 @@ export interface UserSocialCustomLinkSchema {
 export interface UserSocialsSchema {
   instagram_handle?: string;
   youtube_handle?: string;
+  tiktok_handle?: string;
+  discord_url?: string;
   other?: UserSocialCustomLinkSchema[];
 }
 
@@ -74,6 +76,7 @@ export interface UserSchema {
 export interface UserSettingsSchema {
   maps?: "googlemaps" | "applemaps" | "openstreetmap";
   useGeoURI?: boolean;
+  temperature_unit?: "celsius" | "fahrenheit";
 }
 
 export interface UserReferenceSchema {

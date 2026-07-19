@@ -81,6 +81,26 @@
             deletion.
           </p>
 
+          <div class="account-id-card my-4">
+            <div class="account-id-card__icon" aria-hidden="true">
+              <mat-icon>badge</mat-icon>
+            </div>
+            <div>
+              <h3 class="mat-title-medium m-0" i18n="@@settings.account.userId">
+                User ID
+              </h3>
+              <p
+                class="mat-body-small m-0"
+                i18n="@@settings.account.userIdDescription"
+              >
+                Your unique account identifier.
+              </p>
+              <code class="account-id-card__value">{{
+                authService.user.uid
+              }}</code>
+            </div>
+          </div>
+
           <div class="my-4 p-3 rounded border">
             <h3 class="mat-h3 m-0" i18n>Profile access</h3>
             <p class="mat-body mt-2 mb-3" i18n>
@@ -403,6 +423,37 @@
                 }}
               </span>
             </button>
+          </div>
+
+          <div class="my-4 p-3 rounded border">
+            <h3 class="mat-h3 m-0" i18n="@@settings.temperature.heading">
+              Temperature
+            </h3>
+            <p
+              class="mat-body mt-2 mb-3"
+              i18n="@@settings.temperature.description"
+            >
+              Choose how temperatures are displayed in weather forecasts.
+            </p>
+            <mat-button-toggle-group
+              aria-label="Temperature unit"
+              i18n-aria-label="@@settings.temperature.aria_label"
+              [value]="accountPreferences.temperatureUnit()"
+              (change)="setTemperatureUnit($event.value)"
+            >
+              <mat-button-toggle
+                value="celsius"
+                i18n="@@settings.temperature.celsius"
+              >
+                Celsius (°C)
+              </mat-button-toggle>
+              <mat-button-toggle
+                value="fahrenheit"
+                i18n="@@settings.temperature.fahrenheit"
+              >
+                Fahrenheit (°F)
+              </mat-button-toggle>
+            </mat-button-toggle-group>
           </div>
 
           <div class="my-4">

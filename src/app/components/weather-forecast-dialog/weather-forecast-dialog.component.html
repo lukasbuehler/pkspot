@@ -34,8 +34,8 @@
     >
     <div class="current-copy">
       <div class="current-heading">
-        @if (currentTemperature !== undefined) {
-          <span class="mat-display-small">{{ currentTemperature }} °C</span>
+        @if (currentTemperature(); as temperature) {
+          <span class="mat-display-small">{{ temperature }}</span>
         }
         <span class="mat-title-medium">{{ currentState.label }}</span>
       </div>
@@ -62,7 +62,7 @@
   @if (data.covered) {
     <section class="covered-info" role="note">
       <span class="covered-info-icon" aria-hidden="true">
-        <mat-icon>roofing</mat-icon>
+        <mat-icon>umbrella</mat-icon>
       </span>
       <div>
         <strong class="mat-title-small" i18n="@@weather.dialog.covered.title"
@@ -101,14 +101,18 @@
   }
 
   @if (current) {
-    <section class="metric-grid" aria-label="Current weather details" i18n-aria-label>
-      @if (apparentTemperature !== undefined) {
+    <section
+      class="metric-grid"
+      aria-label="Current weather details"
+      i18n-aria-label
+    >
+      @if (apparentTemperature(); as temperature) {
         <div class="weather-metric">
           <mat-icon aria-hidden="true">thermostat</mat-icon>
           <span class="mat-label-small" i18n="@@weather.dialog.feels_like"
             >Feels like</span
           >
-          <strong>{{ apparentTemperature }} °C</strong>
+          <strong>{{ temperature }}</strong>
         </div>
       }
       @if (current.relativeHumidityPercent !== undefined) {
@@ -144,7 +148,7 @@
       Next 12 hours
     </h3>
     <div class="hourly-strip">
-      @for (hour of hours; track hour.time) {
+      @for (hour of hours(); track hour.time) {
         <div class="weather-hour">
           <time class="mat-label-medium">{{ hour.time }}</time>
           <mat-icon
@@ -156,11 +160,11 @@
             >{{ hour.icon }}</mat-icon
           >
           @if (hour.temperature !== undefined) {
-            <strong>{{ hour.temperature }}°</strong>
+            <strong>{{ hour.temperature }}</strong>
           }
           @if (
-            (hour.rainProbability !== undefined ||
-              (hour.precipitationMm ?? 0) > 0)
+            hour.rainProbability !== undefined ||
+            (hour.precipitationMm ?? 0) > 0
           ) {
             <span class="rain-detail mat-label-small">
               <mat-icon aria-hidden="true">water_drop</mat-icon>
@@ -172,13 +176,13 @@
     </div>
   </section>
 
-  @if (days.length > 0) {
+  @if (days().length > 0) {
     <section class="daily-section">
       <h3 class="mat-title-medium" i18n="@@weather.dialog.next_days">
         Next 7 days
       </h3>
       <div class="daily-strip">
-        @for (day of days; track day.date) {
+        @for (day of days(); track day.date) {
           <div class="weather-day">
             <div class="day-heading">
               <strong class="mat-label-large">{{ day.weekday }}</strong>
@@ -197,16 +201,16 @@
             ) {
               <div class="temperature-range">
                 @if (day.maxTemperature !== undefined) {
-                  <strong>{{ day.maxTemperature }}°</strong>
+                  <strong>{{ day.maxTemperature }}</strong>
                 }
                 @if (day.minTemperature !== undefined) {
-                  <span>{{ day.minTemperature }}°</span>
+                  <span>{{ day.minTemperature }}</span>
                 }
               </div>
             }
             @if (
-              (day.rainProbability !== undefined ||
-                (day.precipitationMm ?? 0) > 0)
+              day.rainProbability !== undefined ||
+              (day.precipitationMm ?? 0) > 0
             ) {
               <span class="rain-detail mat-label-small">
                 <mat-icon aria-hidden="true">water_drop</mat-icon>

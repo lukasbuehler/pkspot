@@ -201,7 +201,7 @@ export const WEATHER_WARNINGS = {
   "high-temperature": {
     icon: "thermostat",
     label: $localize`:@@weather.warning.high_temperature.label:Hot conditions`,
-    message: $localize`:@@weather.warning.high_temperature.message:Temperatures may make intense training more demanding. Take breaks and stay hydrated.`,
+    message: $localize`:@@weather.warning.high_temperature.message:Current heat may make intense training more demanding. Take breaks and stay hydrated.`,
     severity: "caution",
     tone: "error",
   },
