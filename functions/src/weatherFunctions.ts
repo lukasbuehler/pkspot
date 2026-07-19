@@ -1,5 +1,6 @@
 /* eslint-disable max-len, object-curly-spacing, operator-linebreak, require-jsdoc */
 import * as admin from "firebase-admin";
+import { Timestamp } from "firebase-admin/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { CallableRequest, HttpsError, onCall } from "firebase-functions/v2/https";
 import { googleAPIKey } from "./secrets";
@@ -144,8 +145,8 @@ interface ProviderFetchResult {
 interface CacheDocument {
   provider: WeatherProvider;
   mode: WeatherMode;
-  expires_at: admin.firestore.Timestamp;
-  fetched_at: admin.firestore.Timestamp;
+  expires_at: Timestamp;
+  fetched_at: Timestamp;
   response: WeatherResponse;
 }
 
@@ -203,10 +204,8 @@ export const getWeather = onCall(
     await cacheRef.set({
       provider,
       mode: parsedRequest.mode,
-      expires_at: admin.firestore.Timestamp.fromDate(
-        new Date(response.expiresAt)
-      ),
-      fetched_at: admin.firestore.Timestamp.fromDate(now),
+      expires_at: Timestamp.fromDate(new Date(response.expiresAt)),
+      fetched_at: Timestamp.fromDate(now),
       response,
     } satisfies CacheDocument);
 
@@ -217,7 +216,7 @@ export const getWeather = onCall(
 export const cleanupExpiredWeatherCache = onSchedule(
   "every 5 minutes",
   async () => {
-    const now = admin.firestore.Timestamp.now();
+    const now = Timestamp.now();
     const snapshot = await admin
       .firestore()
       .collection(WEATHER_CACHE_COLLECTION)
