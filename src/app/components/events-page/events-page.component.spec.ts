@@ -2,7 +2,7 @@ import { LOCALE_ID, PLATFORM_ID, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { ActivatedRoute, convertToParamMap, Router } from "@angular/router";
 import { BehaviorSubject } from "rxjs";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
 import {
   EventCategory,
@@ -13,6 +13,10 @@ import { AuthenticationService } from "../../services/firebase/authentication.se
 import { EventsService } from "../../services/firebase/firestore/events.service";
 import { SeriesService } from "../../services/firebase/firestore/series.service";
 import { EventsPageComponent } from "./events-page.component";
+
+interface ScreenshotGlobal {
+  __PKSPOT_SCREENSHOT_EVENT_INDEX__?: unknown;
+}
 
 const flushPromises = () =>
   new Promise((resolve) => {
@@ -43,6 +47,10 @@ const buildEvent = (
   } as unknown as EventSchema);
 
 describe("EventsPageComponent", () => {
+  afterEach(() => {
+    delete (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_EVENT_INDEX__;
+  });
+
   it("loads events during server-side initialization", async () => {
     const event = buildEvent("swissjam26", "Swiss Jam 2026");
     const eventsService = {
@@ -75,6 +83,57 @@ describe("EventsPageComponent", () => {
     expect(eventsService.getEvents).toHaveBeenCalledWith({ sortByNext: true });
     expect(component.loading()).toBe(false);
     expect(component.events()).toContain(event);
+  });
+
+  it("uses deterministic event index data for screenshot rendering", async () => {
+    const eventsService = { getEvents: vi.fn() };
+    (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_EVENT_INDEX__ = {
+      events: [
+        {
+          id: "visual-jam",
+          name: "Visual Jam",
+          slug: "visual-jam",
+          venue_string: "Fixture Hall",
+          locality_string: "Zurich, Switzerland",
+          location_raw: { lat: 47.3769, lng: 8.5417 },
+          start: "2026-08-01T10:00:00.000Z",
+          end: "2026-08-02T18:00:00.000Z",
+          event_categories: ["jam"],
+          series_ids: ["visual-series"],
+        },
+      ],
+      seriesById: {
+        "visual-series": { id: "visual-series", name: "Visual Series" },
+      },
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: eventsService },
+        { provide: SeriesService, useValue: { getSeriesByIds: vi.fn() } },
+        {
+          provide: AuthenticationService,
+          useValue: { user: { data: null }, isAdmin: signal(false) },
+        },
+        { provide: LOCALE_ID, useValue: "en" },
+        { provide: PLATFORM_ID, useValue: "browser" },
+      ],
+    });
+
+    const component = TestBed.runInInjectionContext(
+      () => new EventsPageComponent(),
+    );
+    component.ngOnInit();
+    await flushPromises();
+
+    expect(eventsService.getEvents).not.toHaveBeenCalled();
+    expect(component.events().map((event) => event.name)).toEqual([
+      "Visual Jam",
+    ]);
+    expect(component.seriesById()["visual-series"]?.name).toBe(
+      "Visual Series",
+    );
+    expect(component.loading()).toBe(false);
   });
 
   it("filters events by selected categories", () => {

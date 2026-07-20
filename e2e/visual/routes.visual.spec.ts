@@ -10,6 +10,8 @@ interface RouteVisualCase {
   clip?: { x: number; y: number; width: number; height: number };
   maxDiffPixels?: number;
   eventMapLayout?: "full" | "embedded";
+  eventIndexFixture?: boolean;
+  fixedTime?: string;
 }
 
 const desktopViewport = { width: 1280, height: 900 };
@@ -18,7 +20,14 @@ const mobileViewport = { width: 390, height: 844 };
 
 const routeVisualCases: RouteVisualCase[] = [
   { name: "map", path: "/map", maxDiffPixels: 80_000 },
-  { name: "events", path: "/events", fullPage: true, maxDiffPixels: 2_000 },
+  {
+    name: "events",
+    path: "/events",
+    fullPage: true,
+    maxDiffPixels: 2_000,
+    eventIndexFixture: true,
+    fixedTime: "2026-07-20T12:00:00.000Z",
+  },
   {
     name: "event-detail",
     path: "/events/swissjam25",
@@ -129,8 +138,11 @@ test.describe("Route visual regression @visual", () => {
 
 async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
   await page.setViewportSize(route.viewport ?? desktopViewport);
+  if (route.fixedTime) {
+    await page.clock.setFixedTime(new Date(route.fixedTime));
+  }
   await page.addInitScript(
-    ({ signedIn }) => {
+    ({ eventIndexFixture, signedIn }) => {
       localStorage.setItem("acceptedVersion", "5");
       localStorage.setItem(
         "lastLocationAndZoom",
@@ -140,6 +152,107 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
         }),
       );
       localStorage.setItem("mapStyle", "roadmap");
+
+      if (eventIndexFixture) {
+        (
+          window as typeof window & {
+            __PKSPOT_SCREENSHOT_EVENT_INDEX__?: unknown;
+          }
+        ).__PKSPOT_SCREENSHOT_EVENT_INDEX__ = {
+          events: [
+            {
+              id: "visual-city-jam",
+              slug: "visual-city-jam",
+              name: "City Parkour Jam",
+              venue_string: "Riverside Park",
+              locality_string: "Basel, Switzerland",
+              location_raw: { lat: 47.5596, lng: 7.5886 },
+              start: "2026-08-01T10:00:00.000Z",
+              end: "2026-08-02T18:00:00.000Z",
+              event_categories: ["jam"],
+              series_ids: ["community-jam-series"],
+              rsvp_counts: { going: 8, interested: 4, notgoing: 0, total: 12 },
+            },
+            {
+              id: "visual-skills-open",
+              slug: "visual-skills-open",
+              name: "Parkour Skills Open",
+              banner_src: "assets/swissjam/swissjam26_banner.jpeg",
+              venue_string: "Movement Hall",
+              locality_string: "Zurich, Switzerland",
+              location_raw: { lat: 47.3769, lng: 8.5417 },
+              start: "2026-08-08T09:00:00.000Z",
+              end: "2026-08-08T18:00:00.000Z",
+              event_categories: ["competition"],
+              series_ids: ["parkour-earth"],
+              rsvp_counts: { going: 3, interested: 6, notgoing: 0, total: 9 },
+            },
+            {
+              id: "visual-summer-camp",
+              slug: "visual-summer-camp",
+              name: "Summer Training Camp",
+              venue_string: "Training Campus",
+              locality_string: "Bern, Switzerland",
+              location_raw: { lat: 46.948, lng: 7.4474 },
+              start: "2026-08-14T10:00:00.000Z",
+              end: "2026-08-16T17:00:00.000Z",
+              event_categories: ["camp"],
+              rsvp_counts: { going: 5, interested: 2, notgoing: 0, total: 7 },
+            },
+            {
+              id: "visual-championship",
+              slug: "visual-championship",
+              name: "European Parkour Championship",
+              banner_src: "assets/logos/parkour_earth.jpg",
+              banner_fit: "contain",
+              banner_accent_color: "#ffffff",
+              venue_string: "National Arena",
+              locality_string: "Geneva, Switzerland",
+              location_raw: { lat: 46.2044, lng: 6.1432 },
+              start: "2026-09-05T09:00:00.000Z",
+              end: "2026-09-06T18:00:00.000Z",
+              event_categories: ["competition"],
+              series_ids: ["parkour-earth"],
+            },
+            {
+              id: "visual-rooftop-session",
+              slug: "visual-rooftop-session",
+              name: "Rooftop Training Session",
+              venue_string: "Urban Sports Center",
+              locality_string: "Lausanne, Switzerland",
+              location_raw: { lat: 46.5197, lng: 6.6323 },
+              start: "2026-09-12T14:00:00.000Z",
+              end: "2026-09-12T19:00:00.000Z",
+              event_categories: ["jam", "workshop"],
+              series_ids: ["community-jam-series"],
+            },
+            {
+              id: "visual-past-event",
+              slug: "visual-past-event",
+              name: "Spring Movement Meetup",
+              venue_string: "Old Town Plaza",
+              locality_string: "Lucerne, Switzerland",
+              location_raw: { lat: 47.0502, lng: 8.3093 },
+              start: "2026-06-20T10:00:00.000Z",
+              end: "2026-06-21T17:00:00.000Z",
+              event_categories: ["jam"],
+              series_ids: ["community-jam-series"],
+            },
+          ],
+          seriesById: {
+            "community-jam-series": {
+              id: "community-jam-series",
+              name: "Community Jam Series",
+            },
+            "parkour-earth": {
+              id: "parkour-earth",
+              name: "Parkour Earth",
+              logo_src: "assets/logos/parkour_earth.jpg",
+              logo_background_color: "#ffffff",
+            },
+          },
+        };
+      }
 
       if (signedIn) {
         (
@@ -176,7 +289,10 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
         };
       }
     },
-    { signedIn: route.signedIn === true },
+    {
+      eventIndexFixture: route.eventIndexFixture === true,
+      signedIn: route.signedIn === true,
+    },
   );
 
   await page.goto(`/de${route.path}`, { waitUntil: "domcontentloaded" });
