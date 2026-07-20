@@ -1048,7 +1048,7 @@ describe("EventInfoPageComponent", () => {
     ]);
   });
 
-  it("emits ticket options as structured data offers", () => {
+  it("emits ticket options without treating schedule entries as events", () => {
     const structuredDataService = {
       addStructuredData: vi.fn(),
       removeStructuredData: vi.fn(),
@@ -1261,20 +1261,11 @@ describe("EventInfoPageComponent", () => {
             name: "Swiss Parkour Association",
           }),
         }),
-        subEvent: [
-          expect.objectContaining({
-            "@type": "Event",
-            name: "Speed qualifier",
-            startDate: "2026-06-14T12:30:00.000Z",
-            endDate: "2026-06-14T14:00:00.000Z",
-            eventStatus: "https://schema.org/EventPostponed",
-            superEvent: expect.objectContaining({
-              name: "Ticket Event",
-              url: "https://pkspot.app/en/events/ticket-event",
-            }),
-          }),
-        ],
       }),
     );
+
+    const structuredEvent = structuredDataService.addStructuredData.mock
+      .lastCall?.[1] as Record<string, unknown>;
+    expect(structuredEvent).not.toHaveProperty("subEvent");
   });
 });
