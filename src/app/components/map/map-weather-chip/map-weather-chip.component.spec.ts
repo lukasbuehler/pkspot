@@ -1,6 +1,7 @@
 import { LOCALE_ID, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
+import { MatTooltip } from "@angular/material/tooltip";
 import { MapWeatherChipComponent } from "./map-weather-chip.component";
 import type { WeatherResponse } from "../../../weather/weather.models";
 import { AccountPreferencesService } from "../../../services/account-preferences.service";
@@ -123,6 +124,22 @@ describe("MapWeatherChipComponent", () => {
     ).toContain("is-overview");
   });
 
+  it("uses a vertical tooltip position and allows callers to override it", async () => {
+    const fixture = TestBed.createComponent(MapWeatherChipComponent);
+    fixture.componentRef.setInput("response", response);
+    await fixture.whenStable();
+
+    const tooltip = fixture.debugElement
+      .query(By.directive(MatTooltip))
+      .injector.get(MatTooltip);
+    expect(tooltip.position).toBe("above");
+
+    fixture.componentRef.setInput("tooltipPosition", "below");
+    await fixture.whenStable();
+
+    expect(tooltip.position).toBe("below");
+  });
+
   it("targets wet and warning colors at the icon and temperature only", async () => {
     const wetFixture = TestBed.createComponent(MapWeatherChipComponent);
     wetFixture.componentRef.setInput("response", {
@@ -192,10 +209,9 @@ describe("MapWeatherChipComponent", () => {
     expect(button.textContent).toContain("Extreme heat");
     expect(button.textContent).toContain("thermometer_alert");
     expect(button.classList).toContain("has-warning");
-    const source = fixture.nativeElement.querySelector(".alert-source-link");
-    expect(source.textContent).toContain("MeteoSwiss");
-    expect(source.getAttribute("href")).toBe(
-      "https://www.meteoswiss.admin.ch/",
-    );
+    expect(
+      fixture.nativeElement.querySelector(".alert-source-link"),
+    ).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain("MeteoSwiss");
   });
 });

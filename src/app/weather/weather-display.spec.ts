@@ -60,9 +60,15 @@ describe("weather display definitions", () => {
     expect(
       getWeatherForecastIconTone({
         condition: "partly-cloudy",
-        uvIndex: 6,
+        uvIndex: 8,
       }),
     ).toBe("warning");
+    expect(
+      getWeatherForecastIconTone({
+        condition: "partly-cloudy",
+        uvIndex: 7,
+      }),
+    ).toBe("neutral");
   });
 
   it("uses a muted tone for nighttime forecasts", () => {

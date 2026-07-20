@@ -64,6 +64,7 @@
   border-radius: 50%;
   appearance: none;
   cursor: pointer;
+  box-shadow: var(--mat-sys-level3);
   overflow: hidden;
   clip-path: circle(50% at 50% 50%);
   isolation: isolate;
@@ -133,6 +134,14 @@ mat-chip {
   clip-path: inset(0 round 20px);
   flex-shrink: 0;
   touch-action: pan-x;
+}
+
+.glass.mat-mdc-standard-chip,
+.glass.mat-mdc-chip,
+.glass.mat-mdc-chip-option {
+  overflow: visible;
+  clip-path: none;
+  box-shadow: var(--mat-sys-level3);
 }
 
 .solid-chip {

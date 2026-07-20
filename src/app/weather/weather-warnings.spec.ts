@@ -55,7 +55,7 @@ describe("weather warning presentation", () => {
         time: "2026-07-19T10:00:00Z",
         condition: "clear",
         isDay: true,
-        uvIndex: 7,
+        uvIndex: 8,
       },
     });
     const nighttime = response({
@@ -63,13 +63,26 @@ describe("weather warning presentation", () => {
         time: "2026-07-19T22:00:00Z",
         condition: "clear",
         isDay: false,
-        uvIndex: 7,
+        uvIndex: 8,
       },
     });
 
     expect(getWeatherWarnings(daytime)).toContain("high-uv");
     expect(getWeatherVisualStatus(daytime)).toBe("warning");
     expect(getWeatherWarnings(nighttime)).not.toContain("high-uv");
+  });
+
+  it("does not warn below UV index 8", () => {
+    const weather = response({
+      current: {
+        time: "2026-07-19T10:00:00Z",
+        condition: "clear",
+        isDay: true,
+        uvIndex: 7,
+      },
+    });
+
+    expect(getWeatherWarnings(weather)).not.toContain("high-uv");
   });
 
   it("warns only when the current actual or apparent temperature reaches 30 degrees", () => {
@@ -94,6 +107,37 @@ describe("weather warning presentation", () => {
     expect(getWeatherWarnings(laterHeat)).not.toContain("high-temperature");
     expect(getWeatherWarnings(apparentHeat)).toContain("high-temperature");
     expect(getWeatherVisualStatus(apparentHeat)).toBe("warning");
+  });
+
+  it("suppresses the generic temperature warning when an official heat alert exists", () => {
+    const weather = response({
+      current: {
+        time: "2026-07-19T10:00:00Z",
+        condition: "clear",
+        isDay: true,
+        temperatureC: 36,
+      },
+      alerts: [
+        {
+          id: "extreme-heat",
+          type: "HEAT",
+          title: "Extreme heat warning",
+          severity: "extreme",
+          certainty: "likely",
+          urgency: "expected",
+          areaName: "Calabria",
+          instructions: [],
+          safetyRecommendations: [],
+          source: {
+            name: "Italian Meteorological Service",
+            url: "https://example.com/",
+          },
+        },
+      ],
+    });
+
+    expect(getWeatherWarnings(weather)).not.toContain("high-temperature");
+    expect(getWeatherVisualStatus(weather)).toBe("warning");
   });
 
   it("uses wet status for wet surfaces without escalating them to warning", () => {

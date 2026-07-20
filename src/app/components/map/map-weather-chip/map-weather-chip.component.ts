@@ -9,7 +9,10 @@ import {
 } from "@angular/core";
 import { MatButton } from "@angular/material/button";
 import { MatIcon } from "@angular/material/icon";
-import { MatTooltip } from "@angular/material/tooltip";
+import {
+  MatTooltip,
+  type TooltipPosition,
+} from "@angular/material/tooltip";
 import {
   WEATHER_STATES,
   getWeatherStateIcon,
@@ -29,7 +32,6 @@ import { getWeatherAlertDisplay } from "../../../weather/weather-alert-display";
   imports: [MatButton, MatIcon, MatTooltip],
   host: {
     "[class.is-overview]": "appearance() === 'overview'",
-    "[class.has-public-alert]": "primaryAlert() !== undefined",
   },
   templateUrl: "./map-weather-chip.component.html",
   styleUrl: "./map-weather-chip.component.scss",
@@ -38,6 +40,7 @@ import { getWeatherAlertDisplay } from "../../../weather/weather-alert-display";
 export class MapWeatherChipComponent {
   readonly response = input.required<WeatherResponse>();
   readonly appearance = input<"chip" | "overview">("chip");
+  readonly tooltipPosition = input<TooltipPosition>("above");
   readonly pressed = output<void>();
 
   private readonly locale = inject(LOCALE_ID);

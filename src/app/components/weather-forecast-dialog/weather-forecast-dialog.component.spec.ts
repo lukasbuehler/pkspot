@@ -41,7 +41,7 @@ describe("WeatherForecastDialogComponent", () => {
           apparentTemperatureC: 25,
           relativeHumidityPercent: 48,
           precipitationProbabilityPercent: 60,
-          uvIndex: 6,
+          uvIndex: 8,
           cloudCoverPercent: 55,
           windSpeedKmh: 8,
           isDay: true,
@@ -220,7 +220,7 @@ describe("WeatherForecastDialogComponent", () => {
       ...dialogData.response.current!,
       temperatureC: 31,
       apparentTemperatureC: 32,
-      uvIndex: 7,
+      uvIndex: 8,
       isDay: true,
     };
     fixture = TestBed.createComponent(WeatherForecastDialogComponent);
@@ -235,6 +235,40 @@ describe("WeatherForecastDialogComponent", () => {
     expect(warningItems).toHaveLength(2);
     expect(warningCards[0].textContent).toContain("High UV");
     expect(warningCards[0].textContent).toContain("Hot conditions");
+  });
+
+  it("does not repeat the generic heat warning beside an official heat alert", async () => {
+    dialogData.response.current = {
+      ...dialogData.response.current!,
+      temperatureC: 36,
+      apparentTemperatureC: 38,
+      uvIndex: 8,
+      isDay: true,
+    };
+    dialogData.response.alerts = [
+      {
+        id: "extreme-heat",
+        type: "HEAT",
+        title: "Extreme heat warning",
+        severity: "extreme",
+        certainty: "likely",
+        urgency: "expected",
+        areaName: "Calabria",
+        instructions: [],
+        safetyRecommendations: [],
+        source: {
+          name: "Italian Meteorological Service",
+          url: "https://example.com/",
+        },
+      },
+    ];
+    fixture = TestBed.createComponent(WeatherForecastDialogComponent);
+    await fixture.whenStable();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain("Extreme heat");
+    expect(text).toContain("High UV");
+    expect(text).not.toContain("Hot conditions");
   });
 
   it("keeps raw weather details visible for covered spots", async () => {

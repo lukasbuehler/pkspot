@@ -78,6 +78,7 @@ sunny
 cloud
 moon_stars
 ac_unit
+severe_cold
 mail
 map
 info
@@ -98,8 +99,9 @@ emergency_heat
 flood
 foggy
 landslide
-snowing_heavy
+severe_cold
 thermometer_alert
+format_color_reset
 thunderstorm
 tornado
 tsunami

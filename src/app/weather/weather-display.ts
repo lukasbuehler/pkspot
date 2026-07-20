@@ -248,6 +248,8 @@ const WET_FORECAST_CONDITIONS = new Set<WeatherCondition>([
   "hail",
 ]);
 
+export const HIGH_UV_INDEX_THRESHOLD = 8;
+
 export function getWeatherForecastIconTone(
   point: WeatherForecastIconContext,
 ): WeatherForecastIconTone {
@@ -258,7 +260,10 @@ export function getWeatherForecastIconTone(
   ) {
     return "wet";
   }
-  if ((point.temperatureC ?? -Infinity) >= 30 || (point.uvIndex ?? 0) >= 6) {
+  if (
+    (point.temperatureC ?? -Infinity) >= 30 ||
+    (point.uvIndex ?? 0) >= HIGH_UV_INDEX_THRESHOLD
+  ) {
     return "warning";
   }
   return point.isDay === false ? "night" : "neutral";

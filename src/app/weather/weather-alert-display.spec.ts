@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { WeatherAlert } from "./weather.models";
-import { getWeatherAlertDisplay } from "./weather-alert-display";
+import {
+  getWeatherAlertDisplay,
+  isHeatWeatherAlert,
+} from "./weather-alert-display";
 
 function alert(
   type: string,
@@ -25,12 +28,18 @@ describe("weather alert display", () => {
     });
   });
 
+  it("identifies provider heat and humidity alerts", () => {
+    expect(isHeatWeatherAlert(alert("HEAT"))).toBe(true);
+    expect(isHeatWeatherAlert(alert("humidity"))).toBe(true);
+    expect(isHeatWeatherAlert(alert("WILDFIRE"))).toBe(false);
+  });
+
   it.each([
     ["SEVERE_THUNDERSTORM_WARNING", "thunderstorm", "Thunderstorm"],
     ["TORNADO_WARNING", "tornado", "Tornado"],
     ["HURRICANE", "cyclone", "Tropical storm"],
     ["FLASH_FLOOD", "flood", "Flooding"],
-    ["WINTER_STORM", "snowing_heavy", "Snow and ice"],
+    ["WINTER_STORM", "severe_cold", "Snow and ice"],
     ["FOG", "foggy", "Reduced visibility"],
     ["EARTHQUAKE", "earthquake", "Earthquake"],
     ["LANDSLIDE", "landslide", "Landslide"],

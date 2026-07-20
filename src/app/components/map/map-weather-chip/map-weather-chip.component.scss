@@ -2,14 +2,6 @@
   display: block;
   max-width: min(300px, calc(100vw - 40px));
 
-  &.has-public-alert {
-    display: grid;
-    justify-items: start;
-    gap: 2px;
-    width: 100%;
-    max-width: min(440px, calc(100vw - 40px));
-  }
-
   &.is-overview {
     width: 100%;
     max-width: none;
@@ -19,14 +11,14 @@
 .map-weather-chip {
   max-width: 100%;
   min-height: 40px;
-  border-color: var(--mat-sys-outline-variant);
+  border: none;
   color: var(--mat-sys-on-surface);
-  background: var(--mat-sys-surface-container);
-  box-shadow: var(--mat-sys-level2);
+  background: var(--mat-sys-surface-container-highest);
+  box-shadow: var(--mat-sys-level3);
   padding-left: 16px;
   padding-right: 16px;
   --mat-button-outlined-label-text-color: var(--mat-sys-on-surface);
-  --mat-button-outlined-outline-color: var(--mat-sys-outline-variant);
+  --mat-button-outlined-outline-color: transparent;
   --mat-button-outlined-ripple-color: color-mix(
     in srgb,
     var(--mat-sys-on-surface) 12%,
@@ -62,15 +54,6 @@
   }
 }
 
-:host.has-public-alert .map-weather-chip {
-  flex: 0 0 auto;
-  min-width: 0;
-}
-
-:host.has-public-alert.is-overview .map-weather-chip {
-  width: auto;
-}
-
 :host ::ng-deep .map-weather-chip .mdc-button__label,
 :host ::ng-deep .map-weather-chip .mdc-button__label span {
   overflow: visible;
@@ -88,21 +71,4 @@
 .change-summary {
   white-space: nowrap;
   font-weight: normal;
-}
-
-.alert-source-link {
-  display: inline-flex;
-  align-items: center;
-  flex: 1 1 auto;
-  gap: 2px;
-  min-width: 0;
-  padding-left: 8px;
-  color: var(--mat-sys-on-surface);
-  line-height: 1.15;
-
-  mat-icon {
-    width: 14px;
-    height: 14px;
-    font-size: 14px;
-  }
 }

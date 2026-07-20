@@ -7,7 +7,7 @@
   [class.has-warning]="status() === 'warning'"
   [attr.aria-label]="accessibleLabel()"
   [matTooltip]="accessibleLabel()"
-  matTooltipPosition="left"
+  [matTooltipPosition]="tooltipPosition()"
   (click)="pressed.emit()"
 >
   <span class="chip-content">
@@ -19,14 +19,3 @@
     <span class="change-summary">{{ changeSummary() }}</span>
   </span>
 </button>
-@if (primaryAlert(); as alert) {
-  <a
-    class="alert-source-link mat-label-small"
-    [href]="alert.source.url"
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-    {{ alert.source.name }}
-    <mat-icon aria-hidden="true">open_in_new</mat-icon>
-  </a>
-}

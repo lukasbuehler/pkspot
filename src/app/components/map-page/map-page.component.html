@@ -336,7 +336,7 @@
 
     <div class="position-relative overflow-hidden h-100 w-100">
       <ng-container *ngTemplateOutlet="mapContent"></ng-container>
-      @if (visibleIslandContent() || mapWeatherResponse()) {
+      <!-- @if (visibleIslandContent() || mapWeatherResponse()) {
         <div class="map-context-host">
           @if (mapWeatherResponse(); as weather) {
             <app-map-weather-chip
@@ -352,7 +352,7 @@
             </div>
           }
         </div>
-      }
+      } -->
 
       <!-- sidenav toggle button -->
       <div class="sidenav-toggle">
@@ -394,7 +394,7 @@
         ></app-search-field>
       </div>
       <ng-container *ngTemplateOutlet="chips"></ng-container>
-      @if (visibleIslandContent() || mapWeatherResponse()) {
+      <!-- @if (visibleIslandContent() || mapWeatherResponse()) {
         <div class="map-context-mobile-host">
           @if (mapWeatherResponse(); as weather) {
             <app-map-weather-chip
@@ -410,7 +410,7 @@
             </div>
           }
         </div>
-      }
+      } -->
     </div>
 
     <app-bottom-sheet

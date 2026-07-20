@@ -92,6 +92,12 @@ const EVENT_CATEGORIES: Readonly<Record<string, WeatherAlertCategory>> = {
   WINTER_STORM: "snow-ice",
 };
 
+export function isHeatWeatherAlert(
+  alert: Pick<WeatherAlert, "type">,
+): boolean {
+  return EVENT_CATEGORIES[alert.type.toUpperCase()] === "heat";
+}
+
 export function getWeatherAlertDisplay(
   alert: Pick<WeatherAlert, "severity" | "title" | "type">,
 ): WeatherAlertDisplay {
@@ -116,7 +122,7 @@ export function getWeatherAlertDisplay(
       };
     case "cold":
       return {
-        icon: "ac_unit",
+        icon: "severe_cold",
         label:
           alert.severity === "extreme"
             ? $localize`:@@weather.alert.category.extreme_cold:Extreme cold`
@@ -169,12 +175,12 @@ export function getWeatherAlertDisplay(
       };
     case "snow-ice":
       return {
-        icon: "snowing_heavy",
+        icon: "severe_cold",
         label: $localize`:@@weather.alert.category.snow_ice:Snow and ice`,
       };
     case "drought":
       return {
-        icon: "thermometer_alert",
+        icon: "format_color_reset",
         label: $localize`:@@weather.alert.category.drought:Drought`,
       };
     case "visibility":

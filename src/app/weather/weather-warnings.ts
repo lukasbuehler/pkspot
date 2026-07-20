@@ -1,8 +1,10 @@
 import {
+  HIGH_UV_INDEX_THRESHOLD,
   WEATHER_STATES,
   type WeatherCondition,
   type WeatherWarning,
 } from "./weather-display";
+import { isHeatWeatherAlert } from "./weather-alert-display";
 import type { WeatherPoint, WeatherResponse } from "./weather.models";
 
 export type WeatherVisualStatus = "neutral" | "great" | "wet" | "warning";
@@ -57,7 +59,7 @@ export function getWeatherWarnings(
       warnings.add("harsh-sun");
     } else if (
       current?.isDay === true &&
-      (current.uvIndex ?? 0) >= 6
+      (current.uvIndex ?? 0) >= HIGH_UV_INDEX_THRESHOLD
     ) {
       warnings.add("high-uv");
     }
@@ -70,7 +72,8 @@ export function getWeatherWarnings(
     Math.max(
       current.temperatureC ?? -Infinity,
       current.apparentTemperatureC ?? -Infinity,
-    ) >= 30
+    ) >= 30 &&
+    !response.alerts?.some(isHeatWeatherAlert)
   ) {
     warnings.add("high-temperature");
   }
