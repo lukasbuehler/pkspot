@@ -247,4 +247,44 @@ describe("WeatherForecastDialogComponent", () => {
       "Weather at Josefhalle",
     );
   });
+
+  it("shows official alerts with safety details and source attribution", async () => {
+    dialogData.response.alerts = [
+      {
+        id: "storm",
+        type: "STORM",
+        title: "Severe storm warning",
+        severity: "severe",
+        certainty: "observed",
+        urgency: "immediate",
+        areaName: "Zurich",
+        expiresAt: "2026-07-19T12:00:00Z",
+        description: "A severe storm is crossing the area.",
+        instructions: ["Stay away from exposed structures."],
+        safetyRecommendations: [
+          {
+            directive: "Seek shelter.",
+            subtext: "Remain indoors until the warning ends.",
+          },
+        ],
+        source: {
+          name: "MeteoSwiss",
+          url: "https://www.meteoswiss.admin.ch/",
+        },
+      },
+    ];
+    fixture = TestBed.createComponent(WeatherForecastDialogComponent);
+    await fixture.whenStable();
+
+    const alert = fixture.nativeElement.querySelector(".public-alert");
+    const source = alert.querySelector(".public-alert-source");
+    expect(alert.classList).toContain("is-error");
+    expect(alert.textContent).toContain("Severe storm warning");
+    expect(alert.textContent).toContain("Active until");
+    expect(alert.textContent).toContain("Safety information");
+    expect(alert.textContent).toContain("Source: MeteoSwiss");
+    expect(source.getAttribute("href")).toBe(
+      "https://www.meteoswiss.admin.ch/",
+    );
+  });
 });

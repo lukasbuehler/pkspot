@@ -27,6 +27,25 @@ export type WeatherMode =
   | "current-and-near-future"
   | "forecast-at"
   | "event-forecast";
+export type WeatherAlertSeverity =
+  | "unknown"
+  | "minor"
+  | "moderate"
+  | "severe"
+  | "extreme";
+export type WeatherAlertCertainty =
+  | "unknown"
+  | "observed"
+  | "very-likely"
+  | "likely"
+  | "possible"
+  | "unlikely";
+export type WeatherAlertUrgency =
+  | "unknown"
+  | "immediate"
+  | "expected"
+  | "future"
+  | "past";
 
 export interface WeatherLocation {
   lat: number;
@@ -54,6 +73,7 @@ export type WeatherRequest =
       nearFutureHours?: number;
       providerOverride?: WeatherProvider;
       spatialScope?: WeatherTileScope;
+      languageCode?: string;
     }
   | {
       mode: "forecast-at";
@@ -133,6 +153,28 @@ export interface WeatherScheduleForecast {
   insights: WeatherInsights;
 }
 
+export interface WeatherAlert {
+  id: string;
+  type: string;
+  title: string;
+  severity: WeatherAlertSeverity;
+  certainty: WeatherAlertCertainty;
+  urgency: WeatherAlertUrgency;
+  areaName: string;
+  startsAt?: string;
+  expiresAt?: string;
+  description?: string;
+  instructions: string[];
+  safetyRecommendations: Array<{
+    directive: string;
+    subtext?: string;
+  }>;
+  source: {
+    name: string;
+    url: string;
+  };
+}
+
 export interface WeatherResponse {
   provider: WeatherProvider;
   mode: WeatherMode;
@@ -146,6 +188,9 @@ export interface WeatherResponse {
   dailyForecast?: DailyWeatherPoint[];
   target?: WeatherPoint;
   schedule?: WeatherScheduleForecast[];
+  alerts?: WeatherAlert[];
+  alertsStatus?: "available" | "unavailable";
+  alertsExpiresAt?: string;
   insights: WeatherInsights | WeatherEventInsights;
 }
 
@@ -173,6 +218,18 @@ interface CacheDocument {
   response: WeatherResponse;
 }
 
+interface AlertCacheDocument {
+  expires_at: Timestamp;
+  fetched_at: Timestamp;
+  alerts: WeatherAlert[];
+}
+
+interface WeatherAlertResult {
+  alerts: WeatherAlert[];
+  status: "available" | "unavailable";
+  expiresAt: string;
+}
+
 interface DailySunWindow {
   startTime: string;
   endTime: string;
@@ -181,6 +238,7 @@ interface DailySunWindow {
 }
 
 const WEATHER_CACHE_COLLECTION = "weather_cache";
+const WEATHER_ALERT_CACHE_COLLECTION = "weather_alert_cache";
 const DEFAULT_NEAR_FUTURE_HOURS = 12;
 const DEFAULT_DAILY_FORECAST_DAYS = 8;
 const MAX_NEAR_FUTURE_HOURS = 24;
@@ -190,6 +248,8 @@ const GOOGLE_HOURLY_CACHE_MS = 45 * 60 * 1000;
 const OPEN_METEO_HOURLY_CACHE_MS = 60 * 60 * 1000;
 const OPEN_METEO_SUMMARY_CACHE_MS = 6 * 60 * 60 * 1000;
 const GOOGLE_DAILY_SUMMARY_CACHE_MS = 23.5 * 60 * 60 * 1000;
+const GOOGLE_ALERT_CACHE_MS = 10 * 60 * 1000;
+const GOOGLE_ALERT_FAILURE_RETRY_MS = 2 * 60 * 1000;
 const RAIN_PROBABILITY_THRESHOLD = 40;
 const RAIN_MM_THRESHOLD = 0.2;
 
@@ -214,7 +274,7 @@ export const getWeather = onCall(
       const data = cached.data() as Partial<CacheDocument> | undefined;
       const expiresAt = data?.expires_at?.toDate();
       if (expiresAt && expiresAt.getTime() > now.getTime() && data?.response) {
-        return data.response;
+        return attachWeatherAlerts(data.response, parsedRequest, now);
       }
       await cacheRef.delete();
     }
@@ -233,7 +293,7 @@ export const getWeather = onCall(
       response,
     } satisfies CacheDocument);
 
-    return response;
+    return attachWeatherAlerts(response, parsedRequest, now);
   }
 );
 
@@ -241,19 +301,25 @@ export const cleanupExpiredWeatherCache = onSchedule(
   "every 5 minutes",
   async () => {
     const now = Timestamp.now();
-    const snapshot = await admin
-      .firestore()
-      .collection(WEATHER_CACHE_COLLECTION)
-      .where("expires_at", "<=", now)
-      .limit(300)
-      .get();
+    const snapshots = await Promise.all(
+      [WEATHER_CACHE_COLLECTION, WEATHER_ALERT_CACHE_COLLECTION].map(
+        (collection) =>
+          admin
+            .firestore()
+            .collection(collection)
+            .where("expires_at", "<=", now)
+            .limit(150)
+            .get()
+      )
+    );
+    const expiredDocs = snapshots.flatMap((snapshot) => snapshot.docs);
 
-    if (snapshot.empty) {
+    if (expiredDocs.length === 0) {
       return;
     }
 
     const batch = admin.firestore().batch();
-    snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+    expiredDocs.forEach((doc) => batch.delete(doc.ref));
     await batch.commit();
   }
 );
@@ -306,6 +372,7 @@ export function parseWeatherRequest(value: unknown): WeatherRequest {
       nearFutureHours,
       providerOverride,
       spatialScope,
+      languageCode: parseLanguageCode(value["languageCode"]),
     };
   }
 
@@ -420,6 +487,30 @@ export function buildWeatherCacheKey(
   return Buffer.from(raw).toString("base64url").slice(0, 180);
 }
 
+export function buildWeatherAlertCacheKey(
+  request: Extract<WeatherRequest, { mode: "current-and-near-future" }>
+): string {
+  const locationKey = request.spatialScope
+    ? [
+      request.spatialScope.type,
+      request.spatialScope.zoom,
+      request.spatialScope.x,
+      request.spatialScope.y,
+    ].join(":")
+    : [
+      roundCoordinate(request.location.lat),
+      roundCoordinate(request.location.lng),
+    ].join(":");
+  const raw = [
+    "google-public-alerts",
+    locationKey,
+    request.languageCode ?? "en",
+    "v1",
+  ].join("|");
+
+  return Buffer.from(raw).toString("base64url").slice(0, 180);
+}
+
 export function getProviderCacheDurationMs(
   provider: WeatherProvider,
   mode: WeatherMode
@@ -433,6 +524,10 @@ export function getProviderCacheDurationMs(
   return mode === "current-and-near-future"
     ? OPEN_METEO_HOURLY_CACHE_MS
     : OPEN_METEO_SUMMARY_CACHE_MS;
+}
+
+export function getWeatherAlertCacheDurationMs(): number {
+  return GOOGLE_ALERT_CACHE_MS;
 }
 
 export function buildWeatherInsights(points: WeatherPoint[]): WeatherInsights {
@@ -491,6 +586,95 @@ export function buildEventInsights(points: WeatherPoint[]): WeatherEventInsights
     likelyDryWindows: findDryWindows(ordered),
     rainPeriods: findRainPeriods(ordered),
   };
+}
+
+async function attachWeatherAlerts(
+  response: WeatherResponse,
+  request: WeatherRequest,
+  now: Date
+): Promise<WeatherResponse> {
+  if (request.mode !== "current-and-near-future") {
+    return response;
+  }
+
+  const result = await getCachedGoogleWeatherAlerts(request, now);
+  return {
+    ...response,
+    alerts: result.alerts,
+    alertsStatus: result.status,
+    alertsExpiresAt: result.expiresAt,
+    expiresAt: earlierIsoTime(response.expiresAt, result.expiresAt),
+  };
+}
+
+async function getCachedGoogleWeatherAlerts(
+  request: Extract<WeatherRequest, { mode: "current-and-near-future" }>,
+  now: Date
+): Promise<WeatherAlertResult> {
+  const cacheRef = admin
+    .firestore()
+    .collection(WEATHER_ALERT_CACHE_COLLECTION)
+    .doc(buildWeatherAlertCacheKey(request));
+  const cached = await cacheRef.get();
+
+  if (cached.exists) {
+    const data = cached.data() as Partial<AlertCacheDocument> | undefined;
+    const expiresAt = data?.expires_at?.toDate();
+    if (expiresAt && expiresAt.getTime() > now.getTime() && data?.alerts) {
+      return {
+        alerts: data.alerts,
+        status: "available",
+        expiresAt: expiresAt.toISOString(),
+      };
+    }
+    await cacheRef.delete();
+  }
+
+  try {
+    const alerts = await fetchGoogleWeatherAlerts(
+      request.location,
+      request.languageCode,
+      now
+    );
+    const expiresAt = resolveWeatherAlertExpiry(alerts, now);
+    await cacheRef.set({
+      expires_at: Timestamp.fromDate(expiresAt),
+      fetched_at: Timestamp.fromDate(now),
+      alerts,
+    } satisfies AlertCacheDocument);
+    return {
+      alerts,
+      status: "available",
+      expiresAt: expiresAt.toISOString(),
+    };
+  } catch (error) {
+    console.error("Google weather alerts request failed", error);
+    return {
+      alerts: [],
+      status: "unavailable",
+      expiresAt: new Date(
+        now.getTime() + GOOGLE_ALERT_FAILURE_RETRY_MS
+      ).toISOString(),
+    };
+  }
+}
+
+function resolveWeatherAlertExpiry(
+  alerts: WeatherAlert[],
+  now: Date
+): Date {
+  const defaultExpiry = now.getTime() + GOOGLE_ALERT_CACHE_MS;
+  const earliestAlertExpiry = Math.min(
+    defaultExpiry,
+    ...alerts
+      .map((alert) => Date.parse(alert.expiresAt ?? ""))
+      .filter((time) => Number.isFinite(time) && time > now.getTime())
+  );
+  return new Date(earliestAlertExpiry);
+}
+
+function earlierIsoTime(left: string, right: string): string {
+  return new Date(Math.min(Date.parse(left), Date.parse(right))).toISOString();
 }
 
 async function fetchWeatherResponse(
@@ -758,6 +942,172 @@ async function fetchGoogleJson<T>(
   }
 
   return (await response.json()) as T;
+}
+
+async function fetchGoogleWeatherAlerts(
+  location: WeatherLocation,
+  languageCode: string | undefined,
+  now: Date
+): Promise<WeatherAlert[]> {
+  const apiKey = googleAPIKey.value();
+  if (!apiKey) {
+    throw new HttpsError("failed-precondition", "GOOGLE_API_KEY is not set");
+  }
+
+  const url = new URL(
+    "https://weather.googleapis.com/v1/publicAlerts:lookup"
+  );
+  url.searchParams.set("key", apiKey);
+  url.searchParams.set("location.latitude", String(location.lat));
+  url.searchParams.set("location.longitude", String(location.lng));
+  url.searchParams.set("pageSize", "100");
+  if (languageCode) {
+    url.searchParams.set("languageCode", languageCode);
+  }
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new HttpsError(
+      "unavailable",
+      `Google Weather alerts request failed: ${response.status} ${response.statusText}`
+    );
+  }
+
+  return normalizeGoogleWeatherAlerts(
+    (await response.json()) as GoogleWeatherAlertsResponse,
+    now
+  );
+}
+
+export function normalizeGoogleWeatherAlerts(
+  value: GoogleWeatherAlertsResponse,
+  now: Date
+): WeatherAlert[] {
+  return (value.weatherAlerts ?? [])
+    .flatMap((alert): WeatherAlert[] => {
+      const id = truncateText(alert.alertId, 500);
+      const title = truncateText(alert.alertTitle?.text, 300);
+      const sourceName = truncateText(alert.dataSource?.name, 300);
+      const sourceUrl = normalizeHttpUrl(alert.dataSource?.authorityUri);
+      const type =
+        truncateText(alert.eventType, 100) ??
+        "WEATHER_EVENT_TYPE_UNSPECIFIED";
+      if (!id || !title || !sourceName || !sourceUrl) {
+        return [];
+      }
+
+      const normalized = removeUndefinedValues({
+        id,
+        type,
+        title,
+        severity: normalizeAlertSeverity(alert.severity),
+        certainty: normalizeAlertCertainty(alert.certainty),
+        urgency: normalizeAlertUrgency(alert.urgency),
+        areaName: truncateText(alert.areaName, 500) ?? "",
+        startsAt: normalizeIsoTime(alert.startTime),
+        expiresAt: normalizeIsoTime(alert.expirationTime),
+        description: truncateText(alert.description, 5000),
+        instructions: (alert.instruction ?? [])
+          .map((instruction) => truncateText(instruction, 2000))
+          .filter((instruction): instruction is string => Boolean(instruction))
+          .slice(0, 10),
+        safetyRecommendations: (alert.safetyRecommendations ?? [])
+          .flatMap((recommendation) => {
+            const directive = truncateText(recommendation.directive, 1000);
+            if (!directive) {
+              return [];
+            }
+            return [
+              removeUndefinedValues({
+                directive,
+                subtext: truncateText(recommendation.subtext, 2000),
+              }),
+            ];
+          })
+          .slice(0, 10),
+        source: {
+          name: sourceName,
+          url: sourceUrl,
+        },
+      }) as WeatherAlert;
+
+      return isMeaningfulWeatherAlert(normalized, now) ? [normalized] : [];
+    })
+    .sort(compareWeatherAlerts)
+    .slice(0, 20);
+}
+
+export function isMeaningfulWeatherAlert(
+  alert: WeatherAlert,
+  now: Date
+): boolean {
+  if (
+    alert.expiresAt &&
+    Date.parse(alert.expiresAt) <= now.getTime()
+  ) {
+    return false;
+  }
+  if (alert.urgency === "past" || alert.certainty === "unlikely") {
+    return false;
+  }
+  return !(
+    alert.severity === "minor" &&
+    alert.urgency !== "immediate" &&
+    alert.urgency !== "expected"
+  );
+}
+
+function compareWeatherAlerts(left: WeatherAlert, right: WeatherAlert): number {
+  const severityScore: Record<WeatherAlertSeverity, number> = {
+    unknown: 2,
+    minor: 1,
+    moderate: 3,
+    severe: 4,
+    extreme: 5,
+  };
+  const urgencyScore: Record<WeatherAlertUrgency, number> = {
+    unknown: 1,
+    immediate: 4,
+    expected: 3,
+    future: 2,
+    past: 0,
+  };
+  return (
+    severityScore[right.severity] - severityScore[left.severity] ||
+    urgencyScore[right.urgency] - urgencyScore[left.urgency] ||
+    left.title.localeCompare(right.title)
+  );
+}
+
+function normalizeAlertSeverity(
+  value: string | undefined
+): WeatherAlertSeverity {
+  if (value === "MINOR") return "minor";
+  if (value === "MODERATE") return "moderate";
+  if (value === "SEVERE") return "severe";
+  if (value === "EXTREME") return "extreme";
+  return "unknown";
+}
+
+function normalizeAlertCertainty(
+  value: string | undefined
+): WeatherAlertCertainty {
+  if (value === "OBSERVED") return "observed";
+  if (value === "VERY_LIKELY") return "very-likely";
+  if (value === "LIKELY") return "likely";
+  if (value === "POSSIBLE") return "possible";
+  if (value === "UNLIKELY") return "unlikely";
+  return "unknown";
+}
+
+function normalizeAlertUrgency(
+  value: string | undefined
+): WeatherAlertUrgency {
+  if (value === "IMMEDIATE") return "immediate";
+  if (value === "EXPECTED") return "expected";
+  if (value === "FUTURE") return "future";
+  if (value === "PAST") return "past";
+  return "unknown";
 }
 
 function normalizeGoogleCurrentPoint(value: GoogleCurrentResponse): WeatherPoint {
@@ -1284,6 +1634,20 @@ function parseProviderOverride(value: unknown): WeatherProvider | undefined {
   throw new HttpsError("invalid-argument", "invalid providerOverride");
 }
 
+function parseLanguageCode(value: unknown): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (
+    typeof value !== "string" ||
+    value.length > 35 ||
+    !/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/.test(value)
+  ) {
+    throw new HttpsError("invalid-argument", "invalid languageCode");
+  }
+  return value;
+}
+
 function parseScheduleItems(value: unknown): WeatherScheduleItem[] | undefined {
   if (value === undefined) {
     return undefined;
@@ -1436,6 +1800,36 @@ function removeUndefinedValues<T extends Record<string, unknown>>(value: T): T {
   ) as T;
 }
 
+function truncateText(
+  value: string | undefined,
+  maxLength: number
+): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed.slice(0, maxLength) : undefined;
+}
+
+function normalizeIsoTime(value: string | undefined): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const time = Date.parse(value);
+  return Number.isFinite(time) ? new Date(time).toISOString() : undefined;
+}
+
+function normalizeHttpUrl(value: string | undefined): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:"
+      ? url.toString()
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function maxDefined(
   ...values: Array<number | undefined>
 ): number | undefined {
@@ -1562,6 +1956,34 @@ interface GoogleDailyResponse {
     minTemperature?: GoogleTemperature;
     sunEvents?: { sunriseTime?: string; sunsetTime?: string };
   }>;
+}
+
+export interface GoogleWeatherAlertsResponse {
+  weatherAlerts?: GoogleWeatherAlert[];
+  regionCode?: string;
+}
+
+interface GoogleWeatherAlert {
+  alertId?: string;
+  alertTitle?: { text?: string; languageCode?: string };
+  eventType?: string;
+  areaName?: string;
+  instruction?: string[];
+  safetyRecommendations?: Array<{
+    directive?: string;
+    subtext?: string;
+  }>;
+  startTime?: string;
+  expirationTime?: string;
+  dataSource?: {
+    publisher?: string;
+    name?: string;
+    authorityUri?: string;
+  };
+  description?: string;
+  severity?: string;
+  certainty?: string;
+  urgency?: string;
 }
 
 interface OpenMeteoCurrent {

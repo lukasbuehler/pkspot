@@ -1,4 +1,4 @@
-import { Injectable, inject } from "@angular/core";
+import { Injectable, LOCALE_ID, inject } from "@angular/core";
 import { FunctionsAdapterService } from "../services/firebase/functions-adapter.service";
 import type {
   CurrentWeatherRequest,
@@ -13,6 +13,7 @@ import type {
 export class WeatherService {
   private static readonly MAX_CLIENT_CACHE_ENTRIES = 64;
   private readonly functions = inject(FunctionsAdapterService);
+  private readonly languageCode = inject(LOCALE_ID).replace("_", "-");
   private readonly pendingRequests = new Map<string, Promise<WeatherResponse>>();
   private readonly responseCache = new Map<string, WeatherResponse>();
 
@@ -31,6 +32,7 @@ export class WeatherService {
         mode: "current-and-near-future",
         location,
         nearFutureHours,
+        languageCode: this.languageCode,
       },
     );
   }
@@ -45,6 +47,7 @@ export class WeatherService {
         mode: "current-and-near-future",
         location: tile.center,
         nearFutureHours,
+        languageCode: this.languageCode,
         spatialScope: {
           type: tile.type,
           zoom: tile.zoom,

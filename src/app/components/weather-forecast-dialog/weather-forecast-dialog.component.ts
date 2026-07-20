@@ -25,6 +25,7 @@ import {
 } from "../../weather/weather-display";
 import type {
   DailyWeatherPoint,
+  WeatherAlert,
   WeatherPoint,
   WeatherResponse,
 } from "../../weather/weather.models";
@@ -67,6 +68,13 @@ interface WeatherDayView {
 interface WeatherWarningGroup {
   tone: WeatherWarningDefinition["tone"];
   warnings: WeatherWarningDefinition[];
+}
+
+interface WeatherAlertView extends WeatherAlert {
+  tone: "primary" | "error";
+  severityLabel: string;
+  activeUntil?: string;
+  hasDetails: boolean;
 }
 
 @Component({
@@ -128,6 +136,25 @@ export class WeatherForecastDialogComponent {
       ? undefined
       : $localize`:@@weather.dialog.cloud_cover:Current cloud cover: ${Math.round(this.current.cloudCoverPercent)}%.`;
   protected readonly warningGroups = this.groupWarnings(this.buildWarnings());
+  protected readonly alerts = (this.response.alerts ?? []).map(
+    (alert): WeatherAlertView => ({
+      ...alert,
+      tone:
+        alert.severity === "severe" || alert.severity === "extreme"
+          ? "error"
+          : "primary",
+      severityLabel: this.getAlertSeverityLabel(alert),
+      activeUntil: alert.expiresAt
+        ? $localize`:@@weather.alert.active_until:Active until ${this.formatTime(alert.expiresAt)}`
+        : undefined,
+      hasDetails:
+        Boolean(alert.description) ||
+        alert.instructions.length > 0 ||
+        alert.safetyRecommendations.length > 0,
+    }),
+  );
+  protected readonly alertSourceLabel =
+    $localize`:@@weather.alert.source:Source:`;
   protected readonly hours = computed(() =>
     (this.response.forecast ?? []).map(
       (point): WeatherHourView => ({
@@ -166,6 +193,19 @@ export class WeatherForecastDialogComponent {
 
   private getCondition(point: WeatherPoint | undefined): WeatherCondition {
     return point?.condition ?? "unknown";
+  }
+
+  private getAlertSeverityLabel(alert: WeatherAlert): string {
+    if (alert.severity === "extreme") {
+      return $localize`:@@weather.alert.severity.extreme:Extreme weather alert`;
+    }
+    if (alert.severity === "severe") {
+      return $localize`:@@weather.alert.severity.severe:Severe weather alert`;
+    }
+    if (alert.severity === "moderate") {
+      return $localize`:@@weather.alert.severity.moderate:Weather alert`;
+    }
+    return $localize`:@@weather.alert.severity.general:Official weather alert`;
   }
 
   private toDayView(point: DailyWeatherPoint): WeatherDayView {

@@ -4368,6 +4368,11 @@
         <source>Dry for now</source>
       </segment>
     </unit>
+    <unit id="map.weather.official_alert">
+      <segment>
+        <source>Official alert</source>
+      </segment>
+    </unit>
     <unit id="map.weather.open">
       <segment>
         <source>Weather near map center: <ph id="0" equiv="PH" disp="parts.join(&quot;, &quot;)"/></source>
@@ -6907,6 +6912,46 @@
     <unit id="welcomeDialogBeforeHeading">
       <segment>
         <source> Before you continue </source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.active_until">
+      <segment>
+        <source>Active until <ph id="0" equiv="PH" disp="this.formatTime(alert.expiresAt)"/></source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.list_label">
+      <segment>
+        <source>Official weather alerts</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.safety_details">
+      <segment>
+        <source> Safety information </source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.severity.extreme">
+      <segment>
+        <source>Extreme weather alert</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.severity.general">
+      <segment>
+        <source>Official weather alert</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.severity.moderate">
+      <segment>
+        <source>Weather alert</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.severity.severe">
+      <segment>
+        <source>Severe weather alert</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.source">
+      <segment>
+        <source>Source:</source>
       </segment>
     </unit>
     <unit id="weather.dialog.close">

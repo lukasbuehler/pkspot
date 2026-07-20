@@ -43,6 +43,7 @@ describe("WeatherService", () => {
       mode: "current-and-near-future",
       location: { lat: 47.37, lng: 8.54 },
       nearFutureHours: 12,
+      languageCode: "en-US",
     });
     expect(result).toBe(response);
   });
@@ -163,6 +164,7 @@ describe("WeatherService", () => {
       mode: "current-and-near-future",
       location: tile.center,
       nearFutureHours: 12,
+      languageCode: "en-US",
       spatialScope: {
         type: "mercator-tile",
         zoom: 12,

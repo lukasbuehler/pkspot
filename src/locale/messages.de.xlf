@@ -1030,6 +1030,12 @@
         <target>Vorerst trocken</target>
       </segment>
     </unit>
+    <unit id="map.weather.official_alert">
+      <segment state="final">
+        <source>Official alert</source>
+        <target>Amtliche Warnung</target>
+      </segment>
+    </unit>
     <unit id="map.weather.open">
       <segment state="final">
         <source>Weather near map center: <ph id="0" equiv="PH" disp="parts.join(&quot;, &quot;)"/></source>
@@ -3828,6 +3834,54 @@
       <segment state="initial">
         <source> Before you continue </source>
         <target> Bevor du fortfährst </target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.active_until">
+      <segment state="final">
+        <source>Active until <ph id="0" equiv="PH" disp="this.formatTime(alert.expiresAt)"/></source>
+        <target>Gültig bis <ph id="0" equiv="PH" disp="this.formatTime(alert.expiresAt)"/></target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.list_label">
+      <segment state="final">
+        <source>Official weather alerts</source>
+        <target>Amtliche Wetterwarnungen</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.safety_details">
+      <segment state="final">
+        <source> Safety information </source>
+        <target> Sicherheitshinweise </target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.severity.extreme">
+      <segment state="final">
+        <source>Extreme weather alert</source>
+        <target>Extreme Wetterwarnung</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.severity.general">
+      <segment state="final">
+        <source>Official weather alert</source>
+        <target>Amtliche Wetterwarnung</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.severity.moderate">
+      <segment state="final">
+        <source>Weather alert</source>
+        <target>Wetterwarnung</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.severity.severe">
+      <segment state="final">
+        <source>Severe weather alert</source>
+        <target>Unwetterwarnung</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.source">
+      <segment state="final">
+        <source>Source:</source>
+        <target>Quelle:</target>
       </segment>
     </unit>
     <unit id="weather.dialog.close">

@@ -28,6 +28,7 @@ import { formatTemperature } from "../../../weather/weather-temperature";
   imports: [MatButton, MatIcon, MatTooltip],
   host: {
     "[class.is-overview]": "appearance() === 'overview'",
+    "[class.has-public-alert]": "primaryAlert() !== undefined",
   },
   templateUrl: "./map-weather-chip.component.html",
   styleUrl: "./map-weather-chip.component.scss",
@@ -43,11 +44,16 @@ export class MapWeatherChipComponent {
   protected readonly current = computed(
     () => this.response().current ?? this.response().forecast?.[0],
   );
+  protected readonly primaryAlert = computed(
+    () => this.response().alerts?.[0],
+  );
   protected readonly condition = computed<WeatherCondition>(
     () => this.current()?.condition ?? "unknown",
   );
   protected readonly icon = computed(() =>
-    getWeatherStateIcon(this.condition(), this.current()?.isDay),
+    this.response().alerts?.length
+      ? "warning"
+      : getWeatherStateIcon(this.condition(), this.current()?.isDay),
   );
   protected readonly temperatureC = computed(
     () => this.current()?.temperatureC,
@@ -84,6 +90,9 @@ export class MapWeatherChipComponent {
 
   private getChangeSummary(): string {
     const response = this.response();
+    if (this.primaryAlert()) {
+      return $localize`:@@map.weather.official_alert:Official alert`;
+    }
     const current = this.current();
     if (!current) {
       return $localize`:@@map.weather.unavailable:Weather unavailable`;

@@ -65,6 +65,41 @@ export interface WeatherInsights {
   };
 }
 
+export type WeatherAlertSeverity =
+  | "unknown"
+  | "minor"
+  | "moderate"
+  | "severe"
+  | "extreme";
+
+export interface WeatherAlert {
+  id: string;
+  type: string;
+  title: string;
+  severity: WeatherAlertSeverity;
+  certainty:
+    | "unknown"
+    | "observed"
+    | "very-likely"
+    | "likely"
+    | "possible"
+    | "unlikely";
+  urgency: "unknown" | "immediate" | "expected" | "future" | "past";
+  areaName: string;
+  startsAt?: string;
+  expiresAt?: string;
+  description?: string;
+  instructions: string[];
+  safetyRecommendations: Array<{
+    directive: string;
+    subtext?: string;
+  }>;
+  source: {
+    name: string;
+    url: string;
+  };
+}
+
 export interface WeatherResponse {
   provider: WeatherProvider;
   mode: "current-and-near-future" | "forecast-at" | "event-forecast";
@@ -77,6 +112,9 @@ export interface WeatherResponse {
   forecast?: WeatherPoint[];
   dailyForecast?: DailyWeatherPoint[];
   target?: WeatherPoint;
+  alerts?: WeatherAlert[];
+  alertsStatus?: "available" | "unavailable";
+  alertsExpiresAt?: string;
   insights: WeatherInsights;
 }
 
@@ -85,4 +123,5 @@ export interface CurrentWeatherRequest {
   location: WeatherLocation;
   nearFutureHours: number;
   spatialScope?: WeatherTileScope;
+  languageCode?: string;
 }

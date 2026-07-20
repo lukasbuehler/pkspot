@@ -2,6 +2,14 @@
   display: block;
   max-width: min(300px, calc(100vw - 40px));
 
+  &.has-public-alert {
+    display: grid;
+    justify-items: start;
+    gap: 2px;
+    width: 100%;
+    max-width: min(440px, calc(100vw - 40px));
+  }
+
   &.is-overview {
     width: 100%;
     max-width: none;
@@ -46,8 +54,21 @@
   &.is-overview {
     width: 100%;
     justify-content: flex-start;
+    border-color: transparent;
+    background: transparent;
     box-shadow: none;
+    padding-left: 8px;
+    --mat-button-outlined-outline-color: transparent;
   }
+}
+
+:host.has-public-alert .map-weather-chip {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+:host.has-public-alert.is-overview .map-weather-chip {
+  width: auto;
 }
 
 :host ::ng-deep .map-weather-chip .mdc-button__label,
@@ -67,4 +88,21 @@
 .change-summary {
   white-space: nowrap;
   font-weight: normal;
+}
+
+.alert-source-link {
+  display: inline-flex;
+  align-items: center;
+  flex: 1 1 auto;
+  gap: 2px;
+  min-width: 0;
+  padding-left: 8px;
+  color: var(--mat-sys-on-surface);
+  line-height: 1.15;
+
+  mat-icon {
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+  }
 }

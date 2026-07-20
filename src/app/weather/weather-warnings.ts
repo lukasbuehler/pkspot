@@ -85,6 +85,9 @@ export function getWeatherVisualStatus(
   response: WeatherResponse,
   context: WeatherPresentationContext = {},
 ): WeatherVisualStatus {
+  if ((response.alerts?.length ?? 0) > 0) {
+    return "warning";
+  }
   const warnings = getWeatherWarnings(response, context);
   const current = response.current ?? response.forecast?.[0];
   const condition = current?.condition ?? "unknown";

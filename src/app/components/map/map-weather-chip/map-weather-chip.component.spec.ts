@@ -141,4 +141,39 @@ describe("MapWeatherChipComponent", () => {
     expect(warningButton.classList).toContain("has-warning");
     expect(warningButton.classList).not.toContain("is-wet");
   });
+
+  it("prioritizes an active public alert in the compact summary", async () => {
+    const fixture = TestBed.createComponent(MapWeatherChipComponent);
+    fixture.componentRef.setInput("response", {
+      ...response,
+      alerts: [
+        {
+          id: "storm",
+          type: "STORM",
+          title: "Severe storm warning",
+          severity: "severe",
+          certainty: "likely",
+          urgency: "expected",
+          areaName: "Zurich",
+          instructions: [],
+          safetyRecommendations: [],
+          source: {
+            name: "MeteoSwiss",
+            url: "https://www.meteoswiss.admin.ch/",
+          },
+        },
+      ],
+    });
+    await fixture.whenStable();
+
+    const button = fixture.nativeElement.querySelector("button");
+    expect(button.textContent).toContain("Official alert");
+    expect(button.textContent).toContain("warning");
+    expect(button.classList).toContain("has-warning");
+    const source = fixture.nativeElement.querySelector(".alert-source-link");
+    expect(source.textContent).toContain("MeteoSwiss");
+    expect(source.getAttribute("href")).toBe(
+      "https://www.meteoswiss.admin.ch/",
+    );
+  });
 });

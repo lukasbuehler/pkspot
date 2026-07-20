@@ -1,9 +1,13 @@
 import { describe, expect, it, afterEach } from "vitest";
 import {
   buildEventInsights,
+  buildWeatherAlertCacheKey,
   buildWeatherCacheKey,
   buildWeatherInsights,
   getProviderCacheDurationMs,
+  getWeatherAlertCacheDurationMs,
+  isMeaningfulWeatherAlert,
+  normalizeGoogleWeatherAlerts,
   normalizeWeatherCondition,
   parseWeatherRequest,
   resolveRequestWindow,
@@ -22,12 +26,14 @@ describe("weather functions", () => {
         mode: "current-and-near-future",
         location: { lat: 47.37, lng: 8.54 },
         nearFutureHours: 12,
+        languageCode: "de-CH",
       })
     ).toEqual({
       mode: "current-and-near-future",
       location: { lat: 47.37, lng: 8.54 },
       nearFutureHours: 12,
       providerOverride: undefined,
+      languageCode: "de-CH",
     });
 
     expect(() =>
@@ -37,6 +43,13 @@ describe("weather functions", () => {
         nearFutureHours: 25,
       })
     ).toThrow(/nearFutureHours/);
+    expect(() =>
+      parseWeatherRequest({
+        mode: "current-and-near-future",
+        location: { lat: 47.37, lng: 8.54 },
+        languageCode: "../invalid",
+      })
+    ).toThrow(/languageCode/);
   });
 
   it("allows provider override only for admins", () => {
@@ -138,6 +151,9 @@ describe("weather functions", () => {
     expect(buildWeatherCacheKey(request, "google", window)).toBe(
       buildWeatherCacheKey(sameTile, "google", window)
     );
+    expect(buildWeatherAlertCacheKey(request)).toBe(
+      buildWeatherAlertCacheKey(sameTile)
+    );
   });
 
   it("rejects invalid map tile coordinates", () => {
@@ -181,6 +197,94 @@ describe("weather functions", () => {
     expect(getProviderCacheDurationMs("open-meteo", "event-forecast")).toBe(
       6 * 60 * 60 * 1000
     );
+    expect(getWeatherAlertCacheDurationMs()).toBe(10 * 60 * 1000);
+  });
+
+  it("normalizes, filters, and prioritizes Google public alerts", () => {
+    const now = new Date("2026-07-20T10:00:00Z");
+    const alerts = normalizeGoogleWeatherAlerts(
+      {
+        weatherAlerts: [
+          {
+            alertId: "moderate",
+            alertTitle: { text: "Flood watch", languageCode: "en" },
+            eventType: "FLOOD",
+            areaName: "Zurich",
+            severity: "MODERATE",
+            certainty: "LIKELY",
+            urgency: "FUTURE",
+            expirationTime: "2026-07-20T16:00:00Z",
+            instruction: ["Avoid flooded paths."],
+            safetyRecommendations: [
+              { directive: "Move to higher ground.", subtext: "Do not wait." },
+            ],
+            dataSource: {
+              name: "MeteoSwiss",
+              authorityUri: "https://www.meteoswiss.admin.ch/",
+            },
+          },
+          {
+            alertId: "severe",
+            alertTitle: { text: "Severe storm warning" },
+            eventType: "STORM",
+            areaName: "Zurich",
+            severity: "SEVERE",
+            certainty: "OBSERVED",
+            urgency: "IMMEDIATE",
+            expirationTime: "2026-07-20T12:00:00Z",
+            dataSource: {
+              name: "MeteoSwiss",
+              authorityUri: "https://www.meteoswiss.admin.ch/",
+            },
+          },
+          {
+            alertId: "expired",
+            alertTitle: { text: "Expired warning" },
+            eventType: "WIND",
+            severity: "SEVERE",
+            expirationTime: "2026-07-20T09:00:00Z",
+            dataSource: {
+              name: "MeteoSwiss",
+              authorityUri: "https://www.meteoswiss.admin.ch/",
+            },
+          },
+        ],
+      },
+      now
+    );
+
+    expect(alerts.map((alert) => alert.id)).toEqual(["severe", "moderate"]);
+    expect(alerts[1]).toMatchObject({
+      severity: "moderate",
+      certainty: "likely",
+      urgency: "future",
+      instructions: ["Avoid flooded paths."],
+      source: {
+        name: "MeteoSwiss",
+        url: "https://www.meteoswiss.admin.ch/",
+      },
+    });
+  });
+
+  it("keeps immediate minor alerts but drops non-urgent minor alerts", () => {
+    const base = {
+      id: "minor",
+      type: "FOG",
+      title: "Fog advisory",
+      severity: "minor" as const,
+      certainty: "likely" as const,
+      urgency: "future" as const,
+      areaName: "Zurich",
+      instructions: [],
+      safetyRecommendations: [],
+      source: { name: "MeteoSwiss", url: "https://example.com/" },
+    };
+    const now = new Date("2026-07-20T10:00:00Z");
+
+    expect(isMeaningfulWeatherAlert(base, now)).toBe(false);
+    expect(
+      isMeaningfulWeatherAlert({ ...base, urgency: "immediate" }, now)
+    ).toBe(true);
   });
 
   it("normalizes provider weather conditions", () => {

@@ -118,6 +118,30 @@ describe("weather warning presentation", () => {
     expect(getWeatherVisualStatus(response())).toBe("great");
   });
 
+  it("gives active public alerts warning priority", () => {
+    const weather = response({
+      alerts: [
+        {
+          id: "storm",
+          type: "STORM",
+          title: "Severe storm warning",
+          severity: "severe",
+          certainty: "likely",
+          urgency: "expected",
+          areaName: "Zurich",
+          instructions: [],
+          safetyRecommendations: [],
+          source: {
+            name: "MeteoSwiss",
+            url: "https://www.meteoswiss.admin.ch/",
+          },
+        },
+      ],
+    });
+
+    expect(getWeatherVisualStatus(weather)).toBe("warning");
+  });
+
   it("suppresses sun and wet conditions for covered spots", () => {
     const weather = response({
       current: {

@@ -81,12 +81,6 @@ interface VisibleSeriesTag {
   role?: EventSeriesMembershipSchema["role"];
 }
 
-type EventStructuredDataStatus =
-  | "EventCancelled"
-  | "EventPostponed"
-  | "EventRescheduled"
-  | "EventScheduled";
-
 @Component({
   selector: "app-event-info-page",
   imports: [
@@ -811,7 +805,8 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       performer: this._buildEventPerformers(event),
       offers: this._buildEventOffers(event, offerFallbackUrl),
       superEvent: this._buildEventSeriesStructuredData(event),
-      subEvent: this._buildProgramStructuredData(event),
+      // Program entries remain crawlable page content. They are not standalone
+      // Google events because they do not have their own canonical leaf pages.
     };
   }
 
@@ -1346,58 +1341,6 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     }));
 
     return items.length === 1 ? items[0] : items;
-  }
-
-  private _buildProgramStructuredData(event: PkEvent): unknown {
-    const items = this.activeProgramItems()
-      .map((item) => {
-        const status = this._programItemSchemaStatus(item);
-        const start = item.runtimeOverride?.start ?? item.start;
-        const end = item.runtimeOverride?.end ?? item.end;
-
-        return {
-          "@type": "Event",
-          name: item.title,
-          description: item.description,
-          startDate: start.toISOString(),
-          endDate: end?.toISOString(),
-          eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-          eventStatus: `https://schema.org/${status}`,
-          location: {
-            "@type": "Place",
-            name: event.venueString || event.localityString || event.name,
-            address: {
-              "@type": "PostalAddress",
-              addressLocality: event.localityString || undefined,
-            },
-          },
-          superEvent: {
-            "@type": "Event",
-            name: event.name,
-            url:
-              `${environment.baseUrl}/${this._locale}` +
-              this._eventPageData.eventCanonicalPath(event),
-          },
-        };
-      })
-      .filter((item) => item.name && item.startDate);
-
-    return items.length > 0 ? items : undefined;
-  }
-
-  private _programItemSchemaStatus(
-    item: EventProgramItem,
-  ): EventStructuredDataStatus {
-    switch (item.runtimeOverride?.status ?? item.status) {
-      case "cancelled":
-        return "EventCancelled";
-      case "moved":
-        return "EventRescheduled";
-      case "delayed":
-        return "EventPostponed";
-      default:
-        return "EventScheduled";
-    }
   }
 
   private _eventSocialImage(event: PkEvent): string {

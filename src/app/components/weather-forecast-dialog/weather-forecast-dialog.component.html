@@ -59,6 +59,75 @@
     </div>
   </section>
 
+  @if (alerts.length > 0) {
+    <section
+      class="public-alert-list"
+      aria-label="Official weather alerts"
+      i18n-aria-label="@@weather.alert.list_label"
+    >
+      @for (alert of alerts; track alert.id) {
+        <article
+          class="public-alert"
+          [class.is-error]="alert.tone === 'error'"
+          role="alert"
+        >
+          <span class="public-alert-icon" aria-hidden="true">
+            <mat-icon>warning</mat-icon>
+          </span>
+          <div class="public-alert-copy">
+            <span class="mat-label-medium">{{ alert.severityLabel }}</span>
+            <strong class="mat-title-small">{{ alert.title }}</strong>
+            @if (alert.areaName) {
+              <span class="mat-body-small">{{ alert.areaName }}</span>
+            }
+            @if (alert.activeUntil) {
+              <span class="mat-body-small">{{ alert.activeUntil }}</span>
+            }
+            @if (alert.hasDetails) {
+              <details>
+                <summary
+                  class="mat-label-large"
+                  i18n="@@weather.alert.safety_details"
+                >
+                  Safety information
+                </summary>
+                @if (alert.description) {
+                  <p class="mat-body-small">{{ alert.description }}</p>
+                }
+                @for (
+                  recommendation of alert.safetyRecommendations;
+                  track recommendation.directive
+                ) {
+                  <p class="mat-body-small">
+                    <strong>{{ recommendation.directive }}</strong>
+                    @if (recommendation.subtext) {
+                      {{ recommendation.subtext }}
+                    }
+                  </p>
+                }
+                @for (
+                  instruction of alert.instructions;
+                  track instruction
+                ) {
+                  <p class="mat-body-small">{{ instruction }}</p>
+                }
+              </details>
+            }
+            <a
+              class="public-alert-source mat-label-medium"
+              [href]="alert.source.url"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {{ alertSourceLabel }} {{ alert.source.name }}
+              <mat-icon aria-hidden="true">open_in_new</mat-icon>
+            </a>
+          </div>
+        </article>
+      }
+    </section>
+  }
+
   @if (data.covered) {
     <section class="covered-info" role="note">
       <span class="covered-info-icon" aria-hidden="true">
