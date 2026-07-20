@@ -1,40 +1,19 @@
 import {
   DestroyRef,
   Injectable,
-  InjectionToken,
-  LOCALE_ID,
-  PLATFORM_ID,
   computed,
   inject,
   signal,
 } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { isPlatformBrowser } from "@angular/common";
 import { catchError, of, switchMap } from "rxjs";
 import { AuthenticationService } from "./firebase/authentication.service";
 import { UsersService } from "./firebase/firestore/users.service";
 import {
-  getDefaultTemperatureUnit,
-  getExplicitTemperatureUnit,
+  resolveTemperatureUnit,
   type TemperatureUnit,
+  type TemperatureUnitPreference,
 } from "../weather/weather-temperature";
-
-export const BROWSER_PREFERRED_LOCALES = new InjectionToken<readonly string[]>(
-  "Browser preferred locales",
-  {
-    providedIn: "root",
-    factory: () => {
-      if (!isPlatformBrowser(inject(PLATFORM_ID))) {
-        return [];
-      }
-      return globalThis.navigator?.languages?.length
-        ? globalThis.navigator.languages
-        : globalThis.navigator?.language
-          ? [globalThis.navigator.language]
-          : [];
-    },
-  },
-);
 
 @Injectable({
   providedIn: "root",
@@ -43,22 +22,12 @@ export class AccountPreferencesService {
   private readonly auth = inject(AuthenticationService);
   private readonly users = inject(UsersService);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly browserLocales = inject(BROWSER_PREFERRED_LOCALES);
-  private readonly browserTemperatureUnit = this.browserLocales
-    .map((locale) => getExplicitTemperatureUnit(locale))
-    .find((unit) => unit !== undefined);
-  private readonly defaultTemperatureUnit = getDefaultTemperatureUnit(
-    this.browserLocales[0] ?? inject(LOCALE_ID),
-  );
   private readonly storedTemperatureUnit = signal<
-    TemperatureUnit | undefined
+    TemperatureUnitPreference | undefined
   >(undefined);
 
-  readonly temperatureUnit = computed(
-    () =>
-      this.storedTemperatureUnit() ??
-      this.browserTemperatureUnit ??
-      this.defaultTemperatureUnit,
+  readonly temperatureUnitPreference = computed(
+    () => this.storedTemperatureUnit() ?? "local",
   );
 
   constructor() {
@@ -80,12 +49,21 @@ export class AccountPreferencesService {
       .subscribe((privateData) => {
         const unit = privateData?.settings?.temperature_unit;
         this.storedTemperatureUnit.set(
-          unit === "celsius" || unit === "fahrenheit" ? unit : undefined,
+          unit === "local" || unit === "celsius" || unit === "fahrenheit"
+            ? unit
+            : undefined,
         );
       });
   }
 
-  async setTemperatureUnit(unit: TemperatureUnit): Promise<void> {
+  temperatureUnit(countryCode?: string): TemperatureUnit {
+    return resolveTemperatureUnit(
+      this.temperatureUnitPreference(),
+      countryCode,
+    );
+  }
+
+  async setTemperatureUnit(unit: TemperatureUnitPreference): Promise<void> {
     const userId = this.auth.user.uid;
     if (!userId) {
       return;

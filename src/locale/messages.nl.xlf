@@ -423,8 +423,8 @@
     </unit>
     <unit id="settings.temperature.description">
       <segment state="initial">
-        <source> Choose how temperatures are displayed in weather forecasts. </source>
-        <target> Kies hoe temperaturen in weersverwachtingen worden weergegeven. </target>
+        <source> Use the local unit for each forecast, or always show Celsius or Fahrenheit. </source>
+        <target> Gebruik de lokale eenheid voor elke weersverwachting, of toon altijd Celsius of Fahrenheit. </target>
       </segment>
     </unit>
     <unit id="settings.temperature.fahrenheit">
@@ -437,6 +437,12 @@
       <segment state="initial">
         <source> Temperature </source>
         <target> Temperatuur </target>
+      </segment>
+    </unit>
+    <unit id="settings.temperature.local">
+      <segment state="initial">
+        <source> Local </source>
+        <target> Lokaal </target>
       </segment>
     </unit>
     <unit id="settings.temperature.save_error">
@@ -1084,10 +1090,148 @@
         <target>Voorlopig droog</target>
       </segment>
     </unit>
-    <unit id="map.weather.official_alert">
+    <unit id="weather.alert.category.coastal">
+      <segment state="final">
+        <source>Coastal hazard</source>
+        <target>Kustgevaar</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.cold">
+      <segment state="final">
+        <source>Cold warning</source>
+        <target>Koudewaarschuwing</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.dangerous_waters">
+      <segment state="final">
+        <source>Dangerous waters</source>
+        <target>Gevaarlijk water</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.drought">
+      <segment state="final">
+        <source>Drought</source>
+        <target>Droogte</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.earthquake">
+      <segment state="final">
+        <source>Earthquake</source>
+        <target>Aardbeving</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.extreme_cold">
+      <segment state="final">
+        <source>Extreme cold</source>
+        <target>Extreme kou</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.extreme_heat">
+      <segment state="final">
+        <source>Extreme heat</source>
+        <target>Extreme hitte</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.fire_danger">
+      <segment state="final">
+        <source>Fire danger</source>
+        <target>Brandgevaar</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.flood">
+      <segment state="final">
+        <source>Flooding</source>
+        <target>Overstroming</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.general">
       <segment state="final">
         <source>Official alert</source>
         <target>Officiële waarschuwing</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.hail">
+      <segment state="final">
+        <source>Hail</source>
+        <target>Hagel</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.heat">
+      <segment state="final">
+        <source>Heat warning</source>
+        <target>Hittewaarschuwing</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.landslide">
+      <segment state="final">
+        <source>Landslide</source>
+        <target>Aardverschuiving</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.precipitation">
+      <segment state="final">
+        <source>Heavy rain</source>
+        <target>Zware regen</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.radiation">
+      <segment state="final">
+        <source>Radiation hazard</source>
+        <target>Stralingsgevaar</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.snow_ice">
+      <segment state="final">
+        <source>Snow and ice</source>
+        <target>Sneeuw en ijs</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.thunderstorm">
+      <segment state="final">
+        <source>Thunderstorm</source>
+        <target>Onweer</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.tornado">
+      <segment state="final">
+        <source>Tornado</source>
+        <target>Tornadowaarschuwing</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.tropical_storm">
+      <segment state="final">
+        <source>Tropical storm</source>
+        <target>Tropische storm</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.tsunami">
+      <segment state="final">
+        <source>Tsunami</source>
+        <target>Tsunamiwaarschuwing</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.visibility">
+      <segment state="final">
+        <source>Reduced visibility</source>
+        <target>Verminderd zicht</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.volcano">
+      <segment state="final">
+        <source>Volcanic hazard</source>
+        <target>Vulkanisch gevaar</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.wildfire">
+      <segment state="final">
+        <source>Wildfire</source>
+        <target>Natuurbrand</target>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.wind">
+      <segment state="final">
+        <source>Strong wind</source>
+        <target>Harde wind</target>
       </segment>
     </unit>
     <unit id="map.weather.open">
@@ -3936,30 +4080,6 @@
       <segment state="final">
         <source> Safety information </source>
         <target> Veiligheidsinformatie </target>
-      </segment>
-    </unit>
-    <unit id="weather.alert.severity.extreme">
-      <segment state="final">
-        <source>Extreme weather alert</source>
-        <target>Extreme weerswaarschuwing</target>
-      </segment>
-    </unit>
-    <unit id="weather.alert.severity.general">
-      <segment state="final">
-        <source>Official weather alert</source>
-        <target>Officiële weerswaarschuwing</target>
-      </segment>
-    </unit>
-    <unit id="weather.alert.severity.moderate">
-      <segment state="final">
-        <source>Weather alert</source>
-        <target>Weerswaarschuwing</target>
-      </segment>
-    </unit>
-    <unit id="weather.alert.severity.severe">
-      <segment state="final">
-        <source>Severe weather alert</source>
-        <target>Ernstige weerswaarschuwing</target>
       </segment>
     </unit>
     <unit id="weather.alert.source">

@@ -50,7 +50,9 @@ import {
   FirebaseAppCheckService,
   FirebaseAppCheckStatus,
 } from "../../services/firebase/app-check.service";
-import type { TemperatureUnit } from "../../weather/weather-temperature";
+import type {
+  TemperatureUnitPreference,
+} from "../../weather/weather-temperature";
 
 @Component({
   selector: "app-settings-page",
@@ -291,7 +293,7 @@ export class SettingsPageComponent implements OnInit {
     this._uiLanguageService.changeLanguage();
   }
 
-  setTemperatureUnit(unit: TemperatureUnit): void {
+  setTemperatureUnit(unit: TemperatureUnitPreference): void {
     void this.accountPreferences.setTemperatureUnit(unit).catch((error) => {
       console.error("Error saving temperature unit:", error);
       this._snackbar.open(

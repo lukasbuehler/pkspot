@@ -433,14 +433,21 @@
               class="mat-body mt-2 mb-3"
               i18n="@@settings.temperature.description"
             >
-              Choose how temperatures are displayed in weather forecasts.
+              Use the local unit for each forecast, or always show Celsius or
+              Fahrenheit.
             </p>
             <mat-button-toggle-group
               aria-label="Temperature unit"
               i18n-aria-label="@@settings.temperature.aria_label"
-              [value]="accountPreferences.temperatureUnit()"
+              [value]="accountPreferences.temperatureUnitPreference()"
               (change)="setTemperatureUnit($event.value)"
             >
+              <mat-button-toggle
+                value="local"
+                i18n="@@settings.temperature.local"
+              >
+                Local
+              </mat-button-toggle>
               <mat-button-toggle
                 value="celsius"
                 i18n="@@settings.temperature.celsius"

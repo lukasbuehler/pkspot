@@ -76,7 +76,7 @@ export interface UserSchema {
 export interface UserSettingsSchema {
   maps?: "googlemaps" | "applemaps" | "openstreetmap";
   useGeoURI?: boolean;
-  temperature_unit?: "celsius" | "fahrenheit";
+  temperature_unit?: "local" | "celsius" | "fahrenheit";
 }
 
 export interface UserReferenceSchema {

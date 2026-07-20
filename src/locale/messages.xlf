@@ -4368,9 +4368,124 @@
         <source>Dry for now</source>
       </segment>
     </unit>
-    <unit id="map.weather.official_alert">
+    <unit id="weather.alert.category.coastal">
+      <segment>
+        <source>Coastal hazard</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.cold">
+      <segment>
+        <source>Cold warning</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.dangerous_waters">
+      <segment>
+        <source>Dangerous waters</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.drought">
+      <segment>
+        <source>Drought</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.earthquake">
+      <segment>
+        <source>Earthquake</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.extreme_cold">
+      <segment>
+        <source>Extreme cold</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.extreme_heat">
+      <segment>
+        <source>Extreme heat</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.fire_danger">
+      <segment>
+        <source>Fire danger</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.flood">
+      <segment>
+        <source>Flooding</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.general">
       <segment>
         <source>Official alert</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.hail">
+      <segment>
+        <source>Hail</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.heat">
+      <segment>
+        <source>Heat warning</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.landslide">
+      <segment>
+        <source>Landslide</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.precipitation">
+      <segment>
+        <source>Heavy rain</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.radiation">
+      <segment>
+        <source>Radiation hazard</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.snow_ice">
+      <segment>
+        <source>Snow and ice</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.thunderstorm">
+      <segment>
+        <source>Thunderstorm</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.tornado">
+      <segment>
+        <source>Tornado</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.tropical_storm">
+      <segment>
+        <source>Tropical storm</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.tsunami">
+      <segment>
+        <source>Tsunami</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.visibility">
+      <segment>
+        <source>Reduced visibility</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.volcano">
+      <segment>
+        <source>Volcanic hazard</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.wildfire">
+      <segment>
+        <source>Wildfire</source>
+      </segment>
+    </unit>
+    <unit id="weather.alert.category.wind">
+      <segment>
+        <source>Strong wind</source>
       </segment>
     </unit>
     <unit id="map.weather.open">
@@ -4773,7 +4888,7 @@
     </unit>
     <unit id="settings.temperature.description">
       <segment>
-        <source> Choose how temperatures are displayed in weather forecasts. </source>
+        <source> Use the local unit for each forecast, or always show Celsius or Fahrenheit. </source>
       </segment>
     </unit>
     <unit id="settings.temperature.fahrenheit">
@@ -4784,6 +4899,11 @@
     <unit id="settings.temperature.heading">
       <segment>
         <source> Temperature </source>
+      </segment>
+    </unit>
+    <unit id="settings.temperature.local">
+      <segment>
+        <source> Local </source>
       </segment>
     </unit>
     <unit id="settings.temperature.save_error">
@@ -6927,26 +7047,6 @@
     <unit id="weather.alert.safety_details">
       <segment>
         <source> Safety information </source>
-      </segment>
-    </unit>
-    <unit id="weather.alert.severity.extreme">
-      <segment>
-        <source>Extreme weather alert</source>
-      </segment>
-    </unit>
-    <unit id="weather.alert.severity.general">
-      <segment>
-        <source>Official weather alert</source>
-      </segment>
-    </unit>
-    <unit id="weather.alert.severity.moderate">
-      <segment>
-        <source>Weather alert</source>
-      </segment>
-    </unit>
-    <unit id="weather.alert.severity.severe">
-      <segment>
-        <source>Severe weather alert</source>
       </segment>
     </unit>
     <unit id="weather.alert.source">

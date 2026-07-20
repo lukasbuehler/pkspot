@@ -7,6 +7,7 @@ import {
   getProviderCacheDurationMs,
   getWeatherAlertCacheDurationMs,
   isMeaningfulWeatherAlert,
+  normalizeCountryCode,
   normalizeGoogleWeatherAlerts,
   normalizeWeatherCondition,
   parseWeatherRequest,
@@ -18,6 +19,13 @@ import type { WeatherPoint } from "../functions/src/weatherFunctions";
 describe("weather functions", () => {
   afterEach(() => {
     delete process.env.WEATHER_PROVIDER;
+  });
+
+  it("normalizes weather response country codes", () => {
+    expect(normalizeCountryCode("us")).toBe("US");
+    expect(normalizeCountryCode(" CH ")).toBe("CH");
+    expect(normalizeCountryCode("USA")).toBeUndefined();
+    expect(normalizeCountryCode(undefined)).toBeUndefined();
   });
 
   it("validates current and near-future requests", () => {

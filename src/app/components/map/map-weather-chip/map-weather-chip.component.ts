@@ -22,6 +22,7 @@ import type {
 import { getWeatherVisualStatus } from "../../../weather/weather-warnings";
 import { AccountPreferencesService } from "../../../services/account-preferences.service";
 import { formatTemperature } from "../../../weather/weather-temperature";
+import { getWeatherAlertDisplay } from "../../../weather/weather-alert-display";
 
 @Component({
   selector: "app-map-weather-chip",
@@ -47,13 +48,16 @@ export class MapWeatherChipComponent {
   protected readonly primaryAlert = computed(
     () => this.response().alerts?.[0],
   );
+  protected readonly primaryAlertDisplay = computed(() => {
+    const alert = this.primaryAlert();
+    return alert ? getWeatherAlertDisplay(alert) : undefined;
+  });
   protected readonly condition = computed<WeatherCondition>(
     () => this.current()?.condition ?? "unknown",
   );
   protected readonly icon = computed(() =>
-    this.response().alerts?.length
-      ? "warning"
-      : getWeatherStateIcon(this.condition(), this.current()?.isDay),
+    this.primaryAlertDisplay()?.icon ??
+    getWeatherStateIcon(this.condition(), this.current()?.isDay),
   );
   protected readonly temperatureC = computed(
     () => this.current()?.temperatureC,
@@ -64,7 +68,9 @@ export class MapWeatherChipComponent {
       ? undefined
       : formatTemperature(
           temperatureC,
-          this.accountPreferences.temperatureUnit(),
+          this.accountPreferences.temperatureUnit(
+            this.response().countryCode,
+          ),
           false,
         );
   });
@@ -81,7 +87,9 @@ export class MapWeatherChipComponent {
         ? undefined
         : formatTemperature(
             this.temperatureC()!,
-            this.accountPreferences.temperatureUnit(),
+            this.accountPreferences.temperatureUnit(
+              this.response().countryCode,
+            ),
           ),
       this.changeSummary(),
     ].filter((part): part is string => part !== undefined);
@@ -90,8 +98,9 @@ export class MapWeatherChipComponent {
 
   private getChangeSummary(): string {
     const response = this.response();
-    if (this.primaryAlert()) {
-      return $localize`:@@map.weather.official_alert:Official alert`;
+    const alertDisplay = this.primaryAlertDisplay();
+    if (alertDisplay) {
+      return alertDisplay.label;
     }
     const current = this.current();
     if (!current) {

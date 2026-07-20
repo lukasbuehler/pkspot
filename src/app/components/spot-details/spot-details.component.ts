@@ -202,6 +202,7 @@ import {
 import { WeatherService } from "../../weather/weather.service";
 import { getWeatherVisualStatus } from "../../weather/weather-warnings";
 import { getSpotWeatherContext } from "../../weather/spot-weather-context";
+import { getWeatherAlertDisplay } from "../../weather/weather-alert-display";
 import {
   WeatherForecastDialogComponent,
   type WeatherForecastDialogData,
@@ -384,9 +385,16 @@ export class SpotDetailsComponent
     if (!point) {
       return { condition: "unknown" };
     }
+    const primaryAlert = response.alerts?.[0];
+    const alertDisplay = primaryAlert
+      ? getWeatherAlertDisplay(primaryAlert)
+      : undefined;
     return {
       condition: point.condition ?? "unknown",
+      countryCode: response.countryCode ?? this.countryCode(),
+      icon: alertDisplay?.icon,
       isDay: point.isDay,
+      label: alertDisplay?.label,
       temperatureC: point.temperatureC,
       status: getWeatherVisualStatus(response, {
         covered: this.spotWeatherContext().covered,
@@ -1055,6 +1063,7 @@ export class SpotDetailsComponent
       data: {
         spotName: spot.name(),
         response,
+        countryCode: this.countryCode(),
         covered: this.spotWeatherContext().covered,
       },
       width: "680px",

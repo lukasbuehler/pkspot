@@ -6,6 +6,10 @@ import {
 } from "./weather-icon-button.component";
 import { WeatherCondition } from "../../weather/weather-display";
 import { AccountPreferencesService } from "../../services/account-preferences.service";
+import {
+  resolveTemperatureUnit,
+  type TemperatureUnitPreference,
+} from "../../weather/weather-temperature";
 
 const weather = (condition: WeatherCondition): WeatherIconData => ({
   condition,
@@ -13,10 +17,13 @@ const weather = (condition: WeatherCondition): WeatherIconData => ({
 
 describe("WeatherIconButtonComponent", () => {
   let fixture: ComponentFixture<WeatherIconButtonComponent>;
-  const temperatureUnit = signal<"celsius" | "fahrenheit">("celsius");
+  const temperatureUnitPreference =
+    signal<TemperatureUnitPreference>("celsius");
+  const temperatureUnit = (countryCode?: string) =>
+    resolveTemperatureUnit(temperatureUnitPreference(), countryCode);
 
   beforeEach(() => {
-    temperatureUnit.set("celsius");
+    temperatureUnitPreference.set("celsius");
     TestBed.configureTestingModule({
       providers: [
         {
@@ -69,9 +76,23 @@ describe("WeatherIconButtonComponent", () => {
   });
 
   it("uses the preferred unit in the accessible label", async () => {
-    temperatureUnit.set("fahrenheit");
+    temperatureUnitPreference.set("fahrenheit");
     fixture.componentRef.setInput("weather", {
       condition: "clear",
+      temperatureC: 30,
+    } satisfies WeatherIconData);
+    await fixture.whenStable();
+
+    expect(
+      fixture.nativeElement.querySelector("button").getAttribute("aria-label"),
+    ).toBe("Clear, 86 °F");
+  });
+
+  it("uses the weather country when the preference is local", async () => {
+    temperatureUnitPreference.set("local");
+    fixture.componentRef.setInput("weather", {
+      condition: "clear",
+      countryCode: "US",
       temperatureC: 30,
     } satisfies WeatherIconData);
     await fixture.whenStable();
@@ -112,6 +133,25 @@ describe("WeatherIconButtonComponent", () => {
     expect(
       fixture.nativeElement.querySelector("mat-icon").textContent?.trim(),
     ).toBe("umbrella");
+  });
+
+  it("uses alert display data supplied with the weather state", async () => {
+    fixture.componentRef.setInput("weather", {
+      condition: "clear",
+      icon: "emergency_heat",
+      label: "Wildfire",
+      status: "warning",
+      temperatureC: 28,
+    } satisfies WeatherIconData);
+
+    await fixture.whenStable();
+
+    expect(
+      fixture.nativeElement.querySelector("mat-icon").textContent?.trim(),
+    ).toBe("emergency_heat");
+    expect(
+      fixture.nativeElement.querySelector("button").getAttribute("aria-label"),
+    ).toBe("Wildfire, 28 °C");
   });
 
   it("emits without triggering a clickable parent by default", async () => {

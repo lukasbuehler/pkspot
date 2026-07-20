@@ -21,7 +21,10 @@ import { formatTemperature } from "../../weather/weather-temperature";
 
 export interface WeatherIconData {
   condition: WeatherCondition;
+  countryCode?: string;
+  icon?: string;
   isDay?: boolean;
+  label?: string;
   temperatureC?: number;
   status?: WeatherVisualStatus;
 }
@@ -95,7 +98,7 @@ export class WeatherIconButtonComponent {
 
   protected readonly resolvedIcon = computed(() => {
     const weather = this.weather();
-    const override = this.icon();
+    const override = this.icon() ?? weather.icon;
     if (override) {
       return override;
     }
@@ -103,13 +106,16 @@ export class WeatherIconButtonComponent {
   });
 
   protected readonly accessibleLabel = computed(() => {
-    const temperature = this.weather().temperatureC;
-    const label = this.label() ?? this.state().label;
+    const weather = this.weather();
+    const temperature = weather.temperatureC;
+    const label = this.label() ?? weather.label ?? this.state().label;
     return temperature === undefined
       ? label
       : `${label}, ${formatTemperature(
           temperature,
-          this.accountPreferences.temperatureUnit(),
+          this.accountPreferences.temperatureUnit(
+            this.weather().countryCode,
+          ),
         )}`;
   });
 

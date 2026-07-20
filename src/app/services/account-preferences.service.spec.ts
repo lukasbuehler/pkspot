@@ -1,11 +1,7 @@
-import { LOCALE_ID } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { BehaviorSubject } from "rxjs";
 import type { PrivateUserDataSchema } from "../../db/schemas/PrivateUserDataSchema";
-import {
-  AccountPreferencesService,
-  BROWSER_PREFERRED_LOCALES,
-} from "./account-preferences.service";
+import { AccountPreferencesService } from "./account-preferences.service";
 import { AuthenticationService } from "./firebase/authentication.service";
 import { UsersService } from "./firebase/firestore/users.service";
 
@@ -31,8 +27,6 @@ describe("AccountPreferencesService", () => {
 
     TestBed.configureTestingModule({
       providers: [
-        { provide: LOCALE_ID, useValue: "de" },
-        { provide: BROWSER_PREFERRED_LOCALES, useValue: ["de-CH"] },
         { provide: AuthenticationService, useValue: auth },
         { provide: UsersService, useValue: users },
       ],
@@ -41,50 +35,31 @@ describe("AccountPreferencesService", () => {
 
   afterEach(() => TestBed.resetTestingModule());
 
-  it("uses the locale default until a signed-in account preference loads", () => {
+  it("uses local units until a signed-in account preference loads", () => {
     const service = TestBed.inject(AccountPreferencesService);
 
-    expect(service.temperatureUnit()).toBe("celsius");
+    expect(service.temperatureUnitPreference()).toBe("local");
+    expect(service.temperatureUnit("CH")).toBe("celsius");
+    expect(service.temperatureUnit("US")).toBe("fahrenheit");
 
     auth.user = { uid: "user-1" };
     authState.next(auth.user);
     privateData.next({ settings: { temperature_unit: "fahrenheit" } });
 
     expect(users.getPrivateData).toHaveBeenCalledWith("user-1");
-    expect(service.temperatureUnit()).toBe("fahrenheit");
+    expect(service.temperatureUnitPreference()).toBe("fahrenheit");
+    expect(service.temperatureUnit("CH")).toBe("fahrenheit");
   });
 
-  it("uses an explicit browser temperature setting before locale inference", () => {
-    TestBed.overrideProvider(BROWSER_PREFERRED_LOCALES, {
-      useValue: ["de-CH-u-mu-fahrenhe"],
-    });
-
-    const service = TestBed.inject(AccountPreferencesService);
-
-    expect(service.temperatureUnit()).toBe("fahrenheit");
-  });
-
-  it("uses the account setting before an explicit browser setting", () => {
-    TestBed.overrideProvider(BROWSER_PREFERRED_LOCALES, {
-      useValue: ["de-CH-u-mu-fahrenhe"],
-    });
+  it("loads an explicitly stored local preference", () => {
     auth.user = { uid: "user-1" };
     authState.next(auth.user);
     const service = TestBed.inject(AccountPreferencesService);
 
-    privateData.next({ settings: { temperature_unit: "celsius" } });
+    privateData.next({ settings: { temperature_unit: "local" } });
 
-    expect(service.temperatureUnit()).toBe("celsius");
-  });
-
-  it("infers from the browser locale when it has no explicit unit setting", () => {
-    TestBed.overrideProvider(BROWSER_PREFERRED_LOCALES, {
-      useValue: ["en-US"],
-    });
-
-    const service = TestBed.inject(AccountPreferencesService);
-
-    expect(service.temperatureUnit()).toBe("fahrenheit");
+    expect(service.temperatureUnitPreference()).toBe("local");
+    expect(service.temperatureUnit("US")).toBe("fahrenheit");
   });
 
   it("writes the preference to private account settings", async () => {
@@ -94,13 +69,25 @@ describe("AccountPreferencesService", () => {
 
     await service.setTemperatureUnit("fahrenheit");
 
-    expect(service.temperatureUnit()).toBe("fahrenheit");
+    expect(service.temperatureUnitPreference()).toBe("fahrenheit");
     expect(users.updatePrivateData).toHaveBeenCalledWith("user-1", {
       settings: { temperature_unit: "fahrenheit" },
     });
   });
 
-  it("returns to the locale default after sign-out", () => {
+  it("writes the local preference to private account settings", async () => {
+    auth.user = { uid: "user-1" };
+    authState.next(auth.user);
+    const service = TestBed.inject(AccountPreferencesService);
+
+    await service.setTemperatureUnit("local");
+
+    expect(users.updatePrivateData).toHaveBeenCalledWith("user-1", {
+      settings: { temperature_unit: "local" },
+    });
+  });
+
+  it("returns to the local default after sign-out", () => {
     auth.user = { uid: "user-1" };
     authState.next(auth.user);
     const service = TestBed.inject(AccountPreferencesService);
@@ -109,7 +96,8 @@ describe("AccountPreferencesService", () => {
     auth.user = {};
     authState.next(null);
 
-    expect(service.temperatureUnit()).toBe("celsius");
+    expect(service.temperatureUnitPreference()).toBe("local");
+    expect(service.temperatureUnit("US")).toBe("fahrenheit");
   });
 
   it("rolls back an optimistic change when saving fails", async () => {
@@ -123,6 +111,6 @@ describe("AccountPreferencesService", () => {
       service.setTemperatureUnit("fahrenheit"),
     ).rejects.toThrow("denied");
 
-    expect(service.temperatureUnit()).toBe("celsius");
+    expect(service.temperatureUnitPreference()).toBe("celsius");
   });
 });

@@ -1,28 +1,21 @@
 import {
   formatTemperature,
-  getDefaultTemperatureUnit,
-  getExplicitTemperatureUnit,
+  resolveTemperatureUnit,
 } from "./weather-temperature";
 
 describe("weather temperature display", () => {
-  it("defaults US locales to Fahrenheit and other locales to Celsius", () => {
-    expect(getDefaultTemperatureUnit("en-US")).toBe("fahrenheit");
-    expect(getDefaultTemperatureUnit("de-CH")).toBe("celsius");
-    expect(getDefaultTemperatureUnit("en-GB")).toBe("celsius");
+  it("uses Fahrenheit locally in the US and Celsius elsewhere", () => {
+    expect(resolveTemperatureUnit("local", "US")).toBe("fahrenheit");
+    expect(resolveTemperatureUnit("local", "us")).toBe("fahrenheit");
+    expect(resolveTemperatureUnit("local", "CH")).toBe("celsius");
+    expect(resolveTemperatureUnit("local")).toBe("celsius");
   });
 
-  it("reads explicit temperature and measurement-system locale overrides", () => {
-    expect(getExplicitTemperatureUnit("en-US-u-mu-celsius")).toBe("celsius");
-    expect(getExplicitTemperatureUnit("de-CH-u-mu-fahrenhe")).toBe(
+  it("keeps explicit overrides independent of the weather location", () => {
+    expect(resolveTemperatureUnit("celsius", "US")).toBe("celsius");
+    expect(resolveTemperatureUnit("fahrenheit", "CH")).toBe(
       "fahrenheit",
     );
-    expect(getExplicitTemperatureUnit("en-GB-u-ms-ussystem")).toBe(
-      "fahrenheit",
-    );
-    expect(
-      getExplicitTemperatureUnit("en-US-u-ms-ussystem-mu-celsius"),
-    ).toBe("celsius");
-    expect(getExplicitTemperatureUnit("en-US")).toBeUndefined();
   });
 
   it("converts Celsius values for full and compact displays", () => {

@@ -4,13 +4,13 @@
   class="area-title"
   [attr.data-collapsed]="titleCollapsed() ? 'true' : null"
 >
-  <h4 class="mat-title-large m-0 px-3 pt-2 pb-3" i18n="@@map.contents_heading">
+  <h4 class="mat-title-large m-0 px-3 pt-2 pb-1" i18n="@@map.contents_heading">
     In this area
   </h4>
 </div>
 
 <div
-  class="area-weather px-3"
+  class="area-weather px-3 pb-3"
   [class.area-weather--hidden]="hidePeekTitles()"
 >
   @if (weather(); as areaWeather) {

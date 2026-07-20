@@ -4,9 +4,16 @@ import { By } from "@angular/platform-browser";
 import { MapWeatherChipComponent } from "./map-weather-chip.component";
 import type { WeatherResponse } from "../../../weather/weather.models";
 import { AccountPreferencesService } from "../../../services/account-preferences.service";
+import {
+  resolveTemperatureUnit,
+  type TemperatureUnitPreference,
+} from "../../../weather/weather-temperature";
 
 describe("MapWeatherChipComponent", () => {
-  const temperatureUnit = signal<"celsius" | "fahrenheit">("celsius");
+  const temperatureUnitPreference =
+    signal<TemperatureUnitPreference>("celsius");
+  const temperatureUnit = (countryCode?: string) =>
+    resolveTemperatureUnit(temperatureUnitPreference(), countryCode);
   const response: WeatherResponse = {
     provider: "google",
     mode: "current-and-near-future",
@@ -42,7 +49,7 @@ describe("MapWeatherChipComponent", () => {
   };
 
   beforeEach(() => {
-    temperatureUnit.set("celsius");
+    temperatureUnitPreference.set("celsius");
     TestBed.configureTestingModule({
       providers: [
         { provide: LOCALE_ID, useValue: "de" },
@@ -78,9 +85,24 @@ describe("MapWeatherChipComponent", () => {
   });
 
   it("uses the preferred temperature unit", async () => {
-    temperatureUnit.set("fahrenheit");
+    temperatureUnitPreference.set("fahrenheit");
     const fixture = TestBed.createComponent(MapWeatherChipComponent);
     fixture.componentRef.setInput("response", response);
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).toContain("72°");
+    expect(
+      fixture.debugElement.query(By.css("button")).attributes["aria-label"],
+    ).toContain("72 °F");
+  });
+
+  it("uses the weather location for the local unit preference", async () => {
+    temperatureUnitPreference.set("local");
+    const fixture = TestBed.createComponent(MapWeatherChipComponent);
+    fixture.componentRef.setInput("response", {
+      ...response,
+      countryCode: "US",
+    });
     await fixture.whenStable();
 
     expect(fixture.nativeElement.textContent).toContain("72°");
@@ -142,16 +164,16 @@ describe("MapWeatherChipComponent", () => {
     expect(warningButton.classList).not.toContain("is-wet");
   });
 
-  it("prioritizes an active public alert in the compact summary", async () => {
+  it("shows the active public alert category and icon", async () => {
     const fixture = TestBed.createComponent(MapWeatherChipComponent);
     fixture.componentRef.setInput("response", {
       ...response,
       alerts: [
         {
           id: "storm",
-          type: "STORM",
-          title: "Severe storm warning",
-          severity: "severe",
+          type: "HEAT",
+          title: "Extreme heat warning",
+          severity: "extreme",
           certainty: "likely",
           urgency: "expected",
           areaName: "Zurich",
@@ -167,8 +189,8 @@ describe("MapWeatherChipComponent", () => {
     await fixture.whenStable();
 
     const button = fixture.nativeElement.querySelector("button");
-    expect(button.textContent).toContain("Official alert");
-    expect(button.textContent).toContain("warning");
+    expect(button.textContent).toContain("Extreme heat");
+    expect(button.textContent).toContain("thermometer_alert");
     expect(button.classList).toContain("has-warning");
     const source = fixture.nativeElement.querySelector(".alert-source-link");
     expect(source.textContent).toContain("MeteoSwiss");

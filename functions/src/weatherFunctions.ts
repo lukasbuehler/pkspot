@@ -179,6 +179,7 @@ export interface WeatherResponse {
   provider: WeatherProvider;
   mode: WeatherMode;
   location: WeatherLocation;
+  countryCode?: string;
   generatedAt: string;
   expiresAt: string;
   attribution?: string;
@@ -222,12 +223,19 @@ interface AlertCacheDocument {
   expires_at: Timestamp;
   fetched_at: Timestamp;
   alerts: WeatherAlert[];
+  countryCode?: string;
 }
 
 interface WeatherAlertResult {
   alerts: WeatherAlert[];
+  countryCode?: string;
   status: "available" | "unavailable";
   expiresAt: string;
+}
+
+interface WeatherAlertFetchResult {
+  alerts: WeatherAlert[];
+  countryCode?: string;
 }
 
 interface DailySunWindow {
@@ -601,6 +609,7 @@ async function attachWeatherAlerts(
   return {
     ...response,
     alerts: result.alerts,
+    countryCode: result.countryCode,
     alertsStatus: result.status,
     alertsExpiresAt: result.expiresAt,
     expiresAt: earlierIsoTime(response.expiresAt, result.expiresAt),
@@ -623,6 +632,7 @@ async function getCachedGoogleWeatherAlerts(
     if (expiresAt && expiresAt.getTime() > now.getTime() && data?.alerts) {
       return {
         alerts: data.alerts,
+        countryCode: data.countryCode,
         status: "available",
         expiresAt: expiresAt.toISOString(),
       };
@@ -631,19 +641,21 @@ async function getCachedGoogleWeatherAlerts(
   }
 
   try {
-    const alerts = await fetchGoogleWeatherAlerts(
+    const result = await fetchGoogleWeatherAlerts(
       request.location,
       request.languageCode,
       now
     );
-    const expiresAt = resolveWeatherAlertExpiry(alerts, now);
+    const expiresAt = resolveWeatherAlertExpiry(result.alerts, now);
     await cacheRef.set({
       expires_at: Timestamp.fromDate(expiresAt),
       fetched_at: Timestamp.fromDate(now),
-      alerts,
+      alerts: result.alerts,
+      ...(result.countryCode ? { countryCode: result.countryCode } : {}),
     } satisfies AlertCacheDocument);
     return {
-      alerts,
+      alerts: result.alerts,
+      countryCode: result.countryCode,
       status: "available",
       expiresAt: expiresAt.toISOString(),
     };
@@ -948,7 +960,7 @@ async function fetchGoogleWeatherAlerts(
   location: WeatherLocation,
   languageCode: string | undefined,
   now: Date
-): Promise<WeatherAlert[]> {
+): Promise<WeatherAlertFetchResult> {
   const apiKey = googleAPIKey.value();
   if (!apiKey) {
     throw new HttpsError("failed-precondition", "GOOGLE_API_KEY is not set");
@@ -973,10 +985,18 @@ async function fetchGoogleWeatherAlerts(
     );
   }
 
-  return normalizeGoogleWeatherAlerts(
-    (await response.json()) as GoogleWeatherAlertsResponse,
-    now
-  );
+  const data = (await response.json()) as GoogleWeatherAlertsResponse;
+  return {
+    alerts: normalizeGoogleWeatherAlerts(data, now),
+    countryCode: normalizeCountryCode(data.regionCode),
+  };
+}
+
+export function normalizeCountryCode(
+  value: string | undefined
+): string | undefined {
+  const normalized = value?.trim().toUpperCase();
+  return normalized && /^[A-Z]{2}$/.test(normalized) ? normalized : undefined;
 }
 
 export function normalizeGoogleWeatherAlerts(

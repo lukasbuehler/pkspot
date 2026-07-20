@@ -35,10 +35,12 @@ import {
 } from "../../weather/weather-warnings";
 import { AccountPreferencesService } from "../../services/account-preferences.service";
 import { formatTemperature } from "../../weather/weather-temperature";
+import { getWeatherAlertDisplay } from "../../weather/weather-alert-display";
 
 export interface WeatherForecastDialogData {
   spotName: string;
   response: WeatherResponse;
+  countryCode?: string;
   covered?: boolean;
   context?: "spot" | "map-region";
 }
@@ -72,7 +74,8 @@ interface WeatherWarningGroup {
 
 interface WeatherAlertView extends WeatherAlert {
   tone: "primary" | "error";
-  severityLabel: string;
+  categoryLabel: string;
+  icon: string;
   activeUntil?: string;
   hasDetails: boolean;
 }
@@ -137,21 +140,25 @@ export class WeatherForecastDialogComponent {
       : $localize`:@@weather.dialog.cloud_cover:Current cloud cover: ${Math.round(this.current.cloudCoverPercent)}%.`;
   protected readonly warningGroups = this.groupWarnings(this.buildWarnings());
   protected readonly alerts = (this.response.alerts ?? []).map(
-    (alert): WeatherAlertView => ({
-      ...alert,
-      tone:
-        alert.severity === "severe" || alert.severity === "extreme"
-          ? "error"
-          : "primary",
-      severityLabel: this.getAlertSeverityLabel(alert),
-      activeUntil: alert.expiresAt
-        ? $localize`:@@weather.alert.active_until:Active until ${this.formatTime(alert.expiresAt)}`
-        : undefined,
-      hasDetails:
-        Boolean(alert.description) ||
-        alert.instructions.length > 0 ||
-        alert.safetyRecommendations.length > 0,
-    }),
+    (alert): WeatherAlertView => {
+      const display = getWeatherAlertDisplay(alert);
+      return {
+        ...alert,
+        tone:
+          alert.severity === "severe" || alert.severity === "extreme"
+            ? "error"
+            : "primary",
+        categoryLabel: display.label,
+        icon: display.icon,
+        activeUntil: alert.expiresAt
+          ? $localize`:@@weather.alert.active_until:Active until ${this.formatTime(alert.expiresAt)}`
+          : undefined,
+        hasDetails:
+          Boolean(alert.description) ||
+          alert.instructions.length > 0 ||
+          alert.safetyRecommendations.length > 0,
+      };
+    },
   );
   protected readonly alertSourceLabel =
     $localize`:@@weather.alert.source:Source:`;
@@ -193,19 +200,6 @@ export class WeatherForecastDialogComponent {
 
   private getCondition(point: WeatherPoint | undefined): WeatherCondition {
     return point?.condition ?? "unknown";
-  }
-
-  private getAlertSeverityLabel(alert: WeatherAlert): string {
-    if (alert.severity === "extreme") {
-      return $localize`:@@weather.alert.severity.extreme:Extreme weather alert`;
-    }
-    if (alert.severity === "severe") {
-      return $localize`:@@weather.alert.severity.severe:Severe weather alert`;
-    }
-    if (alert.severity === "moderate") {
-      return $localize`:@@weather.alert.severity.moderate:Weather alert`;
-    }
-    return $localize`:@@weather.alert.severity.general:Official weather alert`;
   }
 
   private toDayView(point: DailyWeatherPoint): WeatherDayView {
@@ -403,7 +397,9 @@ export class WeatherForecastDialogComponent {
       ? undefined
       : formatTemperature(
           value,
-          this.accountPreferences.temperatureUnit(),
+          this.accountPreferences.temperatureUnit(
+            this.response.countryCode ?? this.data.countryCode,
+          ),
           includeUnit,
         );
   }

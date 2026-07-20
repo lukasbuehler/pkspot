@@ -72,10 +72,10 @@
           role="alert"
         >
           <span class="public-alert-icon" aria-hidden="true">
-            <mat-icon>warning</mat-icon>
+            <mat-icon>{{ alert.icon }}</mat-icon>
           </span>
           <div class="public-alert-copy">
-            <span class="mat-label-medium">{{ alert.severityLabel }}</span>
+            <span class="mat-label-medium">{{ alert.categoryLabel }}</span>
             <strong class="mat-title-small">{{ alert.title }}</strong>
             @if (alert.areaName) {
               <span class="mat-body-small">{{ alert.areaName }}</span>

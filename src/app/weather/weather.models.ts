@@ -104,6 +104,7 @@ export interface WeatherResponse {
   provider: WeatherProvider;
   mode: "current-and-near-future" | "forecast-at" | "event-forecast";
   location: WeatherLocation;
+  countryCode?: string;
   generatedAt: string;
   expiresAt: string;
   attribution?: string;

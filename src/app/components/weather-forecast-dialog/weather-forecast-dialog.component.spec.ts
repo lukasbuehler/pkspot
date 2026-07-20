@@ -9,14 +9,21 @@ import {
   WeatherForecastDialogData,
 } from "./weather-forecast-dialog.component";
 import { AccountPreferencesService } from "../../services/account-preferences.service";
+import {
+  resolveTemperatureUnit,
+  type TemperatureUnitPreference,
+} from "../../weather/weather-temperature";
 
 describe("WeatherForecastDialogComponent", () => {
   let fixture: ComponentFixture<WeatherForecastDialogComponent>;
   let dialogData: WeatherForecastDialogData;
-  const temperatureUnit = signal<"celsius" | "fahrenheit">("celsius");
+  const temperatureUnitPreference =
+    signal<TemperatureUnitPreference>("celsius");
+  const temperatureUnit = (countryCode?: string) =>
+    resolveTemperatureUnit(temperatureUnitPreference(), countryCode);
 
   beforeEach(() => {
-    temperatureUnit.set("celsius");
+    temperatureUnitPreference.set("celsius");
     dialogData = {
       spotName: "Josefhalle",
       response: {
@@ -188,7 +195,7 @@ describe("WeatherForecastDialogComponent", () => {
   });
 
   it("renders forecasts in the preferred temperature unit", async () => {
-    temperatureUnit.set("fahrenheit");
+    temperatureUnitPreference.set("fahrenheit");
     fixture = TestBed.createComponent(WeatherForecastDialogComponent);
     await fixture.whenStable();
 
@@ -197,6 +204,15 @@ describe("WeatherForecastDialogComponent", () => {
     expect(text).toContain("77 °F");
     expect(text).toContain("72°");
     expect(text).toContain("86°");
+  });
+
+  it("renders local US forecasts in Fahrenheit", async () => {
+    temperatureUnitPreference.set("local");
+    dialogData.countryCode = "US";
+    fixture = TestBed.createComponent(WeatherForecastDialogComponent);
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).toContain("75 °F");
   });
 
   it("groups heat and UV warnings into one warning card", async () => {
@@ -252,8 +268,8 @@ describe("WeatherForecastDialogComponent", () => {
     dialogData.response.alerts = [
       {
         id: "storm",
-        type: "STORM",
-        title: "Severe storm warning",
+        type: "WILDFIRE",
+        title: "Wildfire warning",
         severity: "severe",
         certainty: "observed",
         urgency: "immediate",
@@ -279,7 +295,11 @@ describe("WeatherForecastDialogComponent", () => {
     const alert = fixture.nativeElement.querySelector(".public-alert");
     const source = alert.querySelector(".public-alert-source");
     expect(alert.classList).toContain("is-error");
-    expect(alert.textContent).toContain("Severe storm warning");
+    expect(alert.textContent).toContain("Wildfire");
+    expect(
+      alert.querySelector(".public-alert-icon mat-icon").textContent,
+    ).toContain("emergency_heat");
+    expect(alert.textContent).toContain("Wildfire warning");
     expect(alert.textContent).toContain("Active until");
     expect(alert.textContent).toContain("Safety information");
     expect(alert.textContent).toContain("Source: MeteoSwiss");
