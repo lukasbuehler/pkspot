@@ -26,12 +26,16 @@ import { formatTemperature } from "../../../weather/weather-temperature";
 @Component({
   selector: "app-map-weather-chip",
   imports: [MatButton, MatIcon, MatTooltip],
+  host: {
+    "[class.is-overview]": "appearance() === 'overview'",
+  },
   templateUrl: "./map-weather-chip.component.html",
   styleUrl: "./map-weather-chip.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MapWeatherChipComponent {
   readonly response = input.required<WeatherResponse>();
+  readonly appearance = input<"chip" | "overview">("chip");
   readonly pressed = output<void>();
 
   private readonly locale = inject(LOCALE_ID);

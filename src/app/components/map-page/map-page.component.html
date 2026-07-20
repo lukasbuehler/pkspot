@@ -103,6 +103,7 @@
         [eventSeriesById]="visibleEventSeriesById()"
         [visibleCommunities]="visibleMapCommunities()"
         [popularCommunities]="popularCommunities()"
+        [weather]="mapWeatherResponse()"
         [spotListLimit]="spotListLimit()"
         [mapZoom]="spotMap ? spotMap.mapZoom() : null"
         [openProgress]="
@@ -115,6 +116,7 @@
         (spotSelect)="selectSpot($event)"
         (eventSelect)="openEventPreview($event)"
         (communitySelect)="onIslandOpenCommunity($event)"
+        (weatherOpen)="openMapWeather()"
       ></app-map-object-panel>
     }
   }
@@ -336,11 +338,6 @@
       <ng-container *ngTemplateOutlet="mapContent"></ng-container>
       @if (visibleIslandContent() || mapWeatherResponse()) {
         <div class="map-context-host">
-          @if (visibleIslandContent()) {
-            <div @fadeInOut class="map-island-host">
-              <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
-            </div>
-          }
           @if (mapWeatherResponse(); as weather) {
             <app-map-weather-chip
               @fadeInOut
@@ -348,6 +345,11 @@
               [response]="weather"
               (pressed)="openMapWeather()"
             ></app-map-weather-chip>
+          }
+          @if (visibleIslandContent()) {
+            <div @fadeInOut class="map-island-host">
+              <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
+            </div>
           }
         </div>
       }
@@ -394,11 +396,6 @@
       <ng-container *ngTemplateOutlet="chips"></ng-container>
       @if (visibleIslandContent() || mapWeatherResponse()) {
         <div class="map-context-mobile-host">
-          @if (visibleIslandContent()) {
-            <div @fadeInOut class="map-island-mobile-host">
-              <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
-            </div>
-          }
           @if (mapWeatherResponse(); as weather) {
             <app-map-weather-chip
               @fadeInOut
@@ -406,6 +403,11 @@
               [response]="weather"
               (pressed)="openMapWeather()"
             ></app-map-weather-chip>
+          }
+          @if (visibleIslandContent()) {
+            <div @fadeInOut class="map-island-mobile-host">
+              <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
+            </div>
           }
         </div>
       }

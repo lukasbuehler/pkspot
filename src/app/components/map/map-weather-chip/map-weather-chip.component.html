@@ -2,6 +2,7 @@
   mat-stroked-button
   type="button"
   class="map-weather-chip"
+  [class.is-overview]="appearance() === 'overview'"
   [class.is-wet]="status() === 'wet'"
   [class.has-warning]="status() === 'warning'"
   [attr.aria-label]="accessibleLabel()"

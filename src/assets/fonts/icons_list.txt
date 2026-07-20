@@ -197,3 +197,4 @@ local_activity
 merge
 warning
 playlist_add
+brightness_alert

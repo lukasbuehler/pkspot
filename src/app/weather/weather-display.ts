@@ -192,7 +192,7 @@ export const WEATHER_WARNINGS = {
     tone: "error",
   },
   "high-uv": {
-    icon: "sunny",
+    icon: "brightness_alert",
     label: $localize`:@@weather.warning.high_uv.label:High UV`,
     message: $localize`:@@weather.warning.high_uv.message:UV exposure is high. Consider sun protection.`,
     severity: "caution",
@@ -262,4 +262,13 @@ export function getWeatherForecastIconTone(
     return "warning";
   }
   return point.isDay === false ? "night" : "neutral";
+}
+
+export function getDailyWeatherForecastIconTone(
+  point: Pick<WeatherForecastIconContext, "condition" | "temperatureC">,
+): WeatherForecastIconTone {
+  if (WET_FORECAST_CONDITIONS.has(point.condition)) {
+    return "wet";
+  }
+  return (point.temperatureC ?? -Infinity) >= 30 ? "warning" : "neutral";
 }

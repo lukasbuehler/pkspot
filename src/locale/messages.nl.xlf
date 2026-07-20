@@ -896,10 +896,22 @@
         <target>Skipped</target>
       </segment>
     </unit>
-    <unit id="7507948636555938109">
+    <unit id="profile.menu.ariaLabel">
+      <segment state="initial">
+        <source>Profile settings</source>
+        <target>Profielinstellingen</target>
+      </segment>
+    </unit>
+    <unit id="profile.menu.logout">
       <segment state="initial">
         <source>Log out</source>
         <target>Uitloggen</target>
+      </segment>
+    </unit>
+    <unit id="profile.menu.settings">
+      <segment state="initial">
+        <source>Settings</source>
+        <target>Instellingen</target>
       </segment>
     </unit>
     <unit id="4262052603921665097">
@@ -1863,10 +1875,10 @@
         <target>Kies een sterk wachtwoord.</target>
       </segment>
     </unit>
-    <unit id="4507617241018363752">
+    <unit id="profile.actions.requestFollow">
       <segment state="initial">
         <source>Request follow</source>
-        <target>Request follow</target>
+        <target>Volgverzoek sturen</target>
       </segment>
     </unit>
     <unit id="4518031035032344779">
@@ -3600,10 +3612,10 @@
         <target>Hulp</target>
       </segment>
     </unit>
-    <unit id="5251570247844942910">
+    <unit id="profile.stats.visited">
       <segment state="initial">
         <source>{VAR_PLURAL, plural, =1 {Spot visited} other {Spots visited}}</source>
-        <target>{VAR_PLURAL, plural, =1 {spot bezocht} other {spots bezocht}}</target>
+        <target>{VAR_PLURAL, plural, =1 {Spot bezocht} other {Spots bezocht}}</target>
       </segment>
     </unit>
     <unit id="9107902639851774121">
@@ -3642,10 +3654,16 @@
         <target> Kun je niet vinden wat je zoekt? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [href]=&quot;discordUrl&quot; target=&quot;_blank&quot;&gt;" dispEnd="&lt;/a&gt;">Word lid van onze Discord</pc> en we helpen je verder! </target>
       </segment>
     </unit>
-    <unit id="9160510009013134726">
+    <unit id="profile.actions.unfollow">
       <segment state="initial">
         <source>Unfollow</source>
         <target>Ontvolgen</target>
+      </segment>
+    </unit>
+    <unit id="profile.actions.updatingFollowStatus">
+      <segment state="initial">
+        <source>Updating follow status</source>
+        <target>Volgstatus bijwerken</target>
       </segment>
     </unit>
     <unit id="9180110319941008393">
@@ -3702,7 +3720,19 @@
         <target>Kaartindeling voorbereiden...</target>
       </segment>
     </unit>
-    <unit id="643839708130168383">
+    <unit id="profile.stats.ariaLabel">
+      <segment state="initial">
+        <source>Profile summary</source>
+        <target>Profielsamenvatting</target>
+      </segment>
+    </unit>
+    <unit id="profile.stats.contributions">
+      <segment state="initial">
+        <source>Contributions</source>
+        <target>Bijdragen</target>
+      </segment>
+    </unit>
+    <unit id="profile.stats.followers">
       <segment state="initial">
         <source>{VAR_PLURAL, plural, =1 {Follower} other {Followers}}</source>
         <target>{VAR_PLURAL, plural, =1 {Volger} other {Volgers}}</target>
@@ -3764,7 +3794,13 @@
         <target> Je hebt nog geen Spots opgeslagen. </target>
       </segment>
     </unit>
-    <unit id="8182413566453831074">
+    <unit id="profile.metadata.ariaLabel">
+      <segment state="initial">
+        <source>Profile metadata</source>
+        <target>Profielgegevens</target>
+      </segment>
+    </unit>
+    <unit id="profile.metadata.freerunnerSince">
       <segment state="initial">
         <source>Freerunner since</source>
         <target>Freerunner sinds</target>
@@ -3946,8 +3982,8 @@
     </unit>
     <unit id="weather.dialog.next_days">
       <segment state="final">
-        <source> Next 7 days </source>
-        <target> Komende 7 dagen </target>
+        <source> Next 8 days </source>
+        <target> Komende 8 dagen </target>
       </segment>
     </unit>
     <unit id="weather.dialog.next_hours">
@@ -6124,7 +6160,7 @@
         <target>Evenementen</target>
       </segment>
     </unit>
-    <unit id="6018246591673612412">
+    <unit id="profile.actions.follow">
       <segment state="initial">
         <source>Follow</source>
         <target>Volgen</target>
@@ -6136,10 +6172,16 @@
         <target>Beveiligingscontrole mislukt. Log opnieuw in en probeer je account te verwijderen.</target>
       </segment>
     </unit>
-    <unit id="420763834450076269">
+    <unit id="profile.actions.ariaLabel">
+      <segment state="initial">
+        <source>Profile actions</source>
+        <target>Profielacties</target>
+      </segment>
+    </unit>
+    <unit id="profile.actions.block">
       <segment state="initial">
         <source>Block</source>
-        <target>Block</target>
+        <target>Blokkeren</target>
       </segment>
     </unit>
     <unit id="4234811560247297731">
@@ -6991,7 +7033,7 @@
         <target>Recensie bijwerken</target>
       </segment>
     </unit>
-    <unit id="8726138323871139597">
+    <unit id="profile.stats.following">
       <segment state="initial">
         <source>Following</source>
         <target>Volgend</target>
@@ -7123,10 +7165,10 @@
         <target>Doel</target>
       </segment>
     </unit>
-    <unit id="4859202148272511129">
+    <unit id="profile.actions.unblock">
       <segment state="initial">
         <source>Unblock</source>
-        <target>Unblock</target>
+        <target>Deblokkeren</target>
       </segment>
     </unit>
     <unit id="4867740992596809732">
@@ -7646,16 +7688,22 @@
         <target> Doorgaan </target>
       </segment>
     </unit>
-    <unit id="2943033819969004159">
+    <unit id="profile.actions.report">
       <segment state="initial">
-        <source>Requested</source>
-        <target>Requested</target>
+        <source>Report</source>
+        <target>Rapporteren</target>
       </segment>
     </unit>
-    <unit id="2963309575410053263">
+    <unit id="profile.actions.requested">
+      <segment state="initial">
+        <source>Requested</source>
+        <target>Aangevraagd</target>
+      </segment>
+    </unit>
+    <unit id="profile.bio.empty">
       <segment state="initial">
         <source> Add a short bio so your public profile tells people who you are. </source>
-        <target> Add a short bio so your public profile tells people who you are. </target>
+        <target> Voeg een korte bio toe, zodat je openbare profiel laat zien wie je bent. </target>
       </segment>
     </unit>
     <unit id="2969365666988952758">
@@ -7664,10 +7712,10 @@
         <target>E-mail herstellen</target>
       </segment>
     </unit>
-    <unit id="2984628903434675339">
+    <unit id="profile.actions.edit">
       <segment state="initial">
         <source>Edit Profile</source>
-        <target>Edit Profile</target>
+        <target>Profiel bewerken</target>
       </segment>
     </unit>
     <unit id="2996324673054626783">
@@ -8346,10 +8394,16 @@
         <target>Slimme kaartfilters</target>
       </segment>
     </unit>
-    <unit id="23518581647153834">
+    <unit id="profile.metadata.from">
       <segment state="initial">
         <source>from</source>
         <target>van</target>
+      </segment>
+    </unit>
+    <unit id="profile.name.fallback">
+      <segment state="initial">
+        <source>PK Spot user</source>
+        <target>PK Spot-gebruiker</target>
       </segment>
     </unit>
     <unit id="2361381507645842011">
@@ -8948,7 +9002,13 @@
         <target>Bestandstype is niet toegestaan!</target>
       </segment>
     </unit>
-    <unit id="7019624680291867971">
+    <unit id="profile.overview.ariaLabel">
+      <segment state="initial">
+        <source>Profile overview</source>
+        <target>Profieloverzicht</target>
+      </segment>
+    </unit>
+    <unit id="profile.picture.view">
       <segment state="initial">
         <source>View profile picture</source>
         <target>Profielfoto bekijken</target>

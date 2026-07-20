@@ -23,6 +23,8 @@ import { MapCommunityListComponent } from "../map-community-list/map-community-l
 import { MapEventListComponent } from "../map-event-list/map-event-list.component";
 import { MapObjectMode } from "../map-object-mode.model";
 import { MatDividerModule } from "@angular/material/divider";
+import type { WeatherResponse } from "../../../weather/weather.models";
+import { MapWeatherChipComponent } from "../map-weather-chip/map-weather-chip.component";
 
 @Component({
   selector: "app-map-object-panel",
@@ -32,6 +34,7 @@ import { MatDividerModule } from "@angular/material/divider";
     MapCommunityListComponent,
     MapEventListComponent,
     MatIconModule,
+    MapWeatherChipComponent,
     RouterLink,
     SpotListComponent,
     MatDividerModule,
@@ -60,11 +63,13 @@ export class MapObjectPanelComponent {
   mapZoom = input<number | null>(null);
   enableSpotListAnimation = input(true);
   openProgress = input(1);
+  weather = input<WeatherResponse | null>(null);
 
   modeChange = output<MapObjectMode>();
   spotSelect = output<SpotPreviewData | Spot | LocalSpot>();
   eventSelect = output<PkEvent>();
   communitySelect = output<CommunitySearchPreview>();
+  weatherOpen = output<void>();
 
   allModeEvents = computed(() =>
     this.visibleEvents().slice(0, this._allModeEventLimit),

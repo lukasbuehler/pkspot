@@ -114,7 +114,7 @@ describe("WeatherForecastDialogComponent", () => {
     expect(text).toContain("Sunset at");
     expect(text).toContain("Current cloud cover: 55%");
     expect(text).toContain("60%");
-    expect(text).toContain("Next 7 days");
+    expect(text).toContain("Next 8 days");
     expect(text).toContain("24°");
     expect(text).toContain("16°");
     expect(text).toContain("65%");
@@ -129,7 +129,7 @@ describe("WeatherForecastDialogComponent", () => {
       fixture.nativeElement.querySelector(
         ".weather-warning-icon mat-icon",
       ).textContent,
-    ).toContain("sunny");
+    ).toContain("brightness_alert");
     expect(
       fixture.nativeElement.querySelector(".weather-hour .forecast-icon")
         .classList,
@@ -146,6 +146,30 @@ describe("WeatherForecastDialogComponent", () => {
       fixture.nativeElement.querySelectorAll(".weather-day .forecast-icon")[1]
         .classList,
     ).toContain("has-warning");
+  });
+
+  it("shows up to eight days without coloring dry days from chance or UV", async () => {
+    dialogData.response.dailyForecast = Array.from(
+      { length: 9 },
+      (_, index) => ({
+        date: `2026-07-${String(19 + index).padStart(2, "0")}`,
+        condition: "partly-cloudy" as const,
+        maxTemperatureC: 22,
+        precipitationProbabilityPercent: 45,
+        uvIndex: 8,
+      }),
+    );
+    fixture = TestBed.createComponent(WeatherForecastDialogComponent);
+    await fixture.whenStable();
+
+    const dailyIcons = fixture.nativeElement.querySelectorAll(
+      ".weather-day .forecast-icon",
+    );
+    expect(dailyIcons).toHaveLength(8);
+    for (const icon of dailyIcons) {
+      expect(icon.classList).not.toContain("is-wet");
+      expect(icon.classList).not.toContain("has-warning");
+    }
   });
 
   it("does not claim surfaces will dry after the next rain starts", async () => {

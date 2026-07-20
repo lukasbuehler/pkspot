@@ -84,6 +84,31 @@ describe("MapPageComponent search template", () => {
     expect(eventListTemplate).toContain('[seriesById]="seriesById()"');
   });
 
+  it("reuses map weather above the island and in the area panel", () => {
+    const mapTemplate = readFileSync(templatePath, "utf8");
+    const objectPanel = mapTemplate.match(
+      /<app-map-object-panel[\s\S]*?<\/app-map-object-panel>/,
+    )?.[0];
+    const objectPanelTemplate = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/map/map-object-panel/map-object-panel.component.html",
+      ),
+      "utf8",
+    );
+    const desktopContext = mapTemplate.match(
+      /<div class="map-context-host">[\s\S]*?<\/div>\s*}[\s\S]*?<!-- sidenav/,
+    )?.[0];
+
+    expect(objectPanel).toContain('[weather]="mapWeatherResponse()"');
+    expect(objectPanel).toContain('(weatherOpen)="openMapWeather()"');
+    expect(objectPanelTemplate).toContain('appearance="overview"');
+    expect(desktopContext?.indexOf("<app-map-weather-chip")).toBeLessThan(
+      desktopContext?.indexOf('<div @fadeInOut class="map-island-host">') ??
+        -1,
+    );
+  });
+
   it("should hide the Add Spot button while a spot is selected", () => {
     const template = readFileSync(templatePath, "utf8");
     const controls = template.match(

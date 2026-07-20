@@ -9,6 +9,19 @@
   </h4>
 </div>
 
+@if (weather(); as areaWeather) {
+  <div
+    class="area-weather px-3 pb-3"
+    [class.area-weather--hidden]="hidePeekTitles()"
+  >
+    <app-map-weather-chip
+      [response]="areaWeather"
+      appearance="overview"
+      (pressed)="weatherOpen.emit()"
+    ></app-map-weather-chip>
+  </div>
+}
+
 <app-filter-chips-bar
   class="d-block pb-2 px-3"
   [selectedFilter]="mode()"

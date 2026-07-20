@@ -89,6 +89,18 @@ describe("MapWeatherChipComponent", () => {
     ).toContain("72 °F");
   });
 
+  it("supports a full-width area overview appearance", async () => {
+    const fixture = TestBed.createComponent(MapWeatherChipComponent);
+    fixture.componentRef.setInput("response", response);
+    fixture.componentRef.setInput("appearance", "overview");
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.classList).toContain("is-overview");
+    expect(
+      fixture.nativeElement.querySelector("button").classList,
+    ).toContain("is-overview");
+  });
+
   it("targets wet and warning colors at the icon and temperature only", async () => {
     const wetFixture = TestBed.createComponent(MapWeatherChipComponent);
     wetFixture.componentRef.setInput("response", {

@@ -24,7 +24,7 @@ import { Subscription, timeout } from "rxjs";
 import { Timestamp } from "firebase/firestore";
 import { FollowListComponent } from "../follow-list/follow-list.component";
 import { StorageService } from "../../services/firebase/storage.service";
-import { MatButton } from "@angular/material/button";
+import { MatButton, MatIconButton } from "@angular/material/button";
 import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
 import {
   MatCard,
@@ -49,6 +49,7 @@ import { countries } from "../../../scripts/Countries";
 import { BadgeService } from "../../services/badge.service";
 import { Badge } from "../../shared/badge-definitions";
 import { MatTooltipModule } from "@angular/material/tooltip";
+import { MatMenu, MatMenuItem, MatMenuTrigger } from "@angular/material/menu";
 import { NgOptimizedImage } from "@angular/common";
 import { PrivateSpotListsDialogComponent } from "../private-spot-lists-dialog/private-spot-lists-dialog.component";
 import { AnalyticsService } from "../../services/analytics.service";
@@ -68,6 +69,7 @@ import {
 type ProfileSocialLink = {
   id: string;
   label: string;
+  iconOnly: boolean;
   icon?: string;
   iconAsset?: string;
   url: string;
@@ -84,6 +86,7 @@ type ProfileSocialLink = {
     MatCardContent,
     FancyCounterComponent,
     MatButton,
+    MatIconButton,
     RouterLink,
     MatCardHeader,
     MatCardSubtitle,
@@ -93,6 +96,9 @@ type ProfileSocialLink = {
     MatDialogModule,
     MatRippleModule,
     MatTooltipModule,
+    MatMenu,
+    MatMenuItem,
+    MatMenuTrigger,
     NgOptimizedImage,
     ContributionStatusNoteComponent,
   ],
@@ -100,10 +106,14 @@ type ProfileSocialLink = {
 export class ProfilePageComponent implements OnInit, OnDestroy {
   private _structuredDataService = inject(StructuredDataService);
   private _metaTagService = inject(MetaTagService);
+  private _regionDisplayNames: Intl.DisplayNames | null = null;
 
   userId: string = "";
   user: User | null = null;
   isLoading: boolean = false;
+  readonly fallbackProfileName = $localize`:@@profile.name.fallback:PK Spot user`;
+  profileCountryName = "";
+  profileStartDuration = "";
 
   postsFromUser: Post.Class[] = [];
   postsFromUserLoading: boolean = false;
@@ -123,7 +133,15 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     private _cdr: ChangeDetectorRef,
     public ageAssurance: AgeAssuranceService,
     @Inject(LOCALE_ID) public locale: LocaleCode
-  ) {}
+  ) {
+    try {
+      this._regionDisplayNames = new Intl.DisplayNames([locale], {
+        type: "region",
+      });
+    } catch {
+      this._regionDisplayNames = null;
+    }
+  }
 
   profilePicture: string = "";
   isMyProfile: boolean = false;
@@ -176,7 +194,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     return !!(
       (this.user?.nationalityCode &&
         this.countries[this.user.nationalityCode]) ||
-      this.user?.startTimeDiffString
+      this.profileStartDuration
     );
   }
 
@@ -273,6 +291,8 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     this.user = null;
     this.postsFromUser = [];
     this.profilePicture = "";
+    this.profileCountryName = "";
+    this.profileStartDuration = "";
     this.isFollowing = false;
     this.isPendingFollowRequest = false;
     this.profileSocialLinks = [];
@@ -313,6 +333,10 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
         }
 
         this.user = user;
+        this.profileCountryName = this._localizedCountryName(
+          user.nationalityCode
+        );
+        this.profileStartDuration = this._localizedDurationSince(user.startDate);
         this.profileSocialLinks = this._buildProfileSocialLinks(user);
         this.isLoading = false;
 
@@ -947,6 +971,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     this._pushProfileSocialLink(links, {
       id: "instagram",
       label: "Instagram",
+      iconOnly: true,
       iconAsset: "assets/logos/instagram.svg",
       url: buildInstagramProfileUrl(user.socials?.instagram_handle),
       campaign: "profile_social_instagram",
@@ -955,6 +980,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     this._pushProfileSocialLink(links, {
       id: "youtube",
       label: "YouTube",
+      iconOnly: true,
       icon: "smart_display",
       url: buildYouTubeProfileUrl(user.socials?.youtube_handle),
       campaign: "profile_social_youtube",
@@ -963,6 +989,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     this._pushProfileSocialLink(links, {
       id: "tiktok",
       label: "TikTok",
+      iconOnly: true,
       iconAsset: "assets/logos/tiktok.svg",
       url: buildTikTokProfileUrl(user.socials?.tiktok_handle),
       campaign: "profile_social_tiktok",
@@ -971,6 +998,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     this._pushProfileSocialLink(links, {
       id: "discord",
       label: "Discord",
+      iconOnly: true,
       iconAsset: "assets/logos/discord_white.svg",
       url: normalizeDiscordUrl(user.socials?.discord_url),
       campaign: "profile_social_discord",
@@ -980,6 +1008,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
       this._pushProfileSocialLink(links, {
         id: `custom-${index}`,
         label: custom.name.trim() || "Link",
+        iconOnly: false,
         icon: "link",
         url: this._normalizeExternalUrl(custom.url),
         campaign: "profile_social_custom",
@@ -994,6 +1023,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     config: {
       id: string;
       label: string;
+      iconOnly: boolean;
       icon?: string;
       iconAsset?: string;
       url: string | null;
@@ -1016,6 +1046,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     links.push({
       id: config.id,
       label: config.label,
+      iconOnly: config.iconOnly,
       icon: config.icon,
       iconAsset: config.iconAsset,
       url: taggedUrl,
@@ -1060,5 +1091,49 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     this._followRequestsUserId = null;
     this._userSubscription?.unsubscribe();
     this._userSubscription = null;
+  }
+
+  private _localizedCountryName(code: string | null): string {
+    if (!code) {
+      return "";
+    }
+
+    return (
+      this._regionDisplayNames?.of(code) ??
+      this.countries[code]?.name ??
+      code
+    );
+  }
+
+  private _localizedDurationSince(date: Date | null): string {
+    if (!date) {
+      return "";
+    }
+
+    const elapsedSeconds = Math.max(
+      0,
+      Math.floor((Date.now() - date.getTime()) / 1000)
+    );
+    const units: ReadonlyArray<{
+      seconds: number;
+      unit: Intl.NumberFormatOptions["unit"];
+    }> = [
+      { seconds: 31_536_000, unit: "year" },
+      { seconds: 2_592_000, unit: "month" },
+      { seconds: 86_400, unit: "day" },
+      { seconds: 3_600, unit: "hour" },
+      { seconds: 60, unit: "minute" },
+      { seconds: 1, unit: "second" },
+    ];
+    const selected =
+      units.find(({ seconds }) => elapsedSeconds >= seconds) ??
+      units[units.length - 1];
+
+    return new Intl.NumberFormat(this.locale, {
+      style: "unit",
+      unit: selected.unit,
+      unitDisplay: "long",
+      maximumFractionDigits: 0,
+    }).format(Math.floor(elapsedSeconds / selected.seconds));
   }
 }

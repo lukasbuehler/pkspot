@@ -1,6 +1,11 @@
 :host {
   display: block;
   max-width: min(300px, calc(100vw - 40px));
+
+  &.is-overview {
+    width: 100%;
+    max-width: none;
+  }
 }
 
 .map-weather-chip {
@@ -36,6 +41,12 @@
   &.has-warning mat-icon,
   &.has-warning .temperature {
     color: var(--mat-sys-error);
+  }
+
+  &.is-overview {
+    width: 100%;
+    justify-content: flex-start;
+    box-shadow: none;
   }
 }
 

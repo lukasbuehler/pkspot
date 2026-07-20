@@ -26,9 +26,19 @@
         <source>Account</source>
       </segment>
     </unit>
-    <unit id="7507948636555938109">
+    <unit id="profile.menu.ariaLabel">
+      <segment>
+        <source>Profile settings</source>
+      </segment>
+    </unit>
+    <unit id="profile.menu.logout">
       <segment>
         <source>Log out</source>
+      </segment>
+    </unit>
+    <unit id="profile.menu.settings">
+      <segment>
+        <source>Settings</source>
       </segment>
     </unit>
     <unit id="4262052603921665097">
@@ -302,7 +312,7 @@
         <source>Target</source>
       </segment>
     </unit>
-    <unit id="4859202148272511129">
+    <unit id="profile.actions.unblock">
       <segment>
         <source>Unblock</source>
       </segment>
@@ -692,7 +702,7 @@
         <source>Validating your reset link...</source>
       </segment>
     </unit>
-    <unit id="5251570247844942910">
+    <unit id="profile.stats.visited">
       <segment>
         <source>{VAR_PLURAL, plural, =1 {Spot visited} other {Spots visited}}</source>
       </segment>
@@ -732,12 +742,17 @@
         <source>Password Reset Failed</source>
       </segment>
     </unit>
-    <unit id="2943033819969004159">
+    <unit id="profile.actions.report">
+      <segment>
+        <source>Report</source>
+      </segment>
+    </unit>
+    <unit id="profile.actions.requested">
       <segment>
         <source>Requested</source>
       </segment>
     </unit>
-    <unit id="2963309575410053263">
+    <unit id="profile.bio.empty">
       <segment>
         <source> Add a short bio so your public profile tells people who you are. </source>
       </segment>
@@ -747,7 +762,7 @@
         <source>Recovering Email</source>
       </segment>
     </unit>
-    <unit id="2984628903434675339">
+    <unit id="profile.actions.edit">
       <segment>
         <source>Edit Profile</source>
       </segment>
@@ -4496,7 +4511,12 @@
         <source>File mimetype is not allowed!</source>
       </segment>
     </unit>
-    <unit id="7019624680291867971">
+    <unit id="profile.overview.ariaLabel">
+      <segment>
+        <source>Profile overview</source>
+      </segment>
+    </unit>
+    <unit id="profile.picture.view">
       <segment>
         <source>View profile picture</source>
       </segment>
@@ -4581,9 +4601,14 @@
         <source>Save favorites and come back to the spots you want to session later.</source>
       </segment>
     </unit>
-    <unit id="23518581647153834">
+    <unit id="profile.metadata.from">
       <segment>
         <source>from</source>
+      </segment>
+    </unit>
+    <unit id="profile.name.fallback">
+      <segment>
+        <source>PK Spot user</source>
       </segment>
     </unit>
     <unit id="8170263490734712002">
@@ -4591,27 +4616,47 @@
         <source> You have not saved any spots yet. </source>
       </segment>
     </unit>
-    <unit id="8182413566453831074">
+    <unit id="profile.metadata.ariaLabel">
+      <segment>
+        <source>Profile metadata</source>
+      </segment>
+    </unit>
+    <unit id="profile.metadata.freerunnerSince">
       <segment>
         <source>Freerunner since</source>
       </segment>
     </unit>
-    <unit id="643839708130168383">
+    <unit id="profile.stats.ariaLabel">
+      <segment>
+        <source>Profile summary</source>
+      </segment>
+    </unit>
+    <unit id="profile.stats.contributions">
+      <segment>
+        <source>Contributions</source>
+      </segment>
+    </unit>
+    <unit id="profile.stats.followers">
       <segment>
         <source>{VAR_PLURAL, plural, =1 {Follower} other {Followers}}</source>
       </segment>
     </unit>
-    <unit id="8726138323871139597">
+    <unit id="profile.stats.following">
       <segment>
         <source>Following</source>
       </segment>
     </unit>
-    <unit id="9160510009013134726">
+    <unit id="profile.actions.unfollow">
       <segment>
         <source>Unfollow</source>
       </segment>
     </unit>
-    <unit id="6018246591673612412">
+    <unit id="profile.actions.updatingFollowStatus">
+      <segment>
+        <source>Updating follow status</source>
+      </segment>
+    </unit>
+    <unit id="profile.actions.follow">
       <segment>
         <source>Follow</source>
       </segment>
@@ -5259,7 +5304,12 @@
         <source>Security check failed. Please sign in again and try deleting your account.</source>
       </segment>
     </unit>
-    <unit id="420763834450076269">
+    <unit id="profile.actions.ariaLabel">
+      <segment>
+        <source>Profile actions</source>
+      </segment>
+    </unit>
+    <unit id="profile.actions.block">
       <segment>
         <source>Block</source>
       </segment>
@@ -5585,7 +5635,7 @@
         <source>Choose a strong password.</source>
       </segment>
     </unit>
-    <unit id="4507617241018363752">
+    <unit id="profile.actions.requestFollow">
       <segment>
         <source>Request follow</source>
       </segment>
@@ -6916,7 +6966,7 @@
     </unit>
     <unit id="weather.dialog.next_days">
       <segment>
-        <source> Next 7 days </source>
+        <source> Next 8 days </source>
       </segment>
     </unit>
     <unit id="weather.dialog.next_hours">

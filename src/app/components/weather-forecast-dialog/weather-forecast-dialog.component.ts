@@ -19,6 +19,7 @@ import {
   type WeatherCondition,
   type WeatherForecastIconTone,
   type WeatherWarningDefinition,
+  getDailyWeatherForecastIconTone,
   getWeatherForecastIconTone,
   getWeatherStateIcon,
 } from "../../weather/weather-display";
@@ -150,7 +151,7 @@ export class WeatherForecastDialogComponent {
   );
   protected readonly days = computed(() =>
     (this.response.dailyForecast ?? [])
-      .slice(0, 7)
+      .slice(0, 8)
       .map((point) => this.toDayView(point)),
   );
   protected readonly providerUrl =
@@ -179,13 +180,9 @@ export class WeatherForecastDialogComponent {
       minTemperature: this.displayTemperature(point.minTemperatureC),
       rainProbability: point.precipitationProbabilityPercent,
       precipitationMm: point.precipitationMm,
-      iconTone: getWeatherForecastIconTone({
+      iconTone: getDailyWeatherForecastIconTone({
         condition,
         temperatureC: point.maxTemperatureC,
-        uvIndex: point.uvIndex,
-        precipitationMm: point.precipitationMm,
-        precipitationProbabilityPercent:
-          point.precipitationProbabilityPercent,
       }),
     };
   }

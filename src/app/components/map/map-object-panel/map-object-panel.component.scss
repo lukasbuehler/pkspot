@@ -25,6 +25,26 @@
   }
 }
 
+.area-weather {
+  max-height: 56px;
+  opacity: 1;
+  overflow: hidden;
+  transform: translateY(0);
+  transition:
+    max-height 180ms ease,
+    padding-bottom 180ms ease,
+    opacity 160ms ease,
+    transform 180ms ease;
+}
+
+.area-weather--hidden {
+  max-height: 0;
+  padding-bottom: 0 !important;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
+}
+
 .peek-title {
   max-height: 32px;
   margin-bottom: 0.5rem;

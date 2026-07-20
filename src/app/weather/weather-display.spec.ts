@@ -1,6 +1,7 @@
 import {
   WEATHER_STATES,
   WEATHER_WARNINGS,
+  getDailyWeatherForecastIconTone,
   getWeatherForecastIconTone,
   getWeatherStateIcon,
 } from "./weather-display";
@@ -24,6 +25,7 @@ describe("weather display definitions", () => {
     }
     expect(WEATHER_WARNINGS["wet-surface"].tone).toBe("primary");
     expect(WEATHER_WARNINGS["high-uv"].tone).toBe("error");
+    expect(WEATHER_WARNINGS["high-uv"].icon).toBe("brightness_alert");
   });
 
   it("uses the night icon when one is configured", () => {
@@ -72,5 +74,26 @@ describe("weather display definitions", () => {
         isDay: false,
       }),
     ).toBe("night");
+  });
+
+  it("colors daily icons from the daily condition without UV or rain chance", () => {
+    expect(
+      getDailyWeatherForecastIconTone({
+        condition: "partly-cloudy",
+        temperatureC: 22,
+      }),
+    ).toBe("neutral");
+    expect(
+      getDailyWeatherForecastIconTone({
+        condition: "rain",
+        temperatureC: 22,
+      }),
+    ).toBe("wet");
+    expect(
+      getDailyWeatherForecastIconTone({
+        condition: "clear",
+        temperatureC: 30,
+      }),
+    ).toBe("warning");
   });
 });
