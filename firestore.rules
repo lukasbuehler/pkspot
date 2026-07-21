@@ -254,7 +254,11 @@ service cloud.firestore {
       return (!('account_privacy' in request.resource.data)
           || request.resource.data.account_privacy in ['public', 'private'])
         && (!('profile_visibility' in request.resource.data)
-          || request.resource.data.profile_visibility in ['public', 'followers', 'mutuals']);
+          || request.resource.data.profile_visibility in ['public', 'followers', 'mutuals'])
+        && (
+          request.resource.data.get('account_privacy', 'public') != 'private'
+          || request.resource.data.get('profile_visibility', 'followers') != 'public'
+        );
     }
 
     function validFollowRequest(userId, requesterId) {

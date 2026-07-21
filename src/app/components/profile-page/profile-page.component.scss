@@ -177,7 +177,19 @@
 }
 
 .profile-overview__action {
+  position: relative;
   min-height: 44px;
+}
+
+.profile-overview__action-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.profile-overview__action-label--loading {
+  visibility: hidden;
 }
 
 .profile-overview__edit-action {

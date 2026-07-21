@@ -110,6 +110,25 @@ export class NotificationCenterPageComponent {
           body: $localize`:@@notification_center.follow_request.body:${payload["requester_name"]}:INTERPOLATION: wants to follow you.`,
           icon: "person_add",
         };
+      case "follow_accepted":
+        return {
+          title: $localize`:@@notification_center.follow_accepted.title:Follow request accepted`,
+          body: $localize`:@@notification_center.follow_accepted.body:${payload["followed_user_name"]}:INTERPOLATION: accepted your follow request.`,
+          icon: "done_all",
+        };
+      case "new_follower":
+        if (payload["relationship"] === "mutual") {
+          return {
+            title: $localize`:@@notification_center.mutual_follower.title:New mutual follower`,
+            body: $localize`:@@notification_center.mutual_follower.body:${payload["follower_name"]}:INTERPOLATION: followed you back.`,
+            icon: "group_add",
+          };
+        }
+        return {
+          title: $localize`:@@notification_center.new_follower.title:New follower`,
+          body: $localize`:@@notification_center.new_follower.body:${payload["follower_name"]}:INTERPOLATION: started following you.`,
+          icon: "person_add",
+        };
       case "event_reminder":
         return {
           title: payload["event_name"],

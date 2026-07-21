@@ -1,0 +1,71 @@
+<h2 mat-dialog-title>
+  @switch (data.context) {
+    @case ("event_reminders") {
+      <span i18n="@@notification_prompt.event.title">Get an event reminder?</span>
+    }
+    @case ("follow_activity") {
+      <span i18n="@@notification_prompt.follow.title">Stay updated on follow activity?</span>
+    }
+    @case ("spot_edit_updates") {
+      <span i18n="@@notification_prompt.spot_edit.title">Hear when your Spot edit is reviewed?</span>
+    }
+  }
+</h2>
+
+<mat-dialog-content>
+  <div class="notification-opt-in__intro">
+    <div class="notification-opt-in__icon" aria-hidden="true">
+      <mat-icon>
+        @switch (data.context) {
+          @case ("event_reminders") { event }
+          @case ("follow_activity") { person_add }
+          @case ("spot_edit_updates") { edit }
+        }
+      </mat-icon>
+    </div>
+    <div>
+      @switch (data.context) {
+        @case ("event_reminders") {
+          <p class="mat-body-medium" i18n="@@notification_prompt.event.body">
+            PK Spot can remind you two hours before events you are going to or interested in.
+          </p>
+        }
+        @case ("follow_activity") {
+          <p class="mat-body-medium" i18n="@@notification_prompt.follow.body">
+            Know when someone follows you, sends a follow request, or accepts yours.
+          </p>
+        }
+        @case ("spot_edit_updates") {
+          <p class="mat-body-medium" i18n="@@notification_prompt.spot_edit.body">
+            PK Spot can tell you when your submitted Spot edit is approved or rejected.
+          </p>
+        }
+      }
+      <p class="mat-body-small notification-opt-in__control" i18n="@@notification_prompt.control">
+        You can change each notification type later in Settings.
+      </p>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions class="notification-opt-in__actions" align="end">
+  <button mat-button type="button" (click)="close('dismissed')" i18n="@@notification_prompt.not_now">
+    Not now
+  </button>
+  <button mat-stroked-button type="button" (click)="close('all')" i18n="@@notification_prompt.enable_all">
+    Enable all notifications
+  </button>
+  <button mat-flat-button color="primary" type="button" (click)="close('context')">
+    @switch (data.context) {
+      @case ("event_reminders") {
+        <span i18n="@@notification_prompt.event.accept">Remind me</span>
+      }
+      @case ("follow_activity") {
+        <span i18n="@@notification_prompt.follow.accept">Enable follow notifications</span>
+      }
+      @case ("spot_edit_updates") {
+        <span i18n="@@notification_prompt.spot_edit.accept">Notify me</span>
+      }
+    }
+  </button>
+</mat-dialog-actions>

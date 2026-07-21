@@ -110,7 +110,10 @@
             <div class="profile-access-grid">
               <mat-form-field appearance="outline" subscriptSizing="dynamic">
                 <mat-label i18n>Account privacy</mat-label>
-                <mat-select [(ngModel)]="accountPrivacy">
+                <mat-select
+                  [ngModel]="accountPrivacy"
+                  (ngModelChange)="setAccountPrivacy($event)"
+                >
                   <mat-option value="public" i18n>Public</mat-option>
                   <mat-option value="private" i18n>Private</mat-option>
                 </mat-select>
@@ -123,12 +126,17 @@
               <mat-form-field appearance="outline" subscriptSizing="dynamic">
                 <mat-label i18n>Profile visibility</mat-label>
                 <mat-select [(ngModel)]="profileVisibility">
-                  <mat-option value="public" i18n>Public</mat-option>
+                  <mat-option
+                    value="public"
+                    [disabled]="accountPrivacy === 'private'"
+                    i18n
+                    >Public</mat-option
+                  >
                   <mat-option value="followers" i18n>Followers</mat-option>
                   <mat-option value="mutuals" i18n>Mutuals</mat-option>
                 </mat-select>
                 <mat-hint i18n>
-                  This prepares profile-only sections for audience controls.
+                  Private accounts cannot make expanded profile details public.
                 </mat-hint>
               </mat-form-field>
             </div>
@@ -739,9 +747,9 @@
           <div class="notification-preference-list">
             <div class="notification-preference-row">
               <div>
-                <h3 class="mat-title-medium m-0" i18n="@@settings.notifications.follow_requests_heading">Follow requests</h3>
+                <h3 class="mat-title-medium m-0" i18n="@@settings.notifications.follow_requests_heading">Follow activity</h3>
                 <p class="mat-body-small m-0" i18n="@@settings.notifications.follow_requests_description">
-                  Know when someone asks to follow your private account.
+                  Know about follow requests, new followers, and accepted requests.
                 </p>
               </div>
               <mat-slide-toggle
@@ -750,7 +758,7 @@
                 [disabled]="notificationPreferences.loading() || pushNotifications.busy()"
                 (change)="setNotificationPreference('follow_requests', $event.checked)"
                 i18n-aria-label="@@settings.notifications.follow_requests_aria"
-                aria-label="Follow request notifications"
+                aria-label="Follow activity notifications"
               ></mat-slide-toggle>
             </div>
             <mat-divider></mat-divider>

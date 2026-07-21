@@ -1,0 +1,38 @@
+.notification-opt-in__intro {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.notification-opt-in__icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 13px;
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+}
+
+.notification-opt-in__intro p {
+  margin: 0;
+}
+
+.notification-opt-in__control {
+  margin-top: 12px !important;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.notification-opt-in__actions {
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px 24px 20px;
+}
+
+@media (max-width: 520px) {
+  .notification-opt-in__actions button {
+    width: 100%;
+  }
+}

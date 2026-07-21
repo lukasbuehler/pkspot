@@ -5,10 +5,8 @@ import { App } from "@capacitor/app";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import {
   FirebaseMessaging,
-  Importance,
   NotificationActionPerformedEvent,
   PermissionStatus,
-  Visibility,
 } from "@capacitor-firebase/messaging";
 import { version } from "../../../package.json";
 import {
@@ -23,6 +21,7 @@ interface NotificationSettingsPlugin {
   openAppNotificationSettings(): Promise<void>;
   getSystemNotificationStatus(): Promise<{ enabled: boolean }>;
   setAutoInitEnabled(options: { enabled: boolean }): Promise<void>;
+  configureNotificationChannels(): Promise<void>;
 }
 
 const NotificationSettings = registerPlugin<NotificationSettingsPlugin>(
@@ -179,32 +178,7 @@ export class PushNotificationsService {
     });
 
     if (Capacitor.getPlatform() === "android") {
-      await Promise.all([
-        FirebaseMessaging.createChannel({
-          id: "social",
-          name: "Social",
-          description: "Follow requests and social activity",
-          importance: Importance.Default,
-          visibility: Visibility.Private,
-          vibration: true,
-        }),
-        FirebaseMessaging.createChannel({
-          id: "events",
-          name: "Events",
-          description: "Event reminders and important event changes",
-          importance: Importance.Default,
-          visibility: Visibility.Public,
-          vibration: true,
-        }),
-        FirebaseMessaging.createChannel({
-          id: "account",
-          name: "Account and contributions",
-          description: "Updates about your account and contributions",
-          importance: Importance.Default,
-          visibility: Visibility.Private,
-          vibration: true,
-        }),
-      ]);
+      await NotificationSettings.configureNotificationChannels();
     }
   }
 

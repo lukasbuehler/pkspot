@@ -21,4 +21,19 @@ describe("User", () => {
     expect(user.accountPrivacy).toBe("private");
     expect(user.profileVisibility).toBe("mutuals");
   });
+
+  it("defaults and normalizes private profile visibility to followers", () => {
+    const legacyPrivateUser = new User("user-1", {
+      display_name: "Avery",
+      account_privacy: "private",
+    });
+    const invalidPrivateUser = new User("user-2", {
+      display_name: "Blake",
+      account_privacy: "private",
+      profile_visibility: "public",
+    });
+
+    expect(legacyPrivateUser.profileVisibility).toBe("followers");
+    expect(invalidPrivateUser.profileVisibility).toBe("followers");
+  });
 });

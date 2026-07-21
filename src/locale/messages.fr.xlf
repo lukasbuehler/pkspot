@@ -457,6 +457,12 @@
         <target>Boîte de révision de l’organisation</target>
       </segment>
     </unit>
+    <unit id="5511174409504894413">
+      <segment state="initial">
+        <source> Private accounts cannot make expanded profile details public. </source>
+        <target> Les comptes privés ne peuvent pas rendre publics les détails étendus du profil. </target>
+      </segment>
+    </unit>
     <unit id="5516877052541003749">
       <segment state="initial">
         <source>Failed to submit organization review</source>
@@ -3674,6 +3680,18 @@
         <target>Événement mis à jour</target>
       </segment>
     </unit>
+    <unit id="notification_center.follow_accepted.body">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;followed_user_name&quot;]"/> accepted your follow request.</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;followed_user_name&quot;]"/> a accepté votre demande d’abonnement.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.follow_accepted.title">
+      <segment state="initial">
+        <source>Follow request accepted</source>
+        <target>Demande d’abonnement acceptée</target>
+      </segment>
+    </unit>
     <unit id="notification_center.follow_request.body">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;requester_name&quot;]"/> wants to follow you.</source>
@@ -3708,6 +3726,30 @@
       <segment state="initial">
         <source>Mark all as read</source>
         <target>Tout marquer comme lu</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.mutual_follower.body">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> followed you back.</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> vous suit désormais aussi.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.mutual_follower.title">
+      <segment state="initial">
+        <source>New mutual follower</source>
+        <target>Nouvel abonnement mutuel</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.new_follower.body">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> started following you.</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> vous suit désormais.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.new_follower.title">
+      <segment state="initial">
+        <source>New follower</source>
+        <target>Nouvel abonné</target>
       </segment>
     </unit>
     <unit id="notification_center.retry">
@@ -3762,6 +3804,102 @@
       <segment state="initial">
         <source>Weather update</source>
         <target>Mise à jour météo</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.control">
+      <segment state="initial">
+        <source> You can change each notification type later in Settings. </source>
+        <target> Vous pourrez modifier chaque type de notification plus tard dans les paramètres. </target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.enable_all">
+      <segment state="initial">
+        <source> Enable all notifications </source>
+        <target> Activer toutes les notifications </target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.event.accept">
+      <segment state="initial">
+        <source>Remind me</source>
+        <target>Me le rappeler</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.event.body">
+      <segment state="initial">
+        <source> PK Spot can remind you two hours before events you are going to or interested in. </source>
+        <target> PK Spot peut vous envoyer un rappel deux heures avant les événements auxquels vous participez ou qui vous intéressent. </target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.event.title">
+      <segment state="initial">
+        <source>Get an event reminder?</source>
+        <target>Recevoir un rappel pour cet événement ?</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.follow.accept">
+      <segment state="initial">
+        <source>Enable follow notifications</source>
+        <target>Activer les notifications d’abonnement</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.follow.body">
+      <segment state="initial">
+        <source> Know when someone follows you, sends a follow request, or accepts yours. </source>
+        <target> Soyez informé lorsque quelqu’un vous suit, vous envoie une demande ou accepte la vôtre. </target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.follow.title">
+      <segment state="initial">
+        <source>Stay updated on follow activity?</source>
+        <target>Rester informé de l’activité des abonnements ?</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.not_now">
+      <segment state="initial">
+        <source> Not now </source>
+        <target> Pas maintenant </target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.ok">
+      <segment state="initial">
+        <source>OK</source>
+        <target>OK</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.open_settings">
+      <segment state="initial">
+        <source>Open settings</source>
+        <target>Ouvrir les paramètres</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.save_error">
+      <segment state="initial">
+        <source>Could not save your notification choice.</source>
+        <target>Impossible d’enregistrer votre choix de notifications.</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.spot_edit.accept">
+      <segment state="initial">
+        <source>Notify me</source>
+        <target>Me prévenir</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.spot_edit.body">
+      <segment state="initial">
+        <source> PK Spot can tell you when your submitted Spot edit is approved or rejected. </source>
+        <target> PK Spot peut vous prévenir lorsqu’une modification de Spot que vous avez envoyée est approuvée ou refusée. </target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.spot_edit.title">
+      <segment state="initial">
+        <source>Hear when your Spot edit is reviewed?</source>
+        <target>Être informé de l’examen de votre modification de Spot ?</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.system_blocked">
+      <segment state="initial">
+        <source>Your notification choices are saved, but this device is blocking notifications.</source>
+        <target>Vos choix de notifications sont enregistrés, mais cet appareil bloque les notifications.</target>
       </segment>
     </unit>
     <unit id="notifications.dismiss">
@@ -4102,20 +4240,20 @@
     </unit>
     <unit id="settings.notifications.follow_requests_aria">
       <segment state="initial">
-        <source>Follow request notifications</source>
-        <target>Notifications de demandes d’abonnement</target>
+        <source>Follow activity notifications</source>
+        <target>Notifications d’activité des abonnements</target>
       </segment>
     </unit>
     <unit id="settings.notifications.follow_requests_description">
       <segment state="initial">
-        <source> Know when someone asks to follow your private account. </source>
-        <target> Sachez quand quelqu’un demande à suivre votre compte privé. </target>
+        <source> Know about follow requests, new followers, and accepted requests. </source>
+        <target> Recevez des notifications pour les demandes d’abonnement, les nouveaux abonnés et les demandes acceptées. </target>
       </segment>
     </unit>
     <unit id="settings.notifications.follow_requests_heading">
       <segment state="initial">
-        <source>Follow requests</source>
-        <target>Demandes d’abonnement</target>
+        <source>Follow activity</source>
+        <target>Activité des abonnements</target>
       </segment>
     </unit>
     <unit id="settings.notifications.heading">
@@ -8867,12 +9005,6 @@
       <segment state="initial">
         <source>Reject</source>
         <target>Rejeter</target>
-      </segment>
-    </unit>
-    <unit id="7387583161384879704">
-      <segment state="initial">
-        <source> This prepares profile-only sections for audience controls. </source>
-        <target> This prepares profile-only sections for audience controls. </target>
       </segment>
     </unit>
     <unit id="7408374932533578639">

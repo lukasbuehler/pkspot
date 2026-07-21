@@ -58,6 +58,7 @@ import {
   ProfileReportDialogResult,
 } from "../profile-report-dialog/profile-report-dialog.component";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
+import { NotificationOptInService } from "../../services/notification-opt-in.service";
 import { ContributionStatusNoteComponent } from "../contribution-status-note/contribution-status-note.component";
 import {
   buildInstagramProfileUrl,
@@ -130,6 +131,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     private _snackbar: MatSnackBar,
     private _storageService: StorageService,
     private _analytics: AnalyticsService,
+    private _notificationOptIn: NotificationOptInService,
     private _cdr: ChangeDetectorRef,
     public ageAssurance: AgeAssuranceService,
     @Inject(LOCALE_ID) public locale: LocaleCode
@@ -467,7 +469,10 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     this._profileSubscriptions.add(postsSub);
   }
 
-  followButtonClick() {
+  followButtonClick(): void {
+    if (this.loadingFollowing || !this.user || this.isMyProfile) {
+      return;
+    }
     this.loadingFollowing = true;
 
     if (this.user && !this.isMyProfile) {
@@ -478,10 +483,11 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
           .then(() => {
             this.isFollowing = false;
             this.isPendingFollowRequest = false;
-            this.loadingFollowing = false;
+            this._completeFollowAction();
           })
           .catch((err) => {
-            this.loadingFollowing = false;
+            console.error(err);
+            this._completeFollowAction();
             this._snackbar.open(
               "There was an error unfollowing the user!",
               "OK",
@@ -513,12 +519,14 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
           return;
         }
 
-        const followPromise = this.isPendingFollowRequest
+        const wasPendingFollowRequest = this.isPendingFollowRequest;
+        const wasPrivateAccount = this.isPrivateAccount;
+        const followPromise = wasPendingFollowRequest
           ? this._followingService.cancelFollowRequest(
               this._authService.user.uid,
               this.userId
             )
-          : this.isPrivateAccount
+          : wasPrivateAccount
             ? this._followingService.requestToFollowUser(
                 this._authService.user.uid,
                 this._authService.user.data.data,
@@ -533,9 +541,9 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
 
         followPromise
           .then(() => {
-            if (this.isPendingFollowRequest) {
+            if (wasPendingFollowRequest) {
               this.isPendingFollowRequest = false;
-            } else if (this.isPrivateAccount) {
+            } else if (wasPrivateAccount) {
               this.isPendingFollowRequest = true;
               this._snackbar.open($localize`Follow request sent`, "OK", {
                 duration: 3000,
@@ -545,11 +553,14 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
             } else {
               this.isFollowing = true;
             }
-            this.loadingFollowing = false;
+            this._completeFollowAction();
+            if (!wasPendingFollowRequest) {
+              void this._notificationOptIn.maybePrompt("follow_activity");
+            }
           })
           .catch((err) => {
             console.error(err);
-            this.loadingFollowing = false;
+            this._completeFollowAction();
             this._snackbar.open(
               "There was an error following the user!",
               "OK",
@@ -562,6 +573,11 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
           });
       }
     }
+  }
+
+  private _completeFollowAction(): void {
+    this.loadingFollowing = false;
+    this._cdr.markForCheck();
   }
 
   private _loadFollowRequests(force = false) {

@@ -92,4 +92,41 @@ describe("NotificationPreferencesService", () => {
     ).rejects.toThrow("denied");
     expect(service.preferences().event_updates).toBe(true);
   });
+
+  it("stores a contextual prompt decision with its relevant preference", async () => {
+    auth.user = { uid: "user-1" };
+    authState.next(auth.user);
+    const service = TestBed.inject(NotificationPreferencesService);
+
+    await service.applyPromptDecision("event_reminders", "accepted", false);
+
+    expect(service.preferences().event_reminders).toBe(true);
+    expect(service.preferences().event_updates).toBe(false);
+    expect(service.hasHandledPrompt("event_reminders")).toBe(true);
+    expect(users.updatePrivateData).toHaveBeenCalledWith(
+      "user-1",
+      expect.objectContaining({
+        notification_preferences: expect.objectContaining({
+          event_reminders: true,
+          event_updates: false,
+        }),
+        notification_prompt_state: expect.objectContaining({
+          event_reminders: expect.objectContaining({
+            status: "accepted",
+            version: 1,
+          }),
+        }),
+      }),
+    );
+  });
+
+  it("enables every category from the all-notifications action", async () => {
+    auth.user = { uid: "user-1" };
+    authState.next(auth.user);
+    const service = TestBed.inject(NotificationPreferencesService);
+
+    await service.applyPromptDecision("follow_activity", "accepted", true);
+
+    expect(Object.values(service.preferences()).every(Boolean)).toBe(true);
+  });
 });

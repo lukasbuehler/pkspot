@@ -20,6 +20,7 @@ import { EventsService } from "../../services/firebase/firestore/events.service"
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
 import { AnalyticsService } from "../../services/analytics.service";
+import { NotificationOptInService } from "../../services/notification-opt-in.service";
 
 type ScreenshotGlobal = typeof globalThis & {
   __PKSPOT_SCREENSHOT_EVENT_RSVPS__?: unknown;
@@ -42,6 +43,7 @@ export class EventRsvpComponent {
   private _injector = inject(Injector);
   private _eventsService?: EventsService;
   private _authService?: AuthenticationService;
+  private _notificationOptIn?: NotificationOptInService;
   private _analytics = inject(AnalyticsService);
   private _loadVersion = 0;
 
@@ -137,6 +139,9 @@ export class EventRsvpComponent {
         event_id: eventId,
         rsvp: next,
       });
+      if (next === "going" || next === "interested") {
+        void this._notifications().maybePrompt("event_reminders");
+      }
     } catch (err) {
       console.error("Failed to save event RSVP", err);
       this.selectedRsvp.set(previousSelected);
@@ -268,5 +273,10 @@ export class EventRsvpComponent {
   private _auth(): AuthenticationService {
     this._authService ??= this._injector.get(AuthenticationService);
     return this._authService;
+  }
+
+  private _notifications(): NotificationOptInService {
+    this._notificationOptIn ??= this._injector.get(NotificationOptInService);
+    return this._notificationOptIn;
   }
 }

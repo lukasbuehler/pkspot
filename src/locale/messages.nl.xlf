@@ -517,6 +517,12 @@
         <target>Review-inbox van organisatie</target>
       </segment>
     </unit>
+    <unit id="5511174409504894413">
+      <segment state="initial">
+        <source> Private accounts cannot make expanded profile details public. </source>
+        <target> Privéaccounts kunnen uitgebreide profielgegevens niet openbaar maken. </target>
+      </segment>
+    </unit>
     <unit id="5516877052541003749">
       <segment state="initial">
         <source>Failed to submit organization review</source>
@@ -3764,6 +3770,18 @@
         <target>Evenement bijgewerkt</target>
       </segment>
     </unit>
+    <unit id="notification_center.follow_accepted.body">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;followed_user_name&quot;]"/> accepted your follow request.</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;followed_user_name&quot;]"/> heeft je volgverzoek geaccepteerd.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.follow_accepted.title">
+      <segment state="initial">
+        <source>Follow request accepted</source>
+        <target>Volgverzoek geaccepteerd</target>
+      </segment>
+    </unit>
     <unit id="notification_center.follow_request.body">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;requester_name&quot;]"/> wants to follow you.</source>
@@ -3798,6 +3816,30 @@
       <segment state="initial">
         <source>Mark all as read</source>
         <target>Alles als gelezen markeren</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.mutual_follower.body">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> followed you back.</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> volgt je nu ook.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.mutual_follower.title">
+      <segment state="initial">
+        <source>New mutual follower</source>
+        <target>Nieuwe wederzijdse volger</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.new_follower.body">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> started following you.</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> volgt je nu.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.new_follower.title">
+      <segment state="initial">
+        <source>New follower</source>
+        <target>Nieuwe volger</target>
       </segment>
     </unit>
     <unit id="notification_center.retry">
@@ -3852,6 +3894,102 @@
       <segment state="initial">
         <source>Weather update</source>
         <target>Weerupdate</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.control">
+      <segment state="initial">
+        <source> You can change each notification type later in Settings. </source>
+        <target> Je kunt elk meldingstype later wijzigen in Instellingen. </target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.enable_all">
+      <segment state="initial">
+        <source> Enable all notifications </source>
+        <target> Alle meldingen inschakelen </target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.event.accept">
+      <segment state="initial">
+        <source>Remind me</source>
+        <target>Herinner mij</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.event.body">
+      <segment state="initial">
+        <source> PK Spot can remind you two hours before events you are going to or interested in. </source>
+        <target> PK Spot kan je twee uur vooraf herinneren aan evenementen waar je naartoe gaat of interesse in hebt. </target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.event.title">
+      <segment state="initial">
+        <source>Get an event reminder?</source>
+        <target>Een herinnering voor het evenement ontvangen?</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.follow.accept">
+      <segment state="initial">
+        <source>Enable follow notifications</source>
+        <target>Volgmeldingen inschakelen</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.follow.body">
+      <segment state="initial">
+        <source> Know when someone follows you, sends a follow request, or accepts yours. </source>
+        <target> Ontvang een melding wanneer iemand je volgt, een volgverzoek stuurt of jouw verzoek accepteert. </target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.follow.title">
+      <segment state="initial">
+        <source>Stay updated on follow activity?</source>
+        <target>Op de hoogte blijven van volgactiviteit?</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.not_now">
+      <segment state="initial">
+        <source> Not now </source>
+        <target> Niet nu </target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.ok">
+      <segment state="initial">
+        <source>OK</source>
+        <target>OK</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.open_settings">
+      <segment state="initial">
+        <source>Open settings</source>
+        <target>Instellingen openen</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.save_error">
+      <segment state="initial">
+        <source>Could not save your notification choice.</source>
+        <target>Je meldingskeuze kon niet worden opgeslagen.</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.spot_edit.accept">
+      <segment state="initial">
+        <source>Notify me</source>
+        <target>Laat het me weten</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.spot_edit.body">
+      <segment state="initial">
+        <source> PK Spot can tell you when your submitted Spot edit is approved or rejected. </source>
+        <target> PK Spot kan je laten weten wanneer een ingediende Spot-bewerking is goedgekeurd of afgewezen. </target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.spot_edit.title">
+      <segment state="initial">
+        <source>Hear when your Spot edit is reviewed?</source>
+        <target>Weten wanneer je Spot-bewerking is beoordeeld?</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.system_blocked">
+      <segment state="initial">
+        <source>Your notification choices are saved, but this device is blocking notifications.</source>
+        <target>Je meldingskeuzes zijn opgeslagen, maar dit apparaat blokkeert meldingen.</target>
       </segment>
     </unit>
     <unit id="notifications.dismiss">
@@ -4192,20 +4330,20 @@
     </unit>
     <unit id="settings.notifications.follow_requests_aria">
       <segment state="initial">
-        <source>Follow request notifications</source>
-        <target>Meldingen voor volgverzoeken</target>
+        <source>Follow activity notifications</source>
+        <target>Meldingen voor volgactiviteit</target>
       </segment>
     </unit>
     <unit id="settings.notifications.follow_requests_description">
       <segment state="initial">
-        <source> Know when someone asks to follow your private account. </source>
-        <target> Weet wanneer iemand vraagt om je privéaccount te volgen. </target>
+        <source> Know about follow requests, new followers, and accepted requests. </source>
+        <target> Blijf op de hoogte van volgverzoeken, nieuwe volgers en geaccepteerde verzoeken. </target>
       </segment>
     </unit>
     <unit id="settings.notifications.follow_requests_heading">
       <segment state="initial">
-        <source>Follow requests</source>
-        <target>Volgverzoeken</target>
+        <source>Follow activity</source>
+        <target>Volgactiviteit</target>
       </segment>
     </unit>
     <unit id="settings.notifications.heading">
@@ -9008,12 +9146,6 @@
       <segment state="initial">
         <source>Reject</source>
         <target>Afwijzen</target>
-      </segment>
-    </unit>
-    <unit id="7387583161384879704">
-      <segment state="initial">
-        <source> This prepares profile-only sections for audience controls. </source>
-        <target> This prepares profile-only sections for audience controls. </target>
       </segment>
     </unit>
     <unit id="7408374932533578639">

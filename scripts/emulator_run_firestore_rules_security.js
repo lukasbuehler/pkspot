@@ -632,6 +632,11 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh, 
       account_privacy: "friends-only",
     })
   );
+  await assertDenied("private account cannot use public profile visibility", () =>
+    updateDoc(doc(owner.db, "users/owner"), {
+      profile_visibility: "public",
+    })
+  );
   await assertDenied("owner cannot change manual custom profile links", () =>
     updateDoc(doc(owner.db, "users/owner"), {
       "socials.other": [

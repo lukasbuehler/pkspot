@@ -376,7 +376,7 @@ runWithEmulator("EventsService emulator integration", () => {
         recipient_uid: uid,
         type: "event_reminder",
         path: "/events/notification-reminder-event",
-        channel_id: "events",
+        channel_id: "event_reminders",
         attempts: 0,
       }),
     );

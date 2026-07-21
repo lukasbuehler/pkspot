@@ -300,6 +300,9 @@
                     [matButton]="followActionButtonType"
                     color="primary"
                     class="profile-overview__action"
+                    data-testid="follow-action"
+                    [disabled]="loadingFollowing"
+                    [attr.aria-busy]="loadingFollowing"
                     (click)="followButtonClick()"
                   >
                     @if (loadingFollowing) {
@@ -311,17 +314,22 @@
                         i18n-aria-label="@@profile.actions.updatingFollowStatus"
                       ></mat-spinner>
                     }
-                    @if (isFollowing) {
-                      <span i18n="@@profile.actions.unfollow">Unfollow</span>
-                    } @else if (isPendingFollowRequest) {
-                      <span i18n="@@profile.actions.requested">Requested</span>
-                    } @else if (isPrivateAccount) {
-                      <span i18n="@@profile.actions.requestFollow"
-                        >Request follow</span
-                      >
-                    } @else {
-                      <span i18n="@@profile.actions.follow">Follow</span>
-                    }
+                    <span
+                      class="profile-overview__action-label"
+                      [class.profile-overview__action-label--loading]="loadingFollowing"
+                    >
+                      @if (isFollowing) {
+                        <span i18n="@@profile.actions.unfollow">Unfollow</span>
+                      } @else if (isPendingFollowRequest) {
+                        <span i18n="@@profile.actions.requested">Requested</span>
+                      } @else if (isPrivateAccount) {
+                        <span i18n="@@profile.actions.requestFollow"
+                          >Request follow</span
+                        >
+                      } @else {
+                        <span i18n="@@profile.actions.follow">Follow</span>
+                      }
+                    </span>
                   </button>
                 }
                 <button

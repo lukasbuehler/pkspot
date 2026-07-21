@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { EventsService } from "../../services/firebase/firestore/events.service";
+import { NotificationOptInService } from "../../services/notification-opt-in.service";
 import { EventRsvpComponent } from "./event-rsvp.component";
 
 type ScreenshotGlobal = typeof globalThis & {
@@ -22,6 +23,7 @@ describe("EventRsvpComponent", () => {
     setMyRsvp: vi.fn(() => Promise.resolve()),
     clearMyRsvp: vi.fn(() => Promise.resolve()),
   };
+  const notificationOptIn = { maybePrompt: vi.fn(() => Promise.resolve()) };
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -30,11 +32,13 @@ describe("EventRsvpComponent", () => {
     eventsService.getMyRsvp.mockResolvedValue(null);
     eventsService.setMyRsvp.mockResolvedValue(undefined);
     eventsService.clearMyRsvp.mockResolvedValue(undefined);
+    notificationOptIn.maybePrompt.mockClear();
     await TestBed.configureTestingModule({
       imports: [EventRsvpComponent],
       providers: [
         provideNoopAnimations(),
         { provide: EventsService, useValue: eventsService },
+        { provide: NotificationOptInService, useValue: notificationOptIn },
         {
           provide: AuthenticationService,
           useValue: {
@@ -74,6 +78,28 @@ describe("EventRsvpComponent", () => {
       notgoing: 0,
       total: 0,
     });
+  });
+
+  it("offers event reminders after a successful relevant RSVP", async () => {
+    fixture.componentRef.setInput("eventId", "event-1");
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    await component.selectRsvp("interested");
+
+    expect(notificationOptIn.maybePrompt).toHaveBeenCalledWith(
+      "event_reminders",
+    );
+  });
+
+  it("does not offer reminders for a not-going response", async () => {
+    fixture.componentRef.setInput("eventId", "event-1");
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    await component.selectRsvp("notgoing");
+
+    expect(notificationOptIn.maybePrompt).not.toHaveBeenCalled();
   });
 
   it("does not add my loaded response to the visible aggregate", async () => {

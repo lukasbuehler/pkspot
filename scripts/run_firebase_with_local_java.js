@@ -126,7 +126,21 @@ function findNvmNodeForMajor(major) {
     : null;
 }
 
-function getFirebaseNodeBin() {
+function includesFunctionsEmulator(args) {
+  const inlineOnly = args.find((arg) => arg.startsWith("--only="));
+  const onlyIndex = args.indexOf("--only");
+  const onlyValue =
+    inlineOnly?.slice("--only=".length) ??
+    (onlyIndex >= 0 ? args[onlyIndex + 1] : null);
+
+  return !onlyValue || onlyValue.split(",").includes("functions");
+}
+
+function getFirebaseNodeBin(args) {
+  if (!includesFunctionsEmulator(args)) {
+    return process.execPath;
+  }
+
   const requestedMajor = getRequestedFunctionsNodeMajor();
   const currentMajor = Number(process.versions.node.split(".")[0]);
 
@@ -207,7 +221,7 @@ async function withAvailableEmulatorPorts(args) {
 
 async function main() {
   const { args, cleanup } = await withAvailableEmulatorPorts(firebaseArgs);
-  const firebaseNodeBin = getFirebaseNodeBin();
+  const firebaseNodeBin = getFirebaseNodeBin(args);
   const firebaseNodeDir = path.dirname(firebaseNodeBin);
 
   if (firebaseNodeBin !== process.execPath) {

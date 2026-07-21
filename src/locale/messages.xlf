@@ -822,6 +822,11 @@
         <source>Organization review inbox</source>
       </segment>
     </unit>
+    <unit id="5511174409504894413">
+      <segment>
+        <source> Private accounts cannot make expanded profile details public. </source>
+      </segment>
+    </unit>
     <unit id="5516877052541003749">
       <segment>
         <source>Failed to submit organization review</source>
@@ -919,11 +924,6 @@
     <unit id="7378878529334768232">
       <segment>
         <source>Reject</source>
-      </segment>
-    </unit>
-    <unit id="7387583161384879704">
-      <segment>
-        <source> This prepares profile-only sections for audience controls. </source>
       </segment>
     </unit>
     <unit id="7408374932533578639">
@@ -5297,17 +5297,17 @@
     </unit>
     <unit id="settings.notifications.follow_requests_aria">
       <segment>
-        <source>Follow request notifications</source>
+        <source>Follow activity notifications</source>
       </segment>
     </unit>
     <unit id="settings.notifications.follow_requests_description">
       <segment>
-        <source> Know when someone asks to follow your private account. </source>
+        <source> Know about follow requests, new followers, and accepted requests. </source>
       </segment>
     </unit>
     <unit id="settings.notifications.follow_requests_heading">
       <segment>
-        <source>Follow requests</source>
+        <source>Follow activity</source>
       </segment>
     </unit>
     <unit id="settings.notifications.heading">
@@ -6863,6 +6863,16 @@
         <source>Event updated</source>
       </segment>
     </unit>
+    <unit id="notification_center.follow_accepted.body">
+      <segment>
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;followed_user_name&quot;]"/> accepted your follow request.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.follow_accepted.title">
+      <segment>
+        <source>Follow request accepted</source>
+      </segment>
+    </unit>
     <unit id="notification_center.follow_request.body">
       <segment>
         <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;requester_name&quot;]"/> wants to follow you.</source>
@@ -6891,6 +6901,26 @@
     <unit id="notification_center.mark_all_read">
       <segment>
         <source>Mark all as read</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.mutual_follower.body">
+      <segment>
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> followed you back.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.mutual_follower.title">
+      <segment>
+        <source>New mutual follower</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.new_follower.body">
+      <segment>
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> started following you.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.new_follower.title">
+      <segment>
+        <source>New follower</source>
       </segment>
     </unit>
     <unit id="notification_center.retry">
@@ -6936,6 +6966,86 @@
     <unit id="notification_center.weather.title">
       <segment>
         <source>Weather update</source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.control">
+      <segment>
+        <source> You can change each notification type later in Settings. </source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.enable_all">
+      <segment>
+        <source> Enable all notifications </source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.event.accept">
+      <segment>
+        <source>Remind me</source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.event.body">
+      <segment>
+        <source> PK Spot can remind you two hours before events you are going to or interested in. </source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.event.title">
+      <segment>
+        <source>Get an event reminder?</source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.follow.accept">
+      <segment>
+        <source>Enable follow notifications</source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.follow.body">
+      <segment>
+        <source> Know when someone follows you, sends a follow request, or accepts yours. </source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.follow.title">
+      <segment>
+        <source>Stay updated on follow activity?</source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.not_now">
+      <segment>
+        <source> Not now </source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.ok">
+      <segment>
+        <source>OK</source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.open_settings">
+      <segment>
+        <source>Open settings</source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.save_error">
+      <segment>
+        <source>Could not save your notification choice.</source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.spot_edit.accept">
+      <segment>
+        <source>Notify me</source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.spot_edit.body">
+      <segment>
+        <source> PK Spot can tell you when your submitted Spot edit is approved or rejected. </source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.spot_edit.title">
+      <segment>
+        <source>Hear when your Spot edit is reviewed?</source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.system_blocked">
+      <segment>
+        <source>Your notification choices are saved, but this device is blocking notifications.</source>
       </segment>
     </unit>
     <unit id="notifications.dismiss">

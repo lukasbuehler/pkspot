@@ -46,6 +46,7 @@ import {
   UserAccountPrivacy,
   UserProfileVisibility,
 } from "../../../db/schemas/UserSchema";
+import { normalizeProfileVisibility } from "../../../db/utils/profile-access";
 import {
   FirebaseAppCheckService,
   FirebaseAppCheckStatus,
@@ -353,9 +354,20 @@ export class SettingsPageComponent implements OnInit {
   syncProfileAccessSettings() {
     const userData = this.authService.user.data?.data;
     this.accountPrivacy = userData?.account_privacy ?? "public";
-    this.profileVisibility = userData?.profile_visibility ?? "public";
+    this.profileVisibility = normalizeProfileVisibility(
+      this.accountPrivacy,
+      userData?.profile_visibility,
+    );
     this.savedAccountPrivacy = this.accountPrivacy;
     this.savedProfileVisibility = this.profileVisibility;
+  }
+
+  setAccountPrivacy(accountPrivacy: UserAccountPrivacy): void {
+    this.accountPrivacy = accountPrivacy;
+    this.profileVisibility = normalizeProfileVisibility(
+      accountPrivacy,
+      this.profileVisibility,
+    );
   }
 
   saveProfileAccessSettings() {
@@ -364,6 +376,10 @@ export class SettingsPageComponent implements OnInit {
       return;
     }
 
+    this.profileVisibility = normalizeProfileVisibility(
+      this.accountPrivacy,
+      this.profileVisibility,
+    );
     this.isSavingProfileAccess = true;
     this._usersService
       .updateUser(userId, {

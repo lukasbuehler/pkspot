@@ -11,7 +11,12 @@ import type {
   NotificationRegistrationSchema,
 } from "../../src/db/schemas/NotificationSchema";
 
-type IntentChannel = "social" | "events" | "account";
+type IntentChannel =
+  | "follow_incoming"
+  | "follow_relationships"
+  | "event_reminders"
+  | "event_updates"
+  | "spot_edit_updates";
 type SpotEditOutcome = "approved" | "rejected";
 
 interface SpotEditNotificationSource {
@@ -62,6 +67,8 @@ const PREFERENCE_BY_TYPE: Record<
   keyof NotificationPreferencesSchema
 > = {
   follow_request: "follow_requests",
+  follow_accepted: "follow_requests",
+  new_follower: "follow_requests",
   event_reminder: "event_reminders",
   event_update: "event_updates",
   spot_edit_update: "spot_edit_updates",
@@ -94,10 +101,106 @@ export const onFollowRequestNotificationCreate = onDocumentWritten(
       sendAfter: Timestamp.now(),
       expiresAt: Timestamp.fromMillis(Date.now() + 30 * DAY_MS),
       path: "/profile",
-      channelId: "social",
+      channelId: "follow_incoming",
       payload: {
         requester_id: requesterId,
         requester_name: stringValue(data["display_name"], "Someone"),
+      },
+    });
+  },
+);
+
+export const onNewFollowerNotificationWrite = onDocumentWritten(
+  "users/{userId}/followers/{followerId}",
+  async (event) => {
+    const change = event.data;
+    if (!change) return;
+
+    const snapshot = change.after.exists ? change.after : change.before;
+    const userId = String(event.params.userId);
+    const followerId = String(event.params.followerId);
+    const data = snapshot.data();
+    if (!data) return;
+
+    const followedAt = Number(
+      data["start_following_raw_ms"] ?? Date.parse(event.time),
+    );
+    const intentId = `new_follower_${userId}_${followerId}_${followedAt}`;
+    if (!change.after.exists) {
+      await cancelIntent(intentId, "follower_removed");
+      return;
+    }
+
+    const userSnapshot = await admin.firestore().doc(`users/${userId}`).get();
+    if (userSnapshot.data()?.["account_privacy"] === "private") {
+      await cancelIntent(intentId, "private_account");
+      return;
+    }
+
+    const mutualSnapshot = await admin
+      .firestore()
+      .doc(`users/${userId}/following/${followerId}`)
+      .get();
+    const isMutual = mutualSnapshot.exists;
+
+    await createIntent(intentId, {
+      recipientUid: userId,
+      type: "new_follower",
+      sourcePath: snapshot.ref.path,
+      sendAfter: Timestamp.now(),
+      expiresAt: Timestamp.fromMillis(Date.now() + 30 * DAY_MS),
+      path: `/u/${encodeURIComponent(followerId)}`,
+      channelId: isMutual ? "follow_relationships" : "follow_incoming",
+      payload: {
+        follower_id: followerId,
+        follower_name: stringValue(data["display_name"], "Someone"),
+        relationship: isMutual ? "mutual" : "following",
+      },
+    });
+  },
+);
+
+export const onFollowingNotificationWrite = onDocumentWritten(
+  "users/{userId}/following/{followedUserId}",
+  async (event) => {
+    const change = event.data;
+    if (!change) return;
+
+    const snapshot = change.after.exists ? change.after : change.before;
+    const userId = String(event.params.userId);
+    const followedUserId = String(event.params.followedUserId);
+    const data = snapshot.data();
+    if (!data) return;
+
+    const followedAt = Number(
+      data["start_following_raw_ms"] ?? Date.parse(event.time),
+    );
+    const intentId = `follow_accepted_${userId}_${followedUserId}_${followedAt}`;
+    if (!change.after.exists) {
+      await cancelIntent(intentId, "following_removed");
+      return;
+    }
+
+    const followedUser = await admin
+      .firestore()
+      .doc(`users/${followedUserId}`)
+      .get();
+    if (followedUser.data()?.["account_privacy"] !== "private") return;
+
+    await createIntent(intentId, {
+      recipientUid: userId,
+      type: "follow_accepted",
+      sourcePath: snapshot.ref.path,
+      sendAfter: Timestamp.now(),
+      expiresAt: Timestamp.fromMillis(Date.now() + 30 * DAY_MS),
+      path: `/u/${encodeURIComponent(followedUserId)}`,
+      channelId: "follow_relationships",
+      payload: {
+        followed_user_id: followedUserId,
+        followed_user_name: stringValue(
+          data["display_name"],
+          stringValue(followedUser.data()?.["display_name"], "Someone"),
+        ),
       },
     });
   },
@@ -167,7 +270,7 @@ export const onEventNotificationSourceWrite = onDocumentWritten(
             sendAfter: Timestamp.now(),
             expiresAt: Timestamp.fromMillis(Date.now() + 30 * DAY_MS),
             path,
-            channelId: "events",
+            channelId: "event_updates",
             payload: {
               event_id: eventId,
               event_name: after.name,
@@ -223,7 +326,7 @@ export const onSpotEditNotificationWrite = onDocumentWritten(
       sendAfter: Timestamp.now(),
       expiresAt: Timestamp.fromMillis(Date.now() + 90 * DAY_MS),
       path: `/s/${encodeURIComponent(spotSlug)}`,
-      channelId: "account",
+      channelId: "spot_edit_updates",
       payload: {
         spot_id: spotId,
         spot_name: spotName,
@@ -399,7 +502,7 @@ async function upsertEventReminder(
     sendAfter,
     expiresAt: Timestamp.fromMillis(start.toMillis() + DAY_MS),
     path: eventPath(eventId, eventData),
-    channelId: "events",
+    channelId: "event_reminders",
     payload: {
       event_id: eventId,
       event_name: eventData.name,
@@ -545,7 +648,7 @@ async function deliverIntent(
       },
       android: {
         notification: {
-          channelId: intent.channel_id,
+          channelId: deliveryChannel(intent),
           tag: intentId,
         },
       },
@@ -582,6 +685,25 @@ async function deliverIntent(
   return { status: "sent", deliveryCount };
 }
 
+function deliveryChannel(intent: StoredIntent): IntentChannel {
+  switch (intent.type) {
+    case "follow_request":
+      return "follow_incoming";
+    case "follow_accepted":
+      return "follow_relationships";
+    case "new_follower":
+      return intent.payload["relationship"] === "mutual"
+        ? "follow_relationships"
+        : "follow_incoming";
+    case "event_reminder":
+      return "event_reminders";
+    case "event_update":
+      return "event_updates";
+    case "spot_edit_update":
+      return "spot_edit_updates";
+  }
+}
+
 function notificationCopy(
   intent: StoredIntent,
   locale: string,
@@ -591,6 +713,15 @@ function notificationCopy(
   if (language === "de") {
     if (intent.type === "follow_request") {
       return { title: "Neue Folgeanfrage", body: `${p["requester_name"]} möchte dir folgen.` };
+    }
+    if (intent.type === "follow_accepted") {
+      return { title: "Folgeanfrage angenommen", body: `${p["followed_user_name"]} hat deine Folgeanfrage angenommen.` };
+    }
+    if (intent.type === "new_follower") {
+      if (p["relationship"] === "mutual") {
+        return { title: "Ihr folgt euch jetzt gegenseitig", body: `${p["follower_name"]} folgt dir jetzt auch.` };
+      }
+      return { title: "Neue Person folgt dir", body: `${p["follower_name"]} folgt dir jetzt.` };
     }
     if (intent.type === "event_reminder") {
       return { title: p["event_name"], body: "Beginnt in zwei Stunden." };
@@ -606,6 +737,15 @@ function notificationCopy(
 
   if (intent.type === "follow_request") {
     return { title: "New follow request", body: `${p["requester_name"]} wants to follow you.` };
+  }
+  if (intent.type === "follow_accepted") {
+    return { title: "Follow request accepted", body: `${p["followed_user_name"]} accepted your follow request.` };
+  }
+  if (intent.type === "new_follower") {
+    if (p["relationship"] === "mutual") {
+      return { title: "New mutual follower", body: `${p["follower_name"]} followed you back.` };
+    }
+    return { title: "New follower", body: `${p["follower_name"]} started following you.` };
   }
   if (intent.type === "event_reminder") {
     return { title: p["event_name"], body: "Starts in two hours." };

@@ -133,6 +133,8 @@ export {
   onEventNotificationSourceWrite,
   onEventRsvpNotificationWrite,
   onFollowRequestNotificationCreate,
+  onFollowingNotificationWrite,
+  onNewFollowerNotificationWrite,
   onNotificationIntentWrite,
   onSpotEditNotificationWrite,
   sendDueNotificationIntents,

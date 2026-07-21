@@ -17,6 +17,26 @@ export interface NotificationPreferencesSchema {
   spot_edit_updates?: boolean;
 }
 
+export const NOTIFICATION_PROMPT_CONTEXTS = [
+  "follow_activity",
+  "event_reminders",
+  "spot_edit_updates",
+] as const;
+
+export type NotificationPromptContext =
+  (typeof NOTIFICATION_PROMPT_CONTEXTS)[number];
+export type NotificationPromptStatus = "accepted" | "dismissed";
+
+export interface NotificationPromptRecordSchema {
+  status: NotificationPromptStatus;
+  version: number;
+  updated_at_raw_ms: number;
+}
+
+export type NotificationPromptStateSchema = Partial<
+  Record<NotificationPromptContext, NotificationPromptRecordSchema>
+>;
+
 export type NotificationPlatform = "android" | "ios" | "web";
 export type NotificationPermissionState =
   | "prompt"
@@ -40,6 +60,8 @@ export interface NotificationRegistrationSchema {
 
 export const NOTIFICATION_INTENT_TYPES = [
   "follow_request",
+  "follow_accepted",
+  "new_follower",
   "event_reminder",
   "event_update",
   "spot_edit_update",
@@ -70,7 +92,16 @@ export interface NotificationIntentSchema {
   dedupe_key: string;
   status: NotificationIntentStatus;
   path: string;
-  channel_id: "social" | "events" | "account";
+  channel_id:
+    | "social"
+    | "events"
+    | "account"
+    | "follow_activity"
+    | "follow_incoming"
+    | "follow_relationships"
+    | "event_reminders"
+    | "event_updates"
+    | "spot_edit_updates";
   payload: Record<string, string>;
   attempts: number;
   created_at: Timestamp;

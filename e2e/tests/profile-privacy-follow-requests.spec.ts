@@ -59,8 +59,9 @@ test.describe("profile privacy follow request workflows", () => {
     await enableFirebaseEmulatorsForPage(page);
   });
 
-  test("requester sees a private profile and can send a follow request", async ({
+  test("requester sees a stable follow request loading state", async ({
     page,
+    context,
   }) => {
     await signInThroughAccount(page, requester, `/u/${owner.uid}`);
     await page.setViewportSize({ width: 390, height: 844 });
@@ -71,16 +72,73 @@ test.describe("profile privacy follow request workflows", () => {
     });
     await page.locator("#app-splash-screen").waitFor({ state: "detached" });
     await expect(profile).toContainText(owner.displayName);
-    await expect(profile).toContainText("Private account");
-    await expect(profile).toContainText("Visible to mutuals");
 
     await page.screenshot({
       path: `${screenshotDir}/profile-phase2-requester-before.png`,
       fullPage: true,
     });
 
-    await profile.getByRole("button", { name: /Request follow/u }).click();
-    await expect(profile.getByRole("button", { name: /Requested/u })).toBeVisible();
+    const actions = profile.locator(".profile-overview__actions");
+    const followButton = profile.getByTestId("follow-action");
+    await expect(followButton).toContainText(/Request follow|Folgeanfrage senden/u);
+    await expect(actions).toHaveScreenshot("profile-follow-action-ready.png", {
+      animations: "disabled",
+    });
+
+    const devtools = await context.newCDPSession(page);
+    await devtools.send("Network.enable");
+    await devtools.send("Network.emulateNetworkConditions", {
+      offline: false,
+      latency: 1_500,
+      downloadThroughput: -1,
+      uploadThroughput: -1,
+    });
+    await followButton.click();
+    const spinner = followButton.locator("mat-spinner");
+    await expect(spinner).toBeVisible();
+    await expect(actions).toHaveScreenshot("profile-follow-action-loading.png", {
+      animations: "disabled",
+    });
+
+    const [buttonBox, spinnerBox] = await Promise.all([
+      followButton.boundingBox(),
+      spinner.boundingBox(),
+    ]);
+    expect(buttonBox).not.toBeNull();
+    expect(spinnerBox).not.toBeNull();
+    expect(Math.abs(
+      buttonBox!.x + buttonBox!.width / 2 -
+        (spinnerBox!.x + spinnerBox!.width / 2),
+    )).toBeLessThanOrEqual(1);
+    expect(Math.abs(
+      buttonBox!.y + buttonBox!.height / 2 -
+        (spinnerBox!.y + spinnerBox!.height / 2),
+    )).toBeLessThanOrEqual(1);
+  });
+
+  test("requester can send a follow request", async ({ page }) => {
+    await signInThroughAccount(page, requester, `/u/${owner.uid}`);
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    const profile = page.locator("app-profile-page");
+    await expect(profile.locator(".profile-overview__card")).toBeVisible({
+      timeout: 30_000,
+    });
+    await page.locator("#app-splash-screen").waitFor({ state: "detached" });
+
+    const actions = profile.locator(".profile-overview__actions");
+    const followButton = profile.getByTestId("follow-action");
+    await expect(followButton).toContainText(/Request follow|Folgeanfrage senden/u);
+    await followButton.click();
+
+    await expect(followButton).toContainText(/Requested|Angefragt/u);
+    await expect(followButton).toHaveAttribute("aria-busy", "false");
+    await expect(followButton.locator("mat-spinner")).toBeHidden();
+    await page.waitForTimeout(500);
+    await expect(followButton).toContainText(/Requested|Angefragt/u);
+    await expect(actions).toHaveScreenshot("profile-follow-action-requested.png", {
+      animations: "disabled",
+    });
 
     await page.screenshot({
       path: `${screenshotDir}/profile-phase2-requester-requested.png`,

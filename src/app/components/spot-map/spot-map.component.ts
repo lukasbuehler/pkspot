@@ -94,6 +94,7 @@ import {
 } from "../../shared/map-coordinate-utils";
 import { SpotAccess, SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 import { AnalyticsService } from "../../services/analytics.service";
+import { NotificationOptInService } from "../../services/notification-opt-in.service";
 
 interface CommunityAreaOverlay {
   center: { lat: number; lng: number };
@@ -485,6 +486,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     private snackBar: MatSnackBar,
     private cd: ChangeDetectorRef,
     private analyticsService: AnalyticsService,
+    private notificationOptIn: NotificationOptInService,
   ) {
     // Track the previous spot to detect actual changes
     let previousSpotKey: string | null = null;
@@ -1360,6 +1362,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
           ? $localize`Edit submitted for organization review`
           : $localize`Spot saved successfully`;
         this.snackBar.open(saveMessage, $localize`Dismiss`, { duration: 5000 });
+        void this.notificationOptIn.maybePrompt("spot_edit_updates");
 
         if ("id" in spot && spot.id) {
           // If it's an existing spot, update the local cache immediately to avoid stale data from potential race conditions

@@ -1,4 +1,5 @@
 import { humanTimeSince, parseFirestoreTimestamp } from "../../scripts/Helpers";
+import { normalizeProfileVisibility } from "../utils/profile-access";
 import {
   UserAccountPrivacy,
   UserProfileVisibility,
@@ -71,7 +72,10 @@ export class User {
     this.nationalityCode = this._data.nationality_code ?? null;
     this.homeCity = this._data.home_city ?? null;
     this.accountPrivacy = this._data.account_privacy ?? "public";
-    this.profileVisibility = this._data.profile_visibility ?? "public";
+    this.profileVisibility = normalizeProfileVisibility(
+      this.accountPrivacy,
+      this._data.profile_visibility,
+    );
     this.socials = this._data.socials
       ? {
           instagram_handle: this._data.socials.instagram_handle,

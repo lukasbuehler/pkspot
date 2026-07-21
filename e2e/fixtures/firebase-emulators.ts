@@ -51,11 +51,10 @@ export const defaultFirebaseEmulatorSettings: FirebaseEmulatorBrowserSettings = 
     appId: "demo-pkspot",
   },
   firestore: {
-    host: "127.0.0.1",
-    port: 8080,
+    ...emulatorHostPort("FIRESTORE_EMULATOR_HOST", "127.0.0.1", 8080),
   },
   auth: {
-    url: "http://127.0.0.1:9099",
+    url: emulatorUrl("FIREBASE_AUTH_EMULATOR_HOST", "127.0.0.1", 9099),
   },
   functions: {
     host: "127.0.0.1",
@@ -66,6 +65,31 @@ export const defaultFirebaseEmulatorSettings: FirebaseEmulatorBrowserSettings = 
     port: 9199,
   },
 };
+
+function emulatorHostPort(
+  environmentKey: string,
+  defaultHost: string,
+  defaultPort: number,
+): { host: string; port: number } {
+  const [host, portValue] = (process.env[environmentKey] ?? "").split(":");
+  const port = Number(portValue);
+  return host && Number.isInteger(port)
+    ? { host, port }
+    : { host: defaultHost, port: defaultPort };
+}
+
+function emulatorUrl(
+  environmentKey: string,
+  defaultHost: string,
+  defaultPort: number,
+): string {
+  const { host, port } = emulatorHostPort(
+    environmentKey,
+    defaultHost,
+    defaultPort,
+  );
+  return `http://${host}:${port}`;
+}
 
 export function firebaseEmulatorE2eEnabled(): boolean {
   return (
