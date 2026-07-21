@@ -115,6 +115,17 @@ describe("Cloud Functions generation policy", () => {
     expect(spotEditSource).toContain('invoker: "public"');
   });
 
+  it("requires App Check for weather requests", () => {
+    const weatherSource = readFileSync(
+      resolve(functionsSourceRoot, "weatherFunctions.ts"),
+      "utf8"
+    );
+
+    expect(weatherSource).toMatch(
+      /export const getWeather = onCall\(\s*\{ enforceAppCheck: true,/u
+    );
+  });
+
   it("keeps signup number assignment on a gen 2 profile trigger", () => {
     const source = readFileSync(
       resolve(functionsSourceRoot, "userSignupFunctions.ts"),

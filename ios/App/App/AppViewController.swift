@@ -7,5 +7,6 @@ class AppViewController: CAPBridgeViewController {
 
         bridge?.registerPluginInstance(AgeAssurancePlugin())
         bridge?.registerPluginInstance(GooglePlacePhotoPlugin())
+        bridge?.registerPluginInstance(NotificationSettingsPlugin())
     }
 }

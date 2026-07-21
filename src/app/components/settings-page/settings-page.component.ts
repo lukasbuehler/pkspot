@@ -53,6 +53,9 @@ import {
 import type {
   TemperatureUnitPreference,
 } from "../../weather/weather-temperature";
+import { NotificationPreferencesService } from "../../services/notification-preferences.service";
+import { PushNotificationsService } from "../../services/push-notifications.service";
+import type { NotificationPreferenceKey } from "../../../db/schemas/NotificationSchema";
 
 @Component({
   selector: "app-settings-page",
@@ -103,7 +106,9 @@ export class SettingsPageComponent implements OnInit {
     public ageAssurance: AgeAssuranceService,
     private _analytics: AnalyticsService,
     private _usersService: UsersService,
-    private _appCheckService: FirebaseAppCheckService
+    private _appCheckService: FirebaseAppCheckService,
+    public notificationPreferences: NotificationPreferencesService,
+    public pushNotifications: PushNotificationsService,
   ) {}
   languageCodes = languageCodes;
 
@@ -124,6 +129,12 @@ export class SettingsPageComponent implements OnInit {
       id: "general",
       name: $localize`General`,
       icon: "settings",
+      hasChanges: false,
+    },
+    {
+      id: "notifications",
+      name: $localize`:@@settings.notifications.menu:Notifications`,
+      icon: "notifications",
       hasChanges: false,
     },
     {
@@ -301,6 +312,41 @@ export class SettingsPageComponent implements OnInit {
         "OK",
         { duration: 5000 },
       );
+    });
+  }
+
+  async setNotificationPreference(
+    key: NotificationPreferenceKey,
+    enabled: boolean,
+  ): Promise<void> {
+    try {
+      let systemEnabled = this.pushNotifications.systemAllowsNotifications();
+      if (enabled && !systemEnabled) {
+        systemEnabled =
+          await this.pushNotifications.requestPermissionFromUserAction();
+      }
+
+      await this.notificationPreferences.setPreference(key, enabled);
+      if (enabled && !systemEnabled) {
+        this._snackbar.open(
+          $localize`:@@settings.notifications.system_blocked_snackbar:PK Spot notifications are enabled, but your device is blocking them. You can allow them in system settings.`,
+          $localize`:@@settings.notifications.ok:OK`,
+          { duration: 7000 },
+        );
+      }
+    } catch (error) {
+      console.error("Error saving notification preference:", error);
+      this._snackbar.open(
+        $localize`:@@settings.notifications.save_error:Could not save notification preference.`,
+        $localize`:@@settings.notifications.ok:OK`,
+        { duration: 5000 },
+      );
+    }
+  }
+
+  openNotificationSystemSettings(): void {
+    void this.pushNotifications.openSystemSettings().catch((error) => {
+      console.error("Could not open system notification settings", error);
     });
   }
 

@@ -783,6 +783,81 @@ service cloud.firestore {
         // Private to the user - stores bookmarks and visited_spots
         allow read, write: if request.auth.uid != null && request.auth.uid == userId;
       }
+
+      match /notification_registrations/{registrationId} {
+        allow read, delete: if request.auth.uid != null && request.auth.uid == userId;
+        allow create, update: if request.auth.uid != null
+          && request.auth.uid == userId
+          && request.resource.data.keys().hasAll([
+            'token',
+            'platform',
+            'app_version',
+            'locale',
+            'permission_state',
+            'enabled',
+            'created_at_raw_ms',
+            'last_seen_at_raw_ms'
+          ])
+          && request.resource.data.keys().hasOnly([
+            'token',
+            'platform',
+            'app_version',
+            'locale',
+            'permission_state',
+            'enabled',
+            'disabled_reason',
+            'created_at_raw_ms',
+            'last_seen_at_raw_ms'
+          ])
+          && request.resource.data.token is string
+          && request.resource.data.token.size() > 20
+          && request.resource.data.token.size() <= 4096
+          && request.resource.data.platform in ['android', 'ios', 'web']
+          && request.resource.data.app_version is string
+          && request.resource.data.locale is string
+          && request.resource.data.permission_state in [
+            'prompt',
+            'prompt-with-rationale',
+            'granted',
+            'denied',
+            'unsupported',
+            'unknown'
+          ]
+          && request.resource.data.enabled is bool
+          && request.resource.data.created_at_raw_ms is number
+          && request.resource.data.last_seen_at_raw_ms is number
+          && (
+            !('disabled_reason' in request.resource.data)
+            || request.resource.data.disabled_reason in [
+              'permission_denied',
+              'signed_out',
+              'invalid_token'
+            ]
+          );
+      }
+
+      match /notifications/{notificationId} {
+        allow read: if request.auth.uid != null && request.auth.uid == userId;
+        allow update: if request.auth.uid != null
+          && request.auth.uid == userId
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'read_at_raw_ms',
+            'dismissed_at_raw_ms'
+          ])
+          && (
+            !('read_at_raw_ms' in request.resource.data)
+            || request.resource.data.read_at_raw_ms is number
+          )
+          && (
+            !('dismissed_at_raw_ms' in request.resource.data)
+            || request.resource.data.dismissed_at_raw_ms is number
+          );
+        allow create, delete: if false;
+      }
+    }
+
+    match /notification_intents/{intentId} {
+      allow read, write: if false;
     }
 
     match /organizations/{organizationId} {

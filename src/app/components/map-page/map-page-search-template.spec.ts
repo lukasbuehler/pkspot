@@ -104,7 +104,7 @@ describe("MapPageComponent search template", () => {
     expect(objectPanel).toContain('(weatherOpen)="openMapWeather()"');
     expect(objectPanelTemplate).toContain('appearance="overview"');
     expect(objectPanelTemplate).toMatch(
-      /<div\s+class="area-weather px-3"[\s\S]*?@if \(weather\(\); as areaWeather\)/,
+      /<div\s+class="area-weather px-3 pb-3"[\s\S]*?@if \(weather\(\); as areaWeather\)/,
     );
     expect(desktopContext?.indexOf("<app-map-weather-chip")).toBeLessThan(
       desktopContext?.indexOf('<div @fadeInOut class="map-island-host">') ??

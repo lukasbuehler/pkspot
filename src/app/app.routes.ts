@@ -480,6 +480,14 @@ export const routes: Routes = [
       ),
     data: { routeName: "Settings" },
   },
+  {
+    path: "notifications",
+    loadComponent: () =>
+      import(
+        "./components/notification-center-page/notification-center-page.component"
+      ).then((m) => m.NotificationCenterPageComponent),
+    data: { routeName: "Notifications" },
+  },
 
   // Other
   {

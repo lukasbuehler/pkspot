@@ -81,6 +81,41 @@ async function waitForRsvpCounts(
   throw new Error(`Timed out waiting for RSVP counts on events/${eventId}`);
 }
 
+async function waitForNotificationIntent(
+  intentId: string,
+  status: "pending" | "cancelled",
+): Promise<admin.firestore.DocumentData> {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const snapshot = await adminDb()
+      .doc(`notification_intents/${intentId}`)
+      .get();
+    if (snapshot.data()?.["status"] === status) {
+      return snapshot.data()!;
+    }
+    await sleep(250);
+  }
+  throw new Error(
+    `Timed out waiting for notification_intents/${intentId} to become ${status}`,
+  );
+}
+
+async function waitForInAppNotification(
+  userId: string,
+  notificationId: string,
+  active: boolean,
+): Promise<admin.firestore.DocumentData> {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const snapshot = await adminDb()
+      .doc(`users/${userId}/notifications/${notificationId}`)
+      .get();
+    if (snapshot.data()?.["active"] === active) return snapshot.data()!;
+    await sleep(250);
+  }
+  throw new Error(
+    `Timed out waiting for users/${userId}/notifications/${notificationId} to become active=${active}`,
+  );
+}
+
 async function waitForEventTypesenseFields(eventId: string): Promise<void> {
   for (let attempt = 0; attempt < 40; attempt += 1) {
     const snapshot = await adminDb().doc(`events/${eventId}`).get();
@@ -315,6 +350,52 @@ runWithEmulator("EventsService emulator integration", () => {
       notgoing: 0,
       total: 1,
     });
+  }, rsvpIntegrationTimeoutMs);
+
+  it("creates and cancels a two-hour reminder intent from my RSVP", async () => {
+    const uid = authService.user.uid;
+    expect(uid).toBeTruthy();
+    const eventId = `notification-rsvp-${uid}`;
+    const intentId = `event_reminder_${eventId}_${uid}`;
+    const start = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await adminDb().doc(`events/${eventId}`).set({
+      name: "Notification reminder event",
+      slug: "notification-reminder-event",
+      published: true,
+      start: admin.firestore.Timestamp.fromDate(start),
+      end: admin.firestore.Timestamp.fromDate(
+        new Date(start.getTime() + 2 * 60 * 60 * 1000),
+      ),
+    });
+
+    await service.setMyRsvp(eventId, "going");
+
+    const pending = await waitForNotificationIntent(intentId, "pending");
+    expect(pending).toEqual(
+      expect.objectContaining({
+        recipient_uid: uid,
+        type: "event_reminder",
+        path: "/events/notification-reminder-event",
+        channel_id: "events",
+        attempts: 0,
+      }),
+    );
+    expect(pending["send_after"].toMillis()).toBe(
+      start.getTime() - 2 * 60 * 60 * 1000,
+    );
+    const visibleReminder = await waitForInAppNotification(uid!, intentId, true);
+    expect(visibleReminder).toEqual(
+      expect.objectContaining({
+        type: "event_reminder",
+        available_at_raw_ms: start.getTime() - 2 * 60 * 60 * 1000,
+        expires_at_raw_ms: start.getTime() + 24 * 60 * 60 * 1000,
+      }),
+    );
+
+    await service.clearMyRsvp(eventId);
+    const cancelled = await waitForNotificationIntent(intentId, "cancelled");
+    expect(cancelled["failure_reason"]).toBe("rsvp_removed");
+    await waitForInAppNotification(uid!, intentId, false);
   }, rsvpIntegrationTimeoutMs);
 
   it("updates event edit fields through the real web Firestore adapter", async () => {

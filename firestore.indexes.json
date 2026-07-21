@@ -1,6 +1,34 @@
 {
   "indexes": [
     {
+      "collectionGroup": "notification_intents",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "send_after",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "notification_intents",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "processing_started_at",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "posts",
       "queryScope": "COLLECTION",
       "fields": [
@@ -216,6 +244,12 @@
     }
   ],
   "fieldOverrides": [
+    {
+      "collectionGroup": "notifications",
+      "fieldPath": "expires_at",
+      "ttl": true,
+      "indexes": []
+    },
     {
       "collectionGroup": "edits",
       "fieldPath": "timestamp",

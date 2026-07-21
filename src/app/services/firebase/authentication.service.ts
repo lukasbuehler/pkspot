@@ -91,6 +91,9 @@ export class AuthenticationService extends ConsentAwareService {
 
   private _injector = inject(Injector);
   private _platformId = inject(PLATFORM_ID);
+  private readonly _beforeSignOutHandlers = new Set<
+    (userId: string) => Promise<void>
+  >();
 
   private get _isBrowser(): boolean {
     return isPlatformBrowser(this._platformId);
@@ -911,7 +914,26 @@ export class AuthenticationService extends ConsentAwareService {
   // Sign Out
   // ============================================
 
-  public logUserOut(): Promise<void> {
+  public registerBeforeSignOutHandler(
+    handler: (userId: string) => Promise<void>,
+  ): () => void {
+    this._beforeSignOutHandlers.add(handler);
+    return () => this._beforeSignOutHandlers.delete(handler);
+  }
+
+  public async logUserOut(): Promise<void> {
+    const userId = this.user.uid;
+    if (userId) {
+      const results = await Promise.allSettled(
+        [...this._beforeSignOutHandlers].map((handler) => handler(userId)),
+      );
+      for (const result of results) {
+        if (result.status === "rejected") {
+          console.warn("A pre-sign-out cleanup failed", result.reason);
+        }
+      }
+    }
+
     if (this._isNative) {
       return this._logUserOutNative();
     }

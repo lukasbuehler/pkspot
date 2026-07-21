@@ -1,5 +1,6 @@
 /// <reference types="@capacitor-firebase/app-check" />
 /// <reference types="@capacitor-firebase/authentication" />
+/// <reference types="@capacitor-firebase/messaging" />
 
 import type { CapacitorConfig } from "@capacitor/cli";
 import { KeyboardResize } from "@capacitor/keyboard";
@@ -38,6 +39,9 @@ const config: CapacitorConfig = {
     FirebaseAuthentication: {
       skipNativeAuth: false,
       providers: ["google.com", "apple.com"],
+    },
+    FirebaseMessaging: {
+      presentationOptions: ["alert", "badge", "sound"],
     },
     Keyboard: {
       resize: KeyboardResize.None,

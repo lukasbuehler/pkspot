@@ -275,6 +275,10 @@
             </mat-card>
 
             <mat-menu #profileManagementMenu="matMenu">
+              <button mat-menu-item routerLink="/notifications">
+                <mat-icon>notifications</mat-icon>
+                <span i18n="@@profile.menu.notifications">Notifications</span>
+              </button>
               <button mat-menu-item routerLink="/settings/account">
                 <mat-icon>settings</mat-icon>
                 <span i18n="@@profile.menu.settings">Settings</span>

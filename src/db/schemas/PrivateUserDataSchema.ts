@@ -1,4 +1,5 @@
 import { UserSettingsSchema } from "./UserSchema";
+import { NotificationPreferencesSchema } from "./NotificationSchema";
 
 /**
  * Private user data stored in users/{userId}/private_data/main
@@ -8,4 +9,5 @@ export interface PrivateUserDataSchema {
   bookmarks?: string[]; // Array of Spot IDs the user has saved
   visited_spots?: string[]; // Array of Spot IDs the user has checked into
   settings?: UserSettingsSchema; // User preferences (maps app, etc.)
+  notification_preferences?: NotificationPreferencesSchema;
 }

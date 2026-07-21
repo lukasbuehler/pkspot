@@ -93,6 +93,7 @@ import { MapPerformanceProfilerService } from "./services/map-performance-profil
 import { AppSettingsService } from "./services/app-settings.service";
 import { UiLanguageService } from "./services/ui-language.service";
 import { FirebaseAppCheckService } from "./services/firebase/app-check.service";
+import { PushNotificationsService } from "./services/push-notifications.service";
 
 interface ButtonBase {
   name: string;
@@ -211,6 +212,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   private _appSettings = inject(AppSettingsService);
   private _mapProfiler = inject(MapPerformanceProfilerService);
   private _appCheckService = inject(FirebaseAppCheckService);
+  private _pushNotifications = inject(PushNotificationsService);
   public checkInService = inject(CheckInService);
   readonly checkInEnabled = environment.features.checkIns;
 
@@ -327,6 +329,9 @@ export class AppComponent implements OnInit, AfterViewInit {
     // Setup auth state listener immediately for session restoration
     // (This is now safe - only reCAPTCHA-triggering operations like sign-up require consent)
     this.setupAuthStateListener();
+    void this._pushNotifications.initialize().catch((error) => {
+      console.warn("Push notification initialization failed", error);
+    });
     this.authService.authState$.subscribe((authUser) => {
       if (authUser?.uid) {
         void this._ageAssuranceService.syncNativeAgePolicyForCurrentUser();

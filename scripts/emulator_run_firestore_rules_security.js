@@ -283,6 +283,22 @@ async function seedSecurityFixture() {
   batch.set(adminDb.doc("users/owner/check_ins/check-in-1"), {
     spot_id: "public-spot",
   });
+  const notificationNow = Date.now();
+  batch.set(adminDb.doc("users/owner/notifications/notification-1"), {
+    type: "follow_request",
+    source_path: "users/owner/follow_requests/other",
+    dedupe_key: "notification-1",
+    path: "/profile",
+    payload: { requester_name: "Other" },
+    active: true,
+    created_at: admin.firestore.Timestamp.fromMillis(notificationNow),
+    created_at_raw_ms: notificationNow,
+    available_at: admin.firestore.Timestamp.fromMillis(notificationNow),
+    available_at_raw_ms: notificationNow,
+    expires_at: admin.firestore.Timestamp.fromMillis(notificationNow + 86_400_000),
+    expires_at_raw_ms: notificationNow + 86_400_000,
+    updated_at_raw_ms: notificationNow,
+  });
   batch.set(adminDb.doc("users/owner/following/other"), {
     created_at_raw_ms: 1,
   });
@@ -1449,6 +1465,87 @@ async function testQueriesDoNotBypassRules(owner, other) {
   );
 }
 
+async function testNotificationRegistrationGuards(anon, owner, other, adminUser) {
+  const registration = {
+    token: "valid-fcm-registration-token-for-rules-test",
+    platform: "android",
+    app_version: "1.2.0",
+    locale: "en",
+    permission_state: "granted",
+    enabled: true,
+    created_at_raw_ms: Date.now(),
+    last_seen_at_raw_ms: Date.now(),
+  };
+  const ownerPath = "users/owner/notification_registrations/device-1";
+
+  await assertAllowed("owner creates notification registration", () =>
+    setDoc(doc(owner.db, ownerPath), registration)
+  );
+  await assertAllowed("owner reads notification registration", () =>
+    getDoc(doc(owner.db, ownerPath))
+  );
+  await assertDenied("other user reads notification registration", () =>
+    getDoc(doc(other.db, ownerPath))
+  );
+  await assertDenied("admin reads user notification registration", () =>
+    getDoc(doc(adminUser.db, ownerPath))
+  );
+  await assertDenied("anonymous creates notification registration", () =>
+    setDoc(doc(anon.db, "users/owner/notification_registrations/anon"), registration)
+  );
+  await assertDenied("owner creates malformed notification registration", () =>
+    setDoc(doc(owner.db, "users/owner/notification_registrations/bad"), {
+      ...registration,
+      platform: "desktop",
+    })
+  );
+  await assertDenied("clients read notification intents", () =>
+    getDoc(doc(owner.db, "notification_intents/private-intent"))
+  );
+  await assertDenied("clients create notification intents", () =>
+    setDoc(doc(owner.db, "notification_intents/forged-intent"), {
+      recipient_uid: "owner",
+    })
+  );
+
+  const notificationPath = "users/owner/notifications/notification-1";
+  await assertAllowed("owner reads in-app notification", () =>
+    getDoc(doc(owner.db, notificationPath))
+  );
+  await assertAllowed("owner lists in-app notifications", () =>
+    getDocs(collection(owner.db, "users/owner/notifications"))
+  );
+  await assertAllowed("owner marks in-app notification read", () =>
+    updateDoc(doc(owner.db, notificationPath), { read_at_raw_ms: Date.now() })
+  );
+  await assertAllowed("owner dismisses in-app notification", () =>
+    updateDoc(doc(owner.db, notificationPath), {
+      dismissed_at_raw_ms: Date.now(),
+    })
+  );
+  await assertDenied("other user reads in-app notification", () =>
+    getDoc(doc(other.db, notificationPath))
+  );
+  await assertDenied("admin reads user in-app notification", () =>
+    getDoc(doc(adminUser.db, notificationPath))
+  );
+  await assertDenied("anonymous reads in-app notification", () =>
+    getDoc(doc(anon.db, notificationPath))
+  );
+  await assertDenied("owner changes server-owned notification fields", () =>
+    updateDoc(doc(owner.db, notificationPath), { active: false })
+  );
+  await assertDenied("owner creates in-app notification", () =>
+    setDoc(doc(owner.db, "users/owner/notifications/forged"), {
+      active: true,
+      read_at_raw_ms: Date.now(),
+    })
+  );
+  await assertDenied("owner deletes in-app notification", () =>
+    deleteDoc(doc(owner.db, notificationPath))
+  );
+}
+
 async function cleanupApps() {
   await Promise.all(apps.map((app) => deleteApp(app)));
 }
@@ -1482,6 +1579,7 @@ async function main() {
   await testPostAndImportGuards(anon, owner, other, adminUser);
   await testChallengeVisibility(anon, owner, other);
   await testQueriesDoNotBypassRules(owner, other);
+  await testNotificationRegistrationGuards(anon, owner, other, adminUser);
 
   console.log("Firestore rules security tests passed.");
 }

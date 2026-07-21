@@ -86,6 +86,7 @@
     "@capacitor-firebase/app-check": "^8.3.0",
     "@capacitor-firebase/authentication": "^8.3.0",
     "@capacitor-firebase/firestore": "^8.3.0",
+    "@capacitor-firebase/messaging": "^8.3.0",
     "@capacitor-firebase/storage": "^8.3.0",
     "@capacitor/android": "^8.4.0",
     "@capacitor/angular": "^2.0.3",

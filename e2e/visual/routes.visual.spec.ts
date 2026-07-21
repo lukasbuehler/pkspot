@@ -53,6 +53,21 @@ const routeVisualCases: RouteVisualCase[] = [
     maxDiffPixels: 1_500,
   },
   {
+    name: "notifications",
+    path: "/notifications",
+    signedIn: true,
+    fullPage: true,
+    maxDiffPixels: 1_500,
+  },
+  {
+    name: "notifications-mobile",
+    path: "/notifications",
+    viewport: mobileViewport,
+    signedIn: true,
+    fullPage: true,
+    maxDiffPixels: 1_500,
+  },
+  {
     name: "profile-own",
     path: "/profile",
     signedIn: true,
@@ -142,11 +157,13 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       localStorage.setItem("mapStyle", "roadmap");
 
       if (signedIn) {
-        (
+        const screenshotWindow = (
           window as typeof window & {
             __PKSPOT_SCREENSHOT_AUTH_USER__?: unknown;
+            __PKSPOT_SCREENSHOT_NOTIFICATIONS__?: unknown;
           }
-        ).__PKSPOT_SCREENSHOT_AUTH_USER__ = {
+        );
+        screenshotWindow.__PKSPOT_SCREENSHOT_AUTH_USER__ = {
           uid: "visual-route-user",
           email: "visual-route-user@example.test",
           emailVerified: true,
@@ -174,6 +191,56 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
             profile_visibility: "public",
           },
         };
+        const now = Date.now();
+        screenshotWindow.__PKSPOT_SCREENSHOT_NOTIFICATIONS__ = [
+          {
+            id: "visual-follow-request",
+            type: "follow_request",
+            source_path: "users/visual-route-user/follow_requests/traceur-1",
+            dedupe_key: "visual-follow-request",
+            path: "/profile",
+            payload: { requester_name: "Maya" },
+            active: true,
+            created_at_raw_ms: now - 5 * 60_000,
+            available_at_raw_ms: now - 5 * 60_000,
+            expires_at_raw_ms: now + 30 * 86_400_000,
+            updated_at_raw_ms: now - 5 * 60_000,
+          },
+          {
+            id: "visual-event-update",
+            type: "event_update",
+            source_path: "events/swissjam25",
+            dedupe_key: "visual-event-update",
+            path: "/events/swissjam25",
+            payload: {
+              event_name: "Swiss Jam",
+              change: "location",
+            },
+            active: true,
+            created_at_raw_ms: now - 3 * 3_600_000,
+            available_at_raw_ms: now - 3 * 3_600_000,
+            expires_at_raw_ms: now + 29 * 86_400_000,
+            updated_at_raw_ms: now - 3 * 3_600_000,
+            read_at_raw_ms: now - 2 * 3_600_000,
+          },
+          {
+            id: "visual-spot-edit",
+            type: "spot_edit_update",
+            source_path: "spots/spot-1/edits/edit-1",
+            dedupe_key: "visual-spot-edit",
+            path: "/s/central-station",
+            payload: {
+              spot_name: "Central Station",
+              outcome: "approved",
+            },
+            active: true,
+            created_at_raw_ms: now - 2 * 86_400_000,
+            available_at_raw_ms: now - 2 * 86_400_000,
+            expires_at_raw_ms: now + 88 * 86_400_000,
+            updated_at_raw_ms: now - 2 * 86_400_000,
+            read_at_raw_ms: now - 2 * 86_400_000,
+          },
+        ];
       }
     },
     { signedIn: route.signedIn === true },

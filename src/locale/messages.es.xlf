@@ -860,6 +860,12 @@
         <target>Cerrar sesión</target>
       </segment>
     </unit>
+    <unit id="profile.menu.notifications">
+      <segment state="initial">
+        <source>Notifications</source>
+        <target>Notificaciones</target>
+      </segment>
+    </unit>
     <unit id="profile.menu.settings">
       <segment state="initial">
         <source>Settings</source>
@@ -3596,6 +3602,174 @@
         <target> No hay spots destacados para esta zona. Acércate a los puntos en el mapa para descubrir otros spots. </target>
       </segment>
     </unit>
+    <unit id="notification_center.check_in.body">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;user_name&quot;]"/> checked in at <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;spot_name&quot;]"/>.</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;user_name&quot;]"/> se ha registrado en <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;spot_name&quot;]"/>.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.check_in.title">
+      <segment state="initial">
+        <source>Check-in</source>
+        <target>Registro</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.dismiss">
+      <segment state="initial">
+        <source>Dismiss</source>
+        <target>Descartar</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.dismiss_action">
+      <segment state="initial">
+        <source>Dismiss</source>
+        <target>Descartar</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.dismiss_aria">
+      <segment state="initial">
+        <source>Dismiss notification</source>
+        <target>Descartar notificación</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.empty">
+      <segment state="initial">
+        <source> No notifications </source>
+        <target> No hay notificaciones </target>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_reminder.body">
+      <segment state="initial">
+        <source>Starts in two hours.</source>
+        <target>Empieza en dos horas.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.cancelled">
+      <segment state="initial">
+        <source>cancelled</source>
+        <target>cancelado</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.details">
+      <segment state="initial">
+        <source>details changed</source>
+        <target>detalles modificados</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.location">
+      <segment state="initial">
+        <source>location changed</source>
+        <target>ubicación modificada</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.time">
+      <segment state="initial">
+        <source>time changed</source>
+        <target>hora modificada</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.title">
+      <segment state="initial">
+        <source>Event updated</source>
+        <target>Evento actualizado</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.follow_request.body">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;requester_name&quot;]"/> wants to follow you.</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;requester_name&quot;]"/> quiere seguirte.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.follow_request.title">
+      <segment state="initial">
+        <source>Follow request</source>
+        <target>Solicitud de seguimiento</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.heading">
+      <segment state="initial">
+        <source> Notifications </source>
+        <target> Notificaciones </target>
+      </segment>
+    </unit>
+    <unit id="notification_center.list_aria">
+      <segment state="initial">
+        <source>Notifications</source>
+        <target>Lista de notificaciones</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.load_error">
+      <segment state="initial">
+        <source> Notifications could not be loaded </source>
+        <target> No se pudieron cargar las notificaciones </target>
+      </segment>
+    </unit>
+    <unit id="notification_center.mark_all_read">
+      <segment state="initial">
+        <source>Mark all as read</source>
+        <target>Marcar todo como leído</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.retry">
+      <segment state="initial">
+        <source>Retry</source>
+        <target>Reintentar</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.settings">
+      <segment state="initial">
+        <source>Notification settings</source>
+        <target>Ajustes de notificaciones</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.spot_edit.approved_body">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/> was approved.</source>
+        <target>Se aprobó <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/>.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.spot_edit.approved_title">
+      <segment state="initial">
+        <source>Spot edit approved</source>
+        <target>Edición de Spot aprobada</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.spot_edit.rejected_body">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/> was rejected.</source>
+        <target>Se rechazó <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/>.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.spot_edit.rejected_title">
+      <segment state="initial">
+        <source>Spot edit rejected</source>
+        <target>Edición de Spot rechazada</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.unread_count">
+      <segment state="initial">
+        <source> <ph id="0" equiv="ICU" disp="{center.unreadCount(), plural, =1 {1 unread} other {{{ center.unreadCount() }} unread}}" subFlows="635385433269490547"/> </source>
+        <target> <ph id="0" equiv="ICU" disp="{center.unreadCount(), plural, =1 {1 unread} other {{{ center.unreadCount() }} unread}}" subFlows="635385433269490547"/> </target>
+      </segment>
+    </unit>
+    <unit id="notification_center.update_error">
+      <segment state="initial">
+        <source>Could not update notification.</source>
+        <target>No se pudo actualizar la notificación.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.weather.title">
+      <segment state="initial">
+        <source>Weather update</source>
+        <target>Actualización meteorológica</target>
+      </segment>
+    </unit>
+    <unit id="notifications.dismiss">
+      <segment state="initial">
+        <source>Dismiss</source>
+        <target>Cerrar</target>
+      </segment>
+    </unit>
     <unit id="spot.ratings.header">
       <notes>
         <note category="description">Header for the ratings and reviews section</note>
@@ -3884,10 +4058,172 @@
         <target>Preferencias de integración</target>
       </segment>
     </unit>
-    <unit id="5851560788527570644">
+    <unit id="settings.notifications.description">
+      <segment state="initial">
+        <source> Choose which useful updates PK Spot may send you. You stay in control through both these choices and your device settings. </source>
+        <target> Elige qué novedades útiles puede enviarte PK Spot. Tú mantienes el control mediante estas opciones y los ajustes de tu dispositivo. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.event_reminders_aria">
+      <segment state="initial">
+        <source>Event reminder notifications</source>
+        <target>Notificaciones de recordatorios de eventos</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.event_reminders_description">
+      <segment state="initial">
+        <source> Get a reminder two hours before events you are going to or interested in. </source>
+        <target> Recibe un recordatorio dos horas antes de los eventos a los que asistirás o que te interesan. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.event_reminders_heading">
+      <segment state="initial">
+        <source>Event reminders</source>
+        <target>Recordatorios de eventos</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.event_updates_aria">
+      <segment state="initial">
+        <source>Event update notifications</source>
+        <target>Notificaciones de cambios en eventos</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.event_updates_description">
+      <segment state="initial">
+        <source> Hear about important time, location, or cancellation changes for events you responded to. </source>
+        <target> Infórmate de cambios importantes de hora, lugar o cancelación en los eventos a los que has respondido. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.event_updates_heading">
+      <segment state="initial">
+        <source>Event updates</source>
+        <target>Cambios en eventos</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.follow_requests_aria">
+      <segment state="initial">
+        <source>Follow request notifications</source>
+        <target>Notificaciones de solicitudes de seguimiento</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.follow_requests_description">
+      <segment state="initial">
+        <source> Know when someone asks to follow your private account. </source>
+        <target> Entérate cuando alguien solicite seguir tu cuenta privada. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.follow_requests_heading">
+      <segment state="initial">
+        <source>Follow requests</source>
+        <target>Solicitudes de seguimiento</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.heading">
+      <segment state="initial">
+        <source> Notifications </source>
+        <target> Notificaciones </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.menu">
       <segment state="initial">
         <source>Notifications</source>
         <target>Notificaciones</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.native_only_description">
+      <segment state="initial">
+        <source> Push notifications are currently available on Android and iOS. </source>
+        <target> Las notificaciones push están disponibles actualmente en Android y iOS. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.native_only_heading">
+      <segment state="initial">
+        <source> Available in the mobile app </source>
+        <target> Disponible en la aplicación móvil </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.not_requested_description">
+      <segment state="initial">
+        <source> Your device will ask for permission when you enable a notification type below. </source>
+        <target> Tu dispositivo pedirá permiso cuando actives uno de los tipos de notificación siguientes. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.not_requested_heading">
+      <segment state="initial">
+        <source> Not enabled yet </source>
+        <target> Aún no están activadas </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.ok">
+      <segment state="initial">
+        <source>OK</source>
+        <target>OK</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.open_center">
+      <segment state="initial">
+        <source>Open notification center</source>
+        <target>Abrir centro de notificaciones</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.open_system_settings">
+      <segment state="initial">
+        <source>Open system settings</source>
+        <target>Abrir ajustes del sistema</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.save_error">
+      <segment state="initial">
+        <source>Could not save notification preference.</source>
+        <target>No se pudo guardar la preferencia de notificación.</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.spot_edits_aria">
+      <segment state="initial">
+        <source>Your Spot edit notifications</source>
+        <target>Notificaciones de tus ediciones de Spot</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.spot_edits_description">
+      <segment state="initial">
+        <source> Know when a Spot edit you submitted is approved or rejected. </source>
+        <target> Entérate cuando se apruebe o rechace una edición de Spot que hayas enviado. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.spot_edits_heading">
+      <segment state="initial">
+        <source>Your Spot edits</source>
+        <target>Tus ediciones de Spot</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.system_allowed_description">
+      <segment state="initial">
+        <source> PK Spot can deliver the notification types you enable below. </source>
+        <target> PK Spot puede enviar los tipos de notificación que actives a continuación. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.system_allowed_heading">
+      <segment state="initial">
+        <source> Allowed by your device </source>
+        <target> Permitidas por tu dispositivo </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.system_blocked_description">
+      <segment state="initial">
+        <source> Your PK Spot choices are saved, but Android or iOS is currently blocking delivery. </source>
+        <target> Tus opciones de PK Spot están guardadas, pero Android o iOS bloquea actualmente la entrega. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.system_blocked_heading">
+      <segment state="initial">
+        <source> Blocked in system settings </source>
+        <target> Bloqueadas en los ajustes del sistema </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.system_blocked_snackbar">
+      <segment state="initial">
+        <source>PK Spot notifications are enabled, but your device is blocking them. You can allow them in system settings.</source>
+        <target>Las notificaciones de PK Spot están activadas, pero tu dispositivo las bloquea. Puedes permitirlas en los ajustes del sistema.</target>
       </segment>
     </unit>
     <unit id="6128805594305699476">
@@ -9429,6 +9765,12 @@
       <segment state="initial">
         <source> Public spot contributions will show up here once this profile adds to the map. </source>
         <target> Public spot contributions will show up here once this profile adds to the map. </target>
+      </segment>
+    </unit>
+    <unit id="1848626050946308520">
+      <segment state="initial">
+        <source>{VAR_PLURAL, plural, =1 {1 unread} other {<ph id="0" equiv="INTERPOLATION"/> unread}}</source>
+        <target>{VAR_PLURAL, plural, =1 {1 sin leer} other {<ph id="0" equiv="INTERPOLATION"/> sin leer}}</target>
       </segment>
     </unit>
     <unit id="1868606282505332204">

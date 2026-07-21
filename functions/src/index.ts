@@ -128,3 +128,12 @@ export {
 export { cleanupAllOrphanedMedia } from "./mediaCleanupFunctions";
 
 export { cleanupExpiredWeatherCache, getWeather } from "./weatherFunctions";
+
+export {
+  onEventNotificationSourceWrite,
+  onEventRsvpNotificationWrite,
+  onFollowRequestNotificationCreate,
+  onNotificationIntentWrite,
+  onSpotEditNotificationWrite,
+  sendDueNotificationIntents,
+} from "./notificationFunctions";

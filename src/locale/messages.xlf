@@ -36,6 +36,11 @@
         <source>Log out</source>
       </segment>
     </unit>
+    <unit id="profile.menu.notifications">
+      <segment>
+        <source>Notifications</source>
+      </segment>
+    </unit>
     <unit id="profile.menu.settings">
       <segment>
         <source>Settings</source>
@@ -795,6 +800,11 @@
     <unit id="1833519671749660117">
       <segment>
         <source> Public spot contributions will show up here once this profile adds to the map. </source>
+      </segment>
+    </unit>
+    <unit id="1848626050946308520">
+      <segment>
+        <source>{VAR_PLURAL, plural, =1 {1 unread} other {<ph id="0" equiv="INTERPOLATION"/> unread}}</source>
       </segment>
     </unit>
     <unit id="1521539924104999091">
@@ -5250,9 +5260,144 @@
         <source>Reporting...</source>
       </segment>
     </unit>
-    <unit id="5851560788527570644">
+    <unit id="settings.notifications.description">
+      <segment>
+        <source> Choose which useful updates PK Spot may send you. You stay in control through both these choices and your device settings. </source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.event_reminders_aria">
+      <segment>
+        <source>Event reminder notifications</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.event_reminders_description">
+      <segment>
+        <source> Get a reminder two hours before events you are going to or interested in. </source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.event_reminders_heading">
+      <segment>
+        <source>Event reminders</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.event_updates_aria">
+      <segment>
+        <source>Event update notifications</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.event_updates_description">
+      <segment>
+        <source> Hear about important time, location, or cancellation changes for events you responded to. </source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.event_updates_heading">
+      <segment>
+        <source>Event updates</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.follow_requests_aria">
+      <segment>
+        <source>Follow request notifications</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.follow_requests_description">
+      <segment>
+        <source> Know when someone asks to follow your private account. </source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.follow_requests_heading">
+      <segment>
+        <source>Follow requests</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.heading">
+      <segment>
+        <source> Notifications </source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.menu">
       <segment>
         <source>Notifications</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.native_only_description">
+      <segment>
+        <source> Push notifications are currently available on Android and iOS. </source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.native_only_heading">
+      <segment>
+        <source> Available in the mobile app </source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.not_requested_description">
+      <segment>
+        <source> Your device will ask for permission when you enable a notification type below. </source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.not_requested_heading">
+      <segment>
+        <source> Not enabled yet </source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.ok">
+      <segment>
+        <source>OK</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.open_center">
+      <segment>
+        <source>Open notification center</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.open_system_settings">
+      <segment>
+        <source>Open system settings</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.save_error">
+      <segment>
+        <source>Could not save notification preference.</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.spot_edits_aria">
+      <segment>
+        <source>Your Spot edit notifications</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.spot_edits_description">
+      <segment>
+        <source> Know when a Spot edit you submitted is approved or rejected. </source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.spot_edits_heading">
+      <segment>
+        <source>Your Spot edits</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.system_allowed_description">
+      <segment>
+        <source> PK Spot can deliver the notification types you enable below. </source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.system_allowed_heading">
+      <segment>
+        <source> Allowed by your device </source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.system_blocked_description">
+      <segment>
+        <source> Your PK Spot choices are saved, but Android or iOS is currently blocking delivery. </source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.system_blocked_heading">
+      <segment>
+        <source> Blocked in system settings </source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.system_blocked_snackbar">
+      <segment>
+        <source>PK Spot notifications are enabled, but your device is blocking them. You can allow them in system settings.</source>
       </segment>
     </unit>
     <unit id="5464118521750361406">
@@ -6656,6 +6801,146 @@
       </notes>
       <segment>
         <source> There are no highlighted spots for this area, zoom in on dots in the map to discover other spots. </source>
+      </segment>
+    </unit>
+    <unit id="notification_center.check_in.body">
+      <segment>
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;user_name&quot;]"/> checked in at <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;spot_name&quot;]"/>.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.check_in.title">
+      <segment>
+        <source>Check-in</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.dismiss">
+      <segment>
+        <source>Dismiss</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.dismiss_action">
+      <segment>
+        <source>Dismiss</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.dismiss_aria">
+      <segment>
+        <source>Dismiss notification</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.empty">
+      <segment>
+        <source> No notifications </source>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_reminder.body">
+      <segment>
+        <source>Starts in two hours.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.cancelled">
+      <segment>
+        <source>cancelled</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.details">
+      <segment>
+        <source>details changed</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.location">
+      <segment>
+        <source>location changed</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.time">
+      <segment>
+        <source>time changed</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.title">
+      <segment>
+        <source>Event updated</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.follow_request.body">
+      <segment>
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;requester_name&quot;]"/> wants to follow you.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.follow_request.title">
+      <segment>
+        <source>Follow request</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.heading">
+      <segment>
+        <source> Notifications </source>
+      </segment>
+    </unit>
+    <unit id="notification_center.list_aria">
+      <segment>
+        <source>Notifications</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.load_error">
+      <segment>
+        <source> Notifications could not be loaded </source>
+      </segment>
+    </unit>
+    <unit id="notification_center.mark_all_read">
+      <segment>
+        <source>Mark all as read</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.retry">
+      <segment>
+        <source>Retry</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.settings">
+      <segment>
+        <source>Notification settings</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.spot_edit.approved_body">
+      <segment>
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/> was approved.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.spot_edit.approved_title">
+      <segment>
+        <source>Spot edit approved</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.spot_edit.rejected_body">
+      <segment>
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/> was rejected.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.spot_edit.rejected_title">
+      <segment>
+        <source>Spot edit rejected</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.unread_count">
+      <segment>
+        <source> <ph id="0" equiv="ICU" disp="{center.unreadCount(), plural, =1 {1 unread} other {{{ center.unreadCount() }} unread}}" subFlows="635385433269490547"/> </source>
+      </segment>
+    </unit>
+    <unit id="notification_center.update_error">
+      <segment>
+        <source>Could not update notification.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.weather.title">
+      <segment>
+        <source>Weather update</source>
+      </segment>
+    </unit>
+    <unit id="notifications.dismiss">
+      <segment>
+        <source>Dismiss</source>
       </segment>
     </unit>
     <unit id="8011758699583016596">

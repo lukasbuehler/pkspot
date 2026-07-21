@@ -77,7 +77,7 @@ export class WeatherService {
       return pending;
     }
 
-    const request = this.functions.callPublic<
+    const request = this.functions.callAppChecked<
       CurrentWeatherRequest,
       WeatherResponse
     >("getWeather", requestData);

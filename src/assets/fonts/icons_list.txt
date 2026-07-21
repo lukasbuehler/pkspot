@@ -2,6 +2,8 @@
 
 menu
 open_in_new
+notifications
+notifications_off
 open_in_full
 search
 home
@@ -214,3 +216,9 @@ merge
 warning
 playlist_add
 brightness_alert
+person_add
+event_upcoming
+task_alt
+weather_mix
+done_all
+cloud_off

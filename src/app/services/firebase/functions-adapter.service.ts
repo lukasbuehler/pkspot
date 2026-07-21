@@ -9,6 +9,7 @@ import { Functions, httpsCallable } from "@angular/fire/functions";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { environment } from "../../../environments/environment.default";
 import { PlatformService } from "../platform.service";
+import { FirebaseAppCheckService } from "./app-check.service";
 import { getFirebaseEmulatorSettings } from "./firebase-emulator.config";
 
 const SAME_ORIGIN_PUBLIC_CALLABLES = new Set(["getPublicImportProvenance"]);
@@ -32,6 +33,7 @@ export class FunctionsAdapterService {
   private readonly functions = inject(Functions, { optional: true });
   private readonly firebaseApp = inject(FirebaseApp);
   private readonly platformService = inject(PlatformService);
+  private readonly appCheckService = inject(FirebaseAppCheckService);
   private readonly injector = inject(Injector);
 
   async call<TRequest, TResponse>(
@@ -65,6 +67,16 @@ export class FunctionsAdapterService {
     }
 
     return this.callWeb<TRequest, TResponse>(functionName, payload);
+  }
+
+  async callAppChecked<TRequest, TResponse>(
+    functionName: string,
+    payload: TRequest,
+  ): Promise<TResponse> {
+    const appCheckToken = await this.appCheckService.getTokenForRequest();
+    return this.callDirect<TRequest, TResponse>(functionName, payload, {
+      "X-Firebase-AppCheck": appCheckToken,
+    });
   }
 
   private async callSameOriginPublic<TRequest, TResponse>(
@@ -114,10 +126,20 @@ export class FunctionsAdapterService {
       throw new Error("Native Firebase auth did not return an ID token");
     }
 
+    return this.callDirect<TRequest, TResponse>(functionName, payload, {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    });
+  }
+
+  private async callDirect<TRequest, TResponse>(
+    functionName: string,
+    payload: TRequest,
+    headers: Record<string, string>,
+  ): Promise<TResponse> {
     const response = await fetch(this.getCallableUrl(functionName), {
       method: "POST",
       headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...headers,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ data: payload }),

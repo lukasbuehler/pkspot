@@ -194,6 +194,20 @@ describe("AuthenticationService", () => {
     expect(signOut).toHaveBeenCalledWith(service.auth);
   });
 
+  it("runs registered cleanup before signing out", async () => {
+    (signOut as Mock).mockResolvedValueOnce(undefined);
+    service.user = { uid: "auth-user-1" };
+    const cleanup = vi.fn(() => Promise.resolve());
+    service.registerBeforeSignOutHandler(cleanup);
+
+    await service.logUserOut();
+
+    expect(cleanup).toHaveBeenCalledWith("auth-user-1");
+    expect(cleanup.mock.invocationCallOrder[0]).toBeLessThan(
+      (signOut as Mock).mock.invocationCallOrder[0],
+    );
+  });
+
   it("updates local auth state, analytics identity, profile data, and admin signal from auth listener", () => {
     const profile = { displayName: "Hydrated User", isAdmin: true };
     usersServiceSpy.getUserById.mockReturnValueOnce(of(profile));

@@ -262,7 +262,7 @@ const RAIN_PROBABILITY_THRESHOLD = 40;
 const RAIN_MM_THRESHOLD = 0.2;
 
 export const getWeather = onCall(
-  { secrets: [googleAPIKey] },
+  { enforceAppCheck: true, secrets: [googleAPIKey] },
   async (request: CallableRequest<unknown>) => {
     const now = new Date();
     const parsedRequest = parseWeatherRequest(request.data);

@@ -26,7 +26,7 @@ describe("WeatherService", () => {
       },
     };
     const functions = {
-      callPublic: vi.fn().mockResolvedValue(response),
+      callAppChecked: vi.fn().mockResolvedValue(response),
     };
     TestBed.configureTestingModule({
       providers: [
@@ -39,7 +39,7 @@ describe("WeatherService", () => {
       WeatherService,
     ).getCurrentAndNearFuture({ lat: 47.37, lng: 8.54 });
 
-    expect(functions.callPublic).toHaveBeenCalledWith("getWeather", {
+    expect(functions.callAppChecked).toHaveBeenCalledWith("getWeather", {
       mode: "current-and-near-future",
       location: { lat: 47.37, lng: 8.54 },
       nearFutureHours: 12,
@@ -54,7 +54,7 @@ describe("WeatherService", () => {
       resolveRequest = resolve;
     });
     const functions = {
-      callPublic: vi.fn().mockReturnValue(pending),
+      callAppChecked: vi.fn().mockReturnValue(pending),
     };
     TestBed.configureTestingModule({
       providers: [
@@ -71,7 +71,7 @@ describe("WeatherService", () => {
     });
 
     expect(first).toBe(second);
-    expect(functions.callPublic).toHaveBeenCalledOnce();
+    expect(functions.callAppChecked).toHaveBeenCalledOnce();
     resolveRequest?.({});
     await first;
   });
@@ -95,7 +95,7 @@ describe("WeatherService", () => {
       },
     };
     const functions = {
-      callPublic: vi
+      callAppChecked: vi
         .fn()
         .mockRejectedValueOnce(new Error("provider unavailable"))
         .mockResolvedValueOnce(response),
@@ -115,7 +115,7 @@ describe("WeatherService", () => {
     await expect(service.getCurrentAndNearFuture(location)).resolves.toBe(
       response,
     );
-    expect(functions.callPublic).toHaveBeenCalledTimes(2);
+    expect(functions.callAppChecked).toHaveBeenCalledTimes(2);
   });
 
   it("reuses a completed tile response until it expires", async () => {
@@ -139,7 +139,7 @@ describe("WeatherService", () => {
       },
     };
     const functions = {
-      callPublic: vi.fn().mockResolvedValue(response),
+      callAppChecked: vi.fn().mockResolvedValue(response),
     };
     TestBed.configureTestingModule({
       providers: [
@@ -159,8 +159,8 @@ describe("WeatherService", () => {
 
     await service.getCurrentAndNearFutureForTile(tile);
     await service.getCurrentAndNearFutureForTile(tile);
-    expect(functions.callPublic).toHaveBeenCalledOnce();
-    expect(functions.callPublic).toHaveBeenCalledWith("getWeather", {
+    expect(functions.callAppChecked).toHaveBeenCalledOnce();
+    expect(functions.callAppChecked).toHaveBeenCalledWith("getWeather", {
       mode: "current-and-near-future",
       location: tile.center,
       nearFutureHours: 12,
@@ -175,6 +175,6 @@ describe("WeatherService", () => {
 
     vi.setSystemTime("2026-07-19T10:46:00Z");
     await service.getCurrentAndNearFutureForTile(tile);
-    expect(functions.callPublic).toHaveBeenCalledTimes(2);
+    expect(functions.callAppChecked).toHaveBeenCalledTimes(2);
   });
 });

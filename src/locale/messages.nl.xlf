@@ -30,6 +30,12 @@
         <target> Public spot contributions will show up here once this profile adds to the map. </target>
       </segment>
     </unit>
+    <unit id="1848626050946308520">
+      <segment state="initial">
+        <source>{VAR_PLURAL, plural, =1 {1 unread} other {<ph id="0" equiv="INTERPOLATION"/> unread}}</source>
+        <target>{VAR_PLURAL, plural, =1 {1 ongelezen} other {<ph id="0" equiv="INTERPOLATION"/> ongelezen}}</target>
+      </segment>
+    </unit>
     <unit id="1868606282505332204">
       <segment state="initial">
         <source>Reports</source>
@@ -912,6 +918,12 @@
       <segment state="initial">
         <source>Log out</source>
         <target>Uitloggen</target>
+      </segment>
+    </unit>
+    <unit id="profile.menu.notifications">
+      <segment state="initial">
+        <source>Notifications</source>
+        <target>Meldingen</target>
       </segment>
     </unit>
     <unit id="profile.menu.settings">
@@ -3680,6 +3692,174 @@
         <target> Er zijn geen hoogtepunten voor dit gebied. Zoom in op de punten op de kaart om andere spots te ontdekken. </target>
       </segment>
     </unit>
+    <unit id="notification_center.check_in.body">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;user_name&quot;]"/> checked in at <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;spot_name&quot;]"/>.</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;user_name&quot;]"/> heeft ingecheckt bij <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;spot_name&quot;]"/>.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.check_in.title">
+      <segment state="initial">
+        <source>Check-in</source>
+        <target>Inchecken</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.dismiss">
+      <segment state="initial">
+        <source>Dismiss</source>
+        <target>Sluiten</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.dismiss_action">
+      <segment state="initial">
+        <source>Dismiss</source>
+        <target>Sluiten</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.dismiss_aria">
+      <segment state="initial">
+        <source>Dismiss notification</source>
+        <target>Melding sluiten</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.empty">
+      <segment state="initial">
+        <source> No notifications </source>
+        <target> Geen meldingen </target>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_reminder.body">
+      <segment state="initial">
+        <source>Starts in two hours.</source>
+        <target>Begint over twee uur.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.cancelled">
+      <segment state="initial">
+        <source>cancelled</source>
+        <target>geannuleerd</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.details">
+      <segment state="initial">
+        <source>details changed</source>
+        <target>details gewijzigd</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.location">
+      <segment state="initial">
+        <source>location changed</source>
+        <target>locatie gewijzigd</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.time">
+      <segment state="initial">
+        <source>time changed</source>
+        <target>tijd gewijzigd</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.title">
+      <segment state="initial">
+        <source>Event updated</source>
+        <target>Evenement bijgewerkt</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.follow_request.body">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;requester_name&quot;]"/> wants to follow you.</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;requester_name&quot;]"/> wil je volgen.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.follow_request.title">
+      <segment state="initial">
+        <source>Follow request</source>
+        <target>Volgverzoek</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.heading">
+      <segment state="initial">
+        <source> Notifications </source>
+        <target> Meldingen </target>
+      </segment>
+    </unit>
+    <unit id="notification_center.list_aria">
+      <segment state="initial">
+        <source>Notifications</source>
+        <target>Meldingenlijst</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.load_error">
+      <segment state="initial">
+        <source> Notifications could not be loaded </source>
+        <target> Meldingen konden niet worden geladen </target>
+      </segment>
+    </unit>
+    <unit id="notification_center.mark_all_read">
+      <segment state="initial">
+        <source>Mark all as read</source>
+        <target>Alles als gelezen markeren</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.retry">
+      <segment state="initial">
+        <source>Retry</source>
+        <target>Opnieuw proberen</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.settings">
+      <segment state="initial">
+        <source>Notification settings</source>
+        <target>Meldingsinstellingen</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.spot_edit.approved_body">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/> was approved.</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/> is goedgekeurd.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.spot_edit.approved_title">
+      <segment state="initial">
+        <source>Spot edit approved</source>
+        <target>Spot-bewerking goedgekeurd</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.spot_edit.rejected_body">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/> was rejected.</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/> is afgewezen.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.spot_edit.rejected_title">
+      <segment state="initial">
+        <source>Spot edit rejected</source>
+        <target>Spot-bewerking afgewezen</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.unread_count">
+      <segment state="initial">
+        <source> <ph id="0" equiv="ICU" disp="{center.unreadCount(), plural, =1 {1 unread} other {{{ center.unreadCount() }} unread}}" subFlows="635385433269490547"/> </source>
+        <target> <ph id="0" equiv="ICU" disp="{center.unreadCount(), plural, =1 {1 unread} other {{{ center.unreadCount() }} unread}}" subFlows="635385433269490547"/> </target>
+      </segment>
+    </unit>
+    <unit id="notification_center.update_error">
+      <segment state="initial">
+        <source>Could not update notification.</source>
+        <target>Melding kon niet worden bijgewerkt.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.weather.title">
+      <segment state="initial">
+        <source>Weather update</source>
+        <target>Weerupdate</target>
+      </segment>
+    </unit>
+    <unit id="notifications.dismiss">
+      <segment state="initial">
+        <source>Dismiss</source>
+        <target>Sluiten</target>
+      </segment>
+    </unit>
     <unit id="spot.ratings.header">
       <notes>
         <note category="description">Header for the ratings and reviews section</note>
@@ -3968,10 +4148,172 @@
         <target>Voorkeuren voor inbedden</target>
       </segment>
     </unit>
-    <unit id="5851560788527570644">
+    <unit id="settings.notifications.description">
+      <segment state="initial">
+        <source> Choose which useful updates PK Spot may send you. You stay in control through both these choices and your device settings. </source>
+        <target> Kies welke nuttige updates PK Spot je mag sturen. Je houdt de controle via deze keuzes en de instellingen van je apparaat. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.event_reminders_aria">
+      <segment state="initial">
+        <source>Event reminder notifications</source>
+        <target>Meldingen voor evenementherinneringen</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.event_reminders_description">
+      <segment state="initial">
+        <source> Get a reminder two hours before events you are going to or interested in. </source>
+        <target> Ontvang twee uur vooraf een herinnering voor evenementen waar je naartoe gaat of interesse in hebt. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.event_reminders_heading">
+      <segment state="initial">
+        <source>Event reminders</source>
+        <target>Evenementherinneringen</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.event_updates_aria">
+      <segment state="initial">
+        <source>Event update notifications</source>
+        <target>Meldingen voor evenementupdates</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.event_updates_description">
+      <segment state="initial">
+        <source> Hear about important time, location, or cancellation changes for events you responded to. </source>
+        <target> Hoor over belangrijke wijzigingen in tijd, locatie of annulering voor evenementen waarop je hebt gereageerd. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.event_updates_heading">
+      <segment state="initial">
+        <source>Event updates</source>
+        <target>Evenementupdates</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.follow_requests_aria">
+      <segment state="initial">
+        <source>Follow request notifications</source>
+        <target>Meldingen voor volgverzoeken</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.follow_requests_description">
+      <segment state="initial">
+        <source> Know when someone asks to follow your private account. </source>
+        <target> Weet wanneer iemand vraagt om je privéaccount te volgen. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.follow_requests_heading">
+      <segment state="initial">
+        <source>Follow requests</source>
+        <target>Volgverzoeken</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.heading">
+      <segment state="initial">
+        <source> Notifications </source>
+        <target> Meldingen </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.menu">
       <segment state="initial">
         <source>Notifications</source>
         <target>Meldingen</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.native_only_description">
+      <segment state="initial">
+        <source> Push notifications are currently available on Android and iOS. </source>
+        <target> Pushmeldingen zijn momenteel beschikbaar op Android en iOS. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.native_only_heading">
+      <segment state="initial">
+        <source> Available in the mobile app </source>
+        <target> Beschikbaar in de mobiele app </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.not_requested_description">
+      <segment state="initial">
+        <source> Your device will ask for permission when you enable a notification type below. </source>
+        <target> Je apparaat vraagt om toestemming wanneer je hieronder een meldingstype inschakelt. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.not_requested_heading">
+      <segment state="initial">
+        <source> Not enabled yet </source>
+        <target> Nog niet ingeschakeld </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.ok">
+      <segment state="initial">
+        <source>OK</source>
+        <target>OK</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.open_center">
+      <segment state="initial">
+        <source>Open notification center</source>
+        <target>Meldingencentrum openen</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.open_system_settings">
+      <segment state="initial">
+        <source>Open system settings</source>
+        <target>Systeeminstellingen openen</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.save_error">
+      <segment state="initial">
+        <source>Could not save notification preference.</source>
+        <target>De meldingsvoorkeur kon niet worden opgeslagen.</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.spot_edits_aria">
+      <segment state="initial">
+        <source>Your Spot edit notifications</source>
+        <target>Meldingen voor jouw Spot-bewerkingen</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.spot_edits_description">
+      <segment state="initial">
+        <source> Know when a Spot edit you submitted is approved or rejected. </source>
+        <target> Weet wanneer een Spot-bewerking die je hebt ingediend wordt goedgekeurd of afgewezen. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.spot_edits_heading">
+      <segment state="initial">
+        <source>Your Spot edits</source>
+        <target>Jouw Spot-bewerkingen</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.system_allowed_description">
+      <segment state="initial">
+        <source> PK Spot can deliver the notification types you enable below. </source>
+        <target> PK Spot kan de meldingstypen bezorgen die je hieronder inschakelt. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.system_allowed_heading">
+      <segment state="initial">
+        <source> Allowed by your device </source>
+        <target> Toegestaan door je apparaat </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.system_blocked_description">
+      <segment state="initial">
+        <source> Your PK Spot choices are saved, but Android or iOS is currently blocking delivery. </source>
+        <target> Je PK Spot-keuzes zijn opgeslagen, maar Android of iOS blokkeert de bezorging momenteel. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.system_blocked_heading">
+      <segment state="initial">
+        <source> Blocked in system settings </source>
+        <target> Geblokkeerd in de systeeminstellingen </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.system_blocked_snackbar">
+      <segment state="initial">
+        <source>PK Spot notifications are enabled, but your device is blocking them. You can allow them in system settings.</source>
+        <target>PK Spot-meldingen zijn ingeschakeld, maar je apparaat blokkeert ze. Je kunt ze toestaan in de systeeminstellingen.</target>
       </segment>
     </unit>
     <unit id="6128805594305699476">

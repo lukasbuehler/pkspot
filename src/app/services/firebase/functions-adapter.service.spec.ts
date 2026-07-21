@@ -5,6 +5,7 @@ import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { environment } from "../../../environments/environment.default";
 import { PlatformService } from "../platform.service";
+import { FirebaseAppCheckService } from "./app-check.service";
 import { FunctionsAdapterService } from "./functions-adapter.service";
 
 vi.mock("@angular/fire/functions", () => ({
@@ -22,9 +23,13 @@ describe("FunctionsAdapterService", () => {
   let platformService: { isNative: ReturnType<typeof vi.fn> };
   let fetchMock: Mock;
   const functionsInstance = {};
+  const appCheckService = {
+    getTokenForRequest: vi.fn().mockResolvedValue("app-check-token"),
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
+    appCheckService.getTokenForRequest.mockResolvedValue("app-check-token");
     environment.production = false;
     platformService = {
       isNative: vi.fn(() => false),
@@ -49,6 +54,7 @@ describe("FunctionsAdapterService", () => {
           } satisfies Partial<FirebaseApp>,
         },
         { provide: PlatformService, useValue: platformService },
+        { provide: FirebaseAppCheckService, useValue: appCheckService },
       ],
     });
   });
@@ -140,6 +146,32 @@ describe("FunctionsAdapterService", () => {
     );
     expect(httpsCallable).not.toHaveBeenCalled();
     expect(result).toEqual({ ok: true });
+  });
+
+  it("sends App Check protected callable requests with an attestation token", async () => {
+    const service = TestBed.inject(FunctionsAdapterService);
+
+    const result = await service.callAppChecked<
+      { location: { lat: number; lng: number } },
+      { ok: boolean }
+    >("getWeather", { location: { lat: 47.37, lng: 8.54 } });
+
+    expect(appCheckService.getTokenForRequest).toHaveBeenCalledOnce();
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://europe-west1-parkour-base-project.cloudfunctions.net/getWeather",
+      {
+        method: "POST",
+        headers: {
+          "X-Firebase-AppCheck": "app-check-token",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          data: { location: { lat: 47.37, lng: 8.54 } },
+        }),
+      },
+    );
+    expect(result).toEqual({ ok: true });
+    expect(httpsCallable).not.toHaveBeenCalled();
   });
 
   it("surfaces native callable error messages", async () => {
