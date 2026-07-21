@@ -574,7 +574,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     () => {
       const viewport = this._viewport();
       return viewport && viewport.zoom >= 12
-        ? getWeatherTile(getViewportCenter(viewport.bbox), 12)
+        ? getWeatherTile(getViewportCenter(viewport.bbox))
         : null;
     },
     {

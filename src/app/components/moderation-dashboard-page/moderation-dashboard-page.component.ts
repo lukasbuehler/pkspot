@@ -6,7 +6,7 @@ import {
   OnDestroy,
   signal,
 } from "@angular/core";
-import { DatePipe } from "@angular/common";
+import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import { RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
@@ -41,7 +41,7 @@ import type { SpotEditSchema } from "../../../db/schemas/SpotEditSchema";
 @Component({
   selector: "app-moderation-dashboard-page",
   imports: [
-    DatePipe,
+    SystemDatePipe,
     RouterLink,
     MatButtonModule,
     MatCardModule,

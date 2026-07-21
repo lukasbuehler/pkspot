@@ -18,6 +18,7 @@ import type {
 } from "../../services/notification-center.service";
 import { NotificationCenterService } from "../../services/notification-center.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
+import { DateTimeFormatService } from "../../services/date-time-format.service";
 
 interface NotificationViewModel {
   id: string;
@@ -51,6 +52,7 @@ export class NotificationCenterPageComponent {
   });
   private readonly snackbar = inject(MatSnackBar);
   private readonly locale = inject(LOCALE_ID);
+  private readonly dateTime = inject(DateTimeFormatService);
   private readonly relativeTime = new Intl.RelativeTimeFormat(this.locale, {
     numeric: "auto",
   });
@@ -232,9 +234,7 @@ export class NotificationCenterPageComponent {
     if (absolute < 604_800_000) {
       return this.relativeTime.format(Math.round(difference / 86_400_000), "day");
     }
-    return new Intl.DateTimeFormat(this.locale, { dateStyle: "medium" }).format(
-      timestamp,
-    );
+    return this.dateTime.format(timestamp, { dateStyle: "medium" });
   }
 
   private _showError(): void {

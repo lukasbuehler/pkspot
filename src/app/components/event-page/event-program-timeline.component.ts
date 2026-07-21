@@ -1,7 +1,6 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  LOCALE_ID,
   computed,
   inject,
   input,
@@ -13,7 +12,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatTabsModule } from "@angular/material/tabs";
 import { EventProgramItem } from "../../../db/models/Event";
 import { EventCategory } from "../../../db/schemas/EventSchema";
-import { LocaleCode } from "../../../db/models/Interfaces";
+import { DateTimeFormatService } from "../../services/date-time-format.service";
 
 type ProgramDayGroup = {
   key: string;
@@ -101,7 +100,7 @@ type ProgramDayGroup = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventProgramTimelineComponent {
-  private _locale = inject<LocaleCode>(LOCALE_ID);
+  private readonly _dateTime = inject(DateTimeFormatService);
 
   readonly items = input.required<EventProgramItem[]>();
   readonly timeZone = input<string | undefined>();
@@ -114,7 +113,7 @@ export class EventProgramTimelineComponent {
       day: "2-digit",
       timeZone: this.timeZone(),
     });
-    const labelFormatter = new Intl.DateTimeFormat(this._locale, {
+    const labelFormatter = this._dateTime.formatter({
       weekday: "long",
       day: "numeric",
       month: "short",
@@ -141,11 +140,11 @@ export class EventProgramTimelineComponent {
   });
 
   itemTime(date: Date): string {
-    return new Intl.DateTimeFormat(this._locale, {
+    return this._dateTime.format(date, {
       hour: "2-digit",
       minute: "2-digit",
       timeZone: this.timeZone(),
-    }).format(date);
+    });
   }
 
   itemTimeRange(item: EventProgramItem): string {

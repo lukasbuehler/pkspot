@@ -3,8 +3,8 @@
   max-width: min(300px, calc(100vw - 40px));
 
   &.is-overview {
-    width: 100%;
-    max-width: none;
+    display: inline-flex;
+    max-width: 100%;
   }
 }
 
@@ -44,8 +44,6 @@
   }
 
   &.is-overview {
-    width: 100%;
-    justify-content: flex-start;
     border-color: transparent;
     background: transparent;
     box-shadow: none;
@@ -54,10 +52,10 @@
   }
 }
 
-:host ::ng-deep .map-weather-chip .mdc-button__label,
-:host ::ng-deep .map-weather-chip .mdc-button__label span {
-  overflow: visible;
-  text-overflow: clip;
+:host ::ng-deep .map-weather-chip .mdc-button__label {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .chip-content {
@@ -69,6 +67,20 @@
 }
 
 .change-summary {
+  display: flex;
+  gap: 0.25em;
+  min-width: 0;
+  overflow: hidden;
   white-space: nowrap;
   font-weight: normal;
+}
+
+.change-summary-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.change-summary-time {
+  flex: none;
 }

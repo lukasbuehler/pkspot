@@ -1,25 +1,27 @@
 <!-- <mat-divider class="mx-3 mt-0 mb-3"></mat-divider> -->
 
-<div
-  class="area-title"
-  [attr.data-collapsed]="titleCollapsed() ? 'true' : null"
->
-  <h4 class="mat-title-large m-0 px-3 pt-2 pb-1" i18n="@@map.contents_heading">
-    In this area
-  </h4>
-</div>
+<div class="area-header px-3 pt-2 pb-2">
+  <div
+    class="area-title"
+    [attr.data-collapsed]="titleCollapsed() ? 'true' : null"
+  >
+    <h4 class="mat-title-large m-0" i18n="@@map.contents_heading">
+      In this area
+    </h4>
+  </div>
 
-<div
-  class="area-weather px-3 pb-3"
-  [class.area-weather--hidden]="hidePeekTitles()"
->
-  @if (weather(); as areaWeather) {
-    <app-map-weather-chip
-      [response]="areaWeather"
-      appearance="overview"
-      (pressed)="weatherOpen.emit()"
-    ></app-map-weather-chip>
-  }
+  <div
+    class="area-weather"
+    [class.area-weather--hidden]="hidePeekTitles()"
+  >
+    @if (weather(); as areaWeather) {
+      <app-map-weather-chip
+        [response]="areaWeather"
+        appearance="overview"
+        (pressed)="weatherOpen.emit()"
+      ></app-map-weather-chip>
+    }
+  </div>
 </div>
 
 <app-filter-chips-bar

@@ -16,6 +16,14 @@
       <strong class="temperature">{{ temperature() }}</strong>
     }
     <span class="separator" aria-hidden="true">⸱</span>
-    <span class="change-summary">{{ changeSummary() }}</span>
+    <span class="change-summary">
+      <span class="change-summary-text">{{ changeSummary().beforeTime }}</span>
+      @if (changeSummary().time; as time) {
+        <span class="change-summary-time">{{ time }}</span>
+      }
+      @if (changeSummary().afterTime; as afterTime) {
+        <span class="change-summary-text">{{ afterTime }}</span>
+      }
+    </span>
   </span>
 </button>

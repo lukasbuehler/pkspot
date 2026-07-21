@@ -1,7 +1,6 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  LOCALE_ID,
   computed,
   effect,
   inject,
@@ -26,6 +25,7 @@ import { SearchService } from "../../services/search.service";
 import type { EventSearchPreview } from "../../services/search.service";
 import { EntityPreviewCardComponent } from "../entity-preview-card/entity-preview-card.component";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
+import { DateTimeFormatService } from "../../services/date-time-format.service";
 
 export type EntityReferenceKind = "spot" | "event";
 
@@ -59,7 +59,7 @@ export interface EntityReferenceOption {
 })
 export class EntityReferenceAutocompleteComponent {
   private readonly _searchService = inject(SearchService);
-  private readonly _locale = inject(LOCALE_ID);
+  private readonly _dateTime = inject(DateTimeFormatService);
   private _searchRequestId = 0;
   private _resolveRequestId = 0;
 
@@ -273,8 +273,8 @@ export class EntityReferenceAutocompleteComponent {
     if (event.startSeconds === undefined) {
       return "";
     }
-    return new Intl.DateTimeFormat(this._locale, {
+    return this._dateTime.format(event.startSeconds * 1000, {
       dateStyle: "medium",
-    }).format(new Date(event.startSeconds * 1000));
+    });
   }
 }

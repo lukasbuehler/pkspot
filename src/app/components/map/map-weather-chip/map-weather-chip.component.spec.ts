@@ -68,10 +68,9 @@ describe("MapWeatherChipComponent", () => {
     await fixture.whenStable();
 
     expect(fixture.nativeElement.textContent).toContain("22°");
-    expect(fixture.nativeElement.textContent).toContain("Rain at 13:00");
     expect(
       fixture.debugElement.query(By.css("button")).attributes["aria-label"],
-    ).toContain("Weather near map center");
+    ).toContain("Rain at 13:00");
   });
 
   it("emits when opened", async () => {
@@ -112,7 +111,7 @@ describe("MapWeatherChipComponent", () => {
     ).toContain("72 °F");
   });
 
-  it("supports a full-width area overview appearance", async () => {
+  it("supports the area overview appearance", async () => {
     const fixture = TestBed.createComponent(MapWeatherChipComponent);
     fixture.componentRef.setInput("response", response);
     fixture.componentRef.setInput("appearance", "overview");
@@ -122,6 +121,22 @@ describe("MapWeatherChipComponent", () => {
     expect(
       fixture.nativeElement.querySelector("button").classList,
     ).toContain("is-overview");
+  });
+
+  it("keeps the change time separate so its label can truncate", async () => {
+    const fixture = TestBed.createComponent(MapWeatherChipComponent);
+    fixture.componentRef.setInput("response", {
+      ...response,
+      forecast: [],
+    });
+    await fixture.whenStable();
+
+    expect(
+      fixture.nativeElement.querySelector(".change-summary-text").textContent,
+    ).toContain("Sunset");
+    expect(
+      fixture.nativeElement.querySelector(".change-summary-time").textContent,
+    ).toBe("21:00");
   });
 
   it("uses a vertical tooltip position and allows callers to override it", async () => {

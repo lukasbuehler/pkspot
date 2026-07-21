@@ -107,7 +107,7 @@
                       {{ communityCardTitle(suggestion) }}
                     </mat-card-title>
                     <mat-card-subtitle>
-                      {{ suggestion.timestamp_millis | date: "medium" }} ·
+                      {{ suggestion.timestamp_millis | systemDate: "medium" }} ·
                       {{ suggestion.user.display_name || suggestion.user.uid }}
                     </mat-card-subtitle>
                   </mat-card-header>
@@ -170,7 +170,7 @@
                   <mat-card-header>
                     <mat-card-title>{{ item.spotId }}</mat-card-title>
                     <mat-card-subtitle>
-                      {{ spotEditSubmittedAtMillis(item) | date: "medium" }} ·
+                      {{ spotEditSubmittedAtMillis(item) | systemDate: "medium" }} ·
                       {{ spotEditSubmitterLabel(item) }}
                     </mat-card-subtitle>
                   </mat-card-header>
@@ -213,7 +213,7 @@
                   <mat-card-header>
                     <mat-card-title>{{ item.spotId }}</mat-card-title>
                     <mat-card-subtitle>
-                      {{ spotEditSubmittedAtMillis(item) | date: "medium" }} ·
+                      {{ spotEditSubmittedAtMillis(item) | systemDate: "medium" }} ·
                       {{ spotEditSubmitterLabel(item) }}
                     </mat-card-subtitle>
                   </mat-card-header>
@@ -265,7 +265,7 @@
                 <mat-card-header>
                   <mat-card-title>{{ report.targetLabel }}</mat-card-title>
                   <mat-card-subtitle>
-                    {{ report.createdAtMillis | date: "medium" }} ·
+                    {{ report.createdAtMillis | systemDate: "medium" }} ·
                     {{ report.reporterLabel }}
                   </mat-card-subtitle>
                 </mat-card-header>
@@ -321,7 +321,7 @@
                 <mat-card-header>
                   <mat-card-title>{{ message.userLabel }}</mat-card-title>
                   <mat-card-subtitle>
-                    {{ message.createdAtMillis | date: "medium" }} ·
+                    {{ message.createdAtMillis | systemDate: "medium" }} ·
                     {{ message.contactInfo }}
                   </mat-card-subtitle>
                 </mat-card-header>

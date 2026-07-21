@@ -1,4 +1,5 @@
-import { DatePipe, NgOptimizedImage } from "@angular/common";
+import { NgOptimizedImage } from "@angular/common";
+import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -89,7 +90,7 @@ interface CommunityInfoCardView {
 @Component({
   selector: "app-community-landing-page",
   imports: [
-    DatePipe,
+    SystemDatePipe,
     NgOptimizedImage,
     MatCardModule,
     MatButtonModule,

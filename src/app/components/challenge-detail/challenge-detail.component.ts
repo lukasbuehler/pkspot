@@ -37,6 +37,7 @@ import { getBestLocale } from "../../../scripts/LanguageHelpers";
 import { MatChipsModule } from "@angular/material/chips";
 import { NgOptimizedImage } from "@angular/common";
 import { RouterLink } from "@angular/router";
+import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import {
   ChallengeLabelNames,
   ChallengeParticipantTypeNames,
@@ -82,6 +83,7 @@ import { buildSpotChallengeCanonicalPath } from "../../../scripts/SpotRouteHelpe
     MatChipsModule,
     NgOptimizedImage,
     RouterLink,
+    SystemDatePipe,
     MatDividerModule,
     MatTooltipModule,
     MatDatepickerModule,

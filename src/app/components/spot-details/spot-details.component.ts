@@ -376,7 +376,7 @@ export class SpotDetailsComponent
       return location;
     },
     loader: ({ params }) =>
-      this._weatherService.getCurrentAndNearFuture(params),
+      this._weatherService.getCurrentAndNearFutureForTileAt(params),
   });
   readonly weatherIconData = computed<WeatherIconData>(() => {
     if (!this.weatherResource.hasValue()) {

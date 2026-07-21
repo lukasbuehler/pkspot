@@ -10,7 +10,16 @@
   color: var(--mat-sys-on-surface);
 }
 
+.area-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .area-title {
+  flex: 0 1 auto;
+  min-width: 0;
   opacity: var(--open-progress, 1);
   max-height: calc(var(--open-progress, 1) * 64px);
   overflow: hidden;
@@ -23,19 +32,25 @@
     max-height: 0;
     pointer-events: none;
   }
+
+  h4 {
+    white-space: nowrap;
+  }
 }
 
 .area-weather {
+  display: flex;
+  justify-content: flex-end;
+  flex: 1 1 0;
+  min-width: 0;
   min-height: 0px;
-  max-height: 96px;
-  padding-bottom: 8px;
+  max-height: 48px;
   opacity: 1;
   overflow: hidden;
   transform: translateY(0);
   transition:
     min-height 180ms ease,
     max-height 180ms ease,
-    padding-bottom 180ms ease,
     opacity 160ms ease,
     transform 180ms ease;
 
@@ -47,7 +62,6 @@
 .area-weather--hidden {
   min-height: 0;
   max-height: 0;
-  padding-bottom: 0 !important;
   opacity: 0;
   pointer-events: none;
   transform: translateY(-6px);

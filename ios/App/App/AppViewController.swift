@@ -6,6 +6,7 @@ class AppViewController: CAPBridgeViewController {
         super.capacitorDidLoad()
 
         bridge?.registerPluginInstance(AgeAssurancePlugin())
+        bridge?.registerPluginInstance(DateTimePreferencesPlugin())
         bridge?.registerPluginInstance(GooglePlacePhotoPlugin())
         bridge?.registerPluginInstance(NotificationSettingsPlugin())
     }

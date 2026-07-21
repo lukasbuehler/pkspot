@@ -74,7 +74,8 @@ import {
   eventStatusLabel,
   type EventStatus,
 } from "../event-display/event-display.helpers";
-import { isBot, formatDateRange } from "../../../scripts/Helpers";
+import { isBot } from "../../../scripts/Helpers";
+import { DateTimeFormatService } from "../../services/date-time-format.service";
 
 interface VisibleSeriesTag {
   seriesId: string;
@@ -117,6 +118,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   private _search = inject(SearchService);
   private _platformId = inject(PLATFORM_ID);
   private _locale = inject<LocaleCode>(LOCALE_ID);
+  private readonly _dateTime = inject(DateTimeFormatService);
   readonly mapsApiService = inject(MapsApiService);
 
   private _paramMapSubscription?: Subscription;
@@ -152,7 +154,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly dateRange = computed(() => {
     const event = this.event();
     if (!event) return "";
-    return formatDateRange(event.start, event.end, this._locale, "long");
+    return this._dateTime.formatDateRange(event.start, event.end, "long");
   });
   readonly description = computed(() => {
     const event = this.event();
@@ -192,7 +194,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly startDateTime = computed(() => {
     const event = this.event();
     if (!event) return "";
-    return event.start.toLocaleString(this._locale, {
+    return this._dateTime.format(event.start, {
       dateStyle: "full",
       timeStyle: "short",
     });

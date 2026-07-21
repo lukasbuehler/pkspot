@@ -6,7 +6,7 @@ import {
   OnDestroy,
   signal,
 } from "@angular/core";
-import { DatePipe } from "@angular/common";
+import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import { RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
@@ -36,7 +36,7 @@ type ReportFilter =
 @Component({
   selector: "app-moderation-reports-page",
   imports: [
-    DatePipe,
+    SystemDatePipe,
     RouterLink,
     MatButtonModule,
     MatButtonToggleModule,

@@ -5,7 +5,6 @@ import {
   inject,
   computed,
   signal,
-  LOCALE_ID,
   ChangeDetectionStrategy
 } from "@angular/core";
 import { CommonModule, NgOptimizedImage } from "@angular/common";
@@ -17,6 +16,7 @@ import { AnalyticsService } from "../../services/analytics.service";
 import { SpotRatingComponent } from "../spot-rating/spot-rating.component";
 import { MatRippleModule } from "@angular/material/core";
 import { getGooglePlaceOpeningHoursStatus } from "../../shared/google-place-opening-hours";
+import { DateTimeFormatService } from "../../services/date-time-format.service";
 
 @Component({
   selector: "app-poi-detail",
@@ -40,7 +40,7 @@ export class PoiDetailComponent {
 
   private _maps = inject(MapsApiService);
   private _analytics = inject(AnalyticsService);
-  private _locale: string = inject(LOCALE_ID);
+  private readonly _dateTime = inject(DateTimeFormatService);
 
   photoUrl = computed(() => {
     const p = this.poi().googlePlace;
@@ -132,7 +132,9 @@ export class PoiDetailComponent {
   private openingHoursStatus = computed(() =>
     getGooglePlaceOpeningHoursStatus(
       this.poi().googlePlace?.regularOpeningHours,
-      this._locale,
+      this._dateTime.preferences().locale,
+      new Date(),
+      this._dateTime.preferences().hourCycle,
     ),
   );
 

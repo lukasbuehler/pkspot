@@ -93,7 +93,7 @@
                     <span>{{ report.targetLabel }}</span>
                   </mat-card-title>
                   <mat-card-subtitle>
-                    {{ report.createdAtMillis | date: "medium" }} ·
+                    {{ report.createdAtMillis | systemDate: "medium" }} ·
                     {{ report.reporterLabel }}
                   </mat-card-subtitle>
                 </mat-card-header>

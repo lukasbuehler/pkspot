@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { FunctionsAdapterService } from "../services/firebase/functions-adapter.service";
+import { getWeatherTile } from "./weather-map-tile";
 import { WeatherService } from "./weather.service";
 
 describe("WeatherService", () => {
@@ -176,5 +177,60 @@ describe("WeatherService", () => {
     vi.setSystemTime("2026-07-19T10:46:00Z");
     await service.getCurrentAndNearFutureForTile(tile);
     expect(functions.callAppChecked).toHaveBeenCalledTimes(2);
+  });
+
+  it("canonicalizes nearby points to one zoom-12 weather request", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime("2026-07-21T10:00:00Z");
+    const response = {
+      provider: "google",
+      mode: "current-and-near-future",
+      location: { lat: 47.37, lng: 8.57 },
+      generatedAt: "2026-07-21T10:00:00Z",
+      expiresAt: "2026-07-21T10:45:00Z",
+      insights: {
+        summary: "Dry conditions",
+        precipitationRisk: "none",
+        sunExposure: "low",
+        surfaceDrying: {
+          status: "likely_dry",
+          confidence: "low",
+          factors: [],
+        },
+      },
+    };
+    const functions = {
+      callAppChecked: vi.fn().mockResolvedValue(response),
+    };
+    TestBed.configureTestingModule({
+      providers: [
+        WeatherService,
+        { provide: FunctionsAdapterService, useValue: functions },
+      ],
+    });
+    const location = { lat: 47.3769, lng: 8.5417 };
+    const tile = getWeatherTile(location);
+
+    await TestBed.inject(WeatherService).getCurrentAndNearFutureForTileAt(
+      location,
+    );
+    await TestBed.inject(WeatherService).getCurrentAndNearFutureForTileAt({
+      lat: 47.3775,
+      lng: 8.544,
+    });
+
+    expect(functions.callAppChecked).toHaveBeenCalledOnce();
+    expect(functions.callAppChecked).toHaveBeenCalledWith("getWeather", {
+      mode: "current-and-near-future",
+      location: tile.center,
+      nearFutureHours: 12,
+      languageCode: "en-US",
+      spatialScope: {
+        type: "mercator-tile",
+        zoom: tile.zoom,
+        x: tile.x,
+        y: tile.y,
+      },
+    });
   });
 });

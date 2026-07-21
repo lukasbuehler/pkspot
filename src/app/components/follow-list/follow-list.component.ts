@@ -4,7 +4,6 @@ import {
   computed,
   Inject,
   inject,
-  LOCALE_ID,
   OnInit,
   Pipe,
   PipeTransform,
@@ -40,6 +39,7 @@ import {
   MatRow,
 } from "@angular/material/table";
 import { FollowingService } from "../../services/firebase/firestore/following.service.js";
+import { DateTimeFormatService } from "../../services/date-time-format.service";
 import {
   FollowingDataSchema,
   FollowingSchema,
@@ -64,16 +64,16 @@ export interface FollowListDialogData {
   pure: true,
 })
 export class FollowDurationPipe implements PipeTransform {
-  private _locale = inject(LOCALE_ID);
+  private readonly _dateTime = inject(DateTimeFormatService);
 
   transform(timestamp: Timestamp | any, args?: any): string {
     const data = parseFirestoreTimestamp(timestamp);
     if (!data) {
       return "Unknown";
     }
-    return `${humanTimeSince(data)} (since ${data.toLocaleDateString(
-      this._locale
-    )})`;
+    return `${humanTimeSince(data)} (since ${this._dateTime.format(data, {
+      dateStyle: "short",
+    })})`;
   }
 }
 

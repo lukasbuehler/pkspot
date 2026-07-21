@@ -34,6 +34,7 @@ import {
   getWeatherWarnings,
 } from "../../weather/weather-warnings";
 import { AccountPreferencesService } from "../../services/account-preferences.service";
+import { DateTimeFormatService } from "../../services/date-time-format.service";
 import { formatTemperature } from "../../weather/weather-temperature";
 import { getWeatherAlertDisplay } from "../../weather/weather-alert-display";
 
@@ -99,16 +100,7 @@ export class WeatherForecastDialogComponent {
   private readonly locale = inject(LOCALE_ID);
   private readonly accountPreferences = inject(AccountPreferencesService);
   private readonly response = this.data.response;
-  private readonly timeFormatter = this.createTimeFormatter();
-  private readonly weekdayFormatter = new Intl.DateTimeFormat(this.locale, {
-    weekday: "short",
-    timeZone: "UTC",
-  });
-  private readonly dateFormatter = new Intl.DateTimeFormat(this.locale, {
-    day: "numeric",
-    month: "numeric",
-    timeZone: "UTC",
-  });
+  private readonly dateTime = inject(DateTimeFormatService);
   private readonly relativeTimeFormatter = new Intl.RelativeTimeFormat(
     this.locale,
     { numeric: "always" },
@@ -206,8 +198,15 @@ export class WeatherForecastDialogComponent {
     const condition = point.condition ?? "unknown";
     const date = new Date(`${point.date}T12:00:00Z`);
     return {
-      date: this.dateFormatter.format(date),
-      weekday: this.weekdayFormatter.format(date),
+      date: this.dateTime.format(date, {
+        day: "numeric",
+        month: "numeric",
+        timeZone: "UTC",
+      }),
+      weekday: this.dateTime.format(date, {
+        weekday: "short",
+        timeZone: "UTC",
+      }),
       icon: getWeatherStateIcon(condition),
       condition: WEATHER_STATES[condition].label,
       maxTemperature: this.displayTemperature(point.maxTemperatureC),
@@ -386,7 +385,17 @@ export class WeatherForecastDialogComponent {
   }
 
   private formatTime(value: string): string {
-    return this.timeFormatter.format(new Date(value));
+    const options: Intl.DateTimeFormatOptions = {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: this.response.timeZone,
+    };
+    try {
+      return this.dateTime.format(value, options);
+    } catch {
+      delete options.timeZone;
+      return this.dateTime.format(value, options);
+    }
   }
 
   private displayTemperature(
@@ -404,19 +413,4 @@ export class WeatherForecastDialogComponent {
         );
   }
 
-  private createTimeFormatter(): Intl.DateTimeFormat {
-    const options: Intl.DateTimeFormatOptions = {
-      hour: "2-digit",
-      minute: "2-digit",
-    };
-    if (this.response.timeZone) {
-      options.timeZone = this.response.timeZone;
-    }
-    try {
-      return new Intl.DateTimeFormat(this.locale, options);
-    } catch {
-      delete options.timeZone;
-      return new Intl.DateTimeFormat(this.locale, options);
-    }
-  }
 }

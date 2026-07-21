@@ -19,7 +19,7 @@
         <div class="user-activity__meta">
           <span class="mat-body-large">{{ getActionText(item.edit) }}</span>
           <span class="mat-body-small text-muted">
-            {{ item.formattedTimestamp | date : "mediumDate" }}
+            {{ item.formattedTimestamp | systemDate: "mediumDate" }}
           </span>
         </div>
 

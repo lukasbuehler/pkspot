@@ -6,6 +6,7 @@ import type {
   WeatherResponse,
   WeatherTile,
 } from "./weather.models";
+import { getWeatherTile } from "./weather-map-tile";
 
 @Injectable({
   providedIn: "root",
@@ -55,6 +56,16 @@ export class WeatherService {
           y: tile.y,
         },
       },
+    );
+  }
+
+  getCurrentAndNearFutureForTileAt(
+    location: WeatherLocation,
+    nearFutureHours = 12,
+  ): Promise<WeatherResponse> {
+    return this.getCurrentAndNearFutureForTile(
+      getWeatherTile(location),
+      nearFutureHours,
     );
   }
 

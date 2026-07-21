@@ -4,10 +4,11 @@ import type {
 } from "./weather.models";
 
 const MAX_MERCATOR_LATITUDE = 85.05112878;
+export const WEATHER_TILE_ZOOM = 12;
 
 export function getWeatherTile(
   location: WeatherLocation,
-  zoom = 12,
+  zoom = WEATHER_TILE_ZOOM,
 ): WeatherTile {
   const tileCount = 2 ** zoom;
   const latitude = clamp(

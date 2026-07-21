@@ -26,6 +26,7 @@ public class MainActivity extends BridgeActivity {
     getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
     Log.d(TAG, "onCreate: set SOFT_INPUT_ADJUST_NOTHING before BridgeActivity setup");
     registerPlugin(AgeAssurancePlugin.class);
+    registerPlugin(DateTimePreferencesPlugin.class);
     registerPlugin(NotificationSettingsPlugin.class);
     super.onCreate(savedInstanceState);
     logWebViewStartupDiagnostics();

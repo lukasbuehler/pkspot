@@ -31,7 +31,7 @@ import { MetaTagService } from "../../services/meta-tag.service";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { ActivatedRoute, ParamMap, Router, RouterLink } from "@angular/router";
-import { formatDateRange } from "../../../scripts/Helpers";
+import { DateTimeFormatService } from "../../services/date-time-format.service";
 import { SpotDetailsComponent } from "../spot-details/spot-details.component";
 import { trigger, transition, style, animate } from "@angular/animations";
 import { MatMenuModule } from "@angular/material/menu";
@@ -158,6 +158,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   metaTagService = inject(MetaTagService);
   locale = inject<LocaleCode>(LOCALE_ID);
+  private readonly _dateTime = inject(DateTimeFormatService);
   responsive = inject(ResponsiveService);
   private _spotService = inject(SpotsService);
   private _challengeService = inject(SpotChallengesService);
@@ -563,7 +564,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   }
 
   private _eventDescription(event: PkEvent): string {
-    const range = formatDateRange(event.start, event.end, this.locale);
+    const range = this._dateTime.formatDateRange(event.start, event.end);
 
     return (
       event.description ??
@@ -910,7 +911,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   }
 
   private _formatDateForMeta(date: Date): string {
-    return date.toLocaleDateString(this.locale, { dateStyle: "medium" });
+    return this._dateTime.format(date, { dateStyle: "medium" });
   }
 
   private _isSameDay(a: Date, b: Date): boolean {

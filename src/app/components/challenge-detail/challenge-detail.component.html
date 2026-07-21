@@ -79,16 +79,8 @@
       </p>
       <p class="mat-body-medium mb-0" i18n>
         This challenge will be released on
-        {{
-          challenge()!.releaseDate?.toLocaleDateString(locale, {
-            dateStyle: "medium"
-          })
-        }}, at
-        {{
-          challenge()!.releaseDate?.toLocaleTimeString(locale, {
-            timeStyle: "short"
-          })
-        }}.
+        {{ challenge()!.releaseDate | systemDate: "mediumDate" }}, at
+        {{ challenge()!.releaseDate | systemDate: "shortTime" }}.
       </p>
     </div>
     }

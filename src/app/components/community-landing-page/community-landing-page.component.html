@@ -582,7 +582,7 @@
 
     @if (lastUpdatedDate(); as lastUpdated) {
       <p class="mat-body-small page-updated-text">
-        Source data updated {{ lastUpdated | date: "longDate" }}.
+        Source data updated {{ lastUpdated | systemDate: "longDate" }}.
       </p>
     }
   </div>

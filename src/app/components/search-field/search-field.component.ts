@@ -56,6 +56,7 @@ import {
 import { countries } from "../../../scripts/Countries";
 import { AutocompleteOverlayRepositionDirective } from "../../directives/autocomplete-overlay-reposition.directive";
 import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
+import { DateTimeFormatService } from "../../services/date-time-format.service";
 
 interface SearchSelection {
   type: "place" | "spot" | "community" | "event";
@@ -145,6 +146,7 @@ interface NamedSearchResultLike {
 })
 export class SearchFieldComponent implements OnInit, OnDestroy {
   readonly locale = inject(LOCALE_ID);
+  private readonly dateTime = inject(DateTimeFormatService);
 
   appearance = input<"fill" | "outline">("fill");
   contextLabel = input<string | null>(null);
@@ -654,7 +656,7 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
       // ambiguous "Jul 12" entries.
       const now = new Date();
       const sameYear = d.getFullYear() === now.getFullYear();
-      const formatter = new Intl.DateTimeFormat(this.locale, {
+      const formatter = this.dateTime.formatter({
         month: "short",
         day: "numeric",
         ...(sameYear ? {} : { year: "numeric" }),
