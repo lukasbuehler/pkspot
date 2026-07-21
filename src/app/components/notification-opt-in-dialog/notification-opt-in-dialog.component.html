@@ -9,6 +9,12 @@
     @case ("spot_edit_updates") {
       <span i18n="@@notification_prompt.spot_edit.title">Hear when your Spot edit is reviewed?</span>
     }
+    @case ("report_updates") {
+      <span i18n="@@notification_prompt.report.title">Get updates about your report?</span>
+    }
+    @case ("community_info_updates") {
+      <span i18n="@@notification_prompt.community_info.title">Hear when your community info is reviewed?</span>
+    }
   }
 </h2>
 
@@ -20,6 +26,8 @@
           @case ("event_reminders") { event }
           @case ("follow_activity") { person_add }
           @case ("spot_edit_updates") { edit }
+          @case ("report_updates") { flag }
+          @case ("community_info_updates") { reviews }
         }
       </mat-icon>
     </div>
@@ -38,6 +46,16 @@
         @case ("spot_edit_updates") {
           <p class="mat-body-medium" i18n="@@notification_prompt.spot_edit.body">
             PK Spot can tell you when your submitted Spot edit is approved or rejected.
+          </p>
+        }
+        @case ("report_updates") {
+          <p class="mat-body-medium" i18n="@@notification_prompt.report.body">
+            PK Spot can tell you when your Spot or media report has been reviewed.
+          </p>
+        }
+        @case ("community_info_updates") {
+          <p class="mat-body-medium" i18n="@@notification_prompt.community_info.body">
+            PK Spot can tell you when submitted community information is approved or rejected.
           </p>
         }
       }
@@ -65,6 +83,12 @@
       }
       @case ("spot_edit_updates") {
         <span i18n="@@notification_prompt.spot_edit.accept">Notify me</span>
+      }
+      @case ("report_updates") {
+        <span i18n="@@notification_prompt.report.accept">Notify me</span>
+      }
+      @case ("community_info_updates") {
+        <span i18n="@@notification_prompt.community_info.accept">Notify me</span>
       }
     }
   </button>

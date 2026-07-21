@@ -186,6 +186,7 @@ import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component"
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 import { createUserReference } from "../../../scripts/Helpers";
 import { AnalyticsService } from "../../services/analytics.service";
+import { NotificationOptInService } from "../../services/notification-opt-in.service";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { normalizeSpotSlug } from "../../../scripts/SpotLandingHelpers";
 import {
@@ -340,6 +341,7 @@ export class SpotDetailsComponent
   private _structuredDataService = inject(StructuredDataService);
   private _metaTagService = inject(MetaTagService);
   private _analyticsService = inject(AnalyticsService);
+  private _notificationOptIn = inject(NotificationOptInService);
   private _usersService = inject(UsersService);
   private _organizationsService = inject(OrganizationsService);
   private _ageAssuranceService = inject(AgeAssuranceService);
@@ -2010,6 +2012,7 @@ export class SpotDetailsComponent
               duration: 4000,
             },
           );
+          void this._notificationOptIn.maybePrompt("report_updates");
         },
       );
   }

@@ -18,6 +18,8 @@ describe("NotificationOptInService", () => {
       event_reminders: false,
       event_updates: false,
       spot_edit_updates: false,
+      report_updates: false,
+      community_info_updates: false,
     }),
     hasHandledPrompt: vi.fn(() => false),
     applyPromptDecision: vi.fn(() => Promise.resolve()),
@@ -37,6 +39,8 @@ describe("NotificationOptInService", () => {
       event_reminders: false,
       event_updates: false,
       spot_edit_updates: false,
+      report_updates: false,
+      community_info_updates: false,
     });
     TestBed.configureTestingModule({
       providers: [
@@ -91,5 +95,17 @@ describe("NotificationOptInService", () => {
     await service.maybePrompt("spot_edit_updates");
 
     expect(dialog.open).not.toHaveBeenCalled();
+  });
+
+  it("supports contextual report outcome prompts", async () => {
+    const service = TestBed.inject(NotificationOptInService);
+
+    await service.maybePrompt("report_updates");
+
+    expect(preferences.applyPromptDecision).toHaveBeenCalledWith(
+      "report_updates",
+      "accepted",
+      false,
+    );
   });
 });

@@ -5260,6 +5260,21 @@
         <source>Reporting...</source>
       </segment>
     </unit>
+    <unit id="settings.notifications.community_info_aria">
+      <segment>
+        <source>Community info submission notifications</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.community_info_description">
+      <segment>
+        <source> Know when community information you submitted is approved or rejected. </source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.community_info_heading">
+      <segment>
+        <source>Community info submissions</source>
+      </segment>
+    </unit>
     <unit id="settings.notifications.description">
       <segment>
         <source> Choose which useful updates PK Spot may send you. You stay in control through both these choices and your device settings. </source>
@@ -5353,6 +5368,21 @@
     <unit id="settings.notifications.open_system_settings">
       <segment>
         <source>Open system settings</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.reports_aria">
+      <segment>
+        <source>Report update notifications</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.reports_description">
+      <segment>
+        <source> Know when a Spot or media report you submitted has been reviewed. </source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.reports_heading">
+      <segment>
+        <source>Report updates</source>
       </segment>
     </unit>
     <unit id="settings.notifications.save_error">
@@ -6813,6 +6843,26 @@
         <source>Check-in</source>
       </segment>
     </unit>
+    <unit id="notification_center.community_info.approved_body">
+      <segment>
+        <source>Your community information for <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;community_name&quot;]"/> was approved.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.community_info.approved_title">
+      <segment>
+        <source>Community info approved</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.community_info.rejected_body">
+      <segment>
+        <source>Your community information for <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;community_name&quot;]"/> was rejected.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.community_info.rejected_title">
+      <segment>
+        <source>Community info rejected</source>
+      </segment>
+    </unit>
     <unit id="notification_center.dismiss">
       <segment>
         <source>Dismiss</source>
@@ -6903,6 +6953,26 @@
         <source>Mark all as read</source>
       </segment>
     </unit>
+    <unit id="notification_center.media_report.action_body">
+      <segment>
+        <source>We reviewed your report and took appropriate action.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.media_report.action_title">
+      <segment>
+        <source>Action taken on your media report</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.media_report.reviewed_body">
+      <segment>
+        <source>We reviewed your report and closed it.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.media_report.reviewed_title">
+      <segment>
+        <source>Media report reviewed</source>
+      </segment>
+    </unit>
     <unit id="notification_center.mutual_follower.body">
       <segment>
         <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> followed you back.</source>
@@ -6953,6 +7023,26 @@
         <source>Spot edit rejected</source>
       </segment>
     </unit>
+    <unit id="notification_center.spot_report.action_body">
+      <segment>
+        <source>We reviewed your report about <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;target_name&quot;]"/> and took appropriate action.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.spot_report.action_title">
+      <segment>
+        <source>Action taken on your Spot report</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.spot_report.reviewed_body">
+      <segment>
+        <source>We reviewed your report about <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;target_name&quot;]"/> and closed it.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.spot_report.reviewed_title">
+      <segment>
+        <source>Spot report reviewed</source>
+      </segment>
+    </unit>
     <unit id="notification_center.unread_count">
       <segment>
         <source> <ph id="0" equiv="ICU" disp="{center.unreadCount(), plural, =1 {1 unread} other {{{ center.unreadCount() }} unread}}" subFlows="635385433269490547"/> </source>
@@ -6966,6 +7056,21 @@
     <unit id="notification_center.weather.title">
       <segment>
         <source>Weather update</source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.community_info.accept">
+      <segment>
+        <source>Notify me</source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.community_info.body">
+      <segment>
+        <source> PK Spot can tell you when submitted community information is approved or rejected. </source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.community_info.title">
+      <segment>
+        <source>Hear when your community info is reviewed?</source>
       </segment>
     </unit>
     <unit id="notification_prompt.control">
@@ -7021,6 +7126,21 @@
     <unit id="notification_prompt.open_settings">
       <segment>
         <source>Open settings</source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.report.accept">
+      <segment>
+        <source>Notify me</source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.report.body">
+      <segment>
+        <source> PK Spot can tell you when your Spot or media report has been reviewed. </source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.report.title">
+      <segment>
+        <source>Get updates about your report?</source>
       </segment>
     </unit>
     <unit id="notification_prompt.save_error">

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
   <application
+    android:name=".PKSpotApplication"
     android:allowBackup="true"
     android:icon="@mipmap/ic_launcher"
     android:label="@string/app_name"
@@ -9,7 +10,7 @@
     android:theme="@style/AppTheme">
     <meta-data
       android:name="com.google.firebase.messaging.default_notification_icon"
-      android:resource="@drawable/ic_stat_pkspot" />
+      android:resource="@drawable/ic_stat_pkspot_full" />
     <meta-data
       android:name="com.google.firebase.messaging.default_notification_color"
       android:resource="@color/colorPrimary" />

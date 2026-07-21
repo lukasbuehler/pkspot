@@ -180,4 +180,125 @@ runWithEmulator("notification function integrations", () => {
       }),
     );
   }, timeoutMs);
+
+  it("notifies an authenticated reporter after action on a Spot report", async () => {
+    const reporterId = "spot-report-reporter";
+    const intentId =
+      "spot_report_reported-spot_spot-report-1_action_taken";
+
+    await db.doc("moderation_actions/spot-report-action-1").set({
+      action_type: "keep_warning",
+      source_type: "spot_report",
+      source_path: "spots/reported-spot/reports/spot-report-1",
+      source_snapshot: {
+        spot: { id: "reported-spot", name: "Central Plaza" },
+        user: { uid: reporterId },
+      },
+      target_type: "spot",
+      created_at: admin.firestore.Timestamp.now(),
+      created_by: { uid: "moderator-1" },
+    });
+
+    const intent = await waitForDocument(
+      `notification_intents/${intentId}`,
+      (data) => data["status"] === "pending",
+    );
+    expect(intent).toEqual(
+      expect.objectContaining({
+        recipient_uid: reporterId,
+        type: "spot_report_update",
+        channel_id: "spot_report_updates",
+        path: "/notifications",
+        payload: {
+          outcome: "action_taken",
+          target_name: "Central Plaza",
+        },
+      }),
+    );
+
+    const feedItem = await waitForDocument(
+      `users/${reporterId}/notifications/${intentId}`,
+      (data) => data["active"] === true,
+    );
+    expect(feedItem["type"]).toBe("spot_report_update");
+  }, timeoutMs);
+
+  it("notifies an authenticated reporter when a media report is closed", async () => {
+    const reporterId = "media-report-reporter";
+    const intentId = "media_report_media-report-1_dismissed";
+
+    await db.doc("moderation_actions/media-report-action-1").set({
+      action_type: "close_report",
+      source_type: "media_report",
+      source_path: "media_reports/media-report-1",
+      source_snapshot: {
+        media: { src: "https://example.test/reported.jpg", type: "image" },
+        user: { uid: reporterId },
+      },
+      target_type: "media",
+      created_at: admin.firestore.Timestamp.now(),
+      created_by: { uid: "moderator-1" },
+    });
+
+    const intent = await waitForDocument(
+      `notification_intents/${intentId}`,
+      (data) => data["status"] === "pending",
+    );
+    expect(intent).toEqual(
+      expect.objectContaining({
+        recipient_uid: reporterId,
+        type: "media_report_update",
+        channel_id: "media_report_updates",
+        path: "/notifications",
+        payload: {
+          outcome: "dismissed",
+          target_name: "your reported media",
+        },
+      }),
+    );
+  }, timeoutMs);
+
+  it("notifies a contributor when community information is reviewed", async () => {
+    const contributorId = "community-contributor";
+    const communityKey = "country:ch";
+    const editId = "community-edit-1";
+    const editPath = `community_pages/${communityKey}/edits/${editId}`;
+    const intentId =
+      `community_info_${communityKey}_${editId}_approved`;
+
+    await db.doc(editPath).set({
+      target_type: "community",
+      target_id: communityKey,
+      edit_kind: "knowledge",
+      status: "pending",
+      user: { uid: contributorId },
+      community_display_name: "Switzerland",
+      community_path: "/map/communities/switzerland",
+    });
+    await db.doc(editPath).update({ status: "approved", approved: true });
+
+    const intent = await waitForDocument(
+      `notification_intents/${intentId}`,
+      (data) => data["status"] === "pending",
+    );
+    expect(intent).toEqual(
+      expect.objectContaining({
+        recipient_uid: contributorId,
+        type: "community_info_update",
+        channel_id: "community_info_updates",
+        path: "/map/communities/switzerland",
+        payload: {
+          community_key: communityKey,
+          community_name: "Switzerland",
+          outcome: "approved",
+        },
+      }),
+    );
+
+    const feedItem = await waitForDocument(
+      `users/${contributorId}/notifications/${intentId}`,
+      (data) => data["active"] === true,
+    );
+    expect(feedItem["type"]).toBe("community_info_update");
+  }, timeoutMs);
 });

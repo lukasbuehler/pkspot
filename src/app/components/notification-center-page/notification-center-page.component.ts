@@ -153,6 +153,42 @@ export class NotificationCenterPageComponent {
               : $localize`:@@notification_center.spot_edit.rejected_body:${payload["spot_name"]}:INTERPOLATION: was rejected.`,
           icon: payload["outcome"] === "approved" ? "task_alt" : "cancel",
         };
+      case "spot_report_update":
+        return {
+          title:
+            payload["outcome"] === "action_taken"
+              ? $localize`:@@notification_center.spot_report.action_title:Action taken on your Spot report`
+              : $localize`:@@notification_center.spot_report.reviewed_title:Spot report reviewed`,
+          body:
+            payload["outcome"] === "action_taken"
+              ? $localize`:@@notification_center.spot_report.action_body:We reviewed your report about ${payload["target_name"]}:INTERPOLATION: and took appropriate action.`
+              : $localize`:@@notification_center.spot_report.reviewed_body:We reviewed your report about ${payload["target_name"]}:INTERPOLATION: and closed it.`,
+          icon: "flag",
+        };
+      case "media_report_update":
+        return {
+          title:
+            payload["outcome"] === "action_taken"
+              ? $localize`:@@notification_center.media_report.action_title:Action taken on your media report`
+              : $localize`:@@notification_center.media_report.reviewed_title:Media report reviewed`,
+          body:
+            payload["outcome"] === "action_taken"
+              ? $localize`:@@notification_center.media_report.action_body:We reviewed your report and took appropriate action.`
+              : $localize`:@@notification_center.media_report.reviewed_body:We reviewed your report and closed it.`,
+          icon: "flag",
+        };
+      case "community_info_update":
+        return {
+          title:
+            payload["outcome"] === "approved"
+              ? $localize`:@@notification_center.community_info.approved_title:Community info approved`
+              : $localize`:@@notification_center.community_info.rejected_title:Community info rejected`,
+          body:
+            payload["outcome"] === "approved"
+              ? $localize`:@@notification_center.community_info.approved_body:Your community information for ${payload["community_name"]}:INTERPOLATION: was approved.`
+              : $localize`:@@notification_center.community_info.rejected_body:Your community information for ${payload["community_name"]}:INTERPOLATION: was rejected.`,
+          icon: payload["outcome"] === "approved" ? "task_alt" : "cancel",
+        };
       case "check_in":
         return {
           title: $localize`:@@notification_center.check_in.title:Check-in`,

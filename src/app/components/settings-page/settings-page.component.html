@@ -812,6 +812,40 @@
                 aria-label="Your Spot edit notifications"
               ></mat-slide-toggle>
             </div>
+            <mat-divider></mat-divider>
+            <div class="notification-preference-row">
+              <div>
+                <h3 class="mat-title-medium m-0" i18n="@@settings.notifications.reports_heading">Report updates</h3>
+                <p class="mat-body-small m-0" i18n="@@settings.notifications.reports_description">
+                  Know when a Spot or media report you submitted has been reviewed.
+                </p>
+              </div>
+              <mat-slide-toggle
+                color="primary"
+                [checked]="notificationPreferences.preferences().report_updates"
+                [disabled]="notificationPreferences.loading() || pushNotifications.busy()"
+                (change)="setNotificationPreference('report_updates', $event.checked)"
+                i18n-aria-label="@@settings.notifications.reports_aria"
+                aria-label="Report update notifications"
+              ></mat-slide-toggle>
+            </div>
+            <mat-divider></mat-divider>
+            <div class="notification-preference-row">
+              <div>
+                <h3 class="mat-title-medium m-0" i18n="@@settings.notifications.community_info_heading">Community info submissions</h3>
+                <p class="mat-body-small m-0" i18n="@@settings.notifications.community_info_description">
+                  Know when community information you submitted is approved or rejected.
+                </p>
+              </div>
+              <mat-slide-toggle
+                color="primary"
+                [checked]="notificationPreferences.preferences().community_info_updates"
+                [disabled]="notificationPreferences.loading() || pushNotifications.busy()"
+                (change)="setNotificationPreference('community_info_updates', $event.checked)"
+                i18n-aria-label="@@settings.notifications.community_info_aria"
+                aria-label="Community info submission notifications"
+              ></mat-slide-toggle>
+            </div>
           </div>
           }
         </div>

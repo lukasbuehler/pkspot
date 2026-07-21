@@ -5,6 +5,8 @@ export const NOTIFICATION_PREFERENCE_KEYS = [
   "event_reminders",
   "event_updates",
   "spot_edit_updates",
+  "report_updates",
+  "community_info_updates",
 ] as const;
 
 export type NotificationPreferenceKey =
@@ -15,12 +17,16 @@ export interface NotificationPreferencesSchema {
   event_reminders?: boolean;
   event_updates?: boolean;
   spot_edit_updates?: boolean;
+  report_updates?: boolean;
+  community_info_updates?: boolean;
 }
 
 export const NOTIFICATION_PROMPT_CONTEXTS = [
   "follow_activity",
   "event_reminders",
   "spot_edit_updates",
+  "report_updates",
+  "community_info_updates",
 ] as const;
 
 export type NotificationPromptContext =
@@ -65,6 +71,9 @@ export const NOTIFICATION_INTENT_TYPES = [
   "event_reminder",
   "event_update",
   "spot_edit_update",
+  "spot_report_update",
+  "media_report_update",
+  "community_info_update",
 ] as const;
 
 export type NotificationIntentType =
@@ -101,7 +110,10 @@ export interface NotificationIntentSchema {
     | "follow_relationships"
     | "event_reminders"
     | "event_updates"
-    | "spot_edit_updates";
+    | "spot_edit_updates"
+    | "spot_report_updates"
+    | "media_report_updates"
+    | "community_info_updates";
   payload: Record<string, string>;
   attempts: number;
   created_at: Timestamp;

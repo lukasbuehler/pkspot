@@ -3638,6 +3638,30 @@
         <target>Einchecken</target>
       </segment>
     </unit>
+    <unit id="notification_center.community_info.approved_body">
+      <segment state="initial">
+        <source>Your community information for <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;community_name&quot;]"/> was approved.</source>
+        <target>Deine Community-Information für <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;community_name&quot;]"/> wurde genehmigt.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.community_info.approved_title">
+      <segment state="initial">
+        <source>Community info approved</source>
+        <target>Community-Info genehmigt</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.community_info.rejected_body">
+      <segment state="initial">
+        <source>Your community information for <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;community_name&quot;]"/> was rejected.</source>
+        <target>Deine Community-Information für <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;community_name&quot;]"/> wurde abgelehnt.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.community_info.rejected_title">
+      <segment state="initial">
+        <source>Community info rejected</source>
+        <target>Community-Info abgelehnt</target>
+      </segment>
+    </unit>
     <unit id="notification_center.dismiss">
       <segment state="initial">
         <source>Dismiss</source>
@@ -3746,6 +3770,30 @@
         <target>Alle als gelesen markieren</target>
       </segment>
     </unit>
+    <unit id="notification_center.media_report.action_body">
+      <segment state="initial">
+        <source>We reviewed your report and took appropriate action.</source>
+        <target>Wir haben deine Meldung geprüft und entsprechende Massnahmen ergriffen.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.media_report.action_title">
+      <segment state="initial">
+        <source>Action taken on your media report</source>
+        <target>Massnahmen aufgrund deiner Medienmeldung</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.media_report.reviewed_body">
+      <segment state="initial">
+        <source>We reviewed your report and closed it.</source>
+        <target>Wir haben deine Meldung geprüft und geschlossen.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.media_report.reviewed_title">
+      <segment state="initial">
+        <source>Media report reviewed</source>
+        <target>Medienmeldung geprüft</target>
+      </segment>
+    </unit>
     <unit id="notification_center.mutual_follower.body">
       <segment state="initial">
         <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> followed you back.</source>
@@ -3806,6 +3854,30 @@
         <target>Spot-Bearbeitung abgelehnt</target>
       </segment>
     </unit>
+    <unit id="notification_center.spot_report.action_body">
+      <segment state="initial">
+        <source>We reviewed your report about <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;target_name&quot;]"/> and took appropriate action.</source>
+        <target>Wir haben deine Meldung zu <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;target_name&quot;]"/> geprüft und entsprechende Massnahmen ergriffen.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.spot_report.action_title">
+      <segment state="initial">
+        <source>Action taken on your Spot report</source>
+        <target>Massnahmen aufgrund deiner Spot-Meldung</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.spot_report.reviewed_body">
+      <segment state="initial">
+        <source>We reviewed your report about <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;target_name&quot;]"/> and closed it.</source>
+        <target>Wir haben deine Meldung zu <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;target_name&quot;]"/> geprüft und geschlossen.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.spot_report.reviewed_title">
+      <segment state="initial">
+        <source>Spot report reviewed</source>
+        <target>Spot-Meldung geprüft</target>
+      </segment>
+    </unit>
     <unit id="notification_center.unread_count">
       <segment state="initial">
         <source> <ph id="0" equiv="ICU" disp="{center.unreadCount(), plural, =1 {1 unread} other {{{ center.unreadCount() }} unread}}" subFlows="635385433269490547"/> </source>
@@ -3822,6 +3894,24 @@
       <segment state="initial">
         <source>Weather update</source>
         <target>Wetter-Update</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.community_info.accept">
+      <segment state="initial">
+        <source>Notify me</source>
+        <target>Benachrichtige mich</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.community_info.body">
+      <segment state="initial">
+        <source> PK Spot can tell you when submitted community information is approved or rejected. </source>
+        <target> PK Spot kann dir mitteilen, wenn eingereichte Community-Informationen genehmigt oder abgelehnt wurden. </target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.community_info.title">
+      <segment state="initial">
+        <source>Hear when your community info is reviewed?</source>
+        <target>Möchtest du erfahren, wenn deine Community-Info geprüft wurde?</target>
       </segment>
     </unit>
     <unit id="notification_prompt.control">
@@ -3888,6 +3978,24 @@
       <segment state="initial">
         <source>Open settings</source>
         <target>Einstellungen öffnen</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.report.accept">
+      <segment state="initial">
+        <source>Notify me</source>
+        <target>Benachrichtige mich</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.report.body">
+      <segment state="initial">
+        <source> PK Spot can tell you when your Spot or media report has been reviewed. </source>
+        <target> PK Spot kann dir mitteilen, wenn deine Spot- oder Medienmeldung geprüft wurde. </target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.report.title">
+      <segment state="initial">
+        <source>Get updates about your report?</source>
+        <target>Möchtest du über deine Meldung informiert werden?</target>
       </segment>
     </unit>
     <unit id="notification_prompt.save_error">
@@ -4214,6 +4322,24 @@
         <target>Ihbettigs Ihstellige</target>
       </segment>
     </unit>
+    <unit id="settings.notifications.community_info_aria">
+      <segment state="initial">
+        <source>Community info submission notifications</source>
+        <target>Benachrichtigungen zu eingereichten Community-Infos</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.community_info_description">
+      <segment state="initial">
+        <source> Know when community information you submitted is approved or rejected. </source>
+        <target> Erfahre, wenn von dir eingereichte Community-Informationen genehmigt oder abgelehnt wurden. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.community_info_heading">
+      <segment state="initial">
+        <source>Community info submissions</source>
+        <target>Eingereichte Community-Infos</target>
+      </segment>
+    </unit>
     <unit id="settings.notifications.description">
       <segment state="initial">
         <source> Choose which useful updates PK Spot may send you. You stay in control through both these choices and your device settings. </source>
@@ -4326,6 +4452,24 @@
       <segment state="initial">
         <source>Open system settings</source>
         <target>Systemeinstellungen öffnen</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.reports_aria">
+      <segment state="initial">
+        <source>Report update notifications</source>
+        <target>Benachrichtigungen zu Meldungsaktualisierungen</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.reports_description">
+      <segment state="initial">
+        <source> Know when a Spot or media report you submitted has been reviewed. </source>
+        <target> Erfahre, wenn eine von dir eingereichte Spot- oder Medienmeldung geprüft wurde. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.reports_heading">
+      <segment state="initial">
+        <source>Report updates</source>
+        <target>Meldungsaktualisierungen</target>
       </segment>
     </unit>
     <unit id="settings.notifications.save_error">

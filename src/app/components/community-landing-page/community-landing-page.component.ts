@@ -28,7 +28,7 @@ import {
   MatDialogRef,
 } from "@angular/material/dialog";
 import { ActivatedRoute, RouterLink } from "@angular/router";
-import { map, startWith } from "rxjs/operators";
+import { map, startWith, take } from "rxjs/operators";
 import { SpotListComponent } from "../spot-list/spot-list.component";
 import {
   CommunityLandingPageData as CommunityPanelData,
@@ -58,6 +58,7 @@ import {
   CommunitySearchPreview,
   SearchService,
 } from "../../services/search.service";
+import { NotificationOptInService } from "../../services/notification-opt-in.service";
 
 type CommunityExploreMode = "all" | "dry";
 
@@ -123,6 +124,7 @@ export class CommunityLandingPageComponent {
   private _locale = inject(LOCALE_ID);
   private _analytics = inject(AnalyticsService);
   private _searchService = inject(SearchService);
+  private _notificationOptIn = inject(NotificationOptInService);
 
   communityDataInput = input<CommunityPanelData | null | undefined>(undefined);
   panelMode = input(false);
@@ -513,7 +515,19 @@ export class CommunityLandingPageComponent {
           ),
         );
         this.isEditingKnowledge.set(false);
+        const dialogRef = this._communityKnowledgeDialogRef;
+        dialogRef
+          ?.afterClosed()
+          .pipe(take(1))
+          .subscribe(() => {
+            void this._notificationOptIn.maybePrompt(
+              "community_info_updates",
+            );
+          });
         this._communityKnowledgeDialogRef?.close();
+        if (!dialogRef) {
+          void this._notificationOptIn.maybePrompt("community_info_updates");
+        }
         this._snackbar.open(
           $localize`Community card suggestion submitted for review`,
           undefined,

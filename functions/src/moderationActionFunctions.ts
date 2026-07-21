@@ -357,13 +357,12 @@ export const handleModerationAction = onCall<HandleModerationActionRequest>(
     _assertActionPreconditions(source, actionType);
     const createdBy = await _userSnapshot(uid);
 
-    await _writeAction(source, actionType, createdBy, note);
-
     if (actionType === "delete_spot") {
       if (!source.spotId) {
         throw new HttpsError("invalid-argument", "Spot report path is required.");
       }
       await _deleteSpotCascade(source.spotId);
+      await _writeAction(source, actionType, createdBy, note);
       logger.info("Deleted spot from moderation action", {
         spotId: source.spotId,
         sourcePath,
@@ -374,6 +373,7 @@ export const handleModerationAction = onCall<HandleModerationActionRequest>(
     if (actionType === "delete_media") {
       await _deleteTargetMedia(source);
       await source.sourceRef.delete();
+      await _writeAction(source, actionType, createdBy, note);
       return { ok: true };
     }
 
@@ -388,6 +388,7 @@ export const handleModerationAction = onCall<HandleModerationActionRequest>(
         await _updateTargetMediaFlag(source, true);
       }
       await source.sourceRef.delete();
+      await _writeAction(source, actionType, createdBy, note);
       return { ok: true };
     }
 
@@ -403,6 +404,7 @@ export const handleModerationAction = onCall<HandleModerationActionRequest>(
       } else {
         await source.sourceRef.delete();
       }
+      await _writeAction(source, actionType, createdBy, note);
       return { ok: true };
     }
 
@@ -411,6 +413,7 @@ export const handleModerationAction = onCall<HandleModerationActionRequest>(
       actionType === "delete_contact_message"
     ) {
       await source.sourceRef.delete();
+      await _writeAction(source, actionType, createdBy, note);
       return { ok: true };
     }
 

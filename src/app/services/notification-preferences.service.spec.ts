@@ -42,6 +42,8 @@ describe("NotificationPreferencesService", () => {
       event_reminders: false,
       event_updates: false,
       spot_edit_updates: false,
+      report_updates: false,
+      community_info_updates: false,
     });
   });
 
@@ -74,6 +76,8 @@ describe("NotificationPreferencesService", () => {
         event_reminders: false,
         event_updates: false,
         spot_edit_updates: true,
+        report_updates: false,
+        community_info_updates: false,
       },
     });
   });

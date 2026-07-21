@@ -36,7 +36,8 @@ import { UserReferenceSchema } from "../../db/schemas/UserSchema";
 import { UsersService } from "../services/firebase/firestore/users.service";
 import { MediaReportsService } from "../services/firebase/firestore/media-reports.service";
 import { AuthenticationService } from "../services/firebase/authentication.service";
-import { firstValueFrom } from "rxjs";
+import { firstValueFrom, take } from "rxjs";
+import { NotificationOptInService } from "../services/notification-opt-in.service";
 
 interface MediaReportDialogData {
   media: AnyMedia;
@@ -69,6 +70,7 @@ export class MediaReportDialogComponent implements AfterViewInit {
   private _usersService = inject(UsersService);
   private _mediaReportsService = inject(MediaReportsService);
   private _authService = inject(AuthenticationService);
+  private _notificationOptIn = inject(NotificationOptInService);
   private _fb = inject(FormBuilder);
 
   userReference = signal<UserReferenceSchema | null | undefined>(null);
@@ -168,6 +170,14 @@ export class MediaReportDialogComponent implements AfterViewInit {
       )
       .then(() => {
         console.log("Media report submitted successfully");
+        if (this.isAuthenticated()) {
+          this.dialogRef
+            .afterClosed()
+            .pipe(take(1))
+            .subscribe(() => {
+              void this._notificationOptIn.maybePrompt("report_updates");
+            });
+        }
         this.dialogRef.close(true);
       })
       .catch((error: unknown) => {

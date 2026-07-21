@@ -134,8 +134,12 @@ export {
   onEventRsvpNotificationWrite,
   onFollowRequestNotificationCreate,
   onFollowingNotificationWrite,
+  onCommunityInfoNotificationWrite,
+  onMediaReportNotificationWrite,
+  onModerationActionNotificationCreate,
   onNewFollowerNotificationWrite,
   onNotificationIntentWrite,
+  onSpotReportNotificationWrite,
   onSpotEditNotificationWrite,
   sendDueNotificationIntents,
 } from "./notificationFunctions";

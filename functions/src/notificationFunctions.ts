@@ -1,7 +1,10 @@
 import * as admin from "firebase-admin";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
-import { onDocumentWritten } from "firebase-functions/v2/firestore";
+import {
+  onDocumentCreated,
+  onDocumentWritten,
+} from "firebase-functions/v2/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import type { EventSchema } from "../../src/db/schemas/EventSchema";
 import type { EventRSVPSchema } from "../../src/db/schemas/EventRSVPSchema";
@@ -16,8 +19,14 @@ type IntentChannel =
   | "follow_relationships"
   | "event_reminders"
   | "event_updates"
-  | "spot_edit_updates";
+  | "spot_edit_updates"
+  | "spot_report_updates"
+  | "media_report_updates"
+  | "community_info_updates";
 type SpotEditOutcome = "approved" | "rejected";
+type ReviewOutcome = "approved" | "rejected";
+type ReportOutcome = "action_taken" | "dismissed";
+type ReportKind = "spot" | "media";
 
 interface SpotEditNotificationSource {
   approved?: boolean;
@@ -72,6 +81,9 @@ const PREFERENCE_BY_TYPE: Record<
   event_reminder: "event_reminders",
   event_update: "event_updates",
   spot_edit_update: "spot_edit_updates",
+  spot_report_update: "report_updates",
+  media_report_update: "report_updates",
+  community_info_update: "community_info_updates",
 };
 
 export const onFollowRequestNotificationCreate = onDocumentWritten(
@@ -333,6 +345,114 @@ export const onSpotEditNotificationWrite = onDocumentWritten(
         outcome,
       },
     });
+  },
+);
+
+export const onModerationActionNotificationCreate = onDocumentCreated(
+  "moderation_actions/{actionId}",
+  async (event) => {
+    const action = event.data?.data();
+    const sourceType = action?.["source_type"];
+    const kind: ReportKind | null =
+      sourceType === "spot_report"
+        ? "spot"
+        : sourceType === "media_report"
+          ? "media"
+          : null;
+    if (!kind) return;
+
+    const outcome = reportOutcomeForAction(action?.["action_type"]);
+    const sourcePath = stringValue(action?.["source_path"], "");
+    const source = recordValue(action?.["source_snapshot"]);
+    const reporterUid = stringValue(recordValue(source["user"])["uid"], "");
+    if (!outcome || !sourcePath || !reporterUid) return;
+
+    await createReportIntent(kind, sourcePath, source, reporterUid, outcome);
+  },
+);
+
+export const onSpotReportNotificationWrite = onDocumentWritten(
+  "spots/{spotId}/reports/{reportId}",
+  async (event) => {
+    if (!event.data?.after.exists) return;
+    const before = event.data.before.exists
+      ? recordValue(event.data.before.data())
+      : null;
+    const after = recordValue(event.data.after.data());
+    const outcome = reportOutcomeTransition(before, after);
+    const reporterUid = stringValue(recordValue(after["user"])["uid"], "");
+    if (!outcome || !reporterUid) return;
+
+    await createReportIntent(
+      "spot",
+      event.data.after.ref.path,
+      after,
+      reporterUid,
+      outcome,
+    );
+  },
+);
+
+export const onMediaReportNotificationWrite = onDocumentWritten(
+  "media_reports/{reportId}",
+  async (event) => {
+    if (!event.data?.after.exists) return;
+    const before = event.data.before.exists
+      ? recordValue(event.data.before.data())
+      : null;
+    const after = recordValue(event.data.after.data());
+    const outcome = reportOutcomeTransition(before, after);
+    const reporterUid = stringValue(recordValue(after["user"])["uid"], "");
+    if (!outcome || !reporterUid || after["source"] === "scanner") return;
+
+    await createReportIntent(
+      "media",
+      event.data.after.ref.path,
+      after,
+      reporterUid,
+      outcome,
+    );
+  },
+);
+
+export const onCommunityInfoNotificationWrite = onDocumentWritten(
+  "community_pages/{communityKey}/edits/{editId}",
+  async (event) => {
+    if (!event.data?.after.exists) return;
+    const before = event.data.before.exists
+      ? recordValue(event.data.before.data())
+      : null;
+    const after = recordValue(event.data.after.data());
+    const outcome = reviewOutcomeTransition(before, after);
+    const recipientUid = stringValue(recordValue(after["user"])["uid"], "");
+    if (!outcome || !recipientUid || after["edit_kind"] !== "knowledge") return;
+
+    const communityKey = String(event.params.communityKey);
+    const editId = String(event.params.editId);
+    const communityName = stringValue(
+      after["community_display_name"],
+      "your community info",
+    );
+    await createIntent(
+      `community_info_${communityKey}_${editId}_${outcome}`,
+      {
+        recipientUid,
+        type: "community_info_update",
+        sourcePath: event.data.after.ref.path,
+        sendAfter: Timestamp.now(),
+        expiresAt: Timestamp.fromMillis(Date.now() + 90 * DAY_MS),
+        path: safeAppPath(
+          after["community_path"],
+          `/map/communities/${encodeURIComponent(communityKey)}`,
+        ),
+        channelId: "community_info_updates",
+        payload: {
+          community_key: communityKey,
+          community_name: communityName,
+          outcome,
+        },
+      },
+    );
   },
 );
 
@@ -701,6 +821,12 @@ function deliveryChannel(intent: StoredIntent): IntentChannel {
       return "event_updates";
     case "spot_edit_update":
       return "spot_edit_updates";
+    case "spot_report_update":
+      return "spot_report_updates";
+    case "media_report_update":
+      return "media_report_updates";
+    case "community_info_update":
+      return "community_info_updates";
   }
 }
 
@@ -729,6 +855,22 @@ function notificationCopy(
     if (intent.type === "event_update") {
       return { title: "Event aktualisiert", body: `${p["event_name"]}: ${germanEventChange(p["change"])}.` };
     }
+    if (intent.type === "spot_report_update") {
+      return p["outcome"] === "action_taken"
+        ? { title: "Reaktion auf deine Spot-Meldung", body: `Wir haben deine Meldung zu ${p["target_name"]} geprüft und entsprechend reagiert.` }
+        : { title: "Spot-Meldung geprüft", body: `Wir haben deine Meldung zu ${p["target_name"]} geprüft und geschlossen.` };
+    }
+    if (intent.type === "media_report_update") {
+      return p["outcome"] === "action_taken"
+        ? { title: "Reaktion auf deine Medienmeldung", body: "Wir haben deine Meldung geprüft und entsprechend reagiert." }
+        : { title: "Medienmeldung geprüft", body: "Wir haben deine Meldung geprüft und geschlossen." };
+    }
+    if (intent.type === "community_info_update") {
+      return {
+        title: p["outcome"] === "approved" ? "Community-Info bestätigt" : "Community-Info abgelehnt",
+        body: `Deine Community-Info für ${p["community_name"]} wurde ${p["outcome"] === "approved" ? "bestätigt" : "abgelehnt"}.`,
+      };
+    }
     return {
       title: p["outcome"] === "approved" ? "Spot-Bearbeitung bestätigt" : "Spot-Bearbeitung abgelehnt",
       body: `${p["spot_name"]} wurde ${p["outcome"] === "approved" ? "bestätigt" : "abgelehnt"}.`,
@@ -752,6 +894,22 @@ function notificationCopy(
   }
   if (intent.type === "event_update") {
     return { title: "Event updated", body: `${p["event_name"]}: ${englishEventChange(p["change"])}.` };
+  }
+  if (intent.type === "spot_report_update") {
+    return p["outcome"] === "action_taken"
+      ? { title: "Action taken on your Spot report", body: `We reviewed your report about ${p["target_name"]} and took appropriate action.` }
+      : { title: "Spot report reviewed", body: `We reviewed your report about ${p["target_name"]} and closed it.` };
+  }
+  if (intent.type === "media_report_update") {
+    return p["outcome"] === "action_taken"
+      ? { title: "Action taken on your media report", body: "We reviewed your report and took appropriate action." }
+      : { title: "Media report reviewed", body: "We reviewed your report and closed it." };
+  }
+  if (intent.type === "community_info_update") {
+    return {
+      title: p["outcome"] === "approved" ? "Community info approved" : "Community info rejected",
+      body: `Your community information for ${p["community_name"]} was ${p["outcome"] === "approved" ? "approved" : "rejected"}.`,
+    };
   }
   return {
     title: p["outcome"] === "approved" ? "Spot edit approved" : "Spot edit rejected",
@@ -784,6 +942,82 @@ function spotEditOutcome(
     return "approved";
   }
   return null;
+}
+
+async function createReportIntent(
+  kind: ReportKind,
+  sourcePath: string,
+  source: Record<string, unknown>,
+  recipientUid: string,
+  outcome: ReportOutcome,
+): Promise<void> {
+  const identity = reportIdentity(kind, sourcePath);
+  if (!identity) return;
+
+  const spot = recordValue(source["spot"]);
+  const targetName =
+    kind === "spot"
+      ? displayName(spot["name"], "your reported Spot")
+      : "your reported media";
+  await createIntent(`${identity.intentPrefix}_${outcome}`, {
+    recipientUid,
+    type: kind === "spot" ? "spot_report_update" : "media_report_update",
+    sourcePath,
+    sendAfter: Timestamp.now(),
+    expiresAt: Timestamp.fromMillis(Date.now() + 90 * DAY_MS),
+    path: "/notifications",
+    channelId:
+      kind === "spot" ? "spot_report_updates" : "media_report_updates",
+    payload: {
+      outcome,
+      target_name: targetName,
+    },
+  });
+}
+
+function reportIdentity(
+  kind: ReportKind,
+  sourcePath: string,
+): { intentPrefix: string } | null {
+  if (kind === "spot") {
+    const match = sourcePath.match(/^spots\/([^/]+)\/reports\/([^/]+)$/);
+    return match
+      ? { intentPrefix: `spot_report_${match[1]}_${match[2]}` }
+      : null;
+  }
+  const match = sourcePath.match(/^media_reports\/([^/]+)$/);
+  return match ? { intentPrefix: `media_report_${match[1]}` } : null;
+}
+
+function reportOutcomeForAction(value: unknown): ReportOutcome | null {
+  if (value === "close_report") return "dismissed";
+  return value === "keep_warning" ||
+    value === "delete_media" ||
+    value === "delete_spot"
+    ? "action_taken"
+    : null;
+}
+
+function reportOutcomeTransition(
+  before: Record<string, unknown> | null,
+  after: Record<string, unknown>,
+): ReportOutcome | null {
+  const previous = before?.["status"];
+  const status = after["status"];
+  if (status === previous) return null;
+  if (status === "resolved") return "action_taken";
+  if (status === "dismissed") return "dismissed";
+  return null;
+}
+
+function reviewOutcomeTransition(
+  before: Record<string, unknown> | null,
+  after: Record<string, unknown>,
+): ReviewOutcome | null {
+  const previous = before?.["status"];
+  const status = after["status"];
+  if (status === previous) return null;
+  return status === "approved" || status === "rejected" ? status : null;
 }
 
 function eventReminderIntentId(eventId: string, userId: string): string {
@@ -824,6 +1058,20 @@ function sameTimestamp(left: unknown, right: unknown): boolean {
 function stringValue(value: unknown, fallback: string): string {
   return typeof value === "string" && value.trim().length > 0
     ? value.trim()
+    : fallback;
+}
+
+function recordValue(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object"
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function safeAppPath(value: unknown, fallback: string): string {
+  return typeof value === "string" &&
+    value.startsWith("/") &&
+    !value.startsWith("//")
+    ? value
     : fallback;
 }
 

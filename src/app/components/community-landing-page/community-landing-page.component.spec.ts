@@ -18,6 +18,7 @@ import { MapsApiService } from "../../services/maps-api.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { SearchService } from "../../services/search.service";
 import { CommunityEditsService } from "../../services/firebase/firestore/community-edits.service";
+import { NotificationOptInService } from "../../services/notification-opt-in.service";
 
 const communityData: CommunityLandingPageData = {
   communityKey: "country:ch",
@@ -69,6 +70,7 @@ describe("CommunityLandingPageComponent", () => {
   let getCommunityPrivateInfoCards: ReturnType<typeof vi.fn>;
   let saveKnowledgeCards: ReturnType<typeof vi.fn>;
   let submitKnowledgeSuggestion: ReturnType<typeof vi.fn>;
+  let maybePrompt: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     isAdmin = signal(false);
@@ -76,6 +78,7 @@ describe("CommunityLandingPageComponent", () => {
     getCommunityPrivateInfoCards = vi.fn().mockResolvedValue([]);
     saveKnowledgeCards = vi.fn().mockResolvedValue("edit-1");
     submitKnowledgeSuggestion = vi.fn().mockResolvedValue("suggestion-1");
+    maybePrompt = vi.fn().mockResolvedValue(undefined);
     await TestBed.configureTestingModule({
       imports: [CommunityLandingPageComponent],
       providers: [
@@ -120,6 +123,10 @@ describe("CommunityLandingPageComponent", () => {
         {
           provide: CommunityEditsService,
           useValue: { submitKnowledgeSuggestion, saveKnowledgeCards },
+        },
+        {
+          provide: NotificationOptInService,
+          useValue: { maybePrompt },
         },
         {
           provide: MatSnackBar,
@@ -586,6 +593,7 @@ describe("CommunityLandingPageComponent", () => {
       },
     });
     expect(saveKnowledgeCards).not.toHaveBeenCalled();
+    expect(maybePrompt).toHaveBeenCalledWith("community_info_updates");
   });
 
   it("records admin knowledge changes through the community edit service", async () => {

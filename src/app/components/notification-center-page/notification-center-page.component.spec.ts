@@ -118,4 +118,47 @@ describe("NotificationCenterPageComponent", () => {
       "Noah followed you back.",
     );
   });
+
+  it("renders report and community review outcomes", () => {
+    const now = Date.now();
+    items.set([
+      {
+        id: "spot-report-1",
+        type: "spot_report_update",
+        source_path: "spots/spot-1/reports/report-1",
+        dedupe_key: "spot-report-1",
+        path: "/notifications",
+        payload: { target_name: "Central Plaza", outcome: "action_taken" },
+        active: true,
+        created_at_raw_ms: now,
+        available_at_raw_ms: now,
+        expires_at_raw_ms: now + 86_400_000,
+        updated_at_raw_ms: now,
+      },
+      {
+        id: "community-info-1",
+        type: "community_info_update",
+        source_path: "community_pages/zurich/edits/edit-1",
+        dedupe_key: "community-info-1",
+        path: "/map/communities/zurich",
+        payload: { community_name: "Zurich", outcome: "rejected" },
+        active: true,
+        created_at_raw_ms: now,
+        available_at_raw_ms: now,
+        expires_at_raw_ms: now + 86_400_000,
+        updated_at_raw_ms: now,
+      },
+    ]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain(
+      "We reviewed your report about Central Plaza and took appropriate action.",
+    );
+    expect(fixture.nativeElement.textContent).toContain(
+      "Community info rejected",
+    );
+    expect(fixture.nativeElement.textContent).toContain(
+      "Your community information for Zurich was rejected.",
+    );
+  });
 });
