@@ -341,6 +341,9 @@ export class GoogleMap2dComponent
   showSpotPreview = input<boolean>(false);
   showAllHighlightedSpotPins = input<boolean>(false);
   isEditing = input<boolean>(false);
+  readonly gestureHandling = input<
+    NonNullable<google.maps.MapOptions["gestureHandling"]>
+  >("greedy");
 
   headingIsNotNorth = signal<boolean>(false);
 
@@ -1978,6 +1981,7 @@ export class GoogleMap2dComponent
     const desiredMapTypeId = this.mapTypeId();
     const nextOptions: google.maps.MapOptions = {
       ...this.mapOptions,
+      gestureHandling: this.gestureHandling(),
       mapTypeId: desiredMapTypeId,
     };
     const vectorRenderingType = this._getVectorRenderingType();
@@ -2172,6 +2176,12 @@ export class GoogleMap2dComponent
 
     if (changes["showGeolocation"]) {
       this._ensurePassiveGeolocationWatch();
+    }
+
+    if (changes["gestureHandling"] && this.googleMap?.googleMap) {
+      this.googleMap.googleMap.setOptions({
+        gestureHandling: this.gestureHandling(),
+      });
     }
 
     if (changes["isDebug"]) {

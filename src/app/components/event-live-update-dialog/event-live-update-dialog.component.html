@@ -1,0 +1,87 @@
+<h2 mat-dialog-title i18n>Publish live event update</h2>
+
+<mat-dialog-content>
+  @if (!previewing()) {
+    <form id="live-update-form" (submit)="showPreview(); $event.preventDefault()">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label i18n>Update type</mat-label>
+        <mat-select
+          [value]="formModel().type"
+          (selectionChange)="updateTypeChanged($event.value)"
+        >
+          @for (option of updateTypeOptions; track option.type) {
+            <mat-option [value]="option.type">{{ option.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label i18n>Short title</mat-label>
+        <input matInput [formField]="updateForm.title" />
+        <mat-hint align="end">{{ formModel().title.length }}/{{ titleMaxLength }}</mat-hint>
+        @if (updateForm.title().invalid() && updateForm.title().touched()) {
+          <mat-error i18n>Add a short title of up to 80 characters.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label i18n>Short message (optional)</mat-label>
+        <textarea
+          matInput
+          [formField]="updateForm.message"
+          rows="3"
+        ></textarea>
+        <mat-hint align="end">
+          {{ formModel().message.length }}/{{ messageMaxLength }}
+        </mat-hint>
+        @if (updateForm.message().invalid() && updateForm.message().touched()) {
+          <mat-error i18n>Use no more than 280 characters.</mat-error>
+        }
+      </mat-form-field>
+
+      <div class="form-grid">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label i18n>Time (optional)</mat-label>
+          <input matInput type="datetime-local" [formField]="updateForm.scheduledFor" />
+        </mat-form-field>
+        @if (event.inlineSpots.length > 0 || event.spotIds.length > 0) {
+          <app-event-spot-select
+            [spotIds]="event.spotIds"
+            [inlineSpots]="event.inlineSpots"
+            [valueId]="formModel().eventSpotId"
+            [disabled]="publishing()"
+            (selectionChange)="eventSpotChanged($event)"
+          ></app-event-spot-select>
+        }
+      </div>
+    </form>
+  } @else {
+    <section class="confirmation-preview" aria-label="Notification preview" i18n-aria-label>
+      <span class="preview-label" i18n>Notification preview</span>
+      <h3>{{ event.name }}</h3>
+      <p><strong>{{ updateTypeLabel(formModel().type) }}</strong></p>
+      <p>{{ formModel().title }}</p>
+      @if (formModel().message) {
+        <p>{{ formModel().message }}</p>
+      }
+      <p class="recipient-warning" i18n>
+        People subscribed to this event will receive a live notification.
+      </p>
+    </section>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @if (previewing()) {
+    <button mat-button type="button" (click)="previewing.set(false)" i18n>Back</button>
+    <button mat-flat-button type="button" [disabled]="publishing()" (click)="publishUpdate()">
+      @if (publishing()) {
+        <mat-spinner diameter="20"></mat-spinner>
+      }
+      <span i18n>Publish update</span>
+    </button>
+  } @else {
+    <button mat-button type="button" mat-dialog-close i18n>Cancel</button>
+    <button mat-flat-button type="submit" form="live-update-form" i18n>Preview notification</button>
+  }
+</mat-dialog-actions>

@@ -14,6 +14,15 @@ export type EventLiveUpdateType = (typeof EVENT_LIVE_UPDATE_TYPES)[number];
 export const EVENT_LIVE_UPDATE_TITLE_MAX_LENGTH = 80;
 export const EVENT_LIVE_UPDATE_MESSAGE_MAX_LENGTH = 280;
 
+export const EVENT_NOTIFICATION_LEVELS = [
+  "all",
+  "event_updates",
+  "reminders",
+  "none",
+] as const;
+
+export type EventNotificationLevel = (typeof EVENT_NOTIFICATION_LEVELS)[number];
+
 export interface EventLiveUpdateSchema {
   event_id: string;
   type: EventLiveUpdateType;
@@ -30,6 +39,7 @@ export interface EventLiveUpdateSchema {
 export interface EventLiveUpdateSubscriberSchema {
   user_id: string;
   active: boolean;
+  event_reminders?: boolean;
   subscribed_at: Timestamp;
   updated_at: Timestamp;
 }

@@ -46,11 +46,6 @@
         <source>Settings</source>
       </segment>
     </unit>
-    <unit id="4255249104043141783">
-      <segment>
-        <source>Get live updates from this event</source>
-      </segment>
-    </unit>
     <unit id="4262052603921665097">
       <segment>
         <source>Failed to load moderation dashboard</source>
@@ -240,6 +235,11 @@
     <unit id="2551128161531504907">
       <segment>
         <source> The <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary&quot;&gt;" dispEnd="&lt;/span &gt;">spot</pc> for everything parkour<pc id="1" equivStart="START_TAG_SPAN_1" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot; &gt;" dispEnd="&lt;/span &gt;">.</pc></source>
+      </segment>
+    </unit>
+    <unit id="2565034996218294740">
+      <segment>
+        <source>Map Spots</source>
       </segment>
     </unit>
     <unit id="2599075381042572471">
@@ -662,11 +662,6 @@
         <source>Unknown Action</source>
       </segment>
     </unit>
-    <unit id="7663580306829928382">
-      <segment>
-        <source>Get live updates</source>
-      </segment>
-    </unit>
     <unit id="7672282077901429954">
       <segment>
         <source>Error, there was a problem signing out!</source>
@@ -916,14 +911,19 @@
         <source>An error occurred. Please try again or request a new link.</source>
       </segment>
     </unit>
+    <unit id="2019601691309455666">
+      <segment>
+        <source>Event Notifications</source>
+      </segment>
+    </unit>
     <unit id="4771468580618188841">
       <segment>
         <source>Beginner friendly</source>
       </segment>
     </unit>
-    <unit id="4793578167277073505">
+    <unit id="223926157815127218">
       <segment>
-        <source>Live event updates</source>
+        <source> Live event updates </source>
       </segment>
     </unit>
     <unit id="7053728652419731548">
@@ -971,9 +971,9 @@
         <source>Keep warning</source>
       </segment>
     </unit>
-    <unit id="7411079630980671267">
+    <unit id="2417459620118538314">
       <segment>
-        <source>This event has ended</source>
+        <source>Could not update event notifications. Please try again.</source>
       </segment>
     </unit>
     <unit id="2472016265373616532">
@@ -1059,6 +1059,11 @@
     <unit id="3250391385569692601">
       <segment>
         <source>Media</source>
+      </segment>
+    </unit>
+    <unit id="5439680339974485805">
+      <segment>
+        <source>Publish live event update</source>
       </segment>
     </unit>
     <unit id="5442876463654189578">
@@ -1177,6 +1182,11 @@
     <unit id="3828438401203209618">
       <segment>
         <source>Current weather details</source>
+      </segment>
+    </unit>
+    <unit id="3837011087922351865">
+      <segment>
+        <source>Only Event Updates</source>
       </segment>
     </unit>
     <unit id="7801350351736394974">
@@ -1375,7 +1385,7 @@
     </unit>
     <unit id="community.info_disclosure_classes">
       <segment>
-        <source>Classes or coaching</source>
+        <source>Classes and coaching</source>
       </segment>
     </unit>
     <unit id="community.info_disclosure_paid">
@@ -1956,6 +1966,11 @@
         <source>Smart Scorecard</source>
       </segment>
     </unit>
+    <unit id="576032629082435529">
+      <segment>
+        <source>Publish live update</source>
+      </segment>
+    </unit>
     <unit id="8972434095994344487">
       <segment>
         <source>Community card rejected</source>
@@ -1964,11 +1979,6 @@
     <unit id="8974613806156505921">
       <segment>
         <source>No live updates have been published yet.</source>
-      </segment>
-    </unit>
-    <unit id="8978285646707515154">
-      <segment>
-        <source> Organizers may send schedule, location, weather, and meet-up updates. </source>
       </segment>
     </unit>
     <unit id="8981724482694536509">
@@ -2729,7 +2739,12 @@
     </unit>
     <unit id="event_edit.organizer_hint">
       <segment>
-        <source> Admin-only. Select an existing organization. </source>
+        <source> Admin-only. Select an organization or enter its name. </source>
+      </segment>
+    </unit>
+    <unit id="event_info.organized_by">
+      <segment>
+        <source>Organized by</source>
       </segment>
     </unit>
     <unit id="event_edit.published">
@@ -3402,29 +3417,9 @@
         <source>Remove program item</source>
       </segment>
     </unit>
-    <unit id="event_edit.program_item_spot_id">
-      <segment>
-        <source> Spot id </source>
-      </segment>
-    </unit>
-    <unit id="event_edit.program_item_spot_inline">
-      <segment>
-        <source>Inline spot</source>
-      </segment>
-    </unit>
     <unit id="event_edit.program_item_spot_kind">
       <segment>
-        <source> Spot target </source>
-      </segment>
-    </unit>
-    <unit id="event_edit.program_item_spot_none">
-      <segment>
-        <source>None</source>
-      </segment>
-    </unit>
-    <unit id="event_edit.program_item_spot_real">
-      <segment>
-        <source>Spot</source>
+        <source>Spot target</source>
       </segment>
     </unit>
     <unit id="event_edit.program_item_start">
@@ -4063,6 +4058,11 @@
     <unit id="1118027788072351320">
       <segment>
         <source>Sending...</source>
+      </segment>
+    </unit>
+    <unit id="112320089253340391">
+      <segment>
+        <source>Temporary event Spots</source>
       </segment>
     </unit>
     <unit id="1636934520301910285">
@@ -4966,11 +4966,6 @@
         <source>Unnamed Spot</source>
       </segment>
     </unit>
-    <unit id="3344632090178218160">
-      <segment>
-        <source>In-app updates work here. Push notifications require a supported device and notification permission.</source>
-      </segment>
-    </unit>
     <unit id="3368417786821334758">
       <segment>
         <source>Abort</source>
@@ -5190,11 +5185,6 @@
         <source> Manage your account settings including email, password, and account deletion. </source>
       </segment>
     </unit>
-    <unit id="6814210910387388110">
-      <segment>
-        <source>Could not enable live updates. Please try again.</source>
-      </segment>
-    </unit>
     <unit id="6815507474406960450">
       <segment>
         <source>E-Mail address</source>
@@ -5213,6 +5203,11 @@
     <unit id="5014960004929658159">
       <segment>
         <source>Verified</source>
+      </segment>
+    </unit>
+    <unit id="502158499401780267">
+      <segment>
+        <source>Use no more than 280 characters.</source>
       </segment>
     </unit>
     <unit id="5028777105388019087">
@@ -5258,11 +5253,6 @@
     <unit id="574237115855339547">
       <segment>
         <source>Change E-mail address</source>
-      </segment>
-    </unit>
-    <unit id="1402668345340835564">
-      <segment>
-        <source>Recent updates</source>
       </segment>
     </unit>
     <unit id="1431416938026210429">
@@ -5353,11 +5343,6 @@
     <unit id="5492320356892382782">
       <segment>
         <source>Permanently delete</source>
-      </segment>
-    </unit>
-    <unit id="5493359222682689303">
-      <segment>
-        <source>Past live updates remain available below, but new updates are closed.</source>
       </segment>
     </unit>
     <unit id="1347241542439262355">
@@ -5600,11 +5585,6 @@
         <source>Please fill in all fields</source>
       </segment>
     </unit>
-    <unit id="2158118345719291849">
-      <segment>
-        <source>Confirm live notification</source>
-      </segment>
-    </unit>
     <unit id="8015743935724181617">
       <segment>
         <source> Built and maintained by volunteers from the Parkour community. </source>
@@ -5620,9 +5600,9 @@
         <source>Awaiting organization review</source>
       </segment>
     </unit>
-    <unit id="8072702942015533461">
+    <unit id="805182578389935261">
       <segment>
-        <source>Turn off updates</source>
+        <source>Latest information from <ph id="0" equiv="INTERPOLATION" disp="{{ event().organizer?.organization?.name ?? event().name }}"/>.</source>
       </segment>
     </unit>
     <unit id="8334401359656001773">
@@ -5694,11 +5674,6 @@
         <source>Password must be at least 6 characters</source>
       </segment>
     </unit>
-    <unit id="9068739507702057346">
-      <segment>
-        <source>Live updates enabled</source>
-      </segment>
-    </unit>
     <unit id="9068926282349592226">
       <segment>
         <source>Password changed successfully</source>
@@ -5759,14 +5734,14 @@
         <source>Block</source>
       </segment>
     </unit>
+    <unit id="4228840569239247673">
+      <segment>
+        <source>Only Reminders</source>
+      </segment>
+    </unit>
     <unit id="4234811560247297731">
       <segment>
         <source>Media reports</source>
-      </segment>
-    </unit>
-    <unit id="4243604211025418923">
-      <segment>
-        <source>Your account keeps this event preference synced and prevents unwanted notifications.</source>
       </segment>
     </unit>
     <unit id="aboutHeroSubtitle">
@@ -6113,11 +6088,6 @@
     <unit id="3297238960219201653">
       <segment>
         <source>About you</source>
-      </segment>
-    </unit>
-    <unit id="4101287187769863724">
-      <segment>
-        <source>New organizer updates can also appear as device notifications.</source>
       </segment>
     </unit>
     <unit id="4106902315329542244">
@@ -6890,11 +6860,6 @@
         <source>Added media</source>
       </segment>
     </unit>
-    <unit id="8472114642828955051">
-      <segment>
-        <source>Updates may include schedule changes, Spot switches, weather changes, and organizer announcements.</source>
-      </segment>
-    </unit>
     <unit id="8473658733830175441">
       <segment>
         <source> Newest changes first. Each entry shows exactly what was edited. </source>
@@ -6925,6 +6890,11 @@
         <source>Contact messages</source>
       </segment>
     </unit>
+    <unit id="2772374745622574688">
+      <segment>
+        <source>Edit event</source>
+      </segment>
+    </unit>
     <unit id="2781971407154812080">
       <segment>
         <source>Unlinked Google Place</source>
@@ -6933,6 +6903,11 @@
     <unit id="2788894705152239347">
       <segment>
         <source> This location on Google Maps® </source>
+      </segment>
+    </unit>
+    <unit id="8876716314997684812">
+      <segment>
+        <source>Event management</source>
       </segment>
     </unit>
     <unit id="8882370377359593676">
@@ -6975,11 +6950,6 @@
         <source> Choose how follows work and who should see expanded profile details as profile sections grow. </source>
       </segment>
     </unit>
-    <unit id="4601436343051022992">
-      <segment>
-        <source>In-app updates are enabled. Push notifications are blocked in device settings.</source>
-      </segment>
-    </unit>
     <unit id="4608107035538313233">
       <segment>
         <source>Event info</source>
@@ -7003,6 +6973,11 @@
     <unit id="6251586038459969294">
       <segment>
         <source>Both</source>
+      </segment>
+    </unit>
+    <unit id="6252070156626006029">
+      <segment>
+        <source>None</source>
       </segment>
     </unit>
     <unit id="regular_spots_text">
@@ -7378,11 +7353,6 @@
         <source>Dismiss</source>
       </segment>
     </unit>
-    <unit id="1550842214379660718">
-      <segment>
-        <source>Sign in to get live updates</source>
-      </segment>
-    </unit>
     <unit id="6957965842552679691">
       <segment>
         <source>Error saving spot</source>
@@ -7508,11 +7478,6 @@
         <source> Sign out </source>
       </segment>
     </unit>
-    <unit id="594233643210838773">
-      <segment>
-        <source>In-app updates are enabled. Push notifications are not supported on this browser or device.</source>
-      </segment>
-    </unit>
     <unit id="5945359866777111462">
       <segment>
         <source> Report </source>
@@ -7557,11 +7522,6 @@
     <unit id="7536618650694716867">
       <segment>
         <source> Find answers to common questions or reach out to us directly. </source>
-      </segment>
-    </unit>
-    <unit id="7552927378468859845">
-      <segment>
-        <source>Publish organizer update</source>
       </segment>
     </unit>
     <unit id="641716500460785755">
@@ -7659,9 +7619,9 @@
         <source>About PK Spot</source>
       </segment>
     </unit>
-    <unit id="552971513644813992">
+    <unit id="528729202947764595">
       <segment>
-        <source>Live updates could not be loaded.</source>
+        <source> Live updates could not be loaded. </source>
       </segment>
     </unit>
     <unit id="8439955599488894226">
@@ -8117,6 +8077,11 @@
         <source>Please select the reason for this report:</source>
       </segment>
     </unit>
+    <unit id="3292760121831436112">
+      <segment>
+        <source>Add a short title of up to 80 characters.</source>
+      </segment>
+    </unit>
     <unit id="3294546743782337747">
       <segment>
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Not relevant: This media does not belong here or is misleading.</pc></source>
@@ -8283,9 +8248,9 @@
         <source>Challenge at <ph id="0" equiv="PH" disp="spotName"/></source>
       </segment>
     </unit>
-    <unit id="6112236680555852224">
+    <unit id="3942730300546294278">
       <segment>
-        <source>People subscribed to this event will receive a live notification.</source>
+        <source> People subscribed to this event will receive a live notification. </source>
       </segment>
     </unit>
     <unit id="6113189419449428585">
@@ -8333,6 +8298,11 @@
         <source>Failed to queue community merge</source>
       </segment>
     </unit>
+    <unit id="6588223759870524689">
+      <segment>
+        <source>Your event options</source>
+      </segment>
+    </unit>
     <unit id="6598126152282792001">
       <segment>
         <source>Unnamed Toilet</source>
@@ -8346,6 +8316,11 @@
     <unit id="1096271480010782204">
       <segment>
         <source>Founder</source>
+      </segment>
+    </unit>
+    <unit id="4301485018531590690">
+      <segment>
+        <source>Event notification preference</source>
       </segment>
     </unit>
     <unit id="4320994550381609480">
@@ -8421,6 +8396,11 @@
     <unit id="3268843240047650795">
       <segment>
         <source>Trailblazer</source>
+      </segment>
+    </unit>
+    <unit id="3269624145102222845">
+      <segment>
+        <source>Loading event Spots…</source>
       </segment>
     </unit>
     <unit id="7224722019363844519">
@@ -8802,11 +8782,6 @@
         <source>Core</source>
       </segment>
     </unit>
-    <unit id="3991385999188585824">
-      <segment>
-        <source>Check the title and message length.</source>
-      </segment>
-    </unit>
     <unit id="3998090677451328461">
       <segment>
         <source>This is a sketchy or mental challenge that requires physical and emotional control</source>
@@ -8842,11 +8817,6 @@
         <source>This challenge is for fun! </source>
       </segment>
     </unit>
-    <unit id="5110610567894331859">
-      <segment>
-        <source>Live update preferences could not be loaded or saved.</source>
-      </segment>
-    </unit>
     <unit id="5111811857121425885">
       <segment>
         <source>Pending community vote (iconic spot)</source>
@@ -8869,11 +8839,6 @@
     <unit id="2369409944839137310">
       <segment>
         <source>A core challenge of this spot. An essential challenge for anyone seeking to master this spot.</source>
-      </segment>
-    </unit>
-    <unit id="3901905864121453020">
-      <segment>
-        <source>Could not turn off live updates. Please try again.</source>
       </segment>
     </unit>
     <unit id="3909136360386442402">
@@ -9671,7 +9636,7 @@
     </unit>
     <unit id="community.editor_disclosure_classes">
       <segment>
-        <source>Classes or coaching</source>
+        <source>Classes and coaching</source>
       </segment>
     </unit>
     <unit id="community.editor_disclosure_classes_description">

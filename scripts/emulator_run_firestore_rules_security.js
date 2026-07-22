@@ -1403,6 +1403,18 @@ async function testEventLiveUpdateGuards(anon, owner, other, adminUser) {
       updated_at: Timestamp.now(),
     })
   );
+  await assertAllowed("user keeps only reminders for their event", () =>
+    updateDoc(doc(owner.db, subscriptionPath), {
+      event_reminders: true,
+      updated_at: Timestamp.now(),
+    })
+  );
+  await assertDenied("event reminder preference must be boolean", () =>
+    updateDoc(doc(owner.db, subscriptionPath), {
+      event_reminders: "yes",
+      updated_at: Timestamp.now(),
+    })
+  );
   await assertDenied("user cannot subscribe another attendee", () =>
     setDoc(doc(owner.db, "events/event-1/live_update_subscribers/other"), {
       user_id: "other",

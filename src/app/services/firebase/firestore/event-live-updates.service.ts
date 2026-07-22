@@ -6,6 +6,7 @@ import { EventLiveUpdate } from "../../../../db/models/EventLiveUpdate";
 import type {
   EventLiveUpdateSchema,
   EventLiveUpdateSubscriberSchema,
+  EventNotificationLevel,
   PublishEventLiveUpdateRequest,
   PublishEventLiveUpdateResponse,
 } from "../../../../db/schemas/EventLiveUpdateSchema";
@@ -42,14 +43,41 @@ export class EventLiveUpdatesService {
   }
 
   observeSubscription(eventId: string, userId: string): Observable<boolean> {
+    return this.observeNotificationLevel(eventId, userId).pipe(
+      map((level) => level === "all" || level === "event_updates"),
+    );
+  }
+
+  observeNotificationLevel(
+    eventId: string,
+    userId: string,
+  ): Observable<EventNotificationLevel | null> {
     return this.firestore
       .documentSnapshots<EventLiveUpdateSubscriberSchema>(
         `events/${eventId}/live_update_subscribers/${userId}`,
       )
-      .pipe(map((subscription) => subscription?.active === true));
+      .pipe(
+        map((subscription) => {
+          if (!subscription) return null;
+          const updates = subscription.active === true;
+          const reminders =
+            subscription.event_reminders ?? subscription.active === true;
+          if (updates && reminders) return "all";
+          if (updates) return "event_updates";
+          if (reminders) return "reminders";
+          return "none";
+        }),
+      );
   }
 
   async setSubscription(eventId: string, active: boolean): Promise<void> {
+    await this.setNotificationLevel(eventId, active ? "event_updates" : "none");
+  }
+
+  async setNotificationLevel(
+    eventId: string,
+    level: EventNotificationLevel,
+  ): Promise<void> {
     const userId = this.auth.user.uid;
     if (!userId) throw new Error("Sign in before changing live updates.");
 
@@ -61,7 +89,8 @@ export class EventLiveUpdatesService {
       path,
       {
         user_id: userId,
-        active,
+        active: level === "all" || level === "event_updates",
+        event_reminders: level === "all" || level === "reminders",
         subscribed_at: existing?.subscribed_at ?? now,
         updated_at: now,
       },

@@ -254,7 +254,7 @@
           }
         </mat-autocomplete>
         <mat-hint i18n="@@event_edit.organizer_hint">
-          Admin-only. Select an existing organization.
+          Admin-only. Select an organization or enter its name.
         </mat-hint>
       </mat-form-field>
 
@@ -1439,30 +1439,16 @@
                             (input)="updateProgramItem(plan.id, item.id, { description: $any($event.target).value })"
                           ></textarea>
                         </mat-form-field>
-                        <mat-form-field appearance="outline">
-                          <mat-label i18n="@@event_edit.program_item_spot_kind">
-                            Spot target
-                          </mat-label>
-                          <mat-select
-                            [value]="item.spotRefKind"
-                            (selectionChange)="updateProgramSpotRefKind(plan.id, item.id, $event.value)"
-                          >
-                            <mat-option value="" i18n="@@event_edit.program_item_spot_none">None</mat-option>
-                            <mat-option value="spot" i18n="@@event_edit.program_item_spot_real">Spot</mat-option>
-                            <mat-option value="inline_spot" i18n="@@event_edit.program_item_spot_inline">Inline spot</mat-option>
-                          </mat-select>
-                        </mat-form-field>
-                        <mat-form-field appearance="outline">
-                          <mat-label i18n="@@event_edit.program_item_spot_id">
-                            Spot id
-                          </mat-label>
-                          <input
-                            matInput
-                            [value]="item.spotRefId"
-                            [disabled]="!item.spotRefKind"
-                            (input)="updateProgramItem(plan.id, item.id, { spotRefId: $any($event.target).value })"
-                          />
-                        </mat-form-field>
+                        <app-event-spot-select
+                          label="Spot target"
+                          i18n-label="@@event_edit.program_item_spot_kind"
+                          [spotIds]="spotIds()"
+                          [inlineSpots]="selectableInlineSpots()"
+                          [valueId]="item.spotRefId"
+                          [valueKind]="item.spotRefKind"
+                          [disabled]="saving()"
+                          (selectionChange)="updateProgramSpotSelection(plan.id, item.id, $event)"
+                        ></app-event-spot-select>
                         <mat-form-field appearance="outline">
                           <mat-label i18n="@@event_edit.program_item_status">
                             Status

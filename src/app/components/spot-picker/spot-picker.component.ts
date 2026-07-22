@@ -16,8 +16,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { Spot } from "../../../db/models/Spot";
-import { SpotId } from "../../../db/schemas/SpotSchema";
-import { SpotsService } from "../../services/firebase/firestore/spots.service";
+import { SpotSelectionDataService } from "../../services/spot-selection-data.service";
 import { SearchFieldComponent } from "../search-field/search-field.component";
 
 /**
@@ -51,7 +50,7 @@ import { SearchFieldComponent } from "../search-field/search-field.component";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotPickerComponent {
-  private _spotsService = inject(SpotsService);
+  private readonly spotData = inject(SpotSelectionDataService);
   private _locale = inject<LocaleCode>(LOCALE_ID);
 
   /** Current list of selected spot IDs. Parent owns this list. */
@@ -102,8 +101,8 @@ export class SpotPickerComponent {
       if (missing.length === 0) return;
       for (const id of missing) {
         this._inflight.add(id);
-        this._spotsService
-          .getSpotById(id as SpotId, this._locale)
+        this.spotData
+          .resolve(id, this._locale)
           .then((spot) => {
             this._spotCache.update((map) => {
               const next = new Map(map);

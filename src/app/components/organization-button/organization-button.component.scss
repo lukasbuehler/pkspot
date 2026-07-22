@@ -1,0 +1,40 @@
+:host {
+  display: inline-flex;
+  max-width: 100%;
+}
+
+a {
+  max-width: 100%;
+}
+
+.organization-button__logo {
+  width: 30px;
+  height: 30px;
+  margin-right: 0.5rem;
+  border-radius: 50%;
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  color: var(--mat-sys-on-surface-variant);
+  background: var(--mat-sys-surface-container-high);
+}
+
+.organization-button__logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.organization-button__logo mat-icon {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+}
+
+.organization-button__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -29,6 +29,7 @@ These instructions apply to all work in this repository.
 - Use `NgOptimizedImage` for static images when compatible.
   `NgOptimizedImage` does not work for inline base64 images.
 - Keep components focused on a single responsibility.
+- Before building entity search, autocomplete, or picker UI, inspect and reuse the shared picker components (for example `app-search-field`, `app-spot-picker`, and `app-entity-reference-autocomplete`). If the required behavior cannot be expressed by an existing component, extend it or extract a reusable focused component instead of implementing an inline one-off picker.
 - Use `input()` and `output()` instead of decorator-based inputs and outputs.
 - Set `changeDetection: ChangeDetectionStrategy.OnPush` in component decorators.
 - Create a separate `.html` template file for every new component, including

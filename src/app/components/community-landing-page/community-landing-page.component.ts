@@ -816,7 +816,7 @@ export class CommunityLandingPageComponent {
   ): string | null {
     switch (card.commercialDisclosure) {
       case "classes":
-        return $localize`:@@community.info_disclosure_classes:Classes or coaching`;
+        return $localize`:@@community.info_disclosure_classes:Classes and coaching`;
       case "paid-partnership":
         return $localize`:@@community.info_disclosure_paid:Paid promotion`;
       case "shop":

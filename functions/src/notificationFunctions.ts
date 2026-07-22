@@ -737,6 +737,27 @@ async function deliverIntent(
     }
   }
 
+  if (intent.type === "event_reminder") {
+    const eventId = intent.payload["event_id"];
+    if (eventId) {
+      const subscription = await db
+        .doc(
+          `events/${eventId}/live_update_subscribers/${intent.recipient_uid}`,
+        )
+        .get();
+      if (
+        subscription.exists &&
+        subscription.data()?.["event_reminders"] === false
+      ) {
+        return {
+          status: "skipped",
+          deliveryCount: 0,
+          reason: "event_reminder_disabled",
+        };
+      }
+    }
+  }
+
   const privateData = await db
     .doc(`users/${intent.recipient_uid}/private_data/main`)
     .get();

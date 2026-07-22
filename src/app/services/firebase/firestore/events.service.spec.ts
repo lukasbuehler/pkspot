@@ -403,6 +403,21 @@ describe("EventsService", () => {
     );
   });
 
+  it("replaces a PK Spot organizer with a plain-text organizer", async () => {
+    await service.updateEvent("event-1" as EventId, {
+      organizer: null,
+      organizer_name: "Independent Jam Crew",
+    });
+
+    expect(firestoreAdapter.updateDocument).toHaveBeenCalledWith(
+      "events/event-1",
+      expect.objectContaining({
+        organizer: deleteFieldMarker,
+        organizer_name: "Independent Jam Crew",
+      }),
+    );
+  });
+
   it("does not write server-derived plain event descriptions", async () => {
     await service.updateEvent("event-1" as EventId, {
       description: "English fallback",

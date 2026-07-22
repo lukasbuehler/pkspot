@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { EventsService } from "../../services/firebase/firestore/events.service";
-import { NotificationOptInService } from "../../services/notification-opt-in.service";
 import { EventRsvpComponent } from "./event-rsvp.component";
 
 type ScreenshotGlobal = typeof globalThis & {
@@ -23,7 +22,6 @@ describe("EventRsvpComponent", () => {
     setMyRsvp: vi.fn(() => Promise.resolve()),
     clearMyRsvp: vi.fn(() => Promise.resolve()),
   };
-  const notificationOptIn = { maybePrompt: vi.fn(() => Promise.resolve()) };
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -32,13 +30,11 @@ describe("EventRsvpComponent", () => {
     eventsService.getMyRsvp.mockResolvedValue(null);
     eventsService.setMyRsvp.mockResolvedValue(undefined);
     eventsService.clearMyRsvp.mockResolvedValue(undefined);
-    notificationOptIn.maybePrompt.mockClear();
     await TestBed.configureTestingModule({
       imports: [EventRsvpComponent],
       providers: [
         provideNoopAnimations(),
         { provide: EventsService, useValue: eventsService },
-        { provide: NotificationOptInService, useValue: notificationOptIn },
         {
           provide: AuthenticationService,
           useValue: {
@@ -80,26 +76,29 @@ describe("EventRsvpComponent", () => {
     });
   });
 
-  it("offers event reminders after a successful relevant RSVP", async () => {
+  it("emits the saved RSVP so contextual event controls can appear inline", async () => {
+    const changed = vi.fn();
+    component.rsvpChanged.subscribe(changed);
     fixture.componentRef.setInput("eventId", "event-1");
     fixture.detectChanges();
     await fixture.whenStable();
 
     await component.selectRsvp("interested");
 
-    expect(notificationOptIn.maybePrompt).toHaveBeenCalledWith(
-      "event_reminders",
-    );
+    expect(changed).toHaveBeenLastCalledWith("interested");
   });
 
-  it("does not offer reminders for a not-going response", async () => {
+  it("emits null after clearing a response", async () => {
+    const changed = vi.fn();
+    component.rsvpChanged.subscribe(changed);
     fixture.componentRef.setInput("eventId", "event-1");
     fixture.detectChanges();
     await fixture.whenStable();
 
-    await component.selectRsvp("notgoing");
+    await component.selectRsvp("going");
+    await component.clearRsvp();
 
-    expect(notificationOptIn.maybePrompt).not.toHaveBeenCalled();
+    expect(changed).toHaveBeenLastCalledWith(null);
   });
 
   it("does not add my loaded response to the visible aggregate", async () => {

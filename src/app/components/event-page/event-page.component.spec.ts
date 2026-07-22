@@ -126,6 +126,7 @@ describe("EventInfoPageComponent", () => {
     );
     const event = buildEvent("dummy-city-jam", "Dummy City Jam", {
       description: "A dummy event page for crawler-readable parkour jam info.",
+      organizer_name: "Independent Jam Crew",
       venue_string: "Dummy Training Hall",
       locality_string: "Dummy City, Switzerland",
     });
@@ -159,6 +160,10 @@ describe("EventInfoPageComponent", () => {
           }),
         }),
         url: "https://pkspot.app/en/events/dummy-city-jam",
+        organizer: expect.objectContaining({
+          "@type": "Organization",
+          name: "Independent Jam Crew",
+        }),
       }),
     );
   });

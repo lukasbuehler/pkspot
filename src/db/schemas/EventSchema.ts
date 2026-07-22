@@ -425,6 +425,8 @@ export interface EventSchema {
 
   /** Organizer responsible for the event. User organizers can be added later. */
   organizer?: EventOrganizerSchema;
+  /** Plain-text organizer for events without a PK Spot organization. */
+  organizer_name?: string;
   /** Featured people, groups, and acts visible on the event page. */
   featured_participants?: EventFeaturedParticipantSchema[];
 

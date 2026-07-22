@@ -1,0 +1,89 @@
+<section
+  class="attendee-actions"
+  aria-label="Your event options"
+  i18n-aria-label
+>
+  @if (liveUpdatesAvailable()) {
+    <span class="notification-label" i18n>Event Notifications</span>
+    <button
+      mat-stroked-button
+      type="button"
+      class="notification-menu-button"
+      [disabled]="loading() || saving()"
+      [matMenuTriggerFor]="notificationMenu"
+      aria-label="Event notification preference"
+      i18n-aria-label
+    >
+      <mat-icon
+        [class.material-symbols-rounded-outline]="
+          usesSpecificNotificationIcon()
+        "
+        >{{ notificationIcon() }}</mat-icon
+      >
+      @switch (notificationLevel()) {
+        @case ("all") {
+          <span i18n>All</span>
+        }
+        @case ("event_updates") {
+          <span i18n>Only Event Updates</span>
+        }
+        @case ("reminders") {
+          <span i18n>Only Reminders</span>
+        }
+        @case ("none") {
+          <span i18n>None</span>
+        }
+      }
+      <mat-icon iconPositionEnd>expand_more</mat-icon>
+    </button>
+
+    <mat-menu #notificationMenu="matMenu">
+      <button
+        mat-menu-item
+        type="button"
+        (click)="notificationPreferenceChanged('all')"
+      >
+        <mat-icon>notifications</mat-icon>
+        <span i18n>All</span>
+      </button>
+      <button
+        mat-menu-item
+        type="button"
+        (click)="notificationPreferenceChanged('event_updates')"
+      >
+        <mat-icon class="material-symbols-rounded-outline"
+          >notifications</mat-icon
+        >
+        <span i18n>Only Event Updates</span>
+      </button>
+      <button
+        mat-menu-item
+        type="button"
+        (click)="notificationPreferenceChanged('reminders')"
+      >
+        <mat-icon class="material-symbols-rounded-outline"
+          >notifications</mat-icon
+        >
+        <span i18n>Only Reminders</span>
+      </button>
+      <button
+        mat-menu-item
+        type="button"
+        (click)="notificationPreferenceChanged('none')"
+      >
+        <mat-icon>notifications_off</mat-icon>
+        <span i18n>None</span>
+      </button>
+    </mat-menu>
+  }
+
+  <!-- <button
+    mat-stroked-button
+    type="button"
+    class="calendar-button"
+    (click)="addToCalendar()"
+  >
+    <mat-icon>calendar_month</mat-icon>
+    <span i18n>Add to calendar</span>
+  </button> -->
+</section>

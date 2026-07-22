@@ -31,7 +31,6 @@ import {
   EventLinkSchema,
   EventQualificationPathSchema,
   EventQualificationRefSchema,
-  EventSchema,
   EventSeriesMembershipSchema,
 } from "../../../db/schemas/EventSchema";
 import { EventTicketOption } from "../../../db/models/Event";
@@ -77,6 +76,10 @@ import {
 import { isBot } from "../../../scripts/Helpers";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 import { EventLiveUpdatesComponent } from "../event-live-updates/event-live-updates.component";
+import { EventLiveUpdateControlsComponent } from "../event-live-update-controls/event-live-update-controls.component";
+import { EventLiveUpdateOrganizerMenuComponent } from "../event-live-update-organizer-menu/event-live-update-organizer-menu.component";
+import type { EventRSVPOption } from "../../../db/schemas/EventRSVPSchema";
+import { OrganizationButtonComponent } from "../organization-button/organization-button.component";
 
 interface VisibleSeriesTag {
   seriesId: string;
@@ -101,6 +104,9 @@ interface VisibleSeriesTag {
     EventCardComponent,
     EventProgramTimelineComponent,
     EventLiveUpdatesComponent,
+    EventLiveUpdateControlsComponent,
+    EventLiveUpdateOrganizerMenuComponent,
+    OrganizationButtonComponent,
   ],
   templateUrl: "./event-page.component.html",
   styleUrl: "./event-page.component.scss",
@@ -144,6 +150,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly isEditingEvent = signal(false);
   readonly isSavingEvent = signal(false);
   readonly isEventDescriptionExpanded = signal(false);
+  readonly currentRsvp = signal<EventRSVPOption | null>(null);
   readonly qualifierEventsById = signal<Record<string, PkEvent>>({});
   readonly seriesById = signal<Record<string, SeriesDocument>>({});
   readonly expandedQualificationEventGroups = signal<Record<string, boolean>>(
@@ -182,7 +189,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     return event ? ["/events", event.slug ?? event.id, "map"] : ["/events"];
   });
   readonly organizer = computed(() => this.event()?.organizer?.organization);
-  readonly organizerName = computed(() => this.organizer()?.name ?? "");
+  readonly organizerName = computed(() => this.event()?.organizerName ?? "");
   readonly status = computed<EventStatus | null>(
     () => this.event()?.status() ?? null,
   );
@@ -748,6 +755,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   private _setEvent(event: PkEvent): void {
     if (this.event()?.id !== event.id) {
       this.isEventDescriptionExpanded.set(false);
+      this.currentRsvp.set(null);
     }
     this.event.set(event);
   }
@@ -1267,6 +1275,13 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         url: event.organizer.organization.slug
           ? `${environment.baseUrl}/${this._locale}/organizations/${event.organizer.organization.slug}`
           : undefined,
+      };
+    }
+
+    if (event.organizerName) {
+      return {
+        "@type": "Organization",
+        name: event.organizerName,
       };
     }
 

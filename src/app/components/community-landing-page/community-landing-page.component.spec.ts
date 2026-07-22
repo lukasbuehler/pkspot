@@ -418,7 +418,7 @@ describe("CommunityLandingPageComponent", () => {
     const disclosure = fixture.nativeElement.querySelector(
       ".local-info-disclosure",
     ) as HTMLElement | null;
-    expect(disclosure?.textContent).toContain("Classes or coaching");
+    expect(disclosure?.textContent).toContain("Classes and coaching");
     expect(disclosure?.textContent).not.toContain("[object Object]");
   });
 

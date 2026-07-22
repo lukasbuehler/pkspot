@@ -1,0 +1,28 @@
+@if (showMenu()) {
+  <button
+    mat-icon-button
+    type="button"
+    [matMenuTriggerFor]="eventManagementMenu"
+    aria-label="Event management"
+    i18n-aria-label
+    matTooltip="Event management"
+    i18n-matTooltip
+  >
+    <mat-icon>more_vert</mat-icon>
+  </button>
+
+  <mat-menu #eventManagementMenu="matMenu">
+    @if (canPublish()) {
+      <button mat-menu-item type="button" (click)="openPublisher()">
+        <mat-icon>campaign</mat-icon>
+        <span i18n>Publish live update</span>
+      </button>
+    }
+    @if (canEdit()) {
+      <button mat-menu-item type="button" (click)="editRequested.emit()">
+        <mat-icon>edit</mat-icon>
+        <span i18n>Edit event</span>
+      </button>
+    }
+  </mat-menu>
+}

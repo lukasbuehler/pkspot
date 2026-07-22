@@ -152,6 +152,9 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   polygons = input<PolygonSchema[]>([]);
   selectedMarker = input<google.maps.LatLngLiteral | null>(null);
   focusZoom = input<number>(17);
+  readonly gestureHandling = input<
+    NonNullable<google.maps.MapOptions["gestureHandling"]>
+  >("greedy");
   isClickable = input<boolean>(true);
   showAmenities = input<boolean>(false);
   centerStart = input<google.maps.LatLngLiteral | null>(null);

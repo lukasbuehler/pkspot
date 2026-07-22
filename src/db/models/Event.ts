@@ -96,6 +96,7 @@ export class Event {
   readonly logoBackgroundColor?: string;
   readonly media: MediaSchema[];
   readonly organizer?: EventOrganizerSchema;
+  readonly organizerName?: string;
   readonly featuredParticipants: EventFeaturedParticipant[];
 
   readonly venueString: string;
@@ -152,6 +153,8 @@ export class Event {
     this.logoBackgroundColor = data.logo_background_color;
     this.media = data.media ?? [];
     this.organizer = data.organizer;
+    this.organizerName =
+      data.organizer?.organization.name ?? data.organizer_name;
     this.featuredParticipants = data.featured_participants ?? [];
     this.venueString = data.venue_string;
     this.localityString = data.locality_string;

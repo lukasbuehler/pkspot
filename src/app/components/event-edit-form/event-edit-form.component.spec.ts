@@ -596,6 +596,31 @@ describe("EventEditFormComponent", () => {
     expect(saveSpy.mock.calls[0][0].external_source).toBeNull();
   });
 
+  it("keeps a plain-text organizer when no PK Spot organization is selected", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    fixture.componentRef.setInput(
+      "event",
+      eventWith("event-1", { organizer_name: "Independent Jam Crew" }),
+    );
+    fixture.detectChanges();
+
+    expect(component.form.value.organizer_query).toBe("Independent Jam Crew");
+
+    component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        organizer: null,
+        organizer_name: "Independent Jam Crew",
+      }),
+    );
+  });
+
   it("serializes edited program plans and items on submit", async () => {
     const fixture = await setup();
     const component = fixture.componentInstance;
@@ -633,6 +658,10 @@ describe("EventEditFormComponent", () => {
       title: "Open jam",
       linkedEventId: "linked-event",
     });
+    component.updateProgramSpotSelection("main", "jam", {
+      kind: "inline_spot",
+      id: "main-stage",
+    });
     component.onSubmit();
 
     expect(saveSpy).toHaveBeenCalledOnce();
@@ -648,7 +677,7 @@ describe("EventEditFormComponent", () => {
                 id: "jam",
                 title: "Open jam",
                 category: "jam",
-                spot_ref: { kind: "spot", id: "spot-1" },
+                spot_ref: { kind: "inline_spot", id: "main-stage" },
                 linked_event_id: "linked-event",
               }),
             ],

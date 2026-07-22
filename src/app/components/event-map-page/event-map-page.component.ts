@@ -220,7 +220,10 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   showHeader = signal<boolean>(true);
   isCompactView = false;
-  private _isEmbedded = false;
+  private readonly _isEmbedded = signal(false);
+  readonly eventMapGestureHandling = computed<
+    NonNullable<google.maps.MapOptions["gestureHandling"]>
+  >(() => (this._isEmbedded() ? "cooperative" : "greedy"));
 
   // Derived display values. Defaults keep the template safe before the event loads.
   readonly name = computed(() => this.event()?.name ?? "");
@@ -339,7 +342,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
       firstValueFrom(this._route.data.pipe(take(1))).then((data) => {
         if (data["routeName"]?.toLowerCase().includes("embed")) {
-          this._isEmbedded = true;
+          this._isEmbedded.set(true);
           this.updateCompactView();
         }
       });
@@ -485,7 +488,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     if (!isPlatformBrowser(this.platformId) || typeof window === "undefined") {
       return;
     }
-    this.isCompactView = this._isEmbedded || window.innerWidth <= 576;
+    this.isCompactView = this._isEmbedded() || window.innerWidth <= 576;
     const hasSidenavRoom = this._hasSidenavRoom();
 
     if (!this._hasInitializedResponsiveSidenav) {
@@ -505,7 +508,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   }
 
   public get isEmbedded(): boolean {
-    return this._isEmbedded;
+    return this._isEmbedded();
   }
 
   ngOnInit() {
@@ -924,7 +927,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   private _hasSidenavRoom(): boolean {
     return (
-      !this._isEmbedded &&
+      !this._isEmbedded() &&
       isPlatformBrowser(this.platformId) &&
       typeof window !== "undefined" &&
       window.innerWidth >= 992

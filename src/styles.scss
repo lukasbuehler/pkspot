@@ -51,6 +51,19 @@ html {
   --map-glass-blur: none;
   --app-access-off-limits: var(--mat-sys-error);
   --app-access-private: rgb(250, 238, 79);
+  --app-card-outline-width: 1px;
+  --app-card-outline-color: var(--mat-sys-outline-variant);
+  --app-card-radius: 18px;
+  --app-card-background: var(--mat-sys-surface-container-low);
+}
+
+// Shared treatment for card-like surfaces that are not Angular Material cards.
+// Material card shapes consume --app-card-radius in the theme configuration.
+.app-card {
+  border: var(--app-card-outline-width) solid var(--app-card-outline-color);
+  border-radius: var(--app-card-radius);
+  background: var(--app-card-background);
+  color: var(--mat-sys-on-surface);
 }
 
 html.map-glass-blur-enabled {

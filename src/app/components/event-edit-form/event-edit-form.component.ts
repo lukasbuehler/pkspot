@@ -83,6 +83,10 @@ import { BoundsPickerComponent } from "../bounds-picker/bounds-picker.component"
 import { MediaUpload } from "../media-upload/media-upload.component";
 import { MarkerComponent } from "../marker/marker.component";
 import { SpotPickerComponent } from "../spot-picker/spot-picker.component";
+import {
+  EventSpotSelection,
+  EventSpotSelectComponent,
+} from "../event-spot-select/event-spot-select.component";
 import { LocaleMapEditFieldComponent } from "../locale-map-edit-field/locale-map-edit-field.component";
 import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
@@ -246,11 +250,19 @@ type EditableSeriesMembership = {
 };
 export type EventEditPatch = Omit<
   Partial<EventSchema>,
-  "bounds" | "area_polygon" | "location" | "description_i18n" | "external_source"
+  | "bounds"
+  | "area_polygon"
+  | "location"
+  | "description_i18n"
+  | "external_source"
+  | "organizer"
+  | "organizer_name"
 > & {
   area_polygon?: EventSchema["area_polygon"] | null;
   description_i18n?: EventSchema["description_i18n"] | null;
   external_source?: EventSchema["external_source"] | null;
+  organizer?: EventSchema["organizer"] | null;
+  organizer_name?: string | null;
 };
 
 /**
@@ -299,6 +311,7 @@ export type EventEditPatch = Omit<
     MediaUpload,
     MarkerComponent,
     SpotPickerComponent,
+    EventSpotSelectComponent,
     LocaleMapEditFieldComponent,
   ],
   templateUrl: "./event-edit-form.component.html",
@@ -419,6 +432,13 @@ export class EventEditFormComponent {
   autoSuggestedCommunityKeys = signal<string[]>([]);
   customMarkers = signal<EditableEventMarker[]>([]);
   inlineSpots = signal<EditableInlineEventSpot[]>([]);
+  readonly selectableInlineSpots = computed(() =>
+    this.inlineSpots().map((spot) => ({
+      id: spot.id,
+      name: spot.name,
+      images: csvToArray(spot.imagesCsv),
+    })),
+  );
   featuredParticipants = signal<EditableFeaturedParticipant[]>([]);
   externalMedia = signal<MediaSchema[]>([]);
   eventLinks = signal<EditableEventLink[]>([]);
@@ -473,6 +493,7 @@ export class EventEditFormComponent {
       e.url ||
       e.externalSource ||
       e.organizer ||
+      e.organizerName ||
       e.featuredParticipants.length > 0 ||
       e.location ||
       e.bannerSrc ||
@@ -613,7 +634,7 @@ export class EventEditFormComponent {
         name: e.name,
         description: e.description ?? "",
         slug: e.slug ?? "",
-        organizer_query: e.organizer?.organization.name ?? "",
+        organizer_query: e.organizerName ?? "",
         venue_string: e.venueString,
         locality_string: e.localityString,
         location_lat: e.location?.lat ?? null,
@@ -660,7 +681,7 @@ export class EventEditFormComponent {
       this.spotIds.set([...e.spotIds]);
       this.communityKeys.set([...e.communityKeys]);
       this.selectedOrganizer.set(e.organizer?.organization ?? null);
-      this.organizerQuery.set(e.organizer?.organization.name ?? "");
+      this.organizerQuery.set(e.organizerName ?? "");
       this.customMarkers.set(
         e.customMarkers.map((marker, index) => ({
           id: marker.id || `marker-${index}`,
@@ -1443,14 +1464,15 @@ export class EventEditFormComponent {
     }
   }
 
-  updateProgramSpotRefKind(
+  updateProgramSpotSelection(
     planId: string,
     itemId: string,
-    kind: string,
+    selection: EventSpotSelection | null,
   ): void {
-    if (kind === "" || kind === "spot" || kind === "inline_spot") {
-      this.updateProgramItem(planId, itemId, { spotRefKind: kind });
-    }
+    this.updateProgramItem(planId, itemId, {
+      spotRefKind: selection?.kind ?? "",
+      spotRefId: selection?.id ?? "",
+    });
   }
 
   addSeriesMembership(): void {
@@ -1776,6 +1798,7 @@ export class EventEditFormComponent {
       ]),
       series_memberships: this._buildSeriesMembershipsPatch(),
       organizer: this._buildOrganizerPatch(),
+      organizer_name: this._buildOrganizerNamePatch(),
       promo_radius_m: numberOrUndefined(v.promo_radius_m),
       is_promoted: v.is_promoted === true,
       is_sponsored: v.is_promoted === true,
@@ -1983,14 +2006,19 @@ export class EventEditFormComponent {
     return this._searchService.getSpotPreviewFromHit(hit);
   }
 
-  private _buildOrganizerPatch(): EventOrganizerSchema | undefined {
+  private _buildOrganizerPatch(): EventOrganizerSchema | null {
     const organization = this.selectedOrganizer();
     return organization
       ? {
           type: "organization",
           organization,
         }
-      : undefined;
+      : null;
+  }
+
+  private _buildOrganizerNamePatch(): string | null {
+    if (this.selectedOrganizer()) return null;
+    return trimOrUndefined(this.organizerQuery()) ?? null;
   }
 
   private _buildLocationPatch(

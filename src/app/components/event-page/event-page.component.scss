@@ -35,9 +35,40 @@
 
 .event-heading-main {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(20rem, 1fr) minmax(0, 450px);
   align-items: start;
   gap: 1rem;
+}
+
+.event-title-block {
+  min-width: 0;
+}
+
+.event-organizer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.event-organizer__fallback {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 0.5rem;
+}
+
+.event-organizer__fallback mat-icon {
+  flex: 0 0 auto;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.event-attendee-actions {
+  display: grid;
+  justify-items: end;
+  width: 100%;
+  min-width: 0;
 }
 
 .event-hero {
@@ -116,9 +147,6 @@
 .map-preview,
 app-event-program-timeline {
   display: block;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 8px;
-  background: var(--mat-sys-surface-container-low);
 }
 
 .ticket-option {
@@ -295,8 +323,8 @@ a.featured-participant-name {
 }
 
 .map-preview-frame {
-  height: min(54vh, 420px);
-  min-height: 260px;
+  height: min(30vh, 420px);
+  min-height: 200px;
 
   position: relative;
 }
@@ -317,7 +345,7 @@ a.featured-participant-name {
   flex-direction: row;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 800px) {
   .event-nav,
   .event-content {
     width: min(100% - 1rem, 960px);
@@ -328,7 +356,11 @@ a.featured-participant-name {
   }
 
   .event-heading-main {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .event-attendee-actions {
+    justify-items: start;
   }
 
   .ticket-option {

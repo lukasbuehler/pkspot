@@ -60,18 +60,11 @@
           >
             <mat-icon>share</mat-icon>
           </button>
-          @if (isAdmin()) {
-            <button
-              mat-icon-button
-              type="button"
-              aria-label="Edit event"
-              matTooltip="Edit event"
-              i18n-matTooltip="@@event_page.edit_tooltip"
-              (click)="startEditingEvent()"
-            >
-              <mat-icon>edit</mat-icon>
-            </button>
-          }
+          <app-event-live-update-organizer-menu
+            [event]="event"
+            [canEdit]="isAdmin()"
+            (editRequested)="startEditingEvent()"
+          ></app-event-live-update-organizer-menu>
         </div>
       </nav>
     }
@@ -83,13 +76,40 @@
             <h1 class="mat-heading-medium">{{ event.name }}</h1>
 
             <app-event-summary-meta [event]="event"></app-event-summary-meta>
+
+            @if (organizerName()) {
+              <div class="event-organizer">
+                <span
+                  class="mat-body-medium muted"
+                  i18n="@@event_info.organized_by"
+                >Organized by</span>
+                @if (organizer(); as organization) {
+                  <app-organization-button
+                    [organization]="organization"
+                  ></app-organization-button>
+                } @else {
+                  <span class="event-organizer__fallback mat-title-small">
+                    <mat-icon aria-hidden="true">groups</mat-icon>
+                    <span>{{ organizerName() }}</span>
+                  </span>
+                }
+              </div>
+            }
           </div>
 
           @if (showRsvp()) {
-            <app-event-rsvp
-              [eventId]="event.id"
-              [counts]="event.rsvpCounts"
-            ></app-event-rsvp>
+            <div class="event-attendee-actions">
+              <app-event-rsvp
+                [eventId]="event.id"
+                [counts]="event.rsvpCounts"
+                (rsvpChanged)="currentRsvp.set($event)"
+              ></app-event-rsvp>
+              @if (currentRsvp() === "going") {
+                <app-event-live-update-controls
+                  [event]="event"
+                ></app-event-live-update-controls>
+              }
+            </div>
           }
         </div>
       </header>
@@ -239,7 +259,7 @@
           </div>
           <div class="featured-participant-grid">
             @for (participant of featuredParticipants(); track participant.name + participant.role) {
-              <article class="featured-participant">
+              <article class="featured-participant app-card">
                 @if (featuredParticipantImageSrc(participant); as imageSrc) {
                   <img
                     class="featured-participant-image"
@@ -285,7 +305,7 @@
 
       @if (hasMapPreview()) {
         @defer (on viewport) {
-          <section class="event-section map-preview">
+          <section class="event-section map-preview app-card">
             <div class="map-preview-header">
               <div>
                 <h4 class="mat-title-medium" i18n="@@event_info.map_label">
@@ -316,6 +336,7 @@
                 [polygons]="areaPolygon() ? [areaPolygon()!] : []"
                 [minZoom]="3"
                 [focusZoom]="event.focusZoom ?? 18"
+                gestureHandling="cooperative"
                 mapStyle="hybrid"
                 [markers]="[]"
                 [priorityMarkers]="mapMarkers()"
@@ -339,7 +360,7 @@
             </div>
           </section>
         } @placeholder {
-          <section class="event-section map-preview">
+          <section class="event-section map-preview app-card">
             <div class="map-preview-header">
               <div>
                 <span class="info-label" i18n="@@event_info.map_label">
@@ -373,6 +394,7 @@
             <mat-icon>schedule</mat-icon>
           </div>
           <app-event-program-timeline
+            class="app-card"
             [items]="activeProgramItems()"
             [timeZone]="event.timeZone"
           />
@@ -389,7 +411,7 @@
           </div>
           <div class="ticket-grid">
             @for (ticket of ticketOptions(); track ticket.id) {
-              <article class="ticket-option">
+              <article class="ticket-option app-card">
                 <div class="ticket-copy">
                   <div class="ticket-title-row">
                     <h3 class="mat-title-small m-0">{{ ticket.label }}</h3>

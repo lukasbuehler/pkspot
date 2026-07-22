@@ -64,13 +64,49 @@ describe("EventLiveUpdatesService", () => {
     expect(setDocument).toHaveBeenNthCalledWith(
       1,
       "events/event-1/live_update_subscribers/attendee-1",
-      expect.objectContaining({ user_id: "attendee-1", active: true }),
+      expect.objectContaining({
+        user_id: "attendee-1",
+        active: true,
+        event_reminders: false,
+      }),
       { merge: false },
     );
     expect(setDocument).toHaveBeenNthCalledWith(
       2,
       "events/event-1/live_update_subscribers/attendee-1",
-      expect.objectContaining({ user_id: "attendee-1", active: false }),
+      expect.objectContaining({
+        user_id: "attendee-1",
+        active: false,
+        event_reminders: false,
+      }),
+      { merge: false },
+    );
+  });
+
+  it("maps and stores independent event update and reminder choices", async () => {
+    const setDocument = vi.fn(async () => undefined);
+    const documentSnapshots = vi.fn(() =>
+      of({
+        user_id: "attendee-1",
+        active: false,
+        event_reminders: true,
+        subscribed_at: Timestamp.now(),
+        updated_at: Timestamp.now(),
+      }),
+    );
+    const { service } = configure(
+      { setDocument, documentSnapshots },
+      "attendee-1",
+    );
+
+    await expect(
+      firstValueFrom(service.observeNotificationLevel("event-1", "attendee-1")),
+    ).resolves.toBe("reminders");
+    await service.setNotificationLevel("event-1", "all");
+
+    expect(setDocument).toHaveBeenCalledWith(
+      "events/event-1/live_update_subscribers/attendee-1",
+      expect.objectContaining({ active: true, event_reminders: true }),
       { merge: false },
     );
   });

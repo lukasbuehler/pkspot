@@ -1,0 +1,68 @@
+<mat-form-field appearance="outline" subscriptSizing="dynamic">
+  <mat-label>{{ label() }}</mat-label>
+  <mat-select
+    [value]="selectedKey()"
+    [disabled]="disabled()"
+    (selectionChange)="selectionChanged($event.value)"
+  >
+    <mat-select-trigger>
+      @if (selectedOption(); as selected) {
+        <span class="spot-option spot-option--selected">
+          @if (selected.imageSrc) {
+            <img [src]="selected.imageSrc" alt="" />
+          } @else {
+            <span class="spot-image-placeholder"><mat-icon>place</mat-icon></span>
+          }
+          <span>{{ selected.name }}</span>
+        </span>
+      } @else {
+        <span i18n>No linked Spot</span>
+      }
+    </mat-select-trigger>
+
+    <mat-option value="" i18n>No linked Spot</mat-option>
+    @if (storedOptions().length > 0 || storedSpots.isLoading()) {
+      <mat-optgroup label="Map Spots" i18n-label>
+        @for (spot of storedOptions(); track spot.id) {
+          <mat-option [value]="optionKey(spot)">
+            <ng-container
+              [ngTemplateOutlet]="spotOption"
+              [ngTemplateOutletContext]="{ $implicit: spot }"
+            ></ng-container>
+          </mat-option>
+        }
+        @if (storedSpots.isLoading()) {
+          <mat-option disabled>
+            <span class="spot-loading">
+              <mat-spinner diameter="18"></mat-spinner>
+              <span i18n>Loading event Spots…</span>
+            </span>
+          </mat-option>
+        }
+      </mat-optgroup>
+    }
+    @if (inlineOptions().length > 0) {
+      <mat-optgroup label="Temporary event Spots" i18n-label>
+        @for (spot of inlineOptions(); track spot.id) {
+          <mat-option [value]="optionKey(spot)">
+            <ng-container
+              [ngTemplateOutlet]="spotOption"
+              [ngTemplateOutletContext]="{ $implicit: spot }"
+            ></ng-container>
+          </mat-option>
+        }
+      </mat-optgroup>
+    }
+  </mat-select>
+</mat-form-field>
+
+<ng-template #spotOption let-spot>
+  <span class="spot-option">
+    @if (spot.imageSrc) {
+      <img [src]="spot.imageSrc" alt="" loading="lazy" />
+    } @else {
+      <span class="spot-image-placeholder"><mat-icon>place</mat-icon></span>
+    }
+    <span class="spot-name">{{ spot.name }}</span>
+  </span>
+</ng-template>

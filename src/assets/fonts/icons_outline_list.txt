@@ -6,5 +6,6 @@ star
 star_border
 mobile
 mobile_border
+notifications
 block
 block_border

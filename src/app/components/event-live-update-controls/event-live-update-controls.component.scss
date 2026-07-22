@@ -1,0 +1,34 @@
+:host {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.attendee-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  color: var(--mat-sys-on-surface);
+}
+
+.notification-label {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+  white-space: nowrap;
+}
+
+.notification-menu-button,
+.calendar-button {
+  width: auto;
+  max-width: 100%;
+  color: var(--mat-sys-on-surface);
+  white-space: nowrap;
+}
+
+@media (max-width: 800px) {
+  .attendee-actions {
+    justify-content: flex-start;
+  }
+}

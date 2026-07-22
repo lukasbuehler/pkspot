@@ -158,7 +158,7 @@ export class CommunityKnowledgeEditorComponent implements OnInit {
     },
     {
       value: "classes",
-      label: $localize`:@@community.editor_disclosure_classes:Classes or coaching`,
+      label: $localize`:@@community.editor_disclosure_classes:Classes and coaching`,
       description: $localize`:@@community.editor_disclosure_classes_description:Training offered by a club or coach`,
       icon: "school",
     },

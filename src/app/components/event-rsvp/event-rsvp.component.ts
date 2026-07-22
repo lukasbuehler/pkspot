@@ -6,6 +6,7 @@ import {
   effect,
   inject,
   input,
+  output,
   signal,
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
@@ -20,7 +21,6 @@ import { EventsService } from "../../services/firebase/firestore/events.service"
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
 import { AnalyticsService } from "../../services/analytics.service";
-import { NotificationOptInService } from "../../services/notification-opt-in.service";
 
 type ScreenshotGlobal = typeof globalThis & {
   __PKSPOT_SCREENSHOT_EVENT_RSVPS__?: unknown;
@@ -43,7 +43,6 @@ export class EventRsvpComponent {
   private _injector = inject(Injector);
   private _eventsService?: EventsService;
   private _authService?: AuthenticationService;
-  private _notificationOptIn?: NotificationOptInService;
   private _analytics = inject(AnalyticsService);
   private _loadVersion = 0;
 
@@ -51,6 +50,7 @@ export class EventRsvpComponent {
   readonly counts = input<EventRSVPCountsSchema | null>(null);
   readonly showDisclaimer = input(true);
   readonly preview = input(false);
+  readonly rsvpChanged = output<EventRSVPOption | null>();
 
   readonly userId = signal<string | null>(null);
   readonly selectedRsvp = signal<EventRSVPOption | null>(null);
@@ -82,6 +82,7 @@ export class EventRsvpComponent {
         this.userId.set(null);
         this.selectedRsvp.set(null);
         this.loadedRsvp.set(null);
+        this.rsvpChanged.emit(null);
         return;
       }
 
@@ -100,6 +101,7 @@ export class EventRsvpComponent {
       if (!eventId || !userId) {
         this.selectedRsvp.set(null);
         this.loadedRsvp.set(null);
+        this.rsvpChanged.emit(null);
         return;
       }
 
@@ -107,6 +109,7 @@ export class EventRsvpComponent {
       if (screenshotRsvp !== undefined) {
         this.selectedRsvp.set(screenshotRsvp);
         this.loadedRsvp.set(screenshotRsvp);
+        this.rsvpChanged.emit(screenshotRsvp);
         this.errorMessage.set("");
         return;
       }
@@ -129,6 +132,7 @@ export class EventRsvpComponent {
       was_loaded_rsvp: previousLoaded === next,
     });
     this.selectedRsvp.set(next);
+    this.rsvpChanged.emit(next);
     this.errorMessage.set("");
     this.isSaving.set(true);
 
@@ -139,13 +143,11 @@ export class EventRsvpComponent {
         event_id: eventId,
         rsvp: next,
       });
-      if (next === "going" || next === "interested") {
-        void this._notifications().maybePrompt("event_reminders");
-      }
     } catch (err) {
       console.error("Failed to save event RSVP", err);
       this.selectedRsvp.set(previousSelected);
       this.loadedRsvp.set(previousLoaded);
+      this.rsvpChanged.emit(previousSelected);
       this.errorMessage.set(
         $localize`:@@event_rsvp.save_failed:Couldn't save your response. Try again in a moment.`,
       );
@@ -169,6 +171,7 @@ export class EventRsvpComponent {
       previous_rsvp: previousSelected,
     });
     this.selectedRsvp.set(null);
+    this.rsvpChanged.emit(null);
     this.errorMessage.set("");
     this.isSaving.set(true);
 
@@ -183,6 +186,7 @@ export class EventRsvpComponent {
       console.error("Failed to clear event RSVP", err);
       this.selectedRsvp.set(previousSelected);
       this.loadedRsvp.set(previousLoaded);
+      this.rsvpChanged.emit(previousSelected);
       this.errorMessage.set(
         $localize`:@@event_rsvp.clear_failed:Couldn't clear your response. Try again in a moment.`,
       );
@@ -228,6 +232,7 @@ export class EventRsvpComponent {
       const rsvp = this._normalizeRsvp(doc?.rsvp);
       this.loadedRsvp.set(rsvp);
       this.selectedRsvp.set(rsvp);
+      this.rsvpChanged.emit(rsvp);
     } catch (err) {
       if (version !== this._loadVersion) return;
       console.error("Failed to load event RSVP", err);
@@ -275,8 +280,4 @@ export class EventRsvpComponent {
     return this._authService;
   }
 
-  private _notifications(): NotificationOptInService {
-    this._notificationOptIn ??= this._injector.get(NotificationOptInService);
-    return this._notificationOptIn;
-  }
 }

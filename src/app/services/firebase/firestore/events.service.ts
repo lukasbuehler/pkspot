@@ -24,11 +24,19 @@ type EventSlugDocument = EventSlugSchema & { id: string };
 type EventRSVPDocument = EventRSVPSchema & { id: string };
 export type EventWritePatch = Omit<
   Partial<EventSchema>,
-  "bounds" | "area_polygon" | "location" | "description_i18n" | "external_source"
+  | "bounds"
+  | "area_polygon"
+  | "location"
+  | "description_i18n"
+  | "external_source"
+  | "organizer"
+  | "organizer_name"
 > & {
   area_polygon?: EventSchema["area_polygon"] | null;
   description_i18n?: EventSchema["description_i18n"] | null;
   external_source?: EventSchema["external_source"] | null;
+  organizer?: EventSchema["organizer"] | null;
+  organizer_name?: string | null;
 };
 
 /**
@@ -134,6 +142,12 @@ export class EventsService extends ConsentAwareService {
         clientData.external_source === null
           ? undefined
           : clientData.external_source,
+      organizer:
+        clientData.organizer === null ? undefined : clientData.organizer,
+      organizer_name:
+        clientData.organizer_name === null
+          ? undefined
+          : clientData.organizer_name,
       published: data.published ?? true,
       time_created: now,
       time_updated: now,
@@ -182,6 +196,8 @@ export class EventsService extends ConsentAwareService {
     const clientPatch = stripServerDerivedEventFields(patch);
     const shouldDeleteDescription = clientPatch.description_i18n === null;
     const shouldDeleteExternalSource = clientPatch.external_source === null;
+    const shouldDeleteOrganizer = clientPatch.organizer === null;
+    const shouldDeleteOrganizerName = clientPatch.organizer_name === null;
     const cleaned = stripUndefined({
       ...clientPatch,
       description_i18n: shouldDeleteDescription
@@ -190,6 +206,12 @@ export class EventsService extends ConsentAwareService {
       external_source: shouldDeleteExternalSource
         ? this._firestoreAdapter.deleteFieldValue()
         : clientPatch.external_source,
+      organizer: shouldDeleteOrganizer
+        ? this._firestoreAdapter.deleteFieldValue()
+        : clientPatch.organizer,
+      organizer_name: shouldDeleteOrganizerName
+        ? this._firestoreAdapter.deleteFieldValue()
+        : clientPatch.organizer_name,
       area_polygon:
         clientPatch.area_polygon === null
           ? this._firestoreAdapter.deleteFieldValue()

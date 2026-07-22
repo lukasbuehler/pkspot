@@ -1,153 +1,55 @@
-<section class="live-updates-card" aria-labelledby="live-updates-heading">
+<section class="live-updates app-card" aria-labelledby="live-updates-heading">
   <div class="section-heading">
-    <span class="icon-tile" aria-hidden="true"><mat-icon>notifications_active</mat-icon></span>
+    <span class="icon-tile" aria-hidden="true">
+      <mat-icon>notifications_active</mat-icon>
+    </span>
     <div>
-      <h2 id="live-updates-heading" class="mat-title-large" i18n>Live event updates</h2>
-      <p class="supporting-copy" i18n>
-        Organizers may send schedule, location, weather, and meet-up updates.
-      </p>
+      <h2 id="live-updates-heading" class="mat-title-large" i18n>
+        Live event updates
+      </h2>
+      <p i18n>Latest information from {{ event().organizer?.organization?.name ?? event().name }}.</p>
     </div>
   </div>
 
-  <div class="subscription-panel" aria-live="polite">
-    @if (event().status() === "past" && !subscribed()) {
-      <div>
-        <strong i18n>This event has ended</strong>
-        <p i18n>Past live updates remain available below, but new updates are closed.</p>
-      </div>
-    } @else if (!isSignedIn()) {
-      <div>
-        <strong i18n>Sign in to get live updates</strong>
-        <p i18n>Your account keeps this event preference synced and prevents unwanted notifications.</p>
-      </div>
-      <a mat-flat-button routerLink="/sign-in" [queryParams]="signInQueryParams()">
-        <mat-icon>login</mat-icon><span i18n>Sign in</span>
-      </a>
-    } @else if (subscribed()) {
-      <div class="enabled-copy">
-        <mat-icon aria-hidden="true">check_circle</mat-icon>
-        <div>
-          <strong i18n>Live updates enabled</strong>
-          @if (pushBlocked()) {
-            <p i18n>In-app updates are enabled. Push notifications are blocked in device settings.</p>
-          } @else if (pushUnavailable()) {
-            <p i18n>In-app updates are enabled. Push notifications are not supported on this browser or device.</p>
-          } @else {
-            <p i18n>New organizer updates can also appear as device notifications.</p>
-          }
-        </div>
-      </div>
-      <button mat-button type="button" [disabled]="subscriptionLoading()" (click)="disableUpdates()">
-        <mat-icon>notifications_off</mat-icon><span i18n>Turn off updates</span>
-      </button>
-    } @else {
-      <div>
-        <strong i18n>Get live updates from this event</strong>
-        <p i18n>Updates may include schedule changes, Spot switches, weather changes, and organizer announcements.</p>
-        @if (pushUnavailable()) {
-          <p class="permission-note" i18n>In-app updates work here. Push notifications require a supported device and notification permission.</p>
-        }
-      </div>
-      <button mat-flat-button type="button" [disabled]="subscriptionLoading()" (click)="enableUpdates()">
-        @if (subscriptionLoading()) { <mat-spinner diameter="20"></mat-spinner> }
-        @else { <mat-icon>notifications_active</mat-icon> }
-        <span i18n>Get live updates</span>
-      </button>
-    }
-    @if (subscriptionFailed()) {
-      <p class="error-copy" role="alert" i18n>Live update preferences could not be loaded or saved.</p>
-    }
-  </div>
-
   <div class="updates-list" aria-live="polite">
-    <h3 class="mat-title-medium" i18n>Recent updates</h3>
     @if (loading()) {
-      <div class="state-row"><mat-spinner diameter="24"></mat-spinner><span i18n>Loading updates…</span></div>
+      <div class="state-row">
+        <mat-spinner diameter="24"></mat-spinner>
+        <span i18n>Loading updates…</span>
+      </div>
     } @else if (failed()) {
-      <p class="error-copy" role="alert" i18n>Live updates could not be loaded.</p>
+      <p class="error-copy" role="alert" i18n>
+        Live updates could not be loaded.
+      </p>
     } @else {
       @for (update of updates(); track update.id) {
         <article class="update-item">
           <div class="update-meta">
             <span>{{ updateTypeLabel(update.type) }}</span>
-            <time [attr.datetime]="update.publishedAt.toISOString()">{{ formatTimestamp(update.publishedAt) }}</time>
+            <time [attr.datetime]="update.publishedAt.toISOString()">
+              {{ formatTimestamp(update.publishedAt) }}
+            </time>
           </div>
-          <h4 class="mat-title-small">{{ update.title }}</h4>
-          @if (update.message) { <p>{{ update.message }}</p> }
+          <h3 class="mat-title-small">{{ update.title }}</h3>
+          @if (update.message) {
+            <p>{{ update.message }}</p>
+          }
           @if (update.scheduledFor) {
-            <p class="update-detail"><mat-icon>schedule</mat-icon><span>{{ formatTimestamp(update.scheduledFor) }}</span></p>
+            <p class="update-detail">
+              <mat-icon>schedule</mat-icon>
+              <span>{{ formatTimestamp(update.scheduledFor) }}</span>
+            </p>
           }
           @if (update.eventSpotId) {
-            <p class="update-detail"><mat-icon>location_on</mat-icon><span>{{ linkedSpotName(update.eventSpotId) }}</span></p>
+            <p class="update-detail">
+              <mat-icon>location_on</mat-icon>
+              <span>{{ linkedSpotName(update.eventSpotId) }}</span>
+            </p>
           }
-          <p class="organizer-identity">{{ event().organizer?.organization?.name ?? event().name }}</p>
         </article>
       } @empty {
         <p class="empty-copy" i18n>No live updates have been published yet.</p>
       }
     }
   </div>
-
-  @if (canPublish() && event().status() !== "past") {
-    <details class="organizer-panel">
-      <summary><mat-icon>campaign</mat-icon><span i18n>Publish organizer update</span></summary>
-      @if (!previewing()) {
-        <form (submit)="showPreview(); $event.preventDefault()">
-          <label>
-            <span i18n>Update type</span>
-            <select [formField]="updateForm.type" (change)="updateTypeChanged($event)">
-              @for (option of updateTypeOptions; track option.type) {
-                <option [value]="option.type">{{ option.label }}</option>
-              }
-            </select>
-          </label>
-          <label>
-            <span i18n>Short title</span>
-            <input [formField]="updateForm.title" />
-            <small>{{ formModel().title.length }}/{{ titleMaxLength }}</small>
-          </label>
-          <label>
-            <span i18n>Short message (optional)</span>
-            <textarea [formField]="updateForm.message" rows="3"></textarea>
-            <small>{{ formModel().message.length }}/{{ messageMaxLength }}</small>
-          </label>
-          <div class="form-grid">
-            <label>
-              <span i18n>Time (optional)</span>
-              <input type="datetime-local" [formField]="updateForm.scheduledFor" />
-            </label>
-            @if (linkedSpots().length > 0) {
-              <label>
-                <span i18n>Event Spot (optional)</span>
-                <select [formField]="updateForm.eventSpotId">
-                  <option value="" i18n>No linked Spot</option>
-                  @for (spot of linkedSpots(); track spot.id) { <option [value]="spot.id">{{ spot.name }}</option> }
-                </select>
-              </label>
-            }
-          </div>
-          @if (updateForm().invalid() && updateForm().touched()) {
-            <p class="error-copy" role="alert" i18n>Check the title and message length.</p>
-          }
-          <button mat-flat-button type="submit" i18n>Preview notification</button>
-        </form>
-      } @else {
-        <div class="confirmation-preview" role="group" aria-label="Notification preview" i18n-aria-label>
-          <p class="preview-label" i18n>Confirm live notification</p>
-          <h3>{{ event().name }}</h3>
-          <p><strong>{{ updateTypeLabel(formModel().type) }}</strong></p>
-          <p>{{ formModel().title }}</p>
-          @if (formModel().message) { <p>{{ formModel().message }}</p> }
-          <p class="recipient-warning" i18n>People subscribed to this event will receive a live notification.</p>
-          <div class="preview-actions">
-            <button mat-button type="button" (click)="cancelPreview()" i18n>Back</button>
-            <button mat-flat-button type="button" [disabled]="publishing()" (click)="publishUpdate()">
-              @if (publishing()) { <mat-spinner diameter="20"></mat-spinner> }
-              <span i18n>Publish update</span>
-            </button>
-          </div>
-        </div>
-      }
-    </details>
-  }
 </section>

@@ -88,11 +88,14 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly([
           'user_id',
           'active',
+          'event_reminders',
           'subscribed_at',
           'updated_at'
         ])
         && request.resource.data.user_id == userId
         && request.resource.data.active is bool
+        && (!('event_reminders' in request.resource.data)
+          || request.resource.data.event_reminders is bool)
         && request.resource.data.subscribed_at is timestamp
         && request.resource.data.updated_at is timestamp;
     }
@@ -956,18 +959,21 @@ service cloud.firestore {
           && request.auth.uid == userId
           && validEventLiveUpdateSubscription(userId)
           && (
-            request.resource.data.active == false
+            (request.resource.data.active == false
+              && request.resource.data.get('event_reminders', false) == false)
             || eventAcceptsLiveUpdateSubscriptions(eventId)
           );
         allow update: if request.auth.uid != null
           && request.auth.uid == userId
           && validEventLiveUpdateSubscription(userId)
           && (
-            request.resource.data.active == false
+            (request.resource.data.active == false
+              && request.resource.data.get('event_reminders', false) == false)
             || eventAcceptsLiveUpdateSubscriptions(eventId)
           )
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'active',
+            'event_reminders',
             'updated_at'
           ]);
         allow delete: if request.auth.uid != null && request.auth.uid == userId;

@@ -167,12 +167,6 @@
         <target> Se déconnecter </target>
       </segment>
     </unit>
-    <unit id="594233643210838773">
-      <segment state="initial">
-        <source>In-app updates are enabled. Push notifications are not supported on this browser or device.</source>
-        <target>Les actualités dans l’application sont activées. Ce navigateur ou cet appareil ne prend pas en charge les notifications push.</target>
-      </segment>
-    </unit>
     <unit id="5945359866777111462">
       <segment state="initial">
         <source> Report </source>
@@ -345,12 +339,6 @@
         <target>Média ajouté</target>
       </segment>
     </unit>
-    <unit id="8472114642828955051">
-      <segment state="initial">
-        <source>Updates may include schedule changes, Spot switches, weather changes, and organizer announcements.</source>
-        <target>Les actualités peuvent inclure des changements d’horaire, de Spot, de météo et des annonces des organisateurs.</target>
-      </segment>
-    </unit>
     <unit id="8473658733830175441">
       <segment state="initial">
         <source> Newest changes first. Each entry shows exactly what was edited. </source>
@@ -457,12 +445,6 @@
         <target> Vous pouvez modifier votre profil public ici. Les informations de votre profil public peuvent être vues par tout le monde, même par les visiteurs non authentifiés. </target>
       </segment>
     </unit>
-    <unit id="6814210910387388110">
-      <segment state="initial">
-        <source>Could not enable live updates. Please try again.</source>
-        <target>Impossible d’activer les actualités en direct. Réessayez.</target>
-      </segment>
-    </unit>
     <unit id="6815507474406960450">
       <segment state="initial">
         <source>E-Mail address</source>
@@ -499,10 +481,10 @@
         <target>À propos de PK Spot</target>
       </segment>
     </unit>
-    <unit id="552971513644813992">
+    <unit id="528729202947764595">
       <segment state="initial">
-        <source>Live updates could not be loaded.</source>
-        <target>Les actualités en direct n’ont pas pu être chargées.</target>
+        <source> Live updates could not be loaded. </source>
+        <target> Les actualités en direct n’ont pas pu être chargées. </target>
       </segment>
     </unit>
     <unit id="553543363816145762">
@@ -565,12 +547,6 @@
         <target>Mode de test de vote</target>
       </segment>
     </unit>
-    <unit id="1402668345340835564">
-      <segment state="initial">
-        <source>Recent updates</source>
-        <target>Actualités récentes</target>
-      </segment>
-    </unit>
     <unit id="1431416938026210429">
       <segment state="initial">
         <source>Password</source>
@@ -591,6 +567,12 @@
       <segment state="initial">
         <source>New E-mail address</source>
         <target>Nouvelle adresse e-mail</target>
+      </segment>
+    </unit>
+    <unit id="3292760121831436112">
+      <segment state="final">
+        <source>Add a short title of up to 80 characters.</source>
+        <target>Ajoutez un titre court de 80 caractères maximum.</target>
       </segment>
     </unit>
     <unit id="3294546743782337747">
@@ -672,6 +654,12 @@
       <segment state="initial">
         <source> The <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary&quot;&gt;" dispEnd="&lt;/span &gt;">spot</pc> for everything parkour<pc id="1" equivStart="START_TAG_SPAN_1" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot; &gt;" dispEnd="&lt;/span &gt;">.</pc></source>
         <target> Le <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-primary&quot;&gt;" dispEnd="&lt;/span &gt;">spot</pc> pour tout le parkour<pc id="1" equivStart="START_TAG_SPAN_1" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;font-secondary&quot; &gt;" dispEnd="&lt;/span &gt;">.</pc></target>
+      </segment>
+    </unit>
+    <unit id="2565034996218294740">
+      <segment state="final">
+        <source>Map Spots</source>
+        <target>Spots de la carte</target>
       </segment>
     </unit>
     <unit id="2599075381042572471">
@@ -912,12 +900,6 @@
       <segment state="initial">
         <source>Settings</source>
         <target>Paramètres</target>
-      </segment>
-    </unit>
-    <unit id="4255249104043141783">
-      <segment state="initial">
-        <source>Get live updates from this event</source>
-        <target>Recevoir les actualités en direct de cet événement</target>
       </segment>
     </unit>
     <unit id="4262052603921665097">
@@ -2379,12 +2361,6 @@
         <target>Ignorer</target>
       </segment>
     </unit>
-    <unit id="1550842214379660718">
-      <segment state="initial">
-        <source>Sign in to get live updates</source>
-        <target>Connectez-vous pour recevoir les actualités en direct</target>
-      </segment>
-    </unit>
     <unit id="6945945395354199350">
       <segment state="initial">
         <source>Incorrect password. Please try again.</source>
@@ -2484,6 +2460,12 @@
         <target>Pionnier</target>
       </segment>
     </unit>
+    <unit id="3269624145102222845">
+      <segment state="final">
+        <source>Loading event Spots…</source>
+        <target>Chargement des Spots de l’événement…</target>
+      </segment>
+    </unit>
     <unit id="3278358550418950949">
       <segment state="initial">
         <source> Duplicate </source>
@@ -2518,6 +2500,12 @@
       <segment state="initial">
         <source>Sending...</source>
         <target>Envoi...</target>
+      </segment>
+    </unit>
+    <unit id="112320089253340391">
+      <segment state="final">
+        <source>Temporary event Spots</source>
+        <target>Spots temporaires de l’événement</target>
       </segment>
     </unit>
     <unit id="1140327701924892323">
@@ -2654,6 +2642,12 @@
       <segment state="initial">
         <source>An error occurred. Please try again or request a new link.</source>
         <target>Une erreur s&apos;est produite. Veuillez réessayer ou demander un nouveau lien.</target>
+      </segment>
+    </unit>
+    <unit id="2019601691309455666">
+      <segment state="initial">
+        <source>Event Notifications</source>
+        <target>Notifications de l’événement</target>
       </segment>
     </unit>
     <unit id="202472216784225575">
@@ -4164,12 +4158,6 @@
         <target>Photographe</target>
       </segment>
     </unit>
-    <unit id="9068739507702057346">
-      <segment state="initial">
-        <source>Live updates enabled</source>
-        <target>Actualités en direct activées</target>
-      </segment>
-    </unit>
     <unit id="9068926282349592226">
       <segment state="initial">
         <source>Password changed successfully</source>
@@ -5168,12 +5156,6 @@
         <target>Événement à </target>
       </segment>
     </unit>
-    <unit id="7663580306829928382">
-      <segment state="initial">
-        <source>Get live updates</source>
-        <target>Recevoir les actualités en direct</target>
-      </segment>
-    </unit>
     <unit id="7672282077901429954">
       <segment state="initial">
         <source>Error, there was a problem signing out!</source>
@@ -6125,8 +6107,14 @@
     </unit>
     <unit id="event_edit.organizer_hint">
       <segment state="initial">
-        <source> Admin-only. Select an existing organization. </source>
-        <target> Admin uniquement. Sélectionne une organisation existante. </target>
+        <source> Admin-only. Select an organization or enter its name. </source>
+        <target> Admin uniquement. Sélectionne une organisation ou saisis son nom. </target>
+      </segment>
+    </unit>
+    <unit id="event_info.organized_by">
+      <segment state="translated">
+        <source>Organized by</source>
+        <target>Organisé par</target>
       </segment>
     </unit>
     <unit id="event_edit.published">
@@ -7012,16 +7000,16 @@
         <target>Bloquer</target>
       </segment>
     </unit>
+    <unit id="4228840569239247673">
+      <segment state="initial">
+        <source>Only Reminders</source>
+        <target>Rappels uniquement</target>
+      </segment>
+    </unit>
     <unit id="4234811560247297731">
       <segment state="initial">
         <source>Media reports</source>
         <target>Signalements de médias</target>
-      </segment>
-    </unit>
-    <unit id="4243604211025418923">
-      <segment state="initial">
-        <source>Your account keeps this event preference synced and prevents unwanted notifications.</source>
-        <target>Votre compte synchronise cette préférence et évite les notifications indésirables.</target>
       </segment>
     </unit>
     <unit id="aboutHeroSubtitle">
@@ -7247,6 +7235,12 @@
       <segment state="initial">
         <source>Indoor</source>
         <target>Intérieur</target>
+      </segment>
+    </unit>
+    <unit id="4301485018531590690">
+      <segment state="initial">
+        <source>Event notification preference</source>
+        <target>Préférence de notification de l’événement</target>
       </segment>
     </unit>
     <unit id="4320994550381609480">
@@ -7543,8 +7537,8 @@
     </unit>
     <unit id="community.info_disclosure_classes">
       <segment state="initial">
-        <source>Classes or coaching</source>
-        <target>Cours ou coaching</target>
+        <source>Classes and coaching</source>
+        <target>Cours et coaching</target>
       </segment>
     </unit>
     <unit id="community.info_disclosure_paid">
@@ -7975,10 +7969,10 @@
         <target>Adapté aux débutants</target>
       </segment>
     </unit>
-    <unit id="4793578167277073505">
+    <unit id="223926157815127218">
       <segment state="initial">
-        <source>Live event updates</source>
-        <target>Actualités de l’événement en direct</target>
+        <source> Live event updates </source>
+        <target> Actualités de l’événement en direct </target>
       </segment>
     </unit>
     <unit id="4813152754732689397">
@@ -8069,6 +8063,12 @@
       <segment state="initial">
         <source> The <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">crew</pc>. </source>
         <target> L’<pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">équipe</pc>. </target>
+      </segment>
+    </unit>
+    <unit id="2417459620118538314">
+      <segment state="initial">
+        <source>Could not update event notifications. Please try again.</source>
+        <target>Impossible de mettre à jour les notifications de l’événement. Réessayez.</target>
       </segment>
     </unit>
     <unit id="2472016265373616532">
@@ -8207,12 +8207,6 @@
         <target>Veuillez remplir tous les champs</target>
       </segment>
     </unit>
-    <unit id="2158118345719291849">
-      <segment state="initial">
-        <source>Confirm live notification</source>
-        <target>Confirmer la notification en direct</target>
-      </segment>
-    </unit>
     <unit id="2159130950882492111">
       <notes>
         <note category="description">cancel button label</note>
@@ -8276,6 +8270,12 @@
         <target>Détails météo actuels</target>
       </segment>
     </unit>
+    <unit id="3837011087922351865">
+      <segment state="initial">
+        <source>Only Event Updates</source>
+        <target>Actualités de l’événement uniquement</target>
+      </segment>
+    </unit>
     <unit id="7801350351736394974">
       <notes>
         <note category="meaning">report button label</note>
@@ -8289,12 +8289,6 @@
       <segment state="initial">
         <source>Close</source>
         <target>Fermer</target>
-      </segment>
-    </unit>
-    <unit id="4101287187769863724">
-      <segment state="initial">
-        <source>New organizer updates can also appear as device notifications.</source>
-        <target>Les nouvelles actualités des organisateurs peuvent aussi apparaître comme notifications sur l’appareil.</target>
       </segment>
     </unit>
     <unit id="4106902315329542244">
@@ -8468,6 +8462,12 @@
         <target>Mensajes de contacto</target>
       </segment>
     </unit>
+    <unit id="2772374745622574688">
+      <segment state="initial">
+        <source>Edit event</source>
+        <target>Modifier l’événement</target>
+      </segment>
+    </unit>
     <unit id="2781971407154812080">
       <segment state="initial">
         <source>Unlinked Google Place</source>
@@ -8522,16 +8522,10 @@
         <target>En attente de révision par l’organisation</target>
       </segment>
     </unit>
-    <unit id="8072702942015533461">
+    <unit id="805182578389935261">
       <segment state="initial">
-        <source>Turn off updates</source>
-        <target>Désactiver les actualités</target>
-      </segment>
-    </unit>
-    <unit id="3344632090178218160">
-      <segment state="initial">
-        <source>In-app updates work here. Push notifications require a supported device and notification permission.</source>
-        <target>Les actualités dans l’application fonctionnent ici. Les notifications push nécessitent un appareil compatible et une autorisation.</target>
+        <source>Latest information from <ph id="0" equiv="INTERPOLATION" disp="{{ event().organizer?.organization?.name ?? event().name }}"/>.</source>
+        <target>Dernières informations de <ph id="0" equiv="INTERPOLATION" disp="{{ event().organizer?.organization?.name ?? event().name }}"/>.</target>
       </segment>
     </unit>
     <unit id="3368417786821334758">
@@ -8970,12 +8964,6 @@
         <target> Trouvez des réponses aux questions courantes ou contactez-nous directement. </target>
       </segment>
     </unit>
-    <unit id="7552927378468859845">
-      <segment state="initial">
-        <source>Publish organizer update</source>
-        <target>Publier une actualité d’organisateur</target>
-      </segment>
-    </unit>
     <unit id="2502246313488671541">
       <segment state="initial">
         <source> Private accounts can approve who follows them. </source>
@@ -9075,16 +9063,22 @@
         <target>Média ajouté</target>
       </segment>
     </unit>
+    <unit id="6588223759870524689">
+      <segment state="initial">
+        <source>Your event options</source>
+        <target>Vos options pour l’événement</target>
+      </segment>
+    </unit>
     <unit id="6598126152282792001">
       <segment state="initial">
         <source>Unnamed Toilet</source>
         <target>Toilettes sans nom</target>
       </segment>
     </unit>
-    <unit id="6112236680555852224">
+    <unit id="3942730300546294278">
       <segment state="initial">
-        <source>People subscribed to this event will receive a live notification.</source>
-        <target>Les personnes abonnées à cet événement recevront une notification en direct.</target>
+        <source> People subscribed to this event will receive a live notification. </source>
+        <target> Les personnes abonnées à cet événement recevront une notification en direct. </target>
       </segment>
     </unit>
     <unit id="6113189419449428585">
@@ -9171,22 +9165,10 @@
         <target>Supprimer définitivement</target>
       </segment>
     </unit>
-    <unit id="5493359222682689303">
-      <segment state="initial">
-        <source>Past live updates remain available below, but new updates are closed.</source>
-        <target>Les anciennes actualités restent disponibles ci-dessous, mais les nouvelles publications sont fermées.</target>
-      </segment>
-    </unit>
     <unit id="7027401708987643293">
       <segment state="initial">
         <source>Core</source>
         <target>Base</target>
-      </segment>
-    </unit>
-    <unit id="3991385999188585824">
-      <segment state="initial">
-        <source>Check the title and message length.</source>
-        <target>Vérifiez la longueur du titre et du message.</target>
       </segment>
     </unit>
     <unit id="3998090677451328461">
@@ -9229,12 +9211,6 @@
       <segment state="initial">
         <source>This challenge is for fun! </source>
         <target>Ce Challenge est pour le plaisir ! </target>
-      </segment>
-    </unit>
-    <unit id="5110610567894331859">
-      <segment state="initial">
-        <source>Live update preferences could not be loaded or saved.</source>
-        <target>Les préférences d’actualités en direct n’ont pas pu être chargées ou enregistrées.</target>
       </segment>
     </unit>
     <unit id="5111811857121425885">
@@ -9317,12 +9293,6 @@
       <segment state="initial">
         <source>A core challenge of this spot. An essential challenge for anyone seeking to master this spot.</source>
         <target>Un Challenge core de ce Spot. Un Challenge essentiel pour quiconque cherche à maîtriser ce Spot.</target>
-      </segment>
-    </unit>
-    <unit id="3901905864121453020">
-      <segment state="initial">
-        <source>Could not turn off live updates. Please try again.</source>
-        <target>Impossible de désactiver les actualités en direct. Réessayez.</target>
       </segment>
     </unit>
     <unit id="3909136360386442402">
@@ -9409,12 +9379,6 @@
         <target>Mantener advertencia</target>
       </segment>
     </unit>
-    <unit id="7411079630980671267">
-      <segment state="initial">
-        <source>This event has ended</source>
-        <target>Cet événement est terminé</target>
-      </segment>
-    </unit>
     <unit id="5400391042453835180">
       <segment state="initial">
         <source>Manage your <ph id="0" equiv="PH" disp="point.name"/> settings.</source>
@@ -9431,6 +9395,12 @@
       <segment state="initial">
         <source>Go to your location</source>
         <target>Aller à ta position</target>
+      </segment>
+    </unit>
+    <unit id="5439680339974485805">
+      <segment state="initial">
+        <source>Publish live event update</source>
+        <target>Publier une actualité en direct</target>
       </segment>
     </unit>
     <unit id="5442876463654189578">
@@ -9475,6 +9445,12 @@
         <target> Date de publication <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE" equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other" dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;" dispEnd="&lt;/mat-slide-toggle&gt;"/></target>
       </segment>
     </unit>
+    <unit id="8876716314997684812">
+      <segment state="initial">
+        <source>Event management</source>
+        <target>Gérer l’événement</target>
+      </segment>
+    </unit>
     <unit id="8882370377359593676">
       <segment state="initial">
         <source>Update type</source>
@@ -9509,6 +9485,12 @@
       <segment state="initial">
         <source>Verified</source>
         <target>Vérifié</target>
+      </segment>
+    </unit>
+    <unit id="502158499401780267">
+      <segment state="final">
+        <source>Use no more than 280 characters.</source>
+        <target>Utilisez 280 caractères maximum.</target>
       </segment>
     </unit>
     <unit id="5028777105388019087">
@@ -9836,12 +9818,6 @@
         <target>Aucune actualité en direct n’a encore été publiée.</target>
       </segment>
     </unit>
-    <unit id="8978285646707515154">
-      <segment state="initial">
-        <source> Organizers may send schedule, location, weather, and meet-up updates. </source>
-        <target>Les organisateurs peuvent envoyer des changements d’horaire, de lieu, de météo et de rendez-vous.</target>
-      </segment>
-    </unit>
     <unit id="8981724482694536509">
       <segment state="initial">
         <source>Directions</source>
@@ -9867,6 +9843,12 @@
       <segment state="initial">
         <source>Both</source>
         <target>Les deux</target>
+      </segment>
+    </unit>
+    <unit id="6252070156626006029">
+      <segment state="initial">
+        <source>None</source>
+        <target>Aucune</target>
       </segment>
     </unit>
     <unit id="6266780676699111627">
@@ -10307,6 +10289,12 @@
         <target>Carte de Score Intelligente</target>
       </segment>
     </unit>
+    <unit id="576032629082435529">
+      <segment state="initial">
+        <source>Publish live update</source>
+        <target>Publier l’actualité en direct</target>
+      </segment>
+    </unit>
     <unit id="1816655675231412974">
       <segment state="initial">
         <source>Profile reports</source>
@@ -10398,12 +10386,6 @@
       <segment state="initial">
         <source>Spots</source>
         <target>Lieux Spot</target>
-      </segment>
-    </unit>
-    <unit id="4601436343051022992">
-      <segment state="initial">
-        <source>In-app updates are enabled. Push notifications are blocked in device settings.</source>
-        <target>Les actualités dans l’application sont activées. Les notifications push sont bloquées dans les réglages de l’appareil.</target>
       </segment>
     </unit>
     <unit id="4608107035538313233">
@@ -10932,34 +10914,10 @@
         <target>Supprimer l’élément du programme</target>
       </segment>
     </unit>
-    <unit id="event_edit.program_item_spot_id">
-      <segment state="initial">
-        <source> Spot id </source>
-        <target> ID del spot </target>
-      </segment>
-    </unit>
-    <unit id="event_edit.program_item_spot_inline">
-      <segment state="initial">
-        <source>Inline spot</source>
-        <target>Spot inline</target>
-      </segment>
-    </unit>
     <unit id="event_edit.program_item_spot_kind">
-      <segment state="initial">
-        <source> Spot target </source>
-        <target> Cible de spot </target>
-      </segment>
-    </unit>
-    <unit id="event_edit.program_item_spot_none">
-      <segment state="initial">
-        <source>None</source>
-        <target>Aucun</target>
-      </segment>
-    </unit>
-    <unit id="event_edit.program_item_spot_real">
-      <segment state="initial">
-        <source>Spot</source>
-        <target>Spot</target>
+      <segment state="final">
+        <source>Spot target</source>
+        <target>Spot de destination</target>
       </segment>
     </unit>
     <unit id="event_edit.program_item_start">
@@ -11504,8 +11462,8 @@
     </unit>
     <unit id="community.editor_disclosure_classes">
       <segment state="initial">
-        <source>Classes or coaching</source>
-        <target>Cours ou coaching</target>
+        <source>Classes and coaching</source>
+        <target>Cours et coaching</target>
       </segment>
     </unit>
     <unit id="community.editor_disclosure_classes_description">
