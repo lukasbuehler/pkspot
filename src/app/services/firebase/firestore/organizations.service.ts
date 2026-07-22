@@ -80,6 +80,15 @@ export class OrganizationsService {
     >(`organizations/${organizationId}/members`);
   }
 
+  async getOrganizationMember(
+    organizationId: string,
+    userId: string,
+  ): Promise<OrganizationMemberSchema | null> {
+    return this._firestoreAdapter.getDocument<OrganizationMemberSchema>(
+      `organizations/${organizationId}/members/${userId}`,
+    );
+  }
+
   async getStewardedSpots(
     organizationId: string,
     locale: LocaleCode = this._locale

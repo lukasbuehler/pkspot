@@ -1,0 +1,121 @@
+:host {
+  display: block;
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem 0;
+}
+
+.dialog-header h2 {
+  margin: 0;
+  padding: 0;
+}
+
+.dialog-header > div {
+  display: grid;
+  gap: 0.125rem;
+}
+
+.dialog-header .mat-label-large {
+  color: var(--mat-sys-primary);
+}
+
+mat-dialog-content {
+  display: grid;
+  gap: 1.5rem;
+  padding-top: 1rem;
+}
+
+.hourly-strip {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding: 0.125rem 0.125rem 0.75rem;
+  scroll-snap-type: x proximity;
+}
+
+.forecast-icon {
+  width: 2rem;
+  height: 2rem;
+  font-size: 2rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.forecast-icon.is-wet {
+  color: var(--mat-sys-primary);
+}
+
+.forecast-icon.has-warning {
+  color: var(--mat-sys-error);
+}
+
+.forecast-icon.is-night {
+  color: var(--mat-sys-tertiary);
+}
+
+.rain-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  color: var(--mat-sys-primary);
+}
+
+.rain-detail mat-icon {
+  width: 1rem;
+  height: 1rem;
+  font-size: 1rem;
+}
+
+.hourly-section {
+  min-width: 0;
+}
+
+.hourly-section h3 {
+  margin: 0 0 0.75rem;
+}
+
+.weather-hour {
+  display: grid;
+  flex: 0 0 5.25rem;
+  place-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: var(--mat-sys-surface-container-low);
+  scroll-snap-align: center;
+}
+
+.weather-hour.highlighted {
+  border-color: var(--mat-sys-primary);
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.hourly-unavailable {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px dashed var(--mat-sys-outline);
+  border-radius: 18px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.attribution {
+  justify-self: end;
+}
+
+@media (max-width: 600px) {
+  .dialog-header {
+    padding-inline: 1rem;
+  }
+
+  mat-dialog-content {
+    padding-inline: 1rem;
+  }
+}

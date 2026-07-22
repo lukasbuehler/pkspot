@@ -88,6 +88,7 @@ export type WeatherRequest =
       eventEnd: string;
       scheduleItems?: WeatherScheduleItem[];
       providerOverride?: WeatherProvider;
+      spatialScope?: WeatherTileScope;
     };
 
 export interface WeatherPoint {
@@ -346,17 +347,14 @@ export function parseWeatherRequest(value: unknown): WeatherRequest {
     throw new HttpsError("invalid-argument", "invalid weather mode");
   }
 
-  if (
-    mode !== "current-and-near-future" &&
-    value["spatialScope"] !== undefined
-  ) {
+  if (mode === "forecast-at" && value["spatialScope"] !== undefined) {
     throw new HttpsError(
       "invalid-argument",
-      "spatialScope is only supported for current weather"
+      "spatialScope is not supported for forecast-at weather"
     );
   }
   const spatialScope =
-    mode === "current-and-near-future"
+    mode === "current-and-near-future" || mode === "event-forecast"
       ? parseWeatherTileScope(value["spatialScope"])
       : undefined;
   const location = spatialScope
@@ -407,6 +405,7 @@ export function parseWeatherRequest(value: unknown): WeatherRequest {
     eventEnd: eventEnd.toISOString(),
     scheduleItems,
     providerOverride,
+    spatialScope,
   };
 }
 
@@ -452,10 +451,37 @@ export function resolveRequestWindow(
     return { startTime, endTime, includeCurrent: false };
   }
 
-  const startTime = floorToHour(new Date(request.eventStart));
-  const endTime = ceilToHour(new Date(request.eventEnd));
-  assertForecastWindowSupported(startTime, endTime, provider, now);
-  return { startTime, endTime, includeCurrent: false };
+  const requestedStart = floorToHour(new Date(request.eventStart));
+  const requestedEnd = ceilToHour(new Date(request.eventEnd));
+  const availableStart = floorToHour(now);
+  const maxHours =
+    provider === "google"
+      ? GOOGLE_MAX_FORECAST_HOURS
+      : OPEN_METEO_MAX_FORECAST_HOURS;
+  const availableEnd = addHours(availableStart, maxHours);
+
+  if (requestedEnd.getTime() <= availableStart.getTime()) {
+    throw new HttpsError(
+      "invalid-argument",
+      "weather forecast window is in the past"
+    );
+  }
+  if (requestedStart.getTime() > availableEnd.getTime()) {
+    throw new HttpsError(
+      "invalid-argument",
+      `weather forecast window exceeds ${provider} forecast range`
+    );
+  }
+
+  return {
+    startTime: new Date(
+      Math.max(requestedStart.getTime(), availableStart.getTime())
+    ),
+    endTime: new Date(
+      Math.min(requestedEnd.getTime(), availableEnd.getTime())
+    ),
+    includeCurrent: false,
+  };
 }
 
 export function buildWeatherCacheKey(
@@ -464,7 +490,7 @@ export function buildWeatherCacheKey(
   window: { startTime: Date; endTime: Date }
 ): string {
   const locationKey =
-    request.mode === "current-and-near-future" && request.spatialScope
+    "spatialScope" in request && request.spatialScope
       ? [
         request.spatialScope.type,
         request.spatialScope.zoom,

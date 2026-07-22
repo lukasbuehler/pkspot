@@ -8,7 +8,10 @@
       ></mat-spinner>
     </div>
   } @else if (organization()) {
-    <div class="organization-grid">
+    <div
+      class="organization-grid"
+      [class.organization-grid--single-column]="!canViewMembers()"
+    >
       <section class="organization-primary" aria-label="Organization overview">
         <mat-card class="organization-overview__card mat-elevation-z1">
           <mat-card-content>
@@ -61,10 +64,17 @@
                     <span i18n>{usedSpotCount(), plural, =1 {used spot} other {used spots}}</span>
                   </div>
                   <div class="mat-body-large organization-overview__metric">
-                    <mat-icon>groups</mat-icon>
-                    <strong>{{ memberCount() }}</strong>
-                    <span i18n>{memberCount(), plural, =1 {member} other {members}}</span>
+                    <mat-icon>calendar_month</mat-icon>
+                    <strong>{{ eventCount() }}</strong>
+                    <span i18n>{eventCount(), plural, =1 {event} other {events}}</span>
                   </div>
+                  @if (canViewMembers()) {
+                    <div class="mat-body-large organization-overview__metric">
+                      <mat-icon>groups</mat-icon>
+                      <strong>{{ memberCount() }}</strong>
+                      <span i18n>{memberCount(), plural, =1 {member} other {members}}</span>
+                    </div>
+                  }
                 </div>
 
                 @if (organization()?.website_url) {
@@ -84,6 +94,25 @@
                 }
               </div>
             </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="organization-section mat-elevation-z1">
+          <mat-card-header class="organization-section__header">
+            <mat-card-title class="mat-title-small" i18n>Events</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="organization-section__content">
+            @if (events().length > 0) {
+              <div class="organization-events-grid">
+                @for (event of events(); track event.id) {
+                  <app-event-card [event]="event"></app-event-card>
+                }
+              </div>
+            } @else {
+              <p class="mat-body-medium organization-section__placeholder" i18n>
+                No events scheduled yet.
+              </p>
+            }
           </mat-card-content>
         </mat-card>
 
@@ -181,13 +210,18 @@
         </mat-card>
       </section>
 
-      <section class="organization-secondary" aria-label="Organization members">
+      @if (canViewMembers()) {
+        <section class="organization-secondary" aria-label="Organization members">
         <mat-card class="organization-section mat-elevation-z1">
           <mat-card-header class="organization-section__header">
             <mat-card-title class="mat-title-small" i18n>Members</mat-card-title>
           </mat-card-header>
           <mat-card-content class="organization-section__content">
-            @if (members().length > 0) {
+            @if (isMembersLoading()) {
+              <div class="organization-members-loading" aria-live="polite">
+                <mat-spinner diameter="32" aria-label="Loading members"></mat-spinner>
+              </div>
+            } @else if (members().length > 0) {
               <div class="organization-member-list">
                 @for (member of members(); track member.id) {
                   <a
@@ -219,12 +253,13 @@
               </div>
             } @else {
               <p class="mat-body-medium organization-section__placeholder" i18n>
-                No public members yet.
+                No members yet.
               </p>
             }
           </mat-card-content>
         </mat-card>
-      </section>
+        </section>
+      }
     </div>
   } @else {
     <div class="organization-state" aria-live="polite">

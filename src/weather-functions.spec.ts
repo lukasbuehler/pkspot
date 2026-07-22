@@ -179,7 +179,7 @@ describe("weather functions", () => {
     ).toThrow(/spatialScope.x/);
   });
 
-  it("rejects map tile scope for non-current forecast modes", () => {
+  it("rejects map tile scope for point-in-time forecast mode", () => {
     expect(() =>
       parseWeatherRequest({
         mode: "forecast-at",
@@ -192,7 +192,76 @@ describe("weather functions", () => {
           y: 1432,
         },
       })
-    ).toThrow(/only supported for current weather/);
+    ).toThrow(/not supported for forecast-at weather/);
+  });
+
+  it("canonicalizes tiled event forecasts and keeps their request contract", () => {
+    const request = parseWeatherRequest({
+      mode: "event-forecast",
+      location: { lat: 47.37, lng: 8.54 },
+      eventStart: "2026-07-09T10:00:00Z",
+      eventEnd: "2026-07-10T10:00:00Z",
+      scheduleItems: [
+        {
+          id: "jam",
+          title: "Jam",
+          start: "2026-07-09T10:00:00Z",
+          end: "2026-07-09T12:00:00Z",
+        },
+      ],
+      spatialScope: {
+        type: "mercator-tile",
+        zoom: 12,
+        x: 2145,
+        y: 1432,
+      },
+    });
+
+    expect(request).toMatchObject({
+      mode: "event-forecast",
+      spatialScope: {
+        type: "mercator-tile",
+        zoom: 12,
+        x: 2145,
+        y: 1432,
+      },
+      scheduleItems: [{ id: "jam", title: "Jam" }],
+    });
+    expect(request.location).not.toEqual({ lat: 47.37, lng: 8.54 });
+  });
+
+  it("clips partially available event forecasts to the provider window", () => {
+    const now = new Date("2026-07-08T10:15:00Z");
+
+    expect(
+      resolveRequestWindow(
+        {
+          mode: "event-forecast",
+          location: { lat: 47.37, lng: 8.54 },
+          eventStart: "2026-07-08T08:00:00Z",
+          eventEnd: "2026-07-22T10:00:00Z",
+        },
+        "google",
+        now,
+      ),
+    ).toEqual({
+      startTime: new Date("2026-07-08T10:00:00Z"),
+      endTime: new Date("2026-07-18T10:00:00Z"),
+      includeCurrent: false,
+    });
+
+    expect(() =>
+      resolveRequestWindow(
+        {
+          mode: "event-forecast",
+          location: { lat: 47.37, lng: 8.54 },
+          eventStart: "2026-07-20T11:00:00Z",
+          eventEnd: "2026-07-21T11:00:00Z",
+        },
+        "google",
+        now,
+      ),
+    ).toThrow(/forecast range/);
   });
 
   it("keeps Google cached weather below the hourly provider limit", () => {

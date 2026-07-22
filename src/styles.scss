@@ -59,7 +59,8 @@ html {
 
 // Shared treatment for card-like surfaces that are not Angular Material cards.
 // Material card shapes consume --app-card-radius in the theme configuration.
-.app-card {
+.app-card,
+.mat-mdc-card.app-card {
   border: var(--app-card-outline-width) solid var(--app-card-outline-color);
   border-radius: var(--app-card-radius);
   background: var(--app-card-background);

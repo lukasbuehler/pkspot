@@ -397,6 +397,29 @@
             class="app-card"
             [items]="activeProgramItems()"
             [timeZone]="event.timeZone"
+            [eventStart]="event.start"
+            [eventEnd]="event.end"
+            [weather]="eventWeather()"
+            (weatherSelected)="openEventWeather($event)"
+          />
+        </section>
+      } @else if (eventWeather(); as weather) {
+        <section class="event-section event-weather-section">
+          <div class="section-heading-row">
+            <h2
+              class="mat-title-large m-0"
+              i18n="@@event_weather.forecast_heading"
+            >
+              Forecast
+            </h2>
+            <mat-icon>cloud</mat-icon>
+          </div>
+          <app-event-weather-days
+            [eventStart]="event.start"
+            [eventEnd]="event.end"
+            [timeZone]="event.timeZone"
+            [response]="weather"
+            (dateSelected)="openEventWeather({ date: $event })"
           />
         </section>
       }

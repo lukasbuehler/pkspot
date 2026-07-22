@@ -5,6 +5,14 @@
 
 a {
   max-width: 100%;
+  padding-inline: 3px 12px;
+}
+
+.organization-button__content {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  height: 100%;
 }
 
 .organization-button__logo {
@@ -33,7 +41,9 @@ a {
 }
 
 .organization-button__name {
+  display: block;
   min-width: 0;
+  line-height: 1.25rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

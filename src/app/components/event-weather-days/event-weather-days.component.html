@@ -1,0 +1,51 @@
+<div
+  class="event-days"
+  aria-label="Event days"
+  i18n-aria-label="@@event_weather.days"
+>
+  @for (day of days(); track day.key) {
+    <button
+      type="button"
+      class="event-day"
+      [class.selected]="selectedDate() === day.key"
+      [class.unavailable]="!day.available"
+      [attr.aria-pressed]="selectedDate() ? selectedDate() === day.key : null"
+      (click)="dateSelected.emit(day.key)"
+    >
+      <span class="day-heading">
+        <strong class="mat-label-large">{{ day.weekday }}</strong>
+        <span class="mat-label-small">{{ day.date }}</span>
+      </span>
+      @if (day.available) {
+        <mat-icon
+          class="forecast-icon"
+          [class.is-wet]="day.tone === 'wet'"
+          [class.has-warning]="day.tone === 'warning'"
+          [attr.aria-label]="day.condition"
+          >{{ day.icon }}</mat-icon
+        >
+        <span class="temperature-range">
+          @if (day.high) {
+            <strong>{{ day.high }}</strong>
+          }
+          @if (day.low) {
+            <span>{{ day.low }}</span>
+          }
+        </span>
+        @if (day.rainProbability !== undefined) {
+          <span class="rain-detail mat-label-small">
+            <mat-icon aria-hidden="true">water_drop</mat-icon>
+            {{ day.rainProbability }}%
+          </span>
+        }
+      } @else {
+        <mat-icon class="unavailable-icon" aria-hidden="true"
+          >more_horiz</mat-icon
+        >
+        <span class="mat-label-small" i18n="@@event_weather.unavailable"
+          >Forecast not available yet</span
+        >
+      }
+    </button>
+  }
+</div>

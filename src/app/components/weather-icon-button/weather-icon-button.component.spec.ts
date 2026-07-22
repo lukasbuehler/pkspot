@@ -154,6 +154,42 @@ describe("WeatherIconButtonComponent", () => {
     ).toBe("Wildfire, 28 °C");
   });
 
+  it("shows a compact hourly temperature", async () => {
+    fixture.componentRef.setInput("weather", {
+      condition: "partly-cloudy",
+      temperatureC: 21.6,
+    } satisfies WeatherIconData);
+    fixture.componentRef.setInput("display", "temperature");
+
+    await fixture.whenStable();
+
+    expect(
+      fixture.nativeElement.querySelector(".weather-value").textContent.trim(),
+    ).toBe("22°");
+    expect(
+      fixture.nativeElement.querySelector("button").getAttribute("aria-label"),
+    ).toBe("Partly cloudy, 22 °C");
+  });
+
+  it("shows a preferred-unit daily temperature range", async () => {
+    temperatureUnitPreference.set("fahrenheit");
+    fixture.componentRef.setInput("weather", {
+      condition: "clear",
+      maxTemperatureC: 30,
+      minTemperatureC: 20,
+    } satisfies WeatherIconData);
+    fixture.componentRef.setInput("display", "temperature-range");
+
+    await fixture.whenStable();
+
+    expect(
+      fixture.nativeElement.querySelector(".weather-value").textContent.trim(),
+    ).toBe("86° / 68°");
+    expect(
+      fixture.nativeElement.querySelector("button").getAttribute("aria-label"),
+    ).toBe("Clear, high 86 °F, low 68 °F");
+  });
+
   it("emits without triggering a clickable parent by default", async () => {
     fixture.componentRef.setInput("weather", weather("rain"));
     const pressed = vi.fn();

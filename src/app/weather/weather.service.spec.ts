@@ -233,4 +233,66 @@ describe("WeatherService", () => {
       },
     });
   });
+
+  it("requests and caches a tiled event forecast", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime("2026-07-21T10:00:00Z");
+    const response = {
+      provider: "google",
+      mode: "event-forecast",
+      location: { lat: 47.37, lng: 8.57 },
+      generatedAt: "2026-07-21T10:00:00Z",
+      expiresAt: "2026-07-21T10:45:00Z",
+      forecast: [],
+      dailyForecast: [],
+      insights: {
+        summary: "Dry conditions",
+        precipitationRisk: "none",
+        sunExposure: "low",
+        surfaceDrying: {
+          status: "likely_dry",
+          confidence: "low",
+          factors: [],
+        },
+      },
+    };
+    const functions = {
+      callAppChecked: vi.fn().mockResolvedValue(response),
+    };
+    TestBed.configureTestingModule({
+      providers: [
+        WeatherService,
+        { provide: FunctionsAdapterService, useValue: functions },
+      ],
+    });
+    const service = TestBed.inject(WeatherService);
+    const location = { lat: 47.3769, lng: 8.5417 };
+    const tile = getWeatherTile(location);
+    const start = new Date("2026-07-23T08:00:00Z");
+    const end = new Date("2026-07-27T16:00:00Z");
+
+    await service.getEventForecastForTileAt(location, start, end);
+    await service.getEventForecastForTileAt(location, start, end);
+
+    expect(functions.callAppChecked).toHaveBeenCalledOnce();
+    expect(functions.callAppChecked).toHaveBeenCalledWith("getWeather", {
+      mode: "event-forecast",
+      location: tile.center,
+      eventStart: start.toISOString(),
+      eventEnd: end.toISOString(),
+      spatialScope: {
+        type: "mercator-tile",
+        zoom: tile.zoom,
+        x: tile.x,
+        y: tile.y,
+      },
+    });
+    expect(service.isEventForecastAvailable(start, end)).toBe(true);
+    expect(
+      service.isEventForecastAvailable(
+        new Date("2026-08-02T11:00:01Z"),
+        new Date("2026-08-03T11:00:01Z"),
+      ),
+    ).toBe(false);
+  });
 });

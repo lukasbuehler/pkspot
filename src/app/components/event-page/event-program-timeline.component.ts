@@ -4,6 +4,7 @@ import {
   computed,
   inject,
   input,
+  output,
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
@@ -13,12 +14,47 @@ import { MatTabsModule } from "@angular/material/tabs";
 import { EventProgramItem } from "../../../db/models/Event";
 import { EventCategory } from "../../../db/schemas/EventSchema";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
+import {
+  WEATHER_STATES,
+  getDailyWeatherForecastIconTone,
+  getWeatherForecastIconTone,
+  getWeatherStateIcon,
+  type WeatherForecastIconTone,
+} from "../../weather/weather-display";
+import type {
+  DailyWeatherPoint,
+  WeatherPoint,
+  WeatherResponse,
+} from "../../weather/weather.models";
+import {
+  dailyForecastByDate,
+  eventDateKey,
+  forecastHourAt,
+  type EventWeatherSelection,
+} from "../../weather/event-weather";
+import {
+  WeatherIconButtonComponent,
+  type WeatherIconData,
+} from "../weather-icon-button/weather-icon-button.component";
 
-type ProgramDayGroup = {
+interface ProgramItemView {
+  item: EventProgramItem;
+  weather?: WeatherIconData;
+}
+
+interface ProgramDayWeather {
+  data: WeatherIconData;
+  icon: string;
+  label: string;
+  tone: WeatherForecastIconTone;
+}
+
+interface ProgramDayGroup {
   key: string;
   label: string;
-  items: EventProgramItem[];
-};
+  items: ProgramItemView[];
+  weather?: ProgramDayWeather;
+}
 
 @Component({
   selector: "app-event-program-timeline",
@@ -28,13 +64,37 @@ type ProgramDayGroup = {
     MatChipsModule,
     MatIconModule,
     MatTabsModule,
+    WeatherIconButtonComponent,
   ],
   template: `
     <mat-tab-group class="program-tabs" mat-stretch-tabs="false">
       @for (day of dayGroups(); track day.key) {
-        <mat-tab [label]="day.label">
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <span>{{ day.label }}</span>
+            @if (day.weather; as weather) {
+              <mat-icon
+                class="day-tab-weather"
+                [class.is-wet]="weather.tone === 'wet'"
+                [class.has-warning]="weather.tone === 'warning'"
+                [class.is-night]="weather.tone === 'night'"
+                [attr.aria-label]="weather.label"
+                >{{ weather.icon }}</mat-icon
+              >
+            }
+          </ng-template>
           <div class="program-timeline px-3">
-            @for (item of day.items; track item.id) {
+            @if (day.weather; as weather) {
+              <div class="day-weather-row">
+                <app-weather-icon-button
+                  [weather]="weather.data"
+                  display="temperature-range"
+                  (pressed)="selectDayWeather(day.key)"
+                />
+              </div>
+            }
+            @for (entry of day.items; track entry.item.id) {
+              @let item = entry.item;
               <article class="program-item">
                 <div class="program-rail">
                   <span class="program-dot" aria-hidden="true"></span>
@@ -53,6 +113,14 @@ type ProgramDayGroup = {
                       }
                     </div>
                     <div class="program-side">
+                      @if (entry.weather; as weather) {
+                        <app-weather-icon-button
+                          [weather]="weather"
+                          display="temperature"
+                          size="compact"
+                          (pressed)="selectItemWeather(day.key, item.start)"
+                        />
+                      }
                       <mat-chip>
                         <mat-icon matChipAvatar>{{
                           categoryIcon(item.category)
@@ -104,15 +172,15 @@ export class EventProgramTimelineComponent {
 
   readonly items = input.required<EventProgramItem[]>();
   readonly timeZone = input<string | undefined>();
+  readonly eventStart = input<Date>();
+  readonly eventEnd = input<Date>();
+  readonly weather = input<WeatherResponse>();
+  readonly weatherSelected = output<EventWeatherSelection>();
 
   readonly dayGroups = computed<ProgramDayGroup[]>(() => {
     const groups = new Map<string, ProgramDayGroup>();
-    const keyFormatter = new Intl.DateTimeFormat("en-CA", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      timeZone: this.timeZone(),
-    });
+    const response = this.weather();
+    const dailyByDate = dailyForecastByDate(response?.dailyForecast);
     const labelFormatter = this._dateTime.formatter({
       weekday: "long",
       day: "numeric",
@@ -123,21 +191,43 @@ export class EventProgramTimelineComponent {
     for (const item of [...this.items()].sort(
       (left, right) => left.start.getTime() - right.start.getTime(),
     )) {
-      const key = keyFormatter.format(item.start);
+      const key = eventDateKey(item.start, this.timeZone());
+      const eventStart = this.eventStart();
+      const eventEnd = this.eventEnd();
+      const itemIsWithinEvent =
+        (!eventStart || item.start >= eventStart) &&
+        (!eventEnd || item.start <= eventEnd);
+      const itemView: ProgramItemView = {
+        item,
+        weather: this.hourWeatherData(
+          itemIsWithinEvent
+            ? forecastHourAt(response?.forecast, item.start)
+            : undefined,
+        ),
+      };
       const existing = groups.get(key);
       if (existing) {
-        existing.items.push(item);
+        existing.items.push(itemView);
       } else {
         groups.set(key, {
           key,
           label: labelFormatter.format(item.start),
-          items: [item],
+          items: [itemView],
+          weather: this.dayWeatherData(dailyByDate.get(key)),
         });
       }
     }
 
     return [...groups.values()];
   });
+
+  selectDayWeather(date: string): void {
+    this.weatherSelected.emit({ date });
+  }
+
+  selectItemWeather(date: string, time: Date): void {
+    this.weatherSelected.emit({ date, time });
+  }
 
   itemTime(date: Date): string {
     return this._dateTime.format(date, {
@@ -196,5 +286,55 @@ export class EventProgramTimelineComponent {
       default:
         return "sell";
     }
+  }
+
+  private hourWeatherData(point: WeatherPoint | undefined): WeatherIconData | undefined {
+    if (!point) return undefined;
+    const condition = point.condition ?? "unknown";
+    return {
+      condition,
+      isDay: point.isDay,
+      temperatureC: point.temperatureC,
+      status: this.statusFromTone(
+        getWeatherForecastIconTone({
+          condition,
+          temperatureC: point.temperatureC,
+          uvIndex: point.uvIndex,
+          precipitationMm: point.precipitationMm,
+          precipitationProbabilityPercent:
+            point.precipitationProbabilityPercent,
+          isDay: point.isDay,
+        }),
+      ),
+    };
+  }
+
+  private dayWeatherData(
+    point: DailyWeatherPoint | undefined,
+  ): ProgramDayWeather | undefined {
+    if (!point) return undefined;
+    const condition = point.condition ?? "unknown";
+    const tone = getDailyWeatherForecastIconTone({
+      condition,
+      temperatureC: point.maxTemperatureC,
+    });
+    return {
+      data: {
+        condition,
+        minTemperatureC: point.minTemperatureC,
+        maxTemperatureC: point.maxTemperatureC,
+        status: this.statusFromTone(tone),
+      },
+      icon: getWeatherStateIcon(condition),
+      label: WEATHER_STATES[condition].label,
+      tone,
+    };
+  }
+
+  private statusFromTone(
+    tone: WeatherForecastIconTone,
+  ): "neutral" | "wet" | "warning" {
+    if (tone === "wet") return "wet";
+    return tone === "warning" ? "warning" : "neutral";
   }
 }

@@ -1,13 +1,30 @@
-<button
-  type="button"
-  mat-icon-button
-  class="weather-button"
-  [class.compact]="size() === 'compact'"
-  [class.is-wet]="status() === 'wet'"
-  [class.has-warning]="status() === 'warning'"
-  [attr.aria-label]="accessibleLabel()"
-  [matTooltip]="accessibleLabel()"
-  (click)="onPress($event)"
->
-  <mat-icon aria-hidden="true">{{ resolvedIcon() }}</mat-icon>
-</button>
+@if (display() === "icon-only") {
+  <button
+    type="button"
+    mat-icon-button
+    class="weather-button"
+    [class.compact]="size() === 'compact'"
+    [class.is-wet]="status() === 'wet'"
+    [class.has-warning]="status() === 'warning'"
+    [attr.aria-label]="accessibleLabel()"
+    [matTooltip]="accessibleLabel()"
+    (click)="onPress($event)"
+  >
+    <mat-icon aria-hidden="true">{{ resolvedIcon() }}</mat-icon>
+  </button>
+} @else {
+  <button
+    type="button"
+    mat-button
+    class="weather-button with-value"
+    [class.compact]="size() === 'compact'"
+    [class.is-wet]="status() === 'wet'"
+    [class.has-warning]="status() === 'warning'"
+    [attr.aria-label]="accessibleLabel()"
+    [matTooltip]="accessibleLabel()"
+    (click)="onPress($event)"
+  >
+    <mat-icon aria-hidden="true">{{ resolvedIcon() }}</mat-icon>
+    <span class="weather-value mat-label-medium">{{ visibleTemperature() }}</span>
+  </button>
+}

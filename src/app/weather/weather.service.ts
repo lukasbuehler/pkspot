@@ -2,6 +2,7 @@ import { Injectable, LOCALE_ID, inject } from "@angular/core";
 import { FunctionsAdapterService } from "../services/firebase/functions-adapter.service";
 import type {
   CurrentWeatherRequest,
+  EventWeatherRequest,
   WeatherLocation,
   WeatherResponse,
   WeatherTile,
@@ -12,6 +13,7 @@ import { getWeatherTile } from "./weather-map-tile";
   providedIn: "root",
 })
 export class WeatherService {
+  static readonly EVENT_FORECAST_HOURS = 240;
   private static readonly MAX_CLIENT_CACHE_ENTRIES = 64;
   private readonly functions = inject(FunctionsAdapterService);
   private readonly languageCode = inject(LOCALE_ID).replace("_", "-");
@@ -27,7 +29,7 @@ export class WeatherService {
       location.lng.toFixed(3),
       nearFutureHours,
     ].join(":");
-    return this.getCurrentAndNearFutureByKey(
+    return this.getWeatherByKey(
       key,
       {
         mode: "current-and-near-future",
@@ -42,7 +44,7 @@ export class WeatherService {
     tile: WeatherTile,
     nearFutureHours = 12,
   ): Promise<WeatherResponse> {
-    return this.getCurrentAndNearFutureByKey(
+    return this.getWeatherByKey(
       `tile:${tile.key}:${nearFutureHours}`,
       {
         mode: "current-and-near-future",
@@ -69,9 +71,48 @@ export class WeatherService {
     );
   }
 
-  private getCurrentAndNearFutureByKey(
+  getEventForecastForTileAt(
+    location: WeatherLocation,
+    eventStart: Date,
+    eventEnd: Date,
+  ): Promise<WeatherResponse> {
+    const tile = getWeatherTile(location);
+    return this.getWeatherByKey(
+      `event:${tile.key}:${eventStart.toISOString()}:${eventEnd.toISOString()}`,
+      {
+        mode: "event-forecast",
+        location: tile.center,
+        eventStart: eventStart.toISOString(),
+        eventEnd: eventEnd.toISOString(),
+        spatialScope: {
+          type: tile.type,
+          zoom: tile.zoom,
+          x: tile.x,
+          y: tile.y,
+        },
+      },
+    );
+  }
+
+  isEventForecastAvailable(
+    eventStart: Date,
+    eventEnd: Date,
+    now = new Date(),
+  ): boolean {
+    const forecastStart = new Date(now);
+    forecastStart.setUTCMinutes(0, 0, 0);
+    const maxForecastTime =
+      forecastStart.getTime() +
+      WeatherService.EVENT_FORECAST_HOURS * 60 * 60 * 1000;
+    return (
+      eventEnd.getTime() > forecastStart.getTime() &&
+      eventStart.getTime() <= maxForecastTime
+    );
+  }
+
+  private getWeatherByKey(
     key: string,
-    requestData: CurrentWeatherRequest,
+    requestData: CurrentWeatherRequest | EventWeatherRequest,
   ): Promise<WeatherResponse> {
     const cached = this.responseCache.get(key);
     if (cached) {
@@ -89,7 +130,7 @@ export class WeatherService {
     }
 
     const request = this.functions.callAppChecked<
-      CurrentWeatherRequest,
+      CurrentWeatherRequest | EventWeatherRequest,
       WeatherResponse
     >("getWeather", requestData);
     this.pendingRequests.set(key, request);

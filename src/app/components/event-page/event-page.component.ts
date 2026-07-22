@@ -8,6 +8,7 @@ import {
   computed,
   effect,
   inject,
+  resource,
   signal,
 } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
@@ -16,6 +17,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatMenuModule } from "@angular/material/menu";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { MatDialog } from "@angular/material/dialog";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
@@ -80,6 +82,13 @@ import { EventLiveUpdateControlsComponent } from "../event-live-update-controls/
 import { EventLiveUpdateOrganizerMenuComponent } from "../event-live-update-organizer-menu/event-live-update-organizer-menu.component";
 import type { EventRSVPOption } from "../../../db/schemas/EventRSVPSchema";
 import { OrganizationButtonComponent } from "../organization-button/organization-button.component";
+import { WeatherService } from "../../weather/weather.service";
+import type { EventWeatherSelection } from "../../weather/event-weather";
+import {
+  EventWeatherForecastDialogComponent,
+  type EventWeatherForecastDialogData,
+} from "../event-weather-forecast-dialog/event-weather-forecast-dialog.component";
+import { EventWeatherDaysComponent } from "../event-weather-days/event-weather-days.component";
 
 interface VisibleSeriesTag {
   seriesId: string;
@@ -103,6 +112,7 @@ interface VisibleSeriesTag {
     EventSummaryMetaComponent,
     EventCardComponent,
     EventProgramTimelineComponent,
+    EventWeatherDaysComponent,
     EventLiveUpdatesComponent,
     EventLiveUpdateControlsComponent,
     EventLiveUpdateOrganizerMenuComponent,
@@ -116,6 +126,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   private _route = inject(ActivatedRoute);
   private _router = inject(Router);
   private _snackbar = inject(MatSnackBar);
+  private readonly _dialog = inject(MatDialog);
   private _eventsService = inject(EventsService);
   private _authService = inject(AuthenticationService);
   private _analytics = inject(AnalyticsService);
@@ -127,6 +138,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   private _platformId = inject(PLATFORM_ID);
   private _locale = inject<LocaleCode>(LOCALE_ID);
   private readonly _dateTime = inject(DateTimeFormatService);
+  private readonly _weatherService = inject(WeatherService);
   readonly mapsApiService = inject(MapsApiService);
 
   private _paramMapSubscription?: Subscription;
@@ -258,6 +270,36 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       ) ?? event.program.plans[0];
     return activePlan?.items ?? [];
   });
+  readonly eventWeatherResource = resource({
+    params: () => {
+      const event = this.event();
+      if (
+        !this.isBrowser() ||
+        !event ||
+        !Number.isFinite(event.location.lat) ||
+        !Number.isFinite(event.location.lng) ||
+        !this._weatherService.isEventForecastAvailable(event.start, event.end)
+      ) {
+        return undefined;
+      }
+      return {
+        location: event.location,
+        start: event.start,
+        end: event.end,
+      };
+    },
+    loader: ({ params }) =>
+      this._weatherService.getEventForecastForTileAt(
+        params.location,
+        params.start,
+        params.end,
+      ),
+  });
+  readonly eventWeather = computed(() =>
+    this.eventWeatherResource.hasValue()
+      ? this.eventWeatherResource.value()
+      : undefined,
+  );
   readonly visibleSeriesMemberships = computed(() =>
     [
       ...(this.event()?.seriesMemberships ?? []),
@@ -468,6 +510,31 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         this.areaPolygon.set(polygon);
       });
     }
+  }
+
+  openEventWeather(selection: EventWeatherSelection): void {
+    const event = this.event();
+    const response = this.eventWeather();
+    if (!event || !response) return;
+
+    this._dialog.open<
+      EventWeatherForecastDialogComponent,
+      EventWeatherForecastDialogData
+    >(EventWeatherForecastDialogComponent, {
+      data: {
+        eventName: event.name,
+        eventStart: event.start,
+        eventEnd: event.end,
+        timeZone: event.timeZone,
+        response,
+        selection,
+      },
+      width: "760px",
+      maxWidth: "calc(100vw - 24px)",
+      maxHeight: "calc(100dvh - 24px)",
+      autoFocus: "dialog",
+      restoreFocus: true,
+    });
   }
 
   updateMapPreviewViewportBounds(bounds: google.maps.LatLngBounds): void {

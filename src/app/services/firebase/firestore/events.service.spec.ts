@@ -291,6 +291,50 @@ describe("EventsService", () => {
     vi.useRealTimers();
   });
 
+  it("loads an organization's published events with current events first", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-21T12:00:00.000Z"));
+    const authService = TestBed.inject(AuthenticationService) as unknown as {
+      user: { data: { isAdmin: boolean } };
+      isAdmin: ReturnType<typeof signal<boolean>>;
+    };
+    authService.user.data.isAdmin = false;
+    authService.isAdmin.set(false);
+    firestoreAdapter.getCollection.mockResolvedValue([
+      buildEventDoc(
+        "past",
+        "2026-05-01T10:00:00.000Z",
+        "2026-05-02T10:00:00.000Z",
+      ),
+      buildEventDoc(
+        "upcoming",
+        "2026-06-01T10:00:00.000Z",
+        "2026-06-02T10:00:00.000Z",
+      ),
+      buildEventDoc(
+        "draft",
+        "2026-05-25T10:00:00.000Z",
+        "2026-05-26T10:00:00.000Z",
+        { published: false },
+      ),
+    ]);
+
+    const events = await service.getEventsForOrganization("pkspot");
+
+    expect(firestoreAdapter.getCollection).toHaveBeenCalledWith(
+      "events",
+      [
+        {
+          fieldPath: "organizer.organization.id",
+          opStr: "==",
+          value: "pkspot",
+        },
+      ],
+    );
+    expect(events.map((event) => event.id)).toEqual(["upcoming", "past"]);
+    vi.useRealTimers();
+  });
+
   it("creates my RSVP with SDK timestamps and merge semantics", async () => {
     firestoreAdapter.getDocument.mockResolvedValue(null);
 

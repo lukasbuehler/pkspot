@@ -66,6 +66,31 @@ describe("OrganizationsService", () => {
     });
   });
 
+  it("checks one user's organization membership without listing the roster", async () => {
+    const adapter = createMockFirestoreAdapter();
+    adapter.getDocument.mockResolvedValue({
+      role: "reviewer",
+      user: { uid: "reviewer-user", display_name: "Reviewer" },
+    });
+    TestBed.configureTestingModule({
+      providers: [
+        OrganizationsService,
+        { provide: FirestoreAdapterService, useValue: adapter },
+        { provide: AuthenticationService, useValue: createMockAuthService(false) },
+        { provide: FunctionsAdapterService, useValue: mockFunctionsAdapter },
+      ],
+    });
+    const service = TestBed.inject(OrganizationsService);
+
+    await expect(
+      service.getOrganizationMember("pkspot", "reviewer-user"),
+    ).resolves.toMatchObject({ role: "reviewer" });
+    expect(adapter.getDocument).toHaveBeenCalledWith(
+      "organizations/pkspot/members/reviewer-user",
+    );
+    expect(adapter.getCollection).not.toHaveBeenCalled();
+  });
+
   it("loads stewarded spots from the organization-owned verified index first", async () => {
     const adapter = createMockFirestoreAdapter();
     adapter.getCollection

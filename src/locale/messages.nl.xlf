@@ -30,6 +30,12 @@
         <target> Public spot contributions will show up here once this profile adds to the map. </target>
       </segment>
     </unit>
+    <unit id="1838132327858290953">
+      <segment state="initial">
+        <source> No events scheduled yet. </source>
+        <target> Nog geen evenementen gepland. </target>
+      </segment>
+    </unit>
     <unit id="1848626050946308520">
       <segment state="initial">
         <source>{VAR_PLURAL, plural, =1 {1 unread} other {<ph id="0" equiv="INTERPOLATION"/> unread}}</source>
@@ -1903,6 +1909,12 @@
       <segment state="initial">
         <source>The E-mail address is invalid!</source>
         <target>Dit e-mailadres is ongeldig!</target>
+      </segment>
+    </unit>
+    <unit id="5729418620241283277">
+      <segment state="initial">
+        <source>Events</source>
+        <target>Evenementen</target>
       </segment>
     </unit>
     <unit id="427922060915202050">
@@ -4826,6 +4838,12 @@
         <target>Bron:</target>
       </segment>
     </unit>
+    <unit id="weather.button.range">
+      <segment state="initial">
+        <source><ph id="0" equiv="PH" disp="label"/>, high <ph id="1" equiv="PH_1" disp="formatTemperature(high, unit)"/>, low <ph id="2" equiv="PH_2" disp="formatTemperature(low, unit)"/></source>
+        <target><ph id="0" equiv="PH" disp="label"/>, maximum <ph id="1" equiv="PH_1" disp="formatTemperature(high, unit)"/>, minimum <ph id="2" equiv="PH_2" disp="formatTemperature(low, unit)"/></target>
+      </segment>
+    </unit>
     <unit id="weather.dialog.close">
       <segment state="translated">
         <source>Close weather forecast</source>
@@ -5274,6 +5292,12 @@
       <segment state="initial">
         <source>Shutterbug</source>
         <target>Hobbyfotograaf</target>
+      </segment>
+    </unit>
+    <unit id="7695373486187407775">
+      <segment state="initial">
+        <source>{VAR_PLURAL, plural, =1 {event} other {events}}</source>
+        <target>{VAR_PLURAL, plural, =1 {evenement} other {evenementen}}</target>
       </segment>
     </unit>
     <unit id="editProfile.biography">
@@ -9526,6 +9550,12 @@
         <target>Afwijzen</target>
       </segment>
     </unit>
+    <unit id="7403011272981064883">
+      <segment state="initial">
+        <source> No members yet. </source>
+        <target> Nog geen leden. </target>
+      </segment>
+    </unit>
     <unit id="7408374932533578639">
       <segment state="initial">
         <source> This challenge will be released on <ph id="0" equiv="INTERPOLATION" disp="{{ challenge()!.releaseDate | systemDate: &quot;mediumDate&quot; }}"/>, at <ph id="1" equiv="INTERPOLATION_1" disp="{{ challenge()!.releaseDate | systemDate: &quot;shortTime&quot; }}"/>. </source>
@@ -9903,12 +9933,6 @@
       <segment state="initial">
         <source>Review for your organization</source>
         <target>Beoordeling voor je organisatie</target>
-      </segment>
-    </unit>
-    <unit id="5633758103176780803">
-      <segment state="initial">
-        <source> No public members yet. </source>
-        <target> Nog geen openbare leden. </target>
       </segment>
     </unit>
     <unit id="565319861201250432">
@@ -10864,6 +10888,48 @@
       <segment state="initial">
         <source>Price TBA</source>
         <target>Prijs volgt</target>
+      </segment>
+    </unit>
+    <unit id="event_weather.close">
+      <segment state="initial">
+        <source>Close event forecast</source>
+        <target>Weersverwachting voor evenement sluiten</target>
+      </segment>
+    </unit>
+    <unit id="event_weather.days">
+      <segment state="initial">
+        <source>Event days</source>
+        <target>Evenementdagen</target>
+      </segment>
+    </unit>
+    <unit id="event_weather.eyebrow">
+      <segment state="initial">
+        <source>Event forecast</source>
+        <target>Weersverwachting voor evenement</target>
+      </segment>
+    </unit>
+    <unit id="event_weather.forecast_heading">
+      <segment state="initial">
+        <source> Forecast </source>
+        <target> Weersverwachting </target>
+      </segment>
+    </unit>
+    <unit id="event_weather.hourly">
+      <segment state="initial">
+        <source> Hourly forecast </source>
+        <target> Uurlijkse verwachting </target>
+      </segment>
+    </unit>
+    <unit id="event_weather.hourly_unavailable">
+      <segment state="initial">
+        <source>Hourly forecast is not available for this event day yet.</source>
+        <target>De uurlijkse verwachting is nog niet beschikbaar voor deze evenementdag.</target>
+      </segment>
+    </unit>
+    <unit id="event_weather.unavailable">
+      <segment state="initial">
+        <source>Forecast not available yet</source>
+        <target>Verwachting nog niet beschikbaar</target>
       </segment>
     </unit>
     <unit id="event_info.link_copied">

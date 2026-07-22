@@ -827,6 +827,11 @@
         <source> Public spot contributions will show up here once this profile adds to the map. </source>
       </segment>
     </unit>
+    <unit id="1838132327858290953">
+      <segment>
+        <source> No events scheduled yet. </source>
+      </segment>
+    </unit>
     <unit id="1848626050946308520">
       <segment>
         <source>{VAR_PLURAL, plural, =1 {1 unread} other {<ph id="0" equiv="INTERPOLATION"/> unread}}</source>
@@ -959,6 +964,11 @@
     <unit id="7378878529334768232">
       <segment>
         <source>Reject</source>
+      </segment>
+    </unit>
+    <unit id="7403011272981064883">
+      <segment>
+        <source> No members yet. </source>
       </segment>
     </unit>
     <unit id="7408374932533578639">
@@ -3867,6 +3877,41 @@
         <source>Price TBA</source>
       </segment>
     </unit>
+    <unit id="event_weather.close">
+      <segment>
+        <source>Close event forecast</source>
+      </segment>
+    </unit>
+    <unit id="event_weather.days">
+      <segment>
+        <source>Event days</source>
+      </segment>
+    </unit>
+    <unit id="event_weather.eyebrow">
+      <segment>
+        <source>Event forecast</source>
+      </segment>
+    </unit>
+    <unit id="event_weather.forecast_heading">
+      <segment>
+        <source> Forecast </source>
+      </segment>
+    </unit>
+    <unit id="event_weather.hourly">
+      <segment>
+        <source> Hourly forecast </source>
+      </segment>
+    </unit>
+    <unit id="event_weather.hourly_unavailable">
+      <segment>
+        <source>Hourly forecast is not available for this event day yet.</source>
+      </segment>
+    </unit>
+    <unit id="event_weather.unavailable">
+      <segment>
+        <source>Forecast not available yet</source>
+      </segment>
+    </unit>
     <unit id="events.clear_category_filters">
       <segment>
         <source>Clear</source>
@@ -4951,11 +4996,6 @@
         <source>Review for your organization</source>
       </segment>
     </unit>
-    <unit id="5633758103176780803">
-      <segment>
-        <source> No public members yet. </source>
-      </segment>
-    </unit>
     <unit id="565319861201250432">
       <segment>
         <source>Edits Made</source>
@@ -6008,6 +6048,11 @@
     <unit id="5726791725186220555">
       <segment>
         <source>The E-mail address is invalid!</source>
+      </segment>
+    </unit>
+    <unit id="5729418620241283277">
+      <segment>
+        <source>Events</source>
       </segment>
     </unit>
     <unit id="427922060915202050">
@@ -7749,6 +7794,11 @@
         <source>Source:</source>
       </segment>
     </unit>
+    <unit id="weather.button.range">
+      <segment>
+        <source><ph id="0" equiv="PH" disp="label"/>, high <ph id="1" equiv="PH_1" disp="formatTemperature(high, unit)"/>, low <ph id="2" equiv="PH_2" disp="formatTemperature(low, unit)"/></source>
+      </segment>
+    </unit>
     <unit id="weather.dialog.close">
       <segment>
         <source>Close weather forecast</source>
@@ -8516,6 +8566,11 @@
     <unit id="7688469791911355016">
       <segment>
         <source>Shutterbug</source>
+      </segment>
+    </unit>
+    <unit id="7695373486187407775">
+      <segment>
+        <source>{VAR_PLURAL, plural, =1 {event} other {events}}</source>
       </segment>
     </unit>
     <unit id="amenities.covered">

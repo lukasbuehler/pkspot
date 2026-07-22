@@ -556,12 +556,21 @@ async function testSpotWriteGuards(anon, owner, other, adminUser) {
 }
 
 async function testOrganizationGuards(anon, owner, other, adminUser) {
+  await assertDenied("anonymous organization membership read", () =>
+    getDoc(doc(anon.db, "organizations/pk-spot/members/owner"))
+  );
   await assertAllowed("reviewer reads own organization membership", () =>
     getDoc(doc(owner.db, "organizations/pk-spot/members/owner"))
   );
   await assertDenied("unrelated user reads organization membership", () =>
     getDoc(doc(other.db, "organizations/pk-spot/members/owner"))
   );
+  await assertAllowed("organization member lists its organization roster", async () => {
+    const snapshot = await getDocs(
+      collection(owner.db, "organizations/pk-spot/members")
+    );
+    assert.ok(snapshot.docs.some((item) => item.id === "owner"));
+  });
   await assertAllowed("admin reads organization membership", () =>
     getDoc(doc(adminUser.db, "organizations/pk-spot/members/owner"))
   );

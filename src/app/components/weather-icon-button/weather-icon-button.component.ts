@@ -7,7 +7,7 @@ import {
   input,
   output,
 } from "@angular/core";
-import { MatIconButton } from "@angular/material/button";
+import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatIcon } from "@angular/material/icon";
 import { MatTooltip } from "@angular/material/tooltip";
 import {
@@ -26,12 +26,19 @@ export interface WeatherIconData {
   isDay?: boolean;
   label?: string;
   temperatureC?: number;
+  minTemperatureC?: number;
+  maxTemperatureC?: number;
   status?: WeatherVisualStatus;
 }
 
+export type WeatherIconButtonDisplay =
+  | "icon-only"
+  | "temperature"
+  | "temperature-range";
+
 @Component({
   selector: "app-weather-icon-button",
-  imports: [MatIconButton, MatIcon, MatTooltip],
+  imports: [MatButton, MatIconButton, MatIcon, MatTooltip],
   templateUrl: "./weather-icon-button.component.html",
   styles: `
     :host {
@@ -46,10 +53,27 @@ export interface WeatherIconData {
       --mat-icon-button-state-layer-size: 40px;
     }
 
+    .weather-button.with-value {
+      width: auto;
+      min-width: 0;
+      padding-inline: 0.625rem;
+      border-radius: 999px;
+      gap: 0.25rem;
+    }
+
+    .weather-value {
+      white-space: nowrap;
+    }
+
     .weather-button.compact {
       width: 32px;
       height: 32px;
       --mat-icon-button-state-layer-size: 32px;
+    }
+
+    .weather-button.with-value.compact {
+      width: auto;
+      padding-inline: 0.5rem;
     }
 
     .weather-button.is-wet {
@@ -75,6 +99,7 @@ export class WeatherIconButtonComponent {
   readonly label = input<string>();
   readonly icon = input<string>();
   readonly size = input<"compact" | "standard">("standard");
+  readonly display = input<WeatherIconButtonDisplay>("icon-only");
   readonly stopPropagation = input(true, { transform: booleanAttribute });
 
   readonly pressed = output<void>();
@@ -107,16 +132,40 @@ export class WeatherIconButtonComponent {
 
   protected readonly accessibleLabel = computed(() => {
     const weather = this.weather();
-    const temperature = weather.temperatureC;
     const label = this.label() ?? weather.label ?? this.state().label;
-    return temperature === undefined
+    const unit = this.accountPreferences.temperatureUnit(weather.countryCode);
+    if (
+      this.display() === "temperature-range" &&
+      (weather.maxTemperatureC !== undefined ||
+        weather.minTemperatureC !== undefined)
+    ) {
+      const high = weather.maxTemperatureC;
+      const low = weather.minTemperatureC;
+      if (high !== undefined && low !== undefined) {
+        return $localize`:@@weather.button.range:${label}, high ${formatTemperature(high, unit)}, low ${formatTemperature(low, unit)}`;
+      }
+      const availableTemperature = high ?? low;
+      return availableTemperature === undefined
+        ? label
+        : `${label}, ${formatTemperature(availableTemperature, unit)}`;
+    }
+    return weather.temperatureC === undefined
       ? label
-      : `${label}, ${formatTemperature(
-          temperature,
-          this.accountPreferences.temperatureUnit(
-            this.weather().countryCode,
-          ),
-        )}`;
+      : `${label}, ${formatTemperature(weather.temperatureC, unit)}`;
+  });
+
+  protected readonly visibleTemperature = computed(() => {
+    const weather = this.weather();
+    const unit = this.accountPreferences.temperatureUnit(weather.countryCode);
+    if (this.display() === "temperature-range") {
+      const values = [weather.maxTemperatureC, weather.minTemperatureC]
+        .filter((value): value is number => value !== undefined)
+        .map((value) => formatTemperature(value, unit, false));
+      return values.join(" / ");
+    }
+    return weather.temperatureC === undefined
+      ? ""
+      : formatTemperature(weather.temperatureC, unit, false);
   });
 
   protected onPress(event: MouseEvent): void {

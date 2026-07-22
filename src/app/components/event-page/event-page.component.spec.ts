@@ -2,9 +2,10 @@ import { LocationStrategy } from "@angular/common";
 import { LOCALE_ID, PLATFORM_ID, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute, convertToParamMap, Router } from "@angular/router";
 import { BehaviorSubject, of } from "rxjs";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { LocalSpot } from "../../../db/models/Spot";
 import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
@@ -23,6 +24,7 @@ import { eventHeroMedia } from "../event-display/event-display.helpers";
 import { EventInfoPageComponent } from "./event-page.component";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { GeoPoint } from "firebase/firestore";
+import { WeatherService } from "../../weather/weather.service";
 
 const flushPromises = () =>
   new Promise((resolve) => {
@@ -62,6 +64,21 @@ const seriesServiceStub = () => ({
 });
 
 describe("EventInfoPageComponent", () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: WeatherService,
+          useValue: {
+            isEventForecastAvailable: vi.fn(() => false),
+            getEventForecastForTileAt: vi.fn(),
+          },
+        },
+        { provide: MatDialog, useValue: { open: vi.fn() } },
+      ],
+    });
+  });
+
   afterEach(() => {
     vi.useRealTimers();
     TestBed.resetTestingModule();

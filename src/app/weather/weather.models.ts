@@ -126,3 +126,11 @@ export interface CurrentWeatherRequest {
   spatialScope?: WeatherTileScope;
   languageCode?: string;
 }
+
+export interface EventWeatherRequest {
+  mode: "event-forecast";
+  location: WeatherLocation;
+  eventStart: string;
+  eventEnd: string;
+  spatialScope?: WeatherTileScope;
+}

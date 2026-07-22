@@ -3,6 +3,33 @@
   padding-top: 1rem;
 }
 
+.day-tab-weather {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-left: 0.375rem;
+  font-size: 1.25rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.day-tab-weather.is-wet {
+  color: var(--mat-sys-primary);
+}
+
+.day-tab-weather.has-warning {
+  color: var(--mat-sys-error);
+}
+
+.day-tab-weather.is-night {
+  color: var(--mat-sys-tertiary);
+}
+
+.day-weather-row {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
 .program-item {
   display: grid;
   grid-template-columns: 5.75rem minmax(0, 1fr);

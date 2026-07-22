@@ -370,18 +370,35 @@ export class EventsService extends ConsentAwareService {
       );
 
     if (options.sortByNext) {
-      const now = Date.now();
-      return events.sort((a, b) => {
-        const aFuture = a.end.getTime() >= now;
-        const bFuture = b.end.getTime() >= now;
-        if (aFuture && !bFuture) return -1;
-        if (!aFuture && bFuture) return 1;
-        if (aFuture) return a.start.getTime() - b.start.getTime();
-        return b.start.getTime() - a.start.getTime();
-      });
+      return this._sortEventsByNext(events);
     }
 
     return events.sort((a, b) => b.start.getTime() - a.start.getTime());
+  }
+
+  /** Load published events organized by one organization. */
+  async getEventsForOrganization(organizationId: string): Promise<Event[]> {
+    const docs = await this._firestoreAdapter.getCollection<EventDocument>(
+      "events",
+      [
+        {
+          fieldPath: "organizer.organization.id",
+          opStr: "==",
+          value: organizationId,
+        },
+      ],
+    );
+    const events = docs
+      .filter((document) => this._isAdmin() || document.published !== false)
+      .map(
+        (document) =>
+          new Event(
+            document.id as EventId,
+            this._assetUrls.resolveEventAssetUrls(document),
+            this._locale,
+          ),
+      );
+    return this._sortEventsByNext(events);
   }
 
   /**
@@ -417,6 +434,18 @@ export class EventsService extends ConsentAwareService {
           e.start.getTime() <= cutoff.getTime()
       )
       .sort((a, b) => a.start.getTime() - b.start.getTime());
+  }
+
+  private _sortEventsByNext(events: Event[]): Event[] {
+    const now = Date.now();
+    return events.sort((left, right) => {
+      const leftIsCurrent = left.end.getTime() >= now;
+      const rightIsCurrent = right.end.getTime() >= now;
+      if (leftIsCurrent !== rightIsCurrent) return leftIsCurrent ? -1 : 1;
+      return leftIsCurrent
+        ? left.start.getTime() - right.start.getTime()
+        : right.start.getTime() - left.start.getTime();
+    });
   }
 
   private async _resolveEventId(slugOrId: string): Promise<string | null> {

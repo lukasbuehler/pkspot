@@ -104,6 +104,14 @@ describe("Cloud Functions generation policy", () => {
     );
   });
 
+  it("keeps organization member rosters private to that organization", () => {
+    const rulesSource = readFileSync(resolve(repoRoot, "firestore.rules"), "utf8");
+
+    expect(rulesSource).toMatch(
+      /match\s+\/members\/\{userId\}\s*\{\s*allow read: if request\.auth\.uid != null\s*&& \(request\.auth\.uid == userId \|\| isAdmin\(\) \|\| isOrganizationReviewer\(organizationId\)\);/u,
+    );
+  });
+
   it("keeps organization review callables publicly invokable for browser preflight", () => {
     const spotEditSource = readFileSync(
       resolve(functionsSourceRoot, "spotEditFunctions.ts"),
