@@ -7,6 +7,7 @@ import { GeoPoint } from "firebase/firestore";
 import { of } from "rxjs";
 import { describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
+import { MediaType } from "../../../db/models/Interfaces";
 import { LocalSpot } from "../../../db/models/Spot";
 import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
 import { SpotId, SpotSchema } from "../../../db/schemas/SpotSchema";
@@ -149,6 +150,13 @@ describe("EventMapPageComponent", () => {
           location: { lat: 47.3, lng: 8.5 },
           priority: 3000,
           type: "event-custom",
+          media: [
+            {
+              src: "https://example.com/event-marker.jpg",
+              type: MediaType.Image,
+              isInStorage: false,
+            },
+          ],
         },
       ]),
       eventLocationMarker: vi.fn(() => ({
@@ -165,6 +173,7 @@ describe("EventMapPageComponent", () => {
           spotIndex: 0,
         },
       ]),
+      spotPreviewMarkers: vi.fn(() => []),
     };
 
     TestBed.configureTestingModule({
@@ -238,6 +247,10 @@ describe("EventMapPageComponent", () => {
     component.spots.set([{} as never]);
     flushSignalEffects();
 
+    expect(component.tab()).toBe("all");
+    expect(
+      component.mapObjectFilterChips().map((filter) => filter.label),
+    ).toEqual(["All", "1 Spot", "1 Event"]);
     expect(component.staticMarkers().map((marker) => marker.type)).toEqual([
       "event-custom",
     ]);
@@ -246,6 +259,27 @@ describe("EventMapPageComponent", () => {
     );
     expect(component.spotMapMarkers().map((marker) => marker.type)).toEqual([
       "event-spot",
+    ]);
+
+    component.selectTab("event");
+    expect(component.mapPriorityMarkers().map((marker) => marker.type)).toEqual([
+      "event-custom",
+    ]);
+    expect(component.highlightedSpots()).toEqual([]);
+
+    const customMarker = component.customMarkers()[0];
+    component.selectCustomMarker(customMarker);
+    expect(component.selectedCustomMarkerMedia()[0]?.baseSrc).toBe(
+      "https://example.com/event-marker.jpg",
+    );
+
+    component.selectTab("spots");
+    expect(component.mapPriorityMarkers()).toEqual([]);
+
+    component.selectTab("all");
+    expect(component.mapPriorityMarkers().map((marker) => marker.type)).toEqual([
+      "event-custom",
+      "challenge",
     ]);
 
     const localSpot = buildLocalSpot("Inline spot");

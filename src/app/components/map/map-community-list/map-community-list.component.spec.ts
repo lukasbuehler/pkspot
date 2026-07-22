@@ -29,6 +29,17 @@ describe("MapCommunityListComponent", () => {
     fixture = TestBed.createComponent(MapCommunityListComponent);
   });
 
+  it("uses the shared card border for community previews", () => {
+    fixture.componentRef.setInput("communities", [community({})]);
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement
+        .query(By.css(".community-row"))
+        .nativeElement.classList.contains("app-card"),
+    ).toBe(true);
+  });
+
   it("uses flag avatars and no repeated subtitle for country communities", () => {
     fixture.componentRef.setInput("communities", [
       community({ countryCode: "CH" }),

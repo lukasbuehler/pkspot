@@ -44,27 +44,6 @@
   padding: 0.25rem 0;
 }
 
-.custom-marker-media {
-  align-items: center;
-  aspect-ratio: 16 / 10;
-  background: var(--mat-sys-surface-container-high);
-  border-radius: 8px;
-  display: flex;
-  justify-content: center;
-  overflow: hidden;
-  width: 100%;
-
-  img {
-    height: 100%;
-    object-fit: cover;
-    width: 100%;
-  }
-}
-
-.custom-marker-media-placeholder {
-  min-height: 160px;
-}
-
 .custom-marker-locality {
   align-items: center;
   color: var(--mat-sys-on-surface-variant);

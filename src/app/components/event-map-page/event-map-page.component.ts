@@ -15,16 +15,16 @@ import {
 import { SpotMapComponent } from "../spot-map/spot-map.component";
 import {
   isPlatformBrowser,
-  KeyValuePipe,
   LocationStrategy,
 } from "@angular/common";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
+import type { AnyMedia } from "../../../db/models/Media";
 import { SpotId } from "../../../db/schemas/SpotSchema";
 import { SpotListComponent } from "../spot-list/spot-list.component";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { ResponsiveService } from "../../services/responsive.service";
 import { firstValueFrom, Subscription, take } from "rxjs";
-import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
+import { LocaleCode } from "../../../db/models/Interfaces";
 import { MarkerComponent } from "../marker/marker.component";
 import { MarkerSchema } from "../map/markers/map-marker.model";
 import { MetaTagService } from "../../services/meta-tag.service";
@@ -37,7 +37,6 @@ import { trigger, transition, style, animate } from "@angular/animations";
 import { MatMenuModule } from "@angular/material/menu";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { MatChipListboxChange, MatChipsModule } from "@angular/material/chips";
 import { MapsApiService } from "../../services/maps-api.service";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
 import { GoogleMap2dComponent } from "../google-map-2d/google-map-2d.component";
@@ -78,17 +77,23 @@ import { SWISSJAM25_STATIC } from "../event-page/swissjam25.static";
 import { AnalyticsService } from "../../services/analytics.service";
 import { EventPageDataService } from "../../services/event-page/event-page-data.service";
 import {
+  eventMediaFromSchema,
   eventImageDisplaySrc,
   type EventStatus,
 } from "../event-display/event-display.helpers";
 import { EventSummaryMetaComponent } from "../event-display/event-summary-meta.component";
 import { GooglePlacePreviewComponent } from "../google-place-preview/google-place-preview.component";
+import {
+  FilterChipsBarComponent,
+  type PresetFilterChip,
+} from "../filter-chips-bar/filter-chips-bar.component";
+import { ImgCarouselComponent } from "../img-carousel/img-carousel.component";
 
 type EventPageMapMarker = MarkerSchema & {
   spotIndex?: number;
   challengeIndex?: number;
 };
-type EventMapTab = "event" | "spots" | "challenges";
+type EventMapTab = "all" | "event" | "spots" | "challenges";
 
 @Component({
   selector: "app-event-map-page",
@@ -100,18 +105,18 @@ type EventMapTab = "event" | "spots" | "challenges";
     SpotDetailsComponent,
     MatMenuModule,
     MatTooltipModule,
-    MatChipsModule,
     GoogleMap2dComponent,
     MatSidenavModule,
     ChallengeListComponent,
     MatDividerModule,
     ChallengeDetailComponent,
-    KeyValuePipe,
     MarkerComponent,
     ChipSelectComponent,
     EventEditFormComponent,
     EventSummaryMetaComponent,
     GooglePlacePreviewComponent,
+    FilterChipsBarComponent,
+    ImgCarouselComponent,
   ],
   animations: [
     trigger("fadeInOut", [
@@ -193,29 +198,50 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   private readonly requestedSpotIdOrSlug = signal<string | null>(null);
 
   sidenavOpen = signal<boolean>(false);
-  tabs: Record<EventMapTab, string> = {
-    event: $localize`Event`,
-    spots: $localize`Spots`,
-    challenges: $localize`Challenges`,
-  };
-  tab = signal<EventMapTab>("spots");
+  tab = signal<EventMapTab>("all");
   private _hasInitializedResponsiveSidenav = false;
   private _userToggledSidenav = false;
 
-  /**
-   * Tabs to render in the sidebar. Hides "Challenges" when there are none —
-   * an event without challenges shouldn't show an empty tab.
-   */
-  readonly visibleTabs = computed<Record<string, string>>(() => {
-    const out: Record<string, string> = {};
-    if (this.customMarkers().length > 0) {
-      out["event"] = this.tabs.event;
+  /** Object filters mirror the main map's shared chip bar and include counts. */
+  readonly mapObjectFilterChips = computed<readonly PresetFilterChip[]>(() => {
+    const spotCount = this.spots().length;
+    const eventMarkerCount = this.customMarkers().length;
+    const challengeCount = this.challenges().length;
+    const filters: PresetFilterChip[] = [
+      {
+        urlParam: "all",
+        label: $localize`:@@map_objects_all_chip_label:All`,
+      },
+      {
+        urlParam: "spots",
+        label: `${spotCount} ${this._pluralizeCount(
+          spotCount,
+          $localize`:@@map_objects_spot_singular:Spot`,
+          $localize`:@@map_objects_spot_plural:Spots`,
+        )}`,
+      },
+      {
+        urlParam: "event",
+        label: `${eventMarkerCount} ${this._pluralizeCount(
+          eventMarkerCount,
+          $localize`:@@map_objects_event_singular:Event`,
+          $localize`:@@map_objects_event_plural:Events`,
+        )}`,
+      },
+    ];
+
+    if (challengeCount > 0) {
+      filters.push({
+        urlParam: "challenges",
+        label: `${challengeCount} ${this._pluralizeCount(
+          challengeCount,
+          $localize`:@@event_map_page.challenge_singular:Challenge`,
+          $localize`:@@event_map_page.challenge_plural:Challenges`,
+        )}`,
+      });
     }
-    out["spots"] = this.tabs.spots;
-    if (this.challenges().length > 0) {
-      out["challenges"] = this.tabs.challenges;
-    }
-    return out;
+
+    return filters;
   });
 
   showHeader = signal<boolean>(true);
@@ -265,7 +291,13 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     this._eventPageData.spotMapMarkers(this.spots()),
   );
   readonly mapPriorityMarkers = computed<EventPageMapMarker[]>(() =>
-    this.markers(),
+    this.markers().filter((marker) => {
+      const tab = this.tab();
+      if (tab === "all") return true;
+      if (tab === "event") return marker.type === "event-custom";
+      if (tab === "challenges") return marker.type === "challenge";
+      return false;
+    }),
   );
   readonly areaPolygon = signal<PolygonSchema | null>(null);
   readonly visibleMapBounds = signal<EventBoundsSchema | null>(null);
@@ -276,8 +308,15 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
    * are only drawn at zoom ≥ 16). Used so an event with a low `focus_zoom`
    * still shows its participating spot pins when zoomed out.
    */
-  readonly highlightedSpots = computed<SpotPreviewData[]>(() =>
-    this._eventPageData.spotPreviewMarkers(this.spots()),
+  readonly highlightedSpots = computed<SpotPreviewData[]>(() => {
+    const tab = this.tab();
+    return tab === "all" || tab === "spots"
+      ? this._eventPageData.spotPreviewMarkers(this.spots())
+      : [];
+  });
+
+  readonly selectedCustomMarkerMedia = computed<AnyMedia[]>(() =>
+    (this.selectedCustomMarker()?.media ?? []).map(eventMediaFromSchema),
   );
 
   readonly challenges = signal<(SpotChallenge & { number: number })[]>([]);
@@ -452,7 +491,6 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
             if (challengeMarkers.length > 0) {
               this.markers.set([...this.customMarkers(), ...challengeMarkers]);
-              this.tab.set("challenges");
             } else {
               this.markers.set(this.staticMarkers());
             }
@@ -843,7 +881,12 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   }
 
   selectTab(tab: string): void {
-    if (tab === "event" || tab === "spots" || tab === "challenges") {
+    if (
+      tab === "all" ||
+      tab === "event" ||
+      tab === "spots" ||
+      tab === "challenges"
+    ) {
       this.tab.set(tab);
     }
   }
@@ -891,17 +934,12 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  customMarkerPrimaryImageSrc(marker: MarkerSchema): string | null {
-    return (
-      marker.media?.find((media) => media.type === MediaType.Image)?.src ?? null
-    );
-  }
-
-  tabChanged(event: MatChipListboxChange) {
-    const selectedTab = event.value as EventMapTab | undefined;
-    if (selectedTab) {
-      this.tab.set(selectedTab);
-    }
+  private _pluralizeCount(
+    count: number,
+    singular: string,
+    plural: string,
+  ): string {
+    return count === 1 ? singular : plural;
   }
 
   onMarkerClickFromMap(event: number | { marker: any; index?: number }) {

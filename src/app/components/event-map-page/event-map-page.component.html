@@ -144,20 +144,70 @@
           class="h-100 w-100 drawer-container d-flex flex-column gap-0 align-items-start"
           [class.no-rounding]="isCompactView"
         >
-          <mat-chip-listbox class="p-3 w-100" [value]="tab()">
-            @for (tabKeyVal of visibleTabs() | keyvalue; track $index) {
-              <mat-chip-option
-                i18n
-                [value]="tabKeyVal.key"
-                (selectionChange)="selectTab(tabKeyVal.key)"
-                >{{ tabKeyVal.value }}</mat-chip-option
-              >
-            }
-          </mat-chip-listbox>
+          <app-filter-chips-bar
+            class="d-block p-3 w-100"
+            [selectedFilter]="tab()"
+            [presetFilters]="mapObjectFilterChips()"
+            [showFiltersChip]="false"
+            [showClearChip]="false"
+            [allowDeselect]="false"
+            ariaLabel="Event map object type"
+            appearance="solid"
+            (filterChange)="selectTab($event)"
+          ></app-filter-chips-bar>
 
           <mat-divider></mat-divider>
           @defer {
             @switch (tab()) {
+              @case ("all") {
+                <div
+                  class="event-map-overview d-flex flex-column flex-grow-1 gap-4 py-3 overflow-y-auto w-100"
+                >
+                  @if (customMarkers().length > 0) {
+                    <section class="d-flex flex-column gap-2 px-3">
+                      <h2 class="mat-title-medium m-0" i18n>Event markers</h2>
+                      @for (marker of customMarkers(); track marker.id) {
+                        <button
+                          type="button"
+                          class="custom-marker-row"
+                          (click)="selectCustomMarker(marker)"
+                        >
+                          <app-marker
+                            [clickable]="false"
+                            [color]="marker.color ?? 'primary'"
+                            [icons]="marker.icons"
+                          ></app-marker>
+                          <span class="custom-marker-row-copy">
+                            <span class="text-truncate">{{
+                              marker.name || "Event marker"
+                            }}</span>
+                            @if (marker.locality || marker.description) {
+                              <span class="mat-label-small text-truncate">
+                                {{ marker.locality || marker.description }}
+                              </span>
+                            }
+                          </span>
+                          <mat-icon>chevron_right</mat-icon>
+                        </button>
+                      }
+                    </section>
+                  }
+                  @if (spots().length > 0) {
+                    <section class="d-flex flex-column gap-2">
+                      <h2 class="mat-title-medium m-0 px-3" i18n>Spots</h2>
+                      <app-spot-list
+                        class="event-spot-list d-block"
+                        [spots]="spots()"
+                        [mapZoom]="getSpotPreviewZoom()"
+                        [withHrefLink]="false"
+                        [showRatings]="false"
+                        [hideHeader]="true"
+                        (spotClickIndex)="spotClickedIndex($event)"
+                      ></app-spot-list>
+                    </section>
+                  }
+                </div>
+              }
               @case ("challenges") {
                 <!-- Show challenges -->
                 @if (selectedChallenge()) {
@@ -204,19 +254,6 @@
                       @fadeInOut
                       class="custom-marker-card d-flex flex-column gap-3"
                     >
-                      @if (customMarkerPrimaryImageSrc(marker); as imageSrc) {
-                        <div class="custom-marker-media">
-                          <img [src]="imageSrc" [alt]="marker.name || 'Event marker'" />
-                        </div>
-                      } @else {
-                        <div class="custom-marker-media custom-marker-media-placeholder">
-                          <app-marker
-                            [clickable]="false"
-                            [color]="marker.color ?? 'primary'"
-                            [icons]="marker.icons"
-                          ></app-marker>
-                        </div>
-                      }
                       <div
                         class="d-flex flex-row justify-content-between gap-2 align-items-start"
                       >
@@ -267,6 +304,13 @@
                         <p class="mat-body-medium m-0 custom-marker-copy">
                           {{ marker.description }}
                         </p>
+                      }
+                      @if (selectedCustomMarkerMedia().length > 0) {
+                        <app-img-carousel
+                          [media]="selectedCustomMarkerMedia()"
+                          reportContext="event"
+                          [reportTargetId]="event()?.id"
+                        ></app-img-carousel>
                       }
                       @if (marker.googlePlaceId) {
                         <div class="custom-marker-place">

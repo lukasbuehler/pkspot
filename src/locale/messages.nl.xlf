@@ -193,6 +193,12 @@
         <target>Bewerken</target>
       </segment>
     </unit>
+    <unit id="7586758248152461022">
+      <segment state="initial">
+        <source>Event markers</source>
+        <target>Evenementmarkeringen</target>
+      </segment>
+    </unit>
     <unit id="7593555694782789615">
       <segment state="initial">
         <source>Open</source>
@@ -8738,10 +8744,16 @@
         <target>Deze link is ongeldig of verlopen. Vraag een nieuwe aan.</target>
       </segment>
     </unit>
-    <unit id="3148120434799119252">
+    <unit id="event_map_page.challenge_plural">
       <segment state="initial">
         <source>Challenges</source>
         <target>Uitdagingen</target>
+      </segment>
+    </unit>
+    <unit id="event_map_page.challenge_singular">
+      <segment state="initial">
+        <source>Challenge</source>
+        <target>Uitdaging</target>
       </segment>
     </unit>
     <unit id="3167739142487195096">

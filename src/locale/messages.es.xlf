@@ -133,6 +133,12 @@
         <target>Editar</target>
       </segment>
     </unit>
+    <unit id="7586758248152461022">
+      <segment state="initial">
+        <source>Event markers</source>
+        <target>Marcadores de eventos</target>
+      </segment>
+    </unit>
     <unit id="7593555694782789615">
       <segment state="initial">
         <source>Open</source>
@@ -8612,10 +8618,16 @@
         <target>Este enlace es inválido o ha caducado. Por favor solicita uno nuevo.</target>
       </segment>
     </unit>
-    <unit id="3148120434799119252">
+    <unit id="event_map_page.challenge_plural">
       <segment state="initial">
         <source>Challenges</source>
         <target>Desafíos</target>
+      </segment>
+    </unit>
+    <unit id="event_map_page.challenge_singular">
+      <segment state="initial">
+        <source>Challenge</source>
+        <target>Desafío</target>
       </segment>
     </unit>
     <unit id="3167739142487195096">
