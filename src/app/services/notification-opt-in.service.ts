@@ -44,10 +44,16 @@ export class NotificationOptInService {
               maxWidth: "100vw",
               autoFocus: false,
             })
-            .afterClosed(),
+            .beforeClosed(),
         )) ?? "dismissed";
 
       const accepted = result === "context" || result === "all";
+      let systemAllowed = this.push.systemAllowsNotifications();
+      if (accepted && !systemAllowed) {
+        systemAllowed =
+          await this.push.requestPermissionFromUserAction();
+      }
+
       await this.preferences.applyPromptDecision(
         context,
         accepted ? "accepted" : "dismissed",
@@ -58,10 +64,7 @@ export class NotificationOptInService {
         decision: result,
       });
 
-      if (accepted && !this.push.systemAllowsNotifications()) {
-        const allowed = await this.push.requestPermissionFromUserAction();
-        if (!allowed) this._showSystemBlockedMessage();
-      }
+      if (accepted && !systemAllowed) this._showSystemBlockedMessage();
     } catch (error) {
       console.error("Could not complete notification opt-in", error);
       this.snackbar.open(

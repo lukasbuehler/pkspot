@@ -12,6 +12,7 @@ import { WebPushClientService } from "./web-push-client.service";
 describe("PushNotificationsService", () => {
   const authState = new BehaviorSubject<{ uid: string } | null>(null);
   const auth = {
+    user: {} as { uid?: string },
     authState$: authState.asObservable(),
     registerBeforeSignOutHandler: vi.fn(),
   };
@@ -36,6 +37,7 @@ describe("PushNotificationsService", () => {
   beforeEach(() => {
     vi.stubGlobal("crypto", webcrypto);
     authState.next(null);
+    auth.user = {};
     vi.clearAllMocks();
     webPush.isSupported.mockResolvedValue(false);
     webPush.permissionState.mockReturnValue("prompt");
@@ -106,6 +108,25 @@ describe("PushNotificationsService", () => {
       { merge: true },
     );
     expect(service.registrationActive()).toBe(true);
+  });
+
+  it("requests web permission when the authenticated user precedes authState$", async () => {
+    auth.user = { uid: "web-user" };
+    webPush.isSupported.mockResolvedValue(true);
+    const service = TestBed.inject(PushNotificationsService);
+    await service.initialize();
+
+    await expect(service.requestPermissionFromUserAction()).resolves.toBe(true);
+
+    expect(webPush.requestPermission).toHaveBeenCalledOnce();
+    expect(webPush.getToken).toHaveBeenCalledOnce();
+    expect(firestore.setDocument).toHaveBeenCalledWith(
+      expect.stringMatching(
+        /^users\/web-user\/notification_registrations\/[a-f0-9]{64}$/,
+      ),
+      expect.objectContaining({ platform: "web", enabled: true }),
+      { merge: true },
+    );
   });
 
   it("restores an already-granted web registration without prompting", async () => {

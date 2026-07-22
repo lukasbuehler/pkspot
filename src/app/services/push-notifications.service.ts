@@ -97,7 +97,8 @@ export class PushNotificationsService {
   }
 
   async requestPermissionFromUserAction(): Promise<boolean> {
-    if (!this.currentUserId || !this.supportedState()) return false;
+    const userId = this._authenticatedUserId();
+    if (!userId || !this.supportedState()) return false;
 
     this.busyState.set(true);
     try {
@@ -117,7 +118,7 @@ export class PushNotificationsService {
         return false;
       }
 
-      await this._registerCurrentInstallation(this.currentUserId);
+      await this._registerCurrentInstallation(userId);
       return true;
     } finally {
       this.busyState.set(false);
@@ -243,7 +244,7 @@ export class PushNotificationsService {
   }
 
   private async _saveRegistration(userId: string, token: string): Promise<void> {
-    if (!userId || userId !== this.currentUserId) return;
+    if (!userId || userId !== this._authenticatedUserId()) return;
 
     const registrationId = await this._hashToken(token);
     const previousRegistrationId = this._storedRegistrationId(userId);
@@ -352,6 +353,11 @@ export class PushNotificationsService {
       !path.startsWith("//")
       ? path
       : null;
+  }
+
+  private _authenticatedUserId(): string | null {
+    const userId = this.currentUserId ?? this.auth.user.uid;
+    return typeof userId === "string" && userId.trim() ? userId : null;
   }
 
   private async _hashToken(token: string): Promise<string> {

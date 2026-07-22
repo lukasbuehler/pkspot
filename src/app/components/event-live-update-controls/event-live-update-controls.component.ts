@@ -133,12 +133,12 @@ export class EventLiveUpdateControlsComponent {
     this.saving.set(true);
     this.failed.set(false);
     try {
-      await this.liveUpdates.setNotificationLevel(this.event().id, level);
       if (userInitiated && level !== "none") {
         if (this.push.supported() && !this.push.systemAllowsNotifications()) {
           await this.push.requestPermissionFromUserAction();
         }
       }
+      await this.liveUpdates.setNotificationLevel(this.event().id, level);
       if (userInitiated) {
         this.analytics.trackEvent(
           level === "none" ? "live_update_opt_out" : "live_update_opt_in",

@@ -34,7 +34,7 @@ describe("NotificationOptInService", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    dialog.open.mockReturnValue({ afterClosed: () => of("context") });
+    dialog.open.mockReturnValue({ beforeClosed: () => of("context") });
     preferences.preferences.set({
       follow_requests: false,
       event_reminders: false,
@@ -63,7 +63,7 @@ describe("NotificationOptInService", () => {
 
   afterEach(() => TestBed.resetTestingModule());
 
-  it("persists the contextual choice before requesting system permission", async () => {
+  it("requests system permission before persisting the contextual choice", async () => {
     const service = TestBed.inject(NotificationOptInService);
 
     await service.maybePrompt("event_reminders");
@@ -74,10 +74,13 @@ describe("NotificationOptInService", () => {
       false,
     );
     expect(push.requestPermissionFromUserAction).toHaveBeenCalledOnce();
+    expect(
+      push.requestPermissionFromUserAction.mock.invocationCallOrder[0],
+    ).toBeLessThan(preferences.applyPromptDecision.mock.invocationCallOrder[0]);
   });
 
   it("supports enabling every notification category from the secondary action", async () => {
-    dialog.open.mockReturnValue({ afterClosed: () => of("all") });
+    dialog.open.mockReturnValue({ beforeClosed: () => of("all") });
     const service = TestBed.inject(NotificationOptInService);
 
     await service.maybePrompt("follow_activity");

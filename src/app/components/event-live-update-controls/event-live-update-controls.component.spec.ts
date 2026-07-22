@@ -58,6 +58,11 @@ describe("EventLiveUpdateControlsComponent", () => {
     );
 
     expect(setup.push.requestPermissionFromUserAction).toHaveBeenCalledOnce();
+    expect(
+      setup.push.requestPermissionFromUserAction.mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      setup.liveUpdates.setNotificationLevel.mock.invocationCallOrder[0],
+    );
   });
 
   it("shows all as the non-intrusive default for a missing event preference", async () => {
