@@ -219,6 +219,13 @@
         </button>
       </section>
 
+      @if (event.organizer && event.published) {
+        <app-event-live-updates
+          class="event-section"
+          [event]="event"
+        ></app-event-live-updates>
+      }
+
       @if (featuredParticipants().length > 0) {
         <section class="event-section featured-participants-section">
           <div class="section-heading-row">

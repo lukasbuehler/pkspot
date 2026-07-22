@@ -78,6 +78,33 @@ service cloud.firestore {
         );
     }
 
+    function validEventLiveUpdateSubscription(userId) {
+      return request.resource.data.keys().hasAll([
+          'user_id',
+          'active',
+          'subscribed_at',
+          'updated_at'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'user_id',
+          'active',
+          'subscribed_at',
+          'updated_at'
+        ])
+        && request.resource.data.user_id == userId
+        && request.resource.data.active is bool
+        && request.resource.data.subscribed_at is timestamp
+        && request.resource.data.updated_at is timestamp;
+    }
+
+    function eventAcceptsLiveUpdateSubscriptions(eventId) {
+      let event = get(/databases/$(database)/documents/events/$(eventId)).data;
+      return event.get('published', true) == true
+        && event.end is timestamp
+        && event.end >= request.time
+        && event.organizer is map;
+    }
+
     function validCommunityKnowledgeEdit(communityKey) {
       return request.resource.data.keys().hasAll([
           'target_type',
@@ -914,6 +941,40 @@ service cloud.firestore {
           && validEventRsvp(eventId, userId);
         allow delete: if request.auth.uid != null
           && (request.auth.uid == userId || isAdmin());
+      }
+
+      match /live_updates/{updateId} {
+        allow read: if get(/databases/$(database)/documents/events/$(eventId)).data.get('published', true) == true;
+        // Updates are created only by publishEventLiveUpdate after its backend
+        // organizer, validation, event-state, and cooldown checks pass.
+        allow create, update, delete: if false;
+      }
+
+      match /live_update_subscribers/{userId} {
+        allow read: if request.auth.uid != null && request.auth.uid == userId;
+        allow create: if request.auth.uid != null
+          && request.auth.uid == userId
+          && validEventLiveUpdateSubscription(userId)
+          && (
+            request.resource.data.active == false
+            || eventAcceptsLiveUpdateSubscriptions(eventId)
+          );
+        allow update: if request.auth.uid != null
+          && request.auth.uid == userId
+          && validEventLiveUpdateSubscription(userId)
+          && (
+            request.resource.data.active == false
+            || eventAcceptsLiveUpdateSubscriptions(eventId)
+          )
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'active',
+            'updated_at'
+          ]);
+        allow delete: if request.auth.uid != null && request.auth.uid == userId;
+      }
+
+      match /live_update_state/{stateId} {
+        allow read, write: if false;
       }
     }
 

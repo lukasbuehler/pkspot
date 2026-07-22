@@ -44,6 +44,10 @@ export {
   updateEventFieldsOnWrite,
   updateAllEventsWithTypesenseFields,
 } from "./eventFunctions";
+export {
+  onEventLiveUpdateCreate,
+  publishEventLiveUpdate,
+} from "./eventLiveUpdateFunctions";
 
 export { computeRatingOnWrite } from "./spotRatingFunctions";
 

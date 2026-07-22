@@ -4,6 +4,8 @@ menu
 open_in_new
 notifications
 notifications_off
+notifications_active
+campaign
 open_in_full
 search
 home

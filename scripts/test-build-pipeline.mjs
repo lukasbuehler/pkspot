@@ -848,6 +848,48 @@ async function main() {
     const robotsText = await robotsResponse.text();
     assert.match(robotsText, /User-agent/i, "robots.txt should have content");
 
+    const messagingWorkerResponse = await fetchWithTimeout(
+      `${baseUrl}/firebase-messaging-sw.js`,
+      {},
+      "Firebase messaging service worker"
+    );
+    assert.equal(
+      messagingWorkerResponse.status,
+      200,
+      "Firebase messaging service worker should be served from the origin root"
+    );
+    assertRevalidatingAssetCacheHeaders(
+      messagingWorkerResponse,
+      "/firebase-messaging-sw.js"
+    );
+    assert.equal(
+      messagingWorkerResponse.headers.get("service-worker-allowed"),
+      "/",
+      "Firebase messaging service worker should control the whole origin"
+    );
+    const messagingWorkerText = await messagingWorkerResponse.text();
+    assert.match(
+      messagingWorkerText,
+      /firebase\.messaging\(\)/,
+      "Firebase messaging service worker should initialize FCM"
+    );
+
+    for (const sdkAsset of [
+      "firebase-app-compat.js",
+      "firebase-messaging-compat.js",
+    ]) {
+      const sdkResponse = await fetchWithTimeout(
+        `${baseUrl}/assets/firebase/${sdkAsset}`,
+        {},
+        sdkAsset
+      );
+      assert.equal(sdkResponse.status, 200, `${sdkAsset} should be served`);
+      assert.ok(
+        (await sdkResponse.arrayBuffer()).byteLength > 0,
+        `${sdkAsset} should not be empty`
+      );
+    }
+
     const llmsResponse = await fetchWithTimeout(
       `${baseUrl}/llms.txt`,
       {},

@@ -76,6 +76,7 @@ import {
 } from "../event-display/event-display.helpers";
 import { isBot } from "../../../scripts/Helpers";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
+import { EventLiveUpdatesComponent } from "../event-live-updates/event-live-updates.component";
 
 interface VisibleSeriesTag {
   seriesId: string;
@@ -99,6 +100,7 @@ interface VisibleSeriesTag {
     EventSummaryMetaComponent,
     EventCardComponent,
     EventProgramTimelineComponent,
+    EventLiveUpdatesComponent,
   ],
   templateUrl: "./event-page.component.html",
   styleUrl: "./event-page.component.scss",

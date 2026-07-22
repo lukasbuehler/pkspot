@@ -206,6 +206,22 @@ function run() {
     });
   });
 
+  server.get("/firebase-messaging-sw.js", (req, res) => {
+    const workerPath = path.join(
+      __dirname,
+      "../browser/en/firebase-messaging-sw.js",
+    );
+    res.setHeader("Cache-Control", REVALIDATING_ASSET_CACHE_CONTROL);
+    res.setHeader("Content-Type", "application/javascript; charset=utf-8");
+    res.setHeader("Service-Worker-Allowed", "/");
+    return res.sendFile(workerPath, (err) => {
+      if (err) {
+        console.error("Failed to serve Firebase messaging worker:", err.message);
+        sendMissingAssetResponse(res, req.path);
+      }
+    });
+  });
+
   server.get(["/sitemap.xml", "/assets/sitemap.xml"], (_req, res) => {
     res.redirect(301, sitemapUrl);
   });

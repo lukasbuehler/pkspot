@@ -16,6 +16,11 @@ import {
 } from "../../db/schemas/NotificationSchema";
 import { AuthenticationService } from "./firebase/authentication.service";
 import { FirestoreAdapterService } from "./firebase/firestore-adapter.service";
+import { AnalyticsService } from "./analytics.service";
+import {
+  WebPushClientService,
+  WebPushMessage,
+} from "./web-push-client.service";
 
 interface NotificationSettingsPlugin {
   openAppNotificationSettings(): Promise<void>;
@@ -35,6 +40,8 @@ export class PushNotificationsService {
   private readonly firestore = inject(FirestoreAdapterService);
   private readonly router = inject(Router);
   private readonly snackbar = inject(MatSnackBar);
+  private readonly analytics = inject(AnalyticsService);
+  private readonly webPush = inject(WebPushClientService);
   private readonly locale = inject(LOCALE_ID);
   private readonly supportedState = signal(false);
   private readonly permission = signal<NotificationPermissionState>("unknown");
@@ -51,24 +58,27 @@ export class PushNotificationsService {
     () => this.permission() === "granted",
   );
   readonly blockedBySystem = computed(() => this.permission() === "denied");
+  readonly canOpenSystemSettings = Capacitor.isNativePlatform();
 
   async initialize(): Promise<void> {
     if (this.initialized) return;
     this.initialized = true;
 
-    if (!Capacitor.isNativePlatform()) {
-      this.permission.set("unsupported");
-      return;
-    }
-
-    const { isSupported } = await FirebaseMessaging.isSupported();
+    const isNative = Capacitor.isNativePlatform();
+    const isSupported = isNative
+      ? (await FirebaseMessaging.isSupported()).isSupported
+      : await this.webPush.isSupported();
     this.supportedState.set(isSupported);
     if (!isSupported) {
       this.permission.set("unsupported");
       return;
     }
 
-    await this._installListeners();
+    if (isNative) {
+      await this._installNativeListeners();
+    } else {
+      await this._installWebListeners();
+    }
     this.auth.registerBeforeSignOutHandler((userId) =>
       this.prepareForSignOut(userId),
     );
@@ -80,7 +90,7 @@ export class PushNotificationsService {
         });
       } else {
         this.registrationActiveState.set(false);
-        void this._setAutoInitEnabled(false);
+        if (isNative) void this._setAutoInitEnabled(false);
       }
     });
     await this.refreshPermissionState();
@@ -91,13 +101,19 @@ export class PushNotificationsService {
 
     this.busyState.set(true);
     try {
-      const result = await this._effectivePermission(
-        await FirebaseMessaging.requestPermissions(),
-      );
-      this._setPermission(result);
-      if (result.receive !== "granted") {
+      const permission = Capacitor.isNativePlatform()
+        ? (
+            await this._effectiveNativePermission(
+              await FirebaseMessaging.requestPermissions(),
+            )
+          ).receive
+        : await this.webPush.requestPermission();
+      this.permission.set(permission);
+      if (permission !== "granted") {
         await this._disableStoredRegistration("permission_denied");
-        await this._setAutoInitEnabled(false);
+        if (Capacitor.isNativePlatform()) {
+          await this._setAutoInitEnabled(false);
+        }
         return false;
       }
 
@@ -111,17 +127,22 @@ export class PushNotificationsService {
   async refreshPermissionState(): Promise<void> {
     if (!this.supportedState()) return;
 
-    const result = await this._effectivePermission(
-      await FirebaseMessaging.checkPermissions(),
-    );
-    this._setPermission(result);
+    const isNative = Capacitor.isNativePlatform();
+    const permission = isNative
+      ? (
+          await this._effectiveNativePermission(
+            await FirebaseMessaging.checkPermissions(),
+          )
+        ).receive
+      : this.webPush.permissionState();
+    this.permission.set(permission);
     if (!this.currentUserId) {
-      await this._setAutoInitEnabled(false);
-    } else if (result.receive === "granted") {
+      if (isNative) await this._setAutoInitEnabled(false);
+    } else if (permission === "granted") {
       await this._registerCurrentInstallation(this.currentUserId);
-    } else if (result.receive === "denied") {
+    } else if (permission === "denied") {
       await this._disableStoredRegistration("permission_denied");
-      await this._setAutoInitEnabled(false);
+      if (isNative) await this._setAutoInitEnabled(false);
     }
   }
 
@@ -132,21 +153,27 @@ export class PushNotificationsService {
   }
 
   async prepareForSignOut(userId: string): Promise<void> {
-    if (!Capacitor.isNativePlatform()) return;
+    if (!this.supportedState()) return;
 
     try {
       await this._disableStoredRegistration("signed_out", userId);
-      await FirebaseMessaging.deleteToken();
+      if (Capacitor.isNativePlatform()) {
+        await FirebaseMessaging.deleteToken();
+      } else {
+        await this.webPush.deleteToken();
+      }
     } catch (error) {
       console.warn("Failed to fully unregister push notifications", error);
     } finally {
-      await this._setAutoInitEnabled(false);
+      if (Capacitor.isNativePlatform()) {
+        await this._setAutoInitEnabled(false);
+      }
       this.registrationActiveState.set(false);
       this._forgetRegistrationId(userId);
     }
   }
 
-  private async _installListeners(): Promise<void> {
+  private async _installNativeListeners(): Promise<void> {
     await FirebaseMessaging.addListener("tokenReceived", ({ token }) => {
       if (this.currentUserId && this.permission() === "granted") {
         void this._saveRegistration(this.currentUserId, token);
@@ -182,11 +209,18 @@ export class PushNotificationsService {
     }
   }
 
-  private _setPermission(result: PermissionStatus): void {
-    this.permission.set(result.receive);
+  private async _installWebListeners(): Promise<void> {
+    await this.webPush.onMessage((message) =>
+      this._showWebForegroundNotification(message),
+    );
+    window.addEventListener("focus", () => {
+      void this.refreshPermissionState().catch((error) => {
+        console.warn("Failed to refresh web notification permission", error);
+      });
+    });
   }
 
-  private async _effectivePermission(
+  private async _effectiveNativePermission(
     permission: PermissionStatus,
   ): Promise<PermissionStatus> {
     if (permission.receive !== "granted") return permission;
@@ -202,7 +236,9 @@ export class PushNotificationsService {
   }
 
   private async _registerCurrentInstallation(userId: string): Promise<void> {
-    const { token } = await FirebaseMessaging.getToken();
+    const token = Capacitor.isNativePlatform()
+      ? (await FirebaseMessaging.getToken()).token
+      : await this.webPush.getToken();
     await this._saveRegistration(userId, token);
   }
 
@@ -268,14 +304,54 @@ export class PushNotificationsService {
   private _openNotification(event: NotificationActionPerformedEvent): void {
     const data = event.notification.data;
     if (!data || typeof data !== "object") return;
-    const path = (data as Record<string, unknown>)["path"];
+    this._openNotificationData(data as Record<string, unknown>);
+  }
+
+  private _showWebForegroundNotification(message: WebPushMessage): void {
+    const text = [message.notification?.title, message.notification?.body]
+      .filter((part): part is string => Boolean(part))
+      .join(": ");
+    if (!text) return;
+
+    const data = message.data ?? {};
+    const hasPath = this._notificationPath(data) !== null;
+    const ref = this.snackbar.open(
+      text,
+      hasPath
+        ? $localize`:@@notifications.open:Open`
+        : $localize`:@@notifications.dismiss:Dismiss`,
+      { duration: 8000 },
+    );
+    if (hasPath) {
+      ref.onAction().subscribe(() => this._openNotificationData(data));
+    }
+  }
+
+  private _openNotificationData(
+    notificationData: Record<string, unknown>,
+  ): void {
     if (
-      typeof path === "string" &&
+      notificationData["type"] === "event_update" &&
+      typeof notificationData["update_id"] === "string"
+    ) {
+      this.analytics.trackEvent("live_update_notification_opened", {
+        event_id: notificationData["event_id"],
+        update_type: notificationData["live_update_type"],
+      });
+    }
+    const path = this._notificationPath(notificationData);
+    if (path) void this.router.navigateByUrl(path);
+  }
+
+  private _notificationPath(
+    notificationData: Record<string, unknown>,
+  ): string | null {
+    const path = notificationData["path"];
+    return typeof path === "string" &&
       path.startsWith("/") &&
       !path.startsWith("//")
-    ) {
-      void this.router.navigateByUrl(path);
-    }
+      ? path
+      : null;
   }
 
   private async _hashToken(token: string): Promise<string> {

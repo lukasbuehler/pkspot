@@ -18,6 +18,10 @@ export const environment = {
     debugToken: false,
     attachToFirebaseSdk: false,
   },
+  webPush: {
+    vapidKey:
+      "BLaMDzAC7VOiAKMfNmcEPXvAl7FOaANMFQhEHp9hPFQSvPw7yVTJvzDIY3hXfbVjodP-WMeqAgE4FD_u3etY1FQ",
+  },
   keys: {
     firebaseConfig: {
       projectId: "parkour-base-project",

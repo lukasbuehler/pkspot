@@ -136,7 +136,37 @@ async function seedSecurityFixture() {
   });
   batch.set(adminDb.doc("spot_clusters/z16_1_1"), { spots: [] });
   batch.set(adminDb.doc("spot_slugs/public-spot"), { spot_id: "public-spot" });
-  batch.set(adminDb.doc("events/event-1"), { title: { en: "Public Event" } });
+  batch.set(adminDb.doc("events/event-1"), {
+    name: "Public Event",
+    published: true,
+    end: admin.firestore.Timestamp.fromMillis(Date.now() + 86_400_000),
+    organizer: {
+      type: "organization",
+      organization: { id: "pk-spot", name: "PK Spot", slug: "pk-spot" },
+    },
+  });
+  batch.set(adminDb.doc("events/event-1/live_updates/update-1"), {
+    event_id: "event-1",
+    type: "schedule_change",
+    title: "Schedule updated",
+    status: "published",
+    created_at: admin.firestore.Timestamp.now(),
+    created_by: "admin",
+    published_at: admin.firestore.Timestamp.now(),
+  });
+  batch.set(adminDb.doc("events/unpublished-event"), {
+    name: "Draft Event",
+    published: false,
+  });
+  batch.set(adminDb.doc("events/unpublished-event/live_updates/update-1"), {
+    event_id: "unpublished-event",
+    type: "general_update",
+    title: "Hidden update",
+    status: "published",
+    created_at: admin.firestore.Timestamp.now(),
+    created_by: "admin",
+    published_at: admin.firestore.Timestamp.now(),
+  });
   batch.set(adminDb.doc("event_slugs/public-event"), { event_id: "event-1" });
   batch.set(adminDb.doc("series/series-1"), { name: "Public Series" });
   batch.set(adminDb.doc("community_pages/ch-zurich"), { title: "Zurich" });
@@ -1349,6 +1379,73 @@ async function testEventRsvpPrivacy(anon, owner, other, adminUser) {
   );
 }
 
+async function testEventLiveUpdateGuards(anon, owner, other, adminUser) {
+  const subscriptionPath = "events/event-1/live_update_subscribers/owner";
+  await assertDenied("anonymous cannot subscribe to event live updates", () =>
+    setDoc(doc(anon.db, "events/event-1/live_update_subscribers/anon"), {
+      user_id: "anon",
+      active: true,
+      subscribed_at: Timestamp.now(),
+      updated_at: Timestamp.now(),
+    })
+  );
+  await assertAllowed("user subscribes to own event live updates", () =>
+    setDoc(doc(owner.db, subscriptionPath), {
+      user_id: "owner",
+      active: true,
+      subscribed_at: Timestamp.now(),
+      updated_at: Timestamp.now(),
+    })
+  );
+  await assertAllowed("user disables own event live updates", () =>
+    updateDoc(doc(owner.db, subscriptionPath), {
+      active: false,
+      updated_at: Timestamp.now(),
+    })
+  );
+  await assertDenied("user cannot subscribe another attendee", () =>
+    setDoc(doc(owner.db, "events/event-1/live_update_subscribers/other"), {
+      user_id: "other",
+      active: true,
+      subscribed_at: Timestamp.now(),
+      updated_at: Timestamp.now(),
+    })
+  );
+  await assertDenied("user cannot transfer a live update subscription", () =>
+    updateDoc(doc(owner.db, subscriptionPath), {
+      user_id: "other",
+      updated_at: Timestamp.now(),
+    })
+  );
+  await assertDenied("other attendee cannot read a user's subscription", () =>
+    getDoc(doc(other.db, subscriptionPath))
+  );
+  await assertAllowed("public can read published event live updates", () =>
+    getDoc(doc(anon.db, "events/event-1/live_updates/update-1"))
+  );
+  await assertDenied("public cannot read unpublished event live updates", () =>
+    getDoc(doc(anon.db, "events/unpublished-event/live_updates/update-1"))
+  );
+  const forgedUpdate = {
+    event_id: "event-1",
+    type: "general_update",
+    title: "Forged",
+    status: "published",
+    created_at: Timestamp.now(),
+    created_by: "owner",
+    published_at: Timestamp.now(),
+  };
+  await assertDenied("attendee cannot publish a live update directly", () =>
+    setDoc(doc(owner.db, "events/event-1/live_updates/forged-owner"), forgedUpdate)
+  );
+  await assertDenied("admin cannot bypass the trusted live update callable", () =>
+    setDoc(doc(adminUser.db, "events/event-1/live_updates/forged-admin"), forgedUpdate)
+  );
+  await assertDenied("clients cannot read live update cooldown state", () =>
+    getDoc(doc(owner.db, "events/event-1/live_update_state/publishing"))
+  );
+}
+
 async function testPostAndImportGuards(anon, owner, other, adminUser) {
   await assertAllowed("authenticated post create without like_count", () =>
     setDoc(doc(owner.db, "posts/owner-post"), {
@@ -1581,6 +1678,7 @@ async function main() {
   await testContactMessageGuards(anon, owner, other);
   await testEventWriteGuards(owner, adminUser);
   await testEventRsvpPrivacy(anon, owner, other, adminUser);
+  await testEventLiveUpdateGuards(anon, owner, other, adminUser);
   await testPostAndImportGuards(anon, owner, other, adminUser);
   await testChallengeVisibility(anon, owner, other);
   await testQueriesDoNotBypassRules(owner, other);

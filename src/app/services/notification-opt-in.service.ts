@@ -95,9 +95,13 @@ export class NotificationOptInService {
   private _showSystemBlockedMessage(): void {
     const ref = this.snackbar.open(
       $localize`:@@notification_prompt.system_blocked:Your notification choices are saved, but this device is blocking notifications.`,
-      $localize`:@@notification_prompt.open_settings:Open settings`,
+      this.push.canOpenSystemSettings
+        ? $localize`:@@notification_prompt.open_settings:Open settings`
+        : $localize`:@@notification_prompt.ok:OK`,
       { duration: 8000 },
     );
-    ref.onAction().subscribe(() => void this.push.openSystemSettings());
+    if (this.push.canOpenSystemSettings) {
+      ref.onAction().subscribe(() => void this.push.openSystemSettings());
+    }
   }
 }

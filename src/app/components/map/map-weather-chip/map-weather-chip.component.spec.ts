@@ -5,6 +5,7 @@ import { MatTooltip } from "@angular/material/tooltip";
 import { MapWeatherChipComponent } from "./map-weather-chip.component";
 import type { WeatherResponse } from "../../../weather/weather.models";
 import { AccountPreferencesService } from "../../../services/account-preferences.service";
+import { DateTimeFormatService } from "../../../services/date-time-format.service";
 import {
   resolveTemperatureUnit,
   type TemperatureUnitPreference,
@@ -57,6 +58,19 @@ describe("MapWeatherChipComponent", () => {
         {
           provide: AccountPreferencesService,
           useValue: { temperatureUnit },
+        },
+        {
+          provide: DateTimeFormatService,
+          useValue: {
+            format: (
+              value: Date | number | string,
+              options: Intl.DateTimeFormatOptions,
+            ) =>
+              new Intl.DateTimeFormat("de-CH", {
+                ...options,
+                hourCycle: "h23",
+              }).format(typeof value === "string" ? new Date(value) : value),
+          },
         },
       ],
     });

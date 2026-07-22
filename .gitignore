@@ -3,6 +3,7 @@
 
 # TypeScript compiled output (should only be in dist folders)
 src/**/*.js
+!src/firebase-messaging-sw.js
 src/**/*.js.map
 scripts/horizn-import/output/
 

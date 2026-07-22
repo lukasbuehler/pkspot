@@ -126,6 +126,17 @@
                 "output": "/assets/swissjam"
               },
               "src/manifest.webmanifest",
+              "src/firebase-messaging-sw.js",
+              {
+                "glob": "firebase-app-compat.js",
+                "input": "node_modules/firebase",
+                "output": "/assets/firebase"
+              },
+              {
+                "glob": "firebase-messaging-compat.js",
+                "input": "node_modules/firebase",
+                "output": "/assets/firebase"
+              },
               "src/robots.txt",
               "src/llms.txt",
               "src/82fdb2d7e4c14ed3b16a03f9fe6d3295.txt"

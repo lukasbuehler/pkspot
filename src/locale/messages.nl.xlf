@@ -227,6 +227,12 @@
         <target> Uitloggen </target>
       </segment>
     </unit>
+    <unit id="594233643210838773">
+      <segment state="initial">
+        <source>In-app updates are enabled. Push notifications are not supported on this browser or device.</source>
+        <target>Updates in de app zijn ingeschakeld. Pushmeldingen worden niet ondersteund in deze browser of op dit apparaat.</target>
+      </segment>
+    </unit>
     <unit id="5945359866777111462">
       <segment state="initial">
         <source> Report </source>
@@ -237,6 +243,12 @@
       <segment state="initial">
         <source>Contact message archived</source>
         <target>Contactbericht gearchiveerd</target>
+      </segment>
+    </unit>
+    <unit id="6328600269410022481">
+      <segment state="initial">
+        <source>Meet-up time updated</source>
+        <target>Verzameltijd bijgewerkt</target>
       </segment>
     </unit>
     <unit id="6340970481322850527">
@@ -393,6 +405,12 @@
         <target>Media toegevoegd</target>
       </segment>
     </unit>
+    <unit id="8472114642828955051">
+      <segment state="initial">
+        <source>Updates may include schedule changes, Spot switches, weather changes, and organizer announcements.</source>
+        <target>Updates kunnen wijzigingen in de planning, Spot-wissels, weersveranderingen en mededelingen van organisatoren bevatten.</target>
+      </segment>
+    </unit>
     <unit id="8473658733830175441">
       <segment state="initial">
         <source> Newest changes first. Each entry shows exactly what was edited. </source>
@@ -499,6 +517,12 @@
         <target> Je kunt hier je openbare profiel bewerken. De informatie op je openbare profiel kan door iedereen worden gezien, zelfs niet-geregistreerde bezoekers. </target>
       </segment>
     </unit>
+    <unit id="6814210910387388110">
+      <segment state="initial">
+        <source>Could not enable live updates. Please try again.</source>
+        <target>Live-updates konden niet worden ingeschakeld. Probeer het opnieuw.</target>
+      </segment>
+    </unit>
     <unit id="6815507474406960450">
       <segment state="initial">
         <source>E-Mail address</source>
@@ -533,6 +557,12 @@
       <segment state="initial">
         <source>About PK Spot</source>
         <target>Over PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="552971513644813992">
+      <segment state="initial">
+        <source>Live updates could not be loaded.</source>
+        <target>Live-updates konden niet worden geladen.</target>
       </segment>
     </unit>
     <unit id="553543363816145762">
@@ -593,6 +623,12 @@
       <segment state="initial">
         <source>Voting test mode</source>
         <target>Testmodus voor stemmen</target>
+      </segment>
+    </unit>
+    <unit id="1402668345340835564">
+      <segment state="initial">
+        <source>Recent updates</source>
+        <target>Recente updates</target>
       </segment>
     </unit>
     <unit id="1431416938026210429">
@@ -938,6 +974,12 @@
         <target>Instellingen</target>
       </segment>
     </unit>
+    <unit id="4255249104043141783">
+      <segment state="initial">
+        <source>Get live updates from this event</source>
+        <target>Ontvang live-updates van dit evenement</target>
+      </segment>
+    </unit>
     <unit id="4262052603921665097">
       <segment state="initial">
         <source>Failed to load moderation dashboard</source>
@@ -1259,8 +1301,8 @@
       </segment>
     </unit>
     <unit id="map.weather.rain_at">
-      <segment state="final">
-        <source>Rain at <ph id="0" equiv="PH" disp="this.formatTime(nextRain.time)"/></source>
+      <segment state="initial">
+        <source>Rain at <ph id="0" equiv="PH" disp="time"/></source>
         <target>Regen om <ph id="0" equiv="PH" disp="this.formatTime(nextRain.time)"/></target>
       </segment>
     </unit>
@@ -1271,20 +1313,20 @@
       </segment>
     </unit>
     <unit id="map.weather.rain_until">
-      <segment state="final">
-        <source>Rain until <ph id="0" equiv="PH" disp="this.formatTime(rainStopsAt)"/></source>
+      <segment state="initial">
+        <source>Rain until <ph id="0" equiv="PH" disp="time"/></source>
         <target>Regen tot <ph id="0" equiv="PH" disp="this.formatTime(rainStopsAt)"/></target>
       </segment>
     </unit>
     <unit id="map.weather.sunrise_at">
-      <segment state="final">
-        <source>Sunrise <ph id="0" equiv="PH" disp="this.formatTime(sunEvent)"/></source>
+      <segment state="initial">
+        <source>Sunrise <ph id="0" equiv="PH" disp="time"/></source>
         <target>Zonsopkomst <ph id="0" equiv="PH" disp="this.formatTime(sunEvent)"/></target>
       </segment>
     </unit>
     <unit id="map.weather.sunset_at">
-      <segment state="final">
-        <source>Sunset <ph id="0" equiv="PH" disp="this.formatTime(sunEvent)"/></source>
+      <segment state="initial">
+        <source>Sunset <ph id="0" equiv="PH" disp="time"/></source>
         <target>Zonsondergang <ph id="0" equiv="PH" disp="this.formatTime(sunEvent)"/></target>
       </segment>
     </unit>
@@ -1995,6 +2037,12 @@
         <target>Organisatie</target>
       </segment>
     </unit>
+    <unit id="3080063878876798845">
+      <segment state="initial">
+        <source>Weather update</source>
+        <target>Weerupdate</target>
+      </segment>
+    </unit>
     <unit id="3080109816219994129">
       <segment state="initial">
         <source>Instagram</source>
@@ -2217,6 +2265,12 @@
         <target>Je moet akkoord gaan met de voorwaarden!</target>
       </segment>
     </unit>
+    <unit id="1956203249004073114">
+      <segment state="initial">
+        <source>Short message (optional)</source>
+        <target>Kort bericht (optioneel)</target>
+      </segment>
+    </unit>
     <unit id="1975356621924283237">
       <segment state="initial">
         <source>Outdoor</source>
@@ -2327,6 +2381,12 @@
         <target>Acoso o abuso</target>
       </segment>
     </unit>
+    <unit id="6731957520296691946">
+      <segment state="initial">
+        <source>Live update published.</source>
+        <target>Live-update gepubliceerd.</target>
+      </segment>
+    </unit>
     <unit id="6772316127315505952">
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">Other</pc></source>
@@ -2407,6 +2467,12 @@
       <segment state="initial">
         <source>Dismiss</source>
         <target>Negeren</target>
+      </segment>
+    </unit>
+    <unit id="1550842214379660718">
+      <segment state="initial">
+        <source>Sign in to get live updates</source>
+        <target>Log in voor live-updates</target>
       </segment>
     </unit>
     <unit id="6945945395354199350">
@@ -2660,6 +2726,12 @@
       <segment state="initial">
         <source>Which spot is this spot a duplicate of?</source>
         <target>Van welke spot is dit een duplicaat?</target>
+      </segment>
+    </unit>
+    <unit id="2002398665048764218">
+      <segment state="initial">
+        <source>Schedule change</source>
+        <target>Planningswijziging</target>
       </segment>
     </unit>
     <unit id="2014228771300600511">
@@ -4106,6 +4178,12 @@
         <target>Sluiten</target>
       </segment>
     </unit>
+    <unit id="notifications.open">
+      <segment state="initial">
+        <source>Open</source>
+        <target>Openen</target>
+      </segment>
+    </unit>
     <unit id="spot.ratings.header">
       <notes>
         <note category="description">Header for the ratings and reviews section</note>
@@ -4152,6 +4230,12 @@
         <target> Optioneel en openbaar. Laat leeg als je dit niet wilt delen. </target>
       </segment>
     </unit>
+    <unit id="9014362914884004064">
+      <segment state="initial">
+        <source>Location/Spot change</source>
+        <target>Locatie-/Spot-wijziging</target>
+      </segment>
+    </unit>
     <unit id="9019759608416406738">
       <segment state="initial">
         <source>Early Adopter</source>
@@ -4168,6 +4252,12 @@
       <segment state="initial">
         <source>Photographer</source>
         <target>Fotograaf</target>
+      </segment>
+    </unit>
+    <unit id="9068739507702057346">
+      <segment state="initial">
+        <source>Live updates enabled</source>
+        <target>Live-updates ingeschakeld</target>
       </segment>
     </unit>
     <unit id="9068926282349592226">
@@ -4252,6 +4342,12 @@
       <segment state="initial">
         <source>Invalid email address</source>
         <target>Ongeldig e-mailadres</target>
+      </segment>
+    </unit>
+    <unit id="921298748667468495">
+      <segment state="initial">
+        <source>Session starting soon</source>
+        <target>Sessie begint binnenkort</target>
       </segment>
     </unit>
     <unit id="2540890198002687328">
@@ -4370,6 +4466,12 @@
         <target> Je hebt nog geen Spots opgeslagen. </target>
       </segment>
     </unit>
+    <unit id="8190337125596978746">
+      <segment state="initial">
+        <source>Publish update</source>
+        <target>Update publiceren</target>
+      </segment>
+    </unit>
     <unit id="profile.metadata.ariaLabel">
       <segment state="initial">
         <source>Profile metadata</source>
@@ -4394,6 +4496,12 @@
         <target>Voorkeuren voor inbedden</target>
       </segment>
     </unit>
+    <unit id="5840654029885029666">
+      <segment state="initial">
+        <source>Loading updates…</source>
+        <target>Updates laden…</target>
+      </segment>
+    </unit>
     <unit id="settings.notifications.community_info_aria">
       <segment state="initial">
         <source>Community info submission notifications</source>
@@ -4414,8 +4522,8 @@
     </unit>
     <unit id="settings.notifications.description">
       <segment state="initial">
-        <source> Choose which useful updates PK Spot may send you. You stay in control through both these choices and your device settings. </source>
-        <target> Kies welke nuttige updates PK Spot je mag sturen. Je houdt de controle via deze keuzes en de instellingen van je apparaat. </target>
+        <source> Choose which useful updates PK Spot may send you. You stay in control through both these choices and your browser or device settings. </source>
+        <target> Kies welke nuttige updates PK Spot je mag sturen. Je houdt de controle via deze keuzes en de instellingen van je browser of apparaat. </target>
       </segment>
     </unit>
     <unit id="settings.notifications.event_reminders_aria">
@@ -4486,20 +4594,20 @@
     </unit>
     <unit id="settings.notifications.native_only_description">
       <segment state="initial">
-        <source> Push notifications are currently available on Android and iOS. </source>
-        <target> Pushmeldingen zijn momenteel beschikbaar op Android en iOS. </target>
+        <source> This browser or device does not support PK Spot push notifications. </source>
+        <target> Deze browser of dit apparaat ondersteunt geen pushmeldingen van PK Spot. </target>
       </segment>
     </unit>
     <unit id="settings.notifications.native_only_heading">
       <segment state="initial">
-        <source> Available in the mobile app </source>
-        <target> Beschikbaar in de mobiele app </target>
+        <source> Push notifications unavailable </source>
+        <target> Pushmeldingen niet beschikbaar </target>
       </segment>
     </unit>
     <unit id="settings.notifications.not_requested_description">
       <segment state="initial">
-        <source> Your device will ask for permission when you enable a notification type below. </source>
-        <target> Je apparaat vraagt om toestemming wanneer je hieronder een meldingstype inschakelt. </target>
+        <source> Your browser or device will ask for permission when you enable a notification type below. </source>
+        <target> Je browser of apparaat vraagt om toestemming wanneer je hieronder een meldingstype inschakelt. </target>
       </segment>
     </unit>
     <unit id="settings.notifications.not_requested_heading">
@@ -4576,20 +4684,20 @@
     </unit>
     <unit id="settings.notifications.system_allowed_heading">
       <segment state="initial">
-        <source> Allowed by your device </source>
-        <target> Toegestaan door je apparaat </target>
+        <source> Allowed by your browser or device </source>
+        <target> Toegestaan door je browser of apparaat </target>
       </segment>
     </unit>
     <unit id="settings.notifications.system_blocked_description">
       <segment state="initial">
-        <source> Your PK Spot choices are saved, but Android or iOS is currently blocking delivery. </source>
-        <target> Je PK Spot-keuzes zijn opgeslagen, maar Android of iOS blokkeert de bezorging momenteel. </target>
+        <source> Your PK Spot choices are saved, but your browser or device is currently blocking delivery. </source>
+        <target> Je PK Spot-keuzes zijn opgeslagen, maar je browser of apparaat blokkeert de bezorging momenteel. </target>
       </segment>
     </unit>
     <unit id="settings.notifications.system_blocked_heading">
       <segment state="initial">
-        <source> Blocked in system settings </source>
-        <target> Geblokkeerd in de systeeminstellingen </target>
+        <source> Notifications are blocked </source>
+        <target> Meldingen zijn geblokkeerd </target>
       </segment>
     </unit>
     <unit id="settings.notifications.system_blocked_snackbar">
@@ -4638,6 +4746,12 @@
       <segment state="initial">
         <source>Current password (for confirmation)</source>
         <target>Huidig wachtwoord (ter bevestiging)</target>
+      </segment>
+    </unit>
+    <unit id="7358591724624613220">
+      <segment state="initial">
+        <source>General event update</source>
+        <target>Algemene evenementupdate</target>
       </segment>
     </unit>
     <unit id="welcomeDialogTitle">
@@ -5142,6 +5256,12 @@
       <segment state="initial">
         <source>Event in </source>
         <target>Evenement in </target>
+      </segment>
+    </unit>
+    <unit id="7663580306829928382">
+      <segment state="initial">
+        <source>Get live updates</source>
+        <target>Live-updates ontvangen</target>
       </segment>
     </unit>
     <unit id="7672282077901429954">
@@ -6988,6 +7108,12 @@
         <target>Mediameldingen</target>
       </segment>
     </unit>
+    <unit id="4243604211025418923">
+      <segment state="initial">
+        <source>Your account keeps this event preference synced and prevents unwanted notifications.</source>
+        <target>Je account synchroniseert deze evenementvoorkeur en voorkomt ongewenste meldingen.</target>
+      </segment>
+    </unit>
     <unit id="aboutHeroSubtitle">
       <segment state="initial">
         <source> Find spots, join local communities, discover events and jams, and check in where parkour is happening around you. </source>
@@ -7915,6 +8041,12 @@
         <target> This profile does not exist or is no longer available. </target>
       </segment>
     </unit>
+    <unit id="6680262533217185088">
+      <segment state="initial">
+        <source>Short title</source>
+        <target>Korte titel</target>
+      </segment>
+    </unit>
     <unit id="6684903098036930968">
       <segment state="initial">
         <source>Delete media</source>
@@ -7931,6 +8063,12 @@
       <segment state="initial">
         <source>Beginner friendly</source>
         <target>Beginnersvriendelijk</target>
+      </segment>
+    </unit>
+    <unit id="4793578167277073505">
+      <segment state="initial">
+        <source>Live event updates</source>
+        <target>Live-evenementupdates</target>
       </segment>
     </unit>
     <unit id="4813152754732689397">
@@ -7985,6 +8123,12 @@
       <segment state="initial">
         <source>Sign in to vote on this edit.</source>
         <target>Meld je aan om op deze bewerking te stemmen.</target>
+      </segment>
+    </unit>
+    <unit id="488531688897371865">
+      <segment state="initial">
+        <source>Schedule updated</source>
+        <target>Planning bijgewerkt</target>
       </segment>
     </unit>
     <unit id="7053728652419731548">
@@ -8107,6 +8251,12 @@
         <target> Voeg een bewerkbare begrenzing toe voor deze spot. Na het toevoegen kun je de vorm van het polygoon op de kaart aanpassen. </target>
       </segment>
     </unit>
+    <unit id="213024006531809752">
+      <segment state="initial">
+        <source>No linked Spot</source>
+        <target>Geen gekoppelde Spot</target>
+      </segment>
+    </unit>
     <unit id="2135214670546321857">
       <segment state="initial">
         <source> Private accounts approve follow requests before someone can follow them. </source>
@@ -8147,6 +8297,12 @@
         <target>Vul alle velden in</target>
       </segment>
     </unit>
+    <unit id="2158118345719291849">
+      <segment state="initial">
+        <source>Confirm live notification</source>
+        <target>Live-melding bevestigen</target>
+      </segment>
+    </unit>
     <unit id="2159130950882492111">
       <notes>
         <note category="description">cancel button label</note>
@@ -8160,6 +8316,12 @@
       <segment state="initial">
         <source>Moderation action recorded</source>
         <target>Acción de moderación registrada</target>
+      </segment>
+    </unit>
+    <unit id="216089812907795634">
+      <segment state="initial">
+        <source>Time (optional)</source>
+        <target>Tijd (optioneel)</target>
       </segment>
     </unit>
     <unit id="2197674250183489104">
@@ -8249,6 +8411,12 @@
         <target>Sluiten</target>
       </segment>
     </unit>
+    <unit id="4101287187769863724">
+      <segment state="initial">
+        <source>New organizer updates can also appear as device notifications.</source>
+        <target>Nieuwe updates van organisatoren kunnen ook als apparaatmelding verschijnen.</target>
+      </segment>
+    </unit>
     <unit id="4106902315329542244">
       <segment state="initial">
         <source>Organization admin</source>
@@ -8289,6 +8457,12 @@
       <segment state="initial">
         <source>Role</source>
         <target>Rol</target>
+      </segment>
+    </unit>
+    <unit id="4152341800436198728">
+      <segment state="initial">
+        <source>Event Spot (optional)</source>
+        <target>Evenement-Spot (optioneel)</target>
       </segment>
     </unit>
     <unit id="3714343477148346459">
@@ -8466,6 +8640,18 @@
       <segment state="initial">
         <source>Awaiting organization review</source>
         <target>Wacht op organisatiereview</target>
+      </segment>
+    </unit>
+    <unit id="8072702942015533461">
+      <segment state="initial">
+        <source>Turn off updates</source>
+        <target>Updates uitschakelen</target>
+      </segment>
+    </unit>
+    <unit id="3344632090178218160">
+      <segment state="initial">
+        <source>In-app updates work here. Push notifications require a supported device and notification permission.</source>
+        <target>Updates in de app werken hier. Pushmeldingen vereisen een ondersteund apparaat en toestemming.</target>
       </segment>
     </unit>
     <unit id="3368417786821334758">
@@ -8868,6 +9054,12 @@
         <target>Aangepaste Spot URL toevoegen</target>
       </segment>
     </unit>
+    <unit id="6663339750681146068">
+      <segment state="initial">
+        <source>Meet-up time</source>
+        <target>Verzameltijd</target>
+      </segment>
+    </unit>
     <unit id="6670068416688791508">
       <segment state="initial">
         <source>Cannot share a spot that hasn&apos;t been saved yet</source>
@@ -8898,6 +9090,12 @@
         <target> Vind antwoorden op veelgestelde vragen of neem direct contact met ons op. </target>
       </segment>
     </unit>
+    <unit id="7552927378468859845">
+      <segment state="initial">
+        <source>Publish organizer update</source>
+        <target>Update van organisator publiceren</target>
+      </segment>
+    </unit>
     <unit id="2502246313488671541">
       <segment state="initial">
         <source> Private accounts can approve who follows them. </source>
@@ -8920,6 +9118,12 @@
       <segment state="initial">
         <source>Invalid Link</source>
         <target>Ongeldige link</target>
+      </segment>
+    </unit>
+    <unit id="2531859144458397784">
+      <segment state="initial">
+        <source>Notification preview</source>
+        <target>Meldingsvoorbeeld</target>
       </segment>
     </unit>
     <unit id="2538050690966581497">
@@ -8997,6 +9201,12 @@
         <target>Naamloos toilet</target>
       </segment>
     </unit>
+    <unit id="6112236680555852224">
+      <segment state="initial">
+        <source>People subscribed to this event will receive a live notification.</source>
+        <target>Mensen die dit evenement volgen, ontvangen een live-melding.</target>
+      </segment>
+    </unit>
     <unit id="6113189419449428585">
       <segment state="initial">
         <source>About &amp; Credits</source>
@@ -9057,6 +9267,12 @@
         <target>Openbaar profiel</target>
       </segment>
     </unit>
+    <unit id="5469945807632168111">
+      <segment state="initial">
+        <source>Event update</source>
+        <target>Evenementupdate</target>
+      </segment>
+    </unit>
     <unit id="5481284030283031915">
       <segment state="initial">
         <source>Website</source>
@@ -9075,10 +9291,22 @@
         <target>Permanent verwijderen</target>
       </segment>
     </unit>
+    <unit id="5493359222682689303">
+      <segment state="initial">
+        <source>Past live updates remain available below, but new updates are closed.</source>
+        <target>Eerdere live-updates blijven hieronder beschikbaar, maar er komen geen nieuwe updates meer.</target>
+      </segment>
+    </unit>
     <unit id="7027401708987643293">
       <segment state="initial">
         <source>Core</source>
         <target>Kern</target>
+      </segment>
+    </unit>
+    <unit id="3991385999188585824">
+      <segment state="initial">
+        <source>Check the title and message length.</source>
+        <target>Controleer de lengte van de titel en het bericht.</target>
       </segment>
     </unit>
     <unit id="3998090677451328461">
@@ -9144,6 +9372,12 @@
         <target>Deze Challenge is voor de lol! </target>
       </segment>
     </unit>
+    <unit id="5110610567894331859">
+      <segment state="initial">
+        <source>Live update preferences could not be loaded or saved.</source>
+        <target>De voorkeuren voor live-updates konden niet worden geladen of opgeslagen.</target>
+      </segment>
+    </unit>
     <unit id="5111811857121425885">
       <segment state="initial">
         <source>Pending community vote (iconic spot)</source>
@@ -9178,6 +9412,12 @@
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Important:</pc> When embedding this content on your website, you are responsible for obtaining user consent for third-party services (Google Maps, analytics, etc.). Ensure your site has a clear consent banner or terms that users agree to before viewing embedded content. </source>
         <target><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Belangrijk:</pc> Bij het insluiten van deze content op je website ben je verantwoordelijk voor het verkrijgen van gebruikerstoestemming voor services van derden (Google Maps, analytics, enz.). Zorg ervoor dat je site een duidelijke toestemmingsbanner of voorwaarden heeft die gebruikers accepteren voordat ze ingesloten content bekijken. </target>
+      </segment>
+    </unit>
+    <unit id="5177696977191788472">
+      <segment state="initial">
+        <source>Add a short title.</source>
+        <target>Voeg een korte titel toe.</target>
       </segment>
     </unit>
     <unit id="519026501519052552">
@@ -9218,6 +9458,12 @@
       <segment state="initial">
         <source>A core challenge of this spot. An essential challenge for anyone seeking to master this spot.</source>
         <target>Een core Challenge van deze Spot. Een essentiële Challenge voor iedereen die deze Spot wil beheersen.</target>
+      </segment>
+    </unit>
+    <unit id="3901905864121453020">
+      <segment state="initial">
+        <source>Could not turn off live updates. Please try again.</source>
+        <target>Live-updates konden niet worden uitgeschakeld. Probeer het opnieuw.</target>
       </segment>
     </unit>
     <unit id="3909136360386442402">
@@ -9294,7 +9540,7 @@
     </unit>
     <unit id="7408374932533578639">
       <segment state="initial">
-        <source> This challenge will be released on <ph id="0" equiv="INTERPOLATION" disp="{{ challenge()!.releaseDate?.toLocaleDateString(locale, { dateStyle: &quot;medium&quot; }) }}"/>, at <ph id="1" equiv="INTERPOLATION_1" disp="{{ challenge()!.releaseDate?.toLocaleTimeString(locale, { timeStyle: &quot;short&quot; }) }}"/>. </source>
+        <source> This challenge will be released on <ph id="0" equiv="INTERPOLATION" disp="{{ challenge()!.releaseDate | systemDate: &quot;mediumDate&quot; }}"/>, at <ph id="1" equiv="INTERPOLATION_1" disp="{{ challenge()!.releaseDate | systemDate: &quot;shortTime&quot; }}"/>. </source>
         <target> Deze challenge wordt vrijgegeven op <ph id="0" equiv="INTERPOLATION" disp="{{ challenge()!.releaseDate?.toLocaleDateString(locale, { dateStyle: &quot;medium&quot; }) }}"/>, om <ph id="1" equiv="INTERPOLATION_1" disp="{{ challenge()!.releaseDate?.toLocaleTimeString(locale, { timeStyle: &quot;short&quot; }) }}"/> . </target>
       </segment>
     </unit>
@@ -9302,6 +9548,12 @@
       <segment state="initial">
         <source>Keep warning</source>
         <target>Mantener advertencia</target>
+      </segment>
+    </unit>
+    <unit id="7411079630980671267">
+      <segment state="initial">
+        <source>This event has ended</source>
+        <target>Dit evenement is afgelopen</target>
       </segment>
     </unit>
     <unit id="5400391042453835180">
@@ -9362,6 +9614,18 @@
       <segment state="initial">
         <source> Release Date <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE" equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other" dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;" dispEnd="&lt;/mat-slide-toggle&gt;"/></source>
         <target> Publicatiedatum <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE" equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other" dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;" dispEnd="&lt;/mat-slide-toggle&gt;"/></target>
+      </segment>
+    </unit>
+    <unit id="8882370377359593676">
+      <segment state="initial">
+        <source>Update type</source>
+        <target>Updatetype</target>
+      </segment>
+    </unit>
+    <unit id="8890553633144307762">
+      <segment state="initial">
+        <source>Back</source>
+        <target>Terug</target>
       </segment>
     </unit>
     <unit id="8890858578819685573">
@@ -9629,6 +9893,12 @@
         <target> Meerdere organisaties kunnen een openbare spot verifiëren zonder eigenaar te zijn. </target>
       </segment>
     </unit>
+    <unit id="5621227577951541037">
+      <segment state="initial">
+        <source>Meet-up location changed</source>
+        <target>Verzamelplaats gewijzigd</target>
+      </segment>
+    </unit>
     <unit id="563334124435707239">
       <segment state="initial">
         <source>Review for your organization</source>
@@ -9711,6 +9981,18 @@
       <segment state="initial">
         <source>Community card rejected</source>
         <target>Community card rejected</target>
+      </segment>
+    </unit>
+    <unit id="8974613806156505921">
+      <segment state="initial">
+        <source>No live updates have been published yet.</source>
+        <target>Er zijn nog geen live-updates gepubliceerd.</target>
+      </segment>
+    </unit>
+    <unit id="8978285646707515154">
+      <segment state="initial">
+        <source> Organizers may send schedule, location, weather, and meet-up updates. </source>
+        <target>Organisatoren kunnen updates sturen over planning, locatie, weer en verzamelpunt.</target>
       </segment>
     </unit>
     <unit id="8981724482694536509">
@@ -9860,6 +10142,12 @@
         <target>Bewerker</target>
       </segment>
     </unit>
+    <unit id="3750896546807006672">
+      <segment state="initial">
+        <source>Could not publish the live update.</source>
+        <target>De live-update kon niet worden gepubliceerd.</target>
+      </segment>
+    </unit>
     <unit id="open-embedded-in-pkspot-button-aria-label">
       <segment state="initial">
         <source>Open this on PK Spot</source>
@@ -9986,6 +10274,12 @@
       <segment state="initial">
         <source>Snapper</source>
         <target>Fotograaf</target>
+      </segment>
+    </unit>
+    <unit id="1774760996053367231">
+      <segment state="initial">
+        <source>Preview notification</source>
+        <target>Meldingsvoorbeeld</target>
       </segment>
     </unit>
     <unit id="1603041043712955298">
@@ -10128,6 +10422,12 @@
       <segment state="initial">
         <source> Media is processing and will appear here when it is ready. </source>
         <target> Media is processing and will appear here when it is ready. </target>
+      </segment>
+    </unit>
+    <unit id="4601436343051022992">
+      <segment state="initial">
+        <source>In-app updates are enabled. Push notifications are blocked in device settings.</source>
+        <target>Updates in de app zijn ingeschakeld. Pushmeldingen zijn geblokkeerd in de apparaatinstellingen.</target>
       </segment>
     </unit>
     <unit id="4608107035538313233">

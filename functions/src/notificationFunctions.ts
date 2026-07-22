@@ -35,7 +35,7 @@ interface SpotEditNotificationSource {
   data?: { name?: unknown };
 }
 
-interface IntentInput {
+export interface IntentInput {
   recipientUid: string;
   type: NotificationIntentType;
   sourcePath: string;
@@ -562,7 +562,7 @@ export const sendDueNotificationIntents = onSchedule(
   },
 );
 
-async function createIntent(id: string, input: IntentInput): Promise<void> {
+export async function createIntent(id: string, input: IntentInput): Promise<void> {
   const ref = admin.firestore().collection(INTENTS).doc(id);
   try {
     await ref.create(intentDocument(id, input));
@@ -719,6 +719,24 @@ async function deliverIntent(
   }
 
   const db = admin.firestore();
+  const liveUpdateEventId = intent.payload["update_id"]
+    ? intent.payload["event_id"]
+    : undefined;
+  if (liveUpdateEventId) {
+    const subscription = await db
+      .doc(
+        `events/${liveUpdateEventId}/live_update_subscribers/${intent.recipient_uid}`,
+      )
+      .get();
+    if (subscription.data()?.["active"] !== true) {
+      return {
+        status: "skipped",
+        deliveryCount: 0,
+        reason: "event_subscription_disabled",
+      };
+    }
+  }
+
   const privateData = await db
     .doc(`users/${intent.recipient_uid}/private_data/main`)
     .get();
@@ -765,6 +783,15 @@ async function deliverIntent(
         intent_id: intentId,
         type: intent.type,
         path: intent.path,
+        ...(intent.payload["event_id"]
+          ? { event_id: intent.payload["event_id"] }
+          : {}),
+        ...(intent.payload["update_id"]
+          ? { update_id: intent.payload["update_id"] }
+          : {}),
+        ...(intent.payload["live_update_type"]
+          ? { live_update_type: intent.payload["live_update_type"] }
+          : {}),
       },
       android: {
         notification: {
@@ -776,6 +803,9 @@ async function deliverIntent(
         payload: { aps: { sound: "default" } },
       },
       webpush: {
+        notification: {
+          icon: "https://pkspot.app/assets/icons/icon-192.webp",
+        },
         fcmOptions: { link: `https://pkspot.app${intent.path}` },
       },
     });
@@ -852,6 +882,14 @@ function notificationCopy(
     if (intent.type === "event_reminder") {
       return { title: p["event_name"], body: "Beginnt in zwei Stunden." };
     }
+    if (intent.type === "event_update" && p["update_title"]) {
+      return {
+        title: p["event_name"],
+        body: p["update_message"]
+          ? `${p["update_title"]}: ${p["update_message"]}`
+          : p["update_title"],
+      };
+    }
     if (intent.type === "event_update") {
       return { title: "Event aktualisiert", body: `${p["event_name"]}: ${germanEventChange(p["change"])}.` };
     }
@@ -891,6 +929,14 @@ function notificationCopy(
   }
   if (intent.type === "event_reminder") {
     return { title: p["event_name"], body: "Starts in two hours." };
+  }
+  if (intent.type === "event_update" && p["update_title"]) {
+    return {
+      title: p["event_name"],
+      body: p["update_message"]
+        ? `${p["update_title"]}: ${p["update_message"]}`
+        : p["update_title"],
+    };
   }
   if (intent.type === "event_update") {
     return { title: "Event updated", body: `${p["event_name"]}: ${englishEventChange(p["change"])}.` };

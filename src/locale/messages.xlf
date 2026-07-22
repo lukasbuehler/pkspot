@@ -46,6 +46,11 @@
         <source>Settings</source>
       </segment>
     </unit>
+    <unit id="4255249104043141783">
+      <segment>
+        <source>Get live updates from this event</source>
+      </segment>
+    </unit>
     <unit id="4262052603921665097">
       <segment>
         <source>Failed to load moderation dashboard</source>
@@ -337,9 +342,19 @@
         <source>Sign in to vote on this edit.</source>
       </segment>
     </unit>
+    <unit id="488531688897371865">
+      <segment>
+        <source>Schedule updated</source>
+      </segment>
+    </unit>
     <unit id="7774690298639065150">
       <segment>
         <source> This profile does not exist or is no longer available. </source>
+      </segment>
+    </unit>
+    <unit id="6680262533217185088">
+      <segment>
+        <source>Short title</source>
       </segment>
     </unit>
     <unit id="6684903098036930968">
@@ -400,6 +415,11 @@
     <unit id="3076687427621376223">
       <segment>
         <source>Organization</source>
+      </segment>
+    </unit>
+    <unit id="3080063878876798845">
+      <segment>
+        <source>Weather update</source>
       </segment>
     </unit>
     <unit id="3080109816219994129">
@@ -597,6 +617,11 @@
         <source>Invalid Link</source>
       </segment>
     </unit>
+    <unit id="2531859144458397784">
+      <segment>
+        <source>Notification preview</source>
+      </segment>
+    </unit>
     <unit id="2538050690966581497">
       <segment>
         <source> Add member </source>
@@ -635,6 +660,11 @@
     <unit id="3762050401268226469">
       <segment>
         <source>Unknown Action</source>
+      </segment>
+    </unit>
+    <unit id="7663580306829928382">
+      <segment>
+        <source>Get live updates</source>
       </segment>
     </unit>
     <unit id="7672282077901429954">
@@ -891,6 +921,11 @@
         <source>Beginner friendly</source>
       </segment>
     </unit>
+    <unit id="4793578167277073505">
+      <segment>
+        <source>Live event updates</source>
+      </segment>
+    </unit>
     <unit id="7053728652419731548">
       <segment>
         <source>Session replay</source>
@@ -928,12 +963,17 @@
     </unit>
     <unit id="7408374932533578639">
       <segment>
-        <source> This challenge will be released on <ph id="0" equiv="INTERPOLATION" disp="{{ challenge()!.releaseDate?.toLocaleDateString(locale, { dateStyle: &quot;medium&quot; }) }}"/>, at <ph id="1" equiv="INTERPOLATION_1" disp="{{ challenge()!.releaseDate?.toLocaleTimeString(locale, { timeStyle: &quot;short&quot; }) }}"/>. </source>
+        <source> This challenge will be released on <ph id="0" equiv="INTERPOLATION" disp="{{ challenge()!.releaseDate | systemDate: &quot;mediumDate&quot; }}"/>, at <ph id="1" equiv="INTERPOLATION_1" disp="{{ challenge()!.releaseDate | systemDate: &quot;shortTime&quot; }}"/>. </source>
       </segment>
     </unit>
     <unit id="7408848507140682339">
       <segment>
         <source>Keep warning</source>
+      </segment>
+    </unit>
+    <unit id="7411079630980671267">
+      <segment>
+        <source>This event has ended</source>
       </segment>
     </unit>
     <unit id="2472016265373616532">
@@ -1097,6 +1137,11 @@
     <unit id="2159535252430707382">
       <segment>
         <source>Moderation action recorded</source>
+      </segment>
+    </unit>
+    <unit id="216089812907795634">
+      <segment>
+        <source>Time (optional)</source>
       </segment>
     </unit>
     <unit id="2197674250183489104">
@@ -1841,6 +1886,11 @@
         <source>Embedding Preferences</source>
       </segment>
     </unit>
+    <unit id="5840654029885029666">
+      <segment>
+        <source>Loading updates…</source>
+      </segment>
+    </unit>
     <unit id="2820594571760643464">
       <segment>
         <source>Spot reports</source>
@@ -1886,6 +1936,11 @@
         <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Important:</pc> When embedding this content on your website, you are responsible for obtaining user consent for third-party services (Google Maps, analytics, etc.). Ensure your site has a clear consent banner or terms that users agree to before viewing embedded content. </source>
       </segment>
     </unit>
+    <unit id="5177696977191788472">
+      <segment>
+        <source>Add a short title.</source>
+      </segment>
+    </unit>
     <unit id="5804136287826733566">
       <segment>
         <source>No open reports.</source>
@@ -1904,6 +1959,16 @@
     <unit id="8972434095994344487">
       <segment>
         <source>Community card rejected</source>
+      </segment>
+    </unit>
+    <unit id="8974613806156505921">
+      <segment>
+        <source>No live updates have been published yet.</source>
+      </segment>
+    </unit>
+    <unit id="8978285646707515154">
+      <segment>
+        <source> Organizers may send schedule, location, weather, and meet-up updates. </source>
       </segment>
     </unit>
     <unit id="8981724482694536509">
@@ -4045,6 +4110,11 @@
         <source> Check your inbox and follow the instructions to reset your password. </source>
       </segment>
     </unit>
+    <unit id="6328600269410022481">
+      <segment>
+        <source>Meet-up time updated</source>
+      </segment>
+    </unit>
     <unit id="6340970481322850527">
       <segment>
         <source>Return to sign in</source>
@@ -4063,6 +4133,11 @@
     <unit id="9191968011325658792">
       <segment>
         <source>Invalid email address</source>
+      </segment>
+    </unit>
+    <unit id="921298748667468495">
+      <segment>
+        <source>Session starting soon</source>
       </segment>
     </unit>
     <unit id="5061749540188881037">
@@ -4505,7 +4580,7 @@
     </unit>
     <unit id="map.weather.rain_at">
       <segment>
-        <source>Rain at <ph id="0" equiv="PH" disp="this.formatTime(nextRain.time)"/></source>
+        <source>Rain at <ph id="0" equiv="PH" disp="time"/></source>
       </segment>
     </unit>
     <unit id="map.weather.rain_now">
@@ -4515,17 +4590,17 @@
     </unit>
     <unit id="map.weather.rain_until">
       <segment>
-        <source>Rain until <ph id="0" equiv="PH" disp="this.formatTime(rainStopsAt)"/></source>
+        <source>Rain until <ph id="0" equiv="PH" disp="time"/></source>
       </segment>
     </unit>
     <unit id="map.weather.sunrise_at">
       <segment>
-        <source>Sunrise <ph id="0" equiv="PH" disp="this.formatTime(sunEvent)"/></source>
+        <source>Sunrise <ph id="0" equiv="PH" disp="time"/></source>
       </segment>
     </unit>
     <unit id="map.weather.sunset_at">
       <segment>
-        <source>Sunset <ph id="0" equiv="PH" disp="this.formatTime(sunEvent)"/></source>
+        <source>Sunset <ph id="0" equiv="PH" disp="time"/></source>
       </segment>
     </unit>
     <unit id="map.weather.unavailable">
@@ -4666,6 +4741,11 @@
         <source>Page not found</source>
       </segment>
     </unit>
+    <unit id="2002398665048764218">
+      <segment>
+        <source>Schedule change</source>
+      </segment>
+    </unit>
     <unit id="2014228771300600511">
       <segment>
         <source> The page you are looking for does not exist or has been moved. </source>
@@ -4746,6 +4826,11 @@
         <source> You have not saved any spots yet. </source>
       </segment>
     </unit>
+    <unit id="8190337125596978746">
+      <segment>
+        <source>Publish update</source>
+      </segment>
+    </unit>
     <unit id="profile.metadata.ariaLabel">
       <segment>
         <source>Profile metadata</source>
@@ -4816,6 +4901,11 @@
         <source>Harassment or abuse</source>
       </segment>
     </unit>
+    <unit id="6731957520296691946">
+      <segment>
+        <source>Live update published.</source>
+      </segment>
+    </unit>
     <unit id="7102657004519673825">
       <segment>
         <source> Your managed spots </source>
@@ -4839,6 +4929,11 @@
     <unit id="1521659529201664852">
       <segment>
         <source>Spots Created</source>
+      </segment>
+    </unit>
+    <unit id="5621227577951541037">
+      <segment>
+        <source>Meet-up location changed</source>
       </segment>
     </unit>
     <unit id="563334124435707239">
@@ -4869,6 +4964,11 @@
     <unit id="5387369293317164071">
       <segment>
         <source>Unnamed Spot</source>
+      </segment>
+    </unit>
+    <unit id="3344632090178218160">
+      <segment>
+        <source>In-app updates work here. Push notifications require a supported device and notification permission.</source>
       </segment>
     </unit>
     <unit id="3368417786821334758">
@@ -5090,6 +5190,11 @@
         <source> Manage your account settings including email, password, and account deletion. </source>
       </segment>
     </unit>
+    <unit id="6814210910387388110">
+      <segment>
+        <source>Could not enable live updates. Please try again.</source>
+      </segment>
+    </unit>
     <unit id="6815507474406960450">
       <segment>
         <source>E-Mail address</source>
@@ -5140,6 +5245,11 @@
         <source>Current password (for confirmation)</source>
       </segment>
     </unit>
+    <unit id="7358591724624613220">
+      <segment>
+        <source>General event update</source>
+      </segment>
+    </unit>
     <unit id="2330577642930707695">
       <segment>
         <source> Cancel </source>
@@ -5148,6 +5258,11 @@
     <unit id="574237115855339547">
       <segment>
         <source>Change E-mail address</source>
+      </segment>
+    </unit>
+    <unit id="1402668345340835564">
+      <segment>
+        <source>Recent updates</source>
       </segment>
     </unit>
     <unit id="1431416938026210429">
@@ -5240,6 +5355,11 @@
         <source>Permanently delete</source>
       </segment>
     </unit>
+    <unit id="5493359222682689303">
+      <segment>
+        <source>Past live updates remain available below, but new updates are closed.</source>
+      </segment>
+    </unit>
     <unit id="1347241542439262355">
       <segment>
         <source>General settings</source>
@@ -5277,7 +5397,7 @@
     </unit>
     <unit id="settings.notifications.description">
       <segment>
-        <source> Choose which useful updates PK Spot may send you. You stay in control through both these choices and your device settings. </source>
+        <source> Choose which useful updates PK Spot may send you. You stay in control through both these choices and your browser or device settings. </source>
       </segment>
     </unit>
     <unit id="settings.notifications.event_reminders_aria">
@@ -5337,17 +5457,17 @@
     </unit>
     <unit id="settings.notifications.native_only_description">
       <segment>
-        <source> Push notifications are currently available on Android and iOS. </source>
+        <source> This browser or device does not support PK Spot push notifications. </source>
       </segment>
     </unit>
     <unit id="settings.notifications.native_only_heading">
       <segment>
-        <source> Available in the mobile app </source>
+        <source> Push notifications unavailable </source>
       </segment>
     </unit>
     <unit id="settings.notifications.not_requested_description">
       <segment>
-        <source> Your device will ask for permission when you enable a notification type below. </source>
+        <source> Your browser or device will ask for permission when you enable a notification type below. </source>
       </segment>
     </unit>
     <unit id="settings.notifications.not_requested_heading">
@@ -5412,17 +5532,17 @@
     </unit>
     <unit id="settings.notifications.system_allowed_heading">
       <segment>
-        <source> Allowed by your device </source>
+        <source> Allowed by your browser or device </source>
       </segment>
     </unit>
     <unit id="settings.notifications.system_blocked_description">
       <segment>
-        <source> Your PK Spot choices are saved, but Android or iOS is currently blocking delivery. </source>
+        <source> Your PK Spot choices are saved, but your browser or device is currently blocking delivery. </source>
       </segment>
     </unit>
     <unit id="settings.notifications.system_blocked_heading">
       <segment>
-        <source> Blocked in system settings </source>
+        <source> Notifications are blocked </source>
       </segment>
     </unit>
     <unit id="settings.notifications.system_blocked_snackbar">
@@ -5433,6 +5553,11 @@
     <unit id="5464118521750361406">
       <segment>
         <source>Public profile</source>
+      </segment>
+    </unit>
+    <unit id="5469945807632168111">
+      <segment>
+        <source>Event update</source>
       </segment>
     </unit>
     <unit id="6439365426343089851">
@@ -5475,6 +5600,11 @@
         <source>Please fill in all fields</source>
       </segment>
     </unit>
+    <unit id="2158118345719291849">
+      <segment>
+        <source>Confirm live notification</source>
+      </segment>
+    </unit>
     <unit id="8015743935724181617">
       <segment>
         <source> Built and maintained by volunteers from the Parkour community. </source>
@@ -5490,6 +5620,11 @@
         <source>Awaiting organization review</source>
       </segment>
     </unit>
+    <unit id="8072702942015533461">
+      <segment>
+        <source>Turn off updates</source>
+      </segment>
+    </unit>
     <unit id="8334401359656001773">
       <segment>
         <source>Error changing email. Please check your password.</source>
@@ -5503,6 +5638,11 @@
     <unit id="6945945395354199350">
       <segment>
         <source>Incorrect password. Please try again.</source>
+      </segment>
+    </unit>
+    <unit id="213024006531809752">
+      <segment>
+        <source>No linked Spot</source>
       </segment>
     </unit>
     <unit id="2135214670546321857">
@@ -5552,6 +5692,11 @@
     <unit id="6446631772000124223">
       <segment>
         <source>Password must be at least 6 characters</source>
+      </segment>
+    </unit>
+    <unit id="9068739507702057346">
+      <segment>
+        <source>Live updates enabled</source>
       </segment>
     </unit>
     <unit id="9068926282349592226">
@@ -5617,6 +5762,11 @@
     <unit id="4234811560247297731">
       <segment>
         <source>Media reports</source>
+      </segment>
+    </unit>
+    <unit id="4243604211025418923">
+      <segment>
+        <source>Your account keeps this event preference synced and prevents unwanted notifications.</source>
       </segment>
     </unit>
     <unit id="aboutHeroSubtitle">
@@ -5965,6 +6115,11 @@
         <source>About you</source>
       </segment>
     </unit>
+    <unit id="4101287187769863724">
+      <segment>
+        <source>New organizer updates can also appear as device notifications.</source>
+      </segment>
+    </unit>
     <unit id="4106902315329542244">
       <segment>
         <source>Organization admin</source>
@@ -6037,6 +6192,11 @@
     <unit id="1948163304836345687">
       <segment>
         <source>You need to agree to the terms and conditions!</source>
+      </segment>
+    </unit>
+    <unit id="1956203249004073114">
+      <segment>
+        <source>Short message (optional)</source>
       </segment>
     </unit>
     <unit id="3601523967492159201">
@@ -6730,6 +6890,11 @@
         <source>Added media</source>
       </segment>
     </unit>
+    <unit id="8472114642828955051">
+      <segment>
+        <source>Updates may include schedule changes, Spot switches, weather changes, and organizer announcements.</source>
+      </segment>
+    </unit>
     <unit id="8473658733830175441">
       <segment>
         <source> Newest changes first. Each entry shows exactly what was edited. </source>
@@ -6770,6 +6935,16 @@
         <source> This location on Google Maps® </source>
       </segment>
     </unit>
+    <unit id="8882370377359593676">
+      <segment>
+        <source>Update type</source>
+      </segment>
+    </unit>
+    <unit id="8890553633144307762">
+      <segment>
+        <source>Back</source>
+      </segment>
+    </unit>
     <unit id="8890858578819685573">
       <segment>
         <source>Failed to unlink Google Place</source>
@@ -6778,6 +6953,11 @@
     <unit id="8894493214990278764">
       <segment>
         <source>Error saving profile access settings.</source>
+      </segment>
+    </unit>
+    <unit id="6663339750681146068">
+      <segment>
+        <source>Meet-up time</source>
       </segment>
     </unit>
     <unit id="6670068416688791508">
@@ -6793,6 +6973,11 @@
     <unit id="7529731886943932642">
       <segment>
         <source> Choose how follows work and who should see expanded profile details as profile sections grow. </source>
+      </segment>
+    </unit>
+    <unit id="4601436343051022992">
+      <segment>
+        <source>In-app updates are enabled. Push notifications are blocked in device settings.</source>
       </segment>
     </unit>
     <unit id="4608107035538313233">
@@ -7173,6 +7358,11 @@
         <source>Dismiss</source>
       </segment>
     </unit>
+    <unit id="notifications.open">
+      <segment>
+        <source>Open</source>
+      </segment>
+    </unit>
     <unit id="8011758699583016596">
       <segment>
         <source>Spots in this area</source>
@@ -7186,6 +7376,11 @@
     <unit id="1536087519743707362">
       <segment>
         <source>Dismiss</source>
+      </segment>
+    </unit>
+    <unit id="1550842214379660718">
+      <segment>
+        <source>Sign in to get live updates</source>
       </segment>
     </unit>
     <unit id="6957965842552679691">
@@ -7313,6 +7508,11 @@
         <source> Sign out </source>
       </segment>
     </unit>
+    <unit id="594233643210838773">
+      <segment>
+        <source>In-app updates are enabled. Push notifications are not supported on this browser or device.</source>
+      </segment>
+    </unit>
     <unit id="5945359866777111462">
       <segment>
         <source> Report </source>
@@ -7357,6 +7557,11 @@
     <unit id="7536618650694716867">
       <segment>
         <source> Find answers to common questions or reach out to us directly. </source>
+      </segment>
+    </unit>
+    <unit id="7552927378468859845">
+      <segment>
+        <source>Publish organizer update</source>
       </segment>
     </unit>
     <unit id="641716500460785755">
@@ -7452,6 +7657,11 @@
     <unit id="5526007558904938886">
       <segment>
         <source>About PK Spot</source>
+      </segment>
+    </unit>
+    <unit id="552971513644813992">
+      <segment>
+        <source>Live updates could not be loaded.</source>
       </segment>
     </unit>
     <unit id="8439955599488894226">
@@ -8073,6 +8283,11 @@
         <source>Challenge at <ph id="0" equiv="PH" disp="spotName"/></source>
       </segment>
     </unit>
+    <unit id="6112236680555852224">
+      <segment>
+        <source>People subscribed to this event will receive a live notification.</source>
+      </segment>
+    </unit>
     <unit id="6113189419449428585">
       <segment>
         <source>About &amp; Credits</source>
@@ -8143,6 +8358,11 @@
         <source> Optional and public. Leave it blank if you do not want to share it. </source>
       </segment>
     </unit>
+    <unit id="9014362914884004064">
+      <segment>
+        <source>Location/Spot change</source>
+      </segment>
+    </unit>
     <unit id="9019759608416406738">
       <segment>
         <source>Early Adopter</source>
@@ -8191,6 +8411,11 @@
     <unit id="4145496584631696119">
       <segment>
         <source>Role</source>
+      </segment>
+    </unit>
+    <unit id="4152341800436198728">
+      <segment>
+        <source>Event Spot (optional)</source>
       </segment>
     </unit>
     <unit id="3268843240047650795">
@@ -8253,6 +8478,11 @@
         <source>Editor</source>
       </segment>
     </unit>
+    <unit id="3750896546807006672">
+      <segment>
+        <source>Could not publish the live update.</source>
+      </segment>
+    </unit>
     <unit id="8998012040622657110">
       <segment>
         <source>Filmmaker</source>
@@ -8286,6 +8516,11 @@
     <unit id="1772658275500241538">
       <segment>
         <source>Snapper</source>
+      </segment>
+    </unit>
+    <unit id="1774760996053367231">
+      <segment>
+        <source>Preview notification</source>
       </segment>
     </unit>
     <unit id="7688469791911355016">
@@ -8567,6 +8802,11 @@
         <source>Core</source>
       </segment>
     </unit>
+    <unit id="3991385999188585824">
+      <segment>
+        <source>Check the title and message length.</source>
+      </segment>
+    </unit>
     <unit id="3998090677451328461">
       <segment>
         <source>This is a sketchy or mental challenge that requires physical and emotional control</source>
@@ -8602,6 +8842,11 @@
         <source>This challenge is for fun! </source>
       </segment>
     </unit>
+    <unit id="5110610567894331859">
+      <segment>
+        <source>Live update preferences could not be loaded or saved.</source>
+      </segment>
+    </unit>
     <unit id="5111811857121425885">
       <segment>
         <source>Pending community vote (iconic spot)</source>
@@ -8624,6 +8869,11 @@
     <unit id="2369409944839137310">
       <segment>
         <source>A core challenge of this spot. An essential challenge for anyone seeking to master this spot.</source>
+      </segment>
+    </unit>
+    <unit id="3901905864121453020">
+      <segment>
+        <source>Could not turn off live updates. Please try again.</source>
       </segment>
     </unit>
     <unit id="3909136360386442402">

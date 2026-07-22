@@ -29,6 +29,7 @@ describe("NotificationOptInService", () => {
     systemAllowsNotifications: signal(false),
     requestPermissionFromUserAction: vi.fn(() => Promise.resolve(true)),
     openSystemSettings: vi.fn(() => Promise.resolve()),
+    canOpenSystemSettings: false,
   };
 
   beforeEach(() => {

@@ -677,7 +677,7 @@
           </h2>
           <p class="mat-body" i18n="@@settings.notifications.description">
             Choose which useful updates PK Spot may send you. You stay in
-            control through both these choices and your device settings.
+            control through both these choices and your browser or device settings.
           </p>
           <a mat-stroked-button routerLink="/notifications">
             <mat-icon>notifications</mat-icon>
@@ -687,14 +687,14 @@
           @if (!pushNotifications.supported()) {
           <div class="notification-status-card my-4">
             <div class="notification-status-card__icon" aria-hidden="true">
-              <mat-icon>mobile</mat-icon>
+              <mat-icon>notifications_off</mat-icon>
             </div>
             <div>
               <h3 class="mat-title-medium m-0" i18n="@@settings.notifications.native_only_heading">
-                Available in the mobile app
+                Push notifications unavailable
               </h3>
               <p class="mat-body-small m-0" i18n="@@settings.notifications.native_only_description">
-                Push notifications are currently available on Android and iOS.
+                This browser or device does not support PK Spot push notifications.
               </p>
             </div>
           </div>
@@ -710,34 +710,38 @@
               @switch (pushNotifications.permissionState()) {
                 @case ("granted") {
                 <h3 class="mat-title-medium m-0" i18n="@@settings.notifications.system_allowed_heading">
-                  Allowed by your device
+                  Allowed by your browser or device
                 </h3>
                 <p class="mat-body-small m-0" i18n="@@settings.notifications.system_allowed_description">
                   PK Spot can deliver the notification types you enable below.
                 </p>
+                @if (pushNotifications.canOpenSystemSettings) {
                 <button mat-stroked-button color="primary" class="mt-2" (click)="openNotificationSystemSettings()">
                   <mat-icon>open_in_new</mat-icon>
                   <span i18n="@@settings.notifications.open_system_settings">Open system settings</span>
                 </button>
                 }
+                }
                 @case ("denied") {
                 <h3 class="mat-title-medium m-0" i18n="@@settings.notifications.system_blocked_heading">
-                  Blocked in system settings
+                  Notifications are blocked
                 </h3>
                 <p class="mat-body-small mb-2" i18n="@@settings.notifications.system_blocked_description">
-                  Your PK Spot choices are saved, but Android or iOS is currently blocking delivery.
+                  Your PK Spot choices are saved, but your browser or device is currently blocking delivery.
                 </p>
+                @if (pushNotifications.canOpenSystemSettings) {
                 <button mat-stroked-button color="primary" (click)="openNotificationSystemSettings()">
                   <mat-icon>open_in_new</mat-icon>
                   <span i18n="@@settings.notifications.open_system_settings">Open system settings</span>
                 </button>
+                }
                 }
                 @default {
                 <h3 class="mat-title-medium m-0" i18n="@@settings.notifications.not_requested_heading">
                   Not enabled yet
                 </h3>
                 <p class="mat-body-small m-0" i18n="@@settings.notifications.not_requested_description">
-                  Your device will ask for permission when you enable a notification type below.
+                  Your browser or device will ask for permission when you enable a notification type below.
                 </p>
                 }
               }
