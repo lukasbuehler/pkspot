@@ -5451,6 +5451,12 @@
         <target>No se pudo crear el evento. Revisa la consola para más detalles.</target>
       </segment>
     </unit>
+    <unit id="event_create.snackbar.owner_required">
+      <segment state="initial">
+        <source>Sign in again before creating an event.</source>
+        <target>Vuelve a iniciar sesión antes de crear un evento.</target>
+      </segment>
+    </unit>
     <unit id="event_description.show_less">
       <segment state="initial">
         <source>Show less</source>

@@ -8,6 +8,71 @@ export type EventId = string & { __brand: "EventId" };
 export type EventSlug = string & { __brand: "EventSlug" };
 export type EventImageFit = "cover" | "contain";
 
+export const EVENT_PUBLICATION_STATES = ["draft", "published"] as const;
+export type EventPublicationState =
+  (typeof EVENT_PUBLICATION_STATES)[number];
+
+export const EVENT_VISIBILITIES = ["public", "unlisted", "private"] as const;
+export type EventVisibility = (typeof EVENT_VISIBILITIES)[number];
+
+export const EVENT_KINDS = [
+  "session",
+  "class",
+  "competition",
+  "workshop",
+  "festival",
+  "other",
+] as const;
+export type EventKind = (typeof EVENT_KINDS)[number];
+
+export const EVENT_SCHEDULE_MODES = [
+  "single",
+  "multi_part",
+  "recurring",
+] as const;
+export type EventScheduleMode = (typeof EVENT_SCHEDULE_MODES)[number];
+
+/** Stored lifecycle values. Live/completed are derived from valid event times. */
+export const EVENT_LIFECYCLE_STATUSES = ["planned", "cancelled"] as const;
+export type EventLifecycleStatus =
+  (typeof EVENT_LIFECYCLE_STATUSES)[number];
+export type EventDisplayedLifecycleStatus =
+  | EventLifecycleStatus
+  | "live"
+  | "completed";
+
+export const EVENT_PRIORITIES = ["normal", "featured", "operational"] as const;
+export type EventPriority = (typeof EVENT_PRIORITIES)[number];
+
+export type EventOwnerSchema =
+  | { type: "user"; user_id: string }
+  | { type: "organization"; organization_id: string };
+
+export const EVENT_SOCIAL_ATTENDANCE_MODES = ["none", "rsvp"] as const;
+export type EventSocialAttendanceMode =
+  (typeof EVENT_SOCIAL_ATTENDANCE_MODES)[number];
+export const EVENT_ADMISSION_MODES = ["none", "registration"] as const;
+export type EventAdmissionMode = (typeof EVENT_ADMISSION_MODES)[number];
+
+export interface EventAttendanceSchema {
+  social: EventSocialAttendanceMode;
+  admission: EventAdmissionMode;
+  /** Server-enforced registration limit. Only meaningful for registration. */
+  capacity?: number;
+  /** Whether registrations beyond capacity may enter a waitlist. */
+  waitlist?: boolean;
+}
+
+/** Notification types this event supports; users retain their own selection. */
+export const EVENT_NOTIFICATION_POLICIES = [
+  "all",
+  "event_updates",
+  "reminders",
+  "none",
+] as const;
+export type EventNotificationPolicy =
+  (typeof EVENT_NOTIFICATION_POLICIES)[number];
+
 export type EventCategory =
   | "jam"
   | "competition"
@@ -556,7 +621,18 @@ export interface EventSchema {
    */
   rsvp_counts?: EventRSVPCountsSchema;
 
-  /** Lifecycle. */
+  /** Additive normalized event dimensions. Legacy fields remain below. */
+  publication_state?: EventPublicationState;
+  visibility?: EventVisibility;
+  kind?: EventKind;
+  schedule_mode?: EventScheduleMode;
+  lifecycle_status?: EventLifecycleStatus;
+  priority?: EventPriority;
+  owner?: EventOwnerSchema;
+  attendance?: EventAttendanceSchema;
+  notification_policy?: EventNotificationPolicy;
+
+  /** Legacy publication compatibility field. */
   published?: boolean;
   created_by?: { uid: string; username?: string };
   time_created?: Timestamp;

@@ -2192,6 +2192,11 @@
         <source>Couldn&apos;t create the event. Check the console for details.</source>
       </segment>
     </unit>
+    <unit id="event_create.snackbar.owner_required">
+      <segment>
+        <source>Sign in again before creating an event.</source>
+      </segment>
+    </unit>
     <unit id="event_description.show_less">
       <segment>
         <source>Show less</source>

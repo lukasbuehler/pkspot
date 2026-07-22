@@ -40,6 +40,41 @@ describe("Event", () => {
     expect(event.end.toISOString()).toBe("2026-06-15T10:00:00.000Z");
   });
 
+  it("exposes compatibility defaults for legacy events", () => {
+    const event = new Event("event-1" as EventId, {
+      ...baseEvent,
+      start: "2026-06-14T10:00:00.000Z",
+      end: "2026-06-15T10:00:00.000Z",
+      published: false,
+      event_categories: ["camp"],
+      created_by: { uid: "creator-1" },
+    } as EventSchema);
+
+    expect(event.publicationState).toBe("draft");
+    expect(event.published).toBe(false);
+    expect(event.visibility).toBe("public");
+    expect(event.kind).toBe("festival");
+    expect(event.scheduleMode).toBe("single");
+    expect(event.lifecycleStatus).toBe("planned");
+    expect(event.priority).toBe("normal");
+    expect(event.owner).toBeUndefined();
+    expect(event.attendance).toEqual({ social: "rsvp", admission: "none" });
+    expect(event.notificationPolicy).toBe("all");
+  });
+
+  it("derives completed while preserving the legacy past status", () => {
+    const event = new Event("event-1" as EventId, {
+      ...baseEvent,
+      start: "2026-06-14T10:00:00.000Z",
+      end: "2026-06-15T10:00:00.000Z",
+      lifecycle_status: "planned",
+    } as EventSchema);
+    const now = new Date("2026-06-16T10:00:00.000Z");
+
+    expect(event.displayedLifecycle(now)).toBe("completed");
+    expect(event.status(now)).toBe("past");
+  });
+
   it("prefers location_raw as the event pin location", () => {
     const event = new Event("event-1" as EventId, {
       ...baseEvent,

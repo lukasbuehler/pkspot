@@ -164,6 +164,21 @@ async function waitForNoAreaEventBounds(eventId: string): Promise<void> {
   );
 }
 
+async function waitForEventField(
+  eventId: string,
+  field: string,
+  expected: unknown,
+): Promise<admin.firestore.DocumentData> {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const snapshot = await adminDb().doc(`events/${eventId}`).get();
+    if (snapshot.data()?.[field] === expected) return snapshot.data()!;
+    await sleep(250);
+  }
+  throw new Error(
+    `Timed out waiting for events/${eventId}.${field} to equal ${String(expected)}`,
+  );
+}
+
 function parseHostPort(value: string): [string, number] {
   const [host, portValue] = value.split(":");
   const port = Number(portValue);
@@ -306,6 +321,7 @@ runWithEmulator("EventsService emulator integration", () => {
         end: admin.firestore.Timestamp.fromDate(
           new Date("2026-06-01T12:00:00.000Z"),
         ),
+        created_by: { uid },
       });
 
     await service.setMyRsvp(eventId, "going");
@@ -418,6 +434,7 @@ runWithEmulator("EventsService emulator integration", () => {
         end: admin.firestore.Timestamp.fromDate(
           new Date("2026-06-01T12:00:00.000Z"),
         ),
+        created_by: { uid },
       });
 
     await service.updateEvent(eventId, {
@@ -455,6 +472,14 @@ runWithEmulator("EventsService emulator integration", () => {
         name: "Updated emulator event",
         venue_string: "New venue",
         location_raw: { lat: 47.4, lng: 8.5 },
+        publication_state: "published",
+        published: true,
+        visibility: "public",
+        schedule_mode: "single",
+        lifecycle_status: "planned",
+        priority: "normal",
+        attendance: { social: "rsvp", admission: "none" },
+        notification_policy: "all",
       }),
     );
     expect(data?.["start"]).toBeInstanceOf(admin.firestore.Timestamp);
@@ -571,6 +596,46 @@ runWithEmulator("EventsService emulator integration", () => {
         },
       }),
     );
+  }, eventTypesenseIntegrationTimeoutMs);
+
+  it("dual-writes legacy publication changes through the event trigger", async () => {
+    const eventId = `publication-contract-${Date.now()}`;
+    const reference = adminDb().doc(`events/${eventId}`);
+    await reference.set({
+      name: "Legacy publication contract",
+      venue_string: "Venue",
+      locality_string: "Zurich",
+      location_raw: { lat: 47.37, lng: 8.54 },
+      start: admin.firestore.Timestamp.fromDate(
+        new Date("2026-08-01T10:00:00Z"),
+      ),
+      end: admin.firestore.Timestamp.fromDate(
+        new Date("2026-08-01T12:00:00Z"),
+      ),
+      published: false,
+      created_by: { uid: "legacy-admin" },
+    });
+
+    const draft = await waitForEventField(
+      eventId,
+      "publication_state",
+      "draft",
+    );
+    expect(draft).toEqual(
+      expect.objectContaining({
+        visibility: "public",
+        kind: "other",
+        schedule_mode: "single",
+      }),
+    );
+
+    await reference.update({ published: true });
+    const published = await waitForEventField(
+      eventId,
+      "publication_state",
+      "published",
+    );
+    expect(published["published"]).toBe(true);
   }, eventTypesenseIntegrationTimeoutMs);
 
   it("derives Typesense bounds from custom markers when an event has no area or spots", async () => {

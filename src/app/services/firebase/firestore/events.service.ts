@@ -4,9 +4,14 @@ import { filter, Observable, from, map, of, switchMap } from "rxjs";
 import { Event } from "../../../../db/models/Event";
 import {
   EventId,
+  EventOwnerSchema,
   EventSchema,
   EventSlugSchema,
 } from "../../../../db/schemas/EventSchema";
+import {
+  eventIsPublished,
+  normalizeEventModel,
+} from "../../../../db/schemas/EventNormalization";
 import {
   EventRSVPOption,
   EventRSVPSchema,
@@ -38,6 +43,7 @@ export type EventWritePatch = Omit<
   organizer?: EventSchema["organizer"] | null;
   organizer_name?: string | null;
 };
+export type EventCreateData = EventWritePatch & { owner: EventOwnerSchema };
 
 /**
  * Recursively strip `undefined` values from a plain object so the
@@ -127,14 +133,14 @@ export class EventsService extends ConsentAwareService {
    * present on the data. Returns the loaded `Event`.
    */
   async createEvent(
-    data: EventWritePatch,
+    data: EventCreateData,
     id?: string
   ): Promise<Event> {
     this._requireAdmin("createEvent");
 
     const now = Timestamp.now();
     const clientData = stripServerDerivedEventFields(data);
-    const docData = stripUndefined({
+    const candidate = stripUndefined({
       ...clientData,
       description_i18n:
         clientData.description_i18n === null
@@ -150,13 +156,22 @@ export class EventsService extends ConsentAwareService {
         clientData.organizer_name === null
           ? undefined
           : clientData.organizer_name,
-      published: data.published ?? true,
       time_created: now,
       time_updated: now,
       created_by: clientData.created_by ?? {
         uid: this._authService.user.uid ?? "",
         username: this._authService.user.data?.displayName,
       },
+    }) as EventSchema;
+    const normalized = normalizeEventModel(candidate, { requireOwner: true });
+    if (normalized.invalid.length > 0) {
+      throw new Error(
+        `EventsService.createEvent: invalid normalized fields: ${normalized.invalid.join(", ")}.`
+      );
+    }
+    const docData = stripUndefined({
+      ...candidate,
+      ...normalized.patch,
     }) as EventSchema;
 
     const eventId =
@@ -196,12 +211,56 @@ export class EventsService extends ConsentAwareService {
     this._requireAdmin("updateEvent");
 
     const clientPatch = stripServerDerivedEventFields(patch);
+    const current = await this._firestoreAdapter.getDocument<EventDocument>(
+      `events/${eventId}`
+    );
+    if (!current) {
+      throw new Error(`EventsService.updateEvent: events/${eventId} not found.`);
+    }
+    const publicationPatch =
+      clientPatch.publication_state !== undefined
+        ? { published: clientPatch.publication_state === "published" }
+        : clientPatch.published !== undefined
+          ? {
+              publication_state: clientPatch.published
+                ? ("published" as const)
+                : ("draft" as const),
+            }
+          : {};
+    const normalized = normalizeEventModel({
+      publication_state:
+        publicationPatch.publication_state ??
+        clientPatch.publication_state ??
+        current.publication_state,
+      published:
+        publicationPatch.published ?? clientPatch.published ?? current.published,
+      visibility: clientPatch.visibility ?? current.visibility,
+      kind: clientPatch.kind ?? current.kind,
+      schedule_mode: clientPatch.schedule_mode ?? current.schedule_mode,
+      lifecycle_status:
+        clientPatch.lifecycle_status ?? current.lifecycle_status,
+      priority: clientPatch.priority ?? current.priority,
+      notification_policy:
+        clientPatch.notification_policy ?? current.notification_policy,
+      attendance: clientPatch.attendance ?? current.attendance,
+      owner: clientPatch.owner ?? current.owner,
+      created_by: clientPatch.created_by ?? current.created_by,
+      event_categories:
+        clientPatch.event_categories ?? current.event_categories,
+    });
+    if (normalized.invalid.length > 0) {
+      throw new Error(
+        `EventsService.updateEvent: invalid normalized fields: ${normalized.invalid.join(", ")}.`
+      );
+    }
     const shouldDeleteDescription = clientPatch.description_i18n === null;
     const shouldDeleteExternalSource = clientPatch.external_source === null;
     const shouldDeleteOrganizer = clientPatch.organizer === null;
     const shouldDeleteOrganizerName = clientPatch.organizer_name === null;
     const cleaned = stripUndefined({
       ...clientPatch,
+      ...publicationPatch,
+      ...normalized.patch,
       description_i18n: shouldDeleteDescription
         ? this._firestoreAdapter.deleteFieldValue()
         : clientPatch.description_i18n,
@@ -309,10 +368,10 @@ export class EventsService extends ConsentAwareService {
       `events/${eventId}`
     );
     if (!doc) return null;
-    if (doc.published === false) {
+    if (!eventIsPublished(doc)) {
       await this._authService.waitForAuthorizationState();
     }
-    if (doc.published === false && !this._isAdmin()) return null;
+    if (!eventIsPublished(doc) && !this._isAdmin()) return null;
     return new Event(
       eventId,
       this._assetUrls.resolveEventAssetUrls(doc),
@@ -335,7 +394,7 @@ export class EventsService extends ConsentAwareService {
       .pipe(
         switchMap((doc) => {
           if (!doc) return of(null);
-          if (doc.published !== false) return of(this._toEvent(eventId, doc));
+          if (eventIsPublished(doc)) return of(this._toEvent(eventId, doc));
           return this._authorizationStateResolved$.pipe(
             filter(Boolean),
             map(() =>
@@ -373,7 +432,7 @@ export class EventsService extends ConsentAwareService {
         (d) =>
           options.includeUnpublished ||
           this._isAdmin() ||
-          d.published !== false,
+          eventIsPublished(d),
       )
       .map(
         (d) =>
@@ -404,7 +463,7 @@ export class EventsService extends ConsentAwareService {
       ],
     );
     const events = docs
-      .filter((document) => this._isAdmin() || document.published !== false)
+      .filter((document) => this._isAdmin() || eventIsPublished(document))
       .map(
         (document) =>
           new Event(

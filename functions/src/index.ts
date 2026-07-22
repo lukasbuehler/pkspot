@@ -44,6 +44,7 @@ export {
   updateEventFieldsOnWrite,
   updateAllEventsWithTypesenseFields,
 } from "./eventFunctions";
+export { backfillEventModel } from "./eventModelMaintenanceFunctions";
 export {
   onEventLiveUpdateCreate,
   publishEventLiveUpdate,

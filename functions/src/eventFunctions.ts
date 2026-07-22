@@ -11,6 +11,7 @@ import {
   EventPromoRegionSchema,
   EventSchema,
 } from "../../src/db/schemas/EventSchema";
+import { normalizeEventModel } from "../../src/db/schemas/EventNormalization";
 import { SpotSchema } from "../../src/db/schemas/SpotSchema";
 import {
   EventRSVPCountsSchema,
@@ -883,8 +884,41 @@ export const updateEventFieldsOnWrite = onDocumentWritten(
     const afterData = event.data.after.data() as EventSchema | undefined;
     if (!afterData) return null;
 
-    const derived = await _addTypesenseFields(afterData);
-    const changed = _getChangedFields(afterData, derived);
+    const beforeData = event.data.before.exists
+      ? (event.data.before.data() as EventSchema)
+      : undefined;
+    const legacyPublicationChanged =
+      beforeData?.published !== afterData.published &&
+      beforeData?.publication_state === afterData.publication_state;
+    const publicationCompatibility = legacyPublicationChanged
+      ? {
+          publication_state:
+            afterData.published === false
+              ? ("draft" as const)
+              : ("published" as const),
+        }
+      : {};
+    const normalizationInput = {
+      ...afterData,
+      ...publicationCompatibility,
+    };
+    const normalized = normalizeEventModel(normalizationInput);
+    if (normalized.invalid.length > 0) {
+      console.warn("Event has invalid normalized fields", {
+        eventId: event.params.eventId,
+        fields: normalized.invalid,
+      });
+    }
+    const normalizedData = {
+      ...normalizationInput,
+      ...normalized.patch,
+    } as EventSchema;
+    const derived = await _addTypesenseFields(normalizedData);
+    const changed = {
+      ...publicationCompatibility,
+      ...normalized.patch,
+      ..._getChangedFields(afterData, derived),
+    };
     if (Object.keys(changed).length === 0) return null;
 
     return event.data.after.ref.update(changed);

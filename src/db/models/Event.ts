@@ -5,6 +5,13 @@ import {
   EventCategory,
   EventFeaturedParticipantSchema,
   EventImageFit,
+  EventAttendanceSchema,
+  EventDisplayedLifecycleStatus,
+  EventKind,
+  EventLifecycleStatus,
+  EventNotificationPolicy,
+  EventOwnerSchema,
+  EventPriority,
   EventProgramItemSchema,
   EventProgramPlanSchema,
   EventProgramRuntimeOverrideSchema,
@@ -16,13 +23,22 @@ import {
   EventOrganizerSchema,
   EventPromoRegionSchema,
   EventSchema,
+  EventScheduleMode,
   EventSeriesMembershipSchema,
   EventSponsorSchema,
   EventTicketAvailability,
   EventTicketBadge,
   EventTicketOptionSchema,
   InlineEventSpotSchema,
+  EventPublicationState,
+  EventVisibility,
 } from "../schemas/EventSchema";
+import {
+  DEFAULT_EVENT_ATTENDANCE,
+  displayedEventLifecycle,
+  eventIsPublished,
+  eventKindFromLegacyCategories,
+} from "../schemas/EventNormalization";
 import { EventRSVPCountsSchema } from "../schemas/EventRSVPSchema";
 import type { MediaSchema } from "../schemas/Media";
 import { LocaleCode, LocaleMap } from "./Interfaces";
@@ -136,6 +152,15 @@ export class Event {
   readonly externalSource?: EventExternalSourceSchema;
 
   readonly rsvpCounts: EventRSVPCountsSchema;
+  readonly publicationState: EventPublicationState;
+  readonly visibility: EventVisibility;
+  readonly kind: EventKind;
+  readonly scheduleMode: EventScheduleMode;
+  readonly lifecycleStatus: EventLifecycleStatus;
+  readonly priority: EventPriority;
+  readonly owner?: EventOwnerSchema;
+  readonly attendance: EventAttendanceSchema;
+  readonly notificationPolicy: EventNotificationPolicy;
   readonly published: boolean;
 
   constructor(id: EventId, data: EventSchema, locale: LocaleCode = "en") {
@@ -236,7 +261,28 @@ export class Event {
       notgoing: 0,
       total: 0,
     };
-    this.published = data.published ?? true;
+    this.publicationState =
+      data.publication_state ?? (data.published === false ? "draft" : "published");
+    this.visibility = data.visibility ?? "public";
+    this.kind = data.kind ?? eventKindFromLegacyCategories(data.event_categories);
+    this.scheduleMode = data.schedule_mode ?? "single";
+    this.lifecycleStatus = data.lifecycle_status ?? "planned";
+    this.priority = data.priority ?? "normal";
+    // Missing owner is an intentional legacy/admin-managed state. Never infer
+    // permissions from the historical `created_by` attribution field.
+    this.owner = data.owner;
+    this.attendance = data.attendance ?? { ...DEFAULT_EVENT_ATTENDANCE };
+    this.notificationPolicy = data.notification_policy ?? "all";
+    this.published = eventIsPublished(data);
+  }
+
+  displayedLifecycle(now: Date = new Date()): EventDisplayedLifecycleStatus {
+    return displayedEventLifecycle(
+      this.lifecycleStatus,
+      this.start,
+      this.end,
+      now,
+    );
   }
 
   /** Status relative to a given moment (defaults to now). */

@@ -1281,6 +1281,17 @@ async function testContactMessageGuards(anon, owner, other) {
 }
 
 async function testEventWriteGuards(owner, adminUser) {
+  await assertDenied("regular user cannot update legacy ownerless event", () =>
+    updateDoc(doc(owner.db, "events/event-1"), {
+      name: "Unauthorized legacy event edit",
+    })
+  );
+  await assertAllowed("admin can update legacy ownerless event", () =>
+    updateDoc(doc(adminUser.db, "events/event-1"), {
+      venue_string: "Admin-updated legacy venue",
+    })
+  );
+
   await assertDenied("regular user cannot create event", () =>
     setDoc(doc(owner.db, "events/client-event"), {
       name: "Client Event",
@@ -1289,6 +1300,7 @@ async function testEventWriteGuards(owner, adminUser) {
   await assertAllowed("admin creates event with editable fields", () =>
     setDoc(doc(adminUser.db, "events/admin-event"), {
       name: "Admin Event",
+      owner: { type: "user", user_id: "admin" },
       location_raw: { lat: 47.3769, lng: 8.5417 },
       organizer: {
         type: "organization",
@@ -1300,9 +1312,15 @@ async function testEventWriteGuards(owner, adminUser) {
       },
     })
   );
+  await assertDenied("admin cannot create an ownerless event", () =>
+    setDoc(doc(adminUser.db, "events/admin-ownerless-event"), {
+      name: "Ownerless Event",
+    })
+  );
   await assertDenied("admin cannot create event with computed bounds center", () =>
     setDoc(doc(adminUser.db, "events/admin-computed-create"), {
       name: "Admin Computed Create",
+      owner: { type: "user", user_id: "admin" },
       bounds_center: [47.3769, 8.5417],
     })
   );

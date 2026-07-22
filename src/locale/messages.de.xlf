@@ -5451,6 +5451,12 @@
         <target>Event konnte nicht erstellt werden. Prüfe die Konsole für Details.</target>
       </segment>
     </unit>
+    <unit id="event_create.snackbar.owner_required">
+      <segment state="initial">
+        <source>Sign in again before creating an event.</source>
+        <target>Melde dich erneut an, bevor du eine Veranstaltung erstellst.</target>
+      </segment>
+    </unit>
     <unit id="event_description.show_less">
       <segment state="initial">
         <source>Show less</source>

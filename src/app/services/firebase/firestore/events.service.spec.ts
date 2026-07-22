@@ -27,6 +27,7 @@ const buildEventDoc = (
   start: Timestamp.fromDate(new Date(start)),
   end: Timestamp.fromDate(new Date(end)),
   bounds: { north: 47.4, south: 47.3, east: 8.6, west: 8.5 },
+  created_by: { uid: "admin-user" },
   ...extra,
 });
 
@@ -53,7 +54,13 @@ describe("EventsService", () => {
 
   beforeEach(() => {
     firestoreAdapter = {
-      getDocument: vi.fn(),
+      getDocument: vi.fn().mockResolvedValue(
+        buildEventDoc(
+          "event-1",
+          "2026-06-01T10:00:00.000Z",
+          "2026-06-02T10:00:00.000Z",
+        ),
+      ),
       getCollection: vi.fn(),
       setDocument: vi.fn(),
       updateDocument: vi.fn(),
@@ -185,6 +192,27 @@ describe("EventsService", () => {
     const events = await service.getEvents();
 
     expect(events.map((event) => event.id)).toEqual(["published-event"]);
+  });
+
+  it("does not expose normalized drafts with stale legacy publication data", async () => {
+    const authService = TestBed.inject(AuthenticationService) as unknown as {
+      user: { data: { isAdmin: boolean } };
+      isAdmin: ReturnType<typeof signal<boolean>>;
+    };
+    authService.user.data.isAdmin = false;
+    authService.isAdmin.set(false);
+    firestoreAdapter.getDocument.mockResolvedValue(
+      buildEventDoc(
+        "normalized-draft",
+        "2026-06-01T10:00:00.000Z",
+        "2026-06-02T10:00:00.000Z",
+        { publication_state: "draft", published: true },
+      ),
+    );
+
+    await expect(
+      service.getEventById("normalized-draft" as EventId),
+    ).resolves.toBeNull();
   });
 
   it("exposes unpublished events to admins", async () => {
@@ -338,6 +366,93 @@ describe("EventsService", () => {
       "past",
     ]);
     vi.useRealTimers();
+  });
+
+  it("creates events with normalized defaults and explicit ownership", async () => {
+    let stored: EventSchema | null = null;
+    firestoreAdapter.setDocument.mockImplementation(
+      (_path: string, data: EventSchema) => {
+        stored = data;
+        return Promise.resolve();
+      },
+    );
+    firestoreAdapter.getDocument.mockImplementation((path: string) =>
+      Promise.resolve(path === "events/new-event" ? stored : null),
+    );
+
+    await service.createEvent(
+      {
+        name: "New event",
+        venue_string: "Venue",
+        locality_string: "Zurich",
+        location_raw: { lat: 47.37, lng: 8.54 },
+        start: Timestamp.fromDate(new Date("2026-08-01T10:00:00Z")),
+        end: Timestamp.fromDate(new Date("2026-08-01T12:00:00Z")),
+        published: false,
+        event_categories: ["show"],
+        owner: { type: "user", user_id: "admin-user" },
+      },
+      "new-event",
+    );
+
+    expect(firestoreAdapter.setDocument).toHaveBeenCalledWith(
+      "events/new-event",
+      expect.objectContaining({
+        publication_state: "draft",
+        published: false,
+        visibility: "public",
+        kind: "festival",
+        schedule_mode: "single",
+        lifecycle_status: "planned",
+        priority: "normal",
+        owner: { type: "user", user_id: "admin-user" },
+        attendance: { social: "rsvp", admission: "none" },
+        notification_policy: "all",
+      }),
+    );
+  });
+
+  it("dual-writes normalized publication changes to the legacy field", async () => {
+    firestoreAdapter.getDocument.mockResolvedValue(
+      buildEventDoc(
+        "event-1",
+        "2026-06-01T10:00:00.000Z",
+        "2026-06-02T10:00:00.000Z",
+        { publication_state: "draft", published: false },
+      ),
+    );
+
+    await service.updateEvent("event-1" as EventId, {
+      publication_state: "published",
+    });
+
+    expect(firestoreAdapter.updateDocument).toHaveBeenCalledWith(
+      "events/event-1",
+      expect.objectContaining({
+        publication_state: "published",
+        published: true,
+      }),
+    );
+  });
+
+  it("keeps legacy ownerless events editable until the backfill assigns an owner", async () => {
+    firestoreAdapter.getDocument.mockResolvedValue(
+      buildEventDoc(
+        "legacy-event",
+        "2026-06-01T10:00:00.000Z",
+        "2026-06-02T10:00:00.000Z",
+        { created_by: undefined, owner: undefined },
+      ),
+    );
+
+    await service.updateEvent("legacy-event" as EventId, {
+      name: "Updated legacy event",
+    });
+
+    expect(firestoreAdapter.updateDocument).toHaveBeenCalledWith(
+      "events/legacy-event",
+      expect.objectContaining({ name: "Updated legacy event" }),
+    );
   });
 
   it("loads an organization's published events with current events first", async () => {

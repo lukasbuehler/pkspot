@@ -5553,6 +5553,12 @@
         <target>Kon het evenement niet maken. Bekijk de console voor details.</target>
       </segment>
     </unit>
+    <unit id="event_create.snackbar.owner_required">
+      <segment state="initial">
+        <source>Sign in again before creating an event.</source>
+        <target>Log opnieuw in voordat je een evenement maakt.</target>
+      </segment>
+    </unit>
     <unit id="event_description.show_less">
       <segment state="initial">
         <source>Show less</source>

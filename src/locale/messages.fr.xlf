@@ -5451,6 +5451,12 @@
         <target>Impossible de créer l’événement. Consulte la console pour plus de détails.</target>
       </segment>
     </unit>
+    <unit id="event_create.snackbar.owner_required">
+      <segment state="initial">
+        <source>Sign in again before creating an event.</source>
+        <target>Reconnectez-vous avant de créer un événement.</target>
+      </segment>
+    </unit>
     <unit id="event_description.show_less">
       <segment state="initial">
         <source>Show less</source>
