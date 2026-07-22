@@ -89,6 +89,7 @@ import {
   type EventWeatherForecastDialogData,
 } from "../event-weather-forecast-dialog/event-weather-forecast-dialog.component";
 import { EventWeatherDaysComponent } from "../event-weather-days/event-weather-days.component";
+import { EventDraftNoticeComponent } from "./event-draft-notice.component";
 
 interface VisibleSeriesTag {
   seriesId: string;
@@ -117,6 +118,7 @@ interface VisibleSeriesTag {
     EventLiveUpdateControlsComponent,
     EventLiveUpdateOrganizerMenuComponent,
     OrganizationButtonComponent,
+    EventDraftNoticeComponent,
   ],
   templateUrl: "./event-page.component.html",
   styleUrl: "./event-page.component.scss",
@@ -152,6 +154,8 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     this._syncQualificationGridColumns();
 
   readonly event = signal<PkEvent | null>(null);
+  readonly isLoadingEvent = signal(true);
+  readonly eventLoadFailed = signal(false);
   readonly spots = signal<(Spot | LocalSpot)[]>([]);
   readonly areaPolygon = signal<PolygonSchema | null>(null);
   readonly mapPreviewViewportBounds = signal<EventBoundsSchema | null>(null);
@@ -205,7 +209,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly status = computed<EventStatus | null>(
     () => this.event()?.status() ?? null,
   );
-  readonly showRsvp = computed(() => this.status() === "upcoming");
+  readonly showRsvp = computed(
+    () => this.event()?.published === true && this.status() === "upcoming",
+  );
   readonly statusLabel = computed(() => {
     const event = this.event();
     const status = this.status();
@@ -785,6 +791,8 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     const slug =
       paramMap.get("slug") ?? paramMap.get("eventID") ?? "swissjam25";
     const requestVersion = ++this._eventLoadRequestVersion;
+    this.isLoadingEvent.set(true);
+    this.eventLoadFailed.set(false);
     this._eventSnapshotSubscription?.unsubscribe();
     this._eventSnapshotSubscription = this._eventPageData
       .observeEventBySlugOrId(slug)
@@ -792,7 +800,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         next: (loaded) => {
           if (requestVersion !== this._eventLoadRequestVersion) return;
           if (!loaded) {
-            void this._router.navigate(["/events"]);
+            if (this.isBrowser()) {
+              void this._router.navigate(["/events"]);
+            }
             return;
           }
           this._setEvent(loaded);
@@ -800,7 +810,8 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         error: (err) => {
           if (requestVersion !== this._eventLoadRequestVersion) return;
           console.warn("EventInfoPageComponent: failed to observe event", err);
-          void this._router.navigate(["/events"]);
+          this.isLoadingEvent.set(false);
+          this.eventLoadFailed.set(true);
         },
       });
   }
@@ -809,11 +820,15 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     const slug =
       paramMap.get("slug") ?? paramMap.get("eventID") ?? "swissjam25";
     const requestVersion = ++this._eventLoadRequestVersion;
+    this.isLoadingEvent.set(true);
+    this.eventLoadFailed.set(false);
     const loaded = await this._eventPageData.loadEventBySlugOrId(slug);
 
     if (requestVersion !== this._eventLoadRequestVersion) return;
     if (!loaded) {
-      void this._router.navigate(["/events"]);
+      if (this.isBrowser()) {
+        void this._router.navigate(["/events"]);
+      }
       return;
     }
     this._setEvent(loaded);
@@ -825,10 +840,23 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       this.currentRsvp.set(null);
     }
     this.event.set(event);
+    this.isLoadingEvent.set(false);
+    this.eventLoadFailed.set(false);
   }
 
   private _syncEventSeoData(event: PkEvent): void {
     const canonicalPath = this._eventPageData.eventCanonicalPath(event);
+    if (!event.published) {
+      this._structuredData.removeStructuredData("event");
+      this._metaTags.setStaticPageMetaTags(
+        $localize`:@@event_draft.meta.title:Draft event`,
+        $localize`:@@event_draft.meta.description:This event has not been published.`,
+        undefined,
+        canonicalPath,
+      );
+      this._metaTags.setRobotsContent("noindex,nofollow");
+      return;
+    }
     const description = this.description();
     const image = this._eventSocialImage(event);
 

@@ -2520,6 +2520,12 @@
         <target>Spot löschen</target>
       </segment>
     </unit>
+    <unit id="event_draft.notice.aria">
+      <segment state="initial">
+        <source>Draft event</source>
+        <target>Veranstaltungsentwurf</target>
+      </segment>
+    </unit>
     <unit id="1102717806459547726">
       <segment state="initial">
         <source>Refresh</source>
@@ -5487,6 +5493,18 @@
         <target>Mehr anzeigen</target>
       </segment>
     </unit>
+    <unit id="event_draft.meta.description">
+      <segment state="initial">
+        <source>This event has not been published.</source>
+        <target>Diese Veranstaltung wurde noch nicht veröffentlicht.</target>
+      </segment>
+    </unit>
+    <unit id="event_draft.meta.title">
+      <segment state="initial">
+        <source>Draft event</source>
+        <target>Veranstaltungsentwurf</target>
+      </segment>
+    </unit>
     <unit id="event_edit.area_label">
       <segment state="initial">
         <source> Meeting point and event area </source>
@@ -7385,6 +7403,12 @@
         <target>Aktuelli E-mail</target>
       </segment>
     </unit>
+    <unit id="event_page.load_failed_back">
+      <segment state="initial">
+        <source>Back to all events</source>
+        <target>Zurück zu allen Veranstaltungen</target>
+      </segment>
+    </unit>
     <unit id="2874252575916172948">
       <segment state="initial">
         <source> Delete my account </source>
@@ -8039,6 +8063,12 @@
         <target> Live-Event-Updates </target>
       </segment>
     </unit>
+    <unit id="event_draft.notice.title">
+      <segment state="initial">
+        <source>Draft</source>
+        <target>Entwurf</target>
+      </segment>
+    </unit>
     <unit id="4813152754732689397">
       <segment state="initial">
         <source>Contributor</source>
@@ -8437,6 +8467,18 @@
       <segment state="initial">
         <source>Link to challenge copied to clipboard</source>
         <target>Link zu de Challenge id Zwüschablag kopiert</target>
+      </segment>
+    </unit>
+    <unit id="event_page.loading">
+      <segment state="initial">
+        <source>Loading event</source>
+        <target>Veranstaltung wird geladen</target>
+      </segment>
+    </unit>
+    <unit id="event_page.loading_aria">
+      <segment state="initial">
+        <source>Loading event</source>
+        <target>Veranstaltung wird geladen</target>
       </segment>
     </unit>
     <unit id="8323953180652912227">
@@ -9056,6 +9098,12 @@
       <segment state="initial">
         <source> Find answers to common questions or reach out to us directly. </source>
         <target> Find Antworte zu hüfige Frage oder kontaktier eus direkt. </target>
+      </segment>
+    </unit>
+    <unit id="event_page.load_failed">
+      <segment state="initial">
+        <source> We couldn&apos;t load this event. </source>
+        <target> Die Veranstaltung konnte nicht geladen werden. </target>
       </segment>
     </unit>
     <unit id="2502246313488671541">
@@ -10399,6 +10447,12 @@
       <segment state="initial">
         <source>Open Data</source>
         <target>Offene Daten</target>
+      </segment>
+    </unit>
+    <unit id="event_draft.notice.description">
+      <segment state="initial">
+        <source> This event is not public. Only administrators can view it. </source>
+        <target> Diese Veranstaltung ist nicht öffentlich. Nur Administratoren können sie sehen. </target>
       </segment>
     </unit>
     <unit id="2715740819906435675">

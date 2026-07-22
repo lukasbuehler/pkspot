@@ -34,7 +34,13 @@ import {
   connectAuthEmulator,
 } from "@angular/fire/auth";
 import { FirebaseApp } from "@angular/fire/app";
-import { BehaviorSubject, firstValueFrom, Subscription } from "rxjs";
+import {
+  BehaviorSubject,
+  filter,
+  firstValueFrom,
+  Subscription,
+  take,
+} from "rxjs";
 import { User } from "../../../db/models/User";
 import { UsersService } from "./firestore/users.service";
 import { UserSchema } from "../../../db/schemas/UserSchema";
@@ -86,6 +92,15 @@ export class AuthenticationService extends ConsentAwareService {
    * "unknown", not "signed out".
    */
   public readonly initialAuthStateResolved = signal(false);
+  /**
+   * True once authorization-relevant profile data has resolved. Signed-in
+   * users stay unresolved until their Firestore profile has loaded, because
+   * roles such as `isAdmin` do not exist on the basic Firebase auth user.
+   */
+  public readonly authorizationStateResolved = signal(false);
+  private readonly authorizationStateSubject = new BehaviorSubject(false);
+  public readonly authorizationStateResolved$ =
+    this.authorizationStateSubject.asObservable();
   /** Reactive admin state for UI gates. Always false while signed out. */
   public readonly isAdmin = signal(false);
 
@@ -141,6 +156,7 @@ export class AuthenticationService extends ConsentAwareService {
     // Skip auth initialization on server (SSR)
     if (!this._isBrowser) {
       this.initialAuthStateResolved.set(true);
+      this._setAuthorizationStateResolved(true);
       return;
     }
 
@@ -149,6 +165,7 @@ export class AuthenticationService extends ConsentAwareService {
       this.user = screenshotAuthUser;
       this.isSignedIn = true;
       this.initialAuthStateResolved.set(true);
+      this._setAuthorizationStateResolved(true);
       this.authState$.next(screenshotAuthUser);
       return;
     }
@@ -158,6 +175,7 @@ export class AuthenticationService extends ConsentAwareService {
 
     if (!this.hasConsent()) {
       this.initialAuthStateResolved.set(true);
+      this._setAuthorizationStateResolved(true);
     }
 
     // Setup Firebase auth state listener only after consent
@@ -339,6 +357,7 @@ export class AuthenticationService extends ConsentAwareService {
     if (!this._authStateListenerInitialized) {
       this._authStateListenerInitialized = true;
       this.initialAuthStateResolved.set(false);
+      this._setAuthorizationStateResolved(false);
 
       if (this._isNative) {
         // Use Capacitor Firebase Authentication listener for native platforms
@@ -354,6 +373,7 @@ export class AuthenticationService extends ConsentAwareService {
         }).catch((error) => {
           console.error("Failed to read native auth state:", error);
           this.initialAuthStateResolved.set(true);
+          this._setAuthorizationStateResolved(true);
         });
 
         // On Android, ALSO listen to web auth state changes
@@ -393,6 +413,7 @@ export class AuthenticationService extends ConsentAwareService {
     user: FirebaseUser | CapacitorFirebaseUser | null
   ) {
     if (user) {
+      this._setAuthorizationStateResolved(false);
       // If we have a firebase user, we are signed in.
       if (!this._isNative) {
         this._currentFirebaseUser = user as FirebaseUser;
@@ -466,6 +487,7 @@ export class AuthenticationService extends ConsentAwareService {
       this._analyticsHasIdentifiedUser = false;
       this._lastAnalyticsIdentifiedUid = null;
 
+      this._setAuthorizationStateResolved(true);
       this.authState$.next(null);
     }
 
@@ -479,6 +501,8 @@ export class AuthenticationService extends ConsentAwareService {
   private firebaseAuthChangeError = (error: any) => {
     console.error(error);
     this.initialAuthStateResolved.set(true);
+    this._setAuthorizationStateResolved(true);
+    this.authState$.next(null);
   };
 
   private _fetchUserData(uid: string, sendUpdate = true) {
@@ -495,23 +519,44 @@ export class AuthenticationService extends ConsentAwareService {
 
             this.user.data = _user;
             this.isAdmin.set(_user.isAdmin === true);
-
-            if (sendUpdate) {
-              this.authState$.next(this.user);
-            }
           } else {
             this.user.data = undefined;
             this.isAdmin.set(false);
             console.error("User data not found for uid", uid);
           }
+          this._setAuthorizationStateResolved(true);
+          if (sendUpdate) {
+            this.authState$.next(this.user);
+          }
         },
         (err) => {
           console.error(err);
+          this._setAuthorizationStateResolved(true);
+          if (sendUpdate) {
+            this.authState$.next(this.user);
+          }
         }
       );
     }).catch((err) => {
       console.warn("User data fetch blocked due to missing consent:", err);
+      this._setAuthorizationStateResolved(true);
+      if (sendUpdate) {
+        this.authState$.next(this.user);
+      }
     });
+  }
+
+  /** Wait until role-bearing profile data is safe to use for access checks. */
+  public async waitForAuthorizationState(): Promise<void> {
+    if (this.authorizationStateResolved()) return;
+    await firstValueFrom(
+      this.authorizationStateSubject.pipe(filter(Boolean), take(1)),
+    );
+  }
+
+  private _setAuthorizationStateResolved(resolved: boolean): void {
+    this.authorizationStateResolved.set(resolved);
+    this.authorizationStateSubject.next(resolved);
   }
 
   /**

@@ -1,6 +1,6 @@
 import { Injectable, LOCALE_ID, inject } from "@angular/core";
 import { Timestamp } from "@angular/fire/firestore";
-import { Observable, from, map, of, switchMap } from "rxjs";
+import { filter, Observable, from, map, of, switchMap } from "rxjs";
 import { Event } from "../../../../db/models/Event";
 import {
   EventId,
@@ -87,6 +87,8 @@ function stripServerDerivedEventFields<T extends { description?: unknown }>(
 export class EventsService extends ConsentAwareService {
   private _firestoreAdapter = inject(FirestoreAdapterService);
   private _authService = inject(AuthenticationService);
+  private _authorizationStateResolved$ =
+    this._authService.authorizationStateResolved$;
   private _assetUrls = inject(AssetUrlService);
   private _locale = inject(LOCALE_ID);
 
@@ -307,6 +309,9 @@ export class EventsService extends ConsentAwareService {
       `events/${eventId}`
     );
     if (!doc) return null;
+    if (doc.published === false) {
+      await this._authService.waitForAuthorizationState();
+    }
     if (doc.published === false && !this._isAdmin()) return null;
     return new Event(
       eventId,
@@ -328,15 +333,25 @@ export class EventsService extends ConsentAwareService {
     return this._firestoreAdapter
       .documentSnapshots<EventDocument>(`events/${eventId}`)
       .pipe(
-        map((doc) => {
-          if (!doc || (doc.published === false && !this._isAdmin())) return null;
-          return new Event(
-            eventId,
-            this._assetUrls.resolveEventAssetUrls(doc),
-            this._locale,
+        switchMap((doc) => {
+          if (!doc) return of(null);
+          if (doc.published !== false) return of(this._toEvent(eventId, doc));
+          return this._authorizationStateResolved$.pipe(
+            filter(Boolean),
+            map(() =>
+              this._isAdmin() ? this._toEvent(eventId, doc) : null,
+            ),
           );
         }),
       );
+  }
+
+  private _toEvent(eventId: EventId, doc: EventDocument): Event {
+    return new Event(
+      eventId,
+      this._assetUrls.resolveEventAssetUrls(doc),
+      this._locale,
+    );
   }
 
   /**

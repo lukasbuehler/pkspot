@@ -80,6 +80,13 @@ describe("EventsService", () => {
           useValue: {
             user: { uid: "admin-user", data: { isAdmin: true } },
             isAdmin: signal(true),
+            authState$: new BehaviorSubject({
+              uid: "admin-user",
+              data: { isAdmin: true },
+            }),
+            authorizationStateResolved: signal(true),
+            authorizationStateResolved$: new BehaviorSubject(true),
+            waitForAuthorizationState: vi.fn().mockResolvedValue(undefined),
           },
         },
         {
@@ -222,6 +229,48 @@ describe("EventsService", () => {
     const subscription = service
       .observeEventById("draft-event" as EventId)
       .subscribe((event) => values.push(event?.id ?? null));
+
+    expect(values).toEqual(["draft-event"]);
+    subscription.unsubscribe();
+  });
+
+  it("waits for authorization profile data before exposing a draft", async () => {
+    const authService = TestBed.inject(AuthenticationService) as unknown as {
+      user: { uid: string; data?: { isAdmin: boolean } };
+      isAdmin: ReturnType<typeof signal<boolean>>;
+      authState$: BehaviorSubject<unknown>;
+      authorizationStateResolved: ReturnType<typeof signal<boolean>>;
+      authorizationStateResolved$: BehaviorSubject<boolean>;
+    };
+    authService.user.data = undefined;
+    authService.isAdmin.set(false);
+    authService.authorizationStateResolved.set(false);
+    authService.authorizationStateResolved$.next(false);
+    firestoreAdapter.documentSnapshots.mockReturnValue(
+      new BehaviorSubject(
+        buildEventDoc(
+          "draft-event",
+          "2026-06-01T10:00:00.000Z",
+          "2026-06-02T10:00:00.000Z",
+          { published: false },
+        ),
+      ).asObservable(),
+    );
+
+    const values: Array<string | null> = [];
+    const subscription = service
+      .observeEventById("draft-event" as EventId)
+      .subscribe((event) => values.push(event?.id ?? null));
+
+    await Promise.resolve();
+    expect(values).toEqual([]);
+
+    authService.user.data = { isAdmin: true };
+    authService.isAdmin.set(true);
+    authService.authorizationStateResolved.set(true);
+    authService.authorizationStateResolved$.next(true);
+    authService.authState$.next(authService.user);
+    await Promise.resolve();
 
     expect(values).toEqual(["draft-event"]);
     subscription.unsubscribe();

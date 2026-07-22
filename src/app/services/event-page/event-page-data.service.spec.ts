@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { LOCALE_ID } from "@angular/core";
-import { firstValueFrom, of } from "rxjs";
+import { firstValueFrom, of, throwError } from "rxjs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
@@ -83,6 +83,29 @@ describe("EventPageDataService", () => {
     expect(eventsService.observeEventBySlugOrId).toHaveBeenCalledWith(
       "city-jam",
     );
+  });
+
+  it("preserves observation errors instead of treating them as not found", async () => {
+    const error = new Error("Firestore unavailable");
+    const eventsService = {
+      observeEventBySlugOrId: vi.fn(() => throwError(() => error)),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: eventsService },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        { provide: SearchService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+      ],
+    });
+
+    const service = TestBed.inject(EventPageDataService);
+
+    await expect(
+      firstValueFrom(service.observeEventBySlugOrId("city-jam")),
+    ).rejects.toBe(error);
   });
 
   it("builds event spot and custom marker data for event maps", () => {

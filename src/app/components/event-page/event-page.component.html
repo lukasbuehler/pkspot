@@ -70,6 +70,10 @@
     }
 
     <article class="event-content">
+      @if (!event.published) {
+        <app-event-draft-notice></app-event-draft-notice>
+      }
+
       <header class="event-heading pb-3">
         <div class="event-heading-main">
           <div class="event-title-block">
@@ -681,5 +685,26 @@
         </section>
       }
     </article>
+  </main>
+} @else {
+  <main class="event-loading" aria-live="polite">
+    @if (eventLoadFailed()) {
+      <p class="mat-body-large" i18n="@@event_page.load_failed">
+        We couldn't load this event.
+      </p>
+      <a
+        mat-stroked-button
+        routerLink="/events"
+        i18n="@@event_page.load_failed_back"
+      >Back to all events</a>
+    } @else {
+      <mat-progress-spinner
+        mode="indeterminate"
+        diameter="32"
+        aria-label="Loading event"
+        i18n-aria-label="@@event_page.loading_aria"
+      ></mat-progress-spinner>
+      <p class="mat-body-medium" i18n="@@event_page.loading">Loading event</p>
+    }
   </main>
 }

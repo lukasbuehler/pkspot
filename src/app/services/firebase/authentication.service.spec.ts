@@ -10,7 +10,7 @@ import {
   signOut,
   updateProfile,
 } from "@angular/fire/auth";
-import { BehaviorSubject, Observable, of } from "rxjs";
+import { BehaviorSubject, Observable, of, Subject } from "rxjs";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { AnalyticsService } from "../analytics.service";
 import { ConsentService } from "../consent.service";
@@ -163,6 +163,7 @@ describe("AuthenticationService", () => {
 
     expect(screenshotService.isSignedIn).toBe(true);
     expect(screenshotService.initialAuthStateResolved()).toBe(true);
+    expect(screenshotService.authorizationStateResolved()).toBe(true);
     expect(screenshotService.authState$.getValue()).toEqual({
       uid: "store-screenshot-user",
       email: "screenshot@pkspot.app",
@@ -232,6 +233,30 @@ describe("AuthenticationService", () => {
         display_name: "Auth User",
       },
     );
+  });
+
+  it("does not resolve authorization until the signed-in profile has loaded", async () => {
+    const profile = new Subject<{ displayName: string; isAdmin: boolean }>();
+    usersServiceSpy.getUserById.mockReturnValueOnce(profile);
+    const authStateListener = authMock.onAuthStateChanged.mock
+      .calls[0][0] as FirebaseAuthStateCallback;
+
+    authStateListener(firebaseUser);
+
+    expect(service.initialAuthStateResolved()).toBe(true);
+    expect(service.authorizationStateResolved()).toBe(false);
+    let authorizationResolved = false;
+    const wait = service.waitForAuthorizationState().then(() => {
+      authorizationResolved = true;
+    });
+    await Promise.resolve();
+    expect(authorizationResolved).toBe(false);
+
+    profile.next({ displayName: "Hydrated Admin", isAdmin: true });
+    await wait;
+
+    expect(service.authorizationStateResolved()).toBe(true);
+    expect(service.isAdmin()).toBe(true);
   });
 
   it("resets local auth state and analytics identity when Firebase signs out", () => {

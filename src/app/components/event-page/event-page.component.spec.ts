@@ -4,7 +4,7 @@ import { TestBed } from "@angular/core/testing";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute, convertToParamMap, Router } from "@angular/router";
-import { BehaviorSubject, of } from "rxjs";
+import { BehaviorSubject, of, throwError } from "rxjs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { LocalSpot } from "../../../db/models/Spot";
@@ -184,6 +184,170 @@ describe("EventInfoPageComponent", () => {
       }),
     );
   });
+
+  it("keeps draft metadata private and disables participation", () => {
+    const structuredDataService = {
+      addStructuredData: vi.fn(),
+      removeStructuredData: vi.fn(),
+    };
+    const metaTagService = {
+      setEventMetaTags: vi.fn(),
+      setStaticPageMetaTags: vi.fn(),
+      setRobotsContent: vi.fn(),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SeriesService, useValue: seriesServiceStub() },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        {
+          provide: AuthenticationService,
+          useValue: { user: { data: null }, isAdmin: signal(true) },
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: of(convertToParamMap({ slug: "draft-jam" })),
+            queryParams: of({}),
+            data: of({ routeName: "Event" }),
+            snapshot: { paramMap: convertToParamMap({ slug: "draft-jam" }) },
+          },
+        },
+        { provide: Router, useValue: { navigate: vi.fn() } },
+        { provide: LocationStrategy, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: MetaTagService, useValue: metaTagService },
+        { provide: StructuredDataService, useValue: structuredDataService },
+        {
+          provide: MapsApiService,
+          useValue: {
+            isApiLoaded: vi.fn(() => true),
+            loadGoogleMapsApi: vi.fn(),
+          },
+        },
+        {
+          provide: AnalyticsService,
+          useValue: { addUtmToUrl: vi.fn((url?: string) => url) },
+        },
+        { provide: ResponsiveService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+        { provide: PLATFORM_ID, useValue: "server" },
+      ],
+    });
+
+    const component = TestBed.runInInjectionContext(
+      () => new EventInfoPageComponent(),
+    );
+    component.event.set(
+      buildEvent("draft-jam", "Secret Draft Jam", { published: false }),
+    );
+    flushSignalEffects();
+
+    expect(component.showRsvp()).toBe(false);
+    expect(metaTagService.setEventMetaTags).not.toHaveBeenCalled();
+    expect(metaTagService.setStaticPageMetaTags).toHaveBeenLastCalledWith(
+      "Draft event",
+      "This event has not been published.",
+      undefined,
+      "/events/draft-jam",
+    );
+    expect(metaTagService.setRobotsContent).toHaveBeenLastCalledWith(
+      "noindex,nofollow",
+    );
+    expect(structuredDataService.addStructuredData).not.toHaveBeenCalled();
+    expect(structuredDataService.removeStructuredData).toHaveBeenCalledWith(
+      "event",
+    );
+  });
+
+  it.each([
+    { platform: "server", shouldRedirect: false, loadFails: false },
+    { platform: "browser", shouldRedirect: true, loadFails: false },
+    { platform: "browser", shouldRedirect: false, loadFails: true },
+  ])(
+    "handles a missing or failed event load on $platform",
+    async ({ platform, shouldRedirect, loadFails }) => {
+      const router = { navigate: vi.fn() };
+      const eventsService = {
+        getEventBySlugOrId: vi.fn().mockResolvedValue(null),
+        observeEventBySlugOrId: vi.fn(() =>
+          loadFails ? throwError(() => new Error("load failed")) : of(null),
+        ),
+      };
+
+      TestBed.configureTestingModule({
+        providers: [
+          { provide: EventsService, useValue: eventsService },
+          { provide: SeriesService, useValue: seriesServiceStub() },
+          { provide: SpotsService, useValue: {} },
+          { provide: SpotChallengesService, useValue: {} },
+          {
+            provide: AuthenticationService,
+            useValue: { user: { data: null }, isAdmin: signal(false) },
+          },
+          {
+            provide: ActivatedRoute,
+            useValue: {
+              paramMap: of(convertToParamMap({ slug: "missing-event" })),
+              queryParams: of({}),
+              data: of({ routeName: "Event" }),
+              snapshot: {
+                paramMap: convertToParamMap({ slug: "missing-event" }),
+              },
+            },
+          },
+          { provide: Router, useValue: router },
+          { provide: LocationStrategy, useValue: {} },
+          { provide: MatSnackBar, useValue: { open: vi.fn() } },
+          {
+            provide: MetaTagService,
+            useValue: {
+              setEventMetaTags: vi.fn(),
+              setStaticPageMetaTags: vi.fn(),
+              setRobotsContent: vi.fn(),
+            },
+          },
+          {
+            provide: StructuredDataService,
+            useValue: {
+              addStructuredData: vi.fn(),
+              removeStructuredData: vi.fn(),
+            },
+          },
+          {
+            provide: MapsApiService,
+            useValue: {
+              isApiLoaded: vi.fn(() => true),
+              loadGoogleMapsApi: vi.fn(),
+            },
+          },
+          {
+            provide: AnalyticsService,
+            useValue: { addUtmToUrl: vi.fn((url?: string) => url) },
+          },
+          { provide: ResponsiveService, useValue: {} },
+          { provide: LOCALE_ID, useValue: "en" },
+          { provide: PLATFORM_ID, useValue: platform },
+        ],
+      });
+
+      const component = TestBed.runInInjectionContext(
+        () => new EventInfoPageComponent(),
+      );
+      component.ngOnInit();
+      await flushPromises();
+
+      if (shouldRedirect) {
+        expect(router.navigate).toHaveBeenCalledWith(["/events"]);
+      } else {
+        expect(router.navigate).not.toHaveBeenCalled();
+        expect(component.isLoadingEvent()).toBe(!loadFails);
+        expect(component.eventLoadFailed()).toBe(loadFails);
+      }
+    },
+  );
 
   it("reloads the event when Angular reuses the component for a new route param", async () => {
     const swissjam26 = buildEvent("swissjam26", "Swiss Jam 2026");

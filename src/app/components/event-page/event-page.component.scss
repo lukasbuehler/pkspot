@@ -29,6 +29,22 @@
   padding: 1.5rem 0 4rem;
 }
 
+.event-content > app-event-draft-notice {
+  display: block;
+  margin-bottom: 1.5rem;
+}
+
+.event-loading {
+  display: grid;
+  min-height: min(60vh, 32rem);
+  place-content: center;
+  justify-items: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .embedded .event-content {
   padding: 1rem 0;
 }

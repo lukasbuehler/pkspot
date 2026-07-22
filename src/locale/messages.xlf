@@ -492,6 +492,11 @@
         <source>Open Data</source>
       </segment>
     </unit>
+    <unit id="event_draft.notice.description">
+      <segment>
+        <source> This event is not public. Only administrators can view it. </source>
+      </segment>
+    </unit>
     <unit id="2715740819906435675">
       <segment>
         <source> Media is processing and will appear here when it is ready. </source>
@@ -2195,6 +2200,16 @@
     <unit id="event_description.show_more">
       <segment>
         <source>Show more</source>
+      </segment>
+    </unit>
+    <unit id="event_draft.meta.description">
+      <segment>
+        <source>This event has not been published.</source>
+      </segment>
+    </unit>
+    <unit id="event_draft.meta.title">
+      <segment>
+        <source>Draft event</source>
       </segment>
     </unit>
     <unit id="event_edit.area_label">
@@ -5280,6 +5295,11 @@
         <source>Current E-mail</source>
       </segment>
     </unit>
+    <unit id="event_page.load_failed_back">
+      <segment>
+        <source>Back to all events</source>
+      </segment>
+    </unit>
     <unit id="1441164278426420486">
       <segment>
         <source>New E-mail address</source>
@@ -7468,6 +7488,11 @@
         <source>Delete spot</source>
       </segment>
     </unit>
+    <unit id="event_draft.notice.aria">
+      <segment>
+        <source>Draft event</source>
+      </segment>
+    </unit>
     <unit id="8361822038727829961">
       <segment>
         <source>No reports match this filter.</source>
@@ -7579,6 +7604,11 @@
         <source> Find answers to common questions or reach out to us directly. </source>
       </segment>
     </unit>
+    <unit id="event_page.load_failed">
+      <segment>
+        <source> We couldn&apos;t load this event. </source>
+      </segment>
+    </unit>
     <unit id="641716500460785755">
       <segment>
         <source>Get in Touch</source>
@@ -7637,6 +7667,16 @@
     <unit id="3894305924320774026">
       <segment>
         <source>@pkspot.app</source>
+      </segment>
+    </unit>
+    <unit id="event_page.loading">
+      <segment>
+        <source>Loading event</source>
+      </segment>
+    </unit>
+    <unit id="event_page.loading_aria">
+      <segment>
+        <source>Loading event</source>
       </segment>
     </unit>
     <unit id="8323953180652912227">
@@ -8501,6 +8541,11 @@
     <unit id="4755563775668401794">
       <segment>
         <source>Awaiting manager review</source>
+      </segment>
+    </unit>
+    <unit id="event_draft.notice.title">
+      <segment>
+        <source>Draft</source>
       </segment>
     </unit>
     <unit id="4813152754732689397">

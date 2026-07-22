@@ -1,5 +1,12 @@
 import { Injectable, LOCALE_ID, inject } from "@angular/core";
-import { Observable, catchError, firstValueFrom, map, of } from "rxjs";
+import {
+  Observable,
+  catchError,
+  firstValueFrom,
+  map,
+  of,
+  throwError,
+} from "rxjs";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
@@ -66,7 +73,8 @@ export class EventPageDataService {
       map((loaded) => loaded ?? this._staticFallbackEvent(slugOrId)),
       catchError((err) => {
         console.warn("EventPageDataService: failed to observe event", err);
-        return of(this._staticFallbackEvent(slugOrId));
+        const fallback = this._staticFallbackEvent(slugOrId);
+        return fallback ? of(fallback) : throwError(() => err);
       }),
     );
   }
