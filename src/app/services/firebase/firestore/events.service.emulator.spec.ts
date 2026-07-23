@@ -193,6 +193,20 @@ async function waitForEventDiscovery(
   );
 }
 
+async function waitForMaintenanceStatus(
+  documentId: string,
+  status: "DONE" | "DONE_WITH_ERRORS" | "ERROR",
+): Promise<admin.firestore.DocumentData> {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    const snapshot = await adminDb().doc(`maintenance/${documentId}`).get();
+    if (snapshot.data()?.["status"] === status) return snapshot.data()!;
+    await sleep(250);
+  }
+  throw new Error(
+    `Timed out waiting for maintenance/${documentId} to become ${status}`,
+  );
+}
+
 function parseHostPort(value: string): [string, number] {
   const [host, portValue] = value.split(":");
   const port = Number(portValue);
@@ -665,6 +679,68 @@ runWithEmulator("EventsService emulator integration", () => {
       published: false,
     });
     await waitForEventDiscovery(eventId, false);
+  }, eventTypesenseIntegrationTimeoutMs);
+
+  it("rebuilds event discovery through the Firestore maintenance document", async () => {
+    const suffix = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const publicEventId = `maintenance-public-${suffix}`;
+    const draftEventId = `maintenance-draft-${suffix}`;
+    const eventData = {
+      venue_string: "Maintenance venue",
+      locality_string: "Zurich, Switzerland",
+      location_raw: { lat: 47.3769, lng: 8.5417 },
+      start: admin.firestore.Timestamp.fromDate(
+        new Date("2027-07-01T10:00:00.000Z"),
+      ),
+      end: admin.firestore.Timestamp.fromDate(
+        new Date("2027-07-01T12:00:00.000Z"),
+      ),
+      visibility: "public",
+    };
+
+    await Promise.all([
+      adminDb()
+        .doc(`events/${publicEventId}`)
+        .set({
+          ...eventData,
+          name: "Maintenance public event",
+          publication_state: "published",
+          published: true,
+        }),
+      adminDb()
+        .doc(`events/${draftEventId}`)
+        .set({
+          ...eventData,
+          name: "Maintenance draft event",
+          publication_state: "draft",
+          published: false,
+        }),
+    ]);
+
+    await waitForEventDiscovery(publicEventId, true);
+    await adminDb().doc(`event_discovery/${publicEventId}`).delete();
+    await adminDb().doc("maintenance/run-rebuild-event-discovery").set({
+      dry_run: false,
+      page_size: 2,
+    });
+
+    const maintenance = await waitForMaintenanceStatus(
+      "run-rebuild-event-discovery",
+      "DONE",
+    );
+    expect(maintenance["result"]).toEqual(
+      expect.objectContaining({
+        done: true,
+        dryRun: false,
+        failed: 0,
+        scanned: expect.any(Number),
+        projected: expect.any(Number),
+      }),
+    );
+    expect(maintenance["result"].scanned).toBeGreaterThanOrEqual(2);
+    expect(maintenance["result"].projected).toBeGreaterThanOrEqual(1);
+    await waitForEventDiscovery(publicEventId, true);
+    await waitForEventDiscovery(draftEventId, false);
   }, eventTypesenseIntegrationTimeoutMs);
 
   it("dual-writes legacy publication changes through the event trigger", async () => {

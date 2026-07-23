@@ -47,6 +47,7 @@ export {
 export { backfillEventModel } from "./eventModelMaintenanceFunctions";
 export {
   rebuildEventDiscovery,
+  rebuildEventDiscoveryOnCreate,
   syncEventDiscoveryOnEventWrite,
 } from "./eventDiscoveryFunctions";
 export {

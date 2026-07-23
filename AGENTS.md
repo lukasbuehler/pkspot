@@ -92,6 +92,12 @@ If you hit the Codex sandbox error "Abort trap: 6", you need to run it outside t
 - Existing `us-central1` functions should only stay there intentionally. When migrating an existing function to `europe-west1`, remember that Firebase treats regional functions as separate resources, so the old `us-central1` function may need to be deleted after the Europe deployment is verified.
 - Prefer gen 2 Cloud Functions APIs (`firebase-functions/v2/*`). The only current exception is basic Firebase Auth lifecycle triggers that the SDK does not offer in gen 2; keep any such exception isolated and covered by the functions generation policy test.
 
+## Deployment and App Hosting
+
+- Do not create, start, promote, or otherwise operate Firebase App Hosting rollouts. The user deploys the web app by updating the `main` branch, which automatically rolls the update out to App Hosting.
+- Do not push or merge changes to `main` unless the user explicitly asks for that release. Local testing and backend-compatible development can remain on the current development branch while production clients and the production web app stay on their previous version.
+- Treat a request to deploy Firebase rules, functions, extensions, or other backend resources as separate from an App Hosting release. It never implies permission to update `main` or operate App Hosting.
+
 ## Backwards compatibility
 
 - Treat Firestore, Typesense, and Cloud Function payload changes as app-versioned contracts. Mobile apps and older web builds may keep reading existing fields after a deploy, so prefer additive fields and keep legacy fields populated until all supported clients have migrated.
