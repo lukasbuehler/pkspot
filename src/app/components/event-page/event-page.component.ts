@@ -147,6 +147,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   private _queryParamsSubscription?: Subscription;
   private _eventSnapshotSubscription?: Subscription;
   private _eventLoadRequestVersion = 0;
+  private _eventAuthorizationRequestVersion = 0;
   private _spotsLoadRequestVersion = 0;
   private _qualifierLoadRequestVersion = 0;
   private _seriesLoadRequestVersion = 0;
@@ -175,6 +176,8 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly qualificationGridColumns = signal(3);
   readonly isLoadingQualifierEvents = signal(false);
   readonly isAdmin = computed(() => this._authService.isAdmin());
+  readonly canEditEvent = signal(false);
+  readonly canManageEvent = signal(false);
 
   readonly dateRange = computed(() => {
     const event = this.event();
@@ -723,7 +726,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   }
 
   startEditingEvent(): void {
-    if (this.isAdmin()) {
+    if (this.canEditEvent()) {
       this.isEditingEvent.set(true);
     }
   }
@@ -738,7 +741,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
 
   async onSaveEvent(patch: EventEditPatch): Promise<void> {
     const current = this.event();
-    if (!current || !this.isAdmin()) return;
+    if (!current || !this.canEditEvent()) return;
     this.isSavingEvent.set(true);
     try {
       await this._eventsService.updateEvent(current.id, patch);
@@ -766,7 +769,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
 
   async onDeleteEvent(): Promise<void> {
     const current = this.event();
-    if (!current || !this.isAdmin()) return;
+    if (!current || !this.canManageEvent()) return;
     this.isSavingEvent.set(true);
     try {
       await this._eventsService.deleteEvent(current.id);
@@ -840,8 +843,28 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       this.currentRsvp.set(null);
     }
     this.event.set(event);
+    void this._refreshEventAuthorization(event);
     this.isLoadingEvent.set(false);
     this.eventLoadFailed.set(false);
+  }
+
+  private async _refreshEventAuthorization(event: PkEvent): Promise<void> {
+    const requestVersion = ++this._eventAuthorizationRequestVersion;
+    const fallback = this.isAdmin();
+    const [canEdit, canManage] = await Promise.all([
+      this._eventsService.canEditEvent?.(event).catch(() => false) ??
+        Promise.resolve(fallback),
+      this._eventsService.canManageEvent?.(event).catch(() => false) ??
+        Promise.resolve(fallback),
+    ]);
+    if (
+      requestVersion !== this._eventAuthorizationRequestVersion ||
+      this.event()?.id !== event.id
+    ) {
+      return;
+    }
+    this.canEditEvent.set(canEdit);
+    this.canManageEvent.set(canManage);
   }
 
   private _syncEventSeoData(event: PkEvent): void {

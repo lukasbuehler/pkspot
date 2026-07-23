@@ -1,7 +1,8 @@
-@if (isEditingEvent() && isAdmin()) {
+@if (isEditingEvent() && canEditEvent()) {
   <section class="event-edit-host">
     <app-event-edit-form
       [event]="event()"
+      [showDeleteButton]="canManageEvent()"
       [saving]="isSavingEvent()"
       (save)="onSaveEvent($event)"
       (cancel)="cancelEditingEvent()"
@@ -62,7 +63,7 @@
           </button>
           <app-event-live-update-organizer-menu
             [event]="event"
-            [canEdit]="isAdmin()"
+            [canEdit]="canEditEvent()"
             (editRequested)="startEditingEvent()"
           ></app-event-live-update-organizer-menu>
         </div>

@@ -2097,6 +2097,16 @@
         <source>Event in </source>
       </segment>
     </unit>
+    <unit id="event.attendance.invitation_required">
+      <segment>
+        <source> Invitation required </source>
+      </segment>
+    </unit>
+    <unit id="event.attendance.organization_members_only">
+      <segment>
+        <source> Organization members only </source>
+      </segment>
+    </unit>
     <unit id="event_card.draft">
       <segment>
         <source>Draft</source>

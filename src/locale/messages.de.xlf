@@ -5331,6 +5331,18 @@
         <target>Bereitgestellt von</target>
       </segment>
     </unit>
+    <unit id="event.attendance.invitation_required">
+      <segment state="initial">
+        <source> Invitation required </source>
+        <target> Einladung erforderlich </target>
+      </segment>
+    </unit>
+    <unit id="event.attendance.organization_members_only">
+      <segment state="initial">
+        <source> Organization members only </source>
+        <target> Nur für Organisationsmitglieder </target>
+      </segment>
+    </unit>
     <unit id="event_card.draft">
       <segment state="initial">
         <source>Draft</source>

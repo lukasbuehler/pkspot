@@ -1,5 +1,6 @@
 import {
   EVENT_ADMISSION_MODES,
+  EVENT_DISCOVERABILITIES,
   EVENT_KINDS,
   EVENT_LIFECYCLE_STATUSES,
   EVENT_NOTIFICATION_POLICIES,
@@ -19,6 +20,7 @@ import {
 export const DEFAULT_EVENT_ATTENDANCE: Readonly<EventAttendanceSchema> = {
   social: "rsvp",
   admission: "none",
+  eligibility: { type: "everyone" },
 };
 
 export interface EventNormalizationOptions {
@@ -40,13 +42,34 @@ const includes = <T extends string>(
 const nonEmptyString = (value: unknown): value is string =>
   typeof value === "string" && value.trim().length > 0;
 
+const hasOnlyKeys = (
+  value: Record<string, unknown>,
+  keys: readonly string[],
+): boolean => Object.keys(value).every((key) => keys.includes(key));
+
+const discoverabilityIsValid = (
+  value: unknown,
+): value is NonNullable<EventSchema["discoverability"]> => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const policy = value as Record<string, unknown>;
+  if (!includes(EVENT_DISCOVERABILITIES, policy["audience"])) return false;
+  return policy["audience"] === "organization_followers" ||
+    policy["audience"] === "organization_members"
+    ? nonEmptyString(policy["organization_id"]) &&
+        hasOnlyKeys(policy, ["audience", "organization_id"])
+    : hasOnlyKeys(policy, ["audience"]);
+};
+
 export const isEventOwner = (value: unknown): value is EventOwnerSchema => {
   if (!value || typeof value !== "object") return false;
   const owner = value as Record<string, unknown>;
   return (
-    (owner["type"] === "user" && nonEmptyString(owner["user_id"])) ||
+    (owner["type"] === "user" &&
+      nonEmptyString(owner["user_id"]) &&
+      hasOnlyKeys(owner, ["type", "user_id"])) ||
     (owner["type"] === "organization" &&
-      nonEmptyString(owner["organization_id"]))
+      nonEmptyString(owner["organization_id"]) &&
+      hasOnlyKeys(owner, ["type", "organization_id"]))
   );
 };
 
@@ -105,6 +128,17 @@ const attendanceIsValid = (value: unknown): value is EventAttendanceSchema => {
   if (!value || typeof value !== "object") return false;
   const attendance = value as Record<string, unknown>;
   if (
+    !hasOnlyKeys(attendance, [
+      "social",
+      "admission",
+      "capacity",
+      "waitlist",
+      "eligibility",
+    ])
+  ) {
+    return false;
+  }
+  if (
     !includes(EVENT_SOCIAL_ATTENDANCE_MODES, attendance["social"]) ||
     !includes(EVENT_ADMISSION_MODES, attendance["admission"])
   ) {
@@ -117,6 +151,37 @@ const attendanceIsValid = (value: unknown): value is EventAttendanceSchema => {
       attendance["admission"] !== "registration")
   ) {
     return false;
+  }
+  const eligibility = attendance["eligibility"];
+  if (eligibility !== undefined) {
+    if (
+      !eligibility ||
+      typeof eligibility !== "object" ||
+      Array.isArray(eligibility)
+    ) {
+      return false;
+    }
+    const policy = eligibility as Record<string, unknown>;
+    if (
+      policy["type"] !== "everyone" &&
+      policy["type"] !== "invited" &&
+      policy["type"] !== "organization_members"
+    ) {
+      return false;
+    }
+    if (
+      policy["type"] === "organization_members" &&
+      (!nonEmptyString(policy["organization_id"]) ||
+        !hasOnlyKeys(policy, ["type", "organization_id"]))
+    ) {
+      return false;
+    }
+    if (
+      policy["type"] !== "organization_members" &&
+      !hasOnlyKeys(policy, ["type"])
+    ) {
+      return false;
+    }
   }
   return (
     attendance["waitlist"] === undefined ||
@@ -173,6 +238,29 @@ export const normalizeEventModel = (
   };
 
   assignEnumDefault("visibility", EVENT_VISIBILITIES, "public");
+  const visibility = includes(EVENT_VISIBILITIES, data.visibility)
+    ? data.visibility
+    : "public";
+  if (data.discoverability === undefined) {
+    patch.discoverability = {
+      audience: visibility === "public" ? "global" : "none",
+    };
+  } else if (!discoverabilityIsValid(data.discoverability)) {
+    invalid.push("discoverability");
+  }
+  if (data.viewer_policy !== undefined) {
+    const policy = data.viewer_policy as unknown as Record<string, unknown>;
+    const valid =
+      !!policy &&
+      ((policy["audience"] === "invited" &&
+        hasOnlyKeys(policy, ["audience"])) ||
+        (policy["audience"] === "organization_members" &&
+          nonEmptyString(policy["organization_id"]) &&
+          hasOnlyKeys(policy, ["audience", "organization_id"])));
+    if (!valid) invalid.push("viewer_policy");
+  } else if (visibility === "private") {
+    patch.viewer_policy = { audience: "invited" };
+  }
   assignEnumDefault(
     "kind",
     EVENT_KINDS,

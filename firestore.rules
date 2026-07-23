@@ -13,6 +13,18 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/organizations/$(organizationId)/members/$(request.auth.uid)).data.role in ['owner', 'admin', 'reviewer'];
     }
 
+    function isOrganizationManager(organizationId) {
+      return request.auth.uid != null
+        && exists(/databases/$(database)/documents/organizations/$(organizationId)/members/$(request.auth.uid))
+        && get(/databases/$(database)/documents/organizations/$(organizationId)/members/$(request.auth.uid)).data.role in ['owner', 'admin'];
+    }
+
+    function isOrganizationMember(organizationId) {
+      return request.auth.uid != null
+        && exists(/databases/$(database)/documents/organizations/$(organizationId)/members/$(request.auth.uid))
+        && get(/databases/$(database)/documents/organizations/$(organizationId)/members/$(request.auth.uid)).data.role in ['owner', 'admin', 'reviewer', 'member'];
+    }
+
     function isMutualFriend(userId) {
       return request.auth.uid != null
         && request.auth.uid != userId
@@ -60,6 +72,17 @@ service cloud.firestore {
       ];
     }
 
+    function eventPlatformControlledFields() {
+      return [
+        'priority',
+        'is_promoted',
+        'is_sponsored',
+        'promo_starts_at',
+        'promo_region',
+        'promo_radius_m'
+      ];
+    }
+
     function validEventOwner(owner) {
       return owner is map
         && (
@@ -97,9 +120,251 @@ service cloud.firestore {
         );
     }
 
-    function eventCanBeOpenedByKnownReference(eventData) {
-      return eventIsPublished(eventData)
-        && eventData.get('visibility', 'public') != 'private';
+    function eventHasAccessRole(eventId, roles) {
+      return request.auth.uid != null
+        && exists(/databases/$(database)/documents/events/$(eventId)/access/$(request.auth.uid))
+        && get(/databases/$(database)/documents/events/$(eventId)/access/$(request.auth.uid)).data.role in roles;
+    }
+
+    function eventIsOwnedByViewer(eventData) {
+      return request.auth.uid != null
+        && 'owner' in eventData
+        && eventData.owner is map
+        && eventData.owner.type == 'user'
+        && eventData.owner.user_id == request.auth.uid;
+    }
+
+    function eventIsManagedByViewerOrganization(eventData) {
+      return 'owner' in eventData
+        && eventData.owner is map
+        && eventData.owner.type == 'organization'
+        && isOrganizationManager(eventData.owner.organization_id);
+    }
+
+    function eventCanManage(eventData) {
+      return isAdmin()
+        || eventIsOwnedByViewer(eventData)
+        || eventIsManagedByViewerOrganization(eventData);
+    }
+
+    function eventCanEdit(eventId, eventData) {
+      return isAdmin()
+        || (
+          'owner' in eventData
+          && eventData.owner is map
+          && (
+            eventCanManage(eventData)
+            || eventHasAccessRole(eventId, ['collaborator'])
+          )
+        );
+    }
+
+    function eventPrivateAudienceAllowsViewer(eventData) {
+      return 'viewer_policy' in eventData
+        && eventData.viewer_policy is map
+        && eventData.viewer_policy.audience == 'organization_members'
+        && isOrganizationMember(eventData.viewer_policy.organization_id);
+    }
+
+    function eventCanRead(eventId, eventData) {
+      return eventCanEdit(eventId, eventData)
+        || (
+          eventIsPublished(eventData)
+          && (
+            eventData.get('visibility', 'public') != 'private'
+            || eventPrivateAudienceAllowsViewer(eventData)
+            || eventHasAccessRole(eventId, ['viewer', 'collaborator'])
+          )
+        );
+    }
+
+    function validEventViewerPolicy(eventData) {
+      return !('viewer_policy' in eventData)
+        || (
+          eventData.viewer_policy is map
+          && (
+            (
+              eventData.viewer_policy.audience == 'invited'
+              && eventData.viewer_policy.keys().hasOnly(['audience'])
+            )
+            || (
+              eventData.viewer_policy.audience == 'organization_members'
+              && eventData.viewer_policy.keys().hasOnly(['audience', 'organization_id'])
+              && eventData.viewer_policy.organization_id is string
+              && eventData.viewer_policy.organization_id.size() > 0
+            )
+          )
+        );
+    }
+
+    function validEventDiscoverability(eventData) {
+      return !('discoverability' in eventData)
+        || (
+          eventData.discoverability is map
+          && eventData.discoverability.keys().hasAll(['audience'])
+          && (
+            (
+              eventData.discoverability.audience in ['global', 'none']
+              && eventData.discoverability.keys().hasOnly(['audience'])
+            )
+            || (
+              eventData.discoverability.audience in [
+                'organization_followers',
+                'organization_members'
+              ]
+              && eventData.discoverability.keys().hasOnly([
+                'audience',
+                'organization_id'
+              ])
+              && eventData.discoverability.organization_id is string
+              && eventData.discoverability.organization_id.size() > 0
+            )
+          )
+        );
+    }
+
+    function validEventAttendanceEligibility(attendance) {
+      return !('eligibility' in attendance)
+        || (
+          attendance.eligibility is map
+          && attendance.eligibility.keys().hasAll(['type'])
+          && (
+            (
+              attendance.eligibility.type in ['everyone', 'invited']
+              && attendance.eligibility.keys().hasOnly(['type'])
+            )
+            || (
+              attendance.eligibility.type == 'organization_members'
+              && attendance.eligibility.keys().hasOnly([
+                'type',
+                'organization_id'
+              ])
+              && attendance.eligibility.organization_id is string
+              && attendance.eligibility.organization_id.size() > 0
+            )
+          )
+        );
+    }
+
+    function validEventAttendance(eventData) {
+      return !('attendance' in eventData)
+        || (
+          eventData.attendance is map
+          && eventData.attendance.keys().hasAll(['social', 'admission'])
+          && eventData.attendance.keys().hasOnly([
+            'social',
+            'admission',
+            'capacity',
+            'waitlist',
+            'eligibility'
+          ])
+          && eventData.attendance.social in ['none', 'rsvp']
+          && eventData.attendance.admission in ['none', 'registration']
+          && (
+            !('capacity' in eventData.attendance)
+            || (
+              eventData.attendance.admission == 'registration'
+              && eventData.attendance.capacity is int
+              && eventData.attendance.capacity > 0
+            )
+          )
+          && (
+            !('waitlist' in eventData.attendance)
+            || (
+              eventData.attendance.admission == 'registration'
+              && eventData.attendance.waitlist is bool
+            )
+          )
+          && validEventAttendanceEligibility(eventData.attendance)
+        );
+    }
+
+    function validEventAccessDimensions(eventData) {
+      return eventData.get('visibility', 'public') in ['public', 'unlisted', 'private']
+        && validEventDiscoverability(eventData)
+        && validEventViewerPolicy(eventData)
+        && validEventAttendance(eventData);
+    }
+
+    // Temporary rollout switch. While true, old app versions may still list
+    // /events directly, so new writes must remain globally public.
+    function legacyEventListCompatibilityEnabled() {
+      return true;
+    }
+
+    function eventIsLegacyListCompatible(eventData) {
+      return eventData.get('visibility', 'public') == 'public'
+        && (
+          !('discoverability' in eventData)
+          || (
+            eventData.discoverability is map
+            && eventData.discoverability.audience == 'global'
+          )
+        );
+    }
+
+    function eventOwnerMayBeAssignedByViewer(owner) {
+      return (
+          owner.type == 'user'
+          && owner.user_id == request.auth.uid
+        )
+        || (
+          owner.type == 'organization'
+          && isOrganizationManager(owner.organization_id)
+        );
+    }
+
+    function eventPolicyOrganizationsManagedByViewer(eventData) {
+      return (
+          !('discoverability' in eventData)
+          || !(eventData.discoverability.audience in [
+            'organization_followers',
+            'organization_members'
+          ])
+          || isOrganizationManager(eventData.discoverability.organization_id)
+        )
+        && (
+          !('viewer_policy' in eventData)
+          || eventData.viewer_policy.audience != 'organization_members'
+          || isOrganizationManager(eventData.viewer_policy.organization_id)
+        )
+        && (
+          !('attendance' in eventData)
+          || !('eligibility' in eventData.attendance)
+          || eventData.attendance.eligibility.type != 'organization_members'
+          || isOrganizationManager(
+            eventData.attendance.eligibility.organization_id
+          )
+        );
+    }
+
+    function eventOrganizationPoliciesUnchanged(before, after) {
+      return before.get('discoverability', {}) == after.get('discoverability', {})
+        && before.get('viewer_policy', {}) == after.get('viewer_policy', {})
+        && before.get('attendance', {}).get('eligibility', {})
+          == after.get('attendance', {}).get('eligibility', {});
+    }
+
+    function validEventAccessGrant(userId) {
+      return request.resource.data.keys().hasAll([
+          'user_id',
+          'role',
+          'granted_by',
+          'time_created',
+          'time_updated'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'user_id',
+          'role',
+          'granted_by',
+          'time_created',
+          'time_updated'
+        ])
+        && request.resource.data.user_id == userId
+        && request.resource.data.role in ['viewer', 'collaborator']
+        && request.resource.data.granted_by is string
+        && request.resource.data.time_created is timestamp
+        && request.resource.data.time_updated is timestamp;
     }
 
     function validEventRsvp(eventId, userId) {
@@ -144,7 +409,8 @@ service cloud.firestore {
 
     function eventAcceptsLiveUpdateSubscriptions(eventId) {
       let event = get(/databases/$(database)/documents/events/$(eventId)).data;
-      return eventCanBeOpenedByKnownReference(event)
+      return eventCanRead(eventId, event)
+        && eventIsPublished(event)
         && event.end is timestamp
         && event.end >= request.time
         && event.organizer is map;
@@ -683,16 +949,39 @@ service cloud.firestore {
 
     match /event_slugs/{slug} {
       allow get: if isAdmin()
-        || eventCanBeOpenedByKnownReference(
+        || eventCanRead(
+          resource.data.event_id,
           get(
             /databases/$(database)/documents/events/$(resource.data.event_id)
           ).data
         );
       allow list: if isAdmin();
 
-      // Keep aliases admin-managed until user-created events have ownership
-      // rules; otherwise alias creation becomes an event-id existence oracle.
-      allow create, update, delete: if isAdmin();
+      allow create: if request.resource.data.keys().hasOnly(['event_id'])
+        && request.resource.data.event_id is string
+        && eventCanEdit(
+          request.resource.data.event_id,
+          get(
+            /databases/$(database)/documents/events/$(request.resource.data.event_id)
+          ).data
+        );
+      allow update: if request.resource.data.keys().hasOnly(['event_id'])
+        && request.resource.data.event_id is string
+        && eventCanManage(
+          get(
+            /databases/$(database)/documents/events/$(resource.data.event_id)
+          ).data
+        )
+        && eventCanManage(
+          get(
+            /databases/$(database)/documents/events/$(request.resource.data.event_id)
+          ).data
+        );
+      allow delete: if eventCanManage(
+        get(
+          /databases/$(database)/documents/events/$(resource.data.event_id)
+        ).data
+      );
     }
 
     function onlyCommunityMergeRequestChanged() {
@@ -960,22 +1249,60 @@ service cloud.firestore {
     }
 
     match /events/{eventId} {
-      allow get: if isAdmin() || eventCanBeOpenedByKnownReference(resource.data);
-      allow list: if isAdmin();
-      // Admin-only writes for now. Future plan: open to authed users for
-      // free-tier event creation, with field-level validation gating
-      // sponsor / promo_region / banner_src (premium-only fields).
-      allow create: if isAdmin()
+      allow get: if eventCanRead(eventId, resource.data);
+      allow list: if isAdmin() || legacyEventListCompatibilityEnabled();
+      allow create: if request.auth.uid != null
+        && agePolicyAllowsPublicParticipation()
         && request.resource.data.keys().hasAll(['owner', 'created_by'])
         && validEventOwner(request.resource.data.owner)
         && validEventCreator(request.resource.data.created_by)
-        && !request.resource.data.keys().hasAny(eventComputedFields());
-      // Missing owner is the legacy/admin-managed state. Keep this admin-only
-      // when owner/collaborator writes are introduced later.
-      allow update: if isAdmin()
+        && validEventAccessDimensions(request.resource.data)
+        && (
+          !legacyEventListCompatibilityEnabled()
+          || eventIsLegacyListCompatible(request.resource.data)
+        )
+        && !request.resource.data.keys().hasAny(eventComputedFields())
+        && (
+          isAdmin()
+          || (
+            eventOwnerMayBeAssignedByViewer(request.resource.data.owner)
+            && eventPolicyOrganizationsManagedByViewer(request.resource.data)
+            && request.resource.data.get('priority', 'normal') == 'normal'
+            && !request.resource.data.keys().hasAny([
+              'is_promoted',
+              'is_sponsored',
+              'promo_starts_at',
+              'promo_region',
+              'promo_radius_m'
+            ])
+          )
+        );
+      // Missing owner is the legacy/admin-managed state.
+      allow update: if validEventAccessDimensions(request.resource.data)
+        && (
+          !legacyEventListCompatibilityEnabled()
+          || eventIsLegacyListCompatible(request.resource.data)
+        )
         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['created_by'])
-        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(eventComputedFields());
-      allow delete: if isAdmin();
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(eventComputedFields())
+        && (
+          isAdmin()
+          || (
+            eventCanEdit(eventId, resource.data)
+            && request.resource.data.owner == resource.data.owner
+            && (
+              eventOrganizationPoliciesUnchanged(
+                resource.data,
+                request.resource.data
+              )
+              || eventPolicyOrganizationsManagedByViewer(request.resource.data)
+            )
+            && !request.resource.data.diff(resource.data).affectedKeys().hasAny(
+              eventPlatformControlledFields()
+            )
+          )
+        );
+      allow delete: if eventCanManage(resource.data);
 
       match /rsvps/{userId} {
         allow read: if request.auth.uid != null
@@ -987,13 +1314,18 @@ service cloud.firestore {
         allow create, update: if request.auth.uid != null
           && agePolicyAllowsPublicParticipation()
           && request.auth.uid == userId
+          && eventCanRead(
+            eventId,
+            get(/databases/$(database)/documents/events/$(eventId)).data
+          )
           && validEventRsvp(eventId, userId);
         allow delete: if request.auth.uid != null
           && (request.auth.uid == userId || isAdmin());
       }
 
       match /live_updates/{updateId} {
-        allow read: if eventCanBeOpenedByKnownReference(
+        allow read: if eventCanRead(
+          eventId,
           get(/databases/$(database)/documents/events/$(eventId)).data
         );
         // Updates are created only by publishEventLiveUpdate after its backend
@@ -1029,6 +1361,34 @@ service cloud.firestore {
 
       match /live_update_state/{stateId} {
         allow read, write: if false;
+      }
+
+      match /access/{userId} {
+        allow get: if request.auth.uid != null
+          && (
+            request.auth.uid == userId
+            || eventCanManage(
+              get(/databases/$(database)/documents/events/$(eventId)).data
+            )
+          );
+        allow list: if eventCanManage(
+          get(/databases/$(database)/documents/events/$(eventId)).data
+        );
+        allow create: if eventCanManage(
+            get(/databases/$(database)/documents/events/$(eventId)).data
+          )
+          && validEventAccessGrant(userId)
+          && request.resource.data.granted_by == request.auth.uid;
+        allow update: if eventCanManage(
+            get(/databases/$(database)/documents/events/$(eventId)).data
+          )
+          && validEventAccessGrant(userId)
+          && request.resource.data.user_id == resource.data.user_id
+          && request.resource.data.granted_by == resource.data.granted_by
+          && request.resource.data.time_created == resource.data.time_created;
+        allow delete: if eventCanManage(
+          get(/databases/$(database)/documents/events/$(eventId)).data
+        );
       }
     }
 

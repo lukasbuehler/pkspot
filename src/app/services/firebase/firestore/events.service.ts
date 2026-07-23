@@ -5,6 +5,7 @@ import {
   catchError,
   filter,
   from,
+  map,
   of,
   switchMap,
   throwError,
@@ -13,10 +14,11 @@ import { Event } from "../../../../db/models/Event";
 import {
   EVENT_DISCOVERY_COLLECTION,
   EventDiscoverySchema,
-  isEventOpenableByKnownReference,
   isEventPubliclyDiscoverable,
 } from "../../../../db/schemas/EventDiscoverySchema";
 import {
+  EventAccessRole,
+  EventAccessSchema,
   EventId,
   EventOwnerSchema,
   EventSchema,
@@ -39,6 +41,7 @@ type EventDocument = EventSchema & { id: string };
 type EventDiscoveryDocument = EventDiscoverySchema & { id: string };
 type EventSlugDocument = EventSlugSchema & { id: string };
 type EventRSVPDocument = EventRSVPSchema & { id: string };
+type EventAccessDocument = EventAccessSchema & { id: string };
 export type EventWritePatch = Omit<
   Partial<EventSchema>,
   | "bounds"
@@ -116,26 +119,147 @@ export class EventsService extends ConsentAwareService {
   }
 
   // ---------------------------------------------------------------------
-  // Admin writes
+  // Ownership and access
   //
-  // Firestore rules (firestore.rules) require `isAdmin()` for any write
-  // to /events/* and /event_slugs/*. The client-side check below is just
-  // a fail-fast guard for a friendlier error — the rules are the real
-  // enforcement.
+  // These checks provide friendly client errors. Firestore rules independently
+  // enforce the same owner / organization-manager / collaborator policy.
   // ---------------------------------------------------------------------
-
-  private _requireAdmin(action: string): void {
-    if (!this._isAdmin()) {
-      throw new Error(
-        `EventsService.${action}: requires admin privileges on the current user.`
-      );
-    }
-  }
 
   private _isAdmin(): boolean {
     return (
       this._authService.isAdmin?.() === true ||
       this._authService.user.data?.isAdmin === true
+    );
+  }
+
+  private async _canAssignOwner(owner: EventOwnerSchema): Promise<boolean> {
+    if (this._isAdmin()) return true;
+    const uid = this._authService.user.uid;
+    if (!uid) return false;
+    if (owner.type === "user") return owner.user_id === uid;
+    const membership =
+      await this._firestoreAdapter.getDocument<{
+        role?: unknown;
+      }>(`organizations/${owner.organization_id}/members/${uid}`);
+    return membership?.role === "owner" || membership?.role === "admin";
+  }
+
+  async getMyEventAccess(
+    eventId: EventId | string,
+  ): Promise<EventAccessSchema | null> {
+    const uid = this._authService.user.uid;
+    if (!uid) return null;
+    return this._firestoreAdapter.getDocument<EventAccessDocument>(
+      `events/${eventId}/access/${uid}`,
+    );
+  }
+
+  async canEditEvent(event: Event): Promise<boolean> {
+    if (this._isAdmin()) return true;
+    const uid = this._authService.user.uid;
+    if (!uid || !event.owner) return false;
+    if (event.owner.type === "user") {
+      if (event.owner.user_id === uid) return true;
+      return (await this.getMyEventAccess(event.id))?.role === "collaborator";
+    }
+    const [membership, access] = await Promise.all([
+      this._firestoreAdapter.getDocument<{ role?: unknown }>(
+        `organizations/${event.owner.organization_id}/members/${uid}`,
+      ),
+      this.getMyEventAccess(event.id),
+    ]);
+    return (
+      membership?.role === "owner" ||
+      membership?.role === "admin" ||
+      access?.role === "collaborator"
+    );
+  }
+
+  async canManageEvent(event: Event): Promise<boolean> {
+    if (this._isAdmin()) return true;
+    const uid = this._authService.user.uid;
+    if (!uid || !event.owner) return false;
+    if (event.owner.type === "user") return event.owner.user_id === uid;
+    const membership = await this._firestoreAdapter.getDocument<{
+      role?: unknown;
+    }>(`organizations/${event.owner.organization_id}/members/${uid}`);
+    return membership?.role === "owner" || membership?.role === "admin";
+  }
+
+  async canViewEvent(event: Event): Promise<boolean> {
+    if (event.published && event.visibility !== "private") return true;
+    if (await this.canEditEvent(event)) return true;
+    const uid = this._authService.user.uid;
+    if (!uid || !event.published) return false;
+    const access = await this.getMyEventAccess(event.id);
+    if (access?.role === "viewer" || access?.role === "collaborator") {
+      return true;
+    }
+    if (
+      event.viewerPolicy?.audience !== "organization_members" ||
+      !event.viewerPolicy.organization_id
+    ) {
+      return false;
+    }
+    const membership = await this._firestoreAdapter.getDocument<{
+      role?: unknown;
+    }>(
+      `organizations/${event.viewerPolicy.organization_id}/members/${uid}`,
+    );
+    return (
+      membership?.role === "owner" ||
+      membership?.role === "admin" ||
+      membership?.role === "reviewer" ||
+      membership?.role === "member"
+    );
+  }
+
+  async listEventAccess(event: Event): Promise<EventAccessDocument[]> {
+    if (!(await this.canManageEvent(event))) {
+      throw new Error(
+        "EventsService.listEventAccess: requires event management privileges.",
+      );
+    }
+    return this._firestoreAdapter.getCollection<EventAccessDocument>(
+      `events/${event.id}/access`,
+    );
+  }
+
+  async setEventAccess(
+    event: Event,
+    userId: string,
+    role: EventAccessRole,
+  ): Promise<void> {
+    if (!(await this.canManageEvent(event))) {
+      throw new Error(
+        "EventsService.setEventAccess: requires event management privileges.",
+      );
+    }
+    const grantedBy = this._authService.user.uid;
+    if (!grantedBy) {
+      throw new Error("EventsService.setEventAccess: requires a signed-in user.");
+    }
+    const path = `events/${event.id}/access/${userId}`;
+    const existing =
+      await this._firestoreAdapter.getDocument<EventAccessSchema>(path);
+    const now = Timestamp.now();
+    await this._firestoreAdapter.setDocument(path, {
+      user_id: userId,
+      role,
+      granted_by: existing?.granted_by ?? grantedBy,
+      time_created: existing?.time_created ?? now,
+      time_updated: now,
+    } satisfies EventAccessSchema);
+  }
+
+  async removeEventAccess(event: Event, userId: string): Promise<void> {
+    if (!(await this.canManageEvent(event))) {
+      throw new Error(
+        "EventsService.removeEventAccess: requires event management privileges.",
+      );
+    }
+    await this._firestoreAdapter.deleteDocument(
+      `events/${event.id}/access/${userId}`,
     );
   }
 
@@ -149,7 +273,11 @@ export class EventsService extends ConsentAwareService {
     data: EventCreateData,
     id?: string
   ): Promise<Event> {
-    this._requireAdmin("createEvent");
+    if (!(await this._canAssignOwner(data.owner))) {
+      throw new Error(
+        "EventsService.createEvent: the current user cannot assign this owner.",
+      );
+    }
 
     const now = Timestamp.now();
     const clientData = stripServerDerivedEventFields(data);
@@ -221,14 +349,27 @@ export class EventsService extends ConsentAwareService {
     eventId: EventId,
     patch: EventWritePatch
   ): Promise<void> {
-    this._requireAdmin("updateEvent");
-
     const clientPatch = stripServerDerivedEventFields(patch);
     const current = await this._firestoreAdapter.getDocument<EventDocument>(
       `events/${eventId}`
     );
     if (!current) {
       throw new Error(`EventsService.updateEvent: events/${eventId} not found.`);
+    }
+    const currentEvent = this._toEvent(eventId, current);
+    if (!(await this.canEditEvent(currentEvent))) {
+      throw new Error(
+        "EventsService.updateEvent: requires event editing privileges.",
+      );
+    }
+    if (
+      !this._isAdmin() &&
+      clientPatch.owner !== undefined &&
+      JSON.stringify(clientPatch.owner) !== JSON.stringify(current.owner)
+    ) {
+      throw new Error(
+        "EventsService.updateEvent: only admins can transfer event ownership.",
+      );
     }
     const publicationPatch =
       clientPatch.publication_state !== undefined
@@ -248,6 +389,9 @@ export class EventsService extends ConsentAwareService {
       published:
         publicationPatch.published ?? clientPatch.published ?? current.published,
       visibility: clientPatch.visibility ?? current.visibility,
+      discoverability:
+        clientPatch.discoverability ?? current.discoverability,
+      viewer_policy: clientPatch.viewer_policy ?? current.viewer_policy,
       kind: clientPatch.kind ?? current.kind,
       schedule_mode: clientPatch.schedule_mode ?? current.schedule_mode,
       lifecycle_status:
@@ -308,7 +452,12 @@ export class EventsService extends ConsentAwareService {
    * needed (rare; deleting an event is itself rare).
    */
   async deleteEvent(eventId: EventId): Promise<void> {
-    this._requireAdmin("deleteEvent");
+    const current = await this.getEventById(eventId);
+    if (!current || !(await this.canManageEvent(current))) {
+      throw new Error(
+        "EventsService.deleteEvent: requires event management privileges.",
+      );
+    }
     await this._firestoreAdapter.deleteDocument(`events/${eventId}`);
   }
 
@@ -392,12 +541,12 @@ export class EventsService extends ConsentAwareService {
       throw error;
     }
     if (!doc) return null;
-    if (!isEventOpenableByKnownReference(doc) && !this._isAdmin()) return null;
-    return new Event(
+    const event = new Event(
       eventId,
       this._assetUrls.resolveEventAssetUrls(doc),
       this._locale,
     );
+    return (await this.canViewEvent(event)) ? event : null;
   }
 
   observeEventBySlugOrId(slugOrId: string): Observable<Event | null> {
@@ -431,10 +580,17 @@ export class EventsService extends ConsentAwareService {
       ),
       switchMap((doc) => {
         if (!doc) return of(null);
-        if (isEventOpenableByKnownReference(doc)) {
-          return of(this._toEvent(eventId, doc));
+        const event = this._toEvent(eventId, doc);
+        if (
+          (event.published && event.visibility !== "private") ||
+          this._isAdmin()
+        ) {
+          return of(event);
         }
-        return of(this._isAdmin() ? this._toEvent(eventId, doc) : null);
+        if (!event.published && !event.owner) return of(null);
+        return from(this.canViewEvent(event)).pipe(
+          map((canView) => (canView ? event : null)),
+        );
       }),
     );
   }

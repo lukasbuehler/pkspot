@@ -15,6 +15,24 @@ export type EventPublicationState =
 export const EVENT_VISIBILITIES = ["public", "unlisted", "private"] as const;
 export type EventVisibility = (typeof EVENT_VISIBILITIES)[number];
 
+export const EVENT_DISCOVERABILITIES = [
+  "global",
+  "organization_followers",
+  "organization_members",
+  "none",
+] as const;
+export type EventDiscoverability =
+  | { audience: "global" }
+  | { audience: "none" }
+  | {
+      audience: "organization_followers" | "organization_members";
+      organization_id: string;
+    };
+
+export type EventViewerPolicySchema =
+  | { audience: "invited" }
+  | { audience: "organization_members"; organization_id: string };
+
 export const EVENT_KINDS = [
   "session",
   "class",
@@ -48,15 +66,33 @@ export type EventOwnerSchema =
   | { type: "user"; user_id: string }
   | { type: "organization"; organization_id: string };
 
+export const EVENT_ACCESS_ROLES = ["viewer", "collaborator"] as const;
+export type EventAccessRole = (typeof EVENT_ACCESS_ROLES)[number];
+
+export interface EventAccessSchema {
+  user_id: string;
+  role: EventAccessRole;
+  granted_by: string;
+  time_created: Timestamp;
+  time_updated: Timestamp;
+}
+
 export const EVENT_SOCIAL_ATTENDANCE_MODES = ["none", "rsvp"] as const;
 export type EventSocialAttendanceMode =
   (typeof EVENT_SOCIAL_ATTENDANCE_MODES)[number];
 export const EVENT_ADMISSION_MODES = ["none", "registration"] as const;
 export type EventAdmissionMode = (typeof EVENT_ADMISSION_MODES)[number];
 
+export type EventAttendanceEligibilitySchema =
+  | { type: "everyone" }
+  | { type: "invited" }
+  | { type: "organization_members"; organization_id: string };
+
 export interface EventAttendanceSchema {
   social: EventSocialAttendanceMode;
   admission: EventAdmissionMode;
+  /** Who may attend/register; independent from whether they can view it. */
+  eligibility?: EventAttendanceEligibilitySchema;
   /** Server-enforced registration limit. Only meaningful for registration. */
   capacity?: number;
   /** Whether registrations beyond capacity may enter a waitlist. */
@@ -624,6 +660,10 @@ export interface EventSchema {
   /** Additive normalized event dimensions. Legacy fields remain below. */
   publication_state?: EventPublicationState;
   visibility?: EventVisibility;
+  /** Controls feeds/indexes; it never grants permission to read an event. */
+  discoverability?: EventDiscoverability;
+  /** Required audience for private reads. Explicit access grants also apply. */
+  viewer_policy?: EventViewerPolicySchema;
   kind?: EventKind;
   schedule_mode?: EventScheduleMode;
   lifecycle_status?: EventLifecycleStatus;

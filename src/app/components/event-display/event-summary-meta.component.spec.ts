@@ -11,6 +11,7 @@ const buildEvent = (
   id: string,
   start: string,
   end: string,
+  patch: Partial<EventSchema> = {},
 ): PkEvent =>
   new PkEvent(id as EventId, {
     name: "Swiss Jam 2026",
@@ -19,6 +20,7 @@ const buildEvent = (
     start: Timestamp.fromDate(new Date(start)),
     end: Timestamp.fromDate(new Date(end)),
     bounds: { north: 47.4, south: 47.3, east: 8.6, west: 8.5 },
+    ...patch,
   } as EventSchema);
 
 describe("EventSummaryMetaComponent", () => {
@@ -70,5 +72,32 @@ describe("EventSummaryMetaComponent", () => {
     dateRange = fixture.debugElement.query(By.css(".event-date-range"));
     expect(status.attributes["data-status"]).toBe("upcoming");
     expect(dateRange.nativeElement.textContent).toContain("Jun");
+  });
+
+  it("shows structured attendance restrictions", () => {
+    fixture.componentRef.setInput(
+      "event",
+      buildEvent(
+        "member-event",
+        "2026-06-14T10:00:00.000Z",
+        "2026-06-15T10:00:00.000Z",
+        {
+          attendance: {
+            social: "rsvp",
+            admission: "registration",
+            eligibility: {
+              type: "organization_members",
+              organization_id: "club-1",
+            },
+          },
+        },
+      ),
+    );
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.query(By.css(".attendance-restriction"))
+        .nativeElement.textContent,
+    ).toContain("Organization members only");
   });
 });

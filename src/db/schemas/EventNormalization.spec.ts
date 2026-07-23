@@ -43,12 +43,17 @@ describe("event model normalization", () => {
     expect(result.patch).toEqual({
       publication_state: "draft",
       visibility: "public",
+      discoverability: { audience: "global" },
       kind: "other",
       schedule_mode: "single",
       lifecycle_status: "planned",
       priority: "normal",
       notification_policy: "all",
-      attendance: { social: "rsvp", admission: "none" },
+      attendance: {
+        social: "rsvp",
+        admission: "none",
+        eligibility: { type: "everyone" },
+      },
     });
   });
 
@@ -71,11 +76,58 @@ describe("event model normalization", () => {
     expect(result.patch.owner).toBeUndefined();
   });
 
+  it("defaults private event policies without inferring an audience", () => {
+    const result = normalizeEventModel({
+      visibility: "private",
+      attendance: {
+        social: "rsvp",
+        admission: "registration",
+        eligibility: {
+          type: "organization_members",
+          organization_id: "club-1",
+        },
+      },
+    });
+
+    expect(result.invalid).toEqual([]);
+    expect(result.patch).toEqual(
+      expect.objectContaining({
+        discoverability: { audience: "none" },
+        viewer_policy: { audience: "invited" },
+      }),
+    );
+  });
+
+  it("requires organization ids on organization-scoped policies", () => {
+    const result = normalizeEventModel({
+      discoverability: {
+        audience: "organization_members",
+      } as unknown as EventSchema["discoverability"],
+      viewer_policy: {
+        audience: "organization_members",
+      } as unknown as EventSchema["viewer_policy"],
+      attendance: {
+        social: "rsvp",
+        admission: "none",
+        eligibility: {
+          type: "organization_members",
+        },
+      } as unknown as EventSchema["attendance"],
+    });
+
+    expect(result.invalid).toEqual([
+      "discoverability",
+      "viewer_policy",
+      "attendance",
+    ]);
+  });
+
   it("keeps explicit choices and dual-writes their legacy equivalents", () => {
     const result = normalizeEventModel({
       publication_state: "published",
       published: false,
       visibility: "unlisted",
+      discoverability: { audience: "none" },
       kind: "class",
       schedule_mode: "recurring",
       lifecycle_status: "cancelled",
@@ -103,6 +155,7 @@ describe("event model normalization", () => {
       publication_state: "published",
       published: true,
       visibility: "public",
+      discoverability: { audience: "global" },
       kind: "festival",
       schedule_mode: "multi_part",
       lifecycle_status: "planned",

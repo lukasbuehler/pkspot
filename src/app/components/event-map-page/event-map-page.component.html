@@ -60,7 +60,7 @@
             <button mat-icon-button class="d-flex" (click)="shareEvent()">
               <mat-icon>share</mat-icon>
             </button>
-            @if (isAdmin()) {
+            @if (canEditEvent()) {
               <button
                 mat-icon-button
                 class="d-flex"
@@ -117,12 +117,13 @@
     </mat-menu>
   }
 
-  @if (isEditingEvent() && isAdmin()) {
-    <!-- Admin event editor. Replaces the regular event body while open.
+  @if (isEditingEvent() && canEditEvent()) {
+    <!-- Event editor. Replaces the regular event body while open.
          Save / delete handled by the host; cancel just toggles the flag. -->
     <section class="event-edit-host flex-grow-1 overflow-y-auto">
       <app-event-edit-form
         [event]="event()"
+        [showDeleteButton]="canManageEvent()"
         [saving]="isSavingEvent()"
         (save)="onSaveEvent($event)"
         (cancel)="cancelEditingEvent()"

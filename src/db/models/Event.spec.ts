@@ -58,7 +58,11 @@ describe("Event", () => {
     expect(event.lifecycleStatus).toBe("planned");
     expect(event.priority).toBe("normal");
     expect(event.owner).toBeUndefined();
-    expect(event.attendance).toEqual({ social: "rsvp", admission: "none" });
+    expect(event.attendance).toEqual({
+      social: "rsvp",
+      admission: "none",
+      eligibility: { type: "everyone" },
+    });
     expect(event.notificationPolicy).toBe("all");
   });
 

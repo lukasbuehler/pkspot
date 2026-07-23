@@ -1,7 +1,7 @@
 import type { Timestamp } from "firebase/firestore";
 import { UserReferenceSchema } from "./UserSchema";
 
-export type OrganizationRole = "owner" | "admin" | "reviewer";
+export type OrganizationRole = "owner" | "admin" | "reviewer" | "member";
 
 export interface OrganizationReferenceSchema {
   id: string;

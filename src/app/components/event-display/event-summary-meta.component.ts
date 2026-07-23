@@ -43,4 +43,10 @@ export class EventSummaryMetaComponent {
     eventStatusLabel(this.event(), this.status(), this._locale),
   );
   readonly venueLine = computed(() => eventVenueLine(this.event()));
+  readonly attendanceRestriction = computed<
+    "organization_members" | "invited" | null
+  >(() => {
+    const type = this.event().attendance.eligibility?.type;
+    return type === "organization_members" || type === "invited" ? type : null;
+  });
 }

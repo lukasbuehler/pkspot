@@ -37,6 +37,18 @@ describe("event discovery projection", () => {
     },
   );
 
+  it("does not globally project organization-scoped discovery", () => {
+    const source = event({
+      discoverability: {
+        audience: "organization_followers",
+        organization_id: "club-1",
+      },
+    });
+
+    expect(isEventPubliclyDiscoverable(source)).toBe(false);
+    expect(buildEventDiscoveryProjection(source)).toBeNull();
+  });
+
   it("allows known links only for published public and unlisted events", () => {
     expect(isEventOpenableByKnownReference(event())).toBe(true);
     expect(
@@ -56,6 +68,7 @@ describe("event discovery projection", () => {
         slug: "public-jam",
         program: { active_plan_id: "main", plans: [] },
         owner: { type: "user", user_id: "owner-1" },
+        viewer_policy: { audience: "invited" },
         created_by: { uid: "admin-1" },
       }),
     );
@@ -64,16 +77,19 @@ describe("event discovery projection", () => {
       slug: "public-jam",
       publication_state: "published",
       visibility: "public",
+      discoverability: { audience: "global" },
       published: true,
     });
     expect(projection).not.toHaveProperty("program");
     expect(projection).not.toHaveProperty("owner");
+    expect(projection).not.toHaveProperty("viewer_policy");
     expect(projection).not.toHaveProperty("created_by");
   });
 
   it("keeps sensitive and full-detail fields out of the allowlist", () => {
     expect(EVENT_DISCOVERY_FIELDS).not.toContain("program");
     expect(EVENT_DISCOVERY_FIELDS).not.toContain("owner");
+    expect(EVENT_DISCOVERY_FIELDS).not.toContain("viewer_policy");
     expect(EVENT_DISCOVERY_FIELDS).not.toContain("created_by");
     expect(EVENT_DISCOVERY_FIELDS).not.toContain("media");
     expect(EVENT_DISCOVERY_FIELDS).not.toContain("custom_markers");

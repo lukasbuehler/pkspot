@@ -5331,6 +5331,18 @@
         <target>Propulsé par</target>
       </segment>
     </unit>
+    <unit id="event.attendance.invitation_required">
+      <segment state="initial">
+        <source> Invitation required </source>
+        <target> Invitation requise </target>
+      </segment>
+    </unit>
+    <unit id="event.attendance.organization_members_only">
+      <segment state="initial">
+        <source> Organization members only </source>
+        <target> Réservé aux membres de l’organisation </target>
+      </segment>
+    </unit>
     <unit id="event_card.draft">
       <segment state="initial">
         <source>Draft</source>

@@ -169,6 +169,31 @@ async function seedSecurityFixture() {
     publication_state: "published",
     published: true,
     visibility: "private",
+    discoverability: { audience: "none" },
+    owner: { type: "user", user_id: "owner" },
+    viewer_policy: { audience: "invited" },
+  });
+  batch.set(adminDb.doc("events/private-event/access/other"), {
+    user_id: "other",
+    role: "viewer",
+    granted_by: "owner",
+    time_created: admin.firestore.Timestamp.now(),
+    time_updated: admin.firestore.Timestamp.now(),
+  });
+  batch.set(adminDb.doc("events/member-event"), {
+    name: "Organization Member Event",
+    publication_state: "published",
+    published: true,
+    visibility: "private",
+    discoverability: {
+      audience: "organization_members",
+      organization_id: "pk-spot",
+    },
+    owner: { type: "organization", organization_id: "pk-spot" },
+    viewer_policy: {
+      audience: "organization_members",
+      organization_id: "pk-spot",
+    },
   });
   batch.set(adminDb.doc("event_discovery/event-1"), {
     name: "Public Event",
@@ -216,6 +241,14 @@ async function seedSecurityFixture() {
   batch.set(adminDb.doc("organizations/pk-spot/members/owner"), {
     role: "reviewer",
     user: { uid: "owner", display_name: "Owner" },
+  });
+  batch.set(adminDb.doc("organizations/pk-spot/members/org-manager"), {
+    role: "owner",
+    user: { uid: "org-manager", display_name: "Organization Manager" },
+  });
+  batch.set(adminDb.doc("organizations/pk-spot/members/org-member"), {
+    role: "member",
+    user: { uid: "org-member", display_name: "Organization Member" },
   });
   batch.set(adminDb.doc("organizations/wpf"), {
     name: "World's Parkour Family",
@@ -331,6 +364,14 @@ async function seedSecurityFixture() {
       signal_updated_at: admin.firestore.Timestamp.now(),
     },
   });
+  batch.set(adminDb.doc("users/org-manager"), {
+    display_name: "Organization Manager",
+    is_admin: false,
+  });
+  batch.set(adminDb.doc("users/org-member"), {
+    display_name: "Organization Member",
+    is_admin: false,
+  });
   batch.set(adminDb.doc("users/restricted/private_data/profile"), {
     bookmarks: ["public-spot"],
   });
@@ -385,7 +426,14 @@ async function seedSecurityFixture() {
   await batch.commit();
 }
 
-async function testPublicReadSurface(anon, owner, adminUser) {
+async function testPublicReadSurface(
+  anon,
+  owner,
+  other,
+  attacker,
+  orgMember,
+  adminUser
+) {
   await assertAllowed("anonymous spot read", () => getDoc(doc(anon.db, "spots/public-spot")));
   await assertAllowed("anonymous edit read", () =>
     getDoc(doc(anon.db, "spots/public-spot/edits/public-edit"))
@@ -407,10 +455,25 @@ async function testPublicReadSurface(anon, owner, adminUser) {
   await assertDenied("anonymous private event read", () =>
     getDoc(doc(anon.db, "events/private-event"))
   );
+  await assertAllowed("event owner reads their private event", () =>
+    getDoc(doc(owner.db, "events/private-event"))
+  );
+  await assertAllowed("explicit viewer reads private event", () =>
+    getDoc(doc(other.db, "events/private-event"))
+  );
+  await assertDenied("ungranted user cannot directly read private event", () =>
+    getDoc(doc(attacker.db, "events/private-event"))
+  );
+  await assertAllowed("organization member reads member event", () =>
+    getDoc(doc(orgMember.db, "events/member-event"))
+  );
+  await assertDenied("non-member cannot directly read member event", () =>
+    getDoc(doc(attacker.db, "events/member-event"))
+  );
   await assertDenied("anonymous draft event read", () =>
     getDoc(doc(anon.db, "events/unpublished-event"))
   );
-  await assertDenied("regular users cannot enumerate canonical events", () =>
+  await assertAllowed("legacy clients can temporarily enumerate canonical events", () =>
     getDocs(collection(owner.db, "events"))
   );
   await assertAllowed("admins can list canonical events", () =>
@@ -424,6 +487,12 @@ async function testPublicReadSurface(anon, owner, adminUser) {
   );
   await assertDenied("anonymous private slug read", () =>
     getDoc(doc(anon.db, "event_slugs/private-event"))
+  );
+  await assertAllowed("event owner reads private slug", () =>
+    getDoc(doc(owner.db, "event_slugs/private-event"))
+  );
+  await assertAllowed("explicit viewer reads private slug", () =>
+    getDoc(doc(other.db, "event_slugs/private-event"))
   );
   await assertDenied("anonymous draft slug read", () =>
     getDoc(doc(anon.db, "event_slugs/draft-event"))
@@ -1342,7 +1411,7 @@ async function testContactMessageGuards(anon, owner, other) {
   );
 }
 
-async function testEventWriteGuards(owner, adminUser) {
+async function testEventWriteGuards(owner, other, orgManager, adminUser) {
   await assertDenied("regular user cannot update legacy ownerless event", () =>
     updateDoc(doc(owner.db, "events/event-1"), {
       name: "Unauthorized legacy event edit",
@@ -1354,9 +1423,95 @@ async function testEventWriteGuards(owner, adminUser) {
     })
   );
 
-  await assertDenied("regular user cannot create event", () =>
-    setDoc(doc(owner.db, "events/client-event"), {
-      name: "Client Event",
+  await assertAllowed("user creates a globally public event they own", () =>
+    setDoc(doc(owner.db, "events/owner-event"), {
+      name: "Owner Event",
+      owner: { type: "user", user_id: "owner" },
+      created_by: { uid: "owner", username: "Owner" },
+      visibility: "public",
+      discoverability: { audience: "global" },
+      priority: "normal",
+    })
+  );
+  await assertAllowed("owner edits their event", () =>
+    updateDoc(doc(owner.db, "events/owner-event"), {
+      venue_string: "Owner-updated venue",
+    })
+  );
+  await assertDenied("unrelated user cannot edit an owned event", () =>
+    updateDoc(doc(other.db, "events/owner-event"), {
+      venue_string: "Forged venue",
+    })
+  );
+  await assertDenied("owner cannot edit platform priority", () =>
+    updateDoc(doc(owner.db, "events/owner-event"), {
+      priority: "featured",
+    })
+  );
+  await assertDenied("owner cannot transfer ownership", () =>
+    updateDoc(doc(owner.db, "events/owner-event"), {
+      owner: { type: "user", user_id: "other" },
+    })
+  );
+  await assertDenied("private creation remains disabled during compatibility", () =>
+    setDoc(doc(owner.db, "events/owner-private-event"), {
+      name: "Owner Private Event",
+      owner: { type: "user", user_id: "owner" },
+      created_by: { uid: "owner" },
+      visibility: "private",
+      discoverability: { audience: "none" },
+      viewer_policy: { audience: "invited" },
+    })
+  );
+  await assertDenied("unlisted creation remains disabled during compatibility", () =>
+    setDoc(doc(owner.db, "events/owner-unlisted-event"), {
+      name: "Owner Unlisted Event",
+      owner: { type: "user", user_id: "owner" },
+      created_by: { uid: "owner" },
+      visibility: "unlisted",
+      discoverability: { audience: "none" },
+    })
+  );
+  await assertAllowed("owner grants collaborator access", () =>
+    setDoc(doc(owner.db, "events/owner-event/access/other"), {
+      user_id: "other",
+      role: "collaborator",
+      granted_by: "owner",
+      time_created: Timestamp.now(),
+      time_updated: Timestamp.now(),
+    })
+  );
+  await assertAllowed("collaborator edits event content", () =>
+    updateDoc(doc(other.db, "events/owner-event"), {
+      venue_string: "Collaborator-updated venue",
+    })
+  );
+  await assertDenied("collaborator cannot grant event access", () =>
+    setDoc(doc(other.db, "events/owner-event/access/attacker"), {
+      user_id: "attacker",
+      role: "viewer",
+      granted_by: "other",
+      time_created: Timestamp.now(),
+      time_updated: Timestamp.now(),
+    })
+  );
+  await assertAllowed("organization manager creates organization event", () =>
+    setDoc(doc(orgManager.db, "events/org-event"), {
+      name: "Organization Event",
+      owner: { type: "organization", organization_id: "pk-spot" },
+      created_by: { uid: "org-manager" },
+      visibility: "public",
+      discoverability: { audience: "global" },
+    })
+  );
+  await assertAllowed("organization manager edits organization event", () =>
+    updateDoc(doc(orgManager.db, "events/org-event"), {
+      venue_string: "Managed venue",
+    })
+  );
+  await assertDenied("organization reviewer cannot edit organization event", () =>
+    updateDoc(doc(owner.db, "events/org-event"), {
+      venue_string: "Reviewer venue",
     })
   );
   await assertAllowed("admin creates event with editable fields", () =>
@@ -1779,10 +1934,19 @@ async function main() {
   const attacker = await createClient("attacker");
   const fresh = await createClient("fresh");
   const restricted = await createClient("restricted");
+  const orgManager = await createClient("org-manager");
+  const orgMember = await createClient("org-member");
   const adminUser = await createClient("admin");
 
   console.log("Running Firestore rules security tests...");
-  await testPublicReadSurface(anon, owner, adminUser);
+  await testPublicReadSurface(
+    anon,
+    owner,
+    other,
+    attacker,
+    orgMember,
+    adminUser
+  );
   await testSpotWriteGuards(anon, owner, other, adminUser);
   await testOrganizationGuards(anon, owner, other, adminUser);
   await testPrivateOrganizationReviewEdits(anon, owner, other, adminUser);
@@ -1792,7 +1956,7 @@ async function main() {
   await testReadOnlyBackendCollections(owner, adminUser);
   await testCommunityEditGuards(anon, owner, other, restricted, adminUser);
   await testContactMessageGuards(anon, owner, other);
-  await testEventWriteGuards(owner, adminUser);
+  await testEventWriteGuards(owner, other, orgManager, adminUser);
   await testEventRsvpPrivacy(anon, owner, other, adminUser);
   await testEventLiveUpdateGuards(anon, owner, other, adminUser);
   await testPostAndImportGuards(anon, owner, other, adminUser);

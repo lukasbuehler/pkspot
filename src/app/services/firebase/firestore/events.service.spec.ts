@@ -479,12 +479,17 @@ describe("EventsService", () => {
         publication_state: "draft",
         published: false,
         visibility: "public",
+        discoverability: { audience: "global" },
         kind: "festival",
         schedule_mode: "single",
         lifecycle_status: "planned",
         priority: "normal",
         owner: { type: "user", user_id: "admin-user" },
-        attendance: { social: "rsvp", admission: "none" },
+        attendance: {
+          social: "rsvp",
+          admission: "none",
+          eligibility: { type: "everyone" },
+        },
         notification_policy: "all",
       }),
     );
@@ -531,6 +536,128 @@ describe("EventsService", () => {
       "events/legacy-event",
       expect.objectContaining({ name: "Updated legacy event" }),
     );
+  });
+
+  it("allows a user owner to edit and manage collaborators", async () => {
+    const authService = TestBed.inject(AuthenticationService) as unknown as {
+      user: { uid: string; data: { isAdmin: boolean } };
+      isAdmin: ReturnType<typeof signal<boolean>>;
+    };
+    authService.user = { uid: "owner-1", data: { isAdmin: false } };
+    authService.isAdmin.set(false);
+    const owned = buildEventDoc(
+      "owned-event",
+      "2026-06-01T10:00:00.000Z",
+      "2026-06-02T10:00:00.000Z",
+      {
+        owner: { type: "user", user_id: "owner-1" },
+        publication_state: "published",
+        visibility: "public",
+      },
+    );
+    firestoreAdapter.getDocument.mockImplementation((path: string) => {
+      if (path === "events/owned-event") return Promise.resolve(owned);
+      return Promise.resolve(null);
+    });
+
+    await service.updateEvent("owned-event" as EventId, {
+      venue_string: "Updated by owner",
+    });
+    const event = await service.getEventById("owned-event" as EventId);
+    expect(event).not.toBeNull();
+    await service.setEventAccess(event!, "collaborator-1", "collaborator");
+
+    expect(firestoreAdapter.updateDocument).toHaveBeenCalledWith(
+      "events/owned-event",
+      expect.objectContaining({ venue_string: "Updated by owner" }),
+    );
+    expect(firestoreAdapter.setDocument).toHaveBeenCalledWith(
+      "events/owned-event/access/collaborator-1",
+      expect.objectContaining({
+        user_id: "collaborator-1",
+        role: "collaborator",
+        granted_by: "owner-1",
+      }),
+    );
+  });
+
+  it("lets an explicit viewer open a private event without edit rights", async () => {
+    const authService = TestBed.inject(AuthenticationService) as unknown as {
+      user: { uid: string; data: { isAdmin: boolean } };
+      isAdmin: ReturnType<typeof signal<boolean>>;
+    };
+    authService.user = { uid: "viewer-1", data: { isAdmin: false } };
+    authService.isAdmin.set(false);
+    const privateEvent = buildEventDoc(
+      "private-event",
+      "2026-06-01T10:00:00.000Z",
+      "2026-06-02T10:00:00.000Z",
+      {
+        owner: { type: "user", user_id: "owner-1" },
+        publication_state: "published",
+        visibility: "private",
+        discoverability: { audience: "none" },
+        viewer_policy: { audience: "invited" },
+      },
+    );
+    firestoreAdapter.getDocument.mockImplementation((path: string) => {
+      if (path === "events/private-event") return Promise.resolve(privateEvent);
+      if (path === "events/private-event/access/viewer-1") {
+        return Promise.resolve({ user_id: "viewer-1", role: "viewer" });
+      }
+      return Promise.resolve(null);
+    });
+
+    const event = await service.getEventById("private-event" as EventId);
+
+    expect(event?.id).toBe("private-event");
+    await expect(service.canEditEvent(event!)).resolves.toBe(false);
+  });
+
+  it("allows organization managers but not ordinary members to edit", async () => {
+    const authService = TestBed.inject(AuthenticationService) as unknown as {
+      user: { uid: string; data: { isAdmin: boolean } };
+      isAdmin: ReturnType<typeof signal<boolean>>;
+    };
+    authService.user = { uid: "manager-1", data: { isAdmin: false } };
+    authService.isAdmin.set(false);
+    const organizationEvent = buildEventDoc(
+      "organization-event",
+      "2026-06-01T10:00:00.000Z",
+      "2026-06-02T10:00:00.000Z",
+      {
+        owner: { type: "organization", organization_id: "club-1" },
+      },
+    );
+    firestoreAdapter.getDocument.mockImplementation((path: string) => {
+      if (path === "events/organization-event") {
+        return Promise.resolve(organizationEvent);
+      }
+      if (path === "organizations/club-1/members/manager-1") {
+        return Promise.resolve({ role: "admin" });
+      }
+      return Promise.resolve(null);
+    });
+
+    await service.updateEvent("organization-event" as EventId, {
+      venue_string: "Managed venue",
+    });
+
+    authService.user.uid = "member-1";
+    firestoreAdapter.getDocument.mockImplementation((path: string) => {
+      if (path === "events/organization-event") {
+        return Promise.resolve(organizationEvent);
+      }
+      if (path === "organizations/club-1/members/member-1") {
+        return Promise.resolve({ role: "member" });
+      }
+      return Promise.resolve(null);
+    });
+    await expect(
+      service.updateEvent("organization-event" as EventId, {
+        venue_string: "Member venue",
+      }),
+    ).rejects.toThrow("requires event editing privileges");
   });
 
   it("loads an organization's published events with current events first", async () => {

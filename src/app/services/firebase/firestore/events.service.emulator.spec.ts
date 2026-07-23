@@ -492,7 +492,11 @@ runWithEmulator("EventsService emulator integration", () => {
         schedule_mode: "single",
         lifecycle_status: "planned",
         priority: "normal",
-        attendance: { social: "rsvp", admission: "none" },
+        attendance: {
+          social: "rsvp",
+          admission: "none",
+          eligibility: { type: "everyone" },
+        },
         notification_policy: "all",
       }),
     );

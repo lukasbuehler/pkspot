@@ -5331,6 +5331,18 @@
         <target>Con tecnología de</target>
       </segment>
     </unit>
+    <unit id="event.attendance.invitation_required">
+      <segment state="initial">
+        <source> Invitation required </source>
+        <target> Se requiere invitación </target>
+      </segment>
+    </unit>
+    <unit id="event.attendance.organization_members_only">
+      <segment state="initial">
+        <source> Organization members only </source>
+        <target> Solo para miembros de la organización </target>
+      </segment>
+    </unit>
     <unit id="event_card.draft">
       <segment state="initial">
         <source>Draft</source>

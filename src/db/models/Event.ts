@@ -7,6 +7,7 @@ import {
   EventImageFit,
   EventAttendanceSchema,
   EventDisplayedLifecycleStatus,
+  EventDiscoverability,
   EventKind,
   EventLifecycleStatus,
   EventNotificationPolicy,
@@ -32,6 +33,7 @@ import {
   InlineEventSpotSchema,
   EventPublicationState,
   EventVisibility,
+  EventViewerPolicySchema,
 } from "../schemas/EventSchema";
 import {
   DEFAULT_EVENT_ATTENDANCE,
@@ -154,6 +156,8 @@ export class Event {
   readonly rsvpCounts: EventRSVPCountsSchema;
   readonly publicationState: EventPublicationState;
   readonly visibility: EventVisibility;
+  readonly discoverability: EventDiscoverability;
+  readonly viewerPolicy?: EventViewerPolicySchema;
   readonly kind: EventKind;
   readonly scheduleMode: EventScheduleMode;
   readonly lifecycleStatus: EventLifecycleStatus;
@@ -264,6 +268,14 @@ export class Event {
     this.publicationState =
       data.publication_state ?? (data.published === false ? "draft" : "published");
     this.visibility = data.visibility ?? "public";
+    this.discoverability =
+      data.discoverability ??
+      {
+        audience: this.visibility === "public" ? "global" : "none",
+      };
+    this.viewerPolicy =
+      data.viewer_policy ??
+      (this.visibility === "private" ? { audience: "invited" } : undefined);
     this.kind = data.kind ?? eventKindFromLegacyCategories(data.event_categories);
     this.scheduleMode = data.schedule_mode ?? "single";
     this.lifecycleStatus = data.lifecycle_status ?? "planned";

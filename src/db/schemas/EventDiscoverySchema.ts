@@ -49,6 +49,7 @@ export const EVENT_DISCOVERY_FIELDS = [
   "priority",
   "attendance",
   "notification_policy",
+  "discoverability",
   "start_seconds",
   "end_seconds",
   "promo_starts_at_seconds",
@@ -74,13 +75,16 @@ type EventDiscoveryField = (typeof EVENT_DISCOVERY_FIELDS)[number];
 export type EventDiscoverySchema = Pick<EventSchema, EventDiscoveryField> & {
   publication_state: "published";
   visibility: "public";
+  discoverability: { audience: "global" };
   published: true;
 };
 
 export const isEventPubliclyDiscoverable = (
   event: Partial<EventSchema>,
 ): boolean =>
-  eventIsPublished(event) && (event.visibility ?? "public") === "public";
+  eventIsPublished(event) &&
+  (event.visibility ?? "public") === "public" &&
+  (event.discoverability?.audience ?? "global") === "global";
 
 export const isEventOpenableByKnownReference = (
   event: Partial<EventSchema>,
@@ -109,6 +113,7 @@ export const buildEventDiscoveryProjection = (
   const projection: Partial<EventDiscoverySchema> = {
     publication_state: "published",
     visibility: "public",
+    discoverability: { audience: "global" },
     published: true,
   };
   const source = event as unknown as Record<string, unknown>;

@@ -186,11 +186,14 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   private _queryParamsSubscription?: Subscription;
   private _paramMapSubscription?: Subscription;
   private _eventLoadRequestVersion = 0;
+  private _eventAuthorizationRequestVersion = 0;
   private _spotsLoadRequestVersion = 0;
   private _challengeLoadRequestVersion = 0;
 
   /** The loaded event. Drives every visible field on the page. */
   event = signal<PkEvent | null>(null);
+  canEditEvent = signal(false);
+  canManageEvent = signal(false);
 
   selectedSpot = signal<Spot | LocalSpot | null>(null);
   selectedChallenge = signal<(SpotChallenge & { number: number }) | null>(null);
@@ -520,6 +523,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     }
 
     this.event.set(loaded);
+    void this._refreshEventAuthorization(loaded);
   }
 
   updateCompactView() {
@@ -988,13 +992,11 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   }
 
   // ---------------------------------------------------------------------
-  // Admin edit / delete handlers — wired to <app-event-edit-form>.
-  // The form is only rendered when isAdmin() && isEditingEvent() in the
-  // template, so the handlers below trust those preconditions.
+  // Owner / manager / collaborator edit handlers — wired to the shared form.
   // ---------------------------------------------------------------------
 
   startEditingEvent(): void {
-    if (!this.isAdmin()) return;
+    if (!this.canEditEvent()) return;
     this.isEditingEvent.set(true);
   }
 
@@ -1004,7 +1006,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   async onSaveEvent(patch: EventEditPatch): Promise<void> {
     const current = this.event();
-    if (!current || !this.isAdmin()) return;
+    if (!current || !this.canEditEvent()) return;
     this.isSavingEvent.set(true);
     try {
       await this._eventsService.updateEvent(current.id, patch);
@@ -1034,7 +1036,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   async onDeleteEvent(): Promise<void> {
     const current = this.event();
-    if (!current || !this.isAdmin()) return;
+    if (!current || !this.canManageEvent()) return;
     this.isSavingEvent.set(true);
     try {
       await this._eventsService.deleteEvent(current.id);
@@ -1054,6 +1056,25 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
       );
       this.isSavingEvent.set(false);
     }
+  }
+
+  private async _refreshEventAuthorization(event: PkEvent): Promise<void> {
+    const requestVersion = ++this._eventAuthorizationRequestVersion;
+    const fallback = this.isAdmin();
+    const [canEdit, canManage] = await Promise.all([
+      this._eventsService.canEditEvent?.(event).catch(() => false) ??
+        Promise.resolve(fallback),
+      this._eventsService.canManageEvent?.(event).catch(() => false) ??
+        Promise.resolve(fallback),
+    ]);
+    if (
+      requestVersion !== this._eventAuthorizationRequestVersion ||
+      this.event()?.id !== event.id
+    ) {
+      return;
+    }
+    this.canEditEvent.set(canEdit);
+    this.canManageEvent.set(canManage);
   }
 
   private _safeExternalUrl(value: string | undefined): string | null {
