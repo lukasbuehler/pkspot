@@ -106,6 +106,7 @@ export class FirebaseAppCheckService {
   });
   private readonly app = inject(FirebaseApp);
   private initializationPromise: Promise<void> | null = null;
+  private webAppCheck: AppCheck | null = null;
   private readonly _status = signal<FirebaseAppCheckStatus>({
     state: "idle",
   });
@@ -126,6 +127,24 @@ export class FirebaseAppCheckService {
       },
     );
     return this.initializationPromise;
+  }
+
+  async getTokenForRequest(): Promise<string> {
+    await this.initialize();
+
+    if (this.platformService.getPlatform() !== "web") {
+      return (await FirebaseAppCheck.getToken()).token;
+    }
+
+    const appCheck = this.webAppCheck;
+    if (!appCheck) {
+      throw new Error("Web App Check is not initialized.");
+    }
+
+    return runInInjectionContext(
+      this.injector,
+      async () => (await getToken(appCheck)).token,
+    );
   }
 
   private async initializeOnce(
@@ -190,6 +209,7 @@ export class FirebaseAppCheckService {
       this.logFailure(platform, "initialize", error);
       return;
     }
+    this.webAppCheck = appCheck;
 
     await this.verifyWebToken(appCheck, platform, settings);
   }

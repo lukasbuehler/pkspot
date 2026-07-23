@@ -201,7 +201,7 @@ export class GooglePlacePreviewComponent {
     } else {
       try {
         this.loading.set(true);
-        const details = await this._maps.getGooglePlaceById(id);
+        const details = await this._maps.getGooglePlaceById(id, "rich");
         this.place.set(details);
       } catch (e: unknown) {
         console.warn("Failed to load Google Place details", e);

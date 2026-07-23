@@ -868,7 +868,10 @@ export class EventEditFormComponent {
     }
 
     try {
-      const place = await this._mapsApiService.getGooglePlaceById(option.id);
+      const place = await this._mapsApiService.getGooglePlaceById(
+        option.id,
+        "location",
+      );
       const location = place.location;
       const lat = location?.lat();
       const lng = location?.lng();

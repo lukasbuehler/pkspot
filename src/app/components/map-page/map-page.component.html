@@ -299,7 +299,6 @@
         [contextLabel]="searchContextLabel()"
         (spotSelected)="openSpotOrGooglePlace($event)"
         (contextClear)="onSearchContextClear()"
-        (placePreviewChange)="onSearchPlacePreviewChange($event)"
         (communityPreviewChange)="onSearchCommunityPreviewChange($event)"
       ></app-search-field>
     </div>
@@ -374,7 +373,6 @@
           [contextLabel]="searchContextLabel()"
           (spotSelected)="openSpotOrGooglePlace($event)"
           (contextClear)="onSearchContextClear()"
-          (placePreviewChange)="onSearchPlacePreviewChange($event)"
           (communityPreviewChange)="onSearchCommunityPreviewChange($event)"
         ></app-search-field>
       </div>

@@ -227,3 +227,5 @@ __pycache__
 /fastlane/*api_key*.json
 
 .playwright-cli/*
+
+*.p8

@@ -111,7 +111,6 @@ interface SearchFieldResults {
   placesLoaded: boolean;
   displayedPlace: google.maps.places.AutocompletePrediction | null;
   displayedPlacePlacement: "top" | "bottom";
-  previewPlaceId: string | null;
   previewCommunity: CommunitySearchPreview | null;
   spotsLoaded: boolean;
   spots: SearchSpotResults | null;
@@ -150,14 +149,12 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
   contextLabel = input<string | null>(null);
 
   spotSelected = output<SearchSelection>();
-  placePreviewChange = output<string | null>();
   communityPreviewChange = output<CommunitySearchPreview | null>();
   contextClear = output<void>();
 
   private _searchService = inject(SearchService);
   private _spotSearchSubscription?: Subscription;
   private readonly _minSearchQueryLength = 2;
-  private _lastPreviewPlaceId: string | null = null;
   private _lastPreviewCommunityKey: string | null = null;
   private readonly _locationLikePlaceTypes = new Set([
     "geocode",
@@ -330,7 +327,6 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
       )
       .subscribe((results) => {
         this.spotAndPlaceSearchResults$.next(results);
-        this.emitPlacePreviewChange(results?.previewPlaceId ?? null);
         this.emitCommunityPreviewChange(results?.previewCommunity ?? null);
       });
   }
@@ -351,7 +347,6 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
       placesLoaded: true,
       displayedPlace: null,
       displayedPlacePlacement: "top",
-      previewPlaceId: null,
       previewCommunity: null,
       spotsLoaded: true,
       spots: null,
@@ -408,10 +403,6 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
         !this.isGoodLocationMatch(displayedPlace, state.query)
           ? "bottom"
           : "top",
-      previewPlaceId:
-        displayedPlace && this.isLocationLikePlace(displayedPlace)
-          ? displayedPlace.place_id
-          : null,
       previewCommunity,
       spotsLoaded: state.spotsLoaded,
       spots: spotResults,
@@ -419,7 +410,6 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.emitPlacePreviewChange(null);
     this.emitCommunityPreviewChange(null);
     this.spotAndPlaceSearchResults$.complete();
     this._spotSearchSubscription?.unsubscribe();
@@ -428,7 +418,6 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
   optionSelected(event: MatAutocompleteSelectedEvent) {
     console.log("optionSelected:", event);
 
-    this.emitPlacePreviewChange(null);
     this.emitCommunityPreviewChange(null);
     this.spotSearchControl.setValue("");
 
@@ -451,15 +440,6 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
       results.spotsLoaded &&
       results.placesLoaded
     );
-  }
-
-  private emitPlacePreviewChange(placeId: string | null): void {
-    if (this._lastPreviewPlaceId === placeId) {
-      return;
-    }
-
-    this._lastPreviewPlaceId = placeId;
-    this.placePreviewChange.emit(placeId);
   }
 
   private emitCommunityPreviewChange(

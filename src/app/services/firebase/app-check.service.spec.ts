@@ -209,6 +209,26 @@ describe("FirebaseAppCheckService", () => {
     expect(FirebaseAppCheck.initialize).not.toHaveBeenCalled();
   });
 
+  it("returns a web token for Google Maps requests", async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        FirebaseAppCheckService,
+        { provide: FirebaseApp, useValue: {} },
+        { provide: PLATFORM_ID, useValue: "browser" },
+        { provide: PlatformService, useValue: createPlatformService("web") },
+      ],
+    });
+
+    const service = TestBed.inject(FirebaseAppCheckService);
+    await service.initialize({
+      enabled: true,
+      recaptchaEnterpriseSiteKey: "site-key",
+    });
+
+    await expect(service.getTokenForRequest()).resolves.toBe("web-token");
+    expect(getToken).toHaveBeenCalledTimes(2);
+  });
+
   it("does not resolve web initialization before token verification settles", async () => {
     let resolveToken!: (value: { token: string }) => void;
     vi.mocked(getToken).mockReturnValueOnce(
@@ -464,7 +484,10 @@ describe("FirebaseAppCheckService", () => {
         FirebaseAppCheckService,
         { provide: FirebaseApp, useValue: {} },
         { provide: PLATFORM_ID, useValue: "browser" },
-        { provide: PlatformService, useValue: createPlatformService("android") },
+        {
+          provide: PlatformService,
+          useValue: createPlatformService("android"),
+        },
       ],
     });
 
@@ -477,6 +500,23 @@ describe("FirebaseAppCheckService", () => {
     });
     expect(FirebaseAppCheck.getToken).toHaveBeenCalledWith();
     expect(initializeAppCheck).not.toHaveBeenCalled();
+  });
+
+  it("returns a native token for Google Maps requests", async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        FirebaseAppCheckService,
+        { provide: FirebaseApp, useValue: {} },
+        { provide: PLATFORM_ID, useValue: "browser" },
+        { provide: PlatformService, useValue: createPlatformService("android") },
+      ],
+    });
+
+    const service = TestBed.inject(FirebaseAppCheckService);
+    await service.initialize({ enabled: true });
+
+    await expect(service.getTokenForRequest()).resolves.toBe("native-token");
+    expect(FirebaseAppCheck.getToken).toHaveBeenCalledTimes(2);
   });
 
   it("logs a native App Check token failure without failing initialization", async () => {

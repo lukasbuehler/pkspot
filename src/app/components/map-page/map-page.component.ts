@@ -335,7 +335,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   allSpotChallenges: WritableSignal<SpotChallenge[]> = signal([]);
   showSpotEditHistory: WritableSignal<boolean> = signal(false);
   private _routeChallengeId: string | null = null;
-  searchPreviewPlaceId = signal<string | null>(null);
 
   mapPanelView = computed<MapPanelView>(() =>
     getMapPanelView({
@@ -1728,7 +1727,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** MatDialog for opening the custom filter dialog */
   private _dialog = inject(MatDialog);
-  private _searchPreviewRequestVersion = 0;
 
   /**
    * Google POI clicks are intentionally disabled for now.
@@ -2249,48 +2247,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         });
         this._lastFocusedCommunityKey = communityLanding.communityKey;
       }
-    });
-
-    effect((onCleanup) => {
-      const isMapReady = this.mapReady();
-      const placeId = this.searchPreviewPlaceId();
-
-      if (!isMapReady || !this.spotMap || !placeId) {
-        return;
-      }
-
-      const requestVersion = ++this._searchPreviewRequestVersion;
-      let isCancelled = false;
-
-      this.mapsService
-        .getGooglePlaceById(placeId)
-        .then((place) => {
-          if (isCancelled) {
-            return;
-          }
-
-          if (requestVersion !== this._searchPreviewRequestVersion) {
-            return;
-          }
-
-          if (this.searchPreviewPlaceId() !== placeId) {
-            return;
-          }
-
-          this._focusGooglePlace(place);
-        })
-        .catch((error) => {
-          if (!isCancelled) {
-            console.error(
-              "[ERROR search place preview] Error fetching place:",
-              error,
-            );
-          }
-        });
-
-      onCleanup(() => {
-        isCancelled = true;
-      });
     });
 
     effect(() => {
@@ -2964,8 +2920,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       event_filter: this.selectedEventFilter() || null,
       map_object_mode: this.mapObjectMode(),
     });
-    this.clearSearchPlacePreview();
-
     if (value.type === "place") {
       this.openGooglePlaceById(value.id);
       return;
@@ -3016,33 +2970,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.searchPreviewCommunity.set(community);
   }
 
-  onSearchPlacePreviewChange(placeId: string | null) {
-    if (placeId === this.searchPreviewPlaceId()) {
-      return;
-    }
-
-    if (!placeId) {
-      this.clearSearchPlacePreview();
-      return;
-    }
-
-    this.searchPreviewPlaceId.set(placeId);
-  }
-
-  private clearSearchPlacePreview() {
-    this._searchPreviewRequestVersion += 1;
-    this.searchPreviewPlaceId.set(null);
-  }
-
   openGooglePlaceById(id: string) {
-    this.clearSearchPlacePreview();
     this._analytics.trackEvent("map_google_place_opened", {
       place_id: id,
       source: "search",
     });
     console.debug("[DEBUG openGooglePlaceById] Opening place with id:", id);
     this.mapsService
-      .getGooglePlaceById(id)
+      .getGooglePlaceById(id, "location")
       .then((place) => {
         console.debug("[DEBUG openGooglePlaceById] Got place:", place);
         this._focusGooglePlace(place);
@@ -4911,6 +4846,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       if (community.googleMapsPlaceId) {
         const place = await this.mapsService.getGooglePlaceById(
           community.googleMapsPlaceId,
+          "location",
         );
         const viewport =
           (place as { viewport?: google.maps.LatLngBounds | null }).viewport ??

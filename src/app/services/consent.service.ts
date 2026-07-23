@@ -17,7 +17,7 @@ export class ConsentService {
   private _platformId = inject(PLATFORM_ID);
 
   // constant for current terms version
-  public CURRENT_TERMS_VERSION = "5";
+  public CURRENT_TERMS_VERSION = "6";
 
   constructor() {
     // Check consent status on initialization
