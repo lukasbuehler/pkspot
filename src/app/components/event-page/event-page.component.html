@@ -10,6 +10,9 @@
     ></app-event-edit-form>
     @if (canManageEvent() && event(); as managedEvent) {
       <app-event-access-manager [event]="managedEvent" />
+      @if (managedEvent.attendance.admission === "registration") {
+        <app-event-registration-manager [event]="managedEvent" />
+      }
     }
   </section>
 } @else if (event(); as event) {
@@ -132,14 +135,19 @@
             }
           </div>
 
-          @if (showRsvp()) {
+          @if (showRsvp() || showRegistration()) {
             <div class="event-attendee-actions">
-              <app-event-rsvp
-                [eventId]="event.id"
-                [counts]="event.rsvpCounts"
-                [defaultNotificationLevel]="event.notificationPolicy"
-                (rsvpChanged)="currentRsvp.set($event)"
-              ></app-event-rsvp>
+              @if (showRsvp()) {
+                <app-event-rsvp
+                  [eventId]="event.id"
+                  [counts]="event.rsvpCounts"
+                  [defaultNotificationLevel]="event.notificationPolicy"
+                  (rsvpChanged)="currentRsvp.set($event)"
+                ></app-event-rsvp>
+              }
+              @if (showRegistration()) {
+                <app-event-registration [event]="event" />
+              }
               <app-event-live-update-controls
                 [event]="event"
               ></app-event-live-update-controls>

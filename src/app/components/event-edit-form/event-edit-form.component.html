@@ -1119,6 +1119,155 @@
 
       <mat-divider />
 
+      <!-- ----------------- Attendance + notifications ----------------- -->
+      <div class="access-settings">
+        <div>
+          <h4 class="mat-title-small m-0" i18n="@@event_edit.attendance_heading">
+            Attendance and registration
+          </h4>
+          <p class="mat-body-small text-muted m-0" i18n="@@event_edit.attendance_hint">
+            Social responses express intent. Registration separately controls
+            confirmed admission and capacity.
+          </p>
+        </div>
+
+        <div class="d-flex flex-row gap-2 flex-wrap">
+          <mat-form-field appearance="outline" class="flex-grow-1">
+            <mat-label i18n="@@event_edit.social_attendance">
+              Social response
+            </mat-label>
+            <mat-select formControlName="attendance_social">
+              <mat-option value="rsvp" i18n="@@event_edit.social_attendance.rsvp">
+                Going / Interested
+              </mat-option>
+              <mat-option value="none" i18n="@@event_edit.social_attendance.none">
+                No social response
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="flex-grow-1">
+            <mat-label i18n="@@event_edit.admission">Admission</mat-label>
+            <mat-select formControlName="attendance_admission">
+              <mat-option value="none" i18n="@@event_edit.admission.none">
+                No registration
+              </mat-option>
+              <mat-option
+                value="registration"
+                i18n="@@event_edit.admission.registration"
+              >
+                Registration
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        @if (form.value.attendance_admission === "registration") {
+          <div class="d-flex flex-row gap-2 flex-wrap align-items-center">
+            <mat-form-field appearance="outline" class="flex-grow-1">
+              <mat-label i18n="@@event_edit.registration_capacity">
+                Capacity
+              </mat-label>
+              <input
+                matInput
+                type="number"
+                min="1"
+                step="1"
+                formControlName="attendance_capacity"
+              />
+              <mat-hint i18n="@@event_edit.registration_capacity_hint">
+                Leave empty for unlimited registration.
+              </mat-hint>
+              @if (form.controls["attendance_capacity"].hasError("positiveInteger")) {
+                <mat-error i18n="@@event_edit.registration_capacity_invalid">
+                  Capacity must be a positive whole number.
+                </mat-error>
+              }
+            </mat-form-field>
+            @if (form.value.attendance_capacity) {
+              <mat-checkbox
+                formControlName="attendance_waitlist"
+                i18n="@@event_edit.registration_waitlist"
+              >
+                Allow a waitlist when full
+              </mat-checkbox>
+            }
+          </div>
+        }
+
+        <mat-form-field appearance="outline">
+          <mat-label i18n="@@event_edit.attendance_eligibility">
+            Who may attend?
+          </mat-label>
+          <mat-select formControlName="attendance_eligibility">
+            <mat-option value="everyone" i18n="@@event_edit.attendance_eligibility.everyone">
+              Everyone who can open the event
+            </mat-option>
+            <mat-option value="invited" i18n="@@event_edit.attendance_eligibility.invited">
+              Invited people
+            </mat-option>
+            <mat-option
+              value="organization_members"
+              i18n="@@event_edit.attendance_eligibility.organization_members"
+            >
+              Members of an organization
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        @if (form.value.attendance_eligibility === "organization_members") {
+          <mat-form-field appearance="outline">
+            <mat-label i18n="@@event_edit.attendance_organization">
+              Attendee organization
+            </mat-label>
+            <mat-select formControlName="attendance_organization_id">
+              @for (organization of organizations(); track organization.id) {
+                <mat-option [value]="organization.id">
+                  {{ organization.name }}
+                </mat-option>
+              }
+            </mat-select>
+            @if (form.controls["attendance_organization_id"].hasError("required")) {
+              <mat-error i18n="@@event_edit.attendance_organization_required">
+                Select an organization.
+              </mat-error>
+            }
+          </mat-form-field>
+        }
+
+        <mat-form-field appearance="outline">
+          <mat-label i18n="@@event_edit.notification_policy">
+            Default event notifications
+          </mat-label>
+          <mat-select formControlName="notification_policy">
+            <mat-option value="all" i18n="@@event_edit.notification_policy.all">
+              Updates and reminders
+            </mat-option>
+            <mat-option
+              value="event_updates"
+              i18n="@@event_edit.notification_policy.updates"
+            >
+              Organizer updates
+            </mat-option>
+            <mat-option
+              value="reminders"
+              i18n="@@event_edit.notification_policy.reminders"
+            >
+              Attendance reminders
+            </mat-option>
+            <mat-option value="none" i18n="@@event_edit.notification_policy.none">
+              No event notifications
+            </mat-option>
+          </mat-select>
+          <mat-hint i18n="@@event_edit.notification_policy_hint">
+            Going, Interested, and Registered users receive this default unless
+            they choose a different event setting.
+          </mat-hint>
+        </mat-form-field>
+      </div>
+
+      <mat-divider />
+
       <!-- ----------------- Series + qualification ----------------- -->
       <mat-expansion-panel class="nested-panel">
         <mat-expansion-panel-header>

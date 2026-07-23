@@ -1,6 +1,20 @@
 {
   "indexes": [
     {
+      "collectionGroup": "registrations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "waitlisted_at",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "notification_intents",
       "queryScope": "COLLECTION",
       "fields": [

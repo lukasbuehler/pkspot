@@ -757,6 +757,11 @@
         <source>Password Reset Successful</source>
       </segment>
     </unit>
+    <unit id="8207599167060948466">
+      <segment>
+        <source>{VAR_PLURAL, plural, =1 {1 person on the waitlist} other {<ph id="0" equiv="INTERPOLATION"/> people on the waitlist}}</source>
+      </segment>
+    </unit>
     <unit id="8207799228641053586">
       <segment>
         <source>Failed to update community card suggestion</source>
@@ -2312,9 +2317,64 @@
         <source> Publication controls whether the event is ready. Visibility controls who can find and open it. </source>
       </segment>
     </unit>
+    <unit id="event_edit.admission">
+      <segment>
+        <source>Admission</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.admission.none">
+      <segment>
+        <source> No registration </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.admission.registration">
+      <segment>
+        <source> Registration </source>
+      </segment>
+    </unit>
     <unit id="event_edit.area_label">
       <segment>
         <source> Meeting point and event area </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.attendance_eligibility">
+      <segment>
+        <source> Who may attend? </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.attendance_eligibility.everyone">
+      <segment>
+        <source> Everyone who can open the event </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.attendance_eligibility.invited">
+      <segment>
+        <source> Invited people </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.attendance_eligibility.organization_members">
+      <segment>
+        <source> Members of an organization </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.attendance_heading">
+      <segment>
+        <source> Attendance and registration </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.attendance_hint">
+      <segment>
+        <source> Social responses express intent. Registration separately controls confirmed admission and capacity. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.attendance_organization">
+      <segment>
+        <source> Attendee organization </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.attendance_organization_required">
+      <segment>
+        <source> Select an organization. </source>
       </segment>
     </unit>
     <unit id="event_edit.banner_accent">
@@ -2857,6 +2917,36 @@
         <source> Name is required. </source>
       </segment>
     </unit>
+    <unit id="event_edit.notification_policy">
+      <segment>
+        <source> Default event notifications </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.notification_policy.all">
+      <segment>
+        <source> Updates and reminders </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.notification_policy.none">
+      <segment>
+        <source> No event notifications </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.notification_policy.reminders">
+      <segment>
+        <source> Attendance reminders </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.notification_policy.updates">
+      <segment>
+        <source> Organizer updates </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.notification_policy_hint">
+      <segment>
+        <source> Going, Interested, and Registered users receive this default unless they choose a different event setting. </source>
+      </segment>
+    </unit>
     <unit id="event_edit.optional_section">
       <segment>
         <source> Optional details </source>
@@ -3027,6 +3117,26 @@
         <source>Remove qualification target</source>
       </segment>
     </unit>
+    <unit id="event_edit.registration_capacity">
+      <segment>
+        <source> Capacity </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.registration_capacity_hint">
+      <segment>
+        <source> Leave empty for unlimited registration. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.registration_capacity_invalid">
+      <segment>
+        <source> Capacity must be a positive whole number. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.registration_waitlist">
+      <segment>
+        <source> Allow a waitlist when full </source>
+      </segment>
+    </unit>
     <unit id="event_edit.required_section">
       <segment>
         <source> Essentials </source>
@@ -3170,6 +3280,21 @@
     <unit id="event_edit.snackbar.saved">
       <segment>
         <source>Event saved.</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.social_attendance">
+      <segment>
+        <source> Social response </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.social_attendance.none">
+      <segment>
+        <source> No social response </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.social_attendance.rsvp">
+      <segment>
+        <source> Going / Interested </source>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_logo">
@@ -3920,6 +4045,121 @@
     <unit id="event_qualification.show_more">
       <segment>
         <source>Show more</source>
+      </segment>
+    </unit>
+    <unit id="event_registration.cancel">
+      <segment>
+        <source>Cancel registration</source>
+      </segment>
+    </unit>
+    <unit id="event_registration.cancel_failed">
+      <segment>
+        <source>Couldn&apos;t cancel your registration. Try again in a moment.</source>
+      </segment>
+    </unit>
+    <unit id="event_registration.full">
+      <segment>
+        <source>Full</source>
+      </segment>
+    </unit>
+    <unit id="event_registration.join_waitlist">
+      <segment>
+        <source>Join waitlist</source>
+      </segment>
+    </unit>
+    <unit id="event_registration.load_failed">
+      <segment>
+        <source>Couldn&apos;t load your registration.</source>
+      </segment>
+    </unit>
+    <unit id="event_registration.people_registered">
+      <segment>
+        <source> registered </source>
+      </segment>
+    </unit>
+    <unit id="event_registration.places_filled">
+      <segment>
+        <source>places filled</source>
+      </segment>
+    </unit>
+    <unit id="event_registration.register">
+      <segment>
+        <source>Register</source>
+      </segment>
+    </unit>
+    <unit id="event_registration.register_failed">
+      <segment>
+        <source>Couldn&apos;t register. Try again in a moment.</source>
+      </segment>
+    </unit>
+    <unit id="event_registration.registered">
+      <segment>
+        <source>Registered</source>
+      </segment>
+    </unit>
+    <unit id="event_registration.sign_in">
+      <segment>
+        <source>Sign in to register</source>
+      </segment>
+    </unit>
+    <unit id="event_registration.waitlist_count">
+      <segment>
+        <source> <ph id="0" equiv="ICU" disp="{admissionState().waitlisted, plural, =1 {1 person on the waitlist} other {{{admissionState().waitlisted}} people on the waitlist} }" subFlows="8821330276753482869"/> </source>
+      </segment>
+    </unit>
+    <unit id="event_registration.waitlisted">
+      <segment>
+        <source>Waitlisted</source>
+      </segment>
+    </unit>
+    <unit id="event_registration_manager.cancel">
+      <segment>
+        <source>Cancel</source>
+      </segment>
+    </unit>
+    <unit id="event_registration_manager.cancel_failed">
+      <segment>
+        <source>Registration could not be cancelled.</source>
+      </segment>
+    </unit>
+    <unit id="event_registration_manager.description">
+      <segment>
+        <source> Confirmed attendees and the waitlist. Cancelling a confirmed place automatically promotes the oldest eligible waiter. </source>
+      </segment>
+    </unit>
+    <unit id="event_registration_manager.empty">
+      <segment>
+        <source> No registrations yet. </source>
+      </segment>
+    </unit>
+    <unit id="event_registration_manager.heading">
+      <segment>
+        <source> Registrations </source>
+      </segment>
+    </unit>
+    <unit id="event_registration_manager.load_failed">
+      <segment>
+        <source>Registrations could not be loaded.</source>
+      </segment>
+    </unit>
+    <unit id="event_registration_manager.loading">
+      <segment>
+        <source> Loading registrations… </source>
+      </segment>
+    </unit>
+    <unit id="event_registration_manager.status.cancelled">
+      <segment>
+        <source>Cancelled</source>
+      </segment>
+    </unit>
+    <unit id="event_registration_manager.status.registered">
+      <segment>
+        <source>Registered</source>
+      </segment>
+    </unit>
+    <unit id="event_registration_manager.status.waitlisted">
+      <segment>
+        <source>Waitlisted</source>
       </segment>
     </unit>
     <unit id="event_rsvp.clear">

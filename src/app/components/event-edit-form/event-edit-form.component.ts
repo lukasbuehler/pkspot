@@ -55,6 +55,10 @@ import {
   EventProgramSpotRefSchema,
   EventProgramItemStatus,
   EventOwnerSchema,
+  EventAdmissionMode,
+  EventAttendanceEligibilitySchema,
+  EventNotificationPolicy,
+  EventSocialAttendanceMode,
   EventSchema,
   InlineEventSpotSchema,
   EventQualificationPathSchema,
@@ -389,6 +393,15 @@ export class EventEditFormComponent {
     owner_type: ["user" as EventOwnerSchema["type"] | ""],
     owner_user_id: [""],
     owner_organization_id: [""],
+    attendance_social: ["rsvp" as EventSocialAttendanceMode],
+    attendance_admission: ["none" as EventAdmissionMode],
+    attendance_capacity: [null as number | null],
+    attendance_waitlist: [false],
+    attendance_eligibility: [
+      "everyone" as EventAttendanceEligibilitySchema["type"],
+    ],
+    attendance_organization_id: [""],
+    notification_policy: ["all" as EventNotificationPolicy],
     banner_src: [""],
     banner_fit: ["cover"],
     banner_accent_color: [""],
@@ -616,6 +629,13 @@ export class EventEditFormComponent {
           owner_type: "user",
           owner_user_id: this._authService.user?.uid ?? "",
           owner_organization_id: "",
+          attendance_social: "rsvp",
+          attendance_admission: "none",
+          attendance_capacity: null,
+          attendance_waitlist: false,
+          attendance_eligibility: "everyone",
+          attendance_organization_id: "",
+          notification_policy: "all",
           banner_fit: "cover",
           logo_fit: "contain",
           sponsor_logo_fit: "contain",
@@ -681,6 +701,16 @@ export class EventEditFormComponent {
           e.owner?.type === "organization"
             ? e.owner.organization_id
             : "",
+        attendance_social: e.attendance.social,
+        attendance_admission: e.attendance.admission,
+        attendance_capacity: e.attendance.capacity ?? null,
+        attendance_waitlist: e.attendance.waitlist ?? false,
+        attendance_eligibility: e.attendance.eligibility?.type ?? "everyone",
+        attendance_organization_id:
+          e.attendance.eligibility?.type === "organization_members"
+            ? e.attendance.eligibility.organization_id
+            : "",
+        notification_policy: e.notificationPolicy,
         banner_src: e.bannerSrc ?? "",
         banner_fit: e.bannerFit,
         banner_accent_color: e.bannerAccentColor ?? "",
@@ -1820,6 +1850,29 @@ export class EventEditFormComponent {
       this.form.controls["viewer_organization_id"].markAsTouched();
       return;
     }
+    if (
+      v.attendance_admission === "registration" &&
+      v.attendance_capacity !== null &&
+      v.attendance_capacity !== undefined &&
+      (!Number.isInteger(Number(v.attendance_capacity)) ||
+        Number(v.attendance_capacity) <= 0)
+    ) {
+      this.form.controls["attendance_capacity"].setErrors({
+        positiveInteger: true,
+      });
+      this.form.controls["attendance_capacity"].markAsTouched();
+      return;
+    }
+    if (
+      v.attendance_eligibility === "organization_members" &&
+      !v.attendance_organization_id
+    ) {
+      this.form.controls["attendance_organization_id"].setErrors({
+        required: true,
+      });
+      this.form.controls["attendance_organization_id"].markAsTouched();
+      return;
+    }
 
     const patch: EventEditPatch = {
       ...this._buildLocationPatch(v.location_lat, v.location_lng),
@@ -1851,6 +1904,26 @@ export class EventEditFormComponent {
               }
             : { audience: "invited" }
           : undefined,
+      attendance: {
+        social: v.attendance_social ?? "rsvp",
+        admission: v.attendance_admission ?? "none",
+        eligibility:
+          v.attendance_eligibility === "organization_members"
+            ? {
+                type: "organization_members",
+                organization_id: v.attendance_organization_id!,
+              }
+            : v.attendance_eligibility === "invited"
+              ? { type: "invited" }
+              : { type: "everyone" },
+        ...(v.attendance_admission === "registration"
+          ? {
+              capacity: positiveIntegerOrUndefined(v.attendance_capacity),
+              waitlist: v.attendance_waitlist === true,
+            }
+          : {}),
+      },
+      notification_policy: v.notification_policy ?? "all",
       ...(owner ? { owner } : {}),
       banner_src: trimOrUndefined(v.banner_src),
       banner_fit: v.banner_fit ?? "cover",
@@ -2568,6 +2641,15 @@ function trimOrUndefined(value: string | null | undefined): string | undefined {
 
 function numberOrUndefined(value: number | null | undefined): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function positiveIntegerOrUndefined(
+  value: number | null | undefined,
+): number | undefined {
+  const parsed = numberOrUndefined(value);
+  return parsed !== undefined && Number.isInteger(parsed) && parsed > 0
+    ? parsed
+    : undefined;
 }
 
 function spotPreviewLocation(

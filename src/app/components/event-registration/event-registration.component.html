@@ -1,0 +1,73 @@
+<div class="event-registration">
+  <div class="registration-summary" aria-live="polite">
+    @if (activeStatus() === "registered") {
+      <span class="registration-status registration-status--registered">
+        <mat-icon aria-hidden="true">confirmation_number</mat-icon>
+        <strong i18n="@@event_registration.registered">Registered</strong>
+      </span>
+    } @else if (activeStatus() === "waitlisted") {
+      <span class="registration-status registration-status--waitlisted">
+        <mat-icon aria-hidden="true">hourglass_top</mat-icon>
+        <strong i18n="@@event_registration.waitlisted">Waitlisted</strong>
+      </span>
+    } @else if (capacity(); as capacity) {
+      <span class="mat-label-medium">
+        <strong>{{ admissionState().registered }}</strong> /
+        {{ capacity }}
+        <span i18n="@@event_registration.places_filled">places filled</span>
+      </span>
+    } @else {
+      <span class="mat-label-medium">
+        <strong>{{ admissionState().registered }}</strong>
+        <span i18n="@@event_registration.people_registered">
+          registered
+        </span>
+      </span>
+    }
+
+    @if (activeStatus()) {
+      <button
+        mat-stroked-button
+        type="button"
+        [disabled]="isSaving()"
+        (click)="cancel()"
+      >
+        <span i18n="@@event_registration.cancel">Cancel registration</span>
+      </button>
+    } @else if (isSignedIn()) {
+      <button
+        mat-flat-button
+        type="button"
+        [disabled]="isSaving() || (eventIsFull() && !canJoinWaitlist())"
+        (click)="register()"
+      >
+        <mat-icon>how_to_reg</mat-icon>
+        @if (canJoinWaitlist()) {
+          <span i18n="@@event_registration.join_waitlist">Join waitlist</span>
+        } @else if (eventIsFull()) {
+          <span i18n="@@event_registration.full">Full</span>
+        } @else {
+          <span i18n="@@event_registration.register">Register</span>
+        }
+      </button>
+    } @else {
+      <a mat-flat-button routerLink="/sign-in">
+        <mat-icon>login</mat-icon>
+        <span i18n="@@event_registration.sign_in">Sign in to register</span>
+      </a>
+    }
+  </div>
+
+  @if (admissionState().waitlisted > 0) {
+    <span class="mat-label-small text-muted" i18n="@@event_registration.waitlist_count">
+      {admissionState().waitlisted, plural,
+        =1 {1 person on the waitlist}
+        other {{{admissionState().waitlisted}} people on the waitlist}
+      }
+    </span>
+  }
+
+  @if (errorMessage()) {
+    <span class="registration-error mat-label-small">{{ errorMessage() }}</span>
+  }
+</div>

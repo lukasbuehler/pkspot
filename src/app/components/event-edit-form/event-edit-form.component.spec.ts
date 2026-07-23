@@ -221,6 +221,55 @@ describe("EventEditFormComponent", () => {
     );
   });
 
+  it("emits registration, capacity, eligibility, and notification settings", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+    await fixture.whenStable();
+
+    component.form.patchValue({
+      name: "Member class",
+      venue_string: "Gym",
+      locality_string: "Zurich",
+      location_lat: 47.3769,
+      location_lng: 8.5417,
+      start_date: new Date("2026-08-01T10:00:00.000Z"),
+      start_time: new Date("2026-08-01T10:00:00.000Z"),
+      end_date: new Date("2026-08-01T12:00:00.000Z"),
+      end_time: new Date("2026-08-01T12:00:00.000Z"),
+      published: true,
+      owner_type: "user",
+      owner_user_id: "owner-1",
+      attendance_social: "none",
+      attendance_admission: "registration",
+      attendance_capacity: 20,
+      attendance_waitlist: true,
+      attendance_eligibility: "organization_members",
+      attendance_organization_id: "club-1",
+      notification_policy: "reminders",
+    });
+
+    component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        attendance: {
+          social: "none",
+          admission: "registration",
+          capacity: 20,
+          waitlist: true,
+          eligibility: {
+            type: "organization_members",
+            organization_id: "club-1",
+          },
+        },
+        notification_policy: "reminders",
+      }),
+    );
+  });
+
   it("emits a deletion marker when all existing event descriptions are removed", async () => {
     const fixture = await setup();
     const component = fixture.componentInstance;

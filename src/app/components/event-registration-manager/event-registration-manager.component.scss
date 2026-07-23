@@ -1,0 +1,66 @@
+.registration-card {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 18px;
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+}
+
+.registration-card__heading,
+.registration-loading,
+.registration-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.registration-card__icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border-radius: 13px;
+  color: var(--mat-sys-on-primary);
+  background: var(--mat-sys-primary);
+}
+
+.registration-list {
+  display: grid;
+  gap: 8px;
+}
+
+.registration-row {
+  padding: 8px 0;
+  border-top: 1px solid color-mix(in srgb, var(--mat-sys-primary) 35%, transparent);
+}
+
+.registration-row app-profile-button {
+  flex: 1;
+  min-width: 0;
+}
+
+.registration-status {
+  color: var(--mat-sys-primary);
+}
+
+.registration-row[data-status="registered"] .registration-status {
+  color: var(--mat-sys-secondary);
+}
+
+.registration-row[data-status="cancelled"] {
+  opacity: 0.68;
+}
+
+.registration-error {
+  color: var(--mat-sys-error);
+}
+
+@media (max-width: 600px) {
+  .registration-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+}

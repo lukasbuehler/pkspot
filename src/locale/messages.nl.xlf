@@ -5721,10 +5721,76 @@
         <target> Publicatie bepaalt of het evenement klaar is. Zichtbaarheid bepaalt wie het kan vinden en openen. </target>
       </segment>
     </unit>
+    <unit id="event_edit.admission">
+      <segment state="initial">
+        <source>Admission</source>
+        <target>Toelating</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.admission.none">
+      <segment state="initial">
+        <source> No registration </source>
+        <target> Geen inschrijving </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.admission.registration">
+      <segment state="initial">
+        <source> Registration </source>
+        <target> Inschrijving </target>
+      </segment>
+    </unit>
     <unit id="event_edit.area_label">
       <segment state="initial">
         <source> Meeting point and event area </source>
         <target> Evenementgebied </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.attendance_eligibility">
+      <segment state="initial">
+        <source> Who may attend? </source>
+        <target> Wie mag deelnemen? </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.attendance_eligibility.everyone">
+      <segment state="initial">
+        <source> Everyone who can open the event </source>
+        <target> Iedereen die het evenement kan openen </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.attendance_eligibility.invited">
+      <segment state="initial">
+        <source> Invited people </source>
+        <target> Uitgenodigde personen </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.attendance_eligibility.organization_members">
+      <segment state="initial">
+        <source> Members of an organization </source>
+        <target> Leden van een organisatie </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.attendance_heading">
+      <segment state="initial">
+        <source> Attendance and registration </source>
+        <target> Deelname en inschrijving </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.attendance_hint">
+      <segment state="initial">
+        <source> Social responses express intent. Registration separately controls confirmed admission and capacity. </source>
+        <target> Sociale reacties tonen intentie. Inschrijving regelt afzonderlijk bevestigde toelating en capaciteit. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.attendance_organization">
+      <segment state="initial">
+        <source> Attendee organization </source>
+        <target> Organisatie van deelnemers </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.attendance_organization_required">
+      <segment state="initial">
+        <source> Select an organization. </source>
+        <target> Selecteer een organisatie. </target>
       </segment>
     </unit>
     <unit id="event_edit.banner_accent">
@@ -6375,6 +6441,42 @@
         <target> Naam is verplicht. </target>
       </segment>
     </unit>
+    <unit id="event_edit.notification_policy">
+      <segment state="initial">
+        <source> Default event notifications </source>
+        <target> Standaardmeldingen voor het evenement </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.notification_policy.all">
+      <segment state="initial">
+        <source> Updates and reminders </source>
+        <target> Updates en herinneringen </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.notification_policy.none">
+      <segment state="initial">
+        <source> No event notifications </source>
+        <target> Geen evenementmeldingen </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.notification_policy.reminders">
+      <segment state="initial">
+        <source> Attendance reminders </source>
+        <target> Deelnameherinneringen </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.notification_policy.updates">
+      <segment state="initial">
+        <source> Organizer updates </source>
+        <target> Updates van de organisator </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.notification_policy_hint">
+      <segment state="initial">
+        <source> Going, Interested, and Registered users receive this default unless they choose a different event setting. </source>
+        <target> Deelnemers, geïnteresseerden en ingeschreven gebruikers krijgen deze instelling tenzij ze voor het evenement iets anders kiezen. </target>
+      </segment>
+    </unit>
     <unit id="event_edit.optional_section">
       <segment state="initial">
         <source> Optional details </source>
@@ -6579,6 +6681,30 @@
         <target>Kwalificatiedoel verwijderen</target>
       </segment>
     </unit>
+    <unit id="event_edit.registration_capacity">
+      <segment state="initial">
+        <source> Capacity </source>
+        <target> Capaciteit </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.registration_capacity_hint">
+      <segment state="initial">
+        <source> Leave empty for unlimited registration. </source>
+        <target> Laat leeg voor onbeperkte inschrijving. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.registration_capacity_invalid">
+      <segment state="initial">
+        <source> Capacity must be a positive whole number. </source>
+        <target> De capaciteit moet een positief geheel getal zijn. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.registration_waitlist">
+      <segment state="initial">
+        <source> Allow a waitlist when full </source>
+        <target> Wachtlijst toestaan wanneer vol </target>
+      </segment>
+    </unit>
     <unit id="event_edit.required_section">
       <segment state="initial">
         <source> Essentials </source>
@@ -6751,6 +6877,24 @@
       <segment state="initial">
         <source>Event saved.</source>
         <target>Evenement opgeslagen.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.social_attendance">
+      <segment state="initial">
+        <source> Social response </source>
+        <target> Sociale reactie </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.social_attendance.none">
+      <segment state="initial">
+        <source> No social response </source>
+        <target> Geen sociale reactie </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.social_attendance.rsvp">
+      <segment state="initial">
+        <source> Going / Interested </source>
+        <target> Ik ga / Geïnteresseerd </target>
       </segment>
     </unit>
     <unit id="event_edit.sponsor_logo">
@@ -7793,6 +7937,12 @@
       <segment state="initial">
         <source>Password Reset Successful</source>
         <target>Wachtwoord succesvol gereset</target>
+      </segment>
+    </unit>
+    <unit id="8207599167060948466">
+      <segment state="initial">
+        <source>{VAR_PLURAL, plural, =1 {1 person on the waitlist} other {<ph id="0" equiv="INTERPOLATION"/> people on the waitlist}}</source>
+        <target>{VAR_PLURAL, plural, =1 {1 persoon op de wachtlijst} other {<ph id="0" equiv="INTERPOLATION"/> personen op de wachtlijst}}</target>
       </segment>
     </unit>
     <unit id="8207799228641053586">
@@ -11056,6 +11206,144 @@
       <segment state="initial">
         <source>Show more</source>
         <target>Meer tonen</target>
+      </segment>
+    </unit>
+    <unit id="event_registration.cancel">
+      <segment state="initial">
+        <source>Cancel registration</source>
+        <target>Inschrijving annuleren</target>
+      </segment>
+    </unit>
+    <unit id="event_registration.cancel_failed">
+      <segment state="initial">
+        <source>Couldn&apos;t cancel your registration. Try again in a moment.</source>
+        <target>Je inschrijving kon niet worden geannuleerd. Probeer het zo opnieuw.</target>
+      </segment>
+    </unit>
+    <unit id="event_registration.full">
+      <segment state="initial">
+        <source>Full</source>
+        <target>Vol</target>
+      </segment>
+    </unit>
+    <unit id="event_registration.join_waitlist">
+      <segment state="initial">
+        <source>Join waitlist</source>
+        <target>Op de wachtlijst</target>
+      </segment>
+    </unit>
+    <unit id="event_registration.load_failed">
+      <segment state="initial">
+        <source>Couldn&apos;t load your registration.</source>
+        <target>Je inschrijving kon niet worden geladen.</target>
+      </segment>
+    </unit>
+    <unit id="event_registration.people_registered">
+      <segment state="initial">
+        <source> registered </source>
+        <target> ingeschreven </target>
+      </segment>
+    </unit>
+    <unit id="event_registration.places_filled">
+      <segment state="initial">
+        <source>places filled</source>
+        <target>plaatsen bezet</target>
+      </segment>
+    </unit>
+    <unit id="event_registration.register">
+      <segment state="initial">
+        <source>Register</source>
+        <target>Inschrijven</target>
+      </segment>
+    </unit>
+    <unit id="event_registration.register_failed">
+      <segment state="initial">
+        <source>Couldn&apos;t register. Try again in a moment.</source>
+        <target>Inschrijven is niet gelukt. Probeer het zo opnieuw.</target>
+      </segment>
+    </unit>
+    <unit id="event_registration.registered">
+      <segment state="initial">
+        <source>Registered</source>
+        <target>Ingeschreven</target>
+      </segment>
+    </unit>
+    <unit id="event_registration.sign_in">
+      <segment state="initial">
+        <source>Sign in to register</source>
+        <target>Log in om je in te schrijven</target>
+      </segment>
+    </unit>
+    <unit id="event_registration.waitlist_count">
+      <segment state="initial">
+        <source> <ph id="0" equiv="ICU" disp="{admissionState().waitlisted, plural, =1 {1 person on the waitlist} other {{{admissionState().waitlisted}} people on the waitlist} }" subFlows="8821330276753482869"/> </source>
+        <target> <ph id="0" equiv="ICU" disp="{admissionState().waitlisted, plural, =1 {1 person on the waitlist} other {{{admissionState().waitlisted}} people on the waitlist} }" subFlows="8821330276753482869"/> </target>
+      </segment>
+    </unit>
+    <unit id="event_registration.waitlisted">
+      <segment state="initial">
+        <source>Waitlisted</source>
+        <target>Op de wachtlijst</target>
+      </segment>
+    </unit>
+    <unit id="event_registration_manager.cancel">
+      <segment state="initial">
+        <source>Cancel</source>
+        <target>Annuleren</target>
+      </segment>
+    </unit>
+    <unit id="event_registration_manager.cancel_failed">
+      <segment state="initial">
+        <source>Registration could not be cancelled.</source>
+        <target>De inschrijving kon niet worden geannuleerd.</target>
+      </segment>
+    </unit>
+    <unit id="event_registration_manager.description">
+      <segment state="initial">
+        <source> Confirmed attendees and the waitlist. Cancelling a confirmed place automatically promotes the oldest eligible waiter. </source>
+        <target> Bevestigde deelnemers en de wachtlijst. Bij annulering van een bevestigde plaats schuift de langst wachtende gerechtigde persoon automatisch door. </target>
+      </segment>
+    </unit>
+    <unit id="event_registration_manager.empty">
+      <segment state="initial">
+        <source> No registrations yet. </source>
+        <target> Nog geen inschrijvingen. </target>
+      </segment>
+    </unit>
+    <unit id="event_registration_manager.heading">
+      <segment state="initial">
+        <source> Registrations </source>
+        <target> Inschrijvingen </target>
+      </segment>
+    </unit>
+    <unit id="event_registration_manager.load_failed">
+      <segment state="initial">
+        <source>Registrations could not be loaded.</source>
+        <target>De inschrijvingen konden niet worden geladen.</target>
+      </segment>
+    </unit>
+    <unit id="event_registration_manager.loading">
+      <segment state="initial">
+        <source> Loading registrations… </source>
+        <target> Inschrijvingen laden… </target>
+      </segment>
+    </unit>
+    <unit id="event_registration_manager.status.cancelled">
+      <segment state="initial">
+        <source>Cancelled</source>
+        <target>Geannuleerd</target>
+      </segment>
+    </unit>
+    <unit id="event_registration_manager.status.registered">
+      <segment state="initial">
+        <source>Registered</source>
+        <target>Ingeschreven</target>
+      </segment>
+    </unit>
+    <unit id="event_registration_manager.status.waitlisted">
+      <segment state="initial">
+        <source>Waitlisted</source>
+        <target>Op de wachtlijst</target>
       </segment>
     </unit>
     <unit id="event_rsvp.clear">

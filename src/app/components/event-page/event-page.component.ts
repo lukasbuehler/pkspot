@@ -91,6 +91,8 @@ import {
 import { EventWeatherDaysComponent } from "../event-weather-days/event-weather-days.component";
 import { EventDraftNoticeComponent } from "./event-draft-notice.component";
 import { EventAccessManagerComponent } from "../event-access-manager/event-access-manager.component";
+import { EventRegistrationComponent } from "../event-registration/event-registration.component";
+import { EventRegistrationManagerComponent } from "../event-registration-manager/event-registration-manager.component";
 
 interface VisibleSeriesTag {
   seriesId: string;
@@ -121,6 +123,8 @@ interface VisibleSeriesTag {
     OrganizationButtonComponent,
     EventDraftNoticeComponent,
     EventAccessManagerComponent,
+    EventRegistrationComponent,
+    EventRegistrationManagerComponent,
   ],
   templateUrl: "./event-page.component.html",
   styleUrl: "./event-page.component.scss",
@@ -215,7 +219,16 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     () => this.event()?.status() ?? null,
   );
   readonly showRsvp = computed(
-    () => this.event()?.published === true && this.status() === "upcoming",
+    () =>
+      this.event()?.published === true &&
+      this.event()?.attendance.social === "rsvp" &&
+      this.status() === "upcoming",
+  );
+  readonly showRegistration = computed(
+    () =>
+      this.event()?.published === true &&
+      this.event()?.attendance.admission === "registration" &&
+      this.status() === "upcoming",
   );
   readonly statusLabel = computed(() => {
     const event = this.event();

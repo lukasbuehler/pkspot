@@ -1,0 +1,36 @@
+:host {
+  display: inline-block;
+  max-width: 100%;
+}
+
+.event-registration {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+}
+
+.registration-summary,
+.registration-status {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.registration-status mat-icon {
+  color: var(--mat-sys-primary);
+}
+
+.registration-status--registered mat-icon {
+  color: var(--mat-sys-secondary);
+}
+
+.registration-error {
+  color: var(--mat-sys-error);
+}
+
+@media (max-width: 800px) {
+  .event-registration {
+    justify-items: start;
+  }
+}

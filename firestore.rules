@@ -1336,6 +1336,30 @@ service cloud.firestore {
           && (request.auth.uid == userId || isAdmin());
       }
 
+      match /admission/{stateId} {
+        allow read: if stateId == 'state'
+          && eventCanRead(
+            eventId,
+            get(/databases/$(database)/documents/events/$(eventId)).data
+          );
+        allow write: if false;
+      }
+
+      match /registrations/{userId} {
+        allow get: if request.auth.uid != null
+          && (
+            request.auth.uid == userId
+            || eventCanManage(
+              get(/databases/$(database)/documents/events/$(eventId)).data
+            )
+          );
+        allow list: if eventCanManage(
+          get(/databases/$(database)/documents/events/$(eventId)).data
+        );
+        // Capacity, waitlist order, and promotion must stay atomic.
+        allow create, update, delete: if false;
+      }
+
       match /live_updates/{updateId} {
         allow read: if eventCanRead(
           eventId,

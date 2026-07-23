@@ -54,6 +54,11 @@ export {
   onEventLiveUpdateCreate,
   publishEventLiveUpdate,
 } from "./eventLiveUpdateFunctions";
+export {
+  cancelEventRegistration,
+  reconcileEventWaitlistOnEventUpdate,
+  registerForEvent,
+} from "./eventRegistrationFunctions";
 
 export { computeRatingOnWrite } from "./spotRatingFunctions";
 
