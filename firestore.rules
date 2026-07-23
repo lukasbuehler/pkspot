@@ -109,6 +109,17 @@ service cloud.firestore {
         && (!('username' in creator) || creator.username is string);
     }
 
+    function validEventAuditTimestamps(eventData) {
+      return (
+          !('time_created' in eventData)
+          || eventData.time_created is timestamp
+        )
+        && (
+          !('time_updated' in eventData)
+          || eventData.time_updated is timestamp
+        );
+    }
+
     function eventIsPublished(eventData) {
       return (
           'publication_state' in eventData
@@ -1256,6 +1267,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasAll(['owner', 'created_by'])
         && validEventOwner(request.resource.data.owner)
         && validEventCreator(request.resource.data.created_by)
+        && validEventAuditTimestamps(request.resource.data)
         && validEventAccessDimensions(request.resource.data)
         && (
           !legacyEventListCompatibilityEnabled()
@@ -1278,7 +1290,8 @@ service cloud.firestore {
           )
         );
       // Missing owner is the legacy/admin-managed state.
-      allow update: if validEventAccessDimensions(request.resource.data)
+      allow update: if validEventAuditTimestamps(request.resource.data)
+        && validEventAccessDimensions(request.resource.data)
         && (
           !legacyEventListCompatibilityEnabled()
           || eventIsLegacyListCompatible(request.resource.data)

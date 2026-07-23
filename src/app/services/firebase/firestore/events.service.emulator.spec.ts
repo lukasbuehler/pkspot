@@ -695,6 +695,7 @@ runWithEmulator("EventsService emulator integration", () => {
       end: admin.firestore.Timestamp.fromDate(
         new Date("2027-07-01T12:00:00.000Z"),
       ),
+      time_updated: { seconds: 1_814_445_200, nanoseconds: 470_000_000 },
       visibility: "public",
     };
 
@@ -717,7 +718,10 @@ runWithEmulator("EventsService emulator integration", () => {
         }),
     ]);
 
-    await waitForEventDiscovery(publicEventId, true);
+    const initialProjection = await waitForEventDiscovery(publicEventId, true);
+    expect(initialProjection?.["time_updated"]).toBeInstanceOf(
+      admin.firestore.Timestamp,
+    );
     await adminDb().doc(`event_discovery/${publicEventId}`).delete();
     await adminDb().doc("maintenance/run-rebuild-event-discovery").set({
       dry_run: false,

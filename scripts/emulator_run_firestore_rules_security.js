@@ -1438,6 +1438,26 @@ async function testEventWriteGuards(owner, other, orgManager, adminUser) {
       venue_string: "Owner-updated venue",
     })
   );
+  await assertDenied("owner cannot write a timestamp-shaped audit map", () =>
+    updateDoc(doc(owner.db, "events/owner-event"), {
+      time_updated: { seconds: 1_785_000_000, nanoseconds: 0 },
+    })
+  );
+  await assertAllowed("owner can write a real event audit timestamp", () =>
+    updateDoc(doc(owner.db, "events/owner-event"), {
+      time_updated: Timestamp.now(),
+    })
+  );
+  await assertDenied("owner cannot create an event with map audit timestamps", () =>
+    setDoc(doc(owner.db, "events/owner-event-map-timestamp"), {
+      name: "Owner Event With Map Timestamp",
+      owner: { type: "user", user_id: "owner" },
+      created_by: { uid: "owner" },
+      visibility: "public",
+      discoverability: { audience: "global" },
+      time_updated: { seconds: 1_785_000_000, nanoseconds: 0 },
+    })
+  );
   await assertDenied("unrelated user cannot edit an owned event", () =>
     updateDoc(doc(other.db, "events/owner-event"), {
       venue_string: "Forged venue",

@@ -1,5 +1,5 @@
 import * as admin from "firebase-admin";
-import { FieldPath, FieldValue } from "firebase-admin/firestore";
+import { FieldPath, FieldValue, Timestamp } from "firebase-admin/firestore";
 import {
   onDocumentCreated,
   onDocumentWritten,
@@ -58,6 +58,46 @@ const retryableError = (error: unknown): boolean => {
 const messageFor = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
+const normalizeLegacyTimestampMaps = (value: unknown): unknown => {
+  if (Array.isArray(value)) return value.map(normalizeLegacyTimestampMaps);
+  if (!value || typeof value !== "object") return value;
+
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null) return value;
+
+  const record = value as Record<string, unknown>;
+  const keys = Object.keys(record);
+  if (
+    keys.length === 2 &&
+    keys.includes("seconds") &&
+    keys.includes("nanoseconds") &&
+    typeof record["seconds"] === "number" &&
+    typeof record["nanoseconds"] === "number"
+  ) {
+    return new Timestamp(record["seconds"], record["nanoseconds"]);
+  }
+
+  return Object.fromEntries(
+    Object.entries(record).map(([key, entry]) => [
+      key,
+      normalizeLegacyTimestampMaps(entry),
+    ]),
+  );
+};
+
+const writeEventDiscoveryProjection = async (
+  target: FirebaseFirestore.DocumentReference,
+  projection: ReturnType<typeof buildEventDiscoveryProjection>,
+): Promise<void> => {
+  if (!projection) {
+    await target.delete();
+    return;
+  }
+  await target.set(
+    normalizeLegacyTimestampMaps(projection) as FirebaseFirestore.DocumentData,
+  );
+};
+
 export const syncEventDiscoveryOnEventWrite = onDocumentWritten(
   `${EVENTS_COLLECTION}/{eventId}`,
   async (event) => {
@@ -77,11 +117,7 @@ export const syncEventDiscoveryOnEventWrite = onDocumentWritten(
     const projection = buildEventDiscoveryProjection(
       after.data() as EventSchema,
     );
-    if (!projection) {
-      await target.delete();
-      return;
-    }
-    await target.set(projection);
+    await writeEventDiscoveryProjection(target, projection);
   },
 );
 
@@ -162,11 +198,7 @@ const rebuildEventDiscoveryPage = async (
         .firestore()
         .collection(EVENT_DISCOVERY_COLLECTION)
         .doc(document.id);
-      if (projection) {
-        await target.set(projection);
-      } else {
-        await target.delete();
-      }
+      await writeEventDiscoveryProjection(target, projection);
     } catch (error) {
       if (projection) {
         result.projected -= 1;
