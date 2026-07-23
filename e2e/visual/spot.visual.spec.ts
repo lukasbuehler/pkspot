@@ -1,10 +1,9 @@
 import { test, expect, type Page } from "@playwright/test";
+import { acceptCurrentTerms } from "../fixtures/consent";
 
 async function openSpotFixture(page: Page, viewport = { width: 390, height: 844 }) {
   await page.setViewportSize(viewport);
-  await page.addInitScript(() => {
-    localStorage.setItem("acceptedVersion", "5");
-  });
+  await acceptCurrentTerms(page);
   await page.goto("/de/__visual/spot-bottom-sheet", {
     waitUntil: "domcontentloaded",
   });

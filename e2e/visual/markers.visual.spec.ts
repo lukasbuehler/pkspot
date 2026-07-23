@@ -1,10 +1,9 @@
 import { test, expect } from "@playwright/test";
+import { acceptCurrentTerms } from "../fixtures/consent";
 
 test.describe("Marker Visual Regression @visual", () => {
   test("should match marker variants", async ({ page }) => {
-    await page.addInitScript(() => {
-      localStorage.setItem("acceptedVersion", "5");
-    });
+    await acceptCurrentTerms(page);
     await page.setViewportSize({ width: 900, height: 520 });
     await page.goto("/de/__visual/markers", { waitUntil: "domcontentloaded" });
     await page.waitForSelector("app-marker-visual-test-page", {

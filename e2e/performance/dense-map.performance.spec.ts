@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
+import { CURRENT_TERMS_VERSION } from "../../src/app/services/consent-version";
 
 type DenseMapVariant =
   | "communities-only"
@@ -182,11 +183,17 @@ async function runDenseMapVariant(
     browserDiagnostics.push(`[pageerror] ${error.message}`);
   });
 
-  await page.addInitScript((selectedVariant) => {
-    localStorage.setItem("acceptedVersion", "5");
-    localStorage.setItem("pkspotDenseMapPerformance", "1");
-    localStorage.setItem("pkspotDenseMapPerformanceVariant", selectedVariant);
-  }, variant);
+  await page.addInitScript(
+    ({ acceptedVersion, selectedVariant }) => {
+      localStorage.setItem("acceptedVersion", acceptedVersion);
+      localStorage.setItem("pkspotDenseMapPerformance", "1");
+      localStorage.setItem("pkspotDenseMapPerformanceVariant", selectedVariant);
+    },
+    {
+      acceptedVersion: CURRENT_TERMS_VERSION,
+      selectedVariant: variant,
+    },
+  );
   await installDenseMapPerformanceProbe(page);
 
   const startedAt = Date.now();

@@ -1,10 +1,9 @@
 import { expect, test } from "@playwright/test";
+import { acceptCurrentTerms } from "../fixtures/consent";
 
 test.describe("Map Overlay Visual Regression @visual", () => {
   test("should match search and filter chips", async ({ page }) => {
-    await page.addInitScript(() => {
-      localStorage.setItem("acceptedVersion", "5");
-    });
+    await acceptCurrentTerms(page);
     await page.setViewportSize({ width: 840, height: 220 });
     await page.goto("/de/__visual/map-overlay", {
       waitUntil: "domcontentloaded",

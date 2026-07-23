@@ -1,4 +1,5 @@
 import { Page, Locator } from "@playwright/test";
+import { acceptCurrentTerms } from "../fixtures/consent";
 
 /**
  * Page Object Model for the Map page.
@@ -38,9 +39,7 @@ export class MapPage {
    * @param locale Optional locale override (e.g., 'en', 'de')
    */
   async goto(locale: string = "de") {
-    await this.page.addInitScript(() => {
-      localStorage.setItem("acceptedVersion", "5");
-    });
+    await acceptCurrentTerms(this.page);
     // Navigate to map - SSR will handle locale redirect if needed
     await this.page.goto(`/${locale}/map`, { waitUntil: "domcontentloaded" });
     await this.waitForMapReady();

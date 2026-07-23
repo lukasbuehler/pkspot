@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
+import { acceptCurrentTerms } from "./consent";
 
 export type ShellMode = "rail" | "toolbar" | "menu";
 
@@ -50,9 +51,7 @@ export async function gotoWorkflow(
   viewport: WorkflowViewport = workflowViewports[0],
 ): Promise<void> {
   await page.setViewportSize({ width: viewport.width, height: viewport.height });
-  await page.addInitScript(() => {
-    localStorage.setItem("acceptedVersion", "5");
-  });
+  await acceptCurrentTerms(page);
 
   await page.goto(localizedPath(path), { waitUntil: "domcontentloaded" });
   await page.waitForSelector("app-root", { state: "attached", timeout: 20_000 });

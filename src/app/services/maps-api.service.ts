@@ -22,6 +22,7 @@ import {
   isFiniteLatLngLiteral,
   reportInvalidMapCoordinate,
 } from "../shared/map-coordinate-utils";
+import { FirebaseAppCheckService } from "./firebase/app-check.service";
 
 interface LocationAndZoom {
   location: google.maps.LatLngLiteral;
@@ -41,11 +42,47 @@ type StreetViewMetadataStatus = "OK" | "ZERO_RESULTS" | "UNKNOWN";
 
 import { AnalyticsService } from "./analytics.service";
 
+export type GooglePlaceFieldSet = "location" | "rich";
+
+const GOOGLE_PLACE_FIELDS: Record<GooglePlaceFieldSet, readonly string[]> = {
+  // These fields stay within Place Details Essentials.
+  location: ["location", "types", "viewport"],
+  // Rating, opening hours, and websiteURI intentionally make rich cards an
+  // Enterprise request. Do not use this field set for map positioning.
+  rich: [
+    "displayName",
+    "location",
+    "photos",
+    "rating",
+    "websiteURI",
+    "businessStatus",
+    "regularOpeningHours",
+    "types",
+    "viewport",
+  ],
+};
+
+export function getGooglePlaceFields(
+  fieldSet: GooglePlaceFieldSet,
+): readonly string[] {
+  return GOOGLE_PLACE_FIELDS[fieldSet];
+}
+
+export function attachGoogleMapsAppCheck(
+  settings: Pick<google.maps.Settings, "fetchAppCheckToken">,
+  getToken: () => Promise<string>,
+): void {
+  settings.fetchAppCheckToken = async () => ({
+    token: await getToken(),
+  });
+}
+
 @Injectable({
   providedIn: "root",
 })
 export class MapsApiService extends ConsentAwareService {
   private _analytics = inject(AnalyticsService);
+  private _appCheck = inject(FirebaseAppCheckService);
   private _isApiLoaded: WritableSignal<boolean> = signal(false);
   public isApiLoaded: Signal<boolean> = this._isApiLoaded;
 
@@ -133,11 +170,35 @@ export class MapsApiService extends ConsentAwareService {
     this._loadingProgress$.next(50); // Script added to DOM
 
     // add the callback function to the global scope
-    (window as any)["mapsCallback"] = () => {
+    (window as Window & { mapsCallback?: () => void }).mapsCallback = () => {
+      void this._finishGoogleMapsApiLoad();
+    };
+  }
+
+  private async _finishGoogleMapsApiLoad(): Promise<void> {
+    try {
+      await this._configureGoogleMapsAppCheck();
       this._loadingProgress$.next(100); // API fully loaded
       this._isApiLoaded.set(true);
+    } catch (error) {
+      this._loadingProgress$.next(0);
+      console.error("Failed to configure Google Maps App Check", error);
+    } finally {
       this._isLoading$.next(false);
-    };
+    }
+  }
+
+  private async _configureGoogleMapsAppCheck(): Promise<void> {
+    if (!environment.appCheck.enabled) {
+      return;
+    }
+
+    const { Settings } = (await google.maps.importLibrary(
+      "core",
+    )) as google.maps.CoreLibrary;
+    attachGoogleMapsAppCheck(Settings.getInstance(), () =>
+      this._appCheck.getTokenForRequest(),
+    );
   }
 
   storeLastLocationAndZoom(lastLocationAndZoom: LocationAndZoom) {
@@ -407,7 +468,10 @@ export class MapsApiService extends ConsentAwareService {
     }
   }
 
-  async getGooglePlaceById(placeId: string): Promise<google.maps.places.Place> {
+  async getGooglePlaceById(
+    placeId: string,
+    fieldSet: GooglePlaceFieldSet = "location",
+  ): Promise<google.maps.places.Place> {
     if (!this._isApiLoaded()) {
       return Promise.reject(new Error("Google Maps API is not loaded yet."));
     }
@@ -425,17 +489,7 @@ export class MapsApiService extends ConsentAwareService {
       });
 
       await place.fetchFields({
-        fields: [
-          "displayName",
-          "location",
-          "photos",
-          "rating",
-          "websiteURI",
-          "businessStatus",
-          "regularOpeningHours",
-          "types",
-          "viewport",
-        ],
+        fields: getGooglePlaceFields(fieldSet),
       });
 
       return place;

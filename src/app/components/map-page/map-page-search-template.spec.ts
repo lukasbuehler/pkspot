@@ -37,7 +37,7 @@ describe("MapPageComponent search template", () => {
     expect(searchFields?.length).toBe(2);
     for (const searchField of searchFields ?? []) {
       expect(searchField).not.toContain(`[onlySpots]="true"`);
-      expect(searchField).toContain("(placePreviewChange)");
+      expect(searchField).not.toContain("(placePreviewChange)");
       expect(searchField).toContain('[contextLabel]="searchContextLabel()"');
       expect(searchField).toContain('(contextClear)="onSearchContextClear()"');
     }

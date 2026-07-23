@@ -486,7 +486,10 @@ describe("FirebaseAppCheckService", () => {
         FirebaseAppCheckService,
         { provide: FirebaseApp, useValue: {} },
         { provide: PLATFORM_ID, useValue: "browser" },
-        { provide: PlatformService, useValue: createPlatformService("android") },
+        {
+          provide: PlatformService,
+          useValue: createPlatformService("android"),
+        },
       ],
     });
 

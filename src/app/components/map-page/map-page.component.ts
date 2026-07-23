@@ -95,7 +95,10 @@ import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { Timestamp } from "firebase/firestore";
 import { SpotEdit } from "../../../db/models/SpotEdit";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
-import { MatDrawerContainer, MatSidenavModule } from "@angular/material/sidenav";
+import {
+  MatDrawerContainer,
+  MatSidenavModule,
+} from "@angular/material/sidenav";
 import { ResponsiveService } from "../../services/responsive.service";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { BottomSheetComponent } from "../bottom-sheet/bottom-sheet.component";
@@ -160,9 +163,7 @@ import type {
   EventPromoDismissal,
   EventPromoDismissalRecord,
 } from "./map-event-promo-dismissal";
-import {
-  getNextEventPromoDismissal,
-} from "./map-event-promo-dismissal";
+import { getNextEventPromoDismissal } from "./map-event-promo-dismissal";
 import { parseMapSpotRouteState } from "./map-route-state";
 import { WeatherService } from "../../weather/weather.service";
 import {
@@ -352,7 +353,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   allSpotChallenges: WritableSignal<SpotChallenge[]> = signal([]);
   showSpotEditHistory: WritableSignal<boolean> = signal(false);
   private _routeChallengeId: string | null = null;
-  searchPreviewPlaceId = signal<string | null>(null);
 
   mapPanelView = computed<MapPanelView>(() =>
     getMapPanelView({
@@ -1472,14 +1472,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           ? $localize`:Snackbar shown after second event promotion dismissal@@map_island.event_hidden_seven_days:Promotion hidden for 7 days.`
           : $localize`:Snackbar shown after third event promotion dismissal@@map_island.event_hidden_until_end:Promotion hidden for the rest of this event.`;
 
-    this._snackbar.open(
-      message,
-      $localize`:@@common.dismiss:Dismiss`,
-      {
-        duration: 5000,
-        verticalPosition: "bottom",
-      },
-    );
+    this._snackbar.open(message, $localize`:@@common.dismiss:Dismiss`, {
+      duration: 5000,
+      verticalPosition: "bottom",
+    });
   }
 
   private _loadEventPromoDismissals(): void {
@@ -2344,48 +2340,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    effect((onCleanup) => {
-      const isMapReady = this.mapReady();
-      const placeId = this.searchPreviewPlaceId();
-
-      if (!isMapReady || !this.spotMap || !placeId) {
-        return;
-      }
-
-      const requestVersion = ++this._searchPreviewRequestVersion;
-      let isCancelled = false;
-
-      this.mapsService
-        .getGooglePlaceById(placeId)
-        .then((place) => {
-          if (isCancelled) {
-            return;
-          }
-
-          if (requestVersion !== this._searchPreviewRequestVersion) {
-            return;
-          }
-
-          if (this.searchPreviewPlaceId() !== placeId) {
-            return;
-          }
-
-          this._focusGooglePlace(place);
-        })
-        .catch((error) => {
-          if (!isCancelled) {
-            console.error(
-              "[ERROR search place preview] Error fetching place:",
-              error,
-            );
-          }
-        });
-
-      onCleanup(() => {
-        isCancelled = true;
-      });
-    });
-
     effect(() => {
       const isMapReady = this.mapReady();
       const community = this.searchPreviewCommunity();
@@ -3031,12 +2985,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this._analytics.trackEvent("map_search_result_selected", {
       result_type: value.type,
       result_id: value.id,
-      has_context_filter: !!this.selectedFilter() || !!this.customFilterParams(),
+      has_context_filter:
+        !!this.selectedFilter() || !!this.customFilterParams(),
       event_filter: this.selectedEventFilter() || null,
       map_object_mode: this.mapObjectMode(),
     });
-    this.clearSearchPlacePreview();
-
     if (value.type === "place") {
       this.openGooglePlaceById(value.id);
       return;
@@ -3087,33 +3040,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.searchPreviewCommunity.set(community);
   }
 
-  onSearchPlacePreviewChange(placeId: string | null) {
-    if (placeId === this.searchPreviewPlaceId()) {
-      return;
-    }
-
-    if (!placeId) {
-      this.clearSearchPlacePreview();
-      return;
-    }
-
-    this.searchPreviewPlaceId.set(placeId);
-  }
-
-  private clearSearchPlacePreview() {
-    this._searchPreviewRequestVersion += 1;
-    this.searchPreviewPlaceId.set(null);
-  }
-
   openGooglePlaceById(id: string) {
-    this.clearSearchPlacePreview();
     this._analytics.trackEvent("map_google_place_opened", {
       place_id: id,
       source: "search",
     });
     console.debug("[DEBUG openGooglePlaceById] Opening place with id:", id);
     this.mapsService
-      .getGooglePlaceById(id)
+      .getGooglePlaceById(id, "location")
       .then((place) => {
         console.debug("[DEBUG openGooglePlaceById] Got place:", place);
         this._focusGooglePlace(place);
@@ -4416,9 +4350,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   resetSidebarContentToTop(): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    const el =
-      this._sidebarScrollEl ||
-      this._getSidebarScrollElement();
+    const el = this._sidebarScrollEl || this._getSidebarScrollElement();
 
     if (el) {
       el.scrollTo({ top: 0 });
@@ -4909,6 +4841,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       if (community.googleMapsPlaceId) {
         const place = await this.mapsService.getGooglePlaceById(
           community.googleMapsPlaceId,
+          "location",
         );
         const viewport =
           (place as { viewport?: google.maps.LatLngBounds | null }).viewport ??
@@ -5514,7 +5447,11 @@ function createDenseMapPerformancePointMarkers(
       minZoom: index % 13 === 0 ? 13 : undefined,
       maxZoom: index % 17 === 0 ? 16 : undefined,
       priority:
-        type === "event" ? 700 : type === "community" ? 300 : 100 + (index % 50),
+        type === "event"
+          ? 700
+          : type === "community"
+            ? 300
+            : 100 + (index % 50),
     });
   }
 

@@ -13,7 +13,11 @@ import { MatIconModule } from "@angular/material/icon";
 import { ActivatedRoute, ParamMap, Router, RouterLink } from "@angular/router";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Event as PkEvent } from "../../../db/models/Event";
-import { EventCategory, EventId } from "../../../db/schemas/EventSchema";
+import {
+  EventCategory,
+  EventId,
+  EventSchema,
+} from "../../../db/schemas/EventSchema";
 import { EventsService } from "../../services/firebase/firestore/events.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { SWISSJAM25_STATIC } from "../event-page/swissjam25.static";
@@ -24,6 +28,24 @@ import {
 } from "../../services/firebase/firestore/series.service";
 import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
 import { AnalyticsService } from "../../services/analytics.service";
+
+type ScreenshotEventSchema = Omit<
+  EventSchema,
+  "end" | "location" | "start"
+> & {
+  id: string;
+  end: string;
+  start: string;
+};
+
+interface ScreenshotEventIndex {
+  events: ScreenshotEventSchema[];
+  seriesById?: Record<string, SeriesDocument>;
+}
+
+interface ScreenshotGlobal {
+  __PKSPOT_SCREENSHOT_EVENT_INDEX__?: ScreenshotEventIndex;
+}
 
 @Component({
   selector: "app-events-page",
@@ -146,6 +168,13 @@ export class EventsPageComponent implements OnInit {
     const includeUnpublished = this.isAdmin();
     this._lastIncludeUnpublished = includeUnpublished;
     try {
+      const screenshotIndex = this._screenshotEventIndex();
+      if (screenshotIndex) {
+        this.events.set(screenshotIndex.events);
+        this.seriesById.set(screenshotIndex.seriesById);
+        return;
+      }
+
       const events = await this._eventsService.getEvents({
         sortByNext: true,
         ...(includeUnpublished ? { includeUnpublished } : {}),
@@ -279,6 +308,22 @@ export class EventsPageComponent implements OnInit {
       console.warn("EventsPage: failed to load series metadata", err);
       this.seriesById.set({});
     }
+  }
+
+  private _screenshotEventIndex(): {
+    events: PkEvent[];
+    seriesById: Record<string, SeriesDocument>;
+  } | null {
+    const fixture = (globalThis as ScreenshotGlobal)
+      .__PKSPOT_SCREENSHOT_EVENT_INDEX__;
+    if (!fixture || !Array.isArray(fixture.events)) return null;
+
+    return {
+      events: fixture.events.map(({ id, ...event }) =>
+        new PkEvent(id as EventId, event as unknown as EventSchema),
+      ),
+      seriesById: fixture.seriesById ?? {},
+    };
   }
 
   private _seriesFallbackLabel(seriesId: string): string {

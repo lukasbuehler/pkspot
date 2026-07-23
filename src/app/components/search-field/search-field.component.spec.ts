@@ -78,7 +78,6 @@ describe("SearchFieldComponent", () => {
       placesLoaded: true,
       displayedPlace: null,
       displayedPlacePlacement: "top",
-      previewPlaceId: null,
       previewCommunity: null,
       spotsLoaded: true,
       spots: null,
