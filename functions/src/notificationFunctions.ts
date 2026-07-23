@@ -245,6 +245,7 @@ export const onEventRsvpNotificationWrite = onDocumentWritten(
       eventId,
       eventSnapshot.data() as EventSchema,
       `events/${eventId}/rsvps/${userId}`,
+      after.rsvp,
     );
   },
 );
@@ -301,6 +302,7 @@ export const onEventNotificationSourceWrite = onDocumentWritten(
             eventId,
             after,
             rsvp.ref.path,
+            (rsvp.data() as EventRSVPSchema).rsvp,
           );
         }
       }),
@@ -600,6 +602,7 @@ async function upsertEventReminder(
   eventId: string,
   eventData: EventSchema,
   sourcePath: string,
+  rsvp: EventRSVPSchema["rsvp"],
 ): Promise<void> {
   const start = adminTimestamp(eventData.start);
   if (!start || eventData.published === false) {
@@ -627,6 +630,7 @@ async function upsertEventReminder(
       event_id: eventId,
       event_name: eventData.name,
       starts_at: start.toDate().toISOString(),
+      rsvp,
     },
   };
   const ref = admin.firestore().collection(INTENTS).doc(intentId);
@@ -901,7 +905,13 @@ function notificationCopy(
       return { title: "Neue Person folgt dir", body: `${p["follower_name"]} folgt dir jetzt.` };
     }
     if (intent.type === "event_reminder") {
-      return { title: p["event_name"], body: "Beginnt in zwei Stunden." };
+      return {
+        title: p["event_name"],
+        body:
+          p["rsvp"] === "interested"
+            ? "Beginnt in zwei Stunden. Sag bitte, ob du kommst."
+            : "Beginnt in zwei Stunden.",
+      };
     }
     if (intent.type === "event_update" && p["update_title"]) {
       return {
@@ -949,7 +959,13 @@ function notificationCopy(
     return { title: "New follower", body: `${p["follower_name"]} started following you.` };
   }
   if (intent.type === "event_reminder") {
-    return { title: p["event_name"], body: "Starts in two hours." };
+    return {
+      title: p["event_name"],
+      body:
+        p["rsvp"] === "interested"
+          ? "Starts in two hours. Please let people know if you are going."
+          : "Starts in two hours.",
+    };
   }
   if (intent.type === "event_update" && p["update_title"]) {
     return {

@@ -3758,6 +3758,12 @@
         <target>Empieza en dos horas.</target>
       </segment>
     </unit>
+    <unit id="notification_center.event_reminder.interested_body">
+      <segment state="initial">
+        <source>Starts in two hours. Please let people know if you are going.</source>
+        <target>Empieza en dos horas. Indica si vas a asistir.</target>
+      </segment>
+    </unit>
     <unit id="notification_center.event_update.cancelled">
       <segment state="initial">
         <source>cancelled</source>
@@ -4460,6 +4466,18 @@
         <target>Recordatorios de eventos</target>
       </segment>
     </unit>
+    <unit id="settings.notifications.event_specific_description">
+      <segment state="initial">
+        <source> Review the events you currently receive updates or reminders for. </source>
+        <target> Revisa los eventos de los que recibes novedades o recordatorios. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.event_specific_heading">
+      <segment state="initial">
+        <source>Event-specific notifications</source>
+        <target>Notificaciones por evento</target>
+      </segment>
+    </unit>
     <unit id="settings.notifications.event_updates_aria">
       <segment state="initial">
         <source>Event update notifications</source>
@@ -4500,6 +4518,12 @@
       <segment state="initial">
         <source> Notifications </source>
         <target> Notificaciones </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.manage_events">
+      <segment state="initial">
+        <source> Manage events </source>
+        <target> Gestionar eventos </target>
       </segment>
     </unit>
     <unit id="settings.notifications.menu">
@@ -11080,6 +11104,90 @@
       <segment state="initial">
         <source>Series event</source>
         <target>Evento de serie</target>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.close">
+      <segment state="initial">
+        <source> Close </source>
+        <target> Cerrar </target>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.description">
+      <segment state="initial">
+        <source> These event choices work together with the notification types enabled in Settings. </source>
+        <target> Estas opciones por evento funcionan junto con los tipos de notificación activados en Ajustes. </target>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.dismiss">
+      <segment state="initial">
+        <source>Dismiss</source>
+        <target>Cerrar</target>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.empty">
+      <segment state="initial">
+        <source> You are not currently subscribed to any events. </source>
+        <target> Actualmente no recibes notificaciones de ningún evento. </target>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.level.all">
+      <segment state="initial">
+        <source> All </source>
+        <target> Todas </target>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.level.none">
+      <segment state="initial">
+        <source> None </source>
+        <target> Ninguna </target>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.level.reminders">
+      <segment state="initial">
+        <source> Only Reminders </source>
+        <target> Solo recordatorios </target>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.level.updates">
+      <segment state="initial">
+        <source> Only Event Updates </source>
+        <target> Solo novedades del evento </target>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.level_aria">
+      <segment state="initial">
+        <source>Notification preference for this event</source>
+        <target>Preferencia de notificación para este evento</target>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.list_aria">
+      <segment state="initial">
+        <source>Subscribed events</source>
+        <target>Eventos con notificaciones activas</target>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.load_error">
+      <segment state="initial">
+        <source> Event subscriptions could not be loaded. </source>
+        <target> No se pudieron cargar las notificaciones de los eventos. </target>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.loading">
+      <segment state="initial">
+        <source>Loading events…</source>
+        <target>Cargando eventos…</target>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.save_error">
+      <segment state="initial">
+        <source>Could not update event notifications.</source>
+        <target>No se pudieron actualizar las notificaciones del evento.</target>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.title">
+      <segment state="initial">
+        <source> Event notifications </source>
+        <target> Notificaciones de eventos </target>
       </segment>
     </unit>
     <unit id="event_tickets.availability.available">

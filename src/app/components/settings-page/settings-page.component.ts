@@ -57,6 +57,8 @@ import type {
 import { NotificationPreferencesService } from "../../services/notification-preferences.service";
 import { PushNotificationsService } from "../../services/push-notifications.service";
 import type { NotificationPreferenceKey } from "../../../db/schemas/NotificationSchema";
+import { MatDialog } from "@angular/material/dialog";
+import { EventNotificationSubscriptionsDialogComponent } from "../event-notification-subscriptions-dialog/event-notification-subscriptions-dialog.component";
 
 @Component({
   selector: "app-settings-page",
@@ -110,6 +112,7 @@ export class SettingsPageComponent implements OnInit {
     private _appCheckService: FirebaseAppCheckService,
     public notificationPreferences: NotificationPreferencesService,
     public pushNotifications: PushNotificationsService,
+    private _dialog: MatDialog,
   ) {}
   languageCodes = languageCodes;
 
@@ -348,6 +351,15 @@ export class SettingsPageComponent implements OnInit {
   openNotificationSystemSettings(): void {
     void this.pushNotifications.openSystemSettings().catch((error) => {
       console.error("Could not open system notification settings", error);
+    });
+  }
+
+  openEventNotificationSubscriptions(): void {
+    this._dialog.open(EventNotificationSubscriptionsDialogComponent, {
+      width: "min(640px, calc(100vw - 32px))",
+      maxWidth: "100vw",
+      maxHeight: "calc(100vh - 32px)",
+      autoFocus: false,
     });
   }
 

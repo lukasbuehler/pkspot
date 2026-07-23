@@ -134,7 +134,10 @@ export class NotificationCenterPageComponent {
       case "event_reminder":
         return {
           title: payload["event_name"],
-          body: $localize`:@@notification_center.event_reminder.body:Starts in two hours.`,
+          body:
+            payload["rsvp"] === "interested"
+              ? $localize`:@@notification_center.event_reminder.interested_body:Starts in two hours. Please let people know if you are going.`
+              : $localize`:@@notification_center.event_reminder.body:Starts in two hours.`,
           icon: "event_upcoming",
         };
       case "event_update":

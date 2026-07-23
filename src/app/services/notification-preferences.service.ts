@@ -14,8 +14,10 @@ import { UsersService } from "./firebase/firestore/users.service";
 
 const DEFAULT_PREFERENCES: Required<NotificationPreferencesSchema> = {
   follow_requests: false,
-  event_reminders: false,
-  event_updates: false,
+  // Responding to an event creates an event-specific subscription. These two
+  // master channels therefore default on and remain explicit opt-outs.
+  event_reminders: true,
+  event_updates: true,
   spot_edit_updates: false,
   report_updates: false,
   community_info_updates: false,

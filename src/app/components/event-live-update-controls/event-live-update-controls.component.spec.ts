@@ -65,10 +65,10 @@ describe("EventLiveUpdateControlsComponent", () => {
     );
   });
 
-  it("shows all as the non-intrusive default for a missing event preference", async () => {
+  it("shows none when the user has no event subscription", async () => {
     const setup = createComponent(null);
     await setup.fixture.whenStable();
-    expect(setup.fixture.componentInstance.notificationLevel()).toBe("all");
+    expect(setup.fixture.componentInstance.notificationLevel()).toBe("none");
     expect(setup.liveUpdates.setNotificationLevel).not.toHaveBeenCalled();
   });
 });

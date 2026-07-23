@@ -119,6 +119,34 @@ describe("NotificationCenterPageComponent", () => {
     );
   });
 
+  it("asks interested attendees to confirm their plans in reminders", () => {
+    const now = Date.now();
+    items.set([
+      {
+        id: "event-reminder-1",
+        type: "event_reminder",
+        source_path: "events/event-1/rsvps/user-1",
+        dedupe_key: "event-reminder-1",
+        path: "/events/city-jam",
+        payload: {
+          event_name: "City Jam",
+          event_id: "event-1",
+          rsvp: "interested",
+        },
+        active: true,
+        created_at_raw_ms: now,
+        available_at_raw_ms: now,
+        expires_at_raw_ms: now + 86_400_000,
+        updated_at_raw_ms: now,
+      },
+    ]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain(
+      "Please let people know if you are going.",
+    );
+  });
+
   it("renders report and community review outcomes", () => {
     const now = Date.now();
     items.set([

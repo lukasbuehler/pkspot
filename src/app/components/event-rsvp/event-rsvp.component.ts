@@ -21,6 +21,10 @@ import { EventsService } from "../../services/firebase/firestore/events.service"
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
 import { AnalyticsService } from "../../services/analytics.service";
+import type { EventNotificationLevel } from "../../../db/schemas/EventLiveUpdateSchema";
+import { EventLiveUpdatesService } from "../../services/firebase/firestore/event-live-updates.service";
+import { PushNotificationsService } from "../../services/push-notifications.service";
+import { NotificationPreferencesService } from "../../services/notification-preferences.service";
 
 type ScreenshotGlobal = typeof globalThis & {
   __PKSPOT_SCREENSHOT_EVENT_RSVPS__?: unknown;
@@ -43,10 +47,14 @@ export class EventRsvpComponent {
   private _injector = inject(Injector);
   private _eventsService?: EventsService;
   private _authService?: AuthenticationService;
+  private _liveUpdatesService?: EventLiveUpdatesService;
+  private _pushNotifications?: PushNotificationsService;
+  private _notificationPreferences?: NotificationPreferencesService;
   private _analytics = inject(AnalyticsService);
   private _loadVersion = 0;
 
   readonly eventId = input<string | null>(null);
+  readonly defaultNotificationLevel = input<EventNotificationLevel>("all");
   readonly counts = input<EventRSVPCountsSchema | null>(null);
   readonly showDisclaimer = input(true);
   readonly preview = input(false);
@@ -136,9 +144,31 @@ export class EventRsvpComponent {
     this.errorMessage.set("");
     this.isSaving.set(true);
 
+    const defaultNotificationLevel = this.defaultNotificationLevel();
+    const shouldEnableNotifications =
+      (next === "going" || next === "interested") &&
+      defaultNotificationLevel !== "none";
+    const permissionRequest =
+      shouldEnableNotifications &&
+      this._globalDeliveryEnabled(defaultNotificationLevel) &&
+      this._push().supported() &&
+      !this._push().systemAllowsNotifications()
+        ? this._push().requestPermissionFromUserAction().catch((error) => {
+            console.warn("Could not request notification permission", error);
+            return false;
+          })
+        : Promise.resolve(false);
+
     try {
       await this._events().setMyRsvp(eventId, next);
       this.loadedRsvp.set(next);
+      if (shouldEnableNotifications) {
+        void this._enableDefaultNotifications(
+          eventId,
+          defaultNotificationLevel,
+          permissionRequest,
+        );
+      }
       this._analytics.trackEvent("event_rsvp_saved", {
         event_id: eventId,
         rsvp: next,
@@ -157,6 +187,31 @@ export class EventRsvpComponent {
       });
     } finally {
       this.isSaving.set(false);
+    }
+  }
+
+  private async _enableDefaultNotifications(
+    eventId: string,
+    level: EventNotificationLevel,
+    permissionRequest: Promise<boolean>,
+  ): Promise<void> {
+    try {
+      const [created] = await Promise.all([
+        this._liveUpdates().ensureDefaultNotificationLevel(
+          eventId,
+          level,
+        ),
+        permissionRequest,
+      ]);
+      if (created) {
+        this._analytics.trackEvent("event_notifications_auto_enabled", {
+          event_id: eventId,
+          notification_level: level,
+        });
+      }
+    } catch (error) {
+      // Notification delivery is supplementary; never roll back a valid RSVP.
+      console.warn("Could not apply default event notifications", error);
     }
   }
 
@@ -280,4 +335,29 @@ export class EventRsvpComponent {
     return this._authService;
   }
 
+  private _liveUpdates(): EventLiveUpdatesService {
+    this._liveUpdatesService ??= this._injector.get(EventLiveUpdatesService);
+    return this._liveUpdatesService;
+  }
+
+  private _push(): PushNotificationsService {
+    this._pushNotifications ??= this._injector.get(PushNotificationsService);
+    return this._pushNotifications;
+  }
+
+  private _globalDeliveryEnabled(level: EventNotificationLevel): boolean {
+    const preferences = this._preferences().preferences();
+    if (level === "event_updates") return preferences.event_updates;
+    if (level === "reminders") return preferences.event_reminders;
+    return level === "all"
+      ? preferences.event_updates || preferences.event_reminders
+      : false;
+  }
+
+  private _preferences(): NotificationPreferencesService {
+    this._notificationPreferences ??= this._injector.get(
+      NotificationPreferencesService,
+    );
+    return this._notificationPreferences;
+  }
 }

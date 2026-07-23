@@ -1,0 +1,68 @@
+.intro {
+  margin-top: 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.state {
+  display: flex;
+  min-height: 120px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--mat-sys-on-surface-variant);
+  text-align: center;
+}
+
+.state--error {
+  color: var(--mat-sys-error);
+}
+
+.subscription-list {
+  border-block: 1px solid var(--mat-sys-outline-variant);
+}
+
+.subscription-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(170px, auto);
+  align-items: center;
+  gap: 16px;
+  padding-block: 14px;
+
+  & + & {
+    border-top: 1px solid var(--mat-sys-outline-variant);
+  }
+}
+
+.event-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover .mat-title-medium {
+    color: var(--mat-sys-primary);
+    text-decoration: underline;
+  }
+
+  .mat-title-medium,
+  .mat-body-small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mat-body-small {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.notification-level {
+  width: 100%;
+}
+
+@media (max-width: 520px) {
+  .subscription-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

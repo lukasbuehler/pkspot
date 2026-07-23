@@ -4032,6 +4032,76 @@
         <source>Series event</source>
       </segment>
     </unit>
+    <unit id="event_subscriptions.close">
+      <segment>
+        <source> Close </source>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.description">
+      <segment>
+        <source> These event choices work together with the notification types enabled in Settings. </source>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.dismiss">
+      <segment>
+        <source>Dismiss</source>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.empty">
+      <segment>
+        <source> You are not currently subscribed to any events. </source>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.level.all">
+      <segment>
+        <source> All </source>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.level.none">
+      <segment>
+        <source> None </source>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.level.reminders">
+      <segment>
+        <source> Only Reminders </source>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.level.updates">
+      <segment>
+        <source> Only Event Updates </source>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.level_aria">
+      <segment>
+        <source>Notification preference for this event</source>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.list_aria">
+      <segment>
+        <source>Subscribed events</source>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.load_error">
+      <segment>
+        <source> Event subscriptions could not be loaded. </source>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.loading">
+      <segment>
+        <source>Loading events…</source>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.save_error">
+      <segment>
+        <source>Could not update event notifications.</source>
+      </segment>
+    </unit>
+    <unit id="event_subscriptions.title">
+      <segment>
+        <source> Event notifications </source>
+      </segment>
+    </unit>
     <unit id="event_tickets.availability.available">
       <segment>
         <source>Available</source>
@@ -5695,6 +5765,16 @@
         <source>Event reminders</source>
       </segment>
     </unit>
+    <unit id="settings.notifications.event_specific_description">
+      <segment>
+        <source> Review the events you currently receive updates or reminders for. </source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.event_specific_heading">
+      <segment>
+        <source>Event-specific notifications</source>
+      </segment>
+    </unit>
     <unit id="settings.notifications.event_updates_aria">
       <segment>
         <source>Event update notifications</source>
@@ -5728,6 +5808,11 @@
     <unit id="settings.notifications.heading">
       <segment>
         <source> Notifications </source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.manage_events">
+      <segment>
+        <source> Manage events </source>
       </segment>
     </unit>
     <unit id="settings.notifications.menu">
@@ -7346,6 +7431,11 @@
     <unit id="notification_center.event_reminder.body">
       <segment>
         <source>Starts in two hours.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_reminder.interested_body">
+      <segment>
+        <source>Starts in two hours. Please let people know if you are going.</source>
       </segment>
     </unit>
     <unit id="notification_center.event_update.cancelled">

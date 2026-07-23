@@ -111,6 +111,90 @@ describe("EventLiveUpdatesService", () => {
     );
   });
 
+  it("applies the default only when no event preference exists", async () => {
+    const setDocument = vi.fn(async () => undefined);
+    const getDocument = vi
+      .fn()
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        user_id: "attendee-1",
+        active: false,
+        event_reminders: false,
+        subscribed_at: Timestamp.now(),
+        updated_at: Timestamp.now(),
+      });
+    const { service } = configure(
+      { setDocument, getDocument },
+      "attendee-1",
+    );
+
+    await expect(
+      service.ensureDefaultNotificationLevel("event-1", "reminders"),
+    ).resolves.toBe(true);
+    await expect(
+      service.ensureDefaultNotificationLevel("event-1", "all"),
+    ).resolves.toBe(false);
+
+    expect(setDocument).toHaveBeenCalledOnce();
+    expect(setDocument).toHaveBeenCalledWith(
+      "events/event-1/live_update_subscribers/attendee-1",
+      expect.objectContaining({ active: false, event_reminders: true }),
+      { merge: false },
+    );
+  });
+
+  it("does not create a subscription when the event default is none", async () => {
+    const setDocument = vi.fn(async () => undefined);
+    const getDocument = vi.fn(async () => null);
+    const { service } = configure(
+      { setDocument, getDocument },
+      "attendee-1",
+    );
+
+    await expect(
+      service.ensureDefaultNotificationLevel("event-1", "none"),
+    ).resolves.toBe(false);
+    expect(getDocument).not.toHaveBeenCalled();
+    expect(setDocument).not.toHaveBeenCalled();
+  });
+
+  it("lists only active notification choices owned by the signed-in user", async () => {
+    const collectionGroupSnapshotsWithMetadata = vi.fn(() =>
+      of([
+        {
+          id: "attendee-1",
+          path: "events/event-1/live_update_subscribers/attendee-1",
+          user_id: "attendee-1",
+          active: true,
+          event_reminders: true,
+          subscribed_at: Timestamp.now(),
+          updated_at: Timestamp.now(),
+        },
+        {
+          id: "attendee-1",
+          path: "events/event-2/live_update_subscribers/attendee-1",
+          user_id: "attendee-1",
+          active: false,
+          event_reminders: false,
+          subscribed_at: Timestamp.now(),
+          updated_at: Timestamp.now(),
+        },
+      ]),
+    );
+    const { service } = configure(
+      { collectionGroupSnapshotsWithMetadata },
+      "attendee-1",
+    );
+
+    await expect(
+      firstValueFrom(service.observeCurrentUserSubscriptions()),
+    ).resolves.toEqual([{ eventId: "event-1", level: "all" }]);
+    expect(collectionGroupSnapshotsWithMetadata).toHaveBeenCalledWith(
+      "live_update_subscribers",
+      [{ fieldPath: "user_id", opStr: "==", value: "attendee-1" }],
+    );
+  });
+
   it("allows only organization owners/admins or PK Spot admins to publish", async () => {
     const getDocument = vi.fn(async () => ({
       role: "admin",
@@ -151,6 +235,7 @@ function configure(
   const authState$ = new BehaviorSubject(userId ? { uid: userId } : null);
   const firestore = {
     collectionSnapshots: vi.fn(() => of([])),
+    collectionGroupSnapshotsWithMetadata: vi.fn(() => of([])),
     documentSnapshots: vi.fn(() => of(null)),
     getDocument: vi.fn(async () => null),
     setDocument: vi.fn(async () => undefined),

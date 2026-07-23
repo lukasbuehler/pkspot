@@ -802,6 +802,23 @@
             <mat-divider></mat-divider>
             <div class="notification-preference-row">
               <div>
+                <h3 class="mat-title-medium m-0" i18n="@@settings.notifications.event_specific_heading">Event-specific notifications</h3>
+                <p class="mat-body-small m-0" i18n="@@settings.notifications.event_specific_description">
+                  Review the events you currently receive updates or reminders for.
+                </p>
+              </div>
+              <button
+                mat-stroked-button
+                type="button"
+                (click)="openEventNotificationSubscriptions()"
+                i18n="@@settings.notifications.manage_events"
+              >
+                Manage events
+              </button>
+            </div>
+            <mat-divider></mat-divider>
+            <div class="notification-preference-row">
+              <div>
                 <h3 class="mat-title-medium m-0" i18n="@@settings.notifications.spot_edits_heading">Your Spot edits</h3>
                 <p class="mat-body-small m-0" i18n="@@settings.notifications.spot_edits_description">
                   Know when a Spot edit you submitted is approved or rejected.

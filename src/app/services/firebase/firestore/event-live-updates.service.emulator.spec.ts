@@ -23,7 +23,7 @@ import {
   provideFunctions,
 } from "@angular/fire/functions";
 import * as admin from "firebase-admin";
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, firstValueFrom, take } from "rxjs";
 import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
 import { PlatformService } from "../../platform.service";
 import { FirebaseAppCheckService } from "../app-check.service";
@@ -245,5 +245,55 @@ runWithEmulator("EventLiveUpdatesService emulator integration", () => {
         title: "Too late",
       }),
     ).rejects.toThrow(/past events/i);
+  }, timeoutMs);
+
+  it("creates and lists the current user's event notification subscriptions", async () => {
+    await service.setNotificationLevel("live-event", "all");
+    await db()
+      .doc("events/live-event/live_update_subscribers/someone-else")
+      .set({
+        user_id: "someone-else",
+        active: true,
+        event_reminders: true,
+        subscribed_at: admin.firestore.Timestamp.now(),
+        updated_at: admin.firestore.Timestamp.now(),
+      });
+
+    await expect(
+      firstValueFrom(service.observeCurrentUserSubscriptions().pipe(take(1))),
+    ).resolves.toEqual([{ eventId: "live-event", level: "all" }]);
+  }, timeoutMs);
+
+  it("allows reminders for published events without an organizer", async () => {
+    await db().doc("events/community-session").set({
+      name: "Community session",
+      slug: "community-session",
+      published: true,
+      notification_policy: "reminders",
+      start: admin.firestore.Timestamp.fromMillis(Date.now() + 60_000),
+      end: admin.firestore.Timestamp.fromMillis(Date.now() + 86_400_000),
+      venue_string: "Main park",
+      locality_string: "Zurich",
+      location_raw: { lat: 47.37, lng: 8.54 },
+    });
+
+    await expect(
+      service.ensureDefaultNotificationLevel(
+        "community-session",
+        "reminders",
+      ),
+    ).resolves.toBe(true);
+    await expect(
+      db()
+        .doc(`events/community-session/live_update_subscribers/${userId}`)
+        .get()
+        .then((snapshot) => snapshot.data()),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        user_id: userId,
+        active: false,
+        event_reminders: true,
+      }),
+    );
   }, timeoutMs);
 });

@@ -424,7 +424,7 @@ service cloud.firestore {
         && eventIsPublished(event)
         && event.end is timestamp
         && event.end >= request.time
-        && event.organizer is map;
+        && event.get('notification_policy', 'all') != 'none';
     }
 
     function validCommunityKnowledgeEdit(communityKey) {
@@ -1347,7 +1347,12 @@ service cloud.firestore {
       }
 
       match /live_update_subscribers/{userId} {
-        allow read: if request.auth.uid != null && request.auth.uid == userId;
+        // A missing preference must still be readable so the client can apply
+        // an RSVP default. Collection-group lists use the stored owner field
+        // as their query predicate.
+        allow get: if request.auth.uid != null && request.auth.uid == userId;
+        allow list: if request.auth.uid != null
+          && resource.data.user_id == request.auth.uid;
         allow create: if request.auth.uid != null
           && request.auth.uid == userId
           && validEventLiveUpdateSubscription(userId)

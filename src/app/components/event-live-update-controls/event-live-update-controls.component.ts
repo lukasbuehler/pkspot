@@ -72,12 +72,15 @@ export class EventLiveUpdateControlsComponent {
   private readonly document = inject(DOCUMENT);
 
   readonly event = input.required<PkEvent>();
-  readonly notificationLevel = signal<EventNotificationLevel>("all");
+  readonly notificationLevel = signal<EventNotificationLevel>("none");
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly failed = signal(false);
   readonly liveUpdatesAvailable = computed(
-    () => Boolean(this.event().organizer) && this.event().published,
+    () =>
+      Boolean(this.userId()) &&
+      this.event().published &&
+      this.event().notificationPolicy !== "none",
   );
   readonly notificationIcon = computed(() =>
     this.notificationLevel() === "none" ? "notifications_off" : "notifications",
@@ -103,7 +106,7 @@ export class EventLiveUpdateControlsComponent {
         .observeNotificationLevel(eventId, userId)
         .subscribe({
           next: (level) => {
-            this.notificationLevel.set(level ?? "all");
+            this.notificationLevel.set(level ?? "none");
             this.loading.set(false);
           },
           error: (error) => {

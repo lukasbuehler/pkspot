@@ -137,13 +137,12 @@
               <app-event-rsvp
                 [eventId]="event.id"
                 [counts]="event.rsvpCounts"
+                [defaultNotificationLevel]="event.notificationPolicy"
                 (rsvpChanged)="currentRsvp.set($event)"
               ></app-event-rsvp>
-              @if (currentRsvp() === "going") {
-                <app-event-live-update-controls
-                  [event]="event"
-                ></app-event-live-update-controls>
-              }
+              <app-event-live-update-controls
+                [event]="event"
+              ></app-event-live-update-controls>
             </div>
           }
         </div>

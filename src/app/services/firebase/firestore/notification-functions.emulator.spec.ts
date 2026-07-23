@@ -144,6 +144,56 @@ runWithEmulator("notification function integrations", () => {
     expect(intent["payload"]["relationship"]).toBe("mutual");
   }, timeoutMs);
 
+  it("retains interested RSVP context in event reminders and cancels them when declined", async () => {
+    const eventId = "interested-reminder-event";
+    const userId = "interested-reminder-user";
+    const intentId = `event_reminder_${eventId}_${userId}`;
+    const start = admin.firestore.Timestamp.fromMillis(
+      Date.now() + 4 * 60 * 60 * 1000,
+    );
+    await db.doc(`events/${eventId}`).set({
+      name: "City Jam",
+      slug: "city-jam",
+      published: true,
+      start,
+      end: admin.firestore.Timestamp.fromMillis(
+        start.toMillis() + 2 * 60 * 60 * 1000,
+      ),
+    });
+    const rsvp = db.doc(`events/${eventId}/rsvps/${userId}`);
+    await rsvp.set({
+      user_id: userId,
+      event_id: eventId,
+      rsvp: "interested",
+      time_created: admin.firestore.Timestamp.now(),
+      time_updated: admin.firestore.Timestamp.now(),
+    });
+
+    const reminder = await waitForDocument(
+      `notification_intents/${intentId}`,
+      (data) =>
+        data["status"] === "pending" &&
+        data["payload"]?.["rsvp"] === "interested",
+    );
+    expect(reminder["payload"]).toEqual(
+      expect.objectContaining({
+        event_id: eventId,
+        event_name: "City Jam",
+        rsvp: "interested",
+      }),
+    );
+
+    await rsvp.update({
+      rsvp: "notgoing",
+      time_updated: admin.firestore.Timestamp.now(),
+    });
+    const cancelled = await waitForDocument(
+      `notification_intents/${intentId}`,
+      (data) => data["status"] === "cancelled",
+    );
+    expect(cancelled["failure_reason"]).toBe("rsvp_removed");
+  }, timeoutMs);
+
   it("notifies a requester when a private follow request is accepted", async () => {
     const requesterId = "accepted-follow-requester";
     const privateUserId = "accepted-private-target";

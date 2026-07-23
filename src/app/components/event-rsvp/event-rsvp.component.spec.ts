@@ -5,6 +5,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { EventsService } from "../../services/firebase/firestore/events.service";
+import { EventLiveUpdatesService } from "../../services/firebase/firestore/event-live-updates.service";
+import { PushNotificationsService } from "../../services/push-notifications.service";
+import { NotificationPreferencesService } from "../../services/notification-preferences.service";
 import { EventRsvpComponent } from "./event-rsvp.component";
 
 type ScreenshotGlobal = typeof globalThis & {
@@ -22,6 +25,20 @@ describe("EventRsvpComponent", () => {
     setMyRsvp: vi.fn(() => Promise.resolve()),
     clearMyRsvp: vi.fn(() => Promise.resolve()),
   };
+  const liveUpdatesService = {
+    ensureDefaultNotificationLevel: vi.fn(() => Promise.resolve(true)),
+  };
+  const pushNotifications = {
+    supported: vi.fn(() => true),
+    systemAllowsNotifications: vi.fn(() => false),
+    requestPermissionFromUserAction: vi.fn(() => Promise.resolve(true)),
+  };
+  const notificationPreferences = {
+    preferences: vi.fn(() => ({
+      event_reminders: true,
+      event_updates: true,
+    })),
+  };
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -30,11 +47,23 @@ describe("EventRsvpComponent", () => {
     eventsService.getMyRsvp.mockResolvedValue(null);
     eventsService.setMyRsvp.mockResolvedValue(undefined);
     eventsService.clearMyRsvp.mockResolvedValue(undefined);
+    liveUpdatesService.ensureDefaultNotificationLevel.mockResolvedValue(true);
+    pushNotifications.requestPermissionFromUserAction.mockResolvedValue(true);
+    notificationPreferences.preferences.mockReturnValue({
+      event_reminders: true,
+      event_updates: true,
+    });
     await TestBed.configureTestingModule({
       imports: [EventRsvpComponent],
       providers: [
         provideNoopAnimations(),
         { provide: EventsService, useValue: eventsService },
+        { provide: EventLiveUpdatesService, useValue: liveUpdatesService },
+        { provide: PushNotificationsService, useValue: pushNotifications },
+        {
+          provide: NotificationPreferencesService,
+          useValue: notificationPreferences,
+        },
         {
           provide: AuthenticationService,
           useValue: {
@@ -86,6 +115,60 @@ describe("EventRsvpComponent", () => {
     await component.selectRsvp("interested");
 
     expect(changed).toHaveBeenLastCalledWith("interested");
+  });
+
+  it("applies the event notification default when going or interested is saved", async () => {
+    fixture.componentRef.setInput("eventId", "event-1");
+    fixture.componentRef.setInput("defaultNotificationLevel", "reminders");
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    await component.selectRsvp("interested");
+    await vi.waitFor(() =>
+      expect(
+        liveUpdatesService.ensureDefaultNotificationLevel,
+      ).toHaveBeenCalledWith("event-1", "reminders"),
+    );
+
+    expect(
+      pushNotifications.requestPermissionFromUserAction,
+    ).toHaveBeenCalledOnce();
+  });
+
+  it("does not enable notifications for not going", async () => {
+    fixture.componentRef.setInput("eventId", "event-1");
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    await component.selectRsvp("notgoing");
+
+    expect(
+      liveUpdatesService.ensureDefaultNotificationLevel,
+    ).not.toHaveBeenCalled();
+    expect(
+      pushNotifications.requestPermissionFromUserAction,
+    ).not.toHaveBeenCalled();
+  });
+
+  it("respects global event-channel opt-outs when requesting device permission", async () => {
+    notificationPreferences.preferences.mockReturnValue({
+      event_reminders: false,
+      event_updates: false,
+    });
+    fixture.componentRef.setInput("eventId", "event-1");
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    await component.selectRsvp("going");
+
+    expect(
+      pushNotifications.requestPermissionFromUserAction,
+    ).not.toHaveBeenCalled();
+    await vi.waitFor(() =>
+      expect(
+        liveUpdatesService.ensureDefaultNotificationLevel,
+      ).toHaveBeenCalledWith("event-1", "all"),
+    );
   });
 
   it("emits null after clearing a response", async () => {
