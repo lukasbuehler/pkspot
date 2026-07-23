@@ -15,6 +15,12 @@ export interface WebPushMessage {
 
 type MessagingModule = typeof import("firebase/messaging");
 
+interface WebPushEnvironment {
+  webPush?: {
+    vapidKey?: string;
+  };
+}
+
 @Injectable({ providedIn: "root" })
 export class WebPushClientService {
   private readonly firebaseApp = inject(FirebaseApp);
@@ -81,7 +87,8 @@ export class WebPushClientService {
   }
 
   private _vapidKey(): string {
-    return environment.webPush?.vapidKey?.trim() ?? "";
+    const webPushEnvironment = environment as WebPushEnvironment;
+    return webPushEnvironment.webPush?.vapidKey?.trim() ?? "";
   }
 
   private _mapPermission(
