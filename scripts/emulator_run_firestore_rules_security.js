@@ -158,6 +158,24 @@ async function seedSecurityFixture() {
     name: "Draft Event",
     published: false,
   });
+  batch.set(adminDb.doc("events/unlisted-event"), {
+    name: "Unlisted Event",
+    publication_state: "published",
+    published: true,
+    visibility: "unlisted",
+  });
+  batch.set(adminDb.doc("events/private-event"), {
+    name: "Private Event",
+    publication_state: "published",
+    published: true,
+    visibility: "private",
+  });
+  batch.set(adminDb.doc("event_discovery/event-1"), {
+    name: "Public Event",
+    publication_state: "published",
+    published: true,
+    visibility: "public",
+  });
   batch.set(adminDb.doc("events/unpublished-event/live_updates/update-1"), {
     event_id: "unpublished-event",
     type: "general_update",
@@ -168,6 +186,15 @@ async function seedSecurityFixture() {
     published_at: admin.firestore.Timestamp.now(),
   });
   batch.set(adminDb.doc("event_slugs/public-event"), { event_id: "event-1" });
+  batch.set(adminDb.doc("event_slugs/unlisted-event"), {
+    event_id: "unlisted-event",
+  });
+  batch.set(adminDb.doc("event_slugs/private-event"), {
+    event_id: "private-event",
+  });
+  batch.set(adminDb.doc("event_slugs/draft-event"), {
+    event_id: "unpublished-event",
+  });
   batch.set(adminDb.doc("series/series-1"), { name: "Public Series" });
   batch.set(adminDb.doc("community_pages/ch-zurich"), { title: "Zurich" });
   batch.set(adminDb.doc("community_pages/ch-zurich/private_info/link_cards"), {
@@ -374,6 +401,40 @@ async function testPublicReadSurface(anon, owner, adminUser) {
     getDoc(doc(anon.db, "spot_clusters/z16_1_1"))
   );
   await assertAllowed("anonymous event read", () => getDoc(doc(anon.db, "events/event-1")));
+  await assertAllowed("anonymous known unlisted event read", () =>
+    getDoc(doc(anon.db, "events/unlisted-event"))
+  );
+  await assertDenied("anonymous private event read", () =>
+    getDoc(doc(anon.db, "events/private-event"))
+  );
+  await assertDenied("anonymous draft event read", () =>
+    getDoc(doc(anon.db, "events/unpublished-event"))
+  );
+  await assertDenied("regular users cannot enumerate canonical events", () =>
+    getDocs(collection(owner.db, "events"))
+  );
+  await assertAllowed("admins can list canonical events", () =>
+    getDocs(collection(adminUser.db, "events"))
+  );
+  await assertAllowed("anonymous known public slug read", () =>
+    getDoc(doc(anon.db, "event_slugs/public-event"))
+  );
+  await assertAllowed("anonymous known unlisted slug read", () =>
+    getDoc(doc(anon.db, "event_slugs/unlisted-event"))
+  );
+  await assertDenied("anonymous private slug read", () =>
+    getDoc(doc(anon.db, "event_slugs/private-event"))
+  );
+  await assertDenied("anonymous draft slug read", () =>
+    getDoc(doc(anon.db, "event_slugs/draft-event"))
+  );
+  await assertDenied("regular users cannot enumerate event slugs", () =>
+    getDocs(collection(owner.db, "event_slugs"))
+  );
+  await assertAllowed("anonymous event discovery list", async () => {
+    const snapshot = await getDocs(collection(anon.db, "event_discovery"));
+    assert.deepEqual(snapshot.docs.map((item) => item.id), ["event-1"]);
+  });
   await assertAllowed("anonymous series read", () => getDoc(doc(anon.db, "series/series-1")));
   await assertAllowed("anonymous community page read", () =>
     getDoc(doc(anon.db, "community_pages/ch-zurich"))
@@ -1021,6 +1082,7 @@ async function testReadOnlyBackendCollections(owner, adminUser) {
     ["spot cluster", "spot_clusters/z16_1_2"],
     ["event", "events/client-event"],
     ["event slug", "event_slugs/client-event"],
+    ["event discovery", "event_discovery/client-event"],
     ["series", "series/client-series"],
     ["community page", "community_pages/client-community"],
     [

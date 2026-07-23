@@ -1,17 +1,28 @@
 import { Injectable, LOCALE_ID, inject } from "@angular/core";
 import { Timestamp } from "@angular/fire/firestore";
-import { filter, Observable, from, map, of, switchMap } from "rxjs";
+import {
+  Observable,
+  catchError,
+  filter,
+  from,
+  of,
+  switchMap,
+  throwError,
+} from "rxjs";
 import { Event } from "../../../../db/models/Event";
+import {
+  EVENT_DISCOVERY_COLLECTION,
+  EventDiscoverySchema,
+  isEventOpenableByKnownReference,
+  isEventPubliclyDiscoverable,
+} from "../../../../db/schemas/EventDiscoverySchema";
 import {
   EventId,
   EventOwnerSchema,
   EventSchema,
   EventSlugSchema,
 } from "../../../../db/schemas/EventSchema";
-import {
-  eventIsPublished,
-  normalizeEventModel,
-} from "../../../../db/schemas/EventNormalization";
+import { normalizeEventModel } from "../../../../db/schemas/EventNormalization";
 import {
   EventRSVPOption,
   EventRSVPSchema,
@@ -25,6 +36,7 @@ import {
 } from "../firestore-adapter.service";
 
 type EventDocument = EventSchema & { id: string };
+type EventDiscoveryDocument = EventDiscoverySchema & { id: string };
 type EventSlugDocument = EventSlugSchema & { id: string };
 type EventRSVPDocument = EventRSVPSchema & { id: string };
 export type EventWritePatch = Omit<
@@ -358,20 +370,29 @@ export class EventsService extends ConsentAwareService {
 
   /** Resolve a public slug or raw ID to a loaded Event, or null if not found. */
   async getEventBySlugOrId(slugOrId: string): Promise<Event | null> {
+    if (this.isBrowser()) {
+      await this._authService.waitForAuthorizationState();
+    }
     const id = await this._resolveEventId(slugOrId);
     if (!id) return null;
     return this.getEventById(id as EventId);
   }
 
   async getEventById(eventId: EventId): Promise<Event | null> {
-    const doc = await this._firestoreAdapter.getDocument<EventDocument>(
-      `events/${eventId}`
-    );
-    if (!doc) return null;
-    if (!eventIsPublished(doc)) {
+    if (this.isBrowser()) {
       await this._authService.waitForAuthorizationState();
     }
-    if (!eventIsPublished(doc) && !this._isAdmin()) return null;
+    let doc: EventDocument | null;
+    try {
+      doc = await this._firestoreAdapter.getDocument<EventDocument>(
+        `events/${eventId}`,
+      );
+    } catch (error) {
+      if (this._isPermissionDenied(error)) return null;
+      throw error;
+    }
+    if (!doc) return null;
+    if (!isEventOpenableByKnownReference(doc) && !this._isAdmin()) return null;
     return new Event(
       eventId,
       this._assetUrls.resolveEventAssetUrls(doc),
@@ -380,7 +401,11 @@ export class EventsService extends ConsentAwareService {
   }
 
   observeEventBySlugOrId(slugOrId: string): Observable<Event | null> {
-    return from(this._resolveEventId(slugOrId)).pipe(
+    const authorizationReady$ = this.isSSR()
+      ? of(undefined)
+      : from(this._authService.waitForAuthorizationState());
+    return authorizationReady$.pipe(
+      switchMap(() => this._resolveEventId(slugOrId)),
       switchMap((id) => {
         if (!id) return of(null);
         return this.observeEventById(id as EventId);
@@ -389,20 +414,29 @@ export class EventsService extends ConsentAwareService {
   }
 
   observeEventById(eventId: EventId): Observable<Event | null> {
-    return this._firestoreAdapter
-      .documentSnapshots<EventDocument>(`events/${eventId}`)
-      .pipe(
-        switchMap((doc) => {
-          if (!doc) return of(null);
-          if (eventIsPublished(doc)) return of(this._toEvent(eventId, doc));
-          return this._authorizationStateResolved$.pipe(
-            filter(Boolean),
-            map(() =>
-              this._isAdmin() ? this._toEvent(eventId, doc) : null,
+    const authorizationReady$ = this.isSSR()
+      ? of(true)
+      : this._authorizationStateResolved$.pipe(filter(Boolean));
+    return authorizationReady$.pipe(
+      switchMap(() =>
+        this._firestoreAdapter
+          .documentSnapshots<EventDocument>(`events/${eventId}`)
+          .pipe(
+            catchError((error: unknown) =>
+              this._isPermissionDenied(error)
+                ? of(null)
+                : throwError(() => error),
             ),
-          );
-        }),
-      );
+          ),
+      ),
+      switchMap((doc) => {
+        if (!doc) return of(null);
+        if (isEventOpenableByKnownReference(doc)) {
+          return of(this._toEvent(eventId, doc));
+        }
+        return of(this._isAdmin() ? this._toEvent(eventId, doc) : null);
+      }),
+    );
   }
 
   private _toEvent(eventId: EventId, doc: EventDocument): Event {
@@ -421,27 +455,49 @@ export class EventsService extends ConsentAwareService {
   async getEvents(
     options: { sortByNext?: boolean; includeUnpublished?: boolean } = {}
   ): Promise<Event[]> {
+    const useCanonicalSource =
+      options.includeUnpublished === true && this._isAdmin();
     const filters: QueryFilter[] = [];
-    const docs = await this._firestoreAdapter.getCollection<EventDocument>(
-      "events",
-      filters
-    );
-
-    const events = docs
-      .filter(
-        (d) =>
-          options.includeUnpublished ||
-          this._isAdmin() ||
-          eventIsPublished(d),
-      )
-      .map(
-        (d) =>
-          new Event(
-            d.id as EventId,
-            this._assetUrls.resolveEventAssetUrls(d),
-            this._locale,
-          ),
+    let docs: (EventDocument | EventDiscoveryDocument)[];
+    if (useCanonicalSource) {
+      docs = await this._firestoreAdapter.getCollection<EventDocument>(
+        "events",
+        filters,
       );
+    } else {
+      try {
+        docs =
+          await this._firestoreAdapter.getCollection<EventDiscoveryDocument>(
+            EVENT_DISCOVERY_COLLECTION,
+            filters,
+          );
+      } catch (error) {
+        if (!this.isSSR() || !this._isPermissionDenied(error)) throw error;
+        // Staged-deploy compatibility: old rules do not know the projection
+        // yet. Once the projection rules are live this path is never used.
+        try {
+          docs = await this._firestoreAdapter.getCollection<EventDocument>(
+            "events",
+            filters,
+          );
+        } catch (fallbackError) {
+          if (!this._isPermissionDenied(fallbackError)) throw fallbackError;
+          docs = [];
+        }
+      }
+    }
+
+    const visibleDocs = useCanonicalSource
+      ? docs
+      : docs.filter(isEventPubliclyDiscoverable);
+    const events = visibleDocs.map(
+      (d) =>
+        new Event(
+          d.id as EventId,
+          this._assetUrls.resolveEventAssetUrls(d),
+          this._locale,
+        ),
+    );
 
     if (options.sortByNext) {
       return this._sortEventsByNext(events);
@@ -452,8 +508,8 @@ export class EventsService extends ConsentAwareService {
 
   /** Load published events organized by one organization. */
   async getEventsForOrganization(organizationId: string): Promise<Event[]> {
-    const docs = await this._firestoreAdapter.getCollection<EventDocument>(
-      "events",
+    const docs = await this._firestoreAdapter.getCollection<EventDiscoveryDocument>(
+      EVENT_DISCOVERY_COLLECTION,
       [
         {
           fieldPath: "organizer.organization.id",
@@ -463,7 +519,7 @@ export class EventsService extends ConsentAwareService {
       ],
     );
     const events = docs
-      .filter((document) => this._isAdmin() || eventIsPublished(document))
+      .filter(isEventPubliclyDiscoverable)
       .map(
         (document) =>
           new Event(
@@ -524,20 +580,31 @@ export class EventsService extends ConsentAwareService {
 
   private async _resolveEventId(slugOrId: string): Promise<string | null> {
     if (/^[a-z0-9-]+$/.test(slugOrId)) {
-      const slugDoc =
-        await this._firestoreAdapter.getDocument<EventSlugDocument>(
-          `event_slugs/${slugOrId}`
-        );
-      if (slugDoc?.event_id) {
-        return String(slugDoc.event_id);
+      try {
+        const slugDoc =
+          await this._firestoreAdapter.getDocument<EventSlugDocument>(
+            `event_slugs/${slugOrId}`,
+          );
+        if (slugDoc?.event_id) {
+          return String(slugDoc.event_id);
+        }
+      } catch (error) {
+        // A denied alias can be a private/draft slug or simply a raw event id
+        // without an alias. Let the canonical document read make the final
+        // authorization decision without exposing alias contents.
+        if (!this._isPermissionDenied(error)) throw error;
       }
     }
 
-    const direct = await this._firestoreAdapter.getDocument<EventDocument>(
-      `events/${slugOrId}`
-    );
-    if (direct) return slugOrId;
-
-    return null;
+    // A known id does not need an existence probe. The canonical get applies
+    // publication/visibility rules without making ids enumerable.
+    return slugOrId;
   }
+
+  private _isPermissionDenied(error: unknown): boolean {
+    if (!error || typeof error !== "object") return false;
+    const code = String((error as { code?: unknown }).code ?? "");
+    return code === "permission-denied" || code === "firestore/permission-denied";
+  }
+
 }

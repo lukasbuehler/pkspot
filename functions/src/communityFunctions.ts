@@ -15,6 +15,7 @@ import {
 import { CommunitySlugSchema } from "../../src/db/schemas/CommunitySlugSchema";
 import { CommunityMergeSchema } from "../../src/db/schemas/CommunityMergeSchema";
 import { EventSchema } from "../../src/db/schemas/EventSchema";
+import { EVENT_DISCOVERY_COLLECTION } from "../../src/db/schemas/EventDiscoverySchema";
 import { SpotPreviewData } from "../../src/db/schemas/SpotPreviewData";
 import {
   COMMUNITY_DEFAULT_IMAGE_PATH,
@@ -46,7 +47,6 @@ const COMMUNITY_PAGES_COLLECTION = "community_pages";
 const COMMUNITY_SLUGS_COLLECTION = "community_slugs";
 const COMMUNITY_MERGES_COLLECTION = "community_merges";
 const MAINTENANCE_COLLECTION = "maintenance";
-const EVENTS_COLLECTION = "events";
 const SPOTS_COLLECTION = "spots";
 const MANUAL_REBUILD_DOC = `${MAINTENANCE_COLLECTION}/run-rebuild-community-pages`;
 const DEFAULT_LOCALE = "en";
@@ -853,7 +853,7 @@ const getCommunityEventPreviews = async (
   const cutoffMillis = cutoff.getTime();
 
   const snapshot = await db
-    .collection(EVENTS_COLLECTION)
+    .collection(EVENT_DISCOVERY_COLLECTION)
     .where("community_keys", "array-contains", communityKey)
     .get();
 
@@ -1624,7 +1624,7 @@ export const rebuildCommunityPagesOnImportWrite = onDocumentWritten(
 );
 
 export const rebuildCommunityEventPreviewsOnEventWrite = onDocumentWritten(
-  { document: "events/{eventId}" },
+  { document: `${EVENT_DISCOVERY_COLLECTION}/{eventId}` },
   async (event) => {
     const db = admin.firestore();
     const impactedCommunityKeys = new Set<string>();

@@ -86,6 +86,22 @@ service cloud.firestore {
         && (!('username' in creator) || creator.username is string);
     }
 
+    function eventIsPublished(eventData) {
+      return (
+          'publication_state' in eventData
+          && eventData.publication_state == 'published'
+        )
+        || (
+          !('publication_state' in eventData)
+          && eventData.get('published', true) == true
+        );
+    }
+
+    function eventCanBeOpenedByKnownReference(eventData) {
+      return eventIsPublished(eventData)
+        && eventData.get('visibility', 'public') != 'private';
+    }
+
     function validEventRsvp(eventId, userId) {
       return request.resource.data.keys().hasOnly([
           'user_id',
@@ -128,7 +144,7 @@ service cloud.firestore {
 
     function eventAcceptsLiveUpdateSubscriptions(eventId) {
       let event = get(/databases/$(database)/documents/events/$(eventId)).data;
-      return event.get('published', true) == true
+      return eventCanBeOpenedByKnownReference(event)
         && event.end is timestamp
         && event.end >= request.time
         && event.organizer is map;
@@ -666,20 +682,17 @@ service cloud.firestore {
     }
 
     match /event_slugs/{slug} {
-      allow read: if true;
-
-      // Admins can freely manage slug aliases (create new, repoint,
-      // delete). Regular authed users can claim a new unused slug that
-      // already points to a real event — kept for future user-created
-      // events but not used today.
-      allow create: if isAdmin()
-        || (
-          request.auth.uid != null
-          && slug.matches('^[a-z0-9-]+$')
-          && !exists(/databases/$(database)/documents/event_slugs/$(slug))
-          && exists(/databases/$(database)/documents/events/$(request.resource.data.event_id))
+      allow get: if isAdmin()
+        || eventCanBeOpenedByKnownReference(
+          get(
+            /databases/$(database)/documents/events/$(resource.data.event_id)
+          ).data
         );
-      allow update, delete: if isAdmin();
+      allow list: if isAdmin();
+
+      // Keep aliases admin-managed until user-created events have ownership
+      // rules; otherwise alias creation becomes an event-id existence oracle.
+      allow create, update, delete: if isAdmin();
     }
 
     function onlyCommunityMergeRequestChanged() {
@@ -947,7 +960,8 @@ service cloud.firestore {
     }
 
     match /events/{eventId} {
-      allow read: if true;
+      allow get: if isAdmin() || eventCanBeOpenedByKnownReference(resource.data);
+      allow list: if isAdmin();
       // Admin-only writes for now. Future plan: open to authed users for
       // free-tier event creation, with field-level validation gating
       // sponsor / promo_region / banner_src (premium-only fields).
@@ -979,7 +993,9 @@ service cloud.firestore {
       }
 
       match /live_updates/{updateId} {
-        allow read: if get(/databases/$(database)/documents/events/$(eventId)).data.get('published', true) == true;
+        allow read: if eventCanBeOpenedByKnownReference(
+          get(/databases/$(database)/documents/events/$(eventId)).data
+        );
         // Updates are created only by publishEventLiveUpdate after its backend
         // organizer, validation, event-state, and cooldown checks pass.
         allow create, update, delete: if false;
@@ -1014,6 +1030,11 @@ service cloud.firestore {
       match /live_update_state/{stateId} {
         allow read, write: if false;
       }
+    }
+
+    match /event_discovery/{eventId} {
+      allow read: if true;
+      allow write: if false;
     }
 
     // Series (Swiss Parkour Tour, SPL, Parkour Earth, ...) are admin-curated

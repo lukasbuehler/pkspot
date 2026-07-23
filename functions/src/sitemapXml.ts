@@ -52,6 +52,7 @@ export interface EventSitemapData {
   status?: string;
   time_updated?: { seconds: number; nanoseconds: number };
   updatedAt?: { seconds: number; nanoseconds: number };
+  start?: { seconds: number; nanoseconds: number } | string;
   startDate?: { seconds: number; nanoseconds: number } | string;
 }
 
@@ -437,7 +438,7 @@ export function buildEventSitemapEntry(
   return {
     path,
     lastmod: getLastModDate(
-      data.time_updated ?? data.updatedAt ?? data.startDate,
+      data.time_updated ?? data.updatedAt ?? data.start ?? data.startDate,
       fallbackDate
     ),
     changefreq: "weekly",

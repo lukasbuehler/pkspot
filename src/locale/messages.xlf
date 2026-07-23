@@ -3897,6 +3897,16 @@
         <source>Price TBA</source>
       </segment>
     </unit>
+    <unit id="event_unlisted.meta.description">
+      <segment>
+        <source>This event is available through its shared link.</source>
+      </segment>
+    </unit>
+    <unit id="event_unlisted.meta.title">
+      <segment>
+        <source>Unlisted event</source>
+      </segment>
+    </unit>
     <unit id="event_weather.close">
       <segment>
         <source>Close event forecast</source>

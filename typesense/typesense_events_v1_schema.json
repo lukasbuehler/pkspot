@@ -101,6 +101,8 @@
       "facet": true,
       "optional": true
     },
+    { "name": "kind", "type": "string", "facet": true, "optional": true },
+    { "name": "priority", "type": "string", "facet": true, "optional": true },
 
     { "name": "start_seconds", "type": "int64", "optional": false },
     { "name": "end_seconds", "type": "int64", "optional": false },
@@ -190,7 +192,7 @@
       "index": false
     },
 
-    { "name": "published", "type": "bool", "facet": true, "optional": true },
+    { "name": "published", "type": "bool", "facet": true },
     { "name": "_force_sync", "type": "int64", "optional": true, "index": false }
   ],
   "default_sorting_field": "start_seconds",

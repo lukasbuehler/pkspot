@@ -262,6 +262,87 @@ describe("EventInfoPageComponent", () => {
     );
   });
 
+  it("keeps an unlisted event out of public metadata while preserving participation", () => {
+    const structuredDataService = {
+      addStructuredData: vi.fn(),
+      removeStructuredData: vi.fn(),
+    };
+    const metaTagService = {
+      setEventMetaTags: vi.fn(),
+      setStaticPageMetaTags: vi.fn(),
+      setRobotsContent: vi.fn(),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SeriesService, useValue: seriesServiceStub() },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        {
+          provide: AuthenticationService,
+          useValue: { user: { data: null }, isAdmin: signal(false) },
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: of(convertToParamMap({ slug: "shared-jam" })),
+            queryParams: of({}),
+            data: of({ routeName: "Event" }),
+            snapshot: { paramMap: convertToParamMap({ slug: "shared-jam" }) },
+          },
+        },
+        { provide: Router, useValue: { navigate: vi.fn() } },
+        { provide: LocationStrategy, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: MetaTagService, useValue: metaTagService },
+        { provide: StructuredDataService, useValue: structuredDataService },
+        {
+          provide: MapsApiService,
+          useValue: {
+            isApiLoaded: vi.fn(() => true),
+            loadGoogleMapsApi: vi.fn(),
+          },
+        },
+        {
+          provide: AnalyticsService,
+          useValue: { addUtmToUrl: vi.fn((url?: string) => url) },
+        },
+        { provide: ResponsiveService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+        { provide: PLATFORM_ID, useValue: "server" },
+      ],
+    });
+
+    const component = TestBed.runInInjectionContext(
+      () => new EventInfoPageComponent(),
+    );
+    component.event.set(
+      buildEvent("shared-jam", "Shared Jam", {
+        visibility: "unlisted",
+        start: "2027-06-14T10:00:00.000Z",
+        end: "2027-06-15T10:00:00.000Z",
+      }),
+    );
+    flushSignalEffects();
+
+    expect(component.showRsvp()).toBe(true);
+    expect(metaTagService.setEventMetaTags).not.toHaveBeenCalled();
+    expect(metaTagService.setStaticPageMetaTags).toHaveBeenLastCalledWith(
+      "Unlisted event",
+      "This event is available through its shared link.",
+      undefined,
+      "/events/shared-jam",
+    );
+    expect(metaTagService.setRobotsContent).toHaveBeenLastCalledWith(
+      "noindex,nofollow",
+    );
+    expect(structuredDataService.addStructuredData).not.toHaveBeenCalled();
+    expect(structuredDataService.removeStructuredData).toHaveBeenCalledWith(
+      "event",
+    );
+  });
+
   it.each([
     { platform: "server", shouldRedirect: false, loadFails: false },
     { platform: "browser", shouldRedirect: true, loadFails: false },

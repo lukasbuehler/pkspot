@@ -24,6 +24,7 @@ import {
   type SpotSitemapData,
   type UserSitemapData,
 } from "./sitemapXml";
+import { EVENT_DISCOVERY_COLLECTION } from "../../src/db/schemas/EventDiscoverySchema";
 
 const BUCKET_NAME = "parkour-base-project.appspot.com";
 const XML_BUFFER_TARGET_BYTES = 64 * 1024;
@@ -197,15 +198,12 @@ async function _generateAndUploadSitemap(): Promise<{
 
     console.log("Streaming events from Firestore...");
     const eventsStream = db
-      .collection("events")
+      .collection(EVENT_DISCOVERY_COLLECTION)
       .select(
         "slug",
-        "canonicalPath",
         "published",
-        "status",
         "time_updated",
-        "updatedAt",
-        "startDate"
+        "start"
       )
       .stream();
 

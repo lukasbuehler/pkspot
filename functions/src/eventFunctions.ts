@@ -11,6 +11,7 @@ import {
   EventPromoRegionSchema,
   EventSchema,
 } from "../../src/db/schemas/EventSchema";
+import { EVENT_DISCOVERY_COLLECTION } from "../../src/db/schemas/EventDiscoverySchema";
 import { normalizeEventModel } from "../../src/db/schemas/EventNormalization";
 import { SpotSchema } from "../../src/db/schemas/SpotSchema";
 import {
@@ -21,7 +22,6 @@ import {
 const MAINTENANCE_COLLECTION = "maintenance";
 const RUN_BACKFILL_EVENT_TYPESENSE_DOC = `${MAINTENANCE_COLLECTION}/run-backfill-event-typesense-fields`;
 const RUN_BACKFILL_SPOT_UPCOMING_EVENTS_DOC = `${MAINTENANCE_COLLECTION}/run-backfill-spot-upcoming-events`;
-const EVENTS_COLLECTION = "events";
 const SPOTS_COLLECTION = "spots";
 const MAX_SPOT_UPCOMING_EVENT_PREVIEWS = 2;
 const EVENT_SPOT_PREVIEW_SOURCE_FIELDS = [
@@ -821,7 +821,7 @@ const _upcomingEventPreviewsForSpot = async (
   now: Timestamp = Timestamp.now()
 ): Promise<EventCardPreviewSchema[]> => {
   const snapshot = await db
-    .collection(EVENTS_COLLECTION)
+    .collection(EVENT_DISCOVERY_COLLECTION)
     .where("spot_ids", "array-contains", spotId)
     .get();
 
@@ -932,7 +932,7 @@ export const updateEventFieldsOnWrite = onDocumentWritten(
  * cause redundant spot writes.
  */
 export const syncSpotUpcomingEventsOnEventWrite = onDocumentWritten(
-  { document: "events/{eventId}" },
+  { document: `${EVENT_DISCOVERY_COLLECTION}/{eventId}` },
   async (event) => {
     if (!isEventRuntimeDoc(String(event.params.eventId ?? ""))) return null;
 

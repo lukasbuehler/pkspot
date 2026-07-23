@@ -857,6 +857,17 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       this._metaTags.setRobotsContent("noindex,nofollow");
       return;
     }
+    if (event.visibility !== "public") {
+      this._structuredData.removeStructuredData("event");
+      this._metaTags.setStaticPageMetaTags(
+        $localize`:@@event_unlisted.meta.title:Unlisted event`,
+        $localize`:@@event_unlisted.meta.description:This event is available through its shared link.`,
+        undefined,
+        canonicalPath,
+      );
+      this._metaTags.setRobotsContent("noindex,nofollow");
+      return;
+    }
     const description = this.description();
     const image = this._eventSocialImage(event);
 

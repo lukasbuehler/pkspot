@@ -46,6 +46,10 @@ export {
 } from "./eventFunctions";
 export { backfillEventModel } from "./eventModelMaintenanceFunctions";
 export {
+  rebuildEventDiscovery,
+  syncEventDiscoveryOnEventWrite,
+} from "./eventDiscoveryFunctions";
+export {
   onEventLiveUpdateCreate,
   publishEventLiveUpdate,
 } from "./eventLiveUpdateFunctions";

@@ -582,6 +582,21 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   private _syncEventSeoData(event: PkEvent): void {
     const canonicalPath = this._eventCanonicalPath(event);
+    if (!event.published || event.visibility !== "public") {
+      const isDraft = !event.published;
+      this.metaTagService.setStaticPageMetaTags(
+        isDraft
+          ? $localize`:@@event_draft.meta.title:Draft event`
+          : $localize`:@@event_unlisted.meta.title:Unlisted event`,
+        isDraft
+          ? $localize`:@@event_draft.meta.description:This event has not been published.`
+          : $localize`:@@event_unlisted.meta.description:This event is available through its shared link.`,
+        undefined,
+        canonicalPath,
+      );
+      this.metaTagService.setRobotsContent("noindex,nofollow");
+      return;
+    }
     const description = this._eventDescription(event);
     const image =
       eventImageDisplaySrc(event.bannerSrc) ?? "assets/banner_1200x630.png";

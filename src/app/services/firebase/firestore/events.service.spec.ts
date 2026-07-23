@@ -2,7 +2,15 @@ import { TestBed } from "@angular/core/testing";
 import { signal } from "@angular/core";
 import { Timestamp } from "@angular/fire/firestore";
 import { BehaviorSubject, Observable } from "rxjs";
-import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  type Mock,
+} from "vitest";
 import { EventId, EventSchema } from "../../../../db/schemas/EventSchema";
 import { AnalyticsService } from "../../analytics.service";
 import { AssetUrlService } from "../../asset-url.service";
@@ -110,6 +118,11 @@ describe("EventsService", () => {
     service = TestBed.inject(EventsService);
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+    TestBed.resetTestingModule();
+  });
+
   it("resolves a public slug through event_slugs before loading the event", async () => {
     const doc = buildEventDoc(
       "event-123",
@@ -139,6 +152,50 @@ describe("EventsService", () => {
     );
   });
 
+  it("waits for authorization before resolving a draft slug", async () => {
+    const authService = TestBed.inject(AuthenticationService) as unknown as {
+      waitForAuthorizationState: Mock;
+    };
+    let resolveAuthorization!: () => void;
+    let authorizationResolved = false;
+    authService.waitForAuthorizationState.mockImplementation(
+      () => {
+        if (authorizationResolved) return Promise.resolve();
+        return new Promise<void>((resolve) => {
+          resolveAuthorization = () => {
+            authorizationResolved = true;
+            resolve();
+          };
+        });
+      },
+    );
+    firestoreAdapter.getDocument.mockImplementation((path: string) => {
+      if (path === "event_slugs/draft-jam") {
+        return Promise.resolve({ id: "draft-jam", event_id: "draft-event" });
+      }
+      return Promise.resolve(
+        buildEventDoc(
+          "draft-event",
+          "2026-06-01T10:00:00.000Z",
+          "2026-06-02T10:00:00.000Z",
+          { published: false },
+        ),
+      );
+    });
+
+    const eventPromise = service.getEventBySlugOrId("draft-jam");
+    expect(firestoreAdapter.getDocument).not.toHaveBeenCalled();
+
+    resolveAuthorization();
+    const event = await eventPromise;
+
+    expect(event?.id).toBe("draft-event");
+    expect(firestoreAdapter.getDocument).toHaveBeenNthCalledWith(
+      1,
+      "event_slugs/draft-jam",
+    );
+  });
+
   it("falls back to a direct event id when no slug alias exists", async () => {
     const doc = buildEventDoc(
       "raw-event-id",
@@ -155,6 +212,27 @@ describe("EventsService", () => {
 
     expect(event?.id).toBe("raw-event-id");
     expect(event?.name).toBe("raw-event-id");
+  });
+
+  it("falls back to a raw event id when the alias lookup is denied", async () => {
+    const permissionDenied = Object.assign(new Error("denied"), {
+      code: "permission-denied",
+    });
+    const doc = buildEventDoc(
+      "raw-event-id",
+      "2026-06-01T10:00:00.000Z",
+      "2026-06-02T10:00:00.000Z",
+    );
+    firestoreAdapter.getDocument.mockImplementation((path: string) => {
+      if (path === "event_slugs/raw-event-id") {
+        return Promise.reject(permissionDenied);
+      }
+      if (path === "events/raw-event-id") return Promise.resolve(doc);
+      return Promise.resolve(null);
+    });
+
+    await expect(service.getEventBySlugOrId("raw-event-id")).resolves
+      .toMatchObject({ id: "raw-event-id" });
   });
 
   it("does not expose unpublished events by id or listing", async () => {
@@ -236,7 +314,7 @@ describe("EventsService", () => {
     await expect(service.getEventById("draft-event" as EventId)).resolves
       .toMatchObject({ id: "draft-event" });
 
-    const events = await service.getEvents();
+    const events = await service.getEvents({ includeUnpublished: true });
 
     expect(events.map((event) => event.id)).toEqual(["draft-event"]);
   });
@@ -486,7 +564,7 @@ describe("EventsService", () => {
     const events = await service.getEventsForOrganization("pkspot");
 
     expect(firestoreAdapter.getCollection).toHaveBeenCalledWith(
-      "events",
+      "event_discovery",
       [
         {
           fieldPath: "organizer.organization.id",

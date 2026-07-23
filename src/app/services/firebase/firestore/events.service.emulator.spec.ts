@@ -179,6 +179,20 @@ async function waitForEventField(
   );
 }
 
+async function waitForEventDiscovery(
+  eventId: string,
+  exists: boolean,
+): Promise<admin.firestore.DocumentData | undefined> {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const snapshot = await adminDb().doc(`event_discovery/${eventId}`).get();
+    if (snapshot.exists === exists) return snapshot.data();
+    await sleep(250);
+  }
+  throw new Error(
+    `Timed out waiting for event_discovery/${eventId} exists=${exists}`,
+  );
+}
+
 function parseHostPort(value: string): [string, number] {
   const [host, portValue] = value.split(":");
   const port = Number(portValue);
@@ -596,6 +610,57 @@ runWithEmulator("EventsService emulator integration", () => {
         },
       }),
     );
+  }, eventTypesenseIntegrationTimeoutMs);
+
+  it("materializes only public events into the disposable discovery projection", async () => {
+    const eventId = `event-discovery-${Date.now()}`;
+    const reference = adminDb().doc(`events/${eventId}`);
+    await reference.set({
+      name: "Projected public event",
+      description: "Safe public summary",
+      venue_string: "Projection venue",
+      locality_string: "Zurich, Switzerland",
+      location_raw: { lat: 47.3769, lng: 8.5417 },
+      start: admin.firestore.Timestamp.fromDate(
+        new Date("2027-06-01T10:00:00.000Z"),
+      ),
+      end: admin.firestore.Timestamp.fromDate(
+        new Date("2027-06-01T12:00:00.000Z"),
+      ),
+      program: { active_plan_id: "main", plans: [] },
+      owner: { type: "user", user_id: "owner-1" },
+      created_by: { uid: "admin-1" },
+      visibility: "public",
+      publication_state: "published",
+      published: true,
+    });
+
+    await waitForEventField(eventId, "start_seconds", 1_811_844_000);
+    const publicProjection = await waitForEventDiscovery(eventId, true);
+    expect(publicProjection).toEqual(
+      expect.objectContaining({
+        name: "Projected public event",
+        description: "Safe public summary",
+        publication_state: "published",
+        visibility: "public",
+        published: true,
+      }),
+    );
+    expect(publicProjection).not.toHaveProperty("program");
+    expect(publicProjection).not.toHaveProperty("owner");
+    expect(publicProjection).not.toHaveProperty("created_by");
+
+    await reference.update({ visibility: "unlisted" });
+    await waitForEventDiscovery(eventId, false);
+
+    await reference.update({ visibility: "public" });
+    await waitForEventDiscovery(eventId, true);
+
+    await reference.update({
+      publication_state: "draft",
+      published: false,
+    });
+    await waitForEventDiscovery(eventId, false);
   }, eventTypesenseIntegrationTimeoutMs);
 
   it("dual-writes legacy publication changes through the event trigger", async () => {

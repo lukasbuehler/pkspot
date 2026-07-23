@@ -10950,6 +10950,18 @@
         <target>Preis folgt</target>
       </segment>
     </unit>
+    <unit id="event_unlisted.meta.description">
+      <segment state="initial">
+        <source>This event is available through its shared link.</source>
+        <target>Diese Veranstaltung ist über den geteilten Link verfügbar.</target>
+      </segment>
+    </unit>
+    <unit id="event_unlisted.meta.title">
+      <segment state="initial">
+        <source>Unlisted event</source>
+        <target>Nicht gelistete Veranstaltung</target>
+      </segment>
+    </unit>
     <unit id="event_weather.close">
       <segment state="initial">
         <source>Close event forecast</source>

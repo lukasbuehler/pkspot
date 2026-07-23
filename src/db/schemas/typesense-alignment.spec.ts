@@ -1,4 +1,5 @@
-import { describe } from "vitest";
+import { describe, expect, it } from "vitest";
+import { EVENT_DISCOVERY_FIELDS } from "./EventDiscoverySchema";
 import {
   CollectionMapping,
   registerAlignmentTests,
@@ -46,7 +47,7 @@ const tileCoordinateMapping = Object.fromEntries(
   { kind: "direct"; source: (typeof tileCoordinateFieldPaths)[number] }
 >;
 
-describe("Typesense events_v1 ↔ EventSchema", () => {
+describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
   // Field paths from src/db/schemas/EventSchema.ts. Keep in sync when the
   // TS interface changes. Dotted paths represent nested object fields.
   const firestoreFields = [
@@ -203,6 +204,8 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "rsvp_counts.interested",
     "rsvp_counts.notgoing",
     "rsvp_counts.total",
+    "kind",
+    "priority",
     "published",
     "created_by",
     "time_created",
@@ -236,6 +239,7 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "start",
     "end",
     "location",
+    "published",
   ] as const;
 
   // The `*_seconds` and `promo_region_*` helper fields are
@@ -265,6 +269,8 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "required_qualifier_keys",
     "is_sponsored",
     "is_promoted",
+    "kind",
+    "priority",
     "published",
   ] as const;
 
@@ -293,6 +299,8 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "sponsor.url": "string",
     is_promoted: "bool",
     is_sponsored: "bool",
+    kind: "string",
+    priority: "string",
     start_seconds: "int64",
     end_seconds: "int64",
     promo_starts_at_seconds: "int64",
@@ -375,6 +383,8 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "sponsor.url": { kind: "direct", source: "sponsor.url" },
     is_promoted: { kind: "direct", source: "is_promoted" },
     is_sponsored: { kind: "direct", source: "is_sponsored" },
+    kind: { kind: "direct", source: "kind" },
+    priority: { kind: "direct", source: "priority" },
 
     // Helper fields are materialized onto the Firestore event doc by
     // `updateEventFieldsOnWrite` (the Firebase Extension then copies them
@@ -438,6 +448,28 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
       reason: "Operator-only knob to force Typesense re-index without doc change",
     },
   };
+
+  it("indexes only fields present in the public discovery projection", () => {
+    const allowedTopLevelFields = new Set<string>([
+      ...EVENT_DISCOVERY_FIELDS,
+      "published",
+    ]);
+    const disallowedSources = Object.values(mapping)
+      .filter(
+        (
+          entry,
+        ): entry is Extract<
+          CollectionMapping[string],
+          { kind: "direct" | "derived" }
+        > => entry.kind === "direct" || entry.kind === "derived",
+      )
+      .flatMap((entry) => entry.source)
+      .filter(
+        (source) => !allowedTopLevelFields.has(source.split(".")[0] ?? source),
+      );
+
+    expect(disallowedSources).toEqual([]);
+  });
 
   registerAlignmentTests({
     typesenseSchemaPath: "typesense/typesense_events_v1_schema.json",

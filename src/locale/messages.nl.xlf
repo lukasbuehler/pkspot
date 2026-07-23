@@ -10950,6 +10950,18 @@
         <target>Prijs volgt</target>
       </segment>
     </unit>
+    <unit id="event_unlisted.meta.description">
+      <segment state="initial">
+        <source>This event is available through its shared link.</source>
+        <target>Dit evenement is beschikbaar via de gedeelde link.</target>
+      </segment>
+    </unit>
+    <unit id="event_unlisted.meta.title">
+      <segment state="initial">
+        <source>Unlisted event</source>
+        <target>Niet-vermeld evenement</target>
+      </segment>
+    </unit>
     <unit id="event_weather.close">
       <segment state="initial">
         <source>Close event forecast</source>
