@@ -7,6 +7,7 @@ import {
 } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
 import { isPlatformBrowser, isPlatformServer } from "@angular/common";
+import { CURRENT_TERMS_VERSION } from "./consent-version";
 
 @Injectable({
   providedIn: "root",
@@ -16,8 +17,7 @@ export class ConsentService {
   private _consentGranted$ = new BehaviorSubject<boolean>(false);
   private _platformId = inject(PLATFORM_ID);
 
-  // constant for current terms version
-  public CURRENT_TERMS_VERSION = "6";
+  readonly CURRENT_TERMS_VERSION = CURRENT_TERMS_VERSION;
 
   constructor() {
     // Check consent status on initialization

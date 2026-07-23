@@ -1,4 +1,5 @@
 import { expect, type APIRequestContext, type Page } from "@playwright/test";
+import { CURRENT_TERMS_VERSION } from "../../src/app/services/consent-version";
 import { localizedPath, workflowViewports } from "./workflow";
 
 export const FIREBASE_EMULATOR_STORAGE_KEY = "pkspot:e2e:firebaseEmulators";
@@ -80,11 +81,12 @@ export async function enableFirebaseEmulatorsForPage(
   settings: FirebaseEmulatorBrowserSettings = defaultFirebaseEmulatorSettings,
 ): Promise<void> {
   await page.addInitScript(
-    ({ key, value }) => {
+    ({ acceptedVersion, key, value }) => {
       localStorage.setItem(key, value);
-      localStorage.setItem("acceptedVersion", "5");
+      localStorage.setItem("acceptedVersion", acceptedVersion);
     },
     {
+      acceptedVersion: CURRENT_TERMS_VERSION,
       key: FIREBASE_EMULATOR_STORAGE_KEY,
       value: JSON.stringify(settings),
     },

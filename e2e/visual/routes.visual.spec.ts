@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { CURRENT_TERMS_VERSION } from "../../src/app/services/consent-version";
 
 interface RouteVisualCase {
   name: string;
@@ -142,8 +143,8 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
     await page.clock.setFixedTime(new Date(route.fixedTime));
   }
   await page.addInitScript(
-    ({ eventIndexFixture, signedIn }) => {
-      localStorage.setItem("acceptedVersion", "5");
+    ({ acceptedVersion, eventIndexFixture, signedIn }) => {
+      localStorage.setItem("acceptedVersion", acceptedVersion);
       localStorage.setItem(
         "lastLocationAndZoom",
         JSON.stringify({
@@ -290,6 +291,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       }
     },
     {
+      acceptedVersion: CURRENT_TERMS_VERSION,
       eventIndexFixture: route.eventIndexFixture === true,
       signedIn: route.signedIn === true,
     },
