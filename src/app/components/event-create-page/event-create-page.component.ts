@@ -72,7 +72,7 @@ export class EventCreatePageComponent implements OnInit {
     try {
       const event = await this._eventsService.createEvent({
         ...patch,
-        owner: { type: "user", user_id: ownerId },
+        owner: patch.owner ?? { type: "user", user_id: ownerId },
       });
       this._snackbar.open(
         $localize`:@@event_create.snackbar.created:Event created.`,

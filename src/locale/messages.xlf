@@ -2107,6 +2107,81 @@
         <source> Organization members only </source>
       </segment>
     </unit>
+    <unit id="event_access.add">
+      <segment>
+        <source>Add</source>
+      </segment>
+    </unit>
+    <unit id="event_access.description">
+      <segment>
+        <source> Viewers can open a private event. Collaborators can also edit it. </source>
+      </segment>
+    </unit>
+    <unit id="event_access.empty">
+      <segment>
+        <source> No additional viewers or collaborators. </source>
+      </segment>
+    </unit>
+    <unit id="event_access.error.load">
+      <segment>
+        <source>Access could not be loaded.</source>
+      </segment>
+    </unit>
+    <unit id="event_access.error.remove">
+      <segment>
+        <source>Access could not be removed.</source>
+      </segment>
+    </unit>
+    <unit id="event_access.error.save">
+      <segment>
+        <source>Access could not be saved.</source>
+      </segment>
+    </unit>
+    <unit id="event_access.heading">
+      <segment>
+        <source> Event access </source>
+      </segment>
+    </unit>
+    <unit id="event_access.loading">
+      <segment>
+        <source>Loading access…</source>
+      </segment>
+    </unit>
+    <unit id="event_access.remove">
+      <segment>
+        <source>Remove event access</source>
+      </segment>
+    </unit>
+    <unit id="event_access.role">
+      <segment>
+        <source>Role</source>
+      </segment>
+    </unit>
+    <unit id="event_access.role.collaborator">
+      <segment>
+        <source>Collaborator</source>
+      </segment>
+    </unit>
+    <unit id="event_access.role.viewer">
+      <segment>
+        <source>Viewer</source>
+      </segment>
+    </unit>
+    <unit id="event_access.user">
+      <segment>
+        <source>Person</source>
+      </segment>
+    </unit>
+    <unit id="event_access.user_hint">
+      <segment>
+        <source> Profiles hidden from search can still be added with their user ID. </source>
+      </segment>
+    </unit>
+    <unit id="event_access.user_placeholder">
+      <segment>
+        <source>Search a public profile or paste a user ID</source>
+      </segment>
+    </unit>
     <unit id="event_card.draft">
       <segment>
         <source>Draft</source>
@@ -2225,6 +2300,16 @@
     <unit id="event_draft.meta.title">
       <segment>
         <source>Draft event</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.access_heading">
+      <segment>
+        <source> Ownership and access </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.access_hint">
+      <segment>
+        <source> Publication controls whether the event is ready. Visibility controls who can find and open it. </source>
       </segment>
     </unit>
     <unit id="event_edit.area_label">
@@ -2792,6 +2877,51 @@
         <source> Admin-only. Select an organization or enter its name. </source>
       </segment>
     </unit>
+    <unit id="event_edit.owner.admin_managed">
+      <segment>
+        <source> Admin-managed legacy event </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner.organization">
+      <segment>
+        <source> Organization </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner.organization_managed">
+      <segment>
+        <source> Managed by the owning organization </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner.user">
+      <segment>
+        <source> User </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner_hint">
+      <segment>
+        <source> Ownership controls management permissions, not organizer branding. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner_organization">
+      <segment>
+        <source> Owning organization </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner_organization_required">
+      <segment>
+        <source> Select an owning organization. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner_type">
+      <segment>
+        <source>Owner</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner_user_required">
+      <segment>
+        <source> Enter the owner&apos;s user ID. </source>
+      </segment>
+    </unit>
     <unit id="event_info.organized_by">
       <segment>
         <source>Organized by</source>
@@ -2799,7 +2929,7 @@
     </unit>
     <unit id="event_edit.published">
       <segment>
-        <source> Published — visible to the public </source>
+        <source> Published </source>
       </segment>
     </unit>
     <unit id="event_edit.qualification_hint">
@@ -3327,6 +3457,31 @@
         <source>Venue name</source>
       </segment>
     </unit>
+    <unit id="event_edit.visibility">
+      <segment>
+        <source>Visibility</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.visibility.private">
+      <segment>
+        <source> Private </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.visibility.public">
+      <segment>
+        <source> Public </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.visibility.unlisted">
+      <segment>
+        <source> Unlisted </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.visibility_rollout_hint">
+      <segment>
+        <source> Unlisted and private events will unlock after legacy event-list clients are retired. </source>
+      </segment>
+    </unit>
     <unit id="event_featured_participant.role.artist">
       <segment>
         <source>Artist</source>
@@ -3420,6 +3575,31 @@
     <unit id="event_info.share_button">
       <segment>
         <source>Share</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.private_audience">
+      <segment>
+        <source> Who can open this event? </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.private_audience.invited">
+      <segment>
+        <source> Invited people </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.private_audience.organization_members">
+      <segment>
+        <source> Members of an organization </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.private_organization">
+      <segment>
+        <source> Member organization </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.private_organization_required">
+      <segment>
+        <source> Select an organization. </source>
       </segment>
     </unit>
     <unit id="event_edit.program_empty">
@@ -3660,6 +3840,16 @@
     <unit id="event_preview.website">
       <segment>
         <source>Website</source>
+      </segment>
+    </unit>
+    <unit id="event_private.notice_body">
+      <segment>
+        <source> Only invited people or eligible organization members can open this event. </source>
+      </segment>
+    </unit>
+    <unit id="event_private.notice_title">
+      <segment>
+        <source> Private event </source>
       </segment>
     </unit>
     <unit id="event_program.heading">
@@ -3915,6 +4105,16 @@
     <unit id="event_unlisted.meta.title">
       <segment>
         <source>Unlisted event</source>
+      </segment>
+    </unit>
+    <unit id="event_unlisted.notice_body">
+      <segment>
+        <source> Anyone with the link can open it, but it does not appear in discovery. </source>
+      </segment>
+    </unit>
+    <unit id="event_unlisted.notice_title">
+      <segment>
+        <source> Unlisted event </source>
       </segment>
     </unit>
     <unit id="event_weather.close">

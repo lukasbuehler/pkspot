@@ -5343,6 +5343,96 @@
         <target> Réservé aux membres de l’organisation </target>
       </segment>
     </unit>
+    <unit id="event_access.add">
+      <segment state="initial">
+        <source>Add</source>
+        <target> Ajouter </target>
+      </segment>
+    </unit>
+    <unit id="event_access.description">
+      <segment state="initial">
+        <source> Viewers can open a private event. Collaborators can also edit it. </source>
+        <target> Les personnes autorisées peuvent ouvrir un événement privé. Les collaborateurs peuvent aussi le modifier. </target>
+      </segment>
+    </unit>
+    <unit id="event_access.empty">
+      <segment state="initial">
+        <source> No additional viewers or collaborators. </source>
+        <target> Aucun autre spectateur ou collaborateur. </target>
+      </segment>
+    </unit>
+    <unit id="event_access.error.load">
+      <segment state="initial">
+        <source>Access could not be loaded.</source>
+        <target> Impossible de charger les accès. </target>
+      </segment>
+    </unit>
+    <unit id="event_access.error.remove">
+      <segment state="initial">
+        <source>Access could not be removed.</source>
+        <target> Impossible de supprimer l&apos;accès. </target>
+      </segment>
+    </unit>
+    <unit id="event_access.error.save">
+      <segment state="initial">
+        <source>Access could not be saved.</source>
+        <target> Impossible d&apos;enregistrer l&apos;accès. </target>
+      </segment>
+    </unit>
+    <unit id="event_access.heading">
+      <segment state="initial">
+        <source> Event access </source>
+        <target> Accès à l&apos;événement </target>
+      </segment>
+    </unit>
+    <unit id="event_access.loading">
+      <segment state="initial">
+        <source>Loading access…</source>
+        <target> Chargement des accès… </target>
+      </segment>
+    </unit>
+    <unit id="event_access.remove">
+      <segment state="initial">
+        <source>Remove event access</source>
+        <target> Supprimer l&apos;accès à l&apos;événement </target>
+      </segment>
+    </unit>
+    <unit id="event_access.role">
+      <segment state="initial">
+        <source>Role</source>
+        <target> Rôle </target>
+      </segment>
+    </unit>
+    <unit id="event_access.role.collaborator">
+      <segment state="initial">
+        <source>Collaborator</source>
+        <target> Collaborateur </target>
+      </segment>
+    </unit>
+    <unit id="event_access.role.viewer">
+      <segment state="initial">
+        <source>Viewer</source>
+        <target> Spectateur </target>
+      </segment>
+    </unit>
+    <unit id="event_access.user">
+      <segment state="initial">
+        <source>Person</source>
+        <target> Personne </target>
+      </segment>
+    </unit>
+    <unit id="event_access.user_hint">
+      <segment state="initial">
+        <source> Profiles hidden from search can still be added with their user ID. </source>
+        <target> Les profils masqués dans la recherche peuvent toujours être ajoutés avec leur identifiant utilisateur. </target>
+      </segment>
+    </unit>
+    <unit id="event_access.user_placeholder">
+      <segment state="initial">
+        <source>Search a public profile or paste a user ID</source>
+        <target> Rechercher un profil public ou coller un identifiant utilisateur </target>
+      </segment>
+    </unit>
     <unit id="event_card.draft">
       <segment state="initial">
         <source>Draft</source>
@@ -5491,6 +5581,18 @@
       <segment state="initial">
         <source>Draft event</source>
         <target>Brouillon d’événement</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.access_heading">
+      <segment state="initial">
+        <source> Ownership and access </source>
+        <target> Propriété et accès </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.access_hint">
+      <segment state="initial">
+        <source> Publication controls whether the event is ready. Visibility controls who can find and open it. </source>
+        <target> La publication indique si l&apos;événement est prêt. La visibilité détermine qui peut le trouver et l&apos;ouvrir. </target>
       </segment>
     </unit>
     <unit id="event_edit.area_label">
@@ -6171,6 +6273,60 @@
         <target> Admin uniquement. Sélectionne une organisation ou saisis son nom. </target>
       </segment>
     </unit>
+    <unit id="event_edit.owner.admin_managed">
+      <segment state="initial">
+        <source> Admin-managed legacy event </source>
+        <target> Ancien événement géré par les administrateurs </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner.organization">
+      <segment state="initial">
+        <source> Organization </source>
+        <target> Organisation </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner.organization_managed">
+      <segment state="initial">
+        <source> Managed by the owning organization </source>
+        <target> Géré par l&apos;organisation propriétaire </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner.user">
+      <segment state="initial">
+        <source> User </source>
+        <target> Utilisateur </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner_hint">
+      <segment state="initial">
+        <source> Ownership controls management permissions, not organizer branding. </source>
+        <target> La propriété contrôle les autorisations de gestion, pas l&apos;identité publique de l&apos;organisateur. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner_organization">
+      <segment state="initial">
+        <source> Owning organization </source>
+        <target> Organisation propriétaire </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner_organization_required">
+      <segment state="initial">
+        <source> Select an owning organization. </source>
+        <target> Sélectionnez une organisation propriétaire. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner_type">
+      <segment state="initial">
+        <source>Owner</source>
+        <target> Propriétaire </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner_user_required">
+      <segment state="initial">
+        <source> Enter the owner&apos;s user ID. </source>
+        <target> Saisissez l&apos;identifiant utilisateur du propriétaire. </target>
+      </segment>
+    </unit>
     <unit id="event_info.organized_by">
       <segment state="translated">
         <source>Organized by</source>
@@ -6179,8 +6335,8 @@
     </unit>
     <unit id="event_edit.published">
       <segment state="initial">
-        <source> Published — visible to the public </source>
-        <target> Publié — visible publiquement </target>
+        <source> Published </source>
+        <target> Publié </target>
       </segment>
     </unit>
     <unit id="event_edit.qualification_hint">
@@ -6813,6 +6969,36 @@
         <target>Nom du lieu</target>
       </segment>
     </unit>
+    <unit id="event_edit.visibility">
+      <segment state="initial">
+        <source>Visibility</source>
+        <target> Visibilité </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.visibility.private">
+      <segment state="initial">
+        <source> Private </source>
+        <target> Privé </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.visibility.public">
+      <segment state="initial">
+        <source> Public </source>
+        <target> Public </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.visibility.unlisted">
+      <segment state="initial">
+        <source> Unlisted </source>
+        <target> Non répertorié </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.visibility_rollout_hint">
+      <segment state="initial">
+        <source> Unlisted and private events will unlock after legacy event-list clients are retired. </source>
+        <target> Les événements non répertoriés et privés seront disponibles après le retrait des anciens clients de la liste des événements. </target>
+      </segment>
+    </unit>
     <unit id="event_featured_participant.role.artist">
       <segment state="initial">
         <source>Artist</source>
@@ -6955,6 +7141,18 @@
       <segment state="initial">
         <source>Website</source>
         <target>Site web</target>
+      </segment>
+    </unit>
+    <unit id="event_private.notice_body">
+      <segment state="initial">
+        <source> Only invited people or eligible organization members can open this event. </source>
+        <target> Seules les personnes invitées ou les membres autorisés de l&apos;organisation peuvent ouvrir cet événement. </target>
+      </segment>
+    </unit>
+    <unit id="event_private.notice_title">
+      <segment state="initial">
+        <source> Private event </source>
+        <target> Événement privé </target>
       </segment>
     </unit>
     <unit id="event_program.heading">
@@ -10974,6 +11172,18 @@
         <target>Événement non répertorié</target>
       </segment>
     </unit>
+    <unit id="event_unlisted.notice_body">
+      <segment state="initial">
+        <source> Anyone with the link can open it, but it does not appear in discovery. </source>
+        <target> Toute personne disposant du lien peut l&apos;ouvrir, mais il n&apos;apparaît pas dans la découverte. </target>
+      </segment>
+    </unit>
+    <unit id="event_unlisted.notice_title">
+      <segment state="initial">
+        <source> Unlisted event </source>
+        <target> Événement non répertorié </target>
+      </segment>
+    </unit>
     <unit id="event_weather.close">
       <segment state="initial">
         <source>Close event forecast</source>
@@ -11020,6 +11230,36 @@
       <segment state="initial">
         <source>Event link copied to clipboard.</source>
         <target>Lien de l’événement copié dans le presse-papiers.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.private_audience">
+      <segment state="initial">
+        <source> Who can open this event? </source>
+        <target> Qui peut ouvrir cet événement ? </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.private_audience.invited">
+      <segment state="initial">
+        <source> Invited people </source>
+        <target> Personnes invitées </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.private_audience.organization_members">
+      <segment state="initial">
+        <source> Members of an organization </source>
+        <target> Membres d&apos;une organisation </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.private_organization">
+      <segment state="initial">
+        <source> Member organization </source>
+        <target> Organisation des membres </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.private_organization_required">
+      <segment state="initial">
+        <source> Select an organization. </source>
+        <target> Sélectionnez une organisation. </target>
       </segment>
     </unit>
     <unit id="event_edit.program_empty">

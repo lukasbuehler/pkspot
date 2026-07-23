@@ -80,6 +80,36 @@ describe("SearchService", () => {
     expect(service).toBeTruthy();
   });
 
+  it("searches only publicly searchable user profiles", async () => {
+    typesenseSearchMock.mockResolvedValue({
+      hits: [
+        {
+          document: {
+            id: "user-1",
+            display_name: "Traceur",
+            profile_picture: "https://example.com/avatar.jpg",
+          },
+        },
+      ],
+    });
+
+    await expect(service.searchUsers("tra")).resolves.toEqual([
+      {
+        uid: "user-1",
+        display_name: "Traceur",
+        profile_picture: "https://example.com/avatar.jpg",
+      },
+    ]);
+    expect(typesenseSearchMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        q: "tra",
+        query_by: "display_name",
+        filter_by: "public_search:=true",
+      }),
+      {},
+    );
+  });
+
   describe("getSpotPreviewFromHit", () => {
     it("should handle string name correctly", () => {
       const hit = {

@@ -1,0 +1,88 @@
+<section class="access-card" aria-labelledby="event-access-heading">
+  <div class="access-card__heading">
+    <span class="access-card__icon" aria-hidden="true">
+      <mat-icon>manage_accounts</mat-icon>
+    </span>
+    <div>
+      <h3 id="event-access-heading" class="mat-title-medium m-0" i18n="@@event_access.heading">
+        Event access
+      </h3>
+      <p class="mat-body-small m-0" i18n="@@event_access.description">
+        Viewers can open a private event. Collaborators can also edit it.
+      </p>
+    </div>
+  </div>
+
+  <div class="access-add">
+    <app-user-picker
+      [value]="selectedUserId()"
+      [disabled]="saving()"
+      (valueChange)="selectedUserId.set($event)"
+    />
+
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_access.role">Role</mat-label>
+      <mat-select [formControl]="roleControl">
+        @for (role of roles; track role) {
+          <mat-option [value]="role">{{ roleLabel(role) }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <button
+      mat-flat-button
+      type="button"
+      color="primary"
+      [disabled]="saving() || !selectedUserId()"
+      (click)="addGrant()"
+    >
+      <mat-icon>person_add</mat-icon>
+      <span i18n="@@event_access.add">Add</span>
+    </button>
+  </div>
+
+  @if (error(); as message) {
+    <p class="access-error mat-body-medium" role="alert">{{ message }}</p>
+  }
+
+  @if (loading()) {
+    <div class="access-loading">
+      <mat-progress-spinner diameter="24" mode="indeterminate" />
+      <span i18n="@@event_access.loading">Loading access…</span>
+    </div>
+  } @else {
+    <div class="access-list">
+      @for (row of rows(); track row.grant.user_id) {
+        <div class="access-row">
+          <app-profile-button [user]="row.user" />
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label i18n="@@event_access.role">Role</mat-label>
+            <mat-select
+              [value]="row.grant.role"
+              [disabled]="saving()"
+              (selectionChange)="changeRole(row, $event.value)"
+            >
+              @for (role of roles; track role) {
+                <mat-option [value]="role">{{ roleLabel(role) }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <button
+            mat-icon-button
+            type="button"
+            [disabled]="saving()"
+            (click)="removeGrant(row)"
+            aria-label="Remove event access"
+            i18n-aria-label="@@event_access.remove"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      } @empty {
+        <p class="mat-body-medium access-empty" i18n="@@event_access.empty">
+          No additional viewers or collaborators.
+        </p>
+      }
+    </div>
+  }
+</section>

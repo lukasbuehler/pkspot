@@ -8,6 +8,9 @@
       (cancel)="cancelEditingEvent()"
       (delete)="onDeleteEvent()"
     ></app-event-edit-form>
+    @if (canManageEvent() && event(); as managedEvent) {
+      <app-event-access-manager [event]="managedEvent" />
+    }
   </section>
 } @else if (event(); as event) {
   <main class="event-info-page" [class.embedded]="isEmbedded()">
@@ -73,6 +76,33 @@
     <article class="event-content">
       @if (!event.published) {
         <app-event-draft-notice></app-event-draft-notice>
+      } @else if (event.visibility !== "public") {
+        <aside class="event-visibility-notice" [attr.data-visibility]="event.visibility">
+          <span class="event-visibility-notice__icon" aria-hidden="true">
+            <mat-icon>
+              {{ event.visibility === "private" ? "lock" : "visibility_off" }}
+            </mat-icon>
+          </span>
+          <div>
+            @if (event.visibility === "private") {
+              <strong class="mat-title-medium" i18n="@@event_private.notice_title">
+                Private event
+              </strong>
+              <p class="mat-body-medium m-0" i18n="@@event_private.notice_body">
+                Only invited people or eligible organization members can open
+                this event.
+              </p>
+            } @else {
+              <strong class="mat-title-medium" i18n="@@event_unlisted.notice_title">
+                Unlisted event
+              </strong>
+              <p class="mat-body-medium m-0" i18n="@@event_unlisted.notice_body">
+                Anyone with the link can open it, but it does not appear in
+                discovery.
+              </p>
+            }
+          </div>
+        </aside>
       }
 
       <header class="event-heading pb-3">

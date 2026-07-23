@@ -90,6 +90,7 @@ import {
 } from "../event-weather-forecast-dialog/event-weather-forecast-dialog.component";
 import { EventWeatherDaysComponent } from "../event-weather-days/event-weather-days.component";
 import { EventDraftNoticeComponent } from "./event-draft-notice.component";
+import { EventAccessManagerComponent } from "../event-access-manager/event-access-manager.component";
 
 interface VisibleSeriesTag {
   seriesId: string;
@@ -119,6 +120,7 @@ interface VisibleSeriesTag {
     EventLiveUpdateOrganizerMenuComponent,
     OrganizationButtonComponent,
     EventDraftNoticeComponent,
+    EventAccessManagerComponent,
   ],
   templateUrl: "./event-page.component.html",
   styleUrl: "./event-page.component.scss",

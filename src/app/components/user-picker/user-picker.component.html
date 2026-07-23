@@ -1,0 +1,29 @@
+<mat-form-field appearance="outline" class="w-100">
+  <mat-label i18n="@@event_access.user">Person</mat-label>
+  <input
+    matInput
+    [formControl]="control"
+    [matAutocomplete]="userAutocomplete"
+    placeholder="Search a public profile or paste a user ID"
+    i18n-placeholder="@@event_access.user_placeholder"
+  />
+  @if (searching() || resolving()) {
+    <mat-progress-spinner matSuffix diameter="18" mode="indeterminate" />
+  } @else {
+    <mat-icon matSuffix>person_add</mat-icon>
+  }
+  <mat-autocomplete
+    #userAutocomplete="matAutocomplete"
+    [displayWith]="displayUser"
+    (optionSelected)="selectUser($event)"
+  >
+    @for (user of results(); track user.uid) {
+      <mat-option [value]="user">
+        {{ user.display_name || user.uid }}
+      </mat-option>
+    }
+  </mat-autocomplete>
+  <mat-hint i18n="@@event_access.user_hint">
+    Profiles hidden from search can still be added with their user ID.
+  </mat-hint>
+</mat-form-field>

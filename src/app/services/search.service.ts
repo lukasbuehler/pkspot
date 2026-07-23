@@ -24,6 +24,7 @@ import type {
   EventTicketBadge,
   EventTicketOptionSchema,
 } from "../../db/schemas/EventSchema";
+import type { UserReferenceSchema } from "../../db/schemas/UserSchema";
 import { getSpotPriority } from "../../db/schemas/SpotPriority";
 
 @Injectable({
@@ -38,6 +39,7 @@ export class SearchService {
   readonly TYPESENSE_COLLECTION_SPOTS = "spots_v2";
   readonly TYPESENSE_COLLECTION_COMMUNITIES = "communities_v1";
   readonly TYPESENSE_COLLECTION_EVENTS = "events_v1";
+  readonly TYPESENSE_COLLECTION_USERS = "users_v1";
   readonly SPOT_SORT_BY_RATING = "rating:desc";
   readonly COMMUNITY_SORT_BY_RELEVANCE_AND_SIZE =
     "_text_match:desc,counts.totalSpots:desc";
@@ -475,6 +477,54 @@ export class SearchService {
     // Search for events
     // Search for posts
     // TODO: Implement this
+  }
+
+  /**
+   * Find users who explicitly opted into public search. Event access grants
+   * still store only the stable uid; the returned profile fields are display
+   * helpers and never participate in authorization.
+   */
+  public async searchUsers(query: string): Promise<UserReferenceSchema[]> {
+    const normalized = query.trim();
+    if (normalized.length < 2) return [];
+
+    try {
+      const result = await this.client
+        .collections(this.TYPESENSE_COLLECTION_USERS)
+        .documents()
+        .search(
+          {
+            q: normalized,
+            query_by: "display_name",
+            filter_by: "public_search:=true",
+            per_page: 8,
+            page: 1,
+          },
+          {},
+        );
+      return SearchService._flattenTypesenseHits(result)
+        .map((hit): UserReferenceSchema | null => {
+          const document = (hit as { document?: unknown }).document ?? hit;
+          if (!document || typeof document !== "object") return null;
+          const user = document as Record<string, unknown>;
+          if (typeof user["id"] !== "string" || !user["id"]) return null;
+          return {
+            uid: user["id"],
+            display_name:
+              typeof user["display_name"] === "string"
+                ? user["display_name"]
+                : undefined,
+            profile_picture:
+              typeof user["profile_picture"] === "string"
+                ? user["profile_picture"]
+                : undefined,
+          };
+        })
+        .filter((user): user is UserReferenceSchema => user !== null);
+    } catch (error) {
+      console.error("typesense users error:", error);
+      return [];
+    }
   }
 
   /**

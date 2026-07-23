@@ -41,7 +41,7 @@ type EventDocument = EventSchema & { id: string };
 type EventDiscoveryDocument = EventDiscoverySchema & { id: string };
 type EventSlugDocument = EventSlugSchema & { id: string };
 type EventRSVPDocument = EventRSVPSchema & { id: string };
-type EventAccessDocument = EventAccessSchema & { id: string };
+export type EventAccessDocument = EventAccessSchema & { id: string };
 export type EventWritePatch = Omit<
   Partial<EventSchema>,
   | "bounds"

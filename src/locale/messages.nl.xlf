@@ -5445,6 +5445,96 @@
         <target> Alleen voor leden van de organisatie </target>
       </segment>
     </unit>
+    <unit id="event_access.add">
+      <segment state="initial">
+        <source>Add</source>
+        <target> Toevoegen </target>
+      </segment>
+    </unit>
+    <unit id="event_access.description">
+      <segment state="initial">
+        <source> Viewers can open a private event. Collaborators can also edit it. </source>
+        <target> Kijkers kunnen een privé-evenement openen. Medewerkers kunnen het ook bewerken. </target>
+      </segment>
+    </unit>
+    <unit id="event_access.empty">
+      <segment state="initial">
+        <source> No additional viewers or collaborators. </source>
+        <target> Geen extra kijkers of medewerkers. </target>
+      </segment>
+    </unit>
+    <unit id="event_access.error.load">
+      <segment state="initial">
+        <source>Access could not be loaded.</source>
+        <target> De toegang kon niet worden geladen. </target>
+      </segment>
+    </unit>
+    <unit id="event_access.error.remove">
+      <segment state="initial">
+        <source>Access could not be removed.</source>
+        <target> De toegang kon niet worden verwijderd. </target>
+      </segment>
+    </unit>
+    <unit id="event_access.error.save">
+      <segment state="initial">
+        <source>Access could not be saved.</source>
+        <target> De toegang kon niet worden opgeslagen. </target>
+      </segment>
+    </unit>
+    <unit id="event_access.heading">
+      <segment state="initial">
+        <source> Event access </source>
+        <target> Evenementtoegang </target>
+      </segment>
+    </unit>
+    <unit id="event_access.loading">
+      <segment state="initial">
+        <source>Loading access…</source>
+        <target> Toegang laden… </target>
+      </segment>
+    </unit>
+    <unit id="event_access.remove">
+      <segment state="initial">
+        <source>Remove event access</source>
+        <target> Evenementtoegang verwijderen </target>
+      </segment>
+    </unit>
+    <unit id="event_access.role">
+      <segment state="initial">
+        <source>Role</source>
+        <target> Rol </target>
+      </segment>
+    </unit>
+    <unit id="event_access.role.collaborator">
+      <segment state="initial">
+        <source>Collaborator</source>
+        <target> Medewerker </target>
+      </segment>
+    </unit>
+    <unit id="event_access.role.viewer">
+      <segment state="initial">
+        <source>Viewer</source>
+        <target> Kijker </target>
+      </segment>
+    </unit>
+    <unit id="event_access.user">
+      <segment state="initial">
+        <source>Person</source>
+        <target> Persoon </target>
+      </segment>
+    </unit>
+    <unit id="event_access.user_hint">
+      <segment state="initial">
+        <source> Profiles hidden from search can still be added with their user ID. </source>
+        <target> Profielen die niet in de zoekresultaten staan, kunnen nog steeds met hun gebruikers-ID worden toegevoegd. </target>
+      </segment>
+    </unit>
+    <unit id="event_access.user_placeholder">
+      <segment state="initial">
+        <source>Search a public profile or paste a user ID</source>
+        <target> Zoek een openbaar profiel of plak een gebruikers-ID </target>
+      </segment>
+    </unit>
     <unit id="event_card.draft">
       <segment state="initial">
         <source>Draft</source>
@@ -5593,6 +5683,18 @@
       <segment state="initial">
         <source>Draft event</source>
         <target>Conceptevenement</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.access_heading">
+      <segment state="initial">
+        <source> Ownership and access </source>
+        <target> Eigendom en toegang </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.access_hint">
+      <segment state="initial">
+        <source> Publication controls whether the event is ready. Visibility controls who can find and open it. </source>
+        <target> Publicatie bepaalt of het evenement klaar is. Zichtbaarheid bepaalt wie het kan vinden en openen. </target>
       </segment>
     </unit>
     <unit id="event_edit.area_label">
@@ -6273,6 +6375,60 @@
         <target> Alleen admins. Selecteer een organisatie of voer de naam in. </target>
       </segment>
     </unit>
+    <unit id="event_edit.owner.admin_managed">
+      <segment state="initial">
+        <source> Admin-managed legacy event </source>
+        <target> Ouder evenement beheerd door admins </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner.organization">
+      <segment state="initial">
+        <source> Organization </source>
+        <target> Organisatie </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner.organization_managed">
+      <segment state="initial">
+        <source> Managed by the owning organization </source>
+        <target> Beheerd door de eigenaarorganisatie </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner.user">
+      <segment state="initial">
+        <source> User </source>
+        <target> Gebruiker </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner_hint">
+      <segment state="initial">
+        <source> Ownership controls management permissions, not organizer branding. </source>
+        <target> Eigendom bepaalt beheerrechten, niet de openbare identiteit van de organisator. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner_organization">
+      <segment state="initial">
+        <source> Owning organization </source>
+        <target> Eigenaarorganisatie </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner_organization_required">
+      <segment state="initial">
+        <source> Select an owning organization. </source>
+        <target> Selecteer een eigenaarorganisatie. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner_type">
+      <segment state="initial">
+        <source>Owner</source>
+        <target> Eigenaar </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.owner_user_required">
+      <segment state="initial">
+        <source> Enter the owner&apos;s user ID. </source>
+        <target> Voer de gebruikers-ID van de eigenaar in. </target>
+      </segment>
+    </unit>
     <unit id="event_info.organized_by">
       <segment state="translated">
         <source>Organized by</source>
@@ -6281,8 +6437,8 @@
     </unit>
     <unit id="event_edit.published">
       <segment state="initial">
-        <source> Published — visible to the public </source>
-        <target> Gepubliceerd — zichtbaar voor iedereen </target>
+        <source> Published </source>
+        <target> Gepubliceerd </target>
       </segment>
     </unit>
     <unit id="event_edit.qualification_hint">
@@ -6915,6 +7071,36 @@
         <target>Locatienaam</target>
       </segment>
     </unit>
+    <unit id="event_edit.visibility">
+      <segment state="initial">
+        <source>Visibility</source>
+        <target> Zichtbaarheid </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.visibility.private">
+      <segment state="initial">
+        <source> Private </source>
+        <target> Privé </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.visibility.public">
+      <segment state="initial">
+        <source> Public </source>
+        <target> Openbaar </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.visibility.unlisted">
+      <segment state="initial">
+        <source> Unlisted </source>
+        <target> Niet vermeld </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.visibility_rollout_hint">
+      <segment state="initial">
+        <source> Unlisted and private events will unlock after legacy event-list clients are retired. </source>
+        <target> Niet-vermelde en privé-evenementen komen beschikbaar nadat oudere clients voor evenementenlijsten zijn uitgefaseerd. </target>
+      </segment>
+    </unit>
     <unit id="event_featured_participant.role.artist">
       <segment state="initial">
         <source>Artist</source>
@@ -7057,6 +7243,18 @@
       <segment state="initial">
         <source>Website</source>
         <target>Website</target>
+      </segment>
+    </unit>
+    <unit id="event_private.notice_body">
+      <segment state="initial">
+        <source> Only invited people or eligible organization members can open this event. </source>
+        <target> Alleen uitgenodigde personen of bevoegde organisatieleden kunnen dit evenement openen. </target>
+      </segment>
+    </unit>
+    <unit id="event_private.notice_title">
+      <segment state="initial">
+        <source> Private event </source>
+        <target> Privé-evenement </target>
       </segment>
     </unit>
     <unit id="event_program.heading">
@@ -10974,6 +11172,18 @@
         <target>Niet-vermeld evenement</target>
       </segment>
     </unit>
+    <unit id="event_unlisted.notice_body">
+      <segment state="initial">
+        <source> Anyone with the link can open it, but it does not appear in discovery. </source>
+        <target> Iedereen met de link kan het openen, maar het verschijnt niet in Ontdekken. </target>
+      </segment>
+    </unit>
+    <unit id="event_unlisted.notice_title">
+      <segment state="initial">
+        <source> Unlisted event </source>
+        <target> Niet-vermeld evenement </target>
+      </segment>
+    </unit>
     <unit id="event_weather.close">
       <segment state="initial">
         <source>Close event forecast</source>
@@ -11020,6 +11230,36 @@
       <segment state="initial">
         <source>Event link copied to clipboard.</source>
         <target>Eventlink gekopieerd naar het klembord.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.private_audience">
+      <segment state="initial">
+        <source> Who can open this event? </source>
+        <target> Wie kan dit evenement openen? </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.private_audience.invited">
+      <segment state="initial">
+        <source> Invited people </source>
+        <target> Uitgenodigde personen </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.private_audience.organization_members">
+      <segment state="initial">
+        <source> Members of an organization </source>
+        <target> Leden van een organisatie </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.private_organization">
+      <segment state="initial">
+        <source> Member organization </source>
+        <target> Ledenorganisatie </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.private_organization_required">
+      <segment state="initial">
+        <source> Select an organization. </source>
+        <target> Selecteer een organisatie. </target>
       </segment>
     </unit>
     <unit id="event_edit.program_empty">

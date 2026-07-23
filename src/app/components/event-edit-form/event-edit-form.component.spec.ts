@@ -186,6 +186,41 @@ describe("EventEditFormComponent", () => {
     ]);
   });
 
+  it("emits organization ownership separately from organizer branding", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+    await fixture.whenStable();
+
+    component.form.patchValue({
+      name: "Club session",
+      venue_string: "Gym",
+      locality_string: "Zurich",
+      location_lat: 47.3769,
+      location_lng: 8.5417,
+      start_date: new Date("2026-08-01T10:00:00.000Z"),
+      start_time: new Date("2026-08-01T10:00:00.000Z"),
+      end_date: new Date("2026-08-01T12:00:00.000Z"),
+      end_time: new Date("2026-08-01T12:00:00.000Z"),
+      published: true,
+      visibility: "public",
+      owner_type: "organization",
+      owner_organization_id: "club-1",
+    });
+
+    component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        owner: { type: "organization", organization_id: "club-1" },
+        organizer: null,
+        discoverability: { audience: "global" },
+      }),
+    );
+  });
+
   it("emits a deletion marker when all existing event descriptions are removed", async () => {
     const fixture = await setup();
     const component = fixture.componentInstance;

@@ -323,8 +323,150 @@
       </div>
 
       <mat-checkbox formControlName="published" i18n="@@event_edit.published">
-        Published — visible to the public
+        Published
       </mat-checkbox>
+
+      <mat-divider />
+
+      <!-- ----------------- Ownership + access ----------------- -->
+      <div class="access-settings">
+        <div>
+          <h4 class="mat-title-small m-0" i18n="@@event_edit.access_heading">
+            Ownership and access
+          </h4>
+          <p class="mat-body-small text-muted m-0" i18n="@@event_edit.access_hint">
+            Publication controls whether the event is ready. Visibility
+            controls who can find and open it.
+          </p>
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label i18n="@@event_edit.visibility">Visibility</mat-label>
+          <mat-select formControlName="visibility">
+            <mat-option value="public" i18n="@@event_edit.visibility.public">
+              Public
+            </mat-option>
+            <mat-option
+              value="unlisted"
+              [disabled]="!privateAccessRolloutEnabled"
+              i18n="@@event_edit.visibility.unlisted"
+            >
+              Unlisted
+            </mat-option>
+            <mat-option
+              value="private"
+              [disabled]="!privateAccessRolloutEnabled"
+              i18n="@@event_edit.visibility.private"
+            >
+              Private
+            </mat-option>
+          </mat-select>
+          @if (!privateAccessRolloutEnabled) {
+            <mat-hint i18n="@@event_edit.visibility_rollout_hint">
+              Unlisted and private events will unlock after legacy event-list
+              clients are retired.
+            </mat-hint>
+          }
+        </mat-form-field>
+
+        @if (form.value.visibility === "private") {
+          <mat-form-field appearance="outline">
+            <mat-label i18n="@@event_edit.private_audience">
+              Who can open this event?
+            </mat-label>
+            <mat-select formControlName="viewer_audience">
+              <mat-option value="invited" i18n="@@event_edit.private_audience.invited">
+                Invited people
+              </mat-option>
+              <mat-option
+                value="organization_members"
+                i18n="@@event_edit.private_audience.organization_members"
+              >
+                Members of an organization
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          @if (form.value.viewer_audience === "organization_members") {
+            <mat-form-field appearance="outline">
+              <mat-label i18n="@@event_edit.private_organization">
+                Member organization
+              </mat-label>
+              <mat-select formControlName="viewer_organization_id">
+                @for (organization of organizations(); track organization.id) {
+                  <mat-option [value]="organization.id">
+                    {{ organization.name }}
+                  </mat-option>
+                }
+              </mat-select>
+              @if (form.controls["viewer_organization_id"].hasError("required")) {
+                <mat-error i18n="@@event_edit.private_organization_required">
+                  Select an organization.
+                </mat-error>
+              }
+            </mat-form-field>
+          }
+        }
+
+        @if (isAdmin()) {
+          <mat-form-field appearance="outline">
+            <mat-label i18n="@@event_edit.owner_type">Owner</mat-label>
+            <mat-select formControlName="owner_type">
+              @if (isEditMode() && !event()?.owner) {
+                <mat-option value="" i18n="@@event_edit.owner.admin_managed">
+                  Admin-managed legacy event
+                </mat-option>
+              }
+              <mat-option value="user" i18n="@@event_edit.owner.user">
+                User
+              </mat-option>
+              <mat-option value="organization" i18n="@@event_edit.owner.organization">
+                Organization
+              </mat-option>
+            </mat-select>
+            <mat-hint i18n="@@event_edit.owner_hint">
+              Ownership controls management permissions, not organizer branding.
+            </mat-hint>
+          </mat-form-field>
+
+          @if (form.value.owner_type === "user") {
+            <app-user-picker
+              [value]="form.value.owner_user_id ?? ''"
+              [disabled]="saving()"
+              (valueChange)="form.controls['owner_user_id'].setValue($event)"
+            />
+            @if (form.controls["owner_user_id"].hasError("required")) {
+              <p class="mat-body-small text-warn m-0" i18n="@@event_edit.owner_user_required">
+                Enter the owner's user ID.
+              </p>
+            }
+          } @else if (form.value.owner_type === "organization") {
+            <mat-form-field appearance="outline">
+              <mat-label i18n="@@event_edit.owner_organization">
+                Owning organization
+              </mat-label>
+              <mat-select formControlName="owner_organization_id">
+                @for (organization of organizations(); track organization.id) {
+                  <mat-option [value]="organization.id">
+                    {{ organization.name }}
+                  </mat-option>
+                }
+              </mat-select>
+              @if (form.controls["owner_organization_id"].hasError("required")) {
+                <mat-error i18n="@@event_edit.owner_organization_required">
+                  Select an owning organization.
+                </mat-error>
+              }
+            </mat-form-field>
+          }
+        } @else if (event()?.owner?.type === "organization") {
+          <p class="owner-summary mat-body-medium m-0">
+            <mat-icon inline>groups</mat-icon>
+            <span i18n="@@event_edit.owner.organization_managed">
+              Managed by the owning organization
+            </span>
+          </p>
+        }
+      </div>
 
       <mat-divider />
 

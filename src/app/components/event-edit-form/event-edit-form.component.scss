@@ -29,6 +29,22 @@
   gap: 0.25rem;
 }
 
+.access-settings {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 18px;
+}
+
+.owner-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .section-title {
   margin: 0;
 }

@@ -54,6 +54,7 @@ import {
   EventProgramSchema,
   EventProgramSpotRefSchema,
   EventProgramItemStatus,
+  EventOwnerSchema,
   EventSchema,
   InlineEventSpotSchema,
   EventQualificationPathSchema,
@@ -64,6 +65,7 @@ import {
   EventTicketAvailability,
   EventTicketBadge,
   EventTicketOptionSchema,
+  EventVisibility,
 } from "../../../db/schemas/EventSchema";
 import {
   OrganizationReferenceSchema,
@@ -90,6 +92,7 @@ import {
 import { LocaleMapEditFieldComponent } from "../locale-map-edit-field/locale-map-edit-field.component";
 import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
+import { UserPickerComponent } from "../user-picker/user-picker.component";
 
 type OrganizationDocument = OrganizationSchema & { id: string };
 type EditableEventMarker = {
@@ -313,6 +316,7 @@ export type EventEditPatch = Omit<
     SpotPickerComponent,
     EventSpotSelectComponent,
     LocaleMapEditFieldComponent,
+    UserPickerComponent,
   ],
   templateUrl: "./event-edit-form.component.html",
   styleUrl: "./event-edit-form.component.scss",
@@ -379,6 +383,12 @@ export class EventEditFormComponent {
     external_source_id: [""],
     external_source_url: [""],
     published: [true],
+    visibility: ["public" as EventVisibility],
+    viewer_audience: ["invited" as "invited" | "organization_members"],
+    viewer_organization_id: [""],
+    owner_type: ["user" as EventOwnerSchema["type"] | ""],
+    owner_user_id: [""],
+    owner_organization_id: [""],
     banner_src: [""],
     banner_fit: ["cover"],
     banner_accent_color: [""],
@@ -472,6 +482,8 @@ export class EventEditFormComponent {
   /** Whether the parent passed in an existing event (vs. create mode). */
   readonly isEditMode = computed(() => this.event() !== null);
   readonly isAdmin = computed(() => this._authService.isAdmin());
+  /** Retire this together with legacyEventListCompatibilityEnabled in rules. */
+  readonly privateAccessRolloutEnabled = false;
 
   /** Center of the bounds rectangle — used for community auto-suggest. */
   readonly boundsCenter = computed(() => {
@@ -598,6 +610,12 @@ export class EventEditFormComponent {
         this._loadedEventId = null;
         this.form.reset({
           published: true,
+          visibility: "public",
+          viewer_audience: "invited",
+          viewer_organization_id: "",
+          owner_type: "user",
+          owner_user_id: this._authService.user?.uid ?? "",
+          owner_organization_id: "",
           banner_fit: "cover",
           logo_fit: "contain",
           sponsor_logo_fit: "contain",
@@ -651,6 +669,18 @@ export class EventEditFormComponent {
         external_source_id: e.externalSource?.id ?? "",
         external_source_url: e.externalSource?.url ?? "",
         published: e.published,
+        visibility: e.visibility,
+        viewer_audience: e.viewerPolicy?.audience ?? "invited",
+        viewer_organization_id:
+          e.viewerPolicy?.audience === "organization_members"
+            ? e.viewerPolicy.organization_id
+            : "",
+        owner_type: e.owner?.type ?? "",
+        owner_user_id: e.owner?.type === "user" ? e.owner.user_id : "",
+        owner_organization_id:
+          e.owner?.type === "organization"
+            ? e.owner.organization_id
+            : "",
         banner_src: e.bannerSrc ?? "",
         banner_fit: e.bannerFit,
         banner_accent_color: e.bannerAccentColor ?? "",
@@ -1762,6 +1792,31 @@ export class EventEditFormComponent {
       return;
     }
     this._syncAreaFromPickerForSubmit();
+    const owner = this._buildOwnerPatch();
+    if (
+      this.isAdmin() &&
+      !owner &&
+      (!this.isEditMode() || this.event()?.owner !== undefined)
+    ) {
+      const control =
+        v.owner_type === "organization"
+          ? this.form.controls["owner_organization_id"]
+          : this.form.controls["owner_user_id"];
+      control.setErrors({ required: true });
+      control.markAsTouched();
+      return;
+    }
+    if (
+      v.visibility === "private" &&
+      v.viewer_audience === "organization_members" &&
+      !v.viewer_organization_id
+    ) {
+      this.form.controls["viewer_organization_id"].setErrors({
+        required: true,
+      });
+      this.form.controls["viewer_organization_id"].markAsTouched();
+      return;
+    }
 
     const patch: EventEditPatch = {
       ...this._buildLocationPatch(v.location_lat, v.location_lng),
@@ -1780,6 +1835,20 @@ export class EventEditFormComponent {
       ticket_options: this._buildTicketOptionsPatch(),
       program: this._buildProgramPatch(),
       published: v.published === true,
+      visibility: v.visibility ?? "public",
+      discoverability: {
+        audience: v.visibility === "public" ? "global" : "none",
+      },
+      viewer_policy:
+        v.visibility === "private"
+          ? v.viewer_audience === "organization_members"
+            ? {
+                audience: "organization_members",
+                organization_id: v.viewer_organization_id!,
+              }
+            : { audience: "invited" }
+          : undefined,
+      ...(owner ? { owner } : {}),
       banner_src: trimOrUndefined(v.banner_src),
       banner_fit: v.banner_fit ?? "cover",
       banner_accent_color: trimOrUndefined(v.banner_accent_color),
@@ -2019,6 +2088,24 @@ export class EventEditFormComponent {
   private _buildOrganizerNamePatch(): string | null {
     if (this.selectedOrganizer()) return null;
     return trimOrUndefined(this.organizerQuery()) ?? null;
+  }
+
+  private _buildOwnerPatch(): EventOwnerSchema | undefined {
+    if (!this.isAdmin()) return undefined;
+    const ownerType = this.form.value.owner_type;
+    if (ownerType === "organization") {
+      const organizationId = trimOrUndefined(
+        this.form.value.owner_organization_id,
+      );
+      return organizationId
+        ? { type: "organization", organization_id: organizationId }
+        : undefined;
+    }
+    if (ownerType === "user") {
+      const userId = trimOrUndefined(this.form.value.owner_user_id);
+      return userId ? { type: "user", user_id: userId } : undefined;
+    }
+    return undefined;
   }
 
   private _buildLocationPatch(

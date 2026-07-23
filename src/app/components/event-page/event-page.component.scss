@@ -357,6 +357,28 @@ a.featured-participant-name {
   padding: 1rem;
 }
 
+.event-visibility-notice {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 18px;
+}
+
+.event-visibility-notice__icon {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  background: color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
+  border-radius: 13px;
+}
+
 .event-heading {
   flex-direction: row;
 }
