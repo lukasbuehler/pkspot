@@ -53,16 +53,29 @@ export const isEventOwner = (value: unknown): value is EventOwnerSchema => {
 export const eventKindFromLegacyCategories = (
   categories: readonly EventCategory[] | undefined,
 ): EventKind => {
-  const values = new Set(categories ?? []);
-  if (values.has("competition")) return "competition";
-  if (values.has("workshop")) return "workshop";
-  if (values.has("camp") || values.has("show") || values.has("awards")) {
-    return "festival";
-  }
-  if (values.has("jam") || values.has("social") || values.has("travel")) {
-    return "session";
-  }
-  return "other";
+  const inferredKinds = new Set(
+    (categories ?? []).map((category): EventKind => {
+      switch (category) {
+        case "competition":
+          return "competition";
+        case "workshop":
+          return "workshop";
+        case "camp":
+        case "show":
+        case "awards":
+          return "festival";
+        case "jam":
+        case "social":
+        case "travel":
+          return "session";
+        case "other":
+          return "other";
+      }
+    }),
+  );
+  return inferredKinds.size === 1
+    ? (inferredKinds.values().next().value ?? "other")
+    : "other";
 };
 
 export const legacyCategoryForEventKind = (kind: EventKind): EventCategory => {
@@ -117,10 +130,11 @@ const attendanceIsValid = (value: unknown): value is EventAttendanceSchema => {
  * event. Existing valid normalized choices win; invalid values are reported
  * instead of silently replaced.
  *
- * Legacy category precedence is deliberately deterministic when several
- * categories apply: competition > workshop > festival > session > other.
- * `event_categories` remains intact, except that an explicitly stored `kind`
- * adds its closest legacy category for older clients.
+ * Legacy kind inference is deliberately conservative: multiple categories
+ * infer a kind only when they all map to the same kind. Ambiguous combinations
+ * fall back to `other` for manual classification. `event_categories` remains
+ * intact, except that an explicitly stored `kind` adds its closest legacy
+ * category for older clients.
  */
 export const normalizeEventModel = (
   data: Partial<EventSchema>,
@@ -190,9 +204,8 @@ export const normalizeEventModel = (
     invalid.push("owner");
   }
 
-  const kind = data.kind ?? patch.kind;
-  if (kind && includes(EVENT_KINDS, kind)) {
-    const compatibilityCategory = legacyCategoryForEventKind(kind);
+  if (data.kind && includes(EVENT_KINDS, data.kind)) {
+    const compatibilityCategory = legacyCategoryForEventKind(data.kind);
     const categories = data.event_categories ?? [];
     if (!categories.includes(compatibilityCategory)) {
       patch.event_categories = [...categories, compatibilityCategory];

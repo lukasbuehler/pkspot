@@ -78,6 +78,14 @@ service cloud.firestore {
         );
     }
 
+    function validEventCreator(creator) {
+      return creator is map
+        && creator.keys().hasAll(['uid'])
+        && creator.keys().hasOnly(['uid', 'username'])
+        && creator.uid == request.auth.uid
+        && (!('username' in creator) || creator.username is string);
+    }
+
     function validEventRsvp(eventId, userId) {
       return request.resource.data.keys().hasOnly([
           'user_id',
@@ -944,12 +952,14 @@ service cloud.firestore {
       // free-tier event creation, with field-level validation gating
       // sponsor / promo_region / banner_src (premium-only fields).
       allow create: if isAdmin()
-        && request.resource.data.keys().hasAll(['owner'])
+        && request.resource.data.keys().hasAll(['owner', 'created_by'])
         && validEventOwner(request.resource.data.owner)
+        && validEventCreator(request.resource.data.created_by)
         && !request.resource.data.keys().hasAny(eventComputedFields());
       // Missing owner is the legacy/admin-managed state. Keep this admin-only
       // when owner/collaborator writes are introduced later.
       allow update: if isAdmin()
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['created_by'])
         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(eventComputedFields());
       allow delete: if isAdmin();
 

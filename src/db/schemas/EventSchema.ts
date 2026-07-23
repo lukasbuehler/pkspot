@@ -634,6 +634,7 @@ export interface EventSchema {
 
   /** Legacy publication compatibility field. */
   published?: boolean;
+  /** Immutable audit provenance. Never use this field for authorization. */
   created_by?: { uid: string; username?: string };
   time_created?: Timestamp;
   time_updated?: Timestamp;

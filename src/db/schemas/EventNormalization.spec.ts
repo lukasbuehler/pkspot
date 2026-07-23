@@ -19,12 +19,13 @@ describe("event model normalization", () => {
   });
 
   it.each([
-    [["competition", "camp"], "competition"],
-    [["workshop", "show"], "workshop"],
+    [["competition", "camp"], "other"],
+    [["workshop", "show"], "other"],
     [["camp"], "festival"],
-    [["show", "social"], "festival"],
+    [["camp", "show", "awards"], "festival"],
+    [["show", "social"], "other"],
     [["jam"], "session"],
-    [["travel"], "session"],
+    [["jam", "social", "travel"], "session"],
     [["other"], "other"],
     [[], "other"],
   ] as const)("maps legacy categories %j to %s", (categories, expected) => {
@@ -42,13 +43,22 @@ describe("event model normalization", () => {
     expect(result.patch).toEqual({
       publication_state: "draft",
       visibility: "public",
-      kind: "competition",
+      kind: "other",
       schedule_mode: "single",
       lifecycle_status: "planned",
       priority: "normal",
       notification_policy: "all",
       attendance: { social: "rsvp", admission: "none" },
     });
+  });
+
+  it("does not add a legacy category for an inferred fallback kind", () => {
+    const result = normalizeEventModel({
+      event_categories: ["camp", "competition"],
+    });
+
+    expect(result.patch.kind).toBe("other");
+    expect(result.patch.event_categories).toBeUndefined();
   });
 
   it("requires explicit ownership only when requested for new events", () => {

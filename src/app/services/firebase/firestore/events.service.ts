@@ -36,6 +36,7 @@ export type EventWritePatch = Omit<
   | "external_source"
   | "organizer"
   | "organizer_name"
+  | "created_by"
 > & {
   area_polygon?: EventSchema["area_polygon"] | null;
   description_i18n?: EventSchema["description_i18n"] | null;
@@ -158,7 +159,7 @@ export class EventsService extends ConsentAwareService {
           : clientData.organizer_name,
       time_created: now,
       time_updated: now,
-      created_by: clientData.created_by ?? {
+      created_by: {
         uid: this._authService.user.uid ?? "",
         username: this._authService.user.data?.displayName,
       },
@@ -244,7 +245,6 @@ export class EventsService extends ConsentAwareService {
         clientPatch.notification_policy ?? current.notification_policy,
       attendance: clientPatch.attendance ?? current.attendance,
       owner: clientPatch.owner ?? current.owner,
-      created_by: clientPatch.created_by ?? current.created_by,
       event_categories:
         clientPatch.event_categories ?? current.event_categories,
     });

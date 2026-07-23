@@ -1301,6 +1301,7 @@ async function testEventWriteGuards(owner, adminUser) {
     setDoc(doc(adminUser.db, "events/admin-event"), {
       name: "Admin Event",
       owner: { type: "user", user_id: "admin" },
+      created_by: { uid: "admin", username: "Admin" },
       location_raw: { lat: 47.3769, lng: 8.5417 },
       organizer: {
         type: "organization",
@@ -1315,13 +1316,27 @@ async function testEventWriteGuards(owner, adminUser) {
   await assertDenied("admin cannot create an ownerless event", () =>
     setDoc(doc(adminUser.db, "events/admin-ownerless-event"), {
       name: "Ownerless Event",
+      created_by: { uid: "admin" },
     })
   );
   await assertDenied("admin cannot create event with computed bounds center", () =>
     setDoc(doc(adminUser.db, "events/admin-computed-create"), {
       name: "Admin Computed Create",
       owner: { type: "user", user_id: "admin" },
+      created_by: { uid: "admin" },
       bounds_center: [47.3769, 8.5417],
+    })
+  );
+  await assertDenied("admin cannot forge event creator audit data", () =>
+    setDoc(doc(adminUser.db, "events/admin-forged-creator"), {
+      name: "Forged creator",
+      owner: { type: "user", user_id: "admin" },
+      created_by: { uid: "someone-else" },
+    })
+  );
+  await assertDenied("admin cannot change event creator audit data", () =>
+    updateDoc(doc(adminUser.db, "events/admin-event"), {
+      created_by: { uid: "someone-else" },
     })
   );
   await assertAllowed("admin can write event raw location fallback", () =>
