@@ -103,7 +103,7 @@ describe("FunctionsAdapterService", () => {
     expect(httpsCallable).not.toHaveBeenCalled();
   });
 
-  it("sends public native callable requests without an auth token", async () => {
+  it("sends public native callable requests with optional App Check", async () => {
     platformService.isNative.mockReturnValue(true);
     vi.mocked(FirebaseAuthentication.getIdToken).mockResolvedValue({});
     const service = TestBed.inject(FunctionsAdapterService);
@@ -117,7 +117,10 @@ describe("FunctionsAdapterService", () => {
       "https://europe-west1-parkour-base-project.cloudfunctions.net/getPublicImportProvenance",
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "X-Firebase-AppCheck": "app-check-token",
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           data: { importId: "picos-parkour-mutano" },
         }),

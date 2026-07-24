@@ -1914,9 +1914,19 @@ async function testReportPrivacy(anon, owner, other, adminUser) {
       },
     })
   );
-  await assertDenied("anonymous user cannot create a media report", () =>
+  await assertAllowed("affected guest can create a serious media report", () =>
     setDoc(doc(anon.db, "reports/anonymous-media-report"), {
       ...mediaReport,
+      reason: "person did not consent",
+      user: {
+        email: "reporter@example.com",
+      },
+    })
+  );
+  await assertDenied("guest cannot create a media quality report", () =>
+    setDoc(doc(anon.db, "reports/anonymous-quality-report"), {
+      ...mediaReport,
+      reason: "duplicate",
       user: {
         email: "reporter@example.com",
       },

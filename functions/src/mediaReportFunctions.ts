@@ -20,6 +20,7 @@ interface MediaReportSchema {
   user: {
     uid?: string;
     email?: string;
+    email_verified?: boolean;
     display_name?: string;
   };
   createdAt: unknown;
@@ -194,9 +195,11 @@ const handleMediaReportCreate = async (
       const reporterIdentity =
         reportData.user.display_name ||
         reportData.user.uid ||
-        "Unauthenticated";
+        "Guest reporter";
       const reporterName = reportData.user.email
-        ? `${reporterIdentity} (${reportData.user.email})`
+        ? `${reporterIdentity} (${reportData.user.email}${
+            reportData.user.email_verified ? "" : ", unverified"
+          })`
         : reporterIdentity;
 
       const embed = {

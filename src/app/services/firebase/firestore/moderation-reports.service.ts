@@ -30,6 +30,13 @@ export interface ModerationReportItem {
   reporterLabel: string;
   reporterUid?: string;
   reporterEmail?: string;
+  reporterEmailVerified?: boolean;
+  submissionChannel?: string;
+  submissionAppCheck?: boolean;
+  submissionIpAddress?: string;
+  submissionIpHash?: string;
+  submissionUserAgent?: string;
+  submissionOrigin?: string;
   targetLabel: string;
   targetPath?: string;
   comment?: string;
@@ -210,6 +217,7 @@ export class ModerationReportsService {
       reporterLabel: this._formatUser(report.user),
       reporterUid: report.user.uid,
       reporterEmail: report.user.email,
+      reporterEmailVerified: report.user.email_verified,
       targetLabel: spotName,
       targetPath: spotId ? `/map/spots/${spotId}` : undefined,
       spotId,
@@ -260,6 +268,13 @@ export class ModerationReportsService {
       reporterLabel: this._formatUser(report.user),
       reporterUid: report.user.uid,
       reporterEmail: report.user.email,
+      reporterEmailVerified: report.user.email_verified,
+      submissionChannel: report.submission?.channel,
+      submissionAppCheck: report.submission?.app_check,
+      submissionIpAddress: report.submission?.ip_address,
+      submissionIpHash: report.submission?.ip_hash,
+      submissionUserAgent: report.submission?.user_agent,
+      submissionOrigin: report.submission?.origin,
       targetLabel: targetId ?? report.media?.src ?? report.media?.storage_path ?? "Media",
       targetPath,
       comment: report.comment,
@@ -307,6 +322,7 @@ export class ModerationReportsService {
       reporterLabel: this._formatUser(report.user),
       reporterUid: report.user.uid,
       reporterEmail: report.user.email,
+      reporterEmailVerified: report.user.email_verified,
       targetLabel:
         report.reportedUser?.display_name ?? profileUserId ?? "Profile",
       targetPath: profileUserId ? `/u/${profileUserId}` : undefined,

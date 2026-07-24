@@ -737,20 +737,28 @@ service cloud.firestore {
     }
 
     function validModerationReportUser(userRef) {
-      return request.auth != null
-        && userRef is map
+      return userRef is map
         && userRef.keys().hasOnly([
           'uid',
           'email',
           'display_name',
           'profile_picture'
         ])
-        && 'uid' in userRef
-        && userRef.uid is string
-        && userRef.uid.size() > 0
-        && userRef.uid.size() <= 128
-        && userRef.uid == request.auth.uid
-        && !('email' in userRef)
+        && (
+          (request.auth != null
+            && 'uid' in userRef
+            && userRef.uid is string
+            && userRef.uid.size() > 0
+            && userRef.uid.size() <= 128
+            && userRef.uid == request.auth.uid
+            && !('email' in userRef))
+          || (request.auth == null
+            && !('uid' in userRef)
+            && 'email' in userRef
+            && userRef.email is string
+            && userRef.email.size() > 0
+            && userRef.email.size() <= 240)
+        )
         && (!('display_name' in userRef) || (
           userRef.display_name is string
           && userRef.display_name.size() <= 120
@@ -785,6 +793,16 @@ service cloud.firestore {
         && request.resource.data.createdAt is timestamp;
     }
 
+    function guestMediaReportReason(reason) {
+      return reason in [
+        'illegal or unsafe content',
+        'copyright infringement',
+        'person did not consent',
+        'tos violation',
+        'other'
+      ];
+    }
+
     function validMediaReport() {
       return request.resource.data.keys().hasAll([
           'media',
@@ -809,6 +827,8 @@ service cloud.firestore {
         && request.resource.data.reason is string
         && request.resource.data.reason.size() >= 1
         && request.resource.data.reason.size() <= 120
+        && (request.auth != null ||
+          guestMediaReportReason(request.resource.data.reason))
         && request.resource.data.comment is string
         && request.resource.data.comment.size() <= 2000
         && (!('kind' in request.resource.data) || request.resource.data.kind == 'media')
@@ -1473,8 +1493,9 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Media reports require authentication and are tied to the reporter's uid.
-    // The server enriches private reports with the Auth account email.
+    // Safety, legal, privacy, and other serious reports may be submitted by
+    // affected people without accounts. Quality reports require authentication.
+    // Current clients use the callable endpoint for server-side abuse controls.
     match /media_reports/{reportId} {
       allow create: if validMediaReport();
       allow read, update, delete: if isAdmin();
@@ -1510,6 +1531,10 @@ service cloud.firestore {
     match /maintenance/{maintenanceId} {
       allow read: if isAdmin();
       allow write: if false;
+    }
+
+    match /report_rate_limits/{limitId} {
+      allow read, write: if false;
     }
 
     match /legacy_review_texts/{archiveId} {

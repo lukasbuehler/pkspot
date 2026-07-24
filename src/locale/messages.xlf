@@ -482,6 +482,11 @@
         <source>External report reference</source>
       </segment>
     </unit>
+    <unit id="7423084353005525137">
+      <segment>
+        <source>Verified account email</source>
+      </segment>
+    </unit>
     <unit id="7435704556903111313">
       <segment>
         <source>Organization review</source>
@@ -971,11 +976,6 @@
         <source>Event Notifications</source>
       </segment>
     </unit>
-    <unit id="4768749765465246664">
-      <segment>
-        <source>Email</source>
-      </segment>
-    </unit>
     <unit id="4771468580618188841">
       <segment>
         <source>Beginner friendly</source>
@@ -1039,6 +1039,11 @@
     <unit id="2417459620118538314">
       <segment>
         <source>Could not update event notifications. Please try again.</source>
+      </segment>
+    </unit>
+    <unit id="2446227100022235850">
+      <segment>
+        <source>Please enter a valid email address.</source>
       </segment>
     </unit>
     <unit id="2472016265373616532">
@@ -1257,6 +1262,11 @@
     <unit id="3800223756032705121">
       <segment>
         <source>Not managed</source>
+      </segment>
+    </unit>
+    <unit id="3812784998942541864">
+      <segment>
+        <source>Network fingerprint</source>
       </segment>
     </unit>
     <unit id="3821661153451769620">
@@ -2076,6 +2086,11 @@
         <source>Publish live update</source>
       </segment>
     </unit>
+    <unit id="5789685393585856728">
+      <segment>
+        <source>Unverified contact email</source>
+      </segment>
+    </unit>
     <unit id="8972434095994344487">
       <segment>
         <source>Community card rejected</source>
@@ -2132,6 +2147,11 @@
       </notes>
       <segment>
         <source>All Types</source>
+      </segment>
+    </unit>
+    <unit id="5682561296127892994">
+      <segment>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;"> Illegal or unsafe content: This may break the law or put someone at risk. </pc></source>
       </segment>
     </unit>
     <unit id="5684792847924520522">
@@ -4845,6 +4865,11 @@
         <source>Please enter your email address</source>
       </segment>
     </unit>
+    <unit id="8574418528664928574">
+      <segment>
+        <source>Request origin</source>
+      </segment>
+    </unit>
     <unit id="9191968011325658792">
       <segment>
         <source>Invalid email address</source>
@@ -5000,6 +5025,11 @@
         <source>Add translation</source>
       </segment>
     </unit>
+    <unit id="3248469257587489257">
+      <segment>
+        <source> Sign in to submit media quality reports. </source>
+      </segment>
+    </unit>
     <unit id="3249513483374643425">
       <segment>
         <source>Add</source>
@@ -5043,6 +5073,11 @@
     <unit id="1748972213745441743">
       <segment>
         <source>Profiles</source>
+      </segment>
+    </unit>
+    <unit id="2728666638365384793">
+      <segment>
+        <source>Submission IP</source>
       </segment>
     </unit>
     <unit id="2729703763662350648">
@@ -6830,6 +6865,11 @@
         <source>The password is invalid!</source>
       </segment>
     </unit>
+    <unit id="4295270151314599319">
+      <segment>
+        <source>Submission channel</source>
+      </segment>
+    </unit>
     <unit id="1578341976423133065">
       <segment>
         <source>Invalid email or password.</source>
@@ -6883,6 +6923,11 @@
     <unit id="6858563845386603352">
       <segment>
         <source>The e-mail address needs to be verified later.</source>
+      </segment>
+    </unit>
+    <unit id="6858819821660974006">
+      <segment>
+        <source> The report could not be submitted. Please wait and try again. </source>
       </segment>
     </unit>
     <unit id="6859805653263373747">
@@ -7052,6 +7097,11 @@
     <unit id="2267637299863581067">
       <segment>
         <source>Features and amenities</source>
+      </segment>
+    </unit>
+    <unit id="2267751413358204156">
+      <segment>
+        <source>User agent</source>
       </segment>
     </unit>
     <unit id="9180110319941008393">
@@ -7602,6 +7652,11 @@
     <unit id="4667715772382848347">
       <segment>
         <source>Profile not found</source>
+      </segment>
+    </unit>
+    <unit id="4673651466762876389">
+      <segment>
+        <source> Add an email only if you want administrators to contact you about the report. It is not verified unless you sign in. </source>
       </segment>
     </unit>
     <unit id="7772746290400709115">
@@ -8430,6 +8485,11 @@
         <source> Find answers to common questions or reach out to us directly. </source>
       </segment>
     </unit>
+    <unit id="7545615877986904307">
+      <segment>
+        <source> To prevent report abuse, we keep technical information such as your IP address and app verification status for up to 90 days. </source>
+      </segment>
+    </unit>
     <unit id="event_page.load_failed">
       <segment>
         <source> We couldn&apos;t load this event. </source>
@@ -8453,6 +8513,11 @@
     <unit id="3575990016862725996">
       <segment>
         <source> Join our Discord server to chat with the community, report bugs, and request features. This is the fastest way to get help! </source>
+      </segment>
+    </unit>
+    <unit id="3841989706323728259">
+      <segment>
+        <source>Not available</source>
       </segment>
     </unit>
     <unit id="3849719587486813146">
@@ -8588,6 +8653,14 @@
     <unit id="9156829285909106416">
       <segment>
         <source> Can&apos;t find what you&apos;re looking for? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [href]=&quot;discordUrl&quot; target=&quot;_blank&quot; (click)=&quot;trackContactChannelClick(&apos;discord&apos;, &apos;support_footer_discord&apos;)&quot; &gt;" dispEnd="&lt;/a &gt;">Join our Discord</pc> and we&apos;ll help you out! </source>
+      </segment>
+    </unit>
+    <unit id="9166339501815416264">
+      <notes>
+        <note category="description">guest report contact email label</note>
+      </notes>
+      <segment>
+        <source> Contact email (optional) </source>
       </segment>
     </unit>
     <unit id="welcomeDialogTitle">
@@ -9013,7 +9086,7 @@
         <note category="description">media report sign-in requirement</note>
       </notes>
       <segment>
-        <source> Sign in to report media. Your account details are only visible to administrators handling the report. </source>
+        <source> You can report safety, legal, privacy, and other concerns without an account. Sign in to submit quality reports. Reporter details are only visible to administrators handling the report. </source>
       </segment>
     </unit>
     <unit id="5996977642855652872">
@@ -9086,14 +9159,14 @@
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span &gt;"> Copyright infringement: This is my content and I did not give permission for it to be used here.</pc></source>
       </segment>
     </unit>
-    <unit id="5355398899123190235">
+    <unit id="6210875862708659535">
       <segment>
-        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">I&apos;m visible and have a problem with it.</pc></source>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;"> I&apos;m visible and have a problem with it. </pc></source>
       </segment>
     </unit>
-    <unit id="6851417304024228444">
+    <unit id="6668702982620905592">
       <segment>
-        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">This media violates the terms of service in other ways (nudity, violence, etc.)</pc></source>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;"> This media violates the terms of service in other ways (nudity, violence, etc.) </pc></source>
       </segment>
     </unit>
     <unit id="6772316127315505952">
@@ -9124,49 +9197,9 @@
         <source>Comment</source>
       </segment>
     </unit>
-    <unit id="204562474612147063">
-      <notes>
-        <note category="description">reporter email label</note>
-      </notes>
-      <segment>
-        <source>Your Email</source>
-      </segment>
-    </unit>
     <unit id="2049290282534091182">
       <segment>
         <source>Moderation</source>
-      </segment>
-    </unit>
-    <unit id="8981818401286656238">
-      <notes>
-        <note category="description">reporter email placeholder</note>
-      </notes>
-      <segment>
-        <source>your-email@example.com</source>
-      </segment>
-    </unit>
-    <unit id="8552587679160911578">
-      <notes>
-        <note category="description">email required error</note>
-      </notes>
-      <segment>
-        <source>Email is required</source>
-      </segment>
-    </unit>
-    <unit id="8134695558272106554">
-      <notes>
-        <note category="description">email invalid error</note>
-      </notes>
-      <segment>
-        <source>Please enter a valid email</source>
-      </segment>
-    </unit>
-    <unit id="1388168313047050333">
-      <notes>
-        <note category="description">email notice</note>
-      </notes>
-      <segment>
-        <source> We&apos;ll only use your email to contact you about this report. </source>
       </segment>
     </unit>
     <unit id="1388712764439031120">

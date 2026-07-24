@@ -92,15 +92,6 @@
         <target> Beschreibung </target>
       </segment>
     </unit>
-    <unit id="8134695558272106554">
-      <notes>
-        <note category="description">email invalid error</note>
-      </notes>
-      <segment state="initial">
-        <source>Please enter a valid email</source>
-        <target>Bitte gib eine gültige E-Mail ein</target>
-      </segment>
-    </unit>
     <unit id="1779696877741891389">
       <notes>
         <note category="description">Tooltip of button to open the spot in Google Maps</note>
@@ -675,15 +666,6 @@
       <segment state="initial">
         <source>Email Verified!</source>
         <target>E-Mail verifiziert!</target>
-      </segment>
-    </unit>
-    <unit id="1388168313047050333">
-      <notes>
-        <note category="description">email notice</note>
-      </notes>
-      <segment state="initial">
-        <source> We&apos;ll only use your email to contact you about this report. </source>
-        <target> Wir verwenden deine E-Mail nur, um dich bezüglich dieser Meldung zu kontaktieren. </target>
       </segment>
     </unit>
     <unit id="1388712764439031120">
@@ -1917,6 +1899,12 @@
         <target>Das Passwort ist ungültig!</target>
       </segment>
     </unit>
+    <unit id="4295270151314599319">
+      <segment state="initial">
+        <source>Submission channel</source>
+        <target>Übermittlungskanal</target>
+      </segment>
+    </unit>
     <unit id="7705508697330810763">
       <segment state="initial">
         <source>Delete Account</source>
@@ -2065,6 +2053,12 @@
       <segment state="initial">
         <source>The e-mail address needs to be verified later.</source>
         <target>Die E-Mail Adresse muss später verifiziert werden.</target>
+      </segment>
+    </unit>
+    <unit id="6858819821660974006">
+      <segment state="initial">
+        <source> The report could not be submitted. Please wait and try again. </source>
+        <target> Die Meldung konnte nicht gesendet werden. Bitte warte kurz und versuche es erneut. </target>
       </segment>
     </unit>
     <unit id="6859805653263373747">
@@ -2235,9 +2229,9 @@
         <target>Automatische Medienmarkierung</target>
       </segment>
     </unit>
-    <unit id="6851417304024228444">
+    <unit id="6668702982620905592">
       <segment state="initial">
-        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">This media violates the terms of service in other ways (nudity, violence, etc.)</pc></source>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;"> This media violates the terms of service in other ways (nudity, violence, etc.) </pc></source>
         <target><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Dieses Bild verletzt die Nutzungsbedingungen auf andere Weise (Nacktheit, Gewalt, etc.)</pc></target>
       </segment>
     </unit>
@@ -2503,8 +2497,8 @@
         <note category="description">media report sign-in requirement</note>
       </notes>
       <segment state="initial">
-        <source> Sign in to report media. Your account details are only visible to administrators handling the report. </source>
-        <target> Melde dich an, um Medien zu melden. Deine Kontodaten sind nur für Administratoren sichtbar, die die Meldung bearbeiten. </target>
+        <source> You can report safety, legal, privacy, and other concerns without an account. Sign in to submit quality reports. Reporter details are only visible to administrators handling the report. </source>
+        <target> Du kannst Sicherheits-, Rechts-, Datenschutz- und andere Anliegen ohne Konto melden. Melde dich an, um Qualitätsprobleme zu melden. Angaben zur meldenden Person sind nur für Administratoren sichtbar, die die Meldung bearbeiten. </target>
       </segment>
     </unit>
     <unit id="6957965842552679691">
@@ -4377,6 +4371,15 @@
       <segment state="initial">
         <source> Can&apos;t find what you&apos;re looking for? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [href]=&quot;discordUrl&quot; target=&quot;_blank&quot; (click)=&quot;trackContactChannelClick(&apos;discord&apos;, &apos;support_footer_discord&apos;)&quot; &gt;" dispEnd="&lt;/a &gt;">Join our Discord</pc> and we&apos;ll help you out! </source>
         <target> Findest du nicht, was du suchst? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [href]=&quot;discordUrl&quot; target=&quot;_blank&quot;&gt;" dispEnd="&lt;/a&gt;">Tritt unserem Discord bei</pc> und wir helfen dir weiter! </target>
+      </segment>
+    </unit>
+    <unit id="9166339501815416264">
+      <notes>
+        <note category="description">guest report contact email label</note>
+      </notes>
+      <segment state="initial">
+        <source> Contact email (optional) </source>
+        <target> Kontakt-E-Mail (optional) </target>
       </segment>
     </unit>
     <unit id="profile.actions.unfollow">
@@ -8570,12 +8573,6 @@
         <target><ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/apple_icon_dark.png&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"/> App Store </target>
       </segment>
     </unit>
-    <unit id="4768749765465246664">
-      <segment state="initial">
-        <source>Email</source>
-        <target>E-Mail</target>
-      </segment>
-    </unit>
     <unit id="4771468580618188841">
       <segment state="initial">
         <source>Beginner friendly</source>
@@ -8688,6 +8685,12 @@
       <segment state="initial">
         <source>Could not update event notifications. Please try again.</source>
         <target>Event-Benachrichtigungen konnten nicht aktualisiert werden. Bitte versuche es erneut.</target>
+      </segment>
+    </unit>
+    <unit id="2446227100022235850">
+      <segment state="initial">
+        <source>Please enter a valid email address.</source>
+        <target>Bitte gib eine gültige E-Mail-Adresse ein.</target>
       </segment>
     </unit>
     <unit id="2472016265373616532">
@@ -8883,6 +8886,12 @@
         <target>Nicht verwaltet</target>
       </segment>
     </unit>
+    <unit id="3812784998942541864">
+      <segment state="initial">
+        <source>Network fingerprint</source>
+        <target>Netzwerk-Fingerabdruck</target>
+      </segment>
+    </unit>
     <unit id="3821661153451769620">
       <segment state="initial">
         <source>Approve</source>
@@ -9064,6 +9073,12 @@
       <segment state="initial">
         <source>Dev Log</source>
         <target>Entwicklungsprotokoll</target>
+      </segment>
+    </unit>
+    <unit id="3248469257587489257">
+      <segment state="initial">
+        <source> Sign in to submit media quality reports. </source>
+        <target> Melde dich an, um Medien-Qualitätsprobleme zu melden. </target>
       </segment>
     </unit>
     <unit id="3249513483374643425">
@@ -9517,9 +9532,9 @@
         <target>Melden</target>
       </segment>
     </unit>
-    <unit id="5355398899123190235">
+    <unit id="6210875862708659535">
       <segment state="initial">
-        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">I&apos;m visible and have a problem with it.</pc></source>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;"> I&apos;m visible and have a problem with it. </pc></source>
         <target><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Ich bin zu sehen und habe ein Problem damit.</pc></target>
       </segment>
     </unit>
@@ -9685,6 +9700,12 @@
         <target> Finde Antworten auf häufige Fragen oder kontaktiere uns direkt. </target>
       </segment>
     </unit>
+    <unit id="7545615877986904307">
+      <segment state="initial">
+        <source> To prevent report abuse, we keep technical information such as your IP address and app verification status for up to 90 days. </source>
+        <target> Um Missbrauch von Meldungen zu verhindern, speichern wir technische Informationen wie deine IP-Adresse und den App-Verifizierungsstatus bis zu 90 Tage lang. </target>
+      </segment>
+    </unit>
     <unit id="event_page.load_failed">
       <segment state="initial">
         <source> We couldn&apos;t load this event. </source>
@@ -9755,15 +9776,6 @@
       <segment state="initial">
         <source>Sketchy</source>
         <target>Riskant</target>
-      </segment>
-    </unit>
-    <unit id="204562474612147063">
-      <notes>
-        <note category="description">reporter email label</note>
-      </notes>
-      <segment state="initial">
-        <source>Your Email</source>
-        <target>Deine E-Mail</target>
       </segment>
     </unit>
     <unit id="2049290282534091182">
@@ -10106,6 +10118,12 @@
         <target>Eigenschaften und Annehmlichkeiten</target>
       </segment>
     </unit>
+    <unit id="2267751413358204156">
+      <segment state="initial">
+        <source>User agent</source>
+        <target>User-Agent</target>
+      </segment>
+    </unit>
     <unit id="2273032269971765958">
       <segment state="initial">
         <source>Pair</source>
@@ -10352,13 +10370,10 @@
         <target>Bitte gib deine E-Mail-Adresse ein</target>
       </segment>
     </unit>
-    <unit id="8552587679160911578">
-      <notes>
-        <note category="description">email required error</note>
-      </notes>
+    <unit id="8574418528664928574">
       <segment state="initial">
-        <source>Email is required</source>
-        <target>E-Mail ist erforderlich</target>
+        <source>Request origin</source>
+        <target>Anfrageursprung</target>
       </segment>
     </unit>
     <unit id="8381431851391440518">
@@ -10566,6 +10581,12 @@
         <target>Alle Typen</target>
       </segment>
     </unit>
+    <unit id="5682561296127892994">
+      <segment state="initial">
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;"> Illegal or unsafe content: This may break the law or put someone at risk. </pc></source>
+        <target><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;"> Illegale oder unsichere Inhalte: Dies könnte gegen das Gesetz verstoßen oder jemanden gefährden. </pc></target>
+      </segment>
+    </unit>
     <unit id="5684792847924520522">
       <segment state="initial">
         <source> Your bio is public. Avoid private contact details and exact places you train. </source>
@@ -10627,15 +10648,6 @@
       <segment state="initial">
         <source>Directions</source>
         <target>Navigation</target>
-      </segment>
-    </unit>
-    <unit id="8981818401286656238">
-      <notes>
-        <note category="description">reporter email placeholder</note>
-      </notes>
-      <segment state="initial">
-        <source>your-email@example.com</source>
-        <target>deine-email@beispiel.com</target>
       </segment>
     </unit>
     <unit id="6223606167641949496">
@@ -11028,6 +11040,12 @@
         <target>Profile access</target>
       </segment>
     </unit>
+    <unit id="3841989706323728259">
+      <segment state="initial">
+        <source>Not available</source>
+        <target>Nicht verfügbar</target>
+      </segment>
+    </unit>
     <unit id="3849719587486813146">
       <segment state="initial">
         <source> PK Spot is a free, privacy-first, community-owned map for parkour. The project is built entirely by volunteers to help athletes find spots, connect, and share their local scene. </source>
@@ -11122,6 +11140,12 @@
       <segment state="initial">
         <source>Publish live update</source>
         <target>Live-Update veröffentlichen</target>
+      </segment>
+    </unit>
+    <unit id="5789685393585856728">
+      <segment state="initial">
+        <source>Unverified contact email</source>
+        <target>Nicht verifizierte Kontakt-E-Mail</target>
       </segment>
     </unit>
     <unit id="1814768182936887464">
@@ -11283,6 +11307,18 @@
         <target>Profile not found</target>
       </segment>
     </unit>
+    <unit id="4673651466762876389">
+      <segment state="initial">
+        <source> Add an email only if you want administrators to contact you about the report. It is not verified unless you sign in. </source>
+        <target> Gib nur dann eine E-Mail-Adresse an, wenn Administratoren dich zu dieser Meldung kontaktieren dürfen. Sie wird nur verifiziert, wenn du dich anmeldest. </target>
+      </segment>
+    </unit>
+    <unit id="7423084353005525137">
+      <segment state="initial">
+        <source>Verified account email</source>
+        <target>Verifizierte Konto-E-Mail</target>
+      </segment>
+    </unit>
     <unit id="7435704556903111313">
       <segment state="initial">
         <source>Organization review</source>
@@ -11347,6 +11383,12 @@
       <segment state="initial">
         <source>Searching events...</source>
         <target>Events werden gesucht...</target>
+      </segment>
+    </unit>
+    <unit id="2728666638365384793">
+      <segment state="initial">
+        <source>Submission IP</source>
+        <target>IP-Adresse der Übermittlung</target>
       </segment>
     </unit>
     <unit id="2729703763662350648">

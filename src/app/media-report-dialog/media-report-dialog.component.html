@@ -5,8 +5,9 @@
     class="mat-body-large"
     i18n="media report sign-in requirement@@mediaReportSignInRequired"
   >
-    Sign in to report media. Your account details are only visible to
-    administrators handling the report.
+    You can report safety, legal, privacy, and other concerns without an
+    account. Sign in to submit quality reports. Reporter details are only
+    visible to administrators handling the report.
   </p>
   }
   <div
@@ -40,24 +41,12 @@
       class="d-flex flex-column mb-3 gap-3"
       formControlName="reason"
     >
-      <mat-radio-button value="not relevant" i18n
-        ><span class="mat-body-large"
-          >Not relevant: This media does not belong here or is misleading.</span
-        ></mat-radio-button
-      >
-
-      <mat-radio-button value="bad quality" i18n
-        ><span class="mat-body-large"
-          >Bad quality: This media is blurry, too dark, or generally poor
-          quality.</span
-        ></mat-radio-button
-      >
-
-      <mat-radio-button value="duplicate" i18n
-        ><span class="mat-body-large"
-          >Duplicate: This media is already present.</span
-        ></mat-radio-button
-      >
+      <mat-radio-button value="illegal or unsafe content" i18n>
+        <span class="mat-body-large">
+          Illegal or unsafe content: This may break the law or put someone at
+          risk.
+        </span>
+      </mat-radio-button>
 
       <mat-radio-button value="copyright infringement" i18n="">
         <span class="mat-body-large">
@@ -66,15 +55,44 @@
         >
       </mat-radio-button>
 
-      <mat-radio-button value="person did not consent" i18n
+      <mat-radio-button value="person did not consent" i18n>
+        <span class="mat-body-large">
+          I'm visible and have a problem with it.
+        </span>
+      </mat-radio-button>
+
+      <mat-radio-button value="tos violation" i18n>
+        <span class="mat-body-large">
+          This media violates the terms of service in other ways (nudity,
+          violence, etc.)
+        </span>
+      </mat-radio-button>
+
+      @if (!isAuthenticated()) {
+      <p class="mat-body-small text-secondary" i18n>
+        Sign in to submit media quality reports.
+      </p>
+      }
+
+      <mat-radio-button value="not relevant" i18n
+        [disabled]="!isAuthenticated()"
         ><span class="mat-body-large"
-          >I'm visible and have a problem with it.</span
+          >Not relevant: This media does not belong here or is misleading.</span
         ></mat-radio-button
       >
-      <mat-radio-button value="tos violation" i18n
+
+      <mat-radio-button value="bad quality" i18n
+        [disabled]="!isAuthenticated()"
         ><span class="mat-body-large"
-          >This media violates the terms of service in other ways (nudity,
-          violence, etc.)</span
+          >Bad quality: This media is blurry, too dark, or generally poor
+          quality.</span
+        ></mat-radio-button
+      >
+
+      <mat-radio-button value="duplicate" i18n
+        [disabled]="!isAuthenticated()"
+        ><span class="mat-body-large"
+          >Duplicate: This media is already present.</span
         ></mat-radio-button
       >
 
@@ -88,6 +106,36 @@
       <textarea matInput rows="3" formControlName="comment"></textarea>
     </mat-form-field>
 
+    @if (!isAuthenticated()) {
+    <mat-form-field class="w-100" appearance="outline">
+      <mat-label i18n="guest report contact email label">
+        Contact email (optional)
+      </mat-label>
+      <input
+        matInput
+        type="email"
+        formControlName="reporterEmail"
+        autocomplete="email"
+      />
+      @if (reportForm.controls['reporterEmail'].hasError('email')) {
+      <mat-error i18n>Please enter a valid email address.</mat-error>
+      }
+    </mat-form-field>
+    <p class="mat-body-small text-secondary" i18n>
+      Add an email only if you want administrators to contact you about the
+      report. It is not verified unless you sign in.
+    </p>
+    }
+    <p class="mat-body-small text-secondary" i18n>
+      To prevent report abuse, we keep technical information such as your IP
+      address and app verification status for up to 90 days.
+    </p>
+
+    @if (submissionError()) {
+    <p class="mat-body-medium text-danger" role="alert" i18n>
+      The report could not be submitted. Please wait and try again.
+    </p>
+    }
   </form>
 </mat-dialog-content>
 <mat-dialog-actions class="d-flex justify-content-end p-3">
@@ -98,7 +146,7 @@
     matButton="filled"
     color="warn"
     (click)="submitReport()"
-    [disabled]="!isAuthenticated() || !reportForm.valid || isSubmitting()"
+    [disabled]="!canSubmitReason() || !reportForm.valid || isSubmitting()"
   >
     @if (isSubmitting()) {
     <span i18n="submitting label">Submitting...</span>

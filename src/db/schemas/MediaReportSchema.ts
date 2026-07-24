@@ -9,8 +9,22 @@ export type ReportModerationStatus = "open" | "resolved" | "dismissed";
 export interface ModerationReporterSchema {
   uid?: string;
   email?: string;
+  email_verified?: boolean;
   display_name?: string;
   profile_picture?: string;
+}
+
+export interface MediaReportSubmissionSchema {
+  channel: "callable" | "direct" | "scanner";
+  authenticated: boolean;
+  app_check: boolean;
+  app_id?: string;
+  ip_address?: string;
+  ip_hash?: string;
+  user_agent?: string;
+  origin?: string;
+  contact_email_verified?: boolean;
+  metadata_expires_at?: unknown;
 }
 
 export interface MediaSafetyScanSchema {
@@ -50,8 +64,8 @@ export interface MediaReportSchema {
   targetId?: string;
   reason: string;
   comment: string;
-  // User reports require an authenticated uid. Historical or scanner-created
-  // records may still omit it, so readers keep this shape backwards-compatible.
+  // Guest safety/legal reports may only have an optional contact email.
+  // Authenticated identities are replaced with server-authoritative values.
   user: ModerationReporterSchema;
   createdAt: Date;
   /** Omitted or "user" for community reports; "scanner" for internal safety findings. */
@@ -60,6 +74,8 @@ export interface MediaReportSchema {
   review_path?: string;
   incident_path?: string;
   scanner?: MediaSafetyScanSchema;
+  /** Private request context captured by the callable report endpoint. */
+  submission?: MediaReportSubmissionSchema;
   /** Locale/language code of the reporter (e.g., 'de-CH', 'en', 'fr') */
   locale?: string;
   status?: ReportModerationStatus;

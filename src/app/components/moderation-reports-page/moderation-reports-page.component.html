@@ -139,12 +139,60 @@
                     }
                     @if (report.reporterEmail) {
                       <div>
-                        <dt i18n>Email</dt>
+                        <dt>
+                          @if (report.reporterEmailVerified) {
+                          <span i18n>Verified account email</span>
+                          } @else {
+                          <span i18n>Unverified contact email</span>
+                          }
+                        </dt>
                         <dd>
                           <a [href]="'mailto:' + report.reporterEmail">{{
                             report.reporterEmail
                           }}</a>
                         </dd>
+                      </div>
+                    }
+                    @if (report.submissionChannel) {
+                      <div>
+                        <dt i18n>Submission channel</dt>
+                        <dd>{{ report.submissionChannel }}</dd>
+                      </div>
+                    }
+                    @if (report.submissionAppCheck !== undefined) {
+                      <div>
+                        <dt>App Check</dt>
+                        <dd>
+                          @if (report.submissionAppCheck) {
+                            <span i18n>Verified</span>
+                          } @else {
+                            <span i18n>Not available</span>
+                          }
+                        </dd>
+                      </div>
+                    }
+                    @if (report.submissionIpAddress) {
+                      <div>
+                        <dt i18n>Submission IP</dt>
+                        <dd>{{ report.submissionIpAddress }}</dd>
+                      </div>
+                    }
+                    @if (report.submissionIpHash) {
+                      <div>
+                        <dt i18n>Network fingerprint</dt>
+                        <dd>{{ report.submissionIpHash }}</dd>
+                      </div>
+                    }
+                    @if (report.submissionOrigin) {
+                      <div>
+                        <dt i18n>Request origin</dt>
+                        <dd>{{ report.submissionOrigin }}</dd>
+                      </div>
+                    }
+                    @if (report.submissionUserAgent) {
+                      <div>
+                        <dt i18n>User agent</dt>
+                        <dd>{{ report.submissionUserAgent }}</dd>
                       </div>
                     }
                   </dl>

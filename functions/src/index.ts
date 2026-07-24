@@ -109,6 +109,10 @@ export {
   onLegacyMediaReportCreate,
   onMediaReportCreate,
 } from "./mediaReportFunctions";
+export {
+  cleanupMediaReportSubmissionMetadata,
+  submitMediaReport,
+} from "./mediaReportSubmissionFunctions";
 
 // contact message functions
 export { onContactMessageCreate } from "./contactMessageFunctions";

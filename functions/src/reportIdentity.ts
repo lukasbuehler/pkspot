@@ -3,6 +3,7 @@ import * as admin from "firebase-admin";
 export interface ModerationReporterSnapshot {
   uid?: string;
   email?: string;
+  email_verified?: boolean;
   display_name?: string;
   profile_picture?: string;
 }
@@ -45,6 +46,7 @@ export const persistAuthoritativeReporter = async (
   const reporter: ModerationReporterSnapshot = {
     uid,
     ...(email ? {email} : {}),
+    email_verified: Boolean(authUser?.emailVerified),
     ...(profileDisplayName ?
       {display_name: profileDisplayName} :
       authDisplayName ?

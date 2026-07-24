@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  computed,
   Component,
   inject,
   LOCALE_ID,
@@ -39,6 +40,10 @@ import { AuthenticationService } from "../services/firebase/authentication.servi
 import { take } from "rxjs";
 import { NotificationOptInService } from "../services/notification-opt-in.service";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import {
+  isGuestMediaReportReason,
+  isMediaReportReason,
+} from "../../db/schemas/MediaReportPolicy";
 
 interface MediaReportDialogData {
   media: AnyMedia;
@@ -77,6 +82,13 @@ export class MediaReportDialogComponent implements AfterViewInit {
   userReference = signal<UserReferenceSchema | null | undefined>(null);
   isSubmitting = signal(false);
   isAuthenticated = signal(false);
+  selectedReason = signal("");
+  submissionError = signal(false);
+  canSubmitReason = computed(
+    () =>
+      this.isAuthenticated() ||
+      isGuestMediaReportReason(this.selectedReason()),
+  );
 
   reportForm: FormGroup;
   public dialogData = inject<MediaReportDialogData>(MAT_DIALOG_DATA);
@@ -102,10 +114,14 @@ export class MediaReportDialogComponent implements AfterViewInit {
     this.reportForm = this._fb.group({
       reason: ["", Validators.required],
       comment: [""],
+      reporterEmail: ["", [Validators.email, Validators.maxLength(240)]],
     });
     this._authService.authState$
       .pipe(takeUntilDestroyed())
       .subscribe((user) => this.isAuthenticated.set(!!user?.uid));
+    this.reportForm.controls["reason"].valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe((reason) => this.selectedReason.set(reason ?? ""));
   }
 
   ngAfterViewInit() {
@@ -133,18 +149,23 @@ export class MediaReportDialogComponent implements AfterViewInit {
   }
 
   submitReport(): void {
-    if (!this.isAuthenticated() || !this.reportForm.valid) {
+    if (!this.canSubmitReason() || !this.reportForm.valid) {
       return;
     }
 
-    const { reason, comment } = this.reportForm.value;
+    const { reason, comment, reporterEmail } = this.reportForm.value;
+    if (!isMediaReportReason(reason)) {
+      return;
+    }
     this.isSubmitting.set(true);
+    this.submissionError.set(false);
 
     this._mediaReportsService
       .submitMediaReport(
         this.dialogData.media,
         reason,
-        comment,
+        comment ?? "",
+        !this.isAuthenticated() ? reporterEmail || undefined : undefined,
         this.locale,
         this.dialogData.spotId,
         this.dialogData.spotId ? "spot" : this.dialogData.context,
@@ -164,6 +185,7 @@ export class MediaReportDialogComponent implements AfterViewInit {
       })
       .catch((error: unknown) => {
         console.error("Error submitting media report:", error);
+        this.submissionError.set(true);
         this.isSubmitting.set(false);
       });
   }

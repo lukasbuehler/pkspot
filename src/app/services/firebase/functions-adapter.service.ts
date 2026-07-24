@@ -52,7 +52,12 @@ export class FunctionsAdapterService {
     payload: TRequest,
   ): Promise<TResponse> {
     if (this.platformService.isNative()) {
-      return this.callNative<TRequest, TResponse>(functionName, payload, false);
+      return this.callNative<TRequest, TResponse>(
+        functionName,
+        payload,
+        false,
+        true,
+      );
     }
 
     if (
@@ -120,15 +125,32 @@ export class FunctionsAdapterService {
     functionName: string,
     payload: TRequest,
     requiresAuthentication: boolean,
+    includeOptionalAppCheck: boolean = false,
   ): Promise<TResponse> {
     const { token } = await FirebaseAuthentication.getIdToken();
     if (!token && requiresAuthentication) {
       throw new Error("Native Firebase auth did not return an ID token");
     }
 
-    return this.callDirect<TRequest, TResponse>(functionName, payload, {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    });
+    let appCheckToken: string | undefined;
+    if (includeOptionalAppCheck) {
+      try {
+        appCheckToken = await this.appCheckService.getTokenForRequest();
+      } catch {
+        // Public callables stay available when attestation is unavailable.
+      }
+    }
+
+    return this.callDirect<TRequest, TResponse>(
+      functionName,
+      payload,
+      {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(appCheckToken
+          ? { "X-Firebase-AppCheck": appCheckToken }
+          : {}),
+      },
+    );
   }
 
   private async callDirect<TRequest, TResponse>(

@@ -43,8 +43,9 @@ describe("MediaReportDialogComponent", () => {
     ).componentInstance;
     component.isAuthenticated.set(true);
     component.reportForm.setValue({
-      reason: "privacy",
+      reason: "other",
       comment: "Please review",
+      reporterEmail: "",
     });
 
     component.submitReport();
@@ -54,20 +55,46 @@ describe("MediaReportDialogComponent", () => {
     expect(maybePrompt).toHaveBeenCalledWith("report_updates");
   });
 
-  it("does not submit reports for signed-out users", () => {
+  it("submits serious reports for signed-out users without prompting", async () => {
     const component = TestBed.createComponent(
       MediaReportDialogComponent,
     ).componentInstance;
     component.isAuthenticated.set(false);
     component.reportForm.setValue({
-      reason: "privacy",
+      reason: "person did not consent",
       comment: "Please review",
+      reporterEmail: "reporter@example.com",
+    });
+
+    component.submitReport();
+    await vi.waitFor(() => expect(dialogRef.close).toHaveBeenCalledWith(true));
+
+    expect(submitMediaReport).toHaveBeenCalledWith(
+      expect.anything(),
+      "person did not consent",
+      "Please review",
+      "reporter@example.com",
+      expect.anything(),
+      "spot-1",
+      "spot",
+      "spot-1",
+    );
+    expect(maybePrompt).not.toHaveBeenCalled();
+  });
+
+  it("does not submit quality reports for signed-out users", () => {
+    const component = TestBed.createComponent(
+      MediaReportDialogComponent,
+    ).componentInstance;
+    component.isAuthenticated.set(false);
+    component.reportForm.setValue({
+      reason: "duplicate",
+      comment: "",
+      reporterEmail: "",
     });
 
     component.submitReport();
 
     expect(submitMediaReport).not.toHaveBeenCalled();
-    expect(dialogRef.close).not.toHaveBeenCalled();
-    expect(maybePrompt).not.toHaveBeenCalled();
   });
 });
