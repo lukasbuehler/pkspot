@@ -45,16 +45,16 @@ describe("MediaReportDialogComponent", () => {
     component.reportForm.setValue({
       reason: "privacy",
       comment: "Please review",
-      reporterEmail: "",
     });
 
     component.submitReport();
     await vi.waitFor(() => expect(dialogRef.close).toHaveBeenCalledWith(true));
 
+    expect(submitMediaReport).toHaveBeenCalled();
     expect(maybePrompt).toHaveBeenCalledWith("report_updates");
   });
 
-  it("does not prompt anonymous reporters", async () => {
+  it("does not submit reports for signed-out users", () => {
     const component = TestBed.createComponent(
       MediaReportDialogComponent,
     ).componentInstance;
@@ -62,12 +62,12 @@ describe("MediaReportDialogComponent", () => {
     component.reportForm.setValue({
       reason: "privacy",
       comment: "Please review",
-      reporterEmail: "reporter@example.com",
     });
 
     component.submitReport();
-    await vi.waitFor(() => expect(dialogRef.close).toHaveBeenCalledWith(true));
 
+    expect(submitMediaReport).not.toHaveBeenCalled();
+    expect(dialogRef.close).not.toHaveBeenCalled();
     expect(maybePrompt).not.toHaveBeenCalled();
   });
 });

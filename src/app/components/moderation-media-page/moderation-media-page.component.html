@@ -1,0 +1,135 @@
+<section class="moderation-media">
+  <header class="moderation-media__header">
+    <div>
+      <a matButton="text" routerLink="/moderation">
+        <mat-icon>arrow_back</mat-icon>
+        <span i18n>Moderation</span>
+      </a>
+      <h1 class="mat-headline-medium" i18n>Media upload stream</h1>
+      <p class="mat-body-medium text-secondary" i18n>
+        Review every scanned upload over time. Approved media is shown from its
+        released public location; flagged media remains hidden in quarantine.
+      </p>
+    </div>
+    @if (isAdmin()) {
+      <div class="moderation-media__actions">
+        <a matButton="outlined" routerLink="/moderation/reports">
+          <mat-icon>shield</mat-icon>
+          <span i18n>Open reports</span>
+        </a>
+        <button matButton="outlined" type="button" (click)="reload()">
+          <mat-icon>refresh</mat-icon>
+          <span i18n>Refresh</span>
+        </button>
+      </div>
+    }
+  </header>
+
+  @if (!authResolved()) {
+    <div class="moderation-media__center">
+      <mat-progress-spinner mode="indeterminate" diameter="32" />
+      <span i18n>Checking admin access...</span>
+    </div>
+  } @else if (!isAdmin()) {
+    <p i18n>Admin access required.</p>
+  } @else if (isLoading()) {
+    <div class="moderation-media__center">
+      <mat-progress-spinner mode="indeterminate" diameter="32" />
+      <span i18n>Loading media stream...</span>
+    </div>
+  } @else if (media().length === 0) {
+    <p class="mat-body-medium" i18n>No scanned media yet.</p>
+  } @else {
+    <div class="moderation-media__grid">
+      @for (item of media(); track item.id) {
+        <mat-card class="media-card">
+          @if (item.isApproved && item.publicUrl) {
+            @if (item.isVideo) {
+              <video
+                class="media-card__preview"
+                [src]="item.publicUrl"
+                controls
+                preload="metadata"
+              ></video>
+            } @else {
+              <img
+                class="media-card__preview"
+                [src]="item.publicUrl"
+                alt=""
+                loading="lazy"
+              />
+            }
+          } @else {
+            <div class="media-card__hidden">
+              <mat-icon>shield</mat-icon>
+              <span i18n>Quarantined media hidden</span>
+            </div>
+          }
+
+          <mat-card-header>
+            <mat-card-title>{{ item.status }}</mat-card-title>
+            <mat-card-subtitle>
+              {{ item.createdAtMillis | systemDate: "medium" }}
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <mat-chip-set>
+              <mat-chip>
+                <mat-icon matChipAvatar>{{
+                  item.isApproved ? "check_circle" : "shield"
+                }}</mat-icon>
+                <span>{{ item.decision || item.status }}</span>
+              </mat-chip>
+              @if (item.provider) {
+                <mat-chip>{{ item.provider }}</mat-chip>
+              }
+              @if (item.contentType) {
+                <mat-chip>{{ item.contentType }}</mat-chip>
+              }
+            </mat-chip-set>
+
+            <dl>
+              @if (item.uploaderUid) {
+                <div>
+                  <dt i18n>Uploader ID</dt>
+                  <dd>{{ item.uploaderUid }}</dd>
+                </div>
+              }
+              @if (item.targetKind || item.targetId) {
+                <div>
+                  <dt i18n>Target</dt>
+                  <dd>{{ item.targetKind || "media" }} · {{ item.targetId }}</dd>
+                </div>
+              }
+              @if (item.storagePath) {
+                <div>
+                  <dt i18n>Storage path</dt>
+                  <dd>{{ item.storagePath }}</dd>
+                </div>
+              }
+              @if (item.reason) {
+                <div>
+                  <dt i18n>Scan reason</dt>
+                  <dd>{{ item.reason }}</dd>
+                </div>
+              }
+            </dl>
+          </mat-card-content>
+          @if (item.isApproved && item.publicUrl) {
+            <mat-card-actions>
+              <a
+                matButton="text"
+                [href]="item.publicUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <mat-icon>open_in_new</mat-icon>
+                <span i18n>Open released media</span>
+              </a>
+            </mat-card-actions>
+          }
+        </mat-card>
+      }
+    </div>
+  }
+</section>

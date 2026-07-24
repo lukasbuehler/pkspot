@@ -331,6 +331,7 @@ async function seedSecurityFixture() {
   });
   batch.set(adminDb.doc("users/owner"), {
     display_name: "Owner",
+    home_spots: ["legacy-home"],
     is_admin: false,
     spot_edits_count: 4,
     socials: {
@@ -577,6 +578,13 @@ async function testSpotWriteGuards(anon, owner, other, adminUser) {
       user: { uid: "owner" },
     })
   );
+  await assertDenied("review text create", () =>
+    setDoc(doc(owner.db, "spots/public-spot/reviews/review-with-text"), {
+      rating: 5,
+      user: { uid: "owner" },
+      comment: { text: "Public prose", locale: "en" },
+    })
+  );
 
   await assertAllowed("owner spot edit create", () =>
     setDoc(doc(owner.db, "spots/public-spot/edits/owner-edit"), {
@@ -780,6 +788,11 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh, 
   await assertAllowed("owner updates own display name", () =>
     updateDoc(doc(owner.db, "users/owner"), {
       display_name: "Owner Updated",
+    })
+  );
+  await assertDenied("owner cannot change legacy Home Spots", () =>
+    updateDoc(doc(owner.db, "users/owner"), {
+      home_spots: ["new-home"],
     })
   );
   await assertAllowed("owner updates allowed social handles", () =>
@@ -1834,7 +1847,7 @@ async function testChallengeVisibility(anon, owner, other) {
   await assertDenied("anonymous reads unreleased challenge", () =>
     getDoc(doc(anon.db, "spots/public-spot/challenges/future-owner"))
   );
-  await assertAllowed("owner challenge write", () =>
+  await assertDenied("owner challenge write while submissions are closed", () =>
     setDoc(doc(owner.db, "spots/public-spot/challenges/owner-challenge"), {
       user: { uid: "owner" },
       title: "Precision",
@@ -1846,6 +1859,81 @@ async function testChallengeVisibility(anon, owner, other) {
       title: "Nope",
     })
   );
+}
+
+async function testReportPrivacy(anon, owner, other, adminUser) {
+  const spotReport = {
+    spot: { id: "public-spot", name: "Public Spot" },
+    reason: "torn down",
+    user: { uid: "owner", display_name: "Owner" },
+    createdAt: new Date(),
+  };
+  const spotReportRef = doc(
+    owner.db,
+    "spots/public-spot/reports/private-report"
+  );
+  await assertAllowed("owner creates spot report before privacy migration", () =>
+    setDoc(spotReportRef, spotReport)
+  );
+  await assertAllowed("spot report remains readable before warning migration", () =>
+    getDoc(doc(other.db, "spots/public-spot/reports/private-report"))
+  );
+  await adminDb.doc("maintenance/spot-report-privacy").set({
+    completed: true,
+  });
+  await assertDenied("reporter cannot read raw report after migration", () =>
+    getDoc(spotReportRef)
+  );
+  await assertDenied("other user cannot read spot report", () =>
+    getDoc(doc(other.db, "spots/public-spot/reports/private-report"))
+  );
+  await assertDenied("anonymous cannot read spot report", () =>
+    getDoc(doc(anon.db, "spots/public-spot/reports/private-report"))
+  );
+  await assertAllowed("admin reads spot report", () =>
+    getDoc(doc(adminUser.db, "spots/public-spot/reports/private-report"))
+  );
+
+  const mediaReport = {
+    kind: "media",
+    media: { type: "image", src: "https://example.com/image.jpg" },
+    reason: "unsafe",
+    comment: "",
+    user: { uid: "owner", display_name: "Owner" },
+    createdAt: new Date(),
+  };
+  await assertAllowed("owner creates root media report", () =>
+    setDoc(doc(owner.db, "reports/media-report"), mediaReport)
+  );
+  await assertDenied("authenticated reporter cannot spoof report email", () =>
+    setDoc(doc(owner.db, "reports/spoofed-email"), {
+      ...mediaReport,
+      user: {
+        uid: "owner",
+        email: "victim@example.com",
+      },
+    })
+  );
+  await assertDenied("anonymous user cannot create a media report", () =>
+    setDoc(doc(anon.db, "reports/anonymous-media-report"), {
+      ...mediaReport,
+      user: {
+        email: "reporter@example.com",
+      },
+    })
+  );
+  await assertDenied("non-admin cannot read root media report", () =>
+    getDoc(doc(owner.db, "reports/media-report"))
+  );
+  await assertAllowed("admin reads root media report", () =>
+    getDoc(doc(adminUser.db, "reports/media-report"))
+  );
+  await assertAllowed("admin collection group includes root and nested reports", async () => {
+    const reports = await getDocs(collectionGroup(adminUser.db, "reports"));
+    const paths = reports.docs.map((item) => item.ref.path);
+    assert.ok(paths.includes("reports/media-report"));
+    assert.ok(paths.includes("spots/public-spot/reports/private-report"));
+  });
 }
 
 async function testQueriesDoNotBypassRules(owner, other) {
@@ -1981,6 +2069,7 @@ async function main() {
   await testEventLiveUpdateGuards(anon, owner, other, adminUser);
   await testPostAndImportGuards(anon, owner, other, adminUser);
   await testChallengeVisibility(anon, owner, other);
+  await testReportPrivacy(anon, owner, other, adminUser);
   await testQueriesDoNotBypassRules(owner, other);
   await testNotificationRegistrationGuards(anon, owner, other, adminUser);
 

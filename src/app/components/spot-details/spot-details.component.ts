@@ -1879,6 +1879,12 @@ export class SpotDetailsComponent
 
     const spotId = spot.id;
 
+    if (!this.isAdmin()) {
+      this._latestReportRequestSpotId = spotId;
+      this.report.set(null);
+      return;
+    }
+
     if (this._latestReportRequestSpotId === spotId) {
       return;
     }
@@ -2072,18 +2078,7 @@ export class SpotDetailsComponent
               display_name: this.authenticationService.user.data.displayName,
             },
             rating: 0,
-            comment: {
-              text: "",
-              locale: this.locale,
-            },
           };
-        } else {
-          if (!review.comment?.text || !review.comment?.locale) {
-            review.comment = {
-              text: "",
-              locale: this.locale,
-            };
-          }
         }
 
         const dialogRef = this.dialog.open(SpotReviewDialogComponent, {

@@ -22,12 +22,6 @@
     </button>
     }
   </div>
-  <mat-form-field appearance="outline" class="w-100">
-    <mat-label>Comment</mat-label>
-    <textarea matInput [(ngModel)]="reviewComment" rows="4"></textarea>
-    <mat-hint>Language: {{ review.comment?.locale }}</mat-hint>
-  </mat-form-field>
-  <!-- // TODO Make it possible to toggle the language or something -->
 </mat-dialog-content>
 <mat-dialog-actions class="d-flex justify-content-between p-3">
   <button mat-button (click)="onNoClick()" i18n="cancel button label">

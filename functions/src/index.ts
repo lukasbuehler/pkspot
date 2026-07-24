@@ -105,7 +105,10 @@ export {
 export { setTopChallengesForSpotOnWrite } from "./spotChallengeFunctions";
 
 // media report functions
-export { onMediaReportCreate } from "./mediaReportFunctions";
+export {
+  onLegacyMediaReportCreate,
+  onMediaReportCreate,
+} from "./mediaReportFunctions";
 
 // contact message functions
 export { onContactMessageCreate } from "./contactMessageFunctions";
@@ -115,6 +118,16 @@ export { onSpotReportCreate, resolveSpotReport } from "./spotReportFunctions";
 
 // moderation action functions
 export { handleModerationAction } from "./moderationActionFunctions";
+export {
+  createSafetyIncident,
+  getModerationMediaPreview,
+  updateSafetyIncident,
+} from "./safetyIncidentFunctions";
+export {
+  backfillReportReporterIdentities,
+  migrateSpotReportsToPublicWarnings,
+  runSafetyDataCleanup,
+} from "./safetyDataMaintenanceFunctions";
 
 // user report functions
 export { onUserReportCreate } from "./userReportFunctions";
@@ -151,6 +164,7 @@ export {
   onFollowingNotificationWrite,
   onCommunityInfoNotificationWrite,
   onMediaReportNotificationWrite,
+  onRootMediaReportNotificationWrite,
   onModerationActionNotificationCreate,
   onNewFollowerNotificationWrite,
   onNotificationIntentWrite,

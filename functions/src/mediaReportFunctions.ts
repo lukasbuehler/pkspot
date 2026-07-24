@@ -1,7 +1,12 @@
 import * as logger from "firebase-functions/logger";
-import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import {
+  FirestoreEvent,
+  onDocumentCreated,
+  QueryDocumentSnapshot,
+} from "firebase-functions/v2/firestore";
 import { defineSecret } from "firebase-functions/params";
 import * as admin from "firebase-admin";
+import { persistAuthoritativeReporter } from "./reportIdentity";
 
 interface MediaReportSchema {
   media: {
@@ -42,21 +47,26 @@ const isEmulatorEnvironment =
   !!process.env.FIRESTORE_EMULATOR_HOST;
 const mediaReportTriggerSecrets = isEmulatorEnvironment ? [] : [discordWebhookUrl];
 
-export const onMediaReportCreate = onDocumentCreated(
-  {
-    document: "media_reports/{reportId}",
-    secrets: mediaReportTriggerSecrets,
-  },
-  async (event) => {
+const handleMediaReportCreate = async (
+  event: FirestoreEvent<
+    QueryDocumentSnapshot | undefined,
+    { reportId: string }
+  >
+): Promise<void> => {
     const reportId = event.params.reportId;
-    const reportData = event.data?.data() as MediaReportSchema | undefined;
+    const reportSnapshot = event.data;
+    const reportData = reportSnapshot?.data() as MediaReportSchema | undefined;
 
-    if (!reportData) {
+    if (!reportSnapshot || !reportData) {
       logger.warn(`No data found for media report ${reportId}`);
       return;
     }
 
     try {
+      reportData.user = await persistAuthoritativeReporter(
+        reportSnapshot.ref,
+        reportData.user,
+      );
       logger.info(`New media report created: ${reportId}`, {
         reason: reportData.reason,
         reportedBy: reportData.user.uid,
@@ -181,10 +191,13 @@ export const onMediaReportCreate = onDocumentCreated(
       }
 
       // Create Discord embed message
-      const reporterName =
-        (reportData.user.display_name ||
-          reportData.user.uid ||
-          "Unauthenticated") + ` (${reportData.user.email})`;
+      const reporterIdentity =
+        reportData.user.display_name ||
+        reportData.user.uid ||
+        "Unauthenticated";
+      const reporterName = reportData.user.email
+        ? `${reporterIdentity} (${reportData.user.email})`
+        : reporterIdentity;
 
       const embed = {
         title: "🚨 New Media Report",
@@ -283,5 +296,20 @@ export const onMediaReportCreate = onDocumentCreated(
       );
       throw error;
     }
-  }
+};
+
+export const onMediaReportCreate = onDocumentCreated(
+  {
+    document: "reports/{reportId}",
+    secrets: mediaReportTriggerSecrets,
+  },
+  handleMediaReportCreate
+);
+
+export const onLegacyMediaReportCreate = onDocumentCreated(
+  {
+    document: "media_reports/{reportId}",
+    secrets: mediaReportTriggerSecrets,
+  },
+  handleMediaReportCreate
 );

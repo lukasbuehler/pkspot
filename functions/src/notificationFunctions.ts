@@ -417,6 +417,29 @@ export const onMediaReportNotificationWrite = onDocumentWritten(
   },
 );
 
+export const onRootMediaReportNotificationWrite = onDocumentWritten(
+  "reports/{reportId}",
+  async (event) => {
+    if (!event.data?.after.exists) return;
+    const before = event.data.before.exists
+      ? recordValue(event.data.before.data())
+      : null;
+    const after = recordValue(event.data.after.data());
+    if (after["kind"] !== "media") return;
+    const outcome = reportOutcomeTransition(before, after);
+    const reporterUid = stringValue(recordValue(after["user"])["uid"], "");
+    if (!outcome || !reporterUid || after["source"] === "scanner") return;
+
+    await createReportIntent(
+      "media",
+      event.data.after.ref.path,
+      after,
+      reporterUid,
+      outcome,
+    );
+  },
+);
+
 export const onCommunityInfoNotificationWrite = onDocumentWritten(
   "community_pages/{communityKey}/edits/{editId}",
   async (event) => {
@@ -1068,13 +1091,14 @@ function reportIdentity(
       ? { intentPrefix: `spot_report_${match[1]}_${match[2]}` }
       : null;
   }
-  const match = sourcePath.match(/^media_reports\/([^/]+)$/);
+  const match = sourcePath.match(/^(?:media_reports|reports)\/([^/]+)$/);
   return match ? { intentPrefix: `media_report_${match[1]}` } : null;
 }
 
 function reportOutcomeForAction(value: unknown): ReportOutcome | null {
   if (value === "close_report") return "dismissed";
   return value === "keep_warning" ||
+    value === "publish_spot_warning" ||
     value === "delete_media" ||
     value === "delete_spot"
     ? "action_taken"

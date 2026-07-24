@@ -259,6 +259,22 @@ export const routes: Routes = [
     resolve: { content: contentResolver },
     data: { routeName: "Moderation Activity", discoverable: false },
   },
+  {
+    path: "moderation/media",
+    loadComponent: () =>
+      import("./components/moderation-media-page/moderation-media-page.component").then(
+        (m) => m.ModerationMediaPageComponent,
+      ),
+    data: { routeName: "Moderation Media", discoverable: false },
+  },
+  {
+    path: "moderation/incidents/:incidentId",
+    loadComponent: () =>
+      import("./components/safety-incident-page/safety-incident-page.component").then(
+        (m) => m.SafetyIncidentPageComponent,
+      ),
+    data: { routeName: "Safety Incident", discoverable: false },
+  },
 
   // Embedded stuff
   {

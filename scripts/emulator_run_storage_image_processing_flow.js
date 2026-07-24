@@ -113,7 +113,7 @@ async function waitForIncident(reviewPath, timeoutMs = 60_000) {
 
   while (Date.now() - startedAt < timeoutMs) {
     const snapshot = await db
-      .collection("csam_incidents")
+      .collection("safety_incidents")
       .where("review_path", "==", reviewPath)
       .get();
     if (!snapshot.empty) {
@@ -130,7 +130,7 @@ async function waitForMediaReport(reviewPath, timeoutMs = 60_000) {
 
   while (Date.now() - startedAt < timeoutMs) {
     const snapshot = await db
-      .collection("media_reports")
+      .collection("reports")
       .where("review_path", "==", reviewPath)
       .get();
     if (!snapshot.empty) {
@@ -140,6 +140,23 @@ async function waitForMediaReport(reviewPath, timeoutMs = 60_000) {
   }
 
   throw new Error(`Timed out waiting for media report for ${reviewPath}`);
+}
+
+async function waitForAuditedReview(storagePath, timeoutMs = 60_000) {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeoutMs) {
+    const snapshot = await db
+      .collection("media_upload_reviews")
+      .where("audited_path", "==", storagePath)
+      .get();
+    if (!snapshot.empty) {
+      return snapshot.docs[0];
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  throw new Error(`Timed out waiting for audited review for ${storagePath}`);
 }
 
 async function assertDerivative(
@@ -248,6 +265,24 @@ async function main() {
     moderated: "true",
   });
 
+  console.log("Checking audit records approved legacy media for the stream...");
+  const mediaAuditDoc = db
+    .collection("maintenance")
+    .doc("run-audit-media-moderation");
+  await mediaAuditDoc.set({
+    requestedAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+  await waitForDeletedDoc(mediaAuditDoc);
+  const auditedReview = await waitForAuditedReview(
+    `${ARCHIVE_PREFIX}/${moderatedApprovedPath}`
+  );
+  assert.equal(auditedReview.data().status, "approved");
+  assert.equal(auditedReview.data().scan_result.decision, "allow");
+  assert.equal(
+    auditedReview.data().approved_path,
+    `${ARCHIVE_PREFIX}/${moderatedApprovedPath}`
+  );
+
   console.log("Checking reportable safety matches stay quarantined and create incidents...");
   const blockedUploadId = `blocked-${suffix}`;
   const blockedIntakePath = `media_intake/${uid}/${blockedUploadId}/${blockedUploadId}.jpg`;
@@ -275,7 +310,7 @@ async function main() {
   assert.equal(blockedReport.data().source, "scanner");
   assert.equal(blockedReport.data().reason, "known_csam_match");
   assert.equal(blockedReport.data().media.storage_path, blockedIntakePath);
-  await assertFileMissing(blockedIntakePath);
+  await waitForFile(blockedIntakePath);
   await assertFileMissing(blockedApprovedPath);
 
   console.log("Checking media intake backfill maintenance trigger...");

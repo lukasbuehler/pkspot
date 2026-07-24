@@ -409,14 +409,12 @@
       </mat-card-header>
     }
     @if (currentReport(); as report) {
-      <div class="report-info">
-        <span
-          class="mat-h3 m-0"
-          i18n="
-            spot reported message|Message shown when a spot has been
-            reported@@spot.reported.message"
-          >This spot was reported as "{{ report.reason }}"</span
-        >
+      <div class="report-info" role="status">
+        <mat-icon>warning</mat-icon>
+        <span class="mat-h3 m-0">
+          <strong i18n>Spot warning:</strong>
+          {{ report.reason }}
+        </span>
       </div>
     }
 

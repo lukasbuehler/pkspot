@@ -28,10 +28,10 @@ service firebase.storage {
         && request.resource.metadata.uid == request.auth.uid;
     }
 
-    // Temporary migration switch while released clients move to media_intake.
-    // Flip this to false when direct public UGC writes should be fully blocked.
+    // Direct public UGC writes are permanently disabled. Released clients must
+    // upload through media_intake so server moderation runs before publication.
     function allowLegacyPublicMediaWrites() {
-      return true;
+      return false;
     }
 
     function hasModerationMetadata() {

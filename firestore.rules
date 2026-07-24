@@ -7,6 +7,11 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.is_admin == true;
     }
 
+    function spotReportPrivacyMigrationComplete() {
+      let statePath = /databases/$(database)/documents/maintenance/spot-report-privacy;
+      return exists(statePath) && get(statePath).data.completed == true;
+    }
+
     function isOrganizationReviewer(organizationId) {
       return request.auth.uid != null
         && exists(/databases/$(database)/documents/organizations/$(organizationId)/members/$(request.auth.uid))
@@ -695,7 +700,6 @@ service cloud.firestore {
       return [
         'display_name',
         'biography',
-        'home_spots',
         'profile_picture',
         'start_date',
         'start_date_raw_ms',
@@ -704,6 +708,11 @@ service cloud.firestore {
         'socials',
         'pinned_badges'
       ];
+    }
+
+    function homeSpotsUnchanged() {
+      return request.resource.data.get('home_spots', null) ==
+        resource.data.get('home_spots', null);
     }
 
     function validReportUserReference(userRef) {
@@ -728,20 +737,27 @@ service cloud.firestore {
     }
 
     function validModerationReportUser(userRef) {
-      return userRef is map
-        && (
-          ('uid' in userRef
-            && userRef.uid is string
-            && userRef.uid.size() > 0
-            && userRef.uid.size() <= 128)
-          || ('email' in userRef
-            && userRef.email is string
-            && userRef.email.size() > 0
-            && userRef.email.size() <= 240)
-        )
+      return request.auth != null
+        && userRef is map
+        && userRef.keys().hasOnly([
+          'uid',
+          'email',
+          'display_name',
+          'profile_picture'
+        ])
+        && 'uid' in userRef
+        && userRef.uid is string
+        && userRef.uid.size() > 0
+        && userRef.uid.size() <= 128
+        && userRef.uid == request.auth.uid
+        && !('email' in userRef)
         && (!('display_name' in userRef) || (
           userRef.display_name is string
           && userRef.display_name.size() <= 120
+        ))
+        && (!('profile_picture' in userRef) || (
+          userRef.profile_picture is string
+          && userRef.profile_picture.size() <= 500
         ));
     }
 
@@ -766,7 +782,6 @@ service cloud.firestore {
         && request.resource.data.reason.size() >= 1
         && request.resource.data.reason.size() <= 120
         && validModerationReportUser(request.resource.data.user)
-        && request.resource.data.user.uid == request.auth.uid
         && request.resource.data.createdAt is timestamp;
     }
 
@@ -787,7 +802,8 @@ service cloud.firestore {
           'comment',
           'user',
           'createdAt',
-          'locale'
+          'locale',
+          'kind'
         ])
         && request.resource.data.media is map
         && request.resource.data.reason is string
@@ -795,6 +811,7 @@ service cloud.firestore {
         && request.resource.data.reason.size() <= 120
         && request.resource.data.comment is string
         && request.resource.data.comment.size() <= 2000
+        && (!('kind' in request.resource.data) || request.resource.data.kind == 'media')
         && validModerationReportUser(request.resource.data.user)
         && request.resource.data.createdAt is timestamp
         && (!('spotId' in request.resource.data) || request.resource.data.spotId is string)
@@ -820,8 +837,7 @@ service cloud.firestore {
           'createdAt'
         ])
         && validReportUserReference(request.resource.data.reportedUser)
-        && validReportUserReference(request.resource.data.user)
-        && request.resource.data.user.uid == request.auth.uid
+        && validModerationReportUser(request.resource.data.user)
         && request.resource.data.reportedUser.uid != request.auth.uid
         && request.resource.data.reason in [
           'harassment',
@@ -869,6 +885,7 @@ service cloud.firestore {
           && request.auth.uid == userId
           && request.auth.uid == request.resource.data.user.uid
           && !exists(/databases/$(database)/documents/spots/$(spotId)/reviews/$(userId))
+          && !('comment' in request.resource.data)
           && request.resource.data.rating is int 
           && request.resource.data.rating >= 1 
           && request.resource.data.rating <= 5;
@@ -876,6 +893,8 @@ service cloud.firestore {
           && agePolicyAllowsPublicParticipation()
           && request.auth.uid == request.resource.data.user.uid
           && request.auth.uid == userId
+          && request.resource.data.get('comment', null) ==
+            resource.data.get('comment', null)
           && request.resource.data.rating is int 
           && request.resource.data.rating >= 1 
           && request.resource.data.rating <= 5;
@@ -887,9 +906,9 @@ service cloud.firestore {
       // Spot Reports
       match /reports/{reportId}
       {
-        // Only allow to read and create if the report is from the same user.
-        // Disallow altering and viewing other users reports.
-        allow read: if true;
+        // The maintenance migration writes a public warning before it marks
+        // completion. Raw reports then become private without a gap.
+        allow read: if !spotReportPrivacyMigrationComplete() || isAdmin();
         allow create: if validSpotReport(spotId);
         allow update: if isAdmin();
         allow delete: if isAdmin();
@@ -901,9 +920,9 @@ service cloud.firestore {
         allow read: if (!('release_date' in resource.data)) ||
           (resource.data.release_date <= request.time) ||
           (resource.data.user.uid == request.auth.uid);
-        allow create, update: if request.auth.uid != null 
-          && agePolicyAllowsPublicParticipation()
-          && request.auth.uid == request.resource.data.user.uid;
+        // Existing, owner-approved challenges stay readable. New submissions
+        // remain closed until the moderated challenge workflow is introduced.
+        allow create, update: if false;
         allow delete: if isAdmin();
       }
 
@@ -1079,11 +1098,13 @@ service cloud.firestore {
       // It is not allowed to update protected fields. These are handled by cloud functions.
       allow create: if request.auth.uid != null && request.auth.uid == userId
          && !request.resource.data.keys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges', 'age_policy'])
+         && !('home_spots' in request.resource.data)
          && validUserSocials()
          && validUserProfileAccess()
          && noUserCustomSocialLinksOnCreate();
       allow update: if request.auth.uid != null && request.auth.uid == userId
          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges', 'age_policy'])
+         && homeSpotsUnchanged()
          && (
            !request.resource.data.diff(resource.data).affectedKeys().hasAny(userPublicParticipationFields())
            || agePolicyAllowsPublicParticipation()
@@ -1452,11 +1473,19 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Media Reports
-    // Authenticated users: create reports tied to their uid
-    // Unauthenticated users: create reports with their email
+    // Media reports require authentication and are tied to the reporter's uid.
+    // The server enriches private reports with the Auth account email.
     match /media_reports/{reportId} {
       allow create: if validMediaReport();
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Current media reports. The root collection intentionally shares the
+    // "reports" collection id with target report subcollections so the
+    // moderation queue can aggregate them with a collection-group query.
+    match /reports/{reportId} {
+      allow create: if request.resource.data.kind == 'media'
+        && validMediaReport();
       allow read, update, delete: if isAdmin();
     }
 
@@ -1478,6 +1507,16 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /maintenance/{maintenanceId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /legacy_review_texts/{archiveId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
     match /media_upload_reviews/{reviewId} {
       allow read: if isAdmin();
       allow write: if false;
@@ -1492,6 +1531,16 @@ service cloud.firestore {
     match /csam_incidents/{incidentId} {
       allow read: if isAdmin();
       allow write: if false;
+    }
+
+    match /safety_incidents/{incidentId} {
+      allow read: if isAdmin();
+      allow write: if false;
+
+      match /events/{eventId} {
+        allow read: if isAdmin();
+        allow write: if false;
+      }
     }
 
     match /imports/{importId} {

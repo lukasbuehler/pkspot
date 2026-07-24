@@ -1,5 +1,11 @@
 <xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en" trgLang="nl">
   <file id="ngi18n" original="ng.template">
+    <unit id="1814768182936887464">
+      <segment state="initial">
+        <source>Scan reason</source>
+        <target>Reden van de scan</target>
+      </segment>
+    </unit>
     <unit id="1816655675231412974">
       <segment state="initial">
         <source>Profile reports</source>
@@ -70,6 +76,12 @@
       <segment state="initial">
         <source>Unknown Action</source>
         <target>Onbekende actie</target>
+      </segment>
+    </unit>
+    <unit id="3765605663062015670">
+      <segment state="initial">
+        <source>Source report</source>
+        <target>Bronmelding</target>
       </segment>
     </unit>
     <unit id="3768927257183755959">
@@ -251,6 +263,12 @@
         <target>Contactbericht gearchiveerd</target>
       </segment>
     </unit>
+    <unit id="6321562733889197649">
+      <segment state="initial">
+        <source>Destroyed</source>
+        <target>Vernietigd</target>
+      </segment>
+    </unit>
     <unit id="6328600269410022481">
       <segment state="initial">
         <source>Meet-up time updated</source>
@@ -261,6 +279,12 @@
       <segment state="initial">
         <source>Return to sign in</source>
         <target>Terug naar inloggen</target>
+      </segment>
+    </unit>
+    <unit id="6350961303290386382">
+      <segment state="initial">
+        <source>Reveal to review</source>
+        <target>Tonen voor controle</target>
       </segment>
     </unit>
     <unit id="6366005533956235174">
@@ -279,6 +303,12 @@
       <segment state="initial">
         <source>Custom URL added</source>
         <target>Aangepaste URL toegevoegd</target>
+      </segment>
+    </unit>
+    <unit id="6381490568322624964">
+      <segment state="initial">
+        <source>Deleted</source>
+        <target>Verwijderd</target>
       </segment>
     </unit>
     <unit id="6396486314653699002">
@@ -345,6 +375,18 @@
         <target>Terug naar inloggen</target>
       </segment>
     </unit>
+    <unit id="8922105621109418817">
+      <segment state="initial">
+        <source>This media was flagged by automated safety scanning and may be disturbing. Reveal it for manual moderation?</source>
+        <target>Deze media zijn gemarkeerd door de automatische veiligheidsscan en kunnen schokkend zijn. Tonen voor handmatige moderatie?</target>
+      </segment>
+    </unit>
+    <unit id="8925392541694190902">
+      <segment state="initial">
+        <source>UK link</source>
+        <target>VK-koppeling</target>
+      </segment>
+    </unit>
     <unit id="8928816882866356838">
       <segment state="initial">
         <source>Public</source>
@@ -387,6 +429,12 @@
       <segment state="initial">
         <source>License</source>
         <target>Licentie</target>
+      </segment>
+    </unit>
+    <unit id="4467323362722952678">
+      <segment state="initial">
+        <source>Unknown</source>
+        <target>Onbekend</target>
       </segment>
     </unit>
     <unit id="4470656372477479316">
@@ -527,6 +575,12 @@
       <segment state="initial">
         <source>Your email address has been successfully recovered. You may want to change your password if you didn&apos;t make this change.</source>
         <target>Je e-mailadres is succesvol hersteld. Je wilt misschien je wachtwoord wijzigen als je deze wijziging niet hebt aangebracht.</target>
+      </segment>
+    </unit>
+    <unit id="5507061749509508297">
+      <segment state="initial">
+        <source>PostHog and account context</source>
+        <target>PostHog- en accountcontext</target>
       </segment>
     </unit>
     <unit id="5510291204960492499">
@@ -770,6 +824,12 @@
         <target> Algemene instellingen om je ervaring op PK Spot aan te passen. </target>
       </segment>
     </unit>
+    <unit id="5223619778908599895">
+      <segment state="initial">
+        <source>Quarantine object</source>
+        <target>Quarantaineobject</target>
+      </segment>
+    </unit>
     <unit id="5227214585962403800">
       <segment state="initial">
         <source> Recent messages from the public contact form. </source>
@@ -972,6 +1032,12 @@
       <segment state="initial">
         <source>Settings</source>
         <target>Instellingen</target>
+      </segment>
+    </unit>
+    <unit id="425904489170594554">
+      <segment state="initial">
+        <source>Failed to load media stream</source>
+        <target>Mediastream kon niet worden geladen</target>
       </segment>
     </unit>
     <unit id="4262052603921665097">
@@ -1977,6 +2043,18 @@
         <target>Het huidige wachtwoord is onjuist.</target>
       </segment>
     </unit>
+    <unit id="730589419287534524">
+      <segment state="initial">
+        <source>Reporter</source>
+        <target>Melder</target>
+      </segment>
+    </unit>
+    <unit id="7317396157754495933">
+      <segment state="initial">
+        <source>Uploader ID</source>
+        <target>Uploader-ID</target>
+      </segment>
+    </unit>
     <unit id="7322684769836148535">
       <segment state="initial">
         <source>Find parkour spots, events, and local community info for <ph id="0" equiv="PH" disp="data.displayName"/>.</source>
@@ -2017,6 +2095,12 @@
       <segment state="initial">
         <source>Open Source</source>
         <target>Open source</target>
+      </segment>
+    </unit>
+    <unit id="6988922790953403967">
+      <segment state="initial">
+        <source>Spot warning:</source>
+        <target>Spot-waarschuwing:</target>
       </segment>
     </unit>
     <unit id="6997602168024654529">
@@ -2115,10 +2199,22 @@
         <target>Herhaal wachtwoord</target>
       </segment>
     </unit>
+    <unit id="4552547888201609244">
+      <segment state="initial">
+        <source>Warning type</source>
+        <target>Waarschuwingstype</target>
+      </segment>
+    </unit>
     <unit id="5261342889229534364">
       <segment state="initial">
         <source>The repeated password needs to match the password entered.</source>
         <target>Het herhaalde wachtwoord moet overeenkomen met het ingevoerde wachtwoord.</target>
+      </segment>
+    </unit>
+    <unit id="5274576717459953946">
+      <segment state="initial">
+        <source>Containment summary</source>
+        <target>Samenvatting van de beheersing</target>
       </segment>
     </unit>
     <unit id="5279365676870836127">
@@ -2199,6 +2295,12 @@
         <target>Eerder</target>
       </segment>
     </unit>
+    <unit id="1231404040125306617">
+      <segment state="initial">
+        <source> Review every scanned upload over time. Approved media is shown from its released public location; flagged media remains hidden in quarantine. </source>
+        <target> Bekijk alle gescande uploads door de tijd heen. Goedgekeurde media worden vanaf hun openbare locatie getoond; gemarkeerde media blijven verborgen in quarantaine. </target>
+      </segment>
+    </unit>
     <unit id="1263548881803803113">
       <segment state="initial">
         <source><ph id="0" equiv="PH" disp="summary.yes_count"/> yes · <ph id="1" equiv="PH_1" disp="summary.no_count"/> no</source>
@@ -2223,6 +2325,12 @@
         <target>Log in om bezochte Spots te bekijken</target>
       </segment>
     </unit>
+    <unit id="1299172917420492305">
+      <segment state="initial">
+        <source>Automated media flag</source>
+        <target>Automatische mediamarkering</target>
+      </segment>
+    </unit>
     <unit id="6851417304024228444">
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">This media violates the terms of service in other ways (nudity, violence, etc.)</pc></source>
@@ -2239,6 +2347,12 @@
       <segment state="initial">
         <source>View source</source>
         <target>Bron bekijken</target>
+      </segment>
+    </unit>
+    <unit id="6484510802892706344">
+      <segment state="initial">
+        <source>Triage hold</source>
+        <target>Triageblokkering</target>
       </segment>
     </unit>
     <unit id="6496554534263466402">
@@ -2313,6 +2427,12 @@
         <target>Private</target>
       </segment>
     </unit>
+    <unit id="3689301942396726798">
+      <segment state="initial">
+        <source> Include provenance, retrieval time, relevant session or IP data, and who retrieved it. </source>
+        <target> Vermeld herkomst, ophaaltijd, relevante sessie- of IP-gegevens en wie deze heeft opgehaald. </target>
+      </segment>
+    </unit>
     <unit id="share_spot_tooltip">
       <notes>
         <note category="description">The tootltip of the share spot icon button</note>
@@ -2359,20 +2479,16 @@
         <target>Knop met een route-icoon</target>
       </segment>
     </unit>
-    <unit id="spot.reported.message">
-      <notes>
-        <note category="description">Message shown when a spot has been reported</note>
-        <note category="meaning">spot reported message</note>
-      </notes>
-      <segment state="initial">
-        <source>This spot was reported as &quot;<ph id="0" equiv="INTERPOLATION" disp="{{ report.reason }}"/>&quot;</source>
-        <target>Deze spot is gemeld als &quot;<ph id="0" equiv="INTERPOLATION" disp="{{ report.reason }}"/>&quot;</target>
-      </segment>
-    </unit>
     <unit id="6715130059718666635">
       <segment state="initial">
         <source>Contributions</source>
         <target>Bijdragen</target>
+      </segment>
+    </unit>
+    <unit id="6720692665733098220">
+      <segment state="initial">
+        <source>Reported externally</source>
+        <target>Extern gemeld</target>
       </segment>
     </unit>
     <unit id="6727906839729645379">
@@ -2488,6 +2604,15 @@
       <segment state="initial">
         <source>Report Media</source>
         <target>Media rapporteren</target>
+      </segment>
+    </unit>
+    <unit id="mediaReportSignInRequired">
+      <notes>
+        <note category="description">media report sign-in requirement</note>
+      </notes>
+      <segment state="initial">
+        <source> Sign in to report media. Your account details are only visible to administrators handling the report. </source>
+        <target> Meld je aan om media te rapporteren. Je accountgegevens zijn alleen zichtbaar voor beheerders die de melding behandelen. </target>
       </segment>
     </unit>
     <unit id="6957965842552679691">
@@ -2670,6 +2795,12 @@
         <target>Kaartoriëntatie naar het noorden herstellen</target>
       </segment>
     </unit>
+    <unit id="8614289146412859500">
+      <segment state="initial">
+        <source>Media upload stream</source>
+        <target>Stream met media-uploads</target>
+      </segment>
+    </unit>
     <unit id="8637857575623979078">
       <segment state="initial">
         <source> No edits yet for this spot. </source>
@@ -2770,6 +2901,12 @@
         <target>Evenementmeldingen</target>
       </segment>
     </unit>
+    <unit id="2020979533566861335">
+      <segment state="initial">
+        <source>Triage</source>
+        <target>Eerste beoordeling</target>
+      </segment>
+    </unit>
     <unit id="202472216784225575">
       <segment state="initial">
         <source>1 edit is waiting for community voting.</source>
@@ -2786,12 +2923,6 @@
       <segment state="initial">
         <source>Terms of Service</source>
         <target>Servicevoorwaarden</target>
-      </segment>
-    </unit>
-    <unit id="4411046525037051458">
-      <segment state="initial">
-        <source> Note: Spot reports are public and will be displayed on the spot itself together with your profile and user name. </source>
-        <target> Opmerking: Spot-meldingen zijn openbaar en worden bij de spot zelf getoond, samen met je profiel en gebruikersnaam. </target>
       </segment>
     </unit>
     <unit id="4411678463999056889">
@@ -4278,6 +4409,12 @@
         <target>No community card suggestions.</target>
       </segment>
     </unit>
+    <unit id="9036774118081905922">
+      <segment state="initial">
+        <source>Failed to load safety incident</source>
+        <target>Veiligheidsincident kon niet worden geladen</target>
+      </segment>
+    </unit>
     <unit id="9058496705928443158">
       <segment state="initial">
         <source>Photographer</source>
@@ -4288,6 +4425,12 @@
       <segment state="initial">
         <source>Password changed successfully</source>
         <target>Wachtwoord succesvol gewijzigd</target>
+      </segment>
+    </unit>
+    <unit id="9073802243353315029">
+      <segment state="initial">
+        <source>Contained</source>
+        <target>Ingedamd</target>
       </segment>
     </unit>
     <unit id="9074160907730350759">
@@ -4368,6 +4511,18 @@
         <target>Ongeldig e-mailadres</target>
       </segment>
     </unit>
+    <unit id="9193658864541040447">
+      <segment state="initial">
+        <source>Failed to load quarantined media</source>
+        <target>Media in quarantaine konden niet worden geladen</target>
+      </segment>
+    </unit>
+    <unit id="9197546864520867301">
+      <segment state="initial">
+        <source>Undetermined</source>
+        <target>Onbepaald</target>
+      </segment>
+    </unit>
     <unit id="921298748667468495">
       <segment state="initial">
         <source>Session starting soon</source>
@@ -4380,10 +4535,22 @@
         <target><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Slechte kwaliteit: Deze afbeelding is wazig, te donker of over het algemeen van slechte kwaliteit.</pc></target>
       </segment>
     </unit>
+    <unit id="2542019946523691126">
+      <segment state="initial">
+        <source>Access concern</source>
+        <target>Toegangsprobleem</target>
+      </segment>
+    </unit>
     <unit id="93057103339884764">
       <segment state="initial">
         <source> Backed by the <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">community</pc>. </source>
         <target> Gesteund door de <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">community</pc>. </target>
+      </segment>
+    </unit>
+    <unit id="940241108431922998">
+      <segment state="initial">
+        <source>Ordinary harm</source>
+        <target>Reguliere schade</target>
       </segment>
     </unit>
     <unit id="947995176992343811">
@@ -7795,6 +7962,12 @@
         <target>Nog geen evenementen gepland.</target>
       </segment>
     </unit>
+    <unit id="4396128088744719857">
+      <segment state="initial">
+        <source>No scanned media yet.</source>
+        <target>Nog geen gescande media.</target>
+      </segment>
+    </unit>
     <unit id="4399476985310100803">
       <segment state="initial">
         <source>Open all reports</source>
@@ -8407,6 +8580,12 @@
         <target>Volgend</target>
       </segment>
     </unit>
+    <unit id="8711587038939678752">
+      <segment state="initial">
+        <source> Temporarily closed </source>
+        <target> Tijdelijk gesloten </target>
+      </segment>
+    </unit>
     <unit id="8736188664022016115">
       <segment state="initial">
         <source>Could not sign in with Apple!</source>
@@ -8441,6 +8620,12 @@
       <segment state="initial">
         <source>Early Bird</source>
         <target>Vroege vogel</target>
+      </segment>
+    </unit>
+    <unit id="8790355239373900199">
+      <segment state="initial">
+        <source>Publish warning</source>
+        <target>Waarschuwing publiceren</target>
       </segment>
     </unit>
     <unit id="8799693346420796055">
@@ -8501,6 +8686,12 @@
       <segment state="initial">
         <source><ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/apple_icon_dark.png&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"/> App Store </source>
         <target><ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/apple_icon_dark.png&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"/> App Store </target>
+      </segment>
+    </unit>
+    <unit id="4768749765465246664">
+      <segment state="initial">
+        <source>Email</source>
+        <target>E-mail</target>
       </segment>
     </unit>
     <unit id="4771468580618188841">
@@ -8671,6 +8862,12 @@
         <target> Nu verifiëren </target>
       </segment>
     </unit>
+    <unit id="5982160190664649221">
+      <segment state="initial">
+        <source>Loading media stream...</source>
+        <target>Mediastream laden…</target>
+      </segment>
+    </unit>
     <unit id="5982693261061871155">
       <segment state="initial">
         <source> — All community spot data is <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en&quot; (click)=&quot;trackOutboundLinkClick(&apos;license&apos;, &apos;https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en&apos;, &apos;CC BY-NC-SA 4.0&apos;)&quot; &gt;" dispEnd="&lt;/a &gt;">CC BY-NC-SA 4.0</pc> licensed. Open, shareable, yours forever. </source>
@@ -8705,6 +8902,12 @@
       <segment state="initial">
         <source> Add an editable boundary for this spot. After adding, you can adjust the polygon shape on the map. </source>
         <target> Voeg een bewerkbare begrenzing toe voor deze spot. Na het toevoegen kun je de vorm van het polygoon op de kaart aanpassen. </target>
+      </segment>
+    </unit>
+    <unit id="2128755808672960949">
+      <segment state="initial">
+        <source>User ID</source>
+        <target>Gebruikers-ID</target>
       </segment>
     </unit>
     <unit id="213024006531809752">
@@ -8772,6 +8975,12 @@
       <segment state="initial">
         <source>Time (optional)</source>
         <target>Tijd (optioneel)</target>
+      </segment>
+    </unit>
+    <unit id="2186090184648113885">
+      <segment state="initial">
+        <source>Save incident</source>
+        <target>Incident opslaan</target>
       </segment>
     </unit>
     <unit id="2197674250183489104">
@@ -8846,6 +9055,12 @@
         <target>Spot verwijderd</target>
       </segment>
     </unit>
+    <unit id="389079921595754695">
+      <segment state="initial">
+        <source> Imminent danger </source>
+        <target> Dreigend gevaar </target>
+      </segment>
+    </unit>
     <unit id="3894305924320774026">
       <segment state="initial">
         <source>@pkspot.app</source>
@@ -8915,6 +9130,18 @@
         <target>Evenement-Spot (optioneel)</target>
       </segment>
     </unit>
+    <unit id="4152989558688224665">
+      <segment state="initial">
+        <source>Sensitive media hidden</source>
+        <target>Gevoelige media verborgen</target>
+      </segment>
+    </unit>
+    <unit id="3705542547407464128">
+      <segment state="initial">
+        <source>Failed to open safety incident</source>
+        <target>Veiligheidsincident kon niet worden geopend</target>
+      </segment>
+    </unit>
     <unit id="3714343477148346459">
       <segment state="initial">
         <source>New challenge saved successfully</source>
@@ -8925,6 +9152,12 @@
       <segment state="initial">
         <source> Community cards, spot edit votes, and organization approval. </source>
         <target> Community cards, spot edit votes, and organization approval. </target>
+      </segment>
+    </unit>
+    <unit id="5063962280942321008">
+      <segment state="initial">
+        <source>Failed to publish Spot warning</source>
+        <target>Spot-waarschuwing kon niet worden gepubliceerd</target>
       </segment>
     </unit>
     <unit id="5075169696278804374">
@@ -8997,6 +9230,12 @@
       <segment state="initial">
         <source>Failed to delete spot</source>
         <target>Spot verwijderen mislukt</target>
+      </segment>
+    </unit>
+    <unit id="2638434417265535082">
+      <segment state="initial">
+        <source>Media stream</source>
+        <target>Mediastream</target>
       </segment>
     </unit>
     <unit id="2662644497259948010">
@@ -9110,6 +9349,12 @@
         <target>Wacht op organisatiereview</target>
       </segment>
     </unit>
+    <unit id="804390045587573373">
+      <segment state="initial">
+        <source>Inaccessible</source>
+        <target>Niet toegankelijk</target>
+      </segment>
+    </unit>
     <unit id="805182578389935261">
       <segment state="initial">
         <source>Latest information from <ph id="0" equiv="INTERPOLATION" disp="{{ event().organizer?.organization?.name ?? event().name }}"/>.</source>
@@ -9122,16 +9367,34 @@
         <target>Afbreken</target>
       </segment>
     </unit>
+    <unit id="3374611751897348808">
+      <segment state="initial">
+        <source> Deletion scheduled </source>
+        <target> Verwijdering gepland </target>
+      </segment>
+    </unit>
     <unit id="2902020729496987690">
       <segment state="initial">
         <source>Delete this contact message from the active inbox? The message will still be recorded in moderation provenance.</source>
         <target>Dit contactbericht uit de actieve inbox verwijderen? Het bericht blijft vastgelegd in de moderatieherkomst.</target>
       </segment>
     </unit>
+    <unit id="2914629792519664709">
+      <segment state="initial">
+        <source>Public Spot warning published</source>
+        <target>Openbare Spot-waarschuwing gepubliceerd</target>
+      </segment>
+    </unit>
     <unit id="2917314929120683887">
       <segment state="initial">
         <source> Continue </source>
         <target> Doorgaan </target>
+      </segment>
+    </unit>
+    <unit id="292769594389358994">
+      <segment state="initial">
+        <source>Retention state</source>
+        <target>Bewaarstatus</target>
       </segment>
     </unit>
     <unit id="profile.actions.report">
@@ -9540,10 +9803,28 @@
         <target>Word lid van Discord</target>
       </segment>
     </unit>
+    <unit id="5611592591303869712">
+      <segment state="initial">
+        <source>Status</source>
+        <target>Status</target>
+      </segment>
+    </unit>
+    <unit id="7507067564798390805">
+      <segment state="initial">
+        <source>Reporting hold</source>
+        <target>Bewaring voor melding</target>
+      </segment>
+    </unit>
     <unit id="7523630390926625638">
       <segment state="initial">
         <source>Link to spot copied to clipboard</source>
         <target>Link naar Spot gekopieerd naar klembord</target>
+      </segment>
+    </unit>
+    <unit id="7529513859097528644">
+      <segment state="initial">
+        <source>Publish Spot warning</source>
+        <target>Spot-waarschuwing publiceren</target>
       </segment>
     </unit>
     <unit id="7529731886943932642">
@@ -9610,6 +9891,12 @@
       <segment state="initial">
         <source>Organization settings</source>
         <target>Organisatie-instellingen</target>
+      </segment>
+    </unit>
+    <unit id="2036943538822404744">
+      <segment state="initial">
+        <source>Safety incident not found.</source>
+        <target>Veiligheidsincident niet gevonden.</target>
       </segment>
     </unit>
     <unit id="2037607997452853008">
@@ -9783,16 +10070,34 @@
         <target>Het doel van deze Challenge is om creatief te zijn. Deze Challenge kan ook meer openstaan voor interpretatie.</target>
       </segment>
     </unit>
+    <unit id="2091353339965748767">
+      <segment state="initial">
+        <source>Storage path</source>
+        <target>Opslagpad</target>
+      </segment>
+    </unit>
     <unit id="2092047258741296207">
       <segment state="initial">
         <source>Failed to save community knowledge</source>
         <target>Communitykennis kon niet worden opgeslagen</target>
       </segment>
     </unit>
+    <unit id="3419813162979896839">
+      <segment state="initial">
+        <source>Legal hold</source>
+        <target>Juridische bewaarplicht</target>
+      </segment>
+    </unit>
     <unit id="3420095157187102720">
       <segment state="initial">
         <source>This techy challenge requires great precision and control.</source>
         <target>Deze techy Challenge vereist grote precisie en controle.</target>
+      </segment>
+    </unit>
+    <unit id="3424805045134172813">
+      <segment state="initial">
+        <source>Failed to save safety incident</source>
+        <target>Veiligheidsincident kon niet worden opgeslagen</target>
       </segment>
     </unit>
     <unit id="3432396429990524008">
@@ -9805,6 +10110,12 @@
       <segment state="initial">
         <source> We believe the map belongs to the athletes, not a corporation. PK Spot is open source, privacy-first, and community owned. </source>
         <target> Wij geloven dat de kaart van de atleten is, niet van een bedrijf. PK Spot is open source, privacy-first en van de community. </target>
+      </segment>
+    </unit>
+    <unit id="3471970565051584693">
+      <segment state="initial">
+        <source>Manual review required</source>
+        <target>Handmatige controle vereist</target>
       </segment>
     </unit>
     <unit id="3483311644139102304">
@@ -9846,6 +10157,12 @@
         <target>Media received. It will appear when processing finishes.</target>
       </segment>
     </unit>
+    <unit id="5122797194116205318">
+      <segment state="initial">
+        <source>Flagged media revealed for moderation</source>
+        <target>Gemarkeerde media getoond voor moderatie</target>
+      </segment>
+    </unit>
     <unit id="5133096532155335173">
       <segment state="initial">
         <source> Start Exploring </source>
@@ -9862,6 +10179,12 @@
       <segment state="initial">
         <source> Review community reports and contact messages. </source>
         <target> Bekijk communitymeldingen en contactberichten. </target>
+      </segment>
+    </unit>
+    <unit id="5149070489449414420">
+      <segment state="initial">
+        <source>External report reference</source>
+        <target>Referentie externe melding</target>
       </segment>
     </unit>
     <unit id="5176605689144016167">
@@ -9910,6 +10233,12 @@
         <target>Open in Google Maps</target>
       </segment>
     </unit>
+    <unit id="2365683588441896071">
+      <segment state="initial">
+        <source>Open released media</source>
+        <target>Vrijgegeven media openen</target>
+      </segment>
+    </unit>
     <unit id="2369409944839137310">
       <segment state="initial">
         <source>A core challenge of this spot. An essential challenge for anyone seeking to master this spot.</source>
@@ -9946,6 +10275,12 @@
         <target>Wijziging ingediend voor organisatiereview</target>
       </segment>
     </unit>
+    <unit id="223483240416376467">
+      <segment state="initial">
+        <source>Media review</source>
+        <target>Mediacontrole</target>
+      </segment>
+    </unit>
     <unit id="2267637299863581067">
       <segment state="initial">
         <source>Features and amenities</source>
@@ -9962,6 +10297,12 @@
       <segment state="initial">
         <source>Page not found</source>
         <target>Pagina niet gevonden</target>
+      </segment>
+    </unit>
+    <unit id="2279990683983102205">
+      <segment state="initial">
+        <source>Quarantined media hidden</source>
+        <target>Media in quarantaine verborgen</target>
       </segment>
     </unit>
     <unit id="2288513108450439427">
@@ -10072,6 +10413,12 @@
         <target> Publicatiedatum <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE" equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other" dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;" dispEnd="&lt;/mat-slide-toggle&gt;"/></target>
       </segment>
     </unit>
+    <unit id="8846151385804023521">
+      <segment state="initial">
+        <source>Classification</source>
+        <target>Classificatie</target>
+      </segment>
+    </unit>
     <unit id="8876716314997684812">
       <segment state="initial">
         <source>Event management</source>
@@ -10130,6 +10477,12 @@
       <segment state="initial">
         <source> The Challenge will be public right away after it is added. </source>
         <target> De challenge wordt direct openbaar zodra deze is toegevoegd. </target>
+      </segment>
+    </unit>
+    <unit id="5993412736851377482">
+      <segment state="initial">
+        <source> Illegal content </source>
+        <target> Illegale inhoud </target>
       </segment>
     </unit>
     <unit id="5996977642855652872">
@@ -10337,6 +10690,12 @@
         <target>Profile visibility</target>
       </segment>
     </unit>
+    <unit id="661456983704424737">
+      <segment state="initial">
+        <source> Your report and identity are visible only to moderators. A moderator may publish a separate warning on the Spot without identifying you. </source>
+        <target> Je melding en identiteit zijn alleen zichtbaar voor moderators. Een moderator kan een afzonderlijke waarschuwing bij de Spot publiceren zonder jou te identificeren. </target>
+      </segment>
+    </unit>
     <unit id="6617774460788833577">
       <segment state="initial">
         <source>Save profile access</source>
@@ -10406,6 +10765,12 @@
         <target> No pending follow requests. </target>
       </segment>
     </unit>
+    <unit id="569492211620333799">
+      <segment state="initial">
+        <source>Safety incident</source>
+        <target>Veiligheidsincident</target>
+      </segment>
+    </unit>
     <unit id="4565748598505088180">
       <segment state="initial">
         <source>This link is invalid or has already been used. Please request a new one.</source>
@@ -10437,6 +10802,12 @@
       <segment state="initial">
         <source>Spots</source>
         <target>Spotlocaties</target>
+      </segment>
+    </unit>
+    <unit id="4596815631896344313">
+      <segment state="initial">
+        <source>Restricted notes</source>
+        <target>Afgeschermde notities</target>
       </segment>
     </unit>
     <unit id="8972434095994344487">
@@ -10524,6 +10895,12 @@
       <segment state="initial">
         <source> Spots we use </source>
         <target> Spots die we gebruiken </target>
+      </segment>
+    </unit>
+    <unit id="7010151693196670017">
+      <segment state="initial">
+        <source>Public warning</source>
+        <target>Openbare waarschuwing</target>
       </segment>
     </unit>
     <unit id="7013608157776536894">
@@ -10778,6 +11155,12 @@
         <target>Afgewezen</target>
       </segment>
     </unit>
+    <unit id="1633267960538644858">
+      <segment state="initial">
+        <source> This warning is public. Reporter identity and the original report remain private. </source>
+        <target> Deze waarschuwing is openbaar. De identiteit van de melder en de oorspronkelijke melding blijven privé. </target>
+      </segment>
+    </unit>
     <unit id="1634423786949067514">
       <segment state="initial">
         <source> Permanently delete your account and all associated data. This action cannot be undone. </source>
@@ -10898,6 +11281,12 @@
         <target>Evenementinfo</target>
       </segment>
     </unit>
+    <unit id="4626291526592310042">
+      <segment state="initial">
+        <source>Safety incident saved</source>
+        <target>Veiligheidsincident opgeslagen</target>
+      </segment>
+    </unit>
     <unit id="4644751492278611655">
       <segment state="initial">
         <source>Indoor / Outdoor</source>
@@ -10926,6 +11315,12 @@
       <segment state="initial">
         <source>Profile not found</source>
         <target>Profile not found</target>
+      </segment>
+    </unit>
+    <unit id="3049124345543729285">
+      <segment state="initial">
+        <source> Automated scanning requires a manual check. </source>
+        <target> De automatische scan vereist een handmatige controle. </target>
       </segment>
     </unit>
     <unit id="3067846330176969856">
@@ -10974,6 +11369,12 @@
       <segment state="initial">
         <source>Searching places...</source>
         <target>Plaatsen zoeken...</target>
+      </segment>
+    </unit>
+    <unit id="2735944542815088299">
+      <segment state="initial">
+        <source>Loading safety incident...</source>
+        <target>Veiligheidsincident laden…</target>
       </segment>
     </unit>
     <unit id="4703825958292042360">

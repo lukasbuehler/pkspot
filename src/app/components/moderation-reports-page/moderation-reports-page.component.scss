@@ -80,8 +80,71 @@
   font-size: 3rem;
 }
 
+.report-card__sensitive-preview {
+  display: grid;
+  min-height: 220px;
+  place-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+  background:
+    linear-gradient(
+      135deg,
+      var(--mat-sys-surface-container-high),
+      var(--mat-sys-surface-container-low)
+    );
+}
+
+.report-card__sensitive-preview > mat-icon {
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto;
+  font-size: 3rem;
+}
+
+.report-card__sensitive-preview img {
+  filter: blur(18px);
+  transition: filter 160ms ease;
+}
+
+.report-card__sensitive-preview img:hover,
+.report-card__sensitive-preview img:focus {
+  filter: blur(0);
+}
+
 .report-card__meta {
   margin-bottom: 0.75rem;
+}
+
+.report-card__reporter {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0 0 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.report-card__reporter div {
+  display: grid;
+  grid-template-columns: minmax(5rem, auto) minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.report-card__reporter dt {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.report-card__reporter dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.report-card__reporter a {
+  color: var(--mat-sys-primary);
 }
 
 .report-card__chip-open {
@@ -104,6 +167,11 @@
   background: var(--mat-sys-primary-container);
 }
 
+.report-card__chip-scanner {
+  color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
+}
+
 .report-card__spot-meta {
   display: flex;
   flex-wrap: wrap;
@@ -116,6 +184,16 @@
   padding: 0.75rem;
   border-radius: 4px;
   background: var(--mat-sys-surface-container);
+}
+
+.report-card__scanner-details {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  border: 1px solid var(--mat-sys-error);
+  border-radius: 18px;
+  color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
 }
 
 .report-card__media-link {

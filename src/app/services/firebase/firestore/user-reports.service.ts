@@ -4,6 +4,7 @@ import {
   UserReportReason,
   UserReportSchema,
 } from "../../../../db/schemas/UserReportSchema";
+import { ModerationReporterSchema } from "../../../../db/schemas/MediaReportSchema";
 import { UserReferenceSchema } from "../../../../db/schemas/UserSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
 import { AuthenticationService } from "../authentication.service";
@@ -27,7 +28,7 @@ export class UserReportsService extends ConsentAwareService {
       throw new Error("User authentication is required");
     }
 
-    const reporter: UserReferenceSchema = {
+    const reporter: ModerationReporterSchema = {
       uid: authUser.uid,
     };
 

@@ -201,7 +201,9 @@ async function main() {
 
   console.log("Checking profile picture intake rules...");
   const profilePath = `profile_pictures/${USERS.uploader}`;
-  await uploadAs(uploader, profilePath, "image/png");
+  await assertDenied("legacy direct profile picture upload", () =>
+    uploadAs(uploader, profilePath, "image/png")
+  );
   await uploadIntakeAs(
     uploader,
     `profile-${suffix}`,
@@ -283,7 +285,9 @@ async function main() {
 
   console.log("Checking spot media intake rules...");
   const spotImagePath = `spot_pictures/${suffix}.jpg`;
-  await uploadAs(uploader, spotImagePath, "image/jpeg");
+  await assertDenied("legacy direct spot image upload", () =>
+    uploadAs(uploader, spotImagePath, "image/jpeg")
+  );
   await uploadIntakeAs(
     uploader,
     `spot-${suffix}`,
@@ -365,8 +369,12 @@ async function main() {
   );
 
   console.log("Checking post and challenge media paths...");
-  await uploadAs(uploader, `post_media/direct-${suffix}.mp4`, "video/mp4");
-  await uploadAs(uploader, `challenges/direct-${suffix}.mov`, "video/quicktime");
+  await assertDenied("legacy direct post media upload", () =>
+    uploadAs(uploader, `post_media/direct-${suffix}.mp4`, "video/mp4")
+  );
+  await assertDenied("legacy direct challenge media upload", () =>
+    uploadAs(uploader, `challenges/direct-${suffix}.mov`, "video/quicktime")
+  );
   await uploadIntakeAs(
     uploader,
     `post-${suffix}`,
@@ -443,7 +451,9 @@ async function main() {
     )
   );
   const eventMediaPath = `event_media/${suffix}.webp`;
-  await uploadAs(adminClient, eventMediaPath, "image/webp");
+  await assertDenied("legacy direct admin event media upload", () =>
+    uploadAs(adminClient, eventMediaPath, "image/webp")
+  );
   await uploadIntakeAs(
     adminClient,
     `event-admin-${suffix}`,

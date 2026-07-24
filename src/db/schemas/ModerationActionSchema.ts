@@ -1,6 +1,7 @@
 export type ModerationActionType =
   | "close_report"
   | "keep_warning"
+  | "publish_spot_warning"
   | "delete_media"
   | "delete_spot"
   | "archive_contact_message"

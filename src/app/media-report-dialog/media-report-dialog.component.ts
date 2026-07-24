@@ -36,8 +36,9 @@ import { UserReferenceSchema } from "../../db/schemas/UserSchema";
 import { UsersService } from "../services/firebase/firestore/users.service";
 import { MediaReportsService } from "../services/firebase/firestore/media-reports.service";
 import { AuthenticationService } from "../services/firebase/authentication.service";
-import { firstValueFrom, take } from "rxjs";
+import { take } from "rxjs";
 import { NotificationOptInService } from "../services/notification-opt-in.service";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
 interface MediaReportDialogData {
   media: AnyMedia;
@@ -101,31 +102,13 @@ export class MediaReportDialogComponent implements AfterViewInit {
     this.reportForm = this._fb.group({
       reason: ["", Validators.required],
       comment: [""],
-      reporterEmail: [""],
     });
+    this._authService.authState$
+      .pipe(takeUntilDestroyed())
+      .subscribe((user) => this.isAuthenticated.set(!!user?.uid));
   }
 
   ngAfterViewInit() {
-    // Check if user is authenticated
-    firstValueFrom(this._authService.authState$).then((user) => {
-      this.isAuthenticated.set(!!user?.uid);
-      // Update email field validators based on auth status
-      const emailControl = this.reportForm.get("reporterEmail");
-      if (!user?.uid) {
-        // Unauthenticated: email is required and must be valid
-        emailControl?.setValidators([
-          Validators.required,
-          Validators.pattern(
-            /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
-          ),
-        ]);
-      } else {
-        // Authenticated: email not required
-        emailControl?.clearValidators();
-      }
-      emailControl?.updateValueAndValidity();
-    });
-
     // Load user reference from storage or authentication service
     const userId = this.dialogData.media.userId;
     if (userId) {
@@ -150,11 +133,11 @@ export class MediaReportDialogComponent implements AfterViewInit {
   }
 
   submitReport(): void {
-    if (!this.reportForm.valid) {
+    if (!this.isAuthenticated() || !this.reportForm.valid) {
       return;
     }
 
-    const { reason, comment, reporterEmail } = this.reportForm.value;
+    const { reason, comment } = this.reportForm.value;
     this.isSubmitting.set(true);
 
     this._mediaReportsService
@@ -162,7 +145,6 @@ export class MediaReportDialogComponent implements AfterViewInit {
         this.dialogData.media,
         reason,
         comment,
-        !this.isAuthenticated() ? reporterEmail : undefined,
         this.locale,
         this.dialogData.spotId,
         this.dialogData.spotId ? "spot" : this.dialogData.context,

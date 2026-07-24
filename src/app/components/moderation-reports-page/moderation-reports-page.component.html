@@ -60,11 +60,38 @@
           <mat-card
             class="report-card"
             [class.report-card--with-preview]="
-              report.previewImageSrc || report.kind === 'spot'
+              report.previewImageSrc ||
+              report.requiresManualReview ||
+              report.kind === 'spot'
             "
           >
             <div class="report-card__body">
-              @if (report.previewImageSrc) {
+              @if (report.requiresManualReview) {
+                <div class="report-card__preview report-card__sensitive-preview">
+                  @if (sensitiveMediaUrls()[report.path]; as sensitiveUrl) {
+                    <img
+                      [src]="sensitiveUrl"
+                      alt="Flagged media revealed for moderation"
+                      i18n-alt
+                    />
+                  } @else {
+                    <mat-icon>visibility_off</mat-icon>
+                    <strong i18n>Sensitive media hidden</strong>
+                    <span i18n>
+                      Automated scanning requires a manual check.
+                    </span>
+                    <button
+                      matButton="outlined"
+                      type="button"
+                      [disabled]="revealPath() === report.path"
+                      (click)="revealSensitiveMedia(report)"
+                    >
+                      <mat-icon>visibility</mat-icon>
+                      <span i18n>Reveal to review</span>
+                    </button>
+                  }
+                </div>
+              } @else if (report.previewImageSrc) {
                 <a
                   class="report-card__preview"
                   [href]="report.mediaSrc || report.targetPath || '#'"
@@ -99,6 +126,28 @@
                 </mat-card-header>
 
                 <mat-card-content>
+                  <dl class="report-card__reporter">
+                    <div>
+                      <dt i18n>Reporter</dt>
+                      <dd>{{ report.reporterLabel }}</dd>
+                    </div>
+                    @if (report.reporterUid) {
+                      <div>
+                        <dt i18n>User ID</dt>
+                        <dd>{{ report.reporterUid }}</dd>
+                      </div>
+                    }
+                    @if (report.reporterEmail) {
+                      <div>
+                        <dt i18n>Email</dt>
+                        <dd>
+                          <a [href]="'mailto:' + report.reporterEmail">{{
+                            report.reporterEmail
+                          }}</a>
+                        </dd>
+                      </div>
+                    }
+                  </dl>
                   <div class="report-card__meta">
                     <mat-chip-set>
                       @if (report.kind === "spot") {
@@ -125,6 +174,12 @@
                               : "public"
                           }}</mat-icon>
                           <span>{{ report.mediaSourceLabel }}</span>
+                        </mat-chip>
+                      }
+                      @if (report.scannerProvider) {
+                        <mat-chip class="report-card__chip-scanner">
+                          <mat-icon matChipAvatar>shield</mat-icon>
+                          <span i18n>Automated media flag</span>
                         </mat-chip>
                       }
                       <mat-chip
@@ -160,6 +215,25 @@
                       {{ report.comment }}
                     </p>
                   }
+                  @if (report.requiresManualReview) {
+                    <div class="report-card__scanner-details" role="alert">
+                      <strong i18n>Manual review required</strong>
+                      <span>
+                        {{ report.scannerProvider || "media scanner" }} ·
+                        {{ report.scannerDecision || report.reason }}
+                      </span>
+                      @if (report.scannerReason) {
+                        <span>{{ report.scannerReason }}</span>
+                      }
+                      @if (report.scannerLabels; as labels) {
+                        <span class="mat-body-small">
+                          Adult: {{ labels["adult"] || "—" }} · Racy:
+                          {{ labels["racy"] || "—" }} · Violence:
+                          {{ labels["violence"] || "—" }}
+                        </span>
+                      }
+                    </div>
+                  }
 
                   @if (report.kind === "profile" && report.profileUserId) {
                     <p class="mat-body-small report-card__spot-meta">
@@ -188,6 +262,19 @@
                     </a>
                   }
                   @if (report.status === "open") {
+                    @if (report.kind === "media" && report.requiresManualReview) {
+                      <button
+                        matButton="filled"
+                        type="button"
+                        [disabled]="actionPath() === report.path"
+                        (click)="openIncident(report)"
+                      >
+                        <mat-icon>policy</mat-icon>
+                        <span i18n>
+                          {{ report.incidentPath ? "Open incident" : "Start incident" }}
+                        </span>
+                      </button>
+                    }
                     <button
                       matButton="outlined"
                       type="button"
@@ -200,6 +287,18 @@
                       <span i18n>Close report</span>
                     </button>
                     @if (report.canKeepWarning) {
+                      @if (report.kind === "spot") {
+                        <button
+                          matButton="filled"
+                          type="button"
+                          [disabled]="actionPath() === report.path"
+                          matTooltip="Resolve the private report and publish a separate warning on the Spot."
+                          (click)="handle(report, 'publish_spot_warning')"
+                        >
+                          <mat-icon>warning</mat-icon>
+                          <span i18n>Publish Spot warning</span>
+                        </button>
+                      } @else {
                       <button
                         matButton="filled"
                         type="button"
@@ -211,6 +310,7 @@
                         <mat-icon>report</mat-icon>
                         <span i18n>Keep warning</span>
                       </button>
+                      }
                     }
                     @if (report.canDeleteMedia) {
                       <button

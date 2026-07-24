@@ -1,6 +1,6 @@
 import { Injectable, inject } from "@angular/core";
 import { MediaReportSchema } from "../../../../db/schemas/MediaReportSchema";
-import { UserReferenceSchema } from "../../../../db/schemas/UserSchema";
+import { ModerationReporterSchema } from "../../../../db/schemas/MediaReportSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
 import { AuthenticationService } from "../../firebase/authentication.service";
 import { AnyMedia, StorageMedia } from "../../../../db/models/Media";
@@ -42,28 +42,26 @@ export class MediaReportsService extends ConsentAwareService {
    * @param media The media object to report
    * @param reason The reason for the report
    * @param comment Optional comment from the reporter
-   * @param reporterEmail Optional email for unauthenticated reports
    * @param locale Optional locale/language code of the reporter
    */
   async submitMediaReport(
     media: AnyMedia,
     reason: string,
     comment: string,
-    reporterEmail?: string,
     locale?: string,
     spotId?: string,
     context?: MediaReportSchema["context"],
     targetId?: string
   ): Promise<string> {
     const authUser = await firstValueFrom(this.authService.authState$);
-
-    // Determine user info based on auth status
-    const userInfo: UserReferenceSchema | { email: string } = authUser?.uid
-      ? this.buildAuthenticatedUserInfo(authUser)
-      : this.buildUnauthenticatedUserInfo(reporterEmail);
+    if (!authUser?.uid) {
+      throw new Error("User authentication is required");
+    }
+    const userInfo = this.buildAuthenticatedUserInfo(authUser);
 
     // Using new Date() for native compatibility (schema expects Date)
     const report: MediaReportSchema = {
+      kind: "media",
       media: this.serializeMedia(media),
       reason,
       comment,
@@ -86,7 +84,7 @@ export class MediaReportsService extends ConsentAwareService {
       authUid: authUser?.uid ?? null,
     });
 
-    return this._firestoreAdapter.addDocument("media_reports", report);
+    return this._firestoreAdapter.addDocument("reports", report);
   }
 
   /**
@@ -96,14 +94,10 @@ export class MediaReportsService extends ConsentAwareService {
     uid?: string;
     email?: string;
     data?: { displayName?: string };
-  }): UserReferenceSchema {
-    const userInfo: UserReferenceSchema = {
+  }): ModerationReporterSchema {
+    const userInfo: ModerationReporterSchema = {
       uid: authUser.uid ?? "",
     };
-
-    if (authUser.email) {
-      (userInfo as any).email = authUser.email;
-    }
 
     if (authUser.data?.displayName) {
       userInfo.display_name = authUser.data.displayName;
@@ -112,15 +106,4 @@ export class MediaReportsService extends ConsentAwareService {
     return userInfo;
   }
 
-  /**
-   * Build user info for unauthenticated users
-   */
-  private buildUnauthenticatedUserInfo(reporterEmail?: string): {
-    email: string;
-  } {
-    if (!reporterEmail) {
-      throw new Error("User authentication or email is required");
-    }
-    return { email: reporterEmail };
-  }
 }

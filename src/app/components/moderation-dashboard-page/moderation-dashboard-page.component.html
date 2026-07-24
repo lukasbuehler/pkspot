@@ -9,6 +9,10 @@
 
     @if (isAdmin()) {
       <div class="moderation-dashboard__actions">
+        <a matButton="outlined" routerLink="/moderation/media">
+          <mat-icon>image</mat-icon>
+          <span i18n>Media stream</span>
+        </a>
         <a matButton="outlined" routerLink="/moderation/activity">
           <mat-icon>vital_signs</mat-icon>
           <span>Activity feed</span>

@@ -5,6 +5,7 @@ import { HttpsError, onCall } from "firebase-functions/v2/https";
 type ModerationActionType =
   | "close_report"
   | "keep_warning"
+  | "publish_spot_warning"
   | "delete_media"
   | "delete_spot"
   | "archive_contact_message"
@@ -21,6 +22,15 @@ interface HandleModerationActionRequest {
   action_type: ModerationActionType;
   source_path: string;
   note?: string;
+  spot_warning?: {
+    type:
+      | "destroyed"
+      | "inaccessible"
+      | "temporarily_closed"
+      | "access_concern"
+      | "other";
+    message: string;
+  };
 }
 
 interface ModerationSource {
@@ -63,7 +73,10 @@ const _parseSourcePath = (
     return { sourceType: "spot_report", spotId: spotReportMatch[1] };
   }
 
-  if (/^media_reports\/[^/]+$/.test(sourcePath)) {
+  if (
+    /^media_reports\/[^/]+$/.test(sourcePath) ||
+    /^reports\/[^/]+$/.test(sourcePath)
+  ) {
     return { sourceType: "media_report" };
   }
 
@@ -152,7 +165,12 @@ const _assertActionAllowed = (
   actionType: ModerationActionType,
 ): void => {
   const allowedBySource: Record<SourceType, ModerationActionType[]> = {
-    spot_report: ["close_report", "keep_warning", "delete_spot"],
+    spot_report: [
+      "close_report",
+      "keep_warning",
+      "publish_spot_warning",
+      "delete_spot",
+    ],
     media_report: ["close_report", "keep_warning", "delete_media"],
     user_report: ["close_report"],
     contact_message: ["archive_contact_message", "delete_contact_message"],
@@ -202,6 +220,7 @@ const _clearSpotWarningIfNoActiveReports = async (
     isReported: admin.firestore.FieldValue.delete(),
     reportReason: admin.firestore.FieldValue.delete(),
     latest_report_at: admin.firestore.FieldValue.delete(),
+    public_notice: admin.firestore.FieldValue.delete(),
   });
 };
 
@@ -227,7 +246,11 @@ const _assertActionPreconditions = (
   actionType: ModerationActionType,
 ): void => {
   if (
-    (actionType === "delete_spot" || actionType === "keep_warning") &&
+    (
+      actionType === "delete_spot" ||
+      actionType === "keep_warning" ||
+      actionType === "publish_spot_warning"
+    ) &&
     source.sourceType === "spot_report" &&
     !source.targetData
   ) {
@@ -347,7 +370,12 @@ export const handleModerationAction = onCall<HandleModerationActionRequest>(
       throw new HttpsError("permission-denied", "Admin access required.");
     }
 
-    const { action_type: actionType, source_path: sourcePath, note } = request.data;
+    const {
+      action_type: actionType,
+      source_path: sourcePath,
+      note,
+      spot_warning: spotWarning,
+    } = request.data;
     if (!actionType || !sourcePath) {
       throw new HttpsError("invalid-argument", "Missing moderation action data.");
     }
@@ -387,6 +415,41 @@ export const handleModerationAction = onCall<HandleModerationActionRequest>(
       } else if (source.sourceType === "media_report") {
         await _updateTargetMediaFlag(source, true);
       }
+      await source.sourceRef.delete();
+      await _writeAction(source, actionType, createdBy, note);
+      return { ok: true };
+    }
+
+    if (actionType === "publish_spot_warning") {
+      if (
+        source.sourceType !== "spot_report" ||
+        !source.targetRef ||
+        !spotWarning ||
+        ![
+          "destroyed",
+          "inaccessible",
+          "temporarily_closed",
+          "access_concern",
+          "other",
+        ].includes(spotWarning.type) ||
+        typeof spotWarning.message !== "string" ||
+        spotWarning.message.trim().length < 1 ||
+        spotWarning.message.length > 240
+      ) {
+        throw new HttpsError("invalid-argument", "Invalid Spot warning.");
+      }
+
+      await source.targetRef.update({
+        is_reported: true,
+        report_reason: spotWarning.message.trim(),
+        latest_report_at: admin.firestore.FieldValue.serverTimestamp(),
+        public_notice: {
+          type: spotWarning.type,
+          message: spotWarning.message.trim(),
+          published_at: admin.firestore.FieldValue.serverTimestamp(),
+          source: "moderator",
+        },
+      });
       await source.sourceRef.delete();
       await _writeAction(source, actionType, createdBy, note);
       return { ok: true };

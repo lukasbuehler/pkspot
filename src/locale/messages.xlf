@@ -46,6 +46,11 @@
         <source>Settings</source>
       </segment>
     </unit>
+    <unit id="425904489170594554">
+      <segment>
+        <source>Failed to load media stream</source>
+      </segment>
+    </unit>
     <unit id="4262052603921665097">
       <segment>
         <source>Failed to load moderation dashboard</source>
@@ -407,6 +412,11 @@
         <source> Training happens outside, not behind a desk. PK Spot works on any device — download the native app or install it from your browser. </source>
       </segment>
     </unit>
+    <unit id="3049124345543729285">
+      <segment>
+        <source> Automated scanning requires a manual check. </source>
+      </segment>
+    </unit>
     <unit id="3067846330176969856">
       <segment>
         <source>Keep typing to search</source>
@@ -447,6 +457,11 @@
         <source> Multiple organizations can verify a public spot without owning it. </source>
       </segment>
     </unit>
+    <unit id="5122797194116205318">
+      <segment>
+        <source>Flagged media revealed for moderation</source>
+      </segment>
+    </unit>
     <unit id="5133096532155335173">
       <segment>
         <source> Start Exploring </source>
@@ -460,6 +475,11 @@
     <unit id="5141203522177015720">
       <segment>
         <source> Review community reports and contact messages. </source>
+      </segment>
+    </unit>
+    <unit id="5149070489449414420">
+      <segment>
+        <source>External report reference</source>
       </segment>
     </unit>
     <unit id="7435704556903111313">
@@ -520,6 +540,11 @@
     <unit id="5604123151232836009">
       <segment>
         <source>Join Discord</source>
+      </segment>
+    </unit>
+    <unit id="5611592591303869712">
+      <segment>
+        <source>Status</source>
       </segment>
     </unit>
     <unit id="auth_action.go_to_profile">
@@ -727,6 +752,11 @@
         <source>Open Source</source>
       </segment>
     </unit>
+    <unit id="6988922790953403967">
+      <segment>
+        <source>Spot warning:</source>
+      </segment>
+    </unit>
     <unit id="9131908454374854077">
       <segment>
         <source>Sign out of your account.</source>
@@ -812,6 +842,11 @@
         <source>Admin access required.</source>
       </segment>
     </unit>
+    <unit id="1814768182936887464">
+      <segment>
+        <source>Scan reason</source>
+      </segment>
+    </unit>
     <unit id="1816655675231412974">
       <segment>
         <source>Profile reports</source>
@@ -855,6 +890,11 @@
     <unit id="5506176846620350292">
       <segment>
         <source>Your email address has been successfully recovered. You may want to change your password if you didn&apos;t make this change.</source>
+      </segment>
+    </unit>
+    <unit id="5507061749509508297">
+      <segment>
+        <source>PostHog and account context</source>
       </segment>
     </unit>
     <unit id="5510291204960492499">
@@ -929,6 +969,11 @@
     <unit id="2019601691309455666">
       <segment>
         <source>Event Notifications</source>
+      </segment>
+    </unit>
+    <unit id="4768749765465246664">
+      <segment>
+        <source>Email</source>
       </segment>
     </unit>
     <unit id="4771468580618188841">
@@ -1051,6 +1096,11 @@
         <source>Report</source>
       </segment>
     </unit>
+    <unit id="2020979533566861335">
+      <segment>
+        <source>Triage</source>
+      </segment>
+    </unit>
     <unit id="202472216784225575">
       <segment>
         <source>1 edit is waiting for community voting.</source>
@@ -1059,6 +1109,11 @@
     <unit id="2029717048910432760">
       <segment>
         <source>Spot</source>
+      </segment>
+    </unit>
+    <unit id="5982160190664649221">
+      <segment>
+        <source>Loading media stream...</source>
       </segment>
     </unit>
     <unit id="5982693261061871155">
@@ -1126,6 +1181,11 @@
         <source> Release Date <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE" equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other" dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;" dispEnd="&lt;/mat-slide-toggle&gt;"/></source>
       </segment>
     </unit>
+    <unit id="8846151385804023521">
+      <segment>
+        <source>Classification</source>
+      </segment>
+    </unit>
     <unit id="501118076159295384">
       <segment>
         <source> The Challenge will only be available starting from the release date. Before that it will be private to you. </source>
@@ -1134,6 +1194,11 @@
     <unit id="5992560285899135152">
       <segment>
         <source> The Challenge will be public right away after it is added. </source>
+      </segment>
+    </unit>
+    <unit id="5993412736851377482">
+      <segment>
+        <source> Illegal content </source>
       </segment>
     </unit>
     <unit id="3971100408152984961">
@@ -1172,6 +1237,11 @@
     <unit id="216089812907795634">
       <segment>
         <source>Time (optional)</source>
+      </segment>
+    </unit>
+    <unit id="2186090184648113885">
+      <segment>
+        <source>Save incident</source>
       </segment>
     </unit>
     <unit id="2197674250183489104">
@@ -1250,6 +1320,11 @@
     <unit id="4118187447474362400">
       <segment>
         <source>Community not found</source>
+      </segment>
+    </unit>
+    <unit id="3705542547407464128">
+      <segment>
+        <source>Failed to open safety incident</source>
       </segment>
     </unit>
     <unit id="3714343477148346459">
@@ -1353,6 +1428,11 @@
     <unit id="4392375821538337917">
       <segment>
         <source>No events scheduled yet.</source>
+      </segment>
+    </unit>
+    <unit id="4396128088744719857">
+      <segment>
+        <source>No scanned media yet.</source>
       </segment>
     </unit>
     <unit id="4399476985310100803">
@@ -2021,6 +2101,11 @@
         <source>Community card suggestion submitted for review</source>
       </segment>
     </unit>
+    <unit id="3471970565051584693">
+      <segment>
+        <source>Manual review required</source>
+      </segment>
+    </unit>
     <unit id="3483311644139102304">
       <segment>
         <source>All Event Challenges</source>
@@ -2064,6 +2149,11 @@
         <source> No pending follow requests. </source>
       </segment>
     </unit>
+    <unit id="569492211620333799">
+      <segment>
+        <source>Safety incident</source>
+      </segment>
+    </unit>
     <unit id="4570454655933825601">
       <segment>
         <source>Review queues</source>
@@ -2080,6 +2170,11 @@
     <unit id="459311985687858272">
       <segment>
         <source>Spots</source>
+      </segment>
+    </unit>
+    <unit id="4596815631896344313">
+      <segment>
+        <source>Restricted notes</source>
       </segment>
     </unit>
     <unit id="event_map_page.challenge_plural">
@@ -4650,6 +4745,11 @@
         <source>Decline</source>
       </segment>
     </unit>
+    <unit id="940241108431922998">
+      <segment>
+        <source>Ordinary harm</source>
+      </segment>
+    </unit>
     <unit id="947995176992343811">
       <segment>
         <source>This E-Mail address is not valid!</source>
@@ -4715,6 +4815,11 @@
         <source> Check your inbox and follow the instructions to reset your password. </source>
       </segment>
     </unit>
+    <unit id="6321562733889197649">
+      <segment>
+        <source>Destroyed</source>
+      </segment>
+    </unit>
     <unit id="6328600269410022481">
       <segment>
         <source>Meet-up time updated</source>
@@ -4723,6 +4828,11 @@
     <unit id="6340970481322850527">
       <segment>
         <source>Return to sign in</source>
+      </segment>
+    </unit>
+    <unit id="6350961303290386382">
+      <segment>
+        <source>Reveal to review</source>
       </segment>
     </unit>
     <unit id="8525213662266893834">
@@ -4740,6 +4850,16 @@
         <source>Invalid email address</source>
       </segment>
     </unit>
+    <unit id="9193658864541040447">
+      <segment>
+        <source>Failed to load quarantined media</source>
+      </segment>
+    </unit>
+    <unit id="9197546864520867301">
+      <segment>
+        <source>Undetermined</source>
+      </segment>
+    </unit>
     <unit id="921298748667468495">
       <segment>
         <source>Session starting soon</source>
@@ -4748,6 +4868,11 @@
     <unit id="5061749540188881037">
       <segment>
         <source> Community cards, spot edit votes, and organization approval. </source>
+      </segment>
+    </unit>
+    <unit id="5063962280942321008">
+      <segment>
+        <source>Failed to publish Spot warning</source>
       </segment>
     </unit>
     <unit id="5075169696278804374">
@@ -4928,6 +5053,11 @@
     <unit id="2735597846335347226">
       <segment>
         <source>Searching places...</source>
+      </segment>
+    </unit>
+    <unit id="2735944542815088299">
+      <segment>
+        <source>Loading safety incident...</source>
       </segment>
     </unit>
     <unit id="2736531674722915416">
@@ -5311,6 +5441,11 @@
         <source>Please select a file to upload</source>
       </segment>
     </unit>
+    <unit id="7010151693196670017">
+      <segment>
+        <source>Public warning</source>
+      </segment>
+    </unit>
     <unit id="7013608157776536894">
       <segment>
         <source>Public contributions are unavailable for this account right now. You can still browse spots and manage private saved or visited spots. Depending on the app store age-safety signal, parent or guardian consent may be needed before public contributions are available.</source>
@@ -5344,6 +5479,11 @@
     <unit id="2275328567992347600">
       <segment>
         <source>Page not found</source>
+      </segment>
+    </unit>
+    <unit id="2279990683983102205">
+      <segment>
+        <source>Quarantined media hidden</source>
       </segment>
     </unit>
     <unit id="2002398665048764218">
@@ -5399,6 +5539,11 @@
     <unit id="1330427292857858931">
       <segment>
         <source>No Apple ID found on this device. Please sign in to your Apple ID in your device settings and try again.</source>
+      </segment>
+    </unit>
+    <unit id="8711587038939678752">
+      <segment>
+        <source> Temporarily closed </source>
       </segment>
     </unit>
     <unit id="8736188664022016115">
@@ -5501,6 +5646,11 @@
         <source>Contributions</source>
       </segment>
     </unit>
+    <unit id="6720692665733098220">
+      <segment>
+        <source>Reported externally</source>
+      </segment>
+    </unit>
     <unit id="6727906839729645379">
       <segment>
         <source>Harassment or abuse</source>
@@ -5571,14 +5721,29 @@
         <source>Abort</source>
       </segment>
     </unit>
+    <unit id="3374611751897348808">
+      <segment>
+        <source> Deletion scheduled </source>
+      </segment>
+    </unit>
     <unit id="2902020729496987690">
       <segment>
         <source>Delete this contact message from the active inbox? The message will still be recorded in moderation provenance.</source>
       </segment>
     </unit>
+    <unit id="2914629792519664709">
+      <segment>
+        <source>Public Spot warning published</source>
+      </segment>
+    </unit>
     <unit id="2917314929120683887">
       <segment>
         <source> Continue </source>
+      </segment>
+    </unit>
+    <unit id="292769594389358994">
+      <segment>
+        <source>Retention state</source>
       </segment>
     </unit>
     <unit id="settings.temperature.aria_label">
@@ -5880,6 +6045,11 @@
         <source>Minimum 6 characters</source>
       </segment>
     </unit>
+    <unit id="8614289146412859500">
+      <segment>
+        <source>Media upload stream</source>
+      </segment>
+    </unit>
     <unit id="8637857575623979078">
       <segment>
         <source> No edits yet for this spot. </source>
@@ -5908,6 +6078,11 @@
     <unit id="1632949913064020849">
       <segment>
         <source>Dismissed</source>
+      </segment>
+    </unit>
+    <unit id="1633267960538644858">
+      <segment>
+        <source> This warning is public. Reporter identity and the original report remain private. </source>
       </segment>
     </unit>
     <unit id="1634423786949067514">
@@ -5958,6 +6133,11 @@
     <unit id="5223089976416033243">
       <segment>
         <source> General settings to tune your experience on PK Spot. </source>
+      </segment>
+    </unit>
+    <unit id="5223619778908599895">
+      <segment>
+        <source>Quarantine object</source>
       </segment>
     </unit>
     <unit id="5227214585962403800">
@@ -6220,6 +6400,11 @@
         <source>Awaiting organization review</source>
       </segment>
     </unit>
+    <unit id="804390045587573373">
+      <segment>
+        <source>Inaccessible</source>
+      </segment>
+    </unit>
     <unit id="805182578389935261">
       <segment>
         <source>Latest information from <ph id="0" equiv="INTERPOLATION" disp="{{ event().organizer?.organization?.name ?? event().name }}"/>.</source>
@@ -6238,6 +6423,11 @@
     <unit id="6945945395354199350">
       <segment>
         <source>Incorrect password. Please try again.</source>
+      </segment>
+    </unit>
+    <unit id="2128755808672960949">
+      <segment>
+        <source>User ID</source>
       </segment>
     </unit>
     <unit id="213024006531809752">
@@ -6284,6 +6474,11 @@
         <source>Profile visibility</source>
       </segment>
     </unit>
+    <unit id="661456983704424737">
+      <segment>
+        <source> Your report and identity are visible only to moderators. A moderator may publish a separate warning on the Spot without identifying you. </source>
+      </segment>
+    </unit>
     <unit id="6617774460788833577">
       <segment>
         <source>Save profile access</source>
@@ -6302,6 +6497,11 @@
     <unit id="2036269498046585590">
       <segment>
         <source>Organization settings</source>
+      </segment>
+    </unit>
+    <unit id="2036943538822404744">
+      <segment>
+        <source>Safety incident not found.</source>
       </segment>
     </unit>
     <unit id="2037607997452853008">
@@ -6645,6 +6845,16 @@
         <source>An unknown error has occured on sign in. Please try again.</source>
       </segment>
     </unit>
+    <unit id="730589419287534524">
+      <segment>
+        <source>Reporter</source>
+      </segment>
+    </unit>
+    <unit id="7317396157754495933">
+      <segment>
+        <source>Uploader ID</source>
+      </segment>
+    </unit>
     <unit id="7322684769836148535">
       <segment>
         <source>Find parkour spots, events, and local community info for <ph id="0" equiv="PH" disp="data.displayName"/>.</source>
@@ -6705,6 +6915,11 @@
         <source>Repeat Password</source>
       </segment>
     </unit>
+    <unit id="4552547888201609244">
+      <segment>
+        <source>Warning type</source>
+      </segment>
+    </unit>
     <unit id="5261342889229534364">
       <segment>
         <source>The repeated password needs to match the password entered.</source>
@@ -6749,6 +6964,11 @@
         <source>Before</source>
       </segment>
     </unit>
+    <unit id="1231404040125306617">
+      <segment>
+        <source> Review every scanned upload over time. Approved media is shown from its released public location; flagged media remains hidden in quarantine. </source>
+      </segment>
+    </unit>
     <unit id="1263548881803803113">
       <segment>
         <source><ph id="0" equiv="PH" disp="summary.yes_count"/> yes · <ph id="1" equiv="PH_1" disp="summary.no_count"/> no</source>
@@ -6769,6 +6989,11 @@
         <source>Sign in to view visited spots</source>
       </segment>
     </unit>
+    <unit id="1299172917420492305">
+      <segment>
+        <source>Automated media flag</source>
+      </segment>
+    </unit>
     <unit id="6464436780502674570">
       <segment>
         <source>Password and repeated password don&apos;t match</source>
@@ -6777,6 +7002,11 @@
     <unit id="6480390330423300875">
       <segment>
         <source>View source</source>
+      </segment>
+    </unit>
+    <unit id="6484510802892706344">
+      <segment>
+        <source>Triage hold</source>
       </segment>
     </unit>
     <unit id="6496554534263466402">
@@ -6814,6 +7044,11 @@
         <source>Edit submitted for organization review</source>
       </segment>
     </unit>
+    <unit id="223483240416376467">
+      <segment>
+        <source>Media review</source>
+      </segment>
+    </unit>
     <unit id="2267637299863581067">
       <segment>
         <source>Features and amenities</source>
@@ -6832,6 +7067,11 @@
     <unit id="1975356621924283237">
       <segment>
         <source>Outdoor</source>
+      </segment>
+    </unit>
+    <unit id="3765605663062015670">
+      <segment>
+        <source>Source report</source>
       </segment>
     </unit>
     <unit id="3768927257183755959">
@@ -6931,15 +7171,6 @@
       </notes>
       <segment>
         <source>Icon button with a directions icon</source>
-      </segment>
-    </unit>
-    <unit id="spot.reported.message">
-      <notes>
-        <note category="description">Message shown when a spot has been reported</note>
-        <note category="meaning">spot reported message</note>
-      </notes>
-      <segment>
-        <source>This spot was reported as &quot;<ph id="0" equiv="INTERPOLATION" disp="{{ report.reason }}"/>&quot;</source>
       </segment>
     </unit>
     <unit id="5557620594634616784">
@@ -7228,6 +7459,11 @@
         <source>Report</source>
       </segment>
     </unit>
+    <unit id="4467323362722952678">
+      <segment>
+        <source>Unknown</source>
+      </segment>
+    </unit>
     <unit id="4470656372477479316">
       <notes>
         <note category="description">Label of the button to discard changes</note>
@@ -7322,6 +7558,16 @@
       </notes>
       <segment>
         <source> Description </source>
+      </segment>
+    </unit>
+    <unit id="8922105621109418817">
+      <segment>
+        <source>This media was flagged by automated safety scanning and may be disturbing. Reveal it for manual moderation?</source>
+      </segment>
+    </unit>
+    <unit id="8925392541694190902">
+      <segment>
+        <source>UK link</source>
       </segment>
     </unit>
     <unit id="8928816882866356838">
@@ -7427,6 +7673,11 @@
         <source>Private</source>
       </segment>
     </unit>
+    <unit id="3689301942396726798">
+      <segment>
+        <source> Include provenance, retrieval time, relevant session or IP data, and who retrieved it. </source>
+      </segment>
+    </unit>
     <unit id="2741210807832834277">
       <segment>
         <source>Edit detailed amenities</source>
@@ -7473,6 +7724,11 @@
     <unit id="6377092763030946894">
       <segment>
         <source>Custom URL added</source>
+      </segment>
+    </unit>
+    <unit id="6381490568322624964">
+      <segment>
+        <source>Deleted</source>
       </segment>
     </unit>
     <unit id="6396486314653699002">
@@ -7565,9 +7821,19 @@
         <source>Cannot share a spot that hasn&apos;t been saved yet</source>
       </segment>
     </unit>
+    <unit id="7507067564798390805">
+      <segment>
+        <source>Reporting hold</source>
+      </segment>
+    </unit>
     <unit id="7523630390926625638">
       <segment>
         <source>Link to spot copied to clipboard</source>
+      </segment>
+    </unit>
+    <unit id="7529513859097528644">
+      <segment>
+        <source>Publish Spot warning</source>
       </segment>
     </unit>
     <unit id="7529731886943932642">
@@ -7578,6 +7844,11 @@
     <unit id="4608107035538313233">
       <segment>
         <source>Event info</source>
+      </segment>
+    </unit>
+    <unit id="4626291526592310042">
+      <segment>
+        <source>Safety incident saved</source>
       </segment>
     </unit>
     <unit id="4644751492278611655">
@@ -8093,11 +8364,6 @@
         <source>Which spot is this spot a duplicate of?</source>
       </segment>
     </unit>
-    <unit id="4411046525037051458">
-      <segment>
-        <source> Note: Spot reports are public and will be displayed on the spot itself together with your profile and user name. </source>
-      </segment>
-    </unit>
     <unit id="4411678463999056889">
       <segment>
         <source> For private questions, partnerships, spot map imports, or joining the crew, send us a message directly. </source>
@@ -8121,6 +8387,11 @@
     <unit id="5948611274018267787">
       <segment>
         <source>Contact message archived</source>
+      </segment>
+    </unit>
+    <unit id="9073802243353315029">
+      <segment>
+        <source>Contained</source>
       </segment>
     </unit>
     <unit id="9074160907730350759">
@@ -8204,6 +8475,11 @@
         <source>Spot deleted</source>
       </segment>
     </unit>
+    <unit id="5274576717459953946">
+      <segment>
+        <source>Containment summary</source>
+      </segment>
+    </unit>
     <unit id="5279365676870836127">
       <segment>
         <source> If this list is empty, organization reads are still blocked by rules or no organizations exist yet. </source>
@@ -8217,6 +8493,11 @@
     <unit id="5291712539208295137">
       <segment>
         <source>Verified by</source>
+      </segment>
+    </unit>
+    <unit id="389079921595754695">
+      <segment>
+        <source> Imminent danger </source>
       </segment>
     </unit>
     <unit id="3894305924320774026">
@@ -8727,6 +9008,14 @@
         <source>Report Media</source>
       </segment>
     </unit>
+    <unit id="mediaReportSignInRequired">
+      <notes>
+        <note category="description">media report sign-in requirement</note>
+      </notes>
+      <segment>
+        <source> Sign in to report media. Your account details are only visible to administrators handling the report. </source>
+      </segment>
+    </unit>
     <unit id="5996977642855652872">
       <segment>
         <source>Please select the reason for this report:</source>
@@ -8745,6 +9034,11 @@
     <unit id="2540890198002687328">
       <segment>
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Bad quality: This media is blurry, too dark, or generally poor quality.</pc></source>
+      </segment>
+    </unit>
+    <unit id="2542019946523691126">
+      <segment>
+        <source>Access concern</source>
       </segment>
     </unit>
     <unit id="93057103339884764">
@@ -8815,6 +9109,11 @@
     <unit id="2607510393198183286">
       <segment>
         <source>Failed to delete spot</source>
+      </segment>
+    </unit>
+    <unit id="2638434417265535082">
+      <segment>
+        <source>Media stream</source>
       </segment>
     </unit>
     <unit id="2662644497259948010">
@@ -9003,6 +9302,11 @@
         <source>No community card suggestions.</source>
       </segment>
     </unit>
+    <unit id="9036774118081905922">
+      <segment>
+        <source>Failed to load safety incident</source>
+      </segment>
+    </unit>
     <unit id="8773657518706700849">
       <segment>
         <source>Spot Edits</source>
@@ -9011,6 +9315,11 @@
     <unit id="8784425134270344261">
       <segment>
         <source>Early Bird</source>
+      </segment>
+    </unit>
+    <unit id="8790355239373900199">
+      <segment>
+        <source>Publish warning</source>
       </segment>
     </unit>
     <unit id="8799693346420796055">
@@ -9046,6 +9355,11 @@
     <unit id="4152341800436198728">
       <segment>
         <source>Event Spot (optional)</source>
+      </segment>
+    </unit>
+    <unit id="4152989558688224665">
+      <segment>
+        <source>Sensitive media hidden</source>
       </segment>
     </unit>
     <unit id="3268843240047650795">
@@ -9467,14 +9781,29 @@
         <source>The goal of this challenge is to be creative. This challenge may also be more open to interpretation.</source>
       </segment>
     </unit>
+    <unit id="2091353339965748767">
+      <segment>
+        <source>Storage path</source>
+      </segment>
+    </unit>
     <unit id="2092047258741296207">
       <segment>
         <source>Failed to save community knowledge</source>
       </segment>
     </unit>
+    <unit id="3419813162979896839">
+      <segment>
+        <source>Legal hold</source>
+      </segment>
+    </unit>
     <unit id="3420095157187102720">
       <segment>
         <source>This techy challenge requires great precision and control.</source>
+      </segment>
+    </unit>
+    <unit id="3424805045134172813">
+      <segment>
+        <source>Failed to save safety incident</source>
       </segment>
     </unit>
     <unit id="5109390034351761565">
@@ -9499,6 +9828,11 @@
       </notes>
       <segment>
         <source>Open in Google Maps</source>
+      </segment>
+    </unit>
+    <unit id="2365683588441896071">
+      <segment>
+        <source>Open released media</source>
       </segment>
     </unit>
     <unit id="2369409944839137310">

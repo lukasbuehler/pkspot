@@ -101,8 +101,8 @@ interface IntakeBackfillSummary {
 const INTAKE_PREFIX = "media_intake/";
 const REVIEW_COLLECTION = "media_upload_reviews";
 const STATUS_COLLECTION = "media_upload_status";
-const INCIDENT_COLLECTION = "csam_incidents";
-const MEDIA_REPORT_COLLECTION = "media_reports";
+const INCIDENT_COLLECTION = "safety_incidents";
+const MEDIA_REPORT_COLLECTION = "reports";
 const MAINTENANCE_COLLECTION = "maintenance";
 const RUN_AUDIT_DOC = `${MAINTENANCE_COLLECTION}/run-audit-media-moderation`;
 const RUN_INTAKE_BACKFILL_DOC =
@@ -421,6 +421,16 @@ const publicUrlFor = (bucketName: string, path: string): string => {
 const reviewRef = (uploadId: string): admin.firestore.DocumentReference =>
   db.collection(REVIEW_COLLECTION).doc(uploadId);
 
+const auditReviewRef = (
+  storagePath: string
+): admin.firestore.DocumentReference => {
+  const pathHash = crypto
+    .createHash("sha256")
+    .update(storagePath)
+    .digest("hex");
+  return db.collection(REVIEW_COLLECTION).doc(`audit_${pathHash}`);
+};
+
 const uploadStatusRef = (uploadId: string): admin.firestore.DocumentReference =>
   db.collection(STATUS_COLLECTION).doc(uploadId);
 
@@ -462,16 +472,26 @@ const writeIncidentIfNeeded = async (
   result: MediaSafetyProviderResult
 ): Promise<string | undefined> => {
   if (result.decision !== "reportable_match") return undefined;
+  const reviewId = reviewPath.split("/").at(-1);
 
   const incident = await db.collection(INCIDENT_COLLECTION).add({
-    status: "open",
+    status: "triage",
+    classification: "csea",
+    uk_link: "unknown",
+    retention_state: "reporting_hold",
     source,
     review_path: reviewPath,
+    ...(reviewId
+      ? { source_report_path: `reports/scanner_${reviewId}` }
+      : {}),
     ...(uid ? { uid } : {}),
     ...(storagePath ? { storage_path: storagePath } : {}),
     sha256: hash,
     scanner: result,
     created_at: now(),
+    created_by: "system_media_scanner",
+    updated_at: now(),
+    updated_by: "system_media_scanner",
   });
   return incident.path;
 };
@@ -509,6 +529,7 @@ const writeScannerMediaReport = async (params: {
     .collection(MEDIA_REPORT_COLLECTION)
     .doc(`scanner_${params.review.id}`);
   await reportRef.set({
+    kind: "media",
     status: "open",
     source: "scanner",
     scanner_source: params.source,
@@ -543,6 +564,7 @@ const writeScannerMediaReport = async (params: {
       display_name: "Media safety scanner",
     },
     createdAt: now(),
+    scanner: params.result,
   });
 };
 
@@ -755,7 +777,6 @@ const processIntakeObject = async (params: {
         targetId: intake.targetId,
         mediaType: kind,
       });
-      await sourceFile.delete().catch(() => undefined);
       return {
         outcome: status,
         uploadId: intake.uploadId,
@@ -820,7 +841,6 @@ const processIntakeObject = async (params: {
       targetId: intake.targetId,
       mediaType: kind ?? undefined,
     });
-    await sourceFile.delete().catch(() => undefined);
     console.error("Media intake moderation failed", {
       filePath: params.filePath,
       error,
@@ -990,17 +1010,36 @@ export const runMediaModerationAudit = onDocumentCreated(
                   sha256: hash,
                   source: "audit",
                 });
+          const metadataUid = metadata.metadata?.["uid"];
+          const uid =
+            typeof metadataUid === "string" ? metadataUid : undefined;
+          const review = auditReviewRef(file.name);
+          const publicUrl = publicUrlFor(bucket.name, file.name);
 
           summary.scanned++;
           if (scanResult.decision === "allow") {
+            await review.set({
+              status: "approved",
+              source: "audit",
+              ...(uid ? { uid } : {}),
+              audited_path: file.name,
+              approved_path: file.name,
+              approved_url: publicUrl,
+              content_type: contentType,
+              sha256: hash,
+              scan_result: scanResult,
+              created_at: now(),
+              completed_at: now(),
+            });
             summary.allowed++;
             continue;
           }
 
           summary.flagged++;
-          const review = await db.collection(REVIEW_COLLECTION).add({
+          await review.set({
             status: "audit_flagged",
             source: "audit",
+            ...(uid ? { uid } : {}),
             audited_path: file.name,
             content_type: contentType,
             sha256: hash,
@@ -1008,8 +1047,6 @@ export const runMediaModerationAudit = onDocumentCreated(
             created_at: now(),
             completed_at: now(),
           });
-          const metadataUid = metadata.metadata?.["uid"];
-          const uid = typeof metadataUid === "string" ? metadataUid : undefined;
           const incidentPath = await writeIncidentIfNeeded(
             review.path,
             "audit",
@@ -1023,7 +1060,7 @@ export const runMediaModerationAudit = onDocumentCreated(
             source: "audit",
             uid,
             storagePath: file.name,
-            publicUrl: publicUrlFor(bucket.name, file.name),
+            publicUrl,
             contentType,
             mediaType: kind,
             hash,

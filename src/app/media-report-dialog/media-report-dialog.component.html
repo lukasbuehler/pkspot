@@ -1,5 +1,14 @@
 <h2 mat-dialog-title i18n="media report title">Report Media</h2>
 <mat-dialog-content>
+  @if (!isAuthenticated()) {
+  <p
+    class="mat-body-large"
+    i18n="media report sign-in requirement@@mediaReportSignInRequired"
+  >
+    Sign in to report media. Your account details are only visible to
+    administrators handling the report.
+  </p>
+  }
   <div
     class="d-flex justify-content-center align-items-center flex-column mb-3 gap-3"
   >
@@ -79,28 +88,6 @@
       <textarea matInput rows="3" formControlName="comment"></textarea>
     </mat-form-field>
 
-    @if (!isAuthenticated()) {
-    <mat-form-field class="w-100" appearance="outline">
-      <mat-label i18n="reporter email label">Your Email</mat-label>
-      <input
-        matInput
-        type="email"
-        formControlName="reporterEmail"
-        placeholder="your-email@example.com"
-        i18n-placeholder="reporter email placeholder"
-      />
-      @if (reportForm.get('reporterEmail')?.hasError('required')) {
-      <mat-error i18n="email required error">Email is required</mat-error>
-      } @if (reportForm.get('reporterEmail')?.hasError('pattern')) {
-      <mat-error i18n="email invalid error"
-        >Please enter a valid email</mat-error
-      >
-      }
-    </mat-form-field>
-    <p class="mat-caption" i18n="email notice">
-      We'll only use your email to contact you about this report.
-    </p>
-    }
   </form>
 </mat-dialog-content>
 <mat-dialog-actions class="d-flex justify-content-end p-3">
@@ -111,7 +98,7 @@
     matButton="filled"
     color="warn"
     (click)="submitReport()"
-    [disabled]="!reportForm.valid || isSubmitting()"
+    [disabled]="!isAuthenticated() || !reportForm.valid || isSubmitting()"
   >
     @if (isSubmitting()) {
     <span i18n="submitting label">Submitting...</span>

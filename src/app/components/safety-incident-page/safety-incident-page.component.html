@@ -1,0 +1,150 @@
+<section class="incident-page">
+  <header class="incident-page__header">
+    <div>
+      <a matButton="text" routerLink="/moderation/reports">
+        <mat-icon>arrow_back</mat-icon>
+        <span i18n>Moderation reports</span>
+      </a>
+      <h1 class="mat-headline-medium" i18n>Safety incident</h1>
+    </div>
+  </header>
+
+  @if (isLoading()) {
+    <div class="incident-page__center">
+      <mat-progress-spinner mode="indeterminate" diameter="32" />
+      <span i18n>Loading safety incident...</span>
+    </div>
+  } @else if (!authService.isAdmin()) {
+    <p i18n>Admin access required.</p>
+  } @else if (!incident()) {
+    <p i18n>Safety incident not found.</p>
+  } @else if (incident(); as item) {
+    <mat-card class="incident-summary">
+      <mat-card-header>
+        <mat-card-title>{{ item.id }}</mat-card-title>
+        <mat-card-subtitle>
+          {{ createdAt() | systemDate: "medium" }}
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <dl>
+          <dt i18n>Source report</dt>
+          <dd>{{ item.source_report_path }}</dd>
+          @if (item.review_path) {
+            <dt i18n>Media review</dt>
+            <dd>{{ item.review_path }}</dd>
+          }
+          @if (item.storage_path) {
+            <dt i18n>Quarantine object</dt>
+            <dd>{{ item.storage_path }}</dd>
+          }
+          @if (item.sha256) {
+            <dt>SHA-256</dt>
+            <dd>{{ item.sha256 }}</dd>
+          }
+        </dl>
+      </mat-card-content>
+    </mat-card>
+
+    <form class="incident-form" [formGroup]="form" (ngSubmit)="save()">
+      <div class="incident-form__grid">
+        <mat-form-field appearance="outline">
+          <mat-label i18n>Status</mat-label>
+          <mat-select formControlName="status">
+            <mat-option value="triage" i18n>Triage</mat-option>
+            <mat-option value="contained" i18n>Contained</mat-option>
+            <mat-option value="reported" i18n>Reported externally</mat-option>
+            <mat-option value="closed" i18n>Closed</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label i18n>Classification</mat-label>
+          <mat-select formControlName="classification">
+            <mat-option value="undetermined" i18n>Undetermined</mat-option>
+            <mat-option value="ordinary_harm" i18n>Ordinary harm</mat-option>
+            <mat-option value="illegal_content" i18n>
+              Illegal content
+            </mat-option>
+            <mat-option value="csea">CSEA</mat-option>
+            <mat-option value="imminent_danger" i18n>
+              Imminent danger
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label i18n>UK link</mat-label>
+          <mat-select formControlName="uk_link">
+            <mat-option value="unknown" i18n>Unknown</mat-option>
+            <mat-option value="yes" i18n>Yes</mat-option>
+            <mat-option value="no" i18n>No</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label i18n>Retention state</mat-label>
+          <mat-select formControlName="retention_state">
+            <mat-option value="triage_hold" i18n>Triage hold</mat-option>
+            <mat-option value="reporting_hold" i18n>Reporting hold</mat-option>
+            <mat-option value="legal_hold" i18n>Legal hold</mat-option>
+            <mat-option value="deletion_scheduled" i18n>
+              Deletion scheduled
+            </mat-option>
+            <mat-option value="deleted" i18n>Deleted</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline">
+        <mat-label i18n>Containment summary</mat-label>
+        <textarea
+          matInput
+          rows="3"
+          maxlength="2000"
+          formControlName="containment_summary"
+        ></textarea>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label i18n>PostHog and account context</mat-label>
+        <textarea
+          matInput
+          rows="5"
+          maxlength="5000"
+          formControlName="posthog_context"
+        ></textarea>
+        <mat-hint i18n>
+          Include provenance, retrieval time, relevant session or IP data, and
+          who retrieved it.
+        </mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label i18n>External report reference</mat-label>
+        <input
+          matInput
+          maxlength="500"
+          formControlName="external_report_reference"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label i18n>Restricted notes</mat-label>
+        <textarea
+          matInput
+          rows="5"
+          maxlength="5000"
+          formControlName="notes"
+        ></textarea>
+      </mat-form-field>
+
+      <div class="incident-form__actions">
+        <button matButton="filled" type="submit" [disabled]="isSaving()">
+          <mat-icon>save</mat-icon>
+          <span i18n>Save incident</span>
+        </button>
+      </div>
+    </form>
+  }
+</section>
