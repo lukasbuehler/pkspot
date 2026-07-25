@@ -751,7 +751,11 @@ service cloud.firestore {
             && userRef.uid.size() > 0
             && userRef.uid.size() <= 128
             && userRef.uid == request.auth.uid
-            && !('email' in userRef))
+            && (!('email' in userRef) || (
+              request.auth.token.email is string
+              && userRef.email is string
+              && userRef.email == request.auth.token.email
+            )))
           || (request.auth == null
             && !('uid' in userRef)
             && 'email' in userRef

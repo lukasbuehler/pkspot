@@ -65,7 +65,7 @@ async function resetEmulatorFirestore() {
   await Promise.all(collections.map((collectionRef) => adminDb.recursiveDelete(collectionRef)));
 }
 
-async function createClient(uid) {
+async function createClient(uid, email) {
   const app = initializeApp(
     {
       apiKey: "demo-api-key",
@@ -85,6 +85,9 @@ async function createClient(uid) {
   });
 
   if (uid) {
+    if (email) {
+      await adminAuth.createUser({ uid, email });
+    }
     const token = await adminAuth.createCustomToken(uid);
     await signInWithCustomToken(auth, token);
   } else {
@@ -1905,6 +1908,15 @@ async function testReportPrivacy(anon, owner, other, adminUser) {
   await assertAllowed("owner creates root media report", () =>
     setDoc(doc(owner.db, "reports/media-report"), mediaReport)
   );
+  await assertAllowed("legacy client includes its authenticated account email", () =>
+    setDoc(doc(owner.db, "media_reports/legacy-authenticated-report"), {
+      ...mediaReport,
+      user: {
+        uid: "owner",
+        email: "owner@example.com",
+      },
+    })
+  );
   await assertDenied("authenticated reporter cannot spoof report email", () =>
     setDoc(doc(owner.db, "reports/spoofed-email"), {
       ...mediaReport,
@@ -2047,7 +2059,7 @@ async function main() {
   await seedSecurityFixture();
 
   const anon = await createClient(null);
-  const owner = await createClient("owner");
+  const owner = await createClient("owner", "owner@example.com");
   const other = await createClient("other");
   const attacker = await createClient("attacker");
   const fresh = await createClient("fresh");

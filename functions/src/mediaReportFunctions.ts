@@ -303,15 +303,15 @@ const handleMediaReportCreate = async (
 
 export const onMediaReportCreate = onDocumentCreated(
   {
-    document: "reports/{reportId}",
+    document: "media_reports/{reportId}",
     secrets: mediaReportTriggerSecrets,
   },
   handleMediaReportCreate
 );
 
-export const onLegacyMediaReportCreate = onDocumentCreated(
+export const onRootMediaReportCreate = onDocumentCreated(
   {
-    document: "media_reports/{reportId}",
+    document: "reports/{reportId}",
     secrets: mediaReportTriggerSecrets,
   },
   handleMediaReportCreate

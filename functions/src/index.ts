@@ -106,8 +106,8 @@ export { setTopChallengesForSpotOnWrite } from "./spotChallengeFunctions";
 
 // media report functions
 export {
-  onLegacyMediaReportCreate,
   onMediaReportCreate,
+  onRootMediaReportCreate,
 } from "./mediaReportFunctions";
 export {
   cleanupMediaReportSubmissionMetadata,
