@@ -134,6 +134,12 @@ test.describe("profile privacy follow request workflows", () => {
     await expect(followButton).toContainText(/Requested|Angefragt/u);
     await expect(followButton).toHaveAttribute("aria-busy", "false");
     await expect(followButton.locator("mat-spinner")).toBeHidden();
+    const notificationPrompt = page.locator(
+      "app-notification-opt-in-dialog",
+    );
+    await expect(notificationPrompt).toBeVisible();
+    await notificationPrompt.getByRole("button").first().click();
+    await expect(notificationPrompt).toBeHidden();
     await page.waitForTimeout(500);
     await expect(followButton).toContainText(/Requested|Angefragt/u);
     await expect(actions).toHaveScreenshot("profile-follow-action-requested.png", {
