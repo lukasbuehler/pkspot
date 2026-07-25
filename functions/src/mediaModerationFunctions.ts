@@ -150,6 +150,21 @@ const now = (): FieldValue => FieldValue.serverTimestamp();
 const sha256 = (bytes: Buffer): string =>
   crypto.createHash("sha256").update(bytes).digest("hex");
 
+const firestoreSafetyResult = (
+  result: MediaSafetyProviderResult
+): MediaSafetyProviderResult => ({
+  provider: result.provider,
+  provider_version: result.provider_version,
+  decision: result.decision,
+  severity: result.severity,
+  ...(result.reason !== undefined ? { reason: result.reason } : {}),
+  ...(result.labels !== undefined ? { labels: result.labels } : {}),
+  ...(result.thresholds !== undefined ? { thresholds: result.thresholds } : {}),
+  ...(result.perceptual_hashes !== undefined
+    ? { perceptual_hashes: result.perceptual_hashes }
+    : {}),
+});
+
 const normalizeMetadata = (
   metadata: Record<string, unknown> | undefined
 ): Record<string, string> => {
@@ -303,9 +318,12 @@ class GoogleVisionSafeSearchProvider implements MediaSafetyProvider {
       provider_version: "v1",
       decision: shouldBlock ? "block" : "allow",
       severity: shouldBlock ? "explicit_non_child" : "none",
-      reason: shouldBlock
-        ? "Vision SafeSearch returned likely explicit or violent content."
-        : undefined,
+      ...(shouldBlock
+        ? {
+            reason:
+              "Vision SafeSearch returned likely explicit or violent content.",
+          }
+        : {}),
       labels,
       thresholds: {
         adult: "LIKELY",
@@ -354,7 +372,9 @@ class GoogleVisionSafeSearchProvider implements MediaSafetyProvider {
           : decision === "allow"
           ? "none"
           : "explicit_non_child",
-      reason: "Emulator-controlled media safety result.",
+      ...(decision === "allow"
+        ? {}
+        : { reason: "Emulator-controlled media safety result." }),
     };
   }
 
@@ -720,7 +740,7 @@ const processIntakeObject = async (params: {
     const emulatorDecision = normalizeMetadata(params.rawMetadata)[
       "emulator_safety_result"
     ] as MediaSafetyDecision | undefined;
-    const scanResult =
+    const scanResult = firestoreSafetyResult(
       kind === "image"
         ? await mediaSafetyProvider.scanImage(bytes, {
             contentType,
@@ -735,7 +755,8 @@ const processIntakeObject = async (params: {
             sha256: hash,
             source: "upload",
             emulatorDecision,
-          });
+          })
+    );
 
     const incidentPath = await writeIncidentIfNeeded(
       review.path,
@@ -996,7 +1017,7 @@ export const runMediaModerationAudit = onDocumentCreated(
             kind === "video"
               ? await validateVideoAndExtractFrames(bytes, basename(file.name))
               : [];
-          const scanResult =
+          const scanResult = firestoreSafetyResult(
             kind === "image"
               ? await mediaSafetyProvider.scanImage(bytes, {
                   contentType,
@@ -1009,7 +1030,8 @@ export const runMediaModerationAudit = onDocumentCreated(
                   storagePath: file.name,
                   sha256: hash,
                   source: "audit",
-                });
+                })
+          );
           const metadataUid = metadata.metadata?.["uid"];
           const uid =
             typeof metadataUid === "string" ? metadataUid : undefined;

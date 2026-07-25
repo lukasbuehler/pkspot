@@ -253,6 +253,7 @@ async function main() {
   });
   const moderatedReview = await waitForReviewStatus(moderatedUploadId, "approved");
   assert.equal(moderatedReview.data().approved_path, moderatedApprovedPath);
+  assert.equal(moderatedReview.data().scan_result.reason, undefined);
   await assertFileMissing(moderatedIntakePath);
   await assertDerivativesForOriginal(moderatedApprovedPath, {
     uid,
@@ -278,6 +279,7 @@ async function main() {
   );
   assert.equal(auditedReview.data().status, "approved");
   assert.equal(auditedReview.data().scan_result.decision, "allow");
+  assert.equal(auditedReview.data().scan_result.reason, undefined);
   assert.equal(
     auditedReview.data().approved_path,
     `${ARCHIVE_PREFIX}/${moderatedApprovedPath}`
