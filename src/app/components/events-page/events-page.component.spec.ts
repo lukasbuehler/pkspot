@@ -101,6 +101,7 @@ interface TestContext {
   searchService: {
     searchEventDiscovery: ReturnType<typeof vi.fn>;
     searchAllEventDiscovery: ReturnType<typeof vi.fn>;
+    searchInvalidEventDiscovery: ReturnType<typeof vi.fn>;
   };
   eventsService: { getEvents: ReturnType<typeof vi.fn> };
 }
@@ -111,6 +112,7 @@ function createComponent(options?: {
   signedIn?: boolean;
   drafts?: PkEvent[];
   searchResult?: EventDiscoverySearchResult;
+  invalidEvents?: EventSearchPreview[];
   platform?: "browser" | "server";
 }): TestContext {
   const queryParams = new BehaviorSubject(
@@ -125,6 +127,9 @@ function createComponent(options?: {
     searchAllEventDiscovery: vi.fn().mockResolvedValue(
       options?.searchResult ?? EMPTY_RESULT,
     ),
+    searchInvalidEventDiscovery: vi
+      .fn()
+      .mockResolvedValue(options?.invalidEvents ?? []),
   };
   const eventsService = {
     getEvents: vi.fn().mockResolvedValue(options?.drafts ?? []),
@@ -286,26 +291,36 @@ describe("EventsPageComponent", () => {
   });
 
   it("opens invalid event previews for admins only", async () => {
-    const searchResult: EventDiscoverySearchResult = {
-      ...EMPTY_RESULT,
-      found: 1,
-      invalidItems: [INVALID_EVENT_PREVIEW],
-      invalidItemCount: 1,
+    const secondInvalidEvent: EventSearchPreview = {
+      ...INVALID_EVENT_PREVIEW,
+      id: "missing-end",
+      slug: "missing-end",
+      name: "Event without an end time",
+      endSeconds: undefined,
     };
     const admin = createComponent({
       admin: true,
       signedIn: true,
-      searchResult,
+      queryParams: {
+        view: "calendar",
+        month: "2026-08",
+        area: "region:zh",
+        category: "jam",
+      },
+      invalidEvents: [INVALID_EVENT_PREVIEW, secondInvalidEvent],
     });
     await flushResources();
 
+    expect(admin.searchService.searchInvalidEventDiscovery).toHaveBeenCalledWith(
+      { abortSignal: expect.any(AbortSignal) },
+    );
     admin.component.openInvalidEventsDialog();
 
     expect(admin.dialog.open).toHaveBeenCalledWith(
       EventDiscoveryIssuesDialogComponent,
       expect.objectContaining({
         data: {
-          events: [INVALID_EVENT_PREVIEW],
+          events: [INVALID_EVENT_PREVIEW, secondInvalidEvent],
           seriesById: {},
         },
         maxHeight: "90vh",
@@ -313,11 +328,16 @@ describe("EventsPageComponent", () => {
     );
 
     TestBed.resetTestingModule();
-    const visitor = createComponent({ searchResult });
+    const visitor = createComponent({
+      invalidEvents: [INVALID_EVENT_PREVIEW, secondInvalidEvent],
+    });
     await flushResources();
 
     visitor.component.openInvalidEventsDialog();
 
+    expect(
+      visitor.searchService.searchInvalidEventDiscovery,
+    ).not.toHaveBeenCalled();
     expect(visitor.dialog.open).not.toHaveBeenCalled();
   });
 

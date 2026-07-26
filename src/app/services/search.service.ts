@@ -1429,6 +1429,22 @@ export class SearchService {
     };
   }
 
+  /**
+   * Audit every published event projection for fields required by discovery.
+   * This deliberately ignores the active discovery query, filters, and date
+   * window so the admin repair surface cannot hide an invalid event.
+   */
+  public async searchInvalidEventDiscovery(options: {
+    abortSignal?: AbortSignal;
+  } = {}): Promise<EventSearchPreview[]> {
+    const result = await this.searchAllEventDiscovery({
+      query: "*",
+      sort: "calendar",
+      abortSignal: options.abortSignal,
+    });
+    return result.invalidItems;
+  }
+
   public async getEventPreviewsByIds(
     ids: readonly string[],
   ): Promise<EventSearchPreview[]> {

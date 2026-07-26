@@ -1409,5 +1409,61 @@ describe("SearchService", () => {
         "second-page",
       ]);
     });
+
+    it("audits every published event independently of discovery filters", async () => {
+      typesenseSearchMock
+        .mockResolvedValueOnce({
+          hits: [
+            {
+              document: {
+                ...validDocument,
+                id: "first-missing-zone",
+                time_zone: undefined,
+              },
+            },
+          ],
+          found: 251,
+          page: 1,
+        })
+        .mockResolvedValueOnce({
+          hits: [
+            {
+              document: {
+                ...validDocument,
+                id: "second-missing-zone",
+                time_zone: undefined,
+              },
+            },
+          ],
+          found: 251,
+          page: 2,
+        });
+      const controller = new AbortController();
+
+      const result = await service.searchInvalidEventDiscovery({
+        abortSignal: controller.signal,
+      });
+
+      expect(typesenseSearchMock).toHaveBeenCalledTimes(2);
+      expect(typesenseSearchMock.mock.calls[0]?.[0]).toMatchObject({
+        q: "*",
+        filter_by: "published:=true",
+        page: 1,
+        per_page: 250,
+      });
+      expect(typesenseSearchMock.mock.calls[1]?.[0]).toMatchObject({
+        q: "*",
+        filter_by: "published:=true",
+        page: 2,
+        per_page: 250,
+      });
+      expect(typesenseSearchMock.mock.calls[0]?.[1]).toEqual({
+        abortSignal: controller.signal,
+      });
+      expect(result.map((event) => event.id)).toEqual([
+        "first-missing-zone",
+        "second-missing-zone",
+      ]);
+    });
   });
 });

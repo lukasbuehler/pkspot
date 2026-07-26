@@ -248,6 +248,15 @@ export class EventsPageComponent {
     () => this.discoveryResource.value() ?? null,
   );
   readonly events = computed(() => this.discoveryResult()?.items ?? []);
+  readonly invalidEventsResource = resource({
+    params: () => (this.isAdmin() ? true : undefined),
+    loader: async ({ abortSignal }) =>
+      this._screenshotInvalidEvents() ??
+      (await this._search.searchInvalidEventDiscovery({ abortSignal })),
+  });
+  readonly invalidEvents = computed(
+    () => this.invalidEventsResource.value() ?? [],
+  );
   readonly calendar = computed(() =>
     buildEventCalendarMonth(
       this.month(),
@@ -261,6 +270,7 @@ export class EventsPageComponent {
         []),
       ...this.selectedSeriesIds(),
       ...this.events().flatMap((event) => event.seriesIds),
+      ...this.invalidEvents().flatMap((event) => event.seriesIds),
     ]),
   ]);
 
@@ -436,7 +446,7 @@ export class EventsPageComponent {
   }
 
   openInvalidEventsDialog(): void {
-    const invalidEvents = this.discoveryResult()?.invalidItems ?? [];
+    const invalidEvents = this.invalidEvents();
     if (!this.isAdmin() || invalidEvents.length === 0) return;
 
     this._dialog.open<
@@ -617,6 +627,14 @@ export class EventsPageComponent {
       invalidItems,
       invalidItemCount: invalidItems.length,
     };
+  }
+
+  private _screenshotInvalidEvents(): EventSearchPreview[] | null {
+    const fixture = this._screenshotEventIndex();
+    if (!fixture) return null;
+    return fixture.events
+      .map((event) => screenshotEventPreview(event))
+      .filter(isInvalidEventPreview);
   }
 }
 
@@ -815,6 +833,15 @@ function validTimeZone(value: unknown): string | null {
   } catch {
     return null;
   }
+}
+
+function isInvalidEventPreview(event: EventSearchPreview): boolean {
+  return (
+    !event.id ||
+    event.startSeconds === undefined ||
+    event.endSeconds === undefined ||
+    !event.timeZone
+  );
 }
 
 function buildFixtureFacets(

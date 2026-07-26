@@ -42,8 +42,15 @@ const INVALID_EVENT: EventSearchPreview = {
 describe("EventDiscoveryIssuesDialogComponent", () => {
   it("renders invalid previews without formatting dates in the viewer time zone", async () => {
     const formatDateRange = vi.fn();
+    const secondInvalidEvent: EventSearchPreview = {
+      ...INVALID_EVENT,
+      id: "missing-end",
+      slug: "missing-end",
+      name: "Event without an end time",
+      endSeconds: undefined,
+    };
     const data: EventDiscoveryIssuesDialogData = {
-      events: [INVALID_EVENT],
+      events: [INVALID_EVENT, secondInvalidEvent],
       seriesById: {},
     };
     TestBed.configureTestingModule({
@@ -68,12 +75,18 @@ describe("EventDiscoveryIssuesDialogComponent", () => {
     );
     await fixture.whenStable();
 
-    const text = (fixture.nativeElement as HTMLElement).textContent ?? "";
+    const text = (
+      (fixture.nativeElement as HTMLElement).textContent ?? ""
+    ).replace(/\s+/gu, " ");
     expect(text).toContain("Event without a time zone");
+    expect(text).toContain("Event without an end time");
     expect(text).toContain("Local time zone missing");
+    expect(text).toContain(
+      "All 2 problematic published events are shown below.",
+    );
     expect(
       fixture.nativeElement.querySelectorAll("app-event-discovery-card"),
-    ).toHaveLength(1);
+    ).toHaveLength(2);
     expect(formatDateRange).not.toHaveBeenCalled();
   });
 });

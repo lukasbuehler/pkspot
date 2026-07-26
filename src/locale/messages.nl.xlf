@@ -8061,12 +8061,6 @@
         <target>Mediameldingen</target>
       </segment>
     </unit>
-    <unit id="4240094915299794300">
-      <segment state="translated">
-        <source> These events are excluded from public discovery until their local time zone and event dates are valid. </source>
-        <target> Deze evenementen worden niet openbaar weergegeven totdat hun lokale tijdzone en evenementdatums geldig zijn. </target>
-      </segment>
-    </unit>
     <unit id="aboutHeroSubtitle">
       <segment state="initial">
         <source> Find spots, join local communities, discover events and jams, and check in where parkour is happening around you. </source>
@@ -9028,6 +9022,12 @@
       <segment state="initial">
         <source>Water feature</source>
         <target>Waterelement</target>
+      </segment>
+    </unit>
+    <unit id="5646377711168880426">
+      <segment state="translated">
+        <source> <ph id="0" equiv="ICU" disp="{data.events.length, plural, =1 {The one problematic published event is shown below.} other {All {{ data.events.length }} problematic published events are shown below.}}" subFlows="2516091138808940382"/> They are excluded from public discovery until their coordinates, local time zone, and event dates are valid. </source>
+        <target> <ph id="0" equiv="ICU" disp="{data.events.length, plural, =1 {The one problematic published event is shown below.} other {All {{ data.events.length }} problematic published events are shown below.}}" subFlows="2516091138808940382"/> Deze evenementen worden uitgesloten van de openbare zoekfunctie totdat hun coördinaten, lokale tijdzone en evenementdatums geldig zijn. </target>
       </segment>
     </unit>
     <unit id="4744376889247353452">
@@ -10830,6 +10830,12 @@
         <target>Mantener advertencia</target>
       </segment>
     </unit>
+    <unit id="7410675842585212070">
+      <segment state="translated">
+        <source>{VAR_PLURAL, plural, =1 {One published event has invalid discovery data and was not shown.} other {<ph id="0" equiv="INTERPOLATION"/> published events have invalid discovery data and were not shown.}}</source>
+        <target>{VAR_PLURAL, plural, =1 {Eén gepubliceerd evenement bevat ongeldige zoekgegevens en is niet weergegeven.} other {<ph id="0" equiv="INTERPOLATION"/> gepubliceerde evenementen bevatten ongeldige zoekgegevens en zijn niet weergegeven.}}</target>
+      </segment>
+    </unit>
     <unit id="5400391042453835180">
       <segment state="initial">
         <source>Manage your <ph id="0" equiv="PH" disp="point.name"/> settings.</source>
@@ -10909,9 +10915,9 @@
       </segment>
     </unit>
     <unit id="8856905278208146821">
-      <segment state="initial">
-        <source> <ph id="0" equiv="ICU" disp="{invalidItemCount, plural, =1 {One event is missing a valid local time zone and was not shown.} other {{{invalidItemCount}} events are missing a valid local time zone and were not shown.} }" subFlows="5929556192434811560"/> </source>
-        <target> <ph id="0" equiv="ICU" disp="{invalidItemCount, plural, =1 {One event is missing a valid local time zone and was not shown.} other {{{invalidItemCount}} events are missing a valid local time zone and were not shown.} }" subFlows="5929556192434811560"/> </target>
+      <segment state="translated">
+        <source> <ph id="0" equiv="ICU" disp="{invalidItemCount, plural, =1 {One published event has invalid discovery data and was not shown.} other {{{invalidItemCount}} published events have invalid discovery data and were not shown.} }" subFlows="3991033213392190792"/> </source>
+        <target> <ph id="0" equiv="ICU" disp="{invalidItemCount, plural, =1 {One published event has invalid discovery data and was not shown.} other {{{invalidItemCount}} published events have invalid discovery data and were not shown.} }" subFlows="3991033213392190792"/> </target>
       </segment>
     </unit>
     <unit id="8876716314997684812">
@@ -11040,6 +11046,12 @@
         <target>Herkomst van verzoek</target>
       </segment>
     </unit>
+    <unit id="3321705607769130356">
+      <segment state="translated">
+        <source>{VAR_PLURAL, plural, =1 {The one problematic published event is shown below.} other {All <ph id="0" equiv="INTERPOLATION"/> problematic published events are shown below.}}</source>
+        <target>{VAR_PLURAL, plural, =1 {Het enige gepubliceerde evenement met een probleem wordt hieronder weergegeven.} other {Alle <ph id="0" equiv="INTERPOLATION"/> gepubliceerde evenementen met problemen worden hieronder weergegeven.}}</target>
+      </segment>
+    </unit>
     <unit id="8586908745456864217">
       <segment state="initial">
         <source>Previous month</source>
@@ -11134,6 +11146,12 @@
         <target>Beheerd door</target>
       </segment>
     </unit>
+    <unit id="7138068972563490768">
+      <segment state="translated">
+        <source> An event&apos;s local time zone is derived from its map coordinates. It places the event on the correct local calendar day and keeps its start and end times accurate through daylight-saving changes. </source>
+        <target> De lokale tijdzone van een evenement wordt afgeleid uit de kaartcoördinaten. Zo wordt het evenement op de juiste lokale kalenderdag geplaatst en blijven de begin- en eindtijd correct bij de overgang tussen zomer- en wintertijd. </target>
+      </segment>
+    </unit>
     <unit id="7139999409916594388">
       <segment state="initial">
         <source>Leaderboard</source>
@@ -11210,12 +11228,6 @@
       <segment state="initial">
         <source>No spot edit votes waiting.</source>
         <target>No spot edit votes waiting.</target>
-      </segment>
-    </unit>
-    <unit id="6600224557075575450">
-      <segment state="initial">
-        <source>{VAR_PLURAL, plural, =1 {One event is missing a valid local time zone and was not shown.} other {<ph id="0" equiv="INTERPOLATION"/> events are missing a valid local time zone and were not shown.}}</source>
-        <target>{VAR_PLURAL, plural, =1 {Eén evenement heeft geen geldige lokale tijdzone en is niet weergegeven.} other {<ph id="0" equiv="INTERPOLATION"/> evenementen hebben geen geldige lokale tijdzone en zijn niet weergegeven.}}</target>
       </segment>
     </unit>
     <unit id="6607382385355290684">

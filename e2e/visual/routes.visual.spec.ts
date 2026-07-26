@@ -385,29 +385,67 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
               };
             }
           ).__PKSPOT_SCREENSHOT_EVENT_INDEX__;
-          eventIndex?.events.push({
-            id: "visual-missing-zone",
-            slug: "visual-missing-zone",
-            name: "Timezone Repair Jam",
-            banner_src: "assets/swissjam/swissjam26_banner.jpeg",
-            venue_string: "Repair Hall",
-            locality_string: "Zurich, Switzerland",
-            location_raw: { lat: 47.3769, lng: 8.5417 },
-            start: "2026-08-22T10:00:00.000Z",
-            end: "2026-08-22T18:00:00.000Z",
-            community_keys: [
-              "country:ch",
-              "region:zh",
-              "locality:ch:zh:zurich",
-            ],
-            event_categories: ["jam"],
-            rsvp_counts: {
-              going: 2,
-              interested: 3,
-              notgoing: 0,
-              total: 5,
+          eventIndex?.events.push(
+            {
+              id: "visual-missing-zone",
+              slug: "visual-missing-zone",
+              name: "Timezone Repair Jam",
+              banner_src: "assets/swissjam/swissjam26_banner.jpeg",
+              venue_string: "Repair Hall",
+              locality_string: "Zurich, Switzerland",
+              location_raw: { lat: 47.3769, lng: 8.5417 },
+              start: "2026-08-22T10:00:00.000Z",
+              end: "2026-08-22T18:00:00.000Z",
+              community_keys: [
+                "country:ch",
+                "region:zh",
+                "locality:ch:zh:zurich",
+              ],
+              event_categories: ["jam"],
+              rsvp_counts: {
+                going: 2,
+                interested: 3,
+                notgoing: 0,
+                total: 5,
+              },
             },
-          });
+            {
+              id: "visual-missing-zone-finland",
+              slug: "visual-missing-zone-finland",
+              name: "Power Flow Jam",
+              venue_string: "Goat Gym",
+              locality_string: "Lahti, Finland",
+              location_raw: { lat: 60.9827, lng: 25.6615 },
+              start: "2026-07-09T10:00:00.000Z",
+              end: "2026-07-12T18:00:00.000Z",
+              community_keys: ["country:fi"],
+              event_categories: ["jam"],
+              rsvp_counts: {
+                going: 0,
+                interested: 1,
+                notgoing: 0,
+                total: 1,
+              },
+            },
+            {
+              id: "visual-missing-zone-canada",
+              slug: "visual-missing-zone-canada",
+              name: "North Coast Gathering",
+              venue_string: "Movement Centre",
+              locality_string: "Montreal, Canada",
+              location_raw: { lat: 45.5019, lng: -73.5674 },
+              start: "2026-09-04T14:00:00.000Z",
+              end: "2026-09-06T22:00:00.000Z",
+              community_keys: ["country:ca"],
+              event_categories: ["jam"],
+              rsvp_counts: {
+                going: 4,
+                interested: 7,
+                notgoing: 0,
+                total: 11,
+              },
+            },
+          );
         }
       }
 
