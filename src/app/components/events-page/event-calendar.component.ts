@@ -17,6 +17,7 @@ import {
   type EventCalendarMonth,
 } from "./event-calendar.model";
 import { EventCalendarItemComponent } from "./event-calendar-item.component";
+import { EventCalendarThumbnailComponent } from "./event-calendar-thumbnail.component";
 import { EventDiscoveryListComponent } from "./event-discovery-list.component";
 
 @Component({
@@ -25,6 +26,7 @@ import { EventDiscoveryListComponent } from "./event-discovery-list.component";
     MatButtonModule,
     MatIconModule,
     EventCalendarItemComponent,
+    EventCalendarThumbnailComponent,
     EventDiscoveryListComponent,
   ],
   templateUrl: "./event-calendar.component.html",

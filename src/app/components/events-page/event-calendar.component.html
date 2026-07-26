@@ -97,9 +97,16 @@
             [attr.aria-label]="dayAriaLabel(day)"
             (click)="daySelected.emit(day.key)"
           >
-            <span>{{ day.dayNumber }}</span>
+            <span class="date-number">{{ day.dayNumber }}</span>
             @if (day.events.length > 0) {
-              <small>{{ day.events.length }}</small>
+              <span class="date-event-indicator" aria-hidden="true">
+                <small>{{ day.events.length }}</small>
+                <span class="event-thumbnails">
+                  @for (event of day.indicatorEvents; track event.id) {
+                    <app-event-calendar-thumbnail [event]="event" />
+                  }
+                </span>
+              </span>
             }
           </button>
         }

@@ -140,6 +140,37 @@ describe("event calendar model", () => {
     expect(day?.hiddenEventCount).toBe(1);
   });
 
+  it("prioritizes compact icons for events starting that day", () => {
+    const multiDay = event(
+      "multi-day",
+      "2026-08-10T08:00:00.000Z",
+      "2026-08-14T10:00:00.000Z",
+    );
+    multiDay.rsvpCounts.going = 100;
+    const startsToday = event(
+      "starts-today",
+      "2026-08-12T08:00:00.000Z",
+      "2026-08-12T10:00:00.000Z",
+    );
+    const secondStart = event(
+      "second-start",
+      "2026-08-12T09:00:00.000Z",
+      "2026-08-12T11:00:00.000Z",
+    );
+    const month = buildEventCalendarMonth("2026-08", "de-CH", [
+      multiDay,
+      secondStart,
+      startsToday,
+    ]);
+    const day = month.days.find((candidate) => candidate.key === "2026-08-12");
+
+    expect(day?.events).toHaveLength(3);
+    expect(day?.indicatorEvents.map((candidate) => candidate.id)).toEqual([
+      "starts-today",
+      "second-start",
+    ]);
+  });
+
   it("adds a full 24-hour query buffer around the visible grid", () => {
     const month = buildEventCalendarMonth("2026-08", "de-CH", []);
 

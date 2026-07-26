@@ -10,12 +10,12 @@ import { RouterLink } from "@angular/router";
 import { AnalyticsService } from "../../services/analytics.service";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 import type { EventDiscoveryItem } from "../../services/search.service";
-import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
 import { eventDiscoveryAccessibleLabel } from "./event-discovery-accessibility";
+import { EventCalendarThumbnailComponent } from "./event-calendar-thumbnail.component";
 
 @Component({
   selector: "app-event-calendar-item",
-  imports: [MatIconModule, RouterLink],
+  imports: [MatIconModule, RouterLink, EventCalendarThumbnailComponent],
   templateUrl: "./event-calendar-item.component.html",
   styleUrl: "./event-calendar-item.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -43,11 +43,6 @@ export class EventCalendarItemComponent {
     "/events",
     this.event().slug ?? this.event().id,
   ]);
-  readonly logoSrc = computed(() =>
-    eventImageDisplaySrc(
-      this.event().sponsorLogoSrc ?? this.event().logoSrc,
-    ),
-  );
   readonly isLive = computed(() => {
     const now = Date.now() / 1000;
     return now >= this.event().startSeconds && now <= this.event().endSeconds;

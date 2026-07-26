@@ -136,9 +136,18 @@
   background: transparent;
   color: var(--mat-sys-on-surface);
   cursor: pointer;
+  container-type: inline-size;
 }
 
-.date-button small {
+.date-event-indicator {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.date-event-indicator small {
   display: grid;
   min-width: 18px;
   min-height: 18px;
@@ -147,6 +156,36 @@
   background: var(--mat-sys-primary);
   color: var(--mat-sys-on-primary);
   font: var(--mat-sys-label-small);
+}
+
+.event-thumbnails {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.event-thumbnails app-event-calendar-thumbnail {
+  --event-calendar-thumbnail-radius: 50%;
+  --event-calendar-thumbnail-size: 20px;
+
+  display: none;
+  border: 1px solid var(--mat-sys-outline);
+}
+
+.event-thumbnails app-event-calendar-thumbnail + app-event-calendar-thumbnail {
+  margin-left: -4px;
+}
+
+@container (min-width: 48px) {
+  .event-thumbnails app-event-calendar-thumbnail:first-child {
+    display: grid;
+  }
+}
+
+@container (min-width: 68px) {
+  .event-thumbnails app-event-calendar-thumbnail:nth-child(2) {
+    display: grid;
+  }
 }
 
 .date-button.is-selected {

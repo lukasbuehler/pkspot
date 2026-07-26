@@ -2,6 +2,7 @@ import type { EventDiscoveryItem } from "../../services/search.service";
 
 const DAY_MS = 86_400_000;
 export const CALENDAR_VISIBLE_LANES = 3;
+export const CALENDAR_COMPACT_ICON_LIMIT = 2;
 
 export interface EventCalendarDay {
   key: string;
@@ -10,6 +11,7 @@ export interface EventCalendarDay {
   inSelectedMonth: boolean;
   isToday: boolean;
   events: EventDiscoveryItem[];
+  indicatorEvents: EventDiscoveryItem[];
   hiddenEventCount: number;
 }
 
@@ -120,13 +122,17 @@ export function buildEventCalendarMonth(
     cursor = addDays(cursor, 1)
   ) {
     const key = dateKey(cursor);
+    const eventsForDay = [...(eventDays.get(key) ?? [])].sort(compareEvents);
     days.push({
       key,
       date: cursor,
       dayNumber: cursor.getUTCDate(),
       inSelectedMonth: cursor.getUTCMonth() === month - 1,
       isToday: key === todayKey,
-      events: [...(eventDays.get(key) ?? [])].sort(compareEvents),
+      events: eventsForDay,
+      indicatorEvents: [...eventsForDay]
+        .sort((left, right) => compareIndicatorEvents(left, right, key))
+        .slice(0, CALENDAR_COMPACT_ICON_LIMIT),
       hiddenEventCount: 0,
     });
   }
@@ -263,6 +269,40 @@ function compareEvents(
     left.startSeconds - right.startSeconds ||
     left.name.localeCompare(right.name)
   );
+}
+
+function compareIndicatorEvents(
+  left: EventDiscoveryItem,
+  right: EventDiscoveryItem,
+  dayKey: string,
+): number {
+  const cancelledDelta =
+    Number(left.lifecycleStatus === "cancelled") -
+    Number(right.lifecycleStatus === "cancelled");
+  if (cancelledDelta !== 0) return cancelledDelta;
+
+  const startsTodayDelta =
+    Number(eventStartDateKey(right) === dayKey) -
+    Number(eventStartDateKey(left) === dayKey);
+  if (startsTodayDelta !== 0) return startsTodayDelta;
+
+  const sponsoredDelta =
+    Number(right.isSponsored) - Number(left.isSponsored);
+  if (sponsoredDelta !== 0) return sponsoredDelta;
+
+  const rsvpDelta = relevantRsvpCount(right) - relevantRsvpCount(left);
+  return rsvpDelta || compareEvents(left, right);
+}
+
+function eventStartDateKey(event: EventDiscoveryItem): string {
+  return eventLocalDateKey(
+    new Date(event.startSeconds * 1000),
+    event.timeZone,
+  );
+}
+
+function relevantRsvpCount(event: EventDiscoveryItem): number {
+  return event.rsvpCounts.going + event.rsvpCounts.interested;
 }
 
 function parseMonthKey(monthKey: string): [number, number] {

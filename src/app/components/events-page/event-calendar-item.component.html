@@ -8,20 +8,7 @@
   [attr.aria-label]="accessibleLabel()"
   (click)="trackClick()"
 >
-  @if (logoSrc(); as logo) {
-    <span
-      class="event-logo"
-      [style.background]="
-        event().sponsorLogoSrc
-          ? (event().sponsorLogoBackgroundColor ?? null)
-          : (event().logoBackgroundColor ?? null)
-      "
-    >
-      <img [src]="logo" alt="" />
-    </span>
-  } @else {
-    <mat-icon class="event-icon" aria-hidden="true">event</mat-icon>
-  }
+  <app-event-calendar-thumbnail [event]="event()" />
   <span class="event-copy">
     <span class="event-name">{{ event().name }}</span>
     @if (
