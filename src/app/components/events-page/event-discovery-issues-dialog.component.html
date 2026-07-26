@@ -2,8 +2,15 @@
 
 <mat-dialog-content>
   <p class="dialog-intro mat-body-medium" i18n>
-    These events are excluded from public discovery until their local time zone
-    and event dates are valid.
+    An event's local time zone is derived from its map coordinates. It places
+    the event on the correct local calendar day and keeps its start and end
+    times accurate through daylight-saving changes.
+  </p>
+  <p class="dialog-intro mat-body-medium" i18n>
+    {data.events.length, plural, =1 {The one problematic published event is
+    shown below.} other {All {{ data.events.length }} problematic published
+    events are shown below.}} They are excluded from public discovery until
+    their coordinates, local time zone, and event dates are valid.
   </p>
 
   <div class="event-preview-list">
