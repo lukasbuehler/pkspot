@@ -43,6 +43,7 @@
   );
   --mat-fab-state-layer-color: var(--fab-menu-content);
 
+  border-radius: var(--mat-sys-corner-large);
   transition:
     border-radius 200ms ease,
     background-color 200ms ease,
@@ -52,7 +53,6 @@
 
 .fab-menu .fab-menu__launcher--open.mat-mdc-fab {
   --mat-fab-container-color: var(--fab-menu-close-container);
-  --mat-fab-container-shape: var(--mat-sys-corner-full);
   --mat-fab-foreground-color: var(--fab-menu-close-content);
   --mat-fab-ripple-color: color-mix(
     in srgb,
@@ -61,6 +61,8 @@
     transparent
   );
   --mat-fab-state-layer-color: var(--fab-menu-close-content);
+
+  border-radius: calc(56px / 2);
 }
 
 .fab-menu__launcher-icon {
