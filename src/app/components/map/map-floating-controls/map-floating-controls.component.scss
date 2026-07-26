@@ -12,7 +12,9 @@
   z-index: 1;
 }
 
-.create-spot-fab {
+.create-fab-menu {
+  --fab-menu-bottom-offset: 30px;
+
   bottom: 30px;
   left: 20px;
   position: absolute;
@@ -24,7 +26,11 @@
     bottom: 124px;
   }
 
-  .create-spot-fab {
+  .create-fab-menu {
+    --fab-menu-bottom-offset: calc(
+      var(--bottom-sheet-closed-height, 140px) + 30px
+    );
+
     bottom: calc(var(--bottom-sheet-closed-height, 140px) + 30px);
   }
 }

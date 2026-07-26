@@ -8,7 +8,8 @@ interface CreateSafetyIncidentRequest {
 }
 
 interface GetModerationMediaPreviewRequest {
-  report_path: string;
+  report_path?: string;
+  review_id?: string;
 }
 
 interface UpdateSafetyIncidentRequest {
@@ -54,6 +55,12 @@ const assertReportPath = (path: string): void => {
     throw new HttpsError("invalid-argument", "Invalid media report path.");
   }
 };
+
+const isRestrictedScannerResult = (
+  scanner: admin.firestore.DocumentData | undefined,
+): boolean =>
+  scanner?.["decision"] === "reportable_match" ||
+  scanner?.["severity"] === "known_csam_match";
 
 const stringField = (
   value: unknown,
@@ -136,28 +143,84 @@ export const createSafetyIncident = onCall<CreateSafetyIncidentRequest>(
 export const getModerationMediaPreview = onCall<GetModerationMediaPreviewRequest>(
   async (request) => {
     await assertAdmin(request.auth?.uid);
-    const reportPath = request.data.report_path;
-    assertReportPath(reportPath);
+    const { report_path: reportPath, review_id: reviewId } = request.data;
+    if (typeof reviewId === "string") {
+      if (!/^[A-Za-z0-9_-]+$/.test(reviewId) || reportPath !== undefined) {
+        throw new HttpsError("invalid-argument", "Invalid media preview target.");
+      }
+      const review = await db.doc(`media_upload_reviews/${reviewId}`).get();
+      const reviewData = review.data() ?? {};
+      if (!review.exists) {
+        throw new HttpsError("not-found", "Media review not found.");
+      }
+      if (isRestrictedScannerResult(reviewData["scan_result"])) {
+        throw new HttpsError(
+          "failed-precondition",
+          "Reportable-match media cannot be previewed.",
+        );
+      }
+      const storagePath =
+        typeof reviewData["intake_path"] === "string"
+          ? reviewData["intake_path"]
+          : typeof reviewData["audited_path"] === "string"
+            ? reviewData["audited_path"]
+            : undefined;
+      if (!storagePath) {
+        throw new HttpsError("not-found", "Quarantined media was not found.");
+      }
+      return createSignedPreview(storagePath);
+    }
 
+    if (typeof reportPath !== "string") {
+      throw new HttpsError("invalid-argument", "Invalid media preview target.");
+    }
+    assertReportPath(reportPath);
     const report = await db.doc(reportPath).get();
-    const media = report.data()?.["media"];
+    const reportData = report.data() ?? {};
+    const media = reportData["media"];
     const storagePath =
       media && typeof media === "object" ? media["storage_path"] : undefined;
+    const scanner =
+      reportData["scanner"] && typeof reportData["scanner"] === "object"
+        ? reportData["scanner"]
+        : media && typeof media === "object"
+          ? {
+              decision: media["scanner_decision"],
+              severity: media["scanner_severity"],
+            }
+          : undefined;
     if (!report.exists || typeof storagePath !== "string") {
       throw new HttpsError("not-found", "Quarantined media was not found.");
     }
+    if (isRestrictedScannerResult(scanner)) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Reportable-match media cannot be previewed.",
+      );
+    }
 
-    const [url] = await getStorage()
-      .bucket(DEFAULT_STORAGE_BUCKET)
-      .file(storagePath)
-      .getSignedUrl({
-        version: "v4",
-        action: "read",
-        expires: Date.now() + 5 * 60 * 1000,
-      });
-    return { url, expires_in_seconds: 300 };
+    return createSignedPreview(storagePath);
   },
 );
+
+const createSignedPreview = async (
+  storagePath: string,
+): Promise<{ url: string; expires_in_seconds: number }> => {
+  const file = getStorage().bucket(DEFAULT_STORAGE_BUCKET).file(storagePath);
+  const [exists] = await file.exists();
+  if (!exists) {
+    throw new HttpsError(
+      "not-found",
+      "The quarantined media file no longer exists.",
+    );
+  }
+  const [url] = await file.getSignedUrl({
+      version: "v4",
+      action: "read",
+      expires: Date.now() + 5 * 60 * 1000,
+    });
+  return { url, expires_in_seconds: 300 };
+};
 
 export const updateSafetyIncident = onCall<UpdateSafetyIncidentRequest>(
   async (request) => {

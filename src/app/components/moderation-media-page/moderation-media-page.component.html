@@ -59,10 +59,52 @@
                 loading="lazy"
               />
             }
+          } @else if (previewUrls()[item.id]; as previewUrl) {
+            <div class="media-card__revealed">
+              @if (item.isVideo) {
+                <video
+                  class="media-card__preview"
+                  [src]="previewUrl"
+                  controls
+                  preload="metadata"
+                ></video>
+              } @else {
+                <img
+                  class="media-card__preview"
+                  [src]="previewUrl"
+                  alt="Quarantined media revealed for moderation"
+                  i18n-alt
+                />
+              }
+              <button
+                class="media-card__hide"
+                matButton="filled"
+                type="button"
+                (click)="hidePreview(item.id)"
+              >
+                <mat-icon>visibility_off</mat-icon>
+                <span i18n>Hide</span>
+              </button>
+            </div>
           } @else {
             <div class="media-card__hidden">
-              <mat-icon>shield</mat-icon>
-              <span i18n>Quarantined media hidden</span>
+              <mat-icon>{{ item.isRestricted ? "lock" : "shield" }}</mat-icon>
+              @if (item.isRestricted) {
+                <strong i18n>Restricted incident media</strong>
+                <span i18n>Do not preview or release this file.</span>
+              } @else {
+                <strong i18n>Quarantined media hidden</strong>
+                <span i18n>Reveal only when you are ready to review it.</span>
+                <button
+                  matButton="outlined"
+                  type="button"
+                  [disabled]="previewLoadingId() === item.id"
+                  (click)="reveal(item)"
+                >
+                  <mat-icon>image</mat-icon>
+                  <span i18n>Reveal to review</span>
+                </button>
+              }
             </div>
           }
 
@@ -89,13 +131,38 @@
             </mat-chip-set>
 
             <dl>
-              @if (item.uploaderUid) {
+              @if (item.uploader) {
                 <div>
                   <dt i18n>Uploader ID</dt>
-                  <dd>{{ item.uploaderUid }}</dd>
+                  <dd>
+                    <app-profile-button [user]="item.uploader" />
+                  </dd>
                 </div>
               }
-              @if (item.targetKind || item.targetId) {
+              @if (item.spotPreview; as spot) {
+                <div>
+                  <dt i18n>Target</dt>
+                  <dd>
+                    <a
+                      class="media-card__spot-link"
+                      [routerLink]="[
+                        '/map',
+                        'spots',
+                        spot.slug ?? spot.id,
+                      ]"
+                    >
+                      <app-spot-preview-card
+                        class="media-card__spot-preview"
+                        [spotData]="spot"
+                        [isCompact]="true"
+                        [infoOnly]="true"
+                        [showInfoButton]="false"
+                        [clickable]="true"
+                      />
+                    </a>
+                  </dd>
+                </div>
+              } @else if (item.targetKind || item.targetId) {
                 <div>
                   <dt i18n>Target</dt>
                   <dd>{{ item.targetKind || "media" }} · {{ item.targetId }}</dd>
@@ -113,6 +180,16 @@
                   <dd>{{ item.reason }}</dd>
                 </div>
               }
+              @if (item.labelEntries.length) {
+                <div>
+                  <dt i18n>Vision labels</dt>
+                  <dd>
+                    @for (label of item.labelEntries; track label.name) {
+                      <span>{{ label.name }}: {{ label.value }}</span>
+                    }
+                  </dd>
+                </div>
+              }
             </dl>
           </mat-card-content>
           @if (item.isApproved && item.publicUrl) {
@@ -126,6 +203,20 @@
                 <mat-icon>open_in_new</mat-icon>
                 <span i18n>Open released media</span>
               </a>
+            </mat-card-actions>
+          } @else if (!item.isRestricted) {
+            <mat-card-actions>
+              @if (previewUrls()[item.id]) {
+                <button
+                  matButton="filled"
+                  type="button"
+                  [disabled]="actionId() === item.id"
+                  (click)="markSafe(item)"
+                >
+                  <mat-icon>check_circle</mat-icon>
+                  <span i18n>Mark safe and release</span>
+                </button>
+              }
             </mat-card-actions>
           }
         </mat-card>

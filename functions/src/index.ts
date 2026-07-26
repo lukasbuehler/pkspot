@@ -96,7 +96,9 @@ export {
   processImageUpload,
 } from "./imageProcessingFunctions";
 export {
+  markMediaUploadSafe,
   processMediaIntakeUpload,
+  reconcilePublishedMediaReviews,
   runMediaIntakeBackfill,
   runMediaModerationAudit,
 } from "./mediaModerationFunctions";

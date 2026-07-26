@@ -1,16 +1,42 @@
 .fab-container {
   display: flex;
   flex-direction: column-reverse;
-  align-items: center;
+  align-items: flex-end;
+
+  &.labels-right {
+    align-items: flex-start;
+  }
 
   > div.mini-fab-container {
     display: flex;
     flex-direction: column-reverse;
-    align-items: center;
-    margin-bottom: 5px;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 12px;
 
-    button {
-      margin-bottom: 17px;
+    .labels-right & {
+      align-items: flex-start;
+    }
+
+    .mini-fab-action {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .labels-right & {
+        flex-direction: row-reverse;
+      }
+    }
+
+    .mini-fab-label {
+      color: var(--mat-sys-on-surface);
+      background: var(--mat-sys-surface-container-high);
+      border: 1px solid var(--mat-sys-outline-variant);
+      border-radius: 12px;
+      box-shadow: var(--mat-sys-level2);
+      max-width: min(240px, calc(100vw - 120px));
+      padding: 7px 11px;
+      white-space: nowrap;
     }
   }
 }

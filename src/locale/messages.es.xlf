@@ -30,6 +30,12 @@
         <target> — Sin algoritmos de caja negra ni seguimiento oculto. <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://github.com/lukasbuehler/pkspot&quot;&gt;" dispEnd="&lt;/a &gt;">Ver en GitHub</pc>. </target>
       </segment>
     </unit>
+    <unit id="3794552197010908768">
+      <segment state="initial">
+        <source>Do not preview or release this file.</source>
+        <target>No previsualices ni publiques este archivo.</target>
+      </segment>
+    </unit>
     <unit id="6910865064463105075">
       <segment state="initial">
         <source>Communities</source>
@@ -100,6 +106,18 @@
       <segment state="initial">
         <source>Open the location of this spot in Maps</source>
         <target>Abrir la ubicación de este spot en Maps</target>
+      </segment>
+    </unit>
+    <unit id="1792190533431059127">
+      <segment state="initial">
+        <source>Mark this media as safe and release it publicly? This records your administrator decision.</source>
+        <target>¿Marcar este contenido como seguro y publicarlo? Se registrará tu decisión de administrador.</target>
+      </segment>
+    </unit>
+    <unit id="1793249295787733080">
+      <segment state="initial">
+        <source>Media marked safe and released</source>
+        <target>Contenido marcado como seguro y publicado</target>
       </segment>
     </unit>
     <unit id="openMapSourceButtonLabel">
@@ -276,6 +294,12 @@
         <target>Perfil</target>
       </segment>
     </unit>
+    <unit id="49184001319674796">
+      <segment state="initial">
+        <source>Failed to release media</source>
+        <target>No se pudo publicar el contenido</target>
+      </segment>
+    </unit>
     <unit id="4930506384627295710">
       <segment state="initial">
         <source>Settings</source>
@@ -370,6 +394,12 @@
       <segment state="initial">
         <source>waiting on votes</source>
         <target>waiting on votes</target>
+      </segment>
+    </unit>
+    <unit id="8461609631969932886">
+      <segment state="initial">
+        <source>Hide</source>
+        <target>Ocultar</target>
       </segment>
     </unit>
     <unit id="8470446025763473581">
@@ -780,6 +810,144 @@
       <segment state="initial">
         <source>Events</source>
         <target>Eventos</target>
+      </segment>
+    </unit>
+    <unit id="session_planner.back">
+      <segment state="initial">
+        <source>Back to events</source>
+        <target>Volver a eventos</target>
+      </segment>
+    </unit>
+    <unit id="session_planner.created">
+      <segment state="initial">
+        <source>Session created.</source>
+        <target>Sesión creada.</target>
+      </segment>
+    </unit>
+    <unit id="session_planner.failed">
+      <segment state="initial">
+        <source>Couldn&apos;t create the session. Please try again.</source>
+        <target>No se pudo crear la sesión. Inténtalo de nuevo.</target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.capacity">
+      <segment state="initial">
+        <source> Capacity (optional) </source>
+        <target> Capacidad (opcional) </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.essentials">
+      <segment state="initial">
+        <source> Session details </source>
+        <target> Detalles de la sesión </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.heading">
+      <segment state="initial">
+        <source> Plan a session </source>
+        <target> Planificar una sesión </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.joining">
+      <segment state="initial">
+        <source> How people join </source>
+        <target> Cómo participar </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.name">
+      <segment state="initial">
+        <source>Session name</source>
+        <target>Nombre de la sesión</target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.note">
+      <segment state="initial">
+        <source>Optional note for participants</source>
+        <target>Nota opcional para participantes</target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.options">
+      <segment state="initial">
+        <source> Session options </source>
+        <target> Opciones de la sesión </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.public_body">
+      <segment state="initial">
+        <source> This compatibility release publishes sessions to everyone. Private and link-only sessions will become available after older app versions no longer read the events collection directly. </source>
+        <target> En esta versión de compatibilidad, las sesiones son públicas. Las sesiones privadas y accesibles solo mediante enlace estarán disponibles cuando las versiones anteriores de la aplicación dejen de leer directamente la colección de eventos. </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.public_title">
+      <segment state="initial">
+        <source> Public session for now </source>
+        <target> Sesión pública por ahora </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.registration">
+      <segment state="initial">
+        <source> Registration </source>
+        <target> Inscripción </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.rsvp">
+      <segment state="initial">
+        <source> Going / Interested </source>
+        <target> Voy / Me interesa </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.save">
+      <segment state="initial">
+        <source>Create session</source>
+        <target>Crear sesión</target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.waitlist">
+      <segment state="initial">
+        <source> Enable a waitlist </source>
+        <target> Activar lista de espera </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.loading">
+      <segment state="initial">
+        <source> Loading session planner… </source>
+        <target> Cargando el planificador de sesiones… </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.meta.description">
+      <segment state="initial">
+        <source>Plan a local parkour training session and invite the community.</source>
+        <target>Planifica una sesión local de parkour e invita a la comunidad.</target>
+      </segment>
+    </unit>
+    <unit id="session_planner.meta.title">
+      <segment state="initial">
+        <source>Plan a session</source>
+        <target>Planificar una sesión</target>
+      </segment>
+    </unit>
+    <unit id="session_planner.restricted_title">
+      <segment state="initial">
+        <source> Session planning is unavailable </source>
+        <target> La planificación de sesiones no está disponible </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.sign_in_action">
+      <segment state="initial">
+        <source>Sign in</source>
+        <target>Iniciar sesión</target>
+      </segment>
+    </unit>
+    <unit id="session_planner.sign_in_body">
+      <segment state="initial">
+        <source> Sessions have a real owner so you can update the details and manage attendance later. </source>
+        <target> Las sesiones tienen un propietario identificado para que puedas actualizar los detalles y gestionar la asistencia más adelante. </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.sign_in_title">
+      <segment state="initial">
+        <source> Sign in to plan a session </source>
+        <target> Inicia sesión para planificar una sesión </target>
       </segment>
     </unit>
     <unit id="settings.about.description">
@@ -2679,6 +2847,12 @@
       <segment state="initial">
         <source>Reset map orientation to north</source>
         <target>Restablecer orientación del mapa al norte</target>
+      </segment>
+    </unit>
+    <unit id="8609785202570000921">
+      <segment state="initial">
+        <source>Quarantined media revealed for moderation</source>
+        <target>Contenido en cuarentena mostrado para moderación</target>
       </segment>
     </unit>
     <unit id="8614289146412859500">
@@ -7517,10 +7691,28 @@
         <target>Crear evento</target>
       </segment>
     </unit>
+    <unit id="events.create_menu">
+      <segment state="initial">
+        <source>Create</source>
+        <target>Crear</target>
+      </segment>
+    </unit>
+    <unit id="events.create_menu_tooltip">
+      <segment state="initial">
+        <source>Create an event or session</source>
+        <target>Crear un evento o una sesión</target>
+      </segment>
+    </unit>
     <unit id="events.past_heading">
       <segment state="initial">
         <source> Past events </source>
         <target>Eventos pasados</target>
+      </segment>
+    </unit>
+    <unit id="events.plan_session">
+      <segment state="initial">
+        <source>Plan session</source>
+        <target>Planificar sesión</target>
       </segment>
     </unit>
     <unit id="events.status.live_with_end">
@@ -8799,6 +8991,12 @@
         <target> Añade un límite editable para este spot. Después de añadirlo, puedes ajustar la forma del polígono en el mapa. </target>
       </segment>
     </unit>
+    <unit id="212841987551167718">
+      <segment state="initial">
+        <source>Mark safe and release</source>
+        <target>Marcar como seguro y publicar</target>
+      </segment>
+    </unit>
     <unit id="2128755808672960949">
       <segment state="initial">
         <source>User ID</source>
@@ -9136,7 +9334,37 @@
         <target>Follow request sent</target>
       </segment>
     </unit>
-    <unit id="2736531674722915416">
+    <unit id="map.create.event">
+      <segment state="initial">
+        <source>Create event</source>
+        <target>Crear evento</target>
+      </segment>
+    </unit>
+    <unit id="map.create.import_spots">
+      <segment state="initial">
+        <source>Import spots</source>
+        <target>Importar Spots</target>
+      </segment>
+    </unit>
+    <unit id="map.create.open">
+      <segment state="initial">
+        <source>Create</source>
+        <target>Crear</target>
+      </segment>
+    </unit>
+    <unit id="map.create.open_tooltip">
+      <segment state="initial">
+        <source>Create on the map</source>
+        <target>Crear en el mapa</target>
+      </segment>
+    </unit>
+    <unit id="map.create.session">
+      <segment state="initial">
+        <source>Plan session</source>
+        <target>Planificar sesión</target>
+      </segment>
+    </unit>
+    <unit id="map.create.spot">
       <segment state="initial">
         <source>Add Spot</source>
         <target>Añadir Spot</target>
@@ -9836,6 +10064,12 @@
         <target> Las personas suscritas a este evento recibirán una notificación en directo. </target>
       </segment>
     </unit>
+    <unit id="6111352634912339440">
+      <segment state="initial">
+        <source>Vision labels</source>
+        <target>Etiquetas de Vision</target>
+      </segment>
+    </unit>
     <unit id="6113189419449428585">
       <segment state="initial">
         <source>About &amp; Credits</source>
@@ -10486,6 +10720,18 @@
         <target>¡Agregaré media!</target>
       </segment>
     </unit>
+    <unit id="7153403490674442525">
+      <segment state="initial">
+        <source>Restricted incident media</source>
+        <target>Contenido de incidente restringido</target>
+      </segment>
+    </unit>
+    <unit id="7162684876097824524">
+      <segment state="initial">
+        <source>This upload was flagged or failed automated scanning and may be disturbing. Reveal it for manual moderation?</source>
+        <target>Esta carga fue marcada o falló el análisis automático y puede resultar perturbadora. ¿Mostrarla para moderación manual?</target>
+      </segment>
+    </unit>
     <unit id="7193934719093844817">
       <segment state="initial">
         <source>Challenge at <ph id="0" equiv="PH" disp="spotName"/></source>
@@ -10514,6 +10760,12 @@
       <segment state="initial">
         <source>edits</source>
         <target>ediciones</target>
+      </segment>
+    </unit>
+    <unit id="7278934602174139871">
+      <segment state="initial">
+        <source>Reveal only when you are ready to review it.</source>
+        <target>Muéstralo solo cuando estés listo para revisarlo.</target>
       </segment>
     </unit>
     <unit id="7295769845403931650">
@@ -12957,6 +13209,12 @@
       <segment state="initial">
         <source> Your suggestion </source>
         <target>Tu sugerencia</target>
+      </segment>
+    </unit>
+    <unit id="fab_menu.close">
+      <segment state="translated">
+        <source>Close menu</source>
+        <target>Cerrar menú</target>
       </segment>
     </unit>
   </file>

@@ -52,18 +52,14 @@
     </button>
   </div>
 
-  @if (showCreateSpot()) {
-    <button
-      mat-fab
-      extended
-      type="button"
-      id="createSpotSpeedDial"
-      class="create-spot-fab"
-      color="primary"
-      (click)="createSpot.emit()"
-    >
-      <mat-icon>add_location</mat-icon>
-      <span i18n class="mdc-button__label">Add Spot</span>
-    </button>
+  @if (createActions().length > 0) {
+    <app-fab-menu
+      id="mapCreateFabMenu"
+      class="create-fab-menu"
+      alignment="start"
+      [actions]="createActions()"
+      [launcherLabel]="createMenuLabel"
+      (actionSelected)="onCreateAction($event)"
+    />
   }
 }

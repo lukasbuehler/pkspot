@@ -164,6 +164,7 @@ export class AuthenticationService extends ConsentAwareService {
     if (screenshotAuthUser) {
       this.user = screenshotAuthUser;
       this.isSignedIn = true;
+      this.isAdmin.set(screenshotAuthUser.data?.isAdmin === true);
       this.initialAuthStateResolved.set(true);
       this._setAuthorizationStateResolved(true);
       this.authState$.next(screenshotAuthUser);

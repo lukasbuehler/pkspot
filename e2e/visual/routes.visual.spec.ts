@@ -6,6 +6,8 @@ interface RouteVisualCase {
   path: string;
   viewport?: { width: number; height: number };
   signedIn?: boolean;
+  admin?: boolean;
+  openFabMenu?: boolean;
   expectedPath?: RegExp;
   fullPage?: boolean;
   clip?: { x: number; y: number; width: number; height: number };
@@ -28,6 +30,33 @@ const routeVisualCases: RouteVisualCase[] = [
     maxDiffPixels: 2_000,
     eventIndexFixture: true,
     fixedTime: "2026-07-20T12:00:00.000Z",
+  },
+  {
+    name: "events-plan-session-fab",
+    path: "/events",
+    viewport: mobileViewport,
+    signedIn: true,
+    eventIndexFixture: true,
+    fixedTime: "2026-07-20T12:00:00.000Z",
+    maxDiffPixels: 2_000,
+  },
+  {
+    name: "events-fab-menu-expanded",
+    path: "/events",
+    viewport: mobileViewport,
+    signedIn: true,
+    admin: true,
+    openFabMenu: true,
+    eventIndexFixture: true,
+    fixedTime: "2026-07-20T12:00:00.000Z",
+    maxDiffPixels: 2_000,
+  },
+  {
+    name: "session-planner",
+    path: "/events/session/new",
+    signedIn: true,
+    fullPage: true,
+    maxDiffPixels: 4_000,
   },
   {
     name: "event-detail",
@@ -158,7 +187,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
     await page.clock.setFixedTime(new Date(route.fixedTime));
   }
   await page.addInitScript(
-    ({ acceptedVersion, eventIndexFixture, signedIn }) => {
+    ({ acceptedVersion, admin, eventIndexFixture, signedIn }) => {
       localStorage.setItem("acceptedVersion", acceptedVersion);
       localStorage.setItem(
         "lastLocationAndZoom",
@@ -303,6 +332,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
             },
             account_privacy: "public",
             profile_visibility: "public",
+            is_admin: admin,
           },
         };
         const now = Date.now();
@@ -359,6 +389,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
     },
     {
       acceptedVersion: CURRENT_TERMS_VERSION,
+      admin: route.admin === true,
       eventIndexFixture: route.eventIndexFixture === true,
       signedIn: route.signedIn === true,
     },
@@ -376,6 +407,13 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
     .toBeGreaterThan(20);
   await page.waitForLoadState("load");
   await page.waitForTimeout(900);
+
+  if (route.openFabMenu) {
+    const launcher = page.locator("app-fab-menu .fab-menu__launcher");
+    await expect(launcher).toBeVisible();
+    await launcher.click();
+    await expect(page.locator(".fab-menu__actions")).toBeVisible();
+  }
 
   if (route.eventMapLayout) {
     await waitForStableEventMap(page, route.eventMapLayout);

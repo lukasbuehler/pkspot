@@ -24,6 +24,43 @@
   gap: 0.75rem;
 }
 
+.session-options {
+  padding: 1rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.session-public-notice {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 0.75rem;
+  align-items: start;
+  padding: 1rem;
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 18px;
+
+  > mat-icon {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    border-radius: 13px;
+    background: color-mix(
+      in srgb,
+      var(--mat-sys-primary) 16%,
+      transparent
+    );
+  }
+
+  > div {
+    display: grid;
+    gap: 0.25rem;
+  }
+}
+
 .optional-section-heading {
   display: grid;
   gap: 0.25rem;

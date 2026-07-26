@@ -1181,6 +1181,11 @@
         <source>Profile</source>
       </segment>
     </unit>
+    <unit id="49184001319674796">
+      <segment>
+        <source>Failed to release media</source>
+      </segment>
+    </unit>
     <unit id="8828059408146193176">
       <segment>
         <source> Release Date <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE" equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other" dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;" dispEnd="&lt;/mat-slide-toggle&gt;"/></source>
@@ -1320,6 +1325,16 @@
     <unit id="7150227608403439982">
       <segment>
         <source>I&apos;ll add media!</source>
+      </segment>
+    </unit>
+    <unit id="7153403490674442525">
+      <segment>
+        <source>Restricted incident media</source>
+      </segment>
+    </unit>
+    <unit id="7162684876097824524">
+      <segment>
+        <source>This upload was flagged or failed automated scanning and may be disturbing. Reveal it for manual moderation?</source>
       </segment>
     </unit>
     <unit id="4115668858470490289">
@@ -4592,6 +4607,16 @@
         <source>Create event</source>
       </segment>
     </unit>
+    <unit id="events.create_menu">
+      <segment>
+        <source>Create</source>
+      </segment>
+    </unit>
+    <unit id="events.create_menu_tooltip">
+      <segment>
+        <source>Create an event or session</source>
+      </segment>
+    </unit>
     <unit id="events.no_filtered_events">
       <segment>
         <source> No events match the selected filters. </source>
@@ -4610,6 +4635,11 @@
     <unit id="events.past_heading">
       <segment>
         <source> Past events </source>
+      </segment>
+    </unit>
+    <unit id="events.plan_session">
+      <segment>
+        <source>Plan session</source>
       </segment>
     </unit>
     <unit id="events.status.live_with_end">
@@ -5095,7 +5125,32 @@
         <source>Loading safety incident...</source>
       </segment>
     </unit>
-    <unit id="2736531674722915416">
+    <unit id="map.create.event">
+      <segment>
+        <source>Create event</source>
+      </segment>
+    </unit>
+    <unit id="map.create.import_spots">
+      <segment>
+        <source>Import spots</source>
+      </segment>
+    </unit>
+    <unit id="map.create.open">
+      <segment>
+        <source>Create</source>
+      </segment>
+    </unit>
+    <unit id="map.create.open_tooltip">
+      <segment>
+        <source>Create on the map</source>
+      </segment>
+    </unit>
+    <unit id="map.create.session">
+      <segment>
+        <source>Plan session</source>
+      </segment>
+    </unit>
+    <unit id="map.create.spot">
       <segment>
         <source>Add Spot</source>
       </segment>
@@ -5931,6 +5986,121 @@
         <source>Events</source>
       </segment>
     </unit>
+    <unit id="session_planner.back">
+      <segment>
+        <source>Back to events</source>
+      </segment>
+    </unit>
+    <unit id="session_planner.created">
+      <segment>
+        <source>Session created.</source>
+      </segment>
+    </unit>
+    <unit id="session_planner.failed">
+      <segment>
+        <source>Couldn&apos;t create the session. Please try again.</source>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.capacity">
+      <segment>
+        <source> Capacity (optional) </source>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.essentials">
+      <segment>
+        <source> Session details </source>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.heading">
+      <segment>
+        <source> Plan a session </source>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.joining">
+      <segment>
+        <source> How people join </source>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.name">
+      <segment>
+        <source>Session name</source>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.note">
+      <segment>
+        <source>Optional note for participants</source>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.options">
+      <segment>
+        <source> Session options </source>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.public_body">
+      <segment>
+        <source> This compatibility release publishes sessions to everyone. Private and link-only sessions will become available after older app versions no longer read the events collection directly. </source>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.public_title">
+      <segment>
+        <source> Public session for now </source>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.registration">
+      <segment>
+        <source> Registration </source>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.rsvp">
+      <segment>
+        <source> Going / Interested </source>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.save">
+      <segment>
+        <source>Create session</source>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.waitlist">
+      <segment>
+        <source> Enable a waitlist </source>
+      </segment>
+    </unit>
+    <unit id="session_planner.loading">
+      <segment>
+        <source> Loading session planner… </source>
+      </segment>
+    </unit>
+    <unit id="session_planner.meta.description">
+      <segment>
+        <source>Plan a local parkour training session and invite the community.</source>
+      </segment>
+    </unit>
+    <unit id="session_planner.meta.title">
+      <segment>
+        <source>Plan a session</source>
+      </segment>
+    </unit>
+    <unit id="session_planner.restricted_title">
+      <segment>
+        <source> Session planning is unavailable </source>
+      </segment>
+    </unit>
+    <unit id="session_planner.sign_in_action">
+      <segment>
+        <source>Sign in</source>
+      </segment>
+    </unit>
+    <unit id="session_planner.sign_in_body">
+      <segment>
+        <source> Sessions have a real owner so you can update the details and manage attendance later. </source>
+      </segment>
+    </unit>
+    <unit id="session_planner.sign_in_title">
+      <segment>
+        <source> Sign in to plan a session </source>
+      </segment>
+    </unit>
     <unit id="settings.about.description">
       <notes>
         <note category="description">about section description</note>
@@ -6078,6 +6248,11 @@
     <unit id="6431756795596367554">
       <segment>
         <source>Minimum 6 characters</source>
+      </segment>
+    </unit>
+    <unit id="8609785202570000921">
+      <segment>
+        <source>Quarantined media revealed for moderation</source>
       </segment>
     </unit>
     <unit id="8614289146412859500">
@@ -6458,6 +6633,11 @@
     <unit id="6945945395354199350">
       <segment>
         <source>Incorrect password. Please try again.</source>
+      </segment>
+    </unit>
+    <unit id="212841987551167718">
+      <segment>
+        <source>Mark safe and release</source>
       </segment>
     </unit>
     <unit id="2128755808672960949">
@@ -7139,6 +7319,11 @@
         <source> — No black-box algorithms, no hidden tracking. <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://github.com/lukasbuehler/pkspot&quot; (click)=&quot;trackOutboundLinkClick(&apos;github&apos;, &apos;https://github.com/lukasbuehler/pkspot&apos;, &apos;View on GitHub&apos;)&quot; &gt;" dispEnd="&lt;/a &gt;">View on GitHub</pc>. </source>
       </segment>
     </unit>
+    <unit id="3794552197010908768">
+      <segment>
+        <source>Do not preview or release this file.</source>
+      </segment>
+    </unit>
     <unit id="2807800733729323332">
       <segment>
         <source>Yes</source>
@@ -7352,6 +7537,16 @@
       </notes>
       <segment>
         <source>Open the location of this spot in Maps</source>
+      </segment>
+    </unit>
+    <unit id="1792190533431059127">
+      <segment>
+        <source>Mark this media as safe and release it publicly? This records your administrator decision.</source>
+      </segment>
+    </unit>
+    <unit id="1793249295787733080">
+      <segment>
+        <source>Media marked safe and released</source>
       </segment>
     </unit>
     <unit id="openMapSourceButtonLabel">
@@ -7789,6 +7984,11 @@
     <unit id="6396486314653699002">
       <segment>
         <source>Follow what others discover, contribute updates, and help keep the map alive.</source>
+      </segment>
+    </unit>
+    <unit id="8461609631969932886">
+      <segment>
+        <source>Hide</source>
       </segment>
     </unit>
     <unit id="8470446025763473581">
@@ -9240,6 +9440,11 @@
         <source> People subscribed to this event will receive a live notification. </source>
       </segment>
     </unit>
+    <unit id="6111352634912339440">
+      <segment>
+        <source>Vision labels</source>
+      </segment>
+    </unit>
     <unit id="6113189419449428585">
       <segment>
         <source>About &amp; Credits</source>
@@ -9418,6 +9623,11 @@
     <unit id="7276436554511308696">
       <segment>
         <source>edits</source>
+      </segment>
+    </unit>
+    <unit id="7278934602174139871">
+      <segment>
+        <source>Reveal only when you are ready to review it.</source>
       </segment>
     </unit>
     <unit id="7295769845403931650">
@@ -10879,6 +11089,11 @@
     <unit id="community.editor_your_suggestion">
       <segment>
         <source> Your suggestion </source>
+      </segment>
+    </unit>
+    <unit id="fab_menu.close">
+      <segment>
+        <source>Close menu</source>
       </segment>
     </unit>
   </file>

@@ -330,6 +330,9 @@ export class EventEditFormComponent {
   /** Existing event to edit. When null, the form is in create mode. */
   event = input<PkEvent | null>(null);
 
+  /** Keeps the full editor reusable while presenting a focused session flow. */
+  mode = input<"event" | "session">("event");
+
   /** Hide the Delete button (e.g., on the create page). */
   showDeleteButton = input<boolean>(true);
 
@@ -494,6 +497,9 @@ export class EventEditFormComponent {
 
   /** Whether the parent passed in an existing event (vs. create mode). */
   readonly isEditMode = computed(() => this.event() !== null);
+  readonly isSessionPlanner = computed(
+    () => this.mode() === "session" && !this.isEditMode(),
+  );
   readonly isAdmin = computed(() => this._authService.isAdmin());
   /** Retire this together with legacyEventListCompatibilityEnabled in rules. */
   readonly privateAccessRolloutEnabled = false;
@@ -1924,6 +1930,18 @@ export class EventEditFormComponent {
           : {}),
       },
       notification_policy: v.notification_policy ?? "all",
+      ...(this.isSessionPlanner()
+        ? {
+            kind: "session",
+            schedule_mode: "single",
+            lifecycle_status: "planned",
+            priority: "normal",
+            publication_state: "published",
+            published: true,
+            visibility: "public",
+            discoverability: { audience: "global" },
+          }
+        : {}),
       ...(owner ? { owner } : {}),
       banner_src: trimOrUndefined(v.banner_src),
       banner_fit: v.banner_fit ?? "cover",

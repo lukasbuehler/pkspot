@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
+import { provideNoopAnimations } from "@angular/platform-browser/animations";
 import { beforeEach, describe, expect, it } from "vitest";
+import { FabMenuComponent } from "../../fab-menu/fab-menu.component";
 import { MapFloatingControlsComponent } from "./map-floating-controls.component";
 
 describe("MapFloatingControlsComponent", () => {
@@ -9,6 +11,7 @@ describe("MapFloatingControlsComponent", () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [MapFloatingControlsComponent],
+      providers: [provideNoopAnimations()],
     });
 
     fixture = TestBed.createComponent(MapFloatingControlsComponent);
@@ -18,7 +21,7 @@ describe("MapFloatingControlsComponent", () => {
     fixture.detectChanges();
 
     expect(fixture.debugElement.query(By.css(".map-mini-fabs"))).toBeNull();
-    expect(fixture.debugElement.query(By.css("#createSpotSpeedDial"))).toBeNull();
+    expect(fixture.debugElement.query(By.css("#mapCreateFabMenu"))).toBeNull();
   });
 
   it("emits map control actions", () => {
@@ -44,17 +47,38 @@ describe("MapFloatingControlsComponent", () => {
     expect(actions).toEqual(["north", "style", "location"]);
   });
 
-  it("keeps spot creation as a separate optional action", () => {
+  it("offers all configured creation actions from the FAB menu", async () => {
     const actions: string[] = [];
     fixture.componentInstance.createSpot.subscribe(() => actions.push("spot"));
+    fixture.componentInstance.importSpots.subscribe(() =>
+      actions.push("import"),
+    );
+    fixture.componentInstance.createEvent.subscribe(() =>
+      actions.push("event"),
+    );
+    fixture.componentInstance.planSession.subscribe(() =>
+      actions.push("session"),
+    );
     fixture.componentRef.setInput("showControls", true);
     fixture.componentRef.setInput("showCreateSpot", true);
+    fixture.componentRef.setInput("showImportSpots", true);
+    fixture.componentRef.setInput("showCreateEvent", true);
+    fixture.componentRef.setInput("showPlanSession", true);
 
-    fixture.detectChanges();
-    fixture.debugElement
-      .query(By.css("#createSpotSpeedDial"))
-      .nativeElement.click();
+    await fixture.whenStable();
+    const fabMenu = fixture.debugElement.query(
+      By.directive(FabMenuComponent),
+    ).componentInstance as FabMenuComponent;
+    expect(
+      fixture.componentInstance.createActions().map((action) => action.label),
+    ).toEqual(["Add Spot", "Import spots", "Create event", "Plan session"]);
 
-    expect(actions).toEqual(["spot"]);
+    for (const action of ["spot", "import-spots", "event", "session"]) {
+      fixture.componentInstance.onCreateAction(action);
+    }
+
+    expect(actions).toEqual(["spot", "import", "event", "session"]);
+    expect(fabMenu.actions()).toHaveLength(4);
+    expect(fabMenu.alignment()).toBe("start");
   });
 });

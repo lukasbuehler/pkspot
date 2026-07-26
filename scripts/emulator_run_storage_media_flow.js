@@ -13,6 +13,7 @@ const {
 const {
   connectStorageEmulator,
   deleteObject,
+  getBytes,
   getDownloadURL,
   getStorage,
   ref,
@@ -214,12 +215,38 @@ async function main() {
     { targetKind: "profile" }
   );
   await assertDenied("anonymous intake read", () =>
-    getDownloadURL(
+    getBytes(
       ref(
         anonymous.storage,
         `media_intake/${USERS.uploader}/profile-${suffix}/profile-${suffix}.png`
       )
     )
+  );
+  await assertDenied("uploader intake read", () =>
+    getBytes(
+      ref(
+        uploader.storage,
+        `media_intake/${USERS.uploader}/profile-${suffix}/profile-${suffix}.png`
+      )
+    )
+  );
+  await assertDenied("other user intake read", () =>
+    getBytes(
+      ref(
+        other.storage,
+        `media_intake/${USERS.uploader}/profile-${suffix}/profile-${suffix}.png`
+      )
+    )
+  );
+  assert.ok(
+    (
+      await getBytes(
+        ref(
+          adminClient.storage,
+          `media_intake/${USERS.uploader}/profile-${suffix}/profile-${suffix}.png`
+        )
+      )
+    ).byteLength > 0
   );
 
   await assertDenied("profile picture path for another user", () =>

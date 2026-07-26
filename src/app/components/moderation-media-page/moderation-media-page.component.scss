@@ -44,10 +44,21 @@
   object-fit: cover;
 }
 
+.media-card__revealed {
+  position: relative;
+}
+
+.media-card__hide {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+}
+
 .media-card__hidden {
   display: grid;
   place-content: center;
   gap: 0.5rem;
+  padding: 1rem;
   color: var(--mat-sys-on-error-container);
   text-align: center;
   background: var(--mat-sys-error-container);
@@ -76,6 +87,25 @@
 }
 
 .media-card dd {
+  display: grid;
+  gap: 0.15rem;
   margin: 0;
   overflow-wrap: anywhere;
+}
+
+.media-card__spot-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 12px;
+}
+
+.media-card__spot-link:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+.media-card__spot-preview {
+  display: block;
+  width: 100%;
 }

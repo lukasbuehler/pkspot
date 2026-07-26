@@ -46,6 +46,15 @@ const buildEvent = (
     ...extra,
   } as unknown as EventSchema);
 
+const buildAuthService = (
+  user: { uid: string; data: null } | null = null,
+  admin = false,
+) => ({
+  user: user ?? { data: null },
+  authState$: new BehaviorSubject(user),
+  isAdmin: signal(admin),
+});
+
 describe("EventsPageComponent", () => {
   afterEach(() => {
     delete (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_EVENT_INDEX__;
@@ -66,7 +75,7 @@ describe("EventsPageComponent", () => {
         },
         {
           provide: AuthenticationService,
-          useValue: { user: { data: null }, isAdmin: signal(false) },
+          useValue: buildAuthService(),
         },
         { provide: LOCALE_ID, useValue: "en" },
         { provide: PLATFORM_ID, useValue: "server" },
@@ -113,7 +122,7 @@ describe("EventsPageComponent", () => {
         { provide: SeriesService, useValue: { getSeriesByIds: vi.fn() } },
         {
           provide: AuthenticationService,
-          useValue: { user: { data: null }, isAdmin: signal(false) },
+          useValue: buildAuthService(),
         },
         { provide: LOCALE_ID, useValue: "en" },
         { provide: PLATFORM_ID, useValue: "browser" },
@@ -146,7 +155,7 @@ describe("EventsPageComponent", () => {
         },
         {
           provide: AuthenticationService,
-          useValue: { user: { data: null }, isAdmin: signal(false) },
+          useValue: buildAuthService(),
         },
         { provide: LOCALE_ID, useValue: "en" },
         { provide: PLATFORM_ID, useValue: "browser" },
@@ -193,7 +202,7 @@ describe("EventsPageComponent", () => {
         },
         {
           provide: AuthenticationService,
-          useValue: { user: { data: null }, isAdmin: signal(false) },
+          useValue: buildAuthService(),
         },
         { provide: LOCALE_ID, useValue: "en" },
         { provide: PLATFORM_ID, useValue: "browser" },
@@ -245,7 +254,7 @@ describe("EventsPageComponent", () => {
         },
         {
           provide: AuthenticationService,
-          useValue: { user: { data: null }, isAdmin: signal(false) },
+          useValue: buildAuthService(),
         },
         {
           provide: ActivatedRoute,
@@ -288,7 +297,7 @@ describe("EventsPageComponent", () => {
         },
         {
           provide: AuthenticationService,
-          useValue: { user: { data: null }, isAdmin: signal(false) },
+          useValue: buildAuthService(),
         },
         { provide: ActivatedRoute, useValue: route },
         { provide: Router, useValue: router },
@@ -327,5 +336,51 @@ describe("EventsPageComponent", () => {
       queryParamsHandling: "merge",
       replaceUrl: true,
     });
+  });
+
+  it("offers event creation to admins and session planning to signed-in users", () => {
+    const router = { navigate: vi.fn().mockResolvedValue(true) };
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: { getEvents: vi.fn() } },
+        {
+          provide: SeriesService,
+          useValue: { getSeriesByIds: vi.fn().mockResolvedValue({}) },
+        },
+        {
+          provide: AuthenticationService,
+          useValue: buildAuthService(
+            { uid: "admin-user", data: null },
+            true,
+          ),
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            queryParamMap: new BehaviorSubject(
+              convertToParamMap({}),
+            ).asObservable(),
+          },
+        },
+        { provide: Router, useValue: router },
+        { provide: LOCALE_ID, useValue: "en" },
+        { provide: PLATFORM_ID, useValue: "browser" },
+      ],
+    });
+
+    const component = TestBed.runInInjectionContext(
+      () => new EventsPageComponent(),
+    );
+
+    expect(component.createActions().map((action) => action.id)).toEqual([
+      "event",
+      "session",
+    ]);
+
+    component.onCreateAction("session");
+    expect(router.navigate).toHaveBeenCalledWith(["/events/session/new"]);
+
+    component.onCreateAction("event");
+    expect(router.navigate).toHaveBeenCalledWith(["/events/new"]);
   });
 });

@@ -19,6 +19,8 @@ import {
   ModerationMediaItem,
   ModerationMediaService,
 } from "../../services/firebase/firestore/moderation-media.service";
+import { ProfileButtonComponent } from "../profile-button/profile-button.component";
+import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 
 @Component({
   selector: "app-moderation-media-page",
@@ -30,6 +32,8 @@ import {
     MatIconModule,
     MatProgressSpinnerModule,
     SystemDatePipe,
+    ProfileButtonComponent,
+    SpotPreviewCardComponent,
   ],
   templateUrl: "./moderation-media-page.component.html",
   styleUrl: "./moderation-media-page.component.scss",
@@ -44,6 +48,9 @@ export class ModerationMediaPageComponent implements OnDestroy {
   readonly isAdmin = signal(false);
   readonly isLoading = signal(false);
   readonly media = signal<ModerationMediaItem[]>([]);
+  readonly previewUrls = signal<Record<string, string>>({});
+  readonly previewLoadingId = signal<string | null>(null);
+  readonly actionId = signal<string | null>(null);
   private readonly _authSubscription: Subscription;
 
   constructor() {
@@ -67,6 +74,7 @@ export class ModerationMediaPageComponent implements OnDestroy {
 
     this.isLoading.set(true);
     try {
+      this.previewUrls.set({});
       this.media.set(await this._mediaService.getUploadStream());
     } catch (error) {
       console.error("Failed to load moderation media stream", error);
@@ -75,6 +83,69 @@ export class ModerationMediaPageComponent implements OnDestroy {
       });
     } finally {
       this.isLoading.set(false);
+    }
+  }
+
+  async reveal(item: ModerationMediaItem): Promise<void> {
+    if (
+      !item.canReveal ||
+      this.previewLoadingId() ||
+      this.previewUrls()[item.id] ||
+      !globalThis.confirm(
+        $localize`This upload was flagged or failed automated scanning and may be disturbing. Reveal it for manual moderation?`,
+      )
+    ) {
+      return;
+    }
+
+    this.previewLoadingId.set(item.id);
+    try {
+      const url = await this._mediaService.getQuarantinedPreview(item.id);
+      this.previewUrls.update((urls) => ({ ...urls, [item.id]: url }));
+    } catch (error) {
+      console.error("Failed to load quarantined media", error);
+      this._snackbar.open($localize`Failed to load quarantined media`, undefined, {
+        duration: 4000,
+      });
+    } finally {
+      this.previewLoadingId.set(null);
+    }
+  }
+
+  hidePreview(reviewId: string): void {
+    this.previewUrls.update((urls) =>
+      Object.fromEntries(
+        Object.entries(urls).filter(([id]) => id !== reviewId),
+      ),
+    );
+  }
+
+  async markSafe(item: ModerationMediaItem): Promise<void> {
+    if (
+      !item.canMarkSafe ||
+      !this.previewUrls()[item.id] ||
+      this.actionId() ||
+      !globalThis.confirm(
+        $localize`Mark this media as safe and release it publicly? This records your administrator decision.`,
+      )
+    ) {
+      return;
+    }
+
+    this.actionId.set(item.id);
+    try {
+      await this._mediaService.markSafe(item.id);
+      await this.reload();
+      this._snackbar.open($localize`Media marked safe and released`, undefined, {
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Failed to release moderated media", error);
+      this._snackbar.open($localize`Failed to release media`, undefined, {
+        duration: 4000,
+      });
+    } finally {
+      this.actionId.set(null);
     }
   }
 }

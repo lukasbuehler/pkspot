@@ -1,0 +1,66 @@
+@if (actions().length > 0) {
+  <div
+    class="fab-menu"
+    [class.fab-menu--start]="alignment() === 'start'"
+    [class.fab-menu--secondary]="colorSet() === 'secondary'"
+    [class.fab-menu--tertiary]="colorSet() === 'tertiary'"
+  >
+    <button
+      #launcher
+      mat-fab
+      type="button"
+      color="primary"
+      class="fab-menu__launcher"
+      [class.fab-menu__launcher--open]="isOpen()"
+      [disabled]="directAction()?.disabled ?? false"
+      [attr.aria-expanded]="isMenu() ? isOpen() : null"
+      [attr.aria-controls]="isMenu() ? menuId : null"
+      [attr.aria-label]="
+        isOpen()
+          ? closeLabel()
+          : (directAction()?.ariaLabel ??
+            directAction()?.label ??
+            launcherLabel())
+      "
+      [matTooltip]="
+        isOpen() ? closeLabel() : (directAction()?.label ?? launcherLabel())
+      "
+      [matTooltipDisabled]="isOpen()"
+      (click)="onLauncherClick()"
+    >
+      <mat-icon class="fab-menu__launcher-icon">
+        {{
+          isOpen()
+            ? "close"
+            : (directAction()?.icon ?? launcherIcon())
+        }}
+      </mat-icon>
+    </button>
+
+    @if (isOpen()) {
+      <div
+        class="fab-menu__actions"
+        [id]="menuId"
+        role="group"
+        [attr.aria-label]="launcherLabel()"
+        animate.enter="fab-menu__actions--enter"
+        animate.leave="fab-menu__actions--leave"
+      >
+        @for (action of actions(); track action.id) {
+          <button
+            mat-flat-button
+            type="button"
+            class="fab-menu__action"
+            [disabled]="action.disabled ?? false"
+            [attr.aria-label]="action.ariaLabel ?? action.label"
+            [style.--fab-menu-index]="$index"
+            (click)="selectAction(action)"
+          >
+            <mat-icon>{{ action.icon }}</mat-icon>
+            <span>{{ action.label }}</span>
+          </button>
+        }
+      </div>
+    }
+  </div>
+}

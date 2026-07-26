@@ -1,8 +1,20 @@
-.create-event-fab {
+.create-event-fab-menu {
+  --fab-menu-bottom-offset: 1.5rem;
+
   position: fixed;
   right: 1.5rem;
   bottom: 1.5rem;
   z-index: 10;
+}
+
+@media (max-width: 599.99px) {
+  .create-event-fab-menu {
+    --fab-menu-bottom-offset: calc(
+      var(--nav-bar-height, 80px) + 1rem
+    );
+
+    bottom: calc(var(--nav-bar-height, 80px) + 1rem);
+  }
 }
 
 .past-heading {

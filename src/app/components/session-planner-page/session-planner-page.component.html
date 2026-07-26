@@ -1,0 +1,52 @@
+<main class="session-planner-page container py-4">
+  @if (!authReady()) {
+    <section class="state-card" aria-live="polite">
+      <mat-progress-spinner mode="indeterminate" diameter="36" />
+      <p class="mat-body-large m-0" i18n="@@session_planner.loading">
+        Loading session planner…
+      </p>
+    </section>
+  } @else if (!signedIn()) {
+    <section class="state-card">
+      <mat-icon class="state-icon">login</mat-icon>
+      <h1 class="mat-headline-small m-0" i18n="@@session_planner.sign_in_title">
+        Sign in to plan a session
+      </h1>
+      <p class="mat-body-large m-0" i18n="@@session_planner.sign_in_body">
+        Sessions have a real owner so you can update the details and manage
+        attendance later.
+      </p>
+      <a
+        mat-flat-button
+        routerLink="/sign-in"
+        [queryParams]="{ returnUrl: '/events/session/new' }"
+      >
+        <mat-icon>login</mat-icon>
+        <span i18n="@@session_planner.sign_in_action">Sign in</span>
+      </a>
+    </section>
+  } @else if (!canPlan()) {
+    <section class="state-card">
+      <mat-icon class="state-icon">lock</mat-icon>
+      <h1
+        class="mat-headline-small m-0"
+        i18n="@@session_planner.restricted_title"
+      >
+        Session planning is unavailable
+      </h1>
+      <p class="mat-body-large m-0">{{ restrictionMessage() }}</p>
+      <a mat-stroked-button routerLink="/events">
+        <span i18n="@@session_planner.back">Back to events</span>
+      </a>
+    </section>
+  } @else {
+    <app-event-edit-form
+      mode="session"
+      [event]="null"
+      [saving]="saving()"
+      [showDeleteButton]="false"
+      (save)="onSave($event)"
+      (cancel)="onCancel()"
+    />
+  }
+</main>

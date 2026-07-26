@@ -20,6 +20,13 @@ export interface MediaUploadReviewSchema {
   sha256?: string;
   scan_result?: MediaSafetyScanSchema;
   failure_reason?: string;
+  reconciliation_reason?: "legacy_undefined_scan_reason_after_publish";
+  reconciled_at?: unknown;
+  manual_review?: {
+    decision: "safe";
+    reviewed_by: string;
+    reviewed_at?: unknown;
+  };
   created_at?: unknown;
   completed_at?: unknown;
 }

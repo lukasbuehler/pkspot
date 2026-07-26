@@ -1,6 +1,17 @@
 const assert = require("node:assert/strict");
 const path = require("node:path");
 const admin = require("firebase-admin");
+const { deleteApp, initializeApp } = require("firebase/app");
+const {
+  connectAuthEmulator,
+  getAuth,
+  signInWithCustomToken,
+} = require("firebase/auth");
+const {
+  connectFunctionsEmulator,
+  getFunctions,
+  httpsCallable,
+} = require("firebase/functions");
 const sharp = require("../functions/node_modules/sharp");
 
 if (!process.env.FIREBASE_STORAGE_EMULATOR_HOST) {
@@ -34,6 +45,44 @@ admin.initializeApp({
 
 const bucket = admin.storage().bucket();
 const db = admin.firestore();
+let clientApp;
+
+async function createAdminCallables(uid) {
+  await admin.auth().createUser({ uid });
+  await db.doc(`users/${uid}`).set({ is_admin: true });
+  clientApp = initializeApp(
+    {
+      apiKey: "demo-api-key",
+      authDomain: `${PROJECT_ID}.firebaseapp.com`,
+      projectId: PROJECT_ID,
+      storageBucket: STORAGE_BUCKET,
+    },
+    `media-moderation-admin-${Date.now()}`
+  );
+  const auth = getAuth(clientApp);
+  const [authHost, authPort] = process.env.FIREBASE_AUTH_EMULATOR_HOST.split(":");
+  connectAuthEmulator(auth, `http://${authHost}:${authPort}`, {
+    disableWarnings: true,
+  });
+  await signInWithCustomToken(auth, await admin.auth().createCustomToken(uid));
+
+  const functions = getFunctions(clientApp, "europe-west1");
+  connectFunctionsEmulator(functions, "127.0.0.1", 5001);
+  return {
+    markSafe: httpsCallable(functions, "markMediaUploadSafe"),
+    getPreview: httpsCallable(functions, "getModerationMediaPreview"),
+  };
+}
+
+async function assertCallableRejected(operation, expectedCode) {
+  try {
+    await operation();
+  } catch (error) {
+    assert.equal(error.code, expectedCode);
+    return;
+  }
+  assert.fail(`Callable should have failed with ${expectedCode}`);
+}
 
 async function waitForFile(filePath, timeoutMs = 60_000) {
   const startedAt = Date.now();
@@ -315,6 +364,142 @@ async function main() {
   await waitForFile(blockedIntakePath);
   await assertFileMissing(blockedApprovedPath);
 
+  console.log("Checking administrator review releases ordinary Vision flags only...");
+  const callables = await createAdminCallables("media-moderation-admin");
+  await assertCallableRejected(
+    () => callables.getPreview({ review_id: blockedUploadId }),
+    "functions/failed-precondition"
+  );
+  await assertCallableRejected(
+    () => callables.markSafe({ review_id: blockedUploadId }),
+    "functions/failed-precondition"
+  );
+
+  const reviewUploadId = `manual-review-${suffix}`;
+  const reviewIntakePath =
+    `media_intake/${uid}/${reviewUploadId}/${reviewUploadId}.jpg`;
+  const reviewApprovedPath = `spot_pictures/${reviewUploadId}.jpg`;
+  await bucket.upload(ORIGINAL_IMAGE, {
+    destination: reviewIntakePath,
+    resumable: false,
+    metadata: {
+      contentType: "image/jpeg",
+      metadata: {
+        uid,
+        upload_id: reviewUploadId,
+        destination_folder: "spot_pictures",
+        destination_filename: reviewUploadId,
+        target_kind: "post",
+        emulator_safety_result: "block",
+      },
+    },
+  });
+  await waitForReviewStatus(reviewUploadId, "needs_review");
+  await waitForMediaReport(`media_upload_reviews/${reviewUploadId}`);
+  const releaseResult = await callables.markSafe({ review_id: reviewUploadId });
+  assert.equal(releaseResult.data.ok, true);
+  const releasedReview = await waitForReviewStatus(reviewUploadId, "approved");
+  assert.equal(releasedReview.data().manual_review.decision, "safe");
+  assert.equal(
+    releasedReview.data().manual_review.reviewed_by,
+    "media-moderation-admin"
+  );
+  assert.equal(releasedReview.data().approved_path, reviewApprovedPath);
+  await assertFileMissing(reviewIntakePath);
+  await waitForFile(`${ARCHIVE_PREFIX}/${reviewApprovedPath}`);
+  const resolvedReport = await db
+    .collection("reports")
+    .doc(`scanner_${reviewUploadId}`)
+    .get();
+  assert.equal(resolvedReport.data().status, "resolved");
+  assert.equal(resolvedReport.data().moderation_resolution, "manual_safe");
+
+  console.log("Checking reconciliation of legacy false scan failures...");
+  const staleUploadId = `stale-approved-${suffix}`;
+  const staleDestinationFilename = `released-${suffix}`;
+  const staleIntakePath =
+    `media_intake/${uid}/${staleUploadId}/${staleUploadId}.jpg`;
+  const staleApprovedPath =
+    `spot_pictures/${staleDestinationFilename}.jpg`;
+  const staleArchivedPath =
+    `${ARCHIVE_PREFIX}/${staleApprovedPath}`;
+  await bucket.upload(ORIGINAL_IMAGE, {
+    destination: staleApprovedPath,
+    resumable: false,
+    metadata: {
+      contentType: "image/jpeg",
+      metadata: {
+        uid,
+        upload_id: staleUploadId,
+        moderated: "true",
+      },
+    },
+  });
+  await waitForFile(staleArchivedPath);
+  const staleDisplayPath =
+    `spot_pictures/${staleDestinationFilename}_800x800.jpg`;
+  await waitForFile(staleDisplayPath);
+  await db.collection("media_upload_reviews").doc(staleUploadId).set({
+    status: "scan_failed",
+    source: "upload",
+    uid,
+    target_kind: "spot",
+    target_id: "test-spot",
+    intake_path: staleIntakePath,
+    content_type: "image/jpeg",
+    destination_folder: "spot_pictures",
+    destination_filename: staleDestinationFilename,
+    failure_reason:
+      'Cannot use "undefined" as a Firestore value (found in field "scan_result.reason").',
+    created_at: admin.firestore.FieldValue.serverTimestamp(),
+    completed_at: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  const unresolvedUploadId = `unresolved-${suffix}`;
+  await db.collection("media_upload_reviews").doc(unresolvedUploadId).set({
+    status: "scan_failed",
+    source: "upload",
+    uid,
+    intake_path:
+      `media_intake/${uid}/${unresolvedUploadId}/${unresolvedUploadId}.jpg`,
+    content_type: "image/jpeg",
+    destination_folder: "spot_pictures",
+    destination_filename: unresolvedUploadId,
+    failure_reason:
+      'Cannot use "undefined" as a Firestore value (found in field "scan_result.reason").',
+  });
+  await assertCallableRejected(
+    () => callables.getPreview({ review_id: unresolvedUploadId }),
+    "functions/not-found"
+  );
+
+  const reconciliationDoc = db
+    .collection("maintenance")
+    .doc("run-reconcile-published-media-reviews");
+  await reconciliationDoc.set({
+    requestedAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+  await waitForDeletedDoc(reconciliationDoc);
+  const reconciledReview = await waitForReviewStatus(staleUploadId, "approved");
+  assert.equal(reconciledReview.data().approved_path, staleDisplayPath);
+  assert.equal(reconciledReview.data().scan_result.decision, "allow");
+  assert.equal(reconciledReview.data().failure_reason, undefined);
+  assert.equal(
+    reconciledReview.data().reconciliation_reason,
+    "legacy_undefined_scan_reason_after_publish"
+  );
+  const unresolvedReview = await waitForReviewStatus(
+    unresolvedUploadId,
+    "scan_failed"
+  );
+  assert.equal(unresolvedReview.exists, true);
+  const reconciliationSummary = await db
+    .collection("maintenance")
+    .doc("last-published-media-review-reconciliation")
+    .get();
+  assert.equal(reconciliationSummary.data().recovered, 1);
+  assert.ok(reconciliationSummary.data().unresolved >= 1);
+
   console.log("Checking media intake backfill maintenance trigger...");
   const intakeBackfillDoc = db
     .collection("maintenance")
@@ -412,8 +597,15 @@ async function main() {
   console.log("Storage image processing emulator tests passed.");
 }
 
-main().catch((error) => {
-  console.error("Storage image processing emulator tests failed.");
-  console.error(error);
-  process.exitCode = 1;
-});
+main()
+  .catch((error) => {
+    console.error("Storage image processing emulator tests failed.");
+    console.error(error);
+    process.exitCode = 1;
+  })
+  .finally(async () => {
+    if (clientApp) {
+      await deleteApp(clientApp).catch(() => undefined);
+    }
+    await admin.app().delete().catch(() => undefined);
+  });

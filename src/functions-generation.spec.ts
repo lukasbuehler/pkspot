@@ -157,12 +157,15 @@ describe("Cloud Functions generation policy", () => {
     );
 
     expect(indexSource).toContain("processMediaIntakeUpload");
+    expect(indexSource).toContain("markMediaUploadSafe");
+    expect(indexSource).toContain("reconcilePublishedMediaReviews");
     expect(indexSource).toContain("runMediaIntakeBackfill");
     expect(indexSource).toContain("runMediaModerationAudit");
     expect(source).toContain("firebase-functions/v2/storage");
     expect(source).toContain("firebase-functions/v2/firestore");
     expect(source).toContain("onObjectFinalized");
     expect(source).toContain("onDocumentCreated");
+    expect(source).toContain("onCall");
     expect(source).toContain("secrets: mediaModerationSecrets");
     expect(source).toContain("bucket: DEFAULT_STORAGE_BUCKET");
   });

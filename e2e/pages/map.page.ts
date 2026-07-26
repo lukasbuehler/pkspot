@@ -14,7 +14,7 @@ export class MapPage {
   readonly filterChips: Locator;
   readonly bottomSheet: Locator;
   readonly spotDetailsPanel: Locator;
-  readonly speedDial: Locator;
+  readonly fabMenu: Locator;
   readonly geolocationButton: Locator;
 
   constructor(page: Page) {
@@ -28,7 +28,7 @@ export class MapPage {
     this.filterChips = page.locator("mat-chip-listbox, .filter-chips");
     this.bottomSheet = page.locator("app-bottom-sheet, .bottom-sheet");
     this.spotDetailsPanel = page.locator("app-spot-details, .spot-details");
-    this.speedDial = page.locator("app-speed-dial-fab");
+    this.fabMenu = page.locator("app-fab-menu");
     this.geolocationButton = page.locator(
       '[aria-label*="location"], button:has-text("My Location")'
     );

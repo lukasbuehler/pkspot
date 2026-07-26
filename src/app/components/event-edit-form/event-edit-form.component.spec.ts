@@ -186,6 +186,46 @@ describe("EventEditFormComponent", () => {
     ]);
   });
 
+  it("emits the fixed compatibility-safe defaults in session planner mode", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const auth = TestBed.inject(AuthenticationService);
+    vi.mocked(auth.isAdmin).mockReturnValue(false);
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    fixture.componentRef.setInput("mode", "session");
+    fixture.detectChanges();
+    component.form.patchValue({
+      name: "Low-key training",
+      venue_string: "Riverside rails",
+      locality_string: "Zurich",
+      location_lat: 47.3769,
+      location_lng: 8.5417,
+      start_date: new Date("2026-08-01T18:00:00.000Z"),
+      start_time: new Date("2026-08-01T18:00:00.000Z"),
+      end_date: new Date("2026-08-01T20:00:00.000Z"),
+      end_time: new Date("2026-08-01T20:00:00.000Z"),
+    });
+
+    component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        kind: "session",
+        schedule_mode: "single",
+        lifecycle_status: "planned",
+        priority: "normal",
+        publication_state: "published",
+        published: true,
+        visibility: "public",
+        discoverability: { audience: "global" },
+        notification_policy: "all",
+      }),
+    );
+  });
+
   it("emits organization ownership separately from organizer branding", async () => {
     const fixture = await setup();
     const component = fixture.componentInstance;

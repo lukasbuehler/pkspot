@@ -211,10 +211,36 @@
           (bottomSheetOpen() || bottomSheetProgress() > 0)
         )
       "
+      [showImportSpots]="
+        authService.isAdmin() &&
+        !compactTabletSidenavOpen() &&
+        !selectedSpot() &&
+        !isEditing()
+      "
+      [showCreateEvent]="
+        authService.isAdmin() &&
+        !compactTabletSidenavOpen() &&
+        !selectedSpot() &&
+        !isEditing()
+      "
+      [showPlanSession]="
+        isSignedIn() &&
+        ageAssurance.canParticipatePublicly() &&
+        !compactTabletSidenavOpen() &&
+        !selectedSpot() &&
+        !isEditing() &&
+        !(
+          responsiveService.isMobile() &&
+          (bottomSheetOpen() || bottomSheetProgress() > 0)
+        )
+      "
       (resetNorth)="onResetNorth()"
       (toggleMapStyle)="onToggleMapStyle()"
       (focusGeolocation)="onFocusGeolocation()"
       (createSpot)="onCreateSpot()"
+      (importSpots)="onImportSpots()"
+      (createEvent)="onCreateEvent()"
+      (planSession)="onPlanSession()"
     ></app-map-floating-controls>
   }
 </ng-template>

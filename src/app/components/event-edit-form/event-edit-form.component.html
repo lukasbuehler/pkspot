@@ -2,11 +2,16 @@
   [formGroup]="form"
   (ngSubmit)="onSubmit()"
   class="event-edit-form d-flex flex-column gap-3"
+  [class.session-planner]="isSessionPlanner()"
 >
   <header class="d-flex flex-row align-items-center gap-2 pb-2 flex-wrap">
     <h2 class="mat-headline-small m-0 flex-grow-1">
       @if (isEditMode()) {
         <ng-container i18n="@@event_edit.heading_edit">Edit event</ng-container>
+      } @else if (isSessionPlanner()) {
+        <ng-container i18n="@@session_planner.form.heading">
+          Plan a session
+        </ng-container>
       } @else {
         <ng-container i18n="@@event_edit.heading_create">
           Create event
@@ -28,18 +33,38 @@
       [disabled]="saving() || form.invalid"
     >
       <mat-icon>save</mat-icon>
-      <span i18n="@@event_edit.save">Save</span>
+      @if (isSessionPlanner()) {
+        <span i18n="@@session_planner.form.save">Create session</span>
+      } @else {
+        <span i18n="@@event_edit.save">Save</span>
+      }
     </button>
   </header>
 
   <!-- ============================ Required ============================ -->
   <section class="form-section required-section">
-    <h3 class="mat-title-medium section-title" i18n="@@event_edit.required_section">
-      Essentials
-    </h3>
+    @if (isSessionPlanner()) {
+      <h3
+        class="mat-title-medium section-title"
+        i18n="@@session_planner.form.essentials"
+      >
+        Session details
+      </h3>
+    } @else {
+      <h3
+        class="mat-title-medium section-title"
+        i18n="@@event_edit.required_section"
+      >
+        Essentials
+      </h3>
+    }
 
     <mat-form-field appearance="outline" class="w-100">
-      <mat-label i18n="@@event_edit.name">Event name</mat-label>
+      @if (isSessionPlanner()) {
+        <mat-label i18n="@@session_planner.form.name">Session name</mat-label>
+      } @else {
+        <mat-label i18n="@@event_edit.name">Event name</mat-label>
+      }
       <input matInput formControlName="name" required />
       @if (
         form.controls["name"].hasError("required") &&
@@ -210,8 +235,80 @@
     </div>
   </section>
 
+  @if (isSessionPlanner()) {
+    <section class="form-section session-options">
+      <h3
+        class="mat-title-medium section-title"
+        i18n="@@session_planner.form.options"
+      >
+        Session options
+      </h3>
+
+      <app-locale-map-edit-field
+        class="w-100"
+        i18n-placeholder="@@session_planner.form.note"
+        placeholder="Optional note for participants"
+        [isTextArea]="true"
+        [(localeMap)]="descriptionLocaleMap"
+      />
+
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@session_planner.form.joining">
+          How people join
+        </mat-label>
+        <mat-select formControlName="attendance_admission">
+          <mat-option value="none" i18n="@@session_planner.form.rsvp">
+            Going / Interested
+          </mat-option>
+          <mat-option
+            value="registration"
+            i18n="@@session_planner.form.registration"
+          >
+            Registration
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      @if (form.controls["attendance_admission"].value === "registration") {
+        <div class="d-flex flex-row gap-2 flex-wrap">
+          <mat-form-field appearance="outline" class="flex-grow-1">
+            <mat-label i18n="@@session_planner.form.capacity">
+              Capacity (optional)
+            </mat-label>
+            <input
+              matInput
+              type="number"
+              min="1"
+              formControlName="attendance_capacity"
+            />
+          </mat-form-field>
+          <mat-checkbox formControlName="attendance_waitlist">
+            <ng-container i18n="@@session_planner.form.waitlist">
+              Enable a waitlist
+            </ng-container>
+          </mat-checkbox>
+        </div>
+      }
+
+      <div class="session-public-notice">
+        <mat-icon>public</mat-icon>
+        <div>
+          <strong i18n="@@session_planner.form.public_title">
+            Public session for now
+          </strong>
+          <p class="mat-body-small m-0" i18n="@@session_planner.form.public_body">
+            This compatibility release publishes sessions to everyone. Private
+            and link-only sessions will become available after older app
+            versions no longer read the events collection directly.
+          </p>
+        </div>
+      </div>
+    </section>
+  }
+
   <!-- ============================ Optional ============================ -->
-  <section class="form-section optional-section">
+  @if (!isSessionPlanner()) {
+    <section class="form-section optional-section">
     <div class="optional-section-heading">
       <h3
         class="mat-title-medium section-title"
@@ -2403,7 +2500,8 @@
         </mat-form-field>
       </div>
     </div>
-  </section>
+    </section>
+  }
 
   <ng-template
     #qualificationRefFields

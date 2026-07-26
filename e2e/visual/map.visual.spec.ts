@@ -100,13 +100,13 @@ test.describe("Map Page Visual Regression @visual", () => {
     await mapPage.waitForMapReady();
     await page.waitForTimeout(1000);
 
-    // Capture speed dial / FAB buttons
-    const speedDial = page
-      .locator("app-speed-dial-fab, .speed-dial, [mat-fab]")
+    // Capture FAB menu / direct FAB buttons
+    const fabMenu = page
+      .locator("app-fab-menu, [mat-fab]")
       .first();
 
-    if (await speedDial.isVisible()) {
-      await expect(speedDial).toHaveScreenshot("map-speed-dial.png", {
+    if (await fabMenu.isVisible()) {
+      await expect(fabMenu).toHaveScreenshot("map-speed-dial.png", {
         maxDiffPixels: 50,
         animations: "disabled",
       });

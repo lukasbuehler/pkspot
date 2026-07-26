@@ -358,6 +358,14 @@ export const routes: Routes = [
     data: { routeName: "Create Event" },
   },
   {
+    path: "events/session/new",
+    loadComponent: () =>
+      import("./components/session-planner-page/session-planner-page.component").then(
+        (m) => m.SessionPlannerPageComponent,
+      ),
+    data: { routeName: "Plan Session" },
+  },
+  {
     path: "event/swissjam25",
     redirectTo: () => "/events/swissjam25",
     pathMatch: "full",

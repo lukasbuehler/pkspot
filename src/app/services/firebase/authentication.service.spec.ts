@@ -139,6 +139,10 @@ describe("AuthenticationService", () => {
       email: "screenshot@pkspot.app",
       emailVerified: true,
       providerId: "store-screenshot",
+      data: {
+        display_name: "Screenshot Admin",
+        is_admin: true,
+      },
     };
 
     TestBed.configureTestingModule({
@@ -164,11 +168,16 @@ describe("AuthenticationService", () => {
     expect(screenshotService.isSignedIn).toBe(true);
     expect(screenshotService.initialAuthStateResolved()).toBe(true);
     expect(screenshotService.authorizationStateResolved()).toBe(true);
+    expect(screenshotService.isAdmin()).toBe(true);
     expect(screenshotService.authState$.getValue()).toEqual({
       uid: "store-screenshot-user",
       email: "screenshot@pkspot.app",
       emailVerified: true,
       providerId: "store-screenshot",
+      data: expect.objectContaining({
+        displayName: "Screenshot Admin",
+        isAdmin: true,
+      }),
     });
     expect(authMock.onAuthStateChanged).not.toHaveBeenCalled();
   });

@@ -102,6 +102,12 @@
         <target> — Geen black-box-algoritmes, geen verborgen tracking. <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://github.com/lukasbuehler/pkspot&quot;&gt;" dispEnd="&lt;/a &gt;">Bekijk op GitHub</pc>. </target>
       </segment>
     </unit>
+    <unit id="3794552197010908768">
+      <segment state="initial">
+        <source>Do not preview or release this file.</source>
+        <target>Bekijk of publiceer dit bestand niet.</target>
+      </segment>
+    </unit>
     <unit id="6910865064463105075">
       <segment state="initial">
         <source>Communities</source>
@@ -172,6 +178,18 @@
       <segment state="initial">
         <source>Open the location of this spot in Maps</source>
         <target>Open de locatie van deze spot in Kaarten</target>
+      </segment>
+    </unit>
+    <unit id="1792190533431059127">
+      <segment state="initial">
+        <source>Mark this media as safe and release it publicly? This records your administrator decision.</source>
+        <target>Deze media als veilig markeren en openbaar maken? Je beheerdersbeslissing wordt vastgelegd.</target>
+      </segment>
+    </unit>
+    <unit id="1793249295787733080">
+      <segment state="initial">
+        <source>Media marked safe and released</source>
+        <target>Media als veilig gemarkeerd en gepubliceerd</target>
       </segment>
     </unit>
     <unit id="openMapSourceButtonLabel">
@@ -348,6 +366,12 @@
         <target>Profiel</target>
       </segment>
     </unit>
+    <unit id="49184001319674796">
+      <segment state="initial">
+        <source>Failed to release media</source>
+        <target>Media publiceren mislukt</target>
+      </segment>
+    </unit>
     <unit id="4930506384627295710">
       <segment state="initial">
         <source>Settings</source>
@@ -442,6 +466,12 @@
       <segment state="initial">
         <source>waiting on votes</source>
         <target>waiting on votes</target>
+      </segment>
+    </unit>
+    <unit id="8461609631969932886">
+      <segment state="initial">
+        <source>Hide</source>
+        <target>Verbergen</target>
       </segment>
     </unit>
     <unit id="8470446025763473581">
@@ -852,6 +882,144 @@
       <segment state="initial">
         <source>Events</source>
         <target>Evenementen</target>
+      </segment>
+    </unit>
+    <unit id="session_planner.back">
+      <segment state="initial">
+        <source>Back to events</source>
+        <target>Terug naar evenementen</target>
+      </segment>
+    </unit>
+    <unit id="session_planner.created">
+      <segment state="initial">
+        <source>Session created.</source>
+        <target>Sessie aangemaakt.</target>
+      </segment>
+    </unit>
+    <unit id="session_planner.failed">
+      <segment state="initial">
+        <source>Couldn&apos;t create the session. Please try again.</source>
+        <target>De sessie kon niet worden aangemaakt. Probeer het opnieuw.</target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.capacity">
+      <segment state="initial">
+        <source> Capacity (optional) </source>
+        <target> Capaciteit (optioneel) </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.essentials">
+      <segment state="initial">
+        <source> Session details </source>
+        <target> Sessiedetails </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.heading">
+      <segment state="initial">
+        <source> Plan a session </source>
+        <target> Een sessie plannen </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.joining">
+      <segment state="initial">
+        <source> How people join </source>
+        <target> Hoe mensen deelnemen </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.name">
+      <segment state="initial">
+        <source>Session name</source>
+        <target>Sessienaam</target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.note">
+      <segment state="initial">
+        <source>Optional note for participants</source>
+        <target>Optionele opmerking voor deelnemers</target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.options">
+      <segment state="initial">
+        <source> Session options </source>
+        <target> Sessieopties </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.public_body">
+      <segment state="initial">
+        <source> This compatibility release publishes sessions to everyone. Private and link-only sessions will become available after older app versions no longer read the events collection directly. </source>
+        <target> In deze compatibiliteitsversie zijn sessies openbaar voor iedereen. Privésessies en sessies die alleen via een link toegankelijk zijn, worden beschikbaar zodra oudere appversies de evenementencollectie niet meer rechtstreeks lezen. </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.public_title">
+      <segment state="initial">
+        <source> Public session for now </source>
+        <target> Voorlopig een openbare sessie </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.registration">
+      <segment state="initial">
+        <source> Registration </source>
+        <target> Registratie </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.rsvp">
+      <segment state="initial">
+        <source> Going / Interested </source>
+        <target> Ik ga / Geïnteresseerd </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.save">
+      <segment state="initial">
+        <source>Create session</source>
+        <target>Sessie aanmaken</target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.waitlist">
+      <segment state="initial">
+        <source> Enable a waitlist </source>
+        <target> Wachtlijst inschakelen </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.loading">
+      <segment state="initial">
+        <source> Loading session planner… </source>
+        <target> Sessieplanner laden… </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.meta.description">
+      <segment state="initial">
+        <source>Plan a local parkour training session and invite the community.</source>
+        <target>Plan een lokale parkourtraining en nodig de community uit.</target>
+      </segment>
+    </unit>
+    <unit id="session_planner.meta.title">
+      <segment state="initial">
+        <source>Plan a session</source>
+        <target>Een sessie plannen</target>
+      </segment>
+    </unit>
+    <unit id="session_planner.restricted_title">
+      <segment state="initial">
+        <source> Session planning is unavailable </source>
+        <target> Sessieplanning is niet beschikbaar </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.sign_in_action">
+      <segment state="initial">
+        <source>Sign in</source>
+        <target>Inloggen</target>
+      </segment>
+    </unit>
+    <unit id="session_planner.sign_in_body">
+      <segment state="initial">
+        <source> Sessions have a real owner so you can update the details and manage attendance later. </source>
+        <target> Sessies hebben een duidelijke eigenaar, zodat je de details later kunt bijwerken en deelname kunt beheren. </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.sign_in_title">
+      <segment state="initial">
+        <source> Sign in to plan a session </source>
+        <target> Log in om een sessie te plannen </target>
       </segment>
     </unit>
     <unit id="settings.about.description">
@@ -2799,6 +2967,12 @@
       <segment state="initial">
         <source>Reset map orientation to north</source>
         <target>Kaartoriëntatie naar het noorden herstellen</target>
+      </segment>
+    </unit>
+    <unit id="8609785202570000921">
+      <segment state="initial">
+        <source>Quarantined media revealed for moderation</source>
+        <target>Quarantainemedia weergegeven voor moderatie</target>
       </segment>
     </unit>
     <unit id="8614289146412859500">
@@ -7637,10 +7811,28 @@
         <target>Evenement maken</target>
       </segment>
     </unit>
+    <unit id="events.create_menu">
+      <segment state="initial">
+        <source>Create</source>
+        <target>Aanmaken</target>
+      </segment>
+    </unit>
+    <unit id="events.create_menu_tooltip">
+      <segment state="initial">
+        <source>Create an event or session</source>
+        <target>Een evenement of sessie aanmaken</target>
+      </segment>
+    </unit>
     <unit id="events.past_heading">
       <segment state="initial">
         <source> Past events </source>
         <target>Afgelopen evenementen</target>
+      </segment>
+    </unit>
+    <unit id="events.plan_session">
+      <segment state="initial">
+        <source>Plan session</source>
+        <target>Sessie plannen</target>
       </segment>
     </unit>
     <unit id="events.status.live_with_end">
@@ -8919,6 +9111,12 @@
         <target> Voeg een bewerkbare begrenzing toe voor deze spot. Na het toevoegen kun je de vorm van het polygoon op de kaart aanpassen. </target>
       </segment>
     </unit>
+    <unit id="212841987551167718">
+      <segment state="initial">
+        <source>Mark safe and release</source>
+        <target>Als veilig markeren en publiceren</target>
+      </segment>
+    </unit>
     <unit id="2128755808672960949">
       <segment state="initial">
         <source>User ID</source>
@@ -9298,7 +9496,37 @@
         <target>Follow request sent</target>
       </segment>
     </unit>
-    <unit id="2736531674722915416">
+    <unit id="map.create.event">
+      <segment state="initial">
+        <source>Create event</source>
+        <target>Evenement aanmaken</target>
+      </segment>
+    </unit>
+    <unit id="map.create.import_spots">
+      <segment state="initial">
+        <source>Import spots</source>
+        <target>Spots importeren</target>
+      </segment>
+    </unit>
+    <unit id="map.create.open">
+      <segment state="initial">
+        <source>Create</source>
+        <target>Aanmaken</target>
+      </segment>
+    </unit>
+    <unit id="map.create.open_tooltip">
+      <segment state="initial">
+        <source>Create on the map</source>
+        <target>Op de kaart aanmaken</target>
+      </segment>
+    </unit>
+    <unit id="map.create.session">
+      <segment state="initial">
+        <source>Plan session</source>
+        <target>Sessie plannen</target>
+      </segment>
+    </unit>
+    <unit id="map.create.spot">
       <segment state="initial">
         <source>Add Spot</source>
         <target>Spot toevoegen</target>
@@ -9998,6 +10226,12 @@
         <target> Mensen die dit evenement volgen, ontvangen een live-melding. </target>
       </segment>
     </unit>
+    <unit id="6111352634912339440">
+      <segment state="initial">
+        <source>Vision labels</source>
+        <target>Vision-labels</target>
+      </segment>
+    </unit>
     <unit id="6113189419449428585">
       <segment state="initial">
         <source>About &amp; Credits</source>
@@ -10675,6 +10909,18 @@
         <target>Ik voeg media toe!</target>
       </segment>
     </unit>
+    <unit id="7153403490674442525">
+      <segment state="initial">
+        <source>Restricted incident media</source>
+        <target>Beperkt incidentmateriaal</target>
+      </segment>
+    </unit>
+    <unit id="7162684876097824524">
+      <segment state="initial">
+        <source>This upload was flagged or failed automated scanning and may be disturbing. Reveal it for manual moderation?</source>
+        <target>Deze upload is gemarkeerd of de automatische scan is mislukt en kan schokkend zijn. Tonen voor handmatige moderatie?</target>
+      </segment>
+    </unit>
     <unit id="7193934719093844817">
       <segment state="initial">
         <source>Challenge at <ph id="0" equiv="PH" disp="spotName"/></source>
@@ -10703,6 +10949,12 @@
       <segment state="initial">
         <source>edits</source>
         <target>bewerkingen</target>
+      </segment>
+    </unit>
+    <unit id="7278934602174139871">
+      <segment state="initial">
+        <source>Reveal only when you are ready to review it.</source>
+        <target>Toon het alleen wanneer je klaar bent om het te beoordelen.</target>
       </segment>
     </unit>
     <unit id="7295769845403931650">
@@ -12957,6 +13209,12 @@
       <segment state="initial">
         <source> Your suggestion </source>
         <target>Jouw voorstel</target>
+      </segment>
+    </unit>
+    <unit id="fab_menu.close">
+      <segment state="translated">
+        <source>Close menu</source>
+        <target>Menu sluiten</target>
       </segment>
     </unit>
   </file>

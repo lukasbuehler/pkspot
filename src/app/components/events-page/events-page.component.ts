@@ -10,8 +10,8 @@ import {
 import { MatButtonModule } from "@angular/material/button";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
-import { ActivatedRoute, ParamMap, Router, RouterLink } from "@angular/router";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { ActivatedRoute, ParamMap, Router } from "@angular/router";
+import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { Event as PkEvent } from "../../../db/models/Event";
 import {
   EventCategory,
@@ -28,6 +28,16 @@ import {
 } from "../../services/firebase/firestore/series.service";
 import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
 import { AnalyticsService } from "../../services/analytics.service";
+import {
+  FabMenuAction,
+  FabMenuComponent,
+} from "../fab-menu/fab-menu.component";
+
+type EventCreateAction = "event" | "session";
+
+interface EventFabMenuAction extends FabMenuAction {
+  id: EventCreateAction;
+}
 
 type ScreenshotEventSchema = Omit<
   EventSchema,
@@ -54,7 +64,7 @@ interface ScreenshotGlobal {
     MatButtonModule,
     MatChipsModule,
     MatIconModule,
-    RouterLink,
+    FabMenuComponent,
   ],
   templateUrl: "./events-page.component.html",
   styleUrl: "./events-page.component.scss",
@@ -67,9 +77,32 @@ export class EventsPageComponent implements OnInit {
   private _route = inject(ActivatedRoute, { optional: true });
   private _router = inject(Router, { optional: true });
   private _analytics = inject(AnalyticsService);
+  private readonly _authState = toSignal(this._authService.authState$, {
+    initialValue: this._authService.authState$.value,
+  });
 
   /** Shows the "+ Create event" button only to admins. */
   readonly isAdmin = computed(() => this._authService.isAdmin());
+  readonly isSignedIn = computed(() => !!this._authState()?.uid);
+  readonly createMenuLabel = $localize`:@@events.create_menu_tooltip:Create an event or session`;
+  readonly createActions = computed(() => {
+    const actions: EventFabMenuAction[] = [];
+    if (this.isAdmin()) {
+      actions.push({
+        id: "event",
+        icon: "calendar_add_on",
+        label: $localize`:@@events.create:Create event`,
+      });
+    }
+    if (this.isSignedIn()) {
+      actions.push({
+        id: "session",
+        icon: "event_upcoming",
+        label: $localize`:@@events.plan_session:Plan session`,
+      });
+    }
+    return actions;
+  });
 
   events = signal<PkEvent[]>([]);
   seriesById = signal<Record<string, SeriesDocument>>({});
@@ -261,10 +294,15 @@ export class EventsPageComponent implements OnInit {
     void this._updateFilterQueryParams();
   }
 
-  trackCreateEventClick(): void {
-    this._analytics.trackEvent("event_create_clicked", {
-      surface: "events_page",
-    });
+  onCreateAction(action: string): void {
+    if (action !== "event" && action !== "session") return;
+    this._analytics.trackEvent(
+      action === "event" ? "event_create_clicked" : "session_plan_clicked",
+      { surface: "events_page" },
+    );
+    void this._router?.navigate([
+      action === "event" ? "/events/new" : "/events/session/new",
+    ]);
   }
 
   categoryLabel(category: EventCategory): string {

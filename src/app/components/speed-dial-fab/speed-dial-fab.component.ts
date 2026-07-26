@@ -25,6 +25,9 @@ export interface SpeedDialFabButtonConfig {
   miniButtons: {
     icon: string;
     tooltip?: string;
+    /** Visible action label. Falls back to the tooltip when omitted. */
+    label?: string;
+    ariaLabel?: string;
   }[];
 }
 
@@ -57,7 +60,7 @@ export class SpeedDialFabComponent {
    */
   readonly isOpen = signal(false);
 
-  public onClick(target: EventTarget | null) {
+  public onClick(target: EventTarget | null): void {
     const clickedInside =
       target instanceof Node &&
       this.fabContainer()?.nativeElement.contains(target);
@@ -67,19 +70,19 @@ export class SpeedDialFabComponent {
     }
   }
 
-  open() {
+  open(): void {
     this.isOpen.set(true);
   }
 
-  close() {
+  close(): void {
     this.isOpen.set(false);
   }
 
-  toggle() {
+  toggle(): void {
     this.isOpen() ? this.close() : this.open();
   }
 
-  onMainClick() {
+  onMainClick(): void {
     if (this.openOnHover() && this.isOpen()) {
       // call the action function provided for the mainButton
       this.mainFabClick.emit();
@@ -92,29 +95,30 @@ export class SpeedDialFabComponent {
     }
   }
 
-  onMouseEnter() {
+  onMouseEnter(): void {
     // open the fab button if it is configured to
     if (this.openOnHover()) {
       this.open();
     }
   }
 
-  onMouseLeave() {
+  onMouseLeave(): void {
     // we want to close it anyhow
     if (this.openOnHover()) {
       this.close();
     }
   }
 
-  onClickOutside() {
+  onClickOutside(): void {
     this.close();
   }
 
-  miniButtonClick(index: number) {
+  miniButtonClick(index: number): void {
     this.miniFabClick.emit(index);
+    this.close();
   }
 
-  getBackgroundColor(color: string) {
+  getBackgroundColor(color: string): string {
     switch (color) {
       case "primary":
         return "var(--dark-primary-bg)";
@@ -126,7 +130,7 @@ export class SpeedDialFabComponent {
     }
   }
 
-  getIconColor(color: string) {
+  getIconColor(color: string): string {
     switch (color) {
       case "primary":
         return "var(--dark-primary-icon)";

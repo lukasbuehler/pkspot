@@ -36,6 +36,15 @@ service firebase.storage {
 
     function hasModerationMetadata() {
       return request.resource != null
+        && request.resource.metadata.keys().hasOnly([
+          'uid',
+          'upload_id',
+          'destination_folder',
+          'destination_filename',
+          'target_kind',
+          'target_id',
+          'cache_control'
+        ])
         && request.resource.metadata.upload_id is string
         && request.resource.metadata.upload_id.size() > 0
         && request.resource.metadata.destination_folder in [
@@ -176,7 +185,10 @@ service firebase.storage {
     }
 
     match /media_intake/{uid}/{uploadId}/{filename} {
-      allow read: if false;
+      // Quarantine is never readable by its uploader or by the public. Admins
+      // can inspect it for moderation; ordinary previews use a short-lived,
+      // server-authorized URL so the storage path is never client-selected.
+      allow read: if isAdmin();
       allow create: if isSignedIn()
         && request.auth.uid == uid
         && uploadId.matches('^[A-Za-z0-9_-]+$')
