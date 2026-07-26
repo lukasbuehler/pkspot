@@ -94,6 +94,7 @@ import { AppSettingsService } from "./services/app-settings.service";
 import { UiLanguageService } from "./services/ui-language.service";
 import { FirebaseAppCheckService } from "./services/firebase/app-check.service";
 import { PushNotificationsService } from "./services/push-notifications.service";
+import { trainingFeatureEnabled } from "./features/training-feature";
 
 interface ButtonBase {
   name: string;
@@ -1457,6 +1458,13 @@ html.pkspot-roboto-loaded body {
       link: "/events",
       icon: "event",
     });
+    if (trainingFeatureEnabled) {
+      buttons.push({
+        name: $localize`:Train navbar button label|A very short label for training planning@@train.nav:Train`,
+        link: "/train",
+        icon: "exercise",
+      });
+    }
 
     // Drop "About" on tight viewports so the bottom toolbar fits 4 items
     // (map, activity, events, profile/account).

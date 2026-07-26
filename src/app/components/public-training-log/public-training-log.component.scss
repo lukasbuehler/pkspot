@@ -1,0 +1,12 @@
+:host { display: block; }
+.public-log { max-width: 760px; margin: 0 auto; padding: clamp(20px, 4vw, 48px); }
+.back { display: inline-flex; align-items: center; gap: 6px; color: var(--mat-sys-primary); text-decoration: none; }
+h1 { margin: 16px 0 4px; font: var(--mat-sys-headline-large); }
+.public-log > p { margin: 0 0 28px; color: var(--mat-sys-on-surface-variant); }
+section { display: grid; gap: 12px; }
+article { padding: 18px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; }
+article > span, small { color: var(--mat-sys-on-surface-variant); }
+article p { white-space: pre-wrap; }
+small { display: block; margin-top: 4px; }
+.state { min-height: 280px; display: grid; place-items: center; align-content: center; text-align: center; color: var(--mat-sys-on-surface-variant); }
+@media (max-width: 600px) { .public-log { padding: 20px 16px 96px; } }

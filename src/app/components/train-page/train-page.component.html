@@ -1,0 +1,152 @@
+<main class="train-page">
+  <header class="train-header">
+    <div>
+      <p class="eyebrow" i18n="@@train.eyebrow">Plan your training</p>
+      <h1>
+        @if (displayName()) {
+          <span i18n="@@train.greetingNamed">Hey {{ displayName() }}, let's train!</span>
+        } @else {
+          <span i18n="@@train.greeting">Let's train!</span>
+        }
+      </h1>
+    </div>
+    @if (signedIn()) {
+      <a matButton="filled" routerLink="/train/log">
+        <mat-icon>book_2</mat-icon>
+        <span i18n="@@train.openLog">Training log</span>
+      </a>
+    }
+  </header>
+
+  <section class="context-bar" aria-label="Training conditions" i18n-aria-label>
+    <div class="context-item">
+      <mat-icon>location_on</mat-icon>
+      <div>
+        <strong>{{ area()?.displayName || "Near you" }}</strong>
+        <span i18n="@@train.searchRadius">Within {{ radiusKm() }} km</span>
+      </div>
+    </div>
+    @if (weather(); as forecast) {
+      <div class="context-item weather">
+        <mat-icon>{{ weatherIcon() }}</mat-icon>
+        <div>
+          <strong>{{ forecast.current?.temperatureC | number: "1.0-0" }}°</strong>
+          <span>{{ forecast.insights.summary }}</span>
+        </div>
+      </div>
+    }
+    <button matButton type="button" (click)="useMyLocation()" [disabled]="locating()">
+      <mat-icon>my_location</mat-icon>
+      <span i18n="@@train.useLocation">Use my location</span>
+    </button>
+  </section>
+
+  <section class="area-search">
+    <app-search-field
+      appearance="outline"
+      [contextLabel]="area()?.displayName || null"
+      (spotSelected)="chooseArea($event)"
+      (contextClear)="clearArea()"
+    />
+    @if (area(); as selectedArea) {
+      <button
+        matButton
+        type="button"
+        [disabled]="!signedIn()"
+        (click)="toggleFollow(selectedArea)"
+      >
+        <mat-icon>{{ isFollowing(selectedArea.communityKey) ? "notifications_active" : "add_alert" }}</mat-icon>
+        <span>{{ isFollowing(selectedArea.communityKey) ? "Following" : "Follow community" }}</span>
+      </button>
+    }
+  </section>
+
+  @if (loading()) {
+    <div class="state"><mat-progress-spinner diameter="36" mode="indeterminate" /></div>
+  } @else if (error()) {
+    <p class="state">{{ error() }}</p>
+  } @else {
+    <section class="train-section">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow" i18n="@@train.bestOptions">Best options</p>
+          <h2 i18n="@@train.goodOptions">Good options today and this week</h2>
+        </div>
+        <a matButton routerLink="/events" i18n="@@train.allEvents">All events</a>
+      </div>
+      @if (todayOptions().length) {
+        <div class="event-grid">
+          @for (event of todayOptions(); track event.id) {
+            <a class="event-card" [routerLink]="['/events', event.slug || event.id]">
+              <div class="event-media">
+                @if (event.bannerSrc || event.logoSrc; as image) {
+                  <img [src]="image" alt="" />
+                } @else {
+                  <mat-icon>event</mat-icon>
+                }
+                @if (event.live) {
+                  <span class="live"><span i18n="@@train.live">Live</span></span>
+                }
+              </div>
+              <div class="event-copy">
+                <span class="event-time">{{ event.startSeconds * 1000 | date: "EEE, HH:mm" }}</span>
+                <h3>{{ event.name }}</h3>
+                <p>{{ event.venueString || event.localityString }}</p>
+                @if (event.distanceKm !== undefined) {
+                  <span>{{ event.distanceKm | number: "1.0-0" }} km</span>
+                }
+              </div>
+            </a>
+          }
+        </div>
+      } @else {
+        <p class="empty" i18n="@@train.noEvents">No upcoming options found in this area yet.</p>
+      }
+    </section>
+
+    <section class="train-section">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow" i18n="@@train.communitiesEyebrow">Your network</p>
+          <h2 i18n="@@train.followedCommunities">Communities you follow</h2>
+        </div>
+      </div>
+      @if (!signedIn()) {
+        <p class="empty" i18n="@@train.signInCommunities">Sign in to follow training communities.</p>
+      } @else if (followedCommunities().length) {
+        <div class="community-row">
+          @for (community of followedCommunities(); track community.communityKey) {
+            <article class="community-item">
+              <a [routerLink]="community.canonicalPath">
+                <mat-icon>groups</mat-icon>
+                <span>{{ community.displayName }}</span>
+              </a>
+              <button matIconButton type="button" (click)="toggleFollow(community)" aria-label="Unfollow community" i18n-aria-label>
+                <mat-icon>notifications_active</mat-icon>
+              </button>
+            </article>
+          }
+        </div>
+      } @else {
+        <p class="empty" i18n="@@train.noCommunities">Choose an area above, then follow communities from their pages.</p>
+      }
+    </section>
+
+    <section class="log-prompt">
+      <div class="prompt-icon"><mat-icon>history_edu</mat-icon></div>
+      <div>
+        <p class="eyebrow" i18n="@@train.personalRecord">Your personal record</p>
+        <h2 i18n="@@train.logPrompt">Finished training? Add it to your log.</h2>
+        <p i18n="@@train.logPrivacy">Session records stay private. You choose what a log entry shares.</p>
+      </div>
+      @if (signedIn()) {
+        <a matButton="filled" routerLink="/train/log/new">
+          <mat-icon>add</mat-icon>
+          <span i18n="@@train.addLog">Add log entry</span>
+        </a>
+      } @else {
+        <a matButton="filled" routerLink="/account" i18n="@@train.signInToLog">Sign in to log</a>
+      }
+    </section>
+  }
+</main>

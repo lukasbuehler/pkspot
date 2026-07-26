@@ -19,6 +19,7 @@ import { AssetUrlService } from "./asset-url.service";
 import type { EventRSVPCountsSchema } from "../../db/schemas/EventRSVPSchema";
 import type {
   EventCategory,
+  EventKind,
   EventLinkKind,
   EventLinkSchema,
   EventLifecycleStatus,
@@ -1155,6 +1156,15 @@ export class SearchService {
       eventCategories: Array.isArray(doc?.event_categories)
         ? doc.event_categories
         : [],
+      kind:
+        doc?.kind === "session" ||
+        doc?.kind === "class" ||
+        doc?.kind === "competition" ||
+        doc?.kind === "workshop" ||
+        doc?.kind === "festival" ||
+        doc?.kind === "other"
+          ? doc.kind
+          : undefined,
       rsvpCounts: SearchService._readRsvpCounts(doc),
       seriesRoles: Array.isArray(doc?.series_roles) ? doc.series_roles : [],
       qualifiesToKeys: Array.isArray(doc?.qualifies_to_keys)
@@ -2462,6 +2472,7 @@ export interface EventSearchPreview {
   communityKeys: string[];
   seriesIds: string[];
   eventCategories: string[];
+  kind?: EventKind;
   rsvpCounts?: EventRSVPCountsSchema;
   seriesRoles: string[];
   qualifiesToKeys: string[];

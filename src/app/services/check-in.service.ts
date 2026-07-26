@@ -13,6 +13,9 @@ import { Spot } from "../../db/models/Spot";
 import { SpotId } from "../../db/schemas/SpotSchema";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 import { environment } from "../../environments/environment.default";
+import { trainingFeatureEnabled } from "../features/training-feature";
+import { AuthenticationService } from "./firebase/authentication.service";
+import { SessionRecordsService } from "./firebase/firestore/session-records.service";
 
 @Injectable({
   providedIn: "root",
@@ -506,8 +509,15 @@ export class CheckInService {
     return R * c;
   }
 
-  public checkIn(spotId: SpotId) {
+  public async checkIn(spotId: SpotId): Promise<void> {
     if (!this.isEnabled) return;
-    console.log(`Check-in: ${spotId}`);
+    const auth = this._injector.get(AuthenticationService);
+    if (trainingFeatureEnabled && auth.user.uid) {
+      const spot = this.currentProximitySpot();
+      await this._injector
+        .get(SessionRecordsService)
+        .recordCheckIn(spotId, spot?.id === spotId ? spot.name : undefined);
+    }
+    this.dismissSpot(spotId);
   }
 }

@@ -37,6 +37,57 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/users/$(request.auth.uid)/followers/$(userId));
     }
 
+    function canReadLogEntry(userId, entryData) {
+      return (request.auth != null && request.auth.uid == userId)
+        || entryData.visibility == 'public'
+        || (
+          request.auth.uid != null
+          && entryData.visibility == 'followers'
+          && exists(/databases/$(database)/documents/users/$(request.auth.uid)/following/$(userId))
+        )
+        || (
+          entryData.visibility == 'friends'
+          && isMutualFriend(userId)
+        );
+    }
+
+    function validLogEntry(userId) {
+      return request.resource.data.keys().hasAll([
+          'owner_id',
+          'note',
+          'visibility',
+          'session_record_ids',
+          'session_summaries',
+          'activity_at',
+          'activity_at_raw_ms',
+          'time_created',
+          'time_created_raw_ms',
+          'time_updated',
+          'time_updated_raw_ms'
+        ])
+        && request.resource.data.owner_id == userId
+        && request.resource.data.note is string
+        && request.resource.data.note.size() <= 10000
+        && request.resource.data.visibility in [
+          'private',
+          'friends',
+          'followers',
+          'public'
+        ]
+        && request.resource.data.session_record_ids is list
+        && request.resource.data.session_record_ids.size() > 0
+        && request.resource.data.session_record_ids.size() <= 20
+        && request.resource.data.session_summaries is list
+        && request.resource.data.session_summaries.size()
+          == request.resource.data.session_record_ids.size()
+        && request.resource.data.activity_at is timestamp
+        && request.resource.data.activity_at_raw_ms is number
+        && request.resource.data.time_created is timestamp
+        && request.resource.data.time_created_raw_ms is number
+        && request.resource.data.time_updated is timestamp
+        && request.resource.data.time_updated_raw_ms is number;
+    }
+
     function canReadSpotEdit() {
       return !('visibility' in resource.data)
         || resource.data.visibility != 'private'
@@ -1195,6 +1246,36 @@ service cloud.firestore {
         // Private to the user
         allow read, create, delete: if request.auth.uid != null && request.auth.uid == userId;
         allow update: if false;
+      }
+
+      match /community_follows/{communityKey} {
+        allow read, create, update, delete: if request.auth.uid != null
+          && request.auth.uid == userId;
+      }
+
+      match /session_records/{sessionRecordId} {
+        allow read, create, update, delete: if request.auth.uid != null
+          && request.auth.uid == userId
+          && (
+            request.method == 'delete'
+            || request.resource.data.owner_id == userId
+          );
+      }
+
+      match /log_entries/{logEntryId} {
+        allow get, list: if canReadLogEntry(userId, resource.data);
+        allow create: if request.auth.uid != null
+          && request.auth.uid == userId
+          && validLogEntry(userId);
+        allow update: if request.auth.uid != null
+          && request.auth.uid == userId
+          && request.resource.data.owner_id == resource.data.owner_id
+          && request.resource.data.time_created == resource.data.time_created
+          && request.resource.data.time_created_raw_ms
+            == resource.data.time_created_raw_ms
+          && validLogEntry(userId);
+        allow delete: if request.auth.uid != null
+          && request.auth.uid == userId;
       }
 
       match /private_data/{docId} {

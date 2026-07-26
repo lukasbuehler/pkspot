@@ -1,0 +1,45 @@
+:host { display: block; }
+.train-page { max-width: 1180px; margin: 0 auto; padding: clamp(20px, 4vw, 48px); color: var(--mat-sys-on-surface); }
+.train-header, .section-heading, .context-bar, .log-prompt { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+h1 { margin: 4px 0 0; font: var(--mat-sys-headline-large); }
+h2 { margin: 3px 0 0; font: var(--mat-sys-headline-small); }
+h3 { margin: 0; font: var(--mat-sys-title-medium); }
+.eyebrow { margin: 0; color: var(--mat-sys-primary); font: var(--mat-sys-label-large); }
+.context-bar { margin: 28px 0 12px; padding: 14px 18px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; background: var(--mat-sys-surface-container-low); }
+.context-item { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.context-item div { display: flex; flex-direction: column; min-width: 0; }
+.context-item span { color: var(--mat-sys-on-surface-variant); font: var(--mat-sys-body-small); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.area-search { max-width: 720px; display: flex; align-items: center; gap: 10px; }
+.area-search app-search-field { flex: 1; min-width: 0; }
+.train-section { margin-top: 38px; }
+.event-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
+.event-card { display: grid; grid-template-columns: 112px minmax(0, 1fr); min-height: 118px; overflow: hidden; color: inherit; text-decoration: none; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; background: var(--mat-sys-surface-container-low); }
+.event-card:hover { border-color: var(--mat-sys-primary); }
+.event-media { position: relative; display: grid; place-items: center; background: var(--mat-sys-surface-container-high); overflow: hidden; }
+.event-media img { width: 100%; height: 100%; object-fit: cover; }
+.live { position: absolute; top: 8px; left: 8px; padding: 3px 7px; border-radius: 5px; background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); font: var(--mat-sys-label-small); }
+.event-copy { display: flex; flex-direction: column; gap: 4px; padding: 13px; min-width: 0; }
+.event-copy h3, .event-copy p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.event-copy p, .event-copy span { margin: 0; color: var(--mat-sys-on-surface-variant); font: var(--mat-sys-body-small); }
+.event-copy .event-time { color: var(--mat-sys-primary); font: var(--mat-sys-label-medium); }
+.community-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+.community-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px 8px 14px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; }
+.community-item a { display: flex; align-items: center; gap: 10px; min-width: 0; color: inherit; text-decoration: none; }
+.log-prompt { margin-top: 40px; padding: 20px; border: 1px solid var(--mat-sys-primary); border-radius: 8px; background: var(--mat-sys-primary-container); color: var(--mat-sys-on-primary-container); }
+.log-prompt .eyebrow { color: inherit; }
+.log-prompt p { margin: 5px 0 0; }
+.prompt-icon { width: 44px; height: 44px; border-radius: 8px; display: grid; place-items: center; background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); flex: 0 0 auto; }
+.state, .empty { padding: 32px 0; color: var(--mat-sys-on-surface-variant); text-align: center; }
+@media (max-width: 900px) {
+  .event-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .community-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .train-page { padding: 20px 16px 96px; }
+  .train-header, .section-heading, .log-prompt { align-items: flex-start; flex-direction: column; }
+  .context-bar { align-items: stretch; flex-wrap: wrap; }
+  .area-search { align-items: stretch; flex-direction: column; }
+  .weather { max-width: calc(100vw - 64px); }
+  .event-grid, .community-row { grid-template-columns: 1fr; }
+  .event-card { grid-template-columns: 104px minmax(0, 1fr); }
+}

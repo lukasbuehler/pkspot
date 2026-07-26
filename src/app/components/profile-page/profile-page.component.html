@@ -177,6 +177,16 @@
                       </div>
                     }
 
+                    @if (trainingFeatureEnabled) {
+                      <a
+                        mat-stroked-button
+                        [routerLink]="isMyProfile ? '/train/log' : ['/u', userId, 'logs']"
+                      >
+                        <mat-icon>book_2</mat-icon>
+                        <span i18n="@@profile.trainingLog">Training log</span>
+                      </a>
+                    }
+
                     <div
                       class="profile-stats"
                       aria-label="Profile summary"

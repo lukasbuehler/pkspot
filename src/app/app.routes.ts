@@ -2,6 +2,7 @@ import { Routes } from "@angular/router";
 import { contentResolver } from "./resolvers/content.resolver";
 import { communityLandingResolver } from "./resolvers/community-landing.resolver";
 import { environment } from "../environments/environment.default";
+import { trainingFeatureEnabled } from "./features/training-feature";
 
 export const ACCEPTANCE_FREE_PREFIXES = [
   "/about",
@@ -218,6 +219,51 @@ export const routes: Routes = [
     resolve: { content: contentResolver },
     data: { routeName: "Organization" },
   },
+
+  ...(trainingFeatureEnabled
+    ? [
+        {
+          path: "train",
+          loadComponent: () =>
+            import("./components/train-page/train-page.component").then(
+              (m) => m.TrainPageComponent,
+            ),
+          data: { routeName: "Train" },
+        },
+        {
+          path: "train/log",
+          loadComponent: () =>
+            import("./components/training-log-page/training-log-page.component").then(
+              (m) => m.TrainingLogPageComponent,
+            ),
+          data: { routeName: "Training Log" },
+        },
+        {
+          path: "train/log/new",
+          loadComponent: () =>
+            import("./components/log-entry-editor/log-entry-editor.component").then(
+              (m) => m.LogEntryEditorComponent,
+            ),
+          data: { routeName: "New Log Entry" },
+        },
+        {
+          path: "train/log/:entryId/edit",
+          loadComponent: () =>
+            import("./components/log-entry-editor/log-entry-editor.component").then(
+              (m) => m.LogEntryEditorComponent,
+            ),
+          data: { routeName: "Edit Log Entry" },
+        },
+        {
+          path: "u/:userID/logs",
+          loadComponent: () =>
+            import("./components/public-training-log/public-training-log.component").then(
+              (m) => m.PublicTrainingLogComponent,
+            ),
+          data: { routeName: "Training Log" },
+        },
+      ]
+    : []),
   {
     path: "organization-reviews",
     loadComponent: () =>

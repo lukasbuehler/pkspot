@@ -66,6 +66,7 @@ import {
   buildYouTubeProfileUrl,
   normalizeDiscordUrl,
 } from "../../utils/profile-social-links";
+import { trainingFeatureEnabled } from "../../features/training-feature";
 
 type ProfileSocialLink = {
   id: string;
@@ -105,6 +106,7 @@ type ProfileSocialLink = {
   ],
 })
 export class ProfilePageComponent implements OnInit, OnDestroy {
+  readonly trainingFeatureEnabled = trainingFeatureEnabled;
   private _structuredDataService = inject(StructuredDataService);
   private _metaTagService = inject(MetaTagService);
   private _regionDisplayNames: Intl.DisplayNames | null = null;

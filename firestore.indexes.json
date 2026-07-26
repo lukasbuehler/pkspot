@@ -1,6 +1,20 @@
 {
   "indexes": [
     {
+      "collectionGroup": "log_entries",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "visibility",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "activity_at_raw_ms",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "registrations",
       "queryScope": "COLLECTION",
       "fields": [

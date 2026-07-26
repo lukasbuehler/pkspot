@@ -21,6 +21,91 @@
         <source>Open this on PK Spot</source>
       </segment>
     </unit>
+    <unit id="logEditor.addSession">
+      <segment>
+        <source>Add a session record</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.arrived">
+      <segment>
+        <source>Arrived</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.entryHelp">
+      <segment>
+        <source>Add the part you want to remember or share.</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.entryTitle">
+      <segment>
+        <source>Log entry</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.intro">
+      <segment>
+        <source>Describe your training and decide who can see the summary.</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.invalidTimes">
+      <segment>
+        <source>Leave time must be after arrival time.</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.left">
+      <segment>
+        <source>Left</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.note">
+      <segment>
+        <source>Note</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.notFound">
+      <segment>
+        <source>Log entry not found.</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.people">
+      <segment>
+        <source>People who were there</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.save">
+      <segment>
+        <source>Save entry</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.saveError">
+      <segment>
+        <source>Could not save this log entry.</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.sessionRequired">
+      <segment>
+        <source>Select a session record or add one below.</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.sessionsHelp">
+      <segment>
+        <source>Choose what this entry describes. Raw session details remain private.</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.sessionsTitle">
+      <segment>
+        <source>Session records</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.visibility">
+      <segment>
+        <source>Visibility</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.visibilityHint">
+      <segment>
+        <source>Private is the default. Shared summaries never include exact spots, times, or people.</source>
+      </segment>
+    </unit>
     <unit id="login.nav_label">
       <segment>
         <source>Account</source>
@@ -247,6 +332,11 @@
         <source>Map Spots</source>
       </segment>
     </unit>
+    <unit id="2592135485980390676">
+      <segment>
+        <source>Training log</source>
+      </segment>
+    </unit>
     <unit id="2599075381042572471">
       <segment>
         <source>No organization approvals waiting.</source>
@@ -300,6 +390,11 @@
     <unit id="1008017384716140525">
       <segment>
         <source>Event view</source>
+      </segment>
+    </unit>
+    <unit id="1021514752572704186">
+      <segment>
+        <source>Unfollow community</source>
       </segment>
     </unit>
     <unit id="1025791844730471949">
@@ -802,6 +897,26 @@
         <source>{VAR_PLURAL, plural, =1 {Spot visited} other {Spots visited}}</source>
       </segment>
     </unit>
+    <unit id="profile.trainingLog">
+      <segment>
+        <source>Training log</source>
+      </segment>
+    </unit>
+    <unit id="publicLog.empty">
+      <segment>
+        <source>No log entries are visible to you.</source>
+      </segment>
+    </unit>
+    <unit id="publicLog.subtitle">
+      <segment>
+        <source>Entries this person chose to share with you.</source>
+      </segment>
+    </unit>
+    <unit id="publicLog.title">
+      <segment>
+        <source>Training log</source>
+      </segment>
+    </unit>
     <unit id="9107902639851774121">
       <segment>
         <source>Checking admin access...</source>
@@ -999,6 +1114,11 @@
     <unit id="2016569006287688818">
       <segment>
         <source>An error occurred. Please try again or request a new link.</source>
+      </segment>
+    </unit>
+    <unit id="2017846716370702756">
+      <segment>
+        <source>Delete log entry</source>
       </segment>
     </unit>
     <unit id="2019601691309455666">
@@ -1526,6 +1646,11 @@
       </notes>
       <segment>
         <source> Crop the image above </source>
+      </segment>
+    </unit>
+    <unit id="common.cancel">
+      <segment>
+        <source>Cancel</source>
       </segment>
     </unit>
     <unit id="common.close">
@@ -2119,6 +2244,11 @@
     <unit id="8275049945387417668">
       <segment>
         <source> Unable to process this request. Please try again later. </source>
+      </segment>
+    </unit>
+    <unit id="5163862847546461994">
+      <segment>
+        <source>Training conditions</source>
       </segment>
     </unit>
     <unit id="5176605689144016167">
@@ -7331,6 +7461,175 @@
         <source>By creating an account, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and confirm you meet the age requirements or have parent/guardian consent, and that you will contribute content under the license terms described within.</source>
       </segment>
     </unit>
+    <unit id="train.addLog">
+      <segment>
+        <source>Add log entry</source>
+      </segment>
+    </unit>
+    <unit id="train.allEvents">
+      <segment>
+        <source>All events</source>
+      </segment>
+    </unit>
+    <unit id="train.bestOptions">
+      <segment>
+        <source>Best options</source>
+      </segment>
+    </unit>
+    <unit id="train.communitiesEyebrow">
+      <segment>
+        <source>Your network</source>
+      </segment>
+    </unit>
+    <unit id="train.eyebrow">
+      <segment>
+        <source>Plan your training</source>
+      </segment>
+    </unit>
+    <unit id="train.followedCommunities">
+      <segment>
+        <source>Communities you follow</source>
+      </segment>
+    </unit>
+    <unit id="train.goodOptions">
+      <segment>
+        <source>Good options today and this week</source>
+      </segment>
+    </unit>
+    <unit id="train.greeting">
+      <segment>
+        <source>Let&apos;s train!</source>
+      </segment>
+    </unit>
+    <unit id="train.greetingNamed">
+      <segment>
+        <source>Hey <ph id="0" equiv="INTERPOLATION" disp="{{ displayName() }}"/>, let&apos;s train!</source>
+      </segment>
+    </unit>
+    <unit id="train.live">
+      <segment>
+        <source>Live</source>
+      </segment>
+    </unit>
+    <unit id="train.loadError">
+      <segment>
+        <source>Training options could not be loaded.</source>
+      </segment>
+    </unit>
+    <unit id="train.logPrivacy">
+      <segment>
+        <source>Session records stay private. You choose what a log entry shares.</source>
+      </segment>
+    </unit>
+    <unit id="train.logPrompt">
+      <segment>
+        <source>Finished training? Add it to your log.</source>
+      </segment>
+    </unit>
+    <unit id="train.nav">
+      <notes>
+        <note category="description">A very short label for training planning</note>
+        <note category="meaning">Train navbar button label</note>
+      </notes>
+      <segment>
+        <source>Train</source>
+      </segment>
+    </unit>
+    <unit id="train.noCommunities">
+      <segment>
+        <source>Choose an area above, then follow communities from their pages.</source>
+      </segment>
+    </unit>
+    <unit id="train.noEvents">
+      <segment>
+        <source>No upcoming options found in this area yet.</source>
+      </segment>
+    </unit>
+    <unit id="train.openLog">
+      <segment>
+        <source>Training log</source>
+      </segment>
+    </unit>
+    <unit id="train.personalRecord">
+      <segment>
+        <source>Your personal record</source>
+      </segment>
+    </unit>
+    <unit id="train.searchRadius">
+      <segment>
+        <source>Within <ph id="0" equiv="INTERPOLATION" disp="{{ radiusKm() }}"/> km</source>
+      </segment>
+    </unit>
+    <unit id="train.signInCommunities">
+      <segment>
+        <source>Sign in to follow training communities.</source>
+      </segment>
+    </unit>
+    <unit id="train.signInToLog">
+      <segment>
+        <source>Sign in to log</source>
+      </segment>
+    </unit>
+    <unit id="train.useLocation">
+      <segment>
+        <source>Use my location</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.createFirst">
+      <segment>
+        <source>Create first entry</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.deleteConfirm">
+      <segment>
+        <source>Delete this log entry?</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.emptyBody">
+      <segment>
+        <source>Record what happened. It stays private unless you choose otherwise.</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.emptyTitle">
+      <segment>
+        <source>Your first entry starts here</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.entries">
+      <segment>
+        <source>entries</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.new">
+      <segment>
+        <source>New entry</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.sessions">
+      <segment>
+        <source>session records</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.signIn">
+      <segment>
+        <source>Sign in</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.signInTitle">
+      <segment>
+        <source>Sign in to use your training log</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.subtitle">
+      <segment>
+        <source>A private-first record of your training.</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.title">
+      <segment>
+        <source>Training log</source>
+      </segment>
+    </unit>
     <unit id="1218334388194408974">
       <segment>
         <source>Before</source>
@@ -8741,6 +9040,11 @@
         <source> Duplicate </source>
       </segment>
     </unit>
+    <unit id="4172345182949733528">
+      <segment>
+        <source>Train</source>
+      </segment>
+    </unit>
     <unit id="4172689758346256013">
       <segment>
         <source>There was an error declining the follow request.</source>
@@ -9544,6 +9848,11 @@
     <unit id="7941428823403788384">
       <segment>
         <source> Create </source>
+      </segment>
+    </unit>
+    <unit id="7945138586170930874">
+      <segment>
+        <source>Remove person</source>
       </segment>
     </unit>
     <unit id="5245603112373072943">

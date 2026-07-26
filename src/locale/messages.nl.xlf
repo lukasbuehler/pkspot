@@ -830,6 +830,12 @@
         <target>Kaart-Spots</target>
       </segment>
     </unit>
+    <unit id="2592135485980390676">
+      <segment state="initial">
+        <source>Training log</source>
+        <target>Training log</target>
+      </segment>
+    </unit>
     <unit id="2599075381042572471">
       <segment state="initial">
         <source>No organization approvals waiting.</source>
@@ -2463,6 +2469,12 @@
         <target>Evenementweergave</target>
       </segment>
     </unit>
+    <unit id="1021514752572704186">
+      <segment state="initial">
+        <source>Unfollow community</source>
+        <target>Unfollow community</target>
+      </segment>
+    </unit>
     <unit id="1025791844730471949">
       <segment state="initial">
         <source>Edit approved</source>
@@ -2957,6 +2969,12 @@
         <target> Duplicaat </target>
       </segment>
     </unit>
+    <unit id="4172345182949733528">
+      <segment state="initial">
+        <source>Train</source>
+        <target>Train</target>
+      </segment>
+    </unit>
     <unit id="4172689758346256013">
       <segment state="initial">
         <source>There was an error declining the follow request.</source>
@@ -3163,6 +3181,12 @@
       <segment state="initial">
         <source>An error occurred. Please try again or request a new link.</source>
         <target>Er is een fout opgetreden. Probeer het opnieuw of vraag een nieuwe link aan.</target>
+      </segment>
+    </unit>
+    <unit id="2017846716370702756">
+      <segment state="initial">
+        <source>Delete log entry</source>
+        <target>Delete log entry</target>
       </segment>
     </unit>
     <unit id="2019601691309455666">
@@ -4725,6 +4749,30 @@
       <segment state="initial">
         <source>{VAR_PLURAL, plural, =1 {Spot visited} other {Spots visited}}</source>
         <target>{VAR_PLURAL, plural, =1 {Spot bezocht} other {Spots bezocht}}</target>
+      </segment>
+    </unit>
+    <unit id="profile.trainingLog">
+      <segment state="initial">
+        <source>Training log</source>
+        <target>Training log</target>
+      </segment>
+    </unit>
+    <unit id="publicLog.empty">
+      <segment state="initial">
+        <source>No log entries are visible to you.</source>
+        <target>No log entries are visible to you.</target>
+      </segment>
+    </unit>
+    <unit id="publicLog.subtitle">
+      <segment state="initial">
+        <source>Entries this person chose to share with you.</source>
+        <target>Entries this person chose to share with you.</target>
+      </segment>
+    </unit>
+    <unit id="publicLog.title">
+      <segment state="initial">
+        <source>Training log</source>
+        <target>Training log</target>
       </segment>
     </unit>
     <unit id="9107902639851774121">
@@ -8466,6 +8514,12 @@
         <target> Maken </target>
       </segment>
     </unit>
+    <unit id="7945138586170930874">
+      <segment state="initial">
+        <source>Remove person</source>
+        <target>Remove person</target>
+      </segment>
+    </unit>
     <unit id="5245603112373072943">
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Duplicate: This media is already present.</pc></source>
@@ -8578,10 +8632,118 @@
         <target>Verlichting</target>
       </segment>
     </unit>
+    <unit id="logEditor.addSession">
+      <segment state="initial">
+        <source>Add a session record</source>
+        <target>Add a session record</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.arrived">
+      <segment state="initial">
+        <source>Arrived</source>
+        <target>Arrived</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.entryHelp">
+      <segment state="initial">
+        <source>Add the part you want to remember or share.</source>
+        <target>Add the part you want to remember or share.</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.entryTitle">
+      <segment state="initial">
+        <source>Log entry</source>
+        <target>Log entry</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.intro">
+      <segment state="initial">
+        <source>Describe your training and decide who can see the summary.</source>
+        <target>Describe your training and decide who can see the summary.</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.invalidTimes">
+      <segment state="initial">
+        <source>Leave time must be after arrival time.</source>
+        <target>Leave time must be after arrival time.</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.left">
+      <segment state="initial">
+        <source>Left</source>
+        <target>Left</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.note">
+      <segment state="initial">
+        <source>Note</source>
+        <target>Note</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.notFound">
+      <segment state="initial">
+        <source>Log entry not found.</source>
+        <target>Log entry not found.</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.people">
+      <segment state="initial">
+        <source>People who were there</source>
+        <target>People who were there</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.save">
+      <segment state="initial">
+        <source>Save entry</source>
+        <target>Save entry</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.saveError">
+      <segment state="initial">
+        <source>Could not save this log entry.</source>
+        <target>Could not save this log entry.</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.sessionRequired">
+      <segment state="initial">
+        <source>Select a session record or add one below.</source>
+        <target>Select a session record or add one below.</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.sessionsHelp">
+      <segment state="initial">
+        <source>Choose what this entry describes. Raw session details remain private.</source>
+        <target>Choose what this entry describes. Raw session details remain private.</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.sessionsTitle">
+      <segment state="initial">
+        <source>Session records</source>
+        <target>Session records</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.visibility">
+      <segment state="initial">
+        <source>Visibility</source>
+        <target>Visibility</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.visibilityHint">
+      <segment state="initial">
+        <source>Private is the default. Shared summaries never include exact spots, times, or people.</source>
+        <target>Private is the default. Shared summaries never include exact spots, times, or people.</target>
+      </segment>
+    </unit>
     <unit id="login.nav_label">
       <segment state="initial">
         <source>Account</source>
         <target>Inloggen</target>
+      </segment>
+    </unit>
+    <unit id="common.cancel">
+      <segment state="initial">
+        <source>Cancel</source>
+        <target>Cancel</target>
       </segment>
     </unit>
     <unit id="common.close">
@@ -10664,6 +10826,12 @@
         <target>Referentie externe melding</target>
       </segment>
     </unit>
+    <unit id="5163862847546461994">
+      <segment state="initial">
+        <source>Training conditions</source>
+        <target>Training conditions</target>
+      </segment>
+    </unit>
     <unit id="5176605689144016167">
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Important:</pc> When embedding this content on your website, you are responsible for obtaining user consent for third-party services (Google Maps, analytics, etc.). Ensure your site has a clear consent banner or terms that users agree to before viewing embedded content. </source>
@@ -11114,6 +11282,208 @@
       <segment state="initial">
         <source>By creating an account, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and confirm you meet the age requirements or have parent/guardian consent, and that you will contribute content under the license terms described within.</source>
         <target>Door een account aan te maken, ga je akkoord met onze <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Algemene Voorwaarden</pc> en bevestig je dat je aan de leeftijdseisen voldoet of toestemming hebt van een ouder of voogd, en dat je content zult bijdragen onder de beschreven licentievoorwaarden.</target>
+      </segment>
+    </unit>
+    <unit id="train.addLog">
+      <segment state="initial">
+        <source>Add log entry</source>
+        <target>Add log entry</target>
+      </segment>
+    </unit>
+    <unit id="train.allEvents">
+      <segment state="initial">
+        <source>All events</source>
+        <target>All events</target>
+      </segment>
+    </unit>
+    <unit id="train.bestOptions">
+      <segment state="initial">
+        <source>Best options</source>
+        <target>Best options</target>
+      </segment>
+    </unit>
+    <unit id="train.communitiesEyebrow">
+      <segment state="initial">
+        <source>Your network</source>
+        <target>Your network</target>
+      </segment>
+    </unit>
+    <unit id="train.eyebrow">
+      <segment state="initial">
+        <source>Plan your training</source>
+        <target>Plan your training</target>
+      </segment>
+    </unit>
+    <unit id="train.followedCommunities">
+      <segment state="initial">
+        <source>Communities you follow</source>
+        <target>Communities you follow</target>
+      </segment>
+    </unit>
+    <unit id="train.goodOptions">
+      <segment state="initial">
+        <source>Good options today and this week</source>
+        <target>Good options today and this week</target>
+      </segment>
+    </unit>
+    <unit id="train.greeting">
+      <segment state="initial">
+        <source>Let&apos;s train!</source>
+        <target>Let&apos;s train!</target>
+      </segment>
+    </unit>
+    <unit id="train.greetingNamed">
+      <segment state="initial">
+        <source>Hey <ph id="0" equiv="INTERPOLATION" disp="{{ displayName() }}"/>, let&apos;s train!</source>
+        <target>Hey <ph id="0" equiv="INTERPOLATION" disp="{{ displayName() }}"/>, let&apos;s train!</target>
+      </segment>
+    </unit>
+    <unit id="train.live">
+      <segment state="initial">
+        <source>Live</source>
+        <target>Live</target>
+      </segment>
+    </unit>
+    <unit id="train.loadError">
+      <segment state="initial">
+        <source>Training options could not be loaded.</source>
+        <target>Training options could not be loaded.</target>
+      </segment>
+    </unit>
+    <unit id="train.logPrivacy">
+      <segment state="initial">
+        <source>Session records stay private. You choose what a log entry shares.</source>
+        <target>Session records stay private. You choose what a log entry shares.</target>
+      </segment>
+    </unit>
+    <unit id="train.logPrompt">
+      <segment state="initial">
+        <source>Finished training? Add it to your log.</source>
+        <target>Finished training? Add it to your log.</target>
+      </segment>
+    </unit>
+    <unit id="train.nav">
+      <notes>
+        <note category="description">A very short label for training planning</note>
+        <note category="meaning">Train navbar button label</note>
+      </notes>
+      <segment state="initial">
+        <source>Train</source>
+        <target>Train</target>
+      </segment>
+    </unit>
+    <unit id="train.noCommunities">
+      <segment state="initial">
+        <source>Choose an area above, then follow communities from their pages.</source>
+        <target>Choose an area above, then follow communities from their pages.</target>
+      </segment>
+    </unit>
+    <unit id="train.noEvents">
+      <segment state="initial">
+        <source>No upcoming options found in this area yet.</source>
+        <target>No upcoming options found in this area yet.</target>
+      </segment>
+    </unit>
+    <unit id="train.openLog">
+      <segment state="initial">
+        <source>Training log</source>
+        <target>Training log</target>
+      </segment>
+    </unit>
+    <unit id="train.personalRecord">
+      <segment state="initial">
+        <source>Your personal record</source>
+        <target>Your personal record</target>
+      </segment>
+    </unit>
+    <unit id="train.searchRadius">
+      <segment state="initial">
+        <source>Within <ph id="0" equiv="INTERPOLATION" disp="{{ radiusKm() }}"/> km</source>
+        <target>Within <ph id="0" equiv="INTERPOLATION" disp="{{ radiusKm() }}"/> km</target>
+      </segment>
+    </unit>
+    <unit id="train.signInCommunities">
+      <segment state="initial">
+        <source>Sign in to follow training communities.</source>
+        <target>Sign in to follow training communities.</target>
+      </segment>
+    </unit>
+    <unit id="train.signInToLog">
+      <segment state="initial">
+        <source>Sign in to log</source>
+        <target>Sign in to log</target>
+      </segment>
+    </unit>
+    <unit id="train.useLocation">
+      <segment state="initial">
+        <source>Use my location</source>
+        <target>Use my location</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.createFirst">
+      <segment state="initial">
+        <source>Create first entry</source>
+        <target>Create first entry</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.deleteConfirm">
+      <segment state="initial">
+        <source>Delete this log entry?</source>
+        <target>Delete this log entry?</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.emptyBody">
+      <segment state="initial">
+        <source>Record what happened. It stays private unless you choose otherwise.</source>
+        <target>Record what happened. It stays private unless you choose otherwise.</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.emptyTitle">
+      <segment state="initial">
+        <source>Your first entry starts here</source>
+        <target>Your first entry starts here</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.entries">
+      <segment state="initial">
+        <source>entries</source>
+        <target>entries</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.new">
+      <segment state="initial">
+        <source>New entry</source>
+        <target>New entry</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.sessions">
+      <segment state="initial">
+        <source>session records</source>
+        <target>session records</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.signIn">
+      <segment state="initial">
+        <source>Sign in</source>
+        <target>Sign in</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.signInTitle">
+      <segment state="initial">
+        <source>Sign in to use your training log</source>
+        <target>Sign in to use your training log</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.subtitle">
+      <segment state="initial">
+        <source>A private-first record of your training.</source>
+        <target>A private-first record of your training.</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.title">
+      <segment state="initial">
+        <source>Training log</source>
+        <target>Training log</target>
       </segment>
     </unit>
     <unit id="7102657004519673825">

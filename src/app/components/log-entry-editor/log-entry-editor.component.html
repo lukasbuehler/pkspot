@@ -1,0 +1,101 @@
+<main class="editor-page">
+  <header>
+    <a class="back" routerLink="/train/log"><mat-icon>arrow_back</mat-icon><span i18n>Training log</span></a>
+    <h1>{{ entryId ? ("Edit log entry") : ("New log entry") }}</h1>
+    <p i18n="@@logEditor.intro">Describe your training and decide who can see the summary.</p>
+  </header>
+
+  @if (loading()) {
+    <div class="state"><mat-progress-spinner diameter="36" mode="indeterminate" /></div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <section>
+        <div class="section-title">
+          <span>1</span>
+          <div><h2 i18n="@@logEditor.sessionsTitle">Session records</h2><p i18n="@@logEditor.sessionsHelp">Choose what this entry describes. Raw session details remain private.</p></div>
+        </div>
+        @if (sessions().length) {
+          <div class="session-list">
+            @for (session of sessions(); track session.id) {
+              <label class="session-option">
+                <mat-checkbox
+                  [checked]="selectedIds().includes(session.id)"
+                  (change)="toggleSession(session.id, $event.checked)"
+                />
+                <div>
+                  <strong>{{ session.started_at_raw_ms | date: "mediumDate" }}</strong>
+                  <span>{{ session.started_at_raw_ms | date: "shortTime" }} · {{ session.spot_visits.length }} spots · {{ session.source === "check_in" ? "Check-in" : "Manual" }}</span>
+                </div>
+              </label>
+            }
+          </div>
+        }
+        <button matButton type="button" (click)="showNewSession.set(!showNewSession())">
+          <mat-icon>{{ showNewSession() ? "remove" : "add" }}</mat-icon>
+          <span i18n="@@logEditor.addSession">Add a session record</span>
+        </button>
+
+        @if (showNewSession()) {
+          <div class="manual-session" [formGroup]="sessionForm">
+            <div class="time-grid">
+              <mat-form-field appearance="outline">
+                <mat-label i18n="@@logEditor.arrived">Arrived</mat-label>
+                <input matInput type="datetime-local" formControlName="startedAt" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label i18n="@@logEditor.left">Left</mat-label>
+                <input matInput type="datetime-local" formControlName="endedAt" />
+              </mat-form-field>
+            </div>
+            <app-spot-picker
+              [value]="spotIds()"
+              (valueChange)="spotIds.set($event)"
+              label="Spots visited"
+            />
+            <div class="people">
+              <label i18n="@@logEditor.people">People who were there</label>
+              <app-user-picker value="" (valueChange)="addPerson($event)" />
+              @if (people().length) {
+                <div class="people-list">
+                  @for (person of people(); track person.uid) {
+                    <span>{{ person.display_name || person.uid }}<button matIconButton type="button" (click)="removePerson(person.uid)" aria-label="Remove person" i18n-aria-label><mat-icon>close</mat-icon></button></span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </section>
+
+      <section>
+        <div class="section-title">
+          <span>2</span>
+          <div><h2 i18n="@@logEditor.entryTitle">Log entry</h2><p i18n="@@logEditor.entryHelp">Add the part you want to remember or share.</p></div>
+        </div>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label i18n="@@logEditor.note">Note</mat-label>
+          <textarea matInput formControlName="note" rows="6" maxlength="4000"></textarea>
+          <mat-hint align="end">{{ form.controls.note.value.length }}/4000</mat-hint>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label i18n="@@logEditor.visibility">Visibility</mat-label>
+          <mat-select formControlName="visibility">
+            @for (visibility of visibilities; track visibility) {
+              <mat-option [value]="visibility">{{ visibility }}</mat-option>
+            }
+          </mat-select>
+          <mat-hint i18n="@@logEditor.visibilityHint">Private is the default. Shared summaries never include exact spots, times, or people.</mat-hint>
+        </mat-form-field>
+      </section>
+
+      @if (error()) { <p class="error">{{ error() }}</p> }
+      <footer>
+        <a matButton routerLink="/train/log" i18n="@@common.cancel">Cancel</a>
+        <button matButton="filled" type="submit" [disabled]="saving()">
+          @if (saving()) { <mat-progress-spinner diameter="18" mode="indeterminate" /> }
+          <span i18n="@@logEditor.save">Save entry</span>
+        </button>
+      </footer>
+    </form>
+  }
+</main>
