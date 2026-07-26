@@ -4,12 +4,16 @@
   (resize)="onContainerResize($event)"
 >
   <header class="page-header">
-    <div>
+    <div class="page-heading">
       <h1 class="mat-headline-large" i18n="@@events.title">Events</h1>
       <p class="mat-body-large" i18n>
         Discover parkour events around the world.
       </p>
     </div>
+    <app-event-discovery-view-toggle
+      [view]="view()"
+      (viewChange)="onViewChange($event)"
+    />
   </header>
 
   <app-event-discovery-toolbar
@@ -21,10 +25,7 @@
     [seriesOptions]="seriesFilterOptions()"
     [selectedCategories]="selectedCategories()"
     [selectedSeriesIds]="selectedSeriesIds()"
-    (queryChange)="onQueryChange($event)"
-    (viewChange)="onViewChange($event)"
     (periodChange)="onPeriodChange($event)"
-    (areaChange)="onAreaChange($event)"
     (categoryToggled)="toggleCategory($event)"
     (seriesToggled)="toggleSeries($event)"
     (filtersCleared)="clearFilters()"
@@ -77,7 +78,7 @@
         <mat-icon>event</mat-icon>
         <h2 class="mat-title-large" i18n>No matching events</h2>
         <p class="mat-body-medium" i18n>
-          Try another month, area, search, or filter.
+          Try another month or clear the active filters.
         </p>
       </section>
     } @else if (view() === "calendar") {

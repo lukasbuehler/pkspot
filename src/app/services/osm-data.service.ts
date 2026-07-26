@@ -11,6 +11,7 @@ const OSM_AMENITY_MARKER_PRIORITY = {
     paid: -40,
   },
 } as const;
+const OSM_AMENITY_MARKER_COLOR = "gray" as const;
 
 export interface OsmAmenityTileRequest {
   zoom: 12;
@@ -108,7 +109,7 @@ export class OsmDataService {
         icons: ["water_full"],
         name: element.name,
         description: operator,
-        color: "tertiary",
+        color: OSM_AMENITY_MARKER_COLOR,
         priority: OSM_AMENITY_MARKER_PRIORITY.drinkingWater,
         type: "drinking_water",
       };
@@ -124,7 +125,7 @@ export class OsmDataService {
             : ["water_drop"],
         name: element.name ?? $localize`Unnamed Drinking Water spot`,
         description: operator,
-        color: "tertiary",
+        color: OSM_AMENITY_MARKER_COLOR,
         priority: OSM_AMENITY_MARKER_PRIORITY.drinkingWater,
         type: "drinking_water",
       };
@@ -155,7 +156,7 @@ export class OsmDataService {
           : ["wc"],
       name: element.name ?? $localize`Unnamed Toilet`,
       description: detailsParts.join(" • "),
-      color: "tertiary",
+      color: OSM_AMENITY_MARKER_COLOR,
       priority: isFree
         ? OSM_AMENITY_MARKER_PRIORITY.toilet.free
         : isPaid

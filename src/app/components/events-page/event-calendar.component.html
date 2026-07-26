@@ -58,6 +58,7 @@
               [startColumn]="segment.startColumn"
               [span]="segment.span"
               [lane]="segment.lane"
+              [nowSeconds]="calendar().nowSeconds"
               [continuesBefore]="segment.continuesBefore"
               [continuesAfter]="segment.continuesAfter"
             />
@@ -93,17 +94,25 @@
             class="date-button"
             [class.outside-month]="!day.inSelectedMonth"
             [class.is-today]="day.isToday"
+            [class.is-past]="day.isPast"
             [class.is-selected]="day.key === selectedDay()"
             [attr.aria-label]="dayAriaLabel(day)"
             (click)="daySelected.emit(day.key)"
           >
             <span class="date-number">{{ day.dayNumber }}</span>
             @if (day.events.length > 0) {
-              <span class="date-event-indicator" aria-hidden="true">
+              <span
+                class="date-event-indicator"
+                [class.all-events-past]="day.allEventsPast"
+                aria-hidden="true"
+              >
                 <small>{{ day.events.length }}</small>
                 <span class="event-thumbnails">
                   @for (event of day.indicatorEvents; track event.id) {
-                    <app-event-calendar-thumbnail [event]="event" />
+                    <app-event-calendar-thumbnail
+                      [event]="event"
+                      [muted]="event.endSeconds < calendar().nowSeconds"
+                    />
                   }
                 </span>
               </span>

@@ -55,9 +55,12 @@ import {
   type EventCategoryFilterOption,
   EventDiscoveryToolbarComponent,
   type EventSeriesFilterOption,
-  type EventsDiscoveryView,
   type EventsListPeriod,
 } from "./event-discovery-toolbar.component";
+import {
+  EventDiscoveryViewToggleComponent,
+  type EventsDiscoveryView,
+} from "./event-discovery-view-toggle.component";
 
 type EventCreateAction = "event" | "session";
 
@@ -108,6 +111,7 @@ const VIEW_STORAGE_KEY = "eventsDiscoveryView";
     EventCalendarComponent,
     EventDiscoveryListComponent,
     EventDiscoveryToolbarComponent,
+    EventDiscoveryViewToggleComponent,
     FabMenuComponent,
   ],
   templateUrl: "./events-page.component.html",

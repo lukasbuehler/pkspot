@@ -31,6 +31,7 @@ export interface PresetFilterChip {
 }
 
 export type FilterChipsBarAppearance = "glass" | "solid";
+export type FilterChipsBarSelectionRole = "primary" | "secondary";
 
 /**
  * Horizontally scrollable filter chips bar with preset filters
@@ -73,6 +74,9 @@ export class FilterChipsBarComponent implements AfterViewInit, OnDestroy {
 
   /** Visual treatment for the chips. */
   appearance = input<FilterChipsBarAppearance>("glass");
+
+  /** Material color role used for the active selection. */
+  selectionRole = input<FilterChipsBarSelectionRole>("secondary");
 
   /** Emits when a preset filter is selected/deselected */
   filterChange = output<string>();

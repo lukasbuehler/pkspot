@@ -2,13 +2,14 @@
   [routerLink]="route()"
   class="calendar-event"
   [class.is-live]="isLive()"
+  [class.is-past]="isPast()"
   [class.is-cancelled]="event().lifecycleStatus === 'cancelled'"
   [class.continues-before]="continuesBefore()"
   [class.continues-after]="continuesAfter()"
   [attr.aria-label]="accessibleLabel()"
   (click)="trackClick()"
 >
-  <app-event-calendar-thumbnail [event]="event()" />
+  <app-event-calendar-thumbnail [event]="event()" [muted]="isPast()" />
   <span class="event-copy">
     <span class="event-name">{{ event().name }}</span>
     @if (

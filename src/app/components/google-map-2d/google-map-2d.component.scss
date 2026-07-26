@@ -7,15 +7,13 @@
 
 .osm-attribution {
   align-items: center;
-  background: var(--mat-sys-surface-container);
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 3px;
-  bottom: 22px;
-  color: var(--mat-sys-on-surface-variant);
+  background: rgba(0, 0, 0, 0.7);
+  bottom: 14px;
+  color: #fff;
   display: inline-flex;
   font-size: 10px;
   line-height: 16px;
-  padding: 0 4px;
+  padding: 0 6px;
   position: absolute;
   right: 0;
   text-decoration: none;

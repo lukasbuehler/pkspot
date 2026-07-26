@@ -206,6 +206,12 @@
         <target>Mensaje de contacto archivado</target>
       </segment>
     </unit>
+    <unit id="631703348555815960">
+      <segment state="initial">
+        <source> Try another month or clear the active filters. </source>
+        <target> Prueba con otro mes o borra los filtros activos. </target>
+      </segment>
+    </unit>
     <unit id="6321562733889197649">
       <segment state="initial">
         <source>Destroyed</source>
@@ -762,12 +768,6 @@
       <segment state="initial">
         <source>No organization approvals waiting.</source>
         <target>No organization approvals waiting.</target>
-      </segment>
-    </unit>
-    <unit id="5861450655956713446">
-      <segment state="initial">
-        <source> Try another month, area, search, or filter. </source>
-        <target> Prueba con otro mes, área, búsqueda o filtro. </target>
       </segment>
     </unit>
     <unit id="5881351283414819200">
@@ -5698,12 +5698,6 @@
         <target>Vista de lista</target>
       </segment>
     </unit>
-    <unit id="7688203873728163276">
-      <segment state="initial">
-        <source>Name, place, or venue</source>
-        <target>Nombre, lugar o recinto</target>
-      </segment>
-    </unit>
     <unit id="7688469791911355016">
       <segment state="initial">
         <source>Shutterbug</source>
@@ -10277,12 +10271,6 @@
         <target> Para evitar el abuso de las denuncias, conservamos información técnica como tu dirección IP y el estado de verificación de la aplicación durante un máximo de 90 días. </target>
       </segment>
     </unit>
-    <unit id="7556340900290410206">
-      <segment state="initial">
-        <source>Search events</source>
-        <target>Buscar eventos</target>
-      </segment>
-    </unit>
     <unit id="event_page.load_failed">
       <segment state="initial">
         <source> We couldn&apos;t load this event. </source>
@@ -11101,6 +11089,12 @@
         <target>Best options</target>
       </segment>
     </unit>
+    <unit id="train.bestSpots">
+      <segment state="translated">
+        <source>Best spots in your area</source>
+        <target>Los mejores Spots de tu zona</target>
+      </segment>
+    </unit>
     <unit id="train.communitiesEyebrow">
       <segment state="initial">
         <source>Your network</source>
@@ -11137,12 +11131,6 @@
         <target>Hey <ph id="0" equiv="INTERPOLATION" disp="{{ displayName() }}"/>, let&apos;s train!</target>
       </segment>
     </unit>
-    <unit id="train.live">
-      <segment state="initial">
-        <source>Live</source>
-        <target>Live</target>
-      </segment>
-    </unit>
     <unit id="train.loadError">
       <segment state="initial">
         <source>Training options could not be loaded.</source>
@@ -11171,6 +11159,12 @@
         <target>Train</target>
       </segment>
     </unit>
+    <unit id="train.nearbySpots">
+      <segment state="translated">
+        <source>Nearby spots</source>
+        <target>Spots cercanos</target>
+      </segment>
+    </unit>
     <unit id="train.noCommunities">
       <segment state="initial">
         <source>Choose an area above, then follow communities from their pages.</source>
@@ -11183,10 +11177,22 @@
         <target>No upcoming options found in this area yet.</target>
       </segment>
     </unit>
+    <unit id="train.noSpots">
+      <segment state="translated">
+        <source> No spots found in this area yet. </source>
+        <target> Todavía no se han encontrado Spots en esta zona. </target>
+      </segment>
+    </unit>
     <unit id="train.openLog">
       <segment state="initial">
         <source>Training log</source>
         <target>Training log</target>
+      </segment>
+    </unit>
+    <unit id="train.openMap">
+      <segment state="translated">
+        <source>Open map</source>
+        <target>Abrir mapa</target>
       </segment>
     </unit>
     <unit id="train.personalRecord">
@@ -11213,10 +11219,28 @@
         <target>Sign in to log</target>
       </segment>
     </unit>
+    <unit id="train.spotFilters">
+      <segment state="translated">
+        <source>Spot filters</source>
+        <target>Filtros de Spots</target>
+      </segment>
+    </unit>
+    <unit id="train.spotsNeedArea">
+      <segment state="translated">
+        <source> Use your location or choose an area to see nearby spots. </source>
+        <target> Usa tu ubicación o elige una zona para ver Spots cercanos. </target>
+      </segment>
+    </unit>
     <unit id="train.useLocation">
       <segment state="initial">
         <source>Use my location</source>
         <target>Use my location</target>
+      </segment>
+    </unit>
+    <unit id="train.weatherDryFilter">
+      <segment state="translated">
+        <source> Dry spots prioritized for the forecast </source>
+        <target> Se priorizan los Spots secos según el pronóstico. </target>
       </segment>
     </unit>
     <unit id="trainingLog.createFirst">

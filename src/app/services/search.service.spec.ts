@@ -408,6 +408,75 @@ describe("SearchService", () => {
     });
   });
 
+  describe("searchTopSpotPreviewsNearLocation", () => {
+    it("uses the map spot ordering for nearby preview results", async () => {
+      typesenseSearchMock.mockResolvedValue({
+        found: 2,
+        hits: [
+          {
+            document: {
+              id: "reported",
+              name: "Reported spot",
+              rating: 5,
+              is_reported: true,
+              location: [47.37, 8.54],
+            },
+          },
+          {
+            document: {
+              id: "iconic",
+              name: "Iconic spot",
+              rating: 3,
+              is_iconic: true,
+              thumbnail_small_url: "https://example.com/iconic.jpg",
+              location: [47.38, 8.55],
+            },
+          },
+        ],
+      });
+
+      const previews = await service.searchTopSpotPreviewsNearLocation(
+        { lat: 47.3769, lng: 8.5417 },
+        25,
+        4,
+      );
+
+      expect(typesenseSearchMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          q: "*",
+          filter_by: "location:(47.376900, 8.541700, 25.000 km)",
+          sort_by: "rating:desc",
+          per_page: 4,
+          page: 1,
+        }),
+        {},
+      );
+      expect(previews.map((spot) => spot.id)).toEqual([
+        "iconic",
+        "reported",
+      ]);
+    });
+
+    it("applies the shared map preset filters to nearby previews", async () => {
+      await service.searchTopSpotPreviewsNearLocation(
+        { lat: 47.3769, lng: 8.5417 },
+        25,
+        4,
+        SpotFilterMode.Dry,
+      );
+
+      const searchParameters = typesenseSearchMock.mock.calls[0][0] as {
+        filter_by?: string;
+      };
+      expect(searchParameters.filter_by).toContain(
+        "location:(47.376900, 8.541700, 25.000 km)",
+      );
+      expect(searchParameters.filter_by).toContain(
+        "amenities_true:=[covered, indoor]",
+      );
+    });
+  });
+
   describe("getCommunityPreviewFromHit", () => {
     it("should parse Typesense community bounds from array values", () => {
       const preview = service.getCommunityPreviewFromHit({

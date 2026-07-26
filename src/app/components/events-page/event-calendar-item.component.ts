@@ -32,6 +32,7 @@ export class EventCalendarItemComponent {
   readonly startColumn = input.required<number>();
   readonly span = input.required<number>();
   readonly lane = input.required<number>();
+  readonly nowSeconds = input.required<number>();
   readonly continuesBefore = input(false);
   readonly continuesAfter = input(false);
 
@@ -44,9 +45,12 @@ export class EventCalendarItemComponent {
     this.event().slug ?? this.event().id,
   ]);
   readonly isLive = computed(() => {
-    const now = Date.now() / 1000;
+    const now = this.nowSeconds();
     return now >= this.event().startSeconds && now <= this.event().endSeconds;
   });
+  readonly isPast = computed(
+    () => this.event().endSeconds < this.nowSeconds(),
+  );
   readonly accessibleLabel = computed(() => {
     const event = this.event();
     const date = this._dateTime.format(event.startSeconds * 1000, {

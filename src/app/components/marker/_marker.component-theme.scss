@@ -33,12 +33,12 @@
   }
   .pin-gray {
     > div {
-      border-color: var(--mat-sys-outline);
+      border-color: var(--mat-sys-on-surface-variant);
       background-color: var(--mat-sys-surface-container-highest);
       color: var(--mat-sys-on-surface-variant);
     }
     > svg {
-      fill: var(--mat-sys-outline);
+      fill: var(--mat-sys-on-surface-variant);
     }
   }
   .pin-iconic {

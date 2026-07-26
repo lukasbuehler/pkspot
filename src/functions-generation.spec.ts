@@ -148,6 +148,7 @@ describe("Cloud Functions generation policy", () => {
       /export const getOsmAmenityTile = onCall\(\s*\{\s*enforceAppCheck: true,/u
     );
     expect(source).toContain("OSM_AMENITY_CACHE_COLLECTION");
+    expect(source).toContain("OVERPASS_ENDPOINTS");
     expect(source).toContain('"User-Agent": "PKSpot/1.0');
     expect(indexSource).toContain("getOsmAmenityTile");
     expect(indexSource).toContain("cleanupExpiredOsmAmenityCache");

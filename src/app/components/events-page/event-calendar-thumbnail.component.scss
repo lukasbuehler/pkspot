@@ -9,6 +9,11 @@
   background: var(--mat-sys-surface-container-high);
 }
 
+:host(.is-muted) {
+  filter: grayscale(1);
+  opacity: 0.58;
+}
+
 img {
   width: 100%;
   height: 100%;

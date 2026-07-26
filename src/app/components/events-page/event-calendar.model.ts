@@ -10,8 +10,10 @@ export interface EventCalendarDay {
   dayNumber: number;
   inSelectedMonth: boolean;
   isToday: boolean;
+  isPast: boolean;
   events: EventDiscoveryItem[];
   indicatorEvents: EventDiscoveryItem[];
+  allEventsPast: boolean;
   hiddenEventCount: number;
 }
 
@@ -33,6 +35,7 @@ export interface EventCalendarWeek {
 
 export interface EventCalendarMonth {
   monthKey: string;
+  nowSeconds: number;
   firstDay: Date;
   lastDay: Date;
   weeks: EventCalendarWeek[];
@@ -104,6 +107,7 @@ export function buildEventCalendarMonth(
   const trailingDays = (weekStart + 6 - monthEnd.getUTCDay() + 7) % 7;
   const lastDay = addDays(monthEnd, trailingDays);
   const todayKey = currentLocalDateKey(now);
+  const nowSeconds = now.getTime() / 1000;
   const eventDays = new Map<string, EventDiscoveryItem[]>();
 
   for (const event of events) {
@@ -129,10 +133,14 @@ export function buildEventCalendarMonth(
       dayNumber: cursor.getUTCDate(),
       inSelectedMonth: cursor.getUTCMonth() === month - 1,
       isToday: key === todayKey,
+      isPast: key < todayKey,
       events: eventsForDay,
       indicatorEvents: [...eventsForDay]
         .sort((left, right) => compareIndicatorEvents(left, right, key))
         .slice(0, CALENDAR_COMPACT_ICON_LIMIT),
+      allEventsPast:
+        eventsForDay.length > 0 &&
+        eventsForDay.every((event) => event.endSeconds < nowSeconds),
       hiddenEventCount: 0,
     });
   }
@@ -164,6 +172,7 @@ export function buildEventCalendarMonth(
 
   return {
     monthKey,
+    nowSeconds,
     firstDay,
     lastDay,
     weeks,

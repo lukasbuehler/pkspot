@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   OSM_AMENITY_TILE_ZOOM,
   OSM_ATTRIBUTION,
+  OVERPASS_ENDPOINTS,
   OVERPASS_REQUEST_HEADERS,
   buildOverpassAmenityQuery,
   getOsmAmenityRetryDelayMs,
@@ -49,6 +50,16 @@ describe("OSM amenity functions", () => {
       Referer: "https://pkspot.app/",
       "User-Agent": "PKSpot/1.0 (+https://pkspot.app/contact)",
     });
+    expect(OVERPASS_ENDPOINTS).toEqual([
+      {
+        id: "vk-maps",
+        url: "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+      },
+      {
+        id: "fossgis",
+        url: "https://overpass-api.de/api/interpreter",
+      },
+    ]);
   });
 
   it("normalizes supported amenities and omits non-drinking fountains", () => {

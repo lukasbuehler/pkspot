@@ -14,9 +14,13 @@ import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
   templateUrl: "./event-calendar-thumbnail.component.html",
   styleUrl: "./event-calendar-thumbnail.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    "[class.is-muted]": "muted()",
+  },
 })
 export class EventCalendarThumbnailComponent {
   readonly event = input.required<EventDiscoveryItem>();
+  readonly muted = input(false);
 
   readonly logoSrc = computed(() => {
     const event = this.event();

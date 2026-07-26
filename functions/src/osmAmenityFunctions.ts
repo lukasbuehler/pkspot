@@ -12,10 +12,20 @@ export const OSM_CACHE_SCHEMA_VERSION = 1;
 export const OSM_CACHE_FRESH_MS = 7 * 24 * 60 * 60 * 1000;
 export const OSM_CACHE_STALE_MS = 30 * 24 * 60 * 60 * 1000;
 export const OSM_REFRESH_LEASE_MS = 30 * 1000;
-export const OSM_COLD_WAIT_MS = 12 * 1000;
-export const OSM_OVERPASS_FETCH_TIMEOUT_MS = 15 * 1000;
+export const OSM_COLD_WAIT_MS = 28 * 1000;
+export const OSM_OVERPASS_FETCH_TIMEOUT_MS = 12 * 1000;
 export const OSM_DAILY_QUERY_BUDGET = 8_000;
 export const OSM_DAILY_BYTE_BUDGET = 800 * 1024 * 1024;
+export const OVERPASS_ENDPOINTS = [
+  {
+    id: "vk-maps",
+    url: "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+  },
+  {
+    id: "fossgis",
+    url: "https://overpass-api.de/api/interpreter",
+  },
+] as const;
 export const OSM_ATTRIBUTION = {
   text: "© OpenStreetMap contributors",
   url: "https://www.openstreetmap.org/copyright",
@@ -74,6 +84,7 @@ interface OverpassFetchResult {
   amenities: OsmAmenityRecord[];
   sourceUpdatedAt?: string;
   responseBytes: number;
+  endpoint: string;
 }
 
 interface OverpassElement {
@@ -102,6 +113,7 @@ type LeaseResult =
 class OverpassResponseError extends Error {
   constructor(
     readonly status: number,
+    readonly responseBytes: number,
     message: string
   ) {
     super(message);
@@ -112,7 +124,7 @@ class OverpassResponseError extends Error {
 export const getOsmAmenityTile = onCall(
   {
     enforceAppCheck: true,
-    timeoutSeconds: 30,
+    timeoutSeconds: 45,
   },
   async (request: CallableRequest<unknown>): Promise<OsmAmenityTileResponse> => {
     const tile = parseOsmAmenityTileRequest(request.data);
@@ -156,13 +168,7 @@ export const getOsmAmenityTile = onCall(
 
     const refreshStartedAt = Date.now();
     try {
-      await consumeOverpassQueryBudget(firestore, new Date(refreshStartedAt));
-      const result = await fetchOverpassAmenityTile(tile);
-      await recordOverpassResponseBytes(
-        firestore,
-        new Date(refreshStartedAt),
-        result.responseBytes
-      );
+      const result = await fetchOverpassAmenityTile(firestore, tile);
       const document = await writeOsmAmenityCacheSuccess(
         cacheRef,
         tile,
@@ -174,6 +180,7 @@ export const getOsmAmenityTile = onCall(
         upstreamDurationMs: Date.now() - refreshStartedAt,
         upstreamBytes: result.responseBytes,
         amenityCount: result.amenities.length,
+        upstreamEndpoint: result.endpoint,
       });
       return cacheDocumentToResponse(document, false);
     } catch (error) {
@@ -442,8 +449,52 @@ export async function recordOsmAmenityCacheFailure(
 }
 
 async function fetchOverpassAmenityTile(
+  firestore: FirebaseFirestore.Firestore,
   tile: OsmAmenityTileRequest
 ): Promise<OverpassFetchResult> {
+  let lastError: unknown;
+
+  for (const endpoint of OVERPASS_ENDPOINTS) {
+    await consumeOverpassQueryBudget(firestore, new Date());
+    const attemptStartedAt = Date.now();
+    try {
+      const result = await fetchOverpassAmenityTileFromEndpoint(
+        tile,
+        endpoint.url
+      );
+      await recordOverpassResponseBytes(
+        firestore,
+        new Date(),
+        result.responseBytes
+      );
+      return { ...result, endpoint: endpoint.id };
+    } catch (error) {
+      lastError = error;
+      if (error instanceof OverpassResponseError) {
+        await recordOverpassResponseBytes(
+          firestore,
+          new Date(),
+          error.responseBytes
+        );
+      }
+      logger.warn("Overpass endpoint attempt failed", {
+        upstreamEndpoint: endpoint.id,
+        upstreamDurationMs: Date.now() - attemptStartedAt,
+        upstreamStatus:
+          error instanceof OverpassResponseError ? error.status : undefined,
+        errorName: error instanceof Error ? error.name : "UnknownError",
+        errorCode: getNetworkErrorCode(error),
+      });
+    }
+  }
+
+  throw lastError ?? new Error("No Overpass endpoint is configured.");
+}
+
+async function fetchOverpassAmenityTileFromEndpoint(
+  tile: OsmAmenityTileRequest,
+  endpoint: string
+): Promise<Omit<OverpassFetchResult, "endpoint">> {
   const abortController = new AbortController();
   const timeoutId = setTimeout(
     () => abortController.abort(),
@@ -451,7 +502,7 @@ async function fetchOverpassAmenityTile(
   );
 
   try {
-    const response = await fetch("https://overpass-api.de/api/interpreter", {
+    const response = await fetch(endpoint, {
       method: "POST",
       headers: OVERPASS_REQUEST_HEADERS,
       body: buildOverpassAmenityQuery(tile),
@@ -462,6 +513,7 @@ async function fetchOverpassAmenityTile(
     if (!response.ok) {
       throw new OverpassResponseError(
         response.status,
+        responseBytes,
         `Overpass returned HTTP ${response.status}`
       );
     }
@@ -674,6 +726,12 @@ function stringProperty<
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getNetworkErrorCode(error: unknown): string | undefined {
+  if (!isRecord(error) || !isRecord(error["cause"])) return undefined;
+  const code = error["cause"]["code"];
+  return typeof code === "string" ? code : undefined;
 }
 
 function delay(milliseconds: number): Promise<void> {

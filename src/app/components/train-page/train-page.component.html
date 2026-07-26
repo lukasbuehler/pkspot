@@ -69,34 +69,71 @@
     <section class="train-section">
       <div class="section-heading">
         <div>
+          <p class="eyebrow" i18n="@@train.nearbySpots">Nearby spots</p>
+          <h2 i18n="@@train.bestSpots">Best spots in your area</h2>
+        </div>
+        <a matButton routerLink="/map" i18n="@@train.openMap">Open map</a>
+      </div>
+      <div class="spot-filter-row">
+        <app-filter-chips-bar
+          appearance="solid"
+          selectionRole="primary"
+          [selectedFilter]="selectedSpotFilter()"
+          [showFiltersChip]="false"
+          [showClearChip]="false"
+          ariaLabel="Spot filters"
+          i18n-ariaLabel="@@train.spotFilters"
+          (filterChange)="setSpotFilter($event)"
+        />
+        @if (weatherFilterActive()) {
+          <span class="weather-filter-note">
+            <mat-icon>rainy</mat-icon>
+            <span i18n="@@train.weatherDryFilter">
+              Dry spots prioritized for the forecast
+            </span>
+          </span>
+        }
+      </div>
+      @if (bestSpots().length) {
+        <div class="preview-grid spot-preview-grid">
+          @for (spot of bestSpots(); track spot.id) {
+            <a
+              class="spot-preview-link"
+              [routerLink]="['/map', 'spots', spot.slug ?? spot.id]"
+            >
+              <app-spot-preview-card
+                [spotData]="spot"
+                [forcePlaceholderContainer]="true"
+                [infoOnly]="true"
+                [clickable]="true"
+                [loadingPriority]="$index < 2"
+              />
+            </a>
+          }
+        </div>
+      } @else if (!hasTrainingArea()) {
+        <p class="empty" i18n="@@train.spotsNeedArea">
+          Use your location or choose an area to see nearby spots.
+        </p>
+      } @else {
+        <p class="empty" i18n="@@train.noSpots">
+          No spots found in this area yet.
+        </p>
+      }
+    </section>
+
+    <section class="train-section">
+      <div class="section-heading">
+        <div>
           <p class="eyebrow" i18n="@@train.bestOptions">Best options</p>
           <h2 i18n="@@train.goodOptions">Good options today and this week</h2>
         </div>
         <a matButton routerLink="/events" i18n="@@train.allEvents">All events</a>
       </div>
       @if (todayOptions().length) {
-        <div class="event-grid">
+        <div class="preview-grid event-preview-grid">
           @for (event of todayOptions(); track event.id) {
-            <a class="event-card" [routerLink]="['/events', event.slug || event.id]">
-              <div class="event-media">
-                @if (event.bannerSrc || event.logoSrc; as image) {
-                  <img [src]="image" alt="" />
-                } @else {
-                  <mat-icon>event</mat-icon>
-                }
-                @if (event.live) {
-                  <span class="live"><span i18n="@@train.live">Live</span></span>
-                }
-              </div>
-              <div class="event-copy">
-                <span class="event-time">{{ event.startSeconds * 1000 | date: "EEE, HH:mm" }}</span>
-                <h3>{{ event.name }}</h3>
-                <p>{{ event.venueString || event.localityString }}</p>
-                @if (event.distanceKm !== undefined) {
-                  <span>{{ event.distanceKm | number: "1.0-0" }} km</span>
-                }
-              </div>
-            </a>
+            <app-event-discovery-card [event]="event" />
           }
         </div>
       } @else {

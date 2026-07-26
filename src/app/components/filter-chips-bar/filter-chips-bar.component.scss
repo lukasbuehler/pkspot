@@ -5,12 +5,20 @@
 }
 
 .filter-chips-container {
+  --filter-chip-selected-container: var(--mat-sys-secondary-container);
+  --filter-chip-selected-label: var(--mat-sys-on-secondary-container);
+
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
   min-width: 0;
   position: relative;
+}
+
+.primary-selection {
+  --filter-chip-selected-container: var(--mat-sys-primary-container);
+  --filter-chip-selected-label: var(--mat-sys-on-primary-container);
 }
 
 .chips-scroll-shell {
@@ -158,12 +166,12 @@ mat-chip {
   &.mat-mdc-chip-selected {
     ::ng-deep {
       .mdc-evolution-chip__action--primary {
-        background-color: var(--mat-sys-secondary-container) !important;
+        background-color: var(--filter-chip-selected-container) !important;
       }
 
       .mdc-evolution-chip__text-label,
       .mat-icon {
-        color: var(--mat-sys-on-secondary-container) !important;
+        color: var(--filter-chip-selected-label) !important;
       }
     }
   }
@@ -249,21 +257,25 @@ mat-chip {
   }
 
   .solid-chip.mat-mdc-chip-selected .mdc-evolution-chip__action--primary {
-    background-color: var(--mat-sys-secondary-container) !important;
+    background-color: var(--filter-chip-selected-container) !important;
   }
 
   .solid-chip.mat-mdc-chip-selected .mdc-evolution-chip__text-label,
   .solid-chip.mat-mdc-chip-selected .mat-icon {
-    color: var(--mat-sys-on-secondary-container) !important;
+    color: var(--filter-chip-selected-label) !important;
   }
 
   .glass.mat-mdc-chip-selected .mdc-evolution-chip__action--primary {
-    background-color: color-mix(in srgb, var(--mat-sys-secondary-container) 85%, transparent) !important;
+    background-color: color-mix(
+      in srgb,
+      var(--filter-chip-selected-container) 85%,
+      transparent
+    ) !important;
   }
 
   .glass.mat-mdc-chip-selected .mdc-evolution-chip__text-label,
   .glass.mat-mdc-chip-selected .mat-icon,
   .glass.mat-mdc-chip-selected .mdc-evolution-chip__icon {
-    color: var(--mat-sys-on-secondary-container) !important;
+    color: var(--filter-chip-selected-label) !important;
   }
 }

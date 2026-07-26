@@ -158,6 +158,17 @@
   font: var(--mat-sys-label-small);
 }
 
+.date-button.is-past:not(.is-selected) .date-number {
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.62;
+}
+
+.date-event-indicator.all-events-past small {
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-highest);
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .event-thumbnails {
   display: flex;
   min-width: 0;

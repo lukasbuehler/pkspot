@@ -342,11 +342,6 @@
         <source>No organization approvals waiting.</source>
       </segment>
     </unit>
-    <unit id="5861450655956713446">
-      <segment>
-        <source> Try another month, area, search, or filter. </source>
-      </segment>
-    </unit>
     <unit id="5881351283414819200">
       <segment>
         <source>No contact messages yet.</source>
@@ -5082,6 +5077,11 @@
         <source> Check your inbox and follow the instructions to reset your password. </source>
       </segment>
     </unit>
+    <unit id="631703348555815960">
+      <segment>
+        <source> Try another month or clear the active filters. </source>
+      </segment>
+    </unit>
     <unit id="6321562733889197649">
       <segment>
         <source>Destroyed</source>
@@ -7481,6 +7481,11 @@
         <source>Best options</source>
       </segment>
     </unit>
+    <unit id="train.bestSpots">
+      <segment>
+        <source>Best spots in your area</source>
+      </segment>
+    </unit>
     <unit id="train.communitiesEyebrow">
       <segment>
         <source>Your network</source>
@@ -7511,11 +7516,6 @@
         <source>Hey <ph id="0" equiv="INTERPOLATION" disp="{{ displayName() }}"/>, let&apos;s train!</source>
       </segment>
     </unit>
-    <unit id="train.live">
-      <segment>
-        <source>Live</source>
-      </segment>
-    </unit>
     <unit id="train.loadError">
       <segment>
         <source>Training options could not be loaded.</source>
@@ -7540,6 +7540,11 @@
         <source>Train</source>
       </segment>
     </unit>
+    <unit id="train.nearbySpots">
+      <segment>
+        <source>Nearby spots</source>
+      </segment>
+    </unit>
     <unit id="train.noCommunities">
       <segment>
         <source>Choose an area above, then follow communities from their pages.</source>
@@ -7550,9 +7555,19 @@
         <source>No upcoming options found in this area yet.</source>
       </segment>
     </unit>
+    <unit id="train.noSpots">
+      <segment>
+        <source> No spots found in this area yet. </source>
+      </segment>
+    </unit>
     <unit id="train.openLog">
       <segment>
         <source>Training log</source>
+      </segment>
+    </unit>
+    <unit id="train.openMap">
+      <segment>
+        <source>Open map</source>
       </segment>
     </unit>
     <unit id="train.personalRecord">
@@ -7575,9 +7590,24 @@
         <source>Sign in to log</source>
       </segment>
     </unit>
+    <unit id="train.spotFilters">
+      <segment>
+        <source>Spot filters</source>
+      </segment>
+    </unit>
+    <unit id="train.spotsNeedArea">
+      <segment>
+        <source> Use your location or choose an area to see nearby spots. </source>
+      </segment>
+    </unit>
     <unit id="train.useLocation">
       <segment>
         <source>Use my location</source>
+      </segment>
+    </unit>
+    <unit id="train.weatherDryFilter">
+      <segment>
+        <source> Dry spots prioritized for the forecast </source>
       </segment>
     </unit>
     <unit id="trainingLog.createFirst">
@@ -9196,11 +9226,6 @@
         <source> To prevent report abuse, we keep technical information such as your IP address and app verification status for up to 90 days. </source>
       </segment>
     </unit>
-    <unit id="7556340900290410206">
-      <segment>
-        <source>Search events</source>
-      </segment>
-    </unit>
     <unit id="event_page.load_failed">
       <segment>
         <source> We couldn&apos;t load this event. </source>
@@ -10259,11 +10284,6 @@
     <unit id="1774760996053367231">
       <segment>
         <source>Preview notification</source>
-      </segment>
-    </unit>
-    <unit id="7688203873728163276">
-      <segment>
-        <source>Name, place, or venue</source>
       </segment>
     </unit>
     <unit id="7688469791911355016">

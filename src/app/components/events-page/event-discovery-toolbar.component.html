@@ -1,41 +1,4 @@
 <section class="discovery-toolbar" aria-label="Event discovery controls" i18n-aria-label>
-  <div class="primary-controls">
-    <mat-form-field appearance="outline" class="search-control">
-      <mat-label i18n>Search events</mat-label>
-      <mat-icon matPrefix>search</mat-icon>
-      <input
-        matInput
-        [formControl]="queryControl"
-        placeholder="Name, place, or venue"
-        i18n-placeholder
-      />
-    </mat-form-field>
-
-    <app-entity-reference-autocomplete
-      class="area-control"
-      kind="community"
-      [value]="areaKey()"
-      (selectionChange)="areaChange.emit($event)"
-    />
-
-    <mat-button-toggle-group
-      class="view-toggle"
-      [value]="view()"
-      aria-label="Event view"
-      i18n-aria-label
-      (change)="viewChange.emit($event.value)"
-    >
-      <mat-button-toggle value="calendar" aria-label="Calendar view" i18n-aria-label>
-        <mat-icon>calendar_month</mat-icon>
-        <span i18n>Calendar</span>
-      </mat-button-toggle>
-      <mat-button-toggle value="list" aria-label="List view" i18n-aria-label>
-        <mat-icon>view_list</mat-icon>
-        <span i18n>List</span>
-      </mat-button-toggle>
-    </mat-button-toggle-group>
-  </div>
-
   <div class="secondary-controls">
     @if (view() === "list") {
       <mat-button-toggle-group

@@ -7,6 +7,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
   margin-bottom: 1.25rem;
 }
 
@@ -157,6 +158,11 @@
 @media (max-width: 599.98px) {
   .events-page {
     padding: 1.25rem 1rem 7rem;
+  }
+
+  .page-header {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .draft-grid {

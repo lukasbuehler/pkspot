@@ -920,6 +920,37 @@ export class SearchService {
   }
 
   /**
+   * Returns the highest-ranked spot previews around a location using the same
+   * rating and shared spot-priority ordering as an ungrouped map search.
+   */
+  public async searchTopSpotPreviewsNearLocation(
+    location: google.maps.LatLngLiteral,
+    radiusKm = 25,
+    maxResults = 4,
+    filterMode = SpotFilterMode.None,
+  ): Promise<SpotPreviewData[]> {
+    const lat = location.lat.toFixed(6);
+    const lng = location.lng.toFixed(6);
+    const safeRadiusKm = Math.min(20_000, Math.max(0.1, radiusKm));
+    const safeMaxResults = Math.min(20, Math.max(1, maxResults));
+    const filterBy = `location:(${lat}, ${lng}, ${safeRadiusKm.toFixed(3)} km)`;
+    const config = SPOT_FILTER_CONFIGS.get(filterMode);
+    if (filterMode !== SpotFilterMode.None && !config) return [];
+    const result = await this._executeSearch(
+      filterBy,
+      safeMaxResults,
+      config?.types,
+      config?.accesses,
+      config?.amenities_true,
+      config?.amenities_false,
+    );
+
+    return (result.hits as unknown[]).map((hit) =>
+      this.getSpotPreviewFromHit(hit),
+    );
+  }
+
+  /**
    * Search for spots near a location using geo-radius filtering.
    * This is optimized for check-in proximity detection.
    *

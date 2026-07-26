@@ -61,6 +61,13 @@ describe("OsmDataService", () => {
       -30,
       -40,
     ]);
+    expect(markers.map((marker) => marker.color)).toEqual([
+      "gray",
+      "gray",
+      "gray",
+      "gray",
+      "gray",
+    ]);
     expect(
       Math.max(...markers.map((marker) => Number(marker.priority))),
     ).toBeLessThan(

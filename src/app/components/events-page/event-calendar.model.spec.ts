@@ -197,4 +197,32 @@ describe("event calendar model", () => {
       ),
     );
   });
+
+  it("marks past dates and event indicators relative to the supplied time", () => {
+    const finished = event(
+      "finished",
+      "2026-08-11T08:00:00.000Z",
+      "2026-08-11T10:00:00.000Z",
+    );
+    const ongoing = event(
+      "ongoing",
+      "2026-08-12T08:00:00.000Z",
+      "2026-08-12T14:00:00.000Z",
+    );
+    const now = new Date("2026-08-12T12:00:00.000Z");
+    const month = buildEventCalendarMonth(
+      "2026-08",
+      "de-CH",
+      [finished, ongoing],
+      now,
+    );
+
+    expect(month.nowSeconds).toBe(now.getTime() / 1000);
+    expect(
+      month.days.find((candidate) => candidate.key === "2026-08-11"),
+    ).toMatchObject({ isPast: true, allEventsPast: true });
+    expect(
+      month.days.find((candidate) => candidate.key === "2026-08-12"),
+    ).toMatchObject({ isPast: false, allEventsPast: false });
+  });
 });

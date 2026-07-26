@@ -1,10 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
-import { DatePipe, DecimalPipe } from "@angular/common";
+import { DecimalPipe } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import {
+  getFilterModeFromUrlParam,
+  SpotFilterMode,
+} from "../spot-map/spot-filter-config";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { CommunityFollowsService } from "../../services/firebase/firestore/community-follows.service";
 import { GeolocationService } from "../../services/geolocation.service";
@@ -16,7 +20,16 @@ import {
 import { WeatherService } from "../../weather/weather.service";
 import type { WeatherResponse } from "../../weather/weather.models";
 import { getWeatherStateIcon } from "../../weather/weather-display";
+import { shouldRecommendDrySpots } from "../../weather/spot-weather-context";
+import type { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
+import { EventDiscoveryCardComponent } from "../events-page/event-discovery-card.component";
+import { FilterChipsBarComponent } from "../filter-chips-bar/filter-chips-bar.component";
 import { SearchFieldComponent } from "../search-field/search-field.component";
+import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
+import {
+  resolveTrainingCenter,
+  resolveTrainingSpotRadiusKm,
+} from "./training-area";
 
 interface AreaSelection {
   type: "place" | "spot" | "community" | "event";
@@ -29,16 +42,20 @@ interface RankedEvent extends EventDiscoveryItem {
   live: boolean;
 }
 
+type SpotFilterSource = "user" | "weather" | null;
+
 @Component({
   selector: "app-train-page",
   imports: [
-    DatePipe,
     DecimalPipe,
     RouterLink,
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    EventDiscoveryCardComponent,
+    FilterChipsBarComponent,
     SearchFieldComponent,
+    SpotPreviewCardComponent,
   ],
   templateUrl: "./train-page.component.html",
   styleUrl: "./train-page.component.scss",
@@ -55,6 +72,9 @@ export class TrainPageComponent {
   readonly locating = signal(false);
   readonly error = signal("");
   readonly events = signal<RankedEvent[]>([]);
+  readonly spots = signal<SpotPreviewData[]>([]);
+  readonly selectedSpotFilter = signal("");
+  readonly spotFilterSource = signal<SpotFilterSource>(null);
   readonly followedCommunities = signal<CommunitySearchPreview[]>([]);
   readonly weather = signal<WeatherResponse | null>(null);
   readonly area = signal<CommunitySearchPreview | null>(null);
@@ -67,9 +87,15 @@ export class TrainPageComponent {
       this.weather()?.current?.isDay,
     ),
   );
+  readonly hasTrainingArea = computed(
+    () => !!this.geolocation.currentLocation()?.location || !!this.area(),
+  );
+  readonly bestSpots = computed(() => this.spots().slice(0, 4));
   readonly todayOptions = computed(() => this.events().slice(0, 6));
-  readonly followedOptions = computed(() =>
-    this.events().filter((event) => event.followed).slice(0, 6),
+  readonly weatherFilterActive = computed(
+    () =>
+      this.spotFilterSource() === "weather" &&
+      this.selectedSpotFilter() === SpotFilterMode.Dry,
   );
 
   constructor() {
@@ -92,6 +118,9 @@ export class TrainPageComponent {
       while (!this.geolocation.currentLocation() && Date.now() < timeoutAt) {
         await new Promise((resolve) => setTimeout(resolve, 150));
       }
+      if (this.geolocation.currentLocation()) {
+        this.area.set(null);
+      }
       await this.load();
     } finally {
       this.locating.set(false);
@@ -107,6 +136,12 @@ export class TrainPageComponent {
   clearArea(): void {
     this.area.set(null);
     void this.load();
+  }
+
+  setSpotFilter(value: string): void {
+    this.spotFilterSource.set(value ? "user" : null);
+    this.selectedSpotFilter.set(value);
+    void this.loadSpots();
   }
 
   async toggleFollow(community: CommunitySearchPreview): Promise<void> {
@@ -148,6 +183,7 @@ export class TrainPageComponent {
         this.followedCommunities.set([]);
       }
       await Promise.all([this.loadEvents(), this.loadWeather()]);
+      await this.loadSpots();
     } catch (error) {
       console.error("[Train] failed to load dashboard", error);
       this.error.set($localize`:@@train.loadError:Training options could not be loaded.`);
@@ -206,6 +242,30 @@ export class TrainPageComponent {
     );
   }
 
+  private async loadSpots(): Promise<void> {
+    const center = this.center();
+    if (!center) {
+      this.spots.set([]);
+      return;
+    }
+    try {
+      const filterMode = getFilterModeFromUrlParam(
+        this.selectedSpotFilter(),
+      );
+      this.spots.set(
+        await this.search.searchTopSpotPreviewsNearLocation(
+          { lat: center[0], lng: center[1] },
+          resolveTrainingSpotRadiusKm(this.area()),
+          4,
+          filterMode,
+        ),
+      );
+    } catch (error) {
+      console.warn("[Train] nearby spots unavailable", error);
+      this.spots.set([]);
+    }
+  }
+
   private async loadWeather(): Promise<void> {
     const center = this.center();
     if (!center) {
@@ -213,22 +273,32 @@ export class TrainPageComponent {
       return;
     }
     try {
-      this.weather.set(
+      const weather =
         await this.weatherService.getCurrentAndNearFutureForTileAt(
           { lat: center[0], lng: center[1] },
           12,
-        ),
-      );
+        );
+      this.weather.set(weather);
+      this.applyWeatherSpotFilter(weather);
     } catch (error) {
       console.warn("[Train] weather unavailable", error);
       this.weather.set(null);
+      this.applyWeatherSpotFilter(null);
     }
   }
 
+  private applyWeatherSpotFilter(weather: WeatherResponse | null): void {
+    if (this.spotFilterSource() === "user") return;
+    const useDryFilter = shouldRecommendDrySpots(weather);
+    this.selectedSpotFilter.set(useDryFilter ? SpotFilterMode.Dry : "");
+    this.spotFilterSource.set(useDryFilter ? "weather" : null);
+  }
+
   private center(): [number, number] | undefined {
-    const location = this.geolocation.currentLocation()?.location;
-    if (location) return [location.lat, location.lng];
-    return this.area()?.boundsCenter;
+    return resolveTrainingCenter(
+      this.area(),
+      this.geolocation.currentLocation()?.location,
+    );
   }
 }
 
