@@ -61,6 +61,11 @@ export class PoiDetailComponent {
     if (this.poi().type === "amenity") return "Source: OpenStreetMap";
     return null;
   });
+  readonly sourceUrl = computed(() =>
+    this.poi().type === "amenity"
+      ? "https://www.openstreetmap.org/copyright"
+      : null,
+  );
 
   websiteUrl = computed<string | null>(() => {
     const p = this.poi().googlePlace;

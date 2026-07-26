@@ -1,7 +1,31 @@
 :host {
   display: block;
   height: 100%;
+  position: relative;
   width: 100%;
+}
+
+.osm-attribution {
+  align-items: center;
+  background: var(--mat-sys-surface-container);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 3px;
+  bottom: 22px;
+  color: var(--mat-sys-on-surface-variant);
+  display: inline-flex;
+  font-size: 10px;
+  line-height: 16px;
+  padding: 0 4px;
+  position: absolute;
+  right: 0;
+  text-decoration: none;
+  z-index: 2;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--mat-sys-primary);
+    text-decoration: underline;
+  }
 }
 
 .small-dot-marker {
@@ -103,6 +127,12 @@
 
 /* Moves the Google Logo and Copyright text up when bottom sheet is visible */
 :host.with-bottom-offset {
+  .osm-attribution {
+    @media (max-width: 599px) {
+      bottom: calc(var(--bottom-sheet-closed-height, 140px) + 22px);
+    }
+  }
+
   ::ng-deep .gmnoprint a,
   ::ng-deep .gmnoprint span,
   ::ng-deep .gm-style-cc,

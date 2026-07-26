@@ -68,6 +68,9 @@ export class SpotMapDataManager {
 
   private _spots: Map<MapTileKey, Spot[]>;
   private _markers: Map<MapTileKey, MarkerSchema[]>;
+  private _loadedAmenityTiles = new Set<MapTileKey>();
+  private _pendingAmenityTiles = new Set<MapTileKey>();
+  private _amenityTileRetryAfter = new Map<MapTileKey, number>();
 
   /**
    * Cache for SpotPreviewData objects to maintain reference stability.
@@ -101,6 +104,7 @@ export class SpotMapDataManager {
   private readonly HIGHLIGHT_THROTTLE_MS = 500;
   private readonly SPOT_PREVIEW_MAX_COUNT = 250;
   private readonly SPOT_PREVIEW_LOCAL_OVERRIDE_TTL_MS = 120_000;
+  private readonly AMENITY_TILE_RETRY_MS = 60_000;
   private _lastHighlightFetchTime: number = 0;
   private _spotPreviewRequestId = 0;
 
@@ -728,8 +732,6 @@ export class SpotMapDataManager {
   }
 
   private _getMarkerTilesToLoad(visibleTilesObj: TilesObject): Set<MapTileKey> {
-    // console.debug("Getting marker tiles to load");
-
     const visibleTilesObj16 = this._transformTilesObjectToZoom(
       visibleTilesObj,
       16
@@ -737,80 +739,82 @@ export class SpotMapDataManager {
 
     if (visibleTilesObj16.tiles.length === 0) return new Set();
 
-    // make 12 tiles from the 16 tiles
     const tiles = new Set<MapTileKey>();
+    const now = Date.now();
     visibleTilesObj16.tiles.forEach((tile16) => {
-      const tile16key = getClusterTileKey(16, tile16.x, tile16.y);
-      if (!this._markers.has(tile16key)) {
-        tiles.add(tile16key);
+      const tileKey = getClusterTileKey(12, tile16.x >> 4, tile16.y >> 4);
+      const retryAfter = this._amenityTileRetryAfter.get(tileKey) ?? 0;
+      if (
+        !this._loadedAmenityTiles.has(tileKey) &&
+        !this._pendingAmenityTiles.has(tileKey) &&
+        retryAfter <= now
+      ) {
+        tiles.add(tileKey);
       }
     });
 
     return tiles;
   }
 
-  private _loadMarkersForTiles(tiles16: Set<MapTileKey>) {
-    if (!tiles16 || tiles16.size === 0) return;
+  private _loadMarkersForTiles(tiles12: Set<MapTileKey>) {
+    if (tiles12.size === 0) return;
 
-    // first we transform the 16 tiles to 12 tiles to load the markers
-    const tiles12 = new Set<MapTileKey>();
-
-    tiles16.forEach((tile16) => {
-      const { zoom, x, y } = getDataFromClusterTileKey(tile16);
-      const tile12 = getClusterTileKey(zoom - 4, x >> 4, y >> 4);
-      if (!tiles12.has(tile12)) tiles12.add(tile12);
-    });
-
-    // add an empty array for the tiles that water markers will be loaded for
     tiles12.forEach((tileKey) => {
-      if (!this._markers.has(tileKey)) {
-        this._markers.set(tileKey, []);
-        // get the bounds for the tile
-        const { zoom, x, y } = getDataFromClusterTileKey(tileKey);
+      const { zoom, x, y } = getDataFromClusterTileKey(tileKey);
+      if (zoom !== 12) return;
+      if (
+        this._loadedAmenityTiles.has(tileKey) ||
+        this._pendingAmenityTiles.has(tileKey) ||
+        (this._amenityTileRetryAfter.get(tileKey) ?? 0) > Date.now()
+      ) {
+        return;
+      }
+      this._pendingAmenityTiles.add(tileKey);
 
-        const bounds = MapHelpers.getBoundsForTile(zoom, x, y);
-        // load the water markers and add them
-        // load the water markers and add them
-        this._ngZone.runOutsideAngular(() => {
-          firstValueFrom(this._osmDataService.getAmenityMarkers(bounds))
-            .then((markers) => {
-              this._ngZone.run(() => {
-                markers.forEach((marker) => {
-                  const tileCoords16 =
-                    MapHelpers.getTileCoordinatesForLocationAndZoom(
-                      marker.location,
-                      16
-                    );
-                  const key = getClusterTileKey(
-                    16,
-                    tileCoords16.x,
-                    tileCoords16.y
-                  );
-                  if (!this._markers.has(key)) {
-                    this._markers.set(key, []);
-                  }
-                  this._markers.get(key)!.push(marker);
-                });
+      this._ngZone.runOutsideAngular(() => {
+        void this._osmDataService
+          .getAmenityMarkers({ zoom, x, y })
+          .then((markers) => {
+            this._ngZone.run(() => {
+              this._pendingAmenityTiles.delete(tileKey);
+              this._amenityTileRetryAfter.delete(tileKey);
+              this._loadedAmenityTiles.add(tileKey);
 
-                const _lastVisibleTiles = this._lastVisibleTiles();
-                if (_lastVisibleTiles) {
-                  this._showCachedLoadedSpotsAndMarkersForTiles(
-                    _lastVisibleTiles
+              markers.forEach((marker) => {
+                const tileCoords16 =
+                  MapHelpers.getTileCoordinatesForLocationAndZoom(
+                    marker.location,
+                    16
                   );
+                const key = getClusterTileKey(
+                  16,
+                  tileCoords16.x,
+                  tileCoords16.y
+                );
+                const tileMarkers = this._markers.get(key) ?? [];
+                if (!tileMarkers.some((existing) => existing.id === marker.id)) {
+                  this._markers.set(key, [...tileMarkers, marker]);
                 }
               });
-            })
-            .catch((err) => {
-              if (err.name === "TimeoutError") {
-                console.warn(
-                  "[SpotMapDataManager] Overpass API timed out - skipping amenities"
-                );
-              } else {
-                console.error(err);
+
+              const lastVisibleTiles = this._lastVisibleTiles();
+              if (lastVisibleTiles) {
+                this._showCachedLoadedSpotsAndMarkersForTiles(lastVisibleTiles);
               }
             });
-        });
-      }
+          })
+          .catch((error: unknown) => {
+            this._pendingAmenityTiles.delete(tileKey);
+            this._amenityTileRetryAfter.set(
+              tileKey,
+              Date.now() + this.AMENITY_TILE_RETRY_MS
+            );
+            console.warn(
+              "[SpotMapDataManager] Amenity tile unavailable; retrying later",
+              error
+            );
+          });
+      });
     });
   }
 

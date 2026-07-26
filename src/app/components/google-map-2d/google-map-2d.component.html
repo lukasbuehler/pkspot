@@ -218,6 +218,17 @@
       (rectangleClick)="boundsOverlayClick.emit(boundsOverlay)"></map-rectangle>
     }
 </google-map>
+@if(showOsmAttribution()) {
+<a
+  class="osm-attribution"
+  href="https://www.openstreetmap.org/copyright"
+  target="_blank"
+  rel="noopener noreferrer"
+  aria-label="OpenStreetMap contributors and ODbL licence information"
+>
+  © OpenStreetMap contributors
+</a>
+}
 } @else {
 <div class="w-100 h-100 d-flex justify-content-center align-items-center bg-black"></div>
 }

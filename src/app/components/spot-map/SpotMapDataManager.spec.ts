@@ -1,6 +1,5 @@
 import { Injector, NgZone } from "@angular/core";
 import { describe, expect, it, vi } from "vitest";
-import { of } from "rxjs";
 import { GeoPoint } from "firebase/firestore";
 import { Spot } from "../../../db/models/Spot";
 import { User } from "../../../db/models/User";
@@ -26,7 +25,7 @@ function makeInjector(overrides: Map<unknown, unknown> = new Map()): Injector {
     [SpotsService, {}],
     [SpotEditsService, {}],
     [UsersService, { getUserByIdOnce: vi.fn().mockResolvedValue(null) }],
-    [OsmDataService, { getAmenityMarkers: vi.fn(() => of([])) }],
+    [OsmDataService, { getAmenityMarkers: vi.fn().mockResolvedValue([]) }],
     [AuthenticationService, {}],
     [
       SearchService,
@@ -498,3 +497,79 @@ describe("SpotMapDataManager filters", () => {
     expect(staleSearchPreview.rating).toBe(4.5);
   });
 });
+
+describe("SpotMapDataManager amenity tiles", () => {
+  it("treats a successful empty response as loaded", async () => {
+    const getAmenityMarkers = vi.fn().mockResolvedValue([]);
+    const manager = new SpotMapDataManager(
+      "en",
+      makeInjector(
+        new Map<unknown, unknown>([
+          [OsmDataService, { getAmenityMarkers }],
+        ]),
+      ),
+    );
+    const harness = amenityHarness(manager);
+    const tileKey = getClusterTileKey(12, 0, 0);
+
+    harness._loadMarkersForTiles(new Set([tileKey]));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(getAmenityMarkers).toHaveBeenCalledOnce();
+    expect(harness._loadedAmenityTiles.has(tileKey)).toBe(true);
+    expect(harness._pendingAmenityTiles.has(tileKey)).toBe(false);
+    expect(harness._getMarkerTilesToLoad(visibleTile)).toEqual(new Set());
+  });
+
+  it("deduplicates pending loads and retries failures only after backoff", async () => {
+    let rejectRequest!: (error: Error) => void;
+    const firstRequest = new Promise<never>((_resolve, reject) => {
+      rejectRequest = reject;
+    });
+    const getAmenityMarkers = vi
+      .fn()
+      .mockReturnValueOnce(firstRequest)
+      .mockResolvedValueOnce([]);
+    const manager = new SpotMapDataManager(
+      "en",
+      makeInjector(
+        new Map<unknown, unknown>([
+          [OsmDataService, { getAmenityMarkers }],
+        ]),
+      ),
+    );
+    const harness = amenityHarness(manager);
+    const tileKey = getClusterTileKey(12, 0, 0);
+
+    harness._loadMarkersForTiles(new Set([tileKey]));
+    harness._loadMarkersForTiles(new Set([tileKey]));
+    expect(getAmenityMarkers).toHaveBeenCalledOnce();
+
+    rejectRequest(new Error("unavailable"));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(harness._pendingAmenityTiles.has(tileKey)).toBe(false);
+    expect(harness._getMarkerTilesToLoad(visibleTile)).toEqual(new Set());
+
+    harness._amenityTileRetryAfter.set(tileKey, Date.now() - 1);
+    harness._loadMarkersForTiles(
+      harness._getMarkerTilesToLoad(visibleTile),
+    );
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(getAmenityMarkers).toHaveBeenCalledTimes(2);
+    expect(harness._loadedAmenityTiles.has(tileKey)).toBe(true);
+  });
+});
+
+function amenityHarness(manager: SpotMapDataManager) {
+  return manager as unknown as {
+    _loadedAmenityTiles: Set<string>;
+    _pendingAmenityTiles: Set<string>;
+    _amenityTileRetryAfter: Map<string, number>;
+    _getMarkerTilesToLoad: (tiles: TilesObject) => Set<string>;
+    _loadMarkersForTiles: (tiles: Set<string>) => void;
+  };
+}

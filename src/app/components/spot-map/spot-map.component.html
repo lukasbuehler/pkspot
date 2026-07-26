@@ -33,6 +33,7 @@
   [bottomSheetOffset]="bottomSheetOffset()"
   [isDebug]="isDebug()"
   [showVisibleSpotPins]="showVisibleSpotPins()"
+  [showOsmAttribution]="showAmenities() && mapZoom() >= 16"
   (boundsChange)="mapBoundsChanged($event, map.zoom)"
   (visibleViewportChange)="visibleViewportChanged($event)"
   (zoomChange)="zoomChanged($event)"

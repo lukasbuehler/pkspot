@@ -1,8 +1,6 @@
-import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
-import { Observable } from "rxjs";
-import { map, timeout } from "rxjs/operators";
 import { MarkerSchema } from "../components/map/markers/map-marker.model";
+import { FunctionsAdapterService } from "./firebase/functions-adapter.service";
 
 // Supporting OSM amenities must never obscure the primary Spot layer.
 const OSM_AMENITY_MARKER_PRIORITY = {
@@ -14,191 +12,156 @@ const OSM_AMENITY_MARKER_PRIORITY = {
   },
 } as const;
 
-export interface NodeTags {
-  amenity?: string;
+export interface OsmAmenityTileRequest {
+  zoom: 12;
+  x: number;
+  y: number;
+}
+
+export interface OsmAmenityRecord {
+  id: number;
+  type: "toilets" | "drinking_water" | "fountain";
+  lat: number;
+  lng: number;
   name?: string;
   operator?: string;
   fee?: "yes" | "no";
   charge?: string;
-  bottle?: "yes" | "no";
-  opening_hours?: string;
-  level?: number;
-  drinking_water?: "yes" | "no";
+  openingHours?: string;
+  drinkingWater?: "yes" | "no";
 }
 
-export interface OverpassResponse {
-  version: number;
-  geneartor: string;
-  osm3s: {
-    timestamp_osm_base: string;
-    copytight: string;
+export interface OsmAmenityTileResponse {
+  tile: OsmAmenityTileRequest;
+  fetchedAt: string;
+  sourceUpdatedAt?: string;
+  stale: boolean;
+  amenities: OsmAmenityRecord[];
+  attribution: {
+    text: string;
+    url: string;
+    license: string;
   };
-  elements: {
-    type: string;
-    id: number;
-    lat: number;
-    lon: number;
-    tags: NodeTags;
-  }[];
 }
 
 @Injectable({
   providedIn: "root",
 })
 export class OsmDataService {
-  http = inject(HttpClient);
-
-  private _overpassUrl = "https://overpass-api.de/api/interpreter";
-
-  /**
-   * Sends a query to the Overpass API.
-   * @param query The Overpass QL query string.
-   * @returns An Observable of the query result.
-   */
-  private queryOverpass(query: string) {
-    // Set the headers: Overpass API expects plain text.
-    const headers = new HttpHeaders({
-      "Content-Type": "text/plain",
-    });
-
-    // The body of the POST request is the query.
-    return this.http
-      .post<OverpassResponse>(this._overpassUrl, query, {
-        headers,
-      })
-      .pipe(timeout(2000));
-  }
-
-  private getBboxStringFromBounds(
-    bbox: google.maps.LatLngBoundsLiteral | google.maps.LatLngBounds
-  ): string {
-    if (bbox instanceof google.maps.LatLngBounds) {
-      bbox = bbox.toJSON();
-    }
-
-    const south = bbox.south;
-    const west = bbox.west;
-    const north = bbox.north;
-    const east = bbox.east;
-
-    // Example bounding box: south,west,north,east (replace with actual values)
-    return `${south},${west},${north},${east}`;
-  }
+  private readonly functions = inject(FunctionsAdapterService);
+  private readonly pendingRequests = new Map<
+    string,
+    Promise<MarkerSchema[]>
+  >();
+  private readonly markerCache = new Map<string, MarkerSchema[]>();
+  private readonly maxClientCacheEntries = 64;
 
   /**
-   * Get nodes with amenity=drinking_water given a bounding box and map them to marker schemas.
-   * @param bbox A string representing the bounding box in the format: "south,west,north,east".
-   * @returns An Observable with the drinking water nodes.
+   * Loads the normalized amenity records for a canonical server-side tile.
+   * The client never contacts Overpass directly.
    */
   getAmenityMarkers(
-    bbox: google.maps.LatLngBoundsLiteral | google.maps.LatLngBounds
-  ): Observable<MarkerSchema[]> {
-    const bboxStr = this.getBboxStringFromBounds(bbox);
+    tile: OsmAmenityTileRequest,
+  ): Promise<MarkerSchema[]> {
+    const key = `${tile.zoom}/${tile.x}/${tile.y}`;
+    const cached = this.markerCache.get(key);
+    if (cached) {
+      this.markerCache.delete(key);
+      this.markerCache.set(key, cached);
+      return Promise.resolve(cached);
+    }
 
-    // Build the Overpass QL query.
-    const query = `
-      [out:json];
-      (
-      node["amenity"~"(toilets|drinking_water|fountain)"](${bboxStr});
-      );
-      out body;
-    `;
+    const pending = this.pendingRequests.get(key);
+    if (pending) return pending;
 
-    return this.queryOverpass(query).pipe(
-      map((data: OverpassResponse) => {
-        return data.elements
-          .map((element) => {
-            if (element.tags.amenity === "drinking_water") {
-              const operator = element.tags.operator
-                ? `by ${element.tags.operator}`
-                : "";
-              const marker: MarkerSchema = {
-                location: {
-                  lat: element.lat,
-                  lng: element.lon,
-                },
-                icons: ["water_full"], // local_drink, water_drop
-                name: element.tags.name,
-                description: operator,
-                color: "tertiary",
-                priority: OSM_AMENITY_MARKER_PRIORITY.drinkingWater,
-                type: "drinking_water",
-              };
-              return marker;
-            } else if (element.tags.amenity === "fountain") {
-              if (element.tags.drinking_water === "no") {
-                return undefined;
-              }
-              const operator = element.tags.operator
-                ? `by ${element.tags.operator}`
-                : "";
-              const marker: MarkerSchema = {
-                location: {
-                  lat: element.lat,
-                  lng: element.lon,
-                },
-                icons:
-                  element.tags.drinking_water === "yes"
-                    ? ["water_full"]
-                    : ["water_drop"],
-                name:
-                  element.tags?.name ?? $localize`Unnamed Drinking Water spot`,
-                description: operator,
-                color: "tertiary",
-                priority: OSM_AMENITY_MARKER_PRIORITY.drinkingWater,
-                type: "drinking_water",
-              };
-              return marker;
-            } else if (element.tags.amenity === "toilets") {
-              const isFree = element.tags.fee === "no";
-              const isPaid = element.tags.fee === "yes";
-
-              const detailsParts: string[] = [];
-
-              if (element.tags.fee) {
-                if (element.tags.fee === "no") {
-                  detailsParts.push("No fee");
-                } else if (element.tags.charge) {
-                  detailsParts.push(`Fee: ${element.tags.charge}`);
-                }
-              }
-
-              if (element.tags.operator) {
-                detailsParts.push(`by ${element.tags.operator}`);
-              }
-
-              if (element.tags.opening_hours) {
-                detailsParts.push(
-                  `Opening hours: ${element.tags.opening_hours}`
-                );
-              }
-
-              const marker: MarkerSchema = {
-                location: {
-                  lat: element.lat,
-                  lng: element.lon,
-                },
-                icons: isPaid
-                  ? ["wc", "paid"]
-                  : isFree
-                  ? ["wc", "money_off"]
-                  : ["wc"],
-                name: element.tags.name ?? $localize`Unnamed Toilet`,
-                description: detailsParts.join(" • "),
-                color: "tertiary",
-                priority: isFree
-                  ? OSM_AMENITY_MARKER_PRIORITY.toilet.free
-                  : isPaid
-                    ? OSM_AMENITY_MARKER_PRIORITY.toilet.paid
-                    : OSM_AMENITY_MARKER_PRIORITY.toilet.unknown,
-                type: "wc",
-              };
-              return marker;
-            }
-            return undefined;
-          })
-          .filter((marker): marker is MarkerSchema => marker !== undefined);
-      })
+    const request = this.functions
+      .callAppChecked<OsmAmenityTileRequest, OsmAmenityTileResponse>(
+        "getOsmAmenityTile",
+        tile,
+      )
+      .then((response) => response.amenities.map((amenity) => this.toMarker(amenity)));
+    this.pendingRequests.set(key, request);
+    void request.then(
+      (markers) => {
+        this.pendingRequests.delete(key);
+        this.markerCache.set(key, markers);
+        while (this.markerCache.size > this.maxClientCacheEntries) {
+          const oldestKey = this.markerCache.keys().next().value;
+          if (oldestKey === undefined) break;
+          this.markerCache.delete(oldestKey);
+        }
+      },
+      () => this.pendingRequests.delete(key),
     );
+    return request;
+  }
+
+  private toMarker(element: OsmAmenityRecord): MarkerSchema {
+    const id = `osm-node-${element.id}`;
+    const location = { lat: element.lat, lng: element.lng };
+    const operator = element.operator ? `by ${element.operator}` : "";
+
+    if (element.type === "drinking_water") {
+      return {
+        id,
+        location,
+        icons: ["water_full"],
+        name: element.name,
+        description: operator,
+        color: "tertiary",
+        priority: OSM_AMENITY_MARKER_PRIORITY.drinkingWater,
+        type: "drinking_water",
+      };
+    }
+
+    if (element.type === "fountain") {
+      return {
+        id,
+        location,
+        icons:
+          element.drinkingWater === "yes"
+            ? ["water_full"]
+            : ["water_drop"],
+        name: element.name ?? $localize`Unnamed Drinking Water spot`,
+        description: operator,
+        color: "tertiary",
+        priority: OSM_AMENITY_MARKER_PRIORITY.drinkingWater,
+        type: "drinking_water",
+      };
+    }
+
+    const isFree = element.fee === "no";
+    const isPaid = element.fee === "yes";
+    const detailsParts: string[] = [];
+    if (isFree) {
+      detailsParts.push("No fee");
+    } else if (isPaid && element.charge) {
+      detailsParts.push(`Fee: ${element.charge}`);
+    }
+    if (element.operator) {
+      detailsParts.push(`by ${element.operator}`);
+    }
+    if (element.openingHours) {
+      detailsParts.push(`Opening hours: ${element.openingHours}`);
+    }
+
+    return {
+      id,
+      location,
+      icons: isPaid
+        ? ["wc", "paid"]
+        : isFree
+          ? ["wc", "money_off"]
+          : ["wc"],
+      name: element.name ?? $localize`Unnamed Toilet`,
+      description: detailsParts.join(" • "),
+      color: "tertiary",
+      priority: isFree
+        ? OSM_AMENITY_MARKER_PRIORITY.toilet.free
+        : isPaid
+          ? OSM_AMENITY_MARKER_PRIORITY.toilet.paid
+          : OSM_AMENITY_MARKER_PRIORITY.toilet.unknown,
+      type: "wc",
+    };
   }
 }

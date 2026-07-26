@@ -162,6 +162,10 @@ export {
 export { cleanupAllOrphanedMedia } from "./mediaCleanupFunctions";
 
 export { cleanupExpiredWeatherCache, getWeather } from "./weatherFunctions";
+export {
+  cleanupExpiredOsmAmenityCache,
+  getOsmAmenityTile,
+} from "./osmAmenityFunctions";
 
 export {
   onEventNotificationSourceWrite,

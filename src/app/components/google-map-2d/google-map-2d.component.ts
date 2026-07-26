@@ -1339,6 +1339,11 @@ export class GoogleMap2dComponent
    * Useful when a bottom sheet is overlaying the map on mobile.
   */
   readonly bottomSheetOffset = input<boolean>(false);
+  /**
+   * Credits the independent OpenStreetMap amenity layer without obscuring
+   * Google Maps' own required attribution.
+   */
+  readonly showOsmAttribution = input(false);
 
   readonly pointMarkers = input<MapPointMarker[]>([]);
   readonly communityDotMarkers = input<CommunityMapMarker[]>([]);

@@ -134,6 +134,25 @@ describe("Cloud Functions generation policy", () => {
     );
   });
 
+  it("requires App Check for cached OpenStreetMap amenity requests", () => {
+    const source = readFileSync(
+      resolve(functionsSourceRoot, "osmAmenityFunctions.ts"),
+      "utf8"
+    );
+    const indexSource = readFileSync(
+      resolve(functionsSourceRoot, "index.ts"),
+      "utf8"
+    );
+
+    expect(source).toMatch(
+      /export const getOsmAmenityTile = onCall\(\s*\{\s*enforceAppCheck: true,/u
+    );
+    expect(source).toContain("OSM_AMENITY_CACHE_COLLECTION");
+    expect(source).toContain('"User-Agent": "PKSpot/1.0');
+    expect(indexSource).toContain("getOsmAmenityTile");
+    expect(indexSource).toContain("cleanupExpiredOsmAmenityCache");
+  });
+
   it("keeps signup number assignment on a gen 2 profile trigger", () => {
     const source = readFileSync(
       resolve(functionsSourceRoot, "userSignupFunctions.ts"),
