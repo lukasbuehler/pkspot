@@ -1,0 +1,114 @@
+:host {
+  z-index: 2;
+  min-width: 0;
+  padding: 2px 3px;
+  container-type: inline-size;
+}
+
+.calendar-event {
+  display: flex;
+  height: 38px;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.25rem 0.4rem;
+  overflow: hidden;
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 8px;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  text-decoration: none;
+}
+
+.calendar-event:hover,
+.calendar-event:focus-visible {
+  box-shadow: var(--mat-sys-level2);
+}
+
+.calendar-event:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 1px;
+}
+
+.calendar-event.is-live {
+  border-color: var(--mat-sys-secondary);
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.calendar-event.is-cancelled {
+  border-color: var(--mat-sys-error);
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+  text-decoration: line-through;
+}
+
+.continues-before {
+  border-top-left-radius: 2px;
+  border-bottom-left-radius: 2px;
+}
+
+.continues-after {
+  border-top-right-radius: 2px;
+  border-bottom-right-radius: 2px;
+}
+
+.event-logo {
+  display: grid;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--mat-sys-surface-container-high);
+}
+
+.event-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.event-icon {
+  flex: 0 0 auto;
+  font-size: 20px;
+}
+
+.event-copy {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.event-name {
+  overflow: hidden;
+  font: var(--mat-sys-label-medium);
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event-rsvp {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 0.25rem;
+  font: var(--mat-sys-label-small);
+}
+
+.event-rsvp span {
+  display: inline-flex;
+  align-items: center;
+}
+
+.event-rsvp mat-icon {
+  margin-right: 1px;
+  font-size: 13px;
+}
+
+@container (max-width: 150px) {
+  .event-rsvp {
+    display: none;
+  }
+}

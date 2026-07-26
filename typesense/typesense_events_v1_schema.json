@@ -21,6 +21,18 @@
       "optional": true,
       "index": false
     },
+    {
+      "name": "banner_fit",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "banner_accent_color",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
     { "name": "logo_src", "type": "string", "optional": true, "index": false },
     { "name": "logo_fit", "type": "string", "optional": true, "index": false },
     {
@@ -106,6 +118,12 @@
 
     { "name": "start_seconds", "type": "int64", "optional": false },
     { "name": "end_seconds", "type": "int64", "optional": false },
+    {
+      "name": "time_zone",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
     { "name": "promo_starts_at_seconds", "type": "int64", "optional": true },
 
     { "name": "spot_ids", "type": "string[]", "optional": true },
@@ -124,6 +142,12 @@
     {
       "name": "event_categories",
       "type": "string[]",
+      "facet": true,
+      "optional": true
+    },
+    {
+      "name": "lifecycle_status",
+      "type": "string",
       "facet": true,
       "optional": true
     },
@@ -187,6 +211,30 @@
     },
     {
       "name": "venue_spot_count",
+      "type": "int64",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "rsvp_counts.going",
+      "type": "int64",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "rsvp_counts.interested",
+      "type": "int64",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "rsvp_counts.notgoing",
+      "type": "int64",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "rsvp_counts.total",
       "type": "int64",
       "optional": true,
       "index": false

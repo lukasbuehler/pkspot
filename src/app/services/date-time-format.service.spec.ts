@@ -53,4 +53,26 @@ describe("DateTimeFormatService", () => {
     expect(service.formatPreset(new Date("2026-07-21T18:05:00Z"), "longDate"))
       .toContain("2026");
   });
+
+  it("formats date ranges in an explicitly supplied event time zone", () => {
+    const service = TestBed.inject(DateTimeFormatService);
+    const instant = new Date("2026-01-01T00:30:00.000Z");
+
+    const zurich = service.formatDateRange(
+      instant,
+      instant,
+      "long",
+      "Europe/Zurich",
+    );
+    const losAngeles = service.formatDateRange(
+      instant,
+      instant,
+      "long",
+      "America/Los_Angeles",
+    );
+
+    expect(zurich).toContain("2026");
+    expect(losAngeles).toContain("2025");
+    expect(zurich).not.toBe(losAngeles);
+  });
 });

@@ -48,6 +48,12 @@
         <target>{VAR_PLURAL, plural, =1 {1 ongelezen} other {<ph id="0" equiv="INTERPOLATION"/> ongelezen}}</target>
       </segment>
     </unit>
+    <unit id="1852232195968635711">
+      <segment state="initial">
+        <source> Today </source>
+        <target> Vandaag </target>
+      </segment>
+    </unit>
     <unit id="1868606282505332204">
       <segment state="initial">
         <source>Reports</source>
@@ -214,6 +220,12 @@
         <target>Bewerk deze spot</target>
       </segment>
     </unit>
+    <unit id="7578499311504842568">
+      <segment state="initial">
+        <source>Events could not be loaded</source>
+        <target>Evenementen konden niet worden geladen</target>
+      </segment>
+    </unit>
     <unit id="7585826646011739428">
       <segment state="initial">
         <source>Edit</source>
@@ -282,6 +294,12 @@
       <segment state="initial">
         <source>Meet-up time updated</source>
         <target>Verzameltijd bijgewerkt</target>
+      </segment>
+    </unit>
+    <unit id="6331903198105025974">
+      <segment state="initial">
+        <source>Calendar view</source>
+        <target>Kalenderweergave</target>
       </segment>
     </unit>
     <unit id="6340970481322850527">
@@ -694,6 +712,12 @@
         <target>Testmodus voor stemmen</target>
       </segment>
     </unit>
+    <unit id="2815997035296984338">
+      <segment state="initial">
+        <source> Check your connection and try again. </source>
+        <target> Controleer je verbinding en probeer het opnieuw. </target>
+      </segment>
+    </unit>
     <unit id="1431416938026210429">
       <segment state="initial">
         <source>Password</source>
@@ -804,6 +828,12 @@
       <segment state="initial">
         <source>No organization approvals waiting.</source>
         <target>No organization approvals waiting.</target>
+      </segment>
+    </unit>
+    <unit id="5861450655956713446">
+      <segment state="initial">
+        <source> Try another month, area, search, or filter. </source>
+        <target> Probeer een andere maand, regio, zoekopdracht of filter. </target>
       </segment>
     </unit>
     <unit id="5881351283414819200">
@@ -2115,6 +2145,12 @@
         <target>Servicevoorwaarden</target>
       </segment>
     </unit>
+    <unit id="5717355661357017349">
+      <segment state="initial">
+        <source> Try again </source>
+        <target> Opnieuw proberen </target>
+      </segment>
+    </unit>
     <unit id="5722958552225460480">
       <segment state="initial">
         <source><ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/instagram.svg&quot; alt=&quot;&quot; style=&quot;height: 18px&quot; class=&quot;me-1&quot; /&gt;"/> Follow @pkspot.app </source>
@@ -2313,6 +2349,12 @@
         <target>Geverifieerd account-e-mailadres</target>
       </segment>
     </unit>
+    <unit id="7426931625439733941">
+      <segment state="initial">
+        <source> Unpublished events are kept separate from public search results. </source>
+        <target> Niet-gepubliceerde evenementen blijven gescheiden van openbare zoekresultaten. </target>
+      </segment>
+    </unit>
     <unit id="7435704556903111313">
       <segment state="initial">
         <source>Organization review</source>
@@ -2409,6 +2451,12 @@
         <target> Live en geverifieerd </target>
       </segment>
     </unit>
+    <unit id="1008017384716140525">
+      <segment state="initial">
+        <source>Event view</source>
+        <target>Evenementweergave</target>
+      </segment>
+    </unit>
     <unit id="1025791844730471949">
       <segment state="initial">
         <source>Edit approved</source>
@@ -2467,6 +2515,12 @@
       <segment state="initial">
         <source> Review every scanned upload over time. Approved media is shown from its released public location; flagged media remains hidden in quarantine. </source>
         <target> Bekijk alle gescande uploads door de tijd heen. Goedgekeurde media worden vanaf hun openbare locatie getoond; gemarkeerde media blijven verborgen in quarantaine. </target>
+      </segment>
+    </unit>
+    <unit id="1245436418786666717">
+      <segment state="initial">
+        <source>Event period</source>
+        <target>Evenementperiode</target>
       </segment>
     </unit>
     <unit id="1263548881803803113">
@@ -2575,6 +2629,12 @@
       <segment state="initial">
         <source>Close report</source>
         <target>Melding sluiten</target>
+      </segment>
+    </unit>
+    <unit id="3628374603023447227">
+      <segment state="initial">
+        <source>Next month</source>
+        <target>Volgende maand</target>
       </segment>
     </unit>
     <unit id="3631960501807863073">
@@ -2951,6 +3011,12 @@
         <target>Ningún reporte coincide con este filtro.</target>
       </segment>
     </unit>
+    <unit id="8374358620159565609">
+      <segment state="initial">
+        <source>Past</source>
+        <target>Afgelopen</target>
+      </segment>
+    </unit>
     <unit id="8374523856907728400">
       <segment state="initial">
         <source>Does not exist</source>
@@ -2967,6 +3033,12 @@
       <segment state="initial">
         <source>Reset map orientation to north</source>
         <target>Kaartoriëntatie naar het noorden herstellen</target>
+      </segment>
+    </unit>
+    <unit id="8607494029860346775">
+      <segment state="initial">
+        <source>Event dates use each venue’s local time.</source>
+        <target>Evenementdatums gebruiken de lokale tijd van elke locatie.</target>
       </segment>
     </unit>
     <unit id="8609785202570000921">
@@ -4589,6 +4661,12 @@
         <target>No community card suggestions.</target>
       </segment>
     </unit>
+    <unit id="9035893448017132543">
+      <segment state="initial">
+        <source>Some events need a data update</source>
+        <target>Sommige evenementen hebben een gegevensupdate nodig</target>
+      </segment>
+    </unit>
     <unit id="9036774118081905922">
       <segment state="initial">
         <source>Failed to load safety incident</source>
@@ -4710,6 +4788,12 @@
       <segment state="initial">
         <source>Undetermined</source>
         <target>Onbepaald</target>
+      </segment>
+    </unit>
+    <unit id="9202685261905649484">
+      <segment state="initial">
+        <source> Discover parkour events around the world. </source>
+        <target> Ontdek parkourevenementen over de hele wereld. </target>
       </segment>
     </unit>
     <unit id="921298748667468495">
@@ -5674,6 +5758,18 @@
         <target>Deze link wordt niet herkend. Controleer je e-mail en probeer het opnieuw.</target>
       </segment>
     </unit>
+    <unit id="7679393301604850402">
+      <segment state="initial">
+        <source>List view</source>
+        <target>Lijstweergave</target>
+      </segment>
+    </unit>
+    <unit id="7688203873728163276">
+      <segment state="initial">
+        <source>Name, place, or venue</source>
+        <target>Naam, plaats of locatie</target>
+      </segment>
+    </unit>
     <unit id="7688469791911355016">
       <segment state="initial">
         <source>Shutterbug</source>
@@ -5925,6 +6021,18 @@
       <segment state="initial">
         <source>Promoted Event</source>
         <target>Advertentie</target>
+      </segment>
+    </unit>
+    <unit id="events.rsvp_going">
+      <segment state="initial">
+        <source><ph id="0" equiv="count" disp="event.rsvpCounts.going"/> going</source>
+        <target><ph id="0" equiv="count" disp="event.rsvpCounts.going"/> gaan</target>
+      </segment>
+    </unit>
+    <unit id="events.rsvp_interested">
+      <segment state="initial">
+        <source><ph id="0" equiv="count" disp="event.rsvpCounts.interested"/> interested</source>
+        <target><ph id="0" equiv="count" disp="event.rsvpCounts.interested"/> geïnteresseerd</target>
       </segment>
     </unit>
     <unit id="events.sponsored.short">
@@ -7793,16 +7901,46 @@
         <target>Evenement openen</target>
       </segment>
     </unit>
-    <unit id="events.clear_category_filters">
+    <unit id="events.area_filter_area">
       <segment state="initial">
-        <source>Clear</source>
-        <target>Wissen</target>
+        <source>Area</source>
+        <target>Regio</target>
       </segment>
     </unit>
-    <unit id="events.clear_series_filters">
+    <unit id="events.area_search_empty">
       <segment state="initial">
-        <source>Clear</source>
-        <target>Wissen</target>
+        <source>No matching areas found</source>
+        <target>Geen overeenkomende regio’s gevonden</target>
+      </segment>
+    </unit>
+    <unit id="events.area_search_label">
+      <segment state="initial">
+        <source>Filter by area</source>
+        <target>Filteren op regio</target>
+      </segment>
+    </unit>
+    <unit id="events.area_search_placeholder">
+      <segment state="initial">
+        <source>Search for a city, region, or country</source>
+        <target>Zoek naar een stad, regio of land</target>
+      </segment>
+    </unit>
+    <unit id="events.calendar_more_aria">
+      <segment state="initial">
+        <source>Show <ph id="0" equiv="eventCount" disp="day.hiddenEventCount"/> more events on <ph id="1" equiv="localDate" disp="date"/></source>
+        <target>Nog <ph id="0" equiv="eventCount" disp="day.hiddenEventCount"/> evenementen op <ph id="1" equiv="localDate" disp="date"/> tonen</target>
+      </segment>
+    </unit>
+    <unit id="events.count_many">
+      <segment state="initial">
+        <source><ph id="0" equiv="eventCount" disp="count"/> events</source>
+        <target><ph id="0" equiv="eventCount" disp="count"/> evenementen</target>
+      </segment>
+    </unit>
+    <unit id="events.count_one">
+      <segment state="initial">
+        <source>1 event</source>
+        <target>1 evenement</target>
       </segment>
     </unit>
     <unit id="events.create">
@@ -7811,22 +7949,16 @@
         <target>Evenement maken</target>
       </segment>
     </unit>
-    <unit id="events.create_menu">
-      <segment state="initial">
-        <source>Create</source>
-        <target>Aanmaken</target>
-      </segment>
-    </unit>
     <unit id="events.create_menu_tooltip">
       <segment state="initial">
         <source>Create an event or session</source>
         <target>Een evenement of sessie aanmaken</target>
       </segment>
     </unit>
-    <unit id="events.past_heading">
+    <unit id="events.discovery_card_aria">
       <segment state="initial">
-        <source> Past events </source>
-        <target>Afgelopen evenementen</target>
+        <source><ph id="0" equiv="eventName" disp="event.name"/>, <ph id="1" equiv="localDate" disp="localDate"/>, <ph id="2" equiv="location" disp="location"/>, <ph id="3" equiv="goingSummary" disp="going"/>, <ph id="4" equiv="interestedSummary" disp="interested"/></source>
+        <target><ph id="0" equiv="eventName" disp="event.name"/>; <ph id="1" equiv="localDate" disp="localDate"/>; <ph id="2" equiv="location" disp="location"/>; <ph id="3" equiv="goingSummary" disp="going"/>; <ph id="4" equiv="interestedSummary" disp="interested"/></target>
       </segment>
     </unit>
     <unit id="events.plan_session">
@@ -7860,12 +7992,9 @@
       </segment>
     </unit>
     <unit id="events.title">
-      <notes>
-        <note category="description">:</note>
-      </notes>
       <segment state="initial">
-        <source> Events </source>
-        <target> Evenementen </target>
+        <source>Events</source>
+        <target>Evenementen</target>
       </segment>
     </unit>
     <unit id="events_label">
@@ -8163,12 +8292,6 @@
         <target>El equipo</target>
       </segment>
     </unit>
-    <unit id="4392375821538337917">
-      <segment state="initial">
-        <source>No events scheduled yet.</source>
-        <target>Nog geen evenementen gepland.</target>
-      </segment>
-    </unit>
     <unit id="4396128088744719857">
       <segment state="initial">
         <source>No scanned media yet.</source>
@@ -8185,6 +8308,12 @@
       <segment state="initial">
         <source>Embed Type</source>
         <target>Type inbedding</target>
+      </segment>
+    </unit>
+    <unit id="4977581904635287208">
+      <segment state="initial">
+        <source>Event discovery controls</source>
+        <target>Bediening voor evenementen zoeken</target>
       </segment>
     </unit>
     <unit id="3304972143698843178">
@@ -8275,6 +8404,12 @@
       <segment state="initial">
         <source>Supporter</source>
         <target>Ondersteuner</target>
+      </segment>
+    </unit>
+    <unit id="7906458871395232033">
+      <segment state="initial">
+        <source>List</source>
+        <target>Lijst</target>
       </segment>
     </unit>
     <unit id="791844227054671315">
@@ -8793,6 +8928,12 @@
         <target> Tijdelijk gesloten </target>
       </segment>
     </unit>
+    <unit id="8725224299321680590">
+      <segment state="initial">
+        <source>Upcoming</source>
+        <target>Aankomend</target>
+      </segment>
+    </unit>
     <unit id="8736188664022016115">
       <segment state="initial">
         <source>Could not sign in with Apple!</source>
@@ -9232,6 +9373,12 @@
         <target>Verwijderen</target>
       </segment>
     </unit>
+    <unit id="3825802286872185103">
+      <segment state="initial">
+        <source>Calendar</source>
+        <target>Kalender</target>
+      </segment>
+    </unit>
     <unit id="3826629890393475666">
       <segment state="initial">
         <source> Covered rails for rainy nights. Lit spots for winter sessions. Parkour gyms for drill days. Filter for exactly what you need. </source>
@@ -9506,12 +9653,6 @@
       <segment state="initial">
         <source>Import spots</source>
         <target>Spots importeren</target>
-      </segment>
-    </unit>
-    <unit id="map.create.open">
-      <segment state="initial">
-        <source>Create</source>
-        <target>Aanmaken</target>
       </segment>
     </unit>
     <unit id="map.create.open_tooltip">
@@ -10070,6 +10211,12 @@
         <target>Status</target>
       </segment>
     </unit>
+    <unit id="7505192479854511779">
+      <segment state="initial">
+        <source>{VAR_PLURAL, plural, =1 {1 event} other {<ph id="0" equiv="INTERPOLATION"/> events}}</source>
+        <target>{VAR_PLURAL, plural, =1 {1 evenement} other {<ph id="0" equiv="INTERPOLATION"/> evenementen}}</target>
+      </segment>
+    </unit>
     <unit id="7507067564798390805">
       <segment state="initial">
         <source>Reporting hold</source>
@@ -10104,6 +10251,12 @@
       <segment state="initial">
         <source> To prevent report abuse, we keep technical information such as your IP address and app verification status for up to 90 days. </source>
         <target> Om misbruik van meldingen te voorkomen, bewaren we technische informatie zoals je IP-adres en de app-verificatiestatus maximaal 90 dagen. </target>
+      </segment>
+    </unit>
+    <unit id="7556340900290410206">
+      <segment state="initial">
+        <source>Search events</source>
+        <target>Evenementen zoeken</target>
       </segment>
     </unit>
     <unit id="event_page.load_failed">
@@ -10196,6 +10349,12 @@
         <target>Creatief</target>
       </segment>
     </unit>
+    <unit id="6559246822757089203">
+      <segment state="initial">
+        <source>Clear filters</source>
+        <target>Filters wissen</target>
+      </segment>
+    </unit>
     <unit id="6575164270960732036">
       <segment state="initial">
         <source> Previous </source>
@@ -10272,6 +10431,12 @@
       <segment state="initial">
         <source>Something else</source>
         <target>Otra cosa</target>
+      </segment>
+    </unit>
+    <unit id="6195271498647131229">
+      <segment state="initial">
+        <source> No events on this day. </source>
+        <target> Geen evenementen op deze dag. </target>
       </segment>
     </unit>
     <unit id="5451766476743569122">
@@ -10382,10 +10547,22 @@
         <target>Handmatige controle vereist</target>
       </segment>
     </unit>
+    <unit id="3476705213231355222">
+      <segment state="initial">
+        <source>Filter by event category</source>
+        <target>Filteren op evenementcategorie</target>
+      </segment>
+    </unit>
     <unit id="3483311644139102304">
       <segment state="initial">
         <source>All Event Challenges</source>
         <target>Alle evenement-uitdagingen</target>
+      </segment>
+    </unit>
+    <unit id="3490749389855555467">
+      <segment state="initial">
+        <source>Filter by event series</source>
+        <target>Filteren op evenementenreeks</target>
       </segment>
     </unit>
     <unit id="3491250523952834442">
@@ -10689,6 +10866,12 @@
         <target>Classificatie</target>
       </segment>
     </unit>
+    <unit id="8856905278208146821">
+      <segment state="initial">
+        <source> <ph id="0" equiv="ICU" disp="{invalidItemCount, plural, =1 {One event is missing a valid local time zone and was not shown.} other {{{invalidItemCount}} events are missing a valid local time zone and were not shown.} }" subFlows="5929556192434811560"/> </source>
+        <target> <ph id="0" equiv="ICU" disp="{invalidItemCount, plural, =1 {One event is missing a valid local time zone and was not shown.} other {{{invalidItemCount}} events are missing a valid local time zone and were not shown.} }" subFlows="5929556192434811560"/> </target>
+      </segment>
+    </unit>
     <unit id="8876716314997684812">
       <segment state="initial">
         <source>Event management</source>
@@ -10699,6 +10882,12 @@
       <segment state="initial">
         <source>Update type</source>
         <target>Updatetype</target>
+      </segment>
+    </unit>
+    <unit id="888448929442585159">
+      <segment state="initial">
+        <source>Loading drafts…</source>
+        <target>Concepten laden…</target>
       </segment>
     </unit>
     <unit id="8890553633144307762">
@@ -10809,6 +10998,12 @@
         <target>Herkomst van verzoek</target>
       </segment>
     </unit>
+    <unit id="8586908745456864217">
+      <segment state="initial">
+        <source>Previous month</source>
+        <target>Vorige maand</target>
+      </segment>
+    </unit>
     <unit id="8381431851391440518">
       <segment state="initial">
         <source>Managed organization updated</source>
@@ -10885,6 +11080,12 @@
         <target> Je beheerde spots </target>
       </segment>
     </unit>
+    <unit id="7113790156926964344">
+      <segment state="initial">
+        <source>No matching events</source>
+        <target>Geen overeenkomende evenementen</target>
+      </segment>
+    </unit>
     <unit id="7136600839935407372">
       <segment state="initial">
         <source>Managed by</source>
@@ -10919,6 +11120,12 @@
       <segment state="initial">
         <source>This upload was flagged or failed automated scanning and may be disturbing. Reveal it for manual moderation?</source>
         <target>Deze upload is gemarkeerd of de automatische scan is mislukt en kan schokkend zijn. Tonen voor handmatige moderatie?</target>
+      </segment>
+    </unit>
+    <unit id="7177325135014632430">
+      <segment state="initial">
+        <source>Event series</source>
+        <target>Evenementreeksen</target>
       </segment>
     </unit>
     <unit id="7193934719093844817">
@@ -10961,6 +11168,12 @@
       <segment state="initial">
         <source>No spot edit votes waiting.</source>
         <target>No spot edit votes waiting.</target>
+      </segment>
+    </unit>
+    <unit id="6600224557075575450">
+      <segment state="initial">
+        <source>{VAR_PLURAL, plural, =1 {One event is missing a valid local time zone and was not shown.} other {<ph id="0" equiv="INTERPOLATION"/> events are missing a valid local time zone and were not shown.}}</source>
+        <target>{VAR_PLURAL, plural, =1 {Eén evenement heeft geen geldige lokale tijdzone en is niet weergegeven.} other {<ph id="0" equiv="INTERPOLATION"/> evenementen hebben geen geldige lokale tijdzone en zijn niet weergegeven.}}</target>
       </segment>
     </unit>
     <unit id="6607382385355290684">
@@ -11044,6 +11257,12 @@
         <target> Je bio is openbaar. Vermijd privécontactgegevens en exacte plekken waar je traint. </target>
       </segment>
     </unit>
+    <unit id="5688462374174490321">
+      <segment state="initial">
+        <source> Load more </source>
+        <target> Meer laden </target>
+      </segment>
+    </unit>
     <unit id="5690746890584837020">
       <segment state="initial">
         <source>Event map</source>
@@ -11125,6 +11344,12 @@
         <target> Check-ins en updates van organisaties laten zien waar parkour echt gebeurt. De kaart blijft actueel omdat de community haar actueel houdt. </target>
       </segment>
     </unit>
+    <unit id="6234372277464900526">
+      <segment state="initial">
+        <source>Promoted event</source>
+        <target>Uitgelicht evenement</target>
+      </segment>
+    </unit>
     <unit id="6251586038459969294">
       <segment state="initial">
         <source>Both</source>
@@ -11173,6 +11398,12 @@
         <target> Alle challenges van <ph id="0" equiv="INTERPOLATION" disp="{{ selectedSpot()!.name() }}"/> </target>
       </segment>
     </unit>
+    <unit id="4043049091728011235">
+      <segment state="initial">
+        <source>Cancelled</source>
+        <target>Geannuleerd</target>
+      </segment>
+    </unit>
     <unit id="4046179348234171126">
       <segment state="initial">
         <source> Spots we use </source>
@@ -11183,6 +11414,12 @@
       <segment state="initial">
         <source>Public warning</source>
         <target>Openbare waarschuwing</target>
+      </segment>
+    </unit>
+    <unit id="7011425206383801543">
+      <segment state="initial">
+        <source>more</source>
+        <target>meer</target>
       </segment>
     </unit>
     <unit id="7013608157776536894">
@@ -11539,6 +11776,12 @@
         <target> Gemaakt in Zürich, Zwitserland. Open data. Open code. ©2026 PK Spot. </target>
       </segment>
     </unit>
+    <unit id="2706312198973609080">
+      <segment state="initial">
+        <source>Updating…</source>
+        <target>Bijwerken…</target>
+      </segment>
+    </unit>
     <unit id="2709911421206227808">
       <segment state="initial">
         <source>Open Data</source>
@@ -11621,6 +11864,12 @@
       <segment state="initial">
         <source> Enter at least 2 characters. </source>
         <target> Voer minstens 2 tekens in. </target>
+      </segment>
+    </unit>
+    <unit id="8432483173674970463">
+      <segment state="initial">
+        <source>Admin drafts</source>
+        <target>Beheerdersconcepten</target>
       </segment>
     </unit>
     <unit id="2068477271536019502">
@@ -11715,12 +11964,6 @@
       <segment state="initial">
         <source>Find spots and more</source>
         <target>Vind spots en meer</target>
-      </segment>
-    </unit>
-    <unit id="events.no_filtered_events">
-      <segment state="initial">
-        <source> No events match the selected filters. </source>
-        <target> Nee events match the selected filters. </target>
       </segment>
     </unit>
     <unit id="events.now_or_past">

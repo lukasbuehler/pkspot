@@ -16,6 +16,7 @@
 
 .fab-menu--start {
   align-items: flex-start;
+  overflow: visible;
 }
 
 .fab-menu--secondary {
@@ -78,9 +79,7 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
-  max-height: calc(
-    100dvh - var(--fab-menu-bottom-offset, 24px) - 80px
-  );
+  max-height: calc(100dvh - var(--fab-menu-bottom-offset, 24px) - 80px);
   max-width: calc(100vw - 32px);
   overflow-x: visible;
   overflow-y: auto;

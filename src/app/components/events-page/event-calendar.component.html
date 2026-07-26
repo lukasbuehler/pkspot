@@ -1,0 +1,126 @@
+<section class="event-calendar" [class.is-wide]="wide()">
+  <div class="calendar-toolbar">
+    <div>
+      <h2 class="mat-title-large">{{ monthLabel() }}</h2>
+      <p class="mat-body-small" i18n>Event dates use each venue’s local time.</p>
+    </div>
+    <div class="month-actions">
+      <button
+        mat-icon-button
+        type="button"
+        aria-label="Previous month"
+        i18n-aria-label
+        (click)="previousMonth.emit()"
+      >
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <button mat-stroked-button type="button" (click)="today.emit()" i18n>
+        Today
+      </button>
+      <button
+        mat-icon-button
+        type="button"
+        aria-label="Next month"
+        i18n-aria-label
+        (click)="nextMonth.emit()"
+      >
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  @if (wide()) {
+    <div class="wide-calendar">
+      <div class="weekday-row" aria-hidden="true">
+        @for (label of weekdayLabels; track $index) {
+          <span>{{ label }}</span>
+        }
+      </div>
+      @for (week of calendar().weeks; track week.key) {
+        <div class="calendar-week">
+          @for (day of week.days; track day.key; let column = $index) {
+            <button
+              type="button"
+              class="day-cell"
+              [class.outside-month]="!day.inSelectedMonth"
+              [class.is-today]="day.isToday"
+              [class.is-selected]="day.key === selectedDay()"
+              [style.grid-column]="column + 1"
+              [attr.aria-label]="dayAriaLabel(day)"
+              (click)="daySelected.emit(day.key)"
+            >
+              <time [attr.datetime]="day.key">{{ day.dayNumber }}</time>
+            </button>
+          }
+          @for (segment of week.segments; track segment.id) {
+            <app-event-calendar-item
+              [event]="segment.event"
+              [startColumn]="segment.startColumn"
+              [span]="segment.span"
+              [lane]="segment.lane"
+              [continuesBefore]="segment.continuesBefore"
+              [continuesAfter]="segment.continuesAfter"
+            />
+          }
+          @for (day of week.days; track day.key; let column = $index) {
+            @if (day.hiddenEventCount > 0) {
+              <button
+                type="button"
+                class="more-events"
+                [style.grid-column]="column + 1"
+                [attr.aria-label]="moreEventsAriaLabel(day)"
+                (click)="daySelected.emit(day.key)"
+              >
+                +{{ day.hiddenEventCount }}
+                <span i18n>more</span>
+              </button>
+            }
+          }
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="compact-calendar">
+      <div class="weekday-row" aria-hidden="true">
+        @for (label of weekdayLabels; track $index) {
+          <span>{{ label }}</span>
+        }
+      </div>
+      <div class="date-grid">
+        @for (day of calendar().days; track day.key) {
+          <button
+            type="button"
+            class="date-button"
+            [class.outside-month]="!day.inSelectedMonth"
+            [class.is-today]="day.isToday"
+            [class.is-selected]="day.key === selectedDay()"
+            [attr.aria-label]="dayAriaLabel(day)"
+            (click)="daySelected.emit(day.key)"
+          >
+            <span>{{ day.dayNumber }}</span>
+            @if (day.events.length > 0) {
+              <small>{{ day.events.length }}</small>
+            }
+          </button>
+        }
+      </div>
+    </div>
+  }
+
+  @if (selectedDayModel(); as day) {
+    <section class="day-agenda" aria-live="polite">
+      <h3 class="mat-title-medium">{{ selectedDayLabel() }}</h3>
+      @if (day.events.length > 0) {
+        <app-event-discovery-list
+          [events]="day.events"
+          [found]="day.events.length"
+          [seriesById]="seriesById()"
+        />
+      } @else {
+        <p class="empty-day mat-body-medium" i18n>
+          No events on this day.
+        </p>
+      }
+    </section>
+  }
+</section>

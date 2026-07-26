@@ -1,0 +1,22 @@
+<div class="event-results">
+  @for (event of events(); track event.id) {
+    <app-event-discovery-card
+      [event]="event"
+      [seriesById]="seriesById()"
+    />
+  }
+</div>
+
+@if (events().length < found()) {
+  <div class="load-more">
+    <button
+      mat-stroked-button
+      type="button"
+      [disabled]="loading()"
+      (click)="loadMore.emit()"
+      i18n
+    >
+      Load more
+    </button>
+  </div>
+}

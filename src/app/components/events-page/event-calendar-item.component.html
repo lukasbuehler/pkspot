@@ -1,0 +1,40 @@
+<a
+  [routerLink]="route()"
+  class="calendar-event"
+  [class.is-live]="isLive()"
+  [class.is-cancelled]="event().lifecycleStatus === 'cancelled'"
+  [class.continues-before]="continuesBefore()"
+  [class.continues-after]="continuesAfter()"
+  [attr.aria-label]="accessibleLabel()"
+  (click)="trackClick()"
+>
+  @if (logoSrc(); as logo) {
+    <span
+      class="event-logo"
+      [style.background]="
+        event().sponsorLogoSrc
+          ? (event().sponsorLogoBackgroundColor ?? null)
+          : (event().logoBackgroundColor ?? null)
+      "
+    >
+      <img [src]="logo" alt="" />
+    </span>
+  } @else {
+    <mat-icon class="event-icon" aria-hidden="true">event</mat-icon>
+  }
+  <span class="event-copy">
+    <span class="event-name">{{ event().name }}</span>
+    @if (
+      event().rsvpCounts.going > 0 || event().rsvpCounts.interested > 0
+    ) {
+      <span class="event-rsvp" aria-hidden="true">
+        @if (event().rsvpCounts.going > 0) {
+          <span><mat-icon inline>check_circle</mat-icon>{{ event().rsvpCounts.going }}</span>
+        }
+        @if (event().rsvpCounts.interested > 0) {
+          <span><mat-icon inline>bookmark</mat-icon>{{ event().rsvpCounts.interested }}</span>
+        }
+      </span>
+    }
+  </span>
+</a>

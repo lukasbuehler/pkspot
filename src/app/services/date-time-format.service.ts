@@ -76,8 +76,9 @@ export class DateTimeFormatService {
     start: Date,
     end: Date,
     dateStyle: "short" | "long" = "short",
+    timeZone?: string,
   ): string {
-    return this.formatter({ dateStyle }).formatRange(start, end);
+    return this.formatter({ dateStyle, timeZone }).formatRange(start, end);
   }
 
   private browserPreferences(): ResolvedDateTimePreferences {

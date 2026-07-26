@@ -252,6 +252,11 @@
         <source>No organization approvals waiting.</source>
       </segment>
     </unit>
+    <unit id="5861450655956713446">
+      <segment>
+        <source> Try another month, area, search, or filter. </source>
+      </segment>
+    </unit>
     <unit id="5881351283414819200">
       <segment>
         <source>No contact messages yet.</source>
@@ -290,6 +295,11 @@
     <unit id="6638716872037410765">
       <segment>
         <source> Live &amp; Verified </source>
+      </segment>
+    </unit>
+    <unit id="1008017384716140525">
+      <segment>
+        <source>Event view</source>
       </segment>
     </unit>
     <unit id="1025791844730471949">
@@ -487,6 +497,11 @@
         <source>Verified account email</source>
       </segment>
     </unit>
+    <unit id="7426931625439733941">
+      <segment>
+        <source> Unpublished events are kept separate from public search results. </source>
+      </segment>
+    </unit>
     <unit id="7435704556903111313">
       <segment>
         <source>Organization review</source>
@@ -510,6 +525,11 @@
     <unit id="2704103786825350604">
       <segment>
         <source> Crafted in Zürich, Switzerland. Open Data. Open Code. ©2026 PK Spot. </source>
+      </segment>
+    </unit>
+    <unit id="2706312198973609080">
+      <segment>
+        <source>Updating…</source>
       </segment>
     </unit>
     <unit id="2709911421206227808">
@@ -707,6 +727,11 @@
         <source>This link is not recognized. Please check your email and try again.</source>
       </segment>
     </unit>
+    <unit id="7679393301604850402">
+      <segment>
+        <source>List view</source>
+      </segment>
+    </unit>
     <unit id="5411574545284988510">
       <segment>
         <source>Verifying Email</source>
@@ -885,6 +910,11 @@
     <unit id="1848626050946308520">
       <segment>
         <source>{VAR_PLURAL, plural, =1 {1 unread} other {<ph id="0" equiv="INTERPOLATION"/> unread}}</source>
+      </segment>
+    </unit>
+    <unit id="1852232195968635711">
+      <segment>
+        <source> Today </source>
       </segment>
     </unit>
     <unit id="1521539924104999091">
@@ -1071,6 +1101,11 @@
         <source> — We never sell your data. No tracking cookies, no shady ad networks. <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/privacy-policy&quot; (click)=&quot;trackInternalCtaClick(&apos;about_privacy_policy&apos;, &apos;/privacy-policy&apos;)&quot; &gt;" dispEnd="&lt;/a &gt;">Privacy Policy</pc>. </source>
       </segment>
     </unit>
+    <unit id="7578499311504842568">
+      <segment>
+        <source>Events could not be loaded</source>
+      </segment>
+    </unit>
     <unit id="7585826646011739428">
       <segment>
         <source>Edit</source>
@@ -1196,6 +1231,11 @@
         <source>Classification</source>
       </segment>
     </unit>
+    <unit id="8856905278208146821">
+      <segment>
+        <source> <ph id="0" equiv="ICU" disp="{invalidItemCount, plural, =1 {One event is missing a valid local time zone and was not shown.} other {{{invalidItemCount}} events are missing a valid local time zone and were not shown.} }" subFlows="5929556192434811560"/> </source>
+      </segment>
+    </unit>
     <unit id="501118076159295384">
       <segment>
         <source> The Challenge will only be available starting from the release date. Before that it will be private to you. </source>
@@ -1284,6 +1324,11 @@
         <source>Discard</source>
       </segment>
     </unit>
+    <unit id="3825802286872185103">
+      <segment>
+        <source>Calendar</source>
+      </segment>
+    </unit>
     <unit id="3826629890393475666">
       <segment>
         <source> Covered rails for rainy nights. Lit spots for winter sessions. Parkour gyms for drill days. Filter for exactly what you need. </source>
@@ -1335,6 +1380,11 @@
     <unit id="7162684876097824524">
       <segment>
         <source>This upload was flagged or failed automated scanning and may be disturbing. Reveal it for manual moderation?</source>
+      </segment>
+    </unit>
+    <unit id="7177325135014632430">
+      <segment>
+        <source>Event series</source>
       </segment>
     </unit>
     <unit id="4115668858470490289">
@@ -1448,11 +1498,6 @@
     <unit id="4386559202007821626">
       <segment>
         <source>The Crew</source>
-      </segment>
-    </unit>
-    <unit id="4392375821538337917">
-      <segment>
-        <source>No events scheduled yet.</source>
       </segment>
     </unit>
     <unit id="4396128088744719857">
@@ -2016,6 +2061,11 @@
         <source>Embed Type</source>
       </segment>
     </unit>
+    <unit id="4977581904635287208">
+      <segment>
+        <source>Event discovery controls</source>
+      </segment>
+    </unit>
     <unit id="3304972143698843178">
       <segment>
         <source>Event</source>
@@ -2136,6 +2186,11 @@
         <source>Manual review required</source>
       </segment>
     </unit>
+    <unit id="3476705213231355222">
+      <segment>
+        <source>Filter by event category</source>
+      </segment>
+    </unit>
     <unit id="3483311644139102304">
       <segment>
         <source>All Event Challenges</source>
@@ -2172,6 +2227,11 @@
     <unit id="5684792847924520522">
       <segment>
         <source> Your bio is public. Avoid private contact details and exact places you train. </source>
+      </segment>
+    </unit>
+    <unit id="5688462374174490321">
+      <segment>
+        <source> Load more </source>
       </segment>
     </unit>
     <unit id="5690746890584837020">
@@ -4592,14 +4652,39 @@
         <source>Forecast not available yet</source>
       </segment>
     </unit>
-    <unit id="events.clear_category_filters">
+    <unit id="events.area_filter_area">
       <segment>
-        <source>Clear</source>
+        <source>Area</source>
       </segment>
     </unit>
-    <unit id="events.clear_series_filters">
+    <unit id="events.area_search_empty">
       <segment>
-        <source>Clear</source>
+        <source>No matching areas found</source>
+      </segment>
+    </unit>
+    <unit id="events.area_search_label">
+      <segment>
+        <source>Filter by area</source>
+      </segment>
+    </unit>
+    <unit id="events.area_search_placeholder">
+      <segment>
+        <source>Search for a city, region, or country</source>
+      </segment>
+    </unit>
+    <unit id="events.calendar_more_aria">
+      <segment>
+        <source>Show <ph id="0" equiv="eventCount" disp="day.hiddenEventCount"/> more events on <ph id="1" equiv="localDate" disp="date"/></source>
+      </segment>
+    </unit>
+    <unit id="events.count_many">
+      <segment>
+        <source><ph id="0" equiv="eventCount" disp="count"/> events</source>
+      </segment>
+    </unit>
+    <unit id="events.count_one">
+      <segment>
+        <source>1 event</source>
       </segment>
     </unit>
     <unit id="events.create">
@@ -4607,19 +4692,14 @@
         <source>Create event</source>
       </segment>
     </unit>
-    <unit id="events.create_menu">
-      <segment>
-        <source>Create</source>
-      </segment>
-    </unit>
     <unit id="events.create_menu_tooltip">
       <segment>
         <source>Create an event or session</source>
       </segment>
     </unit>
-    <unit id="events.no_filtered_events">
+    <unit id="events.discovery_card_aria">
       <segment>
-        <source> No events match the selected filters. </source>
+        <source><ph id="0" equiv="eventName" disp="event.name"/>, <ph id="1" equiv="localDate" disp="localDate"/>, <ph id="2" equiv="location" disp="location"/>, <ph id="3" equiv="goingSummary" disp="going"/>, <ph id="4" equiv="interestedSummary" disp="interested"/></source>
       </segment>
     </unit>
     <unit id="events.now_or_past">
@@ -4627,14 +4707,19 @@
         <source>now</source>
       </segment>
     </unit>
+    <unit id="events.rsvp_going">
+      <segment>
+        <source><ph id="0" equiv="count" disp="event.rsvpCounts.going"/> going</source>
+      </segment>
+    </unit>
+    <unit id="events.rsvp_interested">
+      <segment>
+        <source><ph id="0" equiv="count" disp="event.rsvpCounts.interested"/> interested</source>
+      </segment>
+    </unit>
     <unit id="events.sponsored.short">
       <segment>
         <source>Promoted</source>
-      </segment>
-    </unit>
-    <unit id="events.past_heading">
-      <segment>
-        <source> Past events </source>
       </segment>
     </unit>
     <unit id="events.plan_session">
@@ -4663,11 +4748,8 @@
       </segment>
     </unit>
     <unit id="events.title">
-      <notes>
-        <note category="description">:</note>
-      </notes>
       <segment>
-        <source> Events </source>
+        <source>Events</source>
       </segment>
     </unit>
     <unit id="events_label">
@@ -4875,6 +4957,11 @@
         <source>Meet-up time updated</source>
       </segment>
     </unit>
+    <unit id="6331903198105025974">
+      <segment>
+        <source>Calendar view</source>
+      </segment>
+    </unit>
     <unit id="6340970481322850527">
       <segment>
         <source>Return to sign in</source>
@@ -4900,6 +4987,11 @@
         <source>Request origin</source>
       </segment>
     </unit>
+    <unit id="8586908745456864217">
+      <segment>
+        <source>Previous month</source>
+      </segment>
+    </unit>
     <unit id="9191968011325658792">
       <segment>
         <source>Invalid email address</source>
@@ -4913,6 +5005,11 @@
     <unit id="9197546864520867301">
       <segment>
         <source>Undetermined</source>
+      </segment>
+    </unit>
+    <unit id="9202685261905649484">
+      <segment>
+        <source> Discover parkour events around the world. </source>
       </segment>
     </unit>
     <unit id="921298748667468495">
@@ -5075,6 +5172,11 @@
         <source> All Challenges of <ph id="0" equiv="INTERPOLATION" disp="{{ spotName() }}"/> </source>
       </segment>
     </unit>
+    <unit id="4043049091728011235">
+      <segment>
+        <source>Cancelled</source>
+      </segment>
+    </unit>
     <unit id="4046179348234171126">
       <segment>
         <source> Spots we use </source>
@@ -5133,11 +5235,6 @@
     <unit id="map.create.import_spots">
       <segment>
         <source>Import spots</source>
-      </segment>
-    </unit>
-    <unit id="map.create.open">
-      <segment>
-        <source>Create</source>
       </segment>
     </unit>
     <unit id="map.create.open_tooltip">
@@ -5536,6 +5633,11 @@
         <source>Public warning</source>
       </segment>
     </unit>
+    <unit id="7011425206383801543">
+      <segment>
+        <source>more</source>
+      </segment>
+    </unit>
     <unit id="7013608157776536894">
       <segment>
         <source>Public contributions are unavailable for this account right now. You can still browse spots and manage private saved or visited spots. Depending on the app store age-safety signal, parent or guardian consent may be needed before public contributions are available.</source>
@@ -5634,6 +5736,11 @@
     <unit id="8711587038939678752">
       <segment>
         <source> Temporarily closed </source>
+      </segment>
+    </unit>
+    <unit id="8725224299321680590">
+      <segment>
+        <source>Upcoming</source>
       </segment>
     </unit>
     <unit id="8736188664022016115">
@@ -5754,6 +5861,11 @@
     <unit id="7102657004519673825">
       <segment>
         <source> Your managed spots </source>
+      </segment>
+    </unit>
+    <unit id="7113790156926964344">
+      <segment>
+        <source>No matching events</source>
       </segment>
     </unit>
     <unit id="7136600839935407372">
@@ -6250,6 +6362,11 @@
         <source>Minimum 6 characters</source>
       </segment>
     </unit>
+    <unit id="8607494029860346775">
+      <segment>
+        <source>Event dates use each venue’s local time.</source>
+      </segment>
+    </unit>
     <unit id="8609785202570000921">
       <segment>
         <source>Quarantined media revealed for moderation</source>
@@ -6679,6 +6796,11 @@
         <source>This email is already in use.</source>
       </segment>
     </unit>
+    <unit id="6600224557075575450">
+      <segment>
+        <source>{VAR_PLURAL, plural, =1 {One event is missing a valid local time zone and was not shown.} other {<ph id="0" equiv="INTERPOLATION"/> events are missing a valid local time zone and were not shown.}}</source>
+      </segment>
+    </unit>
     <unit id="6607382385355290684">
       <segment>
         <source>New passwords do not match</source>
@@ -7025,6 +7147,11 @@
         <source>Create account</source>
       </segment>
     </unit>
+    <unit id="5717355661357017349">
+      <segment>
+        <source> Try again </source>
+      </segment>
+    </unit>
     <unit id="5722958552225460480">
       <segment>
         <source><ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/instagram.svg&quot; alt=&quot;&quot; style=&quot;height: 18px&quot; class=&quot;me-1&quot; /&gt;"/> Follow @pkspot.app </source>
@@ -7194,6 +7321,11 @@
         <source> Review every scanned upload over time. Approved media is shown from its released public location; flagged media remains hidden in quarantine. </source>
       </segment>
     </unit>
+    <unit id="1245436418786666717">
+      <segment>
+        <source>Event period</source>
+      </segment>
+    </unit>
     <unit id="1263548881803803113">
       <segment>
         <source><ph id="0" equiv="PH" disp="summary.yes_count"/> yes · <ph id="1" equiv="PH_1" disp="summary.no_count"/> no</source>
@@ -7264,6 +7396,11 @@
         <source>Close report</source>
       </segment>
     </unit>
+    <unit id="3628374603023447227">
+      <segment>
+        <source>Next month</source>
+      </segment>
+    </unit>
     <unit id="2231151963929640898">
       <segment>
         <source>Edit submitted for organization review</source>
@@ -7332,6 +7469,11 @@
     <unit id="2814854262892312665">
       <segment>
         <source>Voting test mode</source>
+      </segment>
+    </unit>
+    <unit id="2815997035296984338">
+      <segment>
+        <source> Check your connection and try again. </source>
       </segment>
     </unit>
     <unit id="3542042671420335679">
@@ -8051,6 +8193,11 @@
         <source>Update type</source>
       </segment>
     </unit>
+    <unit id="888448929442585159">
+      <segment>
+        <source>Loading drafts…</source>
+      </segment>
+    </unit>
     <unit id="8890553633144307762">
       <segment>
         <source>Back</source>
@@ -8074,6 +8221,11 @@
     <unit id="6670068416688791508">
       <segment>
         <source>Cannot share a spot that hasn&apos;t been saved yet</source>
+      </segment>
+    </unit>
+    <unit id="7505192479854511779">
+      <segment>
+        <source>{VAR_PLURAL, plural, =1 {1 event} other {<ph id="0" equiv="INTERPOLATION"/> events}}</source>
       </segment>
     </unit>
     <unit id="7507067564798390805">
@@ -8119,6 +8271,11 @@
     <unit id="6223606167641949496">
       <segment>
         <source> Check-ins and organization updates show where parkour is actually happening. The map stays current because the community keeps it current. </source>
+      </segment>
+    </unit>
+    <unit id="6234372277464900526">
+      <segment>
+        <source>Promoted event</source>
       </segment>
     </unit>
     <unit id="6251586038459969294">
@@ -8579,6 +8736,11 @@
         <source>No reports match this filter.</source>
       </segment>
     </unit>
+    <unit id="8374358620159565609">
+      <segment>
+        <source>Past</source>
+      </segment>
+    </unit>
     <unit id="8374523856907728400">
       <segment>
         <source>Does not exist</source>
@@ -8688,6 +8850,11 @@
     <unit id="7545615877986904307">
       <segment>
         <source> To prevent report abuse, we keep technical information such as your IP address and app verification status for up to 90 days. </source>
+      </segment>
+    </unit>
+    <unit id="7556340900290410206">
+      <segment>
+        <source>Search events</source>
       </segment>
     </unit>
     <unit id="event_page.load_failed">
@@ -9319,6 +9486,11 @@
         <source> Backed by the <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">community</pc>. </source>
       </segment>
     </unit>
+    <unit id="7906458871395232033">
+      <segment>
+        <source>List</source>
+      </segment>
+    </unit>
     <unit id="791844227054671315">
       <segment>
         <source>Media report</source>
@@ -9407,6 +9579,11 @@
         <source>Open link</source>
       </segment>
     </unit>
+    <unit id="3490749389855555467">
+      <segment>
+        <source>Filter by event series</source>
+      </segment>
+    </unit>
     <unit id="3491250523952834442">
       <segment>
         <source>Mutuals</source>
@@ -9423,6 +9600,11 @@
     <unit id="8431151318560186465">
       <segment>
         <source> Enter at least 2 characters. </source>
+      </segment>
+    </unit>
+    <unit id="8432483173674970463">
+      <segment>
+        <source>Admin drafts</source>
       </segment>
     </unit>
     <unit id="8436223332064456837">
@@ -9538,6 +9720,11 @@
     <unit id="9023791413043930148">
       <segment>
         <source>No community card suggestions.</source>
+      </segment>
+    </unit>
+    <unit id="9035893448017132543">
+      <segment>
+        <source>Some events need a data update</source>
       </segment>
     </unit>
     <unit id="9036774118081905922">
@@ -9718,6 +9905,11 @@
     <unit id="1774760996053367231">
       <segment>
         <source>Preview notification</source>
+      </segment>
+    </unit>
+    <unit id="7688203873728163276">
+      <segment>
+        <source>Name, place, or venue</source>
       </segment>
     </unit>
     <unit id="7688469791911355016">
@@ -9974,6 +10166,11 @@
         <source>Creative</source>
       </segment>
     </unit>
+    <unit id="6559246822757089203">
+      <segment>
+        <source>Clear filters</source>
+      </segment>
+    </unit>
     <unit id="6179206102292432387">
       <segment>
         <source>Community cards</source>
@@ -9987,6 +10184,11 @@
     <unit id="6185035155992471587">
       <segment>
         <source>Something else</source>
+      </segment>
+    </unit>
+    <unit id="6195271498647131229">
+      <segment>
+        <source> No events on this day. </source>
       </segment>
     </unit>
     <unit id="5451766476743569122">

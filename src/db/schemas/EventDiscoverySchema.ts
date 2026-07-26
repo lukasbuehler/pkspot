@@ -31,6 +31,7 @@ export const EVENT_DISCOVERY_FIELDS = [
   "event_links",
   "ticket_options",
   "event_categories",
+  "time_zone",
   "promo_starts_at",
   "spot_ids",
   "bounds",

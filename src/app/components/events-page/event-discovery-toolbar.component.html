@@ -1,0 +1,97 @@
+<section class="discovery-toolbar" aria-label="Event discovery controls" i18n-aria-label>
+  <div class="primary-controls">
+    <mat-form-field appearance="outline" class="search-control">
+      <mat-label i18n>Search events</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input
+        matInput
+        [formControl]="queryControl"
+        placeholder="Name, place, or venue"
+        i18n-placeholder
+      />
+    </mat-form-field>
+
+    <app-entity-reference-autocomplete
+      class="area-control"
+      kind="community"
+      [value]="areaKey()"
+      (selectionChange)="areaChange.emit($event)"
+    />
+
+    <mat-button-toggle-group
+      class="view-toggle"
+      [value]="view()"
+      aria-label="Event view"
+      i18n-aria-label
+      (change)="viewChange.emit($event.value)"
+    >
+      <mat-button-toggle value="calendar" aria-label="Calendar view" i18n-aria-label>
+        <mat-icon>calendar_month</mat-icon>
+        <span i18n>Calendar</span>
+      </mat-button-toggle>
+      <mat-button-toggle value="list" aria-label="List view" i18n-aria-label>
+        <mat-icon>view_list</mat-icon>
+        <span i18n>List</span>
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+
+  <div class="secondary-controls">
+    @if (view() === "list") {
+      <mat-button-toggle-group
+        [value]="period()"
+        aria-label="Event period"
+        i18n-aria-label
+        (change)="periodChange.emit($event.value)"
+      >
+        <mat-button-toggle value="upcoming" i18n>Upcoming</mat-button-toggle>
+        <mat-button-toggle value="past" i18n>Past</mat-button-toggle>
+      </mat-button-toggle-group>
+    }
+
+    @if (categoryOptions().length > 0) {
+      <mat-chip-set aria-label="Filter by event category" i18n-aria-label>
+        @for (category of categoryOptions(); track category.id) {
+          <mat-chip-option
+            [selected]="selectedCategories().includes(category.id)"
+            (click)="categoryToggled.emit(category.id)"
+          >
+            <mat-icon matChipAvatar>{{ category.icon }}</mat-icon>
+            {{ category.label }}
+            <span class="filter-count">{{ category.count }}</span>
+          </mat-chip-option>
+        }
+      </mat-chip-set>
+    }
+
+    @if (seriesOptions().length > 0) {
+      <mat-chip-set aria-label="Filter by event series" i18n-aria-label>
+        @for (series of seriesOptions(); track series.id) {
+          <mat-chip-option
+            [selected]="selectedSeriesIds().includes(series.id)"
+            (click)="seriesToggled.emit(series.id)"
+          >
+            @if (series.logoSrc) {
+              <span
+                matChipAvatar
+                class="series-avatar"
+                [style.background]="series.logoBackground"
+              >
+                <img [src]="series.logoSrc" alt="" />
+              </span>
+            }
+            {{ series.label }}
+            <span class="filter-count">{{ series.count }}</span>
+          </mat-chip-option>
+        }
+      </mat-chip-set>
+    }
+
+    @if (hasFilters()) {
+      <button mat-button type="button" (click)="filtersCleared.emit()">
+        <mat-icon>filter_alt_off</mat-icon>
+        <span i18n>Clear filters</span>
+      </button>
+    }
+  </div>
+</section>

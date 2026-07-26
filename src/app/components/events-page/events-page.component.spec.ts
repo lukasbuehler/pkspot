@@ -4,29 +4,37 @@ import { ActivatedRoute, convertToParamMap, Router } from "@angular/router";
 import { BehaviorSubject } from "rxjs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
-import {
-  EventCategory,
-  EventId,
-  EventSchema,
-} from "../../../db/schemas/EventSchema";
+import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
+import { AnalyticsService } from "../../services/analytics.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { EventsService } from "../../services/firebase/firestore/events.service";
 import { SeriesService } from "../../services/firebase/firestore/series.service";
+import {
+  EventDiscoverySearchResult,
+  SearchService,
+} from "../../services/search.service";
 import { EventsPageComponent } from "./events-page.component";
 
 interface ScreenshotGlobal {
   __PKSPOT_SCREENSHOT_EVENT_INDEX__?: unknown;
 }
 
-const flushPromises = () =>
-  new Promise((resolve) => {
-    setTimeout(resolve, 0);
-  });
+const EMPTY_RESULT: EventDiscoverySearchResult = {
+  items: [],
+  found: 0,
+  page: 1,
+  facets: { categories: [], series: [], communities: [] },
+  invalidItemCount: 0,
+};
+
+const flushResources = async (): Promise<void> => {
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+};
 
 const buildEvent = (
   id: string,
   name: string,
-  eventCategories: EventCategory[] = [],
   extra: Partial<EventSchema> = {},
 ): PkEvent =>
   new PkEvent(id as EventId, {
@@ -34,15 +42,16 @@ const buildEvent = (
     slug: id,
     venue_string: "Test Venue",
     locality_string: "Zurich, Switzerland",
-    start: "2026-06-14T10:00:00.000Z",
-    end: "2026-06-15T10:00:00.000Z",
+    start: "2026-08-14T10:00:00.000Z",
+    end: "2026-08-15T10:00:00.000Z",
+    time_zone: "Europe/Zurich",
+    published: false,
     bounds: {
       north: 47.4,
       south: 47.3,
       east: 8.6,
       west: 8.5,
     },
-    event_categories: eventCategories,
     ...extra,
   } as unknown as EventSchema);
 
@@ -55,47 +64,190 @@ const buildAuthService = (
   isAdmin: signal(admin),
 });
 
+interface TestContext {
+  component: EventsPageComponent;
+  queryParams: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
+  router: { navigate: ReturnType<typeof vi.fn> };
+  searchService: {
+    searchEventDiscovery: ReturnType<typeof vi.fn>;
+    searchAllEventDiscovery: ReturnType<typeof vi.fn>;
+  };
+  eventsService: { getEvents: ReturnType<typeof vi.fn> };
+}
+
+function createComponent(options?: {
+  queryParams?: Record<string, string>;
+  admin?: boolean;
+  signedIn?: boolean;
+  drafts?: PkEvent[];
+  platform?: "browser" | "server";
+}): TestContext {
+  const queryParams = new BehaviorSubject(
+    convertToParamMap(options?.queryParams ?? {}),
+  );
+  const router = { navigate: vi.fn().mockResolvedValue(true) };
+  const searchService = {
+    searchEventDiscovery: vi.fn().mockResolvedValue(EMPTY_RESULT),
+    searchAllEventDiscovery: vi.fn().mockResolvedValue(EMPTY_RESULT),
+  };
+  const eventsService = {
+    getEvents: vi.fn().mockResolvedValue(options?.drafts ?? []),
+  };
+
+  TestBed.configureTestingModule({
+    providers: [
+      { provide: SearchService, useValue: searchService },
+      { provide: EventsService, useValue: eventsService },
+      {
+        provide: SeriesService,
+        useValue: { getSeriesByIds: vi.fn().mockResolvedValue({}) },
+      },
+      {
+        provide: AuthenticationService,
+        useValue: buildAuthService(
+          options?.signedIn ? { uid: "signed-in", data: null } : null,
+          options?.admin,
+        ),
+      },
+      {
+        provide: AnalyticsService,
+        useValue: { trackEvent: vi.fn() },
+      },
+      {
+        provide: ActivatedRoute,
+        useValue: { queryParamMap: queryParams.asObservable() },
+      },
+      { provide: Router, useValue: router },
+      { provide: LOCALE_ID, useValue: "en-CH" },
+      { provide: PLATFORM_ID, useValue: options?.platform ?? "browser" },
+    ],
+  });
+
+  return {
+    component: TestBed.runInInjectionContext(() => new EventsPageComponent()),
+    queryParams,
+    router,
+    searchService,
+    eventsService,
+  };
+}
+
 describe("EventsPageComponent", () => {
   afterEach(() => {
     delete (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_EVENT_INDEX__;
+    globalThis.localStorage?.removeItem("eventsDiscoveryView");
   });
 
-  it("loads events during server-side initialization", async () => {
-    const event = buildEvent("swissjam26", "Swiss Jam 2026");
-    const eventsService = {
-      getEvents: vi.fn().mockResolvedValue([event]),
-    };
+  it("uses adaptive defaults until the user explicitly chooses a view", () => {
+    const { component } = createComponent();
 
-    TestBed.configureTestingModule({
-      providers: [
-        { provide: EventsService, useValue: eventsService },
-        {
-          provide: SeriesService,
-          useValue: { getSeriesByIds: vi.fn().mockResolvedValue({}) },
-        },
-        {
-          provide: AuthenticationService,
-          useValue: buildAuthService(),
-        },
-        { provide: LOCALE_ID, useValue: "en" },
-        { provide: PLATFORM_ID, useValue: "server" },
-      ],
+    component.containerWidth.set(1200);
+    expect(component.view()).toBe("calendar");
+
+    component.containerWidth.set(700);
+    expect(component.view()).toBe("list");
+
+    component.onViewChange("calendar");
+    expect(component.view()).toBe("calendar");
+    expect(globalThis.localStorage?.getItem("eventsDiscoveryView")).toBe(
+      "calendar",
+    );
+  });
+
+  it("lets URL state override the remembered view and restores filters", () => {
+    globalThis.localStorage?.setItem("eventsDiscoveryView", "list");
+    const { component, queryParams } = createComponent({
+      queryParams: {
+        view: "calendar",
+        month: "2028-02",
+        day: "2028-02-29",
+        q: "Swiss Jam",
+        area: "country:ch",
+        category: "jam,competition,unknown",
+        series: "parkour-earth,swissjam",
+        when: "past",
+      },
     });
 
-    const component = TestBed.runInInjectionContext(
-      () => new EventsPageComponent(),
-    );
+    expect(component.view()).toBe("calendar");
+    expect(component.month()).toBe("2028-02");
+    expect(component.selectedDay()).toBe("2028-02-29");
+    expect(component.query()).toBe("Swiss Jam");
+    expect(component.areaKey()).toBe("country:ch");
+    expect(component.selectedCategories()).toEqual(["jam", "competition"]);
+    expect(component.selectedSeriesIds()).toEqual([
+      "parkour-earth",
+      "swissjam",
+    ]);
+    expect(component.period()).toBe("past");
 
-    component.ngOnInit();
-    await flushPromises();
-
-    expect(eventsService.getEvents).toHaveBeenCalledWith({ sortByNext: true });
-    expect(component.loading()).toBe(false);
-    expect(component.events()).toContain(event);
+    queryParams.next(convertToParamMap({ view: "list", when: "upcoming" }));
+    expect(component.view()).toBe("list");
+    expect(component.query()).toBe("");
+    expect(component.selectedCategories()).toEqual([]);
   });
 
-  it("uses deterministic event index data for screenshot rendering", async () => {
-    const eventsService = { getEvents: vi.fn() };
+  it("uses Typesense for public results and never requests public Firestore events", async () => {
+    const { component, searchService, eventsService } = createComponent({
+      queryParams: { view: "list", area: "region:zh", category: "jam" },
+    });
+    await flushResources();
+
+    expect(searchService.searchEventDiscovery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        areaKeys: ["region:zh"],
+        categories: ["jam"],
+        sort: "upcoming",
+        page: 1,
+        perPage: 24,
+      }),
+    );
+    expect(searchService.searchAllEventDiscovery).not.toHaveBeenCalled();
+    expect(eventsService.getEvents).not.toHaveBeenCalled();
+    expect(component.events()).toEqual([]);
+  });
+
+  it("queries the buffered month through Typesense for calendar view", async () => {
+    const { component, searchService } = createComponent({
+      queryParams: { view: "calendar", month: "2026-08" },
+    });
+    await flushResources();
+
+    const request = searchService.searchAllEventDiscovery.mock.calls[0]?.[0];
+    expect(request).toEqual(
+      expect.objectContaining({
+        sort: "calendar",
+        startsBeforeSeconds: expect.any(Number),
+        endsAfterSeconds: expect.any(Number),
+      }),
+    );
+    expect(request.startsBeforeSeconds).toBeGreaterThan(
+      request.endsAfterSeconds,
+    );
+    expect(component.calendar().monthKey).toBe("2026-08");
+  });
+
+  it("keeps authorized drafts in a separate Firestore request", async () => {
+    const draft = buildEvent("draft-jam", "Draft Jam");
+    const { component, eventsService } = createComponent({
+      admin: true,
+      signedIn: true,
+      drafts: [draft],
+    });
+    await flushResources();
+
+    expect(eventsService.getEvents).toHaveBeenCalledWith({
+      includeUnpublished: true,
+      sortByNext: true,
+    });
+    expect(component.drafts()).toEqual([draft]);
+    expect(component.createActions().map((action) => action.id)).toEqual([
+      "event",
+      "session",
+    ]);
+  });
+
+  it("uses deterministic Typesense-shaped data for screenshots", async () => {
     (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_EVENT_INDEX__ = {
       events: [
         {
@@ -107,6 +259,7 @@ describe("EventsPageComponent", () => {
           location_raw: { lat: 47.3769, lng: 8.5417 },
           start: "2026-08-01T10:00:00.000Z",
           end: "2026-08-02T18:00:00.000Z",
+          time_zone: "Europe/Zurich",
           event_categories: ["jam"],
           series_ids: ["visual-series"],
         },
@@ -115,272 +268,50 @@ describe("EventsPageComponent", () => {
         "visual-series": { id: "visual-series", name: "Visual Series" },
       },
     };
-
-    TestBed.configureTestingModule({
-      providers: [
-        { provide: EventsService, useValue: eventsService },
-        { provide: SeriesService, useValue: { getSeriesByIds: vi.fn() } },
-        {
-          provide: AuthenticationService,
-          useValue: buildAuthService(),
-        },
-        { provide: LOCALE_ID, useValue: "en" },
-        { provide: PLATFORM_ID, useValue: "browser" },
-      ],
+    const { component, searchService, eventsService } = createComponent({
+      queryParams: { view: "calendar", month: "2026-08" },
     });
+    await flushResources();
 
-    const component = TestBed.runInInjectionContext(
-      () => new EventsPageComponent(),
-    );
-    component.ngOnInit();
-    await flushPromises();
-
-    expect(eventsService.getEvents).not.toHaveBeenCalled();
     expect(component.events().map((event) => event.name)).toEqual([
       "Visual Jam",
     ]);
+    expect(component.events()[0]?.timeZone).toBe("Europe/Zurich");
     expect(component.seriesById()["visual-series"]?.name).toBe(
       "Visual Series",
     );
-    expect(component.loading()).toBe(false);
+    expect(searchService.searchAllEventDiscovery).not.toHaveBeenCalled();
+    expect(eventsService.getEvents).not.toHaveBeenCalled();
   });
 
-  it("filters events by selected categories", () => {
-    TestBed.configureTestingModule({
-      providers: [
-        { provide: EventsService, useValue: { getEvents: vi.fn() } },
-        {
-          provide: SeriesService,
-          useValue: { getSeriesByIds: vi.fn().mockResolvedValue({}) },
-        },
-        {
-          provide: AuthenticationService,
-          useValue: buildAuthService(),
-        },
-        { provide: LOCALE_ID, useValue: "en" },
-        { provide: PLATFORM_ID, useValue: "browser" },
-      ],
-    });
+  it("updates shareable query parameters for navigation and filters", () => {
+    const { component, router } = createComponent();
 
-    const component = TestBed.runInInjectionContext(
-      () => new EventsPageComponent(),
-    );
-    const competition = buildEvent("skill-comp", "Skill Competition", [
-      "competition",
-    ]);
-    const jam = buildEvent("city-jam", "City Jam", ["jam"]);
-    const camp = buildEvent("summer-camp", "Summer Camp", ["camp"]);
-    const workshop = buildEvent("workshop", "Workshop", ["workshop"]);
-    component.events.set([competition, jam, camp, workshop]);
-
-    expect(component.categoryFilterOptions().map((option) => option.id)).toEqual(
-      ["competition", "jam", "camp"],
-    );
-
-    component.toggleCategoryFilter("competition");
-    expect(component.filteredEvents()).toEqual([competition]);
-
-    component.toggleCategoryFilter("jam");
-    expect(component.filteredEvents()).toEqual([competition, jam]);
-
-    component.clearCategoryFilters();
-    expect(component.filteredEvents()).toEqual([
-      competition,
-      jam,
-      camp,
-      workshop,
-    ]);
-  });
-
-  it("adds series logo metadata to series filter options", () => {
-    TestBed.configureTestingModule({
-      providers: [
-        { provide: EventsService, useValue: { getEvents: vi.fn() } },
-        {
-          provide: SeriesService,
-          useValue: { getSeriesByIds: vi.fn().mockResolvedValue({}) },
-        },
-        {
-          provide: AuthenticationService,
-          useValue: buildAuthService(),
-        },
-        { provide: LOCALE_ID, useValue: "en" },
-        { provide: PLATFORM_ID, useValue: "browser" },
-      ],
-    });
-
-    const component = TestBed.runInInjectionContext(
-      () => new EventsPageComponent(),
-    );
-    component.events.set([
-      buildEvent("swissjam26", "Swiss Jam 2026", [], {
-        series_ids: ["parkour-earth"],
-      }),
-    ]);
-    component.seriesById.set({
-      "parkour-earth": {
-        id: "parkour-earth",
-        name: "Parkour Earth",
-        logo_src: "assets/logos/parkour_earth.jpg",
-        logo_background_color: "#ffffff",
-      },
-    });
-
-    expect(component.seriesFilterOptions()).toEqual([
-      {
-        id: "parkour-earth",
-        count: 1,
-        label: "Parkour Earth",
-        logoSrc: "assets/logos/parkour_earth.jpg",
-        logoBackground: "#ffffff",
-      },
-    ]);
-  });
-
-  it("restores selected filters from URL query params", () => {
-    const queryParamMap = new BehaviorSubject(
-      convertToParamMap({
-        category: "jam,competition,unknown",
-        series: "parkour-earth, swissjam",
-      }),
-    );
-
-    TestBed.configureTestingModule({
-      providers: [
-        { provide: EventsService, useValue: { getEvents: vi.fn() } },
-        {
-          provide: SeriesService,
-          useValue: { getSeriesByIds: vi.fn().mockResolvedValue({}) },
-        },
-        {
-          provide: AuthenticationService,
-          useValue: buildAuthService(),
-        },
-        {
-          provide: ActivatedRoute,
-          useValue: { queryParamMap: queryParamMap.asObservable() },
-        },
-        { provide: Router, useValue: { navigate: vi.fn() } },
-        { provide: LOCALE_ID, useValue: "en" },
-        { provide: PLATFORM_ID, useValue: "browser" },
-      ],
-    });
-
-    const component = TestBed.runInInjectionContext(
-      () => new EventsPageComponent(),
-    );
-
-    expect(component.selectedCategories()).toEqual(["jam", "competition"]);
-    expect(component.selectedSeriesIds()).toEqual([
-      "parkour-earth",
-      "swissjam",
-    ]);
-
-    queryParamMap.next(convertToParamMap({ category: "camp" }));
-
-    expect(component.selectedCategories()).toEqual(["camp"]);
-    expect(component.selectedSeriesIds()).toEqual([]);
-  });
-
-  it("updates URL query params when filters change", () => {
-    const route = {
-      queryParamMap: new BehaviorSubject(convertToParamMap({})).asObservable(),
-    };
-    const router = { navigate: vi.fn().mockResolvedValue(true) };
-
-    TestBed.configureTestingModule({
-      providers: [
-        { provide: EventsService, useValue: { getEvents: vi.fn() } },
-        {
-          provide: SeriesService,
-          useValue: { getSeriesByIds: vi.fn().mockResolvedValue({}) },
-        },
-        {
-          provide: AuthenticationService,
-          useValue: buildAuthService(),
-        },
-        { provide: ActivatedRoute, useValue: route },
-        { provide: Router, useValue: router },
-        { provide: LOCALE_ID, useValue: "en" },
-        { provide: PLATFORM_ID, useValue: "browser" },
-      ],
-    });
-
-    const component = TestBed.runInInjectionContext(
-      () => new EventsPageComponent(),
-    );
-
-    component.toggleCategoryFilter("competition");
+    component.toggleCategory("competition");
     expect(router.navigate).toHaveBeenLastCalledWith([], {
-      relativeTo: route,
-      queryParams: { category: "competition", series: null },
+      relativeTo: expect.anything(),
+      queryParams: { category: "competition" },
       queryParamsHandling: "merge",
       replaceUrl: true,
     });
 
-    component.toggleSeriesFilter("parkour-earth");
+    component.changeMonth(1);
     expect(router.navigate).toHaveBeenLastCalledWith([], {
-      relativeTo: route,
+      relativeTo: expect.anything(),
       queryParams: {
-        category: "competition",
-        series: "parkour-earth",
+        month: expect.stringMatching(/^\d{4}-\d{2}$/u),
+        day: null,
       },
       queryParamsHandling: "merge",
       replaceUrl: true,
     });
 
-    component.clearCategoryFilters();
+    component.selectDay("2026-08-14");
     expect(router.navigate).toHaveBeenLastCalledWith([], {
-      relativeTo: route,
-      queryParams: { category: null, series: "parkour-earth" },
+      relativeTo: expect.anything(),
+      queryParams: { day: "2026-08-14" },
       queryParamsHandling: "merge",
       replaceUrl: true,
     });
-  });
-
-  it("offers event creation to admins and session planning to signed-in users", () => {
-    const router = { navigate: vi.fn().mockResolvedValue(true) };
-    TestBed.configureTestingModule({
-      providers: [
-        { provide: EventsService, useValue: { getEvents: vi.fn() } },
-        {
-          provide: SeriesService,
-          useValue: { getSeriesByIds: vi.fn().mockResolvedValue({}) },
-        },
-        {
-          provide: AuthenticationService,
-          useValue: buildAuthService(
-            { uid: "admin-user", data: null },
-            true,
-          ),
-        },
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            queryParamMap: new BehaviorSubject(
-              convertToParamMap({}),
-            ).asObservable(),
-          },
-        },
-        { provide: Router, useValue: router },
-        { provide: LOCALE_ID, useValue: "en" },
-        { provide: PLATFORM_ID, useValue: "browser" },
-      ],
-    });
-
-    const component = TestBed.runInInjectionContext(
-      () => new EventsPageComponent(),
-    );
-
-    expect(component.createActions().map((action) => action.id)).toEqual([
-      "event",
-      "session",
-    ]);
-
-    component.onCreateAction("session");
-    expect(router.navigate).toHaveBeenCalledWith(["/events/session/new"]);
-
-    component.onCreateAction("event");
-    expect(router.navigate).toHaveBeenCalledWith(["/events/new"]);
   });
 });

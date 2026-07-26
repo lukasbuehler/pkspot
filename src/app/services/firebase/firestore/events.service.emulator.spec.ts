@@ -134,7 +134,8 @@ async function waitForEventTypesenseFields(eventId: string): Promise<void> {
       data?.["promo_starts_at"] instanceof admin.firestore.Timestamp &&
       data?.["has_organization"] === true &&
       data?.["has_venue_spot"] === true &&
-      data?.["venue_spot_count"] === 2
+      data?.["venue_spot_count"] === 2 &&
+      data?.["time_zone"] === "Europe/Zurich"
     ) {
       return;
     }
@@ -622,6 +623,7 @@ runWithEmulator("EventsService emulator integration", () => {
         has_organization: true,
         has_venue_spot: true,
         venue_spot_count: 2,
+        time_zone: "Europe/Zurich",
         location_raw: {
           lat: 47.39732893509323,
           lng: 8.548509576285669,
@@ -662,6 +664,7 @@ runWithEmulator("EventsService emulator integration", () => {
         publication_state: "published",
         visibility: "public",
         published: true,
+        time_zone: "Europe/Zurich",
       }),
     );
     expect(publicProjection).not.toHaveProperty("program");

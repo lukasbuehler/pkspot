@@ -18,6 +18,7 @@ import {
   EventRSVPCountsSchema,
   EventRSVPSchema,
 } from "../../src/db/schemas/EventRSVPSchema";
+import { eventTimeZoneAt } from "./event-time-zone";
 
 const MAINTENANCE_COLLECTION = "maintenance";
 const RUN_BACKFILL_EVENT_TYPESENSE_DOC = `${MAINTENANCE_COLLECTION}/run-backfill-event-typesense-fields`;
@@ -71,6 +72,7 @@ const TYPESENSE_HELPER_FIELDS = [
   "series_roles",
   "qualifies_to_keys",
   "required_qualifier_keys",
+  "time_zone",
 ] as const;
 const SERVER_DERIVED_EVENT_FIELDS = [
   ...TYPESENSE_HELPER_FIELDS,
@@ -693,6 +695,7 @@ const _addTypesenseFields = async (
       location.lng
     ) as unknown as EventSchema["location"];
     out.location_raw = location;
+    out.time_zone = eventTimeZoneAt(location);
   }
 
   if (derivedBounds) {

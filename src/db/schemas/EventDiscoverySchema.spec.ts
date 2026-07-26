@@ -66,6 +66,16 @@ describe("event discovery projection", () => {
     const projection = buildEventDiscoveryProjection(
       event({
         slug: "public-jam",
+        time_zone: "Europe/Zurich",
+        banner_fit: "contain",
+        banner_accent_color: "#ffffff",
+        lifecycle_status: "planned",
+        rsvp_counts: {
+          going: 10,
+          interested: 4,
+          notgoing: 1,
+          total: 15,
+        },
         program: { active_plan_id: "main", plans: [] },
         owner: { type: "user", user_id: "owner-1" },
         viewer_policy: { audience: "invited" },
@@ -79,6 +89,16 @@ describe("event discovery projection", () => {
       visibility: "public",
       discoverability: { audience: "global" },
       published: true,
+      time_zone: "Europe/Zurich",
+      banner_fit: "contain",
+      banner_accent_color: "#ffffff",
+      lifecycle_status: "planned",
+      rsvp_counts: {
+        going: 10,
+        interested: 4,
+        notgoing: 1,
+        total: 15,
+      },
     });
     expect(projection).not.toHaveProperty("program");
     expect(projection).not.toHaveProperty("owner");

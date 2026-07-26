@@ -205,6 +205,7 @@ describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
     "rsvp_counts.notgoing",
     "rsvp_counts.total",
     "kind",
+    "lifecycle_status",
     "priority",
     "published",
     "created_by",
@@ -283,6 +284,8 @@ describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
     location: "firestore-geopoint",
     url: "string",
     banner_src: "string",
+    banner_fit: "string",
+    banner_accent_color: "string",
     logo_src: "string",
     logo_fit: "string",
     logo_background_color: "string",
@@ -303,11 +306,13 @@ describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
     priority: "string",
     start_seconds: "int64",
     end_seconds: "int64",
+    time_zone: "string",
     promo_starts_at_seconds: "int64",
     spot_ids: "string[]",
     community_keys: "string[]",
     series_ids: "string[]",
     event_categories: "string[]",
+    lifecycle_status: "string",
     series_roles: "string[]",
     qualifies_to_keys: "string[]",
     required_qualifier_keys: "string[]",
@@ -326,6 +331,10 @@ describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
     has_organization: "bool",
     has_venue_spot: "bool",
     venue_spot_count: "int64",
+    "rsvp_counts.going": "int64",
+    "rsvp_counts.interested": "int64",
+    "rsvp_counts.notgoing": "int64",
+    "rsvp_counts.total": "int64",
     published: "bool",
   } as const;
 
@@ -340,6 +349,11 @@ describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
     url: { kind: "direct", source: "url" },
 
     banner_src: { kind: "direct", source: "banner_src" },
+    banner_fit: { kind: "direct", source: "banner_fit" },
+    banner_accent_color: {
+      kind: "direct",
+      source: "banner_accent_color",
+    },
     logo_src: { kind: "direct", source: "logo_src" },
     logo_fit: { kind: "direct", source: "logo_fit" },
     logo_background_color: {
@@ -391,6 +405,7 @@ describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
     // verbatim to Typesense), so the mapping is `direct`.
     start_seconds: { kind: "direct", source: "start_seconds" },
     end_seconds: { kind: "direct", source: "end_seconds" },
+    time_zone: { kind: "direct", source: "time_zone" },
     promo_starts_at_seconds: {
       kind: "direct",
       source: "promo_starts_at_seconds",
@@ -400,6 +415,10 @@ describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
     community_keys: { kind: "direct", source: "community_keys" },
     series_ids: { kind: "direct", source: "series_ids" },
     event_categories: { kind: "direct", source: "event_categories" },
+    lifecycle_status: {
+      kind: "direct",
+      source: "lifecycle_status",
+    },
     series_roles: { kind: "direct", source: "series_roles" },
     qualifies_to_keys: { kind: "direct", source: "qualifies_to_keys" },
     required_qualifier_keys: {
@@ -441,6 +460,22 @@ describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
     has_organization: { kind: "direct", source: "has_organization" },
     has_venue_spot: { kind: "direct", source: "has_venue_spot" },
     venue_spot_count: { kind: "direct", source: "venue_spot_count" },
+    "rsvp_counts.going": {
+      kind: "direct",
+      source: "rsvp_counts.going",
+    },
+    "rsvp_counts.interested": {
+      kind: "direct",
+      source: "rsvp_counts.interested",
+    },
+    "rsvp_counts.notgoing": {
+      kind: "direct",
+      source: "rsvp_counts.notgoing",
+    },
+    "rsvp_counts.total": {
+      kind: "direct",
+      source: "rsvp_counts.total",
+    },
 
     published: { kind: "direct", source: "published" },
     _force_sync: {

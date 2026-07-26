@@ -142,6 +142,12 @@
         <target>Diesen Spot bearbeiten</target>
       </segment>
     </unit>
+    <unit id="7578499311504842568">
+      <segment state="initial">
+        <source>Events could not be loaded</source>
+        <target>Events konnten nicht geladen werden</target>
+      </segment>
+    </unit>
     <unit id="7585826646011739428">
       <segment state="initial">
         <source>Edit</source>
@@ -210,6 +216,12 @@
       <segment state="initial">
         <source>Meet-up time updated</source>
         <target>Meet-up-Zeit aktualisiert</target>
+      </segment>
+    </unit>
+    <unit id="6331903198105025974">
+      <segment state="initial">
+        <source>Calendar view</source>
+        <target>Kalenderansicht</target>
       </segment>
     </unit>
     <unit id="6340970481322850527">
@@ -622,6 +634,12 @@
         <target>Abstimmungs-Testmodus</target>
       </segment>
     </unit>
+    <unit id="2815997035296984338">
+      <segment state="initial">
+        <source> Check your connection and try again. </source>
+        <target> Überprüfe deine Verbindung und versuche es erneut. </target>
+      </segment>
+    </unit>
     <unit id="1431416938026210429">
       <segment state="initial">
         <source>Password</source>
@@ -732,6 +750,12 @@
       <segment state="initial">
         <source>No organization approvals waiting.</source>
         <target>No organization approvals waiting.</target>
+      </segment>
+    </unit>
+    <unit id="5861450655956713446">
+      <segment state="initial">
+        <source> Try another month, area, search, or filter. </source>
+        <target> Versuche einen anderen Monat, eine andere Region, Suche oder einen anderen Filter. </target>
       </segment>
     </unit>
     <unit id="5881351283414819200">
@@ -2043,6 +2067,12 @@
         <target>Nutzungsbedingungen</target>
       </segment>
     </unit>
+    <unit id="5717355661357017349">
+      <segment state="initial">
+        <source> Try again </source>
+        <target> Erneut versuchen </target>
+      </segment>
+    </unit>
     <unit id="5722958552225460480">
       <segment state="initial">
         <source><ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/instagram.svg&quot; alt=&quot;&quot; style=&quot;height: 18px&quot; class=&quot;me-1&quot; /&gt;"/> Follow @pkspot.app </source>
@@ -2307,6 +2337,12 @@
         <target> Live &amp; verifiziert </target>
       </segment>
     </unit>
+    <unit id="1008017384716140525">
+      <segment state="initial">
+        <source>Event view</source>
+        <target>Eventansicht</target>
+      </segment>
+    </unit>
     <unit id="1025791844730471949">
       <segment state="initial">
         <source>Edit approved</source>
@@ -2365,6 +2401,12 @@
       <segment state="initial">
         <source> Review every scanned upload over time. Approved media is shown from its released public location; flagged media remains hidden in quarantine. </source>
         <target> Prüfe alle gescannten Uploads im Zeitverlauf. Freigegebene Medien werden von ihrem veröffentlichten Speicherort angezeigt; markierte Medien bleiben in der Quarantäne ausgeblendet. </target>
+      </segment>
+    </unit>
+    <unit id="1245436418786666717">
+      <segment state="initial">
+        <source>Event period</source>
+        <target>Eventzeitraum</target>
       </segment>
     </unit>
     <unit id="1263548881803803113">
@@ -2473,6 +2515,12 @@
       <segment state="initial">
         <source>Close report</source>
         <target>Meldung schließen</target>
+      </segment>
+    </unit>
+    <unit id="3628374603023447227">
+      <segment state="initial">
+        <source>Next month</source>
+        <target>Nächster Monat</target>
       </segment>
     </unit>
     <unit id="3631960501807863073">
@@ -2831,6 +2879,12 @@
         <target>Keine Meldungen passen zu diesem Filter.</target>
       </segment>
     </unit>
+    <unit id="8374358620159565609">
+      <segment state="initial">
+        <source>Past</source>
+        <target>Vergangen</target>
+      </segment>
+    </unit>
     <unit id="8374523856907728400">
       <segment state="initial">
         <source>Does not exist</source>
@@ -2847,6 +2901,12 @@
       <segment state="initial">
         <source>Reset map orientation to north</source>
         <target>Kartenausrichtung nach Norden zurücksetzen</target>
+      </segment>
+    </unit>
+    <unit id="8607494029860346775">
+      <segment state="initial">
+        <source>Event dates use each venue’s local time.</source>
+        <target>Eventtermine verwenden die Ortszeit des jeweiligen Veranstaltungsorts.</target>
       </segment>
     </unit>
     <unit id="8609785202570000921">
@@ -4469,6 +4529,12 @@
         <target>No community card suggestions.</target>
       </segment>
     </unit>
+    <unit id="9035893448017132543">
+      <segment state="initial">
+        <source>Some events need a data update</source>
+        <target>Einige Events benötigen eine Datenaktualisierung</target>
+      </segment>
+    </unit>
     <unit id="9036774118081905922">
       <segment state="initial">
         <source>Failed to load safety incident</source>
@@ -4590,6 +4656,12 @@
       <segment state="initial">
         <source>Undetermined</source>
         <target>Unbestimmt</target>
+      </segment>
+    </unit>
+    <unit id="9202685261905649484">
+      <segment state="initial">
+        <source> Discover parkour events around the world. </source>
+        <target> Entdecke Parkour-Events auf der ganzen Welt. </target>
       </segment>
     </unit>
     <unit id="921298748667468495">
@@ -5554,6 +5626,18 @@
         <target>Dieser Link wird nicht erkannt. Bitte überprüfe deine E-Mail und versuche es erneut.</target>
       </segment>
     </unit>
+    <unit id="7679393301604850402">
+      <segment state="initial">
+        <source>List view</source>
+        <target>Listenansicht</target>
+      </segment>
+    </unit>
+    <unit id="7688203873728163276">
+      <segment state="initial">
+        <source>Name, place, or venue</source>
+        <target>Name, Ort oder Veranstaltungsort</target>
+      </segment>
+    </unit>
     <unit id="7688469791911355016">
       <segment state="initial">
         <source>Shutterbug</source>
@@ -5805,6 +5889,18 @@
       <segment state="initial">
         <source>Promoted Event</source>
         <target>Anzeige</target>
+      </segment>
+    </unit>
+    <unit id="events.rsvp_going">
+      <segment state="initial">
+        <source><ph id="0" equiv="count" disp="event.rsvpCounts.going"/> going</source>
+        <target><ph id="0" equiv="count" disp="event.rsvpCounts.going"/> Zusagen</target>
+      </segment>
+    </unit>
+    <unit id="events.rsvp_interested">
+      <segment state="initial">
+        <source><ph id="0" equiv="count" disp="event.rsvpCounts.interested"/> interested</source>
+        <target><ph id="0" equiv="count" disp="event.rsvpCounts.interested"/> interessiert</target>
       </segment>
     </unit>
     <unit id="events.sponsored.short">
@@ -7673,16 +7769,46 @@
         <target>Event öffnen</target>
       </segment>
     </unit>
-    <unit id="events.clear_category_filters">
+    <unit id="events.area_filter_area">
       <segment state="initial">
-        <source>Clear</source>
-        <target>Löschen</target>
+        <source>Area</source>
+        <target>Region</target>
       </segment>
     </unit>
-    <unit id="events.clear_series_filters">
+    <unit id="events.area_search_empty">
       <segment state="initial">
-        <source>Clear</source>
-        <target>Löschen</target>
+        <source>No matching areas found</source>
+        <target>Keine passenden Regionen gefunden</target>
+      </segment>
+    </unit>
+    <unit id="events.area_search_label">
+      <segment state="initial">
+        <source>Filter by area</source>
+        <target>Nach Region filtern</target>
+      </segment>
+    </unit>
+    <unit id="events.area_search_placeholder">
+      <segment state="initial">
+        <source>Search for a city, region, or country</source>
+        <target>Nach Stadt, Region oder Land suchen</target>
+      </segment>
+    </unit>
+    <unit id="events.calendar_more_aria">
+      <segment state="initial">
+        <source>Show <ph id="0" equiv="eventCount" disp="day.hiddenEventCount"/> more events on <ph id="1" equiv="localDate" disp="date"/></source>
+        <target><ph id="0" equiv="eventCount" disp="day.hiddenEventCount"/> weitere Events am <ph id="1" equiv="localDate" disp="date"/> anzeigen</target>
+      </segment>
+    </unit>
+    <unit id="events.count_many">
+      <segment state="initial">
+        <source><ph id="0" equiv="eventCount" disp="count"/> events</source>
+        <target><ph id="0" equiv="eventCount" disp="count"/> Events</target>
+      </segment>
+    </unit>
+    <unit id="events.count_one">
+      <segment state="initial">
+        <source>1 event</source>
+        <target>1 Event</target>
       </segment>
     </unit>
     <unit id="events.create">
@@ -7691,22 +7817,16 @@
         <target>Event erstellen</target>
       </segment>
     </unit>
-    <unit id="events.create_menu">
-      <segment state="initial">
-        <source>Create</source>
-        <target>Erstellen</target>
-      </segment>
-    </unit>
     <unit id="events.create_menu_tooltip">
       <segment state="initial">
         <source>Create an event or session</source>
         <target>Event oder Session erstellen</target>
       </segment>
     </unit>
-    <unit id="events.past_heading">
+    <unit id="events.discovery_card_aria">
       <segment state="initial">
-        <source> Past events </source>
-        <target>Vergangene Events</target>
+        <source><ph id="0" equiv="eventName" disp="event.name"/>, <ph id="1" equiv="localDate" disp="localDate"/>, <ph id="2" equiv="location" disp="location"/>, <ph id="3" equiv="goingSummary" disp="going"/>, <ph id="4" equiv="interestedSummary" disp="interested"/></source>
+        <target><ph id="0" equiv="eventName" disp="event.name"/>; <ph id="1" equiv="localDate" disp="localDate"/>; <ph id="2" equiv="location" disp="location"/>; <ph id="3" equiv="goingSummary" disp="going"/>; <ph id="4" equiv="interestedSummary" disp="interested"/></target>
       </segment>
     </unit>
     <unit id="events.plan_session">
@@ -7740,12 +7860,9 @@
       </segment>
     </unit>
     <unit id="events.title">
-      <notes>
-        <note category="description">:</note>
-      </notes>
       <segment state="initial">
-        <source> Events </source>
-        <target> Veranstaltungen </target>
+        <source>Events</source>
+        <target>Veranstaltungen</target>
       </segment>
     </unit>
     <unit id="events_label">
@@ -8043,12 +8160,6 @@
         <target>Das Team</target>
       </segment>
     </unit>
-    <unit id="4392375821538337917">
-      <segment state="initial">
-        <source>No events scheduled yet.</source>
-        <target>Noch keine Events geplant.</target>
-      </segment>
-    </unit>
     <unit id="4396128088744719857">
       <segment state="initial">
         <source>No scanned media yet.</source>
@@ -8065,6 +8176,12 @@
       <segment state="initial">
         <source>Embed Type</source>
         <target>Einbettungstyp</target>
+      </segment>
+    </unit>
+    <unit id="4977581904635287208">
+      <segment state="initial">
+        <source>Event discovery controls</source>
+        <target>Steuerelemente für die Eventsuche</target>
       </segment>
     </unit>
     <unit id="3304972143698843178">
@@ -8155,6 +8272,12 @@
       <segment state="initial">
         <source>Supporter</source>
         <target>Unterstützer</target>
+      </segment>
+    </unit>
+    <unit id="7906458871395232033">
+      <segment state="initial">
+        <source>List</source>
+        <target>Liste</target>
       </segment>
     </unit>
     <unit id="791844227054671315">
@@ -8663,6 +8786,12 @@
         <target> Vorübergehend geschlossen </target>
       </segment>
     </unit>
+    <unit id="8725224299321680590">
+      <segment state="initial">
+        <source>Upcoming</source>
+        <target>Bevorstehend</target>
+      </segment>
+    </unit>
     <unit id="8736188664022016115">
       <segment state="initial">
         <source>Could not sign in with Apple!</source>
@@ -9102,6 +9231,12 @@
         <target>Verwerfen</target>
       </segment>
     </unit>
+    <unit id="3825802286872185103">
+      <segment state="initial">
+        <source>Calendar</source>
+        <target>Kalender</target>
+      </segment>
+    </unit>
     <unit id="3826629890393475666">
       <segment state="initial">
         <source> Covered rails for rainy nights. Lit spots for winter sessions. Parkour gyms for drill days. Filter for exactly what you need. </source>
@@ -9334,12 +9469,6 @@
       <segment state="initial">
         <source>Import spots</source>
         <target>Spots importieren</target>
-      </segment>
-    </unit>
-    <unit id="map.create.open">
-      <segment state="initial">
-        <source>Create</source>
-        <target>Erstellen</target>
       </segment>
     </unit>
     <unit id="map.create.open_tooltip">
@@ -9898,6 +10027,12 @@
         <target>Status</target>
       </segment>
     </unit>
+    <unit id="7505192479854511779">
+      <segment state="initial">
+        <source>{VAR_PLURAL, plural, =1 {1 event} other {<ph id="0" equiv="INTERPOLATION"/> events}}</source>
+        <target>{VAR_PLURAL, plural, =1 {1 Event} other {<ph id="0" equiv="INTERPOLATION"/> Events}}</target>
+      </segment>
+    </unit>
     <unit id="7507067564798390805">
       <segment state="initial">
         <source>Reporting hold</source>
@@ -9932,6 +10067,12 @@
       <segment state="initial">
         <source> To prevent report abuse, we keep technical information such as your IP address and app verification status for up to 90 days. </source>
         <target> Um Missbrauch von Meldungen zu verhindern, speichern wir technische Informationen wie deine IP-Adresse und den App-Verifizierungsstatus bis zu 90 Tage lang. </target>
+      </segment>
+    </unit>
+    <unit id="7556340900290410206">
+      <segment state="initial">
+        <source>Search events</source>
+        <target>Events suchen</target>
       </segment>
     </unit>
     <unit id="event_page.load_failed">
@@ -10024,6 +10165,12 @@
         <target>Kreativ</target>
       </segment>
     </unit>
+    <unit id="6559246822757089203">
+      <segment state="initial">
+        <source>Clear filters</source>
+        <target>Filter zurücksetzen</target>
+      </segment>
+    </unit>
     <unit id="6575164270960732036">
       <segment state="initial">
         <source> Previous </source>
@@ -10100,6 +10247,12 @@
       <segment state="initial">
         <source>Something else</source>
         <target>Etwas anderes</target>
+      </segment>
+    </unit>
+    <unit id="6195271498647131229">
+      <segment state="initial">
+        <source> No events on this day. </source>
+        <target> An diesem Tag gibt es keine Events. </target>
       </segment>
     </unit>
     <unit id="5451766476743569122">
@@ -10490,6 +10643,12 @@
         <target>Klassifizierung</target>
       </segment>
     </unit>
+    <unit id="8856905278208146821">
+      <segment state="initial">
+        <source> <ph id="0" equiv="ICU" disp="{invalidItemCount, plural, =1 {One event is missing a valid local time zone and was not shown.} other {{{invalidItemCount}} events are missing a valid local time zone and were not shown.} }" subFlows="5929556192434811560"/> </source>
+        <target> <ph id="0" equiv="ICU" disp="{invalidItemCount, plural, =1 {One event is missing a valid local time zone and was not shown.} other {{{invalidItemCount}} events are missing a valid local time zone and were not shown.} }" subFlows="5929556192434811560"/> </target>
+      </segment>
+    </unit>
     <unit id="8876716314997684812">
       <segment state="initial">
         <source>Event management</source>
@@ -10500,6 +10659,12 @@
       <segment state="initial">
         <source>Update type</source>
         <target>Update-Typ</target>
+      </segment>
+    </unit>
+    <unit id="888448929442585159">
+      <segment state="initial">
+        <source>Loading drafts…</source>
+        <target>Entwürfe werden geladen…</target>
       </segment>
     </unit>
     <unit id="8890553633144307762">
@@ -10610,6 +10775,12 @@
         <target>Anfrageursprung</target>
       </segment>
     </unit>
+    <unit id="8586908745456864217">
+      <segment state="initial">
+        <source>Previous month</source>
+        <target>Vorheriger Monat</target>
+      </segment>
+    </unit>
     <unit id="8381431851391440518">
       <segment state="initial">
         <source>Managed organization updated</source>
@@ -10686,6 +10857,12 @@
         <target> Deine verwalteten Spots </target>
       </segment>
     </unit>
+    <unit id="7113790156926964344">
+      <segment state="initial">
+        <source>No matching events</source>
+        <target>Keine passenden Events</target>
+      </segment>
+    </unit>
     <unit id="7136600839935407372">
       <segment state="initial">
         <source>Managed by</source>
@@ -10720,6 +10897,12 @@
       <segment state="initial">
         <source>This upload was flagged or failed automated scanning and may be disturbing. Reveal it for manual moderation?</source>
         <target>Dieser Upload wurde markiert oder die automatische Prüfung ist fehlgeschlagen und der Inhalt könnte verstörend sein. Zur manuellen Moderation anzeigen?</target>
+      </segment>
+    </unit>
+    <unit id="7177325135014632430">
+      <segment state="initial">
+        <source>Event series</source>
+        <target>Eventserien</target>
       </segment>
     </unit>
     <unit id="7193934719093844817">
@@ -10762,6 +10945,12 @@
       <segment state="initial">
         <source>No spot edit votes waiting.</source>
         <target>No spot edit votes waiting.</target>
+      </segment>
+    </unit>
+    <unit id="6600224557075575450">
+      <segment state="initial">
+        <source>{VAR_PLURAL, plural, =1 {One event is missing a valid local time zone and was not shown.} other {<ph id="0" equiv="INTERPOLATION"/> events are missing a valid local time zone and were not shown.}}</source>
+        <target>{VAR_PLURAL, plural, =1 {Ein Event hat keine gültige lokale Zeitzone und wurde nicht angezeigt.} other {<ph id="0" equiv="INTERPOLATION"/> Events haben keine gültige lokale Zeitzone und wurden nicht angezeigt.}}</target>
       </segment>
     </unit>
     <unit id="6607382385355290684">
@@ -10845,6 +11034,12 @@
         <target> Deine Bio ist öffentlich. Vermeide private Kontaktdaten und genaue Trainingsorte. </target>
       </segment>
     </unit>
+    <unit id="5688462374174490321">
+      <segment state="initial">
+        <source> Load more </source>
+        <target> Mehr laden </target>
+      </segment>
+    </unit>
     <unit id="5690746890584837020">
       <segment state="initial">
         <source>Event map</source>
@@ -10908,6 +11103,12 @@
         <target> Check-ins und Updates von Organisationen zeigen, wo Parkour wirklich passiert. Die Karte bleibt aktuell, weil die Community sie aktuell hält. </target>
       </segment>
     </unit>
+    <unit id="6234372277464900526">
+      <segment state="initial">
+        <source>Promoted event</source>
+        <target>Hervorgehobenes Event</target>
+      </segment>
+    </unit>
     <unit id="6251586038459969294">
       <segment state="initial">
         <source>Both</source>
@@ -10956,6 +11157,12 @@
         <target> Alle Challenges von <ph id="0" equiv="INTERPOLATION" disp="{{ selectedSpot()!.name() }}"/> </target>
       </segment>
     </unit>
+    <unit id="4043049091728011235">
+      <segment state="initial">
+        <source>Cancelled</source>
+        <target>Abgesagt</target>
+      </segment>
+    </unit>
     <unit id="4046179348234171126">
       <segment state="initial">
         <source> Spots we use </source>
@@ -10966,6 +11173,12 @@
       <segment state="initial">
         <source>Public warning</source>
         <target>Öffentliche Warnung</target>
+      </segment>
+    </unit>
+    <unit id="7011425206383801543">
+      <segment state="initial">
+        <source>more</source>
+        <target>weitere</target>
       </segment>
     </unit>
     <unit id="7013608157776536894">
@@ -11364,6 +11577,12 @@
         <target> Erstellt in Zürich, Schweiz. Offene Daten. Offener Code. ©2026 PK Spot. </target>
       </segment>
     </unit>
+    <unit id="2706312198973609080">
+      <segment state="initial">
+        <source>Updating…</source>
+        <target>Wird aktualisiert…</target>
+      </segment>
+    </unit>
     <unit id="2709911421206227808">
       <segment state="initial">
         <source>Open Data</source>
@@ -11448,6 +11667,12 @@
         <target>{VAR_PLURAL, plural, =1 {1 ungelesen} other {<ph id="0" equiv="INTERPOLATION"/> ungelesen}}</target>
       </segment>
     </unit>
+    <unit id="1852232195968635711">
+      <segment state="initial">
+        <source> Today </source>
+        <target> Heute </target>
+      </segment>
+    </unit>
     <unit id="1868606282505332204">
       <segment state="initial">
         <source>Reports</source>
@@ -11478,10 +11703,22 @@
         <target>Manuelle Prüfung erforderlich</target>
       </segment>
     </unit>
+    <unit id="3476705213231355222">
+      <segment state="initial">
+        <source>Filter by event category</source>
+        <target>Nach Eventkategorie filtern</target>
+      </segment>
+    </unit>
     <unit id="3483311644139102304">
       <segment state="initial">
         <source>All Event Challenges</source>
         <target>Alle Veranstaltungs-Challenges</target>
+      </segment>
+    </unit>
+    <unit id="3490749389855555467">
+      <segment state="initial">
+        <source>Filter by event series</source>
+        <target>Nach Eventserie filtern</target>
       </segment>
     </unit>
     <unit id="3491250523952834442">
@@ -11571,6 +11808,12 @@
         <target>Verifizierte Konto-E-Mail</target>
       </segment>
     </unit>
+    <unit id="7426931625439733941">
+      <segment state="initial">
+        <source> Unpublished events are kept separate from public search results. </source>
+        <target> Unveröffentlichte Events werden getrennt von öffentlichen Suchergebnissen angezeigt. </target>
+      </segment>
+    </unit>
     <unit id="7435704556903111313">
       <segment state="initial">
         <source>Organization review</source>
@@ -11611,6 +11854,12 @@
       <segment state="initial">
         <source> Enter at least 2 characters. </source>
         <target> Gib mindestens 2 Zeichen ein. </target>
+      </segment>
+    </unit>
+    <unit id="8432483173674970463">
+      <segment state="initial">
+        <source>Admin drafts</source>
+        <target>Admin-Entwürfe</target>
       </segment>
     </unit>
     <unit id="2068477271536019502">
@@ -11715,12 +11964,6 @@
       <segment state="initial">
         <source>Find spots and more</source>
         <target>Finde Spots und mehr</target>
-      </segment>
-    </unit>
-    <unit id="events.no_filtered_events">
-      <segment state="initial">
-        <source> No events match the selected filters. </source>
-        <target> Nein events match the selected filters. </target>
       </segment>
     </unit>
     <unit id="events.now_or_past">

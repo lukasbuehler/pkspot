@@ -1182,4 +1182,226 @@ describe("SearchService", () => {
       ).toEqual(["locality:ch:zh:zurich", "country:ch"]);
     });
   });
+
+  describe("event discovery", () => {
+    const validDocument = {
+      id: "zurich-jam",
+      slug: "zurich-jam",
+      name: "Zurich Jam",
+      locality_string: "Zurich, Switzerland",
+      start_seconds: 1_800_000_000,
+      end_seconds: 1_800_007_200,
+      time_zone: "Europe/Zurich",
+      lifecycle_status: "planned",
+      published: true,
+      event_categories: ["jam"],
+      series_ids: ["parkour-earth"],
+      community_keys: ["country:ch", "region:zh"],
+      rsvp_counts: {
+        going: 8,
+        interested: 5,
+        notgoing: 1,
+        total: 14,
+      },
+    };
+
+    it("resolves shared hierarchical area keys without text-search guessing", async () => {
+      typesenseSearchMock.mockResolvedValueOnce({
+        hits: [
+          {
+            document: {
+              communityKey: "locality:ch:zh:zurich",
+              displayName: "Zurich",
+              scope: "locality",
+              counts: { totalSpots: 42 },
+            },
+          },
+        ],
+      });
+
+      const result = await service.getCommunityPreviewsByKeys([
+        "locality:ch:zh:zurich",
+      ]);
+
+      expect(typesenseSearchMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          q: "*",
+          query_by: "displayName",
+          filter_by:
+            "published:!=false && communityKey:=[`locality:ch:zh:zurich`]",
+          per_page: 1,
+          page: 1,
+        }),
+        {},
+      );
+      expect(result[0]).toMatchObject({
+        communityKey: "locality:ch:zh:zurich",
+        displayName: "Zurich",
+      });
+    });
+
+    it("constructs combined Typesense filters, pagination, facets, and sorting", async () => {
+      const abortController = new AbortController();
+      typesenseSearchMock.mockResolvedValueOnce({
+        hits: [{ document: validDocument }],
+        found: 1,
+        page: 2,
+        facet_counts: [
+          {
+            field_name: "event_categories",
+            counts: [{ value: "jam", count: 1 }],
+          },
+          {
+            field_name: "series_ids",
+            counts: [{ value: "parkour-earth", count: 1 }],
+          },
+          {
+            field_name: "community_keys",
+            counts: [{ value: "country:ch", count: 1 }],
+          },
+        ],
+      });
+
+      const result = await service.searchEventDiscovery({
+        query: "  Zurich Jam  ",
+        startsBeforeSeconds: 1_900_000_000.9,
+        endsAfterSeconds: 1_700_000_000.9,
+        areaKeys: ["country:ch", "region:zh", "country:ch"],
+        categories: ["jam", "competition"],
+        seriesIds: ["parkour-earth"],
+        sort: "past",
+        page: 2,
+        perPage: 40,
+        abortSignal: abortController.signal,
+      });
+
+      expect(typesenseSearchMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          q: "Zurich Jam",
+          filter_by:
+            "published:=true && start_seconds:<=1900000000 && " +
+            "end_seconds:>=1700000000 && " +
+            "community_keys:=[`country:ch`,`region:zh`] && " +
+            "event_categories:=[`jam`,`competition`] && " +
+            "series_ids:=[`parkour-earth`]",
+          sort_by: "start_seconds:desc",
+          facet_by: "event_categories,series_ids,community_keys",
+          page: 2,
+          per_page: 40,
+        }),
+        { abortSignal: abortController.signal },
+      );
+      expect(result.items[0]).toMatchObject({
+        id: "zurich-jam",
+        timeZone: "Europe/Zurich",
+        lifecycleStatus: "planned",
+        rsvpCounts: { going: 8, interested: 5, notgoing: 1, total: 14 },
+      });
+      expect(result.facets).toEqual({
+        categories: [{ value: "jam", count: 1 }],
+        series: [{ value: "parkour-earth", count: 1 }],
+        communities: [{ value: "country:ch", count: 1 }],
+      });
+    });
+
+    it("uses wildcard search and excludes invalid time-zone projections", async () => {
+      typesenseSearchMock.mockResolvedValueOnce({
+        hits: [
+          { document: validDocument },
+          {
+            document: {
+              ...validDocument,
+              id: "missing-zone",
+              time_zone: undefined,
+            },
+          },
+        ],
+        found: 2,
+      });
+
+      const result = await service.searchEventDiscovery({
+        endsBeforeSeconds: 1_900_000_000,
+      });
+
+      expect(typesenseSearchMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          q: "*",
+          filter_by:
+            "published:=true && end_seconds:<1900000000",
+          sort_by: "start_seconds:asc",
+          page: 1,
+          per_page: 24,
+        }),
+        {},
+      );
+      expect(result.items.map((item) => item.id)).toEqual(["zurich-jam"]);
+      expect(result.invalidItemCount).toBe(1);
+    });
+
+    it("escapes backticks and backslashes in array filters", async () => {
+      await service.searchEventDiscovery({
+        areaKeys: ["locality:`zurich\\west"],
+      });
+
+      const parameters = typesenseSearchMock.mock.calls[0]?.[0];
+      expect(parameters.filter_by).toContain(
+        "community_keys:=[`locality:\\`zurich\\\\west`]",
+      );
+    });
+
+    it("passes cancellation through and preserves abort failures", async () => {
+      const controller = new AbortController();
+      const abortError = new DOMException("Aborted", "AbortError");
+      typesenseSearchMock.mockRejectedValueOnce(abortError);
+      controller.abort();
+
+      await expect(
+        service.searchEventDiscovery({ abortSignal: controller.signal }),
+      ).rejects.toBe(abortError);
+      expect(typesenseSearchMock).toHaveBeenCalledWith(
+        expect.any(Object),
+        { abortSignal: controller.signal },
+      );
+    });
+
+    it("loads every calendar page in batches of 250", async () => {
+      typesenseSearchMock
+        .mockResolvedValueOnce({
+          hits: [{ document: validDocument }],
+          found: 251,
+          page: 1,
+        })
+        .mockResolvedValueOnce({
+          hits: [
+            {
+              document: {
+                ...validDocument,
+                id: "second-page",
+                name: "Second page",
+              },
+            },
+          ],
+          found: 251,
+          page: 2,
+        });
+
+      const result = await service.searchAllEventDiscovery({
+        sort: "calendar",
+      });
+
+      expect(typesenseSearchMock).toHaveBeenCalledTimes(2);
+      expect(typesenseSearchMock.mock.calls[0]?.[0]).toMatchObject({
+        page: 1,
+        per_page: 250,
+      });
+      expect(typesenseSearchMock.mock.calls[1]?.[0]).toMatchObject({
+        page: 2,
+        per_page: 250,
+      });
+      expect(result.items.map((item) => item.id)).toEqual([
+        "zurich-jam",
+        "second-page",
+      ]);
+    });
+  });
 });

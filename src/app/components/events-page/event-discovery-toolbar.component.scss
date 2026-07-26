@@ -1,0 +1,76 @@
+.discovery-toolbar {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.primary-controls {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(280px, 1fr) auto;
+  align-items: start;
+  gap: 0.75rem;
+}
+
+.search-control,
+.area-control {
+  min-width: 0;
+}
+
+.view-toggle {
+  min-height: 56px;
+}
+
+.view-toggle mat-button-toggle {
+  min-height: 54px;
+}
+
+.secondary-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filter-count {
+  margin-left: 0.3rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.series-avatar {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--mat-sys-outline-variant);
+}
+
+.series-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@media (max-width: 959.98px) {
+  .primary-controls {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .view-toggle {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 599.98px) {
+  .primary-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .view-toggle {
+    grid-column: auto;
+    width: 100%;
+  }
+
+  .view-toggle mat-button-toggle {
+    flex: 1;
+  }
+}

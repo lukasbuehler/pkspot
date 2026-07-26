@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   effect,
   inject,
   input,
@@ -23,11 +24,12 @@ import { debounceTime, distinctUntilChanged, map } from "rxjs/operators";
 import type { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { SearchService } from "../../services/search.service";
 import type { EventSearchPreview } from "../../services/search.service";
+import type { CommunitySearchPreview } from "../../services/search.service";
 import { EntityPreviewCardComponent } from "../entity-preview-card/entity-preview-card.component";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 
-export type EntityReferenceKind = "spot" | "event";
+export type EntityReferenceKind = "spot" | "event" | "community";
 
 export interface EntityReferenceOption {
   id: string;
@@ -38,6 +40,7 @@ export interface EntityReferenceOption {
   imageFit?: "cover" | "contain";
   imageAccentColor?: string;
   spotPreview?: SpotPreviewData;
+  communityPreview?: CommunitySearchPreview;
 }
 
 @Component({
@@ -60,6 +63,7 @@ export interface EntityReferenceOption {
 export class EntityReferenceAutocompleteComponent {
   private readonly _searchService = inject(SearchService);
   private readonly _dateTime = inject(DateTimeFormatService);
+  private readonly _destroyRef = inject(DestroyRef);
   private _searchRequestId = 0;
   private _resolveRequestId = 0;
 
@@ -67,6 +71,7 @@ export class EntityReferenceAutocompleteComponent {
   readonly value = input("");
   readonly disabled = input(false);
   readonly valueChange = output<string>();
+  readonly selectionChange = output<EntityReferenceOption | null>();
 
   readonly searchControl = new FormControl<string | EntityReferenceOption>("", {
     nonNullable: true,
@@ -77,21 +82,31 @@ export class EntityReferenceAutocompleteComponent {
   readonly resolvingSelection = signal(false);
   readonly query = signal("");
 
-  readonly icon = computed(() => (this.kind() === "spot" ? "place" : "event"));
+  readonly icon = computed(() => {
+    if (this.kind() === "spot") return "place";
+    if (this.kind() === "community") return "groups";
+    return "event";
+  });
   readonly fieldLabel = computed(() =>
     this.kind() === "spot"
       ? $localize`:@@community.destination_spot_search_label:Search for a spot`
-      : $localize`:@@community.destination_event_search_label:Search for an event`,
+      : this.kind() === "community"
+        ? $localize`:@@events.area_search_label:Filter by area`
+        : $localize`:@@community.destination_event_search_label:Search for an event`,
   );
   readonly placeholder = computed(() =>
     this.kind() === "spot"
       ? $localize`:@@community.destination_spot_search_placeholder:Start typing a spot name or place`
-      : $localize`:@@community.destination_event_search_placeholder:Start typing an event name`,
+      : this.kind() === "community"
+        ? $localize`:@@events.area_search_placeholder:Search for a city, region, or country`
+        : $localize`:@@community.destination_event_search_placeholder:Start typing an event name`,
   );
   readonly emptyLabel = computed(() =>
     this.kind() === "spot"
       ? $localize`:@@community.destination_spot_search_empty:No matching spots found`
-      : $localize`:@@community.destination_event_search_empty:No matching events found`,
+      : this.kind() === "community"
+        ? $localize`:@@events.area_search_empty:No matching areas found`
+        : $localize`:@@community.destination_event_search_empty:No matching events found`,
   );
 
   constructor() {
@@ -141,6 +156,7 @@ export class EntityReferenceAutocompleteComponent {
     this.results.set([]);
     this.searchControl.setValue(option, { emitEvent: false });
     this.valueChange.emit(option.id);
+    this.selectionChange.emit(option);
   }
 
   clearSelection(): void {
@@ -149,6 +165,7 @@ export class EntityReferenceAutocompleteComponent {
     this.searchControl.setValue("", { emitEvent: false });
     this.query.set("");
     this.valueChange.emit("");
+    this.selectionChange.emit(null);
   }
 
   private async _search(query: string): Promise<void> {
@@ -160,15 +177,21 @@ export class EntityReferenceAutocompleteComponent {
     }
 
     this.searching.set(true);
-    const results =
-      this.kind() === "spot"
-        ? await this._searchSpots(query)
-        : await this._searchEvents(query);
-    if (requestId !== this._searchRequestId) {
+    const results = await this._searchForKind(this.kind(), query);
+    if (this._destroyRef.destroyed || requestId !== this._searchRequestId) {
       return;
     }
     this.results.set(results);
     this.searching.set(false);
+  }
+
+  private _searchForKind(
+    kind: EntityReferenceKind,
+    query: string,
+  ): Promise<EntityReferenceOption[]> {
+    if (kind === "spot") return this._searchSpots(query);
+    if (kind === "community") return this._searchCommunities(query);
+    return this._searchEvents(query);
   }
 
   private async _searchSpots(query: string): Promise<EntityReferenceOption[]> {
@@ -189,6 +212,14 @@ export class EntityReferenceAutocompleteComponent {
     );
   }
 
+  private async _searchCommunities(
+    query: string,
+  ): Promise<EntityReferenceOption[]> {
+    return (await this._searchService.searchCommunities(query)).map(
+      (community) => this._communityOption(community),
+    );
+  }
+
   private async _resolveSelection(
     kind: EntityReferenceKind,
     id: string,
@@ -206,7 +237,7 @@ export class EntityReferenceAutocompleteComponent {
             (candidate) => candidate.id === id,
           ) ?? null;
       }
-    } else {
+    } else if (kind === "event") {
       const previews = await this._searchService.getEventPreviewsByIds([id]);
       option = previews[0] ? this._eventOption(previews[0]) : null;
       if (!option) {
@@ -214,20 +245,24 @@ export class EntityReferenceAutocompleteComponent {
           (await this._searchEvents(id)).find((candidate) => candidate.id === id) ??
           null;
       }
+    } else {
+      const previews =
+        await this._searchService.getCommunityPreviewsByKeys([id]);
+      option = previews[0] ? this._communityOption(previews[0]) : null;
     }
 
-    if (requestId !== this._resolveRequestId) {
+    if (this._destroyRef.destroyed || requestId !== this._resolveRequestId) {
       return;
     }
-    this.selected.set(
-      option
-        ? { ...option, id }
-        : {
-            id,
-            label: id,
-            subtitle: $localize`:@@community.destination_saved_reference:Saved selection`,
-          },
-    );
+    const selection = option
+      ? { ...option, id }
+      : {
+          id,
+          label: id,
+          subtitle: $localize`:@@community.destination_saved_reference:Saved selection`,
+        };
+    this.selected.set(selection);
+    this.selectionChange.emit(selection);
     this.resolvingSelection.set(false);
   }
 
@@ -266,6 +301,28 @@ export class EntityReferenceAutocompleteComponent {
         : event.logoSrc
           ? event.logoBackgroundColor
           : event.bannerAccentColor,
+    };
+  }
+
+  private _communityOption(
+    community: CommunitySearchPreview,
+  ): EntityReferenceOption {
+    const subtitle = [
+      community.scope === "locality" ? community.regionName : undefined,
+      community.scope !== "country" ? community.countryName : undefined,
+    ]
+      .filter((part): part is string => !!part)
+      .join(", ");
+    return {
+      id: community.communityKey,
+      label: community.displayName || community.communityKey,
+      subtitle:
+        subtitle ||
+        community.countryName ||
+        $localize`:@@events.area_filter_area:Area`,
+      imageSrc: community.imageUrl,
+      imageFit: "cover",
+      communityPreview: community,
     };
   }
 

@@ -704,19 +704,14 @@ async function main() {
     );
     assertDynamicSsrCacheHeaders(eventsPageResponse, "Events SSR route");
     const eventsPageHtml = await eventsPageResponse.text();
-    assert.match(
-      eventsPageHtml,
-      /Swiss Jam 2025/,
-      "Events SSR HTML should include rendered event cards"
-    );
     assertBodyCrawlerContent(eventsPageHtml, "Events SSR route", [
-      /Swiss Jam 2025/,
-      /href="\/en\/events\/swissjam25"|href="\/events\/swissjam25"/,
+      /Events/,
+      /Discover parkour events around the world/,
     ]);
     assert.doesNotMatch(
       eventsPageHtml,
-      /Loading events/,
-      "Events SSR HTML should not remain in the loading state"
+      /href="\/en\/events\/swissjam25"|href="\/events\/swissjam25"/,
+      "Events discovery SSR should not inject the Swiss Jam static detail fallback"
     );
 
     const eventPreviewResponse = await fetchWithTimeout(
