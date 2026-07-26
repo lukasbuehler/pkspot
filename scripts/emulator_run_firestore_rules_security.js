@@ -892,6 +892,33 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh, 
   await assertDenied("other user reads owner check-ins", () =>
     getDocs(collection(other.db, "users/owner/check_ins"))
   );
+  await assertAllowed("owner writes own community follow", () =>
+    setDoc(doc(owner.db, "users/owner/community_follows/locality:ch:zh:zurich"), {
+      community_key: "locality:ch:zh:zurich",
+    })
+  );
+  await assertAllowed("owner reads own community follows", () =>
+    getDocs(collection(owner.db, "users/owner/community_follows"))
+  );
+  await assertDenied("other user reads owner community follows", () =>
+    getDocs(collection(other.db, "users/owner/community_follows"))
+  );
+  await assertAllowed("owner writes own session record", () =>
+    setDoc(doc(owner.db, "users/owner/session_records/session-1"), {
+      owner_id: "owner",
+    })
+  );
+  await assertAllowed("owner reads own session records", () =>
+    getDocs(collection(owner.db, "users/owner/session_records"))
+  );
+  await assertDenied("other user reads owner session records", () =>
+    getDocs(collection(other.db, "users/owner/session_records"))
+  );
+  await assertDenied("owner cannot forge a session record owner", () =>
+    setDoc(doc(owner.db, "users/owner/session_records/forged"), {
+      owner_id: "other",
+    })
+  );
   await assertAllowed("owner reads own following", () =>
     getDocs(collection(owner.db, "users/owner/following"))
   );

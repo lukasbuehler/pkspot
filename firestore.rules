@@ -1254,12 +1254,11 @@ service cloud.firestore {
       }
 
       match /session_records/{sessionRecordId} {
-        allow read, create, update, delete: if request.auth.uid != null
+        allow read, delete: if request.auth.uid != null
+          && request.auth.uid == userId;
+        allow create, update: if request.auth.uid != null
           && request.auth.uid == userId
-          && (
-            request.method == 'delete'
-            || request.resource.data.owner_id == userId
-          );
+          && request.resource.data.owner_id == userId;
       }
 
       match /log_entries/{logEntryId} {

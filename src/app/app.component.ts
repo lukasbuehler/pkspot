@@ -1453,18 +1453,19 @@ html.pkspot-roboto-loaded body {
         icon: "map",
       },
     ];
+    if (trainingFeatureEnabled) {
+      buttons.push({
+        name: $localize`:Train navbar button label|A very short label for training planning@@train.nav:Train`,
+        link: "/train",
+        icon: "steps",
+      });
+    }
+
     buttons.push({
       name: $localize`:Events navbar button label|A very short label for the navbar events page button@@events_label:Events`,
       link: "/events",
       icon: "event",
     });
-    if (trainingFeatureEnabled) {
-      buttons.push({
-        name: $localize`:Train navbar button label|A very short label for training planning@@train.nav:Train`,
-        link: "/train",
-        icon: "exercise",
-      });
-    }
 
     // Drop "About" on tight viewports so the bottom toolbar fits 4 items
     // (map, activity, events, profile/account).
