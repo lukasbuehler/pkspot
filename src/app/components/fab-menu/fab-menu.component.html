@@ -43,7 +43,6 @@
         [id]="menuId"
         role="group"
         [attr.aria-label]="launcherLabel()"
-        animate.enter="fab-menu__actions--enter"
         animate.leave="fab-menu__actions--leave"
       >
         @for (action of actions(); track action.id) {
@@ -51,9 +50,12 @@
             mat-flat-button
             type="button"
             class="fab-menu__action"
+            animate.enter="fab-menu__action--enter"
             [disabled]="action.disabled ?? false"
             [attr.aria-label]="action.ariaLabel ?? action.label"
-            [style.--fab-menu-index]="$index"
+            [style.animation-delay.ms]="
+              (actions().length - $index - 1) * 45
+            "
             (click)="selectAction(action)"
           >
             <mat-icon>{{ action.icon }}</mat-icon>

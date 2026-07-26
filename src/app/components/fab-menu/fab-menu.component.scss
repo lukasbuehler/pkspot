@@ -118,15 +118,12 @@
   flex: 0 0 auto;
 }
 
-.fab-menu__actions--enter .fab-menu__action {
-  animation: fab-menu-item-enter 200ms ease-out both;
-  animation-delay: calc(var(--fab-menu-index) * 35ms);
+.fab-menu__action--enter {
+  animation: fab-menu-item-enter 220ms ease-out both;
   transform-origin: bottom right;
 }
 
-.fab-menu--start
-  .fab-menu__actions--enter
-  .fab-menu__action {
+.fab-menu--start .fab-menu__action--enter {
   transform-origin: bottom left;
 }
 
@@ -161,7 +158,7 @@
 @media (prefers-reduced-motion: reduce) {
   .fab-menu__launcher,
   .fab-menu__launcher-icon,
-  .fab-menu__actions--enter .fab-menu__action,
+  .fab-menu__action--enter,
   .fab-menu__actions--leave {
     animation: none;
     transition: none;

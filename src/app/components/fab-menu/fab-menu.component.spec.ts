@@ -69,6 +69,9 @@ describe("FabMenuComponent", () => {
     expect(
       menuActions.map((button) => button.getAttribute("aria-label")),
     ).toEqual(["Create event", "Plan session"]);
+    expect(
+      menuActions.map((button) => button.style.animationDelay),
+    ).toEqual(["45ms", "0ms"]);
 
     menuActions[1].click();
     await fixture.whenStable();
