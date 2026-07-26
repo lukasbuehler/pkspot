@@ -692,6 +692,12 @@
         <target>Aucun identifiant Apple trouvé sur cet appareil. Veuillez vous connecter à votre identifiant Apple dans les paramètres de votre appareil et réessayer.</target>
       </segment>
     </unit>
+    <unit id="1337921166587632144">
+      <segment state="translated">
+        <source>Local time zone and end time are missing</source>
+        <target>Le fuseau horaire local et l’heure de fin sont manquants</target>
+      </segment>
+    </unit>
     <unit id="1347241542439262355">
       <segment state="initial">
         <source>General settings</source>
@@ -2741,6 +2747,12 @@
         <target>Signaler le spot « <ph id="0" equiv="INTERPOLATION" disp="{{ data.spot?.name }}"/>  »</target>
       </segment>
     </unit>
+    <unit id="6076340326638243811">
+      <segment state="translated">
+        <source>Events needing a data update</source>
+        <target>Événements nécessitant une mise à jour des données</target>
+      </segment>
+    </unit>
     <unit id="6090595749329244912">
       <segment state="initial">
         <source>Community card approved</source>
@@ -2877,6 +2889,12 @@
       <segment state="initial">
         <source>No reports match this filter.</source>
         <target>Ningún reporte coincide con este filtro.</target>
+      </segment>
+    </unit>
+    <unit id="8368669567404524078">
+      <segment state="translated">
+        <source>Local time zone missing</source>
+        <target>Le fuseau horaire local est manquant</target>
       </segment>
     </unit>
     <unit id="8374358620159565609">
@@ -7911,6 +7929,12 @@
         <target>Signalements de médias</target>
       </segment>
     </unit>
+    <unit id="4240094915299794300">
+      <segment state="translated">
+        <source> These events are excluded from public discovery until their local time zone and event dates are valid. </source>
+        <target> Ces événements sont exclus de la découverte publique jusqu’à ce que leur fuseau horaire local et leurs dates soient valides. </target>
+      </segment>
+    </unit>
     <unit id="aboutHeroSubtitle">
       <segment state="initial">
         <source> Find spots, join local communities, discover events and jams, and check in where parkour is happening around you. </source>
@@ -8260,6 +8284,12 @@
       <segment state="initial">
         <source>Show Event header</source>
         <target>Afficher l&apos;en-tête de l&apos;événement</target>
+      </segment>
+    </unit>
+    <unit id="7860386256947196622">
+      <segment state="translated">
+        <source>Review events</source>
+        <target>Vérifier les événements</target>
       </segment>
     </unit>
     <unit id="7860418101283165917">
@@ -9899,6 +9929,12 @@
         <target>Signaler</target>
       </segment>
     </unit>
+    <unit id="5362379799194608804">
+      <segment state="translated">
+        <source>Local time zone and start time are missing</source>
+        <target>Le fuseau horaire local et l’heure de début sont manquants</target>
+      </segment>
+    </unit>
     <unit id="6210875862708659535">
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;"> I&apos;m visible and have a problem with it. </pc></source>
@@ -10609,6 +10645,12 @@
       <segment state="initial">
         <source>Label and particpant type</source>
         <target>Libellé et type de participant</target>
+      </segment>
+    </unit>
+    <unit id="4063487417000564462">
+      <segment state="translated">
+        <source>Start or end time missing</source>
+        <target>L’heure de début ou de fin est manquante</target>
       </segment>
     </unit>
     <unit id="4074207137823057482">

@@ -5113,6 +5113,11 @@
         <source>Closed · Opens <ph id="0" equiv="PH" disp="formatWeekday.format(openDate)"/>. <ph id="1" equiv="PH_1" disp="formatTime.format(openDate)"/></source>
       </segment>
     </unit>
+    <unit id="7860386256947196622">
+      <segment>
+        <source>Review events</source>
+      </segment>
+    </unit>
     <unit id="7860418101283165917">
       <segment>
         <source>Closed</source>
@@ -5731,6 +5736,11 @@
     <unit id="1330427292857858931">
       <segment>
         <source>No Apple ID found on this device. Please sign in to your Apple ID in your device settings and try again.</source>
+      </segment>
+    </unit>
+    <unit id="1337921166587632144">
+      <segment>
+        <source>Local time zone and end time are missing</source>
       </segment>
     </unit>
     <unit id="8711587038939678752">
@@ -6422,6 +6432,11 @@
         <source> Delete my account </source>
       </segment>
     </unit>
+    <unit id="4063487417000564462">
+      <segment>
+        <source>Start or end time missing</source>
+      </segment>
+    </unit>
     <unit id="4074207137823057482">
       <segment>
         <source> Are you sure? You will need to sign in with <ph id="0" equiv="INTERPOLATION" disp="{{ providerDisplayName }}"/> again to confirm deletion. </source>
@@ -6899,6 +6914,11 @@
     <unit id="4234811560247297731">
       <segment>
         <source>Media reports</source>
+      </segment>
+    </unit>
+    <unit id="4240094915299794300">
+      <segment>
+        <source> These events are excluded from public discovery until their local time zone and event dates are valid. </source>
       </segment>
     </unit>
     <unit id="aboutHeroSubtitle">
@@ -7846,6 +7866,11 @@
         <source>Report</source>
       </segment>
     </unit>
+    <unit id="5362379799194608804">
+      <segment>
+        <source>Local time zone and start time are missing</source>
+      </segment>
+    </unit>
     <unit id="4467323362722952678">
       <segment>
         <source>Unknown</source>
@@ -8686,6 +8711,11 @@
         <source>Report Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data!.spot.name }}"/>&apos;</source>
       </segment>
     </unit>
+    <unit id="6076340326638243811">
+      <segment>
+        <source>Events needing a data update</source>
+      </segment>
+    </unit>
     <unit id="6090595749329244912">
       <segment>
         <source>Community card approved</source>
@@ -8734,6 +8764,11 @@
     <unit id="8361822038727829961">
       <segment>
         <source>No reports match this filter.</source>
+      </segment>
+    </unit>
+    <unit id="8368669567404524078">
+      <segment>
+        <source>Local time zone missing</source>
       </segment>
     </unit>
     <unit id="8374358620159565609">

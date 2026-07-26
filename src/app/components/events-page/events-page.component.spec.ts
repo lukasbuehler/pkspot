@@ -1,5 +1,6 @@
 import { LOCALE_ID, PLATFORM_ID, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute, convertToParamMap, Router } from "@angular/router";
 import { BehaviorSubject } from "rxjs";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -11,8 +12,10 @@ import { EventsService } from "../../services/firebase/firestore/events.service"
 import { SeriesService } from "../../services/firebase/firestore/series.service";
 import {
   EventDiscoverySearchResult,
+  EventSearchPreview,
   SearchService,
 } from "../../services/search.service";
+import { EventDiscoveryIssuesDialogComponent } from "./event-discovery-issues-dialog.component";
 import { EventsPageComponent } from "./events-page.component";
 
 interface ScreenshotGlobal {
@@ -24,7 +27,33 @@ const EMPTY_RESULT: EventDiscoverySearchResult = {
   found: 0,
   page: 1,
   facets: { categories: [], series: [], communities: [] },
+  invalidItems: [],
   invalidItemCount: 0,
+};
+
+const INVALID_EVENT_PREVIEW: EventSearchPreview = {
+  id: "missing-zone",
+  slug: "missing-zone",
+  name: "Event without a time zone",
+  venueString: "Test Hall",
+  localityString: "Zurich, Switzerland",
+  isSponsored: false,
+  hasOrganization: false,
+  hasVenueSpot: false,
+  venueSpotCount: 0,
+  startSeconds: Date.parse("2026-08-14T10:00:00.000Z") / 1000,
+  endSeconds: Date.parse("2026-08-14T18:00:00.000Z") / 1000,
+  lifecycleStatus: "planned",
+  eventLinks: [],
+  ticketOptions: [],
+  spotIds: [],
+  communityKeys: ["country:ch"],
+  seriesIds: [],
+  eventCategories: ["jam"],
+  rsvpCounts: { going: 2, interested: 1, notgoing: 0, total: 3 },
+  seriesRoles: [],
+  qualifiesToKeys: [],
+  requiredQualifierKeys: [],
 };
 
 const flushResources = async (): Promise<void> => {
@@ -68,6 +97,7 @@ interface TestContext {
   component: EventsPageComponent;
   queryParams: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
   router: { navigate: ReturnType<typeof vi.fn> };
+  dialog: { open: ReturnType<typeof vi.fn> };
   searchService: {
     searchEventDiscovery: ReturnType<typeof vi.fn>;
     searchAllEventDiscovery: ReturnType<typeof vi.fn>;
@@ -80,15 +110,21 @@ function createComponent(options?: {
   admin?: boolean;
   signedIn?: boolean;
   drafts?: PkEvent[];
+  searchResult?: EventDiscoverySearchResult;
   platform?: "browser" | "server";
 }): TestContext {
   const queryParams = new BehaviorSubject(
     convertToParamMap(options?.queryParams ?? {}),
   );
   const router = { navigate: vi.fn().mockResolvedValue(true) };
+  const dialog = { open: vi.fn() };
   const searchService = {
-    searchEventDiscovery: vi.fn().mockResolvedValue(EMPTY_RESULT),
-    searchAllEventDiscovery: vi.fn().mockResolvedValue(EMPTY_RESULT),
+    searchEventDiscovery: vi.fn().mockResolvedValue(
+      options?.searchResult ?? EMPTY_RESULT,
+    ),
+    searchAllEventDiscovery: vi.fn().mockResolvedValue(
+      options?.searchResult ?? EMPTY_RESULT,
+    ),
   };
   const eventsService = {
     getEvents: vi.fn().mockResolvedValue(options?.drafts ?? []),
@@ -118,6 +154,7 @@ function createComponent(options?: {
         useValue: { queryParamMap: queryParams.asObservable() },
       },
       { provide: Router, useValue: router },
+      { provide: MatDialog, useValue: dialog },
       { provide: LOCALE_ID, useValue: "en-CH" },
       { provide: PLATFORM_ID, useValue: options?.platform ?? "browser" },
     ],
@@ -127,6 +164,7 @@ function createComponent(options?: {
     component: TestBed.runInInjectionContext(() => new EventsPageComponent()),
     queryParams,
     router,
+    dialog,
     searchService,
     eventsService,
   };
@@ -247,6 +285,42 @@ describe("EventsPageComponent", () => {
     ]);
   });
 
+  it("opens invalid event previews for admins only", async () => {
+    const searchResult: EventDiscoverySearchResult = {
+      ...EMPTY_RESULT,
+      found: 1,
+      invalidItems: [INVALID_EVENT_PREVIEW],
+      invalidItemCount: 1,
+    };
+    const admin = createComponent({
+      admin: true,
+      signedIn: true,
+      searchResult,
+    });
+    await flushResources();
+
+    admin.component.openInvalidEventsDialog();
+
+    expect(admin.dialog.open).toHaveBeenCalledWith(
+      EventDiscoveryIssuesDialogComponent,
+      expect.objectContaining({
+        data: {
+          events: [INVALID_EVENT_PREVIEW],
+          seriesById: {},
+        },
+        maxHeight: "90vh",
+      }),
+    );
+
+    TestBed.resetTestingModule();
+    const visitor = createComponent({ searchResult });
+    await flushResources();
+
+    visitor.component.openInvalidEventsDialog();
+
+    expect(visitor.dialog.open).not.toHaveBeenCalled();
+  });
+
   it("uses deterministic Typesense-shaped data for screenshots", async () => {
     (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_EVENT_INDEX__ = {
       events: [
@@ -292,7 +366,7 @@ describe("EventsPageComponent", () => {
       relativeTo: expect.anything(),
       queryParams: { category: "competition" },
       queryParamsHandling: "merge",
-      replaceUrl: true,
+      replaceUrl: false,
     });
 
     component.changeMonth(1);
@@ -300,10 +374,10 @@ describe("EventsPageComponent", () => {
       relativeTo: expect.anything(),
       queryParams: {
         month: expect.stringMatching(/^\d{4}-\d{2}$/u),
-        day: null,
+        day: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/u),
       },
       queryParamsHandling: "merge",
-      replaceUrl: true,
+      replaceUrl: false,
     });
 
     component.selectDay("2026-08-14");
@@ -311,7 +385,77 @@ describe("EventsPageComponent", () => {
       relativeTo: expect.anything(),
       queryParams: { day: "2026-08-14" },
       queryParamsHandling: "merge",
+      replaceUrl: false,
+    });
+
+    component.onPeriodChange("upcoming");
+    expect(router.navigate).toHaveBeenLastCalledWith([], {
+      relativeTo: expect.anything(),
+      queryParams: { when: "upcoming" },
+      queryParamsHandling: "merge",
+      replaceUrl: false,
+    });
+
+    component.onViewChange("calendar");
+    expect(router.navigate).toHaveBeenLastCalledWith([], {
+      relativeTo: expect.anything(),
+      queryParams: {
+        view: "calendar",
+        month: component.month(),
+        day: component.selectedDay(),
+      },
+      queryParamsHandling: "merge",
+      replaceUrl: false,
+    });
+  });
+
+  it("adds calendar and list defaults to the URL without creating history entries", () => {
+    const calendar = createComponent();
+
+    calendar.component.onContainerResize({ width: 1200 } as DOMRectReadOnly);
+
+    expect(calendar.router.navigate).toHaveBeenLastCalledWith([], {
+      relativeTo: expect.anything(),
+      queryParams: {
+        month: calendar.component.month(),
+        day: calendar.component.selectedDay(),
+      },
+      queryParamsHandling: "merge",
       replaceUrl: true,
     });
+
+    TestBed.resetTestingModule();
+    const list = createComponent();
+    list.component.onContainerResize({ width: 700 } as DOMRectReadOnly);
+
+    expect(list.router.navigate).toHaveBeenLastCalledWith([], {
+      relativeTo: expect.anything(),
+      queryParams: { when: "upcoming" },
+      queryParamsHandling: "merge",
+      replaceUrl: true,
+    });
+  });
+
+  it("restores an earlier calendar month and day from browser history", () => {
+    const { component, queryParams } = createComponent({
+      queryParams: {
+        view: "calendar",
+        month: "2026-08",
+        day: "2026-08-14",
+        category: "jam",
+      },
+    });
+
+    queryParams.next(
+      convertToParamMap({
+        view: "calendar",
+        month: "2026-07",
+        day: "2026-07-05",
+      }),
+    );
+
+    expect(component.month()).toBe("2026-07");
+    expect(component.selectedDay()).toBe("2026-07-05");
+    expect(component.selectedCategories()).toEqual([]);
   });
 });

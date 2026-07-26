@@ -9,6 +9,7 @@ import {
 } from "@angular/core";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { MatButtonModule } from "@angular/material/button";
+import { MatDialog } from "@angular/material/dialog";
 import { MatIconModule } from "@angular/material/icon";
 import { ActivatedRoute, ParamMap, Router } from "@angular/router";
 import {
@@ -26,6 +27,7 @@ import {
   type EventDiscoveryFacets,
   type EventDiscoveryItem,
   type EventDiscoverySearchResult,
+  type EventSearchPreview,
   SearchService,
 } from "../../services/search.service";
 import { ResizeObserverDirective } from "../../directives/resize-observer.directive";
@@ -45,6 +47,10 @@ import {
 } from "./event-calendar.model";
 import { EventCalendarComponent } from "./event-calendar.component";
 import { EventDiscoveryListComponent } from "./event-discovery-list.component";
+import {
+  EventDiscoveryIssuesDialogComponent,
+  type EventDiscoveryIssuesDialogData,
+} from "./event-discovery-issues-dialog.component";
 import {
   type EventCategoryFilterOption,
   EventDiscoveryToolbarComponent,
@@ -114,12 +120,17 @@ export class EventsPageComponent {
   private readonly _series = inject(SeriesService);
   private readonly _auth = inject(AuthenticationService);
   private readonly _analytics = inject(AnalyticsService);
+  private readonly _dialog = inject(MatDialog);
   private readonly _route = inject(ActivatedRoute);
   private readonly _router = inject(Router);
   private readonly _locale = inject(LOCALE_ID);
   private readonly _authState = toSignal(this._auth.authState$, {
     initialValue: this._auth.authState$.value,
   });
+  private _hasValidMonthParam = false;
+  private _hasValidDayParam = false;
+  private _hasPeriodParam = false;
+  private _urlCanonicalizationPending = false;
 
   readonly isAdmin = computed(() => this._auth.isAdmin());
   readonly isSignedIn = computed(() => !!this._authState()?.uid);
@@ -178,11 +189,7 @@ export class EventsPageComponent {
     ) {
       return requested;
     }
-    const today = eventLocalDateKey(
-      new Date(),
-      Intl.DateTimeFormat().resolvedOptions().timeZone,
-    );
-    return today.startsWith(`${this.month()}-`) ? today : `${this.month()}-01`;
+    return defaultDayForMonth(this.month());
   });
 
   readonly discoveryResource = resource({
@@ -328,6 +335,7 @@ export class EventsPageComponent {
 
   onContainerResize(rect: DOMRectReadOnly): void {
     this.containerWidth.set(Math.round(rect.width));
+    this._ensureShareableUrlDefaults();
   }
 
   onViewChange(view: EventsDiscoveryView): void {
@@ -335,14 +343,16 @@ export class EventsPageComponent {
     this.rememberedView.set(view);
     rememberView(view);
     this._analytics.trackEvent("events_view_changed", { view });
-    void this._updateQueryParams({ view });
+    void this._updateQueryParams(
+      view === "calendar"
+        ? { view, month: this.month(), day: this.selectedDay() }
+        : { view, when: this.period() },
+    );
   }
 
   onPeriodChange(period: EventsListPeriod): void {
     this.resultLimit.set(LIST_PAGE_SIZE);
-    void this._updateQueryParams({
-      when: period === "upcoming" ? null : period,
-    });
+    void this._updateQueryParams({ when: period });
   }
 
   onQueryChange(query: string): void {
@@ -397,9 +407,10 @@ export class EventsPageComponent {
   }
 
   changeMonth(offset: number): void {
+    const month = shiftMonthKey(this.month(), offset);
     void this._updateQueryParams({
-      month: shiftMonthKey(this.month(), offset),
-      day: null,
+      month,
+      day: defaultDayForMonth(month),
     });
   }
 
@@ -422,6 +433,25 @@ export class EventsPageComponent {
 
   retry(): void {
     this.discoveryResource.reload();
+  }
+
+  openInvalidEventsDialog(): void {
+    const invalidEvents = this.discoveryResult()?.invalidItems ?? [];
+    if (!this.isAdmin() || invalidEvents.length === 0) return;
+
+    this._dialog.open<
+      EventDiscoveryIssuesDialogComponent,
+      EventDiscoveryIssuesDialogData
+    >(EventDiscoveryIssuesDialogComponent, {
+      data: {
+        events: invalidEvents,
+        seriesById: this.seriesById(),
+      },
+      width: "860px",
+      maxWidth: "calc(100vw - 2rem)",
+      maxHeight: "90vh",
+      ariaLabel: $localize`Events needing a data update`,
+    });
   }
 
   onCreateAction(action: string): void {
@@ -452,19 +482,45 @@ export class EventsPageComponent {
     this.selectedSeriesIds.set(parseList(params, "series"));
     this.period.set(params.get("when") === "past" ? "past" : "upcoming");
     const month = params.get("month") ?? "";
-    this.month.set(isMonthKey(month) ? month : currentMonthKey());
-    this.requestedDay.set(params.get("day") ?? "");
+    this._hasValidMonthParam = isMonthKey(month);
+    this.month.set(this._hasValidMonthParam ? month : currentMonthKey());
+    const requestedDay = params.get("day") ?? "";
+    this.requestedDay.set(requestedDay);
+    this._hasValidDayParam =
+      /^\d{4}-\d{2}-\d{2}$/u.test(requestedDay) &&
+      this.calendarRange().days.some((day) => day.key === requestedDay);
+    this._hasPeriodParam =
+      params.get("when") === "upcoming" || params.get("when") === "past";
     this.resultLimit.set(LIST_PAGE_SIZE);
   }
 
   private _updateQueryParams(
     queryParams: Record<string, string | null>,
+    replaceUrl = false,
   ): Promise<boolean> {
     return this._router.navigate([], {
       relativeTo: this._route,
       queryParams,
       queryParamsHandling: "merge",
-      replaceUrl: true,
+      replaceUrl,
+    });
+  }
+
+  private _ensureShareableUrlDefaults(): void {
+    if (this._urlCanonicalizationPending) return;
+
+    const queryParams: Record<string, string | null> = {};
+    if (this.view() === "calendar") {
+      if (!this._hasValidMonthParam) queryParams["month"] = this.month();
+      if (!this._hasValidDayParam) queryParams["day"] = this.selectedDay();
+    } else if (!this._hasPeriodParam) {
+      queryParams["when"] = this.period();
+    }
+    if (Object.keys(queryParams).length === 0) return;
+
+    this._urlCanonicalizationPending = true;
+    void this._updateQueryParams(queryParams, true).finally(() => {
+      this._urlCanonicalizationPending = false;
     });
   }
 
@@ -489,8 +545,18 @@ export class EventsPageComponent {
         ? buildEventCalendarMonth(request.month, this._locale, [])
         : null;
     const now = Math.floor(Date.now() / 1000);
-    let items = fixture.events
-      .map((event) => screenshotEventItem(event))
+    const previews = fixture.events.map((event) =>
+      screenshotEventPreview(event),
+    );
+    const invalidItems = previews.filter(
+      (event) =>
+        !event.id ||
+        event.startSeconds === undefined ||
+        event.endSeconds === undefined ||
+        !event.timeZone,
+    );
+    let items = previews
+      .map((event) => discoveryItemFromPreview(event))
       .filter((event): event is EventDiscoveryItem => !!event)
       .filter((event) => {
         if (
@@ -548,7 +614,8 @@ export class EventsPageComponent {
       found,
       page: 1,
       facets: buildFixtureFacets(items),
-      invalidItemCount: 0,
+      invalidItems,
+      invalidItemCount: invalidItems.length,
     };
   }
 }
@@ -593,6 +660,14 @@ function categoryLabel(category: EventCategory): string {
     case "other":
       return $localize`:@@event_category.other:Other`;
   }
+}
+
+function defaultDayForMonth(month: string, now = new Date()): string {
+  const today = eventLocalDateKey(
+    now,
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+  );
+  return today.startsWith(`${month}-`) ? today : `${month}-01`;
 }
 
 function categoryIcon(category: EventCategory): string {
@@ -654,19 +729,12 @@ function rememberView(view: EventsDiscoveryView): void {
   }
 }
 
-function screenshotEventItem(
+function screenshotEventPreview(
   event: ScreenshotEventSchema,
-): EventDiscoveryItem | null {
+): EventSearchPreview {
   const startSeconds = Math.floor(Date.parse(event.start) / 1000);
   const endSeconds = Math.floor(Date.parse(event.end) / 1000);
   const timeZone = validTimeZone(event.time_zone);
-  if (
-    !Number.isFinite(startSeconds) ||
-    !Number.isFinite(endSeconds) ||
-    !timeZone
-  ) {
-    return null;
-  }
   return {
     id: event.id,
     slug: event.slug,
@@ -688,9 +756,9 @@ function screenshotEventItem(
     hasOrganization: event.organizer?.type === "organization",
     hasVenueSpot: (event.spot_ids?.length ?? 0) > 0,
     venueSpotCount: event.spot_ids?.length ?? 0,
-    startSeconds,
-    endSeconds,
-    timeZone,
+    startSeconds: Number.isFinite(startSeconds) ? startSeconds : undefined,
+    endSeconds: Number.isFinite(endSeconds) ? endSeconds : undefined,
+    timeZone: timeZone ?? undefined,
     lifecycleStatus: event.lifecycle_status ?? "planned",
     location: event.location_raw
       ? [event.location_raw.lat, event.location_raw.lng]
@@ -713,6 +781,32 @@ function screenshotEventItem(
   };
 }
 
+function discoveryItemFromPreview(
+  event: EventSearchPreview,
+): EventDiscoveryItem | null {
+  if (
+    !event.id ||
+    event.startSeconds === undefined ||
+    event.endSeconds === undefined ||
+    !event.timeZone
+  ) {
+    return null;
+  }
+  return {
+    ...event,
+    startSeconds: event.startSeconds,
+    endSeconds: event.endSeconds,
+    timeZone: event.timeZone,
+    lifecycleStatus: event.lifecycleStatus ?? "planned",
+    rsvpCounts: event.rsvpCounts ?? {
+      going: 0,
+      interested: 0,
+      notgoing: 0,
+      total: 0,
+    },
+  };
+}
+
 function validTimeZone(value: unknown): string | null {
   if (typeof value !== "string" || !value) return null;
   try {
@@ -726,7 +820,7 @@ function validTimeZone(value: unknown): string | null {
 function buildFixtureFacets(
   items: readonly EventDiscoveryItem[],
 ): EventDiscoveryFacets {
-  const count = (values: string[]): Array<{ value: string; count: number }> => {
+  const count = (values: string[]): { value: string; count: number }[] => {
     const counts = new Map<string, number>();
     for (const value of values) counts.set(value, (counts.get(value) ?? 0) + 1);
     return [...counts].map(([value, valueCount]) => ({

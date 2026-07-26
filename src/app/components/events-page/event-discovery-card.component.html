@@ -65,20 +65,32 @@
         @if (event().lifecycleStatus === "cancelled") {
           <span class="cancelled-label" i18n>Cancelled</span>
         }
-        <span>{{ dateRange() }}</span>
+        @if (dataIssue(); as issue) {
+          <span class="data-issue">
+            <mat-icon inline aria-hidden="true">warning</mat-icon>
+            {{ issue }}
+          </span>
+        } @else {
+          <span>{{ dateRange() }}</span>
+        }
       </mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
       <p class="venue mat-body-medium">
-        {{ event().venueString }}, {{ event().localityString }}
+        {{ locationLabel() }}
       </p>
-      @if (event().rsvpCounts.going > 0 || event().rsvpCounts.interested > 0) {
-        <app-event-rsvp
-          [counts]="event().rsvpCounts"
-          [preview]="true"
-          [showDisclaimer]="false"
-        />
+      @if (
+        event().rsvpCounts;
+        as counts
+      ) {
+        @if (counts.going > 0 || counts.interested > 0) {
+          <app-event-rsvp
+            [counts]="counts"
+            [preview]="true"
+            [showDisclaimer]="false"
+          />
+        }
       }
     </mat-card-content>
   </mat-card>

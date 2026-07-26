@@ -60,6 +60,14 @@
   margin: 0 0 0.4rem;
 }
 
+.status-copy {
+  min-width: 0;
+}
+
+.status-copy button {
+  margin-top: 0.35rem;
+}
+
 .status-icon {
   display: grid;
   flex: 0 0 40px;

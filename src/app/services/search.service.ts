@@ -1387,6 +1387,7 @@ export class SearchService {
         facets: SearchService._readEventDiscoveryFacets(
           response.facet_counts,
         ),
+        invalidItems,
         invalidItemCount: invalidItems.length,
       };
     } catch (error) {
@@ -1404,10 +1405,12 @@ export class SearchService {
       page: 1,
       perPage: 250,
     });
-    if (first.items.length >= first.found) return first;
+    if (first.items.length + first.invalidItems.length >= first.found) {
+      return first;
+    }
 
     const items = [...first.items];
-    let invalidItemCount = first.invalidItemCount;
+    const invalidItems = [...first.invalidItems];
     const pages = Math.ceil(first.found / 250);
     for (let page = 2; page <= pages; page += 1) {
       const result = await this.searchEventDiscovery({
@@ -1416,12 +1419,13 @@ export class SearchService {
         perPage: 250,
       });
       items.push(...result.items);
-      invalidItemCount += result.invalidItemCount;
+      invalidItems.push(...result.invalidItems);
     }
     return {
       ...first,
       items,
-      invalidItemCount,
+      invalidItems,
+      invalidItemCount: invalidItems.length,
     };
   }
 
@@ -2513,5 +2517,6 @@ export interface EventDiscoverySearchResult {
   found: number;
   page: number;
   facets: EventDiscoveryFacets;
+  invalidItems: EventSearchPreview[];
   invalidItemCount: number;
 }

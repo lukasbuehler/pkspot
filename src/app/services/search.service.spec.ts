@@ -1335,6 +1335,12 @@ describe("SearchService", () => {
         {},
       );
       expect(result.items.map((item) => item.id)).toEqual(["zurich-jam"]);
+      expect(result.invalidItems).toEqual([
+        expect.objectContaining({
+          id: "missing-zone",
+          timeZone: undefined,
+        }),
+      ]);
       expect(result.invalidItemCount).toBe(1);
     });
 

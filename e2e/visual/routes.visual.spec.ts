@@ -8,6 +8,8 @@ interface RouteVisualCase {
   signedIn?: boolean;
   admin?: boolean;
   openFabMenu?: boolean;
+  openInvalidEventsDialog?: boolean;
+  invalidEventFixture?: boolean;
   expectedPath?: RegExp;
   fullPage?: boolean;
   clip?: { x: number; y: number; width: number; height: number };
@@ -92,6 +94,18 @@ const routeVisualCases: RouteVisualCase[] = [
     admin: true,
     openFabMenu: true,
     eventIndexFixture: true,
+    fixedTime: "2026-07-20T12:00:00.000Z",
+    maxDiffPixels: 2_000,
+  },
+  {
+    name: "events-invalid-data-dialog",
+    path: "/events?view=list",
+    viewport: { width: 900, height: 900 },
+    signedIn: true,
+    admin: true,
+    eventIndexFixture: true,
+    invalidEventFixture: true,
+    openInvalidEventsDialog: true,
     fixedTime: "2026-07-20T12:00:00.000Z",
     maxDiffPixels: 2_000,
   },
@@ -231,7 +245,13 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
     await page.clock.setFixedTime(new Date(route.fixedTime));
   }
   await page.addInitScript(
-    ({ acceptedVersion, admin, eventIndexFixture, signedIn }) => {
+    ({
+      acceptedVersion,
+      admin,
+      eventIndexFixture,
+      invalidEventFixture,
+      signedIn,
+    }) => {
       localStorage.setItem("acceptedVersion", acceptedVersion);
       localStorage.setItem(
         "lastLocationAndZoom",
@@ -357,6 +377,38 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
             },
           },
         };
+        if (invalidEventFixture) {
+          const eventIndex = (
+            window as typeof window & {
+              __PKSPOT_SCREENSHOT_EVENT_INDEX__?: {
+                events: Record<string, unknown>[];
+              };
+            }
+          ).__PKSPOT_SCREENSHOT_EVENT_INDEX__;
+          eventIndex?.events.push({
+            id: "visual-missing-zone",
+            slug: "visual-missing-zone",
+            name: "Timezone Repair Jam",
+            banner_src: "assets/swissjam/swissjam26_banner.jpeg",
+            venue_string: "Repair Hall",
+            locality_string: "Zurich, Switzerland",
+            location_raw: { lat: 47.3769, lng: 8.5417 },
+            start: "2026-08-22T10:00:00.000Z",
+            end: "2026-08-22T18:00:00.000Z",
+            community_keys: [
+              "country:ch",
+              "region:zh",
+              "locality:ch:zh:zurich",
+            ],
+            event_categories: ["jam"],
+            rsvp_counts: {
+              going: 2,
+              interested: 3,
+              notgoing: 0,
+              total: 5,
+            },
+          });
+        }
       }
 
       if (signedIn) {
@@ -451,6 +503,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       acceptedVersion: CURRENT_TERMS_VERSION,
       admin: route.admin === true,
       eventIndexFixture: route.eventIndexFixture === true,
+      invalidEventFixture: route.invalidEventFixture === true,
       signedIn: route.signedIn === true,
     },
   );
@@ -473,6 +526,13 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
     await expect(launcher).toBeVisible();
     await launcher.click();
     await expect(page.locator(".fab-menu__actions")).toBeVisible();
+  }
+
+  if (route.openInvalidEventsDialog) {
+    const reviewButton = page.locator(".warning-card button");
+    await expect(reviewButton).toBeVisible();
+    await reviewButton.click();
+    await expect(page.locator("mat-dialog-container")).toBeVisible();
   }
 
   if (route.eventMapLayout) {

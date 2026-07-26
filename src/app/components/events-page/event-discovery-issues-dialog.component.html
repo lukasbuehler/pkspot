@@ -1,0 +1,22 @@
+<h2 mat-dialog-title i18n>Some events need a data update</h2>
+
+<mat-dialog-content>
+  <p class="dialog-intro mat-body-medium" i18n>
+    These events are excluded from public discovery until their local time zone
+    and event dates are valid.
+  </p>
+
+  <div class="event-preview-list">
+    @for (event of data.events; track event.id) {
+      <app-event-discovery-card
+        [event]="event"
+        [seriesById]="data.seriesById"
+        [compact]="true"
+      />
+    }
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" mat-dialog-close i18n>Close</button>
+</mat-dialog-actions>

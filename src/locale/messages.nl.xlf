@@ -770,6 +770,12 @@
         <target>Geen Apple ID gevonden op dit apparaat. Log in met je Apple ID in je apparaatinstellingen en probeer het opnieuw.</target>
       </segment>
     </unit>
+    <unit id="1337921166587632144">
+      <segment state="translated">
+        <source>Local time zone and end time are missing</source>
+        <target>Lokale tijdzone en eindtijd ontbreken</target>
+      </segment>
+    </unit>
     <unit id="1347241542439262355">
       <segment state="initial">
         <source>General settings</source>
@@ -2873,6 +2879,12 @@
         <target>Spot melden: &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data.spot?.name }}"/> &apos;</target>
       </segment>
     </unit>
+    <unit id="6076340326638243811">
+      <segment state="translated">
+        <source>Events needing a data update</source>
+        <target>Evenementen die een gegevensupdate nodig hebben</target>
+      </segment>
+    </unit>
     <unit id="6090595749329244912">
       <segment state="initial">
         <source>Community card approved</source>
@@ -3009,6 +3021,12 @@
       <segment state="initial">
         <source>No reports match this filter.</source>
         <target>Ningún reporte coincide con este filtro.</target>
+      </segment>
+    </unit>
+    <unit id="8368669567404524078">
+      <segment state="translated">
+        <source>Local time zone missing</source>
+        <target>Lokale tijdzone ontbreekt</target>
       </segment>
     </unit>
     <unit id="8374358620159565609">
@@ -8043,6 +8061,12 @@
         <target>Mediameldingen</target>
       </segment>
     </unit>
+    <unit id="4240094915299794300">
+      <segment state="translated">
+        <source> These events are excluded from public discovery until their local time zone and event dates are valid. </source>
+        <target> Deze evenementen worden niet openbaar weergegeven totdat hun lokale tijdzone en evenementdatums geldig zijn. </target>
+      </segment>
+    </unit>
     <unit id="aboutHeroSubtitle">
       <segment state="initial">
         <source> Find spots, join local communities, discover events and jams, and check in where parkour is happening around you. </source>
@@ -8392,6 +8416,12 @@
       <segment state="initial">
         <source>Show Event header</source>
         <target>Evenementkop weergeven</target>
+      </segment>
+    </unit>
+    <unit id="7860386256947196622">
+      <segment state="translated">
+        <source>Review events</source>
+        <target>Evenementen controleren</target>
       </segment>
     </unit>
     <unit id="7860418101283165917">
@@ -10073,6 +10103,12 @@
         <target>Melden</target>
       </segment>
     </unit>
+    <unit id="5362379799194608804">
+      <segment state="translated">
+        <source>Local time zone and start time are missing</source>
+        <target>Lokale tijdzone en starttijd ontbreken</target>
+      </segment>
+    </unit>
     <unit id="6210875862708659535">
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;"> I&apos;m visible and have a problem with it. </pc></source>
@@ -10822,6 +10858,12 @@
       <segment state="initial">
         <source>Label and particpant type</source>
         <target>Label en deelnemertype</target>
+      </segment>
+    </unit>
+    <unit id="4063487417000564462">
+      <segment state="translated">
+        <source>Start or end time missing</source>
+        <target>Start- of eindtijd ontbreekt</target>
       </segment>
     </unit>
     <unit id="4074207137823057482">

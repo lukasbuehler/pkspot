@@ -44,10 +44,13 @@
       </div>
     </section>
   } @else {
-    @if (discoveryResult()?.invalidItemCount; as invalidItemCount) {
+    @if (
+      isAdmin() && discoveryResult()?.invalidItemCount;
+      as invalidItemCount
+    ) {
       <section class="status-card warning-card" role="status">
         <span class="status-icon"><mat-icon>warning</mat-icon></span>
-        <div>
+        <div class="status-copy">
           <h2 class="mat-title-medium" i18n>Some events need a data update</h2>
           <p class="mat-body-medium" i18n>
             {invalidItemCount, plural,
@@ -55,6 +58,14 @@
               other {{{invalidItemCount}} events are missing a valid local time zone and were not shown.}
             }
           </p>
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="openInvalidEventsDialog()"
+          >
+            <mat-icon>edit</mat-icon>
+            <span i18n>Review events</span>
+          </button>
         </div>
       </section>
     }

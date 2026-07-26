@@ -692,6 +692,12 @@
         <target>No se encontró ningún ID de Apple en este dispositivo. Inicia sesión con su ID de Apple en la configuración de su dispositivo e intenta de nuevo.</target>
       </segment>
     </unit>
+    <unit id="1337921166587632144">
+      <segment state="translated">
+        <source>Local time zone and end time are missing</source>
+        <target>Faltan la zona horaria local y la hora de finalización</target>
+      </segment>
+    </unit>
     <unit id="1347241542439262355">
       <segment state="initial">
         <source>General settings</source>
@@ -2741,6 +2747,12 @@
         <target>Reportar el spot «<ph id="0" equiv="INTERPOLATION" disp="{{ data.spot?.name }}"/>»</target>
       </segment>
     </unit>
+    <unit id="6076340326638243811">
+      <segment state="translated">
+        <source>Events needing a data update</source>
+        <target>Eventos que necesitan una actualización de datos</target>
+      </segment>
+    </unit>
     <unit id="6090595749329244912">
       <segment state="initial">
         <source>Community card approved</source>
@@ -2877,6 +2889,12 @@
       <segment state="initial">
         <source>No reports match this filter.</source>
         <target>Ningún reporte coincide con este filtro.</target>
+      </segment>
+    </unit>
+    <unit id="8368669567404524078">
+      <segment state="translated">
+        <source>Local time zone missing</source>
+        <target>Falta la zona horaria local</target>
       </segment>
     </unit>
     <unit id="8374358620159565609">
@@ -7911,6 +7929,12 @@
         <target>Reportes de medios</target>
       </segment>
     </unit>
+    <unit id="4240094915299794300">
+      <segment state="translated">
+        <source> These events are excluded from public discovery until their local time zone and event dates are valid. </source>
+        <target> Estos eventos se excluyen del descubrimiento público hasta que su zona horaria local y sus fechas sean válidas. </target>
+      </segment>
+    </unit>
     <unit id="aboutHeroSubtitle">
       <segment state="initial">
         <source> Find spots, join local communities, discover events and jams, and check in where parkour is happening around you. </source>
@@ -8260,6 +8284,12 @@
       <segment state="initial">
         <source>Show Event header</source>
         <target>Mostrar encabezado del evento</target>
+      </segment>
+    </unit>
+    <unit id="7860386256947196622">
+      <segment state="translated">
+        <source>Review events</source>
+        <target>Revisar eventos</target>
       </segment>
     </unit>
     <unit id="7860418101283165917">
@@ -9899,6 +9929,12 @@
         <target>Reportar</target>
       </segment>
     </unit>
+    <unit id="5362379799194608804">
+      <segment state="translated">
+        <source>Local time zone and start time are missing</source>
+        <target>Faltan la zona horaria local y la hora de inicio</target>
+      </segment>
+    </unit>
     <unit id="6210875862708659535">
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;"> I&apos;m visible and have a problem with it. </pc></source>
@@ -10609,6 +10645,12 @@
       <segment state="initial">
         <source>Label and particpant type</source>
         <target>Etiqueta y tipo de participante</target>
+      </segment>
+    </unit>
+    <unit id="4063487417000564462">
+      <segment state="translated">
+        <source>Start or end time missing</source>
+        <target>Falta la hora de inicio o de finalización</target>
       </segment>
     </unit>
     <unit id="4074207137823057482">

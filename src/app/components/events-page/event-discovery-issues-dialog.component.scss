@@ -1,0 +1,24 @@
+:host {
+  display: block;
+}
+
+mat-dialog-content {
+  max-height: min(70vh, 720px);
+}
+
+.dialog-intro {
+  margin: 0 0 1rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.event-preview-list {
+  display: grid;
+  gap: 0.875rem;
+  min-width: min(680px, calc(100vw - 5rem));
+}
+
+@media (max-width: 599.98px) {
+  .event-preview-list {
+    min-width: 0;
+  }
+}
