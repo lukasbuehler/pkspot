@@ -120,12 +120,12 @@ English (`en`) is the source language.
 To tweak a translation, go to the corresponding file, find the string you want to change, and update the value inside the `target` XML tag only. Example:
 
 ```xml
-<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en" trgLang="de-CH">
+<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en" trgLang="de">
     <file id="ngi18n" original="ng.template">
         <unit id="1940752772695642659">
             <segment state="initial">
                 <source> The spot for everything parkour. </source>
-                <target> De Spot für alles Parkour. </target>
+                <target> Der Spot für alles rund um Parkour. </target>
             </segment>
         </unit>
         ...
@@ -140,7 +140,7 @@ After adding new text in the HTML markup and adding the `i18n` attribute, update
 Run the following command:
 
 ```
-npx ng extract-i18n
+npm run ng -- extract-i18n
 ```
 
 After that the language files will be updated (and possibly reformatted, which is ok). You can now edit the language files as usual with the new text.
@@ -168,12 +168,6 @@ After that the language files will be updated (and possibly reformatted, which i
                "translation": "src/locale/messages.de.xlf",
                "baseHref": "/de/"
            },
-           "de-CH": {
-               "translation": "src/locale/messages.de-CH.xlf",
-               "baseHref": "/de-CH/"
-           }
-           ...
-
            // add your new language here
            // with its language code xx-XX or xx similar to above...
 
@@ -188,7 +182,7 @@ After that the language files will be updated (and possibly reformatted, which i
            "build": {
               "builder": "@angular/build:application",
               "options": {
-                  "localize": ["en", "de", "de-CH", "xx-XX"], // add you language here too
+                  "localize": ["en", "de", "xx-XX"], // add you language here too
                   ...
               }
               ...

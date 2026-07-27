@@ -450,6 +450,11 @@ async function main() {
       `SSR server bundle for ${lang}`
     );
   }
+  assert.ok(
+    !existsSync(path.join(distBrowserDir, "de-CH")) &&
+      !existsSync(path.join(distServerDir, "de-CH")),
+    "Retired de-CH browser and server bundles should not be emitted",
+  );
   assertFileExists(sharedAssetPath, "Shared icons asset manifest");
 
   console.log("\n==> starting SSR smoke server");
@@ -490,8 +495,24 @@ async function main() {
     assert.equal(redirectResponse.status, 301, "Root should redirect by locale");
     assert.equal(
       redirectResponse.headers.get("location"),
-      "/de-CH",
-      "Root redirect should honor supported Accept-Language values"
+      "/de",
+      "Root redirect should normalize Swiss German to German"
+    );
+
+    const retiredLocaleRedirect = await fetchWithTimeout(
+      `${baseUrl}/de-CH/map/spots/josefhalle?filter=dry`,
+      { redirect: "manual" },
+      "retired locale redirect",
+    );
+    assert.equal(
+      retiredLocaleRedirect.status,
+      301,
+      "Retired de-CH URLs should redirect permanently",
+    );
+    assert.equal(
+      retiredLocaleRedirect.headers.get("location"),
+      "/de/map/spots/josefhalle?filter=dry",
+      "Retired locale redirect should preserve the route and query string",
     );
 
     for (const locale of supportedLanguageCodes) {

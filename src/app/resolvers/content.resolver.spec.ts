@@ -235,8 +235,11 @@ describe("contentResolver", () => {
       getLinkHref(testDocument, 'link[rel="alternate"][hreflang="en"]')
     ).toBe("https://pkspot.app/en/map/spots/imax");
     expect(
+      getLinkHref(testDocument, 'link[rel="alternate"][hreflang="de"]')
+    ).toBe("https://pkspot.app/de/map/spots/imax");
+    expect(
       getLinkHref(testDocument, 'link[rel="alternate"][hreflang="de-CH"]')
-    ).toBe("https://pkspot.app/de-CH/map/spots/imax");
+    ).toBeNull();
     expect(
       getLinkHref(testDocument, 'link[rel="alternate"][hreflang="x-default"]')
     ).toBe("https://pkspot.app/en/map/spots/imax");

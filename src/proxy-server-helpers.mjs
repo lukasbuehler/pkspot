@@ -8,6 +8,9 @@ export const MISSING_ASSET_CACHE_CONTROL = "no-store";
 export const PUBLIC_CALLABLE_FUNCTIONS = new Set([
   "getPublicImportProvenance",
 ]);
+const RETIRED_UI_LOCALE_REDIRECTS = {
+  "de-CH": "de",
+};
 export const QR_STICKER_CAMPAIGNS = {
   nice: {
     campaign: "nice-spot-v1",
@@ -88,6 +91,30 @@ export function getQrStickerRedirectTarget(originalUrl, slug = "nice") {
   targetUrl.searchParams.set("utm_campaign", campaign.campaign);
 
   return `${targetUrl.pathname}${targetUrl.search}`;
+}
+
+export function getRetiredUiLocaleRedirectTarget(originalUrl) {
+  if (typeof originalUrl !== "string") {
+    return null;
+  }
+
+  const queryStart = originalUrl.indexOf("?");
+  const pathname =
+    queryStart === -1 ? originalUrl : originalUrl.slice(0, queryStart);
+  const search = queryStart === -1 ? "" : originalUrl.slice(queryStart);
+
+  for (const [retiredLocale, targetLocale] of Object.entries(
+    RETIRED_UI_LOCALE_REDIRECTS,
+  )) {
+    const localePrefix = `/${retiredLocale}`;
+    if (pathname !== localePrefix && !pathname.startsWith(`${localePrefix}/`)) {
+      continue;
+    }
+
+    return `/${targetLocale}${pathname.slice(localePrefix.length)}${search}`;
+  }
+
+  return null;
 }
 
 export function handleQrStickerRequest(req, res, next) {

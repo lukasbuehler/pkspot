@@ -51,7 +51,7 @@ function getSupportedLanguageCodes() {
     }
   } else {
     // Fallback to a default list
-    supportedLanguageCodes = ["en"]; //["en", "de", "it", "de-CH", "fr", "es", "nl"];
+    supportedLanguageCodes = ["en"]; //["en", "de", "it", "fr", "es", "nl"];
   }
   // Remove duplicates
   return [...new Set(supportedLanguageCodes)];

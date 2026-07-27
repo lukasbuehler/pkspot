@@ -1,5 +1,9 @@
 import { DOCUMENT } from "@angular/common";
 import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
+import {
+  isKnownUiLocalePrefix,
+  normalizeUiLocale,
+} from "../../config/ui-locales";
 import { MatButtonModule } from "@angular/material/button";
 import {
   MAT_DIALOG_DATA,
@@ -66,8 +70,6 @@ import { FirebaseAppCheckStatus } from "../../services/firebase/app-check.servic
 export class AppCheckErrorDialogComponent {
   readonly data = inject<FirebaseAppCheckStatus>(MAT_DIALOG_DATA);
   private readonly document = inject(DOCUMENT);
-  private readonly supportedLocales = ["en", "de", "de-CH", "it", "fr", "es", "nl"];
-
   isNativePlatform(): boolean {
     return this.data.platform === "ios" || this.data.platform === "android";
   }
@@ -96,20 +98,16 @@ export class AppCheckErrorDialogComponent {
   private getNativeReloadLocale(pathname: string): string {
     const locale = pathname
       .split("/")
-      .find((part) => this.supportedLocales.includes(part));
+      .find((part) => isKnownUiLocalePrefix(part));
 
     if (locale) {
-      return locale;
+      return normalizeUiLocale(locale);
     }
 
     try {
       const savedLanguage = this.document.defaultView?.localStorage.getItem("language");
-      if (savedLanguage && this.supportedLocales.includes(savedLanguage)) {
-        return savedLanguage;
-      }
-      const shortLanguage = savedLanguage?.split("-")[0];
-      if (shortLanguage && this.supportedLocales.includes(shortLanguage)) {
-        return shortLanguage;
+      if (savedLanguage) {
+        return normalizeUiLocale(savedLanguage);
       }
     } catch {
       // Ignore storage access failures and use the stable default locale.

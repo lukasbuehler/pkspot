@@ -5,6 +5,7 @@ import {
   DYNAMIC_SSR_CACHE_CONTROL,
   getStaticAssetCacheControl,
   getQrStickerRedirectTarget,
+  getRetiredUiLocaleRedirectTarget,
   getTrustedClientRegionFromHeaders,
   handlePublicCallableRequest,
   handleQrStickerRequest,
@@ -61,6 +62,22 @@ describe("proxy-server client region helpers", () => {
 
   it("should not build QR redirect targets for unknown sticker slugs", () => {
     expect(getQrStickerRedirectTarget("/qr/unknown", "unknown")).toBeNull();
+  });
+
+  it("should redirect retired Swiss German URLs to German", () => {
+    expect(getRetiredUiLocaleRedirectTarget("/de-CH")).toBe("/de");
+    expect(getRetiredUiLocaleRedirectTarget("/de-CH/")).toBe("/de/");
+    expect(
+      getRetiredUiLocaleRedirectTarget(
+        "/de-CH/map/spots/josefhalle?filter=dry&zoom=16",
+      ),
+    ).toBe("/de/map/spots/josefhalle?filter=dry&zoom=16");
+  });
+
+  it("should only redirect an exact retired locale path segment", () => {
+    expect(getRetiredUiLocaleRedirectTarget("/de/map")).toBeNull();
+    expect(getRetiredUiLocaleRedirectTarget("/de-CH-community")).toBeNull();
+    expect(getRetiredUiLocaleRedirectTarget(undefined)).toBeNull();
   });
 
   it("should handle known QR sticker requests as 302 redirects", () => {
@@ -192,11 +209,11 @@ describe("proxy-server client region helpers", () => {
   });
 
   it("should classify static SSR paths after stripping locale prefixes", () => {
-    const languages = ["en", "de", "de-CH"];
+    const languages = ["en", "de", "fr"];
 
     expect(isStaticSsrPath("/", languages)).toBe(true);
     expect(isStaticSsrPath("/en/about", languages)).toBe(true);
-    expect(isStaticSsrPath("/de-CH/privacy-policy/", languages)).toBe(true);
+    expect(isStaticSsrPath("/fr/privacy-policy/", languages)).toBe(true);
     expect(isStaticSsrPath("/en/map", languages)).toBe(false);
     expect(isStaticSsrPath("/de/map/spots/josefhalle", languages)).toBe(false);
     expect(isStaticSsrPath("/en/events/swissjam25", languages)).toBe(false);

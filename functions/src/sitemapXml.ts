@@ -6,7 +6,7 @@ const APP_HOSTS = new Set([
 ]);
 
 // Supported languages - must match the Angular i18n setup
-const SUPPORTED_LOCALES = ["en", "de", "de-CH", "fr", "it", "es", "nl"];
+const SUPPORTED_LOCALES = ["en", "de", "fr", "it", "es", "nl"];
 const DEFAULT_LOCALE = "en";
 
 // Static pages from app.routes.ts (excluding redirects, auth-required,
@@ -130,7 +130,7 @@ function generateUrlWithHreflang(
 
 /**
  * Converts locale code to hreflang format.
- * e.g., "de-CH" stays "de-CH", "en" stays "en"
+ * e.g., "de" stays "de", "en" stays "en"
  */
 function getHreflangCode(locale: string): string {
   return locale;

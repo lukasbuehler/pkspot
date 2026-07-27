@@ -5,7 +5,6 @@ export type EmbedType = "map" | "event" | "event-map";
 export type SupportedEmbedLanguage =
   | "en"
   | "de"
-  | "de-CH"
   | "fr"
   | "it"
   | "nl"
@@ -24,7 +23,6 @@ export const defaultEmbedType: EmbedType = "event";
 export const supportedEmbedLanguageCodes: SupportedEmbedLanguage[] = [
   "en",
   "de",
-  "de-CH",
   "fr",
   "it",
   "nl",
@@ -41,11 +39,6 @@ export const embedCreditTextByLanguage: Record<
     dataByLabel: "Event data by",
   },
   de: {
-    iframeTitle: "Eingebetteter PK Spot Event",
-    interactiveLabel: "Interaktiver Event-Embed",
-    dataByLabel: "Eventdaten von",
-  },
-  "de-CH": {
     iframeTitle: "Eingebetteter PK Spot Event",
     interactiveLabel: "Interaktiver Event-Embed",
     dataByLabel: "Eventdaten von",
@@ -82,6 +75,7 @@ export function coerceEmbedType(value: string | null): EmbedType | null {
 
 export function coerceEmbedLanguage(value: string | null): EmbedLanguage | null {
   if (value === "auto") return "auto";
+  if (value === "de-CH") return "de";
   if (supportedEmbedLanguageCodes.includes(value as SupportedEmbedLanguage)) {
     return value as SupportedEmbedLanguage;
   }
@@ -92,8 +86,6 @@ export function coerceEmbedLanguage(value: string | null): EmbedLanguage | null 
 export function normalizeEmbedLanguage(
   value: string | null | undefined,
 ): SupportedEmbedLanguage {
-  if (value === "de-CH") return "de-CH";
-
   const language = value?.split("-")[0];
   const supported = supportedEmbedLanguageCodes.find(
     (code) => code === language,

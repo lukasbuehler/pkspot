@@ -55,9 +55,8 @@ If you hit the Codex sandbox error "Abort trap: 6", you need to run it outside t
 - To refresh translation keys, run `npm run ng -- extract-i18n` from the repository root. This invokes the Angular `extract-i18n` target, which uses `ng-extract-i18n-merge` from `angular.json` to update `messages.xlf`, merge new keys into each configured locale, update changed source text, and remove stale IDs.
 - If extraction fails with a sandbox/toolchain trap while Angular is building, rerun the same command outside the sandbox. This is the same class of issue as the `"Abort trap: 6"` note above.
 - After extracting, edit the XLIFF locale files directly. The XLIFF files are the source of truth for translations; do not maintain a second translation dictionary in scripts.
-- Then run `node scripts/translation_analyzer.js` to find untranslated targets and accidental translations of the product term `Spot`. The analyzer currently checks `de`, `de-CH`, `es`, `fr`, `it`, and `nl`; if a new locale should be audited, update the script's `files` list.
+- Then run `node scripts/translation_analyzer.js` to find untranslated targets and accidental translations of the product term `Spot`. The analyzer currently checks `de`, `es`, `fr`, `it`, and `nl`; if a new locale should be audited, update the script's `files` list.
 - When translating manually, preserve all XLIFF placeholder tags exactly (`<ph .../>`, `<pc ...>...</pc>`) and translate only the human-readable text around them. Do not translate the product term `Spot`; keep it as `Spot` in every language.
-- For `de-CH`, prefer explicit Swiss German wording when available, otherwise fall back to the `de` translation. Avoid German-only spelling that would look wrong in Swiss copy.
 - When adding a new app language, update all of these together: `angular.json` `i18n.locales`, the `extract-i18n` `targetFiles` list, `scripts/translation_analyzer.js` `files` list and `INCORRECT_SPOT_TRANSLATIONS`, and any language picker/UI locale list in the app.
 - Before considering translation work complete, verify that the XLIFF parses, run `git diff --check`, run `node scripts/translation_analyzer.js`, and run `npm run test:build` so Angular localization and SSR smoke coverage both pass. If `npm run test:build` hits the sandbox trap, rerun it outside the sandbox and report that detail.
 
@@ -97,6 +96,10 @@ If you hit the Codex sandbox error "Abort trap: 6", you need to run it outside t
 - Do not create, start, promote, or otherwise operate Firebase App Hosting rollouts. The user deploys the web app by updating the `main` branch, which automatically rolls the update out to App Hosting.
 - Do not push or merge changes to `main` unless the user explicitly asks for that release. Local testing and backend-compatible development can remain on the current development branch while production clients and the production web app stay on their previous version.
 - Treat a request to deploy Firebase rules, functions, extensions, or other backend resources as separate from an App Hosting release. It never implies permission to update `main` or operate App Hosting.
+- Treat `DEPLOYMENT_TASKS.md` as the maintainer-facing source of truth for pre-deployment, deployment, and post-deployment work. Review it before release-related work and surface any applicable unchecked items in the handoff.
+- When a change requires release coordination—such as updating Firestore indexes or Typesense schemas, deploying functions or rules, running a migration or backfill, regenerating a sitemap, cleaning up old resources, or completing an external-service check—update `DEPLOYMENT_TASKS.md` in the same change. Add release-specific pending actions with the required order, exact commands or targets where practical, success checks, and any condition for retaining or removing compatibility behavior.
+- Keep the reusable release procedure in `DEPLOYMENT_TASKS.md` aligned with the repository's actual scripts and infrastructure. Put one-off work under `Release-specific pending actions`, not in the reusable procedure.
+- Never mark a deployment-note item complete unless the action was actually performed and its result verified. A checklist entry documents pending work; it does not grant permission to deploy, mutate production data, or operate App Hosting.
 
 ## Backwards compatibility
 

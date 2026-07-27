@@ -244,7 +244,8 @@ describe("sitemapXml", () => {
     });
 
     expect(xml).toContain(`${BASE_URL}/en/map/spots/imax`);
-    expect(xml).toContain(`${BASE_URL}/de-CH/map/spots/dame-du-lac`);
+    expect(xml).toContain(`${BASE_URL}/de/map/spots/dame-du-lac`);
+    expect(xml).not.toContain(`${BASE_URL}/de-CH/`);
     expect(xml).not.toContain(`${BASE_URL}/en/u/lukas`);
     expect(xml).not.toContain(`${BASE_URL}/en/u/private-user`);
     expect(xml).toContain(`${BASE_URL}/en/map/communities/lausanne`);

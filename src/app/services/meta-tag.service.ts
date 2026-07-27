@@ -12,6 +12,7 @@ import { environment } from "../../environments/environment.default";
 import { getDisplayLocalityName } from "../../scripts/AddressHelpers";
 import { normalizeLegacySpotMapPath } from "../../scripts/SpotRouteHelpers";
 import { AssetUrlService } from "./asset-url.service";
+import { SUPPORTED_UI_LOCALES } from "../config/ui-locales";
 import {
   SpotAccess,
   SpotAccessNames,
@@ -37,15 +38,7 @@ interface EventMetaTagData {
 })
 export class MetaTagService {
   private static readonly DEFAULT_IMAGE_PATH = "assets/banner_1200x630.png";
-  private static readonly SUPPORTED_LOCALES = [
-    "en",
-    "de",
-    "de-CH",
-    "fr",
-    "it",
-    "es",
-    "nl",
-  ] as const;
+  private static readonly SUPPORTED_LOCALES = SUPPORTED_UI_LOCALES;
   private static readonly DEFAULT_LOCALE = "en";
 
   locale: LocaleCode = inject(LOCALE_ID);

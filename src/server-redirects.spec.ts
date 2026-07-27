@@ -7,8 +7,8 @@ describe("SSR legacy redirects", () => {
     expect(getLegacySsrRedirectTarget("/de/map/imax?filter=dry")).toBe(
       "/de/map/spots/imax?filter=dry"
     );
-    expect(getLegacySsrRedirectTarget("/de-CH/map/imax/c/challenge-1")).toBe(
-      "/de-CH/map/spots/imax/c/challenge-1"
+    expect(getLegacySsrRedirectTarget("/fr/map/imax/c/challenge-1")).toBe(
+      "/fr/map/spots/imax/c/challenge-1"
     );
     expect(getLegacySsrRedirectTarget("/map/imax/edits")).toBe(
       "/map/spots/imax/edits"

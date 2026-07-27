@@ -64,7 +64,7 @@ import { NavRailComponent } from "./components/nav-rail/nav-rail.component";
 import { NavRailContainerComponent } from "./components/nav-rail-container/nav-rail-container.component";
 import { WelcomeDialogComponent } from "./components/welcome-dialog/welcome-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
-import { LocaleCode } from "../db/models/Interfaces";
+import { isKnownUiLocalePrefix } from "./config/ui-locales";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { WebSite } from "schema-dts";
 import { StructuredDataService } from "./services/structured-data.service";
@@ -266,16 +266,6 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   isEmbedded: WritableSignal<boolean | null> = signal(null);
 
-  availableLanguageCodes: LocaleCode[] = [
-    "en",
-    "de",
-    "de-CH",
-    "fr",
-    "it",
-    "es",
-    "nl",
-  ];
-
   onResize() {
     this.enforceAlainMode();
   }
@@ -388,7 +378,7 @@ export class AppComponent implements OnInit, AfterViewInit {
           const segments = path.split("/");
           if (
             segments.length > 1 &&
-            this.availableLanguageCodes.includes(segments[1] as any)
+            isKnownUiLocalePrefix(segments[1])
           ) {
             // Remove the locale segment
             segments.splice(1, 1);
@@ -843,7 +833,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     if (
       segments.length > 1 &&
-      this.availableLanguageCodes.includes(segments[1] as LocaleCode)
+      isKnownUiLocalePrefix(segments[1])
     ) {
       segments.splice(1, 1);
       return segments.join("/") || "/";

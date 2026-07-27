@@ -6,6 +6,7 @@ import {
   applyTrustedClientRegionHeader,
   handlePublicCallableRequest,
   handleQrStickerRequest,
+  getRetiredUiLocaleRedirectTarget,
   getStaticAssetCacheControl,
   REVALIDATING_ASSET_CACHE_CONTROL,
   sendMissingAssetResponse,
@@ -168,6 +169,15 @@ function run() {
   server.use((req, _res, next) => {
     applyTrustedClientRegionHeader(req.headers);
     next();
+  });
+
+  server.get("*", (req, res, next) => {
+    const redirectTarget = getRetiredUiLocaleRedirectTarget(req.originalUrl);
+    if (!redirectTarget) {
+      return next();
+    }
+
+    return res.redirect(301, redirectTarget);
   });
 
   server.get("/qr/:slug", async (req, res, next) => {

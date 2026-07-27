@@ -23,10 +23,6 @@
             "translation": "src/locale/messages.de.xlf",
             "subPath": "de"
           },
-          "de-CH": {
-            "translation": "src/locale/messages.de-CH.xlf",
-            "subPath": "de-CH"
-          },
           "it": {
             "translation": "src/locale/messages.it.xlf",
             "subPath": "it"
@@ -52,7 +48,7 @@
             "optimization": {
               "inlineCritical": true
             },
-            "localize": ["en", "de", "de-CH", "it", "fr", "es", "nl"],
+            "localize": ["en", "de", "it", "fr", "es", "nl"],
             "outputPath": "dist/pkspot",
             "index": { "input": "src/index.html", "output": "index.html" },
             "browser": "src/main.ts",
@@ -518,7 +514,6 @@
             "outputPath": "src/locale",
             "targetFiles": [
               "messages.de.xlf",
-              "messages.de-CH.xlf",
               "messages.it.xlf",
               "messages.fr.xlf",
               "messages.es.xlf",

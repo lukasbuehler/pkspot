@@ -14,7 +14,6 @@ const LOCALE_DIR = "src/locale";
 
 const files = [
   { path: "src/locale/messages.de.xlf", lang: "German (DE)" },
-  { path: "src/locale/messages.de-CH.xlf", lang: "German (CH)" },
   { path: "src/locale/messages.es.xlf", lang: "Spanish (ES)" },
   { path: "src/locale/messages.fr.xlf", lang: "French (FR)" },
   { path: "src/locale/messages.it.xlf", lang: "Italian (IT)" },
