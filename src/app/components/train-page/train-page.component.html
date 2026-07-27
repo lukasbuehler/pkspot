@@ -82,6 +82,14 @@
         <div>
           <p class="eyebrow" i18n="@@train.nearbySpots">Nearby spots</p>
           <h2 i18n="@@train.bestSpots">Best spots in your area</h2>
+          @if (weatherFilterActive()) {
+            <span class="weather-filter-note">
+              <mat-icon>rainy</mat-icon>
+              <span i18n="@@train.weatherDryFilter">
+                Dry spots prioritized for the forecast
+              </span>
+            </span>
+          }
         </div>
         <a matButton routerLink="/map" i18n="@@train.openMap">Open map</a>
       </div>
@@ -96,14 +104,6 @@
           i18n-ariaLabel="@@train.spotFilters"
           (filterChange)="setSpotFilter($event)"
         />
-        @if (weatherFilterActive()) {
-          <span class="weather-filter-note">
-            <mat-icon>rainy</mat-icon>
-            <span i18n="@@train.weatherDryFilter">
-              Dry spots prioritized for the forecast
-            </span>
-          </span>
-        }
       </div>
       @if (bestSpots().length) {
         <div class="preview-grid spot-preview-grid">
@@ -147,7 +147,10 @@
 
         <div class="preview-grid event-preview-grid">
           @for (event of todayOptions(); track event.id) {
-            <app-event-discovery-card [event]="event" />
+            <app-event-discovery-card
+              [event]="event"
+              [seriesById]="seriesById()"
+            />
           }
         </div>
       }

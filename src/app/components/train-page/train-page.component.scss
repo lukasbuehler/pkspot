@@ -14,7 +14,7 @@ h3 { margin: 0; font: var(--mat-sys-title-medium); }
 .train-section { margin-top: 38px; }
 .spot-filter-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; min-width: 0; }
 .spot-filter-row app-filter-chips-bar { flex: 1; min-width: 0; }
-.weather-filter-note { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; color: var(--mat-sys-primary); font: var(--mat-sys-label-medium); }
+.weather-filter-note { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; color: var(--mat-sys-primary); font: var(--mat-sys-label-medium); }
 .weather-filter-note mat-icon { width: 18px; height: 18px; font-size: 18px; }
 .preview-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
 .spot-preview-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }

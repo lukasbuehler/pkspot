@@ -1,5 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
-import { DecimalPipe } from "@angular/common";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  PLATFORM_ID,
+  computed,
+  inject,
+  signal,
+} from "@angular/core";
+import { DecimalPipe, isPlatformBrowser } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { MatButtonModule } from "@angular/material/button";
@@ -11,6 +18,10 @@ import {
 } from "../spot-map/spot-filter-config";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { CommunityFollowsService } from "../../services/firebase/firestore/community-follows.service";
+import {
+  SeriesDocument,
+  SeriesService,
+} from "../../services/firebase/firestore/series.service";
 import { GeolocationService } from "../../services/geolocation.service";
 import {
   CommunitySearchPreview,
@@ -24,7 +35,6 @@ import { shouldRecommendDrySpots } from "../../weather/spot-weather-context";
 import type { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { EventDiscoveryCardComponent } from "../events-page/event-discovery-card.component";
 import { FilterChipsBarComponent } from "../filter-chips-bar/filter-chips-bar.component";
-import { SearchFieldComponent } from "../search-field/search-field.component";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 import {
   resolveTrainingCenter,
@@ -54,7 +64,6 @@ type SpotFilterSource = "user" | "weather" | null;
     MatProgressSpinnerModule,
     EventDiscoveryCardComponent,
     FilterChipsBarComponent,
-    SearchFieldComponent,
     SpotPreviewCardComponent,
   ],
   templateUrl: "./train-page.component.html",
@@ -66,7 +75,9 @@ export class TrainPageComponent {
   private readonly follows = inject(CommunityFollowsService);
   private readonly geolocation = inject(GeolocationService);
   private readonly search = inject(SearchService);
+  private readonly series = inject(SeriesService);
   private readonly weatherService = inject(WeatherService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly loading = signal(true);
   readonly locating = signal(false);
@@ -75,6 +86,7 @@ export class TrainPageComponent {
   readonly spots = signal<SpotPreviewData[]>([]);
   readonly selectedSpotFilter = signal("");
   readonly spotFilterSource = signal<SpotFilterSource>(null);
+  readonly seriesById = signal<Record<string, SeriesDocument>>({});
   readonly followedCommunities = signal<CommunitySearchPreview[]>([]);
   readonly weather = signal<WeatherResponse | null>(null);
   readonly area = signal<CommunitySearchPreview | null>(null);
@@ -106,7 +118,7 @@ export class TrainPageComponent {
           .trim()
           .split(/\s+/)[0] ?? "",
       );
-      void this.load();
+      void this.initialize();
     });
   }
 
@@ -192,6 +204,37 @@ export class TrainPageComponent {
     }
   }
 
+  private async initialize(): Promise<void> {
+    await this.useAvailableLocation();
+    await this.load();
+  }
+
+  private async useAvailableLocation(): Promise<void> {
+    if (
+      !this.isBrowser ||
+      this.area() ||
+      this.geolocation.currentLocation() ||
+      !(await this.geolocation.checkPermissions())
+    ) {
+      return;
+    }
+
+    this.locating.set(true);
+    try {
+      await this.geolocation.startWatching();
+      const timeoutAt = Date.now() + 5_000;
+      while (
+        !this.geolocation.currentLocation() &&
+        !this.geolocation.error() &&
+        Date.now() < timeoutAt
+      ) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    } finally {
+      this.locating.set(false);
+    }
+  }
+
   private async loadEvents(): Promise<void> {
     const nowSeconds = Math.floor(Date.now() / 1000);
     const result = await this.search.searchEventDiscovery({
@@ -221,25 +264,40 @@ export class TrainPageComponent {
         ),
       ) ?? 100;
     this.radiusKm.set(availableRadius);
-    this.events.set(
-      ranked
-        .filter(
-          (event) =>
-            !center ||
-            event.distanceKm === undefined ||
-            event.distanceKm <= availableRadius,
-        )
-        .sort(
-          (a, b) =>
-            Number(b.live) - Number(a.live) ||
-            Number(b.followed) - Number(a.followed) ||
-            Number(b.kind === "session" || b.kind === "class") -
-              Number(a.kind === "session" || a.kind === "class") ||
-            (a.distanceKm ?? Number.MAX_SAFE_INTEGER) -
-              (b.distanceKm ?? Number.MAX_SAFE_INTEGER) ||
-            a.startSeconds - b.startSeconds,
-        ),
-    );
+    const visibleEvents = ranked
+      .filter(
+        (event) =>
+          !center ||
+          event.distanceKm === undefined ||
+          event.distanceKm <= availableRadius,
+      )
+      .sort(
+        (a, b) =>
+          Number(b.live) - Number(a.live) ||
+          Number(b.followed) - Number(a.followed) ||
+          Number(b.kind === "session" || b.kind === "class") -
+            Number(a.kind === "session" || a.kind === "class") ||
+          (a.distanceKm ?? Number.MAX_SAFE_INTEGER) -
+            (b.distanceKm ?? Number.MAX_SAFE_INTEGER) ||
+          a.startSeconds - b.startSeconds,
+      );
+    this.events.set(visibleEvents);
+    await this.loadSeries(visibleEvents.slice(0, 6));
+  }
+
+  private async loadSeries(events: readonly RankedEvent[]): Promise<void> {
+    const ids = [...new Set(events.flatMap((event) => event.seriesIds))];
+    if (ids.length === 0) {
+      this.seriesById.set({});
+      return;
+    }
+
+    try {
+      this.seriesById.set(await this.series.getSeriesByIds(ids));
+    } catch (error) {
+      console.warn("[Train] event series unavailable", error);
+      this.seriesById.set({});
+    }
   }
 
   private async loadSpots(): Promise<void> {
