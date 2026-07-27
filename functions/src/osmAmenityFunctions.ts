@@ -3,7 +3,11 @@ import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
 import type { Timestamp } from "firebase-admin/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { CallableRequest, HttpsError, onCall } from "firebase-functions/v2/https";
+import {
+  CallableRequest,
+  HttpsError,
+  onCall,
+} from "firebase-functions/v2/https";
 
 export const OSM_AMENITY_TILE_ZOOM = 12;
 export const OSM_AMENITY_CACHE_COLLECTION = "osm_amenity_tile_cache";
@@ -27,13 +31,13 @@ export const OVERPASS_ENDPOINTS = [
   },
 ] as const;
 export const OSM_ATTRIBUTION = {
-  text: "© OpenStreetMap contributors",
+  text: "Amenity data © OpenStreetMap contributors",
   url: "https://www.openstreetmap.org/copyright",
   license: "ODbL 1.0",
 } as const;
 export const OVERPASS_REQUEST_HEADERS = {
   "Content-Type": "text/plain; charset=utf-8",
-  "Referer": "https://pkspot.app/",
+  Referer: "https://pkspot.app/",
   "User-Agent": "PKSpot/1.0 (+https://pkspot.app/contact)",
 } as const;
 
@@ -107,14 +111,18 @@ type LeaseResult =
   | { kind: "fresh"; document: OsmAmenityCacheDocument }
   | { kind: "stale"; document: OsmAmenityCacheDocument }
   | { kind: "wait" }
-  | { kind: "backoff"; retryAfterMs: number; document?: OsmAmenityCacheDocument }
+  | {
+      kind: "backoff";
+      retryAfterMs: number;
+      document?: OsmAmenityCacheDocument;
+    }
   | { kind: "acquired"; document?: OsmAmenityCacheDocument };
 
 class OverpassResponseError extends Error {
   constructor(
     readonly status: number,
     readonly responseBytes: number,
-    message: string
+    message: string,
   ) {
     super(message);
     this.name = "OverpassResponseError";
@@ -126,7 +134,9 @@ export const getOsmAmenityTile = onCall(
     enforceAppCheck: true,
     timeoutSeconds: 45,
   },
-  async (request: CallableRequest<unknown>): Promise<OsmAmenityTileResponse> => {
+  async (
+    request: CallableRequest<unknown>,
+  ): Promise<OsmAmenityTileResponse> => {
     const tile = parseOsmAmenityTileRequest(request.data);
     const firestore = admin.firestore();
     const cacheRef = firestore
@@ -141,23 +151,26 @@ export const getOsmAmenityTile = onCall(
       return cacheDocumentToResponse(initial.document, false);
     }
 
-    const lease = await acquireOsmAmenityRefreshLease(
-      firestore,
-      tile,
-      nowMs
-    );
+    const lease = await acquireOsmAmenityRefreshLease(firestore, tile, nowMs);
 
     if (lease.kind === "fresh") {
       logger.info("OSM amenity cache result", { cacheStatus: "fresh-race" });
       return cacheDocumentToResponse(lease.document, false);
     }
     if (lease.kind === "stale") {
-      logger.info("OSM amenity cache result", { cacheStatus: "stale-refreshing" });
+      logger.info("OSM amenity cache result", {
+        cacheStatus: "stale-refreshing",
+      });
       return cacheDocumentToResponse(lease.document, true);
     }
     if (lease.kind === "backoff") {
-      if (lease.document && inspectCacheDocument(lease.document, nowMs).staleUsable) {
-        logger.info("OSM amenity cache result", { cacheStatus: "stale-backoff" });
+      if (
+        lease.document &&
+        inspectCacheDocument(lease.document, nowMs).staleUsable
+      ) {
+        logger.info("OSM amenity cache result", {
+          cacheStatus: "stale-backoff",
+        });
         return cacheDocumentToResponse(lease.document, true);
       }
       throw unavailableDuringBackoff(lease.retryAfterMs, nowMs);
@@ -173,7 +186,7 @@ export const getOsmAmenityTile = onCall(
         cacheRef,
         tile,
         result,
-        Date.now()
+        Date.now(),
       );
       logger.info("OSM amenity cache result", {
         cacheStatus: lease.document ? "refreshed" : "cold-fill",
@@ -187,7 +200,7 @@ export const getOsmAmenityTile = onCall(
       const failureDocument = await recordOsmAmenityCacheFailure(
         cacheRef,
         tile,
-        Date.now()
+        Date.now(),
       );
       logger.warn("Overpass amenity refresh failed", {
         cacheStatus: lease.document ? "stale-fallback" : "cold-failure",
@@ -204,10 +217,10 @@ export const getOsmAmenityTile = onCall(
       }
       throw new HttpsError(
         "unavailable",
-        "Amenity data is temporarily unavailable."
+        "Amenity data is temporarily unavailable.",
       );
     }
-  }
+  },
 );
 
 export const cleanupExpiredOsmAmenityCache = onSchedule(
@@ -228,11 +241,11 @@ export const cleanupExpiredOsmAmenityCache = onSchedule(
       snapshot.docs.forEach((document) => batch.delete(document.ref));
       await batch.commit();
     }
-  }
+  },
 );
 
 export function parseOsmAmenityTileRequest(
-  value: unknown
+  value: unknown,
 ): OsmAmenityTileRequest {
   if (!isRecord(value)) {
     throw new HttpsError("invalid-argument", "request must be an object");
@@ -245,7 +258,7 @@ export function parseOsmAmenityTileRequest(
   if (zoom !== OSM_AMENITY_TILE_ZOOM) {
     throw new HttpsError(
       "invalid-argument",
-      `zoom must be ${OSM_AMENITY_TILE_ZOOM}`
+      `zoom must be ${OSM_AMENITY_TILE_ZOOM}`,
     );
   }
   if (!Number.isInteger(x) || Number(x) < 0 || Number(x) >= tileCount) {
@@ -258,15 +271,16 @@ export function parseOsmAmenityTileRequest(
   return { zoom, x: Number(x), y: Number(y) };
 }
 
-export function getOsmAmenityTileCacheKey(
-  tile: OsmAmenityTileRequest
-): string {
+export function getOsmAmenityTileCacheKey(tile: OsmAmenityTileRequest): string {
   return `z${tile.zoom}_${tile.x}_${tile.y}`;
 }
 
-export function getOsmAmenityTileBounds(
-  tile: OsmAmenityTileRequest
-): { north: number; south: number; east: number; west: number } {
+export function getOsmAmenityTileBounds(tile: OsmAmenityTileRequest): {
+  north: number;
+  south: number;
+  east: number;
+  west: number;
+} {
   const tileCount = 2 ** tile.zoom;
   const west = (tile.x / tileCount) * 360 - 180;
   const east = ((tile.x + 1) / tileCount) * 360 - 180;
@@ -275,24 +289,18 @@ export function getOsmAmenityTileBounds(
   return { north, south, east, west };
 }
 
-export function buildOverpassAmenityQuery(
-  tile: OsmAmenityTileRequest
-): string {
+export function buildOverpassAmenityQuery(tile: OsmAmenityTileRequest): string {
   const bounds = getOsmAmenityTileBounds(tile);
-  const bbox = [
-    bounds.south,
-    bounds.west,
-    bounds.north,
-    bounds.east,
-  ].join(",");
+  const bbox = [bounds.south, bounds.west, bounds.north, bounds.east].join(",");
   return `[out:json][timeout:12];
 node["amenity"~"^(toilets|drinking_water|fountain)$"](${bbox});
 out body qt;`;
 }
 
-export function normalizeOverpassAmenityResponse(
-  value: unknown
-): { amenities: OsmAmenityRecord[]; sourceUpdatedAt?: string } {
+export function normalizeOverpassAmenityResponse(value: unknown): {
+  amenities: OsmAmenityRecord[];
+  sourceUpdatedAt?: string;
+} {
   if (!isRecord(value) || !Array.isArray(value["elements"])) {
     throw new Error("Overpass response is missing elements");
   }
@@ -310,7 +318,7 @@ export function normalizeOverpassAmenityResponse(
 
 export function inspectCacheDocument(
   value: unknown,
-  nowMs: number
+  nowMs: number,
 ): CacheSnapshot {
   if (!isRecord(value)) {
     return { fresh: false, staleUsable: false };
@@ -328,14 +336,8 @@ export function inspectCacheDocument(
 
   return {
     document,
-    fresh:
-      hasData &&
-      refreshAfterMs !== undefined &&
-      refreshAfterMs > nowMs,
-    staleUsable:
-      hasData &&
-      staleUntilMs !== undefined &&
-      staleUntilMs > nowMs,
+    fresh: hasData && refreshAfterMs !== undefined && refreshAfterMs > nowMs,
+    staleUsable: hasData && staleUntilMs !== undefined && staleUntilMs > nowMs,
     retryAfterMs,
     leaseUntilMs,
   };
@@ -350,7 +352,7 @@ export function getOsmAmenityRetryDelayMs(failureCount: number): number {
 export async function acquireOsmAmenityRefreshLease(
   firestore: FirebaseFirestore.Firestore,
   tile: OsmAmenityTileRequest,
-  nowMs: number
+  nowMs: number,
 ): Promise<LeaseResult> {
   const cacheRef = firestore
     .collection(OSM_AMENITY_CACHE_COLLECTION)
@@ -383,7 +385,7 @@ export async function acquireOsmAmenityRefreshLease(
         tile,
         lease_until: new Date(nowMs + OSM_REFRESH_LEASE_MS),
       },
-      { merge: true }
+      { merge: true },
     );
     return { kind: "acquired", document: cache.document };
   });
@@ -393,7 +395,7 @@ export async function writeOsmAmenityCacheSuccess(
   cacheRef: FirebaseFirestore.DocumentReference,
   tile: OsmAmenityTileRequest,
   result: Pick<OverpassFetchResult, "amenities" | "sourceUpdatedAt">,
-  nowMs: number
+  nowMs: number,
 ): Promise<OsmAmenityCacheDocument> {
   const document: OsmAmenityCacheDocument = {
     schema_version: OSM_CACHE_SCHEMA_VERSION,
@@ -413,27 +415,24 @@ export async function writeOsmAmenityCacheSuccess(
 export async function recordOsmAmenityCacheFailure(
   cacheRef: FirebaseFirestore.DocumentReference,
   tile: OsmAmenityTileRequest,
-  nowMs: number
+  nowMs: number,
 ): Promise<OsmAmenityCacheDocument> {
   return cacheRef.firestore.runTransaction(async (transaction) => {
     const snapshot = await transaction.get(cacheRef);
-    const current =
-      (snapshot.data() as OsmAmenityCacheDocument | undefined) ?? {
-        schema_version: OSM_CACHE_SCHEMA_VERSION,
-        tile,
-      };
+    const current = (snapshot.data() as
+      | OsmAmenityCacheDocument
+      | undefined) ?? {
+      schema_version: OSM_CACHE_SCHEMA_VERSION,
+      tile,
+    };
     const failureCount = (current.failure_count ?? 0) + 1;
     const document = {
       ...current,
       schema_version: OSM_CACHE_SCHEMA_VERSION,
       tile,
       failure_count: failureCount,
-      stale_until:
-        current.stale_until ??
-        new Date(nowMs + OSM_CACHE_STALE_MS),
-      retry_after: new Date(
-        nowMs + getOsmAmenityRetryDelayMs(failureCount)
-      ),
+      stale_until: current.stale_until ?? new Date(nowMs + OSM_CACHE_STALE_MS),
+      retry_after: new Date(nowMs + getOsmAmenityRetryDelayMs(failureCount)),
     } satisfies OsmAmenityCacheDocument;
     transaction.set(
       cacheRef,
@@ -441,7 +440,7 @@ export async function recordOsmAmenityCacheFailure(
         ...document,
         lease_until: new Date(nowMs - 1),
       },
-      { merge: true }
+      { merge: true },
     );
     delete document.lease_until;
     return document;
@@ -450,7 +449,7 @@ export async function recordOsmAmenityCacheFailure(
 
 async function fetchOverpassAmenityTile(
   firestore: FirebaseFirestore.Firestore,
-  tile: OsmAmenityTileRequest
+  tile: OsmAmenityTileRequest,
 ): Promise<OverpassFetchResult> {
   let lastError: unknown;
 
@@ -460,12 +459,12 @@ async function fetchOverpassAmenityTile(
     try {
       const result = await fetchOverpassAmenityTileFromEndpoint(
         tile,
-        endpoint.url
+        endpoint.url,
       );
       await recordOverpassResponseBytes(
         firestore,
         new Date(),
-        result.responseBytes
+        result.responseBytes,
       );
       return { ...result, endpoint: endpoint.id };
     } catch (error) {
@@ -474,7 +473,7 @@ async function fetchOverpassAmenityTile(
         await recordOverpassResponseBytes(
           firestore,
           new Date(),
-          error.responseBytes
+          error.responseBytes,
         );
       }
       logger.warn("Overpass endpoint attempt failed", {
@@ -493,12 +492,12 @@ async function fetchOverpassAmenityTile(
 
 async function fetchOverpassAmenityTileFromEndpoint(
   tile: OsmAmenityTileRequest,
-  endpoint: string
+  endpoint: string,
 ): Promise<Omit<OverpassFetchResult, "endpoint">> {
   const abortController = new AbortController();
   const timeoutId = setTimeout(
     () => abortController.abort(),
-    OSM_OVERPASS_FETCH_TIMEOUT_MS
+    OSM_OVERPASS_FETCH_TIMEOUT_MS,
   );
 
   try {
@@ -514,11 +513,11 @@ async function fetchOverpassAmenityTileFromEndpoint(
       throw new OverpassResponseError(
         response.status,
         responseBytes,
-        `Overpass returned HTTP ${response.status}`
+        `Overpass returned HTTP ${response.status}`,
       );
     }
     const normalized = normalizeOverpassAmenityResponse(
-      JSON.parse(responseText) as unknown
+      JSON.parse(responseText) as unknown,
     );
     return { ...normalized, responseBytes };
   } finally {
@@ -528,7 +527,7 @@ async function fetchOverpassAmenityTileFromEndpoint(
 
 async function consumeOverpassQueryBudget(
   firestore: FirebaseFirestore.Firestore,
-  date: Date
+  date: Date,
 ): Promise<void> {
   const usageRef = firestore
     .collection(OSM_OVERPASS_USAGE_COLLECTION)
@@ -537,13 +536,10 @@ async function consumeOverpassQueryBudget(
     const snapshot = await transaction.get(usageRef);
     const queries = Number(snapshot.data()?.["queries"] ?? 0);
     const bytes = Number(snapshot.data()?.["bytes"] ?? 0);
-    if (
-      queries >= OSM_DAILY_QUERY_BUDGET ||
-      bytes >= OSM_DAILY_BYTE_BUDGET
-    ) {
+    if (queries >= OSM_DAILY_QUERY_BUDGET || bytes >= OSM_DAILY_BYTE_BUDGET) {
       throw new HttpsError(
         "resource-exhausted",
-        "The daily amenity refresh budget is exhausted."
+        "The daily amenity refresh budget is exhausted.",
       );
     }
     transaction.set(
@@ -554,7 +550,7 @@ async function consumeOverpassQueryBudget(
         bytes,
         updated_at: date,
       },
-      { merge: true }
+      { merge: true },
     );
   });
 }
@@ -562,7 +558,7 @@ async function consumeOverpassQueryBudget(
 async function recordOverpassResponseBytes(
   firestore: FirebaseFirestore.Firestore,
   date: Date,
-  responseBytes: number
+  responseBytes: number,
 ): Promise<void> {
   const usageRef = firestore
     .collection(OSM_OVERPASS_USAGE_COLLECTION)
@@ -576,36 +572,35 @@ async function recordOverpassResponseBytes(
         bytes: bytes + responseBytes,
         updated_at: date,
       },
-      { merge: true }
+      { merge: true },
     );
   });
 }
 
 async function waitForColdCacheFill(
   cacheRef: FirebaseFirestore.DocumentReference,
-  startedAtMs: number
+  startedAtMs: number,
 ): Promise<OsmAmenityTileResponse> {
   while (Date.now() - startedAtMs < OSM_COLD_WAIT_MS) {
     await delay(500 + Math.floor(Math.random() * 250));
     const snapshot = await cacheRef.get();
     const cache = inspectCacheDocument(snapshot.data(), Date.now());
     if (cache.fresh && cache.document) {
-      logger.info("OSM amenity cache result", { cacheStatus: "cold-race-fill" });
+      logger.info("OSM amenity cache result", {
+        cacheStatus: "cold-race-fill",
+      });
       return cacheDocumentToResponse(cache.document, false);
     }
     if (cache.retryAfterMs && cache.retryAfterMs > Date.now()) {
       throw unavailableDuringBackoff(cache.retryAfterMs, Date.now());
     }
   }
-  throw new HttpsError(
-    "unavailable",
-    "Amenity data is still being refreshed."
-  );
+  throw new HttpsError("unavailable", "Amenity data is still being refreshed.");
 }
 
 function cacheDocumentToResponse(
   document: OsmAmenityCacheDocument,
-  stale: boolean
+  stale: boolean,
 ): OsmAmenityTileResponse {
   const fetchedAtMs = timestampToMillis(document.fetched_at);
   if (fetchedAtMs === undefined || !document.amenities) {
@@ -623,7 +618,9 @@ function cacheDocumentToResponse(
   };
 }
 
-function normalizeOverpassElement(value: unknown): OsmAmenityRecord | undefined {
+function normalizeOverpassElement(
+  value: unknown,
+): OsmAmenityRecord | undefined {
   if (!isRecord(value)) return undefined;
   const element = value as OverpassElement;
   if (
@@ -665,12 +662,14 @@ function normalizeOverpassElement(value: unknown): OsmAmenityRecord | undefined 
 
 function unavailableDuringBackoff(
   retryAfterMs: number,
-  nowMs: number
+  nowMs: number,
 ): HttpsError {
   return new HttpsError(
     "unavailable",
     "Amenity data is temporarily unavailable.",
-    { retryAfterSeconds: Math.max(1, Math.ceil((retryAfterMs - nowMs) / 1000)) }
+    {
+      retryAfterSeconds: Math.max(1, Math.ceil((retryAfterMs - nowMs) / 1000)),
+    },
   );
 }
 
@@ -705,7 +704,7 @@ function yesNo(value: unknown): "yes" | "no" | undefined {
 function yesNoProperty(
   source: Record<string, unknown>,
   sourceKey: string,
-  targetKey: "fee"
+  targetKey: "fee",
 ): Pick<OsmAmenityRecord, "fee"> | Record<string, never> {
   const value = yesNo(source[sourceKey]);
   return value ? { [targetKey]: value } : {};
@@ -716,7 +715,7 @@ function stringProperty<
 >(
   source: Record<string, unknown>,
   sourceKey: string,
-  targetKey: TKey
+  targetKey: TKey,
 ): Pick<OsmAmenityRecord, TKey> | Record<string, never> {
   const value = source[sourceKey];
   return typeof value === "string" && value.trim()

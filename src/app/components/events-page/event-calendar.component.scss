@@ -112,8 +112,8 @@
 }
 
 .compact-calendar {
-  max-width: 680px;
-  margin-inline: auto;
+  width: 100%;
+  box-sizing: border-box;
   padding: 0.5rem;
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 18px;

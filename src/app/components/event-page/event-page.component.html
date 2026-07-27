@@ -80,7 +80,10 @@
       @if (!event.published) {
         <app-event-draft-notice></app-event-draft-notice>
       } @else if (event.visibility !== "public") {
-        <aside class="event-visibility-notice" [attr.data-visibility]="event.visibility">
+        <aside
+          class="event-visibility-notice"
+          [attr.data-visibility]="event.visibility"
+        >
           <span class="event-visibility-notice__icon" aria-hidden="true">
             <mat-icon>
               {{ event.visibility === "private" ? "lock" : "visibility_off" }}
@@ -88,7 +91,10 @@
           </span>
           <div>
             @if (event.visibility === "private") {
-              <strong class="mat-title-medium" i18n="@@event_private.notice_title">
+              <strong
+                class="mat-title-medium"
+                i18n="@@event_private.notice_title"
+              >
                 Private event
               </strong>
               <p class="mat-body-medium m-0" i18n="@@event_private.notice_body">
@@ -96,10 +102,16 @@
                 this event.
               </p>
             } @else {
-              <strong class="mat-title-medium" i18n="@@event_unlisted.notice_title">
+              <strong
+                class="mat-title-medium"
+                i18n="@@event_unlisted.notice_title"
+              >
                 Unlisted event
               </strong>
-              <p class="mat-body-medium m-0" i18n="@@event_unlisted.notice_body">
+              <p
+                class="mat-body-medium m-0"
+                i18n="@@event_unlisted.notice_body"
+              >
                 Anyone with the link can open it, but it does not appear in
                 discovery.
               </p>
@@ -120,7 +132,8 @@
                 <span
                   class="mat-body-medium muted"
                   i18n="@@event_info.organized_by"
-                >Organized by</span>
+                  >Organized by</span
+                >
                 @if (organizer(); as organization) {
                   <app-organization-button
                     [organization]="organization"
@@ -300,7 +313,10 @@
             <mat-icon>diversity_3</mat-icon>
           </div>
           <div class="featured-participant-grid">
-            @for (participant of featuredParticipants(); track participant.name + participant.role) {
+            @for (
+              participant of featuredParticipants();
+              track participant.name + participant.role
+            ) {
               <article class="featured-participant app-card">
                 @if (featuredParticipantImageSrc(participant); as imageSrc) {
                   <img
@@ -309,7 +325,10 @@
                     [alt]="participant.name"
                   />
                 } @else {
-                  <div class="featured-participant-placeholder" aria-hidden="true">
+                  <div
+                    class="featured-participant-placeholder"
+                    aria-hidden="true"
+                  >
                     <mat-icon>
                       {{ participant.type === "group" ? "groups" : "person" }}
                     </mat-icon>
@@ -394,7 +413,7 @@
               <a
                 matFab
                 color="primary"
-                style="position: absolute; right: 16px; bottom: 30px"
+                style="position: absolute; right: 16px; bottom: 32px"
                 [routerLink]="mapRoute()"
               >
                 <mat-icon>open_in_full</mat-icon>
@@ -734,7 +753,8 @@
         mat-stroked-button
         routerLink="/events"
         i18n="@@event_page.load_failed_back"
-      >Back to all events</a>
+        >Back to all events</a
+      >
     } @else {
       <mat-progress-spinner
         mode="indeterminate"

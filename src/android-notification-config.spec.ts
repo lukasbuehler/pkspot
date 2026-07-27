@@ -5,6 +5,15 @@ import { describe, expect, it } from "vitest";
 const readSource = (path: string): string =>
   readFileSync(resolve(path), "utf8");
 
+const notificationIconSizes = [
+  ["ldpi", 18],
+  ["mdpi", 24],
+  ["hdpi", 36],
+  ["xhdpi", 48],
+  ["xxhdpi", 72],
+  ["xxxhdpi", 96],
+] as const;
+
 describe("Android notification configuration", () => {
   it("creates semantic channels before a background FCM delivery", () => {
     const manifest = readSource("android/app/src/main/AndroidManifest.xml");
@@ -22,17 +31,23 @@ describe("Android notification configuration", () => {
     expect(channels).toContain('"fcm_fallback_notification_channel"');
   });
 
-  it("uses the full-canvas monochrome status-bar icon", () => {
+  it("uses the density-specific monochrome PK Spot icon", () => {
     const manifest = readSource("android/app/src/main/AndroidManifest.xml");
-    const icon = readSource(
-      "android/app/src/main/res/drawable/ic_stat_pkspot_full.xml",
-    );
 
     expect(manifest).toContain(
-      'android:resource="@drawable/ic_stat_pkspot_full"',
+      'android:resource="@drawable/ic_stat_pkspot"',
     );
-    expect(icon).toContain('android:width="24dp"');
-    expect(icon).toContain('android:height="24dp"');
-    expect(icon).toContain('android:fillType="evenOdd"');
+
+    for (const [density, expectedSize] of notificationIconSizes) {
+      const icon = readFileSync(
+        resolve(
+          `android/app/src/main/res/drawable-${density}/ic_stat_pkspot.png`,
+        ),
+      );
+
+      expect(icon.subarray(1, 4).toString("ascii")).toBe("PNG");
+      expect(icon.readUInt32BE(16)).toBe(expectedSize);
+      expect(icon.readUInt32BE(20)).toBe(expectedSize);
+    }
   });
 });
