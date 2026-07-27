@@ -78,6 +78,12 @@
         <target>Community card suggestion submitted for review</target>
       </segment>
     </unit>
+    <unit id="3761999029709114314">
+      <segment state="initial">
+        <source> Adult verification is not required for browsing the map, saving or visiting Spots, or ordinary participation. A platform may still require restrictions for a child account or pending parental consent. </source>
+        <target> Verificatie van volwassenheid is niet vereist om de kaart te bekijken, Spots op te slaan of te bezoeken, of normaal deel te nemen. Een platform kan nog steeds beperkingen opleggen voor een kinderaccount of zolang ouderlijke toestemming ontbreekt. </target>
+      </segment>
+    </unit>
     <unit id="3762050401268226469">
       <segment state="initial">
         <source>Unknown Action</source>
@@ -176,10 +182,10 @@
         <target> Beschrijving </target>
       </segment>
     </unit>
-    <unit id="8136594844887777371">
+    <unit id="9030193572678348373">
       <segment state="initial">
-        <source> Include this profile in PK Spot user search and public sitemaps. This is always off for children and profiles without confirmed adult eligibility. </source>
-        <target> Neem dit profiel op in de gebruikerszoekfunctie van PK Spot en openbare sitemaps. Dit staat altijd uit voor kinderen en profielen zonder bevestigde volwassen status. </target>
+        <source> Include this profile in PK Spot user search and public sitemaps. This is always off for children and profiles without independently checked adult eligibility. </source>
+        <target> Neem dit profiel op in de gebruikerszoekfunctie van PK Spot en openbare sitemaps. Dit staat altijd uit voor kinderen en profielen zonder onafhankelijk geverifieerde volwassen status. </target>
       </segment>
     </unit>
     <unit id="1779696877741891389">
@@ -406,6 +412,12 @@
       <segment state="initial">
         <source>Failed to release media</source>
         <target>Media publiceren mislukt</target>
+      </segment>
+    </unit>
+    <unit id="4927421686251357457">
+      <segment state="initial">
+        <source>A self-declared age range is stored, but it does not unlock a public profile.</source>
+        <target>Er is een zelf opgegeven leeftijdscategorie opgeslagen, maar die ontgrendelt geen openbaar profiel.</target>
       </segment>
     </unit>
     <unit id="4930506384627295710">
@@ -780,6 +792,12 @@
       <segment state="initial">
         <source>Change password</source>
         <target>Wachtwoord wijzigen</target>
+      </segment>
+    </unit>
+    <unit id="1327134574485464733">
+      <segment state="initial">
+        <source> Adult eligibility for public profiles </source>
+        <target> Volwassenstatus voor openbare profielen </target>
       </segment>
     </unit>
     <unit id="1330427292857858931">
@@ -2635,6 +2653,12 @@
       <segment state="initial">
         <source>You need to agree to the terms and conditions!</source>
         <target>Je moet akkoord gaan met de voorwaarden!</target>
+      </segment>
+    </unit>
+    <unit id="195061258653092358">
+      <segment state="initial">
+        <source> PK Spot stores an age band, a broad evidence category and the resulting eligibility—not an exact birth date, identity document, bank account or card number. Self-declared age alone does not unlock a public profile. </source>
+        <target> PK Spot bewaart een leeftijdscategorie, een brede bewijscategorie en de daaruit volgende geschiktheid, niet een exacte geboortedatum, identiteitsdocument, bankrekening of kaartnummer. Alleen een zelf opgegeven leeftijd ontgrendelt geen openbaar profiel. </target>
       </segment>
     </unit>
     <unit id="1956203249004073114">
@@ -4908,6 +4932,12 @@
       <segment state="initial">
         <source>Failed to load quarantined media</source>
         <target>Media in quarantaine konden niet worden geladen</target>
+      </segment>
+    </unit>
+    <unit id="9196303788113228123">
+      <segment state="initial">
+        <source> Public and search-indexed profiles stay disabled until the platform supplies an independently checked result establishing that this account is 18 or older. A self-declared age range is not enough. </source>
+        <target> Openbare en door zoekmachines geïndexeerde profielen blijven uitgeschakeld totdat het platform een onafhankelijk gecontroleerd resultaat levert waaruit blijkt dat dit account 18 jaar of ouder is. Een zelf opgegeven leeftijdscategorie is niet voldoende. </target>
       </segment>
     </unit>
     <unit id="9197546864520867301">
@@ -8406,6 +8436,12 @@
         <target>Pionier</target>
       </segment>
     </unit>
+    <unit id="4322032387603367651">
+      <segment state="initial">
+        <source>Public identity needs a higher bar</source>
+        <target>Een openbare identiteit vereist sterker bewijs</target>
+      </segment>
+    </unit>
     <unit id="4323470180912194028">
       <segment state="initial">
         <source>Copy</source>
@@ -9456,6 +9492,12 @@
         <target>Voer een geldig e-mailadres in.</target>
       </segment>
     </unit>
+    <unit id="2447699454820524710">
+      <segment state="initial">
+        <source>The available evidence does not currently establish 18+ eligibility.</source>
+        <target>Het beschikbare bewijs toont momenteel geen geschiktheid van 18 jaar of ouder aan.</target>
+      </segment>
+    </unit>
     <unit id="2472016265373616532">
       <segment state="initial">
         <source>Open Data License</source>
@@ -9504,10 +9546,10 @@
         <target>Even geduld terwijl we je e-mailadres verifiëren...</target>
       </segment>
     </unit>
-    <unit id="5915302856026344080">
+    <unit id="8178668155024622772">
       <segment state="initial">
-        <source> Let signed-out visitors view your expanded profile. This requires a confirmed adult age range, a public account, and public profile visibility. </source>
-        <target> Laat afgemelde bezoekers je uitgebreide profiel bekijken. Dit vereist een bevestigde leeftijd van ten minste 18 jaar, een openbaar account en openbare profielzichtbaarheid. </target>
+        <source> Let signed-out visitors view your expanded profile. This requires an independently checked 18+ result, a public account, and public profile visibility. </source>
+        <target> Laat afgemelde bezoekers je uitgebreide profiel bekijken. Dit vereist een onafhankelijk gecontroleerd resultaat van 18 jaar of ouder, een openbaar account en openbare profielzichtbaarheid. </target>
       </segment>
     </unit>
     <unit id="5957587063470298128">
@@ -9550,6 +9592,12 @@
       <segment state="initial">
         <source>Media</source>
         <target>Mediabestanden</target>
+      </segment>
+    </unit>
+    <unit id="2105357816937468069">
+      <segment state="initial">
+        <source>Independently checked 18+ eligibility is available.</source>
+        <target>Er is een onafhankelijk gecontroleerde geschiktheid van 18 jaar of ouder beschikbaar.</target>
       </segment>
     </unit>
     <unit id="2114926278043068343">
@@ -10093,6 +10141,12 @@
         <target>Laatste informatie van <ph id="0" equiv="INTERPOLATION" disp="{{ event().organizer?.organization?.name ?? event().name }}"/>.</target>
       </segment>
     </unit>
+    <unit id="8076818699210267066">
+      <segment state="initial">
+        <source>Browser access</source>
+        <target>Browsertoegang</target>
+      </segment>
+    </unit>
     <unit id="3368417786821334758">
       <segment state="initial">
         <source>Abort</source>
@@ -10375,6 +10429,12 @@
         <target><ph id="0" equiv="INTERPOLATION" disp="{{ pendingVoteCount() }}"/> bewerkingen wachten op stemming door de community.</target>
       </segment>
     </unit>
+    <unit id="5314253099893134125">
+      <segment state="initial">
+        <source>The platform reports a guardian-managed age range.</source>
+        <target>Het platform meldt een leeftijdscategorie die door een ouder of voogd wordt beheerd.</target>
+      </segment>
+    </unit>
     <unit id="5320512330509370228">
       <segment state="initial">
         <source>Follow request approved</source>
@@ -10533,6 +10593,12 @@
       <segment state="initial">
         <source>Cannot share a spot that hasn&apos;t been saved yet</source>
         <target>Kan geen Spot delen die nog niet is opgeslagen</target>
+      </segment>
+    </unit>
+    <unit id="5601530442010506564">
+      <segment state="initial">
+        <source>Got it</source>
+        <target>Begrepen</target>
       </segment>
     </unit>
     <unit id="5604123151232836009">
@@ -11006,6 +11072,12 @@
         <target>PK Spot-gebruiker</target>
       </segment>
     </unit>
+    <unit id="2356800114048092419">
+      <segment state="initial">
+        <source> A public profile can expose a picture, city, biography and links to anyone—including search engines. PK Spot keeps that profile private unless an age provider returns an independently checked 18+ result. </source>
+        <target> Een openbaar profiel kan een foto, woonplaats, biografie en links aan iedereen tonen, ook aan zoekmachines. PK Spot houdt dat profiel privé totdat een leeftijdsprovider een onafhankelijk gecontroleerd resultaat van 18 jaar of ouder terugstuurt. </target>
+      </segment>
+    </unit>
     <unit id="2361381507645842011">
       <notes>
         <note category="description">Button to open the spot in Google Maps</note>
@@ -11208,6 +11280,12 @@
         <target>De reset-e-mail is verzonden!</target>
       </segment>
     </unit>
+    <unit id="8815195480875913498">
+      <segment state="initial">
+        <source>Core features remain available</source>
+        <target>Kernfuncties blijven beschikbaar</target>
+      </segment>
+    </unit>
     <unit id="8822206448271061589">
       <segment state="initial">
         <source>Indoor</source>
@@ -11352,6 +11430,12 @@
         <target>Voer je e-mailadres in</target>
       </segment>
     </unit>
+    <unit id="8552470530989442343">
+      <segment state="initial">
+        <source> Browser-only accounts can use the core service. For now, public-profile eligibility must be established through a supported mobile platform. Additional privacy-preserving verification choices may be added later. </source>
+        <target> Accounts die alleen de browser gebruiken, kunnen de kerndienst gebruiken. Voorlopig moet geschiktheid voor een openbaar profiel via een ondersteund mobiel platform worden vastgesteld. Later kunnen aanvullende privacyvriendelijke verificatieopties worden toegevoegd. </target>
+      </segment>
+    </unit>
     <unit id="8574418528664928574">
       <segment state="initial">
         <source>Request origin</source>
@@ -11368,6 +11452,12 @@
       <segment state="initial">
         <source>Previous month</source>
         <target>Vorige maand</target>
+      </segment>
+    </unit>
+    <unit id="8597165761170214938">
+      <segment state="initial">
+        <source>Why PK Spot checks adult eligibility</source>
+        <target>Waarom PK Spot de volwassenstatus controleert</target>
       </segment>
     </unit>
     <unit id="8381431851391440518">
@@ -11732,6 +11822,12 @@
         <target>Deze upload is gemarkeerd of de automatische scan is mislukt en kan schokkend zijn. Tonen voor handmatige moderatie?</target>
       </segment>
     </unit>
+    <unit id="7164688894418358201">
+      <segment state="initial">
+        <source>What PK Spot receives</source>
+        <target>Wat PK Spot ontvangt</target>
+      </segment>
+    </unit>
     <unit id="7177325135014632430">
       <segment state="initial">
         <source>Event series</source>
@@ -12000,12 +12096,6 @@
       <segment state="initial">
         <source> Built on <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-secondary marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">open</pc> ground. </source>
         <target> Gebouwd op <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-secondary marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">open</pc> grond. </target>
-      </segment>
-    </unit>
-    <unit id="4007945735402502692">
-      <segment state="initial">
-        <source> Public and search-indexed profiles stay disabled until the platform supplies an age range confirming that this account is 18 or older. </source>
-        <target> Openbare en geïndexeerde profielen blijven uitgeschakeld totdat het platform een leeftijdsbereik ontvangt dat bevestigt dat dit account minstens 18 jaar oud is. </target>
       </segment>
     </unit>
     <unit id="4020018249666121252">
@@ -12534,6 +12624,12 @@
       <segment state="initial">
         <source>Submission IP</source>
         <target>IP-adres van indiening</target>
+      </segment>
+    </unit>
+    <unit id="2729409271468219014">
+      <segment state="initial">
+        <source>No independently checked 18+ result is stored.</source>
+        <target>Er is geen onafhankelijk gecontroleerd resultaat van 18 jaar of ouder opgeslagen.</target>
       </segment>
     </unit>
     <unit id="2729703763662350648">

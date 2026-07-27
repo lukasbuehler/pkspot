@@ -109,8 +109,8 @@ user's authoritative `users/{uid}` document.
 - [ ] As an authenticated administrator, invoke
       `backfillPublicUserProfiles` with `{ "dry_run": true }`. Review
       `users_scanned`, `public_profiles`, and `stale_profiles`; an existing
-      account must not be projected without confirmed adult age and explicit
-      public-profile consent.
+      account must not be projected without independently checked adult
+      eligibility and explicit public-profile consent.
 - [ ] Invoke `backfillPublicUserProfiles` with `{ "dry_run": false }`. Verify
       `maintenance/user-profile-projection.completed == true`, inspect the
       projected count, and sample every projected profile if the count remains
@@ -130,6 +130,53 @@ user's authoritative `users/{uid}` document.
 - [ ] Deploy the sitemap Functions and regenerate the sitemap. Confirm only
       `public_user_profiles` with `public_search == true` produce `/u/` URLs.
 
+### Age assurance v2 and Android Age Signals 0.0.4
+
+The backend and rules must precede the client. Existing clients continue using
+the legacy callable; they cannot establish public-profile eligibility.
+
+- [ ] Deploy the additive App Check-protected age policy callable:
+
+  ```sh
+  npm --prefix functions run build
+  npx firebase deploy --project prod --only functions:updateAgePolicyV2
+  ```
+
+  Success condition: the function is in `europe-west1`, an authenticated
+  request without a valid App Check token is rejected, and existing clients are
+  unaffected.
+- [ ] In Firebase App Check, confirm the production Android app uses Play
+      Integrity and the production iOS app uses App Attest. Review metrics for
+      invalid and unknown requests before the client release. App Check attests
+      the app/device but does not cryptographically bind the relayed age-signal
+      payload; keep that limitation in the stored assurance record.
+- [ ] Deploy the profile projection Functions and updated Firestore rules before
+      the client:
+
+  ```sh
+  npm --prefix functions run build
+  npx firebase deploy --project prod --only functions:getUserProfile,functions:syncPublicUserProfileOnWrite,functions:backfillPublicUserProfiles,firestore:rules
+  ```
+
+  Success condition: a self-declared 18+ policy cannot enable or project a
+  public profile, while a server-derived independently checked 18+ policy can
+  do so only with the user's explicit public-profile opt-in.
+- [ ] Release the client containing Android Play Age Signals `0.0.4`, the
+      two-step access request, evidence-strength sync, and the updated account
+      settings explanation. Do not infer this release from the backend deploy.
+- [ ] Verify production with representative test accounts: optional age sharing
+      declined still permits core participation; a mandatory unresolved signal
+      restricts participation; Tier A does not unlock a public profile; and an
+      18+ Tier C or D result does.
+- [ ] Monitor `updateAgePolicyV2` App Check failures, signal outcomes, and public
+      profile projection changes. Keep `updateAgePolicy` for supported legacy
+      clients, then remove it only after adoption confirms it is unused.
+- [ ] Before adding browser age-assurance providers, require a signed or
+      backend-to-backend provider result rather than accepting a client-asserted
+      outcome. Record only the threshold result, provider/method category,
+      assurance strength, timestamps, and audit reference needed for the
+      assessment.
+
 ### Online-safety operational readiness
 
 - [x] Deploy the backward-compatible incident runbook Functions before a client
@@ -143,7 +190,10 @@ user's authoritative `users/{uid}` document.
   Completed 27 July 2026. Both Functions deployed successfully.
 - [ ] Verify in production that an administrator can still update a legacy
       incident that does not yet have runbook fields.
-- [ ] Register the legal entity and nominated organisation administrator for
+- [ ] Obtain written UK advice on whether the Swiss-operated service currently
+      meets the outside-UK nexus for the CSEA reporting duty and identify the
+      present service provider. If it is in scope and does not already report to
+      NCMEC, register that provider and nominated organisation administrator for
       the NCA Child Sexual Exploitation and Abuse Industry Reporting Portal.
       Record the registration owner and a backup operator outside the app.
 - [ ] Complete and retain the written UK children’s access assessment, illegal
@@ -161,6 +211,34 @@ user's authoritative `users/{uid}` document.
 - [ ] Schedule at least annual assessment review and an assessment before any
       significant service change, including messaging, comments, challenges,
       recommendations, public user search, or a material expansion of UK use.
+
+### Media quarantine crossover
+
+Run this operation after the compatible media-moderation Functions and Storage
+rules are deployed. It processes objects that reached `media_intake` before the
+live Storage trigger handled them. Allowed media is published and removed from
+quarantine; flagged or failed media remains quarantined for administrator
+review.
+
+- [ ] Confirm `processMediaIntake` and `runMediaIntakeBackfill` are deployed,
+      direct writes to public media paths remain disabled in `storage.rules`,
+      and a new test upload completes through the quarantine path.
+- [ ] Create the Firestore trigger document
+      `maintenance/run-process-media-intake-backfill`. Use a small positive
+      numeric `limit` for the first production pass; omit `limit` only after
+      that pass has completed successfully.
+- [ ] Wait for the trigger document to be deleted, then inspect
+      `maintenance/last-media-intake-backfill`. Record its `completedAt` and the
+      `scanned`, `approved`, `blocked`, `needs_review`, `scan_failed`, and
+      `skipped` counts.
+- [ ] Verify a sample of `approved` objects exists at its published path and no
+      longer exists under `media_intake`. Review every `blocked`,
+      `needs_review`, and `scan_failed` item in the moderation console; do not
+      delete retained evidence or manually release a reportable match.
+- [ ] Repeat the backfill without `limit` to catch remaining unprocessed
+      objects. Final-status reviews are intentionally counted as `skipped`, so
+      completion means there are no unexplained intake objects or unresolved
+      `scan_failed` reviews—not that the quarantine prefix is empty.
 
 ### Retire the `de-CH` app locale
 

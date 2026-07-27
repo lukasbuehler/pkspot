@@ -4,11 +4,10 @@ import { Capacitor, registerPlugin } from "@capacitor/core";
 import { PLATFORM_ID } from "@angular/core";
 import {
   AgeParticipationState,
-  UserAgePolicySchema,
+  AgeEvidenceStrength,
 } from "../../db/schemas/UserSchema";
 import {
   PlatformAgeSignal,
-  buildAgePolicyFromSignal,
   isAgeParticipationAllowed,
 } from "./age-policy";
 import { AuthenticationService } from "./firebase/authentication.service";
@@ -20,12 +19,14 @@ type AgeAssurancePlugin = {
 };
 
 type UpdateAgePolicyRequest = {
-  policy: UserAgePolicySchema;
-  signal?: Record<string, unknown>;
+  signal: Record<string, unknown>;
 };
 
 type UpdateAgePolicyResponse = {
   ok: true;
+  participation_state: AgeParticipationState;
+  adult_eligibility: "verified" | "not_verified";
+  evidence_strength: AgeEvidenceStrength;
 };
 
 const NativeAgeAssurance = registerPlugin<AgeAssurancePlugin>("AgeAssurance");
@@ -56,10 +57,8 @@ export class AgeAssuranceService {
     try {
       const signal = await NativeAgeAssurance.getAgeSignal();
       console.log("[AgeAssurance] Native age signal", signal);
-      const policy = buildAgePolicyFromSignal(signal);
 
       await this._syncAgePolicy({
-        policy,
         signal: this._sanitizeSignalForFunction(signal),
       });
       this._lastSyncedUid = uid;
@@ -71,10 +70,10 @@ export class AgeAssuranceService {
   }
 
   private async _syncAgePolicy(payload: UpdateAgePolicyRequest): Promise<void> {
-    await this._functionsAdapter.call<
+    await this._functionsAdapter.callAuthenticatedAppChecked<
       UpdateAgePolicyRequest,
       UpdateAgePolicyResponse
-    >("updateAgePolicy", payload);
+    >("updateAgePolicyV2", payload);
   }
 
   canParticipatePublicly(): boolean {
@@ -88,10 +87,18 @@ export class AgeAssuranceService {
     return isAgeParticipationAllowed(state);
   }
 
-  hasConfirmedAdultAge(): boolean {
-    const lower =
-      this._authService.user.data?.data?.age_policy?.age_range?.lower;
-    return typeof lower === "number" && lower >= 18;
+  hasVerifiedAdultEligibility(): boolean {
+    return (
+      this._authService.user.data?.data?.age_policy?.adult_eligibility ===
+      "verified"
+    );
+  }
+
+  adultEvidenceStrength(): AgeEvidenceStrength {
+    return (
+      this._authService.user.data?.data?.age_policy?.assurance
+        ?.evidence_strength ?? "unknown"
+    );
   }
 
   getRestrictionMessage(): string {
@@ -114,6 +121,10 @@ export class AgeAssuranceService {
       ageUpper: signal.ageUpper,
       isEligibleForAgeFeatures: signal.isEligibleForAgeFeatures,
       response: signal.response,
+      ageSignalsStatus: signal.ageSignalsStatus,
+      ageRangeSource: signal.ageRangeSource,
+      ageRangeDeclaration: signal.ageRangeDeclaration,
+      significantChangeStatus: signal.significantChangeStatus,
       requiredRegulatoryFeatures: signal.requiredRegulatoryFeatures,
       errorCode: signal.errorCode,
     };

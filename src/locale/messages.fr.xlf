@@ -1,5 +1,11 @@
 <xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en" trgLang="fr">
   <file id="ngi18n" original="ng.template">
+    <unit id="3761999029709114314">
+      <segment state="initial">
+        <source> Adult verification is not required for browsing the map, saving or visiting Spots, or ordinary participation. A platform may still require restrictions for a child account or pending parental consent. </source>
+        <target> La vérification de la majorité n’est pas requise pour parcourir la carte, enregistrer ou visiter des Spots, ni pour participer normalement. Une plateforme peut néanmoins imposer des restrictions à un compte enfant ou dans l’attente d’un consentement parental. </target>
+      </segment>
+    </unit>
     <unit id="3762050401268226469">
       <segment state="initial">
         <source>Unknown Action</source>
@@ -98,10 +104,10 @@
         <target> Descriptif </target>
       </segment>
     </unit>
-    <unit id="8136594844887777371">
+    <unit id="9030193572678348373">
       <segment state="initial">
-        <source> Include this profile in PK Spot user search and public sitemaps. This is always off for children and profiles without confirmed adult eligibility. </source>
-        <target> Incluez ce profil dans la recherche d’utilisateurs de PK Spot et les sitemaps publiques. Cette option reste désactivée pour les enfants et les profils sans majorité confirmée. </target>
+        <source> Include this profile in PK Spot user search and public sitemaps. This is always off for children and profiles without independently checked adult eligibility. </source>
+        <target> Incluez ce profil dans la recherche d’utilisateurs de PK Spot et les sitemaps publiques. Cette option reste désactivée pour les enfants et les profils sans majorité vérifiée de façon indépendante. </target>
       </segment>
     </unit>
     <unit id="1779696877741891389">
@@ -328,6 +334,12 @@
       <segment state="initial">
         <source>Failed to release media</source>
         <target>Échec de la publication du média</target>
+      </segment>
+    </unit>
+    <unit id="4927421686251357457">
+      <segment state="initial">
+        <source>A self-declared age range is stored, but it does not unlock a public profile.</source>
+        <target>Une tranche d’âge autodéclarée est enregistrée, mais elle ne débloque pas de profil public.</target>
       </segment>
     </unit>
     <unit id="4930506384627295710">
@@ -702,6 +714,12 @@
       <segment state="initial">
         <source>Change password</source>
         <target>Changer de mot de passe</target>
+      </segment>
+    </unit>
+    <unit id="1327134574485464733">
+      <segment state="initial">
+        <source> Adult eligibility for public profiles </source>
+        <target> Éligibilité des adultes aux profils publics </target>
       </segment>
     </unit>
     <unit id="1330427292857858931">
@@ -2521,6 +2539,12 @@
       <segment state="initial">
         <source>You need to agree to the terms and conditions!</source>
         <target>Vous devez accepter les conditions d’utilisation !</target>
+      </segment>
+    </unit>
+    <unit id="195061258653092358">
+      <segment state="initial">
+        <source> PK Spot stores an age band, a broad evidence category and the resulting eligibility—not an exact birth date, identity document, bank account or card number. Self-declared age alone does not unlock a public profile. </source>
+        <target> PK Spot enregistre une tranche d’âge, une catégorie générale de preuve et l’éligibilité qui en résulte — pas une date de naissance exacte, une pièce d’identité, un compte bancaire ou un numéro de carte. L’âge autodéclaré ne suffit pas à débloquer un profil public. </target>
       </segment>
     </unit>
     <unit id="1956203249004073114">
@@ -4776,6 +4800,12 @@
       <segment state="initial">
         <source>Failed to load quarantined media</source>
         <target>Impossible de charger le média en quarantaine</target>
+      </segment>
+    </unit>
+    <unit id="9196303788113228123">
+      <segment state="initial">
+        <source> Public and search-indexed profiles stay disabled until the platform supplies an independently checked result establishing that this account is 18 or older. A self-declared age range is not enough. </source>
+        <target> Les profils publics et indexés par les moteurs de recherche restent désactivés jusqu’à ce que la plateforme fournisse un résultat vérifié de façon indépendante établissant que ce compte a au moins 18 ans. Une tranche d’âge autodéclarée ne suffit pas. </target>
       </segment>
     </unit>
     <unit id="9197546864520867301">
@@ -8274,6 +8304,12 @@
         <target>Pionnier</target>
       </segment>
     </unit>
+    <unit id="4322032387603367651">
+      <segment state="initial">
+        <source>Public identity needs a higher bar</source>
+        <target>Une identité publique exige un niveau de preuve plus élevé</target>
+      </segment>
+    </unit>
     <unit id="4323470180912194028">
       <segment state="initial">
         <source>Copy</source>
@@ -9324,6 +9360,12 @@
         <target>Veuillez saisir une adresse e-mail valide.</target>
       </segment>
     </unit>
+    <unit id="2447699454820524710">
+      <segment state="initial">
+        <source>The available evidence does not currently establish 18+ eligibility.</source>
+        <target>La preuve disponible n’établit pas actuellement l’éligibilité à partir de 18 ans.</target>
+      </segment>
+    </unit>
     <unit id="2472016265373616532">
       <segment state="initial">
         <source>Open Data License</source>
@@ -9372,10 +9414,10 @@
         <target>Veuillez patienter pendant que nous vérifions votre adresse e-mail...</target>
       </segment>
     </unit>
-    <unit id="5915302856026344080">
+    <unit id="8178668155024622772">
       <segment state="initial">
-        <source> Let signed-out visitors view your expanded profile. This requires a confirmed adult age range, a public account, and public profile visibility. </source>
-        <target> Autorisez les visiteurs déconnectés à voir votre profil étendu. Une tranche d’âge confirmant au moins 18 ans, un compte public et une visibilité publique du profil sont requis. </target>
+        <source> Let signed-out visitors view your expanded profile. This requires an independently checked 18+ result, a public account, and public profile visibility. </source>
+        <target> Autorisez les visiteurs déconnectés à voir votre profil étendu. Un résultat 18+ vérifié de façon indépendante, un compte public et une visibilité publique du profil sont requis. </target>
       </segment>
     </unit>
     <unit id="5957587063470298128">
@@ -9418,6 +9460,12 @@
       <segment state="initial">
         <source>Media</source>
         <target>Médias</target>
+      </segment>
+    </unit>
+    <unit id="2105357816937468069">
+      <segment state="initial">
+        <source>Independently checked 18+ eligibility is available.</source>
+        <target>Une éligibilité 18+ vérifiée de façon indépendante est disponible.</target>
       </segment>
     </unit>
     <unit id="2114926278043068343">
@@ -9919,6 +9967,12 @@
         <target>Dernières informations de <ph id="0" equiv="INTERPOLATION" disp="{{ event().organizer?.organization?.name ?? event().name }}"/>.</target>
       </segment>
     </unit>
+    <unit id="8076818699210267066">
+      <segment state="initial">
+        <source>Browser access</source>
+        <target>Accès par navigateur</target>
+      </segment>
+    </unit>
     <unit id="3368417786821334758">
       <segment state="initial">
         <source>Abort</source>
@@ -10201,6 +10255,12 @@
         <target><ph id="0" equiv="INTERPOLATION" disp="{{ pendingVoteCount() }}"/> modifications attendent le vote de la communauté.</target>
       </segment>
     </unit>
+    <unit id="5314253099893134125">
+      <segment state="initial">
+        <source>The platform reports a guardian-managed age range.</source>
+        <target>La plateforme signale une tranche d’âge gérée par un responsable légal.</target>
+      </segment>
+    </unit>
     <unit id="5320512330509370228">
       <segment state="initial">
         <source>Follow request approved</source>
@@ -10359,6 +10419,12 @@
       <segment state="initial">
         <source>Cannot share a spot that hasn&apos;t been saved yet</source>
         <target>Impossible de partager un Spot qui n&apos;a pas encore été enregistré</target>
+      </segment>
+    </unit>
+    <unit id="5601530442010506564">
+      <segment state="initial">
+        <source>Got it</source>
+        <target>Compris</target>
       </segment>
     </unit>
     <unit id="5604123151232836009">
@@ -10793,6 +10859,12 @@
         <target>Utilisateur PK Spot</target>
       </segment>
     </unit>
+    <unit id="2356800114048092419">
+      <segment state="initial">
+        <source> A public profile can expose a picture, city, biography and links to anyone—including search engines. PK Spot keeps that profile private unless an age provider returns an independently checked 18+ result. </source>
+        <target> Un profil public peut exposer une photo, une ville, une biographie et des liens à tout le monde, y compris aux moteurs de recherche. PK Spot garde ce profil privé tant qu’un fournisseur d’âge ne renvoie pas un résultat 18+ vérifié de façon indépendante. </target>
+      </segment>
+    </unit>
     <unit id="2361381507645842011">
       <notes>
         <note category="description">Button to open the spot in Google Maps</note>
@@ -10995,6 +11067,12 @@
         <target>L&apos;e-mail de réinitialisation a été envoyé !</target>
       </segment>
     </unit>
+    <unit id="8815195480875913498">
+      <segment state="initial">
+        <source>Core features remain available</source>
+        <target>Les fonctionnalités principales restent disponibles</target>
+      </segment>
+    </unit>
     <unit id="8822206448271061589">
       <segment state="initial">
         <source>Indoor</source>
@@ -11139,6 +11217,12 @@
         <target>Veuillez entrer votre adresse e-mail</target>
       </segment>
     </unit>
+    <unit id="8552470530989442343">
+      <segment state="initial">
+        <source> Browser-only accounts can use the core service. For now, public-profile eligibility must be established through a supported mobile platform. Additional privacy-preserving verification choices may be added later. </source>
+        <target> Les comptes utilisés uniquement dans un navigateur peuvent accéder au service principal. Pour le moment, l’éligibilité à un profil public doit être établie par une plateforme mobile prise en charge. D’autres méthodes de vérification respectueuses de la vie privée pourront être ajoutées ultérieurement. </target>
+      </segment>
+    </unit>
     <unit id="8574418528664928574">
       <segment state="initial">
         <source>Request origin</source>
@@ -11155,6 +11239,12 @@
       <segment state="initial">
         <source>Previous month</source>
         <target>Mois précédent</target>
+      </segment>
+    </unit>
+    <unit id="8597165761170214938">
+      <segment state="initial">
+        <source>Why PK Spot checks adult eligibility</source>
+        <target>Pourquoi PK Spot vérifie l’éligibilité des adultes</target>
       </segment>
     </unit>
     <unit id="8381431851391440518">
@@ -11519,6 +11609,12 @@
         <target>Ce téléversement a été signalé ou l’analyse automatisée a échoué et son contenu peut être choquant. L’afficher pour une modération manuelle ?</target>
       </segment>
     </unit>
+    <unit id="7164688894418358201">
+      <segment state="initial">
+        <source>What PK Spot receives</source>
+        <target>Ce que PK Spot reçoit</target>
+      </segment>
+    </unit>
     <unit id="7177325135014632430">
       <segment state="initial">
         <source>Event series</source>
@@ -11769,12 +11865,6 @@
       <segment state="initial">
         <source> Built on <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-secondary marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">open</pc> ground. </source>
         <target> Construit sur un terrain <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-secondary marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">ouvert</pc>. </target>
-      </segment>
-    </unit>
-    <unit id="4007945735402502692">
-      <segment state="initial">
-        <source> Public and search-indexed profiles stay disabled until the platform supplies an age range confirming that this account is 18 or older. </source>
-        <target> Les profils publics et indexés restent désactivés jusqu’à ce que la plateforme reçoive une tranche d’âge confirmant que ce compte a au moins 18 ans. </target>
       </segment>
     </unit>
     <unit id="4020018249666121252">
@@ -12534,6 +12624,12 @@
       <segment state="initial">
         <source>Submission IP</source>
         <target>Adresse IP de l&apos;envoi</target>
+      </segment>
+    </unit>
+    <unit id="2729409271468219014">
+      <segment state="initial">
+        <source>No independently checked 18+ result is stored.</source>
+        <target>Aucun résultat 18+ vérifié de façon indépendante n’est enregistré.</target>
       </segment>
     </unit>
     <unit id="2729703763662350648">

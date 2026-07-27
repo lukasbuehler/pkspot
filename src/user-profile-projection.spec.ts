@@ -8,7 +8,10 @@ import {
 } from "../functions/src/userProfileProjection";
 
 const adultPolicy = {
-  age_policy: { age_range: { lower: 18, upper: 24 } },
+  age_policy: {
+    age_range: { lower: 18, upper: 24 },
+    adult_eligibility: "verified",
+  },
 };
 
 describe("user profile projections", () => {
@@ -46,6 +49,21 @@ describe("user profile projections", () => {
     expect(effectivePublicProfileEnabled(user)).toBe(false);
     expect(profileAudienceForUser(user)).toBe("followers");
     expect(buildPublicUserProfile(user)).toBeNull();
+  });
+
+  it("does not publish a self-declared adult range", () => {
+    expect(
+      buildPublicUserProfile({
+        age_policy: {
+          age_range: { lower: 18 },
+          adult_eligibility: "not_verified",
+          assurance: { evidence_strength: "self_declared" },
+        },
+        account_privacy: "public",
+        profile_visibility: "public",
+        public_profile_enabled: true,
+      }),
+    ).toBeNull();
   });
 
   it("keeps confirmed minors owner-only even with stale public flags", () => {

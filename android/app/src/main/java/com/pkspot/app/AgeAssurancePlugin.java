@@ -9,7 +9,9 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.google.android.play.agesignals.AgeSignalsManager;
 import com.google.android.play.agesignals.AgeSignalsManagerFactory;
+import com.google.android.play.agesignals.AgeSignalsAccessRequest;
 import com.google.android.play.agesignals.AgeSignalsRequest;
+import com.google.android.play.agesignals.model.AgeSignalsStatus;
 
 @CapacitorPlugin(name = "AgeAssurance")
 public class AgeAssurancePlugin extends Plugin {
@@ -20,15 +22,35 @@ public class AgeAssurancePlugin extends Plugin {
     try {
       AgeSignalsManager ageSignalsManager = AgeSignalsManagerFactory.create(getContext());
       ageSignalsManager
-          .checkAgeSignals(AgeSignalsRequest.builder().build())
-          .addOnSuccessListener(ageSignalsResult -> {
-            JSObject result = AgeSignalsResponseMapper.fromResult(ageSignalsResult);
-            Log.d(TAG, "playAgeSignals: " + result);
-            call.resolve(result);
+          .requestAgeSignalsAccess(
+              AgeSignalsAccessRequest.builder()
+                  .setActivity(getActivity())
+                  .build())
+          .addOnSuccessListener(accessResult -> {
+            Integer status = accessResult.ageSignalsStatus();
+            if (status == null || status != AgeSignalsStatus.SHARED) {
+              JSObject result = AgeSignalsResponseMapper.fromAccessStatus(status);
+              Log.d(TAG, "playAgeSignalsAccess: " + result);
+              call.resolve(result);
+              return;
+            }
+
+            ageSignalsManager
+                .checkAgeSignals(AgeSignalsRequest.builder().build())
+                .addOnSuccessListener(ageSignalsResult -> {
+                  JSObject result = AgeSignalsResponseMapper.fromResult(ageSignalsResult);
+                  Log.d(TAG, "playAgeSignals: " + result);
+                  call.resolve(result);
+                })
+                .addOnFailureListener(error -> {
+                  JSObject result = AgeSignalsResponseMapper.fromUnavailable(error);
+                  Log.d(TAG, "playAgeSignals: failed " + result, error);
+                  call.resolve(result);
+                });
           })
           .addOnFailureListener(error -> {
             JSObject result = AgeSignalsResponseMapper.fromUnavailable(error);
-            Log.d(TAG, "playAgeSignals: failed " + result, error);
+            Log.d(TAG, "playAgeSignalsAccess: failed " + result, error);
             call.resolve(result);
           });
     } catch (Exception error) {

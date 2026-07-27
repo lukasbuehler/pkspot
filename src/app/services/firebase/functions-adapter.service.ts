@@ -6,6 +6,7 @@ import {
 } from "@angular/core";
 import { FirebaseApp } from "@angular/fire/app";
 import { Functions, httpsCallable } from "@angular/fire/functions";
+import { getAuth, getIdToken } from "@angular/fire/auth";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { environment } from "../../../environments/environment.default";
 import { PlatformService } from "../platform.service";
@@ -84,6 +85,24 @@ export class FunctionsAdapterService {
     });
   }
 
+  async callAuthenticatedAppChecked<TRequest, TResponse>(
+    functionName: string,
+    payload: TRequest,
+  ): Promise<TResponse> {
+    const [appCheckToken, authToken] = await Promise.all([
+      this.appCheckService.getTokenForRequest(),
+      this.getAuthenticationToken(),
+    ]);
+    if (!authToken) {
+      throw new Error("An authenticated Firebase user is required");
+    }
+
+    return this.callDirect<TRequest, TResponse>(functionName, payload, {
+      Authorization: `Bearer ${authToken}`,
+      "X-Firebase-AppCheck": appCheckToken,
+    });
+  }
+
   private async callSameOriginPublic<TRequest, TResponse>(
     functionName: string,
     payload: TRequest,
@@ -151,6 +170,15 @@ export class FunctionsAdapterService {
           : {}),
       },
     );
+  }
+
+  private async getAuthenticationToken(): Promise<string | undefined> {
+    if (this.platformService.isNative()) {
+      return (await FirebaseAuthentication.getIdToken()).token;
+    }
+
+    const user = getAuth(this.firebaseApp).currentUser;
+    return user ? getIdToken(user) : undefined;
   }
 
   private async callDirect<TRequest, TResponse>(

@@ -25,6 +25,13 @@ export type AgeParticipationState =
   | "age_signal_declined_required"
   | "platform_signal_unavailable";
 
+export type AgeEvidenceStrength =
+  | "unknown"
+  | "self_declared"
+  | "guardian_managed"
+  | "independently_checked"
+  | "verified_identity";
+
 export interface UserAgePolicySchema {
   participation_state?: AgeParticipationState;
   source?:
@@ -35,11 +42,35 @@ export interface UserAgePolicySchema {
   platform?: "android" | "ios" | "web";
   signal_updated_at?: Timestamp | Date;
   reason?: string;
+  adult_eligibility?: "verified" | "not_verified";
   age_range?: {
     lower?: number;
     upper?: number;
   };
   required_regulatory_features?: string[];
+  assurance?: {
+    signal_version?: 1 | 2;
+    evidence_strength?: AgeEvidenceStrength;
+    client_integrity?:
+      | "unverified_client"
+      | "firebase_app_check";
+    app_id?: string;
+    limitation?:
+      | "legacy_client_asserted_policy"
+      | "client_relay_not_cryptographically_bound";
+    age_range_source?:
+      | "tier_a"
+      | "tier_b"
+      | "tier_c"
+      | "tier_d"
+      | "unknown";
+    age_range_declaration?: string;
+    significant_change_status?:
+      | "approved"
+      | "pending"
+      | "declined"
+      | "unknown";
+  };
 }
 
 export interface UserSchema {

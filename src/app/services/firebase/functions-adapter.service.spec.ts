@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { FirebaseApp } from "@angular/fire/app";
 import { Functions, httpsCallable } from "@angular/fire/functions";
+import { getAuth, getIdToken } from "@angular/fire/auth";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { environment } from "../../../environments/environment.default";
@@ -11,6 +12,11 @@ import { FunctionsAdapterService } from "./functions-adapter.service";
 vi.mock("@angular/fire/functions", () => ({
   Functions: class Functions {},
   httpsCallable: vi.fn(),
+}));
+
+vi.mock("@angular/fire/auth", () => ({
+  getAuth: vi.fn(),
+  getIdToken: vi.fn(),
 }));
 
 vi.mock("@capacitor-firebase/authentication", () => ({
@@ -175,6 +181,61 @@ describe("FunctionsAdapterService", () => {
     );
     expect(result).toEqual({ ok: true });
     expect(httpsCallable).not.toHaveBeenCalled();
+  });
+
+  it("sends authenticated native App Check requests with both tokens", async () => {
+    platformService.isNative.mockReturnValue(true);
+    vi.mocked(FirebaseAuthentication.getIdToken).mockResolvedValue({
+      token: "native-id-token",
+    });
+    const service = TestBed.inject(FunctionsAdapterService);
+
+    await service.callAuthenticatedAppChecked<
+      { signal: { platform: string } },
+      { ok: boolean }
+    >("updateAgePolicyV2", { signal: { platform: "android" } });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://europe-west1-parkour-base-project.cloudfunctions.net/updateAgePolicyV2",
+      {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer native-id-token",
+          "X-Firebase-AppCheck": "app-check-token",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          data: { signal: { platform: "android" } },
+        }),
+      },
+    );
+  });
+
+  it("sends authenticated web App Check requests with both tokens", async () => {
+    const user = {};
+    vi.mocked(getAuth).mockReturnValue({ currentUser: user } as never);
+    vi.mocked(getIdToken).mockResolvedValue("web-id-token");
+    const service = TestBed.inject(FunctionsAdapterService);
+
+    await service.callAuthenticatedAppChecked<
+      { signal: { platform: string } },
+      { ok: boolean }
+    >("updateAgePolicyV2", { signal: { platform: "ios" } });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://europe-west1-parkour-base-project.cloudfunctions.net/updateAgePolicyV2",
+      {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer web-id-token",
+          "X-Firebase-AppCheck": "app-check-token",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          data: { signal: { platform: "ios" } },
+        }),
+      },
+    );
   });
 
   it("surfaces native callable error messages", async () => {

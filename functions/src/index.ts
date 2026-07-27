@@ -157,6 +157,7 @@ export {
   onCheckInCreate,
   syncVisitedSpotsCountOnPrivateDataWrite,
   updateAgePolicy,
+  updateAgePolicyV2,
 } from "./userFunctions";
 export {
   activateUserProfilePrivacyCutover,

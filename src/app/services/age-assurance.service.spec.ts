@@ -29,14 +29,21 @@ vi.mock("@capacitor/core", () => ({
 }));
 
 describe("AgeAssuranceService", () => {
-  let functionsAdapter: { call: ReturnType<typeof vi.fn> };
+  let functionsAdapter: {
+    callAuthenticatedAppChecked: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
     nativeState.isNative = true;
     nativeState.getAgeSignal.mockResolvedValue(nativeState.ageSignal);
     functionsAdapter = {
-      call: vi.fn().mockResolvedValue({ ok: true }),
+      callAuthenticatedAppChecked: vi.fn().mockResolvedValue({
+        ok: true,
+        participation_state: "allowed",
+        adult_eligibility: "not_verified",
+        evidence_strength: "guardian_managed",
+      }),
     };
 
     TestBed.configureTestingModule({
@@ -61,18 +68,9 @@ describe("AgeAssuranceService", () => {
 
     expect(Capacitor.isNativePlatform).toHaveBeenCalled();
     expect(nativeState.getAgeSignal).toHaveBeenCalled();
-    expect(functionsAdapter.call).toHaveBeenCalledWith(
-      "updateAgePolicy",
+    expect(functionsAdapter.callAuthenticatedAppChecked).toHaveBeenCalledWith(
+      "updateAgePolicyV2",
       expect.objectContaining({
-        policy: expect.objectContaining({
-          participation_state: "allowed",
-          source: "android_play_age_signals",
-          platform: "android",
-          age_range: {
-            lower: 13,
-            upper: 17,
-          },
-        }),
         signal: expect.objectContaining({
           platform: "android",
           source: "android_play_age_signals",
@@ -85,26 +83,28 @@ describe("AgeAssuranceService", () => {
     );
   });
 
-  it("only confirms adulthood from a lower age bound of at least 18", () => {
+  it("only treats a server-verified adult eligibility result as verified", () => {
     const service = TestBed.inject(AgeAssuranceService);
     const auth = TestBed.inject(AuthenticationService) as unknown as {
       user: {
         data?: {
           data?: {
-            age_policy?: { age_range?: { lower?: number; upper?: number } };
+            age_policy?: {
+              adult_eligibility?: "verified" | "not_verified";
+            };
           };
         };
       };
     };
 
     auth.user.data = {
-      data: { age_policy: { age_range: { lower: 13, upper: 17 } } },
+      data: { age_policy: { adult_eligibility: "not_verified" } },
     };
-    expect(service.hasConfirmedAdultAge()).toBe(false);
+    expect(service.hasVerifiedAdultEligibility()).toBe(false);
 
     auth.user.data = {
-      data: { age_policy: { age_range: { lower: 18, upper: 24 } } },
+      data: { age_policy: { adult_eligibility: "verified" } },
     };
-    expect(service.hasConfirmedAdultAge()).toBe(true);
+    expect(service.hasVerifiedAdultEligibility()).toBe(true);
   });
 });

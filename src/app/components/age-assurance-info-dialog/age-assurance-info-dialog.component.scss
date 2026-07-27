@@ -1,0 +1,57 @@
+:host {
+  display: block;
+}
+
+mat-dialog-content {
+  display: grid;
+  gap: 1.25rem;
+  width: min(38rem, 78vw);
+}
+
+.assurance-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 18px;
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+
+  h3,
+  p {
+    margin: 0;
+  }
+
+  p {
+    margin-top: 4px;
+  }
+}
+
+.assurance-card__icon {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 13px;
+  color: var(--mat-sys-primary);
+  background: var(--mat-sys-surface);
+}
+
+section {
+  h3 {
+    margin: 0 0 4px;
+  }
+
+  p {
+    margin: 0;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+@media (max-width: 480px) {
+  mat-dialog-content {
+    width: auto;
+  }
+}

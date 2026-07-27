@@ -667,6 +667,11 @@
         <source> External report not required </source>
       </segment>
     </unit>
+    <unit id="5601530442010506564">
+      <segment>
+        <source>Got it</source>
+      </segment>
+    </unit>
     <unit id="5604123151232836009">
       <segment>
         <source>Join Discord</source>
@@ -817,6 +822,11 @@
         <source>Unable to process this request. Please try again later.</source>
       </segment>
     </unit>
+    <unit id="3761999029709114314">
+      <segment>
+        <source> Adult verification is not required for browsing the map, saving or visiting Spots, or ordinary participation. A platform may still require restrictions for a child account or pending parental consent. </source>
+      </segment>
+    </unit>
     <unit id="3762050401268226469">
       <segment>
         <source>Unknown Action</source>
@@ -862,9 +872,9 @@
         <source>Please wait while we verify your email address...</source>
       </segment>
     </unit>
-    <unit id="5915302856026344080">
+    <unit id="8178668155024622772">
       <segment>
-        <source> Let signed-out visitors view your expanded profile. This requires a confirmed adult age range, a public account, and public profile visibility. </source>
+        <source> Let signed-out visitors view your expanded profile. This requires an independently checked 18+ result, a public account, and public profile visibility. </source>
       </segment>
     </unit>
     <unit id="1370851403138688256">
@@ -1221,6 +1231,11 @@
         <source>Please enter a valid email address.</source>
       </segment>
     </unit>
+    <unit id="2447699454820524710">
+      <segment>
+        <source>The available evidence does not currently establish 18+ eligibility.</source>
+      </segment>
+    </unit>
     <unit id="2472016265373616532">
       <segment>
         <source>Open Data License</source>
@@ -1532,6 +1547,11 @@
         <source>This upload was flagged or failed automated scanning and may be disturbing. Reveal it for manual moderation?</source>
       </segment>
     </unit>
+    <unit id="7164688894418358201">
+      <segment>
+        <source>What PK Spot receives</source>
+      </segment>
+    </unit>
     <unit id="7177325135014632430">
       <segment>
         <source>Event series</source>
@@ -1658,6 +1678,11 @@
     <unit id="7793821153334609761">
       <segment>
         <source>Only visible to you.</source>
+      </segment>
+    </unit>
+    <unit id="4322032387603367651">
+      <segment>
+        <source>Public identity needs a higher bar</source>
       </segment>
     </unit>
     <unit id="4323470180912194028">
@@ -5182,6 +5207,11 @@
         <source>Please enter your email address</source>
       </segment>
     </unit>
+    <unit id="8552470530989442343">
+      <segment>
+        <source> Browser-only accounts can use the core service. For now, public-profile eligibility must be established through a supported mobile platform. Additional privacy-preserving verification choices may be added later. </source>
+      </segment>
+    </unit>
     <unit id="8574418528664928574">
       <segment>
         <source>Request origin</source>
@@ -5197,6 +5227,11 @@
         <source>Previous month</source>
       </segment>
     </unit>
+    <unit id="8597165761170214938">
+      <segment>
+        <source>Why PK Spot checks adult eligibility</source>
+      </segment>
+    </unit>
     <unit id="9191968011325658792">
       <segment>
         <source>Invalid email address</source>
@@ -5205,6 +5240,11 @@
     <unit id="9193658864541040447">
       <segment>
         <source>Failed to load quarantined media</source>
+      </segment>
+    </unit>
+    <unit id="9196303788113228123">
+      <segment>
+        <source> Public and search-indexed profiles stay disabled until the platform supplies an independently checked result establishing that this account is 18 or older. A self-declared age range is not enough. </source>
       </segment>
     </unit>
     <unit id="9197546864520867301">
@@ -5377,11 +5417,6 @@
         <source>All Challenges of </source>
       </segment>
     </unit>
-    <unit id="4007945735402502692">
-      <segment>
-        <source> Public and search-indexed profiles stay disabled until the platform supplies an age range confirming that this account is 18 or older. </source>
-      </segment>
-    </unit>
     <unit id="4020018249666121252">
       <segment>
         <source> All Challenges of <ph id="0" equiv="INTERPOLATION" disp="{{ spotName() }}"/> </source>
@@ -5425,6 +5460,11 @@
     <unit id="2728666638365384793">
       <segment>
         <source>Submission IP</source>
+      </segment>
+    </unit>
+    <unit id="2729409271468219014">
+      <segment>
+        <source>No independently checked 18+ result is stored.</source>
       </segment>
     </unit>
     <unit id="2729703763662350648">
@@ -5918,6 +5958,11 @@
         <source><ph id="0" equiv="INTERPOLATION" disp="{{ pendingVoteCount() }}"/> edits are waiting for community voting.</source>
       </segment>
     </unit>
+    <unit id="5314253099893134125">
+      <segment>
+        <source>The platform reports a guardian-managed age range.</source>
+      </segment>
+    </unit>
     <unit id="5320512330509370228">
       <segment>
         <source>Follow request approved</source>
@@ -5941,6 +5986,11 @@
     <unit id="3959902123742995673">
       <segment>
         <source>Could not sign in with Google!</source>
+      </segment>
+    </unit>
+    <unit id="1327134574485464733">
+      <segment>
+        <source> Adult eligibility for public profiles </source>
       </segment>
     </unit>
     <unit id="1330427292857858931">
@@ -6917,6 +6967,11 @@
         <source>General</source>
       </segment>
     </unit>
+    <unit id="4927421686251357457">
+      <segment>
+        <source>A self-declared age range is stored, but it does not unlock a public profile.</source>
+      </segment>
+    </unit>
     <unit id="4930506384627295710">
       <segment>
         <source>Settings</source>
@@ -6975,6 +7030,11 @@
     <unit id="805182578389935261">
       <segment>
         <source>Latest information from <ph id="0" equiv="INTERPOLATION" disp="{{ event().organizer?.organization?.name ?? event().name }}"/>.</source>
+      </segment>
+    </unit>
+    <unit id="8076818699210267066">
+      <segment>
+        <source>Browser access</source>
       </segment>
     </unit>
     <unit id="8334401359656001773">
@@ -7810,6 +7870,11 @@
         <source>You need to agree to the terms and conditions!</source>
       </segment>
     </unit>
+    <unit id="195061258653092358">
+      <segment>
+        <source> PK Spot stores an age band, a broad evidence category and the resulting eligibility—not an exact birth date, identity document, bank account or card number. Self-declared age alone does not unlock a public profile. </source>
+      </segment>
+    </unit>
     <unit id="1956203249004073114">
       <segment>
         <source>Short message (optional)</source>
@@ -7858,6 +7923,11 @@
     <unit id="9180110319941008393">
       <segment>
         <source>Environment</source>
+      </segment>
+    </unit>
+    <unit id="8815195480875913498">
+      <segment>
+        <source>Core features remain available</source>
       </segment>
     </unit>
     <unit id="8822206448271061589">
@@ -8391,9 +8461,9 @@
         <source> Description </source>
       </segment>
     </unit>
-    <unit id="8136594844887777371">
+    <unit id="9030193572678348373">
       <segment>
-        <source> Include this profile in PK Spot user search and public sitemaps. This is always off for children and profiles without confirmed adult eligibility. </source>
+        <source> Include this profile in PK Spot user search and public sitemaps. This is always off for children and profiles without independently checked adult eligibility. </source>
       </segment>
     </unit>
     <unit id="8922105621109418817">
@@ -8458,6 +8528,11 @@
     <unit id="7788049772453800084">
       <segment>
         <source>Failed to load reports</source>
+      </segment>
+    </unit>
+    <unit id="2105357816937468069">
+      <segment>
+        <source>Independently checked 18+ eligibility is available.</source>
       </segment>
     </unit>
     <unit id="2114926278043068343">
@@ -10793,6 +10868,11 @@
     <unit id="5111937580799923602">
       <segment>
         <source>Media received. It will appear when processing finishes.</source>
+      </segment>
+    </unit>
+    <unit id="2356800114048092419">
+      <segment>
+        <source> A public profile can expose a picture, city, biography and links to anyone—including search engines. PK Spot keeps that profile private unless an age provider returns an independently checked 18+ result. </source>
       </segment>
     </unit>
     <unit id="2361381507645842011">

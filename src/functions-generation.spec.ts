@@ -134,6 +134,23 @@ describe("Cloud Functions generation policy", () => {
     );
   });
 
+  it("derives age policy in an App Check protected gen 2 callable", () => {
+    const indexSource = readFileSync(
+      resolve(functionsSourceRoot, "index.ts"),
+      "utf8"
+    );
+    const userSource = readFileSync(
+      resolve(functionsSourceRoot, "userFunctions.ts"),
+      "utf8"
+    );
+
+    expect(indexSource).toContain("updateAgePolicyV2");
+    expect(userSource).toMatch(
+      /export const updateAgePolicyV2 = onCall\(\s*\{ enforceAppCheck: true \}/u
+    );
+    expect(userSource).toContain("buildServerAgePolicy(signal, appId)");
+  });
+
   it("requires App Check for cached OpenStreetMap amenity requests", () => {
     const source = readFileSync(
       resolve(functionsSourceRoot, "osmAmenityFunctions.ts"),

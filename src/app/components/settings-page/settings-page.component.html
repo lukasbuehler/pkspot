@@ -144,6 +144,33 @@
             </div>
 
             <div class="d-grid gap-3 mb-4">
+              <div class="age-assurance-card">
+                <div class="age-assurance-card__icon" aria-hidden="true">
+                  <mat-icon>verified_user</mat-icon>
+                </div>
+                <div>
+                  <div
+                    class="d-flex align-items-start justify-content-between gap-2"
+                  >
+                    <h4 class="mat-title-medium m-0" i18n>
+                      Adult eligibility for public profiles
+                    </h4>
+                    <button
+                      mat-icon-button
+                      type="button"
+                      (click)="openAgeAssuranceInfo()"
+                      aria-label="Why PK Spot checks adult eligibility"
+                      i18n-aria-label
+                    >
+                      <mat-icon>help_outline</mat-icon>
+                    </button>
+                  </div>
+                  <p class="mat-body-small m-0">
+                    {{ adultEligibilityStatus }}
+                  </p>
+                </div>
+              </div>
+
               <div
                 class="d-flex justify-content-between align-items-start gap-3"
               >
@@ -153,8 +180,8 @@
                   </h4>
                   <p class="mat-body-small m-0 text-muted" i18n>
                     Let signed-out visitors view your expanded profile. This
-                    requires a confirmed adult age range, a public account, and
-                    public profile visibility.
+                    requires an independently checked 18+ result, a public
+                    account, and public profile visibility.
                   </p>
                 </div>
                 <mat-slide-toggle
@@ -177,7 +204,7 @@
                   <p class="mat-body-small m-0 text-muted" i18n>
                     Include this profile in PK Spot user search and public
                     sitemaps. This is always off for children and profiles
-                    without confirmed adult eligibility.
+                    without independently checked adult eligibility.
                   </p>
                 </div>
                 <mat-slide-toggle
@@ -191,11 +218,12 @@
               </div>
             </div>
 
-            @if (!ageAssurance.hasConfirmedAdultAge()) {
+            @if (!ageAssurance.hasVerifiedAdultEligibility()) {
               <p class="mat-body-small text-muted" i18n>
                 Public and search-indexed profiles stay disabled until the
-                platform supplies an age range confirming that this account is
-                18 or older.
+                platform supplies an independently checked result establishing
+                that this account is 18 or older. A self-declared age range is
+                not enough.
               </p>
             }
             <button

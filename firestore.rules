@@ -678,6 +678,7 @@ service cloud.firestore {
           || (
             request.resource.data.get('account_privacy', 'public') == 'public'
             && request.resource.data.get('profile_visibility', 'public') == 'public'
+            && request.resource.data.get('age_policy', {}).get('adult_eligibility', 'not_verified') == 'verified'
             && request.resource.data.get('age_policy', {}).get('age_range', {}).get('lower', -1) is number
             && request.resource.data.get('age_policy', {}).get('age_range', {}).get('lower', -1) >= 18
           )

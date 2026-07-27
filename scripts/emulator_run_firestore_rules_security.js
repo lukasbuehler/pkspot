@@ -365,9 +365,18 @@ async function seedSecurityFixture() {
     profile_visibility: "public",
     age_policy: {
       participation_state: "allowed",
-      source: "manual",
-      platform: "web",
+      source: "android_play_age_signals",
+      platform: "android",
+      adult_eligibility: "verified",
       age_range: { lower: 18 },
+      assurance: {
+        signal_version: 2,
+        evidence_strength: "independently_checked",
+        client_integrity: "firebase_app_check",
+        app_id: "test-android-app",
+        limitation: "client_relay_not_cryptographically_bound",
+        age_range_source: "tier_c",
+      },
     },
   });
   batch.set(adminDb.doc("users/restricted"), {
@@ -1112,13 +1121,13 @@ async function testPublicUserProfileGuards(
       display_name: "Forged",
     })
   );
-  await assertAllowed("confirmed adult enables public profile and search", () =>
+  await assertAllowed("verified adult enables public profile and search", () =>
     updateDoc(doc(adult.db, "users/adult"), {
       public_profile_enabled: true,
       public_search: true,
     })
   );
-  await assertDenied("user without confirmed adult age cannot enable public profile", () =>
+  await assertDenied("user without verified adult eligibility cannot enable public profile", () =>
     updateDoc(doc(restricted.db, "users/restricted"), {
       public_profile_enabled: true,
     })

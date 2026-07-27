@@ -45,10 +45,16 @@ const numberField = (
     : undefined;
 };
 
-export const hasConfirmedAdultAge = (
+export const hasVerifiedAdultEligibility = (
   user: Record<string, unknown>
 ): boolean => {
   const policy = user["age_policy"];
+  if (
+    !isRecord(policy) ||
+    policy["adult_eligibility"] !== "verified"
+  ) {
+    return false;
+  }
   const range = isRecord(policy) ? policy["age_range"] : undefined;
   const lower = numberField(range, "lower");
   return lower !== undefined && lower >= 18;
@@ -83,7 +89,7 @@ export const effectivePublicProfileEnabled = (
   user: Record<string, unknown>
 ): boolean =>
   user["public_profile_enabled"] === true &&
-  hasConfirmedAdultAge(user) &&
+  hasVerifiedAdultEligibility(user) &&
   normalizedAccountPrivacy(user) === "public" &&
   normalizedProfileVisibility(user) === "public";
 

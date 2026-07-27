@@ -4,6 +4,10 @@ import {
   onDocumentWritten,
 } from "firebase-functions/v2/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
+import {
+  buildServerAgePolicy,
+  sanitizeNativeAgeSignal,
+} from "./agePolicy";
 
 type AgeParticipationState =
   | "allowed"
@@ -130,21 +134,85 @@ export const updateAgePolicy = onCall(async (request) => {
     {
       age_policy: {
         ...policy,
+        adult_eligibility: "not_verified",
+        assurance: {
+          signal_version: 1,
+          evidence_strength: "unknown",
+          client_integrity: "unverified_client",
+          limitation: "legacy_client_asserted_policy",
+        },
         signal_updated_at: admin.firestore.FieldValue.serverTimestamp(),
       },
-      ...(typeof policy.age_range?.lower === "number" &&
-      policy.age_range.lower >= 18
-        ? {}
-        : {
-            public_profile_enabled: false,
-            public_search: false,
-          }),
+      public_profile_enabled: false,
+      public_search: false,
     },
     { merge: true }
   );
 
   return { ok: true };
 });
+
+const NATIVE_APP_IDS = {
+  android: "1:294969617102:android:7dc490ae0f078f00313e9f",
+  ios: "1:294969617102:ios:09f0254997b55369313e9f",
+} as const;
+
+/**
+ * App Check attests the calling installation, while this function validates
+ * and derives policy from a narrow native signal. App Check does not
+ * cryptographically bind the signal payload, so the stored assurance record
+ * preserves that limitation and public eligibility requires stronger
+ * platform-reported evidence than self-declaration.
+ */
+export const updateAgePolicyV2 = onCall(
+  { enforceAppCheck: true },
+  async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+      throw new HttpsError("unauthenticated", "Authentication is required");
+    }
+    const appId = request.app?.appId;
+    if (!appId) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Verified native app installation is required"
+      );
+    }
+
+    const data = isPlainObject(request.data) ? request.data : {};
+    const signal = sanitizeNativeAgeSignal(data["signal"]);
+    if (NATIVE_APP_IDS[signal.platform] !== appId) {
+      throw new HttpsError(
+        "permission-denied",
+        "Age signal platform does not match the verified app"
+      );
+    }
+
+    const policy = buildServerAgePolicy(signal, appId);
+    await admin.firestore().collection("users").doc(uid).set(
+      {
+        age_policy: {
+          ...policy,
+          signal_updated_at: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        ...(policy.adult_eligibility === "verified"
+          ? {}
+          : {
+              public_profile_enabled: false,
+              public_search: false,
+            }),
+      },
+      { merge: true }
+    );
+
+    return {
+      ok: true,
+      participation_state: policy.participation_state,
+      adult_eligibility: policy.adult_eligibility,
+      evidence_strength: policy.assurance.evidence_strength,
+    };
+  }
+);
 
 export const onCheckInCreate = onDocumentCreated(
   "users/{userId}/check_ins/{checkInId}",
