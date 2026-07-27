@@ -10,6 +10,7 @@ import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
+import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
@@ -19,6 +20,8 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import {
   SafetyIncidentClassification,
   SafetyIncidentRetentionState,
+  SafetyIncidentReportingRoute,
+  SafetyIncidentReportingStatus,
   SafetyIncidentSchema,
   SafetyIncidentStatus,
   SafetyIncidentUkLink,
@@ -39,6 +42,7 @@ import { Subscription } from "rxjs";
     SystemDatePipe,
     MatButtonModule,
     MatCardModule,
+    MatCheckboxModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -79,9 +83,29 @@ export class SafetyIncidentPageComponent implements OnDestroy {
       "triage_hold",
       { nonNullable: true },
     ),
+    reporting_route: new FormControl<SafetyIncidentReportingRoute>("pending", {
+      nonNullable: true,
+    }),
+    reporting_status: new FormControl<SafetyIncidentReportingStatus>(
+      "not_assessed",
+      { nonNullable: true },
+    ),
+    runbook: new FormGroup({
+      evidence_preserved: new FormControl(false, { nonNullable: true }),
+      access_restricted: new FormControl(false, { nonNullable: true }),
+      context_collected: new FormControl(false, { nonNullable: true }),
+      uk_link_assessed: new FormControl(false, { nonNullable: true }),
+      reporting_route_assessed: new FormControl(false, {
+        nonNullable: true,
+      }),
+      external_action_recorded: new FormControl(false, {
+        nonNullable: true,
+      }),
+    }),
     containment_summary: new FormControl("", { nonNullable: true }),
     posthog_context: new FormControl("", { nonNullable: true }),
     external_report_reference: new FormControl("", { nonNullable: true }),
+    reporting_decision_summary: new FormControl("", { nonNullable: true }),
     notes: new FormControl("", { nonNullable: true }),
   });
 
@@ -115,10 +139,22 @@ export class SafetyIncidentPageComponent implements OnDestroy {
           classification: incident.classification,
           uk_link: incident.uk_link,
           retention_state: incident.retention_state,
+          reporting_route: incident.reporting_route ?? "pending",
+          reporting_status: incident.reporting_status ?? "not_assessed",
+          runbook: incident.runbook ?? {
+            evidence_preserved: false,
+            access_restricted: false,
+            context_collected: false,
+            uk_link_assessed: false,
+            reporting_route_assessed: false,
+            external_action_recorded: false,
+          },
           containment_summary: incident.containment_summary ?? "",
           posthog_context: incident.posthog_context ?? "",
           external_report_reference:
             incident.external_report_reference ?? "",
+          reporting_decision_summary:
+            incident.reporting_decision_summary ?? "",
           notes: incident.notes ?? "",
         });
       }
@@ -145,6 +181,8 @@ export class SafetyIncidentPageComponent implements OnDestroy {
         posthog_context: value.posthog_context.trim() || undefined,
         external_report_reference:
           value.external_report_reference.trim() || undefined,
+        reporting_decision_summary:
+          value.reporting_decision_summary.trim() || undefined,
         notes: value.notes.trim() || undefined,
       } satisfies SafetyIncidentUpdate);
       await this.load();

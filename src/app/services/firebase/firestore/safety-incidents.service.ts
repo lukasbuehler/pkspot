@@ -2,6 +2,9 @@ import { inject, Injectable } from "@angular/core";
 import {
   SafetyIncidentClassification,
   SafetyIncidentRetentionState,
+  SafetyIncidentReportingRoute,
+  SafetyIncidentReportingStatus,
+  SafetyIncidentRunbookSchema,
   SafetyIncidentSchema,
   SafetyIncidentStatus,
   SafetyIncidentUkLink,
@@ -14,9 +17,13 @@ export interface SafetyIncidentUpdate {
   classification: SafetyIncidentClassification;
   uk_link: SafetyIncidentUkLink;
   retention_state: SafetyIncidentRetentionState;
+  reporting_route: SafetyIncidentReportingRoute;
+  reporting_status: SafetyIncidentReportingStatus;
+  runbook: SafetyIncidentRunbookSchema;
   containment_summary?: string;
   posthog_context?: string;
   external_report_reference?: string;
+  reporting_decision_summary?: string;
   notes?: string;
 }
 

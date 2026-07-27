@@ -377,6 +377,11 @@
         <source>Pending</source>
       </segment>
     </unit>
+    <unit id="6631641409682927358">
+      <segment>
+        <source>Open current NCA guidance</source>
+      </segment>
+    </unit>
     <unit id="6638716872037410765">
       <segment>
         <source> Live &amp; Verified </source>
@@ -435,6 +440,11 @@
     <unit id="4867740992596809732">
       <segment>
         <source>Verified organization removed</source>
+      </segment>
+    </unit>
+    <unit id="4878825351052586194">
+      <segment>
+        <source>UK police</source>
       </segment>
     </unit>
     <unit id="4878856420342830743">
@@ -652,6 +662,11 @@
         <source>Support</source>
       </segment>
     </unit>
+    <unit id="2289061860482298019">
+      <segment>
+        <source> External report not required </source>
+      </segment>
+    </unit>
     <unit id="5604123151232836009">
       <segment>
         <source>Join Discord</source>
@@ -845,6 +860,11 @@
     <unit id="5911495341996816625">
       <segment>
         <source>Please wait while we verify your email address...</source>
+      </segment>
+    </unit>
+    <unit id="5915302856026344080">
+      <segment>
+        <source> Let signed-out visitors view your expanded profile. This requires a confirmed adult age range, a public account, and public profile visibility. </source>
       </segment>
     </unit>
     <unit id="1370851403138688256">
@@ -1124,6 +1144,11 @@
     <unit id="4771468580618188841">
       <segment>
         <source>Beginner friendly</source>
+      </segment>
+    </unit>
+    <unit id="4798502935816311934">
+      <segment>
+        <source>Not assessed</source>
       </segment>
     </unit>
     <unit id="223926157815127218">
@@ -1409,6 +1434,11 @@
         <source>Time (optional)</source>
       </segment>
     </unit>
+    <unit id="218205763474746263">
+      <segment>
+        <source>Preparing report</source>
+      </segment>
+    </unit>
     <unit id="2186090184648113885">
       <segment>
         <source>Save incident</source>
@@ -1517,9 +1547,19 @@
         <source>Community not found</source>
       </segment>
     </unit>
+    <unit id="370198281195202249">
+      <segment>
+        <source> Use the NCA CSEA reporting portal only for reportable CSEA. Continue an existing NCMEC channel where applicable and do not create a duplicate referral. For current or imminent danger, follow the emergency instructions in the NCA guidance. </source>
+      </segment>
+    </unit>
     <unit id="3705542547407464128">
       <segment>
         <source>Failed to open safety incident</source>
+      </segment>
+    </unit>
+    <unit id="3710729568404589151">
+      <segment>
+        <source>External response guidance</source>
       </segment>
     </unit>
     <unit id="3714343477148346459">
@@ -1600,9 +1640,19 @@
         <source> Enable glass blur on the map </source>
       </segment>
     </unit>
+    <unit id="1612722476211621614">
+      <segment>
+        <source>Submitted</source>
+      </segment>
+    </unit>
     <unit id="1616102757855967475">
       <segment>
         <source>All</source>
+      </segment>
+    </unit>
+    <unit id="161852954972763993">
+      <segment>
+        <source>Assessment pending</source>
       </segment>
     </unit>
     <unit id="7793821153334609761">
@@ -2264,6 +2314,11 @@
     <unit id="5804136287826733566">
       <segment>
         <source>No open reports.</source>
+      </segment>
+    </unit>
+    <unit id="580610642120364720">
+      <segment>
+        <source> Record why this route applies, or why no external report is required. </source>
       </segment>
     </unit>
     <unit id="5813867925497374051">
@@ -5017,6 +5072,11 @@
         <source>This E-Mail address is not valid!</source>
       </segment>
     </unit>
+    <unit id="967806009511704497">
+      <segment>
+        <source>Incident runbook</source>
+      </segment>
+    </unit>
     <unit id="1102717806459547726">
       <segment>
         <source>Refresh</source>
@@ -5065,6 +5125,11 @@
     <unit id="1678413991696096733">
       <segment>
         <source>Profile access</source>
+      </segment>
+    </unit>
+    <unit id="1697308124827757255">
+      <segment>
+        <source> This account limits expanded profile details to its approved audience. </source>
       </segment>
     </unit>
     <unit id="7097945335364423857">
@@ -5310,6 +5375,11 @@
     <unit id="6299599810982807013">
       <segment>
         <source>All Challenges of </source>
+      </segment>
+    </unit>
+    <unit id="4007945735402502692">
+      <segment>
+        <source> Public and search-indexed profiles stay disabled until the platform supplies an age range confirming that this account is 18 or older. </source>
       </segment>
     </unit>
     <unit id="4020018249666121252">
@@ -5893,6 +5963,11 @@
         <source>Upcoming</source>
       </segment>
     </unit>
+    <unit id="8728578118342659997">
+      <segment>
+        <source> Restrict access and contain further distribution </source>
+      </segment>
+    </unit>
     <unit id="8736188664022016115">
       <segment>
         <source>Could not sign in with Apple!</source>
@@ -6016,6 +6091,11 @@
     <unit id="7113790156926964344">
       <segment>
         <source>No matching events</source>
+      </segment>
+    </unit>
+    <unit id="7118749922137719094">
+      <segment>
+        <source> Assess the UK link and any current or imminent danger </source>
       </segment>
     </unit>
     <unit id="7136600839935407372">
@@ -6172,7 +6252,7 @@
         <note category="meaning">public profile description</note>
       </notes>
       <segment>
-        <source> You can edit your public profile here. The information on your public profile can be seen by everyone, even unauthenticated visitors. </source>
+        <source> Edit the details other people may see. Your profile access and search settings determine who can view them. </source>
       </segment>
     </unit>
     <unit id="settings.account.header">
@@ -7031,6 +7111,11 @@
         <source>Error deleting account. Please try again.</source>
       </segment>
     </unit>
+    <unit id="3318965217927982195">
+      <segment>
+        <source> Record account, session, provenance, and available network context </source>
+      </segment>
+    </unit>
     <unit id="420441727915604290">
       <segment>
         <source>Security check failed. Please sign in again and try deleting your account.</source>
@@ -7523,7 +7608,7 @@
     </unit>
     <unit id="train.logPrivacy">
       <segment>
-        <source>Session records stay private. You choose what a log entry shares.</source>
+        <source> Session records stay private. You choose what a log entry shares. </source>
       </segment>
     </unit>
     <unit id="train.logPrompt">
@@ -7547,12 +7632,7 @@
     </unit>
     <unit id="train.noCommunities">
       <segment>
-        <source>Choose an area above, then follow communities from their pages.</source>
-      </segment>
-    </unit>
-    <unit id="train.noEvents">
-      <segment>
-        <source>No upcoming options found in this area yet.</source>
+        <source> Choose an area above, then follow communities from their pages. </source>
       </segment>
     </unit>
     <unit id="train.noSpots">
@@ -7572,7 +7652,7 @@
     </unit>
     <unit id="train.personalRecord">
       <segment>
-        <source>Your personal record</source>
+        <source> Your personal record </source>
       </segment>
     </unit>
     <unit id="train.searchRadius">
@@ -7582,7 +7662,7 @@
     </unit>
     <unit id="train.signInCommunities">
       <segment>
-        <source>Sign in to follow training communities.</source>
+        <source> Sign in to follow training communities. </source>
       </segment>
     </unit>
     <unit id="train.signInToLog">
@@ -8035,6 +8115,11 @@
         <source>Open the location of this spot in Maps</source>
       </segment>
     </unit>
+    <unit id="1780673444278901710">
+      <segment>
+        <source>Reporting decision summary</source>
+      </segment>
+    </unit>
     <unit id="1792190533431059127">
       <segment>
         <source>Mark this media as safe and release it publicly? This records your administrator decision.</source>
@@ -8304,6 +8389,11 @@
       </notes>
       <segment>
         <source> Description </source>
+      </segment>
+    </unit>
+    <unit id="8136594844887777371">
+      <segment>
+        <source> Include this profile in PK Spot user search and public sitemaps. This is always off for children and profiles without confirmed adult eligibility. </source>
       </segment>
     </unit>
     <unit id="8922105621109418817">
@@ -9010,6 +9100,11 @@
         <source>Open</source>
       </segment>
     </unit>
+    <unit id="8003539785959278093">
+      <segment>
+        <source> Public profile </source>
+      </segment>
+    </unit>
     <unit id="8011758699583016596">
       <segment>
         <source>Spots in this area</source>
@@ -9043,6 +9138,11 @@
     <unit id="6024008212258429928">
       <segment>
         <source>Report Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data!.spot.name }}"/>&apos;</source>
+      </segment>
+    </unit>
+    <unit id="6044276004948174494">
+      <segment>
+        <source>Allow profile search indexing</source>
       </segment>
     </unit>
     <unit id="6076340326638243811">
@@ -9241,6 +9341,11 @@
         <source> Have a question, found a bug, or want to request a feature? We&apos;d love to hear from you! </source>
       </segment>
     </unit>
+    <unit id="2312227289513761859">
+      <segment>
+        <source> Record the external action, reference, and follow-up </source>
+      </segment>
+    </unit>
     <unit id="2325032840535506648">
       <segment>
         <source>Discord Community</source>
@@ -9336,6 +9441,11 @@
         <source>Quick Links</source>
       </segment>
     </unit>
+    <unit id="1142555682966582117">
+      <segment>
+        <source>Not required</source>
+      </segment>
+    </unit>
     <unit id="1165007284037457711">
       <segment>
         <source> Your Private Spot Lists </source>
@@ -9364,6 +9474,11 @@
     <unit id="844013166562960658">
       <segment>
         <source>Saved Spots</source>
+      </segment>
+    </unit>
+    <unit id="8448470380303913007">
+      <segment>
+        <source> Preserve the original evidence, hash, timestamps, and audit trail </source>
       </segment>
     </unit>
     <unit id="8449806182355838394">
@@ -9397,6 +9512,11 @@
       </notes>
       <segment>
         <source> Contact email (optional) </source>
+      </segment>
+    </unit>
+    <unit id="9170384147435945980">
+      <segment>
+        <source> Search engine discovery </source>
       </segment>
     </unit>
     <unit id="welcomeDialogTitle">
@@ -9885,6 +10005,11 @@
         <source>Remove person</source>
       </segment>
     </unit>
+    <unit id="5245523669438174557">
+      <segment>
+        <source>Make expanded profile public</source>
+      </segment>
+    </unit>
     <unit id="5245603112373072943">
       <segment>
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Duplicate: This media is already present.</pc></source>
@@ -9920,6 +10045,11 @@
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">Other</pc></source>
       </segment>
     </unit>
+    <unit id="6772922553334264248">
+      <segment>
+        <source> Emergency services </source>
+      </segment>
+    </unit>
     <unit id="677850519653685182">
       <segment>
         <source>{VAR_PLURAL, plural, =1 {managed spot} other {managed spots}}</source>
@@ -9928,6 +10058,11 @@
     <unit id="2607510393198183286">
       <segment>
         <source>Failed to delete spot</source>
+      </segment>
+    </unit>
+    <unit id="2621801407969969391">
+      <segment>
+        <source> Work in order. Do not preview or forward restricted-match media. </source>
       </segment>
     </unit>
     <unit id="2638434417265535082">
@@ -10131,6 +10266,11 @@
         <source>Supporter</source>
       </segment>
     </unit>
+    <unit id="7898407865763195887">
+      <segment>
+        <source> Select the appropriate external reporting route </source>
+      </segment>
+    </unit>
     <unit id="1356237918552845367">
       <segment>
         <source>Cartographer</source>
@@ -10169,6 +10309,11 @@
     <unit id="3269624145102222845">
       <segment>
         <source>Loading event Spots…</source>
+      </segment>
+    </unit>
+    <unit id="7222489710265178271">
+      <segment>
+        <source> Registration required </source>
       </segment>
     </unit>
     <unit id="7224722019363844519">
@@ -10219,6 +10364,11 @@
     <unit id="4755563775668401794">
       <segment>
         <source>Awaiting manager review</source>
+      </segment>
+    </unit>
+    <unit id="4758490333513959462">
+      <segment>
+        <source>External reporting route</source>
       </segment>
     </unit>
     <unit id="event_draft.notice.title">
@@ -10623,6 +10773,11 @@
     <unit id="3424805045134172813">
       <segment>
         <source>Failed to save safety incident</source>
+      </segment>
+    </unit>
+    <unit id="3425011921070233229">
+      <segment>
+        <source>External reporting status</source>
       </segment>
     </unit>
     <unit id="5109390034351761565">

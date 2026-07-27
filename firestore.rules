@@ -12,6 +12,11 @@ service cloud.firestore {
       return exists(statePath) && get(statePath).data.completed == true;
     }
 
+    function userProfilePrivacyCutoverComplete() {
+      let statePath = /databases/$(database)/documents/maintenance/user-profile-privacy;
+      return exists(statePath) && get(statePath).data.completed == true;
+    }
+
     function isOrganizationReviewer(organizationId) {
       return request.auth.uid != null
         && exists(/databases/$(database)/documents/organizations/$(organizationId)/members/$(request.auth.uid))
@@ -660,9 +665,26 @@ service cloud.firestore {
           || request.resource.data.account_privacy in ['public', 'private'])
         && (!('profile_visibility' in request.resource.data)
           || request.resource.data.profile_visibility in ['public', 'followers', 'mutuals'])
+        && (!('public_profile_enabled' in request.resource.data)
+          || request.resource.data.public_profile_enabled is bool)
+        && (!('public_search' in request.resource.data)
+          || request.resource.data.public_search is bool)
         && (
           request.resource.data.get('account_privacy', 'public') != 'private'
           || request.resource.data.get('profile_visibility', 'followers') != 'public'
+        )
+        && (
+          request.resource.data.get('public_profile_enabled', false) != true
+          || (
+            request.resource.data.get('account_privacy', 'public') == 'public'
+            && request.resource.data.get('profile_visibility', 'public') == 'public'
+            && request.resource.data.get('age_policy', {}).get('age_range', {}).get('lower', -1) is number
+            && request.resource.data.get('age_policy', {}).get('age_range', {}).get('lower', -1) >= 18
+          )
+        )
+        && (
+          request.resource.data.get('public_search', false) != true
+          || request.resource.data.get('public_profile_enabled', false) == true
         );
     }
 
@@ -757,7 +779,9 @@ service cloud.firestore {
         'nationality_code',
         'home_city',
         'socials',
-        'pinned_badges'
+        'pinned_badges',
+        'public_profile_enabled',
+        'public_search'
       ];
     }
 
@@ -1144,11 +1168,9 @@ service cloud.firestore {
       // every post is publicy available to everyone.
       allow read: if true;
 
-      // only authenticated users can create and edit posts and only create and edit it if it's their post. Also, they can't set the like_count variable.
-      allow create, update: if request.auth.uid != null 
-        && agePolicyAllowsPublicParticipation()
-        && request.auth.uid == request.resource.data.user.uid
-        && !('like_count' in request.resource.data);
+      // The legacy feed is no longer exposed. Keep historical posts readable
+      // and owner-deletable, but do not let old/custom clients revive it.
+      allow create, update: if false;
       allow delete: if request.auth.uid != null 
         && request.auth.uid == resource.data.user.uid;
 
@@ -1157,10 +1179,7 @@ service cloud.firestore {
         // Only authenticated users can view who liked a post
         allow read: if request.auth.uid != null;
 
-        // Only you can edit your like
-        allow create, update: if request.auth.uid == userId
-          && agePolicyAllowsPublicParticipation()
-          && request.auth.uid == request.resource.data.user.uid;
+        allow create, update: if false;
         allow delete: if request.auth.uid == userId
           && request.auth.uid == resource.data.user.uid;
       }
@@ -1168,17 +1187,21 @@ service cloud.firestore {
     
     match /users/{userId} 
     {
-      // all users and their profiles are currently public
-      allow read: if true;
+      // Released clients still read this legacy profile document. The
+      // maintenance cutover is only activated after supported clients use the
+      // field-redacting getUserProfile callable.
+      allow read: if !userProfilePrivacyCutoverComplete()
+        || isAdmin()
+        || (request.auth.uid != null && request.auth.uid == userId);
       // It is not allowed to update protected fields. These are handled by cloud functions.
       allow create: if request.auth.uid != null && request.auth.uid == userId
-         && !request.resource.data.keys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges', 'age_policy'])
+         && !request.resource.data.keys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges', 'age_policy', 'profile_access'])
          && !('home_spots' in request.resource.data)
          && validUserSocials()
          && validUserProfileAccess()
          && noUserCustomSocialLinksOnCreate();
       allow update: if request.auth.uid != null && request.auth.uid == userId
-         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges', 'age_policy'])
+         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges', 'age_policy', 'profile_access'])
          && homeSpotsUnchanged()
          && (
            !request.resource.data.diff(resource.data).affectedKeys().hasAny(userPublicParticipationFields())
@@ -1352,6 +1375,14 @@ service cloud.firestore {
           );
         allow create, delete: if false;
       }
+    }
+
+    // Adult, explicitly opted-in public profiles only. The server owns this
+    // projection and removes it whenever age or publication eligibility
+    // changes.
+    match /public_user_profiles/{userId} {
+      allow read: if true;
+      allow write: if false;
     }
 
     match /notification_intents/{intentId} {

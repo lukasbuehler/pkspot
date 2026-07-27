@@ -132,6 +132,13 @@ export const updateAgePolicy = onCall(async (request) => {
         ...policy,
         signal_updated_at: admin.firestore.FieldValue.serverTimestamp(),
       },
+      ...(typeof policy.age_range?.lower === "number" &&
+      policy.age_range.lower >= 18
+        ? {}
+        : {
+            public_profile_enabled: false,
+            public_search: false,
+          }),
     },
     { merge: true }
   );

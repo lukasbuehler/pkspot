@@ -88,6 +88,12 @@ export class AgeAssuranceService {
     return isAgeParticipationAllowed(state);
   }
 
+  hasConfirmedAdultAge(): boolean {
+    const lower =
+      this._authService.user.data?.data?.age_policy?.age_range?.lower;
+    return typeof lower === "number" && lower >= 18;
+  }
+
   getRestrictionMessage(): string {
     return $localize`Public contributions are unavailable for this account right now. You can still browse spots and manage private saved or visited spots.`;
   }

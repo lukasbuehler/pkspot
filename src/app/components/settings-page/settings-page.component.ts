@@ -232,14 +232,28 @@ export class SettingsPageComponent implements OnInit {
 
   accountPrivacy: UserAccountPrivacy = "public";
   profileVisibility: UserProfileVisibility = "public";
+  publicProfileEnabled = false;
+  publicSearch = false;
   savedAccountPrivacy: UserAccountPrivacy = "public";
   savedProfileVisibility: UserProfileVisibility = "public";
+  savedPublicProfileEnabled = false;
+  savedPublicSearch = false;
   isSavingProfileAccess: boolean = false;
 
   get hasProfileAccessChanges(): boolean {
     return (
       this.accountPrivacy !== this.savedAccountPrivacy ||
-      this.profileVisibility !== this.savedProfileVisibility
+      this.profileVisibility !== this.savedProfileVisibility ||
+      this.publicProfileEnabled !== this.savedPublicProfileEnabled ||
+      this.publicSearch !== this.savedPublicSearch
+    );
+  }
+
+  get canEnablePublicProfile(): boolean {
+    return (
+      this.ageAssurance.hasConfirmedAdultAge() &&
+      this.accountPrivacy === "public" &&
+      this.profileVisibility === "public"
     );
   }
 
@@ -370,8 +384,12 @@ export class SettingsPageComponent implements OnInit {
       this.accountPrivacy,
       userData?.profile_visibility,
     );
+    this.publicProfileEnabled = userData?.public_profile_enabled === true;
+    this.publicSearch = userData?.public_search === true;
     this.savedAccountPrivacy = this.accountPrivacy;
     this.savedProfileVisibility = this.profileVisibility;
+    this.savedPublicProfileEnabled = this.publicProfileEnabled;
+    this.savedPublicSearch = this.publicSearch;
   }
 
   setAccountPrivacy(accountPrivacy: UserAccountPrivacy): void {
@@ -380,6 +398,33 @@ export class SettingsPageComponent implements OnInit {
       accountPrivacy,
       this.profileVisibility,
     );
+    this.normalizePublicProfileSettings();
+  }
+
+  setProfileVisibility(profileVisibility: UserProfileVisibility): void {
+    this.profileVisibility = normalizeProfileVisibility(
+      this.accountPrivacy,
+      profileVisibility,
+    );
+    this.normalizePublicProfileSettings();
+  }
+
+  setPublicProfileEnabled(enabled: boolean): void {
+    this.publicProfileEnabled = enabled && this.canEnablePublicProfile;
+    if (!this.publicProfileEnabled) {
+      this.publicSearch = false;
+    }
+  }
+
+  setPublicSearch(enabled: boolean): void {
+    this.publicSearch = enabled && this.publicProfileEnabled;
+  }
+
+  private normalizePublicProfileSettings(): void {
+    if (!this.canEnablePublicProfile) {
+      this.publicProfileEnabled = false;
+      this.publicSearch = false;
+    }
   }
 
   saveProfileAccessSettings() {
@@ -392,11 +437,14 @@ export class SettingsPageComponent implements OnInit {
       this.accountPrivacy,
       this.profileVisibility,
     );
+    this.normalizePublicProfileSettings();
     this.isSavingProfileAccess = true;
     this._usersService
       .updateUser(userId, {
         account_privacy: this.accountPrivacy,
         profile_visibility: this.profileVisibility,
+        public_profile_enabled: this.publicProfileEnabled,
+        public_search: this.publicSearch,
       })
       .then(() => {
         const currentUser = this.authService.user.data;
@@ -404,10 +452,14 @@ export class SettingsPageComponent implements OnInit {
         if (currentUserData) {
           currentUserData.account_privacy = this.accountPrivacy;
           currentUserData.profile_visibility = this.profileVisibility;
+          currentUserData.public_profile_enabled = this.publicProfileEnabled;
+          currentUserData.public_search = this.publicSearch;
           currentUser.setUserData(currentUserData);
         }
         this.savedAccountPrivacy = this.accountPrivacy;
         this.savedProfileVisibility = this.profileVisibility;
+        this.savedPublicProfileEnabled = this.publicProfileEnabled;
+        this.savedPublicSearch = this.publicSearch;
         this._snackbar.open($localize`Profile access saved`, "OK", {
           duration: 3000,
         });

@@ -71,6 +71,7 @@ async function createAdminCallables(uid) {
   return {
     markSafe: httpsCallable(functions, "markMediaUploadSafe"),
     getPreview: httpsCallable(functions, "getModerationMediaPreview"),
+    updateIncident: httpsCallable(functions, "updateSafetyIncident"),
   };
 }
 
@@ -356,7 +357,7 @@ async function main() {
   const blockedReview = await waitForReviewStatus(blockedUploadId, "blocked");
   assert.equal(blockedReview.data().scan_result.decision, "reportable_match");
   const blockedReviewPath = `media_upload_reviews/${blockedUploadId}`;
-  await waitForIncident(blockedReviewPath);
+  const blockedIncident = await waitForIncident(blockedReviewPath);
   const blockedReport = await waitForMediaReport(blockedReviewPath);
   assert.equal(blockedReport.data().source, "scanner");
   assert.equal(blockedReport.data().reason, "known_csam_match");
@@ -374,6 +375,59 @@ async function main() {
     () => callables.markSafe({ review_id: blockedUploadId }),
     "functions/failed-precondition"
   );
+  await assertCallableRejected(
+    () =>
+      callables.updateIncident({
+        incident_id: blockedIncident.id,
+        status: "closed",
+        classification: "csea",
+        uk_link: "yes",
+        retention_state: "reporting_hold",
+        reporting_route: "nca_csea_irp",
+        reporting_status: "preparing",
+        runbook: {
+          evidence_preserved: true,
+          access_restricted: true,
+          context_collected: false,
+          uk_link_assessed: true,
+          reporting_route_assessed: true,
+          external_action_recorded: false,
+        },
+      }),
+    "functions/failed-precondition"
+  );
+  const incidentUpdate = await callables.updateIncident({
+    incident_id: blockedIncident.id,
+    status: "reported",
+    classification: "csea",
+    uk_link: "yes",
+    retention_state: "reporting_hold",
+    reporting_route: "nca_csea_irp",
+    reporting_status: "submitted",
+    runbook: {
+      evidence_preserved: true,
+      access_restricted: true,
+      context_collected: true,
+      uk_link_assessed: true,
+      reporting_route_assessed: true,
+      external_action_recorded: true,
+    },
+    containment_summary: "Upload remained quarantined.",
+    reporting_decision_summary:
+      "Detected and unreported CSEA with a UK link.",
+    external_report_reference: "NCA-TEST-REFERENCE",
+  });
+  assert.equal(incidentUpdate.data.ok, true);
+  const updatedIncident = await db
+    .collection("safety_incidents")
+    .doc(blockedIncident.id)
+    .get();
+  assert.equal(updatedIncident.data().reporting_status, "submitted");
+  assert.equal(
+    updatedIncident.data().external_report_reference,
+    "NCA-TEST-REFERENCE"
+  );
+  assert.ok(updatedIncident.data().external_reported_at);
 
   const reviewUploadId = `manual-review-${suffix}`;
   const reviewIntakePath =

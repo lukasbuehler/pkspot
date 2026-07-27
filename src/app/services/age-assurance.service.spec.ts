@@ -84,4 +84,27 @@ describe("AgeAssuranceService", () => {
       }),
     );
   });
+
+  it("only confirms adulthood from a lower age bound of at least 18", () => {
+    const service = TestBed.inject(AgeAssuranceService);
+    const auth = TestBed.inject(AuthenticationService) as unknown as {
+      user: {
+        data?: {
+          data?: {
+            age_policy?: { age_range?: { lower?: number; upper?: number } };
+          };
+        };
+      };
+    };
+
+    auth.user.data = {
+      data: { age_policy: { age_range: { lower: 13, upper: 17 } } },
+    };
+    expect(service.hasConfirmedAdultAge()).toBe(false);
+
+    auth.user.data = {
+      data: { age_policy: { age_range: { lower: 18, upper: 24 } } },
+    };
+    expect(service.hasConfirmedAdultAge()).toBe(true);
+  });
 });

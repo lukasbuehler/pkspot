@@ -166,6 +166,28 @@ describe("Cloud Functions generation policy", () => {
     expect(source).not.toContain("firebase-functions/v1");
   });
 
+  it("exports the viewer-specific profile boundary and projection maintenance", () => {
+    const indexSource = readFileSync(
+      resolve(functionsSourceRoot, "index.ts"),
+      "utf8"
+    );
+    const source = readFileSync(
+      resolve(functionsSourceRoot, "userProfileFunctions.ts"),
+      "utf8"
+    );
+
+    expect(indexSource).toContain("getUserProfile");
+    expect(indexSource).toContain("syncPublicUserProfileOnWrite");
+    expect(indexSource).toContain("backfillPublicUserProfiles");
+    expect(indexSource).toContain("activateUserProfilePrivacyCutover");
+    expect(source).toContain('invoker: "public"');
+    expect(source).toContain("cors: true");
+    expect(source).toContain('onDocumentWritten(\n  "users/{userId}"');
+    expect(source).toContain(
+      '"restrict-legacy-user-profile-reads"'
+    );
+  });
+
   it("keeps media moderation functions exported as gen 2 triggers", () => {
     const indexSource = readFileSync(
       resolve(functionsSourceRoot, "index.ts"),

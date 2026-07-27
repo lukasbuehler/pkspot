@@ -1,7 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 import { dirname } from "node:path";
 
-const nodeBinDirectory = dirname(process.execPath);
+const nodeBinDirectory =
+  process.env["PKSPOT_HOST_NODE_BIN_DIRECTORY"] ?? dirname(process.execPath);
 const webServerPath = `${nodeBinDirectory}:${process.env["PATH"] ?? ""}`;
 
 /**

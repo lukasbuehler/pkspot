@@ -1,4 +1,5 @@
 import * as admin from "firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { DEFAULT_STORAGE_BUCKET } from "./storageBucket";
@@ -28,13 +29,43 @@ interface UpdateSafetyIncidentRequest {
     | "legal_hold"
     | "deletion_scheduled"
     | "deleted";
+  reporting_route?:
+    | "pending"
+    | "nca_csea_irp"
+    | "ncmec_existing_channel"
+    | "uk_police"
+    | "emergency_services"
+    | "not_required";
+  reporting_status?:
+    | "not_assessed"
+    | "registration_required"
+    | "preparing"
+    | "submitted"
+    | "not_required";
+  runbook?: {
+    evidence_preserved: boolean;
+    access_restricted: boolean;
+    context_collected: boolean;
+    uk_link_assessed: boolean;
+    reporting_route_assessed: boolean;
+    external_action_recorded: boolean;
+  };
   containment_summary?: string;
   posthog_context?: string;
   external_report_reference?: string;
+  reporting_decision_summary?: string;
   notes?: string;
 }
 
 const db = admin.firestore();
+const RUNBOOK_KEYS = [
+  "evidence_preserved",
+  "access_restricted",
+  "context_collected",
+  "uk_link_assessed",
+  "reporting_route_assessed",
+  "external_action_recorded",
+] as const;
 
 const assertAdmin = async (uid: string | undefined): Promise<string> => {
   if (!uid) {
@@ -98,13 +129,23 @@ export const createSafetyIncident = onCall<CreateSafetyIncidentRequest>(
 
     const media = data["media"];
     const incidentRef = db.collection("safety_incidents").doc();
-    const timestamp = admin.firestore.FieldValue.serverTimestamp();
+    const timestamp = FieldValue.serverTimestamp();
     await db.runTransaction(async (transaction) => {
       transaction.create(incidentRef, {
         status: "triage",
         classification: "undetermined",
         uk_link: "unknown",
         retention_state: "triage_hold",
+        reporting_route: "pending",
+        reporting_status: "not_assessed",
+        runbook: {
+          evidence_preserved: false,
+          access_restricted: false,
+          context_collected: false,
+          uk_link_assessed: false,
+          reporting_route_assessed: false,
+          external_action_recorded: false,
+        },
         source_report_path: reportPath,
         ...(typeof data["review_path"] === "string"
           ? { review_path: data["review_path"] }
@@ -232,8 +273,39 @@ export const updateSafetyIncident = onCall<UpdateSafetyIncidentRequest>(
       uk_link: ukLink,
       retention_state: retentionState,
     } = request.data;
+    if (!/^[A-Za-z0-9_-]+$/.test(incidentId)) {
+      throw new HttpsError("invalid-argument", "Invalid incident state.");
+    }
+
+    const incidentRef = db.doc(`safety_incidents/${incidentId}`);
+    const incident = await incidentRef.get();
+    if (!incident.exists) {
+      throw new HttpsError("not-found", "Safety incident not found.");
+    }
+    const existing = incident.data() ?? {};
+    const reportingRoute =
+      request.data.reporting_route ??
+      existing["reporting_route"] ??
+      "pending";
+    const reportingStatus =
+      request.data.reporting_status ??
+      existing["reporting_status"] ??
+      "not_assessed";
+    const runbook =
+      request.data.runbook ??
+      existing["runbook"] ?? {
+        evidence_preserved: false,
+        access_restricted: false,
+        context_collected: false,
+        uk_link_assessed: false,
+        reporting_route_assessed: false,
+        external_action_recorded: false,
+      };
+    const hasStructuredRunbookInput =
+      request.data.reporting_route !== undefined ||
+      request.data.reporting_status !== undefined ||
+      request.data.runbook !== undefined;
     if (
-      !/^[A-Za-z0-9_-]+$/.test(incidentId) ||
       !["triage", "contained", "reported", "closed"].includes(status) ||
       ![
         "undetermined",
@@ -249,7 +321,25 @@ export const updateSafetyIncident = onCall<UpdateSafetyIncidentRequest>(
         "legal_hold",
         "deletion_scheduled",
         "deleted",
-      ].includes(retentionState)
+      ].includes(retentionState) ||
+      ![
+        "pending",
+        "nca_csea_irp",
+        "ncmec_existing_channel",
+        "uk_police",
+        "emergency_services",
+        "not_required",
+      ].includes(reportingRoute) ||
+      ![
+        "not_assessed",
+        "registration_required",
+        "preparing",
+        "submitted",
+        "not_required",
+      ].includes(reportingStatus) ||
+      !runbook ||
+      typeof runbook !== "object" ||
+      !RUNBOOK_KEYS.every((key) => typeof runbook[key] === "boolean")
     ) {
       throw new HttpsError("invalid-argument", "Invalid incident state.");
     }
@@ -269,12 +359,77 @@ export const updateSafetyIncident = onCall<UpdateSafetyIncidentRequest>(
       "external report reference",
       500,
     );
+    const reportingDecisionSummary = stringField(
+      request.data.reporting_decision_summary,
+      "reporting decision summary",
+      3000,
+    );
     const notes = stringField(request.data.notes, "notes", 5000);
+    if (
+      hasStructuredRunbookInput &&
+      reportingStatus === "submitted" &&
+      !externalReportReference
+    ) {
+      throw new HttpsError(
+        "failed-precondition",
+        "A submitted external report needs a reference.",
+      );
+    }
+    if (
+      hasStructuredRunbookInput &&
+      status === "reported" &&
+      reportingStatus !== "submitted"
+    ) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Reported incidents must record a submitted external report.",
+      );
+    }
+    if (
+      hasStructuredRunbookInput &&
+      status === "closed" &&
+      (!containmentSummary ||
+        !reportingDecisionSummary ||
+        !["submitted", "not_required"].includes(reportingStatus) ||
+        !RUNBOOK_KEYS.every((key) => runbook[key]))
+    ) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Complete the runbook and decision record before closing.",
+      );
+    }
+    if (
+      hasStructuredRunbookInput &&
+      retentionState === "deleted" &&
+      status !== "closed"
+    ) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Evidence deletion can only be recorded on a closed incident.",
+      );
+    }
+    if (
+      hasStructuredRunbookInput &&
+      reportingRoute === "not_required" &&
+      !reportingDecisionSummary
+    ) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Record why no external report is required.",
+      );
+    }
+
+    const firstSubmission =
+      reportingStatus === "submitted" &&
+      incident.data()?.["reporting_status"] !== "submitted";
     const update = {
       status,
       classification,
       uk_link: ukLink,
       retention_state: retentionState,
+      reporting_route: reportingRoute,
+      reporting_status: reportingStatus,
+      runbook,
       ...(containmentSummary
         ? { containment_summary: containmentSummary }
         : {}),
@@ -282,22 +437,23 @@ export const updateSafetyIncident = onCall<UpdateSafetyIncidentRequest>(
       ...(externalReportReference
         ? { external_report_reference: externalReportReference }
         : {}),
+      ...(reportingDecisionSummary
+        ? { reporting_decision_summary: reportingDecisionSummary }
+        : {}),
       ...(notes ? { notes } : {}),
-      updated_at: admin.firestore.FieldValue.serverTimestamp(),
+      ...(firstSubmission
+        ? { external_reported_at: FieldValue.serverTimestamp() }
+        : {}),
+      updated_at: FieldValue.serverTimestamp(),
       updated_by: uid,
     };
-
-    const incidentRef = db.doc(`safety_incidents/${incidentId}`);
-    if (!(await incidentRef.get()).exists) {
-      throw new HttpsError("not-found", "Safety incident not found.");
-    }
 
     const batch = db.batch();
     batch.update(incidentRef, update);
     batch.create(incidentRef.collection("events").doc(), {
       type: "incident_updated",
       state: update,
-      created_at: admin.firestore.FieldValue.serverTimestamp(),
+      created_at: FieldValue.serverTimestamp(),
       created_by: uid,
     });
     await batch.commit();

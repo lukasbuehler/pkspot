@@ -20,7 +20,7 @@ import { Post } from "../../../db/models/Post";
 import { User } from "../../../db/models/User";
 import { FollowRequestSchema } from "../../../db/schemas/UserSchema";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
-import { Subscription, timeout } from "rxjs";
+import { from, Subscription, timeout } from "rxjs";
 import { Timestamp } from "firebase/firestore";
 import { FollowListComponent } from "../follow-list/follow-list.component";
 import { StorageService } from "../../services/firebase/storage.service";
@@ -212,6 +212,10 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     return this.user?.accountPrivacy === "private";
   }
 
+  get hasExpandedProfileAccess(): boolean {
+    return this.user?.data?.profile_access !== "limited";
+  }
+
   get followActionButtonType(): "filled" | "outlined" {
     return this.isFollowing || this.isPendingFollowRequest
       ? "outlined"
@@ -223,6 +227,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     // auth isn't ready on initial load (e.g., page refresh)
     // Skip the first emission (initial null from BehaviorSubject before auth loads)
     const authSub = this._authService.authState$.subscribe((authUser) => {
+      const wasMyProfile = this.isMyProfile;
       if (authUser) {
         this.isMyProfile = this.userId === authUser.uid;
         this._syncPrivateDataSubscription();
@@ -254,6 +259,12 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
             queryParams: { returnUrl: "/profile" },
           });
         }
+      }
+      if (
+        this.userId &&
+        wasMyProfile !== this.isMyProfile
+      ) {
+        this.loadProfile(this.userId);
       }
     });
     this._subscriptions.add(authSub);
@@ -327,7 +338,10 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
       this._userSubscription.unsubscribe();
       this._userSubscription = null;
     }
-    this._userSubscription = this._usersService.getUserById(userId).subscribe(
+    const profile$ = this.isMyProfile
+      ? this._usersService.getUserById(userId)
+      : from(this._usersService.getAccessibleUserProfile(userId));
+    this._userSubscription = profile$.subscribe(
       (user) => {
         if (!user) {
           this.profileSocialLinks = [];
@@ -344,22 +358,21 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
         this.profileSocialLinks = this._buildProfileSocialLinks(user);
         this.isLoading = false;
 
-        // Add structured data for this user profile
-        const personData =
-          this._structuredDataService.generateUserPersonData(user);
-        this._structuredDataService.addStructuredData("profile", personData);
-
-        // Set meta tags with canonical URL
-        const canonicalPath = `/u/${user.uid}`;
-        this._metaTagService.setUserMetaTags(user, canonicalPath);
+        if (this.hasExpandedProfileAccess) {
+          const personData =
+            this._structuredDataService.generateUserPersonData(user);
+          this._structuredDataService.addStructuredData("profile", personData);
+          this._metaTagService.setUserMetaTags(user, `/u/${user.uid}`);
+        }
 
         // Load the profile picture of this user
         if (this.user.profilePicture) {
           this.profilePicture = this.user.profilePicture.getPreviewImageSrc();
         }
 
-        // Load all the posts from this user
-        this.loadPostsForUser(userId);
+        if (this.hasExpandedProfileAccess) {
+          this.loadPostsForUser(userId);
+        }
 
         // Check if this user follows the authenticated user
 
@@ -409,18 +422,28 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
         this.isLoadingStats = true;
 
         // Stats are on the user profile (set by Cloud Functions)
-        this.createdSpotsCount = this.user.data?.spot_creates_count ?? 0;
-        this.editedSpotsCount = this.user.data?.spot_edits_count ?? 0;
-        this.mediaAddedCount = this.user.data?.media_added_count ?? 0;
+        this.createdSpotsCount = this.hasExpandedProfileAccess
+          ? this.user.data?.spot_creates_count ?? 0
+          : 0;
+        this.editedSpotsCount = this.hasExpandedProfileAccess
+          ? this.user.data?.spot_edits_count ?? 0
+          : 0;
+        this.mediaAddedCount = this.hasExpandedProfileAccess
+          ? this.user.data?.media_added_count ?? 0
+          : 0;
 
         // IMPORTANT: following_count is on the user document.
         // We cannot count the collection directly for other users due to privacy rules.
-        this.followingCount = this.user.data?.following_count ?? 0;
+        this.followingCount = this.hasExpandedProfileAccess
+          ? this.user.data?.following_count ?? 0
+          : 0;
 
         this.isLoadingStats = false;
 
         // Compute badges for this user
-        this.badges = this._badgeService.getDisplayBadges(this.user.data);
+        this.badges = this.hasExpandedProfileAccess
+          ? this._badgeService.getDisplayBadges(this.user.data)
+          : [];
         this._loadFollowRequests();
 
         // Load the groups of this user
@@ -486,6 +509,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
             this.isFollowing = false;
             this.isPendingFollowRequest = false;
             this._completeFollowAction();
+            this.init();
           })
           .catch((err) => {
             console.error(err);
@@ -554,6 +578,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
               });
             } else {
               this.isFollowing = true;
+              this.init();
             }
             this._completeFollowAction();
             if (!wasPendingFollowRequest) {

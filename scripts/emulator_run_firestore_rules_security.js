@@ -358,6 +358,18 @@ async function seedSecurityFixture() {
     display_name: "Admin",
     is_admin: true,
   });
+  batch.set(adminDb.doc("users/adult"), {
+    display_name: "Adult",
+    is_admin: false,
+    account_privacy: "public",
+    profile_visibility: "public",
+    age_policy: {
+      participation_state: "allowed",
+      source: "manual",
+      platform: "web",
+      age_range: { lower: 18 },
+    },
+  });
   batch.set(adminDb.doc("users/restricted"), {
     display_name: "Restricted",
     is_admin: false,
@@ -375,6 +387,13 @@ async function seedSecurityFixture() {
   batch.set(adminDb.doc("users/org-member"), {
     display_name: "Organization Member",
     is_admin: false,
+  });
+  batch.set(adminDb.doc("public_user_profiles/adult"), {
+    display_name: "Adult",
+    public_profile_enabled: true,
+    public_search: true,
+    profile_access: "full",
+    profile_projection_version: 1,
   });
   batch.set(adminDb.doc("users/restricted/private_data/profile"), {
     bookmarks: ["public-spot"],
@@ -1071,6 +1090,72 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh, 
     setDoc(doc(other.db, "users/owner/followers/attacker-controlled"), {
       created_at_raw_ms: 2,
     })
+  );
+}
+
+async function testPublicUserProfileGuards(
+  anon,
+  adult,
+  restricted,
+  adminUser
+) {
+  await assertAllowed("anonymous reads public user projection", () =>
+    getDoc(doc(anon.db, "public_user_profiles/adult"))
+  );
+  await assertDenied("profile owner cannot forge public projection", () =>
+    setDoc(doc(adult.db, "public_user_profiles/adult"), {
+      display_name: "Forged",
+    })
+  );
+  await assertDenied("admin client cannot forge public projection", () =>
+    setDoc(doc(adminUser.db, "public_user_profiles/forged"), {
+      display_name: "Forged",
+    })
+  );
+  await assertAllowed("confirmed adult enables public profile and search", () =>
+    updateDoc(doc(adult.db, "users/adult"), {
+      public_profile_enabled: true,
+      public_search: true,
+    })
+  );
+  await assertDenied("user without confirmed adult age cannot enable public profile", () =>
+    updateDoc(doc(restricted.db, "users/restricted"), {
+      public_profile_enabled: true,
+    })
+  );
+  await assertDenied("public search requires public profile opt-in", () =>
+    updateDoc(doc(adult.db, "users/adult"), {
+      public_profile_enabled: false,
+      public_search: true,
+    })
+  );
+}
+
+async function testUserProfilePrivacyCutover(
+  anon,
+  owner,
+  other,
+  adminUser
+) {
+  await adminDb.doc("maintenance/user-profile-privacy").set({
+    completed: true,
+    minimum_supported_client_version: "1.1.4",
+  });
+
+  await assertDenied("anonymous raw user profile read after cutover", () =>
+    getDoc(doc(anon.db, "users/owner"))
+  );
+  await assertDenied("other user raw profile read after cutover", () =>
+    getDoc(doc(other.db, "users/owner"))
+  );
+  await assertAllowed("owner raw profile read after cutover", () =>
+    getDoc(doc(owner.db, "users/owner"))
+  );
+  await assertAllowed("admin raw profile read after cutover", () =>
+    getDoc(doc(adminUser.db, "users/owner"))
+  );
+  await assertAllowed("public projection stays readable after cutover", () =>
+    getDoc(doc(anon.db, "public_user_profiles/adult"))
   );
 }
 
@@ -1781,7 +1866,7 @@ async function testEventLiveUpdateGuards(anon, owner, other, adminUser) {
 }
 
 async function testPostAndImportGuards(anon, owner, other, adminUser) {
-  await assertAllowed("authenticated post create without like_count", () =>
+  await assertDenied("legacy feed post creation stays disabled", () =>
     setDoc(doc(owner.db, "posts/owner-post"), {
       user: { uid: "owner" },
       text: "ok",
@@ -1805,6 +1890,14 @@ async function testPostAndImportGuards(anon, owner, other, adminUser) {
   );
   await assertAllowed("authenticated reads post likes", () =>
     getDocs(collection(owner.db, "posts/post-1/likes"))
+  );
+  await assertDenied("legacy post likes stay disabled", () =>
+    setDoc(doc(owner.db, "posts/post-1/likes/other-like"), {
+      user: { uid: "owner" },
+    })
+  );
+  await assertAllowed("post owner can delete historical post", () =>
+    deleteDoc(doc(owner.db, "posts/post-1"))
   );
 
   await assertDenied("anonymous import metadata read", () =>
@@ -2091,6 +2184,7 @@ async function main() {
   const attacker = await createClient("attacker");
   const fresh = await createClient("fresh");
   const restricted = await createClient("restricted");
+  const adult = await createClient("adult");
   const orgManager = await createClient("org-manager");
   const orgMember = await createClient("org-member");
   const adminUser = await createClient("admin");
@@ -2108,6 +2202,7 @@ async function main() {
   await testOrganizationGuards(anon, owner, other, adminUser);
   await testPrivateOrganizationReviewEdits(anon, owner, other, adminUser);
   await testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh, attacker);
+  await testPublicUserProfileGuards(anon, adult, restricted, adminUser);
   await testUserReportGuards(anon, owner, other);
   await testAgePolicyParticipationGuards(restricted);
   await testReadOnlyBackendCollections(owner, adminUser);
@@ -2121,6 +2216,7 @@ async function main() {
   await testReportPrivacy(anon, owner, other, adminUser);
   await testQueriesDoNotBypassRules(owner, other);
   await testNotificationRegistrationGuards(anon, owner, other, adminUser);
+  await testUserProfilePrivacyCutover(anon, owner, other, adminUser);
 
   console.log("Firestore rules security tests passed.");
 }

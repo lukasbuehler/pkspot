@@ -94,7 +94,90 @@
             <mat-option value="deleted" i18n>Deleted</mat-option>
           </mat-select>
         </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label i18n>External reporting route</mat-label>
+          <mat-select formControlName="reporting_route">
+            <mat-option value="pending" i18n>Assessment pending</mat-option>
+            <mat-option value="nca_csea_irp">NCA CSEA-IRP</mat-option>
+            <mat-option value="ncmec_existing_channel">
+              NCMEC existing channel
+            </mat-option>
+            <mat-option value="uk_police" i18n>UK police</mat-option>
+            <mat-option value="emergency_services" i18n>
+              Emergency services
+            </mat-option>
+            <mat-option value="not_required" i18n>
+              External report not required
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label i18n>External reporting status</mat-label>
+          <mat-select formControlName="reporting_status">
+            <mat-option value="not_assessed" i18n>Not assessed</mat-option>
+            <mat-option value="registration_required" i18n>
+              Registration required
+            </mat-option>
+            <mat-option value="preparing" i18n>Preparing report</mat-option>
+            <mat-option value="submitted" i18n>Submitted</mat-option>
+            <mat-option value="not_required" i18n>Not required</mat-option>
+          </mat-select>
+        </mat-form-field>
       </div>
+
+      <mat-card class="runbook-card" formGroupName="runbook">
+        <mat-card-header>
+          <mat-card-title i18n>Incident runbook</mat-card-title>
+          <mat-card-subtitle i18n>
+            Work in order. Do not preview or forward restricted-match media.
+          </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-checkbox formControlName="evidence_preserved" i18n>
+            Preserve the original evidence, hash, timestamps, and audit trail
+          </mat-checkbox>
+          <mat-checkbox formControlName="access_restricted" i18n>
+            Restrict access and contain further distribution
+          </mat-checkbox>
+          <mat-checkbox formControlName="context_collected" i18n>
+            Record account, session, provenance, and available network context
+          </mat-checkbox>
+          <mat-checkbox formControlName="uk_link_assessed" i18n>
+            Assess the UK link and any current or imminent danger
+          </mat-checkbox>
+          <mat-checkbox formControlName="reporting_route_assessed" i18n>
+            Select the appropriate external reporting route
+          </mat-checkbox>
+          <mat-checkbox formControlName="external_action_recorded" i18n>
+            Record the external action, reference, and follow-up
+          </mat-checkbox>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="runbook-card">
+        <mat-card-header>
+          <mat-card-title i18n>External response guidance</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p i18n>
+            Use the NCA CSEA reporting portal only for reportable CSEA. Continue
+            an existing NCMEC channel where applicable and do not create a
+            duplicate referral. For current or imminent danger, follow the
+            emergency instructions in the NCA guidance.
+          </p>
+          <a
+            matButton="outlined"
+            href="https://www.nationalcrimeagency.gov.uk/what-we-do/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <mat-icon>open_in_new</mat-icon>
+            <span i18n>Open current NCA guidance</span>
+          </a>
+        </mat-card-content>
+      </mat-card>
 
       <mat-form-field appearance="outline">
         <mat-label i18n>Containment summary</mat-label>
@@ -117,6 +200,19 @@
         <mat-hint i18n>
           Include provenance, retrieval time, relevant session or IP data, and
           who retrieved it.
+        </mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label i18n>Reporting decision summary</mat-label>
+        <textarea
+          matInput
+          rows="4"
+          maxlength="3000"
+          formControlName="reporting_decision_summary"
+        ></textarea>
+        <mat-hint i18n>
+          Record why this route applies, or why no external report is required.
         </mat-hint>
       </mat-form-field>
 

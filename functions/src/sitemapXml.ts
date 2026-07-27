@@ -29,6 +29,7 @@ const STATIC_PAGES = [
 
 export interface UserSitemapData {
   display_name?: string;
+  public_search?: boolean;
 }
 
 export interface SpotSitemapData {
@@ -386,10 +387,15 @@ export function buildUserSitemapEntry(
   data: UserSitemapData,
   fallbackDate: string
 ): ResolvedSitemapEntry | null {
-  void id;
-  void data;
-  void fallbackDate;
-  return null;
+  if (data.public_search !== true || !data.display_name?.trim()) {
+    return null;
+  }
+  return {
+    path: `/u/${encodeURIComponent(id)}`,
+    lastmod: fallbackDate,
+    changefreq: "monthly",
+    priority: "0.4",
+  };
 }
 
 export function buildCommunitySitemapEntry(

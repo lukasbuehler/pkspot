@@ -115,11 +115,24 @@ describe("sitemapXml", () => {
     });
   });
 
-  it("does not include user profiles in sitemap entries", () => {
+  it("includes only explicitly searchable public profiles", () => {
     expect(
       buildUserSitemapEntry(
         "lukas",
-        { display_name: "Lukas" },
+        { display_name: "Lukas", public_search: true },
+        "2026-04-17"
+      )
+    ).toEqual({
+      path: "/u/lukas",
+      lastmod: "2026-04-17",
+      changefreq: "monthly",
+      priority: "0.4",
+    });
+
+    expect(
+      buildUserSitemapEntry(
+        "not-searchable",
+        { display_name: "Hidden", public_search: false },
         "2026-04-17"
       )
     ).toBeNull();
@@ -199,11 +212,11 @@ describe("sitemapXml", () => {
       users: [
         {
           id: "lukas",
-          data: { display_name: "Lukas" },
+          data: { display_name: "Lukas", public_search: true },
         },
         {
           id: "private-user",
-          data: { display_name: "" },
+          data: { display_name: "", public_search: true },
         },
       ],
       communities: [
@@ -246,7 +259,7 @@ describe("sitemapXml", () => {
     expect(xml).toContain(`${BASE_URL}/en/map/spots/imax`);
     expect(xml).toContain(`${BASE_URL}/de/map/spots/dame-du-lac`);
     expect(xml).not.toContain(`${BASE_URL}/de-CH/`);
-    expect(xml).not.toContain(`${BASE_URL}/en/u/lukas`);
+    expect(xml).toContain(`${BASE_URL}/en/u/lukas`);
     expect(xml).not.toContain(`${BASE_URL}/en/u/private-user`);
     expect(xml).toContain(`${BASE_URL}/en/map/communities/lausanne`);
     expect(xml).not.toContain(`${BASE_URL}/en/map/communities/lausanne-old`);
@@ -270,12 +283,12 @@ describe("sitemapXml", () => {
     expect(stats).toEqual({
       staticPageCount: STATIC_PAGES.length,
       spotCount: 2,
-      userCount: 0,
+      userCount: 1,
       communityCount: 2,
       eventCount: 1,
       slugCount: 2,
       totalUrls:
-        (STATIC_PAGES.length + 2 + 0 + 2 + 1) * SUPPORTED_LOCALES.length,
+        (STATIC_PAGES.length + 2 + 1 + 2 + 1) * SUPPORTED_LOCALES.length,
     });
   });
 });

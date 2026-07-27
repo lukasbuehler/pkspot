@@ -49,9 +49,8 @@
               public profile description|Description of public profile
               section@@settings.profile.description"
           >
-            You can edit your public profile here. The information on your
-            public profile can be seen by everyone, even unauthenticated
-            visitors.
+            Edit the details other people may see. Your profile access and
+            search settings determine who can view them.
           </span>
 
           @if (!ageAssurance.canParticipatePublicly()) {
@@ -125,7 +124,10 @@
 
               <mat-form-field appearance="outline" subscriptSizing="dynamic">
                 <mat-label i18n>Profile visibility</mat-label>
-                <mat-select [(ngModel)]="profileVisibility">
+                <mat-select
+                  [ngModel]="profileVisibility"
+                  (ngModelChange)="setProfileVisibility($event)"
+                >
                   <mat-option
                     value="public"
                     [disabled]="accountPrivacy === 'private'"
@@ -140,6 +142,62 @@
                 </mat-hint>
               </mat-form-field>
             </div>
+
+            <div class="d-grid gap-3 mb-4">
+              <div
+                class="d-flex justify-content-between align-items-start gap-3"
+              >
+                <div>
+                  <h4 class="mat-title-medium m-0" i18n>
+                    Public profile
+                  </h4>
+                  <p class="mat-body-small m-0 text-muted" i18n>
+                    Let signed-out visitors view your expanded profile. This
+                    requires a confirmed adult age range, a public account, and
+                    public profile visibility.
+                  </p>
+                </div>
+                <mat-slide-toggle
+                  color="primary"
+                  [checked]="publicProfileEnabled"
+                  [disabled]="!canEnablePublicProfile"
+                  (change)="setPublicProfileEnabled($event.checked)"
+                  aria-label="Make expanded profile public"
+                  i18n-aria-label
+                ></mat-slide-toggle>
+              </div>
+
+              <div
+                class="d-flex justify-content-between align-items-start gap-3"
+              >
+                <div>
+                  <h4 class="mat-title-medium m-0" i18n>
+                    Search engine discovery
+                  </h4>
+                  <p class="mat-body-small m-0 text-muted" i18n>
+                    Include this profile in PK Spot user search and public
+                    sitemaps. This is always off for children and profiles
+                    without confirmed adult eligibility.
+                  </p>
+                </div>
+                <mat-slide-toggle
+                  color="primary"
+                  [checked]="publicSearch"
+                  [disabled]="!publicProfileEnabled"
+                  (change)="setPublicSearch($event.checked)"
+                  aria-label="Allow profile search indexing"
+                  i18n-aria-label
+                ></mat-slide-toggle>
+              </div>
+            </div>
+
+            @if (!ageAssurance.hasConfirmedAdultAge()) {
+              <p class="mat-body-small text-muted" i18n>
+                Public and search-indexed profiles stay disabled until the
+                platform supplies an age range confirming that this account is
+                18 or older.
+              </p>
+            }
             <button
               mat-flat-button
               color="primary"

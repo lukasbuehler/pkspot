@@ -77,6 +77,91 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
+### User profile privacy cutover
+
+The backend rollout is deliberately separate from the client rollout. Do not
+activate the final cutover while any supported client still reads another
+user's authoritative `users/{uid}` document.
+
+- [x] Deploy the additive profile Functions and compatible Firestore rules
+      before releasing the new client:
+
+  ```sh
+  npm --prefix functions run build
+  npx firebase deploy --project prod --only functions:getUserProfile,functions:syncPublicUserProfileOnWrite,functions:backfillPublicUserProfiles,functions:activateUserProfilePrivacyCutover,functions:updateAgePolicy,firestore:rules
+  ```
+
+  Success condition: all targets deploy successfully,
+  `maintenance/user-profile-privacy` is still absent or not completed, and a
+  released legacy client can still open profiles.
+
+  Completed 27 July 2026. All selected targets deployed successfully; the
+  production callable returned a limited profile and an anonymous legacy
+  profile read still returned HTTP 200, confirming that cutover is inactive.
+
+- [ ] Release the client that reads other users through `getUserProfile`, writes
+      `public_profile_enabled` and `public_search`, and resolves public profile
+      metadata from `public_user_profiles`. This is a normal App Hosting/mobile
+      release and must not be inferred from a backend-only deployment.
+- [ ] Monitor profile callable errors and supported-client adoption. Do not
+      proceed until every supported client version uses the callable for other
+      users.
+- [ ] As an authenticated administrator, invoke
+      `backfillPublicUserProfiles` with `{ "dry_run": true }`. Review
+      `users_scanned`, `public_profiles`, and `stale_profiles`; an existing
+      account must not be projected without confirmed adult age and explicit
+      public-profile consent.
+- [ ] Invoke `backfillPublicUserProfiles` with `{ "dry_run": false }`. Verify
+      `maintenance/user-profile-projection.completed == true`, inspect the
+      projected count, and sample every projected profile if the count remains
+      small.
+- [ ] Invoke `activateUserProfilePrivacyCutover` with the exact confirmation
+      `restrict-legacy-user-profile-reads` and the oldest client version that is
+      still supported. This is the irreversible compatibility boundary for old
+      profile readers.
+- [ ] Verify after cutover that anonymous and unrelated authenticated clients
+      cannot read `users/{uid}`, owners and administrators still can, limited
+      callable responses omit profile picture/city/biography/social links, and
+      explicitly opted-in adult public profiles remain available.
+- [ ] Before enabling user indexing, configure the Typesense extension to
+      source `public_user_profiles` (not `users`), apply
+      `typesense/typesense_users_v1_schema.json`, and backfill only documents
+      with `public_search == true`.
+- [ ] Deploy the sitemap Functions and regenerate the sitemap. Confirm only
+      `public_user_profiles` with `public_search == true` produce `/u/` URLs.
+
+### Online-safety operational readiness
+
+- [x] Deploy the backward-compatible incident runbook Functions before a client
+      release:
+
+  ```sh
+  npm --prefix functions run build
+  npx firebase deploy --project prod --only functions:createSafetyIncident,functions:updateSafetyIncident
+  ```
+
+  Completed 27 July 2026. Both Functions deployed successfully.
+- [ ] Verify in production that an administrator can still update a legacy
+      incident that does not yet have runbook fields.
+- [ ] Register the legal entity and nominated organisation administrator for
+      the NCA Child Sexual Exploitation and Abuse Industry Reporting Portal.
+      Record the registration owner and a backup operator outside the app.
+- [ ] Complete and retain the written UK children’s access assessment, illegal
+      content risk assessment, and—if children are likely to access the
+      service—children’s risk assessment. Record the evidence, measures,
+      residual risks, owner, approval date, and next review date.
+- [ ] Record that PK Spot is not in Ofcom’s 10 July 2026 register of categorised
+      services, then re-check the register and the assessment whenever user
+      numbers or functionality change materially.
+- [ ] Run a tabletop incident from a test media report through containment,
+      evidence preservation, route selection, external-reference recording,
+      audit events, and closure. Do not upload unlawful material for the test.
+- [ ] Assign a primary and backup moderator and test that both can reach reports
+      and incident records while ordinary users cannot.
+- [ ] Schedule at least annual assessment review and an assessment before any
+      significant service change, including messaging, comments, challenges,
+      recommendations, public user search, or a material expansion of UK use.
+
 ### Retire the `de-CH` app locale
 
 Complete these steps in order after the locale-removal change is live in App

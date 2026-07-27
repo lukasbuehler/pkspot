@@ -141,8 +141,12 @@ async function _generateAndUploadSitemap(): Promise<{
 
     console.log(`Streamed ${spotCount} spots`);
 
-    console.log("Streaming users from Firestore...");
-    const usersStream = db.collection("users").select("display_name").stream();
+    console.log("Streaming opted-in public user profiles from Firestore...");
+    const usersStream = db
+      .collection("public_user_profiles")
+      .where("public_search", "==", true)
+      .select("display_name", "public_search")
+      .stream();
     for await (const doc of usersStream as AsyncIterable<FirebaseFirestore.QueryDocumentSnapshot>) {
       const data = doc.data() as UserSitemapData;
       const entry = buildUserSitemapEntry(doc.id, data, now);

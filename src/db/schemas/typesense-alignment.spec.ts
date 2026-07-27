@@ -899,11 +899,14 @@ describe("Typesense communities_v1 ↔ CommunityPageSchema", () => {
   });
 });
 
-describe("Typesense users_v1 ↔ UserSchema", () => {
+describe("Typesense users_v1 ↔ PublicUserProfileSchema", () => {
+  // The future users index must source documents from
+  // `public_user_profiles`, never from the authoritative `users`
+  // collection. That projection only exists for confirmed adults who opted
+  // into a public profile.
   const firestoreFields = [
     "display_name",
     "biography",
-    "home_spots",
     "profile_picture",
     "follower_count",
     "following_count",
@@ -912,15 +915,11 @@ describe("Typesense users_v1 ↔ UserSchema", () => {
     "spot_edits_count",
     "media_added_count",
     "signup_number",
-    "is_admin",
     "special_badges",
-    "blocked_users",
     "pinned_badges",
     "start_date",
     "start_date_raw_ms",
     "nationality_code",
-    "verified_email",
-    "invite_code",
     "home_city",
     "socials",
     "socials.instagram_handle",
@@ -928,13 +927,12 @@ describe("Typesense users_v1 ↔ UserSchema", () => {
     "socials.tiktok_handle",
     "socials.discord_url",
     "socials.other",
-    "creationDate",
-    // `public_search` is a settings-side flag (lives in PrivateUserDataSchema
-    // / a separate doc), not on the main UserSchema — but it gets projected
-    // onto the Typesense user doc by the indexer so the collection only
-    // contains opted-in users for search. Listed here so the mapping is
-    // valid.
+    "account_privacy",
+    "profile_visibility",
+    "public_profile_enabled",
     "public_search",
+    "profile_access",
+    "profile_projection_version",
   ] as const;
 
   const requiredFirestoreFields = [] as const;

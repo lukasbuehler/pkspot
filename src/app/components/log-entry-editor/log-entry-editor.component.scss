@@ -16,7 +16,7 @@ h2 { margin: 0 0 3px; font: var(--mat-sys-title-large); }
 .time-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .full { width: 100%; margin-top: 8px; }
 .people { margin-top: 16px; }
-.people > label { display: block; margin-bottom: 8px; font: var(--mat-sys-label-large); }
+.people-label { display: block; margin-bottom: 8px; font: var(--mat-sys-label-large); }
 .people-list { display: flex; flex-wrap: wrap; gap: 6px; }
 .people-list > span { display: inline-flex; align-items: center; padding-left: 10px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; }
 .people-list button { transform: scale(.8); }

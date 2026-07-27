@@ -17,7 +17,7 @@
         @if (sessions().length) {
           <div class="session-list">
             @for (session of sessions(); track session.id) {
-              <label class="session-option">
+              <div class="session-option">
                 <mat-checkbox
                   [checked]="selectedIds().includes(session.id)"
                   (change)="toggleSession(session.id, $event.checked)"
@@ -26,7 +26,7 @@
                   <strong>{{ session.started_at_raw_ms | date: "mediumDate" }}</strong>
                   <span>{{ session.started_at_raw_ms | date: "shortTime" }} · {{ session.spot_visits.length }} spots · {{ session.source === "check_in" ? "Check-in" : "Manual" }}</span>
                 </div>
-              </label>
+              </div>
             }
           </div>
         }
@@ -53,7 +53,7 @@
               label="Spots visited"
             />
             <div class="people">
-              <label i18n="@@logEditor.people">People who were there</label>
+              <span class="people-label" i18n="@@logEditor.people">People who were there</span>
               <app-user-picker value="" (valueChange)="addPerson($event)" />
               @if (people().length) {
                 <div class="people-list">

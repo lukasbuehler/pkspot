@@ -26,6 +26,7 @@ const firebaseConfigHome = path.join(os.tmpdir(), "pkspot-firebase-cli-config");
 
 mkdirSync(firebaseConfigHome, { recursive: true });
 env.XDG_CONFIG_HOME = firebaseConfigHome;
+env.PKSPOT_HOST_NODE_BIN_DIRECTORY = path.dirname(process.execPath);
 
 if (resolvedJavaHome) {
   env.JAVA_HOME = resolvedJavaHome;

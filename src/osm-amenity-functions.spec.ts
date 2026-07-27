@@ -159,7 +159,7 @@ describe("OSM amenity functions", () => {
 
   it("publishes ODbL attribution metadata", () => {
     expect(OSM_ATTRIBUTION).toEqual({
-      text: "© OpenStreetMap contributors",
+      text: "Amenity data © OpenStreetMap contributors",
       url: "https://www.openstreetmap.org/copyright",
       license: "ODbL 1.0",
     });

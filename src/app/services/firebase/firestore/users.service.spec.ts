@@ -4,6 +4,7 @@ import { User } from "../../../../db/models/User";
 import { AnalyticsService } from "../../analytics.service";
 import { ConsentService } from "../../consent.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
+import { FunctionsAdapterService } from "../functions-adapter.service";
 import { UsersService } from "./users.service";
 
 const createConsentService = () => ({
@@ -23,6 +24,9 @@ describe("UsersService", () => {
     deleteDocument: ReturnType<typeof vi.fn>;
     documentSnapshots: ReturnType<typeof vi.fn>;
   };
+  let functions: {
+    callPublic: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     adapter = {
@@ -32,11 +36,15 @@ describe("UsersService", () => {
       deleteDocument: vi.fn(),
       documentSnapshots: vi.fn(),
     };
+    functions = {
+      callPublic: vi.fn(),
+    };
 
     TestBed.configureTestingModule({
       providers: [
         UsersService,
         { provide: FirestoreAdapterService, useValue: adapter },
+        { provide: FunctionsAdapterService, useValue: functions },
         { provide: ConsentService, useValue: createConsentService() },
         { provide: AnalyticsService, useValue: { trackEvent: vi.fn() } },
       ],
@@ -72,5 +80,44 @@ describe("UsersService", () => {
 
     await expect(service.getUserByIdOnce("missing-user")).resolves.toBeNull();
     expect(adapter.getDocument).toHaveBeenCalledWith("users/missing-user");
+  });
+
+  it("loads a viewer-redacted profile through the callable boundary", async () => {
+    functions.callPublic.mockResolvedValue({
+      uid: "private-user",
+      display_name: "Private Traceur",
+      account_privacy: "private",
+      profile_visibility: "followers",
+      public_profile_enabled: false,
+      public_search: false,
+      profile_access: "limited",
+    });
+
+    const user = await service.getAccessibleUserProfile("private-user");
+
+    expect(functions.callPublic).toHaveBeenCalledWith("getUserProfile", {
+      user_id: "private-user",
+    });
+    expect(user?.displayName).toBe("Private Traceur");
+    expect(user?.biography).toBe("");
+    expect(user?.profilePicture).toBeNull();
+  });
+
+  it("reads SEO profiles only from the server-owned public collection", async () => {
+    adapter.getDocument.mockResolvedValue({
+      id: "public-user",
+      display_name: "Public Traceur",
+      public_profile_enabled: true,
+      public_search: true,
+      profile_access: "full",
+      profile_projection_version: 1,
+    });
+
+    const user = await service.getPublicUserProfileByIdOnce("public-user");
+
+    expect(adapter.getDocument).toHaveBeenCalledWith(
+      "public_user_profiles/public-user"
+    );
+    expect(user?.displayName).toBe("Public Traceur");
   });
 });

@@ -3,20 +3,23 @@ import { map, switchMap } from "rxjs/operators";
 import { Observable, from, Subscription } from "rxjs";
 import { User } from "../../../../db/models/User";
 import {
+  AccessibleUserProfileSchema,
+  PublicUserProfileSchema,
   UserReferenceSchema,
   UserSchema,
 } from "../../../../db/schemas/UserSchema";
 import { CheckInSchema } from "../../../../db/schemas/CheckInSchema";
 import { PrivateUserDataSchema } from "../../../../db/schemas/PrivateUserDataSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
-import { StorageImage } from "../../../../db/models/Media";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
+import { FunctionsAdapterService } from "../functions-adapter.service";
 
 @Injectable({
   providedIn: "root",
 })
 export class UsersService extends ConsentAwareService {
   private _firestoreAdapter = inject(FirestoreAdapterService);
+  private _functionsAdapter = inject(FunctionsAdapterService);
   private readonly _privateDataDocId = "main";
 
   constructor() {
@@ -31,6 +34,8 @@ export class UsersService extends ConsentAwareService {
     let schema: UserSchema = {
       display_name: display_name,
       verified_email: false,
+      public_profile_enabled: false,
+      public_search: false,
       ...data,
     };
     if (schema.start_date && !schema.start_date_raw_ms) {
@@ -139,30 +144,60 @@ export class UsersService extends ConsentAwareService {
     }
   }
 
+  async getAccessibleUserProfile(userId: string): Promise<User | null> {
+    if (!userId) return null;
+
+    try {
+      const profile = await this.executeWhenConsent(() =>
+        this._functionsAdapter.callPublic<
+          { user_id: string },
+          AccessibleUserProfileSchema & { uid: string }
+        >("getUserProfile", { user_id: userId })
+      );
+      return new User(profile.uid, profile);
+    } catch (error) {
+      console.error("Accessible user profile fetch failed:", error);
+      return null;
+    }
+  }
+
+  async getPublicUserProfileByIdOnce(userId: string): Promise<User | null> {
+    if (!userId) return null;
+
+    try {
+      const profile = await this.executeWhenConsent(() =>
+        this._firestoreAdapter.getDocument<
+          PublicUserProfileSchema & { id: string }
+        >(`public_user_profiles/${userId}`)
+      );
+      return profile ? new User(profile.id, profile) : null;
+    } catch (error) {
+      console.error("Public user profile fetch failed:", error);
+      return null;
+    }
+  }
+
+  async getUserReferenceById(
+    userId: string
+  ): Promise<UserReferenceSchema | null> {
+    const user = await this.getAccessibleUserProfile(userId);
+    if (!user) return null;
+
+    return {
+      uid: user.uid,
+      display_name: user.displayName || undefined,
+      profile_picture: user.profilePicture?.getSrc(200),
+    };
+  }
+
+  /** @deprecated Use getUserReferenceById. */
   getUserRefernceById(
     userId: string
   ): Promise<UserReferenceSchema | null | undefined> {
     if (!userId) {
       return Promise.reject(new Error("User ID is required"));
     }
-
-    return this.executeWhenConsent(() => {
-      return this._firestoreAdapter.getDocument<UserSchema & { id: string }>(
-        `users/${userId}`
-      );
-    }).then((data) => {
-      if (data) {
-        const userRef: UserReferenceSchema = {
-          uid: data.id,
-          display_name: data.display_name,
-          profile_picture: data.profile_picture
-            ? new StorageImage(data.profile_picture).getSrc(200)
-            : undefined,
-        };
-        return userRef;
-      }
-      return null;
-    });
+    return this.getUserReferenceById(userId);
   }
 
   updateUser(userId: string, _data: Partial<UserSchema>) {

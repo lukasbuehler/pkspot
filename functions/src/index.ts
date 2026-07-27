@@ -158,6 +158,12 @@ export {
   syncVisitedSpotsCountOnPrivateDataWrite,
   updateAgePolicy,
 } from "./userFunctions";
+export {
+  activateUserProfilePrivacyCutover,
+  backfillPublicUserProfiles,
+  getUserProfile,
+  syncPublicUserProfileOnWrite,
+} from "./userProfileFunctions";
 
 export { cleanupAllOrphanedMedia } from "./mediaCleanupFunctions";
 

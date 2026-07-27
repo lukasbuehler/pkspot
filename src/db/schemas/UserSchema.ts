@@ -15,6 +15,7 @@ export interface UserSocialsSchema {
 
 export type UserAccountPrivacy = "public" | "private";
 export type UserProfileVisibility = "public" | "followers" | "mutuals";
+export type UserProfileAccessLevel = "limited" | "full";
 
 export type AgeParticipationState =
   | "allowed"
@@ -67,6 +68,21 @@ export interface UserSchema {
   age_policy?: UserAgePolicySchema;
   account_privacy?: UserAccountPrivacy;
   profile_visibility?: UserProfileVisibility;
+  /**
+   * Explicit adult-only opt-in for making the expanded profile available to
+   * unauthenticated visitors. This is separate from account follow privacy.
+   */
+  public_profile_enabled?: boolean;
+  /**
+   * Explicit opt-in for sitemaps and the future public Typesense user index.
+   * It is only effective while public_profile_enabled is also effective.
+   */
+  public_search?: boolean;
+  /**
+   * Server-returned access marker used by viewer-specific profile responses.
+   * It is not a client-writable field on the authoritative user document.
+   */
+  profile_access?: UserProfileAccessLevel;
 
   creationDate?: Timestamp;
   // NOTE: bookmarks, visited_spots, and settings are now in private_data subcollection
@@ -84,6 +100,26 @@ export interface UserReferenceSchema {
   display_name?: string;
   profile_picture?: string;
   ref?: DocumentReference;
+}
+
+/**
+ * Server-sanitized profile returned to another viewer. Limited profiles only
+ * contain the stable identity and access fields needed to render a profile
+ * shell and request a follow.
+ */
+export interface AccessibleUserProfileSchema extends UserSchema {
+  profile_access: UserProfileAccessLevel;
+}
+
+/**
+ * Adult, explicitly opted-in profile projection used by public SSR, sitemaps,
+ * and the future Typesense user collection. Clients cannot write it directly.
+ */
+export interface PublicUserProfileSchema extends UserSchema {
+  public_profile_enabled: true;
+  public_search: boolean;
+  profile_access: "full";
+  profile_projection_version: 1;
 }
 
 export interface FollowingDataSchema {

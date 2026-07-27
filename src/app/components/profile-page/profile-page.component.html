@@ -83,7 +83,17 @@
                       {{ user.displayName || fallbackProfileName }}
                     </h1>
 
-                    @if (user.biography) {
+                    @if (!hasExpandedProfileAccess) {
+                      <p
+                        class="mat-body-medium profile-overview__empty-copy"
+                        i18n
+                      >
+                        This account limits expanded profile details to its
+                        approved audience.
+                      </p>
+                    }
+
+                    @if (hasExpandedProfileAccess && user.biography) {
                       <p class="mat-body-large profile-overview__bio">
                         {{ user.biography }}
                       </p>
@@ -97,7 +107,7 @@
                       </p>
                     }
 
-                    @if (hasProfileMetadata) {
+                    @if (hasExpandedProfileAccess && hasProfileMetadata) {
                       <div
                         class="profile-overview__metadata"
                         aria-label="Profile metadata"
@@ -132,7 +142,10 @@
                       </div>
                     }
 
-                    @if (profileSocialLinks.length > 0) {
+                    @if (
+                      hasExpandedProfileAccess &&
+                      profileSocialLinks.length > 0
+                    ) {
                       <div class="profile-overview__socials">
                         @for (
                           socialLink of profileSocialLinks;
@@ -177,7 +190,7 @@
                       </div>
                     }
 
-                    @if (trainingFeatureEnabled) {
+                    @if (trainingFeatureEnabled && hasExpandedProfileAccess) {
                       <a
                         mat-stroked-button
                         [routerLink]="isMyProfile ? '/train/log' : ['/u', userId, 'logs']"
@@ -187,78 +200,80 @@
                       </a>
                     }
 
-                    <div
-                      class="profile-stats"
-                      aria-label="Profile summary"
-                      i18n-aria-label="@@profile.stats.ariaLabel"
-                    >
-                      <button
-                        type="button"
-                        class="profile-stat clickable-stat"
-                        matRipple
-                        (click)="viewFollowers()"
-                        [disabled]="!isMyProfile"
+                    @if (hasExpandedProfileAccess) {
+                      <div
+                        class="profile-stats"
+                        aria-label="Profile summary"
+                        i18n-aria-label="@@profile.stats.ariaLabel"
                       >
-                        <span class="profile-stat__value mat-headline-small">
-                          <app-fancy-counter
-                            [number]="user.followerCount || 0"
-                          ></app-fancy-counter>
-                        </span>
-                        <span
-                          class="profile-stat__label mat-body-small"
-                          i18n="@@profile.stats.followers"
-                          >{user.followerCount, plural,
-                            =1 {Follower}
-                            other {Followers}
-                          }</span
+                        <button
+                          type="button"
+                          class="profile-stat clickable-stat"
+                          matRipple
+                          (click)="viewFollowers()"
+                          [disabled]="!isMyProfile"
                         >
-                      </button>
-                      <button
-                        type="button"
-                        class="profile-stat clickable-stat"
-                        matRipple
-                        (click)="viewFollowing()"
-                        [disabled]="!isMyProfile"
-                      >
-                        <span class="profile-stat__value mat-headline-small">
-                          <app-fancy-counter
-                            [number]="followingCount || 0"
-                          ></app-fancy-counter>
-                        </span>
-                        <span
-                          class="profile-stat__label mat-body-small"
-                          i18n="@@profile.stats.following"
-                          >Following</span
+                          <span class="profile-stat__value mat-headline-small">
+                            <app-fancy-counter
+                              [number]="user.followerCount || 0"
+                            ></app-fancy-counter>
+                          </span>
+                          <span
+                            class="profile-stat__label mat-body-small"
+                            i18n="@@profile.stats.followers"
+                            >{user.followerCount, plural,
+                              =1 {Follower}
+                              other {Followers}
+                            }</span
+                          >
+                        </button>
+                        <button
+                          type="button"
+                          class="profile-stat clickable-stat"
+                          matRipple
+                          (click)="viewFollowing()"
+                          [disabled]="!isMyProfile"
                         >
-                      </button>
-                      <div class="profile-stat">
-                        <span class="profile-stat__value mat-headline-small">
-                          <app-fancy-counter
-                            [number]="totalContributions"
-                          ></app-fancy-counter>
-                        </span>
-                        <span
-                          class="profile-stat__label mat-body-small"
-                          i18n="@@profile.stats.contributions"
-                          >Contributions</span
-                        >
+                          <span class="profile-stat__value mat-headline-small">
+                            <app-fancy-counter
+                              [number]="followingCount || 0"
+                            ></app-fancy-counter>
+                          </span>
+                          <span
+                            class="profile-stat__label mat-body-small"
+                            i18n="@@profile.stats.following"
+                            >Following</span
+                          >
+                        </button>
+                        <div class="profile-stat">
+                          <span class="profile-stat__value mat-headline-small">
+                            <app-fancy-counter
+                              [number]="totalContributions"
+                            ></app-fancy-counter>
+                          </span>
+                          <span
+                            class="profile-stat__label mat-body-small"
+                            i18n="@@profile.stats.contributions"
+                            >Contributions</span
+                          >
+                        </div>
+                        <div class="profile-stat">
+                          <span class="profile-stat__value mat-headline-small">
+                            <app-fancy-counter
+                              [number]="user.visitedSpotsCount || 0"
+                            ></app-fancy-counter>
+                          </span>
+                          <span
+                            class="profile-stat__label mat-body-small"
+                            i18n="@@profile.stats.visited"
+                            >{user.visitedSpotsCount, plural,
+                              =1 {Spot visited}
+                              other {Spots visited}
+                            }</span
+                          >
+                        </div>
                       </div>
-                      <div class="profile-stat">
-                        <span class="profile-stat__value mat-headline-small">
-                          <app-fancy-counter
-                            [number]="user.visitedSpotsCount || 0"
-                          ></app-fancy-counter>
-                        </span>
-                        <span
-                          class="profile-stat__label mat-body-small"
-                          i18n="@@profile.stats.visited"
-                          >{user.visitedSpotsCount, plural,
-                            =1 {Spot visited}
-                            other {Spots visited}
-                          }</span
-                        >
-                      </div>
-                    </div>
+                    }
 
                     @if (
                       isMyProfile && ageAssurance.canParticipatePublicly()

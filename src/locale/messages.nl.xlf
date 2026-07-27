@@ -176,6 +176,12 @@
         <target> Beschrijving </target>
       </segment>
     </unit>
+    <unit id="8136594844887777371">
+      <segment state="initial">
+        <source> Include this profile in PK Spot user search and public sitemaps. This is always off for children and profiles without confirmed adult eligibility. </source>
+        <target> Neem dit profiel op in de gebruikerszoekfunctie van PK Spot en openbare sitemaps. Dit staat altijd uit voor kinderen en profielen zonder bevestigde volwassen status. </target>
+      </segment>
+    </unit>
     <unit id="1779696877741891389">
       <notes>
         <note category="description">Tooltip of button to open the spot in Google Maps</note>
@@ -184,6 +190,12 @@
       <segment state="initial">
         <source>Open the location of this spot in Maps</source>
         <target>Open de locatie van deze spot in Kaarten</target>
+      </segment>
+    </unit>
+    <unit id="1780673444278901710">
+      <segment state="initial">
+        <source>Reporting decision summary</source>
+        <target>Samenvatting van de meldingsbeslissing</target>
       </segment>
     </unit>
     <unit id="1792190533431059127">
@@ -606,8 +618,8 @@
         <note category="meaning">public profile description</note>
       </notes>
       <segment state="initial">
-        <source> You can edit your public profile here. The information on your public profile can be seen by everyone, even unauthenticated visitors. </source>
-        <target> Je kunt hier je openbare profiel bewerken. De informatie op je openbare profiel kan door iedereen worden gezien, zelfs niet-geregistreerde bezoekers. </target>
+        <source> Edit the details other people may see. Your profile access and search settings determine who can view them. </source>
+        <target> Bewerk de gegevens die anderen mogen zien. De instellingen voor profieltoegang en zoeken bepalen wie ze kan bekijken. </target>
       </segment>
     </unit>
     <unit id="6815507474406960450">
@@ -2457,6 +2469,12 @@
         <target>Geverifieerd door</target>
       </segment>
     </unit>
+    <unit id="6631641409682927358">
+      <segment state="initial">
+        <source>Open current NCA guidance</source>
+        <target>Actuele NCA-richtlijnen openen</target>
+      </segment>
+    </unit>
     <unit id="6638716872037410765">
       <segment state="initial">
         <source> Live &amp; Verified </source>
@@ -2755,6 +2773,12 @@
         <target><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">Overig</pc></target>
       </segment>
     </unit>
+    <unit id="6772922553334264248">
+      <segment state="initial">
+        <source> Emergency services </source>
+        <target> Hulpdiensten </target>
+      </segment>
+    </unit>
     <unit id="677850519653685182">
       <segment state="initial">
         <source>{VAR_PLURAL, plural, =1 {managed spot} other {managed spots}}</source>
@@ -2769,6 +2793,12 @@
       <segment state="initial">
         <source> Features and amenities </source>
         <target> Kenmerken en voorzieningen </target>
+      </segment>
+    </unit>
+    <unit id="8003539785959278093">
+      <segment state="initial">
+        <source> Public profile </source>
+        <target> Openbaar profiel </target>
       </segment>
     </unit>
     <unit id="8011758699583016596">
@@ -2891,6 +2921,12 @@
         <target>Spot melden: &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data.spot?.name }}"/> &apos;</target>
       </segment>
     </unit>
+    <unit id="6044276004948174494">
+      <segment state="initial">
+        <source>Allow profile search indexing</source>
+        <target>Profielindexering voor zoeken toestaan</target>
+      </segment>
+    </unit>
     <unit id="6076340326638243811">
       <segment state="translated">
         <source>Events needing a data update</source>
@@ -2937,6 +2973,12 @@
       <segment state="initial">
         <source>Saved Spots</source>
         <target>Opgeslagen Spots</target>
+      </segment>
+    </unit>
+    <unit id="8448470380303913007">
+      <segment state="initial">
+        <source> Preserve the original evidence, hash, timestamps, and audit trail </source>
+        <target> Bewaar het oorspronkelijke bewijs, de hash, tijdstempels en het controlespoor </target>
       </segment>
     </unit>
     <unit id="8449806182355838394">
@@ -3021,6 +3063,12 @@
       <segment state="initial">
         <source>Quick Links</source>
         <target>Snelkoppelingen</target>
+      </segment>
+    </unit>
+    <unit id="1142555682966582117">
+      <segment state="initial">
+        <source>Not required</source>
+        <target>Niet vereist</target>
       </segment>
     </unit>
     <unit id="1165007284037457711">
@@ -3235,6 +3283,12 @@
       <segment state="initial">
         <source>Pending</source>
         <target>In behandeling</target>
+      </segment>
+    </unit>
+    <unit id="2312227289513761859">
+      <segment state="initial">
+        <source> Record the external action, reference, and follow-up </source>
+        <target> Leg de externe actie, referentie en opvolging vast </target>
       </segment>
     </unit>
     <unit id="2325032840535506648">
@@ -4820,6 +4874,12 @@
         <target> Contact-e-mail (optioneel) </target>
       </segment>
     </unit>
+    <unit id="9170384147435945980">
+      <segment state="initial">
+        <source> Search engine discovery </source>
+        <target> Vindbaarheid via zoekmachines </target>
+      </segment>
+    </unit>
     <unit id="profile.actions.unfollow">
       <segment state="initial">
         <source>Unfollow</source>
@@ -4896,6 +4956,12 @@
       <segment state="initial">
         <source>This E-Mail address is not valid!</source>
         <target>Dit e-mailadres is ongeldig!</target>
+      </segment>
+    </unit>
+    <unit id="967806009511704497">
+      <segment state="initial">
+        <source>Incident runbook</source>
+        <target>Incidentprocedure</target>
       </segment>
     </unit>
     <unit id="991761096918819245">
@@ -8394,6 +8460,12 @@
         <target>Fout bij het verwijderen van account. Probeer het opnieuw.</target>
       </segment>
     </unit>
+    <unit id="3318965217927982195">
+      <segment state="initial">
+        <source> Record account, session, provenance, and available network context </source>
+        <target> Leg account-, sessie-, herkomst- en beschikbare netwerkgegevens vast </target>
+      </segment>
+    </unit>
     <unit id="2820594571760643464">
       <segment state="initial">
         <source>Spot reports</source>
@@ -8472,6 +8544,12 @@
         <target>Ondersteuner</target>
       </segment>
     </unit>
+    <unit id="7898407865763195887">
+      <segment state="initial">
+        <source> Select the appropriate external reporting route </source>
+        <target> Selecteer de juiste externe meldroute </target>
+      </segment>
+    </unit>
     <unit id="7906458871395232033">
       <segment state="initial">
         <source>List</source>
@@ -8506,6 +8584,12 @@
       <segment state="initial">
         <source>Remove person</source>
         <target>Remove person</target>
+      </segment>
+    </unit>
+    <unit id="5245523669438174557">
+      <segment state="initial">
+        <source>Make expanded profile public</source>
+        <target>Uitgebreid profiel openbaar maken</target>
       </segment>
     </unit>
     <unit id="5245603112373072943">
@@ -8570,6 +8654,12 @@
       <segment state="initial">
         <source>No open reports.</source>
         <target>No hay reportes abiertos.</target>
+      </segment>
+    </unit>
+    <unit id="580610642120364720">
+      <segment state="initial">
+        <source> Record why this route applies, or why no external report is required. </source>
+        <target> Leg vast waarom deze route van toepassing is of waarom geen externe melding nodig is. </target>
       </segment>
     </unit>
     <unit id="5813867925497374051">
@@ -9114,6 +9204,12 @@
         <target>Aankomend</target>
       </segment>
     </unit>
+    <unit id="8728578118342659997">
+      <segment state="initial">
+        <source> Restrict access and contain further distribution </source>
+        <target> Beperk de toegang en voorkom verdere verspreiding </target>
+      </segment>
+    </unit>
     <unit id="8736188664022016115">
       <segment state="initial">
         <source>Could not sign in with Apple!</source>
@@ -9198,6 +9294,12 @@
         <target>Wacht op manager-review</target>
       </segment>
     </unit>
+    <unit id="4758490333513959462">
+      <segment state="initial">
+        <source>External reporting route</source>
+        <target>Externe meldroute</target>
+      </segment>
+    </unit>
     <unit id="7774690298639065150">
       <segment state="initial">
         <source> This profile does not exist or is no longer available. </source>
@@ -9226,6 +9328,12 @@
       <segment state="initial">
         <source>Beginner friendly</source>
         <target>Beginnersvriendelijk</target>
+      </segment>
+    </unit>
+    <unit id="4798502935816311934">
+      <segment state="initial">
+        <source>Not assessed</source>
+        <target>Niet beoordeeld</target>
       </segment>
     </unit>
     <unit id="223926157815127218">
@@ -9280,6 +9388,12 @@
       <segment state="initial">
         <source>Verified organization removed</source>
         <target>Verifiërende organisatie verwijderd</target>
+      </segment>
+    </unit>
+    <unit id="4878825351052586194">
+      <segment state="initial">
+        <source>UK police</source>
+        <target>Britse politie</target>
       </segment>
     </unit>
     <unit id="4878856420342830743">
@@ -9388,6 +9502,12 @@
       <segment state="initial">
         <source>Please wait while we verify your email address...</source>
         <target>Even geduld terwijl we je e-mailadres verifiëren...</target>
+      </segment>
+    </unit>
+    <unit id="5915302856026344080">
+      <segment state="initial">
+        <source> Let signed-out visitors view your expanded profile. This requires a confirmed adult age range, a public account, and public profile visibility. </source>
+        <target> Laat afgemelde bezoekers je uitgebreide profiel bekijken. Dit vereist een bevestigde leeftijd van ten minste 18 jaar, een openbaar account en openbare profielzichtbaarheid. </target>
       </segment>
     </unit>
     <unit id="5957587063470298128">
@@ -9515,6 +9635,12 @@
       <segment state="initial">
         <source>Time (optional)</source>
         <target>Tijd (optioneel)</target>
+      </segment>
+    </unit>
+    <unit id="218205763474746263">
+      <segment state="initial">
+        <source>Preparing report</source>
+        <target>Melding voorbereiden</target>
       </segment>
     </unit>
     <unit id="2186090184648113885">
@@ -9694,10 +9820,22 @@
         <target>Gevoelige media verborgen</target>
       </segment>
     </unit>
+    <unit id="370198281195202249">
+      <segment state="initial">
+        <source> Use the NCA CSEA reporting portal only for reportable CSEA. Continue an existing NCMEC channel where applicable and do not create a duplicate referral. For current or imminent danger, follow the emergency instructions in the NCA guidance. </source>
+        <target> Gebruik het NCA-portaal voor CSEA-meldingen alleen voor meldingsplichtige CSEA. Blijf waar van toepassing een bestaand NCMEC-kanaal gebruiken en maak geen dubbele melding. Volg bij actueel of dreigend gevaar de noodinstructies in de NCA-richtlijnen. </target>
+      </segment>
+    </unit>
     <unit id="3705542547407464128">
       <segment state="initial">
         <source>Failed to open safety incident</source>
         <target>Veiligheidsincident kon niet worden geopend</target>
+      </segment>
+    </unit>
+    <unit id="3710729568404589151">
+      <segment state="initial">
+        <source>External response guidance</source>
+        <target>Richtlijnen voor externe respons</target>
       </segment>
     </unit>
     <unit id="3714343477148346459">
@@ -9794,6 +9932,12 @@
       <segment state="initial">
         <source>Failed to delete spot</source>
         <target>Spot verwijderen mislukt</target>
+      </segment>
+    </unit>
+    <unit id="2621801407969969391">
+      <segment state="initial">
+        <source> Work in order. Do not preview or forward restricted-match media. </source>
+        <target> Werk de stappen op volgorde af. Bekijk of stuur media met een beperkte overeenkomst niet door. </target>
       </segment>
     </unit>
     <unit id="2638434417265535082">
@@ -10715,6 +10859,12 @@
         <target>Veiligheidsincident kon niet worden opgeslagen</target>
       </segment>
     </unit>
+    <unit id="3425011921070233229">
+      <segment state="initial">
+        <source>External reporting status</source>
+        <target>Status van externe melding</target>
+      </segment>
+    </unit>
     <unit id="3432396429990524008">
       <segment state="initial">
         <source>Account mismatch. Please sign in to the correct account.</source>
@@ -10948,6 +11098,12 @@
       <segment state="initial">
         <source>Support</source>
         <target>Ondersteuning</target>
+      </segment>
+    </unit>
+    <unit id="2289061860482298019">
+      <segment state="initial">
+        <source> External report not required </source>
+        <target> Externe melding niet vereist </target>
       </segment>
     </unit>
     <unit id="7374538640222631357">
@@ -11352,8 +11508,8 @@
     </unit>
     <unit id="train.logPrivacy">
       <segment state="initial">
-        <source>Session records stay private. You choose what a log entry shares.</source>
-        <target>Session records stay private. You choose what a log entry shares.</target>
+        <source> Session records stay private. You choose what a log entry shares. </source>
+        <target> Session records stay private. You choose what a log entry shares. </target>
       </segment>
     </unit>
     <unit id="train.logPrompt">
@@ -11380,14 +11536,8 @@
     </unit>
     <unit id="train.noCommunities">
       <segment state="initial">
-        <source>Choose an area above, then follow communities from their pages.</source>
-        <target>Choose an area above, then follow communities from their pages.</target>
-      </segment>
-    </unit>
-    <unit id="train.noEvents">
-      <segment state="initial">
-        <source>No upcoming options found in this area yet.</source>
-        <target>No upcoming options found in this area yet.</target>
+        <source> Choose an area above, then follow communities from their pages. </source>
+        <target> Choose an area above, then follow communities from their pages. </target>
       </segment>
     </unit>
     <unit id="train.noSpots">
@@ -11410,8 +11560,8 @@
     </unit>
     <unit id="train.personalRecord">
       <segment state="initial">
-        <source>Your personal record</source>
-        <target>Your personal record</target>
+        <source> Your personal record </source>
+        <target> Your personal record </target>
       </segment>
     </unit>
     <unit id="train.searchRadius">
@@ -11422,8 +11572,8 @@
     </unit>
     <unit id="train.signInCommunities">
       <segment state="initial">
-        <source>Sign in to follow training communities.</source>
-        <target>Sign in to follow training communities.</target>
+        <source> Sign in to follow training communities. </source>
+        <target> Sign in to follow training communities. </target>
       </segment>
     </unit>
     <unit id="train.signInToLog">
@@ -11534,6 +11684,12 @@
         <target>Geen overeenkomende evenementen</target>
       </segment>
     </unit>
+    <unit id="7118749922137719094">
+      <segment state="initial">
+        <source> Assess the UK link and any current or imminent danger </source>
+        <target> Beoordeel de band met het VK en elk actueel of dreigend gevaar </target>
+      </segment>
+    </unit>
     <unit id="7136600839935407372">
       <segment state="initial">
         <source>Managed by</source>
@@ -11598,6 +11754,12 @@
       <segment state="initial">
         <source>Show more</source>
         <target>Meer weergeven</target>
+      </segment>
+    </unit>
+    <unit id="7222489710265178271">
+      <segment state="initial">
+        <source> Registration required </source>
+        <target> Registratie vereist </target>
       </segment>
     </unit>
     <unit id="7224722019363844519">
@@ -11838,6 +12000,12 @@
       <segment state="initial">
         <source> Built on <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-secondary marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">open</pc> ground. </source>
         <target> Gebouwd op <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-secondary marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">open</pc> grond. </target>
+      </segment>
+    </unit>
+    <unit id="4007945735402502692">
+      <segment state="initial">
+        <source> Public and search-indexed profiles stay disabled until the platform supplies an age range confirming that this account is 18 or older. </source>
+        <target> Openbare en geïndexeerde profielen blijven uitgeschakeld totdat het platform een leeftijdsbereik ontvangt dat bevestigt dat dit account minstens 18 jaar oud is. </target>
       </segment>
     </unit>
     <unit id="4020018249666121252">
@@ -12110,10 +12278,22 @@
         <target>Gekoppelde Google Place</target>
       </segment>
     </unit>
+    <unit id="1612722476211621614">
+      <segment state="initial">
+        <source>Submitted</source>
+        <target>Ingediend</target>
+      </segment>
+    </unit>
     <unit id="1616102757855967475">
       <segment state="initial">
         <source>All</source>
         <target>Allemaal</target>
+      </segment>
+    </unit>
+    <unit id="161852954972763993">
+      <segment state="initial">
+        <source>Assessment pending</source>
+        <target>Beoordeling in behandeling</target>
       </segment>
     </unit>
     <unit id="1632949913064020849">
@@ -12192,6 +12372,12 @@
       <segment state="initial">
         <source>Profile access</source>
         <target>Profile access</target>
+      </segment>
+    </unit>
+    <unit id="1697308124827757255">
+      <segment state="initial">
+        <source> This account limits expanded profile details to its approved audience. </source>
+        <target> Dit account beperkt uitgebreide profielgegevens tot het goedgekeurde publiek. </target>
       </segment>
     </unit>
     <unit id="7772746290400709115">

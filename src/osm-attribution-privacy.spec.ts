@@ -25,7 +25,7 @@ describe("OSM attribution and privacy disclosure", () => {
       'href="https://www.openstreetmap.org/copyright"',
     );
     expect(mapStyles).toMatch(
-      /\.osm-attribution\s*\{[\s\S]*bottom:\s*22px[\s\S]*right:\s*0/u,
+      /\.osm-attribution\s*\{[\s\S]*bottom:\s*14px[\s\S]*right:\s*0/u,
     );
     expect(mapStyles).toContain(
       "bottom: calc(var(--bottom-sheet-closed-height, 140px) + 22px)",
