@@ -132,11 +132,14 @@ async function main() {
         adult_eligibility: "verified",
         age_range: { lower: 18 },
         assurance: {
-          signal_version: 2,
+          signal_version: 3,
           evidence_strength: "independently_checked",
-          client_integrity: "firebase_app_check",
+          client_integrity: "play_integrity_request_bound",
           app_id: "test-android-app",
-          limitation: "client_relay_not_cryptographically_bound",
+          status: "active",
+          approval_basis:
+            "google_play:platform_age_signal:tier_c:request_bound:v1",
+          limitation: "platform_account_or_device_may_be_shared",
           age_range_source: "tier_c",
         },
       },

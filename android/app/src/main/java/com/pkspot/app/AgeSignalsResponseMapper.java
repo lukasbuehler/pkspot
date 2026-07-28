@@ -17,6 +17,18 @@ public final class AgeSignalsResponseMapper {
     return toJsObject(resultMap(ageSignalsResult));
   }
 
+  public static JSObject toJsObject(Map<String, Object> values) {
+    JSObject result = new JSObject();
+    for (Map.Entry<String, Object> entry : values.entrySet()) {
+      Object value = entry.getValue();
+      result.put(
+          entry.getKey(),
+          value instanceof Object[] ? new JSArray() : value
+      );
+    }
+    return result;
+  }
+
   public static Map<String, Object> resultMap(AgeSignalsResult ageSignalsResult) {
     Map<String, Object> result = baseResultMap(true);
     result.put("response", "shared");
@@ -107,15 +119,4 @@ public final class AgeSignalsResponseMapper {
     if (value != null) result.put(key, value);
   }
 
-  private static JSObject toJsObject(Map<String, Object> values) {
-    JSObject result = new JSObject();
-    for (Map.Entry<String, Object> entry : values.entrySet()) {
-      Object value = entry.getValue();
-      result.put(
-          entry.getKey(),
-          value instanceof Object[] ? new JSArray() : value
-      );
-    }
-    return result;
-  }
 }

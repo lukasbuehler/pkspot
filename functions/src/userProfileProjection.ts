@@ -57,7 +57,14 @@ export const hasVerifiedAdultEligibility = (
   }
   const range = isRecord(policy) ? policy["age_range"] : undefined;
   const lower = numberField(range, "lower");
-  return lower !== undefined && lower >= 18;
+  const assurance = policy["assurance"];
+  return (
+    lower !== undefined &&
+    lower >= 18 &&
+    isRecord(assurance) &&
+    assurance["status"] === "active" &&
+    assurance["client_integrity"] === "play_integrity_request_bound"
+  );
 };
 
 export const hasConfirmedMinorAge = (

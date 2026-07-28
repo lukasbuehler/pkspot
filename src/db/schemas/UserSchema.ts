@@ -32,6 +32,33 @@ export type AgeEvidenceStrength =
   | "independently_checked"
   | "verified_identity";
 
+export type PkSpotAgeBand =
+  | "unknown"
+  | "under_13"
+  | "13_to_15"
+  | "16_to_17"
+  | "18_plus"
+  | "mixed_or_custom";
+
+export type AgeAssuranceConfidence =
+  | "none"
+  | "declared"
+  | "corroborated"
+  | "verified"
+  | "strongly_verified";
+
+export type AgeAssuranceMethodCategory =
+  | "platform_age_signal"
+  | "self_declaration"
+  | "guardian_assertion"
+  | "age_estimation"
+  | "mobile_network"
+  | "financial_attribute"
+  | "digital_identity"
+  | "government_id"
+  | "email_estimation"
+  | "unknown";
+
 export interface UserAgePolicySchema {
   participation_state?: AgeParticipationState;
   source?:
@@ -43,21 +70,43 @@ export interface UserAgePolicySchema {
   signal_updated_at?: Timestamp | Date;
   reason?: string;
   adult_eligibility?: "verified" | "not_verified";
+  age_band?: PkSpotAgeBand;
   age_range?: {
     lower?: number;
     upper?: number;
   };
   required_regulatory_features?: string[];
   assurance?: {
-    signal_version?: 1 | 2;
+    signal_version?: 1 | 2 | 3;
+    policy_version?: 1;
     evidence_strength?: AgeEvidenceStrength;
+    confidence?: AgeAssuranceConfidence;
     client_integrity?:
       | "unverified_client"
-      | "firebase_app_check";
+      | "firebase_app_check"
+      | "play_integrity_request_bound";
     app_id?: string;
+    verification_id?: string;
+    status?: "active" | "expired" | "invalidated" | "superseded";
+    evaluated_at?: Timestamp | Date;
+    verified_at?: Timestamp | Date;
+    /** Legacy freshness field; current approvals remain active until invalidated. */
+    valid_until?: Timestamp | Date;
+    /** Retained for compatibility with previously expired assurance records. */
+    previous_valid_until?: Timestamp | Date;
+    status_changed_at?: Timestamp | Date;
+    status_reason?: string;
+    approval_basis?: string;
+    previous_approval_basis?: string;
+    method?: {
+      provider?: "google_play" | "apple" | "external";
+      category?: AgeAssuranceMethodCategory;
+      provider_method?: string;
+    };
     limitation?:
       | "legacy_client_asserted_policy"
-      | "client_relay_not_cryptographically_bound";
+      | "client_relay_not_cryptographically_bound"
+      | "platform_account_or_device_may_be_shared";
     age_range_source?:
       | "tier_a"
       | "tier_b"

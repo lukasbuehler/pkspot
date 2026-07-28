@@ -4,7 +4,9 @@ import { Capacitor, registerPlugin } from "@capacitor/core";
 import { PLATFORM_ID } from "@angular/core";
 import {
   AgeParticipationState,
+  AgeAssuranceConfidence,
   AgeEvidenceStrength,
+  PkSpotAgeBand,
 } from "../../db/schemas/UserSchema";
 import {
   PlatformAgeSignal,
@@ -14,20 +16,45 @@ import { AuthenticationService } from "./firebase/authentication.service";
 import { FunctionsAdapterService } from "./firebase/functions-adapter.service";
 import { environment } from "../../environments/environment.default";
 
-type AgeAssurancePlugin = {
+interface AgeAssurancePlugin {
   getAgeSignal(): Promise<PlatformAgeSignal>;
-};
+  getBoundAgeSignal(input: {
+    uid: string;
+    challengeId: string;
+    challengeNonce: string;
+  }): Promise<{
+    signal: PlatformAgeSignal;
+    integrityToken: string;
+  }>;
+}
 
-type UpdateAgePolicyRequest = {
+interface UpdateAgePolicyV2Request {
   signal: Record<string, unknown>;
-};
+}
 
-type UpdateAgePolicyResponse = {
+interface BeginAgeAssuranceResponse {
+  challenge_id: string;
+  challenge_nonce: string;
+  platform: "android";
+}
+
+interface UpdateAgePolicyV3Request {
+  challenge_id: string;
+  challenge_nonce: string;
+  integrity_token: string;
+  signal: Record<string, unknown>;
+}
+
+interface UpdateAgePolicyResponse {
   ok: true;
   participation_state: AgeParticipationState;
   adult_eligibility: "verified" | "not_verified";
-  evidence_strength: AgeEvidenceStrength;
-};
+  evidence_strength?: AgeEvidenceStrength;
+  age_band?: PkSpotAgeBand;
+  confidence?: AgeAssuranceConfidence;
+  evaluated_at?: string;
+  verified_at?: string;
+}
 
 const NativeAgeAssurance = registerPlugin<AgeAssurancePlugin>("AgeAssurance");
 
@@ -55,12 +82,12 @@ export class AgeAssuranceService {
 
     this._syncInFlight = true;
     try {
-      const signal = await NativeAgeAssurance.getAgeSignal();
-      console.log("[AgeAssurance] Native age signal", signal);
-
-      await this._syncAgePolicy({
-        signal: this._sanitizeSignalForFunction(signal),
-      });
+      if (Capacitor.getPlatform() === "android") {
+        await this._syncRequestBoundAndroidPolicy(uid);
+      } else {
+        const signal = await NativeAgeAssurance.getAgeSignal();
+        await this._syncUnboundCompatibilityPolicy(signal);
+      }
       this._lastSyncedUid = uid;
     } catch (error) {
       console.warn("[AgeAssurance] Failed to sync native age policy", error);
@@ -69,11 +96,38 @@ export class AgeAssuranceService {
     }
   }
 
-  private async _syncAgePolicy(payload: UpdateAgePolicyRequest): Promise<void> {
+  private async _syncRequestBoundAndroidPolicy(uid: string): Promise<void> {
+    const challenge =
+      await this._functionsAdapter.callAuthenticatedAppChecked<
+        Record<string, never>,
+        BeginAgeAssuranceResponse
+      >("beginAgeAssuranceV3", {});
+    const bound = await NativeAgeAssurance.getBoundAgeSignal({
+      uid,
+      challengeId: challenge.challenge_id,
+      challengeNonce: challenge.challenge_nonce,
+    });
+
     await this._functionsAdapter.callAuthenticatedAppChecked<
-      UpdateAgePolicyRequest,
+      UpdateAgePolicyV3Request,
       UpdateAgePolicyResponse
-    >("updateAgePolicyV2", payload);
+    >("updateAgePolicyV3", {
+      challenge_id: challenge.challenge_id,
+      challenge_nonce: challenge.challenge_nonce,
+      integrity_token: bound.integrityToken,
+      signal: this._sanitizeSignalForFunction(bound.signal),
+    });
+  }
+
+  private async _syncUnboundCompatibilityPolicy(
+    signal: PlatformAgeSignal,
+  ): Promise<void> {
+    await this._functionsAdapter.callAuthenticatedAppChecked<
+      UpdateAgePolicyV2Request,
+      UpdateAgePolicyResponse
+    >("updateAgePolicyV2", {
+      signal: this._sanitizeSignalForFunction(signal),
+    });
   }
 
   canParticipatePublicly(): boolean {
@@ -88,9 +142,12 @@ export class AgeAssuranceService {
   }
 
   hasVerifiedAdultEligibility(): boolean {
+    const policy = this._authService.user.data?.data?.age_policy;
     return (
-      this._authService.user.data?.data?.age_policy?.adult_eligibility ===
-      "verified"
+      policy?.adult_eligibility === "verified" &&
+      policy.assurance?.status === "active" &&
+      policy.assurance?.client_integrity ===
+        "play_integrity_request_bound"
     );
   }
 

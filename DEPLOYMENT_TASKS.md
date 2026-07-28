@@ -130,26 +130,33 @@ user's authoritative `users/{uid}` document.
 - [ ] Deploy the sitemap Functions and regenerate the sitemap. Confirm only
       `public_user_profiles` with `public_search == true` produce `/u/` URLs.
 
-### Age assurance v2 and Android Age Signals 0.0.4
+### Request-bound age assurance v3 and Android Age Signals 0.0.4
 
 The backend and rules must precede the client. Existing clients continue using
-the legacy callable; they cannot establish public-profile eligibility.
+the legacy or v2 callable; neither can establish public-profile eligibility.
 
-- [ ] Deploy the additive App Check-protected age policy callable:
+- [ ] In Google Play Console, confirm PK Spot is linked to Google Cloud project
+      number `294969617102`, Play Integrity is enabled for `com.pkspot.app`, and
+      the Play Integrity API is enabled in that Cloud project. The production
+      Functions runtime service account must be able to obtain a
+      `playintegrity`-scoped access token and call `decodeIntegrityToken`.
+- [ ] Build and deploy the additive App Check-protected challenge, verification,
+      invalidation, and challenge-cleanup Functions:
 
   ```sh
   npm --prefix functions run build
-  npx firebase deploy --project prod --only functions:updateAgePolicyV2
+  npx firebase deploy --project prod --only functions:updateAgePolicyV2,functions:beginAgeAssuranceV3,functions:updateAgePolicyV3,functions:invalidateAgeAssuranceApprovals,functions:cleanupAgeAssuranceChallenges
   ```
 
-  Success condition: the function is in `europe-west1`, an authenticated
-  request without a valid App Check token is rejected, and existing clients are
-  unaffected.
+  Success condition: all Functions are in `europe-west1`; requests without
+  Firebase Auth and App Check are rejected; `updateAgePolicyV2` can update
+  participation state but never adult eligibility; and the scheduler deletes
+  expired one-time challenges without expiring assurance records.
 - [ ] In Firebase App Check, confirm the production Android app uses Play
       Integrity and the production iOS app uses App Attest. Review metrics for
-      invalid and unknown requests before the client release. App Check attests
-      the app/device but does not cryptographically bind the relayed age-signal
-      payload; keep that limitation in the stored assurance record.
+      invalid and unknown requests before the client release. App Check protects
+      the callable boundary. Play Integrity's `requestHash` separately binds the
+      exact Android age signal, one-time server challenge, and authenticated UID.
 - [ ] Deploy the profile projection Functions and updated Firestore rules before
       the client:
 
@@ -159,23 +166,44 @@ the legacy callable; they cannot establish public-profile eligibility.
   ```
 
   Success condition: a self-declared 18+ policy cannot enable or project a
-  public profile, while a server-derived independently checked 18+ policy can
-  do so only with the user's explicit public-profile opt-in.
+  public profile. Only an active, request-bound Tier C or D 18+ policy can do
+  so, and only with the user's explicit public-profile opt-in. An approval
+  remains active until a later signal supersedes it or its exact approval basis
+  is explicitly invalidated; verification records are retained.
+- [ ] From the production moderation dashboard, dry-run both active approval
+      bases before any client release:
+
+  ```text
+  google_play:platform_age_signal:tier_c:request_bound:v1
+  google_play:platform_age_signal:tier_d:request_bound:v1
+  ```
+
+  Success condition: each preview returns zero before the first v3 client is
+  released. Do not apply the rollback; this only verifies admin access and the
+  production query.
 - [ ] Release the client containing Android Play Age Signals `0.0.4`, the
-      two-step access request, evidence-strength sync, and the updated account
-      settings explanation. Do not infer this release from the backend deploy.
+      two-step access request, Play Integrity `1.6.0` request binding, normalized
+      assurance record, and the updated account settings explanation. Do not
+      infer this release from the backend deploy.
 - [ ] Verify production with representative test accounts: optional age sharing
       declined still permits core participation; a mandatory unresolved signal
       restricts participation; Tier A does not unlock a public profile; and an
-      18+ Tier C or D result does.
-- [ ] Monitor `updateAgePolicyV2` App Check failures, signal outcomes, and public
-      profile projection changes. Keep `updateAgePolicy` for supported legacy
-      clients, then remove it only after adoption confirms it is unused.
+      18+ Tier C or D result from a Play-installed, licensed build on a device
+      meeting device integrity does.
+- [ ] Monitor `beginAgeAssuranceV3` and `updateAgePolicyV3` App Check failures,
+      Play Integrity decode failures, age-signal outcomes, challenge cleanup,
+      and public profile projection changes. Keep `updateAgePolicy` and
+      `updateAgePolicyV2` for supported legacy clients, then remove them only
+      after adoption confirms they are unused.
+- [ ] Exercise rollback in a non-production Firebase project: create active
+      Tier C fixtures, preview the basis, apply the invalidation, and confirm
+      adult eligibility, public profile opt-in, and public search are disabled
+      while `age_assurance_records` retains the historical decision.
 - [ ] Before adding browser age-assurance providers, require a signed or
       backend-to-backend provider result rather than accepting a client-asserted
-      outcome. Record only the threshold result, provider/method category,
-      assurance strength, timestamps, and audit reference needed for the
-      assessment.
+      outcome. Map it into the existing PK Spot age bands, confidence classes,
+      method categories, provider method, policy basis, verification timestamp,
+      and audit record without storing unnecessary identity data.
 
 ### Online-safety operational readiness
 

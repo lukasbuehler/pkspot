@@ -158,11 +158,9 @@ const NATIVE_APP_IDS = {
 } as const;
 
 /**
- * App Check attests the calling installation, while this function validates
- * and derives policy from a narrow native signal. App Check does not
- * cryptographically bind the signal payload, so the stored assurance record
- * preserves that limitation and public eligibility requires stronger
- * platform-reported evidence than self-declaration.
+ * Compatibility endpoint for already-built native clients. App Check attests
+ * the installation but does not bind the age payload, so this path can update
+ * participation restrictions but can never grant adult-only eligibility.
  */
 export const updateAgePolicyV2 = onCall(
   { enforceAppCheck: true },
@@ -188,7 +186,12 @@ export const updateAgePolicyV2 = onCall(
       );
     }
 
-    const policy = buildServerAgePolicy(signal, appId);
+    const policy = buildServerAgePolicy(signal, {
+      appId,
+      signalVersion: 2,
+      clientIntegrity: "firebase_app_check",
+      cryptographicallyBound: false,
+    });
     await admin.firestore().collection("users").doc(uid).set(
       {
         age_policy: {

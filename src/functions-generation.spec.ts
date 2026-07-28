@@ -134,7 +134,7 @@ describe("Cloud Functions generation policy", () => {
     );
   });
 
-  it("derives age policy in an App Check protected gen 2 callable", () => {
+  it("binds age policy to Play Integrity in App Check protected callables", () => {
     const indexSource = readFileSync(
       resolve(functionsSourceRoot, "index.ts"),
       "utf8"
@@ -143,12 +143,23 @@ describe("Cloud Functions generation policy", () => {
       resolve(functionsSourceRoot, "userFunctions.ts"),
       "utf8"
     );
+    const assuranceSource = readFileSync(
+      resolve(functionsSourceRoot, "ageAssuranceFunctions.ts"),
+      "utf8"
+    );
 
     expect(indexSource).toContain("updateAgePolicyV2");
+    expect(indexSource).toContain("beginAgeAssuranceV3");
+    expect(indexSource).toContain("updateAgePolicyV3");
+    expect(indexSource).toContain("invalidateAgeAssuranceApprovals");
+    expect(indexSource).toContain("cleanupAgeAssuranceChallenges");
     expect(userSource).toMatch(
       /export const updateAgePolicyV2 = onCall\(\s*\{ enforceAppCheck: true \}/u
     );
-    expect(userSource).toContain("buildServerAgePolicy(signal, appId)");
+    expect(userSource).toContain("cryptographicallyBound: false");
+    expect(assuranceSource).toContain("enforceAppCheck: true");
+    expect(assuranceSource).toContain("decodeAndVerifyPlayIntegrityToken");
+    expect(assuranceSource).toContain("cryptographicallyBound: true");
   });
 
   it("requires App Check for cached OpenStreetMap amenity requests", () => {

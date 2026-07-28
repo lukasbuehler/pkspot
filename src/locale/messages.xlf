@@ -342,6 +342,11 @@
         <source>No organization approvals waiting.</source>
       </segment>
     </unit>
+    <unit id="5863879151969666492">
+      <segment>
+        <source> Preview every active approval created from one policy basis before revoking it. Historical assurance records are retained. </source>
+      </segment>
+    </unit>
     <unit id="5881351283414819200">
       <segment>
         <source>No contact messages yet.</source>
@@ -365,6 +370,11 @@
     <unit id="4709722575878250034">
       <segment>
         <source> The <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">crew</pc>. </source>
+      </segment>
+    </unit>
+    <unit id="4719494571606906269">
+      <segment>
+        <source>Revoke adult eligibility for <ph id="0" equiv="PH" disp="previewCount"/> matching account(s)? Their public profiles and search visibility will be disabled.</source>
       </segment>
     </unit>
     <unit id="3255718056802293269">
@@ -572,6 +582,11 @@
         <source>Flagged media revealed for moderation</source>
       </segment>
     </unit>
+    <unit id="5122908686943730986">
+      <segment>
+        <source>Approval basis</source>
+      </segment>
+    </unit>
     <unit id="5133096532155335173">
       <segment>
         <source> Start Exploring </source>
@@ -675,6 +690,11 @@
     <unit id="5604123151232836009">
       <segment>
         <source>Join Discord</source>
+      </segment>
+    </unit>
+    <unit id="5607877375355036601">
+      <segment>
+        <source>Could not preview the age-assurance rollback</source>
       </segment>
     </unit>
     <unit id="5611592591303869712">
@@ -1384,6 +1404,11 @@
     <unit id="8828059408146193176">
       <segment>
         <source> Release Date <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE" equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other" dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;" dispEnd="&lt;/mat-slide-toggle&gt;"/></source>
+      </segment>
+    </unit>
+    <unit id="8841900179327389379">
+      <segment>
+        <source> PK Spot stores an age band, a broad evidence category and the resulting eligibility—not an exact birth date, identity document, bank account or card number. It also records the provider and method category, when the result was checked, when it expires, and the policy basis used for the decision. This lets PK Spot withdraw approvals if a method is later found unsuitable. Self-declared age alone does not unlock a public profile. </source>
       </segment>
     </unit>
     <unit id="8846151385804023521">
@@ -5368,6 +5393,11 @@
         <source>Closed</source>
       </segment>
     </unit>
+    <unit id="3502015908968636245">
+      <segment>
+        <source>Affected accounts:</source>
+      </segment>
+    </unit>
     <unit id="3509144640260263648">
       <notes>
         <note category="description">Label of the button to delete the spot</note>
@@ -6203,6 +6233,11 @@
         <source>Unnamed Spot</source>
       </segment>
     </unit>
+    <unit id="3345432039674927349">
+      <segment>
+        <source>Could not complete the age-assurance rollback</source>
+      </segment>
+    </unit>
     <unit id="3368417786821334758">
       <segment>
         <source>Abort</source>
@@ -6231,6 +6266,16 @@
     <unit id="292769594389358994">
       <segment>
         <source>Retention state</source>
+      </segment>
+    </unit>
+    <unit id="2932585072038606107">
+      <segment>
+        <source>Revoke these approvals</source>
+      </segment>
+    </unit>
+    <unit id="2939078539557591403">
+      <segment>
+        <source>Preview affected accounts</source>
       </segment>
     </unit>
     <unit id="settings.temperature.aria_label">
@@ -7487,6 +7532,11 @@
         <source>Delete this spot and all of its reviews and edits? This cannot be undone.</source>
       </segment>
     </unit>
+    <unit id="7731400165510918396">
+      <segment>
+        <source>Reason for rollback</source>
+      </segment>
+    </unit>
     <unit id="7733953409417762446">
       <segment>
         <source>An unknown error has occured on sign in. Please try again.</source>
@@ -7855,6 +7905,11 @@
         <source>View source</source>
       </segment>
     </unit>
+    <unit id="6482719729528694797">
+      <segment>
+        <source>Why this approval basis is no longer accepted</source>
+      </segment>
+    </unit>
     <unit id="6484510802892706344">
       <segment>
         <source>Triage hold</source>
@@ -7868,11 +7923,6 @@
     <unit id="1948163304836345687">
       <segment>
         <source>You need to agree to the terms and conditions!</source>
-      </segment>
-    </unit>
-    <unit id="195061258653092358">
-      <segment>
-        <source> PK Spot stores an age band, a broad evidence category and the resulting eligibility—not an exact birth date, identity document, bank account or card number. Self-declared age alone does not unlock a public profile. </source>
       </segment>
     </unit>
     <unit id="1956203249004073114">
@@ -8503,6 +8553,11 @@
     <unit id="4662252870324398885">
       <segment>
         <source>Community knowledge saved</source>
+      </segment>
+    </unit>
+    <unit id="4662484626065169408">
+      <segment>
+        <source>Revoked adult eligibility for <ph id="0" equiv="PH" disp="processed"/> account(s)</source>
       </segment>
     </unit>
     <unit id="4667715772382848347">
@@ -9243,6 +9298,11 @@
     <unit id="8425796083769561052">
       <segment>
         <source>What would you like to report this spot for?</source>
+      </segment>
+    </unit>
+    <unit id="842636083604380757">
+      <segment>
+        <source>Age-assurance rollback</source>
       </segment>
     </unit>
     <unit id="3278358550418950949">

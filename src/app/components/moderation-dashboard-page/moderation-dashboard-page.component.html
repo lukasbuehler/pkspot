@@ -77,6 +77,69 @@
       </mat-card>
     </div>
 
+    <section class="moderation-dashboard__panel age-assurance-maintenance">
+      <div class="moderation-dashboard__panel-header">
+        <div>
+          <h2 class="mat-title-large" i18n>Age-assurance rollback</h2>
+          <p class="mat-body-medium" i18n>
+            Preview every active approval created from one policy basis before
+            revoking it. Historical assurance records are retained.
+          </p>
+        </div>
+      </div>
+      <div class="age-assurance-maintenance__form">
+        <mat-form-field appearance="outline">
+          <mat-label i18n>Approval basis</mat-label>
+          <input
+            matInput
+            [value]="invalidationBasis()"
+            (input)="updateInvalidationBasis($event)"
+            placeholder="google_play:platform_age_signal:tier_c:request_bound:v1"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label i18n>Reason for rollback</mat-label>
+          <input
+            matInput
+            [value]="invalidationReason()"
+            (input)="updateInvalidationReason($event)"
+            i18n-placeholder
+            placeholder="Why this approval basis is no longer accepted"
+          />
+        </mat-form-field>
+      </div>
+      <div class="age-assurance-maintenance__actions">
+        <button
+          matButton="outlined"
+          type="button"
+          [disabled]="
+            isInvalidatingAgeAssurance() ||
+            !invalidationBasis().trim() ||
+            invalidationReason().trim().length < 5
+          "
+          (click)="previewAgeAssuranceInvalidation()"
+        >
+          <mat-icon>search</mat-icon>
+          <span i18n>Preview affected accounts</span>
+        </button>
+        @if (invalidationPreviewCount() !== null) {
+          <span class="mat-body-medium">
+            <span i18n>Affected accounts:</span>
+            {{ invalidationPreviewCount() }}
+          </span>
+          <button
+            matButton="filled"
+            type="button"
+            [disabled]="isInvalidatingAgeAssurance()"
+            (click)="applyAgeAssuranceInvalidation()"
+          >
+            <mat-icon>block</mat-icon>
+            <span i18n>Revoke these approvals</span>
+          </button>
+        }
+      </div>
+    </section>
+
     <section class="moderation-dashboard__panel">
       <div class="moderation-dashboard__panel-header">
         <div>

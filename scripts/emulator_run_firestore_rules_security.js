@@ -370,11 +370,14 @@ async function seedSecurityFixture() {
       adult_eligibility: "verified",
       age_range: { lower: 18 },
       assurance: {
-        signal_version: 2,
+        signal_version: 3,
         evidence_strength: "independently_checked",
-        client_integrity: "firebase_app_check",
+        client_integrity: "play_integrity_request_bound",
         app_id: "test-android-app",
-        limitation: "client_relay_not_cryptographically_bound",
+        status: "active",
+        approval_basis:
+          "google_play:platform_age_signal:tier_c:request_bound:v1",
+        limitation: "platform_account_or_device_may_be_shared",
         age_range_source: "tier_c",
       },
     },
@@ -403,6 +406,19 @@ async function seedSecurityFixture() {
     public_search: true,
     profile_access: "full",
     profile_projection_version: 1,
+  });
+  batch.set(
+    adminDb.doc(
+      "users/adult/age_assurance_records/test-verification"
+    ),
+    {
+      verification_id: "test-verification",
+      outcome: "verified",
+    }
+  );
+  batch.set(adminDb.doc("age_assurance_challenges/test-challenge"), {
+    uid: "adult",
+    nonce_hash: "private",
   });
   batch.set(adminDb.doc("users/restricted/private_data/profile"), {
     bookmarks: ["public-spot"],
@@ -1120,6 +1136,30 @@ async function testPublicUserProfileGuards(
     setDoc(doc(adminUser.db, "public_user_profiles/forged"), {
       display_name: "Forged",
     })
+  );
+  await assertDenied("profile owner cannot read age assurance audit records", () =>
+    getDoc(
+      doc(
+        adult.db,
+        "users/adult/age_assurance_records/test-verification"
+      )
+    )
+  );
+  await assertAllowed("admin reads age assurance audit records", () =>
+    getDoc(
+      doc(
+        adminUser.db,
+        "users/adult/age_assurance_records/test-verification"
+      )
+    )
+  );
+  await assertDenied("admin cannot read one-time age assurance challenges", () =>
+    getDoc(
+      doc(
+        adminUser.db,
+        "age_assurance_challenges/test-challenge"
+      )
+    )
   );
   await assertAllowed("verified adult enables public profile and search", () =>
     updateDoc(doc(adult.db, "users/adult"), {

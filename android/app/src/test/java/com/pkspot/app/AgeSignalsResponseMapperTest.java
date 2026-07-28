@@ -12,10 +12,32 @@ import com.google.android.play.agesignals.model.AgeSignalsStatus;
 import com.google.android.play.agesignals.model.SignificantChangeStatus;
 import com.google.android.play.agesignals.testing.FakeAgeSignalsManager;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.Test;
 
 public class AgeSignalsResponseMapperTest {
+  @Test
+  public void requestBindingMatchesServerVector() throws Exception {
+    Map<String, Object> signal = new LinkedHashMap<>();
+    signal.put("platform", "android");
+    signal.put("source", "android_play_age_signals");
+    signal.put("available", true);
+    signal.put("response", "shared");
+    signal.put("ageSignalsStatus", "shared");
+    signal.put("ageLower", 18);
+    signal.put("ageRangeSource", "tier_c");
+    signal.put("significantChangeStatus", "approved");
+
+    assertEquals(
+        "-b554LXZZXE_8ppOiCLKEaKyMWS3SYQDKddDV6Owr0U",
+        AgeAssuranceBinding.requestHash(
+            "user-1",
+            "challenge-1",
+            "nonce-1234567890",
+            signal));
+  }
+
   @Test
   public void mapsFakeSupervisedUnder13Signal() throws Exception {
     FakeAgeSignalsManager manager = new FakeAgeSignalsManager();

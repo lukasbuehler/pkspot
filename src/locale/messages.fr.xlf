@@ -800,6 +800,12 @@
         <target>No organization approvals waiting.</target>
       </segment>
     </unit>
+    <unit id="5863879151969666492">
+      <segment state="initial">
+        <source> Preview every active approval created from one policy basis before revoking it. Historical assurance records are retained. </source>
+        <target> Prévisualisez toutes les validations actives créées selon une même base de politique avant de les révoquer. L’historique des validations d’âge est conservé. </target>
+      </segment>
+    </unit>
     <unit id="5881351283414819200">
       <segment state="initial">
         <source>No contact messages yet.</source>
@@ -1809,6 +1815,12 @@
         <target>Modération</target>
       </segment>
     </unit>
+    <unit id="3502015908968636245">
+      <segment state="initial">
+        <source>Affected accounts:</source>
+        <target>Comptes concernés :</target>
+      </segment>
+    </unit>
     <unit id="3509144640260263648">
       <notes>
         <note category="description">Label of the button to delete the spot</note>
@@ -2187,6 +2199,12 @@
         <target>Supprimer ce spot ainsi que tous ses avis et modifications ? Cette action est irréversible.</target>
       </segment>
     </unit>
+    <unit id="7731400165510918396">
+      <segment state="initial">
+        <source>Reason for rollback</source>
+        <target>Motif de la révocation</target>
+      </segment>
+    </unit>
     <unit id="7733953409417762446">
       <segment state="initial">
         <source>An unknown error has occured on sign in. Please try again.</source>
@@ -2511,6 +2529,12 @@
         <target>Voir la source</target>
       </segment>
     </unit>
+    <unit id="6482719729528694797">
+      <segment state="initial">
+        <source>Why this approval basis is no longer accepted</source>
+        <target>Pourquoi cette base de validation n’est plus acceptée</target>
+      </segment>
+    </unit>
     <unit id="6484510802892706344">
       <segment state="initial">
         <source>Triage hold</source>
@@ -2539,12 +2563,6 @@
       <segment state="initial">
         <source>You need to agree to the terms and conditions!</source>
         <target>Vous devez accepter les conditions d’utilisation !</target>
-      </segment>
-    </unit>
-    <unit id="195061258653092358">
-      <segment state="initial">
-        <source> PK Spot stores an age band, a broad evidence category and the resulting eligibility—not an exact birth date, identity document, bank account or card number. Self-declared age alone does not unlock a public profile. </source>
-        <target> PK Spot enregistre une tranche d’âge, une catégorie générale de preuve et l’éligibilité qui en résulte — pas une date de naissance exacte, une pièce d’identité, un compte bancaire ou un numéro de carte. L’âge autodéclaré ne suffit pas à débloquer un profil public. </target>
       </segment>
     </unit>
     <unit id="1956203249004073114">
@@ -2847,6 +2865,12 @@
       <segment state="initial">
         <source>What would you like to report this spot for?</source>
         <target>Pour quelle raison souhaitez-vous signaler ce spot ?</target>
+      </segment>
+    </unit>
+    <unit id="842636083604380757">
+      <segment state="initial">
+        <source>Age-assurance rollback</source>
+        <target>Révocation des validations d’âge</target>
       </segment>
     </unit>
     <unit id="8436223332064456837">
@@ -9348,6 +9372,12 @@
         <target> L’<pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">équipe</pc>. </target>
       </segment>
     </unit>
+    <unit id="4719494571606906269">
+      <segment state="initial">
+        <source>Revoke adult eligibility for <ph id="0" equiv="PH" disp="previewCount"/> matching account(s)? Their public profiles and search visibility will be disabled.</source>
+        <target>Révoquer l’éligibilité adulte de <ph id="0" equiv="PH" disp="previewCount"/> compte(s) correspondant(s) ? Leurs profils publics et leur visibilité dans la recherche seront désactivés.</target>
+      </segment>
+    </unit>
     <unit id="2417459620118538314">
       <segment state="initial">
         <source>Could not update event notifications. Please try again.</source>
@@ -9973,6 +10003,12 @@
         <target>Accès par navigateur</target>
       </segment>
     </unit>
+    <unit id="3345432039674927349">
+      <segment state="initial">
+        <source>Could not complete the age-assurance rollback</source>
+        <target>Impossible de terminer la révocation des validations d’âge</target>
+      </segment>
+    </unit>
     <unit id="3368417786821334758">
       <segment state="initial">
         <source>Abort</source>
@@ -10007,6 +10043,18 @@
       <segment state="initial">
         <source>Retention state</source>
         <target>État de conservation</target>
+      </segment>
+    </unit>
+    <unit id="2932585072038606107">
+      <segment state="initial">
+        <source>Revoke these approvals</source>
+        <target>Révoquer ces validations</target>
+      </segment>
+    </unit>
+    <unit id="2939078539557591403">
+      <segment state="initial">
+        <source>Preview affected accounts</source>
+        <target>Prévisualiser les comptes concernés</target>
       </segment>
     </unit>
     <unit id="profile.actions.report">
@@ -10433,6 +10481,12 @@
         <target>Rejoindre Discord</target>
       </segment>
     </unit>
+    <unit id="5607877375355036601">
+      <segment state="initial">
+        <source>Could not preview the age-assurance rollback</source>
+        <target>Impossible de prévisualiser la révocation des validations d’âge</target>
+      </segment>
+    </unit>
     <unit id="5611592591303869712">
       <segment state="initial">
         <source>Status</source>
@@ -10793,6 +10847,12 @@
         <target>Média signalé révélé pour modération</target>
       </segment>
     </unit>
+    <unit id="5122908686943730986">
+      <segment state="initial">
+        <source>Approval basis</source>
+        <target>Base de validation</target>
+      </segment>
+    </unit>
     <unit id="5133096532155335173">
       <segment state="initial">
         <source> Start Exploring </source>
@@ -11083,6 +11143,12 @@
       <segment state="initial">
         <source> Release Date <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE" equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other" dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;" dispEnd="&lt;/mat-slide-toggle&gt;"/></source>
         <target> Date de publication <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE" equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other" dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;" dispEnd="&lt;/mat-slide-toggle&gt;"/></target>
+      </segment>
+    </unit>
+    <unit id="8841900179327389379">
+      <segment state="initial">
+        <source> PK Spot stores an age band, a broad evidence category and the resulting eligibility—not an exact birth date, identity document, bank account or card number. It also records the provider and method category, when the result was checked, when it expires, and the policy basis used for the decision. This lets PK Spot withdraw approvals if a method is later found unsuitable. Self-declared age alone does not unlock a public profile. </source>
+        <target> PK Spot conserve une tranche d’âge, une catégorie générale de preuve et l’éligibilité qui en résulte, mais pas la date de naissance exacte, un document d’identité, un compte bancaire ou un numéro de carte. L’application enregistre également le fournisseur et la catégorie de méthode, la date de vérification du résultat, sa date d’expiration et la base de politique utilisée pour la décision. PK Spot peut ainsi retirer des validations si une méthode est ensuite jugée inadaptée. Une simple déclaration d’âge ne permet pas d’activer un profil public. </target>
       </segment>
     </unit>
     <unit id="8846151385804023521">
@@ -12522,6 +12588,12 @@
       <segment state="initial">
         <source>Community knowledge saved</source>
         <target>Conocimiento de comunidad guardado</target>
+      </segment>
+    </unit>
+    <unit id="4662484626065169408">
+      <segment state="initial">
+        <source>Revoked adult eligibility for <ph id="0" equiv="PH" disp="processed"/> account(s)</source>
+        <target>Éligibilité adulte révoquée pour <ph id="0" equiv="PH" disp="processed"/> compte(s)</target>
       </segment>
     </unit>
     <unit id="4667715772382848347">

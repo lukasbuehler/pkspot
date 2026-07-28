@@ -681,6 +681,9 @@ service cloud.firestore {
             && request.resource.data.get('age_policy', {}).get('adult_eligibility', 'not_verified') == 'verified'
             && request.resource.data.get('age_policy', {}).get('age_range', {}).get('lower', -1) is number
             && request.resource.data.get('age_policy', {}).get('age_range', {}).get('lower', -1) >= 18
+            && request.resource.data.get('age_policy', {}).get('assurance', {}).get('status', '') == 'active'
+            && request.resource.data.get('age_policy', {}).get('assurance', {}).get('client_integrity', '') == 'play_integrity_request_bound'
+            && request.resource.data.get('age_policy', {}).get('assurance', {}).get('approval_basis', '') is string
           )
         )
         && (
@@ -1213,6 +1216,11 @@ service cloud.firestore {
          && userCustomSocialLinksUnchanged();
       allow delete: if request.auth.uid != null && request.auth.uid == userId;
 
+      match /age_assurance_records/{recordId} {
+        allow read: if isAdmin();
+        allow write: if false;
+      }
+
       match /following/{otherUserId} {
         // A user can only see and update his own following
         allow read: if request.auth.uid != null && request.auth.uid == userId;
@@ -1650,6 +1658,10 @@ service cloud.firestore {
     }
 
     match /report_rate_limits/{limitId} {
+      allow read, write: if false;
+    }
+
+    match /age_assurance_challenges/{challengeId} {
       allow read, write: if false;
     }
 

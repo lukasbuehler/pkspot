@@ -11,6 +11,10 @@ const adultPolicy = {
   age_policy: {
     age_range: { lower: 18, upper: 24 },
     adult_eligibility: "verified",
+    assurance: {
+      status: "active",
+      client_integrity: "play_integrity_request_bound",
+    },
   },
 };
 
@@ -64,6 +68,24 @@ describe("user profile projections", () => {
         public_profile_enabled: true,
       }),
     ).toBeNull();
+  });
+
+  it("does not expire an active approval because of a legacy date", () => {
+    expect(
+      buildPublicUserProfile({
+        ...adultPolicy,
+        age_policy: {
+          ...adultPolicy.age_policy,
+          assurance: {
+            ...adultPolicy.age_policy.assurance,
+            valid_until: new Date(0),
+          },
+        },
+        account_privacy: "public",
+        profile_visibility: "public",
+        public_profile_enabled: true,
+      }),
+    ).not.toBeNull();
   });
 
   it("keeps confirmed minors owner-only even with stale public flags", () => {

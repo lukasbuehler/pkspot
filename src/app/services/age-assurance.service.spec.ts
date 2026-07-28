@@ -17,14 +17,17 @@ const nativeState = vi.hoisted(() => ({
     response: "shared" as const,
   },
   getAgeSignal: vi.fn(),
+  getBoundAgeSignal: vi.fn(),
 }));
 
 vi.mock("@capacitor/core", () => ({
   Capacitor: {
     isNativePlatform: vi.fn(() => nativeState.isNative),
+    getPlatform: vi.fn(() => "android"),
   },
   registerPlugin: vi.fn(() => ({
     getAgeSignal: nativeState.getAgeSignal,
+    getBoundAgeSignal: nativeState.getBoundAgeSignal,
   })),
 }));
 
@@ -37,13 +40,27 @@ describe("AgeAssuranceService", () => {
     vi.clearAllMocks();
     nativeState.isNative = true;
     nativeState.getAgeSignal.mockResolvedValue(nativeState.ageSignal);
+    nativeState.getBoundAgeSignal.mockResolvedValue({
+      signal: nativeState.ageSignal,
+      integrityToken: "integrity-token",
+    });
     functionsAdapter = {
-      callAuthenticatedAppChecked: vi.fn().mockResolvedValue({
-        ok: true,
-        participation_state: "allowed",
-        adult_eligibility: "not_verified",
-        evidence_strength: "guardian_managed",
-      }),
+      callAuthenticatedAppChecked: vi
+        .fn()
+        .mockImplementation((name: string) =>
+          name === "beginAgeAssuranceV3"
+            ? Promise.resolve({
+                challenge_id: "challenge-1",
+                challenge_nonce: "nonce-1",
+                platform: "android",
+              })
+            : Promise.resolve({
+                ok: true,
+                participation_state: "allowed",
+                adult_eligibility: "not_verified",
+                confidence: "corroborated",
+              }),
+        ),
     };
 
     TestBed.configureTestingModule({
@@ -67,10 +84,18 @@ describe("AgeAssuranceService", () => {
     await service.syncNativeAgePolicyForCurrentUser();
 
     expect(Capacitor.isNativePlatform).toHaveBeenCalled();
-    expect(nativeState.getAgeSignal).toHaveBeenCalled();
-    expect(functionsAdapter.callAuthenticatedAppChecked).toHaveBeenCalledWith(
-      "updateAgePolicyV2",
+    expect(nativeState.getBoundAgeSignal).toHaveBeenCalledWith({
+      uid: "user-1",
+      challengeId: "challenge-1",
+      challengeNonce: "nonce-1",
+    });
+    expect(functionsAdapter.callAuthenticatedAppChecked).toHaveBeenNthCalledWith(
+      2,
+      "updateAgePolicyV3",
       expect.objectContaining({
+        challenge_id: "challenge-1",
+        challenge_nonce: "nonce-1",
+        integrity_token: "integrity-token",
         signal: expect.objectContaining({
           platform: "android",
           source: "android_play_age_signals",
@@ -91,6 +116,10 @@ describe("AgeAssuranceService", () => {
           data?: {
             age_policy?: {
               adult_eligibility?: "verified" | "not_verified";
+              assurance?: {
+                status?: string;
+                client_integrity?: string;
+              };
             };
           };
         };
@@ -103,8 +132,19 @@ describe("AgeAssuranceService", () => {
     expect(service.hasVerifiedAdultEligibility()).toBe(false);
 
     auth.user.data = {
-      data: { age_policy: { adult_eligibility: "verified" } },
+      data: {
+        age_policy: {
+          adult_eligibility: "verified",
+          assurance: {
+            status: "active",
+            client_integrity: "play_integrity_request_bound",
+          },
+        },
+      },
     };
     expect(service.hasVerifiedAdultEligibility()).toBe(true);
+
+    auth.user.data.data!.age_policy!.assurance!.status = "invalidated";
+    expect(service.hasVerifiedAdultEligibility()).toBe(false);
   });
 });

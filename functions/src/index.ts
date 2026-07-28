@@ -160,6 +160,12 @@ export {
   updateAgePolicyV2,
 } from "./userFunctions";
 export {
+  beginAgeAssuranceV3,
+  cleanupAgeAssuranceChallenges,
+  invalidateAgeAssuranceApprovals,
+  updateAgePolicyV3,
+} from "./ageAssuranceFunctions";
+export {
   activateUserProfilePrivacyCutover,
   backfillPublicUserProfiles,
   getUserProfile,
