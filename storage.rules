@@ -16,10 +16,16 @@ service firebase.storage {
       return isSignedIn()
         && (
           !firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
-          || firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.get('age_policy', {}).get('participation_state', 'allowed') in [
-            'allowed',
-            'platform_signal_unavailable'
-          ]
+          || (
+            firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.get('age_policy', {}).get('participation_state', 'allowed') in [
+              'allowed',
+              'platform_signal_unavailable'
+            ]
+            && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.get('moderation_state', {}).get('status', 'active') in [
+              'active',
+              'profile_restricted'
+            ]
+          )
         );
     }
 
@@ -246,6 +252,13 @@ service firebase.storage {
             && isUnderSize(10 * 1024 * 1024)
           )
         );
+    }
+
+    // Appeal evidence and reversible moderation holds are never public. The
+    // case Functions move and restore these objects with the Admin SDK.
+    match /moderation_holds/{caseId}/{allPaths=**} {
+      allow read: if isAdmin();
+      allow write: if false;
     }
 
     match /{allPaths=**} {

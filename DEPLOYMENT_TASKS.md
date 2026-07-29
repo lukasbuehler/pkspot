@@ -77,6 +77,92 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
+### Unified safety cases, complaints, and appeals
+
+This rollout is additive and does not require releasing the new web or mobile
+clients at the same time. Keep the existing report collections and handlers in
+place: the projection triggers deliberately bridge them into `safety_cases`.
+
+- [ ] Confirm an SMTP provider, sender, reply-to address, secret ownership, and
+      delivery monitoring. Configure a Firebase Trigger Email extension instance
+      whose mail collection is exactly `safety_case_email_outbox`. Do not
+      silently repoint an instance used by another workflow; install a separate
+      instance or change the reviewed queue contract first.
+
+  Success condition: a controlled server-created document with `to` and
+  `message.{subject,text,html}` is delivered, and the extension changes
+  `delivery.state` from `PENDING` through processing to `SUCCESS`. A deliberate
+  invalid-recipient test reaches `ERROR` without exposing its document to
+  clients.
+
+- [ ] Deploy the Firestore indexes/TTL policies, Firestore rules, and Storage
+      rules before the safety-case Functions:
+
+  ```sh
+  npx firebase deploy --project prod --only firestore:indexes
+  # Wait for every new composite index and TTL field policy to report enabled.
+  npx firebase deploy --project prod --only firestore:rules,storage
+  ```
+
+  Success condition: ordinary and administrator web clients cannot directly
+  read or write `safety_cases`, their private/event subcollections,
+  `safety_case_access_tokens`, `safety_case_sessions`,
+  `safety_case_rate_limits`, `safety_case_email_outbox`,
+  `safety_case_holds`, or `safety_case_metrics`; an administrator can read but
+  cannot directly write `moderation_holds/**` through the Storage client SDK.
+
+- [ ] Build and deploy the compatible safety-case Functions and the changed
+      public-profile projection:
+
+  ```sh
+  npm --prefix functions run build
+  npx firebase deploy --project prod --only functions:submitSafetyCase,functions:exchangeSafetyCaseAccessLink,functions:getSafetyCaseView,functions:addSafetyCaseMessage,functions:appealSafetyCaseDecision,functions:cleanupSafetyCaseSecurityMetadata,functions:listSafetyCases,functions:getAdminSafetyCase,functions:updateSafetyCase,functions:decideSafetyCase,functions:restoreSafetyCaseDecision,functions:onSpotReportSafetyCaseCreate,functions:onRootReportSafetyCaseCreate,functions:onLegacyMediaReportSafetyCaseCreate,functions:onUserReportSafetyCaseCreate,functions:onModerationActionSafetyCaseCreate,functions:backfillSafetyCases,functions:aggregateSafetyCaseMetrics,functions:syncPublicUserProfileOnWrite
+  ```
+
+  Success condition: all Functions are in `europe-west1`; existing report
+  clients continue to work; a new legacy report creates one deterministic
+  safety case; retries do not create duplicates; and a non-active moderation
+  state removes the affected public profile projection.
+
+- [ ] Exercise the private access path before releasing clients: submit one
+      signed-in case and one guest case, verify the guest email, exchange its
+      one-time 24-hour link once, reload with the scoped 30-day session, add
+      information, and confirm another account and a token for another case are
+      denied.
+
+- [ ] As an authenticated administrator, invoke `backfillSafetyCases` with
+      `{ "dry_run": true }`. Reconcile `reports_scanned`, `existing`,
+      `would_create`, and `moderation_actions_scanned` against the legacy
+      report/action collections. Inspect a sample from every source type.
+
+- [ ] Only after accepting the dry run, invoke `backfillSafetyCases` with
+      `{ "dry_run": false }`. Historical imports must not send retrospective
+      acknowledgement emails. Re-run the dry run and confirm every historical
+      source is now counted as `existing` and `would_create == 0`.
+
+- [ ] With controlled fixtures only, verify one reversible decision for each
+      applicable target class: media, Spot, public warning, profile, and
+      account. Confirm the hold is written before the visible restriction, the
+      public reason and reviewer are recorded, an appeal is linked to the
+      original case, and a successful appeal restores the exact held state.
+      Record why if staffing makes a different appeal reviewer impossible.
+
+- [ ] Verify the daily metrics document, overdue queue, email delivery states,
+      and the security-metadata cleanup. Use aged test fixtures to confirm
+      network/device fields are removed after 90 days while the case, evidence,
+      decisions, and correspondence remain.
+
+- [ ] Release the localized clients through the normal `main`/store workflows
+      only after the backend verification above. Verify `/safety`,
+      `/safety/cases/:reference`, `/moderation/cases`, the account-settings
+      age-assurance complaint link, terms, privacy information, and support
+      navigation. Do not operate App Hosting directly.
+
+- [ ] Update `docs/README.md` and the affected assessments with the production
+      release date, versions, evidence, actual response capacity, and first
+      metrics review. Do not mark recorded measures complete based only on a
+      successful code deployment.
+
 ### Flexible event timing, locationless discovery, and ownership claims
 
 Keep these steps in order. Typesense reads remain available during the schema

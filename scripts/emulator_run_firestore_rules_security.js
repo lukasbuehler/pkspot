@@ -1343,6 +1343,31 @@ async function testReadOnlyBackendCollections(owner, adminUser) {
     );
   }
 
+  for (const [label, path] of [
+    ["safety case", "safety_cases/forged-case"],
+    ["safety case event", "safety_cases/forged-case/events/forged-event"],
+    ["safety case private intake", "safety_cases/forged-case/private/intake"],
+    ["safety access token", "safety_case_access_tokens/forged-token"],
+    ["safety session", "safety_case_sessions/forged-session"],
+    ["safety rate limit", "safety_case_rate_limits/forged-limit"],
+    ["safety email", "safety_case_email_outbox/forged-email"],
+    ["safety hold", "safety_case_holds/forged-hold"],
+    ["safety metric", "safety_case_metrics_daily/2026-07-29"],
+  ]) {
+    await assertDenied(`regular user read of ${label}`, () =>
+      getDoc(doc(owner.db, path))
+    );
+    await assertDenied(`regular user write to ${label}`, () =>
+      setDoc(doc(owner.db, path), { attacker: true })
+    );
+    await assertDenied(`admin direct read of ${label}`, () =>
+      getDoc(doc(adminUser.db, path))
+    );
+    await assertDenied(`admin direct write to ${label}`, () =>
+      setDoc(doc(adminUser.db, path), { bypass: true })
+    );
+  }
+
   await assertDenied("admin cannot bypass community knowledge edits", () =>
     updateDoc(doc(adminUser.db, "community_pages/ch-zurich"), {
       infoCards: [{ id: "bypass", title: { en: "Bypass" } }],

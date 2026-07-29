@@ -5,20 +5,27 @@ export type ModerationActionType =
   | "delete_media"
   | "delete_spot"
   | "archive_contact_message"
-  | "delete_contact_message";
+  | "delete_contact_message"
+  | "safety_case_decision";
 
 export type ModerationActionSourceType =
   | "spot_report"
   | "media_report"
   | "user_report"
-  | "contact_message";
+  | "contact_message"
+  | "safety_case";
 
 export type ModerationActionTargetType =
   | "spot"
   | "event"
   | "media"
   | "user"
-  | "contact";
+  | "contact"
+  | "profile"
+  | "account"
+  | "age_assurance"
+  | "service"
+  | "other";
 
 export interface ModerationActionUserSchema {
   uid: string;
@@ -37,4 +44,5 @@ export interface ModerationActionSchema {
   created_at: unknown;
   created_by: ModerationActionUserSchema;
   note?: string;
+  decision?: Record<string, unknown>;
 }

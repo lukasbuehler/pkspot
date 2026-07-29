@@ -1,16 +1,32 @@
 import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
+import { MatButtonModule } from "@angular/material/button";
 import { MatIcon } from "@angular/material/icon";
+import { RouterLink } from "@angular/router";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
 
 @Component({
   selector: "app-contribution-status-note",
-  imports: [MatIcon],
+  imports: [MatButtonModule, MatIcon, RouterLink],
   template: `
     <div class="contribution-status-note" role="status">
       <mat-icon aria-hidden="true">info</mat-icon>
-      <p class="mat-body-medium m-0">
-        {{ ageAssurance.getContributionStatusMessage() }}
-      </p>
+      <div>
+        <p class="mat-body-medium m-0">
+          {{ ageAssurance.getContributionStatusMessage() }}
+        </p>
+        <a
+          mat-button
+          routerLink="/safety"
+          [queryParams]="{
+            type: 'complaint',
+            category: 'content_or_account_decision',
+            subjectType: 'account'
+          }"
+          i18n
+        >
+          Ask us to review this restriction
+        </a>
+      </div>
     </div>
   `,
   styles: [

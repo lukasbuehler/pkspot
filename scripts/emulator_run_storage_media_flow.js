@@ -200,6 +200,26 @@ async function main() {
   const anonymous = await createClient("anonymous");
   const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
 
+  console.log("Checking moderator-only hold rules...");
+  const holdPath = `moderation_holds/case-${suffix}/evidence.jpg`;
+  await admin
+    .storage()
+    .bucket(STORAGE_BUCKET)
+    .file(holdPath)
+    .save(Buffer.from("held evidence"), { contentType: "image/jpeg" });
+  await assertDenied("anonymous hold read", () =>
+    getBytes(ref(anonymous.storage, holdPath))
+  );
+  await assertDenied("regular user hold read", () =>
+    getBytes(ref(uploader.storage, holdPath))
+  );
+  assert.ok(
+    (await getBytes(ref(adminClient.storage, holdPath))).byteLength > 0
+  );
+  await assertDenied("admin cannot write holds from a client", () =>
+    uploadAs(adminClient, `moderation_holds/case-${suffix}/forged.jpg`, "image/jpeg")
+  );
+
   console.log("Checking profile picture intake rules...");
   const profilePath = `profile_pictures/${USERS.uploader}`;
   await assertDenied("legacy direct profile picture upload", () =>

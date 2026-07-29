@@ -1,5 +1,11 @@
 <xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en" trgLang="nl">
   <file id="ngi18n" original="ng.template">
+    <unit id="1806667489382256324">
+      <segment state="initial">
+        <source>Category</source>
+        <target>Categorie</target>
+      </segment>
+    </unit>
     <unit id="1814768182936887464">
       <segment state="initial">
         <source>Scan reason</source>
@@ -144,6 +150,12 @@
         <target>Uploaden</target>
       </segment>
     </unit>
+    <unit id="6938699337852023436">
+      <segment state="initial">
+        <source>Response targets</source>
+        <target>Reactietermijnen</target>
+      </segment>
+    </unit>
     <unit id="about.crew.contact_button">
       <segment state="initial">
         <source>Join us</source>
@@ -192,6 +204,12 @@
       <segment state="initial">
         <source> Description </source>
         <target> Beschrijving </target>
+      </segment>
+    </unit>
+    <unit id="813564942909502411">
+      <segment state="initial">
+        <source> An appeal should have a different reviewer where possible. If that is not possible, record why. </source>
+        <target>Een beroep moet waar mogelijk door een andere beoordelaar worden behandeld. Leg vast waarom als dat niet mogelijk is.</target>
       </segment>
     </unit>
     <unit id="9030193572678348373">
@@ -380,6 +398,18 @@
         <target>Verwijderd</target>
       </segment>
     </unit>
+    <unit id="6383736841956004048">
+      <segment state="initial">
+        <source>Message to participant (optional)</source>
+        <target>Bericht aan deelnemer (optioneel)</target>
+      </segment>
+    </unit>
+    <unit id="6392361494636232622">
+      <segment state="initial">
+        <source>PK Spot service</source>
+        <target>PK Spot-dienst</target>
+      </segment>
+    </unit>
     <unit id="6396144908605095471">
       <segment state="initial">
         <source> Members will be added to the organization selected above. </source>
@@ -442,6 +472,18 @@
       <segment state="initial">
         <source>Failed to release media</source>
         <target>Media publiceren mislukt</target>
+      </segment>
+    </unit>
+    <unit id="4918842380121150578">
+      <segment state="initial">
+        <source>Could not record this decision.</source>
+        <target>Dit besluit kon niet worden vastgelegd.</target>
+      </segment>
+    </unit>
+    <unit id="4919637716121608426">
+      <segment state="initial">
+        <source>Email delivery</source>
+        <target>E-mailbezorging</target>
       </segment>
     </unit>
     <unit id="4927421686251357457">
@@ -564,6 +606,18 @@
         <target>waiting on votes</target>
       </segment>
     </unit>
+    <unit id="448652542038226670">
+      <segment state="initial">
+        <source> This case is private. Sign in with the account that submitted it or open the latest secure email link. </source>
+        <target>Deze zaak is privé. Meld je aan met het account dat de zaak heeft ingediend of open de nieuwste beveiligde e-maillink.</target>
+      </segment>
+    </unit>
+    <unit id="4493161543971750886">
+      <segment state="initial">
+        <source>Privacy or data use</source>
+        <target>Privacy of gegevensgebruik</target>
+      </segment>
+    </unit>
     <unit id="8461609631969932886">
       <segment state="initial">
         <source>Hide</source>
@@ -580,6 +634,12 @@
       <segment state="initial">
         <source> Newest changes first. Each entry shows exactly what was edited. </source>
         <target> Nieuwste wijzigingen eerst. Elke invoer toont precies wat er is aangepast. </target>
+      </segment>
+    </unit>
+    <unit id="8480572934350558200">
+      <segment state="initial">
+        <source>Appeals</source>
+        <target>Beroepen</target>
       </segment>
     </unit>
     <unit id="8482930840277475324">
@@ -682,10 +742,22 @@
         <target> Bewerk de gegevens die anderen mogen zien. De instellingen voor profieltoegang en zoeken bepalen wie ze kan bekijken. </target>
       </segment>
     </unit>
+    <unit id="6814295386768519176">
+      <segment state="initial">
+        <source>Timeline</source>
+        <target>Tijdlijn</target>
+      </segment>
+    </unit>
     <unit id="6815507474406960450">
       <segment state="initial">
         <source>E-Mail address</source>
         <target>E-mailadres</target>
+      </segment>
+    </unit>
+    <unit id="6824976364666397501">
+      <segment state="initial">
+        <source>Report a safety concern</source>
+        <target>Veiligheidsprobleem melden</target>
       </segment>
     </unit>
     <unit id="5506176846620350292">
@@ -802,6 +874,12 @@
         <target> Controleer je verbinding en probeer het opnieuw. </target>
       </segment>
     </unit>
+    <unit id="1407086352203948664">
+      <segment state="initial">
+        <source>Loading cases...</source>
+        <target>Zaken laden...</target>
+      </segment>
+    </unit>
     <unit id="1426358485872019526">
       <segment state="initial">
         <source>Uploaded image</source>
@@ -836,6 +914,12 @@
         <target>De wijzigingen aan de organisatie konden niet worden opgeslagen.</target>
       </segment>
     </unit>
+    <unit id="3291027940541598405">
+      <segment state="initial">
+        <source>Update and aim to resolve within 30 days</source>
+        <target>Update geven en streven naar oplossing binnen 30 dagen</target>
+      </segment>
+    </unit>
     <unit id="3292760121831436112">
       <segment state="final">
         <source>Add a short title of up to 80 characters.</source>
@@ -852,6 +936,12 @@
       <segment state="initial">
         <source>Re-authentication failed. Account not deleted.</source>
         <target>Herauthenticatie mislukt. Account niet verwijderd.</target>
+      </segment>
+    </unit>
+    <unit id="1494956089085338936">
+      <segment state="initial">
+        <source>Describe what happened and what outcome you need.</source>
+        <target>Beschrijf wat er is gebeurd en welk resultaat je nodig hebt.</target>
       </segment>
     </unit>
     <unit id="6309828574111583895">
@@ -944,10 +1034,22 @@
         <target>Training log</target>
       </segment>
     </unit>
+    <unit id="2597686257276262345">
+      <segment state="initial">
+        <source>Could not load safety cases.</source>
+        <target>Veiligheidszaken konden niet worden geladen.</target>
+      </segment>
+    </unit>
     <unit id="2599075381042572471">
       <segment state="initial">
         <source>No organization approvals waiting.</source>
         <target>No organization approvals waiting.</target>
+      </segment>
+    </unit>
+    <unit id="5861458032557974848">
+      <segment state="initial">
+        <source>Save update and assign to me</source>
+        <target>Update opslaan en aan mij toewijzen</target>
       </segment>
     </unit>
     <unit id="5863879151969666492">
@@ -2041,6 +2143,12 @@
         <target> Spots door jou geverifieerd </target>
       </segment>
     </unit>
+    <unit id="3514079164376470263">
+      <segment state="initial">
+        <source>Dangerous activity</source>
+        <target>Gevaarlijke activiteit</target>
+      </segment>
+    </unit>
     <unit id="3517550046701184661">
       <segment state="initial">
         <source>Show less</source>
@@ -2361,6 +2469,12 @@
         <target>Could not load ownership claims.</target>
       </segment>
     </unit>
+    <unit id="4285897005151704391">
+      <segment state="initial">
+        <source>Public reasons</source>
+        <target>Openbare redenen</target>
+      </segment>
+    </unit>
     <unit id="4292524783489016046">
       <segment state="initial">
         <source> Create organizations, update their public identity, and manage who can review organization-routed spot edits. </source>
@@ -2427,6 +2541,18 @@
         <target>Er is een onbekende fout opgetreden bij het inloggen. Probeer het alstublieft opnieuw.</target>
       </segment>
     </unit>
+    <unit id="773524594392048440">
+      <segment state="initial">
+        <source> Ask us to review this restriction </source>
+        <target> Vraag ons deze beperking te beoordelen </target>
+      </segment>
+    </unit>
+    <unit id="7740572490638436380">
+      <segment state="initial">
+        <source>What happened, and what would you like us to do?</source>
+        <target>Wat is er gebeurd en wat wil je dat we doen?</target>
+      </segment>
+    </unit>
     <unit id="7742018872696898961">
       <segment state="initial">
         <source>Current password is incorrect.</source>
@@ -2479,6 +2605,12 @@
       <segment state="initial">
         <source>Create a new account</source>
         <target>Maak een nieuw account aan</target>
+      </segment>
+    </unit>
+    <unit id="6970739369177090165">
+      <segment state="initial">
+        <source>Complex-case target:</source>
+        <target>Termijn voor complexe zaken:</target>
       </segment>
     </unit>
     <unit id="6972105223770675605">
@@ -2643,6 +2775,12 @@
         <target>Geverifieerd door</target>
       </segment>
     </unit>
+    <unit id="6631334172623029500">
+      <segment state="initial">
+        <source>Email:</source>
+        <target>E-mail:</target>
+      </segment>
+    </unit>
     <unit id="6631641409682927358">
       <segment state="initial">
         <source>Open current NCA guidance</source>
@@ -2685,6 +2823,12 @@
         <target> Public map activity from this profile. </target>
       </segment>
     </unit>
+    <unit id="2089887885715473070">
+      <segment state="initial">
+        <source>Held state restored.</source>
+        <target>De vastgehouden status is hersteld.</target>
+      </segment>
+    </unit>
     <unit id="1035459065824093652">
       <segment state="initial">
         <source>Open edit</source>
@@ -2709,6 +2853,12 @@
         <target>Stem indienen mislukt</target>
       </segment>
     </unit>
+    <unit id="1093765261979876101">
+      <segment state="initial">
+        <source>Independence limitation (if same reviewer)</source>
+        <target>Beperking van onafhankelijkheid (bij dezelfde beoordelaar)</target>
+      </segment>
+    </unit>
     <unit id="1096271480010782204">
       <segment state="initial">
         <source>Founder</source>
@@ -2731,6 +2881,12 @@
       <segment state="initial">
         <source>Event period</source>
         <target>Evenementperiode</target>
+      </segment>
+    </unit>
+    <unit id="1257641982327923196">
+      <segment state="initial">
+        <source>Open safety channel</source>
+        <target>Veiligheidskanaal openen</target>
       </segment>
     </unit>
     <unit id="1263548881803803113">
@@ -2799,10 +2955,28 @@
         <target>Triageblokkering</target>
       </segment>
     </unit>
+    <unit id="6493128715899624058">
+      <segment state="initial">
+        <source>Could not load this safety case.</source>
+        <target>Deze veiligheidszaak kon niet worden geladen.</target>
+      </segment>
+    </unit>
     <unit id="6496554534263466402">
       <segment state="initial">
         <source>Follow request declined</source>
         <target>Follow request declined</target>
+      </segment>
+    </unit>
+    <unit id="190885448896868977">
+      <segment state="initial">
+        <source>Is someone in immediate danger?</source>
+        <target>Is iemand in direct gevaar?</target>
+      </segment>
+    </unit>
+    <unit id="1922856447604899399">
+      <segment state="initial">
+        <source>What do you need to do?</source>
+        <target>Wat wil je doen?</target>
       </segment>
     </unit>
     <unit id="1927584134608367160">
@@ -2833,6 +3007,12 @@
       <segment state="initial">
         <source>Outdoor</source>
         <target>Buiten</target>
+      </segment>
+    </unit>
+    <unit id="1999955189900316314">
+      <segment state="initial">
+        <source>Could not submit this case. Please try again.</source>
+        <target>Deze zaak kon niet worden ingediend. Probeer het opnieuw.</target>
       </segment>
     </unit>
     <unit id="3601523967492159201">
@@ -2883,10 +3063,28 @@
         <target>Getoonde voorzieningen</target>
       </segment>
     </unit>
+    <unit id="3646106459214291688">
+      <segment state="translated">
+        <source>Person who contacted us</source>
+        <target>Persoon die contact met ons heeft opgenomen</target>
+      </segment>
+    </unit>
+    <unit id="3651593603437372340">
+      <segment state="initial">
+        <source>Appeal this decision</source>
+        <target>Tegen dit besluit in beroep gaan</target>
+      </segment>
+    </unit>
     <unit id="3665571050825458932">
       <segment state="initial">
         <source> Move and resize the crop area. Use zoom or rotation when needed. </source>
         <target> Verplaats en schaal het bijsnijdgebied. Gebruik zo nodig vergroting of draaien. </target>
+      </segment>
+    </unit>
+    <unit id="3670979985338475203">
+      <segment state="initial">
+        <source>Case updated.</source>
+        <target>Zaak bijgewerkt.</target>
       </segment>
     </unit>
     <unit id="3686284950598311784">
@@ -2957,6 +3155,12 @@
       <segment state="initial">
         <source>Reported externally</source>
         <target>Extern gemeld</target>
+      </segment>
+    </unit>
+    <unit id="6721845101128758739">
+      <segment state="initial">
+        <source>Loading private case...</source>
+        <target>Privézaak laden...</target>
       </segment>
     </unit>
     <unit id="6727906839729645379">
@@ -3035,10 +3239,22 @@
         <target>Live-update publiceren</target>
       </segment>
     </unit>
+    <unit id="5788471518451110162">
+      <segment state="initial">
+        <source>Complex target</source>
+        <target>Complexe termijn</target>
+      </segment>
+    </unit>
     <unit id="5789685393585856728">
       <segment state="initial">
         <source>Unverified contact email</source>
         <target>Niet-geverifieerd contactadres</target>
+      </segment>
+    </unit>
+    <unit id="579084822382819407">
+      <segment state="initial">
+        <source>Photo or video</source>
+        <target>Foto of video</target>
       </segment>
     </unit>
     <unit id="1509543645001749494">
@@ -3063,6 +3279,12 @@
       <segment state="initial">
         <source>Spots Created</source>
         <target>Gemaakte spots</target>
+      </segment>
+    </unit>
+    <unit id="1527271999950935147">
+      <segment state="initial">
+        <source>Assigned:</source>
+        <target>Toegewezen:</target>
       </segment>
     </unit>
     <unit id="1534029177398918729">
@@ -3113,6 +3335,18 @@
         <target>{VAR_PLURAL, plural, =1 {lid} other {leden}}</target>
       </segment>
     </unit>
+    <unit id="6008995610936337562">
+      <segment state="initial">
+        <source>What is this about?</source>
+        <target>Waar gaat dit over?</target>
+      </segment>
+    </unit>
+    <unit id="601278657052307519">
+      <segment state="initial">
+        <source>Spam or a malicious link</source>
+        <target>Spam of schadelijke link</target>
+      </segment>
+    </unit>
     <unit id="6020607686749008401">
       <segment state="initial">
         <source>Add verifying organization</source>
@@ -3143,6 +3377,12 @@
         <target>Community card approved</target>
       </segment>
     </unit>
+    <unit id="8407220471361845948">
+      <segment state="initial">
+        <source>Paste the PK Spot URL if you have it.</source>
+        <target>Plak de PK Spot-URL als je die hebt.</target>
+      </segment>
+    </unit>
     <unit id="8411563267246095898">
       <segment state="initial">
         <source> Some uploads could not be processed. </source>
@@ -3165,6 +3405,12 @@
       <segment state="initial">
         <source>Age-assurance rollback</source>
         <target>Intrekking van leeftijdsverificaties</target>
+      </segment>
+    </unit>
+    <unit id="8434728487464933227">
+      <segment state="initial">
+        <source>Policy basis:</source>
+        <target>Beleidsgrondslag:</target>
       </segment>
     </unit>
     <unit id="8436223332064456837">
@@ -3203,6 +3449,12 @@
         <target>Koppelen van Google Place mislukt</target>
       </segment>
     </unit>
+    <unit id="3261642323287960585">
+      <segment state="initial">
+        <source>Sexual content</source>
+        <target>Seksuele inhoud</target>
+      </segment>
+    </unit>
     <unit id="3268843240047650795">
       <segment state="initial">
         <source>Trailblazer</source>
@@ -3213,6 +3465,12 @@
       <segment state="final">
         <source>Loading event Spots…</source>
         <target>Event-Spots laden…</target>
+      </segment>
+    </unit>
+    <unit id="3270670971379803822">
+      <segment state="initial">
+        <source>Submit appeal</source>
+        <target>Beroep indienen</target>
       </segment>
     </unit>
     <unit id="3278358550418950949">
@@ -3311,6 +3569,12 @@
         <target>Lokale tijdzone ontbreekt</target>
       </segment>
     </unit>
+    <unit id="8372969166925541710">
+      <segment state="initial">
+        <source>Safety and complaints</source>
+        <target>Veiligheid en klachten</target>
+      </segment>
+    </unit>
     <unit id="8374358620159565609">
       <segment state="initial">
         <source>Past</source>
@@ -3359,6 +3623,12 @@
         <target>Stream met media-uploads</target>
       </segment>
     </unit>
+    <unit id="8618596366627948099">
+      <segment state="initial">
+        <source>Total cases loaded</source>
+        <target>Totaal geladen zaken</target>
+      </segment>
+    </unit>
     <unit id="8637857575623979078">
       <segment state="initial">
         <source> No edits yet for this spot. </source>
@@ -3369,6 +3639,12 @@
       <segment state="initial">
         <source>Profile access saved</source>
         <target>Profile access saved</target>
+      </segment>
+    </unit>
+    <unit id="8650499415827640724">
+      <segment state="initial">
+        <source>Type</source>
+        <target>Soort</target>
       </segment>
     </unit>
     <unit id="8656126574213649581">
@@ -3417,6 +3693,18 @@
         <target>Weerswaarschuwingen</target>
       </segment>
     </unit>
+    <unit id="8687501273434674899">
+      <segment state="initial">
+        <source>Target path:</source>
+        <target>Doelpad:</target>
+      </segment>
+    </unit>
+    <unit id="8691920320483720007">
+      <segment state="initial">
+        <source>Received</source>
+        <target>Ontvangen</target>
+      </segment>
+    </unit>
     <unit id="8693603235657020323">
       <segment state="initial">
         <source>Other</source>
@@ -3435,10 +3723,28 @@
         <target>Van welke spot is dit een duplicaat?</target>
       </segment>
     </unit>
+    <unit id="4966788129751099816">
+      <segment state="initial">
+        <source>Aim to resolve within 7 days</source>
+        <target>Streven: binnen 7 dagen oplossen</target>
+      </segment>
+    </unit>
     <unit id="2002398665048764218">
       <segment state="initial">
         <source>Schedule change</source>
         <target>Planningswijziging</target>
+      </segment>
+    </unit>
+    <unit id="2005372051213886069">
+      <segment state="initial">
+        <source>Your update was added.</source>
+        <target>Je update is toegevoegd.</target>
+      </segment>
+    </unit>
+    <unit id="2005374949551780500">
+      <segment state="initial">
+        <source>Safety cases</source>
+        <target>Veiligheidszaken</target>
       </segment>
     </unit>
     <unit id="2014228771300600511">
@@ -3505,6 +3811,12 @@
       <segment state="initial">
         <source>Pending</source>
         <target>In behandeling</target>
+      </segment>
+    </unit>
+    <unit id="2306159838484573008">
+      <segment state="initial">
+        <source>Triaged</source>
+        <target>Getrieerd</target>
       </segment>
     </unit>
     <unit id="2312227289513761859">
@@ -5021,6 +5333,12 @@
         <target>Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot?.name }}"/>&apos; evalueren</target>
       </segment>
     </unit>
+    <unit id="9078294932661622756">
+      <segment state="initial">
+        <source>Tell us what happened</source>
+        <target>Vertel ons wat er is gebeurd</target>
+      </segment>
+    </unit>
     <unit id="9091381429305665620">
       <segment state="initial">
         <source>Helper</source>
@@ -5079,6 +5397,12 @@
       <segment state="initial">
         <source>Sign out of your account.</source>
         <target>Log uit bij je account.</target>
+      </segment>
+    </unit>
+    <unit id="9140895998943713645">
+      <segment state="initial">
+        <source>Age-assurance decision</source>
+        <target>Besluit over leeftijdscontrole</target>
       </segment>
     </unit>
     <unit id="9147694429145547851">
@@ -5186,6 +5510,12 @@
         <target> Gesteund door de <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">community</pc>. </target>
       </segment>
     </unit>
+    <unit id="934990675622429392">
+      <segment state="initial">
+        <source>Safety process or legal duty</source>
+        <target>Veiligheidsproces of wettelijke plicht</target>
+      </segment>
+    </unit>
     <unit id="940241108431922998">
       <segment state="initial">
         <source>Ordinary harm</source>
@@ -5198,6 +5528,12 @@
         <target>Dit e-mailadres is ongeldig!</target>
       </segment>
     </unit>
+    <unit id="962179517602562850">
+      <segment state="initial">
+        <source>Privacy or doxxing</source>
+        <target>Privacy of doxxing</target>
+      </segment>
+    </unit>
     <unit id="967806009511704497">
       <segment state="initial">
         <source>Incident runbook</source>
@@ -5208,6 +5544,12 @@
       <segment state="initial">
         <source>Not verified</source>
         <target>Niet geverifieerd</target>
+      </segment>
+    </unit>
+    <unit id="998453251097149857">
+      <segment state="initial">
+        <source>Decision recorded.</source>
+        <target>Besluit vastgelegd.</target>
       </segment>
     </unit>
     <unit id="6431756795596367554">
@@ -6118,6 +6460,12 @@
         <target>Evenement in </target>
       </segment>
     </unit>
+    <unit id="7667730993573976181">
+      <segment state="initial">
+        <source>Record this decision and apply its moderation action?</source>
+        <target>Dit besluit vastleggen en de moderatiemaatregel toepassen?</target>
+      </segment>
+    </unit>
     <unit id="7672282077901429954">
       <segment state="initial">
         <source>Error, there was a problem signing out!</source>
@@ -6128,6 +6476,12 @@
       <segment state="initial">
         <source>This link is not recognized. Please check your email and try again.</source>
         <target>Deze link wordt niet herkend. Controleer je e-mail en probeer het opnieuw.</target>
+      </segment>
+    </unit>
+    <unit id="7677639303795669921">
+      <segment state="initial">
+        <source>Past target date</source>
+        <target>Streefdatum verstreken</target>
       </segment>
     </unit>
     <unit id="7679393301604850402">
@@ -9054,6 +9408,18 @@
         <target>Meldingsvoorkeur voor evenement</target>
       </segment>
     </unit>
+    <unit id="4302668244346549580">
+      <segment state="initial">
+        <source>Email for updates (optional when signed in)</source>
+        <target>E-mail voor updates (optioneel wanneer aangemeld)</target>
+      </segment>
+    </unit>
+    <unit id="4314270304685333896">
+      <segment state="initial">
+        <source>Update and correspond</source>
+        <target>Bijwerken en corresponderen</target>
+      </segment>
+    </unit>
     <unit id="4320994550381609480">
       <segment state="initial">
         <source>Pioneer</source>
@@ -9070,6 +9436,12 @@
       <segment state="initial">
         <source>Copy</source>
         <target>Kopiëren</target>
+      </segment>
+    </unit>
+    <unit id="4324194888906470452">
+      <segment state="initial">
+        <source>Your case was received</source>
+        <target>Je zaak is ontvangen</target>
       </segment>
     </unit>
     <unit id="4344855956830123370">
@@ -9150,6 +9522,18 @@
         <target>Bijsnijdgebied van afbeelding</target>
       </segment>
     </unit>
+    <unit id="28390273827708830">
+      <segment state="initial">
+        <source>Aim to resolve within 14 days</source>
+        <target>Streven: binnen 14 dagen oplossen</target>
+      </segment>
+    </unit>
+    <unit id="2840924924493795948">
+      <segment state="initial">
+        <source>Complex cases</source>
+        <target>Complexe zaken</target>
+      </segment>
+    </unit>
     <unit id="2846098641732030728">
       <segment state="initial">
         <source>Save favorites and come back to the spots you want to session later.</source>
@@ -9174,6 +9558,12 @@
         <target>Terug naar alle evenementen</target>
       </segment>
     </unit>
+    <unit id="2870539756629075514">
+      <segment state="translated">
+        <source>Message recipient</source>
+        <target>Ontvanger van het bericht</target>
+      </segment>
+    </unit>
     <unit id="2874252575916172948">
       <segment state="initial">
         <source> Delete my account </source>
@@ -9190,6 +9580,12 @@
       <segment state="initial">
         <source>Report submitted. Thanks for helping keep spots accurate.</source>
         <target>Melding verzonden. Bedankt dat je helpt Spots accuraat te houden.</target>
+      </segment>
+    </unit>
+    <unit id="7821270560154398021">
+      <segment state="initial">
+        <source> Reports, complaints, appeals, deadlines, correspondence, and decisions in one private queue. </source>
+        <target>Meldingen, klachten, beroepen, termijnen, correspondentie en besluiten in één privéwachtrij.</target>
       </segment>
     </unit>
     <unit id="78295015887661250">
@@ -9210,6 +9606,12 @@
         <target>Evenementkop weergeven</target>
       </segment>
     </unit>
+    <unit id="7858093315829323396">
+      <segment state="initial">
+        <source>Age assurance</source>
+        <target>Leeftijdscontrole</target>
+      </segment>
+    </unit>
     <unit id="7860386256947196622">
       <segment state="translated">
         <source>Review events</source>
@@ -9226,6 +9628,18 @@
       <segment state="initial">
         <source>Ownership claim approved.</source>
         <target>Ownership claim approved.</target>
+      </segment>
+    </unit>
+    <unit id="7869347974693941290">
+      <segment state="initial">
+        <source>Could not update this case.</source>
+        <target>Deze zaak kon niet worden bijgewerkt.</target>
+      </segment>
+    </unit>
+    <unit id="7880605355244228662">
+      <segment state="initial">
+        <source>Media consent</source>
+        <target>Toestemming voor media</target>
       </segment>
     </unit>
     <unit id="7881945331295450373">
@@ -9264,6 +9678,12 @@
         <target>Contact opnemen</target>
       </segment>
     </unit>
+    <unit id="7923103708576442172">
+      <segment state="initial">
+        <source>Review safety case</source>
+        <target>Veiligheidszaak beoordelen</target>
+      </segment>
+    </unit>
     <unit id="7941428823403788384">
       <segment state="initial">
         <source> Create </source>
@@ -9274,6 +9694,12 @@
       <segment state="initial">
         <source>Remove person</source>
         <target>Remove person</target>
+      </segment>
+    </unit>
+    <unit id="7963302127028522332">
+      <segment state="initial">
+        <source>Add information</source>
+        <target>Informatie toevoegen</target>
       </segment>
     </unit>
     <unit id="5245523669438174557">
@@ -9374,6 +9800,12 @@
       <segment state="initial">
         <source> Have a question, found a bug, or want to request a feature? We&apos;d love to hear from you! </source>
         <target> Heb je een vraag, een bug gevonden of wil je een functie aanvragen? We horen graag van je! </target>
+      </segment>
+    </unit>
+    <unit id="7002200834685763491">
+      <segment state="initial">
+        <source>Complex-case target</source>
+        <target>Termijn voor complexe zaken</target>
       </segment>
     </unit>
     <unit id="7005135725147250005">
@@ -9864,6 +10296,12 @@
         <target> Tijdelijk gesloten </target>
       </segment>
     </unit>
+    <unit id="8712629536205619877">
+      <segment state="initial">
+        <source>Received:</source>
+        <target>Ontvangen:</target>
+      </segment>
+    </unit>
     <unit id="8719394803198399227">
       <segment state="initial">
         <source>Decision failed.</source>
@@ -9952,6 +10390,12 @@
       <segment state="initial">
         <source>Water feature</source>
         <target>Waterelement</target>
+      </segment>
+    </unit>
+    <unit id="5642491821287020222">
+      <segment state="initial">
+        <source>Could not restore the held state.</source>
+        <target>De vastgehouden status kon niet worden hersteld.</target>
       </segment>
     </unit>
     <unit id="5646377711168880426">
@@ -10056,10 +10500,22 @@
         <target> Sla de spot eerst op om afbeeldingen toe te voegen. </target>
       </segment>
     </unit>
+    <unit id="483345618561474579">
+      <segment state="initial">
+        <source>Reason for appeal</source>
+        <target>Reden voor beroep</target>
+      </segment>
+    </unit>
     <unit id="4854396465510517671">
       <segment state="initial">
         <source>Target</source>
         <target>Doel</target>
+      </segment>
+    </unit>
+    <unit id="4856886645538428653">
+      <segment state="initial">
+        <source>Enter a valid email address or leave it blank.</source>
+        <target>Voer een geldig e-mailadres in of laat het veld leeg.</target>
       </segment>
     </unit>
     <unit id="profile.actions.unblock">
@@ -10098,6 +10554,18 @@
         <target>Planning bijgewerkt</target>
       </segment>
     </unit>
+    <unit id="4892019229298361238">
+      <segment state="initial">
+        <source>Safety reports, complaints, and appeals</source>
+        <target>Veiligheidsmeldingen, klachten en beroepen</target>
+      </segment>
+    </unit>
+    <unit id="4897177574141849318">
+      <segment state="initial">
+        <source>Unsafe place or access information</source>
+        <target>Onveilige plaats of toegangsinformatie</target>
+      </segment>
+    </unit>
     <unit id="7053728652419731548">
       <segment state="initial">
         <source>Session replay</source>
@@ -10134,6 +10602,12 @@
         <target>De volwassenstatus voor <ph id="0" equiv="PH" disp="previewCount"/> overeenkomende account(s) intrekken? Hun openbare profielen en zichtbaarheid in zoekresultaten worden uitgeschakeld.</target>
       </segment>
     </unit>
+    <unit id="2409973243657175474">
+      <segment state="initial">
+        <source>Send update</source>
+        <target>Update verzenden</target>
+      </segment>
+    </unit>
     <unit id="2417459620118538314">
       <segment state="initial">
         <source>Could not update event notifications. Please try again.</source>
@@ -10162,6 +10636,12 @@
       <segment state="initial">
         <source>Community merge queued</source>
         <target>Community merge queued</target>
+      </segment>
+    </unit>
+    <unit id="2480962193625361096">
+      <segment state="initial">
+        <source>Target:</source>
+        <target>Doel:</target>
       </segment>
     </unit>
     <unit id="2494595604764120182">
@@ -10252,6 +10732,12 @@
       <segment state="initial">
         <source>Independently checked 18+ eligibility is available.</source>
         <target>Er is een onafhankelijk gecontroleerde geschiktheid van 18 jaar of ouder beschikbaar.</target>
+      </segment>
+    </unit>
+    <unit id="2112768397949905814">
+      <segment state="initial">
+        <source>Enter a valid email address.</source>
+        <target>Voer een geldig e-mailadres in.</target>
       </segment>
     </unit>
     <unit id="2114926278043068343">
@@ -10381,6 +10867,12 @@
         <target>Niet beheerd</target>
       </segment>
     </unit>
+    <unit id="3808291968368675401">
+      <segment state="initial">
+        <source>Add a short summary.</source>
+        <target>Voeg een korte samenvatting toe.</target>
+      </segment>
+    </unit>
     <unit id="3812784998942541864">
       <segment state="initial">
         <source>Network fingerprint</source>
@@ -10429,6 +10921,12 @@
         <target>Niet beschikbaar</target>
       </segment>
     </unit>
+    <unit id="3845136227654022046">
+      <segment state="initial">
+        <source>Harassment or hate</source>
+        <target>Intimidatie of haat</target>
+      </segment>
+    </unit>
     <unit id="3849719587486813146">
       <segment state="initial">
         <source> PK Spot is a free, privacy-first, community-owned map for parkour. The project is built entirely by volunteers to help athletes find spots, connect, and share their local scene. </source>
@@ -10451,6 +10949,12 @@
       <segment state="initial">
         <source>Spot deleted</source>
         <target>Spot verwijderd</target>
+      </segment>
+    </unit>
+    <unit id="3888833967297756994">
+      <segment state="initial">
+        <source>Spot preview</source>
+        <target>Spotvoorbeeld</target>
       </segment>
     </unit>
     <unit id="389079921595754695">
@@ -10480,6 +10984,12 @@
         <target>Herstellen</target>
       </segment>
     </unit>
+    <unit id="7809374858674328383">
+      <segment state="initial">
+        <source>Decision</source>
+        <target>Besluit</target>
+      </segment>
+    </unit>
     <unit id="7819314041543176992">
       <segment state="initial">
         <source>Close</source>
@@ -10502,6 +11012,12 @@
       <segment state="initial">
         <source> Don&apos;t just look. <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-secondary marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">Find.</pc></source>
         <target> Kijk niet alleen. <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-secondary marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">Vind.</pc></target>
+      </segment>
+    </unit>
+    <unit id="4114528897382605548">
+      <segment state="initial">
+        <source>Restore held state</source>
+        <target>Vastgehouden status herstellen</target>
       </segment>
     </unit>
     <unit id="4115668858470490289">
@@ -10540,6 +11056,12 @@
         <target>Gevoelige media verborgen</target>
       </segment>
     </unit>
+    <unit id="370092533680813589">
+      <segment state="initial">
+        <source>Standard cases</source>
+        <target>Standaardzaken</target>
+      </segment>
+    </unit>
     <unit id="370198281195202249">
       <segment state="initial">
         <source> Use the NCA CSEA reporting portal only for reportable CSEA. Continue an existing NCMEC channel where applicable and do not create a duplicate referral. For current or imminent danger, follow the emergency instructions in the NCA guidance. </source>
@@ -10556,6 +11078,12 @@
       <segment state="initial">
         <source>External response guidance</source>
         <target>Richtlijnen voor externe respons</target>
+      </segment>
+    </unit>
+    <unit id="3712031637505692458">
+      <segment state="initial">
+        <source>Target response</source>
+        <target>Reactiedoel</target>
       </segment>
     </unit>
     <unit id="3714343477148346459">
@@ -10600,6 +11128,12 @@
         <target>Evenement laden</target>
       </segment>
     </unit>
+    <unit id="831314703026690842">
+      <segment state="initial">
+        <source>Outcome</source>
+        <target>Uitkomst</target>
+      </segment>
+    </unit>
     <unit id="8323953180652912227">
       <segment state="initial">
         <source>Failed to remove verified organization</source>
@@ -10616,6 +11150,12 @@
       <segment state="initial">
         <source>Account privacy</source>
         <target>Account privacy</target>
+      </segment>
+    </unit>
+    <unit id="8327313422967228918">
+      <segment state="initial">
+        <source>Restore the content or account state held by this decision?</source>
+        <target>De door dit besluit vastgehouden inhoud of accountstatus herstellen?</target>
       </segment>
     </unit>
     <unit id="8333618256474808727">
@@ -10666,10 +11206,22 @@
         <target> Werk de stappen op volgorde af. Bekijk of stuur media met een beperkte overeenkomst niet door. </target>
       </segment>
     </unit>
+    <unit id="263768607788268714">
+      <segment state="initial">
+        <source>All open cases</source>
+        <target>Alle openstaande zaken</target>
+      </segment>
+    </unit>
     <unit id="2638434417265535082">
       <segment state="initial">
         <source>Media stream</source>
         <target>Mediastream</target>
+      </segment>
+    </unit>
+    <unit id="2648624934226238207">
+      <segment state="initial">
+        <source>Item link, path, or identifier (optional)</source>
+        <target>Link, pad of identificatie van item (optioneel)</target>
       </segment>
     </unit>
     <unit id="2662644497259948010">
@@ -10789,10 +11341,22 @@
         <target> Gebouwd en onderhouden door vrijwilligers uit de parkourcommunity. </target>
       </segment>
     </unit>
+    <unit id="8018133170713747016">
+      <segment state="initial">
+        <source>Policy basis (optional)</source>
+        <target>Beleidsgrondslag (optioneel)</target>
+      </segment>
+    </unit>
     <unit id="8018379614687762047">
       <segment state="initial">
         <source>Email changed successfully. Please verify your new email.</source>
         <target>E-mail succesvol gewijzigd. Verifieer je nieuwe e-mail.</target>
+      </segment>
+    </unit>
+    <unit id="8027866377173897723">
+      <segment state="initial">
+        <source>Case timeline</source>
+        <target>Tijdlijn van de zaak</target>
       </segment>
     </unit>
     <unit id="8036493504964207254">
@@ -10897,6 +11461,12 @@
         <target> Voeg een korte bio toe, zodat je openbare profiel laat zien wie je bent. </target>
       </segment>
     </unit>
+    <unit id="6480397588679623769">
+      <segment state="initial">
+        <source>Provide at least 10 characters and no more than 4000.</source>
+        <target>Gebruik minimaal 10 en maximaal 4000 tekens.</target>
+      </segment>
+    </unit>
     <unit id="2969365666988952758">
       <segment state="initial">
         <source>Recovering Email</source>
@@ -10907,6 +11477,12 @@
       <segment state="initial">
         <source>Edit Profile</source>
         <target>Profiel bewerken</target>
+      </segment>
+    </unit>
+    <unit id="2988814765436950391">
+      <segment state="initial">
+        <source>Another service complaint</source>
+        <target>Andere klacht over de dienst</target>
       </segment>
     </unit>
     <unit id="2996324673054626783">
@@ -11039,10 +11615,22 @@
         <target>Beschrijving</target>
       </segment>
     </unit>
+    <unit id="1584093308232863634">
+      <segment state="initial">
+        <source>Submit securely</source>
+        <target>Veilig indienen</target>
+      </segment>
+    </unit>
     <unit id="158781460362336598">
       <segment state="initial">
         <source>You were successfully signed out!</source>
         <target>Je bent succesvol uitgelogd!</target>
+      </segment>
+    </unit>
+    <unit id="1589136879717771714">
+      <segment state="initial">
+        <source>Automated media decision</source>
+        <target>Geautomatiseerd mediabesluit</target>
       </segment>
     </unit>
     <unit id="1593391712749316624">
@@ -11153,6 +11741,12 @@
       <segment state="initial">
         <source>Current password</source>
         <target>Huidig wachtwoord</target>
+      </segment>
+    </unit>
+    <unit id="5353526426392827566">
+      <segment state="initial">
+        <source> Report an incorrect age-assurance decision </source>
+        <target>Onjuist besluit over leeftijdscontrole melden</target>
       </segment>
     </unit>
     <unit id="5354481455147566182">
@@ -11357,6 +11951,12 @@
         <target> Choose how follows work and who should see expanded profile details as profile sections grow. </target>
       </segment>
     </unit>
+    <unit id="7531672117696326956">
+      <segment state="initial">
+        <source> Explain what you believe was wrong or what information was missed. Appeals are linked to the original case and should be reviewed independently where possible. </source>
+        <target>Leg uit wat volgens jou onjuist was of welke informatie is gemist. Beroepen worden aan de oorspronkelijke zaak gekoppeld en moeten waar mogelijk onafhankelijk worden beoordeeld.</target>
+      </segment>
+    </unit>
     <unit id="7536618650694716867">
       <segment state="initial">
         <source> Find answers to common questions or reach out to us directly. </source>
@@ -11453,6 +12053,12 @@
         <target>Moderatie</target>
       </segment>
     </unit>
+    <unit id="6520949937421368958">
+      <segment state="initial">
+        <source>App Check:</source>
+        <target>App-verificatie:</target>
+      </segment>
+    </unit>
     <unit id="6529676412063915412">
       <segment state="initial">
         <source> Follow requests </source>
@@ -11481,6 +12087,12 @@
       <segment state="initial">
         <source>Media Added</source>
         <target>Media toegevoegd</target>
+      </segment>
+    </unit>
+    <unit id="6588106856001797923">
+      <segment state="initial">
+        <source>No cases match this filter.</source>
+        <target>Geen zaken voldoen aan dit filter.</target>
       </segment>
     </unit>
     <unit id="6588223759870524689">
@@ -11609,6 +12221,12 @@
         <target>Kern</target>
       </segment>
     </unit>
+    <unit id="3989796638927342332">
+      <segment state="initial">
+        <source>Make a complaint</source>
+        <target>Klacht indienen</target>
+      </segment>
+    </unit>
     <unit id="3991755043359697718">
       <segment state="initial">
         <source>Remove selected file</source>
@@ -11669,6 +12287,12 @@
         <target>Account komt niet overeen. Log in op het juiste account.</target>
       </segment>
     </unit>
+    <unit id="3447183067239293551">
+      <segment state="initial">
+        <source>Under review</source>
+        <target>In beoordeling</target>
+      </segment>
+    </unit>
     <unit id="3456162150342793287">
       <segment state="initial">
         <source> We believe the map belongs to the athletes, not a corporation. PK Spot is open source, privacy-first, and community owned. </source>
@@ -11685,6 +12309,18 @@
       <segment state="initial">
         <source>Filter by event category</source>
         <target>Filteren op evenementcategorie</target>
+      </segment>
+    </unit>
+    <unit id="3480235560414212524">
+      <segment state="initial">
+        <source> Reports are private. We keep the information needed to investigate, prevent abuse, explain decisions, and handle an appeal. Network and device security metadata is removed after 90 days. </source>
+        <target>Meldingen zijn privé. We bewaren de informatie die nodig is om onderzoek te doen, misbruik te voorkomen, besluiten toe te lichten en een beroep af te handelen. Beveiligingsmetadata van netwerk en apparaat worden na 90 dagen verwijderd.</target>
+      </segment>
+    </unit>
+    <unit id="3482739346708355755">
+      <segment state="initial">
+        <source>Authenticated:</source>
+        <target>Geverifieerd:</target>
       </segment>
     </unit>
     <unit id="3483311644139102304">
@@ -11705,6 +12341,12 @@
         <target>Mutuals</target>
       </segment>
     </unit>
+    <unit id="3493029941798879288">
+      <segment state="initial">
+        <source>Case status</source>
+        <target>Zaakstatus</target>
+      </segment>
+    </unit>
     <unit id="3493126540529865490">
       <notes>
         <note category="description">submitting label</note>
@@ -11712,6 +12354,12 @@
       <segment state="initial">
         <source>Submitting...</source>
         <target>Verzenden...</target>
+      </segment>
+    </unit>
+    <unit id="3496653775940285146">
+      <segment state="initial">
+        <source>Use 5–140 characters.</source>
+        <target>Gebruik 5–140 tekens.</target>
       </segment>
     </unit>
     <unit id="5101446301405691745">
@@ -11850,6 +12498,12 @@
         <target> Organisatie opslaan </target>
       </segment>
     </unit>
+    <unit id="3908211343911450350">
+      <segment state="initial">
+        <source> Contact local emergency services first. Then send us the report so we can preserve evidence and restrict access where appropriate. </source>
+        <target>Neem eerst contact op met de lokale hulpdiensten. Stuur ons daarna de melding, zodat we bewijs kunnen bewaren en waar nodig de toegang kunnen beperken.</target>
+      </segment>
+    </unit>
     <unit id="3909136360386442402">
       <segment state="initial">
         <source>You have blocked this user</source>
@@ -11878,6 +12532,12 @@
       <segment state="initial">
         <source>Edit submitted for organization review</source>
         <target>Wijziging ingediend voor organisatiereview</target>
+      </segment>
+    </unit>
+    <unit id="2232032287329907617">
+      <segment state="initial">
+        <source>Private intake</source>
+        <target>Privé-intake</target>
       </segment>
     </unit>
     <unit id="223483240416376467">
@@ -11946,6 +12606,18 @@
         <target>Afwijzen</target>
       </segment>
     </unit>
+    <unit id="7384825592384718749">
+      <segment state="initial">
+        <source>Could not submit the appeal.</source>
+        <target>Het beroep kon niet worden ingediend.</target>
+      </segment>
+    </unit>
+    <unit id="7386252783526468675">
+      <segment state="initial">
+        <source>Decision action</source>
+        <target>Besluitmaatregel</target>
+      </segment>
+    </unit>
     <unit id="7403011272981064883">
       <segment state="initial">
         <source> No members yet. </source>
@@ -11976,6 +12648,12 @@
         <target>Beheer je <ph id="0" equiv="PH" disp="point.name"/> instellingen.</target>
       </segment>
     </unit>
+    <unit id="5401396861408632139">
+      <segment state="initial">
+        <source>Immediate risk</source>
+        <target>Direct risico</target>
+      </segment>
+    </unit>
     <unit id="5411574545284988510">
       <segment state="initial">
         <source>Verifying Email</source>
@@ -11986,6 +12664,12 @@
       <segment state="initial">
         <source>Go to your location</source>
         <target>Ga naar je locatie</target>
+      </segment>
+    </unit>
+    <unit id="5430715841913413045">
+      <segment state="initial">
+        <source>Content or account decision</source>
+        <target>Besluit over inhoud of account</target>
       </segment>
     </unit>
     <unit id="5439680339974485805">
@@ -12066,10 +12750,22 @@
         <target> <ph id="0" equiv="ICU" disp="{invalidItemCount, plural, =1 {One published event has invalid discovery data and was not shown.} other {{{invalidItemCount}} published events have invalid discovery data and were not shown.} }" subFlows="3991033213392190792"/> </target>
       </segment>
     </unit>
+    <unit id="8875159446674823169">
+      <segment state="initial">
+        <source>All cases</source>
+        <target>Alle zaken</target>
+      </segment>
+    </unit>
     <unit id="8876716314997684812">
       <segment state="initial">
         <source>Event management</source>
         <target>Evenement beheren</target>
+      </segment>
+    </unit>
+    <unit id="8879720979364981326">
+      <segment state="initial">
+        <source>Record and apply decision</source>
+        <target>Besluit vastleggen en toepassen</target>
       </segment>
     </unit>
     <unit id="8882370377359593676">
@@ -12144,6 +12840,12 @@
         <target> Illegale inhoud </target>
       </segment>
     </unit>
+    <unit id="5995912307085156285">
+      <segment state="initial">
+        <source>Potentially illegal content</source>
+        <target>Mogelijk illegale inhoud</target>
+      </segment>
+    </unit>
     <unit id="5996977642855652872">
       <segment state="initial">
         <source>Please select the reason for this report:</source>
@@ -12178,6 +12880,12 @@
       <segment state="initial">
         <source>Share media</source>
         <target>Media delen</target>
+      </segment>
+    </unit>
+    <unit id="8520138691875188234">
+      <segment state="initial">
+        <source> Guests receive a one-time verification link. Your email and identity are visible only to authorised moderators. </source>
+        <target>Gasten ontvangen een eenmalige verificatielink. Je e-mail en identiteit zijn alleen zichtbaar voor bevoegde moderators.</target>
       </segment>
     </unit>
     <unit id="8525213662266893834">
@@ -12590,6 +13298,12 @@
         <target>Deze upload is gemarkeerd of de automatische scan is mislukt en kan schokkend zijn. Tonen voor handmatige moderatie?</target>
       </segment>
     </unit>
+    <unit id="7163472660486177947">
+      <segment state="initial">
+        <source>Could not add your update.</source>
+        <target>Je update kon niet worden toegevoegd.</target>
+      </segment>
+    </unit>
     <unit id="7164688894418358201">
       <segment state="initial">
         <source>What PK Spot receives</source>
@@ -12606,6 +13320,12 @@
       <segment state="initial">
         <source>Error uploading the profile picture.</source>
         <target>Fout bij het uploaden van de profielfoto.</target>
+      </segment>
+    </unit>
+    <unit id="7183346391731740218">
+      <segment state="initial">
+        <source>Child safety</source>
+        <target>Kinderveiligheid</target>
       </segment>
     </unit>
     <unit id="7193934719093844817">
@@ -12630,6 +13350,18 @@
       <segment state="initial">
         <source>Show more</source>
         <target>Meer weergeven</target>
+      </segment>
+    </unit>
+    <unit id="721979004226425951">
+      <segment state="initial">
+        <source>How a report was handled</source>
+        <target>Hoe een melding is behandeld</target>
+      </segment>
+    </unit>
+    <unit id="7221309413136584570">
+      <segment state="initial">
+        <source>Internal note (optional)</source>
+        <target>Interne notitie (optioneel)</target>
       </segment>
     </unit>
     <unit id="7222489710265178271">
@@ -12836,6 +13568,12 @@
         <target> Check-ins en updates van organisaties laten zien waar parkour echt gebeurt. De kaart blijft actueel omdat de community haar actueel houdt. </target>
       </segment>
     </unit>
+    <unit id="6230817879161037769">
+      <segment state="initial">
+        <source>Awaiting information</source>
+        <target>Wachten op informatie</target>
+      </segment>
+    </unit>
     <unit id="6234372277464900526">
       <segment state="initial">
         <source>Promoted event</source>
@@ -12852,6 +13590,12 @@
       <segment state="initial">
         <source>None</source>
         <target>Geen</target>
+      </segment>
+    </unit>
+    <unit id="6261837376343461951">
+      <segment state="initial">
+        <source>Self-harm or suicide</source>
+        <target>Zelfbeschadiging of zelfdoding</target>
       </segment>
     </unit>
     <unit id="6266780676699111627">
@@ -12890,10 +13634,22 @@
         <target> Alle challenges van <ph id="0" equiv="INTERPOLATION" disp="{{ selectedSpot()!.name() }}"/> </target>
       </segment>
     </unit>
+    <unit id="4038016446143404869">
+      <segment state="initial">
+        <source>Target response:</source>
+        <target>Reactiedoel:</target>
+      </segment>
+    </unit>
     <unit id="4043049091728011235">
       <segment state="initial">
         <source>Cancelled</source>
         <target>Geannuleerd</target>
+      </segment>
+    </unit>
+    <unit id="4044515139696080108">
+      <segment state="translated">
+        <source>Affected account holder</source>
+        <target>Betrokken accounthouder</target>
       </segment>
     </unit>
     <unit id="4046179348234171126">
@@ -12972,6 +13728,18 @@
       <segment state="initial">
         <source>Editor</source>
         <target>Bewerker</target>
+      </segment>
+    </unit>
+    <unit id="3744069822390240057">
+      <segment state="initial">
+        <source> Use this private channel to report a safety concern, complain about PK Spot, or challenge how a previous report was handled. You do not need an account. </source>
+        <target>Gebruik dit privékanaal om een veiligheidsprobleem te melden, een klacht over PK Spot in te dienen of de behandeling van een eerdere melding aan te vechten. Je hebt geen account nodig.</target>
+      </segment>
+    </unit>
+    <unit id="3747597665217141319">
+      <segment state="initial">
+        <source>Another safety concern</source>
+        <target>Ander veiligheidsprobleem</target>
       </segment>
     </unit>
     <unit id="3750896546807006672">
@@ -13166,6 +13934,12 @@
         <target>Beoordeling in behandeling</target>
       </segment>
     </unit>
+    <unit id="1629110082218932522">
+      <segment state="initial">
+        <source>Short summary</source>
+        <target>Korte samenvatting</target>
+      </segment>
+    </unit>
     <unit id="1632949913064020849">
       <segment state="initial">
         <source>Dismissed</source>
@@ -13304,6 +14078,12 @@
         <target> Dit evenement is niet openbaar. Alleen beheerders kunnen het bekijken. </target>
       </segment>
     </unit>
+    <unit id="2712309340716220855">
+      <segment state="initial">
+        <source> Keep the reference above. If you submitted as a guest, use the private verification link sent to your email to view updates or add information. </source>
+        <target>Bewaar de bovenstaande referentie. Als je als gast hebt ingediend, gebruik je de privé-verificatielink in je e-mail om updates te bekijken of informatie toe te voegen.</target>
+      </segment>
+    </unit>
     <unit id="2715740819906435675">
       <segment state="initial">
         <source> Media is processing and will appear here when it is ready. </source>
@@ -13352,6 +14132,12 @@
         <target>Volwassenstatus ingetrokken voor <ph id="0" equiv="PH" disp="processed"/> account(s)</target>
       </segment>
     </unit>
+    <unit id="4666565275327863925">
+      <segment state="initial">
+        <source>Message to the reviewer</source>
+        <target>Bericht aan de beoordelaar</target>
+      </segment>
+    </unit>
     <unit id="4667715772382848347">
       <segment state="initial">
         <source>Profile not found</source>
@@ -13364,6 +14150,12 @@
         <target> Voeg alleen een e-mailadres toe als je wilt dat beheerders contact met je opnemen over de melding. Het wordt alleen geverifieerd als je bent aangemeld. </target>
       </segment>
     </unit>
+    <unit id="3026495784849747398">
+      <segment state="initial">
+        <source>Record decision</source>
+        <target>Besluit vastleggen</target>
+      </segment>
+    </unit>
     <unit id="3031673576218082316">
       <segment state="initial">
         <source>The selected file was too big. It must be smaller than <ph id="0" equiv="PH" disp="humanFileSize( this.maximumSizeInBytes(), )"/>.</source>
@@ -13374,6 +14166,12 @@
       <segment state="initial">
         <source> Automated scanning requires a manual check. </source>
         <target> De automatische scan vereist een handmatige controle. </target>
+      </segment>
+    </unit>
+    <unit id="3056581983954040276">
+      <segment state="initial">
+        <source> Use the private safety channel for content or account reports, complaints about PK Spot, and appeals against a decision. You do not need an account. </source>
+        <target>Gebruik het privé-veiligheidskanaal voor meldingen over inhoud of accounts, klachten over PK Spot en beroep tegen een besluit. Je hebt geen account nodig.</target>
       </segment>
     </unit>
     <unit id="3067846330176969856">
@@ -13398,6 +14196,18 @@
       <segment state="initial">
         <source>Choose organization</source>
         <target>Organisatie kiezen</target>
+      </segment>
+    </unit>
+    <unit id="2075947254275135132">
+      <segment state="initial">
+        <source>Problem making a report</source>
+        <target>Probleem bij het indienen van een melding</target>
+      </segment>
+    </unit>
+    <unit id="2077570493331103831">
+      <segment state="initial">
+        <source>Triaged as soon as possible</source>
+        <target>Zo snel mogelijk getrieerd</target>
       </segment>
     </unit>
     <unit id="2081295007072116210">
@@ -13440,6 +14250,12 @@
       <segment state="initial">
         <source> Everything on this page is public. Do not add your address, school, private training spots, phone number, or anything that shows where you usually are. </source>
         <target> Alles op deze pagina is openbaar. Voeg geen adres, school, privétrainingsspots, telefoonnummer of iets toe dat laat zien waar je meestal bent. </target>
+      </segment>
+    </unit>
+    <unit id="2734022681675842051">
+      <segment state="initial">
+        <source>Priority</source>
+        <target>Prioriteit</target>
       </segment>
     </unit>
     <unit id="2735597846335347226">

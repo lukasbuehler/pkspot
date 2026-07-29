@@ -122,6 +122,30 @@ export {
   cleanupMediaReportSubmissionMetadata,
   submitMediaReport,
 } from "./mediaReportSubmissionFunctions";
+export {
+  addSafetyCaseMessage,
+  appealSafetyCaseDecision,
+  cleanupSafetyCaseSecurityMetadata,
+  exchangeSafetyCaseAccessLink,
+  getSafetyCaseView,
+  submitSafetyCase,
+} from "./safetyCaseSubmissionFunctions";
+export {
+  decideSafetyCase,
+  getAdminSafetyCase,
+  listSafetyCases,
+  restoreSafetyCaseDecision,
+  updateSafetyCase,
+} from "./safetyCaseAdminFunctions";
+export {
+  aggregateSafetyCaseMetrics,
+  backfillSafetyCases,
+  onLegacyMediaReportSafetyCaseCreate,
+  onModerationActionSafetyCaseCreate,
+  onRootReportSafetyCaseCreate,
+  onSpotReportSafetyCaseCreate,
+  onUserReportSafetyCaseCreate,
+} from "./safetyCaseProjectionFunctions";
 
 // contact message functions
 export { onContactMessageCreate } from "./contactMessageFunctions";

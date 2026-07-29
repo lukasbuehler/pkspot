@@ -16,6 +16,21 @@ export interface UserSocialsSchema {
 export type UserAccountPrivacy = "public" | "private";
 export type UserProfileVisibility = "public" | "followers" | "mutuals";
 export type UserProfileAccessLevel = "limited" | "full";
+export type UserModerationStatus =
+  | "active"
+  | "profile_restricted"
+  | "contribution_restricted"
+  | "suspended";
+
+export interface UserModerationStateSchema {
+  status: UserModerationStatus;
+  case_id?: string;
+  applied_at?: Timestamp | Date;
+  applied_by?: {
+    uid: string;
+    display_name?: string;
+  };
+}
 
 export type AgeParticipationState =
   | "allowed"
@@ -146,6 +161,8 @@ export interface UserSchema {
   home_city?: string;
   socials?: UserSocialsSchema;
   age_policy?: UserAgePolicySchema;
+  /** Server-owned moderation state; clients cannot set or clear it. */
+  moderation_state?: UserModerationStateSchema;
   account_privacy?: UserAccountPrivacy;
   profile_visibility?: UserProfileVisibility;
   /**

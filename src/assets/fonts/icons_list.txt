@@ -238,3 +238,8 @@ crop
 undo
 hourglass_empty
 domain_verification
+privacy_tip
+mark_email_read
+emergency
+rate_review
+restore

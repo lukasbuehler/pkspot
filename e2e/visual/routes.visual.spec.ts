@@ -190,6 +190,19 @@ const routeVisualCases: RouteVisualCase[] = [
   },
   { name: "about", path: "/about", fullPage: true, maxDiffPixels: 2_000 },
   { name: "support", path: "/support", fullPage: true, maxDiffPixels: 2_000 },
+  {
+    name: "safety",
+    path: "/safety",
+    fullPage: true,
+    maxDiffPixels: 2_000,
+  },
+  {
+    name: "safety-mobile",
+    path: "/safety",
+    viewport: mobileViewport,
+    fullPage: true,
+    maxDiffPixels: 2_000,
+  },
   { name: "contact", path: "/contact", fullPage: true, maxDiffPixels: 1_000 },
   {
     name: "terms-of-service",

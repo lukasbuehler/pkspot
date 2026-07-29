@@ -1,0 +1,159 @@
+<main class="case-page">
+  <a matButton="text" routerLink="/safety">
+    <mat-icon>arrow_back</mat-icon>
+    <span i18n>Safety and complaints</span>
+  </a>
+
+  <header>
+    <span class="case-page__reference">{{ publicReference }}</span>
+    <h1 i18n>Case status</h1>
+  </header>
+
+  @if (loading()) {
+    <div class="case-page__center">
+      <mat-progress-spinner mode="indeterminate" diameter="36" />
+      <span i18n>Loading private case...</span>
+    </div>
+  } @else if (safetyCase(); as item) {
+    <section class="case-page__summary">
+      <div>
+        <span class="case-page__label" i18n>Status</span>
+        <strong>{{ item.status }}</strong>
+      </div>
+      <div>
+        <span class="case-page__label" i18n>Type</span>
+        <strong>{{ item.case_type }}</strong>
+      </div>
+      <div>
+        <span class="case-page__label" i18n>Target response</span>
+        <strong>{{ item.target_resolution_at | date: "mediumDate" }}</strong>
+      </div>
+      <div>
+        <span class="case-page__label" i18n>Complex-case target</span>
+        <strong>{{ item.complex_resolution_at | date: "mediumDate" }}</strong>
+      </div>
+    </section>
+
+    <mat-card class="case-page__detail">
+      <mat-card-header>
+        <mat-card-title>{{ item.summary }}</mat-card-title>
+        <mat-card-subtitle>
+          {{ item.category }} · {{ item.subject.type }}
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p>{{ item.description }}</p>
+      </mat-card-content>
+    </mat-card>
+
+    @if (item.decision; as decision) {
+      <section class="case-page__decision">
+        <mat-icon>gavel</mat-icon>
+        <div>
+          <span class="case-page__label" i18n>Decision</span>
+          <h2>{{ decision.outcome }}</h2>
+          <p>{{ decision.public_reason }}</p>
+          @if (decision.policy_basis) {
+            <p>
+              <strong i18n>Policy basis:</strong>
+              {{ decision.policy_basis }}
+            </p>
+          }
+          <small>{{ decision.decided_at | date: "medium" }}</small>
+        </div>
+      </section>
+    }
+
+    <section class="case-page__timeline">
+      <h2 i18n>Timeline</h2>
+      @for (event of item.events; track event.id) {
+        <article>
+          <span class="case-page__timeline-marker"></span>
+          <div>
+            <strong>{{ event.type }}</strong>
+            <time>{{ event.created_at | date: "medium" }}</time>
+            @if (event.message) {
+              <p>{{ event.message }}</p>
+            }
+          </div>
+        </article>
+      }
+    </section>
+
+    @if (item.status !== "closed") {
+      <form
+        class="case-page__message"
+        (submit)="addMessage(); $event.preventDefault()"
+      >
+        <h2 i18n>Add information</h2>
+        <mat-form-field appearance="outline">
+          <mat-label i18n>Message to the reviewer</mat-label>
+          <textarea
+            matInput
+            rows="4"
+            [formField]="messageForm.message"
+          ></textarea>
+        </mat-form-field>
+        <button matButton="filled" type="submit" [disabled]="sending()">
+          <span i18n>Send update</span>
+        </button>
+      </form>
+    }
+
+    @if (item.can_appeal) {
+      <form
+        class="case-page__appeal"
+        (submit)="submitAppeal(); $event.preventDefault()"
+      >
+        <h2 i18n>Appeal this decision</h2>
+        <p i18n>
+          Explain what you believe was wrong or what information was missed.
+          Appeals are linked to the original case and should be reviewed
+          independently where possible.
+        </p>
+        <mat-form-field appearance="outline">
+          <mat-label i18n>Reason for appeal</mat-label>
+          <textarea
+            matInput
+            rows="5"
+            [formField]="appealForm.reason"
+          ></textarea>
+        </mat-form-field>
+        <button matButton="outlined" type="submit" [disabled]="appealing()">
+          <mat-icon>rate_review</mat-icon>
+          <span i18n>Submit appeal</span>
+        </button>
+      </form>
+    }
+  } @else {
+    <section class="case-page__receipt">
+      <mat-icon>mark_email_read</mat-icon>
+      <div>
+        <h2 i18n>Your case was received</h2>
+        <p i18n>
+          Keep the reference above. If you submitted as a guest, use the private
+          verification link sent to your email to view updates or add
+          information.
+        </p>
+        @if (targetDate()) {
+          <p>
+            <strong i18n>Target response:</strong>
+            {{ targetDate() | date: "mediumDate" }}
+          </p>
+        }
+        @if (complexDate()) {
+          <p>
+            <strong i18n>Complex-case target:</strong>
+            {{ complexDate() | date: "mediumDate" }}
+          </p>
+        }
+        @if (!submission() && accessDenied()) {
+          <p i18n>
+            This case is private. Sign in with the account that submitted it or
+            open the latest secure email link.
+          </p>
+        }
+      </div>
+    </section>
+  }
+</main>

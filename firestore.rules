@@ -851,10 +851,16 @@ service cloud.firestore {
       return request.auth.uid != null
         && (
           !exists(/databases/$(database)/documents/users/$(request.auth.uid))
-          || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('age_policy', {}).get('participation_state', 'allowed') in [
-            'allowed',
-            'platform_signal_unavailable'
-          ]
+          || (
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('age_policy', {}).get('participation_state', 'allowed') in [
+              'allowed',
+              'platform_signal_unavailable'
+            ]
+            && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('moderation_state', {}).get('status', 'active') in [
+              'active',
+              'profile_restricted'
+            ]
+          )
         );
     }
 
@@ -1284,13 +1290,13 @@ service cloud.firestore {
         || (request.auth.uid != null && request.auth.uid == userId);
       // It is not allowed to update protected fields. These are handled by cloud functions.
       allow create: if request.auth.uid != null && request.auth.uid == userId
-         && !request.resource.data.keys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges', 'age_policy', 'profile_access'])
+         && !request.resource.data.keys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges', 'age_policy', 'profile_access', 'moderation_state'])
          && !('home_spots' in request.resource.data)
          && validUserSocials()
          && validUserProfileAccess()
          && noUserCustomSocialLinksOnCreate();
       allow update: if request.auth.uid != null && request.auth.uid == userId
-         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges', 'age_policy', 'profile_access'])
+         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['follower_count', 'following_count', 'visited_spots_count', 'spot_edits_count', 'spot_creates_count', 'media_added_count', 'signup_number', 'is_admin', 'special_badges', 'age_policy', 'profile_access', 'moderation_state'])
          && homeSpotsUnchanged()
          && (
            !request.resource.data.diff(resource.data).affectedKeys().hasAny(userPublicParticipationFields())
@@ -1818,6 +1824,46 @@ service cloud.firestore {
         allow read: if isAdmin();
         allow write: if false;
       }
+    }
+
+    // Safety cases contain protected reporter identities, correspondence,
+    // evidence, access credentials, and moderator reasoning. Clients use
+    // redacting callable Functions; even administrators do not access these
+    // collections directly.
+    match /safety_cases/{caseId} {
+      allow read, write: if false;
+
+      match /{caseDocument=**} {
+        allow read, write: if false;
+      }
+    }
+
+    match /safety_case_access_tokens/{tokenId} {
+      allow read, write: if false;
+    }
+
+    match /safety_case_sessions/{sessionId} {
+      allow read, write: if false;
+    }
+
+    match /safety_case_rate_limits/{limitId} {
+      allow read, write: if false;
+    }
+
+    match /safety_case_email_outbox/{emailId} {
+      allow read, write: if false;
+    }
+
+    match /safety_case_holds/{holdId} {
+      allow read, write: if false;
+
+      match /{holdDocument=**} {
+        allow read, write: if false;
+      }
+    }
+
+    match /safety_case_metrics_daily/{day} {
+      allow read, write: if false;
     }
 
     match /imports/{importId} {

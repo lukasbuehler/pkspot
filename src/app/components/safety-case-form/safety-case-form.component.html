@@ -1,0 +1,93 @@
+<form class="case-form" (submit)="submitCase(); $event.preventDefault()">
+  <div class="case-form__grid">
+    <mat-form-field appearance="outline">
+      <mat-label i18n>What do you need to do?</mat-label>
+      <mat-select [formField]="caseForm.caseType">
+        @for (option of caseTypeOptions; track option.value) {
+          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label i18n>Category</mat-label>
+      <mat-select [formField]="caseForm.category">
+        @for (option of categoryOptions; track option.value) {
+          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label i18n>What is this about?</mat-label>
+      <mat-select [formField]="caseForm.subjectType">
+        @for (option of subjectTypeOptions; track option.value) {
+          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label i18n>Item link, path, or identifier (optional)</mat-label>
+      <input matInput [formField]="caseForm.subjectPath" />
+      <mat-hint i18n>Paste the PK Spot URL if you have it.</mat-hint>
+    </mat-form-field>
+  </div>
+
+  <mat-form-field appearance="outline">
+    <mat-label i18n>Short summary</mat-label>
+    <input matInput [formField]="caseForm.summary" />
+    <mat-hint align="end">{{ formModel().summary.length }}/140</mat-hint>
+    @if (caseForm.summary().invalid() && caseForm.summary().touched()) {
+      <mat-error i18n>Use 5–140 characters.</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label i18n>What happened, and what would you like us to do?</mat-label>
+    <textarea
+      matInput
+      rows="7"
+      [formField]="caseForm.description"
+    ></textarea>
+    <mat-hint align="end">{{ formModel().description.length }}/4000</mat-hint>
+    @if (caseForm.description().invalid() && caseForm.description().touched()) {
+      <mat-error i18n>Provide at least 10 characters and no more than 4000.</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label i18n>Email for updates (optional when signed in)</mat-label>
+    <input
+      matInput
+      type="email"
+      autocomplete="email"
+      [formField]="caseForm.contactEmail"
+    />
+    <mat-hint i18n>
+      Guests receive a one-time verification link. Your email and identity are
+      visible only to authorised moderators.
+    </mat-hint>
+    @if (caseForm.contactEmail().invalid() && caseForm.contactEmail().touched()) {
+      <mat-error i18n>Enter a valid email address.</mat-error>
+    }
+  </mat-form-field>
+
+  <aside class="case-form__notice">
+    <mat-icon>privacy_tip</mat-icon>
+    <p i18n>
+      Reports are private. We keep the information needed to investigate,
+      prevent abuse, explain decisions, and handle an appeal. Network and device
+      security metadata is removed after 90 days.
+    </p>
+  </aside>
+
+  <button matButton="filled" type="submit" [disabled]="submitting()">
+    @if (submitting()) {
+      <mat-progress-spinner mode="indeterminate" diameter="20" />
+    } @else {
+      <mat-icon>send</mat-icon>
+    }
+    <span i18n>Submit securely</span>
+  </button>
+</form>

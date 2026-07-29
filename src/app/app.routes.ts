@@ -8,6 +8,7 @@ export const ACCEPTANCE_FREE_PREFIXES = [
   "/about",
   "/support",
   "/contact",
+  "/safety",
   "/terms-of-service",
   "/tos",
   "/privacy-policy",
@@ -313,6 +314,22 @@ export const routes: Routes = [
     data: { routeName: "Moderation Reports" },
   },
   {
+    path: "moderation/cases",
+    loadComponent: () =>
+      import("./components/moderation-cases-page/moderation-cases-page.component").then(
+        (m) => m.ModerationCasesPageComponent,
+      ),
+    data: { routeName: "Safety Cases", discoverable: false },
+  },
+  {
+    path: "moderation/cases/:publicReference",
+    loadComponent: () =>
+      import("./components/moderation-case-page/moderation-case-page.component").then(
+        (m) => m.ModerationCasePageComponent,
+      ),
+    data: { routeName: "Safety Case Review", discoverable: false },
+  },
+  {
     path: "moderation/activity",
     loadComponent: () =>
       import("./components/activity-page/activity-page.component").then(
@@ -601,6 +618,30 @@ export const routes: Routes = [
         (m) => m.ContactPageComponent,
       ),
     data: { routeName: "Contact", acceptanceFree: true },
+  },
+  {
+    path: "safety",
+    loadComponent: () =>
+      import("./components/safety-page/safety-page.component").then(
+        (m) => m.SafetyPageComponent,
+      ),
+    data: {
+      routeName: "Safety and Complaints",
+      acceptanceFree: true,
+      discoverable: false,
+    },
+  },
+  {
+    path: "safety/cases/:publicReference",
+    loadComponent: () =>
+      import("./components/safety-case-page/safety-case-page.component").then(
+        (m) => m.SafetyCasePageComponent,
+      ),
+    data: {
+      routeName: "Private Safety Case",
+      acceptanceFree: true,
+      discoverable: false,
+    },
   },
   {
     path: "terms-of-service",

@@ -60,6 +60,12 @@
         <target>Hochladen</target>
       </segment>
     </unit>
+    <unit id="6938699337852023436">
+      <segment state="initial">
+        <source>Response targets</source>
+        <target>Reaktionsziele</target>
+      </segment>
+    </unit>
     <unit id="about.crew.contact_button">
       <segment state="initial">
         <source>Join us</source>
@@ -108,6 +114,12 @@
       <segment state="initial">
         <source> Description </source>
         <target> Beschreibung </target>
+      </segment>
+    </unit>
+    <unit id="813564942909502411">
+      <segment state="initial">
+        <source> An appeal should have a different reviewer where possible. If that is not possible, record why. </source>
+        <target>Ein Einspruch sollte nach Möglichkeit von einer anderen Person geprüft werden. Falls das nicht möglich ist, erfasse den Grund.</target>
       </segment>
     </unit>
     <unit id="9030193572678348373">
@@ -296,6 +308,18 @@
         <target>Gelöscht</target>
       </segment>
     </unit>
+    <unit id="6383736841956004048">
+      <segment state="initial">
+        <source>Message to participant (optional)</source>
+        <target>Nachricht an beteiligte Person (optional)</target>
+      </segment>
+    </unit>
+    <unit id="6392361494636232622">
+      <segment state="initial">
+        <source>PK Spot service</source>
+        <target>PK Spot-Dienst</target>
+      </segment>
+    </unit>
     <unit id="6396144908605095471">
       <segment state="initial">
         <source> Members will be added to the organization selected above. </source>
@@ -358,6 +382,18 @@
       <segment state="initial">
         <source>Failed to release media</source>
         <target>Medium konnte nicht freigegeben werden</target>
+      </segment>
+    </unit>
+    <unit id="4918842380121150578">
+      <segment state="initial">
+        <source>Could not record this decision.</source>
+        <target>Diese Entscheidung konnte nicht erfasst werden.</target>
+      </segment>
+    </unit>
+    <unit id="4919637716121608426">
+      <segment state="initial">
+        <source>Email delivery</source>
+        <target>E-Mail-Zustellung</target>
       </segment>
     </unit>
     <unit id="4927421686251357457">
@@ -480,6 +516,18 @@
         <target>waiting on votes</target>
       </segment>
     </unit>
+    <unit id="448652542038226670">
+      <segment state="initial">
+        <source> This case is private. Sign in with the account that submitted it or open the latest secure email link. </source>
+        <target>Dieser Fall ist privat. Melde dich mit dem Konto an, das ihn eingereicht hat, oder öffne den neuesten sicheren E-Mail-Link.</target>
+      </segment>
+    </unit>
+    <unit id="4493161543971750886">
+      <segment state="initial">
+        <source>Privacy or data use</source>
+        <target>Privatsphäre oder Datennutzung</target>
+      </segment>
+    </unit>
     <unit id="8461609631969932886">
       <segment state="initial">
         <source>Hide</source>
@@ -496,6 +544,12 @@
       <segment state="initial">
         <source> Newest changes first. Each entry shows exactly what was edited. </source>
         <target> Neueste Änderungen zuerst. Jeder Eintrag zeigt genau, was bearbeitet wurde. </target>
+      </segment>
+    </unit>
+    <unit id="8480572934350558200">
+      <segment state="initial">
+        <source>Appeals</source>
+        <target>Einsprüche</target>
       </segment>
     </unit>
     <unit id="8482930840277475324">
@@ -598,10 +652,22 @@
         <target> Bearbeite die Angaben, die andere sehen dürfen. Deine Profilzugriffs- und Sucheinstellungen bestimmen, wer sie sehen kann. </target>
       </segment>
     </unit>
+    <unit id="6814295386768519176">
+      <segment state="initial">
+        <source>Timeline</source>
+        <target>Zeitleiste</target>
+      </segment>
+    </unit>
     <unit id="6815507474406960450">
       <segment state="initial">
         <source>E-Mail address</source>
         <target>E-Mail Adresse</target>
+      </segment>
+    </unit>
+    <unit id="6824976364666397501">
+      <segment state="initial">
+        <source>Report a safety concern</source>
+        <target>Sicherheitsproblem melden</target>
       </segment>
     </unit>
     <unit id="5506176846620350292">
@@ -718,6 +784,12 @@
         <target> Überprüfe deine Verbindung und versuche es erneut. </target>
       </segment>
     </unit>
+    <unit id="1407086352203948664">
+      <segment state="initial">
+        <source>Loading cases...</source>
+        <target>Fälle werden geladen …</target>
+      </segment>
+    </unit>
     <unit id="1426358485872019526">
       <segment state="initial">
         <source>Uploaded image</source>
@@ -752,6 +824,12 @@
         <target>Die Änderungen an der Organisation konnten nicht gespeichert werden.</target>
       </segment>
     </unit>
+    <unit id="3291027940541598405">
+      <segment state="initial">
+        <source>Update and aim to resolve within 30 days</source>
+        <target>Aktualisierung senden und Lösung innerhalb von 30 Tagen anstreben</target>
+      </segment>
+    </unit>
     <unit id="3292760121831436112">
       <segment state="final">
         <source>Add a short title of up to 80 characters.</source>
@@ -768,6 +846,12 @@
       <segment state="initial">
         <source>Re-authentication failed. Account not deleted.</source>
         <target>Erneute Authentifizierung fehlgeschlagen. Konto nicht gelöscht.</target>
+      </segment>
+    </unit>
+    <unit id="1494956089085338936">
+      <segment state="initial">
+        <source>Describe what happened and what outcome you need.</source>
+        <target>Beschreibe, was passiert ist und welches Ergebnis du brauchst.</target>
       </segment>
     </unit>
     <unit id="6309828574111583895">
@@ -860,10 +944,22 @@
         <target>Training log</target>
       </segment>
     </unit>
+    <unit id="2597686257276262345">
+      <segment state="initial">
+        <source>Could not load safety cases.</source>
+        <target>Sicherheitsfälle konnten nicht geladen werden.</target>
+      </segment>
+    </unit>
     <unit id="2599075381042572471">
       <segment state="initial">
         <source>No organization approvals waiting.</source>
         <target>No organization approvals waiting.</target>
+      </segment>
+    </unit>
+    <unit id="5861458032557974848">
+      <segment state="initial">
+        <source>Save update and assign to me</source>
+        <target>Aktualisierung speichern und mir zuweisen</target>
       </segment>
     </unit>
     <unit id="5863879151969666492">
@@ -1957,6 +2053,12 @@
         <target> Von dir verifizierte Spots </target>
       </segment>
     </unit>
+    <unit id="3514079164376470263">
+      <segment state="initial">
+        <source>Dangerous activity</source>
+        <target>Gefährliche Aktivität</target>
+      </segment>
+    </unit>
     <unit id="3517550046701184661">
       <segment state="initial">
         <source>Show less</source>
@@ -2277,6 +2379,12 @@
         <target state="translated">Eigentumsansprüche konnten nicht geladen werden.</target>
       </segment>
     </unit>
+    <unit id="4285897005151704391">
+      <segment state="initial">
+        <source>Public reasons</source>
+        <target>Öffentliche Begründung</target>
+      </segment>
+    </unit>
     <unit id="4292524783489016046">
       <segment state="initial">
         <source> Create organizations, update their public identity, and manage who can review organization-routed spot edits. </source>
@@ -2343,6 +2451,18 @@
         <target>Ein unbekannter Fehler ist aufgetrete bei der Anmeldung. Bitte versueche es erneut.</target>
       </segment>
     </unit>
+    <unit id="773524594392048440">
+      <segment state="initial">
+        <source> Ask us to review this restriction </source>
+        <target> Bitte uns, diese Einschränkung zu überprüfen </target>
+      </segment>
+    </unit>
+    <unit id="7740572490638436380">
+      <segment state="initial">
+        <source>What happened, and what would you like us to do?</source>
+        <target>Was ist passiert und was sollen wir tun?</target>
+      </segment>
+    </unit>
     <unit id="7742018872696898961">
       <segment state="initial">
         <source>Current password is incorrect.</source>
@@ -2395,6 +2515,12 @@
       <segment state="initial">
         <source>Create a new account</source>
         <target>Neuen Account erstellen</target>
+      </segment>
+    </unit>
+    <unit id="6970739369177090165">
+      <segment state="initial">
+        <source>Complex-case target:</source>
+        <target>Ziel für komplexe Fälle:</target>
       </segment>
     </unit>
     <unit id="6972105223770675605">
@@ -2523,6 +2649,12 @@
         <target>Verifiziert durch</target>
       </segment>
     </unit>
+    <unit id="6631334172623029500">
+      <segment state="initial">
+        <source>Email:</source>
+        <target>E-Mail:</target>
+      </segment>
+    </unit>
     <unit id="6631641409682927358">
       <segment state="initial">
         <source>Open current NCA guidance</source>
@@ -2565,6 +2697,12 @@
         <target> Public map activity from this profile. </target>
       </segment>
     </unit>
+    <unit id="2089887885715473070">
+      <segment state="initial">
+        <source>Held state restored.</source>
+        <target>Zurückgehaltener Zustand wiederhergestellt.</target>
+      </segment>
+    </unit>
     <unit id="1035459065824093652">
       <segment state="initial">
         <source>Open edit</source>
@@ -2589,6 +2727,12 @@
         <target>Stimme konnte nicht abgegeben werden</target>
       </segment>
     </unit>
+    <unit id="1093765261979876101">
+      <segment state="initial">
+        <source>Independence limitation (if same reviewer)</source>
+        <target>Einschränkung der Unabhängigkeit (bei gleicher prüfender Person)</target>
+      </segment>
+    </unit>
     <unit id="1096271480010782204">
       <segment state="initial">
         <source>Founder</source>
@@ -2611,6 +2755,12 @@
       <segment state="initial">
         <source>Event period</source>
         <target>Eventzeitraum</target>
+      </segment>
+    </unit>
+    <unit id="1257641982327923196">
+      <segment state="initial">
+        <source>Open safety channel</source>
+        <target>Sicherheitskanal öffnen</target>
       </segment>
     </unit>
     <unit id="1263548881803803113">
@@ -2679,10 +2829,28 @@
         <target>Triage-Sperre</target>
       </segment>
     </unit>
+    <unit id="6493128715899624058">
+      <segment state="initial">
+        <source>Could not load this safety case.</source>
+        <target>Dieser Sicherheitsfall konnte nicht geladen werden.</target>
+      </segment>
+    </unit>
     <unit id="6496554534263466402">
       <segment state="initial">
         <source>Follow request declined</source>
         <target>Follow request declined</target>
+      </segment>
+    </unit>
+    <unit id="190885448896868977">
+      <segment state="initial">
+        <source>Is someone in immediate danger?</source>
+        <target>Ist jemand in unmittelbarer Gefahr?</target>
+      </segment>
+    </unit>
+    <unit id="1922856447604899399">
+      <segment state="initial">
+        <source>What do you need to do?</source>
+        <target>Was möchtest du tun?</target>
       </segment>
     </unit>
     <unit id="1927584134608367160">
@@ -2713,6 +2881,12 @@
       <segment state="initial">
         <source>Outdoor</source>
         <target>Draußen</target>
+      </segment>
+    </unit>
+    <unit id="1999955189900316314">
+      <segment state="initial">
+        <source>Could not submit this case. Please try again.</source>
+        <target>Dieser Fall konnte nicht eingereicht werden. Bitte versuche es erneut.</target>
       </segment>
     </unit>
     <unit id="3601523967492159201">
@@ -2763,10 +2937,28 @@
         <target>Annehmlichkeiten anzeigen</target>
       </segment>
     </unit>
+    <unit id="3646106459214291688">
+      <segment state="translated">
+        <source>Person who contacted us</source>
+        <target>Person, die uns kontaktiert hat</target>
+      </segment>
+    </unit>
+    <unit id="3651593603437372340">
+      <segment state="initial">
+        <source>Appeal this decision</source>
+        <target>Gegen diese Entscheidung Einspruch einlegen</target>
+      </segment>
+    </unit>
     <unit id="3665571050825458932">
       <segment state="initial">
         <source> Move and resize the crop area. Use zoom or rotation when needed. </source>
         <target> Verschiebe und skaliere den Zuschneidebereich. Verwende bei Bedarf Zoom oder Drehung. </target>
+      </segment>
+    </unit>
+    <unit id="3670979985338475203">
+      <segment state="initial">
+        <source>Case updated.</source>
+        <target>Fall aktualisiert.</target>
       </segment>
     </unit>
     <unit id="3686284950598311784">
@@ -2837,6 +3029,12 @@
       <segment state="initial">
         <source>Reported externally</source>
         <target>Extern gemeldet</target>
+      </segment>
+    </unit>
+    <unit id="6721845101128758739">
+      <segment state="initial">
+        <source>Loading private case...</source>
+        <target>Privater Fall wird geladen …</target>
       </segment>
     </unit>
     <unit id="6727906839729645379">
@@ -2927,6 +3125,12 @@
         <target>Erstellte Spots</target>
       </segment>
     </unit>
+    <unit id="1527271999950935147">
+      <segment state="initial">
+        <source>Assigned:</source>
+        <target>Zugewiesen:</target>
+      </segment>
+    </unit>
     <unit id="1534029177398918729">
       <segment state="initial">
         <source>GitHub</source>
@@ -2975,6 +3179,18 @@
         <target>{VAR_PLURAL, plural, =1 {Mitglied} other {Mitglieder}}</target>
       </segment>
     </unit>
+    <unit id="6008995610936337562">
+      <segment state="initial">
+        <source>What is this about?</source>
+        <target>Worum geht es?</target>
+      </segment>
+    </unit>
+    <unit id="601278657052307519">
+      <segment state="initial">
+        <source>Spam or a malicious link</source>
+        <target>Spam oder schädlicher Link</target>
+      </segment>
+    </unit>
     <unit id="6020607686749008401">
       <segment state="initial">
         <source>Add verifying organization</source>
@@ -3005,6 +3221,12 @@
         <target>Community card approved</target>
       </segment>
     </unit>
+    <unit id="8407220471361845948">
+      <segment state="initial">
+        <source>Paste the PK Spot URL if you have it.</source>
+        <target>Füge die PK Spot-URL ein, falls du sie hast.</target>
+      </segment>
+    </unit>
     <unit id="8411563267246095898">
       <segment state="initial">
         <source> Some uploads could not be processed. </source>
@@ -3027,6 +3249,12 @@
       <segment state="initial">
         <source>Age-assurance rollback</source>
         <target>Widerruf von Altersnachweis-Freigaben</target>
+      </segment>
+    </unit>
+    <unit id="8434728487464933227">
+      <segment state="initial">
+        <source>Policy basis:</source>
+        <target>Richtliniengrundlage:</target>
       </segment>
     </unit>
     <unit id="8436223332064456837">
@@ -3065,6 +3293,12 @@
         <target>Fehler beim Hinzufügen des Google Place</target>
       </segment>
     </unit>
+    <unit id="3261642323287960585">
+      <segment state="initial">
+        <source>Sexual content</source>
+        <target>Sexuelle Inhalte</target>
+      </segment>
+    </unit>
     <unit id="3268843240047650795">
       <segment state="initial">
         <source>Trailblazer</source>
@@ -3075,6 +3309,12 @@
       <segment state="final">
         <source>Loading event Spots…</source>
         <target>Event-Spots werden geladen…</target>
+      </segment>
+    </unit>
+    <unit id="3270670971379803822">
+      <segment state="initial">
+        <source>Submit appeal</source>
+        <target>Einspruch einreichen</target>
       </segment>
     </unit>
     <unit id="3278358550418950949">
@@ -3173,6 +3413,12 @@
         <target>Lokale Zeitzone fehlt</target>
       </segment>
     </unit>
+    <unit id="8372969166925541710">
+      <segment state="initial">
+        <source>Safety and complaints</source>
+        <target>Sicherheit und Beschwerden</target>
+      </segment>
+    </unit>
     <unit id="8374358620159565609">
       <segment state="initial">
         <source>Past</source>
@@ -3221,6 +3467,12 @@
         <target>Stream der Medien-Uploads</target>
       </segment>
     </unit>
+    <unit id="8618596366627948099">
+      <segment state="initial">
+        <source>Total cases loaded</source>
+        <target>Geladene Fälle insgesamt</target>
+      </segment>
+    </unit>
     <unit id="8637857575623979078">
       <segment state="initial">
         <source> No edits yet for this spot. </source>
@@ -3231,6 +3483,12 @@
       <segment state="initial">
         <source>Profile access saved</source>
         <target>Profile access saved</target>
+      </segment>
+    </unit>
+    <unit id="8650499415827640724">
+      <segment state="initial">
+        <source>Type</source>
+        <target>Typ</target>
       </segment>
     </unit>
     <unit id="8656126574213649581">
@@ -3279,6 +3537,18 @@
         <target>Wetterwarnungen</target>
       </segment>
     </unit>
+    <unit id="8687501273434674899">
+      <segment state="initial">
+        <source>Target path:</source>
+        <target>Zielpfad:</target>
+      </segment>
+    </unit>
+    <unit id="8691920320483720007">
+      <segment state="initial">
+        <source>Received</source>
+        <target>Eingegangen</target>
+      </segment>
+    </unit>
     <unit id="8693603235657020323">
       <segment state="initial">
         <source>Other</source>
@@ -3297,10 +3567,28 @@
         <target>Von welchem Spot ist dieser ein Duplikat?</target>
       </segment>
     </unit>
+    <unit id="4966788129751099816">
+      <segment state="initial">
+        <source>Aim to resolve within 7 days</source>
+        <target>Ziel: Lösung innerhalb von 7 Tagen</target>
+      </segment>
+    </unit>
     <unit id="2002398665048764218">
       <segment state="initial">
         <source>Schedule change</source>
         <target>Zeitplanänderung</target>
+      </segment>
+    </unit>
+    <unit id="2005372051213886069">
+      <segment state="initial">
+        <source>Your update was added.</source>
+        <target>Deine Aktualisierung wurde hinzugefügt.</target>
+      </segment>
+    </unit>
+    <unit id="2005374949551780500">
+      <segment state="initial">
+        <source>Safety cases</source>
+        <target>Sicherheitsfälle</target>
       </segment>
     </unit>
     <unit id="2014228771300600511">
@@ -3367,6 +3655,12 @@
       <segment state="initial">
         <source>Pending</source>
         <target>Ausstehend</target>
+      </segment>
+    </unit>
+    <unit id="2306159838484573008">
+      <segment state="initial">
+        <source>Triaged</source>
+        <target>Triage abgeschlossen</target>
       </segment>
     </unit>
     <unit id="2312227289513761859">
@@ -4883,6 +5177,12 @@
         <target>Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot?.name }}"/>&apos; bewerten</target>
       </segment>
     </unit>
+    <unit id="9078294932661622756">
+      <segment state="initial">
+        <source>Tell us what happened</source>
+        <target>Erzähle uns, was passiert ist</target>
+      </segment>
+    </unit>
     <unit id="9091381429305665620">
       <segment state="initial">
         <source>Helper</source>
@@ -4941,6 +5241,12 @@
       <segment state="initial">
         <source>Sign out of your account.</source>
         <target>Melde dich von deinem Konto ab.</target>
+      </segment>
+    </unit>
+    <unit id="9140895998943713645">
+      <segment state="initial">
+        <source>Age-assurance decision</source>
+        <target>Entscheidung zur Altersprüfung</target>
       </segment>
     </unit>
     <unit id="9147694429145547851">
@@ -5048,6 +5354,12 @@
         <target> Getragen von der <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">Community</pc>. </target>
       </segment>
     </unit>
+    <unit id="934990675622429392">
+      <segment state="initial">
+        <source>Safety process or legal duty</source>
+        <target>Sicherheitsprozess oder gesetzliche Pflicht</target>
+      </segment>
+    </unit>
     <unit id="940241108431922998">
       <segment state="initial">
         <source>Ordinary harm</source>
@@ -5060,6 +5372,12 @@
         <target>Diese E-Mail-Adresse ist ungültig!</target>
       </segment>
     </unit>
+    <unit id="962179517602562850">
+      <segment state="initial">
+        <source>Privacy or doxxing</source>
+        <target>Privatsphäre oder Doxxing</target>
+      </segment>
+    </unit>
     <unit id="967806009511704497">
       <segment state="initial">
         <source>Incident runbook</source>
@@ -5070,6 +5388,12 @@
       <segment state="initial">
         <source>Not verified</source>
         <target>Nicht verifiziert</target>
+      </segment>
+    </unit>
+    <unit id="998453251097149857">
+      <segment state="initial">
+        <source>Decision recorded.</source>
+        <target>Entscheidung erfasst.</target>
       </segment>
     </unit>
     <unit id="6431756795596367554">
@@ -5980,6 +6304,12 @@
         <target>Veranstaltung in </target>
       </segment>
     </unit>
+    <unit id="7667730993573976181">
+      <segment state="initial">
+        <source>Record this decision and apply its moderation action?</source>
+        <target>Diese Entscheidung erfassen und die Moderationsmaßnahme anwenden?</target>
+      </segment>
+    </unit>
     <unit id="7672282077901429954">
       <segment state="initial">
         <source>Error, there was a problem signing out!</source>
@@ -5990,6 +6320,12 @@
       <segment state="initial">
         <source>This link is not recognized. Please check your email and try again.</source>
         <target>Dieser Link wird nicht erkannt. Bitte überprüfe deine E-Mail und versuche es erneut.</target>
+      </segment>
+    </unit>
+    <unit id="7677639303795669921">
+      <segment state="initial">
+        <source>Past target date</source>
+        <target>Zieldatum überschritten</target>
       </segment>
     </unit>
     <unit id="7679393301604850402">
@@ -8916,6 +9252,18 @@
         <target>Einstellung für Event-Benachrichtigungen</target>
       </segment>
     </unit>
+    <unit id="4302668244346549580">
+      <segment state="initial">
+        <source>Email for updates (optional when signed in)</source>
+        <target>E-Mail für Aktualisierungen (bei Anmeldung optional)</target>
+      </segment>
+    </unit>
+    <unit id="4314270304685333896">
+      <segment state="initial">
+        <source>Update and correspond</source>
+        <target>Aktualisieren und korrespondieren</target>
+      </segment>
+    </unit>
     <unit id="4320994550381609480">
       <segment state="initial">
         <source>Pioneer</source>
@@ -8932,6 +9280,12 @@
       <segment state="initial">
         <source>Copy</source>
         <target>Kopieren</target>
+      </segment>
+    </unit>
+    <unit id="4324194888906470452">
+      <segment state="initial">
+        <source>Your case was received</source>
+        <target>Dein Fall ist eingegangen</target>
       </segment>
     </unit>
     <unit id="4344855956830123370">
@@ -9012,6 +9366,18 @@
         <target>Bildzuschnitt</target>
       </segment>
     </unit>
+    <unit id="28390273827708830">
+      <segment state="initial">
+        <source>Aim to resolve within 14 days</source>
+        <target>Ziel: Lösung innerhalb von 14 Tagen</target>
+      </segment>
+    </unit>
+    <unit id="2840924924493795948">
+      <segment state="initial">
+        <source>Complex cases</source>
+        <target>Komplexe Fälle</target>
+      </segment>
+    </unit>
     <unit id="2846098641732030728">
       <segment state="initial">
         <source>Save favorites and come back to the spots you want to session later.</source>
@@ -9036,6 +9402,12 @@
         <target>Zurück zu allen Veranstaltungen</target>
       </segment>
     </unit>
+    <unit id="2870539756629075514">
+      <segment state="translated">
+        <source>Message recipient</source>
+        <target>Empfänger der Nachricht</target>
+      </segment>
+    </unit>
     <unit id="2874252575916172948">
       <segment state="initial">
         <source> Delete my account </source>
@@ -9052,6 +9424,12 @@
       <segment state="initial">
         <source>Report submitted. Thanks for helping keep spots accurate.</source>
         <target>Report submitted. Thanks for helping keep Spots accurate.</target>
+      </segment>
+    </unit>
+    <unit id="7821270560154398021">
+      <segment state="initial">
+        <source> Reports, complaints, appeals, deadlines, correspondence, and decisions in one private queue. </source>
+        <target>Meldungen, Beschwerden, Einsprüche, Fristen, Korrespondenz und Entscheidungen in einer privaten Warteschlange.</target>
       </segment>
     </unit>
     <unit id="78295015887661250">
@@ -9072,6 +9450,12 @@
         <target>Veranstaltungs-Header anzeigen</target>
       </segment>
     </unit>
+    <unit id="7858093315829323396">
+      <segment state="initial">
+        <source>Age assurance</source>
+        <target>Altersprüfung</target>
+      </segment>
+    </unit>
     <unit id="7860386256947196622">
       <segment state="translated">
         <source>Review events</source>
@@ -9088,6 +9472,18 @@
       <segment state="initial">
         <source>Ownership claim approved.</source>
         <target state="translated">Eigentumsanspruch genehmigt.</target>
+      </segment>
+    </unit>
+    <unit id="7869347974693941290">
+      <segment state="initial">
+        <source>Could not update this case.</source>
+        <target>Dieser Fall konnte nicht aktualisiert werden.</target>
+      </segment>
+    </unit>
+    <unit id="7880605355244228662">
+      <segment state="initial">
+        <source>Media consent</source>
+        <target>Einwilligung für Medien</target>
       </segment>
     </unit>
     <unit id="7881945331295450373">
@@ -9126,6 +9522,12 @@
         <target>Kontakt</target>
       </segment>
     </unit>
+    <unit id="7923103708576442172">
+      <segment state="initial">
+        <source>Review safety case</source>
+        <target>Sicherheitsfall prüfen</target>
+      </segment>
+    </unit>
     <unit id="7941428823403788384">
       <segment state="initial">
         <source> Create </source>
@@ -9136,6 +9538,12 @@
       <segment state="initial">
         <source>Remove person</source>
         <target>Remove person</target>
+      </segment>
+    </unit>
+    <unit id="7963302127028522332">
+      <segment state="initial">
+        <source>Add information</source>
+        <target>Informationen hinzufügen</target>
       </segment>
     </unit>
     <unit id="5245523669438174557">
@@ -9226,6 +9634,12 @@
       <segment state="initial">
         <source> Have a question, found a bug, or want to request a feature? We&apos;d love to hear from you! </source>
         <target> Hast du eine Frage, einen Fehler gefunden oder möchtest du eine Funktion anfragen? Wir würden uns freuen, von dir zu hören! </target>
+      </segment>
+    </unit>
+    <unit id="7002200834685763491">
+      <segment state="initial">
+        <source>Complex-case target</source>
+        <target>Ziel für komplexe Fälle</target>
       </segment>
     </unit>
     <unit id="7005135725147250005">
@@ -9716,6 +10130,12 @@
         <target> Vorübergehend geschlossen </target>
       </segment>
     </unit>
+    <unit id="8712629536205619877">
+      <segment state="initial">
+        <source>Received:</source>
+        <target>Eingegangen:</target>
+      </segment>
+    </unit>
     <unit id="8719394803198399227">
       <segment state="initial">
         <source>Decision failed.</source>
@@ -9804,6 +10224,12 @@
       <segment state="initial">
         <source>Water feature</source>
         <target>Wasser-Element</target>
+      </segment>
+    </unit>
+    <unit id="5642491821287020222">
+      <segment state="initial">
+        <source>Could not restore the held state.</source>
+        <target>Der zurückgehaltene Zustand konnte nicht wiederhergestellt werden.</target>
       </segment>
     </unit>
     <unit id="5646377711168880426">
@@ -9908,10 +10334,22 @@
         <target> Speichere den Spot zuerst, um Bilder hinzuzufügen. </target>
       </segment>
     </unit>
+    <unit id="483345618561474579">
+      <segment state="initial">
+        <source>Reason for appeal</source>
+        <target>Grund für den Einspruch</target>
+      </segment>
+    </unit>
     <unit id="4854396465510517671">
       <segment state="initial">
         <source>Target</source>
         <target>Ziel</target>
+      </segment>
+    </unit>
+    <unit id="4856886645538428653">
+      <segment state="initial">
+        <source>Enter a valid email address or leave it blank.</source>
+        <target>Gib eine gültige E-Mail-Adresse ein oder lasse das Feld leer.</target>
       </segment>
     </unit>
     <unit id="profile.actions.unblock">
@@ -9950,6 +10388,18 @@
         <target>Zeitplan aktualisiert</target>
       </segment>
     </unit>
+    <unit id="4892019229298361238">
+      <segment state="initial">
+        <source>Safety reports, complaints, and appeals</source>
+        <target>Sicherheitsmeldungen, Beschwerden und Einsprüche</target>
+      </segment>
+    </unit>
+    <unit id="4897177574141849318">
+      <segment state="initial">
+        <source>Unsafe place or access information</source>
+        <target>Unsicherer Ort oder unsichere Zugangsinformationen</target>
+      </segment>
+    </unit>
     <unit id="7053728652419731548">
       <segment state="initial">
         <source>Session replay</source>
@@ -9986,6 +10436,12 @@
         <target>Erwachsenenberechtigung für <ph id="0" equiv="PH" disp="previewCount"/> passende Konten widerrufen? Deren öffentliche Profile und Sichtbarkeit in der Suche werden deaktiviert.</target>
       </segment>
     </unit>
+    <unit id="2409973243657175474">
+      <segment state="initial">
+        <source>Send update</source>
+        <target>Aktualisierung senden</target>
+      </segment>
+    </unit>
     <unit id="2417459620118538314">
       <segment state="initial">
         <source>Could not update event notifications. Please try again.</source>
@@ -10014,6 +10470,12 @@
       <segment state="initial">
         <source>Community merge queued</source>
         <target>Community merge queued</target>
+      </segment>
+    </unit>
+    <unit id="2480962193625361096">
+      <segment state="initial">
+        <source>Target:</source>
+        <target>Ziel:</target>
       </segment>
     </unit>
     <unit id="2494595604764120182">
@@ -10104,6 +10566,12 @@
       <segment state="initial">
         <source>Independently checked 18+ eligibility is available.</source>
         <target>Eine unabhängig geprüfte Berechtigung ab 18 Jahren ist verfügbar.</target>
+      </segment>
+    </unit>
+    <unit id="2112768397949905814">
+      <segment state="initial">
+        <source>Enter a valid email address.</source>
+        <target>Gib eine gültige E-Mail-Adresse ein.</target>
       </segment>
     </unit>
     <unit id="2114926278043068343">
@@ -10233,6 +10701,12 @@
         <target>Nicht verwaltet</target>
       </segment>
     </unit>
+    <unit id="3808291968368675401">
+      <segment state="initial">
+        <source>Add a short summary.</source>
+        <target>Füge eine kurze Zusammenfassung hinzu.</target>
+      </segment>
+    </unit>
     <unit id="3812784998942541864">
       <segment state="initial">
         <source>Network fingerprint</source>
@@ -10290,6 +10764,12 @@
         <target>Zurücksetzen</target>
       </segment>
     </unit>
+    <unit id="7809374858674328383">
+      <segment state="initial">
+        <source>Decision</source>
+        <target>Entscheidung</target>
+      </segment>
+    </unit>
     <unit id="7819314041543176992">
       <segment state="initial">
         <source>Close</source>
@@ -10312,6 +10792,12 @@
       <segment state="initial">
         <source> Don&apos;t just look. <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-secondary marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">Find.</pc></source>
         <target> Nicht nur schauen. <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-secondary marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">Finden.</pc></target>
+      </segment>
+    </unit>
+    <unit id="4114528897382605548">
+      <segment state="initial">
+        <source>Restore held state</source>
+        <target>Zurückgehaltenen Zustand wiederherstellen</target>
       </segment>
     </unit>
     <unit id="4115668858470490289">
@@ -10350,6 +10836,12 @@
         <target>Sensible Medien ausgeblendet</target>
       </segment>
     </unit>
+    <unit id="370092533680813589">
+      <segment state="initial">
+        <source>Standard cases</source>
+        <target>Standardfälle</target>
+      </segment>
+    </unit>
     <unit id="370198281195202249">
       <segment state="initial">
         <source> Use the NCA CSEA reporting portal only for reportable CSEA. Continue an existing NCMEC channel where applicable and do not create a duplicate referral. For current or imminent danger, follow the emergency instructions in the NCA guidance. </source>
@@ -10366,6 +10858,12 @@
       <segment state="initial">
         <source>External response guidance</source>
         <target>Hinweise zur externen Reaktion</target>
+      </segment>
+    </unit>
+    <unit id="3712031637505692458">
+      <segment state="initial">
+        <source>Target response</source>
+        <target>Antwortziel</target>
       </segment>
     </unit>
     <unit id="3714343477148346459">
@@ -10410,6 +10908,12 @@
         <target>Veranstaltung wird geladen</target>
       </segment>
     </unit>
+    <unit id="831314703026690842">
+      <segment state="initial">
+        <source>Outcome</source>
+        <target>Ergebnis</target>
+      </segment>
+    </unit>
     <unit id="8323953180652912227">
       <segment state="initial">
         <source>Failed to remove verified organization</source>
@@ -10426,6 +10930,12 @@
       <segment state="initial">
         <source>Account privacy</source>
         <target>Account privacy</target>
+      </segment>
+    </unit>
+    <unit id="8327313422967228918">
+      <segment state="initial">
+        <source>Restore the content or account state held by this decision?</source>
+        <target>Den durch diese Entscheidung zurückgehaltenen Inhalt oder Kontozustand wiederherstellen?</target>
       </segment>
     </unit>
     <unit id="8333618256474808727">
@@ -10476,10 +10986,22 @@
         <target> Arbeite die Schritte der Reihe nach ab. Medien mit gesperrtem Treffer weder ansehen noch weiterleiten. </target>
       </segment>
     </unit>
+    <unit id="263768607788268714">
+      <segment state="initial">
+        <source>All open cases</source>
+        <target>Alle offenen Fälle</target>
+      </segment>
+    </unit>
     <unit id="2638434417265535082">
       <segment state="initial">
         <source>Media stream</source>
         <target>Medienstream</target>
+      </segment>
+    </unit>
+    <unit id="2648624934226238207">
+      <segment state="initial">
+        <source>Item link, path, or identifier (optional)</source>
+        <target>Link, Pfad oder Kennung des Elements (optional)</target>
       </segment>
     </unit>
     <unit id="2662644497259948010">
@@ -10599,10 +11121,22 @@
         <target> Gebaut und gepflegt von Freiwilligen aus der Parkour-Community. </target>
       </segment>
     </unit>
+    <unit id="8018133170713747016">
+      <segment state="initial">
+        <source>Policy basis (optional)</source>
+        <target>Richtliniengrundlage (optional)</target>
+      </segment>
+    </unit>
     <unit id="8018379614687762047">
       <segment state="initial">
         <source>Email changed successfully. Please verify your new email.</source>
         <target>E-Mail erfolgreich geändert. Bitte verifiziere deine neue E-Mail.</target>
+      </segment>
+    </unit>
+    <unit id="8027866377173897723">
+      <segment state="initial">
+        <source>Case timeline</source>
+        <target>Fallverlauf</target>
       </segment>
     </unit>
     <unit id="8036493504964207254">
@@ -10707,6 +11241,12 @@
         <target> Füge eine kurze Biografie hinzu, damit dein öffentliches Profil anderen zeigt, wer du bist. </target>
       </segment>
     </unit>
+    <unit id="6480397588679623769">
+      <segment state="initial">
+        <source>Provide at least 10 characters and no more than 4000.</source>
+        <target>Gib mindestens 10 und höchstens 4000 Zeichen ein.</target>
+      </segment>
+    </unit>
     <unit id="2969365666988952758">
       <segment state="initial">
         <source>Recovering Email</source>
@@ -10717,6 +11257,12 @@
       <segment state="initial">
         <source>Edit Profile</source>
         <target>Profil bearbeiten</target>
+      </segment>
+    </unit>
+    <unit id="2988814765436950391">
+      <segment state="initial">
+        <source>Another service complaint</source>
+        <target>Andere Beschwerde zum Dienst</target>
       </segment>
     </unit>
     <unit id="2996324673054626783">
@@ -10849,10 +11395,22 @@
         <target>Beschreibung</target>
       </segment>
     </unit>
+    <unit id="1584093308232863634">
+      <segment state="initial">
+        <source>Submit securely</source>
+        <target>Sicher einreichen</target>
+      </segment>
+    </unit>
     <unit id="158781460362336598">
       <segment state="initial">
         <source>You were successfully signed out!</source>
         <target>Du wurdest erfolgreich abgemeldet!</target>
+      </segment>
+    </unit>
+    <unit id="1589136879717771714">
+      <segment state="initial">
+        <source>Automated media decision</source>
+        <target>Automatisierte Medienentscheidung</target>
       </segment>
     </unit>
     <unit id="1593391712749316624">
@@ -10963,6 +11521,12 @@
       <segment state="initial">
         <source>Current password</source>
         <target>Aktuelles Passwort</target>
+      </segment>
+    </unit>
+    <unit id="5353526426392827566">
+      <segment state="initial">
+        <source> Report an incorrect age-assurance decision </source>
+        <target>Falsche Entscheidung zur Altersprüfung melden</target>
       </segment>
     </unit>
     <unit id="5354481455147566182">
@@ -11167,6 +11731,12 @@
         <target> Choose how follows work and who should see expanded profile details as profile sections grow. </target>
       </segment>
     </unit>
+    <unit id="7531672117696326956">
+      <segment state="initial">
+        <source> Explain what you believe was wrong or what information was missed. Appeals are linked to the original case and should be reviewed independently where possible. </source>
+        <target>Erkläre, was deiner Meinung nach falsch war oder welche Informationen übersehen wurden. Einsprüche werden mit dem ursprünglichen Fall verknüpft und sollten nach Möglichkeit unabhängig geprüft werden.</target>
+      </segment>
+    </unit>
     <unit id="7536618650694716867">
       <segment state="initial">
         <source> Find answers to common questions or reach out to us directly. </source>
@@ -11263,6 +11833,12 @@
         <target>Moderation</target>
       </segment>
     </unit>
+    <unit id="6520949937421368958">
+      <segment state="initial">
+        <source>App Check:</source>
+        <target>App-Prüfung:</target>
+      </segment>
+    </unit>
     <unit id="6529676412063915412">
       <segment state="initial">
         <source> Follow requests </source>
@@ -11291,6 +11867,12 @@
       <segment state="initial">
         <source>Media Added</source>
         <target>Medien hinzugefügt</target>
+      </segment>
+    </unit>
+    <unit id="6588106856001797923">
+      <segment state="initial">
+        <source>No cases match this filter.</source>
+        <target>Keine Fälle entsprechen diesem Filter.</target>
       </segment>
     </unit>
     <unit id="6588223759870524689">
@@ -11419,6 +12001,12 @@
         <target>Kern</target>
       </segment>
     </unit>
+    <unit id="3989796638927342332">
+      <segment state="initial">
+        <source>Make a complaint</source>
+        <target>Beschwerde einreichen</target>
+      </segment>
+    </unit>
     <unit id="3991755043359697718">
       <segment state="initial">
         <source>Remove selected file</source>
@@ -11477,6 +12065,12 @@
       <segment state="initial">
         <source>Account mismatch. Please sign in to the correct account.</source>
         <target>Kontonichtübereinstimmung. Bitte melde dich beim richtigen Konto an.</target>
+      </segment>
+    </unit>
+    <unit id="3447183067239293551">
+      <segment state="initial">
+        <source>Under review</source>
+        <target>In Prüfung</target>
       </segment>
     </unit>
     <unit id="3456162150342793287">
@@ -11621,6 +12215,12 @@
         <target> Organisation speichern </target>
       </segment>
     </unit>
+    <unit id="3908211343911450350">
+      <segment state="initial">
+        <source> Contact local emergency services first. Then send us the report so we can preserve evidence and restrict access where appropriate. </source>
+        <target>Kontaktiere zuerst den örtlichen Notruf. Sende uns danach die Meldung, damit wir Beweise sichern und den Zugriff gegebenenfalls einschränken können.</target>
+      </segment>
+    </unit>
     <unit id="3909136360386442402">
       <segment state="initial">
         <source>You have blocked this user</source>
@@ -11649,6 +12249,12 @@
       <segment state="initial">
         <source>Edit submitted for organization review</source>
         <target>Bearbeitung zur Organisationsprüfung eingereicht</target>
+      </segment>
+    </unit>
+    <unit id="2232032287329907617">
+      <segment state="initial">
+        <source>Private intake</source>
+        <target>Private Erfassung</target>
       </segment>
     </unit>
     <unit id="223483240416376467">
@@ -11717,6 +12323,18 @@
         <target>Ablehnen</target>
       </segment>
     </unit>
+    <unit id="7384825592384718749">
+      <segment state="initial">
+        <source>Could not submit the appeal.</source>
+        <target>Der Einspruch konnte nicht eingereicht werden.</target>
+      </segment>
+    </unit>
+    <unit id="7386252783526468675">
+      <segment state="initial">
+        <source>Decision action</source>
+        <target>Entscheidungsmaßnahme</target>
+      </segment>
+    </unit>
     <unit id="7403011272981064883">
       <segment state="initial">
         <source> No members yet. </source>
@@ -11747,6 +12365,12 @@
         <target>Verwalte deine <ph id="0" equiv="PH" disp="point.name"/> Einstellungen.</target>
       </segment>
     </unit>
+    <unit id="5401396861408632139">
+      <segment state="initial">
+        <source>Immediate risk</source>
+        <target>Unmittelbares Risiko</target>
+      </segment>
+    </unit>
     <unit id="5411574545284988510">
       <segment state="initial">
         <source>Verifying Email</source>
@@ -11757,6 +12381,12 @@
       <segment state="initial">
         <source>Go to your location</source>
         <target>Zu deinem Standort gehen</target>
+      </segment>
+    </unit>
+    <unit id="5430715841913413045">
+      <segment state="initial">
+        <source>Content or account decision</source>
+        <target>Entscheidung zu Inhalt oder Konto</target>
       </segment>
     </unit>
     <unit id="5439680339974485805">
@@ -11837,10 +12467,22 @@
         <target> <ph id="0" equiv="ICU" disp="{invalidItemCount, plural, =1 {One published event has invalid discovery data and was not shown.} other {{{invalidItemCount}} published events have invalid discovery data and were not shown.} }" subFlows="3991033213392190792"/> </target>
       </segment>
     </unit>
+    <unit id="8875159446674823169">
+      <segment state="initial">
+        <source>All cases</source>
+        <target>Alle Fälle</target>
+      </segment>
+    </unit>
     <unit id="8876716314997684812">
       <segment state="initial">
         <source>Event management</source>
         <target>Event verwalten</target>
+      </segment>
+    </unit>
+    <unit id="8879720979364981326">
+      <segment state="initial">
+        <source>Record and apply decision</source>
+        <target>Entscheidung erfassen und anwenden</target>
       </segment>
     </unit>
     <unit id="8882370377359593676">
@@ -11915,6 +12557,12 @@
         <target> Rechtswidrige Inhalte </target>
       </segment>
     </unit>
+    <unit id="5995912307085156285">
+      <segment state="initial">
+        <source>Potentially illegal content</source>
+        <target>Möglicherweise rechtswidriger Inhalt</target>
+      </segment>
+    </unit>
     <unit id="5996977642855652872">
       <segment state="initial">
         <source>Please select the reason for this report:</source>
@@ -11949,6 +12597,12 @@
       <segment state="initial">
         <source>Share media</source>
         <target>Medien teilen</target>
+      </segment>
+    </unit>
+    <unit id="8520138691875188234">
+      <segment state="initial">
+        <source> Guests receive a one-time verification link. Your email and identity are visible only to authorised moderators. </source>
+        <target>Gäste erhalten einen einmaligen Bestätigungslink. Deine E-Mail und Identität sind nur für berechtigte Moderatoren sichtbar.</target>
       </segment>
     </unit>
     <unit id="8525213662266893834">
@@ -12361,6 +13015,12 @@
         <target>Dieser Upload wurde markiert oder die automatische Prüfung ist fehlgeschlagen und der Inhalt könnte verstörend sein. Zur manuellen Moderation anzeigen?</target>
       </segment>
     </unit>
+    <unit id="7163472660486177947">
+      <segment state="initial">
+        <source>Could not add your update.</source>
+        <target>Deine Aktualisierung konnte nicht hinzugefügt werden.</target>
+      </segment>
+    </unit>
     <unit id="7164688894418358201">
       <segment state="initial">
         <source>What PK Spot receives</source>
@@ -12377,6 +13037,12 @@
       <segment state="initial">
         <source>Error uploading the profile picture.</source>
         <target>Fehler beim Hochladen des Profilbilds.</target>
+      </segment>
+    </unit>
+    <unit id="7183346391731740218">
+      <segment state="initial">
+        <source>Child safety</source>
+        <target>Kindersicherheit</target>
       </segment>
     </unit>
     <unit id="7193934719093844817">
@@ -12401,6 +13067,18 @@
       <segment state="initial">
         <source>Show more</source>
         <target>Mehr anzeigen</target>
+      </segment>
+    </unit>
+    <unit id="721979004226425951">
+      <segment state="initial">
+        <source>How a report was handled</source>
+        <target>Bearbeitung einer Meldung</target>
+      </segment>
+    </unit>
+    <unit id="7221309413136584570">
+      <segment state="initial">
+        <source>Internal note (optional)</source>
+        <target>Interne Notiz (optional)</target>
       </segment>
     </unit>
     <unit id="7222489710265178271">
@@ -12589,6 +13267,12 @@
         <target> Check-ins und Updates von Organisationen zeigen, wo Parkour wirklich passiert. Die Karte bleibt aktuell, weil die Community sie aktuell hält. </target>
       </segment>
     </unit>
+    <unit id="6230817879161037769">
+      <segment state="initial">
+        <source>Awaiting information</source>
+        <target>Warten auf Informationen</target>
+      </segment>
+    </unit>
     <unit id="6234372277464900526">
       <segment state="initial">
         <source>Promoted event</source>
@@ -12605,6 +13289,12 @@
       <segment state="initial">
         <source>None</source>
         <target>Keine</target>
+      </segment>
+    </unit>
+    <unit id="6261837376343461951">
+      <segment state="initial">
+        <source>Self-harm or suicide</source>
+        <target>Selbstverletzung oder Suizid</target>
       </segment>
     </unit>
     <unit id="6266780676699111627">
@@ -12643,10 +13333,22 @@
         <target> Alle Challenges von <ph id="0" equiv="INTERPOLATION" disp="{{ selectedSpot()!.name() }}"/> </target>
       </segment>
     </unit>
+    <unit id="4038016446143404869">
+      <segment state="initial">
+        <source>Target response:</source>
+        <target>Antwortziel:</target>
+      </segment>
+    </unit>
     <unit id="4043049091728011235">
       <segment state="initial">
         <source>Cancelled</source>
         <target>Abgesagt</target>
+      </segment>
+    </unit>
+    <unit id="4044515139696080108">
+      <segment state="translated">
+        <source>Affected account holder</source>
+        <target>Betroffene Person mit Konto</target>
       </segment>
     </unit>
     <unit id="4046179348234171126">
@@ -12725,6 +13427,18 @@
       <segment state="initial">
         <source>Editor</source>
         <target>Bearbeiter</target>
+      </segment>
+    </unit>
+    <unit id="3744069822390240057">
+      <segment state="initial">
+        <source> Use this private channel to report a safety concern, complain about PK Spot, or challenge how a previous report was handled. You do not need an account. </source>
+        <target>Nutze diesen privaten Kanal, um ein Sicherheitsproblem zu melden, dich über PK Spot zu beschweren oder die Bearbeitung einer früheren Meldung anzufechten. Du brauchst kein Konto.</target>
+      </segment>
+    </unit>
+    <unit id="3747597665217141319">
+      <segment state="initial">
+        <source>Another safety concern</source>
+        <target>Anderes Sicherheitsproblem</target>
       </segment>
     </unit>
     <unit id="3750896546807006672">
@@ -12919,6 +13633,12 @@
         <target>Prüfung ausstehend</target>
       </segment>
     </unit>
+    <unit id="1629110082218932522">
+      <segment state="initial">
+        <source>Short summary</source>
+        <target>Kurze Zusammenfassung</target>
+      </segment>
+    </unit>
     <unit id="1632949913064020849">
       <segment state="initial">
         <source>Dismissed</source>
@@ -13009,6 +13729,12 @@
         <target>Nicht verfügbar</target>
       </segment>
     </unit>
+    <unit id="3845136227654022046">
+      <segment state="initial">
+        <source>Harassment or hate</source>
+        <target>Belästigung oder Hass</target>
+      </segment>
+    </unit>
     <unit id="3849719587486813146">
       <segment state="initial">
         <source> PK Spot is a free, privacy-first, community-owned map for parkour. The project is built entirely by volunteers to help athletes find spots, connect, and share their local scene. </source>
@@ -13031,6 +13757,12 @@
       <segment state="initial">
         <source>Spot deleted</source>
         <target>Spot gelöscht</target>
+      </segment>
+    </unit>
+    <unit id="3888833967297756994">
+      <segment state="initial">
+        <source>Spot preview</source>
+        <target>Spot-Vorschau</target>
       </segment>
     </unit>
     <unit id="389079921595754695">
@@ -13099,6 +13831,12 @@
         <target> Diese Veranstaltung ist nicht öffentlich. Nur Administratoren können sie sehen. </target>
       </segment>
     </unit>
+    <unit id="2712309340716220855">
+      <segment state="initial">
+        <source> Keep the reference above. If you submitted as a guest, use the private verification link sent to your email to view updates or add information. </source>
+        <target>Bewahre die obige Referenz auf. Wenn du als Gast eingereicht hast, nutze den privaten Bestätigungslink in deiner E-Mail, um Aktualisierungen anzusehen oder Informationen hinzuzufügen.</target>
+      </segment>
+    </unit>
     <unit id="2715740819906435675">
       <segment state="initial">
         <source> Media is processing and will appear here when it is ready. </source>
@@ -13117,10 +13855,28 @@
         <target>Live-Update veröffentlichen</target>
       </segment>
     </unit>
+    <unit id="5788471518451110162">
+      <segment state="initial">
+        <source>Complex target</source>
+        <target>Komplexes Ziel</target>
+      </segment>
+    </unit>
     <unit id="5789685393585856728">
       <segment state="initial">
         <source>Unverified contact email</source>
         <target>Nicht verifizierte Kontakt-E-Mail</target>
+      </segment>
+    </unit>
+    <unit id="579084822382819407">
+      <segment state="initial">
+        <source>Photo or video</source>
+        <target>Foto oder Video</target>
+      </segment>
+    </unit>
+    <unit id="1806667489382256324">
+      <segment state="initial">
+        <source>Category</source>
+        <target>Kategorie</target>
       </segment>
     </unit>
     <unit id="1814768182936887464">
@@ -13219,6 +13975,18 @@
         <target>Nach Eventkategorie filtern</target>
       </segment>
     </unit>
+    <unit id="3480235560414212524">
+      <segment state="initial">
+        <source> Reports are private. We keep the information needed to investigate, prevent abuse, explain decisions, and handle an appeal. Network and device security metadata is removed after 90 days. </source>
+        <target>Meldungen sind privat. Wir bewahren die Informationen auf, die zur Untersuchung, Missbrauchsprävention, Begründung von Entscheidungen und Bearbeitung eines Einspruchs nötig sind. Sicherheitsmetadaten zu Netzwerk und Gerät werden nach 90 Tagen entfernt.</target>
+      </segment>
+    </unit>
+    <unit id="3482739346708355755">
+      <segment state="initial">
+        <source>Authenticated:</source>
+        <target>Authentifiziert:</target>
+      </segment>
+    </unit>
     <unit id="3483311644139102304">
       <segment state="initial">
         <source>All Event Challenges</source>
@@ -13237,6 +14005,12 @@
         <target>Mutuals</target>
       </segment>
     </unit>
+    <unit id="3493029941798879288">
+      <segment state="initial">
+        <source>Case status</source>
+        <target>Fallstatus</target>
+      </segment>
+    </unit>
     <unit id="3493126540529865490">
       <notes>
         <note category="description">submitting label</note>
@@ -13244,6 +14018,12 @@
       <segment state="initial">
         <source>Submitting...</source>
         <target>Wird gesendet...</target>
+      </segment>
+    </unit>
+    <unit id="3496653775940285146">
+      <segment state="initial">
+        <source>Use 5–140 characters.</source>
+        <target>Verwende 5–140 Zeichen.</target>
       </segment>
     </unit>
     <unit id="4590398956969854643">
@@ -13306,6 +14086,12 @@
         <target>Erwachsenenberechtigung für <ph id="0" equiv="PH" disp="processed"/> Konten widerrufen</target>
       </segment>
     </unit>
+    <unit id="4666565275327863925">
+      <segment state="initial">
+        <source>Message to the reviewer</source>
+        <target>Nachricht an die prüfende Person</target>
+      </segment>
+    </unit>
     <unit id="4667715772382848347">
       <segment state="initial">
         <source>Profile not found</source>
@@ -13354,6 +14140,12 @@
         <target>Spot</target>
       </segment>
     </unit>
+    <unit id="3026495784849747398">
+      <segment state="initial">
+        <source>Record decision</source>
+        <target>Entscheidung erfassen</target>
+      </segment>
+    </unit>
     <unit id="3031673576218082316">
       <segment state="initial">
         <source>The selected file was too big. It must be smaller than <ph id="0" equiv="PH" disp="humanFileSize( this.maximumSizeInBytes(), )"/>.</source>
@@ -13364,6 +14156,12 @@
       <segment state="initial">
         <source> Automated scanning requires a manual check. </source>
         <target> Die automatische Prüfung erfordert eine manuelle Kontrolle. </target>
+      </segment>
+    </unit>
+    <unit id="3056581983954040276">
+      <segment state="initial">
+        <source> Use the private safety channel for content or account reports, complaints about PK Spot, and appeals against a decision. You do not need an account. </source>
+        <target>Nutze den privaten Sicherheitskanal für Meldungen zu Inhalten oder Konten, Beschwerden über PK Spot und Einsprüche gegen eine Entscheidung. Du brauchst kein Konto.</target>
       </segment>
     </unit>
     <unit id="3067846330176969856">
@@ -13388,6 +14186,18 @@
       <segment state="initial">
         <source>Choose organization</source>
         <target>Organisation auswählen</target>
+      </segment>
+    </unit>
+    <unit id="2075947254275135132">
+      <segment state="initial">
+        <source>Problem making a report</source>
+        <target>Problem beim Einreichen einer Meldung</target>
+      </segment>
+    </unit>
+    <unit id="2077570493331103831">
+      <segment state="initial">
+        <source>Triaged as soon as possible</source>
+        <target>Triage so schnell wie möglich</target>
       </segment>
     </unit>
     <unit id="2081295007072116210">
@@ -13430,6 +14240,12 @@
       <segment state="initial">
         <source> Everything on this page is public. Do not add your address, school, private training spots, phone number, or anything that shows where you usually are. </source>
         <target> Everything on this page is public. Do not add your address, school, private training Spots, phone number, or anything that shows where you usually are. </target>
+      </segment>
+    </unit>
+    <unit id="2734022681675842051">
+      <segment state="initial">
+        <source>Priority</source>
+        <target>Priorität</target>
       </segment>
     </unit>
     <unit id="2735597846335347226">

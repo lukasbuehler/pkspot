@@ -104,6 +104,7 @@ function isKnownAngularRoute(pathname) {
     "about",
     "support",
     "contact",
+    "safety",
     "terms-of-service",
     "tos",
     "privacy-policy",
@@ -123,6 +124,7 @@ function isKnownAngularRoute(pathname) {
   ]);
 
   if (staticRoutes.has(first)) return true;
+  if (first === "moderation") return true;
   if (first === "s" && second) return true;
   if (first === "e" && second) return true;
   if (first === "u" && second) return true;

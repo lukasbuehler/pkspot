@@ -225,6 +225,18 @@
                 that this account is 18 or older. A self-declared age range is
                 not enough.
               </p>
+              <a
+                mat-button
+                routerLink="/safety"
+                [queryParams]="{
+                  type: 'complaint',
+                  category: 'age_assurance_decision',
+                  subjectType: 'age_assurance'
+                }"
+                i18n
+              >
+                Report an incorrect age-assurance decision
+              </a>
             }
             <button
               mat-flat-button

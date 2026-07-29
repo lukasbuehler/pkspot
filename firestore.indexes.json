@@ -293,6 +293,24 @@
       "indexes": []
     },
     {
+      "collectionGroup": "safety_case_access_tokens",
+      "fieldPath": "expires_at",
+      "ttl": true,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "safety_case_sessions",
+      "fieldPath": "expires_at",
+      "ttl": true,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "safety_case_rate_limits",
+      "fieldPath": "expires_at",
+      "ttl": true,
+      "indexes": []
+    },
+    {
       "collectionGroup": "edits",
       "fieldPath": "timestamp",
       "indexes": [

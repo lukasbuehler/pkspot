@@ -1,0 +1,104 @@
+<main class="cases-page">
+  <header>
+    <div>
+      <a matButton="text" routerLink="/moderation">
+        <mat-icon>arrow_back</mat-icon>
+        <span i18n>Moderation</span>
+      </a>
+      <h1 i18n>Safety cases</h1>
+      <p i18n>
+        Reports, complaints, appeals, deadlines, correspondence, and decisions
+        in one private queue.
+      </p>
+    </div>
+    @if (auth.isAdmin()) {
+      <button matButton="outlined" type="button" (click)="reload()">
+        <mat-icon>refresh</mat-icon>
+        <span i18n>Refresh</span>
+      </button>
+    }
+  </header>
+
+  @if (!auth.authorizationStateResolved()) {
+    <div class="cases-page__center">
+      <mat-progress-spinner mode="indeterminate" diameter="36" />
+    </div>
+  } @else if (!auth.isAdmin()) {
+    <p i18n>Admin access required.</p>
+  } @else {
+    <section class="cases-page__stats">
+      <mat-card>
+        <mat-card-content>
+          <strong>{{ cases().length }}</strong>
+          <span i18n>Total cases loaded</span>
+        </mat-card-content>
+      </mat-card>
+      <mat-card [class.cases-page__overdue]="overdueCount() > 0">
+        <mat-card-content>
+          <strong>{{ overdueCount() }}</strong>
+          <span i18n>Past target date</span>
+        </mat-card-content>
+      </mat-card>
+    </section>
+
+    <mat-form-field appearance="outline">
+      <mat-label i18n>Case status</mat-label>
+      <mat-select
+        [value]="status()"
+        (selectionChange)="statusChanged($event.value)"
+      >
+        @for (option of statusOptions; track option.value) {
+          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    @if (loading()) {
+      <div class="cases-page__center">
+        <mat-progress-spinner mode="indeterminate" diameter="36" />
+        <span i18n>Loading cases...</span>
+      </div>
+    } @else if (visibleCases().length === 0) {
+      <p i18n>No cases match this filter.</p>
+    } @else {
+      <section class="cases-page__list">
+        @for (item of visibleCases(); track item.id) {
+          <a
+            class="cases-page__case"
+            [class.cases-page__case--overdue]="isOverdue(item)"
+            [routerLink]="['/moderation/cases', item.public_reference]"
+          >
+            <div class="cases-page__case-heading">
+              <div>
+                <span>{{ item.public_reference }}</span>
+                <h2>{{ item.summary }}</h2>
+              </div>
+              <mat-chip-set>
+                <mat-chip>{{ item.case_type }}</mat-chip>
+                <mat-chip>{{ item.priority }}</mat-chip>
+                <mat-chip>{{ item.status }}</mat-chip>
+              </mat-chip-set>
+            </div>
+            <p>{{ item.category }} · {{ item.subject.type }}</p>
+            <footer>
+              <span>
+                <strong i18n>Received:</strong>
+                {{ item.acknowledged_at | date: "medium" }}
+              </span>
+              <span>
+                <strong i18n>Target:</strong>
+                {{ item.target_resolution_at | date: "mediumDate" }}
+              </span>
+              @if (item.assigned_to) {
+                <span>
+                  <strong i18n>Assigned:</strong>
+                  {{ item.assigned_to.display_name || item.assigned_to.uid }}
+                </span>
+              }
+            </footer>
+          </a>
+        }
+      </section>
+    }
+  }
+</main>

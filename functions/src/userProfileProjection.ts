@@ -92,10 +92,22 @@ const normalizedProfileVisibility = (
   return accountPrivacy === "private" ? "followers" : "public";
 };
 
+const moderationAllowsProfileVisibility = (
+  user: Record<string, unknown>,
+): boolean => {
+  const moderationState = user["moderation_state"];
+  return (
+    !isRecord(moderationState) ||
+    moderationState["status"] === undefined ||
+    moderationState["status"] === "active"
+  );
+};
+
 export const effectivePublicProfileEnabled = (
   user: Record<string, unknown>
 ): boolean =>
   user["public_profile_enabled"] === true &&
+  moderationAllowsProfileVisibility(user) &&
   hasVerifiedAdultEligibility(user) &&
   normalizedAccountPrivacy(user) === "public" &&
   normalizedProfileVisibility(user) === "public";
@@ -103,6 +115,7 @@ export const effectivePublicProfileEnabled = (
 export const profileAudienceForUser = (
   user: Record<string, unknown>
 ): UserProfileAudience => {
+  if (!moderationAllowsProfileVisibility(user)) return "owner";
   if (hasConfirmedMinorAge(user)) return "owner";
   if (effectivePublicProfileEnabled(user)) return "public";
 
