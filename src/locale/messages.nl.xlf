@@ -7199,6 +7199,12 @@
         <target> Active until time </target>
       </segment>
     </unit>
+    <unit id="event_edit.additional_spot_count">
+      <segment state="initial">
+        <source> +<ph id="0" equiv="INTERPOLATION" disp="{{ selectedOptions().length - 1 }}"/> more </source>
+        <target> +<ph id="0" equiv="INTERPOLATION" disp="{{ selectedOptions().length - 1 }}"/> meer </target>
+      </segment>
+    </unit>
     <unit id="event_edit.area_label">
       <segment state="initial">
         <source> Optional venue and map location </source>
@@ -9011,16 +9017,76 @@
         <target> Privé-evenement </target>
       </segment>
     </unit>
+    <unit id="event_program.all_days">
+      <segment state="initial">
+        <source>All days</source>
+        <target>Alle dagen</target>
+      </segment>
+    </unit>
+    <unit id="event_program.all_days_hint">
+      <segment state="initial">
+        <source> Program locations across all event days. </source>
+        <target> Programmalocaties op alle evenementdagen. </target>
+      </segment>
+    </unit>
+    <unit id="event_program.all_locations">
+      <segment state="initial">
+        <source> All program locations </source>
+        <target> Alle programmalocaties </target>
+      </segment>
+    </unit>
+    <unit id="event_program.at_this_spot">
+      <segment state="initial">
+        <source> Program at this Spot </source>
+        <target> Programma op deze Spot </target>
+      </segment>
+    </unit>
+    <unit id="event_program.day_filter">
+      <segment state="initial">
+        <source>Program day</source>
+        <target>Programmadag</target>
+      </segment>
+    </unit>
+    <unit id="event_program.happening_now">
+      <segment state="initial">
+        <source> Happening now </source>
+        <target> Nu bezig </target>
+      </segment>
+    </unit>
     <unit id="event_program.heading">
       <segment state="initial">
-        <source> Program </source>
-        <target> Programma </target>
+        <source>Program</source>
+        <target>Programma</target>
+      </segment>
+    </unit>
+    <unit id="event_program.mapped_schedule">
+      <segment state="initial">
+        <source> Mapped program </source>
+        <target> Programma op de kaart </target>
+      </segment>
+    </unit>
+    <unit id="event_program.next">
+      <segment state="initial">
+        <source>Next</source>
+        <target>Volgende</target>
+      </segment>
+    </unit>
+    <unit id="event_program.no_mapped_locations">
+      <segment state="initial">
+        <source> No mapped program locations for this day. </source>
+        <target> Geen programmalocaties op de kaart voor deze dag. </target>
       </segment>
     </unit>
     <unit id="event_program.open_linked">
       <segment state="initial">
         <source>Open event</source>
         <target>Evenement openen</target>
+      </segment>
+    </unit>
+    <unit id="event_program.selected_day_hint">
+      <segment state="initial">
+        <source> Select a program point to focus its Spot. </source>
+        <target> Selecteer een programmapunt om de bijbehorende Spot te centreren. </target>
       </segment>
     </unit>
     <unit id="events.area_filter_area">

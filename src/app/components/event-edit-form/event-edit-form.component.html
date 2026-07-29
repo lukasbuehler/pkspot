@@ -2590,11 +2590,11 @@
                               i18n-label="@@event_edit.program_item_spot_kind"
                               [spotIds]="spotIds()"
                               [inlineSpots]="selectableInlineSpots()"
-                              [valueId]="item.spotRefId"
-                              [valueKind]="item.spotRefKind"
+                              [values]="item.spotRefs"
+                              [multiple]="true"
                               [disabled]="saving()"
-                              (selectionChange)="
-                                updateProgramSpotSelection(
+                              (selectionsChange)="
+                                updateProgramSpotSelections(
                                   plan.id,
                                   item.id,
                                   $event

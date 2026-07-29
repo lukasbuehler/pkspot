@@ -1,12 +1,25 @@
 <mat-form-field appearance="outline" subscriptSizing="dynamic">
   <mat-label>{{ label() }}</mat-label>
   <mat-select
-    [value]="selectedKey()"
+    [value]="selectedKeys()"
+    [multiple]="multiple()"
     [disabled]="disabled()"
     (selectionChange)="selectionChanged($event.value)"
   >
     <mat-select-trigger>
-      @if (selectedOption(); as selected) {
+      @if (multiple() && selectedOptions().length > 0) {
+        <span class="spot-option spot-option--selected">
+          <span class="spot-image-placeholder"><mat-icon>location_on</mat-icon></span>
+          <span>
+            {{ selectedOptions()[0].name }}
+            @if (selectedOptions().length > 1) {
+              <span i18n="@@event_edit.additional_spot_count">
+                +{{ selectedOptions().length - 1 }} more
+              </span>
+            }
+          </span>
+        </span>
+      } @else if (selectedOption(); as selected) {
         <span class="spot-option spot-option--selected">
           @if (selected.imageSrc) {
             <img [src]="selected.imageSrc" alt="" />
@@ -20,10 +33,12 @@
       }
     </mat-select-trigger>
 
-    <mat-option value="" i18n>No linked Spot</mat-option>
+    @if (!multiple()) {
+      <mat-option value="" i18n>No linked Spot</mat-option>
+    }
     @if (storedOptions().length > 0 || storedSpots.isLoading()) {
       <mat-optgroup label="Map Spots" i18n-label>
-        @for (spot of storedOptions(); track spot.id) {
+        @for (spot of storedOptions(); track optionKey(spot)) {
           <mat-option [value]="optionKey(spot)">
             <ng-container
               [ngTemplateOutlet]="spotOption"
@@ -43,7 +58,7 @@
     }
     @if (inlineOptions().length > 0) {
       <mat-optgroup label="Temporary event Spots" i18n-label>
-        @for (spot of inlineOptions(); track spot.id) {
+        @for (spot of inlineOptions(); track optionKey(spot)) {
           <mat-option [value]="optionKey(spot)">
             <ng-container
               [ngTemplateOutlet]="spotOption"

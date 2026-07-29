@@ -402,6 +402,14 @@
             </div>
 
             <div class="map-preview-frame">
+              @if (programDays().length > 0) {
+                <app-event-program-day-chips
+                  class="map-program-day-chips"
+                  [days]="programDays()"
+                  [selectedDay]="selectedProgramDay()"
+                  (dayChange)="selectProgramDay($event)"
+                />
+              }
               <app-google-map-2d
                 id="eventInfoMap"
                 [showGeolocation]="false"
@@ -413,7 +421,7 @@
                 gestureHandling="cooperative"
                 mapStyle="hybrid"
                 [markers]="[]"
-                [priorityMarkers]="mapMarkers()"
+                [priorityMarkers]="mapPriorityMarkers()"
                 [spots]="spots()"
                 [highlightedSpots]="mapPreviewSpotMarkers()"
                 [showAllHighlightedSpotPins]="true"
@@ -421,6 +429,7 @@
                 [showSpotPreview]="true"
                 (boundsChange)="updateMapPreviewViewportBounds($event)"
                 (spotClick)="openMapForSpot($event)"
+                (markerClickEvent)="programMarkerClicked($event)"
               ></app-google-map-2d>
 
               <a
@@ -474,6 +483,8 @@
             [eventStart]="event.start"
             [eventEnd]="event.end"
             [weather]="eventWeather()"
+            [spotBindings]="spotBindings()"
+            [eventMapRoute]="mapRoute()"
             (weatherSelected)="openEventWeather($event)"
           />
         </section>

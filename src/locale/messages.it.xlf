@@ -7043,6 +7043,12 @@
         <target> Active until time </target>
       </segment>
     </unit>
+    <unit id="event_edit.additional_spot_count">
+      <segment state="initial">
+        <source> +<ph id="0" equiv="INTERPOLATION" disp="{{ selectedOptions().length - 1 }}"/> more </source>
+        <target> +<ph id="0" equiv="INTERPOLATION" disp="{{ selectedOptions().length - 1 }}"/> altri </target>
+      </segment>
+    </unit>
     <unit id="event_edit.area_label">
       <segment state="initial">
         <source> Optional venue and map location </source>
@@ -8855,16 +8861,76 @@
         <target> Evento privato </target>
       </segment>
     </unit>
+    <unit id="event_program.all_days">
+      <segment state="initial">
+        <source>All days</source>
+        <target>Tutti i giorni</target>
+      </segment>
+    </unit>
+    <unit id="event_program.all_days_hint">
+      <segment state="initial">
+        <source> Program locations across all event days. </source>
+        <target> Luoghi del programma per tutti i giorni dell’evento. </target>
+      </segment>
+    </unit>
+    <unit id="event_program.all_locations">
+      <segment state="initial">
+        <source> All program locations </source>
+        <target> Tutti i luoghi del programma </target>
+      </segment>
+    </unit>
+    <unit id="event_program.at_this_spot">
+      <segment state="initial">
+        <source> Program at this Spot </source>
+        <target> Programma in questo Spot </target>
+      </segment>
+    </unit>
+    <unit id="event_program.day_filter">
+      <segment state="initial">
+        <source>Program day</source>
+        <target>Giorno del programma</target>
+      </segment>
+    </unit>
+    <unit id="event_program.happening_now">
+      <segment state="initial">
+        <source> Happening now </source>
+        <target> In corso </target>
+      </segment>
+    </unit>
     <unit id="event_program.heading">
       <segment state="initial">
-        <source> Program </source>
-        <target> Programma </target>
+        <source>Program</source>
+        <target>Programma</target>
+      </segment>
+    </unit>
+    <unit id="event_program.mapped_schedule">
+      <segment state="initial">
+        <source> Mapped program </source>
+        <target> Programma sulla mappa </target>
+      </segment>
+    </unit>
+    <unit id="event_program.next">
+      <segment state="initial">
+        <source>Next</source>
+        <target>Successivo</target>
+      </segment>
+    </unit>
+    <unit id="event_program.no_mapped_locations">
+      <segment state="initial">
+        <source> No mapped program locations for this day. </source>
+        <target> Nessun luogo del programma sulla mappa per questo giorno. </target>
       </segment>
     </unit>
     <unit id="event_program.open_linked">
       <segment state="initial">
         <source>Open event</source>
         <target>Apri evento</target>
+      </segment>
+    </unit>
+    <unit id="event_program.selected_day_hint">
+      <segment state="initial">
+        <source> Select a program point to focus its Spot. </source>
+        <target> Seleziona un punto del programma per centrare il relativo Spot. </target>
       </segment>
     </unit>
     <unit id="events.area_filter_area">
@@ -13358,7 +13424,7 @@
     <unit id="4044515139696080108">
       <segment state="translated">
         <source>Affected account holder</source>
-        <target>Titolare dell'account interessato</target>
+        <target>Titolare dell&apos;account interessato</target>
       </segment>
     </unit>
     <unit id="4046179348234171126">

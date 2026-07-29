@@ -3275,6 +3275,11 @@
         <source> Active until time </source>
       </segment>
     </unit>
+    <unit id="event_edit.additional_spot_count">
+      <segment>
+        <source> +<ph id="0" equiv="INTERPOLATION" disp="{{ selectedOptions().length - 1 }}"/> more </source>
+      </segment>
+    </unit>
     <unit id="event_edit.area_label">
       <segment>
         <source> Optional venue and map location </source>
@@ -5025,14 +5030,64 @@
         <source> Private event </source>
       </segment>
     </unit>
+    <unit id="event_program.all_days">
+      <segment>
+        <source>All days</source>
+      </segment>
+    </unit>
+    <unit id="event_program.all_days_hint">
+      <segment>
+        <source> Program locations across all event days. </source>
+      </segment>
+    </unit>
+    <unit id="event_program.all_locations">
+      <segment>
+        <source> All program locations </source>
+      </segment>
+    </unit>
+    <unit id="event_program.at_this_spot">
+      <segment>
+        <source> Program at this Spot </source>
+      </segment>
+    </unit>
+    <unit id="event_program.day_filter">
+      <segment>
+        <source>Program day</source>
+      </segment>
+    </unit>
+    <unit id="event_program.happening_now">
+      <segment>
+        <source> Happening now </source>
+      </segment>
+    </unit>
     <unit id="event_program.heading">
       <segment>
-        <source> Program </source>
+        <source>Program</source>
+      </segment>
+    </unit>
+    <unit id="event_program.mapped_schedule">
+      <segment>
+        <source> Mapped program </source>
+      </segment>
+    </unit>
+    <unit id="event_program.next">
+      <segment>
+        <source>Next</source>
+      </segment>
+    </unit>
+    <unit id="event_program.no_mapped_locations">
+      <segment>
+        <source> No mapped program locations for this day. </source>
       </segment>
     </unit>
     <unit id="event_program.open_linked">
       <segment>
         <source>Open event</source>
+      </segment>
+    </unit>
+    <unit id="event_program.selected_day_hint">
+      <segment>
+        <source> Select a program point to focus its Spot. </source>
       </segment>
     </unit>
     <unit id="event_qualification.heading">

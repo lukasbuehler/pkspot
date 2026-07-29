@@ -283,7 +283,69 @@ describe("EventMapPageComponent", () => {
     ]);
 
     const localSpot = buildLocalSpot("Inline spot");
+    component.event.set(
+      buildEvent("swissjam26", {
+        time_zone: "UTC",
+        inline_spots: [
+          {
+            id: "main-stage",
+            name: "Main stage",
+            location: { lat: 47.3, lng: 8.5 },
+          },
+        ],
+        program: {
+          active_plan_id: "main",
+          plans: [
+            {
+              id: "main",
+              label: "Main",
+              kind: "main",
+              items: [
+                {
+                  id: "training",
+                  title: "Training",
+                  category: "workshop",
+                  start: "2026-06-14T10:00:00.000Z",
+                  end: "2026-06-14T12:00:00.000Z",
+                  spot_ref: { kind: "inline_spot", id: "main-stage" },
+                },
+                {
+                  id: "jam",
+                  title: "Jam",
+                  category: "jam",
+                  start: "2026-06-14T14:00:00.000Z",
+                  spot_ref: { kind: "inline_spot", id: "main-stage" },
+                },
+              ],
+            },
+          ],
+        },
+      }),
+    );
     component.spots.set([localSpot]);
+    component.spotBindings.set([
+      {
+        ref: { kind: "inline_spot", id: "main-stage" },
+        spot: localSpot,
+      },
+    ]);
+    component.now.set(new Date("2026-06-14T10:30:00.000Z"));
+    component.selectedProgramDay.set("2026-06-14");
+    component.tab.set("program");
+
+    expect(component.mapPriorityMarkers()).toEqual([
+      expect.objectContaining({
+        type: "event-program",
+        color: "secondary",
+        badge: "+1",
+        number: expect.stringContaining("10"),
+      }),
+    ]);
+    component.markerClick(0);
+    expect(component.selectedSpot()).toBe(localSpot);
+    expect(component.selectedProgramItemId()).toBe("training");
+
+    component.tab.set("all");
     component.selectSpot({
       id: "event-local-spot-0" as SpotId,
       name: "Inline spot",

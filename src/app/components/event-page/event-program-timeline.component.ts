@@ -36,9 +36,19 @@ import {
   WeatherIconButtonComponent,
   type WeatherIconData,
 } from "../weather-icon-button/weather-icon-button.component";
+import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
+import {
+  effectiveProgramItem,
+  eventProgramSpotRefKey,
+  eventProgramSpotRefs,
+  type EventSpotBinding,
+} from "../../shared/event-program-spots";
 
 interface ProgramItemView {
   item: EventProgramItem;
+  start: Date;
+  end?: Date;
+  spots: EventSpotBinding[];
   weather?: WeatherIconData;
 }
 
@@ -64,6 +74,7 @@ interface ProgramDayGroup {
     MatChipsModule,
     MatIconModule,
     MatTabsModule,
+    SpotPreviewCardComponent,
     WeatherIconButtonComponent,
   ],
   template: `
@@ -99,16 +110,16 @@ interface ProgramDayGroup {
                 <div class="program-rail">
                   <span class="program-dot" aria-hidden="true"></span>
                   <span class="mat-label-medium program-time">
-                    {{ itemTime(item.start) }}
+                    {{ itemTime(entry.start) }}
                   </span>
                 </div>
                 <div class="program-copy">
                   <div class="program-title-row">
                     <div>
                       <h3 class="mat-title-small m-0">{{ item.title }}</h3>
-                      @if (item.end) {
+                      @if (entry.end) {
                         <p class="mat-label-medium program-range">
-                          {{ itemTimeRange(item) }}
+                          {{ itemTimeRange(entry.start, entry.end) }}
                         </p>
                       }
                     </div>
@@ -118,7 +129,7 @@ interface ProgramDayGroup {
                           [weather]="weather"
                           display="temperature"
                           size="compact"
-                          (pressed)="selectItemWeather(day.key, item.start)"
+                          (pressed)="selectItemWeather(day.key, entry.start)"
                         />
                       }
                       <mat-chip>
@@ -156,6 +167,31 @@ interface ProgramDayGroup {
                       }}
                     </p>
                   }
+                  @if (entry.spots.length > 0) {
+                    <div class="program-spots">
+                      @for (binding of entry.spots; track binding.ref.kind + ':' + binding.ref.id) {
+                        <a
+                          class="program-spot-link"
+                          [routerLink]="eventMapRoute()"
+                          [queryParams]="{
+                            mapFilter: 'program',
+                            day: day.key,
+                            spotId: binding.ref.id,
+                            programItemId: item.id,
+                          }"
+                        >
+                          <app-spot-preview-card
+                            [spotData]="binding.spot"
+                            [isCompact]="true"
+                            [hasBorder]="true"
+                            [showInfoButton]="false"
+                            [showRating]="false"
+                            [imgSize]="200"
+                          />
+                        </a>
+                      }
+                    </div>
+                  }
                 </div>
               </article>
             }
@@ -175,6 +211,8 @@ export class EventProgramTimelineComponent {
   readonly eventStart = input<Date>();
   readonly eventEnd = input<Date>();
   readonly weather = input<WeatherResponse>();
+  readonly spotBindings = input<readonly EventSpotBinding[]>([]);
+  readonly eventMapRoute = input.required<string[]>();
   readonly weatherSelected = output<EventWeatherSelection>();
 
   readonly dayGroups = computed<ProgramDayGroup[]>(() => {
@@ -187,21 +225,36 @@ export class EventProgramTimelineComponent {
       month: "short",
       timeZone: this.timeZone(),
     });
+    const bindingsByRef = new Map(
+      this.spotBindings().map((binding) => [
+        eventProgramSpotRefKey(binding.ref),
+        binding,
+      ]),
+    );
 
     for (const item of [...this.items()].sort(
-      (left, right) => left.start.getTime() - right.start.getTime(),
+      (left, right) =>
+        effectiveProgramItem(left).start.getTime() -
+        effectiveProgramItem(right).start.getTime(),
     )) {
-      const key = eventDateKey(item.start, this.timeZone());
+      const effective = effectiveProgramItem(item);
+      const key = eventDateKey(effective.start, this.timeZone());
       const eventStart = this.eventStart();
       const eventEnd = this.eventEnd();
       const itemIsWithinEvent =
-        (!eventStart || item.start >= eventStart) &&
-        (!eventEnd || item.start <= eventEnd);
+        (!eventStart || effective.start >= eventStart) &&
+        (!eventEnd || effective.start <= eventEnd);
       const itemView: ProgramItemView = {
         item,
+        start: effective.start,
+        end: effective.end,
+        spots: eventProgramSpotRefs(item).flatMap((ref) => {
+          const binding = bindingsByRef.get(eventProgramSpotRefKey(ref));
+          return binding ? [binding] : [];
+        }),
         weather: this.hourWeatherData(
           itemIsWithinEvent
-            ? forecastHourAt(response?.forecast, item.start)
+            ? forecastHourAt(response?.forecast, effective.start)
             : undefined,
         ),
       };
@@ -211,7 +264,7 @@ export class EventProgramTimelineComponent {
       } else {
         groups.set(key, {
           key,
-          label: labelFormatter.format(item.start),
+          label: labelFormatter.format(effective.start),
           items: [itemView],
           weather: this.dayWeatherData(dailyByDate.get(key)),
         });
@@ -237,9 +290,9 @@ export class EventProgramTimelineComponent {
     });
   }
 
-  itemTimeRange(item: EventProgramItem): string {
-    const start = this.itemTime(item.start);
-    return item.end ? `${start} - ${this.itemTime(item.end)}` : start;
+  itemTimeRange(startDate: Date, endDate?: Date): string {
+    const start = this.itemTime(startDate);
+    return endDate ? `${start} - ${this.itemTime(endDate)}` : start;
   }
 
   categoryLabel(category: EventCategory): string {

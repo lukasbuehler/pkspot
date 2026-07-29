@@ -363,6 +363,69 @@
                   }
                 </div>
               }
+              @case ("program") {
+                <div
+                  class="program-drawer d-flex flex-column gap-3 p-3 overflow-y-auto w-100"
+                >
+                  @if (selectedSpot()) {
+                    <button
+                      mat-button
+                      type="button"
+                      class="align-self-start"
+                      (click)="deselectSpot()"
+                    >
+                      <mat-icon>arrow_back_ios</mat-icon>
+                      <span i18n="@@event_program.all_locations">
+                        All program locations
+                      </span>
+                    </button>
+                    <section class="d-flex flex-column gap-2">
+                      <h2 class="mat-title-medium m-0">
+                        {{ selectedSpot()!.name() }}
+                      </h2>
+                      <p
+                        class="mat-label-large program-section-label m-0"
+                        i18n="@@event_program.at_this_spot"
+                      >
+                        Program at this Spot
+                      </p>
+                      <app-event-program-occurrence-list
+                        [occurrences]="selectedSpotProgramOccurrences()"
+                        [timeZone]="event()?.timeZone"
+                        [selectedItemId]="selectedProgramItemId()"
+                        [showSpotCards]="false"
+                        (occurrenceSelected)="selectProgramOccurrence($event)"
+                      />
+                    </section>
+                  } @else {
+                    <div>
+                      <h2
+                        class="mat-title-medium m-0"
+                        i18n="@@event_program.mapped_schedule"
+                      >
+                        Mapped program
+                      </h2>
+                      <p class="mat-body-small program-section-label m-0">
+                        @if (selectedProgramDay()) {
+                          <span i18n="@@event_program.selected_day_hint">
+                            Select a program point to focus its Spot.
+                          </span>
+                        } @else {
+                          <span i18n="@@event_program.all_days_hint">
+                            Program locations across all event days.
+                          </span>
+                        }
+                      </p>
+                    </div>
+                    <app-event-program-occurrence-list
+                      [occurrences]="visibleProgramOccurrences()"
+                      [timeZone]="event()?.timeZone"
+                      [selectedItemId]="selectedProgramItemId()"
+                      (occurrenceSelected)="selectProgramOccurrence($event)"
+                    />
+                  }
+                </div>
+              }
               @case ("spots") {
                 <!-- Show spots -->
                 @if (selectedSpot()) {
@@ -381,6 +444,22 @@
                       (dismiss)="deselectSpot()"
                       class="w-100 d-block overflow-x-hidden h-100"
                     ></app-spot-details>
+                    @if (selectedSpotProgramOccurrences().length > 0) {
+                      <section class="spot-program-section">
+                        <h2
+                          class="mat-title-medium m-0"
+                          i18n="@@event_program.at_this_spot"
+                        >
+                          Program at this Spot
+                        </h2>
+                        <app-event-program-occurrence-list
+                          [occurrences]="selectedSpotProgramOccurrences()"
+                          [timeZone]="event()?.timeZone"
+                          [showSpotCards]="false"
+                          (occurrenceSelected)="selectProgramOccurrence($event)"
+                        />
+                      </section>
+                    }
                   </div>
                 } @else {
                   @if (spots() && spots()!.length > 0) {
@@ -437,7 +516,19 @@
               class="w-100 h-100 overflow-hidden d-block"
             ></app-google-map-2d>
           }
-          @if (!sidenavOpen() && challenges().length > 0) {
+          @if (tab() === "program" && programDays().length > 0) {
+            <app-event-program-day-chips
+              class="event-map-program-days"
+              [days]="programDays()"
+              [selectedDay]="selectedProgramDay()"
+              (dayChange)="selectProgramDay($event)"
+            />
+          }
+          @if (
+            !sidenavOpen() &&
+            tab() === "challenges" &&
+            challenges().length > 0
+          ) {
             <div
               class="position-absolute d-flex flex-row flex-wrap gap-2 pb-3 overflow-x-hidden"
               style="top: 10px; left: 10px; width: calc(100% - 20px)"

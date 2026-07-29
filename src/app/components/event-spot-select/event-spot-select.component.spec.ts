@@ -70,4 +70,31 @@ describe("EventSpotSelectComponent", () => {
       kind: "inline_spot",
     });
   });
+
+  it("emits every selected event Spot in multi-select mode", () => {
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: LOCALE_ID, useValue: "en" },
+        { provide: SpotSelectionDataService, useValue: { resolve: vi.fn() } },
+      ],
+    });
+    const fixture = TestBed.createComponent(EventSpotSelectComponent);
+    fixture.componentRef.setInput("multiple", true);
+    fixture.componentRef.setInput("inlineSpots", [
+      { id: "stage", name: "Main stage" },
+      { id: "park", name: "Training park" },
+    ]);
+    const selectionsChange = vi.fn();
+    fixture.componentInstance.selectionsChange.subscribe(selectionsChange);
+
+    fixture.componentInstance.selectionChanged([
+      "inline_spot:stage",
+      "inline_spot:park",
+    ]);
+
+    expect(selectionsChange).toHaveBeenCalledWith([
+      { id: "stage", kind: "inline_spot" },
+      { id: "park", kind: "inline_spot" },
+    ]);
+  });
 });

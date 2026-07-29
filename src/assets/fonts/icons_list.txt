@@ -140,6 +140,7 @@ public
 do_not_disturb
 help_outline
 location_on
+location_off
 landscape
 location_disabled
 location_searching

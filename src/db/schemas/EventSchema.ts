@@ -483,6 +483,11 @@ export interface EventProgramItemSchema {
   start: Timestamp;
   end?: Timestamp;
   spot_ref?: EventProgramSpotRefSchema;
+  /**
+   * All Spots visited by this program block. `spot_ref` remains populated with
+   * the first entry while older app versions are supported.
+   */
+  spot_refs?: EventProgramSpotRefSchema[];
   status?: EventProgramItemStatus;
   runtime_override?: EventProgramRuntimeOverrideSchema;
   /**

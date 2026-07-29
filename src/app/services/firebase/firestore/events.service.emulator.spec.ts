@@ -491,6 +491,31 @@ runWithEmulator("EventsService emulator integration", () => {
           icons: ["camping"],
         },
       ],
+      program: {
+        active_plan_id: "main",
+        plans: [
+          {
+            id: "main",
+            label: "Main program",
+            kind: "main",
+            items: [
+              {
+                id: "training",
+                title: "Training",
+                category: "workshop",
+                start: Timestamp.fromDate(
+                  new Date("2026-06-02T10:00:00.000Z"),
+                ),
+                spot_refs: [
+                  { kind: "spot", id: "spot-a" },
+                  { kind: "inline_spot", id: "main-stage" },
+                ],
+                spot_ref: { kind: "spot", id: "spot-a" },
+              },
+            ],
+          },
+        ],
+      },
     });
 
     const snapshot = await adminDb().doc(`events/${eventId}`).get();
@@ -529,6 +554,18 @@ runWithEmulator("EventsService emulator integration", () => {
         ],
       },
     ]);
+    expect(data?.["program"].plans[0].items[0]).toEqual(
+      expect.objectContaining({
+        spot_refs: [
+          { kind: "spot", id: "spot-a" },
+          { kind: "inline_spot", id: "main-stage" },
+        ],
+        spot_ref: { kind: "spot", id: "spot-a" },
+      }),
+    );
+    expect(
+      data?.["program"].plans[0].items[0].start,
+    ).toBeInstanceOf(admin.firestore.Timestamp);
   });
 
   it("normalizes event Typesense helper fields to Firestore runtime types", async () => {

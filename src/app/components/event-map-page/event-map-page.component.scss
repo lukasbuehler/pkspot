@@ -116,6 +116,26 @@
   width: 100%;
 }
 
+.event-map-program-days {
+  left: 0.75rem;
+  max-width: calc(100% - 1.5rem);
+  position: absolute;
+  right: 0.75rem;
+  top: 0.75rem;
+  z-index: 2;
+}
+
+.program-section-label {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.spot-program-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
 :host ::ng-deep .event-spot-list mat-card.compact {
   width: 100%;
 }

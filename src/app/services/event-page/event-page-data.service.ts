@@ -26,6 +26,7 @@ import { SpotChallengesService } from "../firebase/firestore/spot-challenges.ser
 import { SWISSJAM25_STATIC } from "../../components/event-page/swissjam25.static";
 import { SearchService } from "../search.service";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
+import type { EventSpotBinding } from "../../shared/event-program-spots";
 
 export type EventPageMapMarker = MarkerSchema & {
   spotIndex?: number;
@@ -149,10 +150,14 @@ export class EventPageDataService {
     };
   }
 
-  async loadEventSpots(event: PkEvent): Promise<(Spot | LocalSpot)[]> {
-    const inline = event.inlineSpots.map((spot) =>
-      this.buildInlineSpot(event.id, spot),
-    );
+  async loadEventSpotBindings(event: PkEvent): Promise<EventSpotBinding[]> {
+    const inline = event.inlineSpots.map((spot, index) => ({
+      ref: {
+        kind: "inline_spot" as const,
+        id: spot.id || `event-local-spot-${index}`,
+      },
+      spot: this.buildInlineSpot(event.id, spot),
+    }));
 
     if (event.spotIds.length === 0) {
       return inline;
@@ -201,15 +206,22 @@ export class EventPageDataService {
         },
       );
     }
-    const loaded = event.spotIds
-      .map(
-        (id) =>
+    const loaded = event.spotIds.flatMap((id): EventSpotBinding[] => {
+      const spot =
           fallbackById.get(String(id)) ??
-          this._buildSpotPreview(previewsById.get(String(id))),
-      )
-      .filter((spot): spot is Spot | LocalSpot => !!spot);
+          this._buildSpotPreview(previewsById.get(String(id)));
+      return spot
+        ? [{ ref: { kind: "spot", id: String(id) }, spot }]
+        : [];
+    });
 
     return [...inline, ...loaded];
+  }
+
+  async loadEventSpots(event: PkEvent): Promise<(Spot | LocalSpot)[]> {
+    return (await this.loadEventSpotBindings(event)).map(
+      (binding) => binding.spot,
+    );
   }
 
   async loadEventChallenges(

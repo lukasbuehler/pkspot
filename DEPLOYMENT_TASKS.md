@@ -77,6 +77,25 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
+### Event program Spot maps
+
+This contract is additive. No Typesense schema or backend deployment is
+required; released clients continue reading the first `spot_ref`.
+
+- [ ] Release the compatible web client before writing program blocks with
+      multiple locations. Verify an existing event that only has `spot_ref`
+      still shows its Spot card and program time marker.
+
+- [ ] Audit the WPF Camp active program plan after the compatible release.
+      Populate each known location in `spot_refs` using only Spots already
+      attached to the event, deduplicate references by `kind` and `id`, and
+      mirror the first entry into `spot_ref`. Leave unresolved named locations
+      unlinked until their Spot IDs are confirmed.
+
+  Success condition: each mapped WPF Camp day chip shows the intended visited
+  Spots, multi-location blocks show every Spot, marker times match the effective
+  program times, and an older client still displays the first linked Spot.
+
 ### Unified safety cases, complaints, and appeals
 
 This rollout is additive and does not require releasing the new web or mobile

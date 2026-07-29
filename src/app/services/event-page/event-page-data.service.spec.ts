@@ -187,6 +187,43 @@ describe("EventPageDataService", () => {
     );
   });
 
+  it("keeps stable inline Spot reference ids in event map bindings", async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        { provide: SearchService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+      ],
+    });
+    const service = TestBed.inject(EventPageDataService);
+    const event = buildEvent("city-jam", {
+      inline_spots: [
+        {
+          id: "main-stage",
+          name: "Main stage",
+          location: { lat: 47.3, lng: 8.5 },
+        },
+        {
+          name: "Temporary park",
+          location: { lat: 47.31, lng: 8.51 },
+        },
+      ],
+    });
+
+    const bindings = await service.loadEventSpotBindings(event);
+
+    expect(bindings.map((binding) => binding.ref)).toEqual([
+      { kind: "inline_spot", id: "main-stage" },
+      { kind: "inline_spot", id: "event-local-spot-1" },
+    ]);
+    expect(bindings.map((binding) => binding.spot.name())).toEqual([
+      "Main stage",
+      "Temporary park",
+    ]);
+  });
+
   it("expands event map bounds to include loaded marker locations", () => {
     TestBed.configureTestingModule({
       providers: [

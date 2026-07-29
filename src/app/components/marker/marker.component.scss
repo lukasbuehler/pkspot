@@ -64,6 +64,21 @@
         font-size: 1.3rem;
       }
     }
+
+    .marker-badge {
+      align-items: center;
+      background: var(--mat-sys-primary-container);
+      border-radius: 999px;
+      color: var(--mat-sys-on-primary-container);
+      display: inline-flex;
+      font-size: 0.625rem;
+      font-weight: 800;
+      height: 1.125rem;
+      justify-content: center;
+      line-height: 1;
+      min-width: 1.125rem;
+      padding: 0 0.25rem;
+    }
   }
   > svg {
     z-index: -1;

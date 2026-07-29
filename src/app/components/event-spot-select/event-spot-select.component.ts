@@ -55,9 +55,12 @@ export class EventSpotSelectComponent {
   readonly inlineSpots = input<readonly SelectableInlineEventSpot[]>([]);
   readonly valueId = input("");
   readonly valueKind = input<EventSpotSelectionKind | "">("");
+  readonly values = input<readonly EventSpotSelection[]>([]);
+  readonly multiple = input(false);
   readonly label = input($localize`Event Spot (optional)`);
   readonly disabled = input(false);
   readonly selectionChange = output<EventSpotSelection | null>();
+  readonly selectionsChange = output<EventSpotSelection[]>();
 
   readonly storedSpots = resource({
     params: () => {
@@ -109,14 +112,35 @@ export class EventSpotSelectComponent {
       ) ?? null
     );
   });
+  readonly selectedOptions = computed(() => {
+    const selectedKeys = new Set(this.values().map((value) => this.optionKey(value)));
+    return this.options().filter((option) =>
+      selectedKeys.has(this.optionKey(option)),
+    );
+  });
   readonly selectedKey = computed(() => this.optionKey(this.selectedOption()));
+  readonly selectedKeys = computed(() =>
+    this.multiple()
+      ? this.selectedOptions().map((option) => this.optionKey(option))
+      : this.selectedKey(),
+  );
 
-  selectionChanged(key: string): void {
+  selectionChanged(value: string | string[]): void {
+    if (Array.isArray(value)) {
+      const selectedKeys = new Set(value);
+      this.selectionsChange.emit(
+        this.options()
+          .filter((option) => selectedKeys.has(this.optionKey(option)))
+          .map(({ id, kind }) => ({ id, kind })),
+      );
+      return;
+    }
+    const key = value;
     const option = this.options().find((candidate) => this.optionKey(candidate) === key);
     this.selectionChange.emit(option ? { id: option.id, kind: option.kind } : null);
   }
 
-  optionKey(option: EventSpotOption | null): string {
+  optionKey(option: EventSpotSelection | null): string {
     return option ? `${option.kind}:${option.id}` : "";
   }
 }

@@ -113,6 +113,7 @@ import {
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { UserPickerComponent } from "../user-picker/user-picker.component";
 import { EventTimeZoneService } from "../../services/event-time-zone.service";
+import { eventProgramSpotRefs } from "../../shared/event-program-spots";
 
 type OrganizationDocument = OrganizationSchema & { id: string };
 type EditableEventMarker = {
@@ -199,8 +200,7 @@ type EditableProgramItem = {
   category: EventCategory;
   start: string;
   end: string;
-  spotRefKind: EventProgramSpotRefSchema["kind"] | "";
-  spotRefId: string;
+  spotRefs: EventProgramSpotRefSchema[];
   status: EventProgramItemStatus;
   linkedEventId: string;
   preserved: Partial<
@@ -213,6 +213,7 @@ type EditableProgramItem = {
       | "start"
       | "end"
       | "spot_ref"
+      | "spot_refs"
       | "status"
       | "linked_event_id"
     >
@@ -919,8 +920,7 @@ export class EventEditFormComponent {
             category: item.category,
             start: dateTimeLocalValue(item.start),
             end: dateTimeLocalValue(item.end),
-            spotRefKind: item.spot_ref?.kind ?? "",
-            spotRefId: item.spot_ref?.id ?? "",
+            spotRefs: eventProgramSpotRefs(item),
             status: item.status ?? "scheduled",
             linkedEventId: item.linked_event_id ?? "",
             preserved: {
@@ -1611,8 +1611,7 @@ export class EventEditFormComponent {
                   category: "other",
                   start: "",
                   end: "",
-                  spotRefKind: "",
-                  spotRefId: "",
+                  spotRefs: [],
                   status: "scheduled",
                   linkedEventId: "",
                   preserved: {},
@@ -1676,15 +1675,27 @@ export class EventEditFormComponent {
     }
   }
 
+  updateProgramSpotSelections(
+    planId: string,
+    itemId: string,
+    selections: EventSpotSelection[],
+  ): void {
+    this.updateProgramItem(planId, itemId, {
+      spotRefs: selections,
+    });
+  }
+
+  /** Compatibility helper for single-Spot callers while the editor migrates. */
   updateProgramSpotSelection(
     planId: string,
     itemId: string,
     selection: EventSpotSelection | null,
   ): void {
-    this.updateProgramItem(planId, itemId, {
-      spotRefKind: selection?.kind ?? "",
-      spotRefId: selection?.id ?? "",
-    });
+    this.updateProgramSpotSelections(
+      planId,
+      itemId,
+      selection ? [selection] : [],
+    );
   }
 
   addSeriesMembership(): void {
@@ -2705,13 +2716,13 @@ export class EventEditFormComponent {
     const start = timestampFromDateTimeLocal(item.start);
     if (!id || !title || !start) return null;
 
-    const spotRef =
-      item.spotRefKind && trimOrUndefined(item.spotRefId)
-        ? {
-            kind: item.spotRefKind,
-            id: item.spotRefId.trim(),
-          }
-        : undefined;
+    const seenSpotRefs = new Set<string>();
+    const spotRefs = item.spotRefs.filter((ref) => {
+      const key = `${ref.kind}:${ref.id.trim()}`;
+      if (!ref.id.trim() || seenSpotRefs.has(key)) return false;
+      seenSpotRefs.add(key);
+      return true;
+    });
 
     return {
       ...item.preserved,
@@ -2721,7 +2732,8 @@ export class EventEditFormComponent {
       category: item.category,
       start,
       end: timestampFromDateTimeLocal(item.end),
-      spot_ref: spotRef,
+      spot_refs: spotRefs.length > 0 ? spotRefs : undefined,
+      spot_ref: spotRefs[0],
       status: item.status === "scheduled" ? undefined : item.status,
       linked_event_id: trimOrUndefined(item.linkedEventId),
     };

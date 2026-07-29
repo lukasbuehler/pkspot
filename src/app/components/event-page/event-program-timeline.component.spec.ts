@@ -3,6 +3,12 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AccountPreferencesService } from "../../services/account-preferences.service";
 import type { WeatherResponse } from "../../weather/weather.models";
 import { EventProgramTimelineComponent } from "./event-program-timeline.component";
+import { provideRouter } from "@angular/router";
+import { GeoPoint } from "firebase/firestore";
+import { LocalSpot } from "../../../db/models/Spot";
+import type { SpotSchema } from "../../../db/schemas/SpotSchema";
+import { StorageService } from "../../services/firebase/storage.service";
+import { MapsApiService } from "../../services/maps-api.service";
 
 describe("EventProgramTimelineComponent", () => {
   let fixture: ComponentFixture<EventProgramTimelineComponent>;
@@ -44,9 +50,18 @@ describe("EventProgramTimelineComponent", () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideRouter([]),
         {
           provide: AccountPreferencesService,
           useValue: { temperatureUnit: signal("celsius") },
+        },
+        { provide: StorageService, useValue: {} },
+        {
+          provide: MapsApiService,
+          useValue: {
+            isStreetViewPreviewEnabled: vi.fn(() => false),
+            isStreetViewPreviewAllowedAtZoom: vi.fn(() => false),
+          },
         },
       ],
     });
@@ -67,6 +82,11 @@ describe("EventProgramTimelineComponent", () => {
       },
     ]);
     fixture.componentRef.setInput("timeZone", "UTC");
+    fixture.componentRef.setInput("eventMapRoute", [
+      "/events",
+      "city-jam",
+      "map",
+    ]);
     fixture.componentRef.setInput("eventStart", new Date("2026-07-23T08:00:00Z"));
     fixture.componentRef.setInput("eventEnd", new Date("2026-07-24T18:00:00Z"));
     fixture.componentRef.setInput("weather", response);
@@ -110,5 +130,44 @@ describe("EventProgramTimelineComponent", () => {
       date: "2026-07-23",
       time: new Date("2026-07-23T08:30:00Z"),
     });
+  });
+
+  it("renders linked compact Spot cards with focused map links", async () => {
+    const spot = new LocalSpot(
+      {
+        name: { en: { text: "Main stage", provider: "user" } },
+        location: new GeoPoint(47.3, 8.5),
+        location_raw: { lat: 47.3, lng: 8.5 },
+        address: null,
+        media: [],
+        amenities: {},
+      } as SpotSchema,
+      "en",
+    );
+    fixture.componentRef.setInput("items", [
+      {
+        id: "training",
+        title: "Training",
+        category: "workshop",
+        start: new Date("2026-07-23T08:30:00Z"),
+        spot_ref: { kind: "inline_spot", id: "main-stage" },
+      },
+    ]);
+    fixture.componentRef.setInput("spotBindings", [
+      {
+        ref: { kind: "inline_spot", id: "main-stage" },
+        spot,
+      },
+    ]);
+
+    await fixture.whenStable();
+
+    const link = fixture.nativeElement.querySelector(
+      ".program-spot-link",
+    ) as HTMLAnchorElement;
+    expect(fixture.nativeElement.textContent).toContain("Main stage");
+    expect(link.getAttribute("href")).toContain(
+      "map?mapFilter=program&day=2026-07-23&spotId=main-stage&programItemId=training",
+    );
   });
 });

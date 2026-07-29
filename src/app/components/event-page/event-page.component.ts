@@ -8,6 +8,7 @@ import {
   computed,
   effect,
   inject,
+  linkedSignal,
   resource,
   signal,
 } from "@angular/core";
@@ -98,11 +99,24 @@ import {
   EventOwnershipClaimDialogComponent,
   EventOwnershipClaimDialogData,
 } from "../event-ownership-claim-dialog/event-ownership-claim-dialog.component";
+import { EventProgramDayChipsComponent } from "../event-program-day-chips/event-program-day-chips.component";
+import {
+  eventProgramDays,
+  eventProgramSpotVisits,
+  resolveEventProgramOccurrences,
+  smartEventProgramDay,
+  type EventProgramOccurrence,
+  type EventSpotBinding,
+} from "../../shared/event-program-spots";
 
 interface VisibleSeriesTag {
   seriesId: string;
   role?: EventSeriesMembershipSchema["role"];
 }
+
+type ProgramMapMarker = MarkerSchema & {
+  programOccurrence?: EventProgramOccurrence;
+};
 
 @Component({
   selector: "app-event-info-page",
@@ -130,6 +144,7 @@ interface VisibleSeriesTag {
     EventAccessManagerComponent,
     EventRegistrationComponent,
     EventRegistrationManagerComponent,
+    EventProgramDayChipsComponent,
   ],
   templateUrl: "./event-page.component.html",
   styleUrl: "./event-page.component.scss",
@@ -160,6 +175,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   private _eventLoadRequestVersion = 0;
   private _eventAuthorizationRequestVersion = 0;
   private _spotsLoadRequestVersion = 0;
+  private _minuteInterval?: number;
   private _qualifierLoadRequestVersion = 0;
   private _seriesLoadRequestVersion = 0;
   private readonly _qualificationGridResizeListener = () =>
@@ -169,6 +185,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly isLoadingEvent = signal(true);
   readonly eventLoadFailed = signal(false);
   readonly spots = signal<(Spot | LocalSpot)[]>([]);
+  readonly spotBindings = signal<EventSpotBinding[]>([]);
   readonly areaPolygon = signal<PolygonSchema | null>(null);
   readonly mapPreviewViewportBounds = signal<EventBoundsSchema | null>(null);
   readonly showHeader = signal(true);
@@ -313,6 +330,48 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       ) ?? event.program.plans[0];
     return activePlan?.items ?? [];
   });
+  readonly programDays = computed(() =>
+    eventProgramDays(this.activeProgramItems(), this.event()?.timeZone),
+  );
+  readonly now = signal(new Date());
+  readonly selectedProgramDay = linkedSignal<
+    {
+      eventId: string;
+      days: string[];
+      timeZone: string | undefined;
+    },
+    string
+  >({
+    source: () => ({
+      eventId: String(this.event()?.id ?? ""),
+      days: this.programDays(),
+      timeZone: this.event()?.timeZone,
+    }),
+    computation: (source, previous) => {
+      if (
+        previous?.source.eventId === source.eventId &&
+        (previous.value === "" || source.days.includes(previous.value))
+      ) {
+        return previous.value;
+      }
+      return smartEventProgramDay(source.days, source.timeZone, this.now());
+    },
+  });
+  readonly programOccurrences = computed(() =>
+    resolveEventProgramOccurrences(
+      this.activeProgramItems(),
+      this.spotBindings(),
+      this.event()?.timeZone,
+      this.now(),
+    ),
+  );
+  readonly programSpotVisits = computed(() =>
+    eventProgramSpotVisits(
+      this.programOccurrences(),
+      this.selectedProgramDay(),
+      this.now(),
+    ),
+  );
   readonly eventWeatherResource = resource({
     params: () => {
       const event = this.event();
@@ -421,6 +480,34 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     if (!event) return [];
     return this._eventPageData.customMarkers(event);
   });
+  readonly programMapMarkers = computed<ProgramMapMarker[]>(() =>
+    this.programSpotVisits().map((visit) => {
+      const occurrence = visit.representative;
+      const time = this._dateTime.format(occurrence.start, {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: this.event()?.timeZone,
+      });
+      const additionalVisits = visit.occurrences.length - 1;
+      return {
+        id: `program:${visit.key}`,
+        name: `${visit.spot.name()}: ${occurrence.item.title}, ${time}`,
+        description: occurrence.item.title,
+        location: visit.spot.location(),
+        number: time,
+        badge: additionalVisits > 0 ? `+${additionalVisits}` : undefined,
+        color: occurrence.isActive ? "secondary" : "primary",
+        priority: "required",
+        ignoreCollisions: true,
+        type: "event-program",
+        programOccurrence: occurrence,
+      };
+    }),
+  );
+  readonly mapPriorityMarkers = computed<ProgramMapMarker[]>(() => [
+    ...this.mapMarkers(),
+    ...this.programMapMarkers(),
+  ]);
   readonly mapPreviewSpotMarkers = computed<SpotPreviewData[]>(() =>
     this._eventPageData.spotPreviewMarkers(this.spots()),
   );
@@ -493,6 +580,11 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     });
 
     if (isPlatformBrowser(this._platformId)) {
+      const minuteInterval = window.setInterval(
+        () => this.now.set(new Date()),
+        60_000,
+      );
+      this._minuteInterval = minuteInterval;
       this._syncQualificationGridColumns();
       window.addEventListener("resize", this._qualificationGridResizeListener, {
         passive: true,
@@ -501,13 +593,15 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       effect(() => {
         const event = this.event();
         if (!event || this.isCrawler()) {
+          this.spotBindings.set([]);
           this.spots.set([]);
           return;
         }
         const requestVersion = ++this._spotsLoadRequestVersion;
-        this._eventPageData.loadEventSpots(event).then((spots) => {
+        this._eventPageData.loadEventSpotBindings(event).then((bindings) => {
           if (requestVersion === this._spotsLoadRequestVersion) {
-            this.spots.set(spots);
+            this.spotBindings.set(bindings);
+            this.spots.set(bindings.map((binding) => binding.spot));
           }
         });
       });
@@ -594,6 +688,27 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     });
   }
 
+  selectProgramDay(day: string): void {
+    this.selectedProgramDay.set(day);
+  }
+
+  programMarkerClicked(
+    event: number | { index?: number },
+  ): void {
+    const index = typeof event === "number" ? event : event.index;
+    if (index === undefined) return;
+    const occurrence = this.mapPriorityMarkers()[index]?.programOccurrence;
+    if (!occurrence) return;
+    void this._router.navigate(this.mapRoute(), {
+      queryParams: {
+        mapFilter: "program",
+        day: occurrence.day,
+        spotId: occurrence.ref.id,
+        programItemId: occurrence.item.id,
+      },
+    });
+  }
+
   private _eventMapSpotQueryParam(
     spot: Spot | LocalSpot | SpotPreviewData | SpotId,
   ): string | null {
@@ -606,6 +721,10 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     }
 
     if (spot instanceof LocalSpot) {
+      const boundId = this.spotBindings().find(
+        (binding) => binding.spot === spot,
+      )?.ref.id;
+      if (boundId) return boundId;
       const index = this.spots().findIndex((candidate) => candidate === spot);
       return index >= 0
         ? (this.event()?.inlineSpots[index]?.id ?? `event-local-spot-${index}`)
@@ -645,6 +764,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     this._queryParamsSubscription?.unsubscribe();
     this._eventSnapshotSubscription?.unsubscribe();
     if (this.isBrowser()) {
+      if (this._minuteInterval !== undefined) {
+        window.clearInterval(this._minuteInterval);
+      }
       window.removeEventListener(
         "resize",
         this._qualificationGridResizeListener,

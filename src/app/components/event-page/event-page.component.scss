@@ -159,6 +159,15 @@
   margin-bottom: 0.75rem;
   gap: 0.25rem;
 }
+
+.map-program-day-chips {
+  left: 0.75rem;
+  max-width: calc(100% - 5rem);
+  position: absolute;
+  right: 4.25rem;
+  top: 0.75rem;
+  z-index: 2;
+}
 .ticket-option,
 .featured-participant,
 .map-preview,
