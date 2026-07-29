@@ -4,6 +4,7 @@ import {
   buildWeatherAlertCacheKey,
   buildWeatherCacheKey,
   buildWeatherInsights,
+  collectGoogleHourlyForecastPages,
   getProviderCacheDurationMs,
   getWeatherAlertCacheDurationMs,
   isMeaningfulWeatherAlert,
@@ -277,6 +278,45 @@ describe("weather functions", () => {
     expect(getWeatherAlertCacheDurationMs()).toBe(10 * 60 * 1000);
   });
 
+  it("collects every Google hourly forecast page using its 24-hour limit", async () => {
+    const requests: Record<string, string>[] = [];
+    const pages = [
+      {
+        forecastHours: [
+          { interval: { startTime: "2026-08-01T00:00:00Z" } },
+        ],
+        timeZone: { id: "Europe/London" },
+        nextPageToken: "page-2",
+      },
+      {
+        forecastHours: [
+          { interval: { startTime: "2026-08-02T00:00:00Z" } },
+        ],
+        nextPageToken: "page-3",
+      },
+      {
+        forecastHours: [
+          { interval: { startTime: "2026-08-03T00:00:00Z" } },
+        ],
+      },
+    ];
+
+    const result = await collectGoogleHourlyForecastPages(168, async (params) => {
+      requests.push(params);
+      const page = pages.shift();
+      if (!page) throw new Error("Unexpected forecast page request");
+      return page;
+    });
+
+    expect(requests).toEqual([
+      { hours: "168", pageSize: "24" },
+      { hours: "168", pageSize: "24", pageToken: "page-2" },
+      { hours: "168", pageSize: "24", pageToken: "page-3" },
+    ]);
+    expect(result.forecastHours).toHaveLength(3);
+    expect(result.timeZone?.id).toBe("Europe/London");
+  });
+
   it("normalizes, filters, and prioritizes Google public alerts", () => {
     const now = new Date("2026-07-20T10:00:00Z");
     const alerts = normalizeGoogleWeatherAlerts(
@@ -474,5 +514,23 @@ describe("weather functions", () => {
         end: "2026-07-08T13:00:00.000Z",
       },
     ]);
+  });
+
+  it("omits optional event insight fields when no hourly forecast is available", () => {
+    const insights = buildEventInsights([]);
+
+    expect(insights).toEqual({
+      summary: "Weather forecast unavailable",
+      precipitationRisk: "none",
+      sunExposure: "dark",
+      surfaceDrying: {
+        status: "unknown",
+        confidence: "low",
+        factors: ["no forecast data"],
+      },
+      likelyDryWindows: [],
+      rainPeriods: [],
+    });
+    expect(Object.values(insights)).not.toContain(undefined);
   });
 });

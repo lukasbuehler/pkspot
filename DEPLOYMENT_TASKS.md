@@ -77,6 +77,22 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
+### Event weather forecast pagination and cache serialization hotfix
+
+- [ ] Build and deploy the corrected `getWeather` Function:
+
+  ```sh
+  npm --prefix functions run build
+  npx firebase deploy --project prod --only functions:getWeather
+  ```
+
+  Success condition: loading `/events/uk-nationals-2026` and the WPF Camp event
+  produces successful `getWeather` callable responses, renders hourly forecasts
+  beyond the provider's first 24-hour page, and creates `weather_cache` documents
+  without any undefined event insight fields. Confirm the Function logs no
+  longer contain Firestore serialization errors for
+  `response.insights.wettestHour`.
+
 ### Organization image cropping and media processing
 
 The Functions and storage rules must be deployed before the organization editor

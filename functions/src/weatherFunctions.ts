@@ -252,6 +252,7 @@ const DEFAULT_NEAR_FUTURE_HOURS = 12;
 const DEFAULT_DAILY_FORECAST_DAYS = 8;
 const MAX_NEAR_FUTURE_HOURS = 24;
 const GOOGLE_MAX_FORECAST_HOURS = 240;
+const GOOGLE_MAX_HOURLY_PAGE_SIZE = 24;
 const OPEN_METEO_MAX_FORECAST_HOURS = 16 * 24;
 const GOOGLE_HOURLY_CACHE_MS = 45 * 60 * 1000;
 const OPEN_METEO_HOURLY_CACHE_MS = 60 * 60 * 1000;
@@ -612,14 +613,14 @@ export function buildEventInsights(points: WeatherPoint[]): WeatherEventInsights
     (point) => sunExposureScore(point)
   );
 
-  return {
+  return removeUndefinedValues({
     ...base,
     wettestHour,
     hottestHour,
     harshestSunHour,
     likelyDryWindows: findDryWindows(ordered),
     rainPeriods: findRainPeriods(ordered),
-  };
+  });
 }
 
 async function attachWeatherAlerts(
@@ -803,11 +804,10 @@ async function fetchGoogleWeather(
     1,
     GOOGLE_MAX_FORECAST_HOURS
   );
-  const forecastPromise = fetchGoogleJson<GoogleHourlyResponse>(
-    "https://weather.googleapis.com/v1/forecast/hours:lookup",
+  const forecastPromise = fetchGoogleHourlyForecast(
     apiKey,
     request.location,
-    { hours: String(hours), pageSize: String(Math.min(hours, 240)) }
+    hours
   );
   const days = clamp(
     request.mode === "current-and-near-future"
@@ -844,6 +844,60 @@ async function fetchGoogleWeather(
     attribution: "Weather: Google Weather",
     timeZone: forecast.timeZone?.id ?? current?.timeZone?.id,
   };
+}
+
+async function fetchGoogleHourlyForecast(
+  apiKey: string,
+  location: WeatherLocation,
+  hours: number
+): Promise<GoogleHourlyResponse> {
+  return collectGoogleHourlyForecastPages(hours, (params) =>
+    fetchGoogleJson<GoogleHourlyResponse>(
+      "https://weather.googleapis.com/v1/forecast/hours:lookup",
+      apiKey,
+      location,
+      params
+    )
+  );
+}
+
+export async function collectGoogleHourlyForecastPages(
+  hours: number,
+  fetchPage: (
+    params: Record<string, string>
+  ) => Promise<GoogleHourlyResponse>
+): Promise<GoogleHourlyResponse> {
+  const pageSize = Math.min(hours, GOOGLE_MAX_HOURLY_PAGE_SIZE);
+  const forecastHours: GoogleHour[] = [];
+  const seenPageTokens = new Set<string>();
+  let pageToken: string | undefined;
+  let timeZone: GoogleHourlyResponse["timeZone"];
+
+  do {
+    const params: Record<string, string> = {
+      hours: String(hours),
+      pageSize: String(pageSize),
+    };
+    if (pageToken) {
+      params.pageToken = pageToken;
+    }
+    const page = await fetchPage(params);
+    forecastHours.push(...(page.forecastHours ?? []));
+    timeZone ??= page.timeZone;
+    pageToken = page.nextPageToken;
+
+    if (pageToken && seenPageTokens.has(pageToken)) {
+      throw new HttpsError(
+        "unavailable",
+        "Google Weather returned a repeated hourly forecast page token"
+      );
+    }
+    if (pageToken) {
+      seenPageTokens.add(pageToken);
+    }
+  } while (pageToken);
+
+  return { forecastHours, timeZone };
 }
 
 async function fetchOpenMeteoWeather(
@@ -1990,6 +2044,7 @@ interface GoogleHour {
 interface GoogleHourlyResponse {
   forecastHours?: GoogleHour[];
   timeZone?: { id?: string };
+  nextPageToken?: string;
 }
 
 interface GoogleDailyResponse {

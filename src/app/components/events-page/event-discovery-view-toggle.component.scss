@@ -9,6 +9,8 @@ mat-button-toggle-group {
 
 mat-button-toggle {
   min-height: 46px;
+  display: flex;
+  justify-content: center;
 }
 
 @media (max-width: 599.98px) {
