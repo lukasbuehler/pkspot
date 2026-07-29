@@ -316,6 +316,50 @@ async function main() {
     moderated: "true",
   });
 
+  console.log("Checking organization logo approval and derivatives...");
+  const organizationUploadId = `organization-${suffix}`;
+  const organizationId = `organization-${suffix}`;
+  const organizationIntakePath =
+    `media_intake/${uid}/${organizationUploadId}/${organizationUploadId}.jpg`;
+  const organizationApprovedPath =
+    `organization_media/${organizationId}.jpg`;
+  await bucket.upload(ORIGINAL_IMAGE, {
+    destination: organizationIntakePath,
+    resumable: false,
+    metadata: {
+      contentType: "image/jpeg",
+      metadata: {
+        uid,
+        upload_id: organizationUploadId,
+        destination_folder: "organization_media",
+        destination_filename: organizationId,
+        target_kind: "organization",
+        target_id: organizationId,
+      },
+    },
+  });
+  const organizationReview = await waitForReviewStatus(
+    organizationUploadId,
+    "approved"
+  );
+  assert.equal(
+    organizationReview.data().approved_path,
+    organizationApprovedPath
+  );
+  assert.equal(organizationReview.data().target_kind, "organization");
+  assert.equal(organizationReview.data().target_id, organizationId);
+  await assertFileMissing(organizationIntakePath);
+  await assertDerivativesForOriginal(organizationApprovedPath, {
+    uid,
+    upload_id: organizationUploadId,
+    moderated: "true",
+  });
+  await assertOriginalArchived(organizationApprovedPath, {
+    uid,
+    upload_id: organizationUploadId,
+    moderated: "true",
+  });
+
   console.log("Checking audit records approved legacy media for the stream...");
   const mediaAuditDoc = db
     .collection("maintenance")

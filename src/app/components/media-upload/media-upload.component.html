@@ -1,96 +1,156 @@
-<div class="d-flex flex-column w-100">
-  <!-- Legal disclaimer shown above the uploader -->
-  <div class="mb-2 mat-body-small">
+<div class="media-upload">
+  <p class="media-upload__disclaimer mat-body-small">
     <span
       i18n="
         media upload disclaimer|Message shown before a media file is uploaded to
         get consent@@media.upload.disclaimer"
     >
       By uploading, you agree to our
-      <a routerLink="/terms-of-service">Terms of Service</a>. You confirm you
+      <a href="/terms-of-service">Terms of Service</a>. You confirm you
       own this content or have the right to share it. You grant PK Spot the
       license it needs to operate the service and agree to make your
       contribution available to the community under a Creative Commons license.
     </span>
-  </div>
-  @if(showPreview()) {
-  <div class="preview-grid overflow-y-scroll pb-3">
-    @for(media of mediaList(); track $index) { @if(media && media.file) {
-    <div class="d-flex flex-column gap-2">
-      @if(fileIsImage(media.file)) {
-      <div class="img-container rounded">
-        <img
-          [src]="media.previewSrc"
-          class="mw-100 mh-100"
-          [alt]="media.file.name"
-          [class.grayed-out]="media.uploadProgress < 100"
-        />
-        @if(media.uploadProgress < 100) {
-        <!-- <mat-spinner class="position-absolute"></mat-spinner> -->
-        <mat-icon class="position-absolute"></mat-icon>
-        }
-      </div>
-      } @else {
-      <div
-        class="img-container rounded d-flex align-items-center justify-content-center bg-light"
-      >
-        <mat-icon>{{ media.icon }}</mat-icon>
-      </div>
+  </p>
+
+  @if (mediaList().length > 0) {
+    <div class="media-upload__grid">
+      @for (media of mediaList(); track media.id) {
+        <article class="media-upload__item">
+          <div class="media-upload__preview">
+            @if (fileIsImage(media.file)) {
+              <img [src]="media.previewSrc" [alt]="media.file.name" />
+            } @else {
+              <mat-icon aria-hidden="true">{{ media.icon }}</mat-icon>
+              <span class="mat-label-medium">{{ media.file.name }}</span>
+            }
+            @if (media.state === "uploading") {
+              <div class="media-upload__overlay">
+                <span class="mat-label-medium" i18n>Uploading…</span>
+              </div>
+            }
+          </div>
+
+          <div class="media-upload__meta">
+            <span class="mat-label-medium" [title]="media.file.name">
+              {{ media.file.name }}
+            </span>
+            <span class="mat-label-small">
+              @if (media.isCropped) {
+                <span i18n>Cropped</span>
+              } @else {
+                <span i18n>Original</span>
+              }
+            </span>
+          </div>
+
+          @if (media.state === "uploading" || media.state === "complete") {
+            <mat-progress-bar
+              [value]="media.uploadProgress"
+              [attr.aria-label]="'Upload progress for ' + media.file.name"
+            />
+          }
+
+          @if (media.error) {
+            <p class="media-upload__error mat-body-small" role="alert">
+              {{ media.error }}
+            </p>
+          }
+
+          <div class="media-upload__item-actions">
+            @if (
+              fileIsImage(media.file) &&
+              imageCropPolicy().requirement !== "disabled" &&
+              media.file.type !== "image/gif" &&
+              media.file.type !== "image/svg+xml" &&
+              media.state !== "uploading" &&
+              media.state !== "complete"
+            ) {
+              <button
+                mat-button
+                type="button"
+                (click)="editImage(media.id)"
+              >
+                <mat-icon>crop</mat-icon>
+                @if (media.isCropped) {
+                  <span i18n>Re-crop</span>
+                } @else {
+                  <span i18n>Crop</span>
+                }
+              </button>
+            }
+            @if (
+              media.isCropped &&
+              imageCropPolicy().requirement !== "required" &&
+              media.state !== "uploading" &&
+              media.state !== "complete"
+            ) {
+              <button mat-button type="button" (click)="revertCrop(media.id)">
+                <mat-icon>undo</mat-icon>
+                <span i18n>Use original</span>
+              </button>
+            }
+            @if (media.state !== "uploading") {
+              <button
+                mat-icon-button
+                type="button"
+                (click)="removeMedia(media.id)"
+                aria-label="Remove selected file"
+                i18n-aria-label
+              >
+                <mat-icon>close</mat-icon>
+              </button>
+            }
+          </div>
+        </article>
       }
-      <mat-progress-bar
-        class="rounded"
-        [value]="media.uploadProgress"
-      ></mat-progress-bar>
     </div>
-    } }
-  </div>
   }
-  <div class="main" [formGroup]="formGroup">
-    <button
-      mat-mini-fab
-      type="button"
-      color="primary"
-      id="attachMedia"
-      class="mini-fab"
-      (click)="fileInput.click()"
-    >
-      <mat-icon>attach_file</mat-icon>
-    </button>
+
+  <div class="media-upload__actions">
     <input
       #fileInput
-      hidden="true"
+      hidden
       type="file"
       [accept]="acceptString() ?? allowedMimeTypes()?.join(',')"
-      onclick="value=null"
-      (change)="onSelectFiles($event.target)"
-      formControlName="input"
-      required
+      (change)="onSelectFiles($event.target); fileInput.value = ''"
       [multiple]="multipleAllowed()"
     />
-    <mat-form-field appearance="outline">
-      <mat-label i18n>Please select a file to upload</mat-label>
-      <input
-        #filenameInput
-        matInput
-        name="filenameInput"
-        type="text"
-        ng-readonly="true"
-        (click)="fileInput.click()"
-        readonly
-        placeholder="Click to select a file"
-        [multiple]="multipleAllowed()"
-      />
-      <mat-icon matSuffix>upload</mat-icon>
-      <!-- @if(!hasError || formGroup.get('input')?.invalid) {
-      <mat-hint>{{
-        uploadFile
-          ? "Size: " + uploadFileSizeString + ", Type: " + uploadFile.type
-          : "Click to select a file"
-      }}</mat-hint>
-      } -->
-      @if(hasError) {
-      <mat-error>{{ errorMessage }}</mat-error>
+    <button
+      mat-stroked-button
+      type="button"
+      id="attachMedia"
+      (click)="fileInput.click()"
+      [disabled]="uploading()"
+    >
+      <mat-icon>attach_file</mat-icon>
+      <span i18n>Select media</span>
+    </button>
+    <button
+      mat-flat-button
+      type="button"
+      (click)="uploadStaged()"
+      [disabled]="
+        uploading() || !hasPendingMedia() || hasIncompleteRequiredCrop()
+      "
+    >
+      <mat-icon>upload</mat-icon>
+      @if (uploading()) {
+        <span i18n>Uploading…</span>
+      } @else {
+        <span i18n>Upload</span>
       }
-    </mat-form-field>
+    </button>
   </div>
+
+  @if (hasIncompleteRequiredCrop()) {
+    <p class="media-upload__hint mat-body-small" role="status" i18n>
+      Apply the required crop before uploading.
+    </p>
+  }
+  @if (hasError) {
+    <p class="media-upload__error mat-body-small" role="alert">
+      {{ errorMessage }}
+    </p>
+  }
 </div>

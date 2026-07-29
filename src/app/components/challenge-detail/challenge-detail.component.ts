@@ -47,6 +47,7 @@ import {
 } from "../../../db/models/SpotChallenge";
 import { Spot } from "../../../db/models/Spot";
 import { MediaSchema, StorageBucket } from "../../../db/schemas/Media";
+import { OPTIONAL_MEDIA_CROP_POLICY } from "../crop-image/image-crop-policy";
 import { MatDividerModule } from "@angular/material/divider";
 import {
   ChallengeLabelIcons,
@@ -163,6 +164,7 @@ export class ChallengeDetailComponent {
   }
 
   challengeStorageFolder = StorageBucket.Challenges;
+  readonly optionalMediaCropPolicy = OPTIONAL_MEDIA_CROP_POLICY;
 
   hasChanges: boolean = false;
 

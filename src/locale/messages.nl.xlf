@@ -30,6 +30,12 @@
         <target>Even geduld terwijl we je e-mailadres herstellen...</target>
       </segment>
     </unit>
+    <unit id="1829436672791958136">
+      <segment state="initial">
+        <source>Organization logo preview</source>
+        <target>Voorbeeld van organisatielogo</target>
+      </segment>
+    </unit>
     <unit id="1833519671749660117">
       <segment state="initial">
         <source> Public spot contributions will show up here once this profile adds to the map. </source>
@@ -130,6 +136,12 @@
       <segment state="initial">
         <source> Training happens outside, not behind a desk. PK Spot works on any device — download the native app or install it from your browser. </source>
         <target> Training gebeurt buiten, niet achter een bureau. PK Spot werkt op elk apparaat — download de native app of installeer hem vanuit je browser. </target>
+      </segment>
+    </unit>
+    <unit id="6932865105766151309">
+      <segment state="initial">
+        <source>Upload</source>
+        <target>Uploaden</target>
       </segment>
     </unit>
     <unit id="about.crew.contact_button">
@@ -338,6 +350,12 @@
         <target>Tonen voor controle</target>
       </segment>
     </unit>
+    <unit id="6363856180049947760">
+      <segment state="initial">
+        <source>New organization logo preview</source>
+        <target>Voorbeeld van nieuw organisatielogo</target>
+      </segment>
+    </unit>
     <unit id="6366005533956235174">
       <segment state="initial">
         <source>Please enter your password</source>
@@ -362,6 +380,12 @@
         <target>Verwijderd</target>
       </segment>
     </unit>
+    <unit id="6396144908605095471">
+      <segment state="initial">
+        <source> Members will be added to the organization selected above. </source>
+        <target> Leden worden toegevoegd aan de hierboven geselecteerde organisatie. </target>
+      </segment>
+    </unit>
     <unit id="6396486314653699002">
       <segment state="initial">
         <source>Follow what others discover, contribute updates, and help keep the map alive.</source>
@@ -382,6 +406,12 @@
       <segment state="initial">
         <source>Spot name</source>
         <target>Naam van de spot</target>
+      </segment>
+    </unit>
+    <unit id="6421460271971606186">
+      <segment state="initial">
+        <source>Zoom</source>
+        <target>Vergroting</target>
       </segment>
     </unit>
     <unit id="6422745118544210611">
@@ -424,6 +454,12 @@
       <segment state="initial">
         <source>Settings</source>
         <target>Instellingen</target>
+      </segment>
+    </unit>
+    <unit id="4933737937492569293">
+      <segment state="initial">
+        <source>Choose and crop logo</source>
+        <target>Logo kiezen en bijsnijden</target>
       </segment>
     </unit>
     <unit id="4939271577655832680">
@@ -472,6 +508,12 @@
         <target>Spot bijgewerkt</target>
       </segment>
     </unit>
+    <unit id="8953033926734869941">
+      <segment state="initial">
+        <source>Name</source>
+        <target>Naam</target>
+      </segment>
+    </unit>
     <unit id="8958570874759054860">
       <segment state="initial">
         <source>Settings - </source>
@@ -492,6 +534,12 @@
       <segment state="initial">
         <source>License</source>
         <target>Licentie</target>
+      </segment>
+    </unit>
+    <unit id="688499259866327762">
+      <segment state="initial">
+        <source>Select media</source>
+        <target>Media selecteren</target>
       </segment>
     </unit>
     <unit id="4467323362722952678">
@@ -688,6 +736,12 @@
         <target>Je e-mailadres is succesvol geverifieerd. Je hebt nu toegang tot alle functies van PK Spot.</target>
       </segment>
     </unit>
+    <unit id="5546339789714773759">
+      <segment state="initial">
+        <source>Rotate right</source>
+        <target>Rechtsom draaien</target>
+      </segment>
+    </unit>
     <unit id="5557620594634616784">
       <segment state="initial">
         <source>No events available to embed.</source>
@@ -748,6 +802,12 @@
         <target> Controleer je verbinding en probeer het opnieuw. </target>
       </segment>
     </unit>
+    <unit id="1426358485872019526">
+      <segment state="initial">
+        <source>Uploaded image</source>
+        <target>Geüploade afbeelding</target>
+      </segment>
+    </unit>
     <unit id="1431416938026210429">
       <segment state="initial">
         <source>Password</source>
@@ -768,6 +828,12 @@
       <segment state="initial">
         <source>New E-mail address</source>
         <target>Nieuw e-mailadres</target>
+      </segment>
+    </unit>
+    <unit id="1451435729057274599">
+      <segment state="initial">
+        <source>Organization changes could not be saved.</source>
+        <target>De wijzigingen aan de organisatie konden niet worden opgeslagen.</target>
       </segment>
     </unit>
     <unit id="3292760121831436112">
@@ -836,6 +902,12 @@
         <target>E-mail geverifieerd!</target>
       </segment>
     </unit>
+    <unit id="1381308436651796702">
+      <segment state="initial">
+        <source>No logo</source>
+        <target>Geen logo</target>
+      </segment>
+    </unit>
     <unit id="1388712764439031120">
       <segment state="initial">
         <source>Open link</source>
@@ -890,10 +962,28 @@
         <target>Nog geen contactberichten.</target>
       </segment>
     </unit>
+    <unit id="5893093626549678327">
+      <segment state="initial">
+        <source>Selected image</source>
+        <target>Geselecteerde afbeelding</target>
+      </segment>
+    </unit>
+    <unit id="5896121803278419290">
+      <segment state="initial">
+        <source>Organization name and slug are required.</source>
+        <target>De organisatienaam en URL-aanduiding zijn verplicht.</target>
+      </segment>
+    </unit>
     <unit id="5897595860261783392">
       <segment state="initial">
         <source>Add a name or some spot details before saving this new spot.</source>
         <target>Voeg een naam of wat spotdetails toe voordat je deze nieuwe spot opslaat.</target>
+      </segment>
+    </unit>
+    <unit id="5899203917381874336">
+      <segment state="initial">
+        <source>Cropped</source>
+        <target>Bijgesneden</target>
       </segment>
     </unit>
     <unit id="5207635742003539443">
@@ -924,6 +1014,12 @@
       <segment state="initial">
         <source> Recent messages from the public contact form. </source>
         <target> Mensajes recientes del formulario público de contacto. </target>
+      </segment>
+    </unit>
+    <unit id="5232615121937117490">
+      <segment state="initial">
+        <source>Organization created.</source>
+        <target>Organisatie aangemaakt.</target>
       </segment>
     </unit>
     <unit id="5235264493064101963">
@@ -1819,7 +1915,7 @@
         <note category="meaning">media upload disclaimer</note>
       </notes>
       <segment state="initial">
-        <source> By uploading, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc>. You confirm you own this content or have the right to share it. You grant PK Spot the license it needs to operate the service and agree to make your contribution available to the community under a Creative Commons license. </source>
+        <source> By uploading, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc>. You confirm you own this content or have the right to share it. You grant PK Spot the license it needs to operate the service and agree to make your contribution available to the community under a Creative Commons license. </source>
         <target> Door te uploaden ga je akkoord met onze <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc>. Je bevestigt dat je eigenaar bent van deze inhoud of het recht hebt deze te delen. Je verleent PK Spot de licentie die nodig is om de dienst uit te voeren en gaat ermee akkoord je bijdrage beschikbaar te stellen aan de gemeenschap onder een Creative Commons-licentie. </target>
       </segment>
     </unit>
@@ -2229,6 +2325,12 @@
         <target>Het wachtwoord is ongeldig!</target>
       </segment>
     </unit>
+    <unit id="4292524783489016046">
+      <segment state="initial">
+        <source> Create organizations, update their public identity, and manage who can review organization-routed spot edits. </source>
+        <target> Maak organisaties, werk hun openbare identiteit bij en beheer wie Spot-bewerkingen voor de organisatie kan beoordelen. </target>
+      </segment>
+    </unit>
     <unit id="4295270151314599319">
       <segment state="initial">
         <source>Submission channel</source>
@@ -2317,6 +2419,12 @@
       <segment state="initial">
         <source>Sign in instead?</source>
         <target>In plaats daarvan inloggen?</target>
+      </segment>
+    </unit>
+    <unit id="7329217250595054697">
+      <segment state="initial">
+        <source>Original</source>
+        <target>Oorspronkelijke afbeelding</target>
       </segment>
     </unit>
     <unit id="6964548934732214977">
@@ -2487,12 +2595,6 @@
         <target>Samenvatting van de beheersing</target>
       </segment>
     </unit>
-    <unit id="5279365676870836127">
-      <segment state="initial">
-        <source> If this list is empty, organization reads are still blocked by rules or no organizations exist yet. </source>
-        <target> Als deze lijst leeg is, worden organisatielezingen nog geblokkeerd door regels of bestaan er nog geen organisaties. </target>
-      </segment>
-    </unit>
     <unit id="5287661483037226366">
       <segment state="initial">
         <source> Feel free to slide into our DMs! We&apos;re happy to help with quick questions. </source>
@@ -2515,6 +2617,12 @@
       <segment state="initial">
         <source> Live &amp; Verified </source>
         <target> Live en geverifieerd </target>
+      </segment>
+    </unit>
+    <unit id="6644602300241968388">
+      <segment state="initial">
+        <source> Leave blank to add yourself. Use the Firebase Auth UID for another user. </source>
+        <target> Laat leeg om jezelf toe te voegen. Gebruik de Firebase Auth-UID voor iemand anders. </target>
       </segment>
     </unit>
     <unit id="1008017384716140525">
@@ -2545,12 +2653,6 @@
       <segment state="initial">
         <source>Open edit</source>
         <target>Open edit</target>
-      </segment>
-    </unit>
-    <unit id="1038551913502372916">
-      <segment state="initial">
-        <source> Create organizations and manage who can review organization-routed spot edits. Verified-by and managed-by settings live on each spot&apos;s admin edit form. </source>
-        <target> Maak organisaties en beheer wie spotbewerkingen kan reviewen die naar organisaties zijn gestuurd. Instellingen voor “geverifieerd door” en “beheerd door” staan in het admin-bewerkformulier van elke spot. </target>
       </segment>
     </unit>
     <unit id="1053544786475957394">
@@ -2605,6 +2707,12 @@
       <segment state="initial">
         <source>Create Account</source>
         <target>Account aanmaken</target>
+      </segment>
+    </unit>
+    <unit id="126971263164896766">
+      <segment state="initial">
+        <source>Organization logo</source>
+        <target>Organisatielogo</target>
       </segment>
     </unit>
     <unit id="1274247756500564795">
@@ -2709,6 +2817,12 @@
         <target>Melding sluiten</target>
       </segment>
     </unit>
+    <unit id="3624887810607887590">
+      <segment state="initial">
+        <source>Rotate left</source>
+        <target>Linksom draaien</target>
+      </segment>
+    </unit>
     <unit id="3628374603023447227">
       <segment state="initial">
         <source>Next month</source>
@@ -2725,6 +2839,12 @@
       <segment state="initial">
         <source>Shown amenities</source>
         <target>Getoonde voorzieningen</target>
+      </segment>
+    </unit>
+    <unit id="3665571050825458932">
+      <segment state="initial">
+        <source> Move and resize the crop area. Use zoom or rotation when needed. </source>
+        <target> Verplaats en schaal het bijsnijdgebied. Gebruik zo nodig vergroting of draaien. </target>
       </segment>
     </unit>
     <unit id="3686284950598311784">
@@ -3113,6 +3233,12 @@
         <target>Snelkoppelingen</target>
       </segment>
     </unit>
+    <unit id="1142251373686093258">
+      <segment state="initial">
+        <source>Use only letters, numbers, underscores, or hyphens in the organization ID.</source>
+        <target>Gebruik alleen letters, cijfers, underscores of koppeltekens in de organisatie-ID.</target>
+      </segment>
+    </unit>
     <unit id="1142555682966582117">
       <segment state="initial">
         <source>Not required</source>
@@ -3177,6 +3303,12 @@
       <segment state="initial">
         <source>Quarantined media revealed for moderation</source>
         <target>Quarantainemedia weergegeven voor moderatie</target>
+      </segment>
+    </unit>
+    <unit id="8613763801282551204">
+      <segment state="initial">
+        <source>Letters, numbers, underscores, and hyphens only.</source>
+        <target>Alleen letters, cijfers, underscores en koppeltekens.</target>
       </segment>
     </unit>
     <unit id="8614289146412859500">
@@ -4845,6 +4977,12 @@
       <segment state="initial">
         <source>Helper</source>
         <target>Hulp</target>
+      </segment>
+    </unit>
+    <unit id="9094775460002466117">
+      <segment state="initial">
+        <source>Replace and crop logo</source>
+        <target>Logo vervangen en bijsnijden</target>
       </segment>
     </unit>
     <unit id="profile.stats.visited">
@@ -8199,6 +8337,12 @@
         <target>Beveiligingscontrole mislukt. Log opnieuw in en probeer je account te verwijderen.</target>
       </segment>
     </unit>
+    <unit id="4211525354552169871">
+      <segment state="initial">
+        <source> This image could not be loaded or cropped. Choose another image. </source>
+        <target> Deze afbeelding kon niet worden geladen of bijgesneden. Kies een andere afbeelding. </target>
+      </segment>
+    </unit>
     <unit id="profile.actions.ariaLabel">
       <segment state="initial">
         <source>Profile actions</source>
@@ -8472,6 +8616,12 @@
         <target>Kopiëren</target>
       </segment>
     </unit>
+    <unit id="4344855956830123370">
+      <segment state="initial">
+        <source>Apply crop</source>
+        <target>Bijsnijden toepassen</target>
+      </segment>
+    </unit>
     <unit id="4386559202007821626">
       <segment state="initial">
         <source>The Crew</source>
@@ -8538,6 +8688,12 @@
         <target>Taal</target>
       </segment>
     </unit>
+    <unit id="2830779242863245798">
+      <segment state="initial">
+        <source>Crop image area</source>
+        <target>Bijsnijdgebied van afbeelding</target>
+      </segment>
+    </unit>
     <unit id="2846098641732030728">
       <segment state="initial">
         <source>Save favorites and come back to the spots you want to session later.</source>
@@ -8548,6 +8704,12 @@
       <segment state="initial">
         <source>Current E-mail</source>
         <target>Huidig e-mailadres</target>
+      </segment>
+    </unit>
+    <unit id="2861306361489095884">
+      <segment state="initial">
+        <source>Slug</source>
+        <target>URL-aanduiding</target>
       </segment>
     </unit>
     <unit id="event_page.load_failed_back">
@@ -8572,6 +8734,12 @@
       <segment state="initial">
         <source>Report submitted. Thanks for helping keep spots accurate.</source>
         <target>Melding verzonden. Bedankt dat je helpt Spots accuraat te houden.</target>
+      </segment>
+    </unit>
+    <unit id="78295015887661250">
+      <segment state="initial">
+        <source>Organization saved.</source>
+        <target>Organisatie opgeslagen.</target>
       </segment>
     </unit>
     <unit id="7833933616390918367">
@@ -8686,6 +8854,12 @@
       <segment state="initial">
         <source>HTML Embed Code</source>
         <target>HTML-inbedcode</target>
+      </segment>
+    </unit>
+    <unit id="8229433345712490359">
+      <segment state="initial">
+        <source>The type of this file is not allowed.</source>
+        <target>Dit bestandstype is niet toegestaan.</target>
       </segment>
     </unit>
     <unit id="8235805970201248247">
@@ -9182,44 +9356,14 @@
         <target> Annuleren </target>
       </segment>
     </unit>
-    <unit id="crop.instruction">
-      <notes>
-        <note category="description">Instruction to crop the image</note>
-        <note category="meaning">crop image instruction</note>
-      </notes>
-      <segment state="initial">
-        <source> Crop the image above </source>
-        <target> Snij de afbeelding hierboven bij </target>
-      </segment>
-    </unit>
-    <unit id="crop.preview">
-      <notes>
-        <note category="description">Preview heading</note>
-        <note category="meaning">crop image preview</note>
-      </notes>
-      <segment state="initial">
-        <source> Preview </source>
-        <target> Voorbeeld </target>
-      </segment>
-    </unit>
     <unit id="crop.processing">
       <notes>
         <note category="description">Label shown while processing</note>
         <note category="meaning">processing label</note>
       </notes>
       <segment state="initial">
-        <source>Processing...</source>
+        <source> Processing… </source>
         <target>Verwerken...</target>
-      </segment>
-    </unit>
-    <unit id="crop.saveCropped">
-      <notes>
-        <note category="description">Button to save the cropped image</note>
-        <note category="meaning">save cropped image button</note>
-      </notes>
-      <segment state="initial">
-        <source>Save Cropped Image</source>
-        <target>Bijgesneden Afbeelding Opslaan</target>
       </segment>
     </unit>
     <unit id="custom_filter_dialog_title">
@@ -9274,6 +9418,12 @@
       <segment state="initial">
         <source>Could not sign in with Apple!</source>
         <target>Kan niet inloggen met Apple!</target>
+      </segment>
+    </unit>
+    <unit id="8743802677264467556">
+      <segment state="initial">
+        <source>Successfully saved new profile picture</source>
+        <target>Nieuwe profielfoto opgeslagen</target>
       </segment>
     </unit>
     <unit id="8746766771069368125">
@@ -9406,6 +9556,12 @@
       <segment state="initial">
         <source>Draft</source>
         <target>Concept</target>
+      </segment>
+    </unit>
+    <unit id="481253503866665974">
+      <segment state="initial">
+        <source>Re-crop</source>
+        <target>Opnieuw bijsnijden</target>
       </segment>
     </unit>
     <unit id="4813152754732689397">
@@ -9715,10 +9871,22 @@
         <target>Tijd (optioneel)</target>
       </segment>
     </unit>
+    <unit id="2178484227756853679">
+      <segment state="initial">
+        <source>Crop profile picture</source>
+        <target>Profielfoto bijsnijden</target>
+      </segment>
+    </unit>
     <unit id="218205763474746263">
       <segment state="initial">
         <source>Preparing report</source>
         <target>Melding voorbereiden</target>
+      </segment>
+    </unit>
+    <unit id="2184922477427494351">
+      <segment state="initial">
+        <source>Crop</source>
+        <target>Bijsnijden</target>
       </segment>
     </unit>
     <unit id="2186090184648113885">
@@ -9836,6 +10004,12 @@
       <segment state="initial">
         <source> Save </source>
         <target> Opslaan </target>
+      </segment>
+    </unit>
+    <unit id="7808756054397155068">
+      <segment state="initial">
+        <source>Reset</source>
+        <target>Herstellen</target>
       </segment>
     </unit>
     <unit id="7819314041543176992">
@@ -10006,6 +10180,12 @@
         <target>Toevoegen</target>
       </segment>
     </unit>
+    <unit id="2601450563472532666">
+      <segment state="initial">
+        <source> Apply the required crop before uploading. </source>
+        <target> Pas de verplichte uitsnede toe voordat je uploadt. </target>
+      </segment>
+    </unit>
     <unit id="2607510393198183286">
       <segment state="initial">
         <source>Failed to delete spot</source>
@@ -10135,12 +10315,6 @@
         <target>Vind parkourspots in de buurt, check in, ontdek events en jams en verbind met je lokale community.</target>
       </segment>
     </unit>
-    <unit id="801213320890707566">
-      <segment state="initial">
-        <source>Please select a file to upload</source>
-        <target>Selecteer een bestand om te uploaden</target>
-      </segment>
-    </unit>
     <unit id="8015743935724181617">
       <segment state="initial">
         <source> Built and maintained by volunteers from the Parkour community. </source>
@@ -10211,6 +10385,12 @@
       <segment state="initial">
         <source> Continue </source>
         <target> Doorgaan </target>
+      </segment>
+    </unit>
+    <unit id="2925374545200384410">
+      <segment state="initial">
+        <source>External URL</source>
+        <target>Externe URL</target>
       </segment>
     </unit>
     <unit id="292769594389358994">
@@ -10313,6 +10493,12 @@
       <segment state="initial">
         <source>Moderation reports</source>
         <target>Moderatiemeldingen</target>
+      </segment>
+    </unit>
+    <unit id="3192626855762638668">
+      <segment state="initial">
+        <source>Error uploading media. Try again.</source>
+        <target>Fout bij het uploaden van media. Probeer het opnieuw.</target>
       </segment>
     </unit>
     <unit id="spot.delete.aria_label">
@@ -10643,6 +10829,12 @@
         <target>Kan geen Spot delen die nog niet is opgeslagen</target>
       </segment>
     </unit>
+    <unit id="6677729099911177594">
+      <segment state="initial">
+        <source>No storage destination is configured.</source>
+        <target>Er is geen opslagbestemming ingesteld.</target>
+      </segment>
+    </unit>
     <unit id="5601530442010506564">
       <segment state="initial">
         <source>Got it</source>
@@ -10713,6 +10905,12 @@
       <segment state="initial">
         <source> We couldn&apos;t load this event. </source>
         <target> Dit evenement kon niet worden geladen. </target>
+      </segment>
+    </unit>
+    <unit id="2501989539336327542">
+      <segment state="initial">
+        <source>Upload image</source>
+        <target>Afbeelding uploaden</target>
       </segment>
     </unit>
     <unit id="2502246313488671541">
@@ -10889,6 +11087,12 @@
         <target> Geen evenementen op deze dag. </target>
       </segment>
     </unit>
+    <unit id="6195389419029630083">
+      <segment state="initial">
+        <source>Remove logo</source>
+        <target>Logo verwijderen</target>
+      </segment>
+    </unit>
     <unit id="5451766476743569122">
       <segment state="initial">
         <source>Fun</source>
@@ -10935,6 +11139,12 @@
       <segment state="initial">
         <source>Core</source>
         <target>Kern</target>
+      </segment>
+    </unit>
+    <unit id="3991755043359697718">
+      <segment state="initial">
+        <source>Remove selected file</source>
+        <target>Geselecteerd bestand verwijderen</target>
       </segment>
     </unit>
     <unit id="3998090677451328461">
@@ -11158,6 +11368,12 @@
       <segment state="initial">
         <source>A core challenge of this spot. An essential challenge for anyone seeking to master this spot.</source>
         <target>Een core Challenge van deze Spot. Een essentiële Challenge voor iedereen die deze Spot wil beheersen.</target>
+      </segment>
+    </unit>
+    <unit id="2384854885353072939">
+      <segment state="initial">
+        <source> Save organization </source>
+        <target> Organisatie opslaan </target>
       </segment>
     </unit>
     <unit id="3909136360386442402">
@@ -11394,6 +11610,12 @@
         <target>Concepten laden…</target>
       </segment>
     </unit>
+    <unit id="8887880308581579311">
+      <segment state="initial">
+        <source>Crop image</source>
+        <target>Afbeelding bijsnijden</target>
+      </segment>
+    </unit>
     <unit id="8890553633144307762">
       <segment state="initial">
         <source>Back</source>
@@ -11488,6 +11710,12 @@
       <segment state="initial">
         <source>Contact us</source>
         <target>Neem contact op</target>
+      </segment>
+    </unit>
+    <unit id="8526572779743358899">
+      <segment state="initial">
+        <source>Image adjustments</source>
+        <target>Afbeeldingsaanpassingen</target>
       </segment>
     </unit>
     <unit id="8535056559014052836">
@@ -11900,10 +12128,22 @@
         <target>Evenementreeksen</target>
       </segment>
     </unit>
+    <unit id="7179268821614935361">
+      <segment state="initial">
+        <source>Error uploading the profile picture.</source>
+        <target>Fout bij het uploaden van de profielfoto.</target>
+      </segment>
+    </unit>
     <unit id="7193934719093844817">
       <segment state="initial">
         <source>Challenge at <ph id="0" equiv="PH" disp="spotName"/></source>
         <target>Challenge op <ph id="0" equiv="PH" disp="spotName"/></target>
+      </segment>
+    </unit>
+    <unit id="7196379307400660101">
+      <segment state="initial">
+        <source>The organization was created or updated only partially. Review it and retry the logo if needed.</source>
+        <target>De organisatie is slechts gedeeltelijk aangemaakt of bijgewerkt. Controleer haar en probeer het logo zo nodig opnieuw.</target>
       </segment>
     </unit>
     <unit id="7214717827274759008">
@@ -12110,6 +12350,12 @@
         <target>Route</target>
       </segment>
     </unit>
+    <unit id="8988442916883693325">
+      <segment state="initial">
+        <source>Edit organization</source>
+        <target>Organisatie bewerken</target>
+      </segment>
+    </unit>
     <unit id="6223606167641949496">
       <segment state="initial">
         <source> Check-ins and organization updates show where parkour is actually happening. The map stays current because the community keeps it current. </source>
@@ -12200,12 +12446,6 @@
         <target>Openbare bijdragen zijn momenteel niet beschikbaar voor dit account. Je kunt nog steeds Spots bekijken en privé opgeslagen of bezochte Spots beheren. Afhankelijk van het leeftijdsveiligheidssignaal van de appstore kan toestemming van een ouder of voogd nodig zijn voordat openbare bijdragen beschikbaar zijn.</target>
       </segment>
     </unit>
-    <unit id="7014916356457269810">
-      <segment state="initial">
-        <source>File mimetype is not allowed!</source>
-        <target>Bestandstype is niet toegestaan!</target>
-      </segment>
-    </unit>
     <unit id="profile.overview.ariaLabel">
       <segment state="initial">
         <source>Profile overview</source>
@@ -12218,22 +12458,10 @@
         <target>Profielfoto bekijken</target>
       </segment>
     </unit>
-    <unit id="7334091550966090385">
-      <segment state="initial">
-        <source>Error uploading media!</source>
-        <target>Fout bij het uploaden van media!</target>
-      </segment>
-    </unit>
     <unit id="8998012040622657110">
       <segment state="initial">
         <source>Filmmaker</source>
         <target>Videomaker</target>
-      </segment>
-    </unit>
-    <unit id="8998179362936748717">
-      <segment state="initial">
-        <source>OK</source>
-        <target>OK</target>
       </segment>
     </unit>
     <unit id="3724068243287682962">
@@ -12362,6 +12590,12 @@
       <segment state="initial">
         <source>Failed to update saved spot</source>
         <target>Opgeslagen Spot kon niet worden bijgewerkt</target>
+      </segment>
+    </unit>
+    <unit id="1739445343509396919">
+      <segment state="initial">
+        <source>Crop organization logo</source>
+        <target>Organisatielogo bijsnijden</target>
       </segment>
     </unit>
     <unit id="settings.map_glass_blur.toggle">
@@ -12560,6 +12794,12 @@
         <target>Alleen zichtbaar voor jou.</target>
       </segment>
     </unit>
+    <unit id="7795965715171252279">
+      <segment state="initial">
+        <source>Use original</source>
+        <target>Origineel gebruiken</target>
+      </segment>
+    </unit>
     <unit id="2704103786825350604">
       <segment state="initial">
         <source> Crafted in Zürich, Switzerland. Open Data. Open Code. ©2026 PK Spot. </source>
@@ -12644,6 +12884,12 @@
         <target> Voeg alleen een e-mailadres toe als je wilt dat beheerders contact met je opnemen over de melding. Het wordt alleen geverifieerd als je bent aangemeld. </target>
       </segment>
     </unit>
+    <unit id="3031673576218082316">
+      <segment state="initial">
+        <source>The selected file was too big. It must be smaller than <ph id="0" equiv="PH" disp="humanFileSize( this.maximumSizeInBytes(), )"/>.</source>
+        <target>Het geselecteerde bestand was te groot. Het moet kleiner zijn dan <ph id="0" equiv="PH" disp="humanFileSize( this.maximumSizeInBytes(), )"/>.</target>
+      </segment>
+    </unit>
     <unit id="3049124345543729285">
       <segment state="initial">
         <source> Automated scanning requires a manual check. </source>
@@ -12678,6 +12924,12 @@
       <segment state="initial">
         <source>Searching PK Spot...</source>
         <target>PK Spot doorzoeken...</target>
+      </segment>
+    </unit>
+    <unit id="726336810858265673">
+      <segment state="initial">
+        <source>Uploading…</source>
+        <target>Uploaden…</target>
       </segment>
     </unit>
     <unit id="7273263025623740836">

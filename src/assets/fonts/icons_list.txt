@@ -230,3 +230,10 @@ cloud_off
 confirmation_number
 hourglass_top
 how_to_reg
+rotate_left
+rotate_right
+zoom_out
+zoom_in
+crop
+undo
+hourglass_empty

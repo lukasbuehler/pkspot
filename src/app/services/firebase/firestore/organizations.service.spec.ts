@@ -11,6 +11,7 @@ const createMockFirestoreAdapter = () => ({
   setDocument: vi.fn(),
   updateDocument: vi.fn(),
   deleteDocument: vi.fn(),
+  deleteFieldValue: vi.fn(() => ({ __type__: "delete" })),
 });
 
 const createMockAuthService = (isAdmin: boolean) => ({
@@ -223,6 +224,29 @@ describe("OrganizationsService", () => {
           profile_picture: "profile-picture-path",
         },
       })
+    );
+  });
+
+  it("removes an organization logo with the cross-platform delete sentinel", async () => {
+    const adapter = createMockFirestoreAdapter();
+    TestBed.configureTestingModule({
+      providers: [
+        OrganizationsService,
+        { provide: FirestoreAdapterService, useValue: adapter },
+        { provide: AuthenticationService, useValue: createMockAuthService(true) },
+        { provide: FunctionsAdapterService, useValue: mockFunctionsAdapter },
+      ],
+    });
+    const service = TestBed.inject(OrganizationsService);
+
+    await service.removeOrganizationLogo("pkspot");
+
+    expect(adapter.deleteFieldValue).toHaveBeenCalled();
+    expect(adapter.updateDocument).toHaveBeenCalledWith(
+      "organizations/pkspot",
+      expect.objectContaining({
+        logo_url: { __type__: "delete" },
+      }),
     );
   });
 

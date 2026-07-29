@@ -513,6 +513,56 @@ async function main() {
     )
   );
 
+  await assertDenied("regular user organization logo upload", () =>
+    uploadIntakeAs(
+      uploader,
+      `organization-${suffix}`,
+      `organization-${suffix}.png`,
+      "image/png",
+      "organization_media",
+      `organization-${suffix}`,
+      { targetKind: "organization", targetId: `organization-${suffix}` }
+    )
+  );
+  await assertDenied("legacy direct admin organization logo upload", () =>
+    uploadAs(
+      adminClient,
+      `organization_media/organization-${suffix}.png`,
+      "image/png"
+    )
+  );
+  await uploadIntakeAs(
+    adminClient,
+    `organization-admin-${suffix}`,
+    `organization-admin-${suffix}.png`,
+    "image/png",
+    "organization_media",
+    `organization-${suffix}`,
+    { targetKind: "organization", targetId: `organization-${suffix}` }
+  );
+  await assertDenied("admin organization svg upload", () =>
+    uploadIntakeAs(
+      adminClient,
+      `organization-svg-${suffix}`,
+      `organization-svg-${suffix}.svg`,
+      "image/svg+xml",
+      "organization_media",
+      `organization-${suffix}`,
+      { targetKind: "organization", targetId: `organization-${suffix}` }
+    )
+  );
+  await assertDenied("admin organization gif upload", () =>
+    uploadIntakeAs(
+      adminClient,
+      `organization-gif-${suffix}`,
+      `organization-gif-${suffix}.gif`,
+      "image/gif",
+      "organization_media",
+      `organization-${suffix}`,
+      { targetKind: "organization", targetId: `organization-${suffix}` }
+    )
+  );
+
   await assertDenied("regular user import source upload", () =>
     uploadAs(uploader, `imports/import_${suffix}.kml`, "application/xml")
   );

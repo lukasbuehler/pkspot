@@ -13,8 +13,8 @@ import { User } from "../../../db/models/User";
 import { UsersService } from "../../services/firebase/firestore/users.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { getValueFromEventTarget } from "../../../scripts/Helpers";
-import { CropImageComponent } from "../crop-image/crop-image.component";
 import { MatIcon } from "@angular/material/icon";
+import { MatDialog } from "@angular/material/dialog";
 import { MatInput } from "@angular/material/input";
 import {
   MatFormField,
@@ -30,7 +30,7 @@ import { StorageBucket } from "../../../db/schemas/Media";
 import { MatBadge } from "@angular/material/badge";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
-import { Observable, startWith, map } from "rxjs";
+import { firstValueFrom, Observable, startWith, map } from "rxjs";
 import { countries } from "../../../scripts/Countries";
 import { Timestamp } from "@angular/fire/firestore";
 import {
@@ -52,6 +52,11 @@ import {
   NormalizedProfileSocials,
   normalizeProfileSocials,
 } from "../../utils/profile-social-links";
+import {
+  ImageCropDialogComponent,
+  type ImageCropDialogData,
+} from "../crop-image/image-crop-dialog.component";
+import { PROFILE_IMAGE_CROP_POLICY } from "../crop-image/image-crop-policy";
 
 @Component({
   selector: "app-edit-profile",
@@ -59,7 +64,6 @@ import {
   styleUrls: ["./edit-profile.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    CropImageComponent,
     MatIcon,
     MatInput,
     MatFormField,
@@ -98,9 +102,6 @@ export class EditProfileComponent implements OnInit {
   discordUrl: string = "";
 
   newProfilePicture: File | null = null;
-  newProfilePictureSrc: string = "";
-  croppedProfilePicture: string = "";
-  croppingComplete: boolean = false;
   isUpdatingProfilePicture: boolean = false;
   tempProfilePictureSrc: string = ""; // Temporary storage for immediate UI update after upload
   isProfilePictureLoaded: boolean = true;
@@ -121,6 +122,7 @@ export class EditProfileComponent implements OnInit {
     private _storageService: StorageService,
     private _snackbar: MatSnackBar,
     private _ageAssuranceService: AgeAssuranceService,
+    private _dialog: MatDialog,
     @Inject(LOCALE_ID) public locale: LocaleCode
   ) {}
 
@@ -199,76 +201,62 @@ export class EditProfileComponent implements OnInit {
     }
   }
 
-  setNewProfilePicture(file: File) {
-    this.newProfilePicture = file;
-
-    // Read the file as data URL for the cropper
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      this.newProfilePictureSrc = event.target!.result as string;
-      this.croppingComplete = false;
-    };
-
-    reader.readAsDataURL(file);
-    this.detectIfChanges();
-  }
-
-  /**
-   * Handle profile picture file selection from input element
-   */
-  onProfilePictureFileSelected(event: Event) {
+  async onProfilePictureFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      this.setNewProfilePicture(input.files[0]);
-    }
-  }
+    const file = input.files?.[0];
+    input.value = "";
+    if (!file) return;
 
-  /**
-   * Handle the cropped image blob from the CropImageComponent
-   */
-  onImageCropped(croppedBlob: Blob) {
-    console.log("Image cropped, starting auto-save...");
+    const croppedFile = await firstValueFrom(
+      this._dialog
+        .open<
+          ImageCropDialogComponent,
+          ImageCropDialogData,
+          File | undefined
+        >(ImageCropDialogComponent, {
+          data: {
+            file,
+            policy: PROFILE_IMAGE_CROP_POLICY,
+            title: $localize`Crop profile picture`,
+          },
+          maxWidth: "100vw",
+          maxHeight: "100dvh",
+          panelClass: "image-crop-dialog-panel",
+        })
+        .afterClosed(),
+      { defaultValue: undefined },
+    );
+    if (!croppedFile) return;
 
-    // 1. Store the blob for upload
-    this.newProfilePicture = new File([croppedBlob], "profile-picture.png", {
-      type: "image/png",
-    });
-
-    // 2. Set temp source immediately using Object URL
+    this.newProfilePicture = croppedFile;
     if (
       this.tempProfilePictureSrc &&
       this.tempProfilePictureSrc.startsWith("blob:")
     ) {
       URL.revokeObjectURL(this.tempProfilePictureSrc);
     }
-    this.tempProfilePictureSrc = URL.createObjectURL(croppedBlob);
-
-    // 3. Update state
+    this.tempProfilePictureSrc = URL.createObjectURL(croppedFile);
     this.isProfilePictureLoaded = true;
     this.hasProfilePictureError = false;
-    this.croppingComplete = true;
-
-    // 4. Trigger upload
-    this.saveNewProfilePicture();
-
-    // 5. Ensure detectIfChanges doesn't block anything (it shouldn't, as we auto-save)
+    await this.saveNewProfilePicture();
     this.detectIfChanges();
   }
 
-  /**
-   * Cancel profile picture upload and reset cropping state
-   */
-  cancelProfilePictureUpload() {
+  cancelProfilePictureUpload(): void {
     this.newProfilePicture = null;
-    this.newProfilePictureSrc = "";
-    this.croppedProfilePicture = "";
-    this.croppingComplete = false;
+    if (
+      this.tempProfilePictureSrc &&
+      this.tempProfilePictureSrc.startsWith("blob:")
+    ) {
+      URL.revokeObjectURL(this.tempProfilePictureSrc);
+      this.tempProfilePictureSrc = "";
+    }
     this.detectIfChanges();
   }
 
-  saveNewProfilePicture() {
+  async saveNewProfilePicture(): Promise<void> {
     if (this.profilePictureUploadPromise) {
-      return;
+      return this.profilePictureUploadPromise;
     }
 
     if (!this._ageAssuranceService.canParticipatePublicly()) {
@@ -284,26 +272,28 @@ export class EditProfileComponent implements OnInit {
       return;
     }
 
-    this._handleProfilePictureUploadAndSave()
-      .then(() => {
-        console.log("saveNewProfilePicture success");
-        this._snackbar.open(
-          "Successfully saved new profile picture",
-          "Dismiss",
-          {
-            duration: 3000,
-            horizontalPosition: "center",
-            verticalPosition: "bottom",
-          }
-        );
-      })
-      .catch((readableError) => {
-        this._snackbar.open(readableError, "Dismiss", {
-          duration: 5000,
+    try {
+      await this._handleProfilePictureUploadAndSave();
+      this._snackbar.open(
+        $localize`Successfully saved new profile picture`,
+        $localize`Dismiss`,
+        {
+          duration: 3000,
           horizontalPosition: "center",
           verticalPosition: "bottom",
-        });
+        },
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : $localize`Error uploading the profile picture.`;
+      this._snackbar.open(message, $localize`Dismiss`, {
+        duration: 5000,
+        horizontalPosition: "center",
+        verticalPosition: "bottom",
       });
+    }
   }
 
   private async _handleProfilePictureUploadAndSave(): Promise<void> {
@@ -381,16 +371,8 @@ export class EditProfileComponent implements OnInit {
         this.authService.authState$.next(this.authService.user);
       }
 
-      // Use the cropped data URL as a temporary display to avoid broken image during resize
-      if (this.croppedProfilePicture) {
-        this.tempProfilePictureSrc = this.croppedProfilePicture;
-        this.hasProfilePictureError = false;
-        this.isProfilePictureLoaded = true;
-      }
-
-      this.croppedProfilePicture = "";
-      this.newProfilePictureSrc = "";
-      this.croppingComplete = false;
+      this.hasProfilePictureError = false;
+      this.isProfilePictureLoaded = true;
     } catch (err) {
       console.error("Error uploading or saving profile picture:", err);
       this.isUpdatingProfilePicture = false;

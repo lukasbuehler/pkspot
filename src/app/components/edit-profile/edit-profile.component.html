@@ -1,15 +1,5 @@
 <div class="d-flex flex-column gap-4">
 @if (user(); as user) {
-  <!-- Cropping mode: show cropper after image is selected -->
-  @if (newProfilePictureSrc && !croppingComplete) {
-  <app-crop-image
-    class="mb-4"
-    [imageSource]="newProfilePictureSrc"
-    (imageCropped)="onImageCropped($event)"
-    (cancelled)="cancelProfilePictureUpload()"
-  ></app-crop-image>
-  } @else {
-  <!-- Normal mode: show upload and current picture -->
   <div
     class="rounded border p-3 mt-3 mb-4 d-flex flex-column align-items-center"
   >
@@ -58,7 +48,7 @@
         #profilePictureInput
         hidden="true"
         type="file"
-        accept="image/png,image/jpeg,image/jpg"
+        accept="image/png,image/jpeg,image/jpg,image/webp"
         (change)="onProfilePictureFileSelected($event)"
       />
       <button
@@ -75,7 +65,6 @@
       </button>
     </div>
   </div>
-  }
 
   <div class="profile-privacy-note mat-body-small" role="note">
     <mat-icon aria-hidden="true">public</mat-icon>

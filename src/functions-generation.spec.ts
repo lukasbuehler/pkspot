@@ -238,6 +238,17 @@ describe("Cloud Functions generation policy", () => {
     expect(source).toContain("onCall");
     expect(source).toContain("secrets: mediaModerationSecrets");
     expect(source).toContain("bucket: DEFAULT_STORAGE_BUCKET");
+    expect(source).toContain('"organization_media/"');
+  });
+
+  it("creates standard image derivatives for organization logos", () => {
+    const source = readFileSync(
+      resolve(functionsSourceRoot, "imageProcessingFunctions.ts"),
+      "utf8",
+    );
+
+    expect(source).toContain('"organization_media/"');
+    expect(source).toContain("DEFAULT_IMAGE_SIZES = [200, 400, 800]");
   });
 
   it("initializes Firebase Admin before media moderation functions are loaded", () => {

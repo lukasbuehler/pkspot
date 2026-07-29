@@ -95,6 +95,10 @@ import {
 } from "../event-spot-select/event-spot-select.component";
 import { LocaleMapEditFieldComponent } from "../locale-map-edit-field/locale-map-edit-field.component";
 import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
+import {
+  OPTIONAL_MEDIA_CROP_POLICY,
+  SQUARE_ICON_CROP_POLICY,
+} from "../crop-image/image-crop-policy";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { UserPickerComponent } from "../user-picker/user-picker.component";
 
@@ -327,6 +331,8 @@ export type EventEditPatch = Omit<
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventEditFormComponent {
+  readonly optionalMediaCropPolicy = OPTIONAL_MEDIA_CROP_POLICY;
+  readonly squareIconCropPolicy = SQUARE_ICON_CROP_POLICY;
   /** Existing event to edit. When null, the form is in create mode. */
   event = input<PkEvent | null>(null);
 

@@ -278,6 +278,14 @@ export class OrganizationsService {
     });
   }
 
+  async removeOrganizationLogo(id: string): Promise<void> {
+    this._requireAdmin("removeOrganizationLogo");
+    await this._firestoreAdapter.updateDocument(`organizations/${id}`, {
+      logo_url: this._firestoreAdapter.deleteFieldValue(),
+      time_updated: Timestamp.now(),
+    });
+  }
+
   async upsertMember(
     organizationId: string,
     userId: string,

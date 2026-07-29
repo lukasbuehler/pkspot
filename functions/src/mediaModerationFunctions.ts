@@ -135,11 +135,13 @@ const AUDIT_PREFIXES = [
   "post_media/",
   "challenges/",
   "event_media/",
+  "organization_media/",
   "resized_originals/spot_pictures/",
   "resized_originals/profile_pictures/",
   "resized_originals/post_media/",
   "resized_originals/challenges/",
   "resized_originals/event_media/",
+  "resized_originals/organization_media/",
 ] as const;
 
 const IMAGE_CONTENT_TYPES = new Set([

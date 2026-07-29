@@ -52,7 +52,8 @@ service firebase.storage {
           'spot_pictures',
           'post_media',
           'challenges',
-          'event_media'
+          'event_media',
+          'organization_media'
         ]
         && request.resource.metadata.destination_filename is string
         && request.resource.metadata.destination_filename.matches('^[A-Za-z0-9_-]+$')
@@ -62,7 +63,8 @@ service firebase.storage {
           'post',
           'challenge',
           'event',
-          'event_media'
+          'event_media',
+          'organization'
         ];
     }
 
@@ -92,6 +94,15 @@ service firebase.storage {
           (request.resource.contentType == 'image/png' && filename.matches('^[A-Za-z0-9_-]+\\.png$')) ||
           (request.resource.contentType == 'image/webp' && filename.matches('^[A-Za-z0-9_-]+\\.webp$')) ||
           (request.resource.contentType == 'image/gif' && filename.matches('^[A-Za-z0-9_-]+\\.gif$'))
+        );
+    }
+
+    function isAllowedResizableImageUpload(filename) {
+      return request.resource != null
+        && (
+          (request.resource.contentType == 'image/jpeg' && filename.matches('^[A-Za-z0-9_-]+\\.(jpg|jpeg)$')) ||
+          (request.resource.contentType == 'image/png' && filename.matches('^[A-Za-z0-9_-]+\\.png$')) ||
+          (request.resource.contentType == 'image/webp' && filename.matches('^[A-Za-z0-9_-]+\\.webp$'))
         );
     }
 
@@ -184,6 +195,13 @@ service firebase.storage {
       allow update: if false;
     }
 
+    match /organization_media/{filename} {
+      allow read: if true;
+      // Public organization assets are published only by the moderation
+      // function after an admin upload passes scanning.
+      allow write: if false;
+    }
+
     match /media_intake/{uid}/{uploadId}/{filename} {
       // Quarantine is never readable by its uploader or by the public. Admins
       // can inspect it for moderation; ordinary previews use a short-lived,
@@ -220,6 +238,12 @@ service firebase.storage {
             && isAdmin()
             && isAllowedImageUpload(filename)
             && isUnderSize(50 * 1024 * 1024)
+          )
+          || (
+            request.resource.metadata.destination_folder == 'organization_media'
+            && isAdmin()
+            && isAllowedResizableImageUpload(filename)
+            && isUnderSize(10 * 1024 * 1024)
           )
         );
     }

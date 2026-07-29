@@ -10,3 +10,39 @@
   display: grid;
   gap: 1rem;
 }
+
+.logo-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.logo-editor h3 {
+  margin: 0;
+}
+
+.logo-source-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.logo-source-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-preview {
+  width: 160px;
+  max-width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+  background: var(--mat-sys-surface-container-highest);
+}

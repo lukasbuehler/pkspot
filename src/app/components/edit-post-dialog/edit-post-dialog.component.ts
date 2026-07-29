@@ -45,6 +45,7 @@ import {
 import { getValueFromEventTarget } from "../../../scripts/Helpers";
 import { StorageBucket } from "../../../db/schemas/Media";
 import { AutocompleteOverlayRepositionDirective } from "../../directives/autocomplete-overlay-reposition.directive";
+import { OPTIONAL_MEDIA_CROP_POLICY } from "../crop-image/image-crop-policy";
 
 export interface PostDialogData {
   isCreating: string;
@@ -80,6 +81,7 @@ export interface PostDialogData {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditPostDialogComponent implements AfterViewInit {
+  readonly optionalMediaCropPolicy = OPTIONAL_MEDIA_CROP_POLICY;
   constructor(
     @Inject(LOCALE_ID) public locale: LocaleCode,
     @Inject(MAT_DIALOG_DATA) public data: PostDialogData,

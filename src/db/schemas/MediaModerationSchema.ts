@@ -31,7 +31,8 @@ export type MediaUploadTargetKind =
   | "post"
   | "challenge"
   | "event"
-  | "event_media";
+  | "event_media"
+  | "organization";
 
 export interface MediaSafetyProviderResult {
   provider: string;

@@ -176,6 +176,7 @@ export class StorageService {
       StorageBucket.PostMedia,
       StorageBucket.Challenges,
       StorageBucket.EventMedia,
+      StorageBucket.OrganizationMedia,
     ].includes(location);
   }
 
@@ -191,6 +192,8 @@ export class StorageService {
         return "challenge";
       case StorageBucket.EventMedia:
         return "event_media";
+      case StorageBucket.OrganizationMedia:
+        return "organization";
       default:
         return "post";
     }

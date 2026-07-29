@@ -36,6 +36,8 @@ export enum StorageBucket {
   Imports = "imports",
   /** Event banners, logos, sponsor logos. Admin-only writes per storage.rules. */
   EventMedia = "event_media",
+  /** Organization logos. Admin-only writes through moderated intake. */
+  OrganizationMedia = "organization_media",
 }
 
 /**

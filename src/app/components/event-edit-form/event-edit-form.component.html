@@ -934,6 +934,7 @@
           [maximumSizeInBytes]="20 * 1024 * 1024"
           [multipleAllowed]="false"
           [storageFolder]="eventMediaBucket"
+          [imageCropPolicy]="optionalMediaCropPolicy"
           (newMedia)="onBannerUploaded($event)"
         ></app-media-upload>
         @if (form.value.banner_src) {
@@ -991,6 +992,7 @@
           [maximumSizeInBytes]="10 * 1024 * 1024"
           [multipleAllowed]="false"
           [storageFolder]="eventMediaBucket"
+          [imageCropPolicy]="squareIconCropPolicy"
           (newMedia)="onLogoUploaded($event)"
         ></app-media-upload>
         @if (form.value.logo_src) {
@@ -1070,6 +1072,7 @@
           [maximumSizeInBytes]="5 * 1024 * 1024"
           [multipleAllowed]="false"
           [storageFolder]="eventMediaBucket"
+          [imageCropPolicy]="optionalMediaCropPolicy"
           (newMedia)="onSponsorLogoUploaded($event)"
         ></app-media-upload>
         @if (form.value.sponsor_logo_src) {

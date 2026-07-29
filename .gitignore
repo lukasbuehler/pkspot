@@ -230,3 +230,5 @@ __pycache__
 .playwright-cli/*
 
 *.p8
+
+docs/*

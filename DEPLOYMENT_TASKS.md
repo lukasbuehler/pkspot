@@ -77,6 +77,40 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
+### Organization image cropping and media processing
+
+The Functions and storage rules must be deployed before the organization editor
+client. Keep the steps in this order so no released client can target an
+unsupported storage destination.
+
+- [ ] Build and deploy the updated media processing, moderation, reconciliation,
+      and audit Functions:
+
+  ```sh
+  npm --prefix functions run build
+  npm run deploy:prod:functions
+  ```
+
+  Success condition: the production Functions deploy completes and the deployed
+  image-processing and moderation code recognizes the `organization_media`
+  prefix and the `organization` target kind.
+- [ ] Deploy the updated production Storage rules:
+
+  ```sh
+  npx firebase use prod
+  npm run deploy:rules:storage
+  ```
+
+  Success condition: an administrator can write a raster organization logo only
+  through `media_intake/organization_media`, a non-administrator and SVG upload
+  are denied, and direct client publication to `organization_media` is denied.
+- [ ] From the organization admin UI, upload and approve a cropped organization
+      logo. Verify the stable organization-ID filename produces 200, 400, and
+      800 pixel derivatives under `organization_media`, and that `logo_url`
+      contains the 800-pixel derivative URL.
+- [ ] Only after the production verification above, release the client through
+      the normal `main` workflow. Do not manually operate an App Hosting rollout.
+
 ### User profile privacy cutover
 
 The backend rollout is deliberately separate from the client rollout. Do not

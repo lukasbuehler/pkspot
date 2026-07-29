@@ -352,9 +352,24 @@
         <source>No contact messages yet.</source>
       </segment>
     </unit>
+    <unit id="5893093626549678327">
+      <segment>
+        <source>Selected image</source>
+      </segment>
+    </unit>
+    <unit id="5896121803278419290">
+      <segment>
+        <source>Organization name and slug are required.</source>
+      </segment>
+    </unit>
     <unit id="5897595860261783392">
       <segment>
         <source>Add a name or some spot details before saving this new spot.</source>
+      </segment>
+    </unit>
+    <unit id="5899203917381874336">
+      <segment>
+        <source>Cropped</source>
       </segment>
     </unit>
     <unit id="4703825958292042360">
@@ -397,6 +412,11 @@
         <source> Live &amp; Verified </source>
       </segment>
     </unit>
+    <unit id="6644602300241968388">
+      <segment>
+        <source> Leave blank to add yourself. Use the Firebase Auth UID for another user. </source>
+      </segment>
+    </unit>
     <unit id="1008017384716140525">
       <segment>
         <source>Event view</source>
@@ -420,11 +440,6 @@
     <unit id="1035459065824093652">
       <segment>
         <source>Open edit</source>
-      </segment>
-    </unit>
-    <unit id="1038551913502372916">
-      <segment>
-        <source> Create organizations and manage who can review organization-routed spot edits. Verified-by and managed-by settings live on each spot&apos;s admin edit form. </source>
       </segment>
     </unit>
     <unit id="1053544786475957394">
@@ -530,6 +545,16 @@
     <unit id="692721075363249547">
       <segment>
         <source> Training happens outside, not behind a desk. PK Spot works on any device — download the native app or install it from your browser. </source>
+      </segment>
+    </unit>
+    <unit id="6932865105766151309">
+      <segment>
+        <source>Upload</source>
+      </segment>
+    </unit>
+    <unit id="3031673576218082316">
+      <segment>
+        <source>The selected file was too big. It must be smaller than <ph id="0" equiv="PH" disp="humanFileSize( this.maximumSizeInBytes(), )"/>.</source>
       </segment>
     </unit>
     <unit id="3049124345543729285">
@@ -907,6 +932,11 @@
         <source>Your email address has been successfully verified. You can now access all features of PK Spot.</source>
       </segment>
     </unit>
+    <unit id="5546339789714773759">
+      <segment>
+        <source>Rotate right</source>
+      </segment>
+    </unit>
     <unit id="5598589668932032802">
       <segment>
         <source>Verification Failed</source>
@@ -1057,6 +1087,11 @@
         <source>Please wait while we recover your email address...</source>
       </segment>
     </unit>
+    <unit id="1829436672791958136">
+      <segment>
+        <source>Organization logo preview</source>
+      </segment>
+    </unit>
     <unit id="1833519671749660117">
       <segment>
         <source> Public spot contributions will show up here once this profile adds to the map. </source>
@@ -1105,6 +1140,11 @@
     <unit id="5516877052541003749">
       <segment>
         <source>Failed to submit organization review</source>
+      </segment>
+    </unit>
+    <unit id="78295015887661250">
+      <segment>
+        <source>Organization saved.</source>
       </segment>
     </unit>
     <unit id="7833933616390918367">
@@ -1474,9 +1514,19 @@
         <source>Time (optional)</source>
       </segment>
     </unit>
+    <unit id="2178484227756853679">
+      <segment>
+        <source>Crop profile picture</source>
+      </segment>
+    </unit>
     <unit id="218205763474746263">
       <segment>
         <source>Preparing report</source>
+      </segment>
+    </unit>
+    <unit id="2184922477427494351">
+      <segment>
+        <source>Crop</source>
       </segment>
     </unit>
     <unit id="2186090184648113885">
@@ -1542,6 +1592,11 @@
         <source> Save </source>
       </segment>
     </unit>
+    <unit id="7808756054397155068">
+      <segment>
+        <source>Reset</source>
+      </segment>
+    </unit>
     <unit id="7819314041543176992">
       <segment>
         <source>Close</source>
@@ -1580,6 +1635,11 @@
     <unit id="7177325135014632430">
       <segment>
         <source>Event series</source>
+      </segment>
+    </unit>
+    <unit id="7179268821614935361">
+      <segment>
+        <source>Error uploading the profile picture.</source>
       </segment>
     </unit>
     <unit id="4115668858470490289">
@@ -1680,6 +1740,11 @@
         <source>Failed to update saved spot</source>
       </segment>
     </unit>
+    <unit id="1739445343509396919">
+      <segment>
+        <source>Crop organization logo</source>
+      </segment>
+    </unit>
     <unit id="settings.map_glass_blur.toggle">
       <segment>
         <source> Enable glass blur on the map </source>
@@ -1705,6 +1770,11 @@
         <source>Only visible to you.</source>
       </segment>
     </unit>
+    <unit id="7795965715171252279">
+      <segment>
+        <source>Use original</source>
+      </segment>
+    </unit>
     <unit id="4322032387603367651">
       <segment>
         <source>Public identity needs a higher bar</source>
@@ -1713,6 +1783,11 @@
     <unit id="4323470180912194028">
       <segment>
         <source>Copy</source>
+      </segment>
+    </unit>
+    <unit id="4344855956830123370">
+      <segment>
+        <source>Apply crop</source>
       </segment>
     </unit>
     <unit id="4386559202007821626">
@@ -1728,24 +1803,6 @@
     <unit id="4399476985310100803">
       <segment>
         <source>Open all reports</source>
-      </segment>
-    </unit>
-    <unit id="crop.preview">
-      <notes>
-        <note category="description">Preview heading</note>
-        <note category="meaning">crop image preview</note>
-      </notes>
-      <segment>
-        <source> Preview </source>
-      </segment>
-    </unit>
-    <unit id="crop.instruction">
-      <notes>
-        <note category="description">Instruction to crop the image</note>
-        <note category="meaning">crop image instruction</note>
-      </notes>
-      <segment>
-        <source> Crop the image above </source>
       </segment>
     </unit>
     <unit id="common.cancel">
@@ -2008,16 +2065,7 @@
         <note category="meaning">processing label</note>
       </notes>
       <segment>
-        <source>Processing...</source>
-      </segment>
-    </unit>
-    <unit id="crop.saveCropped">
-      <notes>
-        <note category="description">Button to save the cropped image</note>
-        <note category="meaning">save cropped image button</note>
-      </notes>
-      <segment>
-        <source>Save Cropped Image</source>
+        <source> Processing… </source>
       </segment>
     </unit>
     <unit id="amenity.entry_fee">
@@ -2316,6 +2364,11 @@
         <source>Language</source>
       </segment>
     </unit>
+    <unit id="2830779242863245798">
+      <segment>
+        <source>Crop image area</source>
+      </segment>
+    </unit>
     <unit id="7049904563073707059">
       <segment>
         <source>Show satellite toggle</source>
@@ -2334,6 +2387,11 @@
     <unit id="822217384326702238">
       <segment>
         <source>HTML Embed Code</source>
+      </segment>
+    </unit>
+    <unit id="8229433345712490359">
+      <segment>
+        <source>The type of this file is not allowed.</source>
       </segment>
     </unit>
     <unit id="8235805970201248247">
@@ -2406,6 +2464,11 @@
         <source>Directions</source>
       </segment>
     </unit>
+    <unit id="8988442916883693325">
+      <segment>
+        <source>Edit organization</source>
+      </segment>
+    </unit>
     <unit id="187187500641108332">
       <segment>
         <source><ph id="0" equiv="INTERPOLATION" disp="{{ member.role }}"/></source>
@@ -2429,6 +2492,11 @@
     <unit id="3483311644139102304">
       <segment>
         <source>All Event Challenges</source>
+      </segment>
+    </unit>
+    <unit id="8743802677264467556">
+      <segment>
+        <source>Successfully saved new profile picture</source>
       </segment>
     </unit>
     <unit id="8746766771069368125">
@@ -2520,6 +2588,11 @@
     <unit id="3167739142487195096">
       <segment>
         <source>Moderation reports</source>
+      </segment>
+    </unit>
+    <unit id="3192626855762638668">
+      <segment>
+        <source>Error uploading media. Try again.</source>
       </segment>
     </unit>
     <unit id="7629436164719717851">
@@ -5227,6 +5300,11 @@
         <source>Contact us</source>
       </segment>
     </unit>
+    <unit id="8526572779743358899">
+      <segment>
+        <source>Image adjustments</source>
+      </segment>
+    </unit>
     <unit id="8535056559014052836">
       <segment>
         <source>Please enter your email address</source>
@@ -5846,7 +5924,7 @@
         <note category="meaning">media upload disclaimer</note>
       </notes>
       <segment>
-        <source> By uploading, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc>. You confirm you own this content or have the right to share it. You grant PK Spot the license it needs to operate the service and agree to make your contribution available to the community under a Creative Commons license. </source>
+        <source> By uploading, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc>. You confirm you own this content or have the right to share it. You grant PK Spot the license it needs to operate the service and agree to make your contribution available to the community under a Creative Commons license. </source>
       </segment>
     </unit>
     <unit id="moderation.dashboard.archive_contact_tooltip">
@@ -5908,11 +5986,6 @@
         <source>Moderation</source>
       </segment>
     </unit>
-    <unit id="801213320890707566">
-      <segment>
-        <source>Please select a file to upload</source>
-      </segment>
-    </unit>
     <unit id="7010151693196670017">
       <segment>
         <source>Public warning</source>
@@ -5928,11 +6001,6 @@
         <source>Public contributions are unavailable for this account right now. You can still browse spots and manage private saved or visited spots. Depending on the app store age-safety signal, parent or guardian consent may be needed before public contributions are available.</source>
       </segment>
     </unit>
-    <unit id="7014916356457269810">
-      <segment>
-        <source>File mimetype is not allowed!</source>
-      </segment>
-    </unit>
     <unit id="profile.overview.ariaLabel">
       <segment>
         <source>Profile overview</source>
@@ -5941,16 +6009,6 @@
     <unit id="profile.picture.view">
       <segment>
         <source>View profile picture</source>
-      </segment>
-    </unit>
-    <unit id="7334091550966090385">
-      <segment>
-        <source>Error uploading media!</source>
-      </segment>
-    </unit>
-    <unit id="8998179362936748717">
-      <segment>
-        <source>OK</source>
       </segment>
     </unit>
     <unit id="2275328567992347600">
@@ -6261,6 +6319,11 @@
     <unit id="2917314929120683887">
       <segment>
         <source> Continue </source>
+      </segment>
+    </unit>
+    <unit id="2925374545200384410">
+      <segment>
+        <source>External URL</source>
       </segment>
     </unit>
     <unit id="292769594389358994">
@@ -6642,6 +6705,11 @@
         <source>Current E-mail</source>
       </segment>
     </unit>
+    <unit id="2861306361489095884">
+      <segment>
+        <source>Slug</source>
+      </segment>
+    </unit>
     <unit id="event_page.load_failed_back">
       <segment>
         <source>Back to all events</source>
@@ -6650,6 +6718,11 @@
     <unit id="1441164278426420486">
       <segment>
         <source>New E-mail address</source>
+      </segment>
+    </unit>
+    <unit id="1451435729057274599">
+      <segment>
+        <source>Organization changes could not be saved.</source>
       </segment>
     </unit>
     <unit id="7353924840712072086">
@@ -6670,6 +6743,11 @@
     <unit id="574237115855339547">
       <segment>
         <source>Change E-mail address</source>
+      </segment>
+    </unit>
+    <unit id="1426358485872019526">
+      <segment>
+        <source>Uploaded image</source>
       </segment>
     </unit>
     <unit id="1431416938026210429">
@@ -6700,6 +6778,11 @@
     <unit id="8609785202570000921">
       <segment>
         <source>Quarantined media revealed for moderation</source>
+      </segment>
+    </unit>
+    <unit id="8613763801282551204">
+      <segment>
+        <source>Letters, numbers, underscores, and hyphens only.</source>
       </segment>
     </unit>
     <unit id="8614289146412859500">
@@ -6805,6 +6888,11 @@
     <unit id="5227214585962403800">
       <segment>
         <source> Recent messages from the public contact form. </source>
+      </segment>
+    </unit>
+    <unit id="5232615121937117490">
+      <segment>
+        <source>Organization created.</source>
       </segment>
     </unit>
     <unit id="5235264493064101963">
@@ -7022,6 +7110,11 @@
         <source>Settings</source>
       </segment>
     </unit>
+    <unit id="4933737937492569293">
+      <segment>
+        <source>Choose and crop logo</source>
+      </segment>
+    </unit>
     <unit id="519026501519052552">
       <segment>
         <source>Manage your profile and account settings.</source>
@@ -7030,6 +7123,11 @@
     <unit id="5192370615985951411">
       <segment>
         <source>Smart Map Filters</source>
+      </segment>
+    </unit>
+    <unit id="8953033926734869941">
+      <segment>
+        <source>Name</source>
       </segment>
     </unit>
     <unit id="8958570874759054860">
@@ -7226,6 +7324,11 @@
         <source>Security check failed. Please sign in again and try deleting your account.</source>
       </segment>
     </unit>
+    <unit id="4211525354552169871">
+      <segment>
+        <source> This image could not be loaded or cropped. Choose another image. </source>
+      </segment>
+    </unit>
     <unit id="profile.actions.ariaLabel">
       <segment>
         <source>Profile actions</source>
@@ -7269,6 +7372,11 @@
     <unit id="1486755545881068533">
       <segment>
         <source>Re-authentication failed. Account not deleted.</source>
+      </segment>
+    </unit>
+    <unit id="6363856180049947760">
+      <segment>
+        <source>New organization logo preview</source>
       </segment>
     </unit>
     <unit id="6366005533956235174">
@@ -7517,6 +7625,11 @@
         <source>The password is invalid!</source>
       </segment>
     </unit>
+    <unit id="4292524783489016046">
+      <segment>
+        <source> Create organizations, update their public identity, and manage who can review organization-routed spot edits. </source>
+      </segment>
+    </unit>
     <unit id="4295270151314599319">
       <segment>
         <source>Submission channel</source>
@@ -7560,6 +7673,11 @@
     <unit id="7323901917278002498">
       <segment>
         <source>Sign in instead?</source>
+      </segment>
+    </unit>
+    <unit id="7329217250595054697">
+      <segment>
+        <source>Original</source>
       </segment>
     </unit>
     <unit id="5207635742003539443">
@@ -7880,6 +7998,11 @@
         <source>Create Account</source>
       </segment>
     </unit>
+    <unit id="126971263164896766">
+      <segment>
+        <source>Organization logo</source>
+      </segment>
+    </unit>
     <unit id="1274247756500564795">
       <segment>
         <source>Community</source>
@@ -7943,6 +8066,11 @@
     <unit id="3621763709254270239">
       <segment>
         <source>Close report</source>
+      </segment>
+    </unit>
+    <unit id="3624887810607887590">
+      <segment>
+        <source>Rotate left</source>
       </segment>
     </unit>
     <unit id="3628374603023447227">
@@ -8456,6 +8584,11 @@
         <source>Spot name</source>
       </segment>
     </unit>
+    <unit id="6421460271971606186">
+      <segment>
+        <source>Zoom</source>
+      </segment>
+    </unit>
     <unit id="6422745118544210611">
       <segment>
         <source>Delete this spot and all of its nested data? This action is permanent and will be recorded in moderation provenance.</source>
@@ -8609,6 +8742,11 @@
         <source>License</source>
       </segment>
     </unit>
+    <unit id="688499259866327762">
+      <segment>
+        <source>Select media</source>
+      </segment>
+    </unit>
     <unit id="spot_picker.limit_hint">
       <segment>
         <source> Up to <ph id="0" equiv="INTERPOLATION" disp="{{ max() }}"/> spots </source>
@@ -8637,6 +8775,11 @@
     <unit id="3637006077361642270">
       <segment>
         <source>Shown amenities</source>
+      </segment>
+    </unit>
+    <unit id="3665571050825458932">
+      <segment>
+        <source> Move and resize the crop area. Use zoom or rotation when needed. </source>
       </segment>
     </unit>
     <unit id="3686284950598311784">
@@ -8700,6 +8843,11 @@
     <unit id="6381490568322624964">
       <segment>
         <source>Deleted</source>
+      </segment>
+    </unit>
+    <unit id="6396144908605095471">
+      <segment>
+        <source> Members will be added to the organization selected above. </source>
       </segment>
     </unit>
     <unit id="6396486314653699002">
@@ -8777,6 +8925,11 @@
         <source>Loading drafts…</source>
       </segment>
     </unit>
+    <unit id="8887880308581579311">
+      <segment>
+        <source>Crop image</source>
+      </segment>
+    </unit>
     <unit id="8890553633144307762">
       <segment>
         <source>Back</source>
@@ -8800,6 +8953,11 @@
     <unit id="6670068416688791508">
       <segment>
         <source>Cannot share a spot that hasn&apos;t been saved yet</source>
+      </segment>
+    </unit>
+    <unit id="6677729099911177594">
+      <segment>
+        <source>No storage destination is configured.</source>
       </segment>
     </unit>
     <unit id="7505192479854511779">
@@ -9521,11 +9679,6 @@
         <source>Containment summary</source>
       </segment>
     </unit>
-    <unit id="5279365676870836127">
-      <segment>
-        <source> If this list is empty, organization reads are still blocked by rules or no organizations exist yet. </source>
-      </segment>
-    </unit>
     <unit id="5287661483037226366">
       <segment>
         <source> Feel free to slide into our DMs! We&apos;re happy to help with quick questions. </source>
@@ -9574,6 +9727,11 @@
     <unit id="1140327701924892323">
       <segment>
         <source>Quick Links</source>
+      </segment>
+    </unit>
+    <unit id="1142251373686093258">
+      <segment>
+        <source>Use only letters, numbers, underscores, or hyphens in the organization ID.</source>
       </segment>
     </unit>
     <unit id="1142555682966582117">
@@ -10190,6 +10348,11 @@
         <source>{VAR_PLURAL, plural, =1 {managed spot} other {managed spots}}</source>
       </segment>
     </unit>
+    <unit id="2601450563472532666">
+      <segment>
+        <source> Apply the required crop before uploading. </source>
+      </segment>
+    </unit>
     <unit id="2607510393198183286">
       <segment>
         <source>Failed to delete spot</source>
@@ -10216,6 +10379,11 @@
     <unit id="2049290282534091182">
       <segment>
         <source>Moderation</source>
+      </segment>
+    </unit>
+    <unit id="1381308436651796702">
+      <segment>
+        <source>No logo</source>
       </segment>
     </unit>
     <unit id="1388712764439031120">
@@ -10259,6 +10427,11 @@
     <unit id="7193934719093844817">
       <segment>
         <source>Challenge at <ph id="0" equiv="PH" disp="spotName"/></source>
+      </segment>
+    </unit>
+    <unit id="7196379307400660101">
+      <segment>
+        <source>The organization was created or updated only partially. Review it and retry the logo if needed.</source>
       </segment>
     </unit>
     <unit id="3942730300546294278">
@@ -10456,6 +10629,11 @@
         <source>Pathfinder</source>
       </segment>
     </unit>
+    <unit id="726336810858265673">
+      <segment>
+        <source>Uploading…</source>
+      </segment>
+    </unit>
     <unit id="7273263025623740836">
       <segment>
         <source>Searching communities...</source>
@@ -10511,6 +10689,11 @@
         <source>Draft</source>
       </segment>
     </unit>
+    <unit id="481253503866665974">
+      <segment>
+        <source>Re-crop</source>
+      </segment>
+    </unit>
     <unit id="4813152754732689397">
       <segment>
         <source>Contributor</source>
@@ -10519,6 +10702,11 @@
     <unit id="9091381429305665620">
       <segment>
         <source>Helper</source>
+      </segment>
+    </unit>
+    <unit id="9094775460002466117">
+      <segment>
+        <source>Replace and crop logo</source>
       </segment>
     </unit>
     <unit id="3742657416068781599">
@@ -10800,6 +10988,11 @@
         <source>Is there drinking water available right at the spot?</source>
       </segment>
     </unit>
+    <unit id="2501989539336327542">
+      <segment>
+        <source>Upload image</source>
+      </segment>
+    </unit>
     <unit id="2502246313488671541">
       <segment>
         <source> Private accounts can approve who follows them. </source>
@@ -10850,6 +11043,11 @@
         <source> No events on this day. </source>
       </segment>
     </unit>
+    <unit id="6195389419029630083">
+      <segment>
+        <source>Remove logo</source>
+      </segment>
+    </unit>
     <unit id="5451766476743569122">
       <segment>
         <source>Fun</source>
@@ -10863,6 +11061,11 @@
     <unit id="7027401708987643293">
       <segment>
         <source>Core</source>
+      </segment>
+    </unit>
+    <unit id="3991755043359697718">
+      <segment>
+        <source>Remove selected file</source>
       </segment>
     </unit>
     <unit id="3998090677451328461">
@@ -10952,6 +11155,11 @@
     <unit id="2369409944839137310">
       <segment>
         <source>A core challenge of this spot. An essential challenge for anyone seeking to master this spot.</source>
+      </segment>
+    </unit>
+    <unit id="2384854885353072939">
+      <segment>
+        <source> Save organization </source>
       </segment>
     </unit>
     <unit id="3909136360386442402">
