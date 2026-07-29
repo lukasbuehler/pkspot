@@ -281,6 +281,22 @@ export const routes: Routes = [
     data: { routeName: "Organization Admin", discoverable: false },
   },
   {
+    path: "event-ownership-claims",
+    loadComponent: () =>
+      import("./components/event-ownership-claim-inbox/event-ownership-claim-inbox.component").then(
+        (m) => m.EventOwnershipClaimInboxComponent,
+      ),
+    data: { routeName: "Event Ownership Claims", discoverable: false },
+  },
+  {
+    path: "event-ownership-claims/:claimId",
+    loadComponent: () =>
+      import("./components/event-ownership-claim-response/event-ownership-claim-response.component").then(
+        (m) => m.EventOwnershipClaimResponseComponent,
+      ),
+    data: { routeName: "Event Ownership Claim", discoverable: false },
+  },
+  {
     path: "moderation",
     loadComponent: () =>
       import("./components/moderation-dashboard-page/moderation-dashboard-page.component").then(

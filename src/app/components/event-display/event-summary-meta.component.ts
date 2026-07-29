@@ -11,6 +11,7 @@ import { Event as PkEvent } from "../../../db/models/Event";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import {
   eventStatusLabel,
+  eventScheduleLabel,
   eventVenueLine,
   type EventStatus,
 } from "./event-display.helpers";
@@ -33,11 +34,7 @@ export class EventSummaryMetaComponent {
 
   readonly status = computed<EventStatus>(() => this.event().status());
   readonly dateRange = computed(() =>
-    this._dateTime.formatDateRange(
-      this.event().start,
-      this.event().end,
-      this.dateStyle(),
-    ),
+    eventScheduleLabel(this.event(), this._dateTime, this.dateStyle()),
   );
   readonly statusLabel = computed(() =>
     eventStatusLabel(this.event(), this.status(), this._locale),

@@ -7,6 +7,14 @@
     placeholder="Search a public profile or paste a user ID"
     i18n-placeholder="@@event_access.user_placeholder"
   />
+  @if (selectedUser()?.profile_picture; as profilePicture) {
+    <img
+      matPrefix
+      class="user-avatar"
+      [src]="profilePicture"
+      alt=""
+    />
+  }
   @if (searching() || resolving()) {
     <mat-progress-spinner matSuffix diameter="18" mode="indeterminate" />
   } @else {
@@ -19,7 +27,14 @@
   >
     @for (user of results(); track user.uid) {
       <mat-option [value]="user">
-        {{ user.display_name || user.uid }}
+        <span class="user-option">
+          @if (user.profile_picture) {
+            <img class="user-avatar" [src]="user.profile_picture" alt="" />
+          } @else {
+            <mat-icon>person</mat-icon>
+          }
+          <span>{{ user.display_name || user.uid }}</span>
+        </span>
       </mat-option>
     }
   </mat-autocomplete>

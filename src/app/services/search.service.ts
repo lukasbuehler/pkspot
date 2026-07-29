@@ -26,6 +26,7 @@ import type {
   EventTicketAvailability,
   EventTicketBadge,
   EventTicketOptionSchema,
+  EventTimingSchema,
 } from "../../db/schemas/EventSchema";
 import type { UserReferenceSchema } from "../../db/schemas/UserSchema";
 import { getSpotPriority } from "../../db/schemas/SpotPriority";
@@ -1085,6 +1086,7 @@ export class SearchService {
     const doc = hit?.document ?? hit;
     const sponsor = doc?.sponsor ?? {};
     const externalSource = doc?.external_source ?? {};
+    const timing = SearchService._readEventTiming(doc?.timing);
 
     const location =
       SearchService._readGeopoint(doc?.location_raw) ??
@@ -1157,6 +1159,8 @@ export class SearchService {
       venueSpotCount,
       startSeconds: SearchService._readInt(doc?.start_seconds),
       endSeconds: SearchService._readInt(doc?.end_seconds),
+      activeUntilSeconds: SearchService._readInt(doc?.active_until_seconds),
+      timing,
       timeZone: SearchService._readTimeZone(doc?.time_zone),
       lifecycleStatus:
         doc?.lifecycle_status === "cancelled" ? "cancelled" : "planned",
@@ -1398,7 +1402,7 @@ export class SearchService {
           !preview.id ||
           preview.startSeconds === undefined ||
           preview.endSeconds === undefined ||
-          !preview.timeZone,
+          (preview.timing?.mode !== "date_only" && !preview.timeZone),
       );
       const items = previews
         .filter(
@@ -1407,12 +1411,12 @@ export class SearchService {
           ): preview is EventSearchPreview & {
             startSeconds: number;
             endSeconds: number;
-            timeZone: string;
+            timeZone?: string;
           } =>
             !!preview.id &&
             preview.startSeconds !== undefined &&
             preview.endSeconds !== undefined &&
-            !!preview.timeZone,
+            (preview.timing?.mode === "date_only" || !!preview.timeZone),
         )
         .map((preview) => ({
           ...preview,
@@ -2060,7 +2064,12 @@ export class SearchService {
     },
   ): boolean {
     if (bbox.coversWorld) return true;
-    if (SearchService._pointInViewport(event.location, bbox)) return true;
+    if (
+      event.location &&
+      SearchService._pointInViewport(event.location, bbox)
+    ) {
+      return true;
+    }
     if (!event.bounds) return false;
 
     return SearchService._boundsIntersectViewport(event.bounds, bbox);
@@ -2223,6 +2232,35 @@ export class SearchService {
     } catch {
       return undefined;
     }
+  }
+
+  private static _readEventTiming(value: unknown): EventTimingSchema | undefined {
+    if (!value || typeof value !== "object") return undefined;
+    const timing = value as Record<string, unknown>;
+    if (
+      typeof timing["start_date"] !== "string" ||
+      (timing["mode"] !== "date_only" &&
+        timing["mode"] !== "exact" &&
+        timing["mode"] !== "open_end")
+    ) {
+      return undefined;
+    }
+    return {
+      start_date: timing["start_date"],
+      end_date:
+        typeof timing["end_date"] === "string"
+          ? timing["end_date"]
+          : undefined,
+      start_time:
+        typeof timing["start_time"] === "string"
+          ? timing["start_time"]
+          : undefined,
+      end_time:
+        typeof timing["end_time"] === "string"
+          ? timing["end_time"]
+          : undefined,
+      mode: timing["mode"],
+    };
   }
 
   private static _emptyRsvpCounts(): EventRSVPCountsSchema {
@@ -2484,7 +2522,7 @@ export interface EventSearchPreview {
   name: string;
   description?: string;
   venueString?: string;
-  localityString: string;
+  localityString?: string;
   bannerSrc?: string;
   bannerFit?: "cover" | "contain";
   bannerAccentColor?: string;
@@ -2502,6 +2540,8 @@ export interface EventSearchPreview {
   /** Unix seconds; undefined only if the indexer hasn't run yet. */
   startSeconds?: number;
   endSeconds?: number;
+  activeUntilSeconds?: number;
+  timing?: EventTimingSchema;
   timeZone?: string;
   lifecycleStatus?: EventLifecycleStatus;
   promoStartsAtSeconds?: number;
@@ -2565,7 +2605,7 @@ export interface EventDiscoveryFacets {
 export interface EventDiscoveryItem extends EventSearchPreview {
   startSeconds: number;
   endSeconds: number;
-  timeZone: string;
+  timeZone?: string;
   lifecycleStatus: EventLifecycleStatus;
   rsvpCounts: EventRSVPCountsSchema;
 }

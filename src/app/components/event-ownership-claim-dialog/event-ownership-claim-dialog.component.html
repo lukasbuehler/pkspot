@@ -1,0 +1,80 @@
+<h2 mat-dialog-title i18n="@@event_claims.submit_heading">
+  Request organization ownership
+</h2>
+<mat-dialog-content>
+  <p>
+    <strong>{{ data.eventName }}</strong>
+  </p>
+  @if (loading()) {
+    <p i18n="@@event_claims.loading_organizations">Loading your organizations…</p>
+  } @else if (organizations().length === 0) {
+    <p i18n="@@event_claims.no_manager_orgs">
+      You must manage an active PK Spot organization to submit a claim.
+    </p>
+  } @else {
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_claims.organization">Organization</mat-label>
+      <mat-select
+        [ngModel]="organizationId()"
+        (ngModelChange)="organizationId.set($event)"
+      >
+        @for (organization of organizations(); track organization.id) {
+          <mat-option [value]="organization.id">
+            {{ organization.name }}
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_claims.explanation">Explanation</mat-label>
+      <textarea
+        matInput
+        rows="5"
+        [ngModel]="explanation()"
+        (ngModelChange)="explanation.set($event)"
+      ></textarea>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_claims.evidence">
+        Public evidence URLs (one per line)
+      </mat-label>
+      <textarea
+        matInput
+        rows="4"
+        [ngModel]="evidence()"
+        (ngModelChange)="evidence.set($event)"
+      ></textarea>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@event_claims.former_owner_suggestion">
+        Suggested former-owner access
+      </mat-label>
+      <mat-select
+        [ngModel]="formerOwnerOutcome()"
+        (ngModelChange)="formerOwnerOutcome.set($event)"
+      >
+        <mat-option value="retain_editor" i18n="@@event_claims.retain_editor">
+          Retain as editor
+        </mat-option>
+        <mat-option value="remove_access" i18n="@@event_claims.remove_access">
+          Remove access
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  }
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close i18n="@@common.cancel">Cancel</button>
+  <button
+    mat-flat-button
+    type="button"
+    [disabled]="submitting() || organizations().length === 0"
+    (click)="submit()"
+    i18n="@@event_claims.submit"
+  >
+    Submit claim
+  </button>
+</mat-dialog-actions>

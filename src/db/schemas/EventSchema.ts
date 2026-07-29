@@ -50,6 +50,32 @@ export const EVENT_SCHEDULE_MODES = [
 ] as const;
 export type EventScheduleMode = (typeof EVENT_SCHEDULE_MODES)[number];
 
+export const EVENT_TIMING_MODES = [
+  "date_only",
+  "exact",
+  "open_end",
+] as const;
+export type EventTimingMode = (typeof EVENT_TIMING_MODES)[number];
+
+/**
+ * Canonical civil schedule for event discovery and display.
+ *
+ * `start` and `end` timestamps remain on EventSchema for older clients and
+ * timestamp filtering. New clients use these fields for the promised public
+ * schedule so date-only and open-ended events never expose invented times.
+ */
+export interface EventTimingSchema {
+  /** Calendar date at the event, formatted as YYYY-MM-DD. */
+  start_date: string;
+  /** Defaults to start_date when absent. */
+  end_date?: string;
+  /** Local wall-clock time at the event, formatted as HH:mm. */
+  start_time?: string;
+  /** Present only for exact endings. */
+  end_time?: string;
+  mode: EventTimingMode;
+}
+
 /** Stored lifecycle values. Live/completed are derived from valid event times. */
 export const EVENT_LIFECYCLE_STATUSES = ["planned", "cancelled"] as const;
 export type EventLifecycleStatus =
@@ -97,6 +123,9 @@ export interface EventAttendanceSchema {
   capacity?: number;
   /** Whether registrations beyond capacity may enter a waitlist. */
   waitlist?: boolean;
+  /** Public entry/on-site instructions; no payment processing is implied. */
+  instructions?: string;
+  instructions_i18n?: LocaleMap | Record<string, string>;
 }
 
 /** Notification types this event supports; users retain their own selection. */
@@ -219,7 +248,7 @@ export interface EventCardPreviewSchema {
   logo_fit?: EventImageFit;
   logo_background_color?: string;
   venue_string?: string;
-  locality_string: string;
+  locality_string?: string;
   start: Timestamp | { seconds: number; nanoseconds: number };
   end: Timestamp | { seconds: number; nanoseconds: number };
   url?: string;
@@ -531,14 +560,21 @@ export interface EventSchema {
   /** Featured people, groups, and acts visible on the event page. */
   featured_participants?: EventFeaturedParticipantSchema[];
 
-  venue_string: string;
-  locality_string: string;
+  venue_string?: string;
+  locality_string?: string;
   /** Preferred event pin location. Bounds are optional; this is the anchor. */
-  location: GeoPoint;
+  location?: GeoPoint;
   /** Plain lat/lng mirror for admin UI and non-Firestore consumers. */
-  location_raw: { lat: number; lng: number };
+  location_raw?: { lat: number; lng: number };
+  /** Canonical public date/time precision. Legacy events may omit this. */
+  timing?: EventTimingSchema;
   start: Timestamp;
   end: Timestamp;
+  /**
+   * Operational cutoff for an open-ended event. It determines lifecycle and
+   * map visibility, but is never presented as the promised public end time.
+   */
+  active_until?: Timestamp;
   /** Optional external event URL (ticketing, organizer site). */
   url?: string;
   /** Public external CTAs shown on the event page. */
@@ -651,6 +687,12 @@ export interface EventSchema {
   external_source?: EventExternalSourceSchema;
 
   /**
+   * Access granted to managers (organization owners/admins) of the linked
+   * public organizer. Viewing is the safe default; editing is explicit.
+   */
+  organizer_access?: "view" | "edit";
+
+  /**
    * Public aggregate maintained from private `/events/{eventId}/rsvps/*`
    * docs by Cloud Functions. Individual RSVP docs stay private to the
    * user, admins, and mutual friends.
@@ -685,6 +727,7 @@ export interface EventSchema {
   // owned by the cloud function.
   start_seconds?: number;
   end_seconds?: number;
+  active_until_seconds?: number;
   promo_starts_at_seconds?: number;
   /** Stored as a Firestore `GeoPoint` at runtime; typed as `[lat, lng]` so
    * the client doesn't need the admin SDK to read it. */
@@ -698,6 +741,8 @@ export interface EventSchema {
   promo_region_radius_m?: number;
   /** True when the event has an organization organizer. Server-derived. */
   has_organization?: boolean;
+  /** True when a usable map coordinate exists. Server-derived. */
+  has_location?: boolean;
   /** True when the event is tied to real or inline venue spots. Server-derived. */
   has_venue_spot?: boolean;
   /** Count of unique real spot ids plus inline event spots. Server-derived. */

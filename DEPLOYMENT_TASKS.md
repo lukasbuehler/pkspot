@@ -77,6 +77,68 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
+### Flexible event timing, locationless discovery, and ownership claims
+
+Keep these steps in order. Typesense reads remain available during the schema
+alteration, but writes to `events_v1` can block while required fields are
+dropped and re-added as optional.
+
+- [ ] Patch the production `events_v1` collection in place using the reviewed
+      drop-and-re-add alteration:
+
+  ```sh
+  curl -fsS -X PATCH \
+    -H "X-TYPESENSE-API-KEY: $TYPESENSE_ADMIN_API_KEY" \
+    -H "Content-Type: application/json" \
+    "$TYPESENSE_HOST/collections/events_v1" \
+    --data-binary @typesense/events_v1_flexible_timing_alter.json
+  ```
+
+  Success condition: `venue_string`, `locality_string`, and `location` are
+  optional; `has_location`, `timing.*`, and `active_until_seconds` match
+  `typesense/typesense_events_v1_schema.json`; existing search reads still
+  succeed. Do not continue if the extension reports rejected writes.
+
+- [ ] Build and deploy the compatible event normalization, time-zone resolver,
+      timing backfill, ownership-claim, live-update authorization Functions,
+      Firestore rules, and the ownership-claim inbox index:
+
+  ```sh
+  npm --prefix functions run build
+  npx firebase deploy --project prod --only firestore:indexes
+  # Wait for the event_ownership_claims index to report Enabled, then:
+  npx firebase deploy --project prod --only functions:updateEventFieldsOnWrite,functions:resolveEventTimeZone,functions:backfillEventTiming,functions:submitEventOwnershipClaim,functions:respondToEventOwnershipClaim,functions:reviewEventOwnershipClaim,functions:publishEventLiveUpdate,firestore:rules
+  ```
+
+  Success condition: the claim inbox index is `Enabled`; all Functions are in
+  `europe-west1`; a signed-in call for Zurich coordinates returns
+  `Europe/Zurich`; clients cannot write claim decisions or event ownership
+  directly; existing published events continue opening in released clients.
+
+- [ ] As an authenticated administrator, invoke `backfillEventTiming` page by
+      page with `{ "dryRun": true, "limit": 250 }`, passing each returned
+      `nextCursor` as `startAfter`. Review every `invalidEvents` entry. Repeat
+      with `{ "dryRun": false, "limit": 250 }` only after the dry run is
+      accepted.
+
+  Success condition: every page returns `failed == 0`, the final page has
+  `done == true`, legacy timestamp-only events have exact canonical local
+  timing derived from their IANA zones, and intentional date-only records are
+  unchanged.
+
+- [ ] Invoke `rebuildEventDiscovery` page by page with
+      `{ "dryRun": false, "limit": 250 }`; then trigger the existing
+      `updateAllEventsWithTypesenseFields` maintenance flow. Verify a
+      locationless date-only event is present in Typesense, timed events have a
+      valid IANA zone, and the public invalid-event count is zero.
+
+- [ ] Verify production ownership claims with test accounts: organization
+      manager submission, current-owner support/contest response,
+      administrator rejection, transactional approval, former-owner editor and
+      removal outcomes, immutable audit record, and notifications. Then release
+      the frontend through the normal `main` workflow. Do not operate App
+      Hosting directly.
+
 ### Event weather forecast pagination and cache serialization hotfix
 
 - [ ] Build and deploy the corrected `getWeather` Function:

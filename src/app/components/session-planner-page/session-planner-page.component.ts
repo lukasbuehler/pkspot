@@ -74,8 +74,9 @@ export class SessionPlannerPageComponent implements OnInit {
 
     this.saving.set(true);
     try {
+      const { initialCollaboratorIds = [], ...eventPatch } = patch;
       const event = await this.events.createEvent({
-        ...patch,
+        ...eventPatch,
         owner: { type: "user", user_id: userId },
         kind: "session",
         schedule_mode: "single",
@@ -86,12 +87,22 @@ export class SessionPlannerPageComponent implements OnInit {
         visibility: "public",
         discoverability: { audience: "global" },
       });
+      const grants = await Promise.allSettled(
+        initialCollaboratorIds.map((collaboratorId) =>
+          this.events.setEventAccess(event, collaboratorId, "collaborator"),
+        ),
+      );
+      const failedCollaborators = initialCollaboratorIds.filter(
+        (_, index) => grants[index]?.status === "rejected",
+      );
       this.analytics.trackEvent("session_created", {
         visibility: "public",
         attendance_admission: event.attendance.admission,
       });
       this.snackbar.open(
-        $localize`:@@session_planner.created:Session created.`,
+        failedCollaborators.length > 0
+          ? $localize`:@@session_planner.created_with_access_warning:Session created, but access could not be granted to: ${failedCollaborators.join(", ")}. Open event management to retry each person.`
+          : $localize`:@@session_planner.created:Session created.`,
         $localize`:@@common.dismiss:Dismiss`,
         { duration: 3000 },
       );

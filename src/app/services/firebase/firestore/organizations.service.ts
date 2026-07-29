@@ -254,6 +254,23 @@ export class OrganizationsService {
       .map(({ organization }) => organization);
   }
 
+  async getManagerOrganizations(): Promise<OrganizationDocument[]> {
+    const uid = this._authService.user.uid;
+    if (!uid) return [];
+    const organizations = await this.getOrganizations();
+    const memberships = await Promise.all(
+      organizations.map(async (organization) => ({
+        organization,
+        member: await this.getOrganizationMember(organization.id, uid),
+      })),
+    );
+    return memberships
+      .filter(
+        ({ member }) => member?.role === "owner" || member?.role === "admin",
+      )
+      .map(({ organization }) => organization);
+  }
+
   async createOrganization(
     id: string,
     data: Omit<OrganizationSchema, "time_created" | "time_updated">

@@ -684,6 +684,49 @@ runWithEmulator("EventsService emulator integration", () => {
     await waitForEventDiscovery(eventId, false);
   }, eventTypesenseIntegrationTimeoutMs);
 
+  it("publishes a locationless date-only event with a UTC compatibility window", async () => {
+    const eventId = `locationless-date-only-${Date.now()}`;
+    await adminDb()
+      .doc(`events/${eventId}`)
+      .set({
+        name: "Venue TBA festival",
+        timing: {
+          mode: "date_only",
+          start_date: "2027-08-09",
+          end_date: "2027-08-11",
+        },
+        visibility: "public",
+        publication_state: "published",
+        published: true,
+      });
+
+    const event = await waitForEventField(eventId, "has_location", false);
+    expect(event["time_zone"]).toBeUndefined();
+    expect(event["location"]).toBeUndefined();
+    expect(event["location_raw"]).toBeUndefined();
+    expect(event["start"].toDate().toISOString()).toBe(
+      "2027-08-09T00:00:00.000Z",
+    );
+    expect(event["end"].toDate().toISOString()).toBe(
+      "2027-08-11T23:59:59.999Z",
+    );
+
+    const projection = await waitForEventDiscovery(eventId, true);
+    expect(projection).toEqual(
+      expect.objectContaining({
+        name: "Venue TBA festival",
+        has_location: false,
+        timing: {
+          mode: "date_only",
+          start_date: "2027-08-09",
+          end_date: "2027-08-11",
+        },
+      }),
+    );
+    expect(projection).not.toHaveProperty("time_zone");
+    expect(projection).not.toHaveProperty("location");
+  }, eventTypesenseIntegrationTimeoutMs);
+
   it("rebuilds event discovery through the Firestore maintenance document", async () => {
     const suffix = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const publicEventId = `maintenance-public-${suffix}`;

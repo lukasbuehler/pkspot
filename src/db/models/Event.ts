@@ -25,6 +25,7 @@ import {
   EventPromoRegionSchema,
   EventSchema,
   EventScheduleMode,
+  EventTimingSchema,
   EventSeriesMembershipSchema,
   EventSponsorSchema,
   EventTicketAvailability,
@@ -42,6 +43,10 @@ import {
   eventKindFromLegacyCategories,
 } from "../schemas/EventNormalization";
 import { EventRSVPCountsSchema } from "../schemas/EventRSVPSchema";
+import {
+  isIanaTimeZone,
+  legacyExactTiming,
+} from "../utils/event-timing";
 import type { MediaSchema } from "../schemas/Media";
 import { LocaleCode, LocaleMap } from "./Interfaces";
 import {
@@ -115,13 +120,17 @@ export class Event {
   readonly media: MediaSchema[];
   readonly organizer?: EventOrganizerSchema;
   readonly organizerName?: string;
+  readonly organizerAccess?: "view" | "edit";
   readonly featuredParticipants: EventFeaturedParticipant[];
 
   readonly venueString: string;
   readonly localityString: string;
-  readonly location: { lat: number; lng: number };
+  readonly location?: { lat: number; lng: number };
+  readonly hasLocation: boolean;
   readonly start: Date;
   readonly end: Date;
+  readonly timing?: EventTimingSchema;
+  readonly activeUntil?: Date;
   readonly promoStartsAt?: Date;
   readonly url?: string;
   readonly eventLinks: EventLinkSchema[];
@@ -184,14 +193,24 @@ export class Event {
     this.organizer = data.organizer;
     this.organizerName =
       data.organizer?.organization.name ?? data.organizer_name;
+    this.organizerAccess = data.organizer_access;
     this.featuredParticipants = data.featured_participants ?? [];
-    this.venueString = data.venue_string;
-    this.localityString = data.locality_string;
+    this.venueString = data.venue_string ?? "";
+    this.localityString = data.locality_string ?? "";
     this.location =
       Event.toLatLng(data.location_raw, data.location) ??
-      (data.bounds ? Event.boundsCenter(data.bounds) : { lat: 0, lng: 0 });
+      (data.bounds ? Event.boundsCenter(data.bounds) : undefined);
+    this.hasLocation = data.has_location ?? this.location !== undefined;
     this.start = Event.toDate(data.start);
     this.end = Event.toDate(data.end);
+    this.timing =
+      data.timing ??
+      (isIanaTimeZone(data.time_zone)
+        ? legacyExactTiming(this.start, this.end, data.time_zone)
+        : undefined);
+    this.activeUntil = data.active_until
+      ? Event.toDate(data.active_until)
+      : undefined;
     this.promoStartsAt = data.promo_starts_at
       ? Event.toDate(data.promo_starts_at)
       : undefined;
@@ -283,12 +302,22 @@ export class Event {
     // Missing owner is an intentional legacy/admin-managed state. Never infer
     // permissions from the historical `created_by` attribution field.
     this.owner = data.owner;
-    this.attendance = data.attendance ?? { ...DEFAULT_EVENT_ATTENDANCE };
+    const attendance = data.attendance ?? { ...DEFAULT_EVENT_ATTENDANCE };
+    this.attendance = {
+      ...attendance,
+      instructions:
+        Event.localizedText(attendance.instructions_i18n, locale) ??
+        attendance.instructions,
+    };
     this.notificationPolicy = data.notification_policy ?? "all";
     this.published = eventIsPublished(data);
   }
 
   displayedLifecycle(now: Date = new Date()): EventDisplayedLifecycleStatus {
+    if (this.lifecycleStatus === "cancelled") return "cancelled";
+    if (this.timing?.mode === "date_only") {
+      return now > this.end ? "completed" : "planned";
+    }
     return displayedEventLifecycle(
       this.lifecycleStatus,
       this.start,
@@ -301,6 +330,7 @@ export class Event {
   status(now: Date = new Date()): "upcoming" | "live" | "past" {
     if (now < this.start) return "upcoming";
     if (now > this.end) return "past";
+    if (this.timing?.mode === "date_only") return "upcoming";
     return "live";
   }
 
@@ -322,7 +352,7 @@ export class Event {
    * (or `start` if no explicit lead time), and the event has not ended.
    */
   isPromotable(now: Date = new Date()): boolean {
-    if (!this.promoRegion) return false;
+    if (!this.promoRegion || !this.hasLocation) return false;
     if (now > this.end) return false;
     const promoStart = this.promoStartsAt ?? this.start;
     return now >= promoStart;

@@ -86,9 +86,11 @@ export class EventPageDataService {
   eventMapBounds(
     event: PkEvent,
     extraPoints: EventPageMapBoundsPoint[] = [],
-  ): EventBoundsSchema {
+  ): EventBoundsSchema | null {
+    const anchor = event.location ?? extraPoints[0];
+    if (!event.bounds && !anchor) return null;
     const baseBounds = this._normalizeBounds(
-      event.bounds ?? this._boundsAroundPoint(event.location),
+      event.bounds ?? this._boundsAroundPoint(anchor!),
     );
 
     const bounds = extraPoints.reduce(
@@ -298,7 +300,7 @@ export class EventPageDataService {
   }
 
   eventLocationMarker(event: PkEvent | null): EventPageMapMarker | null {
-    if (!event) return null;
+    if (!event?.location) return null;
     return {
       name: event.name,
       location: event.location,
@@ -371,9 +373,9 @@ export class EventPageDataService {
       return null;
     }
 
-    const outerRing = this._outerCutoutRing(
-      outerBounds ?? this.eventMapBounds(event),
-    );
+    const bounds = outerBounds ?? this.eventMapBounds(event);
+    if (!bounds) return null;
+    const outerRing = this._outerCutoutRing(bounds);
     const paths = new google.maps.MVCArray<
       google.maps.MVCArray<google.maps.LatLng>
     >([

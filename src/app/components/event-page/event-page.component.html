@@ -67,6 +67,19 @@
           >
             <mat-icon>share</mat-icon>
           </button>
+          @if (isSignedIn()) {
+            <button
+              mat-icon-button
+              type="button"
+              aria-label="Request organization ownership"
+              i18n-aria-label="@@event_claims.request_aria"
+              matTooltip="Request organization ownership"
+              i18n-matTooltip="@@event_claims.request"
+              (click)="openOwnershipClaimDialog()"
+            >
+              <mat-icon>domain_verification</mat-icon>
+            </button>
+          }
           <app-event-live-update-organizer-menu
             [event]="event"
             [canEdit]="canEditEvent()"

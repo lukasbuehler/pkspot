@@ -7,6 +7,7 @@ import { OrganizationsService } from "../../services/firebase/firestore/organiza
 import { MapsApiService } from "../../services/maps-api.service";
 import { SearchService } from "../../services/search.service";
 import { EventEditFormComponent } from "./event-edit-form.component";
+import { EventTimeZoneService } from "../../services/event-time-zone.service";
 
 const baseEvent = {
   name: "Editable Event",
@@ -16,6 +17,7 @@ const baseEvent = {
   location_raw: { lat: 47.3769, lng: 8.5417 },
   start: "2026-06-01T10:00:00.000Z",
   end: "2026-06-01T12:00:00.000Z",
+  time_zone: "Europe/Zurich",
   bounds: {
     north: 47.5,
     south: 47.3,
@@ -66,6 +68,12 @@ describe("EventEditFormComponent", () => {
           useValue: {
             getOrganizations: vi.fn().mockResolvedValue([]),
             makeReference: vi.fn((organization) => organization),
+          },
+        },
+        {
+          provide: EventTimeZoneService,
+          useValue: {
+            resolve: vi.fn().mockResolvedValue("Europe/Zurich"),
           },
         },
       ],
@@ -175,7 +183,7 @@ describe("EventEditFormComponent", () => {
       currentAreaPath: () => liveArea,
     };
 
-    component.onSubmit();
+    await component.onSubmit();
 
     expect(saveSpy).toHaveBeenCalledOnce();
     expect(saveSpy.mock.calls[0][0].area_polygon).toEqual([
@@ -206,9 +214,10 @@ describe("EventEditFormComponent", () => {
       start_time: new Date("2026-08-01T18:00:00.000Z"),
       end_date: new Date("2026-08-01T20:00:00.000Z"),
       end_time: new Date("2026-08-01T20:00:00.000Z"),
+      time_zone: "Europe/Zurich",
     });
 
-    component.onSubmit();
+    await component.onSubmit();
 
     expect(saveSpy).toHaveBeenCalledOnce();
     expect(saveSpy.mock.calls[0][0]).toEqual(
@@ -224,6 +233,80 @@ describe("EventEditFormComponent", () => {
         notification_policy: "all",
       }),
     );
+  });
+
+  it("creates a public date-only event with no venue, location, or time zone", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+    fixture.detectChanges();
+    component.form.patchValue({
+      name: "Date pending details",
+      start_date: new Date(2026, 8, 12),
+      timing_mode: "date_only",
+      owner_type: "user",
+      owner_user_id: "owner-1",
+      venue_string: "",
+      locality_string: "",
+      time_zone: "",
+      published: true,
+    });
+
+    await component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    const patch = saveSpy.mock.calls[0][0];
+    expect(patch).toEqual(
+      expect.objectContaining({
+        timing: { start_date: "2026-09-12", mode: "date_only" },
+        venue_string: null,
+        locality_string: null,
+        time_zone: undefined,
+      }),
+    );
+    expect(patch).not.toHaveProperty("location_raw");
+    expect(patch.start.toDate().toISOString()).toBe(
+      "2026-09-12T00:00:00.000Z",
+    );
+    expect(patch.end.toDate().toISOString()).toBe(
+      "2026-09-12T23:59:59.999Z",
+    );
+  });
+
+  it("uses the operational cutoff as the compatibility end for an open session", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const auth = TestBed.inject(AuthenticationService);
+    vi.mocked(auth.isAdmin).mockReturnValue(false);
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+    fixture.componentRef.setInput("mode", "session");
+    fixture.detectChanges();
+    component.form.patchValue({
+      name: "Open training",
+      venue_string: "Riverside rails",
+      locality_string: "Zurich",
+      location_lat: 47.3769,
+      location_lng: 8.5417,
+      start_date: new Date(2026, 7, 1),
+      start_time: new Date(2026, 7, 1, 18),
+      timing_mode: "open_end",
+      active_until_date: new Date(2026, 7, 1),
+      active_until_time: new Date(2026, 7, 1, 22),
+      time_zone: "Europe/Zurich",
+    });
+
+    await component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    const patch = saveSpy.mock.calls[0][0];
+    expect(patch.timing).toEqual({
+      start_date: "2026-08-01",
+      start_time: "18:00",
+      mode: "open_end",
+    });
+    expect(patch.active_until.toMillis()).toBe(patch.end.toMillis());
   });
 
   it("emits organization ownership separately from organizer branding", async () => {
@@ -261,7 +344,7 @@ describe("EventEditFormComponent", () => {
     );
   });
 
-  it("emits registration, capacity, eligibility, and notification settings", async () => {
+  it("keeps large-event admission external while preserving eligibility and notifications", async () => {
     const fixture = await setup();
     const component = fixture.componentInstance;
     const saveSpy = vi.fn();
@@ -295,16 +378,14 @@ describe("EventEditFormComponent", () => {
     expect(saveSpy).toHaveBeenCalledOnce();
     expect(saveSpy.mock.calls[0][0]).toEqual(
       expect.objectContaining({
-        attendance: {
+        attendance: expect.objectContaining({
           social: "none",
-          admission: "registration",
-          capacity: 20,
-          waitlist: true,
+          admission: "none",
           eligibility: {
             type: "organization_members",
             organization_id: "club-1",
           },
-        },
+        }),
         notification_policy: "reminders",
       }),
     );

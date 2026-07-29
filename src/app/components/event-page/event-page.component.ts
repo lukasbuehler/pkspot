@@ -72,6 +72,7 @@ import { EventProgramTimelineComponent } from "./event-program-timeline.componen
 import {
   eventHeroMedia,
   eventImageDisplaySrc,
+  eventScheduleLabel,
   eventStatusLabel,
   type EventStatus,
 } from "../event-display/event-display.helpers";
@@ -93,6 +94,10 @@ import { EventDraftNoticeComponent } from "./event-draft-notice.component";
 import { EventAccessManagerComponent } from "../event-access-manager/event-access-manager.component";
 import { EventRegistrationComponent } from "../event-registration/event-registration.component";
 import { EventRegistrationManagerComponent } from "../event-registration-manager/event-registration-manager.component";
+import {
+  EventOwnershipClaimDialogComponent,
+  EventOwnershipClaimDialogData,
+} from "../event-ownership-claim-dialog/event-ownership-claim-dialog.component";
 
 interface VisibleSeriesTag {
   seriesId: string;
@@ -182,20 +187,37 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly qualificationGridColumns = signal(3);
   readonly isLoadingQualifierEvents = signal(false);
   readonly isAdmin = computed(() => this._authService.isAdmin());
+  readonly isSignedIn = computed(() => !!this._authService.user.uid);
   readonly canEditEvent = signal(false);
   readonly canManageEvent = signal(false);
+
+  openOwnershipClaimDialog(): void {
+    const event = this.event();
+    if (!event) return;
+    this._dialog.open<
+      EventOwnershipClaimDialogComponent,
+      EventOwnershipClaimDialogData,
+      boolean
+    >(EventOwnershipClaimDialogComponent, {
+      data: { eventId: String(event.id), eventName: event.name },
+      maxWidth: "95vw",
+    });
+  }
 
   readonly dateRange = computed(() => {
     const event = this.event();
     if (!event) return "";
-    return this._dateTime.formatDateRange(event.start, event.end, "long");
+    return eventScheduleLabel(event, this._dateTime, "long");
   });
   readonly description = computed(() => {
     const event = this.event();
     if (!event) return "";
     return (
       event.description ??
-      $localize`Event in ` + event.localityString + ` (${this.dateRange()})`
+      (event.localityString
+        ? $localize`Event in ` + event.localityString
+        : $localize`:@@event.description_without_location:Event details`) +
+        ` (${this.dateRange()})`
     );
   });
   readonly hasLongDescription = computed(() => {
@@ -239,10 +261,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly startDateTime = computed(() => {
     const event = this.event();
     if (!event) return "";
-    return this._dateTime.format(event.start, {
-      dateStyle: "full",
-      timeStyle: "short",
-    });
+    return eventScheduleLabel(event, this._dateTime, "long");
   });
   readonly websiteUrl = computed(() =>
     this._analytics.addUtmToUrl(
@@ -300,6 +319,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       if (
         !this.isBrowser() ||
         !event ||
+        !event.location ||
         !Number.isFinite(event.location.lat) ||
         !Number.isFinite(event.location.lng) ||
         !this._weatherService.isEventForecastAvailable(event.start, event.end)
@@ -929,26 +949,36 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     const offerFallbackUrl =
       this._safeExternalUrl(event.url ?? event.externalSource?.url) ?? eventUrl;
 
+    const structuredLocation = event.location
+      ? {
+          "@type": "Place",
+          name: event.venueString || event.localityString || event.name,
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: event.localityString || undefined,
+          },
+          geo: {
+            "@type": "GeoCoordinates",
+            latitude: event.location.lat,
+            longitude: event.location.lng,
+          },
+        }
+      : undefined;
     return {
       "@type": "Event",
       name: event.name,
-      startDate: event.start.toISOString(),
-      endDate: event.end.toISOString(),
-      eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+      startDate: event.timing?.start_date ?? event.start.toISOString(),
+      endDate:
+        event.timing?.mode === "open_end"
+          ? undefined
+          : (event.timing?.end_date ??
+            event.timing?.start_date ??
+            event.end.toISOString()),
+      eventAttendanceMode: event.location
+        ? "https://schema.org/OfflineEventAttendanceMode"
+        : "https://schema.org/MixedEventAttendanceMode",
       eventStatus: "https://schema.org/EventScheduled",
-      location: {
-        "@type": "Place",
-        name: event.venueString || event.localityString || event.name,
-        address: {
-          "@type": "PostalAddress",
-          addressLocality: event.localityString || undefined,
-        },
-        geo: {
-          "@type": "GeoCoordinates",
-          latitude: event.location.lat,
-          longitude: event.location.lng,
-        },
-      },
+      location: structuredLocation,
       image: [
         ...this._eventStructuredImages(event).map((src) =>
           this._absoluteUrl(src),

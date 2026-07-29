@@ -16,6 +16,7 @@ import {
   EventOwnerSchema,
   EventSchema,
 } from "./EventSchema";
+import { validateEventTiming } from "../utils/event-timing";
 
 export const DEFAULT_EVENT_ATTENDANCE: Readonly<EventAttendanceSchema> = {
   social: "rsvp",
@@ -134,6 +135,8 @@ const attendanceIsValid = (value: unknown): value is EventAttendanceSchema => {
       "capacity",
       "waitlist",
       "eligibility",
+      "instructions",
+      "instructions_i18n",
     ])
   ) {
     return false;
@@ -141,6 +144,29 @@ const attendanceIsValid = (value: unknown): value is EventAttendanceSchema => {
   if (
     !includes(EVENT_SOCIAL_ATTENDANCE_MODES, attendance["social"]) ||
     !includes(EVENT_ADMISSION_MODES, attendance["admission"])
+  ) {
+    return false;
+  }
+  if (
+    attendance["instructions"] !== undefined &&
+    typeof attendance["instructions"] !== "string"
+  ) {
+    return false;
+  }
+  if (
+    attendance["instructions_i18n"] !== undefined &&
+    (!attendance["instructions_i18n"] ||
+      typeof attendance["instructions_i18n"] !== "object" ||
+      Array.isArray(attendance["instructions_i18n"]) ||
+      Object.values(
+        attendance["instructions_i18n"] as Record<string, unknown>,
+      ).some(
+        (translation) =>
+          typeof translation !== "string" &&
+          (!translation ||
+            typeof translation !== "object" ||
+            typeof (translation as { text?: unknown }).text !== "string"),
+      ))
   ) {
     return false;
   }
@@ -281,6 +307,29 @@ export const normalizeEventModel = (
     invalid.push("attendance");
   }
 
+  if (data.timing !== undefined) {
+    const activeUntil = timestampLikeToDate(data.active_until);
+    const timingValidation = validateEventTiming(
+      data.timing,
+      data.time_zone,
+      activeUntil,
+    );
+    if (!timingValidation.valid) invalid.push("timing");
+  }
+
+  if (data.organizer?.type === "organization") {
+    if (data.organizer_access === undefined) {
+      patch.organizer_access = "view";
+    } else if (
+      data.organizer_access !== "view" &&
+      data.organizer_access !== "edit"
+    ) {
+      invalid.push("organizer_access");
+    }
+  } else if (data.organizer_access !== undefined) {
+    invalid.push("organizer_access");
+  }
+
   if (data.owner === undefined) {
     const owner = options.fallbackOwner;
     if (owner && isEventOwner(owner)) {
@@ -301,6 +350,19 @@ export const normalizeEventModel = (
   }
 
   return { patch, invalid };
+};
+
+const timestampLikeToDate = (
+  value: EventSchema["active_until"] | undefined,
+): Date | undefined => {
+  if (!value) return undefined;
+  if (value instanceof Date) return value;
+  if (typeof value.toDate === "function") return value.toDate();
+  const seconds = Number(
+    (value as unknown as { seconds?: unknown; _seconds?: unknown }).seconds ??
+      (value as unknown as { _seconds?: unknown })._seconds,
+  );
+  return Number.isFinite(seconds) ? new Date(seconds * 1_000) : undefined;
 };
 
 const validDate = (value: Date | null | undefined): value is Date =>

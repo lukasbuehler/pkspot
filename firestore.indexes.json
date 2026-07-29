@@ -1,6 +1,20 @@
 {
   "indexes": [
     {
+      "collectionGroup": "event_ownership_claims",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "time_created",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "log_entries",
       "queryScope": "COLLECTION",
       "fields": [

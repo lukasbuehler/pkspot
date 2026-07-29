@@ -47,13 +47,14 @@ export class EventDiscoveryCardComponent {
   ]);
   readonly dataIssue = computed(() => {
     const event = this.event();
-    if (!event.timeZone && event.startSeconds === undefined) {
+    const needsTimeZone = event.timing?.mode !== "date_only";
+    if (needsTimeZone && !event.timeZone && event.startSeconds === undefined) {
       return $localize`Local time zone and start time are missing`;
     }
-    if (!event.timeZone && event.endSeconds === undefined) {
+    if (needsTimeZone && !event.timeZone && event.endSeconds === undefined) {
       return $localize`Local time zone and end time are missing`;
     }
-    if (!event.timeZone) return $localize`Local time zone missing`;
+    if (needsTimeZone && !event.timeZone) return $localize`Local time zone missing`;
     if (
       event.startSeconds === undefined ||
       event.endSeconds === undefined
@@ -72,9 +73,25 @@ export class EventDiscoveryCardComponent {
   });
   readonly dateRange = computed(() => {
     const event = this.event();
+    if (event.timing?.mode === "date_only") {
+      const start = new Date(`${event.timing.start_date}T12:00:00.000Z`);
+      const end = new Date(
+        `${event.timing.end_date ?? event.timing.start_date}T12:00:00.000Z`,
+      );
+      const range = this._dateTime.formatDateRange(start, end, "long", "UTC");
+      return $localize`:@@event.timing.date_only_label:${range} · Time to be announced`;
+    }
     const start = this.start();
     const end = this.end();
     if (!start || !end || !event.timeZone) return null;
+    if (event.timing?.mode === "open_end") {
+      const formatted = this._dateTime.format(start, {
+        dateStyle: "full",
+        timeStyle: "short",
+        timeZone: event.timeZone,
+      });
+      return $localize`:@@event.timing.open_end_label:${formatted} · Open end`;
+    }
     const inclusiveEnd = new Date(
       Math.max(start.getTime(), end.getTime() - 1),
     );
@@ -92,7 +109,6 @@ export class EventDiscoveryCardComponent {
       dateRange &&
       event.startSeconds !== undefined &&
       event.endSeconds !== undefined &&
-      event.timeZone &&
       event.lifecycleStatus &&
       event.rsvpCounts
     ) {
@@ -125,6 +141,7 @@ export class EventDiscoveryCardComponent {
     const now = Date.now();
     if (now < start.getTime()) return "upcoming";
     if (now > end.getTime()) return "past";
+    if (this.event().timing?.mode === "date_only") return "upcoming";
     return "live";
   });
   readonly imageSrc = computed(() =>
@@ -143,7 +160,8 @@ export class EventDiscoveryCardComponent {
   readonly locationLabel = computed(() =>
     [this.event().venueString, this.event().localityString]
       .filter(Boolean)
-      .join(", "),
+      .join(", ") ||
+    $localize`:@@event.venue_tba:Venue to be announced`,
   );
 
   trackClick(): void {

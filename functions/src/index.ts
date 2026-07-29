@@ -45,6 +45,13 @@ export {
   updateAllEventsWithTypesenseFields,
 } from "./eventFunctions";
 export { backfillEventModel } from "./eventModelMaintenanceFunctions";
+export { backfillEventTiming } from "./eventTimingMaintenanceFunctions";
+export { resolveEventTimeZone } from "./eventTimeZoneFunctions";
+export {
+  respondToEventOwnershipClaim,
+  reviewEventOwnershipClaim,
+  submitEventOwnershipClaim,
+} from "./eventOwnershipClaimFunctions";
 export {
   rebuildEventDiscovery,
   rebuildEventDiscoveryOnCreate,

@@ -80,6 +80,13 @@ describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
     "locality_string",
     "location",
     "location_raw",
+    "timing",
+    "timing.start_date",
+    "timing.end_date",
+    "timing.start_time",
+    "timing.end_time",
+    "timing.mode",
+    "active_until",
     "start",
     "end",
     "url",
@@ -215,6 +222,7 @@ describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
     // and copied verbatim by the Firestore→Typesense extension.
     "start_seconds",
     "end_seconds",
+    "active_until_seconds",
     "promo_starts_at_seconds",
     "bounds_center",
     "bounds_radius_m",
@@ -226,6 +234,7 @@ describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
     "promo_region_center",
     "promo_region_radius_m",
     "has_organization",
+    "has_location",
     "has_venue_spot",
     "venue_spot_count",
     "series_roles",
@@ -235,11 +244,8 @@ describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
 
   const requiredFirestoreFields = [
     "name",
-    "venue_string",
-    "locality_string",
     "start",
     "end",
-    "location",
     "published",
   ] as const;
 
@@ -262,6 +268,8 @@ describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
     "start_seconds",
     "end_seconds",
     "location",
+    "timing.start_date",
+    "timing.mode",
     "community_keys",
     "series_ids",
     "event_categories",
@@ -306,6 +314,12 @@ describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
     priority: "string",
     start_seconds: "int64",
     end_seconds: "int64",
+    active_until_seconds: "int64",
+    "timing.start_date": "string",
+    "timing.end_date": "string",
+    "timing.start_time": "string",
+    "timing.end_time": "string",
+    "timing.mode": "string",
     time_zone: "string",
     promo_starts_at_seconds: "int64",
     spot_ids: "string[]",
@@ -329,6 +343,7 @@ describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
     promo_region_center: "firestore-geopoint",
     promo_region_radius_m: "float",
     has_organization: "bool",
+    has_location: "bool",
     has_venue_spot: "bool",
     venue_spot_count: "int64",
     "rsvp_counts.going": "int64",
@@ -405,6 +420,18 @@ describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
     // verbatim to Typesense), so the mapping is `direct`.
     start_seconds: { kind: "direct", source: "start_seconds" },
     end_seconds: { kind: "direct", source: "end_seconds" },
+    active_until_seconds: {
+      kind: "direct",
+      source: "active_until_seconds",
+    },
+    "timing.start_date": {
+      kind: "direct",
+      source: "timing.start_date",
+    },
+    "timing.end_date": { kind: "direct", source: "timing.end_date" },
+    "timing.start_time": { kind: "direct", source: "timing.start_time" },
+    "timing.end_time": { kind: "direct", source: "timing.end_time" },
+    "timing.mode": { kind: "direct", source: "timing.mode" },
     time_zone: { kind: "direct", source: "time_zone" },
     promo_starts_at_seconds: {
       kind: "direct",
@@ -458,6 +485,7 @@ describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
       source: "promo_region_radius_m",
     },
     has_organization: { kind: "direct", source: "has_organization" },
+    has_location: { kind: "direct", source: "has_location" },
     has_venue_spot: { kind: "direct", source: "has_venue_spot" },
     venue_spot_count: { kind: "direct", source: "venue_spot_count" },
     "rsvp_counts.going": {

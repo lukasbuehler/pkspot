@@ -75,12 +75,33 @@ export function eventLocalDateKey(date: Date, timeZone: string): string {
 }
 
 export function eventLocalDateKeys(event: EventDiscoveryItem): string[] {
+  if (event.timing) {
+    return dateKeysBetween(
+      event.timing.start_date,
+      event.timing.end_date ?? event.timing.start_date,
+    );
+  }
+  if (!event.timeZone) return [];
   const start = new Date(event.startSeconds * 1000);
   const inclusiveEnd = new Date(
     Math.max(start.getTime(), event.endSeconds * 1000 - 1),
   );
   const first = dateFromKey(eventLocalDateKey(start, event.timeZone));
   const last = dateFromKey(eventLocalDateKey(inclusiveEnd, event.timeZone));
+  const keys: string[] = [];
+  for (
+    let cursor = first;
+    cursor.getTime() <= last.getTime();
+    cursor = addDays(cursor, 1)
+  ) {
+    keys.push(dateKey(cursor));
+  }
+  return keys;
+}
+
+function dateKeysBetween(startKey: string, endKey: string): string[] {
+  const first = dateFromKey(startKey);
+  const last = dateFromKey(endKey);
   const keys: string[] = [];
   for (
     let cursor = first;
@@ -304,6 +325,8 @@ function compareIndicatorEvents(
 }
 
 function eventStartDateKey(event: EventDiscoveryItem): string {
+  if (event.timing) return event.timing.start_date;
+  if (!event.timeZone) return "";
   return eventLocalDateKey(
     new Date(event.startSeconds * 1000),
     event.timeZone,

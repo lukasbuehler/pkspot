@@ -119,6 +119,7 @@ service cloud.firestore {
         'description',
         'start_seconds',
         'end_seconds',
+        'active_until_seconds',
         'promo_starts_at_seconds',
         'location',
         'bounds',
@@ -127,6 +128,7 @@ service cloud.firestore {
         'promo_region_center',
         'promo_region_radius_m',
         'has_organization',
+        'has_location',
         'has_venue_spot',
         'venue_spot_count',
         'rsvp_counts'
@@ -213,6 +215,23 @@ service cloud.firestore {
         && isOrganizationManager(eventData.owner.organization_id);
     }
 
+    function eventOrganizerIsManagedByViewer(eventData) {
+      return 'organizer' in eventData
+        && eventData.organizer is map
+        && eventData.organizer.type == 'organization'
+        && isOrganizationManager(eventData.organizer.organization.id);
+    }
+
+    function eventOrganizerCanView(eventData) {
+      return eventOrganizerIsManagedByViewer(eventData)
+        && eventData.get('organizer_access', 'view') in ['view', 'edit'];
+    }
+
+    function eventOrganizerCanEdit(eventData) {
+      return eventOrganizerIsManagedByViewer(eventData)
+        && eventData.get('organizer_access', 'view') == 'edit';
+    }
+
     function eventCanManage(eventData) {
       return isAdmin()
         || eventIsOwnedByViewer(eventData)
@@ -227,6 +246,7 @@ service cloud.firestore {
           && (
             eventCanManage(eventData)
             || eventHasAccessRole(eventId, ['collaborator'])
+            || eventOrganizerCanEdit(eventData)
           )
         );
     }
@@ -240,6 +260,7 @@ service cloud.firestore {
 
     function eventCanRead(eventId, eventData) {
       return eventCanEdit(eventId, eventData)
+        || eventOrganizerCanView(eventData)
         || (
           eventIsPublished(eventData)
           && (
@@ -328,10 +349,20 @@ service cloud.firestore {
             'admission',
             'capacity',
             'waitlist',
-            'eligibility'
+            'eligibility',
+            'instructions',
+            'instructions_i18n'
           ])
           && eventData.attendance.social in ['none', 'rsvp']
           && eventData.attendance.admission in ['none', 'registration']
+          && (
+            !('instructions' in eventData.attendance)
+            || eventData.attendance.instructions is string
+          )
+          && (
+            !('instructions_i18n' in eventData.attendance)
+            || eventData.attendance.instructions_i18n is map
+          )
           && (
             !('capacity' in eventData.attendance)
             || (
@@ -351,11 +382,65 @@ service cloud.firestore {
         );
     }
 
+    function validEventTiming(eventData) {
+      return !('timing' in eventData)
+        || (
+          eventData.timing is map
+          && eventData.timing.keys().hasAll(['start_date', 'mode'])
+          && eventData.timing.start_date is string
+          && (
+            !('end_date' in eventData.timing)
+            || eventData.timing.end_date is string
+          )
+          && (
+            (
+              eventData.timing.mode == 'date_only'
+              && eventData.timing.keys().hasOnly([
+                'start_date',
+                'end_date',
+                'mode'
+              ])
+            )
+            || (
+              eventData.timing.mode == 'exact'
+              && eventData.timing.keys().hasAll([
+                'start_time',
+                'end_time'
+              ])
+              && eventData.timing.keys().hasOnly([
+                'start_date',
+                'end_date',
+                'start_time',
+                'end_time',
+                'mode'
+              ])
+              && eventData.timing.start_time is string
+              && eventData.timing.end_time is string
+              && eventData.time_zone is string
+            )
+            || (
+              eventData.timing.mode == 'open_end'
+              && eventData.timing.keys().hasAll(['start_time'])
+              && eventData.timing.keys().hasOnly([
+                'start_date',
+                'end_date',
+                'start_time',
+                'mode'
+              ])
+              && eventData.timing.start_time is string
+              && eventData.time_zone is string
+              && eventData.active_until is timestamp
+            )
+          )
+        );
+    }
+
     function validEventAccessDimensions(eventData) {
       return eventData.get('visibility', 'public') in ['public', 'unlisted', 'private']
         && validEventDiscoverability(eventData)
         && validEventViewerPolicy(eventData)
-        && validEventAttendance(eventData);
+        && validEventAttendance(eventData)
+        && validEventTiming(eventData);
     }
 
     // Temporary rollout switch. While true, old app versions may still list
@@ -1469,6 +1554,14 @@ service cloud.firestore {
             eventCanEdit(eventId, resource.data)
             && request.resource.data.owner == resource.data.owner
             && (
+              eventCanManage(resource.data)
+              || !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+                'organizer',
+                'organizer_name',
+                'organizer_access'
+              ])
+            )
+            && (
               eventOrganizationPoliciesUnchanged(
                 resource.data,
                 request.resource.data
@@ -1597,6 +1690,37 @@ service cloud.firestore {
           get(/databases/$(database)/documents/events/$(eventId)).data
         );
       }
+    }
+
+    match /event_ownership_claims/{claimId} {
+      allow get: if isAdmin()
+        || request.auth.uid == resource.data.submitter_id
+        || (
+          resource.data.owner_before is map
+          && (
+            (
+              resource.data.owner_before.type == 'user'
+              && resource.data.owner_before.user_id == request.auth.uid
+            )
+            || (
+              resource.data.owner_before.type == 'organization'
+              && isOrganizationManager(
+                resource.data.owner_before.organization_id
+              )
+            )
+          )
+        );
+      allow list: if isAdmin();
+      allow write: if false;
+    }
+
+    match /event_ownership_claim_audits/{auditId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /event_ownership_claim_keys/{keyId} {
+      allow read, write: if false;
     }
 
     match /event_discovery/{eventId} {

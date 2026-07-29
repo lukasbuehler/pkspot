@@ -567,7 +567,7 @@ export class EventsPageComponent {
         !event.id ||
         event.startSeconds === undefined ||
         event.endSeconds === undefined ||
-        !event.timeZone,
+        (event.timing?.mode !== "date_only" && !event.timeZone),
     );
     let items = previews
       .map((event) => discoveryItemFromPreview(event))
@@ -780,6 +780,8 @@ function screenshotEventPreview(
     venueSpotCount: event.spot_ids?.length ?? 0,
     startSeconds: Number.isFinite(startSeconds) ? startSeconds : undefined,
     endSeconds: Number.isFinite(endSeconds) ? endSeconds : undefined,
+    timing: event.timing,
+    activeUntilSeconds: event.active_until_seconds,
     timeZone: timeZone ?? undefined,
     lifecycleStatus: event.lifecycle_status ?? "planned",
     location: event.location_raw
@@ -810,7 +812,7 @@ function discoveryItemFromPreview(
     !event.id ||
     event.startSeconds === undefined ||
     event.endSeconds === undefined ||
-    !event.timeZone
+    (event.timing?.mode !== "date_only" && !event.timeZone)
   ) {
     return null;
   }
@@ -844,7 +846,7 @@ function isInvalidEventPreview(event: EventSearchPreview): boolean {
     !event.id ||
     event.startSeconds === undefined ||
     event.endSeconds === undefined ||
-    !event.timeZone
+    (event.timing?.mode !== "date_only" && !event.timeZone)
   );
 }
 

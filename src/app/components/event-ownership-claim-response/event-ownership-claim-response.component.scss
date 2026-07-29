@@ -1,0 +1,51 @@
+:host {
+  display: block;
+}
+
+.claim-response {
+  display: grid;
+  gap: 1rem;
+  width: min(100% - 2rem, 56rem);
+  margin: 2rem auto;
+}
+
+header p {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+.response-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.status-card {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+}
+
+.status-card mat-card-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.status-card mat-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+a {
+  color: var(--mat-sys-primary);
+  overflow-wrap: anywhere;
+}

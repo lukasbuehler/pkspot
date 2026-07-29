@@ -237,3 +237,4 @@ zoom_in
 crop
 undo
 hourglass_empty
+domain_verification

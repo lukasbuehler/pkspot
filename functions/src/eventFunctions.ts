@@ -13,6 +13,11 @@ import {
 } from "../../src/db/schemas/EventSchema";
 import { EVENT_DISCOVERY_COLLECTION } from "../../src/db/schemas/EventDiscoverySchema";
 import { normalizeEventModel } from "../../src/db/schemas/EventNormalization";
+import {
+  eventCompatibilityWindow,
+  isIanaTimeZone,
+  legacyExactTiming,
+} from "../../src/db/utils/event-timing";
 import { SpotSchema } from "../../src/db/schemas/SpotSchema";
 import {
   EventRSVPCountsSchema,
@@ -56,6 +61,7 @@ const EVENT_SPOT_PREVIEW_SOURCE_FIELDS = [
 const TYPESENSE_HELPER_FIELDS = [
   "start_seconds",
   "end_seconds",
+  "active_until_seconds",
   "promo_starts_at_seconds",
   "bounds_center",
   "bounds_radius_m",
@@ -418,7 +424,8 @@ const _venueSpotCount = (eventData: EventSchema): number => {
 };
 
 const _deriveEventBounds = async (
-  eventData: EventSchema
+  eventData: EventSchema,
+  ignoreEventLocation = false,
 ): Promise<EventBoundsSchema | undefined> => {
   const areaPoints = _eventAreaPoints(eventData);
   if (areaPoints.length > 0) return _boundsFromPoints(areaPoints);
@@ -434,7 +441,9 @@ const _deriveEventBounds = async (
     return _boundsFromPoints(customMarkerPoints);
   }
 
-  const location =
+  const location = ignoreEventLocation
+    ? undefined
+    :
     _rawCoordinate(eventData.location_raw) ??
     _geoPointCoordinate(eventData.location);
   return location ? _boundsFromPoints([location]) : undefined;
@@ -655,15 +664,17 @@ const _collectSeriesSearchFields = (
  * Returns only the fields that have a defined value.
  */
 const _addTypesenseFields = async (
-  eventData: EventSchema
+  eventData: EventSchema,
+  options: { locationRemoved?: boolean } = {},
 ): Promise<Partial<EventSchema>> => {
   const out: Partial<EventSchema> = {};
-  const derivedBounds = await _deriveEventBounds(eventData);
+  const derivedBounds = await _deriveEventBounds(
+    eventData,
+    options.locationRemoved === true,
+  );
 
   Object.assign(out, _deriveLocalizedLegacyFields(eventData));
 
-  out.start_seconds = _timestampSeconds(eventData.start);
-  out.end_seconds = _timestampSeconds(eventData.end);
   out.promo_starts_at_seconds = _timestampSeconds(eventData.promo_starts_at);
   out.has_organization = eventData.organizer?.type === "organization";
   out.venue_spot_count = _venueSpotCount(eventData);
@@ -686,16 +697,68 @@ const _addTypesenseFields = async (
   }
 
   const location =
-    _rawCoordinate(eventData.location_raw) ??
-    _geoPointCoordinate(eventData.location) ??
+    (options.locationRemoved
+      ? undefined
+      : _rawCoordinate(eventData.location_raw) ??
+        _geoPointCoordinate(eventData.location)) ??
     (derivedBounds ? _bboxCenterAndRadius(derivedBounds).center : undefined);
+  out.has_location = location !== undefined;
+  const timeZone = location
+    ? eventTimeZoneAt(location)
+    : isIanaTimeZone(eventData.time_zone)
+      ? eventData.time_zone
+      : undefined;
   if (location) {
     out.location = new GeoPoint(
       location.lat,
       location.lng
     ) as unknown as EventSchema["location"];
     out.location_raw = location;
-    out.time_zone = eventTimeZoneAt(location);
+    out.time_zone = timeZone;
+  } else if (timeZone) {
+    out.time_zone = timeZone;
+  }
+
+  const legacyStart = _timestampValue(eventData.start);
+  const legacyEnd = _timestampValue(eventData.end);
+  const timing =
+    eventData.timing ??
+    (legacyStart && legacyEnd && timeZone
+      ? legacyExactTiming(
+          legacyStart.toDate(),
+          legacyEnd.toDate(),
+          timeZone
+        )
+      : undefined);
+  const activeUntil = _timestampValue(eventData.active_until)?.toDate();
+  if (timing) {
+    try {
+      const window = eventCompatibilityWindow(timing, timeZone, activeUntil);
+      out.timing = timing;
+      out.start = Timestamp.fromDate(
+        window.start
+      ) as unknown as EventSchema["start"];
+      out.end = Timestamp.fromDate(window.end) as unknown as EventSchema["end"];
+      out.start_seconds = Math.floor(window.start.getTime() / 1_000);
+      out.end_seconds = Math.floor(window.end.getTime() / 1_000);
+      if (timing.mode === "open_end" && activeUntil) {
+        out.active_until = Timestamp.fromDate(
+          activeUntil
+        ) as unknown as EventSchema["active_until"];
+        out.active_until_seconds = Math.floor(activeUntil.getTime() / 1_000);
+      }
+    } catch (error) {
+      console.warn("Could not normalize event timing", {
+        event: eventData.name,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+  if (out.start_seconds === undefined) {
+    out.start_seconds = _timestampSeconds(eventData.start);
+  }
+  if (out.end_seconds === undefined) {
+    out.end_seconds = _timestampSeconds(eventData.end);
   }
 
   if (derivedBounds) {
@@ -916,7 +979,12 @@ export const updateEventFieldsOnWrite = onDocumentWritten(
       ...normalizationInput,
       ...normalized.patch,
     } as EventSchema;
-    const derived = await _addTypesenseFields(normalizedData);
+    const locationRemoved =
+      beforeData?.location_raw !== undefined &&
+      afterData.location_raw === undefined;
+    const derived = await _addTypesenseFields(normalizedData, {
+      locationRemoved,
+    });
     const changed = {
       ...publicationCompatibility,
       ...normalized.patch,

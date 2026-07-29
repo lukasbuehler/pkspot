@@ -25,6 +25,28 @@ describe("event discovery projection", () => {
     expect(isEventPubliclyDiscoverable(event())).toBe(true);
   });
 
+  it("projects a public locationless date-only event", () => {
+    const projection = buildEventDiscoveryProjection(
+      event({
+        venue_string: undefined,
+        locality_string: undefined,
+        location: undefined,
+        location_raw: undefined,
+        time_zone: undefined,
+        has_location: false,
+        timing: { start_date: "2026-09-12", mode: "date_only" },
+      }),
+    );
+
+    expect(projection).toMatchObject({
+      name: "Public jam",
+      has_location: false,
+      timing: { start_date: "2026-09-12", mode: "date_only" },
+    });
+    expect(projection).not.toHaveProperty("location");
+    expect(projection).not.toHaveProperty("time_zone");
+  });
+
   it.each(["draft", "unlisted", "private"] as const)(
     "excludes %s events from discovery",
     (state) => {

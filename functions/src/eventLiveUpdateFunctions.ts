@@ -63,21 +63,39 @@ const timestampMillis = (value: unknown): number | null => {
 const eventPath = (eventId: string, event: EventSchema): string =>
   `/events/${encodeURIComponent(event.slug ?? eventId)}`;
 
-async function authorizedOrganizer(
+async function authorizedEventEditor(
   uid: string,
+  eventId: string,
   event: EventSchema,
 ): Promise<boolean> {
   const user = await admin.firestore().doc(`users/${uid}`).get();
   if (user.data()?.["is_admin"] === true) return true;
 
-  const organizationId = event.organizer?.organization.id;
-  if (!organizationId) return false;
-  const member = await admin
-    .firestore()
-    .doc(`organizations/${organizationId}/members/${uid}`)
-    .get();
-  const role = (member.data() as OrganizationMemberSchema | undefined)?.role;
-  return role === "owner" || role === "admin";
+  if (event.owner?.type === "user" && event.owner.user_id === uid) return true;
+  const organizationIds = [
+    event.owner?.type === "organization"
+      ? event.owner.organization_id
+      : undefined,
+    event.organizer_access === "edit"
+      ? event.organizer?.organization.id
+      : undefined,
+  ].filter((id): id is string => !!id);
+  const [memberships, access] = await Promise.all([
+    Promise.all(
+      organizationIds.map((organizationId) =>
+        admin
+          .firestore()
+          .doc(`organizations/${organizationId}/members/${uid}`)
+          .get(),
+      ),
+    ),
+    admin.firestore().doc(`events/${eventId}/access/${uid}`).get(),
+  ]);
+  if (access.data()?.["role"] === "collaborator") return true;
+  return memberships.some((member) => {
+    const role = (member.data() as OrganizationMemberSchema | undefined)?.role;
+    return role === "owner" || role === "admin";
+  });
 }
 
 export const publishEventLiveUpdate = onCall(
@@ -130,8 +148,8 @@ export const publishEventLiveUpdate = onCall(
     if (!eventEnd || eventEnd < Date.now()) {
       throw new HttpsError("failed-precondition", "Past events cannot send updates.");
     }
-    if (!(await authorizedOrganizer(uid, event))) {
-      throw new HttpsError("permission-denied", "Only an event organizer can publish updates.");
+    if (!(await authorizedEventEditor(uid, eventId, event))) {
+      throw new HttpsError("permission-denied", "Event editing access is required.");
     }
     if (
       eventSpotId &&

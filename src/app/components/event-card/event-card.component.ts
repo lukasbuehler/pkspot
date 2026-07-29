@@ -20,6 +20,7 @@ import { SeriesDocument } from "../../services/firebase/firestore/series.service
 import {
   eventImageDisplaySrc,
   eventStatusLabel,
+  eventScheduleLabel,
   type EventStatus,
 } from "../event-display/event-display.helpers";
 import { AnalyticsService } from "../../services/analytics.service";
@@ -55,7 +56,7 @@ export class EventCardComponent {
   readonly status = computed<EventStatus>(() => this.event().status());
   readonly dateRange = computed(() => {
     const event = this.event();
-    return this._dateTime.formatDateRange(event.start, event.end, "long");
+    return eventScheduleLabel(event, this._dateTime, "long");
   });
   readonly route = computed(() => [
     "/events",

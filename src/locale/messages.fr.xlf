@@ -986,16 +986,40 @@
         <target>Session créée.</target>
       </segment>
     </unit>
+    <unit id="session_planner.created_with_access_warning">
+      <segment state="initial">
+        <source>Session created, but access could not be granted to: <ph id="0" equiv="PH" disp="failedCollaborators.join(&quot;, &quot;)"/>. Open event management to retry each person.</source>
+        <target>Session created, but access could not be granted to: <ph id="0" equiv="PH" disp="failedCollaborators.join(&quot;, &quot;)"/>. Open event management to retry each person.</target>
+      </segment>
+    </unit>
     <unit id="session_planner.failed">
       <segment state="initial">
         <source>Couldn&apos;t create the session. Please try again.</source>
         <target>Impossible de créer la session. Veuillez réessayer.</target>
       </segment>
     </unit>
+    <unit id="session_planner.form.add_co_host">
+      <segment state="initial">
+        <source> Add co-host </source>
+        <target> Add co-host </target>
+      </segment>
+    </unit>
     <unit id="session_planner.form.capacity">
       <segment state="initial">
         <source> Capacity (optional) </source>
         <target> Capacité (facultative) </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.co_hosts">
+      <segment state="initial">
+        <source> Co-hosts and editors </source>
+        <target> Co-hosts and editors </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.co_hosts_hint">
+      <segment state="initial">
+        <source> Co-hosts can edit details and publish updates, but cannot transfer, manage access, or delete the session. </source>
+        <target> Co-hosts can edit details and publish updates, but cannot transfer, manage access, or delete the session. </target>
       </segment>
     </unit>
     <unit id="session_planner.form.essentials">
@@ -1048,8 +1072,14 @@
     </unit>
     <unit id="session_planner.form.registration">
       <segment state="initial">
-        <source> Registration </source>
+        <source> Register on PK Spot </source>
         <target> Inscription </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.remove_co_host">
+      <segment state="initial">
+        <source>Remove co-host</source>
+        <target>Remove co-host</target>
       </segment>
     </unit>
     <unit id="session_planner.form.rsvp">
@@ -2241,6 +2271,12 @@
         <target>Le mot de passe est invalide !</target>
       </segment>
     </unit>
+    <unit id="4281314225728884844">
+      <segment state="initial">
+        <source>Could not load ownership claims.</source>
+        <target>Could not load ownership claims.</target>
+      </segment>
+    </unit>
     <unit id="4292524783489016046">
       <segment state="initial">
         <source> Create organizations, update their public identity, and manage who can review organization-routed spot edits. </source>
@@ -2701,6 +2737,12 @@
       <segment state="initial">
         <source>Rotate left</source>
         <target>Faire pivoter à gauche</target>
+      </segment>
+    </unit>
+    <unit id="362734614337874993">
+      <segment state="initial">
+        <source>Claim submission failed.</source>
+        <target>Claim submission failed.</target>
       </segment>
     </unit>
     <unit id="3628374603023447227">
@@ -4811,6 +4853,12 @@
         <target>Impossible de charger l’incident de sécurité</target>
       </segment>
     </unit>
+    <unit id="9056381689300790104">
+      <segment state="initial">
+        <source>Choose an organization, explain the claim, and add evidence.</source>
+        <target>Choose an organization, explain the claim, and add evidence.</target>
+      </segment>
+    </unit>
     <unit id="9058496705928443158">
       <segment state="initial">
         <source>Photographer</source>
@@ -6101,6 +6149,30 @@
         <target> Réservé aux membres de l’organisation </target>
       </segment>
     </unit>
+    <unit id="event.description_without_location">
+      <segment state="initial">
+        <source>Event details</source>
+        <target>Event details</target>
+      </segment>
+    </unit>
+    <unit id="event.timing.date_only_label">
+      <segment state="initial">
+        <source><ph id="0" equiv="PH" disp="range"/> · Time to be announced</source>
+        <target><ph id="0" equiv="PH" disp="range"/> · Time to be announced</target>
+      </segment>
+    </unit>
+    <unit id="event.timing.open_end_label">
+      <segment state="initial">
+        <source><ph id="0" equiv="PH" disp="start"/> · Open end</source>
+        <target><ph id="0" equiv="PH" disp="start"/> · Open end</target>
+      </segment>
+    </unit>
+    <unit id="event.venue_tba">
+      <segment state="initial">
+        <source>Venue to be announced</source>
+        <target>Venue to be announced</target>
+      </segment>
+    </unit>
     <unit id="event_access.add">
       <segment state="initial">
         <source>Add</source>
@@ -6281,6 +6353,252 @@
         <target>Workshop</target>
       </segment>
     </unit>
+    <unit id="event_claims.admin_only">
+      <segment state="initial">
+        <source> Administrator access is required. </source>
+        <target> Administrator access is required. </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.approve">
+      <segment state="initial">
+        <source> Approve </source>
+        <target> Approve </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.claim_explanation">
+      <segment state="initial">
+        <source> Claim explanation </source>
+        <target> Claim explanation </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.contest">
+      <segment state="initial">
+        <source> Contest claim </source>
+        <target> Contest claim </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.current_organizer">
+      <segment state="initial">
+        <source>Current organizer</source>
+        <target>Current organizer</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.current_owner">
+      <segment state="initial">
+        <source>Current owner</source>
+        <target>Current owner</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.empty">
+      <segment state="initial">
+        <source> There are no pending ownership claims. </source>
+        <target> There are no pending ownership claims. </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.evidence">
+      <segment state="initial">
+        <source> Public evidence URLs (one per line) </source>
+        <target> Public evidence URLs (one per line) </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.explanation">
+      <segment state="initial">
+        <source>Explanation</source>
+        <target>Explanation</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.former_owner">
+      <segment state="initial">
+        <source>Former owner</source>
+        <target>Former owner</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.former_owner_suggestion">
+      <segment state="initial">
+        <source> Suggested former-owner access </source>
+        <target> Suggested former-owner access </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.inbox_heading">
+      <segment state="initial">
+        <source> Event ownership claims </source>
+        <target> Event ownership claims </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.inbox_intro">
+      <segment state="initial">
+        <source> Review evidence and decide ownership, public organizer linkage, and former-owner access separately. </source>
+        <target> Review evidence and decide ownership, public organizer linkage, and former-owner access separately. </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.link_organizer">
+      <segment state="initial">
+        <source> Link organization publicly </source>
+        <target> Link organization publicly </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.loading_organizations">
+      <segment state="initial">
+        <source>Loading your organizations…</source>
+        <target>Loading your organizations…</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.no_manager_orgs">
+      <segment state="initial">
+        <source> You must manage an active PK Spot organization to submit a claim. </source>
+        <target> You must manage an active PK Spot organization to submit a claim. </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.organization">
+      <segment state="initial">
+        <source>Organization</source>
+        <target>Organization</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.owner_message">
+      <segment state="initial">
+        <source> Optional response </source>
+        <target> Optional response </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.owner_response">
+      <segment state="initial">
+        <source> Current owner response </source>
+        <target> Current owner response </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.owner_response_help">
+      <segment state="initial">
+        <source> Supporting or contesting helps administrators decide. They may decide immediately when the public evidence is already sufficient. </source>
+        <target> Supporting or contesting helps administrators decide. They may decide immediately when the public evidence is already sufficient. </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.reason">
+      <segment state="initial">
+        <source>Decision reason</source>
+        <target>Decision reason</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.reject">
+      <segment state="initial">
+        <source> Reject </source>
+        <target> Reject </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.reload">
+      <segment state="initial">
+        <source>Reload</source>
+        <target>Reload</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.remove_access">
+      <segment state="initial">
+        <source> Remove access </source>
+        <target> Remove access </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.request">
+      <segment state="initial">
+        <source>Request organization ownership</source>
+        <target>Request organization ownership</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.request_aria">
+      <segment state="initial">
+        <source>Request organization ownership</source>
+        <target>Request organization ownership</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.response_contest_label">
+      <segment state="initial">
+        <source>Contested</source>
+        <target>Contested</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.response_contested">
+      <segment state="initial">
+        <source>Your objection was recorded.</source>
+        <target>Your objection was recorded.</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.response_failed">
+      <segment state="initial">
+        <source>Could not save your response.</source>
+        <target>Could not save your response.</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.response_heading">
+      <segment state="initial">
+        <source> Organization ownership claim </source>
+        <target> Organization ownership claim </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.response_support_label">
+      <segment state="initial">
+        <source>Supported</source>
+        <target>Supported</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.response_supported">
+      <segment state="initial">
+        <source>Your support was recorded.</source>
+        <target>Your support was recorded.</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.response_unavailable_body">
+      <segment state="initial">
+        <source> Only the claimant, the current owner, and PK Spot administrators can view this claim. </source>
+        <target> Only the claimant, the current owner, and PK Spot administrators can view this claim. </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.response_unavailable_heading">
+      <segment state="initial">
+        <source> Ownership claim unavailable </source>
+        <target> Ownership claim unavailable </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.retain_editor">
+      <segment state="initial">
+        <source> Retain as editor </source>
+        <target> Retain as editor </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.status_approved">
+      <segment state="initial">
+        <source>Claim approved</source>
+        <target>Claim approved</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.status_rejected">
+      <segment state="initial">
+        <source>Claim rejected</source>
+        <target>Claim rejected</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.submit">
+      <segment state="initial">
+        <source> Submit claim </source>
+        <target> Submit claim </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.submit_heading">
+      <segment state="initial">
+        <source> Request organization ownership </source>
+        <target> Request organization ownership </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.support">
+      <segment state="initial">
+        <source> Support claim </source>
+        <target> Support claim </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.transfer">
+      <segment state="initial">
+        <source> Transfer event ownership </source>
+        <target> Transfer event ownership </target>
+      </segment>
+    </unit>
     <unit id="event_create.meta.description">
       <segment state="initial">
         <source>Admin tool for adding a new parkour event to PK Spot.</source>
@@ -6355,37 +6673,43 @@
     </unit>
     <unit id="event_edit.access_heading">
       <segment state="initial">
-        <source> Ownership and access </source>
+        <source> Hosts and management </source>
         <target> Propriété et accès </target>
       </segment>
     </unit>
     <unit id="event_edit.access_hint">
       <segment state="initial">
-        <source> Publication controls whether the event is ready. Visibility controls who can find and open it. </source>
+        <source> Ownership and co-host access control management. Public organizer attribution remains independent. </source>
         <target> La publication indique si l&apos;événement est prêt. La visibilité détermine qui peut le trouver et l&apos;ouvrir. </target>
       </segment>
     </unit>
-    <unit id="event_edit.admission">
+    <unit id="event_edit.active_until_date">
       <segment state="initial">
-        <source>Admission</source>
-        <target>Accès</target>
+        <source> Active until date </source>
+        <target> Active until date </target>
       </segment>
     </unit>
-    <unit id="event_edit.admission.none">
+    <unit id="event_edit.active_until_help">
       <segment state="initial">
-        <source> No registration </source>
-        <target> Sans inscription </target>
+        <source> Open-ended events show no public end time. The operational cutoff controls live and map visibility only; four hours after the start is suggested. </source>
+        <target> Open-ended events show no public end time. The operational cutoff controls live and map visibility only; four hours after the start is suggested. </target>
       </segment>
     </unit>
-    <unit id="event_edit.admission.registration">
+    <unit id="event_edit.active_until_required">
       <segment state="initial">
-        <source> Registration </source>
-        <target> Inscription </target>
+        <source> Choose a cutoff after the start. </source>
+        <target> Choose a cutoff after the start. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.active_until_time">
+      <segment state="initial">
+        <source> Active until time </source>
+        <target> Active until time </target>
       </segment>
     </unit>
     <unit id="event_edit.area_label">
       <segment state="initial">
-        <source> Meeting point and event area </source>
+        <source> Optional venue and map location </source>
         <target> Zone de l’événement </target>
       </segment>
     </unit>
@@ -6415,14 +6739,26 @@
     </unit>
     <unit id="event_edit.attendance_heading">
       <segment state="initial">
-        <source> Attendance and registration </source>
+        <source> Attendance and entry </source>
         <target> Participation et inscription </target>
       </segment>
     </unit>
     <unit id="event_edit.attendance_hint">
       <segment state="initial">
-        <source> Social responses express intent. Registration separately controls confirmed admission and capacity. </source>
+        <source> Large events use Going / Interested and external ticket links. PK Spot registration is reserved for sessions. </source>
         <target> Les réponses sociales indiquent une intention. L&apos;inscription gère séparément l&apos;admission confirmée et la capacité. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.attendance_instructions">
+      <segment state="initial">
+        <source> Entry or on-site instructions </source>
+        <target> Entry or on-site instructions </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.attendance_instructions_hint">
+      <segment state="initial">
+        <source> Optional check-in, wristband, ticket-desk, or on-site guidance. </source>
+        <target> Optional check-in, wristband, ticket-desk, or on-site guidance. </target>
       </segment>
     </unit>
     <unit id="event_edit.attendance_organization">
@@ -6631,14 +6967,8 @@
     </unit>
     <unit id="event_edit.dates_end_label">
       <segment state="initial">
-        <source> End </source>
+        <source> End (optional date; defaults to the start date) </source>
         <target> Fin </target>
-      </segment>
-    </unit>
-    <unit id="event_edit.dates_label">
-      <segment state="initial">
-        <source> Start </source>
-        <target> Début </target>
       </segment>
     </unit>
     <unit id="event_edit.delete">
@@ -6681,6 +7011,12 @@
       <segment state="initial">
         <source>End time</source>
         <target>Heure de fin</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.end_time_required">
+      <segment state="initial">
+        <source> Enter an end time after the start. </source>
+        <target> Enter an end time after the start. </target>
       </segment>
     </unit>
     <unit id="event_edit.external_media_add">
@@ -6859,8 +7195,8 @@
     </unit>
     <unit id="event_edit.imagery">
       <segment state="initial">
-        <source>Imagery</source>
-        <target>Images</target>
+        <source> Imagery </source>
+        <target> Images </target>
       </segment>
     </unit>
     <unit id="event_edit.is_promoted">
@@ -6873,6 +7209,24 @@
       <segment state="initial">
         <source> Add legacy mobile app area compatibility </source>
         <target> Ajouter la compatibilité des zones de l’ancienne app mobile </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.legacy_registration_body">
+      <segment state="initial">
+        <source> Saving other changes will not remove existing registrations. </source>
+        <target> Saving other changes will not remove existing registrations. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.legacy_registration_disable">
+      <segment state="initial">
+        <source> Disable registration </source>
+        <target> Disable registration </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.legacy_registration_title">
+      <segment state="initial">
+        <source> Existing PK Spot registration is preserved </source>
+        <target> Existing PK Spot registration is preserved </target>
       </segment>
     </unit>
     <unit id="event_edit.link_add">
@@ -6965,6 +7319,12 @@
         <target>Localité</target>
       </segment>
     </unit>
+    <unit id="event_edit.location_clear">
+      <segment state="initial">
+        <source> Remove location </source>
+        <target> Remove location </target>
+      </segment>
+    </unit>
     <unit id="event_edit.location_coordinates_label">
       <segment state="initial">
         <source> Main location: </source>
@@ -6973,8 +7333,8 @@
     </unit>
     <unit id="event_edit.location_explanation">
       <segment state="initial">
-        <source> Set the main event location by selecting a spot, Google Place, or by clicking the map. This is the meeting point or center of the event: traceurs who go here should see the event and be able to find things like the info desk or other traceurs. </source>
-        <target> Set the main event location by selecting a spot, Google Place, or by clicking the map. This is the meeting point or center of the event: traceurs who go here should see the event and be able to find things like the info desk or other traceurs. </target>
+        <source> Optionally set the main event location by selecting a spot, Google Place, or by clicking the map. This is the meeting point or center of the event: traceurs who go here should see the event and be able to find things like the info desk or other traceurs. </source>
+        <target> Optionally set the main event location by selecting a spot, Google Place, or by clicking the map. This is the meeting point or center of the event: traceurs who go here should see the event and be able to find things like the info desk or other traceurs. </target>
       </segment>
     </unit>
     <unit id="event_edit.location_not_set">
@@ -7139,10 +7499,40 @@
         <target>Organisateur</target>
       </segment>
     </unit>
+    <unit id="event_edit.organizer_access_hint">
+      <segment state="initial">
+        <source> Managers can view drafts by default. Edit access is recommended when this organization is actively hosting the event. </source>
+        <target> Managers can view drafts by default. Edit access is recommended when this organization is actively hosting the event. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.organizer_edit_access">
+      <segment state="initial">
+        <source> Allow this organization’s managers to edit the event </source>
+        <target> Allow this organization’s managers to edit the event </target>
+      </segment>
+    </unit>
     <unit id="event_edit.organizer_hint">
       <segment state="initial">
-        <source> Admin-only. Select an organization or enter its name. </source>
+        <source> Select an organization to link it, or keep a free-text organizer name. </source>
         <target> Admin uniquement. Sélectionne une organisation ou saisis son nom. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.organizer_linked">
+      <segment state="initial">
+        <source> Linked to PK Spot </source>
+        <target> Linked to PK Spot </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.organizer_unlink">
+      <segment state="initial">
+        <source> Unlink </source>
+        <target> Unlink </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.organizer_unlinked">
+      <segment state="initial">
+        <source> Unlinked organizer name — no PK Spot organization receives access. </source>
+        <target> Unlinked organizer name — no PK Spot organization receives access. </target>
       </segment>
     </unit>
     <unit id="event_edit.owner.admin_managed">
@@ -7325,30 +7715,6 @@
         <target>Supprimer la cible de qualification</target>
       </segment>
     </unit>
-    <unit id="event_edit.registration_capacity">
-      <segment state="initial">
-        <source> Capacity </source>
-        <target> Capacité </target>
-      </segment>
-    </unit>
-    <unit id="event_edit.registration_capacity_hint">
-      <segment state="initial">
-        <source> Leave empty for unlimited registration. </source>
-        <target> Laissez vide pour des inscriptions illimitées. </target>
-      </segment>
-    </unit>
-    <unit id="event_edit.registration_capacity_invalid">
-      <segment state="initial">
-        <source> Capacity must be a positive whole number. </source>
-        <target> La capacité doit être un nombre entier positif. </target>
-      </segment>
-    </unit>
-    <unit id="event_edit.registration_waitlist">
-      <segment state="initial">
-        <source> Allow a waitlist when full </source>
-        <target> Autoriser une liste d&apos;attente lorsque complet </target>
-      </segment>
-    </unit>
     <unit id="event_edit.required_section">
       <segment state="initial">
         <source> Essentials </source>
@@ -7377,6 +7743,12 @@
       <segment state="initial">
         <source>Save</source>
         <target>Enregistrer</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.schedule_label">
+      <segment state="initial">
+        <source> Schedule and timing certainty </source>
+        <target> Schedule and timing certainty </target>
       </segment>
     </unit>
     <unit id="event_edit.series_id">
@@ -7541,6 +7913,18 @@
         <target> Je participe / Intéressé </target>
       </segment>
     </unit>
+    <unit id="event_edit.source_metadata_heading">
+      <segment state="initial">
+        <source> Source/import metadata </source>
+        <target> Source/import metadata </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.source_metadata_help">
+      <segment state="initial">
+        <source> Records the canonical external listing and import de-duplication ID. This is not ticket configuration and does not import events automatically. </source>
+        <target> Records the canonical external listing and import de-duplication ID. This is not ticket configuration and does not import events automatically. </target>
+      </segment>
+    </unit>
     <unit id="event_edit.sponsor_logo">
       <segment state="initial">
         <source> Partner logo override </source>
@@ -7599,6 +7983,12 @@
       <segment state="initial">
         <source>Start time</source>
         <target>Heure de début</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.start_time_required">
+      <segment state="initial">
+        <source> Enter a valid local start time. </source>
+        <target> Enter a valid local start time. </target>
       </segment>
     </unit>
     <unit id="event_edit.temporary_spot_add">
@@ -7871,6 +8261,60 @@
         <target> Opciones de entradas </target>
       </segment>
     </unit>
+    <unit id="event_edit.time_zone">
+      <segment state="initial">
+        <source>Event time zone</source>
+        <target>Event time zone</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.time_zone_hint">
+      <segment state="initial">
+        <source> Derived from coordinates when available. For a remote event, enter an IANA zone manually. </source>
+        <target> Derived from coordinates when available. For a remote event, enter an IANA zone manually. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.time_zone_required">
+      <segment state="initial">
+        <source> A valid IANA time zone is required for timed events. </source>
+        <target> A valid IANA time zone is required for timed events. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.time_zone_resolve_error">
+      <segment state="initial">
+        <source>Time zone could not be derived. Enter it manually before saving a timed event.</source>
+        <target>Time zone could not be derived. Enter it manually before saving a timed event.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.time_zone_resolving">
+      <segment state="initial">
+        <source> Deriving from the map location… </source>
+        <target> Deriving from the map location… </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.timing.date_only">
+      <segment state="initial">
+        <source> Date only — time to be announced </source>
+        <target> Date only — time to be announced </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.timing.exact">
+      <segment state="initial">
+        <source> Exact start and end </source>
+        <target> Exact start and end </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.timing.open_end">
+      <segment state="initial">
+        <source> Exact start, open end </source>
+        <target> Exact start, open end </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.timing_mode">
+      <segment state="initial">
+        <source>Timing</source>
+        <target>Timing</target>
+      </segment>
+    </unit>
     <unit id="event_edit.url">
       <segment state="initial">
         <source>External URL</source>
@@ -7881,6 +8325,12 @@
       <segment state="initial">
         <source>Venue name</source>
         <target>Nom du lieu</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.venue_optional">
+      <segment state="initial">
+        <source> Optional — shown as “Venue to be announced” when empty. </source>
+        <target> Optional — shown as “Venue to be announced” when empty. </target>
       </segment>
     </unit>
     <unit id="event_edit.visibility">
@@ -8145,6 +8595,12 @@
       <segment state="initial">
         <source>Plan session</source>
         <target>Planifier une session</target>
+      </segment>
+    </unit>
+    <unit id="events.status.live_open_end">
+      <segment state="initial">
+        <source>Ongoing — open end</source>
+        <target>Ongoing — open end</target>
       </segment>
     </unit>
     <unit id="events.status.live_with_end">
@@ -8626,6 +9082,12 @@
       <segment state="initial">
         <source>Closed</source>
         <target>Fermé</target>
+      </segment>
+    </unit>
+    <unit id="7868084107533692439">
+      <segment state="initial">
+        <source>Ownership claim approved.</source>
+        <target>Ownership claim approved.</target>
       </segment>
     </unit>
     <unit id="7881945331295450373">
@@ -9262,6 +9724,12 @@
       <segment state="initial">
         <source> Temporarily closed </source>
         <target> Temporairement fermé </target>
+      </segment>
+    </unit>
+    <unit id="8719394803198399227">
+      <segment state="initial">
+        <source>Decision failed.</source>
+        <target>Decision failed.</target>
       </segment>
     </unit>
     <unit id="8725224299321680590">
@@ -11027,6 +11495,12 @@
         <target> Nous pensons que la carte appartient aux athlètes, pas à une entreprise. PK Spot est open source, respecte la vie privée et appartient à la communauté. </target>
       </segment>
     </unit>
+    <unit id="5101446301405691745">
+      <segment state="initial">
+        <source>Ownership claim rejected.</source>
+        <target>Ownership claim rejected.</target>
+      </segment>
+    </unit>
     <unit id="5109390034351761565">
       <segment state="initial">
         <source>This challenge is for fun! </source>
@@ -12347,6 +12821,12 @@
       <segment state="initial">
         <source> Check In </source>
         <target> Check-in </target>
+      </segment>
+    </unit>
+    <unit id="1713067112201230619">
+      <segment state="initial">
+        <source>Enter a rejection reason.</source>
+        <target>Enter a rejection reason.</target>
       </segment>
     </unit>
     <unit id="1731452447994913749">

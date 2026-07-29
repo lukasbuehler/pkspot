@@ -51,6 +51,9 @@ export type EventWritePatch = Omit<
   | "external_source"
   | "organizer"
   | "organizer_name"
+  | "location_raw"
+  | "venue_string"
+  | "locality_string"
   | "created_by"
 > & {
   area_polygon?: EventSchema["area_polygon"] | null;
@@ -58,6 +61,9 @@ export type EventWritePatch = Omit<
   external_source?: EventSchema["external_source"] | null;
   organizer?: EventSchema["organizer"] | null;
   organizer_name?: string | null;
+  location_raw?: EventSchema["location_raw"] | null;
+  venue_string?: string | null;
+  locality_string?: string | null;
 };
 export type EventCreateData = EventWritePatch & { owner: EventOwnerSchema };
 
@@ -157,7 +163,23 @@ export class EventsService extends ConsentAwareService {
   async canEditEvent(event: Event): Promise<boolean> {
     if (this._isAdmin()) return true;
     const uid = this._authService.user.uid;
-    if (!uid || !event.owner) return false;
+    if (!uid) return false;
+    if (
+      event.organizer?.type === "organization" &&
+      event.organizerAccess === "edit"
+    ) {
+      const organizerMembership =
+        await this._firestoreAdapter.getDocument<{ role?: unknown }>(
+          `organizations/${event.organizer.organization.id}/members/${uid}`,
+        );
+      if (
+        organizerMembership?.role === "owner" ||
+        organizerMembership?.role === "admin"
+      ) {
+        return true;
+      }
+    }
+    if (!event.owner) return false;
     if (event.owner.type === "user") {
       if (event.owner.user_id === uid) return true;
       return (await this.getMyEventAccess(event.id))?.role === "collaborator";
@@ -190,7 +212,20 @@ export class EventsService extends ConsentAwareService {
     if (event.published && event.visibility !== "private") return true;
     if (await this.canEditEvent(event)) return true;
     const uid = this._authService.user.uid;
-    if (!uid || !event.published) return false;
+    if (!uid) return false;
+    if (event.organizer?.type === "organization") {
+      const organizerMembership =
+        await this._firestoreAdapter.getDocument<{ role?: unknown }>(
+          `organizations/${event.organizer.organization.id}/members/${uid}`,
+        );
+      if (
+        organizerMembership?.role === "owner" ||
+        organizerMembership?.role === "admin"
+      ) {
+        return true;
+      }
+    }
+    if (!event.published) return false;
     const access = await this.getMyEventAccess(event.id);
     if (access?.role === "viewer" || access?.role === "collaborator") {
       return true;
@@ -297,6 +332,14 @@ export class EventsService extends ConsentAwareService {
         clientData.organizer_name === null
           ? undefined
           : clientData.organizer_name,
+      venue_string:
+        clientData.venue_string === null ? undefined : clientData.venue_string,
+      locality_string:
+        clientData.locality_string === null
+          ? undefined
+          : clientData.locality_string,
+      location_raw:
+        clientData.location_raw === null ? undefined : clientData.location_raw,
       time_created: now,
       time_updated: now,
       created_by: {
@@ -400,6 +443,12 @@ export class EventsService extends ConsentAwareService {
       notification_policy:
         clientPatch.notification_policy ?? current.notification_policy,
       attendance: clientPatch.attendance ?? current.attendance,
+      timing: clientPatch.timing ?? current.timing,
+      active_until: clientPatch.active_until ?? current.active_until,
+      time_zone: clientPatch.time_zone ?? current.time_zone,
+      organizer: clientPatch.organizer ?? current.organizer,
+      organizer_access:
+        clientPatch.organizer_access ?? current.organizer_access,
       owner: clientPatch.owner ?? current.owner,
       event_categories:
         clientPatch.event_categories ?? current.event_categories,
@@ -413,6 +462,9 @@ export class EventsService extends ConsentAwareService {
     const shouldDeleteExternalSource = clientPatch.external_source === null;
     const shouldDeleteOrganizer = clientPatch.organizer === null;
     const shouldDeleteOrganizerName = clientPatch.organizer_name === null;
+    const shouldDeleteLocationRaw = clientPatch.location_raw === null;
+    const shouldDeleteVenue = clientPatch.venue_string === null;
+    const shouldDeleteLocality = clientPatch.locality_string === null;
     const cleaned = stripUndefined({
       ...clientPatch,
       ...publicationPatch,
@@ -429,6 +481,15 @@ export class EventsService extends ConsentAwareService {
       organizer_name: shouldDeleteOrganizerName
         ? this._firestoreAdapter.deleteFieldValue()
         : clientPatch.organizer_name,
+      location_raw: shouldDeleteLocationRaw
+        ? this._firestoreAdapter.deleteFieldValue()
+        : clientPatch.location_raw,
+      venue_string: shouldDeleteVenue
+        ? this._firestoreAdapter.deleteFieldValue()
+        : clientPatch.venue_string,
+      locality_string: shouldDeleteLocality
+        ? this._firestoreAdapter.deleteFieldValue()
+        : clientPatch.locality_string,
       area_polygon:
         clientPatch.area_polygon === null
           ? this._firestoreAdapter.deleteFieldValue()

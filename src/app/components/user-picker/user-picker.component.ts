@@ -45,6 +45,7 @@ export class UserPickerComponent {
   readonly value = input("");
   readonly disabled = input(false);
   readonly valueChange = output<string>();
+  readonly userSelected = output<UserReferenceSchema>();
   readonly control = new FormControl<string | UserReferenceSchema>("", {
     nonNullable: true,
   });
@@ -52,6 +53,7 @@ export class UserPickerComponent {
   readonly query = signal("");
   readonly searching = signal(false);
   readonly resolving = signal(false);
+  readonly selectedUser = signal<UserReferenceSchema | null>(null);
 
   constructor() {
     this.control.valueChanges
@@ -87,9 +89,11 @@ export class UserPickerComponent {
   selectUser(event: MatAutocompleteSelectedEvent): void {
     const user = event.option.value as UserReferenceSchema;
     this.control.setValue(user, { emitEvent: false });
+    this.selectedUser.set(user);
     this.results.set([]);
     this.query.set("");
     this.valueChange.emit(user.uid);
+    this.userSelected.emit(user);
   }
 
   private async _searchUsers(query: string): Promise<void> {
@@ -115,6 +119,7 @@ export class UserPickerComponent {
     const version = ++this._resolveVersion;
     if (!uid) {
       this.control.setValue("", { emitEvent: false });
+      this.selectedUser.set(null);
       this.resolving.set(false);
       return;
     }
@@ -124,7 +129,9 @@ export class UserPickerComponent {
     this.resolving.set(true);
     const user = await this._users.getUserRefernceById(uid);
     if (version !== this._resolveVersion) return;
-    this.control.setValue(user ?? { uid }, { emitEvent: false });
+    const reference = user ?? { uid };
+    this.control.setValue(reference, { emitEvent: false });
+    this.selectedUser.set(reference);
     this.resolving.set(false);
   }
 }

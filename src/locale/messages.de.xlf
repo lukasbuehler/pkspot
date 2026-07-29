@@ -986,16 +986,40 @@
         <target>Session erstellt.</target>
       </segment>
     </unit>
+    <unit id="session_planner.created_with_access_warning">
+      <segment state="initial">
+        <source>Session created, but access could not be granted to: <ph id="0" equiv="PH" disp="failedCollaborators.join(&quot;, &quot;)"/>. Open event management to retry each person.</source>
+        <target>Session erstellt, aber der Zugriff konnte nicht gewährt werden für: <ph id="0" equiv="PH" disp="failedCollaborators.join(&quot;, &quot;)"/>. Öffne die Eventverwaltung, um jede Person erneut zu versuchen.</target>
+      </segment>
+    </unit>
     <unit id="session_planner.failed">
       <segment state="initial">
         <source>Couldn&apos;t create the session. Please try again.</source>
         <target>Die Session konnte nicht erstellt werden. Bitte versuche es erneut.</target>
       </segment>
     </unit>
+    <unit id="session_planner.form.add_co_host">
+      <segment state="initial">
+        <source> Add co-host </source>
+        <target> Co-Host hinzufügen </target>
+      </segment>
+    </unit>
     <unit id="session_planner.form.capacity">
       <segment state="initial">
         <source> Capacity (optional) </source>
         <target> Kapazität (optional) </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.co_hosts">
+      <segment state="initial">
+        <source> Co-hosts and editors </source>
+        <target> Co-Hosts und Bearbeitende </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.co_hosts_hint">
+      <segment state="initial">
+        <source> Co-hosts can edit details and publish updates, but cannot transfer, manage access, or delete the session. </source>
+        <target> Co-Hosts können Details bearbeiten und Updates veröffentlichen, aber die Session nicht übertragen, Zugriffe verwalten oder löschen. </target>
       </segment>
     </unit>
     <unit id="session_planner.form.essentials">
@@ -1048,8 +1072,14 @@
     </unit>
     <unit id="session_planner.form.registration">
       <segment state="initial">
-        <source> Registration </source>
-        <target> Anmeldung </target>
+        <source> Register on PK Spot </source>
+        <target> Auf PK Spot anmelden </target>
+      </segment>
+    </unit>
+    <unit id="session_planner.form.remove_co_host">
+      <segment state="initial">
+        <source>Remove co-host</source>
+        <target>Co-Host entfernen</target>
       </segment>
     </unit>
     <unit id="session_planner.form.rsvp">
@@ -2241,6 +2271,12 @@
         <target>Das Passwort ist ungültig!</target>
       </segment>
     </unit>
+    <unit id="4281314225728884844">
+      <segment state="initial">
+        <source>Could not load ownership claims.</source>
+        <target state="translated">Eigentumsansprüche konnten nicht geladen werden.</target>
+      </segment>
+    </unit>
     <unit id="4292524783489016046">
       <segment state="initial">
         <source> Create organizations, update their public identity, and manage who can review organization-routed spot edits. </source>
@@ -2701,6 +2737,12 @@
       <segment state="initial">
         <source>Rotate left</source>
         <target>Nach links drehen</target>
+      </segment>
+    </unit>
+    <unit id="362734614337874993">
+      <segment state="initial">
+        <source>Claim submission failed.</source>
+        <target state="translated">Anspruch konnte nicht eingereicht werden.</target>
       </segment>
     </unit>
     <unit id="3628374603023447227">
@@ -4811,6 +4853,12 @@
         <target>Sicherheitsvorfall konnte nicht geladen werden</target>
       </segment>
     </unit>
+    <unit id="9056381689300790104">
+      <segment state="initial">
+        <source>Choose an organization, explain the claim, and add evidence.</source>
+        <target state="translated">Wähle eine Organisation, begründe den Anspruch und füge Belege hinzu.</target>
+      </segment>
+    </unit>
     <unit id="9058496705928443158">
       <segment state="initial">
         <source>Photographer</source>
@@ -6101,6 +6149,30 @@
         <target> Nur für Organisationsmitglieder </target>
       </segment>
     </unit>
+    <unit id="event.description_without_location">
+      <segment state="initial">
+        <source>Event details</source>
+        <target>Eventdetails</target>
+      </segment>
+    </unit>
+    <unit id="event.timing.date_only_label">
+      <segment state="initial">
+        <source><ph id="0" equiv="PH" disp="range"/> · Time to be announced</source>
+        <target><ph id="0" equiv="PH" disp="range"/> · Uhrzeit wird noch bekannt gegeben</target>
+      </segment>
+    </unit>
+    <unit id="event.timing.open_end_label">
+      <segment state="initial">
+        <source><ph id="0" equiv="PH" disp="start"/> · Open end</source>
+        <target><ph id="0" equiv="PH" disp="start"/> · Offenes Ende</target>
+      </segment>
+    </unit>
+    <unit id="event.venue_tba">
+      <segment state="initial">
+        <source>Venue to be announced</source>
+        <target>Veranstaltungsort wird noch bekannt gegeben</target>
+      </segment>
+    </unit>
     <unit id="event_access.add">
       <segment state="initial">
         <source>Add</source>
@@ -6281,6 +6353,252 @@
         <target>Workshop</target>
       </segment>
     </unit>
+    <unit id="event_claims.admin_only">
+      <segment state="initial">
+        <source> Administrator access is required. </source>
+        <target> Administratorzugriff ist erforderlich. </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.approve">
+      <segment state="initial">
+        <source> Approve </source>
+        <target> Genehmigen </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.claim_explanation">
+      <segment state="initial">
+        <source> Claim explanation </source>
+        <target> Begründung des Anspruchs </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.contest">
+      <segment state="initial">
+        <source> Contest claim </source>
+        <target> Anspruch widersprechen </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.current_organizer">
+      <segment state="initial">
+        <source>Current organizer</source>
+        <target>Aktueller Veranstalter</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.current_owner">
+      <segment state="initial">
+        <source>Current owner</source>
+        <target>Aktueller Eigentümer</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.empty">
+      <segment state="initial">
+        <source> There are no pending ownership claims. </source>
+        <target> Es gibt keine offenen Eigentumsansprüche. </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.evidence">
+      <segment state="initial">
+        <source> Public evidence URLs (one per line) </source>
+        <target> Öffentliche Nachweis-URLs (eine pro Zeile) </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.explanation">
+      <segment state="initial">
+        <source>Explanation</source>
+        <target>Begründung</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.former_owner">
+      <segment state="initial">
+        <source>Former owner</source>
+        <target>Bisheriger Eigentümer</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.former_owner_suggestion">
+      <segment state="initial">
+        <source> Suggested former-owner access </source>
+        <target> Vorgeschlagener Zugriff des bisherigen Eigentümers </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.inbox_heading">
+      <segment state="initial">
+        <source> Event ownership claims </source>
+        <target> Eigentumsansprüche für Events </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.inbox_intro">
+      <segment state="initial">
+        <source> Review evidence and decide ownership, public organizer linkage, and former-owner access separately. </source>
+        <target> Prüfe die Nachweise und entscheide getrennt über Eigentum, öffentliche Veranstalterverknüpfung und den Zugriff des bisherigen Eigentümers. </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.link_organizer">
+      <segment state="initial">
+        <source> Link organization publicly </source>
+        <target> Organisation öffentlich verknüpfen </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.loading_organizations">
+      <segment state="initial">
+        <source>Loading your organizations…</source>
+        <target>Deine Organisationen werden geladen…</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.no_manager_orgs">
+      <segment state="initial">
+        <source> You must manage an active PK Spot organization to submit a claim. </source>
+        <target> Du musst eine aktive PK Spot-Organisation verwalten, um einen Anspruch einzureichen. </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.organization">
+      <segment state="initial">
+        <source>Organization</source>
+        <target>Organisation</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.owner_message">
+      <segment state="initial">
+        <source> Optional response </source>
+        <target> Optionale Stellungnahme </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.owner_response">
+      <segment state="initial">
+        <source> Current owner response </source>
+        <target> Stellungnahme des aktuellen Eigentümers </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.owner_response_help">
+      <segment state="initial">
+        <source> Supporting or contesting helps administrators decide. They may decide immediately when the public evidence is already sufficient. </source>
+        <target> Zustimmung oder Widerspruch helfen den Administratoren bei der Entscheidung. Bei ausreichenden öffentlichen Nachweisen können sie sofort entscheiden. </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.reason">
+      <segment state="initial">
+        <source>Decision reason</source>
+        <target>Entscheidungsbegründung</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.reject">
+      <segment state="initial">
+        <source> Reject </source>
+        <target> Ablehnen </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.reload">
+      <segment state="initial">
+        <source>Reload</source>
+        <target>Neu laden</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.remove_access">
+      <segment state="initial">
+        <source> Remove access </source>
+        <target> Zugriff entfernen </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.request">
+      <segment state="initial">
+        <source>Request organization ownership</source>
+        <target state="translated">Eigentum für Organisation beantragen</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.request_aria">
+      <segment state="initial">
+        <source>Request organization ownership</source>
+        <target state="translated">Eigentum für Organisation beantragen</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.response_contest_label">
+      <segment state="initial">
+        <source>Contested</source>
+        <target state="translated">Angefochten</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.response_contested">
+      <segment state="initial">
+        <source>Your objection was recorded.</source>
+        <target state="translated">Dein Widerspruch wurde erfasst.</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.response_failed">
+      <segment state="initial">
+        <source>Could not save your response.</source>
+        <target state="translated">Deine Antwort konnte nicht gespeichert werden.</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.response_heading">
+      <segment state="initial">
+        <source> Organization ownership claim </source>
+        <target state="translated"> Eigentumsanspruch einer Organisation </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.response_support_label">
+      <segment state="initial">
+        <source>Supported</source>
+        <target state="translated">Unterstützt</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.response_supported">
+      <segment state="initial">
+        <source>Your support was recorded.</source>
+        <target state="translated">Deine Zustimmung wurde erfasst.</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.response_unavailable_body">
+      <segment state="initial">
+        <source> Only the claimant, the current owner, and PK Spot administrators can view this claim. </source>
+        <target state="translated"> Nur die antragstellende Person, der aktuelle Eigentümer und PK Spot-Administratoren können diesen Anspruch sehen. </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.response_unavailable_heading">
+      <segment state="initial">
+        <source> Ownership claim unavailable </source>
+        <target state="translated"> Eigentumsanspruch nicht verfügbar </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.retain_editor">
+      <segment state="initial">
+        <source> Retain as editor </source>
+        <target> Als bearbeitende Person behalten </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.status_approved">
+      <segment state="initial">
+        <source>Claim approved</source>
+        <target state="translated">Anspruch genehmigt</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.status_rejected">
+      <segment state="initial">
+        <source>Claim rejected</source>
+        <target state="translated">Anspruch abgelehnt</target>
+      </segment>
+    </unit>
+    <unit id="event_claims.submit">
+      <segment state="initial">
+        <source> Submit claim </source>
+        <target> Anspruch einreichen </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.submit_heading">
+      <segment state="initial">
+        <source> Request organization ownership </source>
+        <target> Eigentum für Organisation beantragen </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.support">
+      <segment state="initial">
+        <source> Support claim </source>
+        <target> Anspruch unterstützen </target>
+      </segment>
+    </unit>
+    <unit id="event_claims.transfer">
+      <segment state="initial">
+        <source> Transfer event ownership </source>
+        <target> Event-Eigentum übertragen </target>
+      </segment>
+    </unit>
     <unit id="event_create.meta.description">
       <segment state="initial">
         <source>Admin tool for adding a new parkour event to PK Spot.</source>
@@ -6355,38 +6673,44 @@
     </unit>
     <unit id="event_edit.access_heading">
       <segment state="initial">
-        <source> Ownership and access </source>
+        <source> Hosts and management </source>
         <target> Eigentümerschaft und Zugriff </target>
       </segment>
     </unit>
     <unit id="event_edit.access_hint">
       <segment state="initial">
-        <source> Publication controls whether the event is ready. Visibility controls who can find and open it. </source>
+        <source> Ownership and co-host access control management. Public organizer attribution remains independent. </source>
         <target> Die Veröffentlichung bestimmt, ob die Veranstaltung bereit ist. Die Sichtbarkeit bestimmt, wer sie finden und öffnen kann. </target>
       </segment>
     </unit>
-    <unit id="event_edit.admission">
+    <unit id="event_edit.active_until_date">
       <segment state="initial">
-        <source>Admission</source>
-        <target>Zulassung</target>
+        <source> Active until date </source>
+        <target> Aktiv bis Datum </target>
       </segment>
     </unit>
-    <unit id="event_edit.admission.none">
+    <unit id="event_edit.active_until_help">
       <segment state="initial">
-        <source> No registration </source>
-        <target> Keine Anmeldung </target>
+        <source> Open-ended events show no public end time. The operational cutoff controls live and map visibility only; four hours after the start is suggested. </source>
+        <target> Bei Events mit offenem Ende wird keine öffentliche Endzeit angezeigt. Der betriebliche Endzeitpunkt steuert nur den Live-Status und die Sichtbarkeit auf der Karte; empfohlen sind vier Stunden nach dem Start. </target>
       </segment>
     </unit>
-    <unit id="event_edit.admission.registration">
+    <unit id="event_edit.active_until_required">
       <segment state="initial">
-        <source> Registration </source>
-        <target> Anmeldung </target>
+        <source> Choose a cutoff after the start. </source>
+        <target> Wähle einen Endzeitpunkt nach dem Start. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.active_until_time">
+      <segment state="initial">
+        <source> Active until time </source>
+        <target> Aktiv bis Uhrzeit </target>
       </segment>
     </unit>
     <unit id="event_edit.area_label">
       <segment state="initial">
-        <source> Meeting point and event area </source>
-        <target> Eventbereich </target>
+        <source> Optional venue and map location </source>
+        <target> Optionaler Veranstaltungsort und Kartenposition </target>
       </segment>
     </unit>
     <unit id="event_edit.attendance_eligibility">
@@ -6415,14 +6739,26 @@
     </unit>
     <unit id="event_edit.attendance_heading">
       <segment state="initial">
-        <source> Attendance and registration </source>
-        <target> Teilnahme und Anmeldung </target>
+        <source> Attendance and entry </source>
+        <target> Teilnahme und Einlass </target>
       </segment>
     </unit>
     <unit id="event_edit.attendance_hint">
       <segment state="initial">
-        <source> Social responses express intent. Registration separately controls confirmed admission and capacity. </source>
-        <target> Soziale Antworten zeigen die Absicht. Die Anmeldung regelt separat bestätigte Plätze und die Kapazität. </target>
+        <source> Large events use Going / Interested and external ticket links. PK Spot registration is reserved for sessions. </source>
+        <target> Große Events verwenden Teilnehmen / Interessiert und externe Ticketlinks. Die PK Spot-Anmeldung ist Sessions vorbehalten. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.attendance_instructions">
+      <segment state="initial">
+        <source> Entry or on-site instructions </source>
+        <target> Einlass- oder Vor-Ort-Hinweise </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.attendance_instructions_hint">
+      <segment state="initial">
+        <source> Optional check-in, wristband, ticket-desk, or on-site guidance. </source>
+        <target> Optionale Hinweise zu Check-in, Armband, Ticketschalter oder Abläufen vor Ort. </target>
       </segment>
     </unit>
     <unit id="event_edit.attendance_organization">
@@ -6631,14 +6967,8 @@
     </unit>
     <unit id="event_edit.dates_end_label">
       <segment state="initial">
-        <source> End </source>
+        <source> End (optional date; defaults to the start date) </source>
         <target> Ende </target>
-      </segment>
-    </unit>
-    <unit id="event_edit.dates_label">
-      <segment state="initial">
-        <source> Start </source>
-        <target> Start </target>
       </segment>
     </unit>
     <unit id="event_edit.delete">
@@ -6681,6 +7011,12 @@
       <segment state="initial">
         <source>End time</source>
         <target>Endzeit</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.end_time_required">
+      <segment state="initial">
+        <source> Enter an end time after the start. </source>
+        <target state="translated"> Gib eine Endzeit nach dem Beginn ein. </target>
       </segment>
     </unit>
     <unit id="event_edit.external_media_add">
@@ -6859,8 +7195,8 @@
     </unit>
     <unit id="event_edit.imagery">
       <segment state="initial">
-        <source>Imagery</source>
-        <target>Bildmaterial</target>
+        <source> Imagery </source>
+        <target> Bildmaterial </target>
       </segment>
     </unit>
     <unit id="event_edit.is_promoted">
@@ -6873,6 +7209,24 @@
       <segment state="initial">
         <source> Add legacy mobile app area compatibility </source>
         <target> Kompatibilität für alte Mobile-App-Bereiche hinzufügen </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.legacy_registration_body">
+      <segment state="initial">
+        <source> Saving other changes will not remove existing registrations. </source>
+        <target> Beim Speichern anderer Änderungen werden bestehende Anmeldungen nicht entfernt. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.legacy_registration_disable">
+      <segment state="initial">
+        <source> Disable registration </source>
+        <target> Anmeldung deaktivieren </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.legacy_registration_title">
+      <segment state="initial">
+        <source> Existing PK Spot registration is preserved </source>
+        <target> Bestehende PK Spot-Anmeldung bleibt erhalten </target>
       </segment>
     </unit>
     <unit id="event_edit.link_add">
@@ -6965,6 +7319,12 @@
         <target>Ort</target>
       </segment>
     </unit>
+    <unit id="event_edit.location_clear">
+      <segment state="initial">
+        <source> Remove location </source>
+        <target state="translated"> Standort entfernen </target>
+      </segment>
+    </unit>
     <unit id="event_edit.location_coordinates_label">
       <segment state="initial">
         <source> Main location: </source>
@@ -6973,8 +7333,8 @@
     </unit>
     <unit id="event_edit.location_explanation">
       <segment state="initial">
-        <source> Set the main event location by selecting a spot, Google Place, or by clicking the map. This is the meeting point or center of the event: traceurs who go here should see the event and be able to find things like the info desk or other traceurs. </source>
-        <target> Set the main event location by selecting a spot, Google Place, or by clicking the map. This is the meeting point or center of the event: traceurs who go here should see the event and be able to find things like the info desk or other traceurs. </target>
+        <source> Optionally set the main event location by selecting a spot, Google Place, or by clicking the map. This is the meeting point or center of the event: traceurs who go here should see the event and be able to find things like the info desk or other traceurs. </source>
+        <target state="translated">Lege optional den Hauptstandort des Events fest, indem du einen Spot oder Google Place auswählst oder auf die Karte klickst. Dies ist der Treffpunkt oder Mittelpunkt des Events: Traceure, die hierherkommen, sollten das Event sehen und Dinge wie den Infopunkt oder andere Traceure finden können.</target>
       </segment>
     </unit>
     <unit id="event_edit.location_not_set">
@@ -7139,10 +7499,40 @@
         <target>Veranstalter</target>
       </segment>
     </unit>
+    <unit id="event_edit.organizer_access_hint">
+      <segment state="initial">
+        <source> Managers can view drafts by default. Edit access is recommended when this organization is actively hosting the event. </source>
+        <target> Verantwortliche können Entwürfe standardmäßig ansehen. Bearbeitungszugriff wird empfohlen, wenn diese Organisation das Event aktiv veranstaltet. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.organizer_edit_access">
+      <segment state="initial">
+        <source> Allow this organization’s managers to edit the event </source>
+        <target> Verantwortlichen dieser Organisation erlauben, das Event zu bearbeiten </target>
+      </segment>
+    </unit>
     <unit id="event_edit.organizer_hint">
       <segment state="initial">
-        <source> Admin-only. Select an organization or enter its name. </source>
-        <target> Nur Admins. Wähle eine Organisation aus oder gib ihren Namen ein. </target>
+        <source> Select an organization to link it, or keep a free-text organizer name. </source>
+        <target> Wähle eine Organisation aus, um sie zu verknüpfen, oder behalte einen freien Veranstalternamen. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.organizer_linked">
+      <segment state="initial">
+        <source> Linked to PK Spot </source>
+        <target> Mit PK Spot verknüpft </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.organizer_unlink">
+      <segment state="initial">
+        <source> Unlink </source>
+        <target> Verknüpfung lösen </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.organizer_unlinked">
+      <segment state="initial">
+        <source> Unlinked organizer name — no PK Spot organization receives access. </source>
+        <target> Nicht verknüpfter Veranstaltername — keine PK Spot-Organisation erhält Zugriff. </target>
       </segment>
     </unit>
     <unit id="event_edit.owner.admin_managed">
@@ -7325,30 +7715,6 @@
         <target>Qualifikationsziel entfernen</target>
       </segment>
     </unit>
-    <unit id="event_edit.registration_capacity">
-      <segment state="initial">
-        <source> Capacity </source>
-        <target> Kapazität </target>
-      </segment>
-    </unit>
-    <unit id="event_edit.registration_capacity_hint">
-      <segment state="initial">
-        <source> Leave empty for unlimited registration. </source>
-        <target> Für unbegrenzte Anmeldungen leer lassen. </target>
-      </segment>
-    </unit>
-    <unit id="event_edit.registration_capacity_invalid">
-      <segment state="initial">
-        <source> Capacity must be a positive whole number. </source>
-        <target> Die Kapazität muss eine positive ganze Zahl sein. </target>
-      </segment>
-    </unit>
-    <unit id="event_edit.registration_waitlist">
-      <segment state="initial">
-        <source> Allow a waitlist when full </source>
-        <target> Warteliste erlauben, wenn ausgebucht </target>
-      </segment>
-    </unit>
     <unit id="event_edit.required_section">
       <segment state="initial">
         <source> Essentials </source>
@@ -7377,6 +7743,12 @@
       <segment state="initial">
         <source>Save</source>
         <target>Speichern</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.schedule_label">
+      <segment state="initial">
+        <source> Schedule and timing certainty </source>
+        <target> Termin und zeitliche Genauigkeit </target>
       </segment>
     </unit>
     <unit id="event_edit.series_id">
@@ -7541,6 +7913,18 @@
         <target> Teilnehmen / Interessiert </target>
       </segment>
     </unit>
+    <unit id="event_edit.source_metadata_heading">
+      <segment state="initial">
+        <source> Source/import metadata </source>
+        <target> Quellen-/Importmetadaten </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.source_metadata_help">
+      <segment state="initial">
+        <source> Records the canonical external listing and import de-duplication ID. This is not ticket configuration and does not import events automatically. </source>
+        <target> Speichert den maßgeblichen externen Eintrag und die ID zur Import-Deduplizierung. Dies ist keine Ticketkonfiguration und importiert Events nicht automatisch. </target>
+      </segment>
+    </unit>
     <unit id="event_edit.sponsor_logo">
       <segment state="initial">
         <source> Partner logo override </source>
@@ -7599,6 +7983,12 @@
       <segment state="initial">
         <source>Start time</source>
         <target>Startzeit</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.start_time_required">
+      <segment state="initial">
+        <source> Enter a valid local start time. </source>
+        <target> Gib eine gültige lokale Startzeit ein. </target>
       </segment>
     </unit>
     <unit id="event_edit.temporary_spot_add">
@@ -7871,6 +8261,60 @@
         <target> Ticketoptionen </target>
       </segment>
     </unit>
+    <unit id="event_edit.time_zone">
+      <segment state="initial">
+        <source>Event time zone</source>
+        <target>Event-Zeitzone</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.time_zone_hint">
+      <segment state="initial">
+        <source> Derived from coordinates when available. For a remote event, enter an IANA zone manually. </source>
+        <target> Wird wenn möglich aus den Koordinaten abgeleitet. Gib für ein Remote-Event manuell eine IANA-Zeitzone ein. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.time_zone_required">
+      <segment state="initial">
+        <source> A valid IANA time zone is required for timed events. </source>
+        <target> Für Events mit Uhrzeit ist eine gültige IANA-Zeitzone erforderlich. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.time_zone_resolve_error">
+      <segment state="initial">
+        <source>Time zone could not be derived. Enter it manually before saving a timed event.</source>
+        <target>Die Zeitzone konnte nicht abgeleitet werden. Gib sie vor dem Speichern eines Events mit Uhrzeit manuell ein.</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.time_zone_resolving">
+      <segment state="initial">
+        <source> Deriving from the map location… </source>
+        <target> Wird aus der Kartenposition abgeleitet… </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.timing.date_only">
+      <segment state="initial">
+        <source> Date only — time to be announced </source>
+        <target> Nur Datum — Uhrzeit wird noch bekannt gegeben </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.timing.exact">
+      <segment state="initial">
+        <source> Exact start and end </source>
+        <target> Genaue Start- und Endzeit </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.timing.open_end">
+      <segment state="initial">
+        <source> Exact start, open end </source>
+        <target> Genaue Startzeit, offenes Ende </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.timing_mode">
+      <segment state="initial">
+        <source>Timing</source>
+        <target>Zeitangabe</target>
+      </segment>
+    </unit>
     <unit id="event_edit.url">
       <segment state="initial">
         <source>External URL</source>
@@ -7881,6 +8325,12 @@
       <segment state="initial">
         <source>Venue name</source>
         <target>Venue-Name</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.venue_optional">
+      <segment state="initial">
+        <source> Optional — shown as “Venue to be announced” when empty. </source>
+        <target> Optional — leer wird „Veranstaltungsort wird noch bekannt gegeben“ angezeigt. </target>
       </segment>
     </unit>
     <unit id="event_edit.visibility">
@@ -8145,6 +8595,12 @@
       <segment state="initial">
         <source>Plan session</source>
         <target>Session planen</target>
+      </segment>
+    </unit>
+    <unit id="events.status.live_open_end">
+      <segment state="initial">
+        <source>Ongoing — open end</source>
+        <target state="translated">Läuft — offenes Ende</target>
       </segment>
     </unit>
     <unit id="events.status.live_with_end">
@@ -8626,6 +9082,12 @@
       <segment state="initial">
         <source>Closed</source>
         <target>Geschlossen</target>
+      </segment>
+    </unit>
+    <unit id="7868084107533692439">
+      <segment state="initial">
+        <source>Ownership claim approved.</source>
+        <target state="translated">Eigentumsanspruch genehmigt.</target>
       </segment>
     </unit>
     <unit id="7881945331295450373">
@@ -9252,6 +9714,12 @@
       <segment state="initial">
         <source> Temporarily closed </source>
         <target> Vorübergehend geschlossen </target>
+      </segment>
+    </unit>
+    <unit id="8719394803198399227">
+      <segment state="initial">
+        <source>Decision failed.</source>
+        <target state="translated">Entscheidung fehlgeschlagen.</target>
       </segment>
     </unit>
     <unit id="8725224299321680590">
@@ -11017,6 +11485,12 @@
         <target> Wir glauben, dass die Karte den Athletinnen und Athleten gehört, nicht einem Unternehmen. PK Spot ist Open Source, datenschutzfreundlich und gehört der Community. </target>
       </segment>
     </unit>
+    <unit id="5101446301405691745">
+      <segment state="initial">
+        <source>Ownership claim rejected.</source>
+        <target state="translated">Eigentumsanspruch abgelehnt.</target>
+      </segment>
+    </unit>
     <unit id="5109390034351761565">
       <segment state="initial">
         <source>This challenge is for fun! </source>
@@ -12337,6 +12811,12 @@
       <segment state="initial">
         <source> Check In </source>
         <target> Check-in </target>
+      </segment>
+    </unit>
+    <unit id="1713067112201230619">
+      <segment state="initial">
+        <source>Enter a rejection reason.</source>
+        <target state="translated">Gib einen Ablehnungsgrund ein.</target>
       </segment>
     </unit>
     <unit id="1731452447994913749">

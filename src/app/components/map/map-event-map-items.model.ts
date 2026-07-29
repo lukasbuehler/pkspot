@@ -40,13 +40,15 @@ export function buildVisibleEventMarkers({
       if (event.isPast(now)) return false;
       return Boolean(event.location);
     })
-    .map((event): MapPointMarker => {
+    .flatMap((event): MapPointMarker[] => {
+      const location = event.location;
+      if (!location) return [];
       const routeId = event.slug ?? event.id;
       const status = event.status(now);
-      return {
+      return [{
         id: `event:${routeId}`,
         name: event.name,
-        location: event.location,
+        location,
         icons: [status === "live" ? "stars" : "event"],
         imageSrc: eventImageDisplaySrc(event.effectiveBadgeLogoSrc()),
         imageFit: event.effectiveBadgeLogoFit(),
@@ -55,7 +57,7 @@ export function buildVisibleEventMarkers({
         type: "event",
         forceFullMarker: true,
         priority: getMapEventMarkerPriority(event, now),
-      };
+      }];
     });
 
   const selectedEventMarkers =

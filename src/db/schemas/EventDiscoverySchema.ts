@@ -25,8 +25,11 @@ export const EVENT_DISCOVERY_FIELDS = [
   "locality_string",
   "location",
   "location_raw",
+  "has_location",
   "start",
   "end",
+  "timing",
+  "active_until",
   "url",
   "event_links",
   "ticket_options",
@@ -53,6 +56,7 @@ export const EVENT_DISCOVERY_FIELDS = [
   "discoverability",
   "start_seconds",
   "end_seconds",
+  "active_until_seconds",
   "promo_starts_at_seconds",
   "bounds_center",
   "bounds_radius_m",
@@ -97,14 +101,10 @@ export const buildEventDiscoveryProjection = (
 ): EventDiscoverySchema | null => {
   if (!isEventPubliclyDiscoverable(event)) return null;
 
-  // Typesense requires these fields. If a mobile-shaped source write has not
-  // yet received its server-normalized GeoPoint, the next source write will
-  // retry projection creation.
+  // Legacy timestamps remain required for timestamp filtering and old clients.
+  // Venue and map fields are intentionally optional for date-only events.
   if (
     typeof event.name !== "string" ||
-    typeof event.venue_string !== "string" ||
-    typeof event.locality_string !== "string" ||
-    !event.location ||
     !event.start ||
     !event.end
   ) {
