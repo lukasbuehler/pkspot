@@ -32,6 +32,16 @@
             >
           </span>
         }
+        @if (!preview() && showDisclaimer()) {
+          <mat-icon
+            class="rsvp-disclaimer-help"
+            [attr.aria-label]="disclaimerText"
+            [matTooltip]="disclaimerText"
+            matTooltipPosition="below"
+            #disclaimerTooltip="matTooltip"
+            >help_outline</mat-icon
+          >
+        }
       </div>
     }
 
@@ -126,11 +136,5 @@
 
   @if (!preview() && errorMessage()) {
     <span class="rsvp-error">{{ errorMessage() }}</span>
-  }
-
-  @if (!preview() && showDisclaimer() && hasNumbers()) {
-    <span class="rsvp-disclaimer mat-label-small" i18n="@@event_rsvp.disclaimer"
-      >These numbers show PK Spot user intent, not tickets bought.</span
-    >
   }
 </div>

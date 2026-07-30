@@ -126,6 +126,46 @@ describe("EventProgramTimelineComponent", () => {
     expect(fixture.nativeElement.textContent).toContain("Training");
   });
 
+  it("uses a native scrollable tab list with mouse and keyboard navigation", async () => {
+    await fixture.whenStable();
+
+    const tabList = fixture.nativeElement.querySelector(
+      ".program-tab-list",
+    ) as HTMLElement;
+    const tabs = tabList.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+    expect(tabList).toBeInstanceOf(HTMLElement);
+    expect(tabs[0].getAttribute("aria-selected")).toBe("true");
+
+    Object.defineProperties(tabList, {
+      clientWidth: { configurable: true, value: 200 },
+      scrollWidth: { configurable: true, value: 500 },
+      scrollLeft: { configurable: true, value: 0, writable: true },
+    });
+    const wheel = new WheelEvent("wheel", {
+      bubbles: true,
+      cancelable: true,
+      deltaY: 80,
+    });
+    tabList.dispatchEvent(wheel);
+
+    expect(tabList.scrollLeft).toBe(80);
+    expect(wheel.defaultPrevented).toBe(true);
+
+    tabs[0].dispatchEvent(
+      new KeyboardEvent("keydown", {
+        bubbles: true,
+        cancelable: true,
+        key: "ArrowRight",
+      }),
+    );
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.selectedDayKey()).toBe("2026-07-24");
+    expect(tabs[1].getAttribute("aria-selected")).toBe("true");
+    expect(document.activeElement).toBe(tabs[1]);
+    expect(fixture.nativeElement.textContent).toContain("Later");
+  });
+
   it("emits the day and exact itinerary start selections", async () => {
     const selected = vi.fn();
     fixture.componentInstance.weatherSelected.subscribe(selected);

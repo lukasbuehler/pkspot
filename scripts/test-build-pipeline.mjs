@@ -790,23 +790,14 @@ async function main() {
     );
     assert.equal(
       mapEventPreviewResponse.status,
-      200,
-      "Map event SSR route should render for crawlers"
+      301,
+      "Map event SSR route should permanently redirect to the canonical event page"
     );
-    assertDynamicSsrCacheHeaders(
-      mapEventPreviewResponse,
-      "Map event SSR route"
+    assert.equal(
+      mapEventPreviewResponse.headers.get("location"),
+      "/en/events/swissjam25",
+      "Map event SSR route should preserve the locale in its canonical target"
     );
-    const mapEventPreviewHtml = await mapEventPreviewResponse.text();
-    assert.match(
-      mapEventPreviewHtml,
-      /<!doctype html>/i,
-      "Map event SSR route should return HTML"
-    );
-    assertBodyCrawlerContent(mapEventPreviewHtml, "Map event SSR route", [
-      /Swiss Jam 2025/,
-      /See full event|Open event|Event/i,
-    ]);
 
     const profilePreviewResponse = await fetchWithTimeout(
       `${baseUrl}/en/u/lukas`,

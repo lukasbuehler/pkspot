@@ -1,4 +1,4 @@
-import { Routes } from "@angular/router";
+import { Params, Routes } from "@angular/router";
 import { contentResolver } from "./resolvers/content.resolver";
 import { communityLandingResolver } from "./resolvers/community-landing.resolver";
 import { environment } from "../environments/environment.default";
@@ -53,6 +53,22 @@ const visualTestRoutes: Routes = environment.production
       },
     ];
 
+function redirectWithQueryParams(path: string, queryParams: Params): string {
+  const query = new URLSearchParams(
+    Object.entries(queryParams).flatMap(([key, value]) => {
+      if (Array.isArray(value)) {
+        return value.map((item) => [key, String(item)] as [string, string]);
+      }
+      if (value === undefined || value === null) {
+        return [];
+      }
+      return [[key, String(value)] as [string, string]];
+    }),
+  ).toString();
+
+  return query ? `${path}?${query}` : path;
+}
+
 export const routes: Routes = [
   ...visualTestRoutes,
 
@@ -87,22 +103,28 @@ export const routes: Routes = [
     data: { routeName: "Community Landing (legacy redirect)" },
   },
 
-  // Event-on-map preview. Stays on the map and opens the event preview
-  // panel; the full /events/:slug page is reached via the preview's
-  // "See full event" CTA.
+  // Map event URLs are legacy links. SSR responds with a real HTTP 301 via
+  // server-redirects.ts; this route also canonicalizes in-app navigation and
+  // development requests that bypass the Express server.
   {
     path: "map/events/:eventId",
-    loadComponent: () =>
-      import("./components/map-page/map-page.component").then(
-        (m) => m.MapPageComponent,
+    redirectTo: (route) =>
+      redirectWithQueryParams(
+        `/events/${route.params["eventId"]}`,
+        route.queryParams,
       ),
-    data: { routeName: "Event on Map" },
+    pathMatch: "full",
+    data: { routeName: "Event (legacy map redirect)" },
   },
   {
     path: "map/event/:eventId",
-    redirectTo: (route) => `/map/events/${route.params["eventId"]}`,
+    redirectTo: (route) =>
+      redirectWithQueryParams(
+        `/events/${route.params["eventId"]}`,
+        route.queryParams,
+      ),
     pathMatch: "full",
-    data: { routeName: "Event on Map (legacy redirect)" },
+    data: { routeName: "Event (legacy map redirect)" },
   },
   {
     path: "map/spots",
@@ -533,20 +555,8 @@ export const routes: Routes = [
   },
   {
     path: "sign-in",
-    redirectTo: (route) => {
-      const query = new URLSearchParams(
-        Object.entries(route.queryParams).flatMap(([key, value]) => {
-          if (Array.isArray(value)) {
-            return value.map((item) => [key, String(item)] as [string, string]);
-          }
-          if (value === undefined || value === null) {
-            return [];
-          }
-          return [[key, String(value)] as [string, string]];
-        }),
-      ).toString();
-      return query ? `/account?${query}` : "/account";
-    },
+    redirectTo: (route) =>
+      redirectWithQueryParams("/account", route.queryParams),
     pathMatch: "full",
   },
   {

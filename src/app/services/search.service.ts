@@ -31,6 +31,18 @@ import type {
 import type { UserReferenceSchema } from "../../db/schemas/UserSchema";
 import { getSpotPriority } from "../../db/schemas/SpotPriority";
 
+export function getMapSpotSearchLimit(viewportZoom: number | undefined): number {
+  if (typeof viewportZoom !== "number" || !Number.isFinite(viewportZoom)) {
+    return 10;
+  }
+
+  if (viewportZoom < 6) return 160;
+  if (viewportZoom < 10) return 120;
+  if (viewportZoom < 12) return 160;
+  if (viewportZoom < 14) return 200;
+  return 250;
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -49,6 +61,7 @@ export class SearchService {
     "_text_match:desc,counts.totalSpots:desc";
   private readonly MAP_GROUP_LIMIT = 2;
   private readonly SPOT_GROUP_LIMIT = 5;
+  private readonly SPOT_OVERVIEW_GROUP_LIMIT = 1;
 
   private readonly client: SearchClient = new SearchClient({
     nodes: [
@@ -138,13 +151,15 @@ export class SearchService {
 
   private static _tileGroupFieldsForZoom(
     zoom: number | undefined,
+    zoomOffset = 0,
   ): string | undefined {
     if (typeof zoom !== "number" || !Number.isFinite(zoom)) {
       return undefined;
     }
 
     const evenZoom = Math.max(2, Math.min(16, Math.floor(zoom))) & ~1;
-    return `tile_coordinates.z${evenZoom}.x,tile_coordinates.z${evenZoom}.y`;
+    const groupZoom = Math.min(16, evenZoom + zoomOffset);
+    return `tile_coordinates.z${groupZoom}.x,tile_coordinates.z${groupZoom}.y`;
   }
 
   private static _flattenTypesenseHits(result: unknown): any[] {
@@ -799,11 +814,20 @@ export class SearchService {
 
     const MAX_PER_PAGE = 250;
     const perPage = Math.min(MAX_PER_PAGE, Math.max(1, num_spots));
-    const groupBy = SearchService._tileGroupFieldsForZoom(viewportZoom);
+    // Sample from the next finer indexed tile level so lower-rated geographic
+    // pockets are represented instead of competing with an entire viewport tile.
+    const viewportGroupZoom =
+      typeof viewportZoom === "number" && Number.isFinite(viewportZoom)
+        ? Math.max(2, Math.min(16, Math.floor(viewportZoom))) & ~1
+        : undefined;
+    const groupBy = SearchService._tileGroupFieldsForZoom(viewportZoom, 2);
     const groupingParams = groupBy
       ? {
           group_by: groupBy,
-          group_limit: this.SPOT_GROUP_LIMIT,
+          group_limit:
+            viewportGroupZoom !== undefined && viewportGroupZoom < 16
+              ? this.SPOT_OVERVIEW_GROUP_LIMIT
+              : this.SPOT_GROUP_LIMIT,
         }
       : {};
 

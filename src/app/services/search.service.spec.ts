@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { TestBed } from "@angular/core/testing";
-import { SearchService } from "./search.service";
+import { getMapSpotSearchLimit, SearchService } from "./search.service";
 import { MapsApiService } from "./maps-api.service";
 import { PlatformService } from "./platform.service";
 import { GeoPoint } from "firebase/firestore";
@@ -78,6 +78,15 @@ describe("SearchService", () => {
 
   it("should be created", () => {
     expect(service).toBeTruthy();
+  });
+
+  it("uses the map preview budget for filtered viewport searches", () => {
+    expect(getMapSpotSearchLimit(undefined)).toBe(10);
+    expect(getMapSpotSearchLimit(4)).toBe(160);
+    expect(getMapSpotSearchLimit(8)).toBe(120);
+    expect(getMapSpotSearchLimit(10)).toBe(160);
+    expect(getMapSpotSearchLimit(12)).toBe(200);
+    expect(getMapSpotSearchLimit(14)).toBe(250);
   });
 
   it("searches only publicly searchable user profiles", async () => {
@@ -590,11 +599,7 @@ describe("SearchService", () => {
           {
             group_key: [33, 21],
             found: 120,
-            hits: [
-              { document: { id: "spot-a", rating: 5 } },
-              { document: { id: "spot-c", rating: 5 } },
-              { document: { id: "spot-d", rating: 5 } },
-            ],
+            hits: [{ document: { id: "spot-a", rating: 5 } }],
           },
           {
             group_key: [34, 21],
@@ -613,16 +618,14 @@ describe("SearchService", () => {
 
       const params = typesenseSearchMock.mock.calls[0][0];
       expect(params.group_by).toBe(
-        "tile_coordinates.z6.x,tile_coordinates.z6.y",
+        "tile_coordinates.z8.x,tile_coordinates.z8.y",
       );
-      expect(params.group_limit).toBe(5);
+      expect(params.group_limit).toBe(1);
       expect(typesenseSearchMock).toHaveBeenCalledTimes(1);
       expect(results.found).toBe(122);
       expect(results.hits.map((hit) => hit.document.id)).toEqual([
         "spot-a",
         "spot-b",
-        "spot-c",
-        "spot-d",
       ]);
     });
 
@@ -650,9 +653,9 @@ describe("SearchService", () => {
       expect(params.filter_by).toContain("type:=[");
       expect(params.filter_by).toContain("amenities_true:=[indoor]");
       expect(params.group_by).toBe(
-        "tile_coordinates.z2.x,tile_coordinates.z2.y",
+        "tile_coordinates.z4.x,tile_coordinates.z4.y",
       );
-      expect(params.group_limit).toBe(5);
+      expect(params.group_limit).toBe(1);
     });
 
     it("falls back to top-level found when grouped hit counts are unavailable", async () => {
@@ -667,10 +670,7 @@ describe("SearchService", () => {
         grouped_hits: [
           {
             group_key: [33, 21],
-            hits: [
-              { document: { id: "spot-a", rating: 5 } },
-              { document: { id: "spot-b", rating: 4 } },
-            ],
+            hits: [{ document: { id: "spot-a", rating: 5 } }],
           },
         ],
       });
@@ -687,10 +687,69 @@ describe("SearchService", () => {
 
       expect(typesenseSearchMock).toHaveBeenCalledTimes(1);
       expect(results.found).toBe(1);
-      expect(results.hits.map((hit) => hit.document.id)).toEqual([
-        "spot-a",
-        "spot-b",
+      expect(results.hits.map((hit) => hit.document.id)).toEqual(["spot-a"]);
+    });
+
+    it("uses finer groups so a lower-rated geographic pocket remains represented", async () => {
+      typesenseSearchMock.mockResolvedValueOnce({
+        found: 2,
+        grouped_hits: [
+          {
+            group_key: [34322, 22950],
+            found: 5,
+            hits: [{ document: { id: "rated-a", rating: 4 } }],
+          },
+          {
+            group_key: [34322, 22948],
+            found: 3,
+            hits: [{ document: { id: "walchestrasse", rating: 0 } }],
+          },
+        ],
+      });
+
+      const result = await service.searchSpotsInRawBounds(
+        47.4,
+        47.3,
+        8.6,
+        8.5,
+        10,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        false,
+        14,
+      );
+
+      expect(typesenseSearchMock.mock.calls[0][0]).toMatchObject({
+        group_by: "tile_coordinates.z16.x,tile_coordinates.z16.y",
+        group_limit: 1,
+      });
+      expect(result.hits.map((hit) => hit.document.id)).toEqual([
+        "rated-a",
+        "walchestrasse",
       ]);
+    });
+
+    it("clamps close-zoom spot grouping at the finest indexed tile level", async () => {
+      await service.searchSpotsInRawBounds(
+        47.4,
+        47.3,
+        8.6,
+        8.5,
+        10,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        false,
+        16,
+      );
+
+      expect(typesenseSearchMock.mock.calls[0][0].group_by).toBe(
+        "tile_coordinates.z16.x,tile_coordinates.z16.y",
+      );
+      expect(typesenseSearchMock.mock.calls[0][0].group_limit).toBe(5);
     });
   });
 

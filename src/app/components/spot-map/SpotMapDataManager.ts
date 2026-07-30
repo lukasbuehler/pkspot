@@ -28,7 +28,10 @@ import { getSpotMarkerPriority } from "../map/markers/spot-marker-priority";
 // Re-export SpotFilterMode for backward compatibility with existing imports
 export { SpotFilterMode } from "./spot-filter-config";
 
-import { SearchService } from "../../services/search.service";
+import {
+  getMapSpotSearchLimit,
+  SearchService,
+} from "../../services/search.service";
 
 /**
  * This interface is used to reference a spot in the loaded spots array.
@@ -102,7 +105,6 @@ export class SpotMapDataManager {
   private _clusterDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly CLUSTER_DEBOUNCE_MS = 200;
   private readonly HIGHLIGHT_THROTTLE_MS = 500;
-  private readonly SPOT_PREVIEW_MAX_COUNT = 250;
   private readonly SPOT_PREVIEW_LOCAL_OVERRIDE_TTL_MS = 120_000;
   private readonly AMENITY_TILE_RETRY_MS = 60_000;
   private _lastHighlightFetchTime: number = 0;
@@ -167,28 +169,8 @@ export class SpotMapDataManager {
   }
 
   private _getSpotPreviewSearchOptions(zoom: number): SpotPreviewSearchOptions {
-    if (zoom < 6) {
-      return {
-        limit: 160,
-        onlyWithImages: false,
-        viewportZoom: zoom,
-      };
-    }
-
-    if (zoom < 10) {
-      return { limit: 120, onlyWithImages: false, viewportZoom: zoom };
-    }
-
-    if (zoom < 12) {
-      return { limit: 160, onlyWithImages: false, viewportZoom: zoom };
-    }
-
-    if (zoom < 14) {
-      return { limit: 200, onlyWithImages: false, viewportZoom: zoom };
-    }
-
     return {
-      limit: this.SPOT_PREVIEW_MAX_COUNT,
+      limit: getMapSpotSearchLimit(zoom),
       onlyWithImages: false,
       viewportZoom: zoom,
     };

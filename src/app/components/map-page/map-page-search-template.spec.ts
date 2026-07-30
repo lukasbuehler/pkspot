@@ -84,6 +84,58 @@ describe("MapPageComponent search template", () => {
     expect(eventListTemplate).toContain('[seriesById]="seriesById()"');
   });
 
+  it("links map event cards to full event pages instead of map previews", () => {
+    const eventListTemplate = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/map/map-event-list/map-event-list.component.html",
+      ),
+      "utf8",
+    );
+    const communityTemplate = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/community-landing-page/community-landing-page.component.html",
+      ),
+      "utf8",
+    );
+
+    expect(eventListTemplate).not.toContain('[selectMode]="true"');
+    expect(eventListTemplate).not.toContain("(select)=");
+    expect(communityTemplate).not.toContain('[selectMode]="panelMode()"');
+    expect(communityTemplate).not.toContain(
+      '(select)="onSelectEvent($event)"',
+    );
+  });
+
+  it("enables desktop hover previews for event map markers", () => {
+    const mapTemplate = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/google-map-2d/google-map-2d.component.html",
+      ),
+      "utf8",
+    );
+    const eventMarkerTemplate = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/map/event-dot-marker/event-dot-marker.component.html",
+      ),
+      "utf8",
+    );
+
+    expect(mapTemplate).toContain(
+      '[hoverPreviewEnabled]="showSpotPreview()"',
+    );
+    expect(eventMarkerTemplate).toContain('(mouseenter)="showPreview()"');
+    expect(eventMarkerTemplate).toContain(
+      'class="event-map-marker-preview"',
+    );
+    expect(eventMarkerTemplate).toContain("<app-event-card");
+    expect(eventMarkerTemplate).toContain('[compact]="true"');
+    expect(eventMarkerTemplate).toContain('[showRsvp]="false"');
+  });
+
   it("reuses map weather above the island and in the area panel", () => {
     const mapTemplate = readFileSync(templatePath, "utf8");
     const objectPanel = mapTemplate.match(

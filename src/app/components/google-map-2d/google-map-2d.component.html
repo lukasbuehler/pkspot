@@ -351,6 +351,7 @@
       @if (marker.type === "event") {
         <app-event-dot-marker
           [marker]="marker"
+          [hoverPreviewEnabled]="showSpotPreview()"
           (markerClick)="pointMarkerClick.emit($event)"
         ></app-event-dot-marker>
       } @else {

@@ -2649,6 +2649,12 @@
         <target>Add at least one community card before submitting</target>
       </segment>
     </unit>
+    <unit id="event_attendee_actions.aria">
+      <segment state="initial">
+        <source>Attendance and notifications</source>
+        <target>Asistencia y notificaciones</target>
+      </segment>
+    </unit>
     <unit id="4541118533130714111">
       <segment state="initial">
         <source>Repeat Password</source>
@@ -6875,12 +6881,6 @@
         <target>Request organization ownership</target>
       </segment>
     </unit>
-    <unit id="event_claims.request_aria">
-      <segment state="initial">
-        <source>Request organization ownership</source>
-        <target>Request organization ownership</target>
-      </segment>
-    </unit>
     <unit id="event_claims.response_contest_label">
       <segment state="initial">
         <source>Contested</source>
@@ -7395,6 +7395,18 @@
       <segment state="initial">
         <source> Enter an end time after the start. </source>
         <target> Enter an end time after the start. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.event_categories">
+      <segment state="initial">
+        <source> Event categories </source>
+        <target> Categorías del evento </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.event_categories_hint">
+      <segment state="initial">
+        <source> Shown as tags on the event and used in event filters. </source>
+        <target> Se muestran como etiquetas en el evento y se usan en los filtros de eventos. </target>
       </segment>
     </unit>
     <unit id="event_edit.external_media_add">
@@ -8915,6 +8927,12 @@
         <target>Todas las ubicaciones del programa</target>
       </segment>
     </unit>
+    <unit id="event_program.at_this_location">
+      <segment state="initial">
+        <source> Program at this location </source>
+        <target> Programa en esta ubicación </target>
+      </segment>
+    </unit>
     <unit id="event_program.at_this_spot">
       <segment state="initial">
         <source> Program at this Spot </source>
@@ -8925,6 +8943,12 @@
       <segment state="initial">
         <source>Program day</source>
         <target>Día del programa</target>
+      </segment>
+    </unit>
+    <unit id="event_program.days">
+      <segment state="initial">
+        <source>Program days</source>
+        <target>Días del programa</target>
       </segment>
     </unit>
     <unit id="event_program.happening_now">
@@ -9334,12 +9358,6 @@
       <segment state="initial">
         <source>Indoor</source>
         <target>Interior</target>
-      </segment>
-    </unit>
-    <unit id="4301485018531590690">
-      <segment state="initial">
-        <source>Event notification preference</source>
-        <target>Preferencia de notificaciones del evento</target>
       </segment>
     </unit>
     <unit id="4302668244346549580">
@@ -14422,6 +14440,36 @@
       <segment state="initial">
         <source> This is an interactive map of the event area. Click on blue spots or other pins to see more information. </source>
         <target> Este es un mapa interactivo del área del evento. Haz clic en spots azules u otros pines para ver más información. </target>
+      </segment>
+    </unit>
+    <unit id="event_notifications.level.all">
+      <segment state="initial">
+        <source>All</source>
+        <target>Todas</target>
+      </segment>
+    </unit>
+    <unit id="event_notifications.level.none">
+      <segment state="initial">
+        <source>None</source>
+        <target>Ninguna</target>
+      </segment>
+    </unit>
+    <unit id="event_notifications.level.reminders">
+      <segment state="initial">
+        <source>Only Reminders</source>
+        <target>Solo recordatorios</target>
+      </segment>
+    </unit>
+    <unit id="event_notifications.level.updates">
+      <segment state="initial">
+        <source>Only Event Updates</source>
+        <target>Solo novedades del evento</target>
+      </segment>
+    </unit>
+    <unit id="event_notifications.preference_aria">
+      <segment state="initial">
+        <source>Event notifications: <ph id="0" equiv="PH" disp="this.notificationLabel()"/></source>
+        <target>Notificaciones del evento: <ph id="0" equiv="PH" disp="this.notificationLabel()"/></target>
       </segment>
     </unit>
     <unit id="event_rsvp.save_failed">

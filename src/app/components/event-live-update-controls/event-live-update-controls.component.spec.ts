@@ -44,6 +44,9 @@ describe("EventLiveUpdateControlsComponent", () => {
     expect(setup.fixture.nativeElement.textContent).toContain("Event Notifications");
     expect(setup.fixture.nativeElement.textContent).toContain("All");
     expect(setup.fixture.nativeElement.textContent).not.toContain("Add to calendar");
+    expect(setup.fixture.componentInstance.notificationIcon()).toBe(
+      "notifications_active",
+    );
   });
 
   it("stores the selected event channels and requests permission from the explicit menu choice", async () => {

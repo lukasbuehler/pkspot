@@ -50,6 +50,7 @@ import { animate, style, transition, trigger } from "@angular/animations";
 import { FormControl } from "@angular/forms";
 import {
   CommunitySearchPreview,
+  getMapSpotSearchLimit,
   SearchService,
 } from "../../services/search.service";
 import { CommunityMapMarker } from "../map/community-dot-marker/community-dot-marker.component";
@@ -1559,23 +1560,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this._openCommunityPanel(preview);
   }
 
-  /**
-   * Click handler for the on-map event chip markers. Resolves the route
-   * id to the loaded event, then opens the same preview as the island
-   * without counting the marker click as a map-island interaction.
-   */
-  onEventMarkerClick(routeId: string): void {
-    const event = this._visibleMapEvents().find(
-      (e) => e.slug === routeId || e.id === routeId,
-    );
-    if (!event) {
-      console.warn("onEventMarkerClick: event not in visible map set", routeId);
-      return;
-    }
-    // Typesense event hits intentionally contain approximate bounds only.
-    // Route through the full Firestore event so selected overlays use the
-    // real area polygon/custom markers instead of the search-preview bbox.
-    this.openEventPath(event.slug ?? event.id, null);
+  /** Opens an on-map event marker on its canonical full event page. */
+  onEventMarkerClick(eventIdOrSlug: string): void {
+    void this.router.navigate(["/events", eventIdOrSlug]);
   }
 
   openCommunityPath(path: string): void {
@@ -3562,7 +3549,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         .searchSpotsWithCustomFilter(
           bounds,
           customParams,
-          10,
+          getMapSpotSearchLimit(this._viewport()?.zoom),
           this._viewport()?.zoom,
         )
         .then((result) => {
@@ -3592,7 +3579,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       .searchSpotsInBoundsWithFilter(
         bounds,
         filterMode,
-        10,
+        getMapSpotSearchLimit(this._viewport()?.zoom),
         this._viewport()?.zoom,
       )
       .then((result) => {
@@ -3735,7 +3722,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       .searchSpotsInBoundsWithFilter(
         bounds,
         filterMode,
-        10,
+        getMapSpotSearchLimit(this._viewport()?.zoom),
         this._viewport()?.zoom,
       )
       .then((result) => {
@@ -3853,7 +3840,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       console.log("Searching with custom filter:", result);
 
       this._searchService
-        .searchSpotsWithCustomFilter(bounds, result, 10, this._viewport()?.zoom)
+        .searchSpotsWithCustomFilter(
+          bounds,
+          result,
+          getMapSpotSearchLimit(this._viewport()?.zoom),
+          this._viewport()?.zoom,
+        )
         .then((searchResult) => {
           const hits = searchResult.hits || [];
           console.log("Found custom filter spots:", hits);

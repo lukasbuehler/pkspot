@@ -33,6 +33,7 @@
           @if (eventLocationMarker(); as marker) {
             <button
               mat-icon-button
+              class="event-nav-action event-nav-action--duplicated"
               type="button"
               aria-label="Directions"
               i18n-aria-label
@@ -46,6 +47,7 @@
           @if (websiteUrl(); as url) {
             <a
               mat-icon-button
+              class="event-nav-action event-nav-action--duplicated"
               [href]="url"
               target="_blank"
               rel="noopener noreferrer"
@@ -59,6 +61,7 @@
           }
           <button
             mat-icon-button
+            class="event-nav-action"
             type="button"
             aria-label="Share event"
             matTooltip="Share event"
@@ -67,23 +70,12 @@
           >
             <mat-icon>share</mat-icon>
           </button>
-          @if (isSignedIn()) {
-            <button
-              mat-icon-button
-              type="button"
-              aria-label="Request organization ownership"
-              i18n-aria-label="@@event_claims.request_aria"
-              matTooltip="Request organization ownership"
-              i18n-matTooltip="@@event_claims.request"
-              (click)="openOwnershipClaimDialog()"
-            >
-              <mat-icon>domain_verification</mat-icon>
-            </button>
-          }
           <app-event-live-update-organizer-menu
             [event]="event"
             [canEdit]="canEditEvent()"
+            [canRequestOwnership]="isSignedIn()"
             (editRequested)="startEditingEvent()"
+            (ownershipClaimRequested)="openOwnershipClaimDialog()"
           ></app-event-live-update-organizer-menu>
         </div>
       </nav>
@@ -162,22 +154,12 @@
           </div>
 
           @if (showRsvp() || showRegistration()) {
-            <div class="event-attendee-actions">
-              @if (showRsvp()) {
-                <app-event-rsvp
-                  [eventId]="event.id"
-                  [counts]="event.rsvpCounts"
-                  [defaultNotificationLevel]="event.notificationPolicy"
-                  (rsvpChanged)="currentRsvp.set($event)"
-                ></app-event-rsvp>
-              }
-              @if (showRegistration()) {
-                <app-event-registration [event]="event" />
-              }
-              <app-event-live-update-controls
-                [event]="event"
-              ></app-event-live-update-controls>
-            </div>
+            <app-event-attendee-actions
+              [event]="event"
+              [showRsvp]="showRsvp()"
+              [showRegistration]="showRegistration()"
+              (rsvpChanged)="currentRsvp.set($event)"
+            />
           }
         </div>
       </header>

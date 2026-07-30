@@ -1,0 +1,20 @@
+<section
+  class="attendee-actions"
+  aria-label="Attendance and notifications"
+  i18n-aria-label="@@event_attendee_actions.aria"
+>
+  @if (showRsvp()) {
+    <app-event-rsvp
+      [eventId]="event().id"
+      [counts]="event().rsvpCounts"
+      [defaultNotificationLevel]="event().notificationPolicy"
+      (rsvpChanged)="rsvpChanged.emit($event)"
+    />
+  }
+
+  @if (showRegistration()) {
+    <app-event-registration [event]="event()" />
+  }
+
+  <app-event-live-update-controls [event]="event()" />
+</section>

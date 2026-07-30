@@ -65,7 +65,7 @@ import {
   EventEditFormComponent,
   EventEditPatch,
 } from "../event-edit-form/event-edit-form.component";
-import { EventRsvpComponent } from "../event-rsvp/event-rsvp.component";
+import { EventAttendeeActionsComponent } from "../event-attendee-actions/event-attendee-actions.component";
 import { EventHeroMediaComponent } from "../event-display/event-hero-media.component";
 import { EventSummaryMetaComponent } from "../event-display/event-summary-meta.component";
 import { EventCardComponent } from "../event-card/event-card.component";
@@ -80,7 +80,6 @@ import {
 import { isBot } from "../../../scripts/Helpers";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 import { EventLiveUpdatesComponent } from "../event-live-updates/event-live-updates.component";
-import { EventLiveUpdateControlsComponent } from "../event-live-update-controls/event-live-update-controls.component";
 import { EventLiveUpdateOrganizerMenuComponent } from "../event-live-update-organizer-menu/event-live-update-organizer-menu.component";
 import type { EventRSVPOption } from "../../../db/schemas/EventRSVPSchema";
 import { OrganizationButtonComponent } from "../organization-button/organization-button.component";
@@ -93,7 +92,6 @@ import {
 import { EventWeatherDaysComponent } from "../event-weather-days/event-weather-days.component";
 import { EventDraftNoticeComponent } from "./event-draft-notice.component";
 import { EventAccessManagerComponent } from "../event-access-manager/event-access-manager.component";
-import { EventRegistrationComponent } from "../event-registration/event-registration.component";
 import { EventRegistrationManagerComponent } from "../event-registration-manager/event-registration-manager.component";
 import {
   EventOwnershipClaimDialogComponent,
@@ -106,7 +104,6 @@ import {
   isEventProgramMarkerOccurrence,
   isEventProgramSpotOccurrence,
   resolveEventProgramOccurrences,
-  smartEventProgramDay,
   type EventMarkerBinding,
   type EventProgramOccurrence,
   type EventSpotBinding,
@@ -134,19 +131,17 @@ type ProgramMapMarker = MarkerSchema & {
     MatProgressSpinnerModule,
     GoogleMap2dComponent,
     EventEditFormComponent,
-    EventRsvpComponent,
+    EventAttendeeActionsComponent,
     EventHeroMediaComponent,
     EventSummaryMetaComponent,
     EventCardComponent,
     EventProgramTimelineComponent,
     EventWeatherDaysComponent,
     EventLiveUpdatesComponent,
-    EventLiveUpdateControlsComponent,
     EventLiveUpdateOrganizerMenuComponent,
     OrganizationButtonComponent,
     EventDraftNoticeComponent,
     EventAccessManagerComponent,
-    EventRegistrationComponent,
     EventRegistrationManagerComponent,
     EventProgramDayChipsComponent,
   ],
@@ -369,7 +364,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       ) {
         return previous.value;
       }
-      return smartEventProgramDay(source.days, source.timeZone, this.now());
+      return null;
     },
   });
   readonly programOccurrences = computed(() =>

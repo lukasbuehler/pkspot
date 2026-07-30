@@ -1534,5 +1534,8 @@ describe("EventInfoPageComponent", () => {
     const structuredEvent = structuredDataService.addStructuredData.mock
       .lastCall?.[1] as Record<string, unknown>;
     expect(structuredEvent).not.toHaveProperty("subEvent");
+    expect(component.programDays()).toEqual(["2026-06-14"]);
+    expect(component.selectedProgramDay()).toBeNull();
+    expect(component.programFilterActive()).toBe(false);
   });
 });

@@ -12,6 +12,18 @@ const templatePath = join(
 );
 
 describe("MapPageComponent URL-driven panel state", () => {
+  it("opens event marker clicks on canonical full event pages", () => {
+    const source = readFileSync(componentPath, "utf8");
+    const method = source.match(
+      /onEventMarkerClick\([\s\S]*?\n  \}/
+    )?.[0];
+
+    expect(method).toContain(
+      'this.router.navigate(["/events", eventIdOrSlug])',
+    );
+    expect(method).not.toContain("this.openEventPath");
+  });
+
   it("opens event island clicks through the event URL helper", () => {
     const source = readFileSync(componentPath, "utf8");
     const method = source.match(

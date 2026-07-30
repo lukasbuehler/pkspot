@@ -4,10 +4,10 @@ import {
   computed,
   inject,
   input,
+  linkedSignal,
   output,
 } from "@angular/core";
 import { MatIconModule } from "@angular/material/icon";
-import { MatTabsModule } from "@angular/material/tabs";
 import { Event as PkEvent, EventProgramItem } from "../../../db/models/Event";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 import {
@@ -63,50 +63,10 @@ interface ProgramDayGroup {
   selector: "app-event-program-timeline",
   imports: [
     MatIconModule,
-    MatTabsModule,
     WeatherIconButtonComponent,
     EventProgramDayTimelineComponent,
   ],
-  template: `
-    <mat-tab-group class="program-tabs" mat-stretch-tabs="false">
-      @for (day of dayGroups(); track day.key) {
-        <mat-tab>
-          <ng-template mat-tab-label>
-            <span>{{ day.label }}</span>
-            @if (day.weather; as weather) {
-              <mat-icon
-                class="day-tab-weather"
-                [class.is-wet]="weather.tone === 'wet'"
-                [class.has-warning]="weather.tone === 'warning'"
-                [class.is-night]="weather.tone === 'night'"
-                [attr.aria-label]="weather.label"
-                >{{ weather.icon }}</mat-icon
-              >
-            }
-          </ng-template>
-          <div class="program-day-content px-3">
-            @if (day.weather; as weather) {
-              <div class="day-weather-row">
-                <app-weather-icon-button
-                  [weather]="weather.data"
-                  display="temperature-range"
-                  (pressed)="selectDayWeather(day.key)"
-                />
-              </div>
-            }
-            <app-event-program-day-timeline
-              [entries]="day.items"
-              [dayKey]="day.key"
-              [timeZone]="timeZone()"
-              [eventMapRoute]="eventMapRoute()"
-              [seriesById]="seriesById()"
-              (itemWeatherSelected)="selectItemWeather(day.key, $event)"
-            />
-          </div>
-        </mat-tab>
-      }
-    </mat-tab-group>
-  `,
+  templateUrl: "./event-program-timeline.component.html",
   styleUrl: "./event-program-timeline.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -198,6 +158,76 @@ export class EventProgramTimelineComponent {
 
     return [...groups.values()];
   });
+  readonly selectedDayKey = linkedSignal<
+    ProgramDayGroup[],
+    string
+  >({
+    source: this.dayGroups,
+    computation: (groups, previous) => {
+      const previousKey = previous?.value;
+      if (previousKey && groups.some((group) => group.key === previousKey)) {
+        return previousKey;
+      }
+      return groups[0]?.key ?? "";
+    },
+  });
+  readonly selectedDay = computed(() =>
+    this.dayGroups().find((day) => day.key === this.selectedDayKey()),
+  );
+
+  selectDay(dayKey: string): void {
+    this.selectedDayKey.set(dayKey);
+  }
+
+  handleTabKeydown(
+    event: KeyboardEvent,
+    currentIndex: number,
+    tabList: HTMLElement,
+  ): void {
+    const groups = this.dayGroups();
+    if (groups.length === 0) return;
+
+    let nextIndex: number;
+    switch (event.key) {
+      case "ArrowRight":
+        nextIndex = (currentIndex + 1) % groups.length;
+        break;
+      case "ArrowLeft":
+        nextIndex = (currentIndex - 1 + groups.length) % groups.length;
+        break;
+      case "Home":
+        nextIndex = 0;
+        break;
+      case "End":
+        nextIndex = groups.length - 1;
+        break;
+      default:
+        return;
+    }
+
+    event.preventDefault();
+    this.selectDay(groups[nextIndex].key);
+    tabList
+      .querySelectorAll<HTMLButtonElement>('[role="tab"]')
+      .item(nextIndex)
+      .focus();
+  }
+
+  scrollTabsWithWheel(event: WheelEvent, tabList: HTMLElement): void {
+    if (tabList.scrollWidth <= tabList.clientWidth) return;
+
+    const delta =
+      Math.abs(event.deltaX) > Math.abs(event.deltaY)
+        ? event.deltaX
+        : event.deltaY;
+    if (delta === 0) return;
+
+    const previousScrollLeft = tabList.scrollLeft;
+    tabList.scrollLeft += delta;
+    if (tabList.scrollLeft !== previousScrollLeft) {
+      event.preventDefault();
+    }
+  }
 
   selectDayWeather(date: string): void {
     this.weatherSelected.emit({ date });

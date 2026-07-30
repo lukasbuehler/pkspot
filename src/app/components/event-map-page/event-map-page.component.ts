@@ -499,6 +499,19 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
         )
       : [];
   });
+  readonly selectedCustomMarkerProgramOccurrences = computed(() => {
+    const selected = this.selectedCustomMarker();
+    return selected
+      ? this.programOccurrences()
+          .filter(isEventProgramMarkerOccurrence)
+          .filter(
+            (occurrence) =>
+              occurrence.marker === selected ||
+              (selected.id !== undefined &&
+                occurrence.marker.id === selected.id),
+          )
+      : [];
+  });
 
   /**
    * Lower bound on user zoom for the event-page map. Default is intentionally

@@ -80,14 +80,6 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
-.event-attendee-actions {
-  display: grid;
-  justify-items: end;
-  gap: 12px;
-  width: 100%;
-  min-width: 0;
-}
-
 .event-hero {
   overflow: hidden;
   height: clamp(180px, 28vw, 300px);
@@ -407,8 +399,8 @@ a.featured-participant-name {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .event-attendee-actions {
-    justify-items: start;
+  .event-nav-action--duplicated {
+    display: none;
   }
 
   .ticket-option {

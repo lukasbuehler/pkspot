@@ -3105,11 +3105,6 @@
         <source>Request organization ownership</source>
       </segment>
     </unit>
-    <unit id="event_claims.request_aria">
-      <segment>
-        <source>Request organization ownership</source>
-      </segment>
-    </unit>
     <unit id="event_claims.response_contest_label">
       <segment>
         <source>Contested</source>
@@ -3538,6 +3533,16 @@
     <unit id="event_edit.end_time_required">
       <segment>
         <source> Enter an end time after the start. </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.event_categories">
+      <segment>
+        <source> Event categories </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.event_categories_hint">
+      <segment>
+        <source> Shown as tags on the event and used in event filters. </source>
       </segment>
     </unit>
     <unit id="event_edit.external_media_add">
@@ -4975,6 +4980,31 @@
         <source> This is an interactive map of the event area. Click on blue spots or other pins to see more information. </source>
       </segment>
     </unit>
+    <unit id="event_notifications.level.all">
+      <segment>
+        <source>All</source>
+      </segment>
+    </unit>
+    <unit id="event_notifications.level.none">
+      <segment>
+        <source>None</source>
+      </segment>
+    </unit>
+    <unit id="event_notifications.level.reminders">
+      <segment>
+        <source>Only Reminders</source>
+      </segment>
+    </unit>
+    <unit id="event_notifications.level.updates">
+      <segment>
+        <source>Only Event Updates</source>
+      </segment>
+    </unit>
+    <unit id="event_notifications.preference_aria">
+      <segment>
+        <source>Event notifications: <ph id="0" equiv="PH" disp="this.notificationLabel()"/></source>
+      </segment>
+    </unit>
     <unit id="event_page.back_to_events">
       <segment>
         <source>Back to all events</source>
@@ -5050,6 +5080,11 @@
         <source>All program locations</source>
       </segment>
     </unit>
+    <unit id="event_program.at_this_location">
+      <segment>
+        <source> Program at this location </source>
+      </segment>
+    </unit>
     <unit id="event_program.at_this_spot">
       <segment>
         <source> Program at this Spot </source>
@@ -5058,6 +5093,11 @@
     <unit id="event_program.day_filter">
       <segment>
         <source>Program day</source>
+      </segment>
+    </unit>
+    <unit id="event_program.days">
+      <segment>
+        <source>Program days</source>
       </segment>
     </unit>
     <unit id="event_program.happening_now">
@@ -8560,6 +8600,11 @@
         <source>Add at least one community card before submitting</source>
       </segment>
     </unit>
+    <unit id="event_attendee_actions.aria">
+      <segment>
+        <source>Attendance and notifications</source>
+      </segment>
+    </unit>
     <unit id="4541118533130714111">
       <segment>
         <source>Repeat Password</source>
@@ -11587,11 +11632,6 @@
     <unit id="1096271480010782204">
       <segment>
         <source>Founder</source>
-      </segment>
-    </unit>
-    <unit id="4301485018531590690">
-      <segment>
-        <source>Event notification preference</source>
       </segment>
     </unit>
     <unit id="4302668244346549580">

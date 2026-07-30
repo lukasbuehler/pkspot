@@ -301,6 +301,29 @@
                           </button>
                         </div>
                       </div>
+                      @if (
+                        selectedCustomMarkerProgramOccurrences().length > 0
+                      ) {
+                        <section class="location-program-section">
+                          <h4
+                            class="mat-title-small m-0"
+                            i18n="@@event_program.at_this_location"
+                          >
+                            Program at this location
+                          </h4>
+                          <app-event-program-occurrence-list
+                            [occurrences]="
+                              selectedCustomMarkerProgramOccurrences()
+                            "
+                            [timeZone]="event()?.timeZone"
+                            [selectedItemId]="selectedProgramItemId()"
+                            [showSpotCards]="false"
+                            (occurrenceSelected)="
+                              selectProgramOccurrence($event)
+                            "
+                          />
+                        </section>
+                      }
                       @if (marker.description) {
                         <p class="mat-body-medium m-0 custom-marker-copy">
                           {{ marker.description }}
@@ -426,21 +449,12 @@
                 @if (selectedSpot()) {
                   <div
                     #spotScrollContainer
-                    class="w-100 d-block overflow-x-hidden h-100"
+                    class="w-100 d-flex flex-column overflow-x-hidden overflow-y-auto h-100"
                   >
-                    <app-spot-details
-                      @fadeInOut
-                      [spot]="selectedSpot()"
-                      [editable]="false"
-                      [isEditing]="false"
-                      [dismissable]="true"
-                      [border]="false"
-                      [showRating]="false"
-                      (dismiss)="deselectSpot()"
-                      class="w-100 d-block overflow-x-hidden h-100"
-                    ></app-spot-details>
                     @if (selectedSpotProgramOccurrences().length > 0) {
-                      <section class="spot-program-section">
+                      <section
+                        class="location-program-section spot-program-section flex-shrink-0"
+                      >
                         <h2
                           class="mat-title-medium m-0"
                           i18n="@@event_program.at_this_spot"
@@ -455,6 +469,17 @@
                         />
                       </section>
                     }
+                    <app-spot-details
+                      @fadeInOut
+                      [spot]="selectedSpot()"
+                      [editable]="false"
+                      [isEditing]="false"
+                      [dismissable]="true"
+                      [border]="false"
+                      [showRating]="false"
+                      (dismiss)="deselectSpot()"
+                      class="w-100 d-block overflow-x-hidden flex-shrink-0"
+                    ></app-spot-details>
                   </div>
                 } @else {
                   @if (spots() && spots()!.length > 0) {

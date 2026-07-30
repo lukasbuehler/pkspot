@@ -307,7 +307,11 @@ describe("EventRsvpComponent", () => {
 
     expect(fixture.nativeElement.textContent).toContain("Are you going?");
     expect(fixture.nativeElement.querySelector(".rsvp-menu-button")).toBeTruthy();
-    expect(fixture.nativeElement.textContent).toContain(
+    expect(
+      fixture.nativeElement
+        .querySelector(".rsvp-disclaimer-help")
+        ?.getAttribute("aria-label"),
+    ).toBe(
       "These numbers show PK Spot user intent, not tickets bought.",
     );
   });
@@ -338,9 +342,9 @@ describe("EventRsvpComponent", () => {
       fixture.nativeElement.querySelector("mat-button-toggle-group"),
     ).toBeNull();
     expect(fixture.nativeElement.textContent).toContain("interested");
-    expect(fixture.nativeElement.textContent).toContain(
-      "These numbers show PK Spot user intent, not tickets bought.",
-    );
+    expect(
+      fixture.nativeElement.querySelector(".rsvp-disclaimer-help"),
+    ).toBeTruthy();
   });
 
   it("shows the RSVP prompt again after clearing a response", async () => {
@@ -368,9 +372,9 @@ describe("EventRsvpComponent", () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(fixture.nativeElement.textContent).not.toContain(
-      "These numbers show",
-    );
+    expect(
+      fixture.nativeElement.querySelector(".rsvp-disclaimer-help"),
+    ).toBeNull();
   });
 
   it("shows only aggregate counts in preview mode", async () => {
@@ -392,5 +396,8 @@ describe("EventRsvpComponent", () => {
     expect(fixture.nativeElement.textContent).not.toContain(
       "These numbers show",
     );
+    expect(
+      fixture.nativeElement.querySelector(".rsvp-disclaimer-help"),
+    ).toBeNull();
   });
 });

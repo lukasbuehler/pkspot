@@ -52,4 +52,51 @@ describe("EventLiveUpdateOrganizerMenuComponent", () => {
       expect.objectContaining({ data: { event } }),
     );
   });
+
+  it("offers ownership claims in the overflow menu", async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: AuthenticationService,
+          useValue: {
+            user: { uid: "" },
+            authState$: new BehaviorSubject(null),
+          },
+        },
+        {
+          provide: EventLiveUpdatesService,
+          useValue: { canCurrentUserPublish: vi.fn(async () => false) },
+        },
+        { provide: MatDialog, useValue: { open: vi.fn() } },
+      ],
+    });
+    const fixture = TestBed.createComponent(
+      EventLiveUpdateOrganizerMenuComponent,
+    );
+    fixture.componentRef.setInput("event", event);
+    fixture.componentRef.setInput("canRequestOwnership", true);
+    const ownershipClaimRequested = vi.fn();
+    fixture.componentInstance.ownershipClaimRequested.subscribe(
+      ownershipClaimRequested,
+    );
+
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.showMenu()).toBe(true);
+    (fixture.nativeElement.querySelector("button") as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    const ownershipItem = Array.from(
+      document.body.querySelectorAll<HTMLButtonElement>(
+        "button[mat-menu-item]",
+      ),
+    ).find((item) =>
+      item.textContent?.includes("Request organization ownership"),
+    );
+    expect(ownershipItem).toBeDefined();
+    ownershipItem?.click();
+    await fixture.whenStable();
+
+    expect(ownershipClaimRequested).toHaveBeenCalledOnce();
+  });
 });

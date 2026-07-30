@@ -34,9 +34,14 @@ export class EventLiveUpdateOrganizerMenuComponent {
 
   readonly event = input.required<PkEvent>();
   readonly canEdit = input(false);
+  readonly canRequestOwnership = input(false);
   readonly editRequested = output<void>();
+  readonly ownershipClaimRequested = output<void>();
   readonly canPublish = signal(false);
-  readonly showMenu = computed(() => this.canEdit() || this.canPublish());
+  readonly showMenu = computed(
+    () =>
+      this.canEdit() || this.canPublish() || this.canRequestOwnership(),
+  );
   private readonly userId = signal(this.auth.user.uid ?? "");
 
   constructor() {

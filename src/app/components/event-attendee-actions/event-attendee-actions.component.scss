@@ -1,0 +1,34 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.attendee-actions {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  justify-items: end;
+  gap: 12px;
+}
+
+@media (max-width: 800px) {
+  .attendee-actions {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.25rem;
+    overflow: hidden;
+  }
+
+  app-event-rsvp,
+  app-event-registration {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  app-event-live-update-controls {
+    flex: 0 0 auto;
+  }
+}

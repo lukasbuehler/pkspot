@@ -13,6 +13,7 @@ import { RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatMenuModule } from "@angular/material/menu";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import {
   EventRSVPCountsSchema,
   EventRSVPOption,
@@ -37,6 +38,7 @@ type ScreenshotGlobal = typeof globalThis & {
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
+    MatTooltipModule,
     FancyCounterComponent,
   ],
   templateUrl: "./event-rsvp.component.html",
@@ -66,6 +68,7 @@ export class EventRsvpComponent {
   readonly isLoading = signal(false);
   readonly isSaving = signal(false);
   readonly errorMessage = signal("");
+  readonly disclaimerText = $localize`:@@event_rsvp.disclaimer:These numbers show PK Spot user intent, not tickets bought.`;
 
   readonly isSignedIn = computed(() => !!this.userId());
   readonly displayCounts = computed(() => {
@@ -76,12 +79,6 @@ export class EventRsvpComponent {
       total: 0,
     };
     return base;
-  });
-
-  hasNumbers = computed(() => {
-    return (
-      this.displayCounts().going > 0 || this.displayCounts().interested > 0
-    );
   });
 
   constructor() {

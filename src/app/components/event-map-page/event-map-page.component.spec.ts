@@ -4,6 +4,8 @@ import { TestBed } from "@angular/core/testing";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ActivatedRoute, convertToParamMap, Router } from "@angular/router";
 import { GeoPoint } from "firebase/firestore";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { of } from "rxjs";
 import { describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
@@ -69,6 +71,40 @@ const buildLocalSpot = (name: string): LocalSpot =>
   );
 
 describe("EventMapPageComponent", () => {
+  it("shows program occurrences before long location details", () => {
+    const template = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/event-map-page/event-map-page.component.html",
+      ),
+      "utf8",
+    );
+    const eventPanel = template.slice(
+      template.indexOf('@case ("event")'),
+      template.indexOf('@case ("program")'),
+    );
+    expect(eventPanel).toContain(
+      "selectedCustomMarkerProgramOccurrences().length > 0",
+    );
+    expect(eventPanel).toContain("selectedCustomMarkerProgramOccurrences()");
+    expect(eventPanel).toContain("<app-event-program-occurrence-list");
+
+    const spotsPanel = template.slice(template.indexOf('@case ("spots")'));
+    const spotProgramIndex = spotsPanel.indexOf("spot-program-section");
+    const spotDetailsIndex = spotsPanel.indexOf("<app-spot-details");
+    const spotDetailsEnd = spotsPanel.indexOf(
+      "</app-spot-details>",
+      spotDetailsIndex,
+    );
+
+    expect(spotProgramIndex).toBeGreaterThan(-1);
+    expect(spotProgramIndex).toBeLessThan(spotDetailsIndex);
+    expect(spotsPanel).toContain("overflow-y-auto h-100");
+    expect(
+      spotsPanel.slice(spotDetailsIndex, spotDetailsEnd),
+    ).not.toContain("h-100");
+  });
+
   it("keeps the map view noindex and canonicalized to the event info page", async () => {
     const event = buildEvent("swissjam26");
     const eventPageData = {
@@ -352,6 +388,20 @@ describe("EventMapPageComponent", () => {
     component.now.set(new Date("2026-06-14T10:30:00.000Z"));
     component.selectedProgramDay.set("2026-06-14");
     component.tab.set("program");
+    component.selectedSpot.set(localSpot);
+    expect(
+      component
+        .selectedSpotProgramOccurrences()
+        .map((occurrence) => occurrence.item.id),
+    ).toEqual(["training", "jam"]);
+    component.selectedSpot.set(null);
+    component.selectedCustomMarker.set(component.customMarkers()[0]);
+    expect(
+      component
+        .selectedCustomMarkerProgramOccurrences()
+        .map((occurrence) => occurrence.item.id),
+    ).toEqual(["dinner"]);
+    component.selectedCustomMarker.set(null);
 
     expect(component.highlightedSpots()).toEqual([eventSpotPreview]);
     expect(component.mapPriorityMarkers()).toEqual([

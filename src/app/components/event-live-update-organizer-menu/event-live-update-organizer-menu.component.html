@@ -24,5 +24,17 @@
         <span i18n>Edit event</span>
       </button>
     }
+    @if (canRequestOwnership()) {
+      <button
+        mat-menu-item
+        type="button"
+        (click)="ownershipClaimRequested.emit()"
+      >
+        <mat-icon>domain_verification</mat-icon>
+        <span i18n="@@event_claims.request"
+          >Request organization ownership</span
+        >
+      </button>
+    }
   </mat-menu>
 }

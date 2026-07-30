@@ -115,6 +115,18 @@ import { UserPickerComponent } from "../user-picker/user-picker.component";
 import { EventTimeZoneService } from "../../services/event-time-zone.service";
 import { eventProgramSpotRefs } from "../../shared/event-program-spots";
 
+const EVENT_CATEGORY_OPTIONS = [
+  "camp",
+  "jam",
+  "workshop",
+  "competition",
+  "show",
+  "awards",
+  "social",
+  "travel",
+  "other",
+] as const satisfies readonly EventCategory[];
+
 type OrganizationDocument = OrganizationSchema & { id: string };
 type EditableEventMarker = {
   id: string;
@@ -414,6 +426,7 @@ export class EventEditFormComponent {
 
     // Optional
     description: [""],
+    event_categories: [[] as EventCategory[]],
     slug: ["", [Validators.pattern(/^[a-z0-9-]*$/)]],
     organizer_query: [""],
     organizer_access: ["view" as "view" | "edit"],
@@ -636,6 +649,31 @@ export class EventEditFormComponent {
       : $localize`:@@event_edit.location_not_set:Not set`;
   });
 
+  readonly eventCategoryOptions = EVENT_CATEGORY_OPTIONS;
+
+  eventCategoryLabel(category: EventCategory): string {
+    switch (category) {
+      case "camp":
+        return $localize`:@@event_category.camp:Camp`;
+      case "jam":
+        return $localize`:@@event_category.jam:Jam`;
+      case "workshop":
+        return $localize`:@@event_category.workshop:Workshop`;
+      case "competition":
+        return $localize`:@@event_category.competition:Competition`;
+      case "show":
+        return $localize`:@@event_category.show:Show`;
+      case "awards":
+        return $localize`:@@event_category.awards:Awards`;
+      case "social":
+        return $localize`:@@event_category.social:Social`;
+      case "travel":
+        return $localize`:@@event_category.travel:Travel`;
+      case "other":
+        return $localize`:@@event_category.other:Other`;
+    }
+  }
+
   featuredParticipantTypeLabel(type: EventFeaturedParticipantType): string {
     switch (type) {
       case "group":
@@ -694,6 +732,7 @@ export class EventEditFormComponent {
           attendance_instructions: "",
           organizer_access: "view",
           notification_policy: "all",
+          event_categories: [],
           banner_fit: "cover",
           logo_fit: "contain",
           sponsor_logo_fit: "contain",
@@ -791,6 +830,7 @@ export class EventEditFormComponent {
             : "",
         attendance_instructions: e.attendance.instructions ?? "",
         notification_policy: e.notificationPolicy,
+        event_categories: [...e.eventCategories],
         organizer_access: e.organizerAccess ?? "view",
         banner_src: e.bannerSrc ?? "",
         banner_fit: e.bannerFit,
@@ -2148,6 +2188,7 @@ export class EventEditFormComponent {
       featured_participants: this._buildFeaturedParticipantsPatch(),
       ticket_options: this._buildTicketOptionsPatch(),
       program: this._buildProgramPatch(),
+      event_categories: eventCategoriesFromFormValue(v.event_categories),
       published: v.published === true,
       visibility: v.visibility ?? "public",
       discoverability: {
@@ -3086,6 +3127,18 @@ function isEventCategory(value: string): value is EventCategory {
     value === "travel" ||
     value === "other"
   );
+}
+
+function eventCategoriesFromFormValue(value: unknown): EventCategory[] {
+  if (!Array.isArray(value)) return [];
+  return [
+    ...new Set(
+      value.filter(
+        (category): category is EventCategory =>
+          typeof category === "string" && isEventCategory(category),
+      ),
+    ),
+  ];
 }
 
 function isFeaturedParticipantType(

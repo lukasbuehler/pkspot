@@ -329,8 +329,6 @@
             @for (event of visibleEvents(); track event.id) {
               <app-event-card
                 [event]="event"
-                [selectMode]="panelMode()"
-                (select)="onSelectEvent($event)"
               ></app-event-card>
             }
           </div>

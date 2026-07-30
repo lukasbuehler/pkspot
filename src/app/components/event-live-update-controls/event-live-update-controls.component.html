@@ -8,11 +8,10 @@
     <button
       mat-stroked-button
       type="button"
-      class="notification-menu-button"
+      class="notification-menu-button notification-menu-button--desktop"
       [disabled]="loading() || saving()"
       [matMenuTriggerFor]="notificationMenu"
-      aria-label="Event notification preference"
-      i18n-aria-label
+      [attr.aria-label]="notificationAriaLabel()"
     >
       <mat-icon
         [class.material-symbols-rounded-outline]="
@@ -20,21 +19,25 @@
         "
         >{{ notificationIcon() }}</mat-icon
       >
-      @switch (notificationLevel()) {
-        @case ("all") {
-          <span i18n>All</span>
-        }
-        @case ("event_updates") {
-          <span i18n>Only Event Updates</span>
-        }
-        @case ("reminders") {
-          <span i18n>Only Reminders</span>
-        }
-        @case ("none") {
-          <span i18n>None</span>
-        }
-      }
+      <span>{{ notificationLabel() }}</span>
       <mat-icon iconPositionEnd>expand_more</mat-icon>
+    </button>
+
+    <button
+      mat-icon-button
+      type="button"
+      class="notification-menu-button notification-menu-button--mobile"
+      [disabled]="loading() || saving()"
+      [matMenuTriggerFor]="notificationMenu"
+      [attr.aria-label]="notificationAriaLabel()"
+      [matTooltip]="notificationAriaLabel()"
+    >
+      <mat-icon
+        [class.material-symbols-rounded-outline]="
+          usesSpecificNotificationIcon()
+        "
+        >{{ notificationIcon() }}</mat-icon
+      >
     </button>
 
     <mat-menu #notificationMenu="matMenu">
@@ -43,7 +46,7 @@
         type="button"
         (click)="notificationPreferenceChanged('all')"
       >
-        <mat-icon>notifications</mat-icon>
+        <mat-icon>notifications_active</mat-icon>
         <span i18n>All</span>
       </button>
       <button

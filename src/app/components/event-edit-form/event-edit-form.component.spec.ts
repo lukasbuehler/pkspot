@@ -826,6 +826,38 @@ describe("EventEditFormComponent", () => {
     );
   });
 
+  it("loads and serializes the event categories", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    fixture.componentRef.setInput(
+      "event",
+      eventWith("event-1", {
+        event_categories: ["camp", "competition"],
+      }),
+    );
+    await fixture.whenStable();
+
+    expect(component.form.controls["event_categories"].value).toEqual([
+      "camp",
+      "competition",
+    ]);
+
+    component.form.controls["event_categories"].setValue([
+      "camp",
+      "workshop",
+    ]);
+    await component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0].event_categories).toEqual([
+      "camp",
+      "workshop",
+    ]);
+  });
+
   it("serializes edited program plans and items on submit", async () => {
     const fixture = await setup();
     const component = fixture.componentInstance;

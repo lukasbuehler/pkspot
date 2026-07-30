@@ -13,6 +13,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatMenuModule } from "@angular/material/menu";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { Event as PkEvent } from "../../../db/models/Event";
 import type { EventNotificationLevel } from "../../../db/schemas/EventLiveUpdateSchema";
 import { AnalyticsService } from "../../services/analytics.service";
@@ -58,7 +59,7 @@ export const buildEventCalendar = (event: PkEvent): string => {
 
 @Component({
   selector: "app-event-live-update-controls",
-  imports: [MatButtonModule, MatIconModule, MatMenuModule],
+  imports: [MatButtonModule, MatIconModule, MatMenuModule, MatTooltipModule],
   templateUrl: "./event-live-update-controls.component.html",
   styleUrl: "./event-live-update-controls.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -82,8 +83,26 @@ export class EventLiveUpdateControlsComponent {
       this.event().published &&
       this.event().notificationPolicy !== "none",
   );
-  readonly notificationIcon = computed(() =>
-    this.notificationLevel() === "none" ? "notifications_off" : "notifications",
+  readonly notificationIcon = computed(() => {
+    const level = this.notificationLevel();
+    if (level === "all") return "notifications_active";
+    return level === "none" ? "notifications_off" : "notifications";
+  });
+  readonly notificationLabel = computed(() => {
+    switch (this.notificationLevel()) {
+      case "all":
+        return $localize`:@@event_notifications.level.all:All`;
+      case "event_updates":
+        return $localize`:@@event_notifications.level.updates:Only Event Updates`;
+      case "reminders":
+        return $localize`:@@event_notifications.level.reminders:Only Reminders`;
+      case "none":
+        return $localize`:@@event_notifications.level.none:None`;
+    }
+  });
+  readonly notificationAriaLabel = computed(
+    () =>
+      $localize`:@@event_notifications.preference_aria:Event notifications: ${this.notificationLabel()}`,
   );
   readonly usesSpecificNotificationIcon = computed(() => {
     const level = this.notificationLevel();

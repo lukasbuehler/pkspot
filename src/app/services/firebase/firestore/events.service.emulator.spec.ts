@@ -491,6 +491,7 @@ runWithEmulator("EventsService emulator integration", () => {
           icons: ["camping"],
         },
       ],
+      event_categories: ["camp", "workshop"],
       program: {
         active_plan_id: "main",
         plans: [
@@ -538,6 +539,7 @@ runWithEmulator("EventsService emulator integration", () => {
           eligibility: { type: "everyone" },
         },
         notification_policy: "all",
+        event_categories: ["camp", "workshop"],
       }),
     );
     expect(data?.["start"]).toBeInstanceOf(admin.firestore.Timestamp);

@@ -137,10 +137,14 @@
   padding: 0.75rem;
 }
 
-.spot-program-section {
+.location-program-section {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.spot-program-section {
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
   padding: 1rem;
 }
 

@@ -12,9 +12,13 @@
         <span class="occurrence-title mat-title-small">{{
           occurrence.item.title
         }}</span>
-        <span class="occurrence-spot mat-body-small">
+        <span class="occurrence-location mat-body-small">
           <mat-icon>location_on</mat-icon>
-          {{ occurrence.spot.name() }}
+          @if (occurrence.kind === "spot") {
+            {{ occurrence.spot.name() }}
+          } @else {
+            {{ occurrence.marker.name || occurrence.ref.id }}
+          }
         </span>
         @if (occurrence.isActive) {
           <span class="status-label is-active" i18n="@@event_program.happening_now">
@@ -25,7 +29,7 @@
         }
       </span>
       <mat-icon class="occurrence-chevron">chevron_right</mat-icon>
-      @if (showSpotCards()) {
+      @if (showSpotCards() && occurrence.kind === "spot") {
         <app-spot-preview-card
           class="occurrence-card"
           [spotData]="occurrence.spot"
