@@ -105,6 +105,7 @@ import {
   smartEventProgramDay,
   type EventMarkerBinding,
   type EventProgramOccurrence,
+  type EventProgramSpotOccurrence,
   type EventSpotBinding,
 } from "../../shared/event-program-spots";
 import { eventProgramLocationColor } from "../../shared/event-program-timeline";
@@ -1357,6 +1358,22 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
             ? occurrence.ref.id
             : null,
         programItemId: occurrence.item.id,
+      },
+      queryParamsHandling: "merge",
+    });
+  }
+
+  openProgramSpotDetails(occurrence: EventProgramSpotOccurrence): void {
+    this.selectedProgramItemId.set(null);
+    this.selectSpot(occurrence.spot, false);
+    void this._router.navigate([], {
+      relativeTo: this._route,
+      queryParams: {
+        mapFilter: "spots",
+        day: null,
+        spotId: occurrence.ref.id,
+        markerId: null,
+        programItemId: null,
       },
       queryParamsHandling: "merge",
     });

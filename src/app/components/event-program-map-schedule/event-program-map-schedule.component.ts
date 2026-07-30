@@ -14,8 +14,10 @@ import type {
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 import {
   effectiveProgramItem,
+  isEventProgramSpotOccurrence,
   type EventMarkerBinding,
   type EventProgramOccurrence,
+  type EventProgramSpotOccurrence,
 } from "../../shared/event-program-spots";
 import { eventProgramTimelineLocationsByItem } from "../../shared/event-program-timeline";
 import { eventDateKey } from "../../weather/event-weather";
@@ -53,6 +55,7 @@ export class EventProgramMapScheduleComponent {
   readonly dayOpened = output<string>();
   readonly dayClosed = output<string>();
   readonly occurrenceSelected = output<EventProgramOccurrence>();
+  readonly spotSelected = output<EventProgramSpotOccurrence>();
 
   readonly days = computed<ProgramScheduleDay[]>(() => {
     const groups = new Map<string, ProgramScheduleDay>();
@@ -114,4 +117,12 @@ export class EventProgramMapScheduleComponent {
 
     return [...groups.values()];
   });
+
+  selectLocation(occurrence: EventProgramOccurrence): void {
+    if (isEventProgramSpotOccurrence(occurrence)) {
+      this.spotSelected.emit(occurrence);
+      return;
+    }
+    this.occurrenceSelected.emit(occurrence);
+  }
 }

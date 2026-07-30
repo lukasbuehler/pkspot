@@ -16,6 +16,7 @@ interface RouteVisualCase {
   maxDiffPixels?: number;
   eventMapLayout?: "full" | "embedded";
   eventIndexFixture?: boolean;
+  liveEventFixture?: boolean;
   fixedTime?: string;
 }
 
@@ -27,7 +28,16 @@ const routeVisualCases: RouteVisualCase[] = [
   { name: "map", path: "/map", maxDiffPixels: 80_000 },
   {
     name: "events",
-    path: "/events?month=2026-08",
+    path: "/events",
+    viewport: { width: 1600, height: 900 },
+    fullPage: true,
+    maxDiffPixels: 2_000,
+    eventIndexFixture: true,
+    fixedTime: "2026-07-20T12:00:00.000Z",
+  },
+  {
+    name: "events-continuous-calendar",
+    path: "/events?view=calendar&month=2026-08&day=2026-08-01",
     viewport: { width: 1600, height: 900 },
     fullPage: true,
     maxDiffPixels: 2_000,
@@ -83,7 +93,8 @@ const routeVisualCases: RouteVisualCase[] = [
     viewport: mobileViewport,
     signedIn: true,
     eventIndexFixture: true,
-    fixedTime: "2026-07-20T12:00:00.000Z",
+    liveEventFixture: true,
+    fixedTime: "2026-08-01T11:00:00.000Z",
     maxDiffPixels: 2_000,
   },
   {
@@ -271,6 +282,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       admin,
       eventIndexFixture,
       invalidEventFixture,
+      liveEventFixture,
       signedIn,
     }) => {
       localStorage.setItem("acceptedVersion", acceptedVersion);
@@ -543,6 +555,51 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
             is_admin: admin,
           },
         };
+        if (liveEventFixture) {
+          (
+            window as typeof window & {
+              __PKSPOT_SCREENSHOT_ATTENDED_EVENTS__?: unknown;
+            }
+          ).__PKSPOT_SCREENSHOT_ATTENDED_EVENTS__ = [
+            {
+              id: "visual-city-jam",
+              slug: "visual-city-jam",
+              name: "City Parkour Jam",
+              venue_string: "Riverside Park",
+              locality_string: "Basel, Switzerland",
+              start: "2026-08-01T10:00:00.000Z",
+              end: "2026-08-02T18:00:00.000Z",
+              time_zone: "Europe/Zurich",
+              attendance: { social: "rsvp", admission: "none" },
+              program: {
+                active_plan_id: "main",
+                plans: [
+                  {
+                    id: "main",
+                    label: "Main program",
+                    kind: "main",
+                    items: [
+                      {
+                        id: "welcome-jam",
+                        title: "Welcome jam",
+                        category: "jam",
+                        start: "2026-08-01T10:00:00.000Z",
+                        end: "2026-08-01T12:00:00.000Z",
+                      },
+                      {
+                        id: "movement-workshop",
+                        title: "Movement workshop",
+                        category: "workshop",
+                        start: "2026-08-01T12:30:00.000Z",
+                        end: "2026-08-01T14:00:00.000Z",
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          ];
+        }
         const now = Date.now();
         screenshotWindow.__PKSPOT_SCREENSHOT_NOTIFICATIONS__ = [
           {
@@ -600,6 +657,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       admin: route.admin === true,
       eventIndexFixture: route.eventIndexFixture === true,
       invalidEventFixture: route.invalidEventFixture === true,
+      liveEventFixture: route.liveEventFixture === true,
       signedIn: route.signedIn === true,
     },
   );

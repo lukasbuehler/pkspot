@@ -20,6 +20,20 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
+.live-events {
+  margin-bottom: 1.25rem;
+}
+
+.live-events h2 {
+  margin: 0 0 0.75rem;
+}
+
+.live-event-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: 0.75rem;
+}
+
 .loading-state,
 .empty-state {
   display: grid;

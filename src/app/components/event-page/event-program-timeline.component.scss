@@ -2,20 +2,63 @@
   min-width: 0;
 }
 
+.program-tab-shell {
+  display: flex;
+  min-width: 0;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
 .program-tab-list {
   display: flex;
+  flex: 1 1 auto;
   min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
-  border-bottom: 1px solid var(--mat-sys-outline-variant);
   overscroll-behavior-x: contain;
-  scrollbar-width: thin;
+  scrollbar-width: none;
   scroll-snap-type: x proximity;
   touch-action: pan-x pan-y;
   -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.program-tab-scroll-button {
+  display: inline-grid;
+  flex: 0 0 2.75rem;
+  place-items: center;
+  width: 2.75rem;
+  min-height: 3rem;
+  padding: 0;
+  border: 0;
+  background: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+  cursor: pointer;
+  z-index: 1;
+
+  &.previous {
+    border-right: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  &.next {
+    border-left: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  &:disabled {
+    color: var(--mat-sys-outline);
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: -3px;
+  }
 }
 
 .program-day-tab {
+  box-sizing: border-box;
   position: relative;
   display: inline-flex;
   flex: 0 0 auto;

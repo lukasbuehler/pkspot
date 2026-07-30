@@ -758,6 +758,7 @@ describe("EventInfoPageComponent", () => {
     expect(component.showRsvp()).toBe(true);
 
     vi.setSystemTime(new Date("2026-06-20T10:00:00.000Z"));
+    component.now.set(new Date());
     component.event.set(
       buildEvent("past-event", "Past Event", {
         start: "2026-06-14T10:00:00.000Z",
@@ -770,6 +771,7 @@ describe("EventInfoPageComponent", () => {
     expect(component.showRsvp()).toBe(false);
 
     vi.setSystemTime(new Date("2026-06-14T12:00:00.000Z"));
+    component.now.set(new Date());
     component.event.set(buildEvent("live-event", "Live Event"));
     flushSignalEffects();
 

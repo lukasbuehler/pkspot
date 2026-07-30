@@ -174,9 +174,11 @@ describe("EventProgramMapScheduleComponent", () => {
     const opened = vi.fn();
     const closed = vi.fn();
     const selected = vi.fn();
+    const occurrenceSelected = vi.fn();
     fixture.componentInstance.dayOpened.subscribe(opened);
     fixture.componentInstance.dayClosed.subscribe(closed);
-    fixture.componentInstance.occurrenceSelected.subscribe(selected);
+    fixture.componentInstance.spotSelected.subscribe(selected);
+    fixture.componentInstance.occurrenceSelected.subscribe(occurrenceSelected);
     await fixture.whenStable();
 
     const headers = fixture.nativeElement.querySelectorAll(
@@ -194,6 +196,7 @@ describe("EventProgramMapScheduleComponent", () => {
       ) as HTMLButtonElement
     ).click();
     expect(selected).toHaveBeenCalledWith(occurrence);
+    expect(occurrenceSelected).not.toHaveBeenCalled();
   });
 
   it("uses the same compact linked-event preview as the info timeline", async () => {

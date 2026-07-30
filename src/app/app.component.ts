@@ -95,12 +95,14 @@ import { UiLanguageService } from "./services/ui-language.service";
 import { FirebaseAppCheckService } from "./services/firebase/app-check.service";
 import { PushNotificationsService } from "./services/push-notifications.service";
 import { trainingFeatureEnabled } from "./features/training-feature";
+import { MyEventContextService } from "./services/my-event-context.service";
 
 interface ButtonBase {
   name: string;
   icon: string;
   image?: string;
   active?: boolean;
+  liveIndicator?: boolean;
 }
 
 interface LinkButton extends ButtonBase {
@@ -215,6 +217,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   private _appCheckService = inject(FirebaseAppCheckService);
   private _pushNotifications = inject(PushNotificationsService);
   public checkInService = inject(CheckInService);
+  readonly myEventContext = inject(MyEventContextService);
   readonly checkInEnabled = environment.features.checkIns;
 
   constructor(
@@ -1455,6 +1458,7 @@ html.pkspot-roboto-loaded body {
       name: $localize`:Events navbar button label|A very short label for the navbar events page button@@events_label:Events`,
       link: "/events",
       icon: "event",
+      liveIndicator: this.myEventContext.hasLiveEvent(),
     });
 
     // Drop "About" on tight viewports so the bottom toolbar fits 4 items

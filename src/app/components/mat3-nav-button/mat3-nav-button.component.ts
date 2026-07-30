@@ -22,6 +22,12 @@ export class Mat3NavButtonComponent {
   readonly label = input("label");
   readonly image = input("");
   readonly active = input(false);
+  readonly liveIndicator = input(false);
 
   readonly isOutlineIcon = computed(() => this.icon().endsWith("_border"));
+  readonly accessibleLabel = computed(() =>
+    this.liveIndicator()
+      ? `${this.label()}, ${$localize`:@@navigation.live_event:live event underway`}`
+      : this.label(),
+  );
 }

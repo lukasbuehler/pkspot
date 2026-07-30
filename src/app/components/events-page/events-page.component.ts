@@ -62,6 +62,13 @@ import {
   EventDiscoveryViewToggleComponent,
   type EventsDiscoveryView,
 } from "./event-discovery-view-toggle.component";
+import { EventNowNextCardComponent } from "../event-now-next-card/event-now-next-card.component";
+import { MyEventContextService } from "../../services/my-event-context.service";
+import { environment } from "../../../environments/environment.default";
+import {
+  ContinuousEventCalendarComponent,
+  type ContinuousEventCalendarLoader,
+} from "./continuous-event-calendar.component";
 
 type EventCreateAction = "event" | "session";
 
@@ -96,6 +103,8 @@ interface DiscoveryRequest {
   period: EventsListPeriod;
   month: string;
   limit: number;
+  rangeStartSeconds?: number;
+  rangeEndSeconds?: number;
 }
 
 const WIDE_CALENDAR_MIN_WIDTH = 1120;
@@ -113,6 +122,8 @@ const VIEW_STORAGE_KEY = "eventsDiscoveryView";
     EventDiscoveryListComponent,
     EventDiscoveryToolbarComponent,
     EventDiscoveryViewToggleComponent,
+    EventNowNextCardComponent,
+    ContinuousEventCalendarComponent,
     FabMenuComponent,
   ],
   templateUrl: "./events-page.component.html",
@@ -129,6 +140,9 @@ export class EventsPageComponent {
   private readonly _route = inject(ActivatedRoute);
   private readonly _router = inject(Router);
   private readonly _locale = inject(LOCALE_ID);
+  readonly myEventContext = inject(MyEventContextService);
+  readonly continuousCalendarEnabled =
+    environment.features.continuousEventCalendar;
   private readonly _authState = toSignal(this._auth.authState$, {
     initialValue: this._auth.authState$.value,
   });
@@ -159,8 +173,9 @@ export class EventsPageComponent {
     return actions;
   });
 
-  readonly containerWidth = signal(1200);
+  readonly containerWidth = signal(0);
   readonly explicitView = signal<EventsDiscoveryView | null>(null);
+  readonly legacyCalendarRequested = signal(false);
   readonly rememberedView = signal<EventsDiscoveryView | null>(
     readRememberedView(),
   );
@@ -184,8 +199,9 @@ export class EventsPageComponent {
   readonly view = computed<EventsDiscoveryView>(
     () =>
       this.explicitView() ??
+      (this.legacyCalendarRequested() ? "calendar" : null) ??
       this.rememberedView() ??
-      (this.wideCalendar() ? "calendar" : "list"),
+      "list",
   );
   readonly calendarRange = computed(() =>
     buildEventCalendarMonth(this.month(), this._locale, []),
@@ -200,16 +216,22 @@ export class EventsPageComponent {
     }
     return defaultDayForMonth(this.month());
   });
+  readonly discoveryAreaKeys = computed(() =>
+    this.areaAliases().length
+      ? this.areaAliases()
+      : this.areaKey()
+        ? [this.areaKey()]
+        : [],
+  );
+  readonly usesContinuousCalendar = computed(
+    () => this.view() === "calendar" && this.continuousCalendarEnabled,
+  );
 
   readonly discoveryResource = resource({
     params: (): DiscoveryRequest => ({
       view: this.view(),
       query: this.query(),
-      areaKeys: this.areaAliases().length
-        ? this.areaAliases()
-        : this.areaKey()
-          ? [this.areaKey()]
-          : [],
+      areaKeys: this.discoveryAreaKeys(),
       categories: this.selectedCategories(),
       seriesIds: this.selectedSeriesIds(),
       period: this.period(),
@@ -347,6 +369,34 @@ export class EventsPageComponent {
     },
   });
   readonly drafts = computed(() => this.draftsResource.value() ?? []);
+  readonly loadContinuousCalendarEvents: ContinuousEventCalendarLoader = (
+    request,
+  ) => {
+    const screenshot = this._screenshotDiscovery({
+      view: "calendar",
+      query: request.query,
+      areaKeys: request.areaKeys,
+      categories: request.categories,
+      seriesIds: request.seriesIds,
+      period: this.period(),
+      month: this.month(),
+      limit: LIST_PAGE_SIZE,
+      rangeStartSeconds: request.endsAfterSeconds,
+      rangeEndSeconds: request.startsBeforeSeconds,
+    });
+    if (screenshot) return Promise.resolve(screenshot);
+
+    return this._search.searchAllEventDiscovery({
+      query: request.query,
+      areaKeys: request.areaKeys,
+      categories: request.categories,
+      seriesIds: request.seriesIds,
+      startsBeforeSeconds: request.startsBeforeSeconds,
+      endsAfterSeconds: request.endsAfterSeconds,
+      sort: "calendar",
+      abortSignal: request.abortSignal,
+    });
+  };
 
   constructor() {
     this._route.queryParamMap
@@ -448,6 +498,13 @@ export class EventsPageComponent {
     void this._updateQueryParams({ day });
   }
 
+  jumpToCalendarDate(day: string): void {
+    void this._updateQueryParams({
+      month: day.slice(0, 7),
+      day,
+    });
+  }
+
   loadMore(): void {
     this.resultLimit.update((limit) => Math.min(250, limit + LIST_PAGE_SIZE));
   }
@@ -488,8 +545,11 @@ export class EventsPageComponent {
 
   private _readQueryParams(params: ParamMap): void {
     const view = params.get("view");
-    this.explicitView.set(
-      view === "list" || view === "calendar" ? view : null,
+    const explicitView =
+      view === "list" || view === "calendar" ? view : null;
+    this.explicitView.set(explicitView);
+    this.legacyCalendarRequested.set(
+      explicitView === null && (params.has("month") || params.has("day")),
     );
     this.query.set(params.get("q")?.trim() ?? "");
     const area = params.get("area")?.trim() ?? "";
@@ -561,10 +621,19 @@ export class EventsPageComponent {
     const fixture = this._screenshotEventIndex();
     if (!fixture) return null;
     const query = request.query.toLocaleLowerCase();
-    const range =
+    const monthRange =
       request.view === "calendar"
         ? buildEventCalendarMonth(request.month, this._locale, [])
         : null;
+    const range =
+      monthRange === null
+        ? null
+        : {
+            queryStartSeconds:
+              request.rangeStartSeconds ?? monthRange.queryStartSeconds,
+            queryEndSeconds:
+              request.rangeEndSeconds ?? monthRange.queryEndSeconds,
+          };
     const now = Math.floor(Date.now() / 1000);
     const previews = fixture.events.map((event) =>
       screenshotEventPreview(event),

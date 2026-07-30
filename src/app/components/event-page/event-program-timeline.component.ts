@@ -1,11 +1,17 @@
 import {
+  afterNextRender,
+  afterRenderEffect,
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
+  ElementRef,
   inject,
   input,
   linkedSignal,
   output,
+  signal,
+  viewChild,
 } from "@angular/core";
 import { MatIconModule } from "@angular/material/icon";
 import { Event as PkEvent, EventProgramItem } from "../../../db/models/Event";
@@ -34,9 +40,11 @@ import {
 } from "../weather-icon-button/weather-icon-button.component";
 import {
   effectiveProgramItem,
+  smartEventProgramDay,
   type EventMarkerBinding,
   type EventSpotBinding,
 } from "../../shared/event-program-spots";
+import { eventProgramMoment } from "../../shared/event-program-now";
 import { eventProgramTimelineLocationsByItem } from "../../shared/event-program-timeline";
 import type { SeriesDocument } from "../../services/firebase/firestore/series.service";
 import {
@@ -59,6 +67,13 @@ interface ProgramDayGroup {
   weather?: ProgramDayWeather;
 }
 
+interface ProgramDaySelectionSource {
+  groups: ProgramDayGroup[];
+  preferredItemId: string | null;
+  timeZone: string | undefined;
+  now: Date;
+}
+
 @Component({
   selector: "app-event-program-timeline",
   imports: [
@@ -72,6 +87,10 @@ interface ProgramDayGroup {
 })
 export class EventProgramTimelineComponent {
   private readonly _dateTime = inject(DateTimeFormatService);
+  private readonly _destroyRef = inject(DestroyRef);
+  private readonly _tabList =
+    viewChild<ElementRef<HTMLDivElement>>("tabList");
+  private _tabResizeObserver?: ResizeObserver;
 
   readonly items = input.required<EventProgramItem[]>();
   readonly timeZone = input<string | undefined>();
@@ -84,7 +103,36 @@ export class EventProgramTimelineComponent {
   readonly linkedEventsById = input<Readonly<Record<string, PkEvent>>>({});
   readonly seriesById = input<Readonly<Record<string, SeriesDocument>>>({});
   readonly eventMapRoute = input.required<string[]>();
+  readonly selectedItemId = input<string | null>(null);
   readonly weatherSelected = output<EventWeatherSelection>();
+  readonly canScrollTabsLeft = signal(false);
+  readonly canScrollTabsRight = signal(false);
+  readonly scrollDaysLeftLabel = $localize`:@@event_program.scroll_days_left:Scroll program days left`;
+  readonly scrollDaysRightLabel = $localize`:@@event_program.scroll_days_right:Scroll program days right`;
+
+  constructor() {
+    afterNextRender(() => {
+      const tabList = this._tabList()?.nativeElement;
+      if (!tabList || typeof ResizeObserver === "undefined") return;
+
+      this._tabResizeObserver = new ResizeObserver(() =>
+        this.updateTabScrollState(tabList),
+      );
+      this._tabResizeObserver.observe(tabList);
+      this._destroyRef.onDestroy(() => this._tabResizeObserver?.disconnect());
+    });
+
+    afterRenderEffect(() => {
+      this.dayGroups();
+      this.selectedDayKey();
+
+      const tabList = this._tabList()?.nativeElement;
+      if (!tabList) return;
+
+      this.scrollSelectedTabIntoView(tabList);
+      this.updateTabScrollState(tabList);
+    });
+  }
 
   readonly dayGroups = computed<ProgramDayGroup[]>(() => {
     const groups = new Map<string, ProgramDayGroup>();
@@ -158,17 +206,45 @@ export class EventProgramTimelineComponent {
 
     return [...groups.values()];
   });
+  readonly moment = computed(() => eventProgramMoment(this.items(), this.now()));
+  readonly highlightedItemId = computed(
+    () =>
+      this.selectedItemId() ??
+      this.moment().current[0]?.item.id ??
+      this.moment().next[0]?.item.id ??
+      null,
+  );
+  readonly activeItemIds = computed(() =>
+    this.moment().current.map(({ item }) => item.id),
+  );
   readonly selectedDayKey = linkedSignal<
-    ProgramDayGroup[],
+    ProgramDaySelectionSource,
     string
   >({
-    source: this.dayGroups,
-    computation: (groups, previous) => {
+    source: () => ({
+      groups: this.dayGroups(),
+      preferredItemId: this.selectedItemId(),
+      timeZone: this.timeZone(),
+      now: this.now(),
+    }),
+    computation: (source, previous) => {
+      const preferredDay = source.groups.find((group) =>
+        group.items.some(({ item }) => item.id === source.preferredItemId),
+      )?.key;
+      if (preferredDay) return preferredDay;
+
       const previousKey = previous?.value;
-      if (previousKey && groups.some((group) => group.key === previousKey)) {
+      if (
+        previousKey &&
+        source.groups.some((group) => group.key === previousKey)
+      ) {
         return previousKey;
       }
-      return groups[0]?.key ?? "";
+      return smartEventProgramDay(
+        source.groups.map(({ key }) => key),
+        source.timeZone,
+        source.now,
+      );
     },
   });
   readonly selectedDay = computed(() =>
@@ -229,6 +305,30 @@ export class EventProgramTimelineComponent {
     }
   }
 
+  scrollTabs(direction: "left" | "right"): void {
+    const tabList = this._tabList()?.nativeElement;
+    if (!tabList) return;
+
+    tabList.scrollBy({
+      left:
+        (direction === "right" ? 1 : -1) *
+        Math.max(160, tabList.clientWidth * 0.7),
+      behavior: "smooth",
+    });
+  }
+
+  updateTabScrollState(tabList: HTMLElement): void {
+    const tolerance = 1;
+    const maxScrollLeft = Math.max(
+      tabList.scrollWidth - tabList.clientWidth,
+      0,
+    );
+    this.canScrollTabsLeft.set(tabList.scrollLeft > tolerance);
+    this.canScrollTabsRight.set(
+      tabList.scrollLeft < maxScrollLeft - tolerance,
+    );
+  }
+
   selectDayWeather(date: string): void {
     this.weatherSelected.emit({ date });
   }
@@ -285,5 +385,26 @@ export class EventProgramTimelineComponent {
   ): "neutral" | "wet" | "warning" {
     if (tone === "wet") return "wet";
     return tone === "warning" ? "warning" : "neutral";
+  }
+
+  private scrollSelectedTabIntoView(tabList: HTMLElement): void {
+    const selectedTab = tabList.querySelector<HTMLElement>(
+      '[role="tab"][aria-selected="true"]',
+    );
+    if (!selectedTab) return;
+
+    const viewportLeft = tabList.scrollLeft;
+    const viewportRight = viewportLeft + tabList.clientWidth;
+    const tabLeft = selectedTab.offsetLeft;
+    const tabRight = tabLeft + selectedTab.offsetWidth;
+    const targetLeft =
+      tabLeft < viewportLeft
+        ? tabLeft
+        : tabRight > viewportRight
+          ? tabRight - tabList.clientWidth
+          : null;
+
+    if (targetLeft === null) return;
+    tabList.scrollLeft = Math.max(targetLeft, 0);
   }
 }

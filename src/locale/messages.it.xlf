@@ -3485,10 +3485,10 @@
         <target>Reimposta orientamento mappa verso nord</target>
       </segment>
     </unit>
-    <unit id="8607494029860346775">
-      <segment state="initial">
-        <source>Event dates use each venue’s local time.</source>
-        <target>Le date degli eventi usano l’ora locale di ogni sede.</target>
+    <unit id="events.calendar_local_time_note">
+      <segment state="final">
+        <source> Event dates use each venue’s local time. </source>
+        <target> Le date degli eventi usano l’ora locale di ogni sede. </target>
       </segment>
     </unit>
     <unit id="8609785202570000921">
@@ -4682,6 +4682,12 @@
       <segment state="initial">
         <source>Other Spots</source>
         <target>Altri spot</target>
+      </segment>
+    </unit>
+    <unit id="navigation.live_event">
+      <segment state="initial">
+        <source>live event underway</source>
+        <target>evento in diretta in corso</target>
       </segment>
     </unit>
     <unit id="no_spots_text">
@@ -8981,6 +8987,18 @@
         <target>Apri evento</target>
       </segment>
     </unit>
+    <unit id="event_program.scroll_days_left">
+      <segment>
+        <source>Scroll program days left</source>
+        <target>Scorri i giorni del programma verso sinistra</target>
+      </segment>
+    </unit>
+    <unit id="event_program.scroll_days_right">
+      <segment>
+        <source>Scroll program days right</source>
+        <target>Scorri i giorni del programma verso destra</target>
+      </segment>
+    </unit>
     <unit id="events.area_filter_area">
       <segment state="initial">
         <source>Area</source>
@@ -9003,6 +9021,24 @@
       <segment state="initial">
         <source>Search for a city, region, or country</source>
         <target>Cerca una città, regione o paese</target>
+      </segment>
+    </unit>
+    <unit id="events.calendar_jump_to">
+      <segment state="final">
+        <source>Jump to</source>
+        <target>Vai a</target>
+      </segment>
+    </unit>
+    <unit id="events.calendar_load_more_error">
+      <segment state="final">
+        <source> More events could not be loaded. </source>
+        <target> Impossibile caricare altri eventi. </target>
+      </segment>
+    </unit>
+    <unit id="events.calendar_loading_more">
+      <segment state="final">
+        <source> Loading more events… </source>
+        <target> Caricamento di altri eventi… </target>
       </segment>
     </unit>
     <unit id="events.calendar_more_aria">
@@ -14418,6 +14454,12 @@
         <target>Trova spot e altro</target>
       </segment>
     </unit>
+    <unit id="events.live_events_heading">
+      <segment state="initial">
+        <source> Happening now </source>
+        <target> In diretta ora </target>
+      </segment>
+    </unit>
     <unit id="events.now_or_past">
       <segment state="initial">
         <source>now</source>
@@ -14470,6 +14512,60 @@
       <segment state="initial">
         <source>Event notifications: <ph id="0" equiv="PH" disp="this.notificationLabel()"/></source>
         <target>Notifiche dell&apos;evento: <ph id="0" equiv="PH" disp="this.notificationLabel()"/></target>
+      </segment>
+    </unit>
+    <unit id="event_now.fallback">
+      <segment state="initial">
+        <source> This event is happening now. </source>
+        <target> Questo evento è in corso. </target>
+      </segment>
+    </unit>
+    <unit id="event_now.live_now">
+      <segment state="initial">
+        <source>Live now</source>
+        <target>In diretta</target>
+      </segment>
+    </unit>
+    <unit id="event_now.more_current">
+      <segment state="initial">
+        <source> +<ph id="0" equiv="INTERPOLATION" disp="{{ moment().current.length - 1 }}"/> more </source>
+        <target> +<ph id="0" equiv="INTERPOLATION" disp="{{ moment().current.length - 1 }}"/> altri </target>
+      </segment>
+    </unit>
+    <unit id="event_now.more_next">
+      <segment state="initial">
+        <source> +<ph id="0" equiv="INTERPOLATION" disp="{{ moment().next.length - 1 }}"/> more </source>
+        <target> +<ph id="0" equiv="INTERPOLATION" disp="{{ moment().next.length - 1 }}"/> altri </target>
+      </segment>
+    </unit>
+    <unit id="event_now.next">
+      <segment state="initial">
+        <source> Next </source>
+        <target> Prossimo </target>
+      </segment>
+    </unit>
+    <unit id="event_now.now">
+      <segment state="initial">
+        <source> Now </source>
+        <target> Ora </target>
+      </segment>
+    </unit>
+    <unit id="event_now.open_event">
+      <segment state="initial">
+        <source>Open event</source>
+        <target>Apri evento</target>
+      </segment>
+    </unit>
+    <unit id="event_now.underway">
+      <segment state="initial">
+        <source>Event underway</source>
+        <target>Evento in corso</target>
+      </segment>
+    </unit>
+    <unit id="event_now.view_program">
+      <segment state="initial">
+        <source>View in program</source>
+        <target>Vedi nel programma</target>
       </segment>
     </unit>
     <unit id="event_rsvp.save_failed">

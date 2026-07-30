@@ -145,7 +145,8 @@
 
 .spot-program-section {
   border-bottom: 1px solid var(--mat-sys-outline-variant);
-  padding: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
 }
 
 :host ::ng-deep .event-spot-list mat-card.compact {

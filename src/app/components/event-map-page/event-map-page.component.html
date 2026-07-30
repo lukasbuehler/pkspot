@@ -441,6 +441,7 @@
                     (dayOpened)="openProgramDay($event)"
                     (dayClosed)="closeProgramDay($event)"
                     (occurrenceSelected)="selectProgramOccurrence($event)"
+                    (spotSelected)="openProgramSpotDetails($event)"
                   />
                 </div>
               }
@@ -451,24 +452,6 @@
                     #spotScrollContainer
                     class="w-100 d-flex flex-column overflow-x-hidden overflow-y-auto h-100"
                   >
-                    @if (selectedSpotProgramOccurrences().length > 0) {
-                      <section
-                        class="location-program-section spot-program-section flex-shrink-0"
-                      >
-                        <h2
-                          class="mat-title-medium m-0"
-                          i18n="@@event_program.at_this_spot"
-                        >
-                          Program at this Spot
-                        </h2>
-                        <app-event-program-occurrence-list
-                          [occurrences]="selectedSpotProgramOccurrences()"
-                          [timeZone]="event()?.timeZone"
-                          [showSpotCards]="false"
-                          (occurrenceSelected)="selectProgramOccurrence($event)"
-                        />
-                      </section>
-                    }
                     <app-spot-details
                       @fadeInOut
                       [spot]="selectedSpot()"
@@ -479,7 +462,32 @@
                       [showRating]="false"
                       (dismiss)="deselectSpot()"
                       class="w-100 d-block overflow-x-hidden flex-shrink-0"
-                    ></app-spot-details>
+                    >
+                      <section
+                        spotDetailsAfterMedia
+                        class="location-program-section spot-program-section"
+                        [hidden]="
+                          selectedSpotProgramOccurrences().length === 0
+                        "
+                      >
+                        @if (selectedSpotProgramOccurrences().length > 0) {
+                          <h2
+                            class="mat-title-medium m-0"
+                            i18n="@@event_program.at_this_spot"
+                          >
+                            Program at this Spot
+                          </h2>
+                          <app-event-program-occurrence-list
+                            [occurrences]="selectedSpotProgramOccurrences()"
+                            [timeZone]="event()?.timeZone"
+                            [showSpotCards]="false"
+                            (occurrenceSelected)="
+                              selectProgramOccurrence($event)
+                            "
+                          />
+                        }
+                      </section>
+                    </app-spot-details>
                   </div>
                 } @else {
                   @if (spots() && spots()!.length > 0) {

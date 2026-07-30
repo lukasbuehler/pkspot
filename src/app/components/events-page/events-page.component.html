@@ -3,6 +3,30 @@
   appResizeObserver
   (resize)="onContainerResize($event)"
 >
+  @if (myEventContext.liveEvents().length > 0) {
+    <section
+      class="live-events"
+      aria-labelledby="live-events-heading"
+    >
+      <h2
+        id="live-events-heading"
+        class="mat-title-large"
+        i18n="@@events.live_events_heading"
+      >
+        Happening now
+      </h2>
+      <div class="live-event-grid">
+        @for (event of myEventContext.liveEvents(); track event.id) {
+          <app-event-now-next-card
+            [event]="event"
+            [now]="myEventContext.now()"
+            [showEventName]="true"
+          />
+        }
+      </div>
+    </section>
+  }
+
   <header class="page-header">
     <div class="page-heading">
       <h1 class="mat-headline-large" i18n="@@events.title">Events</h1>
@@ -31,7 +55,7 @@
     (filtersCleared)="clearFilters()"
   />
 
-  @if (discoveryResource.error()) {
+  @if (discoveryResource.error() && !usesContinuousCalendar()) {
     <section class="status-card error-card" role="alert">
       <span class="status-icon"><mat-icon>warning</mat-icon></span>
       <div>
@@ -68,7 +92,21 @@
       </section>
     }
 
-    @if (discoveryResource.isLoading() && !discoveryResult()) {
+    @if (usesContinuousCalendar()) {
+      <app-continuous-event-calendar
+        [anchorMonth]="month()"
+        [selectedDay]="selectedDay()"
+        [wide]="wideCalendar()"
+        [query]="query()"
+        [areaKeys]="discoveryAreaKeys()"
+        [categories]="selectedCategories()"
+        [seriesIds]="selectedSeriesIds()"
+        [seriesById]="seriesById()"
+        [loadEvents]="loadContinuousCalendarEvents"
+        (daySelected)="selectDay($event)"
+        (dateJumped)="jumpToCalendarDate($event)"
+      />
+    } @else if (discoveryResource.isLoading() && !discoveryResult()) {
       <div class="loading-state" role="status">
         <mat-icon class="loading-icon">hourglass_top</mat-icon>
         <span class="mat-body-medium" i18n>Loading events…</span>

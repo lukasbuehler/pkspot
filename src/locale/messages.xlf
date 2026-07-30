@@ -5005,6 +5005,51 @@
         <source>Event notifications: <ph id="0" equiv="PH" disp="this.notificationLabel()"/></source>
       </segment>
     </unit>
+    <unit id="event_now.fallback">
+      <segment>
+        <source> This event is happening now. </source>
+      </segment>
+    </unit>
+    <unit id="event_now.live_now">
+      <segment>
+        <source>Live now</source>
+      </segment>
+    </unit>
+    <unit id="event_now.more_current">
+      <segment>
+        <source> +<ph id="0" equiv="INTERPOLATION" disp="{{ moment().current.length - 1 }}"/> more </source>
+      </segment>
+    </unit>
+    <unit id="event_now.more_next">
+      <segment>
+        <source> +<ph id="0" equiv="INTERPOLATION" disp="{{ moment().next.length - 1 }}"/> more </source>
+      </segment>
+    </unit>
+    <unit id="event_now.next">
+      <segment>
+        <source> Next </source>
+      </segment>
+    </unit>
+    <unit id="event_now.now">
+      <segment>
+        <source> Now </source>
+      </segment>
+    </unit>
+    <unit id="event_now.open_event">
+      <segment>
+        <source>Open event</source>
+      </segment>
+    </unit>
+    <unit id="event_now.underway">
+      <segment>
+        <source>Event underway</source>
+      </segment>
+    </unit>
+    <unit id="event_now.view_program">
+      <segment>
+        <source>View in program</source>
+      </segment>
+    </unit>
     <unit id="event_page.back_to_events">
       <segment>
         <source>Back to all events</source>
@@ -5123,6 +5168,16 @@
     <unit id="event_program.open_linked">
       <segment>
         <source>Open event</source>
+      </segment>
+    </unit>
+    <unit id="event_program.scroll_days_left">
+      <segment>
+        <source>Scroll program days left</source>
+      </segment>
+    </unit>
+    <unit id="event_program.scroll_days_right">
+      <segment>
+        <source>Scroll program days right</source>
       </segment>
     </unit>
     <unit id="event_qualification.heading">
@@ -5620,6 +5675,21 @@
         <source>Search for a city, region, or country</source>
       </segment>
     </unit>
+    <unit id="events.calendar_jump_to">
+      <segment>
+        <source>Jump to</source>
+      </segment>
+    </unit>
+    <unit id="events.calendar_load_more_error">
+      <segment>
+        <source> More events could not be loaded. </source>
+      </segment>
+    </unit>
+    <unit id="events.calendar_loading_more">
+      <segment>
+        <source> Loading more events… </source>
+      </segment>
+    </unit>
     <unit id="events.calendar_more_aria">
       <segment>
         <source>Show <ph id="0" equiv="eventCount" disp="day.hiddenEventCount"/> more events on <ph id="1" equiv="localDate" disp="date"/></source>
@@ -5648,6 +5718,11 @@
     <unit id="events.discovery_card_aria">
       <segment>
         <source><ph id="0" equiv="eventName" disp="event.name"/>, <ph id="1" equiv="localDate" disp="localDate"/>, <ph id="2" equiv="location" disp="location"/>, <ph id="3" equiv="goingSummary" disp="going"/>, <ph id="4" equiv="interestedSummary" disp="interested"/></source>
+      </segment>
+    </unit>
+    <unit id="events.live_events_heading">
+      <segment>
+        <source> Happening now </source>
       </segment>
     </unit>
     <unit id="events.now_or_past">
@@ -7580,9 +7655,9 @@
         <source>Minimum 6 characters</source>
       </segment>
     </unit>
-    <unit id="8607494029860346775">
+    <unit id="events.calendar_local_time_note">
       <segment>
-        <source>Event dates use each venue’s local time.</source>
+        <source> Event dates use each venue’s local time. </source>
       </segment>
     </unit>
     <unit id="8609785202570000921">
@@ -10018,6 +10093,11 @@
     <unit id="regular_spots_text">
       <segment>
         <source>Other Spots</source>
+      </segment>
+    </unit>
+    <unit id="navigation.live_event">
+      <segment>
+        <source>live event underway</source>
       </segment>
     </unit>
     <unit id="no_spots_text">

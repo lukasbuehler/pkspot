@@ -17,6 +17,7 @@ import {
 } from "../../services/search.service";
 import { EventDiscoveryIssuesDialogComponent } from "./event-discovery-issues-dialog.component";
 import { EventsPageComponent } from "./events-page.component";
+import { MyEventContextService } from "../../services/my-event-context.service";
 
 interface ScreenshotGlobal {
   __PKSPOT_SCREENSHOT_EVENT_INDEX__?: unknown;
@@ -162,6 +163,13 @@ function createComponent(options?: {
       { provide: MatDialog, useValue: dialog },
       { provide: LOCALE_ID, useValue: "en-CH" },
       { provide: PLATFORM_ID, useValue: options?.platform ?? "browser" },
+      {
+        provide: MyEventContextService,
+        useValue: {
+          liveEvents: signal<PkEvent[]>([]),
+          now: signal(new Date("2026-08-14T12:00:00.000Z")),
+        },
+      },
     ],
   });
 
@@ -181,11 +189,11 @@ describe("EventsPageComponent", () => {
     globalThis.localStorage?.removeItem("eventsDiscoveryView");
   });
 
-  it("uses adaptive defaults until the user explicitly chooses a view", () => {
+  it("defaults to the list until the user explicitly chooses a view", () => {
     const { component } = createComponent();
 
     component.containerWidth.set(1200);
-    expect(component.view()).toBe("calendar");
+    expect(component.view()).toBe("list");
 
     component.containerWidth.set(700);
     expect(component.view()).toBe("list");
@@ -195,6 +203,19 @@ describe("EventsPageComponent", () => {
     expect(globalThis.localStorage?.getItem("eventsDiscoveryView")).toBe(
       "calendar",
     );
+  });
+
+  it("keeps calendar links without an explicit view backward compatible", () => {
+    const { component } = createComponent({
+      queryParams: {
+        month: "2026-08",
+        day: "2026-08-14",
+      },
+    });
+
+    expect(component.view()).toBe("calendar");
+    expect(component.month()).toBe("2026-08");
+    expect(component.selectedDay()).toBe("2026-08-14");
   });
 
   it("lets URL state override the remembered view and restores filters", () => {
@@ -430,7 +451,9 @@ describe("EventsPageComponent", () => {
   });
 
   it("adds calendar and list defaults to the URL without creating history entries", () => {
-    const calendar = createComponent();
+    const calendar = createComponent({
+      queryParams: { view: "calendar" },
+    });
 
     calendar.component.onContainerResize({ width: 1200 } as DOMRectReadOnly);
 

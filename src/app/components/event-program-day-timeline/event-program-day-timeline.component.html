@@ -3,7 +3,9 @@
     @let item = entry.item;
     <article
       class="program-item"
+      [id]="'event-program-item-' + item.id"
       [class.is-selected]="item.id === selectedItemId()"
+      [class.is-active]="activeItemIds().includes(item.id)"
     >
       <div class="program-rail">
         <span class="program-dot" aria-hidden="true"></span>
@@ -82,10 +84,8 @@
                   class="program-spot-link"
                   [routerLink]="eventMapRoute()"
                   [queryParams]="{
-                    mapFilter: 'program',
-                    day: dayKey(),
+                    mapFilter: 'spots',
                     spotId: spot.binding.ref.id,
-                    programItemId: item.id,
                   }"
                 >
                   <app-spot-preview-card

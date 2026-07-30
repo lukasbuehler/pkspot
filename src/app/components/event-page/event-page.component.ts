@@ -98,6 +98,7 @@ import {
   EventOwnershipClaimDialogData,
 } from "../event-ownership-claim-dialog/event-ownership-claim-dialog.component";
 import { EventProgramDayChipsComponent } from "../event-program-day-chips/event-program-day-chips.component";
+import { EventNowNextCardComponent } from "../event-now-next-card/event-now-next-card.component";
 import {
   eventProgramDays,
   eventProgramLocationVisits,
@@ -144,6 +145,7 @@ type ProgramMapMarker = MarkerSchema & {
     EventAccessManagerComponent,
     EventRegistrationManagerComponent,
     EventProgramDayChipsComponent,
+    EventNowNextCardComponent,
   ],
   templateUrl: "./event-page.component.html",
   styleUrl: "./event-page.component.scss",
@@ -196,6 +198,8 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly isSavingEvent = signal(false);
   readonly isEventDescriptionExpanded = signal(false);
   readonly currentRsvp = signal<EventRSVPOption | null>(null);
+  readonly now = signal(new Date());
+  readonly focusedProgramItemId = signal<string | null>(null);
   readonly qualifierEventsById = signal<Record<string, PkEvent>>({});
   readonly programLinkedEventsById = signal<Record<string, PkEvent>>({});
   readonly seriesById = signal<Record<string, SeriesDocument>>({});
@@ -256,7 +260,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly organizer = computed(() => this.event()?.organizer?.organization);
   readonly organizerName = computed(() => this.event()?.organizerName ?? "");
   readonly status = computed<EventStatus | null>(
-    () => this.event()?.status() ?? null,
+    () => this.event()?.status(this.now()) ?? null,
   );
   readonly showRsvp = computed(
     () =>
@@ -341,7 +345,6 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly programDays = computed(() =>
     eventProgramDays(this.activeProgramItems(), this.event()?.timeZone),
   );
-  readonly now = signal(new Date());
   readonly selectedProgramDay = linkedSignal<
     {
       eventId: string;
@@ -761,6 +764,17 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
 
   selectProgramDay(day: string | null): void {
     this.selectedProgramDay.set(day);
+  }
+
+  focusProgramItem(itemId: string): void {
+    this.focusedProgramItemId.set(itemId);
+    if (!this.isBrowser()) return;
+
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById(`event-program-item-${itemId}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   }
 
   programMarkerClicked(

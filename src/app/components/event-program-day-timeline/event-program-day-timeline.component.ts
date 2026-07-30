@@ -55,6 +55,7 @@ export class EventProgramDayTimelineComponent {
   readonly seriesById = input<Readonly<Record<string, SeriesDocument>>>({});
   readonly spotAction = input<"navigate" | "select">("navigate");
   readonly selectedItemId = input<string | null>(null);
+  readonly activeItemIds = input<readonly string[]>([]);
 
   readonly itemWeatherSelected = output<Date>();
   readonly occurrenceSelected = output<EventProgramOccurrence>();

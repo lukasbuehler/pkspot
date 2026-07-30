@@ -91,6 +91,7 @@ describe("EventProgramTimelineComponent", () => {
         title: "Later",
         category: "social",
         start: new Date("2026-07-24T08:30:00Z"),
+        end: new Date("2026-07-24T10:00:00Z"),
       },
     ]);
     fixture.componentRef.setInput("timeZone", "UTC");
@@ -102,6 +103,7 @@ describe("EventProgramTimelineComponent", () => {
     fixture.componentRef.setInput("eventStart", new Date("2026-07-23T08:00:00Z"));
     fixture.componentRef.setInput("eventEnd", new Date("2026-07-24T18:00:00Z"));
     fixture.componentRef.setInput("weather", response);
+    fixture.componentRef.setInput("now", new Date("2026-07-23T09:00:00Z"));
   });
 
   it("shows tab, day, and itinerary weather only where forecasts exist", async () => {
@@ -126,7 +128,7 @@ describe("EventProgramTimelineComponent", () => {
     expect(fixture.nativeElement.textContent).toContain("Training");
   });
 
-  it("uses a native scrollable tab list with mouse and keyboard navigation", async () => {
+  it("uses visible scroll controls plus mouse and keyboard navigation", async () => {
     await fixture.whenStable();
 
     const tabList = fixture.nativeElement.querySelector(
@@ -141,6 +143,26 @@ describe("EventProgramTimelineComponent", () => {
       scrollWidth: { configurable: true, value: 500 },
       scrollLeft: { configurable: true, value: 0, writable: true },
     });
+    const scrollBy = vi.fn();
+    tabList.scrollBy = scrollBy;
+    fixture.componentInstance.updateTabScrollState(tabList);
+    await fixture.whenStable();
+
+    const previousButton = fixture.nativeElement.querySelector(
+      ".program-tab-scroll-button.previous",
+    ) as HTMLButtonElement;
+    const nextButton = fixture.nativeElement.querySelector(
+      ".program-tab-scroll-button.next",
+    ) as HTMLButtonElement;
+    expect(previousButton.disabled).toBe(true);
+    expect(nextButton.disabled).toBe(false);
+
+    nextButton.click();
+    expect(scrollBy).toHaveBeenCalledWith({
+      left: 160,
+      behavior: "smooth",
+    });
+
     const wheel = new WheelEvent("wheel", {
       bubbles: true,
       cancelable: true,
@@ -164,6 +186,19 @@ describe("EventProgramTimelineComponent", () => {
     expect(tabs[1].getAttribute("aria-selected")).toBe("true");
     expect(document.activeElement).toBe(tabs[1]);
     expect(fixture.nativeElement.textContent).toContain("Later");
+  });
+
+  it("opens the event-local current day and highlights its live item", async () => {
+    fixture.componentRef.setInput("now", new Date("2026-07-24T08:45:00Z"));
+
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.selectedDayKey()).toBe("2026-07-24");
+    expect(
+      fixture.nativeElement.querySelector(
+        "#event-program-item-later",
+      )?.classList.contains("is-selected"),
+    ).toBe(true);
   });
 
   it("emits the day and exact itinerary start selections", async () => {
@@ -219,7 +254,7 @@ describe("EventProgramTimelineComponent", () => {
     ) as HTMLAnchorElement;
     expect(fixture.nativeElement.textContent).toContain("Main stage");
     expect(link.getAttribute("href")).toContain(
-      "map?mapFilter=program&day=2026-07-23&spotId=main-stage&programItemId=training",
+      "map?mapFilter=spots&spotId=main-stage",
     );
   });
 

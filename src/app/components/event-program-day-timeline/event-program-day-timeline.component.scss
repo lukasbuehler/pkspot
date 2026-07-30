@@ -12,6 +12,7 @@
   grid-template-columns: 5.75rem minmax(0, 1fr);
   gap: 1rem;
   min-height: 4rem;
+  scroll-margin-block: 1rem;
 }
 
 .program-rail {
@@ -176,6 +177,16 @@
 
 .program-item.is-selected .program-title h3 {
   color: var(--mat-sys-primary);
+}
+
+.program-item.is-active .program-rail,
+.program-item.is-active .program-title h3 {
+  color: var(--mat-sys-secondary);
+}
+
+.program-item.is-active .program-dot {
+  border-color: var(--mat-sys-secondary);
+  background: var(--mat-sys-secondary-container);
 }
 
 @container program-day (max-width: 34rem) {

@@ -71,7 +71,7 @@ const buildLocalSpot = (name: string): LocalSpot =>
   );
 
 describe("EventMapPageComponent", () => {
-  it("shows program occurrences before long location details", () => {
+  it("projects program occurrences into location details before long metadata", () => {
     const template = readFileSync(
       join(
         process.cwd(),
@@ -88,6 +88,9 @@ describe("EventMapPageComponent", () => {
     );
     expect(eventPanel).toContain("selectedCustomMarkerProgramOccurrences()");
     expect(eventPanel).toContain("<app-event-program-occurrence-list");
+    expect(template).toContain(
+      '(spotSelected)="openProgramSpotDetails($event)"',
+    );
 
     const spotsPanel = template.slice(template.indexOf('@case ("spots")'));
     const spotProgramIndex = spotsPanel.indexOf("spot-program-section");
@@ -98,11 +101,35 @@ describe("EventMapPageComponent", () => {
     );
 
     expect(spotProgramIndex).toBeGreaterThan(-1);
-    expect(spotProgramIndex).toBeLessThan(spotDetailsIndex);
+    expect(spotProgramIndex).toBeGreaterThan(spotDetailsIndex);
+    expect(spotProgramIndex).toBeLessThan(spotDetailsEnd);
+    expect(
+      spotsPanel.slice(spotDetailsIndex, spotDetailsEnd),
+    ).toContain("spotDetailsAfterMedia");
     expect(spotsPanel).toContain("overflow-y-auto h-100");
     expect(
       spotsPanel.slice(spotDetailsIndex, spotDetailsEnd),
     ).not.toContain("h-100");
+
+    const spotDetailsTemplate = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/spot-details/spot-details.component.html",
+      ),
+      "utf8",
+    );
+    const mediaIndex = spotDetailsTemplate.indexOf(
+      "<!-- spot media carousel",
+    );
+    const projectionIndex = spotDetailsTemplate.indexOf(
+      '<ng-content select="[spotDetailsAfterMedia]"',
+    );
+    const navigationIndex = spotDetailsTemplate.indexOf(
+      "<!-- Navigate and open in google buttons",
+    );
+
+    expect(projectionIndex).toBeGreaterThan(mediaIndex);
+    expect(projectionIndex).toBeLessThan(navigationIndex);
   });
 
   it("keeps the map view noindex and canonicalized to the event info page", async () => {
@@ -483,6 +510,31 @@ describe("EventMapPageComponent", () => {
     } satisfies SpotPreviewData);
 
     expect(component.selectedSpot()).toBe(localSpot);
+
+    const scheduleSpotOccurrence = component
+      .programOccurrences()
+      .find((programOccurrence) => programOccurrence.kind === "spot");
+    if (!scheduleSpotOccurrence || scheduleSpotOccurrence.kind !== "spot") {
+      throw new Error("Expected a mapped Spot occurrence");
+    }
+    component.selectedProgramItemId.set(scheduleSpotOccurrence.item.id);
+    component.openProgramSpotDetails(scheduleSpotOccurrence);
+
+    expect(component.tab()).toBe("spots");
+    expect(component.selectedSpot()).toBe(localSpot);
+    expect(component.selectedProgramItemId()).toBeNull();
+    expect(router.navigate).toHaveBeenLastCalledWith(
+      [],
+      expect.objectContaining({
+        queryParams: {
+          mapFilter: "spots",
+          day: null,
+          spotId: "main-stage",
+          markerId: null,
+          programItemId: null,
+        },
+      }),
+    );
   });
 
   it("syncs selected event spots to the spotId query param and focuses them when the deferred map loads", () => {

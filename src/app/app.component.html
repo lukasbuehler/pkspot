@@ -34,6 +34,7 @@
         [label]="button.name"
         [image]="button.image ?? ''"
         [active]="desktopButtonRla.isActive || !!button.active"
+        [liveIndicator]="!!button.liveIndicator"
       ></app-mat3-nav-button>
     </a>
     } @else if(button.function) {
@@ -43,6 +44,7 @@
       [image]="button.image ?? ''"
       [label]="button.name"
       [active]="!!button.active"
+      [liveIndicator]="!!button.liveIndicator"
     ></app-mat3-nav-button>
     } }
 
@@ -150,6 +152,7 @@
           [label]="button.name"
           [image]="button.image ?? ''"
           [active]="mobileButtonRla.isActive || !!button.active"
+          [liveIndicator]="!!button.liveIndicator"
         ></app-mat3-nav-button>
       </a>
       } @else if(button.function) {
@@ -159,6 +162,7 @@
         [image]="button.image ?? ''"
         [label]="button.name"
         [active]="!!button.active"
+        [liveIndicator]="!!button.liveIndicator"
       ></app-mat3-nav-button>
       } }
     </mat-toolbar>

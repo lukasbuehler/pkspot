@@ -164,6 +164,15 @@
         </div>
       </header>
 
+      @if (event.isLive(now())) {
+        <app-event-now-next-card
+          class="event-now-next"
+          [event]="event"
+          [now]="now()"
+          (itemSelected)="focusProgramItem($event)"
+        />
+      }
+
       @if (hasHeroMedia()) {
         <section class="event-hero">
           <app-event-hero-media [event]="event"></app-event-hero-media>
@@ -474,6 +483,7 @@
             [linkedEventsById]="programLinkedEventsById()"
             [seriesById]="seriesById()"
             [eventMapRoute]="mapRoute()"
+            [selectedItemId]="focusedProgramItemId()"
             (weatherSelected)="openEventWeather($event)"
           />
         </section>

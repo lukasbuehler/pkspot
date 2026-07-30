@@ -8,6 +8,7 @@
   align-items: center;
   justify-content: center;
   width: 80px;
+  position: relative;
   background: transparent;
   border: none;
 
@@ -20,6 +21,18 @@
     height: 32px;
     border-radius: 16px;
   }
+}
+
+.live-indicator {
+  position: absolute;
+  top: 1px;
+  left: calc(50% + 8px);
+  z-index: 1;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--mat-sys-surface-container);
+  border-radius: 999px;
+  background: var(--mat-sys-secondary);
 }
 
 .button-container > mat-icon,
