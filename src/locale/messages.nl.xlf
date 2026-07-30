@@ -700,6 +700,42 @@
         <target>De temperatuurvoorkeur kon niet worden opgeslagen.</target>
       </segment>
     </unit>
+    <unit id="settings.time_format.aria_label">
+      <segment state="initial">
+        <source>Time format</source>
+        <target>Tijdnotatie</target>
+      </segment>
+    </unit>
+    <unit id="settings.time_format.automatic">
+      <segment state="initial">
+        <source> Automatic </source>
+        <target> Automatisch </target>
+      </segment>
+    </unit>
+    <unit id="settings.time_format.description">
+      <segment state="initial">
+        <source> Choose automatically from your device and region, or always use a 12-hour or 24-hour clock. </source>
+        <target> Kies automatisch op basis van je apparaat en regio, of gebruik altijd een 12- of 24-uursnotatie. </target>
+      </segment>
+    </unit>
+    <unit id="settings.time_format.heading">
+      <segment state="initial">
+        <source> Time format </source>
+        <target> Tijdnotatie </target>
+      </segment>
+    </unit>
+    <unit id="settings.time_format.twelve_hour">
+      <segment state="initial">
+        <source> 12-hour </source>
+        <target> 12 uur </target>
+      </segment>
+    </unit>
+    <unit id="settings.time_format.twenty_four_hour">
+      <segment state="initial">
+        <source> 24-hour </source>
+        <target> 24 uur </target>
+      </segment>
+    </unit>
     <unit id="settings.title">
       <notes>
         <note category="description">Title of the settings page</note>
@@ -7943,6 +7979,12 @@
         <target> Naam is verplicht. </target>
       </segment>
     </unit>
+    <unit id="event_edit.no_linked_program_location">
+      <segment state="final">
+        <source>No linked location</source>
+        <target>Geen gekoppelde locatie</target>
+      </segment>
+    </unit>
     <unit id="event_edit.notification_policy">
       <segment state="initial">
         <source> Default event notifications </source>
@@ -9023,16 +9065,10 @@
         <target>Alle dagen</target>
       </segment>
     </unit>
-    <unit id="event_program.all_days_hint">
-      <segment state="initial">
-        <source> Program locations across all event days. </source>
-        <target> Programmalocaties op alle evenementdagen. </target>
-      </segment>
-    </unit>
     <unit id="event_program.all_locations">
       <segment state="initial">
-        <source> All program locations </source>
-        <target> Alle programmalocaties </target>
+        <source>All program locations</source>
+        <target>Alle programmalocaties</target>
       </segment>
     </unit>
     <unit id="event_program.at_this_spot">
@@ -9055,14 +9091,8 @@
     </unit>
     <unit id="event_program.heading">
       <segment state="initial">
-        <source>Program</source>
-        <target>Programma</target>
-      </segment>
-    </unit>
-    <unit id="event_program.mapped_schedule">
-      <segment state="initial">
-        <source> Mapped program </source>
-        <target> Programma op de kaart </target>
+        <source> Program </source>
+        <target> Programma </target>
       </segment>
     </unit>
     <unit id="event_program.next">
@@ -9081,12 +9111,6 @@
       <segment state="initial">
         <source>Open event</source>
         <target>Evenement openen</target>
-      </segment>
-    </unit>
-    <unit id="event_program.selected_day_hint">
-      <segment state="initial">
-        <source> Select a program point to focus its Spot. </source>
-        <target> Selecteer een programmapunt om de bijbehorende Spot te centreren. </target>
       </segment>
     </unit>
     <unit id="events.area_filter_area">
@@ -10822,12 +10846,6 @@
       <segment state="initial">
         <source>User ID</source>
         <target>Gebruikers-ID</target>
-      </segment>
-    </unit>
-    <unit id="213024006531809752">
-      <segment state="initial">
-        <source>No linked Spot</source>
-        <target>Geen gekoppelde Spot</target>
       </segment>
     </unit>
     <unit id="2135214670546321857">
@@ -15018,6 +15036,12 @@
         <target> Voeg een hoofdplan toe om een dag-tot-dag evenementenschema te publiceren. </target>
       </segment>
     </unit>
+    <unit id="event_edit.program_event_markers">
+      <segment state="final">
+        <source>Event markers</source>
+        <target>Evenementmarkeringen</target>
+      </segment>
+    </unit>
     <unit id="event_edit.program_heading">
       <segment state="initial">
         <source> Program </source>
@@ -15068,8 +15092,8 @@
     </unit>
     <unit id="event_edit.program_item_spot_kind">
       <segment state="final">
-        <source>Spot target</source>
-        <target>Doel-Spot</target>
+        <source>Program locations</source>
+        <target>Programmalocaties</target>
       </segment>
     </unit>
     <unit id="event_edit.program_item_start">

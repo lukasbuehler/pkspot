@@ -26,11 +26,11 @@
       </div>
       <div>
         <span class="case-page__label" i18n>Target response</span>
-        <strong>{{ item.target_resolution_at | date: "mediumDate" }}</strong>
+        <strong>{{ item.target_resolution_at | systemDate: "mediumDate" }}</strong>
       </div>
       <div>
         <span class="case-page__label" i18n>Complex-case target</span>
-        <strong>{{ item.complex_resolution_at | date: "mediumDate" }}</strong>
+        <strong>{{ item.complex_resolution_at | systemDate: "mediumDate" }}</strong>
       </div>
     </section>
 
@@ -59,7 +59,7 @@
               {{ decision.policy_basis }}
             </p>
           }
-          <small>{{ decision.decided_at | date: "medium" }}</small>
+          <small>{{ decision.decided_at | systemDate: "medium" }}</small>
         </div>
       </section>
     }
@@ -71,7 +71,7 @@
           <span class="case-page__timeline-marker"></span>
           <div>
             <strong>{{ event.type }}</strong>
-            <time>{{ event.created_at | date: "medium" }}</time>
+            <time>{{ event.created_at | systemDate: "medium" }}</time>
             @if (event.message) {
               <p>{{ event.message }}</p>
             }
@@ -138,13 +138,13 @@
         @if (targetDate()) {
           <p>
             <strong i18n>Target response:</strong>
-            {{ targetDate() | date: "mediumDate" }}
+            {{ targetDate() | systemDate: "mediumDate" }}
           </p>
         }
         @if (complexDate()) {
           <p>
             <strong i18n>Complex-case target:</strong>
-            {{ complexDate() | date: "mediumDate" }}
+            {{ complexDate() | systemDate: "mediumDate" }}
           </p>
         }
         @if (!submission() && accessDenied()) {

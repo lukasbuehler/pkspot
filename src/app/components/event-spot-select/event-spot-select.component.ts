@@ -16,12 +16,21 @@ import { MatSelectModule } from "@angular/material/select";
 import type { LocaleCode } from "../../../db/models/Interfaces";
 import { SpotSelectionDataService } from "../../services/spot-selection-data.service";
 
-export type EventSpotSelectionKind = "spot" | "inline_spot";
+export type EventSpotSelectionKind =
+  | "spot"
+  | "inline_spot"
+  | "custom_marker";
 
 export interface SelectableInlineEventSpot {
   id: string;
   name: string;
   images?: readonly string[];
+}
+
+export interface SelectableCustomEventMarker {
+  id: string;
+  name: string;
+  icons?: readonly string[];
 }
 
 export interface EventSpotSelection {
@@ -32,6 +41,7 @@ export interface EventSpotSelection {
 interface EventSpotOption extends EventSpotSelection {
   name: string;
   imageSrc: string;
+  icon?: string;
 }
 
 @Component({
@@ -53,6 +63,7 @@ export class EventSpotSelectComponent {
 
   readonly spotIds = input<readonly string[]>([]);
   readonly inlineSpots = input<readonly SelectableInlineEventSpot[]>([]);
+  readonly customMarkers = input<readonly SelectableCustomEventMarker[]>([]);
   readonly valueId = input("");
   readonly valueKind = input<EventSpotSelectionKind | "">("");
   readonly values = input<readonly EventSpotSelection[]>([]);
@@ -94,6 +105,15 @@ export class EventSpotSelectComponent {
       imageSrc: spot.images?.[0] ?? "",
     })),
   );
+  readonly customMarkerOptions = computed<EventSpotOption[]>(() =>
+    this.customMarkers().map((marker) => ({
+      id: marker.id,
+      kind: "custom_marker",
+      name: marker.name,
+      imageSrc: "",
+      icon: marker.icons?.[0] ?? "location_on",
+    })),
+  );
   readonly storedOptions = computed(() =>
     (this.storedSpots.value() ?? []).filter(
       (spot): spot is EventSpotOption => spot !== null,
@@ -102,6 +122,7 @@ export class EventSpotSelectComponent {
   readonly options = computed(() => [
     ...this.storedOptions(),
     ...this.inlineOptions(),
+    ...this.customMarkerOptions(),
   ]);
   readonly selectedOption = computed(() => {
     const id = this.valueId();

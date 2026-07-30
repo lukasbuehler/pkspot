@@ -142,12 +142,24 @@ describe("EventMapPageComponent", () => {
   });
 
   it("keeps custom pins and challenges in priority markers while event spots use preview markers", () => {
+    const router = { navigate: vi.fn() };
+    const eventSpotPreview = {
+      id: "main-stage" as SpotId,
+      name: "Main stage",
+      location: new GeoPoint(47.3, 8.5),
+      location_raw: { lat: 47.3, lng: 8.5 },
+      locality: "",
+      imageSrc: "",
+      isIconic: false,
+    } satisfies SpotPreviewData;
     const eventPageData = {
       eventCanonicalPath: vi.fn(() => "/events/swissjam26"),
       customMarkers: vi.fn(() => [
         {
+          id: "camp",
           name: "Custom",
           location: { lat: 47.3, lng: 8.5 },
+          color: "tertiary",
           priority: 3000,
           type: "event-custom",
           media: [
@@ -173,7 +185,7 @@ describe("EventMapPageComponent", () => {
           spotIndex: 0,
         },
       ]),
-      spotPreviewMarkers: vi.fn(() => []),
+      spotPreviewMarkers: vi.fn(() => [eventSpotPreview]),
     };
 
     TestBed.configureTestingModule({
@@ -194,7 +206,7 @@ describe("EventMapPageComponent", () => {
             data: of({ routeName: "Event Map" }),
           },
         },
-        { provide: Router, useValue: { navigate: vi.fn() } },
+        { provide: Router, useValue: router },
         { provide: LocationStrategy, useValue: {} },
         { provide: MatSnackBar, useValue: { open: vi.fn() } },
         {
@@ -316,6 +328,14 @@ describe("EventMapPageComponent", () => {
                   start: "2026-06-14T14:00:00.000Z",
                   spot_ref: { kind: "inline_spot", id: "main-stage" },
                 },
+                {
+                  id: "dinner",
+                  title: "Dinner",
+                  category: "social",
+                  start: "2026-06-14T16:00:00.000Z",
+                  end: "2026-06-14T17:00:00.000Z",
+                  spot_ref: { kind: "custom_marker", id: "camp" },
+                },
               ],
             },
           ],
@@ -333,6 +353,7 @@ describe("EventMapPageComponent", () => {
     component.selectedProgramDay.set("2026-06-14");
     component.tab.set("program");
 
+    expect(component.highlightedSpots()).toEqual([eventSpotPreview]);
     expect(component.mapPriorityMarkers()).toEqual([
       expect.objectContaining({
         type: "event-program",
@@ -340,10 +361,65 @@ describe("EventMapPageComponent", () => {
         badge: "+1",
         number: expect.stringContaining("10"),
       }),
+      expect.objectContaining({
+        type: "event-program",
+        name: expect.stringContaining("Custom"),
+        color: "tertiary",
+        location: { lat: 47.3, lng: 8.5 },
+        number: expect.stringContaining("4"),
+      }),
     ]);
+
+    component.now.set(new Date("2026-06-14T16:30:00.000Z"));
+    expect(component.mapPriorityMarkers()[1]).toEqual(
+      expect.objectContaining({
+        name: expect.stringContaining("Custom"),
+        color: "tertiary",
+      }),
+    );
+
+    component.selectedProgramDay.set("");
+    expect(component.mapPriorityMarkers()[0]?.number).not.toContain("Jun");
+
+    component.openProgramDay("2026-06-14");
+    expect(component.selectedProgramDay()).toBe("2026-06-14");
+
+    component.closeProgramDay("2026-06-14");
+    expect(component.selectedProgramDay()).toBe("");
+
     component.markerClick(0);
     expect(component.selectedSpot()).toBe(localSpot);
     expect(component.selectedProgramItemId()).toBe("training");
+
+    component.markerClick(1);
+    expect(component.selectedCustomMarker()?.id).toBe("camp");
+    expect(component.selectedSpot()).toBeNull();
+    expect(component.selectedProgramItemId()).toBe("dinner");
+    expect(router.navigate).toHaveBeenLastCalledWith(
+      [],
+      expect.objectContaining({
+        queryParams: expect.objectContaining({
+          mapFilter: "program",
+          markerId: "camp",
+          spotId: null,
+          programItemId: "dinner",
+        }),
+      }),
+    );
+
+    component.selectProgramDay(null);
+    expect(component.tab()).toBe("spots");
+    expect(component.mapPriorityMarkers()).toEqual([]);
+    expect(router.navigate).toHaveBeenLastCalledWith(
+      [],
+      expect.objectContaining({
+        queryParams: expect.objectContaining({
+          mapFilter: "spots",
+          day: null,
+          programItemId: null,
+        }),
+      }),
+    );
 
     component.tab.set("all");
     component.selectSpot({
@@ -454,7 +530,7 @@ describe("EventMapPageComponent", () => {
 
     expect(router.navigate).toHaveBeenLastCalledWith([], {
       relativeTo: route,
-      queryParams: { spotId: null },
+      queryParams: { spotId: null, markerId: null },
       queryParamsHandling: "merge",
       replaceUrl: true,
     });

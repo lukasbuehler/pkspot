@@ -60,6 +60,30 @@ describe("EventPageDataService", () => {
     expect(eventsService.getEventBySlugOrId).toHaveBeenCalledWith("city-jam");
   });
 
+  it("loads compact event cards through search", async () => {
+    const event = buildEvent("skills-open");
+    const search = {
+      getEventCardsByIds: vi.fn(() => Promise.resolve([event])),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        { provide: SearchService, useValue: search },
+        { provide: LOCALE_ID, useValue: "en" },
+      ],
+    });
+
+    const service = TestBed.inject(EventPageDataService);
+
+    await expect(
+      service.loadEventCardsByIds(["skills-open"]),
+    ).resolves.toEqual([event]);
+    expect(search.getEventCardsByIds).toHaveBeenCalledWith(["skills-open"]);
+  });
+
   it("observes events by slug through EventsService", async () => {
     const event = buildEvent("city-jam");
     const eventsService = {

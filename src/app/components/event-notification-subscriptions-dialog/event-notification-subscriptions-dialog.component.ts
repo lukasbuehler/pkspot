@@ -1,4 +1,4 @@
-import { DatePipe } from "@angular/common";
+import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -35,7 +35,7 @@ interface EventSubscriptionRow {
 @Component({
   selector: "app-event-notification-subscriptions-dialog",
   imports: [
-    DatePipe,
+    SystemDatePipe,
     MatButtonModule,
     MatDialogModule,
     MatIconModule,

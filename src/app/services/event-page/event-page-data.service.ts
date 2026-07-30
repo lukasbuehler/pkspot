@@ -80,6 +80,10 @@ export class EventPageDataService {
     );
   }
 
+  loadEventCardsByIds(ids: readonly string[]): Promise<PkEvent[]> {
+    return this._search.getEventCardsByIds(ids);
+  }
+
   eventCanonicalPath(event: PkEvent): string {
     return `/events/${event.slug ?? event.id}`;
   }

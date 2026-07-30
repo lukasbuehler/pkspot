@@ -8,7 +8,7 @@
     <section>
       @for (entry of logs(); track entry.id) {
         <article>
-          <span>{{ entry.activity_at_raw_ms | date: "mediumDate" }}</span>
+          <span>{{ entry.activity_at_raw_ms | systemDate: "mediumDate" }}</span>
           <p>{{ entry.note }}</p>
           @for (session of entry.session_summaries; track session.session_record_id) {
             <small>{{ session.local_date }} · {{ session.duration_minutes || 0 }} min · {{ session.spot_count }} spots</small>

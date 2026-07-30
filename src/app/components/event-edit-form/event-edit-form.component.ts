@@ -507,6 +507,13 @@ export class EventEditFormComponent {
       images: csvToArray(spot.imagesCsv),
     })),
   );
+  readonly selectableCustomMarkers = computed(() =>
+    this.customMarkers().map((marker) => ({
+      id: marker.id,
+      name: marker.name || marker.id,
+      icons: this.markerIcons(marker),
+    })),
+  );
   featuredParticipants = signal<EditableFeaturedParticipant[]>([]);
   externalMedia = signal<MediaSchema[]>([]);
   eventLinks = signal<EditableEventLink[]>([]);

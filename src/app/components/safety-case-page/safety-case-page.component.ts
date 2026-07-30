@@ -5,7 +5,7 @@ import {
   inject,
   signal,
 } from "@angular/core";
-import { DatePipe } from "@angular/common";
+import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { FormField, form, maxLength, minLength, required, submit } from "@angular/forms/signals";
 import { MatButtonModule } from "@angular/material/button";
@@ -25,7 +25,7 @@ import {
 @Component({
   selector: "app-safety-case-page",
   imports: [
-    DatePipe,
+    SystemDatePipe,
     FormField,
     MatButtonModule,
     MatCardModule,

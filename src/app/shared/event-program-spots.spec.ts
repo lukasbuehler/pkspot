@@ -5,6 +5,7 @@ import type { SpotSchema } from "../../db/schemas/SpotSchema";
 import {
   effectiveProgramItem,
   eventProgramDays,
+  eventProgramLocationVisits,
   eventProgramSpotRefs,
   eventProgramSpotVisits,
   resolveEventProgramOccurrences,
@@ -108,6 +109,49 @@ describe("event program Spot helpers", () => {
     expect(visits[0].occurrences).toHaveLength(2);
     expect(visits[0].representative.item.id).toBe("training");
     expect(visits[0].representative.isActive).toBe(true);
+  });
+
+  it("resolves event custom markers as program locations", () => {
+    const marker = {
+      id: "camp",
+      name: "Campingplatz Waldhort",
+      location: { lat: 47.5, lng: 7.6 },
+      icons: ["camping"],
+    };
+    const campItem = item({
+      id: "arrival",
+      title: "Arrival",
+      spot_ref: { kind: "custom_marker", id: "camp" },
+    });
+
+    const occurrences = resolveEventProgramOccurrences(
+      [campItem],
+      [
+        {
+          ref: { kind: "custom_marker", id: "camp" },
+          marker,
+        },
+      ],
+      "UTC",
+    );
+    const visits = eventProgramLocationVisits(
+      occurrences,
+      "2026-08-05",
+    );
+
+    expect(occurrences).toEqual([
+      expect.objectContaining({
+        kind: "custom_marker",
+        marker,
+        ref: { kind: "custom_marker", id: "camp" },
+      }),
+    ]);
+    expect(visits).toEqual([
+      expect.objectContaining({
+        kind: "custom_marker",
+        marker,
+      }),
+    ]);
   });
 
   it("uses event-local day keys and selects today, next, then final day", () => {

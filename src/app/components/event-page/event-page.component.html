@@ -426,6 +426,9 @@
                 [highlightedSpots]="mapPreviewSpotMarkers()"
                 [showAllHighlightedSpotPins]="true"
                 [hideRegularSpotPins]="true"
+                [highlightedSpotColor]="
+                  programFilterActive() ? 'gray' : 'primary'
+                "
                 [showSpotPreview]="true"
                 (boundsChange)="updateMapPreviewViewportBounds($event)"
                 (spotClick)="openMapForSpot($event)"
@@ -484,6 +487,10 @@
             [eventEnd]="event.end"
             [weather]="eventWeather()"
             [spotBindings]="spotBindings()"
+            [customMarkers]="mapMarkers()"
+            [now]="now()"
+            [linkedEventsById]="programLinkedEventsById()"
+            [seriesById]="seriesById()"
             [eventMapRoute]="mapRoute()"
             (weatherSelected)="openEventWeather($event)"
           />

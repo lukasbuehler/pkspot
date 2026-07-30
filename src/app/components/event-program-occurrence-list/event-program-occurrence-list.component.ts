@@ -6,7 +6,7 @@ import {
   output,
 } from "@angular/core";
 import { MatIconModule } from "@angular/material/icon";
-import type { EventProgramOccurrence } from "../../shared/event-program-spots";
+import type { EventProgramSpotOccurrence } from "../../shared/event-program-spots";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
 
@@ -21,14 +21,14 @@ export class EventProgramOccurrenceListComponent {
   private readonly dateTime = inject(DateTimeFormatService);
 
   readonly occurrences = input.required<
-    readonly EventProgramOccurrence[]
+    readonly EventProgramSpotOccurrence[]
   >();
   readonly timeZone = input<string>();
   readonly selectedItemId = input<string | null>(null);
   readonly showSpotCards = input(true);
-  readonly occurrenceSelected = output<EventProgramOccurrence>();
+  readonly occurrenceSelected = output<EventProgramSpotOccurrence>();
 
-  time(occurrence: EventProgramOccurrence): string {
+  time(occurrence: EventProgramSpotOccurrence): string {
     return this.dateTime.format(occurrence.start, {
       hour: "2-digit",
       minute: "2-digit",
@@ -36,7 +36,7 @@ export class EventProgramOccurrenceListComponent {
     });
   }
 
-  select(occurrence: EventProgramOccurrence): void {
+  select(occurrence: EventProgramSpotOccurrence): void {
     this.occurrenceSelected.emit(occurrence);
   }
 }

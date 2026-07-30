@@ -3895,6 +3895,11 @@
         <source> Name is required. </source>
       </segment>
     </unit>
+    <unit id="event_edit.no_linked_program_location">
+      <segment>
+        <source>No linked location</source>
+      </segment>
+    </unit>
     <unit id="event_edit.notification_policy">
       <segment>
         <source> Default event notifications </source>
@@ -4785,6 +4790,11 @@
         <source> Add a main plan to publish a day-by-day event schedule. </source>
       </segment>
     </unit>
+    <unit id="event_edit.program_event_markers">
+      <segment>
+        <source>Event markers</source>
+      </segment>
+    </unit>
     <unit id="event_edit.program_heading">
       <segment>
         <source> Program </source>
@@ -4827,7 +4837,7 @@
     </unit>
     <unit id="event_edit.program_item_spot_kind">
       <segment>
-        <source>Spot target</source>
+        <source>Program locations</source>
       </segment>
     </unit>
     <unit id="event_edit.program_item_start">
@@ -5035,14 +5045,9 @@
         <source>All days</source>
       </segment>
     </unit>
-    <unit id="event_program.all_days_hint">
-      <segment>
-        <source> Program locations across all event days. </source>
-      </segment>
-    </unit>
     <unit id="event_program.all_locations">
       <segment>
-        <source> All program locations </source>
+        <source>All program locations</source>
       </segment>
     </unit>
     <unit id="event_program.at_this_spot">
@@ -5062,12 +5067,7 @@
     </unit>
     <unit id="event_program.heading">
       <segment>
-        <source>Program</source>
-      </segment>
-    </unit>
-    <unit id="event_program.mapped_schedule">
-      <segment>
-        <source> Mapped program </source>
+        <source> Program </source>
       </segment>
     </unit>
     <unit id="event_program.next">
@@ -5083,11 +5083,6 @@
     <unit id="event_program.open_linked">
       <segment>
         <source>Open event</source>
-      </segment>
-    </unit>
-    <unit id="event_program.selected_day_hint">
-      <segment>
-        <source> Select a program point to focus its Spot. </source>
       </segment>
     </unit>
     <unit id="event_qualification.heading">
@@ -7076,6 +7071,36 @@
         <source>Could not save temperature preference.</source>
       </segment>
     </unit>
+    <unit id="settings.time_format.aria_label">
+      <segment>
+        <source>Time format</source>
+      </segment>
+    </unit>
+    <unit id="settings.time_format.automatic">
+      <segment>
+        <source> Automatic </source>
+      </segment>
+    </unit>
+    <unit id="settings.time_format.description">
+      <segment>
+        <source> Choose automatically from your device and region, or always use a 12-hour or 24-hour clock. </source>
+      </segment>
+    </unit>
+    <unit id="settings.time_format.heading">
+      <segment>
+        <source> Time format </source>
+      </segment>
+    </unit>
+    <unit id="settings.time_format.twelve_hour">
+      <segment>
+        <source> 12-hour </source>
+      </segment>
+    </unit>
+    <unit id="settings.time_format.twenty_four_hour">
+      <segment>
+        <source> 24-hour </source>
+      </segment>
+    </unit>
     <unit id="settings.title">
       <notes>
         <note category="description">Title of the settings page</note>
@@ -7983,11 +8008,6 @@
     <unit id="2128755808672960949">
       <segment>
         <source>User ID</source>
-      </segment>
-    </unit>
-    <unit id="213024006531809752">
-      <segment>
-        <source>No linked Spot</source>
       </segment>
     </unit>
     <unit id="2135214670546321857">

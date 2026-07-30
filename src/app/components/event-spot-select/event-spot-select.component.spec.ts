@@ -71,7 +71,7 @@ describe("EventSpotSelectComponent", () => {
     });
   });
 
-  it("emits every selected event Spot in multi-select mode", () => {
+  it("emits every selected event location in multi-select mode", () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: LOCALE_ID, useValue: "en" },
@@ -84,17 +84,22 @@ describe("EventSpotSelectComponent", () => {
       { id: "stage", name: "Main stage" },
       { id: "park", name: "Training park" },
     ]);
+    fixture.componentRef.setInput("customMarkers", [
+      { id: "camp", name: "Camp", icons: ["camping"] },
+    ]);
     const selectionsChange = vi.fn();
     fixture.componentInstance.selectionsChange.subscribe(selectionsChange);
 
     fixture.componentInstance.selectionChanged([
       "inline_spot:stage",
       "inline_spot:park",
+      "custom_marker:camp",
     ]);
 
     expect(selectionsChange).toHaveBeenCalledWith([
       { id: "stage", kind: "inline_spot" },
       { id: "park", kind: "inline_spot" },
+      { id: "camp", kind: "custom_marker" },
     ]);
   });
 });

@@ -81,6 +81,7 @@
         [zIndex]="getHighlightZIndex(spot)"
         [mapZoom]="zoom"
         [hoverPreviewEnabled]="showSpotPreview()"
+        [color]="highlightedSpotColor()"
         (markerClick)="onHighlightedSpotClick($event)"
       ></app-highlight-marker>
     }

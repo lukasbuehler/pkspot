@@ -478,4 +478,73 @@ describe("EventsPageComponent", () => {
     expect(component.selectedDay()).toBe("2026-07-05");
     expect(component.selectedCategories()).toEqual([]);
   });
+
+  it("keeps the current calendar visible while filters refresh", async () => {
+    const initialResult = { ...EMPTY_RESULT, found: 1 };
+    const refreshedResult = { ...EMPTY_RESULT, found: 2 };
+    const { component, queryParams, searchService } = createComponent({
+      queryParams: {
+        view: "calendar",
+        month: "2026-08",
+        day: "2026-08-14",
+        category: "jam",
+      },
+      searchResult: initialResult,
+    });
+    await flushResources();
+
+    let resolveRefresh!: (result: EventDiscoverySearchResult) => void;
+    searchService.searchAllEventDiscovery.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveRefresh = resolve;
+      }),
+    );
+
+    queryParams.next(
+      convertToParamMap({
+        view: "calendar",
+        month: "2026-08",
+        day: "2026-08-14",
+        category: "competition",
+      }),
+    );
+    await flushResources();
+
+    expect(component.discoveryResource.isLoading()).toBe(true);
+    expect(component.discoveryResult()).toBe(initialResult);
+
+    resolveRefresh(refreshedResult);
+    await flushResources();
+
+    expect(component.discoveryResource.isLoading()).toBe(false);
+    expect(component.discoveryResult()).toBe(refreshedResult);
+  });
+
+  it("does not reload calendar results when only the selected day changes", async () => {
+    const { component, queryParams, searchService } = createComponent({
+      queryParams: {
+        view: "calendar",
+        month: "2026-08",
+        day: "2026-08-14",
+        category: "jam",
+        series: "swissjam",
+      },
+    });
+    await flushResources();
+    searchService.searchAllEventDiscovery.mockClear();
+
+    queryParams.next(
+      convertToParamMap({
+        view: "calendar",
+        month: "2026-08",
+        day: "2026-08-15",
+        category: "jam",
+        series: "swissjam",
+      }),
+    );
+    await flushResources();
+
+    expect(component.selectedDay()).toBe("2026-08-15");
+    expect(searchService.searchAllEventDiscovery).not.toHaveBeenCalled();
+  });
 });

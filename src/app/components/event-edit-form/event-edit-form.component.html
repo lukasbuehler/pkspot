@@ -2586,10 +2586,11 @@
                               ></textarea>
                             </mat-form-field>
                             <app-event-spot-select
-                              label="Spot target"
+                              label="Program locations"
                               i18n-label="@@event_edit.program_item_spot_kind"
                               [spotIds]="spotIds()"
                               [inlineSpots]="selectableInlineSpots()"
+                              [customMarkers]="selectableCustomMarkers()"
                               [values]="item.spotRefs"
                               [multiple]="true"
                               [disabled]="saving()"

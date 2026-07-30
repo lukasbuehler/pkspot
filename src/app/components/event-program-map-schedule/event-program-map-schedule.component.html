@@ -1,0 +1,23 @@
+<mat-accordion class="program-accordion" [multi]="false">
+  @for (day of days(); track day.key) {
+    <mat-expansion-panel
+      class="program-day-panel"
+      [expanded]="selectedDay() === day.key"
+      (opened)="dayOpened.emit(day.key)"
+      (closed)="dayClosed.emit(day.key)"
+    >
+      <mat-expansion-panel-header>
+        <mat-panel-title>{{ day.label }}</mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <app-event-program-day-timeline
+        [entries]="day.entries"
+        [dayKey]="day.key"
+        [timeZone]="timeZone()"
+        [selectedItemId]="selectedItemId()"
+        spotAction="select"
+        (occurrenceSelected)="occurrenceSelected.emit($event)"
+      />
+    </mat-expansion-panel>
+  }
+</mat-accordion>

@@ -45,7 +45,10 @@ import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { trigger, transition, style, animate } from "@angular/animations";
 import { MarkerComponent } from "../marker/marker.component";
 import { getMapMarkerPriority } from "../map/markers/map-marker.model";
-import type { MarkerSchema } from "../map/markers/map-marker.model";
+import type {
+  MapMarkerColor,
+  MarkerSchema,
+} from "../map/markers/map-marker.model";
 import { getSpotMarkerPriority } from "../map/markers/spot-marker-priority";
 import { MapHelpers } from "../../../scripts/MapHelpers";
 import { MapBase, VisibleViewport } from "../maps/map-base";
@@ -732,6 +735,7 @@ export class GoogleMap2dComponent
     SpotPreviewData[],
     SpotPreviewData[] | null | undefined
   >([], { transform: (value) => (value ? [...value] : []) });
+  readonly highlightedSpotColor = input<MapMarkerColor>("primary");
   // Optional mapping from marker index -> SpotId to open spot directly on marker click.
 
   /**

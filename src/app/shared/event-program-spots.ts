@@ -4,18 +4,44 @@ import type {
   EventProgramItemStatus,
   EventProgramSpotRefSchema,
 } from "../../db/schemas/EventSchema";
+import type { MarkerSchema } from "../components/map/markers/map-marker.model";
 import { eventDateKey } from "../weather/event-weather";
 
+export type EventProgramStoredSpotRef = EventProgramSpotRefSchema & {
+  kind: "spot" | "inline_spot";
+};
+
+export type EventProgramMarkerRef = EventProgramSpotRefSchema & {
+  kind: "custom_marker";
+};
+
 export interface EventSpotBinding {
-  ref: EventProgramSpotRefSchema;
+  ref: EventProgramStoredSpotRef;
   spot: Spot | LocalSpot;
 }
 
-export interface EventProgramOccurrence {
+export interface EventMarkerBinding {
+  ref: EventProgramMarkerRef;
+  marker: MarkerSchema;
+}
+
+export type EventProgramLocationBinding = EventSpotBinding | EventMarkerBinding;
+
+export function isEventProgramMarkerRef(
+  ref: EventProgramSpotRefSchema,
+): ref is EventProgramMarkerRef {
+  return ref.kind === "custom_marker";
+}
+
+function isEventProgramMarkerBinding(
+  binding: EventProgramLocationBinding,
+): binding is EventMarkerBinding {
+  return binding.ref.kind === "custom_marker";
+}
+
+interface EventProgramOccurrenceBase {
   key: string;
   item: EventProgramItem;
-  ref: EventProgramSpotRefSchema;
-  spot: Spot | LocalSpot;
   start: Date;
   end?: Date;
   status: EventProgramItemStatus;
@@ -24,13 +50,45 @@ export interface EventProgramOccurrence {
   isNext: boolean;
 }
 
+export interface EventProgramSpotOccurrence
+  extends EventProgramOccurrenceBase {
+  kind: "spot";
+  ref: EventProgramStoredSpotRef;
+  spot: Spot | LocalSpot;
+}
+
+export interface EventProgramMarkerOccurrence
+  extends EventProgramOccurrenceBase {
+  kind: "custom_marker";
+  ref: EventProgramMarkerRef;
+  marker: MarkerSchema;
+}
+
+export type EventProgramOccurrence =
+  | EventProgramSpotOccurrence
+  | EventProgramMarkerOccurrence;
+
 export interface EventProgramSpotVisit {
   key: string;
-  ref: EventProgramSpotRefSchema;
+  kind: "spot";
+  ref: EventProgramStoredSpotRef;
   spot: Spot | LocalSpot;
-  occurrences: EventProgramOccurrence[];
-  representative: EventProgramOccurrence;
+  occurrences: EventProgramSpotOccurrence[];
+  representative: EventProgramSpotOccurrence;
 }
+
+export interface EventProgramMarkerVisit {
+  key: string;
+  kind: "custom_marker";
+  ref: EventProgramMarkerRef;
+  marker: MarkerSchema;
+  occurrences: EventProgramMarkerOccurrence[];
+  representative: EventProgramMarkerOccurrence;
+}
+
+export type EventProgramLocationVisit =
+  | EventProgramSpotVisit
+  | EventProgramMarkerVisit;
 
 export function eventProgramSpotRefKey(
   ref: EventProgramSpotRefSchema,
@@ -97,34 +155,50 @@ export function smartEventProgramDay(
 
 export function resolveEventProgramOccurrences(
   items: readonly EventProgramItem[],
-  bindings: readonly EventSpotBinding[],
+  bindings: readonly EventProgramLocationBinding[],
   timeZone: string | undefined,
   now = new Date(),
 ): EventProgramOccurrence[] {
   const bindingsByRef = new Map(
     bindings.map((binding) => [eventProgramSpotRefKey(binding.ref), binding]),
   );
-  const resolved = items.flatMap((item) => {
+  const resolved = items.flatMap<EventProgramOccurrence>((item) => {
     const effective = effectiveProgramItem(item);
     if (effective.status === "cancelled") return [];
 
-    return eventProgramSpotRefs(item).flatMap((ref) => {
+    return eventProgramSpotRefs(item).flatMap<EventProgramOccurrence>((ref) => {
       const binding = bindingsByRef.get(eventProgramSpotRefKey(ref));
       if (!binding) return [];
+      const occurrence = {
+        key: `${item.id}:${eventProgramSpotRefKey(ref)}`,
+        item,
+        start: effective.start,
+        end: effective.end,
+        status: effective.status,
+        day: eventDateKey(effective.start, timeZone),
+        isActive:
+          !!effective.end && effective.start <= now && now < effective.end,
+        isNext: false,
+      } satisfies EventProgramOccurrenceBase;
+
+      if (isEventProgramMarkerBinding(binding)) {
+        return [
+          {
+            ...occurrence,
+            kind: "custom_marker",
+            ref: binding.ref,
+            marker: binding.marker,
+          },
+        ];
+      }
+
       return [
         {
-          key: `${item.id}:${eventProgramSpotRefKey(ref)}`,
-          item,
-          ref,
+          ...occurrence,
+          kind: "spot",
+          ref: binding.ref,
           spot: binding.spot,
-          start: effective.start,
-          end: effective.end,
-          status: effective.status,
-          day: eventDateKey(effective.start, timeZone),
-          isActive:
-            !!effective.end && effective.start <= now && now < effective.end,
-          isNext: false,
-        } satisfies EventProgramOccurrence,
+        },
       ];
     });
   });
@@ -145,11 +219,11 @@ export function resolveEventProgramOccurrences(
     .sort((left, right) => left.start.getTime() - right.start.getTime());
 }
 
-export function eventProgramSpotVisits(
+export function eventProgramLocationVisits(
   occurrences: readonly EventProgramOccurrence[],
   day: string,
   now = new Date(),
-): EventProgramSpotVisit[] {
+): EventProgramLocationVisit[] {
   const inScope = day
     ? occurrences.filter((occurrence) => occurrence.day === day)
     : [...occurrences];
@@ -169,12 +243,56 @@ export function eventProgramSpotVisits(
       sorted.find((occurrence) => occurrence.start > now) ??
       sorted[0];
 
+    if (isEventProgramMarkerOccurrence(representative)) {
+      const markerVisits = sorted.filter(isEventProgramMarkerOccurrence);
+      return {
+        key,
+        kind: "custom_marker",
+        ref: representative.ref,
+        marker: representative.marker,
+        occurrences: markerVisits,
+        representative,
+      };
+    }
+
+    const spotVisits = sorted.filter(isEventProgramSpotOccurrence);
     return {
       key,
+      kind: "spot",
       ref: representative.ref,
       spot: representative.spot,
-      occurrences: sorted,
+      occurrences: spotVisits,
       representative,
     };
   });
+}
+
+export function eventProgramSpotVisits(
+  occurrences: readonly EventProgramOccurrence[],
+  day: string,
+  now = new Date(),
+): EventProgramSpotVisit[] {
+  return eventProgramLocationVisits(
+    occurrences.filter(isEventProgramSpotOccurrence),
+    day,
+    now,
+  ).filter(isEventProgramSpotVisit);
+}
+
+export function isEventProgramSpotOccurrence(
+  occurrence: EventProgramOccurrence,
+): occurrence is EventProgramSpotOccurrence {
+  return occurrence.kind === "spot";
+}
+
+export function isEventProgramMarkerOccurrence(
+  occurrence: EventProgramOccurrence,
+): occurrence is EventProgramMarkerOccurrence {
+  return occurrence.kind === "custom_marker";
+}
+
+function isEventProgramSpotVisit(
+  visit: EventProgramLocationVisit,
+): visit is EventProgramSpotVisit {
+  return visit.kind === "spot";
 }

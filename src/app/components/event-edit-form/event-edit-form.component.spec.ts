@@ -863,10 +863,16 @@ describe("EventEditFormComponent", () => {
       title: "Open jam",
       linkedEventId: "linked-event",
     });
-    component.updateProgramSpotSelection("main", "jam", {
-      kind: "inline_spot",
-      id: "main-stage",
-    });
+    component.updateProgramSpotSelections("main", "jam", [
+      {
+        kind: "inline_spot",
+        id: "main-stage",
+      },
+      {
+        kind: "custom_marker",
+        id: "camp",
+      },
+    ]);
     component.onSubmit();
 
     expect(saveSpy).toHaveBeenCalledOnce();
@@ -885,6 +891,7 @@ describe("EventEditFormComponent", () => {
                 spot_ref: { kind: "inline_spot", id: "main-stage" },
                 spot_refs: [
                   { kind: "inline_spot", id: "main-stage" },
+                  { kind: "custom_marker", id: "camp" },
                 ],
                 linked_event_id: "linked-event",
               }),

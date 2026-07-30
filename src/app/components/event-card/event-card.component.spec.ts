@@ -88,6 +88,24 @@ describe("EventCardComponent", () => {
     expect(fixture.componentInstance.route()).toEqual(["/events", "event-123"]);
   });
 
+  it("supports a compact horizontal preview without RSVP controls", async () => {
+    fixture.componentRef.setInput(
+      "event",
+      buildEvent(
+        "event-123",
+        "2026-06-14T10:00:00.000Z",
+        "2026-06-15T10:00:00.000Z",
+      ),
+    );
+    fixture.componentRef.setInput("compact", true);
+    fixture.componentRef.setInput("showRsvp", false);
+
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.classList.contains("compact")).toBe(true);
+    expect(fixture.nativeElement.querySelector("app-event-rsvp")).toBeNull();
+  });
+
   it("marks live events distinctly from upcoming and past events", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-14T12:00:00.000Z"));

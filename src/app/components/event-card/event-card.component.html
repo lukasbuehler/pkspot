@@ -107,7 +107,11 @@
           {{ event().venueString }}, {{ event().localityString }}
         </p>
       }
-      @if (status() === "upcoming" && event().rsvpCounts.total > 0) {
+      @if (
+        showRsvp() &&
+        status() === "upcoming" &&
+        event().rsvpCounts.total > 0
+      ) {
         <app-event-rsvp
           class="event-card-rsvp"
           [counts]="event().rsvpCounts"

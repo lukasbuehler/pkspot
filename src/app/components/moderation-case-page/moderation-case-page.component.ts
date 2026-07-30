@@ -7,7 +7,7 @@ import {
   inject,
   signal,
 } from "@angular/core";
-import { DatePipe } from "@angular/common";
+import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import {
   FormField,
@@ -46,7 +46,7 @@ import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card
 @Component({
   selector: "app-moderation-case-page",
   imports: [
-    DatePipe,
+    SystemDatePipe,
     FormField,
     MatButtonModule,
     MatCardModule,

@@ -1,0 +1,24 @@
+:host {
+  display: block;
+}
+
+.program-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.program-day-panel {
+  --mat-expansion-container-background-color: var(
+    --mat-sys-surface-container-low
+  );
+  --mat-expansion-container-text-color: var(--mat-sys-on-surface);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px !important;
+  box-shadow: none !important;
+  overflow: hidden;
+
+  &.mat-expanded {
+    border-color: var(--mat-sys-primary);
+  }
+}

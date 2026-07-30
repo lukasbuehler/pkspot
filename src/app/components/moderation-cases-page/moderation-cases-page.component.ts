@@ -6,7 +6,7 @@ import {
   inject,
   signal,
 } from "@angular/core";
-import { DatePipe } from "@angular/common";
+import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import { RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
@@ -26,7 +26,7 @@ import {
 @Component({
   selector: "app-moderation-cases-page",
   imports: [
-    DatePipe,
+    SystemDatePipe,
     MatButtonModule,
     MatCardModule,
     MatChipsModule,

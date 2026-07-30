@@ -28,7 +28,7 @@
         @for (entry of logs(); track entry.id) {
           <article class="entry">
             <div class="entry-meta">
-              <span>{{ entry.activity_at_raw_ms | date: "mediumDate" }}</span>
+              <span>{{ entry.activity_at_raw_ms | systemDate: "mediumDate" }}</span>
               <span class="visibility"><mat-icon>{{ entry.visibility === "private" ? "lock" : entry.visibility === "public" ? "public" : "group" }}</mat-icon>{{ entry.visibility }}</span>
             </div>
             <p>{{ entry.note || "Training session" }}</p>

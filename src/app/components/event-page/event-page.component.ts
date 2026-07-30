@@ -102,12 +102,16 @@ import {
 import { EventProgramDayChipsComponent } from "../event-program-day-chips/event-program-day-chips.component";
 import {
   eventProgramDays,
-  eventProgramSpotVisits,
+  eventProgramLocationVisits,
+  isEventProgramMarkerOccurrence,
+  isEventProgramSpotOccurrence,
   resolveEventProgramOccurrences,
   smartEventProgramDay,
+  type EventMarkerBinding,
   type EventProgramOccurrence,
   type EventSpotBinding,
 } from "../../shared/event-program-spots";
+import { eventProgramLocationColor } from "../../shared/event-program-timeline";
 
 interface VisibleSeriesTag {
   seriesId: string;
@@ -177,6 +181,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   private _spotsLoadRequestVersion = 0;
   private _minuteInterval?: number;
   private _qualifierLoadRequestVersion = 0;
+  private _programLinkedEventLoadRequestVersion = 0;
   private _seriesLoadRequestVersion = 0;
   private readonly _qualificationGridResizeListener = () =>
     this._syncQualificationGridColumns();
@@ -197,6 +202,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly isEventDescriptionExpanded = signal(false);
   readonly currentRsvp = signal<EventRSVPOption | null>(null);
   readonly qualifierEventsById = signal<Record<string, PkEvent>>({});
+  readonly programLinkedEventsById = signal<Record<string, PkEvent>>({});
   readonly seriesById = signal<Record<string, SeriesDocument>>({});
   readonly expandedQualificationEventGroups = signal<Record<string, boolean>>(
     {},
@@ -330,6 +336,13 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       ) ?? event.program.plans[0];
     return activePlan?.items ?? [];
   });
+  readonly programLinkedEventIds = computed(() => [
+    ...new Set(
+      this.activeProgramItems()
+        .map((item) => item.linked_event_id)
+        .filter((id): id is string => typeof id === "string" && id.length > 0),
+    ),
+  ]);
   readonly programDays = computed(() =>
     eventProgramDays(this.activeProgramItems(), this.event()?.timeZone),
   );
@@ -340,7 +353,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       days: string[];
       timeZone: string | undefined;
     },
-    string
+    string | null
   >({
     source: () => ({
       eventId: String(this.event()?.id ?? ""),
@@ -350,7 +363,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     computation: (source, previous) => {
       if (
         previous?.source.eventId === source.eventId &&
-        (previous.value === "" || source.days.includes(previous.value))
+        (previous.value === null ||
+          previous.value === "" ||
+          source.days.includes(previous.value))
       ) {
         return previous.value;
       }
@@ -360,17 +375,34 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly programOccurrences = computed(() =>
     resolveEventProgramOccurrences(
       this.activeProgramItems(),
-      this.spotBindings(),
+      [
+        ...this.spotBindings(),
+        ...this.mapMarkers().flatMap((marker): EventMarkerBinding[] =>
+          marker.id
+            ? [
+                {
+                  ref: { kind: "custom_marker", id: marker.id },
+                  marker,
+                },
+              ]
+            : [],
+        ),
+      ],
       this.event()?.timeZone,
       this.now(),
     ),
   );
-  readonly programSpotVisits = computed(() =>
-    eventProgramSpotVisits(
-      this.programOccurrences(),
-      this.selectedProgramDay(),
-      this.now(),
-    ),
+  readonly programLocationVisits = computed(() =>
+    this.selectedProgramDay() === null
+      ? []
+      : eventProgramLocationVisits(
+          this.programOccurrences(),
+          this.selectedProgramDay() ?? "",
+          this.now(),
+        ),
+  );
+  readonly programFilterActive = computed(
+    () => this.selectedProgramDay() !== null,
   );
   readonly eventWeatherResource = resource({
     params: () => {
@@ -447,6 +479,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       ...Object.values(this.qualifierEventsById()).flatMap(
         (event) => event.seriesIds,
       ),
+      ...Object.values(this.programLinkedEventsById()).flatMap(
+        (event) => event.seriesIds,
+      ),
     ]),
   ]);
   readonly qualificationMemberships = computed(() =>
@@ -481,7 +516,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     return this._eventPageData.customMarkers(event);
   });
   readonly programMapMarkers = computed<ProgramMapMarker[]>(() =>
-    this.programSpotVisits().map((visit) => {
+    this.programLocationVisits().map((visit) => {
       const occurrence = visit.representative;
       const time = this._dateTime.format(occurrence.start, {
         hour: "2-digit",
@@ -489,14 +524,27 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         timeZone: this.event()?.timeZone,
       });
       const additionalVisits = visit.occurrences.length - 1;
+      const place =
+        visit.kind === "spot"
+          ? {
+              name: visit.spot.name(),
+              location: visit.spot.location(),
+              icons: undefined,
+            }
+          : {
+              name: visit.marker.name ?? visit.ref.id,
+              location: visit.marker.location,
+              icons: visit.marker.icons,
+            };
       return {
         id: `program:${visit.key}`,
-        name: `${visit.spot.name()}: ${occurrence.item.title}, ${time}`,
+        name: `${place.name}: ${occurrence.item.title}, ${time}`,
         description: occurrence.item.title,
-        location: visit.spot.location(),
+        location: place.location,
+        icons: place.icons,
         number: time,
         badge: additionalVisits > 0 ? `+${additionalVisits}` : undefined,
-        color: occurrence.isActive ? "secondary" : "primary",
+        color: eventProgramLocationColor(visit),
         priority: "required",
         ignoreCollisions: true,
         type: "event-program",
@@ -504,10 +552,17 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       };
     }),
   );
-  readonly mapPriorityMarkers = computed<ProgramMapMarker[]>(() => [
-    ...this.mapMarkers(),
-    ...this.programMapMarkers(),
-  ]);
+  readonly mapPriorityMarkers = computed<ProgramMapMarker[]>(() =>
+    this.programFilterActive()
+      ? [
+          ...this.mapMarkers().map((marker) => ({
+            ...marker,
+            color: "gray" as const,
+          })),
+          ...this.programMapMarkers(),
+        ]
+      : this.mapMarkers(),
+  );
   readonly mapPreviewSpotMarkers = computed<SpotPreviewData[]>(() =>
     this._eventPageData.spotPreviewMarkers(this.spots()),
   );
@@ -607,6 +662,27 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       });
 
       effect(() => {
+        const eventIds = this.programLinkedEventIds();
+        const requestVersion = ++this._programLinkedEventLoadRequestVersion;
+
+        if (eventIds.length === 0 || this.isCrawler()) {
+          this.programLinkedEventsById.set({});
+          return;
+        }
+
+        this._search.getEventCardsByIds(eventIds).then((events) => {
+          if (
+            requestVersion !== this._programLinkedEventLoadRequestVersion
+          ) {
+            return;
+          }
+          this.programLinkedEventsById.set(
+            Object.fromEntries(events.map((event) => [event.id, event])),
+          );
+        });
+      });
+
+      effect(() => {
         const refs = this.qualificationEventRefs();
         const eventIds = [...new Set(refs.map((ref) => ref.event_id))].filter(
           Boolean,
@@ -688,7 +764,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     });
   }
 
-  selectProgramDay(day: string): void {
+  selectProgramDay(day: string | null): void {
     this.selectedProgramDay.set(day);
   }
 
@@ -703,7 +779,12 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       queryParams: {
         mapFilter: "program",
         day: occurrence.day,
-        spotId: occurrence.ref.id,
+        spotId: isEventProgramSpotOccurrence(occurrence)
+          ? occurrence.ref.id
+          : undefined,
+        markerId: isEventProgramMarkerOccurrence(occurrence)
+          ? occurrence.ref.id
+          : undefined,
         programItemId: occurrence.item.id,
       },
     });

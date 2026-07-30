@@ -25,10 +25,14 @@ export class EventProgramDayChipsComponent {
   private readonly dateTime = inject(DateTimeFormatService);
 
   readonly days = input.required<readonly string[]>();
-  readonly selectedDay = input("");
-  readonly dayChange = output<string>();
+  readonly selectedDay = input<string | null>("");
+  readonly dayChange = output<string | null>();
 
-  readonly selectedFilter = computed(() => this.selectedDay() || ALL_DAYS);
+  readonly selectedFilter = computed(() => {
+    const day = this.selectedDay();
+    if (day === null) return "";
+    return day || ALL_DAYS;
+  });
   readonly chips = computed<PresetFilterChip[]>(() => [
     {
       urlParam: ALL_DAYS,
@@ -47,6 +51,10 @@ export class EventProgramDayChipsComponent {
   ]);
 
   selectDay(value: string): void {
+    if (!value) {
+      this.dayChange.emit(null);
+      return;
+    }
     this.dayChange.emit(value === ALL_DAYS ? "" : value);
   }
 }

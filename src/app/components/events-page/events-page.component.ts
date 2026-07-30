@@ -3,6 +3,7 @@ import {
   Component,
   computed,
   inject,
+  linkedSignal,
   LOCALE_ID,
   resource,
   signal,
@@ -166,8 +167,12 @@ export class EventsPageComponent {
   readonly query = signal("");
   readonly areaKey = signal("");
   readonly areaAliases = signal<string[]>([]);
-  readonly selectedCategories = signal<EventCategory[]>([]);
-  readonly selectedSeriesIds = signal<string[]>([]);
+  readonly selectedCategories = signal<EventCategory[]>([], {
+    equal: sameOrderedValues,
+  });
+  readonly selectedSeriesIds = signal<string[]>([], {
+    equal: sameOrderedValues,
+  });
   readonly period = signal<EventsListPeriod>("upcoming");
   readonly month = signal(currentMonthKey());
   readonly requestedDay = signal("");
@@ -248,9 +253,11 @@ export class EventsPageComponent {
     },
   });
 
-  readonly discoveryResult = computed(
-    () => this.discoveryResource.value() ?? null,
-  );
+  readonly discoveryResult = linkedSignal({
+    source: () => this.discoveryResource.value(),
+    computation: (result, previous): EventDiscoverySearchResult | null =>
+      result ?? previous?.value ?? null,
+  });
   readonly events = computed(() => this.discoveryResult()?.items ?? []);
   readonly invalidEventsResource = resource({
     params: () => (this.isAdmin() ? true : undefined),
@@ -690,6 +697,16 @@ function defaultDayForMonth(month: string, now = new Date()): string {
     Intl.DateTimeFormat().resolvedOptions().timeZone,
   );
   return today.startsWith(`${month}-`) ? today : `${month}-01`;
+}
+
+function sameOrderedValues<T>(
+  left: readonly T[],
+  right: readonly T[],
+): boolean {
+  return (
+    left.length === right.length &&
+    left.every((value, index) => value === right[index])
+  );
 }
 
 function categoryIcon(category: EventCategory): string {

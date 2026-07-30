@@ -569,6 +569,44 @@
             </mat-button-toggle-group>
           </div>
 
+          <div class="my-4 p-3 rounded border">
+            <h3 class="mat-h3 m-0" i18n="@@settings.time_format.heading">
+              Time format
+            </h3>
+            <p
+              class="mat-body mt-2 mb-3"
+              i18n="@@settings.time_format.description"
+            >
+              Choose automatically from your device and region, or always use
+              a 12-hour or 24-hour clock.
+            </p>
+            <mat-button-toggle-group
+              aria-label="Time format"
+              i18n-aria-label="@@settings.time_format.aria_label"
+              [value]="appSettings.timeFormat()"
+              (change)="appSettings.timeFormat.set($event.value)"
+            >
+              <mat-button-toggle
+                value="automatic"
+                i18n="@@settings.time_format.automatic"
+              >
+                Automatic
+              </mat-button-toggle>
+              <mat-button-toggle
+                value="12-hour"
+                i18n="@@settings.time_format.twelve_hour"
+              >
+                12-hour
+              </mat-button-toggle>
+              <mat-button-toggle
+                value="24-hour"
+                i18n="@@settings.time_format.twenty_four_hour"
+              >
+                24-hour
+              </mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
+
           <div class="my-4">
             <h3 class="mat-h3">Vector map rendering</h3>
             <p class="mat-body">

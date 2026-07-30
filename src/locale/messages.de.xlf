@@ -610,6 +610,42 @@
         <target>Die Temperatureinstellung konnte nicht gespeichert werden.</target>
       </segment>
     </unit>
+    <unit id="settings.time_format.aria_label">
+      <segment state="initial">
+        <source>Time format</source>
+        <target>Zeitformat</target>
+      </segment>
+    </unit>
+    <unit id="settings.time_format.automatic">
+      <segment state="initial">
+        <source> Automatic </source>
+        <target> Automatisch </target>
+      </segment>
+    </unit>
+    <unit id="settings.time_format.description">
+      <segment state="initial">
+        <source> Choose automatically from your device and region, or always use a 12-hour or 24-hour clock. </source>
+        <target> Wähle das Format automatisch anhand deines Geräts und deiner Region aus oder verwende immer das 12- bzw. 24-Stunden-Format. </target>
+      </segment>
+    </unit>
+    <unit id="settings.time_format.heading">
+      <segment state="initial">
+        <source> Time format </source>
+        <target> Zeitformat </target>
+      </segment>
+    </unit>
+    <unit id="settings.time_format.twelve_hour">
+      <segment state="initial">
+        <source> 12-hour </source>
+        <target> 12 Stunden </target>
+      </segment>
+    </unit>
+    <unit id="settings.time_format.twenty_four_hour">
+      <segment state="initial">
+        <source> 24-hour </source>
+        <target> 24 Stunden </target>
+      </segment>
+    </unit>
     <unit id="settings.title">
       <notes>
         <note category="description">Title of the settings page</note>
@@ -7787,6 +7823,12 @@
         <target> Name ist erforderlich. </target>
       </segment>
     </unit>
+    <unit id="event_edit.no_linked_program_location">
+      <segment state="final">
+        <source>No linked location</source>
+        <target>Kein verknüpfter Ort</target>
+      </segment>
+    </unit>
     <unit id="event_edit.notification_policy">
       <segment state="initial">
         <source> Default event notifications </source>
@@ -8867,16 +8909,10 @@
         <target>Alle Tage</target>
       </segment>
     </unit>
-    <unit id="event_program.all_days_hint">
-      <segment state="initial">
-        <source> Program locations across all event days. </source>
-        <target> Programmorte an allen Veranstaltungstagen. </target>
-      </segment>
-    </unit>
     <unit id="event_program.all_locations">
       <segment state="initial">
-        <source> All program locations </source>
-        <target> Alle Programmorte </target>
+        <source>All program locations</source>
+        <target>Alle Programmorte</target>
       </segment>
     </unit>
     <unit id="event_program.at_this_spot">
@@ -8899,14 +8935,8 @@
     </unit>
     <unit id="event_program.heading">
       <segment state="initial">
-        <source>Program</source>
-        <target>Programm</target>
-      </segment>
-    </unit>
-    <unit id="event_program.mapped_schedule">
-      <segment state="initial">
-        <source> Mapped program </source>
-        <target> Kartiertes Programm </target>
+        <source> Program </source>
+        <target> Programm </target>
       </segment>
     </unit>
     <unit id="event_program.next">
@@ -8925,12 +8955,6 @@
       <segment state="initial">
         <source>Open event</source>
         <target>Event öffnen</target>
-      </segment>
-    </unit>
-    <unit id="event_program.selected_day_hint">
-      <segment state="initial">
-        <source> Select a program point to focus its Spot. </source>
-        <target> Wähle einen Programmpunkt aus, um den zugehörigen Spot zu fokussieren. </target>
       </segment>
     </unit>
     <unit id="events.area_filter_area">
@@ -10656,12 +10680,6 @@
       <segment state="initial">
         <source>User ID</source>
         <target>Benutzer-ID</target>
-      </segment>
-    </unit>
-    <unit id="213024006531809752">
-      <segment state="initial">
-        <source>No linked Spot</source>
-        <target>Kein verknüpfter Spot</target>
       </segment>
     </unit>
     <unit id="2135214670546321857">
@@ -15018,6 +15036,12 @@
         <target> Füge einen Hauptplan hinzu, um einen Tagesplan für das Event zu veröffentlichen. </target>
       </segment>
     </unit>
+    <unit id="event_edit.program_event_markers">
+      <segment state="final">
+        <source>Event markers</source>
+        <target>Veranstaltungsmarkierungen</target>
+      </segment>
+    </unit>
     <unit id="event_edit.program_heading">
       <segment state="initial">
         <source> Program </source>
@@ -15068,8 +15092,8 @@
     </unit>
     <unit id="event_edit.program_item_spot_kind">
       <segment state="final">
-        <source>Spot target</source>
-        <target>Spot-Ziel</target>
+        <source>Program locations</source>
+        <target>Programmorte</target>
       </segment>
     </unit>
     <unit id="event_edit.program_item_start">

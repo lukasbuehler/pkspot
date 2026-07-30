@@ -94,15 +94,20 @@ import {
 import { ImgCarouselComponent } from "../img-carousel/img-carousel.component";
 import { EventProgramDayChipsComponent } from "../event-program-day-chips/event-program-day-chips.component";
 import { EventProgramOccurrenceListComponent } from "../event-program-occurrence-list/event-program-occurrence-list.component";
+import { EventProgramMapScheduleComponent } from "../event-program-map-schedule/event-program-map-schedule.component";
 import {
   eventProgramDays,
+  eventProgramLocationVisits,
   eventProgramSpotRefs,
-  eventProgramSpotVisits,
+  isEventProgramMarkerOccurrence,
+  isEventProgramSpotOccurrence,
   resolveEventProgramOccurrences,
   smartEventProgramDay,
+  type EventMarkerBinding,
   type EventProgramOccurrence,
   type EventSpotBinding,
 } from "../../shared/event-program-spots";
+import { eventProgramLocationColor } from "../../shared/event-program-timeline";
 
 type EventPageMapMarker = MarkerSchema & {
   spotIndex?: number;
@@ -135,6 +140,7 @@ type EventMapTab = "all" | "event" | "spots" | "challenges" | "program";
     ImgCarouselComponent,
     EventProgramDayChipsComponent,
     EventProgramOccurrenceListComponent,
+    EventProgramMapScheduleComponent,
   ],
   animations: [
     trigger("fadeInOut", [
@@ -166,6 +172,11 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     const selectedSpot = this.selectedSpot();
     if (map && selectedSpot) {
       this._focusMapOnSpot(map, selectedSpot);
+      return;
+    }
+    const selectedMarker = this.selectedCustomMarker();
+    if (map && selectedMarker) {
+      this.focusCustomMarker(selectedMarker);
     }
   }
 
@@ -207,6 +218,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   private _eventAuthorizationRequestVersion = 0;
   private _spotsLoadRequestVersion = 0;
   private _challengeLoadRequestVersion = 0;
+  private _programLinkedEventLoadRequestVersion = 0;
   private _minuteInterval?: number;
 
   /** The loaded event. Drives every visible field on the page. */
@@ -218,6 +230,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   selectedChallenge = signal<(SpotChallenge & { number: number }) | null>(null);
   selectedCustomMarker = signal<MarkerSchema | null>(null);
   private readonly requestedSpotIdOrSlug = signal<string | null>(null);
+  private readonly requestedMarkerId = signal<string | null>(null);
   private readonly requestedProgramDay = signal<string | undefined>(undefined);
   readonly selectedProgramItemId = signal<string | null>(null);
 
@@ -347,7 +360,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
    */
   readonly highlightedSpots = computed<SpotPreviewData[]>(() => {
     const tab = this.tab();
-    return tab === "all" || tab === "spots"
+    return tab === "all" || tab === "spots" || tab === "program"
       ? this._eventPageData.spotPreviewMarkers(this.spots())
       : [];
   });
@@ -359,6 +372,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   readonly challenges = signal<(SpotChallenge & { number: number })[]>([]);
   readonly spots = signal<(Spot | LocalSpot)[]>([]);
   readonly spotBindings = signal<EventSpotBinding[]>([]);
+  readonly programLinkedEventsById = signal<Record<string, PkEvent>>({});
   readonly now = signal(new Date());
   readonly activeProgramItems = computed<EventProgramItem[]>(() => {
     const program = this.event()?.program;
@@ -368,6 +382,13 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
       program.plans[0];
     return activePlan?.items ?? [];
   });
+  readonly programLinkedEventIds = computed(() => [
+    ...new Set(
+      this.activeProgramItems()
+        .map((item) => item.linked_event_id)
+        .filter((id): id is string => typeof id === "string" && id.length > 0),
+    ),
+  ]);
   readonly programDays = computed(() =>
     eventProgramDays(this.activeProgramItems(), this.event()?.timeZone),
   );
@@ -407,28 +428,32 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   readonly programOccurrences = computed(() =>
     resolveEventProgramOccurrences(
       this.activeProgramItems(),
-      this.spotBindings(),
+      [
+        ...this.spotBindings(),
+        ...this.customMarkers().flatMap((marker): EventMarkerBinding[] =>
+          marker.id
+            ? [
+                {
+                  ref: { kind: "custom_marker", id: marker.id },
+                  marker,
+                },
+              ]
+            : [],
+        ),
+      ],
       this.event()?.timeZone,
       this.now(),
     ),
   );
-  readonly visibleProgramOccurrences = computed(() => {
-    const day = this.selectedProgramDay();
-    return day
-      ? this.programOccurrences().filter(
-          (occurrence) => occurrence.day === day,
-        )
-      : this.programOccurrences();
-  });
-  readonly programSpotVisits = computed(() =>
-    eventProgramSpotVisits(
+  readonly programLocationVisits = computed(() =>
+    eventProgramLocationVisits(
       this.programOccurrences(),
       this.selectedProgramDay(),
       this.now(),
     ),
   );
   readonly programMapMarkers = computed<EventPageMapMarker[]>(() =>
-    this.programSpotVisits().map((visit) => {
+    this.programLocationVisits().map((visit) => {
       const occurrence = visit.representative;
       const time = this._dateTime.format(occurrence.start, {
         hour: "2-digit",
@@ -436,14 +461,27 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
         timeZone: this.event()?.timeZone,
       });
       const additionalVisits = visit.occurrences.length - 1;
+      const place =
+        visit.kind === "spot"
+          ? {
+              name: visit.spot.name(),
+              location: visit.spot.location(),
+              icons: undefined,
+            }
+          : {
+              name: visit.marker.name ?? visit.ref.id,
+              location: visit.marker.location,
+              icons: visit.marker.icons,
+            };
       return {
         id: `program:${visit.key}`,
-        name: `${visit.spot.name()}: ${occurrence.item.title}, ${time}`,
+        name: `${place.name}: ${occurrence.item.title}, ${time}`,
         description: occurrence.item.title,
-        location: visit.spot.location(),
+        location: place.location,
+        icons: place.icons,
         number: time,
         badge: additionalVisits > 0 ? `+${additionalVisits}` : undefined,
-        color: occurrence.isActive ? "secondary" : "primary",
+        color: eventProgramLocationColor(visit),
         priority: "required",
         ignoreCollisions: true,
         type: "event-program",
@@ -455,6 +493,8 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     const selected = this.selectedSpot();
     return selected
       ? this.programOccurrences().filter(
+          isEventProgramSpotOccurrence,
+        ).filter(
           (occurrence) => occurrence.spot === selected,
         )
       : [];
@@ -499,6 +539,11 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
         this.requestedSpotIdOrSlug.set(
           typeof params["spotId"] === "string" && params["spotId"].trim()
             ? params["spotId"].trim()
+            : null,
+        );
+        this.requestedMarkerId.set(
+          typeof params["markerId"] === "string" && params["markerId"].trim()
+            ? params["markerId"].trim()
             : null,
         );
         const requestedFilter = params["mapFilter"];
@@ -566,6 +611,21 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
             });
           });
         }
+      });
+
+      effect(() => {
+        const markerId = this.requestedMarkerId();
+        if (!markerId) return;
+        const marker = this.customMarkers().find(
+          (candidate) => candidate.id === markerId,
+        );
+        if (!marker || this.selectedCustomMarker()?.id === marker.id) return;
+
+        this.sidenavOpen.set(true);
+        this.selectedSpot.set(null);
+        this.selectedChallenge.set(null);
+        this.selectedCustomMarker.set(marker);
+        this.focusCustomMarker(marker);
       });
 
       effect(() => {
@@ -637,6 +697,37 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
             this.spots.set(bindings.map((binding) => binding.spot));
           }
         });
+      });
+
+      effect(() => {
+        const eventIds = this.programLinkedEventIds();
+        const requestVersion = ++this._programLinkedEventLoadRequestVersion;
+
+        if (eventIds.length === 0) {
+          this.programLinkedEventsById.set({});
+          return;
+        }
+
+        this._eventPageData
+          .loadEventCardsByIds(eventIds)
+          .then((events) => {
+            if (
+              requestVersion !== this._programLinkedEventLoadRequestVersion
+            ) {
+              return;
+            }
+            this.programLinkedEventsById.set(
+              Object.fromEntries(events.map((event) => [event.id, event])),
+            );
+          })
+          .catch((error) => {
+            console.warn("Failed to load linked program events.", error);
+            if (
+              requestVersion === this._programLinkedEventLoadRequestVersion
+            ) {
+              this.programLinkedEventsById.set({});
+            }
+          });
       });
 
       // Build challenge markers + listings from the event's challenge_spot_map.
@@ -1090,8 +1181,8 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     void this._router.navigate([], {
       relativeTo: this._route,
       queryParams: clearProgramItem
-        ? { spotId: null, programItemId: null }
-        : { spotId: null },
+        ? { spotId: null, markerId: null, programItemId: null }
+        : { spotId: null, markerId: null },
       queryParamsHandling: "merge",
       replaceUrl: true,
     });
@@ -1125,6 +1216,8 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
         queryParams: {
           mapFilter: tab === "all" ? null : tab,
           day: tab === "program" ? day || null : null,
+          markerId:
+            tab === "program" ? this.selectedCustomMarker()?.id ?? null : null,
           programItemId: tab === "program" ? this.selectedProgramItemId() : null,
         },
         queryParamsHandling: "merge",
@@ -1132,15 +1225,46 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  selectProgramDay(day: string): void {
+  selectProgramDay(day: string | null): void {
+    if (day === null) {
+      this.tab.set("spots");
+      this.selectedSpot.set(null);
+      this.selectedChallenge.set(null);
+      this.selectedCustomMarker.set(null);
+      this.selectedProgramItemId.set(null);
+      void this._router.navigate([], {
+        relativeTo: this._route,
+        queryParams: {
+          mapFilter: "spots",
+          day: null,
+          spotId: null,
+          markerId: null,
+          programItemId: null,
+        },
+        queryParamsHandling: "merge",
+      });
+      return;
+    }
+
     this.selectedProgramDay.set(day);
     const selected = this.selectedSpot();
+    const selectedMarker = this.selectedCustomMarker();
     const selectedProgramItemId = this.selectedProgramItemId();
     const selectedRemainsVisible =
       !selected ||
       this.programOccurrences().some(
         (occurrence) =>
-          occurrence.spot === selected && (!day || occurrence.day === day),
+          isEventProgramSpotOccurrence(occurrence) &&
+          occurrence.spot === selected &&
+          (!day || occurrence.day === day),
+      );
+    const selectedMarkerRemainsVisible =
+      !selectedMarker ||
+      this.programOccurrences().some(
+        (occurrence) =>
+          isEventProgramMarkerOccurrence(occurrence) &&
+          occurrence.marker.id === selectedMarker.id &&
+          (!day || occurrence.day === day),
       );
     const selectedItemRemainsVisible =
       !selectedProgramItemId ||
@@ -1151,6 +1275,9 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
       );
     if (!selectedRemainsVisible) {
       this.selectedSpot.set(null);
+    }
+    if (!selectedMarkerRemainsVisible) {
+      this.selectedCustomMarker.set(null);
     }
     if (!selectedItemRemainsVisible) {
       this.selectedProgramItemId.set(null);
@@ -1166,6 +1293,10 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
         mapFilter: "program",
         day: day || null,
         spotId: selectedSpotId,
+        markerId:
+          selectedMarker && selectedMarkerRemainsVisible
+            ? selectedMarker.id
+            : null,
         programItemId: selectedItemRemainsVisible
           ? selectedProgramItemId
           : null,
@@ -1174,20 +1305,44 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     });
   }
 
+  openProgramDay(day: string): void {
+    if (this.selectedProgramDay() !== day) {
+      this.selectProgramDay(day);
+    }
+  }
+
+  closeProgramDay(day: string): void {
+    if (this.selectedProgramDay() === day) {
+      this.selectProgramDay("");
+    }
+  }
+
   selectProgramOccurrence(occurrence: EventProgramOccurrence): void {
     this.tab.set("program");
     this.sidenavOpen.set(true);
     this.selectedProgramItemId.set(occurrence.item.id);
-    this.selectedCustomMarker.set(null);
     this.selectedChallenge.set(null);
-    this._selectResolvedSpot(occurrence.spot, false);
-    this._focusMapOnSpot(this.spotMap, occurrence.spot);
+    if (isEventProgramMarkerOccurrence(occurrence)) {
+      this.selectedSpot.set(null);
+      this.selectedCustomMarker.set(occurrence.marker);
+      this.focusCustomMarker(occurrence.marker);
+    } else {
+      this.selectedCustomMarker.set(null);
+      this._selectResolvedSpot(occurrence.spot, false);
+    }
     void this._router.navigate([], {
       relativeTo: this._route,
       queryParams: {
         mapFilter: "program",
         day: occurrence.day,
-        spotId: occurrence.ref.id,
+        spotId:
+          isEventProgramSpotOccurrence(occurrence)
+            ? occurrence.ref.id
+            : null,
+        markerId:
+          isEventProgramMarkerOccurrence(occurrence)
+            ? occurrence.ref.id
+            : null,
         programItemId: occurrence.item.id,
       },
       queryParamsHandling: "merge",

@@ -367,22 +367,30 @@
                 <div
                   class="program-drawer d-flex flex-column gap-3 p-3 overflow-y-auto w-100"
                 >
-                  @if (selectedSpot()) {
-                    <button
-                      mat-button
-                      type="button"
-                      class="align-self-start"
-                      (click)="deselectSpot()"
+                  <div>
+                    <h2
+                      class="mat-title-medium m-0"
+                      i18n="@@event_program.heading"
                     >
-                      <mat-icon>arrow_back_ios</mat-icon>
-                      <span i18n="@@event_program.all_locations">
-                        All program locations
-                      </span>
-                    </button>
-                    <section class="d-flex flex-column gap-2">
-                      <h2 class="mat-title-medium m-0">
-                        {{ selectedSpot()!.name() }}
-                      </h2>
+                      Program
+                    </h2>
+                  </div>
+                  @if (selectedSpot()) {
+                    <section class="selected-program-spot d-flex flex-column gap-2">
+                      <div class="d-flex align-items-center gap-2">
+                        <button
+                          mat-icon-button
+                          type="button"
+                          (click)="deselectSpot()"
+                          aria-label="All program locations"
+                          i18n-aria-label="@@event_program.all_locations"
+                        >
+                          <mat-icon>close</mat-icon>
+                        </button>
+                        <h3 class="mat-title-small m-0">
+                          {{ selectedSpot()!.name() }}
+                        </h3>
+                      </div>
                       <p
                         class="mat-label-large program-section-label m-0"
                         i18n="@@event_program.at_this_spot"
@@ -397,33 +405,20 @@
                         (occurrenceSelected)="selectProgramOccurrence($event)"
                       />
                     </section>
-                  } @else {
-                    <div>
-                      <h2
-                        class="mat-title-medium m-0"
-                        i18n="@@event_program.mapped_schedule"
-                      >
-                        Mapped program
-                      </h2>
-                      <p class="mat-body-small program-section-label m-0">
-                        @if (selectedProgramDay()) {
-                          <span i18n="@@event_program.selected_day_hint">
-                            Select a program point to focus its Spot.
-                          </span>
-                        } @else {
-                          <span i18n="@@event_program.all_days_hint">
-                            Program locations across all event days.
-                          </span>
-                        }
-                      </p>
-                    </div>
-                    <app-event-program-occurrence-list
-                      [occurrences]="visibleProgramOccurrences()"
-                      [timeZone]="event()?.timeZone"
-                      [selectedItemId]="selectedProgramItemId()"
-                      (occurrenceSelected)="selectProgramOccurrence($event)"
-                    />
                   }
+                  <app-event-program-map-schedule
+                    [items]="activeProgramItems()"
+                    [occurrences]="programOccurrences()"
+                    [customMarkers]="customMarkers()"
+                    [linkedEventsById]="programLinkedEventsById()"
+                    [timeZone]="event()?.timeZone"
+                    [now]="now()"
+                    [selectedDay]="selectedProgramDay()"
+                    [selectedItemId]="selectedProgramItemId()"
+                    (dayOpened)="openProgramDay($event)"
+                    (dayClosed)="closeProgramDay($event)"
+                    (occurrenceSelected)="selectProgramOccurrence($event)"
+                  />
                 </div>
               }
               @case ("spots") {
@@ -507,6 +502,9 @@
               [highlightedSpots]="highlightedSpots()"
               [showAllHighlightedSpotPins]="true"
               [hideRegularSpotPins]="true"
+              [highlightedSpotColor]="
+                tab() === 'program' ? 'gray' : 'primary'
+              "
               [selectedSpot]="selectedSpot()"
               (spotClick)="selectSpot($event)"
               (mapClick)="deselectSpot()"

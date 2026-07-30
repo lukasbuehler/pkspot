@@ -1,14 +1,22 @@
 import { signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { By } from "@angular/platform-browser";
 import { AccountPreferencesService } from "../../services/account-preferences.service";
 import type { WeatherResponse } from "../../weather/weather.models";
 import { EventProgramTimelineComponent } from "./event-program-timeline.component";
 import { provideRouter } from "@angular/router";
-import { GeoPoint } from "firebase/firestore";
+import { GeoPoint, Timestamp } from "firebase/firestore";
 import { LocalSpot } from "../../../db/models/Spot";
+import { Event as PkEvent } from "../../../db/models/Event";
+import type {
+  EventId,
+  EventSchema,
+} from "../../../db/schemas/EventSchema";
 import type { SpotSchema } from "../../../db/schemas/SpotSchema";
 import { StorageService } from "../../services/firebase/storage.service";
 import { MapsApiService } from "../../services/maps-api.service";
+import { AnalyticsService } from "../../services/analytics.service";
+import { MarkerComponent } from "../marker/marker.component";
 
 describe("EventProgramTimelineComponent", () => {
   let fixture: ComponentFixture<EventProgramTimelineComponent>;
@@ -62,6 +70,10 @@ describe("EventProgramTimelineComponent", () => {
             isStreetViewPreviewEnabled: vi.fn(() => false),
             isStreetViewPreviewAllowedAtZoom: vi.fn(() => false),
           },
+        },
+        {
+          provide: AnalyticsService,
+          useValue: { trackEvent: vi.fn() },
         },
       ],
     });
@@ -169,5 +181,77 @@ describe("EventProgramTimelineComponent", () => {
     expect(link.getAttribute("href")).toContain(
       "map?mapFilter=program&day=2026-07-23&spotId=main-stage&programItemId=training",
     );
+  });
+
+  it("renders custom event markers with focused map links", async () => {
+    fixture.componentRef.setInput("items", [
+      {
+        id: "arrival",
+        title: "Arrival",
+        category: "travel",
+        start: new Date("2026-07-23T08:30:00Z"),
+        spot_ref: { kind: "custom_marker", id: "camp" },
+      },
+    ]);
+    fixture.componentRef.setInput("customMarkers", [
+      {
+        id: "camp",
+        name: "Campingplatz Waldhort",
+        location: { lat: 47.5, lng: 7.6 },
+        icons: ["camping"],
+        color: "secondary",
+      },
+    ]);
+
+    await fixture.whenStable();
+
+    const link = fixture.nativeElement.querySelector(
+      ".program-marker-link",
+    ) as HTMLAnchorElement;
+    expect(fixture.nativeElement.textContent).toContain(
+      "Campingplatz Waldhort",
+    );
+    expect(link.getAttribute("href")).toContain(
+      "map?mapFilter=program&day=2026-07-23&markerId=camp&programItemId=arrival",
+    );
+    expect(
+      fixture.debugElement.query(By.directive(MarkerComponent))
+        .componentInstance.color(),
+    ).toBe("secondary");
+  });
+
+  it("renders linked events as compact event previews", async () => {
+    const linkedEvent = new PkEvent("skills-open" as EventId, {
+      name: "WPF Skills Competition",
+      slug: "skills-open",
+      venue_string: "Theaterplatz",
+      locality_string: "Basel, Switzerland",
+      start: Timestamp.fromDate(new Date("2026-07-23T10:00:00Z")),
+      end: Timestamp.fromDate(new Date("2026-07-23T20:00:00Z")),
+    } as EventSchema);
+    fixture.componentRef.setInput("items", [
+      {
+        id: "competition",
+        title: "Skills competition",
+        category: "competition",
+        start: new Date("2026-07-23T10:00:00Z"),
+        linked_event_id: linkedEvent.id,
+      },
+    ]);
+    fixture.componentRef.setInput("linkedEventsById", {
+      [linkedEvent.id]: linkedEvent,
+    });
+
+    await fixture.whenStable();
+
+    const preview = fixture.nativeElement.querySelector(
+      "app-event-card.program-linked-event",
+    ) as HTMLElement;
+    expect(preview).toBeTruthy();
+    expect(preview.classList.contains("compact")).toBe(true);
+    expect(preview.textContent).toContain("WPF Skills Competition");
+    expect(
+      fixture.nativeElement.querySelector(".program-linked-event-fallback"),
+    ).toBeNull();
   });
 });

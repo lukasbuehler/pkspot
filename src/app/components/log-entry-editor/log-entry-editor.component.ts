@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
-import { DatePipe } from "@angular/common";
+import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
@@ -25,7 +25,7 @@ import { UserPickerComponent } from "../user-picker/user-picker.component";
 @Component({
   selector: "app-log-entry-editor",
   imports: [
-    DatePipe,
+    SystemDatePipe,
     ReactiveFormsModule,
     RouterLink,
     MatButtonModule,

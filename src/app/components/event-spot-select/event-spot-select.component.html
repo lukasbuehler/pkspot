@@ -24,17 +24,25 @@
           @if (selected.imageSrc) {
             <img [src]="selected.imageSrc" alt="" />
           } @else {
-            <span class="spot-image-placeholder"><mat-icon>place</mat-icon></span>
+            <span class="spot-image-placeholder"
+              ><mat-icon>{{ selected.icon || "place" }}</mat-icon></span
+            >
           }
           <span>{{ selected.name }}</span>
         </span>
       } @else {
-        <span i18n>No linked Spot</span>
+        <span i18n="@@event_edit.no_linked_program_location"
+          >No linked location</span
+        >
       }
     </mat-select-trigger>
 
     @if (!multiple()) {
-      <mat-option value="" i18n>No linked Spot</mat-option>
+      <mat-option
+        value=""
+        i18n="@@event_edit.no_linked_program_location"
+        >No linked location</mat-option
+      >
     }
     @if (storedOptions().length > 0 || storedSpots.isLoading()) {
       <mat-optgroup label="Map Spots" i18n-label>
@@ -68,6 +76,21 @@
         }
       </mat-optgroup>
     }
+    @if (customMarkerOptions().length > 0) {
+      <mat-optgroup
+        label="Event markers"
+        i18n-label="@@event_edit.program_event_markers"
+      >
+        @for (marker of customMarkerOptions(); track optionKey(marker)) {
+          <mat-option [value]="optionKey(marker)">
+            <ng-container
+              [ngTemplateOutlet]="spotOption"
+              [ngTemplateOutletContext]="{ $implicit: marker }"
+            ></ng-container>
+          </mat-option>
+        }
+      </mat-optgroup>
+    }
   </mat-select>
 </mat-form-field>
 
@@ -76,7 +99,9 @@
     @if (spot.imageSrc) {
       <img [src]="spot.imageSrc" alt="" loading="lazy" />
     } @else {
-      <span class="spot-image-placeholder"><mat-icon>place</mat-icon></span>
+      <span class="spot-image-placeholder"
+        ><mat-icon>{{ spot.icon || "place" }}</mat-icon></span
+      >
     }
     <span class="spot-name">{{ spot.name }}</span>
   </span>

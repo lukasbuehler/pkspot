@@ -3,8 +3,11 @@ import { TestBed } from "@angular/core/testing";
 import {
   DateTimeFormatService,
   createDateTimeFormatter,
+  inferRegionFromTimeZone,
   regionalizeLocale,
+  resolveHourCycle,
 } from "./date-time-format.service";
+import { AppSettingsService } from "./app-settings.service";
 
 describe("DateTimeFormatService", () => {
   beforeEach(() => {
@@ -16,6 +19,9 @@ describe("DateTimeFormatService", () => {
   it("combines the UI language with the system region", () => {
     expect(regionalizeLocale("en", "de-CH")).toBe("en-CH");
     expect(regionalizeLocale("de-CH", "en-US")).toBe("de-CH");
+    expect(regionalizeLocale("en", "en-US-u-hc-h23")).toBe(
+      "en-US-u-hc-h23",
+    );
   });
 
   it("honors a 24-hour preference independently of an en-US locale", () => {
@@ -34,6 +40,40 @@ describe("DateTimeFormatService", () => {
     expect(parts.findIndex((part) => part.type === "month")).toBeLessThan(
       parts.findIndex((part) => part.type === "day"),
     );
+  });
+
+  it("maps IANA time zones to their CLDR territory", () => {
+    expect(inferRegionFromTimeZone("Europe/Zurich")).toBe("CH");
+    expect(inferRegionFromTimeZone("Asia/Kolkata")).toBe("IN");
+  });
+
+  it("uses territory-specific 24-hour conventions across regions", () => {
+    expect(resolveHourCycle("en-US", "Europe/Zurich", "h12")).toBe("h23");
+    expect(resolveHourCycle("en-US", "Africa/Johannesburg", "h12")).toBe("h23");
+    expect(resolveHourCycle("en-US", "Asia/Tokyo", "h12")).toBe("h23");
+  });
+
+  it("honors language-specific territory conventions", () => {
+    expect(resolveHourCycle("fr-US", "America/Toronto", "h12")).toBe("h23");
+  });
+
+  it("keeps 12-hour regional conventions and browser 24-hour overrides", () => {
+    expect(resolveHourCycle("en-US", "America/New_York", "h12")).toBe("h12");
+    expect(resolveHourCycle("en-US", "America/New_York", "h23")).toBe("h23");
+    expect(resolveHourCycle("en-US-u-hc-h12", "Europe/Zurich", "h12")).toBe(
+      "h12",
+    );
+  });
+
+  it("allows an explicit time format to override automatic detection", () => {
+    const settings = TestBed.inject(AppSettingsService);
+    const service = TestBed.inject(DateTimeFormatService);
+
+    settings.timeFormat.set("24-hour");
+    expect(service.preferences().hourCycle).toBe("h23");
+
+    settings.timeFormat.set("12-hour");
+    expect(service.preferences().hourCycle).toBe("h12");
   });
 
   it("uses the regional locale for date order", () => {

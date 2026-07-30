@@ -447,7 +447,12 @@ export type EventProgramItemStatus =
   | "delayed";
 
 export interface EventProgramSpotRefSchema {
-  kind: "spot" | "inline_spot";
+  /**
+   * `custom_marker` is an event-owned map marker. The historical `spot_ref`
+   * field name is retained so older clients keep reading stored and inline
+   * Spot references without a migration.
+   */
+  kind: "spot" | "inline_spot" | "custom_marker";
   id: string;
 }
 
@@ -484,8 +489,8 @@ export interface EventProgramItemSchema {
   end?: Timestamp;
   spot_ref?: EventProgramSpotRefSchema;
   /**
-   * All Spots visited by this program block. `spot_ref` remains populated with
-   * the first entry while older app versions are supported.
+   * All mapped locations visited by this program block. `spot_ref` remains
+   * populated with the first entry while older app versions are supported.
    */
   spot_refs?: EventProgramSpotRefSchema[];
   status?: EventProgramItemStatus;

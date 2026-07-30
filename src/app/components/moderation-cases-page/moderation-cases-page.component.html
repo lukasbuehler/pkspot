@@ -83,11 +83,11 @@
             <footer>
               <span>
                 <strong i18n>Received:</strong>
-                {{ item.acknowledged_at | date: "medium" }}
+                {{ item.acknowledged_at | systemDate: "medium" }}
               </span>
               <span>
                 <strong i18n>Target:</strong>
-                {{ item.target_resolution_at | date: "mediumDate" }}
+                {{ item.target_resolution_at | systemDate: "mediumDate" }}
               </span>
               @if (item.assigned_to) {
                 <span>

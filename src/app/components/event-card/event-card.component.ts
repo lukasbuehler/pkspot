@@ -41,6 +41,9 @@ import { DateTimeFormatService } from "../../services/date-time-format.service";
   templateUrl: "./event-card.component.html",
   styleUrl: "./event-card.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    "[class.compact]": "compact()",
+  },
 })
 export class EventCardComponent {
   private _locale = inject<LocaleCode>(LOCALE_ID);
@@ -51,6 +54,8 @@ export class EventCardComponent {
   seriesById = input<Record<string, SeriesDocument>>({});
   selectMode = input(false);
   showVenue = input(true);
+  showRsvp = input(true);
+  compact = input(false);
   select = output<PkEvent>();
 
   readonly status = computed<EventStatus>(() => this.event().status());

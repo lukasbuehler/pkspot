@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
-import { DatePipe } from "@angular/common";
+import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
@@ -9,7 +9,7 @@ import { LogEntriesService } from "../../services/firebase/firestore/log-entries
 
 @Component({
   selector: "app-public-training-log",
-  imports: [DatePipe, RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [SystemDatePipe, RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: "./public-training-log.component.html",
   styleUrl: "./public-training-log.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -23,8 +23,8 @@
                   (change)="toggleSession(session.id, $event.checked)"
                 />
                 <div>
-                  <strong>{{ session.started_at_raw_ms | date: "mediumDate" }}</strong>
-                  <span>{{ session.started_at_raw_ms | date: "shortTime" }} · {{ session.spot_visits.length }} spots · {{ session.source === "check_in" ? "Check-in" : "Manual" }}</span>
+                  <strong>{{ session.started_at_raw_ms | systemDate: "mediumDate" }}</strong>
+                  <span>{{ session.started_at_raw_ms | systemDate: "shortTime" }} · {{ session.spot_visits.length }} spots · {{ session.source === "check_in" ? "Check-in" : "Manual" }}</span>
                 </div>
               </div>
             }
