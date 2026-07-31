@@ -77,6 +77,31 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
+### Event cancellation and live operations
+
+Deploy the compatible backend before releasing the event-operations UI. No
+document backfill or Typesense schema change is required; older clients ignore
+the additive lifecycle, program, and live-update metadata.
+
+- [ ] Build and deploy the callable, notification triggers/scheduler, registration
+      reconciliation, and Firestore rules:
+
+  ```sh
+  npm --prefix functions run build
+  npx firebase deploy --project prod --only functions:applyEventOperationalChange,functions:onEventLiveUpdateCreate,functions:onEventNotificationSourceWrite,functions:onEventRsvpNotificationWrite,functions:onNotificationIntentWrite,functions:sendDueNotificationIntents,functions:reconcileEventWaitlistOnEventUpdate,firestore:rules
+  ```
+
+  Success condition: all Functions run in `europe-west1`; a test event can be
+  cancelled while remaining published; its pending attendee reminders become
+  cancelled; exactly one eligible operational update is created per attendee;
+  explicit event/global opt-outs suppress the update; and a stale operation is
+  rejected without changing the event.
+
+- [ ] After the client release, verify cancellation/restoration, event
+      rescheduling, one program-item delay, and one alternate-plan activation on
+      a non-production test event. Confirm the event page, event map, in-app
+      notification, and push deep link all show the same resulting state.
+
 ### Followed-community notifications
 
 This rollout is additive. Deploy the backend before releasing clients that expose

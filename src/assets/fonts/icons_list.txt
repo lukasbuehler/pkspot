@@ -11,6 +11,7 @@ book_2
 history_edu
 add_alert
 campaign
+emergency_home
 open_in_full
 search
 home

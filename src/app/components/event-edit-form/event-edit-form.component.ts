@@ -2731,6 +2731,15 @@ export class EventEditFormComponent {
         : plans[0].id;
 
     return {
+      ...(this.event()?.program?.active_plan_note
+        ? { active_plan_note: this.event()!.program!.active_plan_note }
+        : {}),
+      ...(this.event()?.program?.active_plan_changed_at
+        ? { active_plan_changed_at: this.event()!.program!.active_plan_changed_at }
+        : {}),
+      ...(this.event()?.program?.active_plan_changed_by
+        ? { active_plan_changed_by: this.event()!.program!.active_plan_changed_by }
+        : {}),
       active_plan_id: activePlanId,
       plans,
     };

@@ -11,7 +11,10 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
 import type { Event as PkEvent, EventProgramItem } from "../../../db/models/Event";
-import type { EventCategory } from "../../../db/schemas/EventSchema";
+import type {
+  EventCategory,
+  EventProgramItemStatus,
+} from "../../../db/schemas/EventSchema";
 import type { SeriesDocument } from "../../services/firebase/firestore/series.service";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 import type {
@@ -28,6 +31,19 @@ import {
   WeatherIconButtonComponent,
   type WeatherIconData,
 } from "../weather-icon-button/weather-icon-button.component";
+
+export interface EventProgramTimelineEntry {
+  item: EventProgramItem;
+  start: Date;
+  end?: Date;
+  status: EventProgramItemStatus;
+  note?: string;
+  originalStart?: Date;
+  spots: readonly EventProgramTimelineSpot[];
+  markers: readonly EventProgramTimelineMarker[];
+  linkedEvent?: PkEvent;
+  weather?: WeatherIconData;
+}
 
 @Component({
   selector: "app-event-program-day-timeline",
@@ -126,14 +142,13 @@ export class EventProgramDayTimelineComponent {
         return "sell";
     }
   }
-}
 
-export interface EventProgramTimelineEntry {
-  item: EventProgramItem;
-  start: Date;
-  end?: Date;
-  spots: readonly EventProgramTimelineSpot[];
-  markers: readonly EventProgramTimelineMarker[];
-  linkedEvent?: PkEvent;
-  weather?: WeatherIconData;
+  statusLabel(status: EventProgramItemStatus): string {
+    switch (status) {
+      case "cancelled": return $localize`Cancelled`;
+      case "delayed": return $localize`Delayed`;
+      case "moved": return $localize`Moved`;
+      default: return $localize`Scheduled`;
+    }
+  }
 }

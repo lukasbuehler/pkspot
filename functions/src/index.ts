@@ -58,6 +58,7 @@ export {
   syncEventDiscoveryOnEventWrite,
 } from "./eventDiscoveryFunctions";
 export {
+  applyEventOperationalChange,
   onEventLiveUpdateCreate,
   publishEventLiveUpdate,
 } from "./eventLiveUpdateFunctions";

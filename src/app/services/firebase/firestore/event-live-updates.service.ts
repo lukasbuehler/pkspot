@@ -4,6 +4,8 @@ import { Observable, map, of } from "rxjs";
 import { Event } from "../../../../db/models/Event";
 import { EventLiveUpdate } from "../../../../db/models/EventLiveUpdate";
 import type {
+  ApplyEventOperationalChangeRequest,
+  ApplyEventOperationalChangeResponse,
   EventLiveUpdateSchema,
   EventLiveUpdateSubscriberSchema,
   EventNotificationLevel,
@@ -198,5 +200,14 @@ export class EventLiveUpdatesService {
       PublishEventLiveUpdateRequest,
       PublishEventLiveUpdateResponse
     >("publishEventLiveUpdate", request);
+  }
+
+  applyOperationalChange(
+    request: ApplyEventOperationalChangeRequest,
+  ): Promise<ApplyEventOperationalChangeResponse> {
+    return this.functions.call<
+      ApplyEventOperationalChangeRequest,
+      ApplyEventOperationalChangeResponse
+    >("applyEventOperationalChange", request);
   }
 }

@@ -237,3 +237,32 @@
     gap: 0.35rem;
   }
 }
+.program-status {
+  display: inline-flex;
+  width: fit-content;
+  padding: 0.2rem 0.5rem;
+  color: var(--mat-sys-on-tertiary-container);
+  background: var(--mat-sys-tertiary-container);
+  border: 1px solid var(--mat-sys-tertiary);
+  border-radius: 999px;
+  font: var(--mat-sys-label-small);
+}
+
+.program-status[data-status="cancelled"] {
+  color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
+  border-color: var(--mat-sys-error);
+}
+
+.program-item.is-cancelled {
+  opacity: 0.72;
+}
+
+.program-item.is-cancelled h3 {
+  text-decoration: line-through;
+}
+
+.program-original-time,
+.program-operation-note {
+  color: var(--mat-sys-on-surface-variant);
+}

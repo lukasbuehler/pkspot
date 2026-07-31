@@ -462,6 +462,8 @@ export interface EventProgramRuntimeOverrideSchema {
   status?: EventProgramItemStatus;
   note?: string;
   note_i18n?: LocaleMap | Record<string, string>;
+  updated_at?: Timestamp;
+  updated_by?: string;
 }
 
 export interface EventProgramParticipationSchema {
@@ -518,6 +520,15 @@ export interface EventProgramPlanSchema {
 export interface EventProgramSchema {
   active_plan_id: string;
   plans: EventProgramPlanSchema[];
+  active_plan_note?: string;
+  active_plan_changed_at?: Timestamp;
+  active_plan_changed_by?: string;
+}
+
+export interface EventLifecycleUpdateSchema {
+  note?: string;
+  changed_at: Timestamp;
+  changed_by: string;
 }
 
 export interface EventSchema {
@@ -719,6 +730,9 @@ export interface EventSchema {
   kind?: EventKind;
   schedule_mode?: EventScheduleMode;
   lifecycle_status?: EventLifecycleStatus;
+  lifecycle_update?: EventLifecycleUpdateSchema;
+  /** Server-owned marker used to deduplicate atomic operational updates. */
+  last_operation_id?: string;
   priority?: EventPriority;
   owner?: EventOwnerSchema;
   attendance?: EventAttendanceSchema;

@@ -272,7 +272,14 @@ export const onEventNotificationSourceWrite = onDocumentWritten(
     const before = changeEvent.before.data() as EventSchema;
     const after = changeEvent.after.data() as EventSchema;
     const change = eventChange(before, after);
-    if (!change) return;
+    const structuredOperation =
+      typeof after.last_operation_id === "string" &&
+      after.last_operation_id !== before.last_operation_id;
+    const reminderStateChanged =
+      change === "time" ||
+      before.lifecycle_status !== after.lifecycle_status ||
+      (before.published !== false) !== (after.published !== false);
+    if (!change && !reminderStateChanged) return;
 
     const eventId = String(event.params.eventId);
     const rsvps = await changeEvent.after.ref.collection("rsvps").get();
@@ -285,30 +292,58 @@ export const onEventNotificationSourceWrite = onDocumentWritten(
     const updateMarker =
       changeEvent.after.updateTime?.toMillis() ?? Date.parse(event.time);
     const path = eventPath(eventId, after);
+    const updatesAllowed =
+      after.notification_policy !== "none" &&
+      after.notification_policy !== "reminders";
+    const subscriptions = updatesAllowed
+      ? await changeEvent.after.ref.collection("live_update_subscribers").get()
+      : null;
+    const subscriptionByUser = new Map(
+      (subscriptions?.docs ?? []).map((subscription) => [
+        subscription.id,
+        subscription.data(),
+      ]),
+    );
     await Promise.all(
       recipients.map(async (rsvp) => {
-        await createIntent(
-          `event_update_${eventId}_${rsvp.id}_${updateMarker}`,
-          {
-            recipientUid: rsvp.id,
-            type: "event_update",
-            sourcePath: changeEvent.after.ref.path,
-            sendAfter: Timestamp.now(),
-            expiresAt: Timestamp.fromMillis(Date.now() + 30 * DAY_MS),
-            path,
-            channelId: "event_updates",
-            payload: {
-              event_id: eventId,
-              event_name: after.name,
-              change,
+        const subscription = subscriptionByUser.get(rsvp.id);
+        if (
+          change &&
+          !structuredOperation &&
+          updatesAllowed &&
+          (!subscription || subscription["active"] === true)
+        ) {
+          await createIntent(
+            `event_update_${eventId}_${rsvp.id}_${updateMarker}`,
+            {
+              recipientUid: rsvp.id,
+              type: "event_update",
+              sourcePath: changeEvent.after.ref.path,
+              sendAfter: Timestamp.now(),
+              expiresAt: Timestamp.fromMillis(Date.now() + 30 * DAY_MS),
+              path,
+              channelId: "event_updates",
+              payload: {
+                event_id: eventId,
+                event_name: after.name,
+                change,
+              },
             },
-          },
-        );
+          );
+        }
 
         const reminderId = eventReminderIntentId(eventId, rsvp.id);
-        if (after.published === false) {
-          await cancelIntent(reminderId, "event_unpublished");
-        } else if (change === "time") {
+        if (
+          after.published === false ||
+          after.lifecycle_status === "cancelled"
+        ) {
+          await cancelIntent(
+            reminderId,
+            after.lifecycle_status === "cancelled"
+              ? "event_cancelled"
+              : "event_unpublished",
+          );
+        } else if (reminderStateChanged) {
           await upsertEventReminder(
             reminderId,
             rsvp.id,
@@ -539,7 +574,14 @@ export const onNotificationIntentWrite = onDocumentWritten(
       adminTimestamp(after.expires_at) ??
       Timestamp.fromMillis(now.toMillis() + 30 * DAY_MS);
     const createdAt = adminTimestamp(after.created_at) ?? now;
-    const active = intentIsActive(after);
+    const privateData = await admin.firestore()
+      .doc(`users/${source.recipient_uid}/private_data/main`)
+      .get();
+    const preferences = privateData.data()?.[
+      "notification_preferences"
+    ] as NotificationPreferencesSchema | undefined;
+    const active =
+      intentIsActive(after) && notificationPreferenceEnabled(preferences, after.type);
     await feedRef.set(
       {
         type: after.type,
@@ -659,8 +701,25 @@ async function upsertEventReminder(
   rsvp: EventRSVPSchema["rsvp"],
 ): Promise<void> {
   const start = adminTimestamp(eventData.start);
-  if (!start || eventData.published === false) {
+  if (
+    !start ||
+    eventData.published === false ||
+    eventData.lifecycle_status === "cancelled" ||
+    eventData.notification_policy === "none" ||
+    eventData.notification_policy === "event_updates"
+  ) {
     await cancelIntent(intentId, "event_unavailable");
+    return;
+  }
+
+  const subscription = await admin.firestore()
+    .doc(`events/${eventId}/live_update_subscribers/${userId}`)
+    .get();
+  if (
+    subscription.exists &&
+    subscription.data()?.["event_reminders"] !== true
+  ) {
+    await cancelIntent(intentId, "event_reminder_disabled");
     return;
   }
 
@@ -802,7 +861,12 @@ async function deliverIntent(
         `events/${liveUpdateEventId}/live_update_subscribers/${intent.recipient_uid}`,
       )
       .get();
-    if (subscription.data()?.["active"] !== true) {
+    const operational = typeof intent.payload["operation_type"] === "string";
+    if (
+      operational
+        ? subscription.exists && subscription.data()?.["active"] !== true
+        : subscription.data()?.["active"] !== true
+    ) {
       return {
         status: "skipped",
         deliveryCount: 0,
@@ -838,7 +902,7 @@ async function deliverIntent(
   const preferences = privateData.data()?.[
     "notification_preferences"
   ] as NotificationPreferencesSchema | undefined;
-  if (preferences?.[PREFERENCE_BY_TYPE[intent.type]] !== true) {
+  if (!notificationPreferenceEnabled(preferences, intent.type)) {
     return { status: "skipped", deliveryCount: 0, reason: "preference_disabled" };
   }
 
@@ -895,6 +959,9 @@ async function deliverIntent(
         ...(intent.payload["live_update_type"]
           ? { live_update_type: intent.payload["live_update_type"] }
           : {}),
+        ...(intent.payload["operation_type"]
+          ? { operation_type: intent.payload["operation_type"] }
+          : {}),
       },
       android: {
         notification: {
@@ -936,6 +1003,15 @@ async function deliverIntent(
     throw new Error("FCM did not accept the message for any active registration.");
   }
   return { status: "sent", deliveryCount };
+}
+
+function notificationPreferenceEnabled(
+  preferences: NotificationPreferencesSchema | undefined,
+  type: NotificationIntentType,
+): boolean {
+  const value = preferences?.[PREFERENCE_BY_TYPE[type]];
+  if (value !== undefined) return value;
+  return type === "event_reminder" || type === "event_update";
 }
 
 function deliveryChannel(intent: StoredIntent): IntentChannel {
@@ -1107,7 +1183,15 @@ function notificationCopy(
 }
 
 function eventChange(before: EventSchema, after: EventSchema): string | null {
-  if (before.published !== false && after.published === false) return "cancelled";
+  if (
+    before.lifecycle_status !== "cancelled" &&
+    after.lifecycle_status === "cancelled"
+  ) return "cancelled";
+  if (
+    before.lifecycle_status === "cancelled" &&
+    after.lifecycle_status !== "cancelled"
+  ) return "restored";
+  if (before.published !== false && after.published === false) return null;
   if (!sameTimestamp(before.start, after.start) || !sameTimestamp(before.end, after.end)) {
     return "time";
   }
@@ -1311,6 +1395,7 @@ function normalizeLocale(locale: string): string {
 
 function englishEventChange(change: string): string {
   if (change === "cancelled") return "it was cancelled";
+  if (change === "restored") return "it is happening again";
   if (change === "time") return "the time changed";
   if (change === "location") return "the location changed";
   return "the details changed";
@@ -1318,6 +1403,7 @@ function englishEventChange(change: string): string {
 
 function germanEventChange(change: string): string {
   if (change === "cancelled") return "wurde abgesagt";
+  if (change === "restored") return "findet wieder statt";
   if (change === "time") return "die Zeit wurde geändert";
   if (change === "location") return "der Ort wurde geändert";
   return "die Details wurden geändert";

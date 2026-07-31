@@ -162,6 +162,12 @@ export class EventProgramTimelineComponent {
         item,
         start: effective.start,
         end: effective.end,
+        status: effective.status,
+        note: item.runtimeOverride?.note,
+        originalStart:
+          effective.start.getTime() !== item.start.getTime()
+            ? item.start
+            : undefined,
         spots: locations?.spots ?? [],
         markers: locations?.markers ?? [],
         linkedEvent: item.linked_event_id

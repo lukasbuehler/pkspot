@@ -342,15 +342,18 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly featuredParticipants = computed(
     () => this.event()?.featuredParticipants ?? [],
   );
-  readonly activeProgramItems = computed<EventProgramItem[]>(() => {
+  readonly activeProgramPlan = computed(() => {
     const event = this.event();
-    if (!event?.program) return [];
-    const activePlan =
+    if (!event?.program) return undefined;
+    return (
       event.program.plans.find(
         (plan) => plan.id === event.program?.active_plan_id,
-      ) ?? event.program.plans[0];
-    return activePlan?.items ?? [];
+      ) ?? event.program.plans[0]
+    );
   });
+  readonly activeProgramItems = computed<EventProgramItem[]>(
+    () => this.activeProgramPlan()?.items ?? [],
+  );
   readonly programLinkedEventIds = computed(() => [
     ...new Set(
       this.activeProgramItems()
@@ -1020,7 +1023,12 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     source: EventAddDialogData["source"] = "event_page",
   ): boolean {
     const event = this.event();
-    if (!event || !event.published || event.isPast(this.now())) return false;
+    if (
+      !event ||
+      !event.published ||
+      event.lifecycleStatus === "cancelled" ||
+      event.isPast(this.now())
+    ) return false;
     const returnUrl =
       this._router.url || this._eventPageData.eventCanonicalPath(event);
     this._dialog.open<
@@ -1066,6 +1074,13 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
 
   cancelEditingEvent(): void {
     this.isEditingEvent.set(false);
+  }
+
+  async reloadEventAfterOperation(): Promise<void> {
+    const current = this.event();
+    if (!current) return;
+    const reloaded = await this._eventsService.getEventById(current.id);
+    if (reloaded) this._setEvent(reloaded);
   }
 
   toggleEventDescription(): void {

@@ -54,10 +54,13 @@ function parseHostPort(value: string): [string, number] {
   return [host, port];
 }
 
-async function waitForDocument(path: string): Promise<admin.firestore.DocumentData> {
+async function waitForDocument(
+  path: string,
+  predicate: (data: admin.firestore.DocumentData) => boolean = () => true,
+): Promise<admin.firestore.DocumentData> {
   for (let attempt = 0; attempt < 80; attempt += 1) {
     const snapshot = await db().doc(path).get();
-    if (snapshot.exists) return snapshot.data()!;
+    if (snapshot.exists && predicate(snapshot.data()!)) return snapshot.data()!;
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
   throw new Error(`Timed out waiting for ${path}`);
@@ -146,6 +149,7 @@ runWithEmulator("EventLiveUpdatesService emulator integration", () => {
           type: "organization",
           organization: { id: "live-org", name: "Live Org", slug: "live-org" },
         },
+        organizer_access: "edit",
         start: admin.firestore.Timestamp.fromMillis(Date.now() + 60_000),
         end: admin.firestore.Timestamp.fromMillis(Date.now() + 86_400_000),
         venue_string: "Main park",
@@ -177,7 +181,7 @@ runWithEmulator("EventLiveUpdatesService emulator integration", () => {
       message: "The main gate is closed.",
       eventSpotId: "west",
     };
-    await expect(service.publish(request)).rejects.toThrow(/organizer/i);
+    await expect(service.publish(request)).rejects.toThrow(/editing access|organizer/i);
 
     await db().doc(`organizations/live-org/members/${userId}`).set({
       role: "owner",
@@ -245,6 +249,70 @@ runWithEmulator("EventLiveUpdatesService emulator integration", () => {
         title: "Too late",
       }),
     ).rejects.toThrow(/past events/i);
+  }, timeoutMs);
+
+  it("atomically cancels an event, notifies an affected attendee, and invalidates reminders", async () => {
+    const attendeeId = `affected-${userId}`;
+    const start = admin.firestore.Timestamp.fromMillis(
+      Date.now() + 4 * 60 * 60 * 1000,
+    );
+    await Promise.all([
+      db().doc(`organizations/live-org/members/${userId}`).set({
+        role: "admin",
+        user: { uid: userId },
+      }),
+      db().doc("events/live-event").update({
+        start,
+        end: admin.firestore.Timestamp.fromMillis(start.toMillis() + 3_600_000),
+        lifecycle_status: "planned",
+        notification_policy: "all",
+        organizer_access: "edit",
+        owner: { type: "user", user_id: userId },
+      }),
+      db().doc(`users/${attendeeId}`).set({ display_name: "Affected attendee" }),
+      db().doc(`users/${attendeeId}/private_data/main`).set({
+        notification_preferences: { event_updates: true, event_reminders: true },
+      }),
+    ]);
+    await db().doc(`events/live-event/rsvps/${attendeeId}`).set({
+      user_id: attendeeId,
+      event_id: "live-event",
+      rsvp: "going",
+      time_created: admin.firestore.Timestamp.now(),
+      time_updated: admin.firestore.Timestamp.now(),
+    });
+    await waitForDocument(
+      `notification_intents/event_reminder_live-event_${attendeeId}`,
+      (data) => data["status"] === "pending",
+    );
+
+    const result = await service.applyOperationalChange({
+      eventId: "live-event",
+      operation: "cancel_event",
+      reason: "Severe storm warning",
+    });
+
+    const cancelledEvent = await waitForDocument("events/live-event", (data) =>
+      data["lifecycle_status"] === "cancelled",
+    );
+    expect(cancelledEvent["published"]).toBe(true);
+    expect(cancelledEvent["lifecycle_update"]["note"]).toBe("Severe storm warning");
+    const update = await waitForDocument(
+      `events/live-event/live_updates/${result.operationId}`,
+    );
+    expect(update).toEqual(expect.objectContaining({
+      operation_type: "cancel_event",
+      type: "event_cancelled",
+    }));
+    await waitForDocument(
+      `notification_intents/event_live_update_live-event_${result.operationId}_${attendeeId}`,
+      (data) => data["status"] === "pending",
+    );
+    const reminder = await waitForDocument(
+      `notification_intents/event_reminder_live-event_${attendeeId}`,
+      (data) => data["status"] === "cancelled",
+    );
+    expect(reminder["failure_reason"]).toBe("event_cancelled");
   }, timeoutMs);
 
   it("creates and lists the current user's event notification subscriptions", async () => {

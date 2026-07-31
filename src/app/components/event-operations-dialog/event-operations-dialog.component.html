@@ -1,0 +1,116 @@
+<h2 mat-dialog-title i18n>Event operations</h2>
+
+<mat-dialog-content>
+  @if (!previewing()) {
+    <div class="operation-form">
+      <mat-form-field appearance="outline">
+        <mat-label i18n>Operation</mat-label>
+        <mat-select [value]="operation()" (selectionChange)="operationChanged($event.value)">
+          @for (option of operationOptions(); track option.value) {
+            <mat-option [value]="option.value">{{ option.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      @if (operation() === "cancel_event") {
+        <mat-form-field appearance="outline">
+          <mat-label i18n>Cancellation reason</mat-label>
+          <textarea matInput rows="3" maxlength="280" required [value]="reason()"
+            (input)="reason.set($any($event.target).value)"></textarea>
+          <mat-hint i18n>This reason remains visible on the event.</mat-hint>
+        </mat-form-field>
+      }
+
+      @if (operation() === "reschedule_event") {
+        <div class="field-grid">
+          <mat-form-field appearance="outline">
+            <mat-label i18n>New start</mat-label>
+            <input matInput type="datetime-local" [value]="start()"
+              (input)="start.set($any($event.target).value)" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label i18n>New end</mat-label>
+            <input matInput type="datetime-local" [value]="end()"
+              (input)="end.set($any($event.target).value)" />
+          </mat-form-field>
+        </div>
+      }
+
+      @if (operation() === "activate_program_plan" || operation() === "update_program_item") {
+        <mat-form-field appearance="outline">
+          <mat-label i18n>Program plan</mat-label>
+          <mat-select [value]="planId()" (selectionChange)="planChanged($event.value)">
+            @for (plan of event.program?.plans ?? []; track plan.id) {
+              <mat-option [value]="plan.id">{{ plan.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+
+      @if (operation() === "update_program_item") {
+        <mat-form-field appearance="outline">
+          <mat-label i18n>Program item</mat-label>
+          <mat-select [value]="itemId()" (selectionChange)="itemChanged($event.value)">
+            @for (item of selectedPlan()?.items ?? []; track item.id) {
+              <mat-option [value]="item.id">{{ item.title }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label i18n>Status</mat-label>
+          <mat-select [value]="itemStatus()" (selectionChange)="itemStatus.set($event.value)">
+            <mat-option value="scheduled" i18n>Scheduled</mat-option>
+            <mat-option value="delayed" i18n>Delayed</mat-option>
+            <mat-option value="moved" i18n>Moved</mat-option>
+            <mat-option value="cancelled" i18n>Cancelled</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <div class="field-grid">
+          <mat-form-field appearance="outline">
+            <mat-label i18n>Revised start</mat-label>
+            <input matInput type="datetime-local" [value]="start()"
+              (input)="start.set($any($event.target).value)" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label i18n>Revised end</mat-label>
+            <input matInput type="datetime-local" [value]="end()"
+              (input)="end.set($any($event.target).value)" />
+          </mat-form-field>
+        </div>
+      }
+
+      @if (operation() !== "cancel_event") {
+        <mat-form-field appearance="outline">
+          <mat-label i18n>Note (optional)</mat-label>
+          <textarea matInput rows="3" maxlength="280" [value]="note()"
+            (input)="note.set($any($event.target).value)"></textarea>
+        </mat-form-field>
+      }
+    </div>
+  } @else {
+    <section class="operation-preview" aria-label="Operation preview" i18n-aria-label>
+      <span class="preview-label" i18n>Notification preview</span>
+      <h3>{{ event.name }}</h3>
+      <p><strong>{{ previewTitle() }}</strong></p>
+      @if (previewMessage()) { <p>{{ previewMessage() }}</p> }
+      <p class="recipient-note" i18n>
+        Eligible attendees and update subscribers will receive this update according to their notification choices.
+      </p>
+    </section>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @if (previewing()) {
+    <button mat-button type="button" [disabled]="saving()" (click)="previewing.set(false)" i18n>Back</button>
+    <button mat-flat-button type="button" [disabled]="saving()" (click)="apply()">
+      @if (saving()) { <mat-spinner diameter="20" /> }
+      <span i18n>Apply operation</span>
+    </button>
+  } @else {
+    <button mat-button type="button" [mat-dialog-close]="false" i18n>Cancel</button>
+    <button mat-flat-button type="button" [disabled]="!canPreview()" (click)="showPreview()" i18n>
+      Preview
+    </button>
+  }
+</mat-dialog-actions>

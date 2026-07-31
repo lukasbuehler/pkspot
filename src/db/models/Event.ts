@@ -71,9 +71,13 @@ export interface EventTicketOption {
 }
 
 export interface EventProgramRuntimeOverride
-  extends Omit<EventProgramRuntimeOverrideSchema, "start" | "end"> {
+  extends Omit<
+    EventProgramRuntimeOverrideSchema,
+    "start" | "end" | "updated_at"
+  > {
   start?: Date;
   end?: Date;
+  updatedAt?: Date;
 }
 
 export interface EventProgramItem
@@ -170,6 +174,8 @@ export class Event {
   readonly kind: EventKind;
   readonly scheduleMode: EventScheduleMode;
   readonly lifecycleStatus: EventLifecycleStatus;
+  readonly lifecycleNote?: string;
+  readonly updatedAt?: Date;
   readonly priority: EventPriority;
   readonly owner?: EventOwnerSchema;
   readonly attendance: EventAttendanceSchema;
@@ -298,6 +304,8 @@ export class Event {
     this.kind = data.kind ?? eventKindFromLegacyCategories(data.event_categories);
     this.scheduleMode = data.schedule_mode ?? "single";
     this.lifecycleStatus = data.lifecycle_status ?? "planned";
+    this.lifecycleNote = data.lifecycle_update?.note;
+    this.updatedAt = data.time_updated ? Event.toDate(data.time_updated) : undefined;
     this.priority = data.priority ?? "normal";
     // Missing owner is an intentional legacy/admin-managed state. Never infer
     // permissions from the historical `created_by` attribution field.
@@ -637,11 +645,15 @@ export class Event {
     override: EventProgramRuntimeOverrideSchema,
     locale: LocaleCode,
   ): EventProgramRuntimeOverride {
+    const { updated_at: updatedAt, ...stored } = override;
     return {
-      ...override,
+      ...stored,
       note: Event.localizedText(override.note_i18n, locale) ?? override.note,
       start: override.start ? Event.toDate(override.start) : undefined,
       end: override.end ? Event.toDate(override.end) : undefined,
+      updatedAt: updatedAt
+        ? Event.toDate(updatedAt)
+        : undefined,
     };
   }
 

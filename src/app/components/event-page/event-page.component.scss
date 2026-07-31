@@ -167,6 +167,28 @@ app-event-program-timeline {
   display: block;
 }
 
+.active-program-notice {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding: 1rem;
+  color: var(--mat-sys-on-tertiary-container);
+  background: var(--mat-sys-tertiary-container);
+  border: 1px solid var(--mat-sys-tertiary);
+  border-radius: 18px;
+}
+
+.active-program-notice__icon {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  background: color-mix(in srgb, var(--mat-sys-tertiary) 18%, transparent);
+  border-radius: 13px;
+}
+
 .ticket-option {
   padding: 1rem;
 }
@@ -378,6 +400,28 @@ a.featured-participant-name {
   height: 40px;
   place-items: center;
   background: color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
+  border-radius: 13px;
+}
+
+.event-cancellation-notice {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
+  border: 1px solid var(--mat-sys-error);
+  border-radius: 18px;
+}
+
+.event-cancellation-notice__icon {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  background: color-mix(in srgb, var(--mat-sys-error) 18%, transparent);
   border-radius: 13px;
 }
 

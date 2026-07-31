@@ -93,6 +93,15 @@
   }
 }
 
+.status-label.is-operational {
+  width: fit-content;
+  padding: 0.15rem 0.45rem;
+  color: var(--mat-sys-on-tertiary-container);
+  background: var(--mat-sys-tertiary-container);
+  border: 1px solid var(--mat-sys-tertiary);
+  border-radius: 999px;
+}
+
 .occurrence-chevron {
   color: var(--mat-sys-on-surface-variant);
 }

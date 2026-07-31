@@ -138,6 +138,9 @@ service cloud.firestore {
     function eventPlatformControlledFields() {
       return [
         'priority',
+        'lifecycle_status',
+        'lifecycle_update',
+        'last_operation_id',
         'is_promoted',
         'is_sponsored',
         'promo_starts_at',
@@ -1624,6 +1627,11 @@ service cloud.firestore {
           && eventCanRead(
             eventId,
             get(/databases/$(database)/documents/events/$(eventId)).data
+          )
+          && (
+            get(/databases/$(database)/documents/events/$(eventId)).data
+              .get('lifecycle_status', 'planned') != 'cancelled'
+            || request.resource.data.rsvp == 'notgoing'
           )
           && validEventRsvp(eventId, userId);
         allow delete: if request.auth.uid != null

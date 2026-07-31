@@ -18,6 +18,7 @@ import { Event as PkEvent } from "../../../db/models/Event";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { EventLiveUpdatesService } from "../../services/firebase/firestore/event-live-updates.service";
 import { EventLiveUpdateDialogComponent } from "../event-live-update-dialog/event-live-update-dialog.component";
+import { EventOperationsDialogComponent } from "../event-operations-dialog/event-operations-dialog.component";
 
 @Component({
   selector: "app-event-live-update-organizer-menu",
@@ -38,6 +39,7 @@ export class EventLiveUpdateOrganizerMenuComponent {
   readonly editRequested = output<void>();
   readonly qrRequested = output<void>();
   readonly ownershipClaimRequested = output<void>();
+  readonly operationApplied = output<void>();
   readonly canPublish = signal(false);
   readonly showMenu = computed(
     () =>
@@ -76,5 +78,23 @@ export class EventLiveUpdateOrganizerMenuComponent {
       maxHeight: "90vh",
       autoFocus: "first-tabbable",
     });
+  }
+
+  openOperations(): void {
+    this.dialog
+      .open<EventOperationsDialogComponent, { event: PkEvent }, boolean>(
+        EventOperationsDialogComponent,
+        {
+          data: { event: this.event() },
+          width: "680px",
+          maxWidth: "calc(100vw - 2rem)",
+          maxHeight: "92vh",
+          autoFocus: "first-tabbable",
+        },
+      )
+      .afterClosed()
+      .subscribe((applied) => {
+        if (applied) this.operationApplied.emit();
+      });
   }
 }

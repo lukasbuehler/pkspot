@@ -1,6 +1,11 @@
 import type { Timestamp } from "firebase/firestore";
 
 export const EVENT_LIVE_UPDATE_TYPES = [
+  "event_cancelled",
+  "event_restored",
+  "event_rescheduled",
+  "program_item_update",
+  "program_plan_activated",
   "meet_up_time",
   "location_spot_change",
   "schedule_change",
@@ -10,6 +15,15 @@ export const EVENT_LIVE_UPDATE_TYPES = [
 ] as const;
 
 export type EventLiveUpdateType = (typeof EVENT_LIVE_UPDATE_TYPES)[number];
+
+export const EVENT_OPERATION_TYPES = [
+  "cancel_event",
+  "restore_event",
+  "reschedule_event",
+  "update_program_item",
+  "activate_program_plan",
+] as const;
+export type EventOperationType = (typeof EVENT_OPERATION_TYPES)[number];
 
 export const EVENT_LIVE_UPDATE_TITLE_MAX_LENGTH = 80;
 export const EVENT_LIVE_UPDATE_MESSAGE_MAX_LENGTH = 280;
@@ -30,6 +44,10 @@ export interface EventLiveUpdateSchema {
   message?: string;
   scheduled_for?: Timestamp;
   event_spot_id?: string;
+  operation_id?: string;
+  operation_type?: EventOperationType;
+  program_plan_id?: string;
+  program_item_id?: string;
   status: "published";
   created_at: Timestamp;
   created_by: string;
@@ -55,4 +73,39 @@ export interface PublishEventLiveUpdateRequest {
 
 export interface PublishEventLiveUpdateResponse {
   updateId: string;
+}
+
+interface EventOperationalChangeBase {
+  eventId: string;
+  expectedUpdatedAtMs?: number;
+  note?: string;
+}
+
+export type ApplyEventOperationalChangeRequest =
+  | (EventOperationalChangeBase & {
+      operation: "cancel_event";
+      reason: string;
+    })
+  | (EventOperationalChangeBase & { operation: "restore_event" })
+  | (EventOperationalChangeBase & {
+      operation: "reschedule_event";
+      start: string;
+      end: string;
+    })
+  | (EventOperationalChangeBase & {
+      operation: "update_program_item";
+      planId: string;
+      itemId: string;
+      status: "scheduled" | "cancelled" | "moved" | "delayed";
+      start?: string;
+      end?: string;
+    })
+  | (EventOperationalChangeBase & {
+      operation: "activate_program_plan";
+      planId: string;
+    });
+
+export interface ApplyEventOperationalChangeResponse {
+  operationId: string;
+  updateId?: string;
 }

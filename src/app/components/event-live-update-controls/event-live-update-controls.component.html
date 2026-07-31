@@ -41,14 +41,16 @@
     </button>
 
     <mat-menu #notificationMenu="matMenu">
-      <button
-        mat-menu-item
-        type="button"
-        (click)="notificationPreferenceChanged('all')"
-      >
-        <mat-icon>notifications_active</mat-icon>
-        <span i18n>All</span>
-      </button>
+      @if (event().lifecycleStatus !== "cancelled") {
+        <button
+          mat-menu-item
+          type="button"
+          (click)="notificationPreferenceChanged('all')"
+        >
+          <mat-icon>notifications_active</mat-icon>
+          <span i18n>All</span>
+        </button>
+      }
       <button
         mat-menu-item
         type="button"
@@ -59,16 +61,18 @@
         >
         <span i18n>Only Event Updates</span>
       </button>
-      <button
-        mat-menu-item
-        type="button"
-        (click)="notificationPreferenceChanged('reminders')"
-      >
-        <mat-icon class="material-symbols-rounded-outline"
-          >notifications</mat-icon
+      @if (event().lifecycleStatus !== "cancelled") {
+        <button
+          mat-menu-item
+          type="button"
+          (click)="notificationPreferenceChanged('reminders')"
         >
-        <span i18n>Only Reminders</span>
-      </button>
+          <mat-icon class="material-symbols-rounded-outline"
+            >notifications</mat-icon
+          >
+          <span i18n>Only Reminders</span>
+        </button>
+      }
       <button
         mat-menu-item
         type="button"

@@ -40,6 +40,7 @@ describe("EventProgramDayTimelineComponent", () => {
         item,
         start: item.start,
         end: item.end,
+        status: "scheduled",
         spots: [],
         markers: [],
       },

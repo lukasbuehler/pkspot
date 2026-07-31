@@ -892,6 +892,11 @@
         <source> Add member </source>
       </segment>
     </unit>
+    <unit id="2539989101845088313">
+      <segment>
+        <source>Delayed</source>
+      </segment>
+    </unit>
     <unit id="3101932482196295919">
       <segment>
         <source>Vote to merge</source>
@@ -1020,6 +1025,11 @@
     <unit id="6972105223770675605">
       <segment>
         <source>Reset Password</source>
+      </segment>
+    </unit>
+    <unit id="6973839811687622269">
+      <segment>
+        <source>Operation preview</source>
       </segment>
     </unit>
     <unit id="6984983607470794786">
@@ -1245,6 +1255,11 @@
     <unit id="78295015887661250">
       <segment>
         <source>Organization saved.</source>
+      </segment>
+    </unit>
+    <unit id="783359429228696335">
+      <segment>
+        <source>New start</source>
       </segment>
     </unit>
     <unit id="7833933616390918367">
@@ -1649,11 +1664,6 @@
         <source>Moderation action recorded</source>
       </segment>
     </unit>
-    <unit id="216089812907795634">
-      <segment>
-        <source>Time (optional)</source>
-      </segment>
-    </unit>
     <unit id="2178484227756853679">
       <segment>
         <source>Crop profile picture</source>
@@ -1938,6 +1948,11 @@
     <unit id="1616102757855967475">
       <segment>
         <source>All</source>
+      </segment>
+    </unit>
+    <unit id="1617129048801105661">
+      <segment>
+        <source>Revised end</source>
       </segment>
     </unit>
     <unit id="161852954972763993">
@@ -2529,6 +2544,11 @@
         <source>Event discovery controls</source>
       </segment>
     </unit>
+    <unit id="4979296131833227771">
+      <segment>
+        <source>Event operation applied.</source>
+      </segment>
+    </unit>
     <unit id="3304972143698843178">
       <segment>
         <source>Event</source>
@@ -2594,9 +2614,19 @@
         <source>The type of this file is not allowed.</source>
       </segment>
     </unit>
+    <unit id="8235723125488282238">
+      <segment>
+        <source>Cancel event</source>
+      </segment>
+    </unit>
     <unit id="8235805970201248247">
       <segment>
         <source>Now</source>
+      </segment>
+    </unit>
+    <unit id="8251613687867890615">
+      <segment>
+        <source>This event is cancelled</source>
       </segment>
     </unit>
     <unit id="8275049945387417668">
@@ -2742,6 +2772,11 @@
         <source>All Types</source>
       </segment>
     </unit>
+    <unit id="5662368991409139360">
+      <segment>
+        <source>Event cancelled</source>
+      </segment>
+    </unit>
     <unit id="5682561296127892994">
       <segment>
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;"> Illegal or unsafe content: This may break the law or put someone at risk. </pc></source>
@@ -2808,6 +2843,11 @@
     <unit id="3167739142487195096">
       <segment>
         <source>Moderation reports</source>
+      </segment>
+    </unit>
+    <unit id="3180781358486363266">
+      <segment>
+        <source>Update program item</source>
       </segment>
     </unit>
     <unit id="3192626855762638668">
@@ -5944,6 +5984,11 @@
         <source>Back to sign in</source>
       </segment>
     </unit>
+    <unit id="4941861844629832860">
+      <segment>
+        <source>Program plan changed</source>
+      </segment>
+    </unit>
     <unit id="forgotPassword.title">
       <notes>
         <note category="description">forgot password title</note>
@@ -6338,6 +6383,11 @@
     <unit id="8333618256474808727">
       <segment>
         <source>Add translation</source>
+      </segment>
+    </unit>
+    <unit id="3235008986099492176">
+      <segment>
+        <source>Event restored</source>
       </segment>
     </unit>
     <unit id="3248469257587489257">
@@ -7660,6 +7710,11 @@
         <source>Report a safety concern</source>
       </segment>
     </unit>
+    <unit id="5370170519653047207">
+      <segment>
+        <source>Cancellation reason</source>
+      </segment>
+    </unit>
     <unit id="5370838177584249385">
       <segment>
         <source>Resolved</source>
@@ -7700,6 +7755,11 @@
         <source> Verify now </source>
       </segment>
     </unit>
+    <unit id="2852131932578261096">
+      <segment>
+        <source>Apply operation</source>
+      </segment>
+    </unit>
     <unit id="2855049153368933927">
       <segment>
         <source>Current E-mail</source>
@@ -7738,6 +7798,11 @@
     <unit id="2330577642930707695">
       <segment>
         <source> Cancel </source>
+      </segment>
+    </unit>
+    <unit id="5740206434555920246">
+      <segment>
+        <source> Preview </source>
       </segment>
     </unit>
     <unit id="574237115855339547">
@@ -8320,6 +8385,11 @@
         <source>Checking organization access...</source>
       </segment>
     </unit>
+    <unit id="2139530877531084048">
+      <segment>
+        <source>Event rescheduled</source>
+      </segment>
+    </unit>
     <unit id="2140524575884770731">
       <notes>
         <note category="description">Button to open the spot in Apple Maps</note>
@@ -8334,6 +8404,11 @@
         <source>Invalid email address.</source>
       </segment>
     </unit>
+    <unit id="156592800519916189">
+      <segment>
+        <source>Activate program plan</source>
+      </segment>
+    </unit>
     <unit id="1577979859082287846">
       <segment>
         <source>This email is already in use.</source>
@@ -8342,6 +8417,11 @@
     <unit id="6607382385355290684">
       <segment>
         <source>New passwords do not match</source>
+      </segment>
+    </unit>
+    <unit id="6608465467597524827">
+      <segment>
+        <source>The notification is still sent immediately.</source>
       </segment>
     </unit>
     <unit id="6609600842422660590">
@@ -9148,6 +9228,11 @@
         <source>Community</source>
       </segment>
     </unit>
+    <unit id="1283895920974679461">
+      <segment>
+        <source>Operation</source>
+      </segment>
+    </unit>
     <unit id="1292744805065412409">
       <segment>
         <source>Sign in to view visited spots</source>
@@ -9161,6 +9246,11 @@
     <unit id="6464436780502674570">
       <segment>
         <source>Password and repeated password don&apos;t match</source>
+      </segment>
+    </unit>
+    <unit id="6477168744321037366">
+      <segment>
+        <source>Could not apply the event operation.</source>
       </segment>
     </unit>
     <unit id="6480390330423300875">
@@ -9181,6 +9271,11 @@
     <unit id="6493128715899624058">
       <segment>
         <source>Could not load this safety case.</source>
+      </segment>
+    </unit>
+    <unit id="6494626849411103541">
+      <segment>
+        <source> Eligible attendees and update subscribers will receive this update according to their notification choices. </source>
       </segment>
     </unit>
     <unit id="6496554534263466402">
@@ -9266,6 +9361,11 @@
     <unit id="8822206448271061589">
       <segment>
         <source>Indoor</source>
+      </segment>
+    </unit>
+    <unit id="1968938717592923523">
+      <segment>
+        <source>This reason remains visible on the event.</source>
       </segment>
     </unit>
     <unit id="1975356621924283237">
@@ -9642,6 +9742,11 @@
     <unit id="8907222687260406825">
       <segment>
         <source>Upload photos and videos so people can quickly understand a spot before they go.</source>
+      </segment>
+    </unit>
+    <unit id="8910806821370505981">
+      <segment>
+        <source>New end</source>
       </segment>
     </unit>
     <unit id="spot.edit_history.tooltip">
@@ -10215,6 +10320,11 @@
         <source>Reporting hold</source>
       </segment>
     </unit>
+    <unit id="752097609696171501">
+      <segment>
+        <source>Time mentioned in update (optional)</source>
+      </segment>
+    </unit>
     <unit id="7523630390926625638">
       <segment>
         <source>Link to spot copied to clipboard</source>
@@ -10708,6 +10818,11 @@
         <source>{VAR_PLURAL, plural, =1 {member} other {members}}</source>
       </segment>
     </unit>
+    <unit id="6001163963116907226">
+      <segment>
+        <source>Moved</source>
+      </segment>
+    </unit>
     <unit id="6008995610936337562">
       <segment>
         <source>What is this about?</source>
@@ -10776,6 +10891,11 @@
     <unit id="3278358550418950949">
       <segment>
         <source> Duplicate </source>
+      </segment>
+    </unit>
+    <unit id="4169782958054942297">
+      <segment>
+        <source>Revised start</source>
       </segment>
     </unit>
     <unit id="4172345182949733528">
@@ -10964,6 +11084,11 @@
         <source> We couldn&apos;t load this event. </source>
       </segment>
     </unit>
+    <unit id="6404865683397876624">
+      <segment>
+        <source>Event operations</source>
+      </segment>
+    </unit>
     <unit id="641716500460785755">
       <segment>
         <source>Get in Touch</source>
@@ -10987,6 +11112,11 @@
     <unit id="2325032840535506648">
       <segment>
         <source>Discord Community</source>
+      </segment>
+    </unit>
+    <unit id="3572703815662689324">
+      <segment>
+        <source>Program item updated</source>
       </segment>
     </unit>
     <unit id="3575990016862725996">
@@ -11175,6 +11305,11 @@
     <unit id="9170384147435945980">
       <segment>
         <source> Search engine discovery </source>
+      </segment>
+    </unit>
+    <unit id="9172233176401579786">
+      <segment>
+        <source>Scheduled</source>
       </segment>
     </unit>
     <unit id="welcomeDialogTitle">
@@ -11698,6 +11833,11 @@
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Duplicate: This media is already present.</pc></source>
       </segment>
     </unit>
+    <unit id="5250149255644238520">
+      <segment>
+        <source>Note (optional)</source>
+      </segment>
+    </unit>
     <unit id="798956693238681279">
       <segment>
         <source>Could not load this organization.</source>
@@ -11812,6 +11952,11 @@
       </notes>
       <segment>
         <source>Submitting...</source>
+      </segment>
+    </unit>
+    <unit id="3496329623690827416">
+      <segment>
+        <source>Program item</source>
       </segment>
     </unit>
     <unit id="3496653775940285146">
@@ -12094,6 +12239,11 @@
         <source>Reveal only when you are ready to review it.</source>
       </segment>
     </unit>
+    <unit id="7291914812028273055">
+      <segment>
+        <source>Originally</source>
+      </segment>
+    </unit>
     <unit id="7295769845403931650">
       <segment>
         <source>No spot edit votes waiting.</source>
@@ -12127,6 +12277,11 @@
     <unit id="4755563775668401794">
       <segment>
         <source>Awaiting manager review</source>
+      </segment>
+    </unit>
+    <unit id="4757903614251378149">
+      <segment>
+        <source>Reschedule event</source>
       </segment>
     </unit>
     <unit id="4758490333513959462">
@@ -12232,6 +12387,11 @@
     <unit id="7695373486187407775">
       <segment>
         <source>{VAR_PLURAL, plural, =1 {event} other {events}}</source>
+      </segment>
+    </unit>
+    <unit id="7696296290419062664">
+      <segment>
+        <source>Program plan</source>
       </segment>
     </unit>
     <unit id="amenities.covered">
@@ -12650,6 +12810,11 @@
     <unit id="2384854885353072939">
       <segment>
         <source> Save organization </source>
+      </segment>
+    </unit>
+    <unit id="2390593998089868543">
+      <segment>
+        <source>Restore event</source>
       </segment>
     </unit>
     <unit id="3908211343911450350">

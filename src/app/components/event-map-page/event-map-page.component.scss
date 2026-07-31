@@ -33,6 +33,28 @@
   padding-bottom: 1rem;
 }
 
+.event-map-cancellation {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 0.75rem;
+  padding: 1rem;
+  color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
+  border: 1px solid var(--mat-sys-error);
+  border-radius: 18px;
+}
+
+.event-map-cancellation__icon {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  background: color-mix(in srgb, var(--mat-sys-error) 18%, transparent);
+  border-radius: 13px;
+}
+
 .event-map-description {
   display: -webkit-box;
   -webkit-box-orient: vertical;

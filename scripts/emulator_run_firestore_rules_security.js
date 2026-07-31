@@ -161,6 +161,11 @@ async function seedSecurityFixture() {
     name: "Draft Event",
     published: false,
   });
+  batch.set(adminDb.doc("events/cancelled-event"), {
+    name: "Cancelled Event",
+    published: true,
+    lifecycle_status: "cancelled",
+  });
   batch.set(adminDb.doc("events/unlisted-event"), {
     name: "Unlisted Event",
     publication_state: "published",
@@ -1870,6 +1875,22 @@ async function testEventRsvpPrivacy(anon, owner, other, adminUser) {
       user_id: "owner",
       event_id: "event-1",
       rsvp: "maybe",
+      time_updated: Timestamp.now(),
+    })
+  );
+  await assertDenied("user cannot join a cancelled event", () =>
+    setDoc(doc(owner.db, "events/cancelled-event/rsvps/owner"), {
+      user_id: "owner",
+      event_id: "cancelled-event",
+      rsvp: "going",
+      time_updated: Timestamp.now(),
+    })
+  );
+  await assertAllowed("user can decline a cancelled event", () =>
+    setDoc(doc(owner.db, "events/cancelled-event/rsvps/owner"), {
+      user_id: "owner",
+      event_id: "cancelled-event",
+      rsvp: "notgoing",
       time_updated: Timestamp.now(),
     })
   );

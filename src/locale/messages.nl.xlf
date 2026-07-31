@@ -422,6 +422,12 @@
         <target>Volg wat anderen ontdekken, draag updates bij en help de kaart levend te houden.</target>
       </segment>
     </unit>
+    <unit id="6404865683397876624">
+      <segment state="initial">
+        <source>Event operations</source>
+        <target>Eventbeheer</target>
+      </segment>
+    </unit>
     <unit id="641716500460785755">
       <segment state="initial">
         <source>Get in Touch</source>
@@ -514,6 +520,12 @@
       <segment state="initial">
         <source>Back to sign in</source>
         <target>Terug naar inloggen</target>
+      </segment>
+    </unit>
+    <unit id="4941861844629832860">
+      <segment state="initial">
+        <source>Program plan changed</source>
+        <target>Programmaplan gewijzigd</target>
       </segment>
     </unit>
     <unit id="8922105621109418817">
@@ -884,6 +896,12 @@
       <segment state="initial">
         <source>Verification Failed</source>
         <target>Verificatie mislukt</target>
+      </segment>
+    </unit>
+    <unit id="5740206434555920246">
+      <segment state="initial">
+        <source> Preview </source>
+        <target> Voorbeeld </target>
       </segment>
     </unit>
     <unit id="574237115855339547">
@@ -2251,6 +2269,12 @@
         <target>Bewerking afgewezen</target>
       </segment>
     </unit>
+    <unit id="3572703815662689324">
+      <segment state="initial">
+        <source>Program item updated</source>
+        <target>Programmaonderdeel bijgewerkt</target>
+      </segment>
+    </unit>
     <unit id="3575990016862725996">
       <segment state="initial">
         <source> Join our Discord server to chat with the community, report bugs, and request features. This is the fastest way to get help! </source>
@@ -2703,6 +2727,12 @@
         <target>Wachtwoord resetten</target>
       </segment>
     </unit>
+    <unit id="6973839811687622269">
+      <segment state="initial">
+        <source>Operation preview</source>
+        <target>Voorbeeld van wijziging</target>
+      </segment>
+    </unit>
     <unit id="6984983607470794786">
       <segment state="initial">
         <source>Open Source</source>
@@ -3003,6 +3033,12 @@
         <target>Gemeenschap</target>
       </segment>
     </unit>
+    <unit id="1283895920974679461">
+      <segment state="initial">
+        <source>Operation</source>
+        <target>Wijziging</target>
+      </segment>
+    </unit>
     <unit id="1292744805065412409">
       <segment state="initial">
         <source>Sign in to view visited spots</source>
@@ -3027,6 +3063,12 @@
         <target>Het wachtwoord en het herhaalde wachtwoord komen niet overeen</target>
       </segment>
     </unit>
+    <unit id="6477168744321037366">
+      <segment state="initial">
+        <source>Could not apply the event operation.</source>
+        <target>De eventwijziging kon niet worden toegepast.</target>
+      </segment>
+    </unit>
     <unit id="6480390330423300875">
       <segment state="initial">
         <source>View source</source>
@@ -3049,6 +3091,12 @@
       <segment state="initial">
         <source>Could not load this safety case.</source>
         <target>Deze veiligheidszaak kon niet worden geladen.</target>
+      </segment>
+    </unit>
+    <unit id="6494626849411103541">
+      <segment state="initial">
+        <source> Eligible attendees and update subscribers will receive this update according to their notification choices. </source>
+        <target> Betrokken deelnemers en abonnees op updates ontvangen dit bericht volgens hun meldingsvoorkeuren. </target>
       </segment>
     </unit>
     <unit id="6496554534263466402">
@@ -3091,6 +3139,12 @@
       <segment state="initial">
         <source>Short message (optional)</source>
         <target>Kort bericht (optioneel)</target>
+      </segment>
+    </unit>
+    <unit id="1968938717592923523">
+      <segment state="initial">
+        <source>This reason remains visible on the event.</source>
+        <target>Deze reden blijft zichtbaar bij het event.</target>
       </segment>
     </unit>
     <unit id="1975356621924283237">
@@ -3425,6 +3479,12 @@
         <target>{VAR_PLURAL, plural, =1 {lid} other {leden}}</target>
       </segment>
     </unit>
+    <unit id="6001163963116907226">
+      <segment state="initial">
+        <source>Moved</source>
+        <target>Verplaatst</target>
+      </segment>
+    </unit>
     <unit id="6008995610936337562">
       <segment state="initial">
         <source>What is this about?</source>
@@ -3567,6 +3627,12 @@
       <segment state="initial">
         <source> Duplicate </source>
         <target> Duplicaat </target>
+      </segment>
+    </unit>
+    <unit id="4169782958054942297">
+      <segment state="initial">
+        <source>Revised start</source>
+        <target>Nieuwe start</target>
       </segment>
     </unit>
     <unit id="4172345182949733528">
@@ -5576,6 +5642,12 @@
         <target> Vindbaarheid via zoekmachines </target>
       </segment>
     </unit>
+    <unit id="9172233176401579786">
+      <segment state="initial">
+        <source>Scheduled</source>
+        <target>Gepland</target>
+      </segment>
+    </unit>
     <unit id="profile.actions.unfollow">
       <segment state="initial">
         <source>Unfollow</source>
@@ -6716,6 +6788,12 @@
       <segment state="initial">
         <source>{VAR_PLURAL, plural, =1 {event} other {events}}</source>
         <target>{VAR_PLURAL, plural, =1 {evenement} other {evenementen}}</target>
+      </segment>
+    </unit>
+    <unit id="7696296290419062664">
+      <segment state="initial">
+        <source>Program plan</source>
+        <target>Programmaplan</target>
       </segment>
     </unit>
     <unit id="editProfile.biography">
@@ -9846,6 +9924,12 @@
         <target>Bediening voor evenementen zoeken</target>
       </segment>
     </unit>
+    <unit id="4979296131833227771">
+      <segment state="initial">
+        <source>Event operation applied.</source>
+        <target>Eventwijziging toegepast.</target>
+      </segment>
+    </unit>
     <unit id="3304972143698843178">
       <segment state="initial">
         <source>Event</source>
@@ -9906,6 +9990,12 @@
         <target>Sla favorieten op en kom later terug naar de spots waar je wilt trainen.</target>
       </segment>
     </unit>
+    <unit id="2852131932578261096">
+      <segment state="initial">
+        <source>Apply operation</source>
+        <target>Wijziging toepassen</target>
+      </segment>
+    </unit>
     <unit id="2855049153368933927">
       <segment state="initial">
         <source>Current E-mail</source>
@@ -9958,6 +10048,12 @@
       <segment state="initial">
         <source>Organization saved.</source>
         <target>Organisatie opgeslagen.</target>
+      </segment>
+    </unit>
+    <unit id="783359429228696335">
+      <segment state="initial">
+        <source>New start</source>
+        <target>Nieuwe start</target>
       </segment>
     </unit>
     <unit id="7833933616390918367">
@@ -10080,6 +10176,12 @@
         <target><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Duplicaat: Deze afbeelding is al aanwezig bij deze spot.</pc></target>
       </segment>
     </unit>
+    <unit id="5250149255644238520">
+      <segment state="initial">
+        <source>Note (optional)</source>
+        <target>Opmerking (optioneel)</target>
+      </segment>
+    </unit>
     <unit id="798956693238681279">
       <segment state="initial">
         <source>Could not load this organization.</source>
@@ -10116,10 +10218,22 @@
         <target>Dit bestandstype is niet toegestaan.</target>
       </segment>
     </unit>
+    <unit id="8235723125488282238">
+      <segment state="initial">
+        <source>Cancel event</source>
+        <target>Event annuleren</target>
+      </segment>
+    </unit>
     <unit id="8235805970201248247">
       <segment state="initial">
         <source>Now</source>
         <target>Nu</target>
+      </segment>
+    </unit>
+    <unit id="8251613687867890615">
+      <segment state="initial">
+        <source>This event is cancelled</source>
+        <target>Dit event is geannuleerd</target>
       </segment>
     </unit>
     <unit id="8275049945387417668">
@@ -10788,6 +10902,12 @@
         <target>Wacht op manager-review</target>
       </segment>
     </unit>
+    <unit id="4757903614251378149">
+      <segment state="initial">
+        <source>Reschedule event</source>
+        <target>Event verplaatsen</target>
+      </segment>
+    </unit>
     <unit id="4758490333513959462">
       <segment state="initial">
         <source>External reporting route</source>
@@ -11142,6 +11262,12 @@
         <target>Organisatietoegang controleren...</target>
       </segment>
     </unit>
+    <unit id="2139530877531084048">
+      <segment state="initial">
+        <source>Event rescheduled</source>
+        <target>Event verplaatst</target>
+      </segment>
+    </unit>
     <unit id="2140524575884770731">
       <notes>
         <note category="description">Button to open the spot in Apple Maps</note>
@@ -11183,12 +11309,6 @@
       <segment state="initial">
         <source>Moderation action recorded</source>
         <target>Acción de moderación registrada</target>
-      </segment>
-    </unit>
-    <unit id="216089812907795634">
-      <segment state="initial">
-        <source>Time (optional)</source>
-        <target>Tijd (optioneel)</target>
       </segment>
     </unit>
     <unit id="2178484227756853679">
@@ -11540,6 +11660,12 @@
       <segment state="initial">
         <source>Dev Log</source>
         <target>Ontwikkellogboek</target>
+      </segment>
+    </unit>
+    <unit id="3235008986099492176">
+      <segment state="initial">
+        <source>Event restored</source>
+        <target>Event hersteld</target>
       </segment>
     </unit>
     <unit id="3248469257587489257">
@@ -11905,6 +12031,12 @@
         <target>Moderatiemeldingen</target>
       </segment>
     </unit>
+    <unit id="3180781358486363266">
+      <segment state="initial">
+        <source>Update program item</source>
+        <target>Programmaonderdeel bijwerken</target>
+      </segment>
+    </unit>
     <unit id="3192626855762638668">
       <segment state="initial">
         <source>Error uploading media. Try again.</source>
@@ -11957,6 +12089,12 @@
       <segment state="initial">
         <source> Info can be outdated or wrong. Always check signs and local rules on site. </source>
         <target> Info kan verouderd of onjuist zijn. Controleer altijd borden en lokale regels ter plaatse. </target>
+      </segment>
+    </unit>
+    <unit id="156592800519916189">
+      <segment state="initial">
+        <source>Activate program plan</source>
+        <target>Programmaplan activeren</target>
       </segment>
     </unit>
     <unit id="1577979859082287846">
@@ -12057,6 +12195,12 @@
         <target>Upload foto’s en video’s zodat mensen een spot snel kunnen begrijpen voordat ze gaan.</target>
       </segment>
     </unit>
+    <unit id="8910806821370505981">
+      <segment state="initial">
+        <source>New end</source>
+        <target>Nieuw einde</target>
+      </segment>
+    </unit>
     <unit id="spot.report.aria_label">
       <notes>
         <note category="description">Aria label for report spot button</note>
@@ -12135,6 +12279,12 @@
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;"> I&apos;m visible and have a problem with it. </pc></source>
         <target><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Ik ben zichtbaar en heb hier een probleem mee.</pc></target>
+      </segment>
+    </unit>
+    <unit id="5370170519653047207">
+      <segment state="initial">
+        <source>Cancellation reason</source>
+        <target>Reden van annulering</target>
       </segment>
     </unit>
     <unit id="5370838177584249385">
@@ -12299,6 +12449,12 @@
         <target>Bewaring voor melding</target>
       </segment>
     </unit>
+    <unit id="752097609696171501">
+      <segment state="initial">
+        <source>Time mentioned in update (optional)</source>
+        <target>Tijd genoemd in update (optioneel)</target>
+      </segment>
+    </unit>
     <unit id="7523630390926625638">
       <segment state="initial">
         <source>Link to spot copied to clipboard</source>
@@ -12381,6 +12537,12 @@
       <segment state="initial">
         <source> Add member </source>
         <target> Lid toevoegen </target>
+      </segment>
+    </unit>
+    <unit id="2539989101845088313">
+      <segment state="initial">
+        <source>Delayed</source>
+        <target>Vertraagd</target>
       </segment>
     </unit>
     <unit id="8337024335699759741">
@@ -12722,6 +12884,12 @@
         <target>Verzenden...</target>
       </segment>
     </unit>
+    <unit id="3496329623690827416">
+      <segment state="initial">
+        <source>Program item</source>
+        <target>Programmaonderdeel</target>
+      </segment>
+    </unit>
     <unit id="3496653775940285146">
       <segment state="initial">
         <source>Use 5–140 characters.</source>
@@ -12862,6 +13030,12 @@
       <segment state="initial">
         <source> Save organization </source>
         <target> Organisatie opslaan </target>
+      </segment>
+    </unit>
+    <unit id="2390593998089868543">
+      <segment state="initial">
+        <source>Restore event</source>
+        <target>Event herstellen</target>
       </segment>
     </unit>
     <unit id="3908211343911450350">
@@ -13754,6 +13928,12 @@
         <target>Toon het alleen wanneer je klaar bent om het te beoordelen.</target>
       </segment>
     </unit>
+    <unit id="7291914812028273055">
+      <segment state="initial">
+        <source>Originally</source>
+        <target>Oorspronkelijk</target>
+      </segment>
+    </unit>
     <unit id="7295769845403931650">
       <segment state="initial">
         <source>No spot edit votes waiting.</source>
@@ -13764,6 +13944,12 @@
       <segment state="initial">
         <source>New passwords do not match</source>
         <target>De nieuwe wachtwoorden komen niet overeen</target>
+      </segment>
+    </unit>
+    <unit id="6608465467597524827">
+      <segment state="initial">
+        <source>The notification is still sent immediately.</source>
+        <target>De melding wordt nog steeds direct verzonden.</target>
       </segment>
     </unit>
     <unit id="6609600842422660590">
@@ -13827,6 +14013,12 @@
       <segment state="initial">
         <source>All Types</source>
         <target>Alle types</target>
+      </segment>
+    </unit>
+    <unit id="5662368991409139360">
+      <segment state="initial">
+        <source>Event cancelled</source>
+        <target>Event geannuleerd</target>
       </segment>
     </unit>
     <unit id="5682561296127892994">
@@ -14292,6 +14484,12 @@
       <segment state="initial">
         <source>All</source>
         <target>Allemaal</target>
+      </segment>
+    </unit>
+    <unit id="1617129048801105661">
+      <segment state="initial">
+        <source>Revised end</source>
+        <target>Nieuw einde</target>
       </segment>
     </unit>
     <unit id="161852954972763993">

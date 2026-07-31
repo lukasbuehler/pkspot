@@ -41,8 +41,9 @@
 
       <div class="form-grid">
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label i18n>Time (optional)</mat-label>
+          <mat-label i18n>Time mentioned in update (optional)</mat-label>
           <input matInput type="datetime-local" [formField]="updateForm.scheduledFor" />
+          <mat-hint i18n>The notification is still sent immediately.</mat-hint>
         </mat-form-field>
         @if (event.inlineSpots.length > 0 || event.spotIds.length > 0) {
           <app-event-spot-select

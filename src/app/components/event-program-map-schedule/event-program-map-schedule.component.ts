@@ -124,6 +124,12 @@ export class EventProgramMapScheduleComponent {
         item,
         start: effective.start,
         end: effective.end,
+        status: effective.status,
+        note: item.runtimeOverride?.note,
+        originalStart:
+          effective.start.getTime() !== item.start.getTime()
+            ? item.start
+            : undefined,
         linkedEvent: item.linked_event_id
           ? this.linkedEventsById()[item.linked_event_id]
           : undefined,

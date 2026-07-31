@@ -3,7 +3,7 @@
   aria-label="Attendance and notifications"
   i18n-aria-label="@@event_attendee_actions.aria"
 >
-  @if (showRsvp()) {
+  @if (showRsvp() && event().lifecycleStatus !== "cancelled") {
     <app-event-rsvp
       [eventId]="event().id"
       [counts]="event().rsvpCounts"
@@ -12,7 +12,7 @@
     />
   }
 
-  @if (showRegistration()) {
+  @if (showRegistration() && event().lifecycleStatus !== "cancelled") {
     <app-event-registration [event]="event()" />
   }
 

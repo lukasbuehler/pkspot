@@ -24,7 +24,11 @@
             {{ occurrence.marker.name || occurrence.ref.id }}
           }
         </span>
-        @if (occurrence.isActive) {
+        @if (occurrence.status === "delayed" || occurrence.status === "moved") {
+          <span class="status-label is-operational">
+            {{ operationalStatusLabel(occurrence.status) }}
+          </span>
+        } @else if (occurrence.isActive) {
           <span class="status-label is-active" i18n="@@event_program.happening_now">
             Happening now
           </span>

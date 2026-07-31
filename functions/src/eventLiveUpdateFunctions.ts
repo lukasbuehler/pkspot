@@ -1,10 +1,15 @@
 import * as admin from "firebase-admin";
-import { FieldPath, Timestamp } from "firebase-admin/firestore";
+import { Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
-import type { EventSchema } from "../../src/db/schemas/EventSchema";
+import type {
+  EventProgramRuntimeOverrideSchema,
+  EventSchema,
+} from "../../src/db/schemas/EventSchema";
 import {
+  type ApplyEventOperationalChangeRequest,
+  type ApplyEventOperationalChangeResponse,
   EVENT_LIVE_UPDATE_MESSAGE_MAX_LENGTH,
   EVENT_LIVE_UPDATE_TITLE_MAX_LENGTH,
   EVENT_LIVE_UPDATE_TYPES,
@@ -18,7 +23,6 @@ import { createIntent } from "./notificationFunctions";
 
 const CALLABLE_OPTIONS = { cors: true, invoker: "public" as const };
 const PUBLISH_COOLDOWN_MS = 60_000;
-const SUBSCRIBER_PAGE_SIZE = 250;
 const MAX_RECIPIENTS_PER_UPDATE = 5_000;
 const UPDATE_LIFETIME_MS = 30 * 24 * 60 * 60 * 1_000;
 
@@ -63,6 +67,68 @@ const timestampMillis = (value: unknown): number | null => {
 const eventPath = (eventId: string, event: EventSchema): string =>
   `/events/${encodeURIComponent(event.slug ?? eventId)}`;
 
+const parseDate = (value: unknown, field: string): Date => {
+  if (typeof value !== "string") {
+    throw new HttpsError("invalid-argument", `${field} must be an ISO date.`);
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    throw new HttpsError("invalid-argument", `${field} must be an ISO date.`);
+  }
+  return date;
+};
+
+const civilDateTime = (date: Date, timeZone: string | undefined) => {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timeZone || "UTC",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const value = (type: Intl.DateTimeFormatPartTypes): string =>
+    parts.find((part) => part.type === type)?.value ?? "";
+  return {
+    date: `${value("year")}-${value("month")}-${value("day")}`,
+    time: `${value("hour")}:${value("minute")}`,
+  };
+};
+
+function operationCopy(
+  request: ApplyEventOperationalChangeRequest,
+  event: EventSchema,
+): { type: EventLiveUpdateType; title: string; message?: string } {
+  switch (request.operation) {
+    case "cancel_event":
+      return { type: "event_cancelled", title: "Event cancelled", message: request.reason };
+    case "restore_event":
+      return { type: "event_restored", title: "Event restored", message: request.note };
+    case "reschedule_event":
+      return { type: "event_rescheduled", title: "Event rescheduled", message: request.note };
+    case "activate_program_plan": {
+      const plan = event.program?.plans.find((candidate) => candidate.id === request.planId);
+      return {
+        type: "program_plan_activated",
+        title: plan ? `Plan changed to ${plan.label}` : "Event plan changed",
+        message: request.note ?? plan?.condition_label,
+      };
+    }
+    case "update_program_item": {
+      const item = event.program?.plans
+        .find((plan) => plan.id === request.planId)
+        ?.items.find((candidate) => candidate.id === request.itemId);
+      const status = request.status === "scheduled" ? "updated" : request.status;
+      return {
+        type: "program_item_update",
+        title: item ? `${item.title} ${status}` : `Program item ${status}`,
+        message: request.note,
+      };
+    }
+  }
+}
+
 async function authorizedEventEditor(
   uid: string,
   eventId: string,
@@ -97,6 +163,186 @@ async function authorizedEventEditor(
     return role === "owner" || role === "admin";
   });
 }
+
+export const applyEventOperationalChange = onCall(
+  CALLABLE_OPTIONS,
+  async (request): Promise<ApplyEventOperationalChangeResponse> => {
+    const uid = request.auth?.uid;
+    if (!uid) throw new HttpsError("unauthenticated", "Sign in to manage an event.");
+
+    const input = (request.data ?? {}) as ApplyEventOperationalChangeRequest;
+    const eventId = cleanRequiredText(input.eventId, "eventId", 128);
+    const eventRef = admin.firestore().doc(`events/${eventId}`);
+    const snapshot = await eventRef.get();
+    if (!snapshot.exists) throw new HttpsError("not-found", "Event not found.");
+    const eventData = snapshot.data() as EventSchema;
+    if (!(await authorizedEventEditor(uid, eventId, eventData))) {
+      throw new HttpsError("permission-denied", "Event editing access is required.");
+    }
+
+    const note = cleanOptionalText(input.note, "note", EVENT_LIVE_UPDATE_MESSAGE_MAX_LENGTH);
+    const reason = input.operation === "cancel_event"
+      ? cleanRequiredText(input.reason, "reason", EVENT_LIVE_UPDATE_MESSAGE_MAX_LENGTH)
+      : undefined;
+    const operationId = admin.firestore().collection("event_operations").doc().id;
+    const updateRef = eventRef.collection("live_updates").doc(operationId);
+
+    await admin.firestore().runTransaction(async (transaction) => {
+      const currentSnapshot = await transaction.get(eventRef);
+      if (!currentSnapshot.exists) throw new HttpsError("not-found", "Event not found.");
+      const current = currentSnapshot.data() as EventSchema;
+      const currentUpdatedAt = timestampMillis(current.time_updated);
+      if (
+        input.expectedUpdatedAtMs !== undefined &&
+        currentUpdatedAt !== input.expectedUpdatedAtMs
+      ) {
+        throw new HttpsError(
+          "aborted",
+          "The event changed while this operation was open. Reload and try again.",
+        );
+      }
+      const eventEnd = timestampMillis(current.end);
+      if (eventEnd !== null && eventEnd < Date.now()) {
+        throw new HttpsError("failed-precondition", "Past events cannot be changed operationally.");
+      }
+
+      const now = Timestamp.now();
+      const patch: Record<string, unknown> = {
+        time_updated: now,
+        last_operation_id: operationId,
+      };
+      let programPlanId: string | undefined;
+      let programItemId: string | undefined;
+      let scheduledFor: Timestamp | undefined;
+
+      switch (input.operation) {
+        case "cancel_event":
+          if (current.lifecycle_status === "cancelled") {
+            throw new HttpsError("failed-precondition", "The event is already cancelled.");
+          }
+          patch["lifecycle_status"] = "cancelled";
+          patch["lifecycle_update"] = { note: reason, changed_at: now, changed_by: uid };
+          break;
+        case "restore_event":
+          if (current.lifecycle_status !== "cancelled") {
+            throw new HttpsError("failed-precondition", "The event is not cancelled.");
+          }
+          patch["lifecycle_status"] = "planned";
+          patch["lifecycle_update"] = { ...(note ? { note } : {}), changed_at: now, changed_by: uid };
+          break;
+        case "reschedule_event": {
+          const start = parseDate(input.start, "start");
+          const end = parseDate(input.end, "end");
+          if (end <= start) throw new HttpsError("invalid-argument", "End must be after start.");
+          if (end.getTime() <= Date.now()) {
+            throw new HttpsError("invalid-argument", "The revised event must end in the future.");
+          }
+          const startCivil = civilDateTime(start, current.time_zone);
+          const endCivil = civilDateTime(end, current.time_zone);
+          patch["start"] = Timestamp.fromDate(start);
+          patch["end"] = Timestamp.fromDate(end);
+          patch["timing"] = {
+            start_date: startCivil.date,
+            end_date: endCivil.date,
+            start_time: startCivil.time,
+            end_time: endCivil.time,
+            mode: "exact",
+          };
+          scheduledFor = Timestamp.fromDate(start);
+          break;
+        }
+        case "activate_program_plan": {
+          const program = current.program;
+          if (!program) throw new HttpsError("failed-precondition", "The event has no program.");
+          if (!program.plans.some((plan) => plan.id === input.planId)) {
+            throw new HttpsError("not-found", "Program plan not found.");
+          }
+          if (program.active_plan_id === input.planId) {
+            throw new HttpsError("failed-precondition", "That program plan is already active.");
+          }
+          programPlanId = cleanRequiredText(input.planId, "planId", 128);
+          patch["program"] = {
+            ...program,
+            active_plan_id: programPlanId,
+            ...(note ? { active_plan_note: note } : {}),
+            active_plan_changed_at: now,
+            active_plan_changed_by: uid,
+          };
+          break;
+        }
+        case "update_program_item": {
+          const program = current.program;
+          if (!program) throw new HttpsError("failed-precondition", "The event has no program.");
+          programPlanId = cleanRequiredText(input.planId, "planId", 128);
+          programItemId = cleanRequiredText(input.itemId, "itemId", 128);
+          const planIndex = program.plans.findIndex((plan) => plan.id === programPlanId);
+          const itemIndex = planIndex < 0
+            ? -1
+            : program.plans[planIndex].items.findIndex((item) => item.id === programItemId);
+          if (planIndex < 0 || itemIndex < 0) {
+            throw new HttpsError("not-found", "Program item not found.");
+          }
+          const plans = program.plans.map((plan) => ({ ...plan, items: [...plan.items] }));
+          const item = plans[planIndex].items[itemIndex];
+          const start = input.start ? parseDate(input.start, "start") : undefined;
+          const end = input.end ? parseDate(input.end, "end") : undefined;
+          const effectiveStart = start ?? (item.runtime_override?.start
+            ? new Date(timestampMillis(item.runtime_override.start) ?? 0)
+            : new Date(timestampMillis(item.start) ?? 0));
+          const effectiveEnd = end ?? (item.runtime_override?.end
+            ? new Date(timestampMillis(item.runtime_override.end) ?? 0)
+            : item.end ? new Date(timestampMillis(item.end) ?? 0) : undefined);
+          if (effectiveEnd && effectiveEnd <= effectiveStart) {
+            throw new HttpsError("invalid-argument", "Program item end must be after start.");
+          }
+          plans[planIndex].items[itemIndex] = {
+            ...item,
+            runtime_override: {
+              ...(start ? {
+                start: Timestamp.fromDate(start) as unknown as EventProgramRuntimeOverrideSchema["start"],
+              } : {}),
+              ...(end ? {
+                end: Timestamp.fromDate(end) as unknown as EventProgramRuntimeOverrideSchema["end"],
+              } : {}),
+              status: input.status,
+              ...(note ? { note } : {}),
+              updated_at: now as unknown as EventProgramRuntimeOverrideSchema["updated_at"],
+              updated_by: uid,
+            },
+          };
+          scheduledFor = start ? Timestamp.fromDate(start) : undefined;
+          patch["program"] = { ...program, plans };
+          break;
+        }
+        default:
+          throw new HttpsError("invalid-argument", "Unsupported event operation.");
+      }
+
+      const copy = operationCopy(input, current);
+      transaction.update(eventRef, patch);
+      if (current.published !== false) {
+        const update: EventLiveUpdateSchema = {
+          event_id: eventId,
+          type: copy.type,
+          title: copy.title,
+          ...(copy.message ? { message: copy.message } : {}),
+          ...(scheduledFor ? { scheduled_for: scheduledFor as EventLiveUpdateSchema["scheduled_for"] } : {}),
+          operation_id: operationId,
+          operation_type: input.operation,
+          ...(programPlanId ? { program_plan_id: programPlanId } : {}),
+          ...(programItemId ? { program_item_id: programItemId } : {}),
+          status: "published",
+          created_at: now as EventLiveUpdateSchema["created_at"],
+          created_by: uid,
+          published_at: now as EventLiveUpdateSchema["published_at"],
+        };
+        transaction.create(updateRef, update);
+      }
+    });
+
+    return { operationId, ...(eventData.published !== false ? { updateId: operationId } : {}) };
+  },
+);
 
 export const publishEventLiveUpdate = onCall(
   CALLABLE_OPTIONS,
@@ -143,6 +389,15 @@ export const publishEventLiveUpdate = onCall(
     }
     if (event.published === false) {
       throw new HttpsError("failed-precondition", "Unpublished events cannot send updates.");
+    }
+    if (event.lifecycle_status === "cancelled") {
+      throw new HttpsError("failed-precondition", "Cancelled events cannot send live updates.");
+    }
+    if (
+      event.notification_policy === "none" ||
+      event.notification_policy === "reminders"
+    ) {
+      throw new HttpsError("failed-precondition", "This event does not support update notifications.");
     }
     const eventEnd = timestampMillis(event.end);
     if (!eventEnd || eventEnd < Date.now()) {
@@ -213,52 +468,76 @@ export const onEventLiveUpdateCreate = onDocumentCreated(
     const eventData = eventSnapshot.data() as EventSchema;
     if (eventData.published === false) return;
 
-    let delivered = 0;
-    let cursor: FirebaseFirestore.QueryDocumentSnapshot | undefined;
-    while (delivered < MAX_RECIPIENTS_PER_UPDATE) {
-      let query = eventSnapshot.ref
-        .collection("live_update_subscribers")
-        .where("active", "==", true)
-        .orderBy(FieldPath.documentId())
-        .limit(Math.min(SUBSCRIBER_PAGE_SIZE, MAX_RECIPIENTS_PER_UPDATE - delivered));
-      if (cursor) query = query.startAfter(cursor);
-      const page = await query.get();
-      if (page.empty) break;
+    if (
+      eventData.notification_policy === "none" ||
+      eventData.notification_policy === "reminders"
+    ) return;
 
-      await Promise.all(
-        page.docs.map((subscriber) => {
+    const subscribers = await eventSnapshot.ref
+      .collection("live_update_subscribers")
+      .limit(MAX_RECIPIENTS_PER_UPDATE)
+      .get();
+    const subscriberStates = new Map(
+      subscribers.docs.map((subscriber) => [
+        subscriber.id,
+        subscriber.data() as EventLiveUpdateSubscriberSchema,
+      ]),
+    );
+    const recipientIds = new Set(
+      subscribers.docs
+        .filter((subscriber) => {
           const data = subscriber.data() as EventLiveUpdateSubscriberSchema;
-          if (data.user_id !== subscriber.id) return Promise.resolve();
-          return createIntent(
-            `event_live_update_${eventId}_${updateId}_${subscriber.id}`,
-            {
-              recipientUid: subscriber.id,
-              type: "event_update",
-              sourcePath: updateSnapshot.ref.path,
-              sendAfter: Timestamp.now(),
-              expiresAt: Timestamp.fromMillis(Date.now() + UPDATE_LIFETIME_MS),
-              path: eventPath(eventId, eventData),
-              channelId: "event_updates",
-              payload: {
-                event_id: eventId,
-                event_name: eventData.name,
-                update_id: updateId,
-                live_update_type: update.type,
-                update_title: update.title,
-                ...(update.message ? { update_message: update.message } : {}),
-                ...(update.event_spot_id ? { event_spot_id: update.event_spot_id } : {}),
-              },
-            },
-          );
-        }),
-      );
-      delivered += page.size;
-      cursor = page.docs.at(-1);
-      if (page.size < SUBSCRIBER_PAGE_SIZE) break;
+          return data.user_id === subscriber.id && data.active === true;
+        })
+        .map((subscriber) => subscriber.id),
+    );
+
+    if (update.operation_type) {
+      const rsvps = await eventSnapshot.ref
+        .collection("rsvps")
+        .where("rsvp", "in", ["going", "interested"])
+        .limit(MAX_RECIPIENTS_PER_UPDATE)
+        .get();
+      for (const rsvp of rsvps.docs) {
+        const explicit = subscriberStates.get(rsvp.id);
+        if (!explicit || explicit.active === true) recipientIds.add(rsvp.id);
+      }
     }
 
-    if (delivered >= MAX_RECIPIENTS_PER_UPDATE) {
-      logger.warn("Live update recipient cap reached", { eventId, updateId, delivered });
+    const recipients = [...recipientIds].slice(0, MAX_RECIPIENTS_PER_UPDATE);
+    await Promise.all(
+      recipients.map((recipientUid) =>
+        createIntent(
+          `event_live_update_${eventId}_${updateId}_${recipientUid}`,
+          {
+            recipientUid,
+            type: "event_update",
+            sourcePath: updateSnapshot.ref.path,
+            sendAfter: Timestamp.now(),
+            expiresAt: Timestamp.fromMillis(Date.now() + UPDATE_LIFETIME_MS),
+            path: eventPath(eventId, eventData),
+            channelId: "event_updates",
+            payload: {
+              event_id: eventId,
+              event_name: eventData.name,
+              update_id: updateId,
+              live_update_type: update.type,
+              ...(update.operation_type ? { operation_type: update.operation_type } : {}),
+              update_title: update.title,
+              ...(update.message ? { update_message: update.message } : {}),
+              ...(update.event_spot_id ? { event_spot_id: update.event_spot_id } : {}),
+            },
+          },
+        ),
+      ),
+    );
+
+    if (recipientIds.size > MAX_RECIPIENTS_PER_UPDATE) {
+      logger.warn("Live update recipient cap reached", {
+        eventId,
+        updateId,
+        recipients: recipientIds.size,
+      });
     }
   },
 );

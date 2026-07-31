@@ -332,6 +332,12 @@
         <target>Sigue lo que descubren otras personas, contribuye con actualizaciones y ayuda a mantener vivo el mapa.</target>
       </segment>
     </unit>
+    <unit id="6404865683397876624">
+      <segment state="initial">
+        <source>Event operations</source>
+        <target>Operaciones del evento</target>
+      </segment>
+    </unit>
     <unit id="641716500460785755">
       <segment state="initial">
         <source>Get in Touch</source>
@@ -424,6 +430,12 @@
       <segment state="initial">
         <source>Back to sign in</source>
         <target>Volver a Iniciar sesión</target>
+      </segment>
+    </unit>
+    <unit id="4941861844629832860">
+      <segment state="initial">
+        <source>Program plan changed</source>
+        <target>Plan del programa cambiado</target>
       </segment>
     </unit>
     <unit id="8922105621109418817">
@@ -794,6 +806,12 @@
       <segment state="initial">
         <source>Verification Failed</source>
         <target>Verificación fallida</target>
+      </segment>
+    </unit>
+    <unit id="5740206434555920246">
+      <segment state="initial">
+        <source> Preview </source>
+        <target> Vista previa </target>
       </segment>
     </unit>
     <unit id="574237115855339547">
@@ -2161,6 +2179,12 @@
         <target>Edición rechazada</target>
       </segment>
     </unit>
+    <unit id="3572703815662689324">
+      <segment state="initial">
+        <source>Program item updated</source>
+        <target>Elemento del programa actualizado</target>
+      </segment>
+    </unit>
     <unit id="3575990016862725996">
       <segment state="initial">
         <source> Join our Discord server to chat with the community, report bugs, and request features. This is the fastest way to get help! </source>
@@ -2613,6 +2637,12 @@
         <target>Restablecer contraseña</target>
       </segment>
     </unit>
+    <unit id="6973839811687622269">
+      <segment state="initial">
+        <source>Operation preview</source>
+        <target>Vista previa del cambio</target>
+      </segment>
+    </unit>
     <unit id="6984983607470794786">
       <segment state="initial">
         <source>Open Source</source>
@@ -2877,6 +2907,12 @@
         <target>Comunidad</target>
       </segment>
     </unit>
+    <unit id="1283895920974679461">
+      <segment state="initial">
+        <source>Operation</source>
+        <target>Operación</target>
+      </segment>
+    </unit>
     <unit id="1292744805065412409">
       <segment state="initial">
         <source>Sign in to view visited spots</source>
@@ -2901,6 +2937,12 @@
         <target>La contraseña y su repetición no coinciden</target>
       </segment>
     </unit>
+    <unit id="6477168744321037366">
+      <segment state="initial">
+        <source>Could not apply the event operation.</source>
+        <target>No se pudo aplicar la operación del evento.</target>
+      </segment>
+    </unit>
     <unit id="6480390330423300875">
       <segment state="initial">
         <source>View source</source>
@@ -2923,6 +2965,12 @@
       <segment state="initial">
         <source>Could not load this safety case.</source>
         <target>No se pudo cargar este caso de seguridad.</target>
+      </segment>
+    </unit>
+    <unit id="6494626849411103541">
+      <segment state="initial">
+        <source> Eligible attendees and update subscribers will receive this update according to their notification choices. </source>
+        <target> Los asistentes afectados y los suscriptores de actualizaciones recibirán este aviso según sus preferencias de notificación. </target>
       </segment>
     </unit>
     <unit id="6496554534263466402">
@@ -2965,6 +3013,12 @@
       <segment state="initial">
         <source>Short message (optional)</source>
         <target>Mensaje corto (opcional)</target>
+      </segment>
+    </unit>
+    <unit id="1968938717592923523">
+      <segment state="initial">
+        <source>This reason remains visible on the event.</source>
+        <target>Este motivo seguirá visible en el evento.</target>
       </segment>
     </unit>
     <unit id="1975356621924283237">
@@ -3269,6 +3323,12 @@
         <target>{VAR_PLURAL, plural, =1 {miembro} other {miembros}}</target>
       </segment>
     </unit>
+    <unit id="6001163963116907226">
+      <segment state="initial">
+        <source>Moved</source>
+        <target>Trasladado</target>
+      </segment>
+    </unit>
     <unit id="6008995610936337562">
       <segment state="initial">
         <source>What is this about?</source>
@@ -3411,6 +3471,12 @@
       <segment state="initial">
         <source> Duplicate </source>
         <target> Duplicado </target>
+      </segment>
+    </unit>
+    <unit id="4169782958054942297">
+      <segment state="initial">
+        <source>Revised start</source>
+        <target>Inicio revisado</target>
       </segment>
     </unit>
     <unit id="4172345182949733528">
@@ -5420,6 +5486,12 @@
         <target> Visibilidad en motores de búsqueda </target>
       </segment>
     </unit>
+    <unit id="9172233176401579786">
+      <segment state="initial">
+        <source>Scheduled</source>
+        <target>Programado</target>
+      </segment>
+    </unit>
     <unit id="profile.actions.unfollow">
       <segment state="initial">
         <source>Unfollow</source>
@@ -6560,6 +6632,12 @@
       <segment state="initial">
         <source>{VAR_PLURAL, plural, =1 {event} other {events}}</source>
         <target>{VAR_PLURAL, plural, =1 {evento} other {eventos}}</target>
+      </segment>
+    </unit>
+    <unit id="7696296290419062664">
+      <segment state="initial">
+        <source>Program plan</source>
+        <target>Plan del programa</target>
       </segment>
     </unit>
     <unit id="editProfile.biography">
@@ -9690,6 +9768,12 @@
         <target>Controles de búsqueda de eventos</target>
       </segment>
     </unit>
+    <unit id="4979296131833227771">
+      <segment state="initial">
+        <source>Event operation applied.</source>
+        <target>Operación del evento aplicada.</target>
+      </segment>
+    </unit>
     <unit id="3304972143698843178">
       <segment state="initial">
         <source>Event</source>
@@ -9750,6 +9834,12 @@
         <target>Guarda favoritos y vuelve más tarde a los spots donde quieres entrenar.</target>
       </segment>
     </unit>
+    <unit id="2852131932578261096">
+      <segment state="initial">
+        <source>Apply operation</source>
+        <target>Aplicar operación</target>
+      </segment>
+    </unit>
     <unit id="2855049153368933927">
       <segment state="initial">
         <source>Current E-mail</source>
@@ -9802,6 +9892,12 @@
       <segment state="initial">
         <source>Organization saved.</source>
         <target>Organización guardada.</target>
+      </segment>
+    </unit>
+    <unit id="783359429228696335">
+      <segment state="initial">
+        <source>New start</source>
+        <target>Nuevo inicio</target>
       </segment>
     </unit>
     <unit id="7833933616390918367">
@@ -9924,6 +10020,12 @@
         <target><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Duplicado: Esta imagen ya está presente en este spot.</pc></target>
       </segment>
     </unit>
+    <unit id="5250149255644238520">
+      <segment state="initial">
+        <source>Note (optional)</source>
+        <target>Nota (opcional)</target>
+      </segment>
+    </unit>
     <unit id="798956693238681279">
       <segment state="initial">
         <source>Could not load this organization.</source>
@@ -9960,10 +10062,22 @@
         <target>El tipo de este archivo no está permitido.</target>
       </segment>
     </unit>
+    <unit id="8235723125488282238">
+      <segment state="initial">
+        <source>Cancel event</source>
+        <target>Cancelar evento</target>
+      </segment>
+    </unit>
     <unit id="8235805970201248247">
       <segment state="initial">
         <source>Now</source>
         <target>Ahora</target>
+      </segment>
+    </unit>
+    <unit id="8251613687867890615">
+      <segment state="initial">
+        <source>This event is cancelled</source>
+        <target>Este evento está cancelado</target>
       </segment>
     </unit>
     <unit id="8275049945387417668">
@@ -10632,6 +10746,12 @@
         <target>Esperando revisión del gestor</target>
       </segment>
     </unit>
+    <unit id="4757903614251378149">
+      <segment state="initial">
+        <source>Reschedule event</source>
+        <target>Reprogramar evento</target>
+      </segment>
+    </unit>
     <unit id="4758490333513959462">
       <segment state="initial">
         <source>External reporting route</source>
@@ -10986,6 +11106,12 @@
         <target>Comprobando acceso de la organización...</target>
       </segment>
     </unit>
+    <unit id="2139530877531084048">
+      <segment state="initial">
+        <source>Event rescheduled</source>
+        <target>Evento reprogramado</target>
+      </segment>
+    </unit>
     <unit id="2140524575884770731">
       <notes>
         <note category="description">Button to open the spot in Apple Maps</note>
@@ -11027,12 +11153,6 @@
       <segment state="initial">
         <source>Moderation action recorded</source>
         <target>Acción de moderación registrada</target>
-      </segment>
-    </unit>
-    <unit id="216089812907795634">
-      <segment state="initial">
-        <source>Time (optional)</source>
-        <target>Hora (opcional)</target>
       </segment>
     </unit>
     <unit id="2178484227756853679">
@@ -11330,6 +11450,12 @@
       <segment state="initial">
         <source>Dev Log</source>
         <target>Registro de desarrollo</target>
+      </segment>
+    </unit>
+    <unit id="3235008986099492176">
+      <segment state="initial">
+        <source>Event restored</source>
+        <target>Evento restablecido</target>
       </segment>
     </unit>
     <unit id="3248469257587489257">
@@ -11695,6 +11821,12 @@
         <target>Reportes de moderación</target>
       </segment>
     </unit>
+    <unit id="3180781358486363266">
+      <segment state="initial">
+        <source>Update program item</source>
+        <target>Actualizar elemento del programa</target>
+      </segment>
+    </unit>
     <unit id="3192626855762638668">
       <segment state="initial">
         <source>Error uploading media. Try again.</source>
@@ -11747,6 +11879,12 @@
       <segment state="initial">
         <source> Info can be outdated or wrong. Always check signs and local rules on site. </source>
         <target> La informacion puede estar desactualizada o ser incorrecta. Revisa siempre la senalizacion y las normas locales en el lugar. </target>
+      </segment>
+    </unit>
+    <unit id="156592800519916189">
+      <segment state="initial">
+        <source>Activate program plan</source>
+        <target>Activar plan del programa</target>
       </segment>
     </unit>
     <unit id="1577979859082287846">
@@ -11847,6 +11985,12 @@
         <target>Sube fotos y videos para que la gente entienda rápidamente un spot antes de ir.</target>
       </segment>
     </unit>
+    <unit id="8910806821370505981">
+      <segment state="initial">
+        <source>New end</source>
+        <target>Nuevo final</target>
+      </segment>
+    </unit>
     <unit id="spot.report.aria_label">
       <notes>
         <note category="description">Aria label for report spot button</note>
@@ -11925,6 +12069,12 @@
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;"> I&apos;m visible and have a problem with it. </pc></source>
         <target><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Aparezco en la imagen y tengo un problema con ello.</pc></target>
+      </segment>
+    </unit>
+    <unit id="5370170519653047207">
+      <segment state="initial">
+        <source>Cancellation reason</source>
+        <target>Motivo de la cancelación</target>
       </segment>
     </unit>
     <unit id="5370838177584249385">
@@ -12089,6 +12239,12 @@
         <target>Retención para denuncia</target>
       </segment>
     </unit>
+    <unit id="752097609696171501">
+      <segment state="initial">
+        <source>Time mentioned in update (optional)</source>
+        <target>Hora mencionada en la actualización (opcional)</target>
+      </segment>
+    </unit>
     <unit id="7523630390926625638">
       <segment state="initial">
         <source>Link to spot copied to clipboard</source>
@@ -12171,6 +12327,12 @@
       <segment state="initial">
         <source> Add member </source>
         <target> Añadir miembro </target>
+      </segment>
+    </unit>
+    <unit id="2539989101845088313">
+      <segment state="initial">
+        <source>Delayed</source>
+        <target>Retrasado</target>
       </segment>
     </unit>
     <unit id="8337024335699759741">
@@ -12589,6 +12751,12 @@
       <segment state="initial">
         <source> Save organization </source>
         <target> Guardar organización </target>
+      </segment>
+    </unit>
+    <unit id="2390593998089868543">
+      <segment state="initial">
+        <source>Restore event</source>
+        <target>Restablecer evento</target>
       </segment>
     </unit>
     <unit id="3908211343911450350">
@@ -13481,6 +13649,12 @@
         <target>Muéstralo solo cuando estés listo para revisarlo.</target>
       </segment>
     </unit>
+    <unit id="7291914812028273055">
+      <segment state="initial">
+        <source>Originally</source>
+        <target>Originalmente</target>
+      </segment>
+    </unit>
     <unit id="7295769845403931650">
       <segment state="initial">
         <source>No spot edit votes waiting.</source>
@@ -13491,6 +13665,12 @@
       <segment state="initial">
         <source>New passwords do not match</source>
         <target>Las nuevas contraseñas no coinciden</target>
+      </segment>
+    </unit>
+    <unit id="6608465467597524827">
+      <segment state="initial">
+        <source>The notification is still sent immediately.</source>
+        <target>La notificación se envía de inmediato igualmente.</target>
       </segment>
     </unit>
     <unit id="6609600842422660590">
@@ -13554,6 +13734,12 @@
       <segment state="initial">
         <source>All Types</source>
         <target>Todos los tipos</target>
+      </segment>
+    </unit>
+    <unit id="5662368991409139360">
+      <segment state="initial">
+        <source>Event cancelled</source>
+        <target>Evento cancelado</target>
       </segment>
     </unit>
     <unit id="5682561296127892994">
@@ -14003,6 +14189,12 @@
         <target>Todos</target>
       </segment>
     </unit>
+    <unit id="1617129048801105661">
+      <segment state="initial">
+        <source>Revised end</source>
+        <target>Final revisado</target>
+      </segment>
+    </unit>
     <unit id="161852954972763993">
       <segment state="initial">
         <source>Assessment pending</source>
@@ -14394,6 +14586,12 @@
       <segment state="initial">
         <source>Submitting...</source>
         <target>Enviando...</target>
+      </segment>
+    </unit>
+    <unit id="3496329623690827416">
+      <segment state="initial">
+        <source>Program item</source>
+        <target>Elemento del programa</target>
       </segment>
     </unit>
     <unit id="3496653775940285146">

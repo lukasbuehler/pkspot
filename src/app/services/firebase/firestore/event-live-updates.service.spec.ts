@@ -223,6 +223,22 @@ describe("EventLiveUpdatesService", () => {
     await expect(service.publish(request)).resolves.toEqual({ updateId: "update-1" });
     expect(call).toHaveBeenCalledWith("publishEventLiveUpdate", request);
   });
+
+  it("applies an operational change through the trusted callable", async () => {
+    const call = vi.fn(async () => ({ operationId: "operation-1", updateId: "operation-1" }));
+    const { service } = configure({}, "organizer-1", false, call);
+    const request = {
+      eventId: "event-1",
+      operation: "cancel_event" as const,
+      reason: "Storm warning",
+    };
+
+    await expect(service.applyOperationalChange(request)).resolves.toEqual({
+      operationId: "operation-1",
+      updateId: "operation-1",
+    });
+    expect(call).toHaveBeenCalledWith("applyEventOperationalChange", request);
+  });
 });
 
 function configure(

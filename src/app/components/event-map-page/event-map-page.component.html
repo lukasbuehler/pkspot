@@ -83,6 +83,19 @@
         [event]="event()!"
         [showVenue]="false"
       ></app-event-summary-meta>
+      @if (event()?.lifecycleStatus === "cancelled") {
+        <aside class="event-map-cancellation" role="status">
+          <span class="event-map-cancellation__icon" aria-hidden="true">
+            <mat-icon>event_busy</mat-icon>
+          </span>
+          <div>
+            <strong class="mat-title-medium" i18n>This event is cancelled</strong>
+            @if (event()?.lifecycleNote; as reason) {
+              <p class="mat-body-medium m-0">{{ reason }}</p>
+            }
+          </div>
+        </aside>
+      }
     </div>
 
     <mat-menu #menu="matMenu">

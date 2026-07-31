@@ -6,6 +6,7 @@
       [id]="'event-program-item-' + item.id"
       [class.is-selected]="item.id === selectedItemId()"
       [class.is-active]="activeItemIds().includes(item.id)"
+      [class.is-cancelled]="entry.status === 'cancelled'"
     >
       <div class="program-rail">
         <span class="program-dot" aria-hidden="true"></span>
@@ -17,9 +18,19 @@
         <div class="program-title-row">
           <div class="program-title">
             <h3 class="mat-title-small m-0">{{ item.title }}</h3>
+            @if (entry.status !== "scheduled") {
+              <span class="program-status" [attr.data-status]="entry.status">
+                {{ statusLabel(entry.status) }}
+              </span>
+            }
             @if (entry.end) {
               <p class="mat-label-medium program-range">
                 {{ itemTimeRange(entry.start, entry.end) }}
+              </p>
+            }
+            @if (entry.originalStart) {
+              <p class="mat-label-small program-original-time">
+                <span i18n>Originally</span> {{ itemTime(entry.originalStart) }}
               </p>
             }
           </div>
@@ -44,6 +55,9 @@
           <p class="mat-body-small program-description">
             {{ item.description }}
           </p>
+        }
+        @if (entry.note) {
+          <p class="mat-body-small program-operation-note">{{ entry.note }}</p>
         }
         @if (
           item.participation?.note ||

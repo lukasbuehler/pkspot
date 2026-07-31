@@ -54,4 +54,10 @@ export class EventProgramOccurrenceListComponent {
   select(occurrence: EventProgramOccurrence): void {
     this.occurrenceSelected.emit(occurrence);
   }
+
+  operationalStatusLabel(status: EventProgramOccurrence["status"]): string {
+    if (status === "delayed") return $localize`Delayed`;
+    if (status === "moved") return $localize`Moved`;
+    return "";
+  }
 }

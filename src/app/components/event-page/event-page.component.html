@@ -77,6 +77,7 @@
             (editRequested)="startEditingEvent()"
             (qrRequested)="openQrDialog()"
             (ownershipClaimRequested)="openOwnershipClaimDialog()"
+            (operationApplied)="reloadEventAfterOperation()"
           ></app-event-live-update-organizer-menu>
         </div>
       </nav>
@@ -126,6 +127,20 @@
         </aside>
       }
 
+      @if (event.lifecycleStatus === "cancelled") {
+        <aside class="event-cancellation-notice" role="status">
+          <span class="event-cancellation-notice__icon" aria-hidden="true">
+            <mat-icon>event_busy</mat-icon>
+          </span>
+          <div>
+            <strong class="mat-title-medium" i18n>This event is cancelled</strong>
+            @if (event.lifecycleNote) {
+              <p class="mat-body-medium m-0">{{ event.lifecycleNote }}</p>
+            }
+          </div>
+        </aside>
+      }
+
       <header class="event-heading pb-3">
         <div class="event-heading-main">
           <div class="event-title-block">
@@ -154,7 +169,7 @@
             }
           </div>
 
-          @if (showRsvp() || showRegistration()) {
+          @if (showRsvp() || showRegistration() || event.lifecycleStatus === "cancelled") {
             <app-event-attendee-actions
               [event]="event"
               [showRsvp]="showRsvp()"
@@ -165,7 +180,7 @@
         </div>
       </header>
 
-      @if (event.isLive(now())) {
+      @if (event.lifecycleStatus !== "cancelled" && event.isLive(now())) {
         <app-event-now-next-card
           class="event-now-next"
           [event]="event"
@@ -477,6 +492,21 @@
             </h2>
             <mat-icon>schedule</mat-icon>
           </div>
+          @if (activeProgramPlan(); as activePlan) {
+            @if (activePlan.kind === "alternate" || event.program?.active_plan_note) {
+              <aside class="active-program-notice" role="status">
+                <span class="active-program-notice__icon" aria-hidden="true">
+                  <mat-icon>umbrella</mat-icon>
+                </span>
+                <div>
+                  <strong class="mat-title-small">{{ activePlan.label }}</strong>
+                  @if (event.program?.active_plan_note || activePlan.condition_label; as note) {
+                    <p class="mat-body-small m-0">{{ note }}</p>
+                  }
+                </div>
+              </aside>
+            }
+          }
           <app-event-program-timeline
             class="app-card"
             [items]="activeProgramItems()"

@@ -17,6 +17,11 @@ import { DateTimeFormatService } from "../../services/date-time-format.service";
 import { EventLiveUpdatesService } from "../../services/firebase/firestore/event-live-updates.service";
 
 const UPDATE_TYPE_LABELS: Readonly<Record<EventLiveUpdateType, string>> = {
+  event_cancelled: $localize`Event cancelled`,
+  event_restored: $localize`Event restored`,
+  event_rescheduled: $localize`Event rescheduled`,
+  program_item_update: $localize`Program item updated`,
+  program_plan_activated: $localize`Program plan changed`,
   meet_up_time: $localize`Meet-up time`,
   location_spot_change: $localize`Location/Spot change`,
   schedule_change: $localize`Schedule change`,
