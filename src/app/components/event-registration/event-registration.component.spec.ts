@@ -13,6 +13,7 @@ import { EventLiveUpdatesService } from "../../services/firebase/firestore/event
 import { EventRegistrationsService } from "../../services/firebase/firestore/event-registrations.service";
 import { NotificationPreferencesService } from "../../services/notification-preferences.service";
 import { PushNotificationsService } from "../../services/push-notifications.service";
+import { MyEventsService } from "../../services/my-events.service";
 import { EventRegistrationComponent } from "./event-registration.component";
 
 const registration$ =
@@ -32,6 +33,7 @@ const registrations = {
   cancel: vi.fn(),
 };
 const liveUpdates = { ensureDefaultNotificationLevel: vi.fn() };
+const myEvents = { recordRegistration: vi.fn() };
 
 const event = (capacity = 10, waitlist = true): PkEvent =>
   new PkEvent("event-1" as EventId, {
@@ -71,6 +73,7 @@ describe("EventRegistrationComponent", () => {
       waitlisted: 0,
     });
     liveUpdates.ensureDefaultNotificationLevel.mockResolvedValue(true);
+    myEvents.recordRegistration.mockResolvedValue(undefined);
 
     await TestBed.configureTestingModule({
       imports: [EventRegistrationComponent],
@@ -93,6 +96,10 @@ describe("EventRegistrationComponent", () => {
         {
           provide: EventLiveUpdatesService,
           useValue: liveUpdates,
+        },
+        {
+          provide: MyEventsService,
+          useValue: myEvents,
         },
         {
           provide: PushNotificationsService,
@@ -127,6 +134,7 @@ describe("EventRegistrationComponent", () => {
       "event-1",
       "all",
     );
+    expect(myEvents.recordRegistration).toHaveBeenCalledWith("event-1", true);
   });
 
   it("offers the waitlist when capacity is full", async () => {
@@ -158,5 +166,6 @@ describe("EventRegistrationComponent", () => {
     await fixture.componentInstance.cancel();
 
     expect(registrations.cancel).toHaveBeenCalledWith("event-1");
+    expect(myEvents.recordRegistration).toHaveBeenCalledWith("event-1", false);
   });
 });

@@ -2067,6 +2067,54 @@
         <target>Modération</target>
       </segment>
     </unit>
+    <unit id="my_events.description">
+      <segment state="initial">
+        <source> Events you plan to attend or want to keep handy. </source>
+        <target> Les événements auxquels tu comptes participer ou que tu veux garder à portée de main. </target>
+      </segment>
+    </unit>
+    <unit id="my_events.device_note">
+      <segment state="initial">
+        <source> Saved on this device. Sign in to sync your events. </source>
+        <target> Enregistré sur cet appareil. Connecte-toi pour synchroniser tes événements. </target>
+      </segment>
+    </unit>
+    <unit id="my_events.going">
+      <segment state="initial">
+        <source>Going</source>
+        <target>J&apos;y vais</target>
+      </segment>
+    </unit>
+    <unit id="my_events.going_empty">
+      <segment state="initial">
+        <source> Events you mark as going will appear here. </source>
+        <target> Les événements auxquels tu indiques participer apparaîtront ici. </target>
+      </segment>
+    </unit>
+    <unit id="my_events.saved">
+      <segment state="initial">
+        <source>Saved</source>
+        <target>Enregistrés</target>
+      </segment>
+    </unit>
+    <unit id="my_events.saved_empty">
+      <segment state="initial">
+        <source> Save an event to find it here later. </source>
+        <target> Enregistre un événement pour le retrouver ici plus tard. </target>
+      </segment>
+    </unit>
+    <unit id="my_events.tabs_aria">
+      <segment state="initial">
+        <source>My event list</source>
+        <target>Ma liste d&apos;événements</target>
+      </segment>
+    </unit>
+    <unit id="my_events.title">
+      <segment state="initial">
+        <source> My Events </source>
+        <target> Mes événements </target>
+      </segment>
+    </unit>
     <unit id="3502015908968636245">
       <segment state="initial">
         <source>Affected accounts:</source>
@@ -6647,6 +6695,60 @@
         <target> Rechercher un profil public ou coller un identifiant utilisateur </target>
       </segment>
     </unit>
+    <unit id="event_add.going">
+      <segment state="initial">
+        <source>I&apos;m going</source>
+        <target>J&apos;y vais</target>
+      </segment>
+    </unit>
+    <unit id="event_add.open">
+      <segment state="initial">
+        <source>Add to My Events</source>
+        <target>Ajouter à Mes événements</target>
+      </segment>
+    </unit>
+    <unit id="event_add.save">
+      <segment state="initial">
+        <source>Save event</source>
+        <target>Enregistrer l&apos;événement</target>
+      </segment>
+    </unit>
+    <unit id="event_add.save_device">
+      <segment state="initial">
+        <source>Save on this device</source>
+        <target>Enregistrer sur cet appareil</target>
+      </segment>
+    </unit>
+    <unit id="event_add.save_failed">
+      <segment state="initial">
+        <source>Couldn&apos;t save this event. Try again in a moment.</source>
+        <target>Impossible d&apos;enregistrer cet événement. Réessaie dans un instant.</target>
+      </segment>
+    </unit>
+    <unit id="event_add.sign_in">
+      <segment state="initial">
+        <source>Sign in to mark Going</source>
+        <target>Se connecter pour indiquer J&apos;y vais</target>
+      </segment>
+    </unit>
+    <unit id="event_add.signed_in_description">
+      <segment state="initial">
+        <source> Add it to Going or save it for later. </source>
+        <target> Indique que tu y vas ou enregistre-le pour plus tard. </target>
+      </segment>
+    </unit>
+    <unit id="event_add.signed_out_description">
+      <segment state="initial">
+        <source> Save it on this device so you can quickly find it again. </source>
+        <target> Enregistre-le sur cet appareil pour le retrouver rapidement. </target>
+      </segment>
+    </unit>
+    <unit id="event_add.title">
+      <segment state="initial">
+        <source>Keep this event handy</source>
+        <target>Garder cet événement à portée de main</target>
+      </segment>
+    </unit>
     <unit id="event_card.draft">
       <segment state="initial">
         <source>Draft</source>
@@ -9950,6 +10052,12 @@
       <segment state="initial">
         <source>Dismiss</source>
         <target>Fermer</target>
+      </segment>
+    </unit>
+    <unit id="common.not_now">
+      <segment state="initial">
+        <source> Not now </source>
+        <target> Pas maintenant </target>
       </segment>
     </unit>
     <unit id="community.discover_more_events">
@@ -14568,10 +14676,28 @@
         <target>Voir dans le programme</target>
       </segment>
     </unit>
+    <unit id="event_rsvp.remove_from_my_events">
+      <segment state="initial">
+        <source>Remove from My Events</source>
+        <target>Retirer de Mes événements</target>
+      </segment>
+    </unit>
     <unit id="event_rsvp.save_failed">
       <segment state="initial">
         <source>Couldn&apos;t save your response. Try again in a moment.</source>
         <target>Impossible d’enregistrer votre réponse. Réessayez dans un instant.</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.add_to_my_events">
+      <segment state="initial">
+        <source>Add to My Events</source>
+        <target>Ajouter à Mes événements</target>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.change_my_event_status">
+      <segment state="initial">
+        <source>Change My Events status</source>
+        <target>Modifier le statut dans Mes événements</target>
       </segment>
     </unit>
     <unit id="event_rsvp.clear_failed">
@@ -14598,12 +14724,6 @@
         <target>{VAR_PLURAL, plural, =1 {intéressé} other {intéressés}}</target>
       </segment>
     </unit>
-    <unit id="event_rsvp.prompt">
-      <segment state="initial">
-        <source>Are you going?</source>
-        <target>Tu participes ?</target>
-      </segment>
-    </unit>
     <unit id="event_rsvp.disclaimer">
       <segment state="initial">
         <source>These numbers show PK Spot user intent, not tickets bought.</source>
@@ -14612,26 +14732,14 @@
     </unit>
     <unit id="event_rsvp.current_going">
       <segment state="initial">
-        <source>I&apos;m <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">going</pc></source>
-        <target>Je <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">participe</pc> </target>
+        <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Going</pc></source>
+        <target><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">J&apos;y vais</pc></target>
       </segment>
     </unit>
     <unit id="event_rsvp.current_interested">
       <segment state="initial">
-        <source>I&apos;m <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">interested</pc></source>
-        <target>Je suis <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">intéressé</pc></target>
-      </segment>
-    </unit>
-    <unit id="event_rsvp.current_notgoing">
-      <segment state="initial">
-        <source>I&apos;m <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">not going</pc></source>
-        <target>Je ne <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">participe pas</pc> </target>
-      </segment>
-    </unit>
-    <unit id="event_rsvp.group_label">
-      <segment state="initial">
-        <source>Response</source>
-        <target>Réponse</target>
+        <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Interested</pc></source>
+        <target><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Intéressé</pc></target>
       </segment>
     </unit>
     <unit id="event_rsvp.going">
@@ -14646,10 +14754,58 @@
         <target>Intéressé</target>
       </segment>
     </unit>
-    <unit id="event_rsvp.notgoing">
+    <unit id="event_qr.copied">
       <segment state="initial">
-        <source>Not going</source>
-        <target>Je ne participe pas</target>
+        <source> Link copied. </source>
+        <target> Lien copié. </target>
+      </segment>
+    </unit>
+    <unit id="event_qr.copy">
+      <segment state="initial">
+        <source>Copy link</source>
+        <target>Copier le lien</target>
+      </segment>
+    </unit>
+    <unit id="event_qr.copy_failed">
+      <segment state="initial">
+        <source>Couldn&apos;t copy the link.</source>
+        <target>Impossible de copier le lien.</target>
+      </segment>
+    </unit>
+    <unit id="event_qr.description">
+      <segment state="initial">
+        <source> Put this QR code at the event so people can quickly mark themselves as going or save the event. </source>
+        <target> Affiche ce code QR lors de l&apos;événement pour permettre aux personnes d&apos;indiquer rapidement leur participation ou d&apos;enregistrer l&apos;événement. </target>
+      </segment>
+    </unit>
+    <unit id="event_qr.download">
+      <segment state="initial">
+        <source>Download QR</source>
+        <target>Télécharger le QR</target>
+      </segment>
+    </unit>
+    <unit id="event_qr.generate_failed">
+      <segment state="initial">
+        <source>Couldn&apos;t generate the QR code.</source>
+        <target>Impossible de générer le code QR.</target>
+      </segment>
+    </unit>
+    <unit id="event_qr.generating">
+      <segment state="initial">
+        <source> Generating QR code… </source>
+        <target> Génération du code QR… </target>
+      </segment>
+    </unit>
+    <unit id="event_qr.menu">
+      <segment state="initial">
+        <source>Event QR code</source>
+        <target>Code QR de l&apos;événement</target>
+      </segment>
+    </unit>
+    <unit id="event_qr.title">
+      <segment state="initial">
+        <source>Event QR code</source>
+        <target>Code QR de l&apos;événement</target>
       </segment>
     </unit>
     <unit id="event_qualification.heading">
@@ -14860,18 +15016,6 @@
       <segment state="initial">
         <source>Waitlisted</source>
         <target>Sur liste d&apos;attente</target>
-      </segment>
-    </unit>
-    <unit id="event_rsvp.clear">
-      <segment state="initial">
-        <source>Clear</source>
-        <target>Effacer</target>
-      </segment>
-    </unit>
-    <unit id="event_rsvp.sign_in">
-      <segment state="initial">
-        <source>Sign in to respond</source>
-        <target>Connectez-vous pour répondre</target>
       </segment>
     </unit>
     <unit id="event_series_role.championship">

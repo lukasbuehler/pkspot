@@ -2005,6 +2005,11 @@
         <source>Dismiss</source>
       </segment>
     </unit>
+    <unit id="common.not_now">
+      <segment>
+        <source> Not now </source>
+      </segment>
+    </unit>
     <unit id="community.discover_more_events">
       <segment>
         <source> Discover more events → </source>
@@ -2918,6 +2923,51 @@
     <unit id="event_access.user_placeholder">
       <segment>
         <source>Search a public profile or paste a user ID</source>
+      </segment>
+    </unit>
+    <unit id="event_add.going">
+      <segment>
+        <source>I&apos;m going</source>
+      </segment>
+    </unit>
+    <unit id="event_add.open">
+      <segment>
+        <source>Add to My Events</source>
+      </segment>
+    </unit>
+    <unit id="event_add.save">
+      <segment>
+        <source>Save event</source>
+      </segment>
+    </unit>
+    <unit id="event_add.save_device">
+      <segment>
+        <source>Save on this device</source>
+      </segment>
+    </unit>
+    <unit id="event_add.save_failed">
+      <segment>
+        <source>Couldn&apos;t save this event. Try again in a moment.</source>
+      </segment>
+    </unit>
+    <unit id="event_add.sign_in">
+      <segment>
+        <source>Sign in to mark Going</source>
+      </segment>
+    </unit>
+    <unit id="event_add.signed_in_description">
+      <segment>
+        <source> Add it to Going or save it for later. </source>
+      </segment>
+    </unit>
+    <unit id="event_add.signed_out_description">
+      <segment>
+        <source> Save it on this device so you can quickly find it again. </source>
+      </segment>
+    </unit>
+    <unit id="event_add.title">
+      <segment>
+        <source>Keep this event handy</source>
       </segment>
     </unit>
     <unit id="event_card.draft">
@@ -5180,6 +5230,51 @@
         <source>Scroll program days right</source>
       </segment>
     </unit>
+    <unit id="event_qr.copied">
+      <segment>
+        <source> Link copied. </source>
+      </segment>
+    </unit>
+    <unit id="event_qr.copy">
+      <segment>
+        <source>Copy link</source>
+      </segment>
+    </unit>
+    <unit id="event_qr.copy_failed">
+      <segment>
+        <source>Couldn&apos;t copy the link.</source>
+      </segment>
+    </unit>
+    <unit id="event_qr.description">
+      <segment>
+        <source> Put this QR code at the event so people can quickly mark themselves as going or save the event. </source>
+      </segment>
+    </unit>
+    <unit id="event_qr.download">
+      <segment>
+        <source>Download QR</source>
+      </segment>
+    </unit>
+    <unit id="event_qr.generate_failed">
+      <segment>
+        <source>Couldn&apos;t generate the QR code.</source>
+      </segment>
+    </unit>
+    <unit id="event_qr.generating">
+      <segment>
+        <source> Generating QR code… </source>
+      </segment>
+    </unit>
+    <unit id="event_qr.menu">
+      <segment>
+        <source>Event QR code</source>
+      </segment>
+    </unit>
+    <unit id="event_qr.title">
+      <segment>
+        <source>Event QR code</source>
+      </segment>
+    </unit>
     <unit id="event_qualification.heading">
       <segment>
         <source> Qualification </source>
@@ -5355,9 +5450,14 @@
         <source>Waitlisted</source>
       </segment>
     </unit>
-    <unit id="event_rsvp.clear">
+    <unit id="event_rsvp.add_to_my_events">
       <segment>
-        <source>Clear</source>
+        <source>Add to My Events</source>
+      </segment>
+    </unit>
+    <unit id="event_rsvp.change_my_event_status">
+      <segment>
+        <source>Change My Events status</source>
       </segment>
     </unit>
     <unit id="event_rsvp.clear_failed">
@@ -5375,11 +5475,6 @@
         <source>{VAR_PLURAL, plural, =1 {interested} other {interested}}</source>
       </segment>
     </unit>
-    <unit id="event_rsvp.prompt">
-      <segment>
-        <source>Are you going?</source>
-      </segment>
-    </unit>
     <unit id="event_rsvp.disclaimer">
       <segment>
         <source>These numbers show PK Spot user intent, not tickets bought.</source>
@@ -5387,27 +5482,17 @@
     </unit>
     <unit id="event_rsvp.current_going">
       <segment>
-        <source>I&apos;m <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">going</pc></source>
+        <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Going</pc></source>
       </segment>
     </unit>
     <unit id="event_rsvp.current_interested">
       <segment>
-        <source>I&apos;m <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">interested</pc></source>
-      </segment>
-    </unit>
-    <unit id="event_rsvp.current_notgoing">
-      <segment>
-        <source>I&apos;m <pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">not going</pc></source>
+        <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Interested</pc></source>
       </segment>
     </unit>
     <unit id="event_rsvp.going">
       <segment>
         <source>Going</source>
-      </segment>
-    </unit>
-    <unit id="event_rsvp.group_label">
-      <segment>
-        <source>Response</source>
       </segment>
     </unit>
     <unit id="event_rsvp.interested">
@@ -5420,19 +5505,14 @@
         <source>Couldn&apos;t load your response.</source>
       </segment>
     </unit>
-    <unit id="event_rsvp.notgoing">
+    <unit id="event_rsvp.remove_from_my_events">
       <segment>
-        <source>Not going</source>
+        <source>Remove from My Events</source>
       </segment>
     </unit>
     <unit id="event_rsvp.save_failed">
       <segment>
         <source>Couldn&apos;t save your response. Try again in a moment.</source>
-      </segment>
-    </unit>
-    <unit id="event_rsvp.sign_in">
-      <segment>
-        <source>Sign in to respond</source>
       </segment>
     </unit>
     <unit id="event_series_role.championship">
@@ -6749,6 +6829,46 @@
       </notes>
       <segment>
         <source>Moderation</source>
+      </segment>
+    </unit>
+    <unit id="my_events.description">
+      <segment>
+        <source> Events you plan to attend or want to keep handy. </source>
+      </segment>
+    </unit>
+    <unit id="my_events.device_note">
+      <segment>
+        <source> Saved on this device. Sign in to sync your events. </source>
+      </segment>
+    </unit>
+    <unit id="my_events.going">
+      <segment>
+        <source>Going</source>
+      </segment>
+    </unit>
+    <unit id="my_events.going_empty">
+      <segment>
+        <source> Events you mark as going will appear here. </source>
+      </segment>
+    </unit>
+    <unit id="my_events.saved">
+      <segment>
+        <source>Saved</source>
+      </segment>
+    </unit>
+    <unit id="my_events.saved_empty">
+      <segment>
+        <source> Save an event to find it here later. </source>
+      </segment>
+    </unit>
+    <unit id="my_events.tabs_aria">
+      <segment>
+        <source>My event list</source>
+      </segment>
+    </unit>
+    <unit id="my_events.title">
+      <segment>
+        <source> My Events </source>
       </segment>
     </unit>
     <unit id="7010151693196670017">

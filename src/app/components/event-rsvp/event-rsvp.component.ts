@@ -23,9 +23,7 @@ import { AuthenticationService } from "../../services/firebase/authentication.se
 import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
 import { AnalyticsService } from "../../services/analytics.service";
 import type { EventNotificationLevel } from "../../../db/schemas/EventLiveUpdateSchema";
-import { EventLiveUpdatesService } from "../../services/firebase/firestore/event-live-updates.service";
-import { PushNotificationsService } from "../../services/push-notifications.service";
-import { NotificationPreferencesService } from "../../services/notification-preferences.service";
+import { MyEventsService } from "../../services/my-events.service";
 
 type ScreenshotGlobal = typeof globalThis & {
   __PKSPOT_SCREENSHOT_EVENT_RSVPS__?: unknown;
@@ -49,9 +47,7 @@ export class EventRsvpComponent {
   private _injector = inject(Injector);
   private _eventsService?: EventsService;
   private _authService?: AuthenticationService;
-  private _liveUpdatesService?: EventLiveUpdatesService;
-  private _pushNotifications?: PushNotificationsService;
-  private _notificationPreferences?: NotificationPreferencesService;
+  private _myEventsService?: MyEventsService;
   private _analytics = inject(AnalyticsService);
   private _loadVersion = 0;
 
@@ -67,10 +63,27 @@ export class EventRsvpComponent {
   readonly loadedRsvp = signal<EventRSVPOption | null>(null);
   readonly isLoading = signal(false);
   readonly isSaving = signal(false);
+  readonly relationshipFallbackSuppressed = signal(false);
   readonly errorMessage = signal("");
   readonly disclaimerText = $localize`:@@event_rsvp.disclaimer:These numbers show PK Spot user intent, not tickets bought.`;
+  readonly addLabel = $localize`:@@event_rsvp.add_to_my_events:Add to My Events`;
+  readonly changeLabel = $localize`:@@event_rsvp.change_my_event_status:Change My Events status`;
 
   readonly isSignedIn = computed(() => !!this.userId());
+  readonly myEventsRsvp = computed<"going" | "interested" | null>(() => {
+    if (this.preview()) return null;
+    const selected = this.selectedRsvp();
+    if (selected === "going" || selected === "interested") return selected;
+    if (this.relationshipFallbackSuppressed()) return null;
+    const eventId = this.eventId();
+    if (!eventId) return null;
+    const relationship = this._myEvents().relationshipFor(eventId);
+    return relationship === "going"
+      ? "going"
+      : relationship === "saved"
+        ? "interested"
+        : null;
+  });
   readonly displayCounts = computed(() => {
     const base = this.counts() ?? {
       going: 0,
@@ -87,6 +100,7 @@ export class EventRsvpComponent {
         this.userId.set(null);
         this.selectedRsvp.set(null);
         this.loadedRsvp.set(null);
+        this.relationshipFallbackSuppressed.set(false);
         this.rsvpChanged.emit(null);
         return;
       }
@@ -106,6 +120,7 @@ export class EventRsvpComponent {
       if (!eventId || !userId) {
         this.selectedRsvp.set(null);
         this.loadedRsvp.set(null);
+        this.relationshipFallbackSuppressed.set(false);
         this.rsvpChanged.emit(null);
         return;
       }
@@ -114,6 +129,7 @@ export class EventRsvpComponent {
       if (screenshotRsvp !== undefined) {
         this.selectedRsvp.set(screenshotRsvp);
         this.loadedRsvp.set(screenshotRsvp);
+        this.relationshipFallbackSuppressed.set(false);
         this.rsvpChanged.emit(screenshotRsvp);
         this.errorMessage.set("");
         return;
@@ -136,36 +152,19 @@ export class EventRsvpComponent {
       previous_rsvp: previousSelected,
       was_loaded_rsvp: previousLoaded === next,
     });
+    this.relationshipFallbackSuppressed.set(false);
     this.selectedRsvp.set(next);
     this.rsvpChanged.emit(next);
     this.errorMessage.set("");
     this.isSaving.set(true);
 
-    const defaultNotificationLevel = this.defaultNotificationLevel();
-    const shouldEnableNotifications =
-      (next === "going" || next === "interested") &&
-      defaultNotificationLevel !== "none";
-    const permissionRequest =
-      shouldEnableNotifications &&
-      this._globalDeliveryEnabled(defaultNotificationLevel) &&
-      this._push().supported() &&
-      !this._push().systemAllowsNotifications()
-        ? this._push().requestPermissionFromUserAction().catch((error) => {
-            console.warn("Could not request notification permission", error);
-            return false;
-          })
-        : Promise.resolve(false);
-
     try {
-      await this._events().setMyRsvp(eventId, next);
+      await this._myEvents().setRsvp(
+        eventId,
+        next,
+        this.defaultNotificationLevel(),
+      );
       this.loadedRsvp.set(next);
-      if (shouldEnableNotifications) {
-        void this._enableDefaultNotifications(
-          eventId,
-          defaultNotificationLevel,
-          permissionRequest,
-        );
-      }
       this._analytics.trackEvent("event_rsvp_saved", {
         event_id: eventId,
         rsvp: next,
@@ -187,64 +186,83 @@ export class EventRsvpComponent {
     }
   }
 
-  private async _enableDefaultNotifications(
-    eventId: string,
-    level: EventNotificationLevel,
-    permissionRequest: Promise<boolean>,
-  ): Promise<void> {
+  async selectInterested(): Promise<void> {
+    if (this.isSignedIn()) {
+      await this.selectRsvp("interested");
+      return;
+    }
+
+    const eventId = this.eventId();
+    if (!eventId || this.isSaving()) return;
+    this._analytics.trackEvent("event_rsvp_selected", {
+      event_id: eventId,
+      rsvp: "interested",
+      previous_rsvp: this.myEventsRsvp(),
+      was_loaded_rsvp: false,
+    });
+    this.errorMessage.set("");
+    this.isSaving.set(true);
     try {
-      const [created] = await Promise.all([
-        this._liveUpdates().ensureDefaultNotificationLevel(
-          eventId,
-          level,
-        ),
-        permissionRequest,
-      ]);
-      if (created) {
-        this._analytics.trackEvent("event_notifications_auto_enabled", {
-          event_id: eventId,
-          notification_level: level,
-        });
-      }
-    } catch (error) {
-      // Notification delivery is supplementary; never roll back a valid RSVP.
-      console.warn("Could not apply default event notifications", error);
+      await this._myEvents().saveEvent(
+        eventId,
+        this.defaultNotificationLevel(),
+      );
+      this.rsvpChanged.emit("interested");
+      this._analytics.trackEvent("event_rsvp_saved", {
+        event_id: eventId,
+        rsvp: "interested",
+        storage: "device",
+      });
+    } catch (err) {
+      console.error("Failed to save event locally", err);
+      this.errorMessage.set(
+        $localize`:@@event_rsvp.save_failed:Couldn't save your response. Try again in a moment.`,
+      );
+      this._analytics.trackEvent("event_rsvp_save_failed", {
+        event_id: eventId,
+        rsvp: "interested",
+      });
+    } finally {
+      this.isSaving.set(false);
     }
   }
 
   async clearRsvp(): Promise<void> {
     const eventId = this.eventId();
-    if (!eventId || !this.userId() || !this.selectedRsvp()) return;
+    const previousRelationship = this.myEventsRsvp();
+    if (!eventId || !previousRelationship) return;
 
     const previousSelected = this.selectedRsvp();
     const previousLoaded = this.loadedRsvp();
     this._analytics.trackEvent("event_rsvp_clear_clicked", {
       event_id: eventId,
-      previous_rsvp: previousSelected,
+      previous_rsvp: previousRelationship,
     });
+    this.relationshipFallbackSuppressed.set(true);
     this.selectedRsvp.set(null);
     this.rsvpChanged.emit(null);
     this.errorMessage.set("");
     this.isSaving.set(true);
 
     try {
-      await this._events().clearMyRsvp(eventId);
+      await this._myEvents().clearRsvp(eventId);
       this.loadedRsvp.set(null);
       this._analytics.trackEvent("event_rsvp_cleared", {
         event_id: eventId,
-        previous_rsvp: previousLoaded,
+        previous_rsvp: previousRelationship,
       });
     } catch (err) {
       console.error("Failed to clear event RSVP", err);
       this.selectedRsvp.set(previousSelected);
       this.loadedRsvp.set(previousLoaded);
-      this.rsvpChanged.emit(previousSelected);
+      this.relationshipFallbackSuppressed.set(false);
+      this.rsvpChanged.emit(previousRelationship);
       this.errorMessage.set(
         $localize`:@@event_rsvp.clear_failed:Couldn't clear your response. Try again in a moment.`,
       );
       this._analytics.trackEvent("event_rsvp_clear_failed", {
         event_id: eventId,
-        previous_rsvp: previousLoaded,
+        previous_rsvp: previousRelationship,
       });
     } finally {
       this.isSaving.set(false);
@@ -284,6 +302,7 @@ export class EventRsvpComponent {
       const rsvp = this._normalizeRsvp(doc?.rsvp);
       this.loadedRsvp.set(rsvp);
       this.selectedRsvp.set(rsvp);
+      this.relationshipFallbackSuppressed.set(false);
       this.rsvpChanged.emit(rsvp);
     } catch (err) {
       if (version !== this._loadVersion) return;
@@ -332,29 +351,8 @@ export class EventRsvpComponent {
     return this._authService;
   }
 
-  private _liveUpdates(): EventLiveUpdatesService {
-    this._liveUpdatesService ??= this._injector.get(EventLiveUpdatesService);
-    return this._liveUpdatesService;
-  }
-
-  private _push(): PushNotificationsService {
-    this._pushNotifications ??= this._injector.get(PushNotificationsService);
-    return this._pushNotifications;
-  }
-
-  private _globalDeliveryEnabled(level: EventNotificationLevel): boolean {
-    const preferences = this._preferences().preferences();
-    if (level === "event_updates") return preferences.event_updates;
-    if (level === "reminders") return preferences.event_reminders;
-    return level === "all"
-      ? preferences.event_updates || preferences.event_reminders
-      : false;
-  }
-
-  private _preferences(): NotificationPreferencesService {
-    this._notificationPreferences ??= this._injector.get(
-      NotificationPreferencesService,
-    );
-    return this._notificationPreferences;
+  private _myEvents(): MyEventsService {
+    this._myEventsService ??= this._injector.get(MyEventsService);
+    return this._myEventsService;
   }
 }

@@ -1,0 +1,74 @@
+<section class="my-events-panel" aria-labelledby="my-events-heading">
+  <header class="my-events-heading">
+    <span class="my-events-icon" aria-hidden="true">
+      <mat-icon>bookmark</mat-icon>
+    </span>
+    <div>
+      <h2 id="my-events-heading" class="mat-title-large" i18n="@@my_events.title">
+        My Events
+      </h2>
+      <p class="mat-body-medium" i18n="@@my_events.description">
+        Events you plan to attend or want to keep handy.
+      </p>
+    </div>
+  </header>
+
+  <mat-button-toggle-group
+    class="my-events-tabs"
+    aria-label="My event list"
+    i18n-aria-label="@@my_events.tabs_aria"
+    [value]="selectedTab()"
+    (change)="selectedTab.set($event.value)"
+  >
+    <mat-button-toggle value="going">
+      <mat-icon>check_circle</mat-icon>
+      <span i18n="@@my_events.going">Going</span>
+      <span class="tab-count">{{ goingEvents().length }}</span>
+    </mat-button-toggle>
+    <mat-button-toggle value="saved">
+      <mat-icon>bookmark</mat-icon>
+      <span i18n="@@my_events.saved">Saved</span>
+      <span class="tab-count">{{ savedEvents().length }}</span>
+    </mat-button-toggle>
+  </mat-button-toggle-group>
+
+  @if (rows().length > 0) {
+    <div class="my-events-list">
+      @for (row of rows(); track row.event.id) {
+        <a class="my-event-row" [routerLink]="row.route">
+          <span class="my-event-copy">
+            <strong class="mat-title-medium">{{ row.event.name }}</strong>
+            <span class="mat-body-small">{{ row.schedule }}</span>
+            @if (row.event.venueString || row.event.localityString) {
+              <span class="mat-body-small">
+                {{ row.event.venueString || row.event.localityString }}
+              </span>
+            }
+          </span>
+          <mat-icon aria-hidden="true">chevron_right</mat-icon>
+        </a>
+      }
+    </div>
+  } @else {
+    <p class="my-events-empty mat-body-medium">
+      @if (selectedTab() === "going") {
+        <span i18n="@@my_events.going_empty">
+          Events you mark as going will appear here.
+        </span>
+      } @else {
+        <span i18n="@@my_events.saved_empty">
+          Save an event to find it here later.
+        </span>
+      }
+    </p>
+  }
+
+  @if (!signedIn() && savedEvents().length > 0) {
+    <p class="device-note mat-body-small">
+      <mat-icon aria-hidden="true">mobile</mat-icon>
+      <span i18n="@@my_events.device_note">
+        Saved on this device. Sign in to sync your events.
+      </span>
+    </p>
+  }
+</section>

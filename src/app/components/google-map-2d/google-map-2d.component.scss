@@ -127,7 +127,8 @@
 :host.with-bottom-offset {
   .osm-attribution {
     @media (max-width: 599px) {
-      bottom: calc(var(--bottom-sheet-closed-height, 140px) + 22px);
+      // Preserve the regular 14px map-edge spacing above the closed sheet.
+      bottom: calc(var(--bottom-sheet-closed-height, 140px) + 14px);
     }
   }
 

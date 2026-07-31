@@ -110,6 +110,14 @@ import {
   type EventSpotBinding,
 } from "../../shared/event-program-spots";
 import { eventProgramLocationColor } from "../../shared/event-program-timeline";
+import {
+  EventAddDialogComponent,
+  type EventAddDialogData,
+} from "../event-add-dialog/event-add-dialog.component";
+import {
+  EventQrDialogComponent,
+  type EventQrDialogData,
+} from "../event-qr-dialog/event-qr-dialog.component";
 
 interface VisibleSeriesTag {
   seriesId: string;
@@ -180,6 +188,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   private _qualifierLoadRequestVersion = 0;
   private _programLinkedEventLoadRequestVersion = 0;
   private _seriesLoadRequestVersion = 0;
+  private _lastAddDialogKey = "";
   private readonly _qualificationGridResizeListener = () =>
     this._syncQualificationGridColumns();
 
@@ -200,6 +209,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly currentRsvp = signal<EventRSVPOption | null>(null);
   readonly now = signal(new Date());
   readonly focusedProgramItemId = signal<string | null>(null);
+  readonly addIntentSource = signal<EventAddDialogData["source"] | null>(null);
   readonly qualifierEventsById = signal<Record<string, PkEvent>>({});
   readonly programLinkedEventsById = signal<Record<string, PkEvent>>({});
   readonly seriesById = signal<Record<string, SeriesDocument>>({});
@@ -590,6 +600,13 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         if (params["showHeader"] !== undefined) {
           this.showHeader.set(params["showHeader"] === "true");
         }
+        this.addIntentSource.set(
+          params["intent"] === "add"
+            ? params["utm_source"] === "event_qr"
+              ? "event_qr"
+              : "event_page"
+            : null,
+        );
       },
     );
 
@@ -606,6 +623,22 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       if (!event) return;
       this.seriesById();
       this._syncEventSeoData(event);
+    });
+
+    effect(() => {
+      const event = this.event();
+      const source = this.addIntentSource();
+      if (!event || !source || this.isEmbedded()) return;
+      const dialogKey = `${event.id}:${source}`;
+      if (dialogKey === this._lastAddDialogKey) return;
+      this._lastAddDialogKey = dialogKey;
+      this.openAddDialog(source);
+      void this._router.navigate([], {
+        relativeTo: this._route,
+        queryParams: { intent: null },
+        queryParamsHandling: "merge",
+        replaceUrl: true,
+      });
     });
 
     effect(() => {
@@ -969,6 +1002,47 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       $localize`:@@event_info.link_copied:Event link copied to clipboard.`,
       $localize`:@@common.dismiss:Dismiss`,
       { duration: 3000, horizontalPosition: "center", verticalPosition: "top" },
+    );
+  }
+
+  openAddDialog(
+    source: EventAddDialogData["source"] = "event_page",
+  ): void {
+    const event = this.event();
+    if (!event || !event.published || event.isPast(this.now())) return;
+    const returnUrl =
+      this._router.url || this._eventPageData.eventCanonicalPath(event);
+    this._dialog.open<
+      EventAddDialogComponent,
+      EventAddDialogData
+    >(EventAddDialogComponent, {
+      data: { event, returnUrl, source },
+      width: "560px",
+      maxWidth: "calc(100vw - 2rem)",
+      autoFocus: "first-tabbable",
+    });
+  }
+
+  openQrDialog(): void {
+    const event = this.event();
+    if (!event || !this.canEditEvent()) return;
+    const url = new URL(
+      this._eventPageData.eventCanonicalPath(event),
+      environment.baseUrl,
+    );
+    url.searchParams.set("intent", "add");
+    url.searchParams.set("utm_source", "event_qr");
+    url.searchParams.set("utm_medium", "qr");
+    url.searchParams.set("utm_campaign", "event_attendance");
+    this._dialog.open<EventQrDialogComponent, EventQrDialogData>(
+      EventQrDialogComponent,
+      {
+        data: { event, url: url.toString() },
+        width: "620px",
+        maxWidth: "calc(100vw - 2rem)",
+        maxHeight: "92vh",
+        autoFocus: "first-tabbable",
+      },
     );
   }
 

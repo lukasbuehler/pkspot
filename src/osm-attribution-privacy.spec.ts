@@ -28,7 +28,7 @@ describe("OSM attribution and privacy disclosure", () => {
       /\.osm-attribution\s*\{[\s\S]*bottom:\s*14px[\s\S]*right:\s*0/u,
     );
     expect(mapStyles).toContain(
-      "bottom: calc(var(--bottom-sheet-closed-height, 140px) + 22px)",
+      "bottom: calc(var(--bottom-sheet-closed-height, 140px) + 14px)",
     );
   });
 

@@ -19,6 +19,10 @@
       </button>
     }
     @if (canEdit()) {
+      <button mat-menu-item type="button" (click)="qrRequested.emit()">
+        <mat-icon>qr_code_2</mat-icon>
+        <span i18n="@@event_qr.menu">Event QR code</span>
+      </button>
       <button mat-menu-item type="button" (click)="editRequested.emit()">
         <mat-icon>edit</mat-icon>
         <span i18n>Edit event</span>

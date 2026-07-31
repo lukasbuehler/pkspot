@@ -7,6 +7,13 @@ const templatePath = join(
   "src/app/components/map-page/map-page.component.html"
 );
 
+function activeTemplate(): string {
+  return readFileSync(templatePath, "utf8").replace(
+    /<!--[\s\S]*?-->/gu,
+    "",
+  );
+}
+
 describe("MapPageComponent search template", () => {
   it("keeps the main map page readable to simple crawlers", () => {
     const template = readFileSync(templatePath, "utf8");
@@ -136,8 +143,8 @@ describe("MapPageComponent search template", () => {
     expect(eventMarkerTemplate).toContain('[showRsvp]="false"');
   });
 
-  it("reuses map weather above the island and in the area panel", () => {
-    const mapTemplate = readFileSync(templatePath, "utf8");
+  it("keeps map weather in the area panel without a floating weather chip", () => {
+    const mapTemplate = activeTemplate();
     const objectPanel = mapTemplate.match(
       /<app-map-object-panel[\s\S]*?<\/app-map-object-panel>/,
     )?.[0];
@@ -148,20 +155,29 @@ describe("MapPageComponent search template", () => {
       ),
       "utf8",
     );
-    const desktopContext = mapTemplate.match(
-      /<div class="map-context-host">[\s\S]*?<\/div>\s*}[\s\S]*?<!-- sidenav/,
-    )?.[0];
-
     expect(objectPanel).toContain('[weather]="mapWeatherResponse()"');
     expect(objectPanel).toContain('(weatherOpen)="openMapWeather()"');
     expect(objectPanelTemplate).toContain('appearance="overview"');
     expect(objectPanelTemplate).toMatch(
       /<div class="area-header[\s\S]*?<div\s+class="area-weather"[\s\S]*?@if \(weather\(\); as areaWeather\)/,
     );
-    expect(desktopContext?.indexOf("<app-map-weather-chip")).toBeLessThan(
-      desktopContext?.indexOf('<div @fadeInOut class="map-island-host">') ??
-        -1,
+    expect(mapTemplate).not.toContain("<app-map-weather-chip");
+  });
+
+  it("mounts paid promo island content in both desktop and mobile layouts", () => {
+    const mapTemplate = activeTemplate();
+    const islandOutlets =
+      mapTemplate.match(
+        /<ng-container\s+\*ngTemplateOutlet="mapIsland"><\/ng-container>/gu,
+      ) ?? [];
+
+    expect(mapTemplate).toContain(
+      '<div @fadeInOut class="map-island-host">',
     );
+    expect(mapTemplate).toContain(
+      '<div @fadeInOut class="map-island-mobile-host">',
+    );
+    expect(islandOutlets).toHaveLength(2);
   });
 
   it("should hide the Add Spot button while a spot is selected", () => {

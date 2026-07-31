@@ -1,0 +1,118 @@
+:host {
+  display: block;
+}
+
+.my-events-panel {
+  margin-bottom: 1.75rem;
+}
+
+.my-events-heading {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.875rem;
+}
+
+.my-events-heading h2,
+.my-events-heading p {
+  margin: 0;
+}
+
+.my-events-heading p,
+.my-event-row .mat-body-small,
+.my-events-empty,
+.device-note {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.my-events-icon {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 13px;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.my-events-tabs {
+  margin-bottom: 0.75rem;
+}
+
+.my-events-tabs mat-button-toggle {
+  color: var(--mat-sys-on-surface);
+}
+
+.my-events-tabs mat-button-toggle.mat-button-toggle-checked {
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.my-events-tabs mat-icon {
+  margin-right: 0.35rem;
+}
+
+.tab-count {
+  margin-left: 0.35rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.my-events-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: 0.625rem;
+}
+
+.my-event-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 14px;
+  background: var(--mat-sys-surface-container-low);
+  color: var(--mat-sys-on-surface);
+  text-decoration: none;
+}
+
+.my-event-row:hover,
+.my-event-row:focus-visible {
+  border-color: var(--mat-sys-primary);
+  background: var(--mat-sys-surface-container);
+}
+
+.my-event-row:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+.my-event-copy {
+  display: grid;
+  min-width: 0;
+}
+
+.my-event-copy strong {
+  overflow-wrap: anywhere;
+}
+
+.my-events-empty {
+  margin: 0;
+  padding: 0.875rem 1rem;
+  border: 1px dashed var(--mat-sys-outline-variant);
+  border-radius: 14px;
+}
+
+.device-note {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.75rem 0 0;
+}
+
+.device-note mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}

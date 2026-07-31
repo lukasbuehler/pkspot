@@ -39,7 +39,7 @@
               @if (isMyProfile) {
                 <button
                   matIconButton
-                  class="profile-overview__menu-trigger"
+                  class="profile-overview__menu-trigger d-flex"
                   [matMenuTriggerFor]="profileManagementMenu"
                   aria-label="Profile settings"
                   i18n-aria-label="@@profile.menu.ariaLabel"
@@ -60,11 +60,7 @@
                         aria-label="View profile picture"
                         i18n-aria-label="@@profile.picture.view"
                       >
-                        <img
-                          [ngSrc]="profilePicture"
-                          alt=""
-                          fill
-                        />
+                        <img [ngSrc]="profilePicture" alt="" fill />
                       </button>
                     } @else {
                       <div
@@ -143,8 +139,7 @@
                     }
 
                     @if (
-                      hasExpandedProfileAccess &&
-                      profileSocialLinks.length > 0
+                      hasExpandedProfileAccess && profileSocialLinks.length > 0
                     ) {
                       <div class="profile-overview__socials">
                         @for (
@@ -193,7 +188,9 @@
                     @if (trainingFeatureEnabled && hasExpandedProfileAccess) {
                       <a
                         mat-stroked-button
-                        [routerLink]="isMyProfile ? '/train/log' : ['/u', userId, 'logs']"
+                        [routerLink]="
+                          isMyProfile ? '/train/log' : ['/u', userId, 'logs']
+                        "
                       >
                         <mat-icon>book_2</mat-icon>
                         <span i18n="@@profile.trainingLog">Training log</span>
@@ -275,9 +272,7 @@
                       </div>
                     }
 
-                    @if (
-                      isMyProfile && ageAssurance.canParticipatePublicly()
-                    ) {
+                    @if (isMyProfile && ageAssurance.canParticipatePublicly()) {
                       <button
                         matButton="filled"
                         color="primary"
@@ -341,12 +336,16 @@
                     }
                     <span
                       class="profile-overview__action-label"
-                      [class.profile-overview__action-label--loading]="loadingFollowing"
+                      [class.profile-overview__action-label--loading]="
+                        loadingFollowing
+                      "
                     >
                       @if (isFollowing) {
                         <span i18n="@@profile.actions.unfollow">Unfollow</span>
                       } @else if (isPendingFollowRequest) {
-                        <span i18n="@@profile.actions.requested">Requested</span>
+                        <span i18n="@@profile.actions.requested"
+                          >Requested</span
+                        >
                       } @else if (isPrivateAccount) {
                         <span i18n="@@profile.actions.requestFollow"
                           >Request follow</span

@@ -70,11 +70,13 @@
   color: inherit;
 }
 
-.rsvp-menu-button[data-rsvp="going"] .rsvp-button-label {
+.rsvp-menu-button[data-rsvp="going"] {
+  border-color: var(--mat-sys-secondary);
   color: var(--mat-sys-secondary);
 }
 
-.rsvp-menu-button[data-rsvp="interested"] .rsvp-button-label {
+.rsvp-menu-button[data-rsvp="interested"] {
+  border-color: var(--mat-sys-primary);
   color: var(--mat-sys-primary);
 }
 

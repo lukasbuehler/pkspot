@@ -1,4 +1,4 @@
-import { PLATFORM_ID } from "@angular/core";
+import { PLATFORM_ID, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { BehaviorSubject, of } from "rxjs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -9,12 +9,13 @@ import { EventsService } from "./firebase/firestore/events.service";
 import { EventLiveUpdatesService } from "./firebase/firestore/event-live-updates.service";
 import { EventRegistrationsService } from "./firebase/firestore/event-registrations.service";
 import { MyEventContextService } from "./my-event-context.service";
+import { MyEventsService } from "./my-events.service";
 
 const buildEvent = (id: string): PkEvent =>
   new PkEvent(id as EventId, {
     name: id,
-    start: "2026-07-30T08:00:00Z",
-    end: "2026-07-30T18:00:00Z",
+    start: new Date(Date.now() - 60 * 60 * 1000),
+    end: new Date(Date.now() + 60 * 60 * 1000),
     time_zone: "UTC",
   } as unknown as EventSchema);
 
@@ -35,10 +36,13 @@ describe("MyEventContextService", () => {
   const registrations = {
     observeMyRegistration: vi.fn(),
   };
+  const myEvents = {
+    userId: signal<string | null>("user-1"),
+    candidateEventIds: signal(["going", "registered", "interested"]),
+    localSavedEventIds: signal<string[]>([]),
+  };
 
   beforeEach(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-07-30T10:30:00Z"));
     authState.next({ uid: "user-1" });
     events.getEventById.mockImplementation(async (id: string) => buildEvent(id));
     events.getMyRsvp.mockResolvedValue(null);
@@ -63,13 +67,13 @@ describe("MyEventContextService", () => {
         { provide: EventsService, useValue: events },
         { provide: EventLiveUpdatesService, useValue: liveUpdates },
         { provide: EventRegistrationsService, useValue: registrations },
+        { provide: MyEventsService, useValue: myEvents },
         { provide: PLATFORM_ID, useValue: "browser" },
       ],
     });
   });
 
   afterEach(() => {
-    vi.useRealTimers();
     vi.clearAllMocks();
   });
 
@@ -99,7 +103,6 @@ describe("MyEventContextService", () => {
     );
 
     const service = TestBed.inject(MyEventContextService);
-    vi.useRealTimers();
     await flush();
 
     expect(service.liveEvents().map(({ id }) => id)).toEqual([

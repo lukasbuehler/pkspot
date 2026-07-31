@@ -46,41 +46,44 @@
     }
 
     @if (!preview()) {
-      @if (isSignedIn()) {
-        <button
-          class="rsvp-menu-button"
-          mat-stroked-button
-          type="button"
-          [disabled]="isLoading() || isSaving()"
-          [matMenuTriggerFor]="rsvpMenu"
-          [attr.data-rsvp]="selectedRsvp()"
-          aria-label="Response"
-          i18n-aria-label="@@event_rsvp.group_label"
-          (click)="trackRsvpMenuOpened()"
-        >
-          @if (!selectedRsvp()) {
-            <span class="rsvp-button-label" i18n="@@event_rsvp.prompt"
-              >Are you going?</span
-            >
-          } @else if (selectedRsvp() === "going") {
-            <span class="rsvp-button-label" i18n="@@event_rsvp.current_going"
-              >I'm <strong>going</strong></span
-            >
-          } @else if (selectedRsvp() === "interested") {
-            <span
-              class="rsvp-button-label"
-              i18n="@@event_rsvp.current_interested"
-              >I'm <strong>interested</strong></span
-            >
-          } @else {
-            <span class="rsvp-button-label" i18n="@@event_rsvp.current_notgoing"
-              >I'm <strong>not going</strong></span
-            >
-          }
-          <mat-icon iconPositionEnd>expand_more</mat-icon>
-        </button>
+      @let activeRsvp = myEventsRsvp();
+      <button
+        class="rsvp-menu-button"
+        mat-stroked-button
+        type="button"
+        [disabled]="isLoading() || isSaving()"
+        [matMenuTriggerFor]="rsvpMenu"
+        [attr.data-rsvp]="activeRsvp"
+        [attr.aria-label]="activeRsvp ? changeLabel : addLabel"
+        (click)="trackRsvpMenuOpened()"
+      >
+        @if (activeRsvp === "going") {
+          <mat-icon>check_circle</mat-icon>
+        } @else {
+          <mat-icon>bookmark</mat-icon>
+        }
+        @if (!activeRsvp) {
+          <span
+            class="rsvp-button-label"
+            i18n="@@event_rsvp.add_to_my_events"
+            >Add to My Events</span
+          >
+        } @else if (activeRsvp === "going") {
+          <span class="rsvp-button-label" i18n="@@event_rsvp.current_going"
+            ><strong>Going</strong></span
+          >
+        } @else {
+          <span
+            class="rsvp-button-label"
+            i18n="@@event_rsvp.current_interested"
+            ><strong>Interested</strong></span
+          >
+        }
+        <mat-icon iconPositionEnd>expand_more</mat-icon>
+      </button>
 
-        <mat-menu #rsvpMenu="matMenu">
+      <mat-menu #rsvpMenu="matMenu">
+        @if (isSignedIn()) {
           <button
             mat-menu-item
             type="button"
@@ -90,47 +93,40 @@
             <mat-icon>check_circle</mat-icon>
             <span i18n="@@event_rsvp.going">Going</span>
           </button>
-          <button
+        } @else {
+          <a
             mat-menu-item
-            type="button"
-            [disabled]="isSaving()"
-            (click)="selectRsvp('interested')"
+            routerLink="/sign-in"
+            (click)="trackRsvpSignInClicked()"
           >
-            <mat-icon>bookmark</mat-icon>
-            <span i18n="@@event_rsvp.interested">Interested</span>
-          </button>
-          <button
-            mat-menu-item
-            type="button"
-            [disabled]="isSaving()"
-            (click)="selectRsvp('notgoing')"
-          >
-            <mat-icon>block_border</mat-icon>
-            <span i18n="@@event_rsvp.notgoing">Not going</span>
-          </button>
-
-          @if (selectedRsvp()) {
-            <button
-              mat-menu-item
-              type="button"
-              [disabled]="isSaving()"
-              (click)="clearRsvp()"
-            >
-              <mat-icon>close</mat-icon>
-              <span i18n="@@event_rsvp.clear">Clear</span>
-            </button>
-          }
-        </mat-menu>
-      } @else {
-        <a
-          mat-stroked-button
-          routerLink="/sign-in"
-          (click)="trackRsvpSignInClicked()"
+            <mat-icon>login</mat-icon>
+            <span i18n="@@event_add.sign_in">Sign in to mark Going</span>
+          </a>
+        }
+        <button
+          mat-menu-item
+          type="button"
+          [disabled]="isSaving()"
+          (click)="selectInterested()"
         >
-          <mat-icon>login</mat-icon>
-          <span i18n="@@event_rsvp.sign_in">Sign in to respond</span>
-        </a>
-      }
+          <mat-icon>bookmark</mat-icon>
+          <span i18n="@@event_rsvp.interested">Interested</span>
+        </button>
+        @if (activeRsvp) {
+          <button
+            class="rsvp-remove-menu-item"
+            mat-menu-item
+            type="button"
+            [disabled]="isSaving()"
+            (click)="clearRsvp()"
+          >
+            <mat-icon>event_busy</mat-icon>
+            <span i18n="@@event_rsvp.remove_from_my_events"
+              >Remove from My Events</span
+            >
+          </button>
+        }
+      </mat-menu>
     }
   </div>
 

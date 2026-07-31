@@ -333,6 +333,46 @@ export class UsersService extends ConsentAwareService {
     });
   }
 
+  async updateEventRelationship(
+    userId: string,
+    eventId: string,
+    relationship: "going" | "saved" | null
+  ): Promise<void> {
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
+    if (!eventId) {
+      throw new Error("Event ID is required");
+    }
+
+    return this.executeWithConsent(async () => {
+      const privateDataRef = `users/${userId}/private_data/${this._privateDataDocId}`;
+      const privateData =
+        await this._firestoreAdapter.getDocument<PrivateUserDataSchema>(
+          privateDataRef
+        );
+      const withoutEvent = (ids: readonly string[] | undefined) =>
+        (ids ?? []).filter((id) => id !== eventId);
+      const goingEvents = withoutEvent(privateData?.going_events);
+      const savedEvents = withoutEvent(privateData?.saved_events);
+
+      if (relationship === "going") {
+        goingEvents.push(eventId);
+      } else if (relationship === "saved") {
+        savedEvents.push(eventId);
+      }
+
+      await this._firestoreAdapter.setDocument(
+        privateDataRef,
+        {
+          going_events: goingEvents,
+          saved_events: savedEvents,
+        } satisfies Partial<PrivateUserDataSchema>,
+        { merge: true }
+      );
+    });
+  }
+
   async addCheckIn(userId: string, data: CheckInSchema): Promise<void> {
     return this.executeWithConsent(async () => {
       await this._firestoreAdapter.addDocument(

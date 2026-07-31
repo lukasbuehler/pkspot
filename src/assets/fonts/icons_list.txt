@@ -22,6 +22,7 @@ share
 edit
 report
 content_copy
+qr_code_2
 image
 photo_camera
 delete
@@ -198,6 +199,7 @@ groups
 receipt_long
 events
 event
+event_busy
 travel_explore
 mobile
 storefront

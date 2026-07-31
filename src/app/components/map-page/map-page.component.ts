@@ -179,7 +179,6 @@ import {
   WeatherForecastDialogComponent,
   type WeatherForecastDialogData,
 } from "../weather-forecast-dialog/weather-forecast-dialog.component";
-import { MapWeatherChipComponent } from "../map/map-weather-chip/map-weather-chip.component";
 
 type MapEventFilter = "live" | "competition" | "jam" | "camp";
 
@@ -287,7 +286,6 @@ const DENSE_MAP_PERFORMANCE_VARIANTS = new Set<DenseMapPerformanceVariant>([
     MapCommunityLandingPanelComponent,
     MapCheckInBannerComponent,
     MapFloatingControlsComponent,
-    MapWeatherChipComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

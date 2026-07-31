@@ -311,7 +311,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     this.isFollowing = false;
     this.isPendingFollowRequest = false;
     this.profileSocialLinks = [];
-    this.followRequests = [];
+    this._resetFollowRequestsState();
 
     this.followingCount = 0;
     this.user = null; // Ensure user is null so UI shows loading or empty state correctly for counts that rely on user object
@@ -617,12 +617,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this._followRequestsSubscription?.unsubscribe();
-    this._followRequestsSubscription = null;
-    this._followRequestsUserId = null;
-    this.followRequests = [];
-    this.followRequestsLoading = false;
-    this.followRequestsLoadFailed = false;
+    this._resetFollowRequestsState();
     if (!this.isMyProfile || !this.userId) {
       return;
     }
@@ -646,6 +641,15 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
           this._cdr.detectChanges();
         }
       );
+  }
+
+  private _resetFollowRequestsState(): void {
+    this._followRequestsSubscription?.unsubscribe();
+    this._followRequestsSubscription = null;
+    this._followRequestsUserId = null;
+    this.followRequests = [];
+    this.followRequestsLoading = false;
+    this.followRequestsLoadFailed = false;
   }
 
   retryFollowRequests() {

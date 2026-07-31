@@ -69,6 +69,7 @@ import {
   ContinuousEventCalendarComponent,
   type ContinuousEventCalendarLoader,
 } from "./continuous-event-calendar.component";
+import { MyEventsPanelComponent } from "../my-events-panel/my-events-panel.component";
 
 type EventCreateAction = "event" | "session";
 
@@ -123,6 +124,7 @@ const VIEW_STORAGE_KEY = "eventsDiscoveryView";
     EventDiscoveryToolbarComponent,
     EventDiscoveryViewToggleComponent,
     EventNowNextCardComponent,
+    MyEventsPanelComponent,
     ContinuousEventCalendarComponent,
     FabMenuComponent,
   ],
@@ -153,6 +155,11 @@ export class EventsPageComponent {
 
   readonly isAdmin = computed(() => this._auth.isAdmin());
   readonly isSignedIn = computed(() => !!this._authState()?.uid);
+  readonly nonLiveGoingEvents = computed(() =>
+    this.myEventContext
+      .goingEvents()
+      .filter((event) => !event.isLive(this.myEventContext.now())),
+  );
   readonly createMenuLabel = $localize`:@@events.create_menu_tooltip:Create an event or session`;
   readonly createActions = computed<EventFabMenuAction[]>(() => {
     const actions: EventFabMenuAction[] = [];

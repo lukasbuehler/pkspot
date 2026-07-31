@@ -36,6 +36,7 @@ export class EventLiveUpdateOrganizerMenuComponent {
   readonly canEdit = input(false);
   readonly canRequestOwnership = input(false);
   readonly editRequested = output<void>();
+  readonly qrRequested = output<void>();
   readonly ownershipClaimRequested = output<void>();
   readonly canPublish = signal(false);
   readonly showMenu = computed(

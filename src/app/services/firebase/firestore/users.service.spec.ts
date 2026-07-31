@@ -120,4 +120,22 @@ describe("UsersService", () => {
     );
     expect(user?.displayName).toBe("Public Traceur");
   });
+
+  it("moves an event between the private Going and Saved indexes", async () => {
+    adapter.getDocument.mockResolvedValue({
+      going_events: ["event-1", "event-2"],
+      saved_events: ["event-3"],
+    });
+
+    await service.updateEventRelationship("user-1", "event-1", "saved");
+
+    expect(adapter.setDocument).toHaveBeenCalledWith(
+      "users/user-1/private_data/main",
+      {
+        going_events: ["event-2"],
+        saved_events: ["event-3", "event-1"],
+      },
+      { merge: true },
+    );
+  });
 });

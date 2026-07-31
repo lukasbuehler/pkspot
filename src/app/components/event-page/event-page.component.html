@@ -75,6 +75,7 @@
             [canEdit]="canEditEvent()"
             [canRequestOwnership]="isSignedIn()"
             (editRequested)="startEditingEvent()"
+            (qrRequested)="openQrDialog()"
             (ownershipClaimRequested)="openOwnershipClaimDialog()"
           ></app-event-live-update-organizer-menu>
         </div>
@@ -256,6 +257,12 @@
       }
 
       <section class="event-section action-row">
+        @if (event.published && !event.isPast(now()) && !showRsvp()) {
+          <button mat-flat-button type="button" (click)="openAddDialog()">
+            <mat-icon>bookmark</mat-icon>
+            <span i18n="@@event_add.open">Add to My Events</span>
+          </button>
+        }
         @for (link of eventLinks(); track link.url) {
           @if (link.primary) {
             <a

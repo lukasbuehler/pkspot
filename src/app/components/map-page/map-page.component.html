@@ -361,23 +361,23 @@
 
     <div class="position-relative overflow-hidden h-100 w-100">
       <ng-container *ngTemplateOutlet="mapContent"></ng-container>
-      <!-- @if (visibleIslandContent() || mapWeatherResponse()) {
+      @if (visibleIslandContent()) {
         <div class="map-context-host">
-          @if (mapWeatherResponse(); as weather) {
+          <!-- @if (mapWeatherResponse(); as weather) {
             <app-map-weather-chip
               @fadeInOut
               class="map-weather-chip-host"
               [response]="weather"
               (pressed)="openMapWeather()"
             ></app-map-weather-chip>
-          }
+          } -->
           @if (visibleIslandContent()) {
             <div @fadeInOut class="map-island-host">
               <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
             </div>
           }
         </div>
-      } -->
+      }
 
       <!-- sidenav toggle button -->
       <div class="sidenav-toggle">
@@ -418,23 +418,23 @@
         ></app-search-field>
       </div>
       <ng-container *ngTemplateOutlet="chips"></ng-container>
-      <!-- @if (visibleIslandContent() || mapWeatherResponse()) {
+      @if (visibleIslandContent()) {
         <div class="map-context-mobile-host">
-          @if (mapWeatherResponse(); as weather) {
+          <!-- @if (mapWeatherResponse(); as weather) {
             <app-map-weather-chip
               @fadeInOut
               class="map-weather-chip-host"
               [response]="weather"
               (pressed)="openMapWeather()"
             ></app-map-weather-chip>
-          }
+          } -->
           @if (visibleIslandContent()) {
             <div @fadeInOut class="map-island-mobile-host">
               <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
             </div>
           }
         </div>
-      } -->
+      }
     </div>
 
     <app-bottom-sheet

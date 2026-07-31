@@ -1,5 +1,7 @@
+import { signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideNoopAnimations } from "@angular/platform-browser/animations";
+import { provideRouter } from "@angular/router";
 import { BehaviorSubject } from "rxjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -8,6 +10,7 @@ import { EventsService } from "../../services/firebase/firestore/events.service"
 import { EventLiveUpdatesService } from "../../services/firebase/firestore/event-live-updates.service";
 import { PushNotificationsService } from "../../services/push-notifications.service";
 import { NotificationPreferencesService } from "../../services/notification-preferences.service";
+import { MyEventsService } from "../../services/my-events.service";
 import { EventRsvpComponent } from "./event-rsvp.component";
 
 type ScreenshotGlobal = typeof globalThis & {
@@ -39,9 +42,51 @@ describe("EventRsvpComponent", () => {
       event_updates: true,
     })),
   };
+  const relationship = signal<"going" | "saved" | null>(null);
+  const myEvents = {
+    relationshipFor: vi.fn(() => relationship()),
+    saveEvent: vi.fn(async () => relationship.set("saved")),
+    setRsvp: vi.fn(
+      async (
+        eventId: string,
+        rsvp: "going" | "interested" | "notgoing",
+        level: "all" | "event_updates" | "reminders" | "none",
+      ) => {
+        await eventsService.setMyRsvp(eventId, rsvp);
+        if (
+          (rsvp === "going" || rsvp === "interested") &&
+          level !== "none"
+        ) {
+          const preferences = notificationPreferences.preferences();
+          const channelEnabled =
+            level === "all"
+              ? preferences.event_reminders || preferences.event_updates
+              : level === "reminders"
+                ? preferences.event_reminders
+                : preferences.event_updates;
+          if (
+            channelEnabled &&
+            pushNotifications.supported() &&
+            !pushNotifications.systemAllowsNotifications()
+          ) {
+            await pushNotifications.requestPermissionFromUserAction();
+          }
+          await liveUpdatesService.ensureDefaultNotificationLevel(
+            eventId,
+            level,
+          );
+        }
+      },
+    ),
+    clearRsvp: vi.fn(async (eventId: string) => {
+      relationship.set(null);
+      await eventsService.clearMyRsvp(eventId);
+    }),
+  };
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    relationship.set(null);
     delete (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_EVENT_RSVPS__;
     authState$.next({ uid: "user-1" });
     eventsService.getMyRsvp.mockResolvedValue(null);
@@ -57,7 +102,9 @@ describe("EventRsvpComponent", () => {
       imports: [EventRsvpComponent],
       providers: [
         provideNoopAnimations(),
+        provideRouter([]),
         { provide: EventsService, useValue: eventsService },
+        { provide: MyEventsService, useValue: myEvents },
         { provide: EventLiveUpdatesService, useValue: liveUpdatesService },
         { provide: PushNotificationsService, useValue: pushNotifications },
         {
@@ -184,6 +231,22 @@ describe("EventRsvpComponent", () => {
     expect(changed).toHaveBeenLastCalledWith(null);
   });
 
+  it("keeps a removed relationship hidden while the private index catches up", async () => {
+    relationship.set("going");
+    myEvents.clearRsvp.mockResolvedValueOnce(undefined);
+    fixture.componentRef.setInput("eventId", "event-1");
+    await fixture.whenStable();
+
+    expect(component.myEventsRsvp()).toBe("going");
+
+    await component.clearRsvp();
+    await fixture.whenStable();
+
+    expect(relationship()).toBe("going");
+    expect(component.myEventsRsvp()).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain("Add to My Events");
+  });
+
   it("does not add my loaded response to the visible aggregate", async () => {
     eventsService.getMyRsvp.mockResolvedValue({
       user_id: "user-1",
@@ -275,7 +338,19 @@ describe("EventRsvpComponent", () => {
     expect(
       fixture.nativeElement.querySelector(".rsvp-menu-button"),
     ).toBeTruthy();
-    expect(fixture.nativeElement.textContent).toContain("I'm");
+    expect(fixture.nativeElement.textContent).toContain("Going");
+    expect(fixture.nativeElement.querySelector(".rsvp-remove-button")).toBeNull();
+
+    fixture.nativeElement.querySelector(".rsvp-menu-button").click();
+    await fixture.whenStable();
+
+    const removeMenuItem = document.body.querySelector(
+      ".rsvp-remove-menu-item",
+    );
+    expect(removeMenuItem).toBeTruthy();
+    expect(
+      removeMenuItem?.querySelector("mat-icon")?.textContent,
+    ).toContain("event_busy");
   });
 
   it("uses an injected store screenshot RSVP without loading remote user data", async () => {
@@ -290,7 +365,7 @@ describe("EventRsvpComponent", () => {
 
     expect(eventsService.getMyRsvp).not.toHaveBeenCalled();
     expect(component.selectedRsvp()).toBe("interested");
-    expect(fixture.nativeElement.textContent).toContain("interested");
+    expect(fixture.nativeElement.textContent).toContain("Interested");
   });
 
   it("prompts for an RSVP in the menu button when no response is loaded", async () => {
@@ -305,7 +380,7 @@ describe("EventRsvpComponent", () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain("Are you going?");
+    expect(fixture.nativeElement.textContent).toContain("Add to My Events");
     expect(fixture.nativeElement.querySelector(".rsvp-menu-button")).toBeTruthy();
     expect(
       fixture.nativeElement
@@ -314,6 +389,25 @@ describe("EventRsvpComponent", () => {
     ).toBe(
       "These numbers show PK Spot user intent, not tickets bought.",
     );
+  });
+
+  it("lets signed-out users save Interested locally and remove it again", async () => {
+    authState$.next(null);
+    fixture.componentRef.setInput("eventId", "event-1");
+    await fixture.whenStable();
+
+    await component.selectInterested();
+    await fixture.whenStable();
+
+    expect(myEvents.saveEvent).toHaveBeenCalledWith("event-1", "all");
+    expect(component.myEventsRsvp()).toBe("interested");
+    expect(fixture.nativeElement.textContent).toContain("Interested");
+
+    await component.clearRsvp();
+    await fixture.whenStable();
+
+    expect(component.myEventsRsvp()).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain("Add to My Events");
   });
 
   it("updates the menu button after saving an edited RSVP", async () => {
@@ -341,7 +435,7 @@ describe("EventRsvpComponent", () => {
     expect(
       fixture.nativeElement.querySelector("mat-button-toggle-group"),
     ).toBeNull();
-    expect(fixture.nativeElement.textContent).toContain("interested");
+    expect(fixture.nativeElement.textContent).toContain("Interested");
     expect(
       fixture.nativeElement.querySelector(".rsvp-disclaimer-help"),
     ).toBeTruthy();
@@ -363,7 +457,7 @@ describe("EventRsvpComponent", () => {
     fixture.detectChanges();
 
     expect(component.selectedRsvp()).toBeNull();
-    expect(fixture.nativeElement.textContent).toContain("Are you going?");
+    expect(fixture.nativeElement.textContent).toContain("Add to My Events");
   });
 
   it("can hide the RSVP disclaimer", async () => {

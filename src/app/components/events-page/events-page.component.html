@@ -27,6 +27,17 @@
     </section>
   }
 
+  @if (
+    nonLiveGoingEvents().length > 0 ||
+    myEventContext.savedEvents().length > 0
+  ) {
+    <app-my-events-panel
+      [goingEvents]="nonLiveGoingEvents()"
+      [savedEvents]="myEventContext.savedEvents()"
+      [signedIn]="isSignedIn()"
+    />
+  }
+
   <header class="page-header">
     <div class="page-heading">
       <h1 class="mat-headline-large" i18n="@@events.title">Events</h1>

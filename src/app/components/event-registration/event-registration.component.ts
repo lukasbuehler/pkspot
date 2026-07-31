@@ -24,6 +24,7 @@ import { EventLiveUpdatesService } from "../../services/firebase/firestore/event
 import { EventRegistrationsService } from "../../services/firebase/firestore/event-registrations.service";
 import { NotificationPreferencesService } from "../../services/notification-preferences.service";
 import { PushNotificationsService } from "../../services/push-notifications.service";
+import { MyEventsService } from "../../services/my-events.service";
 
 @Component({
   selector: "app-event-registration",
@@ -39,6 +40,7 @@ export class EventRegistrationComponent {
   private readonly _liveUpdates = inject(EventLiveUpdatesService);
   private readonly _push = inject(PushNotificationsService);
   private readonly _preferences = inject(NotificationPreferencesService);
+  private readonly _myEvents = inject(MyEventsService);
   private readonly _isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly event = input.required<PkEvent>();
@@ -119,6 +121,9 @@ export class EventRegistrationComponent {
     });
     try {
       const result = await this._registrations.register(event.id);
+      if (result.status === "registered") {
+        await this._myEvents.recordRegistration(event.id, true);
+      }
       if (event.notificationPolicy !== "none") {
         void Promise.all([
           this._liveUpdates.ensureDefaultNotificationLevel(
@@ -154,6 +159,7 @@ export class EventRegistrationComponent {
     this.isSaving.set(true);
     try {
       await this._registrations.cancel(eventId);
+      await this._myEvents.recordRegistration(eventId, false);
       this._analytics.trackEvent("event_registration_cancelled", {
         event_id: eventId,
       });
