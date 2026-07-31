@@ -3,6 +3,7 @@ import {
   OnInit,
   ViewChild,
   ChangeDetectionStrategy,
+  signal,
 } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
@@ -60,6 +61,8 @@ import type { NotificationPreferenceKey } from "../../../db/schemas/Notification
 import { MatDialog } from "@angular/material/dialog";
 import { EventNotificationSubscriptionsDialogComponent } from "../event-notification-subscriptions-dialog/event-notification-subscriptions-dialog.component";
 import { AgeAssuranceInfoDialogComponent } from "../age-assurance-info-dialog/age-assurance-info-dialog.component";
+import { CommunityFollowsService } from "../../services/firebase/firestore/community-follows.service";
+import type { CommunityFollowDocument } from "../../../db/schemas/CommunityFollowSchema";
 
 @Component({
   selector: "app-settings-page",
@@ -94,6 +97,7 @@ export class SettingsPageComponent implements OnInit {
   readonly appVersion = version;
   readonly crew = crew;
   readonly appCheckStatus = this._appCheckService.status;
+  readonly communityFollows = signal<CommunityFollowDocument[]>([]);
   @ViewChild("editProfileComponent") editProfileComponent:
     | EditProfileComponent
     | undefined;
@@ -114,6 +118,7 @@ export class SettingsPageComponent implements OnInit {
     public notificationPreferences: NotificationPreferencesService,
     public pushNotifications: PushNotificationsService,
     private _dialog: MatDialog,
+    private _communityFollows: CommunityFollowsService,
   ) {}
   languageCodes = languageCodes;
 
@@ -303,6 +308,8 @@ export class SettingsPageComponent implements OnInit {
     this.authService.authState$.subscribe((user) => {
       this.emailAddress = user?.email;
       this.syncProfileAccessSettings();
+      if (user?.uid) void this.loadCommunityFollows();
+      else this.communityFollows.set([]);
       if (!user || !user.uid) {
         this.router.navigate(["/account"]);
       }
@@ -355,7 +362,7 @@ export class SettingsPageComponent implements OnInit {
   async setNotificationPreference(
     key: NotificationPreferenceKey,
     enabled: boolean,
-  ): Promise<void> {
+  ): Promise<boolean> {
     try {
       let systemEnabled = this.pushNotifications.systemAllowsNotifications();
       if (enabled && !systemEnabled) {
@@ -371,6 +378,7 @@ export class SettingsPageComponent implements OnInit {
           { duration: 7000 },
         );
       }
+      return true;
     } catch (error) {
       console.error("Error saving notification preference:", error);
       this._snackbar.open(
@@ -378,6 +386,55 @@ export class SettingsPageComponent implements OnInit {
         $localize`:@@settings.notifications.ok:OK`,
         { duration: 5000 },
       );
+      return false;
+    }
+  }
+
+  async setCommunityNotification(
+    follow: CommunityFollowDocument,
+    kind: "events" | "spots",
+    enabled: boolean,
+  ): Promise<void> {
+    try {
+      if (enabled) {
+        const globalPreferenceSaved = await this.setNotificationPreference(
+          kind === "events" ? "community_events" : "community_spot_digest",
+          true,
+        );
+        if (!globalPreferenceSaved) return;
+      }
+      await this._communityFollows.setNotifications(follow.community_key, {
+        ...(kind === "events" ? { eventNotifications: enabled } : {}),
+        ...(kind === "spots" ? { spotDigestNotifications: enabled } : {}),
+      });
+      this.communityFollows.update((items) =>
+        items.map((item) =>
+          item.community_key === follow.community_key
+            ? {
+                ...item,
+                ...(kind === "events"
+                  ? { event_notifications: enabled }
+                  : { spot_digest_notifications: enabled }),
+              }
+            : item,
+        ),
+      );
+    } catch (error) {
+      console.error("Error saving community notification preference:", error);
+      this._snackbar.open(
+        $localize`:@@settings.notifications.community_save_error:Could not save community notification preference.`,
+        $localize`:@@settings.notifications.ok:OK`,
+        { duration: 5000 },
+      );
+    }
+  }
+
+  private async loadCommunityFollows(): Promise<void> {
+    try {
+      this.communityFollows.set(await this._communityFollows.listMine());
+    } catch (error) {
+      console.warn("Could not load followed communities", error);
+      this.communityFollows.set([]);
     }
   }
 

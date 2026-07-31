@@ -25,8 +25,10 @@ export class NotificationOptInService {
   private readonly push = inject(PushNotificationsService);
   private readonly activePrompts = new Set<NotificationPromptContext>();
 
-  async maybePrompt(context: NotificationPromptContext): Promise<void> {
-    if (!this._shouldPrompt(context)) return;
+  async maybePrompt(
+    context: NotificationPromptContext,
+  ): Promise<NotificationOptInDialogResult | null> {
+    if (!this._shouldPrompt(context)) return null;
 
     this.activePrompts.add(context);
     this.analytics.trackEvent("notification_prompt_shown", { context });
@@ -65,6 +67,7 @@ export class NotificationOptInService {
       });
 
       if (accepted && !systemAllowed) this._showSystemBlockedMessage();
+      return result;
     } catch (error) {
       console.error("Could not complete notification opt-in", error);
       this.snackbar.open(
@@ -72,6 +75,7 @@ export class NotificationOptInService {
         $localize`:@@notification_prompt.ok:OK`,
         { duration: 5000 },
       );
+      return null;
     } finally {
       this.activePrompts.delete(context);
     }
@@ -92,7 +96,9 @@ export class NotificationOptInService {
   private _preferenceForContext(
     context: NotificationPromptContext,
   ): NotificationPreferenceKey {
-    return context === "follow_activity" ? "follow_requests" : context;
+    if (context === "follow_activity") return "follow_requests";
+    if (context === "community_updates") return "community_events";
+    return context;
   }
 
   private _showSystemBlockedMessage(): void {

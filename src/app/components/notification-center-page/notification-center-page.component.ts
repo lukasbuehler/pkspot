@@ -194,6 +194,18 @@ export class NotificationCenterPageComponent {
               : $localize`:@@notification_center.community_info.rejected_body:Your community information for ${payload["community_name"]}:INTERPOLATION: was rejected.`,
           icon: payload["outcome"] === "approved" ? "task_alt" : "cancel",
         };
+      case "community_event":
+        return {
+          title: $localize`:@@notification_center.community_event.title:New event in ${payload["community_name"]}:INTERPOLATION:`,
+          body: $localize`:@@notification_center.community_event.body:${payload["event_name"]}:INTERPOLATION: was just published.`,
+          icon: "event_upcoming",
+        };
+      case "community_spot_digest":
+        return {
+          title: $localize`:@@notification_center.community_spot_digest.title:Spots worth checking out`,
+          body: $localize`:@@notification_center.community_spot_digest.body:${payload["spot_count"]}:INTERPOLATION: newly recommended Spots in your communities.`,
+          icon: "location_city",
+        };
       case "check_in":
         return {
           title: $localize`:@@notification_center.check_in.title:Check-in`,

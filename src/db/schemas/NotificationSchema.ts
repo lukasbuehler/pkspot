@@ -7,6 +7,8 @@ export const NOTIFICATION_PREFERENCE_KEYS = [
   "spot_edit_updates",
   "report_updates",
   "community_info_updates",
+  "community_events",
+  "community_spot_digest",
 ] as const;
 
 export type NotificationPreferenceKey =
@@ -19,6 +21,8 @@ export interface NotificationPreferencesSchema {
   spot_edit_updates?: boolean;
   report_updates?: boolean;
   community_info_updates?: boolean;
+  community_events?: boolean;
+  community_spot_digest?: boolean;
 }
 
 export const NOTIFICATION_PROMPT_CONTEXTS = [
@@ -27,6 +31,7 @@ export const NOTIFICATION_PROMPT_CONTEXTS = [
   "spot_edit_updates",
   "report_updates",
   "community_info_updates",
+  "community_updates",
 ] as const;
 
 export type NotificationPromptContext =
@@ -74,6 +79,8 @@ export const NOTIFICATION_INTENT_TYPES = [
   "spot_report_update",
   "media_report_update",
   "community_info_update",
+  "community_event",
+  "community_spot_digest",
 ] as const;
 
 export type NotificationIntentType =
@@ -113,7 +120,9 @@ export interface NotificationIntentSchema {
     | "spot_edit_updates"
     | "spot_report_updates"
     | "media_report_updates"
-    | "community_info_updates";
+    | "community_info_updates"
+    | "community_events"
+    | "community_spot_digest";
   payload: Record<string, string>;
   attempts: number;
   created_at: Timestamp;

@@ -18,6 +18,7 @@ import {
 } from "../spot-map/spot-filter-config";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { CommunityFollowsService } from "../../services/firebase/firestore/community-follows.service";
+import { NotificationOptInService } from "../../services/notification-opt-in.service";
 import {
   SeriesDocument,
   SeriesService,
@@ -74,6 +75,7 @@ export class TrainPageComponent {
   private readonly auth = inject(AuthenticationService);
   private readonly follows = inject(CommunityFollowsService);
   private readonly geolocation = inject(GeolocationService);
+  private readonly notificationOptIn = inject(NotificationOptInService);
   private readonly search = inject(SearchService);
   private readonly series = inject(SeriesService);
   private readonly weatherService = inject(WeatherService);
@@ -170,6 +172,13 @@ export class TrainPageComponent {
     } else {
       await this.follows.follow(community);
       this.followedCommunities.set([...current, community]);
+      const decision = await this.notificationOptIn.maybePrompt("community_updates");
+      if (decision === "context" || decision === "all") {
+        await this.follows.setNotifications(community.communityKey, {
+          eventNotifications: true,
+          spotDigestNotifications: true,
+        });
+      }
     }
     await this.loadEvents();
   }

@@ -77,6 +77,48 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
+### Followed-community notifications
+
+This rollout is additive. Deploy the backend before releasing clients that expose
+the new per-community switches. Existing follows default to no community event or
+Spot digest notifications, so no backfill is required.
+
+- [ ] Deploy the Firestore indexes first, then wait for the
+      `community_follows.community_key` collection-group index and the pending
+      digest-item index to report `Enabled`:
+
+  ```sh
+  npx firebase deploy --project prod --only firestore:indexes
+  ```
+
+- [ ] Deploy the compatible Firestore rules and notification Functions:
+
+  ```sh
+  npm --prefix functions run build
+  npx firebase deploy --project prod --only firestore:rules,functions:onCommunityEventDiscoveryWrite,functions:onCommunitySpotRecommendationWrite,functions:sendCommunitySpotDigests,functions:migrateCommunityFollowsOnMerge,functions:onSpotEditNotificationWrite,functions:onNotificationIntentWrite,functions:sendDueNotificationIntents,functions:applySpotEditOnCreate,functions:evaluateSpotEditVotesOnVoteWrite,functions:evaluatePendingSpotEditVotesOnSchedule,functions:reviewVerifiedSpotEdit
+  ```
+
+  Success condition: all new Functions run in `europe-west1`; a newly published
+  public event creates one deterministic intent per opted-in follower no earlier
+  than 30 days before its start; cancelling the event invalidates the intent; and
+  a qualifying Spot is included once in the follower's Friday 18:00 local-time
+  digest. Private or member-only events must not enter `event_discovery` and must
+  not produce community intents.
+
+- [ ] Verify the Spot-edit decision source behavior with one immediate automatic
+      approval, one community-vote decision, and one organization review.
+
+  Success condition: the immediate automatic approval does not create an outcome
+  notification, while the reviewed decisions do. Legacy pending edits continue
+  to resolve without a client migration.
+
+- [ ] Release the localized web and mobile clients through the normal
+      `main`/store workflows. On Android, verify the new Community updates group
+      contains the Events and Weekly Spot recommendations channels. Follow a
+      community for the first time, accept the contextual opt-in, and confirm the
+      global and per-community switches are enabled without prompting before that
+      user action.
+
 ### Event program Spot maps
 
 This contract is additive. No Typesense schema or backend deployment is

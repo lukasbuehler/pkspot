@@ -225,6 +225,9 @@ async function seedSecurityFixture() {
   });
   batch.set(adminDb.doc("series/series-1"), { name: "Public Series" });
   batch.set(adminDb.doc("community_pages/ch-zurich"), { title: "Zurich" });
+  batch.set(adminDb.doc("community_pages/locality:ch:zh:zurich"), {
+    published: true,
+  });
   batch.set(adminDb.doc("community_pages/ch-zurich/private_info/link_cards"), {
     infoCards: [
       {
@@ -939,6 +942,30 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh, 
   await assertAllowed("owner writes own community follow", () =>
     setDoc(doc(owner.db, "users/owner/community_follows/locality:ch:zh:zurich"), {
       community_key: "locality:ch:zh:zurich",
+      scope: "locality",
+      display_name: "Zurich",
+      canonical_path: "/map/communities/zurich",
+      time_created: Timestamp.now(),
+      time_created_raw_ms: Date.now(),
+      event_notifications: false,
+      spot_digest_notifications: false,
+    })
+  );
+  await assertAllowed("owner enables notifications for own community follow", () =>
+    setDoc(
+      doc(owner.db, "users/owner/community_follows/locality:ch:zh:zurich"),
+      { event_notifications: true },
+      { merge: true }
+    )
+  );
+  await assertDenied("owner cannot forge a mismatched community follow key", () =>
+    setDoc(doc(owner.db, "users/owner/community_follows/forged"), {
+      community_key: "locality:ch:zh:zurich",
+      scope: "locality",
+      display_name: "Zurich",
+      canonical_path: "/map/communities/zurich",
+      time_created: Timestamp.now(),
+      time_created_raw_ms: Date.now(),
     })
   );
   await assertAllowed("owner reads own community follows", () =>

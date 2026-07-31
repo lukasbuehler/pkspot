@@ -4,6 +4,7 @@ import { MAT_DIALOG_DATA } from "@angular/material/dialog";
 import { AccountPreferencesService } from "../../services/account-preferences.service";
 import type { WeatherResponse } from "../../weather/weather.models";
 import {
+  EVENT_WEATHER_DIALOG_CONFIG,
   EventWeatherForecastDialogComponent,
   type EventWeatherForecastDialogData,
 } from "./event-weather-forecast-dialog.component";
@@ -72,6 +73,11 @@ describe("EventWeatherForecastDialogComponent", () => {
       ],
     });
     fixture = TestBed.createComponent(EventWeatherForecastDialogComponent);
+  });
+
+  it("uses the wider responsive dialog configuration", () => {
+    expect(EVENT_WEATHER_DIALOG_CONFIG.width).toBe("960px");
+    expect(EVENT_WEATHER_DIALOG_CONFIG.maxWidth).toBe("calc(100vw - 24px)");
   });
 
   it("lists all event days and marks missing forecast days", async () => {

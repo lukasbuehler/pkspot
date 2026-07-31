@@ -21,6 +21,8 @@ const DEFAULT_PREFERENCES: Required<NotificationPreferencesSchema> = {
   spot_edit_updates: false,
   report_updates: false,
   community_info_updates: false,
+  community_events: false,
+  community_spot_digest: false,
 };
 const PROMPT_VERSION = 1;
 
@@ -119,7 +121,7 @@ export class NotificationPreferencesService {
     const previousPrompts = this.promptState();
     const keys = enableAll
       ? NOTIFICATION_PREFERENCE_KEYS
-      : [this._preferenceForPrompt(context)];
+      : this._preferencesForPrompt(context);
     const nextPreferences = { ...this.preferences() };
     if (status === "accepted") {
       for (const key of keys) {
@@ -152,6 +154,16 @@ export class NotificationPreferencesService {
   private _preferenceForPrompt(
     context: NotificationPromptContext,
   ): NotificationPreferenceKey {
-    return context === "follow_activity" ? "follow_requests" : context;
+    return this._preferencesForPrompt(context)[0];
+  }
+
+  private _preferencesForPrompt(
+    context: NotificationPromptContext,
+  ): readonly NotificationPreferenceKey[] {
+    if (context === "follow_activity") return ["follow_requests"];
+    if (context === "community_updates") {
+      return ["community_events", "community_spot_digest"];
+    }
+    return [context];
   }
 }

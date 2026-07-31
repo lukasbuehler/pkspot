@@ -15,6 +15,9 @@
     @case ("community_info_updates") {
       <span i18n="@@notification_prompt.community_info.title">Hear when your community info is reviewed?</span>
     }
+    @case ("community_updates") {
+      <span i18n="@@notification_prompt.community_updates.title">Stay updated on this community?</span>
+    }
   }
 </h2>
 
@@ -28,6 +31,7 @@
           @case ("spot_edit_updates") { edit }
           @case ("report_updates") { flag }
           @case ("community_info_updates") { reviews }
+          @case ("community_updates") { location_city }
         }
       </mat-icon>
     </div>
@@ -56,6 +60,11 @@
         @case ("community_info_updates") {
           <p class="mat-body-medium" i18n="@@notification_prompt.community_info.body">
             PK Spot can tell you when submitted community information is approved or rejected.
+          </p>
+        }
+        @case ("community_updates") {
+          <p class="mat-body-medium" i18n="@@notification_prompt.community_updates.body">
+            Hear about new public events and get a weekly digest of recommended Spots in this community.
           </p>
         }
       }
@@ -89,6 +98,9 @@
       }
       @case ("community_info_updates") {
         <span i18n="@@notification_prompt.community_info.accept">Notify me</span>
+      }
+      @case ("community_updates") {
+        <span i18n="@@notification_prompt.community_updates.accept">Notify me about this community</span>
       }
     }
   </button>

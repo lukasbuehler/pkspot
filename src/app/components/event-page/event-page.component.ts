@@ -84,12 +84,17 @@ import { EventLiveUpdateOrganizerMenuComponent } from "../event-live-update-orga
 import type { EventRSVPOption } from "../../../db/schemas/EventRSVPSchema";
 import { OrganizationButtonComponent } from "../organization-button/organization-button.component";
 import { WeatherService } from "../../weather/weather.service";
-import type { EventWeatherSelection } from "../../weather/event-weather";
 import {
+  singleEventDateKey,
+  type EventWeatherSelection,
+} from "../../weather/event-weather";
+import {
+  EVENT_WEATHER_DIALOG_CONFIG,
   EventWeatherForecastDialogComponent,
   type EventWeatherForecastDialogData,
 } from "../event-weather-forecast-dialog/event-weather-forecast-dialog.component";
 import { EventWeatherDaysComponent } from "../event-weather-days/event-weather-days.component";
+import { EventWeatherHoursComponent } from "../event-weather-hours/event-weather-hours.component";
 import { EventDraftNoticeComponent } from "./event-draft-notice.component";
 import { EventAccessManagerComponent } from "../event-access-manager/event-access-manager.component";
 import { EventRegistrationManagerComponent } from "../event-registration-manager/event-registration-manager.component";
@@ -146,6 +151,7 @@ type ProgramMapMarker = MarkerSchema & {
     EventCardComponent,
     EventProgramTimelineComponent,
     EventWeatherDaysComponent,
+    EventWeatherHoursComponent,
     EventLiveUpdatesComponent,
     EventLiveUpdateOrganizerMenuComponent,
     OrganizationButtonComponent,
@@ -443,6 +449,11 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       ? this.eventWeatherResource.value()
       : undefined,
   );
+  readonly singleEventWeatherDate = computed(() => {
+    const event = this.event();
+    if (!event) return undefined;
+    return singleEventDateKey(event.start, event.end, event.timeZone);
+  });
   readonly visibleSeriesMemberships = computed(() =>
     [
       ...(this.event()?.seriesMemberships ?? []),
@@ -628,11 +639,15 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     effect(() => {
       const event = this.event();
       const source = this.addIntentSource();
-      if (!event || !source || this.isEmbedded()) return;
+      if (!source) {
+        this._lastAddDialogKey = "";
+        return;
+      }
+      if (!this.isBrowser() || !event || this.isEmbedded()) return;
       const dialogKey = `${event.id}:${source}`;
       if (dialogKey === this._lastAddDialogKey) return;
+      if (!this.openAddDialog(source)) return;
       this._lastAddDialogKey = dialogKey;
-      this.openAddDialog(source);
       void this._router.navigate([], {
         relativeTo: this._route,
         queryParams: { intent: null },
@@ -766,6 +781,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       EventWeatherForecastDialogComponent,
       EventWeatherForecastDialogData
     >(EventWeatherForecastDialogComponent, {
+      ...EVENT_WEATHER_DIALOG_CONFIG,
       data: {
         eventName: event.name,
         eventStart: event.start,
@@ -774,11 +790,6 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         response,
         selection,
       },
-      width: "760px",
-      maxWidth: "calc(100vw - 24px)",
-      maxHeight: "calc(100dvh - 24px)",
-      autoFocus: "dialog",
-      restoreFocus: true,
     });
   }
 
@@ -1007,9 +1018,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
 
   openAddDialog(
     source: EventAddDialogData["source"] = "event_page",
-  ): void {
+  ): boolean {
     const event = this.event();
-    if (!event || !event.published || event.isPast(this.now())) return;
+    if (!event || !event.published || event.isPast(this.now())) return false;
     const returnUrl =
       this._router.url || this._eventPageData.eventCanonicalPath(event);
     this._dialog.open<
@@ -1021,6 +1032,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       maxWidth: "calc(100vw - 2rem)",
       autoFocus: "first-tabbable",
     });
+    return true;
   }
 
   openQrDialog(): void {

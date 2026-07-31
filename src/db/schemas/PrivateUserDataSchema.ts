@@ -16,4 +16,6 @@ export interface PrivateUserDataSchema {
   settings?: UserSettingsSchema; // User preferences (maps app, etc.)
   notification_preferences?: NotificationPreferencesSchema;
   notification_prompt_state?: NotificationPromptStateSchema;
+  /** IANA time zone used for local notification delivery schedules. */
+  time_zone?: string;
 }

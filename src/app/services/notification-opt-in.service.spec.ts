@@ -20,6 +20,8 @@ describe("NotificationOptInService", () => {
       spot_edit_updates: false,
       report_updates: false,
       community_info_updates: false,
+      community_events: false,
+      community_spot_digest: false,
     }),
     hasHandledPrompt: vi.fn(() => false),
     applyPromptDecision: vi.fn(() => Promise.resolve()),
@@ -42,6 +44,8 @@ describe("NotificationOptInService", () => {
       spot_edit_updates: false,
       report_updates: false,
       community_info_updates: false,
+      community_events: false,
+      community_spot_digest: false,
     });
     TestBed.configureTestingModule({
       providers: [
@@ -108,6 +112,18 @@ describe("NotificationOptInService", () => {
 
     expect(preferences.applyPromptDecision).toHaveBeenCalledWith(
       "report_updates",
+      "accepted",
+      false,
+    );
+  });
+
+  it("supports contextual followed-community prompts", async () => {
+    const service = TestBed.inject(NotificationOptInService);
+
+    await service.maybePrompt("community_updates");
+
+    expect(preferences.applyPromptDecision).toHaveBeenCalledWith(
+      "community_updates",
       "accepted",
       false,
     );

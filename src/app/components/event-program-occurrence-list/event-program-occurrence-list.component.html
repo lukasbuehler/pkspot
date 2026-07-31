@@ -1,5 +1,6 @@
 <div class="occurrence-list">
-  @for (occurrence of occurrences(); track occurrence.key) {
+  @for (row of rows(); track row.occurrence.key) {
+    @let occurrence = row.occurrence;
     <button
       type="button"
       class="occurrence-row"
@@ -7,7 +8,10 @@
       [class.is-selected]="occurrence.item.id === selectedItemId()"
       (click)="select(occurrence)"
     >
-      <span class="occurrence-time mat-label-large">{{ time(occurrence) }}</span>
+      <span class="occurrence-when">
+        <span class="occurrence-date mat-label-medium">{{ row.date }}</span>
+        <span class="occurrence-time mat-label-large">{{ row.time }}</span>
+      </span>
       <span class="occurrence-copy">
         <span class="occurrence-title mat-title-small">{{
           occurrence.item.title

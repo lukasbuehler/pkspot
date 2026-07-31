@@ -16,28 +16,17 @@ import {
 import { MatIconModule } from "@angular/material/icon";
 import { Event as PkEvent, EventProgramItem } from "../../../db/models/Event";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
-import {
-  WEATHER_STATES,
-  getDailyWeatherForecastIconTone,
-  getWeatherForecastIconTone,
-  getWeatherStateIcon,
-  type WeatherForecastIconTone,
-} from "../../weather/weather-display";
-import type {
-  DailyWeatherPoint,
-  WeatherPoint,
-  WeatherResponse,
-} from "../../weather/weather.models";
+import type { WeatherResponse } from "../../weather/weather.models";
 import {
   dailyForecastByDate,
   eventDateKey,
+  eventProgramDayWeather,
+  eventProgramHourWeather,
   forecastHourAt,
+  type EventProgramDayWeather,
   type EventWeatherSelection,
 } from "../../weather/event-weather";
-import {
-  WeatherIconButtonComponent,
-  type WeatherIconData,
-} from "../weather-icon-button/weather-icon-button.component";
+import { WeatherIconButtonComponent } from "../weather-icon-button/weather-icon-button.component";
 import {
   effectiveProgramItem,
   smartEventProgramDay,
@@ -53,18 +42,11 @@ import {
 } from "../event-program-day-timeline/event-program-day-timeline.component";
 import type { MarkerSchema } from "../map/markers/map-marker.model";
 
-interface ProgramDayWeather {
-  data: WeatherIconData;
-  icon: string;
-  label: string;
-  tone: WeatherForecastIconTone;
-}
-
 interface ProgramDayGroup {
   key: string;
   label: string;
   items: EventProgramTimelineEntry[];
-  weather?: ProgramDayWeather;
+  weather?: EventProgramDayWeather;
 }
 
 interface ProgramDaySelectionSource {
@@ -185,7 +167,7 @@ export class EventProgramTimelineComponent {
         linkedEvent: item.linked_event_id
           ? this.linkedEventsById()[item.linked_event_id]
           : undefined,
-        weather: this.hourWeatherData(
+        weather: eventProgramHourWeather(
           itemIsWithinEvent
             ? forecastHourAt(response?.forecast, effective.start)
             : undefined,
@@ -199,7 +181,7 @@ export class EventProgramTimelineComponent {
           key,
           label: labelFormatter.format(effective.start),
           items: [itemView],
-          weather: this.dayWeatherData(dailyByDate.get(key)),
+          weather: eventProgramDayWeather(dailyByDate.get(key)),
         });
       }
     }
@@ -335,56 +317,6 @@ export class EventProgramTimelineComponent {
 
   selectItemWeather(date: string, time: Date): void {
     this.weatherSelected.emit({ date, time });
-  }
-
-  private hourWeatherData(point: WeatherPoint | undefined): WeatherIconData | undefined {
-    if (!point) return undefined;
-    const condition = point.condition ?? "unknown";
-    return {
-      condition,
-      isDay: point.isDay,
-      temperatureC: point.temperatureC,
-      status: this.statusFromTone(
-        getWeatherForecastIconTone({
-          condition,
-          temperatureC: point.temperatureC,
-          uvIndex: point.uvIndex,
-          precipitationMm: point.precipitationMm,
-          precipitationProbabilityPercent:
-            point.precipitationProbabilityPercent,
-          isDay: point.isDay,
-        }),
-      ),
-    };
-  }
-
-  private dayWeatherData(
-    point: DailyWeatherPoint | undefined,
-  ): ProgramDayWeather | undefined {
-    if (!point) return undefined;
-    const condition = point.condition ?? "unknown";
-    const tone = getDailyWeatherForecastIconTone({
-      condition,
-      temperatureC: point.maxTemperatureC,
-    });
-    return {
-      data: {
-        condition,
-        minTemperatureC: point.minTemperatureC,
-        maxTemperatureC: point.maxTemperatureC,
-        status: this.statusFromTone(tone),
-      },
-      icon: getWeatherStateIcon(condition),
-      label: WEATHER_STATES[condition].label,
-      tone,
-    };
-  }
-
-  private statusFromTone(
-    tone: WeatherForecastIconTone,
-  ): "neutral" | "wet" | "warning" {
-    if (tone === "wet") return "wet";
-    return tone === "warning" ? "warning" : "neutral";
   }
 
   private scrollSelectedTabIntoView(tabList: HTMLElement): void {

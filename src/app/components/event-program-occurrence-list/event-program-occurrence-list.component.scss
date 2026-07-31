@@ -37,11 +37,22 @@
   }
 }
 
-.occurrence-time {
-  color: var(--mat-sys-primary);
-  padding-top: 0.125rem;
+.occurrence-when {
+  display: flex;
+  flex-direction: column;
+  min-width: 5.5rem;
 }
 
+.occurrence-date {
+  color: var(--mat-sys-on-surface-variant);
+  white-space: nowrap;
+}
+
+.occurrence-time {
+  color: var(--mat-sys-primary);
+}
+
+.is-active .occurrence-date,
 .is-active .occurrence-time {
   color: var(--mat-sys-on-secondary-container);
 }

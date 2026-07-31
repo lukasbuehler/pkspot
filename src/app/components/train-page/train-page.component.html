@@ -64,7 +64,7 @@
         [disabled]="!signedIn()"
         (click)="toggleFollow(selectedArea)"
       >
-        <mat-icon>{{ isFollowing(selectedArea.communityKey) ? "notifications_active" : "add_alert" }}</mat-icon>
+        <mat-icon>{{ isFollowing(selectedArea.communityKey) ? "bookmark_added" : "bookmark_add" }}</mat-icon>
         <span>{{ isFollowing(selectedArea.communityKey) ? "Following" : "Follow community" }}</span>
       </button>
     }
@@ -185,7 +185,7 @@
                 aria-label="Unfollow community"
                 i18n-aria-label
               >
-                <mat-icon>notifications_active</mat-icon>
+                <mat-icon>bookmark_added</mat-icon>
               </button>
             </article>
           }

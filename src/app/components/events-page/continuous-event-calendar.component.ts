@@ -86,6 +86,7 @@ export class ContinuousEventCalendarComponent {
 
   readonly daySelected = output<string>();
   readonly dateJumped = output<string>();
+  readonly resultLoaded = output<EventDiscoverySearchResult>();
 
   readonly now = signal(new Date());
   readonly monthKeys = linkedSignal(() =>
@@ -109,8 +110,8 @@ export class ContinuousEventCalendarComponent {
       startsBeforeSeconds: this.queryCalendar().queryEndSeconds,
       endsAfterSeconds: this.queryCalendar().queryStartSeconds,
     }),
-    loader: ({ params, abortSignal }) =>
-      params.loader({
+    loader: async ({ params, abortSignal }) => {
+      const result = await params.loader({
         query: params.query,
         areaKeys: params.areaKeys,
         categories: params.categories,
@@ -118,7 +119,10 @@ export class ContinuousEventCalendarComponent {
         startsBeforeSeconds: params.startsBeforeSeconds,
         endsAfterSeconds: params.endsAfterSeconds,
         abortSignal,
-      }),
+      });
+      if (!abortSignal.aborted) this.resultLoaded.emit(result);
+      return result;
+    },
   });
   readonly discoveryResult = linkedSignal({
     source: () => this.eventsResource.value(),

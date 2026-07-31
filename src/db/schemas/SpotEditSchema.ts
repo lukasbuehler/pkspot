@@ -48,6 +48,10 @@ export interface SpotEditSchema
   blocked_reason?: string;
   processed_at?: Timestamp;
   decision_at?: Timestamp;
+  decision_source?:
+    | "automatic_immediate"
+    | "community_vote"
+    | "organization_review";
   user: UserReferenceSchema;
   data: SpotEditDataSchema;
   prevData?: SpotEditDataSchema;

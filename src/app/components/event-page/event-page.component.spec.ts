@@ -20,7 +20,10 @@ import { MapsApiService } from "../../services/maps-api.service";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { ResponsiveService } from "../../services/responsive.service";
 import { StructuredDataService } from "../../services/structured-data.service";
+import { EventPageDataService } from "../../services/event-page/event-page-data.service";
+import { SearchService } from "../../services/search.service";
 import { eventHeroMedia } from "../event-display/event-display.helpers";
+import { EventAddDialogComponent } from "../event-add-dialog/event-add-dialog.component";
 import { EventInfoPageComponent } from "./event-page.component";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { GeoPoint } from "firebase/firestore";
@@ -427,6 +430,131 @@ describe("EventInfoPageComponent", () => {
         expect(component.isLoadingEvent()).toBe(!loadFails);
         expect(component.eventLoadFailed()).toBe(loadFails);
       }
+    },
+  );
+
+  it.each([
+    { platform: "browser", shouldOpen: true },
+    { platform: "server", shouldOpen: false },
+  ])(
+    "handles the event QR add intent on the $platform",
+    async ({ platform, shouldOpen }) => {
+      const dialog = { open: vi.fn() };
+      const router = {
+        url: "/events/wpfcamp?intent=add&utm_source=event_qr&utm_medium=qr&utm_campaign=event_attendance",
+        navigate: vi.fn(),
+      };
+      const route = {
+        paramMap: of(convertToParamMap({ slug: "wpfcamp" })),
+        queryParams: of({
+          intent: "add",
+          utm_source: "event_qr",
+          utm_medium: "qr",
+          utm_campaign: "event_attendance",
+        }),
+        data: of({ routeName: "Event" }),
+        snapshot: { paramMap: convertToParamMap({ slug: "wpfcamp" }) },
+      };
+
+      TestBed.configureTestingModule({
+        providers: [
+          { provide: MatDialog, useValue: dialog },
+          { provide: EventsService, useValue: {} },
+          { provide: SeriesService, useValue: seriesServiceStub() },
+          { provide: SpotsService, useValue: {} },
+          { provide: SpotChallengesService, useValue: {} },
+          {
+            provide: AuthenticationService,
+            useValue: {
+              user: { uid: null, data: null },
+              isAdmin: signal(false),
+            },
+          },
+          { provide: ActivatedRoute, useValue: route },
+          { provide: Router, useValue: router },
+          { provide: LocationStrategy, useValue: {} },
+          { provide: MatSnackBar, useValue: { open: vi.fn() } },
+          {
+            provide: MetaTagService,
+            useValue: {
+              setEventMetaTags: vi.fn(),
+              setStaticPageMetaTags: vi.fn(),
+              setRobotsContent: vi.fn(),
+            },
+          },
+          {
+            provide: StructuredDataService,
+            useValue: {
+              addStructuredData: vi.fn(),
+              removeStructuredData: vi.fn(),
+            },
+          },
+          {
+            provide: EventPageDataService,
+            useValue: {
+              eventCanonicalPath: (event: PkEvent) =>
+                `/events/${event.slug ?? event.id}`,
+              loadEventSpotBindings: vi.fn(async () => []),
+              buildAreaPolygon: vi.fn(() => null),
+              customMarkers: vi.fn(() => []),
+              spotPreviewMarkers: vi.fn(() => []),
+              eventLocationMarker: vi.fn(() => null),
+              eventMapBounds: vi.fn(() => null),
+            },
+          },
+          {
+            provide: SearchService,
+            useValue: { getEventCardsByIds: vi.fn(async () => []) },
+          },
+          {
+            provide: MapsApiService,
+            useValue: {
+              isApiLoaded: vi.fn(() => true),
+              loadGoogleMapsApi: vi.fn(),
+            },
+          },
+          {
+            provide: AnalyticsService,
+            useValue: { addUtmToUrl: vi.fn((url?: string) => url) },
+          },
+          { provide: ResponsiveService, useValue: {} },
+          { provide: LOCALE_ID, useValue: "en" },
+          { provide: PLATFORM_ID, useValue: platform },
+        ],
+      });
+
+      const component = TestBed.runInInjectionContext(
+        () => new EventInfoPageComponent(),
+      );
+      const event = buildEvent("wpfcamp", "SPT WPF Camp 2026", {
+        start: "2027-08-05T10:00:00.000Z",
+        end: "2027-08-09T10:00:00.000Z",
+      });
+
+      component.event.set(event);
+      flushSignalEffects();
+      await flushPromises();
+      flushSignalEffects();
+
+      if (shouldOpen) {
+        expect(dialog.open).toHaveBeenCalledWith(
+          EventAddDialogComponent,
+          expect.objectContaining({
+            data: expect.objectContaining({ event, source: "event_qr" }),
+          }),
+        );
+        expect(router.navigate).toHaveBeenCalledWith([], {
+          relativeTo: route,
+          queryParams: { intent: null },
+          queryParamsHandling: "merge",
+          replaceUrl: true,
+        });
+      } else {
+        expect(dialog.open).not.toHaveBeenCalled();
+        expect(router.navigate).not.toHaveBeenCalled();
+      }
+
+      component.ngOnDestroy();
     },
   );
 

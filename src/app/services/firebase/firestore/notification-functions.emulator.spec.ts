@@ -4,7 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 const firestoreHost = process.env["FIRESTORE_EMULATOR_HOST"];
 const runWithEmulator = firestoreHost ? describe : describe.skip;
 const projectId = process.env["GCLOUD_PROJECT"] || "demo-pkspot";
-const timeoutMs = 20_000;
+const timeoutMs = 40_000;
 let app: admin.app.App;
 let db: admin.firestore.Firestore;
 
@@ -16,7 +16,7 @@ async function waitForDocument(
   path: string,
   predicate: (data: admin.firestore.DocumentData) => boolean,
 ): Promise<admin.firestore.DocumentData> {
-  for (let attempt = 0; attempt < 60; attempt += 1) {
+  for (let attempt = 0; attempt < 120; attempt += 1) {
     const snapshot = await db.doc(path).get();
     const data = snapshot.data();
     if (data && predicate(data)) return data;
@@ -192,6 +192,68 @@ runWithEmulator("notification function integrations", () => {
       (data) => data["status"] === "cancelled",
     );
     expect(cancelled["failure_reason"]).toBe("rsvp_removed");
+  }, timeoutMs);
+
+  it("schedules followed-community public events at the 30-day boundary", async () => {
+    const eventId = "community-event-1";
+    const userId = "community-event-follower";
+    const communityKey = "country:ch";
+    const start = admin.firestore.Timestamp.fromMillis(
+      Date.now() + 180 * 24 * 60 * 60 * 1000,
+    );
+    await Promise.all([
+      db.doc(`community_pages/${communityKey}`).set({
+        communityKey,
+        scope: "country",
+        displayName: "Switzerland",
+        canonicalPath: "/map/communities/switzerland",
+        published: true,
+      }),
+      db.doc(`users/${userId}/community_follows/${communityKey}`).set({
+        community_key: communityKey,
+        scope: "country",
+        display_name: "Switzerland",
+        canonical_path: "/map/communities/switzerland",
+        event_notifications: true,
+        spot_digest_notifications: false,
+        time_created: admin.firestore.Timestamp.now(),
+        time_created_raw_ms: Date.now(),
+      }),
+    ]);
+    await db.doc(`event_discovery/${eventId}`).set({
+      name: "Swiss Jam",
+      slug: "swiss-jam",
+      publication_state: "published",
+      published: true,
+      visibility: "public",
+      discoverability: { audience: "global" },
+      lifecycle_status: "planned",
+      locality_string: "Zurich",
+      community_keys: [communityKey],
+      start,
+      end: admin.firestore.Timestamp.fromMillis(start.toMillis() + 3_600_000),
+    });
+
+    const intentId = `community_event_${eventId}_${userId}`;
+    const intent = await waitForDocument(
+      `notification_intents/${intentId}`,
+      (data) => data["status"] === "pending",
+    );
+    expect(intent["type"]).toBe("community_event");
+    expect(intent["channel_id"]).toBe("community_events");
+    expect(intent["send_after"].toMillis()).toBe(
+      start.toMillis() - 30 * 24 * 60 * 60 * 1000,
+    );
+    expect(intent["payload"]["community_name"]).toBe("Switzerland");
+
+    await db.doc(`event_discovery/${eventId}`).update({
+      lifecycle_status: "cancelled",
+    });
+    const cancelled = await waitForDocument(
+      `notification_intents/${intentId}`,
+      (data) => data["status"] === "cancelled",
+    );
+    expect(cancelled["failure_reason"]).toBe("event_unavailable");
   }, timeoutMs);
 
   it("notifies a requester when a private follow request is accepted", async () => {

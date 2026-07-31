@@ -1372,8 +1372,38 @@ service cloud.firestore {
       }
 
       match /community_follows/{communityKey} {
-        allow read, create, update, delete: if request.auth.uid != null
+        allow read, delete: if request.auth.uid != null
           && request.auth.uid == userId;
+        allow create: if request.auth.uid != null
+          && request.auth.uid == userId
+          && request.resource.data.keys().hasOnly([
+            'community_key', 'scope', 'display_name', 'canonical_path',
+            'image_url', 'time_created', 'time_created_raw_ms',
+            'event_notifications', 'spot_digest_notifications',
+            'time_updated', 'time_updated_raw_ms'
+          ])
+          && request.resource.data.community_key == communityKey
+          && request.resource.data.scope in ['country', 'region', 'locality']
+          && request.resource.data.display_name is string
+          && request.resource.data.canonical_path is string
+          && request.resource.data.time_created is timestamp
+          && request.resource.data.time_created_raw_ms is number
+          && request.resource.data.get('event_notifications', false) is bool
+          && request.resource.data.get('spot_digest_notifications', false) is bool
+          && exists(/databases/$(database)/documents/community_pages/$(communityKey))
+          && get(/databases/$(database)/documents/community_pages/$(communityKey)).data.get('published', false) == true;
+        allow update: if request.auth.uid != null
+          && request.auth.uid == userId
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'event_notifications', 'spot_digest_notifications',
+            'time_updated', 'time_updated_raw_ms'
+          ])
+          && request.resource.data.get('event_notifications', false) is bool
+          && request.resource.data.get('spot_digest_notifications', false) is bool;
+      }
+
+      match /community_spot_digest_items/{spotId} {
+        allow read, write: if false;
       }
 
       match /session_records/{sessionRecordId} {

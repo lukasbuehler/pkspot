@@ -287,6 +287,13 @@ export class EventsPageComponent {
     computation: (result, previous): EventDiscoverySearchResult | null =>
       result ?? previous?.value ?? null,
   });
+  readonly continuousCalendarResult =
+    signal<EventDiscoverySearchResult | null>(null);
+  readonly filterDiscoveryResult = computed(() =>
+    this.usesContinuousCalendar()
+      ? (this.continuousCalendarResult() ?? this.discoveryResult())
+      : this.discoveryResult(),
+  );
   readonly events = computed(() => this.discoveryResult()?.items ?? []);
   readonly invalidEventsResource = resource({
     params: () => (this.isAdmin() ? true : undefined),
@@ -306,10 +313,13 @@ export class EventsPageComponent {
   );
   readonly facetSeriesIds = computed(() => [
     ...new Set([
-      ...(this.discoveryResult()?.facets.series.map((facet) => facet.value) ??
-        []),
+      ...(this.filterDiscoveryResult()?.facets.series.map(
+        (facet) => facet.value,
+      ) ?? []),
       ...this.selectedSeriesIds(),
-      ...this.events().flatMap((event) => event.seriesIds),
+      ...(this.filterDiscoveryResult()?.items.flatMap(
+        (event) => event.seriesIds,
+      ) ?? []),
       ...this.invalidEvents().flatMap((event) => event.seriesIds),
     ]),
   ]);
@@ -328,7 +338,7 @@ export class EventsPageComponent {
 
   readonly categoryFilterOptions = computed<EventCategoryFilterOption[]>(() => {
     const counts = new Map(
-      (this.discoveryResult()?.facets.categories ?? []).map((facet) => [
+      (this.filterDiscoveryResult()?.facets.categories ?? []).map((facet) => [
         facet.value,
         facet.count,
       ]),
@@ -346,7 +356,7 @@ export class EventsPageComponent {
 
   readonly seriesFilterOptions = computed<EventSeriesFilterOption[]>(() => {
     const counts = new Map(
-      (this.discoveryResult()?.facets.series ?? []).map((facet) => [
+      (this.filterDiscoveryResult()?.facets.series ?? []).map((facet) => [
         facet.value,
         facet.count,
       ]),
@@ -510,6 +520,10 @@ export class EventsPageComponent {
       month: day.slice(0, 7),
       day,
     });
+  }
+
+  onContinuousCalendarResult(result: EventDiscoverySearchResult): void {
+    this.continuousCalendarResult.set(result);
   }
 
   loadMore(): void {

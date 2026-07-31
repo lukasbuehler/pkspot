@@ -4759,6 +4759,18 @@
         <target>Presenza</target>
       </segment>
     </unit>
+    <unit id="notification_center.community_event.body">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;event_name&quot;]"/> was just published.</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;event_name&quot;]"/> è stato appena pubblicato.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.community_event.title">
+      <segment state="initial">
+        <source>New event in <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;community_name&quot;]"/></source>
+        <target>Nuovo evento a <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;community_name&quot;]"/></target>
+      </segment>
+    </unit>
     <unit id="notification_center.community_info.approved_body">
       <segment state="initial">
         <source>Your community information for <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;community_name&quot;]"/> was approved.</source>
@@ -4781,6 +4793,18 @@
       <segment state="initial">
         <source>Community info rejected</source>
         <target>Informazione sulla community rifiutata</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.community_spot_digest.body">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_count&quot;]"/> newly recommended Spots in your communities.</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_count&quot;]"/> nuovi Spot consigliati nelle tue community.</target>
+      </segment>
+    </unit>
+    <unit id="notification_center.community_spot_digest.title">
+      <segment state="initial">
+        <source>Spots worth checking out</source>
+        <target>Spot che vale la pena scoprire</target>
       </segment>
     </unit>
     <unit id="notification_center.dismiss">
@@ -5039,6 +5063,24 @@
       <segment state="initial">
         <source>Hear when your community info is reviewed?</source>
         <target>Vuoi sapere quando la tua informazione sulla community viene esaminata?</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.community_updates.accept">
+      <segment state="initial">
+        <source>Notify me about this community</source>
+        <target>Avvisami su questa community</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.community_updates.body">
+      <segment state="initial">
+        <source> Hear about new public events and get a weekly digest of recommended Spots in this community. </source>
+        <target> Scopri i nuovi eventi pubblici e ricevi un riepilogo settimanale degli Spot consigliati in questa community. </target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.community_updates.title">
+      <segment state="initial">
+        <source>Stay updated on this community?</source>
+        <target>Vuoi restare aggiornato su questa community?</target>
       </segment>
     </unit>
     <unit id="notification_prompt.control">
@@ -5620,6 +5662,36 @@
         <target>Caricamento aggiornamenti…</target>
       </segment>
     </unit>
+    <unit id="settings.notifications.community_events_aria">
+      <segment state="initial">
+        <source>Community event notifications</source>
+        <target>Notifiche degli eventi della community</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.community_events_description">
+      <segment state="initial">
+        <source> Push alerts for newly published public events in communities where event updates are enabled. </source>
+        <target> Avvisi push per i nuovi eventi pubblici nelle community in cui sono attivi gli aggiornamenti sugli eventi. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.community_events_heading">
+      <segment state="initial">
+        <source>Events in followed communities</source>
+        <target>Eventi nelle community seguite</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.community_events_per_area_aria">
+      <segment state="initial">
+        <source>Event notifications for this community</source>
+        <target>Notifiche degli eventi per questa community</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.community_events_short">
+      <segment state="initial">
+        <source>Events</source>
+        <target>Eventi locali</target>
+      </segment>
+    </unit>
     <unit id="settings.notifications.community_info_aria">
       <segment state="initial">
         <source>Community info submission notifications</source>
@@ -5636,6 +5708,42 @@
       <segment state="initial">
         <source>Community info submissions</source>
         <target>Informazioni sulla community inviate</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.community_save_error">
+      <segment state="initial">
+        <source>Could not save community notification preference.</source>
+        <target>Impossibile salvare la preferenza per le notifiche della community.</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.community_spots_aria">
+      <segment state="initial">
+        <source>Community Spot digest notifications</source>
+        <target>Notifiche del riepilogo degli Spot della community</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.community_spots_description">
+      <segment state="initial">
+        <source> A Friday digest of newly recommended Spots from communities where Spot updates are enabled. </source>
+        <target> Un riepilogo del venerdì con i nuovi Spot consigliati nelle community in cui sono attivi gli aggiornamenti sugli Spot. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.community_spots_heading">
+      <segment state="initial">
+        <source>Weekly recommended Spots</source>
+        <target>Spot consigliati ogni settimana</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.community_spots_per_area_aria">
+      <segment state="initial">
+        <source>Spot notifications for this community</source>
+        <target>Notifiche degli Spot per questa community</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.community_spots_short">
+      <segment state="initial">
+        <source>Spots</source>
+        <target>Spot consigliati</target>
       </segment>
     </unit>
     <unit id="settings.notifications.description">
@@ -5708,6 +5816,18 @@
       <segment state="initial">
         <source>Follow activity</source>
         <target>Attività dei follower</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.followed_communities_description">
+      <segment state="initial">
+        <source> Choose the updates you want from each community. Global switches above control push delivery. </source>
+        <target> Scegli gli aggiornamenti che vuoi da ogni community. Gli interruttori globali qui sopra controllano l’invio push. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.followed_communities_heading">
+      <segment state="initial">
+        <source>Followed communities</source>
+        <target>Community seguite</target>
       </segment>
     </unit>
     <unit id="settings.notifications.heading">

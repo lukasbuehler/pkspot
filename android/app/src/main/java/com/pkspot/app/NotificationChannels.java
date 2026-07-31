@@ -16,6 +16,7 @@ final class NotificationChannels {
   private static final String CONTRIBUTIONS_GROUP_ID = "group_spot_contributions";
   private static final String REPORTS_GROUP_ID = "group_reports";
   private static final String COMMUNITY_GROUP_ID = "group_community_contributions";
+  private static final String COMMUNITY_UPDATES_GROUP_ID = "group_community_updates";
   private static final String CHANNEL_PREFS = "notification_channel_migrations";
   private static final String SEMANTIC_GROUPS_MIGRATED = "semantic_groups_v1";
   private static final String FCM_FALLBACK_REMOVED = "fcm_fallback_removed_v1";
@@ -39,7 +40,8 @@ final class NotificationChannels {
         new NotificationChannelGroup(EVENTS_GROUP_ID, "Events"),
         new NotificationChannelGroup(CONTRIBUTIONS_GROUP_ID, "Spot contributions"),
         new NotificationChannelGroup(REPORTS_GROUP_ID, "Reports"),
-        new NotificationChannelGroup(COMMUNITY_GROUP_ID, "Community contributions")));
+        new NotificationChannelGroup(COMMUNITY_GROUP_ID, "Community contributions"),
+        new NotificationChannelGroup(COMMUNITY_UPDATES_GROUP_ID, "Community updates")));
 
     createChannel(
         manager,
@@ -97,6 +99,20 @@ final class NotificationChannels {
         "Updates when submitted community information is reviewed",
         COMMUNITY_GROUP_ID,
         Notification.VISIBILITY_PRIVATE);
+    createChannel(
+        manager,
+        "community_events",
+        "New public events",
+        "Public events in communities you follow",
+        COMMUNITY_UPDATES_GROUP_ID,
+        Notification.VISIBILITY_PUBLIC);
+    createChannel(
+        manager,
+        "community_spot_digest",
+        "Recommended Spots",
+        "Weekly Spot recommendations from communities you follow",
+        COMMUNITY_UPDATES_GROUP_ID,
+        Notification.VISIBILITY_PUBLIC);
 
     removeLegacyFallbackChannel(context, manager);
     return true;

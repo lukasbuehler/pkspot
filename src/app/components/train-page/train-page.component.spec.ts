@@ -11,6 +11,7 @@ import {
   SearchService,
 } from "../../services/search.service";
 import { WeatherService } from "../../weather/weather.service";
+import { NotificationOptInService } from "../../services/notification-opt-in.service";
 import { TrainPageComponent } from "./train-page.component";
 
 const eventResult: EventDiscoverySearchResult = {
@@ -150,6 +151,7 @@ function createComponent({
       { provide: PLATFORM_ID, useValue: "browser" },
       { provide: AuthenticationService, useValue: auth },
       { provide: CommunityFollowsService, useValue: {} },
+      { provide: NotificationOptInService, useValue: { maybePrompt: vi.fn() } },
       { provide: GeolocationService, useValue: geolocation },
       { provide: SearchService, useValue: search },
       { provide: SeriesService, useValue: series },

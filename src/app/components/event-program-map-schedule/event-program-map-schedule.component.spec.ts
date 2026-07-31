@@ -15,11 +15,13 @@ import type { SpotSchema } from "../../../db/schemas/SpotSchema";
 import type { MarkerSchema } from "../map/markers/map-marker.model";
 import { MarkerComponent } from "../marker/marker.component";
 import { AnalyticsService } from "../../services/analytics.service";
+import { AccountPreferencesService } from "../../services/account-preferences.service";
 import type { EventProgramOccurrence } from "../../shared/event-program-spots";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 import { StorageService } from "../../services/firebase/storage.service";
 import { MapsApiService } from "../../services/maps-api.service";
 import { EventProgramMapScheduleComponent } from "./event-program-map-schedule.component";
+import type { WeatherResponse } from "../../weather/weather.models";
 
 describe("EventProgramMapScheduleComponent", () => {
   let fixture: ComponentFixture<EventProgramMapScheduleComponent>;
@@ -101,6 +103,30 @@ describe("EventProgramMapScheduleComponent", () => {
     isActive: false,
     isNext: false,
   };
+  const weather: WeatherResponse = {
+    provider: "google",
+    mode: "event-forecast",
+    location: { lat: 47.37, lng: 8.54 },
+    generatedAt: "2026-08-06T06:00:00Z",
+    expiresAt: "2026-08-06T06:45:00Z",
+    forecast: [
+      {
+        time: "2026-08-07T07:00:00Z",
+        condition: "rain",
+        temperatureC: 18,
+        precipitationProbabilityPercent: 80,
+        isDay: true,
+      },
+    ],
+    dailyForecast: [
+      {
+        date: "2026-08-07",
+        condition: "rain",
+        maxTemperatureC: 20,
+        minTemperatureC: 14,
+      },
+    ],
+  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -129,6 +155,10 @@ describe("EventProgramMapScheduleComponent", () => {
         {
           provide: AnalyticsService,
           useValue: { trackEvent: vi.fn() },
+        },
+        {
+          provide: AccountPreferencesService,
+          useValue: { temperatureUnit: vi.fn(() => "celsius") },
         },
       ],
     });
@@ -168,6 +198,41 @@ describe("EventProgramMapScheduleComponent", () => {
         .querySelector(".program-linked-event-fallback")
         .getAttribute("href"),
     ).toContain("/events/skills-competition");
+  });
+
+  it("shows and selects day and item weather from the event forecast", async () => {
+    const selected = vi.fn();
+    fixture.componentRef.setInput(
+      "eventStart",
+      new Date("2026-08-07T06:00:00Z"),
+    );
+    fixture.componentRef.setInput(
+      "eventEnd",
+      new Date("2026-08-08T20:00:00Z"),
+    );
+    fixture.componentRef.setInput("weather", weather);
+    fixture.componentInstance.weatherSelected.subscribe(selected);
+
+    await fixture.whenStable();
+
+    expect(
+      fixture.nativeElement.querySelectorAll(".day-header-weather"),
+    ).toHaveLength(1);
+    const weatherButtons = fixture.nativeElement.querySelectorAll(
+      "app-weather-icon-button button",
+    ) as NodeListOf<HTMLButtonElement>;
+    expect(weatherButtons).toHaveLength(2);
+    expect(fixture.nativeElement.textContent).toContain("20° / 14°");
+    expect(fixture.nativeElement.textContent).toContain("18°");
+
+    weatherButtons[0].click();
+    weatherButtons[1].click();
+
+    expect(selected).toHaveBeenNthCalledWith(1, { date: "2026-08-07" });
+    expect(selected).toHaveBeenNthCalledWith(2, {
+      date: "2026-08-07",
+      time: breakfast.start,
+    });
   });
 
   it("emits day panel and mapped Spot selections", async () => {

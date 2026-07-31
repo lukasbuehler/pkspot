@@ -116,6 +116,7 @@
         [loadEvents]="loadContinuousCalendarEvents"
         (daySelected)="selectDay($event)"
         (dateJumped)="jumpToCalendarDate($event)"
+        (resultLoaded)="onContinuousCalendarResult($event)"
       />
     } @else if (discoveryResource.isLoading() && !discoveryResult()) {
       <div class="loading-state" role="status">

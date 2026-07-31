@@ -505,13 +505,23 @@
             </h2>
             <mat-icon>cloud</mat-icon>
           </div>
-          <app-event-weather-days
-            [eventStart]="event.start"
-            [eventEnd]="event.end"
-            [timeZone]="event.timeZone"
-            [response]="weather"
-            (dateSelected)="openEventWeather({ date: $event })"
-          />
+          @if (singleEventWeatherDate(); as date) {
+            <app-event-weather-hours
+              [response]="weather"
+              [date]="date"
+              [eventStart]="event.start"
+              [eventEnd]="event.end"
+              [timeZone]="event.timeZone"
+            />
+          } @else {
+            <app-event-weather-days
+              [eventStart]="event.start"
+              [eventEnd]="event.end"
+              [timeZone]="event.timeZone"
+              [response]="weather"
+              (dateSelected)="openEventWeather({ date: $event })"
+            />
+          }
         </section>
       }
 

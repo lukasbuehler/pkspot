@@ -191,12 +191,55 @@ button.menuButton.selected {
   }
 }
 
+.community-notification-settings {
+  display: grid;
+  gap: 12px;
+  padding-block: 18px;
+
+  > div p {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.community-notification-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 20px;
+  align-items: center;
+  min-height: 64px;
+  padding: 10px 12px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+
+  > a {
+    color: var(--mat-sys-primary);
+    font: var(--mat-sys-title-medium);
+  }
+
+  > label {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    color: var(--mat-sys-on-surface-variant);
+    font: var(--mat-sys-label-small);
+  }
+}
+
 @media (max-width: 480px) {
   .notification-preference-row {
     grid-template-columns: minmax(0, 1fr);
 
     mat-slide-toggle {
       justify-self: start;
+    }
+  }
+
+  .community-notification-row {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 12px;
+
+    > a {
+      grid-column: 1 / -1;
     }
   }
 }

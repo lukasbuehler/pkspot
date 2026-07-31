@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   input,
   output,
@@ -9,6 +10,12 @@ import { MatIconModule } from "@angular/material/icon";
 import type { EventProgramOccurrence } from "../../shared/event-program-spots";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
+
+interface EventProgramOccurrenceRow {
+  occurrence: EventProgramOccurrence;
+  date: string;
+  time: string;
+}
 
 @Component({
   selector: "app-event-program-occurrence-list",
@@ -26,13 +33,23 @@ export class EventProgramOccurrenceListComponent {
   readonly showSpotCards = input(true);
   readonly occurrenceSelected = output<EventProgramOccurrence>();
 
-  time(occurrence: EventProgramOccurrence): string {
-    return this.dateTime.format(occurrence.start, {
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: this.timeZone(),
-    });
-  }
+  readonly rows = computed<EventProgramOccurrenceRow[]>(() => {
+    const timeZone = this.timeZone();
+    return this.occurrences().map((occurrence) => ({
+      occurrence,
+      date: this.dateTime.format(occurrence.start, {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        timeZone,
+      }),
+      time: this.dateTime.format(occurrence.start, {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone,
+      }),
+    }));
+  });
 
   select(occurrence: EventProgramOccurrence): void {
     this.occurrenceSelected.emit(occurrence);

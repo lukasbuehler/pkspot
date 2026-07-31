@@ -291,6 +291,37 @@ describe("EventsPageComponent", () => {
     expect(component.calendar().monthKey).toBe("2026-08");
   });
 
+  it("updates filter counts from the continuous calendar result", async () => {
+    const { component } = createComponent({
+      queryParams: { view: "calendar", month: "2026-08" },
+      searchResult: {
+        ...EMPTY_RESULT,
+        facets: {
+          categories: [{ value: "jam", count: 1 }],
+          series: [{ value: "parkour-earth", count: 1 }],
+          communities: [],
+        },
+      },
+    });
+    await flushResources();
+
+    component.onContinuousCalendarResult({
+      ...EMPTY_RESULT,
+      facets: {
+        categories: [{ value: "competition", count: 4 }],
+        series: [{ value: "parkour-earth", count: 3 }],
+        communities: [],
+      },
+    });
+
+    expect(component.categoryFilterOptions()).toEqual([
+      expect.objectContaining({ id: "competition", count: 4 }),
+    ]);
+    expect(component.seriesFilterOptions()).toEqual([
+      expect.objectContaining({ id: "parkour-earth", count: 3 }),
+    ]);
+  });
+
   it("keeps authorized drafts in a separate Firestore request", async () => {
     const draft = buildEvent("draft-jam", "Draft Jam");
     const { component, eventsService } = createComponent({

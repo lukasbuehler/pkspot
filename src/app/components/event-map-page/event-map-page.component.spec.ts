@@ -2,6 +2,7 @@ import { LocationStrategy } from "@angular/common";
 import { LOCALE_ID, PLATFORM_ID, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute, convertToParamMap, Router } from "@angular/router";
 import { GeoPoint } from "firebase/firestore";
 import { readFileSync } from "node:fs";
@@ -23,6 +24,7 @@ import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { MapsApiService } from "../../services/maps-api.service";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { ResponsiveService } from "../../services/responsive.service";
+import { WeatherService } from "../../weather/weather.service";
 import { GoogleMap2dComponent } from "../google-map-2d/google-map-2d.component";
 import { EventMapPageComponent } from "./event-map-page.component";
 
@@ -36,6 +38,11 @@ const flushSignalEffects = () => {
     flushEffects?: () => void;
   };
   maybeFlushEffects.flushEffects?.();
+};
+
+const weatherService = {
+  isEventForecastAvailable: vi.fn(() => false),
+  getEventForecastForTileAt: vi.fn(),
 };
 
 const buildEvent = (id: string, extra: Partial<EventSchema> = {}): PkEvent =>
@@ -164,6 +171,8 @@ describe("EventMapPageComponent", () => {
         { provide: Router, useValue: { navigate: vi.fn() } },
         { provide: LocationStrategy, useValue: {} },
         { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: MatDialog, useValue: { open: vi.fn() } },
+        { provide: WeatherService, useValue: weatherService },
         { provide: MetaTagService, useValue: metaTagService },
         {
           provide: MapsApiService,
@@ -272,6 +281,8 @@ describe("EventMapPageComponent", () => {
         { provide: Router, useValue: router },
         { provide: LocationStrategy, useValue: {} },
         { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: MatDialog, useValue: { open: vi.fn() } },
+        { provide: WeatherService, useValue: weatherService },
         {
           provide: MetaTagService,
           useValue: {
@@ -567,6 +578,8 @@ describe("EventMapPageComponent", () => {
         { provide: Router, useValue: router },
         { provide: LocationStrategy, useValue: {} },
         { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: MatDialog, useValue: { open: vi.fn() } },
+        { provide: WeatherService, useValue: weatherService },
         {
           provide: MetaTagService,
           useValue: {

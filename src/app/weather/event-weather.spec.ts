@@ -4,6 +4,7 @@ import {
   eventDateKey,
   eventHoursForDate,
   forecastHourAt,
+  singleEventDateKey,
 } from "./event-weather";
 import type { WeatherPoint } from "./weather.models";
 
@@ -25,6 +26,23 @@ describe("event weather mapping", () => {
         "Europe/Zurich",
       ),
     ).toEqual(["2026-07-22", "2026-07-23", "2026-07-24"]);
+  });
+
+  it("identifies only events contained within one local calendar day", () => {
+    expect(
+      singleEventDateKey(
+        new Date("2026-07-23T08:00:00Z"),
+        new Date("2026-07-23T18:00:00Z"),
+        "Europe/Zurich",
+      ),
+    ).toBe("2026-07-23");
+    expect(
+      singleEventDateKey(
+        new Date("2026-07-23T20:00:00Z"),
+        new Date("2026-07-24T08:00:00Z"),
+        "Europe/Zurich",
+      ),
+    ).toBeUndefined();
   });
 
   it("finds the forecast hour containing an itinerary start", () => {

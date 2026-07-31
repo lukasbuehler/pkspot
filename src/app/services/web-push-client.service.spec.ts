@@ -6,11 +6,11 @@ import {
   getToken,
   isSupported,
   onMessage,
-} from "firebase/messaging";
+} from "@angular/fire/messaging";
 import { environment } from "../../environments/environment.default";
 import { WebPushClientService } from "./web-push-client.service";
 
-vi.mock("firebase/messaging", () => ({
+vi.mock("@angular/fire/messaging", () => ({
   deleteToken: vi.fn().mockResolvedValue(true),
   getMessaging: vi.fn().mockReturnValue({ name: "messaging" }),
   getToken: vi.fn().mockResolvedValue("web-token"),

@@ -48,6 +48,10 @@ describe("ContinuousEventCalendarComponent", () => {
   });
 
   it("renders fixed weekdays and month markers in one scrolling grid", async () => {
+    const loadedResults: EventDiscoverySearchResult[] = [];
+    fixture.componentInstance.resultLoaded.subscribe((result) =>
+      loadedResults.push(result),
+    );
     await fixture.whenStable();
 
     const weekdayRow = fixture.nativeElement.querySelector(".weekday-row");
@@ -68,9 +72,23 @@ describe("ContinuousEventCalendarComponent", () => {
         abortSignal: expect.any(AbortSignal),
       }),
     );
+    expect(loadedResults.at(-1)).toBe(EMPTY_RESULT);
   });
 
   it("extends the loaded month window near the bottom edge", async () => {
+    const expandedResult: EventDiscoverySearchResult = {
+      ...EMPTY_RESULT,
+      facets: {
+        categories: [{ value: "competition", count: 2 }],
+        series: [],
+        communities: [],
+      },
+    };
+    const loadedResults: EventDiscoverySearchResult[] = [];
+    loader.mockResolvedValue(expandedResult);
+    fixture.componentInstance.resultLoaded.subscribe((result) =>
+      loadedResults.push(result),
+    );
     await fixture.whenStable();
     const viewport = fixture.nativeElement.querySelector(
       ".calendar-scroll",
@@ -88,6 +106,9 @@ describe("ContinuousEventCalendarComponent", () => {
     expect(fixture.componentInstance.monthKeys()).toHaveLength(
       initialMonths + 2,
     );
+    expect(loader).toHaveBeenCalledTimes(2);
+    expect(loadedResults).toHaveLength(2);
+    expect(loadedResults.at(-1)).toBe(expandedResult);
   });
 
   it("jumps to a date and emits a shareable URL anchor", async () => {

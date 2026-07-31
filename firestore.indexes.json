@@ -57,6 +57,20 @@
       ]
     },
     {
+      "collectionGroup": "community_spot_digest_items",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "send_after",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "notification_intents",
       "queryScope": "COLLECTION",
       "fields": [
@@ -361,6 +375,16 @@
         {
           "queryScope": "COLLECTION_GROUP",
           "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "community_follows",
+      "fieldPath": "community_key",
+      "indexes": [
+        {
+          "queryScope": "COLLECTION_GROUP",
+          "order": "ASCENDING"
         }
       ]
     }

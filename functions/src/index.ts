@@ -226,3 +226,9 @@ export {
   onSpotEditNotificationWrite,
   sendDueNotificationIntents,
 } from "./notificationFunctions";
+export {
+  migrateCommunityFollowsOnMerge,
+  onCommunityEventDiscoveryWrite,
+  onCommunitySpotRecommendationWrite,
+  sendCommunitySpotDigests,
+} from "./communityNotificationFunctions";

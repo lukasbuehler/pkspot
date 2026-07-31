@@ -12,6 +12,7 @@ import {
   computed,
   ChangeDetectionStrategy,
   linkedSignal,
+  resource,
 } from "@angular/core";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
 import {
@@ -38,6 +39,7 @@ import { trigger, transition, style, animate } from "@angular/animations";
 import { MatMenuModule } from "@angular/material/menu";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { MatDialog } from "@angular/material/dialog";
 import { MapsApiService } from "../../services/maps-api.service";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
 import { GoogleMap2dComponent } from "../google-map-2d/google-map-2d.component";
@@ -109,6 +111,13 @@ import {
   type EventSpotBinding,
 } from "../../shared/event-program-spots";
 import { eventProgramLocationColor } from "../../shared/event-program-timeline";
+import { WeatherService } from "../../weather/weather.service";
+import type { EventWeatherSelection } from "../../weather/event-weather";
+import {
+  EVENT_WEATHER_DIALOG_CONFIG,
+  EventWeatherForecastDialogComponent,
+  type EventWeatherForecastDialogData,
+} from "../event-weather-forecast-dialog/event-weather-forecast-dialog.component";
 
 type EventPageMapMarker = MarkerSchema & {
   spotIndex?: number;
@@ -202,8 +211,10 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   private _route = inject(ActivatedRoute);
   private _router = inject(Router);
   private _snackbar = inject(MatSnackBar);
+  private readonly _dialog = inject(MatDialog);
   private _analytics = inject(AnalyticsService);
   private _eventPageData = inject(EventPageDataService);
+  private readonly _weatherService = inject(WeatherService);
   mapsApiService = inject(MapsApiService);
 
   /** True when the current user has admin rights — gates the edit button. */
@@ -523,6 +534,37 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   readonly minZoom = computed(() => this.event()?.minZoom ?? 10);
 
   platformId = inject(PLATFORM_ID);
+  readonly eventWeatherResource = resource({
+    params: () => {
+      const event = this.event();
+      if (
+        !isPlatformBrowser(this.platformId) ||
+        !event ||
+        !event.location ||
+        !Number.isFinite(event.location.lat) ||
+        !Number.isFinite(event.location.lng) ||
+        !this._weatherService.isEventForecastAvailable(event.start, event.end)
+      ) {
+        return undefined;
+      }
+      return {
+        location: event.location,
+        start: event.start,
+        end: event.end,
+      };
+    },
+    loader: ({ params }) =>
+      this._weatherService.getEventForecastForTileAt(
+        params.location,
+        params.start,
+        params.end,
+      ),
+  });
+  readonly eventWeather = computed(() =>
+    this.eventWeatherResource.hasValue()
+      ? this.eventWeatherResource.value()
+      : undefined,
+  );
 
   mapStyle: "roadmap" | "hybrid" = "hybrid";
 
@@ -1004,6 +1046,27 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
         },
       );
     }
+  }
+
+  openEventWeather(selection: EventWeatherSelection): void {
+    const event = this.event();
+    const response = this.eventWeather();
+    if (!event || !response) return;
+
+    this._dialog.open<
+      EventWeatherForecastDialogComponent,
+      EventWeatherForecastDialogData
+    >(EventWeatherForecastDialogComponent, {
+      ...EVENT_WEATHER_DIALOG_CONFIG,
+      data: {
+        eventName: event.name,
+        eventStart: event.start,
+        eventEnd: event.end,
+        timeZone: event.timeZone,
+        response,
+        selection,
+      },
+    });
   }
 
   selectSpot(

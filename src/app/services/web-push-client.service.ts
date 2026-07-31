@@ -13,7 +13,8 @@ export interface WebPushMessage {
   data?: Record<string, string>;
 }
 
-type MessagingModule = typeof import("firebase/messaging");
+// Keep Messaging on the same Firebase SDK instance that created FirebaseApp.
+type MessagingModule = typeof import("@angular/fire/messaging");
 
 interface WebPushEnvironment {
   webPush?: {
@@ -82,7 +83,7 @@ export class WebPushClientService {
   }
 
   private async _messagingModule(): Promise<MessagingModule> {
-    this.messagingModule ??= await import("firebase/messaging");
+    this.messagingModule ??= await import("@angular/fire/messaging");
     return this.messagingModule;
   }
 

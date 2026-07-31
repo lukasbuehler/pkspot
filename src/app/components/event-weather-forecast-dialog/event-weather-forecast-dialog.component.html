@@ -26,57 +26,12 @@
     (dateSelected)="selectDate($event)"
   />
 
-  <section class="hourly-section">
-    <h3 class="mat-title-medium" i18n="@@event_weather.hourly">
-      Hourly forecast
-    </h3>
-    @if (hours().length > 0) {
-      <div class="hourly-strip">
-        @for (hour of hours(); track hour.key) {
-          <article
-            class="weather-hour"
-            [class.highlighted]="hour.highlighted"
-            [attr.data-highlighted]="hour.highlighted"
-          >
-            <time class="mat-label-medium">{{ hour.time }}</time>
-            <mat-icon
-              class="forecast-icon"
-              [class.is-wet]="hour.tone === 'wet'"
-              [class.has-warning]="hour.tone === 'warning'"
-              [class.is-night]="hour.tone === 'night'"
-              [attr.aria-label]="hour.condition"
-              >{{ hour.icon }}</mat-icon
-            >
-            @if (hour.temperature) {
-              <strong>{{ hour.temperature }}</strong>
-            }
-            @if (hour.rainProbability !== undefined) {
-              <span class="rain-detail mat-label-small">
-                <mat-icon aria-hidden="true">water_drop</mat-icon>
-                {{ hour.rainProbability }}%
-              </span>
-            }
-          </article>
-        }
-      </div>
-    } @else {
-      <div class="hourly-unavailable" role="status">
-        <mat-icon aria-hidden="true">cloud_off</mat-icon>
-        <span i18n="@@event_weather.hourly_unavailable"
-          >Hourly forecast is not available for this event day yet.</span
-        >
-      </div>
-    }
-  </section>
-
-  <a
-    mat-button
-    class="attribution"
-    [href]="providerUrl"
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-    {{ attribution }}
-    <mat-icon>open_in_new</mat-icon>
-  </a>
+  <app-event-weather-hours
+    [response]="data.response"
+    [date]="selectedDate()"
+    [eventStart]="data.eventStart"
+    [eventEnd]="data.eventEnd"
+    [timeZone]="data.timeZone"
+    [highlightedTime]="highlightedTime()"
+  />
 </mat-dialog-content>

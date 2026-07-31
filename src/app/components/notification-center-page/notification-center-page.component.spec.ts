@@ -189,4 +189,41 @@ describe("NotificationCenterPageComponent", () => {
       "Your community information for Zurich was rejected.",
     );
   });
+
+  it("renders followed-community event and Spot digest updates", () => {
+    const now = Date.now();
+    items.set([
+      {
+        id: "community-event-1",
+        type: "community_event",
+        source_path: "event_discovery/event-1",
+        dedupe_key: "community-event-1",
+        path: "/events/city-jam",
+        payload: { community_name: "Zurich", event_name: "City Jam" },
+        active: true,
+        created_at_raw_ms: now,
+        available_at_raw_ms: now,
+        expires_at_raw_ms: now + 86_400_000,
+        updated_at_raw_ms: now,
+      },
+      {
+        id: "community-spots-1",
+        type: "community_spot_digest",
+        source_path: "users/user-1/community_spot_digest_items",
+        dedupe_key: "community-spots-1",
+        path: "/train",
+        payload: { spot_count: "3" },
+        active: true,
+        created_at_raw_ms: now,
+        available_at_raw_ms: now,
+        expires_at_raw_ms: now + 86_400_000,
+        updated_at_raw_ms: now,
+      },
+    ]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain("New event in Zurich");
+    expect(fixture.nativeElement.textContent).toContain("City Jam was just published.");
+    expect(fixture.nativeElement.textContent).toContain("Spots worth checking out");
+  });
 });

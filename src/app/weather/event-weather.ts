@@ -1,4 +1,29 @@
+import {
+  WEATHER_STATES,
+  getDailyWeatherForecastIconTone,
+  getWeatherForecastIconTone,
+  getWeatherStateIcon,
+  type WeatherCondition,
+  type WeatherForecastIconTone,
+} from "./weather-display";
+import type { WeatherVisualStatus } from "./weather-warnings";
 import type { DailyWeatherPoint, WeatherPoint } from "./weather.models";
+
+export interface EventProgramWeatherIconData {
+  condition: WeatherCondition;
+  isDay?: boolean;
+  temperatureC?: number;
+  minTemperatureC?: number;
+  maxTemperatureC?: number;
+  status: WeatherVisualStatus;
+}
+
+export interface EventProgramDayWeather {
+  data: EventProgramWeatherIconData;
+  icon: string;
+  label: string;
+  tone: WeatherForecastIconTone;
+}
 
 export interface EventWeatherSelection {
   date: string;
@@ -36,6 +61,15 @@ export function enumerateEventDateKeys(
   return keys;
 }
 
+export function singleEventDateKey(
+  start: Date,
+  end: Date,
+  timeZone?: string,
+): string | undefined {
+  const dates = enumerateEventDateKeys(start, end, timeZone);
+  return dates.length === 1 ? dates[0] : undefined;
+}
+
 export function dailyForecastByDate(
   points: DailyWeatherPoint[] | undefined,
 ): ReadonlyMap<string, DailyWeatherPoint> {
@@ -53,6 +87,51 @@ export function forecastHourAt(
   });
 }
 
+export function eventProgramHourWeather(
+  point: WeatherPoint | undefined,
+): EventProgramWeatherIconData | undefined {
+  if (!point) return undefined;
+  const condition = point.condition ?? "unknown";
+  return {
+    condition,
+    isDay: point.isDay,
+    temperatureC: point.temperatureC,
+    status: weatherStatusFromTone(
+      getWeatherForecastIconTone({
+        condition,
+        temperatureC: point.temperatureC,
+        uvIndex: point.uvIndex,
+        precipitationMm: point.precipitationMm,
+        precipitationProbabilityPercent:
+          point.precipitationProbabilityPercent,
+        isDay: point.isDay,
+      }),
+    ),
+  };
+}
+
+export function eventProgramDayWeather(
+  point: DailyWeatherPoint | undefined,
+): EventProgramDayWeather | undefined {
+  if (!point) return undefined;
+  const condition = point.condition ?? "unknown";
+  const tone = getDailyWeatherForecastIconTone({
+    condition,
+    temperatureC: point.maxTemperatureC,
+  });
+  return {
+    data: {
+      condition,
+      minTemperatureC: point.minTemperatureC,
+      maxTemperatureC: point.maxTemperatureC,
+      status: weatherStatusFromTone(tone),
+    },
+    icon: getWeatherStateIcon(condition),
+    label: WEATHER_STATES[condition].label,
+    tone,
+  };
+}
+
 export function eventHoursForDate(
   points: WeatherPoint[] | undefined,
   date: string,
@@ -68,4 +147,11 @@ export function eventHoursForDate(
       eventDateKey(new Date(time), timeZone) === date
     );
   });
+}
+
+function weatherStatusFromTone(
+  tone: WeatherForecastIconTone,
+): WeatherVisualStatus {
+  if (tone === "wet") return "wet";
+  return tone === "warning" ? "warning" : "neutral";
 }

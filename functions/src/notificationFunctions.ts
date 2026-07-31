@@ -13,6 +13,10 @@ import type {
   NotificationPreferencesSchema,
   NotificationRegistrationSchema,
 } from "../../src/db/schemas/NotificationSchema";
+import {
+  shouldNotifySpotEditOutcome,
+  spotEditOutcome,
+} from "./spotEditNotificationPolicy";
 
 type IntentChannel =
   | "follow_incoming"
@@ -22,8 +26,9 @@ type IntentChannel =
   | "spot_edit_updates"
   | "spot_report_updates"
   | "media_report_updates"
-  | "community_info_updates";
-type SpotEditOutcome = "approved" | "rejected";
+  | "community_info_updates"
+  | "community_events"
+  | "community_spot_digest";
 type ReviewOutcome = "approved" | "rejected";
 type ReportOutcome = "action_taken" | "dismissed";
 type ReportKind = "spot" | "media";
@@ -33,6 +38,11 @@ interface SpotEditNotificationSource {
   review_status?: "pending" | "approved" | "rejected";
   user?: { uid?: string };
   data?: { name?: unknown };
+  processing_status?: string;
+  decision_source?:
+    | "automatic_immediate"
+    | "community_vote"
+    | "organization_review";
 }
 
 export interface IntentInput {
@@ -58,6 +68,7 @@ interface StoredIntent {
   status: "pending" | "processing" | "sent" | "cancelled" | "failed" | "skipped";
   attempts: number;
   created_at?: Timestamp;
+  failure_reason?: string;
 }
 
 const INTENTS = "notification_intents";
@@ -84,6 +95,8 @@ const PREFERENCE_BY_TYPE: Record<
   spot_report_update: "report_updates",
   media_report_update: "report_updates",
   community_info_update: "community_info_updates",
+  community_event: "community_events",
+  community_spot_digest: "community_spot_digest",
 };
 
 export const onFollowRequestNotificationCreate = onDocumentWritten(
@@ -321,7 +334,12 @@ export const onSpotEditNotificationWrite = onDocumentWritten(
     const after = event.data.after.data() as SpotEditNotificationSource;
     const previousOutcome = spotEditOutcome(before);
     const outcome = spotEditOutcome(after);
-    if (!outcome || outcome === previousOutcome || !after.user?.uid) return;
+    if (
+      !outcome ||
+      outcome === previousOutcome ||
+      !after.user?.uid ||
+      !shouldNotifySpotEditOutcome(before, after)
+    ) return;
 
     const spotId = String(event.params.spotId);
     const editId = String(event.params.editId);
@@ -521,7 +539,7 @@ export const onNotificationIntentWrite = onDocumentWritten(
       adminTimestamp(after.expires_at) ??
       Timestamp.fromMillis(now.toMillis() + 30 * DAY_MS);
     const createdAt = adminTimestamp(after.created_at) ?? now;
-    const active = after.status !== "cancelled";
+    const active = intentIsActive(after);
     await feedRef.set(
       {
         type: after.type,
@@ -595,6 +613,19 @@ export async function createIntent(id: string, input: IntentInput): Promise<void
     const code = (error as { code?: unknown }).code;
     if (code !== 6 && code !== "already-exists") throw error;
   }
+}
+
+/** Updates a not-yet-sent deterministic intent, while never resending a sent one. */
+export async function upsertPendingIntent(
+  id: string,
+  input: IntentInput,
+): Promise<void> {
+  const ref = admin.firestore().collection(INTENTS).doc(id);
+  await admin.firestore().runTransaction(async (transaction) => {
+    const existing = await transaction.get(ref);
+    if (existing.data()?.["status"] === "sent") return;
+    transaction.set(ref, intentDocument(id, input), { merge: false });
+  });
 }
 
 function intentDocument(
@@ -746,6 +777,22 @@ async function deliverIntent(
   }
 
   const db = admin.firestore();
+  if (intent.type === "community_event") {
+    const eventId = intent.payload["event_id"];
+    const eventSnapshot = eventId
+      ? await db.doc(`event_discovery/${eventId}`).get()
+      : null;
+    const eventData = eventSnapshot?.data() as EventSchema | undefined;
+    const end = adminTimestamp(eventData?.end);
+    if (
+      !eventSnapshot?.exists ||
+      !end ||
+      end.toMillis() <= Date.now() ||
+      eventData?.lifecycle_status === "cancelled"
+    ) {
+      return { status: "skipped", deliveryCount: 0, reason: "event_unavailable" };
+    }
+  }
   const liveUpdateEventId = intent.payload["update_id"]
     ? intent.payload["event_id"]
     : undefined;
@@ -793,6 +840,14 @@ async function deliverIntent(
   ] as NotificationPreferencesSchema | undefined;
   if (preferences?.[PREFERENCE_BY_TYPE[intent.type]] !== true) {
     return { status: "skipped", deliveryCount: 0, reason: "preference_disabled" };
+  }
+
+  if (
+    (intent.type === "community_event" ||
+      intent.type === "community_spot_digest") &&
+    !(await hasEnabledCommunityFollow(db, intent))
+  ) {
+    return { status: "skipped", deliveryCount: 0, reason: "community_follow_disabled" };
   }
 
   const registrations = await db
@@ -905,6 +960,10 @@ function deliveryChannel(intent: StoredIntent): IntentChannel {
       return "media_report_updates";
     case "community_info_update":
       return "community_info_updates";
+    case "community_event":
+      return "community_events";
+    case "community_spot_digest":
+      return "community_spot_digest";
   }
 }
 
@@ -963,6 +1022,18 @@ function notificationCopy(
         body: `Deine Community-Info für ${p["community_name"]} wurde ${p["outcome"] === "approved" ? "bestätigt" : "abgelehnt"}.`,
       };
     }
+    if (intent.type === "community_event") {
+      return {
+        title: `Neues Event in ${p["community_name"]}`,
+        body: `${p["event_name"]} wurde veröffentlicht.`,
+      };
+    }
+    if (intent.type === "community_spot_digest") {
+      return {
+        title: "Spots, die einen Blick wert sind",
+        body: `${p["spot_count"]} neu empfohlene Spots in deinen Communities.`,
+      };
+    }
     return {
       title: p["outcome"] === "approved" ? "Spot-Bearbeitung bestätigt" : "Spot-Bearbeitung abgelehnt",
       body: `${p["spot_name"]} wurde ${p["outcome"] === "approved" ? "bestätigt" : "abgelehnt"}.`,
@@ -1017,6 +1088,18 @@ function notificationCopy(
       body: `Your community information for ${p["community_name"]} was ${p["outcome"] === "approved" ? "approved" : "rejected"}.`,
     };
   }
+  if (intent.type === "community_event") {
+    return {
+      title: `New event in ${p["community_name"]}`,
+      body: `${p["event_name"]} was just published.`,
+    };
+  }
+  if (intent.type === "community_spot_digest") {
+    return {
+      title: "Spots worth checking out",
+      body: `${p["spot_count"]} newly recommended Spots in your communities.`,
+    };
+  }
   return {
     title: p["outcome"] === "approved" ? "Spot edit approved" : "Spot edit rejected",
     body: `${p["spot_name"]} was ${p["outcome"] === "approved" ? "approved" : "rejected"}.`,
@@ -1039,15 +1122,32 @@ function eventChange(before: EventSchema, after: EventSchema): string | null {
   return null;
 }
 
-function spotEditOutcome(
-  edit: SpotEditNotificationSource | null,
-): SpotEditOutcome | null {
-  if (!edit) return null;
-  if (edit.review_status === "rejected") return "rejected";
-  if (edit.approved === true || edit.review_status === "approved") {
-    return "approved";
+async function hasEnabledCommunityFollow(
+  db: FirebaseFirestore.Firestore,
+  intent: StoredIntent,
+): Promise<boolean> {
+  const keys = stringArrayPayload(intent.payload["community_keys"]);
+  const setting = intent.type === "community_event"
+    ? "event_notifications"
+    : "spot_digest_notifications";
+  const snapshots = await Promise.all(
+    keys.map((key) =>
+      db.doc(`users/${intent.recipient_uid}/community_follows/${key}`).get(),
+    ),
+  );
+  return snapshots.some((snapshot) => snapshot.data()?.[setting] === true);
+}
+
+function stringArrayPayload(value: string | undefined): string[] {
+  if (!value) return [];
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is string => typeof item === "string")
+      : [];
+  } catch {
+    return [];
   }
-  return null;
 }
 
 async function createReportIntent(
@@ -1133,7 +1233,7 @@ function eventReminderIntentId(eventId: string, userId: string): string {
 
 function sameFeedProjection(before: StoredIntent, after: StoredIntent): boolean {
   return (
-    (before.status !== "cancelled") === (after.status !== "cancelled") &&
+    intentIsActive(before) === intentIsActive(after) &&
     before.type === after.type &&
     before.recipient_uid === after.recipient_uid &&
     before.source_path === after.source_path &&
@@ -1141,6 +1241,15 @@ function sameFeedProjection(before: StoredIntent, after: StoredIntent): boolean 
     before.send_after?.toMillis() === after.send_after?.toMillis() &&
     before.expires_at?.toMillis() === after.expires_at?.toMillis() &&
     JSON.stringify(before.payload) === JSON.stringify(after.payload)
+  );
+}
+
+function intentIsActive(intent: StoredIntent): boolean {
+  if (intent.status === "cancelled") return false;
+  return !(
+    intent.status === "skipped" &&
+    (intent.failure_reason === "event_unavailable" ||
+      intent.failure_reason === "community_follow_disabled")
   );
 }
 

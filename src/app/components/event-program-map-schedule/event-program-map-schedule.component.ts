@@ -7,6 +7,7 @@ import {
   output,
 } from "@angular/core";
 import { MatExpansionModule } from "@angular/material/expansion";
+import { MatIconModule } from "@angular/material/icon";
 import type {
   Event as PkEvent,
   EventProgramItem,
@@ -20,22 +21,38 @@ import {
   type EventProgramSpotOccurrence,
 } from "../../shared/event-program-spots";
 import { eventProgramTimelineLocationsByItem } from "../../shared/event-program-timeline";
-import { eventDateKey } from "../../weather/event-weather";
+import {
+  dailyForecastByDate,
+  eventDateKey,
+  eventProgramDayWeather,
+  eventProgramHourWeather,
+  forecastHourAt,
+  type EventProgramDayWeather,
+  type EventWeatherSelection,
+} from "../../weather/event-weather";
+import type { WeatherResponse } from "../../weather/weather.models";
 import {
   EventProgramDayTimelineComponent,
   type EventProgramTimelineEntry,
 } from "../event-program-day-timeline/event-program-day-timeline.component";
 import type { MarkerSchema } from "../map/markers/map-marker.model";
+import { WeatherIconButtonComponent } from "../weather-icon-button/weather-icon-button.component";
 
 interface ProgramScheduleDay {
   key: string;
   label: string;
   entries: EventProgramTimelineEntry[];
+  weather?: EventProgramDayWeather;
 }
 
 @Component({
   selector: "app-event-program-map-schedule",
-  imports: [MatExpansionModule, EventProgramDayTimelineComponent],
+  imports: [
+    MatExpansionModule,
+    MatIconModule,
+    EventProgramDayTimelineComponent,
+    WeatherIconButtonComponent,
+  ],
   templateUrl: "./event-program-map-schedule.component.html",
   styleUrl: "./event-program-map-schedule.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -48,6 +65,9 @@ export class EventProgramMapScheduleComponent {
   readonly customMarkers = input<readonly MarkerSchema[]>([]);
   readonly linkedEventsById = input<Readonly<Record<string, PkEvent>>>({});
   readonly timeZone = input<string>();
+  readonly eventStart = input<Date>();
+  readonly eventEnd = input<Date>();
+  readonly weather = input<WeatherResponse>();
   readonly now = input(new Date());
   readonly selectedDay = input("");
   readonly selectedItemId = input<string | null>(null);
@@ -56,9 +76,12 @@ export class EventProgramMapScheduleComponent {
   readonly dayClosed = output<string>();
   readonly occurrenceSelected = output<EventProgramOccurrence>();
   readonly spotSelected = output<EventProgramSpotOccurrence>();
+  readonly weatherSelected = output<EventWeatherSelection>();
 
   readonly days = computed<ProgramScheduleDay[]>(() => {
     const groups = new Map<string, ProgramScheduleDay>();
+    const response = this.weather();
+    const dailyByDate = dailyForecastByDate(response?.dailyForecast);
     const markerBindings = this.customMarkers().flatMap(
       (marker): EventMarkerBinding[] =>
         marker.id
@@ -91,6 +114,11 @@ export class EventProgramMapScheduleComponent {
     )) {
       const effective = effectiveProgramItem(item);
       const key = eventDateKey(effective.start, this.timeZone());
+      const eventStart = this.eventStart();
+      const eventEnd = this.eventEnd();
+      const itemIsWithinEvent =
+        (!eventStart || effective.start >= eventStart) &&
+        (!eventEnd || effective.start <= eventEnd);
       const locations = locationsByItem.get(item.id);
       const entry: EventProgramTimelineEntry = {
         item,
@@ -101,6 +129,11 @@ export class EventProgramMapScheduleComponent {
           : undefined,
         spots: locations?.spots ?? [],
         markers: locations?.markers ?? [],
+        weather: eventProgramHourWeather(
+          itemIsWithinEvent
+            ? forecastHourAt(response?.forecast, effective.start)
+            : undefined,
+        ),
       };
       const day = groups.get(key);
 
@@ -111,6 +144,7 @@ export class EventProgramMapScheduleComponent {
           key,
           label: labelFormatter.format(effective.start),
           entries: [entry],
+          weather: eventProgramDayWeather(dailyByDate.get(key)),
         });
       }
     }
@@ -124,5 +158,13 @@ export class EventProgramMapScheduleComponent {
       return;
     }
     this.occurrenceSelected.emit(occurrence);
+  }
+
+  selectDayWeather(date: string): void {
+    this.weatherSelected.emit({ date });
+  }
+
+  selectItemWeather(date: string, time: Date): void {
+    this.weatherSelected.emit({ date, time });
   }
 }
