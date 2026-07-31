@@ -35,7 +35,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { MatSelectModule } from "@angular/material/select";
 import { MatTimepickerModule } from "@angular/material/timepicker";
-import { Timestamp } from "@angular/fire/firestore";
+import { Timestamp } from "firebase/firestore";
 import { Event as PkEvent } from "../../../db/models/Event";
 import {
   EventBoundsSchema,

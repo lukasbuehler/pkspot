@@ -32,7 +32,7 @@ import { LocaleCode } from "../../../db/models/Interfaces";
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
 import { firstValueFrom, Observable, startWith, map } from "rxjs";
 import { countries } from "../../../scripts/Countries";
-import { Timestamp } from "@angular/fire/firestore";
+import { Timestamp } from "firebase/firestore";
 import {
   MatDatepickerInput,
   MatDatepickerToggle,

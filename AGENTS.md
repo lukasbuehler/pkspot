@@ -100,6 +100,7 @@ If you hit the Codex sandbox error "Abort trap: 6", you need to run it outside t
 - When a change requires release coordination—such as updating Firestore indexes or Typesense schemas, deploying functions or rules, running a migration or backfill, regenerating a sitemap, cleaning up old resources, or completing an external-service check—update `DEPLOYMENT_TASKS.md` in the same change. Add release-specific pending actions with the required order, exact commands or targets where practical, success checks, and any condition for retaining or removing compatibility behavior.
 - Keep the reusable release procedure in `DEPLOYMENT_TASKS.md` aligned with the repository's actual scripts and infrastructure. Put one-off work under `Release-specific pending actions`, not in the reusable procedure.
 - Never mark a deployment-note item complete unless the action was actually performed and its result verified. A checklist entry documents pending work; it does not grant permission to deploy, mutate production data, or operate App Hosting.
+- Once a deployment action and its success condition are performed and verified, remove that item from `DEPLOYMENT_TASKS.md`; remove the entire section when it has no pending work. Git history is the completion record. If only part of an item is complete, rewrite it to describe only the remaining action and success condition.
 
 ## Backwards compatibility
 

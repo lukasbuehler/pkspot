@@ -1,5 +1,5 @@
 import { inject, Injectable } from "@angular/core";
-import { Timestamp } from "@angular/fire/firestore";
+import { Timestamp } from "firebase/firestore";
 import { firstValueFrom } from "rxjs";
 import type { CommunityCardSuggestionSchema } from "../../../../db/schemas/CommunityCardSuggestionSchema";
 import type {

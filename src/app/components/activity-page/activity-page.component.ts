@@ -18,7 +18,7 @@ import { switchMap, takeUntil } from "rxjs/operators";
 import { SpotEditSchema } from "../../../db/schemas/SpotEditSchema";
 import { Spot } from "../../../db/models/Spot";
 import { LocaleCode } from "../../../db/models/Interfaces";
-import { Timestamp } from "@angular/fire/firestore";
+import { Timestamp } from "firebase/firestore";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatChipsModule } from "@angular/material/chips";

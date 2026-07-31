@@ -1,5 +1,5 @@
 import { inject, Injectable } from "@angular/core";
-import { Timestamp } from "@angular/fire/firestore";
+import { Timestamp } from "firebase/firestore";
 import { map } from "rxjs/operators";
 import { Observable } from "rxjs";
 import { SpotEditSchema } from "../../../../db/schemas/SpotEditSchema";

@@ -1,6 +1,6 @@
 import { PLATFORM_ID } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { FirebaseApp } from "@angular/fire/app";
+import { FirebaseApp } from "firebase/app";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
@@ -9,13 +9,14 @@ import {
   signInWithPopup,
   signOut,
   updateProfile,
-} from "@angular/fire/auth";
+} from "firebase/auth";
 import { BehaviorSubject, Observable, of, Subject } from "rxjs";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { AnalyticsService } from "../analytics.service";
 import { ConsentService } from "../consent.service";
 import { UsersService } from "./firestore/users.service";
 import { AuthenticationService } from "./authentication.service";
+import { FIREBASE_APP } from "./firebase-client.providers";
 
 const authMock = vi.hoisted(() => ({
   currentUser: null as unknown,
@@ -23,8 +24,8 @@ const authMock = vi.hoisted(() => ({
   setPersistence: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@angular/fire/auth", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@angular/fire/auth")>();
+vi.mock("firebase/auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("firebase/auth")>();
   return {
     ...actual,
     getAuth: vi.fn(() => authMock),
@@ -107,7 +108,7 @@ describe("AuthenticationService", () => {
         AuthenticationService,
         { provide: UsersService, useValue: usersServiceSpy },
         {
-          provide: FirebaseApp,
+          provide: FIREBASE_APP,
           useValue: {
             name: "test-app",
             options: {},
@@ -150,7 +151,7 @@ describe("AuthenticationService", () => {
         AuthenticationService,
         { provide: UsersService, useValue: usersServiceSpy },
         {
-          provide: FirebaseApp,
+          provide: FIREBASE_APP,
           useValue: {
             name: "test-app",
             options: {},

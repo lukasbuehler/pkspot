@@ -1,5 +1,5 @@
 import { Injectable, inject, Injector } from "@angular/core";
-import type { QuerySnapshot, DocumentData } from "@angular/fire/firestore";
+import type { QuerySnapshot, DocumentData } from "firebase/firestore";
 import { Observable, forkJoin, of, from, throwError } from "rxjs";
 import { map, take, timeout, catchError } from "rxjs/operators";
 import { Spot } from "../../../../db/models/Spot";
@@ -151,7 +151,7 @@ export class SpotsService extends ConsentAwareService {
 
     // Use adapter - it handles platform detection internally
     // On native: uses native Capacitor Firebase SDK
-    // On web: uses @angular/fire
+    // On web: uses the Firebase JS SDK.
     const observables = tiles.map((tile) => {
       const filters: QueryFilter[] = [
         { fieldPath: "tile_coordinates.z16.x", opStr: "==", value: tile.x },

@@ -1,17 +1,19 @@
 import {
   Injectable,
-  Injector,
+  PendingTasks,
   inject,
-  runInInjectionContext,
 } from "@angular/core";
-import { FirebaseApp } from "@angular/fire/app";
-import { Functions, httpsCallable } from "@angular/fire/functions";
-import { getAuth, getIdToken } from "@angular/fire/auth";
+import { httpsCallable } from "firebase/functions";
+import { getAuth, getIdToken } from "firebase/auth";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { environment } from "../../../environments/environment.default";
 import { PlatformService } from "../platform.service";
 import { FirebaseAppCheckService } from "./app-check.service";
 import { getFirebaseEmulatorSettings } from "./firebase-emulator.config";
+import {
+  FIREBASE_APP,
+  FIREBASE_FUNCTIONS,
+} from "./firebase-client.providers";
 
 const SAME_ORIGIN_PUBLIC_CALLABLES = new Set(["getPublicImportProvenance"]);
 
@@ -31,57 +33,61 @@ type CallableSuccessResponse = {
   providedIn: "root",
 })
 export class FunctionsAdapterService {
-  private readonly functions = inject(Functions, { optional: true });
-  private readonly firebaseApp = inject(FirebaseApp);
+  private readonly functions = inject(FIREBASE_FUNCTIONS);
+  private readonly firebaseApp = inject(FIREBASE_APP);
   private readonly platformService = inject(PlatformService);
   private readonly appCheckService = inject(FirebaseAppCheckService);
-  private readonly injector = inject(Injector);
+  private readonly pendingTasks = inject(PendingTasks);
 
   async call<TRequest, TResponse>(
     functionName: string,
     payload: TRequest,
   ): Promise<TResponse> {
-    if (this.platformService.isNative()) {
-      return this.callNative<TRequest, TResponse>(functionName, payload, true);
-    }
-
-    return this.callWeb<TRequest, TResponse>(functionName, payload);
+    return this.trackPending(() =>
+      this.platformService.isNative()
+        ? this.callNative<TRequest, TResponse>(functionName, payload, true)
+        : this.callWeb<TRequest, TResponse>(functionName, payload),
+    );
   }
 
   async callPublic<TRequest, TResponse>(
     functionName: string,
     payload: TRequest,
   ): Promise<TResponse> {
-    if (this.platformService.isNative()) {
-      return this.callNative<TRequest, TResponse>(
-        functionName,
-        payload,
-        false,
-        true,
-      );
-    }
+    return this.trackPending(() => {
+      if (this.platformService.isNative()) {
+        return this.callNative<TRequest, TResponse>(
+          functionName,
+          payload,
+          false,
+          true,
+        );
+      }
 
-    if (
-      environment.production &&
-      typeof window !== "undefined" &&
-      SAME_ORIGIN_PUBLIC_CALLABLES.has(functionName)
-    ) {
-      return this.callSameOriginPublic<TRequest, TResponse>(
-        functionName,
-        payload,
-      );
-    }
+      if (
+        environment.production &&
+        typeof window !== "undefined" &&
+        SAME_ORIGIN_PUBLIC_CALLABLES.has(functionName)
+      ) {
+        return this.callSameOriginPublic<TRequest, TResponse>(
+          functionName,
+          payload,
+        );
+      }
 
-    return this.callWeb<TRequest, TResponse>(functionName, payload);
+      return this.callWeb<TRequest, TResponse>(functionName, payload);
+    });
   }
 
   async callAppChecked<TRequest, TResponse>(
     functionName: string,
     payload: TRequest,
   ): Promise<TResponse> {
-    const appCheckToken = await this.appCheckService.getTokenForRequest();
-    return this.callDirect<TRequest, TResponse>(functionName, payload, {
-      "X-Firebase-AppCheck": appCheckToken,
+    return this.trackPending(async () => {
+      const appCheckToken = await this.appCheckService.getTokenForRequest();
+      return this.callDirect<TRequest, TResponse>(functionName, payload, {
+        "X-Firebase-AppCheck": appCheckToken,
+      });
     });
   }
 
@@ -89,18 +95,29 @@ export class FunctionsAdapterService {
     functionName: string,
     payload: TRequest,
   ): Promise<TResponse> {
-    const [appCheckToken, authToken] = await Promise.all([
-      this.appCheckService.getTokenForRequest(),
-      this.getAuthenticationToken(),
-    ]);
-    if (!authToken) {
-      throw new Error("An authenticated Firebase user is required");
-    }
+    return this.trackPending(async () => {
+      const [appCheckToken, authToken] = await Promise.all([
+        this.appCheckService.getTokenForRequest(),
+        this.getAuthenticationToken(),
+      ]);
+      if (!authToken) {
+        throw new Error("An authenticated Firebase user is required");
+      }
 
-    return this.callDirect<TRequest, TResponse>(functionName, payload, {
-      Authorization: `Bearer ${authToken}`,
-      "X-Firebase-AppCheck": appCheckToken,
+      return this.callDirect<TRequest, TResponse>(functionName, payload, {
+        Authorization: `Bearer ${authToken}`,
+        "X-Firebase-AppCheck": appCheckToken,
+      });
     });
+  }
+
+  private async trackPending<T>(operation: () => Promise<T>): Promise<T> {
+    const complete = this.pendingTasks.add();
+    try {
+      return await operation();
+    } finally {
+      complete();
+    }
   }
 
   private async callSameOriginPublic<TRequest, TResponse>(
@@ -125,19 +142,11 @@ export class FunctionsAdapterService {
     functionName: string,
     payload: TRequest,
   ): Promise<TResponse> {
-    const functions = this.functions;
-    if (!functions) {
-      throw new Error("Functions are unavailable in this environment.");
-    }
-
-    return runInInjectionContext(this.injector, async () => {
-      const callable = httpsCallable<TRequest, TResponse>(
-        functions,
-        functionName,
-      );
-      const result = await callable(payload);
-      return result.data;
-    });
+    const callable = httpsCallable<TRequest, TResponse>(
+      this.functions,
+      functionName,
+    );
+    return (await callable(payload)).data;
   }
 
   private async callNative<TRequest, TResponse>(

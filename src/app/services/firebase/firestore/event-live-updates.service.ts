@@ -1,5 +1,5 @@
 import { Injectable, inject } from "@angular/core";
-import { Timestamp } from "@angular/fire/firestore";
+import { Timestamp } from "firebase/firestore";
 import { Observable, map, of } from "rxjs";
 import { Event } from "../../../../db/models/Event";
 import { EventLiveUpdate } from "../../../../db/models/EventLiveUpdate";

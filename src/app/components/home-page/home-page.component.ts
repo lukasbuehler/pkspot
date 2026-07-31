@@ -17,7 +17,7 @@ import { Spot } from "../../../db/models/Spot";
 import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { StorageService } from "../../services/firebase/storage.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
-import { DocumentChangeType } from "@angular/fire/compat/firestore";
+import { DocumentChangeType } from "firebase/firestore";
 import { Observable, Subscription } from "rxjs";
 import { GeoPoint, Timestamp } from "firebase/firestore";
 import { MatIcon } from "@angular/material/icon";

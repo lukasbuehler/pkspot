@@ -77,6 +77,20 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
+### Firebase JS SDK client migration
+
+No Firebase backend deployment, schema migration, rules change, or data backfill
+is required for this client-only refactor.
+
+- [ ] Release the direct Firebase JS SDK client through the normal `main` and
+      mobile release workflows. Smoke-test production web and supported
+      Capacitor builds: restore a signed-in session after reload, sign in and
+      out, observe a realtime Firestore update without further interaction,
+      call a `europe-west1` Function, upload with visible progress, initialize
+      App Check, and register/receive web push. Confirm localized SSR returns
+      real HTML and production logs contain no browser-only Firebase or
+      `Service messaging is not available` errors.
+
 ### Event cancellation and live operations
 
 Deploy the compatible backend before releasing the event-operations UI. No
@@ -311,22 +325,6 @@ dropped and re-added as optional.
       the frontend through the normal `main` workflow. Do not operate App
       Hosting directly.
 
-### Event weather forecast pagination and cache serialization hotfix
-
-- [ ] Build and deploy the corrected `getWeather` Function:
-
-  ```sh
-  npm --prefix functions run build
-  npx firebase deploy --project prod --only functions:getWeather
-  ```
-
-  Success condition: loading `/events/uk-nationals-2026` and the WPF Camp event
-  produces successful `getWeather` callable responses, renders hourly forecasts
-  beyond the provider's first 24-hour page, and creates `weather_cache` documents
-  without any undefined event insight fields. Confirm the Function logs no
-  longer contain Firestore serialization errors for
-  `response.insights.wettestHour`.
-
 ### Organization image cropping and media processing
 
 The Functions and storage rules must be deployed before the organization editor
@@ -366,22 +364,6 @@ unsupported storage destination.
 The backend rollout is deliberately separate from the client rollout. Do not
 activate the final cutover while any supported client still reads another
 user's authoritative `users/{uid}` document.
-
-- [x] Deploy the additive profile Functions and compatible Firestore rules
-      before releasing the new client:
-
-  ```sh
-  npm --prefix functions run build
-  npx firebase deploy --project prod --only functions:getUserProfile,functions:syncPublicUserProfileOnWrite,functions:backfillPublicUserProfiles,functions:activateUserProfilePrivacyCutover,functions:updateAgePolicy,firestore:rules
-  ```
-
-  Success condition: all targets deploy successfully,
-  `maintenance/user-profile-privacy` is still absent or not completed, and a
-  released legacy client can still open profiles.
-
-  Completed 27 July 2026. All selected targets deployed successfully; the
-  production callable returned a limited profile and an anonymous legacy
-  profile read still returned HTTP 200, confirming that cutover is inactive.
 
 - [ ] Release the client that reads other users through `getUserProfile`, writes
       `public_profile_enabled` and `public_search`, and resolves public profile
@@ -491,15 +473,6 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
 
 ### Online-safety operational readiness
 
-- [x] Deploy the backward-compatible incident runbook Functions before a client
-      release:
-
-  ```sh
-  npm --prefix functions run build
-  npx firebase deploy --project prod --only functions:createSafetyIncident,functions:updateSafetyIncident
-  ```
-
-  Completed 27 July 2026. Both Functions deployed successfully.
 - [ ] Verify in production that an administrator can still update a legacy
       incident that does not yet have runbook fields.
 - [ ] Obtain written UK advice on whether the Swiss-operated service currently

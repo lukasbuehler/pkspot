@@ -1,9 +1,9 @@
 import { isPlatformBrowser } from "@angular/common";
 import { Injectable, PLATFORM_ID, inject } from "@angular/core";
-import { FirebaseApp } from "@angular/fire/app";
 import { Capacitor } from "@capacitor/core";
 import { environment } from "../../environments/environment.default";
 import type { NotificationPermissionState } from "../../db/schemas/NotificationSchema";
+import { FIREBASE_APP } from "./firebase/firebase-client.providers";
 
 export interface WebPushMessage {
   notification?: {
@@ -13,8 +13,7 @@ export interface WebPushMessage {
   data?: Record<string, string>;
 }
 
-// Keep Messaging on the same Firebase SDK instance that created FirebaseApp.
-type MessagingModule = typeof import("@angular/fire/messaging");
+type MessagingModule = typeof import("firebase/messaging");
 
 interface WebPushEnvironment {
   webPush?: {
@@ -24,7 +23,7 @@ interface WebPushEnvironment {
 
 @Injectable({ providedIn: "root" })
 export class WebPushClientService {
-  private readonly firebaseApp = inject(FirebaseApp);
+  private readonly firebaseApp = inject(FIREBASE_APP);
   private readonly platformId = inject(PLATFORM_ID);
   private messagingModule: MessagingModule | null = null;
 
@@ -83,7 +82,7 @@ export class WebPushClientService {
   }
 
   private async _messagingModule(): Promise<MessagingModule> {
-    this.messagingModule ??= await import("@angular/fire/messaging");
+    this.messagingModule ??= await import("firebase/messaging");
     return this.messagingModule;
   }
 

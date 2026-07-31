@@ -1,9 +1,7 @@
 import {
   inject,
   Injectable,
-  Injector,
   PLATFORM_ID,
-  runInInjectionContext,
   signal,
 } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
@@ -32,8 +30,7 @@ import {
   reauthenticateWithPopup,
   AuthProvider,
   connectAuthEmulator,
-} from "@angular/fire/auth";
-import { FirebaseApp } from "@angular/fire/app";
+} from "firebase/auth";
 import {
   BehaviorSubject,
   filter,
@@ -53,6 +50,7 @@ import {
 } from "@capacitor-firebase/authentication";
 import { Browser } from "@capacitor/browser";
 import { getFirebaseEmulatorSettings } from "./firebase-emulator.config";
+import { FIREBASE_APP } from "./firebase-client.providers";
 
 interface AuthServiceUser {
   uid?: string;
@@ -104,8 +102,8 @@ export class AuthenticationService extends ConsentAwareService {
   /** Reactive admin state for UI gates. Always false while signed out. */
   public readonly isAdmin = signal(false);
 
-  private _injector = inject(Injector);
   private _platformId = inject(PLATFORM_ID);
+  private readonly _firebaseApp = inject(FIREBASE_APP);
   private readonly _beforeSignOutHandlers = new Set<
     (userId: string) => Promise<void>
   >();
@@ -147,10 +145,7 @@ export class AuthenticationService extends ConsentAwareService {
     return Capacitor.isNativePlatform();
   }
 
-  constructor(
-    private _userService: UsersService,
-    private _firebaseApp: FirebaseApp
-  ) {
+  constructor(private _userService: UsersService) {
     super();
 
     // Skip auth initialization on server (SSR)
@@ -269,12 +264,10 @@ export class AuthenticationService extends ConsentAwareService {
 
     try {
       if (!isNative) {
-        await runInInjectionContext(this.injector, async () => {
-          await auth.setPersistence(indexedDBLocalPersistence);
-          console.log(
-            "Firebase Auth persistence set: indexedDBLocalPersistence"
-          );
-        });
+        await auth.setPersistence(indexedDBLocalPersistence);
+        console.log(
+          "Firebase Auth persistence set: indexedDBLocalPersistence"
+        );
         return;
       }
     } catch (e1) {
@@ -285,10 +278,8 @@ export class AuthenticationService extends ConsentAwareService {
     }
 
     try {
-      await runInInjectionContext(this.injector, async () => {
-        await auth.setPersistence(browserLocalPersistence);
-        console.log("Firebase Auth persistence set: browserLocalPersistence");
-      });
+      await auth.setPersistence(browserLocalPersistence);
+      console.log("Firebase Auth persistence set: browserLocalPersistence");
       return;
     } catch (e2) {
       console.warn(
@@ -298,12 +289,10 @@ export class AuthenticationService extends ConsentAwareService {
     }
 
     // Last resort to keep app functional (not persistent across reloads)
-    await runInInjectionContext(this.injector, async () => {
-      await auth.setPersistence(inMemoryPersistence);
-      console.warn(
-        "Firebase Auth persistence set: inMemoryPersistence (non-persistent)"
-      );
-    });
+    await auth.setPersistence(inMemoryPersistence);
+    console.warn(
+      "Firebase Auth persistence set: inMemoryPersistence (non-persistent)"
+    );
   }
 
   /**
@@ -635,9 +624,9 @@ export class AuthenticationService extends ConsentAwareService {
       googleAuthProvider.addScope("email");
       googleAuthProvider.addScope("profile");
 
-      let googleSignInResponse = await runInInjectionContext(
-        this._injector,
-        () => signInWithPopup(this.auth, googleAuthProvider)
+      const googleSignInResponse = await signInWithPopup(
+        this.auth,
+        googleAuthProvider
       );
 
       // check if the user exists in the database
@@ -776,9 +765,7 @@ export class AuthenticationService extends ConsentAwareService {
       console.log("Handling OAuth callback with ID token...");
 
       const credential = GoogleAuthProvider.credential(idToken);
-      const result = await runInInjectionContext(this._injector, () =>
-        signInWithCredential(this.auth, credential)
-      );
+      const result = await signInWithCredential(this.auth, credential);
 
       if (result.user) {
         console.log("OAuth callback sign-in successful");
@@ -866,9 +853,9 @@ export class AuthenticationService extends ConsentAwareService {
       appleAuthProvider.addScope("email");
       appleAuthProvider.addScope("name");
 
-      let appleSignInResponse = await runInInjectionContext(
-        this._injector,
-        () => signInWithPopup(this.auth, appleAuthProvider)
+      const appleSignInResponse = await signInWithPopup(
+        this.auth,
+        appleAuthProvider
       );
 
       // check if the user exists in the database
@@ -1207,9 +1194,7 @@ export class AuthenticationService extends ConsentAwareService {
       return Promise.reject(new Error("Unsupported provider: " + providerId));
     }
 
-    await runInInjectionContext(this._injector, () =>
-      reauthenticateWithPopup(this.auth.currentUser!, provider)
-    );
+    await reauthenticateWithPopup(this.auth.currentUser, provider);
   }
 
   private async _reauthenticateWithProviderNative(
@@ -1255,7 +1240,7 @@ export class AuthenticationService extends ConsentAwareService {
       throw new Error("No authenticated user found");
     }
 
-    const { EmailAuthProvider } = await import("@angular/fire/auth");
+    const { EmailAuthProvider } = await import("firebase/auth");
     const credential = EmailAuthProvider.credential(
       this._currentFirebaseUser.email,
       password

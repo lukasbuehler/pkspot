@@ -1,42 +1,13 @@
 import {
   ApplicationConfig,
   ErrorHandler,
-  importProvidersFrom,
   LOCALE_ID,
   DOCUMENT,
-  PLATFORM_ID,
   inject,
   provideAppInitializer,
 } from "@angular/core";
-import { isPlatformBrowser } from "@angular/common";
-import { environment } from "../environments/environment.default";
-import {
-  provideFunctions,
-  getFunctions as ngfGetFunctions,
-  connectFunctionsEmulator,
-} from "@angular/fire/functions";
 
 import { provideAnimations } from "@angular/platform-browser/animations";
-import {
-  provideStorage,
-  Storage,
-  getStorage as ngfGetStorage,
-  connectStorageEmulator,
-} from "@angular/fire/storage";
-import {
-  provideFirestore,
-  getFirestore as ngfGetFirestore,
-  connectFirestoreEmulator,
-  initializeFirestore,
-  memoryLocalCache,
-  Firestore,
-} from "@angular/fire/firestore";
-import { LogLevel, setLogLevel } from "@angular/fire";
-import {
-  provideFirebaseApp,
-  initializeApp,
-  FirebaseApp,
-} from "@angular/fire/app";
 import {
   withInterceptorsFromDi,
   provideHttpClient,
@@ -59,119 +30,15 @@ import { WINDOW, windowProvider } from "./providers/window";
 import { ApplicationErrorHandler } from "./services/application-error-handler.service";
 import { MapPerformanceProfilerService } from "./services/map-performance-profiler.service";
 import { DateTimeFormatService } from "./services/date-time-format.service";
-import {
-  getFirebaseConfig,
-  getFirebaseEmulatorSettings,
-} from "./services/firebase/firebase-emulator.config";
-
-// Module-level singleton to ensure Firestore is only initialized once
-let firestoreInstance: Firestore | null = null;
-let firestoreEmulatorConnected = false;
-let storageEmulatorConnected = false;
-let functionsEmulatorConnected = false;
+import { provideFirebaseClient } from "./services/firebase/firebase-client.providers";
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideFirebaseApp(() => initializeApp(getFirebaseConfig())),
+    provideFirebaseClient(),
     provideAppInitializer(() => {
       inject(MapPerformanceProfilerService).ensureInstalled();
     }),
     provideAppInitializer(() => inject(DateTimeFormatService).initialize()),
-    // Bind Firestore/Storage/Functions to the injected FirebaseApp to enforce init ordering
-    provideFirestore(() => {
-      // Return cached instance if already initialized
-      if (firestoreInstance) {
-        console.log("[Firestore] Returning cached instance");
-        return firestoreInstance;
-      }
-
-      const app = inject(FirebaseApp);
-
-      if (environment.production === false) {
-        setLogLevel(LogLevel.VERBOSE);
-      }
-
-      // Firestore settings optimized for Capacitor/WKWebView
-      const firestoreSettings = {
-        experimentalForceLongPolling: true, // Required for WKWebView - WebSockets are unreliable
-        // @ts-ignore - useFetchStreams is a valid but undocumented option
-        useFetchStreams: false, // Disable fetch streams which can hang in WebViews
-        localCache: memoryLocalCache(), // Disable IndexedDB persistence for Capacitor stability
-      };
-
-      console.log(
-        "[Firestore] Initializing with settings:",
-        JSON.stringify(firestoreSettings),
-      );
-
-      // Try to get existing Firestore instance first, initialize only if needed
-      try {
-        // Try to initialize with our settings
-        firestoreInstance = initializeFirestore(app, firestoreSettings);
-        console.log("[Firestore] Successfully initialized new instance");
-      } catch (e: any) {
-        // If already initialized, just get the existing instance
-        if (
-          e?.code === "failed-precondition" ||
-          e?.message?.includes("already been called")
-        ) {
-          console.warn(
-            "[Firestore] Already initialized, using existing instance",
-          );
-          firestoreInstance = ngfGetFirestore(app);
-        } else {
-          throw e;
-        }
-      }
-
-      const emulatorSettings = getFirebaseEmulatorSettings();
-      if (emulatorSettings && !firestoreEmulatorConnected) {
-        connectFirestoreEmulator(
-          firestoreInstance,
-          emulatorSettings.firestore.host,
-          emulatorSettings.firestore.port,
-        );
-        firestoreEmulatorConnected = true;
-      }
-
-      return firestoreInstance;
-    }),
-    // Only initialize Storage on the browser; use AngularFire's getStorage to avoid registration issues
-    provideStorage(() => {
-      const platformId = inject(PLATFORM_ID);
-      if (!isPlatformBrowser(platformId)) {
-        return null as unknown as Storage;
-      }
-      // Prefer AngularFire's getStorage which is aware of Angular zones/injection context
-      const storage = ngfGetStorage(inject(FirebaseApp));
-      const emulatorSettings = getFirebaseEmulatorSettings();
-      if (emulatorSettings && !storageEmulatorConnected) {
-        connectStorageEmulator(
-          storage,
-          emulatorSettings.storage.host,
-          emulatorSettings.storage.port,
-        );
-        storageEmulatorConnected = true;
-      }
-
-      return storage;
-    }),
-    provideFunctions(() => {
-      const functions = ngfGetFunctions(inject(FirebaseApp), "europe-west1");
-      const emulatorSettings = getFirebaseEmulatorSettings();
-      if (emulatorSettings && !functionsEmulatorConnected) {
-        connectFunctionsEmulator(
-          functions,
-          emulatorSettings.functions.host,
-          emulatorSettings.functions.port,
-        );
-        functionsEmulatorConnected = true;
-      }
-
-      return functions;
-    }),
-    // TODO: Make Auth provider consent-aware
-    // provideAuth(() => getAuth()),
     provideRouter(routes),
     BrowserModule,
     {

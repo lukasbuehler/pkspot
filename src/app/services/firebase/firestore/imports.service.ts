@@ -1,5 +1,5 @@
 import { Injectable, inject } from "@angular/core";
-import { Timestamp } from "@angular/fire/firestore";
+import { Timestamp } from "firebase/firestore";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
 import {
   ImportChunkSchema,

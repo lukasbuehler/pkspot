@@ -1,6 +1,6 @@
 import { Injectable, inject, PLATFORM_ID } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
-import { RecaptchaVerifier, Auth } from "@angular/fire/auth";
+import { RecaptchaVerifier, Auth } from "firebase/auth";
 import { ConsentAwareService } from "./consent-aware.service";
 
 /**

@@ -1,10 +1,8 @@
 import { isPlatformBrowser } from "@angular/common";
 import {
   Injectable,
-  Injector,
   PLATFORM_ID,
   inject,
-  runInInjectionContext,
   signal,
 } from "@angular/core";
 import {
@@ -12,7 +10,7 @@ import {
   FirebaseOptions,
   getApps,
   initializeApp as initializeFirebaseApp,
-} from "@angular/fire/app";
+} from "firebase/app";
 import {
   FirebaseAppCheck,
   InitializeOptions,
@@ -23,10 +21,11 @@ import {
   ReCaptchaEnterpriseProvider,
   getToken,
   initializeAppCheck,
-} from "@angular/fire/app-check";
+} from "firebase/app-check";
 import { environment } from "../../../environments/environment.default";
 import { AnalyticsService } from "../analytics.service";
 import { PlatformService } from "../platform.service";
+import { FIREBASE_APP } from "./firebase-client.providers";
 
 export interface FirebaseAppCheckSettings {
   enabled: boolean;
@@ -99,12 +98,11 @@ export function buildFirebaseAppCheckWebInitializeOptions(
 })
 export class FirebaseAppCheckService {
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly injector = inject(Injector);
   private readonly platformService = inject(PlatformService);
   private readonly analyticsService = inject(AnalyticsService, {
     optional: true,
   });
-  private readonly app = inject(FirebaseApp);
+  private readonly app = inject(FIREBASE_APP);
   private initializationPromise: Promise<void> | null = null;
   private webAppCheck: AppCheck | null = null;
   private readonly _status = signal<FirebaseAppCheckStatus>({
@@ -141,10 +139,7 @@ export class FirebaseAppCheckService {
       throw new Error("Web App Check is not initialized.");
     }
 
-    return runInInjectionContext(
-      this.injector,
-      async () => (await getToken(appCheck)).token,
-    );
+    return (await getToken(appCheck)).token;
   }
 
   private async initializeOnce(
@@ -199,11 +194,9 @@ export class FirebaseAppCheckService {
     this.configureWebDebugToken(settings);
     let appCheck: AppCheck;
     try {
-      appCheck = runInInjectionContext(this.injector, () =>
-        initializeAppCheck(
-          this.getWebAppCheckApp(settings),
-          this.getWebAppCheckOptions(settings, options),
-        ),
+      appCheck = initializeAppCheck(
+        this.getWebAppCheckApp(settings),
+        this.getWebAppCheckOptions(settings, options),
       );
     } catch (error) {
       this.logFailure(platform, "initialize", error);
@@ -238,9 +231,7 @@ export class FirebaseAppCheckService {
     settings: FirebaseAppCheckSettings | undefined,
   ): Promise<void> {
     try {
-      const result = await runInInjectionContext(this.injector, () =>
-        getToken(appCheck),
-      );
+      const result = await getToken(appCheck);
       this.clearWebThrottle(settings);
       this.logSuccess(platform, result.token);
     } catch (error) {
@@ -415,8 +406,8 @@ export class FirebaseAppCheckService {
       return this.app;
     }
 
-    const existingProbeApp = runInInjectionContext(this.injector, () =>
-      getApps().find((app) => app.name === WEB_APPCHECK_PROBE_APP_NAME),
+    const existingProbeApp = getApps().find(
+      (app) => app.name === WEB_APPCHECK_PROBE_APP_NAME,
     );
     if (existingProbeApp) {
       return existingProbeApp;
@@ -427,9 +418,7 @@ export class FirebaseAppCheckService {
       throw new Error("Firebase app options are unavailable.");
     }
 
-    return runInInjectionContext(this.injector, () =>
-      initializeFirebaseApp(options, WEB_APPCHECK_PROBE_APP_NAME),
-    );
+    return initializeFirebaseApp(options, WEB_APPCHECK_PROBE_APP_NAME);
   }
 
   private getWebAppCheckOptions(

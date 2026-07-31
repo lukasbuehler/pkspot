@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { signal } from "@angular/core";
-import { Timestamp } from "@angular/fire/firestore";
+import { Timestamp } from "firebase/firestore";
 import { BehaviorSubject, Observable } from "rxjs";
 import {
   afterEach,

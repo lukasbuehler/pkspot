@@ -1,16 +1,16 @@
 import { TestBed } from "@angular/core/testing";
-import { FirebaseApp } from "@angular/fire/app";
 import {
   deleteToken,
   getMessaging,
   getToken,
   isSupported,
   onMessage,
-} from "@angular/fire/messaging";
+} from "firebase/messaging";
 import { environment } from "../../environments/environment.default";
 import { WebPushClientService } from "./web-push-client.service";
+import { FIREBASE_APP } from "./firebase/firebase-client.providers";
 
-vi.mock("@angular/fire/messaging", () => ({
+vi.mock("firebase/messaging", () => ({
   deleteToken: vi.fn().mockResolvedValue(true),
   getMessaging: vi.fn().mockReturnValue({ name: "messaging" }),
   getToken: vi.fn().mockResolvedValue("web-token"),
@@ -38,7 +38,7 @@ describe("WebPushClientService", () => {
       },
     });
     TestBed.configureTestingModule({
-      providers: [{ provide: FirebaseApp, useValue: { name: "firebase-app" } }],
+      providers: [{ provide: FIREBASE_APP, useValue: { name: "firebase-app" } }],
     });
   });
 

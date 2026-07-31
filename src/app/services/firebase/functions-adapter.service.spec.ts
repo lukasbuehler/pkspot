@@ -1,20 +1,24 @@
 import { TestBed } from "@angular/core/testing";
-import { FirebaseApp } from "@angular/fire/app";
-import { Functions, httpsCallable } from "@angular/fire/functions";
-import { getAuth, getIdToken } from "@angular/fire/auth";
+import { FirebaseApp } from "firebase/app";
+import { httpsCallable } from "firebase/functions";
+import { getAuth, getIdToken } from "firebase/auth";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { environment } from "../../../environments/environment.default";
 import { PlatformService } from "../platform.service";
 import { FirebaseAppCheckService } from "./app-check.service";
 import { FunctionsAdapterService } from "./functions-adapter.service";
+import {
+  FIREBASE_APP,
+  FIREBASE_FUNCTIONS,
+} from "./firebase-client.providers";
 
-vi.mock("@angular/fire/functions", () => ({
+vi.mock("firebase/functions", () => ({
   Functions: class Functions {},
   httpsCallable: vi.fn(),
 }));
 
-vi.mock("@angular/fire/auth", () => ({
+vi.mock("firebase/auth", () => ({
   getAuth: vi.fn(),
   getIdToken: vi.fn(),
 }));
@@ -50,9 +54,9 @@ describe("FunctionsAdapterService", () => {
     TestBed.configureTestingModule({
       providers: [
         FunctionsAdapterService,
-        { provide: Functions, useValue: functionsInstance },
+        { provide: FIREBASE_FUNCTIONS, useValue: functionsInstance },
         {
-          provide: FirebaseApp,
+          provide: FIREBASE_APP,
           useValue: {
             options: {
               projectId: "parkour-base-project",
@@ -65,7 +69,7 @@ describe("FunctionsAdapterService", () => {
     });
   });
 
-  it("delegates web callable requests to AngularFire Functions", async () => {
+  it("delegates web callable requests to Firebase Functions", async () => {
     const callable = vi.fn().mockResolvedValue({ data: { ok: true } });
     vi.mocked(httpsCallable).mockReturnValue(callable);
     const service = TestBed.inject(FunctionsAdapterService);

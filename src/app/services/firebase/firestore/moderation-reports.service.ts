@@ -1,5 +1,5 @@
 import { inject, Injectable } from "@angular/core";
-import { Timestamp } from "@angular/fire/firestore";
+import { Timestamp } from "firebase/firestore";
 import { MediaType } from "../../../../db/models/Interfaces";
 import { StorageImage } from "../../../../db/models/Media";
 import { ContactMessageSchema } from "../../../../db/schemas/ContactMessageSchema";

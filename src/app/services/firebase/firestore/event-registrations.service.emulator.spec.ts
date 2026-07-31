@@ -1,37 +1,31 @@
-import { inject } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import {
   FirebaseApp,
   deleteApp,
   initializeApp,
-  provideFirebaseApp,
-} from "@angular/fire/app";
+} from "firebase/app";
 import {
   Auth,
   connectAuthEmulator,
   getAuth,
-  provideAuth,
   signInAnonymously,
   signOut,
-} from "@angular/fire/auth";
+} from "firebase/auth";
 import {
   Firestore,
   connectFirestoreEmulator,
   doc,
   getDoc,
-  getFirestore,
   initializeFirestore,
   memoryLocalCache,
-  provideFirestore,
   setDoc,
-} from "@angular/fire/firestore";
+} from "firebase/firestore";
 import {
   Functions,
   connectFunctionsEmulator,
   getFunctions,
   httpsCallable,
-  provideFunctions,
-} from "@angular/fire/functions";
+} from "firebase/functions";
 import * as admin from "firebase-admin";
 import { BehaviorSubject, Observable } from "rxjs";
 import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -44,6 +38,11 @@ import { AuthenticationService } from "../authentication.service";
 import { FirebaseAppCheckService } from "../app-check.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
 import { FunctionsAdapterService } from "../functions-adapter.service";
+import {
+  FIREBASE_APP,
+  FIREBASE_FIRESTORE,
+  FIREBASE_FUNCTIONS,
+} from "../firebase-client.providers";
 import { EventRegistrationsService } from "./event-registrations.service";
 
 const firestoreHost = process.env["FIRESTORE_EMULATOR_HOST"];
@@ -181,50 +180,31 @@ runWithEmulator("EventRegistrationsService emulator integration", () => {
     const [firestoreEmulatorHost, firestorePort] = parseHostPort(firestoreHost!);
     const [authEmulatorHost, authPort] = parseHostPort(authHost!);
     const [functionsEmulatorHost, functionsPort] = parseHostPort(functionsHost);
+    app = initializeApp(
+      {
+        apiKey: "demo-api-key",
+        authDomain: `${projectId}.firebaseapp.com`,
+        projectId,
+      },
+      `event-registration-primary-${Date.now()}-${Math.random()}`,
+    );
+    auth = getAuth(app);
+    connectAuthEmulator(auth, `http://${authEmulatorHost}:${authPort}`, {
+      disableWarnings: true,
+    });
+    const firestore = initializeFirestore(app, {
+      localCache: memoryLocalCache(),
+    });
+    connectFirestoreEmulator(firestore, firestoreEmulatorHost, firestorePort);
+    const functions = getFunctions(app, "europe-west1");
+    connectFunctionsEmulator(functions, functionsEmulatorHost, functionsPort);
 
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       providers: [
-        provideFirebaseApp(() => {
-          app = initializeApp(
-            {
-              apiKey: "demo-api-key",
-              authDomain: `${projectId}.firebaseapp.com`,
-              projectId,
-            },
-            `event-registration-primary-${Date.now()}-${Math.random()}`,
-          );
-          return app;
-        }),
-        provideAuth(() => {
-          const instance = getAuth(inject(FirebaseApp));
-          connectAuthEmulator(
-            instance,
-            `http://${authEmulatorHost}:${authPort}`,
-            { disableWarnings: true },
-          );
-          return instance;
-        }),
-        provideFirestore(() => {
-          const instance = initializeFirestore(inject(FirebaseApp), {
-            localCache: memoryLocalCache(),
-          });
-          connectFirestoreEmulator(
-            instance,
-            firestoreEmulatorHost,
-            firestorePort,
-          );
-          return instance;
-        }),
-        provideFunctions(() => {
-          const instance = getFunctions(inject(FirebaseApp), "europe-west1");
-          connectFunctionsEmulator(
-            instance,
-            functionsEmulatorHost,
-            functionsPort,
-          );
-          return instance;
-        }),
+        { provide: FIREBASE_APP, useValue: app },
+        { provide: FIREBASE_FIRESTORE, useValue: firestore },
+        { provide: FIREBASE_FUNCTIONS, useValue: functions },
         EventRegistrationsService,
         FirestoreAdapterService,
         FunctionsAdapterService,
@@ -251,7 +231,6 @@ runWithEmulator("EventRegistrationsService emulator integration", () => {
       ],
     }).compileComponents();
 
-    auth = TestBed.inject(Auth);
     const credential = await TestBed.runInInjectionContext(() =>
       signInAnonymously(auth),
     );
