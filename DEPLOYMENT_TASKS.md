@@ -84,6 +84,11 @@ is required for this client-only refactor. Push registration does require each
 platform's Firebase Messaging API key to permit the client APIs used by Cloud
 Messaging.
 
+- [ ] Review the current visual-regression diffs, accept only intentional UI
+      changes, and update those baselines. Run `npm run test:visual` again and
+      confirm there are no unexpected screenshot differences before updating
+      `main`.
+
 - [ ] Verify the updated Firebase Messaging API-key allowlists with real token
       registration. With notification permission already granted, focus the
       local app and confirm `getToken()` no longer returns
@@ -104,39 +109,26 @@ Messaging.
 
 ### Unpublished locality community merges
 
-- [ ] Before releasing the dependent web UI, deploy the three additive admin
-      callables to production:
-
-  ```sh
-  npx firebase deploy --project prod --only functions:getCommunityMergeAdminState,functions:mergeUnpublishedLocality,functions:unmergeUnpublishedLocality
-  ```
-
-  Success condition: as an administrator, open an active locality community,
-  confirm the danger zone lists a same-country locality without a community
-  page, merge it, and verify the source URL redirects while the target count
-  includes its spots. Undo the merge and verify the source spot address is
-  unchanged and the target count returns to its previous value. Confirm denied
-  callable requests for a non-admin user in Cloud Functions logs.
+- [ ] As an administrator, open an active locality community,
+      confirm the danger zone lists a same-country locality without a community
+      page, merge it, and verify the source URL redirects while the target count
+      includes its spots. Undo the merge and verify the source spot address is
+      unchanged and the target count returns to its previous value. Confirm denied
+      callable requests for a non-admin user in Cloud Functions logs.
 
 ### Event cancellation and live operations
 
-Deploy the compatible backend before releasing the event-operations UI. No
-document backfill or Typesense schema change is required; older clients ignore
-the additive lifecycle, program, and live-update metadata.
+The compatible backend is deployed. Complete the production checks before
+releasing the event-operations UI. No document backfill or Typesense schema
+change is required; older clients ignore the additive lifecycle, program, and
+live-update metadata.
 
-- [ ] Build and deploy the callable, notification triggers/scheduler, registration
-      reconciliation, and Firestore rules:
-
-  ```sh
-  npm --prefix functions run build
-  npx firebase deploy --project prod --only functions:applyEventOperationalChange,functions:onEventLiveUpdateCreate,functions:onEventNotificationSourceWrite,functions:onEventRsvpNotificationWrite,functions:onNotificationIntentWrite,functions:sendDueNotificationIntents,functions:reconcileEventWaitlistOnEventUpdate,firestore:rules
-  ```
-
-  Success condition: all Functions run in `europe-west1`; a test event can be
-  cancelled while remaining published; its pending attendee reminders become
-  cancelled; exactly one eligible operational update is created per attendee;
-  explicit event/global opt-outs suppress the update; and a stale operation is
-  rejected without changing the event.
+- [ ] With a non-production test event in the production project, verify it can be
+      cancelled while remaining published; its pending attendee reminders become
+      cancelled; exactly one eligible operational update is created per attendee;
+      explicit event/global opt-outs suppress the update; and a stale operation is
+      rejected without changing the event. Confirm the deployed Functions remain
+      active in `europe-west1` and inspect their logs for runtime errors.
 
 - [ ] After the client release, verify cancellation/restoration, event
       rescheduling, one program-item delay, and one alternate-plan activation on
@@ -145,21 +137,15 @@ the additive lifecycle, program, and live-update metadata.
 
 ### Notification center actions and report outcomes
 
-Deploy the additive callable, projections, and triggers before releasing clients
-that render notification actions. No backfill is required; older notification
-documents continue to render without `actions`, `thread_key`, or `image_url`.
+The additive callable, projections, triggers, and rules are deployed. Complete
+the production checks before releasing clients that render notification actions.
+No backfill is required; older notification documents continue to render without
+`actions`, `thread_key`, or `image_url`.
 
-- [ ] Deploy Firestore rules and the compatible notification Functions:
-
-  ```sh
-  npm --prefix functions run build
-  npx firebase deploy --project prod --only firestore:rules,functions:performNotificationAction,functions:getMyEventNotificationMigrationState,functions:reconcileMyEventNotifications,functions:onEventNotificationSubscriptionWrite,functions:onFollowRequestNotificationCreate,functions:onNewFollowerNotificationWrite,functions:onFollowingNotificationWrite,functions:onEventRsvpNotificationWrite,functions:onEventRegistrationPromotion,functions:reviewEventOwnershipClaim,functions:onSpotEditNotificationWrite,functions:onSpotReportNotificationWrite,functions:onMediaReportNotificationWrite,functions:onRootMediaReportNotificationWrite,functions:onModerationActionNotificationCreate,functions:onCommunityInfoNotificationWrite,functions:onNotificationIntentWrite,functions:sendDueNotificationIntents
-  ```
-
-  Success condition: follow actions are authorized against the notification
-  recipient, a decline and follow-back can be undone for ten minutes, event
-  actions update the RSVP, and only the reporter can read the sanitized report
-  outcome projection. Confirm no internal moderation notes are projected.
+- [ ] Verify follow actions are authorized against the notification
+      recipient, a decline and follow-back can be undone for ten minutes, event
+      actions update the RSVP, and only the reporter can read the sanitized report
+      outcome projection. Confirm no internal moderation notes are projected.
 
 - [ ] Build fresh Android and iOS binaries after the backend is compatible.
       Verify action buttons for a follow request, new follower, event reminder,
@@ -173,44 +159,28 @@ documents continue to render without `actions`, `thread_key`, or `image_url`.
       and one name-only edit. The first four must create the expected threaded
       notification; the name-only edit must not notify attendees.
 
-- [ ] Before releasing the migration-dialog client, deploy
-      `getMyEventNotificationMigrationState`,
-      `reconcileMyEventNotifications`, and
-      `onEventNotificationSubscriptionWrite`. Test with an account whose
-      Going/Interested RSVP predates notification subscriptions. Opening Events
-      must show the prompt once; accepting must preserve the RSVP, create only
-      missing subscriptions, retain explicit per-event overrides, and schedule
-      only reminder windows that are still in the future. Also verify that
-      Customize opens notification settings and applies changed reminder
-      offsets to migration-managed subscriptions.
+- [ ] Test the migration dialog with an account whose Going/Interested RSVP
+      predates notification subscriptions. Opening Events must show the prompt
+      once; accepting must preserve the RSVP, create only missing subscriptions,
+      retain explicit per-event overrides, and schedule only reminder windows
+      that are still in the future. Also verify that Customize opens notification
+      settings and applies changed reminder offsets to migration-managed
+      subscriptions.
 
 ### Followed-community notifications
 
-This rollout is additive. Deploy the backend before releasing clients that expose
-the new per-community switches. Existing follows default to no community event or
-Spot digest notifications, so no backfill is required.
+This rollout is additive and its backend is deployed. Complete the production
+checks before releasing clients that expose the new per-community switches.
+Existing follows default to no community event or Spot digest notifications, so
+no backfill is required.
 
-- [ ] Deploy the Firestore indexes first, then wait for the
-      `community_follows.community_key` collection-group index and the pending
-      digest-item index to report `Enabled`:
-
-  ```sh
-  npx firebase deploy --project prod --only firestore:indexes
-  ```
-
-- [ ] Deploy the compatible Firestore rules and notification Functions:
-
-  ```sh
-  npm --prefix functions run build
-  npx firebase deploy --project prod --only firestore:rules,functions:onCommunityEventDiscoveryWrite,functions:onCommunitySpotRecommendationWrite,functions:sendCommunitySpotDigests,functions:migrateCommunityFollowsOnMerge,functions:onSpotEditNotificationWrite,functions:onNotificationIntentWrite,functions:sendDueNotificationIntents,functions:applySpotEditOnCreate,functions:evaluateSpotEditVotesOnVoteWrite,functions:evaluatePendingSpotEditVotesOnSchedule,functions:reviewVerifiedSpotEdit
-  ```
-
-  Success condition: all new Functions run in `europe-west1`; a newly published
-  public event creates one deterministic intent per opted-in follower no earlier
-  than 30 days before its start; cancelling the event invalidates the intent; and
-  a qualifying Spot is included once in the follower's Friday 18:00 local-time
-  digest. Private or member-only events must not enter `event_discovery` and must
-  not produce community intents.
+- [ ] Verify a newly published
+      public event creates one deterministic intent per opted-in follower no earlier
+      than 30 days before its start; cancelling the event invalidates the intent; and
+      a qualifying Spot is included once in the follower's Friday 18:00 local-time
+      digest. Private or member-only events must not enter `event_discovery` and must
+      not produce community intents. Confirm the deployed Functions remain active
+      in `europe-west1` and inspect their logs for runtime errors.
 
 - [ ] Verify the Spot-edit decision source behavior with one immediate automatic
       approval, one community-vote decision, and one organization review.
@@ -263,19 +233,10 @@ place: the projection triggers deliberately bridge them into `safety_cases`.
   invalid-recipient test reaches `ERROR` without exposing its document to
   clients.
 
-- [ ] Deploy the Firestore indexes/TTL policies, Firestore rules, and Storage
-      rules before the safety-case Functions:
-
-  ```sh
-  npx firebase deploy --project prod --only firestore:indexes
-  # Wait for every new composite index and TTL field policy to report enabled.
-  npx firebase deploy --project prod --only firestore:rules,storage
-  ```
-
-  Success condition: ordinary and administrator web clients cannot directly
-  read or write `safety_cases`, their private/event subcollections,
-  `safety_case_access_tokens`, `safety_case_sessions`,
-  `safety_case_rate_limits`, `safety_case_email_outbox`,
+- [ ] Verify ordinary and administrator web clients cannot directly
+      read or write `safety_cases`, their private/event subcollections,
+      `safety_case_access_tokens`, `safety_case_sessions`,
+      `safety_case_rate_limits`, `safety_case_email_outbox`,
   `safety_case_holds`, or `safety_case_metrics`; an administrator can read but
   cannot directly write `moderation_holds/**` through the Storage client SDK.
 
@@ -333,9 +294,9 @@ place: the projection triggers deliberately bridge them into `safety_cases`.
 
 ### Flexible event timing, locationless discovery, and ownership claims
 
-Keep these steps in order. Typesense reads remain available during the schema
-alteration, but writes to `events_v1` can block while required fields are
-dropped and re-added as optional.
+Keep these steps in order. The production `events_v1` schema is aligned with the
+repository schema, including optional location bounds and the new searchable
+presentation/type fields.
 
 - [ ] Keep `legacyEventListCompatibilityEnabled()` enabled while supported
       released clients still list the canonical `/events` collection. During
@@ -348,37 +309,18 @@ dropped and re-added as optional.
   `event_discovery`. Retire the switch and deploy Firestore rules only after the
   oldest supported mobile version no longer lists `/events` directly.
 
-- [ ] Patch the production `events_v1` collection in place using the reviewed
-      drop-and-re-add alteration:
-
-  ```sh
-  curl -fsS -X PATCH \
-    -H "X-TYPESENSE-API-KEY: $TYPESENSE_ADMIN_API_KEY" \
-    -H "Content-Type: application/json" \
-    "$TYPESENSE_HOST/collections/events_v1" \
-    --data-binary @typesense/events_v1_flexible_timing_alter.json
-  ```
-
-  Success condition: `venue_string`, `locality_string`, and `location` are
-  optional; `has_location`, `timing.*`, and `active_until_seconds` match
-  `typesense/typesense_events_v1_schema.json`; existing search reads still
-  succeed. Do not continue if the extension reports rejected writes.
-
-- [ ] Build and deploy the compatible event normalization, time-zone resolver,
-      timing backfill, ownership-claim, live-update authorization Functions,
-      Firestore rules, and the ownership-claim inbox index:
+- [ ] Build and deploy the remaining event normalization, time-zone resolver,
+      and timing backfill Functions:
 
   ```sh
   npm --prefix functions run build
-  npx firebase deploy --project prod --only firestore:indexes
-  # Wait for the event_ownership_claims index to report Enabled, then:
-  npx firebase deploy --project prod --only functions:updateEventFieldsOnWrite,functions:resolveEventTimeZone,functions:backfillEventTiming,functions:submitEventOwnershipClaim,functions:respondToEventOwnershipClaim,functions:reviewEventOwnershipClaim,functions:publishEventLiveUpdate,firestore:rules
+  npx firebase deploy --project prod --only functions:updateEventFieldsOnWrite,functions:resolveEventTimeZone,functions:backfillEventTiming
   ```
 
-  Success condition: the claim inbox index is `Enabled`; all Functions are in
-  `europe-west1`; a signed-in call for Zurich coordinates returns
-  `Europe/Zurich`; clients cannot write claim decisions or event ownership
-  directly; existing published events continue opening in released clients.
+  Success condition: all Functions are in `europe-west1`; a signed-in call for
+  Zurich coordinates returns `Europe/Zurich`; existing published events continue
+  opening in released clients; and the Typesense extension reports no rejected
+  writes.
 
 - [ ] As an authenticated administrator, invoke `backfillEventTiming` page by
       page with `{ "dryRun": true, "limit": 250 }`, passing each returned
@@ -410,31 +352,12 @@ The Functions and storage rules must be deployed before the organization editor
 client. Keep the steps in this order so no released client can target an
 unsupported storage destination.
 
-- [ ] Build and deploy the updated media processing, moderation, reconciliation,
-      and audit Functions:
-
-  ```sh
-  npm --prefix functions run build
-  npm run deploy:prod:functions
-  ```
-
-  Success condition: the production Functions deploy completes and the deployed
-  image-processing and moderation code recognizes the `organization_media`
-  prefix and the `organization` target kind.
-- [ ] Deploy the updated production Storage rules:
-
-  ```sh
-  npx firebase use prod
-  npm run deploy:rules:storage
-  ```
-
-  Success condition: an administrator can write a raster organization logo only
-  through `media_intake/organization_media`, a non-administrator and SVG upload
-  are denied, and direct client publication to `organization_media` is denied.
 - [ ] From the organization admin UI, upload and approve a cropped organization
       logo. Verify the stable organization-ID filename produces 200, 400, and
       800 pixel derivatives under `organization_media`, and that `logo_url`
-      contains the 800-pixel derivative URL.
+      contains the 800-pixel derivative URL. Also verify a non-administrator and
+      SVG upload are denied, and direct client publication to
+      `organization_media` remains denied.
 - [ ] Only after the production verification above, release the client through
       the normal `main` workflow. Do not manually operate an App Hosting rollout.
 
@@ -502,18 +425,10 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
       invalid and unknown requests before the client release. App Check protects
       the callable boundary. Play Integrity's `requestHash` separately binds the
       exact Android age signal, one-time server challenge, and authenticated UID.
-- [ ] Deploy the profile projection Functions and updated Firestore rules before
-      the client:
-
-  ```sh
-  npm --prefix functions run build
-  npx firebase deploy --project prod --only functions:getUserProfile,functions:syncPublicUserProfileOnWrite,functions:backfillPublicUserProfiles,firestore:rules
-  ```
-
-  Success condition: a self-declared 18+ policy cannot enable or project a
-  public profile. Only an active, request-bound Tier C or D 18+ policy can do
-  so, and only with the user's explicit public-profile opt-in. An approval
-  remains active until a later signal supersedes it or its exact approval basis
+- [ ] Verify a self-declared 18+ policy cannot enable or project a
+      public profile. Only an active, request-bound Tier C or D 18+ policy can do
+      so, and only with the user's explicit public-profile opt-in. An approval
+      remains active until a later signal supersedes it or its exact approval basis
   is explicitly invalidated; verification records are retained.
 - [ ] From the production moderation dashboard, dry-run both active approval
       bases before any client release:
@@ -598,9 +513,8 @@ live Storage trigger handled them. Allowed media is published and removed from
 quarantine; flagged or failed media remains quarantined for administrator
 review.
 
-- [ ] Confirm `processMediaIntake` and `runMediaIntakeBackfill` are deployed,
-      direct writes to public media paths remain disabled in `storage.rules`,
-      and a new test upload completes through the quarantine path.
+- [ ] Confirm a new test upload completes through the quarantine path and direct
+      writes to public media paths remain denied by the deployed Storage rules.
 - [ ] Create the Firestore trigger document
       `maintenance/run-process-media-intake-backfill`. Use a small positive
       numeric `limit` for the first production pass; omit `limit` only after

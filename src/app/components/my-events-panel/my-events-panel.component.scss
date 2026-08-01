@@ -68,9 +68,9 @@
   align-items: center;
   gap: 0.75rem;
   min-width: 0;
-  padding: 0.875rem 1rem;
+  padding: 1rem;
   border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 14px;
+  border-radius: 18px;
   background: var(--mat-sys-surface-container-low);
   color: var(--mat-sys-on-surface);
   text-decoration: none;
@@ -94,7 +94,7 @@
   height: 56px;
   place-items: center;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: calc((2rem - 18px) / 2);
   background: var(--mat-sys-primary-container);
   color: var(--mat-sys-on-primary-container);
 }

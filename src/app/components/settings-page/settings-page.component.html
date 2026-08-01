@@ -995,7 +995,7 @@
                 @for (follow of communityFollows(); track follow.community_key) {
                   <article class="community-notification-row">
                     <a [routerLink]="follow.canonical_path">{{ follow.display_name }}</a>
-                    <label>
+                    <div class="community-notification-option">
                       <span i18n="@@settings.notifications.community_events_short">Events</span>
                       <mat-slide-toggle
                         color="primary"
@@ -1004,8 +1004,8 @@
                         aria-label="Event notifications for this community"
                         i18n-aria-label="@@settings.notifications.community_events_per_area_aria"
                       ></mat-slide-toggle>
-                    </label>
-                    <label>
+                    </div>
+                    <div class="community-notification-option">
                       <span i18n="@@settings.notifications.community_spots_short">Spots</span>
                       <mat-slide-toggle
                         color="primary"
@@ -1014,7 +1014,7 @@
                         aria-label="Spot notifications for this community"
                         i18n-aria-label="@@settings.notifications.community_spots_per_area_aria"
                       ></mat-slide-toggle>
-                    </label>
+                    </div>
                   </article>
                 }
               </section>

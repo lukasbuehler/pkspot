@@ -183,10 +183,12 @@ async function waitForEventField(
 async function waitForEventDiscovery(
   eventId: string,
   exists: boolean,
+  matches: (data: admin.firestore.DocumentData | undefined) => boolean = () => true,
 ): Promise<admin.firestore.DocumentData | undefined> {
   for (let attempt = 0; attempt < 40; attempt += 1) {
     const snapshot = await adminDb().doc(`event_discovery/${eventId}`).get();
-    if (snapshot.exists === exists) return snapshot.data();
+    const data = snapshot.data();
+    if (snapshot.exists === exists && matches(data)) return data;
     await sleep(250);
   }
   throw new Error(
@@ -384,6 +386,9 @@ runWithEmulator("EventsService emulator integration", () => {
     const eventId = `notification-rsvp-${uid}`;
     const intentId = `event_reminder_${eventId}_${uid}`;
     const start = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await adminDb().doc(`users/${uid}/private_data/main`).set({
+      notification_preferences: { event_reminders: true },
+    });
     await adminDb().doc(`events/${eventId}`).set({
       name: "Notification reminder event",
       slug: "notification-reminder-event",
@@ -676,7 +681,11 @@ runWithEmulator("EventsService emulator integration", () => {
     });
 
     await waitForEventField(eventId, "start_seconds", 1_811_844_000);
-    const publicProjection = await waitForEventDiscovery(eventId, true);
+    const publicProjection = await waitForEventDiscovery(
+      eventId,
+      true,
+      (data) => data?.["time_zone"] === "Europe/Zurich",
+    );
     expect(publicProjection).toEqual(
       expect.objectContaining({
         name: "Projected public event",

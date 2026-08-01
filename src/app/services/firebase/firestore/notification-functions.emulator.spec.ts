@@ -48,6 +48,9 @@ runWithEmulator("notification function integrations", () => {
         account_privacy: "public",
       }),
       db.doc(`users/${followerId}`).set({ display_name: "New Follower" }),
+      db.doc(`users/${userId}/private_data/main`).set({
+        notification_preferences: { follow_requests: true },
+      }),
     ]);
     await db.doc(followerPath).set({
       display_name: "New Follower",
@@ -349,6 +352,10 @@ runWithEmulator("notification function integrations", () => {
     const intentId =
       "spot_report_reported-spot_spot-report-1_action_taken";
 
+    await db.doc(`users/${reporterId}/private_data/main`).set({
+      notification_preferences: { report_updates: true },
+    });
+
     await db.doc("moderation_actions/spot-report-action-1").set({
       action_type: "keep_warning",
       source_type: "spot_report",
@@ -371,7 +378,7 @@ runWithEmulator("notification function integrations", () => {
         recipient_uid: reporterId,
         type: "spot_report_update",
         channel_id: "spot_report_updates",
-        path: "/notifications",
+        path: "/reports/outcomes/spot_reported-spot_spot-report-1",
         payload: {
           outcome: "action_taken",
           target_name: "Central Plaza",
@@ -389,6 +396,10 @@ runWithEmulator("notification function integrations", () => {
   it("notifies an authenticated reporter when a media report is closed", async () => {
     const reporterId = "media-report-reporter";
     const intentId = "media_report_media-report-1_dismissed";
+
+    await db.doc(`users/${reporterId}/private_data/main`).set({
+      notification_preferences: { report_updates: true },
+    });
 
     await db.doc("moderation_actions/media-report-action-1").set({
       action_type: "close_report",
@@ -412,7 +423,7 @@ runWithEmulator("notification function integrations", () => {
         recipient_uid: reporterId,
         type: "media_report_update",
         channel_id: "media_report_updates",
-        path: "/notifications",
+        path: "/reports/outcomes/media_media-report-1",
         payload: {
           outcome: "dismissed",
           target_name: "your reported media",
@@ -428,6 +439,10 @@ runWithEmulator("notification function integrations", () => {
     const editPath = `community_pages/${communityKey}/edits/${editId}`;
     const intentId =
       `community_info_${communityKey}_${editId}_approved`;
+
+    await db.doc(`users/${contributorId}/private_data/main`).set({
+      notification_preferences: { community_info_updates: true },
+    });
 
     await db.doc(editPath).set({
       target_type: "community",

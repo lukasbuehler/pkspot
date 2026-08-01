@@ -4,7 +4,11 @@
       <mat-icon>bookmark</mat-icon>
     </span>
     <div>
-      <h2 id="my-events-heading" class="mat-title-large" i18n="@@my_events.title">
+      <h2
+        id="my-events-heading"
+        class="mat-title-large"
+        i18n="@@my_events.title"
+      >
         My Events
       </h2>
       <p class="mat-body-medium" i18n="@@my_events.description">
@@ -48,7 +52,9 @@
             }
           </span>
           <span class="my-event-copy">
-            <strong class="mat-title-medium">{{ row.event.name }}</strong>
+            <strong class="mat-title-medium text-truncate">{{
+              row.event.name
+            }}</strong>
             <span class="mat-body-small">{{ row.schedule }}</span>
             @if (row.event.venueString || row.event.localityString) {
               <span class="mat-body-small">

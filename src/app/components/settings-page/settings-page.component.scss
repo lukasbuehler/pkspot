@@ -189,7 +189,7 @@ button.menuButton.selected {
     font: var(--mat-sys-title-medium);
   }
 
-  > label {
+  > .community-notification-option {
     display: grid;
     justify-items: center;
     gap: 4px;
