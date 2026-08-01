@@ -173,6 +173,16 @@ describe("EventProgramTimelineComponent", () => {
     expect(tabList.scrollLeft).toBe(80);
     expect(wheel.defaultPrevented).toBe(true);
 
+    const preciseWheel = new WheelEvent("wheel", {
+      bubbles: true,
+      cancelable: true,
+      deltaX: 2,
+    });
+    tabList.dispatchEvent(preciseWheel);
+
+    expect(tabList.scrollLeft).toBe(82);
+    expect(preciseWheel.defaultPrevented).toBe(true);
+
     tabs[0].dispatchEvent(
       new KeyboardEvent("keydown", {
         bubbles: true,
@@ -186,6 +196,24 @@ describe("EventProgramTimelineComponent", () => {
     expect(tabs[1].getAttribute("aria-selected")).toBe("true");
     expect(document.activeElement).toBe(tabs[1]);
     expect(fixture.nativeElement.textContent).toContain("Later");
+  });
+
+  it("keeps a manual tab-list scroll position during background updates", async () => {
+    await fixture.whenStable();
+
+    const tabList = fixture.nativeElement.querySelector(
+      ".program-tab-list",
+    ) as HTMLElement;
+    Object.defineProperties(tabList, {
+      clientWidth: { configurable: true, value: 200 },
+      scrollWidth: { configurable: true, value: 500 },
+      scrollLeft: { configurable: true, value: 80, writable: true },
+    });
+
+    fixture.componentRef.setInput("now", new Date("2026-07-23T09:01:00Z"));
+    await fixture.whenStable();
+
+    expect(tabList.scrollLeft).toBe(80);
   });
 
   it("opens the event-local current day and highlights its live item", async () => {

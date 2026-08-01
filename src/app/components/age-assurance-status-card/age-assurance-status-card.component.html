@@ -1,0 +1,67 @@
+<section class="age-assurance-card" aria-labelledby="adult-eligibility-title">
+  <div class="age-assurance-card__icon" aria-hidden="true">
+    <mat-icon>verified_user</mat-icon>
+  </div>
+  <div class="age-assurance-card__content">
+    <div class="age-assurance-card__heading">
+      <h4 id="adult-eligibility-title" class="mat-title-medium m-0" i18n>
+        Adult eligibility for public profiles
+      </h4>
+      <button
+        mat-icon-button
+        type="button"
+        (click)="openInfo()"
+        aria-label="Why PK Spot checks adult eligibility"
+        i18n-aria-label
+      >
+        <mat-icon>help_outline</mat-icon>
+      </button>
+    </div>
+
+    <p class="mat-body-small m-0" aria-live="polite">
+      {{ statusText() }}
+    </p>
+
+    @if (isAndroidApp) {
+      <div class="age-assurance-card__actions">
+        <button
+          matButton="outlined"
+          type="button"
+          [disabled]="isChecking()"
+          (click)="recheck()"
+        >
+          @if (isChecking()) {
+            <mat-spinner diameter="18" strokeWidth="2"></mat-spinner>
+          } @else {
+            <mat-icon>refresh</mat-icon>
+          }
+          @if (isChecking()) {
+            <span i18n>Checking…</span>
+          } @else {
+            <span i18n>Check again</span>
+          }
+        </button>
+
+        @if (showPlayStoreAction()) {
+          <button matButton="text" type="button" (click)="openPlayStore()">
+            <mat-icon>open_in_new</mat-icon>
+            <span i18n>Open Google Play</span>
+          </button>
+        }
+      </div>
+
+      @if (showPlayStoreAction()) {
+        <p class="age-assurance-card__instructions mat-body-small m-0">
+          {{ playStoreInstructions() }}
+        </p>
+      }
+
+      @if (storeOpenFailed()) {
+        <p class="age-assurance-card__error mat-body-small m-0" role="alert" i18n>
+          Google Play could not be opened. Open the Play Store manually and
+          search for PK Spot.
+        </p>
+      }
+    }
+  </div>
+</section>

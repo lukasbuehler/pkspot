@@ -86,7 +86,7 @@ export class EventLiveUpdateOrganizerMenuComponent {
         EventOperationsDialogComponent,
         {
           data: { event: this.event() },
-          width: "860px",
+          width: "680px",
           maxWidth: "calc(100vw - 2rem)",
           maxHeight: "92vh",
           autoFocus: "first-tabbable",

@@ -1,6 +1,8 @@
 import { signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MAT_DIALOG_DATA } from "@angular/material/dialog";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { AccountPreferencesService } from "../../services/account-preferences.service";
 import type { WeatherResponse } from "../../weather/weather.models";
 import {
@@ -78,6 +80,35 @@ describe("EventWeatherForecastDialogComponent", () => {
   it("uses the wider responsive dialog configuration", () => {
     expect(EVENT_WEATHER_DIALOG_CONFIG.width).toBe("960px");
     expect(EVENT_WEATHER_DIALOG_CONFIG.maxWidth).toBe("calc(100vw - 24px)");
+  });
+
+  it("keeps horizontal scrolling inside the forecast strips", () => {
+    const componentRoot = join(process.cwd(), "src/app/components");
+    const dialogStyles = readFileSync(
+      join(
+        componentRoot,
+        "event-weather-forecast-dialog/event-weather-forecast-dialog.component.scss",
+      ),
+      "utf8",
+    );
+    const dayStyles = readFileSync(
+      join(componentRoot, "event-weather-days/event-weather-days.component.scss"),
+      "utf8",
+    );
+    const hourStyles = readFileSync(
+      join(
+        componentRoot,
+        "event-weather-hours/event-weather-hours.component.scss",
+      ),
+      "utf8",
+    );
+
+    expect(dialogStyles).toMatch(/:host\s*\{[^}]*min-width:\s*0;/u);
+    expect(dialogStyles).toMatch(
+      /mat-dialog-content\s*\{[^}]*overflow-x:\s*hidden;/u,
+    );
+    expect(dayStyles).toMatch(/\.event-days\s*\{[^}]*overflow-x:\s*auto;/u);
+    expect(hourStyles).toMatch(/\.hourly-strip\s*\{[^}]*overflow-x:\s*auto;/u);
   });
 
   it("lists all event days and marks missing forecast days", async () => {

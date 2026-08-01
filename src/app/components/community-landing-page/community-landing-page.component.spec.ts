@@ -680,6 +680,66 @@ describe("CommunityLandingPageComponent", () => {
     expect(document.body.textContent).toContain("Merge a locality into Copenhagen");
   });
 
+  it("shows a retryable error when locality candidates cannot be loaded", async () => {
+    const localityData: CommunityLandingPageData = {
+      ...communityData,
+      communityKey: "locality:dk:84:copenhagen",
+      scope: "locality",
+      displayName: "Copenhagen",
+      preferredSlug: "copenhagen",
+      requestedSlug: "copenhagen",
+      canonicalPath: "/map/communities/copenhagen",
+      country: { code: "DK", name: "Denmark", slug: "denmark" },
+      locality: { name: "Copenhagen", slug: "copenhagen" },
+      childCommunities: [],
+    };
+    getCommunityMergeAdminState
+      .mockResolvedValueOnce({ candidates: [], mergedLocalities: [] })
+      .mockRejectedValueOnce(new Error("function not found"))
+      .mockResolvedValueOnce({ candidates: [], mergedLocalities: [] });
+    fixture.componentRef.setInput("communityDataInput", localityData);
+    isAdmin.set(true);
+
+    fixture.componentInstance.startKnowledgeEdit();
+    await fixture.whenStable();
+    await vi.waitFor(() =>
+      expect(fixture.componentInstance.isLoadingLocalityMerges()).toBe(false),
+    );
+    fixture.componentInstance.cancelKnowledgeEdit();
+    await fixture.whenStable();
+
+    await fixture.componentInstance.loadLocalityMergeAdminState(true);
+    await fixture.whenStable();
+    expect(fixture.componentInstance.isLoadingLocalityMerges()).toBe(false);
+    expect(fixture.componentInstance.localityMergeLoadFailed()).toBe(true);
+
+    fixture.componentInstance.startKnowledgeEdit();
+    await fixture.whenStable();
+
+    await vi.waitFor(() =>
+      expect(
+        document.body.querySelector(".community-locality-merge-error"),
+      ).not.toBeNull(),
+    );
+    const error = document.body.querySelector<HTMLElement>(
+      ".community-locality-merge-error",
+    );
+    expect(error?.textContent ?? "").toContain("Could not load localities");
+    expect(document.body.textContent).not.toContain(
+      "No unmerged localities without community pages",
+    );
+
+    error?.querySelector<HTMLButtonElement>("button")?.click();
+    await fixture.whenStable();
+
+    await vi.waitFor(() => {
+      expect(getCommunityMergeAdminState).toHaveBeenCalledTimes(3);
+      expect(
+        document.body.querySelector(".community-locality-merge-error"),
+      ).toBeNull();
+    });
+  });
+
   it("confirms and saves a target-side locality merge", async () => {
     const localityData: CommunityLandingPageData = {
       ...communityData,

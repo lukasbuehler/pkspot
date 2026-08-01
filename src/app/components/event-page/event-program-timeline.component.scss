@@ -20,7 +20,6 @@
   overflow-y: hidden;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
-  scroll-snap-type: x proximity;
   touch-action: pan-x pan-y;
   -webkit-overflow-scrolling: touch;
 
@@ -79,7 +78,6 @@
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
-  scroll-snap-align: start;
 }
 
 .program-day-tab:hover {

@@ -1,5 +1,8 @@
 package com.pkspot.app;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.net.Uri;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -18,6 +21,7 @@ import java.util.function.Consumer;
 @CapacitorPlugin(name = "AgeAssurance")
 public class AgeAssurancePlugin extends Plugin {
   private static final long CLOUD_PROJECT_NUMBER = 294969617102L;
+  private static final String PLAY_STORE_PACKAGE = "com.android.vending";
 
   @PluginMethod
   public void getAgeSignal(PluginCall call) {
@@ -46,6 +50,31 @@ public class AgeAssurancePlugin extends Plugin {
         error -> call.reject(
             "The age signal could not be read securely.",
             error));
+  }
+
+  @PluginMethod
+  public void openPlayStoreListing(PluginCall call) {
+    String packageName = getContext().getPackageName();
+    try {
+      Intent playStoreIntent = new Intent(
+          Intent.ACTION_VIEW,
+          Uri.parse("market://details?id=" + packageName));
+      playStoreIntent.setPackage(PLAY_STORE_PACKAGE);
+      getActivity().startActivity(playStoreIntent);
+      call.resolve();
+    } catch (ActivityNotFoundException error) {
+      try {
+        Intent browserIntent = new Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse("https://play.google.com/store/apps/details?id=" + packageName));
+        getActivity().startActivity(browserIntent);
+        call.resolve();
+      } catch (Exception fallbackError) {
+        call.reject("Google Play could not be opened.", fallbackError);
+      }
+    } catch (Exception error) {
+      call.reject("Google Play could not be opened.", error);
+    }
   }
 
   private void requestAgeSignal(

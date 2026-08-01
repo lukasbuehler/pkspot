@@ -734,6 +734,28 @@
                         />
                         <span>Loading unpublished localities…</span>
                       </div>
+                    } @else if (localityMergeLoadFailed()) {
+                      <div class="community-locality-merge-error" role="alert">
+                        <span class="community-locality-merge-error-icon">
+                          <mat-icon>cloud_off</mat-icon>
+                        </span>
+                        <div>
+                          <strong>Could not load localities</strong>
+                          <p class="mat-body-small m-0">
+                            The merge admin functions may not be deployed yet,
+                            or the request failed. Retry after checking the
+                            backend deployment.
+                          </p>
+                        </div>
+                        <button
+                          mat-stroked-button
+                          type="button"
+                          (click)="loadLocalityMergeAdminState(true)"
+                        >
+                          <mat-icon>refresh</mat-icon>
+                          <span>Retry</span>
+                        </button>
+                      </div>
                     } @else {
                       <div class="community-locality-merge-controls">
                         <app-community-locality-picker

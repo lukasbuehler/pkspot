@@ -177,6 +177,7 @@ export class CommunityLandingPageComponent {
   selectedMergeTargetKey = signal("");
   mergeInfoCardMode = signal<CommunityMergeInfoCardMode>("move");
   isLoadingLocalityMerges = signal(false);
+  localityMergeLoadFailed = signal(false);
   isSavingLocalityMerge = signal(false);
   localityMergeCandidates = signal<CommunityMergeLocalityOptionSchema[]>([]);
   mergedUnpublishedLocalities = signal<CommunityMergeLocalityOptionSchema[]>([]);
@@ -690,6 +691,7 @@ export class CommunityLandingPageComponent {
     }
 
     this.isLoadingLocalityMerges.set(true);
+    this.localityMergeLoadFailed.set(false);
     try {
       const state = await this._landingPagesService.getCommunityMergeAdminState(
         data.communityKey,
@@ -707,6 +709,7 @@ export class CommunityLandingPageComponent {
       }
     } catch (error) {
       console.error("Failed to load unpublished locality merges", error);
+      this.localityMergeLoadFailed.set(true);
       this._snackbar.open("Failed to load unpublished localities", undefined, {
         duration: 5000,
       });

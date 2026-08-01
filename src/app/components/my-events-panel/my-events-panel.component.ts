@@ -11,12 +11,18 @@ import { MatIconModule } from "@angular/material/icon";
 import { RouterLink } from "@angular/router";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
-import { eventScheduleLabel } from "../event-display/event-display.helpers";
+import {
+  eventImageDisplaySrc,
+  eventScheduleLabel,
+} from "../event-display/event-display.helpers";
 
 type MyEventsTab = "going" | "saved";
 
 interface MyEventRow {
   event: PkEvent;
+  logoBackgroundColor?: string;
+  logoFit: "contain" | "cover";
+  logoSrc?: string;
   route: readonly string[];
   schedule: string;
 }
@@ -58,6 +64,9 @@ export class MyEventsPanelComponent {
       : this.savedEvents()
     ).map((event) => ({
       event,
+      logoBackgroundColor: event.effectiveBadgeLogoBackgroundColor(),
+      logoFit: event.effectiveBadgeLogoFit(),
+      logoSrc: eventImageDisplaySrc(event.effectiveBadgeLogoSrc()),
       route: ["/events", event.slug ?? event.id],
       schedule: eventScheduleLabel(event, this._dateTime, "short"),
     })),

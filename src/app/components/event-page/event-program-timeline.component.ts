@@ -73,6 +73,7 @@ export class EventProgramTimelineComponent {
   private readonly _tabList =
     viewChild<ElementRef<HTMLDivElement>>("tabList");
   private _tabResizeObserver?: ResizeObserver;
+  private _lastAlignedTab: HTMLElement | null = null;
 
   readonly items = input.required<EventProgramItem[]>();
   readonly timeZone = input<string | undefined>();
@@ -329,7 +330,16 @@ export class EventProgramTimelineComponent {
     const selectedTab = tabList.querySelector<HTMLElement>(
       '[role="tab"][aria-selected="true"]',
     );
-    if (!selectedTab) return;
+    if (!selectedTab) {
+      this._lastAlignedTab = null;
+      return;
+    }
+
+    // Program data (weather, linked events, and the live clock) can update
+    // without changing the selected day. Only align a newly selected/rendered
+    // tab so those background updates do not undo the user's manual scrolling.
+    if (selectedTab === this._lastAlignedTab) return;
+    this._lastAlignedTab = selectedTab;
 
     const viewportLeft = tabList.scrollLeft;
     const viewportRight = viewportLeft + tabList.clientWidth;

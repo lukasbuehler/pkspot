@@ -36,6 +36,17 @@
     <div class="my-events-list">
       @for (row of rows(); track row.event.id) {
         <a class="my-event-row" [routerLink]="row.route">
+          <span
+            class="my-event-icon"
+            aria-hidden="true"
+            [style.background-color]="row.logoBackgroundColor ?? null"
+          >
+            @if (row.logoSrc; as logoSrc) {
+              <img [src]="logoSrc" [style.object-fit]="row.logoFit" alt="" />
+            } @else {
+              <mat-icon>event</mat-icon>
+            }
+          </span>
           <span class="my-event-copy">
             <strong class="mat-title-medium">{{ row.event.name }}</strong>
             <span class="mat-body-small">{{ row.schedule }}</span>

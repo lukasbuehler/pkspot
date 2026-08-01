@@ -66,7 +66,6 @@
 .my-event-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 0.75rem;
   min-width: 0;
   padding: 0.875rem 1rem;
@@ -88,8 +87,32 @@
   outline-offset: 2px;
 }
 
+.my-event-icon {
+  display: grid;
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.my-event-icon mat-icon {
+  width: 28px;
+  height: 28px;
+  font-size: 28px;
+}
+
+.my-event-icon img {
+  width: 100%;
+  height: 100%;
+}
+
 .my-event-copy {
   display: grid;
+  flex: 1 1 auto;
   min-width: 0;
 }
 

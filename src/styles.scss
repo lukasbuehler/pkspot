@@ -147,7 +147,6 @@ body:has(#alainMenuButton) {
 }
 
 .cdk-overlay-pane.mat-mdc-dialog-panel {
-  width: auto !important;
   min-width: 0 !important;
   max-width: min(90vw, 100%) !important;
 }

@@ -60,7 +60,7 @@ import { PushNotificationsService } from "../../services/push-notifications.serv
 import type { NotificationPreferenceKey } from "../../../db/schemas/NotificationSchema";
 import { MatDialog } from "@angular/material/dialog";
 import { EventNotificationSubscriptionsDialogComponent } from "../event-notification-subscriptions-dialog/event-notification-subscriptions-dialog.component";
-import { AgeAssuranceInfoDialogComponent } from "../age-assurance-info-dialog/age-assurance-info-dialog.component";
+import { AgeAssuranceStatusCardComponent } from "../age-assurance-status-card/age-assurance-status-card.component";
 import { CommunityFollowsService } from "../../services/firebase/firestore/community-follows.service";
 import type { CommunityFollowDocument } from "../../../db/schemas/CommunityFollowSchema";
 import { EventNotificationMigrationService } from "../../services/event-notification-migration.service";
@@ -90,6 +90,7 @@ import { EventNotificationMigrationService } from "../../services/event-notifica
     MatExpansionModule,
     RouterLink,
     ContributionStatusNoteComponent,
+    AgeAssuranceStatusCardComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { ngSkipHydration: "true" },
@@ -263,24 +264,6 @@ export class SettingsPageComponent implements OnInit {
       this.accountPrivacy === "public" &&
       this.profileVisibility === "public"
     );
-  }
-
-  get adultEligibilityStatus(): string {
-    if (this.ageAssurance.hasVerifiedAdultEligibility()) {
-      return $localize`Independently checked 18+ eligibility is available.`;
-    }
-
-    switch (this.ageAssurance.adultEvidenceStrength()) {
-      case "self_declared":
-        return $localize`A self-declared age range is stored, but it does not unlock a public profile.`;
-      case "guardian_managed":
-        return $localize`The platform reports a guardian-managed age range.`;
-      case "independently_checked":
-      case "verified_identity":
-        return $localize`The available evidence does not currently establish 18+ eligibility.`;
-      case "unknown":
-        return $localize`No independently checked 18+ result is stored.`;
-    }
   }
 
   get isOAuthUser(): boolean {
@@ -484,15 +467,6 @@ export class SettingsPageComponent implements OnInit {
   openEventNotificationSubscriptions(): void {
     this._dialog.open(EventNotificationSubscriptionsDialogComponent, {
       width: "min(640px, calc(100vw - 32px))",
-      maxWidth: "100vw",
-      maxHeight: "calc(100vh - 32px)",
-      autoFocus: false,
-    });
-  }
-
-  openAgeAssuranceInfo(): void {
-    this._dialog.open(AgeAssuranceInfoDialogComponent, {
-      width: "min(680px, calc(100vw - 32px))",
       maxWidth: "100vw",
       maxHeight: "calc(100vh - 32px)",
       autoFocus: false,

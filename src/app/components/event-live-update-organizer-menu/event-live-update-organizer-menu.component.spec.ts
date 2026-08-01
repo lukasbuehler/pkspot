@@ -1,12 +1,13 @@
 import { TestBed } from "@angular/core/testing";
 import { MatDialog } from "@angular/material/dialog";
 import { Timestamp } from "firebase/firestore";
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, of } from "rxjs";
 import { Event } from "../../../db/models/Event";
 import type { EventId, EventSchema } from "../../../db/schemas/EventSchema";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { EventLiveUpdatesService } from "../../services/firebase/firestore/event-live-updates.service";
 import { EventLiveUpdateDialogComponent } from "../event-live-update-dialog/event-live-update-dialog.component";
+import { EventOperationsDialogComponent } from "../event-operations-dialog/event-operations-dialog.component";
 import { EventLiveUpdateOrganizerMenuComponent } from "./event-live-update-organizer-menu.component";
 
 const event = new Event("event-1" as EventId, {
@@ -24,7 +25,7 @@ const event = new Event("event-1" as EventId, {
 
 describe("EventLiveUpdateOrganizerMenuComponent", () => {
   it("shows organizer management and opens the publisher dialog", async () => {
-    const open = vi.fn();
+    const open = vi.fn(() => ({ afterClosed: () => of(false) }));
     TestBed.configureTestingModule({
       providers: [
         {
@@ -50,6 +51,12 @@ describe("EventLiveUpdateOrganizerMenuComponent", () => {
     expect(open).toHaveBeenCalledWith(
       EventLiveUpdateDialogComponent,
       expect.objectContaining({ data: { event } }),
+    );
+
+    fixture.componentInstance.openOperations();
+    expect(open).toHaveBeenLastCalledWith(
+      EventOperationsDialogComponent,
+      expect.objectContaining({ data: { event }, width: "680px" }),
     );
   });
 

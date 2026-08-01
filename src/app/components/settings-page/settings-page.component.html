@@ -144,32 +144,7 @@
             </div>
 
             <div class="d-grid gap-3 mb-4">
-              <div class="age-assurance-card">
-                <div class="age-assurance-card__icon" aria-hidden="true">
-                  <mat-icon>verified_user</mat-icon>
-                </div>
-                <div>
-                  <div
-                    class="d-flex align-items-start justify-content-between gap-2"
-                  >
-                    <h4 class="mat-title-medium m-0" i18n>
-                      Adult eligibility for public profiles
-                    </h4>
-                    <button
-                      mat-icon-button
-                      type="button"
-                      (click)="openAgeAssuranceInfo()"
-                      aria-label="Why PK Spot checks adult eligibility"
-                      i18n-aria-label
-                    >
-                      <mat-icon>help_outline</mat-icon>
-                    </button>
-                  </div>
-                  <p class="mat-body-small m-0">
-                    {{ adultEligibilityStatus }}
-                  </p>
-                </div>
-              </div>
+              <app-age-assurance-status-card />
 
               <div
                 class="d-flex justify-content-between align-items-start gap-3"

@@ -2371,11 +2371,26 @@ const getRawLocalityGroupsForCountry = async (
   db: admin.firestore.Firestore,
   countryCode: string
 ): Promise<Map<string, RawLocalityGroup>> => {
-  const snapshot = await db
-    .collection(SPOTS_COLLECTION)
-    .where("landing.countryCode", "==", countryCode)
-    .get();
-  const spots = snapshot.docs
+  // `landing` is derived server data and can be missing on older spots. Address
+  // data is the source of truth for locality candidates, so include either
+  // representation and deduplicate spots that match both queries.
+  const [landingSnapshot, addressSnapshot] = await Promise.all([
+    db
+      .collection(SPOTS_COLLECTION)
+      .where("landing.countryCode", "==", countryCode)
+      .get(),
+    db
+      .collection(SPOTS_COLLECTION)
+      .where("address.country.code", "==", countryCode)
+      .get(),
+  ]);
+  const spotDocuments = new Map(
+    [...landingSnapshot.docs, ...addressSnapshot.docs].map((doc) => [
+      doc.id,
+      doc,
+    ])
+  );
+  const spots = [...spotDocuments.values()]
     .filter((doc) => isSpotRuntimeDoc(doc.id))
     .map((doc) => ({ id: doc.id, data: doc.data() as SpotSchema }));
   const groups = collectGeneratedCommunities(spots);

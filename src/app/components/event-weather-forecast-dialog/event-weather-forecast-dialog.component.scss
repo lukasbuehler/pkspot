@@ -1,6 +1,8 @@
 :host {
   display: block;
-  width: min(60rem, calc(100vw - 24px));
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .dialog-header {
@@ -8,16 +10,21 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
   padding: 1.25rem 1.5rem 0;
 }
 
 .dialog-header h2 {
   margin: 0;
   padding: 0;
+  overflow-wrap: anywhere;
 }
 
 .dialog-header > div {
   display: grid;
+  min-width: 0;
   gap: 0.125rem;
 }
 
@@ -28,6 +35,10 @@
 mat-dialog-content {
   display: grid;
   gap: 1.5rem;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
   padding-top: 1rem;
 }
 

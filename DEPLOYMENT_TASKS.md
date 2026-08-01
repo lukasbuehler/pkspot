@@ -84,23 +84,14 @@ is required for this client-only refactor. Push registration does require each
 platform's Firebase Messaging API key to permit the client APIs used by Cloud
 Messaging.
 
-- [ ] In Google Cloud Console, inspect the API restrictions on the Firebase
-      Messaging keys used by the development web, production web, Android, and
-      iOS apps. Ensure each permits both
-      `Firebase Installations API` (`firebaseinstallations.googleapis.com`) and
-      `FCM Registration API` (`fcmregistrations.googleapis.com`), and retain
-      the existing platform-specific application restrictions: HTTP
-      referrers for web, package name and signing certificate for Android, and
-      bundle ID for iOS. First fix and test the development web key ending in
-      `-jJo`, then verify the production web key ending in `4AlI` and the native
-      keys from `google-services.json` and `GoogleService-Info.plist` before
-      their respective releases.
-
-  Success condition: with notification permission already granted, focusing the
-  local app and calling `getToken()` no longer returns
-  `installations/request-failed` or an API-blocked 403. Repeat token registration
-  on production web, Android, and iOS, and confirm each platform creates an
-  active registration document for the current user.
+- [ ] Verify the updated Firebase Messaging API-key allowlists with real token
+      registration. With notification permission already granted, focus the
+      local app and confirm `getToken()` no longer returns
+      `installations/request-failed` or an API-blocked 403. Repeat on production
+      web, Android, and iOS, and confirm each platform creates an active
+      registration document for the current user. Keep the platform-specific
+      application restrictions in place; this check does not require making a
+      Firebase key unrestricted.
 
 - [ ] Release the direct Firebase JS SDK client through the normal `main` and
       mobile release workflows. Smoke-test production web and supported
@@ -526,13 +517,16 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
   production query.
 - [ ] Release the client containing Android Play Age Signals `0.0.4`, the
       two-step access request, Play Integrity `1.6.0` request binding, normalized
-      assurance record, and the updated account settings explanation. Do not
+      assurance record, and the account settings recovery flow for rechecking
+      the signal or opening PK Spot's Play Store age-sharing controls. Do not
       infer this release from the backend deploy.
 - [ ] Verify production with representative test accounts: optional age sharing
       declined still permits core participation; a mandatory unresolved signal
       restricts participation; Tier A does not unlock a public profile; and an
       18+ Tier C or D result from a Play-installed, licensed build on a device
-      meeting device integrity does.
+      meeting device integrity does. For a declined result, enable `Share age
+      range` from PK Spot's Play Store listing, return to Settings, use `Check
+      again`, and confirm the result updates without restarting the app.
 - [ ] Monitor `beginAgeAssuranceV3` and `updateAgePolicyV3` App Check failures,
       Play Integrity decode failures, age-signal outcomes, challenge cleanup,
       and public profile projection changes. Keep `updateAgePolicy` and

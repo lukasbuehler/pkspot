@@ -243,6 +243,32 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
+.community-locality-merge-error {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
+  border: 1px solid var(--mat-sys-error);
+  border-radius: 18px;
+}
+
+.community-locality-merge-error-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  color: var(--mat-sys-on-error);
+  background: var(--mat-sys-error);
+  border-radius: 13px;
+}
+
+.community-locality-merge-error button {
+  color: inherit;
+}
+
 .community-merged-localities {
   display: grid;
   gap: 8px;
@@ -344,6 +370,14 @@
 
   .community-locality-merge-controls {
     grid-template-columns: 1fr;
+  }
+
+  .community-locality-merge-error {
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
+
+  .community-locality-merge-error button {
+    grid-column: 1 / -1;
   }
 
   .community-knowledge-dialog {

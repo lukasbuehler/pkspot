@@ -311,7 +311,11 @@ runWithEmulator("CommunityEditsService emulator integration", () => {
     expect(uid).toBeTruthy();
     const targetKey = "locality:dk:84:copenhagen";
     const sourceKey = "locality:dk:84:frederiksberg";
-    const spotDocument = (locality: string, index: number) => ({
+    const spotDocument = (
+      locality: string,
+      index: number,
+      includeDerivedLanding = true,
+    ) => ({
       name: { en: `${locality} spot ${index}` },
       address: {
         locality,
@@ -319,20 +323,27 @@ runWithEmulator("CommunityEditsService emulator integration", () => {
         region: { code: "84", name: "Capital Region of Denmark" },
         country: { code: "DK", name: "Denmark", localName: "Danmark" },
       },
-      landing: {
-        countryCode: "DK",
-        countryNameEn: "Denmark",
-        countrySlug: "denmark",
-        regionCode: "84",
-        regionName: "Capital Region of Denmark",
-        regionSlug: "84",
-        localityName: locality,
-        localitySlug: locality.toLowerCase(),
-        isDry: false,
-        organizationVerified: false,
-      },
+      ...(includeDerivedLanding
+        ? {
+            landing: {
+              countryCode: "DK",
+              countryNameEn: "Denmark",
+              countrySlug: "denmark",
+              regionCode: "84",
+              regionName: "Capital Region of Denmark",
+              regionSlug: "84",
+              localityName: locality,
+              localitySlug: locality.toLowerCase(),
+              isDry: false,
+              organizationVerified: false,
+            },
+          }
+        : {}),
       location_raw: {
-        lat: locality === "Frederiksberg" ? 55.68 + index / 10_000 : 55.67 + index / 10_000,
+        lat:
+          locality === "Frederiksberg"
+            ? 55.68 + index / 10_000
+            : 55.67 + index / 10_000,
         lng: locality === "Frederiksberg" ? 12.53 : 12.57,
       },
       type: "parkour park",
@@ -352,7 +363,7 @@ runWithEmulator("CommunityEditsService emulator integration", () => {
     for (let index = 0; index < 3; index += 1) {
       writes.push(
         adminDb().doc(`spots/dk-frederiksberg-${uid}-${index}`).set(
-          spotDocument("Frederiksberg", index),
+          spotDocument("Frederiksberg", index, false),
         ),
       );
     }

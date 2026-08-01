@@ -7,6 +7,9 @@
   display: flex;
   gap: 0.75rem;
   overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  overscroll-behavior-inline: contain;
   padding: 0.125rem 0.125rem 0.75rem;
   scroll-snap-type: x proximity;
 }

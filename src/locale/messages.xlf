@@ -427,6 +427,11 @@
         <source>Open current NCA guidance</source>
       </segment>
     </unit>
+    <unit id="6637606919308900362">
+      <segment>
+        <source>Sharing is separate from verification</source>
+      </segment>
+    </unit>
     <unit id="6638716872037410765">
       <segment>
         <source> Live &amp; Verified </source>
@@ -565,6 +570,11 @@
     <unit id="613943582301222071">
       <segment>
         <source>Organization members</source>
+      </segment>
+    </unit>
+    <unit id="6150046349171143373">
+      <segment>
+        <source>PK Spot could not securely check the mobile platform age signal. Please try again.</source>
       </segment>
     </unit>
     <unit id="6943542297023366963">
@@ -910,6 +920,11 @@
     <unit id="3114906098813455469">
       <segment>
         <source>Spot created</source>
+      </segment>
+    </unit>
+    <unit id="3128073754874690216">
+      <segment>
+        <source>Google Play is not sharing an age range with PK Spot. Enable “Share age range” for PK Spot in Google Play, then check again.</source>
       </segment>
     </unit>
     <unit id="3143510854025741393">
@@ -1611,9 +1626,9 @@
         <source> Release Date <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE" equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other" dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;" dispEnd="&lt;/mat-slide-toggle&gt;"/></source>
       </segment>
     </unit>
-    <unit id="8841900179327389379">
+    <unit id="391711628671659880">
       <segment>
-        <source> PK Spot stores an age band, a broad evidence category and the resulting eligibility—not an exact birth date, identity document, bank account or card number. It also records the provider and method category, when the result was checked, when it expires, and the policy basis used for the decision. This lets PK Spot withdraw approvals if a method is later found unsuitable. Self-declared age alone does not unlock a public profile. </source>
+        <source> PK Spot stores an age band, a broad evidence category and the resulting eligibility—not an exact birth date, identity document, bank account or card number. It also records the provider and method category, when the result was checked, and the policy basis used for the decision. This lets PK Spot withdraw approvals if a later signal changes or a method is found unsuitable. Self-declared age alone does not unlock a public profile. </source>
       </segment>
     </unit>
     <unit id="8846151385804023521">
@@ -1672,6 +1687,11 @@
     <unit id="2159535252430707382">
       <segment>
         <source>Moderation action recorded</source>
+      </segment>
+    </unit>
+    <unit id="2173680923654077460">
+      <segment>
+        <source>Checking the mobile platform age signal…</source>
       </segment>
     </unit>
     <unit id="2178484227756853679">
@@ -2592,6 +2612,11 @@
     <unit id="2830779242863245798">
       <segment>
         <source>Crop image area</source>
+      </segment>
+    </unit>
+    <unit id="2837563357465957772">
+      <segment>
+        <source>Open Google Play</source>
       </segment>
     </unit>
     <unit id="28390273827708830">
@@ -6435,6 +6460,11 @@
         <source>Save and notify</source>
       </segment>
     </unit>
+    <unit id="4015645153356564613">
+      <segment>
+        <source>Google Play reports a guardian-managed age range. A parent can manage age sharing in Family Link.</source>
+      </segment>
+    </unit>
     <unit id="4020018249666121252">
       <segment>
         <source> All Challenges of <ph id="0" equiv="INTERPOLATION" disp="{{ spotName() }}"/> </source>
@@ -7301,6 +7331,11 @@
         <source>Unnamed Spot</source>
       </segment>
     </unit>
+    <unit id="5391123882045251215">
+      <segment>
+        <source>On PK Spot’s Play Store page, open the three-dot menu and enable “Share age range”. You can also use Play Store profile → Settings → Family → Age range sharing.</source>
+      </segment>
+    </unit>
     <unit id="3345432039674927349">
       <segment>
         <source>Could not complete the age-assurance rollback</source>
@@ -7770,6 +7805,11 @@
         <source>Details</source>
       </segment>
     </unit>
+    <unit id="503243327552001611">
+      <segment>
+        <source>The age signal is currently unavailable. Make sure PK Spot was installed from Google Play and that the Play Store is up to date, then try again.</source>
+      </segment>
+    </unit>
     <unit id="991761096918819245">
       <segment>
         <source>Not verified</source>
@@ -7788,6 +7828,11 @@
     <unit id="2852131932578261096">
       <segment>
         <source>Apply operation</source>
+      </segment>
+    </unit>
+    <unit id="2854151080270598060">
+      <segment>
+        <source>The mobile platform shared an age result, but it does not establish independently checked 18+ eligibility.</source>
       </segment>
     </unit>
     <unit id="2855049153368933927">
@@ -8910,6 +8955,11 @@
         <source>An unknown error has occured on sign in. Please try again.</source>
       </segment>
     </unit>
+    <unit id="7734361235492917247">
+      <segment>
+        <source> Google Play first asks whether it may share an age range with PK Spot. A birthday entered on a Google Account is self-declared and does not become independently checked just because it is shared. Google controls when identity, card, selfie or other age-verification choices are offered. </source>
+      </segment>
+    </unit>
     <unit id="773524594392048440">
       <segment>
         <source> Ask us to review this restriction </source>
@@ -9008,6 +9058,11 @@
     <unit id="5261342889229534364">
       <segment>
         <source>The repeated password needs to match the password entered.</source>
+      </segment>
+    </unit>
+    <unit id="3296234081069982825">
+      <segment>
+        <source>The mobile platform age signal is currently unavailable. Please try again later.</source>
       </segment>
     </unit>
     <unit id="3297238960219201653">
@@ -9408,6 +9463,11 @@
         <source>Environment</source>
       </segment>
     </unit>
+    <unit id="8800490161127399172">
+      <segment>
+        <source>Google Play supplied an independently checked 18+ result. Adult eligibility is active.</source>
+      </segment>
+    </unit>
     <unit id="8814348110763907781">
       <segment>
         <source> Saving the new time will publish an Event rescheduled update and move pending reminders. </source>
@@ -9486,6 +9546,11 @@
     <unit id="3554832972932526425">
       <segment>
         <source>Edit rejected</source>
+      </segment>
+    </unit>
+    <unit id="3555090147337707286">
+      <segment>
+        <source>Check again</source>
       </segment>
     </unit>
     <unit id="6997602168024654529">
@@ -9854,6 +9919,11 @@
         <source>New end</source>
       </segment>
     </unit>
+    <unit id="891476879467146439">
+      <segment>
+        <source>Google controls the verification flow. Visit the Play Store and complete any age-confirmation prompt it shows.</source>
+      </segment>
+    </unit>
     <unit id="spot.edit_history.tooltip">
       <notes>
         <note category="description">Tooltip for edit history button</note>
@@ -9921,6 +9991,11 @@
     <unit id="5362379799194608804">
       <segment>
         <source>Local time zone and start time are missing</source>
+      </segment>
+    </unit>
+    <unit id="5366185394283274884">
+      <segment>
+        <source>Google Play requires you to confirm your age or set up supervision. Open Google Play, complete its instructions, then check again.</source>
       </segment>
     </unit>
     <unit id="4467323362722952678">
@@ -11178,6 +11253,11 @@
         <source> Some uploads could not be processed. </source>
       </segment>
     </unit>
+    <unit id="8412870208077922475">
+      <segment>
+        <source>Checking…</source>
+      </segment>
+    </unit>
     <unit id="8425534745547037864">
       <segment>
         <source>Awaiting steward review</source>
@@ -11261,6 +11341,11 @@
     <unit id="4430765953319659794">
       <segment>
         <source>It&apos;s a private spot and should not be on this spot map.</source>
+      </segment>
+    </unit>
+    <unit id="4435688501296937772">
+      <segment>
+        <source>Google Play shared an age result, but it does not establish independently checked 18+ eligibility.</source>
       </segment>
     </unit>
     <unit id="4439801928039075192">
@@ -12148,6 +12233,11 @@
         <source>Note (optional)</source>
       </segment>
     </unit>
+    <unit id="7976929923774557536">
+      <segment>
+        <source>PK Spot could not securely check the Google Play age signal. Please try again.</source>
+      </segment>
+    </unit>
     <unit id="798956693238681279">
       <segment>
         <source>Could not load this organization.</source>
@@ -12161,6 +12251,11 @@
     <unit id="4819326588611894685">
       <segment>
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span &gt;"> Copyright infringement: This is my content and I did not give permission for it to be used here.</pc></source>
+      </segment>
+    </unit>
+    <unit id="6203177034092506213">
+      <segment>
+        <source>Google Play shared an 18+ range based on an age entered on the Google Account. Because it was not independently checked, it cannot unlock a public profile.</source>
       </segment>
     </unit>
     <unit id="6210875862708659535">
@@ -12432,6 +12527,11 @@
     <unit id="9036774118081905922">
       <segment>
         <source>Failed to load safety incident</source>
+      </segment>
+    </unit>
+    <unit id="9046336486848859028">
+      <segment>
+        <source>Checking the age signal with Google Play…</source>
       </segment>
     </unit>
     <unit id="8773657518706700849">
@@ -12961,6 +13061,11 @@
     <unit id="6559246822757089203">
       <segment>
         <source>Clear filters</source>
+      </segment>
+    </unit>
+    <unit id="6172588824053975463">
+      <segment>
+        <source> Google Play could not be opened. Open the Play Store manually and search for PK Spot. </source>
       </segment>
     </unit>
     <unit id="6179206102292432387">

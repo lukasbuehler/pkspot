@@ -22,6 +22,7 @@ describe("AgeAssuranceInfoDialogComponent", () => {
     const text = (fixture.nativeElement as HTMLElement).textContent ?? "";
     expect(text).toContain("Public identity needs a higher bar");
     expect(text).toContain("Core features remain available");
+    expect(text).toContain("Sharing is separate from verification");
     expect(text).toContain("not an exact birth date");
     expect(text).toContain("Self-declared age alone");
   });
