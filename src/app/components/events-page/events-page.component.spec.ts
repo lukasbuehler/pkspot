@@ -18,6 +18,8 @@ import {
 import { EventDiscoveryIssuesDialogComponent } from "./event-discovery-issues-dialog.component";
 import { EventsPageComponent } from "./events-page.component";
 import { MyEventContextService } from "../../services/my-event-context.service";
+import { EventNotificationMigrationService } from "../../services/event-notification-migration.service";
+import { NotificationPreferencesService } from "../../services/notification-preferences.service";
 
 interface ScreenshotGlobal {
   __PKSPOT_SCREENSHOT_EVENT_INDEX__?: unknown;
@@ -105,6 +107,7 @@ interface TestContext {
     searchInvalidEventDiscovery: ReturnType<typeof vi.fn>;
   };
   eventsService: { getEvents: ReturnType<typeof vi.fn> };
+  notificationMigration: { maybePrompt: ReturnType<typeof vi.fn> };
 }
 
 function createComponent(options?: {
@@ -114,6 +117,9 @@ function createComponent(options?: {
   drafts?: PkEvent[];
   searchResult?: EventDiscoverySearchResult;
   invalidEvents?: EventSearchPreview[];
+  goingEvents?: PkEvent[];
+  savedEvents?: PkEvent[];
+  personalEventsLoading?: boolean;
   platform?: "browser" | "server";
 }): TestContext {
   const queryParams = new BehaviorSubject(
@@ -135,6 +141,7 @@ function createComponent(options?: {
   const eventsService = {
     getEvents: vi.fn().mockResolvedValue(options?.drafts ?? []),
   };
+  const notificationMigration = { maybePrompt: vi.fn().mockResolvedValue(undefined) };
 
   TestBed.configureTestingModule({
     providers: [
@@ -167,7 +174,22 @@ function createComponent(options?: {
         provide: MyEventContextService,
         useValue: {
           liveEvents: signal<PkEvent[]>([]),
+          goingEvents: signal<PkEvent[]>(options?.goingEvents ?? []),
+          savedEvents: signal<PkEvent[]>(options?.savedEvents ?? []),
+          isLoading: signal(options?.personalEventsLoading ?? false),
           now: signal(new Date("2026-08-14T12:00:00.000Z")),
+        },
+      },
+      {
+        provide: EventNotificationMigrationService,
+        useValue: notificationMigration,
+      },
+      {
+        provide: NotificationPreferencesService,
+        useValue: {
+          loading: signal(false),
+          preferences: signal({ event_reminders: false }),
+          hasHandledPrompt: vi.fn(() => false),
         },
       },
     ],
@@ -180,6 +202,7 @@ function createComponent(options?: {
     dialog,
     searchService,
     eventsService,
+    notificationMigration,
   };
 }
 
@@ -187,6 +210,33 @@ describe("EventsPageComponent", () => {
   afterEach(() => {
     delete (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_EVENT_INDEX__;
     globalThis.localStorage?.removeItem("eventsDiscoveryView");
+  });
+
+  it("offers the event notification migration for future personal events", () => {
+    const event = buildEvent("future-event", "Future Event", {
+      published: true,
+      end: "2026-08-15T10:00:00.000Z",
+    });
+    const { notificationMigration } = createComponent({
+      signedIn: true,
+      goingEvents: [event],
+    });
+
+    (TestBed as unknown as { flushEffects?: () => void }).flushEffects?.();
+
+    expect(notificationMigration.maybePrompt).toHaveBeenCalledWith(1);
+  });
+
+  it("does not offer the migration for signed-out users", () => {
+    const event = buildEvent("future-event", "Future Event", {
+      published: true,
+      end: "2026-08-15T10:00:00.000Z",
+    });
+    const { notificationMigration } = createComponent({ goingEvents: [event] });
+
+    (TestBed as unknown as { flushEffects?: () => void }).flushEffects?.();
+
+    expect(notificationMigration.maybePrompt).not.toHaveBeenCalled();
   });
 
   it("defaults to the list until the user explicitly chooses a view", () => {

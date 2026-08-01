@@ -187,6 +187,9 @@ export class NotificationPreferencesService {
     if (context === "community_updates") {
       return ["community_events", "community_spot_digest"];
     }
+    if (context === "event_notifications_migration") {
+      return ["event_reminders", "event_updates"];
+    }
     return [context];
   }
 }

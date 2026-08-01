@@ -63,6 +63,7 @@ import { EventNotificationSubscriptionsDialogComponent } from "../event-notifica
 import { AgeAssuranceInfoDialogComponent } from "../age-assurance-info-dialog/age-assurance-info-dialog.component";
 import { CommunityFollowsService } from "../../services/firebase/firestore/community-follows.service";
 import type { CommunityFollowDocument } from "../../../db/schemas/CommunityFollowSchema";
+import { EventNotificationMigrationService } from "../../services/event-notification-migration.service";
 
 @Component({
   selector: "app-settings-page",
@@ -119,6 +120,7 @@ export class SettingsPageComponent implements OnInit {
     public pushNotifications: PushNotificationsService,
     private _dialog: MatDialog,
     private _communityFollows: CommunityFollowsService,
+    private _eventNotificationMigration: EventNotificationMigrationService,
   ) {}
   languageCodes = languageCodes;
 
@@ -371,6 +373,12 @@ export class SettingsPageComponent implements OnInit {
       }
 
       await this.notificationPreferences.setPreference(key, enabled);
+      if (
+        enabled &&
+        (key === "event_reminders" || key === "event_updates")
+      ) {
+        await this._eventNotificationMigration.reconcile();
+      }
       if (enabled && !systemEnabled) {
         this._snackbar.open(
           $localize`:@@settings.notifications.system_blocked_snackbar:PK Spot notifications are enabled, but your device is blocking them. You can allow them in system settings.`,
@@ -404,6 +412,11 @@ export class SettingsPageComponent implements OnInit {
       : [...current, offset];
     void this.notificationPreferences
       .setDefaultEventReminderOffsets(next)
+      .then(() =>
+        this.notificationPreferences.preferences().event_reminders
+          ? this._eventNotificationMigration.reconcile()
+          : undefined,
+      )
       .catch((error) => {
         console.error("Error saving reminder times:", error);
         this._snackbar.open(

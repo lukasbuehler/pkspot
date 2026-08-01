@@ -162,7 +162,7 @@ documents continue to render without `actions`, `thread_key`, or `image_url`.
 
   ```sh
   npm --prefix functions run build
-  npx firebase deploy --project prod --only firestore:rules,functions:performNotificationAction,functions:onFollowRequestNotificationCreate,functions:onNewFollowerNotificationWrite,functions:onFollowingNotificationWrite,functions:onEventRsvpNotificationWrite,functions:onEventRegistrationPromotion,functions:reviewEventOwnershipClaim,functions:onSpotEditNotificationWrite,functions:onSpotReportNotificationWrite,functions:onMediaReportNotificationWrite,functions:onRootMediaReportNotificationWrite,functions:onModerationActionNotificationCreate,functions:onCommunityInfoNotificationWrite,functions:onNotificationIntentWrite,functions:sendDueNotificationIntents
+  npx firebase deploy --project prod --only firestore:rules,functions:performNotificationAction,functions:getMyEventNotificationMigrationState,functions:reconcileMyEventNotifications,functions:onEventNotificationSubscriptionWrite,functions:onFollowRequestNotificationCreate,functions:onNewFollowerNotificationWrite,functions:onFollowingNotificationWrite,functions:onEventRsvpNotificationWrite,functions:onEventRegistrationPromotion,functions:reviewEventOwnershipClaim,functions:onSpotEditNotificationWrite,functions:onSpotReportNotificationWrite,functions:onMediaReportNotificationWrite,functions:onRootMediaReportNotificationWrite,functions:onModerationActionNotificationCreate,functions:onCommunityInfoNotificationWrite,functions:onNotificationIntentWrite,functions:sendDueNotificationIntents
   ```
 
   Success condition: follow actions are authorized against the notification
@@ -181,6 +181,17 @@ documents continue to render without `actions`, `thread_key`, or `image_url`.
       two hours, and 30 minutes), one meaningful event time/location change,
       and one name-only edit. The first four must create the expected threaded
       notification; the name-only edit must not notify attendees.
+
+- [ ] Before releasing the migration-dialog client, deploy
+      `getMyEventNotificationMigrationState`,
+      `reconcileMyEventNotifications`, and
+      `onEventNotificationSubscriptionWrite`. Test with an account whose
+      Going/Interested RSVP predates notification subscriptions. Opening Events
+      must show the prompt once; accepting must preserve the RSVP, create only
+      missing subscriptions, retain explicit per-event overrides, and schedule
+      only reminder windows that are still in the future. Also verify that
+      Customize opens notification settings and applies changed reminder
+      offsets to migration-managed subscriptions.
 
 ### Followed-community notifications
 

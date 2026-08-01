@@ -34,6 +34,7 @@ export type EventReminderOffsetMinutes =
 export const NOTIFICATION_PROMPT_CONTEXTS = [
   "follow_activity",
   "event_reminders",
+  "event_notifications_migration",
   "spot_edit_updates",
   "report_updates",
   "community_info_updates",
@@ -142,6 +143,17 @@ export interface PerformNotificationActionRequest {
 export interface PerformNotificationActionResponse {
   state: NotificationActionStateSchema;
   relationship?: "following" | "requested";
+}
+
+export interface ReconcileEventNotificationsResponse {
+  eligibleEventCount: number;
+  createdSubscriptionCount: number;
+  preservedSubscriptionCount: number;
+  scheduledReminderCount: number;
+}
+
+export interface EventNotificationMigrationStateResponse {
+  eligibleEventCount: number;
 }
 
 export interface NotificationIntentSchema {

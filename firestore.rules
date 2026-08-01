@@ -556,6 +556,8 @@ service cloud.firestore {
           'user_id',
           'active',
           'event_reminders',
+          'reminder_offsets_minutes',
+          'migration_version',
           'subscribed_at',
           'updated_at'
         ])
@@ -563,6 +565,12 @@ service cloud.firestore {
         && request.resource.data.active is bool
         && (!('event_reminders' in request.resource.data)
           || request.resource.data.event_reminders is bool)
+        && (!('reminder_offsets_minutes' in request.resource.data) || (
+          request.resource.data.reminder_offsets_minutes is list
+          && request.resource.data.reminder_offsets_minutes.size() <= 3
+          && request.resource.data.reminder_offsets_minutes.hasOnly([1440, 120, 30])
+        ))
+        && !('migration_version' in request.resource.data)
         && request.resource.data.subscribed_at is timestamp
         && request.resource.data.updated_at is timestamp;
     }
@@ -1707,6 +1715,8 @@ service cloud.firestore {
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'active',
             'event_reminders',
+            'reminder_offsets_minutes',
+            'migration_version',
             'updated_at'
           ]);
         allow delete: if request.auth.uid != null && request.auth.uid == userId;

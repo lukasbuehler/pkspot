@@ -60,6 +60,8 @@ export interface EventLiveUpdateSubscriberSchema {
   active: boolean;
   event_reminders?: boolean;
   reminder_offsets_minutes?: EventReminderOffsetMinutes[];
+  /** Server-created migration subscriptions follow future global defaults. */
+  migration_version?: number;
   subscribed_at: Timestamp;
   updated_at: Timestamp;
 }

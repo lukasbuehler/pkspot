@@ -128,4 +128,27 @@ describe("NotificationOptInService", () => {
       false,
     );
   });
+
+  it("passes the upcoming event count to the migration dialog", async () => {
+    const service = TestBed.inject(NotificationOptInService);
+
+    await service.maybePrompt("event_notifications_migration", {
+      upcomingEventCount: 3,
+    });
+
+    expect(dialog.open).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        data: {
+          context: "event_notifications_migration",
+          upcomingEventCount: 3,
+        },
+      }),
+    );
+    expect(preferences.applyPromptDecision).toHaveBeenCalledWith(
+      "event_notifications_migration",
+      "accepted",
+      false,
+    );
+  });
 });

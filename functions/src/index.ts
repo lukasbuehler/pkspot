@@ -218,6 +218,7 @@ export {
 
 export {
   onEventNotificationSourceWrite,
+  onEventNotificationSubscriptionWrite,
   onEventRsvpNotificationWrite,
   onFollowRequestNotificationCreate,
   onFollowingNotificationWrite,
@@ -231,6 +232,8 @@ export {
   onSpotEditNotificationWrite,
   sendDueNotificationIntents,
   performNotificationAction,
+  getMyEventNotificationMigrationState,
+  reconcileMyEventNotifications,
 } from "./notificationFunctions";
 export {
   migrateCommunityFollowsOnMerge,

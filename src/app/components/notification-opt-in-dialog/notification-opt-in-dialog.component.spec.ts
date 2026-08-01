@@ -6,14 +6,20 @@ import { NotificationOptInDialogComponent } from "./notification-opt-in-dialog.c
 describe("NotificationOptInDialogComponent", () => {
   let fixture: ComponentFixture<NotificationOptInDialogComponent>;
   const close = vi.fn();
+  const data = {
+    context: "event_reminders",
+    upcomingEventCount: undefined as number | undefined,
+  };
 
   beforeEach(async () => {
     close.mockClear();
+    data.context = "event_reminders";
+    data.upcomingEventCount = undefined;
     await TestBed.configureTestingModule({
       imports: [NotificationOptInDialogComponent],
       providers: [
         provideNoopAnimations(),
-        { provide: MAT_DIALOG_DATA, useValue: { context: "event_reminders" } },
+        { provide: MAT_DIALOG_DATA, useValue: data },
         { provide: MatDialogRef, useValue: { close } },
       ],
     }).compileComponents();
@@ -50,5 +56,19 @@ describe("NotificationOptInDialogComponent", () => {
   it("returns the selected action", () => {
     fixture.componentInstance.close("all");
     expect(close).toHaveBeenCalledWith("all");
+  });
+
+  it("renders the one-time migration copy and customize action", () => {
+    fixture.destroy();
+    data.context = "event_notifications_migration";
+    data.upcomingEventCount = 3;
+    fixture = TestBed.createComponent(NotificationOptInDialogComponent);
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain("Get reminders for your upcoming events?");
+    expect(text).toContain("You have 3 upcoming events");
+    expect(text).toContain("Customize");
+    expect(text).toContain("Enable event notifications");
   });
 });

@@ -143,4 +143,20 @@ describe("NotificationPreferencesService", () => {
         .every(([, value]) => value === true),
     ).toBe(true);
   });
+
+  it("enables reminders and important updates from the event migration", async () => {
+    auth.user = { uid: "user-1" };
+    authState.next(auth.user);
+    const service = TestBed.inject(NotificationPreferencesService);
+
+    await service.applyPromptDecision(
+      "event_notifications_migration",
+      "accepted",
+      false,
+    );
+
+    expect(service.preferences().event_reminders).toBe(true);
+    expect(service.preferences().event_updates).toBe(true);
+    expect(service.hasHandledPrompt("event_notifications_migration")).toBe(true);
+  });
 });

@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   linkedSignal,
   LOCALE_ID,
@@ -70,6 +71,8 @@ import {
   type ContinuousEventCalendarLoader,
 } from "./continuous-event-calendar.component";
 import { MyEventsPanelComponent } from "../my-events-panel/my-events-panel.component";
+import { EventNotificationMigrationService } from "../../services/event-notification-migration.service";
+import { NotificationPreferencesService } from "../../services/notification-preferences.service";
 
 type EventCreateAction = "event" | "session";
 
@@ -142,6 +145,12 @@ export class EventsPageComponent {
   private readonly _route = inject(ActivatedRoute);
   private readonly _router = inject(Router);
   private readonly _locale = inject(LOCALE_ID);
+  private readonly _notificationMigration = inject(
+    EventNotificationMigrationService,
+  );
+  private readonly _notificationPreferences = inject(
+    NotificationPreferencesService,
+  );
   readonly myEventContext = inject(MyEventContextService);
   readonly continuousCalendarEnabled =
     environment.features.continuousEventCalendar;
@@ -152,6 +161,7 @@ export class EventsPageComponent {
   private _hasValidDayParam = false;
   private _hasPeriodParam = false;
   private _urlCanonicalizationPending = false;
+  private _migrationCheckStarted = false;
 
   readonly isAdmin = computed(() => this._auth.isAdmin());
   readonly isSignedIn = computed(() => !!this._authState()?.uid);
@@ -160,6 +170,20 @@ export class EventsPageComponent {
       .goingEvents()
       .filter((event) => !event.isLive(this.myEventContext.now())),
   );
+  readonly upcomingMigrationEventCount = computed(() => {
+    const now = this.myEventContext.now().getTime();
+    return new Set(
+      [
+        ...this.myEventContext.goingEvents(),
+        ...this.myEventContext.savedEvents(),
+      ]
+        .filter(
+          (event) =>
+            event.end.getTime() > now && event.lifecycleStatus !== "cancelled",
+        )
+        .map((event) => event.id),
+    ).size;
+  });
   readonly createMenuLabel = $localize`:@@events.create_menu_tooltip:Create an event or session`;
   readonly createActions = computed<EventFabMenuAction[]>(() => {
     const actions: EventFabMenuAction[] = [];
@@ -419,6 +443,22 @@ export class EventsPageComponent {
     this._route.queryParamMap
       .pipe(takeUntilDestroyed())
       .subscribe((params) => this._readQueryParams(params));
+
+    effect(() => {
+      if (
+        this._migrationCheckStarted ||
+        !this.isSignedIn() ||
+        this.myEventContext.isLoading() ||
+        this._notificationPreferences.loading() ||
+        this._notificationPreferences.preferences().event_reminders ||
+        this._notificationPreferences.hasHandledPrompt(
+          "event_notifications_migration",
+        )
+      ) return;
+      const count = this.upcomingMigrationEventCount();
+      this._migrationCheckStarted = true;
+      void this._notificationMigration.maybePrompt(count);
+    });
   }
 
   onContainerResize(rect: DOMRectReadOnly): void {

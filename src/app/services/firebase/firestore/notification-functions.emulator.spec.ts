@@ -194,6 +194,57 @@ runWithEmulator("notification function integrations", () => {
     expect(cancelled["failure_reason"]).toBe("rsvp_removed");
   }, timeoutMs);
 
+  it("schedules reminders when an older RSVP gains a subscription", async () => {
+    const eventId = "migrated-reminder-event";
+    const userId = "migrated-reminder-user";
+    const rsvp = db.doc(`events/${eventId}/rsvps/${userId}`);
+    await rsvp.set({
+      user_id: userId,
+      event_id: eventId,
+      rsvp: "going",
+      time_created: admin.firestore.Timestamp.now(),
+      time_updated: admin.firestore.Timestamp.now(),
+    });
+    await sleep(500);
+
+    const start = admin.firestore.Timestamp.fromMillis(
+      Date.now() + 4 * 60 * 60 * 1000,
+    );
+    await db.doc(`events/${eventId}`).set({
+      name: "Migration Jam",
+      slug: "migration-jam",
+      published: true,
+      lifecycle_status: "planned",
+      start,
+      end: admin.firestore.Timestamp.fromMillis(
+        start.toMillis() + 2 * 60 * 60 * 1000,
+      ),
+    });
+    await db
+      .doc(`events/${eventId}/live_update_subscribers/${userId}`)
+      .set({
+        user_id: userId,
+        active: true,
+        event_reminders: true,
+        reminder_offsets_minutes: [30],
+        subscribed_at: admin.firestore.Timestamp.now(),
+        updated_at: admin.firestore.Timestamp.now(),
+      });
+
+    const reminder = await waitForDocument(
+      `notification_intents/event_reminder_${eventId}_${userId}_30`,
+      (data) => data["status"] === "pending",
+    );
+    expect(reminder["payload"]).toEqual(
+      expect.objectContaining({
+        event_id: eventId,
+        event_name: "Migration Jam",
+        reminder_offset_minutes: "30",
+        rsvp: "going",
+      }),
+    );
+  }, timeoutMs);
+
   it("schedules followed-community public events at the 30-day boundary", async () => {
     const eventId = "community-event-1";
     const userId = "community-event-follower";

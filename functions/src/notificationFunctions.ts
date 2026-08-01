@@ -8,17 +8,23 @@ import {
 } from "firebase-functions/v2/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
-import type { EventLiveUpdateSchema } from "../../src/db/schemas/EventLiveUpdateSchema";
+import type {
+  EventLiveUpdateSchema,
+  EventLiveUpdateSubscriberSchema,
+} from "../../src/db/schemas/EventLiveUpdateSchema";
+import type { EventRegistrationSchema } from "../../src/db/schemas/EventRegistrationSchema";
 import type { EventSchema } from "../../src/db/schemas/EventSchema";
 import type { EventRSVPSchema } from "../../src/db/schemas/EventRSVPSchema";
 import type {
   EventReminderOffsetMinutes,
+  EventNotificationMigrationStateResponse,
   NotificationActionId,
   NotificationActionSchema,
   NotificationIntentType,
   NotificationPreferenceKey,
   NotificationPreferencesSchema,
   NotificationRegistrationSchema,
+  ReconcileEventNotificationsResponse,
 } from "../../src/db/schemas/NotificationSchema";
 import {
   shouldNotifySpotEditOutcome,
@@ -301,6 +307,39 @@ export const onEventRsvpNotificationWrite = onDocumentWritten(
       eventSnapshot.data() as EventSchema,
       `events/${eventId}/rsvps/${userId}`,
       after.rsvp,
+    );
+  },
+);
+
+export const onEventNotificationSubscriptionWrite = onDocumentWritten(
+  "events/{eventId}/live_update_subscribers/{userId}",
+  async (event) => {
+    const eventId = String(event.params.eventId);
+    const userId = String(event.params.userId);
+    if (!event.data?.after.exists) {
+      await cancelEventReminderIntents(
+        eventId,
+        userId,
+        "event_subscription_removed",
+      );
+      return;
+    }
+
+    const relationship = await eventNotificationRelationship(eventId, userId);
+    if (!relationship) {
+      await cancelEventReminderIntents(
+        eventId,
+        userId,
+        "event_relationship_missing",
+      );
+      return;
+    }
+    await upsertEventReminders(
+      userId,
+      eventId,
+      relationship.event,
+      relationship.sourcePath,
+      relationship.rsvp,
     );
   },
 );
@@ -846,6 +885,122 @@ export const performNotificationAction = onCall(
   },
 );
 
+export const reconcileMyEventNotifications = onCall(
+  { cors: true, invoker: "public" },
+  async (request): Promise<ReconcileEventNotificationsResponse> => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+      throw new HttpsError(
+        "unauthenticated",
+        "Sign in to migrate event notifications.",
+      );
+    }
+
+    const db = admin.firestore();
+    const privateData = await db.doc(`users/${uid}/private_data/main`).get();
+    const data = privateData.data() ?? {};
+    const preferences = data[
+      "notification_preferences"
+    ] as NotificationPreferencesSchema | undefined;
+    const eventUpdates = preferences?.event_updates === true;
+    const eventReminders = preferences?.event_reminders === true;
+    if (!eventUpdates && !eventReminders) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Enable event notifications before migrating saved events.",
+      );
+    }
+
+    const candidateIds = await eventNotificationCandidateIds(uid, data);
+    const reminderOffsetValues = reminderOffsets(
+      preferences?.event_reminder_offsets_minutes,
+    );
+    let eligibleEventCount = 0;
+    let createdSubscriptionCount = 0;
+    let preservedSubscriptionCount = 0;
+    let scheduledReminderCount = 0;
+
+    for (const eventId of candidateIds) {
+      const relationship = await eventNotificationRelationship(eventId, uid);
+      if (!relationship) continue;
+      eligibleEventCount += 1;
+
+      const subscriptionRef = db.doc(
+        `events/${eventId}/live_update_subscribers/${uid}`,
+      );
+      const subscription = await subscriptionRef.get();
+      if (subscription.exists) {
+        preservedSubscriptionCount += 1;
+        if (subscription.data()?.["migration_version"] === 1) {
+          await subscriptionRef.set({
+            active: eventUpdates,
+            event_reminders: eventReminders,
+            reminder_offsets_minutes: reminderOffsetValues,
+            updated_at: Timestamp.now(),
+          }, { merge: true });
+        }
+      } else {
+        const now = Timestamp.now();
+        await subscriptionRef.create({
+          user_id: uid,
+          active: eventUpdates,
+          event_reminders: eventReminders,
+          reminder_offsets_minutes: reminderOffsetValues,
+          migration_version: 1,
+          subscribed_at:
+            now as unknown as EventLiveUpdateSubscriberSchema["subscribed_at"],
+          updated_at:
+            now as unknown as EventLiveUpdateSubscriberSchema["updated_at"],
+        } satisfies EventLiveUpdateSubscriberSchema);
+        createdSubscriptionCount += 1;
+      }
+
+      scheduledReminderCount += await upsertEventReminders(
+        uid,
+        eventId,
+        relationship.event,
+        relationship.sourcePath,
+        relationship.rsvp,
+      );
+    }
+
+    return {
+      eligibleEventCount,
+      createdSubscriptionCount,
+      preservedSubscriptionCount,
+      scheduledReminderCount,
+    };
+  },
+);
+
+export const getMyEventNotificationMigrationState = onCall(
+  { cors: true, invoker: "public" },
+  async (request): Promise<EventNotificationMigrationStateResponse> => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+      throw new HttpsError(
+        "unauthenticated",
+        "Sign in to inspect event notifications.",
+      );
+    }
+    const privateData = await admin.firestore()
+      .doc(`users/${uid}/private_data/main`)
+      .get();
+    const candidateIds = await eventNotificationCandidateIds(
+      uid,
+      privateData.data() ?? {},
+    );
+    const relationships = await Promise.all(
+      candidateIds.map((eventId) =>
+        eventNotificationRelationship(eventId, uid),
+      ),
+    );
+    return {
+      eligibleEventCount: relationships.filter(Boolean).length,
+    };
+  },
+);
+
 function cleanActionValue(value: unknown, name: string): string {
   if (typeof value !== "string" || !/^[A-Za-z0-9_:-]{1,256}$/u.test(value)) {
     throw new HttpsError("invalid-argument", `${name} is invalid.`);
@@ -1135,7 +1290,7 @@ async function upsertEventReminders(
   eventData: EventSchema,
   sourcePath: string,
   rsvp: EventRSVPSchema["rsvp"],
-): Promise<void> {
+): Promise<number> {
   const start = adminTimestamp(eventData.start);
   if (
     !start ||
@@ -1145,34 +1300,36 @@ async function upsertEventReminders(
     eventData.notification_policy === "event_updates"
   ) {
     await cancelEventReminderIntents(eventId, userId, "event_unavailable");
-    return;
+    return 0;
   }
 
   const subscription = await admin.firestore()
     .doc(`events/${eventId}/live_update_subscribers/${userId}`)
     .get();
-  if (
-    subscription.exists &&
-    subscription.data()?.["event_reminders"] !== true
-  ) {
+  const subscriptionData = subscription.data();
+  const eventRemindersEnabled = subscription.exists
+    ? subscriptionData?.["event_reminders"] ??
+      subscriptionData?.["active"] === true
+    : true;
+  if (!eventRemindersEnabled) {
     await cancelEventReminderIntents(eventId, userId, "event_reminder_disabled");
-    return;
+    return 0;
   }
 
-  const offsets = reminderOffsets(subscription.data()?.["reminder_offsets_minutes"]);
-  await Promise.all(
+  const offsets = reminderOffsets(subscriptionData?.["reminder_offsets_minutes"]);
+  const scheduled = await Promise.all(
     [...ALLOWED_EVENT_REMINDER_OFFSETS].map(async (offset) => {
       const intentId = eventReminderIntentId(eventId, userId, offset);
       if (!offsets.includes(offset as EventReminderOffsetMinutes)) {
         await cancelIntent(intentId, "reminder_offset_disabled");
-        return;
+        return 0;
       }
       const sendAfter = Timestamp.fromMillis(
         start.toMillis() - offset * 60 * 1000,
       );
       if (sendAfter.toMillis() <= Date.now()) {
         await cancelIntent(intentId, "reminder_window_passed");
-        return;
+        return 0;
       }
       const input: IntentInput = {
         recipientUid: userId,
@@ -1197,16 +1354,19 @@ async function upsertEventReminders(
             : [],
       };
       const ref = admin.firestore().collection(INTENTS).doc(intentId);
-      await admin.firestore().runTransaction(async (transaction) => {
+      const wroteIntent = await admin.firestore().runTransaction(async (transaction) => {
         const existing = await transaction.get(ref);
         const existingData = existing.data() as StoredIntent | undefined;
         const sameStart =
           existingData?.payload?.["starts_at"] === input.payload["starts_at"];
-        if (existingData?.status === "sent" && sameStart) return;
+        if (existingData?.status === "sent" && sameStart) return false;
         transaction.set(ref, intentDocument(intentId, input), { merge: false });
+        return true;
       });
+      return wroteIntent ? 1 : 0;
     }),
   );
+  return scheduled.reduce<number>((total, count) => total + count, 0);
 }
 
 async function cancelIntent(intentId: string, reason: string): Promise<void> {
@@ -2125,6 +2285,80 @@ function reminderOffsets(value: unknown): EventReminderOffsetMinutes[] {
       typeof item === "number" && ALLOWED_EVENT_REMINDER_OFFSETS.has(item),
   );
   return [...new Set(valid)];
+}
+
+function stringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (item): item is string =>
+      typeof item === "string" && /^[A-Za-z0-9_-]{1,128}$/u.test(item),
+  );
+}
+
+async function eventNotificationCandidateIds(
+  userId: string,
+  privateData: FirebaseFirestore.DocumentData,
+): Promise<string[]> {
+  const db = admin.firestore();
+  const [rsvps, registrations] = await Promise.all([
+    db.collectionGroup("rsvps")
+      .where("user_id", "==", userId)
+      .limit(250)
+      .get(),
+    db.collectionGroup("registrations")
+      .where("user_id", "==", userId)
+      .limit(250)
+      .get(),
+  ]);
+  const indexed = [
+    ...stringArray(privateData["going_events"]),
+    ...stringArray(privateData["saved_events"]),
+  ];
+  const discovered = [...rsvps.docs, ...registrations.docs].flatMap((doc) => {
+    const eventId = doc.ref.parent.parent?.id;
+    return eventId ? [eventId] : [];
+  });
+  return [...new Set([...indexed, ...discovered])].slice(0, 250);
+}
+
+async function eventNotificationRelationship(
+  eventId: string,
+  userId: string,
+): Promise<{
+  event: EventSchema;
+  rsvp: "going" | "interested";
+  sourcePath: string;
+} | null> {
+  const db = admin.firestore();
+  const eventRef = db.doc(`events/${eventId}`);
+  const rsvpRef = eventRef.collection("rsvps").doc(userId);
+  const registrationRef = eventRef.collection("registrations").doc(userId);
+  const [eventSnapshot, rsvpSnapshot, registrationSnapshot] = await Promise.all([
+    eventRef.get(),
+    rsvpRef.get(),
+    registrationRef.get(),
+  ]);
+  const event = eventSnapshot.data() as EventSchema | undefined;
+  const end = adminTimestamp(event?.end);
+  if (
+    !eventSnapshot.exists ||
+    !event ||
+    !end ||
+    end.toMillis() <= Date.now() ||
+    event.published === false ||
+    event.lifecycle_status === "cancelled"
+  ) return null;
+
+  const rsvp = rsvpSnapshot.data() as EventRSVPSchema | undefined;
+  if (rsvp?.rsvp === "going" || rsvp?.rsvp === "interested") {
+    return { event, rsvp: rsvp.rsvp, sourcePath: rsvpRef.path };
+  }
+  const registration = registrationSnapshot.data() as
+    | EventRegistrationSchema
+    | undefined;
+  return registration?.status === "registered"
+    ? { event, rsvp: "going", sourcePath: registrationRef.path }
+    : null;
 }
 
 async function cancelEventReminderIntents(

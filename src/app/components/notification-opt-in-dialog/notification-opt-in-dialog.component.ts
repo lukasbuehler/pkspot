@@ -13,10 +13,12 @@ import type { NotificationPromptContext } from "../../../db/schemas/Notification
 export type NotificationOptInDialogResult =
   | "context"
   | "all"
+  | "customize"
   | "dismissed";
 
 export interface NotificationOptInDialogData {
   context: NotificationPromptContext;
+  upcomingEventCount?: number;
 }
 
 @Component({

@@ -3527,6 +3527,12 @@
         <target>Evenementen die een gegevensupdate nodig hebben</target>
       </segment>
     </unit>
+    <unit id="6079019136910018622">
+      <segment state="initial">
+        <source>{VAR_PLURAL, plural, =1 {You have one upcoming event marked Going or Interested. PK Spot can remind you before it starts and tell you about important changes.} other {You have <ph id="0" equiv="INTERPOLATION"/> upcoming events marked Going or Interested. PK Spot can remind you before they start and tell you about important changes.}}</source>
+        <target>{VAR_PLURAL, plural, =1 {Je hebt één aankomend evenement gemarkeerd als ‘Ik ga’ of ‘Geïnteresseerd’. PK Spot kan je voor de start herinneren en belangrijke wijzigingen melden.} other {Je hebt <ph id="0" equiv="INTERPOLATION"/> aankomende evenementen gemarkeerd als ‘Ik ga’ of ‘Geïnteresseerd’. PK Spot kan je voor de start herinneren en belangrijke wijzigingen melden.}}</target>
+      </segment>
+    </unit>
     <unit id="6090595749329244912">
       <segment state="initial">
         <source>Community card approved</source>
@@ -5521,6 +5527,12 @@
         <target> Je kunt elk meldingstype later wijzigen in Instellingen. </target>
       </segment>
     </unit>
+    <unit id="notification_prompt.customize">
+      <segment state="initial">
+        <source> Customize </source>
+        <target> Aanpassen </target>
+      </segment>
+    </unit>
     <unit id="notification_prompt.enable_all">
       <segment state="initial">
         <source> Enable all notifications </source>
@@ -5543,6 +5555,30 @@
       <segment state="initial">
         <source>Get an event reminder?</source>
         <target>Een herinnering voor het evenement ontvangen?</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.event_migration.accept">
+      <segment state="initial">
+        <source>Enable event notifications</source>
+        <target>Evenementmeldingen inschakelen</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.event_migration.body">
+      <segment state="initial">
+        <source> <ph id="0" equiv="ICU" disp="{data.upcomingEventCount, plural, =1 {You have one upcoming event marked Going or Interested. PK Spot can remind you before it starts and tell you about important changes.} other {You have {{ data.upcomingEventCount }} upcoming events marked Going or Interested. PK Spot can remind you before they start and tell you about important changes.} }" subFlows="8185981251317683025"/> </source>
+        <target> <ph id="0" equiv="ICU" disp="{data.upcomingEventCount, plural, =1 {You have one upcoming event marked Going or Interested. PK Spot can remind you before it starts and tell you about important changes.} other {You have {{ data.upcomingEventCount }} upcoming events marked Going or Interested. PK Spot can remind you before they start and tell you about important changes.} }" subFlows="8185981251317683025"/> </target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.event_migration.error">
+      <segment state="initial">
+        <source>Event notifications could not be enabled for your saved events.</source>
+        <target>Meldingen konden niet worden ingeschakeld voor je opgeslagen evenementen.</target>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.event_migration.title">
+      <segment state="initial">
+        <source>Get reminders for your upcoming events?</source>
+        <target>Herinneringen voor je aankomende evenementen ontvangen?</target>
       </segment>
     </unit>
     <unit id="notification_prompt.follow.accept">

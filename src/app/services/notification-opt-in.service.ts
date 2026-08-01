@@ -27,6 +27,7 @@ export class NotificationOptInService {
 
   async maybePrompt(
     context: NotificationPromptContext,
+    data: { upcomingEventCount?: number } = {},
   ): Promise<NotificationOptInDialogResult | null> {
     if (!this._shouldPrompt(context)) return null;
 
@@ -38,10 +39,10 @@ export class NotificationOptInService {
           this.dialog
             .open<
               NotificationOptInDialogComponent,
-              { context: NotificationPromptContext },
+              { context: NotificationPromptContext; upcomingEventCount?: number },
               NotificationOptInDialogResult
             >(NotificationOptInDialogComponent, {
-              data: { context },
+              data: { context, ...data },
               width: "min(480px, calc(100vw - 32px))",
               maxWidth: "100vw",
               autoFocus: false,
@@ -98,6 +99,7 @@ export class NotificationOptInService {
   ): NotificationPreferenceKey {
     if (context === "follow_activity") return "follow_requests";
     if (context === "community_updates") return "community_events";
+    if (context === "event_notifications_migration") return "event_reminders";
     return context;
   }
 

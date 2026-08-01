@@ -10968,6 +10968,11 @@
         <source> You can change each notification type later in Settings. </source>
       </segment>
     </unit>
+    <unit id="notification_prompt.customize">
+      <segment>
+        <source> Customize </source>
+      </segment>
+    </unit>
     <unit id="notification_prompt.enable_all">
       <segment>
         <source> Enable all notifications </source>
@@ -10986,6 +10991,26 @@
     <unit id="notification_prompt.event.title">
       <segment>
         <source>Get an event reminder?</source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.event_migration.accept">
+      <segment>
+        <source>Enable event notifications</source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.event_migration.body">
+      <segment>
+        <source> <ph id="0" equiv="ICU" disp="{data.upcomingEventCount, plural, =1 {You have one upcoming event marked Going or Interested. PK Spot can remind you before it starts and tell you about important changes.} other {You have {{ data.upcomingEventCount }} upcoming events marked Going or Interested. PK Spot can remind you before they start and tell you about important changes.} }" subFlows="8185981251317683025"/> </source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.event_migration.error">
+      <segment>
+        <source>Event notifications could not be enabled for your saved events.</source>
+      </segment>
+    </unit>
+    <unit id="notification_prompt.event_migration.title">
+      <segment>
+        <source>Get reminders for your upcoming events?</source>
       </segment>
     </unit>
     <unit id="notification_prompt.follow.accept">
@@ -11131,6 +11156,11 @@
     <unit id="6076340326638243811">
       <segment>
         <source>Events needing a data update</source>
+      </segment>
+    </unit>
+    <unit id="6079019136910018622">
+      <segment>
+        <source>{VAR_PLURAL, plural, =1 {You have one upcoming event marked Going or Interested. PK Spot can remind you before it starts and tell you about important changes.} other {You have <ph id="0" equiv="INTERPOLATION"/> upcoming events marked Going or Interested. PK Spot can remind you before they start and tell you about important changes.}}</source>
       </segment>
     </unit>
     <unit id="6090595749329244912">

@@ -3,6 +3,9 @@
     @case ("event_reminders") {
       <span i18n="@@notification_prompt.event.title">Get an event reminder?</span>
     }
+    @case ("event_notifications_migration") {
+      <span i18n="@@notification_prompt.event_migration.title">Get reminders for your upcoming events?</span>
+    }
     @case ("follow_activity") {
       <span i18n="@@notification_prompt.follow.title">Stay updated on follow activity?</span>
     }
@@ -27,6 +30,7 @@
       <mat-icon>
         @switch (data.context) {
           @case ("event_reminders") { event }
+          @case ("event_notifications_migration") { event_upcoming }
           @case ("follow_activity") { person_add }
           @case ("spot_edit_updates") { edit }
           @case ("report_updates") { flag }
@@ -40,6 +44,14 @@
         @case ("event_reminders") {
           <p class="mat-body-medium" i18n="@@notification_prompt.event.body">
             PK Spot can remind you two hours before events you are going to or interested in.
+          </p>
+        }
+        @case ("event_notifications_migration") {
+          <p class="mat-body-medium" i18n="@@notification_prompt.event_migration.body">
+            {data.upcomingEventCount, plural,
+              =1 {You have one upcoming event marked Going or Interested. PK Spot can remind you before it starts and tell you about important changes.}
+              other {You have {{ data.upcomingEventCount }} upcoming events marked Going or Interested. PK Spot can remind you before they start and tell you about important changes.}
+            }
           </p>
         }
         @case ("follow_activity") {
@@ -79,6 +91,11 @@
   <button mat-button type="button" (click)="close('dismissed')" i18n="@@notification_prompt.not_now">
     Not now
   </button>
+  @if (data.context === "event_notifications_migration") {
+    <button mat-button type="button" (click)="close('customize')" i18n="@@notification_prompt.customize">
+      Customize
+    </button>
+  }
   <button mat-stroked-button type="button" (click)="close('all')" i18n="@@notification_prompt.enable_all">
     Enable all notifications
   </button>
@@ -86,6 +103,9 @@
     @switch (data.context) {
       @case ("event_reminders") {
         <span i18n="@@notification_prompt.event.accept">Remind me</span>
+      }
+      @case ("event_notifications_migration") {
+        <span i18n="@@notification_prompt.event_migration.accept">Enable event notifications</span>
       }
       @case ("follow_activity") {
         <span i18n="@@notification_prompt.follow.accept">Enable follow notifications</span>
