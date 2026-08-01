@@ -1,4 +1,4 @@
-import { LOCALE_ID } from "@angular/core";
+import { LOCALE_ID, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -19,6 +19,7 @@ import { UsersService } from "../../services/firebase/firestore/users.service";
 import { StorageService } from "../../services/firebase/storage.service";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { NotificationOptInService } from "../../services/notification-opt-in.service";
+import { NotificationCenterService } from "../../services/notification-center.service";
 import { StructuredDataService } from "../../services/structured-data.service";
 import { ProfilePageComponent } from "./profile-page.component";
 
@@ -79,6 +80,10 @@ describe("ProfilePageComponent", () => {
         {
           provide: NotificationOptInService,
           useValue: { maybePrompt: vi.fn() },
+        },
+        {
+          provide: NotificationCenterService,
+          useValue: { unreadCount: signal(0) },
         },
         { provide: AgeAssuranceService, useValue: {} },
         {

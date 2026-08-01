@@ -129,6 +129,7 @@ export class MyEventsService {
         this._liveUpdates.ensureDefaultNotificationLevel(
           eventId,
           defaultNotificationLevel,
+          this._preferences.preferences().event_reminder_offsets_minutes,
         ),
         permissionRequest,
       ])

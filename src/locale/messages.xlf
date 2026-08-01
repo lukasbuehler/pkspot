@@ -126,6 +126,11 @@
         <source>Notifications</source>
       </segment>
     </unit>
+    <unit id="profile.menu.notifications_unread">
+      <segment>
+        <source>Notifications</source>
+      </segment>
+    </unit>
     <unit id="profile.menu.settings">
       <segment>
         <source>Settings</source>
@@ -1386,6 +1391,11 @@
         <source>Decision action</source>
       </segment>
     </unit>
+    <unit id="7392135779424722480">
+      <segment>
+        <source>Previous time</source>
+      </segment>
+    </unit>
     <unit id="7403011272981064883">
       <segment>
         <source> No members yet. </source>
@@ -2534,6 +2544,11 @@
         <source>Embed</source>
       </segment>
     </unit>
+    <unit id="4972112847629239267">
+      <segment>
+        <source> Eligible attendees and update subscribers will be notified according to their choices. </source>
+      </segment>
+    </unit>
     <unit id="4973187879197257053">
       <segment>
         <source>Embed Type</source>
@@ -2697,6 +2712,11 @@
     <unit id="8974613806156505921">
       <segment>
         <source>No live updates have been published yet.</source>
+      </segment>
+    </unit>
+    <unit id="8981392061253349616">
+      <segment>
+        <source>Keep editing</source>
       </segment>
     </unit>
     <unit id="8981724482694536509">
@@ -6085,6 +6105,11 @@
         <source>Failed to handle report</source>
       </segment>
     </unit>
+    <unit id="167023689696366125">
+      <segment>
+        <source>Event time change</source>
+      </segment>
+    </unit>
     <unit id="167320025709083474">
       <segment>
         <source> Waiting for an organization reviewer. </source>
@@ -6403,6 +6428,11 @@
     <unit id="6299599810982807013">
       <segment>
         <source>All Challenges of </source>
+      </segment>
+    </unit>
+    <unit id="40045188773429446">
+      <segment>
+        <source>Save and notify</source>
       </segment>
     </unit>
     <unit id="4020018249666121252">
@@ -8072,7 +8102,7 @@
     </unit>
     <unit id="settings.notifications.event_reminders_description">
       <segment>
-        <source> Get a reminder two hours before events you are going to or interested in. </source>
+        <source> Choose when to be reminded about events you are going to or interested in. </source>
       </segment>
     </unit>
     <unit id="settings.notifications.event_reminders_heading">
@@ -8178,6 +8208,26 @@
     <unit id="settings.notifications.open_system_settings">
       <segment>
         <source>Open system settings</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.reminder_day">
+      <segment>
+        <source>1 day</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.reminder_thirty_minutes">
+      <segment>
+        <source>30 min</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.reminder_times_aria">
+      <segment>
+        <source>Default event reminder times</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.reminder_two_hours">
+      <segment>
+        <source>2 hours</source>
       </segment>
     </unit>
     <unit id="settings.notifications.reports_aria">
@@ -8965,6 +9015,11 @@
         <source>About you</source>
       </segment>
     </unit>
+    <unit id="4101516597821779558">
+      <segment>
+        <source>New time</source>
+      </segment>
+    </unit>
     <unit id="4106902315329542244">
       <segment>
         <source>Organization admin</source>
@@ -9353,6 +9408,11 @@
         <source>Environment</source>
       </segment>
     </unit>
+    <unit id="8814348110763907781">
+      <segment>
+        <source> Saving the new time will publish an Event rescheduled update and move pending reminders. </source>
+      </segment>
+    </unit>
     <unit id="8815195480875913498">
       <segment>
         <source>Core features remain available</source>
@@ -9692,6 +9752,51 @@
       </notes>
       <segment>
         <source>Review this spot</source>
+      </segment>
+    </unit>
+    <unit id="report_outcome.action_body">
+      <segment>
+        <source> We reviewed the report and took appropriate action. </source>
+      </segment>
+    </unit>
+    <unit id="report_outcome.action_title">
+      <segment>
+        <source>Thanks for your report</source>
+      </segment>
+    </unit>
+    <unit id="report_outcome.back">
+      <segment>
+        <source>Notifications</source>
+      </segment>
+    </unit>
+    <unit id="report_outcome.closed_body">
+      <segment>
+        <source> We reviewed the available information and no action was needed. </source>
+      </segment>
+    </unit>
+    <unit id="report_outcome.eyebrow">
+      <segment>
+        <source>REPORT UPDATE</source>
+      </segment>
+    </unit>
+    <unit id="report_outcome.load_error">
+      <segment>
+        <source>Report update unavailable</source>
+      </segment>
+    </unit>
+    <unit id="report_outcome.not_found">
+      <segment>
+        <source>Report update not found</source>
+      </segment>
+    </unit>
+    <unit id="report_outcome.privacy">
+      <segment>
+        <source> To protect everyone involved, internal moderation notes and evidence are not shown here. </source>
+      </segment>
+    </unit>
+    <unit id="report_outcome.reviewed_title">
+      <segment>
+        <source>Your report was reviewed</source>
       </segment>
     </unit>
     <unit id="review_spot_button_label">
@@ -10330,6 +10435,11 @@
         <source>Link to spot copied to clipboard</source>
       </segment>
     </unit>
+    <unit id="7524812215223500531">
+      <segment>
+        <source>Notify attendees about this reschedule?</source>
+      </segment>
+    </unit>
     <unit id="7529513859097528644">
       <segment>
         <source>Publish Spot warning</source>
@@ -10403,6 +10513,36 @@
         <source> There are no highlighted spots for this area, zoom in on dots in the map to discover other spots. </source>
       </segment>
     </unit>
+    <unit id="notification_center.action.accept">
+      <segment>
+        <source>Accept</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.action.decline">
+      <segment>
+        <source>Decline</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.action.follow_back">
+      <segment>
+        <source>Follow back</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.action.going">
+      <segment>
+        <source>I&apos;m going</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.action.save_event">
+      <segment>
+        <source>Save event</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.action.undo">
+      <segment>
+        <source>Undo</source>
+      </segment>
+    </unit>
     <unit id="notification_center.check_in.body">
       <segment>
         <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;user_name&quot;]"/> checked in at <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;spot_name&quot;]"/>.</source>
@@ -10415,42 +10555,47 @@
     </unit>
     <unit id="notification_center.community_event.body">
       <segment>
-        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;event_name&quot;]"/> was just published.</source>
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;event_name&quot;]"/> is a new public event in a community you follow.</source>
       </segment>
     </unit>
     <unit id="notification_center.community_event.title">
       <segment>
-        <source>New event in <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;community_name&quot;]"/></source>
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;event_name&quot;]"/> is coming to <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;community_name&quot;]"/></source>
       </segment>
     </unit>
     <unit id="notification_center.community_info.approved_body">
       <segment>
-        <source>Your community information for <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;community_name&quot;]"/> was approved.</source>
+        <source>Thanks for helping keep the <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;community_name&quot;]"/> community page accurate.</source>
       </segment>
     </unit>
     <unit id="notification_center.community_info.approved_title">
       <segment>
-        <source>Community info approved</source>
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;community_name&quot;]"/> info is now live</source>
       </segment>
     </unit>
     <unit id="notification_center.community_info.rejected_body">
       <segment>
-        <source>Your community information for <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;community_name&quot;]"/> was rejected.</source>
+        <source>Review the feedback for <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;community_name&quot;]"/> before trying again.</source>
       </segment>
     </unit>
     <unit id="notification_center.community_info.rejected_title">
       <segment>
-        <source>Community info rejected</source>
+        <source>Your community update wasn&apos;t published</source>
       </segment>
     </unit>
     <unit id="notification_center.community_spot_digest.body">
       <segment>
-        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_count&quot;]"/> newly recommended Spots in your communities.</source>
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_count&quot;]"/> fresh recommendations from communities you follow.</source>
       </segment>
     </unit>
     <unit id="notification_center.community_spot_digest.title">
       <segment>
-        <source>Spots worth checking out</source>
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_count&quot;]"/> new Spots worth a look</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.community_spot_digest.top_body">
+      <segment>
+        <source>Starting with <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;top_spot_name&quot;]"/> and more fresh recommendations.</source>
       </segment>
     </unit>
     <unit id="notification_center.dismiss">
@@ -10473,59 +10618,104 @@
         <source> No notifications </source>
       </segment>
     </unit>
+    <unit id="notification_center.event_ownership.title">
+      <segment>
+        <source>Event management update</source>
+      </segment>
+    </unit>
     <unit id="notification_center.event_reminder.body">
       <segment>
-        <source>Starts in two hours.</source>
+        <source>See you there.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_reminder.day_title">
+      <segment>
+        <source><ph id="0" equiv="INTERPOLATION" disp="eventName"/> is tomorrow</source>
       </segment>
     </unit>
     <unit id="notification_center.event_reminder.interested_body">
       <segment>
-        <source>Starts in two hours. Please let people know if you are going.</source>
+        <source>Still interested? Let people know if you&apos;re going.</source>
       </segment>
     </unit>
-    <unit id="notification_center.event_update.cancelled">
+    <unit id="notification_center.event_reminder.thirty_title">
       <segment>
-        <source>cancelled</source>
+        <source><ph id="0" equiv="INTERPOLATION" disp="eventName"/> starts in 30 minutes</source>
       </segment>
     </unit>
-    <unit id="notification_center.event_update.details">
+    <unit id="notification_center.event_reminder.two_hour_title">
       <segment>
-        <source>details changed</source>
+        <source><ph id="0" equiv="INTERPOLATION" disp="eventName"/> starts in 2 hours</source>
       </segment>
     </unit>
-    <unit id="notification_center.event_update.location">
+    <unit id="notification_center.event_reminder.venue_body">
       <segment>
-        <source>location changed</source>
+        <source>See you at <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;venue_name&quot;]"/>.</source>
       </segment>
     </unit>
-    <unit id="notification_center.event_update.time">
+    <unit id="notification_center.event_update.cancelled_title">
       <segment>
-        <source>time changed</source>
+        <source><ph id="0" equiv="INTERPOLATION" disp="eventName"/> was cancelled</source>
       </segment>
     </unit>
-    <unit id="notification_center.event_update.title">
+    <unit id="notification_center.event_update.location_body">
       <segment>
-        <source>Event updated</source>
+        <source>Check the updated location.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.location_title">
+      <segment>
+        <source>New location for <ph id="0" equiv="INTERPOLATION" disp="eventName"/></source>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.location_venue">
+      <segment>
+        <source>The event is now at <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;venue_name&quot;]"/>.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.open_body">
+      <segment>
+        <source>Open the event for the latest details.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.restored_body">
+      <segment>
+        <source>The event is active again.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.restored_title">
+      <segment>
+        <source><ph id="0" equiv="INTERPOLATION" disp="eventName"/> is back on</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.time_body">
+      <segment>
+        <source>Check the updated date and time.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.event_update.time_title">
+      <segment>
+        <source>New time for <ph id="0" equiv="INTERPOLATION" disp="eventName"/></source>
       </segment>
     </unit>
     <unit id="notification_center.follow_accepted.body">
       <segment>
-        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;followed_user_name&quot;]"/> accepted your follow request.</source>
+        <source>You can now see <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;followed_user_name&quot;]"/>&apos;s followers-only profile.</source>
       </segment>
     </unit>
     <unit id="notification_center.follow_accepted.title">
       <segment>
-        <source>Follow request accepted</source>
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;followed_user_name&quot;]"/> accepted your follow request</source>
       </segment>
     </unit>
     <unit id="notification_center.follow_request.body">
       <segment>
-        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;requester_name&quot;]"/> wants to follow you.</source>
+        <source>Review <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;requester_name&quot;]"/>&apos;s profile, then accept or decline.</source>
       </segment>
     </unit>
     <unit id="notification_center.follow_request.title">
       <segment>
-        <source>Follow request</source>
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;requester_name&quot;]"/> wants to follow you</source>
       </segment>
     </unit>
     <unit id="notification_center.heading">
@@ -10550,42 +10740,72 @@
     </unit>
     <unit id="notification_center.media_report.action_body">
       <segment>
-        <source>We reviewed your report and took appropriate action.</source>
+        <source>We reviewed it and took action.</source>
       </segment>
     </unit>
     <unit id="notification_center.media_report.action_title">
       <segment>
-        <source>Action taken on your media report</source>
+        <source>Thanks for reporting this media</source>
       </segment>
     </unit>
     <unit id="notification_center.media_report.reviewed_body">
       <segment>
-        <source>We reviewed your report and closed it.</source>
+        <source>No action was needed based on our review.</source>
       </segment>
     </unit>
     <unit id="notification_center.media_report.reviewed_title">
       <segment>
-        <source>Media report reviewed</source>
+        <source>We reviewed your report</source>
       </segment>
     </unit>
     <unit id="notification_center.mutual_follower.body">
       <segment>
-        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> followed you back.</source>
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> follows you back, too.</source>
       </segment>
     </unit>
     <unit id="notification_center.mutual_follower.title">
       <segment>
-        <source>New mutual follower</source>
+        <source>You and <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> follow each other</source>
       </segment>
     </unit>
     <unit id="notification_center.new_follower.body">
       <segment>
-        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> started following you.</source>
+        <source>Take a look at <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/>&apos;s profile or follow them back.</source>
       </segment>
     </unit>
     <unit id="notification_center.new_follower.title">
       <segment>
-        <source>New follower</source>
+        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;follower_name&quot;]"/> is following you</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.ok">
+      <segment>
+        <source>OK</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.resolved.accepted">
+      <segment>
+        <source>Accepted</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.resolved.declined">
+      <segment>
+        <source>Declined</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.resolved.following">
+      <segment>
+        <source>Following</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.resolved.going">
+      <segment>
+        <source>Going</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.resolved.saved">
+      <segment>
+        <source>Saved</source>
       </segment>
     </unit>
     <unit id="notification_center.retry">
@@ -10598,44 +10818,89 @@
         <source>Notification settings</source>
       </segment>
     </unit>
+    <unit id="notification_center.show_history">
+      <segment>
+        <source>Show earlier updates</source>
+      </segment>
+    </unit>
     <unit id="notification_center.spot_edit.approved_body">
       <segment>
-        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/> was approved.</source>
+        <source>Thanks for improving <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/>.</source>
       </segment>
     </unit>
     <unit id="notification_center.spot_edit.approved_title">
       <segment>
-        <source>Spot edit approved</source>
+        <source>Your Spot edit was approved!</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.spot_edit.organization_body">
+      <segment>
+        <source>Thanks for improving <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/>. It was approved by <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;organization_name&quot;]"/>.</source>
       </segment>
     </unit>
     <unit id="notification_center.spot_edit.rejected_body">
       <segment>
-        <source><ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/> was rejected.</source>
+        <source>The proposed change to <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/> wasn&apos;t approved. Review the feedback before trying again.</source>
       </segment>
     </unit>
     <unit id="notification_center.spot_edit.rejected_title">
       <segment>
-        <source>Spot edit rejected</source>
+        <source>Your Spot edit needs another look</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.spot_edit.vote_body">
+      <segment>
+        <source>Thanks for improving <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;spot_name&quot;]"/>. The community approved it with <ph id="1" equiv="INTERPOLATION_1" disp="payload[&quot;yes_count&quot;]"/> yes and <ph id="2" equiv="INTERPOLATION_2" disp="payload[&quot;no_count&quot;]"/> no votes.</source>
       </segment>
     </unit>
     <unit id="notification_center.spot_report.action_body">
       <segment>
-        <source>We reviewed your report about <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;target_name&quot;]"/> and took appropriate action.</source>
+        <source>We reviewed your report about <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;target_name&quot;]"/> and took action.</source>
       </segment>
     </unit>
     <unit id="notification_center.spot_report.action_title">
       <segment>
-        <source>Action taken on your Spot report</source>
+        <source>Thanks for reporting <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;target_name&quot;]"/></source>
       </segment>
     </unit>
     <unit id="notification_center.spot_report.reviewed_body">
       <segment>
-        <source>We reviewed your report about <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;target_name&quot;]"/> and closed it.</source>
+        <source>No action was needed for <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;target_name&quot;]"/> based on our review.</source>
       </segment>
     </unit>
     <unit id="notification_center.spot_report.reviewed_title">
       <segment>
-        <source>Spot report reviewed</source>
+        <source>We reviewed your report</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.success.accepted">
+      <segment>
+        <source>Follow request accepted</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.success.declined">
+      <segment>
+        <source>Follow request declined</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.success.following">
+      <segment>
+        <source>You are now following them</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.success.going">
+      <segment>
+        <source>Marked as going</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.success.saved">
+      <segment>
+        <source>Event saved</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.success.undone">
+      <segment>
+        <source>Action undone</source>
       </segment>
     </unit>
     <unit id="notification_center.unread_count">
@@ -10646,6 +10911,21 @@
     <unit id="notification_center.update_error">
       <segment>
         <source>Could not update notification.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.view">
+      <segment>
+        <source> View </source>
+      </segment>
+    </unit>
+    <unit id="notification_center.waitlist.body">
+      <segment>
+        <source>A place opened up and your registration is confirmed.</source>
+      </segment>
+    </unit>
+    <unit id="notification_center.waitlist.title">
+      <segment>
+        <source>You&apos;re in for <ph id="0" equiv="INTERPOLATION" disp="payload[&quot;event_name&quot;]"/>!</source>
       </segment>
     </unit>
     <unit id="notification_center.weather.title">

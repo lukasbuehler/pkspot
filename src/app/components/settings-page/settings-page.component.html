@@ -906,8 +906,30 @@
               <div>
                 <h3 class="mat-title-medium m-0" i18n="@@settings.notifications.event_reminders_heading">Event reminders</h3>
                 <p class="mat-body-small m-0" i18n="@@settings.notifications.event_reminders_description">
-                  Get a reminder two hours before events you are going to or interested in.
+                  Choose when to be reminded about events you are going to or interested in.
                 </p>
+                <mat-button-toggle-group
+                  class="notification-reminder-options mt-2"
+                  multiple
+                  aria-label="Default event reminder times"
+                  i18n-aria-label="@@settings.notifications.reminder_times_aria"
+                >
+                  <mat-button-toggle
+                    [checked]="reminderOffsetEnabled(1440)"
+                    (change)="toggleReminderOffset(1440)"
+                    i18n="@@settings.notifications.reminder_day"
+                  >1 day</mat-button-toggle>
+                  <mat-button-toggle
+                    [checked]="reminderOffsetEnabled(120)"
+                    (change)="toggleReminderOffset(120)"
+                    i18n="@@settings.notifications.reminder_two_hours"
+                  >2 hours</mat-button-toggle>
+                  <mat-button-toggle
+                    [checked]="reminderOffsetEnabled(30)"
+                    (change)="toggleReminderOffset(30)"
+                    i18n="@@settings.notifications.reminder_thirty_minutes"
+                  >30 min</mat-button-toggle>
+                </mat-button-toggle-group>
               </div>
               <mat-slide-toggle
                 color="primary"

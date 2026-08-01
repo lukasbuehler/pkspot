@@ -191,6 +191,11 @@ button.menuButton.selected {
   }
 }
 
+.notification-reminder-options {
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+
 .community-notification-settings {
   display: grid;
   gap: 12px;

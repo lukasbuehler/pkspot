@@ -184,6 +184,21 @@ const routeVisualCases: RouteVisualCase[] = [
     maxDiffPixels: 1_500,
   },
   {
+    name: "report-outcome",
+    path: "/reports/outcomes/visual-report-outcome",
+    signedIn: true,
+    fullPage: true,
+    maxDiffPixels: 1_500,
+  },
+  {
+    name: "report-outcome-mobile",
+    path: "/reports/outcomes/visual-report-outcome",
+    viewport: mobileViewport,
+    signedIn: true,
+    fullPage: true,
+    maxDiffPixels: 1_500,
+  },
+  {
     name: "profile-own",
     path: "/profile",
     signedIn: true,
@@ -524,6 +539,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
           window as typeof window & {
             __PKSPOT_SCREENSHOT_AUTH_USER__?: unknown;
             __PKSPOT_SCREENSHOT_NOTIFICATIONS__?: unknown;
+            __PKSPOT_SCREENSHOT_REPORT_OUTCOMES__?: unknown;
           }
         );
         screenshotWindow.__PKSPOT_SCREENSHOT_AUTH_USER__ = {
@@ -553,6 +569,18 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
             account_privacy: "public",
             profile_visibility: "public",
             is_admin: admin,
+          },
+        };
+        screenshotWindow.__PKSPOT_SCREENSHOT_REPORT_OUTCOMES__ = {
+          "visual-report-outcome": {
+            id: "visual-report-outcome",
+            kind: "spot",
+            target_name: "Central Station",
+            outcome: "action_taken",
+            public_reason: "action_taken",
+            source_path: "spots/visual-spot/reports/visual-report",
+            decided_at: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 },
+            decided_at_raw_ms: Date.now() - 60 * 60_000,
           },
         };
         if (liveEventFixture) {

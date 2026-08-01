@@ -1,5 +1,6 @@
 import { DestroyRef, Injectable, computed, inject, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import type { Subscription } from "rxjs";
 import type { InAppNotificationSchema } from "../../db/schemas/NotificationSchema";
 import { AuthenticationService } from "./firebase/authentication.service";
 import { FirestoreAdapterService } from "./firebase/firestore-adapter.service";
@@ -21,6 +22,7 @@ export class NotificationCenterService {
   private readonly errorState = signal(false);
   private currentUserId: string | null = null;
   private transitionTimer: ReturnType<typeof setTimeout> | null = null;
+  private liveSubscription: Subscription | null = null;
   private loadSequence = 0;
 
   readonly items = computed(() => {
@@ -45,13 +47,20 @@ export class NotificationCenterService {
       .subscribe((user) => {
         this.currentUserId = user?.uid ?? null;
         this.storedItems.set([]);
+        this.liveSubscription?.unsubscribe();
+        this.liveSubscription = null;
         this._clearTransitionTimer();
         if (!this.currentUserId) {
           this.loadingState.set(false);
           this.errorState.set(false);
+        } else {
+          this._startListening(this.currentUserId);
         }
       });
-    this.destroyRef.onDestroy(() => this._clearTransitionTimer());
+    this.destroyRef.onDestroy(() => {
+      this._clearTransitionTimer();
+      this.liveSubscription?.unsubscribe();
+    });
   }
 
   async refresh(): Promise<void> {
@@ -64,20 +73,11 @@ export class NotificationCenterService {
     try {
       const fixture = (globalThis as ScreenshotGlobal)
         .__PKSPOT_SCREENSHOT_NOTIFICATIONS__;
-      const items = fixture
-        ? [...fixture]
-        : await this.firestore.getCollection<InAppNotificationDocument>(
-            `users/${userId}/notifications`,
-            undefined,
-            [
-              {
-                type: "orderBy",
-                fieldPath: "created_at_raw_ms",
-                direction: "desc",
-              },
-              { type: "limit", limit: 100 },
-            ],
-          );
+      if (!fixture) {
+        this._startListening(userId);
+        return;
+      }
+      const items = [...fixture];
       if (sequence !== this.loadSequence || userId !== this.currentUserId) return;
 
       this.now.set(Date.now());
@@ -91,6 +91,41 @@ export class NotificationCenterService {
     } finally {
       if (sequence === this.loadSequence) this.loadingState.set(false);
     }
+  }
+
+  private _startListening(userId: string): void {
+    this.liveSubscription?.unsubscribe();
+    this.loadingState.set(true);
+    this.errorState.set(false);
+    this.liveSubscription = this.firestore
+      .collectionSnapshots<InAppNotificationDocument>(
+        `users/${userId}/notifications`,
+        undefined,
+        [
+          { type: "orderBy", fieldPath: "created_at_raw_ms", direction: "desc" },
+          { type: "limit", limit: 100 },
+        ],
+      )
+      .subscribe({
+        next: (items) => {
+          if (userId !== this.currentUserId) return;
+          this.now.set(Date.now());
+          this.storedItems.set(
+            items.sort(
+              (left, right) =>
+                right.created_at_raw_ms - left.created_at_raw_ms,
+            ),
+          );
+          this.loadingState.set(false);
+          this.errorState.set(false);
+          this._scheduleNextTransition();
+        },
+        error: (error: unknown) => {
+          console.warn("Failed to listen to notification center", error);
+          this.loadingState.set(false);
+          this.errorState.set(true);
+        },
+      });
   }
 
   async markRead(notificationId: string): Promise<void> {
@@ -147,7 +182,11 @@ export class NotificationCenterService {
     this._clearTransitionTimer();
     const now = Date.now();
     const nextTransition = this.storedItems()
-      .flatMap((item) => [item.available_at_raw_ms, item.expires_at_raw_ms])
+      .flatMap((item) => [
+        item.available_at_raw_ms,
+        item.expires_at_raw_ms,
+        item.action_state?.undo_until_raw_ms ?? 0,
+      ])
       .filter((time) => time > now)
       .sort((left, right) => left - right)[0];
     if (!nextTransition) return;

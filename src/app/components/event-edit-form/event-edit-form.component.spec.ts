@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { MatDialog } from "@angular/material/dialog";
+import { of } from "rxjs";
 import { describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
@@ -37,7 +39,9 @@ function eventWith(
 }
 
 describe("EventEditFormComponent", () => {
-  async function setup(): Promise<ComponentFixture<EventEditFormComponent>> {
+  async function setup(
+    dialogResult = true,
+  ): Promise<ComponentFixture<EventEditFormComponent>> {
     await TestBed.configureTestingModule({
       imports: [EventEditFormComponent],
       providers: [
@@ -78,6 +82,11 @@ describe("EventEditFormComponent", () => {
         },
       ],
     })
+      .overrideProvider(MatDialog, {
+        useValue: {
+          open: vi.fn(() => ({ afterClosed: () => of(dialogResult) })),
+        },
+      })
       .overrideComponent(EventEditFormComponent, {
         set: { template: "" },
       })
@@ -192,6 +201,48 @@ describe("EventEditFormComponent", () => {
         points: liveArea,
       },
     ]);
+  });
+
+  it("confirms a published event time change before emitting save", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const dialog = TestBed.inject(MatDialog);
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    fixture.componentRef.setInput("event", eventWith("event-1", { published: true }));
+    fixture.detectChanges();
+    component.form.patchValue({
+      start_date: new Date("2026-06-02T10:00:00.000Z"),
+      start_time: new Date("2026-06-02T10:00:00.000Z"),
+      end_date: new Date("2026-06-02T12:00:00.000Z"),
+      end_time: new Date("2026-06-02T12:00:00.000Z"),
+    });
+
+    await component.onSubmit();
+
+    expect(dialog.open).toHaveBeenCalledOnce();
+    expect(saveSpy).toHaveBeenCalledOnce();
+  });
+
+  it("keeps editing when a published event reschedule is not confirmed", async () => {
+    const fixture = await setup(false);
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    fixture.componentRef.setInput("event", eventWith("event-1", { published: true }));
+    fixture.detectChanges();
+    component.form.patchValue({
+      start_date: new Date("2026-06-02T10:00:00.000Z"),
+      start_time: new Date("2026-06-02T10:00:00.000Z"),
+      end_date: new Date("2026-06-02T12:00:00.000Z"),
+      end_time: new Date("2026-06-02T12:00:00.000Z"),
+    });
+
+    await component.onSubmit();
+
+    expect(saveSpy).not.toHaveBeenCalled();
   });
 
   it("emits the fixed compatibility-safe defaults in session planner mode", async () => {

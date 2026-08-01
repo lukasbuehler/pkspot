@@ -23,6 +23,7 @@ import type {
   OrganizationMemberSchema,
 } from "../../src/db/schemas/OrganizationSchema";
 import type {UserSchema} from "../../src/db/schemas/UserSchema";
+import {createIntent} from "./notificationFunctions";
 
 const CALLABLE_OPTIONS = {cors: true, invoker: "public" as const};
 const EVENT_ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/u;
@@ -33,6 +34,7 @@ const ACTIVE_ORGANIZATION_ROLES = new Set([
   "member",
 ]);
 const MANAGER_ORGANIZATION_ROLES = new Set(["owner", "admin"]);
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 type EventAccessData = { role?: unknown };
 
@@ -65,6 +67,35 @@ const eventIsPublished = (event: EventSchema): boolean =>
   event.publication_state !== undefined ?
     event.publication_state === "published" :
     event.published !== false;
+
+export const onEventRegistrationPromotion = onDocumentUpdated(
+  "events/{eventId}/registrations/{userId}",
+  async (event) => {
+    const before = event.data?.before.data() as EventRegistrationSchema | undefined;
+    const after = event.data?.after.data() as EventRegistrationSchema | undefined;
+    if (before?.status !== "waitlisted" || after?.status !== "registered") return;
+    const eventId = String(event.params.eventId);
+    const userId = String(event.params.userId);
+    const eventSnapshot = await admin.firestore().doc(`events/${eventId}`).get();
+    const eventData = eventSnapshot.data() as EventSchema | undefined;
+    if (!eventSnapshot.exists || !eventData || !eventIsPublished(eventData)) return;
+    const endMs = timestampMillis(eventData.end) ?? Date.now() + 30 * DAY_MS;
+    await createIntent(`event_registration_promoted_${eventId}_${userId}`, {
+      recipientUid: userId,
+      type: "event_registration_update",
+      sourcePath: event.data!.after.ref.path,
+      sendAfter: Timestamp.now(),
+      expiresAt: Timestamp.fromMillis(Math.max(endMs, Date.now() + DAY_MS)),
+      path: `/events/${encodeURIComponent(eventData.slug ?? eventId)}`,
+      channelId: "event_updates",
+      threadKey: `event:${eventId}`,
+      payload: {
+        event_id: eventId,
+        event_name: eventData.name,
+      },
+    });
+  },
+);
 
 const normalizedCounts = (
   data: DocumentData | undefined,

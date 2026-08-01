@@ -1409,6 +1409,15 @@ service cloud.firestore {
         allow read, write: if false;
       }
 
+      match /report_outcomes/{outcomeId} {
+        allow read: if request.auth.uid != null && request.auth.uid == userId;
+        allow write: if false;
+      }
+
+      match /notification_action_undo/{notificationId} {
+        allow read, write: if false;
+      }
+
       match /session_records/{sessionRecordId} {
         allow read, delete: if request.auth.uid != null
           && request.auth.uid == userId;

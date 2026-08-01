@@ -158,12 +158,13 @@ const notifyClaim = async (
     [...new Set(recipients)].map((recipient) =>
       createIntent(`event_claim_${claimId}_${recipient}_${title}`, {
         recipientUid: recipient,
-        type: "event_update",
+        type: "event_ownership_update",
         sourcePath: `${CLAIMS}/${claimId}`,
         sendAfter: Timestamp.now(),
         expiresAt: Timestamp.fromMillis(Date.now() + 30 * 86_400_000),
         path,
         channelId: "event_updates",
+        threadKey: `event-ownership:${claimId}`,
         payload: {
           event_name: eventName,
           update_title: title,

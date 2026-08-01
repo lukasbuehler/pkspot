@@ -517,6 +517,7 @@ export const onEventLiveUpdateCreate = onDocumentCreated(
             expiresAt: Timestamp.fromMillis(Date.now() + UPDATE_LIFETIME_MS),
             path: eventPath(eventId, eventData),
             channelId: "event_updates",
+            threadKey: `event:${eventId}`,
             payload: {
               event_id: eventId,
               event_name: eventData.name,

@@ -390,6 +390,30 @@ export class SettingsPageComponent implements OnInit {
     }
   }
 
+  reminderOffsetEnabled(offset: number): boolean {
+    return this.notificationPreferences
+      .preferences()
+      .event_reminder_offsets_minutes.includes(offset);
+  }
+
+  toggleReminderOffset(offset: number): void {
+    const current =
+      this.notificationPreferences.preferences().event_reminder_offsets_minutes;
+    const next = current.includes(offset)
+      ? current.filter((value) => value !== offset)
+      : [...current, offset];
+    void this.notificationPreferences
+      .setDefaultEventReminderOffsets(next)
+      .catch((error) => {
+        console.error("Error saving reminder times:", error);
+        this._snackbar.open(
+          $localize`:@@settings.notifications.save_error:Could not save notification preference.`,
+          $localize`:@@settings.notifications.ok:OK`,
+          { duration: 5000 },
+        );
+      });
+  }
+
   async setCommunityNotification(
     follow: CommunityFollowDocument,
     kind: "events" | "spots",

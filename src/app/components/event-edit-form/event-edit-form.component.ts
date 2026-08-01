@@ -29,6 +29,7 @@ import { MatChipsModule } from "@angular/material/chips";
 import { MatDatepickerModule } from "@angular/material/datepicker";
 import { MatNativeDateModule } from "@angular/material/core";
 import { MatDividerModule } from "@angular/material/divider";
+import { MatDialog } from "@angular/material/dialog";
 import { MatExpansionModule } from "@angular/material/expansion";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
@@ -36,6 +37,7 @@ import { MatInputModule } from "@angular/material/input";
 import { MatSelectModule } from "@angular/material/select";
 import { MatTimepickerModule } from "@angular/material/timepicker";
 import { Timestamp } from "firebase/firestore";
+import { firstValueFrom } from "rxjs";
 import { Event as PkEvent } from "../../../db/models/Event";
 import {
   EventBoundsSchema,
@@ -114,6 +116,8 @@ import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { UserPickerComponent } from "../user-picker/user-picker.component";
 import { EventTimeZoneService } from "../../services/event-time-zone.service";
 import { eventProgramSpotRefs } from "../../shared/event-program-spots";
+import { EventRescheduleConfirmDialogComponent } from "../event-reschedule-confirm-dialog/event-reschedule-confirm-dialog.component";
+import { eventRescheduleConfirmation } from "../event-reschedule-confirm-dialog/event-reschedule-confirmation.model";
 
 const EVENT_CATEGORY_OPTIONS = [
   "camp",
@@ -388,6 +392,7 @@ export class EventEditFormComponent {
   private _authService = inject(AuthenticationService);
   private _mapsApiService = inject(MapsApiService);
   private _eventTimeZones = inject(EventTimeZoneService);
+  private _dialog = inject(MatDialog);
   private _loadedEventId: string | null = null;
   private _locationSearchTimer: ReturnType<typeof setTimeout> | null = null;
   private _locationSearchRequestId = 0;
@@ -2288,6 +2293,22 @@ export class EventEditFormComponent {
             }
           : undefined,
     };
+
+    const reschedule = eventRescheduleConfirmation(this.event(), patch);
+    if (reschedule) {
+      const confirmed = await firstValueFrom(
+        this._dialog.open<EventRescheduleConfirmDialogComponent, typeof reschedule, boolean>(
+          EventRescheduleConfirmDialogComponent,
+          {
+            data: reschedule,
+            width: "720px",
+            maxWidth: "calc(100vw - 2rem)",
+            autoFocus: "first-tabbable",
+          },
+        ).afterClosed(),
+      );
+      if (!confirmed) return;
+    }
 
     this.save.emit(patch);
   }

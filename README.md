@@ -100,6 +100,8 @@ Under `keys.firebaseConfig.apiKey` you will need to add your own Google API Key,
 - Secret Manager API
 - Street View Static API
 - Token Service API
+- FCM Registration API
+- Firebase Installations API
 
 #### Firebase Development Setup
 
@@ -288,11 +290,11 @@ Example image backfill payload:
 
 #### Events and communities
 
-| Job                                      | Firestore document                                | Payload               | Completion                                                                                                     |
-| ---------------------------------------- | ------------------------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Recompute event Typesense helper fields. | `maintenance/run-backfill-event-typesense-fields` | `{}`                  | Deletes the run doc.                                                                                           |
-| Rebuild public event discovery.          | `maintenance/run-rebuild-event-discovery`         | `{ "dry_run": false }` | Retains progress and finishes with `status: "DONE"` or `status: "DONE_WITH_ERRORS"`.                            |
-| Rebuild generated community pages.       | `maintenance/run-rebuild-community-pages`         | `{}`                  | Updates the run doc with `status: "DONE"` and writes warnings to `maintenance/community-warnings` when needed. |
+| Job                                      | Firestore document                                | Payload                | Completion                                                                                                     |
+| ---------------------------------------- | ------------------------------------------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Recompute event Typesense helper fields. | `maintenance/run-backfill-event-typesense-fields` | `{}`                   | Deletes the run doc.                                                                                           |
+| Rebuild public event discovery.          | `maintenance/run-rebuild-event-discovery`         | `{ "dry_run": false }` | Retains progress and finishes with `status: "DONE"` or `status: "DONE_WITH_ERRORS"`.                           |
+| Rebuild generated community pages.       | `maintenance/run-rebuild-community-pages`         | `{}`                   | Updates the run doc with `status: "DONE"` and writes warnings to `maintenance/community-warnings` when needed. |
 
 #### One-off migrations
 

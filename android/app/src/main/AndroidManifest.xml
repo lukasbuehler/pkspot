@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools">
   <application
     android:name=".PKSpotApplication"
     android:allowBackup="true"
@@ -56,6 +57,7 @@
         <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/forgot-password" />
         <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/settings" />
         <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/notifications" />
+        <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/reports/outcomes" />
         <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/about" />
         <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/support" />
         <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/contact" />
@@ -70,6 +72,17 @@
         <data android:scheme="https" android:host="pkspot.app" android:pathPrefix="/oauth/callback" />
       </intent-filter>
     </activity>
+
+    <service
+      android:name="io.capawesome.capacitorjs.plugins.firebase.messaging.MessagingService"
+      tools:node="remove" />
+    <service
+      android:name=".PKSpotMessagingService"
+      android:exported="false">
+      <intent-filter>
+        <action android:name="com.google.firebase.MESSAGING_EVENT" />
+      </intent-filter>
+    </service>
 
     <provider
       android:name="androidx.core.content.FileProvider"

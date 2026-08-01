@@ -23,7 +23,13 @@ export interface NotificationPreferencesSchema {
   community_info_updates?: boolean;
   community_events?: boolean;
   community_spot_digest?: boolean;
+  /** Default reminder offsets applied to new event subscriptions. */
+  event_reminder_offsets_minutes?: number[];
 }
+
+export const EVENT_REMINDER_OFFSET_OPTIONS = [1440, 120, 30] as const;
+export type EventReminderOffsetMinutes =
+  (typeof EVENT_REMINDER_OFFSET_OPTIONS)[number];
 
 export const NOTIFICATION_PROMPT_CONTEXTS = [
   "follow_activity",
@@ -75,6 +81,8 @@ export const NOTIFICATION_INTENT_TYPES = [
   "new_follower",
   "event_reminder",
   "event_update",
+  "event_registration_update",
+  "event_ownership_update",
   "spot_edit_update",
   "spot_report_update",
   "media_report_update",
@@ -98,6 +106,43 @@ export type NotificationIntentStatus =
   | "cancelled"
   | "failed"
   | "skipped";
+
+export const NOTIFICATION_ACTION_IDS = [
+  "accept_follow_request",
+  "decline_follow_request",
+  "follow_back",
+  "undo_decline_follow_request",
+  "undo_follow_back",
+  "mark_event_going",
+  "save_event_interested",
+] as const;
+
+export type NotificationActionId =
+  (typeof NOTIFICATION_ACTION_IDS)[number];
+
+export interface NotificationActionSchema {
+  id: NotificationActionId;
+  /** Optional delivery-localized label. App clients derive labels from the id. */
+  label?: string;
+  destructive?: boolean;
+}
+
+export interface NotificationActionStateSchema {
+  action_id: NotificationActionId;
+  status: "completed" | "undone";
+  acted_at_raw_ms: number;
+  undo_until_raw_ms?: number;
+}
+
+export interface PerformNotificationActionRequest {
+  notificationId: string;
+  actionId: NotificationActionId;
+}
+
+export interface PerformNotificationActionResponse {
+  state: NotificationActionStateSchema;
+  relationship?: "following" | "requested";
+}
 
 export interface NotificationIntentSchema {
   recipient_uid: string;
@@ -124,6 +169,9 @@ export interface NotificationIntentSchema {
     | "community_events"
     | "community_spot_digest";
   payload: Record<string, string>;
+  thread_key?: string;
+  image_url?: string;
+  actions?: NotificationActionSchema[];
   attempts: number;
   created_at: Timestamp;
   updated_at: Timestamp;
@@ -140,6 +188,10 @@ export interface InAppNotificationSchema {
   dedupe_key: string;
   path: string;
   payload: Record<string, string>;
+  thread_key?: string;
+  image_url?: string;
+  actions?: NotificationActionSchema[];
+  action_state?: NotificationActionStateSchema;
   active: boolean;
   created_at: Timestamp;
   created_at_raw_ms: number;

@@ -66,6 +66,9 @@ export const onCommunityEventDiscoveryWrite = onDocumentWritten(
           expiresAt: end,
           path: `/events/${encodeURIComponent(after.slug ?? eventId)}`,
           channelId: "community_events",
+          threadKey: `event:${eventId}`,
+          imageUrl: after.banner_src,
+          actions: [{ id: "save_event_interested" }],
           payload: {
             event_id: eventId,
             event_name: after.name,
@@ -176,11 +179,14 @@ export const sendCommunitySpotDigests = onSchedule(
           expiresAt: Timestamp.fromMillis(Date.now() + 7 * DAY_MS),
           path: "/train",
           channelId: "community_spot_digest",
+          threadKey: `community-spot-digest:${week}`,
+          imageUrl: valid[0]?.item.image_url,
           payload: {
             spot_count: String(valid.length),
             spot_ids: JSON.stringify(valid.map(({ item }) => item.spot_id)),
             community_names: JSON.stringify(names),
             community_keys: JSON.stringify(keys),
+            top_spot_name: valid[0]?.item.spot_name ?? "",
           },
         });
       }

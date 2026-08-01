@@ -10,6 +10,7 @@ import { EventsService } from "../../services/firebase/firestore/events.service"
 import { EventLiveUpdatesService } from "../../services/firebase/firestore/event-live-updates.service";
 import { PushNotificationsService } from "../../services/push-notifications.service";
 import { NotificationPreferencesService } from "../../services/notification-preferences.service";
+import { NotificationOptInService } from "../../services/notification-opt-in.service";
 import { MyEventsService } from "../../services/my-events.service";
 import { EventRsvpComponent } from "./event-rsvp.component";
 
@@ -37,10 +38,14 @@ describe("EventRsvpComponent", () => {
     requestPermissionFromUserAction: vi.fn(() => Promise.resolve(true)),
   };
   const notificationPreferences = {
+    loading: vi.fn(() => false),
     preferences: vi.fn(() => ({
       event_reminders: true,
       event_updates: true,
     })),
+  };
+  const notificationOptIn = {
+    maybePrompt: vi.fn(() => Promise.resolve(null)),
   };
   const relationship = signal<"going" | "saved" | null>(null);
   const myEvents = {
@@ -98,6 +103,7 @@ describe("EventRsvpComponent", () => {
       event_reminders: true,
       event_updates: true,
     });
+    notificationOptIn.maybePrompt.mockResolvedValue(null);
     await TestBed.configureTestingModule({
       imports: [EventRsvpComponent],
       providers: [
@@ -111,6 +117,7 @@ describe("EventRsvpComponent", () => {
           provide: NotificationPreferencesService,
           useValue: notificationPreferences,
         },
+        { provide: NotificationOptInService, useValue: notificationOptIn },
         {
           provide: AuthenticationService,
           useValue: {

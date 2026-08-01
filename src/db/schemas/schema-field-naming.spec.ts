@@ -32,6 +32,12 @@ const legacyFirestoreFieldExceptions = new Set<string>([
   "CommunityChildSummarySchema.canonicalPath",
   "CommunityChildSummarySchema.totalSpotCount",
   "CommunityChildSummarySchema.dryCount",
+  // Callable admin response DTOs share this schema folder but are not persisted.
+  "CommunityMergeLocalityOptionSchema.communityKey",
+  "CommunityMergeLocalityOptionSchema.displayName",
+  "CommunityMergeLocalityOptionSchema.spotCount",
+  "CommunityMergeLocalityOptionSchema.distanceKm",
+  "CommunityMergeAdminStateSchema.mergedLocalities",
   "CommunityPageSchema.communityKey",
   "CommunityPageSchema.displayName",
   "CommunityPageSchema.preferredSlug",

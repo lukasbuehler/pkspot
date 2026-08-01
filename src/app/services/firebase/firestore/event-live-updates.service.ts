@@ -12,6 +12,7 @@ import type {
   PublishEventLiveUpdateRequest,
   PublishEventLiveUpdateResponse,
 } from "../../../../db/schemas/EventLiveUpdateSchema";
+import type { EventReminderOffsetMinutes } from "../../../../db/schemas/NotificationSchema";
 import type { OrganizationMemberSchema } from "../../../../db/schemas/OrganizationSchema";
 import { AuthenticationService } from "../authentication.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
@@ -113,6 +114,7 @@ export class EventLiveUpdatesService {
   async ensureDefaultNotificationLevel(
     eventId: string,
     level: EventNotificationLevel,
+    reminderOffsets: readonly number[] = [120],
   ): Promise<boolean> {
     if (level === "none") return false;
 
@@ -123,7 +125,13 @@ export class EventLiveUpdatesService {
       await this.firestore.getDocument<EventLiveUpdateSubscriberSchema>(path);
     if (existing) return false;
 
-    await this._writeNotificationLevel(path, userId, level, null);
+    await this._writeNotificationLevel(
+      path,
+      userId,
+      level,
+      null,
+      this._validReminderOffsets(reminderOffsets),
+    );
     return true;
   }
 
@@ -140,11 +148,32 @@ export class EventLiveUpdatesService {
     await this._writeNotificationLevel(path, userId, level, existing);
   }
 
+  async setReminderOffsets(
+    eventId: string,
+    offsets: readonly number[],
+  ): Promise<void> {
+    const userId = this.auth.user.uid;
+    if (!userId) throw new Error("Sign in before changing event reminders.");
+    const path = `events/${eventId}/live_update_subscribers/${userId}`;
+    const existing =
+      await this.firestore.getDocument<EventLiveUpdateSubscriberSchema>(path);
+    const level = existing ? this._notificationLevel(existing) : "reminders";
+    await this._writeNotificationLevel(
+      path,
+      userId,
+      level,
+      existing,
+      this._validReminderOffsets(offsets),
+    );
+  }
+
   private async _writeNotificationLevel(
     path: string,
     userId: string,
     level: EventNotificationLevel,
     existing: EventLiveUpdateSubscriberSchema | null,
+    reminderOffsets: EventReminderOffsetMinutes[] =
+      existing?.reminder_offsets_minutes ?? [120],
   ): Promise<void> {
     const now = Timestamp.now();
     await this.firestore.setDocument<EventLiveUpdateSubscriberSchema>(
@@ -153,10 +182,20 @@ export class EventLiveUpdatesService {
         user_id: userId,
         active: level === "all" || level === "event_updates",
         event_reminders: level === "all" || level === "reminders",
+        reminder_offsets_minutes: reminderOffsets,
         subscribed_at: existing?.subscribed_at ?? now,
         updated_at: now,
       },
       { merge: false },
+    );
+  }
+
+  private _validReminderOffsets(
+    offsets: readonly number[],
+  ): EventReminderOffsetMinutes[] {
+    return [...new Set(offsets)].filter(
+      (offset): offset is EventReminderOffsetMinutes =>
+        offset === 1440 || offset === 120 || offset === 30,
     );
   }
 

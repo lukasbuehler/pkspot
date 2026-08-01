@@ -17,7 +17,6 @@ import {
   getFirestore,
   initializeFirestore,
   memoryLocalCache,
-  setLogLevel,
 } from "firebase/firestore";
 import {
   Functions,
@@ -83,7 +82,6 @@ function initializeFirebaseFirestore(): Firestore {
   if (firestoreInstance) return firestoreInstance;
 
   const app = inject(FIREBASE_APP);
-  if (!environment.production) setLogLevel("debug");
 
   try {
     firestoreInstance = initializeFirestore(app, {

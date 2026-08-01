@@ -34,13 +34,14 @@ describe("NotificationPreferencesService", () => {
 
   afterEach(() => TestBed.resetTestingModule());
 
-  it("defaults event channels on while unrelated notification types remain opt-in", () => {
+  it("keeps every notification type opt-in by default", () => {
     const service = TestBed.inject(NotificationPreferencesService);
 
     expect(service.preferences()).toEqual({
       follow_requests: false,
-      event_reminders: true,
-      event_updates: true,
+      event_reminders: false,
+      event_updates: false,
+      event_reminder_offsets_minutes: [120],
       spot_edit_updates: false,
       report_updates: false,
       community_info_updates: false,
@@ -62,7 +63,7 @@ describe("NotificationPreferencesService", () => {
 
     auth.user = {};
     authState.next(null);
-    expect(service.preferences().event_reminders).toBe(true);
+    expect(service.preferences().event_reminders).toBe(false);
   });
 
   it("writes the complete additive preference map", async () => {
@@ -75,8 +76,9 @@ describe("NotificationPreferencesService", () => {
     expect(users.updatePrivateData).toHaveBeenCalledWith("user-1", {
       notification_preferences: {
         follow_requests: false,
-        event_reminders: true,
-        event_updates: true,
+        event_reminders: false,
+        event_updates: false,
+        event_reminder_offsets_minutes: [120],
         spot_edit_updates: true,
         report_updates: false,
         community_info_updates: false,
@@ -109,14 +111,14 @@ describe("NotificationPreferencesService", () => {
     await service.applyPromptDecision("event_reminders", "accepted", false);
 
     expect(service.preferences().event_reminders).toBe(true);
-    expect(service.preferences().event_updates).toBe(true);
+    expect(service.preferences().event_updates).toBe(false);
     expect(service.hasHandledPrompt("event_reminders")).toBe(true);
     expect(users.updatePrivateData).toHaveBeenCalledWith(
       "user-1",
       expect.objectContaining({
         notification_preferences: expect.objectContaining({
           event_reminders: true,
-          event_updates: true,
+          event_updates: false,
         }),
         notification_prompt_state: expect.objectContaining({
           event_reminders: expect.objectContaining({
@@ -135,6 +137,10 @@ describe("NotificationPreferencesService", () => {
 
     await service.applyPromptDecision("follow_activity", "accepted", true);
 
-    expect(Object.values(service.preferences()).every(Boolean)).toBe(true);
+    expect(
+      Object.entries(service.preferences())
+        .filter(([key]) => key !== "event_reminder_offsets_minutes")
+        .every(([, value]) => value === true),
+    ).toBe(true);
   });
 });

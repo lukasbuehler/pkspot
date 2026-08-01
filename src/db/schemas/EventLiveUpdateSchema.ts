@@ -1,4 +1,5 @@
 import type { Timestamp } from "firebase/firestore";
+import type { EventReminderOffsetMinutes } from "./NotificationSchema";
 
 export const EVENT_LIVE_UPDATE_TYPES = [
   "event_cancelled",
@@ -58,6 +59,7 @@ export interface EventLiveUpdateSubscriberSchema {
   user_id: string;
   active: boolean;
   event_reminders?: boolean;
+  reminder_offsets_minutes?: EventReminderOffsetMinutes[];
   subscribed_at: Timestamp;
   updated_at: Timestamp;
 }

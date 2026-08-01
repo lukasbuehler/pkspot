@@ -1,0 +1,28 @@
+<h2 mat-dialog-title>
+  {{ data.action === "merge" ? "Merge locality" : "Undo locality merge" }}
+</h2>
+<mat-dialog-content>
+  <div class="merge-preview">
+    <mat-icon aria-hidden="true">{{ data.action === "merge" ? "merge_type" : "undo" }}</mat-icon>
+    <p>
+      @if (data.action === "merge") {
+        Merge <strong>{{ data.locality.displayName }}</strong>’s
+        {{ data.locality.spotCount }}
+        {{ data.locality.spotCount === 1 ? "spot" : "spots" }} into
+        <strong>{{ data.targetDisplayName }}</strong>?
+      } @else {
+        Stop treating <strong>{{ data.locality.displayName }}</strong> as part of
+        <strong>{{ data.targetDisplayName }}</strong>?
+      }
+    </p>
+  </div>
+  <p class="mat-body-small detail">
+    Spot addresses remain unchanged. Community counts and discovery will be rebuilt.
+  </p>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button type="button" [mat-dialog-close]="false">Cancel</button>
+  <button mat-flat-button type="button" (click)="confirm()">
+    {{ data.action === "merge" ? "Merge locality" : "Undo merge" }}
+  </button>
+</mat-dialog-actions>

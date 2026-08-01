@@ -68,6 +68,19 @@ async function waitForDocument(
   throw new Error(`Timed out waiting for ${path}`);
 }
 
+async function waitForCollectionDocument(
+  path: string,
+  predicate: (data: admin.firestore.DocumentData) => boolean,
+): Promise<admin.firestore.QueryDocumentSnapshot> {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    const snapshot = await db().collection(path).get();
+    const match = snapshot.docs.find((doc) => predicate(doc.data()));
+    if (match) return match;
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error(`Timed out waiting for a matching document in ${path}`);
+}
+
 runWithEmulator("EventLiveUpdatesService emulator integration", () => {
   let app: FirebaseApp;
   let auth: Auth;
@@ -304,6 +317,129 @@ runWithEmulator("EventLiveUpdatesService emulator integration", () => {
       (data) => data["status"] === "cancelled",
     );
     expect(reminder["failure_reason"]).toBe("event_cancelled");
+  }, timeoutMs);
+
+  it("turns a direct time edit into one structured reschedule notification and moves the reminder", async () => {
+    const eventId = `direct-reschedule-${userId}`;
+    const attendeeId = `direct-attendee-${userId}`;
+    const originalStart = admin.firestore.Timestamp.fromMillis(
+      Date.now() + 6 * 60 * 60 * 1000,
+    );
+    await Promise.all([
+      db().doc(`users/${attendeeId}`).set({ display_name: "Direct edit attendee" }),
+      db().doc(`users/${attendeeId}/private_data/main`).set({
+        notification_preferences: { event_updates: true, event_reminders: true },
+      }),
+      db().doc(`events/${eventId}`).set({
+        name: "Direct edit event",
+        slug: eventId,
+        published: true,
+        lifecycle_status: "planned",
+        notification_policy: "all",
+        start: originalStart,
+        end: admin.firestore.Timestamp.fromMillis(originalStart.toMillis() + 3_600_000),
+      }),
+    ]);
+    await db().doc(`events/${eventId}/rsvps/${attendeeId}`).set({
+      user_id: attendeeId,
+      event_id: eventId,
+      rsvp: "going",
+      time_created: admin.firestore.Timestamp.now(),
+      time_updated: admin.firestore.Timestamp.now(),
+    });
+    await waitForDocument(
+      `notification_intents/event_reminder_${eventId}_${attendeeId}`,
+      (data) => data["status"] === "pending",
+    );
+
+    const nextStart = admin.firestore.Timestamp.fromMillis(
+      originalStart.toMillis() + 60 * 60 * 1000,
+    );
+    await db().doc(`events/${eventId}`).update({
+      start: nextStart,
+      end: admin.firestore.Timestamp.fromMillis(nextStart.toMillis() + 3_600_000),
+      time_updated: admin.firestore.Timestamp.now(),
+    });
+
+    const update = await waitForCollectionDocument(
+      `events/${eventId}/live_updates`,
+      (data) => data["operation_type"] === "reschedule_event",
+    );
+    expect(update.data()).toEqual(expect.objectContaining({
+      type: "event_rescheduled",
+      title: "Event rescheduled",
+    }));
+    await waitForDocument(
+      `notification_intents/event_live_update_${eventId}_${update.id}_${attendeeId}`,
+      (data) => data["status"] === "pending",
+    );
+    const reminder = await waitForDocument(
+      `notification_intents/event_reminder_${eventId}_${attendeeId}`,
+      (data) => data["send_after"]?.toMillis() === nextStart.toMillis() - 2 * 60 * 60 * 1000,
+    );
+    expect(reminder["status"]).toBe("pending");
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const updates = await db().collection(`events/${eventId}/live_updates`).get();
+    expect(updates.docs.filter((doc) => doc.data()["type"] === "event_rescheduled")).toHaveLength(1);
+    const intents = await db().collection("notification_intents").get();
+    expect(intents.docs.filter((doc) => {
+      const data = doc.data();
+      return data["recipient_uid"] === attendeeId &&
+        data["type"] === "event_update" &&
+        data["payload"]?.["event_id"] === eventId;
+    })).toHaveLength(1);
+  }, timeoutMs);
+
+  it("does not duplicate a callable reschedule notification", async () => {
+    const eventId = `operation-reschedule-${userId}`;
+    const attendeeId = `operation-attendee-${userId}`;
+    const originalStart = admin.firestore.Timestamp.fromMillis(
+      Date.now() + 6 * 60 * 60 * 1000,
+    );
+    await Promise.all([
+      db().doc(`events/${eventId}`).set({
+        name: "Operation reschedule event",
+        slug: eventId,
+        published: true,
+        owner: { type: "user", user_id: userId },
+        lifecycle_status: "planned",
+        notification_policy: "all",
+        start: originalStart,
+        end: admin.firestore.Timestamp.fromMillis(originalStart.toMillis() + 3_600_000),
+      }),
+      db().doc(`users/${attendeeId}`).set({ display_name: "Operation attendee" }),
+    ]);
+    await db().doc(`events/${eventId}/rsvps/${attendeeId}`).set({
+      user_id: attendeeId,
+      event_id: eventId,
+      rsvp: "interested",
+      time_created: admin.firestore.Timestamp.now(),
+      time_updated: admin.firestore.Timestamp.now(),
+    });
+    await waitForDocument(`notification_intents/event_reminder_${eventId}_${attendeeId}`);
+    const nextStart = new Date(Date.now() + 8 * 60 * 60 * 1000);
+    const result = await service.applyOperationalChange({
+      eventId,
+      operation: "reschedule_event",
+      start: nextStart.toISOString(),
+      end: new Date(nextStart.getTime() + 3_600_000).toISOString(),
+    });
+
+    await waitForDocument(
+      `notification_intents/event_live_update_${eventId}_${result.operationId}_${attendeeId}`,
+      (data) => data["status"] === "pending",
+    );
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const updates = await db().collection(`events/${eventId}/live_updates`).get();
+    expect(updates.docs.filter((doc) => doc.data()["operation_type"] === "reschedule_event")).toHaveLength(1);
+    const intents = await db().collection("notification_intents").get();
+    expect(intents.docs.filter((doc) => {
+      const data = doc.data();
+      return data["recipient_uid"] === attendeeId &&
+        data["type"] === "event_update" &&
+        data["payload"]?.["event_id"] === eventId;
+    })).toHaveLength(1);
   }, timeoutMs);
 
   it("creates and lists the current user's event notification subscriptions", async () => {

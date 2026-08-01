@@ -1,0 +1,25 @@
+.locality-search {
+  width: 100%;
+}
+
+.locality-selection {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 8px 8px 16px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 14px;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.locality-selection span,
+.locality-option {
+  display: grid;
+}
+
+.locality-selection small,
+.locality-option small {
+  color: var(--mat-sys-on-surface-variant);
+}

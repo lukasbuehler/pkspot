@@ -32,6 +32,11 @@ describe("EventLiveUpdate", () => {
 
   it("keeps the controlled MVP types and copy limits stable", () => {
     expect(EVENT_LIVE_UPDATE_TYPES).toEqual([
+      "event_cancelled",
+      "event_restored",
+      "event_rescheduled",
+      "program_item_update",
+      "program_plan_activated",
       "meet_up_time",
       "location_spot_change",
       "schedule_change",

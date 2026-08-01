@@ -80,7 +80,27 @@ compatibility behavior remains to be tracked.
 ### Firebase JS SDK client migration
 
 No Firebase backend deployment, schema migration, rules change, or data backfill
-is required for this client-only refactor.
+is required for this client-only refactor. Push registration does require each
+platform's Firebase Messaging API key to permit the client APIs used by Cloud
+Messaging.
+
+- [ ] In Google Cloud Console, inspect the API restrictions on the Firebase
+      Messaging keys used by the development web, production web, Android, and
+      iOS apps. Ensure each permits both
+      `Firebase Installations API` (`firebaseinstallations.googleapis.com`) and
+      `FCM Registration API` (`fcmregistrations.googleapis.com`), and retain
+      the existing platform-specific application restrictions: HTTP
+      referrers for web, package name and signing certificate for Android, and
+      bundle ID for iOS. First fix and test the development web key ending in
+      `-jJo`, then verify the production web key ending in `4AlI` and the native
+      keys from `google-services.json` and `GoogleService-Info.plist` before
+      their respective releases.
+
+  Success condition: with notification permission already granted, focusing the
+  local app and calling `getToken()` no longer returns
+  `installations/request-failed` or an API-blocked 403. Repeat token registration
+  on production web, Android, and iOS, and confirm each platform creates an
+  active registration document for the current user.
 
 - [ ] Release the direct Firebase JS SDK client through the normal `main` and
       mobile release workflows. Smoke-test production web and supported
@@ -90,6 +110,22 @@ is required for this client-only refactor.
       App Check, and register/receive web push. Confirm localized SSR returns
       real HTML and production logs contain no browser-only Firebase or
       `Service messaging is not available` errors.
+
+### Unpublished locality community merges
+
+- [ ] Before releasing the dependent web UI, deploy the three additive admin
+      callables to production:
+
+  ```sh
+  npx firebase deploy --project prod --only functions:getCommunityMergeAdminState,functions:mergeUnpublishedLocality,functions:unmergeUnpublishedLocality
+  ```
+
+  Success condition: as an administrator, open an active locality community,
+  confirm the danger zone lists a same-country locality without a community
+  page, merge it, and verify the source URL redirects while the target count
+  includes its spots. Undo the merge and verify the source spot address is
+  unchanged and the target count returns to its previous value. Confirm denied
+  callable requests for a non-admin user in Cloud Functions logs.
 
 ### Event cancellation and live operations
 
@@ -115,6 +151,36 @@ the additive lifecycle, program, and live-update metadata.
       rescheduling, one program-item delay, and one alternate-plan activation on
       a non-production test event. Confirm the event page, event map, in-app
       notification, and push deep link all show the same resulting state.
+
+### Notification center actions and report outcomes
+
+Deploy the additive callable, projections, and triggers before releasing clients
+that render notification actions. No backfill is required; older notification
+documents continue to render without `actions`, `thread_key`, or `image_url`.
+
+- [ ] Deploy Firestore rules and the compatible notification Functions:
+
+  ```sh
+  npm --prefix functions run build
+  npx firebase deploy --project prod --only firestore:rules,functions:performNotificationAction,functions:onFollowRequestNotificationCreate,functions:onNewFollowerNotificationWrite,functions:onFollowingNotificationWrite,functions:onEventRsvpNotificationWrite,functions:onEventRegistrationPromotion,functions:reviewEventOwnershipClaim,functions:onSpotEditNotificationWrite,functions:onSpotReportNotificationWrite,functions:onMediaReportNotificationWrite,functions:onRootMediaReportNotificationWrite,functions:onModerationActionNotificationCreate,functions:onCommunityInfoNotificationWrite,functions:onNotificationIntentWrite,functions:sendDueNotificationIntents
+  ```
+
+  Success condition: follow actions are authorized against the notification
+  recipient, a decline and follow-back can be undone for ten minutes, event
+  actions update the RSVP, and only the reporter can read the sanitized report
+  outcome projection. Confirm no internal moderation notes are projected.
+
+- [ ] Build fresh Android and iOS binaries after the backend is compatible.
+      Verify action buttons for a follow request, new follower, event reminder,
+      and community event; verify the same actions in a supported web browser.
+      On Android, confirm each notification stays in its semantic channel and
+      rich images fail gracefully when offline. On iOS, confirm notification
+      categories are registered before the first push arrives.
+
+- [ ] Verify one waitlist promotion, each selected reminder offset (one day,
+      two hours, and 30 minutes), one meaningful event time/location change,
+      and one name-only edit. The first four must create the expected threaded
+      notification; the name-only edit must not notify attendees.
 
 ### Followed-community notifications
 

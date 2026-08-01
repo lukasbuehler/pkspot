@@ -14,15 +14,14 @@ import { UsersService } from "./firebase/firestore/users.service";
 
 const DEFAULT_PREFERENCES: Required<NotificationPreferencesSchema> = {
   follow_requests: false,
-  // Responding to an event creates an event-specific subscription. These two
-  // master channels therefore default on and remain explicit opt-outs.
-  event_reminders: true,
-  event_updates: true,
+  event_reminders: false,
+  event_updates: false,
   spot_edit_updates: false,
   report_updates: false,
   community_info_updates: false,
   community_events: false,
   community_spot_digest: false,
+  event_reminder_offsets_minutes: [120],
 };
 const PROMPT_VERSION = 1;
 
@@ -93,6 +92,30 @@ export class NotificationPreferencesService {
     }
     this.storedPreferences.set(next);
 
+    try {
+      await this.users.updatePrivateData(userId, {
+        notification_preferences: next,
+      });
+    } catch (error) {
+      this.storedPreferences.set(previous);
+      throw error;
+    }
+  }
+
+  async setDefaultEventReminderOffsets(offsets: readonly number[]): Promise<void> {
+    const userId = this.auth.user.uid;
+    if (!userId) {
+      throw new Error("A signed-in user is required to change notifications.");
+    }
+    const normalized = [...new Set(offsets)]
+      .filter((offset) => offset === 1440 || offset === 120 || offset === 30)
+      .sort((left, right) => right - left);
+    const previous = this.storedPreferences();
+    const next = {
+      ...this.preferences(),
+      event_reminder_offsets_minutes: normalized,
+    };
+    this.storedPreferences.set(next);
     try {
       await this.users.updatePrivateData(userId, {
         notification_preferences: next,

@@ -24,6 +24,7 @@ import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component"
 import { AnalyticsService } from "../../services/analytics.service";
 import type { EventNotificationLevel } from "../../../db/schemas/EventLiveUpdateSchema";
 import { MyEventsService } from "../../services/my-events.service";
+import { NotificationOptInService } from "../../services/notification-opt-in.service";
 
 type ScreenshotGlobal = typeof globalThis & {
   __PKSPOT_SCREENSHOT_EVENT_RSVPS__?: unknown;
@@ -48,6 +49,7 @@ export class EventRsvpComponent {
   private _eventsService?: EventsService;
   private _authService?: AuthenticationService;
   private _myEventsService?: MyEventsService;
+  private _notificationOptInService?: NotificationOptInService;
   private _analytics = inject(AnalyticsService);
   private _loadVersion = 0;
 
@@ -146,6 +148,16 @@ export class EventRsvpComponent {
 
     const previousSelected = this.selectedRsvp();
     const previousLoaded = this.loadedRsvp();
+    let notificationLevel = this.defaultNotificationLevel();
+    if (
+      (next === "going" || next === "interested") &&
+      previousLoaded !== "going" &&
+      previousLoaded !== "interested"
+    ) {
+      const prompt = await this._notificationOptIn().maybePrompt("event_reminders");
+      if (prompt === "dismissed") notificationLevel = "none";
+      if (prompt === "context") notificationLevel = "reminders";
+    }
     this._analytics.trackEvent("event_rsvp_selected", {
       event_id: eventId,
       rsvp: next,
@@ -162,7 +174,7 @@ export class EventRsvpComponent {
       await this._myEvents().setRsvp(
         eventId,
         next,
-        this.defaultNotificationLevel(),
+        notificationLevel,
       );
       this.loadedRsvp.set(next);
       this._analytics.trackEvent("event_rsvp_saved", {
@@ -354,5 +366,11 @@ export class EventRsvpComponent {
   private _myEvents(): MyEventsService {
     this._myEventsService ??= this._injector.get(MyEventsService);
     return this._myEventsService;
+  }
+
+  private _notificationOptIn(): NotificationOptInService {
+    this._notificationOptInService ??=
+      this._injector.get(NotificationOptInService);
+    return this._notificationOptInService;
   }
 }

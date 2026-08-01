@@ -147,8 +147,6 @@
             "scripts": [],
             "allowedCommonJsDependencies": [
               "firebase",
-              "@angular/fire",
-              "@angular/fire/firestore",
               "dialog-polyfill",
               "jszip",
               "@grpc/grpc-js",

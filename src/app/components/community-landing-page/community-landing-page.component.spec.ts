@@ -71,6 +71,10 @@ describe("CommunityLandingPageComponent", () => {
   let saveKnowledgeCards: ReturnType<typeof vi.fn>;
   let submitKnowledgeSuggestion: ReturnType<typeof vi.fn>;
   let maybePrompt: ReturnType<typeof vi.fn>;
+  let getCommunityMergeAdminState: ReturnType<typeof vi.fn>;
+  let mergeUnpublishedLocality: ReturnType<typeof vi.fn>;
+  let unmergeUnpublishedLocality: ReturnType<typeof vi.fn>;
+  let getCommunityPage: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     isAdmin = signal(false);
@@ -79,6 +83,13 @@ describe("CommunityLandingPageComponent", () => {
     saveKnowledgeCards = vi.fn().mockResolvedValue("edit-1");
     submitKnowledgeSuggestion = vi.fn().mockResolvedValue("suggestion-1");
     maybePrompt = vi.fn().mockResolvedValue(undefined);
+    getCommunityMergeAdminState = vi.fn().mockResolvedValue({
+      candidates: [],
+      mergedLocalities: [],
+    });
+    mergeUnpublishedLocality = vi.fn().mockResolvedValue(undefined);
+    unmergeUnpublishedLocality = vi.fn().mockResolvedValue(undefined);
+    getCommunityPage = vi.fn().mockResolvedValue(null);
     await TestBed.configureTestingModule({
       imports: [CommunityLandingPageComponent],
       providers: [
@@ -114,6 +125,10 @@ describe("CommunityLandingPageComponent", () => {
           useValue: {
             updateCommunityMergeInto: vi.fn(),
             getCommunityPrivateInfoCards,
+            getCommunityMergeAdminState,
+            mergeUnpublishedLocality,
+            unmergeUnpublishedLocality,
+            getCommunityPage,
           },
         },
         {
@@ -618,5 +633,93 @@ describe("CommunityLandingPageComponent", () => {
       cards,
     });
     expect(submitKnowledgeSuggestion).not.toHaveBeenCalled();
+  });
+
+  it("loads target-side unpublished locality controls only for admins", async () => {
+    const localityData: CommunityLandingPageData = {
+      ...communityData,
+      communityKey: "locality:dk:84:copenhagen",
+      scope: "locality",
+      displayName: "Copenhagen",
+      preferredSlug: "copenhagen",
+      requestedSlug: "copenhagen",
+      canonicalPath: "/map/communities/copenhagen",
+      country: { code: "DK", name: "Denmark", slug: "denmark" },
+      locality: { name: "Copenhagen", slug: "copenhagen" },
+      breadcrumbs: [
+        { name: "Map", path: "/map" },
+        { name: "Denmark", path: "/map/communities/denmark" },
+        { name: "Copenhagen", path: "/map/communities/copenhagen" },
+      ],
+      childCommunities: [],
+    };
+    getCommunityMergeAdminState.mockResolvedValue({
+      candidates: [
+        {
+          communityKey: "locality:dk:84:frederiksberg",
+          displayName: "Frederiksberg",
+          geography: { countryCode: "DK", regionName: "Capital Region" },
+          spotCount: 3,
+        },
+      ],
+      mergedLocalities: [],
+    });
+    fixture.componentRef.setInput("communityDataInput", localityData);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector(".community-locality-merge-section")).toBeNull();
+
+    isAdmin.set(true);
+    fixture.componentInstance.startKnowledgeEdit();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(getCommunityMergeAdminState).toHaveBeenCalledWith(localityData.communityKey);
+    expect(fixture.componentInstance.localityMergeCandidates()).toEqual([
+      expect.objectContaining({ displayName: "Frederiksberg", spotCount: 3 }),
+    ]);
+    expect(document.body.textContent).toContain("Merge a locality into Copenhagen");
+  });
+
+  it("confirms and saves a target-side locality merge", async () => {
+    const localityData: CommunityLandingPageData = {
+      ...communityData,
+      communityKey: "locality:dk:84:copenhagen",
+      scope: "locality",
+      displayName: "Copenhagen",
+      preferredSlug: "copenhagen",
+      requestedSlug: "copenhagen",
+      canonicalPath: "/map/communities/copenhagen",
+      country: { code: "DK", name: "Denmark", slug: "denmark" },
+      locality: { name: "Copenhagen", slug: "copenhagen" },
+      childCommunities: [],
+    };
+    const candidate = {
+      communityKey: "locality:dk:84:frederiksberg",
+      displayName: "Frederiksberg",
+      geography: { countryCode: "DK" },
+      spotCount: 3,
+    };
+    const dialog = (
+      fixture.componentInstance as unknown as { _dialog: MatDialog }
+    )._dialog;
+    vi.spyOn(dialog, "open").mockReturnValue({
+      afterClosed: () => of(true),
+    } as never);
+    fixture.componentRef.setInput("communityDataInput", localityData);
+    isAdmin.set(true);
+    fixture.componentInstance.localityMergeCandidates.set([candidate]);
+    fixture.componentInstance.selectedLocalityMergeKey.set(candidate.communityKey);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.canEditKnowledge()).toBe(true);
+    expect(fixture.componentInstance.selectedLocalityMerge()).toEqual(candidate);
+    fixture.componentInstance.confirmMergeUnpublishedLocality();
+    expect(dialog.open).toHaveBeenCalled();
+    await vi.waitFor(() =>
+      expect(mergeUnpublishedLocality).toHaveBeenCalledWith(
+        candidate.communityKey,
+        localityData.communityKey,
+      ),
+    );
   });
 });

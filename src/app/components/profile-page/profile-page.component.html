@@ -296,7 +296,15 @@
 
             <mat-menu #profileManagementMenu="matMenu">
               <button mat-menu-item routerLink="/notifications">
-                <mat-icon>notifications</mat-icon>
+                <mat-icon
+                  [matBadge]="notificationCenter.unreadCount()"
+                  [matBadgeHidden]="notificationCenter.unreadCount() === 0"
+                  matBadgeSize="small"
+                  aria-hidden="false"
+                  i18n-aria-label="@@profile.menu.notifications_unread"
+                  aria-label="Notifications"
+                  >notifications</mat-icon
+                >
                 <span i18n="@@profile.menu.notifications">Notifications</span>
               </button>
               <button mat-menu-item routerLink="/settings/account">

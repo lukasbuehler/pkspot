@@ -601,6 +601,14 @@ export const routes: Routes = [
       ).then((m) => m.NotificationCenterPageComponent),
     data: { routeName: "Notifications" },
   },
+  {
+    path: "reports/outcomes/:outcomeId",
+    loadComponent: () =>
+      import(
+        "./components/report-outcome-page/report-outcome-page.component"
+      ).then((m) => m.ReportOutcomePageComponent),
+    data: { routeName: "Report update" },
+  },
 
   // Other
   {

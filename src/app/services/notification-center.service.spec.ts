@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { BehaviorSubject } from "rxjs";
+import { of } from "rxjs";
 import type { AuthServiceUser } from "./firebase/authentication.service";
 import { AuthenticationService } from "./firebase/authentication.service";
 import { FirestoreAdapterService } from "./firebase/firestore-adapter.service";
@@ -13,13 +14,15 @@ describe("NotificationCenterService", () => {
     uid: "user-1",
   });
   const firestore = {
-    getCollection: vi.fn(),
+    items: [] as InAppNotificationDocument[],
+    collectionSnapshots: vi.fn(() => of(firestore.items)),
     setDocument: vi.fn(),
   };
 
   beforeEach(() => {
     authState.next({ uid: "user-1" });
-    firestore.getCollection.mockReset();
+    firestore.items = [];
+    firestore.collectionSnapshots.mockClear();
     firestore.setDocument.mockReset();
     firestore.setDocument.mockResolvedValue(undefined);
     TestBed.configureTestingModule({
@@ -37,7 +40,7 @@ describe("NotificationCenterService", () => {
 
   it("shows only currently active notification items", async () => {
     const now = Date.now();
-    firestore.getCollection.mockResolvedValue([
+    firestore.items = [
       notification("visible", now - 1_000, now + 60_000),
       notification("expired", now - 60_000, now - 1),
       notification("future", now + 60_000, now + 120_000),
@@ -46,7 +49,7 @@ describe("NotificationCenterService", () => {
         ...notification("dismissed", now - 1_000, now + 60_000),
         dismissed_at_raw_ms: now,
       },
-    ]);
+    ];
 
     const service = TestBed.inject(NotificationCenterService);
     await service.refresh();
@@ -57,9 +60,9 @@ describe("NotificationCenterService", () => {
 
   it("marks a notification read and persists only client state", async () => {
     const now = Date.now();
-    firestore.getCollection.mockResolvedValue([
+    firestore.items = [
       notification("notification-1", now - 1_000, now + 60_000),
-    ]);
+    ];
     const service = TestBed.inject(NotificationCenterService);
     await service.refresh();
 
@@ -75,9 +78,9 @@ describe("NotificationCenterService", () => {
 
   it("removes dismissed notifications from the visible feed", async () => {
     const now = Date.now();
-    firestore.getCollection.mockResolvedValue([
+    firestore.items = [
       notification("notification-1", now - 1_000, now + 60_000),
-    ]);
+    ];
     const service = TestBed.inject(NotificationCenterService);
     await service.refresh();
 

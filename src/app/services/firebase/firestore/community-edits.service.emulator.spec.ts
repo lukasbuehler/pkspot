@@ -306,6 +306,155 @@ runWithEmulator("CommunityEditsService emulator integration", () => {
     );
   }, integrationTimeoutMs);
 
+  it("merges and restores a locality that has no community page", async () => {
+    const uid = auth.currentUser?.uid;
+    expect(uid).toBeTruthy();
+    const targetKey = "locality:dk:84:copenhagen";
+    const sourceKey = "locality:dk:84:frederiksberg";
+    const spotDocument = (locality: string, index: number) => ({
+      name: { en: `${locality} spot ${index}` },
+      address: {
+        locality,
+        localityLocal: locality,
+        region: { code: "84", name: "Capital Region of Denmark" },
+        country: { code: "DK", name: "Denmark", localName: "Danmark" },
+      },
+      landing: {
+        countryCode: "DK",
+        countryNameEn: "Denmark",
+        countrySlug: "denmark",
+        regionCode: "84",
+        regionName: "Capital Region of Denmark",
+        regionSlug: "84",
+        localityName: locality,
+        localitySlug: locality.toLowerCase(),
+        isDry: false,
+        organizationVerified: false,
+      },
+      location_raw: {
+        lat: locality === "Frederiksberg" ? 55.68 + index / 10_000 : 55.67 + index / 10_000,
+        lng: locality === "Frederiksberg" ? 12.53 : 12.57,
+      },
+      type: "parkour park",
+      access: "public",
+      rating: 0,
+      num_reviews: 0,
+      media: [],
+    });
+    const writes: Promise<unknown>[] = [];
+    for (let index = 0; index < 5; index += 1) {
+      writes.push(
+        adminDb().doc(`spots/dk-copenhagen-${uid}-${index}`).set(
+          spotDocument("Copenhagen", index),
+        ),
+      );
+    }
+    for (let index = 0; index < 3; index += 1) {
+      writes.push(
+        adminDb().doc(`spots/dk-frederiksberg-${uid}-${index}`).set(
+          spotDocument("Frederiksberg", index),
+        ),
+      );
+    }
+    await Promise.all(writes);
+    await adminDb().doc(`community_pages/${targetKey}`).set({
+      communityKey: targetKey,
+      scope: "locality",
+      displayName: "Copenhagen",
+      preferredSlug: "copenhagen",
+      allSlugs: ["copenhagen"],
+      canonicalPath: "/map/communities/copenhagen",
+      title: "Parkour in Copenhagen, Denmark | PK Spot Community",
+      description: "Copenhagen community",
+      geography: {
+        countryCode: "DK",
+        countryName: "Denmark",
+        countrySlug: "denmark",
+        regionCode: "84",
+        regionName: "Capital Region of Denmark",
+        regionSlug: "84",
+        localityName: "Copenhagen",
+        localitySlug: "copenhagen",
+      },
+      breadcrumbs: [
+        { name: "Map", path: "/map" },
+        { name: "Denmark", path: "/map/communities/denmark" },
+        { name: "Copenhagen", path: "/map/communities/copenhagen" },
+      ],
+      relationships: { parentKeys: ["country:dk"], childKeys: [], relatedKeys: [] },
+      counts: { totalSpots: 5, topRated: 0, dry: 0 },
+      spots: [],
+      topRatedSpots: [],
+      drySpots: [],
+      links: {},
+      infoCards: [],
+      resources: [],
+      organisations: [],
+      athletes: [],
+      events: [],
+      image: { type: "default", url: "assets/banner_1200x630.png" },
+      published: true,
+      bounds_center: [55.67, 12.57],
+      bounds_radius_m: 1000,
+    });
+
+    await expect(
+      functionsAdapter.call("getCommunityMergeAdminState", {
+        targetCommunityKey: targetKey,
+      }),
+    ).rejects.toThrow();
+    await adminDb().doc(`users/${uid}`).set({ is_admin: true });
+
+    const state = await functionsAdapter.call<
+      { targetCommunityKey: string },
+      {
+        candidates: { communityKey: string; spotCount: number }[];
+        mergedLocalities: unknown[];
+      }
+    >("getCommunityMergeAdminState", { targetCommunityKey: targetKey });
+    expect(state.candidates).toContainEqual(
+      expect.objectContaining({ communityKey: sourceKey, spotCount: 3 }),
+    );
+
+    await functionsAdapter.call("mergeUnpublishedLocality", {
+      sourceCommunityKey: sourceKey,
+      targetCommunityKey: targetKey,
+    });
+    const [merge, sourcePage, targetPage, sourceSpot] = await Promise.all([
+      adminDb().doc(`community_merges/${sourceKey}`).get(),
+      adminDb().doc(`community_pages/${sourceKey}`).get(),
+      adminDb().doc(`community_pages/${targetKey}`).get(),
+      adminDb().doc(`spots/dk-frederiksberg-${uid}-0`).get(),
+    ]);
+    expect(merge.data()).toEqual(
+      expect.objectContaining({
+        source_origin: "unpublished_locality",
+        target_community_key: targetKey,
+      }),
+    );
+    expect(sourcePage.data()).toEqual(
+      expect.objectContaining({
+        published: false,
+        redirect_to_community_key: targetKey,
+      }),
+    );
+    expect(targetPage.data()?.["counts"]?.totalSpots).toBe(8);
+    expect(sourceSpot.data()?.["address"]?.locality).toBe("Frederiksberg");
+
+    await functionsAdapter.call("unmergeUnpublishedLocality", {
+      sourceCommunityKey: sourceKey,
+      targetCommunityKey: targetKey,
+    });
+    const [restoredMerge, restoredSource, restoredTarget] = await Promise.all([
+      adminDb().doc(`community_merges/${sourceKey}`).get(),
+      adminDb().doc(`community_pages/${sourceKey}`).get(),
+      adminDb().doc(`community_pages/${targetKey}`).get(),
+    ]);
+    expect(restoredMerge.exists).toBe(false);
+    expect(restoredSource.exists).toBe(false);
+    expect(restoredTarget.data()?.["counts"]?.totalSpots).toBe(5);
+  }, 180_000);
+
   it("backfills edit targets and migrates legacy community suggestions", async () => {
     const uid = auth.currentUser?.uid;
     expect(uid).toBeTruthy();

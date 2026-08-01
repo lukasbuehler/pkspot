@@ -9,6 +9,7 @@ import {
   type InAppNotificationDocument,
 } from "../../services/notification-center.service";
 import { NotificationCenterPageComponent } from "./notification-center-page.component";
+import { NotificationActionsService } from "../../services/notification-actions.service";
 
 describe("NotificationCenterPageComponent", () => {
   let component: NotificationCenterPageComponent;
@@ -42,6 +43,10 @@ describe("NotificationCenterPageComponent", () => {
           },
         },
         { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        {
+          provide: NotificationActionsService,
+          useValue: { perform: vi.fn(() => Promise.resolve()) },
+        },
       ],
     }).compileComponents();
 
@@ -73,9 +78,9 @@ describe("NotificationCenterPageComponent", () => {
     ]);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain("New follower");
+    expect(fixture.nativeElement.textContent).toContain("Maya is following you");
     expect(fixture.nativeElement.textContent).toContain(
-      "Maya started following you.",
+      "Take a look at Maya's profile or follow them back.",
     );
   });
 
@@ -112,10 +117,10 @@ describe("NotificationCenterPageComponent", () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain(
-      "Maya accepted your follow request.",
+      "Maya accepted your follow request",
     );
     expect(fixture.nativeElement.textContent).toContain(
-      "Noah followed you back.",
+      "You and Noah follow each other",
     );
   });
 
@@ -143,7 +148,7 @@ describe("NotificationCenterPageComponent", () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain(
-      "Please let people know if you are going.",
+      "Still interested? Let people know if you're going.",
     );
   });
 
@@ -180,13 +185,13 @@ describe("NotificationCenterPageComponent", () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain(
-      "We reviewed your report about Central Plaza and took appropriate action.",
+      "Thanks for reporting Central Plaza",
     );
     expect(fixture.nativeElement.textContent).toContain(
-      "Community info rejected",
+      "Your community update wasn't published",
     );
     expect(fixture.nativeElement.textContent).toContain(
-      "Your community information for Zurich was rejected.",
+      "Review the feedback for Zurich before trying again.",
     );
   });
 
@@ -222,8 +227,10 @@ describe("NotificationCenterPageComponent", () => {
     ]);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain("New event in Zurich");
-    expect(fixture.nativeElement.textContent).toContain("City Jam was just published.");
-    expect(fixture.nativeElement.textContent).toContain("Spots worth checking out");
+    expect(fixture.nativeElement.textContent).toContain("City Jam is coming to Zurich");
+    expect(fixture.nativeElement.textContent).toContain(
+      "City Jam is a new public event in a community you follow.",
+    );
+    expect(fixture.nativeElement.textContent).toContain("3 new Spots worth a look");
   });
 });

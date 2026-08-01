@@ -4,6 +4,7 @@ import FirebaseAppCheck
 import FirebaseAuth
 import FirebaseCore
 import GooglePlaces
+import UserNotifications
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -15,6 +16,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Override point for customization after application launch.
         configureFirebase()
         configureGooglePlaces()
+        configureNotificationCategories()
         return true
     }
 
@@ -84,6 +86,58 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         #endif
 
         FirebaseApp.configure()
+    }
+
+    private func configureNotificationCategories() {
+        let accept = UNNotificationAction(
+            identifier: "accept_follow_request",
+            title: NSLocalizedString("Accept", comment: "Accept a follow request"),
+            options: [.foreground]
+        )
+        let decline = UNNotificationAction(
+            identifier: "decline_follow_request",
+            title: NSLocalizedString("Decline", comment: "Decline a follow request"),
+            options: [.destructive, .foreground]
+        )
+        let followBack = UNNotificationAction(
+            identifier: "follow_back",
+            title: NSLocalizedString("Follow back", comment: "Follow a new follower back"),
+            options: [.foreground]
+        )
+        let going = UNNotificationAction(
+            identifier: "mark_event_going",
+            title: NSLocalizedString("I'm going", comment: "Confirm event attendance"),
+            options: [.foreground]
+        )
+        let saveEvent = UNNotificationAction(
+            identifier: "save_event_interested",
+            title: NSLocalizedString("Save event", comment: "Save a community event"),
+            options: [.foreground]
+        )
+
+        let categories: Set<UNNotificationCategory> = [
+            UNNotificationCategory(
+                identifier: "PKSPOT_FOLLOW_REQUEST",
+                actions: [accept, decline],
+                intentIdentifiers: []
+            ),
+            UNNotificationCategory(
+                identifier: "PKSPOT_NEW_FOLLOWER",
+                actions: [followBack],
+                intentIdentifiers: []
+            ),
+            UNNotificationCategory(
+                identifier: "PKSPOT_EVENT_REMINDER",
+                actions: [going],
+                intentIdentifiers: []
+            ),
+            UNNotificationCategory(
+                identifier: "PKSPOT_COMMUNITY_EVENT",
+                actions: [saveEvent],
+                intentIdentifiers: []
+            ),
+        ]
+        UNUserNotificationCenter.current().setNotificationCategories(categories)
     }
 
     private func googlePlacesApiKey(from config: NSDictionary) -> String? {

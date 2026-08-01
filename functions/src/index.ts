@@ -30,6 +30,9 @@ export {
   rebuildCommunityPagesOnImportWrite,
   rebuildAllCommunityPages,
   rebuildCommunityEventPreviewsOnEventWrite,
+  getCommunityMergeAdminState,
+  mergeUnpublishedLocality,
+  unmergeUnpublishedLocality,
 } from "./communityFunctions";
 export {
   reviewCommunityEdit,
@@ -64,6 +67,7 @@ export {
 } from "./eventLiveUpdateFunctions";
 export {
   cancelEventRegistration,
+  onEventRegistrationPromotion,
   reconcileEventWaitlistOnEventUpdate,
   registerForEvent,
 } from "./eventRegistrationFunctions";
@@ -226,6 +230,7 @@ export {
   onSpotReportNotificationWrite,
   onSpotEditNotificationWrite,
   sendDueNotificationIntents,
+  performNotificationAction,
 } from "./notificationFunctions";
 export {
   migrateCommunityFollowsOnMerge,

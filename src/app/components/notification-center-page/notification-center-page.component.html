@@ -65,7 +65,8 @@
       aria-label="Notifications"
       i18n-aria-label="@@notification_center.list_aria"
     >
-      @for (notification of notifications(); track notification.id) {
+      @for (thread of threads(); track thread.key) {
+        @let notification = thread.latest;
         <article
           class="notification-row"
           [class.notification-row--unread]="notification.unread"
@@ -77,6 +78,14 @@
           >
             <span class="notification-row__icon" aria-hidden="true">
               <mat-icon>{{ notification.icon }}</mat-icon>
+              @if (notification.imageUrl) {
+                <img
+                  [src]="notification.imageUrl"
+                  alt=""
+                  loading="lazy"
+                  (error)="$any($event.target).remove()"
+                />
+              }
             </span>
             <span class="notification-row__copy">
               <span class="notification-row__title mat-title-medium">
@@ -87,6 +96,9 @@
               </span>
               <span class="notification-row__time mat-label-medium">
                 {{ notification.time }}
+                @if (thread.history.length > 0) {
+                  · {{ thread.history.length + 1 }} updates
+                }
               </span>
             </span>
             @if (notification.unread) {
@@ -105,7 +117,62 @@
           >
             <mat-icon>close</mat-icon>
           </button>
+          @if (notification.actions.length > 0 || notification.resolvedLabel || thread.history.length > 0) {
+            <div class="notification-row__footer">
+              @if (notification.resolvedLabel) {
+                <span class="notification-row__resolved mat-label-large">
+                  <mat-icon>check</mat-icon>
+                  {{ notification.resolvedLabel }}
+                </span>
+              }
+              @for (action of notification.actions; track action.id) {
+                <button
+                  [matButton]="action.destructive ? 'text' : 'outlined'"
+                  type="button"
+                  [disabled]="actingIds().has(notification.id)"
+                  (click)="performAction(notification.id, action.id)"
+                >
+                  {{ action.label }}
+                </button>
+              }
+              @if (notification.actions.length > 0) {
+                <button matButton="text" type="button" (click)="open(notification)" i18n="@@notification_center.view">
+                  View
+                </button>
+              }
+              @if (thread.history.length > 0) {
+                <button
+                  matIconButton
+                  type="button"
+                  class="notification-row__thread-toggle"
+                  (click)="toggleThread(thread.key)"
+                  [attr.aria-expanded]="expandedThreads().has(thread.key)"
+                  aria-label="Show earlier updates"
+                  i18n-aria-label="@@notification_center.show_history"
+                >
+                  <mat-icon>{{ expandedThreads().has(thread.key) ? "expand_less" : "expand_more" }}</mat-icon>
+                </button>
+              }
+            </div>
+          }
         </article>
+        @if (expandedThreads().has(thread.key)) {
+          @for (history of thread.history; track history.id) {
+            <article class="notification-row notification-row--history">
+              <button type="button" class="notification-row__content" (click)="open(history)">
+                <span class="notification-row__icon" aria-hidden="true"><mat-icon>{{ history.icon }}</mat-icon></span>
+                <span class="notification-row__copy">
+                  <span class="notification-row__title mat-title-small">{{ history.title }}</span>
+                  <span class="notification-row__body mat-body-small">{{ history.body }}</span>
+                  <span class="notification-row__time mat-label-small">{{ history.time }}</span>
+                </span>
+              </button>
+              <button matIconButton type="button" class="notification-row__dismiss" (click)="dismiss(history.id)" aria-label="Dismiss notification" i18n-aria-label="@@notification_center.dismiss_aria">
+                <mat-icon>close</mat-icon>
+              </button>
+            </article>
+          }
+        }
       }
     </section>
   }

@@ -87,6 +87,7 @@ describe("MyEventsService", () => {
             preferences: vi.fn(() => ({
               event_updates: true,
               event_reminders: true,
+              event_reminder_offsets_minutes: [120],
             })),
           },
         },
@@ -125,6 +126,7 @@ describe("MyEventsService", () => {
       expect(liveUpdates.ensureDefaultNotificationLevel).toHaveBeenCalledWith(
         "event-2",
         "all",
+        [120],
       ),
     );
   });

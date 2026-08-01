@@ -180,19 +180,6 @@ export class PushNotificationsService {
         void this._saveRegistration(this.currentUserId, token);
       }
     });
-    await FirebaseMessaging.addListener("notificationReceived", ({ notification }) => {
-      if (Capacitor.getPlatform() !== "android") {
-        return;
-      }
-      const message = [notification.title, notification.body]
-        .filter((part): part is string => Boolean(part))
-        .join(": ");
-      if (message) {
-        this.snackbar.open(message, $localize`:@@notifications.dismiss:Dismiss`, {
-          duration: 5000,
-        });
-      }
-    });
     await FirebaseMessaging.addListener(
       "notificationActionPerformed",
       (event) => this._openNotification(event),
@@ -305,11 +292,17 @@ export class PushNotificationsService {
   private _openNotification(event: NotificationActionPerformedEvent): void {
     const data = event.notification.data;
     if (!data || typeof data !== "object") return;
-    this._openNotificationData(data as Record<string, unknown>);
+    this._openNotificationData(
+      data as Record<string, unknown>,
+      event.actionId,
+    );
   }
 
   private _showWebForegroundNotification(message: WebPushMessage): void {
-    const text = [message.notification?.title, message.notification?.body]
+    const text = [
+      message.notification?.title ?? message.data?.["title"],
+      message.notification?.body ?? message.data?.["body"],
+    ]
       .filter((part): part is string => Boolean(part))
       .join(": ");
     if (!text) return;
@@ -330,6 +323,7 @@ export class PushNotificationsService {
 
   private _openNotificationData(
     notificationData: Record<string, unknown>,
+    actionId = "tap",
   ): void {
     if (
       notificationData["type"] === "event_update" &&
@@ -341,6 +335,21 @@ export class PushNotificationsService {
       });
     }
     const path = this._notificationPath(notificationData);
+    const intentId = notificationData["intent_id"];
+    if (
+      actionId &&
+      actionId !== "tap" &&
+      typeof intentId === "string"
+    ) {
+      void this.router.navigate(["/notifications"], {
+        queryParams: {
+          notification: intentId,
+          notificationAction: actionId,
+          returnTo: path ?? "/notifications",
+        },
+      });
+      return;
+    }
     if (path) void this.router.navigateByUrl(path);
   }
 

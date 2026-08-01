@@ -162,5 +162,12 @@ describe("Firebase adapter boundaries", () => {
         "@angular/fire",
       );
     }
+
+    for (const configFile of ["angular.json", "vite.config.mts"]) {
+      expect(
+        readFileSync(resolve(repoRoot, configFile), "utf8"),
+        configFile,
+      ).not.toContain("@angular/fire");
+    }
   });
 });

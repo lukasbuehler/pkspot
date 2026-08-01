@@ -67,6 +67,8 @@ import {
   normalizeDiscordUrl,
 } from "../../utils/profile-social-links";
 import { trainingFeatureEnabled } from "../../features/training-feature";
+import { MatBadge } from "@angular/material/badge";
+import { NotificationCenterService } from "../../services/notification-center.service";
 
 type ProfileSocialLink = {
   id: string;
@@ -103,10 +105,12 @@ type ProfileSocialLink = {
     MatMenuTrigger,
     NgOptimizedImage,
     ContributionStatusNoteComponent,
+    MatBadge,
   ],
 })
 export class ProfilePageComponent implements OnInit, OnDestroy {
   readonly trainingFeatureEnabled = trainingFeatureEnabled;
+  readonly notificationCenter = inject(NotificationCenterService);
   private _structuredDataService = inject(StructuredDataService);
   private _metaTagService = inject(MetaTagService);
   private _regionDisplayNames: Intl.DisplayNames | null = null;
