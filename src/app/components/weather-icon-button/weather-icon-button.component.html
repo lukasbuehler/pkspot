@@ -24,7 +24,11 @@
     [matTooltip]="accessibleLabel()"
     (click)="onPress($event)"
   >
-    <mat-icon aria-hidden="true">{{ resolvedIcon() }}</mat-icon>
-    <span class="weather-value mat-label-medium">{{ visibleTemperature() }}</span>
+    <mat-icon aria-hidden="true" class="ms-0 me-1">{{
+      resolvedIcon()
+    }}</mat-icon>
+    <span class="weather-value mat-label-medium">{{
+      visibleTemperature()
+    }}</span>
   </button>
 }

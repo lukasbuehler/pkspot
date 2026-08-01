@@ -337,6 +337,17 @@ Keep these steps in order. Typesense reads remain available during the schema
 alteration, but writes to `events_v1` can block while required fields are
 dropped and re-added as optional.
 
+- [ ] Keep `legacyEventListCompatibilityEnabled()` enabled while supported
+      released clients still list the canonical `/events` collection. During
+      this window, create only globally discoverable public events, including
+      through Admin SDK maintenance tools; Firestore rules enforce that
+      constraint for client writes but cannot constrain Admin SDK writes.
+
+  Success condition: released web and mobile clients can still list and open
+  existing events, while the new client lists public events from
+  `event_discovery`. Retire the switch and deploy Firestore rules only after the
+  oldest supported mobile version no longer lists `/events` directly.
+
 - [ ] Patch the production `events_v1` collection in place using the reviewed
       drop-and-re-add alteration:
 
@@ -543,6 +554,17 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
       and audit record without storing unnecessary identity data.
 
 ### Online-safety operational readiness
+
+- [ ] Keep `maintenance/spot-report-privacy.completed` unset until supported
+      clients no longer read raw `spots/{spotId}/reports/{reportId}` documents.
+      When that compatibility window ends, invoke
+      `migrateSpotReportsToPublicWarnings` as an administrator; it writes
+      sanitized public warnings before marking the raw reports private.
+
+  Success condition: every active legacy Spot report has an appropriate
+  `public_notice`, ordinary clients can read the warning but cannot read raw
+  report text or reporter identity, and administrators retain raw-report
+  access. Do not set the maintenance flag manually.
 
 - [ ] Verify in production that an administrator can still update a legacy
       incident that does not yet have runbook fields.
