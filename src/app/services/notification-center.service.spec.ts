@@ -38,6 +38,24 @@ describe("NotificationCenterService", () => {
 
   afterEach(() => TestBed.resetTestingModule());
 
+  it("uses screenshot notifications without opening a Firestore listener", () => {
+    const now = Date.now();
+    const screenshotGlobal = globalThis as typeof globalThis & {
+      __PKSPOT_SCREENSHOT_NOTIFICATIONS__?: InAppNotificationDocument[];
+    };
+    screenshotGlobal.__PKSPOT_SCREENSHOT_NOTIFICATIONS__ = [
+      notification("fixture", now - 1_000, now + 60_000),
+    ];
+    try {
+      const service = TestBed.inject(NotificationCenterService);
+
+      expect(service.items().map(({ id }) => id)).toEqual(["fixture"]);
+      expect(firestore.collectionSnapshots).not.toHaveBeenCalled();
+    } finally {
+      delete screenshotGlobal.__PKSPOT_SCREENSHOT_NOTIFICATIONS__;
+    }
+  });
+
   it("shows only currently active notification items", async () => {
     const now = Date.now();
     firestore.items = [

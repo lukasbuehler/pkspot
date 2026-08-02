@@ -84,11 +84,6 @@ is required for this client-only refactor. Push registration does require each
 platform's Firebase Messaging API key to permit the client APIs used by Cloud
 Messaging.
 
-- [ ] Review the current visual-regression diffs, accept only intentional UI
-      changes, and update those baselines. Run `npm run test:visual` again and
-      confirm there are no unexpected screenshot differences before updating
-      `main`.
-
 - [ ] Verify the updated Firebase Messaging API-key allowlists with real token
       registration. With notification permission already granted, focus the
       local app and confirm `getToken()` no longer returns
@@ -220,15 +215,23 @@ required; released clients continue reading the first `spot_ref`.
 This rollout is additive and does not require releasing the new web or mobile
 clients at the same time. Keep the existing report collections and handlers in
 place: the projection triggers deliberately bridge them into `safety_cases`.
+The client routes and entry points are intentionally hidden in the current
+release. Re-enable them only in the dedicated follow-up described in
+`feature-passes/unified-safety-cases/README.md`.
 
-- [ ] Confirm an SMTP provider, sender, reply-to address, secret ownership, and
-      delivery monitoring. Configure a Firebase Trigger Email extension instance
-      whose mail collection is exactly `safety_case_email_outbox`. Do not
-      silently repoint an instance used by another workflow; install a separate
-      instance or change the reviewed queue contract first.
+- [ ] Implement and test a self-managed Gen 2 email-delivery Function for
+      `safety_case_email_outbox`, adapting only the useful queue-claim and
+      delivery-state behavior from Firebase's Apache-2.0 Trigger Email source.
+      Use Secret Manager for the transactional provider credentials and keep the
+      existing `to` plus `message.{subject,text,html}` producer contract.
+
+- [ ] Confirm a transactional email provider, verified sending domain, sender,
+      monitored reply-to address, secret ownership, bounce handling, and
+      delivery monitoring. Deploy the email-delivery Function before any
+      safety-case producer Functions.
 
   Success condition: a controlled server-created document with `to` and
-  `message.{subject,text,html}` is delivered, and the extension changes
+  `message.{subject,text,html}` is delivered, and the Function changes
   `delivery.state` from `PENDING` through processing to `SUCCESS`. A deliberate
   invalid-recipient test reaches `ERROR` without exposing its document to
   clients.
@@ -237,8 +240,9 @@ place: the projection triggers deliberately bridge them into `safety_cases`.
       read or write `safety_cases`, their private/event subcollections,
       `safety_case_access_tokens`, `safety_case_sessions`,
       `safety_case_rate_limits`, `safety_case_email_outbox`,
-  `safety_case_holds`, or `safety_case_metrics`; an administrator can read but
-  cannot directly write `moderation_holds/**` through the Storage client SDK.
+      `safety_case_holds`, or `safety_case_metrics`; an administrator can read
+      but cannot directly write `moderation_holds/**` through the Storage client
+      SDK.
 
 - [ ] Build and deploy the compatible safety-case Functions and the changed
       public-profile projection:
@@ -309,35 +313,11 @@ presentation/type fields.
   `event_discovery`. Retire the switch and deploy Firestore rules only after the
   oldest supported mobile version no longer lists `/events` directly.
 
-- [ ] Build and deploy the remaining event normalization, time-zone resolver,
-      and timing backfill Functions:
-
-  ```sh
-  npm --prefix functions run build
-  npx firebase deploy --project prod --only functions:updateEventFieldsOnWrite,functions:resolveEventTimeZone,functions:backfillEventTiming
-  ```
-
-  Success condition: all Functions are in `europe-west1`; a signed-in call for
-  Zurich coordinates returns `Europe/Zurich`; existing published events continue
-  opening in released clients; and the Typesense extension reports no rejected
-  writes.
-
-- [ ] As an authenticated administrator, invoke `backfillEventTiming` page by
-      page with `{ "dryRun": true, "limit": 250 }`, passing each returned
-      `nextCursor` as `startAfter`. Review every `invalidEvents` entry. Repeat
-      with `{ "dryRun": false, "limit": 250 }` only after the dry run is
-      accepted.
-
-  Success condition: every page returns `failed == 0`, the final page has
-  `done == true`, legacy timestamp-only events have exact canonical local
-  timing derived from their IANA zones, and intentional date-only records are
-  unchanged.
-
-- [ ] Invoke `rebuildEventDiscovery` page by page with
-      `{ "dryRun": false, "limit": 250 }`; then trigger the existing
-      `updateAllEventsWithTypesenseFields` maintenance flow. Verify a
-      locationless date-only event is present in Typesense, timed events have a
-      valid IANA zone, and the public invalid-event count is zero.
+- [ ] When the first globally discoverable locationless date-only event is ready
+      for publication, verify it appears in production Typesense without a time
+      zone or map location and remains valid in the Events calendar. Production
+      currently has no locationless date-only fixture; existing timed events and
+      their rebuilt `event_discovery` projections are already verified.
 
 - [ ] Verify production ownership claims with test accounts: organization
       manager submission, current-owner support/contest response,

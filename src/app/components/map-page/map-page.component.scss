@@ -5,7 +5,7 @@
 
   // Centralized variable for the bottom sheet's visible height when closed.
   // This is used by child components (e.g., Google Maps controls, FABs) to offset elements.
-  // Default: 140px. Can be changed here to update all dependent positioning.
+  // Keep one content row visible below the handle and filter chips.
   --bottom-sheet-closed-height: 90px;
 }
 

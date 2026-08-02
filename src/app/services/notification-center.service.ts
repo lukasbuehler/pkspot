@@ -71,20 +71,13 @@ export class NotificationCenterService {
     this.loadingState.set(true);
     this.errorState.set(false);
     try {
-      const fixture = (globalThis as ScreenshotGlobal)
-        .__PKSPOT_SCREENSHOT_NOTIFICATIONS__;
-      if (!fixture) {
+      const fixture = this._screenshotFixture();
+      if (fixture === null) {
         this._startListening(userId);
         return;
       }
-      const items = [...fixture];
       if (sequence !== this.loadSequence || userId !== this.currentUserId) return;
-
-      this.now.set(Date.now());
-      this.storedItems.set(
-        items.sort((left, right) => right.created_at_raw_ms - left.created_at_raw_ms),
-      );
-      this._scheduleNextTransition();
+      this._setItems(fixture);
     } catch (error) {
       console.warn("Failed to load notification center", error);
       if (sequence === this.loadSequence) this.errorState.set(true);
@@ -97,6 +90,12 @@ export class NotificationCenterService {
     this.liveSubscription?.unsubscribe();
     this.loadingState.set(true);
     this.errorState.set(false);
+    const fixture = this._screenshotFixture();
+    if (fixture !== null) {
+      this._setItems(fixture);
+      this.loadingState.set(false);
+      return;
+    }
     this.liveSubscription = this.firestore
       .collectionSnapshots<InAppNotificationDocument>(
         `users/${userId}/notifications`,
@@ -109,16 +108,9 @@ export class NotificationCenterService {
       .subscribe({
         next: (items) => {
           if (userId !== this.currentUserId) return;
-          this.now.set(Date.now());
-          this.storedItems.set(
-            items.sort(
-              (left, right) =>
-                right.created_at_raw_ms - left.created_at_raw_ms,
-            ),
-          );
+          this._setItems(items);
           this.loadingState.set(false);
           this.errorState.set(false);
-          this._scheduleNextTransition();
         },
         error: (error: unknown) => {
           console.warn("Failed to listen to notification center", error);
@@ -126,6 +118,22 @@ export class NotificationCenterService {
           this.errorState.set(true);
         },
       });
+  }
+
+  private _screenshotFixture(): InAppNotificationDocument[] | null {
+    const fixture = (globalThis as ScreenshotGlobal)
+      .__PKSPOT_SCREENSHOT_NOTIFICATIONS__;
+    return fixture ? [...fixture] : null;
+  }
+
+  private _setItems(items: InAppNotificationDocument[]): void {
+    this.now.set(Date.now());
+    this.storedItems.set(
+      [...items].sort(
+        (left, right) => right.created_at_raw_ms - left.created_at_raw_ms,
+      ),
+    );
+    this._scheduleNextTransition();
   }
 
   async markRead(notificationId: string): Promise<void> {

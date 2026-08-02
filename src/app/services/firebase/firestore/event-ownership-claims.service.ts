@@ -10,12 +10,19 @@ export type EventOwnershipClaimDocument = EventOwnershipClaimSchema & {
   id: string;
 };
 
+interface ScreenshotGlobal {
+  __PKSPOT_SCREENSHOT_EVENT_OWNERSHIP_CLAIMS__?: EventOwnershipClaimDocument[];
+}
+
 @Injectable({ providedIn: "root" })
 export class EventOwnershipClaimsService {
   private readonly firestore = inject(FirestoreAdapterService);
   private readonly functions = inject(FunctionsAdapterService);
 
   listPending(): Promise<EventOwnershipClaimDocument[]> {
+    const fixture = (globalThis as ScreenshotGlobal)
+      .__PKSPOT_SCREENSHOT_EVENT_OWNERSHIP_CLAIMS__;
+    if (fixture) return Promise.resolve([...fixture]);
     return this.firestore.getCollection<EventOwnershipClaimDocument>(
       "event_ownership_claims",
       [{ fieldPath: "status", opStr: "==", value: "pending" }],

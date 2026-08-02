@@ -235,7 +235,7 @@ const objectModes = [
 test.describe("high-priority user workflow matrix", () => {
   test.describe.configure({ mode: "parallel" });
 
-  test.beforeEach((_fixtures, testInfo) => {
+  test.beforeEach(({}, testInfo) => {
     test.skip(
       testInfo.project.name !== "chromium",
       "This file drives its own viewport matrix in Chromium.",

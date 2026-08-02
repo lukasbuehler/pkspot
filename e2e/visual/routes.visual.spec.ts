@@ -216,19 +216,6 @@ const routeVisualCases: RouteVisualCase[] = [
   },
   { name: "about", path: "/about", fullPage: true, maxDiffPixels: 2_000 },
   { name: "support", path: "/support", fullPage: true, maxDiffPixels: 2_000 },
-  {
-    name: "safety",
-    path: "/safety",
-    fullPage: true,
-    maxDiffPixels: 2_000,
-  },
-  {
-    name: "safety-mobile",
-    path: "/safety",
-    viewport: mobileViewport,
-    fullPage: true,
-    maxDiffPixels: 2_000,
-  },
   { name: "contact", path: "/contact", fullPage: true, maxDiffPixels: 1_000 },
   {
     name: "terms-of-service",
@@ -243,7 +230,14 @@ const routeVisualCases: RouteVisualCase[] = [
     maxDiffPixels: 2_000,
   },
   { name: "impressum", path: "/impressum", fullPage: true, maxDiffPixels: 1_000 },
-  { name: "embed", path: "/embed", fullPage: true, maxDiffPixels: 1_500 },
+  {
+    name: "embed",
+    path: "/embed?event=visual-city-jam",
+    fullPage: true,
+    maxDiffPixels: 1_500,
+    eventIndexFixture: true,
+    fixedTime: "2026-07-20T12:00:00.000Z",
+  },
   {
     name: "embedded-event",
     path: "/embedded/events/swissjam25",
@@ -270,6 +264,8 @@ test.describe("Route visual regression @visual", () => {
   for (const route of routeVisualCases) {
     test(`matches ${route.name} route`, async ({ page }) => {
       await prepareRoute(page, route);
+
+      await expect(page.locator("mat-snack-bar-container")).toHaveCount(0);
 
       const mapSurfaces = page.locator("app-google-map-2d, google-map, .gm-style");
       const spinners = page.locator("mat-spinner, mat-progress-spinner");
@@ -538,6 +534,8 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
         const screenshotWindow = (
           window as typeof window & {
             __PKSPOT_SCREENSHOT_AUTH_USER__?: unknown;
+            __PKSPOT_SCREENSHOT_DISABLE_NOTIFICATION_PROMPTS__?: boolean;
+            __PKSPOT_SCREENSHOT_EVENT_OWNERSHIP_CLAIMS__?: unknown[];
             __PKSPOT_SCREENSHOT_NOTIFICATIONS__?: unknown;
             __PKSPOT_SCREENSHOT_REPORT_OUTCOMES__?: unknown;
           }
@@ -571,6 +569,8 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
             is_admin: admin,
           },
         };
+        screenshotWindow.__PKSPOT_SCREENSHOT_DISABLE_NOTIFICATION_PROMPTS__ = true;
+        screenshotWindow.__PKSPOT_SCREENSHOT_EVENT_OWNERSHIP_CLAIMS__ = [];
         screenshotWindow.__PKSPOT_SCREENSHOT_REPORT_OUTCOMES__ = {
           "visual-report-outcome": {
             id: "visual-report-outcome",
@@ -713,8 +713,35 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
   if (route.openInvalidEventsDialog) {
     const reviewButton = page.locator(".warning-card button");
     await expect(reviewButton).toBeVisible();
-    await reviewButton.click();
-    await expect(page.locator("mat-dialog-container")).toBeVisible();
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await reviewButton.evaluate((button: HTMLButtonElement) => button.click());
+    const dialog = page.locator("mat-dialog-container");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator("app-event-discovery-card")).toHaveCount(3);
+    await page.locator(".cdk-overlay-container").evaluate(async (container) => {
+      await Promise.all(
+        container
+          .getAnimations({ subtree: true })
+          .map((animation) => animation.finished.catch(() => undefined)),
+      );
+    });
+  }
+
+  if (route.name === "event-ownership-claim-inbox") {
+    await expect(
+      page.locator("app-event-ownership-claim-inbox mat-card"),
+    ).toBeVisible();
+    await expect(
+      page.locator("mat-spinner:visible, mat-progress-spinner:visible"),
+    ).toHaveCount(0);
+  }
+
+  if (route.name === "embed") {
+    await expect(page.locator("app-embed-page")).toContainText("City Parkour Jam");
+    await expect(page.locator("app-embed-page iframe")).toHaveAttribute(
+      "src",
+      /visual-city-jam/u,
+    );
   }
 
   if (route.eventMapLayout) {

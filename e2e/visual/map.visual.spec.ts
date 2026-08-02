@@ -47,6 +47,12 @@ test.describe("Map Page Visual Regression @visual", () => {
     await mapPage.goto("de");
     await mapPage.waitForMapReady();
     await page.waitForTimeout(2000);
+    await expect(
+      page.locator("app-bottom-sheet app-map-object-panel .area-header"),
+    ).toHaveCSS("padding-top", "0px");
+    await expect(
+      page.locator("app-bottom-sheet app-spot-preview-card").first(),
+    ).toBeInViewport({ ratio: 0.05 });
 
     await expect(page).toHaveScreenshot("map-page-mobile.png", {
       maxDiffPixels: 3_000,

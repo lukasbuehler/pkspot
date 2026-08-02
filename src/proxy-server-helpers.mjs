@@ -24,7 +24,6 @@ const STATIC_SSR_PATHS = new Set([
   "/about",
   "/support",
   "/contact",
-  "/safety",
   "/sign-in",
   "/sign-up",
   "/forgot-password",

@@ -48,7 +48,10 @@ export {
   updateAllEventsWithTypesenseFields,
 } from "./eventFunctions";
 export { backfillEventModel } from "./eventModelMaintenanceFunctions";
-export { backfillEventTiming } from "./eventTimingMaintenanceFunctions";
+export {
+  backfillEventTiming,
+  backfillEventTimingOnCreate,
+} from "./eventTimingMaintenanceFunctions";
 export { resolveEventTimeZone } from "./eventTimeZoneFunctions";
 export {
   respondToEventOwnershipClaim,

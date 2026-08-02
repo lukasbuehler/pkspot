@@ -63,13 +63,17 @@ export class EventOwnershipClaimInboxComponent {
   readonly events = signal<Record<string, Event>>({});
   readonly drafts = signal<Record<string, ClaimDecisionDraft>>({});
   readonly deciding = signal<string | null>(null);
+  private initialLoadStarted = false;
 
   constructor() {
     effect(() => {
       const resolved = this.auth.initialAuthStateResolved();
       const admin = this.auth.user.data?.isAdmin === true;
       this.isAdmin.set(admin);
-      if (resolved && admin && !this.loading()) void this.reload();
+      if (resolved && admin && !this.initialLoadStarted) {
+        this.initialLoadStarted = true;
+        void this.reload();
+      }
     });
   }
 

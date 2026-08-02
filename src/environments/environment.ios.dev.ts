@@ -6,7 +6,6 @@ export const environment = {
   production: false,
   features: {
     ...iosEnvironment.features,
-    training: true,
   },
   appCheck: {
     ...iosEnvironment.appCheck,

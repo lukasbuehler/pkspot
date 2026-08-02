@@ -125,7 +125,7 @@ describe("app routes", () => {
     expect(contactRoute?.data?.["acceptanceFree"]).toBe(true);
   });
 
-  it("should expose private safety intake without requiring terms acceptance", () => {
+  it("should keep unified safety cases hidden until email delivery is ready", () => {
     const intake = routes.find((route) => route.path === "safety");
     const caseView = routes.find(
       (route) => route.path === "safety/cases/:publicReference",
@@ -134,19 +134,9 @@ describe("app routes", () => {
       (route) => route.path === "moderation/cases",
     );
 
-    expect(intake?.data).toEqual(
-      expect.objectContaining({
-        acceptanceFree: true,
-        discoverable: false,
-      }),
-    );
-    expect(caseView?.data).toEqual(
-      expect.objectContaining({
-        acceptanceFree: true,
-        discoverable: false,
-      }),
-    );
-    expect(moderationQueue?.data?.["discoverable"]).toBe(false);
+    expect(intake).toBeUndefined();
+    expect(caseView).toBeUndefined();
+    expect(moderationQueue).toBeUndefined();
   });
 
   it("should register event map routes before generic event info routes", () => {

@@ -119,8 +119,34 @@ describe("EventsService", () => {
   });
 
   afterEach(() => {
+    delete (
+      globalThis as typeof globalThis & {
+        __PKSPOT_SCREENSHOT_EVENT_INDEX__?: unknown;
+      }
+    ).__PKSPOT_SCREENSHOT_EVENT_INDEX__;
     vi.useRealTimers();
     TestBed.resetTestingModule();
+  });
+
+  it("uses screenshot event fixtures without querying Firestore", async () => {
+    const event = buildEventDoc(
+      "visual-event",
+      "2026-08-01T10:00:00.000Z",
+      "2026-08-01T18:00:00.000Z",
+    );
+    (
+      globalThis as typeof globalThis & {
+        __PKSPOT_SCREENSHOT_EVENT_INDEX__?: { events: unknown[] };
+      }
+    ).__PKSPOT_SCREENSHOT_EVENT_INDEX__ = { events: [event] };
+
+    const events = await service.getEvents({ sortByNext: true });
+    const resolved = await service.getEventBySlugOrId("visual-event-slug");
+
+    expect(events.map(({ id }) => id)).toEqual(["visual-event"]);
+    expect(resolved?.id).toBe("visual-event");
+    expect(firestoreAdapter.getCollection).not.toHaveBeenCalled();
+    expect(firestoreAdapter.getDocument).not.toHaveBeenCalled();
   });
 
   it("resolves a public slug through event_slugs before loading the event", async () => {
@@ -331,7 +357,7 @@ describe("EventsService", () => {
       ).asObservable(),
     );
 
-    const values: Array<string | null> = [];
+    const values: (string | null)[] = [];
     const subscription = service
       .observeEventById("draft-event" as EventId)
       .subscribe((event) => values.push(event?.id ?? null));
@@ -363,7 +389,7 @@ describe("EventsService", () => {
       ).asObservable(),
     );
 
-    const values: Array<string | null> = [];
+    const values: (string | null)[] = [];
     const subscription = service
       .observeEventById("draft-event" as EventId)
       .subscribe((event) => values.push(event?.id ?? null));
@@ -400,7 +426,7 @@ describe("EventsService", () => {
       ).asObservable(),
     );
 
-    const values: Array<string | null> = [];
+    const values: (string | null)[] = [];
     const subscription = service
       .observeEventById("draft-event" as EventId)
       .subscribe((event) => values.push(event?.id ?? null));

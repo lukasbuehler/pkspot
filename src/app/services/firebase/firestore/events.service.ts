@@ -41,6 +41,9 @@ type EventDocument = EventSchema & { id: string };
 type EventDiscoveryDocument = EventDiscoverySchema & { id: string };
 type EventSlugDocument = EventSlugSchema & { id: string };
 type EventRSVPDocument = EventRSVPSchema & { id: string };
+interface ScreenshotGlobal {
+  __PKSPOT_SCREENSHOT_EVENT_INDEX__?: { events?: EventDocument[] };
+}
 export type EventAccessDocument = EventAccessSchema & { id: string };
 export type EventWritePatch = Omit<
   Partial<EventSchema>,
@@ -105,7 +108,8 @@ function stripUndefined<T>(value: T): T {
 function stripServerDerivedEventFields<T extends { description?: unknown }>(
   value: T,
 ): Omit<T, "description"> {
-  const { description: _description, ...rest } = value;
+  const rest = { ...value };
+  delete rest.description;
   return rest;
 }
 
@@ -580,6 +584,10 @@ export class EventsService extends ConsentAwareService {
 
   /** Resolve a public slug or raw ID to a loaded Event, or null if not found. */
   async getEventBySlugOrId(slugOrId: string): Promise<Event | null> {
+    const screenshotEvent = this._screenshotEvents().find(
+      (event) => event.id === slugOrId || event.slug === slugOrId,
+    );
+    if (screenshotEvent) return screenshotEvent;
     if (this.isBrowser()) {
       await this._authService.waitForAuthorizationState();
     }
@@ -589,6 +597,10 @@ export class EventsService extends ConsentAwareService {
   }
 
   async getEventById(eventId: EventId): Promise<Event | null> {
+    const screenshotEvent = this._screenshotEvents().find(
+      (event) => event.id === eventId,
+    );
+    if (screenshotEvent) return screenshotEvent;
     if (this.isBrowser()) {
       await this._authService.waitForAuthorizationState();
     }
@@ -611,6 +623,10 @@ export class EventsService extends ConsentAwareService {
   }
 
   observeEventBySlugOrId(slugOrId: string): Observable<Event | null> {
+    const screenshotEvent = this._screenshotEvents().find(
+      (event) => event.id === slugOrId || event.slug === slugOrId,
+    );
+    if (screenshotEvent) return of(screenshotEvent);
     const authorizationReady$ = this.isSSR()
       ? of(undefined)
       : from(this._authService.waitForAuthorizationState());
@@ -672,6 +688,12 @@ export class EventsService extends ConsentAwareService {
   async getEvents(
     options: { sortByNext?: boolean; includeUnpublished?: boolean } = {}
   ): Promise<Event[]> {
+    const screenshotEvents = this._screenshotEvents();
+    if (screenshotEvents.length > 0) {
+      return options.sortByNext
+        ? this._sortEventsByNext(screenshotEvents)
+        : screenshotEvents.sort((a, b) => b.start.getTime() - a.start.getTime());
+    }
     const useCanonicalSource =
       options.includeUnpublished === true && this._isAdmin();
     const filters: QueryFilter[] = [];
@@ -721,6 +743,20 @@ export class EventsService extends ConsentAwareService {
     }
 
     return events.sort((a, b) => b.start.getTime() - a.start.getTime());
+  }
+
+  private _screenshotEvents(): Event[] {
+    const documents = (globalThis as ScreenshotGlobal)
+      .__PKSPOT_SCREENSHOT_EVENT_INDEX__?.events;
+    if (!documents) return [];
+    return documents.map(
+      (document) =>
+        new Event(
+          document.id as EventId,
+          this._assetUrls.resolveEventAssetUrls(document),
+          this._locale,
+        ),
+    );
   }
 
   /** Load published events organized by one organization. */

@@ -1,12 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
-import { MatButtonModule } from "@angular/material/button";
 import { MatIcon } from "@angular/material/icon";
 import { RouterLink } from "@angular/router";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
 
 @Component({
   selector: "app-contribution-status-note",
-  imports: [MatButtonModule, MatIcon, RouterLink],
+  imports: [MatIcon, RouterLink],
   template: `
     <div class="contribution-status-note" role="status">
       <mat-icon aria-hidden="true">info</mat-icon>
@@ -15,13 +14,8 @@ import { AgeAssuranceService } from "../../services/age-assurance.service";
           {{ ageAssurance.getContributionStatusMessage() }}
         </p>
         <a
-          mat-button
-          routerLink="/safety"
-          [queryParams]="{
-            type: 'complaint',
-            category: 'content_or_account_decision',
-            subjectType: 'account'
-          }"
+          class="contribution-status-note__action mat-label-large"
+          routerLink="/contact"
           i18n
         >
           Ask us to review this restriction
@@ -31,6 +25,12 @@ import { AgeAssuranceService } from "../../services/age-assurance.service";
   `,
   styles: [
     `
+      :host {
+        display: block;
+        min-width: 0;
+        max-width: 100%;
+      }
+
       .contribution-status-note {
         display: flex;
         align-items: flex-start;
@@ -40,6 +40,24 @@ import { AgeAssuranceService } from "../../services/age-assurance.service";
         border-radius: 8px;
         background: var(--mat-sys-surface-container-low);
         color: var(--mat-sys-on-surface-variant);
+      }
+
+      .contribution-status-note > div {
+        min-width: 0;
+      }
+
+      p,
+      a {
+        overflow-wrap: anywhere;
+      }
+
+      a {
+        color: var(--mat-sys-primary);
+      }
+
+      .contribution-status-note__action {
+        display: inline-block;
+        margin-top: 8px;
       }
 
       mat-icon {

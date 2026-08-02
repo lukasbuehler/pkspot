@@ -387,6 +387,26 @@
           "order": "ASCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "registrations",
+      "fieldPath": "user_id",
+      "indexes": [
+        {
+          "queryScope": "COLLECTION_GROUP",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "rsvps",
+      "fieldPath": "user_id",
+      "indexes": [
+        {
+          "queryScope": "COLLECTION_GROUP",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ]
 }

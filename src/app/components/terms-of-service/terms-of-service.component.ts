@@ -1,16 +1,11 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from "@angular/core";
+import { RouterLink } from "@angular/router";
 
 @Component({
-    selector: 'app-terms-of-service',
-    templateUrl: './terms-of-service.component.html',
-    styleUrls: ['./terms-of-service.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: "app-terms-of-service",
+  templateUrl: "./terms-of-service.component.html",
+  styleUrls: ["./terms-of-service.component.scss"],
+  imports: [RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TermsOfServiceComponent implements OnInit {
-
-  constructor() { }
-
-  ngOnInit(): void {
-  }
-
-}
+export class TermsOfServiceComponent {}

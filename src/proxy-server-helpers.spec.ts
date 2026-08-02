@@ -213,7 +213,7 @@ describe("proxy-server client region helpers", () => {
 
     expect(isStaticSsrPath("/", languages)).toBe(true);
     expect(isStaticSsrPath("/en/about", languages)).toBe(true);
-    expect(isStaticSsrPath("/de/safety", languages)).toBe(true);
+    expect(isStaticSsrPath("/de/safety", languages)).toBe(false);
     expect(isStaticSsrPath("/fr/privacy-policy/", languages)).toBe(true);
     expect(isStaticSsrPath("/en/map", languages)).toBe(false);
     expect(isStaticSsrPath("/de/map/spots/josefhalle", languages)).toBe(false);

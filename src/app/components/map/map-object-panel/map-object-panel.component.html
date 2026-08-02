@@ -1,6 +1,8 @@
 <!-- <mat-divider class="mx-3 mt-0 mb-3"></mat-divider> -->
-
-<div class="area-header px-3 pt-2 pb-2">
+<div
+  class="area-header"
+  [attr.data-collapsed]="titleCollapsed() ? 'true' : null"
+>
   <div
     class="area-title"
     [attr.data-collapsed]="titleCollapsed() ? 'true' : null"
@@ -10,9 +12,13 @@
     </h4>
   </div>
 
-  <div class="area-weather" [class.area-weather--hidden]="hidePeekTitles()">
+  <div
+    class="area-weather"
+    [attr.data-collapsed]="titleCollapsed() ? 'true' : null"
+  >
     @if (weather(); as areaWeather) {
       <app-map-weather-chip
+        animate.enter="weather-chip-enter"
         [response]="areaWeather"
         appearance="overview"
         (pressed)="weatherOpen.emit()"

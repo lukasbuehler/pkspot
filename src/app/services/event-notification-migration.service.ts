@@ -9,6 +9,10 @@ import { AnalyticsService } from "./analytics.service";
 import { FunctionsAdapterService } from "./firebase/functions-adapter.service";
 import { NotificationOptInService } from "./notification-opt-in.service";
 
+interface ScreenshotGlobal {
+  __PKSPOT_SCREENSHOT_DISABLE_NOTIFICATION_PROMPTS__?: boolean;
+}
+
 @Injectable({ providedIn: "root" })
 export class EventNotificationMigrationService {
   private readonly optIn = inject(NotificationOptInService);
@@ -19,6 +23,12 @@ export class EventNotificationMigrationService {
   private prompting = false;
 
   async maybePrompt(upcomingEventCount: number): Promise<void> {
+    if (
+      (globalThis as ScreenshotGlobal)
+        .__PKSPOT_SCREENSHOT_DISABLE_NOTIFICATION_PROMPTS__ === true
+    ) {
+      return;
+    }
     if (this.prompting) return;
     this.prompting = true;
     try {

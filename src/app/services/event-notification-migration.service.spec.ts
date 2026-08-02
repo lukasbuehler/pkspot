@@ -32,6 +32,23 @@ describe("EventNotificationMigrationService", () => {
 
   afterEach(() => TestBed.resetTestingModule());
 
+  it("does not open migration prompts in screenshot fixtures", async () => {
+    const screenshotGlobal = globalThis as typeof globalThis & {
+      __PKSPOT_SCREENSHOT_DISABLE_NOTIFICATION_PROMPTS__?: boolean;
+    };
+    screenshotGlobal.__PKSPOT_SCREENSHOT_DISABLE_NOTIFICATION_PROMPTS__ = true;
+    try {
+      const service = TestBed.inject(EventNotificationMigrationService);
+
+      await service.maybePrompt(2);
+
+      expect(maybePrompt).not.toHaveBeenCalled();
+      expect(call).not.toHaveBeenCalled();
+    } finally {
+      delete screenshotGlobal.__PKSPOT_SCREENSHOT_DISABLE_NOTIFICATION_PROMPTS__;
+    }
+  });
+
   it("reconciles existing events after accepting the migration", async () => {
     maybePrompt.mockResolvedValue("context");
     const service = TestBed.inject(EventNotificationMigrationService);
