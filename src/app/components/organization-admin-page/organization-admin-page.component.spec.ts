@@ -2,9 +2,11 @@ import { TestBed } from "@angular/core/testing";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { signal } from "@angular/core";
+import { ActivatedRoute, convertToParamMap } from "@angular/router";
 import { BehaviorSubject, of } from "rxjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
+import { MediaUploadStatusService } from "../../services/firebase/firestore/media-upload-status.service";
 import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
 import { StorageService } from "../../services/firebase/storage.service";
 import { OrganizationAdminPageComponent } from "./organization-admin-page.component";
@@ -28,7 +30,11 @@ describe("OrganizationAdminPageComponent", () => {
   let storageService: {
     setUploadToStorageWithResult: ReturnType<typeof vi.fn>;
   };
+  let mediaUploadStatusService: {
+    waitForPublishedUpload: ReturnType<typeof vi.fn>;
+  };
   let dialog: { open: ReturnType<typeof vi.fn> };
+  let queryParamMap: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
 
   beforeEach(() => {
     organizationsService = {
@@ -41,11 +47,18 @@ describe("OrganizationAdminPageComponent", () => {
     storageService = {
       setUploadToStorageWithResult: vi.fn().mockResolvedValue({
         url: "https://firebasestorage.googleapis.com/v0/b/demo/o/organization_media%2Fnew-org.png?alt=media",
+        uploadId: "upload-1",
       }),
+    };
+    mediaUploadStatusService = {
+      waitForPublishedUpload: vi.fn().mockResolvedValue(
+        "https://firebasestorage.googleapis.com/v0/b/demo/o/organization_media%2Fnew-org.png?alt=media",
+      ),
     };
     dialog = {
       open: vi.fn(),
     };
+    queryParamMap = new BehaviorSubject(convertToParamMap({}));
     const authState = new BehaviorSubject({ data: { isAdmin: true } });
     const authService = {
       authState$: authState,
@@ -57,10 +70,15 @@ describe("OrganizationAdminPageComponent", () => {
       imports: [OrganizationAdminPageComponent],
       providers: [
         { provide: OrganizationsService, useValue: organizationsService },
+        {
+          provide: MediaUploadStatusService,
+          useValue: mediaUploadStatusService,
+        },
         { provide: StorageService, useValue: storageService },
         { provide: MatDialog, useValue: dialog },
         { provide: MatSnackBar, useValue: { open: vi.fn() } },
         { provide: AuthenticationService, useValue: authService },
+        { provide: ActivatedRoute, useValue: { queryParamMap } },
       ],
     });
     Object.defineProperty(URL, "createObjectURL", {
@@ -91,6 +109,15 @@ describe("OrganizationAdminPageComponent", () => {
     );
   });
 
+  it("selects an organization requested by the admin edit link", async () => {
+    queryParamMap.next(convertToParamMap({ organization: "pkspot" }));
+
+    const component = await createComponent();
+
+    expect(component.selectedOrganizationId()).toBe("pkspot");
+    expect(component.editOrgName()).toBe("PK Spot");
+  });
+
   it("creates the organization before publishing a staged square logo URL", async () => {
     const component = await createComponent();
     const cropped = new File(["logo"], "new-org.png", { type: "image/png" });
@@ -119,6 +146,9 @@ describe("OrganizationAdminPageComponent", () => {
       "organization",
       "new-org",
     );
+    expect(mediaUploadStatusService.waitForPublishedUpload).toHaveBeenCalledWith(
+      "upload-1",
+    );
     expect(organizationsService.updateOrganization).toHaveBeenCalledWith(
       "new-org",
       {
@@ -126,6 +156,19 @@ describe("OrganizationAdminPageComponent", () => {
           "https://firebasestorage.googleapis.com/v0/b/demo/o/organization_media%2Fnew-org_800x800.png?alt=media",
       },
     );
+  });
+
+  it("uses the configured logo background in the edit preview", async () => {
+    const fixture = TestBed.createComponent(OrganizationAdminPageComponent);
+    await fixture.componentInstance.reload();
+    fixture.componentInstance.selectOrganization("pkspot");
+    fixture.componentInstance.editOrgLogoBackgroundColor.set("#101010");
+    await fixture.whenStable();
+
+    const preview = fixture.nativeElement.querySelector(
+      "img[alt='Organization logo preview']",
+    ) as HTMLImageElement | null;
+    expect(preview?.style.background).toBe("rgb(16, 16, 16)");
   });
 
   it("removes an existing logo when the edit mode is none", async () => {
@@ -140,12 +183,12 @@ describe("OrganizationAdminPageComponent", () => {
     );
   });
 
-  it("keeps a failed new logo staged in the created organization editor", async () => {
+  it("keeps a server-rejected logo staged in the created organization editor", async () => {
     const component = await createComponent();
     const cropped = new File(["logo"], "retry.png", { type: "image/png" });
     dialog.open.mockReturnValue({ afterClosed: () => of(cropped) });
-    storageService.setUploadToStorageWithResult.mockRejectedValueOnce(
-      new Error("intake failed"),
+    mediaUploadStatusService.waitForPublishedUpload.mockRejectedValueOnce(
+      new Error("media processing failed"),
     );
     organizationsService.getOrganizations.mockResolvedValue([
       organization,

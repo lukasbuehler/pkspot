@@ -39,6 +39,16 @@
                   <mat-chip-set aria-label="Organization status">
                     <mat-chip color="primary" i18n>Organization</mat-chip>
                   </mat-chip-set>
+                  @if (isAdmin()) {
+                    <a
+                      mat-stroked-button
+                      [routerLink]="['/organization-admin']"
+                      [queryParams]="{ organization: organization()?.id }"
+                    >
+                      <mat-icon>edit</mat-icon>
+                      <span i18n>Edit organization</span>
+                    </a>
+                  }
                 </div>
 
                 @if (organization()?.description) {

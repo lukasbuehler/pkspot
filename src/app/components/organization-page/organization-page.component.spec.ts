@@ -1,6 +1,10 @@
 import { LOCALE_ID, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { ActivatedRoute, convertToParamMap } from "@angular/router";
+import {
+  ActivatedRoute,
+  convertToParamMap,
+  provideRouter,
+} from "@angular/router";
 import { BehaviorSubject } from "rxjs";
 import { describe, expect, it, vi } from "vitest";
 import { AnalyticsService } from "../../services/analytics.service";
@@ -91,5 +95,67 @@ describe("OrganizationPageComponent", () => {
     authState$.next(null);
     expect(component.canViewMembers()).toBe(false);
     expect(component.members()).toEqual([]);
+  });
+
+  it("offers global admins a direct organization edit link", async () => {
+    const isAdmin = signal(true);
+    const authState$ = new BehaviorSubject<{ uid: string }>({
+      uid: "admin-user",
+    });
+    const organizationsService = {
+      getOrganizationBySlugOrId: vi.fn().mockResolvedValue({
+        id: "wpf",
+        slug: "wpf",
+        name: "World Parkour Federation",
+        active: true,
+      }),
+      getOrganizationMember: vi.fn().mockResolvedValue(null),
+      getOrganizationMembers: vi.fn().mockResolvedValue([]),
+      getStewardedSpots: vi.fn().mockResolvedValue([]),
+      getManagedSpots: vi.fn().mockResolvedValue([]),
+      getUsedSpots: vi.fn().mockResolvedValue([]),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: new BehaviorSubject(
+              convertToParamMap({ slugOrId: "wpf" }),
+            ),
+          },
+        },
+        {
+          provide: AuthenticationService,
+          useValue: { authState$, isAdmin },
+        },
+        { provide: OrganizationsService, useValue: organizationsService },
+        {
+          provide: EventsService,
+          useValue: { getEventsForOrganization: vi.fn().mockResolvedValue([]) },
+        },
+        { provide: AnalyticsService, useValue: { trackEvent: vi.fn() } },
+        { provide: LOCALE_ID, useValue: "en" },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(OrganizationPageComponent);
+    await flushPromises();
+    await fixture.whenStable();
+
+    const editLink = fixture.nativeElement.querySelector(
+      'a[href="/organization-admin?organization=wpf"]',
+    ) as HTMLAnchorElement | null;
+    expect(editLink?.textContent).toContain("Edit organization");
+
+    isAdmin.set(false);
+    await fixture.whenStable();
+    expect(
+      fixture.nativeElement.querySelector(
+        'a[href="/organization-admin?organization=wpf"]',
+      ),
+    ).toBeNull();
   });
 });

@@ -342,19 +342,9 @@
         <source>Training log</source>
       </segment>
     </unit>
-    <unit id="2597686257276262345">
-      <segment>
-        <source>Could not load safety cases.</source>
-      </segment>
-    </unit>
     <unit id="2599075381042572471">
       <segment>
         <source>No organization approvals waiting.</source>
-      </segment>
-    </unit>
-    <unit id="5861458032557974848">
-      <segment>
-        <source>Save update and assign to me</source>
       </segment>
     </unit>
     <unit id="5863879151969666492">
@@ -417,11 +407,6 @@
         <source>Pending</source>
       </segment>
     </unit>
-    <unit id="6631334172623029500">
-      <segment>
-        <source>Email:</source>
-      </segment>
-    </unit>
     <unit id="6631641409682927358">
       <segment>
         <source>Open current NCA guidance</source>
@@ -462,11 +447,6 @@
         <source> Public map activity from this profile. </source>
       </segment>
     </unit>
-    <unit id="2089887885715473070">
-      <segment>
-        <source>Held state restored.</source>
-      </segment>
-    </unit>
     <unit id="1035459065824093652">
       <segment>
         <source>Open edit</source>
@@ -485,11 +465,6 @@
     <unit id="4854396465510517671">
       <segment>
         <source>Target</source>
-      </segment>
-    </unit>
-    <unit id="4856886645538428653">
-      <segment>
-        <source>Enter a valid email address or leave it blank.</source>
       </segment>
     </unit>
     <unit id="profile.actions.unblock">
@@ -520,16 +495,6 @@
     <unit id="488531688897371865">
       <segment>
         <source>Schedule updated</source>
-      </segment>
-    </unit>
-    <unit id="4892019229298361238">
-      <segment>
-        <source>Safety reports, complaints, and appeals</source>
-      </segment>
-    </unit>
-    <unit id="4897177574141849318">
-      <segment>
-        <source>Unsafe place or access information</source>
       </segment>
     </unit>
     <unit id="7774690298639065150">
@@ -602,16 +567,6 @@
         <source>Upload</source>
       </segment>
     </unit>
-    <unit id="6938699337852023436">
-      <segment>
-        <source>Response targets</source>
-      </segment>
-    </unit>
-    <unit id="3026495784849747398">
-      <segment>
-        <source>Record decision</source>
-      </segment>
-    </unit>
     <unit id="3031673576218082316">
       <segment>
         <source>The selected file was too big. It must be smaller than <ph id="0" equiv="PH" disp="humanFileSize( this.maximumSizeInBytes(), )"/>.</source>
@@ -620,11 +575,6 @@
     <unit id="3049124345543729285">
       <segment>
         <source> Automated scanning requires a manual check. </source>
-      </segment>
-    </unit>
-    <unit id="3056581983954040276">
-      <segment>
-        <source> Use the private safety channel for content or account reports, complaints about PK Spot, and appeals against a decision. You do not need an account. </source>
       </segment>
     </unit>
     <unit id="3067846330176969856">
@@ -745,11 +695,6 @@
     <unit id="event_draft.notice.description">
       <segment>
         <source> This event is not public. Only administrators can view it. </source>
-      </segment>
-    </unit>
-    <unit id="2712309340716220855">
-      <segment>
-        <source> Keep the reference above. If you submitted as a guest, use the private verification link sent to your email to view updates or add information. </source>
       </segment>
     </unit>
     <unit id="2715740819906435675">
@@ -932,11 +877,6 @@
         <source>This link is invalid or has expired. Please request a new one.</source>
       </segment>
     </unit>
-    <unit id="6261837376343461951">
-      <segment>
-        <source>Self-harm or suicide</source>
-      </segment>
-    </unit>
     <unit id="6266780676699111627">
       <segment>
         <source> Latest open spot and media reports. </source>
@@ -962,11 +902,6 @@
         <source>Unknown Action</source>
       </segment>
     </unit>
-    <unit id="7667730993573976181">
-      <segment>
-        <source>Record this decision and apply its moderation action?</source>
-      </segment>
-    </unit>
     <unit id="7672282077901429954">
       <segment>
         <source>Error, there was a problem signing out!</source>
@@ -975,11 +910,6 @@
     <unit id="7675878133592710280">
       <segment>
         <source>This link is not recognized. Please check your email and try again.</source>
-      </segment>
-    </unit>
-    <unit id="7677639303795669921">
-      <segment>
-        <source>Past target date</source>
       </segment>
     </unit>
     <unit id="7679393301604850402">
@@ -1037,11 +967,6 @@
         <source>Verification Failed</source>
       </segment>
     </unit>
-    <unit id="6970739369177090165">
-      <segment>
-        <source>Complex-case target:</source>
-      </segment>
-    </unit>
     <unit id="6972105223770675605">
       <segment>
         <source>Reset Password</source>
@@ -1065,11 +990,6 @@
     <unit id="9131908454374854077">
       <segment>
         <source>Sign out of your account.</source>
-      </segment>
-    </unit>
-    <unit id="9140895998943713645">
-      <segment>
-        <source>Age-assurance decision</source>
       </segment>
     </unit>
     <unit id="9147694429145547851">
@@ -1157,11 +1077,6 @@
         <source> Add a short bio so your public profile tells people who you are. </source>
       </segment>
     </unit>
-    <unit id="6480397588679623769">
-      <segment>
-        <source>Provide at least 10 characters and no more than 4000.</source>
-      </segment>
-    </unit>
     <unit id="2969365666988952758">
       <segment>
         <source>Recovering Email</source>
@@ -1172,19 +1087,9 @@
         <source>Edit Profile</source>
       </segment>
     </unit>
-    <unit id="2988814765436950391">
-      <segment>
-        <source>Another service complaint</source>
-      </segment>
-    </unit>
     <unit id="2996324673054626783">
       <segment>
         <source>Admin access required.</source>
-      </segment>
-    </unit>
-    <unit id="1806667489382256324">
-      <segment>
-        <source>Category</source>
       </segment>
     </unit>
     <unit id="1814768182936887464">
@@ -1265,11 +1170,6 @@
     <unit id="5516877052541003749">
       <segment>
         <source>Failed to submit organization review</source>
-      </segment>
-    </unit>
-    <unit id="7821270560154398021">
-      <segment>
-        <source> Reports, complaints, appeals, deadlines, correspondence, and decisions in one private queue. </source>
       </segment>
     </unit>
     <unit id="78295015887661250">
@@ -1396,16 +1296,6 @@
         <source>Reject</source>
       </segment>
     </unit>
-    <unit id="7384825592384718749">
-      <segment>
-        <source>Could not submit the appeal.</source>
-      </segment>
-    </unit>
-    <unit id="7386252783526468675">
-      <segment>
-        <source>Decision action</source>
-      </segment>
-    </unit>
     <unit id="7392135779424722480">
       <segment>
         <source>Previous time</source>
@@ -1431,11 +1321,6 @@
         <source>{VAR_PLURAL, plural, =1 {One published event has invalid discovery data and was not shown.} other {<ph id="0" equiv="INTERPOLATION"/> published events have invalid discovery data and were not shown.}}</source>
       </segment>
     </unit>
-    <unit id="2409973243657175474">
-      <segment>
-        <source>Send update</source>
-      </segment>
-    </unit>
     <unit id="2417459620118538314">
       <segment>
         <source>Could not update event notifications. Please try again.</source>
@@ -1459,11 +1344,6 @@
     <unit id="2473567849440268466">
       <segment>
         <source>Community merge queued</source>
-      </segment>
-    </unit>
-    <unit id="2480962193625361096">
-      <segment>
-        <source>Target:</source>
       </segment>
     </unit>
     <unit id="2494595604764120182">
@@ -1504,11 +1384,6 @@
     <unit id="7599542245105770623">
       <segment>
         <source>Logo background</source>
-      </segment>
-    </unit>
-    <unit id="7002200834685763491">
-      <segment>
-        <source>Complex-case target</source>
       </segment>
     </unit>
     <unit id="7005135725147250005">
@@ -1566,11 +1441,6 @@
         <source>Media</source>
       </segment>
     </unit>
-    <unit id="5430715841913413045">
-      <segment>
-        <source>Content or account decision</source>
-      </segment>
-    </unit>
     <unit id="5439680339974485805">
       <segment>
         <source>Publish live event update</source>
@@ -1609,16 +1479,6 @@
     <unit id="49184001319674796">
       <segment>
         <source>Failed to release media</source>
-      </segment>
-    </unit>
-    <unit id="4918842380121150578">
-      <segment>
-        <source>Could not record this decision.</source>
-      </segment>
-    </unit>
-    <unit id="4919637716121608426">
-      <segment>
-        <source>Email delivery</source>
       </segment>
     </unit>
     <unit id="8828059408146193176">
@@ -1729,11 +1589,6 @@
         <source>Not managed</source>
       </segment>
     </unit>
-    <unit id="3808291968368675401">
-      <segment>
-        <source>Add a short summary.</source>
-      </segment>
-    </unit>
     <unit id="3812784998942541864">
       <segment>
         <source>Network fingerprint</source>
@@ -1782,11 +1637,6 @@
         <source>Reset</source>
       </segment>
     </unit>
-    <unit id="7809374858674328383">
-      <segment>
-        <source>Decision</source>
-      </segment>
-    </unit>
     <unit id="7819314041543176992">
       <segment>
         <source>Close</source>
@@ -1817,11 +1667,6 @@
         <source>This upload was flagged or failed automated scanning and may be disturbing. Reveal it for manual moderation?</source>
       </segment>
     </unit>
-    <unit id="7163472660486177947">
-      <segment>
-        <source>Could not add your update.</source>
-      </segment>
-    </unit>
     <unit id="7164688894418358201">
       <segment>
         <source>What PK Spot receives</source>
@@ -1837,16 +1682,6 @@
         <source>Error uploading the profile picture.</source>
       </segment>
     </unit>
-    <unit id="7183346391731740218">
-      <segment>
-        <source>Child safety</source>
-      </segment>
-    </unit>
-    <unit id="4114528897382605548">
-      <segment>
-        <source>Restore held state</source>
-      </segment>
-    </unit>
     <unit id="4115668858470490289">
       <segment>
         <source>Challenge updated successfully</source>
@@ -1855,11 +1690,6 @@
     <unit id="4118187447474362400">
       <segment>
         <source>Community not found</source>
-      </segment>
-    </unit>
-    <unit id="370092533680813589">
-      <segment>
-        <source>Standard cases</source>
       </segment>
     </unit>
     <unit id="370198281195202249">
@@ -1875,11 +1705,6 @@
     <unit id="3710729568404589151">
       <segment>
         <source>External response guidance</source>
-      </segment>
-    </unit>
-    <unit id="3712031637505692458">
-      <segment>
-        <source>Target response</source>
       </segment>
     </unit>
     <unit id="3714343477148346459">
@@ -2008,11 +1833,6 @@
     <unit id="4323470180912194028">
       <segment>
         <source>Copy</source>
-      </segment>
-    </unit>
-    <unit id="4324194888906470452">
-      <segment>
-        <source>Your case was received</source>
       </segment>
     </unit>
     <unit id="4344855956830123370">
@@ -2619,11 +2439,6 @@
         <source>Open Google Play</source>
       </segment>
     </unit>
-    <unit id="28390273827708830">
-      <segment>
-        <source>Aim to resolve within 14 days</source>
-      </segment>
-    </unit>
     <unit id="7049904563073707059">
       <segment>
         <source>Show satellite toggle</source>
@@ -2637,11 +2452,6 @@
     <unit id="7855274718891325217">
       <segment>
         <source>Show Event header</source>
-      </segment>
-    </unit>
-    <unit id="7858093315829323396">
-      <segment>
-        <source>Age assurance</source>
       </segment>
     </unit>
     <unit id="822217384326702238">
@@ -2714,19 +2524,9 @@
         <source>Publish live update</source>
       </segment>
     </unit>
-    <unit id="5788471518451110162">
-      <segment>
-        <source>Complex target</source>
-      </segment>
-    </unit>
     <unit id="5789685393585856728">
       <segment>
         <source>Unverified contact email</source>
-      </segment>
-    </unit>
-    <unit id="579084822382819407">
-      <segment>
-        <source>Photo or video</source>
       </segment>
     </unit>
     <unit id="8972434095994344487">
@@ -2772,16 +2572,6 @@
     <unit id="3476705213231355222">
       <segment>
         <source>Filter by event category</source>
-      </segment>
-    </unit>
-    <unit id="3480235560414212524">
-      <segment>
-        <source> Reports are private. We keep the information needed to investigate, prevent abuse, explain decisions, and handle an appeal. Network and device security metadata is removed after 90 days. </source>
-      </segment>
-    </unit>
-    <unit id="3482739346708355755">
-      <segment>
-        <source>Authenticated:</source>
       </segment>
     </unit>
     <unit id="3483311644139102304">
@@ -5877,7 +5667,7 @@
     </unit>
     <unit id="events.create_menu_tooltip">
       <segment>
-        <source>Create an event or session</source>
+        <source>Create event</source>
       </segment>
     </unit>
     <unit id="events.discovery_card_aria">
@@ -5908,11 +5698,6 @@
     <unit id="events.sponsored.short">
       <segment>
         <source>Promoted</source>
-      </segment>
-    </unit>
-    <unit id="events.plan_session">
-      <segment>
-        <source>Plan session</source>
       </segment>
     </unit>
     <unit id="events.status.live_open_end">
@@ -6085,11 +5870,6 @@
         <source>This E-Mail address is not valid!</source>
       </segment>
     </unit>
-    <unit id="962179517602562850">
-      <segment>
-        <source>Privacy or doxxing</source>
-      </segment>
-    </unit>
     <unit id="967806009511704497">
       <segment>
         <source>Incident runbook</source>
@@ -6193,11 +5973,6 @@
     <unit id="6350961303290386382">
       <segment>
         <source>Reveal to review</source>
-      </segment>
-    </unit>
-    <unit id="8520138691875188234">
-      <segment>
-        <source> Guests receive a one-time verification link. Your email and identity are visible only to authorised moderators. </source>
       </segment>
     </unit>
     <unit id="8525213662266893834">
@@ -6381,11 +6156,6 @@
         <source>Ownership claim approved.</source>
       </segment>
     </unit>
-    <unit id="7869347974693941290">
-      <segment>
-        <source>Could not update this case.</source>
-      </segment>
-    </unit>
     <unit id="3502015908968636245">
       <segment>
         <source>Affected accounts:</source>
@@ -6405,11 +6175,6 @@
         <source> Spots verified by you </source>
       </segment>
     </unit>
-    <unit id="3514079164376470263">
-      <segment>
-        <source>Dangerous activity</source>
-      </segment>
-    </unit>
     <unit id="3517550046701184661">
       <segment>
         <source>Show less</source>
@@ -6423,11 +6188,6 @@
     <unit id="7215101881367554791">
       <segment>
         <source>Show more</source>
-      </segment>
-    </unit>
-    <unit id="721979004226425951">
-      <segment>
-        <source>How a report was handled</source>
       </segment>
     </unit>
     <unit id="8333618256474808727">
@@ -6470,19 +6230,9 @@
         <source> All Challenges of <ph id="0" equiv="INTERPOLATION" disp="{{ spotName() }}"/> </source>
       </segment>
     </unit>
-    <unit id="4038016446143404869">
-      <segment>
-        <source>Target response:</source>
-      </segment>
-    </unit>
     <unit id="4043049091728011235">
       <segment>
         <source>Cancelled</source>
-      </segment>
-    </unit>
-    <unit id="4044515139696080108">
-      <segment>
-        <source>Affected account holder</source>
       </segment>
     </unit>
     <unit id="4046179348234171126">
@@ -6528,11 +6278,6 @@
     <unit id="2729703763662350648">
       <segment>
         <source> Everything on this page is public. Do not add your address, school, private training spots, phone number, or anything that shows where you usually are. </source>
-      </segment>
-    </unit>
-    <unit id="2734022681675842051">
-      <segment>
-        <source>Priority</source>
       </segment>
     </unit>
     <unit id="2735597846335347226">
@@ -7021,16 +6766,6 @@
         <source>Schedule change</source>
       </segment>
     </unit>
-    <unit id="2005372051213886069">
-      <segment>
-        <source>Your update was added.</source>
-      </segment>
-    </unit>
-    <unit id="2005374949551780500">
-      <segment>
-        <source>Safety cases</source>
-      </segment>
-    </unit>
     <unit id="2014228771300600511">
       <segment>
         <source> The page you are looking for does not exist or has been moved. </source>
@@ -7064,16 +6799,6 @@
     <unit id="5324713868940196306">
       <segment>
         <source>There is already a spot at this location.</source>
-      </segment>
-    </unit>
-    <unit id="190885448896868977">
-      <segment>
-        <source>Is someone in immediate danger?</source>
-      </segment>
-    </unit>
-    <unit id="1922856447604899399">
-      <segment>
-        <source>What do you need to do?</source>
       </segment>
     </unit>
     <unit id="1927584134608367160">
@@ -7111,11 +6836,6 @@
         <source> Temporarily closed </source>
       </segment>
     </unit>
-    <unit id="8712629536205619877">
-      <segment>
-        <source>Received:</source>
-      </segment>
-    </unit>
     <unit id="8719394803198399227">
       <segment>
         <source>Decision failed.</source>
@@ -7139,11 +6859,6 @@
     <unit id="open_google_maps_button_label">
       <segment>
         <source>Open in Google Maps</source>
-      </segment>
-    </unit>
-    <unit id="2840924924493795948">
-      <segment>
-        <source>Complex cases</source>
       </segment>
     </unit>
     <unit id="2846098641732030728">
@@ -7241,11 +6956,6 @@
         <source>Reported externally</source>
       </segment>
     </unit>
-    <unit id="6721845101128758739">
-      <segment>
-        <source>Loading private case...</source>
-      </segment>
-    </unit>
     <unit id="6727906839729645379">
       <segment>
         <source>Harassment or abuse</source>
@@ -7294,11 +7004,6 @@
     <unit id="1521659529201664852">
       <segment>
         <source>Spots Created</source>
-      </segment>
-    </unit>
-    <unit id="1527271999950935147">
-      <segment>
-        <source>Assigned:</source>
       </segment>
     </unit>
     <unit id="5621227577951541037">
@@ -7566,26 +7271,6 @@
         <source>Events</source>
       </segment>
     </unit>
-    <unit id="session_planner.back">
-      <segment>
-        <source>Back to events</source>
-      </segment>
-    </unit>
-    <unit id="session_planner.created">
-      <segment>
-        <source>Session created.</source>
-      </segment>
-    </unit>
-    <unit id="session_planner.created_with_access_warning">
-      <segment>
-        <source>Session created, but access could not be granted to: <ph id="0" equiv="PH" disp="failedCollaborators.join(&quot;, &quot;)"/>. Open event management to retry each person.</source>
-      </segment>
-    </unit>
-    <unit id="session_planner.failed">
-      <segment>
-        <source>Couldn&apos;t create the session. Please try again.</source>
-      </segment>
-    </unit>
     <unit id="session_planner.form.add_co_host">
       <segment>
         <source> Add co-host </source>
@@ -7671,41 +7356,6 @@
         <source> Enable a waitlist </source>
       </segment>
     </unit>
-    <unit id="session_planner.loading">
-      <segment>
-        <source> Loading session planner… </source>
-      </segment>
-    </unit>
-    <unit id="session_planner.meta.description">
-      <segment>
-        <source>Plan a local parkour training session and invite the community.</source>
-      </segment>
-    </unit>
-    <unit id="session_planner.meta.title">
-      <segment>
-        <source>Plan a session</source>
-      </segment>
-    </unit>
-    <unit id="session_planner.restricted_title">
-      <segment>
-        <source> Session planning is unavailable </source>
-      </segment>
-    </unit>
-    <unit id="session_planner.sign_in_action">
-      <segment>
-        <source>Sign in</source>
-      </segment>
-    </unit>
-    <unit id="session_planner.sign_in_body">
-      <segment>
-        <source> Sessions have a real owner so you can update the details and manage attendance later. </source>
-      </segment>
-    </unit>
-    <unit id="session_planner.sign_in_title">
-      <segment>
-        <source> Sign in to plan a session </source>
-      </segment>
-    </unit>
     <unit id="settings.about.description">
       <notes>
         <note category="description">about section description</note>
@@ -7760,19 +7410,9 @@
         <source> Manage your account settings including email, password, and account deletion. </source>
       </segment>
     </unit>
-    <unit id="6814295386768519176">
-      <segment>
-        <source>Timeline</source>
-      </segment>
-    </unit>
     <unit id="6815507474406960450">
       <segment>
         <source>E-Mail address</source>
-      </segment>
-    </unit>
-    <unit id="6824976364666397501">
-      <segment>
-        <source>Report a safety concern</source>
       </segment>
     </unit>
     <unit id="5370170519653047207">
@@ -7813,11 +7453,6 @@
     <unit id="991761096918819245">
       <segment>
         <source>Not verified</source>
-      </segment>
-    </unit>
-    <unit id="998453251097149857">
-      <segment>
-        <source>Decision recorded.</source>
       </segment>
     </unit>
     <unit id="5957587063470298128">
@@ -7885,11 +7520,6 @@
         <source>Change E-mail address</source>
       </segment>
     </unit>
-    <unit id="1407086352203948664">
-      <segment>
-        <source>Loading cases...</source>
-      </segment>
-    </unit>
     <unit id="1426358485872019526">
       <segment>
         <source>Uploaded image</source>
@@ -7935,11 +7565,6 @@
         <source>Media upload stream</source>
       </segment>
     </unit>
-    <unit id="8618596366627948099">
-      <segment>
-        <source>Total cases loaded</source>
-      </segment>
-    </unit>
     <unit id="8637857575623979078">
       <segment>
         <source> No edits yet for this spot. </source>
@@ -7948,11 +7573,6 @@
     <unit id="8640413159088021987">
       <segment>
         <source>Profile access saved</source>
-      </segment>
-    </unit>
-    <unit id="8650499415827640724">
-      <segment>
-        <source>Type</source>
       </segment>
     </unit>
     <unit id="8656126574213649581">
@@ -7970,11 +7590,6 @@
         <source>Delete Account</source>
       </segment>
     </unit>
-    <unit id="1629110082218932522">
-      <segment>
-        <source>Short summary</source>
-      </segment>
-    </unit>
     <unit id="1632949913064020849">
       <segment>
         <source>Dismissed</source>
@@ -7988,11 +7603,6 @@
     <unit id="1634423786949067514">
       <segment>
         <source> Permanently delete your account and all associated data. This action cannot be undone. </source>
-      </segment>
-    </unit>
-    <unit id="2870539756629075514">
-      <segment>
-        <source>Message recipient</source>
       </segment>
     </unit>
     <unit id="2874252575916172948">
@@ -8065,14 +7675,24 @@
         <source>Reporting...</source>
       </segment>
     </unit>
-    <unit id="settings.notifications.community_events_aria">
+    <unit id="settings.notifications.all">
       <segment>
-        <source>Community event notifications</source>
+        <source>All</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.community_column">
+      <segment>
+        <source>Community</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.community_events_all_aria">
+      <segment>
+        <source>Select or deselect event notifications for all followed communities</source>
       </segment>
     </unit>
     <unit id="settings.notifications.community_events_description">
       <segment>
-        <source> Push alerts for newly published public events in communities where event updates are enabled. </source>
+        <source>Push alerts for newly published public events in communities where event updates are enabled.</source>
       </segment>
     </unit>
     <unit id="settings.notifications.community_events_heading">
@@ -8090,14 +7710,9 @@
         <source>Events</source>
       </segment>
     </unit>
-    <unit id="settings.notifications.community_info_aria">
-      <segment>
-        <source>Community info submission notifications</source>
-      </segment>
-    </unit>
     <unit id="settings.notifications.community_info_description">
       <segment>
-        <source> Know when community information you submitted is approved or rejected. </source>
+        <source>Know when community information you submitted is approved or rejected.</source>
       </segment>
     </unit>
     <unit id="settings.notifications.community_info_heading">
@@ -8110,14 +7725,14 @@
         <source>Could not save community notification preference.</source>
       </segment>
     </unit>
-    <unit id="settings.notifications.community_spots_aria">
+    <unit id="settings.notifications.community_spots_all_aria">
       <segment>
-        <source>Community Spot digest notifications</source>
+        <source>Select or deselect Spot recommendations for all followed communities</source>
       </segment>
     </unit>
     <unit id="settings.notifications.community_spots_description">
       <segment>
-        <source> A Friday digest of newly recommended Spots from communities where Spot updates are enabled. </source>
+        <source>A Friday digest of newly recommended Spots from communities where Spot updates are enabled.</source>
       </segment>
     </unit>
     <unit id="settings.notifications.community_spots_heading">
@@ -8135,19 +7750,19 @@
         <source>Spots</source>
       </segment>
     </unit>
+    <unit id="settings.notifications.community_table_aria">
+      <segment>
+        <source>Notifications for followed communities</source>
+      </segment>
+    </unit>
     <unit id="settings.notifications.description">
       <segment>
         <source> Choose which useful updates PK Spot may send you. You stay in control through both these choices and your browser or device settings. </source>
       </segment>
     </unit>
-    <unit id="settings.notifications.event_reminders_aria">
-      <segment>
-        <source>Event reminder notifications</source>
-      </segment>
-    </unit>
     <unit id="settings.notifications.event_reminders_description">
       <segment>
-        <source> Choose when to be reminded about events you are going to or interested in. </source>
+        <source>Choose when to be reminded about events you are going to or interested in.</source>
       </segment>
     </unit>
     <unit id="settings.notifications.event_reminders_heading">
@@ -8155,24 +7770,9 @@
         <source>Event reminders</source>
       </segment>
     </unit>
-    <unit id="settings.notifications.event_specific_description">
-      <segment>
-        <source> Review the events you currently receive updates or reminders for. </source>
-      </segment>
-    </unit>
-    <unit id="settings.notifications.event_specific_heading">
-      <segment>
-        <source>Event-specific notifications</source>
-      </segment>
-    </unit>
-    <unit id="settings.notifications.event_updates_aria">
-      <segment>
-        <source>Event update notifications</source>
-      </segment>
-    </unit>
     <unit id="settings.notifications.event_updates_description">
       <segment>
-        <source> Hear about important time, location, or cancellation changes for events you responded to. </source>
+        <source>Hear about important time, location, or cancellation changes for events you responded to.</source>
       </segment>
     </unit>
     <unit id="settings.notifications.event_updates_heading">
@@ -8180,14 +7780,9 @@
         <source>Event updates</source>
       </segment>
     </unit>
-    <unit id="settings.notifications.follow_requests_aria">
-      <segment>
-        <source>Follow activity notifications</source>
-      </segment>
-    </unit>
     <unit id="settings.notifications.follow_requests_description">
       <segment>
-        <source> Know about follow requests, new followers, and accepted requests. </source>
+        <source>Know about follow requests, new followers, and accepted requests.</source>
       </segment>
     </unit>
     <unit id="settings.notifications.follow_requests_heading">
@@ -8197,12 +7792,12 @@
     </unit>
     <unit id="settings.notifications.followed_communities_description">
       <segment>
-        <source> Choose the updates you want from each community. Global switches above control push delivery. </source>
+        <source> Choose the updates you want from each community. Global choices above control push delivery. </source>
       </segment>
     </unit>
     <unit id="settings.notifications.followed_communities_heading">
       <segment>
-        <source>Followed communities</source>
+        <source> Followed communities </source>
       </segment>
     </unit>
     <unit id="settings.notifications.heading">
@@ -8270,19 +7865,19 @@
         <source>Default event reminder times</source>
       </segment>
     </unit>
+    <unit id="settings.notifications.reminder_times_label">
+      <segment>
+        <source>Reminder times</source>
+      </segment>
+    </unit>
     <unit id="settings.notifications.reminder_two_hours">
       <segment>
         <source>2 hours</source>
       </segment>
     </unit>
-    <unit id="settings.notifications.reports_aria">
-      <segment>
-        <source>Report update notifications</source>
-      </segment>
-    </unit>
     <unit id="settings.notifications.reports_description">
       <segment>
-        <source> Know when a Spot or media report you submitted has been reviewed. </source>
+        <source>Know when a Spot or media report you submitted has been reviewed.</source>
       </segment>
     </unit>
     <unit id="settings.notifications.reports_heading">
@@ -8295,14 +7890,14 @@
         <source>Could not save notification preference.</source>
       </segment>
     </unit>
-    <unit id="settings.notifications.spot_edits_aria">
+    <unit id="settings.notifications.select_all_aria">
       <segment>
-        <source>Your Spot edit notifications</source>
+        <source>Select or deselect all notification types</source>
       </segment>
     </unit>
     <unit id="settings.notifications.spot_edits_description">
       <segment>
-        <source> Know when a Spot edit you submitted is approved or rejected. </source>
+        <source>Know when a Spot edit you submitted is approved or rejected.</source>
       </segment>
     </unit>
     <unit id="settings.notifications.spot_edits_heading">
@@ -8333,6 +7928,26 @@
     <unit id="settings.notifications.system_blocked_snackbar">
       <segment>
         <source>PK Spot notifications are enabled, but your device is blocking them. You can allow them in system settings.</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.table_aria">
+      <segment>
+        <source>Notification preferences</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.table_notification">
+      <segment>
+        <source>Notification</source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.types_description">
+      <segment>
+        <source> Select the updates you want PK Spot to send. </source>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.types_heading">
+      <segment>
+        <source> Notification types </source>
       </segment>
     </unit>
     <unit id="5464118521750361406">
@@ -8390,11 +8005,6 @@
         <source>Manage your <ph id="0" equiv="PH" disp="point.name"/> settings.</source>
       </segment>
     </unit>
-    <unit id="5401396861408632139">
-      <segment>
-        <source>Immediate risk</source>
-      </segment>
-    </unit>
     <unit id="2151577293637140730">
       <segment>
         <source>Data Imports</source>
@@ -8410,19 +8020,9 @@
         <source> Built and maintained by volunteers from the Parkour community. </source>
       </segment>
     </unit>
-    <unit id="8018133170713747016">
-      <segment>
-        <source>Policy basis (optional)</source>
-      </segment>
-    </unit>
     <unit id="8018379614687762047">
       <segment>
         <source>Email changed successfully. Please verify your new email.</source>
-      </segment>
-    </unit>
-    <unit id="8027866377173897723">
-      <segment>
-        <source>Case timeline</source>
       </segment>
     </unit>
     <unit id="8036493504964207254">
@@ -8559,11 +8159,6 @@
         <source>Error changing password. Please try again.</source>
       </segment>
     </unit>
-    <unit id="7740572490638436380">
-      <segment>
-        <source>What happened, and what would you like us to do?</source>
-      </segment>
-    </unit>
     <unit id="7742018872696898961">
       <segment>
         <source>Current password is incorrect.</source>
@@ -8644,11 +8239,6 @@
         <source>Account mismatch. Please sign in to the correct account.</source>
       </segment>
     </unit>
-    <unit id="3447183067239293551">
-      <segment>
-        <source>Under review</source>
-      </segment>
-    </unit>
     <unit id="3456162150342793287">
       <segment>
         <source> We believe the map belongs to the athletes, not a corporation. PK Spot is open source, privacy-first, and community owned. </source>
@@ -8657,11 +8247,6 @@
     <unit id="1486755545881068533">
       <segment>
         <source>Re-authentication failed. Account not deleted.</source>
-      </segment>
-    </unit>
-    <unit id="1494956089085338936">
-      <segment>
-        <source>Describe what happened and what outcome you need.</source>
       </segment>
     </unit>
     <unit id="6363856180049947760">
@@ -8918,11 +8503,6 @@
     <unit id="4281314225728884844">
       <segment>
         <source>Could not load ownership claims.</source>
-      </segment>
-    </unit>
-    <unit id="4285897005151704391">
-      <segment>
-        <source>Public reasons</source>
       </segment>
     </unit>
     <unit id="4292524783489016046">
@@ -9313,11 +8893,6 @@
         <source>Event period</source>
       </segment>
     </unit>
-    <unit id="1257641982327923196">
-      <segment>
-        <source>Open safety channel</source>
-      </segment>
-    </unit>
     <unit id="1263548881803803113">
       <segment>
         <source><ph id="0" equiv="PH" disp="summary.yes_count"/> yes · <ph id="1" equiv="PH_1" disp="summary.no_count"/> no</source>
@@ -9378,11 +8953,6 @@
         <source>Triage hold</source>
       </segment>
     </unit>
-    <unit id="6493128715899624058">
-      <segment>
-        <source>Could not load this safety case.</source>
-      </segment>
-    </unit>
     <unit id="6494626849411103541">
       <segment>
         <source> Eligible attendees and update subscribers will receive this update according to their notification choices. </source>
@@ -9438,11 +9008,6 @@
         <source>Edit submitted for organization review</source>
       </segment>
     </unit>
-    <unit id="2232032287329907617">
-      <segment>
-        <source>Private intake</source>
-      </segment>
-    </unit>
     <unit id="223483240416376467">
       <segment>
         <source>Media review</source>
@@ -9491,11 +9056,6 @@
     <unit id="1975356621924283237">
       <segment>
         <source>Outdoor</source>
-      </segment>
-    </unit>
-    <unit id="1999955189900316314">
-      <segment>
-        <source>Could not submit this case. Please try again.</source>
       </segment>
     </unit>
     <unit id="3765605663062015670">
@@ -9691,19 +9251,9 @@
         <source>Description</source>
       </segment>
     </unit>
-    <unit id="1584093308232863634">
-      <segment>
-        <source>Submit securely</source>
-      </segment>
-    </unit>
     <unit id="158781460362336598">
       <segment>
         <source>You were successfully signed out!</source>
-      </segment>
-    </unit>
-    <unit id="1589136879717771714">
-      <segment>
-        <source>Automated media decision</source>
       </segment>
     </unit>
     <unit id="1593391712749316624">
@@ -10017,16 +9567,6 @@
         <source>waiting on votes</source>
       </segment>
     </unit>
-    <unit id="448652542038226670">
-      <segment>
-        <source> This case is private. Sign in with the account that submitted it or open the latest secure email link. </source>
-      </segment>
-    </unit>
-    <unit id="4493161543971750886">
-      <segment>
-        <source>Privacy or data use</source>
-      </segment>
-    </unit>
     <unit id="8486228314424763172">
       <notes>
         <note category="description">Label of the button to save changes</note>
@@ -10087,11 +9627,6 @@
         <source> Save the spot first to add images. </source>
       </segment>
     </unit>
-    <unit id="483345618561474579">
-      <segment>
-        <source>Reason for appeal</source>
-      </segment>
-    </unit>
     <unit id="spot.edit.hide_streetview">
       <notes>
         <note category="description">Toggle to hide streetview</note>
@@ -10117,11 +9652,6 @@
       </notes>
       <segment>
         <source> Description </source>
-      </segment>
-    </unit>
-    <unit id="813564942909502411">
-      <segment>
-        <source> An appeal should have a different reviewer where possible. If that is not possible, record why. </source>
       </segment>
     </unit>
     <unit id="9030193572678348373">
@@ -10173,11 +9703,6 @@
         <source>Revoked adult eligibility for <ph id="0" equiv="PH" disp="processed"/> account(s)</source>
       </segment>
     </unit>
-    <unit id="4666565275327863925">
-      <segment>
-        <source>Message to the reviewer</source>
-      </segment>
-    </unit>
     <unit id="4667715772382848347">
       <segment>
         <source>Profile not found</source>
@@ -10206,11 +9731,6 @@
     <unit id="2105357816937468069">
       <segment>
         <source>Independently checked 18+ eligibility is available.</source>
-      </segment>
-    </unit>
-    <unit id="2112768397949905814">
-      <segment>
-        <source>Enter a valid email address.</source>
       </segment>
     </unit>
     <unit id="2114926278043068343">
@@ -10267,24 +9787,9 @@
         <source>Shown amenities</source>
       </segment>
     </unit>
-    <unit id="3646106459214291688">
-      <segment>
-        <source>Person who contacted us</source>
-      </segment>
-    </unit>
-    <unit id="3651593603437372340">
-      <segment>
-        <source>Appeal this decision</source>
-      </segment>
-    </unit>
     <unit id="3665571050825458932">
       <segment>
         <source> Move and resize the crop area. Use zoom or rotation when needed. </source>
-      </segment>
-    </unit>
-    <unit id="3670979985338475203">
-      <segment>
-        <source>Case updated.</source>
       </segment>
     </unit>
     <unit id="3686284950598311784">
@@ -10350,16 +9855,6 @@
         <source>Deleted</source>
       </segment>
     </unit>
-    <unit id="6383736841956004048">
-      <segment>
-        <source>Message to participant (optional)</source>
-      </segment>
-    </unit>
-    <unit id="6392361494636232622">
-      <segment>
-        <source>PK Spot service</source>
-      </segment>
-    </unit>
     <unit id="6396144908605095471">
       <segment>
         <source> Members will be added to the organization selected above. </source>
@@ -10383,11 +9878,6 @@
     <unit id="8473658733830175441">
       <segment>
         <source> Newest changes first. Each entry shows exactly what was edited. </source>
-      </segment>
-    </unit>
-    <unit id="8480572934350558200">
-      <segment>
-        <source>Appeals</source>
       </segment>
     </unit>
     <unit id="8482930840277475324">
@@ -10430,19 +9920,9 @@
         <source> This location on Google Maps® </source>
       </segment>
     </unit>
-    <unit id="8875159446674823169">
-      <segment>
-        <source>All cases</source>
-      </segment>
-    </unit>
     <unit id="8876716314997684812">
       <segment>
         <source>Event management</source>
-      </segment>
-    </unit>
-    <unit id="8879720979364981326">
-      <segment>
-        <source>Record and apply decision</source>
       </segment>
     </unit>
     <unit id="8882370377359593676">
@@ -10548,11 +10028,6 @@
     <unit id="6223606167641949496">
       <segment>
         <source> Check-ins and organization updates show where parkour is actually happening. The map stays current because the community keeps it current. </source>
-      </segment>
-    </unit>
-    <unit id="6230817879161037769">
-      <segment>
-        <source>Awaiting information</source>
       </segment>
     </unit>
     <unit id="6234372277464900526">
@@ -11203,16 +10678,6 @@
         <source>Moved</source>
       </segment>
     </unit>
-    <unit id="6008995610936337562">
-      <segment>
-        <source>What is this about?</source>
-      </segment>
-    </unit>
-    <unit id="601278657052307519">
-      <segment>
-        <source>Spam or a malicious link</source>
-      </segment>
-    </unit>
     <unit id="6020607686749008401">
       <segment>
         <source>Add verifying organization</source>
@@ -11243,11 +10708,6 @@
         <source>Community card approved</source>
       </segment>
     </unit>
-    <unit id="8407220471361845948">
-      <segment>
-        <source>Paste the PK Spot URL if you have it.</source>
-      </segment>
-    </unit>
     <unit id="8411563267246095898">
       <segment>
         <source> Some uploads could not be processed. </source>
@@ -11271,11 +10731,6 @@
     <unit id="842636083604380757">
       <segment>
         <source>Age-assurance rollback</source>
-      </segment>
-    </unit>
-    <unit id="3270670971379803822">
-      <segment>
-        <source>Submit appeal</source>
       </segment>
     </unit>
     <unit id="3278358550418950949">
@@ -11323,11 +10778,6 @@
         <source>Local time zone missing</source>
       </segment>
     </unit>
-    <unit id="8372969166925541710">
-      <segment>
-        <source>Safety and complaints</source>
-      </segment>
-    </unit>
     <unit id="8374358620159565609">
       <segment>
         <source>Past</source>
@@ -11363,16 +10813,6 @@
         <source>Weather warnings</source>
       </segment>
     </unit>
-    <unit id="8687501273434674899">
-      <segment>
-        <source>Target path:</source>
-      </segment>
-    </unit>
-    <unit id="8691920320483720007">
-      <segment>
-        <source>Received</source>
-      </segment>
-    </unit>
     <unit id="8693603235657020323">
       <segment>
         <source>Other</source>
@@ -11386,11 +10826,6 @@
     <unit id="4965889425715950321">
       <segment>
         <source>Which spot is this spot a duplicate of?</source>
-      </segment>
-    </unit>
-    <unit id="4966788129751099816">
-      <segment>
-        <source>Aim to resolve within 7 days</source>
       </segment>
     </unit>
     <unit id="4411678463999056889">
@@ -11428,11 +10863,6 @@
         <source>Review Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot.name }}"/>&apos;</source>
       </segment>
     </unit>
-    <unit id="9078294932661622756">
-      <segment>
-        <source>Tell us what happened</source>
-      </segment>
-    </unit>
     <unit id="6435282697411612190">
       <segment>
         <source>What would you rate this spot from one to five stars?</source>
@@ -11457,11 +10887,6 @@
       </notes>
       <segment>
         <source>Update Review</source>
-      </segment>
-    </unit>
-    <unit id="7531672117696326956">
-      <segment>
-        <source> Explain what you believe was wrong or what information was missed. Appeals are linked to the original case and should be reviewed independently where possible. </source>
       </segment>
     </unit>
     <unit id="7536618650694716867">
@@ -11494,11 +10919,6 @@
         <source> Have a question, found a bug, or want to request a feature? We&apos;d love to hear from you! </source>
       </segment>
     </unit>
-    <unit id="2306159838484573008">
-      <segment>
-        <source>Triaged</source>
-      </segment>
-    </unit>
     <unit id="2312227289513761859">
       <segment>
         <source> Record the external action, reference, and follow-up </source>
@@ -11522,11 +10942,6 @@
     <unit id="3841989706323728259">
       <segment>
         <source>Not available</source>
-      </segment>
-    </unit>
-    <unit id="3845136227654022046">
-      <segment>
-        <source>Harassment or hate</source>
       </segment>
     </unit>
     <unit id="3849719587486813146">
@@ -11564,11 +10979,6 @@
         <source>Verified by</source>
       </segment>
     </unit>
-    <unit id="3888833967297756994">
-      <segment>
-        <source>Spot preview</source>
-      </segment>
-    </unit>
     <unit id="389079921595754695">
       <segment>
         <source> Imminent danger </source>
@@ -11589,11 +10999,6 @@
         <source>Loading event</source>
       </segment>
     </unit>
-    <unit id="831314703026690842">
-      <segment>
-        <source>Outcome</source>
-      </segment>
-    </unit>
     <unit id="8323953180652912227">
       <segment>
         <source>Failed to remove verified organization</source>
@@ -11607,11 +11012,6 @@
     <unit id="8326056696429051273">
       <segment>
         <source>Account privacy</source>
-      </segment>
-    </unit>
-    <unit id="8327313422967228918">
-      <segment>
-        <source>Restore the content or account state held by this decision?</source>
       </segment>
     </unit>
     <unit id="1140327701924892323">
@@ -12133,19 +11533,9 @@
         <source> You can report safety, legal, privacy, and other concerns without an account. Sign in to submit quality reports. Reporter details are only visible to administrators handling the report. </source>
       </segment>
     </unit>
-    <unit id="5995912307085156285">
-      <segment>
-        <source>Potentially illegal content</source>
-      </segment>
-    </unit>
     <unit id="5996977642855652872">
       <segment>
         <source>Please select the reason for this report:</source>
-      </segment>
-    </unit>
-    <unit id="3291027940541598405">
-      <segment>
-        <source>Update and aim to resolve within 30 days</source>
       </segment>
     </unit>
     <unit id="3292760121831436112">
@@ -12173,11 +11563,6 @@
         <source> Backed by the <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">community</pc>. </source>
       </segment>
     </unit>
-    <unit id="934990675622429392">
-      <segment>
-        <source>Safety process or legal duty</source>
-      </segment>
-    </unit>
     <unit id="7906458871395232033">
       <segment>
         <source>List</source>
@@ -12198,11 +11583,6 @@
         <source>Contact</source>
       </segment>
     </unit>
-    <unit id="7923103708576442172">
-      <segment>
-        <source>Review safety case</source>
-      </segment>
-    </unit>
     <unit id="7941428823403788384">
       <segment>
         <source> Create </source>
@@ -12211,11 +11591,6 @@
     <unit id="7945138586170930874">
       <segment>
         <source>Remove person</source>
-      </segment>
-    </unit>
-    <unit id="7963302127028522332">
-      <segment>
-        <source>Add information</source>
       </segment>
     </unit>
     <unit id="5245523669438174557">
@@ -12298,19 +11673,9 @@
         <source> Work in order. Do not preview or forward restricted-match media. </source>
       </segment>
     </unit>
-    <unit id="263768607788268714">
-      <segment>
-        <source>All open cases</source>
-      </segment>
-    </unit>
     <unit id="2638434417265535082">
       <segment>
         <source>Media stream</source>
-      </segment>
-    </unit>
-    <unit id="2648624934226238207">
-      <segment>
-        <source>Item link, path, or identifier (optional)</source>
       </segment>
     </unit>
     <unit id="2662644497259948010">
@@ -12346,11 +11711,6 @@
         <source>Mutuals</source>
       </segment>
     </unit>
-    <unit id="3493029941798879288">
-      <segment>
-        <source>Case status</source>
-      </segment>
-    </unit>
     <unit id="3493126540529865490">
       <notes>
         <note category="description">submitting label</note>
@@ -12364,11 +11724,6 @@
         <source>Program item</source>
       </segment>
     </unit>
-    <unit id="3496653775940285146">
-      <segment>
-        <source>Use 5–140 characters.</source>
-      </segment>
-    </unit>
     <unit id="8431151318560186465">
       <segment>
         <source> Enter at least 2 characters. </source>
@@ -12377,11 +11732,6 @@
     <unit id="8432483173674970463">
       <segment>
         <source>Admin drafts</source>
-      </segment>
-    </unit>
-    <unit id="8434728487464933227">
-      <segment>
-        <source>Policy basis:</source>
       </segment>
     </unit>
     <unit id="8436223332064456837">
@@ -12454,11 +11804,6 @@
         <source>Failed to queue community merge</source>
       </segment>
     </unit>
-    <unit id="6588106856001797923">
-      <segment>
-        <source>No cases match this filter.</source>
-      </segment>
-    </unit>
     <unit id="6588223759870524689">
       <segment>
         <source>Your event options</source>
@@ -12474,24 +11819,9 @@
         <source>Failed to submit vote</source>
       </segment>
     </unit>
-    <unit id="1093765261979876101">
-      <segment>
-        <source>Independence limitation (if same reviewer)</source>
-      </segment>
-    </unit>
     <unit id="1096271480010782204">
       <segment>
         <source>Founder</source>
-      </segment>
-    </unit>
-    <unit id="4302668244346549580">
-      <segment>
-        <source>Email for updates (optional when signed in)</source>
-      </segment>
-    </unit>
-    <unit id="4314270304685333896">
-      <segment>
-        <source>Update and correspond</source>
       </segment>
     </unit>
     <unit id="4320994550381609480">
@@ -12554,11 +11884,6 @@
         <source> You have not marked any spots as visited yet. </source>
       </segment>
     </unit>
-    <unit id="7880605355244228662">
-      <segment>
-        <source>Media consent</source>
-      </segment>
-    </unit>
     <unit id="7881945331295450373">
       <segment>
         <source>Supporter</source>
@@ -12599,11 +11924,6 @@
         <source>Sensitive media hidden</source>
       </segment>
     </unit>
-    <unit id="3261642323287960585">
-      <segment>
-        <source>Sexual content</source>
-      </segment>
-    </unit>
     <unit id="3268843240047650795">
       <segment>
         <source>Trailblazer</source>
@@ -12612,11 +11932,6 @@
     <unit id="3269624145102222845">
       <segment>
         <source>Loading event Spots…</source>
-      </segment>
-    </unit>
-    <unit id="7221309413136584570">
-      <segment>
-        <source>Internal note (optional)</source>
       </segment>
     </unit>
     <unit id="7222489710265178271">
@@ -12667,11 +11982,6 @@
     <unit id="2890458965362106208">
       <segment>
         <source>Report submitted. Thanks for helping keep spots accurate.</source>
-      </segment>
-    </unit>
-    <unit id="5642491821287020222">
-      <segment>
-        <source>Could not restore the held state.</source>
       </segment>
     </unit>
     <unit id="5646377711168880426">
@@ -12727,16 +12037,6 @@
     <unit id="3742657416068781599">
       <segment>
         <source>Editor</source>
-      </segment>
-    </unit>
-    <unit id="3744069822390240057">
-      <segment>
-        <source> Use this private channel to report a safety concern, complain about PK Spot, or challenge how a previous report was handled. You do not need an account. </source>
-      </segment>
-    </unit>
-    <unit id="3747597665217141319">
-      <segment>
-        <source>Another safety concern</source>
       </segment>
     </unit>
     <unit id="3750896546807006672">
@@ -13043,11 +12343,6 @@
         <source>Sketchy</source>
       </segment>
     </unit>
-    <unit id="6520949937421368958">
-      <segment>
-        <source>App Check:</source>
-      </segment>
-    </unit>
     <unit id="6529676412063915412">
       <segment>
         <source> Follow requests </source>
@@ -13108,11 +12403,6 @@
         <source>Core</source>
       </segment>
     </unit>
-    <unit id="3989796638927342332">
-      <segment>
-        <source>Make a complaint</source>
-      </segment>
-    </unit>
     <unit id="3991755043359697718">
       <segment>
         <source>Remove selected file</source>
@@ -13126,16 +12416,6 @@
     <unit id="2068477271536019502">
       <segment>
         <source>Choose organization</source>
-      </segment>
-    </unit>
-    <unit id="2075947254275135132">
-      <segment>
-        <source>Problem making a report</source>
-      </segment>
-    </unit>
-    <unit id="2077570493331103831">
-      <segment>
-        <source>Triaged as soon as possible</source>
       </segment>
     </unit>
     <unit id="2081295007072116210">
@@ -13230,11 +12510,6 @@
     <unit id="2390593998089868543">
       <segment>
         <source>Restore event</source>
-      </segment>
-    </unit>
-    <unit id="3908211343911450350">
-      <segment>
-        <source> Contact local emergency services first. Then send us the report so we can preserve evidence and restrict access where appropriate. </source>
       </segment>
     </unit>
     <unit id="3909136360386442402">

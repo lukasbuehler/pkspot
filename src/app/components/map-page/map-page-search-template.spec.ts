@@ -163,6 +163,20 @@ describe("MapPageComponent search template", () => {
     expect(mapTemplate).not.toContain("<app-map-weather-chip");
   });
 
+  it("keeps Add Spot available without exposing imports or session planning", () => {
+    const mapTemplate = activeTemplate();
+    const floatingControls = mapTemplate.match(
+      /<app-map-floating-controls[\s\S]*?<\/app-map-floating-controls>/,
+    )?.[0];
+
+    expect(floatingControls).toContain('[showCreateSpot]="');
+    expect(floatingControls).toContain('(createSpot)="onCreateSpot()"');
+    expect(floatingControls).not.toContain("showImportSpots");
+    expect(floatingControls).not.toContain("importSpots");
+    expect(floatingControls).not.toContain("showPlanSession");
+    expect(floatingControls).not.toContain("planSession");
+  });
+
   it("collapses area-header spacing inside the mobile bottom sheet", () => {
     const objectPanelStyles = readFileSync(objectPanelStylesPath, "utf8");
 

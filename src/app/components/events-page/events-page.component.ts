@@ -184,24 +184,16 @@ export class EventsPageComponent {
         .map((event) => event.id),
     ).size;
   });
-  readonly createMenuLabel = $localize`:@@events.create_menu_tooltip:Create an event or session`;
+  readonly createMenuLabel = $localize`:@@events.create_menu_tooltip:Create event`;
   readonly createActions = computed<EventFabMenuAction[]>(() => {
-    const actions: EventFabMenuAction[] = [];
-    if (this.isAdmin()) {
-      actions.push({
+    if (!this.isAdmin()) return [];
+    return [
+      {
         id: "event",
         icon: "calendar_add_on",
         label: $localize`:@@events.create:Create event`,
-      });
-    }
-    if (this.isSignedIn()) {
-      actions.push({
-        id: "session",
-        icon: "event_upcoming",
-        label: $localize`:@@events.plan_session:Plan session`,
-      });
-    }
-    return actions;
+      },
+    ];
   });
 
   readonly containerWidth = signal(0);
@@ -594,14 +586,11 @@ export class EventsPageComponent {
   }
 
   onCreateAction(action: string): void {
-    if (action !== "event" && action !== "session") return;
-    this._analytics.trackEvent(
-      action === "event" ? "event_create_clicked" : "session_plan_clicked",
-      { surface: "events_page" },
-    );
-    void this._router.navigate([
-      action === "event" ? "/events/new" : "/events/session/new",
-    ]);
+    if (action !== "event") return;
+    this._analytics.trackEvent("event_create_clicked", {
+      surface: "events_page",
+    });
+    void this._router.navigate(["/events/new"]);
   }
 
   private _readQueryParams(params: ParamMap): void {

@@ -1568,8 +1568,7 @@ service cloud.firestore {
     match /events/{eventId} {
       allow get: if eventCanRead(eventId, resource.data);
       allow list: if isAdmin() || legacyEventListCompatibilityEnabled();
-      allow create: if request.auth.uid != null
-        && agePolicyAllowsPublicParticipation()
+      allow create: if isAdmin()
         && request.resource.data.keys().hasAll(['owner', 'created_by'])
         && validEventOwner(request.resource.data.owner)
         && validEventCreator(request.resource.data.created_by)
@@ -1579,22 +1578,7 @@ service cloud.firestore {
           !legacyEventListCompatibilityEnabled()
           || eventIsLegacyListCompatible(request.resource.data)
         )
-        && !request.resource.data.keys().hasAny(eventComputedFields())
-        && (
-          isAdmin()
-          || (
-            eventOwnerMayBeAssignedByViewer(request.resource.data.owner)
-            && eventPolicyOrganizationsManagedByViewer(request.resource.data)
-            && request.resource.data.get('priority', 'normal') == 'normal'
-            && !request.resource.data.keys().hasAny([
-              'is_promoted',
-              'is_sponsored',
-              'promo_starts_at',
-              'promo_region',
-              'promo_radius_m'
-            ])
-          )
-        );
+        && !request.resource.data.keys().hasAny(eventComputedFields());
       // Missing owner is the legacy/admin-managed state.
       allow update: if validEventAuditTimestamps(request.resource.data)
         && validEventAccessDimensions(request.resource.data)

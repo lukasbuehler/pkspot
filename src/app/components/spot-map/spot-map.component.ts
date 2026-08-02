@@ -95,6 +95,7 @@ import {
 import { SpotAccess, SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 import { AnalyticsService } from "../../services/analytics.service";
 import { NotificationOptInService } from "../../services/notification-opt-in.service";
+import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
 
 interface CommunityAreaOverlay {
   center: { lat: number; lng: number };
@@ -490,6 +491,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     private cd: ChangeDetectorRef,
     private analyticsService: AnalyticsService,
     private notificationOptIn: NotificationOptInService,
+    private spotEditsService: SpotEditsService,
   ) {
     // Track the previous spot to detect actual changes
     let previousSpotKey: string | null = null;
@@ -1353,7 +1355,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
     this._spotMapDataManager
       .saveSpot(spot, this.uneditedSpot)
-      .then(async (spotId) => {
+      .then(async ({ spotId, editId }) => {
         // Successfully updated - completely stop editing to destroy polygon
         this.isEditing.set(false);
 
@@ -1365,7 +1367,16 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
           ? $localize`Edit submitted for organization review`
           : $localize`Spot saved successfully`;
         this.snackBar.open(saveMessage, $localize`Dismiss`, { duration: 5000 });
-        void this.notificationOptIn.maybePrompt("spot_edit_updates");
+        if (editId) {
+          void this.spotEditsService
+            .waitForReviewOutcomeDisposition(spotId, editId)
+            .then((awaitingReview) => {
+              if (awaitingReview && !this._isDestroyed) {
+                return this.notificationOptIn.maybePrompt("spot_edit_updates");
+              }
+              return null;
+            });
+        }
 
         if ("id" in spot && spot.id) {
           // If it's an existing spot, update the local cache immediately to avoid stale data from potential race conditions

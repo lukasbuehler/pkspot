@@ -8,8 +8,10 @@ import { MediaUploadStatusService } from "./media-upload-status.service";
 
 describe("MediaUploadStatusService", () => {
   let service: MediaUploadStatusService;
+  let documentSnapshots: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    documentSnapshots = vi.fn();
     TestBed.configureTestingModule({
       providers: [
         MediaUploadStatusService,
@@ -24,6 +26,7 @@ describe("MediaUploadStatusService", () => {
           provide: FirestoreAdapterService,
           useValue: {
             collectionSnapshots: () => of([]),
+            documentSnapshots,
           },
         },
       ],
@@ -49,5 +52,54 @@ describe("MediaUploadStatusService", () => {
         "https://storage.example/spot_pictures%2Fpublished.jpg?alt=media",
       ]),
     ).toEqual([]);
+  });
+
+  it("waits for the server to publish an upload before returning its URL", async () => {
+    documentSnapshots.mockReturnValue(
+      of(
+        null,
+        {
+          id: "upload-1",
+          uid: "user-1",
+          upload_id: "upload-1",
+          status: "processing",
+          created_at: {},
+          updated_at: {},
+        },
+        {
+          id: "upload-1",
+          uid: "user-1",
+          upload_id: "upload-1",
+          status: "published",
+          public_url: "https://storage.example/organization_media/logo.png",
+          created_at: {},
+          updated_at: {},
+        },
+      ),
+    );
+
+    await expect(service.waitForPublishedUpload("upload-1")).resolves.toBe(
+      "https://storage.example/organization_media/logo.png",
+    );
+    expect(documentSnapshots).toHaveBeenCalledWith(
+      "media_upload_status/upload-1",
+    );
+  });
+
+  it("rejects an upload that server-side processing marks as failed", async () => {
+    documentSnapshots.mockReturnValue(
+      of({
+        id: "upload-1",
+        uid: "user-1",
+        upload_id: "upload-1",
+        status: "failed",
+        created_at: {},
+        updated_at: {},
+      }),
+    );
+
+    await expect(service.waitForPublishedUpload("upload-1")).rejects.toThrow(
+      "Media processing failed.",
+    );
   });
 });

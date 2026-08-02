@@ -443,11 +443,9 @@ export const routes: Routes = [
   },
   {
     path: "events/session/new",
-    loadComponent: () =>
-      import("./components/session-planner-page/session-planner-page.component").then(
-        (m) => m.SessionPlannerPageComponent,
-      ),
-    data: { routeName: "Plan Session" },
+    redirectTo: () => "/events",
+    pathMatch: "full",
+    data: { routeName: "Events", discoverable: false },
   },
   {
     path: "event/swissjam25",

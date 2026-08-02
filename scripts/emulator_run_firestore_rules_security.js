@@ -1657,7 +1657,7 @@ async function testEventWriteGuards(owner, other, orgManager, adminUser) {
     })
   );
 
-  await assertAllowed("user creates a globally public event they own", () =>
+  await assertDenied("regular user cannot create a canonical event", () =>
     setDoc(doc(owner.db, "events/owner-event"), {
       name: "Owner Event",
       owner: { type: "user", user_id: "owner" },
@@ -1667,6 +1667,14 @@ async function testEventWriteGuards(owner, other, orgManager, adminUser) {
       priority: "normal",
     })
   );
+  await adminDb.doc("events/owner-event").set({
+    name: "Owner Event",
+    owner: { type: "user", user_id: "owner" },
+    created_by: { uid: "owner", username: "Owner" },
+    visibility: "public",
+    discoverability: { audience: "global" },
+    priority: "normal",
+  });
   await assertAllowed("owner edits their event", () =>
     updateDoc(doc(owner.db, "events/owner-event"), {
       venue_string: "Owner-updated venue",
@@ -1682,11 +1690,11 @@ async function testEventWriteGuards(owner, other, orgManager, adminUser) {
       time_updated: Timestamp.now(),
     })
   );
-  await assertDenied("owner cannot create an event with map audit timestamps", () =>
-    setDoc(doc(owner.db, "events/owner-event-map-timestamp"), {
-      name: "Owner Event With Map Timestamp",
-      owner: { type: "user", user_id: "owner" },
-      created_by: { uid: "owner" },
+  await assertDenied("admin cannot create an event with map audit timestamps", () =>
+    setDoc(doc(adminUser.db, "events/admin-event-map-timestamp"), {
+      name: "Admin Event With Map Timestamp",
+      owner: { type: "user", user_id: "admin" },
+      created_by: { uid: "admin" },
       visibility: "public",
       discoverability: { audience: "global" },
       time_updated: { seconds: 1_785_000_000, nanoseconds: 0 },
@@ -1749,11 +1757,20 @@ async function testEventWriteGuards(owner, other, orgManager, adminUser) {
       time_updated: Timestamp.now(),
     })
   );
-  await assertAllowed("organization manager creates organization event", () =>
+  await assertDenied("organization manager cannot create organization event", () =>
     setDoc(doc(orgManager.db, "events/org-event"), {
       name: "Organization Event",
       owner: { type: "organization", organization_id: "pk-spot" },
       created_by: { uid: "org-manager" },
+      visibility: "public",
+      discoverability: { audience: "global" },
+    })
+  );
+  await assertAllowed("admin creates an organization-owned event", () =>
+    setDoc(doc(adminUser.db, "events/org-event"), {
+      name: "Organization Event",
+      owner: { type: "organization", organization_id: "pk-spot" },
+      created_by: { uid: "admin" },
       visibility: "public",
       discoverability: { audience: "global" },
     })

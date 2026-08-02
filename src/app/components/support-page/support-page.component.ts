@@ -93,7 +93,7 @@ export class SupportPageComponent implements OnInit {
         {
           question: "Why can't I see any spots in my area?",
           answer:
-            "PK Spot relies on community contributions. If there are no spots in your area yet, be the first to add them! You can also import spots from a KML file if you have one.",
+            "PK Spot relies on community contributions. If there are no spots in your area yet, be the first to add one!",
         },
       ],
     },

@@ -161,6 +161,15 @@ describe("app routes", () => {
     expect(embeddedMapIndex).toBeLessThan(embeddedInfoIndex);
   });
 
+  it("should keep session planning disabled for this release", () => {
+    const sessionPlanner = findRoute("events/session/new");
+
+    expect(sessionPlanner.loadComponent).toBeUndefined();
+    expect(sessionPlanner.pathMatch).toBe("full");
+    expect(sessionPlanner.data?.["discoverable"]).toBe(false);
+    expect(getRedirectTarget(sessionPlanner)).toBe("/events");
+  });
+
   it("should redirect legacy embedded event URLs to the embedded event map", () => {
     const legacy = routes.find((route) => route.path === "embedded/event/:eventID");
     expect(legacy).toBeDefined();

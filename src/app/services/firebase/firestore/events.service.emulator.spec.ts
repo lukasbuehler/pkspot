@@ -20,6 +20,7 @@ import {
   getFirestore,
   initializeFirestore,
   memoryLocalCache,
+  setDoc,
 } from "firebase/firestore";
 import * as admin from "firebase-admin";
 import { BehaviorSubject, Observable } from "rxjs";
@@ -231,6 +232,7 @@ runWithEmulator("EventsService emulator integration", () => {
   };
 
   beforeEach(async () => {
+    authService.user.data.isAdmin = false;
     const projectId = process.env["GCLOUD_PROJECT"] || "demo-pkspot";
     const appName = `events-service-emulator-${Date.now()}-${Math.random()}`;
     const [firestoreEmulatorHost, firestorePort] = parseHostPort(firestoreHost!);
@@ -315,6 +317,36 @@ runWithEmulator("EventsService emulator integration", () => {
       );
     }
     TestBed.resetTestingModule();
+  });
+
+  it("allows only administrators to create canonical events", async () => {
+    const uid = authService.user.uid;
+    expect(uid).toBeTruthy();
+    const eventId = `create-policy-${uid}`;
+    const eventData = {
+      name: "Create policy event",
+      owner: { type: "user", user_id: uid },
+      created_by: { uid },
+      published: true,
+      time_created: Timestamp.now(),
+      time_updated: Timestamp.now(),
+    };
+
+    await expect(
+      TestBed.runInInjectionContext(() =>
+        setDoc(doc(firestore, `events/${eventId}`), eventData),
+      ),
+    ).rejects.toMatchObject({ code: "permission-denied" });
+
+    await adminDb().doc(`users/${uid}`).set({ is_admin: true });
+    authService.user.data.isAdmin = true;
+
+    await expect(
+      TestBed.runInInjectionContext(() =>
+        setDoc(doc(firestore, `events/${eventId}`), eventData),
+      ),
+    ).resolves.toBeUndefined();
+    expect((await adminDb().doc(`events/${eventId}`).get()).exists).toBe(true);
   });
 
   it("writes, updates, and aggregates my RSVP through the real web Firestore adapter", async () => {

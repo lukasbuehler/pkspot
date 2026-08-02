@@ -148,7 +148,9 @@ describe("SpotMapDataManager filters", () => {
     );
     const spot = makeSpot("spot-1", SpotTypes.Park);
 
-    await manager.saveSpot(spot);
+    const result = await manager.saveSpot(spot);
+
+    expect(result).toEqual({ spotId: "spot-1", editId: "edit-id" });
 
     expect(spotEditsService.createSpotUpdateEdit).toHaveBeenCalledWith(
       "spot-1",
@@ -186,9 +188,9 @@ describe("SpotMapDataManager filters", () => {
     );
     const spot = makeSpot("spot-1", SpotTypes.Park);
 
-    const spotId = await manager.saveSpot(spot, spot);
+    const result = await manager.saveSpot(spot, spot);
 
-    expect(spotId).toBe("spot-1");
+    expect(result).toEqual({ spotId: "spot-1", editId: null });
     expect(spotEditsService.createSpotUpdateEdit).not.toHaveBeenCalled();
   });
 

@@ -113,6 +113,10 @@
             <img
               class="logo-preview"
               [src]="newOrgLogoPreview() || newOrgLogoUrl()"
+              [style.background]="
+                newOrgLogoBackgroundColor().trim() ||
+                'var(--mat-sys-inverse-surface)'
+              "
               alt="New organization logo preview"
               i18n-alt
             />
@@ -185,6 +189,10 @@
               <img
                 class="logo-preview"
                 [src]="editOrgLogoPreview()"
+                [style.background]="
+                  editOrgLogoBackgroundColor().trim() ||
+                  'var(--mat-sys-inverse-surface)'
+                "
                 alt="Organization logo preview"
                 i18n-alt
               />

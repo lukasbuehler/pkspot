@@ -1,5 +1,5 @@
 import { Injectable, OnDestroy, inject, signal } from "@angular/core";
-import { Subscription } from "rxjs";
+import { firstValueFrom, filter, map, Subscription, take, timeout } from "rxjs";
 import { MediaType } from "../../../../db/models/Interfaces";
 import type {
   MediaUploadStatusSchema,
@@ -45,6 +45,35 @@ export class MediaUploadStatusService implements OnDestroy {
       ...uploads.filter((item) => item.uploadId !== upload.uploadId),
       { ...upload, status: "processing" },
     ]);
+  }
+
+  async waitForPublishedUpload(
+    uploadId: string,
+    timeoutMs = 120_000,
+  ): Promise<string> {
+    return firstValueFrom(
+      this.firestoreAdapter
+        .documentSnapshots<MediaUploadStatusDocument>(
+          `media_upload_status/${uploadId}`,
+        )
+        .pipe(
+          filter(
+            (status): status is MediaUploadStatusDocument =>
+              status?.status === "published" || status?.status === "failed",
+          ),
+          take(1),
+          timeout({ first: timeoutMs }),
+          map((status) => {
+            if (status.status === "failed") {
+              throw new Error("Media processing failed.");
+            }
+            if (!status.public_url) {
+              throw new Error("Published media is missing its public URL.");
+            }
+            return status.public_url;
+          }),
+        ),
+    );
   }
 
   watchTarget(targetKind: MediaUploadTargetKind, targetId?: string): void {

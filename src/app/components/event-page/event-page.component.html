@@ -73,10 +73,8 @@
           <app-event-live-update-organizer-menu
             [event]="event"
             [canEdit]="canEditEvent()"
-            [canRequestOwnership]="isSignedIn()"
             (editRequested)="startEditingEvent()"
             (qrRequested)="openQrDialog()"
-            (ownershipClaimRequested)="openOwnershipClaimDialog()"
             (operationApplied)="reloadEventAfterOperation()"
           ></app-event-live-update-organizer-menu>
         </div>

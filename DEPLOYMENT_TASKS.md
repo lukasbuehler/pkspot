@@ -302,6 +302,18 @@ Keep these steps in order. The production `events_v1` schema is aligned with the
 repository schema, including optional location bounds and the new searchable
 presentation/type fields.
 
+- [ ] Before releasing 1.1.4, deploy the event-creation restriction:
+
+  ```sh
+  npx firebase deploy --project prod --only firestore:rules
+  ```
+
+  Success condition: a non-admin client write to `/events/{eventId}` is denied,
+  an administrator can still create a public event, and released clients can
+  still list and open `/events` and write their existing RSVP, registration, and
+  notification subcollections. This tightening is compatible with released
+  clients because event/session creation has not been exposed in those builds.
+
 - [ ] Keep `legacyEventListCompatibilityEnabled()` enabled while supported
       released clients still list the canonical `/events` collection. During
       this window, create only globally discoverable public events, including
@@ -319,12 +331,12 @@ presentation/type fields.
       currently has no locationless date-only fixture; existing timed events and
       their rebuilt `event_discovery` projections are already verified.
 
-- [ ] Verify production ownership claims with test accounts: organization
+- [ ] Before re-enabling ownership-claim requests in a later client, verify them
+      in production with test accounts: organization
       manager submission, current-owner support/contest response,
       administrator rejection, transactional approval, former-owner editor and
-      removal outcomes, immutable audit record, and notifications. Then release
-      the frontend through the normal `main` workflow. Do not operate App
-      Hosting directly.
+      removal outcomes, immutable audit record, and notifications. Keep the
+      request entry point hidden until this succeeds.
 
 ### Organization image cropping and media processing
 
@@ -335,9 +347,11 @@ unsupported storage destination.
 - [ ] From the organization admin UI, upload and approve a cropped organization
       logo. Verify the stable organization-ID filename produces 200, 400, and
       800 pixel derivatives under `organization_media`, and that `logo_url`
-      contains the 800-pixel derivative URL. Also verify a non-administrator and
-      SVG upload are denied, and direct client publication to
-      `organization_media` remains denied.
+      contains the 800-pixel derivative URL only after `media_upload_status`
+      reports the upload as published. Open the editor from the organization
+      page and verify its organization query parameter preselects the correct
+      record. Also verify a non-administrator and SVG upload are denied, and
+      direct client publication to `organization_media` remains denied.
 - [ ] Only after the production verification above, release the client through
       the normal `main` workflow. Do not manually operate an App Hosting rollout.
 

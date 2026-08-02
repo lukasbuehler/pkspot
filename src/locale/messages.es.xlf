@@ -60,12 +60,6 @@
         <target>Subir</target>
       </segment>
     </unit>
-    <unit id="6938699337852023436">
-      <segment state="initial">
-        <source>Response targets</source>
-        <target>Plazos de respuesta</target>
-      </segment>
-    </unit>
     <unit id="about.crew.contact_button">
       <segment state="initial">
         <source>Join us</source>
@@ -114,12 +108,6 @@
       <segment state="initial">
         <source> Description </source>
         <target> Descripción </target>
-      </segment>
-    </unit>
-    <unit id="813564942909502411">
-      <segment state="initial">
-        <source> An appeal should have a different reviewer where possible. If that is not possible, record why. </source>
-        <target>Siempre que sea posible, una persona distinta debe revisar la apelación. Si no es posible, registra el motivo.</target>
       </segment>
     </unit>
     <unit id="9030193572678348373">
@@ -308,18 +296,6 @@
         <target>Eliminado</target>
       </segment>
     </unit>
-    <unit id="6383736841956004048">
-      <segment state="initial">
-        <source>Message to participant (optional)</source>
-        <target>Mensaje para la persona participante (opcional)</target>
-      </segment>
-    </unit>
-    <unit id="6392361494636232622">
-      <segment state="initial">
-        <source>PK Spot service</source>
-        <target>Servicio PK Spot</target>
-      </segment>
-    </unit>
     <unit id="6396144908605095471">
       <segment state="initial">
         <source> Members will be added to the organization selected above. </source>
@@ -388,18 +364,6 @@
       <segment state="initial">
         <source>Failed to release media</source>
         <target>No se pudo publicar el contenido</target>
-      </segment>
-    </unit>
-    <unit id="4918842380121150578">
-      <segment state="initial">
-        <source>Could not record this decision.</source>
-        <target>No se pudo registrar esta decisión.</target>
-      </segment>
-    </unit>
-    <unit id="4919637716121608426">
-      <segment state="initial">
-        <source>Email delivery</source>
-        <target>Entrega de correo</target>
       </segment>
     </unit>
     <unit id="4927421686251357457">
@@ -528,18 +492,6 @@
         <target>waiting on votes</target>
       </segment>
     </unit>
-    <unit id="448652542038226670">
-      <segment state="initial">
-        <source> This case is private. Sign in with the account that submitted it or open the latest secure email link. </source>
-        <target>Este caso es privado. Inicia sesión con la cuenta que lo envió o abre el enlace seguro más reciente del correo.</target>
-      </segment>
-    </unit>
-    <unit id="4493161543971750886">
-      <segment state="initial">
-        <source>Privacy or data use</source>
-        <target>Privacidad o uso de datos</target>
-      </segment>
-    </unit>
     <unit id="8461609631969932886">
       <segment state="initial">
         <source>Hide</source>
@@ -556,12 +508,6 @@
       <segment state="initial">
         <source> Newest changes first. Each entry shows exactly what was edited. </source>
         <target> Cambios más recientes primero. Cada entrada muestra exactamente lo que se editó. </target>
-      </segment>
-    </unit>
-    <unit id="8480572934350558200">
-      <segment state="initial">
-        <source>Appeals</source>
-        <target>Apelaciones</target>
       </segment>
     </unit>
     <unit id="8482930840277475324">
@@ -700,22 +646,10 @@
         <target> Edita los detalles que otras personas pueden ver. Los ajustes de acceso al perfil y de búsqueda determinan quién puede verlos. </target>
       </segment>
     </unit>
-    <unit id="6814295386768519176">
-      <segment state="initial">
-        <source>Timeline</source>
-        <target>Cronología</target>
-      </segment>
-    </unit>
     <unit id="6815507474406960450">
       <segment state="initial">
         <source>E-Mail address</source>
         <target>Dirección de correo electrónico</target>
-      </segment>
-    </unit>
-    <unit id="6824976364666397501">
-      <segment state="initial">
-        <source>Report a safety concern</source>
-        <target>Informar de un problema de seguridad</target>
       </segment>
     </unit>
     <unit id="5506176846620350292">
@@ -838,12 +772,6 @@
         <target> Comprueba tu conexión e inténtalo de nuevo. </target>
       </segment>
     </unit>
-    <unit id="1407086352203948664">
-      <segment state="initial">
-        <source>Loading cases...</source>
-        <target>Cargando casos...</target>
-      </segment>
-    </unit>
     <unit id="1426358485872019526">
       <segment state="initial">
         <source>Uploaded image</source>
@@ -878,12 +806,6 @@
         <target>No se pudieron guardar los cambios de la organización.</target>
       </segment>
     </unit>
-    <unit id="3291027940541598405">
-      <segment state="initial">
-        <source>Update and aim to resolve within 30 days</source>
-        <target>Actualizar y tratar de resolver en 30 días</target>
-      </segment>
-    </unit>
     <unit id="3292760121831436112">
       <segment state="final">
         <source>Add a short title of up to 80 characters.</source>
@@ -900,12 +822,6 @@
       <segment state="initial">
         <source>Re-authentication failed. Account not deleted.</source>
         <target>Falló la reautenticación. Cuenta no eliminada.</target>
-      </segment>
-    </unit>
-    <unit id="1494956089085338936">
-      <segment state="initial">
-        <source>Describe what happened and what outcome you need.</source>
-        <target>Describe qué ocurrió y qué resultado necesitas.</target>
       </segment>
     </unit>
     <unit id="6309828574111583895">
@@ -998,22 +914,10 @@
         <target>Training log</target>
       </segment>
     </unit>
-    <unit id="2597686257276262345">
-      <segment state="initial">
-        <source>Could not load safety cases.</source>
-        <target>No se pudieron cargar los casos de seguridad.</target>
-      </segment>
-    </unit>
     <unit id="2599075381042572471">
       <segment state="initial">
         <source>No organization approvals waiting.</source>
         <target>No organization approvals waiting.</target>
-      </segment>
-    </unit>
-    <unit id="5861458032557974848">
-      <segment state="initial">
-        <source>Save update and assign to me</source>
-        <target>Guardar actualización y asignármelo</target>
       </segment>
     </unit>
     <unit id="5863879151969666492">
@@ -1124,30 +1028,6 @@
         <target>Eventos</target>
       </segment>
     </unit>
-    <unit id="session_planner.back">
-      <segment state="initial">
-        <source>Back to events</source>
-        <target>Volver a eventos</target>
-      </segment>
-    </unit>
-    <unit id="session_planner.created">
-      <segment state="initial">
-        <source>Session created.</source>
-        <target>Sesión creada.</target>
-      </segment>
-    </unit>
-    <unit id="session_planner.created_with_access_warning">
-      <segment state="initial">
-        <source>Session created, but access could not be granted to: <ph id="0" equiv="PH" disp="failedCollaborators.join(&quot;, &quot;)"/>. Open event management to retry each person.</source>
-        <target>Session created, but access could not be granted to: <ph id="0" equiv="PH" disp="failedCollaborators.join(&quot;, &quot;)"/>. Open event management to retry each person.</target>
-      </segment>
-    </unit>
-    <unit id="session_planner.failed">
-      <segment state="initial">
-        <source>Couldn&apos;t create the session. Please try again.</source>
-        <target>No se pudo crear la sesión. Inténtalo de nuevo.</target>
-      </segment>
-    </unit>
     <unit id="session_planner.form.add_co_host">
       <segment state="initial">
         <source> Add co-host </source>
@@ -1248,48 +1128,6 @@
       <segment state="initial">
         <source> Enable a waitlist </source>
         <target> Activar lista de espera </target>
-      </segment>
-    </unit>
-    <unit id="session_planner.loading">
-      <segment state="initial">
-        <source> Loading session planner… </source>
-        <target> Cargando el planificador de sesiones… </target>
-      </segment>
-    </unit>
-    <unit id="session_planner.meta.description">
-      <segment state="initial">
-        <source>Plan a local parkour training session and invite the community.</source>
-        <target>Planifica una sesión local de parkour e invita a la comunidad.</target>
-      </segment>
-    </unit>
-    <unit id="session_planner.meta.title">
-      <segment state="initial">
-        <source>Plan a session</source>
-        <target>Planificar una sesión</target>
-      </segment>
-    </unit>
-    <unit id="session_planner.restricted_title">
-      <segment state="initial">
-        <source> Session planning is unavailable </source>
-        <target> La planificación de sesiones no está disponible </target>
-      </segment>
-    </unit>
-    <unit id="session_planner.sign_in_action">
-      <segment state="initial">
-        <source>Sign in</source>
-        <target>Iniciar sesión</target>
-      </segment>
-    </unit>
-    <unit id="session_planner.sign_in_body">
-      <segment state="initial">
-        <source> Sessions have a real owner so you can update the details and manage attendance later. </source>
-        <target> Las sesiones tienen un propietario identificado para que puedas actualizar los detalles y gestionar la asistencia más adelante. </target>
-      </segment>
-    </unit>
-    <unit id="session_planner.sign_in_title">
-      <segment state="initial">
-        <source> Sign in to plan a session </source>
-        <target> Inicia sesión para planificar una sesión </target>
       </segment>
     </unit>
     <unit id="settings.about.description">
@@ -2161,12 +1999,6 @@
         <target> Spots verificados por ti </target>
       </segment>
     </unit>
-    <unit id="3514079164376470263">
-      <segment state="initial">
-        <source>Dangerous activity</source>
-        <target>Actividad peligrosa</target>
-      </segment>
-    </unit>
     <unit id="3517550046701184661">
       <segment state="initial">
         <source>Show less</source>
@@ -2499,12 +2331,6 @@
         <target>Could not load ownership claims.</target>
       </segment>
     </unit>
-    <unit id="4285897005151704391">
-      <segment state="initial">
-        <source>Public reasons</source>
-        <target>Motivos públicos</target>
-      </segment>
-    </unit>
     <unit id="4292524783489016046">
       <segment state="initial">
         <source> Create organizations, update their public identity, and manage who can review organization-routed spot edits. </source>
@@ -2583,12 +2409,6 @@
         <target> Pídenos que revisemos esta restricción </target>
       </segment>
     </unit>
-    <unit id="7740572490638436380">
-      <segment state="initial">
-        <source>What happened, and what would you like us to do?</source>
-        <target>¿Qué ocurrió y qué quieres que hagamos?</target>
-      </segment>
-    </unit>
     <unit id="7742018872696898961">
       <segment state="initial">
         <source>Current password is incorrect.</source>
@@ -2641,12 +2461,6 @@
       <segment state="initial">
         <source>Create a new account</source>
         <target>Crear una cuenta nueva</target>
-      </segment>
-    </unit>
-    <unit id="6970739369177090165">
-      <segment state="initial">
-        <source>Complex-case target:</source>
-        <target>Plazo para casos complejos:</target>
       </segment>
     </unit>
     <unit id="6972105223770675605">
@@ -2787,12 +2601,6 @@
         <target>Verificado por</target>
       </segment>
     </unit>
-    <unit id="6631334172623029500">
-      <segment state="initial">
-        <source>Email:</source>
-        <target>Correo electrónico:</target>
-      </segment>
-    </unit>
     <unit id="6631641409682927358">
       <segment state="initial">
         <source>Open current NCA guidance</source>
@@ -2841,12 +2649,6 @@
         <target> Public map activity from this profile. </target>
       </segment>
     </unit>
-    <unit id="2089887885715473070">
-      <segment state="initial">
-        <source>Held state restored.</source>
-        <target>Se ha restaurado el estado retenido.</target>
-      </segment>
-    </unit>
     <unit id="1035459065824093652">
       <segment state="initial">
         <source>Open edit</source>
@@ -2871,12 +2673,6 @@
         <target>No se pudo enviar el voto</target>
       </segment>
     </unit>
-    <unit id="1093765261979876101">
-      <segment state="initial">
-        <source>Independence limitation (if same reviewer)</source>
-        <target>Limitación de independencia (si revisa la misma persona)</target>
-      </segment>
-    </unit>
     <unit id="1096271480010782204">
       <segment state="initial">
         <source>Founder</source>
@@ -2899,12 +2695,6 @@
       <segment state="initial">
         <source>Event period</source>
         <target>Periodo de eventos</target>
-      </segment>
-    </unit>
-    <unit id="1257641982327923196">
-      <segment state="initial">
-        <source>Open safety channel</source>
-        <target>Abrir canal de seguridad</target>
       </segment>
     </unit>
     <unit id="1263548881803803113">
@@ -2985,12 +2775,6 @@
         <target>Retención de triaje</target>
       </segment>
     </unit>
-    <unit id="6493128715899624058">
-      <segment state="initial">
-        <source>Could not load this safety case.</source>
-        <target>No se pudo cargar este caso de seguridad.</target>
-      </segment>
-    </unit>
     <unit id="6494626849411103541">
       <segment state="initial">
         <source> Eligible attendees and update subscribers will receive this update according to their notification choices. </source>
@@ -3001,18 +2785,6 @@
       <segment state="initial">
         <source>Follow request declined</source>
         <target>Follow request declined</target>
-      </segment>
-    </unit>
-    <unit id="190885448896868977">
-      <segment state="initial">
-        <source>Is someone in immediate danger?</source>
-        <target>¿Hay alguien en peligro inmediato?</target>
-      </segment>
-    </unit>
-    <unit id="1922856447604899399">
-      <segment state="initial">
-        <source>What do you need to do?</source>
-        <target>¿Qué necesitas hacer?</target>
       </segment>
     </unit>
     <unit id="1927584134608367160">
@@ -3049,12 +2821,6 @@
       <segment state="initial">
         <source>Outdoor</source>
         <target>Aire libre</target>
-      </segment>
-    </unit>
-    <unit id="1999955189900316314">
-      <segment state="initial">
-        <source>Could not submit this case. Please try again.</source>
-        <target>No se pudo enviar este caso. Inténtalo de nuevo.</target>
       </segment>
     </unit>
     <unit id="3601523967492159201">
@@ -3105,28 +2871,10 @@
         <target>Servicios mostrados</target>
       </segment>
     </unit>
-    <unit id="3646106459214291688">
-      <segment state="translated">
-        <source>Person who contacted us</source>
-        <target>Persona que nos contactó</target>
-      </segment>
-    </unit>
-    <unit id="3651593603437372340">
-      <segment state="initial">
-        <source>Appeal this decision</source>
-        <target>Apelar esta decisión</target>
-      </segment>
-    </unit>
     <unit id="3665571050825458932">
       <segment state="initial">
         <source> Move and resize the crop area. Use zoom or rotation when needed. </source>
         <target> Mueve y cambia el tamaño del área de recorte. Usa la ampliación o la rotación cuando sea necesario. </target>
-      </segment>
-    </unit>
-    <unit id="3670979985338475203">
-      <segment state="initial">
-        <source>Case updated.</source>
-        <target>Caso actualizado.</target>
       </segment>
     </unit>
     <unit id="3686284950598311784">
@@ -3197,12 +2945,6 @@
       <segment state="initial">
         <source>Reported externally</source>
         <target>Denunciado externamente</target>
-      </segment>
-    </unit>
-    <unit id="6721845101128758739">
-      <segment state="initial">
-        <source>Loading private case...</source>
-        <target>Cargando caso privado...</target>
       </segment>
     </unit>
     <unit id="6727906839729645379">
@@ -3299,12 +3041,6 @@
         <target>Spots creados</target>
       </segment>
     </unit>
-    <unit id="1527271999950935147">
-      <segment state="initial">
-        <source>Assigned:</source>
-        <target>Asignado:</target>
-      </segment>
-    </unit>
     <unit id="1534029177398918729">
       <segment state="initial">
         <source>GitHub</source>
@@ -3359,18 +3095,6 @@
         <target>Trasladado</target>
       </segment>
     </unit>
-    <unit id="6008995610936337562">
-      <segment state="initial">
-        <source>What is this about?</source>
-        <target>¿De qué se trata?</target>
-      </segment>
-    </unit>
-    <unit id="601278657052307519">
-      <segment state="initial">
-        <source>Spam or a malicious link</source>
-        <target>Spam o enlace malicioso</target>
-      </segment>
-    </unit>
     <unit id="6020607686749008401">
       <segment state="initial">
         <source>Add verifying organization</source>
@@ -3407,12 +3131,6 @@
         <target>Community card approved</target>
       </segment>
     </unit>
-    <unit id="8407220471361845948">
-      <segment state="initial">
-        <source>Paste the PK Spot URL if you have it.</source>
-        <target>Pega la URL de PK Spot si la tienes.</target>
-      </segment>
-    </unit>
     <unit id="8411563267246095898">
       <segment state="initial">
         <source> Some uploads could not be processed. </source>
@@ -3441,12 +3159,6 @@
       <segment state="initial">
         <source>Age-assurance rollback</source>
         <target>Revocación de verificaciones de edad</target>
-      </segment>
-    </unit>
-    <unit id="8434728487464933227">
-      <segment state="initial">
-        <source>Policy basis:</source>
-        <target>Base normativa:</target>
       </segment>
     </unit>
     <unit id="8436223332064456837">
@@ -3485,12 +3197,6 @@
         <target>No se pudo vincular Google Place</target>
       </segment>
     </unit>
-    <unit id="3261642323287960585">
-      <segment state="initial">
-        <source>Sexual content</source>
-        <target>Contenido sexual</target>
-      </segment>
-    </unit>
     <unit id="3268843240047650795">
       <segment state="initial">
         <source>Trailblazer</source>
@@ -3501,12 +3207,6 @@
       <segment state="final">
         <source>Loading event Spots…</source>
         <target>Cargando Spots del evento…</target>
-      </segment>
-    </unit>
-    <unit id="3270670971379803822">
-      <segment state="initial">
-        <source>Submit appeal</source>
-        <target>Enviar apelación</target>
       </segment>
     </unit>
     <unit id="3278358550418950949">
@@ -3611,12 +3311,6 @@
         <target>Falta la zona horaria local</target>
       </segment>
     </unit>
-    <unit id="8372969166925541710">
-      <segment state="initial">
-        <source>Safety and complaints</source>
-        <target>Seguridad y reclamaciones</target>
-      </segment>
-    </unit>
     <unit id="8374358620159565609">
       <segment state="initial">
         <source>Past</source>
@@ -3671,12 +3365,6 @@
         <target>Flujo de contenido subido</target>
       </segment>
     </unit>
-    <unit id="8618596366627948099">
-      <segment state="initial">
-        <source>Total cases loaded</source>
-        <target>Total de casos cargados</target>
-      </segment>
-    </unit>
     <unit id="8637857575623979078">
       <segment state="initial">
         <source> No edits yet for this spot. </source>
@@ -3687,12 +3375,6 @@
       <segment state="initial">
         <source>Profile access saved</source>
         <target>Profile access saved</target>
-      </segment>
-    </unit>
-    <unit id="8650499415827640724">
-      <segment state="initial">
-        <source>Type</source>
-        <target>Tipo</target>
       </segment>
     </unit>
     <unit id="8656126574213649581">
@@ -3741,18 +3423,6 @@
         <target>Avisos meteorológicos</target>
       </segment>
     </unit>
-    <unit id="8687501273434674899">
-      <segment state="initial">
-        <source>Target path:</source>
-        <target>Ruta de destino:</target>
-      </segment>
-    </unit>
-    <unit id="8691920320483720007">
-      <segment state="initial">
-        <source>Received</source>
-        <target>Recibido</target>
-      </segment>
-    </unit>
     <unit id="8693603235657020323">
       <segment state="initial">
         <source>Other</source>
@@ -3771,28 +3441,10 @@
         <target>¿De qué spot es este un duplicado?</target>
       </segment>
     </unit>
-    <unit id="4966788129751099816">
-      <segment state="initial">
-        <source>Aim to resolve within 7 days</source>
-        <target>Objetivo: resolver en 7 días</target>
-      </segment>
-    </unit>
     <unit id="2002398665048764218">
       <segment state="initial">
         <source>Schedule change</source>
         <target>Cambio de horario</target>
-      </segment>
-    </unit>
-    <unit id="2005372051213886069">
-      <segment state="initial">
-        <source>Your update was added.</source>
-        <target>Se ha añadido tu actualización.</target>
-      </segment>
-    </unit>
-    <unit id="2005374949551780500">
-      <segment state="initial">
-        <source>Safety cases</source>
-        <target>Casos de seguridad</target>
       </segment>
     </unit>
     <unit id="2014228771300600511">
@@ -3859,12 +3511,6 @@
       <segment state="initial">
         <source>Pending</source>
         <target>Pendiente</target>
-      </segment>
-    </unit>
-    <unit id="2306159838484573008">
-      <segment state="initial">
-        <source>Triaged</source>
-        <target>Clasificado</target>
       </segment>
     </unit>
     <unit id="2312227289513761859">
@@ -5723,12 +5369,6 @@
         <target>Evaluar el spot «<ph id="0" equiv="INTERPOLATION" disp="{{ review.spot?.name }}"/>»</target>
       </segment>
     </unit>
-    <unit id="9078294932661622756">
-      <segment state="initial">
-        <source>Tell us what happened</source>
-        <target>Cuéntanos qué ocurrió</target>
-      </segment>
-    </unit>
     <unit id="9091381429305665620">
       <segment state="initial">
         <source>Helper</source>
@@ -5787,12 +5427,6 @@
       <segment state="initial">
         <source>Sign out of your account.</source>
         <target>Cierra sesión de tu cuenta.</target>
-      </segment>
-    </unit>
-    <unit id="9140895998943713645">
-      <segment state="initial">
-        <source>Age-assurance decision</source>
-        <target>Decisión de verificación de edad</target>
       </segment>
     </unit>
     <unit id="9147694429145547851">
@@ -5906,12 +5540,6 @@
         <target> Respaldado por la <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">comunidad</pc>. </target>
       </segment>
     </unit>
-    <unit id="934990675622429392">
-      <segment state="initial">
-        <source>Safety process or legal duty</source>
-        <target>Proceso de seguridad u obligación legal</target>
-      </segment>
-    </unit>
     <unit id="940241108431922998">
       <segment state="initial">
         <source>Ordinary harm</source>
@@ -5924,12 +5552,6 @@
         <target>¡Esta dirección de correo no es válida!</target>
       </segment>
     </unit>
-    <unit id="962179517602562850">
-      <segment state="initial">
-        <source>Privacy or doxxing</source>
-        <target>Privacidad o doxxing</target>
-      </segment>
-    </unit>
     <unit id="967806009511704497">
       <segment state="initial">
         <source>Incident runbook</source>
@@ -5940,12 +5562,6 @@
       <segment state="initial">
         <source>Not verified</source>
         <target>No verificado</target>
-      </segment>
-    </unit>
-    <unit id="998453251097149857">
-      <segment state="initial">
-        <source>Decision recorded.</source>
-        <target>Decisión registrada.</target>
       </segment>
     </unit>
     <unit id="6431756795596367554">
@@ -6076,16 +5692,28 @@
         <target>Cargando actualizaciones…</target>
       </segment>
     </unit>
-    <unit id="settings.notifications.community_events_aria">
+    <unit id="settings.notifications.all">
       <segment state="initial">
-        <source>Community event notifications</source>
-        <target>Notificaciones de eventos de la comunidad</target>
+        <source>All</source>
+        <target>Todas</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.community_column">
+      <segment state="initial">
+        <source>Community</source>
+        <target>Comunidad</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.community_events_all_aria">
+      <segment state="initial">
+        <source>Select or deselect event notifications for all followed communities</source>
+        <target>Seleccionar o deseleccionar las notificaciones de eventos para todas las comunidades seguidas</target>
       </segment>
     </unit>
     <unit id="settings.notifications.community_events_description">
       <segment state="initial">
-        <source> Push alerts for newly published public events in communities where event updates are enabled. </source>
-        <target> Alertas push de nuevos eventos públicos en las comunidades donde activaste las novedades de eventos. </target>
+        <source>Push alerts for newly published public events in communities where event updates are enabled.</source>
+        <target>Alertas push de nuevos eventos públicos en las comunidades donde activaste las novedades de eventos.</target>
       </segment>
     </unit>
     <unit id="settings.notifications.community_events_heading">
@@ -6106,16 +5734,10 @@
         <target>Eventos de la zona</target>
       </segment>
     </unit>
-    <unit id="settings.notifications.community_info_aria">
-      <segment state="initial">
-        <source>Community info submission notifications</source>
-        <target>Notificaciones de envíos de información de la comunidad</target>
-      </segment>
-    </unit>
     <unit id="settings.notifications.community_info_description">
       <segment state="initial">
-        <source> Know when community information you submitted is approved or rejected. </source>
-        <target> Recibe un aviso cuando la información de la comunidad que enviaste sea aprobada o rechazada. </target>
+        <source>Know when community information you submitted is approved or rejected.</source>
+        <target>Recibe un aviso cuando la información de la comunidad que enviaste sea aprobada o rechazada.</target>
       </segment>
     </unit>
     <unit id="settings.notifications.community_info_heading">
@@ -6130,16 +5752,16 @@
         <target>No se pudo guardar la preferencia de notificaciones de la comunidad.</target>
       </segment>
     </unit>
-    <unit id="settings.notifications.community_spots_aria">
+    <unit id="settings.notifications.community_spots_all_aria">
       <segment state="initial">
-        <source>Community Spot digest notifications</source>
-        <target>Notificaciones del resumen de Spots de la comunidad</target>
+        <source>Select or deselect Spot recommendations for all followed communities</source>
+        <target>Seleccionar o deseleccionar las recomendaciones de Spots para todas las comunidades seguidas</target>
       </segment>
     </unit>
     <unit id="settings.notifications.community_spots_description">
       <segment state="initial">
-        <source> A Friday digest of newly recommended Spots from communities where Spot updates are enabled. </source>
-        <target> Un resumen los viernes de nuevos Spots recomendados en las comunidades donde activaste las novedades de Spots. </target>
+        <source>A Friday digest of newly recommended Spots from communities where Spot updates are enabled.</source>
+        <target>Un resumen los viernes de nuevos Spots recomendados en las comunidades donde activaste las novedades de Spots.</target>
       </segment>
     </unit>
     <unit id="settings.notifications.community_spots_heading">
@@ -6160,22 +5782,22 @@
         <target>Spots recomendados</target>
       </segment>
     </unit>
+    <unit id="settings.notifications.community_table_aria">
+      <segment state="initial">
+        <source>Notifications for followed communities</source>
+        <target>Notificaciones de las comunidades seguidas</target>
+      </segment>
+    </unit>
     <unit id="settings.notifications.description">
       <segment state="initial">
         <source> Choose which useful updates PK Spot may send you. You stay in control through both these choices and your browser or device settings. </source>
         <target> Elige qué novedades útiles puede enviarte PK Spot. Tú mantienes el control mediante estas opciones y los ajustes de tu navegador o dispositivo. </target>
       </segment>
     </unit>
-    <unit id="settings.notifications.event_reminders_aria">
-      <segment state="initial">
-        <source>Event reminder notifications</source>
-        <target>Notificaciones de recordatorios de eventos</target>
-      </segment>
-    </unit>
     <unit id="settings.notifications.event_reminders_description">
       <segment state="initial">
-        <source> Choose when to be reminded about events you are going to or interested in. </source>
-        <target> Recibe un recordatorio dos horas antes de los eventos a los que asistirás o que te interesan. </target>
+        <source>Choose when to be reminded about events you are going to or interested in.</source>
+        <target>Recibe un recordatorio dos horas antes de los eventos a los que asistirás o que te interesan.</target>
       </segment>
     </unit>
     <unit id="settings.notifications.event_reminders_heading">
@@ -6184,28 +5806,10 @@
         <target>Recordatorios de eventos</target>
       </segment>
     </unit>
-    <unit id="settings.notifications.event_specific_description">
-      <segment state="initial">
-        <source> Review the events you currently receive updates or reminders for. </source>
-        <target> Revisa los eventos de los que recibes novedades o recordatorios. </target>
-      </segment>
-    </unit>
-    <unit id="settings.notifications.event_specific_heading">
-      <segment state="initial">
-        <source>Event-specific notifications</source>
-        <target>Notificaciones por evento</target>
-      </segment>
-    </unit>
-    <unit id="settings.notifications.event_updates_aria">
-      <segment state="initial">
-        <source>Event update notifications</source>
-        <target>Notificaciones de cambios en eventos</target>
-      </segment>
-    </unit>
     <unit id="settings.notifications.event_updates_description">
       <segment state="initial">
-        <source> Hear about important time, location, or cancellation changes for events you responded to. </source>
-        <target> Infórmate de cambios importantes de hora, lugar o cancelación en los eventos a los que has respondido. </target>
+        <source>Hear about important time, location, or cancellation changes for events you responded to.</source>
+        <target>Infórmate de cambios importantes de hora, lugar o cancelación en los eventos a los que has respondido.</target>
       </segment>
     </unit>
     <unit id="settings.notifications.event_updates_heading">
@@ -6214,16 +5818,10 @@
         <target>Cambios en eventos</target>
       </segment>
     </unit>
-    <unit id="settings.notifications.follow_requests_aria">
-      <segment state="initial">
-        <source>Follow activity notifications</source>
-        <target>Notificaciones de actividad de seguidores</target>
-      </segment>
-    </unit>
     <unit id="settings.notifications.follow_requests_description">
       <segment state="initial">
-        <source> Know about follow requests, new followers, and accepted requests. </source>
-        <target> Entérate de las solicitudes de seguimiento, de los nuevos seguidores y de las solicitudes aceptadas. </target>
+        <source>Know about follow requests, new followers, and accepted requests.</source>
+        <target>Entérate de las solicitudes de seguimiento, de los nuevos seguidores y de las solicitudes aceptadas.</target>
       </segment>
     </unit>
     <unit id="settings.notifications.follow_requests_heading">
@@ -6234,14 +5832,14 @@
     </unit>
     <unit id="settings.notifications.followed_communities_description">
       <segment state="initial">
-        <source> Choose the updates you want from each community. Global switches above control push delivery. </source>
+        <source> Choose the updates you want from each community. Global choices above control push delivery. </source>
         <target> Elige las novedades que quieres recibir de cada comunidad. Los interruptores globales controlan el envío push. </target>
       </segment>
     </unit>
     <unit id="settings.notifications.followed_communities_heading">
       <segment state="initial">
-        <source>Followed communities</source>
-        <target>Comunidades seguidas</target>
+        <source> Followed communities </source>
+        <target> Comunidades seguidas </target>
       </segment>
     </unit>
     <unit id="settings.notifications.heading">
@@ -6322,22 +5920,22 @@
         <target>Default event reminder times</target>
       </segment>
     </unit>
+    <unit id="settings.notifications.reminder_times_label">
+      <segment state="initial">
+        <source>Reminder times</source>
+        <target>Horas de recordatorio</target>
+      </segment>
+    </unit>
     <unit id="settings.notifications.reminder_two_hours">
       <segment state="initial">
         <source>2 hours</source>
         <target>2 hours</target>
       </segment>
     </unit>
-    <unit id="settings.notifications.reports_aria">
-      <segment state="initial">
-        <source>Report update notifications</source>
-        <target>Notificaciones de novedades de denuncias</target>
-      </segment>
-    </unit>
     <unit id="settings.notifications.reports_description">
       <segment state="initial">
-        <source> Know when a Spot or media report you submitted has been reviewed. </source>
-        <target> Recibe un aviso cuando se revise una denuncia de Spot o contenido que hayas enviado. </target>
+        <source>Know when a Spot or media report you submitted has been reviewed.</source>
+        <target>Recibe un aviso cuando se revise una denuncia de Spot o contenido que hayas enviado.</target>
       </segment>
     </unit>
     <unit id="settings.notifications.reports_heading">
@@ -6352,16 +5950,16 @@
         <target>No se pudo guardar la preferencia de notificación.</target>
       </segment>
     </unit>
-    <unit id="settings.notifications.spot_edits_aria">
+    <unit id="settings.notifications.select_all_aria">
       <segment state="initial">
-        <source>Your Spot edit notifications</source>
-        <target>Notificaciones de tus ediciones de Spot</target>
+        <source>Select or deselect all notification types</source>
+        <target>Seleccionar o deseleccionar todos los tipos de notificación</target>
       </segment>
     </unit>
     <unit id="settings.notifications.spot_edits_description">
       <segment state="initial">
-        <source> Know when a Spot edit you submitted is approved or rejected. </source>
-        <target> Entérate cuando se apruebe o rechace una edición de Spot que hayas enviado. </target>
+        <source>Know when a Spot edit you submitted is approved or rejected.</source>
+        <target>Entérate cuando se apruebe o rechace una edición de Spot que hayas enviado.</target>
       </segment>
     </unit>
     <unit id="settings.notifications.spot_edits_heading">
@@ -6398,6 +5996,30 @@
       <segment state="initial">
         <source>PK Spot notifications are enabled, but your device is blocking them. You can allow them in system settings.</source>
         <target>Las notificaciones de PK Spot están activadas, pero tu dispositivo las bloquea. Puedes permitirlas en los ajustes del sistema.</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.table_aria">
+      <segment state="initial">
+        <source>Notification preferences</source>
+        <target>Preferencias de notificaciones</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.table_notification">
+      <segment state="initial">
+        <source>Notification</source>
+        <target>Notificación</target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.types_description">
+      <segment state="initial">
+        <source> Select the updates you want PK Spot to send. </source>
+        <target> Selecciona las novedades que quieres que PK Spot te envíe. </target>
+      </segment>
+    </unit>
+    <unit id="settings.notifications.types_heading">
+      <segment state="initial">
+        <source> Notification types </source>
+        <target> Tipos de notificación </target>
       </segment>
     </unit>
     <unit id="6128805594305699476">
@@ -6964,12 +6586,6 @@
         <target>Evento en </target>
       </segment>
     </unit>
-    <unit id="7667730993573976181">
-      <segment state="initial">
-        <source>Record this decision and apply its moderation action?</source>
-        <target>¿Registrar esta decisión y aplicar la medida de moderación?</target>
-      </segment>
-    </unit>
     <unit id="7672282077901429954">
       <segment state="initial">
         <source>Error, there was a problem signing out!</source>
@@ -6980,12 +6596,6 @@
       <segment state="initial">
         <source>This link is not recognized. Please check your email and try again.</source>
         <target>Este enlace no se reconoce. Por favor verifica tu correo e intenta de nuevo.</target>
-      </segment>
-    </unit>
-    <unit id="7677639303795669921">
-      <segment state="initial">
-        <source>Past target date</source>
-        <target>Plazo vencido</target>
       </segment>
     </unit>
     <unit id="7679393301604850402">
@@ -9739,20 +9349,14 @@
     </unit>
     <unit id="events.create_menu_tooltip">
       <segment state="initial">
-        <source>Create an event or session</source>
-        <target>Crear un evento o una sesión</target>
+        <source>Create event</source>
+        <target>Crear evento</target>
       </segment>
     </unit>
     <unit id="events.discovery_card_aria">
       <segment state="initial">
         <source><ph id="0" equiv="eventName" disp="event.name"/>, <ph id="1" equiv="localDate" disp="localDate"/>, <ph id="2" equiv="location" disp="location"/>, <ph id="3" equiv="goingSummary" disp="going"/>, <ph id="4" equiv="interestedSummary" disp="interested"/></source>
         <target><ph id="0" equiv="eventName" disp="event.name"/>; <ph id="1" equiv="localDate" disp="localDate"/>; <ph id="2" equiv="location" disp="location"/>; <ph id="3" equiv="goingSummary" disp="going"/>; <ph id="4" equiv="interestedSummary" disp="interested"/></target>
-      </segment>
-    </unit>
-    <unit id="events.plan_session">
-      <segment state="initial">
-        <source>Plan session</source>
-        <target>Planificar sesión</target>
       </segment>
     </unit>
     <unit id="events.status.live_open_end">
@@ -10068,18 +9672,6 @@
         <target>Interior</target>
       </segment>
     </unit>
-    <unit id="4302668244346549580">
-      <segment state="initial">
-        <source>Email for updates (optional when signed in)</source>
-        <target>Correo para actualizaciones (opcional si has iniciado sesión)</target>
-      </segment>
-    </unit>
-    <unit id="4314270304685333896">
-      <segment state="initial">
-        <source>Update and correspond</source>
-        <target>Actualizar y comunicarse</target>
-      </segment>
-    </unit>
     <unit id="4320994550381609480">
       <segment state="initial">
         <source>Pioneer</source>
@@ -10096,12 +9688,6 @@
       <segment state="initial">
         <source>Copy</source>
         <target>Copiar</target>
-      </segment>
-    </unit>
-    <unit id="4324194888906470452">
-      <segment state="initial">
-        <source>Your case was received</source>
-        <target>Hemos recibido tu caso</target>
       </segment>
     </unit>
     <unit id="4344855956830123370">
@@ -10200,18 +9786,6 @@
         <target>Abrir Google Play</target>
       </segment>
     </unit>
-    <unit id="28390273827708830">
-      <segment state="initial">
-        <source>Aim to resolve within 14 days</source>
-        <target>Objetivo: resolver en 14 días</target>
-      </segment>
-    </unit>
-    <unit id="2840924924493795948">
-      <segment state="initial">
-        <source>Complex cases</source>
-        <target>Casos complejos</target>
-      </segment>
-    </unit>
     <unit id="2846098641732030728">
       <segment state="initial">
         <source>Save favorites and come back to the spots you want to session later.</source>
@@ -10248,12 +9822,6 @@
         <target>Volver a todos los eventos</target>
       </segment>
     </unit>
-    <unit id="2870539756629075514">
-      <segment state="translated">
-        <source>Message recipient</source>
-        <target>Destinatario del mensaje</target>
-      </segment>
-    </unit>
     <unit id="2874252575916172948">
       <segment state="initial">
         <source> Delete my account </source>
@@ -10270,12 +9838,6 @@
       <segment state="initial">
         <source>Report submitted. Thanks for helping keep spots accurate.</source>
         <target>Reporte enviado. Gracias por ayudar a mantener los spots precisos.</target>
-      </segment>
-    </unit>
-    <unit id="7821270560154398021">
-      <segment state="initial">
-        <source> Reports, complaints, appeals, deadlines, correspondence, and decisions in one private queue. </source>
-        <target>Informes, reclamaciones, apelaciones, plazos, correspondencia y decisiones en una cola privada.</target>
       </segment>
     </unit>
     <unit id="78295015887661250">
@@ -10302,12 +9864,6 @@
         <target>Mostrar encabezado del evento</target>
       </segment>
     </unit>
-    <unit id="7858093315829323396">
-      <segment state="initial">
-        <source>Age assurance</source>
-        <target>Verificación de edad</target>
-      </segment>
-    </unit>
     <unit id="7860386256947196622">
       <segment state="translated">
         <source>Review events</source>
@@ -10324,18 +9880,6 @@
       <segment state="initial">
         <source>Ownership claim approved.</source>
         <target>Ownership claim approved.</target>
-      </segment>
-    </unit>
-    <unit id="7869347974693941290">
-      <segment state="initial">
-        <source>Could not update this case.</source>
-        <target>No se pudo actualizar este caso.</target>
-      </segment>
-    </unit>
-    <unit id="7880605355244228662">
-      <segment state="initial">
-        <source>Media consent</source>
-        <target>Consentimiento para contenido multimedia</target>
       </segment>
     </unit>
     <unit id="7881945331295450373">
@@ -10374,12 +9918,6 @@
         <target>Contacto</target>
       </segment>
     </unit>
-    <unit id="7923103708576442172">
-      <segment state="initial">
-        <source>Review safety case</source>
-        <target>Revisar caso de seguridad</target>
-      </segment>
-    </unit>
     <unit id="7941428823403788384">
       <segment state="initial">
         <source> Create </source>
@@ -10390,12 +9928,6 @@
       <segment state="initial">
         <source>Remove person</source>
         <target>Remove person</target>
-      </segment>
-    </unit>
-    <unit id="7963302127028522332">
-      <segment state="initial">
-        <source>Add information</source>
-        <target>Añadir información</target>
       </segment>
     </unit>
     <unit id="5245523669438174557">
@@ -10520,12 +10052,6 @@
       <segment state="initial">
         <source> Have a question, found a bug, or want to request a feature? We&apos;d love to hear from you! </source>
         <target> ¿Tienes una pregunta, encontraste un error o quieres solicitar una función? ¡Nos encantaría saber de ti! </target>
-      </segment>
-    </unit>
-    <unit id="7002200834685763491">
-      <segment state="initial">
-        <source>Complex-case target</source>
-        <target>Plazo para casos complejos</target>
       </segment>
     </unit>
     <unit id="7005135725147250005">
@@ -11022,12 +10548,6 @@
         <target> Cerrado temporalmente </target>
       </segment>
     </unit>
-    <unit id="8712629536205619877">
-      <segment state="initial">
-        <source>Received:</source>
-        <target>Recibido:</target>
-      </segment>
-    </unit>
     <unit id="8719394803198399227">
       <segment state="initial">
         <source>Decision failed.</source>
@@ -11116,12 +10636,6 @@
       <segment state="initial">
         <source>Water feature</source>
         <target>Elemento acuático</target>
-      </segment>
-    </unit>
-    <unit id="5642491821287020222">
-      <segment state="initial">
-        <source>Could not restore the held state.</source>
-        <target>No se pudo restaurar el estado retenido.</target>
       </segment>
     </unit>
     <unit id="5646377711168880426">
@@ -11232,22 +10746,10 @@
         <target> Guarda el spot primero para añadir imágenes. </target>
       </segment>
     </unit>
-    <unit id="483345618561474579">
-      <segment state="initial">
-        <source>Reason for appeal</source>
-        <target>Motivo de la apelación</target>
-      </segment>
-    </unit>
     <unit id="4854396465510517671">
       <segment state="initial">
         <source>Target</source>
         <target>Objetivo</target>
-      </segment>
-    </unit>
-    <unit id="4856886645538428653">
-      <segment state="initial">
-        <source>Enter a valid email address or leave it blank.</source>
-        <target>Introduce una dirección de correo válida o deja el campo vacío.</target>
       </segment>
     </unit>
     <unit id="profile.actions.unblock">
@@ -11286,18 +10788,6 @@
         <target>Horario actualizado</target>
       </segment>
     </unit>
-    <unit id="4892019229298361238">
-      <segment state="initial">
-        <source>Safety reports, complaints, and appeals</source>
-        <target>Informes de seguridad, reclamaciones y apelaciones</target>
-      </segment>
-    </unit>
-    <unit id="4897177574141849318">
-      <segment state="initial">
-        <source>Unsafe place or access information</source>
-        <target>Lugar o información de acceso inseguros</target>
-      </segment>
-    </unit>
     <unit id="7053728652419731548">
       <segment state="initial">
         <source>Session replay</source>
@@ -11334,12 +10824,6 @@
         <target>¿Revocar la elegibilidad de adulto de <ph id="0" equiv="PH" disp="previewCount"/> cuenta(s) coincidente(s)? Se desactivarán sus perfiles públicos y su visibilidad en las búsquedas.</target>
       </segment>
     </unit>
-    <unit id="2409973243657175474">
-      <segment state="initial">
-        <source>Send update</source>
-        <target>Enviar actualización</target>
-      </segment>
-    </unit>
     <unit id="2417459620118538314">
       <segment state="initial">
         <source>Could not update event notifications. Please try again.</source>
@@ -11368,12 +10852,6 @@
       <segment state="initial">
         <source>Community merge queued</source>
         <target>Community merge queued</target>
-      </segment>
-    </unit>
-    <unit id="2480962193625361096">
-      <segment state="initial">
-        <source>Target:</source>
-        <target>Objetivo:</target>
       </segment>
     </unit>
     <unit id="2494595604764120182">
@@ -11464,12 +10942,6 @@
       <segment state="initial">
         <source>Independently checked 18+ eligibility is available.</source>
         <target>Hay disponible una comprobación independiente de 18 años o más.</target>
-      </segment>
-    </unit>
-    <unit id="2112768397949905814">
-      <segment state="initial">
-        <source>Enter a valid email address.</source>
-        <target>Introduce una dirección de correo válida.</target>
       </segment>
     </unit>
     <unit id="2114926278043068343">
@@ -11599,12 +11071,6 @@
         <target>No gestionado</target>
       </segment>
     </unit>
-    <unit id="3808291968368675401">
-      <segment state="initial">
-        <source>Add a short summary.</source>
-        <target>Añade un resumen breve.</target>
-      </segment>
-    </unit>
     <unit id="3812784998942541864">
       <segment state="initial">
         <source>Network fingerprint</source>
@@ -11662,12 +11128,6 @@
         <target>Restablecer</target>
       </segment>
     </unit>
-    <unit id="7809374858674328383">
-      <segment state="initial">
-        <source>Decision</source>
-        <target>Decisión</target>
-      </segment>
-    </unit>
     <unit id="7819314041543176992">
       <segment state="initial">
         <source>Close</source>
@@ -11696,12 +11156,6 @@
       <segment state="initial">
         <source> Don&apos;t just look. <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-secondary marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">Find.</pc></source>
         <target> No solo mires. <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-secondary marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">Encuentra.</pc></target>
-      </segment>
-    </unit>
-    <unit id="4114528897382605548">
-      <segment state="initial">
-        <source>Restore held state</source>
-        <target>Restaurar estado retenido</target>
       </segment>
     </unit>
     <unit id="4115668858470490289">
@@ -11740,12 +11194,6 @@
         <target>Contenido sensible oculto</target>
       </segment>
     </unit>
-    <unit id="370092533680813589">
-      <segment state="initial">
-        <source>Standard cases</source>
-        <target>Casos estándar</target>
-      </segment>
-    </unit>
     <unit id="370198281195202249">
       <segment state="initial">
         <source> Use the NCA CSEA reporting portal only for reportable CSEA. Continue an existing NCMEC channel where applicable and do not create a duplicate referral. For current or imminent danger, follow the emergency instructions in the NCA guidance. </source>
@@ -11762,12 +11210,6 @@
       <segment state="initial">
         <source>External response guidance</source>
         <target>Indicaciones para la respuesta externa</target>
-      </segment>
-    </unit>
-    <unit id="3712031637505692458">
-      <segment state="initial">
-        <source>Target response</source>
-        <target>Objetivo de respuesta</target>
       </segment>
     </unit>
     <unit id="3714343477148346459">
@@ -11812,12 +11254,6 @@
         <target>Cargando evento</target>
       </segment>
     </unit>
-    <unit id="831314703026690842">
-      <segment state="initial">
-        <source>Outcome</source>
-        <target>Resultado</target>
-      </segment>
-    </unit>
     <unit id="8323953180652912227">
       <segment state="initial">
         <source>Failed to remove verified organization</source>
@@ -11834,12 +11270,6 @@
       <segment state="initial">
         <source>Account privacy</source>
         <target>Account privacy</target>
-      </segment>
-    </unit>
-    <unit id="8327313422967228918">
-      <segment state="initial">
-        <source>Restore the content or account state held by this decision?</source>
-        <target>¿Restaurar el contenido o el estado de la cuenta retenido por esta decisión?</target>
       </segment>
     </unit>
     <unit id="8333618256474808727">
@@ -11896,22 +11326,10 @@
         <target> Sigue los pasos en orden. No previsualices ni reenvíes contenido con una coincidencia restringida. </target>
       </segment>
     </unit>
-    <unit id="263768607788268714">
-      <segment state="initial">
-        <source>All open cases</source>
-        <target>Todos los casos abiertos</target>
-      </segment>
-    </unit>
     <unit id="2638434417265535082">
       <segment state="initial">
         <source>Media stream</source>
         <target>Flujo de contenido</target>
-      </segment>
-    </unit>
-    <unit id="2648624934226238207">
-      <segment state="initial">
-        <source>Item link, path, or identifier (optional)</source>
-        <target>Enlace, ruta o identificador del elemento (opcional)</target>
       </segment>
     </unit>
     <unit id="2662644497259948010">
@@ -12031,22 +11449,10 @@
         <target> Creado y mantenido por voluntarios de la comunidad de parkour. </target>
       </segment>
     </unit>
-    <unit id="8018133170713747016">
-      <segment state="initial">
-        <source>Policy basis (optional)</source>
-        <target>Base normativa (opcional)</target>
-      </segment>
-    </unit>
     <unit id="8018379614687762047">
       <segment state="initial">
         <source>Email changed successfully. Please verify your new email.</source>
         <target>Correo cambiado exitosamente. Por favor verifica tu nuevo correo.</target>
-      </segment>
-    </unit>
-    <unit id="8027866377173897723">
-      <segment state="initial">
-        <source>Case timeline</source>
-        <target>Cronología del caso</target>
       </segment>
     </unit>
     <unit id="8036493504964207254">
@@ -12151,12 +11557,6 @@
         <target> Añade una breve biografía para que tu perfil público muestre quién eres. </target>
       </segment>
     </unit>
-    <unit id="6480397588679623769">
-      <segment state="initial">
-        <source>Provide at least 10 characters and no more than 4000.</source>
-        <target>Escribe entre 10 y 4000 caracteres.</target>
-      </segment>
-    </unit>
     <unit id="2969365666988952758">
       <segment state="initial">
         <source>Recovering Email</source>
@@ -12167,12 +11567,6 @@
       <segment state="initial">
         <source>Edit Profile</source>
         <target>Editar perfil</target>
-      </segment>
-    </unit>
-    <unit id="2988814765436950391">
-      <segment state="initial">
-        <source>Another service complaint</source>
-        <target>Otra reclamación sobre el servicio</target>
       </segment>
     </unit>
     <unit id="2996324673054626783">
@@ -12329,22 +11723,10 @@
         <target>Descripción</target>
       </segment>
     </unit>
-    <unit id="1584093308232863634">
-      <segment state="initial">
-        <source>Submit securely</source>
-        <target>Enviar de forma segura</target>
-      </segment>
-    </unit>
     <unit id="158781460362336598">
       <segment state="initial">
         <source>You were successfully signed out!</source>
         <target>¡Cerraste sesión correctamente!</target>
-      </segment>
-    </unit>
-    <unit id="1589136879717771714">
-      <segment state="initial">
-        <source>Automated media decision</source>
-        <target>Decisión automatizada sobre contenido multimedia</target>
       </segment>
     </unit>
     <unit id="1593391712749316624">
@@ -12707,12 +12089,6 @@
         <target> Choose how follows work and who should see expanded profile details as profile sections grow. </target>
       </segment>
     </unit>
-    <unit id="7531672117696326956">
-      <segment state="initial">
-        <source> Explain what you believe was wrong or what information was missed. Appeals are linked to the original case and should be reviewed independently where possible. </source>
-        <target>Explica qué crees que fue incorrecto o qué información se pasó por alto. Las apelaciones se vinculan al caso original y, cuando sea posible, deben revisarse de forma independiente.</target>
-      </segment>
-    </unit>
     <unit id="7536618650694716867">
       <segment state="initial">
         <source> Find answers to common questions or reach out to us directly. </source>
@@ -12815,12 +12191,6 @@
         <target>Moderación</target>
       </segment>
     </unit>
-    <unit id="6520949937421368958">
-      <segment state="initial">
-        <source>App Check:</source>
-        <target>Verificación de la app:</target>
-      </segment>
-    </unit>
     <unit id="6529676412063915412">
       <segment state="initial">
         <source> Follow requests </source>
@@ -12849,12 +12219,6 @@
       <segment state="initial">
         <source>Media Added</source>
         <target>Medios añadidos</target>
-      </segment>
-    </unit>
-    <unit id="6588106856001797923">
-      <segment state="initial">
-        <source>No cases match this filter.</source>
-        <target>Ningún caso coincide con este filtro.</target>
       </segment>
     </unit>
     <unit id="6588223759870524689">
@@ -12989,12 +12353,6 @@
         <target>Esencial</target>
       </segment>
     </unit>
-    <unit id="3989796638927342332">
-      <segment state="initial">
-        <source>Make a complaint</source>
-        <target>Presentar una reclamación</target>
-      </segment>
-    </unit>
     <unit id="3991755043359697718">
       <segment state="initial">
         <source>Remove selected file</source>
@@ -13053,12 +12411,6 @@
       <segment state="initial">
         <source>Account mismatch. Please sign in to the correct account.</source>
         <target>Discrepancia de cuenta. Por favor, inicia sesión en la cuenta correcta.</target>
-      </segment>
-    </unit>
-    <unit id="3447183067239293551">
-      <segment state="initial">
-        <source>Under review</source>
-        <target>En revisión</target>
       </segment>
     </unit>
     <unit id="3456162150342793287">
@@ -13209,12 +12561,6 @@
         <target>Restablecer evento</target>
       </segment>
     </unit>
-    <unit id="3908211343911450350">
-      <segment state="initial">
-        <source> Contact local emergency services first. Then send us the report so we can preserve evidence and restrict access where appropriate. </source>
-        <target>Contacta primero con los servicios de emergencia locales. Después, envíanos el informe para que podamos conservar pruebas y restringir el acceso cuando corresponda.</target>
-      </segment>
-    </unit>
     <unit id="3909136360386442402">
       <segment state="initial">
         <source>You have blocked this user</source>
@@ -13243,12 +12589,6 @@
       <segment state="initial">
         <source>Edit submitted for organization review</source>
         <target>Edición enviada para revisión de la organización</target>
-      </segment>
-    </unit>
-    <unit id="2232032287329907617">
-      <segment state="initial">
-        <source>Private intake</source>
-        <target>Entrada privada</target>
       </segment>
     </unit>
     <unit id="223483240416376467">
@@ -13317,18 +12657,6 @@
         <target>Rechazar</target>
       </segment>
     </unit>
-    <unit id="7384825592384718749">
-      <segment state="initial">
-        <source>Could not submit the appeal.</source>
-        <target>No se pudo enviar la apelación.</target>
-      </segment>
-    </unit>
-    <unit id="7386252783526468675">
-      <segment state="initial">
-        <source>Decision action</source>
-        <target>Acción de la decisión</target>
-      </segment>
-    </unit>
     <unit id="7392135779424722480">
       <segment state="initial">
         <source>Previous time</source>
@@ -13365,12 +12693,6 @@
         <target>Administra tu configuración de <ph id="0" equiv="PH" disp="point.name"/>.</target>
       </segment>
     </unit>
-    <unit id="5401396861408632139">
-      <segment state="initial">
-        <source>Immediate risk</source>
-        <target>Riesgo inmediato</target>
-      </segment>
-    </unit>
     <unit id="5411574545284988510">
       <segment state="initial">
         <source>Verifying Email</source>
@@ -13381,12 +12703,6 @@
       <segment state="initial">
         <source>Go to your location</source>
         <target>Ir a tu ubicación</target>
-      </segment>
-    </unit>
-    <unit id="5430715841913413045">
-      <segment state="initial">
-        <source>Content or account decision</source>
-        <target>Decisión sobre contenido o cuenta</target>
       </segment>
     </unit>
     <unit id="5439680339974485805">
@@ -13479,22 +12795,10 @@
         <target> <ph id="0" equiv="ICU" disp="{invalidItemCount, plural, =1 {One published event has invalid discovery data and was not shown.} other {{{invalidItemCount}} published events have invalid discovery data and were not shown.} }" subFlows="3991033213392190792"/> </target>
       </segment>
     </unit>
-    <unit id="8875159446674823169">
-      <segment state="initial">
-        <source>All cases</source>
-        <target>Todos los casos</target>
-      </segment>
-    </unit>
     <unit id="8876716314997684812">
       <segment state="initial">
         <source>Event management</source>
         <target>Gestionar evento</target>
-      </segment>
-    </unit>
-    <unit id="8879720979364981326">
-      <segment state="initial">
-        <source>Record and apply decision</source>
-        <target>Registrar y aplicar decisión</target>
       </segment>
     </unit>
     <unit id="8882370377359593676">
@@ -13575,12 +12879,6 @@
         <target> Contenido ilegal </target>
       </segment>
     </unit>
-    <unit id="5995912307085156285">
-      <segment state="initial">
-        <source>Potentially illegal content</source>
-        <target>Contenido potencialmente ilegal</target>
-      </segment>
-    </unit>
     <unit id="5996977642855652872">
       <segment state="initial">
         <source>Please select the reason for this report:</source>
@@ -13615,12 +12913,6 @@
       <segment state="initial">
         <source>Share media</source>
         <target>Compartir medios</target>
-      </segment>
-    </unit>
-    <unit id="8520138691875188234">
-      <segment state="initial">
-        <source> Guests receive a one-time verification link. Your email and identity are visible only to authorised moderators. </source>
-        <target>Los invitados reciben un enlace de verificación de un solo uso. Tu correo e identidad solo son visibles para moderadores autorizados.</target>
       </segment>
     </unit>
     <unit id="8525213662266893834">
@@ -14033,12 +13325,6 @@
         <target>Esta carga fue marcada o falló el análisis automático y puede resultar perturbadora. ¿Mostrarla para moderación manual?</target>
       </segment>
     </unit>
-    <unit id="7163472660486177947">
-      <segment state="initial">
-        <source>Could not add your update.</source>
-        <target>No se pudo añadir tu actualización.</target>
-      </segment>
-    </unit>
     <unit id="7164688894418358201">
       <segment state="initial">
         <source>What PK Spot receives</source>
@@ -14055,12 +13341,6 @@
       <segment state="initial">
         <source>Error uploading the profile picture.</source>
         <target>Error al subir la foto de perfil.</target>
-      </segment>
-    </unit>
-    <unit id="7183346391731740218">
-      <segment state="initial">
-        <source>Child safety</source>
-        <target>Seguridad infantil</target>
       </segment>
     </unit>
     <unit id="7193934719093844817">
@@ -14085,18 +13365,6 @@
       <segment state="initial">
         <source>Show more</source>
         <target>Mostrar más</target>
-      </segment>
-    </unit>
-    <unit id="721979004226425951">
-      <segment state="initial">
-        <source>How a report was handled</source>
-        <target>Cómo se gestionó un informe</target>
-      </segment>
-    </unit>
-    <unit id="7221309413136584570">
-      <segment state="initial">
-        <source>Internal note (optional)</source>
-        <target>Nota interna (opcional)</target>
       </segment>
     </unit>
     <unit id="7222489710265178271">
@@ -14309,12 +13577,6 @@
         <target> Los check-ins y las actualizaciones de organizaciones muestran dónde está ocurriendo realmente el parkour. El mapa se mantiene actualizado porque la comunidad lo mantiene actualizado. </target>
       </segment>
     </unit>
-    <unit id="6230817879161037769">
-      <segment state="initial">
-        <source>Awaiting information</source>
-        <target>A la espera de información</target>
-      </segment>
-    </unit>
     <unit id="6234372277464900526">
       <segment state="initial">
         <source>Promoted event</source>
@@ -14331,12 +13593,6 @@
       <segment state="initial">
         <source>None</source>
         <target>Ninguna</target>
-      </segment>
-    </unit>
-    <unit id="6261837376343461951">
-      <segment state="initial">
-        <source>Self-harm or suicide</source>
-        <target>Autolesión o suicidio</target>
       </segment>
     </unit>
     <unit id="6266780676699111627">
@@ -14387,22 +13643,10 @@
         <target> Todos los Challenges de <ph id="0" equiv="INTERPOLATION" disp="{{ selectedSpot()!.name() }}"/> </target>
       </segment>
     </unit>
-    <unit id="4038016446143404869">
-      <segment state="initial">
-        <source>Target response:</source>
-        <target>Objetivo de respuesta:</target>
-      </segment>
-    </unit>
     <unit id="4043049091728011235">
       <segment state="initial">
         <source>Cancelled</source>
         <target>Cancelado</target>
-      </segment>
-    </unit>
-    <unit id="4044515139696080108">
-      <segment state="translated">
-        <source>Affected account holder</source>
-        <target>Titular de la cuenta afectada</target>
       </segment>
     </unit>
     <unit id="4046179348234171126">
@@ -14481,18 +13725,6 @@
       <segment state="initial">
         <source>Editor</source>
         <target>Editor de contenido</target>
-      </segment>
-    </unit>
-    <unit id="3744069822390240057">
-      <segment state="initial">
-        <source> Use this private channel to report a safety concern, complain about PK Spot, or challenge how a previous report was handled. You do not need an account. </source>
-        <target>Usa este canal privado para informar de un problema de seguridad, reclamar sobre PK Spot o cuestionar cómo se gestionó un informe anterior. No necesitas una cuenta.</target>
-      </segment>
-    </unit>
-    <unit id="3747597665217141319">
-      <segment state="initial">
-        <source>Another safety concern</source>
-        <target>Otro problema de seguridad</target>
       </segment>
     </unit>
     <unit id="3750896546807006672">
@@ -14693,12 +13925,6 @@
         <target>Evaluación pendiente</target>
       </segment>
     </unit>
-    <unit id="1629110082218932522">
-      <segment state="initial">
-        <source>Short summary</source>
-        <target>Resumen breve</target>
-      </segment>
-    </unit>
     <unit id="1632949913064020849">
       <segment state="initial">
         <source>Dismissed</source>
@@ -14795,12 +14021,6 @@
         <target>No disponible</target>
       </segment>
     </unit>
-    <unit id="3845136227654022046">
-      <segment state="initial">
-        <source>Harassment or hate</source>
-        <target>Acoso u odio</target>
-      </segment>
-    </unit>
     <unit id="3849719587486813146">
       <segment state="initial">
         <source> PK Spot is a free, privacy-first, community-owned map for parkour. The project is built entirely by volunteers to help athletes find spots, connect, and share their local scene. </source>
@@ -14823,12 +14043,6 @@
       <segment state="initial">
         <source>Spot deleted</source>
         <target>Spot eliminado</target>
-      </segment>
-    </unit>
-    <unit id="3888833967297756994">
-      <segment state="initial">
-        <source>Spot preview</source>
-        <target>Vista previa del Spot</target>
       </segment>
     </unit>
     <unit id="389079921595754695">
@@ -14897,12 +14111,6 @@
         <target> Este evento no es público. Solo los administradores pueden verlo. </target>
       </segment>
     </unit>
-    <unit id="2712309340716220855">
-      <segment state="initial">
-        <source> Keep the reference above. If you submitted as a guest, use the private verification link sent to your email to view updates or add information. </source>
-        <target>Guarda la referencia anterior. Si lo enviaste como invitado, usa el enlace privado de verificación enviado a tu correo para ver actualizaciones o añadir información.</target>
-      </segment>
-    </unit>
     <unit id="2715740819906435675">
       <segment state="initial">
         <source> Media is processing and will appear here when it is ready. </source>
@@ -14921,28 +14129,10 @@
         <target>Publicar actualización en directo</target>
       </segment>
     </unit>
-    <unit id="5788471518451110162">
-      <segment state="initial">
-        <source>Complex target</source>
-        <target>Plazo complejo</target>
-      </segment>
-    </unit>
     <unit id="5789685393585856728">
       <segment state="initial">
         <source>Unverified contact email</source>
         <target>Correo de contacto sin verificar</target>
-      </segment>
-    </unit>
-    <unit id="579084822382819407">
-      <segment state="initial">
-        <source>Photo or video</source>
-        <target>Foto o vídeo</target>
-      </segment>
-    </unit>
-    <unit id="1806667489382256324">
-      <segment state="initial">
-        <source>Category</source>
-        <target>Categoría</target>
       </segment>
     </unit>
     <unit id="1814768182936887464">
@@ -15041,18 +14231,6 @@
         <target>Filtrar por categoría de evento</target>
       </segment>
     </unit>
-    <unit id="3480235560414212524">
-      <segment state="initial">
-        <source> Reports are private. We keep the information needed to investigate, prevent abuse, explain decisions, and handle an appeal. Network and device security metadata is removed after 90 days. </source>
-        <target>Los informes son privados. Conservamos la información necesaria para investigar, evitar abusos, explicar decisiones y tramitar una apelación. Los metadatos de seguridad de red y dispositivo se eliminan después de 90 días.</target>
-      </segment>
-    </unit>
-    <unit id="3482739346708355755">
-      <segment state="initial">
-        <source>Authenticated:</source>
-        <target>Autenticado:</target>
-      </segment>
-    </unit>
     <unit id="3483311644139102304">
       <segment state="initial">
         <source>All Event Challenges</source>
@@ -15071,12 +14249,6 @@
         <target>Mutuals</target>
       </segment>
     </unit>
-    <unit id="3493029941798879288">
-      <segment state="initial">
-        <source>Case status</source>
-        <target>Estado del caso</target>
-      </segment>
-    </unit>
     <unit id="3493126540529865490">
       <notes>
         <note category="description">submitting label</note>
@@ -15090,12 +14262,6 @@
       <segment state="initial">
         <source>Program item</source>
         <target>Elemento del programa</target>
-      </segment>
-    </unit>
-    <unit id="3496653775940285146">
-      <segment state="initial">
-        <source>Use 5–140 characters.</source>
-        <target>Usa entre 5 y 140 caracteres.</target>
       </segment>
     </unit>
     <unit id="4590398956969854643">
@@ -15158,12 +14324,6 @@
         <target>Se revocó la elegibilidad de adulto de <ph id="0" equiv="PH" disp="processed"/> cuenta(s)</target>
       </segment>
     </unit>
-    <unit id="4666565275327863925">
-      <segment state="initial">
-        <source>Message to the reviewer</source>
-        <target>Mensaje para la persona revisora</target>
-      </segment>
-    </unit>
     <unit id="4667715772382848347">
       <segment state="initial">
         <source>Profile not found</source>
@@ -15212,12 +14372,6 @@
         <target> Spot </target>
       </segment>
     </unit>
-    <unit id="3026495784849747398">
-      <segment state="initial">
-        <source>Record decision</source>
-        <target>Registrar decisión</target>
-      </segment>
-    </unit>
     <unit id="3031673576218082316">
       <segment state="initial">
         <source>The selected file was too big. It must be smaller than <ph id="0" equiv="PH" disp="humanFileSize( this.maximumSizeInBytes(), )"/>.</source>
@@ -15228,12 +14382,6 @@
       <segment state="initial">
         <source> Automated scanning requires a manual check. </source>
         <target> El análisis automático requiere una comprobación manual. </target>
-      </segment>
-    </unit>
-    <unit id="3056581983954040276">
-      <segment state="initial">
-        <source> Use the private safety channel for content or account reports, complaints about PK Spot, and appeals against a decision. You do not need an account. </source>
-        <target>Usa el canal privado de seguridad para informar sobre contenido o cuentas, presentar reclamaciones sobre PK Spot y apelar una decisión. No necesitas una cuenta.</target>
       </segment>
     </unit>
     <unit id="3067846330176969856">
@@ -15258,18 +14406,6 @@
       <segment state="initial">
         <source>Choose organization</source>
         <target>Elegir organización</target>
-      </segment>
-    </unit>
-    <unit id="2075947254275135132">
-      <segment state="initial">
-        <source>Problem making a report</source>
-        <target>Problema al enviar un informe</target>
-      </segment>
-    </unit>
-    <unit id="2077570493331103831">
-      <segment state="initial">
-        <source>Triaged as soon as possible</source>
-        <target>Clasificación lo antes posible</target>
       </segment>
     </unit>
     <unit id="2081295007072116210">
@@ -15312,12 +14448,6 @@
       <segment state="initial">
         <source> Everything on this page is public. Do not add your address, school, private training spots, phone number, or anything that shows where you usually are. </source>
         <target> Todo en esta página es público. No añadas tu dirección, escuela, spots privados de entrenamiento, teléfono ni nada que muestre dónde sueles estar. </target>
-      </segment>
-    </unit>
-    <unit id="2734022681675842051">
-      <segment state="initial">
-        <source>Priority</source>
-        <target>Prioridad</target>
       </segment>
     </unit>
     <unit id="2735597846335347226">

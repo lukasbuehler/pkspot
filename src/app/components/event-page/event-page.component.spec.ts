@@ -1,4 +1,6 @@
 import { LocationStrategy } from "@angular/common";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { LOCALE_ID, PLATFORM_ID, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -85,6 +87,19 @@ describe("EventInfoPageComponent", () => {
   afterEach(() => {
     vi.useRealTimers();
     TestBed.resetTestingModule();
+  });
+
+  it("keeps ownership claim requests hidden until rollout verification", () => {
+    const template = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/event-page/event-page.component.html",
+      ),
+      "utf8",
+    );
+
+    expect(template).not.toContain("canRequestOwnership");
+    expect(template).not.toContain("ownershipClaimRequested");
   });
 
   it("exposes dummy event info as text and structured data for crawlers", () => {

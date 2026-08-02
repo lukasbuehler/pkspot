@@ -388,8 +388,14 @@ describe("EventsPageComponent", () => {
     expect(component.drafts()).toEqual([draft]);
     expect(component.createActions().map((action) => action.id)).toEqual([
       "event",
-      "session",
     ]);
+  });
+
+  it("does not offer event or session creation to non-admin users", async () => {
+    const { component } = createComponent({ signedIn: true });
+    await flushResources();
+
+    expect(component.createActions()).toEqual([]);
   });
 
   it("opens invalid event previews for admins only", async () => {

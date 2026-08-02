@@ -4245,19 +4245,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.spotMap?.createSpot();
   }
 
-  onImportSpots(): void {
-    this._analytics.trackEvent("map_import_spots_clicked");
-    void this.router.navigate(["/kml-import"]);
-  }
-
   onCreateEvent(): void {
     this._analytics.trackEvent("map_create_event_clicked");
     void this.router.navigate(["/events/new"]);
-  }
-
-  onPlanSession(): void {
-    this._analytics.trackEvent("map_plan_session_clicked");
-    void this.router.navigate(["/events/session/new"]);
   }
 
   onResetNorth(): void {

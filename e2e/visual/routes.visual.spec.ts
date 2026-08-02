@@ -18,6 +18,7 @@ interface RouteVisualCase {
   eventIndexFixture?: boolean;
   liveEventFixture?: boolean;
   fixedTime?: string;
+  scrollToSelector?: string;
 }
 
 const desktopViewport = { width: 1280, height: 900 };
@@ -88,22 +89,11 @@ const routeVisualCases: RouteVisualCase[] = [
     fixedTime: "2026-07-20T12:00:00.000Z",
   },
   {
-    name: "events-plan-session-fab",
-    path: "/events",
-    viewport: mobileViewport,
-    signedIn: true,
-    eventIndexFixture: true,
-    liveEventFixture: true,
-    fixedTime: "2026-08-01T11:00:00.000Z",
-    maxDiffPixels: 2_000,
-  },
-  {
-    name: "events-fab-menu-expanded",
+    name: "events-admin-create",
     path: "/events",
     viewport: mobileViewport,
     signedIn: true,
     admin: true,
-    openFabMenu: true,
     eventIndexFixture: true,
     fixedTime: "2026-07-20T12:00:00.000Z",
     maxDiffPixels: 2_000,
@@ -119,13 +109,6 @@ const routeVisualCases: RouteVisualCase[] = [
     openInvalidEventsDialog: true,
     fixedTime: "2026-07-20T12:00:00.000Z",
     maxDiffPixels: 2_000,
-  },
-  {
-    name: "session-planner",
-    path: "/events/session/new",
-    signedIn: true,
-    fullPage: true,
-    maxDiffPixels: 4_000,
   },
   {
     name: "event-ownership-claim-inbox",
@@ -166,6 +149,21 @@ const routeVisualCases: RouteVisualCase[] = [
     path: "/settings/general",
     signedIn: true,
     fullPage: true,
+    maxDiffPixels: 1_500,
+  },
+  {
+    name: "settings-notifications",
+    path: "/settings/notifications",
+    signedIn: true,
+    fullPage: true,
+    maxDiffPixels: 1_500,
+  },
+  {
+    name: "settings-notifications-mobile",
+    path: "/settings/notifications",
+    viewport: mobileViewport,
+    signedIn: true,
+    scrollToSelector: ".notification-table-section",
     maxDiffPixels: 1_500,
   },
   {
@@ -746,6 +744,10 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
 
   if (route.eventMapLayout) {
     await waitForStableEventMap(page, route.eventMapLayout);
+  }
+
+  if (route.scrollToSelector) {
+    await page.locator(route.scrollToSelector).first().scrollIntoViewIfNeeded();
   }
 }
 

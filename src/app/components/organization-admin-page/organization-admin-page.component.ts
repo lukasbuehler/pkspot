@@ -13,12 +13,14 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIcon } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { ActivatedRoute } from "@angular/router";
 import { firstValueFrom, Subscription } from "rxjs";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import {
   OrganizationDocument,
   OrganizationsService,
 } from "../../services/firebase/firestore/organizations.service";
+import { MediaUploadStatusService } from "../../services/firebase/firestore/media-upload-status.service";
 import { StorageService } from "../../services/firebase/storage.service";
 import { StorageImage } from "../../../db/models/Media";
 import { StorageBucket } from "../../../db/schemas/Media";
@@ -48,9 +50,11 @@ type OrganizationFormTarget = "create" | "edit";
 })
 export class OrganizationAdminPageComponent implements OnDestroy {
   private readonly organizationsService = inject(OrganizationsService);
+  private readonly mediaUploadStatusService = inject(MediaUploadStatusService);
   private readonly storageService = inject(StorageService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly route = inject(ActivatedRoute);
   readonly authService = inject(AuthenticationService);
 
   readonly organizations = signal<OrganizationDocument[]>([]);
@@ -77,30 +81,53 @@ export class OrganizationAdminPageComponent implements OnDestroy {
   readonly isAdmin = signal(false);
   readonly isSaving = signal(false);
   readonly authResolved = this.authService.initialAuthStateResolved;
-  private readonly authSubscription: Subscription;
+  private readonly subscriptions = new Subscription();
+  private requestedOrganizationId = "";
   private hasLoadedOrganizations = false;
 
   constructor() {
-    this.authSubscription = this.authService.authState$.subscribe(() => {
-      const isAdmin = this.authService.user.data?.isAdmin === true;
-      this.isAdmin.set(isAdmin);
-      if (isAdmin && !this.hasLoadedOrganizations) {
-        this.hasLoadedOrganizations = true;
-        void this.reload();
-      }
-    });
+    this.subscriptions.add(
+      this.route.queryParamMap.subscribe((params) => {
+        this.requestedOrganizationId = params.get("organization")?.trim() ?? "";
+        if (
+          this.requestedOrganizationId &&
+          this.organizations().some(
+            (organization) => organization.id === this.requestedOrganizationId,
+          )
+        ) {
+          this.selectOrganization(this.requestedOrganizationId);
+        }
+      }),
+    );
+    this.subscriptions.add(
+      this.authService.authState$.subscribe(() => {
+        const isAdmin = this.authService.user.data?.isAdmin === true;
+        this.isAdmin.set(isAdmin);
+        if (isAdmin && !this.hasLoadedOrganizations) {
+          this.hasLoadedOrganizations = true;
+          void this.reload();
+        }
+      }),
+    );
   }
 
   ngOnDestroy(): void {
-    this.authSubscription.unsubscribe();
+    this.subscriptions.unsubscribe();
     this.revokePreview(this.newOrgLogoPreview());
     this.revokePreview(this.editOrgLogoPreview());
   }
 
   async reload(): Promise<void> {
-    this.organizations.set(
-      await this.organizationsService.getOrganizations(),
-    );
+    const organizations = await this.organizationsService.getOrganizations();
+    this.organizations.set(organizations);
+    if (
+      this.requestedOrganizationId &&
+      organizations.some(
+        (organization) => organization.id === this.requestedOrganizationId,
+      )
+    ) {
+      this.selectOrganization(this.requestedOrganizationId);
+    }
   }
 
   async chooseLogo(event: Event, target: OrganizationFormTarget): Promise<void> {
@@ -339,7 +366,12 @@ export class OrganizationAdminPageComponent implements OnDestroy {
       "organization",
       organizationId,
     );
-    return new StorageImage(result.url).getSrc(800);
+    const publishedUrl = result.uploadId
+      ? await this.mediaUploadStatusService.waitForPublishedUpload(
+          result.uploadId,
+        )
+      : result.url;
+    return new StorageImage(publishedUrl).getSrc(800);
   }
 
   private resetCreateForm(): void {

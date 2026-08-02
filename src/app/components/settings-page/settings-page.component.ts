@@ -3,7 +3,6 @@ import {
   OnInit,
   ViewChild,
   ChangeDetectionStrategy,
-  signal,
 } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
@@ -55,15 +54,8 @@ import {
 import type {
   TemperatureUnitPreference,
 } from "../../weather/weather-temperature";
-import { NotificationPreferencesService } from "../../services/notification-preferences.service";
-import { PushNotificationsService } from "../../services/push-notifications.service";
-import type { NotificationPreferenceKey } from "../../../db/schemas/NotificationSchema";
-import { MatDialog } from "@angular/material/dialog";
-import { EventNotificationSubscriptionsDialogComponent } from "../event-notification-subscriptions-dialog/event-notification-subscriptions-dialog.component";
 import { AgeAssuranceStatusCardComponent } from "../age-assurance-status-card/age-assurance-status-card.component";
-import { CommunityFollowsService } from "../../services/firebase/firestore/community-follows.service";
-import type { CommunityFollowDocument } from "../../../db/schemas/CommunityFollowSchema";
-import { EventNotificationMigrationService } from "../../services/event-notification-migration.service";
+import { NotificationSettingsComponent } from "../notification-settings/notification-settings.component";
 
 @Component({
   selector: "app-settings-page",
@@ -91,6 +83,7 @@ import { EventNotificationMigrationService } from "../../services/event-notifica
     RouterLink,
     ContributionStatusNoteComponent,
     AgeAssuranceStatusCardComponent,
+    NotificationSettingsComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { ngSkipHydration: "true" },
@@ -99,7 +92,6 @@ export class SettingsPageComponent implements OnInit {
   readonly appVersion = version;
   readonly crew = crew;
   readonly appCheckStatus = this._appCheckService.status;
-  readonly communityFollows = signal<CommunityFollowDocument[]>([]);
   @ViewChild("editProfileComponent") editProfileComponent:
     | EditProfileComponent
     | undefined;
@@ -117,11 +109,6 @@ export class SettingsPageComponent implements OnInit {
     private _analytics: AnalyticsService,
     private _usersService: UsersService,
     private _appCheckService: FirebaseAppCheckService,
-    public notificationPreferences: NotificationPreferencesService,
-    public pushNotifications: PushNotificationsService,
-    private _dialog: MatDialog,
-    private _communityFollows: CommunityFollowsService,
-    private _eventNotificationMigration: EventNotificationMigrationService,
   ) {}
   languageCodes = languageCodes;
 
@@ -293,8 +280,6 @@ export class SettingsPageComponent implements OnInit {
     this.authService.authState$.subscribe((user) => {
       this.emailAddress = user?.email;
       this.syncProfileAccessSettings();
-      if (user?.uid) void this.loadCommunityFollows();
-      else this.communityFollows.set([]);
       if (!user || !user.uid) {
         this.router.navigate(["/account"]);
       }
@@ -341,135 +326,6 @@ export class SettingsPageComponent implements OnInit {
         "OK",
         { duration: 5000 },
       );
-    });
-  }
-
-  async setNotificationPreference(
-    key: NotificationPreferenceKey,
-    enabled: boolean,
-  ): Promise<boolean> {
-    try {
-      let systemEnabled = this.pushNotifications.systemAllowsNotifications();
-      if (enabled && !systemEnabled) {
-        systemEnabled =
-          await this.pushNotifications.requestPermissionFromUserAction();
-      }
-
-      await this.notificationPreferences.setPreference(key, enabled);
-      if (
-        enabled &&
-        (key === "event_reminders" || key === "event_updates")
-      ) {
-        await this._eventNotificationMigration.reconcile();
-      }
-      if (enabled && !systemEnabled) {
-        this._snackbar.open(
-          $localize`:@@settings.notifications.system_blocked_snackbar:PK Spot notifications are enabled, but your device is blocking them. You can allow them in system settings.`,
-          $localize`:@@settings.notifications.ok:OK`,
-          { duration: 7000 },
-        );
-      }
-      return true;
-    } catch (error) {
-      console.error("Error saving notification preference:", error);
-      this._snackbar.open(
-        $localize`:@@settings.notifications.save_error:Could not save notification preference.`,
-        $localize`:@@settings.notifications.ok:OK`,
-        { duration: 5000 },
-      );
-      return false;
-    }
-  }
-
-  reminderOffsetEnabled(offset: number): boolean {
-    return this.notificationPreferences
-      .preferences()
-      .event_reminder_offsets_minutes.includes(offset);
-  }
-
-  toggleReminderOffset(offset: number): void {
-    const current =
-      this.notificationPreferences.preferences().event_reminder_offsets_minutes;
-    const next = current.includes(offset)
-      ? current.filter((value) => value !== offset)
-      : [...current, offset];
-    void this.notificationPreferences
-      .setDefaultEventReminderOffsets(next)
-      .then(() =>
-        this.notificationPreferences.preferences().event_reminders
-          ? this._eventNotificationMigration.reconcile()
-          : undefined,
-      )
-      .catch((error) => {
-        console.error("Error saving reminder times:", error);
-        this._snackbar.open(
-          $localize`:@@settings.notifications.save_error:Could not save notification preference.`,
-          $localize`:@@settings.notifications.ok:OK`,
-          { duration: 5000 },
-        );
-      });
-  }
-
-  async setCommunityNotification(
-    follow: CommunityFollowDocument,
-    kind: "events" | "spots",
-    enabled: boolean,
-  ): Promise<void> {
-    try {
-      if (enabled) {
-        const globalPreferenceSaved = await this.setNotificationPreference(
-          kind === "events" ? "community_events" : "community_spot_digest",
-          true,
-        );
-        if (!globalPreferenceSaved) return;
-      }
-      await this._communityFollows.setNotifications(follow.community_key, {
-        ...(kind === "events" ? { eventNotifications: enabled } : {}),
-        ...(kind === "spots" ? { spotDigestNotifications: enabled } : {}),
-      });
-      this.communityFollows.update((items) =>
-        items.map((item) =>
-          item.community_key === follow.community_key
-            ? {
-                ...item,
-                ...(kind === "events"
-                  ? { event_notifications: enabled }
-                  : { spot_digest_notifications: enabled }),
-              }
-            : item,
-        ),
-      );
-    } catch (error) {
-      console.error("Error saving community notification preference:", error);
-      this._snackbar.open(
-        $localize`:@@settings.notifications.community_save_error:Could not save community notification preference.`,
-        $localize`:@@settings.notifications.ok:OK`,
-        { duration: 5000 },
-      );
-    }
-  }
-
-  private async loadCommunityFollows(): Promise<void> {
-    try {
-      this.communityFollows.set(await this._communityFollows.listMine());
-    } catch (error) {
-      console.warn("Could not load followed communities", error);
-      this.communityFollows.set([]);
-    }
-  }
-
-  openNotificationSystemSettings(): void {
-    void this.pushNotifications.openSystemSettings().catch((error) => {
-      console.error("Could not open system notification settings", error);
-    });
-  }
-
-  openEventNotificationSubscriptions(): void {
-    this._dialog.open(EventNotificationSubscriptionsDialogComponent, {
-      width: "min(640px, calc(100vw - 32px))",
-      maxWidth: "100vw",
-      maxHeight: "calc(100vh - 32px)",
-      autoFocus: false,
     });
   }
 

@@ -56,6 +56,11 @@ interface SpotPreviewSearchOptions {
   viewportZoom: number;
 }
 
+export interface SpotSaveResult {
+  spotId: SpotId;
+  editId: string | null;
+}
+
 /**
  *
  *
@@ -449,7 +454,7 @@ export class SpotMapDataManager {
   async saveSpot(
     spot: Spot | LocalSpot,
     originalSpot?: Spot | LocalSpot
-  ): Promise<SpotId> {
+  ): Promise<SpotSaveResult> {
     // Ensure user is authenticated
     const authUid = this._authService.user?.uid;
     if (!this._authService.isSignedIn || !authUid) {
@@ -475,25 +480,24 @@ export class SpotMapDataManager {
       }
 
       if (Object.keys(diffData).length === 0) {
-        return spotId;
+        return { spotId, editId: null };
       }
 
-      await this._spotEditsService.createSpotUpdateEdit(
+      const editId = await this._spotEditsService.createSpotUpdateEdit(
         spotId,
         diffData,
         userReference,
         originalSpot?.data()
       );
-      return spotId;
+      return { spotId, editId };
     } else {
       // New spot - use the proper flow: create spot document first (server-side ID),
       // then create a CREATE edit for it
       const spotData = spot.data();
-      const spotId = await this._spotEditsService.createSpotWithEdit(
+      return this._spotEditsService.createSpotWithEdit(
         spotData,
         userReference
       );
-      return spotId;
     }
   }
 

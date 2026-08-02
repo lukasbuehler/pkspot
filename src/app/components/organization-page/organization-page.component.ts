@@ -64,6 +64,7 @@ export class OrganizationPageComponent implements OnInit {
   readonly isMembersLoading = signal(false);
   readonly canViewMembers = signal(false);
   readonly errorMessage = signal<string | null>(null);
+  readonly isAdmin = this._authService.isAdmin;
 
   readonly logoBackground = computed(
     () =>
