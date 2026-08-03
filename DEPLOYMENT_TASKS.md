@@ -82,6 +82,24 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
+### Cloud Functions dependency security patches
+
+The lockfile-only updates are backward compatible and do not change callable,
+Firestore, or notification contracts. They take effect in production only after
+the Functions runtime is redeployed; updating `main` is not required.
+
+- [ ] From the verified `development` revision, deploy all Cloud Functions so
+      every runtime receives the patched transitive dependencies:
+
+      ```sh
+      npx firebase deploy --project prod --only functions
+      ```
+
+      Verify `npm audit --omit=dev --prefix functions` reports zero
+      vulnerabilities, all deployed Functions return to `ACTIVE`, scheduled
+      notification processing continues, and Functions logs show no new startup
+      or module-loading errors. Remove this section after verification.
+
 ### Firebase JS SDK client migration
 
 No Firebase backend deployment, schema migration, rules change, or data backfill

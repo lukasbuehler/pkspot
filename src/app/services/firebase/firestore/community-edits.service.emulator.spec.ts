@@ -351,6 +351,10 @@ runWithEmulator("CommunityEditsService emulator integration", () => {
       rating: 0,
       num_reviews: 0,
       media: [],
+      // This suite exercises the explicit merge callables. Defer the separate
+      // spot-write rebuild trigger so it cannot race the merge/unmerge rebuild
+      // on slower CI runners.
+      community_rebuild_deferred: true,
     });
     const writes: Promise<unknown>[] = [];
     for (let index = 0; index < 5; index += 1) {
