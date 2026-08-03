@@ -77,21 +77,6 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
-### Unified profile privacy
-
-Deploy the additive age-policy normalization before releasing the unified
-Public/Private profile control. Older clients continue to read the existing
-fields; the updated Functions only keep those fields aligned when adult public
-profile eligibility is absent or revoked.
-
-- [ ] Deploy `updateAgePolicy`, `updateAgePolicyV2`, `updateAgePolicyV3`, and
-      `invalidateAgeAssuranceApprovals` to `europe-west1`, then verify a
-      non-verified test account is written with `account_privacy: "private"`,
-      `profile_visibility: "followers"`, `public_profile_enabled: false`, and
-      `public_search: false`. Verify an independently approved 18+ account can
-      still save the unified Public choice and that a private profile creates a
-      follow request while a public profile creates follower edges immediately.
-
 ### Firebase JS SDK client migration
 
 No Firebase backend deployment, schema migration, rules change, or data backfill
@@ -332,14 +317,6 @@ release. Re-enable them only in the dedicated follow-up described in
 Keep these steps in order. The production `events_v1` schema is aligned with the
 repository schema, including optional location bounds and the new searchable
 presentation/type fields.
-
-- [ ] Verify the deployed event-creation restriction before releasing 1.1.4.
-      A non-admin client write to `/events/{eventId}` must be denied,
-      an administrator can still create a public event, and released clients can
-      still list and open `/events` and write their existing RSVP, registration,
-      and notification subcollections. This tightening is compatible with
-      released clients because event/session creation has not been exposed in
-      those builds.
 
 - [ ] Keep `legacyEventListCompatibilityEnabled()` enabled while supported
       released clients still list the canonical `/events` collection. During
