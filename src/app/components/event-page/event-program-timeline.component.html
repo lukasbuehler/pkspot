@@ -64,7 +64,7 @@
       [id]="'program-panel-' + day.key"
       [attr.aria-labelledby]="'program-tab-' + day.key"
     >
-      <!-- @if (day.weather; as weather) {
+      @if (day.weather; as weather) {
         <div class="day-weather-row">
           <app-weather-icon-button
             [weather]="weather.data"
@@ -72,7 +72,7 @@
             (pressed)="selectDayWeather(day.key)"
           />
         </div>
-      } -->
+      }
       <app-event-program-day-timeline
         [entries]="day.items"
         [dayKey]="day.key"
