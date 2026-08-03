@@ -135,6 +135,35 @@ export interface NotificationActionStateSchema {
   undo_until_raw_ms?: number;
 }
 
+export interface NotificationRegistrationDeliveryDiagnosticSchema {
+  registration_id: string;
+  platform: NotificationPlatform;
+  app_version: string;
+  locale: string;
+  accepted: boolean;
+  message_id?: string;
+  error_code?: string;
+}
+
+export interface NotificationPlatformDeliveryDiagnosticSchema {
+  attempted_count: number;
+  accepted_count: number;
+  failed_count: number;
+}
+
+/** FCM acceptance telemetry. It does not prove that the OS displayed a notification. */
+export interface NotificationDeliveryDiagnosticsSchema {
+  attempt: number;
+  attempted_at_raw_ms: number;
+  attempted_count: number;
+  accepted_count: number;
+  failed_count: number;
+  platforms: Partial<
+    Record<NotificationPlatform, NotificationPlatformDeliveryDiagnosticSchema>
+  >;
+  registrations: NotificationRegistrationDeliveryDiagnosticSchema[];
+}
+
 export interface PerformNotificationActionRequest {
   notificationId: string;
   actionId: NotificationActionId;
@@ -192,6 +221,7 @@ export interface NotificationIntentSchema {
   cancelled_at?: Timestamp;
   failure_reason?: string;
   delivery_count?: number;
+  delivery_diagnostics?: NotificationDeliveryDiagnosticsSchema;
 }
 
 export interface InAppNotificationSchema {

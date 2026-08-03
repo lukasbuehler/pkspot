@@ -8,7 +8,8 @@
 
 .section-heading,
 .state-row,
-.update-detail {
+.update-detail,
+.timing-change {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -78,6 +79,18 @@
   width: 18px;
   height: 18px;
   font-size: 18px;
+}
+
+.timing-change {
+  gap: 0.4rem;
+}
+
+.timing-change mat-icon {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  color: var(--mat-sys-primary);
 }
 
 .state-row {

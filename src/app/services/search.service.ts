@@ -2489,6 +2489,13 @@ function readTicketPrice(
   return undefined;
 }
 
+function readFixedTicketPrice(
+  value: unknown,
+): EventTicketOptionSchema["original_price"] | undefined {
+  const price = readTicketPrice(value);
+  return price && "amount" in price ? price : undefined;
+}
+
 function readEventTicketOptions(value: unknown): EventTicketOptionSchema[] {
   if (!Array.isArray(value)) return [];
   return value.reduce<EventTicketOptionSchema[]>((tickets, item, index) => {
@@ -2501,6 +2508,7 @@ function readEventTicketOptions(value: unknown): EventTicketOptionSchema[] {
       description: readString(item["description"]),
       url: readString(item["url"]),
       price: readTicketPrice(item["price"]),
+      original_price: readFixedTicketPrice(item["original_price"]),
       availability: readTicketAvailability(item["availability"]),
       badge: readTicketBadge(item["badge"]),
     });

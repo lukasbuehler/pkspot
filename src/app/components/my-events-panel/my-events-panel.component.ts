@@ -16,7 +16,7 @@ import {
   eventScheduleLabel,
 } from "../event-display/event-display.helpers";
 
-type MyEventsTab = "going" | "saved";
+type MyEventsTab = "going" | "saved" | "past";
 
 interface MyEventRow {
   event: PkEvent;
@@ -39,36 +39,52 @@ export class MyEventsPanelComponent {
 
   readonly goingEvents = input<readonly PkEvent[]>([]);
   readonly savedEvents = input<readonly PkEvent[]>([]);
+  readonly now = input(new Date());
   readonly signedIn = input(false);
+  private readonly _savedEventGroups = computed(() => {
+    const now = this.now();
+    const upcoming: PkEvent[] = [];
+    const past: PkEvent[] = [];
+    for (const event of this.savedEvents()) {
+      (event.isPast(now) ? past : upcoming).push(event);
+    }
+    return { upcoming, past };
+  });
+  readonly upcomingSavedEvents = computed(
+    () => this._savedEventGroups().upcoming,
+  );
+  readonly pastSavedEvents = computed(() => this._savedEventGroups().past);
   readonly selectedTab = linkedSignal<
-    { going: number; saved: number },
+    { going: number; saved: number; past: number },
     MyEventsTab
   >({
     source: () => ({
       going: this.goingEvents().length,
-      saved: this.savedEvents().length,
+      saved: this.upcomingSavedEvents().length,
+      past: this.pastSavedEvents().length,
     }),
     computation: (source, previous) => {
-      if (
-        (previous?.value === "going" && source.going > 0) ||
-        (previous?.value === "saved" && source.saved > 0)
-      ) {
+      if (previous?.value && source[previous.value] > 0) {
         return previous.value;
       }
-      return source.going > 0 ? "going" : "saved";
+      if (source.going > 0) return "going";
+      if (source.saved > 0) return "saved";
+      return source.past > 0 ? "past" : "saved";
     },
   });
-  readonly rows = computed<MyEventRow[]>(() =>
-    (this.selectedTab() === "going"
-      ? this.goingEvents()
-      : this.savedEvents()
-    ).map((event) => ({
+  readonly rows = computed<MyEventRow[]>(() => {
+    const events = {
+      going: this.goingEvents(),
+      saved: this.upcomingSavedEvents(),
+      past: this.pastSavedEvents(),
+    }[this.selectedTab()];
+    return events.map((event) => ({
       event,
       logoBackgroundColor: event.effectiveBadgeLogoBackgroundColor(),
       logoFit: event.effectiveBadgeLogoFit(),
       logoSrc: eventImageDisplaySrc(event.effectiveBadgeLogoSrc()),
       route: ["/events", event.slug ?? event.id],
       schedule: eventScheduleLabel(event, this._dateTime, "short"),
-    })),
-  );
+    }));
+  });
 }

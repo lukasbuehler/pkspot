@@ -30,6 +30,28 @@ const UPDATE_TYPE_LABELS: Readonly<Record<EventLiveUpdateType, string>> = {
   general_update: $localize`General event update`,
 };
 
+const STANDARD_UPDATE_TITLES: Readonly<
+  Partial<Record<EventLiveUpdateType, string>>
+> = {
+  event_cancelled: "Event cancelled",
+  event_restored: "Event restored",
+  event_rescheduled: "Event rescheduled",
+  program_item_update: "Program item updated",
+  program_plan_activated: "Event plan changed",
+  meet_up_time: "Meet-up time",
+  location_spot_change: "Location/Spot change",
+  schedule_change: "Schedule change",
+  weather_update: "Weather update",
+  session_starting_soon: "Session starting soon",
+  general_update: "General event update",
+};
+
+interface LiveUpdateViewModel {
+  update: EventLiveUpdate;
+  displayTitle?: string;
+  timingChange?: string;
+}
+
 @Component({
   selector: "app-event-live-updates",
   host: {
@@ -52,6 +74,16 @@ export class EventLiveUpdatesComponent {
   readonly failed = signal(false);
   readonly isEmpty = computed(
     () => !this.loading() && !this.failed() && this.updates().length === 0,
+  );
+  readonly updateItems = computed<LiveUpdateViewModel[]>(() =>
+    this.updates().map((update) => ({
+      update,
+      displayTitle:
+        STANDARD_UPDATE_TITLES[update.type] === update.title
+          ? undefined
+          : update.title,
+      timingChange: this.rescheduleTimingChange(update),
+    })),
   );
 
   constructor() {
@@ -96,4 +128,83 @@ export class EventLiveUpdatesComponent {
       this.event().inlineSpots.find((spot) => spot.id === spotId)?.name ?? spotId
     );
   }
+
+  private rescheduleTimingChange(update: EventLiveUpdate): string | undefined {
+    if (update.type !== "event_rescheduled") return undefined;
+    const changedPair = changedTimingPair(
+      update.previousScheduledFor,
+      update.scheduledFor,
+      update.previousScheduledUntil,
+      update.scheduledUntil,
+    );
+    if (!changedPair) return undefined;
+
+    const timeZone = this.event().timeZone;
+    const dateKey = (date: Date): string =>
+      this.dateTime.format(date, {
+        timeZone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+    const delta = formatTimingDelta(
+      changedPair[1].getTime() - changedPair[0].getTime(),
+    );
+    if (dateKey(changedPair[0]) === dateKey(changedPair[1])) {
+      const date = this.dateTime.format(changedPair[0], {
+        timeZone,
+        dateStyle: "medium",
+      });
+      const previousTime = this.dateTime.format(changedPair[0], {
+        timeZone,
+        timeStyle: "short",
+      });
+      const nextTime = this.dateTime.format(changedPair[1], {
+        timeZone,
+        timeStyle: "short",
+      });
+      return `${date}, ${previousTime} → ${nextTime} (${delta})`;
+    }
+    const previous = this.dateTime.format(changedPair[0], {
+      timeZone,
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+    const next = this.dateTime.format(changedPair[1], {
+      timeZone,
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+    return `${previous} → ${next} (${delta})`;
+  }
+}
+
+function changedTimingPair(
+  previousStart: Date | undefined,
+  nextStart: Date | undefined,
+  previousEnd: Date | undefined,
+  nextEnd: Date | undefined,
+): readonly [Date, Date] | undefined {
+  if (previousStart && nextStart && previousStart.getTime() !== nextStart.getTime()) {
+    return [previousStart, nextStart];
+  }
+  if (previousEnd && nextEnd && previousEnd.getTime() !== nextEnd.getTime()) {
+    return [previousEnd, nextEnd];
+  }
+  return undefined;
+}
+
+function formatTimingDelta(milliseconds: number): string {
+  const sign = milliseconds >= 0 ? "+" : "-";
+  let minutes = Math.round(Math.abs(milliseconds) / 60_000);
+  const days = Math.floor(minutes / (24 * 60));
+  minutes -= days * 24 * 60;
+  const hours = Math.floor(minutes / 60);
+  minutes -= hours * 60;
+  const parts = [
+    ...(days ? [`${days} d`] : []),
+    ...(hours ? [`${hours} h`] : []),
+    ...(minutes || (!days && !hours) ? [`${minutes} min`] : []),
+  ];
+  return `${sign}${parts.join(" ")}`;
 }

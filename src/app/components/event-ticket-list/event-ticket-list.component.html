@@ -1,0 +1,115 @@
+<div class="ticket-list app-card" role="list">
+  @for (view of ticketViewModels(); track view.ticket.id) {
+    <article
+      class="ticket-row"
+      role="listitem"
+      [attr.data-discounted]="view.discountPercentageLabel ? true : null"
+    >
+      <div class="ticket-copy">
+        <div class="ticket-title-row">
+          <h3 class="ticket-title mat-title-large">{{ view.ticket.label }}</h3>
+          @if (view.badgeLabel) {
+            <span class="ticket-badge mat-label-small">
+              {{ view.badgeLabel }}
+            </span>
+          }
+        </div>
+
+        @if (view.ticket.description) {
+          <p
+            #description
+            appResizeObserver
+            class="ticket-description mat-body-medium"
+            [class.ticket-description--collapsed]="
+              !isDescriptionExpanded(view.ticket.id)
+            "
+            [id]="view.descriptionId"
+            (resize)="syncDescriptionOverflow(view.ticket.id, description)"
+          >
+            {{ view.ticket.description }}
+          </p>
+          @if (isDescriptionOverflowing(view.ticket.id)) {
+            <button
+              type="button"
+              mat-button
+              class="ticket-description-toggle"
+              [attr.aria-controls]="view.descriptionId"
+              [attr.aria-expanded]="isDescriptionExpanded(view.ticket.id)"
+              (click)="toggleDescription(view.ticket.id)"
+            >
+              <mat-icon aria-hidden="true">
+                {{
+                  isDescriptionExpanded(view.ticket.id)
+                    ? "expand_less"
+                    : "expand_more"
+                }}
+              </mat-icon>
+              @if (isDescriptionExpanded(view.ticket.id)) {
+                <span i18n="@@event_tickets.show_less">Show less</span>
+              } @else {
+                <span i18n="@@event_tickets.show_more">Show more</span>
+              }
+            </button>
+          }
+        }
+
+        @if (view.availabilityLabel) {
+          <p
+            class="ticket-availability mat-label-medium"
+            [attr.data-availability]="view.ticket.availability"
+          >
+            {{ view.availabilityLabel }}
+          </p>
+        }
+      </div>
+
+      <div class="ticket-price-block">
+        @if (view.originalPriceLabel) {
+          <span class="ticket-original-price mat-body-medium">
+            {{ view.originalPriceLabel }}
+          </span>
+        }
+        <span
+          class="ticket-price"
+          [class.mat-title-large]="view.originalPriceLabel"
+          [class.mat-title-medium]="!view.originalPriceLabel"
+        >
+          {{ view.priceLabel }}
+        </span>
+        @if (view.discountPercentageLabel) {
+          <span class="ticket-discount mat-label-medium">
+            {{ view.discountPercentageLabel }}
+          </span>
+        }
+      </div>
+
+      <div class="ticket-action-cell">
+        @if (view.actionKind === "get_ticket") {
+          <a
+            mat-flat-button
+            class="ticket-action"
+            [href]="view.ticket.url"
+            target="_blank"
+            rel="noopener noreferrer"
+            (click)="openTicket(view.ticket)"
+          >
+            <mat-icon aria-hidden="true">open_in_new</mat-icon>
+            <span i18n="@@event_tickets.get_ticket">Get ticket</span>
+          </a>
+        } @else if (view.actionKind === "view_details") {
+          <a
+            mat-button
+            class="ticket-action ticket-action--details"
+            [href]="view.ticket.url"
+            target="_blank"
+            rel="noopener noreferrer"
+            (click)="openTicket(view.ticket)"
+          >
+            <mat-icon aria-hidden="true">open_in_new</mat-icon>
+            <span i18n="@@event_tickets.view_details">View details</span>
+          </a>
+        }
+      </div>
+    </article>
+  }
+</div>

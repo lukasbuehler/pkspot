@@ -56,6 +56,31 @@ describe("EventLiveUpdatesComponent", () => {
       "Live updates could not be loaded",
     );
   });
+
+  it("shows what changed without repeating the untranslated reschedule title", async () => {
+    const updates = new BehaviorSubject<EventLiveUpdate[]>([
+      new EventLiveUpdate("update-2", {
+        event_id: "event-1",
+        type: "event_rescheduled",
+        title: "Event rescheduled",
+        previous_scheduled_for: Timestamp.fromDate(new Date("2099-07-21T09:45:00Z")),
+        previous_scheduled_until: Timestamp.fromDate(new Date("2099-07-21T17:45:00Z")),
+        scheduled_for: Timestamp.fromDate(new Date("2099-07-21T10:00:00Z")),
+        scheduled_until: Timestamp.fromDate(new Date("2099-07-21T18:00:00Z")),
+        status: "published",
+        created_at: Timestamp.now(),
+        created_by: "organizer-1",
+        published_at: Timestamp.now(),
+      }),
+    ]);
+    const fixture = createComponent(updates);
+    await fixture.whenStable();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text.match(/Event rescheduled/g)).toHaveLength(1);
+    expect(fixture.nativeElement.querySelector(".timing-change")?.textContent).toContain("→");
+    expect(fixture.nativeElement.querySelector(".timing-change")?.textContent).toContain("+15 min");
+  });
 });
 
 function createComponent(updates: BehaviorSubject<EventLiveUpdate[]> | null) {

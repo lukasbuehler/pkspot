@@ -4485,6 +4485,16 @@
         <source> Range min </source>
       </segment>
     </unit>
+    <unit id="event_edit.ticket_original_amount">
+      <segment>
+        <source> Original price </source>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_original_amount_hint">
+      <segment>
+        <source> Optional; must be higher than the fixed price </source>
+      </segment>
+    </unit>
     <unit id="event_edit.ticket_remove">
       <segment>
         <source>Remove ticket option</source>
@@ -5490,11 +5500,6 @@
         <source> Event notifications </source>
       </segment>
     </unit>
-    <unit id="event_tickets.availability.available">
-      <segment>
-        <source>Available</source>
-      </segment>
-    </unit>
     <unit id="event_tickets.availability.coming_soon">
       <segment>
         <source>Coming soon</source>
@@ -5540,19 +5545,34 @@
         <source>Regular</source>
       </segment>
     </unit>
+    <unit id="event_tickets.get_ticket">
+      <segment>
+        <source>Get ticket</source>
+      </segment>
+    </unit>
     <unit id="event_tickets.heading">
       <segment>
         <source> Tickets </source>
       </segment>
     </unit>
-    <unit id="event_tickets.open">
-      <segment>
-        <source>Open</source>
-      </segment>
-    </unit>
     <unit id="event_tickets.price_unknown">
       <segment>
         <source>Price TBA</source>
+      </segment>
+    </unit>
+    <unit id="event_tickets.show_less">
+      <segment>
+        <source>Show less</source>
+      </segment>
+    </unit>
+    <unit id="event_tickets.show_more">
+      <segment>
+        <source>Show more</source>
+      </segment>
+    </unit>
+    <unit id="event_tickets.view_details">
+      <segment>
+        <source>View details</source>
       </segment>
     </unit>
     <unit id="event_unlisted.meta.description">
@@ -6714,6 +6734,16 @@
     <unit id="my_events.saved_empty">
       <segment>
         <source> Save an event to find it here later. </source>
+      </segment>
+    </unit>
+    <unit id="my_events.past">
+      <segment>
+        <source>Past</source>
+      </segment>
+    </unit>
+    <unit id="my_events.past_empty">
+      <segment>
+        <source> Saved events will appear here after they end. </source>
       </segment>
     </unit>
     <unit id="my_events.tabs_aria">

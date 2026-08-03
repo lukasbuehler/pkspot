@@ -10,13 +10,17 @@ import {
 describe("EventLiveUpdate", () => {
   it("maps the Firestore event live update contract", () => {
     const publishedAt = Timestamp.fromDate(new Date("2026-07-21T12:00:00Z"));
+    const previousStart = Timestamp.fromDate(new Date("2026-07-21T11:45:00Z"));
+    const nextEnd = Timestamp.fromDate(new Date("2026-07-21T14:00:00Z"));
     const update = new EventLiveUpdate("update-1", {
       event_id: "event-1",
       type: "location_spot_change",
       title: "Meet at the west entrance",
       message: "The main entrance is closed.",
       event_spot_id: "west-entrance",
+      previous_scheduled_for: previousStart,
       scheduled_for: publishedAt,
+      scheduled_until: nextEnd,
       status: "published",
       created_at: publishedAt,
       created_by: "organizer-1",
@@ -28,6 +32,8 @@ describe("EventLiveUpdate", () => {
     expect(update.type).toBe("location_spot_change");
     expect(update.publishedAt.toISOString()).toBe("2026-07-21T12:00:00.000Z");
     expect(update.eventSpotId).toBe("west-entrance");
+    expect(update.previousScheduledFor?.toISOString()).toBe("2026-07-21T11:45:00.000Z");
+    expect(update.scheduledUntil?.toISOString()).toBe("2026-07-21T14:00:00.000Z");
   });
 
   it("keeps the controlled MVP types and copy limits stable", () => {

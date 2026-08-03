@@ -7,8 +7,11 @@ import type { EventId, EventSchema } from "../../../db/schemas/EventSchema";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 import { MyEventsPanelComponent } from "./my-events-panel.component";
 
-const buildEvent = (extra: Partial<EventSchema> = {}): PkEvent =>
-  new PkEvent("wpf-camp" as EventId, {
+const buildEvent = (
+  extra: Partial<EventSchema> = {},
+  id = "wpf-camp",
+): PkEvent =>
+  new PkEvent(id as EventId, {
     name: "WPF Camp 2026",
     slug: "wpf-camp-2026",
     venue_string: "Campingplatz Waldhort",
@@ -68,5 +71,53 @@ describe("MyEventsPanelComponent", () => {
         .nativeElement.textContent,
     ).toContain("event");
     expect(fixture.debugElement.query(By.css(".my-event-icon img"))).toBeNull();
+  });
+
+  it("keeps past saved events in a separate tab", async () => {
+    const now = new Date("2026-08-03T12:00:00Z");
+    const upcoming = buildEvent({}, "upcoming-event");
+    const past = buildEvent(
+      {
+        name: "British Parkour Championships",
+        slug: "british-parkour-championships",
+        start: "2026-08-01T10:00:00Z",
+        end: "2026-08-02T18:00:00Z",
+      },
+      "past-event",
+    );
+    const fixture = createComponent(upcoming);
+    fixture.componentRef.setInput("goingEvents", []);
+    fixture.componentRef.setInput("savedEvents", [upcoming, past]);
+    fixture.componentRef.setInput("now", now);
+
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.selectedTab()).toBe("saved");
+    expect(fixture.componentInstance.rows().map(({ event }) => event.id)).toEqual([
+      "upcoming-event",
+    ]);
+    expect(
+      fixture.debugElement.query(By.css('mat-button-toggle[value="saved"]'))
+        .nativeElement.textContent,
+    ).toContain("1");
+    expect(
+      fixture.debugElement.query(By.css('mat-button-toggle[value="past"]'))
+        .nativeElement.textContent,
+    ).toContain("1");
+
+    (
+      fixture.debugElement.query(
+        By.css('mat-button-toggle[value="past"] button'),
+      ).nativeElement as HTMLButtonElement
+    ).click();
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.selectedTab()).toBe("past");
+    expect(fixture.componentInstance.rows().map(({ event }) => event.id)).toEqual([
+      "past-event",
+    ]);
+    expect(fixture.nativeElement.textContent).toContain(
+      "British Parkour Championships",
+    );
   });
 });

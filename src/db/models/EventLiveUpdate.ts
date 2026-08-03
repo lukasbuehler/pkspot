@@ -19,7 +19,10 @@ export class EventLiveUpdate {
   readonly type: EventLiveUpdateType;
   readonly title: string;
   readonly message?: string;
+  readonly previousScheduledFor?: Date;
+  readonly previousScheduledUntil?: Date;
   readonly scheduledFor?: Date;
+  readonly scheduledUntil?: Date;
   readonly eventSpotId?: string;
   readonly status: "published";
   readonly createdAt: Date;
@@ -31,8 +34,17 @@ export class EventLiveUpdate {
     this.type = data.type;
     this.title = data.title;
     this.message = data.message;
+    this.previousScheduledFor = data.previous_scheduled_for
+      ? toDate(data.previous_scheduled_for)
+      : undefined;
+    this.previousScheduledUntil = data.previous_scheduled_until
+      ? toDate(data.previous_scheduled_until)
+      : undefined;
     this.scheduledFor = data.scheduled_for
       ? toDate(data.scheduled_for)
+      : undefined;
+    this.scheduledUntil = data.scheduled_until
+      ? toDate(data.scheduled_until)
       : undefined;
     this.eventSpotId = data.event_spot_id;
     this.status = data.status;

@@ -209,6 +209,7 @@ describe("Event", () => {
           id: "early",
           label: "Early bird",
           price: { amount: 35, currency: "CHF" },
+          original_price: { amount: 50, currency: "CHF" },
           sale_ends_at: "2026-06-01T00:00:00.000Z",
           badge: "early_bird",
         },
@@ -221,6 +222,7 @@ describe("Event", () => {
         id: "early",
         label: "Early bird",
         price: { amount: 35, currency: "CHF" },
+        originalPrice: { amount: 50, currency: "CHF" },
         badge: "early_bird",
       }),
     );

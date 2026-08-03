@@ -160,7 +160,6 @@
   top: 0.75rem;
   z-index: 2;
 }
-.ticket-option,
 .featured-participant,
 .map-preview,
 app-event-program-timeline {
@@ -187,10 +186,6 @@ app-event-program-timeline {
   place-items: center;
   background: color-mix(in srgb, var(--mat-sys-tertiary) 18%, transparent);
   border-radius: 13px;
-}
-
-.ticket-option {
-  padding: 1rem;
 }
 
 .featured-participant-grid {
@@ -260,9 +255,6 @@ a.featured-participant-name {
 .qualification-title,
 .qualification-copy,
 .qualifier-label,
-.ticket-description,
-.ticket-availability,
-.ticket-price,
 .map-preview-title {
   margin: 0;
 }
@@ -291,59 +283,8 @@ a.featured-participant-name {
   margin-top: 0.75rem;
 }
 
-.ticket-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 0.75rem;
-}
-
-.ticket-option {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 1rem;
-  align-items: start;
-}
-
-.ticket-title-row,
-.ticket-side {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.ticket-title-row {
-  flex-wrap: wrap;
-}
-
-.ticket-side {
-  flex-direction: column;
-  align-items: flex-end;
-}
-
-.ticket-badge {
-  padding: 0.15rem 0.45rem;
-  border-radius: 999px;
-  color: var(--mat-sys-on-tertiary-container);
-  background: var(--mat-sys-tertiary-container);
-}
-
-.ticket-availability {
-  margin: 0.5rem 0 0;
+.ticket-heading-icon {
   color: var(--mat-sys-on-surface-variant);
-}
-
-.ticket-description {
-  margin-top: 0.35rem;
-  color: var(--mat-sys-on-surface-variant);
-}
-
-.ticket-availability[data-availability="sold_out"],
-.ticket-availability[data-availability="ended"] {
-  color: var(--mat-sys-error);
-}
-
-.ticket-price {
-  white-space: nowrap;
 }
 
 .map-preview {
@@ -445,14 +386,6 @@ a.featured-participant-name {
 
   .event-nav-action--duplicated {
     display: none;
-  }
-
-  .ticket-option {
-    grid-template-columns: 1fr;
-  }
-
-  .ticket-side {
-    align-items: flex-start;
   }
 
   .qualification-event-grid {

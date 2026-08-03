@@ -32,7 +32,12 @@
     <mat-button-toggle value="saved">
       <mat-icon>bookmark</mat-icon>
       <span i18n="@@my_events.saved">Saved</span>
-      <span class="tab-count">{{ savedEvents().length }}</span>
+      <span class="tab-count">{{ upcomingSavedEvents().length }}</span>
+    </mat-button-toggle>
+    <mat-button-toggle value="past">
+      <mat-icon>history</mat-icon>
+      <span i18n="@@my_events.past">Past</span>
+      <span class="tab-count">{{ pastSavedEvents().length }}</span>
     </mat-button-toggle>
   </mat-button-toggle-group>
 
@@ -72,9 +77,13 @@
         <span i18n="@@my_events.going_empty">
           Events you mark as going will appear here.
         </span>
-      } @else {
+      } @else if (selectedTab() === "saved") {
         <span i18n="@@my_events.saved_empty">
           Save an event to find it here later.
+        </span>
+      } @else {
+        <span i18n="@@my_events.past_empty">
+          Saved events will appear here after they end.
         </span>
       }
     </p>

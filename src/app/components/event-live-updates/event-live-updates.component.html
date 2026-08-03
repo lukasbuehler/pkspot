@@ -22,7 +22,8 @@
         Live updates could not be loaded.
       </p>
     } @else {
-      @for (update of updates(); track update.id) {
+      @for (item of updateItems(); track item.update.id) {
+        @let update = item.update;
         <article class="update-item">
           <div class="update-meta">
             <span>{{ updateTypeLabel(update.type) }}</span>
@@ -30,11 +31,18 @@
               {{ formatTimestamp(update.publishedAt) }}
             </time>
           </div>
-          <h3 class="mat-title-small">{{ update.title }}</h3>
+          @if (item.timingChange) {
+            <h3 class="mat-title-small timing-change">
+              <mat-icon>schedule</mat-icon>
+              <span>{{ item.timingChange }}</span>
+            </h3>
+          } @else if (item.displayTitle) {
+            <h3 class="mat-title-small">{{ item.displayTitle }}</h3>
+          }
           @if (update.message) {
             <p>{{ update.message }}</p>
           }
-          @if (update.scheduledFor) {
+          @if (update.scheduledFor && !item.timingChange) {
             <p class="update-detail">
               <mat-icon>schedule</mat-icon>
               <span>{{ formatTimestamp(update.scheduledFor) }}</span>

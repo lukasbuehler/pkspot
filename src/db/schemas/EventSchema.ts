@@ -372,6 +372,7 @@ export interface EventTicketOptionSchema {
   description_i18n?: LocaleMap | Record<string, string>;
   url?: string;
   price?: EventTicketPriceFixedSchema | EventTicketPriceRangeSchema;
+  original_price?: EventTicketPriceFixedSchema;
   availability?: EventTicketAvailability;
   sale_starts_at?: Timestamp;
   sale_ends_at?: Timestamp;

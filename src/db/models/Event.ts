@@ -62,6 +62,7 @@ export interface EventTicketOption {
   descriptionI18n?: LocaleMap;
   url?: string;
   price?: EventTicketOptionSchema["price"];
+  originalPrice?: EventTicketOptionSchema["original_price"];
   availability?: EventTicketAvailability;
   saleStartsAt?: Date;
   saleEndsAt?: Date;
@@ -234,6 +235,7 @@ export class Event {
       descriptionI18n: Event.mapLocaleMap(option.description_i18n),
       url: option.url,
       price: option.price,
+      originalPrice: option.original_price,
       availability: option.availability,
       saleStartsAt: option.sale_starts_at
         ? Event.toDate(option.sale_starts_at)

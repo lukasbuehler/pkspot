@@ -368,10 +368,15 @@ runWithEmulator("EventLiveUpdatesService emulator integration", () => {
     expect(update.data()).toEqual(expect.objectContaining({
       type: "event_rescheduled",
       title: "Event rescheduled",
+      previous_scheduled_for: originalStart,
+      scheduled_for: nextStart,
     }));
     await waitForDocument(
       `notification_intents/event_live_update_${eventId}_${update.id}_${attendeeId}`,
-      (data) => data["status"] === "pending",
+      (data) =>
+        data["status"] === "pending" &&
+        data["payload"]?.["previous_start_ms"] === String(originalStart.toMillis()) &&
+        data["payload"]?.["next_start_ms"] === String(nextStart.toMillis()),
     );
     const reminder = await waitForDocument(
       `notification_intents/event_reminder_${eventId}_${attendeeId}`,

@@ -20,6 +20,7 @@ interface RouteVisualCase {
   fixedTime?: string;
   scrollToSelector?: string;
   assertCenteredProfile?: boolean;
+  ticketLayout?: "desktop" | "mobile";
 }
 
 const desktopViewport = { width: 1280, height: 900 };
@@ -124,6 +125,26 @@ const routeVisualCases: RouteVisualCase[] = [
     path: "/events/swissjam25",
     viewport: eventHeaderViewport,
     maxDiffPixels: 4_000,
+  },
+  {
+    name: "event-tickets",
+    path: "/events/visual-ticket-event",
+    eventIndexFixture: true,
+    fixedTime: "2026-07-20T12:00:00.000Z",
+    scrollToSelector: ".ticket-section",
+    ticketLayout: "desktop",
+    maxDiffPixels: 2_000,
+  },
+  {
+    name: "event-tickets-mobile",
+    path: "/events/visual-ticket-event",
+    viewport: mobileViewport,
+    eventIndexFixture: true,
+    fixedTime: "2026-07-20T12:00:00.000Z",
+    scrollToSelector: ".ticket-section",
+    ticketLayout: "mobile",
+    fullPage: true,
+    maxDiffPixels: 2_000,
   },
   {
     name: "event-map",
@@ -357,6 +378,67 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
               event_categories: ["jam"],
               series_ids: ["community-jam-series"],
               rsvp_counts: { going: 8, interested: 4, notgoing: 0, total: 12 },
+            },
+            {
+              id: "visual-ticket-event",
+              slug: "visual-ticket-event",
+              name: "Movement Weekend",
+              organizer_name: "PK Spot Community",
+              venue_string: "Movement Hall",
+              locality_string: "Zurich, Switzerland",
+              start: "2026-09-19T09:00:00.000Z",
+              end: "2026-09-20T18:00:00.000Z",
+              time_zone: "Europe/Zurich",
+              event_categories: ["camp"],
+              ticket_options: [
+                {
+                  id: "weekend",
+                  label: "Full weekend pass",
+                  description:
+                    "Access to both event days, all open training areas, workshops, and the Saturday evening community session.",
+                  url: "https://tickets.example/weekend",
+                  price: { amount: 90, currency: "CHF" },
+                  original_price: { amount: 120, currency: "CHF" },
+                  availability: "available",
+                  badge: "discount",
+                },
+                {
+                  id: "supporter",
+                  label: "Supporter pass with flexible contribution",
+                  description:
+                    "Choose an amount within the range. Every contribution helps fund the youth program and keeps community sessions accessible.",
+                  url: "https://tickets.example/supporter",
+                  price: {
+                    min_amount: 110,
+                    max_amount: 160,
+                    currency: "CHF",
+                  },
+                  availability: "waitlist",
+                  badge: "member",
+                },
+                {
+                  id: "saturday",
+                  label: "Saturday day pass",
+                  description: "All Saturday activities and workshops.",
+                  url: "https://tickets.example/saturday",
+                  price: { amount: 49, currency: "CHF" },
+                  availability: "sold_out",
+                },
+                {
+                  id: "sunday",
+                  label: "Sunday day pass",
+                  description: "All Sunday activities and workshops.",
+                  price: { amount: 49, currency: "CHF" },
+                  availability: "coming_soon",
+                  badge: "early_bird",
+                },
+                {
+                  id: "team",
+                  label: "Team experience",
+                  url: "https://tickets.example/team",
+                  availability: "ended",
+                },
+              ],
             },
             {
               id: "visual-skills-open",
@@ -795,6 +877,52 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
 
   if (route.scrollToSelector) {
     await page.locator(route.scrollToSelector).first().scrollIntoViewIfNeeded();
+  }
+
+  if (route.ticketLayout) {
+    await assertTicketLayout(page, route.ticketLayout);
+  }
+}
+
+async function assertTicketLayout(
+  page: Page,
+  layout: "desktop" | "mobile",
+): Promise<void> {
+  const list = page.locator("app-event-ticket-list .ticket-list");
+  await expect(list).toBeVisible();
+
+  const measurements = await list.evaluate((element) => {
+    const rows = [...element.querySelectorAll<HTMLElement>(".ticket-row")];
+    const firstPrice = rows[0]?.querySelector<HTMLElement>(".ticket-price");
+    const firstPriceBlock = rows[0]?.querySelector<HTMLElement>(
+      ".ticket-price-block",
+    );
+    const firstAction = rows[0]?.querySelector<HTMLElement>(".ticket-action");
+    const priceRect = firstPrice?.getBoundingClientRect();
+    const actionRect = firstAction?.getBoundingClientRect();
+    return {
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+      rowOverflows: rows.some((row) => row.scrollWidth > row.clientWidth),
+      priceTop: priceRect?.top,
+      priceBlockWidth: firstPriceBlock?.getBoundingClientRect().width,
+      actionTop: actionRect?.top,
+      priceLeft: priceRect?.left,
+      actionLeft: actionRect?.left,
+    };
+  });
+
+  expect(measurements.scrollWidth).toBeLessThanOrEqual(measurements.clientWidth);
+  expect(measurements.rowOverflows).toBe(false);
+  expect(measurements.priceTop).toBeDefined();
+  expect(measurements.actionTop).toBeDefined();
+
+  if (layout === "mobile") {
+    expect(measurements.priceTop!).toBeLessThan(measurements.actionTop!);
+    expect(measurements.priceLeft!).toBeLessThan(measurements.actionLeft!);
+    expect(measurements.priceBlockWidth).toBeLessThan(measurements.clientWidth);
+  } else {
+    expect(measurements.priceLeft!).toBeLessThan(measurements.actionLeft!);
   }
 }
 

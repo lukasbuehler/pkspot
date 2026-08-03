@@ -193,6 +193,7 @@ type EditableTicketOption = {
   url: string;
   currency: string;
   amount: number | null;
+  originalAmount: number | null;
   minAmount: number | null;
   maxAmount: number | null;
   availability: EventTicketAvailability;
@@ -941,6 +942,7 @@ export class EventEditFormComponent {
             ticket.price && "amount" in ticket.price
               ? ticket.price.amount
               : null,
+          originalAmount: ticket.originalPrice?.amount ?? null,
           minAmount:
             ticket.price && "min_amount" in ticket.price
               ? ticket.price.min_amount
@@ -1557,6 +1559,7 @@ export class EventEditFormComponent {
         url: "",
         currency: "CHF",
         amount: null,
+        originalAmount: null,
         minAmount: null,
         maxAmount: null,
         availability: "available",
@@ -1592,7 +1595,7 @@ export class EventEditFormComponent {
 
   updateTicketNumber(
     id: string,
-    field: "amount" | "minAmount" | "maxAmount",
+    field: "amount" | "originalAmount" | "minAmount" | "maxAmount",
     value: number,
   ): void {
     this.updateTicketOption(id, {
@@ -2728,6 +2731,7 @@ export class EventEditFormComponent {
           description_i18n: ticket.descriptionI18n,
           url: safeExternalUrl(ticket.url) ?? undefined,
           price,
+          original_price: buildTicketOriginalPrice(ticket, price),
           availability: ticket.availability,
           sale_starts_at: timestampFromDateInput(ticket.saleStartsAt),
           sale_ends_at: timestampFromDateInput(ticket.saleEndsAt),
@@ -3271,6 +3275,23 @@ function buildTicketPrice(
   }
 
   return undefined;
+}
+
+function buildTicketOriginalPrice(
+  ticket: EditableTicketOption,
+  price: EventTicketOptionSchema["price"] | undefined,
+): EventTicketOptionSchema["original_price"] | undefined {
+  if (
+    !price ||
+    !("amount" in price) ||
+    ticket.originalAmount === null ||
+    !Number.isFinite(ticket.originalAmount) ||
+    ticket.originalAmount <= price.amount
+  ) {
+    return undefined;
+  }
+
+  return { amount: ticket.originalAmount, currency: price.currency };
 }
 
 function dateInputValue(date: Date | undefined): string {

@@ -1229,6 +1229,28 @@
                         />
                       </mat-form-field>
                       <mat-form-field appearance="outline">
+                        <mat-label i18n="@@event_edit.ticket_original_amount">
+                          Original price
+                        </mat-label>
+                        <input
+                          matInput
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          [value]="ticket.originalAmount ?? ''"
+                          (input)="
+                            updateTicketNumber(
+                              ticket.id,
+                              'originalAmount',
+                              $any($event.target).valueAsNumber
+                            )
+                          "
+                        />
+                        <mat-hint i18n="@@event_edit.ticket_original_amount_hint">
+                          Optional; must be higher than the fixed price
+                        </mat-hint>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline">
                         <mat-label i18n="@@event_edit.ticket_min">
                           Range min
                         </mat-label>

@@ -130,6 +130,24 @@ live-update metadata.
       a non-production test event. Confirm the event page, event map, in-app
       notification, and push deep link all show the same resulting state.
 
+- [ ] Deploy `onEventNotificationSourceWrite`, `applyEventOperationalChange`,
+      `onEventLiveUpdateCreate`, and `sendDueNotificationIntents` with the
+      backend-normalization source guard, additive reschedule timing payload,
+      and FCM delivery diagnostics.
+      On a non-production event, trigger a server timing
+      normalization and confirm reminder intents move without creating an
+      `event_rescheduled` live update or attendee push. Then perform a genuine
+      organizer reschedule and confirm it still creates exactly one update and
+      eligible attendee notification showing the previous and new event time.
+      Release the compatible client and confirm the live-update card shows the
+      same change without repeating the English backend title below its localized
+      type label. Send one notification to an account with at least two platform
+      registrations and verify the intent records per-platform and
+      per-registration acceptance, sanitized error codes, app versions, and
+      aggregate counts without copying registration tokens. Confirm the stored
+      acceptance result is described as FCM transport acceptance rather than
+      proof of OS display.
+
 ### Notification center actions and report outcomes
 
 The additive callable, projections, triggers, and rules are deployed. Complete

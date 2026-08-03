@@ -43,7 +43,10 @@ export interface EventLiveUpdateSchema {
   type: EventLiveUpdateType;
   title: string;
   message?: string;
+  previous_scheduled_for?: Timestamp;
+  previous_scheduled_until?: Timestamp;
   scheduled_for?: Timestamp;
+  scheduled_until?: Timestamp;
   event_spot_id?: string;
   operation_id?: string;
   operation_type?: EventOperationType;

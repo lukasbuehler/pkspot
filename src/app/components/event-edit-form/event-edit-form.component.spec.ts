@@ -852,6 +852,40 @@ describe("EventEditFormComponent", () => {
     expect(saveSpy.mock.calls[0][0].external_source).toBeNull();
   });
 
+  it("preserves and serializes a valid original ticket price", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    fixture.componentRef.setInput(
+      "event",
+      eventWith("event-1", {
+        ticket_options: [
+          {
+            id: "discount",
+            label: "Discount pass",
+            price: { amount: 60, currency: "CHF" },
+            original_price: { amount: 90, currency: "CHF" },
+            badge: "discount",
+          },
+        ],
+      }),
+    );
+    fixture.detectChanges();
+
+    expect(component.ticketOptions()[0].originalAmount).toBe(90);
+    await component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0].ticket_options[0]).toEqual(
+      expect.objectContaining({
+        price: { amount: 60, currency: "CHF" },
+        original_price: { amount: 90, currency: "CHF" },
+      }),
+    );
+  });
+
   it("keeps a plain-text organizer when no PK Spot organization is selected", async () => {
     const fixture = await setup();
     const component = fixture.componentInstance;

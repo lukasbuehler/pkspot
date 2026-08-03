@@ -213,7 +213,10 @@ export const applyEventOperationalChange = onCall(
       };
       let programPlanId: string | undefined;
       let programItemId: string | undefined;
+      let previousScheduledFor: Timestamp | undefined;
+      let previousScheduledUntil: Timestamp | undefined;
       let scheduledFor: Timestamp | undefined;
+      let scheduledUntil: Timestamp | undefined;
 
       switch (input.operation) {
         case "cancel_event":
@@ -248,7 +251,16 @@ export const applyEventOperationalChange = onCall(
             end_time: endCivil.time,
             mode: "exact",
           };
+          const previousStartMs = timestampMillis(current.start);
+          const previousEndMs = timestampMillis(current.end);
+          previousScheduledFor = previousStartMs === null
+            ? undefined
+            : Timestamp.fromMillis(previousStartMs);
+          previousScheduledUntil = previousEndMs === null
+            ? undefined
+            : Timestamp.fromMillis(previousEndMs);
           scheduledFor = Timestamp.fromDate(start);
+          scheduledUntil = Timestamp.fromDate(end);
           break;
         }
         case "activate_program_plan": {
@@ -326,7 +338,18 @@ export const applyEventOperationalChange = onCall(
           type: copy.type,
           title: copy.title,
           ...(copy.message ? { message: copy.message } : {}),
+          ...(previousScheduledFor ? {
+            previous_scheduled_for:
+              previousScheduledFor as EventLiveUpdateSchema["previous_scheduled_for"],
+          } : {}),
+          ...(previousScheduledUntil ? {
+            previous_scheduled_until:
+              previousScheduledUntil as EventLiveUpdateSchema["previous_scheduled_until"],
+          } : {}),
           ...(scheduledFor ? { scheduled_for: scheduledFor as EventLiveUpdateSchema["scheduled_for"] } : {}),
+          ...(scheduledUntil ? {
+            scheduled_until: scheduledUntil as EventLiveUpdateSchema["scheduled_until"],
+          } : {}),
           operation_id: operationId,
           operation_type: input.operation,
           ...(programPlanId ? { program_plan_id: programPlanId } : {}),
@@ -505,6 +528,10 @@ export const onEventLiveUpdateCreate = onDocumentCreated(
     }
 
     const recipients = [...recipientIds].slice(0, MAX_RECIPIENTS_PER_UPDATE);
+    const previousStartMs = timestampMillis(update.previous_scheduled_for);
+    const previousEndMs = timestampMillis(update.previous_scheduled_until);
+    const nextStartMs = timestampMillis(update.scheduled_for);
+    const nextEndMs = timestampMillis(update.scheduled_until);
     await Promise.all(
       recipients.map((recipientUid) =>
         createIntent(
@@ -526,6 +553,15 @@ export const onEventLiveUpdateCreate = onDocumentCreated(
               ...(update.operation_type ? { operation_type: update.operation_type } : {}),
               update_title: update.title,
               ...(update.message ? { update_message: update.message } : {}),
+              ...(previousStartMs === null
+                ? {}
+                : { previous_start_ms: String(previousStartMs) }),
+              ...(previousEndMs === null
+                ? {}
+                : { previous_end_ms: String(previousEndMs) }),
+              ...(nextStartMs === null ? {} : { next_start_ms: String(nextStartMs) }),
+              ...(nextEndMs === null ? {} : { next_end_ms: String(nextEndMs) }),
+              ...(eventData.time_zone ? { time_zone: eventData.time_zone } : {}),
               ...(update.event_spot_id ? { event_spot_id: update.event_spot_id } : {}),
             },
           },

@@ -1965,6 +1965,18 @@
         <target> Salva un evento per ritrovarlo qui in seguito. </target>
       </segment>
     </unit>
+    <unit id="my_events.past">
+      <segment state="translated">
+        <source>Past</source>
+        <target>Passati</target>
+      </segment>
+    </unit>
+    <unit id="my_events.past_empty">
+      <segment state="translated">
+        <source> Saved events will appear here after they end. </source>
+        <target> Gli eventi salvati appariranno qui al termine. </target>
+      </segment>
+    </unit>
     <unit id="my_events.tabs_aria">
       <segment state="initial">
         <source>My event list</source>
@@ -8915,6 +8927,18 @@
         <target> Rango mín. </target>
       </segment>
     </unit>
+    <unit id="event_edit.ticket_original_amount">
+      <segment state="translated">
+        <source> Original price </source>
+        <target> Prezzo originale </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.ticket_original_amount_hint">
+      <segment state="translated">
+        <source> Optional; must be higher than the fixed price </source>
+        <target> Facoltativo; deve essere superiore al prezzo fisso </target>
+      </segment>
+    </unit>
     <unit id="event_edit.ticket_remove">
       <segment state="initial">
         <source>Remove ticket option</source>
@@ -15084,12 +15108,6 @@
         <target> Notifiche degli eventi </target>
       </segment>
     </unit>
-    <unit id="event_tickets.availability.available">
-      <segment state="initial">
-        <source>Available</source>
-        <target>Disponibile</target>
-      </segment>
-    </unit>
     <unit id="event_tickets.availability.coming_soon">
       <segment state="initial">
         <source>Coming soon</source>
@@ -15144,22 +15162,40 @@
         <target>Regolare</target>
       </segment>
     </unit>
+    <unit id="event_tickets.get_ticket">
+      <segment state="translated">
+        <source>Get ticket</source>
+        <target>Ottieni il biglietto</target>
+      </segment>
+    </unit>
     <unit id="event_tickets.heading">
       <segment state="initial">
         <source> Tickets </source>
         <target> Biglietti </target>
       </segment>
     </unit>
-    <unit id="event_tickets.open">
-      <segment state="initial">
-        <source>Open</source>
-        <target>Apri</target>
-      </segment>
-    </unit>
     <unit id="event_tickets.price_unknown">
       <segment state="initial">
         <source>Price TBA</source>
         <target>Prezzo da definire</target>
+      </segment>
+    </unit>
+    <unit id="event_tickets.show_less">
+      <segment state="translated">
+        <source>Show less</source>
+        <target>Mostra meno</target>
+      </segment>
+    </unit>
+    <unit id="event_tickets.show_more">
+      <segment state="translated">
+        <source>Show more</source>
+        <target>Mostra di più</target>
+      </segment>
+    </unit>
+    <unit id="event_tickets.view_details">
+      <segment state="translated">
+        <source>View details</source>
+        <target>Vedi dettagli</target>
       </segment>
     </unit>
     <unit id="event_unlisted.meta.description">

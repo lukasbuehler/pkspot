@@ -104,6 +104,7 @@ import {
 } from "../event-ownership-claim-dialog/event-ownership-claim-dialog.component";
 import { EventProgramDayChipsComponent } from "../event-program-day-chips/event-program-day-chips.component";
 import { EventNowNextCardComponent } from "../event-now-next-card/event-now-next-card.component";
+import { EventTicketListComponent } from "../event-ticket-list/event-ticket-list.component";
 import {
   eventProgramDays,
   eventProgramLocationVisits,
@@ -160,6 +161,7 @@ type ProgramMapMarker = MarkerSchema & {
     EventRegistrationManagerComponent,
     EventProgramDayChipsComponent,
     EventNowNextCardComponent,
+    EventTicketListComponent,
   ],
   templateUrl: "./event-page.component.html",
   styleUrl: "./event-page.component.scss",
@@ -1307,54 +1309,6 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       // Program entries remain crawlable page content. They are not standalone
       // Google events because they do not have their own canonical leaf pages.
     };
-  }
-
-  formatTicketPrice(ticket: EventTicketOption): string {
-    const price = ticket.price;
-    if (!price) {
-      return $localize`:@@event_tickets.price_unknown:Price TBA`;
-    }
-    if ("amount" in price) {
-      return this._formatCurrency(price.amount, price.currency);
-    }
-    return `${this._formatCurrency(
-      price.min_amount,
-      price.currency,
-    )} - ${this._formatCurrency(price.max_amount, price.currency)}`;
-  }
-
-  ticketAvailabilityLabel(ticket: EventTicketOption): string {
-    switch (ticket.availability) {
-      case "available":
-        return $localize`:@@event_tickets.availability.available:Available`;
-      case "coming_soon":
-        return $localize`:@@event_tickets.availability.coming_soon:Coming soon`;
-      case "sold_out":
-        return $localize`:@@event_tickets.availability.sold_out:Sold out`;
-      case "waitlist":
-        return $localize`:@@event_tickets.availability.waitlist:Waitlist`;
-      case "ended":
-        return $localize`:@@event_tickets.availability.ended:Ended`;
-      default:
-        return "";
-    }
-  }
-
-  ticketBadgeLabel(ticket: EventTicketOption): string {
-    switch (ticket.badge) {
-      case "early_bird":
-        return $localize`:@@event_tickets.badge.early_bird:Early bird`;
-      case "discount":
-        return $localize`:@@event_tickets.badge.discount:Discount`;
-      case "regular":
-        return $localize`:@@event_tickets.badge.regular:Regular`;
-      case "late":
-        return $localize`:@@event_tickets.badge.late:Late`;
-      case "member":
-        return $localize`:@@event_tickets.badge.member:Member`;
-      default:
-        return "";
-    }
   }
 
   featuredParticipantRoleLabel(

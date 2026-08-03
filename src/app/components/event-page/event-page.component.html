@@ -559,61 +559,21 @@
             <h2 class="mat-title-large m-0" i18n="@@event_tickets.heading">
               Tickets
             </h2>
-            <mat-icon>local_activity</mat-icon>
+            <mat-icon class="ticket-heading-icon" aria-hidden="true">
+              local_activity
+            </mat-icon>
           </div>
-          <div class="ticket-grid">
-            @for (ticket of ticketOptions(); track ticket.id) {
-              <article class="ticket-option app-card">
-                <div class="ticket-copy">
-                  <div class="ticket-title-row">
-                    <h3 class="mat-title-small m-0">{{ ticket.label }}</h3>
-                    @if (ticketBadgeLabel(ticket)) {
-                      <span class="ticket-badge mat-label-small">
-                        {{ ticketBadgeLabel(ticket) }}
-                      </span>
-                    }
-                  </div>
-                  @if (ticket.description) {
-                    <p class="mat-body-small ticket-description">
-                      {{ ticket.description }}
-                    </p>
-                  }
-                  @if (ticketAvailabilityLabel(ticket)) {
-                    <p
-                      class="mat-label-small ticket-availability"
-                      [attr.data-availability]="ticket.availability"
-                    >
-                      {{ ticketAvailabilityLabel(ticket) }}
-                    </p>
-                  }
-                </div>
-                <div class="ticket-side">
-                  <p class="mat-title-medium ticket-price">
-                    {{ formatTicketPrice(ticket) }}
-                  </p>
-                  @if (ticket.url) {
-                    <a
-                      mat-stroked-button
-                      [href]="ticket.url"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      (click)="
-                        trackEventLinkClick({
-                          label: ticket.label,
-                          url: ticket.url!,
-                          kind: 'tickets',
-                          primary: false,
-                        })
-                      "
-                    >
-                      <mat-icon>open_in_new</mat-icon>
-                      <span i18n="@@event_tickets.open">Open</span>
-                    </a>
-                  }
-                </div>
-              </article>
-            }
-          </div>
+          <app-event-ticket-list
+            [tickets]="ticketOptions()"
+            (ticketOpened)="
+              trackEventLinkClick({
+                label: $event.label,
+                url: $event.url!,
+                kind: 'tickets',
+                primary: false,
+              })
+            "
+          />
         </section>
       }
 

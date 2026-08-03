@@ -18,6 +18,7 @@ import type { EventRSVPSchema } from "../../src/db/schemas/EventRSVPSchema";
 import type {
   EventReminderOffsetMinutes,
   EventNotificationMigrationStateResponse,
+  NotificationDeliveryDiagnosticsSchema,
   NotificationActionId,
   NotificationActionSchema,
   NotificationIntentType,
@@ -30,6 +31,11 @@ import {
   shouldNotifySpotEditOutcome,
   spotEditOutcome,
 } from "./spotEditNotificationPolicy";
+import {shouldPublishAutomaticReschedule} from "./eventNotificationSourcePolicy";
+import type {EventNotificationChange} from "./eventNotificationSourcePolicy";
+import {eventRescheduleTimingChange} from "./eventRescheduleNotificationCopy";
+import {buildNotificationDeliveryDiagnostics} from "./notificationDeliveryDiagnostics";
+import type {NotificationDeliveryResultInput} from "./notificationDeliveryDiagnostics";
 
 type IntentChannel =
   | "follow_incoming"
@@ -93,6 +99,15 @@ interface StoredIntent {
   attempts: number;
   created_at?: Timestamp;
   failure_reason?: string;
+}
+
+class NotificationDeliveryError extends Error {
+  constructor(
+    message: string,
+    readonly diagnostics: NotificationDeliveryDiagnosticsSchema,
+  ) {
+    super(message);
+  }
 }
 
 const INTENTS = "notification_intents";
@@ -365,11 +380,16 @@ export const onEventNotificationSourceWrite = onDocumentWrittenWithAuthContext(
     const eventId = String(event.params.eventId);
     const updateMarker =
       changeEvent.after.updateTime?.toMillis() ?? Date.parse(event.time);
-    if (change === "time" && !structuredOperation) {
+    if (shouldPublishAutomaticReschedule(
+      change,
+      structuredOperation,
+      event.authType,
+    )) {
       await createAutomaticRescheduleUpdate(
         changeEvent.after.ref,
         eventId,
         updateMarker,
+        before,
         after,
         event.authId,
       );
@@ -458,6 +478,7 @@ async function createAutomaticRescheduleUpdate(
   eventRef: FirebaseFirestore.DocumentReference,
   eventId: string,
   updateMarker: number,
+  previousEvent: EventSchema,
   event: EventSchema,
   actorId: string | undefined,
 ): Promise<void> {
@@ -468,7 +489,10 @@ async function createAutomaticRescheduleUpdate(
     event_id: eventId,
     type: "event_rescheduled",
     title: "Event rescheduled",
+    previous_scheduled_for: previousEvent.start,
+    previous_scheduled_until: previousEvent.end,
     scheduled_for: event.start,
+    scheduled_until: event.end,
     operation_id: updateId,
     operation_type: "reschedule_event",
     status: "published",
@@ -1409,6 +1433,7 @@ async function processIntent(
     await ref.update({
       status: result.status,
       delivery_count: result.deliveryCount,
+      delivery_diagnostics: result.diagnostics ?? FieldValue.delete(),
       failure_reason: result.reason ?? FieldValue.delete(),
       sent_at: result.status === "sent" ? Timestamp.now() : FieldValue.delete(),
       processing_started_at: FieldValue.delete(),
@@ -1429,6 +1454,9 @@ async function processIntent(
         ? Timestamp.fromMillis(Date.now() + RETRY_DELAY_MS)
         : claimed.send_after,
       failure_reason: message.slice(0, 500),
+      ...(error instanceof NotificationDeliveryError
+        ? {delivery_diagnostics: error.diagnostics}
+        : {}),
       processing_started_at: FieldValue.delete(),
       updated_at: Timestamp.now(),
     });
@@ -1442,6 +1470,7 @@ async function deliverIntent(
   status: "sent" | "skipped";
   deliveryCount: number;
   reason?: string;
+  diagnostics?: NotificationDeliveryDiagnosticsSchema;
 }> {
   if (intent.expires_at.toMillis() <= Date.now()) {
     return { status: "skipped", deliveryCount: 0, reason: "expired" };
@@ -1547,6 +1576,8 @@ async function deliverIntent(
   }
 
   let deliveryCount = 0;
+  const attemptedAtRawMs = Date.now();
+  const deliveryResults: NotificationDeliveryResultInput[] = [];
   const invalidRefs: FirebaseFirestore.DocumentReference[] = [];
   const byLocaleAndPlatform = new Map<string, typeof active>();
   for (const registration of active) {
@@ -1586,63 +1617,116 @@ async function deliverIntent(
         ? { operation_type: intent.payload["operation_type"] }
         : {}),
     };
-    const response = await admin.messaging().sendEachForMulticast({
-      tokens: group.map(({ data }) => data.token),
-      data: commonData,
-      ...(platform === "ios"
-        ? {
-            notification: {
-              ...copy,
-              ...(intent.image_url ? { imageUrl: intent.image_url } : {}),
-            },
-            apns: {
-              payload: {
-                aps: {
-                  sound: "default",
-                  threadId: intent.thread_key ?? intentId,
-                  ...(actions.length
-                    ? { category: notificationCategory(intent) }
-                    : {}),
-                  ...(intent.image_url ? { mutableContent: true } : {}),
+    let response: admin.messaging.BatchResponse;
+    try {
+      response = await admin.messaging().sendEachForMulticast({
+        tokens: group.map(({ data }) => data.token),
+        data: commonData,
+        ...(platform === "ios"
+          ? {
+              notification: {
+                ...copy,
+                ...(intent.image_url ? { imageUrl: intent.image_url } : {}),
+              },
+              apns: {
+                payload: {
+                  aps: {
+                    sound: "default",
+                    threadId: intent.thread_key ?? intentId,
+                    ...(actions.length
+                      ? { category: notificationCategory(intent) }
+                      : {}),
+                    ...(intent.image_url ? { mutableContent: true } : {}),
+                  },
+                },
+                ...(intent.image_url
+                  ? { fcmOptions: { imageUrl: intent.image_url } }
+                  : {}),
+              },
+            }
+          : {}),
+        ...(platform === "android"
+          ? {
+              android: {
+                priority: "high" as const,
+                ttl: Math.max(0, intent.expires_at.toMillis() - Date.now()),
+              },
+            }
+          : {}),
+        ...(platform === "web"
+          ? {
+              webpush: {
+                headers: {
+                  Urgency: "high",
+                  TTL: String(
+                    Math.max(
+                      0,
+                      Math.floor((intent.expires_at.toMillis() - Date.now()) / 1000),
+                    ),
+                  ),
                 },
               },
-              ...(intent.image_url
-                ? { fcmOptions: { imageUrl: intent.image_url } }
-                : {}),
-            },
-          }
-        : {}),
-      ...(platform === "android"
-        ? {
-            android: {
-              priority: "high" as const,
-              ttl: Math.max(0, intent.expires_at.toMillis() - Date.now()),
-            },
-          }
-        : {}),
-      ...(platform === "web"
-        ? {
-            webpush: {
-              headers: {
-                Urgency: "high",
-                TTL: String(
-                  Math.max(
-                    0,
-                    Math.floor((intent.expires_at.toMillis() - Date.now()) / 1000),
-                  ),
-                ),
-              },
-            },
-          }
-        : {}),
-    });
+            }
+          : {}),
+      });
+    } catch (error) {
+      const errorCode = deliveryErrorCode(error);
+      deliveryResults.push(...group.map((registration) => ({
+        registrationId: registration.ref.id,
+        platform: registration.data.platform,
+        appVersion:
+          typeof registration.data.app_version === "string"
+            ? registration.data.app_version
+            : "unknown",
+        locale: normalizeLocale(registration.data.locale),
+        accepted: false,
+        errorCode,
+      })));
+      throw new NotificationDeliveryError(
+        "FCM rejected a notification delivery batch.",
+        buildNotificationDeliveryDiagnostics(
+          deliveryResults,
+          intent.attempts,
+          attemptedAtRawMs,
+        ),
+      );
+    }
     deliveryCount += response.successCount;
     response.responses.forEach((item, index) => {
+      const registration = group[index];
+      deliveryResults.push({
+        registrationId: registration.ref.id,
+        platform: registration.data.platform,
+        appVersion:
+          typeof registration.data.app_version === "string"
+            ? registration.data.app_version
+            : "unknown",
+        locale: normalizeLocale(registration.data.locale),
+        accepted: item.success,
+        ...(item.messageId ? {messageId: item.messageId} : {}),
+        ...(item.error?.code ? {errorCode: item.error.code} : {}),
+      });
       if (!item.success && item.error && INVALID_TOKEN_CODES.has(item.error.code)) {
-        invalidRefs.push(group[index].ref);
+        invalidRefs.push(registration.ref);
       }
     });
   }
+
+  const diagnostics = buildNotificationDeliveryDiagnostics(
+    deliveryResults,
+    intent.attempts,
+    attemptedAtRawMs,
+  );
+  logger.info("Notification delivery attempt completed", {
+    intentId,
+    recipientUid: intent.recipient_uid,
+    type: intent.type,
+    attempt: diagnostics.attempt,
+    attemptedCount: diagnostics.attempted_count,
+    acceptedCount: diagnostics.accepted_count,
+    failedCount: diagnostics.failed_count,
+    platforms: diagnostics.platforms,
+  });
 
   if (invalidRefs.length > 0) {
     const batch = db.batch();
@@ -1657,9 +1741,19 @@ async function deliverIntent(
   }
 
   if (deliveryCount === 0) {
-    throw new Error("FCM did not accept the message for any active registration.");
+    throw new NotificationDeliveryError(
+      "FCM did not accept the message for any active registration.",
+      diagnostics,
+    );
   }
-  return { status: "sent", deliveryCount };
+  return { status: "sent", deliveryCount, diagnostics };
+}
+
+function deliveryErrorCode(error: unknown): string {
+  const code = (error as {code?: unknown})?.code;
+  return typeof code === "string" && code.length <= 120
+    ? code
+    : "messaging/send-failed";
 }
 
 function notificationPreferenceEnabled(
@@ -2012,9 +2106,12 @@ function legacyNotificationCopy(
       };
     }
     if (intent.type === "event_update" && p["update_title"]) {
+      const timingChange = eventRescheduleTimingChange(p, locale);
       return {
         title: p["event_name"],
-        body: p["update_message"]
+        body: timingChange
+          ? `${timingChange}${p["update_message"] ? ` — ${p["update_message"]}` : ""}`
+          : p["update_message"]
           ? `${p["update_title"]}: ${p["update_message"]}`
           : p["update_title"],
       };
@@ -2078,9 +2175,12 @@ function legacyNotificationCopy(
     };
   }
   if (intent.type === "event_update" && p["update_title"]) {
+    const timingChange = eventRescheduleTimingChange(p, locale);
     return {
       title: p["event_name"],
-      body: p["update_message"]
+      body: timingChange
+        ? `${timingChange}${p["update_message"] ? ` — ${p["update_message"]}` : ""}`
+        : p["update_message"]
         ? `${p["update_title"]}: ${p["update_message"]}`
         : p["update_title"],
     };
@@ -2122,7 +2222,10 @@ function legacyNotificationCopy(
   };
 }
 
-function eventChange(before: EventSchema, after: EventSchema): string | null {
+function eventChange(
+  before: EventSchema,
+  after: EventSchema,
+): EventNotificationChange | null {
   if (
     before.lifecycle_status !== "cancelled" &&
     after.lifecycle_status === "cancelled"
