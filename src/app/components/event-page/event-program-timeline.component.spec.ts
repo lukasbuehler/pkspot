@@ -106,14 +106,14 @@ describe("EventProgramTimelineComponent", () => {
     fixture.componentRef.setInput("now", new Date("2026-07-23T09:00:00Z"));
   });
 
-  it("shows tab, day, and itinerary weather only where forecasts exist", async () => {
+  it("shows tab and itinerary weather only where forecasts exist", async () => {
     await fixture.whenStable();
 
     expect(fixture.nativeElement.querySelectorAll(".day-tab-weather")).toHaveLength(1);
     expect(
       fixture.nativeElement.querySelectorAll("app-weather-icon-button"),
-    ).toHaveLength(2);
-    expect(fixture.nativeElement.textContent).toContain("20° / 14°");
+    ).toHaveLength(1);
+    expect(fixture.nativeElement.textContent).not.toContain("20° / 14°");
     expect(fixture.nativeElement.textContent).toContain("18°");
   });
 
@@ -229,7 +229,7 @@ describe("EventProgramTimelineComponent", () => {
     ).toBe(true);
   });
 
-  it("emits the day and exact itinerary start selections", async () => {
+  it("emits the exact itinerary start selection", async () => {
     const selected = vi.fn();
     fixture.componentInstance.weatherSelected.subscribe(selected);
     await fixture.whenStable();
@@ -238,10 +238,9 @@ describe("EventProgramTimelineComponent", () => {
       "app-weather-icon-button button",
     ) as NodeListOf<HTMLButtonElement>;
     controls[0].click();
-    controls[1].click();
 
-    expect(selected).toHaveBeenNthCalledWith(1, { date: "2026-07-23" });
-    expect(selected).toHaveBeenNthCalledWith(2, {
+    expect(selected).toHaveBeenCalledOnce();
+    expect(selected).toHaveBeenCalledWith({
       date: "2026-07-23",
       time: new Date("2026-07-23T08:30:00Z"),
     });

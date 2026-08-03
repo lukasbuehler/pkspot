@@ -26,7 +26,6 @@ import {
   type EventProgramDayWeather,
   type EventWeatherSelection,
 } from "../../weather/event-weather";
-import { WeatherIconButtonComponent } from "../weather-icon-button/weather-icon-button.component";
 import {
   effectiveProgramItem,
   smartEventProgramDay,
@@ -60,7 +59,6 @@ interface ProgramDaySelectionSource {
   selector: "app-event-program-timeline",
   imports: [
     MatIconModule,
-    WeatherIconButtonComponent,
     EventProgramDayTimelineComponent,
   ],
   templateUrl: "./event-program-timeline.component.html",
@@ -316,10 +314,6 @@ export class EventProgramTimelineComponent {
     this.canScrollTabsRight.set(
       tabList.scrollLeft < maxScrollLeft - tolerance,
     );
-  }
-
-  selectDayWeather(date: string): void {
-    this.weatherSelected.emit({ date });
   }
 
   selectItemWeather(date: string, time: Date): void {
