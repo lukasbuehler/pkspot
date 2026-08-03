@@ -10,6 +10,10 @@ env:
   PKSPOT_LINT_MAX_OLD_SPACE_MB: "4096"
   PKSPOT_VITEST_MAX_WORKERS: "2"
 
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   unit-tests:
     name: Unit Tests
@@ -107,6 +111,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [unit-tests, lint]
 
     steps:
