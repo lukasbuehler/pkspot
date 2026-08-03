@@ -456,14 +456,17 @@ runWithEmulator("CommunityEditsService emulator integration", () => {
       sourceCommunityKey: sourceKey,
       targetCommunityKey: targetKey,
     });
-    const [restoredMerge, restoredSource, restoredTarget] = await Promise.all([
+    const [restoredMerge, restoredSource] = await Promise.all([
       adminDb().doc(`community_merges/${sourceKey}`).get(),
       adminDb().doc(`community_pages/${sourceKey}`).get(),
-      adminDb().doc(`community_pages/${targetKey}`).get(),
     ]);
     expect(restoredMerge.exists).toBe(false);
     expect(restoredSource.exists).toBe(false);
-    expect(restoredTarget.data()?.["counts"]?.totalSpots).toBe(5);
+    const restoredTotalSpots = await waitForAdminDocument(
+      `community_pages/${targetKey}`,
+      (data) => (data?.["counts"]?.totalSpots === 5 ? 5 : null),
+    );
+    expect(restoredTotalSpots).toBe(5);
   }, 180_000);
 
   it("backfills edit targets and migrates legacy community suggestions", async () => {
