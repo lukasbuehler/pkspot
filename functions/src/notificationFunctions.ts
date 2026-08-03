@@ -1671,7 +1671,7 @@ function notificationPreferenceEnabled(
   return false;
 }
 
-function deliveryChannel(intent: StoredIntent): IntentChannel {
+export function deliveryChannel(intent: StoredIntent): IntentChannel {
   switch (intent.type) {
     case "follow_request":
       return "follow_incoming";
@@ -1702,7 +1702,7 @@ function deliveryChannel(intent: StoredIntent): IntentChannel {
   }
 }
 
-function notificationCategory(intent: StoredIntent): string {
+export function notificationCategory(intent: StoredIntent): string {
   if (intent.type === "follow_request") return "PKSPOT_FOLLOW_REQUEST";
   if (intent.type === "new_follower") return "PKSPOT_NEW_FOLLOWER";
   if (intent.type === "event_reminder") return "PKSPOT_EVENT_REMINDER";
@@ -1710,7 +1710,7 @@ function notificationCategory(intent: StoredIntent): string {
   return "PKSPOT_GENERAL";
 }
 
-function localizedActions(
+export function localizedActions(
   actions: NotificationActionSchema[],
   locale: string,
 ): Array<{ action: string; title: string }> {
@@ -1729,7 +1729,7 @@ function localizedActions(
   });
 }
 
-function notificationCopy(
+export function notificationCopy(
   intent: StoredIntent,
   locale: string,
 ): { title: string; body: string } {

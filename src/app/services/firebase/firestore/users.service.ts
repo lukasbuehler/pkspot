@@ -1,6 +1,6 @@
 import { inject, Injectable } from "@angular/core";
 import { map, switchMap } from "rxjs/operators";
-import { Observable, from, Subscription } from "rxjs";
+import { Observable, from, of, Subscription } from "rxjs";
 import { User } from "../../../../db/models/User";
 import {
   AccessibleUserProfileSchema,
@@ -13,6 +13,10 @@ import { PrivateUserDataSchema } from "../../../../db/schemas/PrivateUserDataSch
 import { ConsentAwareService } from "../../consent-aware.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
 import { FunctionsAdapterService } from "../functions-adapter.service";
+
+interface ScreenshotGlobal {
+  __PKSPOT_SCREENSHOT_USER_PROFILES__?: Record<string, UserSchema>;
+}
 
 @Injectable({
   providedIn: "root",
@@ -31,7 +35,7 @@ export class UsersService extends ConsentAwareService {
     display_name: string,
     data: UserSchema
   ): Promise<void> {
-    let schema: UserSchema = {
+    const schema: UserSchema = {
       display_name: display_name,
       verified_email: false,
       public_profile_enabled: false,
@@ -47,6 +51,12 @@ export class UsersService extends ConsentAwareService {
   }
 
   getUserById(userId: string): Observable<User | null> {
+    const screenshotProfile = (globalThis as ScreenshotGlobal)
+      .__PKSPOT_SCREENSHOT_USER_PROFILES__?.[userId];
+    if (screenshotProfile) {
+      return of(new User(userId, screenshotProfile));
+    }
+
     console.debug("UsersService: Fetching user by ID:", userId);
     return new Observable<User | null>((observer) => {
       let innerSub: Subscription | null = null;

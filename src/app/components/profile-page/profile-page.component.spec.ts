@@ -7,6 +7,8 @@ import {
   convertToParamMap,
   Router,
 } from "@angular/router";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { BehaviorSubject, NEVER, of } from "rxjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
@@ -122,5 +124,26 @@ describe("ProfilePageComponent", () => {
     expect(getFollowRequestsForUser).toHaveBeenCalledTimes(2);
     expect(component.followRequestsLoading).toBe(false);
     expect(component.followRequests).toEqual([]);
+  });
+
+  it("keeps the mobile profile and wrapping metadata within the viewport", () => {
+    const styles = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/profile-page/profile-page.component.scss",
+      ),
+      "utf8",
+    );
+
+    expect(styles).toMatch(/\.profile-page\s*{[^}]*width:\s*100%/s);
+    expect(styles).toMatch(
+      /\.profile-primary,\s*\.profile-secondary\s*{[^}]*min-width:\s*0/s,
+    );
+    expect(styles).toMatch(
+      /\.profile-overview__metadata\s*{[^}]*flex-wrap:\s*wrap[^}]*width:\s*100%/s,
+    );
+    expect(styles).toMatch(
+      /\.profile-overview__metadata-item\s*{[^}]*max-width:\s*100%[^}]*white-space:\s*normal/s,
+    );
   });
 });

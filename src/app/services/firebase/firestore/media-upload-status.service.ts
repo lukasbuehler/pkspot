@@ -51,12 +51,23 @@ export class MediaUploadStatusService implements OnDestroy {
     uploadId: string,
     timeoutMs = 120_000,
   ): Promise<string> {
+    const uid = this.currentUid();
+    if (!uid) {
+      throw new Error("User is not signed in.");
+    }
+
     return firstValueFrom(
       this.firestoreAdapter
-        .documentSnapshots<MediaUploadStatusDocument>(
-          `media_upload_status/${uploadId}`,
+        .collectionSnapshots<MediaUploadStatusDocument>(
+          "media_upload_status",
+          [
+            { fieldPath: "uid", opStr: "==", value: uid },
+            { fieldPath: "upload_id", opStr: "==", value: uploadId },
+          ],
+          [{ type: "limit", limit: 1 }],
         )
         .pipe(
+          map((statuses) => statuses[0]),
           filter(
             (status): status is MediaUploadStatusDocument =>
               status?.status === "published" || status?.status === "failed",

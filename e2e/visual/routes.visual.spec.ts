@@ -19,6 +19,7 @@ interface RouteVisualCase {
   liveEventFixture?: boolean;
   fixedTime?: string;
   scrollToSelector?: string;
+  assertCenteredProfile?: boolean;
 }
 
 const desktopViewport = { width: 1280, height: 900 };
@@ -203,6 +204,18 @@ const routeVisualCases: RouteVisualCase[] = [
     expectedPath: /\/de\/u\/visual-route-user$/u,
     fullPage: true,
     maxDiffPixels: 1_500,
+    fixedTime: "2026-07-20T12:00:00.000Z",
+  },
+  {
+    name: "profile-own-mobile",
+    path: "/profile",
+    viewport: mobileViewport,
+    signedIn: true,
+    expectedPath: /\/de\/u\/visual-route-user$/u,
+    fullPage: true,
+    maxDiffPixels: 1_500,
+    fixedTime: "2026-07-20T12:00:00.000Z",
+    assertCenteredProfile: true,
   },
   { name: "account", path: "/account", fullPage: true, maxDiffPixels: 1_000 },
   { name: "sign-up", path: "/sign-up", fullPage: true, maxDiffPixels: 1_000 },
@@ -268,6 +281,25 @@ test.describe("Route visual regression @visual", () => {
       const mapSurfaces = page.locator("app-google-map-2d, google-map, .gm-style");
       const spinners = page.locator("mat-spinner, mat-progress-spinner");
       const masks = route.eventMapLayout ? [] : [mapSurfaces, spinners];
+
+      if (route.assertCenteredProfile) {
+        const profileLayout = await page
+          .locator(".profile-overview__card")
+          .evaluate((card) => {
+            const bounds = card.getBoundingClientRect();
+            return {
+              centerOffset: Math.abs(
+                bounds.left + bounds.width / 2 - window.innerWidth / 2,
+              ),
+              clientWidth: card.clientWidth,
+              scrollWidth: card.scrollWidth,
+            };
+          });
+        expect(profileLayout.centerOffset).toBeLessThanOrEqual(1);
+        expect(profileLayout.scrollWidth).toBeLessThanOrEqual(
+          profileLayout.clientWidth,
+        );
+      }
 
       await expect(page).toHaveScreenshot(`${route.name}-route.png`, {
         animations: "disabled",
@@ -532,40 +564,55 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
         const screenshotWindow = (
           window as typeof window & {
             __PKSPOT_SCREENSHOT_AUTH_USER__?: unknown;
+            __PKSPOT_SCREENSHOT_USER_PROFILES__?: Record<string, unknown>;
             __PKSPOT_SCREENSHOT_DISABLE_NOTIFICATION_PROMPTS__?: boolean;
             __PKSPOT_SCREENSHOT_EVENT_OWNERSHIP_CLAIMS__?: unknown[];
             __PKSPOT_SCREENSHOT_NOTIFICATIONS__?: unknown;
             __PKSPOT_SCREENSHOT_REPORT_OUTCOMES__?: unknown;
           }
         );
+        const screenshotUserData = {
+          display_name: "Visual Route User",
+          biography: "Parkour athlete and PK Spot route visual fixture.",
+          verified_email: true,
+          follower_count: 12,
+          following_count: 8,
+          visited_spots_count: 24,
+          start_date: {
+            seconds: Date.UTC(2019, 3, 12) / 1_000,
+            nanoseconds: 0,
+          },
+          start_date_raw_ms: Date.UTC(2019, 3, 12),
+          nationality_code: "CH",
+          home_city: "Zurich",
+          socials: {
+            instagram_handle: "visualroute",
+            youtube_handle: "visualroute",
+            other: [
+              {
+                name: "Personal Website",
+                url: "https://example.test/personal-website",
+              },
+            ],
+          },
+          age_policy: {
+            participation_state: "allowed",
+            source: "manual",
+            platform: "web",
+          },
+          account_privacy: "public",
+          profile_visibility: "public",
+          is_admin: admin,
+        };
         screenshotWindow.__PKSPOT_SCREENSHOT_AUTH_USER__ = {
           uid: "visual-route-user",
           email: "visual-route-user@example.test",
           emailVerified: true,
           providerId: "password",
-          data: {
-            display_name: "Visual Route User",
-            biography: "Parkour athlete and PK Spot route visual fixture.",
-            verified_email: true,
-            follower_count: 12,
-            following_count: 8,
-            visited_spots_count: 24,
-            start_date_raw_ms: Date.UTC(2021, 3, 12),
-            nationality_code: "CH",
-            home_city: "Zurich",
-            socials: {
-              instagram_handle: "visualroute",
-              youtube_handle: "visualroute",
-            },
-            age_policy: {
-              participation_state: "allowed",
-              source: "manual",
-              platform: "web",
-            },
-            account_privacy: "public",
-            profile_visibility: "public",
-            is_admin: admin,
-          },
+          data: screenshotUserData,
+        };
+        screenshotWindow.__PKSPOT_SCREENSHOT_USER_PROFILES__ = {
+          "visual-route-user": screenshotUserData,
         };
         screenshotWindow.__PKSPOT_SCREENSHOT_DISABLE_NOTIFICATION_PROMPTS__ = true;
         screenshotWindow.__PKSPOT_SCREENSHOT_EVENT_OWNERSHIP_CLAIMS__ = [];

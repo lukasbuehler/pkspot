@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { User } from "../../../../db/models/User";
 import { AnalyticsService } from "../../analytics.service";
 import { ConsentService } from "../../consent.service";
@@ -14,6 +14,10 @@ const createConsentService = () => ({
   isSSR: vi.fn(() => false),
   isBrowser: vi.fn(() => true),
 });
+
+interface ScreenshotGlobal {
+  __PKSPOT_SCREENSHOT_USER_PROFILES__?: Record<string, unknown>;
+}
 
 describe("UsersService", () => {
   let service: UsersService;
@@ -51,6 +55,27 @@ describe("UsersService", () => {
     });
 
     service = TestBed.inject(UsersService);
+  });
+
+  afterEach(() => {
+    delete (globalThis as ScreenshotGlobal)
+      .__PKSPOT_SCREENSHOT_USER_PROFILES__;
+  });
+
+  it("uses the deterministic screenshot profile without reading Firestore", async () => {
+    (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_USER_PROFILES__ = {
+      "visual-user": {
+        display_name: "Visual User",
+        verified_email: true,
+      },
+    };
+
+    const user = await new Promise<User | null>((resolve) => {
+      service.getUserById("visual-user").subscribe(resolve);
+    });
+
+    expect(user?.displayName).toBe("Visual User");
+    expect(adapter.documentSnapshots).not.toHaveBeenCalled();
   });
 
   it("loads a user once through the Firestore adapter", async () => {

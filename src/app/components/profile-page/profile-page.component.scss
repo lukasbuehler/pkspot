@@ -1,10 +1,14 @@
 :host {
   display: block;
+  width: 100%;
+  min-width: 0;
 }
 
 .profile-page {
   display: flex;
   justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
   padding: clamp(16px, 4vw, 48px) clamp(12px, 5vw, 72px);
 }
 
@@ -25,11 +29,14 @@
 .profile-primary,
 .profile-secondary {
   display: grid;
+  min-width: 0;
   gap: clamp(16px, 3vw, 24px);
 }
 
 .profile-overview__card {
   position: relative;
+  width: 100%;
+  min-width: 0;
   overflow: hidden;
   border-radius: 20px;
   background: var(--mat-sys-surface-container-low);
@@ -42,6 +49,9 @@
 }
 
 .profile-overview__card .mat-mdc-card-content {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
   padding: clamp(24px, 6vw, 48px);
 }
 
@@ -115,18 +125,24 @@
 
 .profile-overview__metadata {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  min-width: 0;
   gap: clamp(12px, 3vw, 24px);
 }
 
 .profile-overview__metadata-item {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  min-width: 0;
   gap: 6px;
   color: var(--mat-sys-on-surface-variant);
-  white-space: nowrap;
+  text-align: center;
+  white-space: normal;
 
   mat-icon {
     width: 18px;
@@ -193,6 +209,7 @@
 }
 
 .profile-overview__edit-action {
+  box-sizing: border-box;
   width: min(320px, 100%);
 }
 

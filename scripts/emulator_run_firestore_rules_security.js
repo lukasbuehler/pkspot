@@ -1356,6 +1356,37 @@ async function testAgePolicyParticipationGuards(restricted) {
 }
 
 async function testReadOnlyBackendCollections(owner, adminUser) {
+  const pendingUploadQuery = query(
+    collection(owner.db, "media_upload_status"),
+    where("uid", "==", "owner"),
+    where("upload_id", "==", "pending-upload")
+  );
+  const emptyUploadStatuses = await assertAllowed(
+    "owner waits for an upload status before the server creates it",
+    () => getDocs(pendingUploadQuery)
+  );
+  assert.equal(emptyUploadStatuses.empty, true);
+  await adminDb.doc("media_upload_status/pending-upload").set({
+    uid: "owner",
+    upload_id: "pending-upload",
+    status: "processing",
+  });
+  const createdUploadStatuses = await assertAllowed(
+    "owner receives their server-created upload status",
+    () => getDocs(pendingUploadQuery)
+  );
+  assert.equal(createdUploadStatuses.size, 1);
+  await assertDenied("owner cannot list upload statuses without an owner filter", () =>
+    getDocs(collection(owner.db, "media_upload_status"))
+  );
+  await assertDenied("owner cannot write upload status", () =>
+    setDoc(doc(owner.db, "media_upload_status/forged"), {
+      uid: "owner",
+      upload_id: "forged",
+      status: "published",
+    })
+  );
+
   for (const [label, path] of [
     ["spot cluster", "spot_clusters/z16_1_2"],
     ["event", "events/client-event"],
