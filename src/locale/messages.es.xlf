@@ -4516,37 +4516,37 @@
     <unit id="notification_center.action.accept">
       <segment state="initial">
         <source>Accept</source>
-        <target>Accept</target>
+        <target>Aceptar</target>
       </segment>
     </unit>
     <unit id="notification_center.action.decline">
       <segment state="initial">
         <source>Decline</source>
-        <target>Decline</target>
+        <target>Rechazar</target>
       </segment>
     </unit>
     <unit id="notification_center.action.follow_back">
       <segment state="initial">
         <source>Follow back</source>
-        <target>Follow back</target>
+        <target>Seguir también</target>
       </segment>
     </unit>
     <unit id="notification_center.action.going">
       <segment state="initial">
         <source>I&apos;m going</source>
-        <target>I&apos;m going</target>
+        <target>Voy a asistir</target>
       </segment>
     </unit>
     <unit id="notification_center.action.save_event">
       <segment state="initial">
         <source>Save event</source>
-        <target>Save event</target>
+        <target>Guardar evento</target>
       </segment>
     </unit>
     <unit id="notification_center.action.undo">
       <segment state="initial">
         <source>Undo</source>
-        <target>Undo</target>
+        <target>Deshacer</target>
       </segment>
     </unit>
     <unit id="notification_center.check_in.body">

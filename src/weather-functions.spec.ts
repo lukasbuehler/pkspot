@@ -135,6 +135,42 @@ describe("weather functions", () => {
     );
   });
 
+  it("hashes the complete event schedule into the cache key", () => {
+    const sharedItems = Array.from({ length: 12 }, (_, index) => ({
+      id: `shared-${index}`,
+      start: `2026-07-${String(index + 8).padStart(2, "0")}T10:00:00Z`,
+      end: `2026-07-${String(index + 8).padStart(2, "0")}T11:00:00Z`,
+    }));
+    const request = {
+      mode: "event-forecast" as const,
+      location: { lat: 47.37, lng: 8.54 },
+      scheduleItems: [
+        ...sharedItems,
+        {
+          id: "final",
+          start: "2026-07-23T12:00:00Z",
+          end: "2026-07-23T13:00:00Z",
+        },
+      ],
+    };
+    const changedLaterItem = {
+      ...request,
+      scheduleItems: request.scheduleItems.map((item) =>
+        item.id === "final"
+          ? { ...item, end: "2026-07-23T14:00:00Z" }
+          : item,
+      ),
+    };
+    const window = {
+      startTime: new Date("2026-07-08T10:00:00Z"),
+      endTime: new Date("2026-07-23T14:00:00Z"),
+    };
+
+    expect(buildWeatherCacheKey(request, "google", window)).not.toBe(
+      buildWeatherCacheKey(changedLaterItem, "google", window),
+    );
+  });
+
   it("uses a canonical map tile center and cache key", () => {
     const request = parseWeatherRequest({
       mode: "current-and-near-future",

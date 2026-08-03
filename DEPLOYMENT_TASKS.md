@@ -23,6 +23,11 @@ run data migrations, or complete third-party service tasks.
    npm --prefix functions run build
    ```
 
+   Before merging the release PR, wait for configured automated reviewers to
+   finish and inspect all unresolved review threads. GitHub's mergeable state
+   and successful required checks do not prove that asynchronous reviews have
+   completed.
+
 3. If `firestore.indexes.json` changed, deploy the production indexes before
    code that depends on them, then wait for every new index to report `Enabled`
    in the Firebase Console:
@@ -76,6 +81,22 @@ run data migrations, or complete third-party service tasks.
 Keep an item unchecked until the action has actually been performed and verified.
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
+
+### Version 1.1.4 review follow-up
+
+- [ ] After the review fixes reach the release branch, deploy the compatible
+      notification delivery and weather Functions:
+
+      ```sh
+      npx firebase deploy --project prod --only functions:onNotificationIntentWrite,functions:sendDueNotificationIntents,functions:getWeather
+      ```
+
+      Verify a notification intent whose retention extends beyond 28 days is
+      accepted for Android and Web with an FCM transport TTL no greater than 28
+      days. Request forecasts for two otherwise identical events whose long
+      schedules differ only in a later item and confirm they use distinct cache
+      documents and return the matching schedule insights. No rules, index,
+      schema, or data migration deployment is required.
 
 ### Firebase JS SDK client migration
 
