@@ -23,6 +23,11 @@ run data migrations, or complete third-party service tasks.
    npm --prefix functions run build
    ```
 
+   Before merging the release PR, wait for configured automated reviewers to
+   finish and inspect all unresolved review threads. GitHub's mergeable state
+   and successful required checks do not prove that asynchronous reviews have
+   completed.
+
 3. If `firestore.indexes.json` changed, deploy the production indexes before
    code that depends on them, then wait for every new index to report `Enabled`
    in the Firebase Console:

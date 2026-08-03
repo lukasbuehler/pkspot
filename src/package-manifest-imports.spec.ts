@@ -44,6 +44,7 @@ function packageName(specifier: string): string | null {
   if (
     specifier.startsWith(".") ||
     specifier.startsWith("/") ||
+    specifier.startsWith("node:") ||
     nodeBuiltins.has(specifier)
   ) {
     return null;

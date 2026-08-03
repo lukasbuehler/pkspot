@@ -69,12 +69,7 @@ test.describe("Add Spot Button Visibility", () => {
       "Angular debug APIs are unavailable in the built E2E app.",
     );
 
-    const createMenu = page.locator("#mapCreateFabMenu");
-    await expect(createMenu).toBeVisible();
-    await createMenu.locator(".fab-menu__launcher").click();
-    await expect(
-      createMenu.getByRole("button", { name: /Add Spot|Spot hinzufügen/u }),
-    ).not.toBeVisible();
+    await expect(page.locator("#mapCreateFabMenu")).not.toBeVisible();
   });
 
   test("should show the Add Spot button when signed in and zoom is 14+", async ({ page }) => {

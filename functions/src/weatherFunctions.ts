@@ -1,5 +1,6 @@
 /* eslint-disable max-len, object-curly-spacing, operator-linebreak, require-jsdoc */
 import * as admin from "firebase-admin";
+import { createHash } from "node:crypto";
 import { Timestamp } from "firebase-admin/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { CallableRequest, HttpsError, onCall } from "firebase-functions/v2/https";
@@ -519,7 +520,7 @@ export function buildWeatherCacheKey(
     scheduleFingerprint,
   ].join("|");
 
-  return Buffer.from(raw).toString("base64url").slice(0, 180);
+  return createHash("sha256").update(raw).digest("base64url");
 }
 
 export function buildWeatherAlertCacheKey(

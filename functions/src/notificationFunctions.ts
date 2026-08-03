@@ -119,10 +119,19 @@ const MAX_SEND_ATTEMPTS = 3;
 const STALE_PROCESSING_MS = 10 * 60 * 1000;
 const RETRY_DELAY_MS = 5 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
+const FCM_MAX_TTL_MS = 28 * DAY_MS;
 const INVALID_TOKEN_CODES = new Set([
   "messaging/invalid-registration-token",
   "messaging/registration-token-not-registered",
 ]);
+
+export function clampFcmTtlMs(
+  expiresAtMs: number,
+  nowMs = Date.now(),
+): number {
+  return Math.min(FCM_MAX_TTL_MS, Math.max(0, expiresAtMs - nowMs));
+}
+
 const PREFERENCE_BY_TYPE: Record<
   NotificationIntentType,
   NotificationPreferenceKey
@@ -1592,6 +1601,7 @@ async function deliverIntent(
     const [locale, platform] = localeAndPlatform.split(":");
     const copy = notificationCopy(intent, locale);
     const actions = localizedActions(intent.actions ?? [], locale);
+    const ttlMs = clampFcmTtlMs(intent.expires_at.toMillis());
     const actionData = JSON.stringify(actions.map(({ action }) => action));
     const commonData = {
       intent_id: intentId,
@@ -1649,7 +1659,7 @@ async function deliverIntent(
           ? {
               android: {
                 priority: "high" as const,
-                ttl: Math.max(0, intent.expires_at.toMillis() - Date.now()),
+                ttl: ttlMs,
               },
             }
           : {}),
@@ -1658,12 +1668,7 @@ async function deliverIntent(
               webpush: {
                 headers: {
                   Urgency: "high",
-                  TTL: String(
-                    Math.max(
-                      0,
-                      Math.floor((intent.expires_at.toMillis() - Date.now()) / 1000),
-                    ),
-                  ),
+                  TTL: String(Math.floor(ttlMs / 1000)),
                 },
               },
             }
