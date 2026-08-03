@@ -6,8 +6,8 @@ import {
   OnDestroy,
   signal,
 } from "@angular/core";
-import { DatePipe } from "@angular/common";
-import { RouterLink } from "@angular/router";
+import { SystemDatePipe } from "../../pipes/system-date.pipe";
+import { Router, RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
 import { MatCardModule } from "@angular/material/card";
@@ -16,13 +16,16 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatTooltipModule } from "@angular/material/tooltip";
-import { Subscription } from "rxjs";
+import { MatDialog } from "@angular/material/dialog";
+import { firstValueFrom, Subscription } from "rxjs";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import {
   ModerationReportItem,
   ModerationReportsService,
+  SpotWarningInput,
 } from "../../services/firebase/firestore/moderation-reports.service";
 import { ModerationActionType } from "../../../db/schemas/ModerationActionSchema";
+import { SpotWarningDialogComponent } from "../spot-warning-dialog/spot-warning-dialog.component";
 
 type ReportFilter =
   | "open"
@@ -36,7 +39,7 @@ type ReportFilter =
 @Component({
   selector: "app-moderation-reports-page",
   imports: [
-    DatePipe,
+    SystemDatePipe,
     RouterLink,
     MatButtonModule,
     MatButtonToggleModule,
@@ -53,6 +56,8 @@ type ReportFilter =
 export class ModerationReportsPageComponent implements OnDestroy {
   private readonly _reportsService = inject(ModerationReportsService);
   private readonly _snackbar = inject(MatSnackBar);
+  private readonly _dialog = inject(MatDialog);
+  private readonly _router = inject(Router);
   readonly authService = inject(AuthenticationService);
 
   readonly authResolved = this.authService.initialAuthStateResolved;
@@ -60,6 +65,8 @@ export class ModerationReportsPageComponent implements OnDestroy {
   readonly reports = signal<ModerationReportItem[]>([]);
   readonly isLoading = signal(false);
   readonly actionPath = signal<string | null>(null);
+  readonly revealPath = signal<string | null>(null);
+  readonly sensitiveMediaUrls = signal<Record<string, string>>({});
   readonly filter = signal<ReportFilter>("open");
   private readonly _authSubscription: Subscription;
 
@@ -127,7 +134,11 @@ export class ModerationReportsPageComponent implements OnDestroy {
     report: ModerationReportItem,
     actionType: Extract<
       ModerationActionType,
-      "close_report" | "keep_warning" | "delete_media" | "delete_spot"
+      | "close_report"
+      | "keep_warning"
+      | "publish_spot_warning"
+      | "delete_media"
+      | "delete_spot"
     >,
   ): Promise<void> {
     if (this.actionPath()) {
@@ -152,6 +163,42 @@ export class ModerationReportsPageComponent implements OnDestroy {
       return;
     }
 
+    if (actionType === "publish_spot_warning") {
+      const spotWarning = await firstValueFrom<SpotWarningInput | undefined>(
+        this._dialog
+          .open<SpotWarningDialogComponent, { reason: string }, SpotWarningInput>(
+            SpotWarningDialogComponent,
+            { data: { reason: report.reason } },
+          )
+          .afterClosed(),
+      );
+      if (!spotWarning) {
+        return;
+      }
+
+      this.actionPath.set(report.path);
+      try {
+        await this._reportsService.handleReport(
+          report,
+          actionType,
+          undefined,
+          spotWarning,
+        );
+        await this.reload();
+        this._snackbar.open($localize`Public Spot warning published`, undefined, {
+          duration: 3000,
+        });
+      } catch (error) {
+        console.error("Failed to publish Spot warning", error);
+        this._snackbar.open($localize`Failed to publish Spot warning`, undefined, {
+          duration: 4000,
+        });
+      } finally {
+        this.actionPath.set(null);
+      }
+      return;
+    }
+
     this.actionPath.set(report.path);
     try {
       await this._reportsService.handleReport(report, actionType);
@@ -162,6 +209,59 @@ export class ModerationReportsPageComponent implements OnDestroy {
     } catch (error) {
       console.error("Failed to handle report", error);
       this._snackbar.open($localize`Failed to handle report`, undefined, {
+        duration: 4000,
+      });
+    } finally {
+      this.actionPath.set(null);
+    }
+  }
+
+  async revealSensitiveMedia(report: ModerationReportItem): Promise<void> {
+    if (this.revealPath() || this.sensitiveMediaUrls()[report.path]) {
+      return;
+    }
+    if (
+      !globalThis.confirm(
+        $localize`This media was flagged by automated safety scanning and may be disturbing. Reveal it for manual moderation?`,
+      )
+    ) {
+      return;
+    }
+
+    this.revealPath.set(report.path);
+    try {
+      const url = await this._reportsService.getModerationMediaPreview(report);
+      this.sensitiveMediaUrls.update((urls) => ({
+        ...urls,
+        [report.path]: url,
+      }));
+    } catch (error) {
+      console.error("Failed to load sensitive media", error);
+      this._snackbar.open($localize`Failed to load quarantined media`, undefined, {
+        duration: 4000,
+      });
+    } finally {
+      this.revealPath.set(null);
+    }
+  }
+
+  async openIncident(report: ModerationReportItem): Promise<void> {
+    if (this.actionPath()) {
+      return;
+    }
+    this.actionPath.set(report.path);
+    try {
+      const incidentPath =
+        report.incidentPath ??
+        (await this._reportsService.createSafetyIncident(report));
+      const incidentId = incidentPath.split("/").at(-1);
+      if (!incidentId) {
+        throw new Error("Incident id missing from response");
+      }
+      await this._router.navigate(["/moderation/incidents", incidentId]);
+    } catch (error) {
+      console.error("Failed to open safety incident", error);
+      this._snackbar.open($localize`Failed to open safety incident`, undefined, {
         duration: 4000,
       });
     } finally {

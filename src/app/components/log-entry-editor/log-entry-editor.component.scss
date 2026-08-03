@@ -1,0 +1,26 @@
+:host { display: block; }
+.editor-page { max-width: 820px; margin: 0 auto; padding: clamp(20px, 4vw, 48px); }
+.back { display: inline-flex; align-items: center; gap: 6px; color: var(--mat-sys-primary); text-decoration: none; }
+h1 { margin: 16px 0 5px; font: var(--mat-sys-headline-large); }
+header > p, .section-title p { margin: 0; color: var(--mat-sys-on-surface-variant); }
+form { display: grid; gap: 18px; margin-top: 28px; }
+section { padding: 20px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; }
+.section-title { display: flex; gap: 12px; margin-bottom: 18px; }
+.section-title > span { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; background: var(--mat-sys-primary-container); color: var(--mat-sys-on-primary-container); font: var(--mat-sys-label-large); flex: 0 0 auto; }
+h2 { margin: 0 0 3px; font: var(--mat-sys-title-large); }
+.session-list { display: grid; gap: 8px; margin-bottom: 10px; }
+.session-option { display: flex; align-items: center; gap: 8px; padding: 10px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; cursor: pointer; }
+.session-option div { display: flex; flex-direction: column; }
+.session-option span { color: var(--mat-sys-on-surface-variant); font: var(--mat-sys-body-small); }
+.manual-session { margin-top: 12px; padding: 16px; background: var(--mat-sys-surface-container-low); border-radius: 8px; }
+.time-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.full { width: 100%; margin-top: 8px; }
+.people { margin-top: 16px; }
+.people-label { display: block; margin-bottom: 8px; font: var(--mat-sys-label-large); }
+.people-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.people-list > span { display: inline-flex; align-items: center; padding-left: 10px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; }
+.people-list button { transform: scale(.8); }
+footer { display: flex; justify-content: flex-end; gap: 10px; }
+.error { color: var(--mat-sys-error); }
+.state { min-height: 300px; display: grid; place-items: center; }
+@media (max-width: 600px) { .editor-page { padding: 20px 16px 96px; } .time-grid { grid-template-columns: 1fr; } section { padding: 16px; } }

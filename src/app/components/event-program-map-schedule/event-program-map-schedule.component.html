@@ -1,0 +1,45 @@
+<mat-accordion class="program-accordion" [multi]="false">
+  @for (day of days(); track day.key) {
+    <mat-expansion-panel
+      class="program-day-panel"
+      [expanded]="selectedDay() === day.key"
+      (opened)="dayOpened.emit(day.key)"
+      (closed)="dayClosed.emit(day.key)"
+    >
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <span>{{ day.label }}</span>
+          @if (day.weather; as weather) {
+            <mat-icon
+              class="day-header-weather"
+              [class.is-wet]="weather.tone === 'wet'"
+              [class.has-warning]="weather.tone === 'warning'"
+              [class.is-night]="weather.tone === 'night'"
+              [attr.aria-label]="weather.label"
+              >{{ weather.icon }}</mat-icon
+            >
+          }
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+
+      @if (day.weather; as weather) {
+        <div class="day-weather-row">
+          <app-weather-icon-button
+            [weather]="weather.data"
+            display="temperature-range"
+            (pressed)="selectDayWeather(day.key)"
+          />
+        </div>
+      }
+      <app-event-program-day-timeline
+        [entries]="day.entries"
+        [dayKey]="day.key"
+        [timeZone]="timeZone()"
+        [selectedItemId]="selectedItemId()"
+        spotAction="select"
+        (itemWeatherSelected)="selectItemWeather(day.key, $event)"
+        (occurrenceSelected)="selectLocation($event)"
+      />
+    </mat-expansion-panel>
+  }
+</mat-accordion>

@@ -78,9 +78,11 @@
           <mat-option disabled>{{ emptyLabel() }}</mat-option>
         }
       </mat-autocomplete>
-      <mat-hint i18n="@@community.destination_search_hint">
-        Choose a result so PK Spot can save the correct destination.
-      </mat-hint>
+      @if (kind() !== "community") {
+        <mat-hint i18n="@@community.destination_search_hint">
+          Choose a result so PK Spot can save the correct destination.
+        </mat-hint>
+      }
     </mat-form-field>
   }
 </div>

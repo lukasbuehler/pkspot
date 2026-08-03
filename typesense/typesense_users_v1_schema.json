@@ -25,6 +25,13 @@
       "optional": true
     },
     { "name": "socials.youtube_handle", "type": "string", "optional": true },
+    { "name": "socials.tiktok_handle", "type": "string", "optional": true },
+    {
+      "name": "socials.discord_url",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
 
     { "name": "public_search", "type": "bool", "facet": true, "optional": true },
     { "name": "_force_sync", "type": "int64", "optional": true, "index": false }

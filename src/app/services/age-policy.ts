@@ -14,6 +14,10 @@ export type PlatformAgeSignal = {
   mostRecentApprovalDate?: string | null;
   isEligibleForAgeFeatures?: boolean;
   response?: "shared" | "declined" | "unavailable";
+  ageSignalsStatus?: "shared" | "not_shared" | "verification_required";
+  ageRangeSource?: "tier_a" | "tier_b" | "tier_c" | "tier_d" | "unknown";
+  ageRangeDeclaration?: string;
+  significantChangeStatus?: "approved" | "pending" | "declined" | "unknown";
   requiredRegulatoryFeatures?: string[];
   errorCode?: number | string;
   errorMessage?: string;
@@ -59,8 +63,16 @@ export function deriveAgeParticipationState(
   signal: PlatformAgeSignal
 ): AgeParticipationState {
   const requiredFeatures = signal.requiredRegulatoryFeatures ?? [];
-  if (requiredFeatures.includes("significantAppChangeRequiresParentalConsent")) {
+  if (
+    requiredFeatures.includes("significantAppChangeRequiresParentalConsent") ||
+    signal.significantChangeStatus === "pending" ||
+    signal.significantChangeStatus === "declined"
+  ) {
     return "needs_parental_consent";
+  }
+
+  if (signal.ageSignalsStatus === "verification_required") {
+    return "needs_age_signal";
   }
 
   if (!signal.available) {

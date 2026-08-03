@@ -136,9 +136,20 @@
   <!-- Source Attribution -->
   @if(sourceText()) {
   <div class="d-flex justify-content-end mt-1">
+    @if(sourceUrl()) {
+    <a
+      class="mat-caption text-secondary"
+      style="font-size: 10px"
+      [href]="sourceUrl()"
+      target="_blank"
+      rel="noopener noreferrer"
+      >{{ sourceText() }}</a
+    >
+    } @else {
     <span class="mat-caption text-secondary" style="font-size: 10px">{{
       sourceText()
     }}</span>
+    }
   </div>
   }
 </div>

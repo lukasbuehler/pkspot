@@ -1,20 +1,36 @@
 import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
 import { MatIcon } from "@angular/material/icon";
+import { RouterLink } from "@angular/router";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
 
 @Component({
   selector: "app-contribution-status-note",
-  imports: [MatIcon],
+  imports: [MatIcon, RouterLink],
   template: `
     <div class="contribution-status-note" role="status">
       <mat-icon aria-hidden="true">info</mat-icon>
-      <p class="mat-body-medium m-0">
-        {{ ageAssurance.getContributionStatusMessage() }}
-      </p>
+      <div>
+        <p class="mat-body-medium m-0">
+          {{ ageAssurance.getContributionStatusMessage() }}
+        </p>
+        <a
+          class="contribution-status-note__action mat-label-large"
+          routerLink="/contact"
+          i18n
+        >
+          Ask us to review this restriction
+        </a>
+      </div>
     </div>
   `,
   styles: [
     `
+      :host {
+        display: block;
+        min-width: 0;
+        max-width: 100%;
+      }
+
       .contribution-status-note {
         display: flex;
         align-items: flex-start;
@@ -24,6 +40,24 @@ import { AgeAssuranceService } from "../../services/age-assurance.service";
         border-radius: 8px;
         background: var(--mat-sys-surface-container-low);
         color: var(--mat-sys-on-surface-variant);
+      }
+
+      .contribution-status-note > div {
+        min-width: 0;
+      }
+
+      p,
+      a {
+        overflow-wrap: anywhere;
+      }
+
+      a {
+        color: var(--mat-sys-primary);
+      }
+
+      .contribution-status-note__action {
+        display: inline-block;
+        margin-top: 8px;
       }
 
       mat-icon {

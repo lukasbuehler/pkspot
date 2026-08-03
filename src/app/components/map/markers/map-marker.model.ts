@@ -17,6 +17,8 @@ export interface MapMarkerSchema {
   imageFit?: MapMarkerImageFit;
   imageBackgroundColor?: string;
   number?: number | string;
+  /** Compact trailing count, for example additional visits at this location. */
+  badge?: string;
   numberVariant?: "default" | "flag";
   size?: number;
   priority?: "required" | number;

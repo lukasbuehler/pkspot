@@ -1,5 +1,5 @@
 import { Injectable, LOCALE_ID, inject } from "@angular/core";
-import { Timestamp } from "@angular/fire/firestore";
+import { Timestamp } from "firebase/firestore";
 import {
   OrganizationMemberSchema,
   OrganizationReferenceSchema,
@@ -78,6 +78,15 @@ export class OrganizationsService {
     return this._firestoreAdapter.getCollection<
       OrganizationMemberSchema & { id: string }
     >(`organizations/${organizationId}/members`);
+  }
+
+  async getOrganizationMember(
+    organizationId: string,
+    userId: string,
+  ): Promise<OrganizationMemberSchema | null> {
+    return this._firestoreAdapter.getDocument<OrganizationMemberSchema>(
+      `organizations/${organizationId}/members/${userId}`,
+    );
   }
 
   async getStewardedSpots(
@@ -245,6 +254,23 @@ export class OrganizationsService {
       .map(({ organization }) => organization);
   }
 
+  async getManagerOrganizations(): Promise<OrganizationDocument[]> {
+    const uid = this._authService.user.uid;
+    if (!uid) return [];
+    const organizations = await this.getOrganizations();
+    const memberships = await Promise.all(
+      organizations.map(async (organization) => ({
+        organization,
+        member: await this.getOrganizationMember(organization.id, uid),
+      })),
+    );
+    return memberships
+      .filter(
+        ({ member }) => member?.role === "owner" || member?.role === "admin",
+      )
+      .map(({ organization }) => organization);
+  }
+
   async createOrganization(
     id: string,
     data: Omit<OrganizationSchema, "time_created" | "time_updated">
@@ -265,6 +291,14 @@ export class OrganizationsService {
     this._requireAdmin("updateOrganization");
     await this._firestoreAdapter.updateDocument(`organizations/${id}`, {
       ...patch,
+      time_updated: Timestamp.now(),
+    });
+  }
+
+  async removeOrganizationLogo(id: string): Promise<void> {
+    this._requireAdmin("removeOrganizationLogo");
+    await this._firestoreAdapter.updateDocument(`organizations/${id}`, {
+      logo_url: this._firestoreAdapter.deleteFieldValue(),
       time_updated: Timestamp.now(),
     });
   }

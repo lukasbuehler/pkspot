@@ -1,83 +1,102 @@
-<div class="crop-container">
-  <mat-card class="crop-card">
-    <mat-card-content class="crop-content">
-      <div class="cropper-wrapper">
-        <image-cropper
-          [imageBase64]="imageSource"
-          [maintainAspectRatio]="true"
-          [aspectRatio]="1"
-          [cropperMinHeight]="100"
-          format="png"
-          (imageCropped)="imageCroppedEventHandler($event)"
-          [roundCropper]="true"
-        ></image-cropper>
-      </div>
+<div class="crop-editor">
+  <p class="crop-instruction mat-body-medium" i18n>
+    Move and resize the crop area. Use zoom or rotation when needed.
+  </p>
 
-      <div class="preview-section mt-4">
-        <h4
-          class="mat-subtitle-2"
-          i18n="crop image preview|Preview heading@@crop.preview"
-        >
-          Preview
-        </h4>
-        @if (croppedImage) {
-        <img
-          [src]="croppedImage"
-          alt="Cropped preview"
-          class="cropped-preview"
-        />
-        } @else {
-        <div class="cropped-preview placeholder">
-          <mat-icon>image</mat-icon>
-          <p
-            class="mat-caption"
-            i18n="
-              crop image instruction|Instruction to crop the
-              image@@crop.instruction"
-          >
-            Crop the image above
-          </p>
-        </div>
-        }
-      </div>
-    </mat-card-content>
+  <div class="cropper-wrapper">
+    <image-cropper
+      [imageFile]="imageFile()"
+      imageAltText="Selected image"
+      i18n-imageAltText
+      cropperFrameAriaLabel="Crop image area"
+      i18n-cropperFrameAriaLabel
+      output="blob"
+      [format]="outputFormat()"
+      [imageQuality]="90"
+      [autoCrop]="false"
+      [maintainAspectRatio]="maintainAspectRatio()"
+      [aspectRatio]="aspectRatio()"
+      [roundCropper]="roundCropper()"
+      [resizeToWidth]="policy().maxOutputWidth"
+      [resizeToHeight]="policy().maxOutputHeight"
+      [onlyScaleDown]="true"
+      [allowMoveImage]="true"
+      [canvasRotation]="canvasRotation()"
+      [transform]="transform()"
+      (transformChange)="updateTransform($event)"
+      (cropperReady)="isReady.set(true); hasLoadError.set(false)"
+      (loadImageFailed)="hasLoadError.set(true)"
+    />
+  </div>
 
-    <div class="crop-actions">
-      <button
-        mat-stroked-button
-        (click)="cancelCrop()"
-        [disabled]="isProcessing"
-        i18n="cancel button|Cancel action@@crop.cancel"
-      >
-        Cancel
-      </button>
-      <button
-        mat-flat-button
-        color="accent"
-        (click)="saveCroppedImage()"
-        [disabled]="!croppedImage || isProcessing"
-      >
-        @if (isProcessing) {
-        <span class="d-flex flex-row">
-          <mat-icon class="me-2">hourglass_empty</mat-icon>
+  @if (hasLoadError()) {
+    <p class="crop-error mat-body-medium" role="alert" i18n>
+      This image could not be loaded or cropped. Choose another image.
+    </p>
+  }
+
+  <div class="crop-controls" aria-label="Image adjustments" i18n-aria-label>
+    <button
+      mat-icon-button
+      type="button"
+      (click)="rotate(-1)"
+      aria-label="Rotate left"
+      i18n-aria-label
+    >
+      <mat-icon>rotate_left</mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      type="button"
+      (click)="rotate(1)"
+      aria-label="Rotate right"
+      i18n-aria-label
+    >
+      <mat-icon>rotate_right</mat-icon>
+    </button>
+    <mat-icon aria-hidden="true">zoom_out</mat-icon>
+    <mat-slider min="1" max="3" step="0.05" aria-label="Zoom" i18n-aria-label>
+      <input
+        matSliderThumb
+        [value]="zoom()"
+        (valueChange)="setZoom($event)"
+      />
+    </mat-slider>
+    <mat-icon aria-hidden="true">zoom_in</mat-icon>
+    <button mat-button type="button" (click)="reset()" i18n>Reset</button>
+  </div>
+
+  <div class="crop-actions">
+    <button
+      mat-button
+      type="button"
+      (click)="cancelCrop()"
+      [disabled]="isProcessing()"
+      i18n="cancel button|Cancel action@@crop.cancel"
+    >
+      Cancel
+    </button>
+    <button
+      mat-flat-button
+      type="button"
+      (click)="saveCroppedImage()"
+      [disabled]="!isReady() || hasLoadError() || isProcessing()"
+    >
+      @if (isProcessing()) {
+        <span class="crop-save-content">
+          <mat-icon>hourglass_empty</mat-icon>
           <span
-            i18n="
-              processing label|Label shown while processing@@crop.processing"
-            >Processing...</span
+            i18n="processing label|Label shown while processing@@crop.processing"
           >
+            Processing…
+          </span>
         </span>
-        } @else {
-        <span class="d-flex flex-row">
-          <mat-icon class="me-2">check</mat-icon>
-          <span
-            i18n="
-              save cropped image button|Button to save the cropped
-              image@@crop.saveCropped"
-            >Save Cropped Image</span
-          >
+      } @else {
+        <span class="crop-save-content">
+          <mat-icon>check</mat-icon>
+          <span i18n>Apply crop</span>
         </span>
-        }
-      </button>
-    </div>
-  </mat-card>
+      }
+    </button>
+  </div>
 </div>

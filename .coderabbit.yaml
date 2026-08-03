@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: en-US
+early_access: false
+
+reviews:
+  # Start with high-signal bug and security feedback. This can be changed to
+  # "assertive" later if the reviews are too quiet.
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  high_level_summary_instructions: |
+    Summarize user-visible behavior, backwards-compatibility implications for
+    existing web and mobile clients, database or API contract changes, tests
+    added or missing, and deployment or migration risks. Keep it concise and
+    omit cosmetic implementation details.
+  poem: false
+  in_progress_fortune: false
+  review_status: true
+  review_details: false
+  auto_review:
+    enabled: true
+    drafts: false
+
+  # AGENTS.md is discovered automatically as a code-guidelines file. These
+  # instructions add review focus for PK Spot's most fragile contracts.
+  path_instructions:
+    - path: "src/app/**/*.ts"
+      instructions: |
+        Focus on runtime correctness, strict typing, zoneless Angular change
+        detection, signal state flow, cleanup, accessibility, and regressions.
+        Check that async updates notify template-read state and that Firebase
+        payload changes remain compatible with older mobile and web clients.
+    - path: "functions/src/**/*.ts"
+      instructions: |
+        Focus on authorization, input validation, idempotency, error handling,
+        Firestore transaction correctness, backward-compatible payloads, and
+        europe-west1 deployment behavior. Flag client-controlled writes to
+        derived or server-owned fields.
+    - path: "src/locale/**/*.xlf"
+      instructions: |
+        Verify that XLIFF 2.0 remains valid, all placeholder tags are preserved
+        exactly, and the product term "Spot" is not translated.
+    - path: "ios/**/*.swift"
+      instructions: |
+        Check Capacitor plugin registration, both Xcode project integrations,
+        native SDK error handling, main-thread UI work, and Google Places/App
+        Check compatibility.
+    - path: "android/**/AndroidManifest.xml"
+      instructions: |
+        Check that app-link rules remain intentionally path-scoped and do not
+        claim browser-first routes such as /qr/*.
+    - path: "typesense/**/*.json"
+      instructions: |
+        Check schema changes against Firestore write paths and the matching
+        Typesense alignment contract tests. Prefer additive, backward-compatible
+        fields.
+
+  tools:
+    eslint:
+      enabled: true
+    actionlint:
+      enabled: true
+
+chat:
+  auto_reply: true

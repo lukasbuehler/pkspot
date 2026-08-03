@@ -8,8 +8,10 @@ import { MediaUploadStatusService } from "./media-upload-status.service";
 
 describe("MediaUploadStatusService", () => {
   let service: MediaUploadStatusService;
+  let collectionSnapshots: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    collectionSnapshots = vi.fn(() => of([]));
     TestBed.configureTestingModule({
       providers: [
         MediaUploadStatusService,
@@ -23,7 +25,7 @@ describe("MediaUploadStatusService", () => {
         {
           provide: FirestoreAdapterService,
           useValue: {
-            collectionSnapshots: () => of([]),
+            collectionSnapshots,
           },
         },
       ],
@@ -49,5 +51,65 @@ describe("MediaUploadStatusService", () => {
         "https://storage.example/spot_pictures%2Fpublished.jpg?alt=media",
       ]),
     ).toEqual([]);
+  });
+
+  it("waits for the server to publish an upload before returning its URL", async () => {
+    collectionSnapshots.mockReturnValue(
+      of(
+        [],
+        [
+          {
+            id: "upload-1",
+            uid: "user-1",
+            upload_id: "upload-1",
+            status: "processing",
+            created_at: {},
+            updated_at: {},
+          },
+        ],
+        [
+          {
+            id: "upload-1",
+            uid: "user-1",
+            upload_id: "upload-1",
+            status: "published",
+            public_url: "https://storage.example/organization_media/logo.png",
+            created_at: {},
+            updated_at: {},
+          },
+        ],
+      ),
+    );
+
+    await expect(service.waitForPublishedUpload("upload-1")).resolves.toBe(
+      "https://storage.example/organization_media/logo.png",
+    );
+    expect(collectionSnapshots).toHaveBeenCalledWith(
+      "media_upload_status",
+      [
+        { fieldPath: "uid", opStr: "==", value: "user-1" },
+        { fieldPath: "upload_id", opStr: "==", value: "upload-1" },
+      ],
+      [{ type: "limit", limit: 1 }],
+    );
+  });
+
+  it("rejects an upload that server-side processing marks as failed", async () => {
+    collectionSnapshots.mockReturnValue(
+      of([
+        {
+          id: "upload-1",
+          uid: "user-1",
+          upload_id: "upload-1",
+          status: "failed",
+          created_at: {},
+          updated_at: {},
+        },
+      ]),
+    );
+
+    await expect(service.waitForPublishedUpload("upload-1")).rejects.toThrow(
+      "Media processing failed.",
+    );
   });
 });

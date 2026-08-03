@@ -1,0 +1,42 @@
+:host {
+  display: block;
+  width: min(88vw, 88dvh, 800px);
+  aspect-ratio: 1;
+}
+
+.profile-picture-swiper,
+.swiper-wrapper,
+.swiper-slide,
+.swiper-zoom-container {
+  width: 100%;
+  height: 100%;
+}
+
+.profile-picture-swiper {
+  overflow: hidden;
+  background: var(--mat-sys-surface-container-lowest);
+}
+
+.profile-picture-dialog__image {
+  position: relative;
+  width: 100%;
+  height: 100%;
+
+  img {
+    object-fit: contain;
+  }
+}
+
+.profile-picture-dialog__close {
+  position: absolute;
+  z-index: 2;
+  top: 12px;
+  right: 12px;
+  color: var(--mat-sys-on-surface);
+  background: color-mix(
+    in srgb,
+    var(--mat-sys-surface-container-high) 88%,
+    transparent
+  );
+  backdrop-filter: blur(12px);
+}

@@ -1,0 +1,42 @@
+{
+  "fields": [
+    { "name": "venue_string", "drop": true },
+    { "name": "locality_string", "drop": true },
+    { "name": "location", "drop": true },
+    { "name": "venue_string", "type": "string", "optional": true },
+    {
+      "name": "locality_string",
+      "type": "string",
+      "facet": true,
+      "optional": true
+    },
+    { "name": "location", "type": "geopoint", "optional": true },
+    { "name": "has_location", "type": "bool", "facet": true, "optional": true },
+    {
+      "name": "timing.start_date",
+      "type": "string",
+      "facet": true,
+      "optional": true
+    },
+    { "name": "timing.end_date", "type": "string", "optional": true },
+    {
+      "name": "timing.start_time",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "timing.end_time",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "timing.mode",
+      "type": "string",
+      "facet": true,
+      "optional": true
+    },
+    { "name": "active_until_seconds", "type": "int64", "optional": true }
+  ]
+}

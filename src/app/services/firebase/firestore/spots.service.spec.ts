@@ -1,13 +1,12 @@
-import { describe, it, expect, beforeEach, vi, Mock } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { TestBed } from "@angular/core/testing";
-import { Firestore } from "@angular/fire/firestore";
 import { of } from "rxjs";
 import { firstValueFrom } from "rxjs";
 
 // Mock Firestore with partial mock - use inline mocks to avoid hoisting issues
-vi.mock("@angular/fire/firestore", async (importOriginal) => {
+vi.mock("firebase/firestore", async (importOriginal) => {
   const actual = await importOriginal<
-    typeof import("@angular/fire/firestore")
+    typeof import("firebase/firestore")
   >();
   return {
     ...actual,
@@ -37,8 +36,6 @@ import { PlatformService } from "../../platform.service";
 import { StorageService } from "../storage.service";
 
 // Mock instances
-const mockFirestore = {};
-
 const createMockFirestoreAdapter = () => ({
   getDocument: vi.fn(),
   setDocument: vi.fn(),
@@ -74,7 +71,6 @@ describe("SpotsService", () => {
     TestBed.configureTestingModule({
       providers: [
         SpotsService,
-        { provide: Firestore, useValue: mockFirestore },
         { provide: FirestoreAdapterService, useValue: mockFirestoreAdapter },
         { provide: PlatformService, useValue: createMockPlatformService() },
         { provide: StorageService, useValue: mockStorageService },

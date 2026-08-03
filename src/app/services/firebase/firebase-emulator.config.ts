@@ -1,4 +1,4 @@
-import { FirebaseOptions } from "@angular/fire/app";
+import { FirebaseOptions } from "firebase/app";
 import { environment } from "../../../environments/environment.default";
 
 export const FIREBASE_EMULATOR_STORAGE_KEY = "pkspot:e2e:firebaseEmulators";

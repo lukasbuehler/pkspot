@@ -40,6 +40,82 @@ describe("Event", () => {
     expect(event.end.toISOString()).toBe("2026-06-15T10:00:00.000Z");
   });
 
+  it("exposes compatibility defaults for legacy events", () => {
+    const event = new Event("event-1" as EventId, {
+      ...baseEvent,
+      start: "2026-06-14T10:00:00.000Z",
+      end: "2026-06-15T10:00:00.000Z",
+      published: false,
+      event_categories: ["camp"],
+      created_by: { uid: "creator-1" },
+    } as EventSchema);
+
+    expect(event.publicationState).toBe("draft");
+    expect(event.published).toBe(false);
+    expect(event.visibility).toBe("public");
+    expect(event.kind).toBe("festival");
+    expect(event.scheduleMode).toBe("single");
+    expect(event.lifecycleStatus).toBe("planned");
+    expect(event.priority).toBe("normal");
+    expect(event.owner).toBeUndefined();
+    expect(event.attendance).toEqual({
+      social: "rsvp",
+      admission: "none",
+      eligibility: { type: "everyone" },
+    });
+    expect(event.notificationPolicy).toBe("all");
+  });
+
+  it("derives completed while preserving the legacy past status", () => {
+    const event = new Event("event-1" as EventId, {
+      ...baseEvent,
+      start: "2026-06-14T10:00:00.000Z",
+      end: "2026-06-15T10:00:00.000Z",
+      lifecycle_status: "planned",
+    } as EventSchema);
+    const now = new Date("2026-06-16T10:00:00.000Z");
+
+    expect(event.displayedLifecycle(now)).toBe("completed");
+    expect(event.status(now)).toBe("past");
+  });
+
+  it("keeps a locationless date-only event out of the live state", () => {
+    const event = new Event("event-date-only" as EventId, {
+      name: "Venue TBA",
+      start: "2026-07-09T00:00:00.000Z",
+      end: "2026-07-09T23:59:59.999Z",
+      timing: { start_date: "2026-07-09", mode: "date_only" },
+      has_location: false,
+    } as EventSchema);
+
+    expect(event.location).toBeUndefined();
+    expect(event.hasLocation).toBe(false);
+    expect(event.status(new Date("2026-07-09T12:00:00.000Z"))).toBe(
+      "upcoming",
+    );
+    expect(event.isPromotable(new Date("2026-07-09T12:00:00.000Z"))).toBe(
+      false,
+    );
+  });
+
+  it("ends open-ended live status at its operational cutoff", () => {
+    const event = new Event("event-open-end" as EventId, {
+      ...baseEvent,
+      start: "2026-07-09T16:30:00.000Z",
+      end: "2026-07-09T20:30:00.000Z",
+      active_until: "2026-07-09T20:30:00.000Z",
+      timing: {
+        start_date: "2026-07-09",
+        start_time: "18:30",
+        mode: "open_end",
+      },
+      time_zone: "Europe/Zurich",
+    } as EventSchema);
+
+    expect(event.status(new Date("2026-07-09T18:00:00.000Z"))).toBe("live");
+    expect(event.status(new Date("2026-07-09T20:30:00.001Z"))).toBe("past");
+  });
+
   it("prefers location_raw as the event pin location", () => {
     const event = new Event("event-1" as EventId, {
       ...baseEvent,
@@ -133,6 +209,7 @@ describe("Event", () => {
           id: "early",
           label: "Early bird",
           price: { amount: 35, currency: "CHF" },
+          original_price: { amount: 50, currency: "CHF" },
           sale_ends_at: "2026-06-01T00:00:00.000Z",
           badge: "early_bird",
         },
@@ -145,6 +222,7 @@ describe("Event", () => {
         id: "early",
         label: "Early bird",
         price: { amount: 35, currency: "CHF" },
+        originalPrice: { amount: 50, currency: "CHF" },
         badge: "early_bird",
       }),
     );

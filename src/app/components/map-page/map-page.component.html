@@ -103,6 +103,7 @@
         [eventSeriesById]="visibleEventSeriesById()"
         [visibleCommunities]="visibleMapCommunities()"
         [popularCommunities]="popularCommunities()"
+        [weather]="mapWeatherResponse()"
         [spotListLimit]="spotListLimit()"
         [mapZoom]="spotMap ? spotMap.mapZoom() : null"
         [openProgress]="
@@ -115,6 +116,7 @@
         (spotSelect)="selectSpot($event)"
         (eventSelect)="openEventPreview($event)"
         (communitySelect)="onIslandOpenCommunity($event)"
+        (weatherOpen)="openMapWeather()"
       ></app-map-object-panel>
     }
   }
@@ -129,6 +131,7 @@
         #spotMap
         id="spotMap"
         [isClickable]="true"
+        [delegateSpotOpening]="true"
         [selectedSpot]="selectedSpot()"
         [selectedChallenge]="selectedChallenge()"
         [selectedSpotChallenges]="selectedSpot()?.topChallenges() ?? []"
@@ -208,10 +211,17 @@
           (bottomSheetOpen() || bottomSheetProgress() > 0)
         )
       "
+      [showCreateEvent]="
+        authService.isAdmin() &&
+        !compactTabletSidenavOpen() &&
+        !selectedSpot() &&
+        !isEditing()
+      "
       (resetNorth)="onResetNorth()"
       (toggleMapStyle)="onToggleMapStyle()"
       (focusGeolocation)="onFocusGeolocation()"
       (createSpot)="onCreateSpot()"
+      (createEvent)="onCreateEvent()"
     ></app-map-floating-controls>
   }
 </ng-template>
@@ -333,8 +343,20 @@
     <div class="position-relative overflow-hidden h-100 w-100">
       <ng-container *ngTemplateOutlet="mapContent"></ng-container>
       @if (visibleIslandContent()) {
-        <div @fadeInOut class="map-island-host">
-          <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
+        <div class="map-context-host">
+          <!-- @if (mapWeatherResponse(); as weather) {
+            <app-map-weather-chip
+              @fadeInOut
+              class="map-weather-chip-host"
+              [response]="weather"
+              (pressed)="openMapWeather()"
+            ></app-map-weather-chip>
+          } -->
+          @if (visibleIslandContent()) {
+            <div @fadeInOut class="map-island-host">
+              <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
+            </div>
+          }
         </div>
       }
 
@@ -378,8 +400,20 @@
       </div>
       <ng-container *ngTemplateOutlet="chips"></ng-container>
       @if (visibleIslandContent()) {
-        <div @fadeInOut class="map-island-mobile-host">
-          <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
+        <div class="map-context-mobile-host">
+          <!-- @if (mapWeatherResponse(); as weather) {
+            <app-map-weather-chip
+              @fadeInOut
+              class="map-weather-chip-host"
+              [response]="weather"
+              (pressed)="openMapWeather()"
+            ></app-map-weather-chip>
+          } -->
+          @if (visibleIslandContent()) {
+            <div @fadeInOut class="map-island-mobile-host">
+              <ng-container *ngTemplateOutlet="mapIsland"></ng-container>
+            </div>
+          }
         </div>
       }
     </div>

@@ -1,12 +1,30 @@
 <!-- <mat-divider class="mx-3 mt-0 mb-3"></mat-divider> -->
-
 <div
-  class="area-title"
+  class="area-header"
   [attr.data-collapsed]="titleCollapsed() ? 'true' : null"
 >
-  <h4 class="mat-title-large m-0 px-3 pt-2 pb-3" i18n="@@map.contents_heading">
-    In this area
-  </h4>
+  <div
+    class="area-title"
+    [attr.data-collapsed]="titleCollapsed() ? 'true' : null"
+  >
+    <h4 class="mat-title-large m-0 py-2" i18n="@@map.contents_heading">
+      In this area
+    </h4>
+  </div>
+
+  <div
+    class="area-weather"
+    [attr.data-collapsed]="titleCollapsed() ? 'true' : null"
+  >
+    @if (weather(); as areaWeather) {
+      <app-map-weather-chip
+        animate.enter="weather-chip-enter"
+        [response]="areaWeather"
+        appearance="overview"
+        (pressed)="weatherOpen.emit()"
+      ></app-map-weather-chip>
+    }
+  </div>
 </div>
 
 <app-filter-chips-bar

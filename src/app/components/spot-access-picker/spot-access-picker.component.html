@@ -1,0 +1,18 @@
+<mat-form-field appearance="outline" subscriptSizing="dynamic">
+  <mat-label i18n="@@spot_access_label">Spot Access</mat-label>
+  <mat-select [value]="value()" (valueChange)="value.set($event)">
+    <mat-select-trigger>
+      <span class="picker-value">
+        <mat-icon aria-hidden="true">{{ icons[value()] }}</mat-icon>
+        <span>{{ names[value()] }}</span>
+      </span>
+    </mat-select-trigger>
+    @for (option of options; track option) {
+      <mat-option [value]="option">
+        <mat-icon aria-hidden="true">{{ icons[option] }}</mat-icon>
+        <span>{{ names[option] }}</span>
+      </mat-option>
+    }
+  </mat-select>
+  <mat-hint>{{ descriptions[value()] }}</mat-hint>
+</mat-form-field>

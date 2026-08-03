@@ -1,0 +1,344 @@
+import { signal } from "@angular/core";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
+import {
+  MAT_DIALOG_DATA,
+  MatDialogRef,
+} from "@angular/material/dialog";
+import {
+  WeatherForecastDialogComponent,
+  WeatherForecastDialogData,
+} from "./weather-forecast-dialog.component";
+import { AccountPreferencesService } from "../../services/account-preferences.service";
+import {
+  resolveTemperatureUnit,
+  type TemperatureUnitPreference,
+} from "../../weather/weather-temperature";
+
+describe("WeatherForecastDialogComponent", () => {
+  let fixture: ComponentFixture<WeatherForecastDialogComponent>;
+  let dialogData: WeatherForecastDialogData;
+  const temperatureUnitPreference =
+    signal<TemperatureUnitPreference>("celsius");
+  const temperatureUnit = (countryCode?: string) =>
+    resolveTemperatureUnit(temperatureUnitPreference(), countryCode);
+
+  beforeEach(() => {
+    temperatureUnitPreference.set("celsius");
+    dialogData = {
+      spotName: "Josefhalle",
+      response: {
+        provider: "google",
+        mode: "current-and-near-future",
+        location: { lat: 47.37, lng: 8.54 },
+        generatedAt: "2026-07-19T10:00:00Z",
+        expiresAt: "2026-07-19T10:45:00Z",
+        timeZone: "Europe/Zurich",
+        attribution: "Weather: Google Weather",
+        current: {
+          time: "2026-07-19T10:00:00Z",
+          condition: "clear",
+          temperatureC: 24,
+          apparentTemperatureC: 25,
+          relativeHumidityPercent: 48,
+          precipitationProbabilityPercent: 60,
+          uvIndex: 8,
+          cloudCoverPercent: 55,
+          windSpeedKmh: 8,
+          isDay: true,
+          sunset: "2026-07-19T19:00:00Z",
+        },
+        forecast: [
+          {
+            time: "2026-07-19T11:00:00Z",
+            condition: "rain",
+            temperatureC: 22,
+            precipitationProbabilityPercent: 60,
+            isDay: true,
+          },
+          {
+            time: "2026-07-19T22:00:00Z",
+            condition: "clear",
+            temperatureC: 18,
+            precipitationProbabilityPercent: 0,
+            uvIndex: 0,
+            isDay: false,
+          },
+        ],
+        dailyForecast: [
+          {
+            date: "2026-07-19",
+            condition: "rain",
+            maxTemperatureC: 24.4,
+            minTemperatureC: 16.2,
+            precipitationProbabilityPercent: 65,
+          },
+          {
+            date: "2026-07-20",
+            condition: "partly-cloudy",
+            maxTemperatureC: 30,
+            minTemperatureC: 15.7,
+            precipitationProbabilityPercent: 20,
+          },
+        ],
+        insights: {
+          summary: "Rain possible later",
+          rainStartsAt: "2026-07-19T11:00:00Z",
+          likelyDryUntil: "2026-07-19T11:00:00Z",
+          precipitationRisk: "medium",
+          sunExposure: "moderate",
+          surfaceDrying: {
+            status: "likely_dry",
+            confidence: "low",
+            factors: [],
+          },
+        },
+      },
+    };
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: MAT_DIALOG_DATA,
+          useFactory: () => dialogData,
+        },
+        { provide: MatDialogRef, useValue: { close: vi.fn() } },
+        {
+          provide: AccountPreferencesService,
+          useValue: { temperatureUnit },
+        },
+      ],
+    });
+  });
+
+  it("explains the current and upcoming weather", async () => {
+    fixture = TestBed.createComponent(WeatherForecastDialogComponent);
+    await fixture.whenStable();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain("Weather at");
+    expect(text).toContain("Josefhalle");
+    expect(text).toContain("24 °C");
+    expect(text).toContain("Conditions should stay dry until around");
+    expect(text).toContain("Sunset at");
+    expect(text).toContain("Current cloud cover: 55%");
+    expect(text).toContain("60%");
+    expect(text).toContain("Next 8 days");
+    expect(text).toContain("24°");
+    expect(text).toContain("16°");
+    expect(text).toContain("65%");
+    expect(text).toContain("Weather: Google Weather");
+    expect(
+      fixture.nativeElement.querySelector(".current-icon").classList,
+    ).toContain("has-warning");
+    expect(
+      fixture.nativeElement.querySelector(".weather-warning").classList,
+    ).not.toContain("high");
+    expect(
+      fixture.nativeElement.querySelector(
+        ".weather-warning-icon mat-icon",
+      ).textContent,
+    ).toContain("brightness_alert");
+    expect(
+      fixture.nativeElement.querySelector(".weather-hour .forecast-icon")
+        .classList,
+    ).toContain("is-wet");
+    expect(
+      fixture.nativeElement.querySelectorAll(".weather-hour .forecast-icon")[1]
+        .classList,
+    ).toContain("is-night");
+    expect(
+      fixture.nativeElement.querySelectorAll(".weather-day .forecast-icon")[0]
+        .classList,
+    ).toContain("is-wet");
+    expect(
+      fixture.nativeElement.querySelectorAll(".weather-day .forecast-icon")[1]
+        .classList,
+    ).toContain("has-warning");
+  });
+
+  it("shows up to eight days without coloring dry days from chance or UV", async () => {
+    dialogData.response.dailyForecast = Array.from(
+      { length: 9 },
+      (_, index) => ({
+        date: `2026-07-${String(19 + index).padStart(2, "0")}`,
+        condition: "partly-cloudy" as const,
+        maxTemperatureC: 22,
+        precipitationProbabilityPercent: 45,
+        uvIndex: 8,
+      }),
+    );
+    fixture = TestBed.createComponent(WeatherForecastDialogComponent);
+    await fixture.whenStable();
+
+    const dailyIcons = fixture.nativeElement.querySelectorAll(
+      ".weather-day .forecast-icon",
+    );
+    expect(dailyIcons).toHaveLength(8);
+    for (const icon of dailyIcons) {
+      expect(icon.classList).not.toContain("is-wet");
+      expect(icon.classList).not.toContain("has-warning");
+    }
+  });
+
+  it("does not claim surfaces will dry after the next rain starts", async () => {
+    dialogData.response.insights.surfaceDrying = {
+      status: "drying",
+      estimatedDryAt: "2026-07-19T12:00:00Z",
+      confidence: "low",
+      factors: [],
+    };
+    fixture = TestBed.createComponent(WeatherForecastDialogComponent);
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).not.toContain(
+      "Exposed surfaces may dry around",
+    );
+  });
+
+  it("renders forecasts in the preferred temperature unit", async () => {
+    temperatureUnitPreference.set("fahrenheit");
+    fixture = TestBed.createComponent(WeatherForecastDialogComponent);
+    await fixture.whenStable();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain("75 °F");
+    expect(text).toContain("77 °F");
+    expect(text).toContain("72°");
+    expect(text).toContain("86°");
+  });
+
+  it("renders local US forecasts in Fahrenheit", async () => {
+    temperatureUnitPreference.set("local");
+    dialogData.countryCode = "US";
+    fixture = TestBed.createComponent(WeatherForecastDialogComponent);
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).toContain("75 °F");
+  });
+
+  it("groups heat and UV warnings into one warning card", async () => {
+    dialogData.response.current = {
+      ...dialogData.response.current!,
+      temperatureC: 31,
+      apparentTemperatureC: 32,
+      uvIndex: 8,
+      isDay: true,
+    };
+    fixture = TestBed.createComponent(WeatherForecastDialogComponent);
+    await fixture.whenStable();
+
+    const warningCards =
+      fixture.nativeElement.querySelectorAll(".weather-warning");
+    const warningItems =
+      warningCards[0].querySelectorAll(".weather-warning-item");
+
+    expect(warningCards).toHaveLength(1);
+    expect(warningItems).toHaveLength(2);
+    expect(warningCards[0].textContent).toContain("High UV");
+    expect(warningCards[0].textContent).toContain("Hot conditions");
+  });
+
+  it("does not repeat the generic heat warning beside an official heat alert", async () => {
+    dialogData.response.current = {
+      ...dialogData.response.current!,
+      temperatureC: 36,
+      apparentTemperatureC: 38,
+      uvIndex: 8,
+      isDay: true,
+    };
+    dialogData.response.alerts = [
+      {
+        id: "extreme-heat",
+        type: "HEAT",
+        title: "Extreme heat warning",
+        severity: "extreme",
+        certainty: "likely",
+        urgency: "expected",
+        areaName: "Calabria",
+        instructions: [],
+        safetyRecommendations: [],
+        source: {
+          name: "Italian Meteorological Service",
+          url: "https://example.com/",
+        },
+      },
+    ];
+    fixture = TestBed.createComponent(WeatherForecastDialogComponent);
+    await fixture.whenStable();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain("Extreme heat");
+    expect(text).toContain("High UV");
+    expect(text).not.toContain("Hot conditions");
+  });
+
+  it("keeps raw weather details visible for covered spots", async () => {
+    dialogData.covered = true;
+    fixture = TestBed.createComponent(WeatherForecastDialogComponent);
+    await fixture.whenStable();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain("Covered spot");
+    expect(text).toContain("surrounding outdoor conditions");
+    expect(text).toContain("UV index");
+    expect(text).toContain("60%");
+    expect(text).toContain("65%");
+    expect(text).toContain("Conditions should stay dry until around");
+    expect(fixture.nativeElement.querySelector(".weather-warning")).toBeNull();
+  });
+
+  it("uses a region title for map weather", async () => {
+    dialogData.context = "map-region";
+    dialogData.spotName = "";
+    fixture = TestBed.createComponent(WeatherForecastDialogComponent);
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).toContain("Weather in the area");
+    expect(fixture.nativeElement.textContent).not.toContain(
+      "Weather at Josefhalle",
+    );
+  });
+
+  it("shows official alerts with safety details and source attribution", async () => {
+    dialogData.response.alerts = [
+      {
+        id: "storm",
+        type: "WILDFIRE",
+        title: "Wildfire warning",
+        severity: "severe",
+        certainty: "observed",
+        urgency: "immediate",
+        areaName: "Zurich",
+        expiresAt: "2026-07-19T12:00:00Z",
+        description: "A severe storm is crossing the area.",
+        instructions: ["Stay away from exposed structures."],
+        safetyRecommendations: [
+          {
+            directive: "Seek shelter.",
+            subtext: "Remain indoors until the warning ends.",
+          },
+        ],
+        source: {
+          name: "MeteoSwiss",
+          url: "https://www.meteoswiss.admin.ch/",
+        },
+      },
+    ];
+    fixture = TestBed.createComponent(WeatherForecastDialogComponent);
+    await fixture.whenStable();
+
+    const alert = fixture.nativeElement.querySelector(".public-alert");
+    const source = alert.querySelector(".public-alert-source");
+    expect(alert.classList).toContain("is-error");
+    expect(alert.textContent).toContain("Wildfire");
+    expect(
+      alert.querySelector(".public-alert-icon mat-icon").textContent,
+    ).toContain("emergency_heat");
+    expect(alert.textContent).toContain("Wildfire warning");
+    expect(alert.textContent).toContain("Active until");
+    expect(alert.textContent).toContain("Safety information");
+    expect(alert.textContent).toContain("Source: MeteoSwiss");
+    expect(source.getAttribute("href")).toBe(
+      "https://www.meteoswiss.admin.ch/",
+    );
+  });
+});

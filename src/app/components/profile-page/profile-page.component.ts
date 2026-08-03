@@ -20,17 +20,12 @@ import { Post } from "../../../db/models/Post";
 import { User } from "../../../db/models/User";
 import { FollowRequestSchema } from "../../../db/schemas/UserSchema";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
-import { Subscription, timeout } from "rxjs";
+import { from, Subscription, timeout } from "rxjs";
 import { Timestamp } from "firebase/firestore";
 import { FollowListComponent } from "../follow-list/follow-list.component";
 import { StorageService } from "../../services/firebase/storage.service";
-import { MatButton } from "@angular/material/button";
+import { MatButton, MatIconButton } from "@angular/material/button";
 import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
-import {
-  MatChip,
-  MatChipAvatar,
-  MatChipSet,
-} from "@angular/material/chips";
 import {
   MatCard,
   MatCardContent,
@@ -54,6 +49,7 @@ import { countries } from "../../../scripts/Countries";
 import { BadgeService } from "../../services/badge.service";
 import { Badge } from "../../shared/badge-definitions";
 import { MatTooltipModule } from "@angular/material/tooltip";
+import { MatMenu, MatMenuItem, MatMenuTrigger } from "@angular/material/menu";
 import { NgOptimizedImage } from "@angular/common";
 import { PrivateSpotListsDialogComponent } from "../private-spot-lists-dialog/private-spot-lists-dialog.component";
 import { AnalyticsService } from "../../services/analytics.service";
@@ -62,12 +58,24 @@ import {
   ProfileReportDialogResult,
 } from "../profile-report-dialog/profile-report-dialog.component";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
+import { NotificationOptInService } from "../../services/notification-opt-in.service";
 import { ContributionStatusNoteComponent } from "../contribution-status-note/contribution-status-note.component";
+import {
+  buildInstagramProfileUrl,
+  buildTikTokProfileUrl,
+  buildYouTubeProfileUrl,
+  normalizeDiscordUrl,
+} from "../../utils/profile-social-links";
+import { trainingFeatureEnabled } from "../../features/training-feature";
+import { MatBadge } from "@angular/material/badge";
+import { NotificationCenterService } from "../../services/notification-center.service";
 
 type ProfileSocialLink = {
   id: string;
   label: string;
-  icon: string;
+  iconOnly: boolean;
+  icon?: string;
+  iconAsset?: string;
   url: string;
 };
 
@@ -80,11 +88,9 @@ type ProfileSocialLink = {
     MatProgressSpinner,
     MatCard,
     MatCardContent,
-    MatChipSet,
-    MatChip,
-    MatChipAvatar,
     FancyCounterComponent,
     MatButton,
+    MatIconButton,
     RouterLink,
     MatCardHeader,
     MatCardSubtitle,
@@ -94,17 +100,27 @@ type ProfileSocialLink = {
     MatDialogModule,
     MatRippleModule,
     MatTooltipModule,
+    MatMenu,
+    MatMenuItem,
+    MatMenuTrigger,
     NgOptimizedImage,
     ContributionStatusNoteComponent,
+    MatBadge,
   ],
 })
 export class ProfilePageComponent implements OnInit, OnDestroy {
+  readonly trainingFeatureEnabled = trainingFeatureEnabled;
+  readonly notificationCenter = inject(NotificationCenterService);
   private _structuredDataService = inject(StructuredDataService);
   private _metaTagService = inject(MetaTagService);
+  private _regionDisplayNames: Intl.DisplayNames | null = null;
 
   userId: string = "";
   user: User | null = null;
   isLoading: boolean = false;
+  readonly fallbackProfileName = $localize`:@@profile.name.fallback:PK Spot user`;
+  profileCountryName = "";
+  profileStartDuration = "";
 
   postsFromUser: Post.Class[] = [];
   postsFromUserLoading: boolean = false;
@@ -121,16 +137,24 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     private _snackbar: MatSnackBar,
     private _storageService: StorageService,
     private _analytics: AnalyticsService,
+    private _notificationOptIn: NotificationOptInService,
     private _cdr: ChangeDetectorRef,
     public ageAssurance: AgeAssuranceService,
     @Inject(LOCALE_ID) public locale: LocaleCode
-  ) {}
+  ) {
+    try {
+      this._regionDisplayNames = new Intl.DisplayNames([locale], {
+        type: "region",
+      });
+    } catch {
+      this._regionDisplayNames = null;
+    }
+  }
 
   profilePicture: string = "";
   isMyProfile: boolean = false;
   loadingFollowing: boolean = false;
   isFollowing: boolean = false;
-  isFollowedByProfile: boolean = false;
   isPendingFollowRequest: boolean = false;
   privateDataLoading: boolean = false;
   privateDataLoadFailed: boolean = false;
@@ -174,20 +198,11 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
 
   private lastLoadedFollowing?: Timestamp;
 
-  get profileIdentity(): string {
-    return this.user?.uid
-      ? `/u/${this.user.uid}`
-      : this.userId
-        ? `/u/${this.userId}`
-        : "";
-  }
-
   get hasProfileMetadata(): boolean {
     return !!(
       (this.user?.nationalityCode &&
         this.countries[this.user.nationalityCode]) ||
-      this.user?.startTimeDiffString ||
-      this.user?.visitedSpotsCount
+      this.profileStartDuration
     );
   }
 
@@ -197,36 +212,12 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     );
   }
 
-  get profileAccessLabel(): string {
-    return this.user?.accountPrivacy === "private"
-      ? $localize`Private account`
-      : $localize`Public account`;
-  }
-
-  get showAccountPrivacyChip(): boolean {
-    return (
-      this.user?.accountPrivacy === "private" ||
-      this.user?.profileVisibility !== "public"
-    );
-  }
-
-  get profileVisibilityLabel(): string {
-    switch (this.user?.profileVisibility) {
-      case "followers":
-        return $localize`Visible to followers`;
-      case "mutuals":
-        return $localize`Visible to mutuals`;
-      default:
-        return $localize`Public profile`;
-    }
-  }
-
-  get profileVisibilityIcon(): string {
-    return this.user?.profileVisibility === "public" ? "public" : "groups";
-  }
-
   get isPrivateAccount(): boolean {
     return this.user?.accountPrivacy === "private";
+  }
+
+  get hasExpandedProfileAccess(): boolean {
+    return this.user?.data?.profile_access !== "limited";
   }
 
   get followActionButtonType(): "filled" | "outlined" {
@@ -235,24 +226,12 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
       : "filled";
   }
 
-  get relationshipLabel(): string | null {
-    if (this.isMyProfile) {
-      return null;
-    }
-    if (this.isFollowing && this.isFollowedByProfile) {
-      return $localize`Friends`;
-    }
-    if (this.isFollowedByProfile) {
-      return $localize`Follows you`;
-    }
-    return null;
-  }
-
   ngOnInit(): void {
     // Subscribe to auth state changes first - this handles the case where
     // auth isn't ready on initial load (e.g., page refresh)
     // Skip the first emission (initial null from BehaviorSubject before auth loads)
     const authSub = this._authService.authState$.subscribe((authUser) => {
+      const wasMyProfile = this.isMyProfile;
       if (authUser) {
         this.isMyProfile = this.userId === authUser.uid;
         this._syncPrivateDataSubscription();
@@ -284,6 +263,12 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
             queryParams: { returnUrl: "/profile" },
           });
         }
+      }
+      if (
+        this.userId &&
+        wasMyProfile !== this.isMyProfile
+      ) {
+        this.loadProfile(this.userId);
       }
     });
     this._subscriptions.add(authSub);
@@ -325,11 +310,12 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     this.user = null;
     this.postsFromUser = [];
     this.profilePicture = "";
+    this.profileCountryName = "";
+    this.profileStartDuration = "";
     this.isFollowing = false;
-    this.isFollowedByProfile = false;
     this.isPendingFollowRequest = false;
     this.profileSocialLinks = [];
-    this.followRequests = [];
+    this._resetFollowRequestsState();
 
     this.followingCount = 0;
     this.user = null; // Ensure user is null so UI shows loading or empty state correctly for counts that rely on user object
@@ -356,7 +342,10 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
       this._userSubscription.unsubscribe();
       this._userSubscription = null;
     }
-    this._userSubscription = this._usersService.getUserById(userId).subscribe(
+    const profile$ = this.isMyProfile
+      ? this._usersService.getUserById(userId)
+      : from(this._usersService.getAccessibleUserProfile(userId));
+    this._userSubscription = profile$.subscribe(
       (user) => {
         if (!user) {
           this.profileSocialLinks = [];
@@ -366,25 +355,28 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
         }
 
         this.user = user;
+        this.profileCountryName = this._localizedCountryName(
+          user.nationalityCode
+        );
+        this.profileStartDuration = this._localizedDurationSince(user.startDate);
         this.profileSocialLinks = this._buildProfileSocialLinks(user);
         this.isLoading = false;
 
-        // Add structured data for this user profile
-        const personData =
-          this._structuredDataService.generateUserPersonData(user);
-        this._structuredDataService.addStructuredData("profile", personData);
-
-        // Set meta tags with canonical URL
-        const canonicalPath = `/u/${user.uid}`;
-        this._metaTagService.setUserMetaTags(user, canonicalPath);
+        if (this.hasExpandedProfileAccess) {
+          const personData =
+            this._structuredDataService.generateUserPersonData(user);
+          this._structuredDataService.addStructuredData("profile", personData);
+          this._metaTagService.setUserMetaTags(user, `/u/${user.uid}`);
+        }
 
         // Load the profile picture of this user
         if (this.user.profilePicture) {
           this.profilePicture = this.user.profilePicture.getPreviewImageSrc();
         }
 
-        // Load all the posts from this user
-        this.loadPostsForUser(userId);
+        if (this.hasExpandedProfileAccess) {
+          this.loadPostsForUser(userId);
+        }
 
         // Check if this user follows the authenticated user
 
@@ -410,23 +402,6 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
             );
           this._profileSubscriptions.add(followingSub);
 
-          const followedBySub = this._followingService
-            .userIsFollowingYou$(myUserId, userId)
-            .subscribe(
-              (isFollowedByProfile) => {
-                this.isFollowedByProfile = isFollowedByProfile;
-                this._cdr.detectChanges();
-              },
-              (err) => {
-                console.error(
-                  "There was an error checking if this user follows you"
-                );
-                console.error(err);
-                this._cdr.detectChanges();
-              }
-            );
-          this._profileSubscriptions.add(followedBySub);
-
           if (!this.isMyProfile) {
             const requestSub = this._followingService
               .hasPendingFollowRequest$(myUserId, userId)
@@ -451,18 +426,28 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
         this.isLoadingStats = true;
 
         // Stats are on the user profile (set by Cloud Functions)
-        this.createdSpotsCount = this.user.data?.spot_creates_count ?? 0;
-        this.editedSpotsCount = this.user.data?.spot_edits_count ?? 0;
-        this.mediaAddedCount = this.user.data?.media_added_count ?? 0;
+        this.createdSpotsCount = this.hasExpandedProfileAccess
+          ? this.user.data?.spot_creates_count ?? 0
+          : 0;
+        this.editedSpotsCount = this.hasExpandedProfileAccess
+          ? this.user.data?.spot_edits_count ?? 0
+          : 0;
+        this.mediaAddedCount = this.hasExpandedProfileAccess
+          ? this.user.data?.media_added_count ?? 0
+          : 0;
 
         // IMPORTANT: following_count is on the user document.
         // We cannot count the collection directly for other users due to privacy rules.
-        this.followingCount = this.user.data?.following_count ?? 0;
+        this.followingCount = this.hasExpandedProfileAccess
+          ? this.user.data?.following_count ?? 0
+          : 0;
 
         this.isLoadingStats = false;
 
         // Compute badges for this user
-        this.badges = this._badgeService.getDisplayBadges(this.user.data);
+        this.badges = this.hasExpandedProfileAccess
+          ? this._badgeService.getDisplayBadges(this.user.data)
+          : [];
         this._loadFollowRequests();
 
         // Load the groups of this user
@@ -513,7 +498,10 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     this._profileSubscriptions.add(postsSub);
   }
 
-  followButtonClick() {
+  followButtonClick(): void {
+    if (this.loadingFollowing || !this.user || this.isMyProfile) {
+      return;
+    }
     this.loadingFollowing = true;
 
     if (this.user && !this.isMyProfile) {
@@ -524,10 +512,12 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
           .then(() => {
             this.isFollowing = false;
             this.isPendingFollowRequest = false;
-            this.loadingFollowing = false;
+            this._completeFollowAction();
+            this.init();
           })
           .catch((err) => {
-            this.loadingFollowing = false;
+            console.error(err);
+            this._completeFollowAction();
             this._snackbar.open(
               "There was an error unfollowing the user!",
               "OK",
@@ -559,12 +549,14 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
           return;
         }
 
-        const followPromise = this.isPendingFollowRequest
+        const wasPendingFollowRequest = this.isPendingFollowRequest;
+        const wasPrivateAccount = this.isPrivateAccount;
+        const followPromise = wasPendingFollowRequest
           ? this._followingService.cancelFollowRequest(
               this._authService.user.uid,
               this.userId
             )
-          : this.isPrivateAccount
+          : wasPrivateAccount
             ? this._followingService.requestToFollowUser(
                 this._authService.user.uid,
                 this._authService.user.data.data,
@@ -579,9 +571,9 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
 
         followPromise
           .then(() => {
-            if (this.isPendingFollowRequest) {
+            if (wasPendingFollowRequest) {
               this.isPendingFollowRequest = false;
-            } else if (this.isPrivateAccount) {
+            } else if (wasPrivateAccount) {
               this.isPendingFollowRequest = true;
               this._snackbar.open($localize`Follow request sent`, "OK", {
                 duration: 3000,
@@ -590,12 +582,16 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
               });
             } else {
               this.isFollowing = true;
+              this.init();
             }
-            this.loadingFollowing = false;
+            this._completeFollowAction();
+            if (!wasPendingFollowRequest) {
+              void this._notificationOptIn.maybePrompt("follow_activity");
+            }
           })
           .catch((err) => {
             console.error(err);
-            this.loadingFollowing = false;
+            this._completeFollowAction();
             this._snackbar.open(
               "There was an error following the user!",
               "OK",
@@ -610,6 +606,11 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     }
   }
 
+  private _completeFollowAction(): void {
+    this.loadingFollowing = false;
+    this._cdr.markForCheck();
+  }
+
   private _loadFollowRequests(force = false) {
     if (
       !force &&
@@ -620,12 +621,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this._followRequestsSubscription?.unsubscribe();
-    this._followRequestsSubscription = null;
-    this._followRequestsUserId = null;
-    this.followRequests = [];
-    this.followRequestsLoading = false;
-    this.followRequestsLoadFailed = false;
+    this._resetFollowRequestsState();
     if (!this.isMyProfile || !this.userId) {
       return;
     }
@@ -649,6 +645,15 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
           this._cdr.detectChanges();
         }
       );
+  }
+
+  private _resetFollowRequestsState(): void {
+    this._followRequestsSubscription?.unsubscribe();
+    this._followRequestsSubscription = null;
+    this._followRequestsUserId = null;
+    this.followRequests = [];
+    this.followRequestsLoading = false;
+    this.followRequestsLoadFailed = false;
   }
 
   retryFollowRequests() {
@@ -767,6 +772,30 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
         },
       });
     }
+  }
+
+  openProfilePicture(): void {
+    const picture = this.user?.profilePicture;
+    if (!picture) {
+      return;
+    }
+
+    import(
+      "../profile-picture-dialog/profile-picture-dialog.component"
+    ).then(({ ProfilePictureDialogComponent }) => {
+      this.followListDialog.open(ProfilePictureDialogComponent, {
+        data: {
+          src: picture.getSrc(800),
+          alt: this.user?.displayName
+            ? `${this.user.displayName} profile picture`
+            : $localize`Profile picture`,
+        },
+        hasBackdrop: true,
+        maxWidth: "95vw",
+        maxHeight: "95dvh",
+        panelClass: "profile-picture-dialog-panel",
+      });
+    });
   }
 
   openPrivateSpotListsDialog(initialTab: "saved" | "visited") {
@@ -990,28 +1019,47 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   private _buildProfileSocialLinks(user: User): ProfileSocialLink[] {
     const links: ProfileSocialLink[] = [];
 
-    const instagramUrl = this._buildInstagramUrl(user.socials?.instagram_handle);
     this._pushProfileSocialLink(links, {
       id: "instagram",
       label: "Instagram",
-      icon: "photo_camera",
-      url: instagramUrl,
+      iconOnly: true,
+      iconAsset: "assets/logos/instagram.svg",
+      url: buildInstagramProfileUrl(user.socials?.instagram_handle),
       campaign: "profile_social_instagram",
     });
 
-    const youtubeUrl = this._buildYoutubeUrl(user.socials?.youtube_handle);
     this._pushProfileSocialLink(links, {
       id: "youtube",
       label: "YouTube",
+      iconOnly: true,
       icon: "smart_display",
-      url: youtubeUrl,
+      url: buildYouTubeProfileUrl(user.socials?.youtube_handle),
       campaign: "profile_social_youtube",
+    });
+
+    this._pushProfileSocialLink(links, {
+      id: "tiktok",
+      label: "TikTok",
+      iconOnly: true,
+      iconAsset: "assets/logos/tiktok.svg",
+      url: buildTikTokProfileUrl(user.socials?.tiktok_handle),
+      campaign: "profile_social_tiktok",
+    });
+
+    this._pushProfileSocialLink(links, {
+      id: "discord",
+      label: "Discord",
+      iconOnly: true,
+      iconAsset: "assets/logos/discord_white.svg",
+      url: normalizeDiscordUrl(user.socials?.discord_url),
+      campaign: "profile_social_discord",
     });
 
     for (const [index, custom] of (user.socials?.other ?? []).entries()) {
       this._pushProfileSocialLink(links, {
         id: `custom-${index}`,
         label: custom.name.trim() || "Link",
+        iconOnly: false,
         icon: "link",
         url: this._normalizeExternalUrl(custom.url),
         campaign: "profile_social_custom",
@@ -1026,7 +1074,9 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     config: {
       id: string;
       label: string;
-      icon: string;
+      iconOnly: boolean;
+      icon?: string;
+      iconAsset?: string;
       url: string | null;
       campaign: string;
     }
@@ -1047,96 +1097,11 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     links.push({
       id: config.id,
       label: config.label,
+      iconOnly: config.iconOnly,
       icon: config.icon,
+      iconAsset: config.iconAsset,
       url: taggedUrl,
     });
-  }
-
-  private _buildInstagramUrl(handle?: string): string | null {
-    const normalizedHandle = this._normalizeInstagramHandle(handle);
-    if (!normalizedHandle) {
-      return null;
-    }
-    return `https://instagram.com/${normalizedHandle}`;
-  }
-
-  private _buildYoutubeUrl(handle?: string): string | null {
-    const normalizedHandle = this._normalizeYoutubeHandle(handle);
-    if (!normalizedHandle) {
-      return null;
-    }
-
-    if (normalizedHandle.startsWith("http://") || normalizedHandle.startsWith("https://")) {
-      return this._normalizeExternalUrl(normalizedHandle);
-    }
-
-    return `https://www.youtube.com/${normalizedHandle}`;
-  }
-
-  private _normalizeInstagramHandle(value?: string | null): string | null {
-    const trimmed = value?.trim();
-    if (!trimmed) {
-      return null;
-    }
-
-    if (/^https?:\/\//i.test(trimmed)) {
-      try {
-        const parsed = new URL(trimmed);
-        const firstPathSegment = parsed.pathname
-          .split("/")
-          .map((segment) => segment.trim())
-          .filter(Boolean)[0];
-        if (firstPathSegment) {
-          return firstPathSegment.replace(/^@+/, "").trim();
-        }
-      } catch (error) {
-        console.warn("Invalid Instagram URL", trimmed, error);
-      }
-    }
-
-    return trimmed.replace(/^@+/, "").split("/")[0].trim() || null;
-  }
-
-  private _normalizeYoutubeHandle(value?: string | null): string | null {
-    const trimmed = value?.trim();
-    if (!trimmed) {
-      return null;
-    }
-
-    if (/^https?:\/\//i.test(trimmed)) {
-      try {
-        const parsed = new URL(trimmed);
-        const pathParts = parsed.pathname
-          .split("/")
-          .map((segment) => segment.trim())
-          .filter(Boolean);
-
-        if (pathParts.length === 0) {
-          return null;
-        }
-
-        if (pathParts[0].startsWith("@")) {
-          return pathParts[0];
-        }
-
-        if (
-          ["channel", "c", "user"].includes(pathParts[0]) &&
-          pathParts[1]
-        ) {
-          return `${pathParts[0]}/${pathParts[1]}`;
-        }
-
-        return pathParts.join("/");
-      } catch (error) {
-        console.warn("Invalid YouTube URL", trimmed, error);
-      }
-    }
-
-    if (trimmed.startsWith("@")) {
-      return trimmed;
-    }
-
-    return trimmed.includes("/") ? trimmed : `@${trimmed}`;
   }
 
   private _normalizeExternalUrl(value?: string | null): string | null {
@@ -1177,5 +1142,49 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     this._followRequestsUserId = null;
     this._userSubscription?.unsubscribe();
     this._userSubscription = null;
+  }
+
+  private _localizedCountryName(code: string | null): string {
+    if (!code) {
+      return "";
+    }
+
+    return (
+      this._regionDisplayNames?.of(code) ??
+      this.countries[code]?.name ??
+      code
+    );
+  }
+
+  private _localizedDurationSince(date: Date | null): string {
+    if (!date) {
+      return "";
+    }
+
+    const elapsedSeconds = Math.max(
+      0,
+      Math.floor((Date.now() - date.getTime()) / 1000)
+    );
+    const units: ReadonlyArray<{
+      seconds: number;
+      unit: Intl.NumberFormatOptions["unit"];
+    }> = [
+      { seconds: 31_536_000, unit: "year" },
+      { seconds: 2_592_000, unit: "month" },
+      { seconds: 86_400, unit: "day" },
+      { seconds: 3_600, unit: "hour" },
+      { seconds: 60, unit: "minute" },
+      { seconds: 1, unit: "second" },
+    ];
+    const selected =
+      units.find(({ seconds }) => elapsedSeconds >= seconds) ??
+      units[units.length - 1];
+
+    return new Intl.NumberFormat(this.locale, {
+      style: "unit",
+      unit: selected.unit,
+      unitDisplay: "long",
+      maximumFractionDigits: 0,
+    }).format(Math.floor(elapsedSeconds / selected.seconds));
   }
 }

@@ -1,0 +1,61 @@
+<main class="safety-page">
+  <a matButton="text" routerLink="/support">
+    <mat-icon>arrow_back</mat-icon>
+    <span i18n>Support</span>
+  </a>
+
+  <header>
+    <span class="safety-page__eyebrow" i18n>Safety and complaints</span>
+    <h1 i18n>Tell us what happened</h1>
+    <p i18n>
+      Use this private channel to report a safety concern, complain about PK
+      Spot, or challenge how a previous report was handled. You do not need an
+      account.
+    </p>
+  </header>
+
+  <section class="safety-page__response-grid" aria-label="Response targets" i18n-aria-label>
+    <mat-card>
+      <mat-card-content>
+        <strong i18n>Immediate risk</strong>
+        <span i18n>Triaged as soon as possible</span>
+      </mat-card-content>
+    </mat-card>
+    <mat-card>
+      <mat-card-content>
+        <strong i18n>Standard cases</strong>
+        <span i18n>Aim to resolve within 7 days</span>
+      </mat-card-content>
+    </mat-card>
+    <mat-card>
+      <mat-card-content>
+        <strong i18n>Appeals</strong>
+        <span i18n>Aim to resolve within 14 days</span>
+      </mat-card-content>
+    </mat-card>
+    <mat-card>
+      <mat-card-content>
+        <strong i18n>Complex cases</strong>
+        <span i18n>Update and aim to resolve within 30 days</span>
+      </mat-card-content>
+    </mat-card>
+  </section>
+
+  <section class="safety-page__form">
+    <app-safety-case-form
+      [preset]="preset()"
+      (submitted)="caseSubmitted($event)"
+    />
+  </section>
+
+  <aside class="safety-page__emergency">
+    <mat-icon>emergency</mat-icon>
+    <div>
+      <strong i18n>Is someone in immediate danger?</strong>
+      <p i18n>
+        Contact local emergency services first. Then send us the report so we
+        can preserve evidence and restrict access where appropriate.
+      </p>
+    </div>
+  </aside>
+</main>

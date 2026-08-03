@@ -1,0 +1,60 @@
+<div class="occurrence-list">
+  @for (row of rows(); track row.occurrence.key) {
+    @let occurrence = row.occurrence;
+    <button
+      type="button"
+      class="occurrence-row"
+      [class.is-active]="occurrence.isActive"
+      [class.is-selected]="occurrence.item.id === selectedItemId()"
+      (click)="select(occurrence)"
+    >
+      <span class="occurrence-when">
+        <span class="occurrence-date mat-label-medium">{{ row.date }}</span>
+        <span class="occurrence-time mat-label-large">{{ row.time }}</span>
+      </span>
+      <span class="occurrence-copy">
+        <span class="occurrence-title mat-title-small">{{
+          occurrence.item.title
+        }}</span>
+        <span class="occurrence-location mat-body-small">
+          <mat-icon>location_on</mat-icon>
+          @if (occurrence.kind === "spot") {
+            {{ occurrence.spot.name() }}
+          } @else {
+            {{ occurrence.marker.name || occurrence.ref.id }}
+          }
+        </span>
+        @if (occurrence.status === "delayed" || occurrence.status === "moved") {
+          <span class="status-label is-operational">
+            {{ operationalStatusLabel(occurrence.status) }}
+          </span>
+        } @else if (occurrence.isActive) {
+          <span class="status-label is-active" i18n="@@event_program.happening_now">
+            Happening now
+          </span>
+        } @else if (occurrence.isNext) {
+          <span class="status-label" i18n="@@event_program.next">Next</span>
+        }
+      </span>
+      <mat-icon class="occurrence-chevron">chevron_right</mat-icon>
+      @if (showSpotCards() && occurrence.kind === "spot") {
+        <app-spot-preview-card
+          class="occurrence-card"
+          [spotData]="occurrence.spot"
+          [isCompact]="true"
+          [hasBorder]="false"
+          [showInfoButton]="false"
+          [showRating]="false"
+          [imgSize]="200"
+        />
+      }
+    </button>
+  } @empty {
+    <div class="empty-program">
+      <mat-icon>location_off</mat-icon>
+      <p class="mat-body-medium m-0" i18n="@@event_program.no_mapped_locations">
+        No mapped program locations for this day.
+      </p>
+    </div>
+  }
+</div>

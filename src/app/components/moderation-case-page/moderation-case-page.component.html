@@ -1,0 +1,276 @@
+<main class="case-admin">
+  <a matButton="text" routerLink="/moderation/cases">
+    <mat-icon>arrow_back</mat-icon>
+    <span i18n>Safety cases</span>
+  </a>
+
+  <header>
+    <div>
+      <span>{{ publicReference }}</span>
+      <h1 i18n>Review safety case</h1>
+    </div>
+    <button matButton="outlined" type="button" (click)="load()">
+      <mat-icon>refresh</mat-icon>
+      <span i18n>Refresh</span>
+    </button>
+  </header>
+
+  @if (loading()) {
+    <div class="case-admin__center">
+      <mat-progress-spinner mode="indeterminate" diameter="36" />
+    </div>
+  } @else if (!auth.isAdmin()) {
+    <p i18n>Admin access required.</p>
+  } @else if (detail(); as item) {
+    <section class="case-admin__overview">
+      <mat-card>
+        <mat-card-content>
+          <span i18n>Status</span>
+          <strong>{{ item.case.status }}</strong>
+        </mat-card-content>
+      </mat-card>
+      <mat-card>
+        <mat-card-content>
+          <span i18n>Priority</span>
+          <strong>{{ item.case.priority }}</strong>
+        </mat-card-content>
+      </mat-card>
+      <mat-card>
+        <mat-card-content>
+          <span i18n>Target</span>
+          <strong>{{ item.case.target_resolution_at | systemDate: "mediumDate" }}</strong>
+        </mat-card-content>
+      </mat-card>
+      <mat-card>
+        <mat-card-content>
+          <span i18n>Complex target</span>
+          <strong>{{ item.case.complex_resolution_at | systemDate: "mediumDate" }}</strong>
+        </mat-card-content>
+      </mat-card>
+    </section>
+
+    <section class="case-admin__grid">
+      <div>
+        <mat-card class="case-admin__card">
+          <mat-card-header>
+            <mat-card-title>{{ item.case.summary }}</mat-card-title>
+            <mat-card-subtitle>
+              {{ item.case.case_type }} · {{ item.case.category }} ·
+              {{ item.case.subject.type }}
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <p>{{ item.case.description }}</p>
+            @if (item.case.subject.path) {
+              <p>
+                <strong i18n>Target path:</strong>
+                {{ item.case.subject.path }}
+              </p>
+            }
+            @if (targetLink()) {
+              <a matButton="outlined" [routerLink]="targetLink()">
+                <mat-icon>open_in_new</mat-icon>
+                <span i18n>Open target</span>
+              </a>
+            }
+          </mat-card-content>
+        </mat-card>
+
+        @if (spot(); as targetSpot) {
+          <section class="case-admin__target">
+            <h2 i18n>Spot preview</h2>
+            <app-spot-preview-card
+              [spotData]="targetSpot"
+              [showInfoButton]="false"
+              [clickable]="false"
+              [loadingPriority]="true"
+            />
+          </section>
+        }
+
+        <section class="case-admin__timeline">
+          <h2 i18n>Case timeline</h2>
+          @for (event of item.case.events; track event.id) {
+            <article>
+              <div>
+                <strong>{{ event.type }}</strong>
+                <time>{{ event.created_at | systemDate: "medium" }}</time>
+              </div>
+              @if (event.message) {
+                <p>{{ event.message }}</p>
+              }
+            </article>
+          }
+        </section>
+      </div>
+
+      <aside>
+        <mat-card class="case-admin__card">
+          <mat-card-header>
+            <mat-card-title i18n>Private intake</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="case-admin__private">
+            @if (reporter()) {
+              <app-profile-button [user]="reporter()" />
+            }
+            @if (item.private_intake.contact_email) {
+              <p>
+                <strong i18n>Email:</strong>
+                {{ item.private_intake.contact_email }}
+                @if (item.private_intake.contact_email_verified) {
+                  <mat-icon inline>verified</mat-icon>
+                }
+              </p>
+            }
+            <p>
+              <strong i18n>Authenticated:</strong>
+              {{ item.private_intake.authenticated ? "yes" : "no" }}
+            </p>
+            <p>
+              <strong i18n>App Check:</strong>
+              {{ item.private_intake.app_check ? "yes" : "no" }}
+            </p>
+            @if (item.private_intake.ip_address) {
+              <p><strong>IP:</strong> {{ item.private_intake.ip_address }}</p>
+            }
+            @if (item.private_intake.user_agent) {
+              <p class="case-admin__wrap">
+                <strong>User agent:</strong>
+                {{ item.private_intake.user_agent }}
+              </p>
+            }
+          </mat-card-content>
+        </mat-card>
+
+        <form
+          class="case-admin__form"
+          (submit)="saveUpdate(); $event.preventDefault()"
+        >
+          <h2 i18n>Update and correspond</h2>
+          <mat-form-field appearance="outline">
+            <mat-label i18n>Status</mat-label>
+            <mat-select [formField]="updateForm.status">
+              @for (status of statusOptions; track status) {
+                <mat-option [value]="status">{{ status }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label i18n>Message recipient</mat-label>
+            <mat-select [formField]="updateForm.participantRole">
+              <mat-option value="submitter" i18n>Person who contacted us</mat-option>
+              <mat-option value="subject" i18n>Affected account holder</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label i18n>Message to participant (optional)</mat-label>
+            <textarea matInput rows="4" [formField]="updateForm.message"></textarea>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label i18n>Internal note (optional)</mat-label>
+            <textarea
+              matInput
+              rows="3"
+              [formField]="updateForm.internalNote"
+            ></textarea>
+          </mat-form-field>
+          <button matButton="filled" type="submit" [disabled]="working()">
+            <span i18n>Save update and assign to me</span>
+          </button>
+        </form>
+
+        <form
+          class="case-admin__form"
+          (submit)="recordDecision(); $event.preventDefault()"
+        >
+          <h2 i18n>Record decision</h2>
+          <mat-form-field appearance="outline">
+            <mat-label i18n>Decision action</mat-label>
+            <mat-select [formField]="decisionForm.decisionType">
+              @for (type of decisionTypeOptions; track type) {
+                <mat-option [value]="type">{{ type }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label i18n>Outcome</mat-label>
+            <mat-select [formField]="decisionForm.outcome">
+              @for (outcome of outcomeOptions; track outcome) {
+                <mat-option [value]="outcome">{{ outcome }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label i18n>Public reasons</mat-label>
+            <textarea
+              matInput
+              rows="5"
+              [formField]="decisionForm.publicReason"
+            ></textarea>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label i18n>Policy basis (optional)</mat-label>
+            <input matInput [formField]="decisionForm.policyBasis" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label i18n>Internal note (optional)</mat-label>
+            <textarea
+              matInput
+              rows="3"
+              [formField]="decisionForm.internalNote"
+            ></textarea>
+          </mat-form-field>
+          @if (item.case.case_type === "appeal") {
+            <mat-form-field appearance="outline">
+              <mat-label i18n>Independence limitation (if same reviewer)</mat-label>
+              <textarea
+                matInput
+                rows="3"
+                [formField]="decisionForm.independenceLimitation"
+              ></textarea>
+              <mat-hint i18n>
+                An appeal should have a different reviewer where possible. If
+                that is not possible, record why.
+              </mat-hint>
+            </mat-form-field>
+          }
+          <button matButton="filled" type="submit" [disabled]="working()">
+            <mat-icon>gavel</mat-icon>
+            <span i18n>Record and apply decision</span>
+          </button>
+        </form>
+
+        @if (
+          item.workflow.decision?.hold_path &&
+          !item.workflow.decision?.restored_at
+        ) {
+          <button
+            class="case-admin__restore"
+            matButton="outlined"
+            type="button"
+            [disabled]="working()"
+            (click)="restoreDecision()"
+          >
+            <mat-icon>restore</mat-icon>
+            <span i18n>Restore held state</span>
+          </button>
+        }
+
+        @if (item.email_delivery.length > 0) {
+          <section class="case-admin__emails">
+            <h2 i18n>Email delivery</h2>
+            @for (email of item.email_delivery; track email.id) {
+              <p>
+                {{ email.template || "case update" }} ·
+                {{ email.created_at | systemDate: "medium" }}
+                @if (email.delivery["state"]) {
+                  · {{ email.delivery["state"] }}
+                }
+              </p>
+            }
+          </section>
+        }
+      </aside>
+    </section>
+  }
+</main>

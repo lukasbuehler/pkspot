@@ -1,0 +1,167 @@
+:host {
+  display: block;
+}
+
+.fab-menu {
+  --fab-menu-container: var(--mat-sys-primary-container);
+  --fab-menu-content: var(--mat-sys-on-primary-container);
+  --fab-menu-close-container: var(--mat-sys-primary);
+  --fab-menu-close-content: var(--mat-sys-on-primary);
+
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.fab-menu--start {
+  align-items: flex-start;
+  overflow: visible;
+}
+
+.fab-menu--secondary {
+  --fab-menu-container: var(--mat-sys-secondary-container);
+  --fab-menu-content: var(--mat-sys-on-secondary-container);
+  --fab-menu-close-container: var(--mat-sys-secondary);
+  --fab-menu-close-content: var(--mat-sys-on-secondary);
+}
+
+.fab-menu--tertiary {
+  --fab-menu-container: var(--mat-sys-tertiary-container);
+  --fab-menu-content: var(--mat-sys-on-tertiary-container);
+  --fab-menu-close-container: var(--mat-sys-tertiary);
+  --fab-menu-close-content: var(--mat-sys-on-tertiary);
+}
+
+.fab-menu .fab-menu__launcher.mat-mdc-fab {
+  --mat-fab-container-color: var(--fab-menu-container);
+  --mat-fab-foreground-color: var(--fab-menu-content);
+  --mat-fab-ripple-color: color-mix(
+    in srgb,
+    var(--fab-menu-content)
+      calc(var(--mat-sys-pressed-state-layer-opacity) * 100%),
+    transparent
+  );
+  --mat-fab-state-layer-color: var(--fab-menu-content);
+
+  border-radius: var(--mat-sys-corner-large);
+  transition:
+    border-radius 200ms ease,
+    background-color 200ms ease,
+    color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.fab-menu .fab-menu__launcher--open.mat-mdc-fab {
+  --mat-fab-container-color: var(--fab-menu-close-container);
+  --mat-fab-foreground-color: var(--fab-menu-close-content);
+  --mat-fab-ripple-color: color-mix(
+    in srgb,
+    var(--fab-menu-close-content)
+      calc(var(--mat-sys-pressed-state-layer-opacity) * 100%),
+    transparent
+  );
+  --mat-fab-state-layer-color: var(--fab-menu-close-content);
+
+  border-radius: calc(56px / 2);
+}
+
+.fab-menu__launcher-icon {
+  transition: transform 200ms ease;
+}
+
+.fab-menu__launcher--open .fab-menu__launcher-icon {
+  transform: rotate(90deg);
+}
+
+.fab-menu__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  max-height: calc(100dvh - var(--fab-menu-bottom-offset, 24px) - 80px);
+  max-width: calc(100vw - 32px);
+  overflow-x: visible;
+  overflow-y: auto;
+  padding: 4px;
+  scrollbar-width: thin;
+}
+
+.fab-menu--start .fab-menu__actions {
+  align-items: flex-start;
+}
+
+.fab-menu .fab-menu__action.mat-mdc-unelevated-button {
+  --mat-button-filled-container-color: var(--fab-menu-container);
+  --mat-button-filled-container-height: 56px;
+  --mat-button-filled-container-shape: var(--mat-sys-corner-full);
+  --mat-button-filled-horizontal-padding: 24px;
+  --mat-button-filled-label-text-color: var(--fab-menu-content);
+  --mat-button-filled-label-text-font: var(--mat-sys-title-medium-font);
+  --mat-button-filled-label-text-size: var(--mat-sys-title-medium-size);
+  --mat-button-filled-label-text-weight: var(--mat-sys-title-medium-weight);
+  --mat-button-filled-ripple-color: color-mix(
+    in srgb,
+    var(--fab-menu-content)
+      calc(var(--mat-sys-pressed-state-layer-opacity) * 100%),
+    transparent
+  );
+  --mat-button-filled-state-layer-color: var(--fab-menu-content);
+
+  box-shadow: var(--mat-sys-level2);
+  flex: 0 0 auto;
+  min-width: 56px;
+  max-width: 100%;
+  white-space: normal;
+}
+
+.fab-menu__action > mat-icon {
+  flex: 0 0 auto;
+}
+
+.fab-menu__action--enter {
+  animation: fab-menu-item-enter 220ms ease-out both;
+  transform-origin: bottom right;
+}
+
+.fab-menu--start .fab-menu__action--enter {
+  transform-origin: bottom left;
+}
+
+.fab-menu__actions--leave {
+  animation: fab-menu-actions-leave 150ms ease-in both;
+}
+
+@keyframes fab-menu-item-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.86);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fab-menu-actions-leave {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fab-menu__launcher,
+  .fab-menu__launcher-icon,
+  .fab-menu__action--enter,
+  .fab-menu__actions--leave {
+    animation: none;
+    transition: none;
+  }
+}

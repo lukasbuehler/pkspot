@@ -8,6 +8,136 @@ export type EventId = string & { __brand: "EventId" };
 export type EventSlug = string & { __brand: "EventSlug" };
 export type EventImageFit = "cover" | "contain";
 
+export const EVENT_PUBLICATION_STATES = ["draft", "published"] as const;
+export type EventPublicationState =
+  (typeof EVENT_PUBLICATION_STATES)[number];
+
+export const EVENT_VISIBILITIES = ["public", "unlisted", "private"] as const;
+export type EventVisibility = (typeof EVENT_VISIBILITIES)[number];
+
+export const EVENT_DISCOVERABILITIES = [
+  "global",
+  "organization_followers",
+  "organization_members",
+  "none",
+] as const;
+export type EventDiscoverability =
+  | { audience: "global" }
+  | { audience: "none" }
+  | {
+      audience: "organization_followers" | "organization_members";
+      organization_id: string;
+    };
+
+export type EventViewerPolicySchema =
+  | { audience: "invited" }
+  | { audience: "organization_members"; organization_id: string };
+
+export const EVENT_KINDS = [
+  "session",
+  "class",
+  "competition",
+  "workshop",
+  "festival",
+  "other",
+] as const;
+export type EventKind = (typeof EVENT_KINDS)[number];
+
+export const EVENT_SCHEDULE_MODES = [
+  "single",
+  "multi_part",
+  "recurring",
+] as const;
+export type EventScheduleMode = (typeof EVENT_SCHEDULE_MODES)[number];
+
+export const EVENT_TIMING_MODES = [
+  "date_only",
+  "exact",
+  "open_end",
+] as const;
+export type EventTimingMode = (typeof EVENT_TIMING_MODES)[number];
+
+/**
+ * Canonical civil schedule for event discovery and display.
+ *
+ * `start` and `end` timestamps remain on EventSchema for older clients and
+ * timestamp filtering. New clients use these fields for the promised public
+ * schedule so date-only and open-ended events never expose invented times.
+ */
+export interface EventTimingSchema {
+  /** Calendar date at the event, formatted as YYYY-MM-DD. */
+  start_date: string;
+  /** Defaults to start_date when absent. */
+  end_date?: string;
+  /** Local wall-clock time at the event, formatted as HH:mm. */
+  start_time?: string;
+  /** Present only for exact endings. */
+  end_time?: string;
+  mode: EventTimingMode;
+}
+
+/** Stored lifecycle values. Live/completed are derived from valid event times. */
+export const EVENT_LIFECYCLE_STATUSES = ["planned", "cancelled"] as const;
+export type EventLifecycleStatus =
+  (typeof EVENT_LIFECYCLE_STATUSES)[number];
+export type EventDisplayedLifecycleStatus =
+  | EventLifecycleStatus
+  | "live"
+  | "completed";
+
+export const EVENT_PRIORITIES = ["normal", "featured", "operational"] as const;
+export type EventPriority = (typeof EVENT_PRIORITIES)[number];
+
+export type EventOwnerSchema =
+  | { type: "user"; user_id: string }
+  | { type: "organization"; organization_id: string };
+
+export const EVENT_ACCESS_ROLES = ["viewer", "collaborator"] as const;
+export type EventAccessRole = (typeof EVENT_ACCESS_ROLES)[number];
+
+export interface EventAccessSchema {
+  user_id: string;
+  role: EventAccessRole;
+  granted_by: string;
+  time_created: Timestamp;
+  time_updated: Timestamp;
+}
+
+export const EVENT_SOCIAL_ATTENDANCE_MODES = ["none", "rsvp"] as const;
+export type EventSocialAttendanceMode =
+  (typeof EVENT_SOCIAL_ATTENDANCE_MODES)[number];
+export const EVENT_ADMISSION_MODES = ["none", "registration"] as const;
+export type EventAdmissionMode = (typeof EVENT_ADMISSION_MODES)[number];
+
+export type EventAttendanceEligibilitySchema =
+  | { type: "everyone" }
+  | { type: "invited" }
+  | { type: "organization_members"; organization_id: string };
+
+export interface EventAttendanceSchema {
+  social: EventSocialAttendanceMode;
+  admission: EventAdmissionMode;
+  /** Who may attend/register; independent from whether they can view it. */
+  eligibility?: EventAttendanceEligibilitySchema;
+  /** Server-enforced registration limit. Only meaningful for registration. */
+  capacity?: number;
+  /** Whether registrations beyond capacity may enter a waitlist. */
+  waitlist?: boolean;
+  /** Public entry/on-site instructions; no payment processing is implied. */
+  instructions?: string;
+  instructions_i18n?: LocaleMap | Record<string, string>;
+}
+
+/** Notification types this event supports; users retain their own selection. */
+export const EVENT_NOTIFICATION_POLICIES = [
+  "all",
+  "event_updates",
+  "reminders",
+  "none",
+] as const;
+export type EventNotificationPolicy =
+  (typeof EVENT_NOTIFICATION_POLICIES)[number];
+
 export type EventCategory =
   | "jam"
   | "competition"
@@ -118,7 +248,7 @@ export interface EventCardPreviewSchema {
   logo_fit?: EventImageFit;
   logo_background_color?: string;
   venue_string?: string;
-  locality_string: string;
+  locality_string?: string;
   start: Timestamp | { seconds: number; nanoseconds: number };
   end: Timestamp | { seconds: number; nanoseconds: number };
   url?: string;
@@ -242,6 +372,7 @@ export interface EventTicketOptionSchema {
   description_i18n?: LocaleMap | Record<string, string>;
   url?: string;
   price?: EventTicketPriceFixedSchema | EventTicketPriceRangeSchema;
+  original_price?: EventTicketPriceFixedSchema;
   availability?: EventTicketAvailability;
   sale_starts_at?: Timestamp;
   sale_ends_at?: Timestamp;
@@ -317,7 +448,12 @@ export type EventProgramItemStatus =
   | "delayed";
 
 export interface EventProgramSpotRefSchema {
-  kind: "spot" | "inline_spot";
+  /**
+   * `custom_marker` is an event-owned map marker. The historical `spot_ref`
+   * field name is retained so older clients keep reading stored and inline
+   * Spot references without a migration.
+   */
+  kind: "spot" | "inline_spot" | "custom_marker";
   id: string;
 }
 
@@ -327,6 +463,8 @@ export interface EventProgramRuntimeOverrideSchema {
   status?: EventProgramItemStatus;
   note?: string;
   note_i18n?: LocaleMap | Record<string, string>;
+  updated_at?: Timestamp;
+  updated_by?: string;
 }
 
 export interface EventProgramParticipationSchema {
@@ -353,6 +491,11 @@ export interface EventProgramItemSchema {
   start: Timestamp;
   end?: Timestamp;
   spot_ref?: EventProgramSpotRefSchema;
+  /**
+   * All mapped locations visited by this program block. `spot_ref` remains
+   * populated with the first entry while older app versions are supported.
+   */
+  spot_refs?: EventProgramSpotRefSchema[];
   status?: EventProgramItemStatus;
   runtime_override?: EventProgramRuntimeOverrideSchema;
   /**
@@ -378,6 +521,15 @@ export interface EventProgramPlanSchema {
 export interface EventProgramSchema {
   active_plan_id: string;
   plans: EventProgramPlanSchema[];
+  active_plan_note?: string;
+  active_plan_changed_at?: Timestamp;
+  active_plan_changed_by?: string;
+}
+
+export interface EventLifecycleUpdateSchema {
+  note?: string;
+  changed_at: Timestamp;
+  changed_by: string;
 }
 
 export interface EventSchema {
@@ -425,17 +577,26 @@ export interface EventSchema {
 
   /** Organizer responsible for the event. User organizers can be added later. */
   organizer?: EventOrganizerSchema;
+  /** Plain-text organizer for events without a PK Spot organization. */
+  organizer_name?: string;
   /** Featured people, groups, and acts visible on the event page. */
   featured_participants?: EventFeaturedParticipantSchema[];
 
-  venue_string: string;
-  locality_string: string;
+  venue_string?: string;
+  locality_string?: string;
   /** Preferred event pin location. Bounds are optional; this is the anchor. */
-  location: GeoPoint;
+  location?: GeoPoint;
   /** Plain lat/lng mirror for admin UI and non-Firestore consumers. */
-  location_raw: { lat: number; lng: number };
+  location_raw?: { lat: number; lng: number };
+  /** Canonical public date/time precision. Legacy events may omit this. */
+  timing?: EventTimingSchema;
   start: Timestamp;
   end: Timestamp;
+  /**
+   * Operational cutoff for an open-ended event. It determines lifecycle and
+   * map visibility, but is never presented as the promised public end time.
+   */
+  active_until?: Timestamp;
   /** Optional external event URL (ticketing, organizer site). */
   url?: string;
   /** Public external CTAs shown on the event page. */
@@ -548,14 +709,39 @@ export interface EventSchema {
   external_source?: EventExternalSourceSchema;
 
   /**
+   * Access granted to managers (organization owners/admins) of the linked
+   * public organizer. Viewing is the safe default; editing is explicit.
+   */
+  organizer_access?: "view" | "edit";
+
+  /**
    * Public aggregate maintained from private `/events/{eventId}/rsvps/*`
    * docs by Cloud Functions. Individual RSVP docs stay private to the
    * user, admins, and mutual friends.
    */
   rsvp_counts?: EventRSVPCountsSchema;
 
-  /** Lifecycle. */
+  /** Additive normalized event dimensions. Legacy fields remain below. */
+  publication_state?: EventPublicationState;
+  visibility?: EventVisibility;
+  /** Controls feeds/indexes; it never grants permission to read an event. */
+  discoverability?: EventDiscoverability;
+  /** Required audience for private reads. Explicit access grants also apply. */
+  viewer_policy?: EventViewerPolicySchema;
+  kind?: EventKind;
+  schedule_mode?: EventScheduleMode;
+  lifecycle_status?: EventLifecycleStatus;
+  lifecycle_update?: EventLifecycleUpdateSchema;
+  /** Server-owned marker used to deduplicate atomic operational updates. */
+  last_operation_id?: string;
+  priority?: EventPriority;
+  owner?: EventOwnerSchema;
+  attendance?: EventAttendanceSchema;
+  notification_policy?: EventNotificationPolicy;
+
+  /** Legacy publication compatibility field. */
   published?: boolean;
+  /** Immutable audit provenance. Never use this field for authorization. */
   created_by?: { uid: string; username?: string };
   time_created?: Timestamp;
   time_updated?: Timestamp;
@@ -566,6 +752,7 @@ export interface EventSchema {
   // owned by the cloud function.
   start_seconds?: number;
   end_seconds?: number;
+  active_until_seconds?: number;
   promo_starts_at_seconds?: number;
   /** Stored as a Firestore `GeoPoint` at runtime; typed as `[lat, lng]` so
    * the client doesn't need the admin SDK to read it. */
@@ -579,6 +766,8 @@ export interface EventSchema {
   promo_region_radius_m?: number;
   /** True when the event has an organization organizer. Server-derived. */
   has_organization?: boolean;
+  /** True when a usable map coordinate exists. Server-derived. */
+  has_location?: boolean;
   /** True when the event is tied to real or inline venue spots. Server-derived. */
   has_venue_spot?: boolean;
   /** Count of unique real spot ids plus inline event spots. Server-derived. */

@@ -3,7 +3,7 @@
     @for (community of communities(); track community.communityKey) {
       <a
         [attr.href]="community.canonicalPath"
-        class="community-row"
+        class="community-row app-card"
         (click)="onSelect($event, community)"
       >
         <span class="community-avatar" aria-hidden="true">

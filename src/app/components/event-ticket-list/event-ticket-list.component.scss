@@ -1,0 +1,146 @@
+:host {
+  display: block;
+}
+
+.ticket-list {
+  overflow: hidden;
+}
+
+.ticket-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 11rem 12rem;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1rem 1.25rem;
+}
+
+.ticket-row + .ticket-row {
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+.ticket-copy {
+  min-width: 0;
+}
+
+.ticket-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ticket-title,
+.ticket-description,
+.ticket-availability,
+.ticket-price {
+  margin: 0;
+}
+
+.ticket-title {
+  color: var(--mat-sys-on-surface);
+}
+
+.ticket-badge {
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 999px;
+  color: var(--mat-sys-on-surface-variant);
+  background: var(--mat-sys-surface-container-high);
+}
+
+.ticket-description {
+  margin-top: 0.35rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.ticket-description--collapsed {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.ticket-description-toggle {
+  min-width: 0;
+  margin-top: 0.125rem;
+  padding-inline: 0.25rem;
+}
+
+.ticket-availability {
+  margin-top: 0.5rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.ticket-availability[data-availability="coming_soon"],
+.ticket-availability[data-availability="waitlist"] {
+  color: var(--mat-sys-tertiary);
+}
+
+.ticket-availability[data-availability="sold_out"],
+.ticket-availability[data-availability="ended"] {
+  color: var(--mat-sys-error);
+}
+
+.ticket-price-block {
+  display: flex;
+  align-items: baseline;
+  justify-self: end;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.ticket-original-price {
+  color: var(--mat-sys-on-surface-variant);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.ticket-price {
+  justify-self: end;
+  color: var(--mat-sys-on-surface);
+  font-weight: 600;
+}
+
+.ticket-discount {
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+}
+
+.ticket-action-cell {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ticket-action {
+  min-width: 11.5rem;
+}
+
+.ticket-action--details {
+  color: var(--mat-sys-primary);
+}
+
+@media (max-width: 720px) {
+  .ticket-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem 1rem;
+    padding: 1rem;
+  }
+
+  .ticket-copy {
+    grid-column: 1 / -1;
+  }
+
+  .ticket-price-block {
+    justify-self: start;
+  }
+
+  .ticket-row[data-discounted="true"] .ticket-price-block {
+    grid-column: 1 / -1;
+  }
+
+  .ticket-action {
+    min-width: 0;
+  }
+}

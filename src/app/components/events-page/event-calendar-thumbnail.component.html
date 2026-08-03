@@ -1,0 +1,12 @@
+@if (logoSrc(); as logo) {
+  <img
+    [src]="logo"
+    [style.background]="
+      backgroundColor() ?? 'var(--mat-sys-surface-container-high)'
+    "
+    [style.object-fit]="logoFit()"
+    alt=""
+  />
+} @else {
+  <mat-icon aria-hidden="true">event</mat-icon>
+}

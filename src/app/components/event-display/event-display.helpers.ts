@@ -9,6 +9,7 @@ import {
 import { MediaType } from "../../../db/models/Interfaces";
 import { MediaSchema } from "../../../db/schemas/Media";
 import { isFirstPartyStorageUrl } from "../../utils/first-party-media-url";
+import { DateTimeFormatService } from "../../services/date-time-format.service";
 
 export type EventStatus = "upcoming" | "live" | "past";
 export type EventStatusLabelContext = "default" | "compact" | "mapIsland";
@@ -96,7 +97,44 @@ export function isRemoteExternalMedia(
 }
 
 export function eventVenueLine(event: PkEvent): string {
-  return [event.venueString, event.localityString].filter(Boolean).join(", ");
+  return (
+    [event.venueString, event.localityString].filter(Boolean).join(", ") ||
+    $localize`:@@event.venue_tba:Venue to be announced`
+  );
+}
+
+export function eventScheduleLabel(
+  event: PkEvent,
+  dateTime: DateTimeFormatService,
+  dateStyle: "short" | "long" = "long",
+): string {
+  if (event.timing?.mode === "date_only") {
+    const start = utcNoonForDateKey(event.timing.start_date);
+    const end = utcNoonForDateKey(
+      event.timing.end_date ?? event.timing.start_date,
+    );
+    const range = dateTime.formatDateRange(start, end, dateStyle, "UTC");
+    return $localize`:@@event.timing.date_only_label:${range} · Time to be announced`;
+  }
+  if (event.timing?.mode === "open_end") {
+    const start = dateTime.format(event.start, {
+      dateStyle: dateStyle === "long" ? "full" : "medium",
+      timeStyle: "short",
+      timeZone: event.timeZone,
+    });
+    return $localize`:@@event.timing.open_end_label:${start} · Open end`;
+  }
+  return dateTime.formatDateRange(
+    event.start,
+    event.end,
+    dateStyle,
+    event.timeZone,
+  );
+}
+
+function utcNoonForDateKey(value: string): Date {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day, 12));
 }
 
 export function relativeFromNow(target: Date, locale: string): string {
@@ -159,7 +197,9 @@ export function eventStatusLabel(
     if (context === "mapIsland") {
       return $localize`:@@map_island.event_live:Live Event`;
     }
-    return $localize`:@@events.status.live_with_end:Ongoing — ends ${relative}`;
+    return event.timing?.mode === "open_end"
+      ? $localize`:@@events.status.live_open_end:Ongoing — open end`
+      : $localize`:@@events.status.live_with_end:Ongoing — ends ${relative}`;
   }
 
   if (context === "compact") {

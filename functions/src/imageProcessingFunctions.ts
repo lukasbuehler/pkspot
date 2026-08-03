@@ -21,6 +21,7 @@ const IMAGE_PREFIXES = [
   "profile_pictures/",
   "post_media/",
   "event_media/",
+  "organization_media/",
 ] as const;
 const RESIZED_IMAGE_SUFFIX_RE = /_\d+x\d+$/;
 const ORIGINAL_ARCHIVE_PREFIX = "resized_originals";

@@ -1,14 +1,26 @@
 import { TestBed } from "@angular/core/testing";
-import { FirebaseApp } from "@angular/fire/app";
-import { Functions, httpsCallable } from "@angular/fire/functions";
+import { FirebaseApp } from "firebase/app";
+import { httpsCallable } from "firebase/functions";
+import { getAuth, getIdToken } from "firebase/auth";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+import { environment } from "../../../environments/environment.default";
 import { PlatformService } from "../platform.service";
+import { FirebaseAppCheckService } from "./app-check.service";
 import { FunctionsAdapterService } from "./functions-adapter.service";
+import {
+  FIREBASE_APP,
+  FIREBASE_FUNCTIONS,
+} from "./firebase-client.providers";
 
-vi.mock("@angular/fire/functions", () => ({
+vi.mock("firebase/functions", () => ({
   Functions: class Functions {},
   httpsCallable: vi.fn(),
+}));
+
+vi.mock("firebase/auth", () => ({
+  getAuth: vi.fn(),
+  getIdToken: vi.fn(),
 }));
 
 vi.mock("@capacitor-firebase/authentication", () => ({
@@ -21,9 +33,14 @@ describe("FunctionsAdapterService", () => {
   let platformService: { isNative: ReturnType<typeof vi.fn> };
   let fetchMock: Mock;
   const functionsInstance = {};
+  const appCheckService = {
+    getTokenForRequest: vi.fn().mockResolvedValue("app-check-token"),
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
+    appCheckService.getTokenForRequest.mockResolvedValue("app-check-token");
+    environment.production = false;
     platformService = {
       isNative: vi.fn(() => false),
     };
@@ -37,9 +54,9 @@ describe("FunctionsAdapterService", () => {
     TestBed.configureTestingModule({
       providers: [
         FunctionsAdapterService,
-        { provide: Functions, useValue: functionsInstance },
+        { provide: FIREBASE_FUNCTIONS, useValue: functionsInstance },
         {
-          provide: FirebaseApp,
+          provide: FIREBASE_APP,
           useValue: {
             options: {
               projectId: "parkour-base-project",
@@ -47,11 +64,12 @@ describe("FunctionsAdapterService", () => {
           } satisfies Partial<FirebaseApp>,
         },
         { provide: PlatformService, useValue: platformService },
+        { provide: FirebaseAppCheckService, useValue: appCheckService },
       ],
     });
   });
 
-  it("delegates web callable requests to AngularFire Functions", async () => {
+  it("delegates web callable requests to Firebase Functions", async () => {
     const callable = vi.fn().mockResolvedValue({ data: { ok: true } });
     vi.mocked(httpsCallable).mockReturnValue(callable);
     const service = TestBed.inject(FunctionsAdapterService);
@@ -95,7 +113,7 @@ describe("FunctionsAdapterService", () => {
     expect(httpsCallable).not.toHaveBeenCalled();
   });
 
-  it("sends public native callable requests without an auth token", async () => {
+  it("sends public native callable requests with optional App Check", async () => {
     platformService.isNative.mockReturnValue(true);
     vi.mocked(FirebaseAuthentication.getIdToken).mockResolvedValue({});
     const service = TestBed.inject(FunctionsAdapterService);
@@ -109,9 +127,116 @@ describe("FunctionsAdapterService", () => {
       "https://europe-west1-parkour-base-project.cloudfunctions.net/getPublicImportProvenance",
       {
         method: "POST",
+        headers: {
+          "X-Firebase-AppCheck": "app-check-token",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          data: { importId: "picos-parkour-mutano" },
+        }),
+      },
+    );
+  });
+
+  it("uses the same-origin proxy for production public provenance requests", async () => {
+    environment.production = true;
+    const service = TestBed.inject(FunctionsAdapterService);
+
+    const result = await service.callPublic<
+      { importId: string },
+      { ok: boolean }
+    >("getPublicImportProvenance", { importId: "picos-parkour-mutano" });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/functions/getPublicImportProvenance",
+      {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           data: { importId: "picos-parkour-mutano" },
+        }),
+      },
+    );
+    expect(httpsCallable).not.toHaveBeenCalled();
+    expect(result).toEqual({ ok: true });
+  });
+
+  it("sends App Check protected callable requests with an attestation token", async () => {
+    const service = TestBed.inject(FunctionsAdapterService);
+
+    const result = await service.callAppChecked<
+      { location: { lat: number; lng: number } },
+      { ok: boolean }
+    >("getWeather", { location: { lat: 47.37, lng: 8.54 } });
+
+    expect(appCheckService.getTokenForRequest).toHaveBeenCalledOnce();
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://europe-west1-parkour-base-project.cloudfunctions.net/getWeather",
+      {
+        method: "POST",
+        headers: {
+          "X-Firebase-AppCheck": "app-check-token",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          data: { location: { lat: 47.37, lng: 8.54 } },
+        }),
+      },
+    );
+    expect(result).toEqual({ ok: true });
+    expect(httpsCallable).not.toHaveBeenCalled();
+  });
+
+  it("sends authenticated native App Check requests with both tokens", async () => {
+    platformService.isNative.mockReturnValue(true);
+    vi.mocked(FirebaseAuthentication.getIdToken).mockResolvedValue({
+      token: "native-id-token",
+    });
+    const service = TestBed.inject(FunctionsAdapterService);
+
+    await service.callAuthenticatedAppChecked<
+      { signal: { platform: string } },
+      { ok: boolean }
+    >("updateAgePolicyV2", { signal: { platform: "android" } });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://europe-west1-parkour-base-project.cloudfunctions.net/updateAgePolicyV2",
+      {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer native-id-token",
+          "X-Firebase-AppCheck": "app-check-token",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          data: { signal: { platform: "android" } },
+        }),
+      },
+    );
+  });
+
+  it("sends authenticated web App Check requests with both tokens", async () => {
+    const user = {};
+    vi.mocked(getAuth).mockReturnValue({ currentUser: user } as never);
+    vi.mocked(getIdToken).mockResolvedValue("web-id-token");
+    const service = TestBed.inject(FunctionsAdapterService);
+
+    await service.callAuthenticatedAppChecked<
+      { signal: { platform: string } },
+      { ok: boolean }
+    >("updateAgePolicyV2", { signal: { platform: "ios" } });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://europe-west1-parkour-base-project.cloudfunctions.net/updateAgePolicyV2",
+      {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer web-id-token",
+          "X-Firebase-AppCheck": "app-check-token",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          data: { signal: { platform: "ios" } },
         }),
       },
     );

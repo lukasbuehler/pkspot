@@ -23,6 +23,9 @@
             'image/gif',
             'video/mp4'
           ]"
+          [uploadToStorage]="false"
+          [imageCropPolicy]="optionalMediaCropPolicy"
+          (fileSelected)="onUploadMediaSelect($event)"
           (changed)="hasChanged = true"
         ></app-media-upload>
       </mat-tab>

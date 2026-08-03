@@ -1,6 +1,6 @@
 import { PLATFORM_ID } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { FirebaseApp } from "@angular/fire/app";
+import { FirebaseApp } from "firebase/app";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
@@ -9,13 +9,14 @@ import {
   signInWithPopup,
   signOut,
   updateProfile,
-} from "@angular/fire/auth";
-import { BehaviorSubject, Observable, of } from "rxjs";
+} from "firebase/auth";
+import { BehaviorSubject, Observable, of, Subject } from "rxjs";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { AnalyticsService } from "../analytics.service";
 import { ConsentService } from "../consent.service";
 import { UsersService } from "./firestore/users.service";
 import { AuthenticationService } from "./authentication.service";
+import { FIREBASE_APP } from "./firebase-client.providers";
 
 const authMock = vi.hoisted(() => ({
   currentUser: null as unknown,
@@ -23,8 +24,8 @@ const authMock = vi.hoisted(() => ({
   setPersistence: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@angular/fire/auth", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@angular/fire/auth")>();
+vi.mock("firebase/auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("firebase/auth")>();
   return {
     ...actual,
     getAuth: vi.fn(() => authMock),
@@ -107,7 +108,7 @@ describe("AuthenticationService", () => {
         AuthenticationService,
         { provide: UsersService, useValue: usersServiceSpy },
         {
-          provide: FirebaseApp,
+          provide: FIREBASE_APP,
           useValue: {
             name: "test-app",
             options: {},
@@ -139,6 +140,10 @@ describe("AuthenticationService", () => {
       email: "screenshot@pkspot.app",
       emailVerified: true,
       providerId: "store-screenshot",
+      data: {
+        display_name: "Screenshot Admin",
+        is_admin: true,
+      },
     };
 
     TestBed.configureTestingModule({
@@ -146,7 +151,7 @@ describe("AuthenticationService", () => {
         AuthenticationService,
         { provide: UsersService, useValue: usersServiceSpy },
         {
-          provide: FirebaseApp,
+          provide: FIREBASE_APP,
           useValue: {
             name: "test-app",
             options: {},
@@ -163,11 +168,17 @@ describe("AuthenticationService", () => {
 
     expect(screenshotService.isSignedIn).toBe(true);
     expect(screenshotService.initialAuthStateResolved()).toBe(true);
+    expect(screenshotService.authorizationStateResolved()).toBe(true);
+    expect(screenshotService.isAdmin()).toBe(true);
     expect(screenshotService.authState$.getValue()).toEqual({
       uid: "store-screenshot-user",
       email: "screenshot@pkspot.app",
       emailVerified: true,
       providerId: "store-screenshot",
+      data: expect.objectContaining({
+        displayName: "Screenshot Admin",
+        isAdmin: true,
+      }),
     });
     expect(authMock.onAuthStateChanged).not.toHaveBeenCalled();
   });
@@ -194,6 +205,20 @@ describe("AuthenticationService", () => {
     expect(signOut).toHaveBeenCalledWith(service.auth);
   });
 
+  it("runs registered cleanup before signing out", async () => {
+    (signOut as Mock).mockResolvedValueOnce(undefined);
+    service.user = { uid: "auth-user-1" };
+    const cleanup = vi.fn(() => Promise.resolve());
+    service.registerBeforeSignOutHandler(cleanup);
+
+    await service.logUserOut();
+
+    expect(cleanup).toHaveBeenCalledWith("auth-user-1");
+    expect(cleanup.mock.invocationCallOrder[0]).toBeLessThan(
+      (signOut as Mock).mock.invocationCallOrder[0],
+    );
+  });
+
   it("updates local auth state, analytics identity, profile data, and admin signal from auth listener", () => {
     const profile = { displayName: "Hydrated User", isAdmin: true };
     usersServiceSpy.getUserById.mockReturnValueOnce(of(profile));
@@ -218,6 +243,30 @@ describe("AuthenticationService", () => {
         display_name: "Auth User",
       },
     );
+  });
+
+  it("does not resolve authorization until the signed-in profile has loaded", async () => {
+    const profile = new Subject<{ displayName: string; isAdmin: boolean }>();
+    usersServiceSpy.getUserById.mockReturnValueOnce(profile);
+    const authStateListener = authMock.onAuthStateChanged.mock
+      .calls[0][0] as FirebaseAuthStateCallback;
+
+    authStateListener(firebaseUser);
+
+    expect(service.initialAuthStateResolved()).toBe(true);
+    expect(service.authorizationStateResolved()).toBe(false);
+    let authorizationResolved = false;
+    const wait = service.waitForAuthorizationState().then(() => {
+      authorizationResolved = true;
+    });
+    await Promise.resolve();
+    expect(authorizationResolved).toBe(false);
+
+    profile.next({ displayName: "Hydrated Admin", isAdmin: true });
+    await wait;
+
+    expect(service.authorizationStateResolved()).toBe(true);
+    expect(service.isAdmin()).toBe(true);
   });
 
   it("resets local auth state and analytics identity when Firebase signs out", () => {

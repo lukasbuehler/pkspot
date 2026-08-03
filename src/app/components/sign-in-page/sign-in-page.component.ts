@@ -98,6 +98,7 @@ export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private _returnUrl: string = "/profile";
   private _autoStartProvider: "google" | "apple" | null = null;
   private _authSubscription?: Subscription;
+  private _returnNavigationStarted = false;
 
   constructor(
     private _authService: AuthenticationService,
@@ -134,7 +135,7 @@ export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe(() => {
         // User is now authenticated, redirect to return URL
         if (this.isSubmitting()) {
-          this._router.navigateByUrl(this._returnUrl);
+          this._returnToRequestedPage();
         }
       });
   }
@@ -200,7 +201,7 @@ export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
       () => {
         this._analytics.trackEvent("auth_email_sign_in_succeeded");
         // login and return the user to where they were
-        this._router.navigateByUrl(this._returnUrl);
+        this._returnToRequestedPage();
       },
       (err) => {
         // display the error on the login form
@@ -222,12 +223,46 @@ export class SignInPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   onOAuthSuccess() {
     this.isSubmitting.set(true);
-    // Redirect is handled by the authState$ subscription
+
+    // Firebase can publish the signed-in user before the provider promise
+    // resolves. In that ordering the auth-state subscription has already run,
+    // so make the successful provider result a second, idempotent navigation
+    // trigger. Native custom-tab flows still wait for their later auth event.
+    const authenticatedUser =
+      this._authService.authState$.getValue() ??
+      this._authService.auth.currentUser;
+    if (authenticatedUser?.uid) {
+      this._returnToRequestedPage();
+    }
   }
 
   startAuthAttempt() {
     this.signInError.set("");
     this.isSubmitting.set(true);
+  }
+
+  private _returnToRequestedPage(): void {
+    if (this._returnNavigationStarted) {
+      return;
+    }
+
+    this._returnNavigationStarted = true;
+    void this._router.navigateByUrl(this._returnUrl).then(
+      (navigated) => {
+        if (!navigated) {
+          this._resetReturnNavigation();
+        }
+      },
+      (error: unknown) => {
+        console.error("Could not return after sign-in", error);
+        this._resetReturnNavigation();
+      },
+    );
+  }
+
+  private _resetReturnNavigation(): void {
+    this._returnNavigationStarted = false;
+    this.isSubmitting.set(false);
   }
 
   appCheckStatusLabel(status: FirebaseAppCheckStatus): string {

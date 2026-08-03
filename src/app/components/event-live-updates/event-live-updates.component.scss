@@ -1,0 +1,103 @@
+:host {
+  display: block;
+}
+
+.live-updates {
+  padding: 1rem;
+}
+
+.section-heading,
+.state-row,
+.update-detail,
+.timing-change {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.section-heading {
+  align-items: flex-start;
+}
+
+.section-heading h2,
+.section-heading p,
+.update-item h3,
+.update-item p {
+  margin: 0;
+}
+
+.section-heading p,
+.empty-copy {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.icon-tile {
+  display: grid;
+  flex: 0 0 40px;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.updates-list {
+  margin-top: 1rem;
+}
+
+.update-item {
+  padding: 0.875rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 14px;
+  background: var(--mat-sys-surface);
+}
+
+.update-item + .update-item {
+  margin-top: 0.5rem;
+}
+
+.update-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-label-medium);
+}
+
+.update-item h3,
+.update-item > p {
+  margin-top: 0.35rem;
+}
+
+.update-detail {
+  gap: 0.35rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.update-detail mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}
+
+.timing-change {
+  gap: 0.4rem;
+}
+
+.timing-change mat-icon {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  color: var(--mat-sys-primary);
+}
+
+.state-row {
+  padding: 0.5rem 0;
+}
+
+.error-copy {
+  margin: 0;
+  color: var(--mat-sys-error);
+}

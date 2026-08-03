@@ -1,10 +1,13 @@
 import { LocationStrategy } from "@angular/common";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { LOCALE_ID, PLATFORM_ID, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute, convertToParamMap, Router } from "@angular/router";
-import { BehaviorSubject, of } from "rxjs";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { BehaviorSubject, of, throwError } from "rxjs";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { LocalSpot } from "../../../db/models/Spot";
 import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
@@ -19,10 +22,14 @@ import { MapsApiService } from "../../services/maps-api.service";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { ResponsiveService } from "../../services/responsive.service";
 import { StructuredDataService } from "../../services/structured-data.service";
+import { EventPageDataService } from "../../services/event-page/event-page-data.service";
+import { SearchService } from "../../services/search.service";
 import { eventHeroMedia } from "../event-display/event-display.helpers";
+import { EventAddDialogComponent } from "../event-add-dialog/event-add-dialog.component";
 import { EventInfoPageComponent } from "./event-page.component";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { GeoPoint } from "firebase/firestore";
+import { WeatherService } from "../../weather/weather.service";
 
 const flushPromises = () =>
   new Promise((resolve) => {
@@ -62,9 +69,37 @@ const seriesServiceStub = () => ({
 });
 
 describe("EventInfoPageComponent", () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: WeatherService,
+          useValue: {
+            isEventForecastAvailable: vi.fn(() => false),
+            getEventForecastForTileAt: vi.fn(),
+          },
+        },
+        { provide: MatDialog, useValue: { open: vi.fn() } },
+      ],
+    });
+  });
+
   afterEach(() => {
     vi.useRealTimers();
     TestBed.resetTestingModule();
+  });
+
+  it("keeps ownership claim requests hidden until rollout verification", () => {
+    const template = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/event-page/event-page.component.html",
+      ),
+      "utf8",
+    );
+
+    expect(template).not.toContain("canRequestOwnership");
+    expect(template).not.toContain("ownershipClaimRequested");
   });
 
   it("exposes dummy event info as text and structured data for crawlers", () => {
@@ -126,6 +161,7 @@ describe("EventInfoPageComponent", () => {
     );
     const event = buildEvent("dummy-city-jam", "Dummy City Jam", {
       description: "A dummy event page for crawler-readable parkour jam info.",
+      organizer_name: "Independent Jam Crew",
       venue_string: "Dummy Training Hall",
       locality_string: "Dummy City, Switzerland",
     });
@@ -159,9 +195,383 @@ describe("EventInfoPageComponent", () => {
           }),
         }),
         url: "https://pkspot.app/en/events/dummy-city-jam",
+        organizer: expect.objectContaining({
+          "@type": "Organization",
+          name: "Independent Jam Crew",
+        }),
       }),
     );
   });
+
+  it("keeps draft metadata private and disables participation", () => {
+    const structuredDataService = {
+      addStructuredData: vi.fn(),
+      removeStructuredData: vi.fn(),
+    };
+    const metaTagService = {
+      setEventMetaTags: vi.fn(),
+      setStaticPageMetaTags: vi.fn(),
+      setRobotsContent: vi.fn(),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SeriesService, useValue: seriesServiceStub() },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        {
+          provide: AuthenticationService,
+          useValue: { user: { data: null }, isAdmin: signal(true) },
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: of(convertToParamMap({ slug: "draft-jam" })),
+            queryParams: of({}),
+            data: of({ routeName: "Event" }),
+            snapshot: { paramMap: convertToParamMap({ slug: "draft-jam" }) },
+          },
+        },
+        { provide: Router, useValue: { navigate: vi.fn() } },
+        { provide: LocationStrategy, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: MetaTagService, useValue: metaTagService },
+        { provide: StructuredDataService, useValue: structuredDataService },
+        {
+          provide: MapsApiService,
+          useValue: {
+            isApiLoaded: vi.fn(() => true),
+            loadGoogleMapsApi: vi.fn(),
+          },
+        },
+        {
+          provide: AnalyticsService,
+          useValue: { addUtmToUrl: vi.fn((url?: string) => url) },
+        },
+        { provide: ResponsiveService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+        { provide: PLATFORM_ID, useValue: "server" },
+      ],
+    });
+
+    const component = TestBed.runInInjectionContext(
+      () => new EventInfoPageComponent(),
+    );
+    component.event.set(
+      buildEvent("draft-jam", "Secret Draft Jam", { published: false }),
+    );
+    flushSignalEffects();
+
+    expect(component.showRsvp()).toBe(false);
+    expect(metaTagService.setEventMetaTags).not.toHaveBeenCalled();
+    expect(metaTagService.setStaticPageMetaTags).toHaveBeenLastCalledWith(
+      "Draft event",
+      "This event has not been published.",
+      undefined,
+      "/events/draft-jam",
+    );
+    expect(metaTagService.setRobotsContent).toHaveBeenLastCalledWith(
+      "noindex,nofollow",
+    );
+    expect(structuredDataService.addStructuredData).not.toHaveBeenCalled();
+    expect(structuredDataService.removeStructuredData).toHaveBeenCalledWith(
+      "event",
+    );
+  });
+
+  it("keeps an unlisted event out of public metadata while preserving participation", () => {
+    const structuredDataService = {
+      addStructuredData: vi.fn(),
+      removeStructuredData: vi.fn(),
+    };
+    const metaTagService = {
+      setEventMetaTags: vi.fn(),
+      setStaticPageMetaTags: vi.fn(),
+      setRobotsContent: vi.fn(),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SeriesService, useValue: seriesServiceStub() },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        {
+          provide: AuthenticationService,
+          useValue: { user: { data: null }, isAdmin: signal(false) },
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: of(convertToParamMap({ slug: "shared-jam" })),
+            queryParams: of({}),
+            data: of({ routeName: "Event" }),
+            snapshot: { paramMap: convertToParamMap({ slug: "shared-jam" }) },
+          },
+        },
+        { provide: Router, useValue: { navigate: vi.fn() } },
+        { provide: LocationStrategy, useValue: {} },
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: MetaTagService, useValue: metaTagService },
+        { provide: StructuredDataService, useValue: structuredDataService },
+        {
+          provide: MapsApiService,
+          useValue: {
+            isApiLoaded: vi.fn(() => true),
+            loadGoogleMapsApi: vi.fn(),
+          },
+        },
+        {
+          provide: AnalyticsService,
+          useValue: { addUtmToUrl: vi.fn((url?: string) => url) },
+        },
+        { provide: ResponsiveService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+        { provide: PLATFORM_ID, useValue: "server" },
+      ],
+    });
+
+    const component = TestBed.runInInjectionContext(
+      () => new EventInfoPageComponent(),
+    );
+    component.event.set(
+      buildEvent("shared-jam", "Shared Jam", {
+        visibility: "unlisted",
+        start: "2027-06-14T10:00:00.000Z",
+        end: "2027-06-15T10:00:00.000Z",
+      }),
+    );
+    flushSignalEffects();
+
+    expect(component.showRsvp()).toBe(true);
+    expect(metaTagService.setEventMetaTags).not.toHaveBeenCalled();
+    expect(metaTagService.setStaticPageMetaTags).toHaveBeenLastCalledWith(
+      "Unlisted event",
+      "This event is available through its shared link.",
+      undefined,
+      "/events/shared-jam",
+    );
+    expect(metaTagService.setRobotsContent).toHaveBeenLastCalledWith(
+      "noindex,nofollow",
+    );
+    expect(structuredDataService.addStructuredData).not.toHaveBeenCalled();
+    expect(structuredDataService.removeStructuredData).toHaveBeenCalledWith(
+      "event",
+    );
+  });
+
+  it.each([
+    { platform: "server", shouldRedirect: false, loadFails: false },
+    { platform: "browser", shouldRedirect: true, loadFails: false },
+    { platform: "browser", shouldRedirect: false, loadFails: true },
+  ])(
+    "handles a missing or failed event load on $platform",
+    async ({ platform, shouldRedirect, loadFails }) => {
+      const router = { navigate: vi.fn() };
+      const eventsService = {
+        getEventBySlugOrId: vi.fn().mockResolvedValue(null),
+        observeEventBySlugOrId: vi.fn(() =>
+          loadFails ? throwError(() => new Error("load failed")) : of(null),
+        ),
+      };
+
+      TestBed.configureTestingModule({
+        providers: [
+          { provide: EventsService, useValue: eventsService },
+          { provide: SeriesService, useValue: seriesServiceStub() },
+          { provide: SpotsService, useValue: {} },
+          { provide: SpotChallengesService, useValue: {} },
+          {
+            provide: AuthenticationService,
+            useValue: { user: { data: null }, isAdmin: signal(false) },
+          },
+          {
+            provide: ActivatedRoute,
+            useValue: {
+              paramMap: of(convertToParamMap({ slug: "missing-event" })),
+              queryParams: of({}),
+              data: of({ routeName: "Event" }),
+              snapshot: {
+                paramMap: convertToParamMap({ slug: "missing-event" }),
+              },
+            },
+          },
+          { provide: Router, useValue: router },
+          { provide: LocationStrategy, useValue: {} },
+          { provide: MatSnackBar, useValue: { open: vi.fn() } },
+          {
+            provide: MetaTagService,
+            useValue: {
+              setEventMetaTags: vi.fn(),
+              setStaticPageMetaTags: vi.fn(),
+              setRobotsContent: vi.fn(),
+            },
+          },
+          {
+            provide: StructuredDataService,
+            useValue: {
+              addStructuredData: vi.fn(),
+              removeStructuredData: vi.fn(),
+            },
+          },
+          {
+            provide: MapsApiService,
+            useValue: {
+              isApiLoaded: vi.fn(() => true),
+              loadGoogleMapsApi: vi.fn(),
+            },
+          },
+          {
+            provide: AnalyticsService,
+            useValue: { addUtmToUrl: vi.fn((url?: string) => url) },
+          },
+          { provide: ResponsiveService, useValue: {} },
+          { provide: LOCALE_ID, useValue: "en" },
+          { provide: PLATFORM_ID, useValue: platform },
+        ],
+      });
+
+      const component = TestBed.runInInjectionContext(
+        () => new EventInfoPageComponent(),
+      );
+      component.ngOnInit();
+      await flushPromises();
+
+      if (shouldRedirect) {
+        expect(router.navigate).toHaveBeenCalledWith(["/events"]);
+      } else {
+        expect(router.navigate).not.toHaveBeenCalled();
+        expect(component.isLoadingEvent()).toBe(!loadFails);
+        expect(component.eventLoadFailed()).toBe(loadFails);
+      }
+    },
+  );
+
+  it.each([
+    { platform: "browser", shouldOpen: true },
+    { platform: "server", shouldOpen: false },
+  ])(
+    "handles the event QR add intent on the $platform",
+    async ({ platform, shouldOpen }) => {
+      const dialog = { open: vi.fn() };
+      const router = {
+        url: "/events/wpfcamp?intent=add&utm_source=event_qr&utm_medium=qr&utm_campaign=event_attendance",
+        navigate: vi.fn(),
+      };
+      const route = {
+        paramMap: of(convertToParamMap({ slug: "wpfcamp" })),
+        queryParams: of({
+          intent: "add",
+          utm_source: "event_qr",
+          utm_medium: "qr",
+          utm_campaign: "event_attendance",
+        }),
+        data: of({ routeName: "Event" }),
+        snapshot: { paramMap: convertToParamMap({ slug: "wpfcamp" }) },
+      };
+
+      TestBed.configureTestingModule({
+        providers: [
+          { provide: MatDialog, useValue: dialog },
+          { provide: EventsService, useValue: {} },
+          { provide: SeriesService, useValue: seriesServiceStub() },
+          { provide: SpotsService, useValue: {} },
+          { provide: SpotChallengesService, useValue: {} },
+          {
+            provide: AuthenticationService,
+            useValue: {
+              user: { uid: null, data: null },
+              isAdmin: signal(false),
+            },
+          },
+          { provide: ActivatedRoute, useValue: route },
+          { provide: Router, useValue: router },
+          { provide: LocationStrategy, useValue: {} },
+          { provide: MatSnackBar, useValue: { open: vi.fn() } },
+          {
+            provide: MetaTagService,
+            useValue: {
+              setEventMetaTags: vi.fn(),
+              setStaticPageMetaTags: vi.fn(),
+              setRobotsContent: vi.fn(),
+            },
+          },
+          {
+            provide: StructuredDataService,
+            useValue: {
+              addStructuredData: vi.fn(),
+              removeStructuredData: vi.fn(),
+            },
+          },
+          {
+            provide: EventPageDataService,
+            useValue: {
+              eventCanonicalPath: (event: PkEvent) =>
+                `/events/${event.slug ?? event.id}`,
+              loadEventSpotBindings: vi.fn(async () => []),
+              buildAreaPolygon: vi.fn(() => null),
+              customMarkers: vi.fn(() => []),
+              spotPreviewMarkers: vi.fn(() => []),
+              eventLocationMarker: vi.fn(() => null),
+              eventMapBounds: vi.fn(() => null),
+            },
+          },
+          {
+            provide: SearchService,
+            useValue: { getEventCardsByIds: vi.fn(async () => []) },
+          },
+          {
+            provide: MapsApiService,
+            useValue: {
+              isApiLoaded: vi.fn(() => true),
+              loadGoogleMapsApi: vi.fn(),
+            },
+          },
+          {
+            provide: AnalyticsService,
+            useValue: { addUtmToUrl: vi.fn((url?: string) => url) },
+          },
+          { provide: ResponsiveService, useValue: {} },
+          { provide: LOCALE_ID, useValue: "en" },
+          { provide: PLATFORM_ID, useValue: platform },
+        ],
+      });
+
+      const component = TestBed.runInInjectionContext(
+        () => new EventInfoPageComponent(),
+      );
+      const event = buildEvent("wpfcamp", "SPT WPF Camp 2026", {
+        start: "2027-08-05T10:00:00.000Z",
+        end: "2027-08-09T10:00:00.000Z",
+      });
+
+      component.event.set(event);
+      flushSignalEffects();
+      await flushPromises();
+      flushSignalEffects();
+
+      if (shouldOpen) {
+        expect(dialog.open).toHaveBeenCalledWith(
+          EventAddDialogComponent,
+          expect.objectContaining({
+            data: expect.objectContaining({ event, source: "event_qr" }),
+          }),
+        );
+        expect(router.navigate).toHaveBeenCalledWith([], {
+          relativeTo: route,
+          queryParams: { intent: null },
+          queryParamsHandling: "merge",
+          replaceUrl: true,
+        });
+      } else {
+        expect(dialog.open).not.toHaveBeenCalled();
+        expect(router.navigate).not.toHaveBeenCalled();
+      }
+
+      component.ngOnDestroy();
+    },
+  );
 
   it("reloads the event when Angular reuses the component for a new route param", async () => {
     const swissjam26 = buildEvent("swissjam26", "Swiss Jam 2026");
@@ -491,6 +901,7 @@ describe("EventInfoPageComponent", () => {
     expect(component.showRsvp()).toBe(true);
 
     vi.setSystemTime(new Date("2026-06-20T10:00:00.000Z"));
+    component.now.set(new Date());
     component.event.set(
       buildEvent("past-event", "Past Event", {
         start: "2026-06-14T10:00:00.000Z",
@@ -503,6 +914,7 @@ describe("EventInfoPageComponent", () => {
     expect(component.showRsvp()).toBe(false);
 
     vi.setSystemTime(new Date("2026-06-14T12:00:00.000Z"));
+    component.now.set(new Date());
     component.event.set(buildEvent("live-event", "Live Event"));
     flushSignalEffects();
 
@@ -1267,5 +1679,8 @@ describe("EventInfoPageComponent", () => {
     const structuredEvent = structuredDataService.addStructuredData.mock
       .lastCall?.[1] as Record<string, unknown>;
     expect(structuredEvent).not.toHaveProperty("subEvent");
+    expect(component.programDays()).toEqual(["2026-06-14"]);
+    expect(component.selectedProgramDay()).toBeNull();
+    expect(component.programFilterActive()).toBe(false);
   });
 });

@@ -1,0 +1,20 @@
+:host {
+  display: block;
+}
+
+.crop-dialog {
+  width: min(720px, calc(100vw - 48px));
+  padding: 24px;
+}
+
+h2 {
+  margin: 0 0 16px;
+}
+
+@media (max-width: 600px) {
+  .crop-dialog {
+    width: 100%;
+    min-height: 100dvh;
+    padding: 16px;
+  }
+}

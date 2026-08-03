@@ -1,5 +1,5 @@
 import { Injectable, inject } from "@angular/core";
-import { Timestamp } from "@angular/fire/firestore";
+import { Timestamp } from "firebase/firestore";
 import { map, Observable, from, Subscription } from "rxjs";
 import {
   FollowRequestDataSchema,

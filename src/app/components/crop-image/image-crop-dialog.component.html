@@ -1,0 +1,11 @@
+<section class="crop-dialog" aria-labelledby="crop-dialog-title">
+  <h2 id="crop-dialog-title" class="mat-title-large">
+    {{ data.title || defaultTitle }}
+  </h2>
+  <app-crop-image
+    [imageFile]="data.file"
+    [policy]="data.policy"
+    (imageCropped)="apply($event)"
+    (cancelled)="cancel()"
+  />
+</section>

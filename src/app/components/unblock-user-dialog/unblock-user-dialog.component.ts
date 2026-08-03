@@ -33,7 +33,6 @@ import {
     </mat-dialog-actions>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
 })
 export class UnblockUserDialogComponent {
   constructor(public dialogRef: MatDialogRef<UnblockUserDialogComponent>) {}

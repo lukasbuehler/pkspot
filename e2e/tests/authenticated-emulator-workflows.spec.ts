@@ -85,9 +85,12 @@ test.describe("authenticated Firebase emulator workflows", () => {
     await expect(page.locator("app-filter-chips-bar")).toContainText(/Saved|Gespeichert/u);
     await expect(page.locator("app-filter-chips-bar")).toContainText(/Visited|Besucht/u);
 
-    const addSpot = page.locator("#createSpotSpeedDial");
-    await expect(addSpot).toBeVisible({ timeout: 25_000 });
-    await addSpot.click();
+    const createMenu = page.locator("#mapCreateFabMenu");
+    await expect(createMenu).toBeVisible({ timeout: 25_000 });
+    await createMenu.locator(".fab-menu__launcher").click();
+    await createMenu
+      .getByRole("button", { name: /Add Spot|Spot hinzufügen/u })
+      .click();
 
     await expect(page.locator("app-map-spot-details-panel")).toBeAttached({
       timeout: 15_000,

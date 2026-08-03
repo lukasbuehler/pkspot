@@ -86,11 +86,18 @@ function runNpmScript(scriptName) {
   if (preferredNodeBinDir) {
     console.log(`Using Node runtime from ${preferredNodeBinDir}`);
   }
-  execFileSync(npmCommand, ["run", scriptName], {
-    cwd: repoRoot,
-    stdio: "inherit",
-    env: runtimeEnv,
-  });
+  try {
+    execFileSync(npmCommand, ["run", scriptName], {
+      cwd: repoRoot,
+      stdio: "inherit",
+      env: runtimeEnv,
+    });
+  } catch (error) {
+    if (error?.status === 86) {
+      process.exit(86);
+    }
+    throw error;
+  }
 }
 
 function getSupportedLanguageCodes() {
@@ -443,6 +450,11 @@ async function main() {
       `SSR server bundle for ${lang}`
     );
   }
+  assert.ok(
+    !existsSync(path.join(distBrowserDir, "de-CH")) &&
+      !existsSync(path.join(distServerDir, "de-CH")),
+    "Retired de-CH browser and server bundles should not be emitted",
+  );
   assertFileExists(sharedAssetPath, "Shared icons asset manifest");
 
   console.log("\n==> starting SSR smoke server");
@@ -483,8 +495,24 @@ async function main() {
     assert.equal(redirectResponse.status, 301, "Root should redirect by locale");
     assert.equal(
       redirectResponse.headers.get("location"),
-      "/de-CH",
-      "Root redirect should honor supported Accept-Language values"
+      "/de",
+      "Root redirect should normalize Swiss German to German"
+    );
+
+    const retiredLocaleRedirect = await fetchWithTimeout(
+      `${baseUrl}/de-CH/map/spots/josefhalle?filter=dry`,
+      { redirect: "manual" },
+      "retired locale redirect",
+    );
+    assert.equal(
+      retiredLocaleRedirect.status,
+      301,
+      "Retired de-CH URLs should redirect permanently",
+    );
+    assert.equal(
+      retiredLocaleRedirect.headers.get("location"),
+      "/de/map/spots/josefhalle?filter=dry",
+      "Retired locale redirect should preserve the route and query string",
     );
 
     for (const locale of supportedLanguageCodes) {
@@ -697,19 +725,14 @@ async function main() {
     );
     assertDynamicSsrCacheHeaders(eventsPageResponse, "Events SSR route");
     const eventsPageHtml = await eventsPageResponse.text();
-    assert.match(
-      eventsPageHtml,
-      /Swiss Jam 2025/,
-      "Events SSR HTML should include rendered event cards"
-    );
     assertBodyCrawlerContent(eventsPageHtml, "Events SSR route", [
-      /Swiss Jam 2025/,
-      /href="\/en\/events\/swissjam25"|href="\/events\/swissjam25"/,
+      /Events/,
+      /Discover parkour events around the world/,
     ]);
     assert.doesNotMatch(
       eventsPageHtml,
-      /Loading events/,
-      "Events SSR HTML should not remain in the loading state"
+      /href="\/en\/events\/swissjam25"|href="\/events\/swissjam25"/,
+      "Events discovery SSR should not inject the Swiss Jam static detail fallback"
     );
 
     const eventPreviewResponse = await fetchWithTimeout(
@@ -767,23 +790,14 @@ async function main() {
     );
     assert.equal(
       mapEventPreviewResponse.status,
-      200,
-      "Map event SSR route should render for crawlers"
+      301,
+      "Map event SSR route should permanently redirect to the canonical event page"
     );
-    assertDynamicSsrCacheHeaders(
-      mapEventPreviewResponse,
-      "Map event SSR route"
+    assert.equal(
+      mapEventPreviewResponse.headers.get("location"),
+      "/en/events/swissjam25",
+      "Map event SSR route should preserve the locale in its canonical target"
     );
-    const mapEventPreviewHtml = await mapEventPreviewResponse.text();
-    assert.match(
-      mapEventPreviewHtml,
-      /<!doctype html>/i,
-      "Map event SSR route should return HTML"
-    );
-    assertBodyCrawlerContent(mapEventPreviewHtml, "Map event SSR route", [
-      /Swiss Jam 2025/,
-      /See full event|Open event|Event/i,
-    ]);
 
     const profilePreviewResponse = await fetchWithTimeout(
       `${baseUrl}/en/u/lukas`,
@@ -840,6 +854,48 @@ async function main() {
     assertStaticSsrCacheHeaders(robotsResponse, "robots.txt");
     const robotsText = await robotsResponse.text();
     assert.match(robotsText, /User-agent/i, "robots.txt should have content");
+
+    const messagingWorkerResponse = await fetchWithTimeout(
+      `${baseUrl}/firebase-messaging-sw.js`,
+      {},
+      "Firebase messaging service worker"
+    );
+    assert.equal(
+      messagingWorkerResponse.status,
+      200,
+      "Firebase messaging service worker should be served from the origin root"
+    );
+    assertRevalidatingAssetCacheHeaders(
+      messagingWorkerResponse,
+      "/firebase-messaging-sw.js"
+    );
+    assert.equal(
+      messagingWorkerResponse.headers.get("service-worker-allowed"),
+      "/",
+      "Firebase messaging service worker should control the whole origin"
+    );
+    const messagingWorkerText = await messagingWorkerResponse.text();
+    assert.match(
+      messagingWorkerText,
+      /firebase\.messaging\(\)/,
+      "Firebase messaging service worker should initialize FCM"
+    );
+
+    for (const sdkAsset of [
+      "firebase-app-compat.js",
+      "firebase-messaging-compat.js",
+    ]) {
+      const sdkResponse = await fetchWithTimeout(
+        `${baseUrl}/assets/firebase/${sdkAsset}`,
+        {},
+        sdkAsset
+      );
+      assert.equal(sdkResponse.status, 200, `${sdkAsset} should be served`);
+      assert.ok(
+        (await sdkResponse.arrayBuffer()).byteLength > 0,
+        `${sdkAsset} should not be empty`
+      );
+    }
 
     const llmsResponse = await fetchWithTimeout(
       `${baseUrl}/llms.txt`,

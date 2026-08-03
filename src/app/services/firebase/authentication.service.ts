@@ -1,9 +1,7 @@
 import {
   inject,
   Injectable,
-  Injector,
   PLATFORM_ID,
-  runInInjectionContext,
   signal,
 } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
@@ -32,9 +30,14 @@ import {
   reauthenticateWithPopup,
   AuthProvider,
   connectAuthEmulator,
-} from "@angular/fire/auth";
-import { FirebaseApp } from "@angular/fire/app";
-import { BehaviorSubject, firstValueFrom, Subscription } from "rxjs";
+} from "firebase/auth";
+import {
+  BehaviorSubject,
+  filter,
+  firstValueFrom,
+  Subscription,
+  take,
+} from "rxjs";
 import { User } from "../../../db/models/User";
 import { UsersService } from "./firestore/users.service";
 import { UserSchema } from "../../../db/schemas/UserSchema";
@@ -47,6 +50,7 @@ import {
 } from "@capacitor-firebase/authentication";
 import { Browser } from "@capacitor/browser";
 import { getFirebaseEmulatorSettings } from "./firebase-emulator.config";
+import { FIREBASE_APP } from "./firebase-client.providers";
 
 interface AuthServiceUser {
   uid?: string;
@@ -86,11 +90,23 @@ export class AuthenticationService extends ConsentAwareService {
    * "unknown", not "signed out".
    */
   public readonly initialAuthStateResolved = signal(false);
+  /**
+   * True once authorization-relevant profile data has resolved. Signed-in
+   * users stay unresolved until their Firestore profile has loaded, because
+   * roles such as `isAdmin` do not exist on the basic Firebase auth user.
+   */
+  public readonly authorizationStateResolved = signal(false);
+  private readonly authorizationStateSubject = new BehaviorSubject(false);
+  public readonly authorizationStateResolved$ =
+    this.authorizationStateSubject.asObservable();
   /** Reactive admin state for UI gates. Always false while signed out. */
   public readonly isAdmin = signal(false);
 
-  private _injector = inject(Injector);
   private _platformId = inject(PLATFORM_ID);
+  private readonly _firebaseApp = inject(FIREBASE_APP);
+  private readonly _beforeSignOutHandlers = new Set<
+    (userId: string) => Promise<void>
+  >();
 
   private get _isBrowser(): boolean {
     return isPlatformBrowser(this._platformId);
@@ -129,15 +145,13 @@ export class AuthenticationService extends ConsentAwareService {
     return Capacitor.isNativePlatform();
   }
 
-  constructor(
-    private _userService: UsersService,
-    private _firebaseApp: FirebaseApp
-  ) {
+  constructor(private _userService: UsersService) {
     super();
 
     // Skip auth initialization on server (SSR)
     if (!this._isBrowser) {
       this.initialAuthStateResolved.set(true);
+      this._setAuthorizationStateResolved(true);
       return;
     }
 
@@ -145,7 +159,9 @@ export class AuthenticationService extends ConsentAwareService {
     if (screenshotAuthUser) {
       this.user = screenshotAuthUser;
       this.isSignedIn = true;
+      this.isAdmin.set(screenshotAuthUser.data?.isAdmin === true);
       this.initialAuthStateResolved.set(true);
+      this._setAuthorizationStateResolved(true);
       this.authState$.next(screenshotAuthUser);
       return;
     }
@@ -155,6 +171,7 @@ export class AuthenticationService extends ConsentAwareService {
 
     if (!this.hasConsent()) {
       this.initialAuthStateResolved.set(true);
+      this._setAuthorizationStateResolved(true);
     }
 
     // Setup Firebase auth state listener only after consent
@@ -247,12 +264,10 @@ export class AuthenticationService extends ConsentAwareService {
 
     try {
       if (!isNative) {
-        await runInInjectionContext(this.injector, async () => {
-          await auth.setPersistence(indexedDBLocalPersistence);
-          console.log(
-            "Firebase Auth persistence set: indexedDBLocalPersistence"
-          );
-        });
+        await auth.setPersistence(indexedDBLocalPersistence);
+        console.log(
+          "Firebase Auth persistence set: indexedDBLocalPersistence"
+        );
         return;
       }
     } catch (e1) {
@@ -263,10 +278,8 @@ export class AuthenticationService extends ConsentAwareService {
     }
 
     try {
-      await runInInjectionContext(this.injector, async () => {
-        await auth.setPersistence(browserLocalPersistence);
-        console.log("Firebase Auth persistence set: browserLocalPersistence");
-      });
+      await auth.setPersistence(browserLocalPersistence);
+      console.log("Firebase Auth persistence set: browserLocalPersistence");
       return;
     } catch (e2) {
       console.warn(
@@ -276,12 +289,10 @@ export class AuthenticationService extends ConsentAwareService {
     }
 
     // Last resort to keep app functional (not persistent across reloads)
-    await runInInjectionContext(this.injector, async () => {
-      await auth.setPersistence(inMemoryPersistence);
-      console.warn(
-        "Firebase Auth persistence set: inMemoryPersistence (non-persistent)"
-      );
-    });
+    await auth.setPersistence(inMemoryPersistence);
+    console.warn(
+      "Firebase Auth persistence set: inMemoryPersistence (non-persistent)"
+    );
   }
 
   /**
@@ -336,6 +347,7 @@ export class AuthenticationService extends ConsentAwareService {
     if (!this._authStateListenerInitialized) {
       this._authStateListenerInitialized = true;
       this.initialAuthStateResolved.set(false);
+      this._setAuthorizationStateResolved(false);
 
       if (this._isNative) {
         // Use Capacitor Firebase Authentication listener for native platforms
@@ -351,6 +363,7 @@ export class AuthenticationService extends ConsentAwareService {
         }).catch((error) => {
           console.error("Failed to read native auth state:", error);
           this.initialAuthStateResolved.set(true);
+          this._setAuthorizationStateResolved(true);
         });
 
         // On Android, ALSO listen to web auth state changes
@@ -390,6 +403,7 @@ export class AuthenticationService extends ConsentAwareService {
     user: FirebaseUser | CapacitorFirebaseUser | null
   ) {
     if (user) {
+      this._setAuthorizationStateResolved(false);
       // If we have a firebase user, we are signed in.
       if (!this._isNative) {
         this._currentFirebaseUser = user as FirebaseUser;
@@ -463,6 +477,7 @@ export class AuthenticationService extends ConsentAwareService {
       this._analyticsHasIdentifiedUser = false;
       this._lastAnalyticsIdentifiedUid = null;
 
+      this._setAuthorizationStateResolved(true);
       this.authState$.next(null);
     }
 
@@ -476,6 +491,8 @@ export class AuthenticationService extends ConsentAwareService {
   private firebaseAuthChangeError = (error: any) => {
     console.error(error);
     this.initialAuthStateResolved.set(true);
+    this._setAuthorizationStateResolved(true);
+    this.authState$.next(null);
   };
 
   private _fetchUserData(uid: string, sendUpdate = true) {
@@ -492,23 +509,44 @@ export class AuthenticationService extends ConsentAwareService {
 
             this.user.data = _user;
             this.isAdmin.set(_user.isAdmin === true);
-
-            if (sendUpdate) {
-              this.authState$.next(this.user);
-            }
           } else {
             this.user.data = undefined;
             this.isAdmin.set(false);
             console.error("User data not found for uid", uid);
           }
+          this._setAuthorizationStateResolved(true);
+          if (sendUpdate) {
+            this.authState$.next(this.user);
+          }
         },
         (err) => {
           console.error(err);
+          this._setAuthorizationStateResolved(true);
+          if (sendUpdate) {
+            this.authState$.next(this.user);
+          }
         }
       );
     }).catch((err) => {
       console.warn("User data fetch blocked due to missing consent:", err);
+      this._setAuthorizationStateResolved(true);
+      if (sendUpdate) {
+        this.authState$.next(this.user);
+      }
     });
+  }
+
+  /** Wait until role-bearing profile data is safe to use for access checks. */
+  public async waitForAuthorizationState(): Promise<void> {
+    if (this.authorizationStateResolved()) return;
+    await firstValueFrom(
+      this.authorizationStateSubject.pipe(filter(Boolean), take(1)),
+    );
+  }
+
+  private _setAuthorizationStateResolved(resolved: boolean): void {
+    this.authorizationStateResolved.set(resolved);
+    this.authorizationStateSubject.next(resolved);
   }
 
   /**
@@ -586,9 +624,9 @@ export class AuthenticationService extends ConsentAwareService {
       googleAuthProvider.addScope("email");
       googleAuthProvider.addScope("profile");
 
-      let googleSignInResponse = await runInInjectionContext(
-        this._injector,
-        () => signInWithPopup(this.auth, googleAuthProvider)
+      const googleSignInResponse = await signInWithPopup(
+        this.auth,
+        googleAuthProvider
       );
 
       // check if the user exists in the database
@@ -727,9 +765,7 @@ export class AuthenticationService extends ConsentAwareService {
       console.log("Handling OAuth callback with ID token...");
 
       const credential = GoogleAuthProvider.credential(idToken);
-      const result = await runInInjectionContext(this._injector, () =>
-        signInWithCredential(this.auth, credential)
-      );
+      const result = await signInWithCredential(this.auth, credential);
 
       if (result.user) {
         console.log("OAuth callback sign-in successful");
@@ -817,9 +853,9 @@ export class AuthenticationService extends ConsentAwareService {
       appleAuthProvider.addScope("email");
       appleAuthProvider.addScope("name");
 
-      let appleSignInResponse = await runInInjectionContext(
-        this._injector,
-        () => signInWithPopup(this.auth, appleAuthProvider)
+      const appleSignInResponse = await signInWithPopup(
+        this.auth,
+        appleAuthProvider
       );
 
       // check if the user exists in the database
@@ -911,7 +947,26 @@ export class AuthenticationService extends ConsentAwareService {
   // Sign Out
   // ============================================
 
-  public logUserOut(): Promise<void> {
+  public registerBeforeSignOutHandler(
+    handler: (userId: string) => Promise<void>,
+  ): () => void {
+    this._beforeSignOutHandlers.add(handler);
+    return () => this._beforeSignOutHandlers.delete(handler);
+  }
+
+  public async logUserOut(): Promise<void> {
+    const userId = this.user.uid;
+    if (userId) {
+      const results = await Promise.allSettled(
+        [...this._beforeSignOutHandlers].map((handler) => handler(userId)),
+      );
+      for (const result of results) {
+        if (result.status === "rejected") {
+          console.warn("A pre-sign-out cleanup failed", result.reason);
+        }
+      }
+    }
+
     if (this._isNative) {
       return this._logUserOutNative();
     }
@@ -1139,9 +1194,7 @@ export class AuthenticationService extends ConsentAwareService {
       return Promise.reject(new Error("Unsupported provider: " + providerId));
     }
 
-    await runInInjectionContext(this._injector, () =>
-      reauthenticateWithPopup(this.auth.currentUser!, provider)
-    );
+    await reauthenticateWithPopup(this.auth.currentUser, provider);
   }
 
   private async _reauthenticateWithProviderNative(
@@ -1187,7 +1240,7 @@ export class AuthenticationService extends ConsentAwareService {
       throw new Error("No authenticated user found");
     }
 
-    const { EmailAuthProvider } = await import("@angular/fire/auth");
+    const { EmailAuthProvider } = await import("firebase/auth");
     const credential = EmailAuthProvider.credential(
       this._currentFirebaseUser.email,
       password

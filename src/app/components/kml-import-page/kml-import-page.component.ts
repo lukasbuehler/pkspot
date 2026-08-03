@@ -40,10 +40,6 @@ import { MatButtonToggleModule } from "@angular/material/button-toggle";
 import {
   SpotAccess,
   SpotTypes,
-  SpotAccessIcons,
-  SpotAccessNames,
-  SpotTypesIcons,
-  SpotTypesNames,
 } from "../../../db/schemas/SpotTypeAndAccess";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
 import {
@@ -76,11 +72,10 @@ import {
 } from "@angular/material/autocomplete";
 import { MatInput } from "@angular/material/input";
 import { MatFormField, MatLabel, MatHint } from "@angular/material/form-field";
-import { AsyncPipe, KeyValuePipe } from "@angular/common";
+import { AsyncPipe } from "@angular/common";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { MediaUpload } from "../media-upload/media-upload.component";
 import { MatIcon, MatIconModule } from "@angular/material/icon";
-import { MatSelect } from "@angular/material/select";
 import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { MarkerSchema } from "../map/markers/map-marker.model";
 import { createUserReference, generateUUID } from "../../../scripts/Helpers";
@@ -105,6 +100,8 @@ import {
   isHighVolumeImport,
   validateImportPolicy,
 } from "./kml-import-policy";
+import { SpotAccessPickerComponent } from "../spot-access-picker/spot-access-picker.component";
+import { SpotTypePickerComponent } from "../spot-type-picker/spot-type-picker.component";
 // KML import is gated by the `isAdmin` flag on the user document
 // (see UserSchema.is_admin). Previously a hardcoded uid whitelist; now
 // any admin can import. The check below mirrors spot-details and other
@@ -168,8 +165,6 @@ type SetupMediaValidationStatus = "valid" | "invalid" | "unknown";
     SpotMapComponent,
     MatStepperPrevious,
     AsyncPipe,
-    MatSelect,
-    KeyValuePipe,
     MatProgressSpinnerModule,
     MatProgressBarModule,
     MatButtonToggleModule,
@@ -177,10 +172,14 @@ type SetupMediaValidationStatus = "valid" | "invalid" | "unknown";
     ImgCarouselComponent,
     MatSidenavModule,
     AutocompleteOverlayRepositionDirective,
+    SpotAccessPickerComponent,
+    SpotTypePickerComponent,
   ],
 })
 export class KmlImportPageComponent implements OnInit, AfterViewInit {
   readonly responsive = inject(ResponsiveService);
+  readonly defaultSpotType = SpotTypes.Other;
+  readonly defaultSpotAccess = SpotAccess.Other;
   @ViewChild("stepperHorizontal") stepperHorizontal: MatStepper | undefined;
   @ViewChild("spotMap") spotMap: SpotMapComponent | undefined;
   @ViewChild("regex") regex: RegexInputComponent | undefined;
@@ -192,13 +191,6 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
 
   kmlUploadFile: File | null = null;
 
-  // Expose to template
-  readonly SpotTypes = SpotTypes;
-  readonly SpotAccess = SpotAccess;
-  readonly spotTypesNames = SpotTypesNames;
-  readonly spotTypesIcons = SpotTypesIcons;
-  readonly spotAccessNames = SpotAccessNames;
-  readonly spotAccessIcons = SpotAccessIcons;
   readonly languages = languageCodes;
 
   verificationItems = signal<VerificationSpotItem[]>([]);
@@ -270,6 +262,17 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     );
     return existing?.localSpot ?? this.kmlSpotToLocalSpot(s);
   });
+  verificationMarkerSpots = computed(() =>
+    this._spotsShownAsVerifyMarkers(this.includedSpots())
+  );
+  verificationMarkers = computed<MarkerSchema[]>(() =>
+    this.verificationMarkerSpots().map((spot) => ({
+      color: "tertiary",
+      location: spot.spot.location,
+      icons: ["location_on"],
+      priority: 100000,
+    }))
+  );
   selectedVerificationItem = computed<VerificationSpotItem | null>(() => {
     const selected = this.selectedSpot();
     if (!selected) {
@@ -714,9 +717,9 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
   }
 
   onVerifyMapMarkerClick(
-    event: number | { marker: MarkerSchema; index?: number }
+    event: number | { marker: unknown; index?: number }
   ) {
-    const markerSpots = this._spotsShownAsVerifyMarkers(this.includedSpots());
+    const markerSpots = this.verificationMarkerSpots();
     const markerIndex =
       typeof event === "number"
         ? event
@@ -1033,23 +1036,6 @@ export class KmlImportPageComponent implements OnInit, AfterViewInit {
     });
     this.kmlUploadFile = file;
     this.continueToSetup();
-  }
-
-  getSpotLocations(spots: KMLSpot[]): google.maps.LatLngLiteral[] {
-    return spots.map((spot) => spot.spot.location);
-  }
-
-  getSpotMarkers(spots: KMLSpot[] | null): MarkerSchema[] {
-    return this._spotsShownAsVerifyMarkers(spots).map((spot) => ({
-      color: "tertiary",
-      location: spot.spot.location,
-      icons: ["location_on"],
-      priority: 100000,
-    }));
-  }
-
-  get totalBounds() {
-    return this.importedSpotsBounds;
   }
 
   private _spotsShownAsVerifyMarkers(spots: KMLSpot[] | null): KMLSpot[] {

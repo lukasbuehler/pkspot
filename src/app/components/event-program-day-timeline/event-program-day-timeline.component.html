@@ -1,0 +1,203 @@
+<div class="program-timeline">
+  @for (entry of entries(); track entry.item.id) {
+    @let item = entry.item;
+    <article
+      class="program-item"
+      [id]="'event-program-item-' + item.id"
+      [class.is-selected]="item.id === selectedItemId()"
+      [class.is-active]="activeItemIds().includes(item.id)"
+      [class.is-cancelled]="entry.status === 'cancelled'"
+    >
+      <div class="program-rail">
+        <span class="program-dot" aria-hidden="true"></span>
+        <span class="mat-label-large program-time">
+          {{ itemTime(entry.start) }}
+        </span>
+      </div>
+      <div class="program-copy">
+        <div class="program-title-row">
+          <div class="program-title">
+            <h3 class="mat-title-medium m-0">{{ item.title }}</h3>
+            @if (entry.status !== "scheduled") {
+              <span class="program-status" [attr.data-status]="entry.status">
+                {{ statusLabel(entry.status) }}
+              </span>
+            }
+            @if (entry.end) {
+              <p class="mat-label-medium program-range">
+                {{ itemTimeRange(entry.start, entry.end) }}
+              </p>
+            }
+            @if (entry.originalStart) {
+              <p class="mat-label-small program-original-time">
+                <span i18n>Originally</span> {{ itemTime(entry.originalStart) }}
+              </p>
+            }
+          </div>
+          <div class="program-side">
+            @if (entry.weather; as weather) {
+              <app-weather-icon-button
+                [weather]="weather"
+                display="temperature"
+                size="compact"
+                (pressed)="itemWeatherSelected.emit(entry.start)"
+              />
+            }
+            <mat-chip>
+              <mat-icon matChipAvatar>{{
+                categoryIcon(item.category)
+              }}</mat-icon>
+              {{ categoryLabel(item.category) }}
+            </mat-chip>
+          </div>
+        </div>
+        @if (item.description) {
+          <p class="mat-body-medium program-description">
+            {{ item.description }}
+          </p>
+        }
+        @if (entry.note) {
+          <p class="mat-body-small program-operation-note">{{ entry.note }}</p>
+        }
+        @if (
+          item.participation?.note || item.participation?.qualification_hint
+        ) {
+          <p class="mat-body-medium program-description">
+            {{
+              item.participation?.note || item.participation?.qualification_hint
+            }}
+          </p>
+        }
+        @if (entry.spots.length > 0) {
+          <div class="program-spots">
+            @for (
+              spot of entry.spots;
+              track spot.binding.ref.kind + ":" + spot.binding.ref.id
+            ) {
+              @if (spotAction() === "select") {
+                <button
+                  type="button"
+                  class="program-spot-link program-spot-button"
+                  [attr.aria-label]="spot.binding.spot.name()"
+                  (click)="selectLocation($event, spot.occurrence)"
+                >
+                  <app-spot-preview-card
+                    [spotData]="spot.binding.spot"
+                    [isCompact]="true"
+                    [hasBorder]="true"
+                    [showInfoButton]="false"
+                    [showRating]="false"
+                    [clickable]="true"
+                    [imgSize]="200"
+                  />
+                </button>
+              } @else {
+                <a
+                  class="program-spot-link"
+                  [routerLink]="eventMapRoute()"
+                  [queryParams]="{
+                    mapFilter: 'spots',
+                    spotId: spot.binding.ref.id,
+                  }"
+                >
+                  <app-spot-preview-card
+                    [spotData]="spot.binding.spot"
+                    [isCompact]="true"
+                    [hasBorder]="true"
+                    [showInfoButton]="false"
+                    [showRating]="false"
+                    [imgSize]="200"
+                  />
+                </a>
+              }
+            }
+          </div>
+        }
+        @if (entry.markers.length > 0) {
+          <div class="program-markers">
+            @for (marker of entry.markers; track marker.binding.ref.id) {
+              @if (spotAction() === "select") {
+                <button
+                  type="button"
+                  class="program-marker-link program-marker-button"
+                  [attr.aria-label]="
+                    marker.binding.marker.name || marker.binding.ref.id
+                  "
+                  (click)="selectLocation($event, marker.occurrence)"
+                >
+                  <ng-container
+                    [ngTemplateOutlet]="markerPreview"
+                    [ngTemplateOutletContext]="{
+                      $implicit: marker.binding.marker,
+                      color: marker.occurrence?.isActive
+                        ? 'secondary'
+                        : 'primary',
+                    }"
+                  />
+                </button>
+              } @else {
+                <a
+                  class="program-marker-link"
+                  [routerLink]="eventMapRoute()"
+                  [queryParams]="{
+                    mapFilter: 'program',
+                    day: dayKey(),
+                    markerId: marker.binding.ref.id,
+                    programItemId: item.id,
+                  }"
+                >
+                  <ng-container
+                    [ngTemplateOutlet]="markerPreview"
+                    [ngTemplateOutletContext]="{
+                      $implicit: marker.binding.marker,
+                      color: marker.occurrence?.isActive
+                        ? 'secondary'
+                        : 'primary',
+                    }"
+                  />
+                </a>
+              }
+            }
+          </div>
+        }
+        @if (entry.linkedEvent; as linkedEvent) {
+          <app-event-card
+            class="program-linked-event"
+            [event]="linkedEvent"
+            [seriesById]="seriesById()"
+            [compact]="true"
+            [showRsvp]="false"
+          />
+        } @else if (item.linked_event_id) {
+          <a
+            class="program-linked-event-fallback"
+            mat-stroked-button
+            [routerLink]="['/events', item.linked_event_id]"
+          >
+            <mat-icon>open_in_new</mat-icon>
+            <span i18n="@@event_program.open_linked">Open event</span>
+          </a>
+        }
+      </div>
+    </article>
+  }
+</div>
+
+<ng-template #markerPreview let-marker let-color="color">
+  <span class="program-marker-preview">
+    <app-marker
+      [clickable]="false"
+      [color]="marker.color || color"
+      [icons]="marker.icons"
+    />
+    <span class="program-marker-copy">
+      <span class="mat-title-small">{{ marker.name || marker.id }}</span>
+      @if (marker.locality || marker.description) {
+        <span class="mat-body-small">{{
+          marker.locality || marker.description
+        }}</span>
+      }
+    </span>
+    <mat-icon>chevron_right</mat-icon>
+  </span>
+</ng-template>

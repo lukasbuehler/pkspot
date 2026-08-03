@@ -7,7 +7,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, "../..");
 const port = Number(process.env["PORT"] ?? process.env["STORE_SCREENSHOT_SSR_PORT"] ?? 4300);
-const locales = (process.env["STORE_SCREENSHOT_SSR_LOCALES"] ?? "en,de,de-CH,it,fr,es,nl")
+const locales = (process.env["STORE_SCREENSHOT_SSR_LOCALES"] ?? "en,de,it,fr,es,nl")
   .split(",")
   .map((locale) => locale.trim())
   .filter(Boolean);

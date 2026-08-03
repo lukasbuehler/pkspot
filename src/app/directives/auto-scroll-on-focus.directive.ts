@@ -1,7 +1,6 @@
 import {
   Directive,
   ElementRef,
-  HostListener,
   effect,
   inject,
   input,
@@ -22,7 +21,10 @@ import { KeyboardService } from "../services/keyboard.service";
  */
 @Directive({
   selector: "[appAutoScrollOnFocus]",
-  standalone: true,
+  host: {
+    "(focus)": "onFocus()",
+    "(blur)": "onBlur()",
+  },
 })
 export class AutoScrollOnFocusDirective {
   private _el = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -44,7 +46,6 @@ export class AutoScrollOnFocusDirective {
     });
   }
 
-  @HostListener("focus")
   onFocus() {
     if (this._isNative) {
       console.debug("[AutoScrollOnFocus] native focus ignored", {
@@ -61,7 +62,6 @@ export class AutoScrollOnFocusDirective {
     }, 350);
   }
 
-  @HostListener("blur")
   onBlur() {
     this._focused = false;
   }

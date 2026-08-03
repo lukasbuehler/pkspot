@@ -3,6 +3,7 @@ import { TestBed } from "@angular/core/testing";
 import { LandingPagesService } from "./landing-pages.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
 import { PlatformService } from "../../platform.service";
+import { FunctionsAdapterService } from "../functions-adapter.service";
 
 const createMockFirestoreAdapter = () => ({
   getDocument: vi.fn(),
@@ -72,18 +73,21 @@ describe("LandingPagesService", () => {
   let service: LandingPagesService;
   let mockFirestoreAdapter: ReturnType<typeof createMockFirestoreAdapter>;
   let platformServiceSpy: { isNative: ReturnType<typeof vi.fn> };
+  let functionsCall: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     mockFirestoreAdapter = createMockFirestoreAdapter();
     platformServiceSpy = {
       isNative: vi.fn().mockReturnValue(false),
     };
+    functionsCall = vi.fn();
 
     TestBed.configureTestingModule({
       providers: [
         LandingPagesService,
         { provide: FirestoreAdapterService, useValue: mockFirestoreAdapter },
         { provide: PlatformService, useValue: platformServiceSpy },
+        { provide: FunctionsAdapterService, useValue: { call: functionsCall } },
       ],
     });
 
@@ -401,5 +405,44 @@ describe("LandingPagesService", () => {
     expect(mockFirestoreAdapter.getCollection).not.toHaveBeenCalled();
     expect(result?.childCommunities).toEqual([]);
     expect(result?.displayName).toBe("United Kingdom");
+  });
+
+  it("loads and updates unpublished locality merges through callable functions", async () => {
+    const state = {
+      candidates: [
+        {
+          communityKey: "locality:dk:84:frederiksberg",
+          displayName: "Frederiksberg",
+          geography: { countryCode: "DK", localityName: "Frederiksberg" },
+          spotCount: 3,
+        },
+      ],
+      mergedLocalities: [],
+    };
+    functionsCall.mockResolvedValueOnce(state).mockResolvedValue({ ok: true });
+
+    await expect(
+      service.getCommunityMergeAdminState("locality:dk:84:copenhagen"),
+    ).resolves.toEqual(state);
+    await service.mergeUnpublishedLocality(
+      "locality:dk:84:frederiksberg",
+      "locality:dk:84:copenhagen",
+    );
+    await service.unmergeUnpublishedLocality(
+      "locality:dk:84:frederiksberg",
+      "locality:dk:84:copenhagen",
+    );
+
+    expect(functionsCall).toHaveBeenNthCalledWith(1, "getCommunityMergeAdminState", {
+      targetCommunityKey: "locality:dk:84:copenhagen",
+    });
+    expect(functionsCall).toHaveBeenNthCalledWith(2, "mergeUnpublishedLocality", {
+      sourceCommunityKey: "locality:dk:84:frederiksberg",
+      targetCommunityKey: "locality:dk:84:copenhagen",
+    });
+    expect(functionsCall).toHaveBeenNthCalledWith(3, "unmergeUnpublishedLocality", {
+      sourceCommunityKey: "locality:dk:84:frederiksberg",
+      targetCommunityKey: "locality:dk:84:copenhagen",
+    });
   });
 });

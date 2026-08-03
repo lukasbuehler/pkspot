@@ -1,9 +1,6 @@
 import {
   Component,
   OnInit,
-  Input,
-  Output,
-  EventEmitter,
   ViewChild,
   OnChanges,
   ElementRef,
@@ -21,6 +18,9 @@ import {
   inject,
   OnDestroy,
   ChangeDetectionStrategy,
+  output,
+  PLATFORM_ID,
+  resource,
 } from "@angular/core";
 import {
   MatProgressBar,
@@ -112,7 +112,12 @@ import { SpotRatingComponent } from "../spot-rating/spot-rating.component";
 import { MatIcon } from "@angular/material/icon";
 import { MatTooltip } from "@angular/material/tooltip";
 import { MatIconButton, MatButton } from "@angular/material/button";
-import { KeyValuePipe, LocationStrategy, JsonPipe } from "@angular/common";
+import {
+  isPlatformBrowser,
+  JsonPipe,
+  KeyValuePipe,
+  LocationStrategy,
+} from "@angular/common";
 import {
   MatChipListbox,
   MatChipsModule,
@@ -181,6 +186,7 @@ import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component"
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 import { createUserReference } from "../../../scripts/Helpers";
 import { AnalyticsService } from "../../services/analytics.service";
+import { NotificationOptInService } from "../../services/notification-opt-in.service";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { normalizeSpotSlug } from "../../../scripts/SpotLandingHelpers";
 import {
@@ -190,6 +196,20 @@ import {
 import { SpotProvenanceComponent } from "../spot-provenance/spot-provenance.component";
 import { EventCardComponent } from "../event-card/event-card.component";
 import { MediaUploadStatusService } from "../../services/firebase/firestore/media-upload-status.service";
+import {
+  WeatherIconButtonComponent,
+  type WeatherIconData,
+} from "../weather-icon-button/weather-icon-button.component";
+import { WeatherService } from "../../weather/weather.service";
+import { getWeatherVisualStatus } from "../../weather/weather-warnings";
+import { getSpotWeatherContext } from "../../weather/spot-weather-context";
+import { getWeatherAlertDisplay } from "../../weather/weather-alert-display";
+import {
+  WeatherForecastDialogComponent,
+  type WeatherForecastDialogData,
+} from "../weather-forecast-dialog/weather-forecast-dialog.component";
+import { SpotAccessPickerComponent } from "../spot-access-picker/spot-access-picker.component";
+import { SpotTypePickerComponent } from "../spot-type-picker/spot-type-picker.component";
 
 @Pipe({ name: "reverse" })
 export class ReversePipe implements PipeTransform {
@@ -302,6 +322,9 @@ type OrganizationRelationshipSaveResult = "unchanged" | "changed" | "failed";
     RouterLink,
     SpotProvenanceComponent,
     EventCardComponent,
+    WeatherIconButtonComponent,
+    SpotAccessPickerComponent,
+    SpotTypePickerComponent,
   ],
   host: {
     "[style.--open-progress]": "openProgressStyle",
@@ -318,10 +341,13 @@ export class SpotDetailsComponent
   private _structuredDataService = inject(StructuredDataService);
   private _metaTagService = inject(MetaTagService);
   private _analyticsService = inject(AnalyticsService);
+  private _notificationOptIn = inject(NotificationOptInService);
   private _usersService = inject(UsersService);
   private _organizationsService = inject(OrganizationsService);
   private _ageAssuranceService = inject(AgeAssuranceService);
   private _mediaUploadStatusService = inject(MediaUploadStatusService);
+  private readonly _platformId = inject(PLATFORM_ID);
+  private readonly _weatherService = inject(WeatherService);
 
   /**
    * Sets the --open-progress CSS custom property on the host element.
@@ -332,6 +358,61 @@ export class SpotDetailsComponent
   }
 
   spot = model<Spot | LocalSpot | null>(null);
+  readonly spotWeatherContext = computed(() =>
+    getSpotWeatherContext(this.spot()?.amenities()),
+  );
+  readonly weatherResource = resource({
+    params: () => {
+      const location = this.spot()?.location();
+      if (
+        !isPlatformBrowser(this._platformId) ||
+        !this.spotWeatherContext().available ||
+        !location ||
+        !Number.isFinite(location.lat) ||
+        !Number.isFinite(location.lng)
+      ) {
+        return undefined;
+      }
+      return location;
+    },
+    loader: ({ params }) =>
+      this._weatherService.getCurrentAndNearFutureForTileAt(params),
+  });
+  readonly weatherIconData = computed<WeatherIconData>(() => {
+    if (!this.weatherResource.hasValue()) {
+      return { condition: "unknown" };
+    }
+    const response = this.weatherResource.value();
+    const point = response?.current ?? response?.forecast?.[0];
+    if (!point) {
+      return { condition: "unknown" };
+    }
+    const primaryAlert = response.alerts?.[0];
+    const alertDisplay = primaryAlert
+      ? getWeatherAlertDisplay(primaryAlert)
+      : undefined;
+    return {
+      condition: point.condition ?? "unknown",
+      countryCode: response.countryCode ?? this.countryCode(),
+      icon: alertDisplay?.icon,
+      isDay: point.isDay,
+      label: alertDisplay?.label,
+      temperatureC: point.temperatureC,
+      status: getWeatherVisualStatus(response, {
+        covered: this.spotWeatherContext().covered,
+      }),
+    };
+  });
+  readonly weatherAvailable = computed(() => {
+    if (
+      !this.spotWeatherContext().available ||
+      !this.weatherResource.hasValue()
+    ) {
+      return false;
+    }
+    const response = this.weatherResource.value();
+    return Boolean(response?.current ?? response?.forecast?.[0]);
+  });
   notLocalSpotOrNull = computed(() => {
     const spot = this.spot();
 
@@ -451,11 +532,11 @@ export class SpotDetailsComponent
 
   languages = languageCodes;
 
-  @Input() infoOnly: boolean = false;
-  @Input() dismissable: boolean = false;
-  @Input() border: boolean = false;
-  @Input() clickable: boolean = false;
-  @Input() editable: boolean = false;
+  readonly infoOnly = input<boolean>(false);
+  readonly dismissable = input<boolean>(false);
+  readonly border = input<boolean>(false);
+  readonly clickable = input<boolean>(false);
+  readonly editable = input<boolean>(false);
   showRating = input<boolean>(true);
   loading = input(false);
   loadingTitle = input<string>("");
@@ -472,14 +553,12 @@ export class SpotDetailsComponent
   pendingVoteCount = input<number>(0);
   mapQueryParams = input<Record<string, string> | null>(null);
 
-  @Output() dismiss: EventEmitter<boolean> = new EventEmitter<boolean>();
-  @Output() addBoundsClick: EventEmitter<void> = new EventEmitter<void>();
-  @Output() focusClick: EventEmitter<void> = new EventEmitter<void>();
-  @Output() saveClick: EventEmitter<Spot | LocalSpot> = new EventEmitter<
-    Spot | LocalSpot
-  >();
-  @Output() discardClick: EventEmitter<void> = new EventEmitter<void>();
-  @Output() reviewSubmitted: EventEmitter<Spot> = new EventEmitter<Spot>();
+  readonly dismiss = output<boolean>();
+  readonly addBoundsClick = output<void>();
+  readonly focusClick = output<void>();
+  readonly saveClick = output<Spot | LocalSpot>();
+  readonly discardClick = output<void>();
+  readonly reviewSubmitted = output<Spot>();
 
   // Media upload is handled in a dialog now
 
@@ -598,12 +677,10 @@ export class SpotDetailsComponent
   // Stable empty LocaleMap to avoid identity churn in templates when descriptions are unset
   private readonly _EMPTY_LOCALE_MAP = Object.freeze({}) as LocaleMap;
 
-  spotTypes = Object.values(SpotTypes);
   spotTypeNames = SpotTypesNames;
   spotTypesIcons = SpotTypesIcons;
   spotTypeDescriptions = SpotTypesDescriptions;
 
-  spotAccesses = Object.values(SpotAccess);
   spotAccessNames = SpotAccessNames;
   spotAccessIcons = SpotAccessIcons;
   spotAccessDescriptions = SpotAccessDescriptions;
@@ -970,6 +1047,39 @@ export class SpotDetailsComponent
     return { value: this.spot(), params: { startHeight: this.startHeight } };
   }
 
+  openWeatherDialog(): void {
+    if (!this.weatherResource.hasValue()) {
+      return;
+    }
+
+    const response = this.weatherResource.value();
+    const spot = this.spot();
+    if (!response || !spot) {
+      return;
+    }
+
+    this.dialog.open<
+      WeatherForecastDialogComponent,
+      WeatherForecastDialogData
+    >(WeatherForecastDialogComponent, {
+      data: {
+        spotName: spot.name(),
+        response,
+        countryCode: this.countryCode(),
+        covered: this.spotWeatherContext().covered,
+      },
+      width: "680px",
+      maxWidth: "calc(100vw - 24px)",
+      maxHeight: "calc(100dvh - 24px)",
+      autoFocus: "dialog",
+      restoreFocus: true,
+    });
+    this._analyticsService.trackEvent("spot_weather_opened", {
+      provider: response.provider,
+      spotId: spot instanceof Spot ? spot.id : "local",
+    });
+  }
+
   constructor(
     public authenticationService: AuthenticationService,
     @Inject(MatDialog) public dialog: MatDialog,
@@ -1179,7 +1289,7 @@ export class SpotDetailsComponent
   }
 
   dismissed() {
-    if (this.dismissable) {
+    if (this.dismissable()) {
       this.isEditing.set(false);
 
       this.dismiss.emit(true);
@@ -1187,7 +1297,7 @@ export class SpotDetailsComponent
   }
 
   editButtonClick() {
-    if (this.editable && this.authenticationService.isSignedIn) {
+    if (this.editable() && this.authenticationService.isSignedIn) {
       if (!this._ageAssuranceService.canParticipatePublicly()) {
         this._snackbar.open(
           this._ageAssuranceService.getRestrictionMessage(),
@@ -1769,6 +1879,12 @@ export class SpotDetailsComponent
 
     const spotId = spot.id;
 
+    if (!this.isAdmin()) {
+      this._latestReportRequestSpotId = spotId;
+      this.report.set(null);
+      return;
+    }
+
     if (this._latestReportRequestSpotId === spotId) {
       return;
     }
@@ -1902,6 +2018,7 @@ export class SpotDetailsComponent
               duration: 4000,
             },
           );
+          void this._notificationOptIn.maybePrompt("report_updates");
         },
       );
   }
@@ -1961,18 +2078,7 @@ export class SpotDetailsComponent
               display_name: this.authenticationService.user.data.displayName,
             },
             rating: 0,
-            comment: {
-              text: "",
-              locale: this.locale,
-            },
           };
-        } else {
-          if (!review.comment?.text || !review.comment?.locale) {
-            review.comment = {
-              text: "",
-              locale: this.locale,
-            };
-          }
         }
 
         const dialogRef = this.dialog.open(SpotReviewDialogComponent, {

@@ -33,6 +33,28 @@
   padding-bottom: 1rem;
 }
 
+.event-map-cancellation {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 0.75rem;
+  padding: 1rem;
+  color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
+  border: 1px solid var(--mat-sys-error);
+  border-radius: 18px;
+}
+
+.event-map-cancellation__icon {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  background: color-mix(in srgb, var(--mat-sys-error) 18%, transparent);
+  border-radius: 13px;
+}
+
 .event-map-description {
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -42,27 +64,6 @@
 
 .custom-marker-card {
   padding: 0.25rem 0;
-}
-
-.custom-marker-media {
-  align-items: center;
-  aspect-ratio: 16 / 10;
-  background: var(--mat-sys-surface-container-high);
-  border-radius: 8px;
-  display: flex;
-  justify-content: center;
-  overflow: hidden;
-  width: 100%;
-
-  img {
-    height: 100%;
-    object-fit: cover;
-    width: 100%;
-  }
-}
-
-.custom-marker-media-placeholder {
-  min-height: 160px;
 }
 
 .custom-marker-locality {
@@ -135,6 +136,39 @@
 .event-spot-list {
   padding: 1rem 0.75rem 1rem 1rem;
   width: 100%;
+}
+
+.event-map-program-days {
+  left: 0.75rem;
+  max-width: calc(100% - 1.5rem);
+  position: absolute;
+  right: 0.75rem;
+  top: 0.75rem;
+  z-index: 2;
+}
+
+.program-section-label {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.selected-program-spot {
+  background: var(--mat-sys-primary-container);
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 18px;
+  color: var(--mat-sys-on-primary-container);
+  padding: 0.75rem;
+}
+
+.location-program-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.spot-program-section {
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
 }
 
 :host ::ng-deep .event-spot-list mat-card.compact {

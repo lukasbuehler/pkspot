@@ -1,5 +1,5 @@
 import { inject, Injectable } from "@angular/core";
-import { Timestamp } from "@angular/fire/firestore";
+import { Timestamp } from "firebase/firestore";
 import { MediaType } from "../../../../db/models/Interfaces";
 import { StorageImage } from "../../../../db/models/Media";
 import { ContactMessageSchema } from "../../../../db/schemas/ContactMessageSchema";
@@ -28,6 +28,15 @@ export interface ModerationReportItem {
   createdAt: unknown;
   createdAtMillis: number;
   reporterLabel: string;
+  reporterUid?: string;
+  reporterEmail?: string;
+  reporterEmailVerified?: boolean;
+  submissionChannel?: string;
+  submissionAppCheck?: boolean;
+  submissionIpAddress?: string;
+  submissionIpHash?: string;
+  submissionUserAgent?: string;
+  submissionOrigin?: string;
   targetLabel: string;
   targetPath?: string;
   comment?: string;
@@ -41,6 +50,12 @@ export interface ModerationReportItem {
   profileImageSrc?: string;
   mediaSource?: "storage" | "external";
   mediaSourceLabel?: string;
+  requiresManualReview: boolean;
+  scannerProvider?: string;
+  scannerDecision?: string;
+  scannerReason?: string;
+  scannerLabels?: Record<string, string>;
+  incidentPath?: string;
   canKeepWarning: boolean;
   canDeleteMedia: boolean;
   raw: SpotReportSchema | MediaReportSchema | UserReportSchema;
@@ -65,9 +80,24 @@ type HandleModerationActionRequest = {
   action_type: ModerationActionType;
   source_path: string;
   note?: string;
+  spot_warning?: SpotWarningInput;
 };
 
 type HandleModerationActionResponse = { ok: boolean };
+type CreateSafetyIncidentResponse = { incident_path: string };
+type GetModerationMediaPreviewResponse = {
+  url: string;
+  expires_in_seconds: number;
+};
+export interface SpotWarningInput {
+  type:
+    | "destroyed"
+    | "inaccessible"
+    | "temporarily_closed"
+    | "access_concern"
+    | "other";
+  message: string;
+}
 
 @Injectable({
   providedIn: "root",
@@ -81,12 +111,10 @@ export class ModerationReportsService {
     const constraints: QueryConstraintOptions[] = [
       { type: "limit", limit: limitCount },
     ];
-    const [spotReports, mediaReports, userReports] = await Promise.all([
-      this._firestoreAdapter.getCollectionGroupWithMetadata<SpotReportSchema>(
-        "reports",
-        undefined,
-        constraints,
-      ),
+    const [groupedReports, legacyMediaReports, userReports] = await Promise.all([
+      this._firestoreAdapter.getCollectionGroupWithMetadata<
+        SpotReportSchema | MediaReportSchema
+      >("reports", undefined, constraints),
       this._firestoreAdapter.getCollection<MediaReportSchema & { id: string }>(
         "media_reports",
         undefined,
@@ -100,8 +128,12 @@ export class ModerationReportsService {
     ]);
 
     const reports = [
-      ...spotReports.data.map((report) => this._mapSpotReport(report)),
-      ...mediaReports.map((report) => this._mapMediaReport(report)),
+      ...groupedReports.data.map((report) =>
+        this._isMediaReport(report)
+          ? this._mapMediaReport(report)
+          : this._mapSpotReport(report),
+      ),
+      ...legacyMediaReports.map((report) => this._mapMediaReport(report)),
       ...userReports.map((report) => this._mapUserReport(report)),
     ].sort((left, right) => right.createdAtMillis - left.createdAtMillis);
 
@@ -128,9 +160,14 @@ export class ModerationReportsService {
     item: ModerationReportItem,
     actionType: Extract<
       ModerationActionType,
-      "close_report" | "keep_warning" | "delete_media" | "delete_spot"
+      | "close_report"
+      | "keep_warning"
+      | "publish_spot_warning"
+      | "delete_media"
+      | "delete_spot"
     >,
     note?: string,
+    spotWarning?: SpotWarningInput,
   ): Promise<void> {
     await this._functionsAdapter.call<
       HandleModerationActionRequest,
@@ -139,6 +176,7 @@ export class ModerationReportsService {
       action_type: actionType,
       source_path: item.path,
       ...(note ? { note } : {}),
+      ...(spotWarning ? { spot_warning: spotWarning } : {}),
     });
   }
 
@@ -177,6 +215,9 @@ export class ModerationReportsService {
       createdAt: report.createdAt,
       createdAtMillis,
       reporterLabel: this._formatUser(report.user),
+      reporterUid: report.user.uid,
+      reporterEmail: report.user.email,
+      reporterEmailVerified: report.user.email_verified,
       targetLabel: spotName,
       targetPath: spotId ? `/map/spots/${spotId}` : undefined,
       spotId,
@@ -186,28 +227,54 @@ export class ModerationReportsService {
       spotType: report.spot?.type,
       canKeepWarning: true,
       canDeleteMedia: false,
+      requiresManualReview: false,
       raw: report,
     };
   }
 
   private _mapMediaReport(
-    report: MediaReportSchema & { id: string },
+    report: MediaReportSchema & { id: string; path?: string },
   ): ModerationReportItem {
     const status = this._normalizeStatus(report.status);
     const createdAtMillis = this._toMillis(report.createdAt);
     const targetId = report.targetId ?? report.spotId;
     const targetPath = this._mediaReportTargetPath(report);
     const mediaSource = this._isStorageMedia(report.media) ? "storage" : "external";
+    const scanner = report.scanner;
+    const scannerProvider =
+      scanner?.provider ??
+      (typeof report.media?.["scanner_provider"] === "string"
+        ? report.media["scanner_provider"]
+        : undefined);
+    const scannerDecision =
+      scanner?.decision ??
+      (typeof report.media?.["scanner_decision"] === "string"
+        ? report.media["scanner_decision"]
+        : undefined);
+    const requiresManualReview =
+      report.source === "scanner" ||
+      scannerDecision === "block" ||
+      scannerDecision === "needs_review" ||
+      scannerDecision === "reportable_match";
 
     return {
       id: report.id,
-      path: `media_reports/${report.id}`,
+      path: report.path ?? `media_reports/${report.id}`,
       kind: "media",
       status,
       reason: report.reason || "unknown",
       createdAt: report.createdAt,
       createdAtMillis,
       reporterLabel: this._formatUser(report.user),
+      reporterUid: report.user.uid,
+      reporterEmail: report.user.email,
+      reporterEmailVerified: report.user.email_verified,
+      submissionChannel: report.submission?.channel,
+      submissionAppCheck: report.submission?.app_check,
+      submissionIpAddress: report.submission?.ip_address,
+      submissionIpHash: report.submission?.ip_hash,
+      submissionUserAgent: report.submission?.user_agent,
+      submissionOrigin: report.submission?.origin,
       targetLabel: targetId ?? report.media?.src ?? report.media?.storage_path ?? "Media",
       targetPath,
       comment: report.comment,
@@ -218,8 +285,23 @@ export class ModerationReportsService {
       mediaSourceLabel: mediaSource === "storage" ? "Storage media" : "External media",
       canKeepWarning: Boolean(report.media?.src && targetPath),
       canDeleteMedia: Boolean(report.media?.src && targetPath),
+      requiresManualReview,
+      scannerProvider,
+      scannerDecision,
+      scannerReason: scanner?.reason,
+      scannerLabels: scanner?.labels,
+      incidentPath: report.incident_path,
       raw: report,
     };
+  }
+
+  private _isMediaReport(
+    report: (SpotReportSchema | MediaReportSchema) & {
+      id: string;
+      path: string;
+    },
+  ): report is MediaReportSchema & { id: string; path: string } {
+    return "media" in report;
   }
 
   private _mapUserReport(
@@ -238,6 +320,9 @@ export class ModerationReportsService {
       createdAt: report.createdAt,
       createdAtMillis,
       reporterLabel: this._formatUser(report.user),
+      reporterUid: report.user.uid,
+      reporterEmail: report.user.email,
+      reporterEmailVerified: report.user.email_verified,
       targetLabel:
         report.reportedUser?.display_name ?? profileUserId ?? "Profile",
       targetPath: profileUserId ? `/u/${profileUserId}` : undefined,
@@ -247,8 +332,25 @@ export class ModerationReportsService {
       previewImageSrc: report.reportedUser?.profile_picture,
       canKeepWarning: false,
       canDeleteMedia: false,
+      requiresManualReview: false,
       raw: report,
     };
+  }
+
+  async createSafetyIncident(item: ModerationReportItem): Promise<string> {
+    const result = await this._functionsAdapter.call<
+      { report_path: string },
+      CreateSafetyIncidentResponse
+    >("createSafetyIncident", { report_path: item.path });
+    return result.incident_path;
+  }
+
+  async getModerationMediaPreview(item: ModerationReportItem): Promise<string> {
+    const result = await this._functionsAdapter.call<
+      { report_path: string },
+      GetModerationMediaPreviewResponse
+    >("getModerationMediaPreview", { report_path: item.path });
+    return result.url;
   }
 
   private _mediaPreviewImageSrc(

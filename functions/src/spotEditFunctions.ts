@@ -661,6 +661,12 @@ async function markEditApprovedAndUpdateContributions(
     blocked_reason: FieldValue.delete(),
     processed_at: FieldValue.serverTimestamp(),
     decision_at: FieldValue.serverTimestamp(),
+    decision_source:
+      processingStatus === "APPROVED_ORG_REVIEW"
+        ? "organization_review"
+        : processingStatus === "APPROVED_VOTING"
+          ? "community_vote"
+          : "automatic_immediate",
   };
   if (editData.review_status) {
     editUpdateData["review_status"] =
@@ -809,6 +815,7 @@ async function reviewVerifiedSpotEditImpl(
             ? reviewNote.trim()
             : FieldValue.delete(),
         processing_status: "REJECTED_ORG_REVIEW",
+        decision_source: "organization_review",
         decision_at: FieldValue.serverTimestamp(),
       });
       return;

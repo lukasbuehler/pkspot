@@ -4,7 +4,9 @@ export const environment = {
   baseUrl: "https://pkspot.app",
   mapId: "e2926e5bfb22860c",
   features: {
+    training: false,
     checkIns: false,
+    continuousEventCalendar: true,
     mapPerformanceProfiling: false,
     streetView: {
       preview: false,
@@ -17,6 +19,10 @@ export const environment = {
     recaptchaEnterpriseSiteKey: "6LcxpBMtAAAAAMJs-idyJ6QVbkJYx82Fi0pUUNn5",
     debugToken: false,
     attachToFirebaseSdk: false,
+  },
+  webPush: {
+    vapidKey:
+      "BLaMDzAC7VOiAKMfNmcEPXvAl7FOaANMFQhEHp9hPFQSvPw7yVTJvzDIY3hXfbVjodP-WMeqAgE4FD_u3etY1FQ",
   },
   keys: {
     firebaseConfig: {

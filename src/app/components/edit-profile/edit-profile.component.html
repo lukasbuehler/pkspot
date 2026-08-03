@@ -1,15 +1,5 @@
 <div class="d-flex flex-column gap-4">
-  @if (user) {
-  <!-- Cropping mode: show cropper after image is selected -->
-  @if (newProfilePictureSrc && !croppingComplete) {
-  <app-crop-image
-    class="mb-4"
-    [imageSource]="newProfilePictureSrc"
-    (imageCropped)="onImageCropped($event)"
-    (cancelled)="cancelProfilePictureUpload()"
-  ></app-crop-image>
-  } @else {
-  <!-- Normal mode: show upload and current picture -->
+@if (user(); as user) {
   <div
     class="rounded border p-3 mt-3 mb-4 d-flex flex-column align-items-center"
   >
@@ -58,7 +48,7 @@
         #profilePictureInput
         hidden="true"
         type="file"
-        accept="image/png,image/jpeg,image/jpg"
+        accept="image/png,image/jpeg,image/jpg,image/webp"
         (change)="onProfilePictureFileSelected($event)"
       />
       <button
@@ -75,7 +65,6 @@
       </button>
     </div>
   </div>
-  }
 
   <div class="profile-privacy-note mat-body-small" role="note">
     <mat-icon aria-hidden="true">public</mat-icon>
@@ -174,8 +163,12 @@
   <mat-accordion>
     <mat-expansion-panel>
       <mat-expansion-panel-header>
-        <mat-panel-title>Social Links</mat-panel-title>
-        <mat-panel-description>
+        <mat-panel-title i18n="@@editProfile.socialLinks.title"
+          >Social links</mat-panel-title
+        >
+        <mat-panel-description
+          i18n="@@editProfile.socialLinks.description"
+        >
           Optional public links shown on your profile
         </mat-panel-description>
       </mat-expansion-panel-header>
@@ -188,6 +181,7 @@
             type="text"
             [value]="instagramHandle"
             placeholder="@yourhandle or full profile URL"
+            i18n-placeholder="@@editProfile.instagram.placeholder"
             (input)="
               instagramHandle = getValueFromEventTarget($event.target) ?? '';
               detectIfChanges()
@@ -202,6 +196,7 @@
             type="text"
             [value]="youtubeHandle"
             placeholder="@yourhandle, channel/id, or full profile URL"
+            i18n-placeholder="@@editProfile.youtube.placeholder"
             (input)="
               youtubeHandle = getValueFromEventTarget($event.target) ?? '';
               detectIfChanges()
@@ -209,6 +204,38 @@
           />
         </mat-form-field>
 
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>TikTok</mat-label>
+          <input
+            matInput
+            type="text"
+            [value]="tiktokHandle"
+            placeholder="@yourhandle or full profile URL"
+            i18n-placeholder="@@editProfile.tiktok.placeholder"
+            (input)="
+              tiktokHandle = getValueFromEventTarget($event.target) ?? '';
+              detectIfChanges()
+            "
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Discord</mat-label>
+          <input
+            matInput
+            type="url"
+            [value]="discordUrl"
+            placeholder="Invite code, invite URL, or profile URL"
+            i18n-placeholder="@@editProfile.discord.placeholder"
+            (input)="
+              discordUrl = getValueFromEventTarget($event.target) ?? '';
+              detectIfChanges()
+            "
+          />
+          <mat-hint i18n="@@editProfile.discord.hint">
+            Discord usernames cannot be linked; use an invite or profile URL.
+          </mat-hint>
+        </mat-form-field>
       </div>
     </mat-expansion-panel>
   </mat-accordion>

@@ -1,7 +1,15 @@
 import { inject, Injectable } from "@angular/core";
-import { Timestamp } from "@angular/fire/firestore";
-import { map } from "rxjs/operators";
-import { Observable } from "rxjs";
+import { Timestamp } from "firebase/firestore";
+import {
+  catchError,
+  filter,
+  firstValueFrom,
+  map,
+  Observable,
+  of,
+  take,
+  timeout,
+} from "rxjs";
 import { SpotEditSchema } from "../../../../db/schemas/SpotEditSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
 import {
@@ -30,6 +38,35 @@ import { EDIT_SCHEMA_VERSION } from "../../../../db/schemas/EditSchema";
 export interface ModerationSpotEditQueueItem {
   edit: SpotEditSchema & { id: string };
   spotId: string;
+}
+
+export interface CreatedSpotEdit {
+  spotId: SpotId;
+  editId: string;
+}
+
+const REVIEW_PROCESSING_STATUSES = new Set([
+  "PENDING_MANAGEMENT_REVIEW",
+  "PENDING_STEWARD_REVIEW",
+  "BLOCKED_ICONIC_SPOT",
+  "VOTING_FORCED_TEST",
+]);
+
+export function spotEditAwaitsReviewOutcome(edit: SpotEditSchema): boolean {
+  return (
+    edit.review_status === "pending" ||
+    REVIEW_PROCESSING_STATUSES.has(edit.processing_status ?? "")
+  );
+}
+
+function spotEditHasProcessingDisposition(edit: SpotEditSchema): boolean {
+  return Boolean(
+    edit.processed_at ||
+      edit.decision_at ||
+      edit.decision_source ||
+      edit.processing_status ||
+      edit.review_status,
+  );
 }
 
 type ReviewVerifiedSpotEditRequest = {
@@ -109,6 +146,21 @@ export class SpotEditsService extends ConsentAwareService {
           return d as SpotEditSchema;
         })
       );
+  }
+
+  waitForReviewOutcomeDisposition(
+    spotId: string,
+    editId: string,
+  ): Promise<boolean> {
+    return firstValueFrom(
+      this.getSpotEditById$(spotId, editId).pipe(
+        filter(spotEditHasProcessingDisposition),
+        map(spotEditAwaitsReviewOutcome),
+        take(1),
+        timeout({ first: 10_000 }),
+        catchError(() => of(false)),
+      ),
+    );
   }
 
   getSpotEditsBySpotId$(
@@ -728,7 +780,7 @@ export class SpotEditsService extends ConsentAwareService {
   async createSpotWithEdit(
     spotData: Partial<SpotSchema>,
     userReference: UserReferenceSchema
-  ): Promise<SpotId> {
+  ): Promise<CreatedSpotEdit> {
     // Clean and filter the data before creating the edit
     spotData = this._removeForbiddenFieldsFromSpotData(spotData);
     spotData = cleanDataForFirestore(spotData) as Partial<SpotSchema>;
@@ -744,10 +796,14 @@ export class SpotEditsService extends ConsentAwareService {
     console.log("Created spot document with ID:", spotId);
 
     // Now create the CREATE edit
-    await this.createSpotEdit(spotId as SpotId, spotData, userReference);
+    const editId = await this.createSpotEdit(
+      spotId as SpotId,
+      spotData,
+      userReference,
+    );
     console.log("Created spot edit for ID:", spotId);
 
-    return spotId as SpotId;
+    return { spotId: spotId as SpotId, editId };
   }
 
   /**

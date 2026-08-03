@@ -12,14 +12,28 @@ const templatePath = join(
 );
 
 describe("MapPageComponent URL-driven panel state", () => {
-  it("opens event island clicks through the event URL helper", () => {
+  it("opens event marker clicks on canonical full event pages", () => {
+    const source = readFileSync(componentPath, "utf8");
+    const method = source.match(
+      /onEventMarkerClick\([\s\S]*?\n  \}/
+    )?.[0];
+
+    expect(method).toContain(
+      'this.router.navigate(["/events", eventIdOrSlug])',
+    );
+    expect(method).not.toContain("this.openEventPath");
+  });
+
+  it("opens event island clicks on canonical full event pages", () => {
     const source = readFileSync(componentPath, "utf8");
     const method = source.match(
       /onIslandOpenEvent\([\s\S]*?\n  \}/
     )?.[0];
 
-    expect(method).toContain("this.openEventPath(event.slug ?? event.id, null)");
-    expect(method).not.toContain("this.openEventPreview(event)");
+    expect(method).toContain(
+      'void this.router.navigate(["/events", event.slug ?? event.id])'
+    );
+    expect(method).not.toContain("this.openEventPath");
   });
 
   it("makes the event island body open the event while keeping dismiss isolated", () => {
@@ -110,8 +124,11 @@ describe("MapPageComponent URL-driven panel state", () => {
     );
 
     expect(template).toContain('(spotOpenRequested)="onSpotOpenRequested($event)"');
-    expect(spotMapComponent).toContain("spotOpenRequested = new EventEmitter");
-    expect(spotMapComponent).toContain("this.spotOpenRequested.emit(spot)");
+    expect(template).toContain('[delegateSpotOpening]="true"');
+    expect(spotMapComponent).toContain("spotOpenRequested = output<");
+    expect(spotMapComponent).toContain(
+      "this._emitWhileAlive(this.spotOpenRequested, spot)",
+    );
     expect(component).toContain("this._openPendingSpotPanel(");
   });
 
@@ -163,7 +180,7 @@ describe("MapPageComponent URL-driven panel state", () => {
 
     expect(locationSubscription).toContain("void this._syncFullMapStateFromUrl(url)");
     expect(syncMethod).toContain("await this._syncMapPanelStateFromUrl(url)");
-    expect(syncMethod).toContain("this._parseMapRouteState(url)");
+    expect(syncMethod).toContain("parseMapSpotRouteState(url)");
     expect(syncMethod).toContain("await this._handleURLParamsChange(");
   });
 

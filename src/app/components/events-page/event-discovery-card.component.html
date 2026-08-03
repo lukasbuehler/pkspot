@@ -1,0 +1,97 @@
+<a
+  [routerLink]="route()"
+  class="event-card-action"
+  [attr.aria-label]="accessibleLabel()"
+  (click)="trackClick()"
+>
+  <mat-card
+    class="event-card"
+    [attr.data-status]="status()"
+    [class.is-cancelled]="event().lifecycleStatus === 'cancelled'"
+  >
+    <div class="image-wrap">
+      @if (seriesBadges().length > 0) {
+        <div class="series-badges" aria-label="Event series" i18n-aria-label>
+          @for (series of seriesBadges(); track series.id) {
+            <span
+              class="series-badge"
+              [style.background]="series.background"
+              [attr.title]="series.label"
+            >
+              @if (series.logoSrc) {
+                <img [src]="series.logoSrc" alt="" />
+              } @else {
+                <span>{{ series.label.slice(0, 3) }}</span>
+              }
+            </span>
+          }
+        </div>
+      }
+      @if (imageSrc(); as src) {
+        <div
+          class="banner-frame"
+          [style.background-color]="
+            event().bannerFit === 'contain'
+              ? (event().bannerAccentColor ?? null)
+              : null
+          "
+        >
+          <img
+            [src]="src"
+            [alt]="event().name"
+            loading="lazy"
+            [class.fit-contain]="event().bannerFit === 'contain'"
+          />
+        </div>
+      } @else {
+        <app-media-placeholder
+          [src]="null"
+          variant="event"
+          [label]="event().name"
+        />
+      }
+    </div>
+
+    <mat-card-header>
+      <mat-card-title>
+        <span class="title-line mat-title-medium">
+          <span class="text-truncate">{{ event().name }}</span>
+          @if (event().isSponsored) {
+            <mat-icon inline title="Promoted event" i18n-title>handshake</mat-icon>
+          }
+        </span>
+      </mat-card-title>
+      <mat-card-subtitle>
+        @if (event().lifecycleStatus === "cancelled") {
+          <span class="cancelled-label" i18n>Cancelled</span>
+        }
+        @if (dataIssue(); as issue) {
+          <span class="data-issue">
+            <mat-icon inline aria-hidden="true">warning</mat-icon>
+            {{ issue }}
+          </span>
+        } @else {
+          <span>{{ dateRange() }}</span>
+        }
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <p class="venue mat-body-medium">
+        {{ locationLabel() }}
+      </p>
+      @if (
+        event().rsvpCounts;
+        as counts
+      ) {
+        @if (counts.going > 0 || counts.interested > 0) {
+          <app-event-rsvp
+            [counts]="counts"
+            [preview]="true"
+            [showDisclaimer]="false"
+          />
+        }
+      }
+    </mat-card-content>
+  </mat-card>
+</a>

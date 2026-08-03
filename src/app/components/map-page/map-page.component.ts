@@ -14,6 +14,7 @@ import {
   effect,
   computed,
   NgZone,
+  Injector,
   ChangeDetectionStrategy,
   untracked,
   ElementRef,
@@ -44,12 +45,12 @@ import {
   lastValueFrom,
   Subscription,
   SubscriptionLike,
-  take,
 } from "rxjs";
 import { animate, style, transition, trigger } from "@angular/animations";
 import { FormControl } from "@angular/forms";
 import {
   CommunitySearchPreview,
+  getMapSpotSearchLimit,
   SearchService,
 } from "../../services/search.service";
 import { CommunityMapMarker } from "../map/community-dot-marker/community-dot-marker.component";
@@ -95,7 +96,10 @@ import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { Timestamp } from "firebase/firestore";
 import { SpotEdit } from "../../../db/models/SpotEdit";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
-import { MatDrawerContainer, MatSidenavModule } from "@angular/material/sidenav";
+import {
+  MatDrawerContainer,
+  MatSidenavModule,
+} from "@angular/material/sidenav";
 import { ResponsiveService } from "../../services/responsive.service";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { BottomSheetComponent } from "../bottom-sheet/bottom-sheet.component";
@@ -160,9 +164,21 @@ import type {
   EventPromoDismissal,
   EventPromoDismissalRecord,
 } from "./map-event-promo-dismissal";
+import { getNextEventPromoDismissal } from "./map-event-promo-dismissal";
+import { parseMapSpotRouteState } from "./map-route-state";
+import { WeatherService } from "../../weather/weather.service";
 import {
-  getNextEventPromoDismissal,
-} from "./map-event-promo-dismissal";
+  getViewportCenter,
+  getWeatherTile,
+} from "../../weather/weather-map-tile";
+import type {
+  WeatherResponse,
+  WeatherTile,
+} from "../../weather/weather.models";
+import {
+  WeatherForecastDialogComponent,
+  type WeatherForecastDialogData,
+} from "../weather-forecast-dialog/weather-forecast-dialog.component";
 
 type MapEventFilter = "live" | "competition" | "jam" | "camp";
 
@@ -290,6 +306,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   pendingTasks = inject(PendingTasks);
   responsiveService = inject(ResponsiveService);
   private ngZone = inject(NgZone);
+  private readonly injector = inject(Injector);
   private _structuredDataService = inject(StructuredDataService);
   private _backHandlingService = inject(BackHandlingService);
   private _analytics = inject(AnalyticsService);
@@ -551,6 +568,19 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _visibleMapCommunities = signal<CommunitySearchPreview[]>([]);
   /** Latest visible viewport. Drives the map-island event/community context. */
   private _viewport = signal<VisibleViewport | null>(null);
+  private _mapWeatherRequestVersion = 0;
+  private _mapWeatherTile = computed<WeatherTile | null>(
+    () => {
+      const viewport = this._viewport();
+      return viewport && viewport.zoom >= 12
+        ? getWeatherTile(getViewportCenter(viewport.bbox))
+        : null;
+    },
+    {
+      equal: (left, right) => left?.key === right?.key,
+    },
+  );
+  readonly mapWeatherResponse = signal<WeatherResponse | null>(null);
   private _communitySpotSearchVersion = 0;
   focusedCommunitySpotPreviews = signal<SpotPreviewData[] | null>(null);
   communitySpotPreviewsForMap = computed<SpotPreviewData[] | null>(() =>
@@ -1200,6 +1230,34 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this._viewport.set(viewport);
   }
 
+  openMapWeather(): void {
+    const response = this.mapWeatherResponse();
+    const tile = this._mapWeatherTile();
+    if (!response || !tile) return;
+
+    this._dialog.open<
+      WeatherForecastDialogComponent,
+      WeatherForecastDialogData
+    >(WeatherForecastDialogComponent, {
+      data: {
+        spotName: "",
+        response,
+        context: "map-region",
+      },
+      width: "680px",
+      maxWidth: "calc(100vw - 24px)",
+      maxHeight: "calc(100dvh - 24px)",
+      autoFocus: "dialog",
+      restoreFocus: true,
+    });
+    this._analytics.trackEvent("map_weather_opened", {
+      provider: response.provider,
+      tileZoom: tile.zoom,
+      tileX: tile.x,
+      tileY: tile.y,
+    });
+  }
+
   onIslandDismissEvent(event: PkEvent): void {
     const dismissal = this._dismissEventPromo(event);
     this._showEventPromoDismissalConfirmation(dismissal);
@@ -1229,7 +1287,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       kind: "event",
       event,
     });
-    this.openEventPath(event.slug ?? event.id, null);
+    void this.router.navigate(["/events", event.slug ?? event.id]);
   }
 
   /**
@@ -1413,14 +1471,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           ? $localize`:Snackbar shown after second event promotion dismissal@@map_island.event_hidden_seven_days:Promotion hidden for 7 days.`
           : $localize`:Snackbar shown after third event promotion dismissal@@map_island.event_hidden_until_end:Promotion hidden for the rest of this event.`;
 
-    this._snackbar.open(
-      message,
-      $localize`:@@common.dismiss:Dismiss`,
-      {
-        duration: 5000,
-        verticalPosition: "bottom",
-      },
-    );
+    this._snackbar.open(message, $localize`:@@common.dismiss:Dismiss`, {
+      duration: 5000,
+      verticalPosition: "bottom",
+    });
   }
 
   private _loadEventPromoDismissals(): void {
@@ -1504,23 +1558,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this._openCommunityPanel(preview);
   }
 
-  /**
-   * Click handler for the on-map event chip markers. Resolves the route
-   * id to the loaded event, then opens the same preview as the island
-   * without counting the marker click as a map-island interaction.
-   */
-  onEventMarkerClick(routeId: string): void {
-    const event = this._visibleMapEvents().find(
-      (e) => e.slug === routeId || e.id === routeId,
-    );
-    if (!event) {
-      console.warn("onEventMarkerClick: event not in visible map set", routeId);
-      return;
-    }
-    // Typesense event hits intentionally contain approximate bounds only.
-    // Route through the full Firestore event so selected overlays use the
-    // real area polygon/custom markers instead of the search-preview bbox.
-    this.openEventPath(event.slug ?? event.id, null);
+  /** Opens an on-map event marker on its canonical full event page. */
+  onEventMarkerClick(eventIdOrSlug: string): void {
+    void this.router.navigate(["/events", eventIdOrSlug]);
   }
 
   openCommunityPath(path: string): void {
@@ -1590,7 +1630,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.panelBackTarget.set(this._getCurrentPanelBackTarget(nextPath));
     this._location.go(nextPath);
 
-    const routeState = this._parseMapRouteState(nextPath);
+    const routeState = parseMapSpotRouteState(nextPath);
     void this._handleURLParamsChange(
       routeState.spotIdOrSlug,
       routeState.showChallenges,
@@ -1727,6 +1767,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** MatDialog for opening the custom filter dialog */
   private _dialog = inject(MatDialog);
+  private _weatherService = inject(WeatherService);
+  private _searchPreviewRequestVersion = 0;
 
   /**
    * Google POI clicks are intentionally disabled for now.
@@ -2035,6 +2077,40 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       onCleanup(() => {
         clearTimeout(handle);
         this._mapObjectSearchVersion++;
+      });
+    });
+
+    effect((onCleanup) => {
+      const tile = this._mapWeatherTile();
+      const requestVersion = ++this._mapWeatherRequestVersion;
+      let refreshHandle: ReturnType<typeof setTimeout> | undefined;
+      this.mapWeatherResponse.set(null);
+      if (!tile) return;
+
+      const loadWeather = () => {
+        void this._weatherService
+          .getCurrentAndNearFutureForTile(tile)
+          .then((response) => {
+            if (requestVersion !== this._mapWeatherRequestVersion) return;
+            this.mapWeatherResponse.set(response);
+            const refreshInMs = Math.max(
+              60_000,
+              Date.parse(response.expiresAt) - Date.now() + 1_000,
+            );
+            refreshHandle = setTimeout(loadWeather, refreshInMs);
+          })
+          .catch(() => {
+            if (requestVersion === this._mapWeatherRequestVersion) {
+              this.mapWeatherResponse.set(null);
+            }
+          });
+      };
+      const debounceHandle = setTimeout(loadWeather, 600);
+
+      onCleanup(() => {
+        clearTimeout(debounceHandle);
+        if (refreshHandle) clearTimeout(refreshHandle);
+        this._mapWeatherRequestVersion++;
       });
     });
 
@@ -2641,7 +2717,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Parse URL to handle legacy `/map/:spot` and canonical
     // `/map/spots/:spot` shapes consistently.
-    const routeState = this._parseMapRouteState(this.router.url);
+    const routeState = parseMapSpotRouteState(this.router.url);
     const urlParts = this.router.url.split("/").filter((segment) => segment);
     // urlParts will be like ['map', 'spotId', 'edits'] or ['map', 'spotId', 'c', 'challengeId']
 
@@ -2770,38 +2846,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           // Move logic into a reusable method so we can re-run it on breakpoint changes
           this._attachChipsMeasurement();
 
-          // Trigger an immediate measurement now that the view is initialized.
-          // Call the installed window-resize listener (it schedules a measurement).
-          try {
-            // Wait for Angular to stabilize so projected/async chip elements are present
-            try {
-              this.ngZone.onStable.pipe(take(1)).subscribe(() => {
-                try {
-                  if (!this._chipsWindowResizeListener) {
-                    // In case the listener wasn't installed, re-run attachment once more
-                    this._attachChipsMeasurement();
-                  }
-                  // Run the usual scheduled measurement and also a direct immediate measure
-                  this._chipsWindowResizeListener?.();
-                  this._chipsDirectMeasure?.();
-                } catch (e) {
-                  /* ignore */
-                }
-              });
-            } catch (e) {
-              // Fallback to setTimeout if onStable isn't available for some reason
-              setTimeout(() => {
-                try {
-                  if (this._chipsWindowResizeListener)
-                    this._chipsWindowResizeListener();
-                } catch (e) {
-                  /* ignore */
-                }
-              }, 50);
-            }
-          } catch (e) {
-            /* ignore */
-          }
+          afterNextRender(
+            () => {
+              if (!this._chipsWindowResizeListener) {
+                this._attachChipsMeasurement();
+              }
+              this._chipsWindowResizeListener?.();
+              this._chipsDirectMeasure?.();
+            },
+            { injector: this.injector },
+          );
 
           // Measurement attached once on view init. We do not re-attach
           // repeatedly from a reactive effect to avoid periodic re-runs.
@@ -2916,7 +2970,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this._analytics.trackEvent("map_search_result_selected", {
       result_type: value.type,
       result_id: value.id,
-      has_context_filter: !!this.selectedFilter() || !!this.customFilterParams(),
+      has_context_filter:
+        !!this.selectedFilter() || !!this.customFilterParams(),
       event_filter: this.selectedEventFilter() || null,
       map_object_mode: this.mapObjectMode(),
     });
@@ -3492,7 +3547,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         .searchSpotsWithCustomFilter(
           bounds,
           customParams,
-          10,
+          getMapSpotSearchLimit(this._viewport()?.zoom),
           this._viewport()?.zoom,
         )
         .then((result) => {
@@ -3522,7 +3577,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       .searchSpotsInBoundsWithFilter(
         bounds,
         filterMode,
-        10,
+        getMapSpotSearchLimit(this._viewport()?.zoom),
         this._viewport()?.zoom,
       )
       .then((result) => {
@@ -3665,7 +3720,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       .searchSpotsInBoundsWithFilter(
         bounds,
         filterMode,
-        10,
+        getMapSpotSearchLimit(this._viewport()?.zoom),
         this._viewport()?.zoom,
       )
       .then((result) => {
@@ -3783,7 +3838,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       console.log("Searching with custom filter:", result);
 
       this._searchService
-        .searchSpotsWithCustomFilter(bounds, result, 10, this._viewport()?.zoom)
+        .searchSpotsWithCustomFilter(
+          bounds,
+          result,
+          getMapSpotSearchLimit(this._viewport()?.zoom),
+          this._viewport()?.zoom,
+        )
         .then((searchResult) => {
           const hits = searchResult.hits || [];
           console.log("Found custom filter spots:", hits);
@@ -4185,6 +4245,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.spotMap?.createSpot();
   }
 
+  onCreateEvent(): void {
+    this._analytics.trackEvent("map_create_event_clicked");
+    void this.router.navigate(["/events/new"]);
+  }
+
   onResetNorth(): void {
     this._analytics.trackEvent("map_reset_north_clicked");
     this.spotMap?.resetMapOrientation();
@@ -4280,9 +4345,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   resetSidebarContentToTop(): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    const el =
-      this._sidebarScrollEl ||
-      this._getSidebarScrollElement();
+    const el = this._sidebarScrollEl || this._getSidebarScrollElement();
 
     if (el) {
       el.scrollTo({ top: 0 });
@@ -4320,79 +4383,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }, 0);
   }
 
-  private _parseMapRouteState(url: string): {
-    spotIdOrSlug: string | null;
-    showChallenges: boolean;
-    challengeId: string | null;
-    showEditHistory: boolean;
-  } {
-    const cleanUrl = (url || "").split("?")[0].split("#")[0];
-
-    // Short-circuit for canonical community-on-map and event-on-map routes.
-    if (
-      /^\/map\/communities\/[^/]+$/u.test(cleanUrl) ||
-      /^\/map\/events\/[^/]+$/u.test(cleanUrl)
-    ) {
-      return {
-        spotIdOrSlug: null,
-        showChallenges: false,
-        challengeId: null,
-        showEditHistory: false,
-      };
-    }
-
-    const urlParts = cleanUrl.split("/").filter((segment) => segment);
-
-    let spotIdOrSlug: string | null = null;
-    let showChallenges = false;
-    let challengeId: string | null = null;
-    let showEditHistory = false;
-
-    if (urlParts.length >= 2 && urlParts[0] === "map") {
-      const hasSpotPrefix = urlParts[1] === "spots";
-      const spotSegmentIndex = hasSpotPrefix ? 2 : 1;
-      const actionSegmentIndex = spotSegmentIndex + 1;
-      const potentialSpot = urlParts[spotSegmentIndex]
-        ? decodeURIComponent(urlParts[spotSegmentIndex])
-        : null;
-
-      if (!potentialSpot) {
-        return {
-          spotIdOrSlug,
-          showChallenges,
-          challengeId,
-          showEditHistory,
-        };
-      }
-
-      if (urlParts.length === spotSegmentIndex + 1) {
-        spotIdOrSlug = potentialSpot;
-      } else if (urlParts.length >= actionSegmentIndex + 1) {
-        const nextSegment = urlParts[actionSegmentIndex];
-
-        if (nextSegment === "c") {
-          spotIdOrSlug = potentialSpot;
-          showChallenges = true;
-          if (urlParts.length >= actionSegmentIndex + 2) {
-            challengeId = decodeURIComponent(urlParts[actionSegmentIndex + 1]);
-          }
-        } else if (nextSegment === "edits") {
-          spotIdOrSlug = potentialSpot;
-          showEditHistory = true;
-        } else {
-          spotIdOrSlug = potentialSpot;
-        }
-      }
-    }
-
-    return {
-      spotIdOrSlug,
-      showChallenges,
-      challengeId,
-      showEditHistory,
-    };
-  }
-
   private _redirectSignedOutSpotEditHistory(
     spotIdOrSlug?: string | null,
   ): boolean {
@@ -4409,7 +4399,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           spotIdOrSlug,
           showEditHistory: true,
         }
-      : this._parseMapRouteState(this.router.url);
+      : parseMapSpotRouteState(this.router.url);
 
     if (!routeState.showEditHistory || !routeState.spotIdOrSlug) {
       return false;
@@ -4527,7 +4517,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private async _syncFullMapStateFromUrl(url: string): Promise<void> {
     this.panelBackTarget.set(null);
     await this._syncMapPanelStateFromUrl(url);
-    const routeState = this._parseMapRouteState(url);
+    const routeState = parseMapSpotRouteState(url);
     await this._handleURLParamsChange(
       routeState.spotIdOrSlug,
       routeState.showChallenges,
@@ -5452,7 +5442,11 @@ function createDenseMapPerformancePointMarkers(
       minZoom: index % 13 === 0 ? 13 : undefined,
       maxZoom: index % 17 === 0 ? 16 : undefined,
       priority:
-        type === "event" ? 700 : type === "community" ? 300 : 100 + (index % 50),
+        type === "event"
+          ? 700
+          : type === "community"
+            ? 300
+            : 100 + (index % 50),
     });
   }
 

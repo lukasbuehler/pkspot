@@ -7,10 +7,10 @@
 
 <mat-card
   matRipple
-  [matRippleDisabled]="!clickable"
+  [matRippleDisabled]="!clickable()"
   class="pt-0 bg-transparent d-block"
-  [class.border]="border"
-  [class.clickable]="clickable"
+  [class.border]="border()"
+  [class.clickable]="clickable()"
   style="box-shadow: none"
 >
   @if (loading()) {
@@ -33,7 +33,7 @@
           </span>
         </span>
 
-        @if (dismissable) {
+        @if (dismissable()) {
           <button
             mat-icon-button
             (click)="dismissed()"
@@ -188,7 +188,7 @@
           </span>
 
           <!-- dismiss button -->
-          @if (dismissable) {
+          @if (dismissable()) {
             <button
               mat-icon-button
               (click)="dismissed()"
@@ -306,10 +306,7 @@
                     <span>{{ displayLocation() }}</span>
                   }
                   @if (countryFlagEmoji()) {
-                    <span
-                      class="flag-emoji"
-                      [matTooltip]="countryTooltip()"
-                    >
+                    <span class="flag-emoji" [matTooltip]="countryTooltip()">
                       {{ countryFlagEmoji() }}
                     </span>
                   }
@@ -324,6 +321,13 @@
               class="spot-button-row collapsible-header-info flex-shrink-0"
               [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
             >
+              @if (weatherAvailable()) {
+                <app-weather-icon-button
+                  [weather]="weatherIconData()"
+                  (pressed)="openWeatherDialog()"
+                />
+              }
+
               @if (!isLocalSpot()) {
                 @if (authenticationService.isSignedIn) {
                   <button
@@ -405,14 +409,12 @@
       </mat-card-header>
     }
     @if (currentReport(); as report) {
-      <div class="report-info">
-        <span
-          class="mat-h3 m-0"
-          i18n="
-            spot reported message|Message shown when a spot has been
-            reported@@spot.reported.message"
-          >This spot was reported as "{{ report.reason }}"</span
-        >
+      <div class="report-info" role="status">
+        <mat-icon>warning</mat-icon>
+        <span class="mat-h3 m-0">
+          <strong i18n>Spot warning:</strong>
+          {{ report.reason }}
+        </span>
       </div>
     }
 
@@ -464,6 +466,8 @@
             </button>
           }
         </div>
+
+        <ng-content select="[spotDetailsAfterMedia]" />
 
         <!--
         @if (
@@ -855,7 +859,7 @@
         }
 
         <!-- Action buttons -->
-        @if (authenticationService.isSignedIn && editable) {
+        @if (authenticationService.isSignedIn && editable()) {
           <mat-divider></mat-divider>
           <div class="d-flex my-3 gap-2">
             @if (canParticipatePublicly()) {
@@ -1052,7 +1056,7 @@
         <!-- Saving actions -->
         @if (isEditing()) {
           <mat-card-actions class="mb-3 gap-2">
-            @if (editable) {
+            @if (editable()) {
               <button
                 matButton="outlined"
                 color="warn"
@@ -1334,60 +1338,14 @@
             Access and Type
           </h4>
           <div class="d-flex flex-column gap-4 align-items-stretch">
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-              <mat-label
-                i18n="
-                  Spot access label|Label for the spot access selection
-                  field@@spot_access_label"
-                >Spot Access</mat-label
-              >
-              <mat-select
-                [value]="spot()!.access()"
-                (valueChange)="spot()!.access.set($event)"
-              >
-                <mat-select-trigger>
-                  <span class="d-flex align-items-center gap-2">
-                    <mat-icon>{{ spotAccessIcons[spot()!.access()] }}</mat-icon>
-                    <span>{{ spotAccessNames[spot()!.access()] }}</span>
-                  </span>
-                </mat-select-trigger>
-                @for (spotAccess of spotAccesses; track $index) {
-                  <mat-option [value]="spotAccess">
-                    <mat-icon>{{ spotAccessIcons[spotAccess] }}</mat-icon>
-                    <span>{{ spotAccessNames[spotAccess] }}</span>
-                  </mat-option>
-                }
-              </mat-select>
-              <mat-hint>{{
-                spotAccessDescriptions[spot()!.access()]
-              }}</mat-hint>
-            </mat-form-field>
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-              <mat-label
-                i18n="
-                  Spot type label|Label for the spot type selection
-                  field@@spot_type_label"
-                >Spot Type</mat-label
-              >
-              <mat-select
-                [value]="spot()!.type()"
-                (valueChange)="spot()!.type.set($event)"
-              >
-                <mat-select-trigger>
-                  <span class="d-flex align-items-center gap-2">
-                    <mat-icon>{{ spotTypesIcons[spot()!.type()] }}</mat-icon>
-                    <span>{{ spotTypeNames[spot()!.type()] }}</span>
-                  </span>
-                </mat-select-trigger>
-                @for (spotType of spotTypes; track $index) {
-                  <mat-option [value]="spotType">
-                    <mat-icon>{{ spotTypesIcons[spotType] }}</mat-icon>
-                    <span>{{ spotTypeNames[spotType] }}</span>
-                  </mat-option>
-                }
-              </mat-select>
-              <mat-hint>{{ spotTypeDescriptions[spot()!.type()] }}</mat-hint>
-            </mat-form-field>
+            <app-spot-access-picker
+              [value]="spot()!.access()"
+              (valueChange)="spot()!.access.set($event)"
+            />
+            <app-spot-type-picker
+              [value]="spot()!.type()"
+              (valueChange)="spot()!.type.set($event)"
+            />
           </div>
         </div>
 
@@ -1602,7 +1560,7 @@
       <!-- Saving actions -->
       @if (isEditing()) {
         <mat-card-actions class="mt-3 gap-2">
-          @if (editable) {
+          @if (editable()) {
             <button
               matButton="outlined"
               color="warn"

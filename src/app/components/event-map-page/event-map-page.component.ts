@@ -10,34 +10,36 @@ import {
   ElementRef,
   PLATFORM_ID,
   computed,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  linkedSignal,
+  resource,
 } from "@angular/core";
 import { SpotMapComponent } from "../spot-map/spot-map.component";
 import {
   isPlatformBrowser,
-  KeyValuePipe,
   LocationStrategy,
 } from "@angular/common";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
+import type { AnyMedia } from "../../../db/models/Media";
 import { SpotId } from "../../../db/schemas/SpotSchema";
 import { SpotListComponent } from "../spot-list/spot-list.component";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { ResponsiveService } from "../../services/responsive.service";
 import { firstValueFrom, Subscription, take } from "rxjs";
-import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
+import { LocaleCode } from "../../../db/models/Interfaces";
 import { MarkerComponent } from "../marker/marker.component";
 import { MarkerSchema } from "../map/markers/map-marker.model";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { ActivatedRoute, ParamMap, Router, RouterLink } from "@angular/router";
-import { formatDateRange } from "../../../scripts/Helpers";
+import { DateTimeFormatService } from "../../services/date-time-format.service";
 import { SpotDetailsComponent } from "../spot-details/spot-details.component";
 import { trigger, transition, style, animate } from "@angular/animations";
 import { MatMenuModule } from "@angular/material/menu";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { MatChipListboxChange, MatChipsModule } from "@angular/material/chips";
+import { MatDialog } from "@angular/material/dialog";
 import { MapsApiService } from "../../services/maps-api.service";
 import { PolygonSchema } from "../../../db/schemas/PolygonSchema";
 import { GoogleMap2dComponent } from "../google-map-2d/google-map-2d.component";
@@ -62,7 +64,10 @@ import {
   ChallengeLabelIcons,
   ChallengeLabelValues,
 } from "../../../db/schemas/SpotChallengeLabels";
-import { Event as PkEvent } from "../../../db/models/Event";
+import {
+  Event as PkEvent,
+  type EventProgramItem,
+} from "../../../db/models/Event";
 import { EventsService } from "../../services/firebase/firestore/events.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import {
@@ -78,17 +83,48 @@ import { SWISSJAM25_STATIC } from "../event-page/swissjam25.static";
 import { AnalyticsService } from "../../services/analytics.service";
 import { EventPageDataService } from "../../services/event-page/event-page-data.service";
 import {
+  eventMediaFromSchema,
   eventImageDisplaySrc,
   type EventStatus,
 } from "../event-display/event-display.helpers";
 import { EventSummaryMetaComponent } from "../event-display/event-summary-meta.component";
 import { GooglePlacePreviewComponent } from "../google-place-preview/google-place-preview.component";
+import {
+  FilterChipsBarComponent,
+  type PresetFilterChip,
+} from "../filter-chips-bar/filter-chips-bar.component";
+import { ImgCarouselComponent } from "../img-carousel/img-carousel.component";
+import { EventProgramDayChipsComponent } from "../event-program-day-chips/event-program-day-chips.component";
+import { EventProgramOccurrenceListComponent } from "../event-program-occurrence-list/event-program-occurrence-list.component";
+import { EventProgramMapScheduleComponent } from "../event-program-map-schedule/event-program-map-schedule.component";
+import {
+  eventProgramDays,
+  eventProgramLocationVisits,
+  eventProgramSpotRefs,
+  isEventProgramMarkerOccurrence,
+  isEventProgramSpotOccurrence,
+  resolveEventProgramOccurrences,
+  smartEventProgramDay,
+  type EventMarkerBinding,
+  type EventProgramOccurrence,
+  type EventProgramSpotOccurrence,
+  type EventSpotBinding,
+} from "../../shared/event-program-spots";
+import { eventProgramLocationColor } from "../../shared/event-program-timeline";
+import { WeatherService } from "../../weather/weather.service";
+import type { EventWeatherSelection } from "../../weather/event-weather";
+import {
+  EVENT_WEATHER_DIALOG_CONFIG,
+  EventWeatherForecastDialogComponent,
+  type EventWeatherForecastDialogData,
+} from "../event-weather-forecast-dialog/event-weather-forecast-dialog.component";
 
 type EventPageMapMarker = MarkerSchema & {
   spotIndex?: number;
   challengeIndex?: number;
+  programOccurrence?: EventProgramOccurrence;
 };
-type EventMapTab = "event" | "spots" | "challenges";
+type EventMapTab = "all" | "event" | "spots" | "challenges" | "program";
 
 @Component({
   selector: "app-event-map-page",
@@ -100,18 +136,21 @@ type EventMapTab = "event" | "spots" | "challenges";
     SpotDetailsComponent,
     MatMenuModule,
     MatTooltipModule,
-    MatChipsModule,
     GoogleMap2dComponent,
     MatSidenavModule,
     ChallengeListComponent,
     MatDividerModule,
     ChallengeDetailComponent,
-    KeyValuePipe,
     MarkerComponent,
     ChipSelectComponent,
     EventEditFormComponent,
     EventSummaryMetaComponent,
     GooglePlacePreviewComponent,
+    FilterChipsBarComponent,
+    ImgCarouselComponent,
+    EventProgramDayChipsComponent,
+    EventProgramOccurrenceListComponent,
+    EventProgramMapScheduleComponent,
   ],
   animations: [
     trigger("fadeInOut", [
@@ -143,6 +182,11 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     const selectedSpot = this.selectedSpot();
     if (map && selectedSpot) {
       this._focusMapOnSpot(map, selectedSpot);
+      return;
+    }
+    const selectedMarker = this.selectedCustomMarker();
+    if (map && selectedMarker) {
+      this.focusCustomMarker(selectedMarker);
     }
   }
 
@@ -158,6 +202,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   metaTagService = inject(MetaTagService);
   locale = inject<LocaleCode>(LOCALE_ID);
+  private readonly _dateTime = inject(DateTimeFormatService);
   responsive = inject(ResponsiveService);
   private _spotService = inject(SpotsService);
   private _challengeService = inject(SpotChallengesService);
@@ -166,8 +211,10 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   private _route = inject(ActivatedRoute);
   private _router = inject(Router);
   private _snackbar = inject(MatSnackBar);
+  private readonly _dialog = inject(MatDialog);
   private _analytics = inject(AnalyticsService);
   private _eventPageData = inject(EventPageDataService);
+  private readonly _weatherService = inject(WeatherService);
   mapsApiService = inject(MapsApiService);
 
   /** True when the current user has admin rights — gates the edit button. */
@@ -180,46 +227,89 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   private _queryParamsSubscription?: Subscription;
   private _paramMapSubscription?: Subscription;
   private _eventLoadRequestVersion = 0;
+  private _eventAuthorizationRequestVersion = 0;
   private _spotsLoadRequestVersion = 0;
   private _challengeLoadRequestVersion = 0;
+  private _programLinkedEventLoadRequestVersion = 0;
+  private _minuteInterval?: number;
 
   /** The loaded event. Drives every visible field on the page. */
   event = signal<PkEvent | null>(null);
+  canEditEvent = signal(false);
+  canManageEvent = signal(false);
 
   selectedSpot = signal<Spot | LocalSpot | null>(null);
   selectedChallenge = signal<(SpotChallenge & { number: number }) | null>(null);
   selectedCustomMarker = signal<MarkerSchema | null>(null);
   private readonly requestedSpotIdOrSlug = signal<string | null>(null);
+  private readonly requestedMarkerId = signal<string | null>(null);
+  private readonly requestedProgramDay = signal<string | undefined>(undefined);
+  readonly selectedProgramItemId = signal<string | null>(null);
 
   sidenavOpen = signal<boolean>(false);
-  tabs: Record<EventMapTab, string> = {
-    event: $localize`Event`,
-    spots: $localize`Spots`,
-    challenges: $localize`Challenges`,
-  };
-  tab = signal<EventMapTab>("spots");
+  tab = signal<EventMapTab>("all");
   private _hasInitializedResponsiveSidenav = false;
   private _userToggledSidenav = false;
 
-  /**
-   * Tabs to render in the sidebar. Hides "Challenges" when there are none —
-   * an event without challenges shouldn't show an empty tab.
-   */
-  readonly visibleTabs = computed<Record<string, string>>(() => {
-    const out: Record<string, string> = {};
-    if (this.customMarkers().length > 0) {
-      out["event"] = this.tabs.event;
+  /** Object filters mirror the main map's shared chip bar and include counts. */
+  readonly mapObjectFilterChips = computed<readonly PresetFilterChip[]>(() => {
+    const spotCount = this.spots().length;
+    const eventMarkerCount = this.customMarkers().length;
+    const challengeCount = this.challenges().length;
+    const programCount = this.activeProgramItems().filter(
+      (item) => eventProgramSpotRefs(item).length > 0,
+    ).length;
+    const filters: PresetFilterChip[] = [
+      {
+        urlParam: "all",
+        label: $localize`:@@map_objects_all_chip_label:All`,
+      },
+      {
+        urlParam: "spots",
+        label: `${spotCount} ${this._pluralizeCount(
+          spotCount,
+          $localize`:@@map_objects_spot_singular:Spot`,
+          $localize`:@@map_objects_spot_plural:Spots`,
+        )}`,
+      },
+      ...(programCount > 0
+        ? [
+            {
+              urlParam: "program",
+              label: $localize`:@@event_program.heading:Program`,
+            },
+          ]
+        : []),
+      {
+        urlParam: "event",
+        label: `${eventMarkerCount} ${this._pluralizeCount(
+          eventMarkerCount,
+          $localize`:@@map_objects_event_singular:Event`,
+          $localize`:@@map_objects_event_plural:Events`,
+        )}`,
+      },
+    ];
+
+    if (challengeCount > 0) {
+      filters.push({
+        urlParam: "challenges",
+        label: `${challengeCount} ${this._pluralizeCount(
+          challengeCount,
+          $localize`:@@event_map_page.challenge_singular:Challenge`,
+          $localize`:@@event_map_page.challenge_plural:Challenges`,
+        )}`,
+      });
     }
-    out["spots"] = this.tabs.spots;
-    if (this.challenges().length > 0) {
-      out["challenges"] = this.tabs.challenges;
-    }
-    return out;
+
+    return filters;
   });
 
   showHeader = signal<boolean>(true);
   isCompactView = false;
-  private _isEmbedded = false;
+  private readonly _isEmbedded = signal(false);
+  readonly eventMapGestureHandling = computed<
+    NonNullable<google.maps.MapOptions["gestureHandling"]>
+  >(() => (this._isEmbedded() ? "cooperative" : "greedy"));
 
   // Derived display values. Defaults keep the template safe before the event loads.
   readonly name = computed(() => this.event()?.name ?? "");
@@ -261,7 +351,15 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     this._eventPageData.spotMapMarkers(this.spots()),
   );
   readonly mapPriorityMarkers = computed<EventPageMapMarker[]>(() =>
-    this.markers(),
+    this.tab() === "program"
+      ? this.programMapMarkers()
+      : this.markers().filter((marker) => {
+          const tab = this.tab();
+          if (tab === "all") return true;
+          if (tab === "event") return marker.type === "event-custom";
+          if (tab === "challenges") return marker.type === "challenge";
+          return false;
+        }),
   );
   readonly areaPolygon = signal<PolygonSchema | null>(null);
   readonly visibleMapBounds = signal<EventBoundsSchema | null>(null);
@@ -272,12 +370,160 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
    * are only drawn at zoom ≥ 16). Used so an event with a low `focus_zoom`
    * still shows its participating spot pins when zoomed out.
    */
-  readonly highlightedSpots = computed<SpotPreviewData[]>(() =>
-    this._eventPageData.spotPreviewMarkers(this.spots()),
+  readonly highlightedSpots = computed<SpotPreviewData[]>(() => {
+    const tab = this.tab();
+    return tab === "all" || tab === "spots" || tab === "program"
+      ? this._eventPageData.spotPreviewMarkers(this.spots())
+      : [];
+  });
+
+  readonly selectedCustomMarkerMedia = computed<AnyMedia[]>(() =>
+    (this.selectedCustomMarker()?.media ?? []).map(eventMediaFromSchema),
   );
 
   readonly challenges = signal<(SpotChallenge & { number: number })[]>([]);
   readonly spots = signal<(Spot | LocalSpot)[]>([]);
+  readonly spotBindings = signal<EventSpotBinding[]>([]);
+  readonly programLinkedEventsById = signal<Record<string, PkEvent>>({});
+  readonly now = signal(new Date());
+  readonly activeProgramItems = computed<EventProgramItem[]>(() => {
+    const program = this.event()?.program;
+    if (!program) return [];
+    const activePlan =
+      program.plans.find((plan) => plan.id === program.active_plan_id) ??
+      program.plans[0];
+    return activePlan?.items ?? [];
+  });
+  readonly programLinkedEventIds = computed(() => [
+    ...new Set(
+      this.activeProgramItems()
+        .map((item) => item.linked_event_id)
+        .filter((id): id is string => typeof id === "string" && id.length > 0),
+    ),
+  ]);
+  readonly programDays = computed(() =>
+    eventProgramDays(this.activeProgramItems(), this.event()?.timeZone),
+  );
+  readonly selectedProgramDay = linkedSignal<
+    {
+      eventId: string;
+      days: string[];
+      requestedDay: string | undefined;
+      timeZone: string | undefined;
+    },
+    string
+  >({
+    source: () => ({
+      eventId: String(this.event()?.id ?? ""),
+      days: this.programDays(),
+      requestedDay: this.requestedProgramDay(),
+      timeZone: this.event()?.timeZone,
+    }),
+    computation: (source, previous) => {
+      if (
+        source.requestedDay !== undefined &&
+        (source.requestedDay === "" ||
+          source.days.includes(source.requestedDay))
+      ) {
+        return source.requestedDay;
+      }
+      if (
+        previous?.source.eventId === source.eventId &&
+        source.requestedDay === undefined &&
+        (previous.value === "" || source.days.includes(previous.value))
+      ) {
+        return previous.value;
+      }
+      return smartEventProgramDay(source.days, source.timeZone, this.now());
+    },
+  });
+  readonly programOccurrences = computed(() =>
+    resolveEventProgramOccurrences(
+      this.activeProgramItems(),
+      [
+        ...this.spotBindings(),
+        ...this.customMarkers().flatMap((marker): EventMarkerBinding[] =>
+          marker.id
+            ? [
+                {
+                  ref: { kind: "custom_marker", id: marker.id },
+                  marker,
+                },
+              ]
+            : [],
+        ),
+      ],
+      this.event()?.timeZone,
+      this.now(),
+    ),
+  );
+  readonly programLocationVisits = computed(() =>
+    eventProgramLocationVisits(
+      this.programOccurrences(),
+      this.selectedProgramDay(),
+      this.now(),
+    ),
+  );
+  readonly programMapMarkers = computed<EventPageMapMarker[]>(() =>
+    this.programLocationVisits().map((visit) => {
+      const occurrence = visit.representative;
+      const time = this._dateTime.format(occurrence.start, {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: this.event()?.timeZone,
+      });
+      const additionalVisits = visit.occurrences.length - 1;
+      const place =
+        visit.kind === "spot"
+          ? {
+              name: visit.spot.name(),
+              location: visit.spot.location(),
+              icons: undefined,
+            }
+          : {
+              name: visit.marker.name ?? visit.ref.id,
+              location: visit.marker.location,
+              icons: visit.marker.icons,
+            };
+      return {
+        id: `program:${visit.key}`,
+        name: `${place.name}: ${occurrence.item.title}, ${time}`,
+        description: occurrence.item.title,
+        location: place.location,
+        icons: place.icons,
+        number: time,
+        badge: additionalVisits > 0 ? `+${additionalVisits}` : undefined,
+        color: eventProgramLocationColor(visit),
+        priority: "required",
+        ignoreCollisions: true,
+        type: "event-program",
+        programOccurrence: occurrence,
+      };
+    }),
+  );
+  readonly selectedSpotProgramOccurrences = computed(() => {
+    const selected = this.selectedSpot();
+    return selected
+      ? this.programOccurrences().filter(
+          isEventProgramSpotOccurrence,
+        ).filter(
+          (occurrence) => occurrence.spot === selected,
+        )
+      : [];
+  });
+  readonly selectedCustomMarkerProgramOccurrences = computed(() => {
+    const selected = this.selectedCustomMarker();
+    return selected
+      ? this.programOccurrences()
+          .filter(isEventProgramMarkerOccurrence)
+          .filter(
+            (occurrence) =>
+              occurrence.marker === selected ||
+              (selected.id !== undefined &&
+                occurrence.marker.id === selected.id),
+          )
+      : [];
+  });
 
   /**
    * Lower bound on user zoom for the event-page map. Default is intentionally
@@ -288,6 +534,37 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   readonly minZoom = computed(() => this.event()?.minZoom ?? 10);
 
   platformId = inject(PLATFORM_ID);
+  readonly eventWeatherResource = resource({
+    params: () => {
+      const event = this.event();
+      if (
+        !isPlatformBrowser(this.platformId) ||
+        !event ||
+        !event.location ||
+        !Number.isFinite(event.location.lat) ||
+        !Number.isFinite(event.location.lng) ||
+        !this._weatherService.isEventForecastAvailable(event.start, event.end)
+      ) {
+        return undefined;
+      }
+      return {
+        location: event.location,
+        start: event.start,
+        end: event.end,
+      };
+    },
+    loader: ({ params }) =>
+      this._weatherService.getEventForecastForTileAt(
+        params.location,
+        params.start,
+        params.end,
+      ),
+  });
+  readonly eventWeather = computed(() =>
+    this.eventWeatherResource.hasValue()
+      ? this.eventWeatherResource.value()
+      : undefined,
+  );
 
   mapStyle: "roadmap" | "hybrid" = "hybrid";
 
@@ -320,6 +597,37 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
             ? params["spotId"].trim()
             : null,
         );
+        this.requestedMarkerId.set(
+          typeof params["markerId"] === "string" && params["markerId"].trim()
+            ? params["markerId"].trim()
+            : null,
+        );
+        const requestedFilter = params["mapFilter"];
+        if (
+          requestedFilter === "all" ||
+          requestedFilter === "event" ||
+          requestedFilter === "spots" ||
+          requestedFilter === "challenges" ||
+          requestedFilter === "program"
+        ) {
+          this.tab.set(requestedFilter);
+        } else if (requestedFilter === undefined) {
+          this.tab.set("all");
+        }
+        this.requestedProgramDay.set(
+          requestedFilter === "program"
+            ? typeof params["day"] === "string" &&
+              /^\d{4}-\d{2}-\d{2}$/u.test(params["day"])
+              ? params["day"]
+              : ""
+            : undefined,
+        );
+        this.selectedProgramItemId.set(
+          typeof params["programItemId"] === "string" &&
+            params["programItemId"].trim()
+            ? params["programItemId"].trim()
+            : null,
+        );
       },
     );
 
@@ -334,11 +642,15 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
     this.updateCompactView = this.updateCompactView.bind(this);
     if (isPlatformBrowser(this.platformId) && typeof window !== "undefined") {
+      this._minuteInterval = window.setInterval(
+        () => this.now.set(new Date()),
+        60_000,
+      );
       window.addEventListener("resize", this.updateCompactView);
 
       firstValueFrom(this._route.data.pipe(take(1))).then((data) => {
         if (data["routeName"]?.toLowerCase().includes("embed")) {
-          this._isEmbedded = true;
+          this._isEmbedded.set(true);
           this.updateCompactView();
         }
       });
@@ -355,6 +667,21 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
             });
           });
         }
+      });
+
+      effect(() => {
+        const markerId = this.requestedMarkerId();
+        if (!markerId) return;
+        const marker = this.customMarkers().find(
+          (candidate) => candidate.id === markerId,
+        );
+        if (!marker || this.selectedCustomMarker()?.id === marker.id) return;
+
+        this.sidenavOpen.set(true);
+        this.selectedSpot.set(null);
+        this.selectedChallenge.set(null);
+        this.selectedCustomMarker.set(marker);
+        this.focusCustomMarker(marker);
       });
 
       effect(() => {
@@ -387,7 +714,14 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
         const spot = this._resolveSpotByIdOrSlug(requestedSpotIdOrSlug);
         if (spot) {
-          this.selectSpot(spot, false);
+          if (this.tab() === "program") {
+            this.sidenavOpen.set(true);
+            this.selectedCustomMarker.set(null);
+            this.selectedChallenge.set(null);
+            this._selectResolvedSpot(spot, false);
+          } else {
+            this.selectSpot(spot, false);
+          }
         }
       });
 
@@ -407,16 +741,49 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
       effect(() => {
         const event = this.event();
         if (!event) {
+          this.spotBindings.set([]);
           this.spots.set([]);
           return;
         }
 
         const requestVersion = ++this._spotsLoadRequestVersion;
-        this._eventPageData.loadEventSpots(event).then((spots) => {
+        this._eventPageData.loadEventSpotBindings(event).then((bindings) => {
           if (requestVersion === this._spotsLoadRequestVersion) {
-            this.spots.set(spots);
+            this.spotBindings.set(bindings);
+            this.spots.set(bindings.map((binding) => binding.spot));
           }
         });
+      });
+
+      effect(() => {
+        const eventIds = this.programLinkedEventIds();
+        const requestVersion = ++this._programLinkedEventLoadRequestVersion;
+
+        if (eventIds.length === 0) {
+          this.programLinkedEventsById.set({});
+          return;
+        }
+
+        this._eventPageData
+          .loadEventCardsByIds(eventIds)
+          .then((events) => {
+            if (
+              requestVersion !== this._programLinkedEventLoadRequestVersion
+            ) {
+              return;
+            }
+            this.programLinkedEventsById.set(
+              Object.fromEntries(events.map((event) => [event.id, event])),
+            );
+          })
+          .catch((error) => {
+            console.warn("Failed to load linked program events.", error);
+            if (
+              requestVersion === this._programLinkedEventLoadRequestVersion
+            ) {
+              this.programLinkedEventsById.set({});
+            }
+          });
       });
 
       // Build challenge markers + listings from the event's challenge_spot_map.
@@ -448,7 +815,6 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
             if (challengeMarkers.length > 0) {
               this.markers.set([...this.customMarkers(), ...challengeMarkers]);
-              this.tab.set("challenges");
             } else {
               this.markers.set(this.staticMarkers());
             }
@@ -478,13 +844,14 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     }
 
     this.event.set(loaded);
+    void this._refreshEventAuthorization(loaded);
   }
 
   updateCompactView() {
     if (!isPlatformBrowser(this.platformId) || typeof window === "undefined") {
       return;
     }
-    this.isCompactView = this._isEmbedded || window.innerWidth <= 576;
+    this.isCompactView = this._isEmbedded() || window.innerWidth <= 576;
     const hasSidenavRoom = this._hasSidenavRoom();
 
     if (!this._hasInitializedResponsiveSidenav) {
@@ -504,7 +871,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   }
 
   public get isEmbedded(): boolean {
-    return this._isEmbedded;
+    return this._isEmbedded();
   }
 
   ngOnInit() {
@@ -526,6 +893,9 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (isPlatformBrowser(this.platformId) && typeof window !== "undefined") {
+      if (this._minuteInterval !== undefined) {
+        window.clearInterval(this._minuteInterval);
+      }
       window.removeEventListener("resize", this.updateCompactView);
     }
 
@@ -540,6 +910,21 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   private _syncEventSeoData(event: PkEvent): void {
     const canonicalPath = this._eventCanonicalPath(event);
+    if (!event.published || event.visibility !== "public") {
+      const isDraft = !event.published;
+      this.metaTagService.setStaticPageMetaTags(
+        isDraft
+          ? $localize`:@@event_draft.meta.title:Draft event`
+          : $localize`:@@event_unlisted.meta.title:Unlisted event`,
+        isDraft
+          ? $localize`:@@event_draft.meta.description:This event has not been published.`
+          : $localize`:@@event_unlisted.meta.description:This event is available through its shared link.`,
+        undefined,
+        canonicalPath,
+      );
+      this.metaTagService.setRobotsContent("noindex,nofollow");
+      return;
+    }
     const description = this._eventDescription(event);
     const image =
       eventImageDisplaySrc(event.bannerSrc) ?? "assets/banner_1200x630.png";
@@ -563,7 +948,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   }
 
   private _eventDescription(event: PkEvent): string {
-    const range = formatDateRange(event.start, event.end, this.locale);
+    const range = this._dateTime.formatDateRange(event.start, event.end);
 
     return (
       event.description ??
@@ -663,6 +1048,27 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     }
   }
 
+  openEventWeather(selection: EventWeatherSelection): void {
+    const event = this.event();
+    const response = this.eventWeather();
+    if (!event || !response) return;
+
+    this._dialog.open<
+      EventWeatherForecastDialogComponent,
+      EventWeatherForecastDialogData
+    >(EventWeatherForecastDialogComponent, {
+      ...EVENT_WEATHER_DIALOG_CONFIG,
+      data: {
+        eventName: event.name,
+        eventStart: event.start,
+        eventEnd: event.end,
+        timeZone: event.timeZone,
+        response,
+        selection,
+      },
+    });
+  }
+
   selectSpot(
     spot: Spot | LocalSpot | SpotId | SpotPreviewData,
     updateUrl = true,
@@ -744,7 +1150,17 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   }
 
   private _resolveSpotByIdOrSlug(idOrSlug: string): Spot | LocalSpot | null {
+    const localIndexMatch = /^event-local-spot-(\d+)$/u.exec(idOrSlug);
+    if (localIndexMatch) {
+      const localSpot = this.spots()[Number(localIndexMatch[1])];
+      if (localSpot instanceof LocalSpot) return localSpot;
+    }
     return (
+      this.spotBindings().find(
+        (binding) =>
+          binding.ref.id === idOrSlug ||
+          this._spotMatchesIdOrSlug(binding.spot, idOrSlug),
+      )?.spot ??
       this.spots().find((spot) => this._spotMatchesIdOrSlug(spot, idOrSlug)) ??
       null
     );
@@ -758,10 +1174,18 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
       return spot.id === idOrSlug || spot.slug === idOrSlug;
     }
 
-    return this._inlineSpotIdForSpot(spot) === idOrSlug;
+    return (
+      this.spotBindings().find((binding) => binding.spot === spot)?.ref.id ===
+      idOrSlug
+    );
   }
 
   private _resolveInlineSpotById(id: string): LocalSpot | null {
+    const binding = this.spotBindings().find(
+      (candidate) =>
+        candidate.ref.kind === "inline_spot" && candidate.ref.id === id,
+    );
+    if (binding?.spot instanceof LocalSpot) return binding.spot;
     const index = this.event()?.inlineSpots.findIndex((spot) => spot.id === id);
     if (index === undefined || index < 0) return null;
     const spot = this.spots()[index];
@@ -769,6 +1193,10 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   }
 
   private _inlineSpotIdForSpot(spot: LocalSpot): string | null {
+    const boundId = this.spotBindings().find(
+      (binding) => binding.spot === spot,
+    )?.ref.id;
+    if (boundId) return boundId;
     const index = this.spots().findIndex((candidate) => candidate === spot);
     return index >= 0
       ? (this.event()?.inlineSpots[index]?.id ?? `event-local-spot-${index}`)
@@ -822,12 +1250,16 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   }
 
   deselectSpot() {
+    const clearProgramItem =
+      this.tab() === "program" || !!this.selectedProgramItemId();
     this.selectedSpot.set(null);
     this.selectedChallenge.set(null);
     this.selectedCustomMarker.set(null);
     void this._router.navigate([], {
       relativeTo: this._route,
-      queryParams: { spotId: null },
+      queryParams: clearProgramItem
+        ? { spotId: null, markerId: null, programItemId: null }
+        : { spotId: null, markerId: null },
       queryParamsHandling: "merge",
       replaceUrl: true,
     });
@@ -839,15 +1271,185 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   }
 
   selectTab(tab: string): void {
-    if (tab === "event" || tab === "spots" || tab === "challenges") {
+    if (
+      tab === "all" ||
+      tab === "event" ||
+      tab === "spots" ||
+      tab === "challenges" ||
+      tab === "program"
+    ) {
       this.tab.set(tab);
+      const day =
+        tab === "program"
+          ? this.selectedProgramDay() ||
+            smartEventProgramDay(
+              this.programDays(),
+              this.event()?.timeZone,
+              this.now(),
+            )
+          : "";
+      void this._router.navigate([], {
+        relativeTo: this._route,
+        queryParams: {
+          mapFilter: tab === "all" ? null : tab,
+          day: tab === "program" ? day || null : null,
+          markerId:
+            tab === "program" ? this.selectedCustomMarker()?.id ?? null : null,
+          programItemId: tab === "program" ? this.selectedProgramItemId() : null,
+        },
+        queryParamsHandling: "merge",
+      });
     }
+  }
+
+  selectProgramDay(day: string | null): void {
+    if (day === null) {
+      this.tab.set("spots");
+      this.selectedSpot.set(null);
+      this.selectedChallenge.set(null);
+      this.selectedCustomMarker.set(null);
+      this.selectedProgramItemId.set(null);
+      void this._router.navigate([], {
+        relativeTo: this._route,
+        queryParams: {
+          mapFilter: "spots",
+          day: null,
+          spotId: null,
+          markerId: null,
+          programItemId: null,
+        },
+        queryParamsHandling: "merge",
+      });
+      return;
+    }
+
+    this.selectedProgramDay.set(day);
+    const selected = this.selectedSpot();
+    const selectedMarker = this.selectedCustomMarker();
+    const selectedProgramItemId = this.selectedProgramItemId();
+    const selectedRemainsVisible =
+      !selected ||
+      this.programOccurrences().some(
+        (occurrence) =>
+          isEventProgramSpotOccurrence(occurrence) &&
+          occurrence.spot === selected &&
+          (!day || occurrence.day === day),
+      );
+    const selectedMarkerRemainsVisible =
+      !selectedMarker ||
+      this.programOccurrences().some(
+        (occurrence) =>
+          isEventProgramMarkerOccurrence(occurrence) &&
+          occurrence.marker.id === selectedMarker.id &&
+          (!day || occurrence.day === day),
+      );
+    const selectedItemRemainsVisible =
+      !selectedProgramItemId ||
+      this.programOccurrences().some(
+        (occurrence) =>
+          occurrence.item.id === selectedProgramItemId &&
+          (!day || occurrence.day === day),
+      );
+    if (!selectedRemainsVisible) {
+      this.selectedSpot.set(null);
+    }
+    if (!selectedMarkerRemainsVisible) {
+      this.selectedCustomMarker.set(null);
+    }
+    if (!selectedItemRemainsVisible) {
+      this.selectedProgramItemId.set(null);
+    }
+    const selectedSpotId =
+      selected && selectedRemainsVisible
+        ? this._spotQueryParamForSpot(selected)
+        : null;
+
+    void this._router.navigate([], {
+      relativeTo: this._route,
+      queryParams: {
+        mapFilter: "program",
+        day: day || null,
+        spotId: selectedSpotId,
+        markerId:
+          selectedMarker && selectedMarkerRemainsVisible
+            ? selectedMarker.id
+            : null,
+        programItemId: selectedItemRemainsVisible
+          ? selectedProgramItemId
+          : null,
+      },
+      queryParamsHandling: "merge",
+    });
+  }
+
+  openProgramDay(day: string): void {
+    if (this.selectedProgramDay() !== day) {
+      this.selectProgramDay(day);
+    }
+  }
+
+  closeProgramDay(day: string): void {
+    if (this.selectedProgramDay() === day) {
+      this.selectProgramDay("");
+    }
+  }
+
+  selectProgramOccurrence(occurrence: EventProgramOccurrence): void {
+    this.tab.set("program");
+    this.sidenavOpen.set(true);
+    this.selectedProgramItemId.set(occurrence.item.id);
+    this.selectedChallenge.set(null);
+    if (isEventProgramMarkerOccurrence(occurrence)) {
+      this.selectedSpot.set(null);
+      this.selectedCustomMarker.set(occurrence.marker);
+      this.focusCustomMarker(occurrence.marker);
+    } else {
+      this.selectedCustomMarker.set(null);
+      this._selectResolvedSpot(occurrence.spot, false);
+    }
+    void this._router.navigate([], {
+      relativeTo: this._route,
+      queryParams: {
+        mapFilter: "program",
+        day: occurrence.day,
+        spotId:
+          isEventProgramSpotOccurrence(occurrence)
+            ? occurrence.ref.id
+            : null,
+        markerId:
+          isEventProgramMarkerOccurrence(occurrence)
+            ? occurrence.ref.id
+            : null,
+        programItemId: occurrence.item.id,
+      },
+      queryParamsHandling: "merge",
+    });
+  }
+
+  openProgramSpotDetails(occurrence: EventProgramSpotOccurrence): void {
+    this.selectedProgramItemId.set(null);
+    this.selectSpot(occurrence.spot, false);
+    void this._router.navigate([], {
+      relativeTo: this._route,
+      queryParams: {
+        mapFilter: "spots",
+        day: null,
+        spotId: occurrence.ref.id,
+        markerId: null,
+        programItemId: null,
+      },
+      queryParamsHandling: "merge",
+    });
   }
 
   markerClick(markerIndex: number) {
     const marker = this.mapPriorityMarkers()[markerIndex];
     if (marker?.type === "event-custom") {
       this.selectCustomMarker(marker);
+      return;
+    }
+    if (marker?.type === "event-program" && marker.programOccurrence) {
+      this.selectProgramOccurrence(marker.programOccurrence);
       return;
     }
     if (marker?.type === "event-spot" && marker.spotIndex !== undefined) {
@@ -887,17 +1489,12 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  customMarkerPrimaryImageSrc(marker: MarkerSchema): string | null {
-    return (
-      marker.media?.find((media) => media.type === MediaType.Image)?.src ?? null
-    );
-  }
-
-  tabChanged(event: MatChipListboxChange) {
-    const selectedTab = event.value as EventMapTab | undefined;
-    if (selectedTab) {
-      this.tab.set(selectedTab);
-    }
+  private _pluralizeCount(
+    count: number,
+    singular: string,
+    plural: string,
+  ): string {
+    return count === 1 ? singular : plural;
   }
 
   onMarkerClickFromMap(event: number | { marker: any; index?: number }) {
@@ -910,7 +1507,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   }
 
   private _formatDateForMeta(date: Date): string {
-    return date.toLocaleDateString(this.locale, { dateStyle: "medium" });
+    return this._dateTime.format(date, { dateStyle: "medium" });
   }
 
   private _isSameDay(a: Date, b: Date): boolean {
@@ -923,7 +1520,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   private _hasSidenavRoom(): boolean {
     return (
-      !this._isEmbedded &&
+      !this._isEmbedded() &&
       isPlatformBrowser(this.platformId) &&
       typeof window !== "undefined" &&
       window.innerWidth >= 992
@@ -931,13 +1528,11 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   }
 
   // ---------------------------------------------------------------------
-  // Admin edit / delete handlers — wired to <app-event-edit-form>.
-  // The form is only rendered when isAdmin() && isEditingEvent() in the
-  // template, so the handlers below trust those preconditions.
+  // Owner / manager / collaborator edit handlers — wired to the shared form.
   // ---------------------------------------------------------------------
 
   startEditingEvent(): void {
-    if (!this.isAdmin()) return;
+    if (!this.canEditEvent()) return;
     this.isEditingEvent.set(true);
   }
 
@@ -947,7 +1542,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   async onSaveEvent(patch: EventEditPatch): Promise<void> {
     const current = this.event();
-    if (!current || !this.isAdmin()) return;
+    if (!current || !this.canEditEvent()) return;
     this.isSavingEvent.set(true);
     try {
       await this._eventsService.updateEvent(current.id, patch);
@@ -977,7 +1572,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   async onDeleteEvent(): Promise<void> {
     const current = this.event();
-    if (!current || !this.isAdmin()) return;
+    if (!current || !this.canManageEvent()) return;
     this.isSavingEvent.set(true);
     try {
       await this._eventsService.deleteEvent(current.id);
@@ -997,6 +1592,25 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
       );
       this.isSavingEvent.set(false);
     }
+  }
+
+  private async _refreshEventAuthorization(event: PkEvent): Promise<void> {
+    const requestVersion = ++this._eventAuthorizationRequestVersion;
+    const fallback = this.isAdmin();
+    const [canEdit, canManage] = await Promise.all([
+      this._eventsService.canEditEvent?.(event).catch(() => false) ??
+        Promise.resolve(fallback),
+      this._eventsService.canManageEvent?.(event).catch(() => false) ??
+        Promise.resolve(fallback),
+    ]);
+    if (
+      requestVersion !== this._eventAuthorizationRequestVersion ||
+      this.event()?.id !== event.id
+    ) {
+      return;
+    }
+    this.canEditEvent.set(canEdit);
+    this.canManageEvent.set(canManage);
   }
 
   private _safeExternalUrl(value: string | undefined): string | null {

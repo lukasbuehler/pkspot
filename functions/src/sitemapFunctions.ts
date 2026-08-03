@@ -24,6 +24,7 @@ import {
   type SpotSitemapData,
   type UserSitemapData,
 } from "./sitemapXml";
+import { EVENT_DISCOVERY_COLLECTION } from "../../src/db/schemas/EventDiscoverySchema";
 
 const BUCKET_NAME = "parkour-base-project.appspot.com";
 const XML_BUFFER_TARGET_BYTES = 64 * 1024;
@@ -140,8 +141,12 @@ async function _generateAndUploadSitemap(): Promise<{
 
     console.log(`Streamed ${spotCount} spots`);
 
-    console.log("Streaming users from Firestore...");
-    const usersStream = db.collection("users").select("display_name").stream();
+    console.log("Streaming opted-in public user profiles from Firestore...");
+    const usersStream = db
+      .collection("public_user_profiles")
+      .where("public_search", "==", true)
+      .select("display_name", "public_search")
+      .stream();
     for await (const doc of usersStream as AsyncIterable<FirebaseFirestore.QueryDocumentSnapshot>) {
       const data = doc.data() as UserSitemapData;
       const entry = buildUserSitemapEntry(doc.id, data, now);
@@ -197,15 +202,12 @@ async function _generateAndUploadSitemap(): Promise<{
 
     console.log("Streaming events from Firestore...");
     const eventsStream = db
-      .collection("events")
+      .collection(EVENT_DISCOVERY_COLLECTION)
       .select(
         "slug",
-        "canonicalPath",
         "published",
-        "status",
         "time_updated",
-        "updatedAt",
-        "startDate"
+        "start"
       )
       .stream();
 

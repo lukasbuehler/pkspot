@@ -5,7 +5,6 @@ import {
   effect,
   inject,
   input,
-  LOCALE_ID,
   signal,
 } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
@@ -21,6 +20,8 @@ import { SpotEditVoteValue } from "../../../db/schemas/SpotEditVoteSchema";
 import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
 import { UsersService } from "../../services/firebase/firestore/users.service";
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
+import { DateTimeFormatService } from "../../services/date-time-format.service";
+import { parseFirestoreTimestamp } from "../../../scripts/Helpers";
 
 @Component({
   selector: "app-spot-edit-details",
@@ -37,7 +38,7 @@ import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 export class SpotEditDetailsComponent {
   spotEdit = input<SpotEdit>();
   spotId = input<string | null>(null);
-  locale = inject(LOCALE_ID);
+  private readonly _dateTime = inject(DateTimeFormatService);
   authenticationService = inject(AuthenticationService);
   private _spotEditsService = inject(SpotEditsService);
   private _organizationsService = inject(OrganizationsService);
@@ -50,6 +51,14 @@ export class SpotEditDetailsComponent {
   userVoteValue = signal<SpotEditVoteValue | null>(null);
   reviewerOrganizationIds = signal<ReadonlySet<string>>(new Set());
   private _hydratedUser = signal<UserReferenceSchema | null>(null);
+
+  formatTimestamp(edit: SpotEdit): string {
+    const date = parseFirestoreTimestamp(edit.timestamp);
+    return this._dateTime.format(date ?? edit.timestamp_raw_ms ?? new Date(), {
+      dateStyle: "short",
+      timeStyle: "medium",
+    });
+  }
 
   yesVotes = computed(() => this.spotEdit()?.vote_summary?.yes_count ?? 0);
   noVotes = computed(() => this.spotEdit()?.vote_summary?.no_count ?? 0);

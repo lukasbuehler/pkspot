@@ -1,0 +1,246 @@
+import { LOCALE_ID, signal } from "@angular/core";
+import { TestBed } from "@angular/core/testing";
+import { By } from "@angular/platform-browser";
+import { MatTooltip } from "@angular/material/tooltip";
+import { MapWeatherChipComponent } from "./map-weather-chip.component";
+import type { WeatherResponse } from "../../../weather/weather.models";
+import { AccountPreferencesService } from "../../../services/account-preferences.service";
+import { DateTimeFormatService } from "../../../services/date-time-format.service";
+import {
+  resolveTemperatureUnit,
+  type TemperatureUnitPreference,
+} from "../../../weather/weather-temperature";
+
+describe("MapWeatherChipComponent", () => {
+  const temperatureUnitPreference =
+    signal<TemperatureUnitPreference>("celsius");
+  const temperatureUnit = (countryCode?: string) =>
+    resolveTemperatureUnit(temperatureUnitPreference(), countryCode);
+  const response: WeatherResponse = {
+    provider: "google",
+    mode: "current-and-near-future",
+    location: { lat: 47.37, lng: 8.57 },
+    generatedAt: "2026-07-19T10:00:00Z",
+    expiresAt: "2026-07-19T10:45:00Z",
+    timeZone: "Europe/Zurich",
+    current: {
+      time: "2026-07-19T10:00:00Z",
+      condition: "partly-cloudy",
+      temperatureC: 22.4,
+      isDay: true,
+      sunset: "2026-07-19T19:00:00Z",
+    },
+    forecast: [
+      {
+        time: "2026-07-19T11:00:00Z",
+        condition: "rain",
+        precipitationProbabilityPercent: 60,
+      },
+    ],
+    insights: {
+      summary: "Rain possible",
+      rainStartsAt: "2026-07-19T11:00:00Z",
+      precipitationRisk: "medium",
+      sunExposure: "moderate",
+      surfaceDrying: {
+        status: "likely_dry",
+        confidence: "low",
+        factors: [],
+      },
+    },
+  };
+
+  beforeEach(() => {
+    temperatureUnitPreference.set("celsius");
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: LOCALE_ID, useValue: "de" },
+        {
+          provide: AccountPreferencesService,
+          useValue: { temperatureUnit },
+        },
+        {
+          provide: DateTimeFormatService,
+          useValue: {
+            format: (
+              value: Date | number | string,
+              options: Intl.DateTimeFormatOptions,
+            ) =>
+              new Intl.DateTimeFormat("de-CH", {
+                ...options,
+                hourCycle: "h23",
+              }).format(typeof value === "string" ? new Date(value) : value),
+          },
+        },
+      ],
+    });
+  });
+
+  it("shows current weather and the next local-time change", async () => {
+    const fixture = TestBed.createComponent(MapWeatherChipComponent);
+    fixture.componentRef.setInput("response", response);
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).toContain("22°");
+    expect(
+      fixture.debugElement.query(By.css("button")).attributes["aria-label"],
+    ).toContain("Rain at 13:00");
+  });
+
+  it("emits when opened", async () => {
+    const fixture = TestBed.createComponent(MapWeatherChipComponent);
+    const pressed = vi.fn();
+    fixture.componentRef.setInput("response", response);
+    fixture.componentInstance.pressed.subscribe(pressed);
+    await fixture.whenStable();
+
+    fixture.nativeElement.querySelector("button").click();
+    expect(pressed).toHaveBeenCalledOnce();
+  });
+
+  it("uses the preferred temperature unit", async () => {
+    temperatureUnitPreference.set("fahrenheit");
+    const fixture = TestBed.createComponent(MapWeatherChipComponent);
+    fixture.componentRef.setInput("response", response);
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).toContain("72°");
+    expect(
+      fixture.debugElement.query(By.css("button")).attributes["aria-label"],
+    ).toContain("72 °F");
+  });
+
+  it("uses the weather location for the local unit preference", async () => {
+    temperatureUnitPreference.set("local");
+    const fixture = TestBed.createComponent(MapWeatherChipComponent);
+    fixture.componentRef.setInput("response", {
+      ...response,
+      countryCode: "US",
+    });
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).toContain("72°");
+    expect(
+      fixture.debugElement.query(By.css("button")).attributes["aria-label"],
+    ).toContain("72 °F");
+  });
+
+  it("supports the area overview appearance", async () => {
+    const fixture = TestBed.createComponent(MapWeatherChipComponent);
+    fixture.componentRef.setInput("response", response);
+    fixture.componentRef.setInput("appearance", "overview");
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.classList).toContain("is-overview");
+    expect(
+      fixture.nativeElement.querySelector("button").classList,
+    ).toContain("is-overview");
+  });
+
+  it("keeps the change time separate so its label can truncate", async () => {
+    const fixture = TestBed.createComponent(MapWeatherChipComponent);
+    fixture.componentRef.setInput("response", {
+      ...response,
+      forecast: [],
+    });
+    await fixture.whenStable();
+
+    expect(
+      fixture.nativeElement.querySelector(".change-summary-text").textContent,
+    ).toContain("Sunset");
+    expect(
+      fixture.nativeElement.querySelector(".change-summary-time").textContent,
+    ).toBe("21:00");
+  });
+
+  it("uses a vertical tooltip position and allows callers to override it", async () => {
+    const fixture = TestBed.createComponent(MapWeatherChipComponent);
+    fixture.componentRef.setInput("response", response);
+    await fixture.whenStable();
+
+    const tooltip = fixture.debugElement
+      .query(By.directive(MatTooltip))
+      .injector.get(MatTooltip);
+    expect(tooltip.position).toBe("above");
+
+    fixture.componentRef.setInput("tooltipPosition", "below");
+    await fixture.whenStable();
+
+    expect(tooltip.position).toBe("below");
+  });
+
+  it("targets wet and warning colors at the icon and temperature only", async () => {
+    const wetFixture = TestBed.createComponent(MapWeatherChipComponent);
+    wetFixture.componentRef.setInput("response", {
+      ...response,
+      current: {
+        ...response.current!,
+        condition: "rain",
+      },
+      insights: {
+        ...response.insights,
+        surfaceDrying: {
+          status: "wet",
+          confidence: "medium",
+          factors: [],
+        },
+      },
+    });
+    await wetFixture.whenStable();
+
+    const wetButton = wetFixture.nativeElement.querySelector("button");
+    expect(wetButton.classList).toContain("is-wet");
+    expect(wetButton.querySelector(".temperature")).not.toBeNull();
+    expect(wetButton.querySelector(".change-summary")).not.toBeNull();
+
+    const warningFixture = TestBed.createComponent(MapWeatherChipComponent);
+    warningFixture.componentRef.setInput("response", {
+      ...response,
+      current: {
+        ...response.current!,
+        temperatureC: 31,
+        uvIndex: 7,
+      },
+    });
+    await warningFixture.whenStable();
+
+    const warningButton =
+      warningFixture.nativeElement.querySelector("button");
+    expect(warningButton.classList).toContain("has-warning");
+    expect(warningButton.classList).not.toContain("is-wet");
+  });
+
+  it("shows the active public alert category and icon", async () => {
+    const fixture = TestBed.createComponent(MapWeatherChipComponent);
+    fixture.componentRef.setInput("response", {
+      ...response,
+      alerts: [
+        {
+          id: "storm",
+          type: "HEAT",
+          title: "Extreme heat warning",
+          severity: "extreme",
+          certainty: "likely",
+          urgency: "expected",
+          areaName: "Zurich",
+          instructions: [],
+          safetyRecommendations: [],
+          source: {
+            name: "MeteoSwiss",
+            url: "https://www.meteoswiss.admin.ch/",
+          },
+        },
+      ],
+    });
+    await fixture.whenStable();
+
+    const button = fixture.nativeElement.querySelector("button");
+    expect(button.textContent).toContain("Extreme heat");
+    expect(button.textContent).toContain("thermometer_alert");
+    expect(button.classList).toContain("has-warning");
+    expect(
+      fixture.nativeElement.querySelector(".alert-source-link"),
+    ).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain("MeteoSwiss");
+  });
+});

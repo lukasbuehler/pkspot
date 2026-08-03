@@ -30,6 +30,9 @@ export {
   rebuildCommunityPagesOnImportWrite,
   rebuildAllCommunityPages,
   rebuildCommunityEventPreviewsOnEventWrite,
+  getCommunityMergeAdminState,
+  mergeUnpublishedLocality,
+  unmergeUnpublishedLocality,
 } from "./communityFunctions";
 export {
   reviewCommunityEdit,
@@ -44,6 +47,33 @@ export {
   updateEventFieldsOnWrite,
   updateAllEventsWithTypesenseFields,
 } from "./eventFunctions";
+export { backfillEventModel } from "./eventModelMaintenanceFunctions";
+export {
+  backfillEventTiming,
+  backfillEventTimingOnCreate,
+} from "./eventTimingMaintenanceFunctions";
+export { resolveEventTimeZone } from "./eventTimeZoneFunctions";
+export {
+  respondToEventOwnershipClaim,
+  reviewEventOwnershipClaim,
+  submitEventOwnershipClaim,
+} from "./eventOwnershipClaimFunctions";
+export {
+  rebuildEventDiscovery,
+  rebuildEventDiscoveryOnCreate,
+  syncEventDiscoveryOnEventWrite,
+} from "./eventDiscoveryFunctions";
+export {
+  applyEventOperationalChange,
+  onEventLiveUpdateCreate,
+  publishEventLiveUpdate,
+} from "./eventLiveUpdateFunctions";
+export {
+  cancelEventRegistration,
+  onEventRegistrationPromotion,
+  reconcileEventWaitlistOnEventUpdate,
+  registerForEvent,
+} from "./eventRegistrationFunctions";
 
 export { computeRatingOnWrite } from "./spotRatingFunctions";
 
@@ -81,7 +111,9 @@ export {
   processImageUpload,
 } from "./imageProcessingFunctions";
 export {
+  markMediaUploadSafe,
   processMediaIntakeUpload,
+  reconcilePublishedMediaReviews,
   runMediaIntakeBackfill,
   runMediaModerationAudit,
 } from "./mediaModerationFunctions";
@@ -90,7 +122,38 @@ export {
 export { setTopChallengesForSpotOnWrite } from "./spotChallengeFunctions";
 
 // media report functions
-export { onMediaReportCreate } from "./mediaReportFunctions";
+export {
+  onMediaReportCreate,
+  onRootMediaReportCreate,
+} from "./mediaReportFunctions";
+export {
+  cleanupMediaReportSubmissionMetadata,
+  submitMediaReport,
+} from "./mediaReportSubmissionFunctions";
+export {
+  addSafetyCaseMessage,
+  appealSafetyCaseDecision,
+  cleanupSafetyCaseSecurityMetadata,
+  exchangeSafetyCaseAccessLink,
+  getSafetyCaseView,
+  submitSafetyCase,
+} from "./safetyCaseSubmissionFunctions";
+export {
+  decideSafetyCase,
+  getAdminSafetyCase,
+  listSafetyCases,
+  restoreSafetyCaseDecision,
+  updateSafetyCase,
+} from "./safetyCaseAdminFunctions";
+export {
+  aggregateSafetyCaseMetrics,
+  backfillSafetyCases,
+  onLegacyMediaReportSafetyCaseCreate,
+  onModerationActionSafetyCaseCreate,
+  onRootReportSafetyCaseCreate,
+  onSpotReportSafetyCaseCreate,
+  onUserReportSafetyCaseCreate,
+} from "./safetyCaseProjectionFunctions";
 
 // contact message functions
 export { onContactMessageCreate } from "./contactMessageFunctions";
@@ -100,6 +163,16 @@ export { onSpotReportCreate, resolveSpotReport } from "./spotReportFunctions";
 
 // moderation action functions
 export { handleModerationAction } from "./moderationActionFunctions";
+export {
+  createSafetyIncident,
+  getModerationMediaPreview,
+  updateSafetyIncident,
+} from "./safetyIncidentFunctions";
+export {
+  backfillReportReporterIdentities,
+  migrateSpotReportsToPublicWarnings,
+  runSafetyDataCleanup,
+} from "./safetyDataMaintenanceFunctions";
 
 // user report functions
 export { onUserReportCreate } from "./userReportFunctions";
@@ -123,6 +196,51 @@ export {
   onCheckInCreate,
   syncVisitedSpotsCountOnPrivateDataWrite,
   updateAgePolicy,
+  updateAgePolicyV2,
 } from "./userFunctions";
+export {
+  beginAgeAssuranceV3,
+  cleanupAgeAssuranceChallenges,
+  invalidateAgeAssuranceApprovals,
+  updateAgePolicyV3,
+} from "./ageAssuranceFunctions";
+export {
+  activateUserProfilePrivacyCutover,
+  backfillPublicUserProfiles,
+  getUserProfile,
+  syncPublicUserProfileOnWrite,
+} from "./userProfileFunctions";
 
 export { cleanupAllOrphanedMedia } from "./mediaCleanupFunctions";
+
+export { cleanupExpiredWeatherCache, getWeather } from "./weatherFunctions";
+export {
+  cleanupExpiredOsmAmenityCache,
+  getOsmAmenityTile,
+} from "./osmAmenityFunctions";
+
+export {
+  onEventNotificationSourceWrite,
+  onEventNotificationSubscriptionWrite,
+  onEventRsvpNotificationWrite,
+  onFollowRequestNotificationCreate,
+  onFollowingNotificationWrite,
+  onCommunityInfoNotificationWrite,
+  onMediaReportNotificationWrite,
+  onRootMediaReportNotificationWrite,
+  onModerationActionNotificationCreate,
+  onNewFollowerNotificationWrite,
+  onNotificationIntentWrite,
+  onSpotReportNotificationWrite,
+  onSpotEditNotificationWrite,
+  sendDueNotificationIntents,
+  performNotificationAction,
+  getMyEventNotificationMigrationState,
+  reconcileMyEventNotifications,
+} from "./notificationFunctions";
+export {
+  migrateCommunityFollowsOnMerge,
+  onCommunityEventDiscoveryWrite,
+  onCommunitySpotRecommendationWrite,
+  sendCommunitySpotDigests,
+} from "./communityNotificationFunctions";

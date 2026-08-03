@@ -15,6 +15,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { MediaUploadStatusService } from "../../services/firebase/firestore/media-upload-status.service";
+import { OPTIONAL_MEDIA_CROP_POLICY } from "../crop-image/image-crop-policy";
 
 export interface MediaUploadDialogData {
   spotId: SpotId;
@@ -26,7 +27,6 @@ export interface MediaUploadDialogData {
 
 @Component({
   selector: "app-media-upload-dialog",
-  standalone: true,
   imports: [
     CommonModule,
     MatDialogModule,
@@ -39,6 +39,7 @@ export interface MediaUploadDialogData {
   templateUrl: "./media-upload-dialog.component.html",
 })
 export class MediaUploadDialogComponent {
+  readonly optionalMediaCropPolicy = OPTIONAL_MEDIA_CROP_POLICY;
   private _snackBar = inject(MatSnackBar);
   private mediaUploadStatusService = inject(MediaUploadStatusService);
 

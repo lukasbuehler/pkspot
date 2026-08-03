@@ -2,7 +2,48 @@ import { UserReferenceSchema } from "./UserSchema";
 
 export type ReportModerationStatus = "open" | "resolved" | "dismissed";
 
+/**
+ * Private snapshot used for moderation follow-up. Authenticated reporter
+ * details are replaced by a server-authoritative Auth snapshot after create.
+ */
+export interface ModerationReporterSchema {
+  uid?: string;
+  email?: string;
+  email_verified?: boolean;
+  display_name?: string;
+  profile_picture?: string;
+}
+
+export interface MediaReportSubmissionSchema {
+  channel: "callable" | "direct" | "scanner";
+  authenticated: boolean;
+  app_check: boolean;
+  app_id?: string;
+  ip_address?: string;
+  ip_hash?: string;
+  user_agent?: string;
+  origin?: string;
+  contact_email_verified?: boolean;
+  metadata_expires_at?: unknown;
+}
+
+export interface MediaSafetyScanSchema {
+  provider: string;
+  provider_version: string;
+  decision: "allow" | "block" | "needs_review" | "reportable_match";
+  severity:
+    | "none"
+    | "explicit_non_child"
+    | "possible_child_safety"
+    | "known_csam_match";
+  reason?: string;
+  labels?: Record<string, string>;
+  thresholds?: Record<string, string>;
+}
+
 export interface MediaReportSchema {
+  /** Present on reports in the current root reports collection. */
+  kind?: "media";
   // Converted to plain object (not StorageImage/ExternalImage class instance)
   media: {
     type: string;
@@ -23,16 +64,18 @@ export interface MediaReportSchema {
   targetId?: string;
   reason: string;
   comment: string;
-  // User can be authenticated or unauthenticated
-  user:
-    | UserReferenceSchema // Authenticated user
-    | { email: string; uid?: never }; // Unauthenticated with email
+  // Guest safety/legal reports may only have an optional contact email.
+  // Authenticated identities are replaced with server-authoritative values.
+  user: ModerationReporterSchema;
   createdAt: Date;
   /** Omitted or "user" for community reports; "scanner" for internal safety findings. */
   source?: "user" | "scanner";
   scanner_source?: "upload" | "audit";
   review_path?: string;
   incident_path?: string;
+  scanner?: MediaSafetyScanSchema;
+  /** Private request context captured by the callable report endpoint. */
+  submission?: MediaReportSubmissionSchema;
   /** Locale/language code of the reporter (e.g., 'de-CH', 'en', 'fr') */
   locale?: string;
   status?: ReportModerationStatus;

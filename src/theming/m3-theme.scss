@@ -202,6 +202,13 @@ html {
   );
 
   @include mat.all-component-themes($dark-theme);
+  @include mat.card-overrides(
+    (
+      elevated-container-shape: var(--app-card-radius),
+      filled-container-shape: var(--app-card-radius),
+      outlined-container-shape: var(--app-card-radius),
+    )
+  );
 
   .mat-mdc-button.mat-accent,
   .mat-mdc-unelevated-button.mat-accent,

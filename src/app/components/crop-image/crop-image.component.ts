@@ -1,72 +1,107 @@
-import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy } from "@angular/core";
-import { ImageCroppedEvent, ImageCropperComponent } from "ngx-image-cropper";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+  output,
+  signal,
+  viewChild,
+} from "@angular/core";
+import {
+  ImageCropperComponent,
+  type ImageTransform,
+} from "ngx-image-cropper";
 import { MatButton } from "@angular/material/button";
-import { MatCard, MatCardContent } from "@angular/material/card";
 import { MatIcon } from "@angular/material/icon";
+import { MatSlider, MatSliderThumb } from "@angular/material/slider";
+import {
+  cropOutputFormat,
+  cropOutputMimeType,
+  croppedFileName,
+  PROFILE_IMAGE_CROP_POLICY,
+  type ImageCropPolicy,
+} from "./image-crop-policy";
 
 /**
- * Component for cropping images with a circular mask (for profile pictures)
- * Emits the cropped image as a blob when the user confirms
+ * Focused crop editor. Uploading is deliberately owned by the parent so
+ * cancelling this component can never publish a file.
  */
 @Component({
   selector: "app-crop-image",
   templateUrl: "./crop-image.component.html",
   styleUrls: ["./crop-image.component.scss"],
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ImageCropperComponent, MatButton, MatCard, MatCardContent, MatIcon],
+  imports: [
+    ImageCropperComponent,
+    MatButton,
+    MatIcon,
+    MatSlider,
+    MatSliderThumb,
+  ],
 })
-export class CropImageComponent implements OnInit {
-  /** The image source (base64 data URL) */
-  @Input() imageSource: string = "";
+export class CropImageComponent {
+  readonly imageFile = input.required<File>();
+  readonly policy = input<ImageCropPolicy>(PROFILE_IMAGE_CROP_POLICY);
+  readonly imageCropped = output<File>();
+  readonly cancelled = output<void>();
 
-  /** Emits the cropped image blob when user confirms */
-  @Output() imageCropped = new EventEmitter<Blob>();
+  private readonly cropper = viewChild.required(ImageCropperComponent);
 
-  /** Emits when the user cancels */
-  @Output() cancelled = new EventEmitter<void>();
+  readonly outputFormat = computed(() => cropOutputFormat(this.imageFile()));
+  readonly maintainAspectRatio = computed(
+    () => this.policy().shape !== "free",
+  );
+  readonly roundCropper = computed(() => this.policy().shape === "circle");
+  readonly aspectRatio = computed(() => this.policy().aspectRatio ?? 1);
+  readonly canvasRotation = signal(0);
+  readonly transform = signal<ImageTransform>({ scale: 1 });
+  readonly zoom = computed(() => this.transform().scale ?? 1);
+  readonly isReady = signal(false);
+  readonly hasLoadError = signal(false);
+  readonly isProcessing = signal(false);
 
-  croppedImage: string = "";
-  isProcessing: boolean = false;
-
-  ngOnInit() {
-    // Reset states
-    this.croppedImage = "";
-    this.isProcessing = false;
+  setZoom(value: number): void {
+    this.transform.update((transform) => ({ ...transform, scale: value }));
   }
 
-  /**
-   * Handle image cropped event from the cropper
-   */
-  imageCroppedEventHandler(event: ImageCroppedEvent) {
-    this.croppedImage = event.objectUrl || "";
+  updateTransform(transform: ImageTransform): void {
+    this.transform.set(transform);
   }
 
-  /**
-   * Convert the cropped image to a blob and emit it
-   */
-  saveCroppedImage() {
-    this.isProcessing = true;
+  rotate(delta: number): void {
+    this.canvasRotation.update((rotation) => rotation + delta);
+  }
 
-    if (this.croppedImage) {
-      // Convert the cropped image URL to a blob
-      fetch(this.croppedImage)
-        .then((response) => response.blob())
-        .then((blob) => {
-          this.imageCropped.emit(blob);
-          this.isProcessing = false;
-        })
-        .catch((error) => {
-          console.error("Error converting cropped image to blob:", error);
-          this.isProcessing = false;
-        });
+  reset(): void {
+    this.canvasRotation.set(0);
+    this.transform.set({ scale: 1 });
+    this.cropper().resetCropperPosition();
+  }
+
+  async saveCroppedImage(): Promise<void> {
+    if (!this.isReady() || this.isProcessing()) return;
+    this.isProcessing.set(true);
+    try {
+      const result = await this.cropper().crop("blob");
+      if (!result?.blob) {
+        throw new Error("The cropped image could not be created.");
+      }
+      const format = this.outputFormat();
+      this.imageCropped.emit(
+        new File([result.blob], croppedFileName(this.imageFile(), format), {
+          type: cropOutputMimeType(format),
+          lastModified: Date.now(),
+        }),
+      );
+    } catch (error) {
+      console.error("Error creating cropped image:", error);
+      this.hasLoadError.set(true);
+    } finally {
+      this.isProcessing.set(false);
     }
   }
 
-  /**
-   * Cancel cropping
-   */
-  cancelCrop() {
+  cancelCrop(): void {
     this.cancelled.emit();
   }
 }

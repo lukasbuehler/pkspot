@@ -104,6 +104,14 @@ describe("Cloud Functions generation policy", () => {
     );
   });
 
+  it("keeps organization member rosters private to that organization", () => {
+    const rulesSource = readFileSync(resolve(repoRoot, "firestore.rules"), "utf8");
+
+    expect(rulesSource).toMatch(
+      /match\s+\/members\/\{userId\}\s*\{\s*allow read: if request\.auth\.uid != null\s*&& \(request\.auth\.uid == userId \|\| isAdmin\(\) \|\| isOrganizationReviewer\(organizationId\)\);/u,
+    );
+  });
+
   it("keeps organization review callables publicly invokable for browser preflight", () => {
     const spotEditSource = readFileSync(
       resolve(functionsSourceRoot, "spotEditFunctions.ts"),
@@ -113,6 +121,71 @@ describe("Cloud Functions generation policy", () => {
     expect(spotEditSource).toContain("const CALLABLE_CORS_OPTIONS");
     expect(spotEditSource).toContain("cors: true");
     expect(spotEditSource).toContain('invoker: "public"');
+  });
+
+  it("requires App Check for weather requests", () => {
+    const weatherSource = readFileSync(
+      resolve(functionsSourceRoot, "weatherFunctions.ts"),
+      "utf8"
+    );
+
+    expect(weatherSource).toMatch(
+      /export const getWeather = onCall\(\s*\{ enforceAppCheck: true,/u
+    );
+  });
+
+  it("binds age policy to Play Integrity in App Check protected callables", () => {
+    const indexSource = readFileSync(
+      resolve(functionsSourceRoot, "index.ts"),
+      "utf8"
+    );
+    const userSource = readFileSync(
+      resolve(functionsSourceRoot, "userFunctions.ts"),
+      "utf8"
+    );
+    const assuranceSource = readFileSync(
+      resolve(functionsSourceRoot, "ageAssuranceFunctions.ts"),
+      "utf8"
+    );
+
+    expect(indexSource).toContain("updateAgePolicyV2");
+    expect(indexSource).toContain("beginAgeAssuranceV3");
+    expect(indexSource).toContain("updateAgePolicyV3");
+    expect(indexSource).toContain("invalidateAgeAssuranceApprovals");
+    expect(indexSource).toContain("cleanupAgeAssuranceChallenges");
+    expect(userSource).toMatch(
+      /export const updateAgePolicyV2 = onCall\(\s*\{ enforceAppCheck: true \}/u
+    );
+    expect(userSource).toContain("cryptographicallyBound: false");
+    expect(userSource).toContain(
+      'profileAccessFieldsForPrivacy("private", false)',
+    );
+    expect(assuranceSource).toContain("enforceAppCheck: true");
+    expect(assuranceSource).toContain("decodeAndVerifyPlayIntegrityToken");
+    expect(assuranceSource).toContain("cryptographicallyBound: true");
+    expect(assuranceSource).toContain(
+      'profileAccessFieldsForPrivacy("private", false)',
+    );
+  });
+
+  it("requires App Check for cached OpenStreetMap amenity requests", () => {
+    const source = readFileSync(
+      resolve(functionsSourceRoot, "osmAmenityFunctions.ts"),
+      "utf8"
+    );
+    const indexSource = readFileSync(
+      resolve(functionsSourceRoot, "index.ts"),
+      "utf8"
+    );
+
+    expect(source).toMatch(
+      /export const getOsmAmenityTile = onCall\(\s*\{\s*enforceAppCheck: true,/u
+    );
+    expect(source).toContain("OSM_AMENITY_CACHE_COLLECTION");
+    expect(source).toContain("OVERPASS_ENDPOINTS");
+    expect(source).toContain('"User-Agent": "PKSpot/1.0');
+    expect(indexSource).toContain("getOsmAmenityTile");
+    expect(indexSource).toContain("cleanupExpiredOsmAmenityCache");
   });
 
   it("keeps signup number assignment on a gen 2 profile trigger", () => {
@@ -127,6 +200,28 @@ describe("Cloud Functions generation policy", () => {
     expect(source).not.toContain("firebase-functions/v1");
   });
 
+  it("exports the viewer-specific profile boundary and projection maintenance", () => {
+    const indexSource = readFileSync(
+      resolve(functionsSourceRoot, "index.ts"),
+      "utf8"
+    );
+    const source = readFileSync(
+      resolve(functionsSourceRoot, "userProfileFunctions.ts"),
+      "utf8"
+    );
+
+    expect(indexSource).toContain("getUserProfile");
+    expect(indexSource).toContain("syncPublicUserProfileOnWrite");
+    expect(indexSource).toContain("backfillPublicUserProfiles");
+    expect(indexSource).toContain("activateUserProfilePrivacyCutover");
+    expect(source).toContain('invoker: "public"');
+    expect(source).toContain("cors: true");
+    expect(source).toContain('onDocumentWritten(\n  "users/{userId}"');
+    expect(source).toContain(
+      '"restrict-legacy-user-profile-reads"'
+    );
+  });
+
   it("keeps media moderation functions exported as gen 2 triggers", () => {
     const indexSource = readFileSync(
       resolve(functionsSourceRoot, "index.ts"),
@@ -138,14 +233,28 @@ describe("Cloud Functions generation policy", () => {
     );
 
     expect(indexSource).toContain("processMediaIntakeUpload");
+    expect(indexSource).toContain("markMediaUploadSafe");
+    expect(indexSource).toContain("reconcilePublishedMediaReviews");
     expect(indexSource).toContain("runMediaIntakeBackfill");
     expect(indexSource).toContain("runMediaModerationAudit");
     expect(source).toContain("firebase-functions/v2/storage");
     expect(source).toContain("firebase-functions/v2/firestore");
     expect(source).toContain("onObjectFinalized");
     expect(source).toContain("onDocumentCreated");
+    expect(source).toContain("onCall");
     expect(source).toContain("secrets: mediaModerationSecrets");
     expect(source).toContain("bucket: DEFAULT_STORAGE_BUCKET");
+    expect(source).toContain('"organization_media/"');
+  });
+
+  it("creates standard image derivatives for organization logos", () => {
+    const source = readFileSync(
+      resolve(functionsSourceRoot, "imageProcessingFunctions.ts"),
+      "utf8",
+    );
+
+    expect(source).toContain('"organization_media/"');
+    expect(source).toContain("DEFAULT_IMAGE_SIZES = [200, 400, 800]");
   });
 
   it("initializes Firebase Admin before media moderation functions are loaded", () => {

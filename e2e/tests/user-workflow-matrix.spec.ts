@@ -160,7 +160,7 @@ const redirectCases: RouteCase[] = [
   {
     name: "legacy event on map URL",
     path: "/map/event/swissjam25",
-    expectedPath: /\/de\/map\/events\/swissjam25$/u,
+    expectedPath: /\/de\/events\/swissjam25$/u,
     expectRendered: false,
   },
   {
@@ -457,7 +457,7 @@ test.describe("high-priority user workflow matrix", () => {
   test("add spot action stays hidden for signed-out users", async ({ page }) => {
     await gotoWorkflow(page, "/map");
 
-    await expect(page.locator("#createSpotSpeedDial")).not.toBeVisible();
+    await expect(page.locator("#mapCreateFabMenu")).not.toBeVisible();
   });
 
   test("embedded map suppresses the normal app navigation", async ({ page }) => {

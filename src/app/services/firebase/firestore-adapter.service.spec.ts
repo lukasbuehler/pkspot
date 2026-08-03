@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi, Mock } from "vitest";
 import { TestBed } from "@angular/core/testing";
-import { Firestore } from "@angular/fire/firestore";
 import {
   GeoPoint,
   Timestamp,
@@ -8,11 +7,12 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { of } from "rxjs";
+import { FIREBASE_FIRESTORE } from "./firebase-client.providers";
 
 // Note: vi.mock calls are hoisted, so we need inline mocks
-vi.mock("@angular/fire/firestore", async (importOriginal) => {
+vi.mock("firebase/firestore", async (importOriginal) => {
   const actual = await importOriginal<
-    typeof import("@angular/fire/firestore")
+    typeof import("firebase/firestore")
   >();
   return {
     ...actual,
@@ -194,7 +194,7 @@ describe("FirestoreAdapterService", () => {
     TestBed.configureTestingModule({
       providers: [
         FirestoreAdapterService,
-        { provide: Firestore, useValue: mockFirestore },
+        { provide: FIREBASE_FIRESTORE, useValue: mockFirestore },
         { provide: PlatformService, useValue: mockPlatformService },
         { provide: FirebaseAppCheckService, useValue: mockAppCheckService },
       ],
@@ -216,7 +216,7 @@ describe("FirestoreAdapterService", () => {
 
   describe("getDocument (web)", () => {
     it("waits for App Check initialization before using the web SDK", async () => {
-      const { getDoc } = await import("@angular/fire/firestore");
+      const { getDoc } = await import("firebase/firestore");
       let resolveAppCheck!: () => void;
       mockAppCheckService.initialize.mockReturnValueOnce(
         new Promise<void>((resolve) => {
@@ -237,7 +237,7 @@ describe("FirestoreAdapterService", () => {
     });
 
     it("should return document data when document exists", async () => {
-      const { getDoc } = await import("@angular/fire/firestore");
+      const { getDoc } = await import("firebase/firestore");
       (getDoc as Mock).mockResolvedValueOnce({
         exists: () => true,
         id: "test-id",
@@ -252,7 +252,7 @@ describe("FirestoreAdapterService", () => {
     });
 
     it("should return null when document does not exist", async () => {
-      const { getDoc } = await import("@angular/fire/firestore");
+      const { getDoc } = await import("firebase/firestore");
       (getDoc as Mock).mockResolvedValueOnce({
         exists: () => false,
         data: () => null,
@@ -266,7 +266,7 @@ describe("FirestoreAdapterService", () => {
 
   describe("setDocument (web)", () => {
     it("should call setDoc", async () => {
-      const { setDoc } = await import("@angular/fire/firestore");
+      const { setDoc } = await import("firebase/firestore");
 
       await service.setDocument("collection/doc-id", { name: "New Doc" });
 
@@ -274,7 +274,7 @@ describe("FirestoreAdapterService", () => {
     });
 
     it("should pass RSVP merge payloads through to the web SDK", async () => {
-      const { setDoc } = await import("@angular/fire/firestore");
+      const { setDoc } = await import("firebase/firestore");
       const payload = {
         user_id: "user-1",
         event_id: "event-1",
@@ -295,7 +295,7 @@ describe("FirestoreAdapterService", () => {
 
   describe("updateDocument (web)", () => {
     it("should call updateDoc", async () => {
-      const { updateDoc } = await import("@angular/fire/firestore");
+      const { updateDoc } = await import("firebase/firestore");
 
       await service.updateDocument("collection/doc-id", { name: "Updated" });
 
@@ -305,7 +305,7 @@ describe("FirestoreAdapterService", () => {
 
   describe("deleteDocument (web)", () => {
     it("should call deleteDoc", async () => {
-      const { deleteDoc } = await import("@angular/fire/firestore");
+      const { deleteDoc } = await import("firebase/firestore");
 
       await service.deleteDocument("collection/doc-id");
 
@@ -315,7 +315,7 @@ describe("FirestoreAdapterService", () => {
 
   describe("addDocument (web)", () => {
     it("should return the new document ID", async () => {
-      const { addDoc } = await import("@angular/fire/firestore");
+      const { addDoc } = await import("firebase/firestore");
       (addDoc as Mock).mockResolvedValueOnce({ id: "new-generated-id" });
 
       const docId = await service.addDocument("collection", { name: "New" });
@@ -324,7 +324,7 @@ describe("FirestoreAdapterService", () => {
     });
 
     it("should pass create-edit payload types through to the web SDK", async () => {
-      const { addDoc } = await import("@angular/fire/firestore");
+      const { addDoc } = await import("firebase/firestore");
       const payload = {
         type: "CREATE",
         timestamp_raw_ms: 1,
@@ -348,7 +348,7 @@ describe("FirestoreAdapterService", () => {
 
   describe("createDocumentId (web)", () => {
     it("should generate an id without writing", async () => {
-      const { addDoc, doc, collection } = await import("@angular/fire/firestore");
+      const { addDoc, doc, collection } = await import("firebase/firestore");
 
       const docId = service.createDocumentId("spots");
 
@@ -365,7 +365,7 @@ describe("FirestoreAdapterService", () => {
         { id: "doc1", data: () => ({ name: "Doc 1" }) },
         { id: "doc2", data: () => ({ name: "Doc 2" }) },
       ];
-      const { getDocs } = await import("@angular/fire/firestore");
+      const { getDocs } = await import("firebase/firestore");
       (getDocs as Mock).mockResolvedValueOnce({ docs: mockDocs });
 
       const result = await service.getCollection<{ name: string; id: string }>(
@@ -379,7 +379,7 @@ describe("FirestoreAdapterService", () => {
       const mockDocs = [
         { id: "filtered-doc", data: () => ({ status: "active" }) },
       ];
-      const { getDocs } = await import("@angular/fire/firestore");
+      const { getDocs } = await import("firebase/firestore");
       (getDocs as Mock).mockResolvedValueOnce({ docs: mockDocs });
 
       const filters: QueryFilter[] = [
@@ -393,7 +393,7 @@ describe("FirestoreAdapterService", () => {
 
     it("should apply orderBy and limit constraints", async () => {
       const mockDocs = [{ id: "sorted-doc", data: () => ({ createdAt: 123 }) }];
-      const { getDocs } = await import("@angular/fire/firestore");
+      const { getDocs } = await import("firebase/firestore");
       (getDocs as Mock).mockResolvedValueOnce({ docs: mockDocs });
 
       const constraints: QueryConstraintOptions[] = [
@@ -412,7 +412,7 @@ describe("FirestoreAdapterService", () => {
 
     it("should ignore malformed limit constraints instead of forwarding them", async () => {
       const mockDocs = [{ id: "doc1", data: () => ({ name: "Doc 1" }) }];
-      const { getDocs, limit } = await import("@angular/fire/firestore");
+      const { getDocs, limit } = await import("firebase/firestore");
       (getDocs as Mock).mockResolvedValueOnce({ docs: mockDocs });
 
       const constraints = [
@@ -436,7 +436,7 @@ describe("FirestoreAdapterService", () => {
         { id: "edit1", data: () => ({ userId: "user1" }) },
         { id: "edit2", data: () => ({ userId: "user1" }) },
       ];
-      const { getDocs } = await import("@angular/fire/firestore");
+      const { getDocs } = await import("firebase/firestore");
       (getDocs as Mock).mockResolvedValueOnce({ docs: mockDocs });
 
       const filters: QueryFilter[] = [
@@ -453,7 +453,7 @@ describe("FirestoreAdapterService", () => {
 
     it("should work without filters", async () => {
       const mockDocs = [{ id: "doc1", data: () => ({ field: "value" }) }];
-      const { getDocs } = await import("@angular/fire/firestore");
+      const { getDocs } = await import("firebase/firestore");
       (getDocs as Mock).mockResolvedValueOnce({ docs: mockDocs });
 
       const result = await service.getCollectionGroup("edits");
@@ -520,7 +520,7 @@ describe("FirestoreAdapterService (native)", () => {
     TestBed.configureTestingModule({
       providers: [
         FirestoreAdapterService,
-        { provide: Firestore, useValue: mockFirestore },
+        { provide: FIREBASE_FIRESTORE, useValue: mockFirestore },
         { provide: PlatformService, useValue: nativeMockPlatformService },
         { provide: FirebaseAppCheckService, useValue: mockAppCheckService },
       ],
@@ -784,7 +784,7 @@ describe("FirestoreAdapterService (native)", () => {
 
   describe("createDocumentId (native)", () => {
     it("should generate a web-sdk id without using the native write bridge", async () => {
-      const { doc, collection } = await import("@angular/fire/firestore");
+      const { doc, collection } = await import("firebase/firestore");
 
       const docId = service.createDocumentId("spots");
 
@@ -827,7 +827,7 @@ describe("FirestoreAdapterService (native)", () => {
     });
 
     it("should call native getCollection on iOS", async () => {
-      const { getDocs } = await import("@angular/fire/firestore");
+      const { getDocs } = await import("firebase/firestore");
       (getDocs as Mock).mockResolvedValueOnce({
         docs: [{ id: "ios-doc", data: () => ({ name: "iOS" }) }],
       });
@@ -859,7 +859,7 @@ describe("FirestoreAdapterService (native)", () => {
           },
         ]),
       });
-      const { getDocs } = await import("@angular/fire/firestore");
+      const { getDocs } = await import("firebase/firestore");
 
       const result = await service.getCollection<{
         id: string;
@@ -907,7 +907,7 @@ describe("FirestoreAdapterService (native)", () => {
     it("should not apply the iOS web timeout when using native getCollection", async () => {
       vi.useFakeTimers();
       try {
-        const { getDocs } = await import("@angular/fire/firestore");
+        const { getDocs } = await import("firebase/firestore");
         (getDocs as Mock).mockReturnValueOnce(new Promise(() => {}));
         fetchMock.mockReturnValueOnce(new Promise(() => {}));
 
@@ -976,7 +976,7 @@ describe("FirestoreAdapterService (native)", () => {
           },
         ]),
       });
-      const { getDocs } = await import("@angular/fire/firestore");
+      const { getDocs } = await import("firebase/firestore");
 
       const result = await service.getCollectionGroup<{
         field: string;

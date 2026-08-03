@@ -1,0 +1,305 @@
+<div class="weather-dialog-header">
+  <div>
+    <span class="mat-title-small" i18n="@@weather.dialog.eyebrow"
+      >Conditions now</span
+    >
+    <h2 mat-dialog-title>
+      @if (data.context === "map-region") {
+        <span i18n="@@weather.dialog.region_title">Weather in the area</span>
+      } @else {
+        <span i18n="@@weather.dialog.title">Weather at</span>
+        {{ data.spotName }}
+      }
+    </h2>
+  </div>
+  <button
+    type="button"
+    mat-icon-button
+    mat-dialog-close
+    aria-label="Close weather forecast"
+    i18n-aria-label="@@weather.dialog.close"
+  >
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content>
+  <section class="current-conditions">
+    <mat-icon
+      class="current-icon"
+      [class.is-wet]="visualStatus === 'wet'"
+      [class.has-warning]="visualStatus === 'warning'"
+      aria-hidden="true"
+      >{{ currentIcon }}</mat-icon
+    >
+    <div class="current-copy">
+      <div class="current-heading">
+        @if (currentTemperature(); as temperature) {
+          <span class="mat-display-small">{{ temperature }}</span>
+        }
+        <span class="mat-title-medium">{{ currentState.label }}</span>
+      </div>
+      @if (narrative) {
+        <p class="mat-body-large">{{ narrative }}</p>
+      }
+      @if (surfaceNote) {
+        <p class="surface-note mat-body-medium">{{ surfaceNote }}</p>
+      }
+      @if (daylightSummary) {
+        <div class="daylight-summary mat-body-medium">
+          <mat-icon aria-hidden="true">schedule</mat-icon>
+          <span>
+            {{ daylightSummary }}
+            @if (cloudCoverSummary) {
+              {{ cloudCoverSummary }}
+            }
+          </span>
+        </div>
+      }
+    </div>
+  </section>
+
+  @if (alerts.length > 0) {
+    <section
+      class="public-alert-list"
+      aria-label="Official weather alerts"
+      i18n-aria-label="@@weather.alert.list_label"
+    >
+      @for (alert of alerts; track alert.id) {
+        <article
+          class="public-alert"
+          [class.is-error]="alert.tone === 'error'"
+          role="alert"
+        >
+          <span class="public-alert-icon" aria-hidden="true">
+            <mat-icon>{{ alert.icon }}</mat-icon>
+          </span>
+          <div class="public-alert-copy">
+            <span class="mat-label-medium">{{ alert.categoryLabel }}</span>
+            <strong class="mat-title-small">{{ alert.title }}</strong>
+            @if (alert.areaName) {
+              <span class="mat-body-small">{{ alert.areaName }}</span>
+            }
+            @if (alert.activeUntil) {
+              <span class="mat-body-small">{{ alert.activeUntil }}</span>
+            }
+            @if (alert.hasDetails) {
+              <details>
+                <summary
+                  class="mat-label-large"
+                  i18n="@@weather.alert.safety_details"
+                >
+                  Safety information
+                </summary>
+                @if (alert.description) {
+                  <p class="mat-body-small">{{ alert.description }}</p>
+                }
+                @for (
+                  recommendation of alert.safetyRecommendations;
+                  track recommendation.directive
+                ) {
+                  <p class="mat-body-small">
+                    <strong>{{ recommendation.directive }}</strong>
+                    @if (recommendation.subtext) {
+                      {{ recommendation.subtext }}
+                    }
+                  </p>
+                }
+                @for (
+                  instruction of alert.instructions;
+                  track instruction
+                ) {
+                  <p class="mat-body-small">{{ instruction }}</p>
+                }
+              </details>
+            }
+            <a
+              class="public-alert-source mat-label-medium"
+              [href]="alert.source.url"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {{ alertSourceLabel }} {{ alert.source.name }}
+              <mat-icon aria-hidden="true">open_in_new</mat-icon>
+            </a>
+          </div>
+        </article>
+      }
+    </section>
+  }
+
+  @if (data.covered) {
+    <section class="covered-info" role="note">
+      <span class="covered-info-icon" aria-hidden="true">
+        <mat-icon>umbrella</mat-icon>
+      </span>
+      <div>
+        <strong class="mat-title-small" i18n="@@weather.dialog.covered.title"
+          >Covered spot</strong
+        >
+        <p class="mat-body-small" i18n="@@weather.dialog.covered.message">
+          This training area should stay protected from rain and may be shaded
+          from direct sunlight. The forecast shows the surrounding outdoor
+          conditions.
+        </p>
+      </div>
+    </section>
+  }
+
+  @if (warningGroups.length > 0) {
+    <section class="warning-list" aria-label="Weather warnings" i18n-aria-label>
+      @for (group of warningGroups; track group.tone) {
+        <div
+          class="weather-warning"
+          [class.is-primary]="group.tone === 'primary'"
+        >
+          @for (warning of group.warnings; track warning.label) {
+            <div class="weather-warning-item">
+              <span class="weather-warning-icon" aria-hidden="true">
+                <mat-icon>{{ warning.icon }}</mat-icon>
+              </span>
+              <div class="weather-warning-copy">
+                <strong class="mat-title-small">{{ warning.label }}</strong>
+                <p class="mat-body-small">{{ warning.message }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  @if (current) {
+    <section
+      class="metric-grid"
+      aria-label="Current weather details"
+      i18n-aria-label
+    >
+      @if (apparentTemperature(); as temperature) {
+        <div class="weather-metric">
+          <mat-icon aria-hidden="true">thermostat</mat-icon>
+          <span class="mat-label-small" i18n="@@weather.dialog.feels_like"
+            >Feels like</span
+          >
+          <strong>{{ temperature }}</strong>
+        </div>
+      }
+      @if (current.relativeHumidityPercent !== undefined) {
+        <div class="weather-metric">
+          <mat-icon aria-hidden="true">humidity_percentage</mat-icon>
+          <span class="mat-label-small" i18n="@@weather.dialog.humidity"
+            >Humidity</span
+          >
+          <strong>{{ current.relativeHumidityPercent }}%</strong>
+        </div>
+      }
+      @if (current.uvIndex !== undefined) {
+        <div class="weather-metric">
+          <mat-icon aria-hidden="true">sunny</mat-icon>
+          <span class="mat-label-small" i18n="@@weather.dialog.uv_index"
+            >UV index</span
+          >
+          <strong>{{ current.uvIndex }}</strong>
+        </div>
+      }
+      @if (current.windSpeedKmh !== undefined) {
+        <div class="weather-metric">
+          <mat-icon aria-hidden="true">air</mat-icon>
+          <span class="mat-label-small" i18n="@@weather.dialog.wind">Wind</span>
+          <strong>{{ current.windSpeedKmh }} km/h</strong>
+        </div>
+      }
+    </section>
+  }
+
+  <section class="hourly-section">
+    <h3 class="mat-title-medium" i18n="@@weather.dialog.next_hours">
+      Next 12 hours
+    </h3>
+    <div class="hourly-strip">
+      @for (hour of hours(); track hour.time) {
+        <div class="weather-hour">
+          <time class="mat-label-medium">{{ hour.time }}</time>
+          <mat-icon
+            class="forecast-icon"
+            [class.is-wet]="hour.iconTone === 'wet'"
+            [class.has-warning]="hour.iconTone === 'warning'"
+            [class.is-night]="hour.iconTone === 'night'"
+            [attr.aria-label]="hour.condition"
+            >{{ hour.icon }}</mat-icon
+          >
+          @if (hour.temperature !== undefined) {
+            <strong>{{ hour.temperature }}</strong>
+          }
+          @if (
+            hour.rainProbability !== undefined ||
+            (hour.precipitationMm ?? 0) > 0
+          ) {
+            <span class="rain-detail mat-label-small">
+              <mat-icon aria-hidden="true">water_drop</mat-icon>
+              {{ hour.rainProbability ?? 0 }}%
+            </span>
+          }
+        </div>
+      }
+    </div>
+  </section>
+
+  @if (days().length > 0) {
+    <section class="daily-section">
+      <h3 class="mat-title-medium" i18n="@@weather.dialog.next_days">
+        Next 8 days
+      </h3>
+      <div class="daily-strip">
+        @for (day of days(); track day.date) {
+          <div class="weather-day">
+            <div class="day-heading">
+              <strong class="mat-label-large">{{ day.weekday }}</strong>
+              <span class="mat-label-small">{{ day.date }}</span>
+            </div>
+            <mat-icon
+              class="forecast-icon"
+              [class.is-wet]="day.iconTone === 'wet'"
+              [class.has-warning]="day.iconTone === 'warning'"
+              [attr.aria-label]="day.condition"
+              >{{ day.icon }}</mat-icon
+            >
+            @if (
+              day.maxTemperature !== undefined ||
+              day.minTemperature !== undefined
+            ) {
+              <div class="temperature-range">
+                @if (day.maxTemperature !== undefined) {
+                  <strong>{{ day.maxTemperature }}</strong>
+                }
+                @if (day.minTemperature !== undefined) {
+                  <span>{{ day.minTemperature }}</span>
+                }
+              </div>
+            }
+            @if (
+              day.rainProbability !== undefined ||
+              (day.precipitationMm ?? 0) > 0
+            ) {
+              <span class="rain-detail mat-label-small">
+                <mat-icon aria-hidden="true">water_drop</mat-icon>
+                {{ day.rainProbability ?? 0 }}%
+              </span>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <a
+    mat-button
+    class="attribution"
+    [href]="providerUrl"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    {{ attribution }}
+    <mat-icon>open_in_new</mat-icon>
+  </a>
+</mat-dialog-content>

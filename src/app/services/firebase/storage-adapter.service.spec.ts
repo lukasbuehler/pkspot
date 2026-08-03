@@ -1,12 +1,12 @@
 import { TestBed } from "@angular/core/testing";
-import { Storage } from "@angular/fire/storage";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { FirebaseStorage } from "@capacitor-firebase/storage";
 import { PlatformService } from "../platform.service";
 import { FirebaseAppCheckService } from "./app-check.service";
 import { StorageAdapterService } from "./storage-adapter.service";
+import { FIREBASE_STORAGE } from "./firebase-client.providers";
 
-vi.mock("@angular/fire/storage", () => ({
+vi.mock("firebase/storage", () => ({
   Storage: class {},
   ref: vi.fn((_storage, path: string) => ({ path })),
   uploadBytesResumable: vi.fn(),
@@ -57,7 +57,7 @@ describe("StorageAdapterService", () => {
   });
 
   it("waits for App Check initialization before using the web SDK", async () => {
-    const { getDownloadURL } = await import("@angular/fire/storage");
+    const { getDownloadURL } = await import("firebase/storage");
     const appCheck = createAppCheckService();
     let resolveAppCheck!: () => void;
     appCheck.initialize.mockReturnValueOnce(
@@ -69,7 +69,7 @@ describe("StorageAdapterService", () => {
     TestBed.configureTestingModule({
       providers: [
         StorageAdapterService,
-        { provide: Storage, useValue: storage },
+        { provide: FIREBASE_STORAGE, useValue: storage },
         { provide: PlatformService, useValue: createPlatformService(false) },
         { provide: FirebaseAppCheckService, useValue: appCheck },
       ],
@@ -101,7 +101,7 @@ describe("StorageAdapterService", () => {
     TestBed.configureTestingModule({
       providers: [
         StorageAdapterService,
-        { provide: Storage, useValue: storage },
+        { provide: FIREBASE_STORAGE, useValue: storage },
         { provide: PlatformService, useValue: createPlatformService(true) },
         { provide: FirebaseAppCheckService, useValue: appCheck },
       ],

@@ -32,7 +32,6 @@ export interface SpotAmenitiesDialogData {
 
 @Component({
   selector: "app-spot-amenities-dialog",
-  standalone: true,
   imports: [
     MatDialogTitle,
     MatDialogContent,

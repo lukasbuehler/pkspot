@@ -3,7 +3,6 @@ import {
   computed,
   inject,
   signal,
-  LOCALE_ID,
   effect,
   input,
   ChangeDetectionStrategy,
@@ -25,6 +24,7 @@ import { AnalyticsService } from "../../services/analytics.service";
 import { getGooglePlaceOpeningHoursStatus } from "../../shared/google-place-opening-hours";
 import { PlatformService } from "../../services/platform.service";
 import { NativeGooglePlacePhotoService } from "../../services/native-google-place-photo.service";
+import { DateTimeFormatService } from "../../services/date-time-format.service";
 
 @Component({
   selector: "app-google-place-preview",
@@ -48,7 +48,7 @@ export class GooglePlacePreviewComponent {
   private _analytics = inject(AnalyticsService);
   private _platform = inject(PlatformService);
   private _nativePhoto = inject(NativeGooglePlacePhotoService);
-  private _locale: string = inject(LOCALE_ID);
+  private readonly _dateTime = inject(DateTimeFormatService);
   private _nativePhotoRequestId = 0;
 
   placeId = input<string | null | undefined>(undefined);
@@ -145,7 +145,9 @@ export class GooglePlacePreviewComponent {
   private openingHoursStatus = computed(() =>
     getGooglePlaceOpeningHoursStatus(
       this.place()?.regularOpeningHours,
-      this._locale,
+      this._dateTime.preferences().locale,
+      new Date(),
+      this._dateTime.preferences().hourCycle,
     ),
   );
 

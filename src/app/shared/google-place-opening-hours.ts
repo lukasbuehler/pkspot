@@ -28,6 +28,7 @@ export function getGooglePlaceOpeningHoursStatus(
   openingHours: OpeningHoursLike | null | undefined,
   locale: string,
   now = new Date(),
+  hourCycle?: Intl.DateTimeFormatOptions["hourCycle"],
 ): GooglePlaceOpeningHoursStatus {
   const periods = openingHours?.periods;
   if (!periods || periods.length === 0) {
@@ -41,6 +42,7 @@ export function getGooglePlaceOpeningHoursStatus(
   const formatTime = new Intl.DateTimeFormat(locale, {
     hour: "numeric",
     minute: "2-digit",
+    hourCycle,
   });
   const formatWeekday = new Intl.DateTimeFormat(locale, {
     weekday: "short",

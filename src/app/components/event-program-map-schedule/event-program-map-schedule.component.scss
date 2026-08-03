@@ -1,0 +1,55 @@
+:host {
+  display: block;
+}
+
+.program-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.program-day-panel {
+  --mat-expansion-container-background-color: var(
+    --mat-sys-surface-container-low
+  );
+  --mat-expansion-container-text-color: var(--mat-sys-on-surface);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px !important;
+  box-shadow: none !important;
+  overflow: hidden;
+
+  &.mat-expanded {
+    border-color: var(--mat-sys-primary);
+  }
+}
+
+mat-panel-title {
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.day-header-weather {
+  width: 1.25rem;
+  height: 1.25rem;
+  font-size: 1.25rem;
+  color: var(--mat-sys-on-surface-variant);
+
+  &.is-wet {
+    color: var(--mat-sys-primary);
+  }
+
+  &.has-warning {
+    color: var(--mat-sys-error);
+  }
+
+  &.is-night {
+    color: var(--mat-sys-tertiary);
+  }
+}
+
+.day-weather-row {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 2.5rem;
+  margin-bottom: 0.5rem;
+}

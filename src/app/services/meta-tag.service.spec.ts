@@ -129,9 +129,12 @@ describe("MetaTagService", () => {
     expect(linkHref(doc, 'link[rel="canonical"]')).toBe(
       "https://pkspot.app/en/events/swissjam26",
     );
-    expect(linkHref(doc, 'link[rel="alternate"][hreflang="de-CH"]')).toBe(
-      "https://pkspot.app/de-CH/events/swissjam26",
+    expect(linkHref(doc, 'link[rel="alternate"][hreflang="de"]')).toBe(
+      "https://pkspot.app/de/events/swissjam26",
     );
+    expect(
+      linkHref(doc, 'link[rel="alternate"][hreflang="de-CH"]'),
+    ).toBeNull();
     expect(linkHref(doc, 'link[rel="alternate"][hreflang="x-default"]')).toBe(
       "https://pkspot.app/en/events/swissjam26",
     );
@@ -148,7 +151,7 @@ describe("MetaTagService", () => {
     );
 
     expect(doc.head.querySelectorAll('link[rel="canonical"]')).toHaveLength(1);
-    expect(doc.head.querySelectorAll('link[rel="alternate"]')).toHaveLength(8);
+    expect(doc.head.querySelectorAll('link[rel="alternate"]')).toHaveLength(7);
     expect(metaContent(doc, 'meta[property="og:url"]')).toBe(
       "https://pkspot.app/en/events/swissjam26",
     );

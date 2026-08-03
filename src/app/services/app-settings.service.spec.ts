@@ -51,4 +51,32 @@ describe("AppSettingsService", () => {
       { enableMapGlassBlur: true },
     );
   });
+
+  it("restores and saves the time format preference", () => {
+    const service = createSettingsService({ timeFormat: "24-hour" });
+
+    expect(service.timeFormat()).toBe("24-hour");
+
+    service.timeFormat.set("12-hour");
+    flushSignalEffects();
+
+    expect(JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? "{}")).toMatchObject(
+      { timeFormat: "12-hour" },
+    );
+  });
+
+  it("ignores invalid stored time format preferences", () => {
+    const service = createSettingsService({ timeFormat: "invalid" });
+
+    expect(service.timeFormat()).toBe("automatic");
+  });
+
+  it("does not retain a legacy device-local temperature preference", () => {
+    createSettingsService({ temperatureUnit: "fahrenheit" });
+    flushSignalEffects();
+
+    expect(
+      JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? "{}"),
+    ).not.toHaveProperty("temperatureUnit");
+  });
 });

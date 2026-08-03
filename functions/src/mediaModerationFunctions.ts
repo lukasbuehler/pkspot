@@ -2,6 +2,7 @@ import * as admin from "firebase-admin";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { onObjectFinalized } from "firebase-functions/v2/storage";
 import * as crypto from "crypto";
 import * as fs from "fs";
@@ -98,15 +99,30 @@ interface IntakeBackfillSummary {
   skipped: number;
 }
 
+interface MediaReviewReconciliationSummary {
+  scanned: number;
+  recovered: number;
+  intake_present: number;
+  unresolved: number;
+  skipped: number;
+  failed: number;
+}
+
+interface MarkMediaUploadSafeRequest {
+  review_id: string;
+}
+
 const INTAKE_PREFIX = "media_intake/";
 const REVIEW_COLLECTION = "media_upload_reviews";
 const STATUS_COLLECTION = "media_upload_status";
-const INCIDENT_COLLECTION = "csam_incidents";
-const MEDIA_REPORT_COLLECTION = "media_reports";
+const INCIDENT_COLLECTION = "safety_incidents";
+const MEDIA_REPORT_COLLECTION = "reports";
 const MAINTENANCE_COLLECTION = "maintenance";
 const RUN_AUDIT_DOC = `${MAINTENANCE_COLLECTION}/run-audit-media-moderation`;
 const RUN_INTAKE_BACKFILL_DOC =
   `${MAINTENANCE_COLLECTION}/run-process-media-intake-backfill`;
+const RUN_MEDIA_REVIEW_RECONCILIATION_DOC =
+  `${MAINTENANCE_COLLECTION}/run-reconcile-published-media-reviews`;
 const INTAKE_FINAL_STATUSES = new Set([
   "approved",
   "blocked",
@@ -119,11 +135,13 @@ const AUDIT_PREFIXES = [
   "post_media/",
   "challenges/",
   "event_media/",
+  "organization_media/",
   "resized_originals/spot_pictures/",
   "resized_originals/profile_pictures/",
   "resized_originals/post_media/",
   "resized_originals/challenges/",
   "resized_originals/event_media/",
+  "resized_originals/organization_media/",
 ] as const;
 
 const IMAGE_CONTENT_TYPES = new Set([
@@ -149,6 +167,21 @@ const now = (): FieldValue => FieldValue.serverTimestamp();
 
 const sha256 = (bytes: Buffer): string =>
   crypto.createHash("sha256").update(bytes).digest("hex");
+
+const firestoreSafetyResult = (
+  result: MediaSafetyProviderResult
+): MediaSafetyProviderResult => ({
+  provider: result.provider,
+  provider_version: result.provider_version,
+  decision: result.decision,
+  severity: result.severity,
+  ...(result.reason !== undefined ? { reason: result.reason } : {}),
+  ...(result.labels !== undefined ? { labels: result.labels } : {}),
+  ...(result.thresholds !== undefined ? { thresholds: result.thresholds } : {}),
+  ...(result.perceptual_hashes !== undefined
+    ? { perceptual_hashes: result.perceptual_hashes }
+    : {}),
+});
 
 const normalizeMetadata = (
   metadata: Record<string, unknown> | undefined
@@ -303,9 +336,12 @@ class GoogleVisionSafeSearchProvider implements MediaSafetyProvider {
       provider_version: "v1",
       decision: shouldBlock ? "block" : "allow",
       severity: shouldBlock ? "explicit_non_child" : "none",
-      reason: shouldBlock
-        ? "Vision SafeSearch returned likely explicit or violent content."
-        : undefined,
+      ...(shouldBlock
+        ? {
+            reason:
+              "Vision SafeSearch returned likely explicit or violent content.",
+          }
+        : {}),
       labels,
       thresholds: {
         adult: "LIKELY",
@@ -354,7 +390,9 @@ class GoogleVisionSafeSearchProvider implements MediaSafetyProvider {
           : decision === "allow"
           ? "none"
           : "explicit_non_child",
-      reason: "Emulator-controlled media safety result.",
+      ...(decision === "allow"
+        ? {}
+        : { reason: "Emulator-controlled media safety result." }),
     };
   }
 
@@ -411,6 +449,51 @@ const destinationPathFor = (
   );
 };
 
+const resizedImagePath = (filePath: string, size: number): string => {
+  const extension = extname(filePath);
+  return posix.join(
+    posix.dirname(filePath),
+    `${basename(filePath, extension)}_${size}x${size}${extension}`
+  );
+};
+
+const releasedObjectCandidates = (
+  approvedPath: string,
+  kind: "image" | "video"
+): string[] =>
+  kind === "image"
+    ? [
+        approvedPath,
+        resizedImagePath(approvedPath, 800),
+        resizedImagePath(approvedPath, 400),
+        resizedImagePath(approvedPath, 200),
+        resizedImagePath(approvedPath, 1600),
+        `resized_originals/${approvedPath}`,
+      ]
+    : [approvedPath];
+
+const findReleasedObjectForUpload = async (
+  bucket: StorageBucketHandle,
+  approvedPath: string,
+  kind: "image" | "video",
+  uploadId: string
+): Promise<string | null> => {
+  for (const candidate of releasedObjectCandidates(approvedPath, kind)) {
+    const file = bucket.file(candidate);
+    const [exists] = await file.exists();
+    if (!exists) continue;
+
+    const [metadata] = await file.getMetadata();
+    if (
+      metadata.metadata?.["upload_id"] === uploadId &&
+      metadata.metadata?.["moderated"] === "true"
+    ) {
+      return candidate;
+    }
+  }
+  return null;
+};
+
 const publicUrlFor = (bucketName: string, path: string): string => {
   const encodedPath = encodeURIComponent(path);
   return `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodedPath}?alt=media`
@@ -420,6 +503,16 @@ const publicUrlFor = (bucketName: string, path: string): string => {
 
 const reviewRef = (uploadId: string): admin.firestore.DocumentReference =>
   db.collection(REVIEW_COLLECTION).doc(uploadId);
+
+const auditReviewRef = (
+  storagePath: string
+): admin.firestore.DocumentReference => {
+  const pathHash = crypto
+    .createHash("sha256")
+    .update(storagePath)
+    .digest("hex");
+  return db.collection(REVIEW_COLLECTION).doc(`audit_${pathHash}`);
+};
 
 const uploadStatusRef = (uploadId: string): admin.firestore.DocumentReference =>
   db.collection(STATUS_COLLECTION).doc(uploadId);
@@ -462,16 +555,26 @@ const writeIncidentIfNeeded = async (
   result: MediaSafetyProviderResult
 ): Promise<string | undefined> => {
   if (result.decision !== "reportable_match") return undefined;
+  const reviewId = reviewPath.split("/").at(-1);
 
   const incident = await db.collection(INCIDENT_COLLECTION).add({
-    status: "open",
+    status: "triage",
+    classification: "csea",
+    uk_link: "unknown",
+    retention_state: "reporting_hold",
     source,
     review_path: reviewPath,
+    ...(reviewId
+      ? { source_report_path: `reports/scanner_${reviewId}` }
+      : {}),
     ...(uid ? { uid } : {}),
     ...(storagePath ? { storage_path: storagePath } : {}),
     sha256: hash,
     scanner: result,
     created_at: now(),
+    created_by: "system_media_scanner",
+    updated_at: now(),
+    updated_by: "system_media_scanner",
   });
   return incident.path;
 };
@@ -509,6 +612,7 @@ const writeScannerMediaReport = async (params: {
     .collection(MEDIA_REPORT_COLLECTION)
     .doc(`scanner_${params.review.id}`);
   await reportRef.set({
+    kind: "media",
     status: "open",
     source: "scanner",
     scanner_source: params.source,
@@ -543,6 +647,7 @@ const writeScannerMediaReport = async (params: {
       display_name: "Media safety scanner",
     },
     createdAt: now(),
+    scanner: params.result,
   });
 };
 
@@ -602,6 +707,255 @@ const applyApprovalSideEffects = async (
   }
 };
 
+const approvalSideEffectExists = async (
+  intake: IntakeMetadata,
+  approvedUrl: string
+): Promise<boolean> => {
+  if (intake.targetKind === "spot" && intake.targetId) {
+    const edits = await db.collection(`spots/${intake.targetId}/edits`).get();
+    return edits.docs.some((edit) => {
+      const media = edit.data()["data"]?.["media"];
+      return (
+        Array.isArray(media) &&
+        media.some(
+          (item) =>
+            item &&
+            typeof item === "object" &&
+            item["src"] === approvedUrl &&
+            item["uid"] === intake.uid
+        )
+      );
+    });
+  }
+
+  if (intake.targetKind === "profile") {
+    const user = await db.doc(`users/${intake.uid}`).get();
+    return user.data()?.["profile_picture"] === approvedUrl;
+  }
+
+  return true;
+};
+
+const assertAdminUser = async (uid: string | undefined): Promise<string> => {
+  if (!uid) {
+    throw new HttpsError("unauthenticated", "Sign in required.");
+  }
+  const user = await db.doc(`users/${uid}`).get();
+  if (user.data()?.["is_admin"] !== true) {
+    throw new HttpsError("permission-denied", "Admin access required.");
+  }
+  return uid;
+};
+
+const isRestrictedSafetyResult = (
+  result: admin.firestore.DocumentData | undefined
+): boolean =>
+  result?.["decision"] === "reportable_match" ||
+  result?.["severity"] === "known_csam_match";
+
+const resolveScannerReport = async (
+  reviewId: string,
+  uid: string
+): Promise<void> => {
+  const reportRef = db.collection(MEDIA_REPORT_COLLECTION).doc(`scanner_${reviewId}`);
+  if (!(await reportRef.get()).exists) return;
+  await reportRef.update({
+    status: "resolved",
+    moderation_resolution: "manual_safe",
+    resolved_at: now(),
+    resolved_by: uid,
+  });
+};
+
+const recordManualApproval = async (
+  review: admin.firestore.DocumentSnapshot,
+  uid: string,
+  approvedPath: string
+): Promise<void> => {
+  await db.collection("moderation_actions").add({
+    action_type: "approve_media_upload",
+    source_type: "media_upload_review",
+    source_path: review.ref.path,
+    source_snapshot: review.data() ?? {},
+    target_type: "media",
+    target_path: approvedPath,
+    created_at: now(),
+    created_by: { uid },
+  });
+};
+
+/**
+ * Releases an ordinary Vision flag after an administrator has inspected it.
+ * Known reportable matches deliberately cannot use this path.
+ */
+export const markMediaUploadSafe = onCall<MarkMediaUploadSafeRequest>(
+  async (request) => {
+    const adminUid = await assertAdminUser(request.auth?.uid);
+    const reviewId = request.data.review_id;
+    if (
+      typeof reviewId !== "string" ||
+      !/^[A-Za-z0-9_-]+$/.test(reviewId)
+    ) {
+      throw new HttpsError("invalid-argument", "Invalid media review id.");
+    }
+
+    const reviewRefForAction = reviewRef(reviewId);
+    const review = await reviewRefForAction.get();
+    if (!review.exists) {
+      throw new HttpsError("not-found", "Media review not found.");
+    }
+
+    const reviewData = review.data() ?? {};
+    if (isRestrictedSafetyResult(reviewData["scan_result"])) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Reportable-match media cannot be manually released."
+      );
+    }
+    if (reviewData["status"] === "approved") {
+      return {
+        ok: true,
+        approved_url: reviewData["approved_url"],
+        already_approved: true,
+      };
+    }
+
+    if (reviewData["source"] === "audit") {
+      const auditedPath = reviewData["audited_path"];
+      if (typeof auditedPath !== "string") {
+        throw new HttpsError(
+          "failed-precondition",
+          "Audited media path is missing."
+        );
+      }
+      const approvedUrl = publicUrlFor(DEFAULT_STORAGE_BUCKET, auditedPath);
+      await reviewRefForAction.update({
+        status: "approved",
+        approved_path: auditedPath,
+        approved_url: approvedUrl,
+        failure_reason: FieldValue.delete(),
+        manual_review: {
+          decision: "safe",
+          reviewed_by: adminUid,
+          reviewed_at: now(),
+        },
+        completed_at: now(),
+      });
+      await resolveScannerReport(reviewId, adminUid);
+      await recordManualApproval(review, adminUid, auditedPath);
+      return { ok: true, approved_url: approvedUrl };
+    }
+
+    const intakePath = reviewData["intake_path"];
+    if (typeof intakePath !== "string") {
+      throw new HttpsError(
+        "failed-precondition",
+        "Quarantined intake path is missing."
+      );
+    }
+
+    const parsedPath = parseIntakePath(intakePath);
+    if (!parsedPath || parsedPath.uploadId !== reviewId) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Quarantined intake path does not match the review."
+      );
+    }
+
+    const bucket = getStorage().bucket(DEFAULT_STORAGE_BUCKET);
+    const sourceFile = bucket.file(intakePath);
+    let sourceMetadata;
+    try {
+      [sourceMetadata] = await sourceFile.getMetadata();
+    } catch {
+      throw new HttpsError("not-found", "Quarantined media file is missing.");
+    }
+
+    let intake: IntakeMetadata;
+    try {
+      intake = parseIntakeMetadata(intakePath, sourceMetadata.metadata);
+    } catch (error) {
+      throw new HttpsError(
+        "failed-precondition",
+        error instanceof Error ? error.message : "Invalid intake metadata."
+      );
+    }
+
+    const contentType = sourceMetadata.contentType;
+    const kind = contentKind(contentType);
+    if (!kind) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Quarantined media type is unsupported."
+      );
+    }
+
+    const [bytes] = await sourceFile.download();
+    if (kind === "image") {
+      await validateImage(bytes);
+    } else {
+      await validateVideoAndExtractFrames(bytes, parsedPath.filename);
+    }
+
+    const approvedPath = destinationPathFor(intake, parsedPath.filename);
+    const approvedUrl = publicUrlFor(bucket.name, approvedPath);
+    const approvedFile = bucket.file(approvedPath);
+    const [approvedExists] = await approvedFile.exists();
+    if (approvedExists) {
+      const [approvedMetadata] = await approvedFile.getMetadata();
+      if (approvedMetadata.metadata?.["upload_id"] !== intake.uploadId) {
+        throw new HttpsError(
+          "already-exists",
+          "The release destination belongs to another upload."
+        );
+      }
+    } else {
+      await approvedFile.save(bytes, {
+        resumable: false,
+        metadata: {
+          contentType,
+          cacheControl: intake.cacheControl,
+          metadata: {
+            uid: intake.uid,
+            upload_id: intake.uploadId,
+            moderated: "true",
+          },
+        },
+      });
+    }
+
+    if (!(await approvalSideEffectExists(intake, approvedUrl))) {
+      await applyApprovalSideEffects(intake, approvedUrl, kind);
+    }
+
+    await reviewRefForAction.update({
+      status: "approved",
+      sha256: reviewData["sha256"] ?? sha256(bytes),
+      approved_path: approvedPath,
+      approved_url: approvedUrl,
+      failure_reason: FieldValue.delete(),
+      manual_review: {
+        decision: "safe",
+        reviewed_by: adminUid,
+        reviewed_at: now(),
+      },
+      completed_at: now(),
+    });
+    await writeUploadStatus(intake.uploadId, "published", {
+      uid: intake.uid,
+      targetKind: intake.targetKind,
+      targetId: intake.targetId,
+      mediaType: kind,
+      publicUrl: approvedUrl,
+    });
+    await resolveScannerReport(reviewId, adminUid);
+    await recordManualApproval(review, adminUid, approvedPath);
+    await sourceFile.delete().catch(() => undefined);
+
+    return { ok: true, approved_url: approvedUrl };
+  }
+);
+
 const processIntakeObject = async (params: {
   bucket: StorageBucketHandle;
   filePath: string;
@@ -619,6 +973,7 @@ const processIntakeObject = async (params: {
   }
 
   const review = reviewRef(parsedPath.uploadId);
+  const sourceFile = params.bucket.file(params.filePath);
   if (params.skipFinalReview) {
     const existingReview = await review.get();
     const existingStatus = existingReview.data()?.["status"];
@@ -659,7 +1014,6 @@ const processIntakeObject = async (params: {
     };
   }
 
-  const sourceFile = params.bucket.file(params.filePath);
   const contentType = params.contentType;
   const kind = contentKind(contentType);
 
@@ -698,7 +1052,7 @@ const processIntakeObject = async (params: {
     const emulatorDecision = normalizeMetadata(params.rawMetadata)[
       "emulator_safety_result"
     ] as MediaSafetyDecision | undefined;
-    const scanResult =
+    const scanResult = firestoreSafetyResult(
       kind === "image"
         ? await mediaSafetyProvider.scanImage(bytes, {
             contentType,
@@ -713,7 +1067,8 @@ const processIntakeObject = async (params: {
             sha256: hash,
             source: "upload",
             emulatorDecision,
-          });
+          })
+    );
 
     const incidentPath = await writeIncidentIfNeeded(
       review.path,
@@ -755,7 +1110,6 @@ const processIntakeObject = async (params: {
         targetId: intake.targetId,
         mediaType: kind,
       });
-      await sourceFile.delete().catch(() => undefined);
       return {
         outcome: status,
         uploadId: intake.uploadId,
@@ -820,7 +1174,6 @@ const processIntakeObject = async (params: {
       targetId: intake.targetId,
       mediaType: kind ?? undefined,
     });
-    await sourceFile.delete().catch(() => undefined);
     console.error("Media intake moderation failed", {
       filePath: params.filePath,
       error,
@@ -919,6 +1272,173 @@ export const runMediaIntakeBackfill = onDocumentCreated(
   }
 );
 
+/**
+ * Repairs reviews created by the legacy undefined `scan_result.reason` bug.
+ * A review is only recovered when its quarantine object is gone and a released
+ * object carries matching server-written moderation metadata.
+ */
+export const reconcilePublishedMediaReviews = onDocumentCreated(
+  {
+    document: RUN_MEDIA_REVIEW_RECONCILIATION_DOC,
+    timeoutSeconds: 540,
+    memory: "1GiB",
+  },
+  async (event) => {
+    const triggerRef = event.data?.ref;
+    if (!triggerRef) return;
+
+    const bucket = getStorage().bucket(DEFAULT_STORAGE_BUCKET);
+    const [failedReviews, previouslyRecoveredReviews] = await Promise.all([
+      db
+        .collection(REVIEW_COLLECTION)
+        .where("status", "==", "scan_failed")
+        .get(),
+      db
+        .collection(REVIEW_COLLECTION)
+        .where(
+          "reconciliation_reason",
+          "==",
+          "legacy_undefined_scan_reason_after_publish"
+        )
+        .get(),
+    ]);
+    const reviews = new Map(
+      [...failedReviews.docs, ...previouslyRecoveredReviews.docs].map(
+        (review) => [review.id, review]
+      )
+    );
+    const summary: MediaReviewReconciliationSummary = {
+      scanned: 0,
+      recovered: 0,
+      intake_present: 0,
+      unresolved: 0,
+      skipped: 0,
+      failed: 0,
+    };
+
+    await triggerRef.set(
+      {
+        status: "RUNNING",
+        started_at: now(),
+      },
+      { merge: true }
+    );
+
+    for (const review of reviews.values()) {
+      summary.scanned++;
+      const data = review.data();
+      const failureReason = data["failure_reason"];
+      const isLegacyFalseFailure =
+        data["source"] === "upload" &&
+        typeof failureReason === "string" &&
+        failureReason.includes('Cannot use "undefined"') &&
+        failureReason.includes("scan_result.reason");
+      const isPreviouslyRecovered =
+        data["status"] === "approved" &&
+        data["reconciliation_reason"] ===
+          "legacy_undefined_scan_reason_after_publish";
+      if (!isLegacyFalseFailure && !isPreviouslyRecovered) {
+        summary.skipped++;
+        continue;
+      }
+
+      try {
+        const intakePath = data["intake_path"];
+        const parsedPath =
+          typeof intakePath === "string" ? parseIntakePath(intakePath) : null;
+        const destinationFolder = data["destination_folder"];
+        const destinationFilename = data["destination_filename"];
+        const kind = contentKind(data["content_type"]);
+        if (
+          !parsedPath ||
+          parsedPath.uploadId !== review.id ||
+          typeof destinationFolder !== "string" ||
+          typeof destinationFilename !== "string" ||
+          !kind
+        ) {
+          summary.unresolved++;
+          continue;
+        }
+
+        const [intakeExists] = await bucket.file(intakePath).exists();
+        if (intakeExists) {
+          summary.intake_present++;
+          continue;
+        }
+
+        const intake: IntakeMetadata = {
+          uid: parsedPath.uid,
+          uploadId: parsedPath.uploadId,
+          destinationFolder,
+          destinationFilename,
+          targetKind:
+            typeof data["target_kind"] === "string"
+              ? data["target_kind"]
+              : undefined,
+          targetId:
+            typeof data["target_id"] === "string"
+              ? data["target_id"]
+              : undefined,
+        };
+        const expectedApprovedPath = destinationPathFor(
+          intake,
+          parsedPath.filename
+        );
+        const releasedPath = await findReleasedObjectForUpload(
+          bucket,
+          expectedApprovedPath,
+          kind,
+          review.id
+        );
+        if (!releasedPath) {
+          summary.unresolved++;
+          continue;
+        }
+
+        const approvedUrl = publicUrlFor(bucket.name, releasedPath);
+        await review.ref.update({
+          status: "approved",
+          approved_path: releasedPath,
+          approved_url: approvedUrl,
+          scan_result: {
+            provider: "google-cloud-vision-safe-search",
+            provider_version: "v1",
+            decision: "allow",
+            severity: "none",
+          },
+          failure_reason: FieldValue.delete(),
+          reconciliation_reason:
+            "legacy_undefined_scan_reason_after_publish",
+          reconciled_at: now(),
+        });
+        await writeUploadStatus(review.id, "published", {
+          uid: parsedPath.uid,
+          targetKind: intake.targetKind,
+          targetId: intake.targetId,
+          mediaType: kind,
+          publicUrl: approvedUrl,
+        });
+        summary.recovered++;
+      } catch (error) {
+        summary.failed++;
+        console.error("Failed to reconcile media upload review", {
+          reviewPath: review.ref.path,
+          error,
+        });
+      }
+    }
+
+    await db
+      .collection(MAINTENANCE_COLLECTION)
+      .doc("last-published-media-review-reconciliation")
+      .set({
+        ...summary,
+        completed_at: now(),
+      });
+    await triggerRef.delete();
+  }
+);
+
 const isAuditEligible = (
   path: string,
   contentType: string | undefined
@@ -976,7 +1496,7 @@ export const runMediaModerationAudit = onDocumentCreated(
             kind === "video"
               ? await validateVideoAndExtractFrames(bytes, basename(file.name))
               : [];
-          const scanResult =
+          const scanResult = firestoreSafetyResult(
             kind === "image"
               ? await mediaSafetyProvider.scanImage(bytes, {
                   contentType,
@@ -989,18 +1509,38 @@ export const runMediaModerationAudit = onDocumentCreated(
                   storagePath: file.name,
                   sha256: hash,
                   source: "audit",
-                });
+                })
+          );
+          const metadataUid = metadata.metadata?.["uid"];
+          const uid =
+            typeof metadataUid === "string" ? metadataUid : undefined;
+          const review = auditReviewRef(file.name);
+          const publicUrl = publicUrlFor(bucket.name, file.name);
 
           summary.scanned++;
           if (scanResult.decision === "allow") {
+            await review.set({
+              status: "approved",
+              source: "audit",
+              ...(uid ? { uid } : {}),
+              audited_path: file.name,
+              approved_path: file.name,
+              approved_url: publicUrl,
+              content_type: contentType,
+              sha256: hash,
+              scan_result: scanResult,
+              created_at: now(),
+              completed_at: now(),
+            });
             summary.allowed++;
             continue;
           }
 
           summary.flagged++;
-          const review = await db.collection(REVIEW_COLLECTION).add({
+          await review.set({
             status: "audit_flagged",
             source: "audit",
+            ...(uid ? { uid } : {}),
             audited_path: file.name,
             content_type: contentType,
             sha256: hash,
@@ -1008,8 +1548,6 @@ export const runMediaModerationAudit = onDocumentCreated(
             created_at: now(),
             completed_at: now(),
           });
-          const metadataUid = metadata.metadata?.["uid"];
-          const uid = typeof metadataUid === "string" ? metadataUid : undefined;
           const incidentPath = await writeIncidentIfNeeded(
             review.path,
             "audit",
@@ -1023,7 +1561,7 @@ export const runMediaModerationAudit = onDocumentCreated(
             source: "audit",
             uid,
             storagePath: file.name,
-            publicUrl: publicUrlFor(bucket.name, file.name),
+            publicUrl,
             contentType,
             mediaType: kind,
             hash,

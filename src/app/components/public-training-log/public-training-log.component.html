@@ -1,0 +1,22 @@
+<main class="public-log">
+  <a class="back" [routerLink]="['/u', userId]"><mat-icon>arrow_back</mat-icon><span i18n>Profile</span></a>
+  <h1 i18n="@@publicLog.title">Training log</h1>
+  <p i18n="@@publicLog.subtitle">Entries this person chose to share with you.</p>
+  @if (loading()) {
+    <div class="state"><mat-progress-spinner diameter="36" mode="indeterminate" /></div>
+  } @else if (logs().length) {
+    <section>
+      @for (entry of logs(); track entry.id) {
+        <article>
+          <span>{{ entry.activity_at_raw_ms | systemDate: "mediumDate" }}</span>
+          <p>{{ entry.note }}</p>
+          @for (session of entry.session_summaries; track session.session_record_id) {
+            <small>{{ session.local_date }} · {{ session.duration_minutes || 0 }} min · {{ session.spot_count }} spots</small>
+          }
+        </article>
+      }
+    </section>
+  } @else {
+    <div class="state"><mat-icon>visibility_off</mat-icon><p i18n="@@publicLog.empty">No log entries are visible to you.</p></div>
+  }
+</main>

@@ -38,6 +38,20 @@ describe("SpotPreviewCardComponent", () => {
     fixture = TestBed.createComponent(SpotPreviewCardComponent);
   });
 
+  it("uses the shared card border unless borders are disabled", () => {
+    fixture.detectChanges();
+
+    const card = fixture.debugElement.query(By.css("mat-card"));
+    expect(card.nativeElement.classList.contains("app-card")).toBe(true);
+    expect(card.nativeElement.classList.contains("border")).toBe(false);
+    expect(card.nativeElement.classList.contains("rounded")).toBe(false);
+
+    fixture.componentRef.setInput("hasBorder", false);
+    fixture.detectChanges();
+
+    expect(card.nativeElement.classList.contains("app-card")).toBe(false);
+  });
+
   it("shows the iconic icon for legacy is_iconic preview data", () => {
     const spot = {
       id: "main" as SpotId,

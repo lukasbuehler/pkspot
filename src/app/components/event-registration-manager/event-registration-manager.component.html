@@ -1,0 +1,61 @@
+<section class="registration-card" aria-labelledby="event-registrations-heading">
+  <div class="registration-card__heading">
+    <span class="registration-card__icon" aria-hidden="true">
+      <mat-icon>how_to_reg</mat-icon>
+    </span>
+    <div>
+      <h3
+        id="event-registrations-heading"
+        class="mat-title-medium m-0"
+        i18n="@@event_registration_manager.heading"
+      >
+        Registrations
+      </h3>
+      <p class="mat-body-small m-0" i18n="@@event_registration_manager.description">
+        Confirmed attendees and the waitlist. Cancelling a confirmed place
+        automatically promotes the oldest eligible waiter.
+      </p>
+    </div>
+  </div>
+
+  @if (error(); as message) {
+    <p class="registration-error mat-body-medium" role="alert">{{ message }}</p>
+  }
+
+  @if (loading()) {
+    <div class="registration-loading">
+      <mat-progress-spinner diameter="24" mode="indeterminate" />
+      <span i18n="@@event_registration_manager.loading">
+        Loading registrations…
+      </span>
+    </div>
+  } @else {
+    <div class="registration-list">
+      @for (row of rows(); track row.registration.user_id) {
+        <div
+          class="registration-row"
+          [attr.data-status]="row.registration.status"
+        >
+          <app-profile-button [user]="row.user" />
+          <strong class="registration-status">
+            {{ statusLabel(row.registration.status) }}
+          </strong>
+          @if (row.registration.status !== "cancelled") {
+            <button
+              mat-stroked-button
+              type="button"
+              [disabled]="savingUserId() !== null"
+              (click)="cancelRegistration(row)"
+            >
+              <span i18n="@@event_registration_manager.cancel">Cancel</span>
+            </button>
+          }
+        </div>
+      } @empty {
+        <p class="mat-body-medium registration-empty" i18n="@@event_registration_manager.empty">
+          No registrations yet.
+        </p>
+      }
+    </div>
+  }
+</section>

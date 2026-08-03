@@ -7,8 +7,8 @@ describe("SSR legacy redirects", () => {
     expect(getLegacySsrRedirectTarget("/de/map/imax?filter=dry")).toBe(
       "/de/map/spots/imax?filter=dry"
     );
-    expect(getLegacySsrRedirectTarget("/de-CH/map/imax/c/challenge-1")).toBe(
-      "/de-CH/map/spots/imax/c/challenge-1"
+    expect(getLegacySsrRedirectTarget("/fr/map/imax/c/challenge-1")).toBe(
+      "/fr/map/spots/imax/c/challenge-1"
     );
     expect(getLegacySsrRedirectTarget("/map/imax/edits")).toBe(
       "/map/spots/imax/edits"
@@ -17,9 +17,19 @@ describe("SSR legacy redirects", () => {
 
   it("does not redirect canonical or reserved map namespaces", () => {
     expect(getLegacySsrRedirectTarget("/map/spots/imax")).toBeNull();
-    expect(getLegacySsrRedirectTarget("/map/events/swissjam25")).toBeNull();
     expect(getLegacySsrRedirectTarget("/map/communities/zurich")).toBeNull();
     expect(getLegacySsrRedirectTarget("/map")).toBeNull();
+  });
+
+  it("redirects map event URLs to canonical event URLs", () => {
+    expect(getLegacySsrRedirectTarget("/map/events/swissjam25")).toBe(
+      "/events/swissjam25"
+    );
+    expect(
+      getLegacySsrRedirectTarget(
+        "/de/map/events/9c8e7c60?showProgram=true&day=saturday"
+      )
+    ).toBe("/de/events/9c8e7c60?showProgram=true&day=saturday");
   });
 
   it("redirects legacy singular community URLs to plural community URLs", () => {

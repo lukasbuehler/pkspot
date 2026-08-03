@@ -1,24 +1,19 @@
-import {
-  Injectable,
-  inject,
-  Injector,
-  runInInjectionContext,
-} from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { PlatformService } from "../platform.service";
 
-// Web imports (AngularFire)
 import {
-  Storage,
   ref,
   uploadBytesResumable,
   getDownloadURL,
   deleteObject,
-} from "@angular/fire/storage";
+  type UploadMetadata,
+} from "firebase/storage";
 
 // Native imports (Capacitor Firebase)
 import { FirebaseStorage } from "@capacitor-firebase/storage";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import { FirebaseAppCheckService } from "./app-check.service";
+import { FIREBASE_STORAGE } from "./firebase-client.providers";
 
 /**
  * Options for uploading a file to Firebase Storage.
@@ -54,7 +49,7 @@ export interface UploadFileOptions {
 
 /**
  * StorageAdapterService provides a unified API for Firebase Storage operations
- * that works on both web (via @angular/fire) and native platforms
+ * that works on both web (via the Firebase JS SDK) and native platforms
  * (via @capacitor-firebase/storage).
  *
  * This abstraction allows the rest of the application to use the same
@@ -67,8 +62,7 @@ export interface UploadFileOptions {
 export class StorageAdapterService {
   private platformService = inject(PlatformService);
   private appCheckService = inject(FirebaseAppCheckService);
-  private storage = inject(Storage);
-  private injector = inject(Injector);
+  private storage = inject(FIREBASE_STORAGE);
 
   constructor() {
     console.log(
@@ -98,7 +92,7 @@ export class StorageAdapterService {
   }
 
   buildPublicUrl(path: string): string {
-    const bucket = this.storage.app.options.storageBucket;
+    const bucket = this.webStorage.app.options.storageBucket;
     const encodedPath = encodeURIComponent(path);
     return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedPath}?alt=media`
       .replace(/\.MP4\?/, ".mp4?")
@@ -107,59 +101,57 @@ export class StorageAdapterService {
 
   private async uploadFileWeb(options: UploadFileOptions): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-      runInInjectionContext(this.injector, () => {
-        // Ensure we have a Blob (web should always receive Blob)
-        if (typeof options.data === "string") {
-          reject(new Error("Web upload requires Blob data, not a file URI"));
-          return;
-        }
+      // Ensure we have a Blob (web should always receive Blob)
+      if (typeof options.data === "string") {
+        reject(new Error("Web upload requires Blob data, not a file URI"));
+        return;
+      }
 
-        const blob = options.data;
-        const uploadRef = ref(this.storage, options.path);
+      const blob = options.data;
+      const uploadRef = ref(this.webStorage, options.path);
 
-        const metadata: any = {};
-        if (options.metadata?.contentType) {
-          metadata.contentType = options.metadata.contentType;
+      const metadata: UploadMetadata = {};
+      if (options.metadata?.contentType) {
+        metadata.contentType = options.metadata.contentType;
+      }
+      if (options.metadata?.cacheControl) {
+        metadata.cacheControl = options.metadata.cacheControl;
+      }
+      if (options.metadata?.uid || options.metadata?.customMetadata) {
+        const customMetadata: Record<string, string> =
+          options.metadata.customMetadata || {};
+        if (options.metadata.uid) {
+          customMetadata["uid"] = options.metadata.uid;
         }
-        if (options.metadata?.cacheControl) {
-          metadata.cacheControl = options.metadata.cacheControl;
-        }
-        if (options.metadata?.uid || options.metadata?.customMetadata) {
-          const customMetadata: Record<string, string> =
-            options.metadata.customMetadata || {};
-          if (options.metadata.uid) {
-            customMetadata["uid"] = options.metadata.uid;
+        metadata.customMetadata = customMetadata;
+      }
+
+      const uploadTask = uploadBytesResumable(
+        uploadRef,
+        blob,
+        Object.keys(metadata).length > 0 ? metadata : undefined
+      );
+      console.log("[StorageAdapter] Uploading with metadata:", metadata);
+
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.debug(`[StorageAdapter] Upload is ${progress}% done`);
+          if (options.onProgress) {
+            options.onProgress(progress);
           }
-          metadata.customMetadata = customMetadata;
+        },
+        (error) => {
+          console.error("[StorageAdapter] Web upload error:", error);
+          reject(error);
+        },
+        () => {
+          // Generate public URL without token
+          resolve(this.buildPublicUrl(options.path));
         }
-
-        const uploadTask = uploadBytesResumable(
-          uploadRef,
-          blob,
-          Object.keys(metadata).length > 0 ? metadata : undefined
-        );
-        console.log("[StorageAdapter] Uploading with metadata:", metadata);
-
-        uploadTask.on(
-          "state_changed",
-          (snapshot) => {
-            const progress =
-              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            console.debug(`[StorageAdapter] Upload is ${progress}% done`);
-            if (options.onProgress) {
-              options.onProgress(progress);
-            }
-          },
-          (error) => {
-            console.error("[StorageAdapter] Web upload error:", error);
-            reject(error);
-          },
-          () => {
-            // Generate public URL without token
-            resolve(this.buildPublicUrl(options.path));
-          }
-        );
-      });
+      );
     });
   }
 
@@ -298,10 +290,8 @@ export class StorageAdapterService {
   }
 
   private async deleteFileWeb(path: string): Promise<void> {
-    return runInInjectionContext(this.injector, async () => {
-      const fileRef = ref(this.storage, path);
-      await deleteObject(fileRef);
-    });
+    const fileRef = ref(this.webStorage, path);
+    await deleteObject(fileRef);
   }
 
   private async deleteFileNative(path: string): Promise<void> {
@@ -326,10 +316,8 @@ export class StorageAdapterService {
   }
 
   private async getDownloadUrlWeb(path: string): Promise<string> {
-    return runInInjectionContext(this.injector, async () => {
-      const fileRef = ref(this.storage, path);
-      return getDownloadURL(fileRef);
-    });
+    const fileRef = ref(this.webStorage, path);
+    return getDownloadURL(fileRef);
   }
 
   private async getDownloadUrlNative(path: string): Promise<string> {
@@ -353,5 +341,12 @@ export class StorageAdapterService {
    */
   getPlatform(): "ios" | "android" | "web" {
     return this.platformService.getPlatform();
+  }
+
+  private get webStorage() {
+    if (!this.storage) {
+      throw new Error("Firebase Storage is unavailable during server rendering.");
+    }
+    return this.storage;
   }
 }

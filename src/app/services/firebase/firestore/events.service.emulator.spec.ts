@@ -1,19 +1,16 @@
-import { inject } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import {
   FirebaseApp,
   deleteApp,
   initializeApp,
-  provideFirebaseApp,
-} from "@angular/fire/app";
+} from "firebase/app";
 import {
   Auth,
   connectAuthEmulator,
   getAuth,
-  provideAuth,
   signInAnonymously,
   signOut,
-} from "@angular/fire/auth";
+} from "firebase/auth";
 import {
   Firestore,
   Timestamp,
@@ -23,8 +20,8 @@ import {
   getFirestore,
   initializeFirestore,
   memoryLocalCache,
-  provideFirestore,
-} from "@angular/fire/firestore";
+  setDoc,
+} from "firebase/firestore";
 import * as admin from "firebase-admin";
 import { BehaviorSubject, Observable } from "rxjs";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -34,6 +31,10 @@ import { ConsentService } from "../../consent.service";
 import { PlatformService } from "../../platform.service";
 import { AuthenticationService } from "../authentication.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
+import {
+  FIREBASE_APP,
+  FIREBASE_FIRESTORE,
+} from "../firebase-client.providers";
 import { EventsService } from "./events.service";
 
 const firestoreHost = process.env["FIRESTORE_EMULATOR_HOST"];
@@ -81,6 +82,41 @@ async function waitForRsvpCounts(
   throw new Error(`Timed out waiting for RSVP counts on events/${eventId}`);
 }
 
+async function waitForNotificationIntent(
+  intentId: string,
+  status: "pending" | "cancelled",
+): Promise<admin.firestore.DocumentData> {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const snapshot = await adminDb()
+      .doc(`notification_intents/${intentId}`)
+      .get();
+    if (snapshot.data()?.["status"] === status) {
+      return snapshot.data()!;
+    }
+    await sleep(250);
+  }
+  throw new Error(
+    `Timed out waiting for notification_intents/${intentId} to become ${status}`,
+  );
+}
+
+async function waitForInAppNotification(
+  userId: string,
+  notificationId: string,
+  active: boolean,
+): Promise<admin.firestore.DocumentData> {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const snapshot = await adminDb()
+      .doc(`users/${userId}/notifications/${notificationId}`)
+      .get();
+    if (snapshot.data()?.["active"] === active) return snapshot.data()!;
+    await sleep(250);
+  }
+  throw new Error(
+    `Timed out waiting for users/${userId}/notifications/${notificationId} to become active=${active}`,
+  );
+}
+
 async function waitForEventTypesenseFields(eventId: string): Promise<void> {
   for (let attempt = 0; attempt < 40; attempt += 1) {
     const snapshot = await adminDb().doc(`events/${eventId}`).get();
@@ -99,7 +135,8 @@ async function waitForEventTypesenseFields(eventId: string): Promise<void> {
       data?.["promo_starts_at"] instanceof admin.firestore.Timestamp &&
       data?.["has_organization"] === true &&
       data?.["has_venue_spot"] === true &&
-      data?.["venue_spot_count"] === 2
+      data?.["venue_spot_count"] === 2 &&
+      data?.["time_zone"] === "Europe/Zurich"
     ) {
       return;
     }
@@ -129,6 +166,51 @@ async function waitForNoAreaEventBounds(eventId: string): Promise<void> {
   );
 }
 
+async function waitForEventField(
+  eventId: string,
+  field: string,
+  expected: unknown,
+): Promise<admin.firestore.DocumentData> {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const snapshot = await adminDb().doc(`events/${eventId}`).get();
+    if (snapshot.data()?.[field] === expected) return snapshot.data()!;
+    await sleep(250);
+  }
+  throw new Error(
+    `Timed out waiting for events/${eventId}.${field} to equal ${String(expected)}`,
+  );
+}
+
+async function waitForEventDiscovery(
+  eventId: string,
+  exists: boolean,
+  matches: (data: admin.firestore.DocumentData | undefined) => boolean = () => true,
+): Promise<admin.firestore.DocumentData | undefined> {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const snapshot = await adminDb().doc(`event_discovery/${eventId}`).get();
+    const data = snapshot.data();
+    if (snapshot.exists === exists && matches(data)) return data;
+    await sleep(250);
+  }
+  throw new Error(
+    `Timed out waiting for event_discovery/${eventId} exists=${exists}`,
+  );
+}
+
+async function waitForMaintenanceStatus(
+  documentId: string,
+  status: "DONE" | "DONE_WITH_ERRORS" | "ERROR",
+): Promise<admin.firestore.DocumentData> {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    const snapshot = await adminDb().doc(`maintenance/${documentId}`).get();
+    if (snapshot.data()?.["status"] === status) return snapshot.data()!;
+    await sleep(250);
+  }
+  throw new Error(
+    `Timed out waiting for maintenance/${documentId} to become ${status}`,
+  );
+}
+
 function parseHostPort(value: string): [string, number] {
   const [host, portValue] = value.split(":");
   const port = Number(portValue);
@@ -150,51 +232,35 @@ runWithEmulator("EventsService emulator integration", () => {
   };
 
   beforeEach(async () => {
+    authService.user.data.isAdmin = false;
     const projectId = process.env["GCLOUD_PROJECT"] || "demo-pkspot";
     const appName = `events-service-emulator-${Date.now()}-${Math.random()}`;
     const [firestoreEmulatorHost, firestorePort] = parseHostPort(firestoreHost!);
     const [authEmulatorHost, authPort] = parseHostPort(authHost!);
+    app = initializeApp(
+      {
+        apiKey: "demo-api-key",
+        authDomain: `${projectId}.firebaseapp.com`,
+        projectId,
+      },
+      appName,
+    );
+    auth = getAuth(app);
+    connectAuthEmulator(auth, `http://${authEmulatorHost}:${authPort}`, {
+      disableWarnings: true,
+    });
+    try {
+      firestore = initializeFirestore(app, { localCache: memoryLocalCache() });
+    } catch {
+      firestore = getFirestore(app);
+    }
+    connectFirestoreEmulator(firestore, firestoreEmulatorHost, firestorePort);
 
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       providers: [
-        provideFirebaseApp(() => {
-          app = initializeApp(
-            {
-              apiKey: "demo-api-key",
-              authDomain: `${projectId}.firebaseapp.com`,
-              projectId,
-            },
-            appName,
-          );
-          return app;
-        }),
-        provideAuth(() => {
-          const instance = getAuth(inject(FirebaseApp));
-          connectAuthEmulator(
-            instance,
-            `http://${authEmulatorHost}:${authPort}`,
-            { disableWarnings: true },
-          );
-          return instance;
-        }),
-        provideFirestore(() => {
-          const firebaseApp = inject(FirebaseApp);
-          let instance: Firestore;
-          try {
-            instance = initializeFirestore(firebaseApp, {
-              localCache: memoryLocalCache(),
-            });
-          } catch {
-            instance = getFirestore(firebaseApp);
-          }
-          connectFirestoreEmulator(
-            instance,
-            firestoreEmulatorHost,
-            firestorePort,
-          );
-          return instance;
-        }),
+        { provide: FIREBASE_APP, useValue: app },
+        { provide: FIREBASE_FIRESTORE, useValue: firestore },
         EventsService,
         FirestoreAdapterService,
         {
@@ -229,8 +295,6 @@ runWithEmulator("EventsService emulator integration", () => {
       ],
     }).compileComponents();
 
-    auth = TestBed.inject(Auth);
-    firestore = TestBed.inject(Firestore);
     const credential = await TestBed.runInInjectionContext(() =>
       signInAnonymously(auth),
     );
@@ -255,6 +319,36 @@ runWithEmulator("EventsService emulator integration", () => {
     TestBed.resetTestingModule();
   });
 
+  it("allows only administrators to create canonical events", async () => {
+    const uid = authService.user.uid;
+    expect(uid).toBeTruthy();
+    const eventId = `create-policy-${uid}`;
+    const eventData = {
+      name: "Create policy event",
+      owner: { type: "user", user_id: uid },
+      created_by: { uid },
+      published: true,
+      time_created: Timestamp.now(),
+      time_updated: Timestamp.now(),
+    };
+
+    await expect(
+      TestBed.runInInjectionContext(() =>
+        setDoc(doc(firestore, `events/${eventId}`), eventData),
+      ),
+    ).rejects.toMatchObject({ code: "permission-denied" });
+
+    await adminDb().doc(`users/${uid}`).set({ is_admin: true });
+    authService.user.data.isAdmin = true;
+
+    await expect(
+      TestBed.runInInjectionContext(() =>
+        setDoc(doc(firestore, `events/${eventId}`), eventData),
+      ),
+    ).resolves.toBeUndefined();
+    expect((await adminDb().doc(`events/${eventId}`).get()).exists).toBe(true);
+  });
+
   it("writes, updates, and aggregates my RSVP through the real web Firestore adapter", async () => {
     const uid = authService.user.uid;
     expect(uid).toBeTruthy();
@@ -271,6 +365,7 @@ runWithEmulator("EventsService emulator integration", () => {
         end: admin.firestore.Timestamp.fromDate(
           new Date("2026-06-01T12:00:00.000Z"),
         ),
+        created_by: { uid },
       });
 
     await service.setMyRsvp(eventId, "going");
@@ -317,6 +412,55 @@ runWithEmulator("EventsService emulator integration", () => {
     });
   }, rsvpIntegrationTimeoutMs);
 
+  it("creates and cancels a two-hour reminder intent from my RSVP", async () => {
+    const uid = authService.user.uid;
+    expect(uid).toBeTruthy();
+    const eventId = `notification-rsvp-${uid}`;
+    const intentId = `event_reminder_${eventId}_${uid}`;
+    const start = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await adminDb().doc(`users/${uid}/private_data/main`).set({
+      notification_preferences: { event_reminders: true },
+    });
+    await adminDb().doc(`events/${eventId}`).set({
+      name: "Notification reminder event",
+      slug: "notification-reminder-event",
+      published: true,
+      start: admin.firestore.Timestamp.fromDate(start),
+      end: admin.firestore.Timestamp.fromDate(
+        new Date(start.getTime() + 2 * 60 * 60 * 1000),
+      ),
+    });
+
+    await service.setMyRsvp(eventId, "going");
+
+    const pending = await waitForNotificationIntent(intentId, "pending");
+    expect(pending).toEqual(
+      expect.objectContaining({
+        recipient_uid: uid,
+        type: "event_reminder",
+        path: "/events/notification-reminder-event",
+        channel_id: "event_reminders",
+        attempts: 0,
+      }),
+    );
+    expect(pending["send_after"].toMillis()).toBe(
+      start.getTime() - 2 * 60 * 60 * 1000,
+    );
+    const visibleReminder = await waitForInAppNotification(uid!, intentId, true);
+    expect(visibleReminder).toEqual(
+      expect.objectContaining({
+        type: "event_reminder",
+        available_at_raw_ms: start.getTime() - 2 * 60 * 60 * 1000,
+        expires_at_raw_ms: start.getTime() + 24 * 60 * 60 * 1000,
+      }),
+    );
+
+    await service.clearMyRsvp(eventId);
+    const cancelled = await waitForNotificationIntent(intentId, "cancelled");
+    expect(cancelled["failure_reason"]).toBe("rsvp_removed");
+    await waitForInAppNotification(uid!, intentId, false);
+  }, rsvpIntegrationTimeoutMs);
+
   it("updates event edit fields through the real web Firestore adapter", async () => {
     const uid = authService.user.uid;
     expect(uid).toBeTruthy();
@@ -337,6 +481,7 @@ runWithEmulator("EventsService emulator integration", () => {
         end: admin.firestore.Timestamp.fromDate(
           new Date("2026-06-01T12:00:00.000Z"),
         ),
+        created_by: { uid },
       });
 
     await service.updateEvent(eventId, {
@@ -364,6 +509,32 @@ runWithEmulator("EventsService emulator integration", () => {
           icons: ["camping"],
         },
       ],
+      event_categories: ["camp", "workshop"],
+      program: {
+        active_plan_id: "main",
+        plans: [
+          {
+            id: "main",
+            label: "Main program",
+            kind: "main",
+            items: [
+              {
+                id: "training",
+                title: "Training",
+                category: "workshop",
+                start: Timestamp.fromDate(
+                  new Date("2026-06-02T10:00:00.000Z"),
+                ),
+                spot_refs: [
+                  { kind: "spot", id: "spot-a" },
+                  { kind: "inline_spot", id: "main-stage" },
+                ],
+                spot_ref: { kind: "spot", id: "spot-a" },
+              },
+            ],
+          },
+        ],
+      },
     });
 
     const snapshot = await adminDb().doc(`events/${eventId}`).get();
@@ -374,6 +545,19 @@ runWithEmulator("EventsService emulator integration", () => {
         name: "Updated emulator event",
         venue_string: "New venue",
         location_raw: { lat: 47.4, lng: 8.5 },
+        publication_state: "published",
+        published: true,
+        visibility: "public",
+        schedule_mode: "single",
+        lifecycle_status: "planned",
+        priority: "normal",
+        attendance: {
+          social: "rsvp",
+          admission: "none",
+          eligibility: { type: "everyone" },
+        },
+        notification_policy: "all",
+        event_categories: ["camp", "workshop"],
       }),
     );
     expect(data?.["start"]).toBeInstanceOf(admin.firestore.Timestamp);
@@ -390,6 +574,18 @@ runWithEmulator("EventsService emulator integration", () => {
         ],
       },
     ]);
+    expect(data?.["program"].plans[0].items[0]).toEqual(
+      expect.objectContaining({
+        spot_refs: [
+          { kind: "spot", id: "spot-a" },
+          { kind: "inline_spot", id: "main-stage" },
+        ],
+        spot_ref: { kind: "spot", id: "spot-a" },
+      }),
+    );
+    expect(
+      data?.["program"].plans[0].items[0].start,
+    ).toBeInstanceOf(admin.firestore.Timestamp);
   });
 
   it("normalizes event Typesense helper fields to Firestore runtime types", async () => {
@@ -484,12 +680,218 @@ runWithEmulator("EventsService emulator integration", () => {
         has_organization: true,
         has_venue_spot: true,
         venue_spot_count: 2,
+        time_zone: "Europe/Zurich",
         location_raw: {
           lat: 47.39732893509323,
           lng: 8.548509576285669,
         },
       }),
     );
+  }, eventTypesenseIntegrationTimeoutMs);
+
+  it("materializes only public events into the disposable discovery projection", async () => {
+    const eventId = `event-discovery-${Date.now()}`;
+    const reference = adminDb().doc(`events/${eventId}`);
+    await reference.set({
+      name: "Projected public event",
+      description: "Safe public summary",
+      venue_string: "Projection venue",
+      locality_string: "Zurich, Switzerland",
+      location_raw: { lat: 47.3769, lng: 8.5417 },
+      start: admin.firestore.Timestamp.fromDate(
+        new Date("2027-06-01T10:00:00.000Z"),
+      ),
+      end: admin.firestore.Timestamp.fromDate(
+        new Date("2027-06-01T12:00:00.000Z"),
+      ),
+      program: { active_plan_id: "main", plans: [] },
+      owner: { type: "user", user_id: "owner-1" },
+      created_by: { uid: "admin-1" },
+      visibility: "public",
+      publication_state: "published",
+      published: true,
+    });
+
+    await waitForEventField(eventId, "start_seconds", 1_811_844_000);
+    const publicProjection = await waitForEventDiscovery(
+      eventId,
+      true,
+      (data) => data?.["time_zone"] === "Europe/Zurich",
+    );
+    expect(publicProjection).toEqual(
+      expect.objectContaining({
+        name: "Projected public event",
+        description: "Safe public summary",
+        publication_state: "published",
+        visibility: "public",
+        published: true,
+        time_zone: "Europe/Zurich",
+      }),
+    );
+    expect(publicProjection).not.toHaveProperty("program");
+    expect(publicProjection).not.toHaveProperty("owner");
+    expect(publicProjection).not.toHaveProperty("created_by");
+
+    await reference.update({ visibility: "unlisted" });
+    await waitForEventDiscovery(eventId, false);
+
+    await reference.update({ visibility: "public" });
+    await waitForEventDiscovery(eventId, true);
+
+    await reference.update({
+      publication_state: "draft",
+      published: false,
+    });
+    await waitForEventDiscovery(eventId, false);
+  }, eventTypesenseIntegrationTimeoutMs);
+
+  it("publishes a locationless date-only event with a UTC compatibility window", async () => {
+    const eventId = `locationless-date-only-${Date.now()}`;
+    await adminDb()
+      .doc(`events/${eventId}`)
+      .set({
+        name: "Venue TBA festival",
+        timing: {
+          mode: "date_only",
+          start_date: "2027-08-09",
+          end_date: "2027-08-11",
+        },
+        visibility: "public",
+        publication_state: "published",
+        published: true,
+      });
+
+    const event = await waitForEventField(eventId, "has_location", false);
+    expect(event["time_zone"]).toBeUndefined();
+    expect(event["location"]).toBeUndefined();
+    expect(event["location_raw"]).toBeUndefined();
+    expect(event["start"].toDate().toISOString()).toBe(
+      "2027-08-09T00:00:00.000Z",
+    );
+    expect(event["end"].toDate().toISOString()).toBe(
+      "2027-08-11T23:59:59.999Z",
+    );
+
+    const projection = await waitForEventDiscovery(eventId, true);
+    expect(projection).toEqual(
+      expect.objectContaining({
+        name: "Venue TBA festival",
+        has_location: false,
+        timing: {
+          mode: "date_only",
+          start_date: "2027-08-09",
+          end_date: "2027-08-11",
+        },
+      }),
+    );
+    expect(projection).not.toHaveProperty("time_zone");
+    expect(projection).not.toHaveProperty("location");
+  }, eventTypesenseIntegrationTimeoutMs);
+
+  it("rebuilds event discovery through the Firestore maintenance document", async () => {
+    const suffix = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const publicEventId = `maintenance-public-${suffix}`;
+    const draftEventId = `maintenance-draft-${suffix}`;
+    const eventData = {
+      venue_string: "Maintenance venue",
+      locality_string: "Zurich, Switzerland",
+      location_raw: { lat: 47.3769, lng: 8.5417 },
+      start: admin.firestore.Timestamp.fromDate(
+        new Date("2027-07-01T10:00:00.000Z"),
+      ),
+      end: admin.firestore.Timestamp.fromDate(
+        new Date("2027-07-01T12:00:00.000Z"),
+      ),
+      time_updated: { seconds: 1_814_445_200, nanoseconds: 470_000_000 },
+      visibility: "public",
+    };
+
+    await Promise.all([
+      adminDb()
+        .doc(`events/${publicEventId}`)
+        .set({
+          ...eventData,
+          name: "Maintenance public event",
+          publication_state: "published",
+          published: true,
+        }),
+      adminDb()
+        .doc(`events/${draftEventId}`)
+        .set({
+          ...eventData,
+          name: "Maintenance draft event",
+          publication_state: "draft",
+          published: false,
+        }),
+    ]);
+
+    const initialProjection = await waitForEventDiscovery(publicEventId, true);
+    expect(initialProjection?.["time_updated"]).toBeInstanceOf(
+      admin.firestore.Timestamp,
+    );
+    await adminDb().doc(`event_discovery/${publicEventId}`).delete();
+    await adminDb().doc("maintenance/run-rebuild-event-discovery").set({
+      dry_run: false,
+      page_size: 2,
+    });
+
+    const maintenance = await waitForMaintenanceStatus(
+      "run-rebuild-event-discovery",
+      "DONE",
+    );
+    expect(maintenance["result"]).toEqual(
+      expect.objectContaining({
+        done: true,
+        dryRun: false,
+        failed: 0,
+        scanned: expect.any(Number),
+        projected: expect.any(Number),
+      }),
+    );
+    expect(maintenance["result"].scanned).toBeGreaterThanOrEqual(2);
+    expect(maintenance["result"].projected).toBeGreaterThanOrEqual(1);
+    await waitForEventDiscovery(publicEventId, true);
+    await waitForEventDiscovery(draftEventId, false);
+  }, eventTypesenseIntegrationTimeoutMs);
+
+  it("dual-writes legacy publication changes through the event trigger", async () => {
+    const eventId = `publication-contract-${Date.now()}`;
+    const reference = adminDb().doc(`events/${eventId}`);
+    await reference.set({
+      name: "Legacy publication contract",
+      venue_string: "Venue",
+      locality_string: "Zurich",
+      location_raw: { lat: 47.37, lng: 8.54 },
+      start: admin.firestore.Timestamp.fromDate(
+        new Date("2026-08-01T10:00:00Z"),
+      ),
+      end: admin.firestore.Timestamp.fromDate(
+        new Date("2026-08-01T12:00:00Z"),
+      ),
+      published: false,
+      created_by: { uid: "legacy-admin" },
+    });
+
+    const draft = await waitForEventField(
+      eventId,
+      "publication_state",
+      "draft",
+    );
+    expect(draft).toEqual(
+      expect.objectContaining({
+        visibility: "public",
+        kind: "other",
+        schedule_mode: "single",
+      }),
+    );
+
+    await reference.update({ published: true });
+    const published = await waitForEventField(
+      eventId,
+      "publication_state",
+      "published",
+    );
+    expect(published["published"]).toBe(true);
   }, eventTypesenseIntegrationTimeoutMs);
 
   it("derives Typesense bounds from custom markers when an event has no area or spots", async () => {

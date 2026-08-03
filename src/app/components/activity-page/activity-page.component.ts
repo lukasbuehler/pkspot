@@ -7,7 +7,8 @@ import {
   signal,
   ChangeDetectionStrategy,
 } from "@angular/core";
-import { AsyncPipe, DatePipe, KeyValuePipe } from "@angular/common";
+import { AsyncPipe, KeyValuePipe } from "@angular/common";
+import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import { Router, RouterLink } from "@angular/router";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
@@ -17,7 +18,7 @@ import { switchMap, takeUntil } from "rxjs/operators";
 import { SpotEditSchema } from "../../../db/schemas/SpotEditSchema";
 import { Spot } from "../../../db/models/Spot";
 import { LocaleCode } from "../../../db/models/Interfaces";
-import { Timestamp } from "@angular/fire/firestore";
+import { Timestamp } from "firebase/firestore";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatChipsModule } from "@angular/material/chips";
@@ -43,7 +44,7 @@ const ACTIVITY_PAGE_SIZE = 25;
   selector: "app-activity-page",
   imports: [
     AsyncPipe,
-    DatePipe,
+    SystemDatePipe,
     SpotPreviewCardComponent,
     RouterLink,
     MatButtonModule,

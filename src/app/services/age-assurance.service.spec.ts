@@ -5,9 +5,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthenticationService } from "./firebase/authentication.service";
 import { FunctionsAdapterService } from "./firebase/functions-adapter.service";
 import { AgeAssuranceService } from "./age-assurance.service";
+import type { PlatformAgeSignal } from "./age-policy";
 
 const nativeState = vi.hoisted(() => ({
   isNative: true,
+  platform: "android" as "android" | "ios" | "web",
   ageSignal: {
     platform: "android" as const,
     source: "android_play_age_signals" as const,
@@ -15,28 +17,64 @@ const nativeState = vi.hoisted(() => ({
     ageLower: 13,
     ageUpper: 17,
     response: "shared" as const,
-  },
+  } as PlatformAgeSignal,
   getAgeSignal: vi.fn(),
+  getBoundAgeSignal: vi.fn(),
+  openPlayStoreListing: vi.fn(),
 }));
 
 vi.mock("@capacitor/core", () => ({
   Capacitor: {
     isNativePlatform: vi.fn(() => nativeState.isNative),
+    getPlatform: vi.fn(() => nativeState.platform),
   },
   registerPlugin: vi.fn(() => ({
     getAgeSignal: nativeState.getAgeSignal,
+    getBoundAgeSignal: nativeState.getBoundAgeSignal,
+    openPlayStoreListing: nativeState.openPlayStoreListing,
   })),
 }));
 
 describe("AgeAssuranceService", () => {
-  let functionsAdapter: { call: ReturnType<typeof vi.fn> };
+  let functionsAdapter: {
+    callAuthenticatedAppChecked: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
     nativeState.isNative = true;
+    nativeState.platform = "android";
+    nativeState.ageSignal = {
+      platform: "android",
+      source: "android_play_age_signals",
+      available: true,
+      ageLower: 13,
+      ageUpper: 17,
+      response: "shared",
+    };
     nativeState.getAgeSignal.mockResolvedValue(nativeState.ageSignal);
+    nativeState.getBoundAgeSignal.mockResolvedValue({
+      signal: nativeState.ageSignal,
+      integrityToken: "integrity-token",
+    });
+    nativeState.openPlayStoreListing.mockResolvedValue(undefined);
     functionsAdapter = {
-      call: vi.fn().mockResolvedValue({ ok: true }),
+      callAuthenticatedAppChecked: vi
+        .fn()
+        .mockImplementation((name: string) =>
+          name === "beginAgeAssuranceV3"
+            ? Promise.resolve({
+                challenge_id: "challenge-1",
+                challenge_nonce: "nonce-1",
+                platform: "android",
+              })
+            : Promise.resolve({
+                ok: true,
+                participation_state: "allowed",
+                adult_eligibility: "not_verified",
+                confidence: "corroborated",
+              }),
+        ),
     };
 
     TestBed.configureTestingModule({
@@ -60,19 +98,18 @@ describe("AgeAssuranceService", () => {
     await service.syncNativeAgePolicyForCurrentUser();
 
     expect(Capacitor.isNativePlatform).toHaveBeenCalled();
-    expect(nativeState.getAgeSignal).toHaveBeenCalled();
-    expect(functionsAdapter.call).toHaveBeenCalledWith(
-      "updateAgePolicy",
+    expect(nativeState.getBoundAgeSignal).toHaveBeenCalledWith({
+      uid: "user-1",
+      challengeId: "challenge-1",
+      challengeNonce: "nonce-1",
+    });
+    expect(functionsAdapter.callAuthenticatedAppChecked).toHaveBeenNthCalledWith(
+      2,
+      "updateAgePolicyV3",
       expect.objectContaining({
-        policy: expect.objectContaining({
-          participation_state: "allowed",
-          source: "android_play_age_signals",
-          platform: "android",
-          age_range: {
-            lower: 13,
-            upper: 17,
-          },
-        }),
+        challenge_id: "challenge-1",
+        challenge_nonce: "nonce-1",
+        integrity_token: "integrity-token",
         signal: expect.objectContaining({
           platform: "android",
           source: "android_play_age_signals",
@@ -83,5 +120,140 @@ describe("AgeAssuranceService", () => {
         }),
       }),
     );
+    expect(service.checkState().status).toBe("not_verified");
+  });
+
+  it("keeps automatic sync one-shot but allows a manual recheck", async () => {
+    const service = TestBed.inject(AgeAssuranceService);
+
+    await service.syncNativeAgePolicyForCurrentUser();
+    await service.syncNativeAgePolicyForCurrentUser();
+    expect(nativeState.getBoundAgeSignal).toHaveBeenCalledTimes(1);
+
+    await service.recheckNativeAgePolicyForCurrentUser();
+    expect(nativeState.getBoundAgeSignal).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    [
+      "self_declared",
+      {
+        ageSignalsStatus: "shared",
+        response: "shared",
+        ageRangeSource: "tier_a",
+        ageLower: 18,
+      },
+    ],
+    [
+      "not_shared",
+      { ageSignalsStatus: "not_shared", response: "declined" },
+    ],
+    [
+      "verification_required",
+      {
+        ageSignalsStatus: "verification_required",
+        response: "unavailable",
+      },
+    ],
+  ] as const)("reports the %s Google Play outcome", async (status, changes) => {
+    nativeState.ageSignal = {
+      platform: "android",
+      source: "android_play_age_signals",
+      available: true,
+      ...changes,
+    } as PlatformAgeSignal;
+    nativeState.getBoundAgeSignal.mockResolvedValue({
+      signal: nativeState.ageSignal,
+      integrityToken: "integrity-token",
+    });
+    const service = TestBed.inject(AgeAssuranceService);
+
+    await service.syncNativeAgePolicyForCurrentUser();
+
+    expect(service.checkState().status).toBe(status);
+  });
+
+  it("uses the server-confirmed result for immediate adult eligibility", async () => {
+    functionsAdapter.callAuthenticatedAppChecked.mockImplementation(
+      (name: string) =>
+        name === "beginAgeAssuranceV3"
+          ? Promise.resolve({
+              challenge_id: "challenge-1",
+              challenge_nonce: "nonce-1",
+              platform: "android",
+            })
+          : Promise.resolve({
+              ok: true,
+              participation_state: "allowed",
+              adult_eligibility: "verified",
+              evaluated_at: "2026-08-01T10:00:00.000Z",
+            }),
+    );
+    const service = TestBed.inject(AgeAssuranceService);
+
+    await service.syncNativeAgePolicyForCurrentUser();
+
+    expect(service.checkState()).toMatchObject({
+      status: "verified",
+      checkedAt: "2026-08-01T10:00:00.000Z",
+    });
+    expect(service.hasVerifiedAdultEligibility()).toBe(true);
+  });
+
+  it("exposes native failures as a retryable error", async () => {
+    nativeState.getBoundAgeSignal.mockRejectedValue(new Error("unavailable"));
+    const service = TestBed.inject(AgeAssuranceService);
+
+    await service.syncNativeAgePolicyForCurrentUser();
+
+    expect(service.checkState().status).toBe("error");
+  });
+
+  it("opens the native Google Play listing on Android", async () => {
+    const service = TestBed.inject(AgeAssuranceService);
+
+    await service.openPlayStoreListing();
+
+    expect(nativeState.openPlayStoreListing).toHaveBeenCalledOnce();
+  });
+
+  it("only treats a server-verified adult eligibility result as verified", () => {
+    const service = TestBed.inject(AgeAssuranceService);
+    const auth = TestBed.inject(AuthenticationService) as unknown as {
+      user: {
+        data?: {
+          data?: {
+            age_policy?: {
+              adult_eligibility?: "verified" | "not_verified";
+              assurance?: {
+                status?: string;
+                client_integrity?: string;
+              };
+            };
+          };
+        };
+      };
+    };
+
+    auth.user.data = {
+      data: { age_policy: { adult_eligibility: "not_verified" } },
+    };
+    expect(service.hasVerifiedAdultEligibility()).toBe(false);
+
+    auth.user.data = {
+      data: {
+        age_policy: {
+          adult_eligibility: "verified",
+          assurance: {
+            status: "active",
+            client_integrity: "play_integrity_request_bound",
+          },
+        },
+      },
+    };
+    expect(service.hasVerifiedAdultEligibility()).toBe(true);
+
+    auth.user.data.data!.age_policy!.assurance!.status = "invalidated";
+    expect(service.hasVerifiedAdultEligibility()).toBe(false);
   });
 });

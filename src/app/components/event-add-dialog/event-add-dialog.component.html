@@ -1,0 +1,71 @@
+<h2 mat-dialog-title i18n="@@event_add.title">Keep this event handy</h2>
+
+<mat-dialog-content>
+  <div class="event-add-intro">
+    <span class="event-add-icon" aria-hidden="true">
+      <mat-icon>event</mat-icon>
+    </span>
+    <div>
+      <strong class="mat-title-large">{{ data.event.name }}</strong>
+      @if (signedIn()) {
+        <p class="mat-body-medium" i18n="@@event_add.signed_in_description">
+          Add it to Going or save it for later.
+        </p>
+      } @else {
+        <p class="mat-body-medium" i18n="@@event_add.signed_out_description">
+          Save it on this device so you can quickly find it again.
+        </p>
+      }
+    </div>
+  </div>
+
+  @if (error()) {
+    <p class="event-add-error mat-body-medium" role="alert">{{ error() }}</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" mat-dialog-close i18n="@@common.not_now">
+    Not now
+  </button>
+
+  @if (signedIn()) {
+    <button
+      mat-stroked-button
+      type="button"
+      [disabled]="saving() !== null"
+      (click)="choose('saved')"
+    >
+      <mat-icon>bookmark</mat-icon>
+      <span i18n="@@event_add.save">Save event</span>
+    </button>
+    <button
+      mat-flat-button
+      type="button"
+      [disabled]="saving() !== null"
+      (click)="choose('going')"
+    >
+      <mat-icon>check_circle</mat-icon>
+      <span i18n="@@event_add.going">I'm going</span>
+    </button>
+  } @else {
+    <a
+      mat-stroked-button
+      routerLink="/sign-in"
+      [queryParams]="{ returnUrl: data.returnUrl }"
+      mat-dialog-close
+    >
+      <mat-icon>login</mat-icon>
+      <span i18n="@@event_add.sign_in">Sign in to mark Going</span>
+    </a>
+    <button
+      mat-flat-button
+      type="button"
+      [disabled]="saving() !== null"
+      (click)="choose('saved')"
+    >
+      <mat-icon>bookmark</mat-icon>
+      <span i18n="@@event_add.save_device">Save on this device</span>
+    </button>
+  }
+</mat-dialog-actions>

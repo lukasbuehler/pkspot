@@ -1,0 +1,45 @@
+.claim-inbox {
+  width: min(1200px, calc(100% - 2rem));
+  margin: 2rem auto;
+}
+
+header,
+.decision-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.claim-list,
+.decision-controls {
+  display: grid;
+  gap: 1rem;
+}
+
+.claim-card mat-card-content {
+  display: grid;
+  gap: 1rem;
+}
+
+app-event-card {
+  max-width: 360px;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+}
+
+dt {
+  font-weight: 600;
+}
+
+.owner-response {
+  padding: 0.75rem;
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 18px;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}

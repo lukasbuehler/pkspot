@@ -6,7 +6,7 @@ const APP_HOSTS = new Set([
 ]);
 
 // Supported languages - must match the Angular i18n setup
-const SUPPORTED_LOCALES = ["en", "de", "de-CH", "fr", "it", "es", "nl"];
+const SUPPORTED_LOCALES = ["en", "de", "fr", "it", "es", "nl"];
 const DEFAULT_LOCALE = "en";
 
 // Static pages from app.routes.ts (excluding redirects, auth-required,
@@ -29,6 +29,7 @@ const STATIC_PAGES = [
 
 export interface UserSitemapData {
   display_name?: string;
+  public_search?: boolean;
 }
 
 export interface SpotSitemapData {
@@ -52,6 +53,7 @@ export interface EventSitemapData {
   status?: string;
   time_updated?: { seconds: number; nanoseconds: number };
   updatedAt?: { seconds: number; nanoseconds: number };
+  start?: { seconds: number; nanoseconds: number } | string;
   startDate?: { seconds: number; nanoseconds: number } | string;
 }
 
@@ -129,7 +131,7 @@ function generateUrlWithHreflang(
 
 /**
  * Converts locale code to hreflang format.
- * e.g., "de-CH" stays "de-CH", "en" stays "en"
+ * e.g., "de" stays "de", "en" stays "en"
  */
 function getHreflangCode(locale: string): string {
   return locale;
@@ -385,10 +387,15 @@ export function buildUserSitemapEntry(
   data: UserSitemapData,
   fallbackDate: string
 ): ResolvedSitemapEntry | null {
-  void id;
-  void data;
-  void fallbackDate;
-  return null;
+  if (data.public_search !== true || !data.display_name?.trim()) {
+    return null;
+  }
+  return {
+    path: `/u/${encodeURIComponent(id)}`,
+    lastmod: fallbackDate,
+    changefreq: "monthly",
+    priority: "0.4",
+  };
 }
 
 export function buildCommunitySitemapEntry(
@@ -437,7 +444,7 @@ export function buildEventSitemapEntry(
   return {
     path,
     lastmod: getLastModDate(
-      data.time_updated ?? data.updatedAt ?? data.startDate,
+      data.time_updated ?? data.updatedAt ?? data.start ?? data.startDate,
       fallbackDate
     ),
     changefreq: "weekly",

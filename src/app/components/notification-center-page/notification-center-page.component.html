@@ -1,0 +1,179 @@
+<main class="notification-center">
+  <header class="notification-center__header">
+    <div>
+      <h1 class="mat-headline-medium m-0" i18n="@@notification_center.heading">
+        Notifications
+      </h1>
+      @if (center.unreadCount() > 0) {
+        <p class="mat-body-medium m-0" i18n="@@notification_center.unread_count">
+          {center.unreadCount(), plural, =1 {1 unread} other {{{ center.unreadCount() }} unread}}
+        </p>
+      }
+    </div>
+    <div class="notification-center__actions">
+      @if (center.unreadCount() > 0) {
+        <button
+          matIconButton
+          type="button"
+          (click)="markAllRead()"
+          matTooltip="Mark all as read"
+          i18n-matTooltip="@@notification_center.mark_all_read"
+          aria-label="Mark all as read"
+          i18n-aria-label="@@notification_center.mark_all_read"
+        >
+          <mat-icon>done_all</mat-icon>
+        </button>
+      }
+      <a
+        matIconButton
+        routerLink="/settings/notifications"
+        matTooltip="Notification settings"
+        i18n-matTooltip="@@notification_center.settings"
+        aria-label="Notification settings"
+        i18n-aria-label="@@notification_center.settings"
+      >
+        <mat-icon>settings</mat-icon>
+      </a>
+    </div>
+  </header>
+
+  @if (center.loading() && notifications().length === 0) {
+    <div class="notification-center__state" aria-live="polite">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (center.failed()) {
+    <div class="notification-center__state">
+      <mat-icon>cloud_off</mat-icon>
+      <h2 class="mat-title-medium m-0" i18n="@@notification_center.load_error">
+        Notifications could not be loaded
+      </h2>
+      <button mat-stroked-button type="button" (click)="refresh()">
+        <mat-icon>refresh</mat-icon>
+        <span i18n="@@notification_center.retry">Retry</span>
+      </button>
+    </div>
+  } @else if (notifications().length === 0) {
+    <div class="notification-center__state">
+      <mat-icon>notifications_off</mat-icon>
+      <h2 class="mat-title-medium m-0" i18n="@@notification_center.empty">
+        No notifications
+      </h2>
+    </div>
+  } @else {
+    <section
+      class="notification-list"
+      aria-label="Notifications"
+      i18n-aria-label="@@notification_center.list_aria"
+    >
+      @for (thread of threads(); track thread.key) {
+        @let notification = thread.latest;
+        <article
+          class="notification-row"
+          [class.notification-row--unread]="notification.unread"
+        >
+          <button
+            type="button"
+            class="notification-row__content"
+            (click)="open(notification)"
+          >
+            <span class="notification-row__icon" aria-hidden="true">
+              <mat-icon>{{ notification.icon }}</mat-icon>
+              @if (notification.imageUrl) {
+                <img
+                  [src]="notification.imageUrl"
+                  alt=""
+                  loading="lazy"
+                  (error)="$any($event.target).remove()"
+                />
+              }
+            </span>
+            <span class="notification-row__copy">
+              <span class="notification-row__title mat-title-medium">
+                {{ notification.title }}
+              </span>
+              <span class="notification-row__body mat-body-medium">
+                {{ notification.body }}
+              </span>
+              <span class="notification-row__time mat-label-medium">
+                {{ notification.time }}
+                @if (thread.history.length > 0) {
+                  · {{ thread.history.length + 1 }} updates
+                }
+              </span>
+            </span>
+            @if (notification.unread) {
+              <span class="notification-row__unread" aria-hidden="true"></span>
+            }
+          </button>
+          <button
+            matIconButton
+            type="button"
+            class="notification-row__dismiss"
+            (click)="dismiss(notification.id)"
+            matTooltip="Dismiss"
+            i18n-matTooltip="@@notification_center.dismiss"
+            aria-label="Dismiss notification"
+            i18n-aria-label="@@notification_center.dismiss_aria"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+          @if (notification.actions.length > 0 || notification.resolvedLabel || thread.history.length > 0) {
+            <div class="notification-row__footer">
+              @if (notification.resolvedLabel) {
+                <span class="notification-row__resolved mat-label-large">
+                  <mat-icon>check</mat-icon>
+                  {{ notification.resolvedLabel }}
+                </span>
+              }
+              @for (action of notification.actions; track action.id) {
+                <button
+                  [matButton]="action.destructive ? 'text' : 'outlined'"
+                  type="button"
+                  [disabled]="actingIds().has(notification.id)"
+                  (click)="performAction(notification.id, action.id)"
+                >
+                  {{ action.label }}
+                </button>
+              }
+              @if (notification.actions.length > 0) {
+                <button matButton="text" type="button" (click)="open(notification)" i18n="@@notification_center.view">
+                  View
+                </button>
+              }
+              @if (thread.history.length > 0) {
+                <button
+                  matIconButton
+                  type="button"
+                  class="notification-row__thread-toggle"
+                  (click)="toggleThread(thread.key)"
+                  [attr.aria-expanded]="expandedThreads().has(thread.key)"
+                  aria-label="Show earlier updates"
+                  i18n-aria-label="@@notification_center.show_history"
+                >
+                  <mat-icon>{{ expandedThreads().has(thread.key) ? "expand_less" : "expand_more" }}</mat-icon>
+                </button>
+              }
+            </div>
+          }
+        </article>
+        @if (expandedThreads().has(thread.key)) {
+          @for (history of thread.history; track history.id) {
+            <article class="notification-row notification-row--history">
+              <button type="button" class="notification-row__content" (click)="open(history)">
+                <span class="notification-row__icon" aria-hidden="true"><mat-icon>{{ history.icon }}</mat-icon></span>
+                <span class="notification-row__copy">
+                  <span class="notification-row__title mat-title-small">{{ history.title }}</span>
+                  <span class="notification-row__body mat-body-small">{{ history.body }}</span>
+                  <span class="notification-row__time mat-label-small">{{ history.time }}</span>
+                </span>
+              </button>
+              <button matIconButton type="button" class="notification-row__dismiss" (click)="dismiss(history.id)" aria-label="Dismiss notification" i18n-aria-label="@@notification_center.dismiss_aria">
+                <mat-icon>close</mat-icon>
+              </button>
+            </article>
+          }
+        }
+      }
+    </section>
+  }
+</main>

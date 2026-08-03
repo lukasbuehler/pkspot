@@ -4,30 +4,81 @@ import {
   computed,
   effect,
   inject,
-  OnInit,
+  linkedSignal,
+  LOCALE_ID,
+  resource,
   signal,
 } from "@angular/core";
+import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { MatButtonModule } from "@angular/material/button";
-import { MatChipsModule } from "@angular/material/chips";
+import { MatDialog } from "@angular/material/dialog";
 import { MatIconModule } from "@angular/material/icon";
-import { ActivatedRoute, ParamMap, Router, RouterLink } from "@angular/router";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { Event as PkEvent } from "../../../db/models/Event";
+import { ActivatedRoute, ParamMap, Router } from "@angular/router";
 import {
-  EventCategory,
-  EventId,
-  EventSchema,
+  type EventCategory,
+  type EventSchema,
 } from "../../../db/schemas/EventSchema";
-import { EventsService } from "../../services/firebase/firestore/events.service";
+import { AnalyticsService } from "../../services/analytics.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
-import { SWISSJAM25_STATIC } from "../event-page/swissjam25.static";
-import { EventCardComponent } from "../event-card/event-card.component";
+import { EventsService } from "../../services/firebase/firestore/events.service";
 import {
-  SeriesDocument,
+  type SeriesDocument,
   SeriesService,
 } from "../../services/firebase/firestore/series.service";
+import {
+  type EventDiscoveryFacets,
+  type EventDiscoveryItem,
+  type EventDiscoverySearchResult,
+  type EventSearchPreview,
+  SearchService,
+} from "../../services/search.service";
+import { ResizeObserverDirective } from "../../directives/resize-observer.directive";
 import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
-import { AnalyticsService } from "../../services/analytics.service";
+import { EventCardComponent } from "../event-card/event-card.component";
+import {
+  type FabMenuAction,
+  FabMenuComponent,
+} from "../fab-menu/fab-menu.component";
+import type { EntityReferenceOption } from "../entity-reference-autocomplete/entity-reference-autocomplete.component";
+import {
+  buildEventCalendarMonth,
+  currentMonthKey,
+  eventLocalDateKey,
+  isMonthKey,
+  shiftMonthKey,
+} from "./event-calendar.model";
+import { EventCalendarComponent } from "./event-calendar.component";
+import { EventDiscoveryListComponent } from "./event-discovery-list.component";
+import {
+  EventDiscoveryIssuesDialogComponent,
+  type EventDiscoveryIssuesDialogData,
+} from "./event-discovery-issues-dialog.component";
+import {
+  type EventCategoryFilterOption,
+  EventDiscoveryToolbarComponent,
+  type EventSeriesFilterOption,
+  type EventsListPeriod,
+} from "./event-discovery-toolbar.component";
+import {
+  EventDiscoveryViewToggleComponent,
+  type EventsDiscoveryView,
+} from "./event-discovery-view-toggle.component";
+import { EventNowNextCardComponent } from "../event-now-next-card/event-now-next-card.component";
+import { MyEventContextService } from "../../services/my-event-context.service";
+import { environment } from "../../../environments/environment.default";
+import {
+  ContinuousEventCalendarComponent,
+  type ContinuousEventCalendarLoader,
+} from "./continuous-event-calendar.component";
+import { MyEventsPanelComponent } from "../my-events-panel/my-events-panel.component";
+import { EventNotificationMigrationService } from "../../services/event-notification-migration.service";
+import { NotificationPreferencesService } from "../../services/notification-preferences.service";
+
+type EventCreateAction = "event" | "session";
+
+interface EventFabMenuAction extends FabMenuAction {
+  id: EventCreateAction;
+}
 
 type ScreenshotEventSchema = Omit<
   EventSchema,
@@ -47,335 +98,673 @@ interface ScreenshotGlobal {
   __PKSPOT_SCREENSHOT_EVENT_INDEX__?: ScreenshotEventIndex;
 }
 
+interface DiscoveryRequest {
+  view: EventsDiscoveryView;
+  query: string;
+  areaKeys: string[];
+  categories: EventCategory[];
+  seriesIds: string[];
+  period: EventsListPeriod;
+  month: string;
+  limit: number;
+  rangeStartSeconds?: number;
+  rangeEndSeconds?: number;
+}
+
+const WIDE_CALENDAR_MIN_WIDTH = 1120;
+const LIST_PAGE_SIZE = 24;
+const VIEW_STORAGE_KEY = "eventsDiscoveryView";
+
 @Component({
   selector: "app-events-page",
   imports: [
-    EventCardComponent,
     MatButtonModule,
-    MatChipsModule,
     MatIconModule,
-    RouterLink,
+    ResizeObserverDirective,
+    EventCardComponent,
+    EventCalendarComponent,
+    EventDiscoveryListComponent,
+    EventDiscoveryToolbarComponent,
+    EventDiscoveryViewToggleComponent,
+    EventNowNextCardComponent,
+    MyEventsPanelComponent,
+    ContinuousEventCalendarComponent,
+    FabMenuComponent,
   ],
   templateUrl: "./events-page.component.html",
   styleUrl: "./events-page.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EventsPageComponent implements OnInit {
-  private _eventsService = inject(EventsService);
-  private _authService = inject(AuthenticationService);
-  private _seriesService = inject(SeriesService);
-  private _route = inject(ActivatedRoute, { optional: true });
-  private _router = inject(Router, { optional: true });
-  private _analytics = inject(AnalyticsService);
+export class EventsPageComponent {
+  private readonly _search = inject(SearchService);
+  private readonly _events = inject(EventsService);
+  private readonly _series = inject(SeriesService);
+  private readonly _auth = inject(AuthenticationService);
+  private readonly _analytics = inject(AnalyticsService);
+  private readonly _dialog = inject(MatDialog);
+  private readonly _route = inject(ActivatedRoute);
+  private readonly _router = inject(Router);
+  private readonly _locale = inject(LOCALE_ID);
+  private readonly _notificationMigration = inject(
+    EventNotificationMigrationService,
+  );
+  private readonly _notificationPreferences = inject(
+    NotificationPreferencesService,
+  );
+  readonly myEventContext = inject(MyEventContextService);
+  readonly continuousCalendarEnabled =
+    environment.features.continuousEventCalendar;
+  private readonly _authState = toSignal(this._auth.authState$, {
+    initialValue: this._auth.authState$.value,
+  });
+  private _hasValidMonthParam = false;
+  private _hasValidDayParam = false;
+  private _hasPeriodParam = false;
+  private _urlCanonicalizationPending = false;
+  private _migrationCheckStarted = false;
 
-  /** Shows the "+ Create event" button only to admins. */
-  readonly isAdmin = computed(() => this._authService.isAdmin());
+  readonly isAdmin = computed(() => this._auth.isAdmin());
+  readonly isSignedIn = computed(() => !!this._authState()?.uid);
+  readonly nonLiveGoingEvents = computed(() =>
+    this.myEventContext
+      .goingEvents()
+      .filter((event) => !event.isLive(this.myEventContext.now())),
+  );
+  readonly upcomingMigrationEventCount = computed(() => {
+    const now = this.myEventContext.now().getTime();
+    return new Set(
+      [
+        ...this.myEventContext.goingEvents(),
+        ...this.myEventContext.savedEvents(),
+      ]
+        .filter(
+          (event) =>
+            event.end.getTime() > now && event.lifecycleStatus !== "cancelled",
+        )
+        .map((event) => event.id),
+    ).size;
+  });
+  readonly createMenuLabel = $localize`:@@events.create_menu_tooltip:Create event`;
+  readonly createActions = computed<EventFabMenuAction[]>(() => {
+    if (!this.isAdmin()) return [];
+    return [
+      {
+        id: "event",
+        icon: "calendar_add_on",
+        label: $localize`:@@events.create:Create event`,
+      },
+    ];
+  });
 
-  events = signal<PkEvent[]>([]);
-  seriesById = signal<Record<string, SeriesDocument>>({});
-  selectedSeriesIds = signal<string[]>([]);
-  selectedCategories = signal<EventCategory[]>([]);
-  loading = signal<boolean>(true);
-  private _lastIncludeUnpublished: boolean | null = null;
+  readonly containerWidth = signal(0);
+  readonly explicitView = signal<EventsDiscoveryView | null>(null);
+  readonly legacyCalendarRequested = signal(false);
+  readonly rememberedView = signal<EventsDiscoveryView | null>(
+    readRememberedView(),
+  );
+  readonly query = signal("");
+  readonly areaKey = signal("");
+  readonly areaAliases = signal<string[]>([]);
+  readonly selectedCategories = signal<EventCategory[]>([], {
+    equal: sameOrderedValues,
+  });
+  readonly selectedSeriesIds = signal<string[]>([], {
+    equal: sameOrderedValues,
+  });
+  readonly period = signal<EventsListPeriod>("upcoming");
+  readonly month = signal(currentMonthKey());
+  readonly requestedDay = signal("");
+  readonly resultLimit = signal(LIST_PAGE_SIZE);
 
-  /** Events sorted by start date — live + upcoming first, past last. */
-  readonly filteredEvents = computed(() => {
-    const selectedSeriesIds = this.selectedSeriesIds();
-    const selectedCategories = this.selectedCategories();
-    if (selectedSeriesIds.length === 0 && selectedCategories.length === 0) {
-      return this.events();
+  readonly wideCalendar = computed(
+    () => this.containerWidth() >= WIDE_CALENDAR_MIN_WIDTH,
+  );
+  readonly view = computed<EventsDiscoveryView>(
+    () =>
+      this.explicitView() ??
+      (this.legacyCalendarRequested() ? "calendar" : null) ??
+      this.rememberedView() ??
+      "list",
+  );
+  readonly calendarRange = computed(() =>
+    buildEventCalendarMonth(this.month(), this._locale, []),
+  );
+  readonly selectedDay = computed(() => {
+    const requested = this.requestedDay();
+    if (
+      /^\d{4}-\d{2}-\d{2}$/u.test(requested) &&
+      this.calendarRange().days.some((day) => day.key === requested)
+    ) {
+      return requested;
     }
-    return this.events().filter(
-      (event) =>
-        (selectedSeriesIds.length === 0 ||
-          selectedSeriesIds.some((seriesId) =>
-            event.seriesIds.includes(seriesId),
-          )) &&
-        (selectedCategories.length === 0 ||
-          selectedCategories.some((category) =>
-            event.eventCategories.includes(category),
-          )),
+    return defaultDayForMonth(this.month());
+  });
+  readonly discoveryAreaKeys = computed(() =>
+    this.areaAliases().length
+      ? this.areaAliases()
+      : this.areaKey()
+        ? [this.areaKey()]
+        : [],
+  );
+  readonly usesContinuousCalendar = computed(
+    () => this.view() === "calendar" && this.continuousCalendarEnabled,
+  );
+
+  readonly discoveryResource = resource({
+    params: (): DiscoveryRequest => ({
+      view: this.view(),
+      query: this.query(),
+      areaKeys: this.discoveryAreaKeys(),
+      categories: this.selectedCategories(),
+      seriesIds: this.selectedSeriesIds(),
+      period: this.period(),
+      month: this.month(),
+      limit: this.resultLimit(),
+    }),
+    loader: async ({ params, abortSignal }) => {
+      const screenshot = this._screenshotDiscovery(params);
+      if (screenshot) return screenshot;
+
+      const common = {
+        query: params.query,
+        areaKeys: params.areaKeys,
+        categories: params.categories,
+        seriesIds: params.seriesIds,
+        abortSignal,
+      };
+      if (params.view === "calendar") {
+        const range = buildEventCalendarMonth(
+          params.month,
+          this._locale,
+          [],
+        );
+        return this._search.searchAllEventDiscovery({
+          ...common,
+          startsBeforeSeconds: range.queryEndSeconds,
+          endsAfterSeconds: range.queryStartSeconds,
+          sort: "calendar",
+        });
+      }
+
+      const nowSeconds = Math.floor(Date.now() / 1000);
+      return this._search.searchEventDiscovery({
+        ...common,
+        ...(params.period === "past"
+          ? { endsBeforeSeconds: nowSeconds, sort: "past" as const }
+          : { endsAfterSeconds: nowSeconds, sort: "upcoming" as const }),
+        page: 1,
+        perPage: Math.min(params.limit, 250),
+      });
+    },
+  });
+
+  readonly discoveryResult = linkedSignal({
+    source: () => this.discoveryResource.value(),
+    computation: (result, previous): EventDiscoverySearchResult | null =>
+      result ?? previous?.value ?? null,
+  });
+  readonly continuousCalendarResult =
+    signal<EventDiscoverySearchResult | null>(null);
+  readonly filterDiscoveryResult = computed(() =>
+    this.usesContinuousCalendar()
+      ? (this.continuousCalendarResult() ?? this.discoveryResult())
+      : this.discoveryResult(),
+  );
+  readonly events = computed(() => this.discoveryResult()?.items ?? []);
+  readonly invalidEventsResource = resource({
+    params: () => (this.isAdmin() ? true : undefined),
+    loader: async ({ abortSignal }) =>
+      this._screenshotInvalidEvents() ??
+      (await this._search.searchInvalidEventDiscovery({ abortSignal })),
+  });
+  readonly invalidEvents = computed(
+    () => this.invalidEventsResource.value() ?? [],
+  );
+  readonly calendar = computed(() =>
+    buildEventCalendarMonth(
+      this.month(),
+      this._locale,
+      this.events(),
+    ),
+  );
+  readonly facetSeriesIds = computed(() => [
+    ...new Set([
+      ...(this.filterDiscoveryResult()?.facets.series.map(
+        (facet) => facet.value,
+      ) ?? []),
+      ...this.selectedSeriesIds(),
+      ...(this.filterDiscoveryResult()?.items.flatMap(
+        (event) => event.seriesIds,
+      ) ?? []),
+      ...this.invalidEvents().flatMap((event) => event.seriesIds),
+    ]),
+  ]);
+
+  readonly seriesResource = resource({
+    params: () => {
+      const ids = this.facetSeriesIds();
+      return ids.length > 0 ? ids : undefined;
+    },
+    loader: async ({ params }) =>
+      this._screenshotSeriesById() ?? this._series.getSeriesByIds(params),
+  });
+  readonly seriesById = computed(
+    () => this.seriesResource.value() ?? this._screenshotSeriesById() ?? {},
+  );
+
+  readonly categoryFilterOptions = computed<EventCategoryFilterOption[]>(() => {
+    const counts = new Map(
+      (this.filterDiscoveryResult()?.facets.categories ?? []).map((facet) => [
+        facet.value,
+        facet.count,
+      ]),
+    );
+    return EVENT_CATEGORY_FILTERS.map((category) => ({
+      id: category,
+      icon: categoryIcon(category),
+      label: categoryLabel(category),
+      count: counts.get(category) ?? 0,
+    })).filter(
+      (option) =>
+        option.count > 0 || this.selectedCategories().includes(option.id),
     );
   });
 
-  readonly upcomingEvents = computed(() =>
-    this.filteredEvents().filter((e) => !e.isPast()),
-  );
-
-  readonly pastEvents = computed(() =>
-    this.filteredEvents()
-      .filter((e) => e.isPast())
-      .sort((a, b) => b.start.getTime() - a.start.getTime()),
-  );
-
-  readonly seriesFilterOptions = computed(() => {
-    const seriesById = this.seriesById();
-    const counts = new Map<string, number>();
-    for (const event of this.events()) {
-      for (const seriesId of event.seriesIds) {
-        counts.set(seriesId, (counts.get(seriesId) ?? 0) + 1);
-      }
-    }
-    return [...counts.entries()]
-      .map(([id, count]) => ({
+  readonly seriesFilterOptions = computed<EventSeriesFilterOption[]>(() => {
+    const counts = new Map(
+      (this.filterDiscoveryResult()?.facets.series ?? []).map((facet) => [
+        facet.value,
+        facet.count,
+      ]),
+    );
+    return this.facetSeriesIds()
+      .map((id) => ({
         id,
-        count,
-        label: seriesById[id]?.name ?? this._seriesFallbackLabel(id),
-        logoSrc: eventImageDisplaySrc(seriesById[id]?.logo_src),
+        label: this.seriesById()[id]?.name ?? seriesFallbackLabel(id),
+        count: counts.get(id) ?? 0,
+        logoSrc: eventImageDisplaySrc(this.seriesById()[id]?.logo_src),
         logoBackground:
-          seriesById[id]?.logo_background_color ??
+          this.seriesById()[id]?.logo_background_color ??
           "var(--mat-sys-surface-container-high)",
       }))
       .sort((left, right) => left.label.localeCompare(right.label));
   });
 
-  readonly categoryFilterOptions = computed(() => {
-    const counts = new Map<EventCategory, number>();
-    for (const event of this.events()) {
-      for (const category of event.eventCategories) {
-        if (EVENT_CATEGORY_FILTER_SET.has(category)) {
-          counts.set(category, (counts.get(category) ?? 0) + 1);
-        }
-      }
-    }
-
-    return EVENT_CATEGORY_FILTERS.map((category) => ({
-      id: category,
-      icon: this.categoryIcon(category),
-      label: this.categoryLabel(category),
-      count: counts.get(category) ?? 0,
-    })).filter((option) => option.count > 0);
+  readonly draftsResource = resource({
+    params: () => (this.isAdmin() ? true : undefined),
+    loader: async () => {
+      if (this._screenshotEventIndex()) return [];
+      const events = await this._events.getEvents({
+        includeUnpublished: true,
+        sortByNext: true,
+      });
+      return events.filter((event) => !event.published);
+    },
   });
+  readonly drafts = computed(() => this.draftsResource.value() ?? []);
+  readonly loadContinuousCalendarEvents: ContinuousEventCalendarLoader = (
+    request,
+  ) => {
+    const screenshot = this._screenshotDiscovery({
+      view: "calendar",
+      query: request.query,
+      areaKeys: request.areaKeys,
+      categories: request.categories,
+      seriesIds: request.seriesIds,
+      period: this.period(),
+      month: this.month(),
+      limit: LIST_PAGE_SIZE,
+      rangeStartSeconds: request.endsAfterSeconds,
+      rangeEndSeconds: request.startsBeforeSeconds,
+    });
+    if (screenshot) return Promise.resolve(screenshot);
 
-  ngOnInit() {
-    void this._loadEvents();
-  }
+    return this._search.searchAllEventDiscovery({
+      query: request.query,
+      areaKeys: request.areaKeys,
+      categories: request.categories,
+      seriesIds: request.seriesIds,
+      startsBeforeSeconds: request.startsBeforeSeconds,
+      endsAfterSeconds: request.endsAfterSeconds,
+      sort: "calendar",
+      abortSignal: request.abortSignal,
+    });
+  };
 
   constructor() {
-    this._route?.queryParamMap
+    this._route.queryParamMap
       .pipe(takeUntilDestroyed())
-      .subscribe((params) => this._syncFiltersFromQueryParams(params));
+      .subscribe((params) => this._readQueryParams(params));
 
     effect(() => {
-      const includeUnpublished = this.isAdmin();
-      if (this._lastIncludeUnpublished === null) return;
-      if (includeUnpublished === this._lastIncludeUnpublished) return;
-      void this._loadEvents();
+      if (
+        this._migrationCheckStarted ||
+        !this.isSignedIn() ||
+        this.myEventContext.isLoading() ||
+        this._notificationPreferences.loading() ||
+        this._notificationPreferences.preferences().event_reminders ||
+        this._notificationPreferences.hasHandledPrompt(
+          "event_notifications_migration",
+        )
+      ) return;
+      const count = this.upcomingMigrationEventCount();
+      this._migrationCheckStarted = true;
+      void this._notificationMigration.maybePrompt(count);
     });
   }
 
-  private async _loadEvents() {
-    const includeUnpublished = this.isAdmin();
-    this._lastIncludeUnpublished = includeUnpublished;
-    try {
-      const screenshotIndex = this._screenshotEventIndex();
-      if (screenshotIndex) {
-        this.events.set(screenshotIndex.events);
-        this.seriesById.set(screenshotIndex.seriesById);
-        return;
-      }
+  onContainerResize(rect: DOMRectReadOnly): void {
+    this.containerWidth.set(Math.round(rect.width));
+    this._ensureShareableUrlDefaults();
+  }
 
-      const events = await this._eventsService.getEvents({
-        sortByNext: true,
-        ...(includeUnpublished ? { includeUnpublished } : {}),
-      });
+  onViewChange(view: EventsDiscoveryView): void {
+    this.explicitView.set(view);
+    this.rememberedView.set(view);
+    rememberView(view);
+    this._analytics.trackEvent("events_view_changed", { view });
+    void this._updateQueryParams(
+      view === "calendar"
+        ? { view, month: this.month(), day: this.selectedDay() }
+        : { view, when: this.period() },
+    );
+  }
 
-      // Surface the swissjam25 static fallback when no Firestore doc exists,
-      // so the calendar isn't empty before any events are migrated.
-      if (
-        !events.some(
-          (e) => e.slug === "swissjam25" || e.id === ("swissjam25" as EventId)
-        )
-      ) {
-        events.push(new PkEvent("swissjam25" as EventId, SWISSJAM25_STATIC));
-      }
+  onPeriodChange(period: EventsListPeriod): void {
+    this.resultLimit.set(LIST_PAGE_SIZE);
+    void this._updateQueryParams({ when: period });
+  }
 
-      this.events.set(events);
-      await this._loadSeriesForEvents(events);
-    } catch (err) {
-      console.warn("EventsPage: failed to load events", err);
-      this.events.set([
-        new PkEvent("swissjam25" as EventId, SWISSJAM25_STATIC),
-      ]);
-      this.seriesById.set({});
-    } finally {
-      this.loading.set(false);
+  onQueryChange(query: string): void {
+    this.resultLimit.set(LIST_PAGE_SIZE);
+    void this._updateQueryParams({ q: query || null });
+  }
+
+  onAreaChange(option: EntityReferenceOption | null): void {
+    const community = option?.communityPreview;
+    const key = community?.communityKey ?? option?.id ?? "";
+    this.areaAliases.set(
+      key
+        ? [
+            ...new Set([
+              key,
+              ...(community?.mergedCommunityKeys ?? []),
+            ]),
+          ]
+        : [],
+    );
+    if (key !== this.areaKey()) {
+      this.resultLimit.set(LIST_PAGE_SIZE);
+      void this._updateQueryParams({ area: key || null });
     }
   }
 
-  toggleSeriesFilter(seriesId: string): void {
-    const wasSelected = this.selectedSeriesIds().includes(seriesId);
-    this.selectedSeriesIds.update((selected) =>
-      wasSelected
-        ? selected.filter((id) => id !== seriesId)
-        : [...selected, seriesId],
+  toggleCategory(category: EventCategory): void {
+    const values = this.selectedCategories().includes(category)
+      ? this.selectedCategories().filter((item) => item !== category)
+      : [...this.selectedCategories(), category];
+    void this._updateQueryParams({
+      category: serializeList(values),
+    });
+  }
+
+  toggleSeries(seriesId: string): void {
+    const values = this.selectedSeriesIds().includes(seriesId)
+      ? this.selectedSeriesIds().filter((item) => item !== seriesId)
+      : [...this.selectedSeriesIds(), seriesId];
+    void this._updateQueryParams({ series: serializeList(values) });
+  }
+
+  clearFilters(): void {
+    this.areaAliases.set([]);
+    this.resultLimit.set(LIST_PAGE_SIZE);
+    void this._updateQueryParams({
+      q: null,
+      area: null,
+      category: null,
+      series: null,
+    });
+  }
+
+  changeMonth(offset: number): void {
+    const month = shiftMonthKey(this.month(), offset);
+    void this._updateQueryParams({
+      month,
+      day: defaultDayForMonth(month),
+    });
+  }
+
+  goToToday(): void {
+    const month = currentMonthKey();
+    const day = eventLocalDateKey(
+      new Date(),
+      Intl.DateTimeFormat().resolvedOptions().timeZone,
     );
-    this._analytics.trackEvent("events_filter_changed", {
-      filter_type: "series",
-      value: seriesId,
-      enabled: !wasSelected,
-      selected_series_count: this.selectedSeriesIds().length,
-      selected_category_count: this.selectedCategories().length,
+    void this._updateQueryParams({ month, day });
+  }
+
+  selectDay(day: string): void {
+    void this._updateQueryParams({ day });
+  }
+
+  jumpToCalendarDate(day: string): void {
+    void this._updateQueryParams({
+      month: day.slice(0, 7),
+      day,
     });
-    void this._updateFilterQueryParams();
   }
 
-  isSeriesSelected(seriesId: string): boolean {
-    return this.selectedSeriesIds().includes(seriesId);
+  onContinuousCalendarResult(result: EventDiscoverySearchResult): void {
+    this.continuousCalendarResult.set(result);
   }
 
-  clearSeriesFilters(): void {
-    this.selectedSeriesIds.set([]);
-    this._analytics.trackEvent("events_filter_cleared", {
-      filter_type: "series",
+  loadMore(): void {
+    this.resultLimit.update((limit) => Math.min(250, limit + LIST_PAGE_SIZE));
+  }
+
+  retry(): void {
+    this.discoveryResource.reload();
+  }
+
+  openInvalidEventsDialog(): void {
+    const invalidEvents = this.invalidEvents();
+    if (!this.isAdmin() || invalidEvents.length === 0) return;
+
+    this._dialog.open<
+      EventDiscoveryIssuesDialogComponent,
+      EventDiscoveryIssuesDialogData
+    >(EventDiscoveryIssuesDialogComponent, {
+      data: {
+        events: invalidEvents,
+        seriesById: this.seriesById(),
+      },
+      width: "860px",
+      maxWidth: "calc(100vw - 2rem)",
+      maxHeight: "90vh",
+      ariaLabel: $localize`Events needing a data update`,
     });
-    void this._updateFilterQueryParams();
   }
 
-  toggleCategoryFilter(category: EventCategory): void {
-    const wasSelected = this.selectedCategories().includes(category);
-    this.selectedCategories.update((selected) =>
-      wasSelected
-        ? selected.filter((item) => item !== category)
-        : [...selected, category],
-    );
-    this._analytics.trackEvent("events_filter_changed", {
-      filter_type: "category",
-      value: category,
-      enabled: !wasSelected,
-      selected_series_count: this.selectedSeriesIds().length,
-      selected_category_count: this.selectedCategories().length,
-    });
-    void this._updateFilterQueryParams();
-  }
-
-  isCategorySelected(category: EventCategory): boolean {
-    return this.selectedCategories().includes(category);
-  }
-
-  clearCategoryFilters(): void {
-    this.selectedCategories.set([]);
-    this._analytics.trackEvent("events_filter_cleared", {
-      filter_type: "category",
-    });
-    void this._updateFilterQueryParams();
-  }
-
-  trackCreateEventClick(): void {
+  onCreateAction(action: string): void {
+    if (action !== "event") return;
     this._analytics.trackEvent("event_create_clicked", {
       surface: "events_page",
     });
+    void this._router.navigate(["/events/new"]);
   }
 
-  categoryLabel(category: EventCategory): string {
-    switch (category) {
-      case "competition":
-        return $localize`:@@event_category.competition:Competition`;
-      case "jam":
-        return $localize`:@@event_category.jam:Jam`;
-      case "camp":
-        return $localize`:@@event_category.camp:Camp`;
-      default:
-        return category;
+  private _readQueryParams(params: ParamMap): void {
+    const view = params.get("view");
+    const explicitView =
+      view === "list" || view === "calendar" ? view : null;
+    this.explicitView.set(explicitView);
+    this.legacyCalendarRequested.set(
+      explicitView === null && (params.has("month") || params.has("day")),
+    );
+    this.query.set(params.get("q")?.trim() ?? "");
+    const area = params.get("area")?.trim() ?? "";
+    if (area !== this.areaKey()) {
+      this.areaKey.set(area);
+      this.areaAliases.set(area ? [area] : []);
     }
+    this.selectedCategories.set(
+      parseList(params, "category").filter(isEventCategory),
+    );
+    this.selectedSeriesIds.set(parseList(params, "series"));
+    this.period.set(params.get("when") === "past" ? "past" : "upcoming");
+    const month = params.get("month") ?? "";
+    this._hasValidMonthParam = isMonthKey(month);
+    this.month.set(this._hasValidMonthParam ? month : currentMonthKey());
+    const requestedDay = params.get("day") ?? "";
+    this.requestedDay.set(requestedDay);
+    this._hasValidDayParam =
+      /^\d{4}-\d{2}-\d{2}$/u.test(requestedDay) &&
+      this.calendarRange().days.some((day) => day.key === requestedDay);
+    this._hasPeriodParam =
+      params.get("when") === "upcoming" || params.get("when") === "past";
+    this.resultLimit.set(LIST_PAGE_SIZE);
   }
 
-  categoryIcon(category: EventCategory): string {
-    switch (category) {
-      case "competition":
-        return "trophy";
-      case "jam":
-        return "groups";
-      case "camp":
-        return "camping";
-      default:
-        return "sell";
-    }
-  }
-
-  private async _loadSeriesForEvents(events: readonly PkEvent[]): Promise<void> {
-    const seriesIds = [
-      ...new Set(events.flatMap((event) => event.seriesIds)),
-    ].filter(Boolean);
-    if (seriesIds.length === 0) {
-      this.seriesById.set({});
-      return;
-    }
-
-    try {
-      this.seriesById.set(await this._seriesService.getSeriesByIds(seriesIds));
-    } catch (err) {
-      console.warn("EventsPage: failed to load series metadata", err);
-      this.seriesById.set({});
-    }
-  }
-
-  private _screenshotEventIndex(): {
-    events: PkEvent[];
-    seriesById: Record<string, SeriesDocument>;
-  } | null {
-    const fixture = (globalThis as ScreenshotGlobal)
-      .__PKSPOT_SCREENSHOT_EVENT_INDEX__;
-    if (!fixture || !Array.isArray(fixture.events)) return null;
-
-    return {
-      events: fixture.events.map(({ id, ...event }) =>
-        new PkEvent(id as EventId, event as unknown as EventSchema),
-      ),
-      seriesById: fixture.seriesById ?? {},
-    };
-  }
-
-  private _seriesFallbackLabel(seriesId: string): string {
-    return seriesId
-      .split("-")
-      .filter(Boolean)
-      .map((word) => word[0]?.toUpperCase() + word.slice(1))
-      .join(" ");
-  }
-
-  private _syncFiltersFromQueryParams(params: ParamMap): void {
-    const categoryValues = this._parseQueryParamList(params, CATEGORY_QUERY_PARAM)
-      .filter(isEventCategoryFilter);
-    const seriesValues = this._parseQueryParamList(params, SERIES_QUERY_PARAM);
-
-    if (!areStringListsEqual(this.selectedCategories(), categoryValues)) {
-      this.selectedCategories.set(categoryValues);
-    }
-    if (!areStringListsEqual(this.selectedSeriesIds(), seriesValues)) {
-      this.selectedSeriesIds.set(seriesValues);
-    }
-  }
-
-  private async _updateFilterQueryParams(): Promise<void> {
-    if (!this._router || !this._route) return;
-
-    await this._router.navigate([], {
+  private _updateQueryParams(
+    queryParams: Record<string, string | null>,
+    replaceUrl = false,
+  ): Promise<boolean> {
+    return this._router.navigate([], {
       relativeTo: this._route,
-      queryParams: {
-        [CATEGORY_QUERY_PARAM]: this._serializeQueryParamList(
-          this.selectedCategories(),
-        ),
-        [SERIES_QUERY_PARAM]: this._serializeQueryParamList(
-          this.selectedSeriesIds(),
-        ),
-      },
+      queryParams,
       queryParamsHandling: "merge",
-      replaceUrl: true,
+      replaceUrl,
     });
   }
 
-  private _parseQueryParamList(params: ParamMap, key: string): string[] {
-    const values = params
-      .getAll(key)
-      .flatMap((value) => value.split(","))
-      .map((value) => value.trim())
-      .filter(Boolean);
-    return [...new Set(values)];
+  private _ensureShareableUrlDefaults(): void {
+    if (this._urlCanonicalizationPending) return;
+
+    const queryParams: Record<string, string | null> = {};
+    if (this.view() === "calendar") {
+      if (!this._hasValidMonthParam) queryParams["month"] = this.month();
+      if (!this._hasValidDayParam) queryParams["day"] = this.selectedDay();
+    } else if (!this._hasPeriodParam) {
+      queryParams["when"] = this.period();
+    }
+    if (Object.keys(queryParams).length === 0) return;
+
+    this._urlCanonicalizationPending = true;
+    void this._updateQueryParams(queryParams, true).finally(() => {
+      this._urlCanonicalizationPending = false;
+    });
   }
 
-  private _serializeQueryParamList(values: readonly string[]): string | null {
-    return values.length > 0 ? values.join(",") : null;
+  private _screenshotEventIndex(): ScreenshotEventIndex | null {
+    return (
+      (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_EVENT_INDEX__ ?? null
+    );
+  }
+
+  private _screenshotSeriesById(): Record<string, SeriesDocument> | null {
+    return this._screenshotEventIndex()?.seriesById ?? null;
+  }
+
+  private _screenshotDiscovery(
+    request: DiscoveryRequest,
+  ): EventDiscoverySearchResult | null {
+    const fixture = this._screenshotEventIndex();
+    if (!fixture) return null;
+    const query = request.query.toLocaleLowerCase();
+    const monthRange =
+      request.view === "calendar"
+        ? buildEventCalendarMonth(request.month, this._locale, [])
+        : null;
+    const range =
+      monthRange === null
+        ? null
+        : {
+            queryStartSeconds:
+              request.rangeStartSeconds ?? monthRange.queryStartSeconds,
+            queryEndSeconds:
+              request.rangeEndSeconds ?? monthRange.queryEndSeconds,
+          };
+    const now = Math.floor(Date.now() / 1000);
+    const previews = fixture.events.map((event) =>
+      screenshotEventPreview(event),
+    );
+    const invalidItems = previews.filter(
+      (event) =>
+        !event.id ||
+        event.startSeconds === undefined ||
+        event.endSeconds === undefined ||
+        (event.timing?.mode !== "date_only" && !event.timeZone),
+    );
+    let items = previews
+      .map((event) => discoveryItemFromPreview(event))
+      .filter((event): event is EventDiscoveryItem => !!event)
+      .filter((event) => {
+        if (
+          query &&
+          ![
+            event.name,
+            event.venueString,
+            event.localityString,
+            event.description,
+          ]
+            .filter(Boolean)
+            .some((value) => value!.toLocaleLowerCase().includes(query))
+        ) {
+          return false;
+        }
+        if (
+          request.areaKeys.length > 0 &&
+          !event.communityKeys.some((key) => request.areaKeys.includes(key))
+        ) {
+          return false;
+        }
+        if (
+          request.categories.length > 0 &&
+          !event.eventCategories.some((category) =>
+            request.categories.includes(category as EventCategory),
+          )
+        ) {
+          return false;
+        }
+        if (
+          request.seriesIds.length > 0 &&
+          !event.seriesIds.some((id) => request.seriesIds.includes(id))
+        ) {
+          return false;
+        }
+        if (range) {
+          return (
+            event.startSeconds <= range.queryEndSeconds &&
+            event.endSeconds >= range.queryStartSeconds
+          );
+        }
+        return request.period === "past"
+          ? event.endSeconds < now
+          : event.endSeconds >= now;
+      })
+      .sort((left, right) =>
+        request.period === "past"
+          ? right.startSeconds - left.startSeconds
+          : left.startSeconds - right.startSeconds,
+      );
+    const found = items.length;
+    if (request.view === "list") items = items.slice(0, request.limit);
+    return {
+      items,
+      found,
+      page: 1,
+      facets: buildFixtureFacets(items),
+      invalidItems,
+      invalidItemCount: invalidItems.length,
+    };
+  }
+
+  private _screenshotInvalidEvents(): EventSearchPreview[] | null {
+    const fixture = this._screenshotEventIndex();
+    if (!fixture) return null;
+    return fixture.events
+      .map((event) => screenshotEventPreview(event))
+      .filter(isInvalidEventPreview);
   }
 }
 
@@ -383,25 +772,234 @@ const EVENT_CATEGORY_FILTERS = [
   "competition",
   "jam",
   "camp",
+  "workshop",
+  "show",
+  "awards",
+  "social",
+  "travel",
 ] satisfies EventCategory[];
 
-const EVENT_CATEGORY_FILTER_SET: ReadonlySet<EventCategory> = new Set(
+const EVENT_CATEGORY_SET: ReadonlySet<EventCategory> = new Set(
   EVENT_CATEGORY_FILTERS,
 );
 
-const CATEGORY_QUERY_PARAM = "category";
-const SERIES_QUERY_PARAM = "series";
-
-function isEventCategoryFilter(value: string): value is EventCategory {
-  return EVENT_CATEGORY_FILTER_SET.has(value as EventCategory);
+function isEventCategory(value: string): value is EventCategory {
+  return EVENT_CATEGORY_SET.has(value as EventCategory);
 }
 
-function areStringListsEqual(
-  left: readonly string[],
-  right: readonly string[],
+function categoryLabel(category: EventCategory): string {
+  switch (category) {
+    case "competition":
+      return $localize`:@@event_category.competition:Competition`;
+    case "jam":
+      return $localize`:@@event_category.jam:Jam`;
+    case "camp":
+      return $localize`:@@event_category.camp:Camp`;
+    case "workshop":
+      return $localize`:@@event_category.workshop:Workshop`;
+    case "show":
+      return $localize`:@@event_category.show:Show`;
+    case "awards":
+      return $localize`:@@event_category.awards:Awards`;
+    case "social":
+      return $localize`:@@event_category.social:Social`;
+    case "travel":
+      return $localize`:@@event_category.travel:Travel`;
+    case "other":
+      return $localize`:@@event_category.other:Other`;
+  }
+}
+
+function defaultDayForMonth(month: string, now = new Date()): string {
+  const today = eventLocalDateKey(
+    now,
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+  );
+  return today.startsWith(`${month}-`) ? today : `${month}-01`;
+}
+
+function sameOrderedValues<T>(
+  left: readonly T[],
+  right: readonly T[],
 ): boolean {
   return (
     left.length === right.length &&
-    left.every((item, index) => item === right[index])
+    left.every((value, index) => value === right[index])
   );
+}
+
+function categoryIcon(category: EventCategory): string {
+  switch (category) {
+    case "competition":
+      return "trophy";
+    case "jam":
+      return "groups";
+    case "camp":
+      return "camping";
+    case "workshop":
+      return "school";
+    case "show":
+      return "theater_comedy";
+    case "awards":
+      return "workspace_premium";
+    case "social":
+      return "celebration";
+    case "travel":
+      return "travel_explore";
+    case "other":
+      return "sell";
+  }
+}
+
+function parseList(params: ParamMap, key: string): string[] {
+  return [
+    ...new Set(
+      params
+        .getAll(key)
+        .flatMap((value) => value.split(","))
+        .map((value) => value.trim())
+        .filter(Boolean),
+    ),
+  ];
+}
+
+function serializeList(values: readonly string[]): string | null {
+  return values.length > 0 ? values.join(",") : null;
+}
+
+function seriesFallbackLabel(seriesId: string): string {
+  return seriesId
+    .split("-")
+    .filter(Boolean)
+    .map((word) => `${word[0]?.toUpperCase() ?? ""}${word.slice(1)}`)
+    .join(" ");
+}
+
+function readRememberedView(): EventsDiscoveryView | null {
+  if (typeof localStorage === "undefined") return null;
+  const value = localStorage.getItem(VIEW_STORAGE_KEY);
+  return value === "calendar" || value === "list" ? value : null;
+}
+
+function rememberView(view: EventsDiscoveryView): void {
+  if (typeof localStorage !== "undefined") {
+    localStorage.setItem(VIEW_STORAGE_KEY, view);
+  }
+}
+
+function screenshotEventPreview(
+  event: ScreenshotEventSchema,
+): EventSearchPreview {
+  const startSeconds = Math.floor(Date.parse(event.start) / 1000);
+  const endSeconds = Math.floor(Date.parse(event.end) / 1000);
+  const timeZone = validTimeZone(event.time_zone);
+  return {
+    id: event.id,
+    slug: event.slug,
+    name: event.name,
+    description: event.description,
+    venueString: event.venue_string,
+    localityString: event.locality_string,
+    bannerSrc: event.banner_src,
+    bannerFit: event.banner_fit,
+    bannerAccentColor: event.banner_accent_color,
+    logoSrc: event.logo_src,
+    logoFit: event.logo_fit,
+    logoBackgroundColor: event.logo_background_color,
+    sponsorName: event.sponsor?.name,
+    sponsorLogoSrc: event.sponsor?.logo_src,
+    sponsorLogoFit: event.sponsor?.logo_fit,
+    sponsorLogoBackgroundColor: event.sponsor?.logo_background_color,
+    isSponsored: event.is_promoted ?? event.is_sponsored ?? false,
+    hasOrganization: event.organizer?.type === "organization",
+    hasVenueSpot: (event.spot_ids?.length ?? 0) > 0,
+    venueSpotCount: event.spot_ids?.length ?? 0,
+    startSeconds: Number.isFinite(startSeconds) ? startSeconds : undefined,
+    endSeconds: Number.isFinite(endSeconds) ? endSeconds : undefined,
+    timing: event.timing,
+    activeUntilSeconds: event.active_until_seconds,
+    timeZone: timeZone ?? undefined,
+    lifecycleStatus: event.lifecycle_status ?? "planned",
+    location: event.location_raw
+      ? [event.location_raw.lat, event.location_raw.lng]
+      : undefined,
+    eventLinks: event.event_links ?? [],
+    ticketOptions: event.ticket_options ?? [],
+    spotIds: event.spot_ids ?? [],
+    communityKeys: event.community_keys ?? [],
+    seriesIds: event.series_ids ?? [],
+    eventCategories: event.event_categories ?? [],
+    rsvpCounts: event.rsvp_counts ?? {
+      going: 0,
+      interested: 0,
+      notgoing: 0,
+      total: 0,
+    },
+    seriesRoles: event.series_roles ?? [],
+    qualifiesToKeys: event.qualifies_to_keys ?? [],
+    requiredQualifierKeys: event.required_qualifier_keys ?? [],
+  };
+}
+
+function discoveryItemFromPreview(
+  event: EventSearchPreview,
+): EventDiscoveryItem | null {
+  if (
+    !event.id ||
+    event.startSeconds === undefined ||
+    event.endSeconds === undefined ||
+    (event.timing?.mode !== "date_only" && !event.timeZone)
+  ) {
+    return null;
+  }
+  return {
+    ...event,
+    startSeconds: event.startSeconds,
+    endSeconds: event.endSeconds,
+    timeZone: event.timeZone,
+    lifecycleStatus: event.lifecycleStatus ?? "planned",
+    rsvpCounts: event.rsvpCounts ?? {
+      going: 0,
+      interested: 0,
+      notgoing: 0,
+      total: 0,
+    },
+  };
+}
+
+function validTimeZone(value: unknown): string | null {
+  if (typeof value !== "string" || !value) return null;
+  try {
+    new Intl.DateTimeFormat("en", { timeZone: value }).format(0);
+    return value;
+  } catch {
+    return null;
+  }
+}
+
+function isInvalidEventPreview(event: EventSearchPreview): boolean {
+  return (
+    !event.id ||
+    event.startSeconds === undefined ||
+    event.endSeconds === undefined ||
+    (event.timing?.mode !== "date_only" && !event.timeZone)
+  );
+}
+
+function buildFixtureFacets(
+  items: readonly EventDiscoveryItem[],
+): EventDiscoveryFacets {
+  const count = (values: string[]): { value: string; count: number }[] => {
+    const counts = new Map<string, number>();
+    for (const value of values) counts.set(value, (counts.get(value) ?? 0) + 1);
+    return [...counts].map(([value, valueCount]) => ({
+      value,
+      count: valueCount,
+    }));
+  };
+  return {
+    categories: count(items.flatMap((event) => event.eventCategories)),
+    series: count(items.flatMap((event) => event.seriesIds)),
+    communities: count(items.flatMap((event) => event.communityKeys)),
+  };
 }

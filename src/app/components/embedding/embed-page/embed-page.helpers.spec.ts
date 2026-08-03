@@ -19,7 +19,7 @@ describe("embed page helpers", () => {
 
     expect(readEmbedPageEventId(paramMap)).toBe("swissjam26");
     expect(readEmbedPageType(paramMap)).toBe("event-map");
-    expect(readEmbedPageLanguage(paramMap)).toBe("de-CH");
+    expect(readEmbedPageLanguage(paramMap)).toBe("de");
   });
 
   it("accepts short aliases but canonicalizes the generated query state", () => {
@@ -60,6 +60,7 @@ describe("embed page helpers", () => {
   it("normalizes locale variants for embed credit text", () => {
     expect(normalizeEmbedLanguage("fr-CH")).toBe("fr");
     expect(normalizeEmbedLanguage("pt-BR")).toBe("en");
+    expect(normalizeEmbedLanguage("de-CH")).toBe("de");
     expect(embedCreditTextForLanguage("de-CH").dataByLabel).toBe(
       "Eventdaten von",
     );

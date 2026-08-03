@@ -18,6 +18,8 @@ export interface CommunityMergeSchema {
   source_slugs: string[];
   source_search_aliases: string[];
   info_cards: CommunityMergeInfoCardMode;
+  /** Present for merges created from a locality that never had a community page. */
+  source_origin?: "unpublished_locality";
   merged_at?: Timestamp | { seconds: number; nanoseconds: number };
   merged_by?: string;
 }

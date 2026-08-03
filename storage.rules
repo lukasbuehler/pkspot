@@ -16,10 +16,16 @@ service firebase.storage {
       return isSignedIn()
         && (
           !firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
-          || firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.get('age_policy', {}).get('participation_state', 'allowed') in [
-            'allowed',
-            'platform_signal_unavailable'
-          ]
+          || (
+            firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.get('age_policy', {}).get('participation_state', 'allowed') in [
+              'allowed',
+              'platform_signal_unavailable'
+            ]
+            && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.get('moderation_state', {}).get('status', 'active') in [
+              'active',
+              'profile_restricted'
+            ]
+          )
         );
     }
 
@@ -28,14 +34,23 @@ service firebase.storage {
         && request.resource.metadata.uid == request.auth.uid;
     }
 
-    // Temporary migration switch while released clients move to media_intake.
-    // Flip this to false when direct public UGC writes should be fully blocked.
+    // Direct public UGC writes are permanently disabled. Released clients must
+    // upload through media_intake so server moderation runs before publication.
     function allowLegacyPublicMediaWrites() {
-      return true;
+      return false;
     }
 
     function hasModerationMetadata() {
       return request.resource != null
+        && request.resource.metadata.keys().hasOnly([
+          'uid',
+          'upload_id',
+          'destination_folder',
+          'destination_filename',
+          'target_kind',
+          'target_id',
+          'cache_control'
+        ])
         && request.resource.metadata.upload_id is string
         && request.resource.metadata.upload_id.size() > 0
         && request.resource.metadata.destination_folder in [
@@ -43,7 +58,8 @@ service firebase.storage {
           'spot_pictures',
           'post_media',
           'challenges',
-          'event_media'
+          'event_media',
+          'organization_media'
         ]
         && request.resource.metadata.destination_filename is string
         && request.resource.metadata.destination_filename.matches('^[A-Za-z0-9_-]+$')
@@ -53,7 +69,8 @@ service firebase.storage {
           'post',
           'challenge',
           'event',
-          'event_media'
+          'event_media',
+          'organization'
         ];
     }
 
@@ -83,6 +100,15 @@ service firebase.storage {
           (request.resource.contentType == 'image/png' && filename.matches('^[A-Za-z0-9_-]+\\.png$')) ||
           (request.resource.contentType == 'image/webp' && filename.matches('^[A-Za-z0-9_-]+\\.webp$')) ||
           (request.resource.contentType == 'image/gif' && filename.matches('^[A-Za-z0-9_-]+\\.gif$'))
+        );
+    }
+
+    function isAllowedResizableImageUpload(filename) {
+      return request.resource != null
+        && (
+          (request.resource.contentType == 'image/jpeg' && filename.matches('^[A-Za-z0-9_-]+\\.(jpg|jpeg)$')) ||
+          (request.resource.contentType == 'image/png' && filename.matches('^[A-Za-z0-9_-]+\\.png$')) ||
+          (request.resource.contentType == 'image/webp' && filename.matches('^[A-Za-z0-9_-]+\\.webp$'))
         );
     }
 
@@ -175,8 +201,18 @@ service firebase.storage {
       allow update: if false;
     }
 
+    match /organization_media/{filename} {
+      allow read: if true;
+      // Public organization assets are published only by the moderation
+      // function after an admin upload passes scanning.
+      allow write: if false;
+    }
+
     match /media_intake/{uid}/{uploadId}/{filename} {
-      allow read: if false;
+      // Quarantine is never readable by its uploader or by the public. Admins
+      // can inspect it for moderation; ordinary previews use a short-lived,
+      // server-authorized URL so the storage path is never client-selected.
+      allow read: if isAdmin();
       allow create: if isSignedIn()
         && request.auth.uid == uid
         && uploadId.matches('^[A-Za-z0-9_-]+$')
@@ -209,7 +245,20 @@ service firebase.storage {
             && isAllowedImageUpload(filename)
             && isUnderSize(50 * 1024 * 1024)
           )
+          || (
+            request.resource.metadata.destination_folder == 'organization_media'
+            && isAdmin()
+            && isAllowedResizableImageUpload(filename)
+            && isUnderSize(10 * 1024 * 1024)
+          )
         );
+    }
+
+    // Appeal evidence and reversible moderation holds are never public. The
+    // case Functions move and restore these objects with the Admin SDK.
+    match /moderation_holds/{caseId}/{allPaths=**} {
+      allow read: if isAdmin();
+      allow write: if false;
     }
 
     match /{allPaths=**} {

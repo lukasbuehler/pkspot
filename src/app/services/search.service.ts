@@ -18,13 +18,30 @@ import { Event as PkEvent } from "../../db/models/Event";
 import { AssetUrlService } from "./asset-url.service";
 import type { EventRSVPCountsSchema } from "../../db/schemas/EventRSVPSchema";
 import type {
+  EventCategory,
+  EventKind,
   EventLinkKind,
   EventLinkSchema,
+  EventLifecycleStatus,
   EventTicketAvailability,
   EventTicketBadge,
   EventTicketOptionSchema,
+  EventTimingSchema,
 } from "../../db/schemas/EventSchema";
+import type { UserReferenceSchema } from "../../db/schemas/UserSchema";
 import { getSpotPriority } from "../../db/schemas/SpotPriority";
+
+export function getMapSpotSearchLimit(viewportZoom: number | undefined): number {
+  if (typeof viewportZoom !== "number" || !Number.isFinite(viewportZoom)) {
+    return 10;
+  }
+
+  if (viewportZoom < 6) return 160;
+  if (viewportZoom < 10) return 120;
+  if (viewportZoom < 12) return 160;
+  if (viewportZoom < 14) return 200;
+  return 250;
+}
 
 @Injectable({
   providedIn: "root",
@@ -38,11 +55,13 @@ export class SearchService {
   readonly TYPESENSE_COLLECTION_SPOTS = "spots_v2";
   readonly TYPESENSE_COLLECTION_COMMUNITIES = "communities_v1";
   readonly TYPESENSE_COLLECTION_EVENTS = "events_v1";
+  readonly TYPESENSE_COLLECTION_USERS = "users_v1";
   readonly SPOT_SORT_BY_RATING = "rating:desc";
   readonly COMMUNITY_SORT_BY_RELEVANCE_AND_SIZE =
     "_text_match:desc,counts.totalSpots:desc";
   private readonly MAP_GROUP_LIMIT = 2;
   private readonly SPOT_GROUP_LIMIT = 5;
+  private readonly SPOT_OVERVIEW_GROUP_LIMIT = 1;
 
   private readonly client: SearchClient = new SearchClient({
     nodes: [
@@ -132,13 +151,15 @@ export class SearchService {
 
   private static _tileGroupFieldsForZoom(
     zoom: number | undefined,
+    zoomOffset = 0,
   ): string | undefined {
     if (typeof zoom !== "number" || !Number.isFinite(zoom)) {
       return undefined;
     }
 
     const evenZoom = Math.max(2, Math.min(16, Math.floor(zoom))) & ~1;
-    return `tile_coordinates.z${evenZoom}.x,tile_coordinates.z${evenZoom}.y`;
+    const groupZoom = Math.min(16, evenZoom + zoomOffset);
+    return `tile_coordinates.z${groupZoom}.x,tile_coordinates.z${groupZoom}.y`;
   }
 
   private static _flattenTypesenseHits(result: unknown): any[] {
@@ -347,6 +368,9 @@ export class SearchService {
         doc?.["image.url"] ?? doc?.image?.url ?? undefined,
       ),
       canonicalPath: doc?.canonicalPath ?? undefined,
+      mergedCommunityKeys: Array.isArray(doc?.merged_community_keys)
+        ? doc.merged_community_keys
+        : [],
       boundsCenter,
       boundsRadiusM,
       googleMapsPlaceId: doc?.google_maps_place_id ?? undefined,
@@ -435,6 +459,42 @@ export class SearchService {
     }
   }
 
+  public async getCommunityPreviewsByKeys(
+    communityKeys: readonly string[],
+    abortSignal?: AbortSignal,
+  ): Promise<CommunitySearchPreview[]> {
+    const keys = SearchService._uniqueFilterValues(communityKeys);
+    if (keys.length === 0) return [];
+
+    const result = await this.client
+      .collections(this.TYPESENSE_COLLECTION_COMMUNITIES)
+      .documents()
+      .search(
+        {
+          q: "*",
+          query_by: "displayName",
+          filter_by: SearchService._joinFilters([
+            "published:!=false",
+            SearchService._arrayFilter("communityKey", keys),
+          ]),
+          per_page: Math.min(keys.length, 250),
+          page: 1,
+          highlight_fields: "none",
+        },
+        { abortSignal },
+      );
+    const hits = (result as { hits?: unknown[] }).hits ?? [];
+    const previews: CommunitySearchPreview[] = hits.map((hit) =>
+      this.getCommunityPreviewFromHit(hit),
+    );
+    const order = new Map(keys.map((key, index) => [key, index]));
+    return previews.sort(
+      (left, right) =>
+        (order.get(left.communityKey) ?? Number.MAX_SAFE_INTEGER) -
+        (order.get(right.communityKey) ?? Number.MAX_SAFE_INTEGER),
+    );
+  }
+
   public async searchSpots(query: string) {
     try {
       const result = await this.client
@@ -475,6 +535,54 @@ export class SearchService {
     // Search for events
     // Search for posts
     // TODO: Implement this
+  }
+
+  /**
+   * Find users who explicitly opted into public search. Event access grants
+   * still store only the stable uid; the returned profile fields are display
+   * helpers and never participate in authorization.
+   */
+  public async searchUsers(query: string): Promise<UserReferenceSchema[]> {
+    const normalized = query.trim();
+    if (normalized.length < 2) return [];
+
+    try {
+      const result = await this.client
+        .collections(this.TYPESENSE_COLLECTION_USERS)
+        .documents()
+        .search(
+          {
+            q: normalized,
+            query_by: "display_name",
+            filter_by: "public_search:=true",
+            per_page: 8,
+            page: 1,
+          },
+          {},
+        );
+      return SearchService._flattenTypesenseHits(result)
+        .map((hit): UserReferenceSchema | null => {
+          const document = (hit as { document?: unknown }).document ?? hit;
+          if (!document || typeof document !== "object") return null;
+          const user = document as Record<string, unknown>;
+          if (typeof user["id"] !== "string" || !user["id"]) return null;
+          return {
+            uid: user["id"],
+            display_name:
+              typeof user["display_name"] === "string"
+                ? user["display_name"]
+                : undefined,
+            profile_picture:
+              typeof user["profile_picture"] === "string"
+                ? user["profile_picture"]
+                : undefined,
+          };
+        })
+        .filter((user): user is UserReferenceSchema => user !== null);
+    } catch (error) {
+      console.error("typesense users error:", error);
+      return [];
+    }
   }
 
   /**
@@ -706,11 +814,20 @@ export class SearchService {
 
     const MAX_PER_PAGE = 250;
     const perPage = Math.min(MAX_PER_PAGE, Math.max(1, num_spots));
-    const groupBy = SearchService._tileGroupFieldsForZoom(viewportZoom);
+    // Sample from the next finer indexed tile level so lower-rated geographic
+    // pockets are represented instead of competing with an entire viewport tile.
+    const viewportGroupZoom =
+      typeof viewportZoom === "number" && Number.isFinite(viewportZoom)
+        ? Math.max(2, Math.min(16, Math.floor(viewportZoom))) & ~1
+        : undefined;
+    const groupBy = SearchService._tileGroupFieldsForZoom(viewportZoom, 2);
     const groupingParams = groupBy
       ? {
           group_by: groupBy,
-          group_limit: this.SPOT_GROUP_LIMIT,
+          group_limit:
+            viewportGroupZoom !== undefined && viewportGroupZoom < 16
+              ? this.SPOT_OVERVIEW_GROUP_LIMIT
+              : this.SPOT_GROUP_LIMIT,
         }
       : {};
 
@@ -824,6 +941,37 @@ export class SearchService {
       amenities_false,
       false,
       viewportZoom,
+    );
+  }
+
+  /**
+   * Returns the highest-ranked spot previews around a location using the same
+   * rating and shared spot-priority ordering as an ungrouped map search.
+   */
+  public async searchTopSpotPreviewsNearLocation(
+    location: google.maps.LatLngLiteral,
+    radiusKm = 25,
+    maxResults = 4,
+    filterMode = SpotFilterMode.None,
+  ): Promise<SpotPreviewData[]> {
+    const lat = location.lat.toFixed(6);
+    const lng = location.lng.toFixed(6);
+    const safeRadiusKm = Math.min(20_000, Math.max(0.1, radiusKm));
+    const safeMaxResults = Math.min(20, Math.max(1, maxResults));
+    const filterBy = `location:(${lat}, ${lng}, ${safeRadiusKm.toFixed(3)} km)`;
+    const config = SPOT_FILTER_CONFIGS.get(filterMode);
+    if (filterMode !== SpotFilterMode.None && !config) return [];
+    const result = await this._executeSearch(
+      filterBy,
+      safeMaxResults,
+      config?.types,
+      config?.accesses,
+      config?.amenities_true,
+      config?.amenities_false,
+    );
+
+    return (result.hits as unknown[]).map((hit) =>
+      this.getSpotPreviewFromHit(hit),
     );
   }
 
@@ -962,6 +1110,7 @@ export class SearchService {
     const doc = hit?.document ?? hit;
     const sponsor = doc?.sponsor ?? {};
     const externalSource = doc?.external_source ?? {};
+    const timing = SearchService._readEventTiming(doc?.timing);
 
     const location =
       SearchService._readGeopoint(doc?.location_raw) ??
@@ -1034,6 +1183,11 @@ export class SearchService {
       venueSpotCount,
       startSeconds: SearchService._readInt(doc?.start_seconds),
       endSeconds: SearchService._readInt(doc?.end_seconds),
+      activeUntilSeconds: SearchService._readInt(doc?.active_until_seconds),
+      timing,
+      timeZone: SearchService._readTimeZone(doc?.time_zone),
+      lifecycleStatus:
+        doc?.lifecycle_status === "cancelled" ? "cancelled" : "planned",
       promoStartsAtSeconds: SearchService._readInt(
         doc?.promo_starts_at_seconds,
       ),
@@ -1061,6 +1215,15 @@ export class SearchService {
       eventCategories: Array.isArray(doc?.event_categories)
         ? doc.event_categories
         : [],
+      kind:
+        doc?.kind === "session" ||
+        doc?.kind === "class" ||
+        doc?.kind === "competition" ||
+        doc?.kind === "workshop" ||
+        doc?.kind === "festival" ||
+        doc?.kind === "other"
+          ? doc.kind
+          : undefined,
       rsvpCounts: SearchService._readRsvpCounts(doc),
       seriesRoles: Array.isArray(doc?.series_roles) ? doc.series_roles : [],
       qualifiesToKeys: Array.isArray(doc?.qualifies_to_keys)
@@ -1124,6 +1287,8 @@ export class SearchService {
       locality_string: preview.localityString,
       start: { seconds: startSeconds, nanoseconds: 0 },
       end: { seconds: endSeconds, nanoseconds: 0 },
+      time_zone: preview.timeZone,
+      lifecycle_status: preview.lifecycleStatus,
       promo_starts_at:
         preview.promoStartsAtSeconds !== undefined
           ? { seconds: preview.promoStartsAtSeconds, nanoseconds: 0 }
@@ -1199,6 +1364,154 @@ export class SearchService {
       console.error("typesense events error:", error);
       return [];
     }
+  }
+
+  /**
+   * Public event discovery query used by both the event list and calendar.
+   * All filters execute in Typesense; Firestore is not part of this data path.
+   */
+  public async searchEventDiscovery(
+    options: EventDiscoverySearchOptions = {},
+  ): Promise<EventDiscoverySearchResult> {
+    const page = Math.max(1, Math.trunc(options.page ?? 1));
+    const perPage = Math.max(1, Math.min(250, Math.trunc(options.perPage ?? 24)));
+    const query = options.query?.trim() || "*";
+    const areaKeys = SearchService._uniqueFilterValues(options.areaKeys);
+    const categories = SearchService._uniqueFilterValues(options.categories);
+    const seriesIds = SearchService._uniqueFilterValues(options.seriesIds);
+    const sortDirection =
+      options.sort === "past" ? "desc" : "asc";
+    const filters = SearchService._joinFilters([
+      "published:=true",
+      options.startsBeforeSeconds === undefined
+        ? undefined
+        : `start_seconds:<=${Math.trunc(options.startsBeforeSeconds)}`,
+      options.endsAfterSeconds === undefined
+        ? undefined
+        : `end_seconds:>=${Math.trunc(options.endsAfterSeconds)}`,
+      options.endsBeforeSeconds === undefined
+        ? undefined
+        : `end_seconds:<${Math.trunc(options.endsBeforeSeconds)}`,
+      SearchService._arrayFilter("community_keys", areaKeys),
+      SearchService._arrayFilter("event_categories", categories),
+      SearchService._arrayFilter("series_ids", seriesIds),
+    ]);
+    const chronologicalSort = `start_seconds:${sortDirection}`;
+
+    try {
+      const response = await this.client
+        .collections<TypesenseEventDocument>(this.TYPESENSE_COLLECTION_EVENTS)
+        .documents()
+        .search(
+          {
+            q: query,
+            query_by: "name,slug,locality_string,venue_string,description",
+            query_by_weights: "6,5,4,3,1",
+            filter_by: filters,
+            sort_by: chronologicalSort,
+            facet_by: "event_categories,series_ids,community_keys",
+            max_facet_values: 100,
+            per_page: perPage,
+            page,
+            highlight_fields: "none",
+          },
+          { abortSignal: options.abortSignal },
+        );
+
+      const previews = (response.hits ?? []).map((hit) =>
+        this.getEventPreviewFromHit(hit),
+      );
+      const invalidItems = previews.filter(
+        (preview) =>
+          !preview.id ||
+          preview.startSeconds === undefined ||
+          preview.endSeconds === undefined ||
+          (preview.timing?.mode !== "date_only" && !preview.timeZone),
+      );
+      const items = previews
+        .filter(
+          (
+            preview,
+          ): preview is EventSearchPreview & {
+            startSeconds: number;
+            endSeconds: number;
+            timeZone?: string;
+          } =>
+            !!preview.id &&
+            preview.startSeconds !== undefined &&
+            preview.endSeconds !== undefined &&
+            (preview.timing?.mode === "date_only" || !!preview.timeZone),
+        )
+        .map((preview) => ({
+          ...preview,
+          lifecycleStatus: preview.lifecycleStatus ?? "planned",
+          rsvpCounts:
+            preview.rsvpCounts ?? SearchService._emptyRsvpCounts(),
+        }) satisfies EventDiscoveryItem);
+
+      return {
+        items,
+        found: response.found ?? items.length,
+        page: response.page ?? page,
+        facets: SearchService._readEventDiscoveryFacets(
+          response.facet_counts,
+        ),
+        invalidItems,
+        invalidItemCount: invalidItems.length,
+      };
+    } catch (error) {
+      if (options.abortSignal?.aborted) throw error;
+      console.error("typesense event discovery error:", error);
+      throw error;
+    }
+  }
+
+  public async searchAllEventDiscovery(
+    options: Omit<EventDiscoverySearchOptions, "page" | "perPage">,
+  ): Promise<EventDiscoverySearchResult> {
+    const first = await this.searchEventDiscovery({
+      ...options,
+      page: 1,
+      perPage: 250,
+    });
+    if (first.items.length + first.invalidItems.length >= first.found) {
+      return first;
+    }
+
+    const items = [...first.items];
+    const invalidItems = [...first.invalidItems];
+    const pages = Math.ceil(first.found / 250);
+    for (let page = 2; page <= pages; page += 1) {
+      const result = await this.searchEventDiscovery({
+        ...options,
+        page,
+        perPage: 250,
+      });
+      items.push(...result.items);
+      invalidItems.push(...result.invalidItems);
+    }
+    return {
+      ...first,
+      items,
+      invalidItems,
+      invalidItemCount: invalidItems.length,
+    };
+  }
+
+  /**
+   * Audit every published event projection for fields required by discovery.
+   * This deliberately ignores the active discovery query, filters, and date
+   * window so the admin repair surface cannot hide an invalid event.
+   */
+  public async searchInvalidEventDiscovery(options: {
+    abortSignal?: AbortSignal;
+  } = {}): Promise<EventSearchPreview[]> {
+    const result = await this.searchAllEventDiscovery({
+      query: "*",
+      sort: "calendar",
+      abortSignal: options.abortSignal,
+    });
+    return result.invalidItems;
   }
 
   public async getEventPreviewsByIds(
@@ -1392,6 +1705,7 @@ export class SearchService {
       "banner_accent_color",
       "logo_src",
       "logo_fit",
+      "logo_background_color",
       "sponsor.name",
       "sponsor.logo_src",
       "sponsor.logo_fit",
@@ -1604,6 +1918,23 @@ export class SearchService {
     return `\`${value.replace(/[`\\]/g, "\\$&")}\``;
   }
 
+  private static _uniqueFilterValues(
+    values: readonly string[] | undefined,
+  ): string[] {
+    return [...new Set((values ?? []).map((value) => value.trim()).filter(Boolean))];
+  }
+
+  private static _arrayFilter(
+    field: string,
+    values: readonly string[],
+  ): string | undefined {
+    return values.length === 0
+      ? undefined
+      : `${field}:=[${values
+          .map(SearchService._quoteFilterValue)
+          .join(",")}]`;
+  }
+
   private static _formatGeoFilterCoordinate(value: number): string {
     return Number.isFinite(value) ? value.toFixed(6) : String(value);
   }
@@ -1758,7 +2089,12 @@ export class SearchService {
     },
   ): boolean {
     if (bbox.coversWorld) return true;
-    if (SearchService._pointInViewport(event.location, bbox)) return true;
+    if (
+      event.location &&
+      SearchService._pointInViewport(event.location, bbox)
+    ) {
+      return true;
+    }
     if (!event.bounds) return false;
 
     return SearchService._boundsIntersectViewport(event.bounds, bbox);
@@ -1911,6 +2247,68 @@ export class SearchService {
   private static _readInt(value: unknown): number | undefined {
     const n = typeof value === "number" ? value : Number(value);
     return Number.isFinite(n) ? Math.trunc(n) : undefined;
+  }
+
+  private static _readTimeZone(value: unknown): string | undefined {
+    if (typeof value !== "string" || value.length === 0) return undefined;
+    try {
+      new Intl.DateTimeFormat("en", { timeZone: value }).format(0);
+      return value;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private static _readEventTiming(value: unknown): EventTimingSchema | undefined {
+    if (!value || typeof value !== "object") return undefined;
+    const timing = value as Record<string, unknown>;
+    if (
+      typeof timing["start_date"] !== "string" ||
+      (timing["mode"] !== "date_only" &&
+        timing["mode"] !== "exact" &&
+        timing["mode"] !== "open_end")
+    ) {
+      return undefined;
+    }
+    return {
+      start_date: timing["start_date"],
+      end_date:
+        typeof timing["end_date"] === "string"
+          ? timing["end_date"]
+          : undefined,
+      start_time:
+        typeof timing["start_time"] === "string"
+          ? timing["start_time"]
+          : undefined,
+      end_time:
+        typeof timing["end_time"] === "string"
+          ? timing["end_time"]
+          : undefined,
+      mode: timing["mode"],
+    };
+  }
+
+  private static _emptyRsvpCounts(): EventRSVPCountsSchema {
+    return { going: 0, interested: 0, notgoing: 0, total: 0 };
+  }
+
+  private static _readEventDiscoveryFacets(
+    facets:
+      | Array<{
+          field_name: string;
+          counts: Array<{ value: string; count: number }>;
+        }>
+      | undefined,
+  ): EventDiscoveryFacets {
+    const values = (field: string): EventDiscoveryFacetValue[] =>
+      facets
+        ?.find((facet) => facet.field_name === field)
+        ?.counts.map(({ value, count }) => ({ value, count })) ?? [];
+    return {
+      categories: values("event_categories"),
+      series: values("series_ids"),
+      communities: values("community_keys"),
+    };
   }
 
   private static _readRsvpCounts(
@@ -2092,6 +2490,13 @@ function readTicketPrice(
   return undefined;
 }
 
+function readFixedTicketPrice(
+  value: unknown,
+): EventTicketOptionSchema["original_price"] | undefined {
+  const price = readTicketPrice(value);
+  return price && "amount" in price ? price : undefined;
+}
+
 function readEventTicketOptions(value: unknown): EventTicketOptionSchema[] {
   if (!Array.isArray(value)) return [];
   return value.reduce<EventTicketOptionSchema[]>((tickets, item, index) => {
@@ -2104,6 +2509,7 @@ function readEventTicketOptions(value: unknown): EventTicketOptionSchema[] {
       description: readString(item["description"]),
       url: readString(item["url"]),
       price: readTicketPrice(item["price"]),
+      original_price: readFixedTicketPrice(item["original_price"]),
       availability: readTicketAvailability(item["availability"]),
       badge: readTicketBadge(item["badge"]),
     });
@@ -2124,6 +2530,7 @@ export interface CommunitySearchPreview {
   totalSpots: number;
   imageUrl?: string;
   canonicalPath?: string;
+  mergedCommunityKeys?: string[];
   boundsCenter?: [number, number];
   boundsRadiusM?: number;
   googleMapsPlaceId?: string;
@@ -2148,7 +2555,7 @@ export interface EventSearchPreview {
   name: string;
   description?: string;
   venueString?: string;
-  localityString: string;
+  localityString?: string;
   bannerSrc?: string;
   bannerFit?: "cover" | "contain";
   bannerAccentColor?: string;
@@ -2166,6 +2573,10 @@ export interface EventSearchPreview {
   /** Unix seconds; undefined only if the indexer hasn't run yet. */
   startSeconds?: number;
   endSeconds?: number;
+  activeUntilSeconds?: number;
+  timing?: EventTimingSchema;
+  timeZone?: string;
+  lifecycleStatus?: EventLifecycleStatus;
   promoStartsAtSeconds?: number;
   location?: [number, number];
   boundsCenter?: [number, number];
@@ -2181,8 +2592,62 @@ export interface EventSearchPreview {
   communityKeys: string[];
   seriesIds: string[];
   eventCategories: string[];
+  kind?: EventKind;
   rsvpCounts?: EventRSVPCountsSchema;
   seriesRoles: string[];
   qualifiesToKeys: string[];
   requiredQualifierKeys: string[];
+}
+
+type TypesenseEventDocument = Record<string, unknown> & {
+  id: string;
+  name: string;
+  start_seconds: number;
+  end_seconds: number;
+  time_zone?: string;
+  published: boolean;
+};
+
+export type EventDiscoverySort = "upcoming" | "past" | "calendar";
+
+export interface EventDiscoverySearchOptions {
+  query?: string;
+  startsBeforeSeconds?: number;
+  endsAfterSeconds?: number;
+  endsBeforeSeconds?: number;
+  areaKeys?: readonly string[];
+  categories?: readonly EventCategory[];
+  seriesIds?: readonly string[];
+  sort?: EventDiscoverySort;
+  page?: number;
+  perPage?: number;
+  abortSignal?: AbortSignal;
+}
+
+export interface EventDiscoveryFacetValue {
+  value: string;
+  count: number;
+}
+
+export interface EventDiscoveryFacets {
+  categories: EventDiscoveryFacetValue[];
+  series: EventDiscoveryFacetValue[];
+  communities: EventDiscoveryFacetValue[];
+}
+
+export interface EventDiscoveryItem extends EventSearchPreview {
+  startSeconds: number;
+  endSeconds: number;
+  timeZone?: string;
+  lifecycleStatus: EventLifecycleStatus;
+  rsvpCounts: EventRSVPCountsSchema;
+}
+
+export interface EventDiscoverySearchResult {
+  items: EventDiscoveryItem[];
+  found: number;
+  page: number;
+  facets: EventDiscoveryFacets;
+  invalidItems: EventSearchPreview[];
+  invalidItemCount: number;
 }

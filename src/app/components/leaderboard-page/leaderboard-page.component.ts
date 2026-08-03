@@ -16,13 +16,14 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatIconModule } from "@angular/material/icon";
 import { FirestoreAdapterService } from "../../services/firebase/firestore-adapter.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
-import { getProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
+import { getResizedProfilePictureUrl } from "../../../scripts/ProfilePictureHelper";
 
 interface LeaderboardEntry {
   rank: number;
   uid: string;
   display_name: string;
   profile_picture?: string;
+  hasProfilePictureError: boolean;
   spot_creates_count: number;
   spot_edits_count: number;
   media_added_count: number;
@@ -31,6 +32,7 @@ interface LeaderboardEntry {
 interface UserData {
   id: string;
   display_name?: string;
+  profile_picture?: string;
   spot_creates_count?: number;
   spot_edits_count?: number;
   media_added_count?: number;
@@ -38,7 +40,6 @@ interface UserData {
 
 @Component({
   selector: "app-leaderboard-page",
-  standalone: true,
   imports: [
     CommonModule,
     RouterLink,
@@ -117,8 +118,9 @@ export class LeaderboardPageComponent implements OnInit {
               ? "Blocked User"
               : user.display_name || "Anonymous", // Redact name
             profile_picture: isBlocked
-              ? ""
-              : getProfilePictureUrl(user.id, 200), // Hide PFP
+              ? undefined
+              : getResizedProfilePictureUrl(user.profile_picture),
+            hasProfilePictureError: false,
             spot_creates_count: user.spot_creates_count || 0,
             spot_edits_count: user.spot_edits_count || 0,
             media_added_count: user.media_added_count || 0,

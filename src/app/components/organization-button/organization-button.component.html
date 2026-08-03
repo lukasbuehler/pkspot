@@ -1,0 +1,24 @@
+<a
+  matButton="outlined"
+  [routerLink]="[
+    '/organizations',
+    displayOrganization().slug || displayOrganization().id,
+  ]"
+>
+  <span class="organization-button__content">
+    <span
+      class="organization-button__logo"
+      [style.background]="displayOrganization().logo_background_color || null"
+      aria-hidden="true"
+    >
+      @if (displayOrganization().logo_url; as logoUrl) {
+        <img [src]="logoUrl" alt="" />
+      } @else {
+        <mat-icon>groups</mat-icon>
+      }
+    </span>
+    <span class="mat-title-small organization-button__name">
+      {{ displayOrganization().name }}
+    </span>
+  </span>
+</a>

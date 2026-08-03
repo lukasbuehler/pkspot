@@ -329,8 +329,6 @@
             @for (event of visibleEvents(); track event.id) {
               <app-event-card
                 [event]="event"
-                [selectMode]="panelMode()"
-                (select)="onSelectEvent($event)"
               ></app-event-card>
             }
           </div>
@@ -582,7 +580,7 @@
 
     @if (lastUpdatedDate(); as lastUpdated) {
       <p class="mat-body-small page-updated-text">
-        Source data updated {{ lastUpdated | date: "longDate" }}.
+        Source data updated {{ lastUpdated | systemDate: "longDate" }}.
       </p>
     }
   </div>
@@ -715,6 +713,118 @@
                     }}</span>
                   </button>
                 </div>
+
+                @if (dialogData.scope === "locality") {
+                  <div class="community-locality-merge-section">
+                    <div>
+                      <h3 class="mat-title-medium m-0">
+                        Merge a locality into {{ dialogData.displayName }}
+                      </h3>
+                      <p class="mat-body-medium m-0">
+                        Group spots from a locality that does not yet have its
+                        own community. Spot addresses stay unchanged.
+                      </p>
+                    </div>
+
+                    @if (isLoadingLocalityMerges()) {
+                      <div class="community-locality-merge-loading">
+                        <mat-progress-spinner
+                          mode="indeterminate"
+                          diameter="22"
+                        />
+                        <span>Loading unpublished localities…</span>
+                      </div>
+                    } @else if (localityMergeLoadFailed()) {
+                      <div class="community-locality-merge-error" role="alert">
+                        <span class="community-locality-merge-error-icon">
+                          <mat-icon>cloud_off</mat-icon>
+                        </span>
+                        <div>
+                          <strong>Could not load localities</strong>
+                          <p class="mat-body-small m-0">
+                            The merge admin functions may not be deployed yet,
+                            or the request failed. Retry after checking the
+                            backend deployment.
+                          </p>
+                        </div>
+                        <button
+                          mat-stroked-button
+                          type="button"
+                          (click)="loadLocalityMergeAdminState(true)"
+                        >
+                          <mat-icon>refresh</mat-icon>
+                          <span>Retry</span>
+                        </button>
+                      </div>
+                    } @else {
+                      <div class="community-locality-merge-controls">
+                        <app-community-locality-picker
+                          [options]="localityMergeCandidates()"
+                          [value]="selectedLocalityMergeKey()"
+                          [disabled]="isSavingLocalityMerge()"
+                          (valueChange)="selectedLocalityMergeKey.set($event)"
+                        />
+                        <button
+                          mat-flat-button
+                          type="button"
+                          [disabled]="
+                            !selectedLocalityMerge() || isSavingLocalityMerge()
+                          "
+                          (click)="confirmMergeUnpublishedLocality()"
+                        >
+                          <mat-icon>merge_type</mat-icon>
+                          <span>
+                            {{
+                              isSavingLocalityMerge()
+                                ? "Updating…"
+                                : "Merge locality"
+                            }}
+                          </span>
+                        </button>
+                      </div>
+
+                      @if (localityMergeCandidates().length === 0) {
+                        <p class="mat-body-small m-0">
+                          No unmerged localities without community pages were
+                          found in this country.
+                        </p>
+                      }
+                    }
+
+                    @if (mergedUnpublishedLocalities().length > 0) {
+                      <div class="community-merged-localities">
+                        <h4 class="mat-label-large m-0">
+                          Merged unpublished localities
+                        </h4>
+                        @for (
+                          locality of mergedUnpublishedLocalities();
+                          track locality.communityKey
+                        ) {
+                          <div class="community-merged-locality-row">
+                            <span>
+                              <strong>{{ locality.displayName }}</strong>
+                              <small>
+                                {{ locality.spotCount }}
+                                {{ locality.spotCount === 1 ? "spot" : "spots" }}
+                              </small>
+                            </span>
+                            <button
+                              mat-button
+                              type="button"
+                              [disabled]="isSavingLocalityMerge()"
+                              (click)="
+                                confirmUnmergeUnpublishedLocality(locality)
+                              "
+                            >
+                              <mat-icon>undo</mat-icon>
+                              Undo
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
               </div>
             </mat-expansion-panel>
           }

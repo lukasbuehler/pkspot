@@ -1,0 +1,156 @@
+import { Injectable, LOCALE_ID, inject } from "@angular/core";
+import { FunctionsAdapterService } from "../services/firebase/functions-adapter.service";
+import type {
+  CurrentWeatherRequest,
+  EventWeatherRequest,
+  WeatherLocation,
+  WeatherResponse,
+  WeatherTile,
+} from "./weather.models";
+import { getWeatherTile } from "./weather-map-tile";
+
+@Injectable({
+  providedIn: "root",
+})
+export class WeatherService {
+  static readonly EVENT_FORECAST_HOURS = 240;
+  private static readonly MAX_CLIENT_CACHE_ENTRIES = 64;
+  private readonly functions = inject(FunctionsAdapterService);
+  private readonly languageCode = inject(LOCALE_ID).replace("_", "-");
+  private readonly pendingRequests = new Map<string, Promise<WeatherResponse>>();
+  private readonly responseCache = new Map<string, WeatherResponse>();
+
+  getCurrentAndNearFuture(
+    location: WeatherLocation,
+    nearFutureHours = 12,
+  ): Promise<WeatherResponse> {
+    const key = [
+      location.lat.toFixed(3),
+      location.lng.toFixed(3),
+      nearFutureHours,
+    ].join(":");
+    return this.getWeatherByKey(
+      key,
+      {
+        mode: "current-and-near-future",
+        location,
+        nearFutureHours,
+        languageCode: this.languageCode,
+      },
+    );
+  }
+
+  getCurrentAndNearFutureForTile(
+    tile: WeatherTile,
+    nearFutureHours = 12,
+  ): Promise<WeatherResponse> {
+    return this.getWeatherByKey(
+      `tile:${tile.key}:${nearFutureHours}`,
+      {
+        mode: "current-and-near-future",
+        location: tile.center,
+        nearFutureHours,
+        languageCode: this.languageCode,
+        spatialScope: {
+          type: tile.type,
+          zoom: tile.zoom,
+          x: tile.x,
+          y: tile.y,
+        },
+      },
+    );
+  }
+
+  getCurrentAndNearFutureForTileAt(
+    location: WeatherLocation,
+    nearFutureHours = 12,
+  ): Promise<WeatherResponse> {
+    return this.getCurrentAndNearFutureForTile(
+      getWeatherTile(location),
+      nearFutureHours,
+    );
+  }
+
+  getEventForecastForTileAt(
+    location: WeatherLocation,
+    eventStart: Date,
+    eventEnd: Date,
+  ): Promise<WeatherResponse> {
+    const tile = getWeatherTile(location);
+    return this.getWeatherByKey(
+      `event:${tile.key}:${eventStart.toISOString()}:${eventEnd.toISOString()}`,
+      {
+        mode: "event-forecast",
+        location: tile.center,
+        eventStart: eventStart.toISOString(),
+        eventEnd: eventEnd.toISOString(),
+        spatialScope: {
+          type: tile.type,
+          zoom: tile.zoom,
+          x: tile.x,
+          y: tile.y,
+        },
+      },
+    );
+  }
+
+  isEventForecastAvailable(
+    eventStart: Date,
+    eventEnd: Date,
+    now = new Date(),
+  ): boolean {
+    const forecastStart = new Date(now);
+    forecastStart.setUTCMinutes(0, 0, 0);
+    const maxForecastTime =
+      forecastStart.getTime() +
+      WeatherService.EVENT_FORECAST_HOURS * 60 * 60 * 1000;
+    return (
+      eventEnd.getTime() > forecastStart.getTime() &&
+      eventStart.getTime() <= maxForecastTime
+    );
+  }
+
+  private getWeatherByKey(
+    key: string,
+    requestData: CurrentWeatherRequest | EventWeatherRequest,
+  ): Promise<WeatherResponse> {
+    const cached = this.responseCache.get(key);
+    if (cached) {
+      if (Date.parse(cached.expiresAt) > Date.now()) {
+        this.responseCache.delete(key);
+        this.responseCache.set(key, cached);
+        return Promise.resolve(cached);
+      }
+      this.responseCache.delete(key);
+    }
+
+    const pending = this.pendingRequests.get(key);
+    if (pending) {
+      return pending;
+    }
+
+    const request = this.functions.callAppChecked<
+      CurrentWeatherRequest | EventWeatherRequest,
+      WeatherResponse
+    >("getWeather", requestData);
+    this.pendingRequests.set(key, request);
+    void request.then(
+      (response) => {
+        this.pendingRequests.delete(key);
+        if (Date.parse(response.expiresAt) > Date.now()) {
+          this.responseCache.set(key, response);
+          while (
+            this.responseCache.size >
+            WeatherService.MAX_CLIENT_CACHE_ENTRIES
+          ) {
+            const oldestKey = this.responseCache.keys().next().value;
+            if (oldestKey === undefined) break;
+            this.responseCache.delete(oldestKey);
+          }
+        }
+      },
+      () => this.pendingRequests.delete(key),
+    );
+    return request;
+  }
+}

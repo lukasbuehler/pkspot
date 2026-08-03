@@ -1,14 +1,14 @@
 <div
   class="oauth-buttons d-flex align-items-center"
-  [class.flex-column]="layout === 'column'"
-  [class.flex-row]="layout === 'row'"
+  [class.flex-column]="layout() === 'column'"
+  [class.flex-row]="layout() === 'row'"
 >
   <button
     mat-stroked-button
     (click)="trySignInApple()"
-    [disabled]="disabled || isSubmitting"
+    [disabled]="disabled() || isSubmitting()"
   >
-    @if(isSigningInApple) {
+    @if(isSigningInApple()) {
     <mat-spinner diameter="16"></mat-spinner>
     } @else {
     <span class="d-flex gap-2 align-items-center">
@@ -25,9 +25,9 @@
   <button
     mat-stroked-button
     (click)="trySignInGoogle()"
-    [disabled]="disabled || isSubmitting"
+    [disabled]="disabled() || isSubmitting()"
   >
-    @if(isSigningInGoogle) {
+    @if(isSigningInGoogle()) {
     <mat-spinner diameter="16"></mat-spinner>
     } @else {
     <span class="d-flex gap-2 align-items-center">

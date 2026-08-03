@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { TestBed } from "@angular/core/testing";
-import { SearchService } from "./search.service";
+import { getMapSpotSearchLimit, SearchService } from "./search.service";
 import { MapsApiService } from "./maps-api.service";
 import { PlatformService } from "./platform.service";
 import { GeoPoint } from "firebase/firestore";
@@ -78,6 +78,45 @@ describe("SearchService", () => {
 
   it("should be created", () => {
     expect(service).toBeTruthy();
+  });
+
+  it("uses the map preview budget for filtered viewport searches", () => {
+    expect(getMapSpotSearchLimit(undefined)).toBe(10);
+    expect(getMapSpotSearchLimit(4)).toBe(160);
+    expect(getMapSpotSearchLimit(8)).toBe(120);
+    expect(getMapSpotSearchLimit(10)).toBe(160);
+    expect(getMapSpotSearchLimit(12)).toBe(200);
+    expect(getMapSpotSearchLimit(14)).toBe(250);
+  });
+
+  it("searches only publicly searchable user profiles", async () => {
+    typesenseSearchMock.mockResolvedValue({
+      hits: [
+        {
+          document: {
+            id: "user-1",
+            display_name: "Traceur",
+            profile_picture: "https://example.com/avatar.jpg",
+          },
+        },
+      ],
+    });
+
+    await expect(service.searchUsers("tra")).resolves.toEqual([
+      {
+        uid: "user-1",
+        display_name: "Traceur",
+        profile_picture: "https://example.com/avatar.jpg",
+      },
+    ]);
+    expect(typesenseSearchMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        q: "tra",
+        query_by: "display_name",
+        filter_by: "public_search:=true",
+      }),
+      {},
+    );
   });
 
   describe("getSpotPreviewFromHit", () => {
@@ -378,6 +417,75 @@ describe("SearchService", () => {
     });
   });
 
+  describe("searchTopSpotPreviewsNearLocation", () => {
+    it("uses the map spot ordering for nearby preview results", async () => {
+      typesenseSearchMock.mockResolvedValue({
+        found: 2,
+        hits: [
+          {
+            document: {
+              id: "reported",
+              name: "Reported spot",
+              rating: 5,
+              is_reported: true,
+              location: [47.37, 8.54],
+            },
+          },
+          {
+            document: {
+              id: "iconic",
+              name: "Iconic spot",
+              rating: 3,
+              is_iconic: true,
+              thumbnail_small_url: "https://example.com/iconic.jpg",
+              location: [47.38, 8.55],
+            },
+          },
+        ],
+      });
+
+      const previews = await service.searchTopSpotPreviewsNearLocation(
+        { lat: 47.3769, lng: 8.5417 },
+        25,
+        4,
+      );
+
+      expect(typesenseSearchMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          q: "*",
+          filter_by: "location:(47.376900, 8.541700, 25.000 km)",
+          sort_by: "rating:desc",
+          per_page: 4,
+          page: 1,
+        }),
+        {},
+      );
+      expect(previews.map((spot) => spot.id)).toEqual([
+        "iconic",
+        "reported",
+      ]);
+    });
+
+    it("applies the shared map preset filters to nearby previews", async () => {
+      await service.searchTopSpotPreviewsNearLocation(
+        { lat: 47.3769, lng: 8.5417 },
+        25,
+        4,
+        SpotFilterMode.Dry,
+      );
+
+      const searchParameters = typesenseSearchMock.mock.calls[0][0] as {
+        filter_by?: string;
+      };
+      expect(searchParameters.filter_by).toContain(
+        "location:(47.376900, 8.541700, 25.000 km)",
+      );
+      expect(searchParameters.filter_by).toContain(
+        "amenities_true:=[covered, indoor]",
+      );
+    });
+  });
+
   describe("getCommunityPreviewFromHit", () => {
     it("should parse Typesense community bounds from array values", () => {
       const preview = service.getCommunityPreviewFromHit({
@@ -491,11 +599,7 @@ describe("SearchService", () => {
           {
             group_key: [33, 21],
             found: 120,
-            hits: [
-              { document: { id: "spot-a", rating: 5 } },
-              { document: { id: "spot-c", rating: 5 } },
-              { document: { id: "spot-d", rating: 5 } },
-            ],
+            hits: [{ document: { id: "spot-a", rating: 5 } }],
           },
           {
             group_key: [34, 21],
@@ -514,16 +618,14 @@ describe("SearchService", () => {
 
       const params = typesenseSearchMock.mock.calls[0][0];
       expect(params.group_by).toBe(
-        "tile_coordinates.z6.x,tile_coordinates.z6.y",
+        "tile_coordinates.z8.x,tile_coordinates.z8.y",
       );
-      expect(params.group_limit).toBe(5);
+      expect(params.group_limit).toBe(1);
       expect(typesenseSearchMock).toHaveBeenCalledTimes(1);
       expect(results.found).toBe(122);
       expect(results.hits.map((hit) => hit.document.id)).toEqual([
         "spot-a",
         "spot-b",
-        "spot-c",
-        "spot-d",
       ]);
     });
 
@@ -551,9 +653,9 @@ describe("SearchService", () => {
       expect(params.filter_by).toContain("type:=[");
       expect(params.filter_by).toContain("amenities_true:=[indoor]");
       expect(params.group_by).toBe(
-        "tile_coordinates.z2.x,tile_coordinates.z2.y",
+        "tile_coordinates.z4.x,tile_coordinates.z4.y",
       );
-      expect(params.group_limit).toBe(5);
+      expect(params.group_limit).toBe(1);
     });
 
     it("falls back to top-level found when grouped hit counts are unavailable", async () => {
@@ -568,10 +670,7 @@ describe("SearchService", () => {
         grouped_hits: [
           {
             group_key: [33, 21],
-            hits: [
-              { document: { id: "spot-a", rating: 5 } },
-              { document: { id: "spot-b", rating: 4 } },
-            ],
+            hits: [{ document: { id: "spot-a", rating: 5 } }],
           },
         ],
       });
@@ -588,10 +687,69 @@ describe("SearchService", () => {
 
       expect(typesenseSearchMock).toHaveBeenCalledTimes(1);
       expect(results.found).toBe(1);
-      expect(results.hits.map((hit) => hit.document.id)).toEqual([
-        "spot-a",
-        "spot-b",
+      expect(results.hits.map((hit) => hit.document.id)).toEqual(["spot-a"]);
+    });
+
+    it("uses finer groups so a lower-rated geographic pocket remains represented", async () => {
+      typesenseSearchMock.mockResolvedValueOnce({
+        found: 2,
+        grouped_hits: [
+          {
+            group_key: [34322, 22950],
+            found: 5,
+            hits: [{ document: { id: "rated-a", rating: 4 } }],
+          },
+          {
+            group_key: [34322, 22948],
+            found: 3,
+            hits: [{ document: { id: "walchestrasse", rating: 0 } }],
+          },
+        ],
+      });
+
+      const result = await service.searchSpotsInRawBounds(
+        47.4,
+        47.3,
+        8.6,
+        8.5,
+        10,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        false,
+        14,
+      );
+
+      expect(typesenseSearchMock.mock.calls[0][0]).toMatchObject({
+        group_by: "tile_coordinates.z16.x,tile_coordinates.z16.y",
+        group_limit: 1,
+      });
+      expect(result.hits.map((hit) => hit.document.id)).toEqual([
+        "rated-a",
+        "walchestrasse",
       ]);
+    });
+
+    it("clamps close-zoom spot grouping at the finest indexed tile level", async () => {
+      await service.searchSpotsInRawBounds(
+        47.4,
+        47.3,
+        8.6,
+        8.5,
+        10,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        false,
+        16,
+      );
+
+      expect(typesenseSearchMock.mock.calls[0][0].group_by).toBe(
+        "tile_coordinates.z16.x,tile_coordinates.z16.y",
+      );
+      expect(typesenseSearchMock.mock.calls[0][0].group_limit).toBe(5);
     });
   });
 
@@ -797,6 +955,8 @@ describe("SearchService", () => {
               id: "adult",
               label: "Adult ticket",
               url: "https://example.test/tickets",
+              price: { amount: 75, currency: "CHF" },
+              original_price: { amount: 100, currency: "CHF" },
               availability: "available",
             },
           ],
@@ -857,6 +1017,8 @@ describe("SearchService", () => {
             id: "adult",
             label: "Adult ticket",
             url: "https://example.test/tickets",
+            price: { amount: 75, currency: "CHF" },
+            original_price: { amount: 100, currency: "CHF" },
             availability: "available",
           },
         ],
@@ -964,6 +1126,8 @@ describe("SearchService", () => {
                   name: "Visible Event",
                   venue_string: "Visible venue",
                   locality_string: "Zurich",
+                  logo_src: "assets/events/visible-event.png",
+                  logo_background_color: "#fefefe",
                   start_seconds: 1_800_000_000,
                   end_seconds: 1_800_086_400,
                   location: [47.395, 8.545],
@@ -997,9 +1161,13 @@ describe("SearchService", () => {
       expect(searches[1].include_fields).toContain("banner_fit");
       expect(searches[1].include_fields).toContain("banner_accent_color");
       expect(searches[1].include_fields).toContain("logo_fit");
+      expect(searches[1].include_fields.split(",")).toContain(
+        "logo_background_color",
+      );
       expect(searches[1].include_fields).toContain("sponsor.logo_fit");
       expect(searches[1].per_page).toBe(250);
       expect(events.map((event) => event.id)).toEqual(["visible-event"]);
+      expect(events[0].effectiveBadgeLogoBackgroundColor()).toBe("#fefefe");
 
       expect(searches[2].collection).toBe("events_v1");
       expect(searches[2].filter_by).toContain("promo_radius_m:>0");
@@ -1150,6 +1318,290 @@ describe("SearchService", () => {
       expect(
         result.communities.map((community) => community.communityKey),
       ).toEqual(["locality:ch:zh:zurich", "country:ch"]);
+    });
+  });
+
+  describe("event discovery", () => {
+    const validDocument = {
+      id: "zurich-jam",
+      slug: "zurich-jam",
+      name: "Zurich Jam",
+      locality_string: "Zurich, Switzerland",
+      start_seconds: 1_800_000_000,
+      end_seconds: 1_800_007_200,
+      time_zone: "Europe/Zurich",
+      lifecycle_status: "planned",
+      published: true,
+      event_categories: ["jam"],
+      series_ids: ["parkour-earth"],
+      community_keys: ["country:ch", "region:zh"],
+      rsvp_counts: {
+        going: 8,
+        interested: 5,
+        notgoing: 1,
+        total: 14,
+      },
+    };
+
+    it("resolves shared hierarchical area keys without text-search guessing", async () => {
+      typesenseSearchMock.mockResolvedValueOnce({
+        hits: [
+          {
+            document: {
+              communityKey: "locality:ch:zh:zurich",
+              displayName: "Zurich",
+              scope: "locality",
+              counts: { totalSpots: 42 },
+            },
+          },
+        ],
+      });
+
+      const result = await service.getCommunityPreviewsByKeys([
+        "locality:ch:zh:zurich",
+      ]);
+
+      expect(typesenseSearchMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          q: "*",
+          query_by: "displayName",
+          filter_by:
+            "published:!=false && communityKey:=[`locality:ch:zh:zurich`]",
+          per_page: 1,
+          page: 1,
+        }),
+        {},
+      );
+      expect(result[0]).toMatchObject({
+        communityKey: "locality:ch:zh:zurich",
+        displayName: "Zurich",
+      });
+    });
+
+    it("constructs combined Typesense filters, pagination, facets, and sorting", async () => {
+      const abortController = new AbortController();
+      typesenseSearchMock.mockResolvedValueOnce({
+        hits: [{ document: validDocument }],
+        found: 1,
+        page: 2,
+        facet_counts: [
+          {
+            field_name: "event_categories",
+            counts: [{ value: "jam", count: 1 }],
+          },
+          {
+            field_name: "series_ids",
+            counts: [{ value: "parkour-earth", count: 1 }],
+          },
+          {
+            field_name: "community_keys",
+            counts: [{ value: "country:ch", count: 1 }],
+          },
+        ],
+      });
+
+      const result = await service.searchEventDiscovery({
+        query: "  Zurich Jam  ",
+        startsBeforeSeconds: 1_900_000_000.9,
+        endsAfterSeconds: 1_700_000_000.9,
+        areaKeys: ["country:ch", "region:zh", "country:ch"],
+        categories: ["jam", "competition"],
+        seriesIds: ["parkour-earth"],
+        sort: "past",
+        page: 2,
+        perPage: 40,
+        abortSignal: abortController.signal,
+      });
+
+      expect(typesenseSearchMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          q: "Zurich Jam",
+          filter_by:
+            "published:=true && start_seconds:<=1900000000 && " +
+            "end_seconds:>=1700000000 && " +
+            "community_keys:=[`country:ch`,`region:zh`] && " +
+            "event_categories:=[`jam`,`competition`] && " +
+            "series_ids:=[`parkour-earth`]",
+          sort_by: "start_seconds:desc",
+          facet_by: "event_categories,series_ids,community_keys",
+          page: 2,
+          per_page: 40,
+        }),
+        { abortSignal: abortController.signal },
+      );
+      expect(result.items[0]).toMatchObject({
+        id: "zurich-jam",
+        timeZone: "Europe/Zurich",
+        lifecycleStatus: "planned",
+        rsvpCounts: { going: 8, interested: 5, notgoing: 1, total: 14 },
+      });
+      expect(result.facets).toEqual({
+        categories: [{ value: "jam", count: 1 }],
+        series: [{ value: "parkour-earth", count: 1 }],
+        communities: [{ value: "country:ch", count: 1 }],
+      });
+    });
+
+    it("uses wildcard search and excludes invalid time-zone projections", async () => {
+      typesenseSearchMock.mockResolvedValueOnce({
+        hits: [
+          { document: validDocument },
+          {
+            document: {
+              ...validDocument,
+              id: "missing-zone",
+              time_zone: undefined,
+            },
+          },
+        ],
+        found: 2,
+      });
+
+      const result = await service.searchEventDiscovery({
+        endsBeforeSeconds: 1_900_000_000,
+      });
+
+      expect(typesenseSearchMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          q: "*",
+          filter_by:
+            "published:=true && end_seconds:<1900000000",
+          sort_by: "start_seconds:asc",
+          page: 1,
+          per_page: 24,
+        }),
+        {},
+      );
+      expect(result.items.map((item) => item.id)).toEqual(["zurich-jam"]);
+      expect(result.invalidItems).toEqual([
+        expect.objectContaining({
+          id: "missing-zone",
+          timeZone: undefined,
+        }),
+      ]);
+      expect(result.invalidItemCount).toBe(1);
+    });
+
+    it("escapes backticks and backslashes in array filters", async () => {
+      await service.searchEventDiscovery({
+        areaKeys: ["locality:`zurich\\west"],
+      });
+
+      const parameters = typesenseSearchMock.mock.calls[0]?.[0];
+      expect(parameters.filter_by).toContain(
+        "community_keys:=[`locality:\\`zurich\\\\west`]",
+      );
+    });
+
+    it("passes cancellation through and preserves abort failures", async () => {
+      const controller = new AbortController();
+      const abortError = new DOMException("Aborted", "AbortError");
+      typesenseSearchMock.mockRejectedValueOnce(abortError);
+      controller.abort();
+
+      await expect(
+        service.searchEventDiscovery({ abortSignal: controller.signal }),
+      ).rejects.toBe(abortError);
+      expect(typesenseSearchMock).toHaveBeenCalledWith(
+        expect.any(Object),
+        { abortSignal: controller.signal },
+      );
+    });
+
+    it("loads every calendar page in batches of 250", async () => {
+      typesenseSearchMock
+        .mockResolvedValueOnce({
+          hits: [{ document: validDocument }],
+          found: 251,
+          page: 1,
+        })
+        .mockResolvedValueOnce({
+          hits: [
+            {
+              document: {
+                ...validDocument,
+                id: "second-page",
+                name: "Second page",
+              },
+            },
+          ],
+          found: 251,
+          page: 2,
+        });
+
+      const result = await service.searchAllEventDiscovery({
+        sort: "calendar",
+      });
+
+      expect(typesenseSearchMock).toHaveBeenCalledTimes(2);
+      expect(typesenseSearchMock.mock.calls[0]?.[0]).toMatchObject({
+        page: 1,
+        per_page: 250,
+      });
+      expect(typesenseSearchMock.mock.calls[1]?.[0]).toMatchObject({
+        page: 2,
+        per_page: 250,
+      });
+      expect(result.items.map((item) => item.id)).toEqual([
+        "zurich-jam",
+        "second-page",
+      ]);
+    });
+
+    it("audits every published event independently of discovery filters", async () => {
+      typesenseSearchMock
+        .mockResolvedValueOnce({
+          hits: [
+            {
+              document: {
+                ...validDocument,
+                id: "first-missing-zone",
+                time_zone: undefined,
+              },
+            },
+          ],
+          found: 251,
+          page: 1,
+        })
+        .mockResolvedValueOnce({
+          hits: [
+            {
+              document: {
+                ...validDocument,
+                id: "second-missing-zone",
+                time_zone: undefined,
+              },
+            },
+          ],
+          found: 251,
+          page: 2,
+        });
+      const controller = new AbortController();
+
+      const result = await service.searchInvalidEventDiscovery({
+        abortSignal: controller.signal,
+      });
+
+      expect(typesenseSearchMock).toHaveBeenCalledTimes(2);
+      expect(typesenseSearchMock.mock.calls[0]?.[0]).toMatchObject({
+        q: "*",
+        filter_by: "published:=true",
+        page: 1,
+        per_page: 250,
+      });
+      expect(typesenseSearchMock.mock.calls[1]?.[0]).toMatchObject({
+        q: "*",
+        filter_by: "published:=true",
+        page: 2,
+        per_page: 250,
+      });
+      expect(typesenseSearchMock.mock.calls[0]?.[1]).toEqual({
+        abortSignal: controller.signal,
+      });
+      expect(result.map((event) => event.id)).toEqual([
+        "first-missing-zone",
+        "second-missing-zone",
+      ]);
     });
   });
 });

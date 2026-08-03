@@ -4,6 +4,11 @@
   padding-bottom: 100px;
 }
 
+.settings-page-content {
+  padding: max(1.5rem, var(--alain-menu-block-start-clearance, 1.5rem))
+    1.5rem 1.5rem;
+}
+
 div.menu {
   overflow: hidden;
 }
@@ -33,10 +38,89 @@ button.menuButton.selected {
   padding-left: 16px;
 }
 
-.profile-access-grid {
+.profile-access-card {
   display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-block: 1.5rem;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+  scroll-margin-block-start: var(--alain-menu-block-start-clearance, 1rem);
+}
+
+.profile-access-header,
+.profile-access-control,
+.profile-access-options,
+.profile-access-eligibility {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.profile-access-control mat-form-field {
+  width: 100%;
+}
+
+.profile-access-help,
+.profile-access-eligibility {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.profile-access-options {
+  gap: 1.25rem;
+}
+
+.profile-access-option {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.profile-access-option > div {
+  min-width: 0;
+}
+
+.profile-access-save {
+  justify-self: start;
+}
+
+.account-id-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+  color: var(--mat-sys-on-surface);
+  background: var(--mat-sys-surface-container-low);
+
+  > div:last-child {
+    min-width: 0;
+  }
+}
+
+.account-id-card__icon {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 13px;
+  color: var(--mat-sys-on-surface-variant);
+  background: var(--mat-sys-surface-container-high);
+}
+
+.account-id-card__value {
+  display: block;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+@media (max-width: 599.98px) {
+  .settings-page-content {
+    padding-inline: 1rem;
+  }
 }
 
 .app-check-status {

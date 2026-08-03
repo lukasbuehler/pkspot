@@ -38,6 +38,12 @@ test.describe("Age policy visual states @visual", () => {
     await page.setViewportSize({ width: 1024, height: 720 });
     await prepareAgePolicyPage(page);
 
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBe(true);
+
     await expect(page).toHaveScreenshot(
       "age-policy-contribution-unavailable.png",
       {
@@ -53,6 +59,12 @@ test.describe("Age policy visual states @visual", () => {
   }) => {
     await page.setViewportSize({ width: 390, height: 1200 });
     await prepareAgePolicyPage(page);
+
+    expect(
+      await page.locator(".profile-overview__card").evaluate(
+        (card) => card.scrollWidth <= card.clientWidth,
+      ),
+    ).toBe(true);
 
     await expect(page.locator(".profile-overview__card")).toHaveScreenshot(
       "age-policy-contribution-unavailable-mobile.png",

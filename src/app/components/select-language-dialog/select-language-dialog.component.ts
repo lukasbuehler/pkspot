@@ -23,6 +23,7 @@ import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { map, Observable, startWith } from "rxjs";
 import { AsyncPipe } from "@angular/common";
 import { AutocompleteOverlayRepositionDirective } from "../../directives/autocomplete-overlay-reposition.directive";
+import { SUPPORTED_UI_LOCALES } from "../../config/ui-locales";
 
 export interface SelectLanguageDialogData {
   locale: LocaleCode | null;
@@ -68,15 +69,7 @@ export class SelectLanguageDialogComponent implements OnInit, AfterViewInit {
   languages = languageCodes;
   allLocaleCodes: LocaleCode[] = Object.keys(this.languages) as LocaleCode[];
   // Fallback default supported UI locales
-  private defaultSupported: LocaleCode[] = [
-    "en",
-    "de",
-    "de-CH",
-    "fr",
-    "it",
-    "es",
-    "nl",
-  ] as LocaleCode[];
+  private defaultSupported: LocaleCode[] = [...SUPPORTED_UI_LOCALES];
   /** Computed base list BEFORE search filtering, depending on mode */
   private baseList(): LocaleCode[] {
     const mode = this.data.mode ?? "add";

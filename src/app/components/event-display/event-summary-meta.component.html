@@ -17,3 +17,18 @@
 @if (showVenue() && venueLine()) {
   <p class="event-venue mat-title-medium m-0">{{ venueLine() }}</p>
 }
+
+@if (attendanceRestriction(); as restriction) {
+  <p class="attendance-restriction mat-label-large m-0 d-flex gap-1">
+    <mat-icon inline>lock</mat-icon>
+    @if (restriction === "organization_members") {
+      <span i18n="@@event.attendance.organization_members_only">
+        Organization members only
+      </span>
+    } @else {
+      <span i18n="@@event.attendance.invitation_required">
+        Invitation required
+      </span>
+    }
+  </p>
+}

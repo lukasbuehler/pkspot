@@ -1,4 +1,5 @@
-import { describe } from "vitest";
+import { describe, expect, it } from "vitest";
+import { EVENT_DISCOVERY_FIELDS } from "./EventDiscoverySchema";
 import {
   CollectionMapping,
   registerAlignmentTests,
@@ -46,7 +47,7 @@ const tileCoordinateMapping = Object.fromEntries(
   { kind: "direct"; source: (typeof tileCoordinateFieldPaths)[number] }
 >;
 
-describe("Typesense events_v1 ↔ EventSchema", () => {
+describe("Typesense events_v1 ↔ EventDiscoverySchema", () => {
   // Field paths from src/db/schemas/EventSchema.ts. Keep in sync when the
   // TS interface changes. Dotted paths represent nested object fields.
   const firestoreFields = [
@@ -79,6 +80,13 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "locality_string",
     "location",
     "location_raw",
+    "timing",
+    "timing.start_date",
+    "timing.end_date",
+    "timing.start_time",
+    "timing.end_time",
+    "timing.mode",
+    "active_until",
     "start",
     "end",
     "url",
@@ -109,6 +117,9 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "program.plans.items.spot_ref",
     "program.plans.items.spot_ref.kind",
     "program.plans.items.spot_ref.id",
+    "program.plans.items.spot_refs",
+    "program.plans.items.spot_refs.kind",
+    "program.plans.items.spot_refs.id",
     "program.plans.items.status",
     "program.plans.items.runtime_override",
     "program.plans.items.runtime_override.start",
@@ -203,6 +214,9 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "rsvp_counts.interested",
     "rsvp_counts.notgoing",
     "rsvp_counts.total",
+    "kind",
+    "lifecycle_status",
+    "priority",
     "published",
     "created_by",
     "time_created",
@@ -211,6 +225,7 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     // and copied verbatim by the Firestore→Typesense extension.
     "start_seconds",
     "end_seconds",
+    "active_until_seconds",
     "promo_starts_at_seconds",
     "bounds_center",
     "bounds_radius_m",
@@ -222,6 +237,7 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "promo_region_center",
     "promo_region_radius_m",
     "has_organization",
+    "has_location",
     "has_venue_spot",
     "venue_spot_count",
     "series_roles",
@@ -231,11 +247,9 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
 
   const requiredFirestoreFields = [
     "name",
-    "venue_string",
-    "locality_string",
     "start",
     "end",
-    "location",
+    "published",
   ] as const;
 
   // The `*_seconds` and `promo_region_*` helper fields are
@@ -257,6 +271,8 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "start_seconds",
     "end_seconds",
     "location",
+    "timing.start_date",
+    "timing.mode",
     "community_keys",
     "series_ids",
     "event_categories",
@@ -265,6 +281,8 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "required_qualifier_keys",
     "is_sponsored",
     "is_promoted",
+    "kind",
+    "priority",
     "published",
   ] as const;
 
@@ -277,6 +295,8 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     location: "firestore-geopoint",
     url: "string",
     banner_src: "string",
+    banner_fit: "string",
+    banner_accent_color: "string",
     logo_src: "string",
     logo_fit: "string",
     logo_background_color: "string",
@@ -293,13 +313,23 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "sponsor.url": "string",
     is_promoted: "bool",
     is_sponsored: "bool",
+    kind: "string",
+    priority: "string",
     start_seconds: "int64",
     end_seconds: "int64",
+    active_until_seconds: "int64",
+    "timing.start_date": "string",
+    "timing.end_date": "string",
+    "timing.start_time": "string",
+    "timing.end_time": "string",
+    "timing.mode": "string",
+    time_zone: "string",
     promo_starts_at_seconds: "int64",
     spot_ids: "string[]",
     community_keys: "string[]",
     series_ids: "string[]",
     event_categories: "string[]",
+    lifecycle_status: "string",
     series_roles: "string[]",
     qualifies_to_keys: "string[]",
     required_qualifier_keys: "string[]",
@@ -316,8 +346,13 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     promo_region_center: "firestore-geopoint",
     promo_region_radius_m: "float",
     has_organization: "bool",
+    has_location: "bool",
     has_venue_spot: "bool",
     venue_spot_count: "int64",
+    "rsvp_counts.going": "int64",
+    "rsvp_counts.interested": "int64",
+    "rsvp_counts.notgoing": "int64",
+    "rsvp_counts.total": "int64",
     published: "bool",
   } as const;
 
@@ -332,6 +367,11 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     url: { kind: "direct", source: "url" },
 
     banner_src: { kind: "direct", source: "banner_src" },
+    banner_fit: { kind: "direct", source: "banner_fit" },
+    banner_accent_color: {
+      kind: "direct",
+      source: "banner_accent_color",
+    },
     logo_src: { kind: "direct", source: "logo_src" },
     logo_fit: { kind: "direct", source: "logo_fit" },
     logo_background_color: {
@@ -375,12 +415,27 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     "sponsor.url": { kind: "direct", source: "sponsor.url" },
     is_promoted: { kind: "direct", source: "is_promoted" },
     is_sponsored: { kind: "direct", source: "is_sponsored" },
+    kind: { kind: "direct", source: "kind" },
+    priority: { kind: "direct", source: "priority" },
 
     // Helper fields are materialized onto the Firestore event doc by
     // `updateEventFieldsOnWrite` (the Firebase Extension then copies them
     // verbatim to Typesense), so the mapping is `direct`.
     start_seconds: { kind: "direct", source: "start_seconds" },
     end_seconds: { kind: "direct", source: "end_seconds" },
+    active_until_seconds: {
+      kind: "direct",
+      source: "active_until_seconds",
+    },
+    "timing.start_date": {
+      kind: "direct",
+      source: "timing.start_date",
+    },
+    "timing.end_date": { kind: "direct", source: "timing.end_date" },
+    "timing.start_time": { kind: "direct", source: "timing.start_time" },
+    "timing.end_time": { kind: "direct", source: "timing.end_time" },
+    "timing.mode": { kind: "direct", source: "timing.mode" },
+    time_zone: { kind: "direct", source: "time_zone" },
     promo_starts_at_seconds: {
       kind: "direct",
       source: "promo_starts_at_seconds",
@@ -390,6 +445,10 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
     community_keys: { kind: "direct", source: "community_keys" },
     series_ids: { kind: "direct", source: "series_ids" },
     event_categories: { kind: "direct", source: "event_categories" },
+    lifecycle_status: {
+      kind: "direct",
+      source: "lifecycle_status",
+    },
     series_roles: { kind: "direct", source: "series_roles" },
     qualifies_to_keys: { kind: "direct", source: "qualifies_to_keys" },
     required_qualifier_keys: {
@@ -429,8 +488,25 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
       source: "promo_region_radius_m",
     },
     has_organization: { kind: "direct", source: "has_organization" },
+    has_location: { kind: "direct", source: "has_location" },
     has_venue_spot: { kind: "direct", source: "has_venue_spot" },
     venue_spot_count: { kind: "direct", source: "venue_spot_count" },
+    "rsvp_counts.going": {
+      kind: "direct",
+      source: "rsvp_counts.going",
+    },
+    "rsvp_counts.interested": {
+      kind: "direct",
+      source: "rsvp_counts.interested",
+    },
+    "rsvp_counts.notgoing": {
+      kind: "direct",
+      source: "rsvp_counts.notgoing",
+    },
+    "rsvp_counts.total": {
+      kind: "direct",
+      source: "rsvp_counts.total",
+    },
 
     published: { kind: "direct", source: "published" },
     _force_sync: {
@@ -438,6 +514,28 @@ describe("Typesense events_v1 ↔ EventSchema", () => {
       reason: "Operator-only knob to force Typesense re-index without doc change",
     },
   };
+
+  it("indexes only fields present in the public discovery projection", () => {
+    const allowedTopLevelFields = new Set<string>([
+      ...EVENT_DISCOVERY_FIELDS,
+      "published",
+    ]);
+    const disallowedSources = Object.values(mapping)
+      .filter(
+        (
+          entry,
+        ): entry is Extract<
+          CollectionMapping[string],
+          { kind: "direct" | "derived" }
+        > => entry.kind === "direct" || entry.kind === "derived",
+      )
+      .flatMap((entry) => entry.source)
+      .filter(
+        (source) => !allowedTopLevelFields.has(source.split(".")[0] ?? source),
+      );
+
+    expect(disallowedSources).toEqual([]);
+  });
 
   registerAlignmentTests({
     typesenseSchemaPath: "typesense/typesense_events_v1_schema.json",
@@ -832,11 +930,14 @@ describe("Typesense communities_v1 ↔ CommunityPageSchema", () => {
   });
 });
 
-describe("Typesense users_v1 ↔ UserSchema", () => {
+describe("Typesense users_v1 ↔ PublicUserProfileSchema", () => {
+  // The future users index must source documents from
+  // `public_user_profiles`, never from the authoritative `users`
+  // collection. That projection only exists for confirmed adults who opted
+  // into a public profile.
   const firestoreFields = [
     "display_name",
     "biography",
-    "home_spots",
     "profile_picture",
     "follower_count",
     "following_count",
@@ -845,27 +946,24 @@ describe("Typesense users_v1 ↔ UserSchema", () => {
     "spot_edits_count",
     "media_added_count",
     "signup_number",
-    "is_admin",
     "special_badges",
-    "blocked_users",
     "pinned_badges",
     "start_date",
     "start_date_raw_ms",
     "nationality_code",
-    "verified_email",
-    "invite_code",
     "home_city",
     "socials",
     "socials.instagram_handle",
     "socials.youtube_handle",
+    "socials.tiktok_handle",
+    "socials.discord_url",
     "socials.other",
-    "creationDate",
-    // `public_search` is a settings-side flag (lives in PrivateUserDataSchema
-    // / a separate doc), not on the main UserSchema — but it gets projected
-    // onto the Typesense user doc by the indexer so the collection only
-    // contains opted-in users for search. Listed here so the mapping is
-    // valid.
+    "account_privacy",
+    "profile_visibility",
+    "public_profile_enabled",
     "public_search",
+    "profile_access",
+    "profile_projection_version",
   ] as const;
 
   const requiredFirestoreFields = [] as const;
@@ -902,6 +1000,14 @@ describe("Typesense users_v1 ↔ UserSchema", () => {
     "socials.youtube_handle": {
       kind: "direct",
       source: "socials.youtube_handle",
+    },
+    "socials.tiktok_handle": {
+      kind: "direct",
+      source: "socials.tiktok_handle",
+    },
+    "socials.discord_url": {
+      kind: "direct",
+      source: "socials.discord_url",
     },
     public_search: { kind: "direct", source: "public_search" },
     _force_sync: {

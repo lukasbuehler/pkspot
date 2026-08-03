@@ -16,14 +16,15 @@ import { Event as PkEvent } from "../../../db/models/Event";
 import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
 import { EventRsvpComponent } from "../event-rsvp/event-rsvp.component";
 import { MatTooltip } from "@angular/material/tooltip";
-import { formatDateRange } from "../../../scripts/Helpers";
 import { SeriesDocument } from "../../services/firebase/firestore/series.service";
 import {
   eventImageDisplaySrc,
   eventStatusLabel,
+  eventScheduleLabel,
   type EventStatus,
 } from "../event-display/event-display.helpers";
 import { AnalyticsService } from "../../services/analytics.service";
+import { DateTimeFormatService } from "../../services/date-time-format.service";
 
 @Component({
   selector: "app-event-card",
@@ -40,21 +41,27 @@ import { AnalyticsService } from "../../services/analytics.service";
   templateUrl: "./event-card.component.html",
   styleUrl: "./event-card.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    "[class.compact]": "compact()",
+  },
 })
 export class EventCardComponent {
   private _locale = inject<LocaleCode>(LOCALE_ID);
   private _analytics = inject(AnalyticsService);
+  private readonly _dateTime = inject(DateTimeFormatService);
 
   event = input.required<PkEvent>();
   seriesById = input<Record<string, SeriesDocument>>({});
   selectMode = input(false);
   showVenue = input(true);
+  showRsvp = input(true);
+  compact = input(false);
   select = output<PkEvent>();
 
   readonly status = computed<EventStatus>(() => this.event().status());
   readonly dateRange = computed(() => {
     const event = this.event();
-    return formatDateRange(event.start, event.end, this._locale, "long");
+    return eventScheduleLabel(event, this._dateTime, "long");
   });
   readonly route = computed(() => [
     "/events",

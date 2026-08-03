@@ -13,6 +13,7 @@ const {
 const {
   connectStorageEmulator,
   deleteObject,
+  getBytes,
   getDownloadURL,
   getStorage,
   ref,
@@ -199,9 +200,31 @@ async function main() {
   const anonymous = await createClient("anonymous");
   const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
 
+  console.log("Checking moderator-only hold rules...");
+  const holdPath = `moderation_holds/case-${suffix}/evidence.jpg`;
+  await admin
+    .storage()
+    .bucket(STORAGE_BUCKET)
+    .file(holdPath)
+    .save(Buffer.from("held evidence"), { contentType: "image/jpeg" });
+  await assertDenied("anonymous hold read", () =>
+    getBytes(ref(anonymous.storage, holdPath))
+  );
+  await assertDenied("regular user hold read", () =>
+    getBytes(ref(uploader.storage, holdPath))
+  );
+  assert.ok(
+    (await getBytes(ref(adminClient.storage, holdPath))).byteLength > 0
+  );
+  await assertDenied("admin cannot write holds from a client", () =>
+    uploadAs(adminClient, `moderation_holds/case-${suffix}/forged.jpg`, "image/jpeg")
+  );
+
   console.log("Checking profile picture intake rules...");
   const profilePath = `profile_pictures/${USERS.uploader}`;
-  await uploadAs(uploader, profilePath, "image/png");
+  await assertDenied("legacy direct profile picture upload", () =>
+    uploadAs(uploader, profilePath, "image/png")
+  );
   await uploadIntakeAs(
     uploader,
     `profile-${suffix}`,
@@ -212,12 +235,38 @@ async function main() {
     { targetKind: "profile" }
   );
   await assertDenied("anonymous intake read", () =>
-    getDownloadURL(
+    getBytes(
       ref(
         anonymous.storage,
         `media_intake/${USERS.uploader}/profile-${suffix}/profile-${suffix}.png`
       )
     )
+  );
+  await assertDenied("uploader intake read", () =>
+    getBytes(
+      ref(
+        uploader.storage,
+        `media_intake/${USERS.uploader}/profile-${suffix}/profile-${suffix}.png`
+      )
+    )
+  );
+  await assertDenied("other user intake read", () =>
+    getBytes(
+      ref(
+        other.storage,
+        `media_intake/${USERS.uploader}/profile-${suffix}/profile-${suffix}.png`
+      )
+    )
+  );
+  assert.ok(
+    (
+      await getBytes(
+        ref(
+          adminClient.storage,
+          `media_intake/${USERS.uploader}/profile-${suffix}/profile-${suffix}.png`
+        )
+      )
+    ).byteLength > 0
   );
 
   await assertDenied("profile picture path for another user", () =>
@@ -283,7 +332,9 @@ async function main() {
 
   console.log("Checking spot media intake rules...");
   const spotImagePath = `spot_pictures/${suffix}.jpg`;
-  await uploadAs(uploader, spotImagePath, "image/jpeg");
+  await assertDenied("legacy direct spot image upload", () =>
+    uploadAs(uploader, spotImagePath, "image/jpeg")
+  );
   await uploadIntakeAs(
     uploader,
     `spot-${suffix}`,
@@ -365,8 +416,12 @@ async function main() {
   );
 
   console.log("Checking post and challenge media paths...");
-  await uploadAs(uploader, `post_media/direct-${suffix}.mp4`, "video/mp4");
-  await uploadAs(uploader, `challenges/direct-${suffix}.mov`, "video/quicktime");
+  await assertDenied("legacy direct post media upload", () =>
+    uploadAs(uploader, `post_media/direct-${suffix}.mp4`, "video/mp4")
+  );
+  await assertDenied("legacy direct challenge media upload", () =>
+    uploadAs(uploader, `challenges/direct-${suffix}.mov`, "video/quicktime")
+  );
   await uploadIntakeAs(
     uploader,
     `post-${suffix}`,
@@ -443,7 +498,9 @@ async function main() {
     )
   );
   const eventMediaPath = `event_media/${suffix}.webp`;
-  await uploadAs(adminClient, eventMediaPath, "image/webp");
+  await assertDenied("legacy direct admin event media upload", () =>
+    uploadAs(adminClient, eventMediaPath, "image/webp")
+  );
   await uploadIntakeAs(
     adminClient,
     `event-admin-${suffix}`,
@@ -473,6 +530,56 @@ async function main() {
       "event_media",
       `event-svg-${suffix}`,
       { targetKind: "event_media" }
+    )
+  );
+
+  await assertDenied("regular user organization logo upload", () =>
+    uploadIntakeAs(
+      uploader,
+      `organization-${suffix}`,
+      `organization-${suffix}.png`,
+      "image/png",
+      "organization_media",
+      `organization-${suffix}`,
+      { targetKind: "organization", targetId: `organization-${suffix}` }
+    )
+  );
+  await assertDenied("legacy direct admin organization logo upload", () =>
+    uploadAs(
+      adminClient,
+      `organization_media/organization-${suffix}.png`,
+      "image/png"
+    )
+  );
+  await uploadIntakeAs(
+    adminClient,
+    `organization-admin-${suffix}`,
+    `organization-admin-${suffix}.png`,
+    "image/png",
+    "organization_media",
+    `organization-${suffix}`,
+    { targetKind: "organization", targetId: `organization-${suffix}` }
+  );
+  await assertDenied("admin organization svg upload", () =>
+    uploadIntakeAs(
+      adminClient,
+      `organization-svg-${suffix}`,
+      `organization-svg-${suffix}.svg`,
+      "image/svg+xml",
+      "organization_media",
+      `organization-${suffix}`,
+      { targetKind: "organization", targetId: `organization-${suffix}` }
+    )
+  );
+  await assertDenied("admin organization gif upload", () =>
+    uploadIntakeAs(
+      adminClient,
+      `organization-gif-${suffix}`,
+      `organization-gif-${suffix}.gif`,
+      "image/gif",
+      "organization_media",
+      `organization-${suffix}`,
+      { targetKind: "organization", targetId: `organization-${suffix}` }
     )
   );
 

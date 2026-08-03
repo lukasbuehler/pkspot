@@ -1,0 +1,48 @@
+@if (showMenu()) {
+  <button
+    mat-icon-button
+    type="button"
+    [matMenuTriggerFor]="eventManagementMenu"
+    aria-label="Event management"
+    i18n-aria-label
+    matTooltip="Event management"
+    i18n-matTooltip
+  >
+    <mat-icon>more_vert</mat-icon>
+  </button>
+
+  <mat-menu #eventManagementMenu="matMenu">
+    @if (canPublish()) {
+      <button mat-menu-item type="button" (click)="openPublisher()">
+        <mat-icon>campaign</mat-icon>
+        <span i18n>Publish live update</span>
+      </button>
+    }
+    @if (canEdit()) {
+      <button mat-menu-item type="button" (click)="openOperations()">
+        <mat-icon>emergency_home</mat-icon>
+        <span i18n>Event operations</span>
+      </button>
+      <button mat-menu-item type="button" (click)="qrRequested.emit()">
+        <mat-icon>qr_code_2</mat-icon>
+        <span i18n="@@event_qr.menu">Event QR code</span>
+      </button>
+      <button mat-menu-item type="button" (click)="editRequested.emit()">
+        <mat-icon>edit</mat-icon>
+        <span i18n>Edit event</span>
+      </button>
+    }
+    @if (canRequestOwnership()) {
+      <button
+        mat-menu-item
+        type="button"
+        (click)="ownershipClaimRequested.emit()"
+      >
+        <mat-icon>domain_verification</mat-icon>
+        <span i18n="@@event_claims.request"
+          >Request organization ownership</span
+        >
+      </button>
+    }
+  </mat-menu>
+}

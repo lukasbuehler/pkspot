@@ -1,5 +1,8 @@
 import { UserReferenceSchema } from "./UserSchema";
-import { ReportModerationStatus } from "./MediaReportSchema";
+import {
+  ModerationReporterSchema,
+  ReportModerationStatus,
+} from "./MediaReportSchema";
 
 export type UserReportReason =
   | "harassment"
@@ -12,7 +15,7 @@ export interface UserReportSchema {
   reportedUser: UserReferenceSchema;
   reason: UserReportReason;
   comment?: string;
-  user: UserReferenceSchema;
+  user: ModerationReporterSchema;
   createdAt: Date;
   sourcePath?: string;
   status?: ReportModerationStatus;

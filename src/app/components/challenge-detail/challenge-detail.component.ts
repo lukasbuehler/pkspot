@@ -37,6 +37,7 @@ import { getBestLocale } from "../../../scripts/LanguageHelpers";
 import { MatChipsModule } from "@angular/material/chips";
 import { NgOptimizedImage } from "@angular/common";
 import { RouterLink } from "@angular/router";
+import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import {
   ChallengeLabelNames,
   ChallengeParticipantTypeNames,
@@ -46,6 +47,7 @@ import {
 } from "../../../db/models/SpotChallenge";
 import { Spot } from "../../../db/models/Spot";
 import { MediaSchema, StorageBucket } from "../../../db/schemas/Media";
+import { OPTIONAL_MEDIA_CROP_POLICY } from "../crop-image/image-crop-policy";
 import { MatDividerModule } from "@angular/material/divider";
 import {
   ChallengeLabelIcons,
@@ -82,6 +84,7 @@ import { buildSpotChallengeCanonicalPath } from "../../../scripts/SpotRouteHelpe
     MatChipsModule,
     NgOptimizedImage,
     RouterLink,
+    SystemDatePipe,
     MatDividerModule,
     MatTooltipModule,
     MatDatepickerModule,
@@ -161,6 +164,7 @@ export class ChallengeDetailComponent {
   }
 
   challengeStorageFolder = StorageBucket.Challenges;
+  readonly optionalMediaCropPolicy = OPTIONAL_MEDIA_CROP_POLICY;
 
   hasChanges: boolean = false;
 

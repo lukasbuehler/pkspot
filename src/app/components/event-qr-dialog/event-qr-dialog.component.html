@@ -1,0 +1,48 @@
+<h2 mat-dialog-title i18n="@@event_qr.title">Event QR code</h2>
+
+<mat-dialog-content>
+  <p class="mat-body-medium qr-description" i18n="@@event_qr.description">
+    Put this QR code at the event so people can quickly mark themselves as
+    going or save the event.
+  </p>
+
+  <div class="qr-frame">
+    @if (qrDataUrl(); as src) {
+      <img [src]="src" [alt]="data.event.name + ' QR code'" />
+    } @else if (!error()) {
+      <span class="mat-body-medium" i18n="@@event_qr.generating">
+        Generating QR code…
+      </span>
+    }
+  </div>
+
+  <code class="qr-url">{{ data.url }}</code>
+
+  @if (copied()) {
+    <p class="qr-success mat-body-small" role="status" i18n="@@event_qr.copied">
+      Link copied.
+    </p>
+  }
+  @if (error()) {
+    <p class="qr-error mat-body-small" role="alert">{{ error() }}</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" mat-dialog-close i18n="@@common.close">
+    Close
+  </button>
+  <button mat-stroked-button type="button" (click)="copyLink()">
+    <mat-icon>content_copy</mat-icon>
+    <span i18n="@@event_qr.copy">Copy link</span>
+  </button>
+  <button
+    mat-flat-button
+    type="button"
+    [disabled]="!qrDataUrl()"
+    (click)="download()"
+  >
+    <mat-icon>download</mat-icon>
+    <span i18n="@@event_qr.download">Download QR</span>
+  </button>
+</mat-dialog-actions>

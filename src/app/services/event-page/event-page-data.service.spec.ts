@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { LOCALE_ID } from "@angular/core";
-import { firstValueFrom, of } from "rxjs";
+import { firstValueFrom, of, throwError } from "rxjs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
@@ -60,6 +60,30 @@ describe("EventPageDataService", () => {
     expect(eventsService.getEventBySlugOrId).toHaveBeenCalledWith("city-jam");
   });
 
+  it("loads compact event cards through search", async () => {
+    const event = buildEvent("skills-open");
+    const search = {
+      getEventCardsByIds: vi.fn(() => Promise.resolve([event])),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        { provide: SearchService, useValue: search },
+        { provide: LOCALE_ID, useValue: "en" },
+      ],
+    });
+
+    const service = TestBed.inject(EventPageDataService);
+
+    await expect(
+      service.loadEventCardsByIds(["skills-open"]),
+    ).resolves.toEqual([event]);
+    expect(search.getEventCardsByIds).toHaveBeenCalledWith(["skills-open"]);
+  });
+
   it("observes events by slug through EventsService", async () => {
     const event = buildEvent("city-jam");
     const eventsService = {
@@ -83,6 +107,29 @@ describe("EventPageDataService", () => {
     expect(eventsService.observeEventBySlugOrId).toHaveBeenCalledWith(
       "city-jam",
     );
+  });
+
+  it("preserves observation errors instead of treating them as not found", async () => {
+    const error = new Error("Firestore unavailable");
+    const eventsService = {
+      observeEventBySlugOrId: vi.fn(() => throwError(() => error)),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: eventsService },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        { provide: SearchService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+      ],
+    });
+
+    const service = TestBed.inject(EventPageDataService);
+
+    await expect(
+      firstValueFrom(service.observeEventBySlugOrId("city-jam")),
+    ).rejects.toBe(error);
   });
 
   it("builds event spot and custom marker data for event maps", () => {
@@ -162,6 +209,43 @@ describe("EventPageDataService", () => {
         type: "event-location",
       }),
     );
+  });
+
+  it("keeps stable inline Spot reference ids in event map bindings", async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SpotsService, useValue: {} },
+        { provide: SpotChallengesService, useValue: {} },
+        { provide: SearchService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+      ],
+    });
+    const service = TestBed.inject(EventPageDataService);
+    const event = buildEvent("city-jam", {
+      inline_spots: [
+        {
+          id: "main-stage",
+          name: "Main stage",
+          location: { lat: 47.3, lng: 8.5 },
+        },
+        {
+          name: "Temporary park",
+          location: { lat: 47.31, lng: 8.51 },
+        },
+      ],
+    });
+
+    const bindings = await service.loadEventSpotBindings(event);
+
+    expect(bindings.map((binding) => binding.ref)).toEqual([
+      { kind: "inline_spot", id: "main-stage" },
+      { kind: "inline_spot", id: "event-local-spot-1" },
+    ]);
+    expect(bindings.map((binding) => binding.spot.name())).toEqual([
+      "Main stage",
+      "Temporary park",
+    ]);
   });
 
   it("expands event map bounds to include loaded marker locations", () => {

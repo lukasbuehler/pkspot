@@ -1,0 +1,37 @@
+<header class="dialog-header">
+  <div>
+    <span class="mat-label-large" i18n="@@event_weather.eyebrow"
+      >Event forecast</span
+    >
+    <h2 mat-dialog-title>{{ data.eventName }}</h2>
+  </div>
+  <button
+    type="button"
+    mat-icon-button
+    mat-dialog-close
+    aria-label="Close event forecast"
+    i18n-aria-label="@@event_weather.close"
+  >
+    <mat-icon>close</mat-icon>
+  </button>
+</header>
+
+<mat-dialog-content>
+  <app-event-weather-days
+    [eventStart]="data.eventStart"
+    [eventEnd]="data.eventEnd"
+    [timeZone]="data.timeZone"
+    [response]="data.response"
+    [selectedDate]="selectedDate()"
+    (dateSelected)="selectDate($event)"
+  />
+
+  <app-event-weather-hours
+    [response]="data.response"
+    [date]="selectedDate()"
+    [eventStart]="data.eventStart"
+    [eventEnd]="data.eventEnd"
+    [timeZone]="data.timeZone"
+    [highlightedTime]="highlightedTime()"
+  />
+</mat-dialog-content>

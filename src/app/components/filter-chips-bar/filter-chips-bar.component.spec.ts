@@ -69,6 +69,16 @@ describe("FilterChipsBarComponent", () => {
     expect(selectedChip.nativeElement.textContent).toContain("All");
   });
 
+  it("applies the requested selection color role", () => {
+    fixture.componentRef.setInput("selectionRole", "primary");
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.query(By.css(".filter-chips-container"))
+        .nativeElement.classList,
+    ).toContain("primary-selection");
+  });
+
   it("captures the pointer only after a horizontal drag starts", () => {
     fixture.detectChanges();
     const scrollArea = fixture.debugElement.query(

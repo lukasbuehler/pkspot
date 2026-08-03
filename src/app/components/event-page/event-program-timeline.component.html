@@ -1,0 +1,79 @@
+<div class="program-tabs">
+  <div class="program-tab-shell">
+    <button
+      type="button"
+      class="program-tab-scroll-button previous"
+      [attr.aria-label]="scrollDaysLeftLabel"
+      [disabled]="!canScrollTabsLeft()"
+      (click)="scrollTabs('left')"
+    >
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+
+    <div
+      #tabList
+      class="program-tab-list"
+      role="tablist"
+      aria-label="Program days"
+      i18n-aria-label="@@event_program.days"
+      (scroll)="updateTabScrollState(tabList)"
+      (wheel)="scrollTabsWithWheel($event, tabList)"
+    >
+      @for (day of dayGroups(); track day.key; let index = $index) {
+        <button
+          type="button"
+          class="program-day-tab"
+          role="tab"
+          [id]="'program-tab-' + day.key"
+          [attr.aria-controls]="'program-panel-' + day.key"
+          [attr.aria-selected]="selectedDayKey() === day.key"
+          [tabIndex]="selectedDayKey() === day.key ? 0 : -1"
+          (click)="selectDay(day.key)"
+          (keydown)="handleTabKeydown($event, index, tabList)"
+        >
+          <span>{{ day.label }}</span>
+          @if (day.weather; as weather) {
+            <mat-icon
+              class="day-tab-weather"
+              [class.is-wet]="weather.tone === 'wet'"
+              [class.has-warning]="weather.tone === 'warning'"
+              [class.is-night]="weather.tone === 'night'"
+              [attr.aria-label]="weather.label"
+              >{{ weather.icon }}</mat-icon
+            >
+          }
+        </button>
+      }
+    </div>
+
+    <button
+      type="button"
+      class="program-tab-scroll-button next"
+      [attr.aria-label]="scrollDaysRightLabel"
+      [disabled]="!canScrollTabsRight()"
+      (click)="scrollTabs('right')"
+    >
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </div>
+
+  @if (selectedDay(); as day) {
+    <div
+      class="program-day-content px-3"
+      role="tabpanel"
+      [id]="'program-panel-' + day.key"
+      [attr.aria-labelledby]="'program-tab-' + day.key"
+    >
+      <app-event-program-day-timeline
+        [entries]="day.items"
+        [dayKey]="day.key"
+        [timeZone]="timeZone()"
+        [eventMapRoute]="eventMapRoute()"
+        [seriesById]="seriesById()"
+        [selectedItemId]="highlightedItemId()"
+        [activeItemIds]="activeItemIds()"
+        (itemWeatherSelected)="selectItemWeather(day.key, $event)"
+      />
+    </div>
+  }
+</div>

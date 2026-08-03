@@ -5,7 +5,7 @@
 
   // Centralized variable for the bottom sheet's visible height when closed.
   // This is used by child components (e.g., Google Maps controls, FABs) to offset elements.
-  // Default: 140px. Can be changed here to update all dependent positioning.
+  // Keep one content row visible below the handle and filter chips.
   --bottom-sheet-closed-height: 90px;
 }
 
@@ -131,23 +131,35 @@ mat-drawer-container.compact-sidenav.sidenav-open .sidenav-toggle {
   width: 100%;
 }
 
-.map-island-host {
+.map-context-host {
   position: absolute;
   top: 20px;
   left: 16px;
   right: 20px;
-  display: flex;
-  justify-content: center;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
   min-width: 0;
   z-index: 50;
   pointer-events: none;
+}
+
+.map-island-host {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.map-weather-chip-host {
+  pointer-events: auto;
 }
 
 // Sidenav closed: the floating search-field-container (z-index 100) sits
 // on top of the content area, so place the island flush right of the
 // search bar instead of centering it underneath. Search-field-container
 // width is calc(100% - 90px) by default, 50% @ ≥768px, 33.33% @ ≥1200px.
-mat-drawer-container:not(.sidenav-open) .map-island-host {
+mat-drawer-container:not(.sidenav-open) .map-context-host {
   @media (max-width: 767.98px) {
     top: 136px;
     left: 16px;
@@ -164,7 +176,7 @@ mat-drawer-container:not(.sidenav-open) .map-island-host {
   }
 }
 
-mat-drawer-container.sidenav-open .map-island-host {
+mat-drawer-container.sidenav-open .map-context-host {
   @media (max-width: 767.98px) {
     display: none;
   }
@@ -175,6 +187,14 @@ mat-drawer-container.sidenav-open .map-island-host {
     right: 20px;
     justify-content: center;
   }
+}
+
+.map-context-mobile-host {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
 }
 
 .map-island-mobile-host {

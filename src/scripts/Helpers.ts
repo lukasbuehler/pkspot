@@ -10,6 +10,10 @@ import {
 import { MediaSchema } from "../db/schemas/Media";
 import { UserReferenceSchema } from "../db/schemas/UserSchema";
 import { User } from "../db/models/User";
+import {
+  isKnownUiLocalePrefix,
+  normalizeUiLocale,
+} from "../app/config/ui-locales";
 
 export function getValueFromEventTarget(
   eventTarget: EventTarget | null | undefined
@@ -453,17 +457,15 @@ export function removeUndefinedProperties<T>(obj: object): object {
 
 /**
  * Returns the locale prefix from the current pathname if it matches a supported locale,
- * e.g. "/en" or "/de-CH". Returns an empty string when no locale prefix is present.
- * Note: Keep this list in sync with the app's supported languages.
+ * e.g. "/en" or a recognized legacy prefix. Returns an empty string when no
+ * locale prefix is present.
  */
 export function detectLocalePrefixFromPath(): string {
   if (typeof window === "undefined") return "";
   const segments = window.location.pathname.split("/");
   const maybeLocale = segments[1];
-  // Supported locales in this app
-  const supported = new Set(["en", "de", "de-CH", "fr", "it", "es", "nl"]);
-  if (supported.has(maybeLocale)) {
-    return `/${maybeLocale}`;
+  if (isKnownUiLocalePrefix(maybeLocale)) {
+    return `/${normalizeUiLocale(maybeLocale)}`;
   }
   return "";
 }

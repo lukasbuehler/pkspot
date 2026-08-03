@@ -9,7 +9,77 @@
   justify-content: center;
   overflow: visible;
   pointer-events: none;
+  position: relative;
   width: 48px;
+}
+
+.event-map-marker-preview {
+  align-items: center;
+  bottom: 42px;
+  display: flex;
+  flex-direction: column;
+  left: 50%;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  transform: translateX(-50%);
+  transition: opacity 0.18s ease;
+  width: clamp(210px, 22vw, 280px);
+}
+
+.event-map-marker-preview-card {
+  display: block;
+  filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.34));
+  width: 100%;
+}
+
+.event-map-marker-preview-fallback {
+  background: var(
+    --mat-card-elevated-container-color,
+    var(--mat-sys-surface-container-low)
+  );
+  border-radius: 8px;
+  color: var(--mat-sys-on-surface);
+  filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.34));
+  padding: 0.75rem;
+  width: 100%;
+
+  span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  p {
+    color: var(--mat-sys-on-surface-variant);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    margin: 0.35rem 0 0;
+    overflow: hidden;
+  }
+}
+
+.event-map-marker-preview-tail {
+  fill: var(
+    --mat-card-elevated-container-color,
+    var(--mat-sys-surface-container-low)
+  );
+  filter: drop-shadow(0 12px 14px rgba(0, 0, 0, 0.18));
+  margin-top: -7px;
+}
+
+.event-map-marker-collision-shell.preview-visible
+  .event-map-marker-preview {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.18s ease;
+}
+
+.event-map-marker-collision-shell.preview-visible .event-map-marker {
+  opacity: 0;
+  transition: opacity 0.18s ease;
 }
 
 .event-map-marker {
@@ -27,7 +97,8 @@
   pointer-events: auto;
   transition:
     transform 120ms ease,
-    box-shadow 120ms ease;
+    box-shadow 120ms ease,
+    opacity 0.18s ease;
   width: 36px;
 }
 
@@ -57,4 +128,10 @@ html.map-glass-blur-enabled .event-map-marker {
   font-size: 22px;
   height: 22px;
   width: 22px;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .event-map-marker-preview {
+    display: none;
+  }
 }

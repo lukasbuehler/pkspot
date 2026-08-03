@@ -65,7 +65,7 @@ async function resetEmulatorFirestore() {
   await Promise.all(collections.map((collectionRef) => adminDb.recursiveDelete(collectionRef)));
 }
 
-async function createClient(uid) {
+async function createClient(uid, email) {
   const app = initializeApp(
     {
       apiKey: "demo-api-key",
@@ -85,6 +85,9 @@ async function createClient(uid) {
   });
 
   if (uid) {
+    if (email) {
+      await adminAuth.createUser({ uid, email });
+    }
     const token = await adminAuth.createCustomToken(uid);
     await signInWithCustomToken(auth, token);
   } else {
@@ -136,10 +139,100 @@ async function seedSecurityFixture() {
   });
   batch.set(adminDb.doc("spot_clusters/z16_1_1"), { spots: [] });
   batch.set(adminDb.doc("spot_slugs/public-spot"), { spot_id: "public-spot" });
-  batch.set(adminDb.doc("events/event-1"), { title: { en: "Public Event" } });
+  batch.set(adminDb.doc("events/event-1"), {
+    name: "Public Event",
+    published: true,
+    end: admin.firestore.Timestamp.fromMillis(Date.now() + 86_400_000),
+    organizer: {
+      type: "organization",
+      organization: { id: "pk-spot", name: "PK Spot", slug: "pk-spot" },
+    },
+  });
+  batch.set(adminDb.doc("events/event-1/live_updates/update-1"), {
+    event_id: "event-1",
+    type: "schedule_change",
+    title: "Schedule updated",
+    status: "published",
+    created_at: admin.firestore.Timestamp.now(),
+    created_by: "admin",
+    published_at: admin.firestore.Timestamp.now(),
+  });
+  batch.set(adminDb.doc("events/unpublished-event"), {
+    name: "Draft Event",
+    published: false,
+  });
+  batch.set(adminDb.doc("events/cancelled-event"), {
+    name: "Cancelled Event",
+    published: true,
+    lifecycle_status: "cancelled",
+  });
+  batch.set(adminDb.doc("events/unlisted-event"), {
+    name: "Unlisted Event",
+    publication_state: "published",
+    published: true,
+    visibility: "unlisted",
+  });
+  batch.set(adminDb.doc("events/private-event"), {
+    name: "Private Event",
+    publication_state: "published",
+    published: true,
+    visibility: "private",
+    discoverability: { audience: "none" },
+    owner: { type: "user", user_id: "owner" },
+    viewer_policy: { audience: "invited" },
+  });
+  batch.set(adminDb.doc("events/private-event/access/other"), {
+    user_id: "other",
+    role: "viewer",
+    granted_by: "owner",
+    time_created: admin.firestore.Timestamp.now(),
+    time_updated: admin.firestore.Timestamp.now(),
+  });
+  batch.set(adminDb.doc("events/member-event"), {
+    name: "Organization Member Event",
+    publication_state: "published",
+    published: true,
+    visibility: "private",
+    discoverability: {
+      audience: "organization_members",
+      organization_id: "pk-spot",
+    },
+    owner: { type: "organization", organization_id: "pk-spot" },
+    viewer_policy: {
+      audience: "organization_members",
+      organization_id: "pk-spot",
+    },
+  });
+  batch.set(adminDb.doc("event_discovery/event-1"), {
+    name: "Public Event",
+    publication_state: "published",
+    published: true,
+    visibility: "public",
+  });
+  batch.set(adminDb.doc("events/unpublished-event/live_updates/update-1"), {
+    event_id: "unpublished-event",
+    type: "general_update",
+    title: "Hidden update",
+    status: "published",
+    created_at: admin.firestore.Timestamp.now(),
+    created_by: "admin",
+    published_at: admin.firestore.Timestamp.now(),
+  });
   batch.set(adminDb.doc("event_slugs/public-event"), { event_id: "event-1" });
+  batch.set(adminDb.doc("event_slugs/unlisted-event"), {
+    event_id: "unlisted-event",
+  });
+  batch.set(adminDb.doc("event_slugs/private-event"), {
+    event_id: "private-event",
+  });
+  batch.set(adminDb.doc("event_slugs/draft-event"), {
+    event_id: "unpublished-event",
+  });
   batch.set(adminDb.doc("series/series-1"), { name: "Public Series" });
   batch.set(adminDb.doc("community_pages/ch-zurich"), { title: "Zurich" });
+  batch.set(adminDb.doc("community_pages/locality:ch:zh:zurich"), {
+    published: true,
+  });
   batch.set(adminDb.doc("community_pages/ch-zurich/private_info/link_cards"), {
     infoCards: [
       {
@@ -159,6 +252,14 @@ async function seedSecurityFixture() {
   batch.set(adminDb.doc("organizations/pk-spot/members/owner"), {
     role: "reviewer",
     user: { uid: "owner", display_name: "Owner" },
+  });
+  batch.set(adminDb.doc("organizations/pk-spot/members/org-manager"), {
+    role: "owner",
+    user: { uid: "org-manager", display_name: "Organization Manager" },
+  });
+  batch.set(adminDb.doc("organizations/pk-spot/members/org-member"), {
+    role: "member",
+    user: { uid: "org-member", display_name: "Organization Member" },
   });
   batch.set(adminDb.doc("organizations/wpf"), {
     name: "World's Parkour Family",
@@ -241,6 +342,7 @@ async function seedSecurityFixture() {
   });
   batch.set(adminDb.doc("users/owner"), {
     display_name: "Owner",
+    home_spots: ["legacy-home"],
     is_admin: false,
     spot_edits_count: 4,
     socials: {
@@ -264,6 +366,30 @@ async function seedSecurityFixture() {
     display_name: "Admin",
     is_admin: true,
   });
+  batch.set(adminDb.doc("users/adult"), {
+    display_name: "Adult",
+    is_admin: false,
+    account_privacy: "public",
+    profile_visibility: "public",
+    age_policy: {
+      participation_state: "allowed",
+      source: "android_play_age_signals",
+      platform: "android",
+      adult_eligibility: "verified",
+      age_range: { lower: 18 },
+      assurance: {
+        signal_version: 3,
+        evidence_strength: "independently_checked",
+        client_integrity: "play_integrity_request_bound",
+        app_id: "test-android-app",
+        status: "active",
+        approval_basis:
+          "google_play:platform_age_signal:tier_c:request_bound:v1",
+        limitation: "platform_account_or_device_may_be_shared",
+        age_range_source: "tier_c",
+      },
+    },
+  });
   batch.set(adminDb.doc("users/restricted"), {
     display_name: "Restricted",
     is_admin: false,
@@ -274,6 +400,34 @@ async function seedSecurityFixture() {
       signal_updated_at: admin.firestore.Timestamp.now(),
     },
   });
+  batch.set(adminDb.doc("users/org-manager"), {
+    display_name: "Organization Manager",
+    is_admin: false,
+  });
+  batch.set(adminDb.doc("users/org-member"), {
+    display_name: "Organization Member",
+    is_admin: false,
+  });
+  batch.set(adminDb.doc("public_user_profiles/adult"), {
+    display_name: "Adult",
+    public_profile_enabled: true,
+    public_search: true,
+    profile_access: "full",
+    profile_projection_version: 1,
+  });
+  batch.set(
+    adminDb.doc(
+      "users/adult/age_assurance_records/test-verification"
+    ),
+    {
+      verification_id: "test-verification",
+      outcome: "verified",
+    }
+  );
+  batch.set(adminDb.doc("age_assurance_challenges/test-challenge"), {
+    uid: "adult",
+    nonce_hash: "private",
+  });
   batch.set(adminDb.doc("users/restricted/private_data/profile"), {
     bookmarks: ["public-spot"],
   });
@@ -282,6 +436,22 @@ async function seedSecurityFixture() {
   });
   batch.set(adminDb.doc("users/owner/check_ins/check-in-1"), {
     spot_id: "public-spot",
+  });
+  const notificationNow = Date.now();
+  batch.set(adminDb.doc("users/owner/notifications/notification-1"), {
+    type: "follow_request",
+    source_path: "users/owner/follow_requests/other",
+    dedupe_key: "notification-1",
+    path: "/profile",
+    payload: { requester_name: "Other" },
+    active: true,
+    created_at: admin.firestore.Timestamp.fromMillis(notificationNow),
+    created_at_raw_ms: notificationNow,
+    available_at: admin.firestore.Timestamp.fromMillis(notificationNow),
+    available_at_raw_ms: notificationNow,
+    expires_at: admin.firestore.Timestamp.fromMillis(notificationNow + 86_400_000),
+    expires_at_raw_ms: notificationNow + 86_400_000,
+    updated_at_raw_ms: notificationNow,
   });
   batch.set(adminDb.doc("users/owner/following/other"), {
     created_at_raw_ms: 1,
@@ -312,7 +482,14 @@ async function seedSecurityFixture() {
   await batch.commit();
 }
 
-async function testPublicReadSurface(anon, owner, adminUser) {
+async function testPublicReadSurface(
+  anon,
+  owner,
+  other,
+  attacker,
+  orgMember,
+  adminUser
+) {
   await assertAllowed("anonymous spot read", () => getDoc(doc(anon.db, "spots/public-spot")));
   await assertAllowed("anonymous edit read", () =>
     getDoc(doc(anon.db, "spots/public-spot/edits/public-edit"))
@@ -328,6 +505,61 @@ async function testPublicReadSurface(anon, owner, adminUser) {
     getDoc(doc(anon.db, "spot_clusters/z16_1_1"))
   );
   await assertAllowed("anonymous event read", () => getDoc(doc(anon.db, "events/event-1")));
+  await assertAllowed("anonymous known unlisted event read", () =>
+    getDoc(doc(anon.db, "events/unlisted-event"))
+  );
+  await assertDenied("anonymous private event read", () =>
+    getDoc(doc(anon.db, "events/private-event"))
+  );
+  await assertAllowed("event owner reads their private event", () =>
+    getDoc(doc(owner.db, "events/private-event"))
+  );
+  await assertAllowed("explicit viewer reads private event", () =>
+    getDoc(doc(other.db, "events/private-event"))
+  );
+  await assertDenied("ungranted user cannot directly read private event", () =>
+    getDoc(doc(attacker.db, "events/private-event"))
+  );
+  await assertAllowed("organization member reads member event", () =>
+    getDoc(doc(orgMember.db, "events/member-event"))
+  );
+  await assertDenied("non-member cannot directly read member event", () =>
+    getDoc(doc(attacker.db, "events/member-event"))
+  );
+  await assertDenied("anonymous draft event read", () =>
+    getDoc(doc(anon.db, "events/unpublished-event"))
+  );
+  await assertAllowed("legacy clients can temporarily enumerate canonical events", () =>
+    getDocs(collection(owner.db, "events"))
+  );
+  await assertAllowed("admins can list canonical events", () =>
+    getDocs(collection(adminUser.db, "events"))
+  );
+  await assertAllowed("anonymous known public slug read", () =>
+    getDoc(doc(anon.db, "event_slugs/public-event"))
+  );
+  await assertAllowed("anonymous known unlisted slug read", () =>
+    getDoc(doc(anon.db, "event_slugs/unlisted-event"))
+  );
+  await assertDenied("anonymous private slug read", () =>
+    getDoc(doc(anon.db, "event_slugs/private-event"))
+  );
+  await assertAllowed("event owner reads private slug", () =>
+    getDoc(doc(owner.db, "event_slugs/private-event"))
+  );
+  await assertAllowed("explicit viewer reads private slug", () =>
+    getDoc(doc(other.db, "event_slugs/private-event"))
+  );
+  await assertDenied("anonymous draft slug read", () =>
+    getDoc(doc(anon.db, "event_slugs/draft-event"))
+  );
+  await assertDenied("regular users cannot enumerate event slugs", () =>
+    getDocs(collection(owner.db, "event_slugs"))
+  );
+  await assertAllowed("anonymous event discovery list", async () => {
+    const snapshot = await getDocs(collection(anon.db, "event_discovery"));
+    assert.deepEqual(snapshot.docs.map((item) => item.id), ["event-1"]);
+  });
   await assertAllowed("anonymous series read", () => getDoc(doc(anon.db, "series/series-1")));
   await assertAllowed("anonymous community page read", () =>
     getDoc(doc(anon.db, "community_pages/ch-zurich"))
@@ -399,6 +631,13 @@ async function testSpotWriteGuards(anon, owner, other, adminUser) {
     setDoc(doc(owner.db, "spots/public-spot/reviews/bad-rating"), {
       rating: 99,
       user: { uid: "owner" },
+    })
+  );
+  await assertDenied("review text create", () =>
+    setDoc(doc(owner.db, "spots/public-spot/reviews/review-with-text"), {
+      rating: 5,
+      user: { uid: "owner" },
+      comment: { text: "Public prose", locale: "en" },
     })
   );
 
@@ -510,12 +749,21 @@ async function testSpotWriteGuards(anon, owner, other, adminUser) {
 }
 
 async function testOrganizationGuards(anon, owner, other, adminUser) {
+  await assertDenied("anonymous organization membership read", () =>
+    getDoc(doc(anon.db, "organizations/pk-spot/members/owner"))
+  );
   await assertAllowed("reviewer reads own organization membership", () =>
     getDoc(doc(owner.db, "organizations/pk-spot/members/owner"))
   );
   await assertDenied("unrelated user reads organization membership", () =>
     getDoc(doc(other.db, "organizations/pk-spot/members/owner"))
   );
+  await assertAllowed("organization member lists its organization roster", async () => {
+    const snapshot = await getDocs(
+      collection(owner.db, "organizations/pk-spot/members")
+    );
+    assert.ok(snapshot.docs.some((item) => item.id === "owner"));
+  });
   await assertAllowed("admin reads organization membership", () =>
     getDoc(doc(adminUser.db, "organizations/pk-spot/members/owner"))
   );
@@ -597,10 +845,17 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh, 
       display_name: "Owner Updated",
     })
   );
+  await assertDenied("owner cannot change legacy Home Spots", () =>
+    updateDoc(doc(owner.db, "users/owner"), {
+      home_spots: ["new-home"],
+    })
+  );
   await assertAllowed("owner updates allowed social handles", () =>
     updateDoc(doc(owner.db, "users/owner"), {
       "socials.instagram_handle": "owner",
       "socials.youtube_handle": "@owner",
+      "socials.tiktok_handle": "owner",
+      "socials.discord_url": "https://discord.gg/example",
     })
   );
   await assertAllowed("owner updates profile access scaffold fields", () =>
@@ -612,6 +867,11 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh, 
   await assertDenied("owner cannot write unknown profile access state", () =>
     updateDoc(doc(owner.db, "users/owner"), {
       account_privacy: "friends-only",
+    })
+  );
+  await assertDenied("private account cannot use public profile visibility", () =>
+    updateDoc(doc(owner.db, "users/owner"), {
+      profile_visibility: "public",
     })
   );
   await assertDenied("owner cannot change manual custom profile links", () =>
@@ -661,11 +921,79 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh, 
   await assertDenied("anonymous reads owner private data", () =>
     getDoc(doc(anon.db, "users/owner/private_data/profile"))
   );
+  await assertAllowed("owner writes private temperature preference", () =>
+    setDoc(
+      doc(owner.db, "users/owner/private_data/main"),
+      { settings: { temperature_unit: "fahrenheit" } },
+      { merge: true }
+    )
+  );
+  await assertDenied("other user writes owner temperature preference", () =>
+    setDoc(
+      doc(other.db, "users/owner/private_data/main"),
+      { settings: { temperature_unit: "celsius" } },
+      { merge: true }
+    )
+  );
+  await assertAllowed("owner removes private temperature test data", () =>
+    deleteDoc(doc(owner.db, "users/owner/private_data/main"))
+  );
   await assertAllowed("owner reads own check-ins", () =>
     getDocs(collection(owner.db, "users/owner/check_ins"))
   );
   await assertDenied("other user reads owner check-ins", () =>
     getDocs(collection(other.db, "users/owner/check_ins"))
+  );
+  await assertAllowed("owner writes own community follow", () =>
+    setDoc(doc(owner.db, "users/owner/community_follows/locality:ch:zh:zurich"), {
+      community_key: "locality:ch:zh:zurich",
+      scope: "locality",
+      display_name: "Zurich",
+      canonical_path: "/map/communities/zurich",
+      time_created: Timestamp.now(),
+      time_created_raw_ms: Date.now(),
+      event_notifications: false,
+      spot_digest_notifications: false,
+    })
+  );
+  await assertAllowed("owner enables notifications for own community follow", () =>
+    setDoc(
+      doc(owner.db, "users/owner/community_follows/locality:ch:zh:zurich"),
+      { event_notifications: true },
+      { merge: true }
+    )
+  );
+  await assertDenied("owner cannot forge a mismatched community follow key", () =>
+    setDoc(doc(owner.db, "users/owner/community_follows/forged"), {
+      community_key: "locality:ch:zh:zurich",
+      scope: "locality",
+      display_name: "Zurich",
+      canonical_path: "/map/communities/zurich",
+      time_created: Timestamp.now(),
+      time_created_raw_ms: Date.now(),
+    })
+  );
+  await assertAllowed("owner reads own community follows", () =>
+    getDocs(collection(owner.db, "users/owner/community_follows"))
+  );
+  await assertDenied("other user reads owner community follows", () =>
+    getDocs(collection(other.db, "users/owner/community_follows"))
+  );
+  await assertAllowed("owner writes own session record", () =>
+    setDoc(doc(owner.db, "users/owner/session_records/session-1"), {
+      owner_id: "owner",
+    })
+  );
+  await assertAllowed("owner reads own session records", () =>
+    getDocs(collection(owner.db, "users/owner/session_records"))
+  );
+  await assertDenied("other user reads owner session records", () =>
+    getDocs(collection(other.db, "users/owner/session_records"))
+  );
+  await assertDenied("owner cannot forge a session record owner", () =>
+    setDoc(doc(owner.db, "users/owner/session_records/forged"), {
+      owner_id: "other",
+    })
   );
   await assertAllowed("owner reads own following", () =>
     getDocs(collection(owner.db, "users/owner/following"))
@@ -822,6 +1150,96 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh, 
   );
 }
 
+async function testPublicUserProfileGuards(
+  anon,
+  adult,
+  restricted,
+  adminUser
+) {
+  await assertAllowed("anonymous reads public user projection", () =>
+    getDoc(doc(anon.db, "public_user_profiles/adult"))
+  );
+  await assertDenied("profile owner cannot forge public projection", () =>
+    setDoc(doc(adult.db, "public_user_profiles/adult"), {
+      display_name: "Forged",
+    })
+  );
+  await assertDenied("admin client cannot forge public projection", () =>
+    setDoc(doc(adminUser.db, "public_user_profiles/forged"), {
+      display_name: "Forged",
+    })
+  );
+  await assertDenied("profile owner cannot read age assurance audit records", () =>
+    getDoc(
+      doc(
+        adult.db,
+        "users/adult/age_assurance_records/test-verification"
+      )
+    )
+  );
+  await assertAllowed("admin reads age assurance audit records", () =>
+    getDoc(
+      doc(
+        adminUser.db,
+        "users/adult/age_assurance_records/test-verification"
+      )
+    )
+  );
+  await assertDenied("admin cannot read one-time age assurance challenges", () =>
+    getDoc(
+      doc(
+        adminUser.db,
+        "age_assurance_challenges/test-challenge"
+      )
+    )
+  );
+  await assertAllowed("verified adult enables public profile and search", () =>
+    updateDoc(doc(adult.db, "users/adult"), {
+      public_profile_enabled: true,
+      public_search: true,
+    })
+  );
+  await assertDenied("user without verified adult eligibility cannot enable public profile", () =>
+    updateDoc(doc(restricted.db, "users/restricted"), {
+      public_profile_enabled: true,
+    })
+  );
+  await assertDenied("public search requires public profile opt-in", () =>
+    updateDoc(doc(adult.db, "users/adult"), {
+      public_profile_enabled: false,
+      public_search: true,
+    })
+  );
+}
+
+async function testUserProfilePrivacyCutover(
+  anon,
+  owner,
+  other,
+  adminUser
+) {
+  await adminDb.doc("maintenance/user-profile-privacy").set({
+    completed: true,
+    minimum_supported_client_version: "1.1.4",
+  });
+
+  await assertDenied("anonymous raw user profile read after cutover", () =>
+    getDoc(doc(anon.db, "users/owner"))
+  );
+  await assertDenied("other user raw profile read after cutover", () =>
+    getDoc(doc(other.db, "users/owner"))
+  );
+  await assertAllowed("owner raw profile read after cutover", () =>
+    getDoc(doc(owner.db, "users/owner"))
+  );
+  await assertAllowed("admin raw profile read after cutover", () =>
+    getDoc(doc(adminUser.db, "users/owner"))
+  );
+  await assertAllowed("public projection stays readable after cutover", () =>
+    getDoc(doc(anon.db, "public_user_profiles/adult"))
+  );
+}
+
 async function testUserReportGuards(anon, owner, other) {
   await assertAllowed("signed-in user creates profile report", () =>
     addDoc(collection(owner.db, "user_reports"), {
@@ -938,10 +1356,42 @@ async function testAgePolicyParticipationGuards(restricted) {
 }
 
 async function testReadOnlyBackendCollections(owner, adminUser) {
+  const pendingUploadQuery = query(
+    collection(owner.db, "media_upload_status"),
+    where("uid", "==", "owner"),
+    where("upload_id", "==", "pending-upload")
+  );
+  const emptyUploadStatuses = await assertAllowed(
+    "owner waits for an upload status before the server creates it",
+    () => getDocs(pendingUploadQuery)
+  );
+  assert.equal(emptyUploadStatuses.empty, true);
+  await adminDb.doc("media_upload_status/pending-upload").set({
+    uid: "owner",
+    upload_id: "pending-upload",
+    status: "processing",
+  });
+  const createdUploadStatuses = await assertAllowed(
+    "owner receives their server-created upload status",
+    () => getDocs(pendingUploadQuery)
+  );
+  assert.equal(createdUploadStatuses.size, 1);
+  await assertDenied("owner cannot list upload statuses without an owner filter", () =>
+    getDocs(collection(owner.db, "media_upload_status"))
+  );
+  await assertDenied("owner cannot write upload status", () =>
+    setDoc(doc(owner.db, "media_upload_status/forged"), {
+      uid: "owner",
+      upload_id: "forged",
+      status: "published",
+    })
+  );
+
   for (const [label, path] of [
     ["spot cluster", "spot_clusters/z16_1_2"],
     ["event", "events/client-event"],
     ["event slug", "event_slugs/client-event"],
+    ["event discovery", "event_discovery/client-event"],
     ["series", "series/client-series"],
     ["community page", "community_pages/client-community"],
     [
@@ -953,6 +1403,31 @@ async function testReadOnlyBackendCollections(owner, adminUser) {
   ]) {
     await assertDenied(`client write to ${label}`, () =>
       setDoc(doc(owner.db, path), { attacker: true })
+    );
+  }
+
+  for (const [label, path] of [
+    ["safety case", "safety_cases/forged-case"],
+    ["safety case event", "safety_cases/forged-case/events/forged-event"],
+    ["safety case private intake", "safety_cases/forged-case/private/intake"],
+    ["safety access token", "safety_case_access_tokens/forged-token"],
+    ["safety session", "safety_case_sessions/forged-session"],
+    ["safety rate limit", "safety_case_rate_limits/forged-limit"],
+    ["safety email", "safety_case_email_outbox/forged-email"],
+    ["safety hold", "safety_case_holds/forged-hold"],
+    ["safety metric", "safety_case_metrics_daily/2026-07-29"],
+  ]) {
+    await assertDenied(`regular user read of ${label}`, () =>
+      getDoc(doc(owner.db, path))
+    );
+    await assertDenied(`regular user write to ${label}`, () =>
+      setDoc(doc(owner.db, path), { attacker: true })
+    );
+    await assertDenied(`admin direct read of ${label}`, () =>
+      getDoc(doc(adminUser.db, path))
+    );
+    await assertDenied(`admin direct write to ${label}`, () =>
+      setDoc(doc(adminUser.db, path), { bypass: true })
     );
   }
 
@@ -1201,15 +1676,151 @@ async function testContactMessageGuards(anon, owner, other) {
   );
 }
 
-async function testEventWriteGuards(owner, adminUser) {
-  await assertDenied("regular user cannot create event", () =>
-    setDoc(doc(owner.db, "events/client-event"), {
-      name: "Client Event",
+async function testEventWriteGuards(owner, other, orgManager, adminUser) {
+  await assertDenied("regular user cannot update legacy ownerless event", () =>
+    updateDoc(doc(owner.db, "events/event-1"), {
+      name: "Unauthorized legacy event edit",
+    })
+  );
+  await assertAllowed("admin can update legacy ownerless event", () =>
+    updateDoc(doc(adminUser.db, "events/event-1"), {
+      venue_string: "Admin-updated legacy venue",
+    })
+  );
+
+  await assertDenied("regular user cannot create a canonical event", () =>
+    setDoc(doc(owner.db, "events/owner-event"), {
+      name: "Owner Event",
+      owner: { type: "user", user_id: "owner" },
+      created_by: { uid: "owner", username: "Owner" },
+      visibility: "public",
+      discoverability: { audience: "global" },
+      priority: "normal",
+    })
+  );
+  await adminDb.doc("events/owner-event").set({
+    name: "Owner Event",
+    owner: { type: "user", user_id: "owner" },
+    created_by: { uid: "owner", username: "Owner" },
+    visibility: "public",
+    discoverability: { audience: "global" },
+    priority: "normal",
+  });
+  await assertAllowed("owner edits their event", () =>
+    updateDoc(doc(owner.db, "events/owner-event"), {
+      venue_string: "Owner-updated venue",
+    })
+  );
+  await assertDenied("owner cannot write a timestamp-shaped audit map", () =>
+    updateDoc(doc(owner.db, "events/owner-event"), {
+      time_updated: { seconds: 1_785_000_000, nanoseconds: 0 },
+    })
+  );
+  await assertAllowed("owner can write a real event audit timestamp", () =>
+    updateDoc(doc(owner.db, "events/owner-event"), {
+      time_updated: Timestamp.now(),
+    })
+  );
+  await assertDenied("admin cannot create an event with map audit timestamps", () =>
+    setDoc(doc(adminUser.db, "events/admin-event-map-timestamp"), {
+      name: "Admin Event With Map Timestamp",
+      owner: { type: "user", user_id: "admin" },
+      created_by: { uid: "admin" },
+      visibility: "public",
+      discoverability: { audience: "global" },
+      time_updated: { seconds: 1_785_000_000, nanoseconds: 0 },
+    })
+  );
+  await assertDenied("unrelated user cannot edit an owned event", () =>
+    updateDoc(doc(other.db, "events/owner-event"), {
+      venue_string: "Forged venue",
+    })
+  );
+  await assertDenied("owner cannot edit platform priority", () =>
+    updateDoc(doc(owner.db, "events/owner-event"), {
+      priority: "featured",
+    })
+  );
+  await assertDenied("owner cannot transfer ownership", () =>
+    updateDoc(doc(owner.db, "events/owner-event"), {
+      owner: { type: "user", user_id: "other" },
+    })
+  );
+  await assertDenied("private creation remains disabled during compatibility", () =>
+    setDoc(doc(owner.db, "events/owner-private-event"), {
+      name: "Owner Private Event",
+      owner: { type: "user", user_id: "owner" },
+      created_by: { uid: "owner" },
+      visibility: "private",
+      discoverability: { audience: "none" },
+      viewer_policy: { audience: "invited" },
+    })
+  );
+  await assertDenied("unlisted creation remains disabled during compatibility", () =>
+    setDoc(doc(owner.db, "events/owner-unlisted-event"), {
+      name: "Owner Unlisted Event",
+      owner: { type: "user", user_id: "owner" },
+      created_by: { uid: "owner" },
+      visibility: "unlisted",
+      discoverability: { audience: "none" },
+    })
+  );
+  await assertAllowed("owner grants collaborator access", () =>
+    setDoc(doc(owner.db, "events/owner-event/access/other"), {
+      user_id: "other",
+      role: "collaborator",
+      granted_by: "owner",
+      time_created: Timestamp.now(),
+      time_updated: Timestamp.now(),
+    })
+  );
+  await assertAllowed("collaborator edits event content", () =>
+    updateDoc(doc(other.db, "events/owner-event"), {
+      venue_string: "Collaborator-updated venue",
+    })
+  );
+  await assertDenied("collaborator cannot grant event access", () =>
+    setDoc(doc(other.db, "events/owner-event/access/attacker"), {
+      user_id: "attacker",
+      role: "viewer",
+      granted_by: "other",
+      time_created: Timestamp.now(),
+      time_updated: Timestamp.now(),
+    })
+  );
+  await assertDenied("organization manager cannot create organization event", () =>
+    setDoc(doc(orgManager.db, "events/org-event"), {
+      name: "Organization Event",
+      owner: { type: "organization", organization_id: "pk-spot" },
+      created_by: { uid: "org-manager" },
+      visibility: "public",
+      discoverability: { audience: "global" },
+    })
+  );
+  await assertAllowed("admin creates an organization-owned event", () =>
+    setDoc(doc(adminUser.db, "events/org-event"), {
+      name: "Organization Event",
+      owner: { type: "organization", organization_id: "pk-spot" },
+      created_by: { uid: "admin" },
+      visibility: "public",
+      discoverability: { audience: "global" },
+    })
+  );
+  await assertAllowed("organization manager edits organization event", () =>
+    updateDoc(doc(orgManager.db, "events/org-event"), {
+      venue_string: "Managed venue",
+    })
+  );
+  await assertDenied("organization reviewer cannot edit organization event", () =>
+    updateDoc(doc(owner.db, "events/org-event"), {
+      venue_string: "Reviewer venue",
     })
   );
   await assertAllowed("admin creates event with editable fields", () =>
     setDoc(doc(adminUser.db, "events/admin-event"), {
       name: "Admin Event",
+      owner: { type: "user", user_id: "admin" },
+      created_by: { uid: "admin", username: "Admin" },
       location_raw: { lat: 47.3769, lng: 8.5417 },
       organizer: {
         type: "organization",
@@ -1221,10 +1832,30 @@ async function testEventWriteGuards(owner, adminUser) {
       },
     })
   );
+  await assertDenied("admin cannot create an ownerless event", () =>
+    setDoc(doc(adminUser.db, "events/admin-ownerless-event"), {
+      name: "Ownerless Event",
+      created_by: { uid: "admin" },
+    })
+  );
   await assertDenied("admin cannot create event with computed bounds center", () =>
     setDoc(doc(adminUser.db, "events/admin-computed-create"), {
       name: "Admin Computed Create",
+      owner: { type: "user", user_id: "admin" },
+      created_by: { uid: "admin" },
       bounds_center: [47.3769, 8.5417],
+    })
+  );
+  await assertDenied("admin cannot forge event creator audit data", () =>
+    setDoc(doc(adminUser.db, "events/admin-forged-creator"), {
+      name: "Forged creator",
+      owner: { type: "user", user_id: "admin" },
+      created_by: { uid: "someone-else" },
+    })
+  );
+  await assertDenied("admin cannot change event creator audit data", () =>
+    updateDoc(doc(adminUser.db, "events/admin-event"), {
+      created_by: { uid: "someone-else" },
     })
   );
   await assertAllowed("admin can write event raw location fallback", () =>
@@ -1295,6 +1926,22 @@ async function testEventRsvpPrivacy(anon, owner, other, adminUser) {
       time_updated: Timestamp.now(),
     })
   );
+  await assertDenied("user cannot join a cancelled event", () =>
+    setDoc(doc(owner.db, "events/cancelled-event/rsvps/owner"), {
+      user_id: "owner",
+      event_id: "cancelled-event",
+      rsvp: "going",
+      time_updated: Timestamp.now(),
+    })
+  );
+  await assertAllowed("user can decline a cancelled event", () =>
+    setDoc(doc(owner.db, "events/cancelled-event/rsvps/owner"), {
+      user_id: "owner",
+      event_id: "cancelled-event",
+      rsvp: "notgoing",
+      time_updated: Timestamp.now(),
+    })
+  );
   await assertDenied("anonymous cannot read event RSVP", () =>
     getDoc(doc(anon.db, "events/event-1/rsvps/owner"))
   );
@@ -1309,8 +1956,87 @@ async function testEventRsvpPrivacy(anon, owner, other, adminUser) {
   );
 }
 
+async function testEventLiveUpdateGuards(anon, owner, other, adminUser) {
+  const subscriptionPath = "events/event-1/live_update_subscribers/owner";
+  await assertDenied("anonymous cannot subscribe to event live updates", () =>
+    setDoc(doc(anon.db, "events/event-1/live_update_subscribers/anon"), {
+      user_id: "anon",
+      active: true,
+      subscribed_at: Timestamp.now(),
+      updated_at: Timestamp.now(),
+    })
+  );
+  await assertAllowed("user subscribes to own event live updates", () =>
+    setDoc(doc(owner.db, subscriptionPath), {
+      user_id: "owner",
+      active: true,
+      subscribed_at: Timestamp.now(),
+      updated_at: Timestamp.now(),
+    })
+  );
+  await assertAllowed("user disables own event live updates", () =>
+    updateDoc(doc(owner.db, subscriptionPath), {
+      active: false,
+      updated_at: Timestamp.now(),
+    })
+  );
+  await assertAllowed("user keeps only reminders for their event", () =>
+    updateDoc(doc(owner.db, subscriptionPath), {
+      event_reminders: true,
+      updated_at: Timestamp.now(),
+    })
+  );
+  await assertDenied("event reminder preference must be boolean", () =>
+    updateDoc(doc(owner.db, subscriptionPath), {
+      event_reminders: "yes",
+      updated_at: Timestamp.now(),
+    })
+  );
+  await assertDenied("user cannot subscribe another attendee", () =>
+    setDoc(doc(owner.db, "events/event-1/live_update_subscribers/other"), {
+      user_id: "other",
+      active: true,
+      subscribed_at: Timestamp.now(),
+      updated_at: Timestamp.now(),
+    })
+  );
+  await assertDenied("user cannot transfer a live update subscription", () =>
+    updateDoc(doc(owner.db, subscriptionPath), {
+      user_id: "other",
+      updated_at: Timestamp.now(),
+    })
+  );
+  await assertDenied("other attendee cannot read a user's subscription", () =>
+    getDoc(doc(other.db, subscriptionPath))
+  );
+  await assertAllowed("public can read published event live updates", () =>
+    getDoc(doc(anon.db, "events/event-1/live_updates/update-1"))
+  );
+  await assertDenied("public cannot read unpublished event live updates", () =>
+    getDoc(doc(anon.db, "events/unpublished-event/live_updates/update-1"))
+  );
+  const forgedUpdate = {
+    event_id: "event-1",
+    type: "general_update",
+    title: "Forged",
+    status: "published",
+    created_at: Timestamp.now(),
+    created_by: "owner",
+    published_at: Timestamp.now(),
+  };
+  await assertDenied("attendee cannot publish a live update directly", () =>
+    setDoc(doc(owner.db, "events/event-1/live_updates/forged-owner"), forgedUpdate)
+  );
+  await assertDenied("admin cannot bypass the trusted live update callable", () =>
+    setDoc(doc(adminUser.db, "events/event-1/live_updates/forged-admin"), forgedUpdate)
+  );
+  await assertDenied("clients cannot read live update cooldown state", () =>
+    getDoc(doc(owner.db, "events/event-1/live_update_state/publishing"))
+  );
+}
+
 async function testPostAndImportGuards(anon, owner, other, adminUser) {
-  await assertAllowed("authenticated post create without like_count", () =>
+  await assertDenied("legacy feed post creation stays disabled", () =>
     setDoc(doc(owner.db, "posts/owner-post"), {
       user: { uid: "owner" },
       text: "ok",
@@ -1334,6 +2060,14 @@ async function testPostAndImportGuards(anon, owner, other, adminUser) {
   );
   await assertAllowed("authenticated reads post likes", () =>
     getDocs(collection(owner.db, "posts/post-1/likes"))
+  );
+  await assertDenied("legacy post likes stay disabled", () =>
+    setDoc(doc(owner.db, "posts/post-1/likes/other-like"), {
+      user: { uid: "owner" },
+    })
+  );
+  await assertAllowed("post owner can delete historical post", () =>
+    deleteDoc(doc(owner.db, "posts/post-1"))
   );
 
   await assertDenied("anonymous import metadata read", () =>
@@ -1406,7 +2140,7 @@ async function testChallengeVisibility(anon, owner, other) {
   await assertDenied("anonymous reads unreleased challenge", () =>
     getDoc(doc(anon.db, "spots/public-spot/challenges/future-owner"))
   );
-  await assertAllowed("owner challenge write", () =>
+  await assertDenied("owner challenge write while submissions are closed", () =>
     setDoc(doc(owner.db, "spots/public-spot/challenges/owner-challenge"), {
       user: { uid: "owner" },
       title: "Precision",
@@ -1420,6 +2154,100 @@ async function testChallengeVisibility(anon, owner, other) {
   );
 }
 
+async function testReportPrivacy(anon, owner, other, adminUser) {
+  const spotReport = {
+    spot: { id: "public-spot", name: "Public Spot" },
+    reason: "torn down",
+    user: { uid: "owner", display_name: "Owner" },
+    createdAt: new Date(),
+  };
+  const spotReportRef = doc(
+    owner.db,
+    "spots/public-spot/reports/private-report"
+  );
+  await assertAllowed("owner creates spot report before privacy migration", () =>
+    setDoc(spotReportRef, spotReport)
+  );
+  await assertAllowed("spot report remains readable before warning migration", () =>
+    getDoc(doc(other.db, "spots/public-spot/reports/private-report"))
+  );
+  await adminDb.doc("maintenance/spot-report-privacy").set({
+    completed: true,
+  });
+  await assertDenied("reporter cannot read raw report after migration", () =>
+    getDoc(spotReportRef)
+  );
+  await assertDenied("other user cannot read spot report", () =>
+    getDoc(doc(other.db, "spots/public-spot/reports/private-report"))
+  );
+  await assertDenied("anonymous cannot read spot report", () =>
+    getDoc(doc(anon.db, "spots/public-spot/reports/private-report"))
+  );
+  await assertAllowed("admin reads spot report", () =>
+    getDoc(doc(adminUser.db, "spots/public-spot/reports/private-report"))
+  );
+
+  const mediaReport = {
+    kind: "media",
+    media: { type: "image", src: "https://example.com/image.jpg" },
+    reason: "unsafe",
+    comment: "",
+    user: { uid: "owner", display_name: "Owner" },
+    createdAt: new Date(),
+  };
+  await assertAllowed("owner creates root media report", () =>
+    setDoc(doc(owner.db, "reports/media-report"), mediaReport)
+  );
+  await assertAllowed("legacy client includes its authenticated account email", () =>
+    setDoc(doc(owner.db, "media_reports/legacy-authenticated-report"), {
+      ...mediaReport,
+      user: {
+        uid: "owner",
+        email: "owner@example.com",
+      },
+    })
+  );
+  await assertDenied("authenticated reporter cannot spoof report email", () =>
+    setDoc(doc(owner.db, "reports/spoofed-email"), {
+      ...mediaReport,
+      user: {
+        uid: "owner",
+        email: "victim@example.com",
+      },
+    })
+  );
+  await assertAllowed("affected guest can create a serious media report", () =>
+    setDoc(doc(anon.db, "reports/anonymous-media-report"), {
+      ...mediaReport,
+      reason: "person did not consent",
+      user: {
+        email: "reporter@example.com",
+      },
+    })
+  );
+  await assertDenied("guest cannot create a media quality report", () =>
+    setDoc(doc(anon.db, "reports/anonymous-quality-report"), {
+      ...mediaReport,
+      reason: "duplicate",
+      user: {
+        email: "reporter@example.com",
+      },
+    })
+  );
+  await assertDenied("non-admin cannot read root media report", () =>
+    getDoc(doc(owner.db, "reports/media-report"))
+  );
+  await assertAllowed("admin reads root media report", () =>
+    getDoc(doc(adminUser.db, "reports/media-report"))
+  );
+  await assertAllowed("admin collection group includes root and nested reports", async () => {
+    const reports = await getDocs(collectionGroup(adminUser.db, "reports"));
+    const paths = reports.docs.map((item) => item.ref.path);
+    assert.ok(paths.includes("reports/media-report"));
+    assert.ok(paths.includes("spots/public-spot/reports/private-report"));
+  });
+}
+
 async function testQueriesDoNotBypassRules(owner, other) {
   await assertAllowed("owner private data query", async () => {
     const snapshot = await getDocs(collection(owner.db, "users/owner/private_data"));
@@ -1427,6 +2255,87 @@ async function testQueriesDoNotBypassRules(owner, other) {
   });
   await assertDenied("other user private data query", () =>
     getDocs(collection(other.db, "users/owner/private_data"))
+  );
+}
+
+async function testNotificationRegistrationGuards(anon, owner, other, adminUser) {
+  const registration = {
+    token: "valid-fcm-registration-token-for-rules-test",
+    platform: "android",
+    app_version: "1.2.0",
+    locale: "en",
+    permission_state: "granted",
+    enabled: true,
+    created_at_raw_ms: Date.now(),
+    last_seen_at_raw_ms: Date.now(),
+  };
+  const ownerPath = "users/owner/notification_registrations/device-1";
+
+  await assertAllowed("owner creates notification registration", () =>
+    setDoc(doc(owner.db, ownerPath), registration)
+  );
+  await assertAllowed("owner reads notification registration", () =>
+    getDoc(doc(owner.db, ownerPath))
+  );
+  await assertDenied("other user reads notification registration", () =>
+    getDoc(doc(other.db, ownerPath))
+  );
+  await assertDenied("admin reads user notification registration", () =>
+    getDoc(doc(adminUser.db, ownerPath))
+  );
+  await assertDenied("anonymous creates notification registration", () =>
+    setDoc(doc(anon.db, "users/owner/notification_registrations/anon"), registration)
+  );
+  await assertDenied("owner creates malformed notification registration", () =>
+    setDoc(doc(owner.db, "users/owner/notification_registrations/bad"), {
+      ...registration,
+      platform: "desktop",
+    })
+  );
+  await assertDenied("clients read notification intents", () =>
+    getDoc(doc(owner.db, "notification_intents/private-intent"))
+  );
+  await assertDenied("clients create notification intents", () =>
+    setDoc(doc(owner.db, "notification_intents/forged-intent"), {
+      recipient_uid: "owner",
+    })
+  );
+
+  const notificationPath = "users/owner/notifications/notification-1";
+  await assertAllowed("owner reads in-app notification", () =>
+    getDoc(doc(owner.db, notificationPath))
+  );
+  await assertAllowed("owner lists in-app notifications", () =>
+    getDocs(collection(owner.db, "users/owner/notifications"))
+  );
+  await assertAllowed("owner marks in-app notification read", () =>
+    updateDoc(doc(owner.db, notificationPath), { read_at_raw_ms: Date.now() })
+  );
+  await assertAllowed("owner dismisses in-app notification", () =>
+    updateDoc(doc(owner.db, notificationPath), {
+      dismissed_at_raw_ms: Date.now(),
+    })
+  );
+  await assertDenied("other user reads in-app notification", () =>
+    getDoc(doc(other.db, notificationPath))
+  );
+  await assertDenied("admin reads user in-app notification", () =>
+    getDoc(doc(adminUser.db, notificationPath))
+  );
+  await assertDenied("anonymous reads in-app notification", () =>
+    getDoc(doc(anon.db, notificationPath))
+  );
+  await assertDenied("owner changes server-owned notification fields", () =>
+    updateDoc(doc(owner.db, notificationPath), { active: false })
+  );
+  await assertDenied("owner creates in-app notification", () =>
+    setDoc(doc(owner.db, "users/owner/notifications/forged"), {
+      active: true,
+      read_at_raw_ms: Date.now(),
+    })
+  );
+  await assertDenied("owner deletes in-app notification", () =>
+    deleteDoc(doc(owner.db, notificationPath))
   );
 }
 
@@ -1440,29 +2349,44 @@ async function main() {
   await seedSecurityFixture();
 
   const anon = await createClient(null);
-  const owner = await createClient("owner");
+  const owner = await createClient("owner", "owner@example.com");
   const other = await createClient("other");
   const attacker = await createClient("attacker");
   const fresh = await createClient("fresh");
   const restricted = await createClient("restricted");
+  const adult = await createClient("adult");
+  const orgManager = await createClient("org-manager");
+  const orgMember = await createClient("org-member");
   const adminUser = await createClient("admin");
 
   console.log("Running Firestore rules security tests...");
-  await testPublicReadSurface(anon, owner, adminUser);
+  await testPublicReadSurface(
+    anon,
+    owner,
+    other,
+    attacker,
+    orgMember,
+    adminUser
+  );
   await testSpotWriteGuards(anon, owner, other, adminUser);
   await testOrganizationGuards(anon, owner, other, adminUser);
   await testPrivateOrganizationReviewEdits(anon, owner, other, adminUser);
   await testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh, attacker);
+  await testPublicUserProfileGuards(anon, adult, restricted, adminUser);
   await testUserReportGuards(anon, owner, other);
   await testAgePolicyParticipationGuards(restricted);
   await testReadOnlyBackendCollections(owner, adminUser);
   await testCommunityEditGuards(anon, owner, other, restricted, adminUser);
   await testContactMessageGuards(anon, owner, other);
-  await testEventWriteGuards(owner, adminUser);
+  await testEventWriteGuards(owner, other, orgManager, adminUser);
   await testEventRsvpPrivacy(anon, owner, other, adminUser);
+  await testEventLiveUpdateGuards(anon, owner, other, adminUser);
   await testPostAndImportGuards(anon, owner, other, adminUser);
   await testChallengeVisibility(anon, owner, other);
+  await testReportPrivacy(anon, owner, other, adminUser);
   await testQueriesDoNotBypassRules(owner, other);
+  await testNotificationRegistrationGuards(anon, owner, other, adminUser);
+  await testUserProfilePrivacyCutover(anon, owner, other, adminUser);
 
   console.log("Firestore rules security tests passed.");
 }

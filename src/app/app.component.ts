@@ -3,7 +3,6 @@ import {
   ApplicationRef,
   Component,
   computed,
-  HostListener,
   inject,
   OnInit,
   signal,
@@ -65,7 +64,7 @@ import { NavRailComponent } from "./components/nav-rail/nav-rail.component";
 import { NavRailContainerComponent } from "./components/nav-rail-container/nav-rail-container.component";
 import { WelcomeDialogComponent } from "./components/welcome-dialog/welcome-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
-import { LocaleCode } from "../db/models/Interfaces";
+import { isKnownUiLocalePrefix } from "./config/ui-locales";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { WebSite } from "schema-dts";
 import { StructuredDataService } from "./services/structured-data.service";
@@ -94,12 +93,16 @@ import { MapPerformanceProfilerService } from "./services/map-performance-profil
 import { AppSettingsService } from "./services/app-settings.service";
 import { UiLanguageService } from "./services/ui-language.service";
 import { FirebaseAppCheckService } from "./services/firebase/app-check.service";
+import { PushNotificationsService } from "./services/push-notifications.service";
+import { trainingFeatureEnabled } from "./features/training-feature";
+import { MyEventContextService } from "./services/my-event-context.service";
 
 interface ButtonBase {
   name: string;
   icon: string;
   image?: string;
   active?: boolean;
+  liveIndicator?: boolean;
 }
 
 interface LinkButton extends ButtonBase {
@@ -128,6 +131,9 @@ type NavigationPerfDetails = Record<string, unknown>;
 
 @Component({
   selector: "app-root",
+  host: {
+    "(window:resize)": "onResize()",
+  },
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.scss"],
   imports: [
@@ -209,7 +215,9 @@ export class AppComponent implements OnInit, AfterViewInit {
   private _appSettings = inject(AppSettingsService);
   private _mapProfiler = inject(MapPerformanceProfilerService);
   private _appCheckService = inject(FirebaseAppCheckService);
+  private _pushNotifications = inject(PushNotificationsService);
   public checkInService = inject(CheckInService);
+  readonly myEventContext = inject(MyEventContextService);
   readonly checkInEnabled = environment.features.checkIns;
 
   constructor(
@@ -261,18 +269,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   isEmbedded: WritableSignal<boolean | null> = signal(null);
 
-  availableLanguageCodes: LocaleCode[] = [
-    "en",
-    "de",
-    "de-CH",
-    "fr",
-    "it",
-    "es",
-    "nl",
-  ];
-
-  @HostListener("window:resize", ["$event"])
-  onResize(event: Event) {
+  onResize() {
     this.enforceAlainMode();
   }
 
@@ -326,6 +323,9 @@ export class AppComponent implements OnInit, AfterViewInit {
     // Setup auth state listener immediately for session restoration
     // (This is now safe - only reCAPTCHA-triggering operations like sign-up require consent)
     this.setupAuthStateListener();
+    void this._pushNotifications.initialize().catch((error) => {
+      console.warn("Push notification initialization failed", error);
+    });
     this.authService.authState$.subscribe((authUser) => {
       if (authUser?.uid) {
         void this._ageAssuranceService.syncNativeAgePolicyForCurrentUser();
@@ -381,7 +381,7 @@ export class AppComponent implements OnInit, AfterViewInit {
           const segments = path.split("/");
           if (
             segments.length > 1 &&
-            this.availableLanguageCodes.includes(segments[1] as any)
+            isKnownUiLocalePrefix(segments[1])
           ) {
             // Remove the locale segment
             segments.splice(1, 1);
@@ -836,7 +836,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     if (
       segments.length > 1 &&
-      this.availableLanguageCodes.includes(segments[1] as LocaleCode)
+      isKnownUiLocalePrefix(segments[1])
     ) {
       segments.splice(1, 1);
       return segments.join("/") || "/";
@@ -1446,10 +1446,19 @@ html.pkspot-roboto-loaded body {
         icon: "map",
       },
     ];
+    if (trainingFeatureEnabled) {
+      buttons.push({
+        name: $localize`:Train navbar button label|A very short label for training planning@@train.nav:Train`,
+        link: "/train",
+        icon: "steps",
+      });
+    }
+
     buttons.push({
       name: $localize`:Events navbar button label|A very short label for the navbar events page button@@events_label:Events`,
       link: "/events",
       icon: "event",
+      liveIndicator: this.myEventContext.hasLiveEvent(),
     });
 
     // Drop "About" on tight viewports so the bottom toolbar fits 4 items

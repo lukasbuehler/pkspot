@@ -59,9 +59,21 @@ export class EventCreatePageComponent implements OnInit {
 
   async onSave(patch: EventEditPatch): Promise<void> {
     if (!this.isAdmin()) return;
+    const ownerId = this._authService.user.uid;
+    if (!ownerId) {
+      this._snackbar.open(
+        $localize`:@@event_create.snackbar.owner_required:Sign in again before creating an event.`,
+        $localize`:@@common.dismiss:Dismiss`,
+        { duration: 5000 }
+      );
+      return;
+    }
     this.saving.set(true);
     try {
-      const event = await this._eventsService.createEvent(patch);
+      const event = await this._eventsService.createEvent({
+        ...patch,
+        owner: patch.owner ?? { type: "user", user_id: ownerId },
+      });
       this._snackbar.open(
         $localize`:@@event_create.snackbar.created:Event created.`,
         $localize`:@@common.dismiss:Dismiss`,

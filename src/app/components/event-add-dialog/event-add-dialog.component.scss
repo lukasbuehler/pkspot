@@ -1,0 +1,45 @@
+.event-add-intro {
+  display: flex;
+  gap: 0.875rem;
+  min-width: min(28rem, 72vw);
+}
+
+.event-add-intro p {
+  margin: 0.25rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.event-add-icon {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 13px;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.event-add-error {
+  margin: 1rem 0 0;
+  color: var(--mat-sys-error);
+}
+
+mat-dialog-actions {
+  gap: 0.5rem;
+}
+
+@media (max-width: 599.98px) {
+  .event-add-intro {
+    min-width: 0;
+  }
+
+  mat-dialog-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  mat-dialog-actions > * {
+    width: 100%;
+  }
+}

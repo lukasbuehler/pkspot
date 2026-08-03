@@ -15,7 +15,9 @@ import {
 describe("EntityReferenceAutocompleteComponent", () => {
   let fixture: ComponentFixture<EntityReferenceAutocompleteComponent>;
 
-  async function createComponent(kind: "spot" | "event" = "spot") {
+  async function createComponent(
+    kind: "spot" | "event" | "community" = "spot",
+  ) {
     await TestBed.configureTestingModule({
       imports: [EntityReferenceAutocompleteComponent],
       providers: [
@@ -34,6 +36,8 @@ describe("EntityReferenceAutocompleteComponent", () => {
           useValue: {
             searchSpots: vi.fn().mockResolvedValue({ hits: [], found: 0 }),
             searchEvents: vi.fn().mockResolvedValue([]),
+            searchCommunities: vi.fn().mockResolvedValue([]),
+            getCommunityPreviewsByKeys: vi.fn().mockResolvedValue([]),
             searchSpotPreviewsByIds: vi.fn().mockResolvedValue([]),
             getEventPreviewsByIds: vi.fn().mockResolvedValue([]),
             getSpotPreviewFromHit: vi.fn(),
@@ -117,5 +121,28 @@ describe("EntityReferenceAutocompleteComponent", () => {
     component.clearSelection();
 
     expect(valueChange).toHaveBeenCalledWith("");
+  });
+
+  it("emits hierarchical community metadata for area filtering", async () => {
+    const component = await createComponent("community");
+    const selectionChange = vi.fn();
+    component.selectionChange.subscribe(selectionChange);
+    const option: EntityReferenceOption = {
+      id: "locality:ch:zh:zurich",
+      label: "Zurich",
+      subtitle: "Zurich, Switzerland",
+      communityPreview: {
+        communityKey: "locality:ch:zh:zurich",
+        displayName: "Zurich",
+        scope: "locality",
+        totalSpots: 42,
+        mergedCommunityKeys: ["locality:ch:zh:zuerich"],
+      },
+    };
+
+    component.selectOption({ option: { value: option } } as never);
+
+    expect(component.fieldLabel()).toBe("Filter by area");
+    expect(selectionChange).toHaveBeenCalledWith(option);
   });
 });

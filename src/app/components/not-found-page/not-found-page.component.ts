@@ -7,7 +7,6 @@ import { RouterLink } from "@angular/router";
   selector: "app-not-found-page",
   templateUrl: "./not-found-page.component.html",
   styleUrls: ["./not-found-page.component.scss"],
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatIconModule, MatButtonModule, RouterLink],
 })

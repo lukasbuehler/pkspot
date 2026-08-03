@@ -1,4 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
+import { dirname } from "node:path";
+
+const nodeBinDirectory =
+  process.env["PKSPOT_HOST_NODE_BIN_DIRECTORY"] ?? dirname(process.execPath);
+const webServerPath = `${nodeBinDirectory}:${process.env["PATH"] ?? ""}`;
 
 /**
  * Playwright configuration for pkspot E2E and visual regression tests.
@@ -102,7 +107,7 @@ export default defineConfig({
    * The test server only serves the 'de' locale (dev build).
    */
   webServer: {
-    command: "npm run build:ci && npm run serve:test",
+    command: `export PATH="${webServerPath}"; npm run build:ci && npm run serve:test`,
     url: "http://localhost:4000",
     reuseExistingServer: !process.env["CI"],
     timeout: 180 * 1000, // 3 minutes for build + server start

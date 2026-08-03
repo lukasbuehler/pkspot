@@ -2,9 +2,8 @@
   <div>
     <h1 class="mat-headline-medium" i18n>Organization admin</h1>
     <p class="mat-body-medium text-secondary" i18n>
-      Create organizations and manage who can review organization-routed spot
-      edits. Verified-by and managed-by settings live on each spot's admin edit
-      form.
+      Create organizations, update their public identity, and manage who can
+      review organization-routed spot edits.
     </p>
   </div>
 
@@ -25,9 +24,10 @@
             [ngModel]="newOrgId()"
             (ngModelChange)="newOrgId.set($event)"
           />
+          <mat-hint i18n>Letters, numbers, underscores, and hyphens only.</mat-hint>
         </mat-form-field>
         <mat-form-field>
-          <mat-label>Name</mat-label>
+          <mat-label i18n>Name</mat-label>
           <input
             matInput
             [ngModel]="newOrgName()"
@@ -35,21 +35,94 @@
           />
         </mat-form-field>
         <mat-form-field>
-          <mat-label>Slug</mat-label>
+          <mat-label i18n>Slug</mat-label>
           <input
             matInput
             [ngModel]="newOrgSlug()"
             (ngModelChange)="newOrgSlug.set($event)"
           />
         </mat-form-field>
-        <mat-form-field>
-          <mat-label i18n>Logo URL</mat-label>
-          <input
-            matInput
-            [ngModel]="newOrgLogoUrl()"
-            (ngModelChange)="newOrgLogoUrl.set($event)"
-          />
-        </mat-form-field>
+
+        <div class="logo-editor">
+          <h3 class="mat-title-small" i18n>Organization logo</h3>
+          <div class="logo-source-options">
+            <label>
+              <input
+                type="radio"
+                name="newLogoMode"
+                value="upload"
+                [checked]="newOrgLogoMode() === 'upload'"
+                (change)="setLogoMode('create', 'upload')"
+              />
+              <span i18n>Upload image</span>
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="newLogoMode"
+                value="external"
+                [checked]="newOrgLogoMode() === 'external'"
+                (change)="setLogoMode('create', 'external')"
+              />
+              <span i18n>External URL</span>
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="newLogoMode"
+                value="none"
+                [checked]="newOrgLogoMode() === 'none'"
+                (change)="setLogoMode('create', 'none')"
+              />
+              <span i18n>No logo</span>
+            </label>
+          </div>
+
+          @if (newOrgLogoMode() === "upload") {
+            <input
+              #newLogoInput
+              hidden
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              (change)="chooseLogo($event, 'create')"
+            />
+            <button
+              mat-stroked-button
+              type="button"
+              (click)="newLogoInput.click()"
+            >
+              <mat-icon>image</mat-icon>
+              <span i18n>Choose and crop logo</span>
+            </button>
+          } @else if (newOrgLogoMode() === "external") {
+            <mat-form-field>
+              <mat-label i18n>Logo URL</mat-label>
+              <input
+                matInput
+                type="url"
+                [ngModel]="newOrgLogoUrl()"
+                (ngModelChange)="newOrgLogoUrl.set($event)"
+              />
+            </mat-form-field>
+          }
+
+          @if (
+            newOrgLogoMode() !== "none" &&
+            (newOrgLogoPreview() || newOrgLogoUrl())
+          ) {
+            <img
+              class="logo-preview"
+              [src]="newOrgLogoPreview() || newOrgLogoUrl()"
+              [style.background]="
+                newOrgLogoBackgroundColor().trim() ||
+                'var(--mat-sys-inverse-surface)'
+              "
+              alt="New organization logo preview"
+              i18n-alt
+            />
+          }
+        </div>
+
         <mat-form-field>
           <mat-label i18n>Logo background</mat-label>
           <input
@@ -61,8 +134,150 @@
         </mat-form-field>
       </mat-card-content>
       <mat-card-actions>
-        <button matButton="filled" (click)="createOrganization()" i18n>
+        <button
+          matButton="filled"
+          type="button"
+          (click)="createOrganization()"
+          [disabled]="isSaving()"
+          i18n
+        >
           Create
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title i18n>Edit organization</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="form-grid">
+        <mat-form-field>
+          <mat-label i18n>Organization</mat-label>
+          <select
+            matNativeControl
+            [ngModel]="selectedOrganizationId()"
+            (ngModelChange)="selectOrganization($event)"
+          >
+            <option value="" i18n>Select organization</option>
+            @for (organization of organizations(); track organization.id) {
+              <option [value]="organization.id">{{ organization.name }}</option>
+            }
+          </select>
+        </mat-form-field>
+
+        @if (selectedOrganizationId()) {
+          <mat-form-field>
+            <mat-label i18n>Name</mat-label>
+            <input
+              matInput
+              [ngModel]="editOrgName()"
+              (ngModelChange)="editOrgName.set($event)"
+            />
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label i18n>Slug</mat-label>
+            <input
+              matInput
+              [ngModel]="editOrgSlug()"
+              (ngModelChange)="editOrgSlug.set($event)"
+            />
+          </mat-form-field>
+
+          <div class="logo-editor">
+            <h3 class="mat-title-small" i18n>Organization logo</h3>
+            @if (editOrgLogoPreview()) {
+              <img
+                class="logo-preview"
+                [src]="editOrgLogoPreview()"
+                [style.background]="
+                  editOrgLogoBackgroundColor().trim() ||
+                  'var(--mat-sys-inverse-surface)'
+                "
+                alt="Organization logo preview"
+                i18n-alt
+              />
+            }
+            <div class="logo-source-options">
+              <label>
+                <input
+                  type="radio"
+                  name="editLogoMode"
+                  value="upload"
+                  [checked]="editOrgLogoMode() === 'upload'"
+                  (change)="setLogoMode('edit', 'upload')"
+                />
+                <span i18n>Uploaded image</span>
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="editLogoMode"
+                  value="external"
+                  [checked]="editOrgLogoMode() === 'external'"
+                  (change)="setLogoMode('edit', 'external')"
+                />
+                <span i18n>External URL</span>
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="editLogoMode"
+                  value="none"
+                  [checked]="editOrgLogoMode() === 'none'"
+                  (change)="setLogoMode('edit', 'none')"
+                />
+                <span i18n>Remove logo</span>
+              </label>
+            </div>
+
+            @if (editOrgLogoMode() === "upload") {
+              <input
+                #editLogoInput
+                hidden
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                (change)="chooseLogo($event, 'edit')"
+              />
+              <button
+                mat-stroked-button
+                type="button"
+                (click)="editLogoInput.click()"
+              >
+                <mat-icon>image</mat-icon>
+                <span i18n>Replace and crop logo</span>
+              </button>
+            } @else if (editOrgLogoMode() === "external") {
+              <mat-form-field>
+                <mat-label i18n>Logo URL</mat-label>
+                <input
+                  matInput
+                type="url"
+                [ngModel]="editOrgLogoUrl()"
+                (ngModelChange)="updateEditExternalLogoUrl($event)"
+              />
+              </mat-form-field>
+            }
+          </div>
+
+          <mat-form-field>
+            <mat-label i18n>Logo background</mat-label>
+            <input
+              matInput
+              [ngModel]="editOrgLogoBackgroundColor()"
+              (ngModelChange)="editOrgLogoBackgroundColor.set($event)"
+            />
+          </mat-form-field>
+        }
+      </mat-card-content>
+      <mat-card-actions>
+        <button
+          matButton="filled"
+          type="button"
+          (click)="saveOrganization()"
+          [disabled]="!selectedOrganizationId() || isSaving()"
+          i18n
+        >
+          Save organization
         </button>
       </mat-card-actions>
     </mat-card>
@@ -72,24 +287,9 @@
         <mat-card-title i18n>Organization members</mat-card-title>
       </mat-card-header>
       <mat-card-content class="form-grid">
-        <mat-form-field>
-          <mat-label i18n>Organization</mat-label>
-          <select
-            matNativeControl
-            [ngModel]="selectedOrganizationId()"
-            (ngModelChange)="selectedOrganizationId.set($event)"
-          >
-            <option value="" i18n>Select organization</option>
-            @for (organization of organizations(); track organization.id) {
-              <option [value]="organization.id">{{ organization.name }}</option>
-            }
-          </select>
-          <mat-hint i18n>
-            If this list is empty, organization reads are still blocked by rules
-            or no organizations exist yet.
-          </mat-hint>
-        </mat-form-field>
-
+        <p class="mat-body-medium" i18n>
+          Members will be added to the organization selected above.
+        </p>
         <mat-form-field>
           <mat-label>User UID</mat-label>
           <input
@@ -97,12 +297,11 @@
             [ngModel]="memberUserId()"
             (ngModelChange)="memberUserId.set($event)"
           />
-          <mat-hint>
+          <mat-hint i18n>
             Leave blank to add yourself. Use the Firebase Auth UID for another
             user.
           </mat-hint>
         </mat-form-field>
-
         <mat-form-field>
           <mat-label i18n>Role</mat-label>
           <select
@@ -119,6 +318,7 @@
       <mat-card-actions>
         <button
           matButton="filled"
+          type="button"
           (click)="addMember()"
           [disabled]="!selectedOrganizationId()"
           i18n

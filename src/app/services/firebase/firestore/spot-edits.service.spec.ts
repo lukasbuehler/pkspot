@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GeoPoint } from "firebase/firestore";
+import { of } from "rxjs";
 import { SpotEditSchema } from "../../../../db/schemas/SpotEditSchema";
 import { SpotId } from "../../../../db/schemas/SpotSchema";
 import { AnalyticsService } from "../../analytics.service";
@@ -8,7 +9,10 @@ import { ConsentService } from "../../consent.service";
 import { AuthenticationService } from "../authentication.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
 import { FunctionsAdapterService } from "../functions-adapter.service";
-import { SpotEditsService } from "./spot-edits.service";
+import {
+  spotEditAwaitsReviewOutcome,
+  SpotEditsService,
+} from "./spot-edits.service";
 import { UsersService } from "./users.service";
 
 const createMockFirestoreAdapter = () => ({
@@ -16,6 +20,7 @@ const createMockFirestoreAdapter = () => ({
   addDocument: vi.fn(),
   setDocument: vi.fn().mockResolvedValue(undefined),
   getDocument: vi.fn().mockResolvedValue({}),
+  documentSnapshots: vi.fn(),
   getCollectionGroupWithMetadata: vi.fn(),
 });
 
@@ -185,10 +190,65 @@ describe("SpotEditsService", () => {
     ]);
   });
 
+  it("distinguishes pending review from immediate approval", () => {
+    expect(
+      spotEditAwaitsReviewOutcome({
+        ...buildEdit("org", "user-1", 1),
+        review_status: "pending",
+        processing_status: "PENDING_STEWARD_REVIEW",
+      }),
+    ).toBe(true);
+    expect(
+      spotEditAwaitsReviewOutcome({
+        ...buildEdit("vote", "user-1", 1),
+        processing_status: "VOTING_FORCED_TEST",
+      }),
+    ).toBe(true);
+    expect(
+      spotEditAwaitsReviewOutcome({
+        ...buildEdit("immediate", "user-1", 1),
+        approved: true,
+        processing_status: "APPROVED_IMMEDIATE",
+        decision_source: "automatic_immediate",
+      }),
+    ).toBe(false);
+  });
+
+  it("waits for the server disposition before deciding whether to prompt", async () => {
+    const initial = buildEdit("pending", "user-1", 1);
+    mockFirestoreAdapter.documentSnapshots.mockReturnValue(
+      of(initial, {
+        ...initial,
+        approved: false,
+        processing_status: "PENDING_MANAGEMENT_REVIEW",
+        review_status: "pending",
+        processed_at: initial.timestamp,
+      }),
+    );
+
+    await expect(
+      service.waitForReviewOutcomeDisposition("spot-1", "edit-1"),
+    ).resolves.toBe(true);
+
+    mockFirestoreAdapter.documentSnapshots.mockReturnValue(
+      of(initial, {
+        ...initial,
+        approved: true,
+        processing_status: "APPROVED_IMMEDIATE",
+        decision_source: "automatic_immediate",
+        processed_at: initial.timestamp,
+      }),
+    );
+
+    await expect(
+      service.waitForReviewOutcomeDisposition("spot-1", "edit-2"),
+    ).resolves.toBe(false);
+  });
+
   it("creates new spots through a setDocument placeholder before the CREATE edit", async () => {
     mockFirestoreAdapter.addDocument.mockResolvedValueOnce("create-edit-id");
 
-    const spotId = await service.createSpotWithEdit(
+    const result = await service.createSpotWithEdit(
       {
         name: { en: "New Spot" },
         location_raw: { lat: 47.3769, lng: 8.5417 },
@@ -197,7 +257,10 @@ describe("SpotEditsService", () => {
       { uid: "user-1", display_name: "Test User" }
     );
 
-    expect(spotId).toBe("generated-spot-id");
+    expect(result).toEqual({
+      spotId: "generated-spot-id",
+      editId: "create-edit-id",
+    });
     expect(mockFirestoreAdapter.createDocumentId).toHaveBeenCalledWith("spots");
     expect(mockFirestoreAdapter.setDocument).toHaveBeenCalledWith(
       "spots/generated-spot-id",

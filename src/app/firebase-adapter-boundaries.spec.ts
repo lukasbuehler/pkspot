@@ -7,34 +7,13 @@ const repoRoot = process.cwd();
 const appRoot = resolve(repoRoot, "src/app");
 
 const allowedRuntimeImportFiles = new Set([
-  "src/app/app.config.ts",
+  "src/app/services/firebase/firebase-client.providers.ts",
   "src/app/services/firebase/firestore-adapter.service.ts",
   "src/app/services/firebase/functions-adapter.service.ts",
   "src/app/services/firebase/storage-adapter.service.ts",
 ]);
 
 const restrictedNamedImportsByModule = new Map<string, Set<string>>([
-  [
-    "@angular/fire/firestore",
-    new Set([
-      "addDoc",
-      "collection",
-      "collectionGroup",
-      "deleteDoc",
-      "deleteField",
-      "doc",
-      "getDoc",
-      "getDocs",
-      "limit",
-      "onSnapshot",
-      "orderBy",
-      "query",
-      "setDoc",
-      "startAfter",
-      "updateDoc",
-      "where",
-    ]),
-  ],
   [
     "firebase/firestore",
     new Set([
@@ -57,14 +36,9 @@ const restrictedNamedImportsByModule = new Map<string, Set<string>>([
     ]),
   ],
   [
-    "@angular/fire/storage",
-    new Set(["deleteObject", "getDownloadURL", "ref", "uploadBytesResumable"]),
-  ],
-  [
     "firebase/storage",
     new Set(["deleteObject", "getDownloadURL", "ref", "uploadBytesResumable"]),
   ],
-  ["@angular/fire/functions", new Set(["httpsCallable"])],
   ["firebase/functions", new Set(["httpsCallable"])],
 ]);
 
@@ -158,29 +132,42 @@ describe("Firebase adapter boundaries", () => {
     expect(violations).toEqual([]);
   });
 
-  it("keeps AngularFire isolated from the newer Capacitor Firebase runtime", () => {
+  it("uses one direct Firebase SDK lineage without AngularFire", () => {
     const packageJson = JSON.parse(
       readFileSync(resolve(repoRoot, "package.json"), "utf8"),
-    ) as { overrides?: Record<string, unknown> };
+    ) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+      overrides?: Record<string, unknown>;
+    };
     const packageLock = JSON.parse(
       readFileSync(resolve(repoRoot, "package-lock.json"), "utf8"),
     ) as { packages?: Record<string, { version?: string }> };
 
     expect(packageJson.overrides?.["firebase"]).toBeUndefined();
+    expect(packageJson.dependencies?.["@angular/fire"]).toBeUndefined();
+    expect(packageJson.devDependencies?.["@angular/fire"]).toBeUndefined();
     expect(packageLock.packages?.["node_modules/firebase"]?.version).toMatch(
       /^12\./,
     );
+    expect(packageLock.packages?.["node_modules/@angular/fire"]).toBeUndefined();
     expect(
-      packageLock.packages?.["node_modules/@angular/fire/node_modules/firebase"]
-        ?.version,
-    ).toMatch(/^11\./);
+      Object.keys(packageLock.packages ?? {}).filter((path) =>
+        path.endsWith("/node_modules/firebase"),
+      ),
+    ).toEqual([]);
 
-    const appCheckService = readFileSync(
-      resolve(repoRoot, "src/app/services/firebase/app-check.service.ts"),
-      "utf8",
-    );
-    expect(appCheckService).not.toMatch(/from ["']firebase\/app(?:-check)?["']/);
-    expect(appCheckService).toContain('from "@angular/fire/app"');
-    expect(appCheckService).toContain('from "@angular/fire/app-check"');
+    for (const file of listTypeScriptFiles(appRoot)) {
+      expect(readFileSync(file, "utf8"), relativePath(file)).not.toContain(
+        "@angular/fire",
+      );
+    }
+
+    for (const configFile of ["angular.json", "vite.config.mts"]) {
+      expect(
+        readFileSync(resolve(repoRoot, configFile), "utf8"),
+        configFile,
+      ).not.toContain("@angular/fire");
+    }
   });
 });

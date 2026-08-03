@@ -5,18 +5,31 @@
     { "name": "name", "type": "string" },
     { "name": "description", "type": "string", "optional": true },
     { "name": "slug", "type": "string", "optional": true },
-    { "name": "venue_string", "type": "string", "optional": false },
+    { "name": "venue_string", "type": "string", "optional": true },
     {
       "name": "locality_string",
       "type": "string",
       "facet": true,
-      "optional": false
+      "optional": true
     },
-    { "name": "location", "type": "geopoint", "optional": false },
+    { "name": "location", "type": "geopoint", "optional": true },
+    { "name": "has_location", "type": "bool", "facet": true, "optional": true },
     { "name": "url", "type": "string", "optional": true, "index": false },
 
     {
       "name": "banner_src",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "banner_fit",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "banner_accent_color",
       "type": "string",
       "optional": true,
       "index": false
@@ -101,9 +114,43 @@
       "facet": true,
       "optional": true
     },
+    { "name": "kind", "type": "string", "facet": true, "optional": true },
+    { "name": "priority", "type": "string", "facet": true, "optional": true },
 
     { "name": "start_seconds", "type": "int64", "optional": false },
     { "name": "end_seconds", "type": "int64", "optional": false },
+    {
+      "name": "timing.start_date",
+      "type": "string",
+      "facet": true,
+      "optional": true
+    },
+    { "name": "timing.end_date", "type": "string", "optional": true },
+    {
+      "name": "timing.start_time",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "timing.end_time",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "timing.mode",
+      "type": "string",
+      "facet": true,
+      "optional": true
+    },
+    { "name": "active_until_seconds", "type": "int64", "optional": true },
+    {
+      "name": "time_zone",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
     { "name": "promo_starts_at_seconds", "type": "int64", "optional": true },
 
     { "name": "spot_ids", "type": "string[]", "optional": true },
@@ -122,6 +169,12 @@
     {
       "name": "event_categories",
       "type": "string[]",
+      "facet": true,
+      "optional": true
+    },
+    {
+      "name": "lifecycle_status",
+      "type": "string",
       "facet": true,
       "optional": true
     },
@@ -189,8 +242,32 @@
       "optional": true,
       "index": false
     },
+    {
+      "name": "rsvp_counts.going",
+      "type": "int64",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "rsvp_counts.interested",
+      "type": "int64",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "rsvp_counts.notgoing",
+      "type": "int64",
+      "optional": true,
+      "index": false
+    },
+    {
+      "name": "rsvp_counts.total",
+      "type": "int64",
+      "optional": true,
+      "index": false
+    },
 
-    { "name": "published", "type": "bool", "facet": true, "optional": true },
+    { "name": "published", "type": "bool", "facet": true },
     { "name": "_force_sync", "type": "int64", "optional": true, "index": false }
   ],
   "default_sorting_field": "start_seconds",

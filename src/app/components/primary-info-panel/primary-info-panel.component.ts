@@ -3,8 +3,7 @@ import {
   Component,
   signal,
   computed,
-  EventEmitter,
-  Output,
+  output,
 } from "@angular/core";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { CommonModule } from "@angular/common";
@@ -24,11 +23,11 @@ export class PrimaryInfoPanelComponent {
   showBottomSheet = computed(() => this.isMobile());
 
   // Emits true when the bottom sheet is open (at top), false when closed.
-  @Output() bottomSheetOpenChange = new EventEmitter<boolean>();
-  @Output() bottomSheetProgressChange = new EventEmitter<number>();
+  readonly bottomSheetOpenChange = output<boolean>();
+  readonly bottomSheetProgressChange = output<number>();
   bottomSheetOpen = signal<boolean>(false);
 
-  private _emitTimeout?: any;
+  private _emitTimeout?: ReturnType<typeof setTimeout>;
   onSheetTopChange(atTop: boolean) {
     this.bottomSheetOpen.set(atTop);
     // debounce emits to avoid flicker

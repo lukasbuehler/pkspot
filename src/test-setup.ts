@@ -2,12 +2,10 @@
 // before Node has a chance to cache the timezone. Setting it here would
 // be too late — Date / Intl have already initialized.
 
-import '@angular/localize/init';
-import '@analogjs/vitest-angular/setup-zone';
-import { TestBed } from '@angular/core/testing';
-import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
+import "@angular/compiler";
+import "@angular/localize/init";
+import "@analogjs/vitest-angular/setup-snapshots";
+import "@analogjs/vitest-angular/setup-serializers";
+import { setupTestBed } from "@analogjs/vitest-angular/setup-testbed";
 
-TestBed.initTestEnvironment(
-  BrowserTestingModule,
-  platformBrowserTesting()
-);
+setupTestBed();

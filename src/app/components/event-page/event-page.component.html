@@ -1,12 +1,19 @@
-@if (isEditingEvent() && isAdmin()) {
+@if (isEditingEvent() && canEditEvent()) {
   <section class="event-edit-host">
     <app-event-edit-form
       [event]="event()"
+      [showDeleteButton]="canManageEvent()"
       [saving]="isSavingEvent()"
       (save)="onSaveEvent($event)"
       (cancel)="cancelEditingEvent()"
       (delete)="onDeleteEvent()"
     ></app-event-edit-form>
+    @if (canManageEvent() && event(); as managedEvent) {
+      <app-event-access-manager [event]="managedEvent" />
+      @if (managedEvent.attendance.admission === "registration") {
+        <app-event-registration-manager [event]="managedEvent" />
+      }
+    }
   </section>
 } @else if (event(); as event) {
   <main class="event-info-page" [class.embedded]="isEmbedded()">
@@ -26,6 +33,7 @@
           @if (eventLocationMarker(); as marker) {
             <button
               mat-icon-button
+              class="event-nav-action event-nav-action--duplicated"
               type="button"
               aria-label="Directions"
               i18n-aria-label
@@ -39,6 +47,7 @@
           @if (websiteUrl(); as url) {
             <a
               mat-icon-button
+              class="event-nav-action event-nav-action--duplicated"
               [href]="url"
               target="_blank"
               rel="noopener noreferrer"
@@ -52,6 +61,7 @@
           }
           <button
             mat-icon-button
+            class="event-nav-action"
             type="button"
             aria-label="Share event"
             matTooltip="Share event"
@@ -60,39 +70,122 @@
           >
             <mat-icon>share</mat-icon>
           </button>
-          @if (isAdmin()) {
-            <button
-              mat-icon-button
-              type="button"
-              aria-label="Edit event"
-              matTooltip="Edit event"
-              i18n-matTooltip="@@event_page.edit_tooltip"
-              (click)="startEditingEvent()"
-            >
-              <mat-icon>edit</mat-icon>
-            </button>
-          }
+          <app-event-live-update-organizer-menu
+            [event]="event"
+            [canEdit]="canEditEvent()"
+            (editRequested)="startEditingEvent()"
+            (qrRequested)="openQrDialog()"
+            (operationApplied)="reloadEventAfterOperation()"
+          ></app-event-live-update-organizer-menu>
         </div>
       </nav>
     }
 
     <article class="event-content">
+      @if (!event.published) {
+        <app-event-draft-notice></app-event-draft-notice>
+      } @else if (event.visibility !== "public") {
+        <aside
+          class="event-visibility-notice"
+          [attr.data-visibility]="event.visibility"
+        >
+          <span class="event-visibility-notice__icon" aria-hidden="true">
+            <mat-icon>
+              {{ event.visibility === "private" ? "lock" : "visibility_off" }}
+            </mat-icon>
+          </span>
+          <div>
+            @if (event.visibility === "private") {
+              <strong
+                class="mat-title-medium"
+                i18n="@@event_private.notice_title"
+              >
+                Private event
+              </strong>
+              <p class="mat-body-medium m-0" i18n="@@event_private.notice_body">
+                Only invited people or eligible organization members can open
+                this event.
+              </p>
+            } @else {
+              <strong
+                class="mat-title-medium"
+                i18n="@@event_unlisted.notice_title"
+              >
+                Unlisted event
+              </strong>
+              <p
+                class="mat-body-medium m-0"
+                i18n="@@event_unlisted.notice_body"
+              >
+                Anyone with the link can open it, but it does not appear in
+                discovery.
+              </p>
+            }
+          </div>
+        </aside>
+      }
+
+      @if (event.lifecycleStatus === "cancelled") {
+        <aside class="event-cancellation-notice" role="status">
+          <span class="event-cancellation-notice__icon" aria-hidden="true">
+            <mat-icon>event_busy</mat-icon>
+          </span>
+          <div>
+            <strong class="mat-title-medium" i18n>This event is cancelled</strong>
+            @if (event.lifecycleNote) {
+              <p class="mat-body-medium m-0">{{ event.lifecycleNote }}</p>
+            }
+          </div>
+        </aside>
+      }
+
       <header class="event-heading pb-3">
         <div class="event-heading-main">
           <div class="event-title-block">
             <h1 class="mat-heading-medium">{{ event.name }}</h1>
 
             <app-event-summary-meta [event]="event"></app-event-summary-meta>
+
+            @if (organizerName()) {
+              <div class="event-organizer">
+                <span
+                  class="mat-body-medium muted"
+                  i18n="@@event_info.organized_by"
+                  >Organized by</span
+                >
+                @if (organizer(); as organization) {
+                  <app-organization-button
+                    [organization]="organization"
+                  ></app-organization-button>
+                } @else {
+                  <span class="event-organizer__fallback mat-title-small">
+                    <mat-icon aria-hidden="true">groups</mat-icon>
+                    <span>{{ organizerName() }}</span>
+                  </span>
+                }
+              </div>
+            }
           </div>
 
-          @if (showRsvp()) {
-            <app-event-rsvp
-              [eventId]="event.id"
-              [counts]="event.rsvpCounts"
-            ></app-event-rsvp>
+          @if (showRsvp() || showRegistration() || event.lifecycleStatus === "cancelled") {
+            <app-event-attendee-actions
+              [event]="event"
+              [showRsvp]="showRsvp()"
+              [showRegistration]="showRegistration()"
+              (rsvpChanged)="currentRsvp.set($event)"
+            />
           }
         </div>
       </header>
+
+      @if (event.lifecycleStatus !== "cancelled" && event.isLive(now())) {
+        <app-event-now-next-card
+          class="event-now-next"
+          [event]="event"
+          [now]="now()"
+          (itemSelected)="focusProgramItem($event)"
+        />
+      }
 
       @if (hasHeroMedia()) {
         <section class="event-hero">
@@ -177,6 +270,12 @@
       }
 
       <section class="event-section action-row">
+        @if (event.published && !event.isPast(now()) && !showRsvp()) {
+          <button mat-flat-button type="button" (click)="openAddDialog()">
+            <mat-icon>bookmark</mat-icon>
+            <span i18n="@@event_add.open">Add to My Events</span>
+          </button>
+        }
         @for (link of eventLinks(); track link.url) {
           @if (link.primary) {
             <a
@@ -219,6 +318,13 @@
         </button>
       </section>
 
+      @if (event.organizer && event.published) {
+        <app-event-live-updates
+          class="event-section"
+          [event]="event"
+        ></app-event-live-updates>
+      }
+
       @if (featuredParticipants().length > 0) {
         <section class="event-section featured-participants-section">
           <div class="section-heading-row">
@@ -231,8 +337,11 @@
             <mat-icon>diversity_3</mat-icon>
           </div>
           <div class="featured-participant-grid">
-            @for (participant of featuredParticipants(); track participant.name + participant.role) {
-              <article class="featured-participant">
+            @for (
+              participant of featuredParticipants();
+              track participant.name + participant.role
+            ) {
+              <article class="featured-participant app-card">
                 @if (featuredParticipantImageSrc(participant); as imageSrc) {
                   <img
                     class="featured-participant-image"
@@ -240,7 +349,10 @@
                     [alt]="participant.name"
                   />
                 } @else {
-                  <div class="featured-participant-placeholder" aria-hidden="true">
+                  <div
+                    class="featured-participant-placeholder"
+                    aria-hidden="true"
+                  >
                     <mat-icon>
                       {{ participant.type === "group" ? "groups" : "person" }}
                     </mat-icon>
@@ -278,7 +390,7 @@
 
       @if (hasMapPreview()) {
         @defer (on viewport) {
-          <section class="event-section map-preview">
+          <section class="event-section map-preview app-card">
             <div class="map-preview-header">
               <div>
                 <h4 class="mat-title-medium" i18n="@@event_info.map_label">
@@ -301,6 +413,14 @@
             </div>
 
             <div class="map-preview-frame">
+              @if (programDays().length > 0) {
+                <app-event-program-day-chips
+                  class="map-program-day-chips"
+                  [days]="programDays()"
+                  [selectedDay]="selectedProgramDay()"
+                  (dayChange)="selectProgramDay($event)"
+                />
+              }
               <app-google-map-2d
                 id="eventInfoMap"
                 [showGeolocation]="false"
@@ -309,22 +429,27 @@
                 [polygons]="areaPolygon() ? [areaPolygon()!] : []"
                 [minZoom]="3"
                 [focusZoom]="event.focusZoom ?? 18"
+                gestureHandling="cooperative"
                 mapStyle="hybrid"
                 [markers]="[]"
-                [priorityMarkers]="mapMarkers()"
+                [priorityMarkers]="mapPriorityMarkers()"
                 [spots]="spots()"
                 [highlightedSpots]="mapPreviewSpotMarkers()"
                 [showAllHighlightedSpotPins]="true"
                 [hideRegularSpotPins]="true"
+                [highlightedSpotColor]="
+                  programFilterActive() ? 'gray' : 'primary'
+                "
                 [showSpotPreview]="true"
                 (boundsChange)="updateMapPreviewViewportBounds($event)"
                 (spotClick)="openMapForSpot($event)"
+                (markerClickEvent)="programMarkerClicked($event)"
               ></app-google-map-2d>
 
               <a
                 matFab
                 color="primary"
-                style="position: absolute; right: 16px; bottom: 30px"
+                style="position: absolute; right: 16px; bottom: 32px"
                 [routerLink]="mapRoute()"
               >
                 <mat-icon>open_in_full</mat-icon>
@@ -332,7 +457,7 @@
             </div>
           </section>
         } @placeholder {
-          <section class="event-section map-preview">
+          <section class="event-section map-preview app-card">
             <div class="map-preview-header">
               <div>
                 <span class="info-label" i18n="@@event_info.map_label">
@@ -365,10 +490,66 @@
             </h2>
             <mat-icon>schedule</mat-icon>
           </div>
+          @if (activeProgramPlan(); as activePlan) {
+            @if (activePlan.kind === "alternate" || event.program?.active_plan_note) {
+              <aside class="active-program-notice" role="status">
+                <span class="active-program-notice__icon" aria-hidden="true">
+                  <mat-icon>umbrella</mat-icon>
+                </span>
+                <div>
+                  <strong class="mat-title-small">{{ activePlan.label }}</strong>
+                  @if (event.program?.active_plan_note || activePlan.condition_label; as note) {
+                    <p class="mat-body-small m-0">{{ note }}</p>
+                  }
+                </div>
+              </aside>
+            }
+          }
           <app-event-program-timeline
+            class="app-card"
             [items]="activeProgramItems()"
             [timeZone]="event.timeZone"
+            [eventStart]="event.start"
+            [eventEnd]="event.end"
+            [weather]="eventWeather()"
+            [spotBindings]="spotBindings()"
+            [customMarkers]="mapMarkers()"
+            [now]="now()"
+            [linkedEventsById]="programLinkedEventsById()"
+            [seriesById]="seriesById()"
+            [eventMapRoute]="mapRoute()"
+            [selectedItemId]="focusedProgramItemId()"
+            (weatherSelected)="openEventWeather($event)"
           />
+        </section>
+      } @else if (eventWeather(); as weather) {
+        <section class="event-section event-weather-section">
+          <div class="section-heading-row">
+            <h2
+              class="mat-title-large m-0"
+              i18n="@@event_weather.forecast_heading"
+            >
+              Forecast
+            </h2>
+            <mat-icon>cloud</mat-icon>
+          </div>
+          @if (singleEventWeatherDate(); as date) {
+            <app-event-weather-hours
+              [response]="weather"
+              [date]="date"
+              [eventStart]="event.start"
+              [eventEnd]="event.end"
+              [timeZone]="event.timeZone"
+            />
+          } @else {
+            <app-event-weather-days
+              [eventStart]="event.start"
+              [eventEnd]="event.end"
+              [timeZone]="event.timeZone"
+              [response]="weather"
+              (dateSelected)="openEventWeather({ date: $event })"
+            />
+          }
         </section>
       }
 
@@ -378,61 +559,21 @@
             <h2 class="mat-title-large m-0" i18n="@@event_tickets.heading">
               Tickets
             </h2>
-            <mat-icon>local_activity</mat-icon>
+            <mat-icon class="ticket-heading-icon" aria-hidden="true">
+              local_activity
+            </mat-icon>
           </div>
-          <div class="ticket-grid">
-            @for (ticket of ticketOptions(); track ticket.id) {
-              <article class="ticket-option">
-                <div class="ticket-copy">
-                  <div class="ticket-title-row">
-                    <h3 class="mat-title-small m-0">{{ ticket.label }}</h3>
-                    @if (ticketBadgeLabel(ticket)) {
-                      <span class="ticket-badge mat-label-small">
-                        {{ ticketBadgeLabel(ticket) }}
-                      </span>
-                    }
-                  </div>
-                  @if (ticket.description) {
-                    <p class="mat-body-small ticket-description">
-                      {{ ticket.description }}
-                    </p>
-                  }
-                  @if (ticketAvailabilityLabel(ticket)) {
-                    <p
-                      class="mat-label-small ticket-availability"
-                      [attr.data-availability]="ticket.availability"
-                    >
-                      {{ ticketAvailabilityLabel(ticket) }}
-                    </p>
-                  }
-                </div>
-                <div class="ticket-side">
-                  <p class="mat-title-medium ticket-price">
-                    {{ formatTicketPrice(ticket) }}
-                  </p>
-                  @if (ticket.url) {
-                    <a
-                      mat-stroked-button
-                      [href]="ticket.url"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      (click)="
-                        trackEventLinkClick({
-                          label: ticket.label,
-                          url: ticket.url!,
-                          kind: 'tickets',
-                          primary: false,
-                        })
-                      "
-                    >
-                      <mat-icon>open_in_new</mat-icon>
-                      <span i18n="@@event_tickets.open">Open</span>
-                    </a>
-                  }
-                </div>
-              </article>
-            }
-          </div>
+          <app-event-ticket-list
+            [tickets]="ticketOptions()"
+            (ticketOpened)="
+              trackEventLinkClick({
+                label: $event.label,
+                url: $event.url!,
+                kind: 'tickets',
+                primary: false,
+              })
+            "
+          />
         </section>
       }
 
@@ -629,5 +770,27 @@
         </section>
       }
     </article>
+  </main>
+} @else {
+  <main class="event-loading" aria-live="polite">
+    @if (eventLoadFailed()) {
+      <p class="mat-body-large" i18n="@@event_page.load_failed">
+        We couldn't load this event.
+      </p>
+      <a
+        mat-stroked-button
+        routerLink="/events"
+        i18n="@@event_page.load_failed_back"
+        >Back to all events</a
+      >
+    } @else {
+      <mat-progress-spinner
+        mode="indeterminate"
+        diameter="32"
+        aria-label="Loading event"
+        i18n-aria-label="@@event_page.loading_aria"
+      ></mat-progress-spinner>
+      <p class="mat-body-medium" i18n="@@event_page.loading">Loading event</p>
+    }
   </main>
 }

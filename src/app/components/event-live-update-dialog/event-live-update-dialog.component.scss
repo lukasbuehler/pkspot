@@ -1,0 +1,59 @@
+form {
+  display: grid;
+  gap: 1rem;
+  min-width: min(520px, calc(100vw - 5rem));
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+textarea {
+  resize: vertical;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.confirmation-preview {
+  min-width: min(480px, calc(100vw - 5rem));
+  padding: 1rem;
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 18px;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.confirmation-preview h3,
+.confirmation-preview p {
+  margin: 0.35rem 0 0;
+}
+
+.preview-label {
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-label-large);
+}
+
+.recipient-warning {
+  margin-top: 0.875rem !important;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+mat-dialog-actions button mat-spinner {
+  display: inline-block;
+  margin-inline-end: 0.4rem;
+}
+
+@media (max-width: 600px) {
+  form,
+  .confirmation-preview {
+    min-width: 0;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,25 @@
+:host {
+  display: block;
+  flex: 0 0 auto;
+}
+
+mat-button-toggle-group {
+  min-height: 48px;
+}
+
+mat-button-toggle {
+  min-height: 46px;
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 599.98px) {
+  mat-button-toggle-group {
+    display: flex;
+    width: 100%;
+  }
+
+  mat-button-toggle {
+    flex: 1;
+  }
+}

@@ -1,0 +1,63 @@
+<section class="live-updates app-card" aria-labelledby="live-updates-heading">
+  <div class="section-heading">
+    <span class="icon-tile" aria-hidden="true">
+      <mat-icon>notifications_active</mat-icon>
+    </span>
+    <div>
+      <h2 id="live-updates-heading" class="mat-title-large" i18n>
+        Live event updates
+      </h2>
+      <p i18n>Latest information from {{ event().organizer?.organization?.name ?? event().name }}.</p>
+    </div>
+  </div>
+
+  <div class="updates-list" aria-live="polite">
+    @if (loading()) {
+      <div class="state-row">
+        <mat-spinner diameter="24"></mat-spinner>
+        <span i18n>Loading updates…</span>
+      </div>
+    } @else if (failed()) {
+      <p class="error-copy" role="alert" i18n>
+        Live updates could not be loaded.
+      </p>
+    } @else {
+      @for (item of updateItems(); track item.update.id) {
+        @let update = item.update;
+        <article class="update-item">
+          <div class="update-meta">
+            <span>{{ updateTypeLabel(update.type) }}</span>
+            <time [attr.datetime]="update.publishedAt.toISOString()">
+              {{ formatTimestamp(update.publishedAt) }}
+            </time>
+          </div>
+          @if (item.timingChange) {
+            <h3 class="mat-title-small timing-change">
+              <mat-icon>schedule</mat-icon>
+              <span>{{ item.timingChange }}</span>
+            </h3>
+          } @else if (item.displayTitle) {
+            <h3 class="mat-title-small">{{ item.displayTitle }}</h3>
+          }
+          @if (update.message) {
+            <p>{{ update.message }}</p>
+          }
+          @if (update.scheduledFor && !item.timingChange) {
+            <p class="update-detail">
+              <mat-icon>schedule</mat-icon>
+              <span>{{ formatTimestamp(update.scheduledFor) }}</span>
+            </p>
+          }
+          @if (update.eventSpotId) {
+            <p class="update-detail">
+              <mat-icon>location_on</mat-icon>
+              <span>{{ linkedSpotName(update.eventSpotId) }}</span>
+            </p>
+          }
+        </article>
+      } @empty {
+        <p class="empty-copy" i18n>No live updates have been published yet.</p>
+      }
+    }
+  </div>
+</section>

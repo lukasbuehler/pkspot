@@ -1,7 +1,8 @@
-import { Routes } from "@angular/router";
+import { Params, Routes } from "@angular/router";
 import { contentResolver } from "./resolvers/content.resolver";
 import { communityLandingResolver } from "./resolvers/community-landing.resolver";
 import { environment } from "../environments/environment.default";
+import { trainingFeatureEnabled } from "./features/training-feature";
 
 export const ACCEPTANCE_FREE_PREFIXES = [
   "/about",
@@ -51,6 +52,22 @@ const visualTestRoutes: Routes = environment.production
       },
     ];
 
+function redirectWithQueryParams(path: string, queryParams: Params): string {
+  const query = new URLSearchParams(
+    Object.entries(queryParams).flatMap(([key, value]) => {
+      if (Array.isArray(value)) {
+        return value.map((item) => [key, String(item)] as [string, string]);
+      }
+      if (value === undefined || value === null) {
+        return [];
+      }
+      return [[key, String(value)] as [string, string]];
+    }),
+  ).toString();
+
+  return query ? `${path}?${query}` : path;
+}
+
 export const routes: Routes = [
   ...visualTestRoutes,
 
@@ -85,22 +102,28 @@ export const routes: Routes = [
     data: { routeName: "Community Landing (legacy redirect)" },
   },
 
-  // Event-on-map preview. Stays on the map and opens the event preview
-  // panel; the full /events/:slug page is reached via the preview's
-  // "See full event" CTA.
+  // Map event URLs are legacy links. SSR responds with a real HTTP 301 via
+  // server-redirects.ts; this route also canonicalizes in-app navigation and
+  // development requests that bypass the Express server.
   {
     path: "map/events/:eventId",
-    loadComponent: () =>
-      import("./components/map-page/map-page.component").then(
-        (m) => m.MapPageComponent,
+    redirectTo: (route) =>
+      redirectWithQueryParams(
+        `/events/${route.params["eventId"]}`,
+        route.queryParams,
       ),
-    data: { routeName: "Event on Map" },
+    pathMatch: "full",
+    data: { routeName: "Event (legacy map redirect)" },
   },
   {
     path: "map/event/:eventId",
-    redirectTo: (route) => `/map/events/${route.params["eventId"]}`,
+    redirectTo: (route) =>
+      redirectWithQueryParams(
+        `/events/${route.params["eventId"]}`,
+        route.queryParams,
+      ),
     pathMatch: "full",
-    data: { routeName: "Event on Map (legacy redirect)" },
+    data: { routeName: "Event (legacy map redirect)" },
   },
   {
     path: "map/spots",
@@ -218,6 +241,51 @@ export const routes: Routes = [
     resolve: { content: contentResolver },
     data: { routeName: "Organization" },
   },
+
+  ...(trainingFeatureEnabled
+    ? [
+        {
+          path: "train",
+          loadComponent: () =>
+            import("./components/train-page/train-page.component").then(
+              (m) => m.TrainPageComponent,
+            ),
+          data: { routeName: "Train" },
+        },
+        {
+          path: "train/log",
+          loadComponent: () =>
+            import("./components/training-log-page/training-log-page.component").then(
+              (m) => m.TrainingLogPageComponent,
+            ),
+          data: { routeName: "Training Log" },
+        },
+        {
+          path: "train/log/new",
+          loadComponent: () =>
+            import("./components/log-entry-editor/log-entry-editor.component").then(
+              (m) => m.LogEntryEditorComponent,
+            ),
+          data: { routeName: "New Log Entry" },
+        },
+        {
+          path: "train/log/:entryId/edit",
+          loadComponent: () =>
+            import("./components/log-entry-editor/log-entry-editor.component").then(
+              (m) => m.LogEntryEditorComponent,
+            ),
+          data: { routeName: "Edit Log Entry" },
+        },
+        {
+          path: "u/:userID/logs",
+          loadComponent: () =>
+            import("./components/public-training-log/public-training-log.component").then(
+              (m) => m.PublicTrainingLogComponent,
+            ),
+          data: { routeName: "Training Log" },
+        },
+      ]
+    : []),
   {
     path: "organization-reviews",
     loadComponent: () =>
@@ -233,6 +301,22 @@ export const routes: Routes = [
         (m) => m.OrganizationAdminPageComponent,
       ),
     data: { routeName: "Organization Admin", discoverable: false },
+  },
+  {
+    path: "event-ownership-claims",
+    loadComponent: () =>
+      import("./components/event-ownership-claim-inbox/event-ownership-claim-inbox.component").then(
+        (m) => m.EventOwnershipClaimInboxComponent,
+      ),
+    data: { routeName: "Event Ownership Claims", discoverable: false },
+  },
+  {
+    path: "event-ownership-claims/:claimId",
+    loadComponent: () =>
+      import("./components/event-ownership-claim-response/event-ownership-claim-response.component").then(
+        (m) => m.EventOwnershipClaimResponseComponent,
+      ),
+    data: { routeName: "Event Ownership Claim", discoverable: false },
   },
   {
     path: "moderation",
@@ -258,6 +342,22 @@ export const routes: Routes = [
       ),
     resolve: { content: contentResolver },
     data: { routeName: "Moderation Activity", discoverable: false },
+  },
+  {
+    path: "moderation/media",
+    loadComponent: () =>
+      import("./components/moderation-media-page/moderation-media-page.component").then(
+        (m) => m.ModerationMediaPageComponent,
+      ),
+    data: { routeName: "Moderation Media", discoverable: false },
+  },
+  {
+    path: "moderation/incidents/:incidentId",
+    loadComponent: () =>
+      import("./components/safety-incident-page/safety-incident-page.component").then(
+        (m) => m.SafetyIncidentPageComponent,
+      ),
+    data: { routeName: "Safety Incident", discoverable: false },
   },
 
   // Embedded stuff
@@ -340,6 +440,12 @@ export const routes: Routes = [
         (m) => m.EventCreatePageComponent,
       ),
     data: { routeName: "Create Event" },
+  },
+  {
+    path: "events/session/new",
+    redirectTo: () => "/events",
+    pathMatch: "full",
+    data: { routeName: "Events", discoverable: false },
   },
   {
     path: "event/swissjam25",
@@ -430,20 +536,8 @@ export const routes: Routes = [
   },
   {
     path: "sign-in",
-    redirectTo: (route) => {
-      const query = new URLSearchParams(
-        Object.entries(route.queryParams).flatMap(([key, value]) => {
-          if (Array.isArray(value)) {
-            return value.map((item) => [key, String(item)] as [string, string]);
-          }
-          if (value === undefined || value === null) {
-            return [];
-          }
-          return [[key, String(value)] as [string, string]];
-        }),
-      ).toString();
-      return query ? `/account?${query}` : "/account";
-    },
+    redirectTo: (route) =>
+      redirectWithQueryParams("/account", route.queryParams),
     pathMatch: "full",
   },
   {
@@ -479,6 +573,22 @@ export const routes: Routes = [
         (m) => m.SettingsPageComponent,
       ),
     data: { routeName: "Settings" },
+  },
+  {
+    path: "notifications",
+    loadComponent: () =>
+      import(
+        "./components/notification-center-page/notification-center-page.component"
+      ).then((m) => m.NotificationCenterPageComponent),
+    data: { routeName: "Notifications" },
+  },
+  {
+    path: "reports/outcomes/:outcomeId",
+    loadComponent: () =>
+      import(
+        "./components/report-outcome-page/report-outcome-page.component"
+      ).then((m) => m.ReportOutcomePageComponent),
+    data: { routeName: "Report update" },
   },
 
   // Other

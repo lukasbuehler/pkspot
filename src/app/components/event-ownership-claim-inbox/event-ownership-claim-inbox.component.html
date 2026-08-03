@@ -1,0 +1,138 @@
+<main class="claim-inbox">
+  <header>
+    <div>
+      <h1 class="mat-headline-medium m-0" i18n="@@event_claims.inbox_heading">
+        Event ownership claims
+      </h1>
+      <p class="mat-body-large text-muted" i18n="@@event_claims.inbox_intro">
+        Review evidence and decide ownership, public organizer linkage, and
+        former-owner access separately.
+      </p>
+    </div>
+    <button mat-stroked-button type="button" (click)="reload()">
+      <mat-icon>refresh</mat-icon>
+      <span i18n="@@event_claims.reload">Reload</span>
+    </button>
+  </header>
+
+  @if (!isAdmin()) {
+    <mat-card>
+      <mat-card-content i18n="@@event_claims.admin_only">
+        Administrator access is required.
+      </mat-card-content>
+    </mat-card>
+  } @else if (loading()) {
+    <mat-spinner diameter="40" />
+  } @else if (claims().length === 0) {
+    <mat-card>
+      <mat-card-content i18n="@@event_claims.empty">
+        There are no pending ownership claims.
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <div class="claim-list">
+      @for (claim of claims(); track claim.id) {
+        <mat-card class="claim-card">
+          <mat-card-header>
+            <mat-card-title>{{ claim.organization.name }}</mat-card-title>
+            <mat-card-subtitle>
+              {{ claim.event_name }} · {{ claim.submitter_id }}
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            @if (events()[claim.event_id]; as event) {
+              <app-event-card [event]="event" />
+            }
+
+            <dl>
+              <dt i18n="@@event_claims.current_owner">Current owner</dt>
+              <dd>{{ claim.owner_before?.type }}:
+                {{ claim.owner_before?.type === "user"
+                  ? claim.owner_before?.user_id
+                  : claim.owner_before?.organization_id }}
+              </dd>
+              <dt i18n="@@event_claims.current_organizer">Current organizer</dt>
+              <dd>{{ claim.organizer_before?.organization?.name || "—" }}</dd>
+            </dl>
+
+            <p>{{ claim.explanation }}</p>
+            <ul>
+              @for (url of claim.evidence_urls; track url) {
+                <li><a [href]="url" target="_blank" rel="noopener noreferrer">{{ url }}</a></li>
+              }
+            </ul>
+
+            @if (claim.owner_response; as response) {
+              <div class="owner-response">
+                <strong>{{ ownerResponseLabel(response.position) }}</strong>
+                @if (response.message) { <p>{{ response.message }}</p> }
+              </div>
+            }
+
+            @if (drafts()[claim.id]; as draft) {
+              <div class="decision-controls">
+                <mat-checkbox
+                  [ngModel]="draft.transferOwnership"
+                  (ngModelChange)="updateDraft(claim.id, { transferOwnership: $event })"
+                  i18n="@@event_claims.transfer"
+                >
+                  Transfer event ownership
+                </mat-checkbox>
+                <mat-checkbox
+                  [ngModel]="draft.linkOrganizer"
+                  (ngModelChange)="updateDraft(claim.id, { linkOrganizer: $event })"
+                  i18n="@@event_claims.link_organizer"
+                >
+                  Link organization publicly
+                </mat-checkbox>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@event_claims.former_owner">Former owner</mat-label>
+                  <mat-select
+                    [ngModel]="draft.formerOwnerOutcome"
+                    (ngModelChange)="updateDraft(claim.id, { formerOwnerOutcome: $event })"
+                  >
+                    <mat-option value="retain_editor" i18n="@@event_claims.retain_editor">
+                      Retain as editor
+                    </mat-option>
+                    <mat-option value="remove_access" i18n="@@event_claims.remove_access">
+                      Remove access
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n="@@event_claims.reason">Decision reason</mat-label>
+                  <textarea
+                    matInput
+                    rows="3"
+                    [ngModel]="draft.reason"
+                    (ngModelChange)="updateDraft(claim.id, { reason: $event })"
+                  ></textarea>
+                </mat-form-field>
+                <div class="decision-actions">
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    [disabled]="deciding() === claim.id"
+                    (click)="decide(claim, false)"
+                    i18n="@@event_claims.reject"
+                  >
+                    Reject
+                  </button>
+                  <button
+                    mat-flat-button
+                    type="button"
+                    [disabled]="deciding() === claim.id"
+                    (click)="decide(claim, true)"
+                    i18n="@@event_claims.approve"
+                  >
+                    Approve
+                  </button>
+                </div>
+              </div>
+            }
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</main>

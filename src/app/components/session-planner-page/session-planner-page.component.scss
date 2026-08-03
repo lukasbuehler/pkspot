@@ -1,0 +1,32 @@
+:host {
+  display: block;
+}
+
+.session-planner-page {
+  max-width: 800px;
+  min-height: min(70vh, 720px);
+  color: var(--mat-sys-on-surface);
+}
+
+.state-card {
+  display: grid;
+  max-width: 560px;
+  gap: 1rem;
+  justify-items: center;
+  margin: 4rem auto;
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 18px;
+}
+
+.state-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
+}

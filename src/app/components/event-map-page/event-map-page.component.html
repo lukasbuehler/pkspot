@@ -60,7 +60,7 @@
             <button mat-icon-button class="d-flex" (click)="shareEvent()">
               <mat-icon>share</mat-icon>
             </button>
-            @if (isAdmin()) {
+            @if (canEditEvent()) {
               <button
                 mat-icon-button
                 class="d-flex"
@@ -83,6 +83,19 @@
         [event]="event()!"
         [showVenue]="false"
       ></app-event-summary-meta>
+      @if (event()?.lifecycleStatus === "cancelled") {
+        <aside class="event-map-cancellation" role="status">
+          <span class="event-map-cancellation__icon" aria-hidden="true">
+            <mat-icon>event_busy</mat-icon>
+          </span>
+          <div>
+            <strong class="mat-title-medium" i18n>This event is cancelled</strong>
+            @if (event()?.lifecycleNote; as reason) {
+              <p class="mat-body-medium m-0">{{ reason }}</p>
+            }
+          </div>
+        </aside>
+      }
     </div>
 
     <mat-menu #menu="matMenu">
@@ -117,12 +130,13 @@
     </mat-menu>
   }
 
-  @if (isEditingEvent() && isAdmin()) {
-    <!-- Admin event editor. Replaces the regular event body while open.
+  @if (isEditingEvent() && canEditEvent()) {
+    <!-- Event editor. Replaces the regular event body while open.
          Save / delete handled by the host; cancel just toggles the flag. -->
     <section class="event-edit-host flex-grow-1 overflow-y-auto">
       <app-event-edit-form
         [event]="event()"
+        [showDeleteButton]="canManageEvent()"
         [saving]="isSavingEvent()"
         (save)="onSaveEvent($event)"
         (cancel)="cancelEditingEvent()"
@@ -144,20 +158,70 @@
           class="h-100 w-100 drawer-container d-flex flex-column gap-0 align-items-start"
           [class.no-rounding]="isCompactView"
         >
-          <mat-chip-listbox class="p-3 w-100" [value]="tab()">
-            @for (tabKeyVal of visibleTabs() | keyvalue; track $index) {
-              <mat-chip-option
-                i18n
-                [value]="tabKeyVal.key"
-                (selectionChange)="selectTab(tabKeyVal.key)"
-                >{{ tabKeyVal.value }}</mat-chip-option
-              >
-            }
-          </mat-chip-listbox>
+          <app-filter-chips-bar
+            class="d-block p-3 w-100"
+            [selectedFilter]="tab()"
+            [presetFilters]="mapObjectFilterChips()"
+            [showFiltersChip]="false"
+            [showClearChip]="false"
+            [allowDeselect]="false"
+            ariaLabel="Event map object type"
+            appearance="solid"
+            (filterChange)="selectTab($event)"
+          ></app-filter-chips-bar>
 
           <mat-divider></mat-divider>
           @defer {
             @switch (tab()) {
+              @case ("all") {
+                <div
+                  class="event-map-overview d-flex flex-column flex-grow-1 gap-4 py-3 overflow-y-auto w-100"
+                >
+                  @if (customMarkers().length > 0) {
+                    <section class="d-flex flex-column gap-2 px-3">
+                      <h2 class="mat-title-medium m-0" i18n>Event markers</h2>
+                      @for (marker of customMarkers(); track marker.id) {
+                        <button
+                          type="button"
+                          class="custom-marker-row"
+                          (click)="selectCustomMarker(marker)"
+                        >
+                          <app-marker
+                            [clickable]="false"
+                            [color]="marker.color ?? 'primary'"
+                            [icons]="marker.icons"
+                          ></app-marker>
+                          <span class="custom-marker-row-copy">
+                            <span class="text-truncate">{{
+                              marker.name || "Event marker"
+                            }}</span>
+                            @if (marker.locality || marker.description) {
+                              <span class="mat-label-small text-truncate">
+                                {{ marker.locality || marker.description }}
+                              </span>
+                            }
+                          </span>
+                          <mat-icon>chevron_right</mat-icon>
+                        </button>
+                      }
+                    </section>
+                  }
+                  @if (spots().length > 0) {
+                    <section class="d-flex flex-column gap-2">
+                      <h2 class="mat-title-medium m-0 px-3" i18n>Spots</h2>
+                      <app-spot-list
+                        class="event-spot-list d-block"
+                        [spots]="spots()"
+                        [mapZoom]="getSpotPreviewZoom()"
+                        [withHrefLink]="false"
+                        [showRatings]="false"
+                        [hideHeader]="true"
+                        (spotClickIndex)="spotClickedIndex($event)"
+                      ></app-spot-list>
+                    </section>
+                  }
+                </div>
+              }
               @case ("challenges") {
                 <!-- Show challenges -->
                 @if (selectedChallenge()) {
@@ -204,19 +268,6 @@
                       @fadeInOut
                       class="custom-marker-card d-flex flex-column gap-3"
                     >
-                      @if (customMarkerPrimaryImageSrc(marker); as imageSrc) {
-                        <div class="custom-marker-media">
-                          <img [src]="imageSrc" [alt]="marker.name || 'Event marker'" />
-                        </div>
-                      } @else {
-                        <div class="custom-marker-media custom-marker-media-placeholder">
-                          <app-marker
-                            [clickable]="false"
-                            [color]="marker.color ?? 'primary'"
-                            [icons]="marker.icons"
-                          ></app-marker>
-                        </div>
-                      }
                       <div
                         class="d-flex flex-row justify-content-between gap-2 align-items-start"
                       >
@@ -263,10 +314,40 @@
                           </button>
                         </div>
                       </div>
+                      @if (
+                        selectedCustomMarkerProgramOccurrences().length > 0
+                      ) {
+                        <section class="location-program-section">
+                          <h4
+                            class="mat-title-small m-0"
+                            i18n="@@event_program.at_this_location"
+                          >
+                            Program at this location
+                          </h4>
+                          <app-event-program-occurrence-list
+                            [occurrences]="
+                              selectedCustomMarkerProgramOccurrences()
+                            "
+                            [timeZone]="event()?.timeZone"
+                            [selectedItemId]="selectedProgramItemId()"
+                            [showSpotCards]="false"
+                            (occurrenceSelected)="
+                              selectProgramOccurrence($event)
+                            "
+                          />
+                        </section>
+                      }
                       @if (marker.description) {
                         <p class="mat-body-medium m-0 custom-marker-copy">
                           {{ marker.description }}
                         </p>
+                      }
+                      @if (selectedCustomMarkerMedia().length > 0) {
+                        <app-img-carousel
+                          [media]="selectedCustomMarkerMedia()"
+                          reportContext="event"
+                          [reportTargetId]="event()?.id"
+                        ></app-img-carousel>
                       }
                       @if (marker.googlePlaceId) {
                         <div class="custom-marker-place">
@@ -318,12 +399,75 @@
                   }
                 </div>
               }
+              @case ("program") {
+                <div
+                  class="program-drawer d-flex flex-column gap-3 p-3 overflow-y-auto w-100"
+                >
+                  <div>
+                    <h2
+                      class="mat-title-medium m-0"
+                      i18n="@@event_program.heading"
+                    >
+                      Program
+                    </h2>
+                  </div>
+                  @if (selectedSpot()) {
+                    <section class="selected-program-spot d-flex flex-column gap-2">
+                      <div class="d-flex align-items-center gap-2">
+                        <button
+                          mat-icon-button
+                          type="button"
+                          (click)="deselectSpot()"
+                          aria-label="All program locations"
+                          i18n-aria-label="@@event_program.all_locations"
+                        >
+                          <mat-icon>close</mat-icon>
+                        </button>
+                        <h3 class="mat-title-small m-0">
+                          {{ selectedSpot()!.name() }}
+                        </h3>
+                      </div>
+                      <p
+                        class="mat-label-large program-section-label m-0"
+                        i18n="@@event_program.at_this_spot"
+                      >
+                        Program at this Spot
+                      </p>
+                      <app-event-program-occurrence-list
+                        [occurrences]="selectedSpotProgramOccurrences()"
+                        [timeZone]="event()?.timeZone"
+                        [selectedItemId]="selectedProgramItemId()"
+                        [showSpotCards]="false"
+                        (occurrenceSelected)="selectProgramOccurrence($event)"
+                      />
+                    </section>
+                  }
+                  <app-event-program-map-schedule
+                    [items]="activeProgramItems()"
+                    [occurrences]="programOccurrences()"
+                    [customMarkers]="customMarkers()"
+                    [linkedEventsById]="programLinkedEventsById()"
+                    [timeZone]="event()?.timeZone"
+                    [eventStart]="event()?.start"
+                    [eventEnd]="event()?.end"
+                    [weather]="eventWeather()"
+                    [now]="now()"
+                    [selectedDay]="selectedProgramDay()"
+                    [selectedItemId]="selectedProgramItemId()"
+                    (dayOpened)="openProgramDay($event)"
+                    (dayClosed)="closeProgramDay($event)"
+                    (occurrenceSelected)="selectProgramOccurrence($event)"
+                    (spotSelected)="openProgramSpotDetails($event)"
+                    (weatherSelected)="openEventWeather($event)"
+                  />
+                </div>
+              }
               @case ("spots") {
                 <!-- Show spots -->
                 @if (selectedSpot()) {
                   <div
                     #spotScrollContainer
-                    class="w-100 d-block overflow-x-hidden h-100"
+                    class="w-100 d-flex flex-column overflow-x-hidden overflow-y-auto h-100"
                   >
                     <app-spot-details
                       @fadeInOut
@@ -334,8 +478,33 @@
                       [border]="false"
                       [showRating]="false"
                       (dismiss)="deselectSpot()"
-                      class="w-100 d-block overflow-x-hidden h-100"
-                    ></app-spot-details>
+                      class="w-100 d-block overflow-x-hidden flex-shrink-0"
+                    >
+                      <section
+                        spotDetailsAfterMedia
+                        class="location-program-section spot-program-section"
+                        [hidden]="
+                          selectedSpotProgramOccurrences().length === 0
+                        "
+                      >
+                        @if (selectedSpotProgramOccurrences().length > 0) {
+                          <h2
+                            class="mat-title-medium m-0"
+                            i18n="@@event_program.at_this_spot"
+                          >
+                            Program at this Spot
+                          </h2>
+                          <app-event-program-occurrence-list
+                            [occurrences]="selectedSpotProgramOccurrences()"
+                            [timeZone]="event()?.timeZone"
+                            [showSpotCards]="false"
+                            (occurrenceSelected)="
+                              selectProgramOccurrence($event)
+                            "
+                          />
+                        }
+                      </section>
+                    </app-spot-details>
                   </div>
                 } @else {
                   @if (spots() && spots()!.length > 0) {
@@ -375,6 +544,7 @@
               [polygons]="areaPolygon() ? [areaPolygon()!] : []"
               [minZoom]="minZoom()"
               [focusZoom]="focusZoom()"
+              [gestureHandling]="eventMapGestureHandling()"
               [mapStyle]="mapStyle"
               [markers]="[]"
               [priorityMarkers]="mapPriorityMarkers()"
@@ -382,6 +552,9 @@
               [highlightedSpots]="highlightedSpots()"
               [showAllHighlightedSpotPins]="true"
               [hideRegularSpotPins]="true"
+              [highlightedSpotColor]="
+                tab() === 'program' ? 'gray' : 'primary'
+              "
               [selectedSpot]="selectedSpot()"
               (spotClick)="selectSpot($event)"
               (mapClick)="deselectSpot()"
@@ -391,7 +564,19 @@
               class="w-100 h-100 overflow-hidden d-block"
             ></app-google-map-2d>
           }
-          @if (!sidenavOpen() && challenges().length > 0) {
+          @if (tab() === "program" && programDays().length > 0) {
+            <app-event-program-day-chips
+              class="event-map-program-days"
+              [days]="programDays()"
+              [selectedDay]="selectedProgramDay()"
+              (dayChange)="selectProgramDay($event)"
+            />
+          }
+          @if (
+            !sidenavOpen() &&
+            tab() === "challenges" &&
+            challenges().length > 0
+          ) {
             <div
               class="position-absolute d-flex flex-row flex-wrap gap-2 pb-3 overflow-x-hidden"
               style="top: 10px; left: 10px; width: calc(100% - 20px)"

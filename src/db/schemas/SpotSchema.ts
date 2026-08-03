@@ -126,6 +126,17 @@ export interface SpotSchema {
   report_reason?: SpotReportReason | string;
   report_count?: number;
   latest_report_at?: Timestamp | { seconds: number; nanoseconds: number };
+  public_notice?: {
+    type:
+      | "destroyed"
+      | "inaccessible"
+      | "temporarily_closed"
+      | "access_concern"
+      | "other";
+    message: string;
+    published_at?: Timestamp | { seconds: number; nanoseconds: number };
+    source?: "moderator" | "community_report" | "legacy_report_migration";
+  };
   duplicate_check?: {
     status: "clear" | "possible_duplicate";
     radius_m: number;

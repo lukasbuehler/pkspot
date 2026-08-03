@@ -1,0 +1,56 @@
+<main class="log-page">
+  <header>
+    <div>
+      <a class="back" routerLink="/train"><mat-icon>arrow_back</mat-icon><span i18n>Train</span></a>
+      <h1 i18n="@@trainingLog.title">Training log</h1>
+      <p i18n="@@trainingLog.subtitle">A private-first record of your training.</p>
+    </div>
+    @if (signedIn()) {
+      <a matButton="filled" routerLink="/train/log/new"><mat-icon>add</mat-icon><span i18n="@@trainingLog.new">New entry</span></a>
+    }
+  </header>
+
+  @if (!signedIn()) {
+    <section class="empty">
+      <mat-icon>lock</mat-icon>
+      <h2 i18n="@@trainingLog.signInTitle">Sign in to use your training log</h2>
+      <a matButton="filled" routerLink="/account" i18n="@@trainingLog.signIn">Sign in</a>
+    </section>
+  } @else if (loading()) {
+    <section class="empty"><mat-progress-spinner diameter="36" mode="indeterminate" /></section>
+  } @else {
+    <section class="summary">
+      <div><strong>{{ logs().length }}</strong><span i18n="@@trainingLog.entries">entries</span></div>
+      <div><strong>{{ sessions().length }}</strong><span i18n="@@trainingLog.sessions">session records</span></div>
+    </section>
+    @if (logs().length) {
+      <section class="entries">
+        @for (entry of logs(); track entry.id) {
+          <article class="entry">
+            <div class="entry-meta">
+              <span>{{ entry.activity_at_raw_ms | systemDate: "mediumDate" }}</span>
+              <span class="visibility"><mat-icon>{{ entry.visibility === "private" ? "lock" : entry.visibility === "public" ? "public" : "group" }}</mat-icon>{{ entry.visibility }}</span>
+            </div>
+            <p>{{ entry.note || "Training session" }}</p>
+            <div class="session-summary">
+              @for (session of entry.session_summaries; track session.session_record_id) {
+                <span>{{ session.local_date }} · {{ session.duration_minutes || 0 }} min · {{ session.spot_count }} spots</span>
+              }
+            </div>
+            <div class="actions">
+              <a matButton [routerLink]="['/train/log', entry.id, 'edit']"><mat-icon>edit</mat-icon><span i18n>Edit</span></a>
+              <button matIconButton type="button" (click)="removeLog(entry.id)" aria-label="Delete log entry" i18n-aria-label><mat-icon>delete</mat-icon></button>
+            </div>
+          </article>
+        }
+      </section>
+    } @else {
+      <section class="empty">
+        <mat-icon>history_edu</mat-icon>
+        <h2 i18n="@@trainingLog.emptyTitle">Your first entry starts here</h2>
+        <p i18n="@@trainingLog.emptyBody">Record what happened. It stays private unless you choose otherwise.</p>
+        <a matButton="filled" routerLink="/train/log/new" i18n="@@trainingLog.createFirst">Create first entry</a>
+      </section>
+    }
+  }
+</main>

@@ -1,0 +1,115 @@
+<main class="claim-response">
+  @if (loading()) {
+    <mat-spinner diameter="40" />
+  } @else if (inaccessible() || !claim()) {
+    <mat-card class="status-card">
+      <mat-card-content>
+        <mat-icon>lock</mat-icon>
+        <div>
+          <h1
+            class="mat-title-large"
+            i18n="@@event_claims.response_unavailable_heading"
+          >
+            Ownership claim unavailable
+          </h1>
+          <p i18n="@@event_claims.response_unavailable_body">
+            Only the claimant, the current owner, and PK Spot administrators
+            can view this claim.
+          </p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  } @else if (claim(); as currentClaim) {
+    <header>
+      <h1 class="mat-headline-medium" i18n="@@event_claims.response_heading">
+        Organization ownership claim
+      </h1>
+      <p class="mat-body-large">
+        {{ currentClaim.organization.name }} · {{ currentClaim.event_name }}
+      </p>
+    </header>
+
+    @if (event(); as currentEvent) {
+      <app-event-card [event]="currentEvent" />
+    }
+
+    <mat-card>
+      <mat-card-content>
+        <h2 class="mat-title-large" i18n="@@event_claims.claim_explanation">
+          Claim explanation
+        </h2>
+        <p>{{ currentClaim.explanation }}</p>
+        <ul>
+          @for (url of currentClaim.evidence_urls; track url) {
+            <li>
+              <a [href]="url" target="_blank" rel="noopener noreferrer">
+                {{ url }}
+              </a>
+            </li>
+          }
+        </ul>
+      </mat-card-content>
+    </mat-card>
+
+    @if (currentClaim.status === "pending") {
+      <mat-card>
+        <mat-card-content>
+          <h2 class="mat-title-large" i18n="@@event_claims.owner_response">
+            Current owner response
+          </h2>
+          <p i18n="@@event_claims.owner_response_help">
+            Supporting or contesting helps administrators decide. They may
+            decide immediately when the public evidence is already sufficient.
+          </p>
+          <mat-form-field appearance="outline">
+            <mat-label i18n="@@event_claims.owner_message">
+              Optional response
+            </mat-label>
+            <textarea
+              matInput
+              rows="5"
+              [ngModel]="message()"
+              (ngModelChange)="message.set($event)"
+            ></textarea>
+          </mat-form-field>
+          <div class="response-actions">
+            <button
+              mat-stroked-button
+              type="button"
+              [disabled]="submitting() !== null"
+              (click)="respond('contest')"
+              i18n="@@event_claims.contest"
+            >
+              Contest claim
+            </button>
+            <button
+              mat-flat-button
+              type="button"
+              [disabled]="submitting() !== null"
+              (click)="respond('support')"
+              i18n="@@event_claims.support"
+            >
+              Support claim
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    } @else {
+      <mat-card class="status-card">
+        <mat-card-content>
+          <mat-icon>
+            {{ currentClaim.status === "approved" ? "check_circle" : "cancel" }}
+          </mat-icon>
+          <div>
+            <h2 class="mat-title-large">
+              {{ statusLabel(currentClaim.status) }}
+            </h2>
+            @if (currentClaim.decision?.reason) {
+              <p>{{ currentClaim.decision?.reason }}</p>
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+  }
+</main>

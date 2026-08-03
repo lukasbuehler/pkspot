@@ -1,16 +1,21 @@
 :host {
   display: block;
+  width: 100%;
+  min-width: 0;
 }
 
 .profile-page {
   display: flex;
   justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
   padding: clamp(16px, 4vw, 48px) clamp(12px, 5vw, 72px);
 }
 
 .profile-grid {
-  width: min(1120px, 100%);
   display: grid;
+  width: min(1120px, 100%);
+  min-width: 0;
   gap: clamp(16px, 3vw, 24px);
 }
 
@@ -24,36 +29,42 @@
 .profile-primary,
 .profile-secondary {
   display: grid;
+  min-width: 0;
   gap: clamp(16px, 3vw, 24px);
 }
 
 .profile-overview__card {
+  position: relative;
+  width: 100%;
+  min-width: 0;
   overflow: hidden;
+  border-radius: 20px;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.profile-overview__menu-trigger {
+  position: absolute;
+  top: 12px;
+  inset-inline-end: 12px;
 }
 
 .profile-overview__card .mat-mdc-card-content {
-  padding: clamp(20px, 4vw, 32px);
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: clamp(24px, 6vw, 48px);
 }
 
 .profile-overview__content {
   display: grid;
-  gap: clamp(20px, 4vw, 32px);
-  align-items: start;
-}
-
-@media (min-width: 768px) {
-  .profile-overview__content {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-}
-
-.profile-overview__media {
-  display: flex;
-  justify-content: center;
+  justify-items: center;
+  gap: clamp(20px, 4vw, 28px);
 }
 
 .profile-overview__avatar {
   width: clamp(112px, 24vw, 168px);
+  padding: 0;
+  border: 0;
   aspect-ratio: 1;
   border-radius: 50%;
   background-color: var(--mat-sys-primary-container);
@@ -62,10 +73,16 @@
   overflow: hidden;
   flex-shrink: 0;
   box-shadow: 0 0 0 6px var(--mat-sys-surface-container-high);
+  cursor: zoom-in;
 
   > img {
     object-fit: cover;
   }
+}
+
+.profile-overview__avatar:focus-visible {
+  outline: 3px solid var(--mat-sys-primary);
+  outline-offset: 5px;
 }
 
 .profile-overview__avatar--placeholder {
@@ -73,66 +90,59 @@
   place-items: center;
   text-transform: uppercase;
   font-weight: 600;
+  cursor: default;
 }
 
 .profile-overview__details {
   display: grid;
-  gap: 18px;
+  justify-items: center;
+  gap: 20px;
   width: 100%;
   min-width: 0;
 }
 
-.profile-overview__identity {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
-}
-
 .profile-overview__name {
   margin: 0;
+  text-align: center;
   overflow-wrap: anywhere;
 }
 
-.profile-overview__handle {
-  margin: 4px 0 0;
-  color: var(--mat-sys-on-surface-variant);
-  overflow-wrap: anywhere;
-}
-
-.profile-overview__chips {
-  max-width: 100%;
-}
-
-.profile-overview__chip-icon {
-  width: 18px;
-  height: 18px;
-  font-size: 18px;
+.profile-overview__bio,
+.profile-overview__empty-copy {
+  max-width: 620px;
+  margin: 0;
+  text-align: center;
 }
 
 .profile-overview__bio {
-  margin: 0;
   white-space: pre-line;
   overflow-wrap: anywhere;
 }
 
 .profile-overview__empty-copy {
-  margin: 0;
   color: var(--mat-sys-on-surface-variant);
 }
 
 .profile-overview__metadata {
-  display: grid;
-  justify-items: start;
-  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  gap: clamp(12px, 3vw, 24px);
 }
 
 .profile-overview__metadata-item {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  min-width: 0;
   gap: 6px;
   color: var(--mat-sys-on-surface-variant);
+  text-align: center;
+  white-space: normal;
 
   mat-icon {
     width: 18px;
@@ -151,48 +161,79 @@
 .profile-overview__socials {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
 }
 
-.profile-social-link {
-  text-decoration: none;
+.profile-social-icon-link,
+.profile-social-text-link {
+  color: var(--mat-sys-on-surface);
+}
+
+.profile-social-icon-link {
+  --mat-icon-button-icon-color: var(--mat-sys-on-surface);
+
+  img {
+    display: block;
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+  }
+}
+
+.profile-social-text-link {
+  --mdc-outlined-button-container-height: 44px;
+  --mdc-outlined-button-label-text-color: var(--mat-sys-on-surface);
 }
 
 @media (min-width: 560px) {
   .profile-overview__actions {
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   }
-
-  .profile-overview__actions--owner {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }
 
 .profile-overview__action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  position: relative;
   min-height: 44px;
+}
+
+.profile-overview__action-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.profile-overview__action-label--loading {
+  visibility: hidden;
+}
+
+.profile-overview__edit-action {
+  box-sizing: border-box;
+  width: min(320px, 100%);
 }
 
 .profile-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 8px;
-  overflow: hidden;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 12px;
+  width: min(720px, 100%);
 }
 
 .profile-stat {
   appearance: none;
   border: 0;
-  border-inline-end: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
   color: var(--mat-sys-on-surface);
-  width: 100%;
+  background: transparent;
+  min-width: 0;
+  padding: 8px 4px;
+}
 
-  &:last-child {
-    border-inline-end: 0;
+@media (min-width: 560px) {
+  .profile-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(12px, 3vw, 28px);
   }
 }
 
@@ -218,10 +259,6 @@
   &:disabled {
     cursor: default;
   }
-}
-
-.profile-overview__action-spinner {
-  --mdc-circular-progress-active-indicator-color: currentColor;
 }
 
 .profile-section {
@@ -378,20 +415,6 @@
 }
 
 @media (max-width: 559px) {
-  .profile-overview__identity {
-    justify-content: center;
-    text-align: center;
-  }
-
-  .profile-overview__metadata,
-  .profile-overview__socials {
-    justify-content: center;
-  }
-
-  .profile-overview__metadata {
-    justify-items: center;
-  }
-
   .profile-section__header--split.mat-mdc-card-header {
     flex-direction: column;
   }

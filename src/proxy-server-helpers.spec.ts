@@ -5,7 +5,9 @@ import {
   DYNAMIC_SSR_CACHE_CONTROL,
   getStaticAssetCacheControl,
   getQrStickerRedirectTarget,
+  getRetiredUiLocaleRedirectTarget,
   getTrustedClientRegionFromHeaders,
+  handlePublicCallableRequest,
   handleQrStickerRequest,
   isStaticSsrPath,
   LONG_LIVED_ASSET_CACHE_CONTROL,
@@ -62,6 +64,22 @@ describe("proxy-server client region helpers", () => {
     expect(getQrStickerRedirectTarget("/qr/unknown", "unknown")).toBeNull();
   });
 
+  it("should redirect retired Swiss German URLs to German", () => {
+    expect(getRetiredUiLocaleRedirectTarget("/de-CH")).toBe("/de");
+    expect(getRetiredUiLocaleRedirectTarget("/de-CH/")).toBe("/de/");
+    expect(
+      getRetiredUiLocaleRedirectTarget(
+        "/de-CH/map/spots/josefhalle?filter=dry&zoom=16",
+      ),
+    ).toBe("/de/map/spots/josefhalle?filter=dry&zoom=16");
+  });
+
+  it("should only redirect an exact retired locale path segment", () => {
+    expect(getRetiredUiLocaleRedirectTarget("/de/map")).toBeNull();
+    expect(getRetiredUiLocaleRedirectTarget("/de-CH-community")).toBeNull();
+    expect(getRetiredUiLocaleRedirectTarget(undefined)).toBeNull();
+  });
+
   it("should handle known QR sticker requests as 302 redirects", () => {
     const headers: Record<string, string> = {};
     const res = {
@@ -104,6 +122,60 @@ describe("proxy-server client region helpers", () => {
     expect(next).toHaveBeenCalled();
   });
 
+  it("should proxy the allowlisted public provenance callable", async () => {
+    const headers = new Map([["content-type", "application/json"]]);
+    const fetchImpl = vi.fn().mockResolvedValue({
+      headers: { get: (name: string) => headers.get(name) ?? null },
+      status: 200,
+      text: vi.fn().mockResolvedValue('{"result":null}'),
+    });
+    const res = {
+      send: vi.fn(),
+      setHeader: vi.fn(),
+      status: vi.fn(() => res),
+    };
+
+    await handlePublicCallableRequest(
+      {
+        body: { data: { importId: "pkspot-import" } },
+        params: { functionName: "getPublicImportProvenance" },
+      },
+      res,
+      fetchImpl,
+    );
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      "https://europe-west1-parkour-base-project.cloudfunctions.net/getPublicImportProvenance",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: '{"data":{"importId":"pkspot-import"}}',
+      },
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.send).toHaveBeenCalledWith('{"result":null}');
+  });
+
+  it("should reject public callable names that are not allowlisted", async () => {
+    const fetchImpl = vi.fn();
+    const res = {
+      send: vi.fn(),
+      status: vi.fn(() => res),
+    };
+
+    await handlePublicCallableRequest(
+      {
+        body: { data: {} },
+        params: { functionName: "adminFunction" },
+      },
+      res,
+      fetchImpl,
+    );
+
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(404);
+  });
+
   it("should cache fingerprinted browser assets for a long time", () => {
     expect(
       getStaticAssetCacheControl(
@@ -137,11 +209,12 @@ describe("proxy-server client region helpers", () => {
   });
 
   it("should classify static SSR paths after stripping locale prefixes", () => {
-    const languages = ["en", "de", "de-CH"];
+    const languages = ["en", "de", "fr"];
 
     expect(isStaticSsrPath("/", languages)).toBe(true);
     expect(isStaticSsrPath("/en/about", languages)).toBe(true);
-    expect(isStaticSsrPath("/de-CH/privacy-policy/", languages)).toBe(true);
+    expect(isStaticSsrPath("/de/safety", languages)).toBe(false);
+    expect(isStaticSsrPath("/fr/privacy-policy/", languages)).toBe(true);
     expect(isStaticSsrPath("/en/map", languages)).toBe(false);
     expect(isStaticSsrPath("/de/map/spots/josefhalle", languages)).toBe(false);
     expect(isStaticSsrPath("/en/events/swissjam25", languages)).toBe(false);

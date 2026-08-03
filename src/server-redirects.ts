@@ -12,6 +12,15 @@ export function getLegacySsrRedirectTarget(originalUrl: string): string | null {
   const pathname = parsed.pathname;
   const search = parsed.search;
 
+  const eventMatch = pathname.match(
+    new RegExp(`^(\\/${LOCALE_PREFIX_PATTERN})?\\/map\\/events\\/([^/]+)$`, "u")
+  );
+  if (eventMatch) {
+    const localePrefix = eventMatch[1] ?? "";
+    const eventIdOrSlug = eventMatch[2] ?? "";
+    return `${localePrefix}/events/${eventIdOrSlug}${search}`;
+  }
+
   const communityMatch = pathname.match(
     new RegExp(`^(\\/${LOCALE_PREFIX_PATTERN})?\\/map\\/community\\/([^/]+)$`, "u")
   );

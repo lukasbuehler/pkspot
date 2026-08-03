@@ -1,144 +1,201 @@
-<div class="container p-5">
-  <div class="row pt-5 pb-3 align-items-center">
-    <div class="col-12 d-flex flex-row align-items-center gap-3 flex-wrap">
-      <h2 class="mat-heading-large m-0 flex-grow-1" i18n=":@@events.title">
-        Events
+<main
+  class="events-page container"
+  appResizeObserver
+  (resize)="onContainerResize($event)"
+>
+  @if (myEventContext.liveEvents().length > 0) {
+    <section
+      class="live-events"
+      aria-labelledby="live-events-heading"
+    >
+      <h2
+        id="live-events-heading"
+        class="mat-title-large"
+        i18n="@@events.live_events_heading"
+      >
+        Happening now
       </h2>
-      @if (isAdmin()) {
-        <a
-          matFab
-          extended="true"
-          color="primary"
-          routerLink="/events/new"
-          class="create-event-fab"
-          (click)="trackCreateEventClick()"
-        >
-          <mat-icon>calendar_add_on</mat-icon>
-          <span i18n="@@events.create">Create event</span>
-        </a>
-      }
-    </div>
-  </div>
-
-  @if (categoryFilterOptions().length > 0 || seriesFilterOptions().length > 0) {
-    <div class="row pb-3">
-      @if (categoryFilterOptions().length > 0) {
-        <div class="col-12 filter-group">
-          <mat-chip-set aria-label="Filter events by category">
-            @for (category of categoryFilterOptions(); track category.id) {
-              <mat-chip-option
-                [selected]="isCategorySelected(category.id)"
-                (click)="toggleCategoryFilter(category.id)"
-              >
-                <mat-icon matChipAvatar>{{ category.icon }}</mat-icon>
-                {{ category.label }}
-                <span class="filter-count">{{ category.count }}</span>
-              </mat-chip-option>
-            }
-            @if (selectedCategories().length > 0) {
-              <button
-                mat-button
-                type="button"
-                class="clear-filter-button"
-                (click)="clearCategoryFilters()"
-              >
-                <mat-icon>filter_alt_off</mat-icon>
-                <span i18n="@@events.clear_category_filters">Clear</span>
-              </button>
-            }
-          </mat-chip-set>
-        </div>
-      }
-      @if (seriesFilterOptions().length > 0) {
-        <div class="col-12 filter-group">
-          <mat-chip-set aria-label="Filter events by series">
-            @for (series of seriesFilterOptions(); track series.id) {
-              <mat-chip-option
-                [selected]="isSeriesSelected(series.id)"
-                (click)="toggleSeriesFilter(series.id)"
-              >
-                @if (series.logoSrc) {
-                  <span
-                    matChipAvatar
-                    class="series-filter-avatar"
-                    [style.background]="series.logoBackground"
-                  >
-                    <img [src]="series.logoSrc" [alt]="series.label" />
-                  </span>
-                }
-                {{ series.label }}
-                <span class="filter-count">{{ series.count }}</span>
-              </mat-chip-option>
-            }
-            @if (selectedSeriesIds().length > 0) {
-              <button
-                mat-button
-                type="button"
-                class="clear-filter-button"
-                (click)="clearSeriesFilters()"
-              >
-                <mat-icon>filter_alt_off</mat-icon>
-                <span i18n="@@events.clear_series_filters">Clear</span>
-              </button>
-            }
-          </mat-chip-set>
-        </div>
-      }
-    </div>
+      <div class="live-event-grid">
+        @for (event of myEventContext.liveEvents(); track event.id) {
+          <app-event-now-next-card
+            [event]="event"
+            [now]="myEventContext.now()"
+            [showEventName]="true"
+          />
+        }
+      </div>
+    </section>
   }
 
-  @if (loading()) {
-    <div class="row mb-5">
-      <div class="col-md-12">
-        <p class="mat-body-medium" i18n>Loading events…</p>
-      </div>
+  @if (
+    nonLiveGoingEvents().length > 0 ||
+    myEventContext.savedEvents().length > 0
+  ) {
+    <app-my-events-panel
+      [goingEvents]="nonLiveGoingEvents()"
+      [savedEvents]="myEventContext.savedEvents()"
+      [now]="myEventContext.now()"
+      [signedIn]="isSignedIn()"
+    />
+  }
+
+  <header class="page-header">
+    <div class="page-heading">
+      <h1 class="mat-headline-large" i18n="@@events.title">Events</h1>
+      <p class="mat-body-large" i18n>
+        Discover parkour events around the world.
+      </p>
     </div>
-  } @else if (events().length === 0) {
-    <div class="row mb-5">
-      <div class="col-md-12">
-        <p class="mat-body-medium" i18n>No events scheduled yet.</p>
-      </div>
-    </div>
-  } @else if (filteredEvents().length === 0) {
-    <div class="row mb-5">
-      <div class="col-md-12">
-        <p class="mat-body-medium" i18n="@@events.no_filtered_events">
-          No events match the selected filters.
+    <app-event-discovery-view-toggle
+      [view]="view()"
+      (viewChange)="onViewChange($event)"
+    />
+  </header>
+
+  <app-event-discovery-toolbar
+    [query]="query()"
+    [view]="view()"
+    [period]="period()"
+    [areaKey]="areaKey()"
+    [categoryOptions]="categoryFilterOptions()"
+    [seriesOptions]="seriesFilterOptions()"
+    [selectedCategories]="selectedCategories()"
+    [selectedSeriesIds]="selectedSeriesIds()"
+    (periodChange)="onPeriodChange($event)"
+    (categoryToggled)="toggleCategory($event)"
+    (seriesToggled)="toggleSeries($event)"
+    (filtersCleared)="clearFilters()"
+  />
+
+  @if (discoveryResource.error() && !usesContinuousCalendar()) {
+    <section class="status-card error-card" role="alert">
+      <span class="status-icon"><mat-icon>warning</mat-icon></span>
+      <div>
+        <h2 class="mat-title-medium" i18n>Events could not be loaded</h2>
+        <p class="mat-body-medium" i18n>
+          Check your connection and try again.
         </p>
+        <button mat-stroked-button type="button" (click)="retry()" i18n>
+          Try again
+        </button>
       </div>
-    </div>
+    </section>
   } @else {
-    @if (upcomingEvents().length > 0) {
-      <div class="row mb-5">
-        @for (event of upcomingEvents(); track event.id) {
-          <div class="col-md-6 col-lg-4 mb-3">
-            <app-event-card
-              [event]="event"
-              [seriesById]="seriesById()"
-            ></app-event-card>
-          </div>
-        }
-      </div>
+    @if (isAdmin() && invalidEvents().length; as invalidItemCount) {
+      <section class="status-card warning-card" role="status">
+        <span class="status-icon"><mat-icon>warning</mat-icon></span>
+        <div class="status-copy">
+          <h2 class="mat-title-medium" i18n>Some events need a data update</h2>
+          <p class="mat-body-medium" i18n>
+            {invalidItemCount, plural,
+              =1 {One published event has invalid discovery data and was not shown.}
+              other {{{invalidItemCount}} published events have invalid discovery data and were not shown.}
+            }
+          </p>
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="openInvalidEventsDialog()"
+          >
+            <mat-icon>edit</mat-icon>
+            <span i18n>Review events</span>
+          </button>
+        </div>
+      </section>
     }
 
-    @if (pastEvents().length > 0) {
-      <div class="row mt-4 mb-2">
-        <div class="col-md-12">
-          <h3 class="mat-title-large past-heading" i18n="@@events.past_heading">
-            Past events
-          </h3>
+    @if (usesContinuousCalendar()) {
+      <app-continuous-event-calendar
+        [anchorMonth]="month()"
+        [selectedDay]="selectedDay()"
+        [wide]="wideCalendar()"
+        [query]="query()"
+        [areaKeys]="discoveryAreaKeys()"
+        [categories]="selectedCategories()"
+        [seriesIds]="selectedSeriesIds()"
+        [seriesById]="seriesById()"
+        [loadEvents]="loadContinuousCalendarEvents"
+        (daySelected)="selectDay($event)"
+        (dateJumped)="jumpToCalendarDate($event)"
+        (resultLoaded)="onContinuousCalendarResult($event)"
+      />
+    } @else if (discoveryResource.isLoading() && !discoveryResult()) {
+      <div class="loading-state" role="status">
+        <mat-icon class="loading-icon">hourglass_top</mat-icon>
+        <span class="mat-body-medium" i18n>Loading events…</span>
+      </div>
+    } @else if (events().length === 0) {
+      <section class="empty-state">
+        <mat-icon>event</mat-icon>
+        <h2 class="mat-title-large" i18n>No matching events</h2>
+        <p class="mat-body-medium" i18n>
+          Try another month or clear the active filters.
+        </p>
+      </section>
+    } @else if (view() === "calendar") {
+      <app-event-calendar
+        [calendar]="calendar()"
+        [selectedDay]="selectedDay()"
+        [wide]="wideCalendar()"
+        [seriesById]="seriesById()"
+        (previousMonth)="changeMonth(-1)"
+        (nextMonth)="changeMonth(1)"
+        (today)="goToToday()"
+        (daySelected)="selectDay($event)"
+      />
+    } @else {
+      <div class="result-summary mat-label-large" aria-live="polite">
+        <span i18n>{discoveryResult()?.found ?? 0, plural,
+          =1 {1 event}
+          other {{{discoveryResult()?.found ?? 0}} events}
+        }</span>
+        @if (discoveryResource.isLoading()) {
+          <span i18n>Updating…</span>
+        }
+      </div>
+      <app-event-discovery-list
+        [events]="events()"
+        [found]="discoveryResult()?.found ?? 0"
+        [loading]="discoveryResource.isLoading()"
+        [seriesById]="seriesById()"
+        (loadMore)="loadMore()"
+      />
+    }
+  }
+
+  @if (isAdmin() && (draftsResource.isLoading() || drafts().length > 0)) {
+    <section class="drafts-section">
+      <div class="drafts-heading">
+        <span class="status-icon"><mat-icon>visibility_off</mat-icon></span>
+        <div>
+          <h2 class="mat-title-large" i18n>Admin drafts</h2>
+          <p class="mat-body-medium" i18n>
+            Unpublished events are kept separate from public search results.
+          </p>
         </div>
       </div>
-      <div class="row mb-5">
-        @for (event of pastEvents(); track event.id) {
-          <div class="col-md-6 col-lg-4 mb-3">
+      @if (draftsResource.isLoading()) {
+        <p class="mat-body-medium" i18n>Loading drafts…</p>
+      } @else {
+        <div class="draft-grid">
+          @for (event of drafts(); track event.id) {
             <app-event-card
               [event]="event"
               [seriesById]="seriesById()"
-            ></app-event-card>
-          </div>
-        }
-      </div>
-    }
+            />
+          }
+        </div>
+      }
+    </section>
   }
-</div>
+</main>
+
+@if (createActions().length > 0) {
+  <app-fab-menu
+    id="eventsCreateFabMenu"
+    class="create-event-fab-menu"
+    [actions]="createActions()"
+    [launcherLabel]="createMenuLabel"
+    (actionSelected)="onCreateAction($event)"
+  />
+}

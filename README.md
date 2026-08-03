@@ -13,6 +13,13 @@ PK Spot is growing toward one app for Parkour spots, training, events, jams, and
 
 ## Release Notes
 
+### Version 1.1.4 - "Notifications & Weather"
+
+- Added notifications to iOS, Android, and Web: community digests, event
+  reminders, and Spot edit submission updates
+- Added Google Weather to Spots, the current map area, and events
+- Improved Events: RSVP became "Add to My Events" and enables notifications
+
 ### Version 1.1.3 - "Profiles & Community Submissions"
 
 - Updated Profile pages and following mechanics
@@ -94,6 +101,8 @@ Under `keys.firebaseConfig.apiKey` you will need to add your own Google API Key,
 - Secret Manager API
 - Street View Static API
 - Token Service API
+- FCM Registration API
+- Firebase Installations API
 
 #### Firebase Development Setup
 
@@ -114,12 +123,12 @@ English (`en`) is the source language.
 To tweak a translation, go to the corresponding file, find the string you want to change, and update the value inside the `target` XML tag only. Example:
 
 ```xml
-<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en" trgLang="de-CH">
+<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en" trgLang="de">
     <file id="ngi18n" original="ng.template">
         <unit id="1940752772695642659">
             <segment state="initial">
                 <source> The spot for everything parkour. </source>
-                <target> De Spot für alles Parkour. </target>
+                <target> Der Spot für alles rund um Parkour. </target>
             </segment>
         </unit>
         ...
@@ -134,7 +143,7 @@ After adding new text in the HTML markup and adding the `i18n` attribute, update
 Run the following command:
 
 ```
-npx ng extract-i18n
+npm run ng -- extract-i18n
 ```
 
 After that the language files will be updated (and possibly reformatted, which is ok). You can now edit the language files as usual with the new text.
@@ -162,12 +171,6 @@ After that the language files will be updated (and possibly reformatted, which i
                "translation": "src/locale/messages.de.xlf",
                "baseHref": "/de/"
            },
-           "de-CH": {
-               "translation": "src/locale/messages.de-CH.xlf",
-               "baseHref": "/de-CH/"
-           }
-           ...
-
            // add your new language here
            // with its language code xx-XX or xx similar to above...
 
@@ -182,7 +185,7 @@ After that the language files will be updated (and possibly reformatted, which i
            "build": {
               "builder": "@angular/build:application",
               "options": {
-                  "localize": ["en", "de", "de-CH", "xx-XX"], // add you language here too
+                  "localize": ["en", "de", "xx-XX"], // add you language here too
                   ...
               }
               ...
@@ -288,10 +291,11 @@ Example image backfill payload:
 
 #### Events and communities
 
-| Job                                      | Firestore document                                | Payload | Completion                                                                                                     |
-| ---------------------------------------- | ------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------- |
-| Recompute event Typesense helper fields. | `maintenance/run-backfill-event-typesense-fields` | `{}`    | Deletes the run doc.                                                                                           |
-| Rebuild generated community pages.       | `maintenance/run-rebuild-community-pages`         | `{}`    | Updates the run doc with `status: "DONE"` and writes warnings to `maintenance/community-warnings` when needed. |
+| Job                                      | Firestore document                                | Payload                | Completion                                                                                                     |
+| ---------------------------------------- | ------------------------------------------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Recompute event Typesense helper fields. | `maintenance/run-backfill-event-typesense-fields` | `{}`                   | Deletes the run doc.                                                                                           |
+| Rebuild public event discovery.          | `maintenance/run-rebuild-event-discovery`         | `{ "dry_run": false }` | Retains progress and finishes with `status: "DONE"` or `status: "DONE_WITH_ERRORS"`.                           |
+| Rebuild generated community pages.       | `maintenance/run-rebuild-community-pages`         | `{}`                   | Updates the run doc with `status: "DONE"` and writes warnings to `maintenance/community-warnings` when needed. |
 
 #### One-off migrations
 

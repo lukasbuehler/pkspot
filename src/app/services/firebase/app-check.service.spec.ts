@@ -1,17 +1,13 @@
 import { TestBed } from "@angular/core/testing";
 import { PLATFORM_ID } from "@angular/core";
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import {
-  FirebaseApp,
-  getApps,
-  initializeApp as initializeFirebaseApp,
-} from "@angular/fire/app";
+import { getApps, initializeApp as initializeFirebaseApp } from "firebase/app";
 import { FirebaseAppCheck } from "@capacitor-firebase/app-check";
 import {
   ReCaptchaEnterpriseProvider,
   getToken,
   initializeAppCheck,
-} from "@angular/fire/app-check";
+} from "firebase/app-check";
 import { PlatformService } from "../platform.service";
 import {
   FirebaseAppCheckService,
@@ -20,6 +16,7 @@ import {
 } from "./app-check.service";
 import { environment as productionEnvironment } from "../../../environments/environment.production";
 import { AnalyticsService } from "../analytics.service";
+import { FIREBASE_APP } from "./firebase-client.providers";
 
 vi.mock("@capacitor-firebase/app-check", () => ({
   FirebaseAppCheck: {
@@ -31,7 +28,7 @@ vi.mock("@capacitor-firebase/app-check", () => ({
   },
 }));
 
-vi.mock("@angular/fire/app-check", () => ({
+vi.mock("firebase/app-check", () => ({
   initializeAppCheck: vi.fn(() => ({ app: "app-check" })),
   getToken: vi.fn().mockResolvedValue({ token: "web-token" }),
   ReCaptchaEnterpriseProvider: class MockReCaptchaEnterpriseProvider {
@@ -39,8 +36,8 @@ vi.mock("@angular/fire/app-check", () => ({
   },
 }));
 
-vi.mock("@angular/fire/app", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@angular/fire/app")>();
+vi.mock("firebase/app", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("firebase/app")>();
   return {
     ...actual,
     getApps: vi.fn(() => []),
@@ -127,7 +124,7 @@ describe("FirebaseAppCheckService", () => {
     TestBed.configureTestingModule({
       providers: [
         FirebaseAppCheckService,
-        { provide: FirebaseApp, useValue: {} },
+        { provide: FIREBASE_APP, useValue: {} },
         { provide: PLATFORM_ID, useValue: "server" },
         { provide: PlatformService, useValue: createPlatformService("web") },
       ],
@@ -149,7 +146,7 @@ describe("FirebaseAppCheckService", () => {
       providers: [
         FirebaseAppCheckService,
         {
-          provide: FirebaseApp,
+          provide: FIREBASE_APP,
           useValue: {
             options: {
               appId: "web-app-id",
@@ -187,7 +184,7 @@ describe("FirebaseAppCheckService", () => {
     TestBed.configureTestingModule({
       providers: [
         FirebaseAppCheckService,
-        { provide: FirebaseApp, useValue: firebaseApp },
+        { provide: FIREBASE_APP, useValue: firebaseApp },
         { provide: PLATFORM_ID, useValue: "browser" },
         { provide: PlatformService, useValue: createPlatformService("web") },
       ],
@@ -209,11 +206,11 @@ describe("FirebaseAppCheckService", () => {
     expect(FirebaseAppCheck.initialize).not.toHaveBeenCalled();
   });
 
-  it("returns a web token for Google Maps requests", async () => {
+  it("returns a web token for App Check protected requests", async () => {
     TestBed.configureTestingModule({
       providers: [
         FirebaseAppCheckService,
-        { provide: FirebaseApp, useValue: {} },
+        { provide: FIREBASE_APP, useValue: { options: {} } },
         { provide: PLATFORM_ID, useValue: "browser" },
         { provide: PlatformService, useValue: createPlatformService("web") },
       ],
@@ -224,8 +221,10 @@ describe("FirebaseAppCheckService", () => {
       enabled: true,
       recaptchaEnterpriseSiteKey: "site-key",
     });
+    const token = await service.getTokenForRequest();
 
-    await expect(service.getTokenForRequest()).resolves.toBe("web-token");
+    expect(token).toBe("web-token");
+    expect(initializeAppCheck).toHaveBeenCalledOnce();
     expect(getToken).toHaveBeenCalledTimes(2);
   });
 
@@ -240,7 +239,7 @@ describe("FirebaseAppCheckService", () => {
     TestBed.configureTestingModule({
       providers: [
         FirebaseAppCheckService,
-        { provide: FirebaseApp, useValue: {} },
+        { provide: FIREBASE_APP, useValue: {} },
         { provide: PLATFORM_ID, useValue: "browser" },
         { provide: PlatformService, useValue: createPlatformService("web") },
       ],
@@ -286,7 +285,7 @@ describe("FirebaseAppCheckService", () => {
     TestBed.configureTestingModule({
       providers: [
         FirebaseAppCheckService,
-        { provide: FirebaseApp, useValue: firebaseApp },
+        { provide: FIREBASE_APP, useValue: firebaseApp },
         { provide: PLATFORM_ID, useValue: "browser" },
         { provide: PlatformService, useValue: createPlatformService("web") },
       ],
@@ -336,7 +335,7 @@ describe("FirebaseAppCheckService", () => {
     TestBed.configureTestingModule({
       providers: [
         FirebaseAppCheckService,
-        { provide: FirebaseApp, useValue: firebaseApp },
+        { provide: FIREBASE_APP, useValue: firebaseApp },
         { provide: PLATFORM_ID, useValue: "browser" },
         { provide: PlatformService, useValue: createPlatformService("web") },
       ],
@@ -388,7 +387,7 @@ describe("FirebaseAppCheckService", () => {
     TestBed.configureTestingModule({
       providers: [
         FirebaseAppCheckService,
-        { provide: FirebaseApp, useValue: firebaseApp },
+        { provide: FIREBASE_APP, useValue: firebaseApp },
         { provide: PLATFORM_ID, useValue: "browser" },
         { provide: PlatformService, useValue: createPlatformService("web") },
       ],
@@ -430,7 +429,7 @@ describe("FirebaseAppCheckService", () => {
     TestBed.configureTestingModule({
       providers: [
         FirebaseAppCheckService,
-        { provide: FirebaseApp, useValue: {} },
+        { provide: FIREBASE_APP, useValue: {} },
         { provide: PLATFORM_ID, useValue: "browser" },
         { provide: PlatformService, useValue: createPlatformService("web") },
       ],
@@ -457,7 +456,7 @@ describe("FirebaseAppCheckService", () => {
     TestBed.configureTestingModule({
       providers: [
         FirebaseAppCheckService,
-        { provide: FirebaseApp, useValue: {} },
+        { provide: FIREBASE_APP, useValue: {} },
         { provide: PLATFORM_ID, useValue: "browser" },
         { provide: PlatformService, useValue: createPlatformService("web") },
       ],
@@ -482,7 +481,7 @@ describe("FirebaseAppCheckService", () => {
     TestBed.configureTestingModule({
       providers: [
         FirebaseAppCheckService,
-        { provide: FirebaseApp, useValue: {} },
+        { provide: FIREBASE_APP, useValue: {} },
         { provide: PLATFORM_ID, useValue: "browser" },
         {
           provide: PlatformService,
@@ -502,20 +501,22 @@ describe("FirebaseAppCheckService", () => {
     expect(initializeAppCheck).not.toHaveBeenCalled();
   });
 
-  it("returns a native token for Google Maps requests", async () => {
+  it("returns a native token for App Check protected requests", async () => {
     TestBed.configureTestingModule({
       providers: [
         FirebaseAppCheckService,
-        { provide: FirebaseApp, useValue: {} },
+        { provide: FIREBASE_APP, useValue: {} },
         { provide: PLATFORM_ID, useValue: "browser" },
-        { provide: PlatformService, useValue: createPlatformService("android") },
+        { provide: PlatformService, useValue: createPlatformService("ios") },
       ],
     });
 
     const service = TestBed.inject(FirebaseAppCheckService);
     await service.initialize({ enabled: true });
+    const token = await service.getTokenForRequest();
 
-    await expect(service.getTokenForRequest()).resolves.toBe("native-token");
+    expect(token).toBe("native-token");
+    expect(FirebaseAppCheck.initialize).toHaveBeenCalledOnce();
     expect(FirebaseAppCheck.getToken).toHaveBeenCalledTimes(2);
   });
 
@@ -528,7 +529,7 @@ describe("FirebaseAppCheckService", () => {
       providers: [
         FirebaseAppCheckService,
         {
-          provide: FirebaseApp,
+          provide: FIREBASE_APP,
           useValue: {
             options: {
               appId: "native-app-id",
@@ -561,7 +562,7 @@ describe("FirebaseAppCheckService", () => {
       providers: [
         FirebaseAppCheckService,
         {
-          provide: FirebaseApp,
+          provide: FIREBASE_APP,
           useValue: {
             options: {
               appId: "native-app-id",
@@ -606,7 +607,7 @@ describe("FirebaseAppCheckService", () => {
       providers: [
         FirebaseAppCheckService,
         {
-          provide: FirebaseApp,
+          provide: FIREBASE_APP,
           useValue: {
             options: {
               appId: "native-app-id",
@@ -635,7 +636,7 @@ describe("FirebaseAppCheckService", () => {
     TestBed.configureTestingModule({
       providers: [
         FirebaseAppCheckService,
-        { provide: FirebaseApp, useValue: {} },
+        { provide: FIREBASE_APP, useValue: {} },
         { provide: PLATFORM_ID, useValue: "browser" },
         { provide: PlatformService, useValue: createPlatformService("ios") },
       ],

@@ -1,0 +1,28 @@
+<h2 mat-dialog-title i18n>Notify attendees about this reschedule?</h2>
+
+<mat-dialog-content>
+  <p class="mat-body-medium intro" i18n>
+    Saving the new time will publish an Event rescheduled update and move pending reminders.
+  </p>
+  <div class="time-change" aria-label="Event time change" i18n-aria-label>
+    <section>
+      <span class="mat-label-medium" i18n>Previous time</span>
+      <strong>{{ data.previousStart | date: "medium" }}</strong>
+      <span>{{ data.previousEnd | date: "medium" }}</span>
+    </section>
+    <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+    <section class="time-change__new">
+      <span class="mat-label-medium" i18n>New time</span>
+      <strong>{{ data.nextStart | date: "medium" }}</strong>
+      <span>{{ data.nextEnd | date: "medium" }}</span>
+    </section>
+  </div>
+  <p class="mat-body-small detail" i18n>
+    Eligible attendees and update subscribers will be notified according to their choices.
+  </p>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" [mat-dialog-close]="false" i18n>Keep editing</button>
+  <button mat-flat-button type="button" (click)="confirm()" i18n>Save and notify</button>
+</mat-dialog-actions>

@@ -11,6 +11,10 @@ import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
 const eventBoundsColorFallback = "rgb(184 196 255)";
 const eventAreaColorFallback = "rgb(0 54 186)";
 
+export interface EventMapMarker extends MapPointMarker {
+  previewEvent?: PkEvent;
+}
+
 export interface VisibleEventMarkerParams {
   visibleEvents: readonly PkEvent[];
   selectedEvent: PkEvent | null;
@@ -25,7 +29,7 @@ export function buildVisibleEventMarkers({
   pendingEventRef,
   mode,
   now,
-}: VisibleEventMarkerParams): MapPointMarker[] {
+}: VisibleEventMarkerParams): EventMapMarker[] {
   const selectedEventId = selectedEvent?.id ?? null;
 
   const eventMarkers = visibleEvents
@@ -40,28 +44,37 @@ export function buildVisibleEventMarkers({
       if (event.isPast(now)) return false;
       return Boolean(event.location);
     })
-    .map((event): MapPointMarker => {
+    .flatMap((event): EventMapMarker[] => {
+      const location = event.location;
+      if (!location) return [];
       const routeId = event.slug ?? event.id;
       const status = event.status(now);
-      return {
-        id: `event:${routeId}`,
-        name: event.name,
-        location: event.location,
-        icons: [status === "live" ? "stars" : "event"],
-        imageSrc: eventImageDisplaySrc(event.effectiveBadgeLogoSrc()),
-        imageFit: event.effectiveBadgeLogoFit(),
-        imageBackgroundColor: event.effectiveBadgeLogoBackgroundColor(),
-        color: status === "live" ? "secondary" : "primary",
-        type: "event",
-        forceFullMarker: true,
-        priority: getMapEventMarkerPriority(event, now),
-      };
+      const description = [event.venueString, event.localityString]
+        .filter(Boolean)
+        .join(", ");
+      return [
+        {
+          id: `event:${routeId}`,
+          name: event.name,
+          description,
+          location,
+          icons: [status === "live" ? "stars" : "event"],
+          imageSrc: eventImageDisplaySrc(event.effectiveBadgeLogoSrc()),
+          imageFit: event.effectiveBadgeLogoFit(),
+          imageBackgroundColor: event.effectiveBadgeLogoBackgroundColor(),
+          color: status === "live" ? "secondary" : "primary",
+          type: "event",
+          forceFullMarker: true,
+          priority: getMapEventMarkerPriority(event, now),
+          previewEvent: event,
+        },
+      ];
     });
 
   const selectedEventMarkers =
     selectedEvent && !selectedEvent.isPast(now)
       ? selectedEvent.customMarkers.map(
-          (marker, index): MapPointMarker => ({
+          (marker, index): EventMapMarker => ({
             id: `event-custom:${selectedEvent.id}:${index}`,
             name: marker.name,
             location: marker.location,

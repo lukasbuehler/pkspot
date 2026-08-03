@@ -1,17 +1,15 @@
 import {
   Injectable,
   inject,
-  NgZone,
   Injector,
+  PendingTasks,
   runInInjectionContext,
 } from "@angular/core";
-import { Observable, from, Subject, BehaviorSubject } from "rxjs";
-import { map, shareReplay, takeUntil } from "rxjs/operators";
+import { pendingUntilEvent } from "@angular/core/rxjs-interop";
+import { Observable } from "rxjs";
 import { PlatformService } from "../platform.service";
 
-// Web imports (AngularFire)
 import {
-  Firestore,
   doc,
   getDoc,
   setDoc,
@@ -28,17 +26,15 @@ import {
   getDocs,
   onSnapshot,
   deleteField,
-  QueryConstraint as AngularFireQueryConstraint,
-} from "@angular/fire/firestore";
+  QueryConstraint as FirebaseQueryConstraint,
+} from "firebase/firestore";
 
 // Native imports (Capacitor Firebase)
 import {
   FirebaseFirestore,
   GetCollectionOptions,
-  QueryCompositeFilterConstraint,
   QueryFieldFilterConstraint,
   QueryNonFilterConstraint,
-  DocumentSnapshot,
   Timestamp as CapacitorTimestamp,
   GeoPoint as CapacitorGeoPoint,
   DocumentReference as CapacitorDocumentReference,
@@ -46,6 +42,7 @@ import {
 } from "@capacitor-firebase/firestore";
 import { transformFirestoreData } from "../../../scripts/Helpers";
 import { FirebaseAppCheckService } from "./app-check.service";
+import { FIREBASE_FIRESTORE } from "./firebase-client.providers";
 
 /**
  * Query filter for Firestore queries.
@@ -83,7 +80,7 @@ export type FirestoreDeleteFieldValue =
 
 /**
  * FirestoreAdapterService provides a unified API for Firestore operations
- * that works on both web (via @angular/fire) and native platforms
+ * that works on both web (via the Firebase JS SDK) and native platforms
  * (via @capacitor-firebase/firestore).
  *
  * This abstraction allows the rest of the application to use the same
@@ -96,9 +93,9 @@ export type FirestoreDeleteFieldValue =
 export class FirestoreAdapterService {
   private platformService = inject(PlatformService);
   private appCheckService = inject(FirebaseAppCheckService);
-  private firestore = inject(Firestore);
-  private ngZone = inject(NgZone);
+  private firestore = inject(FIREBASE_FIRESTORE);
   private injector = inject(Injector);
+  private readonly pendingTasks = inject(PendingTasks);
   private readonly iosWebCollectionTimeoutMs = 15000;
   private readonly firestoreRestBaseUrl = "https://firestore.googleapis.com/v1";
 
@@ -115,15 +112,24 @@ export class FirestoreAdapterService {
     if (this.platformService.isNative()) {
       return { __type__: "delete" };
     }
-    return runInInjectionContext(this.injector, () => deleteField());
+    return deleteField();
   }
 
   documentReference(path: string): ReturnType<typeof doc> {
-    return runInInjectionContext(this.injector, () => doc(this.firestore, path));
+    return doc(this.firestore, path);
   }
 
   private ensureAppCheckReady(): Promise<void> {
     return this.appCheckService.initialize();
+  }
+
+  private async trackPending<T>(operation: () => Promise<T>): Promise<T> {
+    const complete = this.pendingTasks.add();
+    try {
+      return await operation();
+    } finally {
+      complete();
+    }
   }
 
   private waitForAppCheck<T>(createObservable: () => Observable<T>): Observable<T> {
@@ -139,9 +145,7 @@ export class FirestoreAdapterService {
           const subscription = createObservable().subscribe(observer);
           teardown = () => subscription.unsubscribe();
         })
-        .catch((error) => {
-          this.ngZone.run(() => observer.error(error));
-        });
+        .catch((error) => observer.error(error));
 
       return () => {
         unsubscribed = true;
@@ -308,8 +312,8 @@ export class FirestoreAdapterService {
     target: string,
     filters?: QueryFilter[],
     constraints?: QueryConstraintOptions[]
-  ): AngularFireQueryConstraint[] {
-    const queryConstraints: AngularFireQueryConstraint[] = [];
+  ): FirebaseQueryConstraint[] {
+    const queryConstraints: FirebaseQueryConstraint[] = [];
     const sanitizedConstraints = this.sanitizeQueryConstraints(constraints, target);
 
     if (filters) {
@@ -877,10 +881,11 @@ export class FirestoreAdapterService {
    */
   async getDocument<T>(path: string): Promise<T | null> {
     await this.ensureAppCheckReady();
-    if (this.platformService.isNative()) {
-      return this.getDocumentNative<T>(path);
-    }
-    return this.getDocumentWeb<T>(path);
+    return this.trackPending(() =>
+      this.platformService.isNative()
+        ? this.getDocumentNative<T>(path)
+        : this.getDocumentWeb<T>(path),
+    );
   }
 
   private async getDocumentWeb<T>(path: string): Promise<T | null> {
@@ -1072,16 +1077,18 @@ export class FirestoreAdapterService {
   ): Promise<T[]> {
     await this.ensureAppCheckReady();
     const useNativeBridge = this.shouldUseNativeQueryBridge();
-    return this.runCollectionQuery(
-      "getCollection",
-      collectionPath,
-      useNativeBridge,
-      filters,
-      constraints,
-      () =>
-        useNativeBridge
-          ? this.getCollectionNative<T>(collectionPath, filters, constraints)
-          : this.getCollectionWeb<T>(collectionPath, filters, constraints)
+    return this.trackPending(() =>
+      this.runCollectionQuery(
+        "getCollection",
+        collectionPath,
+        useNativeBridge,
+        filters,
+        constraints,
+        () =>
+          useNativeBridge
+            ? this.getCollectionNative<T>(collectionPath, filters, constraints)
+            : this.getCollectionWeb<T>(collectionPath, filters, constraints),
+      ),
     );
   }
 
@@ -1092,7 +1099,7 @@ export class FirestoreAdapterService {
   ): Promise<T[]> {
     return runInInjectionContext(this.injector, async () => {
       const collRef = collection(this.firestore, collectionPath);
-      const queryConstraints: AngularFireQueryConstraint[] = [];
+      const queryConstraints: FirebaseQueryConstraint[] = [];
       const sanitizedConstraints = this.sanitizeQueryConstraints(
         constraints,
         collectionPath
@@ -1206,8 +1213,8 @@ export class FirestoreAdapterService {
     return this.waitForAppCheck(() =>
       this.platformService.isNative()
         ? this.documentSnapshotsNative<T>(path)
-        : this.documentSnapshotsWeb<T>(path)
-    );
+        : this.documentSnapshotsWeb<T>(path),
+    ).pipe(pendingUntilEvent(this.injector));
   }
 
   private documentSnapshotsWeb<T>(path: string): Observable<T | null> {
@@ -1243,22 +1250,20 @@ export class FirestoreAdapterService {
       FirebaseFirestore.addDocumentSnapshotListener(
         { reference: path },
         (event, error) => {
-          this.ngZone.run(() => {
-            if (error) {
-              observer.error(error);
-              return;
+          if (error) {
+            observer.error(error);
+            return;
+          }
+          if (event?.snapshot) {
+            if (event.snapshot.data) {
+              observer.next({
+                id: event.snapshot.id,
+                ...event.snapshot.data,
+              } as T);
+            } else {
+              observer.next(null);
             }
-            if (event?.snapshot) {
-              if (event.snapshot.data) {
-                observer.next({
-                  id: event.snapshot.id,
-                  ...event.snapshot.data,
-                } as T);
-              } else {
-                observer.next(null);
-              }
-            }
-          });
+          }
         }
       )
         .then((id) => {
@@ -1267,9 +1272,7 @@ export class FirestoreAdapterService {
             this.removeSnapshotListenerSafe(id);
           }
         })
-        .catch((error) => {
-          this.ngZone.run(() => observer.error(error));
-        });
+        .catch((error) => observer.error(error));
 
       // Cleanup function
       return () => {
@@ -1297,8 +1300,8 @@ export class FirestoreAdapterService {
     return this.waitForAppCheck(() =>
       this.platformService.isNative()
         ? this.collectionSnapshotsNative<T>(collectionPath, filters, constraints)
-        : this.collectionSnapshotsWeb<T>(collectionPath, filters, constraints)
-    );
+        : this.collectionSnapshotsWeb<T>(collectionPath, filters, constraints),
+    ).pipe(pendingUntilEvent(this.injector));
   }
 
   private collectionSnapshotsWeb<T>(
@@ -1385,19 +1388,17 @@ export class FirestoreAdapterService {
       FirebaseFirestore.addCollectionSnapshotListener(
         options,
         (event, error) => {
-          this.ngZone.run(() => {
-            if (error) {
-              observer.error(error);
-              return;
-            }
-            if (event?.snapshots) {
-              const docs = event.snapshots.map((snap) => ({
-                id: snap.id,
-                ...snap.data,
-              })) as T[];
-              observer.next(docs);
-            }
-          });
+          if (error) {
+            observer.error(error);
+            return;
+          }
+          if (event?.snapshots) {
+            const docs = event.snapshots.map((snap) => ({
+              id: snap.id,
+              ...snap.data,
+            })) as T[];
+            observer.next(docs);
+          }
         }
       )
         .then((id) => {
@@ -1406,9 +1407,7 @@ export class FirestoreAdapterService {
             this.removeSnapshotListenerSafe(id);
           }
         })
-        .catch((error) => {
-          this.ngZone.run(() => observer.error(error));
-        });
+        .catch((error) => observer.error(error));
 
       // Cleanup function
       return () => {
@@ -1457,16 +1456,18 @@ export class FirestoreAdapterService {
   ): Promise<T[]> {
     await this.ensureAppCheckReady();
     const useNativeBridge = this.shouldUseNativeQueryBridge();
-    return this.runCollectionQuery(
-      "getCollectionGroup",
-      collectionId,
-      useNativeBridge,
-      filters,
-      constraints,
-      () =>
-        useNativeBridge
-          ? this.getCollectionGroupNative<T>(collectionId, filters, constraints)
-          : this.getCollectionGroupWeb<T>(collectionId, filters, constraints)
+    return this.trackPending(() =>
+      this.runCollectionQuery(
+        "getCollectionGroup",
+        collectionId,
+        useNativeBridge,
+        filters,
+        constraints,
+        () =>
+          useNativeBridge
+            ? this.getCollectionGroupNative<T>(collectionId, filters, constraints)
+            : this.getCollectionGroupWeb<T>(collectionId, filters, constraints),
+      ),
     );
   }
 
@@ -1477,7 +1478,7 @@ export class FirestoreAdapterService {
   ): Promise<T[]> {
     return runInInjectionContext(this.injector, async () => {
       const collGroupRef = collectionGroup(this.firestore, collectionId);
-      const queryConstraints: AngularFireQueryConstraint[] = [];
+      const queryConstraints: FirebaseQueryConstraint[] = [];
 
       // Add where clauses
       if (filters) {
@@ -1537,11 +1538,13 @@ export class FirestoreAdapterService {
         lastDoc: null,
       };
     }
-    return this.getCollectionGroupWebWithMetadata<T>(
-      collectionId,
-      filters,
-      constraints,
-      startAfterDoc
+    return this.trackPending(() =>
+      this.getCollectionGroupWebWithMetadata<T>(
+        collectionId,
+        filters,
+        constraints,
+        startAfterDoc,
+      ),
     );
   }
 
@@ -1553,7 +1556,7 @@ export class FirestoreAdapterService {
   ): Promise<{ data: Array<T & { id: string; path: string }>; lastDoc: any }> {
     return runInInjectionContext(this.injector, async () => {
       const collGroupRef = collectionGroup(this.firestore, collectionId);
-      const queryConstraints: AngularFireQueryConstraint[] = [];
+      const queryConstraints: FirebaseQueryConstraint[] = [];
 
       if (filters) {
         for (const filter of filters) {
@@ -1659,8 +1662,8 @@ export class FirestoreAdapterService {
     return this.waitForAppCheck(() =>
       this.platformService.isNative()
         ? this.collectionGroupSnapshotsNative<T>(collectionId, filters, constraints)
-        : this.collectionGroupSnapshotsWeb<T>(collectionId, filters, constraints)
-    );
+        : this.collectionGroupSnapshotsWeb<T>(collectionId, filters, constraints),
+    ).pipe(pendingUntilEvent(this.injector));
   }
 
   private collectionGroupSnapshotsWeb<T>(
@@ -1736,7 +1739,7 @@ export class FirestoreAdapterService {
           return () => unsubscribe();
         });
       });
-    });
+    }).pipe(pendingUntilEvent(this.injector));
   }
 
   private collectionGroupSnapshotsNative<T>(
@@ -1789,19 +1792,17 @@ export class FirestoreAdapterService {
       FirebaseFirestore.addCollectionGroupSnapshotListener(
         options,
         (event, error) => {
-          this.ngZone.run(() => {
-            if (error) {
-              observer.error(error);
-              return;
-            }
-            if (event?.snapshots) {
-              const docs = event.snapshots.map((snap) => ({
-                id: snap.id,
-                ...snap.data,
-              })) as T[];
-              observer.next(docs);
-            }
-          });
+          if (error) {
+            observer.error(error);
+            return;
+          }
+          if (event?.snapshots) {
+            const docs = event.snapshots.map((snap) => ({
+              id: snap.id,
+              ...snap.data,
+            })) as T[];
+            observer.next(docs);
+          }
         }
       )
         .then((id) => {
@@ -1810,9 +1811,7 @@ export class FirestoreAdapterService {
             this.removeSnapshotListenerSafe(id);
           }
         })
-        .catch((error) => {
-          this.ngZone.run(() => observer.error(error));
-        });
+        .catch((error) => observer.error(error));
 
       // Cleanup function
       return () => {
@@ -1876,20 +1875,18 @@ export class FirestoreAdapterService {
         FirebaseFirestore.addCollectionGroupSnapshotListener(
           options,
           (event, error) => {
-            this.ngZone.run(() => {
-              if (error) {
-                observer.error(error);
-                return;
-              }
-              if (event?.snapshots) {
-                const docs = event.snapshots.map((snap) => ({
-                  id: snap.id,
-                  path: snap.path,
-                  ...snap.data,
-                })) as Array<T & { id: string; path: string }>;
-                observer.next(docs);
-              }
-            });
+            if (error) {
+              observer.error(error);
+              return;
+            }
+            if (event?.snapshots) {
+              const docs = event.snapshots.map((snap) => ({
+                id: snap.id,
+                path: snap.path,
+                ...snap.data,
+              })) as Array<T & { id: string; path: string }>;
+              observer.next(docs);
+            }
           }
         )
           .then((id) => {
@@ -1898,9 +1895,7 @@ export class FirestoreAdapterService {
               this.removeSnapshotListenerSafe(id);
             }
           })
-          .catch((error) => {
-            this.ngZone.run(() => observer.error(error));
-          });
+          .catch((error) => observer.error(error));
 
         // Cleanup function
         return () => {

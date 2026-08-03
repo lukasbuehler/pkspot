@@ -1,20 +1,20 @@
 import {
   Component,
-  EventEmitter,
   Inject,
-  Input,
   LOCALE_ID,
   OnInit,
-  Output,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  input,
+  linkedSignal,
+  output,
 } from "@angular/core";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { User } from "../../../db/models/User";
 import { UsersService } from "../../services/firebase/firestore/users.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { getValueFromEventTarget } from "../../../scripts/Helpers";
-import { CropImageComponent } from "../crop-image/crop-image.component";
 import { MatIcon } from "@angular/material/icon";
+import { MatDialog } from "@angular/material/dialog";
 import { MatInput } from "@angular/material/input";
 import {
   MatFormField,
@@ -30,9 +30,9 @@ import { StorageBucket } from "../../../db/schemas/Media";
 import { MatBadge } from "@angular/material/badge";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
-import { Observable, startWith, map } from "rxjs";
+import { firstValueFrom, Observable, startWith, map } from "rxjs";
 import { countries } from "../../../scripts/Countries";
-import { Timestamp } from "@angular/fire/firestore";
+import { Timestamp } from "firebase/firestore";
 import {
   MatDatepickerInput,
   MatDatepickerToggle,
@@ -48,11 +48,15 @@ import {
 } from "../../../db/schemas/UserSchema";
 import { AutocompleteOverlayRepositionDirective } from "../../directives/autocomplete-overlay-reposition.directive";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
-
-type NormalizedSocials = {
-  instagram_handle?: string;
-  youtube_handle?: string;
-};
+import {
+  NormalizedProfileSocials,
+  normalizeProfileSocials,
+} from "../../utils/profile-social-links";
+import {
+  ImageCropDialogComponent,
+  type ImageCropDialogData,
+} from "../crop-image/image-crop-dialog.component";
+import { PROFILE_IMAGE_CROP_POLICY } from "../crop-image/image-crop-policy";
 
 @Component({
   selector: "app-edit-profile",
@@ -60,7 +64,6 @@ type NormalizedSocials = {
   styleUrls: ["./edit-profile.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    CropImageComponent,
     MatIcon,
     MatInput,
     MatFormField,
@@ -83,8 +86,11 @@ type NormalizedSocials = {
   ],
 })
 export class EditProfileComponent implements OnInit {
-  @Input() user: User | undefined;
-  @Output() changes = new EventEmitter<boolean>();
+  protected readonly userInput = input<User | undefined>(undefined, {
+    alias: "user",
+  });
+  readonly user = linkedSignal(() => this.userInput());
+  readonly changes = output<boolean>();
 
   displayName: string = "";
   biography: string = "";
@@ -92,11 +98,10 @@ export class EditProfileComponent implements OnInit {
   nationalityCode: string | null = null;
   instagramHandle: string = "";
   youtubeHandle: string = "";
+  tiktokHandle: string = "";
+  discordUrl: string = "";
 
   newProfilePicture: File | null = null;
-  newProfilePictureSrc: string = "";
-  croppedProfilePicture: string = "";
-  croppingComplete: boolean = false;
   isUpdatingProfilePicture: boolean = false;
   tempProfilePictureSrc: string = ""; // Temporary storage for immediate UI update after upload
   isProfilePictureLoaded: boolean = true;
@@ -117,20 +122,21 @@ export class EditProfileComponent implements OnInit {
     private _storageService: StorageService,
     private _snackbar: MatSnackBar,
     private _ageAssuranceService: AgeAssuranceService,
+    private _dialog: MatDialog,
     @Inject(LOCALE_ID) public locale: LocaleCode
   ) {}
 
   ngOnInit(): void {
     // Check if user is already available
     if (this.authService?.user?.data) {
-      this.user = this.authService.user.data;
+      this.user.set(this.authService.user.data);
       this._updateInfoOnView();
     }
 
     // Subscribe to auth state changes
     this.authService.authState$.subscribe((authUser) => {
       if (authUser?.data) {
-        this.user = authUser.data;
+        this.user.set(authUser.data);
         this._updateInfoOnView();
       }
     });
@@ -176,13 +182,16 @@ export class EditProfileComponent implements OnInit {
   }
 
   private _updateInfoOnView() {
-    if (this.user) {
-      this.displayName = this.user.displayName ?? "";
-      this.startDate = this.user.startDate ?? null;
-      this.biography = this.user.biography ?? "";
-      this.nationalityCode = this.user.nationalityCode ?? null;
-      this.instagramHandle = this.user.socials?.instagram_handle ?? "";
-      this.youtubeHandle = this.user.socials?.youtube_handle ?? "";
+    const user = this.user();
+    if (user) {
+      this.displayName = user.displayName ?? "";
+      this.startDate = user.startDate ?? null;
+      this.biography = user.biography ?? "";
+      this.nationalityCode = user.nationalityCode ?? null;
+      this.instagramHandle = user.socials?.instagram_handle ?? "";
+      this.youtubeHandle = user.socials?.youtube_handle ?? "";
+      this.tiktokHandle = user.socials?.tiktok_handle ?? "";
+      this.discordUrl = user.socials?.discord_url ?? "";
 
       if (this.nationalityCode && this.countries[this.nationalityCode]) {
         this.countryControl.setValue(this.countries[this.nationalityCode].name);
@@ -192,76 +201,62 @@ export class EditProfileComponent implements OnInit {
     }
   }
 
-  setNewProfilePicture(file: File) {
-    this.newProfilePicture = file;
-
-    // Read the file as data URL for the cropper
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      this.newProfilePictureSrc = event.target!.result as string;
-      this.croppingComplete = false;
-    };
-
-    reader.readAsDataURL(file);
-    this.detectIfChanges();
-  }
-
-  /**
-   * Handle profile picture file selection from input element
-   */
-  onProfilePictureFileSelected(event: Event) {
+  async onProfilePictureFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      this.setNewProfilePicture(input.files[0]);
-    }
-  }
+    const file = input.files?.[0];
+    input.value = "";
+    if (!file) return;
 
-  /**
-   * Handle the cropped image blob from the CropImageComponent
-   */
-  onImageCropped(croppedBlob: Blob) {
-    console.log("Image cropped, starting auto-save...");
+    const croppedFile = await firstValueFrom(
+      this._dialog
+        .open<
+          ImageCropDialogComponent,
+          ImageCropDialogData,
+          File | undefined
+        >(ImageCropDialogComponent, {
+          data: {
+            file,
+            policy: PROFILE_IMAGE_CROP_POLICY,
+            title: $localize`Crop profile picture`,
+          },
+          maxWidth: "100vw",
+          maxHeight: "100dvh",
+          panelClass: "image-crop-dialog-panel",
+        })
+        .afterClosed(),
+      { defaultValue: undefined },
+    );
+    if (!croppedFile) return;
 
-    // 1. Store the blob for upload
-    this.newProfilePicture = new File([croppedBlob], "profile-picture.png", {
-      type: "image/png",
-    });
-
-    // 2. Set temp source immediately using Object URL
+    this.newProfilePicture = croppedFile;
     if (
       this.tempProfilePictureSrc &&
       this.tempProfilePictureSrc.startsWith("blob:")
     ) {
       URL.revokeObjectURL(this.tempProfilePictureSrc);
     }
-    this.tempProfilePictureSrc = URL.createObjectURL(croppedBlob);
-
-    // 3. Update state
+    this.tempProfilePictureSrc = URL.createObjectURL(croppedFile);
     this.isProfilePictureLoaded = true;
     this.hasProfilePictureError = false;
-    this.croppingComplete = true;
-
-    // 4. Trigger upload
-    this.saveNewProfilePicture();
-
-    // 5. Ensure detectIfChanges doesn't block anything (it shouldn't, as we auto-save)
+    await this.saveNewProfilePicture();
     this.detectIfChanges();
   }
 
-  /**
-   * Cancel profile picture upload and reset cropping state
-   */
-  cancelProfilePictureUpload() {
+  cancelProfilePictureUpload(): void {
     this.newProfilePicture = null;
-    this.newProfilePictureSrc = "";
-    this.croppedProfilePicture = "";
-    this.croppingComplete = false;
+    if (
+      this.tempProfilePictureSrc &&
+      this.tempProfilePictureSrc.startsWith("blob:")
+    ) {
+      URL.revokeObjectURL(this.tempProfilePictureSrc);
+      this.tempProfilePictureSrc = "";
+    }
     this.detectIfChanges();
   }
 
-  saveNewProfilePicture() {
+  async saveNewProfilePicture(): Promise<void> {
     if (this.profilePictureUploadPromise) {
-      return;
+      return this.profilePictureUploadPromise;
     }
 
     if (!this._ageAssuranceService.canParticipatePublicly()) {
@@ -277,26 +272,28 @@ export class EditProfileComponent implements OnInit {
       return;
     }
 
-    this._handleProfilePictureUploadAndSave()
-      .then(() => {
-        console.log("saveNewProfilePicture success");
-        this._snackbar.open(
-          "Successfully saved new profile picture",
-          "Dismiss",
-          {
-            duration: 3000,
-            horizontalPosition: "center",
-            verticalPosition: "bottom",
-          }
-        );
-      })
-      .catch((readableError) => {
-        this._snackbar.open(readableError, "Dismiss", {
-          duration: 5000,
+    try {
+      await this._handleProfilePictureUploadAndSave();
+      this._snackbar.open(
+        $localize`Successfully saved new profile picture`,
+        $localize`Dismiss`,
+        {
+          duration: 3000,
           horizontalPosition: "center",
           verticalPosition: "bottom",
-        });
+        },
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : $localize`Error uploading the profile picture.`;
+      this._snackbar.open(message, $localize`Dismiss`, {
+        duration: 5000,
+        horizontalPosition: "center",
+        verticalPosition: "bottom",
       });
+    }
   }
 
   private async _handleProfilePictureUploadAndSave(): Promise<void> {
@@ -313,11 +310,12 @@ export class EditProfileComponent implements OnInit {
   }
 
   private async _performProfilePictureUploadAndSave(): Promise<void> {
-    if (!this.user || !this.user.uid || !this.newProfilePicture) {
+    const user = this.user();
+    if (!user?.uid || !this.newProfilePicture) {
       throw new Error("Missing user ID or profile picture");
     }
 
-    const userId = this.user.uid;
+    const userId = user.uid;
     this.isUpdatingProfilePicture = true;
 
     try {
@@ -355,34 +353,26 @@ export class EditProfileComponent implements OnInit {
       this.newProfilePicture = null;
 
       // Refresh user data with new profile picture
-      if (this.user?.data) {
+      if (user.data) {
         // Update the data object reference with the new URL string
-        this.user.data.profile_picture = profilePictureUrl;
+        user.data.profile_picture = profilePictureUrl;
 
         if (this.tempProfilePictureSrc) {
           // Use ExternalImage with the local data URL for immediate, reliable update across the app (Nav Bar)
           // AND set it as an override in AuthService so it persists through Firestore updates
           const override = new ExternalImage(this.tempProfilePictureSrc);
           this.authService.overrideProfilePicture = override;
-          this.user.profilePicture = override;
+          user.profilePicture = override;
         } else {
-          this.user.setProfilePicture(profilePictureUrl);
+          user.setProfilePicture(profilePictureUrl);
         }
 
         // Notify subscribers (like the Nav Bar) that the user data has changed
         this.authService.authState$.next(this.authService.user);
       }
 
-      // Use the cropped data URL as a temporary display to avoid broken image during resize
-      if (this.croppedProfilePicture) {
-        this.tempProfilePictureSrc = this.croppedProfilePicture;
-        this.hasProfilePictureError = false;
-        this.isProfilePictureLoaded = true;
-      }
-
-      this.croppedProfilePicture = "";
-      this.newProfilePictureSrc = "";
-      this.croppingComplete = false;
+      this.hasProfilePictureError = false;
+      this.isProfilePictureLoaded = true;
     } catch (err) {
       console.error("Error uploading or saving profile picture:", err);
       this.isUpdatingProfilePicture = false;
@@ -393,14 +383,15 @@ export class EditProfileComponent implements OnInit {
   }
 
   detectIfChanges() {
+    const user = this.user();
     const currentSocials = this._buildCurrentSocials();
     const originalSocials = this._buildOriginalSocials();
 
     if (
-      this.displayName !== this.user?.displayName ||
-      this.startDate !== this.user?.startDate ||
-      this.biography !== this.user?.biography ||
-      this.nationalityCode !== (this.user?.nationalityCode ?? null) ||
+      this.displayName !== user?.displayName ||
+      this.startDate !== user?.startDate ||
+      this.biography !== user?.biography ||
+      this.nationalityCode !== (user?.nationalityCode ?? null) ||
       JSON.stringify(currentSocials) !== JSON.stringify(originalSocials)
     ) {
       this.changes.emit(true);
@@ -417,7 +408,8 @@ export class EditProfileComponent implements OnInit {
   }
 
   saveAllChanges(): Promise<void> {
-    if (!this.user || !this.user.uid) return Promise.reject("No user");
+    const user = this.user();
+    if (!user?.uid) return Promise.reject("No user");
     if (!this._ageAssuranceService.canParticipatePublicly()) {
       this._snackbar.open(
         this._ageAssuranceService.getRestrictionMessage(),
@@ -433,21 +425,21 @@ export class EditProfileComponent implements OnInit {
 
     const data: Partial<UserSchema> = {};
 
-    if (this.displayName !== this.user.displayName) {
+    if (this.displayName !== user.displayName) {
       data.display_name = this.displayName;
     }
 
-    if (this.startDate !== this.user.startDate) {
+    if (this.startDate !== user.startDate) {
       data.start_date = this.startDate
         ? Timestamp.fromDate(this.startDate)
         : undefined;
     }
 
-    if (this.biography !== this.user.biography) {
+    if (this.biography !== user.biography) {
       data.biography = this.biography;
     }
 
-    if (this.nationalityCode !== this.user.nationalityCode) {
+    if (this.nationalityCode !== user.nationalityCode) {
       data.nationality_code = this.nationalityCode ?? undefined;
     }
 
@@ -461,8 +453,14 @@ export class EditProfileComponent implements OnInit {
       if (currentSocials.youtube_handle) {
         socials.youtube_handle = currentSocials.youtube_handle;
       }
-      if (this.user.socials?.other) {
-        socials.other = this.user.socials.other;
+      if (currentSocials.tiktok_handle) {
+        socials.tiktok_handle = currentSocials.tiktok_handle;
+      }
+      if (currentSocials.discord_url) {
+        socials.discord_url = currentSocials.discord_url;
+      }
+      if (user.socials?.other) {
+        socials.other = user.socials.other;
       }
       data.socials = socials;
     }
@@ -475,100 +473,22 @@ export class EditProfileComponent implements OnInit {
 
     return promise.then(() => {
       if (Object.keys(data).length > 0) {
-        return this._userService.updateUser(this.user!.uid, data);
+        return this._userService.updateUser(user.uid, data);
       }
       return Promise.resolve();
     });
   }
 
-  private _buildCurrentSocials(): NormalizedSocials {
-    return this._normalizeSocials({
+  private _buildCurrentSocials(): NormalizedProfileSocials {
+    return normalizeProfileSocials({
       instagram_handle: this.instagramHandle,
       youtube_handle: this.youtubeHandle,
+      tiktok_handle: this.tiktokHandle,
+      discord_url: this.discordUrl,
     });
   }
 
-  private _buildOriginalSocials(): NormalizedSocials {
-    return this._normalizeSocials(this.user?.socials);
+  private _buildOriginalSocials(): NormalizedProfileSocials {
+    return normalizeProfileSocials(this.user()?.socials);
   }
-
-  private _normalizeSocials(socials?: UserSocialsSchema | null): NormalizedSocials {
-    const instagramHandle = this._normalizeInstagramHandle(
-      socials?.instagram_handle
-    );
-    const youtubeHandle = this._normalizeYoutubeHandle(socials?.youtube_handle);
-
-    return {
-      instagram_handle: instagramHandle,
-      youtube_handle: youtubeHandle,
-    };
-  }
-
-  private _normalizeInstagramHandle(value?: string | null): string | undefined {
-    const trimmed = value?.trim();
-    if (!trimmed) {
-      return undefined;
-    }
-
-    if (/^https?:\/\//i.test(trimmed)) {
-      try {
-        const parsed = new URL(trimmed);
-        const firstPathSegment = parsed.pathname
-          .split("/")
-          .map((segment) => segment.trim())
-          .filter(Boolean)[0];
-        if (firstPathSegment) {
-          return firstPathSegment.replace(/^@+/, "").trim() || undefined;
-        }
-      } catch (error) {
-        console.warn("Invalid Instagram URL", trimmed, error);
-      }
-    }
-
-    const cleaned = trimmed.replace(/^@+/, "").split("/")[0].trim();
-    return cleaned || undefined;
-  }
-
-  private _normalizeYoutubeHandle(value?: string | null): string | undefined {
-    const trimmed = value?.trim();
-    if (!trimmed) {
-      return undefined;
-    }
-
-    if (/^https?:\/\//i.test(trimmed)) {
-      try {
-        const parsed = new URL(trimmed);
-        const pathParts = parsed.pathname
-          .split("/")
-          .map((segment) => segment.trim())
-          .filter(Boolean);
-
-        if (pathParts.length === 0) {
-          return undefined;
-        }
-
-        if (pathParts[0].startsWith("@")) {
-          return pathParts[0];
-        }
-
-        if (
-          ["channel", "c", "user"].includes(pathParts[0]) &&
-          pathParts[1]
-        ) {
-          return `${pathParts[0]}/${pathParts[1]}`;
-        }
-
-        return pathParts.join("/");
-      } catch (error) {
-        console.warn("Invalid YouTube URL", trimmed, error);
-      }
-    }
-
-    if (trimmed.startsWith("@")) {
-      return trimmed;
-    }
-
-    return trimmed.includes("/") ? trimmed : `@${trimmed}`;
-  }
-
 }

@@ -6,6 +6,21 @@ const templatePath = join(
   process.cwd(),
   "src/app/components/map-page/map-page.component.html"
 );
+const objectPanelTemplatePath = join(
+  process.cwd(),
+  "src/app/components/map/map-object-panel/map-object-panel.component.html",
+);
+const objectPanelStylesPath = join(
+  process.cwd(),
+  "src/app/components/map/map-object-panel/map-object-panel.component.scss",
+);
+
+function activeTemplate(): string {
+  return readFileSync(templatePath, "utf8").replace(
+    /<!--[\s\S]*?-->/gu,
+    "",
+  );
+}
 
 describe("MapPageComponent search template", () => {
   it("keeps the main map page readable to simple crawlers", () => {
@@ -60,13 +75,7 @@ describe("MapPageComponent search template", () => {
     const objectPanel = mapTemplate.match(
       /<app-map-object-panel[\s\S]*?<\/app-map-object-panel>/
     )?.[0];
-    const objectPanelTemplate = readFileSync(
-      join(
-        process.cwd(),
-        "src/app/components/map/map-object-panel/map-object-panel.component.html",
-      ),
-      "utf8",
-    );
+    const objectPanelTemplate = readFileSync(objectPanelTemplatePath, "utf8");
     const eventListTemplate = readFileSync(
       join(
         process.cwd(),
@@ -82,6 +91,127 @@ describe("MapPageComponent search template", () => {
       '[seriesById]="eventSeriesById()"',
     );
     expect(eventListTemplate).toContain('[seriesById]="seriesById()"');
+  });
+
+  it("links map event cards to full event pages instead of map previews", () => {
+    const eventListTemplate = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/map/map-event-list/map-event-list.component.html",
+      ),
+      "utf8",
+    );
+    const communityTemplate = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/community-landing-page/community-landing-page.component.html",
+      ),
+      "utf8",
+    );
+
+    expect(eventListTemplate).not.toContain('[selectMode]="true"');
+    expect(eventListTemplate).not.toContain("(select)=");
+    expect(communityTemplate).not.toContain('[selectMode]="panelMode()"');
+    expect(communityTemplate).not.toContain(
+      '(select)="onSelectEvent($event)"',
+    );
+  });
+
+  it("enables desktop hover previews for event map markers", () => {
+    const mapTemplate = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/google-map-2d/google-map-2d.component.html",
+      ),
+      "utf8",
+    );
+    const eventMarkerTemplate = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/map/event-dot-marker/event-dot-marker.component.html",
+      ),
+      "utf8",
+    );
+
+    expect(mapTemplate).toContain(
+      '[hoverPreviewEnabled]="showSpotPreview()"',
+    );
+    expect(eventMarkerTemplate).toContain('(mouseenter)="showPreview()"');
+    expect(eventMarkerTemplate).toContain(
+      'class="event-map-marker-preview"',
+    );
+    expect(eventMarkerTemplate).toContain("<app-event-card");
+    expect(eventMarkerTemplate).toContain('[compact]="true"');
+    expect(eventMarkerTemplate).toContain('[showRsvp]="false"');
+  });
+
+  it("keeps map weather in the area panel without a floating weather chip", () => {
+    const mapTemplate = activeTemplate();
+    const objectPanel = mapTemplate.match(
+      /<app-map-object-panel[\s\S]*?<\/app-map-object-panel>/,
+    )?.[0];
+    const objectPanelTemplate = readFileSync(objectPanelTemplatePath, "utf8");
+    expect(objectPanel).toContain('[weather]="mapWeatherResponse()"');
+    expect(objectPanel).toContain('(weatherOpen)="openMapWeather()"');
+    expect(objectPanelTemplate).toContain('appearance="overview"');
+    expect(objectPanelTemplate).toContain(
+      'animate.enter="weather-chip-enter"',
+    );
+    expect(objectPanelTemplate).toMatch(
+      /<div\s+class="area-header[\s\S]*?<div\s+class="area-weather"[\s\S]*?@if \(weather\(\); as areaWeather\)/,
+    );
+    expect(mapTemplate).not.toContain("<app-map-weather-chip");
+  });
+
+  it("keeps Add Spot available without exposing imports or session planning", () => {
+    const mapTemplate = activeTemplate();
+    const floatingControls = mapTemplate.match(
+      /<app-map-floating-controls[\s\S]*?<\/app-map-floating-controls>/,
+    )?.[0];
+
+    expect(floatingControls).toContain('[showCreateSpot]="');
+    expect(floatingControls).toContain('(createSpot)="onCreateSpot()"');
+    expect(floatingControls).not.toContain("showImportSpots");
+    expect(floatingControls).not.toContain("importSpots");
+    expect(floatingControls).not.toContain("showPlanSession");
+    expect(floatingControls).not.toContain("planSession");
+  });
+
+  it("collapses area-header spacing inside the mobile bottom sheet", () => {
+    const objectPanelStyles = readFileSync(objectPanelStylesPath, "utf8");
+
+    expect(objectPanelStyles).toContain(
+      "padding-bottom: calc(var(--open-progress, 1) * 8px)",
+    );
+    expect(objectPanelStyles).toMatch(
+      /:host-context\(app-bottom-sheet\)\s+\.area-header\s*\{\s*padding-top:\s*0;/u,
+    );
+    expect(objectPanelStyles).toMatch(
+      /\[data-collapsed="true"\]\s*\{\s*padding-bottom:\s*0;/u,
+    );
+    expect(objectPanelStyles).toContain(
+      "max-height: calc(var(--open-progress, 1) * 48px)",
+    );
+    expect(objectPanelStyles).toContain(
+      "opacity: var(--open-progress, 1)",
+    );
+    expect(objectPanelStyles).not.toContain(".area-weather--hidden");
+  });
+
+  it("mounts paid promo island content in both desktop and mobile layouts", () => {
+    const mapTemplate = activeTemplate();
+    const islandOutlets =
+      mapTemplate.match(
+        /<ng-container\s+\*ngTemplateOutlet="mapIsland"><\/ng-container>/gu,
+      ) ?? [];
+
+    expect(mapTemplate).toContain(
+      '<div @fadeInOut class="map-island-host">',
+    );
+    expect(mapTemplate).toContain(
+      '<div @fadeInOut class="map-island-mobile-host">',
+    );
+    expect(islandOutlets).toHaveLength(2);
   });
 
   it("should hide the Add Spot button while a spot is selected", () => {

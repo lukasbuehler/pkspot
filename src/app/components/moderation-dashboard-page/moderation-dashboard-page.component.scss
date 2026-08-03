@@ -54,6 +54,27 @@
   gap: 0.75rem;
 }
 
+.age-assurance-maintenance {
+  padding: 1rem;
+  border: 1px solid var(--mat-sys-tertiary);
+  border-radius: 18px;
+  color: var(--mat-sys-on-tertiary-container);
+  background: var(--mat-sys-tertiary-container);
+}
+
+.age-assurance-maintenance__form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.age-assurance-maintenance__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
 .moderation-dashboard__queue-column {
   display: flex;
   min-width: 0;
@@ -155,7 +176,8 @@ mat-card-actions {
 
 @media (max-width: 840px) {
   .moderation-dashboard__grid,
-  .moderation-dashboard__queue-grid {
+  .moderation-dashboard__queue-grid,
+  .age-assurance-maintenance__form {
     grid-template-columns: 1fr;
   }
 }

@@ -1,4 +1,5 @@
-import { DatePipe, NgOptimizedImage } from "@angular/common";
+import { NgOptimizedImage } from "@angular/common";
+import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -28,7 +29,7 @@ import {
   MatDialogRef,
 } from "@angular/material/dialog";
 import { ActivatedRoute, RouterLink } from "@angular/router";
-import { map, startWith } from "rxjs/operators";
+import { map, startWith, take } from "rxjs/operators";
 import { SpotListComponent } from "../spot-list/spot-list.component";
 import {
   CommunityLandingPageData as CommunityPanelData,
@@ -58,6 +59,13 @@ import {
   CommunitySearchPreview,
   SearchService,
 } from "../../services/search.service";
+import { NotificationOptInService } from "../../services/notification-opt-in.service";
+import type { CommunityMergeLocalityOptionSchema } from "../../../db/schemas/CommunityMergeAdminSchema";
+import { CommunityLocalityPickerComponent } from "../community-locality-picker/community-locality-picker.component";
+import {
+  CommunityLocalityMergeConfirmDialogComponent,
+  CommunityLocalityMergeConfirmData,
+} from "../community-locality-merge-confirm-dialog/community-locality-merge-confirm-dialog.component";
 
 type CommunityExploreMode = "all" | "dry";
 
@@ -88,7 +96,7 @@ interface CommunityInfoCardView {
 @Component({
   selector: "app-community-landing-page",
   imports: [
-    DatePipe,
+    SystemDatePipe,
     NgOptimizedImage,
     MatCardModule,
     MatButtonModule,
@@ -105,6 +113,7 @@ interface CommunityInfoCardView {
     EventCardComponent,
     MapInfoPanelComponent,
     CommunityKnowledgeEditorComponent,
+    CommunityLocalityPickerComponent,
   ],
   templateUrl: "./community-landing-page.component.html",
   styleUrl: "./community-landing-page.component.scss",
@@ -123,6 +132,7 @@ export class CommunityLandingPageComponent {
   private _locale = inject(LOCALE_ID);
   private _analytics = inject(AnalyticsService);
   private _searchService = inject(SearchService);
+  private _notificationOptIn = inject(NotificationOptInService);
 
   communityDataInput = input<CommunityPanelData | null | undefined>(undefined);
   panelMode = input(false);
@@ -166,6 +176,20 @@ export class CommunityLandingPageComponent {
   mergeTargetOptions = signal<CommunitySearchPreview[]>([]);
   selectedMergeTargetKey = signal("");
   mergeInfoCardMode = signal<CommunityMergeInfoCardMode>("move");
+  isLoadingLocalityMerges = signal(false);
+  localityMergeLoadFailed = signal(false);
+  isSavingLocalityMerge = signal(false);
+  localityMergeCandidates = signal<CommunityMergeLocalityOptionSchema[]>([]);
+  mergedUnpublishedLocalities = signal<CommunityMergeLocalityOptionSchema[]>([]);
+  selectedLocalityMergeKey = signal("");
+  selectedLocalityMerge = computed(
+    () =>
+      this.localityMergeCandidates().find(
+        (candidate) =>
+          candidate.communityKey === this.selectedLocalityMergeKey(),
+      ) ?? null,
+  );
+  private _localityMergeStateTargetKey = "";
   private _communityKnowledgeDialogTemplate =
     viewChild<TemplateRef<unknown>>("communityKnowledgeDialog");
   private _communityKnowledgeDialogRef: MatDialogRef<unknown> | null = null;
@@ -173,6 +197,7 @@ export class CommunityLandingPageComponent {
     communityKey: string;
     infoCards: CommunityInfoCardSchema[];
   } | null>(null);
+  private _communityDataOverride = signal<CommunityPanelData | null>(null);
   private _privateInfoCards = signal<{
     communityKey: string;
     infoCards: CommunityInfoCardSchema[];
@@ -227,8 +252,13 @@ export class CommunityLandingPageComponent {
   );
 
   communityData = computed(() => {
-    const data =
+    const sourceData =
       this.communityDataInput() ?? this._communityData() ?? undefined;
+    const pageOverride = this._communityDataOverride();
+    const data =
+      sourceData && pageOverride?.communityKey === sourceData.communityKey
+        ? pageOverride
+        : sourceData;
     const override = this._infoCardsOverride();
     if (!data || override?.communityKey !== data.communityKey) {
       return data;
@@ -466,6 +496,9 @@ export class CommunityLandingPageComponent {
       );
       this.mergeInfoCardMode.set(data?.merge_into?.info_cards ?? "move");
       void this.loadMergeTargetOptions();
+      if (data?.scope === "locality") {
+        void this.loadLocalityMergeAdminState();
+      }
     }
     this.isEditingKnowledge.set(true);
     this._openCommunityKnowledgeDialog();
@@ -513,7 +546,19 @@ export class CommunityLandingPageComponent {
           ),
         );
         this.isEditingKnowledge.set(false);
+        const dialogRef = this._communityKnowledgeDialogRef;
+        dialogRef
+          ?.afterClosed()
+          .pipe(take(1))
+          .subscribe(() => {
+            void this._notificationOptIn.maybePrompt(
+              "community_info_updates",
+            );
+          });
         this._communityKnowledgeDialogRef?.close();
+        if (!dialogRef) {
+          void this._notificationOptIn.maybePrompt("community_info_updates");
+        }
         this._snackbar.open(
           $localize`Community card suggestion submitted for review`,
           undefined,
@@ -630,6 +675,147 @@ export class CommunityLandingPageComponent {
       });
     } finally {
       this.isSavingCommunityMerge.set(false);
+    }
+  }
+
+  async loadLocalityMergeAdminState(force = false): Promise<void> {
+    const data = this.communityData();
+    if (
+      !data ||
+      !this.canEditKnowledge() ||
+      data.scope !== "locality" ||
+      this.isLoadingLocalityMerges() ||
+      (!force && this._localityMergeStateTargetKey === data.communityKey)
+    ) {
+      return;
+    }
+
+    this.isLoadingLocalityMerges.set(true);
+    this.localityMergeLoadFailed.set(false);
+    try {
+      const state = await this._landingPagesService.getCommunityMergeAdminState(
+        data.communityKey,
+      );
+      this._localityMergeStateTargetKey = data.communityKey;
+      this.localityMergeCandidates.set(state.candidates);
+      this.mergedUnpublishedLocalities.set(state.mergedLocalities);
+      if (
+        !state.candidates.some(
+          (candidate) =>
+            candidate.communityKey === this.selectedLocalityMergeKey(),
+        )
+      ) {
+        this.selectedLocalityMergeKey.set("");
+      }
+    } catch (error) {
+      console.error("Failed to load unpublished locality merges", error);
+      this.localityMergeLoadFailed.set(true);
+      this._snackbar.open("Failed to load unpublished localities", undefined, {
+        duration: 5000,
+      });
+    } finally {
+      this.isLoadingLocalityMerges.set(false);
+    }
+  }
+
+  confirmMergeUnpublishedLocality(): void {
+    const data = this.communityData();
+    const locality = this.selectedLocalityMerge();
+    if (!data || !locality || this.isSavingLocalityMerge()) {
+      return;
+    }
+    this._openLocalityMergeConfirmation("merge", locality, data.displayName);
+  }
+
+  confirmUnmergeUnpublishedLocality(
+    locality: CommunityMergeLocalityOptionSchema,
+  ): void {
+    const data = this.communityData();
+    if (!data || this.isSavingLocalityMerge()) {
+      return;
+    }
+    this._openLocalityMergeConfirmation("unmerge", locality, data.displayName);
+  }
+
+  private _openLocalityMergeConfirmation(
+    action: CommunityLocalityMergeConfirmData["action"],
+    locality: CommunityMergeLocalityOptionSchema,
+    targetDisplayName: string,
+  ): void {
+    this._dialog
+      .open<
+        CommunityLocalityMergeConfirmDialogComponent,
+        CommunityLocalityMergeConfirmData,
+        boolean
+      >(CommunityLocalityMergeConfirmDialogComponent, {
+        data: { action, locality, targetDisplayName },
+        width: "min(520px, calc(100vw - 32px))",
+        maxWidth: "520px",
+      })
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          void this._saveUnpublishedLocalityMerge(action, locality);
+        }
+      });
+  }
+
+  private async _saveUnpublishedLocalityMerge(
+    action: CommunityLocalityMergeConfirmData["action"],
+    locality: CommunityMergeLocalityOptionSchema,
+  ): Promise<void> {
+    const data = this.communityData();
+    if (!data || !this.canEditKnowledge()) {
+      return;
+    }
+    this.isSavingLocalityMerge.set(true);
+    try {
+      if (action === "merge") {
+        await this._landingPagesService.mergeUnpublishedLocality(
+          locality.communityKey,
+          data.communityKey,
+        );
+      } else {
+        await this._landingPagesService.unmergeUnpublishedLocality(
+          locality.communityKey,
+          data.communityKey,
+        );
+      }
+      await Promise.all([
+        this.loadLocalityMergeAdminState(true),
+        this._refreshCommunityPage(data),
+      ]);
+      this._snackbar.open(
+        action === "merge"
+          ? `${locality.displayName} now belongs to ${data.displayName}`
+          : `${locality.displayName} is no longer merged into ${data.displayName}`,
+        undefined,
+        { duration: 4000 },
+      );
+    } catch (error) {
+      console.error(`Failed to ${action} unpublished locality`, error);
+      this._snackbar.open(
+        action === "merge"
+          ? "Failed to merge locality"
+          : "Failed to undo locality merge",
+        undefined,
+        { duration: 5000 },
+      );
+    } finally {
+      this.isSavingLocalityMerge.set(false);
+    }
+  }
+
+  private async _refreshCommunityPage(
+    current: CommunityPanelData,
+  ): Promise<void> {
+    const refreshed = await this._landingPagesService.getCommunityPage(
+      current.preferredSlug,
+      10,
+    );
+    if (refreshed?.communityKey === current.communityKey) {
+      this._communityDataOverride.set(refreshed);
     }
   }
 
@@ -801,7 +987,7 @@ export class CommunityLandingPageComponent {
   ): string | null {
     switch (card.commercialDisclosure) {
       case "classes":
-        return $localize`:@@community.info_disclosure_classes:Classes or coaching`;
+        return $localize`:@@community.info_disclosure_classes:Classes and coaching`;
       case "paid-partnership":
         return $localize`:@@community.info_disclosure_paid:Paid promotion`;
       case "shop":

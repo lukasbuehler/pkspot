@@ -1,0 +1,12 @@
+<app-filter-chips-bar
+  [selectedFilter]="selectedFilter()"
+  [presetFilters]="chips()"
+  [showFiltersChip]="false"
+  [showClearChip]="false"
+  [allowDeselect]="true"
+  ariaLabel="Program day"
+  i18n-ariaLabel="@@event_program.day_filter"
+  appearance="solid"
+  selectionRole="primary"
+  (filterChange)="selectDay($event)"
+/>

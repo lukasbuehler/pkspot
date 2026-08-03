@@ -1,43 +1,54 @@
-import { effect, inject, Optional, Self, signal, ChangeDetectionStrategy } from "@angular/core";
-import { Component, OnInit, Output, EventEmitter, Input } from "@angular/core";
 import {
-  ControlValueAccessor,
-  UntypedFormControl,
-  FormControlName,
-  UntypedFormGroup,
-  NgControl,
-  Validators,
-  FormsModule,
-  ReactiveFormsModule,
-} from "@angular/forms";
-import { humanFileSize } from "../../../scripts/Helpers";
-import { NgOptimizedImage } from "@angular/common";
-import { MatInput } from "@angular/material/input";
-import {
-  MatFormField,
-  MatLabel,
-  MatSuffix,
-  MatHint,
-  MatError,
-} from "@angular/material/form-field";
-import { generateUUID } from "../../../scripts/Helpers";
-
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  OnInit,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from "@angular/core";
+import { MatButton, MatIconButton } from "@angular/material/button";
+import { MatDialog } from "@angular/material/dialog";
 import { MatIcon } from "@angular/material/icon";
-import { MatMiniFabButton } from "@angular/material/button";
-import { MatProgressBarModule } from "@angular/material/progress-bar";
-import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { StorageService } from "../../services/firebase/storage.service";
+import { MatProgressBar } from "@angular/material/progress-bar";
+import { MatSnackBar } from "@angular/material/snack-bar";
+import { firstValueFrom } from "rxjs";
+import { humanFileSize, generateUUID } from "../../../scripts/Helpers";
 import { MediaType } from "../../../db/models/Interfaces";
 import { StorageBucket } from "../../../db/schemas/Media";
 import type { MediaUploadTargetKind } from "../../../db/schemas/MediaModerationSchema";
-import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
+import { StorageService } from "../../services/firebase/storage.service";
+import {
+  DISABLED_IMAGE_CROP_POLICY,
+  canCropImage,
+  type ImageCropPolicy,
+} from "../crop-image/image-crop-policy";
+import {
+  ImageCropDialogComponent,
+  type ImageCropDialogData,
+} from "../crop-image/image-crop-dialog.component";
+
+export type MediaUploadState =
+  | "staged"
+  | "editing"
+  | "uploading"
+  | "complete"
+  | "failed";
 
 export interface UploadMedia {
+  id: string;
+  originalFile: File;
   file: File;
+  originalPreviewSrc: string;
   previewSrc: string;
   icon: string;
   uploadProgress: number;
   type: MediaType;
+  state: MediaUploadState;
+  isCropped: boolean;
+  error?: string;
 }
 
 export interface MediaUploadEvent {
@@ -56,314 +67,345 @@ export interface MediaUploadEvent {
   styleUrls: ["./media-upload.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    FormsModule,
-    ReactiveFormsModule,
-    MatMiniFabButton,
+    MatButton,
+    MatIconButton,
     MatIcon,
-    MatFormField,
-    MatLabel,
-    MatInput,
-    MatSuffix,
-    // MatHint,
-    MatError,
-    MatProgressBarModule,
-    MatProgressSpinnerModule,
-    MatSnackBarModule,
+    MatProgressBar,
   ],
 })
-export class MediaUpload implements OnInit, ControlValueAccessor {
-  private _snackbar: MatSnackBar = inject(MatSnackBar);
+export class MediaUpload implements OnInit, OnDestroy {
+  private readonly snackbar = inject(MatSnackBar);
+  private readonly storageService = inject(StorageService);
+  private readonly dialog = inject(MatDialog);
 
-  @Input() required: boolean = false;
-  @Input() multipleAllowed: boolean = false;
-  @Input() storageFolder: StorageBucket | null = null;
-  @Input() uploadToStorage: boolean = true;
-  @Input() maximumSizeInBytes: number = 500 * 1024 * 1024; // 500 MB
-  @Input() allowedMimeTypes: string[] | null = null;
-  @Input() acceptString: string | null = null;
-  @Input() moderationTargetKind: MediaUploadTargetKind | null = null;
-  @Input() moderationTargetId: string | null = null;
-  @Output() changed = new EventEmitter<void>();
-  @Output() newMedia = new EventEmitter<MediaUploadEvent>();
-  @Output() fileSelected = new EventEmitter<File>();
+  readonly required = input(false);
+  readonly multipleAllowed = input(false);
+  readonly storageFolder = input<StorageBucket | null>(null);
+  readonly uploadToStorage = input(true);
+  readonly maximumSizeInBytes = input(500 * 1024 * 1024);
+  readonly allowedMimeTypes = input<string[] | null>(null);
+  readonly acceptString = input<string | null>(null);
+  readonly moderationTargetKind = input<MediaUploadTargetKind | null>(null);
+  readonly moderationTargetId = input<string | null>(null);
+  readonly imageCropPolicy = input<ImageCropPolicy>(
+    DISABLED_IMAGE_CROP_POLICY,
+  );
 
-  private _storageService = inject(StorageService);
+  readonly changed = output<void>();
+  readonly newMedia = output<MediaUploadEvent>();
+  readonly fileSelected = output<File>();
+  readonly mediaBatchUploaded = output<MediaUploadEvent[]>();
+  readonly isUploading = output<boolean>();
 
-  showPreview = signal(true);
+  readonly mediaList = signal<UploadMedia[]>([]);
+  readonly uploading = computed(() =>
+    this.mediaList().some((media) => media.state === "uploading"),
+  );
+  readonly hasPendingMedia = computed(() =>
+    this.mediaList().some(
+      (media) => media.state === "staged" || media.state === "failed",
+    ),
+  );
+  readonly hasIncompleteRequiredCrop = computed(
+    () =>
+      this.imageCropPolicy().requirement === "required" &&
+      this.mediaList().some(
+        (media) => canCropImage(media.file) && !media.isCropped,
+      ),
+  );
 
-  mediaList = signal<UploadMedia[]>([]);
-  uploadFile: File | null = null;
+  hasError = false;
+  errorMessage = "";
+  private batchGeneration = 0;
 
-  formGroup: UntypedFormGroup;
-
-  hasError: boolean = false;
-  private _errorMessage: string = "";
-  get errorMessage() {
-    return this._errorMessage;
-  }
-
-  constructor() {
-    this.formGroup = new UntypedFormGroup({
-      input: new UntypedFormControl("", [Validators.required]),
-    });
-  }
-
-  ngOnInit() {
-    if (this.storageFolder === null && this.uploadToStorage) {
+  ngOnInit(): void {
+    if (this.storageFolder() === null && this.uploadToStorage()) {
       console.error("No storage folder specified for media upload");
     }
   }
 
-  writeValue() {}
-
-  registerOnChange() {}
-
-  registerOnTouched() {}
-
-  setDisabledState?(isDisabled: boolean) {}
-
-  public isImageSelected(): boolean {
-    return this.uploadFile?.type.includes("image") ?? false;
+  ngOnDestroy(): void {
+    this.revokeAllPreviews();
   }
 
-  onSelectFiles(eventTarget: EventTarget | null) {
-    const fileList = (eventTarget as HTMLInputElement).files;
+  onSelectFiles(eventTarget: EventTarget | null): void {
+    const files = Array.from(
+      (eventTarget as HTMLInputElement | null)?.files ?? [],
+    );
+    if (files.length === 0) return;
 
-    if (fileList) {
-      const _mediaList: UploadMedia[] = [];
-
-      for (let i = 0; i < fileList.length; i++) {
-        const file = fileList[i];
-
-        this.hasError = false;
-        let type = file.type;
-        console.debug("file type", type);
-        if (!this.allowedMimeTypes || this.allowedMimeTypes.includes(type)) {
-          if (
-            this.maximumSizeInBytes !== null &&
-            file.size > this.maximumSizeInBytes
-          ) {
-            // The selected file is too large
-            console.log(
-              `The selected file was too big. (Max: ${humanFileSize(
-                this.maximumSizeInBytes
-              )})`
-            );
-            this._errorMessage = `The selected file was too big. (It needs to be less than ${humanFileSize(
-              this.maximumSizeInBytes
-            )})`;
-            this.hasError = true;
-            return;
-          }
-        } else {
-          this._snackbar.open($localize`File mimetype is not allowed!`);
-          console.log(
-            "A file was selected, but its mimetype is not allowed. Please select a different file.\n" +
-              "Mimetype of selected file is '" +
-              type +
-              "', allowed mime types are: " +
-              (this.allowedMimeTypes
-                ? this.allowedMimeTypes.join(", ")
-                : "undefined") +
-              "\n"
-          );
-          this._errorMessage = "The type of this file is not allowed";
-          this.hasError = true;
-          return;
-        }
-        const newMedia: UploadMedia = {
-          previewSrc: this.getFileImageSrc(file),
-          file: file,
-          uploadProgress: 0,
-          icon: file.type.includes("image")
-            ? "image"
-            : file.type.includes("video")
-            ? "movie"
-            : "insert_drive_file",
-          type: file.type.includes("image") ? MediaType.Image : MediaType.Video,
-        };
-
-        _mediaList.push(newMedia);
-      }
-
-      this.mediaList.set(_mediaList);
-      this._activeUploadCount = _mediaList.length;
-      this._currentBatch = [];
-
-      if (_mediaList.length === 0) {
+    this.hasError = false;
+    this.errorMessage = "";
+    const validFiles: File[] = [];
+    for (const file of files) {
+      const validationError = this.validateFile(file);
+      if (validationError) {
+        this.hasError = true;
+        this.errorMessage = validationError;
+        this.snackbar.open(validationError, $localize`Dismiss`, {
+          duration: 5000,
+        });
         return;
       }
+      validFiles.push(file);
+    }
 
-      if (this.uploadToStorage && this.storageFolder) {
-        this.isUploading.emit(true);
-      }
+    if (!this.multipleAllowed()) {
+      this.revokeAllPreviews();
+    }
+    const staged = validFiles.map((file) => this.stageFile(file));
+    this.mediaList.update((current) =>
+      this.multipleAllowed() ? [...current, ...staged] : staged.slice(0, 1),
+    );
+    this.changed.emit();
 
-      for (let i = 0; i < _mediaList.length; i++) {
-        const newMedia = _mediaList[i];
-        if (!newMedia) {
-          continue;
-        }
-        if (this.uploadToStorage && this.storageFolder) {
-          this.uploadMedia(newMedia, i);
-        } else {
-          // just emit the file
-          this.fileSelected.emit(newMedia.file);
-          // mark as completed (or should we just not show progress?)
-          this.mediaList.update((list) => {
-            // add to list but completed
-            newMedia.uploadProgress = 100;
-            // list.push(newMedia); // handled by set below
-            return list;
-          });
-        }
-      }
+    if (
+      this.imageCropPolicy().requirement === "required" &&
+      staged[0] &&
+      canCropImage(staged[0].file)
+    ) {
+      void this.editImage(staged[0].id);
     }
   }
 
-  fileIsImage(file: File): boolean {
-    if (!file) {
-      console.warn("file is ", typeof file);
-      return false; // TODO this is a temporary fix for a bug
-    }
-    return file.type.includes("image");
-  }
-
-  getFileImageSrc(file: File): string {
-    if (!file || !this.fileIsImage(file)) {
-      return "";
-    }
-
-    const src: string = URL.createObjectURL(file);
-    console.log(file, "src", src);
-    return src;
-  }
-
-  uploadMedia(media: UploadMedia, index: number) {
-    console.log("Starting media upload", media);
-
-    if (!this.storageFolder) {
-      console.error("No storage folder specified for media upload");
+  async editImage(id: string): Promise<void> {
+    const media = this.mediaList().find((item) => item.id === id);
+    if (!media || !canCropImage(media.file) || media.state === "uploading") {
       return;
     }
 
-    let fileEnding = media.file.name.split(".").pop();
+    this.updateMedia(id, { state: "editing" });
+    const ref = this.dialog.open<
+      ImageCropDialogComponent,
+      ImageCropDialogData,
+      File | undefined
+    >(ImageCropDialogComponent, {
+      data: {
+        file: media.isCropped ? media.originalFile : media.file,
+        policy: this.imageCropPolicy(),
+        title: $localize`Crop image`,
+      },
+      maxWidth: "100vw",
+      maxHeight: "100dvh",
+      panelClass: "image-crop-dialog-panel",
+      autoFocus: "dialog",
+      restoreFocus: true,
+    });
+    const croppedFile = await firstValueFrom(ref.afterClosed(), {
+      defaultValue: undefined,
+    });
+    const current = this.mediaList().find((item) => item.id === id);
+    if (!current) return;
 
-    let filename = generateUUID();
+    if (!croppedFile) {
+      if (this.imageCropPolicy().requirement === "required" && !current.isCropped) {
+        this.removeMedia(id);
+      } else {
+        this.updateMedia(id, { state: "staged" });
+      }
+      return;
+    }
 
-    this._storageService
-      .setUploadToStorageWithResult(
-        media.file,
-        this.storageFolder,
-        (progress: number) => {
-          if (this._activeUploadCount <= 0) return; // Ignore if cancelled
-          this.mediaList.update((list) => {
-            list[index] = {
-              ...list[index],
-              uploadProgress: progress,
-            };
-            return list;
-          });
-        },
-        filename,
-        fileEnding,
-        "public, max-age=31536000",
-        this.moderationTargetKind ?? undefined,
-        this.moderationTargetId ?? undefined
-      )
-      .then(
-        (uploadResult) => {
-          if (this._activeUploadCount <= 0) return; // Ignore if cancelled
-          this.mediaFinishedUploading(media, uploadResult);
-          this.mediaList.update((list) => {
-            list[index] = {
-              ...list[index],
-              uploadProgress: 100,
-            };
-            return list;
-          });
-        },
-        (error) => {
-          if (this._activeUploadCount <= 0) return; // Ignore if cancelled
-          console.error("Error uploading media: ", error);
-          this._snackbar.open(
-            $localize`Error uploading media!`,
-            $localize`OK`,
-            {
-              duration: 5000,
-            }
-          );
-          this._checkBatchCompletion();
-        }
-      );
+    if (
+      current.previewSrc !== current.originalPreviewSrc &&
+      current.previewSrc.startsWith("blob:")
+    ) {
+      URL.revokeObjectURL(current.previewSrc);
+    }
+    this.updateMedia(id, {
+      file: croppedFile,
+      previewSrc: URL.createObjectURL(croppedFile),
+      state: "staged",
+      isCropped: true,
+      error: undefined,
+    });
+    this.changed.emit();
   }
 
-  cancelBatch() {
-    this._activeUploadCount = 0;
-    this._currentBatch = [];
-    this.mediaList.set([]);
-    this.uploadFile = null;
+  revertCrop(id: string): void {
+    const media = this.mediaList().find((item) => item.id === id);
+    if (!media?.isCropped || media.state === "uploading") return;
+    if (
+      media.previewSrc !== media.originalPreviewSrc &&
+      media.previewSrc.startsWith("blob:")
+    ) {
+      URL.revokeObjectURL(media.previewSrc);
+    }
+    this.updateMedia(id, {
+      file: media.originalFile,
+      previewSrc: media.originalPreviewSrc,
+      state: "staged",
+      isCropped: false,
+      error: undefined,
+    });
+    this.changed.emit();
+  }
+
+  removeMedia(id: string): void {
+    const media = this.mediaList().find((item) => item.id === id);
+    if (!media || media.state === "uploading") return;
+    this.revokePreviews(media);
+    this.mediaList.update((items) => items.filter((item) => item.id !== id));
+    this.changed.emit();
+  }
+
+  async uploadStaged(): Promise<void> {
+    if (
+      this.uploading() ||
+      !this.hasPendingMedia() ||
+      this.hasIncompleteRequiredCrop()
+    ) {
+      return;
+    }
+    const candidates = this.mediaList().filter(
+      (media) => media.state === "staged" || media.state === "failed",
+    );
+    if (candidates.length === 0) return;
+
+    const generation = ++this.batchGeneration;
+    this.isUploading.emit(true);
+    const events = (
+      await Promise.all(
+        candidates.map((media) => this.uploadMedia(media, generation)),
+      )
+    ).filter((event): event is MediaUploadEvent => event !== null);
+
+    if (generation !== this.batchGeneration) return;
+    if (events.length > 0) this.mediaBatchUploaded.emit(events);
     this.isUploading.emit(false);
   }
 
-  mediaFinishedUploading(
-    media: UploadMedia,
-    uploadResult: {
-      url: string;
-      uploadId?: string;
-      targetKind?: MediaUploadTargetKind;
-      targetId?: string;
-    }
-  ) {
-    let isSized = false;
-
-    console.log("downloadUrl", uploadResult.url);
-
-    if (
-      [StorageBucket.SpotPictures, StorageBucket.ProfilePictures].includes(
-        this.storageFolder!
-      )
-    ) {
-      isSized = true;
-    }
-    const event: MediaUploadEvent = {
-      src: uploadResult.url,
-      is_sized: isSized,
-      type: media.type,
-      uploadId: uploadResult.uploadId,
-      previewSrc: media.previewSrc,
-      targetKind: uploadResult.targetKind,
-      targetId: uploadResult.targetId,
-    };
-    this.newMedia.emit(event);
-
-    // Handle batch logic
-    this._currentBatch.push(event);
-    this._checkBatchCompletion();
+  cancelBatch(): void {
+    this.batchGeneration++;
+    this.isUploading.emit(false);
+    this.clear();
   }
 
-  private _activeUploadCount = 0;
-  private _currentBatch: MediaUploadEvent[] = [];
-
-  @Output() mediaBatchUploaded = new EventEmitter<MediaUploadEvent[]>();
-
-  @Output() isUploading = new EventEmitter<boolean>();
-
-  private _checkBatchCompletion() {
-    this._activeUploadCount--;
-    if (this._activeUploadCount <= 0) {
-      if (this._currentBatch.length > 0) {
-        this.mediaBatchUploaded.emit(this._currentBatch);
-      }
-      // Reset
-      this._activeUploadCount = 0;
-      this._currentBatch = [];
-      this.isUploading.emit(false);
-    }
-  }
-
-  clear() {
-    this.uploadFile = null;
+  clear(): void {
+    this.revokeAllPreviews();
     this.mediaList.set([]);
     this.changed.emit();
+  }
+
+  fileIsImage(file: File): boolean {
+    return file.type.startsWith("image/");
+  }
+
+  private validateFile(file: File): string | null {
+    const allowed = this.allowedMimeTypes();
+    if (allowed && !allowed.some((type) => this.matchesMimeType(file, type))) {
+      return $localize`The type of this file is not allowed.`;
+    }
+    if (file.size > this.maximumSizeInBytes()) {
+      return $localize`The selected file was too big. It must be smaller than ${humanFileSize(
+        this.maximumSizeInBytes(),
+      )}.`;
+    }
+    return null;
+  }
+
+  private matchesMimeType(file: File, allowed: string): boolean {
+    if (allowed.endsWith("/*")) {
+      return file.type.startsWith(allowed.slice(0, -1));
+    }
+    return file.type === allowed;
+  }
+
+  private stageFile(file: File): UploadMedia {
+    const previewSrc = this.fileIsImage(file) ? URL.createObjectURL(file) : "";
+    return {
+      id: generateUUID(),
+      originalFile: file,
+      file,
+      originalPreviewSrc: previewSrc,
+      previewSrc,
+      uploadProgress: 0,
+      icon: this.fileIsImage(file) ? "image" : "movie",
+      type: this.fileIsImage(file) ? MediaType.Image : MediaType.Video,
+      state: "staged",
+      isCropped: false,
+    };
+  }
+
+  private async uploadMedia(
+    media: UploadMedia,
+    generation: number,
+  ): Promise<MediaUploadEvent | null> {
+    this.updateMedia(media.id, {
+      state: "uploading",
+      uploadProgress: 0,
+      error: undefined,
+    });
+
+    if (!this.uploadToStorage()) {
+      this.fileSelected.emit(media.file);
+      this.updateMedia(media.id, { state: "complete", uploadProgress: 100 });
+      return null;
+    }
+
+    const storageFolder = this.storageFolder();
+    if (!storageFolder) {
+      this.updateMedia(media.id, {
+        state: "failed",
+        error: $localize`No storage destination is configured.`,
+      });
+      return null;
+    }
+
+    try {
+      const extension = media.file.name.split(".").pop();
+      const uploadResult =
+        await this.storageService.setUploadToStorageWithResult(
+          media.file,
+          storageFolder,
+          (progress) => {
+            if (generation !== this.batchGeneration) return;
+            this.updateMedia(media.id, { uploadProgress: progress });
+          },
+          generateUUID(),
+          extension,
+          "public, max-age=31536000",
+          this.moderationTargetKind() ?? undefined,
+          this.moderationTargetId() ?? undefined,
+        );
+      if (generation !== this.batchGeneration) return null;
+
+      const event: MediaUploadEvent = {
+        src: uploadResult.url,
+        is_sized: media.type === MediaType.Image,
+        type: media.type,
+        uploadId: uploadResult.uploadId,
+        previewSrc: media.previewSrc,
+        targetKind: uploadResult.targetKind,
+        targetId: uploadResult.targetId,
+      };
+      this.updateMedia(media.id, { state: "complete", uploadProgress: 100 });
+      this.newMedia.emit(event);
+      return event;
+    } catch (error) {
+      if (generation !== this.batchGeneration) return null;
+      console.error("Error uploading media:", error);
+      const message = $localize`Error uploading media. Try again.`;
+      this.updateMedia(media.id, { state: "failed", error: message });
+      this.snackbar.open(message, $localize`Dismiss`, { duration: 5000 });
+      return null;
+    }
+  }
+
+  private updateMedia(id: string, patch: Partial<UploadMedia>): void {
+    this.mediaList.update((items) =>
+      items.map((item) => (item.id === id ? { ...item, ...patch } : item)),
+    );
+  }
+
+  private revokeAllPreviews(): void {
+    for (const media of this.mediaList()) this.revokePreviews(media);
+  }
+
+  private revokePreviews(media: UploadMedia): void {
+    const previews = new Set([media.originalPreviewSrc, media.previewSrc]);
+    for (const preview of previews) {
+      if (preview.startsWith("blob:")) URL.revokeObjectURL(preview);
+    }
   }
 }

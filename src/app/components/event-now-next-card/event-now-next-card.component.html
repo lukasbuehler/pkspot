@@ -1,0 +1,82 @@
+<article class="event-now-card" [attr.aria-label]="event().name">
+  <span class="event-now-icon" aria-hidden="true">
+    <mat-icon>event</mat-icon>
+  </span>
+
+  <div class="event-now-copy">
+    <p class="event-now-eyebrow mat-label-large">
+      @if (current()) {
+        <span i18n="@@event_now.live_now">Live now</span>
+      } @else {
+        <span i18n="@@event_now.underway">Event underway</span>
+      }
+    </p>
+
+    @if (showEventName()) {
+      <h2 class="event-now-name mat-title-large">{{ event().name }}</h2>
+    }
+
+    @if (current(); as currentItem) {
+      <div class="event-now-row">
+        <span class="event-now-label mat-label-medium" i18n="@@event_now.now">
+          Now
+        </span>
+        <span class="event-now-item">
+          <strong class="mat-title-small">{{ currentItem.item.title }}</strong>
+          <span class="mat-body-small">
+            {{ timeRange(currentItem.start, currentItem.end) }}
+            @if (moment().current.length > 1) {
+              ·
+              <span i18n="@@event_now.more_current">
+                +{{ moment().current.length - 1 }} more
+              </span>
+            }
+          </span>
+        </span>
+      </div>
+    }
+
+    @if (next(); as nextItem) {
+      <div class="event-now-row">
+        <span class="event-now-label mat-label-medium" i18n="@@event_now.next">
+          Next
+        </span>
+        <span class="event-now-item">
+          <strong class="mat-title-small">{{ nextItem.item.title }}</strong>
+          <span class="mat-body-small">
+            {{ time(nextItem.start) }}
+            @if (moment().next.length > 1) {
+              ·
+              <span i18n="@@event_now.more_next">
+                +{{ moment().next.length - 1 }} more
+              </span>
+            }
+          </span>
+        </span>
+      </div>
+    }
+
+    @if (!current() && !next()) {
+      <p class="event-now-fallback mat-body-medium" i18n="@@event_now.fallback">
+        This event is happening now.
+      </p>
+    }
+
+    <div class="event-now-actions">
+      @if (showEventName()) {
+        <a mat-flat-button [routerLink]="eventRoute()">
+          <span i18n="@@event_now.open_event">Open event</span>
+        </a>
+      } @else if (focusItemId(); as itemId) {
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="itemSelected.emit(itemId)"
+        >
+          <mat-icon>schedule</mat-icon>
+          <span i18n="@@event_now.view_program">View in program</span>
+        </button>
+      }
+    </div>
+  </div>
+</article>

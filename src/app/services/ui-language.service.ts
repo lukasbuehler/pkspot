@@ -2,16 +2,10 @@ import { inject, Injectable, LOCALE_ID } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { Capacitor } from "@capacitor/core";
 import { LocaleCode } from "../../db/models/Interfaces";
-
-const SUPPORTED_UI_LOCALES: LocaleCode[] = [
-  "en",
-  "de",
-  "de-CH",
-  "fr",
-  "it",
-  "es",
-  "nl",
-];
+import {
+  normalizeUiLocale,
+  SUPPORTED_UI_LOCALES,
+} from "../config/ui-locales";
 
 @Injectable({
   providedIn: "root",
@@ -20,7 +14,7 @@ export class UiLanguageService {
   private readonly _dialog = inject(MatDialog);
   private readonly _locale = inject(LOCALE_ID) as LocaleCode;
 
-  readonly supportedUiLocales = SUPPORTED_UI_LOCALES;
+  readonly supportedUiLocales = [...SUPPORTED_UI_LOCALES];
 
   get currentUiLocale(): LocaleCode {
     if (typeof window === "undefined") {
@@ -82,14 +76,6 @@ export class UiLanguageService {
   }
 
   private _normalizeLocale(locale?: string | null): LocaleCode {
-    if (!locale) {
-      return "en";
-    }
-
-    if (this.supportedUiLocales.includes(locale as LocaleCode)) {
-      return locale as LocaleCode;
-    }
-
-    return "en";
+    return normalizeUiLocale(locale);
   }
 }

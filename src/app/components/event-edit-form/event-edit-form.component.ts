@@ -29,13 +29,15 @@ import { MatChipsModule } from "@angular/material/chips";
 import { MatDatepickerModule } from "@angular/material/datepicker";
 import { MatNativeDateModule } from "@angular/material/core";
 import { MatDividerModule } from "@angular/material/divider";
+import { MatDialog } from "@angular/material/dialog";
 import { MatExpansionModule } from "@angular/material/expansion";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { MatSelectModule } from "@angular/material/select";
 import { MatTimepickerModule } from "@angular/material/timepicker";
-import { Timestamp } from "@angular/fire/firestore";
+import { Timestamp } from "firebase/firestore";
+import { firstValueFrom } from "rxjs";
 import { Event as PkEvent } from "../../../db/models/Event";
 import {
   EventBoundsSchema,
@@ -54,6 +56,11 @@ import {
   EventProgramSchema,
   EventProgramSpotRefSchema,
   EventProgramItemStatus,
+  EventOwnerSchema,
+  EventAdmissionMode,
+  EventAttendanceEligibilitySchema,
+  EventNotificationPolicy,
+  EventSocialAttendanceMode,
   EventSchema,
   InlineEventSpotSchema,
   EventQualificationPathSchema,
@@ -64,12 +71,24 @@ import {
   EventTicketAvailability,
   EventTicketBadge,
   EventTicketOptionSchema,
+  EventTimingMode,
+  EventTimingSchema,
+  EventVisibility,
 } from "../../../db/schemas/EventSchema";
+import {
+  dateKeyFromDate,
+  eventCompatibilityWindow,
+  eventWallClockToDate,
+  isIanaTimeZone,
+  timeKeyFromDate,
+  validateEventTiming,
+} from "../../../db/utils/event-timing";
 import {
   OrganizationReferenceSchema,
   OrganizationSchema,
 } from "../../../db/schemas/OrganizationSchema";
 import { MediaSchema, StorageBucket } from "../../../db/schemas/Media";
+import type { UserReferenceSchema } from "../../../db/schemas/UserSchema";
 import { LocaleMap, MediaType } from "../../../db/models/Interfaces";
 import { makeLocaleMapFromObject } from "../../../scripts/LanguageHelpers";
 import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
@@ -83,9 +102,34 @@ import { BoundsPickerComponent } from "../bounds-picker/bounds-picker.component"
 import { MediaUpload } from "../media-upload/media-upload.component";
 import { MarkerComponent } from "../marker/marker.component";
 import { SpotPickerComponent } from "../spot-picker/spot-picker.component";
+import {
+  EventSpotSelection,
+  EventSpotSelectComponent,
+} from "../event-spot-select/event-spot-select.component";
 import { LocaleMapEditFieldComponent } from "../locale-map-edit-field/locale-map-edit-field.component";
 import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
+import {
+  OPTIONAL_MEDIA_CROP_POLICY,
+  SQUARE_ICON_CROP_POLICY,
+} from "../crop-image/image-crop-policy";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
+import { UserPickerComponent } from "../user-picker/user-picker.component";
+import { EventTimeZoneService } from "../../services/event-time-zone.service";
+import { eventProgramSpotRefs } from "../../shared/event-program-spots";
+import { EventRescheduleConfirmDialogComponent } from "../event-reschedule-confirm-dialog/event-reschedule-confirm-dialog.component";
+import { eventRescheduleConfirmation } from "../event-reschedule-confirm-dialog/event-reschedule-confirmation.model";
+
+const EVENT_CATEGORY_OPTIONS = [
+  "camp",
+  "jam",
+  "workshop",
+  "competition",
+  "show",
+  "awards",
+  "social",
+  "travel",
+  "other",
+] as const satisfies readonly EventCategory[];
 
 type OrganizationDocument = OrganizationSchema & { id: string };
 type EditableEventMarker = {
@@ -149,6 +193,7 @@ type EditableTicketOption = {
   url: string;
   currency: string;
   amount: number | null;
+  originalAmount: number | null;
   minAmount: number | null;
   maxAmount: number | null;
   availability: EventTicketAvailability;
@@ -172,8 +217,7 @@ type EditableProgramItem = {
   category: EventCategory;
   start: string;
   end: string;
-  spotRefKind: EventProgramSpotRefSchema["kind"] | "";
-  spotRefId: string;
+  spotRefs: EventProgramSpotRefSchema[];
   status: EventProgramItemStatus;
   linkedEventId: string;
   preserved: Partial<
@@ -186,6 +230,7 @@ type EditableProgramItem = {
       | "start"
       | "end"
       | "spot_ref"
+      | "spot_refs"
       | "status"
       | "linked_event_id"
     >
@@ -246,11 +291,26 @@ type EditableSeriesMembership = {
 };
 export type EventEditPatch = Omit<
   Partial<EventSchema>,
-  "bounds" | "area_polygon" | "location" | "description_i18n" | "external_source"
+  | "bounds"
+  | "area_polygon"
+  | "location"
+  | "description_i18n"
+  | "external_source"
+  | "organizer"
+  | "organizer_name"
+  | "location_raw"
+  | "venue_string"
+  | "locality_string"
 > & {
   area_polygon?: EventSchema["area_polygon"] | null;
   description_i18n?: EventSchema["description_i18n"] | null;
   external_source?: EventSchema["external_source"] | null;
+  organizer?: EventSchema["organizer"] | null;
+  organizer_name?: string | null;
+  location_raw?: EventSchema["location_raw"] | null;
+  venue_string?: string | null;
+  locality_string?: string | null;
+  initialCollaboratorIds?: string[];
 };
 
 /**
@@ -299,15 +359,22 @@ export type EventEditPatch = Omit<
     MediaUpload,
     MarkerComponent,
     SpotPickerComponent,
+    EventSpotSelectComponent,
     LocaleMapEditFieldComponent,
+    UserPickerComponent,
   ],
   templateUrl: "./event-edit-form.component.html",
   styleUrl: "./event-edit-form.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventEditFormComponent {
+  readonly optionalMediaCropPolicy = OPTIONAL_MEDIA_CROP_POLICY;
+  readonly squareIconCropPolicy = SQUARE_ICON_CROP_POLICY;
   /** Existing event to edit. When null, the form is in create mode. */
   event = input<PkEvent | null>(null);
+
+  /** Keeps the full editor reusable while presenting a focused session flow. */
+  mode = input<"event" | "session">("event");
 
   /** Hide the Delete button (e.g., on the create page). */
   showDeleteButton = input<boolean>(true);
@@ -325,6 +392,8 @@ export class EventEditFormComponent {
   private _organizationsService = inject(OrganizationsService);
   private _authService = inject(AuthenticationService);
   private _mapsApiService = inject(MapsApiService);
+  private _eventTimeZones = inject(EventTimeZoneService);
+  private _dialog = inject(MatDialog);
   private _loadedEventId: string | null = null;
   private _locationSearchTimer: ReturnType<typeof setTimeout> | null = null;
   private _locationSearchRequestId = 0;
@@ -347,25 +416,47 @@ export class EventEditFormComponent {
   // ---------------------------------------------------------------------
   form: FormGroup = this._fb.group({
     name: ["", Validators.required],
-    venue_string: ["", Validators.required],
-    locality_string: ["", Validators.required],
-    location_lat: [null as number | null, Validators.required],
-    location_lng: [null as number | null, Validators.required],
+    venue_string: [""],
+    locality_string: [""],
+    location_lat: [null as number | null],
+    location_lng: [null as number | null],
     start_date: [null as Date | null, Validators.required],
-    start_time: [null as Date | null, Validators.required],
-    end_date: [null as Date | null, Validators.required],
-    end_time: [null as Date | null, Validators.required],
+    timing_mode: ["date_only" as EventTimingMode],
+    start_time: [null as Date | null],
+    end_date: [null as Date | null],
+    end_time: [null as Date | null],
+    active_until_date: [null as Date | null],
+    active_until_time: [null as Date | null],
+    time_zone: [""],
     legacy_area_polygon_outer_ring: [false],
 
     // Optional
     description: [""],
+    event_categories: [[] as EventCategory[]],
     slug: ["", [Validators.pattern(/^[a-z0-9-]*$/)]],
     organizer_query: [""],
+    organizer_access: ["view" as "view" | "edit"],
     url: [""],
     external_source_provider: [""],
     external_source_id: [""],
     external_source_url: [""],
     published: [true],
+    visibility: ["public" as EventVisibility],
+    viewer_audience: ["invited" as "invited" | "organization_members"],
+    viewer_organization_id: [""],
+    owner_type: ["user" as EventOwnerSchema["type"] | ""],
+    owner_user_id: [""],
+    owner_organization_id: [""],
+    attendance_social: ["rsvp" as EventSocialAttendanceMode],
+    attendance_admission: ["none" as EventAdmissionMode],
+    attendance_capacity: [null as number | null],
+    attendance_waitlist: [false],
+    attendance_eligibility: [
+      "everyone" as EventAttendanceEligibilitySchema["type"],
+    ],
+    attendance_organization_id: [""],
+    attendance_instructions: [""],
+    notification_policy: ["all" as EventNotificationPolicy],
     banner_src: [""],
     banner_fit: ["cover"],
     banner_accent_color: [""],
@@ -415,10 +506,33 @@ export class EventEditFormComponent {
   organizations = signal<OrganizationDocument[]>([]);
   organizerQuery = signal<string>("");
   selectedOrganizer = signal<OrganizationReferenceSchema | null>(null);
+  initialCollaborators = signal<UserReferenceSchema[]>([]);
+  initialCollaboratorIds = computed(() =>
+    this.initialCollaborators().map((user) => user.uid),
+  );
+  pendingCollaboratorId = signal("");
+  pendingCollaborator = signal<UserReferenceSchema | null>(null);
+  timeZoneResolving = signal(false);
+  timeZoneError = signal<string | null>(null);
+  preserveLegacyRegistration = signal(false);
   /** Community keys auto-suggested from the current bounds center. */
   autoSuggestedCommunityKeys = signal<string[]>([]);
   customMarkers = signal<EditableEventMarker[]>([]);
   inlineSpots = signal<EditableInlineEventSpot[]>([]);
+  readonly selectableInlineSpots = computed(() =>
+    this.inlineSpots().map((spot) => ({
+      id: spot.id,
+      name: spot.name,
+      images: csvToArray(spot.imagesCsv),
+    })),
+  );
+  readonly selectableCustomMarkers = computed(() =>
+    this.customMarkers().map((marker) => ({
+      id: marker.id,
+      name: marker.name || marker.id,
+      icons: this.markerIcons(marker),
+    })),
+  );
   featuredParticipants = signal<EditableFeaturedParticipant[]>([]);
   externalMedia = signal<MediaSchema[]>([]);
   eventLinks = signal<EditableEventLink[]>([]);
@@ -451,7 +565,12 @@ export class EventEditFormComponent {
 
   /** Whether the parent passed in an existing event (vs. create mode). */
   readonly isEditMode = computed(() => this.event() !== null);
+  readonly isSessionPlanner = computed(
+    () => this.mode() === "session" && !this.isEditMode(),
+  );
   readonly isAdmin = computed(() => this._authService.isAdmin());
+  /** Retire this together with legacyEventListCompatibilityEnabled in rules. */
+  readonly privateAccessRolloutEnabled = false;
 
   /** Center of the bounds rectangle — used for community auto-suggest. */
   readonly boundsCenter = computed(() => {
@@ -473,6 +592,7 @@ export class EventEditFormComponent {
       e.url ||
       e.externalSource ||
       e.organizer ||
+      e.organizerName ||
       e.featuredParticipants.length > 0 ||
       e.location ||
       e.bannerSrc ||
@@ -535,6 +655,31 @@ export class EventEditFormComponent {
       : $localize`:@@event_edit.location_not_set:Not set`;
   });
 
+  readonly eventCategoryOptions = EVENT_CATEGORY_OPTIONS;
+
+  eventCategoryLabel(category: EventCategory): string {
+    switch (category) {
+      case "camp":
+        return $localize`:@@event_category.camp:Camp`;
+      case "jam":
+        return $localize`:@@event_category.jam:Jam`;
+      case "workshop":
+        return $localize`:@@event_category.workshop:Workshop`;
+      case "competition":
+        return $localize`:@@event_category.competition:Competition`;
+      case "show":
+        return $localize`:@@event_category.show:Show`;
+      case "awards":
+        return $localize`:@@event_category.awards:Awards`;
+      case "social":
+        return $localize`:@@event_category.social:Social`;
+      case "travel":
+        return $localize`:@@event_category.travel:Travel`;
+      case "other":
+        return $localize`:@@event_category.other:Other`;
+    }
+  }
+
   featuredParticipantTypeLabel(type: EventFeaturedParticipantType): string {
     switch (type) {
       case "group":
@@ -576,7 +721,24 @@ export class EventEditFormComponent {
       if (!e) {
         this._loadedEventId = null;
         this.form.reset({
+          timing_mode: this.mode() === "session" ? "exact" : "date_only",
           published: true,
+          visibility: "public",
+          viewer_audience: "invited",
+          viewer_organization_id: "",
+          owner_type: "user",
+          owner_user_id: this._authService.user?.uid ?? "",
+          owner_organization_id: "",
+          attendance_social: "rsvp",
+          attendance_admission: "none",
+          attendance_capacity: null,
+          attendance_waitlist: false,
+          attendance_eligibility: "everyone",
+          attendance_organization_id: "",
+          attendance_instructions: "",
+          organizer_access: "view",
+          notification_policy: "all",
+          event_categories: [],
           banner_fit: "cover",
           logo_fit: "contain",
           sponsor_logo_fit: "contain",
@@ -589,6 +751,10 @@ export class EventEditFormComponent {
         this.spotIds.set([]);
         this.communityKeys.set([]);
         this.selectedOrganizer.set(null);
+        this.initialCollaborators.set([]);
+        this.pendingCollaborator.set(null);
+        this.preserveLegacyRegistration.set(false);
+        this.timeZoneError.set(null);
         this.organizerQuery.set("");
         this.customMarkers.set([]);
         this.inlineSpots.set([]);
@@ -609,19 +775,36 @@ export class EventEditFormComponent {
         return;
       }
       this._loadedEventId = e.id;
+      const timing = e.timing;
       this.form.reset({
         name: e.name,
         description: e.description ?? "",
         slug: e.slug ?? "",
-        organizer_query: e.organizer?.organization.name ?? "",
+        organizer_query: e.organizerName ?? "",
         venue_string: e.venueString,
         locality_string: e.localityString,
         location_lat: e.location?.lat ?? null,
         location_lng: e.location?.lng ?? null,
-        start_date: e.start,
-        start_time: e.start,
-        end_date: e.end,
-        end_time: e.end,
+        start_date: timing
+          ? dateFromKey(timing.start_date)
+          : e.start,
+        timing_mode: timing?.mode ?? "exact",
+        start_time: timing?.start_time
+          ? timeFromKey(timing.start_time)
+          : e.start,
+        end_date: timing?.end_date
+          ? dateFromKey(timing.end_date)
+          : timing
+            ? null
+            : e.end,
+        end_time: timing?.end_time
+          ? timeFromKey(timing.end_time)
+          : timing?.mode === "exact"
+            ? e.end
+            : null,
+        active_until_date: e.activeUntil ?? null,
+        active_until_time: e.activeUntil ?? null,
+        time_zone: e.timeZone ?? "",
         legacy_area_polygon_outer_ring: hasLegacyAreaPolygonOuterRing(
           e.areaPolygon,
         ),
@@ -630,6 +813,31 @@ export class EventEditFormComponent {
         external_source_id: e.externalSource?.id ?? "",
         external_source_url: e.externalSource?.url ?? "",
         published: e.published,
+        visibility: e.visibility,
+        viewer_audience: e.viewerPolicy?.audience ?? "invited",
+        viewer_organization_id:
+          e.viewerPolicy?.audience === "organization_members"
+            ? e.viewerPolicy.organization_id
+            : "",
+        owner_type: e.owner?.type ?? "",
+        owner_user_id: e.owner?.type === "user" ? e.owner.user_id : "",
+        owner_organization_id:
+          e.owner?.type === "organization"
+            ? e.owner.organization_id
+            : "",
+        attendance_social: e.attendance.social,
+        attendance_admission: e.attendance.admission,
+        attendance_capacity: e.attendance.capacity ?? null,
+        attendance_waitlist: e.attendance.waitlist ?? false,
+        attendance_eligibility: e.attendance.eligibility?.type ?? "everyone",
+        attendance_organization_id:
+          e.attendance.eligibility?.type === "organization_members"
+            ? e.attendance.eligibility.organization_id
+            : "",
+        attendance_instructions: e.attendance.instructions ?? "",
+        notification_policy: e.notificationPolicy,
+        event_categories: [...e.eventCategories],
+        organizer_access: e.organizerAccess ?? "view",
         banner_src: e.bannerSrc ?? "",
         banner_fit: e.bannerFit,
         banner_accent_color: e.bannerAccentColor ?? "",
@@ -653,14 +861,17 @@ export class EventEditFormComponent {
         external_media_source_url: "",
         external_media_attribution_text: "",
       });
-      this.location.set(e.location);
+      this.location.set(e.location ?? null);
       this.areaPath.set(eventAreaPath(e.areaPolygon));
       this.bounds.set(e.bounds ?? null);
       this.areaTouched.set(false);
       this.spotIds.set([...e.spotIds]);
       this.communityKeys.set([...e.communityKeys]);
       this.selectedOrganizer.set(e.organizer?.organization ?? null);
-      this.organizerQuery.set(e.organizer?.organization.name ?? "");
+      this.preserveLegacyRegistration.set(
+        this.mode() === "event" && e.attendance.admission === "registration",
+      );
+      this.organizerQuery.set(e.organizerName ?? "");
       this.customMarkers.set(
         e.customMarkers.map((marker, index) => ({
           id: marker.id || `marker-${index}`,
@@ -731,6 +942,7 @@ export class EventEditFormComponent {
             ticket.price && "amount" in ticket.price
               ? ticket.price.amount
               : null,
+          originalAmount: ticket.originalPrice?.amount ?? null,
           minAmount:
             ticket.price && "min_amount" in ticket.price
               ? ticket.price.min_amount
@@ -762,8 +974,7 @@ export class EventEditFormComponent {
             category: item.category,
             start: dateTimeLocalValue(item.start),
             end: dateTimeLocalValue(item.end),
-            spotRefKind: item.spot_ref?.kind ?? "",
-            spotRefId: item.spot_ref?.id ?? "",
+            spotRefs: eventProgramSpotRefs(item),
             status: item.status ?? "scheduled",
             linkedEventId: item.linked_event_id ?? "",
             preserved: {
@@ -839,6 +1050,41 @@ export class EventEditFormComponent {
     this._setEventLocation(location);
   }
 
+  clearLocation(): void {
+    this.location.set(null);
+    this.form.patchValue({
+      location_lat: null,
+      location_lng: null,
+    });
+    this.areaPath.set(null);
+    this.bounds.set(null);
+    this.areaTouched.set(true);
+    if (this.form.value.timing_mode !== "date_only") {
+      this.form.controls["time_zone"].setValue("");
+    }
+  }
+
+  onTimingModeChange(mode: EventTimingMode): void {
+    if (mode !== "open_end") return;
+    if (
+      this.form.value.active_until_date ||
+      this.form.value.active_until_time
+    ) {
+      return;
+    }
+    const startDate = combineDateAndTime(
+      this.form.value.start_date,
+      this.form.value.start_time,
+    );
+    if (!startDate) return;
+    const suggested = new Date(startDate.getTime() + 4 * 60 * 60 * 1_000);
+    this.form.patchValue({
+      active_until_date: suggested,
+      active_until_time: suggested,
+      end_time: null,
+    });
+  }
+
   onLocationSearchInput(event: Event): void {
     const input = event.target instanceof HTMLInputElement ? event.target : null;
     const query = input?.value.trim() ?? "";
@@ -902,6 +1148,44 @@ export class EventEditFormComponent {
     this.selectedOrganizer.set(reference);
     this.organizerQuery.set(reference.name);
     this.form.patchValue({ organizer_query: reference.name });
+  }
+
+  removeOrganizerLink(): void {
+    const currentName = this.selectedOrganizer()?.name ?? "";
+    this.selectedOrganizer.set(null);
+    this.organizerQuery.set(currentName);
+    this.form.patchValue({
+      organizer_query: currentName,
+      organizer_access: "view",
+    });
+  }
+
+  disableLegacyRegistration(): void {
+    this.preserveLegacyRegistration.set(false);
+    this.form.patchValue({
+      attendance_admission: "none",
+      attendance_capacity: null,
+      attendance_waitlist: false,
+    });
+  }
+
+  addInitialCollaborator(): void {
+    const userId = this.pendingCollaboratorId().trim();
+    if (!userId) return;
+    const collaborator = this.pendingCollaborator() ?? { uid: userId };
+    this.initialCollaborators.update((users) =>
+      users.some((user) => user.uid === userId)
+        ? users
+        : [...users, collaborator],
+    );
+    this.pendingCollaboratorId.set("");
+    this.pendingCollaborator.set(null);
+  }
+
+  removeInitialCollaborator(userId: string): void {
+    this.initialCollaborators.update((users) =>
+      users.filter((user) => user.uid !== userId),
+    );
   }
 
   onCommunitySearchInput(event: Event): void {
@@ -1275,6 +1559,7 @@ export class EventEditFormComponent {
         url: "",
         currency: "CHF",
         amount: null,
+        originalAmount: null,
         minAmount: null,
         maxAmount: null,
         availability: "available",
@@ -1310,7 +1595,7 @@ export class EventEditFormComponent {
 
   updateTicketNumber(
     id: string,
-    field: "amount" | "minAmount" | "maxAmount",
+    field: "amount" | "originalAmount" | "minAmount" | "maxAmount",
     value: number,
   ): void {
     this.updateTicketOption(id, {
@@ -1381,8 +1666,7 @@ export class EventEditFormComponent {
                   category: "other",
                   start: "",
                   end: "",
-                  spotRefKind: "",
-                  spotRefId: "",
+                  spotRefs: [],
                   status: "scheduled",
                   linkedEventId: "",
                   preserved: {},
@@ -1446,14 +1730,27 @@ export class EventEditFormComponent {
     }
   }
 
-  updateProgramSpotRefKind(
+  updateProgramSpotSelections(
     planId: string,
     itemId: string,
-    kind: string,
+    selections: EventSpotSelection[],
   ): void {
-    if (kind === "" || kind === "spot" || kind === "inline_spot") {
-      this.updateProgramItem(planId, itemId, { spotRefKind: kind });
-    }
+    this.updateProgramItem(planId, itemId, {
+      spotRefs: selections,
+    });
+  }
+
+  /** Compatibility helper for single-Spot callers while the editor migrates. */
+  updateProgramSpotSelection(
+    planId: string,
+    itemId: string,
+    selection: EventSpotSelection | null,
+  ): void {
+    this.updateProgramSpotSelections(
+      planId,
+      itemId,
+      selection ? [selection] : [],
+    );
   }
 
   addSeriesMembership(): void {
@@ -1721,19 +2018,104 @@ export class EventEditFormComponent {
     }
   }
 
-  onSubmit() {
-    if (this.form.invalid) {
+  async onSubmit() {
+    if (
+      this.form.controls["name"].invalid ||
+      this.form.controls["start_date"].invalid ||
+      this.form.controls["slug"].invalid
+    ) {
       this.form.markAllAsTouched();
       return;
     }
 
     const v = this.form.value;
-    const start = combineDateAndTime(v.start_date, v.start_time);
-    const end = combineDateAndTime(v.end_date, v.end_time);
-    if (!start || !end) {
+    const startDate = toDateValue(v.start_date);
+    if (!startDate) {
       this.form.markAllAsTouched();
       return;
     }
+    const selectedTimingMode =
+      (v.timing_mode as EventTimingMode | undefined) ?? "date_only";
+    const timingMode =
+      this.isSessionPlanner() && selectedTimingMode === "date_only"
+        ? "exact"
+        : selectedTimingMode;
+    const formLat = numberOrUndefined(v.location_lat);
+    const formLng = numberOrUndefined(v.location_lng);
+    const location =
+      this.location() ??
+      (formLat !== undefined && formLng !== undefined
+        ? { lat: formLat, lng: formLng }
+        : null);
+    if (this.isSessionPlanner() && !location) {
+      this.form.controls["location_lat"].setErrors({ required: true });
+      this.form.controls["location_lng"].setErrors({ required: true });
+      return;
+    }
+    if (
+      timingMode !== "date_only" &&
+      location &&
+      !isIanaTimeZone(v.time_zone)
+    ) {
+      try {
+        const timeZone = await this._eventTimeZones.resolve(location);
+        this.form.controls["time_zone"].setValue(timeZone);
+        v.time_zone = timeZone;
+      } catch {
+        this.form.controls["time_zone"].setErrors({ required: true });
+        return;
+      }
+    }
+    const timing: EventTimingSchema = {
+      mode: timingMode,
+      start_date: dateKeyFromDate(startDate),
+      ...(toDateValue(v.end_date)
+        ? { end_date: dateKeyFromDate(toDateValue(v.end_date)!) }
+        : {}),
+      ...(timingMode !== "date_only" && toDateValue(v.start_time)
+        ? { start_time: timeKeyFromDate(toDateValue(v.start_time)!) }
+        : {}),
+      ...(timingMode === "exact" && toDateValue(v.end_time)
+        ? { end_time: timeKeyFromDate(toDateValue(v.end_time)!) }
+        : {}),
+    };
+    const timeZone =
+      timingMode === "date_only" ? undefined : trimOrUndefined(v.time_zone);
+    let activeUntil: Date | undefined;
+    if (timingMode === "open_end") {
+      const cutoffDate = toDateValue(v.active_until_date);
+      const cutoffTime = toDateValue(v.active_until_time);
+      if (cutoffDate && cutoffTime && timeZone) {
+        try {
+          activeUntil = eventWallClockToDate(
+            dateKeyFromDate(cutoffDate),
+            timeKeyFromDate(cutoffTime),
+            timeZone,
+          );
+        } catch {
+          activeUntil = undefined;
+        }
+      }
+    }
+    const validation = validateEventTiming(timing, timeZone, activeUntil);
+    if (!validation.valid) {
+      const control =
+        validation.field === "active_until"
+          ? this.form.controls["active_until_time"]
+          : this.form.controls[
+              validation.field && validation.field in this.form.controls
+                ? validation.field
+                : "timing_mode"
+            ];
+      control.setErrors({ eventTiming: validation.reason ?? true });
+      control.markAsTouched();
+      return;
+    }
+    const compatibility = eventCompatibilityWindow(
+      timing,
+      timeZone,
+      activeUntil,
+    );
     if (
       isExternalSourceProvider(v.external_source_provider) &&
       !safeExternalUrl(v.external_source_url)
@@ -1743,6 +2125,54 @@ export class EventEditFormComponent {
       return;
     }
     this._syncAreaFromPickerForSubmit();
+    const owner = this._buildOwnerPatch();
+    if (
+      this.isAdmin() &&
+      !owner &&
+      (!this.isEditMode() || this.event()?.owner !== undefined)
+    ) {
+      const control =
+        v.owner_type === "organization"
+          ? this.form.controls["owner_organization_id"]
+          : this.form.controls["owner_user_id"];
+      control.setErrors({ required: true });
+      control.markAsTouched();
+      return;
+    }
+    if (
+      v.visibility === "private" &&
+      v.viewer_audience === "organization_members" &&
+      !v.viewer_organization_id
+    ) {
+      this.form.controls["viewer_organization_id"].setErrors({
+        required: true,
+      });
+      this.form.controls["viewer_organization_id"].markAsTouched();
+      return;
+    }
+    if (
+      v.attendance_admission === "registration" &&
+      v.attendance_capacity !== null &&
+      v.attendance_capacity !== undefined &&
+      (!Number.isInteger(Number(v.attendance_capacity)) ||
+        Number(v.attendance_capacity) <= 0)
+    ) {
+      this.form.controls["attendance_capacity"].setErrors({
+        positiveInteger: true,
+      });
+      this.form.controls["attendance_capacity"].markAsTouched();
+      return;
+    }
+    if (
+      v.attendance_eligibility === "organization_members" &&
+      !v.attendance_organization_id
+    ) {
+      this.form.controls["attendance_organization_id"].setErrors({
+        required: true,
+      });
+      this.form.controls["attendance_organization_id"].markAsTouched();
+      return;
+    }
 
     const patch: EventEditPatch = {
       ...this._buildLocationPatch(v.location_lat, v.location_lng),
@@ -1750,17 +2180,78 @@ export class EventEditFormComponent {
       name: v.name!.trim(),
       description_i18n: this._descriptionI18nPatch(),
       slug: trimOrUndefined(v.slug?.toLowerCase()),
-      venue_string: v.venue_string!.trim(),
-      locality_string: v.locality_string!.trim(),
-      start: Timestamp.fromDate(start),
-      end: Timestamp.fromDate(end),
+      venue_string: trimOrUndefined(v.venue_string) ?? null,
+      locality_string: trimOrUndefined(v.locality_string) ?? null,
+      timing,
+      start: Timestamp.fromDate(compatibility.start),
+      end: Timestamp.fromDate(compatibility.end),
+      active_until:
+        timingMode === "open_end" && activeUntil
+          ? Timestamp.fromDate(activeUntil)
+          : undefined,
+      time_zone: timeZone,
       url: trimOrUndefined(v.url),
       external_source: this._buildExternalSourcePatch(),
       event_links: this._buildEventLinksPatch(),
       featured_participants: this._buildFeaturedParticipantsPatch(),
       ticket_options: this._buildTicketOptionsPatch(),
       program: this._buildProgramPatch(),
+      event_categories: eventCategoriesFromFormValue(v.event_categories),
       published: v.published === true,
+      visibility: v.visibility ?? "public",
+      discoverability: {
+        audience: v.visibility === "public" ? "global" : "none",
+      },
+      viewer_policy:
+        v.visibility === "private"
+          ? v.viewer_audience === "organization_members"
+            ? {
+                audience: "organization_members",
+                organization_id: v.viewer_organization_id!,
+              }
+            : { audience: "invited" }
+          : undefined,
+      attendance: {
+        social: v.attendance_social ?? "rsvp",
+        admission:
+          this.mode() === "event"
+            ? this.preserveLegacyRegistration()
+              ? "registration"
+              : "none"
+            : (v.attendance_admission ?? "none"),
+        instructions: trimOrUndefined(v.attendance_instructions),
+        eligibility:
+          v.attendance_eligibility === "organization_members"
+            ? {
+                type: "organization_members",
+                organization_id: v.attendance_organization_id!,
+              }
+            : v.attendance_eligibility === "invited"
+              ? { type: "invited" }
+              : { type: "everyone" },
+        ...((this.mode() === "session" &&
+          v.attendance_admission === "registration") ||
+        this.preserveLegacyRegistration()
+          ? {
+              capacity: positiveIntegerOrUndefined(v.attendance_capacity),
+              waitlist: v.attendance_waitlist === true,
+            }
+          : {}),
+      },
+      notification_policy: v.notification_policy ?? "all",
+      ...(this.isSessionPlanner()
+        ? {
+            kind: "session",
+            schedule_mode: "single",
+            lifecycle_status: "planned",
+            priority: "normal",
+            publication_state: "published",
+            published: true,
+            visibility: "public",
+            discoverability: { audience: "global" },
+          }
+        : {}),
+      ...(owner ? { owner } : {}),
       banner_src: trimOrUndefined(v.banner_src),
       banner_fit: v.banner_fit ?? "cover",
       banner_accent_color: trimOrUndefined(v.banner_accent_color),
@@ -1779,6 +2270,13 @@ export class EventEditFormComponent {
       ]),
       series_memberships: this._buildSeriesMembershipsPatch(),
       organizer: this._buildOrganizerPatch(),
+      organizer_name: this._buildOrganizerNamePatch(),
+      organizer_access: this.selectedOrganizer()
+        ? (v.organizer_access ?? "view")
+        : undefined,
+      ...(this.isSessionPlanner()
+        ? { initialCollaboratorIds: this.initialCollaboratorIds() }
+        : {}),
       promo_radius_m: numberOrUndefined(v.promo_radius_m),
       is_promoted: v.is_promoted === true,
       is_sponsored: v.is_promoted === true,
@@ -1798,6 +2296,22 @@ export class EventEditFormComponent {
             }
           : undefined,
     };
+
+    const reschedule = eventRescheduleConfirmation(this.event(), patch);
+    if (reschedule) {
+      const confirmed = await firstValueFrom(
+        this._dialog.open<EventRescheduleConfirmDialogComponent, typeof reschedule, boolean>(
+          EventRescheduleConfirmDialogComponent,
+          {
+            data: reschedule,
+            width: "720px",
+            maxWidth: "calc(100vw - 2rem)",
+            autoFocus: "first-tabbable",
+          },
+        ).afterClosed(),
+      );
+      if (!confirmed) return;
+    }
 
     this.save.emit(patch);
   }
@@ -1884,6 +2398,29 @@ export class EventEditFormComponent {
       location_lat: location.lat,
       location_lng: location.lng,
     });
+    void this._resolveLocationTimeZone(location);
+  }
+
+  private async _resolveLocationTimeZone(
+    location: { lat: number; lng: number },
+  ): Promise<void> {
+    this.timeZoneResolving.set(true);
+    this.timeZoneError.set(null);
+    try {
+      const timeZone = await this._eventTimeZones.resolve(location);
+      if (
+        this.location()?.lat === location.lat &&
+        this.location()?.lng === location.lng
+      ) {
+        this.form.controls["time_zone"].setValue(timeZone);
+      }
+    } catch {
+      this.timeZoneError.set(
+        $localize`:@@event_edit.time_zone_resolve_error:Time zone could not be derived. Enter it manually before saving a timed event.`,
+      );
+    } finally {
+      this.timeZoneResolving.set(false);
+    }
   }
 
   private async _searchLocationOptions(query: string): Promise<void> {
@@ -1986,27 +2523,52 @@ export class EventEditFormComponent {
     return this._searchService.getSpotPreviewFromHit(hit);
   }
 
-  private _buildOrganizerPatch(): EventOrganizerSchema | undefined {
+  private _buildOrganizerPatch(): EventOrganizerSchema | null {
     const organization = this.selectedOrganizer();
     return organization
       ? {
           type: "organization",
           organization,
         }
-      : undefined;
+      : null;
+  }
+
+  private _buildOrganizerNamePatch(): string | null {
+    if (this.selectedOrganizer()) return null;
+    return trimOrUndefined(this.organizerQuery()) ?? null;
+  }
+
+  private _buildOwnerPatch(): EventOwnerSchema | undefined {
+    if (!this.isAdmin()) return undefined;
+    const ownerType = this.form.value.owner_type;
+    if (ownerType === "organization") {
+      const organizationId = trimOrUndefined(
+        this.form.value.owner_organization_id,
+      );
+      return organizationId
+        ? { type: "organization", organization_id: organizationId }
+        : undefined;
+    }
+    if (ownerType === "user") {
+      const userId = trimOrUndefined(this.form.value.owner_user_id);
+      return userId ? { type: "user", user_id: userId } : undefined;
+    }
+    return undefined;
   }
 
   private _buildLocationPatch(
     latitude: number | null | undefined,
     longitude: number | null | undefined,
-  ): Pick<Partial<EventSchema>, "location_raw"> {
+  ): Pick<EventEditPatch, "location_raw"> {
     const lat = numberOrUndefined(latitude);
     const lng = numberOrUndefined(longitude);
     return lat !== undefined && lng !== undefined
       ? {
           location_raw: { lat, lng },
         }
-      : {};
+      : this.event()?.location
+        ? { location_raw: null }
+        : {};
   }
 
   private _buildGeometryPatch(): Pick<
@@ -2169,6 +2731,7 @@ export class EventEditFormComponent {
           description_i18n: ticket.descriptionI18n,
           url: safeExternalUrl(ticket.url) ?? undefined,
           price,
+          original_price: buildTicketOriginalPrice(ticket, price),
           availability: ticket.availability,
           sale_starts_at: timestampFromDateInput(ticket.saleStartsAt),
           sale_ends_at: timestampFromDateInput(ticket.saleEndsAt),
@@ -2193,6 +2756,15 @@ export class EventEditFormComponent {
         : plans[0].id;
 
     return {
+      ...(this.event()?.program?.active_plan_note
+        ? { active_plan_note: this.event()!.program!.active_plan_note }
+        : {}),
+      ...(this.event()?.program?.active_plan_changed_at
+        ? { active_plan_changed_at: this.event()!.program!.active_plan_changed_at }
+        : {}),
+      ...(this.event()?.program?.active_plan_changed_by
+        ? { active_plan_changed_by: this.event()!.program!.active_plan_changed_by }
+        : {}),
       active_plan_id: activePlanId,
       plans,
     };
@@ -2226,13 +2798,13 @@ export class EventEditFormComponent {
     const start = timestampFromDateTimeLocal(item.start);
     if (!id || !title || !start) return null;
 
-    const spotRef =
-      item.spotRefKind && trimOrUndefined(item.spotRefId)
-        ? {
-            kind: item.spotRefKind,
-            id: item.spotRefId.trim(),
-          }
-        : undefined;
+    const seenSpotRefs = new Set<string>();
+    const spotRefs = item.spotRefs.filter((ref) => {
+      const key = `${ref.kind}:${ref.id.trim()}`;
+      if (!ref.id.trim() || seenSpotRefs.has(key)) return false;
+      seenSpotRefs.add(key);
+      return true;
+    });
 
     return {
       ...item.preserved,
@@ -2242,7 +2814,8 @@ export class EventEditFormComponent {
       category: item.category,
       start,
       end: timestampFromDateTimeLocal(item.end),
-      spot_ref: spotRef,
+      spot_refs: spotRefs.length > 0 ? spotRefs : undefined,
+      spot_ref: spotRefs[0],
       status: item.status === "scheduled" ? undefined : item.status,
       linked_event_id: trimOrUndefined(item.linkedEventId),
     };
@@ -2455,6 +3028,15 @@ function numberOrUndefined(value: number | null | undefined): number | undefined
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
+function positiveIntegerOrUndefined(
+  value: number | null | undefined,
+): number | undefined {
+  const parsed = numberOrUndefined(value);
+  return parsed !== undefined && Number.isInteger(parsed) && parsed > 0
+    ? parsed
+    : undefined;
+}
+
 function spotPreviewLocation(
   preview: SpotPreviewData | null,
 ): { lat: number; lng: number } | null {
@@ -2581,6 +3163,18 @@ function isEventCategory(value: string): value is EventCategory {
   );
 }
 
+function eventCategoriesFromFormValue(value: unknown): EventCategory[] {
+  if (!Array.isArray(value)) return [];
+  return [
+    ...new Set(
+      value.filter(
+        (category): category is EventCategory =>
+          typeof category === "string" && isEventCategory(category),
+      ),
+    ),
+  ];
+}
+
 function isFeaturedParticipantType(
   value: string,
 ): value is EventFeaturedParticipantType {
@@ -2683,6 +3277,23 @@ function buildTicketPrice(
   return undefined;
 }
 
+function buildTicketOriginalPrice(
+  ticket: EditableTicketOption,
+  price: EventTicketOptionSchema["price"] | undefined,
+): EventTicketOptionSchema["original_price"] | undefined {
+  if (
+    !price ||
+    !("amount" in price) ||
+    ticket.originalAmount === null ||
+    !Number.isFinite(ticket.originalAmount) ||
+    ticket.originalAmount <= price.amount
+  ) {
+    return undefined;
+  }
+
+  return { amount: ticket.originalAmount, currency: price.currency };
+}
+
 function dateInputValue(date: Date | undefined): string {
   if (!date || Number.isNaN(date.getTime())) return "";
   const year = date.getFullYear();
@@ -2779,4 +3390,23 @@ function combineDateAndTime(
     out.setHours(0, 0, 0, 0);
   }
   return out;
+}
+
+function toDateValue(
+  value: Date | string | null | undefined,
+): Date | null {
+  const date = value instanceof Date ? value : value ? new Date(value) : null;
+  return date && Number.isFinite(date.getTime()) ? date : null;
+}
+
+function dateFromKey(value: string): Date {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function timeFromKey(value: string): Date {
+  const [hour, minute] = value.split(":").map(Number);
+  const date = new Date(2000, 0, 1);
+  date.setHours(hour, minute, 0, 0);
+  return date;
 }

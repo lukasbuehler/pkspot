@@ -1,0 +1,91 @@
+@use "./my-events-tabs" as tabs;
+
+@include tabs.constrained-labels;
+
+:host {
+  display: block;
+}
+
+.my-events-panel {
+  margin-bottom: 1.75rem;
+}
+
+.my-events-heading {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.875rem;
+}
+
+.my-events-heading h2,
+.my-events-heading p {
+  margin: 0;
+}
+
+.my-events-heading p,
+.device-note {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.my-events-icon {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 13px;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.my-events-tabs {
+  margin-bottom: 0.75rem;
+}
+
+.my-events-tabs mat-button-toggle {
+  color: var(--mat-sys-on-surface);
+}
+
+.my-events-tabs mat-button-toggle.mat-button-toggle-checked {
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.my-events-tabs mat-icon {
+  margin-right: 0.35rem;
+}
+
+.tab-count {
+  margin-left: 0.35rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.my-events-more {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.device-note {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.75rem 0 0;
+}
+
+.device-note mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}
+
+@media (max-width: 599.98px) {
+  .my-events-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .my-events-tabs mat-icon {
+    display: none;
+  }
+}

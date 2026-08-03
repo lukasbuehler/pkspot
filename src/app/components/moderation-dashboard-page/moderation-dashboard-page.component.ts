@@ -6,13 +6,15 @@ import {
   OnDestroy,
   signal,
 } from "@angular/core";
-import { DatePipe } from "@angular/common";
+import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import { RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatInputModule } from "@angular/material/input";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { Subscription } from "rxjs";
@@ -37,17 +39,20 @@ import type {
   CommunityLocalizedTextSchema,
 } from "../../../db/schemas/CommunityPageSchema";
 import type { SpotEditSchema } from "../../../db/schemas/SpotEditSchema";
+import { AgeAssuranceAdminService } from "../../services/age-assurance-admin.service";
 
 @Component({
   selector: "app-moderation-dashboard-page",
   imports: [
-    DatePipe,
+    SystemDatePipe,
     RouterLink,
     MatButtonModule,
     MatCardModule,
     MatChipsModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatFormFieldModule,
+    MatInputModule,
     MatTooltipModule,
   ],
   templateUrl: "./moderation-dashboard-page.component.html",
@@ -60,12 +65,17 @@ export class ModerationDashboardPageComponent implements OnDestroy {
   private readonly _spotEditsService = inject(SpotEditsService);
   private readonly _snackbar = inject(MatSnackBar);
   private readonly _analytics = inject(AnalyticsService);
+  private readonly _ageAssuranceAdmin = inject(AgeAssuranceAdminService);
   readonly authService = inject(AuthenticationService);
 
   readonly authResolved = this.authService.initialAuthStateResolved;
   readonly isAdmin = signal(false);
   readonly isLoading = signal(false);
   readonly actionPath = signal<string | null>(null);
+  readonly invalidationBasis = signal("");
+  readonly invalidationReason = signal("");
+  readonly invalidationPreviewCount = signal<number | null>(null);
+  readonly isInvalidatingAgeAssurance = signal(false);
   readonly reports = signal<ModerationReportItem[]>([]);
   readonly contactMessages = signal<ModerationContactMessageItem[]>([]);
   readonly communityCardSuggestions = signal<CommunityKnowledgeEditItem[]>([]);
@@ -151,6 +161,85 @@ export class ModerationDashboardPageComponent implements OnDestroy {
       });
     } finally {
       this.isLoading.set(false);
+    }
+  }
+
+  updateInvalidationBasis(event: Event): void {
+    this.invalidationBasis.set((event.target as HTMLInputElement).value);
+    this.invalidationPreviewCount.set(null);
+  }
+
+  updateInvalidationReason(event: Event): void {
+    this.invalidationReason.set((event.target as HTMLInputElement).value);
+    this.invalidationPreviewCount.set(null);
+  }
+
+  async previewAgeAssuranceInvalidation(): Promise<void> {
+    const basis = this.invalidationBasis().trim();
+    const reason = this.invalidationReason().trim();
+    if (!basis || reason.length < 5 || this.isInvalidatingAgeAssurance()) {
+      return;
+    }
+    this.isInvalidatingAgeAssurance.set(true);
+    try {
+      const count = await this._ageAssuranceAdmin.previewInvalidation(
+        basis,
+        reason,
+      );
+      this.invalidationPreviewCount.set(count);
+    } catch (error) {
+      console.error("Failed to preview age assurance invalidation", error);
+      this._snackbar.open(
+        $localize`Could not preview the age-assurance rollback`,
+        undefined,
+        { duration: 4000 },
+      );
+    } finally {
+      this.isInvalidatingAgeAssurance.set(false);
+    }
+  }
+
+  async applyAgeAssuranceInvalidation(): Promise<void> {
+    const basis = this.invalidationBasis().trim();
+    const reason = this.invalidationReason().trim();
+    const previewCount = this.invalidationPreviewCount();
+    if (
+      !basis ||
+      reason.length < 5 ||
+      previewCount === null ||
+      this.isInvalidatingAgeAssurance()
+    ) {
+      return;
+    }
+    if (
+      !globalThis.confirm(
+        $localize`Revoke adult eligibility for ${previewCount} matching account(s)? Their public profiles and search visibility will be disabled.`,
+      )
+    ) {
+      return;
+    }
+
+    this.isInvalidatingAgeAssurance.set(true);
+    try {
+      const processed = await this._ageAssuranceAdmin.invalidate(
+        basis,
+        reason,
+      );
+      this.invalidationPreviewCount.set(null);
+      this._snackbar.open(
+        $localize`Revoked adult eligibility for ${processed} account(s)`,
+        undefined,
+        { duration: 5000 },
+      );
+    } catch (error) {
+      console.error("Failed to invalidate age assurance approvals", error);
+      this._snackbar.open(
+        $localize`Could not complete the age-assurance rollback`,
+        undefined,
+        { duration: 5000 },
+      );
+    } finally {
+      this.isInvalidatingAgeAssurance.set(false);
     }
   }
 

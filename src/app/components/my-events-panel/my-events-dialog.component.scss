@@ -1,0 +1,92 @@
+@use "./my-events-tabs" as tabs;
+
+@include tabs.constrained-labels;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: calc(100dvh - 24px);
+  min-width: 0;
+  min-height: 0;
+}
+
+.dialog-header {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 0.75rem;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  padding: 1.25rem 1.5rem 0.75rem;
+  background: var(--mat-sys-surface-container-high);
+}
+
+.dialog-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.dialog-header h2 {
+  margin: 0;
+  padding: 0;
+}
+
+mat-dialog-content {
+  display: block;
+  flex: 1 1 auto;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  max-height: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-top: 0.75rem;
+  overscroll-behavior: contain;
+}
+
+.my-events-tabs {
+  justify-self: start;
+}
+
+.my-events-tabs mat-button-toggle {
+  color: var(--mat-sys-on-surface);
+}
+
+.my-events-tabs mat-button-toggle.mat-button-toggle-checked {
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.my-events-tabs mat-icon {
+  margin-right: 0.35rem;
+}
+
+.tab-count {
+  margin-left: 0.35rem;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 599.98px) {
+  .dialog-header {
+    padding-inline: 1rem;
+  }
+
+  mat-dialog-content {
+    padding-inline: 1rem;
+  }
+
+  .my-events-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .my-events-tabs mat-icon {
+    display: none;
+  }
+}

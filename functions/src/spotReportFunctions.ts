@@ -3,6 +3,8 @@ import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
 import * as admin from "firebase-admin";
+import { persistAuthoritativeReporter } from "./reportIdentity";
+import { publicSpotWarningForReason } from "./spotPublicWarning";
 
 interface SpotReportData {
   spot?: {
@@ -68,20 +70,32 @@ export const onSpotReportCreate = onDocumentCreated(
   async (event) => {
     const reportId = event.params.reportId;
     const spotId = event.params.spotId;
-    const reportData = event.data?.data() as SpotReportData | undefined;
+    const reportSnapshot = event.data;
+    const reportData = reportSnapshot?.data() as SpotReportData | undefined;
 
-    if (!reportData) {
+    if (!reportSnapshot || !reportData) {
       logger.warn(`No data found for spot report ${reportId}`);
       return;
     }
 
+    reportData.user = await persistAuthoritativeReporter(
+      reportSnapshot.ref,
+      reportData.user,
+    );
+
     const spotRef = admin.firestore().collection("spots").doc(spotId);
     const reportReason = reportData.reason || "other";
+    const publicWarning = publicSpotWarningForReason(reportReason);
     await spotRef.update({
       is_reported: true,
-      report_reason: reportReason,
+      report_reason: publicWarning.message,
       report_count: admin.firestore.FieldValue.increment(1),
       latest_report_at: admin.firestore.FieldValue.serverTimestamp(),
+      public_notice: {
+        ...publicWarning,
+        published_at: admin.firestore.FieldValue.serverTimestamp(),
+        source: "community_report",
+      },
     });
 
     const webhookUrl = discordWebhookUrl.value();
@@ -195,6 +209,7 @@ export const resolveSpotReport = onCall<ResolveSpotReportRequest>(
         isReported: admin.firestore.FieldValue.delete(),
         reportReason: admin.firestore.FieldValue.delete(),
         latest_report_at: admin.firestore.FieldValue.delete(),
+        public_notice: admin.firestore.FieldValue.delete(),
       });
     }
 

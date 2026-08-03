@@ -1,0 +1,53 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  padding: 1.25rem 1.5rem 0;
+}
+
+.dialog-header h2 {
+  margin: 0;
+  padding: 0;
+  overflow-wrap: anywhere;
+}
+
+.dialog-header > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.125rem;
+}
+
+.dialog-header .mat-label-large {
+  color: var(--mat-sys-primary);
+}
+
+mat-dialog-content {
+  display: grid;
+  gap: 1.5rem;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+  padding-top: 1rem;
+}
+
+@media (max-width: 600px) {
+  .dialog-header {
+    padding-inline: 1rem;
+  }
+
+  mat-dialog-content {
+    padding-inline: 1rem;
+  }
+}

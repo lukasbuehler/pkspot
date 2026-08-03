@@ -1,0 +1,42 @@
+:host {
+  display: block;
+}
+
+.intro,
+.detail {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.time-change {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+  margin-block: 1rem;
+
+  section {
+    display: grid;
+    gap: 0.25rem;
+    padding: 1rem;
+    border: 1px solid var(--mat-sys-outline-variant);
+    border-radius: 18px;
+    background: var(--mat-sys-surface-container);
+  }
+}
+
+.time-change section.time-change__new {
+  border-color: var(--mat-sys-primary);
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+@media (max-width: 600px) {
+  .time-change {
+    grid-template-columns: 1fr;
+
+    > mat-icon {
+      justify-self: center;
+      transform: rotate(90deg);
+    }
+  }
+}

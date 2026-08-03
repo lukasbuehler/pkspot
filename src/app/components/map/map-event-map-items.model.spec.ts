@@ -108,6 +108,24 @@ describe("map event map items", () => {
     expect(markers[0].imageFit).toBe("contain");
   });
 
+  it("adds venue context to event marker hover previews", () => {
+    const event = eventStub({
+      id: "event-2",
+      venueString: "Main Hall",
+      localityString: "Zurich",
+    });
+    const markers = buildVisibleEventMarkers({
+      visibleEvents: [event],
+      selectedEvent: null,
+      pendingEventRef: null,
+      mode: "events",
+      now,
+    });
+
+    expect(markers[0].description).toBe("Main Hall, Zurich");
+    expect(markers[0].previewEvent).toBe(event);
+  });
+
   it("preserves an event logo cover setting", () => {
     const markers = buildVisibleEventMarkers({
       visibleEvents: [
@@ -124,6 +142,24 @@ describe("map event map items", () => {
     });
 
     expect(markers[0].imageFit).toBe("cover");
+  });
+
+  it("preserves the effective event logo background color", () => {
+    const markers = buildVisibleEventMarkers({
+      visibleEvents: [
+        eventStub({
+          id: "event-2",
+          effectiveBadgeLogoSrc: () => storageEventImageUrl,
+          effectiveBadgeLogoBackgroundColor: () => "#fefefe",
+        }),
+      ],
+      selectedEvent: null,
+      pendingEventRef: null,
+      mode: "events",
+      now,
+    });
+
+    expect(markers[0].imageBackgroundColor).toBe("#fefefe");
   });
 
   it("builds area overlays from event bounds or polygon data", () => {

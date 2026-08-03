@@ -11,7 +11,7 @@ import {
 } from "@angular/forms";
 import { Router } from "@angular/router";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
-import { RecaptchaVerifier } from "@angular/fire/auth";
+import { RecaptchaVerifier } from "firebase/auth";
 import { MatIcon } from "@angular/material/icon";
 import { MatButton } from "@angular/material/button";
 import { MatInput } from "@angular/material/input";

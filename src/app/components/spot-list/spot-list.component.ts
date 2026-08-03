@@ -2,10 +2,8 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  EventEmitter,
   input,
   output,
-  Output,
   signal,
 } from "@angular/core";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
@@ -58,7 +56,7 @@ export class SpotListComponent {
 
   viewMode = signal<SpotListViewMode>("grid");
 
-  @Output("spotClickIndex") spotClickIndexEvent = new EventEmitter<number>();
+  spotClickIndexEvent = output<number>({ alias: "spotClickIndex" });
   spotClick = output<SpotPreviewData | Spot | LocalSpot>();
 
   // Filter out highlighted spots from regular spots

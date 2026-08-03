@@ -1,0 +1,57 @@
+.qr-description {
+  max-width: 34rem;
+  margin-top: 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.qr-frame {
+  display: grid;
+  width: min(100%, 360px);
+  aspect-ratio: 1;
+  margin-inline: auto;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+  background: var(--mat-sys-surface);
+}
+
+.qr-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.qr-url {
+  display: block;
+  max-width: 34rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  overflow-wrap: anywhere;
+  border-radius: 10px;
+  background: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+}
+
+.qr-success {
+  color: var(--mat-sys-primary);
+}
+
+.qr-error {
+  color: var(--mat-sys-error);
+}
+
+mat-dialog-actions {
+  gap: 0.5rem;
+}
+
+@media (max-width: 599.98px) {
+  mat-dialog-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  mat-dialog-actions > * {
+    width: 100%;
+  }
+}

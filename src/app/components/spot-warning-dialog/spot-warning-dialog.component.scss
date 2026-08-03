@@ -1,0 +1,9 @@
+mat-dialog-content {
+  display: grid;
+  gap: 0.75rem;
+  min-width: min(34rem, 75vw);
+}
+
+mat-form-field {
+  width: 100%;
+}

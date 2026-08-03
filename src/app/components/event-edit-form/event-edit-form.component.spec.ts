@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { MatDialog } from "@angular/material/dialog";
+import { of } from "rxjs";
 import { describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { EventId, EventSchema } from "../../../db/schemas/EventSchema";
@@ -7,6 +9,7 @@ import { OrganizationsService } from "../../services/firebase/firestore/organiza
 import { MapsApiService } from "../../services/maps-api.service";
 import { SearchService } from "../../services/search.service";
 import { EventEditFormComponent } from "./event-edit-form.component";
+import { EventTimeZoneService } from "../../services/event-time-zone.service";
 
 const baseEvent = {
   name: "Editable Event",
@@ -16,6 +19,7 @@ const baseEvent = {
   location_raw: { lat: 47.3769, lng: 8.5417 },
   start: "2026-06-01T10:00:00.000Z",
   end: "2026-06-01T12:00:00.000Z",
+  time_zone: "Europe/Zurich",
   bounds: {
     north: 47.5,
     south: 47.3,
@@ -35,7 +39,9 @@ function eventWith(
 }
 
 describe("EventEditFormComponent", () => {
-  async function setup(): Promise<ComponentFixture<EventEditFormComponent>> {
+  async function setup(
+    dialogResult = true,
+  ): Promise<ComponentFixture<EventEditFormComponent>> {
     await TestBed.configureTestingModule({
       imports: [EventEditFormComponent],
       providers: [
@@ -68,8 +74,19 @@ describe("EventEditFormComponent", () => {
             makeReference: vi.fn((organization) => organization),
           },
         },
+        {
+          provide: EventTimeZoneService,
+          useValue: {
+            resolve: vi.fn().mockResolvedValue("Europe/Zurich"),
+          },
+        },
       ],
     })
+      .overrideProvider(MatDialog, {
+        useValue: {
+          open: vi.fn(() => ({ afterClosed: () => of(dialogResult) })),
+        },
+      })
       .overrideComponent(EventEditFormComponent, {
         set: { template: "" },
       })
@@ -175,7 +192,7 @@ describe("EventEditFormComponent", () => {
       currentAreaPath: () => liveArea,
     };
 
-    component.onSubmit();
+    await component.onSubmit();
 
     expect(saveSpy).toHaveBeenCalledOnce();
     expect(saveSpy.mock.calls[0][0].area_polygon).toEqual([
@@ -184,6 +201,245 @@ describe("EventEditFormComponent", () => {
         points: liveArea,
       },
     ]);
+  });
+
+  it("confirms a published event time change before emitting save", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const dialog = TestBed.inject(MatDialog);
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    fixture.componentRef.setInput("event", eventWith("event-1", { published: true }));
+    fixture.detectChanges();
+    component.form.patchValue({
+      start_date: new Date("2026-06-02T10:00:00.000Z"),
+      start_time: new Date("2026-06-02T10:00:00.000Z"),
+      end_date: new Date("2026-06-02T12:00:00.000Z"),
+      end_time: new Date("2026-06-02T12:00:00.000Z"),
+    });
+
+    await component.onSubmit();
+
+    expect(dialog.open).toHaveBeenCalledOnce();
+    expect(saveSpy).toHaveBeenCalledOnce();
+  });
+
+  it("keeps editing when a published event reschedule is not confirmed", async () => {
+    const fixture = await setup(false);
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    fixture.componentRef.setInput("event", eventWith("event-1", { published: true }));
+    fixture.detectChanges();
+    component.form.patchValue({
+      start_date: new Date("2026-06-02T10:00:00.000Z"),
+      start_time: new Date("2026-06-02T10:00:00.000Z"),
+      end_date: new Date("2026-06-02T12:00:00.000Z"),
+      end_time: new Date("2026-06-02T12:00:00.000Z"),
+    });
+
+    await component.onSubmit();
+
+    expect(saveSpy).not.toHaveBeenCalled();
+  });
+
+  it("emits the fixed compatibility-safe defaults in session planner mode", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const auth = TestBed.inject(AuthenticationService);
+    vi.mocked(auth.isAdmin).mockReturnValue(false);
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    fixture.componentRef.setInput("mode", "session");
+    fixture.detectChanges();
+    component.form.patchValue({
+      name: "Low-key training",
+      venue_string: "Riverside rails",
+      locality_string: "Zurich",
+      location_lat: 47.3769,
+      location_lng: 8.5417,
+      start_date: new Date("2026-08-01T18:00:00.000Z"),
+      start_time: new Date("2026-08-01T18:00:00.000Z"),
+      end_date: new Date("2026-08-01T20:00:00.000Z"),
+      end_time: new Date("2026-08-01T20:00:00.000Z"),
+      time_zone: "Europe/Zurich",
+    });
+
+    await component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        kind: "session",
+        schedule_mode: "single",
+        lifecycle_status: "planned",
+        priority: "normal",
+        publication_state: "published",
+        published: true,
+        visibility: "public",
+        discoverability: { audience: "global" },
+        notification_policy: "all",
+      }),
+    );
+  });
+
+  it("creates a public date-only event with no venue, location, or time zone", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+    fixture.detectChanges();
+    component.form.patchValue({
+      name: "Date pending details",
+      start_date: new Date(2026, 8, 12),
+      timing_mode: "date_only",
+      owner_type: "user",
+      owner_user_id: "owner-1",
+      venue_string: "",
+      locality_string: "",
+      time_zone: "",
+      published: true,
+    });
+
+    await component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    const patch = saveSpy.mock.calls[0][0];
+    expect(patch).toEqual(
+      expect.objectContaining({
+        timing: { start_date: "2026-09-12", mode: "date_only" },
+        venue_string: null,
+        locality_string: null,
+        time_zone: undefined,
+      }),
+    );
+    expect(patch).not.toHaveProperty("location_raw");
+    expect(patch.start.toDate().toISOString()).toBe(
+      "2026-09-12T00:00:00.000Z",
+    );
+    expect(patch.end.toDate().toISOString()).toBe(
+      "2026-09-12T23:59:59.999Z",
+    );
+  });
+
+  it("uses the operational cutoff as the compatibility end for an open session", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const auth = TestBed.inject(AuthenticationService);
+    vi.mocked(auth.isAdmin).mockReturnValue(false);
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+    fixture.componentRef.setInput("mode", "session");
+    fixture.detectChanges();
+    component.form.patchValue({
+      name: "Open training",
+      venue_string: "Riverside rails",
+      locality_string: "Zurich",
+      location_lat: 47.3769,
+      location_lng: 8.5417,
+      start_date: new Date(2026, 7, 1),
+      start_time: new Date(2026, 7, 1, 18),
+      timing_mode: "open_end",
+      active_until_date: new Date(2026, 7, 1),
+      active_until_time: new Date(2026, 7, 1, 22),
+      time_zone: "Europe/Zurich",
+    });
+
+    await component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    const patch = saveSpy.mock.calls[0][0];
+    expect(patch.timing).toEqual({
+      start_date: "2026-08-01",
+      start_time: "18:00",
+      mode: "open_end",
+    });
+    expect(patch.active_until.toMillis()).toBe(patch.end.toMillis());
+  });
+
+  it("emits organization ownership separately from organizer branding", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+    await fixture.whenStable();
+
+    component.form.patchValue({
+      name: "Club session",
+      venue_string: "Gym",
+      locality_string: "Zurich",
+      location_lat: 47.3769,
+      location_lng: 8.5417,
+      start_date: new Date("2026-08-01T10:00:00.000Z"),
+      start_time: new Date("2026-08-01T10:00:00.000Z"),
+      end_date: new Date("2026-08-01T12:00:00.000Z"),
+      end_time: new Date("2026-08-01T12:00:00.000Z"),
+      published: true,
+      visibility: "public",
+      owner_type: "organization",
+      owner_organization_id: "club-1",
+    });
+
+    component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        owner: { type: "organization", organization_id: "club-1" },
+        organizer: null,
+        discoverability: { audience: "global" },
+      }),
+    );
+  });
+
+  it("keeps large-event admission external while preserving eligibility and notifications", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+    await fixture.whenStable();
+
+    component.form.patchValue({
+      name: "Member class",
+      venue_string: "Gym",
+      locality_string: "Zurich",
+      location_lat: 47.3769,
+      location_lng: 8.5417,
+      start_date: new Date("2026-08-01T10:00:00.000Z"),
+      start_time: new Date("2026-08-01T10:00:00.000Z"),
+      end_date: new Date("2026-08-01T12:00:00.000Z"),
+      end_time: new Date("2026-08-01T12:00:00.000Z"),
+      published: true,
+      owner_type: "user",
+      owner_user_id: "owner-1",
+      attendance_social: "none",
+      attendance_admission: "registration",
+      attendance_capacity: 20,
+      attendance_waitlist: true,
+      attendance_eligibility: "organization_members",
+      attendance_organization_id: "club-1",
+      notification_policy: "reminders",
+    });
+
+    component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        attendance: expect.objectContaining({
+          social: "none",
+          admission: "none",
+          eligibility: {
+            type: "organization_members",
+            organization_id: "club-1",
+          },
+        }),
+        notification_policy: "reminders",
+      }),
+    );
   });
 
   it("emits a deletion marker when all existing event descriptions are removed", async () => {
@@ -596,6 +852,97 @@ describe("EventEditFormComponent", () => {
     expect(saveSpy.mock.calls[0][0].external_source).toBeNull();
   });
 
+  it("preserves and serializes a valid original ticket price", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    fixture.componentRef.setInput(
+      "event",
+      eventWith("event-1", {
+        ticket_options: [
+          {
+            id: "discount",
+            label: "Discount pass",
+            price: { amount: 60, currency: "CHF" },
+            original_price: { amount: 90, currency: "CHF" },
+            badge: "discount",
+          },
+        ],
+      }),
+    );
+    fixture.detectChanges();
+
+    expect(component.ticketOptions()[0].originalAmount).toBe(90);
+    await component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0].ticket_options[0]).toEqual(
+      expect.objectContaining({
+        price: { amount: 60, currency: "CHF" },
+        original_price: { amount: 90, currency: "CHF" },
+      }),
+    );
+  });
+
+  it("keeps a plain-text organizer when no PK Spot organization is selected", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    fixture.componentRef.setInput(
+      "event",
+      eventWith("event-1", { organizer_name: "Independent Jam Crew" }),
+    );
+    fixture.detectChanges();
+
+    expect(component.form.value.organizer_query).toBe("Independent Jam Crew");
+
+    component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        organizer: null,
+        organizer_name: "Independent Jam Crew",
+      }),
+    );
+  });
+
+  it("loads and serializes the event categories", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    fixture.componentRef.setInput(
+      "event",
+      eventWith("event-1", {
+        event_categories: ["camp", "competition"],
+      }),
+    );
+    await fixture.whenStable();
+
+    expect(component.form.controls["event_categories"].value).toEqual([
+      "camp",
+      "competition",
+    ]);
+
+    component.form.controls["event_categories"].setValue([
+      "camp",
+      "workshop",
+    ]);
+    await component.onSubmit();
+
+    expect(saveSpy).toHaveBeenCalledOnce();
+    expect(saveSpy.mock.calls[0][0].event_categories).toEqual([
+      "camp",
+      "workshop",
+    ]);
+  });
+
   it("serializes edited program plans and items on submit", async () => {
     const fixture = await setup();
     const component = fixture.componentInstance;
@@ -633,6 +980,16 @@ describe("EventEditFormComponent", () => {
       title: "Open jam",
       linkedEventId: "linked-event",
     });
+    component.updateProgramSpotSelections("main", "jam", [
+      {
+        kind: "inline_spot",
+        id: "main-stage",
+      },
+      {
+        kind: "custom_marker",
+        id: "camp",
+      },
+    ]);
     component.onSubmit();
 
     expect(saveSpy).toHaveBeenCalledOnce();
@@ -648,7 +1005,11 @@ describe("EventEditFormComponent", () => {
                 id: "jam",
                 title: "Open jam",
                 category: "jam",
-                spot_ref: { kind: "spot", id: "spot-1" },
+                spot_ref: { kind: "inline_spot", id: "main-stage" },
+                spot_refs: [
+                  { kind: "inline_spot", id: "main-stage" },
+                  { kind: "custom_marker", id: "camp" },
+                ],
                 linked_event_id: "linked-event",
               }),
             ],

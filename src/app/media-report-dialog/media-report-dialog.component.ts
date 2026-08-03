@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  computed,
   Component,
   inject,
   LOCALE_ID,
@@ -36,7 +37,13 @@ import { UserReferenceSchema } from "../../db/schemas/UserSchema";
 import { UsersService } from "../services/firebase/firestore/users.service";
 import { MediaReportsService } from "../services/firebase/firestore/media-reports.service";
 import { AuthenticationService } from "../services/firebase/authentication.service";
-import { firstValueFrom } from "rxjs";
+import { take } from "rxjs";
+import { NotificationOptInService } from "../services/notification-opt-in.service";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import {
+  isGuestMediaReportReason,
+  isMediaReportReason,
+} from "../../db/schemas/MediaReportPolicy";
 
 interface MediaReportDialogData {
   media: AnyMedia;
@@ -69,11 +76,19 @@ export class MediaReportDialogComponent implements AfterViewInit {
   private _usersService = inject(UsersService);
   private _mediaReportsService = inject(MediaReportsService);
   private _authService = inject(AuthenticationService);
+  private _notificationOptIn = inject(NotificationOptInService);
   private _fb = inject(FormBuilder);
 
   userReference = signal<UserReferenceSchema | null | undefined>(null);
   isSubmitting = signal(false);
   isAuthenticated = signal(false);
+  selectedReason = signal("");
+  submissionError = signal(false);
+  canSubmitReason = computed(
+    () =>
+      this.isAuthenticated() ||
+      isGuestMediaReportReason(this.selectedReason()),
+  );
 
   reportForm: FormGroup;
   public dialogData = inject<MediaReportDialogData>(MAT_DIALOG_DATA);
@@ -99,31 +114,17 @@ export class MediaReportDialogComponent implements AfterViewInit {
     this.reportForm = this._fb.group({
       reason: ["", Validators.required],
       comment: [""],
-      reporterEmail: [""],
+      reporterEmail: ["", [Validators.email, Validators.maxLength(240)]],
     });
+    this._authService.authState$
+      .pipe(takeUntilDestroyed())
+      .subscribe((user) => this.isAuthenticated.set(!!user?.uid));
+    this.reportForm.controls["reason"].valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe((reason) => this.selectedReason.set(reason ?? ""));
   }
 
   ngAfterViewInit() {
-    // Check if user is authenticated
-    firstValueFrom(this._authService.authState$).then((user) => {
-      this.isAuthenticated.set(!!user?.uid);
-      // Update email field validators based on auth status
-      const emailControl = this.reportForm.get("reporterEmail");
-      if (!user?.uid) {
-        // Unauthenticated: email is required and must be valid
-        emailControl?.setValidators([
-          Validators.required,
-          Validators.pattern(
-            /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
-          ),
-        ]);
-      } else {
-        // Authenticated: email not required
-        emailControl?.clearValidators();
-      }
-      emailControl?.updateValueAndValidity();
-    });
-
     // Load user reference from storage or authentication service
     const userId = this.dialogData.media.userId;
     if (userId) {
@@ -148,19 +149,23 @@ export class MediaReportDialogComponent implements AfterViewInit {
   }
 
   submitReport(): void {
-    if (!this.reportForm.valid) {
+    if (!this.canSubmitReason() || !this.reportForm.valid) {
       return;
     }
 
     const { reason, comment, reporterEmail } = this.reportForm.value;
+    if (!isMediaReportReason(reason)) {
+      return;
+    }
     this.isSubmitting.set(true);
+    this.submissionError.set(false);
 
     this._mediaReportsService
       .submitMediaReport(
         this.dialogData.media,
         reason,
-        comment,
-        !this.isAuthenticated() ? reporterEmail : undefined,
+        comment ?? "",
+        !this.isAuthenticated() ? reporterEmail || undefined : undefined,
         this.locale,
         this.dialogData.spotId,
         this.dialogData.spotId ? "spot" : this.dialogData.context,
@@ -168,10 +173,19 @@ export class MediaReportDialogComponent implements AfterViewInit {
       )
       .then(() => {
         console.log("Media report submitted successfully");
+        if (this.isAuthenticated()) {
+          this.dialogRef
+            .afterClosed()
+            .pipe(take(1))
+            .subscribe(() => {
+              void this._notificationOptIn.maybePrompt("report_updates");
+            });
+        }
         this.dialogRef.close(true);
       })
       .catch((error: unknown) => {
         console.error("Error submitting media report:", error);
+        this.submissionError.set(true);
         this.isSubmitting.set(false);
       });
   }

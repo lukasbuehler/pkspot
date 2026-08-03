@@ -6,7 +6,6 @@ import {
 } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { NgClass, NgSwitch, NgSwitchCase } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { EditProfileComponent } from "../edit-profile/edit-profile.component";
@@ -30,8 +29,10 @@ import { MatIcon } from "@angular/material/icon";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { AppSettingsService } from "../../services/app-settings.service";
+import { AccountPreferencesService } from "../../services/account-preferences.service";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatSelectModule } from "@angular/material/select";
+import { MatButtonToggleModule } from "@angular/material/button-toggle";
 import { LocaleCode } from "../../../db/models/Interfaces";
 import { languageCodes } from "../../../scripts/Languages";
 import { UiLanguageService } from "../../services/ui-language.service";
@@ -41,14 +42,21 @@ import { version } from "../../../../package.json";
 import crew from "../../../assets/data/crew.json";
 import { AnalyticsService } from "../../services/analytics.service";
 import { UsersService } from "../../services/firebase/firestore/users.service";
+import { UserAccountPrivacy } from "../../../db/schemas/UserSchema";
 import {
-  UserAccountPrivacy,
-  UserProfileVisibility,
-} from "../../../db/schemas/UserSchema";
+  profileAccessFieldsForPrivacy,
+  profileAccessNeedsUnification,
+  unifiedProfilePrivacy,
+} from "../../../db/utils/profile-access";
 import {
   FirebaseAppCheckService,
   FirebaseAppCheckStatus,
 } from "../../services/firebase/app-check.service";
+import type {
+  TemperatureUnitPreference,
+} from "../../weather/weather-temperature";
+import { AgeAssuranceStatusCardComponent } from "../age-assurance-status-card/age-assurance-status-card.component";
+import { NotificationSettingsComponent } from "../notification-settings/notification-settings.component";
 
 @Component({
   selector: "app-settings-page",
@@ -56,13 +64,10 @@ import {
   styleUrls: ["./settings-page.component.scss"],
   imports: [
     MatButtonModule,
-    NgClass,
     MatIcon,
     MatBadge,
-    NgSwitch,
     MatDivider,
     EditProfileComponent,
-    NgSwitchCase,
     MatFormField,
     MatLabel,
     MatInput,
@@ -74,9 +79,12 @@ import {
     MatProgressSpinner,
     MatSlideToggleModule,
     MatSelectModule,
+    MatButtonToggleModule,
     MatExpansionModule,
     RouterLink,
     ContributionStatusNoteComponent,
+    AgeAssuranceStatusCardComponent,
+    NotificationSettingsComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { ngSkipHydration: "true" },
@@ -85,6 +93,10 @@ export class SettingsPageComponent implements OnInit {
   readonly appVersion = version;
   readonly crew = crew;
   readonly appCheckStatus = this._appCheckService.status;
+  readonly publicProfilePrivacyLabel =
+    $localize`:@@settings.profileAccess.public:Public`;
+  readonly privateProfilePrivacyLabel =
+    $localize`:@@settings.profileAccess.private:Private`;
   @ViewChild("editProfileComponent") editProfileComponent:
     | EditProfileComponent
     | undefined;
@@ -96,11 +108,12 @@ export class SettingsPageComponent implements OnInit {
     private _snackbar: MatSnackBar,
     private _metaTagService: MetaTagService,
     public appSettings: AppSettingsService,
+    public accountPreferences: AccountPreferencesService,
     private _uiLanguageService: UiLanguageService,
     public ageAssurance: AgeAssuranceService,
     private _analytics: AnalyticsService,
     private _usersService: UsersService,
-    private _appCheckService: FirebaseAppCheckService
+    private _appCheckService: FirebaseAppCheckService,
   ) {}
   languageCodes = languageCodes;
 
@@ -121,6 +134,12 @@ export class SettingsPageComponent implements OnInit {
       id: "general",
       name: $localize`General`,
       icon: "settings",
+      hasChanges: false,
+    },
+    {
+      id: "notifications",
+      name: $localize`:@@settings.notifications.menu:Notifications`,
+      icon: "notifications",
       hasChanges: false,
     },
     {
@@ -212,17 +231,23 @@ export class SettingsPageComponent implements OnInit {
   isEmailExpanded: boolean = false;
   isPasswordExpanded: boolean = false;
 
-  accountPrivacy: UserAccountPrivacy = "public";
-  profileVisibility: UserProfileVisibility = "public";
-  savedAccountPrivacy: UserAccountPrivacy = "public";
-  savedProfileVisibility: UserProfileVisibility = "public";
+  profilePrivacy: UserAccountPrivacy = "private";
+  publicSearch = false;
+  savedProfilePrivacy: UserAccountPrivacy = "private";
+  savedPublicSearch = false;
+  profileAccessNeedsNormalization = false;
   isSavingProfileAccess: boolean = false;
 
   get hasProfileAccessChanges(): boolean {
     return (
-      this.accountPrivacy !== this.savedAccountPrivacy ||
-      this.profileVisibility !== this.savedProfileVisibility
+      this.profilePrivacy !== this.savedProfilePrivacy ||
+      this.publicSearch !== this.savedPublicSearch ||
+      this.profileAccessNeedsNormalization
     );
+  }
+
+  get canSelectPublicProfile(): boolean {
+    return this.ageAssurance.hasVerifiedAdultEligibility();
   }
 
   get isOAuthUser(): boolean {
@@ -290,12 +315,51 @@ export class SettingsPageComponent implements OnInit {
     this._uiLanguageService.changeLanguage();
   }
 
+  setTemperatureUnit(unit: TemperatureUnitPreference): void {
+    void this.accountPreferences.setTemperatureUnit(unit).catch((error) => {
+      console.error("Error saving temperature unit:", error);
+      this._snackbar.open(
+        $localize`:@@settings.temperature.save_error:Could not save temperature preference.`,
+        "OK",
+        { duration: 5000 },
+      );
+    });
+  }
+
   syncProfileAccessSettings() {
     const userData = this.authService.user.data?.data;
-    this.accountPrivacy = userData?.account_privacy ?? "public";
-    this.profileVisibility = userData?.profile_visibility ?? "public";
-    this.savedAccountPrivacy = this.accountPrivacy;
-    this.savedProfileVisibility = this.profileVisibility;
+    const fields = {
+      account_privacy: userData?.account_privacy ?? "public",
+      profile_visibility: userData?.profile_visibility ?? "public",
+      public_profile_enabled: userData?.public_profile_enabled === true,
+      public_search: userData?.public_search === true,
+    } as const;
+    const storedPrivacy = unifiedProfilePrivacy(
+      fields.account_privacy,
+      fields.profile_visibility,
+      fields.public_profile_enabled,
+    );
+    this.profilePrivacy = this.canSelectPublicProfile ? storedPrivacy : "private";
+    this.publicSearch = this.profilePrivacy === "public" && fields.public_search;
+    this.profileAccessNeedsNormalization =
+      storedPrivacy !== this.profilePrivacy ||
+      profileAccessNeedsUnification(fields);
+    this.savedProfilePrivacy = this.profilePrivacy;
+    this.savedPublicSearch = this.publicSearch;
+  }
+
+  setProfilePrivacy(privacy: UserAccountPrivacy): void {
+    if (privacy === "public" && !this.canSelectPublicProfile) {
+      return;
+    }
+    this.profilePrivacy = privacy;
+    if (privacy === "private") {
+      this.publicSearch = false;
+    }
+  }
+
+  setPublicSearch(enabled: boolean): void {
+    this.publicSearch = enabled && this.profilePrivacy === "public";
   }
 
   saveProfileAccessSettings() {
@@ -304,22 +368,28 @@ export class SettingsPageComponent implements OnInit {
       return;
     }
 
+    this.profilePrivacy = this.canSelectPublicProfile
+      ? this.profilePrivacy
+      : "private";
+    const profileAccess = profileAccessFieldsForPrivacy(
+      this.profilePrivacy,
+      this.publicSearch,
+    );
     this.isSavingProfileAccess = true;
     this._usersService
       .updateUser(userId, {
-        account_privacy: this.accountPrivacy,
-        profile_visibility: this.profileVisibility,
+        ...profileAccess,
       })
       .then(() => {
         const currentUser = this.authService.user.data;
         const currentUserData = currentUser?.data;
         if (currentUserData) {
-          currentUserData.account_privacy = this.accountPrivacy;
-          currentUserData.profile_visibility = this.profileVisibility;
+          Object.assign(currentUserData, profileAccess);
           currentUser.setUserData(currentUserData);
         }
-        this.savedAccountPrivacy = this.accountPrivacy;
-        this.savedProfileVisibility = this.profileVisibility;
+        this.savedProfilePrivacy = this.profilePrivacy;
+        this.savedPublicSearch = this.publicSearch;
+        this.profileAccessNeedsNormalization = false;
         this._snackbar.open($localize`Profile access saved`, "OK", {
           duration: 3000,
         });

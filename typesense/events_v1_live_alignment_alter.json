@@ -1,0 +1,19 @@
+{
+  "fields": [
+    { "name": "bounds_center", "drop": true },
+    { "name": "bounds_radius_m", "drop": true },
+    { "name": "bounds_center", "type": "geopoint", "optional": true },
+    { "name": "bounds_radius_m", "type": "float", "optional": true },
+    { "name": "logo_fit", "type": "string", "optional": true, "index": false },
+    {
+      "name": "sponsor.logo_fit",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
+    { "name": "is_promoted", "type": "bool", "facet": true, "optional": true },
+    { "name": "is_sponsored", "type": "bool", "facet": true, "optional": true },
+    { "name": "kind", "type": "string", "facet": true, "optional": true },
+    { "name": "priority", "type": "string", "facet": true, "optional": true }
+  ]
+}

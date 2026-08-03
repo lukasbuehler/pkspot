@@ -8,6 +8,8 @@ import {
   computed,
   effect,
   inject,
+  linkedSignal,
+  resource,
   signal,
 } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
@@ -16,6 +18,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatMenuModule } from "@angular/material/menu";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { MatDialog } from "@angular/material/dialog";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
@@ -31,7 +34,6 @@ import {
   EventLinkSchema,
   EventQualificationPathSchema,
   EventQualificationRefSchema,
-  EventSchema,
   EventSeriesMembershipSchema,
 } from "../../../db/schemas/EventSchema";
 import { EventTicketOption } from "../../../db/models/Event";
@@ -63,7 +65,7 @@ import {
   EventEditFormComponent,
   EventEditPatch,
 } from "../event-edit-form/event-edit-form.component";
-import { EventRsvpComponent } from "../event-rsvp/event-rsvp.component";
+import { EventAttendeeActionsComponent } from "../event-attendee-actions/event-attendee-actions.component";
 import { EventHeroMediaComponent } from "../event-display/event-hero-media.component";
 import { EventSummaryMetaComponent } from "../event-display/event-summary-meta.component";
 import { EventCardComponent } from "../event-card/event-card.component";
@@ -71,15 +73,66 @@ import { EventProgramTimelineComponent } from "./event-program-timeline.componen
 import {
   eventHeroMedia,
   eventImageDisplaySrc,
+  eventScheduleLabel,
   eventStatusLabel,
   type EventStatus,
 } from "../event-display/event-display.helpers";
-import { isBot, formatDateRange } from "../../../scripts/Helpers";
+import { isBot } from "../../../scripts/Helpers";
+import { DateTimeFormatService } from "../../services/date-time-format.service";
+import { EventLiveUpdatesComponent } from "../event-live-updates/event-live-updates.component";
+import { EventLiveUpdateOrganizerMenuComponent } from "../event-live-update-organizer-menu/event-live-update-organizer-menu.component";
+import type { EventRSVPOption } from "../../../db/schemas/EventRSVPSchema";
+import { OrganizationButtonComponent } from "../organization-button/organization-button.component";
+import { WeatherService } from "../../weather/weather.service";
+import {
+  singleEventDateKey,
+  type EventWeatherSelection,
+} from "../../weather/event-weather";
+import {
+  EVENT_WEATHER_DIALOG_CONFIG,
+  EventWeatherForecastDialogComponent,
+  type EventWeatherForecastDialogData,
+} from "../event-weather-forecast-dialog/event-weather-forecast-dialog.component";
+import { EventWeatherDaysComponent } from "../event-weather-days/event-weather-days.component";
+import { EventWeatherHoursComponent } from "../event-weather-hours/event-weather-hours.component";
+import { EventDraftNoticeComponent } from "./event-draft-notice.component";
+import { EventAccessManagerComponent } from "../event-access-manager/event-access-manager.component";
+import { EventRegistrationManagerComponent } from "../event-registration-manager/event-registration-manager.component";
+import {
+  EventOwnershipClaimDialogComponent,
+  EventOwnershipClaimDialogData,
+} from "../event-ownership-claim-dialog/event-ownership-claim-dialog.component";
+import { EventProgramDayChipsComponent } from "../event-program-day-chips/event-program-day-chips.component";
+import { EventNowNextCardComponent } from "../event-now-next-card/event-now-next-card.component";
+import { EventTicketListComponent } from "../event-ticket-list/event-ticket-list.component";
+import {
+  eventProgramDays,
+  eventProgramLocationVisits,
+  isEventProgramMarkerOccurrence,
+  isEventProgramSpotOccurrence,
+  resolveEventProgramOccurrences,
+  type EventMarkerBinding,
+  type EventProgramOccurrence,
+  type EventSpotBinding,
+} from "../../shared/event-program-spots";
+import { eventProgramLocationColor } from "../../shared/event-program-timeline";
+import {
+  EventAddDialogComponent,
+  type EventAddDialogData,
+} from "../event-add-dialog/event-add-dialog.component";
+import {
+  EventQrDialogComponent,
+  type EventQrDialogData,
+} from "../event-qr-dialog/event-qr-dialog.component";
 
 interface VisibleSeriesTag {
   seriesId: string;
   role?: EventSeriesMembershipSchema["role"];
 }
+
+type ProgramMapMarker = MarkerSchema & {
+  programOccurrence?: EventProgramOccurrence;
+};
 
 @Component({
   selector: "app-event-info-page",
@@ -93,11 +146,22 @@ interface VisibleSeriesTag {
     MatProgressSpinnerModule,
     GoogleMap2dComponent,
     EventEditFormComponent,
-    EventRsvpComponent,
+    EventAttendeeActionsComponent,
     EventHeroMediaComponent,
     EventSummaryMetaComponent,
     EventCardComponent,
     EventProgramTimelineComponent,
+    EventWeatherDaysComponent,
+    EventWeatherHoursComponent,
+    EventLiveUpdatesComponent,
+    EventLiveUpdateOrganizerMenuComponent,
+    OrganizationButtonComponent,
+    EventDraftNoticeComponent,
+    EventAccessManagerComponent,
+    EventRegistrationManagerComponent,
+    EventProgramDayChipsComponent,
+    EventNowNextCardComponent,
+    EventTicketListComponent,
   ],
   templateUrl: "./event-page.component.html",
   styleUrl: "./event-page.component.scss",
@@ -107,6 +171,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   private _route = inject(ActivatedRoute);
   private _router = inject(Router);
   private _snackbar = inject(MatSnackBar);
+  private readonly _dialog = inject(MatDialog);
   private _eventsService = inject(EventsService);
   private _authService = inject(AuthenticationService);
   private _analytics = inject(AnalyticsService);
@@ -117,20 +182,29 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   private _search = inject(SearchService);
   private _platformId = inject(PLATFORM_ID);
   private _locale = inject<LocaleCode>(LOCALE_ID);
+  private readonly _dateTime = inject(DateTimeFormatService);
+  private readonly _weatherService = inject(WeatherService);
   readonly mapsApiService = inject(MapsApiService);
 
   private _paramMapSubscription?: Subscription;
   private _queryParamsSubscription?: Subscription;
   private _eventSnapshotSubscription?: Subscription;
   private _eventLoadRequestVersion = 0;
+  private _eventAuthorizationRequestVersion = 0;
   private _spotsLoadRequestVersion = 0;
+  private _minuteInterval?: number;
   private _qualifierLoadRequestVersion = 0;
+  private _programLinkedEventLoadRequestVersion = 0;
   private _seriesLoadRequestVersion = 0;
+  private _lastAddDialogKey = "";
   private readonly _qualificationGridResizeListener = () =>
     this._syncQualificationGridColumns();
 
   readonly event = signal<PkEvent | null>(null);
+  readonly isLoadingEvent = signal(true);
+  readonly eventLoadFailed = signal(false);
   readonly spots = signal<(Spot | LocalSpot)[]>([]);
+  readonly spotBindings = signal<EventSpotBinding[]>([]);
   readonly areaPolygon = signal<PolygonSchema | null>(null);
   readonly mapPreviewViewportBounds = signal<EventBoundsSchema | null>(null);
   readonly showHeader = signal(true);
@@ -140,7 +214,12 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly isEditingEvent = signal(false);
   readonly isSavingEvent = signal(false);
   readonly isEventDescriptionExpanded = signal(false);
+  readonly currentRsvp = signal<EventRSVPOption | null>(null);
+  readonly now = signal(new Date());
+  readonly focusedProgramItemId = signal<string | null>(null);
+  readonly addIntentSource = signal<EventAddDialogData["source"] | null>(null);
   readonly qualifierEventsById = signal<Record<string, PkEvent>>({});
+  readonly programLinkedEventsById = signal<Record<string, PkEvent>>({});
   readonly seriesById = signal<Record<string, SeriesDocument>>({});
   readonly expandedQualificationEventGroups = signal<Record<string, boolean>>(
     {},
@@ -148,18 +227,37 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly qualificationGridColumns = signal(3);
   readonly isLoadingQualifierEvents = signal(false);
   readonly isAdmin = computed(() => this._authService.isAdmin());
+  readonly isSignedIn = computed(() => !!this._authService.user.uid);
+  readonly canEditEvent = signal(false);
+  readonly canManageEvent = signal(false);
+
+  openOwnershipClaimDialog(): void {
+    const event = this.event();
+    if (!event) return;
+    this._dialog.open<
+      EventOwnershipClaimDialogComponent,
+      EventOwnershipClaimDialogData,
+      boolean
+    >(EventOwnershipClaimDialogComponent, {
+      data: { eventId: String(event.id), eventName: event.name },
+      maxWidth: "95vw",
+    });
+  }
 
   readonly dateRange = computed(() => {
     const event = this.event();
     if (!event) return "";
-    return formatDateRange(event.start, event.end, this._locale, "long");
+    return eventScheduleLabel(event, this._dateTime, "long");
   });
   readonly description = computed(() => {
     const event = this.event();
     if (!event) return "";
     return (
       event.description ??
-      $localize`Event in ` + event.localityString + ` (${this.dateRange()})`
+      (event.localityString
+        ? $localize`Event in ` + event.localityString
+        : $localize`:@@event.description_without_location:Event details`) +
+        ` (${this.dateRange()})`
     );
   });
   readonly hasLongDescription = computed(() => {
@@ -178,11 +276,22 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     return event ? ["/events", event.slug ?? event.id, "map"] : ["/events"];
   });
   readonly organizer = computed(() => this.event()?.organizer?.organization);
-  readonly organizerName = computed(() => this.organizer()?.name ?? "");
+  readonly organizerName = computed(() => this.event()?.organizerName ?? "");
   readonly status = computed<EventStatus | null>(
-    () => this.event()?.status() ?? null,
+    () => this.event()?.status(this.now()) ?? null,
   );
-  readonly showRsvp = computed(() => this.status() === "upcoming");
+  readonly showRsvp = computed(
+    () =>
+      this.event()?.published === true &&
+      this.event()?.attendance.social === "rsvp" &&
+      this.status() === "upcoming",
+  );
+  readonly showRegistration = computed(
+    () =>
+      this.event()?.published === true &&
+      this.event()?.attendance.admission === "registration" &&
+      this.status() === "upcoming",
+  );
   readonly statusLabel = computed(() => {
     const event = this.event();
     const status = this.status();
@@ -192,10 +301,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly startDateTime = computed(() => {
     const event = this.event();
     if (!event) return "";
-    return event.start.toLocaleString(this._locale, {
-      dateStyle: "full",
-      timeStyle: "short",
-    });
+    return eventScheduleLabel(event, this._dateTime, "long");
   });
   readonly websiteUrl = computed(() =>
     this._analytics.addUtmToUrl(
@@ -238,14 +344,120 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly featuredParticipants = computed(
     () => this.event()?.featuredParticipants ?? [],
   );
-  readonly activeProgramItems = computed<EventProgramItem[]>(() => {
+  readonly activeProgramPlan = computed(() => {
     const event = this.event();
-    if (!event?.program) return [];
-    const activePlan =
+    if (!event?.program) return undefined;
+    return (
       event.program.plans.find(
         (plan) => plan.id === event.program?.active_plan_id,
-      ) ?? event.program.plans[0];
-    return activePlan?.items ?? [];
+      ) ?? event.program.plans[0]
+    );
+  });
+  readonly activeProgramItems = computed<EventProgramItem[]>(
+    () => this.activeProgramPlan()?.items ?? [],
+  );
+  readonly programLinkedEventIds = computed(() => [
+    ...new Set(
+      this.activeProgramItems()
+        .map((item) => item.linked_event_id)
+        .filter((id): id is string => typeof id === "string" && id.length > 0),
+    ),
+  ]);
+  readonly programDays = computed(() =>
+    eventProgramDays(this.activeProgramItems(), this.event()?.timeZone),
+  );
+  readonly selectedProgramDay = linkedSignal<
+    {
+      eventId: string;
+      days: string[];
+      timeZone: string | undefined;
+    },
+    string | null
+  >({
+    source: () => ({
+      eventId: String(this.event()?.id ?? ""),
+      days: this.programDays(),
+      timeZone: this.event()?.timeZone,
+    }),
+    computation: (source, previous) => {
+      if (
+        previous?.source.eventId === source.eventId &&
+        (previous.value === null ||
+          previous.value === "" ||
+          source.days.includes(previous.value))
+      ) {
+        return previous.value;
+      }
+      return null;
+    },
+  });
+  readonly programOccurrences = computed(() =>
+    resolveEventProgramOccurrences(
+      this.activeProgramItems(),
+      [
+        ...this.spotBindings(),
+        ...this.mapMarkers().flatMap((marker): EventMarkerBinding[] =>
+          marker.id
+            ? [
+                {
+                  ref: { kind: "custom_marker", id: marker.id },
+                  marker,
+                },
+              ]
+            : [],
+        ),
+      ],
+      this.event()?.timeZone,
+      this.now(),
+    ),
+  );
+  readonly programLocationVisits = computed(() =>
+    this.selectedProgramDay() === null
+      ? []
+      : eventProgramLocationVisits(
+          this.programOccurrences(),
+          this.selectedProgramDay() ?? "",
+          this.now(),
+        ),
+  );
+  readonly programFilterActive = computed(
+    () => this.selectedProgramDay() !== null,
+  );
+  readonly eventWeatherResource = resource({
+    params: () => {
+      const event = this.event();
+      if (
+        !this.isBrowser() ||
+        !event ||
+        !event.location ||
+        !Number.isFinite(event.location.lat) ||
+        !Number.isFinite(event.location.lng) ||
+        !this._weatherService.isEventForecastAvailable(event.start, event.end)
+      ) {
+        return undefined;
+      }
+      return {
+        location: event.location,
+        start: event.start,
+        end: event.end,
+      };
+    },
+    loader: ({ params }) =>
+      this._weatherService.getEventForecastForTileAt(
+        params.location,
+        params.start,
+        params.end,
+      ),
+  });
+  readonly eventWeather = computed(() =>
+    this.eventWeatherResource.hasValue()
+      ? this.eventWeatherResource.value()
+      : undefined,
+  );
+  readonly singleEventWeatherDate = computed(() => {
+    const event = this.event();
+    if (!event) return undefined;
+    return singleEventDateKey(event.start, event.end, event.timeZone);
   });
   readonly visibleSeriesMemberships = computed(() =>
     [
@@ -291,6 +503,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       ...Object.values(this.qualifierEventsById()).flatMap(
         (event) => event.seriesIds,
       ),
+      ...Object.values(this.programLinkedEventsById()).flatMap(
+        (event) => event.seriesIds,
+      ),
     ]),
   ]);
   readonly qualificationMemberships = computed(() =>
@@ -324,6 +539,54 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     if (!event) return [];
     return this._eventPageData.customMarkers(event);
   });
+  readonly programMapMarkers = computed<ProgramMapMarker[]>(() =>
+    this.programLocationVisits().map((visit) => {
+      const occurrence = visit.representative;
+      const time = this._dateTime.format(occurrence.start, {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: this.event()?.timeZone,
+      });
+      const additionalVisits = visit.occurrences.length - 1;
+      const place =
+        visit.kind === "spot"
+          ? {
+              name: visit.spot.name(),
+              location: visit.spot.location(),
+              icons: undefined,
+            }
+          : {
+              name: visit.marker.name ?? visit.ref.id,
+              location: visit.marker.location,
+              icons: visit.marker.icons,
+            };
+      return {
+        id: `program:${visit.key}`,
+        name: `${place.name}: ${occurrence.item.title}, ${time}`,
+        description: occurrence.item.title,
+        location: place.location,
+        icons: place.icons,
+        number: time,
+        badge: additionalVisits > 0 ? `+${additionalVisits}` : undefined,
+        color: eventProgramLocationColor(visit),
+        priority: "required",
+        ignoreCollisions: true,
+        type: "event-program",
+        programOccurrence: occurrence,
+      };
+    }),
+  );
+  readonly mapPriorityMarkers = computed<ProgramMapMarker[]>(() =>
+    this.programFilterActive()
+      ? [
+          ...this.mapMarkers().map((marker) => ({
+            ...marker,
+            color: "gray" as const,
+          })),
+          ...this.programMapMarkers(),
+        ]
+      : this.mapMarkers(),
+  );
   readonly mapPreviewSpotMarkers = computed<SpotPreviewData[]>(() =>
     this._eventPageData.spotPreviewMarkers(this.spots()),
   );
@@ -353,6 +616,13 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         if (params["showHeader"] !== undefined) {
           this.showHeader.set(params["showHeader"] === "true");
         }
+        this.addIntentSource.set(
+          params["intent"] === "add"
+            ? params["utm_source"] === "event_qr"
+              ? "event_qr"
+              : "event_page"
+            : null,
+        );
       },
     );
 
@@ -369,6 +639,26 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       if (!event) return;
       this.seriesById();
       this._syncEventSeoData(event);
+    });
+
+    effect(() => {
+      const event = this.event();
+      const source = this.addIntentSource();
+      if (!source) {
+        this._lastAddDialogKey = "";
+        return;
+      }
+      if (!this.isBrowser() || !event || this.isEmbedded()) return;
+      const dialogKey = `${event.id}:${source}`;
+      if (dialogKey === this._lastAddDialogKey) return;
+      if (!this.openAddDialog(source)) return;
+      this._lastAddDialogKey = dialogKey;
+      void this._router.navigate([], {
+        relativeTo: this._route,
+        queryParams: { intent: null },
+        queryParamsHandling: "merge",
+        replaceUrl: true,
+      });
     });
 
     effect(() => {
@@ -396,6 +686,11 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     });
 
     if (isPlatformBrowser(this._platformId)) {
+      const minuteInterval = window.setInterval(
+        () => this.now.set(new Date()),
+        60_000,
+      );
+      this._minuteInterval = minuteInterval;
       this._syncQualificationGridColumns();
       window.addEventListener("resize", this._qualificationGridResizeListener, {
         passive: true,
@@ -404,14 +699,37 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       effect(() => {
         const event = this.event();
         if (!event || this.isCrawler()) {
+          this.spotBindings.set([]);
           this.spots.set([]);
           return;
         }
         const requestVersion = ++this._spotsLoadRequestVersion;
-        this._eventPageData.loadEventSpots(event).then((spots) => {
+        this._eventPageData.loadEventSpotBindings(event).then((bindings) => {
           if (requestVersion === this._spotsLoadRequestVersion) {
-            this.spots.set(spots);
+            this.spotBindings.set(bindings);
+            this.spots.set(bindings.map((binding) => binding.spot));
           }
+        });
+      });
+
+      effect(() => {
+        const eventIds = this.programLinkedEventIds();
+        const requestVersion = ++this._programLinkedEventLoadRequestVersion;
+
+        if (eventIds.length === 0 || this.isCrawler()) {
+          this.programLinkedEventsById.set({});
+          return;
+        }
+
+        this._search.getEventCardsByIds(eventIds).then((events) => {
+          if (
+            requestVersion !== this._programLinkedEventLoadRequestVersion
+          ) {
+            return;
+          }
+          this.programLinkedEventsById.set(
+            Object.fromEntries(events.map((event) => [event.id, event])),
+          );
         });
       });
 
@@ -459,6 +777,27 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     }
   }
 
+  openEventWeather(selection: EventWeatherSelection): void {
+    const event = this.event();
+    const response = this.eventWeather();
+    if (!event || !response) return;
+
+    this._dialog.open<
+      EventWeatherForecastDialogComponent,
+      EventWeatherForecastDialogData
+    >(EventWeatherForecastDialogComponent, {
+      ...EVENT_WEATHER_DIALOG_CONFIG,
+      data: {
+        eventName: event.name,
+        eventStart: event.start,
+        eventEnd: event.end,
+        timeZone: event.timeZone,
+        response,
+        selection,
+      },
+    });
+  }
+
   updateMapPreviewViewportBounds(bounds: google.maps.LatLngBounds): void {
     this.mapPreviewViewportBounds.set(bounds.toJSON());
   }
@@ -469,6 +808,43 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
 
     void this._router.navigate(this.mapRoute(), {
       queryParams: { spotId },
+    });
+  }
+
+  selectProgramDay(day: string | null): void {
+    this.selectedProgramDay.set(day);
+  }
+
+  focusProgramItem(itemId: string): void {
+    this.focusedProgramItemId.set(itemId);
+    if (!this.isBrowser()) return;
+
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById(`event-program-item-${itemId}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
+  programMarkerClicked(
+    event: number | { index?: number },
+  ): void {
+    const index = typeof event === "number" ? event : event.index;
+    if (index === undefined) return;
+    const occurrence = this.mapPriorityMarkers()[index]?.programOccurrence;
+    if (!occurrence) return;
+    void this._router.navigate(this.mapRoute(), {
+      queryParams: {
+        mapFilter: "program",
+        day: occurrence.day,
+        spotId: isEventProgramSpotOccurrence(occurrence)
+          ? occurrence.ref.id
+          : undefined,
+        markerId: isEventProgramMarkerOccurrence(occurrence)
+          ? occurrence.ref.id
+          : undefined,
+        programItemId: occurrence.item.id,
+      },
     });
   }
 
@@ -484,6 +860,10 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     }
 
     if (spot instanceof LocalSpot) {
+      const boundId = this.spotBindings().find(
+        (binding) => binding.spot === spot,
+      )?.ref.id;
+      if (boundId) return boundId;
       const index = this.spots().findIndex((candidate) => candidate === spot);
       return index >= 0
         ? (this.event()?.inlineSpots[index]?.id ?? `event-local-spot-${index}`)
@@ -523,6 +903,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     this._queryParamsSubscription?.unsubscribe();
     this._eventSnapshotSubscription?.unsubscribe();
     if (this.isBrowser()) {
+      if (this._minuteInterval !== undefined) {
+        window.clearInterval(this._minuteInterval);
+      }
       window.removeEventListener(
         "resize",
         this._qualificationGridResizeListener,
@@ -638,8 +1021,55 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     );
   }
 
+  openAddDialog(
+    source: EventAddDialogData["source"] = "event_page",
+  ): boolean {
+    const event = this.event();
+    if (
+      !event ||
+      !event.published ||
+      event.lifecycleStatus === "cancelled" ||
+      event.isPast(this.now())
+    ) return false;
+    const returnUrl =
+      this._router.url || this._eventPageData.eventCanonicalPath(event);
+    this._dialog.open<
+      EventAddDialogComponent,
+      EventAddDialogData
+    >(EventAddDialogComponent, {
+      data: { event, returnUrl, source },
+      width: "560px",
+      maxWidth: "calc(100vw - 2rem)",
+      autoFocus: "first-tabbable",
+    });
+    return true;
+  }
+
+  openQrDialog(): void {
+    const event = this.event();
+    if (!event || !this.canEditEvent()) return;
+    const url = new URL(
+      this._eventPageData.eventCanonicalPath(event),
+      environment.baseUrl,
+    );
+    url.searchParams.set("intent", "add");
+    url.searchParams.set("utm_source", "event_qr");
+    url.searchParams.set("utm_medium", "qr");
+    url.searchParams.set("utm_campaign", "event_attendance");
+    this._dialog.open<EventQrDialogComponent, EventQrDialogData>(
+      EventQrDialogComponent,
+      {
+        data: { event, url: url.toString() },
+        width: "620px",
+        maxWidth: "calc(100vw - 2rem)",
+        maxHeight: "92vh",
+        autoFocus: "first-tabbable",
+      },
+    );
+  }
+
   startEditingEvent(): void {
-    if (this.isAdmin()) {
+    if (this.canEditEvent()) {
       this.isEditingEvent.set(true);
     }
   }
@@ -648,13 +1078,20 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     this.isEditingEvent.set(false);
   }
 
+  async reloadEventAfterOperation(): Promise<void> {
+    const current = this.event();
+    if (!current) return;
+    const reloaded = await this._eventsService.getEventById(current.id);
+    if (reloaded) this._setEvent(reloaded);
+  }
+
   toggleEventDescription(): void {
     this.isEventDescriptionExpanded.update((expanded) => !expanded);
   }
 
   async onSaveEvent(patch: EventEditPatch): Promise<void> {
     const current = this.event();
-    if (!current || !this.isAdmin()) return;
+    if (!current || !this.canEditEvent()) return;
     this.isSavingEvent.set(true);
     try {
       await this._eventsService.updateEvent(current.id, patch);
@@ -682,7 +1119,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
 
   async onDeleteEvent(): Promise<void> {
     const current = this.event();
-    if (!current || !this.isAdmin()) return;
+    if (!current || !this.canManageEvent()) return;
     this.isSavingEvent.set(true);
     try {
       await this._eventsService.deleteEvent(current.id);
@@ -707,6 +1144,8 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     const slug =
       paramMap.get("slug") ?? paramMap.get("eventID") ?? "swissjam25";
     const requestVersion = ++this._eventLoadRequestVersion;
+    this.isLoadingEvent.set(true);
+    this.eventLoadFailed.set(false);
     this._eventSnapshotSubscription?.unsubscribe();
     this._eventSnapshotSubscription = this._eventPageData
       .observeEventBySlugOrId(slug)
@@ -714,7 +1153,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         next: (loaded) => {
           if (requestVersion !== this._eventLoadRequestVersion) return;
           if (!loaded) {
-            void this._router.navigate(["/events"]);
+            if (this.isBrowser()) {
+              void this._router.navigate(["/events"]);
+            }
             return;
           }
           this._setEvent(loaded);
@@ -722,7 +1163,8 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         error: (err) => {
           if (requestVersion !== this._eventLoadRequestVersion) return;
           console.warn("EventInfoPageComponent: failed to observe event", err);
-          void this._router.navigate(["/events"]);
+          this.isLoadingEvent.set(false);
+          this.eventLoadFailed.set(true);
         },
       });
   }
@@ -731,11 +1173,15 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     const slug =
       paramMap.get("slug") ?? paramMap.get("eventID") ?? "swissjam25";
     const requestVersion = ++this._eventLoadRequestVersion;
+    this.isLoadingEvent.set(true);
+    this.eventLoadFailed.set(false);
     const loaded = await this._eventPageData.loadEventBySlugOrId(slug);
 
     if (requestVersion !== this._eventLoadRequestVersion) return;
     if (!loaded) {
-      void this._router.navigate(["/events"]);
+      if (this.isBrowser()) {
+        void this._router.navigate(["/events"]);
+      }
       return;
     }
     this._setEvent(loaded);
@@ -744,12 +1190,57 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   private _setEvent(event: PkEvent): void {
     if (this.event()?.id !== event.id) {
       this.isEventDescriptionExpanded.set(false);
+      this.currentRsvp.set(null);
     }
     this.event.set(event);
+    void this._refreshEventAuthorization(event);
+    this.isLoadingEvent.set(false);
+    this.eventLoadFailed.set(false);
+  }
+
+  private async _refreshEventAuthorization(event: PkEvent): Promise<void> {
+    const requestVersion = ++this._eventAuthorizationRequestVersion;
+    const fallback = this.isAdmin();
+    const [canEdit, canManage] = await Promise.all([
+      this._eventsService.canEditEvent?.(event).catch(() => false) ??
+        Promise.resolve(fallback),
+      this._eventsService.canManageEvent?.(event).catch(() => false) ??
+        Promise.resolve(fallback),
+    ]);
+    if (
+      requestVersion !== this._eventAuthorizationRequestVersion ||
+      this.event()?.id !== event.id
+    ) {
+      return;
+    }
+    this.canEditEvent.set(canEdit);
+    this.canManageEvent.set(canManage);
   }
 
   private _syncEventSeoData(event: PkEvent): void {
     const canonicalPath = this._eventPageData.eventCanonicalPath(event);
+    if (!event.published) {
+      this._structuredData.removeStructuredData("event");
+      this._metaTags.setStaticPageMetaTags(
+        $localize`:@@event_draft.meta.title:Draft event`,
+        $localize`:@@event_draft.meta.description:This event has not been published.`,
+        undefined,
+        canonicalPath,
+      );
+      this._metaTags.setRobotsContent("noindex,nofollow");
+      return;
+    }
+    if (event.visibility !== "public") {
+      this._structuredData.removeStructuredData("event");
+      this._metaTags.setStaticPageMetaTags(
+        $localize`:@@event_unlisted.meta.title:Unlisted event`,
+        $localize`:@@event_unlisted.meta.description:This event is available through its shared link.`,
+        undefined,
+        canonicalPath,
+      );
+      this._metaTags.setRobotsContent("noindex,nofollow");
+      return;
+    }
     const description = this.description();
     const image = this._eventSocialImage(event);
 
@@ -773,26 +1264,36 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     const offerFallbackUrl =
       this._safeExternalUrl(event.url ?? event.externalSource?.url) ?? eventUrl;
 
+    const structuredLocation = event.location
+      ? {
+          "@type": "Place",
+          name: event.venueString || event.localityString || event.name,
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: event.localityString || undefined,
+          },
+          geo: {
+            "@type": "GeoCoordinates",
+            latitude: event.location.lat,
+            longitude: event.location.lng,
+          },
+        }
+      : undefined;
     return {
       "@type": "Event",
       name: event.name,
-      startDate: event.start.toISOString(),
-      endDate: event.end.toISOString(),
-      eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+      startDate: event.timing?.start_date ?? event.start.toISOString(),
+      endDate:
+        event.timing?.mode === "open_end"
+          ? undefined
+          : (event.timing?.end_date ??
+            event.timing?.start_date ??
+            event.end.toISOString()),
+      eventAttendanceMode: event.location
+        ? "https://schema.org/OfflineEventAttendanceMode"
+        : "https://schema.org/MixedEventAttendanceMode",
       eventStatus: "https://schema.org/EventScheduled",
-      location: {
-        "@type": "Place",
-        name: event.venueString || event.localityString || event.name,
-        address: {
-          "@type": "PostalAddress",
-          addressLocality: event.localityString || undefined,
-        },
-        geo: {
-          "@type": "GeoCoordinates",
-          latitude: event.location.lat,
-          longitude: event.location.lng,
-        },
-      },
+      location: structuredLocation,
       image: [
         ...this._eventStructuredImages(event).map((src) =>
           this._absoluteUrl(src),
@@ -808,54 +1309,6 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       // Program entries remain crawlable page content. They are not standalone
       // Google events because they do not have their own canonical leaf pages.
     };
-  }
-
-  formatTicketPrice(ticket: EventTicketOption): string {
-    const price = ticket.price;
-    if (!price) {
-      return $localize`:@@event_tickets.price_unknown:Price TBA`;
-    }
-    if ("amount" in price) {
-      return this._formatCurrency(price.amount, price.currency);
-    }
-    return `${this._formatCurrency(
-      price.min_amount,
-      price.currency,
-    )} - ${this._formatCurrency(price.max_amount, price.currency)}`;
-  }
-
-  ticketAvailabilityLabel(ticket: EventTicketOption): string {
-    switch (ticket.availability) {
-      case "available":
-        return $localize`:@@event_tickets.availability.available:Available`;
-      case "coming_soon":
-        return $localize`:@@event_tickets.availability.coming_soon:Coming soon`;
-      case "sold_out":
-        return $localize`:@@event_tickets.availability.sold_out:Sold out`;
-      case "waitlist":
-        return $localize`:@@event_tickets.availability.waitlist:Waitlist`;
-      case "ended":
-        return $localize`:@@event_tickets.availability.ended:Ended`;
-      default:
-        return "";
-    }
-  }
-
-  ticketBadgeLabel(ticket: EventTicketOption): string {
-    switch (ticket.badge) {
-      case "early_bird":
-        return $localize`:@@event_tickets.badge.early_bird:Early bird`;
-      case "discount":
-        return $localize`:@@event_tickets.badge.discount:Discount`;
-      case "regular":
-        return $localize`:@@event_tickets.badge.regular:Regular`;
-      case "late":
-        return $localize`:@@event_tickets.badge.late:Late`;
-      case "member":
-        return $localize`:@@event_tickets.badge.member:Member`;
-      default:
-        return "";
-    }
   }
 
   featuredParticipantRoleLabel(
@@ -1263,6 +1716,13 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         url: event.organizer.organization.slug
           ? `${environment.baseUrl}/${this._locale}/organizations/${event.organizer.organization.slug}`
           : undefined,
+      };
+    }
+
+    if (event.organizerName) {
+      return {
+        "@type": "Organization",
+        name: event.organizerName,
       };
     }
 

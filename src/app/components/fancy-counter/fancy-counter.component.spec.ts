@@ -21,14 +21,14 @@ describe("FancyCounterComponent", () => {
     fixture = TestBed.createComponent(FancyCounterComponent);
   });
 
-  it("recreates changed digits so single-digit increments can animate", () => {
+  it("recreates changed digits so single-digit increments can animate", async () => {
     fixture.componentRef.setInput("number", 1);
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     const initialDigit = digitElements()[0];
 
     fixture.componentRef.setInput("number", 2);
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     const nextDigit = digitElements()[0];
     expect(nextDigit).not.toBe(initialDigit);

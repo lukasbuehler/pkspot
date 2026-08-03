@@ -1,0 +1,75 @@
+:host {
+  display: block;
+}
+
+.event-now-card {
+  display: flex;
+  gap: 0.875rem;
+  padding: 1rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+  background: var(--mat-sys-surface-container-low);
+  color: var(--mat-sys-on-surface);
+}
+
+.event-now-icon {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid var(--mat-sys-secondary);
+  border-radius: 13px;
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.event-now-copy {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 0.625rem;
+  min-width: 0;
+}
+
+.event-now-eyebrow,
+.event-now-name,
+.event-now-fallback {
+  margin: 0;
+}
+
+.event-now-eyebrow {
+  color: var(--mat-sys-secondary);
+}
+
+.event-now-label,
+.event-now-item .mat-body-small {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.event-now-row {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+  gap: 0.625rem;
+}
+
+.event-now-item {
+  display: grid;
+  min-width: 0;
+}
+
+.event-now-item strong {
+  overflow-wrap: anywhere;
+}
+
+.event-now-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.125rem;
+}
+
+@media (max-width: 479.98px) {
+  .event-now-card {
+    gap: 0.75rem;
+  }
+}

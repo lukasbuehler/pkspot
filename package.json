@@ -1,6 +1,6 @@
 {
   "name": "pkspot",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "engines": {
     "node": "22"
   },
@@ -44,13 +44,22 @@
     "test:visual": "playwright test --grep @visual",
     "test:visual:update": "playwright test --grep @visual --update-snapshots",
     "emulators:start": "node scripts/run_firebase_with_local_java.js emulators:start --only firestore,functions --project demo-pkspot",
-    "test:emulator": "npm run test:emulator:rules && npm run test:emulator:event-rsvp && npm run test:emulator:community-edits && npm run test:emulator:auth && npm run test:emulator:storage && npm run test:emulator:storage-images && npm run test:emulator:user-flows && npm run test:emulator:spot-edits && npm run emulators:test:community",
+    "test:emulator": "npm run test:emulator:rules && npm run test:emulator:osm-amenities && npm run test:emulator:event-rsvp && npm run test:emulator:event-live-updates && npm run test:emulator:event-ownership-claims && npm run test:emulator:event-registrations && npm run test:emulator:notifications && npm run test:emulator:media-reports && npm run test:emulator:safety-cases && npm run test:emulator:user-profiles && npm run test:emulator:profile-privacy && npm run test:emulator:community-edits && npm run test:emulator:auth && npm run test:emulator:storage && npm run test:emulator:storage-images && npm run test:emulator:user-flows && npm run test:emulator:spot-edits && npm run emulators:test:community",
+    "test:emulator:osm-amenities": "node scripts/run_firebase_with_local_java.js emulators:exec --only firestore --project demo-pkspot \"node scripts/run-vitest.mjs run src/osm-amenity-functions.emulator.spec.ts\"",
     "test:emulator:rules": "node scripts/run_firebase_with_local_java.js emulators:exec --only auth,firestore --project demo-pkspot \"node scripts/emulator_run_firestore_rules_security.js\"",
     "test:emulator:event-rsvp": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only auth,firestore,functions --project demo-pkspot \"node scripts/run-vitest.mjs run src/app/services/firebase/firestore/events.service.emulator.spec.ts\"",
+    "test:emulator:event-live-updates": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only auth,firestore,functions --project demo-pkspot \"node scripts/run-vitest.mjs run src/app/services/firebase/firestore/event-live-updates.service.emulator.spec.ts\"",
+    "test:emulator:event-ownership-claims": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only auth,firestore,functions --project demo-pkspot \"node scripts/run-vitest.mjs run src/app/services/firebase/firestore/event-ownership-claims.service.emulator.spec.ts\"",
+    "test:emulator:event-registrations": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only auth,firestore,functions --project demo-pkspot \"node scripts/run-vitest.mjs run src/app/services/firebase/firestore/event-registrations.service.emulator.spec.ts\"",
+    "test:emulator:notifications": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only auth,firestore,functions --project demo-pkspot \"node scripts/run-vitest.mjs run src/app/services/firebase/firestore/notification-functions.emulator.spec.ts\"",
+    "test:emulator:media-reports": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only auth,firestore,functions --project demo-pkspot \"node scripts/run-vitest.mjs run src/app/services/firebase/firestore/media-reports.service.emulator.spec.ts\"",
+    "test:emulator:safety-cases": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only auth,firestore,functions --project demo-pkspot \"node scripts/run-vitest.mjs run src/app/services/safety-cases.service.emulator.spec.ts\"",
+    "test:emulator:user-profiles": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only auth,firestore,functions --project demo-pkspot \"node scripts/emulator_run_user_profile_flow.js\"",
+    "test:emulator:profile-privacy": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only auth,firestore,functions --project demo-pkspot \"E2E_FIREBASE_EMULATORS=1 npx playwright test e2e/tests/profile-privacy-follow-requests.spec.ts --project=chromium\"",
     "test:emulator:community-edits": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only auth,firestore,functions --project demo-pkspot \"node scripts/run-vitest.mjs run src/app/services/firebase/firestore/community-edits.service.emulator.spec.ts\"",
     "test:emulator:auth": "node scripts/run_firebase_with_local_java.js emulators:exec --only auth,firestore --project demo-pkspot \"node scripts/emulator_run_auth_flow.js\"",
     "test:emulator:storage": "node scripts/run_firebase_with_local_java.js emulators:exec --only auth,firestore,storage --project demo-pkspot \"node scripts/emulator_run_storage_media_flow.js\"",
-    "test:emulator:storage-images": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only firestore,storage,functions --project demo-pkspot \"node scripts/emulator_run_storage_image_processing_flow.js\"",
+    "test:emulator:storage-images": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only auth,firestore,storage,functions --project demo-pkspot \"node scripts/emulator_run_storage_image_processing_flow.js\"",
     "test:emulator:user-flows": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only auth,firestore,functions --project demo-pkspot \"node scripts/emulator_run_spot_create_user_flow.js\"",
     "emulators:test:community": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only firestore,functions --project demo-pkspot \"node scripts/emulator_run_community_flow.js\"",
     "test:emulator:spot-edits": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only firestore,functions --project demo-pkspot \"node scripts/emulator_run_spot_edit_flow.js\"",
@@ -63,7 +72,9 @@
     "deploy:functions": "cd ./functions && npm run build && npx firebase deploy --only functions && cd ..",
     "deploy:test:functions": "npx firebase use test && cd ./functions && npm run build && npx firebase deploy --only functions && cd ..",
     "deploy:prod:functions": "npx firebase use prod && cd ./functions && npm run build && npx firebase deploy --only functions && cd ..",
-    "rebuild:communities": "node scripts/request_community_rebuild.js"
+    "rebuild:communities": "node scripts/request_community_rebuild.js",
+    "notification:test": "npm --prefix functions run build && node scripts/send_test_notification.js",
+    "test:notification-cli": "node --test scripts/send_test_notification.test.js"
   },
   "private": true,
   "dependencies": {
@@ -72,7 +83,6 @@
     "@angular/common": "^22.0.2",
     "@angular/compiler": "^22.0.2",
     "@angular/core": "^22.0.2",
-    "@angular/fire": "^20.0.1",
     "@angular/forms": "^22.0.2",
     "@angular/google-maps": "^22.0.2",
     "@angular/localize": "^22.0.2",
@@ -86,6 +96,7 @@
     "@capacitor-firebase/app-check": "^8.3.0",
     "@capacitor-firebase/authentication": "^8.3.0",
     "@capacitor-firebase/firestore": "^8.3.0",
+    "@capacitor-firebase/messaging": "^8.3.0",
     "@capacitor-firebase/storage": "^8.3.0",
     "@capacitor/android": "^8.4.0",
     "@capacitor/angular": "^2.0.3",
@@ -110,12 +121,12 @@
     "jszip": "^3.10.1",
     "ngx-image-cropper": "^9.1.6",
     "posthog-js": "^1.393.0",
+    "qrcode": "^1.5.4",
     "rxjs": "^7.8.2",
     "swiper": "^12.2.0",
     "tslib": "^2.8.1",
     "typesense": "^2.1.0",
-    "uuid": "^14.0.0",
-    "zone.js": "^0.16.2"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "^2.6.1",
@@ -130,6 +141,7 @@
     "@types/core-js": "^2.5.8",
     "@types/express": "^4.17.25",
     "@types/node": "^22.19.21",
+    "@types/qrcode": "^1.5.6",
     "angular-eslint": "^22.0.0",
     "baseline-browser-mapping": "^2.10.37",
     "chrome-launcher": "^1.2.1",

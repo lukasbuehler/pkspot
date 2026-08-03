@@ -1,0 +1,94 @@
+<h2 mat-dialog-title i18n="@@event_subscriptions.title">
+  Event notifications
+</h2>
+
+<mat-dialog-content>
+  <p class="intro mat-body-medium" i18n="@@event_subscriptions.description">
+    These event choices work together with the notification types enabled in
+    Settings.
+  </p>
+
+  @if (loading()) {
+    <div class="state" aria-live="polite">
+      <mat-spinner diameter="28"></mat-spinner>
+      <span i18n="@@event_subscriptions.loading">Loading events…</span>
+    </div>
+  } @else if (failed()) {
+    <div class="state state--error">
+      <mat-icon>error</mat-icon>
+      <span i18n="@@event_subscriptions.load_error">
+        Event subscriptions could not be loaded.
+      </span>
+    </div>
+  } @else if (rows().length === 0) {
+    <div class="state">
+      <mat-icon>notifications_off</mat-icon>
+      <span i18n="@@event_subscriptions.empty">
+        You are not currently subscribed to any events.
+      </span>
+    </div>
+  } @else {
+    <div
+      class="subscription-list"
+      role="list"
+      aria-label="Subscribed events"
+      i18n-aria-label="@@event_subscriptions.list_aria"
+    >
+      @for (row of rows(); track row.event.id) {
+        <div class="subscription-row" role="listitem">
+          <a
+            class="event-copy"
+            [routerLink]="['/events', row.event.slug ?? row.event.id]"
+            (click)="dialogRef.close()"
+          >
+            <span class="mat-title-medium">{{ row.event.name }}</span>
+            <span class="mat-body-small">
+              {{ row.event.start | systemDate: "medium" }}
+            </span>
+          </a>
+
+          <mat-select
+            class="notification-level"
+            [value]="row.level"
+            [disabled]="savingEventIds().has(row.event.id)"
+            (selectionChange)="
+              notificationLevelChanged(row.event.id, $event.value)
+            "
+            aria-label="Notification preference for this event"
+            i18n-aria-label="@@event_subscriptions.level_aria"
+          >
+            <mat-option value="all" i18n="@@event_subscriptions.level.all">
+              All
+            </mat-option>
+            <mat-option
+              value="event_updates"
+              i18n="@@event_subscriptions.level.updates"
+            >
+              Only Event Updates
+            </mat-option>
+            <mat-option
+              value="reminders"
+              i18n="@@event_subscriptions.level.reminders"
+            >
+              Only Reminders
+            </mat-option>
+            <mat-option value="none" i18n="@@event_subscriptions.level.none">
+              None
+            </mat-option>
+          </mat-select>
+        </div>
+      }
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button
+    mat-button
+    type="button"
+    mat-dialog-close
+    i18n="@@event_subscriptions.close"
+  >
+    Close
+  </button>
+</mat-dialog-actions>

@@ -1,9 +1,19 @@
 import { animate, style, transition, trigger } from "@angular/animations";
-import { Component, Input, OnInit, ChangeDetectionStrategy } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+  linkedSignal,
+} from "@angular/core";
+
+interface NumberTransition {
+  current: number;
+  previous: number;
+}
 
 @Component({
   selector: "app-fancy-counter",
-  standalone: true,
   templateUrl: "./fancy-counter.component.html",
   styleUrls: ["./fancy-counter.component.scss"],
   animations: [
@@ -39,44 +49,35 @@ import { Component, Input, OnInit, ChangeDetectionStrategy } from "@angular/core
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [],
 })
-export class FancyCounterComponent implements OnInit {
-  private _number: number = 0;
-  previousNumber: number = 0;
-  @Input() decimals: number | null = null; // when set, display number with fixed decimals
-
-  @Input() set number(newNumber: number) {
-    this.previousNumber = this._number;
-    this._number = newNumber;
-  }
-
-  get number() {
-    return this._number;
-  }
-
-  constructor() {}
-
-  ngOnInit(): void {}
-
-  get displayString(): string {
-    if (this.decimals === null || this.decimals === undefined) {
-      return "" + this._number;
+export class FancyCounterComponent {
+  readonly number = input(0);
+  readonly decimals = input<number | null>(null); // when set, display number with fixed decimals
+  private readonly numberTransition = linkedSignal<number, NumberTransition>({
+    source: this.number,
+    computation: (current, previous) => ({
+      current,
+      previous: previous?.value.current ?? 0,
+    }),
+  });
+  readonly displayString = computed(() => {
+    const current = this.numberTransition().current;
+    const decimals = this.decimals();
+    if (decimals === null || decimals === undefined) {
+      return String(current);
     }
-    if (Number.isFinite(this._number)) {
-      return this._number.toFixed(this.decimals);
-    }
-    return "" + this._number;
-  }
+    return Number.isFinite(current) ? current.toFixed(decimals) : String(current);
+  });
+  readonly displayDigits = computed(() => this.displayString().split(""));
 
-  getMinusIfIncrementing(newNumber: number, enterAnimation: boolean) {
+  getMinusIfIncrementing(enterAnimation: boolean): string {
+    const transition = this.numberTransition();
     // We want to return a minus if we are incrementing
-    let numberIsGreater: boolean = newNumber > this.previousNumber;
-
-    let minus =
+    const numberIsGreater = transition.current > transition.previous;
+    return (
       !(numberIsGreater || enterAnimation) ||
       (numberIsGreater && enterAnimation)
         ? "-"
-        : "";
-
-    return minus;
+        : ""
+    );
   }
 }

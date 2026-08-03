@@ -217,6 +217,82 @@
   min-height: 56px;
 }
 
+.community-locality-merge-section {
+  display: grid;
+  gap: 14px;
+  margin-top: 8px;
+  padding-top: 20px;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+.community-locality-merge-controls {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.community-locality-merge-controls > button {
+  min-height: 56px;
+}
+
+.community-locality-merge-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.community-locality-merge-error {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
+  border: 1px solid var(--mat-sys-error);
+  border-radius: 18px;
+}
+
+.community-locality-merge-error-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  color: var(--mat-sys-on-error);
+  background: var(--mat-sys-error);
+  border-radius: 13px;
+}
+
+.community-locality-merge-error button {
+  color: inherit;
+}
+
+.community-merged-localities {
+  display: grid;
+  gap: 8px;
+}
+
+.community-merged-locality-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 8px 14px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 14px;
+  background: var(--mat-sys-surface-container-lowest);
+}
+
+.community-merged-locality-row span {
+  display: grid;
+}
+
+.community-merged-locality-row small {
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .community-danger-zone {
   border-color: var(--mat-sys-error);
   border-radius: 8px;
@@ -290,6 +366,18 @@
 @media (max-width: 720px) {
   .community-admin-settings-grid {
     grid-template-columns: 1fr;
+  }
+
+  .community-locality-merge-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .community-locality-merge-error {
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
+
+  .community-locality-merge-error button {
+    grid-column: 1 / -1;
   }
 
   .community-knowledge-dialog {

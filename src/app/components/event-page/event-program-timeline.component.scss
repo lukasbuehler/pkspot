@@ -1,103 +1,127 @@
-.program-timeline {
+:host {
+  overflow: hidden;
+}
+
+.program-tabs {
+  min-width: 0;
+}
+
+.program-tab-shell {
+  display: flex;
+  min-width: 0;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.program-tab-list {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.program-tab-scroll-button {
+  display: inline-grid;
+  flex: 0 0 2.75rem;
+  place-items: center;
+  width: 2.75rem;
+  min-height: 3rem;
+  padding: 0;
+  border: 0;
+  background: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+  cursor: pointer;
+  z-index: 1;
+
+  &.previous {
+    border-right: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  &.next {
+    border-left: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  &:disabled {
+    color: var(--mat-sys-outline);
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: -3px;
+  }
+}
+
+.program-day-tab {
+  box-sizing: border-box;
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-width: 10rem;
+  min-height: 3rem;
+  padding: 0.625rem 1.5rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--mat-sys-on-surface-variant);
+  font: inherit;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.program-day-tab:hover {
+  background: var(--mat-sys-surface-container);
+}
+
+.program-day-tab[aria-selected="true"] {
+  border-bottom-color: var(--mat-sys-primary);
+  color: var(--mat-sys-on-surface);
+}
+
+.program-day-tab:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: -3px;
+}
+
+.program-day-content {
   display: grid;
   padding-top: 1rem;
 }
 
-.program-item {
-  display: grid;
-  grid-template-columns: 5.75rem minmax(0, 1fr);
-  gap: 1rem;
-  min-height: 4rem;
-}
-
-.program-rail {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1rem minmax(0, 1fr);
-  gap: 0.5rem;
-  align-items: start;
-  color: var(--mat-sys-primary);
-}
-
-.program-rail::before {
-  content: "";
-  position: absolute;
-  inset: 0.25rem auto -0.25rem 0.3rem;
-  width: 2px;
-  background: var(--mat-sys-outline-variant);
-}
-
-.program-item:last-child .program-rail::before {
-  bottom: calc(100% - 0.75rem);
-}
-
-.program-dot {
-  position: relative;
-  z-index: 1;
-  width: 0.75rem;
-  height: 0.75rem;
-  margin-top: 0.2rem;
-  border: 2px solid var(--mat-sys-primary);
-  border-radius: 999px;
-  background: var(--mat-sys-surface-container-low);
-}
-
-.program-time,
-.program-range,
-.program-description {
-  margin: 0;
-}
-
-.program-range,
-.program-description {
+.day-tab-weather {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-left: 0.375rem;
+  font-size: 1.25rem;
   color: var(--mat-sys-on-surface-variant);
 }
 
-.program-copy {
-  min-width: 0;
-  padding-bottom: 1rem;
-}
-
-.program-title-row,
-.program-side {
-  display: flex;
-  gap: 1rem;
-}
-
-.program-title-row {
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.program-side {
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.program-description {
-  margin-top: 0.35rem;
-}
-
-.program-side mat-chip {
-  --mdc-chip-with-avatar-avatar-size: 1.25rem;
-}
-
-.program-side mat-icon[matChipAvatar] {
+.day-tab-weather.is-wet {
   color: var(--mat-sys-primary);
 }
 
-@media (max-width: 720px) {
-  .program-item {
-    grid-template-columns: 4.75rem minmax(0, 1fr);
-  }
+.day-tab-weather.has-warning {
+  color: var(--mat-sys-error);
+}
 
-  .program-title-row {
-    flex-direction: column;
-  }
+.day-tab-weather.is-night {
+  color: var(--mat-sys-tertiary);
+}
 
-  .program-side {
-    justify-content: flex-start;
-  }
+.day-weather-row {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 2.5rem;
+  margin-bottom: 0.5rem;
 }

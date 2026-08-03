@@ -1,11 +1,14 @@
 import { Injectable, signal, effect, PLATFORM_ID, Inject } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 
+export type TimeFormatPreference = "automatic" | "12-hour" | "24-hour";
+
 type StoredAppSettings = {
   debugMode?: unknown;
   mapProfileMode?: unknown;
   enableVectorMaps?: unknown;
   enableMapGlassBlur?: unknown;
+  timeFormat?: unknown;
 };
 
 @Injectable({
@@ -18,6 +21,7 @@ export class AppSettingsService {
   debugMode = signal<boolean>(false);
   enableVectorMaps = signal<boolean>(false);
   enableMapGlassBlur = signal<boolean>(false);
+  timeFormat = signal<TimeFormatPreference>("automatic");
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     this._loadSettings();
@@ -52,6 +56,13 @@ export class AppSettingsService {
         if (typeof parsed.enableMapGlassBlur === "boolean") {
           this.enableMapGlassBlur.set(parsed.enableMapGlassBlur);
         }
+        if (
+          parsed.timeFormat === "automatic" ||
+          parsed.timeFormat === "12-hour" ||
+          parsed.timeFormat === "24-hour"
+        ) {
+          this.timeFormat.set(parsed.timeFormat);
+        }
       }
     } catch (e) {
       console.warn("Failed to load app settings", e);
@@ -68,6 +79,7 @@ export class AppSettingsService {
         debugMode: this.debugMode(),
         enableVectorMaps: this.enableVectorMaps(),
         enableMapGlassBlur: this.enableMapGlassBlur(),
+        timeFormat: this.timeFormat(),
       };
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(settings));
     } catch (e) {

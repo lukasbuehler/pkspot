@@ -35,7 +35,7 @@ describe("app routes", () => {
     expect(legacyRedirectIndex).toBeLessThan(mapIndex);
   });
 
-  it("should redirect the singular map event route before the generic map route", () => {
+  it("should redirect map event routes to canonical event pages before the generic map route", () => {
     const eventIndex = routes.findIndex(
       (route) => route.path === "map/events/:eventId"
     );
@@ -46,13 +46,21 @@ describe("app routes", () => {
 
     expect(eventIndex).toBeGreaterThanOrEqual(0);
     expect(legacyEventIndex).toBeGreaterThanOrEqual(0);
+    expect(eventIndex).toBeLessThan(mapIndex);
     expect(legacyEventIndex).toBeLessThan(mapIndex);
+    expect(typeof routes[eventIndex].redirectTo).toBe("function");
     expect(typeof routes[legacyEventIndex].redirectTo).toBe("function");
+    expect(
+      getRedirectTarget(routes[eventIndex], {
+        params: { eventId: "swissjam25" },
+        queryParams: { showProgram: "true" },
+      })
+    ).toBe("/events/swissjam25?showProgram=true");
     expect(
       getRedirectTarget(routes[legacyEventIndex], {
         params: { eventId: "swissjam25" },
       })
-    ).toBe("/map/events/swissjam25");
+    ).toBe("/events/swissjam25");
   });
 
   it("should register organization pages", () => {
@@ -117,6 +125,20 @@ describe("app routes", () => {
     expect(contactRoute?.data?.["acceptanceFree"]).toBe(true);
   });
 
+  it("should keep unified safety cases hidden until email delivery is ready", () => {
+    const intake = routes.find((route) => route.path === "safety");
+    const caseView = routes.find(
+      (route) => route.path === "safety/cases/:publicReference",
+    );
+    const moderationQueue = routes.find(
+      (route) => route.path === "moderation/cases",
+    );
+
+    expect(intake).toBeUndefined();
+    expect(caseView).toBeUndefined();
+    expect(moderationQueue).toBeUndefined();
+  });
+
   it("should register event map routes before generic event info routes", () => {
     const publicMapIndex = routes.findIndex(
       (route) => route.path === "events/:slug/map"
@@ -137,6 +159,15 @@ describe("app routes", () => {
     expect(embeddedMapIndex).toBeGreaterThanOrEqual(0);
     expect(embeddedInfoIndex).toBeGreaterThanOrEqual(0);
     expect(embeddedMapIndex).toBeLessThan(embeddedInfoIndex);
+  });
+
+  it("should keep session planning disabled for this release", () => {
+    const sessionPlanner = findRoute("events/session/new");
+
+    expect(sessionPlanner.loadComponent).toBeUndefined();
+    expect(sessionPlanner.pathMatch).toBe("full");
+    expect(sessionPlanner.data?.["discoverable"]).toBe(false);
+    expect(getRedirectTarget(sessionPlanner)).toBe("/events");
   });
 
   it("should redirect legacy embedded event URLs to the embedded event map", () => {

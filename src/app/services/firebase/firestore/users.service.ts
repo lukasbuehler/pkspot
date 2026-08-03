@@ -1,22 +1,29 @@
 import { inject, Injectable } from "@angular/core";
 import { map, switchMap } from "rxjs/operators";
-import { Observable, from, Subscription } from "rxjs";
+import { Observable, from, of, Subscription } from "rxjs";
 import { User } from "../../../../db/models/User";
 import {
+  AccessibleUserProfileSchema,
+  PublicUserProfileSchema,
   UserReferenceSchema,
   UserSchema,
 } from "../../../../db/schemas/UserSchema";
 import { CheckInSchema } from "../../../../db/schemas/CheckInSchema";
 import { PrivateUserDataSchema } from "../../../../db/schemas/PrivateUserDataSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
-import { StorageImage } from "../../../../db/models/Media";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
+import { FunctionsAdapterService } from "../functions-adapter.service";
+
+interface ScreenshotGlobal {
+  __PKSPOT_SCREENSHOT_USER_PROFILES__?: Record<string, UserSchema>;
+}
 
 @Injectable({
   providedIn: "root",
 })
 export class UsersService extends ConsentAwareService {
   private _firestoreAdapter = inject(FirestoreAdapterService);
+  private _functionsAdapter = inject(FunctionsAdapterService);
   private readonly _privateDataDocId = "main";
 
   constructor() {
@@ -28,9 +35,13 @@ export class UsersService extends ConsentAwareService {
     display_name: string,
     data: UserSchema
   ): Promise<void> {
-    let schema: UserSchema = {
+    const schema: UserSchema = {
       display_name: display_name,
       verified_email: false,
+      account_privacy: "private",
+      profile_visibility: "followers",
+      public_profile_enabled: false,
+      public_search: false,
       ...data,
     };
     if (schema.start_date && !schema.start_date_raw_ms) {
@@ -42,6 +53,12 @@ export class UsersService extends ConsentAwareService {
   }
 
   getUserById(userId: string): Observable<User | null> {
+    const screenshotProfile = (globalThis as ScreenshotGlobal)
+      .__PKSPOT_SCREENSHOT_USER_PROFILES__?.[userId];
+    if (screenshotProfile) {
+      return of(new User(userId, screenshotProfile));
+    }
+
     console.debug("UsersService: Fetching user by ID:", userId);
     return new Observable<User | null>((observer) => {
       let innerSub: Subscription | null = null;
@@ -139,30 +156,60 @@ export class UsersService extends ConsentAwareService {
     }
   }
 
+  async getAccessibleUserProfile(userId: string): Promise<User | null> {
+    if (!userId) return null;
+
+    try {
+      const profile = await this.executeWhenConsent(() =>
+        this._functionsAdapter.callPublic<
+          { user_id: string },
+          AccessibleUserProfileSchema & { uid: string }
+        >("getUserProfile", { user_id: userId })
+      );
+      return new User(profile.uid, profile);
+    } catch (error) {
+      console.error("Accessible user profile fetch failed:", error);
+      return null;
+    }
+  }
+
+  async getPublicUserProfileByIdOnce(userId: string): Promise<User | null> {
+    if (!userId) return null;
+
+    try {
+      const profile = await this.executeWhenConsent(() =>
+        this._firestoreAdapter.getDocument<
+          PublicUserProfileSchema & { id: string }
+        >(`public_user_profiles/${userId}`)
+      );
+      return profile ? new User(profile.id, profile) : null;
+    } catch (error) {
+      console.error("Public user profile fetch failed:", error);
+      return null;
+    }
+  }
+
+  async getUserReferenceById(
+    userId: string
+  ): Promise<UserReferenceSchema | null> {
+    const user = await this.getAccessibleUserProfile(userId);
+    if (!user) return null;
+
+    return {
+      uid: user.uid,
+      display_name: user.displayName || undefined,
+      profile_picture: user.profilePicture?.getSrc(200),
+    };
+  }
+
+  /** @deprecated Use getUserReferenceById. */
   getUserRefernceById(
     userId: string
   ): Promise<UserReferenceSchema | null | undefined> {
     if (!userId) {
       return Promise.reject(new Error("User ID is required"));
     }
-
-    return this.executeWhenConsent(() => {
-      return this._firestoreAdapter.getDocument<UserSchema & { id: string }>(
-        `users/${userId}`
-      );
-    }).then((data) => {
-      if (data) {
-        const userRef: UserReferenceSchema = {
-          uid: data.id,
-          display_name: data.display_name,
-          profile_picture: data.profile_picture
-            ? new StorageImage(data.profile_picture).getSrc(200)
-            : undefined,
-        };
-        return userRef;
-      }
-      return null;
-    });
+    return this.getUserReferenceById(userId);
   }
 
   updateUser(userId: string, _data: Partial<UserSchema>) {
@@ -293,6 +340,46 @@ export class UsersService extends ConsentAwareService {
       await this._firestoreAdapter.setDocument(
         privateDataRef,
         { [key]: spotIds } as Partial<PrivateUserDataSchema>,
+        { merge: true }
+      );
+    });
+  }
+
+  async updateEventRelationship(
+    userId: string,
+    eventId: string,
+    relationship: "going" | "saved" | null
+  ): Promise<void> {
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
+    if (!eventId) {
+      throw new Error("Event ID is required");
+    }
+
+    return this.executeWithConsent(async () => {
+      const privateDataRef = `users/${userId}/private_data/${this._privateDataDocId}`;
+      const privateData =
+        await this._firestoreAdapter.getDocument<PrivateUserDataSchema>(
+          privateDataRef
+        );
+      const withoutEvent = (ids: readonly string[] | undefined) =>
+        (ids ?? []).filter((id) => id !== eventId);
+      const goingEvents = withoutEvent(privateData?.going_events);
+      const savedEvents = withoutEvent(privateData?.saved_events);
+
+      if (relationship === "going") {
+        goingEvents.push(eventId);
+      } else if (relationship === "saved") {
+        savedEvents.push(eventId);
+      }
+
+      await this._firestoreAdapter.setDocument(
+        privateDataRef,
+        {
+          going_events: goingEvents,
+          saved_events: savedEvents,
+        } satisfies Partial<PrivateUserDataSchema>,
         { merge: true }
       );
     });

@@ -1,14 +1,21 @@
-<button class="button-container" [class.active]="active()">
+<button
+  class="button-container"
+  [class.active]="active()"
+  [attr.aria-label]="accessibleLabel()"
+>
   @if(image()) {
   <div class="image">
     <img [ngSrc]="image()!" width="24" height="24" class="rounded-circle" />
   </div>
   } @else {
-  <mat-icon [class.material-symbols-rounded-outline]="isOutlineIcon">{{
-    icon
+  <mat-icon [class.material-symbols-rounded-outline]="isOutlineIcon()">{{
+    icon()
   }}</mat-icon>
   }
+  @if (liveIndicator()) {
+    <span class="live-indicator" aria-hidden="true"></span>
+  }
   <span class="text-truncate w-100">
-    {{ label }}
+    {{ label() }}
   </span>
 </button>

@@ -1,0 +1,55 @@
+:host,
+mat-form-field {
+  display: block;
+  width: 100%;
+}
+
+.spot-option,
+.spot-loading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.spot-option--selected {
+  height: 1.75rem;
+}
+
+.spot-option img,
+.spot-image-placeholder {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 2.25rem;
+  border-radius: 0.5rem;
+}
+
+.spot-option img {
+  object-fit: cover;
+}
+
+.spot-option--selected img,
+.spot-option--selected .spot-image-placeholder {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-basis: 1.75rem;
+}
+
+.spot-image-placeholder {
+  display: inline-grid;
+  place-items: center;
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.spot-image-placeholder mat-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  font-size: 1.25rem;
+}
+
+.spot-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

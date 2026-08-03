@@ -4,7 +4,9 @@ import compression from "compression";
 import {
   applySsrDocumentCacheHeaders,
   applyTrustedClientRegionHeader,
+  handlePublicCallableRequest,
   handleQrStickerRequest,
+  getRetiredUiLocaleRedirectTarget,
   getStaticAssetCacheControl,
   REVALIDATING_ASSET_CACHE_CONTROL,
   sendMissingAssetResponse,
@@ -102,6 +104,7 @@ function isKnownAngularRoute(pathname) {
     "about",
     "support",
     "contact",
+    "safety",
     "terms-of-service",
     "tos",
     "privacy-policy",
@@ -121,6 +124,7 @@ function isKnownAngularRoute(pathname) {
   ]);
 
   if (staticRoutes.has(first)) return true;
+  if (first === "moderation") return true;
   if (first === "s" && second) return true;
   if (first === "e" && second) return true;
   if (first === "u" && second) return true;
@@ -169,9 +173,24 @@ function run() {
     next();
   });
 
+  server.get("*", (req, res, next) => {
+    const redirectTarget = getRetiredUiLocaleRedirectTarget(req.originalUrl);
+    if (!redirectTarget) {
+      return next();
+    }
+
+    return res.redirect(301, redirectTarget);
+  });
+
   server.get("/qr/:slug", async (req, res, next) => {
     return handleQrStickerRequest(req, res, next);
   });
+
+  server.post(
+    "/api/functions/:functionName",
+    express.json({ limit: "4kb" }),
+    handlePublicCallableRequest,
+  );
 
   const rootIconPaths = {
     "/favicon.ico": "../browser/en/favicon.ico",
@@ -194,6 +213,22 @@ function run() {
     return res.sendFile(iconPath, (err) => {
       if (err) {
         console.error(`Failed to serve root icon ${req.path}:`, err.message);
+        sendMissingAssetResponse(res, req.path);
+      }
+    });
+  });
+
+  server.get("/firebase-messaging-sw.js", (req, res) => {
+    const workerPath = path.join(
+      __dirname,
+      "../browser/en/firebase-messaging-sw.js",
+    );
+    res.setHeader("Cache-Control", REVALIDATING_ASSET_CACHE_CONTROL);
+    res.setHeader("Content-Type", "application/javascript; charset=utf-8");
+    res.setHeader("Service-Worker-Allowed", "/");
+    return res.sendFile(workerPath, (err) => {
+      if (err) {
+        console.error("Failed to serve Firebase messaging worker:", err.message);
         sendMissingAssetResponse(res, req.path);
       }
     });

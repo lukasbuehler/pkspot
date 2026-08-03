@@ -8,10 +8,15 @@ import { BASE_URL, SUPPORTED_LOCALES } from "../../functions/src/sitemapXml";
 
 describe("indexNow", () => {
   it("builds one URL per localized public route", () => {
-    expect(buildLocalizedIndexNowUrls("/map/spots/spot-dame-du-lac")).toEqual(
+    const urls = buildLocalizedIndexNowUrls("/map/spots/spot-dame-du-lac");
+
+    expect(urls).toEqual(
       SUPPORTED_LOCALES.map(
         (locale) => `${BASE_URL}/${locale}/map/spots/spot-dame-du-lac`
       )
+    );
+    expect(urls).not.toContain(
+      `${BASE_URL}/de-CH/map/spots/spot-dame-du-lac`,
     );
   });
 

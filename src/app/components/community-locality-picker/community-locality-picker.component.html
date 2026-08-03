@@ -1,0 +1,61 @@
+@if (selected(); as locality) {
+  <div class="locality-selection">
+    <mat-icon aria-hidden="true">location_city</mat-icon>
+    <span>
+      <strong>{{ locality.displayName }}</strong>
+      <small>
+        {{ locality.spotCount }} {{ locality.spotCount === 1 ? "spot" : "spots" }}
+        @if (locality.geography.regionName) {
+          · {{ locality.geography.regionName }}
+        }
+      </small>
+    </span>
+    <button
+      mat-icon-button
+      type="button"
+      aria-label="Change locality"
+      [disabled]="disabled()"
+      (click)="clear()"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+} @else {
+  <mat-form-field appearance="outline" class="locality-search">
+    <mat-label>Locality without a community</mat-label>
+    <input
+      matInput
+      type="search"
+      autocomplete="off"
+      placeholder="Search localities"
+      [value]="query()"
+      [disabled]="disabled()"
+      [matAutocomplete]="localityAutocomplete"
+      (input)="updateQuery($event)"
+    />
+    <mat-icon matSuffix>search</mat-icon>
+    <mat-autocomplete
+      #localityAutocomplete="matAutocomplete"
+      [autoActiveFirstOption]="true"
+      (optionSelected)="selectOption($event)"
+    >
+      @for (option of filteredOptions(); track option.communityKey) {
+        <mat-option [value]="option">
+          <span class="locality-option">
+            <strong>{{ option.displayName }}</strong>
+            <small>
+              {{ option.spotCount }} {{ option.spotCount === 1 ? "spot" : "spots" }}
+              @if (option.distanceKm !== undefined) {
+                · {{ option.distanceKm }} km away
+              }
+            </small>
+          </span>
+        </mat-option>
+      }
+      @if (filteredOptions().length === 0) {
+        <mat-option disabled>No matching unpublished localities</mat-option>
+      }
+    </mat-autocomplete>
+    <mat-hint>Only localities without an existing community are shown.</mat-hint>
+  </mat-form-field>
+}

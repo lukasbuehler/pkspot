@@ -10,7 +10,29 @@
   color: var(--mat-sys-on-surface);
 }
 
+.area-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding-top: 8px;
+  padding-bottom: calc(var(--open-progress, 1) * 8px);
+  padding-left: 16px;
+  padding-right: 16px;
+  transition: padding-bottom 0.2s ease-out;
+
+  &[data-collapsed="true"] {
+    padding-bottom: 0;
+  }
+}
+
+:host-context(app-bottom-sheet) .area-header {
+  padding-top: 0;
+}
+
 .area-title {
+  flex: 0 1 auto;
+  min-width: 0;
   opacity: var(--open-progress, 1);
   max-height: calc(var(--open-progress, 1) * 64px);
   overflow: hidden;
@@ -22,6 +44,56 @@
     opacity: 0;
     max-height: 0;
     pointer-events: none;
+  }
+
+  h4 {
+    white-space: nowrap;
+  }
+}
+
+.area-weather {
+  display: flex;
+  justify-content: flex-end;
+  flex: 1 1 0;
+  min-width: 0;
+  max-height: calc(var(--open-progress, 1) * 48px);
+  opacity: var(--open-progress, 1);
+  overflow: hidden;
+  transition:
+    max-height 0.2s ease-out,
+    opacity 0.2s ease-out;
+
+  &[data-collapsed="true"] {
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.weather-chip-enter {
+  animation: weather-chip-enter 180ms ease-out;
+}
+
+@keyframes weather-chip-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .area-header,
+  .area-weather {
+    transition: none;
+  }
+
+  .weather-chip-enter {
+    animation: none;
   }
 }
 

@@ -9,7 +9,7 @@ import {
   verifyPasswordResetCode,
   confirmPasswordReset,
   reload,
-} from "@angular/fire/auth";
+} from "firebase/auth";
 import {
   FormBuilder,
   FormGroup,

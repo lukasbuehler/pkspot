@@ -12,6 +12,13 @@ import {
 } from "../../../../db/schemas/CommunityPageSchema";
 import { EventId, EventSchema } from "../../../../db/schemas/EventSchema";
 import { CommunitySlugSchema } from "../../../../db/schemas/CommunitySlugSchema";
+import type {
+  CommunityMergeActionResponse,
+  CommunityMergeAdminStateSchema,
+  GetCommunityMergeAdminStateRequest,
+  MergeUnpublishedLocalityRequest,
+  UnmergeUnpublishedLocalityRequest,
+} from "../../../../db/schemas/CommunityMergeAdminSchema";
 import { SpotPreviewData } from "../../../../db/schemas/SpotPreviewData";
 import {
   buildCommunityLandingPath,
@@ -19,6 +26,7 @@ import {
 } from "../../../../scripts/CommunityHelpers";
 import { AssetUrlService } from "../../asset-url.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
+import { FunctionsAdapterService } from "../functions-adapter.service";
 
 export type CommunityLandingScope = CommunityPageSchema["scope"];
 
@@ -113,6 +121,7 @@ const publicCommunityInfoCard = (
 export class LandingPagesService {
   private _firestoreAdapter = inject(FirestoreAdapterService);
   private _assetUrls = inject(AssetUrlService);
+  private _functionsAdapter = inject(FunctionsAdapterService);
 
   async getCommunityPage(
     slug: string,
@@ -272,6 +281,35 @@ export class LandingPagesService {
         },
       },
     );
+  }
+
+  getCommunityMergeAdminState(
+    targetCommunityKey: string,
+  ): Promise<CommunityMergeAdminStateSchema> {
+    return this._functionsAdapter.call<
+      GetCommunityMergeAdminStateRequest,
+      CommunityMergeAdminStateSchema
+    >("getCommunityMergeAdminState", { targetCommunityKey });
+  }
+
+  async mergeUnpublishedLocality(
+    sourceCommunityKey: string,
+    targetCommunityKey: string,
+  ): Promise<void> {
+    await this._functionsAdapter.call<
+      MergeUnpublishedLocalityRequest,
+      CommunityMergeActionResponse
+    >("mergeUnpublishedLocality", { sourceCommunityKey, targetCommunityKey });
+  }
+
+  async unmergeUnpublishedLocality(
+    sourceCommunityKey: string,
+    targetCommunityKey: string,
+  ): Promise<void> {
+    await this._functionsAdapter.call<
+      UnmergeUnpublishedLocalityRequest,
+      CommunityMergeActionResponse
+    >("unmergeUnpublishedLocality", { sourceCommunityKey, targetCommunityKey });
   }
 
   private _normalizeCommunityPath(path: string): string {

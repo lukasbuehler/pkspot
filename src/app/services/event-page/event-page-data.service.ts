@@ -1,5 +1,12 @@
 import { Injectable, LOCALE_ID, inject } from "@angular/core";
-import { Observable, catchError, firstValueFrom, map, of } from "rxjs";
+import {
+  Observable,
+  catchError,
+  firstValueFrom,
+  map,
+  of,
+  throwError,
+} from "rxjs";
 import { Event as PkEvent } from "../../../db/models/Event";
 import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
@@ -19,6 +26,7 @@ import { SpotChallengesService } from "../firebase/firestore/spot-challenges.ser
 import { SWISSJAM25_STATIC } from "../../components/event-page/swissjam25.static";
 import { SearchService } from "../search.service";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
+import type { EventSpotBinding } from "../../shared/event-program-spots";
 
 export type EventPageMapMarker = MarkerSchema & {
   spotIndex?: number;
@@ -66,9 +74,14 @@ export class EventPageDataService {
       map((loaded) => loaded ?? this._staticFallbackEvent(slugOrId)),
       catchError((err) => {
         console.warn("EventPageDataService: failed to observe event", err);
-        return of(this._staticFallbackEvent(slugOrId));
+        const fallback = this._staticFallbackEvent(slugOrId);
+        return fallback ? of(fallback) : throwError(() => err);
       }),
     );
+  }
+
+  loadEventCardsByIds(ids: readonly string[]): Promise<PkEvent[]> {
+    return this._search.getEventCardsByIds(ids);
   }
 
   eventCanonicalPath(event: PkEvent): string {
@@ -78,9 +91,11 @@ export class EventPageDataService {
   eventMapBounds(
     event: PkEvent,
     extraPoints: EventPageMapBoundsPoint[] = [],
-  ): EventBoundsSchema {
+  ): EventBoundsSchema | null {
+    const anchor = event.location ?? extraPoints[0];
+    if (!event.bounds && !anchor) return null;
     const baseBounds = this._normalizeBounds(
-      event.bounds ?? this._boundsAroundPoint(event.location),
+      event.bounds ?? this._boundsAroundPoint(anchor!),
     );
 
     const bounds = extraPoints.reduce(
@@ -139,10 +154,14 @@ export class EventPageDataService {
     };
   }
 
-  async loadEventSpots(event: PkEvent): Promise<(Spot | LocalSpot)[]> {
-    const inline = event.inlineSpots.map((spot) =>
-      this.buildInlineSpot(event.id, spot),
-    );
+  async loadEventSpotBindings(event: PkEvent): Promise<EventSpotBinding[]> {
+    const inline = event.inlineSpots.map((spot, index) => ({
+      ref: {
+        kind: "inline_spot" as const,
+        id: spot.id || `event-local-spot-${index}`,
+      },
+      spot: this.buildInlineSpot(event.id, spot),
+    }));
 
     if (event.spotIds.length === 0) {
       return inline;
@@ -191,15 +210,22 @@ export class EventPageDataService {
         },
       );
     }
-    const loaded = event.spotIds
-      .map(
-        (id) =>
+    const loaded = event.spotIds.flatMap((id): EventSpotBinding[] => {
+      const spot =
           fallbackById.get(String(id)) ??
-          this._buildSpotPreview(previewsById.get(String(id))),
-      )
-      .filter((spot): spot is Spot | LocalSpot => !!spot);
+          this._buildSpotPreview(previewsById.get(String(id)));
+      return spot
+        ? [{ ref: { kind: "spot", id: String(id) }, spot }]
+        : [];
+    });
 
     return [...inline, ...loaded];
+  }
+
+  async loadEventSpots(event: PkEvent): Promise<(Spot | LocalSpot)[]> {
+    return (await this.loadEventSpotBindings(event)).map(
+      (binding) => binding.spot,
+    );
   }
 
   async loadEventChallenges(
@@ -290,7 +316,7 @@ export class EventPageDataService {
   }
 
   eventLocationMarker(event: PkEvent | null): EventPageMapMarker | null {
-    if (!event) return null;
+    if (!event?.location) return null;
     return {
       name: event.name,
       location: event.location,
@@ -363,9 +389,9 @@ export class EventPageDataService {
       return null;
     }
 
-    const outerRing = this._outerCutoutRing(
-      outerBounds ?? this.eventMapBounds(event),
-    );
+    const bounds = outerBounds ?? this.eventMapBounds(event);
+    if (!bounds) return null;
+    const outerRing = this._outerCutoutRing(bounds);
     const paths = new google.maps.MVCArray<
       google.maps.MVCArray<google.maps.LatLng>
     >([

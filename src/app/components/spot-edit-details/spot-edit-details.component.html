@@ -9,7 +9,7 @@
         <span i18n>Spot updated</span> }
       </span>
       <span class="mat-body-small spot-edit-card__timestamp">
-        {{ edit.getTimestampString(locale) }}
+        {{ formatTimestamp(edit) }}
       </span>
     </div>
     <app-profile-button [user]="displayUser()"></app-profile-button>

@@ -5,6 +5,14 @@ import {
   EventCategory,
   EventFeaturedParticipantSchema,
   EventImageFit,
+  EventAttendanceSchema,
+  EventDisplayedLifecycleStatus,
+  EventDiscoverability,
+  EventKind,
+  EventLifecycleStatus,
+  EventNotificationPolicy,
+  EventOwnerSchema,
+  EventPriority,
   EventProgramItemSchema,
   EventProgramPlanSchema,
   EventProgramRuntimeOverrideSchema,
@@ -16,14 +24,29 @@ import {
   EventOrganizerSchema,
   EventPromoRegionSchema,
   EventSchema,
+  EventScheduleMode,
+  EventTimingSchema,
   EventSeriesMembershipSchema,
   EventSponsorSchema,
   EventTicketAvailability,
   EventTicketBadge,
   EventTicketOptionSchema,
   InlineEventSpotSchema,
+  EventPublicationState,
+  EventVisibility,
+  EventViewerPolicySchema,
 } from "../schemas/EventSchema";
+import {
+  DEFAULT_EVENT_ATTENDANCE,
+  displayedEventLifecycle,
+  eventIsPublished,
+  eventKindFromLegacyCategories,
+} from "../schemas/EventNormalization";
 import { EventRSVPCountsSchema } from "../schemas/EventRSVPSchema";
+import {
+  isIanaTimeZone,
+  legacyExactTiming,
+} from "../utils/event-timing";
 import type { MediaSchema } from "../schemas/Media";
 import { LocaleCode, LocaleMap } from "./Interfaces";
 import {
@@ -39,6 +62,7 @@ export interface EventTicketOption {
   descriptionI18n?: LocaleMap;
   url?: string;
   price?: EventTicketOptionSchema["price"];
+  originalPrice?: EventTicketOptionSchema["original_price"];
   availability?: EventTicketAvailability;
   saleStartsAt?: Date;
   saleEndsAt?: Date;
@@ -48,9 +72,13 @@ export interface EventTicketOption {
 }
 
 export interface EventProgramRuntimeOverride
-  extends Omit<EventProgramRuntimeOverrideSchema, "start" | "end"> {
+  extends Omit<
+    EventProgramRuntimeOverrideSchema,
+    "start" | "end" | "updated_at"
+  > {
   start?: Date;
   end?: Date;
+  updatedAt?: Date;
 }
 
 export interface EventProgramItem
@@ -96,13 +124,18 @@ export class Event {
   readonly logoBackgroundColor?: string;
   readonly media: MediaSchema[];
   readonly organizer?: EventOrganizerSchema;
+  readonly organizerName?: string;
+  readonly organizerAccess?: "view" | "edit";
   readonly featuredParticipants: EventFeaturedParticipant[];
 
   readonly venueString: string;
   readonly localityString: string;
-  readonly location: { lat: number; lng: number };
+  readonly location?: { lat: number; lng: number };
+  readonly hasLocation: boolean;
   readonly start: Date;
   readonly end: Date;
+  readonly timing?: EventTimingSchema;
+  readonly activeUntil?: Date;
   readonly promoStartsAt?: Date;
   readonly url?: string;
   readonly eventLinks: EventLinkSchema[];
@@ -135,6 +168,19 @@ export class Event {
   readonly externalSource?: EventExternalSourceSchema;
 
   readonly rsvpCounts: EventRSVPCountsSchema;
+  readonly publicationState: EventPublicationState;
+  readonly visibility: EventVisibility;
+  readonly discoverability: EventDiscoverability;
+  readonly viewerPolicy?: EventViewerPolicySchema;
+  readonly kind: EventKind;
+  readonly scheduleMode: EventScheduleMode;
+  readonly lifecycleStatus: EventLifecycleStatus;
+  readonly lifecycleNote?: string;
+  readonly updatedAt?: Date;
+  readonly priority: EventPriority;
+  readonly owner?: EventOwnerSchema;
+  readonly attendance: EventAttendanceSchema;
+  readonly notificationPolicy: EventNotificationPolicy;
   readonly published: boolean;
 
   constructor(id: EventId, data: EventSchema, locale: LocaleCode = "en") {
@@ -152,14 +198,26 @@ export class Event {
     this.logoBackgroundColor = data.logo_background_color;
     this.media = data.media ?? [];
     this.organizer = data.organizer;
+    this.organizerName =
+      data.organizer?.organization.name ?? data.organizer_name;
+    this.organizerAccess = data.organizer_access;
     this.featuredParticipants = data.featured_participants ?? [];
-    this.venueString = data.venue_string;
-    this.localityString = data.locality_string;
+    this.venueString = data.venue_string ?? "";
+    this.localityString = data.locality_string ?? "";
     this.location =
       Event.toLatLng(data.location_raw, data.location) ??
-      (data.bounds ? Event.boundsCenter(data.bounds) : { lat: 0, lng: 0 });
+      (data.bounds ? Event.boundsCenter(data.bounds) : undefined);
+    this.hasLocation = data.has_location ?? this.location !== undefined;
     this.start = Event.toDate(data.start);
     this.end = Event.toDate(data.end);
+    this.timing =
+      data.timing ??
+      (isIanaTimeZone(data.time_zone)
+        ? legacyExactTiming(this.start, this.end, data.time_zone)
+        : undefined);
+    this.activeUntil = data.active_until
+      ? Event.toDate(data.active_until)
+      : undefined;
     this.promoStartsAt = data.promo_starts_at
       ? Event.toDate(data.promo_starts_at)
       : undefined;
@@ -177,6 +235,7 @@ export class Event {
       descriptionI18n: Event.mapLocaleMap(option.description_i18n),
       url: option.url,
       price: option.price,
+      originalPrice: option.original_price,
       availability: option.availability,
       saleStartsAt: option.sale_starts_at
         ? Event.toDate(option.sale_starts_at)
@@ -233,13 +292,55 @@ export class Event {
       notgoing: 0,
       total: 0,
     };
-    this.published = data.published ?? true;
+    this.publicationState =
+      data.publication_state ?? (data.published === false ? "draft" : "published");
+    this.visibility = data.visibility ?? "public";
+    this.discoverability =
+      data.discoverability ??
+      {
+        audience: this.visibility === "public" ? "global" : "none",
+      };
+    this.viewerPolicy =
+      data.viewer_policy ??
+      (this.visibility === "private" ? { audience: "invited" } : undefined);
+    this.kind = data.kind ?? eventKindFromLegacyCategories(data.event_categories);
+    this.scheduleMode = data.schedule_mode ?? "single";
+    this.lifecycleStatus = data.lifecycle_status ?? "planned";
+    this.lifecycleNote = data.lifecycle_update?.note;
+    this.updatedAt = data.time_updated ? Event.toDate(data.time_updated) : undefined;
+    this.priority = data.priority ?? "normal";
+    // Missing owner is an intentional legacy/admin-managed state. Never infer
+    // permissions from the historical `created_by` attribution field.
+    this.owner = data.owner;
+    const attendance = data.attendance ?? { ...DEFAULT_EVENT_ATTENDANCE };
+    this.attendance = {
+      ...attendance,
+      instructions:
+        Event.localizedText(attendance.instructions_i18n, locale) ??
+        attendance.instructions,
+    };
+    this.notificationPolicy = data.notification_policy ?? "all";
+    this.published = eventIsPublished(data);
+  }
+
+  displayedLifecycle(now: Date = new Date()): EventDisplayedLifecycleStatus {
+    if (this.lifecycleStatus === "cancelled") return "cancelled";
+    if (this.timing?.mode === "date_only") {
+      return now > this.end ? "completed" : "planned";
+    }
+    return displayedEventLifecycle(
+      this.lifecycleStatus,
+      this.start,
+      this.end,
+      now,
+    );
   }
 
   /** Status relative to a given moment (defaults to now). */
   status(now: Date = new Date()): "upcoming" | "live" | "past" {
     if (now < this.start) return "upcoming";
     if (now > this.end) return "past";
+    if (this.timing?.mode === "date_only") return "upcoming";
     return "live";
   }
 
@@ -261,7 +362,7 @@ export class Event {
    * (or `start` if no explicit lead time), and the event has not ended.
    */
   isPromotable(now: Date = new Date()): boolean {
-    if (!this.promoRegion) return false;
+    if (!this.promoRegion || !this.hasLocation) return false;
     if (now > this.end) return false;
     const promoStart = this.promoStartsAt ?? this.start;
     return now >= promoStart;
@@ -546,11 +647,15 @@ export class Event {
     override: EventProgramRuntimeOverrideSchema,
     locale: LocaleCode,
   ): EventProgramRuntimeOverride {
+    const { updated_at: updatedAt, ...stored } = override;
     return {
-      ...override,
+      ...stored,
       note: Event.localizedText(override.note_i18n, locale) ?? override.note,
       start: override.start ? Event.toDate(override.start) : undefined,
       end: override.end ? Event.toDate(override.end) : undefined,
+      updatedAt: updatedAt
+        ? Event.toDate(updatedAt)
+        : undefined,
     };
   }
 

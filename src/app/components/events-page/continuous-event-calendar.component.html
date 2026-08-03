@@ -1,0 +1,142 @@
+<section class="continuous-calendar">
+  <div class="calendar-toolbar">
+    <div>
+      <h2 class="mat-title-large" i18n>Calendar</h2>
+      <p
+        class="mat-body-small"
+        i18n="@@events.calendar_local_time_note"
+      >
+        Event dates use each venue’s local time.
+      </p>
+    </div>
+    <div class="jump-actions">
+      <label class="date-jump mat-label-medium">
+        <span i18n="@@events.calendar_jump_to">Jump to</span>
+        <input
+          type="date"
+          [value]="dateJumpValue()"
+          (change)="jumpFromInput($event)"
+        />
+      </label>
+      <button mat-stroked-button type="button" (click)="jumpToToday()" i18n>
+        Today
+      </button>
+    </div>
+  </div>
+
+  <div class="calendar-shell" [class.is-wide]="wide()">
+    <div class="weekday-row" aria-hidden="true">
+      @for (label of weekdayLabels; track $index) {
+        <span>{{ label }}</span>
+      }
+    </div>
+
+    <div
+      #scrollViewport
+      class="calendar-scroll"
+      (scroll)="onScroll($event)"
+    >
+      @for (week of calendar().weeks; track week.key) {
+        <div class="calendar-week">
+          @for (day of week.days; track day.key; let column = $index) {
+            <button
+              type="button"
+              class="day-cell"
+              [class.is-today]="day.isToday"
+              [class.is-past]="day.isPast"
+              [class.is-selected]="day.key === selectedDay()"
+              [style.grid-column]="column + 1"
+              [attr.data-day]="day.key"
+              [attr.aria-label]="dayAriaLabels()[day.key]"
+              (click)="daySelected.emit(day.key)"
+            >
+              @if (monthLabels()[day.key]; as monthLabel) {
+                <span
+                  class="month-marker"
+                  [class.align-end]="column > 3"
+                >
+                  {{ monthLabel }}
+                </span>
+              }
+              <time [attr.datetime]="day.key">{{ day.dayNumber }}</time>
+              @if (!wide() && day.events.length > 0) {
+                <span class="compact-event-indicator" aria-hidden="true">
+                  <small>{{ day.events.length }}</small>
+                  @if (day.indicatorEvents[0]; as indicatorEvent) {
+                    <app-event-calendar-thumbnail
+                      [event]="indicatorEvent"
+                      [muted]="day.allEventsPast"
+                    />
+                  }
+                </span>
+              }
+            </button>
+          }
+
+          @if (wide()) {
+            @for (segment of week.segments; track segment.id) {
+              <app-event-calendar-item
+                [event]="segment.event"
+                [startColumn]="segment.startColumn"
+                [span]="segment.span"
+                [lane]="segment.lane"
+                [nowSeconds]="calendar().nowSeconds"
+                [continuesBefore]="segment.continuesBefore"
+                [continuesAfter]="segment.continuesAfter"
+              />
+            }
+            @for (day of week.days; track day.key; let column = $index) {
+              @if (day.hiddenEventCount > 0) {
+                <button
+                  type="button"
+                  class="more-events"
+                  [style.grid-column]="column + 1"
+                  (click)="daySelected.emit(day.key)"
+                >
+                  +{{ day.hiddenEventCount }}
+                  <span i18n>more</span>
+                </button>
+              }
+            }
+          }
+        </div>
+      }
+
+      @if (eventsResource.isLoading()) {
+        <div
+          class="edge-status mat-body-small"
+          role="status"
+          i18n="@@events.calendar_loading_more"
+        >
+          Loading more events…
+        </div>
+      } @else if (eventsResource.error()) {
+        <div class="edge-status error mat-body-small" role="alert">
+          <span i18n="@@events.calendar_load_more_error">
+            More events could not be loaded.
+          </span>
+          <button mat-button type="button" (click)="eventsResource.reload()" i18n>
+            Try again
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (selectedDayModel(); as day) {
+    <section class="day-agenda" aria-live="polite">
+      <h3 class="mat-title-medium">{{ selectedDayLabel() }}</h3>
+      @if (day.events.length > 0) {
+        <app-event-discovery-list
+          [events]="day.events"
+          [found]="day.events.length"
+          [seriesById]="seriesById()"
+        />
+      } @else {
+        <p class="empty-day mat-body-medium" i18n>
+          No events on this day.
+        </p>
+      }
+    </section>
+  }
+</section>

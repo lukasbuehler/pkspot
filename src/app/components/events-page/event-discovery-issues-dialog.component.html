@@ -1,0 +1,29 @@
+<h2 mat-dialog-title i18n>Some events need a data update</h2>
+
+<mat-dialog-content>
+  <p class="dialog-intro mat-body-medium" i18n>
+    An event's local time zone is derived from its map coordinates. It places
+    the event on the correct local calendar day and keeps its start and end
+    times accurate through daylight-saving changes.
+  </p>
+  <p class="dialog-intro mat-body-medium" i18n>
+    {data.events.length, plural, =1 {The one problematic published event is
+    shown below.} other {All {{ data.events.length }} problematic published
+    events are shown below.}} They are excluded from public discovery until
+    their coordinates, local time zone, and event dates are valid.
+  </p>
+
+  <div class="event-preview-list">
+    @for (event of data.events; track event.id) {
+      <app-event-discovery-card
+        [event]="event"
+        [seriesById]="data.seriesById"
+        [compact]="true"
+      />
+    }
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" mat-dialog-close i18n>Close</button>
+</mat-dialog-actions>

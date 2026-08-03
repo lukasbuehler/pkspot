@@ -112,3 +112,46 @@
   display: block;
   margin-top: 0.75rem;
 }
+
+:host(.compact) {
+  height: auto;
+}
+
+:host(.compact) .event-card {
+  display: grid;
+  min-height: 112px;
+  grid-template-columns: 112px minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+}
+
+:host(.compact) .image-wrap {
+  height: auto;
+  min-height: 112px;
+  grid-row: 1 / span 2;
+}
+
+:host(.compact) mat-card-header {
+  min-width: 0;
+  padding: 0.75rem 0.875rem 0.25rem;
+}
+
+:host(.compact) mat-card-content {
+  min-width: 0;
+  padding: 0 0.875rem 0.75rem;
+}
+
+:host(.compact) mat-card-title .text-truncate {
+  display: -webkit-box;
+  overflow: hidden;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+:host(.compact) mat-card-content p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}

@@ -1,32 +1,86 @@
-import { Injectable, inject } from "@angular/core";
+import { Injectable, inject, signal } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { PLATFORM_ID } from "@angular/core";
 import {
   AgeParticipationState,
-  UserAgePolicySchema,
+  AgeAssuranceConfidence,
+  AgeEvidenceStrength,
+  PkSpotAgeBand,
 } from "../../db/schemas/UserSchema";
 import {
   PlatformAgeSignal,
-  buildAgePolicyFromSignal,
   isAgeParticipationAllowed,
 } from "./age-policy";
 import { AuthenticationService } from "./firebase/authentication.service";
 import { FunctionsAdapterService } from "./firebase/functions-adapter.service";
 import { environment } from "../../environments/environment.default";
 
-type AgeAssurancePlugin = {
+interface AgeAssurancePlugin {
   getAgeSignal(): Promise<PlatformAgeSignal>;
-};
+  getBoundAgeSignal(input: {
+    uid: string;
+    challengeId: string;
+    challengeNonce: string;
+  }): Promise<{
+    signal: PlatformAgeSignal;
+    integrityToken: string;
+  }>;
+  openPlayStoreListing(): Promise<void>;
+}
 
-type UpdateAgePolicyRequest = {
-  policy: UserAgePolicySchema;
-  signal?: Record<string, unknown>;
-};
+interface UpdateAgePolicyV2Request {
+  signal: Record<string, unknown>;
+}
 
-type UpdateAgePolicyResponse = {
+interface BeginAgeAssuranceResponse {
+  challenge_id: string;
+  challenge_nonce: string;
+  platform: "android";
+}
+
+interface UpdateAgePolicyV3Request {
+  challenge_id: string;
+  challenge_nonce: string;
+  integrity_token: string;
+  signal: Record<string, unknown>;
+}
+
+interface UpdateAgePolicyResponse {
   ok: true;
-};
+  participation_state: AgeParticipationState;
+  adult_eligibility: "verified" | "not_verified";
+  evidence_strength?: AgeEvidenceStrength;
+  age_band?: PkSpotAgeBand;
+  confidence?: AgeAssuranceConfidence;
+  evaluated_at?: string;
+  verified_at?: string;
+}
+
+export type AgeAssuranceCheckStatus =
+  | "idle"
+  | "checking"
+  | "verified"
+  | "self_declared"
+  | "guardian_managed"
+  | "not_verified"
+  | "not_shared"
+  | "verification_required"
+  | "unavailable"
+  | "error";
+
+export interface AgeAssuranceCheckState {
+  status: AgeAssuranceCheckStatus;
+  uid?: string;
+  platform?: "android" | "ios";
+  checkedAt?: string;
+  errorCode?: number | string;
+}
+
+interface SyncedAgePolicy {
+  signal: PlatformAgeSignal;
+  response: UpdateAgePolicyResponse;
+}
 
 const NativeAgeAssurance = registerPlugin<AgeAssurancePlugin>("AgeAssurance");
 
@@ -40,41 +94,126 @@ export class AgeAssuranceService {
   private _authService = inject(AuthenticationService);
   private _platformId = inject(PLATFORM_ID);
   private _lastSyncedUid: string | null = null;
-  private _syncInFlight = false;
+  private _syncInFlight: Promise<AgeAssuranceCheckState> | null = null;
+  private readonly _checkState = signal<AgeAssuranceCheckState>({
+    status: "idle",
+  });
 
-  async syncNativeAgePolicyForCurrentUser(): Promise<void> {
+  readonly checkState = this._checkState.asReadonly();
+
+  async syncNativeAgePolicyForCurrentUser(): Promise<AgeAssuranceCheckState> {
+    return this._syncNativeAgePolicyForCurrentUser(false);
+  }
+
+  async recheckNativeAgePolicyForCurrentUser(): Promise<AgeAssuranceCheckState> {
+    return this._syncNativeAgePolicyForCurrentUser(true);
+  }
+
+  async openPlayStoreListing(): Promise<void> {
+    if (
+      !Capacitor.isNativePlatform() ||
+      Capacitor.getPlatform() !== "android"
+    ) {
+      return;
+    }
+    await NativeAgeAssurance.openPlayStoreListing();
+  }
+
+  private async _syncNativeAgePolicyForCurrentUser(
+    force: boolean,
+  ): Promise<AgeAssuranceCheckState> {
     const uid = this._authService.user.uid;
-    if (!uid || !Capacitor.isNativePlatform() || this._syncInFlight) {
-      return;
+    if (!uid || !Capacitor.isNativePlatform()) {
+      return this._checkState();
     }
 
-    if (this._lastSyncedUid === uid) {
-      return;
+    if (!force && this._lastSyncedUid === uid) {
+      return this._checkState();
     }
 
-    this._syncInFlight = true;
+    if (this._syncInFlight) {
+      return this._syncInFlight;
+    }
+
+    const platform = Capacitor.getPlatform();
+    if (platform !== "android" && platform !== "ios") {
+      return this._checkState();
+    }
+
+    this._checkState.set({ status: "checking", uid, platform });
+    this._syncInFlight = this._performNativeSync(uid, platform);
     try {
-      const signal = await NativeAgeAssurance.getAgeSignal();
-      console.log("[AgeAssurance] Native age signal", signal);
-      const policy = buildAgePolicyFromSignal(signal);
-
-      await this._syncAgePolicy({
-        policy,
-        signal: this._sanitizeSignalForFunction(signal),
-      });
-      this._lastSyncedUid = uid;
+      const state = await this._syncInFlight;
+      this._checkState.set(state);
+      if (state.status !== "error") {
+        this._lastSyncedUid = uid;
+      }
+      return state;
     } catch (error) {
       console.warn("[AgeAssurance] Failed to sync native age policy", error);
+      const state: AgeAssuranceCheckState = {
+        status: "error",
+        uid,
+        platform,
+      };
+      this._checkState.set(state);
+      return state;
     } finally {
-      this._syncInFlight = false;
+      this._syncInFlight = null;
     }
   }
 
-  private async _syncAgePolicy(payload: UpdateAgePolicyRequest): Promise<void> {
-    await this._functionsAdapter.call<
-      UpdateAgePolicyRequest,
-      UpdateAgePolicyResponse
-    >("updateAgePolicy", payload);
+  private async _performNativeSync(
+    uid: string,
+    platform: "android" | "ios",
+  ): Promise<AgeAssuranceCheckState> {
+    const synced =
+      platform === "android"
+        ? await this._syncRequestBoundAndroidPolicy(uid)
+        : await this._syncUnboundCompatibilityPolicy(
+            await NativeAgeAssurance.getAgeSignal(),
+          );
+    return this._checkStateForResult(uid, platform, synced);
+  }
+
+  private async _syncRequestBoundAndroidPolicy(
+    uid: string,
+  ): Promise<SyncedAgePolicy> {
+    const challenge =
+      await this._functionsAdapter.callAuthenticatedAppChecked<
+        Record<string, never>,
+        BeginAgeAssuranceResponse
+      >("beginAgeAssuranceV3", {});
+    const bound = await NativeAgeAssurance.getBoundAgeSignal({
+      uid,
+      challengeId: challenge.challenge_id,
+      challengeNonce: challenge.challenge_nonce,
+    });
+
+    const response =
+      await this._functionsAdapter.callAuthenticatedAppChecked<
+        UpdateAgePolicyV3Request,
+        UpdateAgePolicyResponse
+      >("updateAgePolicyV3", {
+        challenge_id: challenge.challenge_id,
+        challenge_nonce: challenge.challenge_nonce,
+        integrity_token: bound.integrityToken,
+        signal: this._sanitizeSignalForFunction(bound.signal),
+      });
+    return { signal: bound.signal, response };
+  }
+
+  private async _syncUnboundCompatibilityPolicy(
+    signal: PlatformAgeSignal,
+  ): Promise<SyncedAgePolicy> {
+    const response =
+      await this._functionsAdapter.callAuthenticatedAppChecked<
+        UpdateAgePolicyV2Request,
+        UpdateAgePolicyResponse
+      >("updateAgePolicyV2", {
+        signal: this._sanitizeSignalForFunction(signal),
+      });
+    return { signal, response };
   }
 
   canParticipatePublicly(): boolean {
@@ -88,12 +227,81 @@ export class AgeAssuranceService {
     return isAgeParticipationAllowed(state);
   }
 
+  hasVerifiedAdultEligibility(): boolean {
+    const checkState = this._checkState();
+    if (checkState.uid === this._authService.user.uid) {
+      if (checkState.status === "verified") {
+        return true;
+      }
+      if (
+        checkState.status !== "idle" &&
+        checkState.status !== "checking" &&
+        checkState.status !== "error"
+      ) {
+        return false;
+      }
+    }
+
+    const policy = this._authService.user.data?.data?.age_policy;
+    return (
+      policy?.adult_eligibility === "verified" &&
+      policy.assurance?.status === "active" &&
+      policy.assurance?.client_integrity ===
+        "play_integrity_request_bound"
+    );
+  }
+
+  adultEvidenceStrength(): AgeEvidenceStrength {
+    return (
+      this._authService.user.data?.data?.age_policy?.assurance
+        ?.evidence_strength ?? "unknown"
+    );
+  }
+
   getRestrictionMessage(): string {
     return $localize`Public contributions are unavailable for this account right now. You can still browse spots and manage private saved or visited spots.`;
   }
 
   getContributionStatusMessage(): string {
     return $localize`Public contributions are unavailable for this account right now. You can still browse spots and manage private saved or visited spots. Depending on the app store age-safety signal, parent or guardian consent may be needed before public contributions are available.`;
+  }
+
+  private _checkStateForResult(
+    uid: string,
+    platform: "android" | "ios",
+    { signal, response }: SyncedAgePolicy,
+  ): AgeAssuranceCheckState {
+    const checkedAt = response.evaluated_at ?? new Date().toISOString();
+    const base = { uid, platform, checkedAt } as const;
+
+    if (response.adult_eligibility === "verified") {
+      return { ...base, status: "verified" };
+    }
+    if (signal.ageSignalsStatus === "verification_required") {
+      return { ...base, status: "verification_required" };
+    }
+    if (
+      signal.ageSignalsStatus === "not_shared" ||
+      signal.response === "declined"
+    ) {
+      return { ...base, status: "not_shared" };
+    }
+    if (!signal.available || signal.response === "unavailable") {
+      return {
+        ...base,
+        status: "unavailable",
+        ...(signal.errorCode !== undefined
+          ? { errorCode: signal.errorCode }
+          : {}),
+      };
+    }
+    if (signal.ageRangeSource === "tier_a") {
+      return { ...base, status: "self_declared" };
+    }
+    if (signal.ageRangeSource === "tier_b") {
+      return { ...base, status: "guardian_managed" };
+    }
+    return { ...base, status: "not_verified" };
   }
 
   private _sanitizeSignalForFunction(
@@ -108,6 +316,10 @@ export class AgeAssuranceService {
       ageUpper: signal.ageUpper,
       isEligibleForAgeFeatures: signal.isEligibleForAgeFeatures,
       response: signal.response,
+      ageSignalsStatus: signal.ageSignalsStatus,
+      ageRangeSource: signal.ageRangeSource,
+      ageRangeDeclaration: signal.ageRangeDeclaration,
+      significantChangeStatus: signal.significantChangeStatus,
       requiredRegulatoryFeatures: signal.requiredRegulatoryFeatures,
       errorCode: signal.errorCode,
     };

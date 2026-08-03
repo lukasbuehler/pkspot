@@ -1,0 +1,373 @@
+<header class="notification-settings-header">
+  <div>
+    <h2 class="mat-h2 m-0" i18n="@@settings.notifications.heading">
+      Notifications
+    </h2>
+    <p class="mat-body m-0" i18n="@@settings.notifications.description">
+      Choose which useful updates PK Spot may send you. You stay in control
+      through both these choices and your browser or device settings.
+    </p>
+  </div>
+  <a mat-stroked-button routerLink="/notifications">
+    <mat-icon>notifications</mat-icon>
+    <span i18n="@@settings.notifications.open_center"
+      >Open notification center</span
+    >
+  </a>
+</header>
+
+@if (!pushNotifications.supported()) {
+  <div class="notification-status-card notification-status-card--neutral">
+    <div class="notification-status-card__icon" aria-hidden="true">
+      <mat-icon>notifications_off</mat-icon>
+    </div>
+    <div>
+      <h3
+        class="mat-title-medium m-0"
+        i18n="@@settings.notifications.native_only_heading"
+      >
+        Push notifications unavailable
+      </h3>
+      <p
+        class="mat-body-small m-0"
+        i18n="@@settings.notifications.native_only_description"
+      >
+        This browser or device does not support PK Spot push notifications.
+      </p>
+    </div>
+  </div>
+} @else {
+  <div
+    class="notification-status-card"
+    [class.notification-status-card--blocked]="
+      pushNotifications.blockedBySystem()
+    "
+  >
+    <div class="notification-status-card__icon" aria-hidden="true">
+      <mat-icon>{{
+        pushNotifications.blockedBySystem()
+          ? "notifications_off"
+          : "notifications"
+      }}</mat-icon>
+    </div>
+    <div>
+      @switch (pushNotifications.permissionState()) {
+        @case ("granted") {
+          <h3
+            class="mat-title-medium m-0"
+            i18n="@@settings.notifications.system_allowed_heading"
+          >
+            Allowed by your browser or device
+          </h3>
+          <p
+            class="mat-body-small m-0"
+            i18n="@@settings.notifications.system_allowed_description"
+          >
+            PK Spot can deliver the notification types you enable below.
+          </p>
+          @if (pushNotifications.canOpenSystemSettings) {
+            <button
+              mat-stroked-button
+              color="primary"
+              class="mt-2"
+              (click)="openNotificationSystemSettings()"
+            >
+              <mat-icon>open_in_new</mat-icon>
+              <span i18n="@@settings.notifications.open_system_settings"
+                >Open system settings</span
+              >
+            </button>
+          }
+        }
+        @case ("denied") {
+          <h3
+            class="mat-title-medium m-0"
+            i18n="@@settings.notifications.system_blocked_heading"
+          >
+            Notifications are blocked
+          </h3>
+          <p
+            class="mat-body-small mb-2"
+            i18n="@@settings.notifications.system_blocked_description"
+          >
+            Your PK Spot choices are saved, but your browser or device is
+            currently blocking delivery.
+          </p>
+          @if (pushNotifications.canOpenSystemSettings) {
+            <button
+              mat-stroked-button
+              color="primary"
+              (click)="openNotificationSystemSettings()"
+            >
+              <mat-icon>open_in_new</mat-icon>
+              <span i18n="@@settings.notifications.open_system_settings"
+                >Open system settings</span
+              >
+            </button>
+          }
+        }
+        @default {
+          <h3
+            class="mat-title-medium m-0"
+            i18n="@@settings.notifications.not_requested_heading"
+          >
+            Not enabled yet
+          </h3>
+          <p
+            class="mat-body-small m-0"
+            i18n="@@settings.notifications.not_requested_description"
+          >
+            Your browser or device will ask for permission when you enable a
+            notification type below.
+          </p>
+        }
+      }
+    </div>
+  </div>
+
+  <section class="notification-table-section">
+    <div class="section-heading">
+      <div>
+        <h3
+          class="mat-title-large m-0"
+          i18n="@@settings.notifications.types_heading"
+        >
+          Notification types
+        </h3>
+        <p
+          class="mat-body-small m-0"
+          i18n="@@settings.notifications.types_description"
+        >
+          Select the updates you want PK Spot to send.
+        </p>
+      </div>
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="openEventNotificationSubscriptions()"
+        i18n="@@settings.notifications.manage_events"
+      >
+        Manage events
+      </button>
+    </div>
+
+    <div class="material-table-shell">
+      <table
+        mat-table
+        [dataSource]="notificationRows"
+        aria-label="Notification preferences"
+        i18n-aria-label="@@settings.notifications.table_aria"
+      >
+        <ng-container matColumnDef="notification">
+          <th mat-header-cell *matHeaderCellDef>
+            <span i18n="@@settings.notifications.table_notification"
+              >Notification</span
+            >
+          </th>
+          <td mat-cell *matCellDef="let row">
+            <div class="notification-copy">
+              <h4 class="mat-title-medium m-0">{{ row.title }}</h4>
+              <p class="mat-body-small m-0">{{ row.description }}</p>
+
+              @if (row.key === "event_reminders") {
+                <div class="reminder-settings">
+                  <span
+                    class="mat-label-medium"
+                    i18n="@@settings.notifications.reminder_times_label"
+                    >Reminder times</span
+                  >
+                  <mat-chip-listbox
+                    multiple
+                    [disabled]="
+                      !preferenceEnabled('event_reminders') ||
+                      notificationPreferences.loading() ||
+                      savingPreferences()
+                    "
+                    aria-label="Default event reminder times"
+                    i18n-aria-label="@@settings.notifications.reminder_times_aria"
+                  >
+                    @for (option of reminderOptions; track option.minutes) {
+                      <mat-chip-option
+                        [selected]="reminderOffsetEnabled(option.minutes)"
+                        (selectionChange)="
+                          onReminderSelectionChange(option.minutes, $event)
+                        "
+                      >
+                        {{ option.label }}
+                      </mat-chip-option>
+                    }
+                  </mat-chip-listbox>
+                </div>
+              }
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="enabled">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="notification-control-column"
+          >
+            <mat-checkbox
+              color="primary"
+              [checked]="allNotificationsEnabled()"
+              [indeterminate]="notificationSelectionIndeterminate()"
+              [disabled]="
+                notificationPreferences.loading() ||
+                pushNotifications.busy() ||
+                savingPreferences()
+              "
+              (change)="setAllNotificationPreferences($event.checked)"
+              aria-label="Select or deselect all notification types"
+              i18n-aria-label="@@settings.notifications.select_all_aria"
+            >
+              <span i18n="@@settings.notifications.all">All</span>
+            </mat-checkbox>
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let row"
+            class="notification-control-column"
+          >
+            <mat-checkbox
+              color="primary"
+              [checked]="preferenceEnabled(row.key)"
+              [disabled]="
+                notificationPreferences.loading() ||
+                pushNotifications.busy() ||
+                savingPreferences()
+              "
+              (change)="setNotificationPreference(row.key, $event.checked)"
+              [attr.aria-label]="row.title"
+            ></mat-checkbox>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="notificationColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: notificationColumns"></tr>
+      </table>
+    </div>
+  </section>
+
+  @if (communityFollows().length > 0) {
+    <section class="notification-table-section">
+      <div class="section-heading">
+        <div>
+          <h3
+            class="mat-title-large m-0"
+            i18n="@@settings.notifications.followed_communities_heading"
+          >
+            Followed communities
+          </h3>
+          <p
+            class="mat-body-small m-0"
+            i18n="@@settings.notifications.followed_communities_description"
+          >
+            Choose the updates you want from each community. Global choices
+            above control push delivery.
+          </p>
+        </div>
+      </div>
+
+      <div class="material-table-shell community-table-shell">
+        <table
+          mat-table
+          [dataSource]="communityFollows()"
+          aria-label="Notifications for followed communities"
+          i18n-aria-label="@@settings.notifications.community_table_aria"
+        >
+          <ng-container matColumnDef="community">
+            <th mat-header-cell *matHeaderCellDef>
+              <span i18n="@@settings.notifications.community_column"
+                >Community</span
+              >
+            </th>
+            <td mat-cell *matCellDef="let follow">
+              <a [routerLink]="follow.canonical_path">{{ follow.display_name }}</a>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="events">
+            <th mat-header-cell *matHeaderCellDef class="community-control-column">
+              <mat-checkbox
+                color="primary"
+                [checked]="allCommunityEventsEnabled()"
+                [indeterminate]="communityEventsIndeterminate()"
+                [disabled]="
+                  savingCommunityPreferences() ||
+                  savingPreferences() ||
+                  pushNotifications.busy()
+                "
+                (change)="setAllCommunityNotifications('events', $event.checked)"
+                aria-label="Select or deselect event notifications for all followed communities"
+                i18n-aria-label="@@settings.notifications.community_events_all_aria"
+              >
+                <span i18n="@@settings.notifications.community_events_short"
+                  >Events</span
+                >
+              </mat-checkbox>
+            </th>
+            <td mat-cell *matCellDef="let follow" class="community-control-column">
+              <mat-checkbox
+                color="primary"
+                [checked]="follow.event_notifications === true"
+                [disabled]="
+                  savingCommunityPreferences() ||
+                  savingPreferences() ||
+                  pushNotifications.busy()
+                "
+                (change)="
+                  setCommunityNotification(follow, 'events', $event.checked)
+                "
+                aria-label="Event notifications for this community"
+                i18n-aria-label="@@settings.notifications.community_events_per_area_aria"
+              ></mat-checkbox>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="spots">
+            <th mat-header-cell *matHeaderCellDef class="community-control-column">
+              <mat-checkbox
+                color="primary"
+                [checked]="allCommunitySpotsEnabled()"
+                [indeterminate]="communitySpotsIndeterminate()"
+                [disabled]="
+                  savingCommunityPreferences() ||
+                  savingPreferences() ||
+                  pushNotifications.busy()
+                "
+                (change)="setAllCommunityNotifications('spots', $event.checked)"
+                aria-label="Select or deselect Spot recommendations for all followed communities"
+                i18n-aria-label="@@settings.notifications.community_spots_all_aria"
+              >
+                <span i18n="@@settings.notifications.community_spots_short"
+                  >Spots</span
+                >
+              </mat-checkbox>
+            </th>
+            <td mat-cell *matCellDef="let follow" class="community-control-column">
+              <mat-checkbox
+                color="primary"
+                [checked]="follow.spot_digest_notifications === true"
+                [disabled]="
+                  savingCommunityPreferences() ||
+                  savingPreferences() ||
+                  pushNotifications.busy()
+                "
+                (change)="
+                  setCommunityNotification(follow, 'spots', $event.checked)
+                "
+                aria-label="Spot notifications for this community"
+                i18n-aria-label="@@settings.notifications.community_spots_per_area_aria"
+              ></mat-checkbox>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="communityColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: communityColumns"></tr>
+        </table>
+      </div>
+    </section>
+  }
+}

@@ -38,7 +38,7 @@ try {
 console.log("Post-processing build artifacts for Capacitor...");
 
 const distPath = path.join(__dirname, "../dist/pkspot/browser");
-const languages = ["en", "de", "de-CH", "it", "fr", "es", "nl"]; // List all your languages
+const languages = ["en", "de", "it", "fr", "es", "nl"]; // List all your languages
 
 languages.forEach((lang) => {
   const langPath = path.join(distPath, lang);
@@ -109,29 +109,31 @@ const redirectionScript = `
     </style>
     <script>
         function redirect() {
-            var supportedLangs = ['en', 'de', 'de-CH', 'it', 'fr', 'es', 'nl'];
+            var supportedLangs = ['en', 'de', 'it', 'fr', 'es', 'nl'];
             var targetLang = 'en';
 
             try {
                 // Check if we have a saved language preference
                 var savedLang = localStorage.getItem('language');
                 if (savedLang) {
-                    // Validate that the saved language is one we support
-                    if (supportedLangs.includes(savedLang) || savedLang === 'de-CH') {
-                        // Special check for de-CH if it's supported
+                    var hasSavedLanguage = false;
+
+                    if (supportedLangs.includes(savedLang)) {
                         targetLang = savedLang;
+                        hasSavedLanguage = true;
                     } else if (savedLang.startsWith('de')) {
                         targetLang = 'de';
+                        hasSavedLanguage = true;
                     } else {
-                         // Check if the short code is supported
-                         var shortSaved = savedLang.split('-')[0];
-                         if (supportedLangs.includes(shortSaved)) {
-                             targetLang = shortSaved;
-                         }
+                        var shortSaved = savedLang.split('-')[0];
+                        if (supportedLangs.includes(shortSaved)) {
+                            targetLang = shortSaved;
+                            hasSavedLanguage = true;
+                        }
                     }
-                    
-                    // If we found a valid saved language, use it
-                    if (targetLang === savedLang || targetLang === savedLang.split('-')[0]) {
+
+                    if (hasSavedLanguage) {
+                        localStorage.setItem('language', targetLang);
                         console.log("Redirecting to saved language: " + targetLang);
                         window.location.replace('./' + targetLang + '/index.html');
                         return;
@@ -145,9 +147,7 @@ const redirectionScript = `
             var lang = navigator.language || navigator.userLanguage;
             
             if (lang.startsWith('de')) {
-                // Check specific regions if needed, else default to de
-                if (lang === 'de-CH') targetLang = 'de-CH';
-                else targetLang = 'de';
+                targetLang = 'de';
             } else {
                 var shortLang = lang.split('-')[0];
                 if (supportedLangs.includes(shortLang)) {
@@ -172,7 +172,6 @@ const redirectionScript = `
         <ul>
             <li><a href="./en/index.html">English</a></li>
             <li><a href="./de/index.html">Deutsch</a></li>
-            <li><a href="./de-CH/index.html">Deutsch (Schweiz)</a></li>
             <li><a href="./it/index.html">Italiano</a></li>
             <li><a href="./fr/index.html">Français</a></li>
             <li><a href="./es/index.html">Español</a></li>

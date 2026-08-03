@@ -1,0 +1,53 @@
+<main class="report-outcome">
+  <a matButton="text" routerLink="/notifications">
+    <mat-icon>arrow_back</mat-icon>
+    <span i18n="@@report_outcome.back">Notifications</span>
+  </a>
+
+  @if (outcome.isLoading()) {
+    <div class="report-outcome__state"><mat-spinner diameter="40" /></div>
+  } @else if (outcome.error()) {
+    <div class="report-outcome__state">
+      <mat-icon>cloud_off</mat-icon>
+      <h1 class="mat-title-large" i18n="@@report_outcome.load_error">Report update unavailable</h1>
+    </div>
+  } @else if (outcome.value(); as result) {
+    <header>
+      <p class="mat-label-large" i18n="@@report_outcome.eyebrow">REPORT UPDATE</p>
+      <h1 class="mat-headline-medium">
+        @if (result.outcome === "action_taken") {
+          <ng-container i18n="@@report_outcome.action_title">Thanks for your report</ng-container>
+        } @else {
+          <ng-container i18n="@@report_outcome.reviewed_title">Your report was reviewed</ng-container>
+        }
+      </h1>
+    </header>
+
+    <section class="report-outcome__summary">
+      <div class="report-outcome__icon" aria-hidden="true">
+        <mat-icon>{{ result.outcome === "action_taken" ? "task_alt" : "flag" }}</mat-icon>
+      </div>
+      <div>
+        <h2 class="mat-title-medium">{{ result.target_name }}</h2>
+        @if (result.public_reason === "action_taken") {
+          <p class="mat-body-medium" i18n="@@report_outcome.action_body">
+            We reviewed the report and took appropriate action.
+          </p>
+        } @else {
+          <p class="mat-body-medium" i18n="@@report_outcome.closed_body">
+            We reviewed the available information and no action was needed.
+          </p>
+        }
+      </div>
+    </section>
+
+    <p class="mat-body-small report-outcome__privacy" i18n="@@report_outcome.privacy">
+      To protect everyone involved, internal moderation notes and evidence are not shown here.
+    </p>
+  } @else {
+    <div class="report-outcome__state">
+      <mat-icon>search_off</mat-icon>
+      <h1 class="mat-title-large" i18n="@@report_outcome.not_found">Report update not found</h1>
+    </div>
+  }
+</main>

@@ -1,6 +1,7 @@
 import * as logger from "firebase-functions/logger";
 import { defineSecret } from "firebase-functions/params";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import { persistAuthoritativeReporter } from "./reportIdentity";
 
 interface UserReportData {
   reportedUser?: {
@@ -12,6 +13,7 @@ interface UserReportData {
   comment?: string;
   user?: {
     uid?: string;
+    email?: string;
     display_name?: string;
   };
   sourcePath?: string;
@@ -24,7 +26,8 @@ const formatUser = (user?: UserReportData["user"]): string => {
     return "Unknown";
   }
 
-  return user.display_name || user.uid || "Unknown";
+  const identity = user.display_name || user.uid || "Unknown";
+  return user.email ? `${identity} (${user.email})` : identity;
 };
 
 const truncateDiscordField = (value: string, max = 1000): string => {
@@ -41,12 +44,18 @@ export const onUserReportCreate = onDocumentCreated(
   },
   async (event) => {
     const reportId = event.params.reportId;
-    const reportData = event.data?.data() as UserReportData | undefined;
+    const reportSnapshot = event.data;
+    const reportData = reportSnapshot?.data() as UserReportData | undefined;
 
-    if (!reportData) {
+    if (!reportSnapshot || !reportData) {
       logger.warn(`No data found for user report ${reportId}`);
       return;
     }
+
+    reportData.user = await persistAuthoritativeReporter(
+      reportSnapshot.ref,
+      reportData.user,
+    );
 
     const webhookUrl = discordWebhookUrl.value();
     if (!webhookUrl) {

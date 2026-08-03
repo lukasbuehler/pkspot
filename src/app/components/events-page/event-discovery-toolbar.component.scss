@@ -1,0 +1,30 @@
+.discovery-toolbar {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.secondary-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filter-count {
+  margin-left: 0.3rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.series-avatar {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--mat-sys-outline-variant);
+}
+
+.series-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}

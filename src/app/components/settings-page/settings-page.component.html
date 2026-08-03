@@ -1,14 +1,14 @@
 <div class="settings-page-container">
-  <div class="container p-4">
+  <div class="container settings-page-content">
     <div class="row">
       <div class="col-md-4">
         <div class="menu d-flex flex-column rounded border mb-5">
-          @for(menuPoint of menuPoints; track $index) {
+          @for(menuPoint of menuPoints; track menuPoint.id) {
           <button
             mat-button
             (click)="openMenuPoint(menuPoint.id)"
             class="menuButton"
-            [ngClass]="menuPoint.id === selectedPoint ? 'selected' : ''"
+            [class.selected]="menuPoint.id === selectedPoint"
           >
             <mat-icon
               matBadge="&#8288;"
@@ -25,7 +25,7 @@
           }
         </div>
       </div>
-      <div [ngSwitch]="selectedPoint" class="col-md-8">
+      <div class="col-md-8">
         <h1
           class="mat-h1 mb-2"
           i18n="settings page title|Title of the settings page@@settings.title"
@@ -49,9 +49,8 @@
               public profile description|Description of public profile
               section@@settings.profile.description"
           >
-            You can edit your public profile here. The information on your
-            public profile can be seen by everyone, even unauthenticated
-            visitors.
+            Edit the details other people may see. Your profile access and
+            search settings determine who can view them.
           </span>
 
           @if (!ageAssurance.canParticipatePublicly()) {
@@ -64,7 +63,9 @@
           ></app-edit-profile>
           }
         </div>
-        <div *ngSwitchCase="'account'">
+        @switch (selectedPoint) {
+        @case ("account") {
+        <div>
           <h2
             class="mat-h2"
             i18n="account section header@@settings.account.header"
@@ -79,38 +80,118 @@
             deletion.
           </p>
 
-          <div class="my-4 p-3 rounded border">
-            <h3 class="mat-h3 m-0" i18n>Profile access</h3>
-            <p class="mat-body mt-2 mb-3" i18n>
-              Choose how follows work and who should see expanded profile
-              details as profile sections grow.
-            </p>
-            <div class="profile-access-grid">
-              <mat-form-field appearance="outline">
-                <mat-label i18n>Account privacy</mat-label>
-                <mat-select [(ngModel)]="accountPrivacy">
-                  <mat-option value="public" i18n>Public</mat-option>
-                  <mat-option value="private" i18n>Private</mat-option>
+          <div class="account-id-card my-4">
+            <div class="account-id-card__icon" aria-hidden="true">
+              <mat-icon>badge</mat-icon>
+            </div>
+            <div>
+              <h3 class="mat-title-medium m-0" i18n="@@settings.account.userId">
+                User ID
+              </h3>
+              <p
+                class="mat-body-small m-0"
+                i18n="@@settings.account.userIdDescription"
+              >
+                Your unique account identifier.
+              </p>
+              <code class="account-id-card__value">{{
+                authService.user.uid
+              }}</code>
+            </div>
+          </div>
+
+          <section class="profile-access-card">
+            <header class="profile-access-header">
+              <h3 class="mat-h3 m-0" i18n="@@settings.profileAccess.title">
+                Profile access
+              </h3>
+              <p class="mat-body m-0" i18n="@@settings.profileAccess.description">
+                One privacy setting controls who can see your expanded profile
+                and whether new followers need your approval.
+              </p>
+            </header>
+
+            <div class="profile-access-control">
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label i18n="@@settings.profileAccess.privacy">
+                  Profile privacy
+                </mat-label>
+                <mat-select
+                  [ngModel]="profilePrivacy"
+                  (ngModelChange)="setProfilePrivacy($event)"
+                >
+                  <mat-option
+                    value="public"
+                    [disabled]="!canSelectPublicProfile"
+                  >
+                    {{ publicProfilePrivacyLabel }}
+                  </mat-option>
+                  <mat-option value="private">
+                    {{ privateProfilePrivacyLabel }}
+                  </mat-option>
                 </mat-select>
-                <mat-hint i18n>
-                  Private accounts approve follow requests before someone can
-                  follow them.
-                </mat-hint>
               </mat-form-field>
 
-              <mat-form-field appearance="outline">
-                <mat-label i18n>Profile visibility</mat-label>
-                <mat-select [(ngModel)]="profileVisibility">
-                  <mat-option value="public" i18n>Public</mat-option>
-                  <mat-option value="followers" i18n>Followers</mat-option>
-                  <mat-option value="mutuals" i18n>Mutuals</mat-option>
-                </mat-select>
-                <mat-hint i18n>
-                  This prepares profile-only sections for audience controls.
-                </mat-hint>
-              </mat-form-field>
+              @if (profilePrivacy === "public") {
+                <p
+                  class="profile-access-help mat-body-small"
+                  i18n="@@settings.profileAccess.publicHelp"
+                >
+                  Anyone can view your expanded profile and follow you without
+                  approval.
+                </p>
+              } @else {
+                <p
+                  class="profile-access-help mat-body-small"
+                  i18n="@@settings.profileAccess.privateHelp"
+                >
+                  Only approved followers can view your expanded profile.
+                </p>
+              }
             </div>
+
+            <div class="profile-access-options">
+              <app-age-assurance-status-card />
+
+              <div class="profile-access-option">
+                <div>
+                  <h4 class="mat-title-medium m-0" i18n>
+                    Search engine discovery
+                  </h4>
+                  <p class="mat-body-small m-0 text-muted" i18n>
+                    Include this profile in PK Spot user search and public
+                    sitemaps. This is always off for children and profiles
+                    without independently checked adult eligibility.
+                  </p>
+                </div>
+                <mat-slide-toggle
+                  color="primary"
+                  [checked]="publicSearch"
+                  [disabled]="profilePrivacy !== 'public'"
+                  (change)="setPublicSearch($event.checked)"
+                  aria-label="Allow profile search indexing"
+                  i18n-aria-label
+                ></mat-slide-toggle>
+              </div>
+            </div>
+
+            @if (!ageAssurance.hasVerifiedAdultEligibility()) {
+              <div class="profile-access-eligibility">
+                <p
+                  class="mat-body-small m-0"
+                  i18n="@@settings.profileAccess.publicEligibility"
+                >
+                  Public profiles stay unavailable until the platform supplies
+                  an independently checked result establishing that this account
+                  is 18 or older. A self-declared age range is not enough.
+                </p>
+                <a mat-button routerLink="/contact" i18n>
+                  Report an incorrect age-assurance decision
+                </a>
+              </div>
+            }
             <button
+              class="profile-access-save"
               mat-flat-button
               color="primary"
               [disabled]="isSavingProfileAccess || !hasProfileAccessChanges"
@@ -119,10 +200,12 @@
               @if(isSavingProfileAccess) {
               <mat-spinner diameter="20" strokeWidth="2"></mat-spinner>
               } @else {
-              <span i18n>Save profile access</span>
+                <span i18n="@@settings.profileAccess.save"
+                  >Save profile access</span
+                >
               }
             </button>
-          </div>
+          </section>
 
           <div class="my-4 p-3 rounded border">
             <div class="d-flex justify-content-between align-items-center gap-3">
@@ -380,7 +463,9 @@
             }
           </div>
         </div>
-        <div *ngSwitchCase="'general'">
+        }
+        @case ("general") {
+        <div>
           <h2 class="mat-h2" i18n>General settings</h2>
           <h3 class="mat-body" i18n>
             General settings to tune your experience on PK Spot.
@@ -399,6 +484,82 @@
                 }}
               </span>
             </button>
+          </div>
+
+          <div class="my-4 p-3 rounded border">
+            <h3 class="mat-h3 m-0" i18n="@@settings.temperature.heading">
+              Temperature
+            </h3>
+            <p
+              class="mat-body mt-2 mb-3"
+              i18n="@@settings.temperature.description"
+            >
+              Use the local unit for each forecast, or always show Celsius or
+              Fahrenheit.
+            </p>
+            <mat-button-toggle-group
+              aria-label="Temperature unit"
+              i18n-aria-label="@@settings.temperature.aria_label"
+              [value]="accountPreferences.temperatureUnitPreference()"
+              (change)="setTemperatureUnit($event.value)"
+            >
+              <mat-button-toggle
+                value="local"
+                i18n="@@settings.temperature.local"
+              >
+                Local
+              </mat-button-toggle>
+              <mat-button-toggle
+                value="celsius"
+                i18n="@@settings.temperature.celsius"
+              >
+                Celsius (°C)
+              </mat-button-toggle>
+              <mat-button-toggle
+                value="fahrenheit"
+                i18n="@@settings.temperature.fahrenheit"
+              >
+                Fahrenheit (°F)
+              </mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
+
+          <div class="my-4 p-3 rounded border">
+            <h3 class="mat-h3 m-0" i18n="@@settings.time_format.heading">
+              Time format
+            </h3>
+            <p
+              class="mat-body mt-2 mb-3"
+              i18n="@@settings.time_format.description"
+            >
+              Choose automatically from your device and region, or always use
+              a 12-hour or 24-hour clock.
+            </p>
+            <mat-button-toggle-group
+              aria-label="Time format"
+              i18n-aria-label="@@settings.time_format.aria_label"
+              [value]="appSettings.timeFormat()"
+              (change)="appSettings.timeFormat.set($event.value)"
+            >
+              <mat-button-toggle
+                value="automatic"
+                i18n="@@settings.time_format.automatic"
+              >
+                Automatic
+              </mat-button-toggle>
+              <mat-button-toggle
+                value="12-hour"
+                i18n="@@settings.time_format.twelve_hour"
+              >
+                12-hour
+              </mat-button-toggle>
+              <mat-button-toggle
+                value="24-hour"
+                i18n="@@settings.time_format.twenty_four_hour"
+              >
+                24-hour
+              </mat-button-toggle>
+            </mat-button-toggle-group>
           </div>
 
           <div class="my-4">
@@ -472,7 +633,9 @@
           </div>
           -->
         </div>
-        <div *ngSwitchCase="'about'">
+        }
+        @case ("about") {
+        <div>
           <h2
             class="mat-h2"
             i18n="about section header@@settings.about.header"
@@ -597,9 +760,11 @@
             </p>
           </div>
         </div>
-        <div *ngSwitchCase="'notifications'">
-          <h2 class="mat-h2" i18n>Notifications</h2>
-        </div>
+        }
+        @case ("notifications") {
+        <app-notification-settings />
+        }
+        }
       </div>
     </div>
   </div>
