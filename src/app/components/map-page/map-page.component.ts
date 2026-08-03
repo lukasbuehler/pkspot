@@ -1287,7 +1287,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       kind: "event",
       event,
     });
-    this.openEventPath(event.slug ?? event.id, null);
+    void this.router.navigate(["/events", event.slug ?? event.id]);
   }
 
   /**

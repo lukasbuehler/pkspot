@@ -157,9 +157,15 @@ describe("Cloud Functions generation policy", () => {
       /export const updateAgePolicyV2 = onCall\(\s*\{ enforceAppCheck: true \}/u
     );
     expect(userSource).toContain("cryptographicallyBound: false");
+    expect(userSource).toContain(
+      'profileAccessFieldsForPrivacy("private", false)',
+    );
     expect(assuranceSource).toContain("enforceAppCheck: true");
     expect(assuranceSource).toContain("decodeAndVerifyPlayIntegrityToken");
     expect(assuranceSource).toContain("cryptographicallyBound: true");
+    expect(assuranceSource).toContain(
+      'profileAccessFieldsForPrivacy("private", false)',
+    );
   });
 
   it("requires App Check for cached OpenStreetMap amenity requests", () => {

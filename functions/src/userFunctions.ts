@@ -8,6 +8,7 @@ import {
   buildServerAgePolicy,
   sanitizeNativeAgeSignal,
 } from "./agePolicy";
+import {profileAccessFieldsForPrivacy} from "../../src/db/utils/profile-access";
 
 type AgeParticipationState =
   | "allowed"
@@ -143,8 +144,7 @@ export const updateAgePolicy = onCall(async (request) => {
         },
         signal_updated_at: admin.firestore.FieldValue.serverTimestamp(),
       },
-      public_profile_enabled: false,
-      public_search: false,
+      ...profileAccessFieldsForPrivacy("private", false),
     },
     { merge: true }
   );
@@ -201,8 +201,7 @@ export const updateAgePolicyV2 = onCall(
         ...(policy.adult_eligibility === "verified"
           ? {}
           : {
-              public_profile_enabled: false,
-              public_search: false,
+              ...profileAccessFieldsForPrivacy("private", false),
             }),
       },
       { merge: true }

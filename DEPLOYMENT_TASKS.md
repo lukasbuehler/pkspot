@@ -77,6 +77,21 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
+### Unified profile privacy
+
+Deploy the additive age-policy normalization before releasing the unified
+Public/Private profile control. Older clients continue to read the existing
+fields; the updated Functions only keep those fields aligned when adult public
+profile eligibility is absent or revoked.
+
+- [ ] Deploy `updateAgePolicy`, `updateAgePolicyV2`, `updateAgePolicyV3`, and
+      `invalidateAgeAssuranceApprovals` to `europe-west1`, then verify a
+      non-verified test account is written with `account_privacy: "private"`,
+      `profile_visibility: "followers"`, `public_profile_enabled: false`, and
+      `public_search: false`. Verify an independently approved 18+ account can
+      still save the unified Public choice and that a private profile creates a
+      follow request while a public profile creates follower edges immediately.
+
 ### Firebase JS SDK client migration
 
 No Firebase backend deployment, schema migration, rules change, or data backfill
@@ -130,11 +145,9 @@ live-update metadata.
       a non-production test event. Confirm the event page, event map, in-app
       notification, and push deep link all show the same resulting state.
 
-- [ ] Deploy `onEventNotificationSourceWrite`, `applyEventOperationalChange`,
-      `onEventLiveUpdateCreate`, and `sendDueNotificationIntents` with the
-      backend-normalization source guard, additive reschedule timing payload,
-      and FCM delivery diagnostics.
-      On a non-production event, trigger a server timing
+- [ ] Verify the deployed backend-normalization source guard, additive
+      reschedule timing payload, and FCM delivery diagnostics. On a
+      non-production event, trigger a server timing
       normalization and confirm reminder intents move without creating an
       `event_rescheduled` live update or attendee push. Then perform a genuine
       organizer reschedule and confirm it still creates exactly one update and
@@ -320,17 +333,13 @@ Keep these steps in order. The production `events_v1` schema is aligned with the
 repository schema, including optional location bounds and the new searchable
 presentation/type fields.
 
-- [ ] Before releasing 1.1.4, deploy the event-creation restriction:
-
-  ```sh
-  npx firebase deploy --project prod --only firestore:rules
-  ```
-
-  Success condition: a non-admin client write to `/events/{eventId}` is denied,
-  an administrator can still create a public event, and released clients can
-  still list and open `/events` and write their existing RSVP, registration, and
-  notification subcollections. This tightening is compatible with released
-  clients because event/session creation has not been exposed in those builds.
+- [ ] Verify the deployed event-creation restriction before releasing 1.1.4.
+      A non-admin client write to `/events/{eventId}` must be denied,
+      an administrator can still create a public event, and released clients can
+      still list and open `/events` and write their existing RSVP, registration,
+      and notification subcollections. This tightening is compatible with
+      released clients because event/session creation has not been exposed in
+      those builds.
 
 - [ ] Keep `legacyEventListCompatibilityEnabled()` enabled while supported
       released clients still list the canonical `/events` collection. During
@@ -420,18 +429,12 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
       the Play Integrity API is enabled in that Cloud project. The production
       Functions runtime service account must be able to obtain a
       `playintegrity`-scoped access token and call `decodeIntegrityToken`.
-- [ ] Build and deploy the additive App Check-protected challenge, verification,
-      invalidation, and challenge-cleanup Functions:
-
-  ```sh
-  npm --prefix functions run build
-  npx firebase deploy --project prod --only functions:updateAgePolicyV2,functions:beginAgeAssuranceV3,functions:updateAgePolicyV3,functions:invalidateAgeAssuranceApprovals,functions:cleanupAgeAssuranceChallenges
-  ```
-
-  Success condition: all Functions are in `europe-west1`; requests without
-  Firebase Auth and App Check are rejected; `updateAgePolicyV2` can update
-  participation state but never adult eligibility; and the scheduler deletes
-  expired one-time challenges without expiring assurance records.
+- [ ] Verify the deployed additive App Check-protected challenge, verification,
+      invalidation, and challenge-cleanup Functions. All Functions must be
+      active in `europe-west1`; requests without
+      Firebase Auth and App Check are rejected; `updateAgePolicyV2` can update
+      participation state but never adult eligibility; and the scheduler deletes
+      expired one-time challenges without expiring assurance records.
 - [ ] In Firebase App Check, confirm the production Android app uses Play
       Integrity and the production iOS app uses App Attest. Review metrics for
       invalid and unknown requests before the client release. App Check protects

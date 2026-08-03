@@ -9,6 +9,7 @@ interface RouteVisualCase {
   admin?: boolean;
   openFabMenu?: boolean;
   openInvalidEventsDialog?: boolean;
+  openProfilePrivacySelect?: boolean;
   invalidEventFixture?: boolean;
   expectedPath?: RegExp;
   fullPage?: boolean;
@@ -20,12 +21,17 @@ interface RouteVisualCase {
   fixedTime?: string;
   scrollToSelector?: string;
   assertCenteredProfile?: boolean;
+  assertAlainClearance?: {
+    axis: "block" | "inline";
+    target: string;
+  };
   ticketLayout?: "desktop" | "mobile";
 }
 
 const desktopViewport = { width: 1280, height: 900 };
 const eventHeaderViewport = { width: 1280, height: 640 };
 const mobileViewport = { width: 390, height: 844 };
+const alainMobileViewport = { width: 390, height: 680 };
 
 const routeVisualCases: RouteVisualCase[] = [
   { name: "map", path: "/map", maxDiffPixels: 80_000 },
@@ -64,6 +70,21 @@ const routeVisualCases: RouteVisualCase[] = [
     maxDiffPixels: 2_000,
     eventIndexFixture: true,
     fixedTime: "2026-07-20T12:00:00.000Z",
+  },
+  {
+    name: "events-alain",
+    path: "/events",
+    viewport: alainMobileViewport,
+    signedIn: true,
+    fullPage: true,
+    maxDiffPixels: 2_000,
+    eventIndexFixture: true,
+    liveEventFixture: true,
+    fixedTime: "2026-07-20T12:00:00.000Z",
+    assertAlainClearance: {
+      axis: "block",
+      target: "app-my-events-panel",
+    },
   },
   {
     name: "events-mobile-calendar",
@@ -127,6 +148,16 @@ const routeVisualCases: RouteVisualCase[] = [
     maxDiffPixels: 4_000,
   },
   {
+    name: "event-detail-alain",
+    path: "/events/swissjam25",
+    viewport: alainMobileViewport,
+    maxDiffPixels: 4_000,
+    assertAlainClearance: {
+      axis: "inline",
+      target: ".event-nav > a",
+    },
+  },
+  {
     name: "event-tickets",
     path: "/events/visual-ticket-event",
     eventIndexFixture: true,
@@ -167,6 +198,19 @@ const routeVisualCases: RouteVisualCase[] = [
     maxDiffPixels: 1_500,
   },
   {
+    name: "settings-account-alain",
+    path: "/settings/account",
+    viewport: alainMobileViewport,
+    signedIn: true,
+    scrollToSelector: ".profile-access-card",
+    openProfilePrivacySelect: true,
+    maxDiffPixels: 2_000,
+    assertAlainClearance: {
+      axis: "block",
+      target: ".profile-access-card",
+    },
+  },
+  {
     name: "settings-general",
     path: "/settings/general",
     signedIn: true,
@@ -202,6 +246,18 @@ const routeVisualCases: RouteVisualCase[] = [
     signedIn: true,
     fullPage: true,
     maxDiffPixels: 1_500,
+  },
+  {
+    name: "notifications-alain",
+    path: "/notifications",
+    viewport: alainMobileViewport,
+    signedIn: true,
+    fullPage: true,
+    maxDiffPixels: 1_500,
+    assertAlainClearance: {
+      axis: "block",
+      target: ".notification-center__header",
+    },
   },
   {
     name: "report-outcome",
@@ -320,6 +376,27 @@ test.describe("Route visual regression @visual", () => {
         expect(profileLayout.scrollWidth).toBeLessThanOrEqual(
           profileLayout.clientWidth,
         );
+      }
+
+      if (route.assertAlainClearance) {
+        const menuBounds = await page.locator("#alainMenuButton").boundingBox();
+        const targetBounds = await page
+          .locator(route.assertAlainClearance.target)
+          .boundingBox();
+        expect(menuBounds).not.toBeNull();
+        expect(targetBounds).not.toBeNull();
+        if (menuBounds && targetBounds) {
+          const gap = 8;
+          if (route.assertAlainClearance.axis === "block") {
+            expect(targetBounds.y).toBeGreaterThanOrEqual(
+              menuBounds.y + menuBounds.height + gap,
+            );
+          } else {
+            expect(targetBounds.x).toBeGreaterThanOrEqual(
+              menuBounds.x + menuBounds.width + gap,
+            );
+          }
+        }
       }
 
       await expect(page).toHaveScreenshot(`${route.name}-route.png`, {
@@ -877,6 +954,14 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
 
   if (route.scrollToSelector) {
     await page.locator(route.scrollToSelector).first().scrollIntoViewIfNeeded();
+  }
+
+  if (route.openProfilePrivacySelect) {
+    await page.locator(".profile-access-control mat-select").click();
+    const options = page.locator("mat-option");
+    await expect(options).toHaveCount(2);
+    await expect(options.nth(0)).toContainText("Öffentlich");
+    await expect(options.nth(1)).toContainText("Privat");
   }
 
   if (route.ticketLayout) {

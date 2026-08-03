@@ -432,12 +432,6 @@
         <target>Beschrijving</target>
       </segment>
     </unit>
-    <unit id="4914577418256256836">
-      <segment state="initial">
-        <source>Followers</source>
-        <target>Followers</target>
-      </segment>
-    </unit>
     <unit id="4915431133669985304">
       <segment state="initial">
         <source>Profile</source>
@@ -498,10 +492,10 @@
         <target>VK-koppeling</target>
       </segment>
     </unit>
-    <unit id="8928816882866356838">
+    <unit id="settings.profileAccess.public">
       <segment state="initial">
         <source>Public</source>
-        <target>Public</target>
+        <target>Openbaar</target>
       </segment>
     </unit>
     <unit id="8942517704279686805">
@@ -752,12 +746,6 @@
       <segment state="initial">
         <source>Organization review inbox</source>
         <target>Review-inbox van organisatie</target>
-      </segment>
-    </unit>
-    <unit id="5511174409504894413">
-      <segment state="initial">
-        <source> Private accounts cannot make expanded profile details public. </source>
-        <target> Privéaccounts kunnen uitgebreide profielgegevens niet openbaar maken. </target>
       </segment>
     </unit>
     <unit id="5516877052541003749">
@@ -2013,6 +2001,12 @@
         <target>Moderatie</target>
       </segment>
     </unit>
+    <unit id="my_events.close">
+      <segment state="initial">
+        <source>Close My Events</source>
+        <target>Mijn evenementen sluiten</target>
+      </segment>
+    </unit>
     <unit id="my_events.description">
       <segment state="initial">
         <source> Events you plan to attend or want to keep handy. </source>
@@ -2069,8 +2063,14 @@
     </unit>
     <unit id="my_events.title">
       <segment state="initial">
-        <source> My Events </source>
-        <target> Mijn evenementen </target>
+        <source>My Events</source>
+        <target>Mijn evenementen</target>
+      </segment>
+    </unit>
+    <unit id="my_events.view_all">
+      <segment state="initial">
+        <source>View all</source>
+        <target>Alles bekijken</target>
       </segment>
     </unit>
     <unit id="3502015908968636245">
@@ -3009,10 +3009,10 @@
         <target> Verplaats en schaal het bijsnijdgebied. Gebruik zo nodig vergroting of draaien. </target>
       </segment>
     </unit>
-    <unit id="3686284950598311784">
+    <unit id="settings.profileAccess.private">
       <segment state="initial">
         <source>Private</source>
-        <target>Private</target>
+        <target>Privé</target>
       </segment>
     </unit>
     <unit id="3689301942396726798">
@@ -3117,12 +3117,6 @@
       <segment state="initial">
         <source> Features and amenities </source>
         <target> Kenmerken en voorzieningen </target>
-      </segment>
-    </unit>
-    <unit id="8003539785959278093">
-      <segment state="initial">
-        <source> Public profile </source>
-        <target> Openbaar profiel </target>
       </segment>
     </unit>
     <unit id="8011758699583016596">
@@ -5648,10 +5642,34 @@
         <target>Media in quarantaine konden niet worden geladen</target>
       </segment>
     </unit>
-    <unit id="9196303788113228123">
+    <unit id="settings.profileAccess.description">
       <segment state="initial">
-        <source> Public and search-indexed profiles stay disabled until the platform supplies an independently checked result establishing that this account is 18 or older. A self-declared age range is not enough. </source>
-        <target> Openbare en door zoekmachines geïndexeerde profielen blijven uitgeschakeld totdat het platform een onafhankelijk gecontroleerd resultaat levert waaruit blijkt dat dit account 18 jaar of ouder is. Een zelf opgegeven leeftijdscategorie is niet voldoende. </target>
+        <source> One privacy setting controls who can see your expanded profile and whether new followers need your approval. </source>
+        <target> Eén privacy-instelling bepaalt wie je uitgebreide profiel kan zien en of nieuwe volgers jouw goedkeuring nodig hebben. </target>
+      </segment>
+    </unit>
+    <unit id="settings.profileAccess.privacy">
+      <segment state="initial">
+        <source> Profile privacy </source>
+        <target> Profielprivacy </target>
+      </segment>
+    </unit>
+    <unit id="settings.profileAccess.privateHelp">
+      <segment state="initial">
+        <source> Only approved followers can view your expanded profile. </source>
+        <target> Alleen goedgekeurde volgers kunnen je uitgebreide profiel zien. </target>
+      </segment>
+    </unit>
+    <unit id="settings.profileAccess.publicEligibility">
+      <segment state="initial">
+        <source> Public profiles stay unavailable until the platform supplies an independently checked result establishing that this account is 18 or older. A self-declared age range is not enough. </source>
+        <target> Openbare profielen blijven niet beschikbaar totdat het platform een onafhankelijk gecontroleerd resultaat levert waaruit blijkt dat dit account 18 jaar of ouder is. Een zelf opgegeven leeftijdscategorie is niet voldoende. </target>
+      </segment>
+    </unit>
+    <unit id="settings.profileAccess.publicHelp">
+      <segment state="initial">
+        <source> Anyone can view your expanded profile and follow you without approval. </source>
+        <target> Iedereen kan je uitgebreide profiel zien en je zonder goedkeuring volgen. </target>
       </segment>
     </unit>
     <unit id="9197546864520867301">
@@ -10092,12 +10110,6 @@
         <target>Remove person</target>
       </segment>
     </unit>
-    <unit id="5245523669438174557">
-      <segment state="initial">
-        <source>Make expanded profile public</source>
-        <target>Uitgebreid profiel openbaar maken</target>
-      </segment>
-    </unit>
     <unit id="5245603112373072943">
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Duplicate: This media is already present.</pc></source>
@@ -11052,12 +11064,6 @@
         <target>Even geduld terwijl we je e-mailadres verifiëren...</target>
       </segment>
     </unit>
-    <unit id="8178668155024622772">
-      <segment state="initial">
-        <source> Let signed-out visitors view your expanded profile. This requires an independently checked 18+ result, a public account, and public profile visibility. </source>
-        <target> Laat afgemelde bezoekers je uitgebreide profiel bekijken. Dit vereist een onafhankelijk gecontroleerd resultaat van 18 jaar of ouder, een openbaar account en openbare profielzichtbaarheid. </target>
-      </segment>
-    </unit>
     <unit id="5957587063470298128">
       <segment state="initial">
         <source> Verify now </source>
@@ -11122,12 +11128,6 @@
       <segment state="initial">
         <source>User ID</source>
         <target>Gebruikers-ID</target>
-      </segment>
-    </unit>
-    <unit id="2135214670546321857">
-      <segment state="initial">
-        <source> Private accounts approve follow requests before someone can follow them. </source>
-        <target> Private accounts approve follow requests before someone can follow them. </target>
       </segment>
     </unit>
     <unit id="2136736395651055980">
@@ -11468,12 +11468,6 @@
       <segment state="initial">
         <source> Frequently Asked Questions </source>
         <target> Veelgestelde Vragen </target>
-      </segment>
-    </unit>
-    <unit id="8326056696429051273">
-      <segment state="initial">
-        <source>Account privacy</source>
-        <target>Account privacy</target>
       </segment>
     </unit>
     <unit id="8333618256474808727">
@@ -12287,12 +12281,6 @@
         <target>Spot-waarschuwing publiceren</target>
       </segment>
     </unit>
-    <unit id="7529731886943932642">
-      <segment state="initial">
-        <source> Choose how follows work and who should see expanded profile details as profile sections grow. </source>
-        <target> Choose how follows work and who should see expanded profile details as profile sections grow. </target>
-      </segment>
-    </unit>
     <unit id="7536618650694716867">
       <segment state="initial">
         <source> Find answers to common questions or reach out to us directly. </source>
@@ -12645,12 +12633,6 @@
       <segment state="initial">
         <source>Filter by event series</source>
         <target>Filteren op evenementenreeks</target>
-      </segment>
-    </unit>
-    <unit id="3491250523952834442">
-      <segment state="initial">
-        <source>Mutuals</source>
-        <target>Mutuals</target>
       </segment>
     </unit>
     <unit id="3493126540529865490">
@@ -13664,22 +13646,16 @@
         <target>De melding wordt nog steeds direct verzonden.</target>
       </segment>
     </unit>
-    <unit id="6609600842422660590">
-      <segment state="initial">
-        <source>Profile visibility</source>
-        <target>Profile visibility</target>
-      </segment>
-    </unit>
     <unit id="661456983704424737">
       <segment state="initial">
         <source> Your report and identity are visible only to moderators. A moderator may publish a separate warning on the Spot without identifying you. </source>
         <target> Je melding en identiteit zijn alleen zichtbaar voor moderators. Een moderator kan een afzonderlijke waarschuwing bij de Spot publiceren zonder jou te identificeren. </target>
       </segment>
     </unit>
-    <unit id="6617774460788833577">
+    <unit id="settings.profileAccess.save">
       <segment state="initial">
         <source>Save profile access</source>
-        <target>Save profile access</target>
+        <target>Profieltoegang opslaan</target>
       </segment>
     </unit>
     <unit id="4681995929347025511">
@@ -14270,10 +14246,10 @@
         <target>Bezochte Spot kon niet worden bijgewerkt</target>
       </segment>
     </unit>
-    <unit id="1678413991696096733">
+    <unit id="settings.profileAccess.title">
       <segment state="initial">
-        <source>Profile access</source>
-        <target>Profile access</target>
+        <source> Profile access </source>
+        <target> Profieltoegang </target>
       </segment>
     </unit>
     <unit id="1697308124827757255">

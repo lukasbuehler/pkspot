@@ -144,6 +144,24 @@ describe("map event map items", () => {
     expect(markers[0].imageFit).toBe("cover");
   });
 
+  it("preserves the effective event logo background color", () => {
+    const markers = buildVisibleEventMarkers({
+      visibleEvents: [
+        eventStub({
+          id: "event-2",
+          effectiveBadgeLogoSrc: () => storageEventImageUrl,
+          effectiveBadgeLogoBackgroundColor: () => "#fefefe",
+        }),
+      ],
+      selectedEvent: null,
+      pendingEventRef: null,
+      mode: "events",
+      now,
+    });
+
+    expect(markers[0].imageBackgroundColor).toBe("#fefefe");
+  });
+
   it("builds area overlays from event bounds or polygon data", () => {
     const resolveColor = () => "rgb(1 2 3)";
     const boundsEvent = eventStub({

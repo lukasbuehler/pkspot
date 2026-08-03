@@ -6,36 +6,32 @@ import {
   input,
   linkedSignal,
 } from "@angular/core";
+import { MatButton } from "@angular/material/button";
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
+import { MatDialog } from "@angular/material/dialog";
 import { MatIconModule } from "@angular/material/icon";
-import { RouterLink } from "@angular/router";
 import { Event as PkEvent } from "../../../db/models/Event";
-import { DateTimeFormatService } from "../../services/date-time-format.service";
+import { MyEventListComponent } from "./my-event-list.component";
 import {
-  eventImageDisplaySrc,
-  eventScheduleLabel,
-} from "../event-display/event-display.helpers";
-
-type MyEventsTab = "going" | "saved" | "past";
-
-interface MyEventRow {
-  event: PkEvent;
-  logoBackgroundColor?: string;
-  logoFit: "contain" | "cover";
-  logoSrc?: string;
-  route: readonly string[];
-  schedule: string;
-}
+  MY_EVENTS_DIALOG_CONFIG,
+  MyEventsDialogComponent,
+} from "./my-events-dialog.component";
+import type { MyEventsTab } from "./my-events.types";
 
 @Component({
   selector: "app-my-events-panel",
-  imports: [MatButtonToggleModule, MatIconModule, RouterLink],
+  imports: [
+    MatButton,
+    MatButtonToggleModule,
+    MatIconModule,
+    MyEventListComponent,
+  ],
   templateUrl: "./my-events-panel.component.html",
   styleUrl: "./my-events-panel.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MyEventsPanelComponent {
-  private readonly _dateTime = inject(DateTimeFormatService);
+  private readonly _dialog = inject(MatDialog);
 
   readonly goingEvents = input<readonly PkEvent[]>([]);
   readonly savedEvents = input<readonly PkEvent[]>([]);
@@ -72,19 +68,26 @@ export class MyEventsPanelComponent {
       return source.past > 0 ? "past" : "saved";
     },
   });
-  readonly rows = computed<MyEventRow[]>(() => {
-    const events = {
-      going: this.goingEvents(),
-      saved: this.upcomingSavedEvents(),
-      past: this.pastSavedEvents(),
-    }[this.selectedTab()];
-    return events.map((event) => ({
-      event,
-      logoBackgroundColor: event.effectiveBadgeLogoBackgroundColor(),
-      logoFit: event.effectiveBadgeLogoFit(),
-      logoSrc: eventImageDisplaySrc(event.effectiveBadgeLogoSrc()),
-      route: ["/events", event.slug ?? event.id],
-      schedule: eventScheduleLabel(event, this._dateTime, "short"),
-    }));
-  });
+  readonly selectedEvents = computed(
+    () =>
+      ({
+        going: this.goingEvents(),
+        saved: this.upcomingSavedEvents(),
+        past: this.pastSavedEvents(),
+      })[this.selectedTab()],
+  );
+  readonly previewEvents = computed(() => this.selectedEvents().slice(0, 3));
+  readonly hasMoreEvents = computed(() => this.selectedEvents().length > 3);
+
+  openAllEvents(): void {
+    this._dialog.open(MyEventsDialogComponent, {
+      ...MY_EVENTS_DIALOG_CONFIG,
+      data: {
+        goingEvents: this.goingEvents(),
+        savedEvents: this.upcomingSavedEvents(),
+        pastEvents: this.pastSavedEvents(),
+        initialTab: this.selectedTab(),
+      },
+    });
+  }
 }

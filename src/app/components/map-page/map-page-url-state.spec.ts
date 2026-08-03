@@ -24,14 +24,16 @@ describe("MapPageComponent URL-driven panel state", () => {
     expect(method).not.toContain("this.openEventPath");
   });
 
-  it("opens event island clicks through the event URL helper", () => {
+  it("opens event island clicks on canonical full event pages", () => {
     const source = readFileSync(componentPath, "utf8");
     const method = source.match(
       /onIslandOpenEvent\([\s\S]*?\n  \}/
     )?.[0];
 
-    expect(method).toContain("this.openEventPath(event.slug ?? event.id, null)");
-    expect(method).not.toContain("this.openEventPreview(event)");
+    expect(method).toContain(
+      'void this.router.navigate(["/events", event.slug ?? event.id])'
+    );
+    expect(method).not.toContain("this.openEventPath");
   });
 
   it("makes the event island body open the event while keeping dismiss isolated", () => {

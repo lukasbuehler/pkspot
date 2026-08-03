@@ -1,10 +1,13 @@
+import { readFileSync } from "node:fs";
 import { TestBed } from "@angular/core/testing";
+import { MatDialog } from "@angular/material/dialog";
 import { By } from "@angular/platform-browser";
 import { provideRouter } from "@angular/router";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Event as PkEvent } from "../../../db/models/Event";
 import type { EventId, EventSchema } from "../../../db/schemas/EventSchema";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
+import { MyEventsDialogComponent } from "./my-events-dialog.component";
 import { MyEventsPanelComponent } from "./my-events-panel.component";
 
 const buildEvent = (
@@ -23,6 +26,7 @@ const buildEvent = (
 
 describe("MyEventsPanelComponent", () => {
   function createComponent(event: PkEvent) {
+    const dialog = { open: vi.fn() };
     TestBed.configureTestingModule({
       imports: [MyEventsPanelComponent],
       providers: [
@@ -31,15 +35,16 @@ describe("MyEventsPanelComponent", () => {
           provide: DateTimeFormatService,
           useValue: { formatDateRange: () => "05.–09.08.26" },
         },
+        { provide: MatDialog, useValue: dialog },
       ],
     });
     const fixture = TestBed.createComponent(MyEventsPanelComponent);
     fixture.componentRef.setInput("goingEvents", [event]);
-    return fixture;
+    return { dialog, fixture };
   }
 
   it("shows the event badge logo when one is available", async () => {
-    const fixture = createComponent(
+    const { fixture } = createComponent(
       buildEvent({
         logo_src: "https://example.com/wpf-camp.png",
         logo_fit: "cover",
@@ -62,7 +67,7 @@ describe("MyEventsPanelComponent", () => {
   });
 
   it("falls back to the event glyph when no badge logo is available", async () => {
-    const fixture = createComponent(buildEvent());
+    const { fixture } = createComponent(buildEvent());
 
     await fixture.whenStable();
 
@@ -85,7 +90,7 @@ describe("MyEventsPanelComponent", () => {
       },
       "past-event",
     );
-    const fixture = createComponent(upcoming);
+    const { fixture } = createComponent(upcoming);
     fixture.componentRef.setInput("goingEvents", []);
     fixture.componentRef.setInput("savedEvents", [upcoming, past]);
     fixture.componentRef.setInput("now", now);
@@ -93,9 +98,9 @@ describe("MyEventsPanelComponent", () => {
     await fixture.whenStable();
 
     expect(fixture.componentInstance.selectedTab()).toBe("saved");
-    expect(fixture.componentInstance.rows().map(({ event }) => event.id)).toEqual([
-      "upcoming-event",
-    ]);
+    expect(fixture.componentInstance.selectedEvents().map(({ id }) => id)).toEqual(
+      ["upcoming-event"],
+    );
     expect(
       fixture.debugElement.query(By.css('mat-button-toggle[value="saved"]'))
         .nativeElement.textContent,
@@ -113,11 +118,73 @@ describe("MyEventsPanelComponent", () => {
     await fixture.whenStable();
 
     expect(fixture.componentInstance.selectedTab()).toBe("past");
-    expect(fixture.componentInstance.rows().map(({ event }) => event.id)).toEqual([
-      "past-event",
-    ]);
+    expect(fixture.componentInstance.selectedEvents().map(({ id }) => id)).toEqual(
+      ["past-event"],
+    );
     expect(fixture.nativeElement.textContent).toContain(
       "British Parkour Championships",
     );
+  });
+
+  it("previews three events and opens the complete selected list", async () => {
+    const events = Array.from({ length: 5 }, (_, index) =>
+      buildEvent(
+        {
+          name: `Saved event ${index + 1}`,
+          slug: `saved-event-${index + 1}`,
+        },
+        `saved-event-${index + 1}`,
+      ),
+    );
+    const { dialog, fixture } = createComponent(events[0]);
+    fixture.componentRef.setInput("goingEvents", []);
+    fixture.componentRef.setInput("savedEvents", events);
+
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.previewEvents()).toHaveLength(3);
+    expect(fixture.debugElement.queryAll(By.css(".my-event-row"))).toHaveLength(
+      3,
+    );
+    const viewAll = fixture.debugElement.query(
+      By.css(".my-events-more button"),
+    );
+    expect(viewAll.nativeElement.textContent).toContain("View all");
+    expect(viewAll.nativeElement.textContent).toContain("(5)");
+
+    (viewAll.nativeElement as HTMLButtonElement).click();
+
+    expect(dialog.open).toHaveBeenCalledOnce();
+    expect(dialog.open).toHaveBeenCalledWith(
+      MyEventsDialogComponent,
+      expect.objectContaining({
+        data: expect.objectContaining({
+          initialTab: "saved",
+          savedEvents: events,
+        }),
+      }),
+    );
+  });
+
+  it("keeps the saved label truncatable without clipping its count", () => {
+    const componentRoot = "src/app/components/my-events-panel";
+    const sharedStyles = readFileSync(
+      `${componentRoot}/_my-events-tabs.scss`,
+      "utf8",
+    );
+    const panelTemplate = readFileSync(
+      `${componentRoot}/my-events-panel.component.html`,
+      "utf8",
+    );
+    const dialogTemplate = readFileSync(
+      `${componentRoot}/my-events-dialog.component.html`,
+      "utf8",
+    );
+
+    expect(sharedStyles).toContain("text-overflow: ellipsis");
+    expect(sharedStyles).toContain(".tab-count");
+    expect(sharedStyles).toContain("flex: 0 0 auto");
+    expect(panelTemplate).toContain('class="tab-label"');
+    expect(dialogTemplate).toContain('class="tab-label"');
   });
 });

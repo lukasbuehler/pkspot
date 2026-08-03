@@ -8,6 +8,7 @@ import {
   sanitizeNativeAgeSignal,
 } from "./agePolicy";
 import {decodeAndVerifyPlayIntegrityToken} from "./playIntegrity";
+import {profileAccessFieldsForPrivacy} from "../../src/db/utils/profile-access";
 
 const ANDROID_APP_ID =
   "1:294969617102:android:7dc490ae0f078f00313e9f";
@@ -253,8 +254,7 @@ export const updateAgePolicyV3 = onCall(
           ...(policy.adult_eligibility === "verified" ?
             {} :
             {
-              public_profile_enabled: false,
-              public_search: false,
+              ...profileAccessFieldsForPrivacy("private", false),
             }),
         },
         {merge: true}
@@ -347,8 +347,7 @@ const revokeAssuranceDocuments = async (
             approval_basis: admin.firestore.FieldValue.delete(),
           },
         },
-        public_profile_enabled: false,
-        public_search: false,
+        ...profileAccessFieldsForPrivacy("private", false),
       },
       {merge: true}
     );

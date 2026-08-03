@@ -1,3 +1,7 @@
+@use "./my-events-tabs" as tabs;
+
+@include tabs.constrained-labels;
+
 :host {
   display: block;
 }
@@ -18,8 +22,6 @@
 }
 
 .my-events-heading p,
-.my-event-row .mat-body-small,
-.my-events-empty,
 .device-note {
   color: var(--mat-sys-on-surface-variant);
 }
@@ -57,74 +59,10 @@
   font-variant-numeric: tabular-nums;
 }
 
-.my-events-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
-  gap: 0.625rem;
-}
-
-.my-event-row {
+.my-events-more {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-width: 0;
-  padding: 1rem;
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 18px;
-  background: var(--mat-sys-surface-container-low);
-  color: var(--mat-sys-on-surface);
-  text-decoration: none;
-}
-
-.my-event-row:hover,
-.my-event-row:focus-visible {
-  border-color: var(--mat-sys-primary);
-  background: var(--mat-sys-surface-container);
-}
-
-.my-event-row:focus-visible {
-  outline: 2px solid var(--mat-sys-primary);
-  outline-offset: 2px;
-}
-
-.my-event-icon {
-  display: grid;
-  flex: 0 0 56px;
-  width: 56px;
-  height: 56px;
-  place-items: center;
-  overflow: hidden;
-  border-radius: calc((2rem - 18px) / 2);
-  background: var(--mat-sys-primary-container);
-  color: var(--mat-sys-on-primary-container);
-}
-
-.my-event-icon mat-icon {
-  width: 28px;
-  height: 28px;
-  font-size: 28px;
-}
-
-.my-event-icon img {
-  width: 100%;
-  height: 100%;
-}
-
-.my-event-copy {
-  display: grid;
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.my-event-copy strong {
-  overflow-wrap: anywhere;
-}
-
-.my-events-empty {
-  margin: 0;
-  padding: 0.875rem 1rem;
-  border: 1px dashed var(--mat-sys-outline-variant);
-  border-radius: 14px;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
 }
 
 .device-note {
@@ -138,4 +76,16 @@
   width: 18px;
   height: 18px;
   font-size: 18px;
+}
+
+@media (max-width: 599.98px) {
+  .my-events-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .my-events-tabs mat-icon {
+    display: none;
+  }
 }

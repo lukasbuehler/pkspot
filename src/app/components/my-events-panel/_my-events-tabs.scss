@@ -1,0 +1,34 @@
+@mixin constrained-labels {
+  .my-events-tabs {
+    max-width: 100%;
+  }
+
+  .my-events-tabs mat-button-toggle {
+    min-width: 0;
+  }
+
+  :host ::ng-deep .my-events-tabs .mat-button-toggle-button,
+  :host ::ng-deep .my-events-tabs .mat-button-toggle-label-content {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .tab-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .tab-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tab-count {
+    flex: 0 0 auto;
+  }
+}

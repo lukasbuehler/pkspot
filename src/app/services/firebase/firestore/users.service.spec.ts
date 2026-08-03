@@ -62,6 +62,20 @@ describe("UsersService", () => {
       .__PKSPOT_SCREENSHOT_USER_PROFILES__;
   });
 
+  it("creates new accounts with one consistent private profile choice", async () => {
+    await service.addUser("new-user", "New Traceur", {});
+
+    expect(adapter.setDocument).toHaveBeenCalledWith(
+      "users/new-user",
+      expect.objectContaining({
+        account_privacy: "private",
+        profile_visibility: "followers",
+        public_profile_enabled: false,
+        public_search: false,
+      }),
+    );
+  });
+
   it("uses the deterministic screenshot profile without reading Firestore", async () => {
     (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_USER_PROFILES__ = {
       "visual-user": {

@@ -1,0 +1,54 @@
+<header class="dialog-header">
+  <div class="dialog-title-row">
+    <h2 mat-dialog-title i18n="@@my_events.title">My Events</h2>
+    <button
+      type="button"
+      mat-icon-button
+      mat-dialog-close
+      aria-label="Close My Events"
+      i18n-aria-label="@@my_events.close"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-button-toggle-group
+    class="my-events-tabs"
+    aria-label="My event list"
+    i18n-aria-label="@@my_events.tabs_aria"
+    [value]="selectedTab()"
+    [hideSingleSelectionIndicator]="true"
+    (change)="selectedTab.set($event.value)"
+  >
+    <mat-button-toggle value="going">
+      <span class="tab-content">
+        <mat-icon>check_circle</mat-icon>
+        <span i18n="@@my_events.going">Going</span>
+        <span class="tab-count">{{ data.goingEvents.length }}</span>
+      </span>
+    </mat-button-toggle>
+    <mat-button-toggle value="saved">
+      <span class="tab-content">
+        <mat-icon>bookmark</mat-icon>
+        <span class="tab-label" i18n="@@my_events.saved">Saved</span>
+        <span class="tab-count">{{ data.savedEvents.length }}</span>
+      </span>
+    </mat-button-toggle>
+    <mat-button-toggle value="past">
+      <span class="tab-content">
+        <mat-icon>history</mat-icon>
+        <span i18n="@@my_events.past">Past</span>
+        <span class="tab-count">{{ data.pastEvents.length }}</span>
+      </span>
+    </mat-button-toggle>
+  </mat-button-toggle-group>
+</header>
+
+<mat-dialog-content>
+  <app-my-event-list
+    [events]="selectedEvents()"
+    [emptyTab]="selectedTab()"
+    [singleColumn]="true"
+    (eventSelected)="closeAfterSelection()"
+  />
+</mat-dialog-content>

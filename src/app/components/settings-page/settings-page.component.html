@@ -1,5 +1,5 @@
 <div class="settings-page-container">
-  <div class="container p-4">
+  <div class="container settings-page-content">
     <div class="row">
       <div class="col-md-4">
         <div class="menu d-flex flex-column rounded border mb-5">
@@ -100,78 +100,60 @@
             </div>
           </div>
 
-          <div class="my-4 p-3 rounded border">
-            <h3 class="mat-h3 m-0" i18n>Profile access</h3>
-            <p class="mat-body mt-2 mb-3" i18n>
-              Choose how follows work and who should see expanded profile
-              details as profile sections grow.
-            </p>
-            <div class="profile-access-grid">
-              <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-label i18n>Account privacy</mat-label>
-                <mat-select
-                  [ngModel]="accountPrivacy"
-                  (ngModelChange)="setAccountPrivacy($event)"
-                >
-                  <mat-option value="public" i18n>Public</mat-option>
-                  <mat-option value="private" i18n>Private</mat-option>
-                </mat-select>
-                <mat-hint i18n>
-                  Private accounts approve follow requests before someone can
-                  follow them.
-                </mat-hint>
-              </mat-form-field>
+          <section class="profile-access-card">
+            <header class="profile-access-header">
+              <h3 class="mat-h3 m-0" i18n="@@settings.profileAccess.title">
+                Profile access
+              </h3>
+              <p class="mat-body m-0" i18n="@@settings.profileAccess.description">
+                One privacy setting controls who can see your expanded profile
+                and whether new followers need your approval.
+              </p>
+            </header>
 
+            <div class="profile-access-control">
               <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-label i18n>Profile visibility</mat-label>
+                <mat-label i18n="@@settings.profileAccess.privacy">
+                  Profile privacy
+                </mat-label>
                 <mat-select
-                  [ngModel]="profileVisibility"
-                  (ngModelChange)="setProfileVisibility($event)"
+                  [ngModel]="profilePrivacy"
+                  (ngModelChange)="setProfilePrivacy($event)"
                 >
                   <mat-option
                     value="public"
-                    [disabled]="accountPrivacy === 'private'"
-                    i18n
-                    >Public</mat-option
+                    [disabled]="!canSelectPublicProfile"
                   >
-                  <mat-option value="followers" i18n>Followers</mat-option>
-                  <mat-option value="mutuals" i18n>Mutuals</mat-option>
+                    {{ publicProfilePrivacyLabel }}
+                  </mat-option>
+                  <mat-option value="private">
+                    {{ privateProfilePrivacyLabel }}
+                  </mat-option>
                 </mat-select>
-                <mat-hint i18n>
-                  Private accounts cannot make expanded profile details public.
-                </mat-hint>
               </mat-form-field>
+
+              @if (profilePrivacy === "public") {
+                <p
+                  class="profile-access-help mat-body-small"
+                  i18n="@@settings.profileAccess.publicHelp"
+                >
+                  Anyone can view your expanded profile and follow you without
+                  approval.
+                </p>
+              } @else {
+                <p
+                  class="profile-access-help mat-body-small"
+                  i18n="@@settings.profileAccess.privateHelp"
+                >
+                  Only approved followers can view your expanded profile.
+                </p>
+              }
             </div>
 
-            <div class="d-grid gap-3 mb-4">
+            <div class="profile-access-options">
               <app-age-assurance-status-card />
 
-              <div
-                class="d-flex justify-content-between align-items-start gap-3"
-              >
-                <div>
-                  <h4 class="mat-title-medium m-0" i18n>
-                    Public profile
-                  </h4>
-                  <p class="mat-body-small m-0 text-muted" i18n>
-                    Let signed-out visitors view your expanded profile. This
-                    requires an independently checked 18+ result, a public
-                    account, and public profile visibility.
-                  </p>
-                </div>
-                <mat-slide-toggle
-                  color="primary"
-                  [checked]="publicProfileEnabled"
-                  [disabled]="!canEnablePublicProfile"
-                  (change)="setPublicProfileEnabled($event.checked)"
-                  aria-label="Make expanded profile public"
-                  i18n-aria-label
-                ></mat-slide-toggle>
-              </div>
-
-              <div
-                class="d-flex justify-content-between align-items-start gap-3"
-              >
+              <div class="profile-access-option">
                 <div>
                   <h4 class="mat-title-medium m-0" i18n>
                     Search engine discovery
@@ -185,7 +167,7 @@
                 <mat-slide-toggle
                   color="primary"
                   [checked]="publicSearch"
-                  [disabled]="!publicProfileEnabled"
+                  [disabled]="profilePrivacy !== 'public'"
                   (change)="setPublicSearch($event.checked)"
                   aria-label="Allow profile search indexing"
                   i18n-aria-label
@@ -194,21 +176,22 @@
             </div>
 
             @if (!ageAssurance.hasVerifiedAdultEligibility()) {
-              <p class="mat-body-small text-muted" i18n>
-                Public and search-indexed profiles stay disabled until the
-                platform supplies an independently checked result establishing
-                that this account is 18 or older. A self-declared age range is
-                not enough.
-              </p>
-              <a
-                mat-button
-                routerLink="/contact"
-                i18n
-              >
-                Report an incorrect age-assurance decision
-              </a>
+              <div class="profile-access-eligibility">
+                <p
+                  class="mat-body-small m-0"
+                  i18n="@@settings.profileAccess.publicEligibility"
+                >
+                  Public profiles stay unavailable until the platform supplies
+                  an independently checked result establishing that this account
+                  is 18 or older. A self-declared age range is not enough.
+                </p>
+                <a mat-button routerLink="/contact" i18n>
+                  Report an incorrect age-assurance decision
+                </a>
+              </div>
             }
             <button
+              class="profile-access-save"
               mat-flat-button
               color="primary"
               [disabled]="isSavingProfileAccess || !hasProfileAccessChanges"
@@ -217,10 +200,12 @@
               @if(isSavingProfileAccess) {
               <mat-spinner diameter="20" strokeWidth="2"></mat-spinner>
               } @else {
-              <span i18n>Save profile access</span>
+                <span i18n="@@settings.profileAccess.save"
+                  >Save profile access</span
+                >
               }
             </button>
-          </div>
+          </section>
 
           <div class="my-4 p-3 rounded border">
             <div class="d-flex justify-content-between align-items-center gap-3">

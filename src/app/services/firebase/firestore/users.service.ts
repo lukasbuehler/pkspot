@@ -38,6 +38,8 @@ export class UsersService extends ConsentAwareService {
     const schema: UserSchema = {
       display_name: display_name,
       verified_email: false,
+      account_privacy: "private",
+      profile_visibility: "followers",
       public_profile_enabled: false,
       public_search: false,
       ...data,

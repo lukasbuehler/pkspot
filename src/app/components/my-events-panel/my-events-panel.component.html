@@ -25,68 +25,40 @@
     (change)="selectedTab.set($event.value)"
   >
     <mat-button-toggle value="going">
-      <mat-icon>check_circle</mat-icon>
-      <span i18n="@@my_events.going">Going</span>
-      <span class="tab-count">{{ goingEvents().length }}</span>
+      <span class="tab-content">
+        <mat-icon>check_circle</mat-icon>
+        <span i18n="@@my_events.going">Going</span>
+        <span class="tab-count">{{ goingEvents().length }}</span>
+      </span>
     </mat-button-toggle>
     <mat-button-toggle value="saved">
-      <mat-icon>bookmark</mat-icon>
-      <span i18n="@@my_events.saved">Saved</span>
-      <span class="tab-count">{{ upcomingSavedEvents().length }}</span>
+      <span class="tab-content">
+        <mat-icon>bookmark</mat-icon>
+        <span class="tab-label" i18n="@@my_events.saved">Saved</span>
+        <span class="tab-count">{{ upcomingSavedEvents().length }}</span>
+      </span>
     </mat-button-toggle>
     <mat-button-toggle value="past">
-      <mat-icon>history</mat-icon>
-      <span i18n="@@my_events.past">Past</span>
-      <span class="tab-count">{{ pastSavedEvents().length }}</span>
+      <span class="tab-content">
+        <mat-icon>history</mat-icon>
+        <span i18n="@@my_events.past">Past</span>
+        <span class="tab-count">{{ pastSavedEvents().length }}</span>
+      </span>
     </mat-button-toggle>
   </mat-button-toggle-group>
 
-  @if (rows().length > 0) {
-    <div class="my-events-list">
-      @for (row of rows(); track row.event.id) {
-        <a class="my-event-row" [routerLink]="row.route">
-          <span
-            class="my-event-icon"
-            aria-hidden="true"
-            [style.background-color]="row.logoBackgroundColor ?? null"
-          >
-            @if (row.logoSrc; as logoSrc) {
-              <img [src]="logoSrc" [style.object-fit]="row.logoFit" alt="" />
-            } @else {
-              <mat-icon>event</mat-icon>
-            }
-          </span>
-          <span class="my-event-copy">
-            <strong class="mat-title-medium text-truncate">{{
-              row.event.name
-            }}</strong>
-            <span class="mat-body-small">{{ row.schedule }}</span>
-            @if (row.event.venueString || row.event.localityString) {
-              <span class="mat-body-small">
-                {{ row.event.venueString || row.event.localityString }}
-              </span>
-            }
-          </span>
-          <mat-icon aria-hidden="true">chevron_right</mat-icon>
-        </a>
-      }
+  <app-my-event-list
+    [events]="previewEvents()"
+    [emptyTab]="selectedTab()"
+  />
+
+  @if (hasMoreEvents()) {
+    <div class="my-events-more">
+      <button mat-button type="button" (click)="openAllEvents()">
+        <span i18n="@@my_events.view_all">View all</span>
+        <span>&nbsp;({{ selectedEvents().length }})</span>
+      </button>
     </div>
-  } @else {
-    <p class="my-events-empty mat-body-medium">
-      @if (selectedTab() === "going") {
-        <span i18n="@@my_events.going_empty">
-          Events you mark as going will appear here.
-        </span>
-      } @else if (selectedTab() === "saved") {
-        <span i18n="@@my_events.saved_empty">
-          Save an event to find it here later.
-        </span>
-      } @else {
-        <span i18n="@@my_events.past_empty">
-          Saved events will appear here after they end.
-        </span>
-      }
-    </p>
   }
 
   @if (!signedIn() && savedEvents().length > 0) {

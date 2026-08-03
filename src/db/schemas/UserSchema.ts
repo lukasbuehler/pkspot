@@ -166,8 +166,9 @@ export interface UserSchema {
   account_privacy?: UserAccountPrivacy;
   profile_visibility?: UserProfileVisibility;
   /**
-   * Explicit adult-only opt-in for making the expanded profile available to
-   * unauthenticated visitors. This is separate from account follow privacy.
+   * Legacy-compatible projection of the unified profile privacy choice.
+   * Current clients keep this aligned with account_privacy and
+   * profile_visibility; it remains explicit for older clients and server rules.
    */
   public_profile_enabled?: boolean;
   /**

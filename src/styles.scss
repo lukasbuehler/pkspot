@@ -104,10 +104,24 @@ body:has(mat-toolbar.native-platform) {
   --nav-bar-height: calc(80px + var(--bottom-nav-safe-area, 0px));
 }
 
-// When alain mode is active (presence of #alainMenuButton), there's no bottom nav bar
-// so set the nav bar height to 0 to allow the map to extend to the bottom
+// Alain mode replaces the bottom navigation with a floating menu button. Expose
+// its occupied start edges so pages can opt into the axis that matches their
+// layout without coupling themselves to AppComponent's responsive state.
 body:has(#alainMenuButton) {
   --nav-bar-height: 0px;
+  --alain-menu-block-start-clearance: calc(
+    var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 80px
+  );
+  --alain-menu-inline-start-clearance: calc(
+    var(--safe-area-inset-left, env(safe-area-inset-left, 0px)) + 80px
+  );
+
+  @media (max-width: 1099.98px) {
+    app-event-info-page .event-info-page:not(.embedded) .event-nav {
+      box-sizing: border-box;
+      padding-inline-start: var(--alain-menu-inline-start-clearance);
+    }
+  }
 }
 
 // Removes blue google maps iframe border

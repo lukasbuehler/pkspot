@@ -1126,6 +1126,8 @@ describe("SearchService", () => {
                   name: "Visible Event",
                   venue_string: "Visible venue",
                   locality_string: "Zurich",
+                  logo_src: "assets/events/visible-event.png",
+                  logo_background_color: "#fefefe",
                   start_seconds: 1_800_000_000,
                   end_seconds: 1_800_086_400,
                   location: [47.395, 8.545],
@@ -1159,9 +1161,13 @@ describe("SearchService", () => {
       expect(searches[1].include_fields).toContain("banner_fit");
       expect(searches[1].include_fields).toContain("banner_accent_color");
       expect(searches[1].include_fields).toContain("logo_fit");
+      expect(searches[1].include_fields.split(",")).toContain(
+        "logo_background_color",
+      );
       expect(searches[1].include_fields).toContain("sponsor.logo_fit");
       expect(searches[1].per_page).toBe(250);
       expect(events.map((event) => event.id)).toEqual(["visible-event"]);
+      expect(events[0].effectiveBadgeLogoBackgroundColor()).toBe("#fefefe");
 
       expect(searches[2].collection).toBe("events_v1");
       expect(searches[2].filter_by).toContain("promo_radius_m:>0");

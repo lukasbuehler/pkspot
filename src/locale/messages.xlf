@@ -942,11 +942,6 @@
         <source>Please wait while we verify your email address...</source>
       </segment>
     </unit>
-    <unit id="8178668155024622772">
-      <segment>
-        <source> Let signed-out visitors view your expanded profile. This requires an independently checked 18+ result, a public account, and public profile visibility. </source>
-      </segment>
-    </unit>
     <unit id="1370851403138688256">
       <segment>
         <source>Email Verified!</source>
@@ -1160,11 +1155,6 @@
     <unit id="5510291204960492499">
       <segment>
         <source>Organization review inbox</source>
-      </segment>
-    </unit>
-    <unit id="5511174409504894413">
-      <segment>
-        <source> Private accounts cannot make expanded profile details public. </source>
       </segment>
     </unit>
     <unit id="5516877052541003749">
@@ -1464,11 +1454,6 @@
     <unit id="4902817035128594900">
       <segment>
         <source>Description</source>
-      </segment>
-    </unit>
-    <unit id="4914577418256256836">
-      <segment>
-        <source>Followers</source>
       </segment>
     </unit>
     <unit id="4915431133669985304">
@@ -5945,9 +5930,9 @@
         <source>Failed to update visited spot</source>
       </segment>
     </unit>
-    <unit id="1678413991696096733">
+    <unit id="settings.profileAccess.title">
       <segment>
-        <source>Profile access</source>
+        <source> Profile access </source>
       </segment>
     </unit>
     <unit id="1697308124827757255">
@@ -6045,9 +6030,29 @@
         <source>Failed to load quarantined media</source>
       </segment>
     </unit>
-    <unit id="9196303788113228123">
+    <unit id="settings.profileAccess.description">
       <segment>
-        <source> Public and search-indexed profiles stay disabled until the platform supplies an independently checked result establishing that this account is 18 or older. A self-declared age range is not enough. </source>
+        <source> One privacy setting controls who can see your expanded profile and whether new followers need your approval. </source>
+      </segment>
+    </unit>
+    <unit id="settings.profileAccess.privacy">
+      <segment>
+        <source> Profile privacy </source>
+      </segment>
+    </unit>
+    <unit id="settings.profileAccess.privateHelp">
+      <segment>
+        <source> Only approved followers can view your expanded profile. </source>
+      </segment>
+    </unit>
+    <unit id="settings.profileAccess.publicEligibility">
+      <segment>
+        <source> Public profiles stay unavailable until the platform supplies an independently checked result establishing that this account is 18 or older. A self-declared age range is not enough. </source>
+      </segment>
+    </unit>
+    <unit id="settings.profileAccess.publicHelp">
+      <segment>
+        <source> Anyone can view your expanded profile and follow you without approval. </source>
       </segment>
     </unit>
     <unit id="9197546864520867301">
@@ -6706,6 +6711,11 @@
         <source>Moderation</source>
       </segment>
     </unit>
+    <unit id="my_events.close">
+      <segment>
+        <source>Close My Events</source>
+      </segment>
+    </unit>
     <unit id="my_events.description">
       <segment>
         <source> Events you plan to attend or want to keep handy. </source>
@@ -6753,7 +6763,12 @@
     </unit>
     <unit id="my_events.title">
       <segment>
-        <source> My Events </source>
+        <source>My Events</source>
+      </segment>
+    </unit>
+    <unit id="my_events.view_all">
+      <segment>
+        <source>View all</source>
       </segment>
     </unit>
     <unit id="7010151693196670017">
@@ -8100,11 +8115,6 @@
         <source>User ID</source>
       </segment>
     </unit>
-    <unit id="2135214670546321857">
-      <segment>
-        <source> Private accounts approve follow requests before someone can follow them. </source>
-      </segment>
-    </unit>
     <unit id="2136736395651055980">
       <segment>
         <source>Checking organization access...</source>
@@ -8149,17 +8159,12 @@
         <source>The notification is still sent immediately.</source>
       </segment>
     </unit>
-    <unit id="6609600842422660590">
-      <segment>
-        <source>Profile visibility</source>
-      </segment>
-    </unit>
     <unit id="661456983704424737">
       <segment>
         <source> Your report and identity are visible only to moderators. A moderator may publish a separate warning on the Spot without identifying you. </source>
       </segment>
     </unit>
-    <unit id="6617774460788833577">
+    <unit id="settings.profileAccess.save">
       <segment>
         <source>Save profile access</source>
       </segment>
@@ -9699,7 +9704,7 @@
         <source>UK link</source>
       </segment>
     </unit>
-    <unit id="8928816882866356838">
+    <unit id="settings.profileAccess.public">
       <segment>
         <source>Public</source>
       </segment>
@@ -9822,7 +9827,7 @@
         <source> Move and resize the crop area. Use zoom or rotation when needed. </source>
       </segment>
     </unit>
-    <unit id="3686284950598311784">
+    <unit id="settings.profileAccess.private">
       <segment>
         <source>Private</source>
       </segment>
@@ -10028,11 +10033,6 @@
     <unit id="7529513859097528644">
       <segment>
         <source>Publish Spot warning</source>
-      </segment>
-    </unit>
-    <unit id="7529731886943932642">
-      <segment>
-        <source> Choose how follows work and who should see expanded profile details as profile sections grow. </source>
       </segment>
     </unit>
     <unit id="4608107035538313233">
@@ -10673,11 +10673,6 @@
         <source>Open</source>
       </segment>
     </unit>
-    <unit id="8003539785959278093">
-      <segment>
-        <source> Public profile </source>
-      </segment>
-    </unit>
     <unit id="8011758699583016596">
       <segment>
         <source>Spots in this area</source>
@@ -11037,11 +11032,6 @@
     <unit id="8324331879973734366">
       <segment>
         <source> Frequently Asked Questions </source>
-      </segment>
-    </unit>
-    <unit id="8326056696429051273">
-      <segment>
-        <source>Account privacy</source>
       </segment>
     </unit>
     <unit id="1140327701924892323">
@@ -11623,11 +11613,6 @@
         <source>Remove person</source>
       </segment>
     </unit>
-    <unit id="5245523669438174557">
-      <segment>
-        <source>Make expanded profile public</source>
-      </segment>
-    </unit>
     <unit id="5245603112373072943">
       <segment>
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Duplicate: This media is already present.</pc></source>
@@ -11734,11 +11719,6 @@
     <unit id="3490749389855555467">
       <segment>
         <source>Filter by event series</source>
-      </segment>
-    </unit>
-    <unit id="3491250523952834442">
-      <segment>
-        <source>Mutuals</source>
       </segment>
     </unit>
     <unit id="3493126540529865490">

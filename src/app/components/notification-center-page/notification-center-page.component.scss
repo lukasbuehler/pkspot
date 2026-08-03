@@ -7,7 +7,8 @@
 .notification-center {
   width: min(100%, 760px);
   margin: 0 auto;
-  padding: 32px 24px 96px;
+  padding: max(32px, var(--alain-menu-block-start-clearance, 32px)) 24px
+    96px;
 }
 
 .notification-center__header {
@@ -172,7 +173,8 @@
 
 @media (max-width: 599px) {
   .notification-center {
-    padding: 24px 0 88px;
+    padding: max(24px, var(--alain-menu-block-start-clearance, 24px)) 0
+      88px;
   }
 
   .notification-center__header {

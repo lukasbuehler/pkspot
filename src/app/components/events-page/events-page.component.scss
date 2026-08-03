@@ -1,6 +1,10 @@
 .events-page {
   min-width: 0;
-  padding-block: 2.5rem 6rem;
+  padding-block: max(
+      2.5rem,
+      var(--alain-menu-block-start-clearance, 2.5rem)
+    )
+    6rem;
 }
 
 .page-header {
@@ -171,7 +175,11 @@
 
 @media (max-width: 599.98px) {
   .events-page {
-    padding: 1.25rem 1rem 7rem;
+    padding: max(
+        1.25rem,
+        var(--alain-menu-block-start-clearance, 1.25rem)
+      )
+      1rem 7rem;
   }
 
   .page-header {

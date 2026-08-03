@@ -1705,6 +1705,7 @@ export class SearchService {
       "banner_accent_color",
       "logo_src",
       "logo_fit",
+      "logo_background_color",
       "sponsor.name",
       "sponsor.logo_src",
       "sponsor.logo_fit",
