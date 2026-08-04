@@ -1079,7 +1079,11 @@
                   Save changes button label|Label of the button to save changes
                 "
               >
-                Save changes
+                @if (isSaving()) {
+                  Saving…
+                } @else {
+                  Save changes
+                }
               </button>
             }
           </mat-card-actions>
@@ -1583,7 +1587,11 @@
                 Save changes button label|Label of the button to save changes
               "
             >
-              Save changes
+              @if (isSaving()) {
+                Saving…
+              } @else {
+                Save changes
+              }
             </button>
           }
         </mat-card-actions>

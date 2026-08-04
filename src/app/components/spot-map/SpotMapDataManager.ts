@@ -66,6 +66,10 @@ export interface SpotSaveResult {
  *
  */
 export class SpotMapDataManager {
+  private readonly _pendingSpotCreates = new Map<
+    string,
+    Promise<SpotSaveResult>
+  >();
   private _spotsService: SpotsService;
   private _spotEditsService: SpotEditsService;
   private _usersService: UsersService;
@@ -461,9 +465,8 @@ export class SpotMapDataManager {
       throw new Error("User not authenticated");
     }
 
-    const userReference = await this._createAuthenticatedUserReference(authUid);
-
     if (spot instanceof Spot) {
+      const userReference = await this._createAuthenticatedUserReference(authUid);
       // Existing spot - create an UPDATE edit with only changed fields
       const spotId = spot.id as SpotId;
       const currentData = spot.data();
@@ -491,13 +494,24 @@ export class SpotMapDataManager {
       );
       return { spotId, editId };
     } else {
-      // New spot - use the proper flow: create spot document first (server-side ID),
-      // then create a CREATE edit for it
-      const spotData = spot.data();
-      return this._spotEditsService.createSpotWithEdit(
-        spotData,
-        userReference
-      );
+      const submissionId = spot.creationSubmissionId;
+      const pending = this._pendingSpotCreates.get(submissionId);
+      if (pending) {
+        void pending.then(() =>
+          this._spotEditsService.recordCreateGuardBlock(submissionId)
+        ).catch(() => undefined);
+        return pending;
+      }
+      const creation = this._spotEditsService
+        .createSpotWithEdit(spot.data(), submissionId)
+        .then(({ spotId, editId }) => ({ spotId, editId }));
+      this._pendingSpotCreates.set(submissionId, creation);
+      void creation.finally(() => {
+        if (this._pendingSpotCreates.get(submissionId) === creation) {
+          this._pendingSpotCreates.delete(submissionId);
+        }
+      }).catch(() => undefined);
+      return creation;
     }
   }
 

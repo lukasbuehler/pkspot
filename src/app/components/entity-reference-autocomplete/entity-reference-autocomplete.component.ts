@@ -70,6 +70,7 @@ export class EntityReferenceAutocompleteComponent {
   readonly kind = input.required<EntityReferenceKind>();
   readonly value = input("");
   readonly disabled = input(false);
+  readonly excludedIds = input<string[]>([]);
   readonly valueChange = output<string>();
   readonly selectionChange = output<EntityReferenceOption | null>();
 
@@ -196,6 +197,7 @@ export class EntityReferenceAutocompleteComponent {
 
   private async _searchSpots(query: string): Promise<EntityReferenceOption[]> {
     const result = await this._searchService.searchSpots(query);
+    const excludedIds = new Set(this.excludedIds());
     return result.hits
       .map((hit) => {
         const preview =
@@ -203,7 +205,12 @@ export class EntityReferenceAutocompleteComponent {
           this._searchService.getSpotPreviewFromHit(hit);
         return this._spotOption(preview);
       })
-      .filter((option): option is EntityReferenceOption => option !== null);
+      .filter(
+        (option): option is EntityReferenceOption =>
+          option !== null &&
+          !excludedIds.has(option.id) &&
+          !excludedIds.has(option.spotPreview?.id ?? ""),
+      );
   }
 
   private async _searchEvents(query: string): Promise<EntityReferenceOption[]> {

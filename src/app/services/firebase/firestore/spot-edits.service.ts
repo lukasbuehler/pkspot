@@ -34,6 +34,13 @@ import {
 } from "../firestore-adapter.service";
 import { FunctionsAdapterService } from "../functions-adapter.service";
 import { EDIT_SCHEMA_VERSION } from "../../../../db/schemas/EditSchema";
+import type {
+  CreateSpotSubmissionRequest,
+  CreateSpotSubmissionResponse,
+  RecordSpotCreateGuardBlockRequest,
+} from "../../../../db/schemas/SpotCreationSchema";
+import { PlatformService } from "../../platform.service";
+import { version } from "../../../../../package.json";
 
 export interface ModerationSpotEditQueueItem {
   edit: SpotEditSchema & { id: string };
@@ -86,6 +93,7 @@ export class SpotEditsService extends ConsentAwareService {
   private _usersService = inject(UsersService);
   private _authenticationService = inject(AuthenticationService, { optional: true });
   private _functionsAdapter = inject(FunctionsAdapterService);
+  private _platform = inject(PlatformService);
 
   constructor() {
     super();
@@ -767,43 +775,52 @@ export class SpotEditsService extends ConsentAwareService {
   }
 
   /**
-   * Create a new spot with a CREATE edit.
-   * This is the proper flow for new spot creation:
-   * 1. Create the spot document (let Firestore generate the ID)
-   * 2. Create a CREATE edit subcollection entry
-   * 3. The cloud function processes the edit and applies the data to the spot
-   *
-   * @param spotData - The data for the new spot
-   * @param userReference - The user creating the spot
-   * @returns Promise<SpotId> - The ID of the created spot
+   * Claims a stable submission id and creates the Spot and CREATE edit atomically.
+   * A retry never falls back to direct Firestore creation.
    */
   async createSpotWithEdit(
     spotData: Partial<SpotSchema>,
-    userReference: UserReferenceSchema
+    submissionId: string,
   ): Promise<CreatedSpotEdit> {
     // Clean and filter the data before creating the edit
     spotData = this._removeForbiddenFieldsFromSpotData(spotData);
     spotData = cleanDataForFirestore(spotData) as Partial<SpotSchema>;
 
-    console.debug("Creating new spot with edit:", JSON.stringify(spotData));
+    if (spotData.location) {
+      spotData.location = this._convertGeoPointToPlainObject(
+        spotData.location,
+      ) as SpotSchema["location"];
+    }
+    if (!spotData.location_raw && spotData.location) {
+      const location = this._convertGeoPointToPlainObject(spotData.location);
+      spotData.location_raw = {
+        lat: location.latitude,
+        lng: location.longitude,
+      };
+    }
 
-    // Create an empty spot placeholder with a locally generated id.
-    // This avoids platform-specific differences in native addDocument()
-    // serialization for empty objects while keeping all spot data in edits.
-    const spotId = this._firestoreAdapter.createDocumentId("spots");
-    await this._firestoreAdapter.setDocument(`spots/${spotId}`, {});
+    const result = await this._functionsAdapter.call<
+      CreateSpotSubmissionRequest,
+      CreateSpotSubmissionResponse
+    >("createSpotSubmission", {
+      submissionId,
+      data: spotData,
+      client: {
+        platform: this._platform.getPlatform(),
+        appVersion: version,
+      },
+    });
+    return {
+      spotId: result.spotId as SpotId,
+      editId: result.editId,
+    };
+  }
 
-    console.log("Created spot document with ID:", spotId);
-
-    // Now create the CREATE edit
-    const editId = await this.createSpotEdit(
-      spotId as SpotId,
-      spotData,
-      userReference,
-    );
-    console.log("Created spot edit for ID:", spotId);
-
-    return { spotId: spotId as SpotId, editId };
+  async recordCreateGuardBlock(submissionId: string): Promise<void> {
+    await this._functionsAdapter.call<
+      RecordSpotCreateGuardBlockRequest,
+      { ok: true }
+    >("recordSpotCreateGuardBlock", { submissionId });
   }
 
   /**

@@ -77,6 +77,81 @@
       </mat-card>
     </div>
 
+    @if (spotCreationDiagnostics(); as diagnostics) {
+      <section class="moderation-dashboard__panel creation-diagnostics">
+        <div class="moderation-dashboard__panel-header">
+          <div>
+            <h2 class="mat-title-large" i18n>Spot creation prevention</h2>
+            <p class="mat-body-medium text-secondary" i18n>
+              Actual creations, new-client adoption, and duplicate attempts blocked
+              before they created another Spot.
+            </p>
+          </div>
+        </div>
+
+        <div class="creation-diagnostics__windows">
+          <section>
+            <h3 class="mat-title-medium" i18n>Last 24 hours</h3>
+            <dl>
+              <div><dt i18n>Actual creations</dt><dd>{{ diagnostics.last24Hours.actualCreates }}</dd></div>
+              <div><dt i18n>Callable creations</dt><dd>{{ diagnostics.last24Hours.callableCreates }}</dd></div>
+              <div><dt i18n>Legacy creations</dt><dd>{{ diagnostics.last24Hours.legacyCreates }}</dd></div>
+              <div><dt i18n>Client guard blocks</dt><dd>{{ diagnostics.last24Hours.clientGuardBlocks }}</dd></div>
+              <div><dt i18n>Server replay blocks</dt><dd>{{ diagnostics.last24Hours.idempotentReplays }}</dd></div>
+            </dl>
+          </section>
+          <section>
+            <h3 class="mat-title-medium" i18n>Last 7 days</h3>
+            <dl>
+              <div><dt i18n>Actual creations</dt><dd>{{ diagnostics.last7Days.actualCreates }}</dd></div>
+              <div><dt i18n>Callable creations</dt><dd>{{ diagnostics.last7Days.callableCreates }}</dd></div>
+              <div><dt i18n>Legacy creations</dt><dd>{{ diagnostics.last7Days.legacyCreates }}</dd></div>
+              <div><dt i18n>Client guard blocks</dt><dd>{{ diagnostics.last7Days.clientGuardBlocks }}</dd></div>
+              <div><dt i18n>Server replay blocks</dt><dd>{{ diagnostics.last7Days.idempotentReplays }}</dd></div>
+            </dl>
+          </section>
+          <section>
+            <h3 class="mat-title-medium" i18n>Current review state</h3>
+            <dl>
+              <div><dt i18n>Open duplicate reports</dt><dd>{{ openDuplicateReportCount() }}</dd></div>
+            </dl>
+            <div class="creation-diagnostics__breakdown">
+              <span class="mat-label-medium" i18n>Platforms</span>
+              <mat-chip-set>
+                @for (entry of spotCreationPlatforms(); track entry[0]) {
+                  <mat-chip>{{ entry[0] }}: {{ entry[1] }}</mat-chip>
+                }
+              </mat-chip-set>
+              <span class="mat-label-medium" i18n>App versions</span>
+              <mat-chip-set>
+                @for (entry of spotCreationAppVersions(); track entry[0]) {
+                  <mat-chip>{{ entry[0] }}: {{ entry[1] }}</mat-chip>
+                }
+              </mat-chip-set>
+            </div>
+          </section>
+        </div>
+
+        <div>
+          <h3 class="mat-title-medium" i18n>Recent prevented replays</h3>
+          @if (diagnostics.recentPreventedCases.length === 0) {
+            <p class="mat-body-medium text-secondary" i18n>No prevented replays in the last 7 days.</p>
+          } @else {
+            <div class="creation-diagnostics__cases">
+              @for (item of diagnostics.recentPreventedCases; track item.submissionId) {
+                <a [routerLink]="['/map/spots', item.spotId]">
+                  <span>{{ item.platform }} · {{ item.appVersion }}</span>
+                  <span i18n>Guard blocks: {{ item.guardBlockCount }}</span>
+                  <span i18n>Server attempts: {{ item.attemptCount }}</span>
+                  <mat-icon>open_in_new</mat-icon>
+                </a>
+              }
+            </div>
+          }
+        </div>
+      </section>
+    }
+
     <section class="moderation-dashboard__panel age-assurance-maintenance">
       <div class="moderation-dashboard__panel-header">
         <div>

@@ -21,6 +21,17 @@ interface WebPushEnvironment {
   };
 }
 
+interface WebNotificationAction {
+  action: string;
+  title: string;
+}
+
+type WebNotificationOptions = NotificationOptions & {
+  actions?: WebNotificationAction[];
+  image?: string;
+  renotify?: boolean;
+};
+
 @Injectable({ providedIn: "root" })
 export class WebPushClientService {
   private readonly firebaseApp = inject(FIREBASE_APP);
@@ -73,6 +84,30 @@ export class WebPushClientService {
     return module.onMessage(module.getMessaging(this.firebaseApp), listener);
   }
 
+  async showNotification(message: WebPushMessage): Promise<boolean> {
+    if (this.permissionState() !== "granted") return false;
+
+    const data = message.data ?? {};
+    const title = message.notification?.title ?? data["title"];
+    const body = message.notification?.body ?? data["body"];
+    if (!title && !body) return false;
+
+    const actions = this._notificationActions(data["action_labels"]);
+    const registration = await this._serviceWorkerRegistration();
+    const options: WebNotificationOptions = {
+      body: body ?? "",
+      icon: "/assets/icons/icon-192.webp",
+      badge: "/assets/icons/icon-96.webp",
+      tag: data["thread_key"] || data["intent_id"],
+      renotify: true,
+      data,
+      ...(data["image_url"] ? { image: data["image_url"] } : {}),
+      ...(actions.length ? { actions } : {}),
+    };
+    await registration.showNotification(title || "PK Spot", options);
+    return true;
+  }
+
   private async _serviceWorkerRegistration(): Promise<ServiceWorkerRegistration> {
     await navigator.serviceWorker.register("/firebase-messaging-sw.js", {
       scope: "/",
@@ -95,5 +130,26 @@ export class WebPushClientService {
     permission: NotificationPermission,
   ): NotificationPermissionState {
     return permission === "default" ? "prompt" : permission;
+  }
+
+  private _notificationActions(
+    value: string | undefined,
+  ): WebNotificationAction[] {
+    try {
+      const actions: unknown = JSON.parse(value ?? "[]");
+      return Array.isArray(actions)
+        ? actions
+            .filter(
+              (item): item is WebNotificationAction =>
+                typeof item === "object" &&
+                item !== null &&
+                typeof (item as WebNotificationAction).action === "string" &&
+                typeof (item as WebNotificationAction).title === "string",
+            )
+            .slice(0, 2)
+        : [];
+    } catch {
+      return [];
+    }
   }
 }

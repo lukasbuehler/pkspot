@@ -6,6 +6,7 @@ import {
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { FieldValue, GeoPoint } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
+import {recordAppliedSpotCreation} from "./spotCreationFunctions";
 import { CallableRequest, HttpsError, onCall } from "firebase-functions/v2/https";
 import { computeTileCoordinates } from "../../src/scripts/TileCoordinateHelpers";
 import { DEFAULT_STORAGE_BUCKET } from "./storageBucket";
@@ -48,6 +49,10 @@ interface SpotEditSchema {
   timestamp_raw_ms?: number;
   processing_status?: string;
   vote_summary?: SpotEditVoteSummary;
+  creation_submission_id?: string;
+  creation_channel?: "callable" | "legacy";
+  creation_platform?: "web" | "ios" | "android";
+  creation_app_version?: string;
 }
 
 interface SpotEditVoteSchema {
@@ -278,6 +283,9 @@ export const applySpotEditOnCreate = onDocumentCreated(
         "APPROVED_IMMEDIATE",
         appliedSummary
       );
+      await recordAppliedSpotCreation(editData).catch((diagnosticError) => {
+        console.error("Failed to record Spot creation diagnostics:", diagnosticError);
+      });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error(

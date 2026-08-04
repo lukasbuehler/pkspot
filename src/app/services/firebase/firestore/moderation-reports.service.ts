@@ -15,6 +15,13 @@ import {
   QueryConstraintOptions,
 } from "../firestore-adapter.service";
 import { FunctionsAdapterService } from "../functions-adapter.service";
+import type {
+  PreviewSpotDuplicateResolutionRequest,
+  PreviewSpotDuplicateResolutionResponse,
+  ResolveSpotDuplicateRequest,
+  ResolveSpotDuplicateResponse,
+} from "../../../../db/schemas/SpotDuplicateResolutionSchema";
+import type { SpotCreationDiagnosticsResponse } from "../../../../db/schemas/SpotCreationSchema";
 
 export type ModerationReportKind = "spot" | "media" | "profile";
 export type ModerationReportStatus = "open" | "resolved" | "dismissed";
@@ -138,6 +145,32 @@ export class ModerationReportsService {
     ].sort((left, right) => right.createdAtMillis - left.createdAtMillis);
 
     return this._withSpotPreviews(reports);
+  }
+
+  getSpotCreationDiagnostics(): Promise<SpotCreationDiagnosticsResponse> {
+    return this._functionsAdapter.call<Record<string, never>, SpotCreationDiagnosticsResponse>(
+      "getSpotCreationDiagnostics",
+      {},
+    );
+  }
+
+  previewSpotDuplicateResolution(
+    reportPath: string,
+    candidateSpotId: string,
+  ): Promise<PreviewSpotDuplicateResolutionResponse> {
+    return this._functionsAdapter.call<
+      PreviewSpotDuplicateResolutionRequest,
+      PreviewSpotDuplicateResolutionResponse
+    >("previewSpotDuplicateResolution", { reportPath, candidateSpotId });
+  }
+
+  resolveSpotDuplicate(
+    request: ResolveSpotDuplicateRequest,
+  ): Promise<ResolveSpotDuplicateResponse> {
+    return this._functionsAdapter.call<
+      ResolveSpotDuplicateRequest,
+      ResolveSpotDuplicateResponse
+    >("resolveSpotDuplicate", request);
   }
 
   async getContactMessages(

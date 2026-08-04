@@ -82,4 +82,25 @@ describe("Firestore mobile compatibility models", () => {
     expect(spot.id).toBe("spot-new");
     expect(spot.name()).toBe("New Spot");
   });
+
+  it("hydrates the structured public Spot warning", () => {
+    const spot = new Spot(
+      "reported-spot" as SpotId,
+      {
+        name: { en: "Reported Spot" },
+        location_raw: { lat: 47.3769, lng: 8.5417 },
+        is_reported: true,
+        public_notice: {
+          type: "duplicate",
+          message: "This Spot may be a duplicate.",
+          source: "community_report",
+        },
+      },
+      "en",
+    );
+
+    expect(spot.isReported).toBe(true);
+    expect(spot.publicNotice?.type).toBe("duplicate");
+    expect(spot.clone().publicNotice?.type).toBe("duplicate");
+  });
 });

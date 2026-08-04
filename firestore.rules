@@ -1823,6 +1823,16 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /spot_create_submissions/{submissionId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /spot_creation_metrics_hourly/{hour} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
     match /maintenance/{maintenanceId} {
       allow read: if isAdmin();
       allow write: if false;

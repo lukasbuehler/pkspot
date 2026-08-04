@@ -42,6 +42,12 @@
         <target>Ne prévisualisez ni ne publiez ce fichier.</target>
       </segment>
     </unit>
+    <unit id="69101851248491105">
+      <segment state="initial">
+        <source>The Spots were not created within ten seconds.</source>
+        <target>Les Spots n’ont pas été créés à moins de dix secondes d’intervalle.</target>
+      </segment>
+    </unit>
     <unit id="6910865064463105075">
       <segment state="initial">
         <source>Communities</source>
@@ -194,12 +200,6 @@
       <segment state="initial">
         <source>Logo background</source>
         <target>Fond du logo</target>
-      </segment>
-    </unit>
-    <unit id="spot.report.reason.unknown">
-      <segment state="initial">
-        <source>reported</source>
-        <target>signalé</target>
       </segment>
     </unit>
     <unit id="spot.report.tooltip">
@@ -360,6 +360,12 @@
         <target>Échec de la publication du média</target>
       </segment>
     </unit>
+    <unit id="4924460126413195683">
+      <segment state="initial">
+        <source>The redundant Spot has reviews.</source>
+        <target>Le Spot redondant contient des avis.</target>
+      </segment>
+    </unit>
     <unit id="4927421686251357457">
       <segment state="initial">
         <source>A self-declared age range is stored, but it does not unlock a public profile.</source>
@@ -504,20 +510,16 @@
         <target> Modifications les plus récentes en premier. Chaque entrée montre exactement ce qui a été modifié. </target>
       </segment>
     </unit>
+    <unit id="8480981018806747498">
+      <segment state="initial">
+        <source>Resolution failed</source>
+        <target>Échec de la résolution</target>
+      </segment>
+    </unit>
     <unit id="8482930840277475324">
       <segment state="initial">
         <source>Failed to add custom URL</source>
         <target>Échec de l’ajout de l’URL personnalisée</target>
-      </segment>
-    </unit>
-    <unit id="8486228314424763172">
-      <notes>
-        <note category="description">Label of the button to save changes</note>
-        <note category="meaning">Save changes button label</note>
-      </notes>
-      <segment state="initial">
-        <source> Save changes </source>
-        <target> Enregistrer les modifications </target>
       </segment>
     </unit>
     <unit id="settings.temperature.aria_label">
@@ -854,6 +856,12 @@
         <target> Aucun spot vérifié pour le moment. </target>
       </segment>
     </unit>
+    <unit id="1360161996063164785">
+      <segment state="initial">
+        <source> Compare both Spots. Resolution remains blocked whenever the redundant copy has unique content or dependent activity. </source>
+        <target> Comparez les deux Spots. La résolution reste bloquée si la copie redondante contient du contenu unique ou une activité dépendante. </target>
+      </segment>
+    </unit>
     <unit id="1370851403138688256">
       <segment state="initial">
         <source>Email Verified!</source>
@@ -882,6 +890,12 @@
       <segment state="initial">
         <source>Org approval</source>
         <target>Org approval</target>
+      </segment>
+    </unit>
+    <unit id="1396251268725844084">
+      <segment state="initial">
+        <source> check-ins</source>
+        <target> enregistrements</target>
       </segment>
     </unit>
     <unit id="2551128161531504907">
@@ -2331,6 +2345,12 @@
         <target>Événements</target>
       </segment>
     </unit>
+    <unit id="4274464833478730957">
+      <segment state="initial">
+        <source>The redundant Spot has too many edits for automatic resolution.</source>
+        <target>Le Spot redondant comporte trop de modifications pour une résolution automatique.</target>
+      </segment>
+    </unit>
     <unit id="427922060915202050">
       <segment state="initial">
         <source>The password is invalid!</source>
@@ -2427,6 +2447,12 @@
         <target>Le mot de passe actuel est incorrect.</target>
       </segment>
     </unit>
+    <unit id="7747602784925344705">
+      <segment state="initial">
+        <source>The redundant Spot has check-ins.</source>
+        <target>Le Spot redondant contient des check-ins.</target>
+      </segment>
+    </unit>
     <unit id="730589419287534524">
       <segment state="initial">
         <source>Reporter</source>
@@ -2511,6 +2537,12 @@
         <target>Nom d’affichage</target>
       </segment>
     </unit>
+    <unit id="3070517441012877878">
+      <segment state="initial">
+        <source>Actual creations</source>
+        <target>Créations réelles</target>
+      </segment>
+    </unit>
     <unit id="3076687427621376223">
       <segment state="initial">
         <source>Organization</source>
@@ -2565,10 +2597,22 @@
         <target>Créer et améliorer des spots</target>
       </segment>
     </unit>
+    <unit id="4522671720515582365">
+      <segment state="initial">
+        <source>Server replay blocks</source>
+        <target>Relectures bloquées par le serveur</target>
+      </segment>
+    </unit>
     <unit id="4522831263356539404">
       <segment state="initial">
         <source>Add at least one community card before submitting</source>
         <target>Add at least one community card before submitting</target>
+      </segment>
+    </unit>
+    <unit id="4523261781339006646">
+      <segment state="initial">
+        <source>The redundant Spot has challenges.</source>
+        <target>Le Spot redondant contient des défis.</target>
       </segment>
     </unit>
     <unit id="event_attendee_actions.aria">
@@ -2613,6 +2657,12 @@
         <target>Vérifié par</target>
       </segment>
     </unit>
+    <unit id="662676929097085827">
+      <segment state="initial">
+        <source>Preview failed</source>
+        <target>Échec de l’aperçu</target>
+      </segment>
+    </unit>
     <unit id="6631641409682927358">
       <segment state="initial">
         <source>Open current NCA guidance</source>
@@ -2647,6 +2697,12 @@
       <segment state="initial">
         <source>Unfollow community</source>
         <target>Unfollow community</target>
+      </segment>
+    </unit>
+    <unit id="1022095499149608293">
+      <segment state="initial">
+        <source>The redundant Spot is saved in private lists.</source>
+        <target>Le Spot redondant est enregistré dans des listes privées.</target>
       </segment>
     </unit>
     <unit id="1025791844730471949">
@@ -2821,6 +2877,12 @@
       <segment state="initial">
         <source>Short message (optional)</source>
         <target>Message court (facultatif)</target>
+      </segment>
+    </unit>
+    <unit id="1957532257248004790">
+      <segment state="initial">
+        <source>Duplicate Spot resolved</source>
+        <target>Spot en double résolu</target>
       </segment>
     </unit>
     <unit id="1968938717592923523">
@@ -3059,6 +3121,12 @@
         <target>Ignorer</target>
       </segment>
     </unit>
+    <unit id="1537951843700389856">
+      <segment state="initial">
+        <source> media</source>
+        <target> médias</target>
+      </segment>
+    </unit>
     <unit id="6945945395354199350">
       <segment state="initial">
         <source>Incorrect password. Please try again.</source>
@@ -3105,6 +3173,12 @@
       <segment state="initial">
         <source>Add verifying organization</source>
         <target>Ajouter une organisation vérificatrice</target>
+      </segment>
+    </unit>
+    <unit id="6021873589005795997">
+      <segment state="initial">
+        <source>Open duplicate reports</source>
+        <target>Signalements de doublons ouverts</target>
       </segment>
     </unit>
     <unit id="6024008212258429928">
@@ -3251,6 +3325,12 @@
         <target>Supprimer le Spot</target>
       </segment>
     </unit>
+    <unit id="4194579484399345888">
+      <segment state="initial">
+        <source>Resolve duplicate</source>
+        <target>Résoudre le doublon</target>
+      </segment>
+    </unit>
     <unit id="event_draft.notice.aria">
       <segment state="initial">
         <source>Draft event</source>
@@ -3347,6 +3427,12 @@
         <target>Réinitialiser l’orientation de la carte vers le nord</target>
       </segment>
     </unit>
+    <unit id="4441535313812174996">
+      <segment state="initial">
+        <source>Delete the redundant Spot after the server repeats every safety check? This action is permanent and recorded in moderation provenance.</source>
+        <target>Supprimer le Spot redondant après que le serveur a répété chaque contrôle de sécurité ? Cette action est définitive et sera enregistrée dans la provenance de modération.</target>
+      </segment>
+    </unit>
     <unit id="events.calendar_local_time_note">
       <segment state="final">
         <source> Event dates use each venue’s local time. </source>
@@ -3409,6 +3495,12 @@
       <segment state="initial">
         <source>This link has expired. Please request a new one.</source>
         <target>Ce lien a expiré. Veuillez en demander un nouveau.</target>
+      </segment>
+    </unit>
+    <unit id="3253131500235385358">
+      <segment state="initial">
+        <source>The redundant Spot is used by events.</source>
+        <target>Le Spot redondant est utilisé par des événements.</target>
       </segment>
     </unit>
     <unit id="3255718056802293269">
@@ -3529,6 +3621,12 @@
       <segment state="initial">
         <source>Discord Community</source>
         <target>Communauté Discord</target>
+      </segment>
+    </unit>
+    <unit id="2330111619305505465">
+      <segment state="initial">
+        <source> reviews</source>
+        <target> avis</target>
       </segment>
     </unit>
     <unit id="2330577642930707695">
@@ -4178,12 +4276,6 @@
       <segment state="initial">
         <source>Reported</source>
         <target>Signalé</target>
-      </segment>
-    </unit>
-    <unit id="spot-preview-card.reported-with-reason">
-      <segment state="initial">
-        <source>Reported: <ph id="0" equiv="PH" disp="this._formatReportReason(reason)"/></source>
-        <target>Reportado:</target>
       </segment>
     </unit>
     <unit id="spot-type-description.art">
@@ -5197,16 +5289,40 @@
         <target>Vos choix de notifications sont enregistrés, mais cet appareil bloque les notifications.</target>
       </segment>
     </unit>
-    <unit id="notifications.dismiss">
+    <unit id="spot.public-warning.access-concern">
       <segment state="initial">
-        <source>Dismiss</source>
-        <target>Fermer</target>
+        <source>Access to this Spot may be restricted or unavailable.</source>
+        <target>L’accès à ce Spot peut être restreint ou impossible.</target>
       </segment>
     </unit>
-    <unit id="notifications.open">
+    <unit id="spot.public-warning.destroyed">
       <segment state="initial">
-        <source>Open</source>
-        <target>Ouvrir</target>
+        <source>This Spot may have been removed or destroyed.</source>
+        <target>Ce Spot a peut-être été retiré ou détruit.</target>
+      </segment>
+    </unit>
+    <unit id="spot.public-warning.duplicate">
+      <segment state="initial">
+        <source>This Spot may be a duplicate.</source>
+        <target>Ce Spot est peut-être un doublon.</target>
+      </segment>
+    </unit>
+    <unit id="spot.public-warning.inaccessible">
+      <segment state="initial">
+        <source>This Spot may be inaccessible.</source>
+        <target>Ce Spot est peut-être inaccessible.</target>
+      </segment>
+    </unit>
+    <unit id="spot.public-warning.other">
+      <segment state="initial">
+        <source>Information about this Spot may be outdated. Please use caution.</source>
+        <target>Les informations sur ce Spot sont peut-être obsolètes. Soyez prudent.</target>
+      </segment>
+    </unit>
+    <unit id="spot.public-warning.temporarily-closed">
+      <segment state="initial">
+        <source>This Spot may currently be closed.</source>
+        <target>Ce Spot est peut-être actuellement fermé.</target>
       </segment>
     </unit>
     <unit id="spot.ratings.header">
@@ -5453,6 +5569,12 @@
         <target> Vous ne trouvez pas ce que vous cherchez ? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [href]=&quot;discordUrl&quot; target=&quot;_blank&quot;&gt;" dispEnd="&lt;/a&gt;">Rejoignez notre Discord</pc> et nous vous aiderons ! </target>
       </segment>
     </unit>
+    <unit id="9156941745198801775">
+      <segment state="initial">
+        <source>The Spots were created by different users.</source>
+        <target>Les Spots ont été créés par des utilisateurs différents.</target>
+      </segment>
+    </unit>
     <unit id="9166339501815416264">
       <notes>
         <note category="description">guest report contact email label</note>
@@ -5490,6 +5612,12 @@
       <segment state="initial">
         <source>Environment</source>
         <target>Environnement</target>
+      </segment>
+    </unit>
+    <unit id="9186529157286281693">
+      <segment state="initial">
+        <source>Last 24 hours</source>
+        <target>Dernières 24 heures</target>
       </segment>
     </unit>
     <unit id="9191968011325658792">
@@ -5552,6 +5680,12 @@
         <target>La session commence bientôt</target>
       </segment>
     </unit>
+    <unit id="926904696530621187">
+      <segment state="initial">
+        <source>Recent prevented replays</source>
+        <target>Relectures récemment évitées</target>
+      </segment>
+    </unit>
     <unit id="2540890198002687328">
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Bad quality: This media is blurry, too dark, or generally poor quality.</pc></source>
@@ -5568,6 +5702,12 @@
       <segment state="initial">
         <source> Backed by the <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">community</pc>. </source>
         <target> Soutenu par la <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">communauté</pc>. </target>
+      </segment>
+    </unit>
+    <unit id="940154517504196358">
+      <segment state="initial">
+        <source>The redundant Spot is a home Spot.</source>
+        <target>Le Spot redondant est un Spot d’accueil.</target>
       </segment>
     </unit>
     <unit id="940241108431922998">
@@ -9780,6 +9920,12 @@
         <target>Modification de l’événement appliquée.</target>
       </segment>
     </unit>
+    <unit id="4992232621012041129">
+      <segment state="initial">
+        <source> events</source>
+        <target> événements</target>
+      </segment>
+    </unit>
     <unit id="3304972143698843178">
       <segment state="initial">
         <source>Event</source>
@@ -9882,6 +10028,12 @@
         <target>Signalement envoyé. Merci d’aider à garder les Spots exacts.</target>
       </segment>
     </unit>
+    <unit id="7824690700853674199">
+      <segment state="initial">
+        <source>Current review state</source>
+        <target>État actuel de la vérification</target>
+      </segment>
+    </unit>
     <unit id="78295015887661250">
       <segment state="initial">
         <source>Organization saved.</source>
@@ -9898,6 +10050,12 @@
       <segment state="initial">
         <source>Recovery Failed</source>
         <target>Échec de la récupération</target>
+      </segment>
+    </unit>
+    <unit id="7837207064522723676">
+      <segment state="initial">
+        <source>Resolving…</source>
+        <target>Résolution…</target>
       </segment>
     </unit>
     <unit id="7855274718891325217">
@@ -9918,6 +10076,12 @@
         <target>Fermé</target>
       </segment>
     </unit>
+    <unit id="7866308593166306703">
+      <segment state="initial">
+        <source>The redundant Spot has unrelated reports.</source>
+        <target>Le Spot redondant contient d’autres signalements.</target>
+      </segment>
+    </unit>
     <unit id="7868084107533692439">
       <segment state="initial">
         <source>Ownership claim approved.</source>
@@ -9928,6 +10092,12 @@
       <segment state="initial">
         <source>Supporter</source>
         <target>Soutien</target>
+      </segment>
+    </unit>
+    <unit id="7882099563073009975">
+      <segment state="initial">
+        <source>Automatic resolution is blocked</source>
+        <target>La résolution automatique est bloquée</target>
       </segment>
     </unit>
     <unit id="7898407865763195887">
@@ -9960,6 +10130,12 @@
         <target>Contact PK Spot</target>
       </segment>
     </unit>
+    <unit id="7932219281550877290">
+      <segment state="initial">
+        <source>Unknown creator</source>
+        <target>Créateur inconnu</target>
+      </segment>
+    </unit>
     <unit id="7941428823403788384">
       <segment state="initial">
         <source> Create </source>
@@ -9982,6 +10158,12 @@
       <segment state="initial">
         <source>Note (optional)</source>
         <target>Note (facultative)</target>
+      </segment>
+    </unit>
+    <unit id="7966917302907632321">
+      <segment state="initial">
+        <source>Platforms</source>
+        <target>Plateformes</target>
       </segment>
     </unit>
     <unit id="7976929923774557536">
@@ -10020,6 +10202,12 @@
         <target>Code d&apos;intégration HTML</target>
       </segment>
     </unit>
+    <unit id="8228088429714277489">
+      <segment state="initial">
+        <source>Client guard blocks</source>
+        <target>Blocages côté client</target>
+      </segment>
+    </unit>
     <unit id="8229433345712490359">
       <segment state="initial">
         <source>The type of this file is not allowed.</source>
@@ -10048,6 +10236,12 @@
       <segment state="initial">
         <source> Unable to process this request. Please try again later. </source>
         <target> Impossible de traiter cette demande. Veuillez réessayer plus tard. </target>
+      </segment>
+    </unit>
+    <unit id="8294319077118655917">
+      <segment state="initial">
+        <source>Checking every dependency…</source>
+        <target>Vérification de toutes les dépendances…</target>
       </segment>
     </unit>
     <unit id="2274234887706573129">
@@ -10638,6 +10832,12 @@
         <target>Modifications de Spot</target>
       </segment>
     </unit>
+    <unit id="878082957916142359">
+      <segment state="initial">
+        <source>Legacy creations</source>
+        <target>Créations héritées</target>
+      </segment>
+    </unit>
     <unit id="8784425134270344261">
       <segment state="initial">
         <source>Early Bird</source>
@@ -10734,6 +10934,12 @@
         <target>Adapté aux débutants</target>
       </segment>
     </unit>
+    <unit id="4775607941086121140">
+      <segment state="initial">
+        <source> Actual creations, new-client adoption, and duplicate attempts blocked before they created another Spot. </source>
+        <target> Créations réelles, adoption par les nouveaux clients et tentatives en double bloquées avant la création d’un autre Spot. </target>
+      </segment>
+    </unit>
     <unit id="4798502935816311934">
       <segment state="initial">
         <source>Not assessed</source>
@@ -10798,6 +11004,12 @@
       <segment state="initial">
         <source>Verified organization removed</source>
         <target>Organisation vérificatrice retirée</target>
+      </segment>
+    </unit>
+    <unit id="4873149362496451858">
+      <segment state="initial">
+        <source>Last 7 days</source>
+        <target>7 derniers jours</target>
       </segment>
     </unit>
     <unit id="4878825351052586194">
@@ -10888,6 +11100,12 @@
       <segment state="initial">
         <source>Community merge queued</source>
         <target>Community merge queued</target>
+      </segment>
+    </unit>
+    <unit id="2475812979768871750">
+      <segment state="initial">
+        <source>Resolve duplicate Spot</source>
+        <target>Résoudre le Spot en double</target>
       </segment>
     </unit>
     <unit id="2494595604764120182">
@@ -11200,6 +11418,12 @@
         <target>Explorateur</target>
       </segment>
     </unit>
+    <unit id="41428961214824167">
+      <segment state="initial">
+        <source>The redundant Spot contains unique content.</source>
+        <target>Le Spot redondant contient du contenu unique.</target>
+      </segment>
+    </unit>
     <unit id="4145496584631696119">
       <segment state="initial">
         <source>Role</source>
@@ -11216,6 +11440,16 @@
       <segment state="initial">
         <source>Sensitive media hidden</source>
         <target>Média sensible masqué</target>
+      </segment>
+    </unit>
+    <unit id="4154173841101825575">
+      <notes>
+        <note category="description">Label of the button to save changes</note>
+        <note category="meaning">Save changes button label</note>
+      </notes>
+      <segment state="initial">
+        <source><pc id="0" equivStart="START_BLOCK_IF" equivEnd="CLOSE_BLOCK_IF" type="other" dispStart="@if (isSaving()) {" dispEnd="}"> Saving… </pc><pc id="1" equivStart="START_BLOCK_ELSE" equivEnd="CLOSE_BLOCK_ELSE" type="other" dispStart="@else {" dispEnd="}"> Save changes </pc></source>
+        <target><pc id="0" equivStart="START_BLOCK_IF" equivEnd="CLOSE_BLOCK_IF" type="other" dispStart="@if (isSaving()) {" dispEnd="}"> Enregistrement… </pc><pc id="1" equivStart="START_BLOCK_ELSE" equivEnd="CLOSE_BLOCK_ELSE" type="other" dispStart="@else {" dispEnd="}"> Enregistrer les modifications </pc></target>
       </segment>
     </unit>
     <unit id="370198281195202249">
@@ -11491,6 +11725,12 @@
         <target>Dernières informations de <ph id="0" equiv="INTERPOLATION" disp="{{ event().organizer?.organization?.name ?? event().name }}"/>.</target>
       </segment>
     </unit>
+    <unit id="8072434875780801374">
+      <segment state="initial">
+        <source>Callable creations</source>
+        <target>Créations par fonction</target>
+      </segment>
+    </unit>
     <unit id="8076818699210267066">
       <segment state="initial">
         <source>Browser access</source>
@@ -11531,6 +11771,12 @@
       <segment state="initial">
         <source> Continue </source>
         <target> Continuer </target>
+      </segment>
+    </unit>
+    <unit id="2919531974280550445">
+      <segment state="initial">
+        <source>Keep as canonical</source>
+        <target>Conserver comme référence</target>
       </segment>
     </unit>
     <unit id="2925374545200384410">
@@ -11815,6 +12061,12 @@
       <segment state="initial">
         <source>Google controls the verification flow. Visit the Play Store and complete any age-confirmation prompt it shows.</source>
         <target>Google contrôle le processus de vérification. Ouvrez le Play Store et effectuez toute confirmation d’âge proposée.</target>
+      </segment>
+    </unit>
+    <unit id="8916763800099701529">
+      <segment state="initial">
+        <source>No image</source>
+        <target>Aucune image</target>
       </segment>
     </unit>
     <unit id="spot.report.aria_label">
@@ -12203,10 +12455,22 @@
         <target>Modération</target>
       </segment>
     </unit>
+    <unit id="2054475841130182990">
+      <segment state="initial">
+        <source>The initial CREATE payloads are different.</source>
+        <target>Les données CREATE initiales sont différentes.</target>
+      </segment>
+    </unit>
     <unit id="6529676412063915412">
       <segment state="initial">
         <source> Follow requests </source>
         <target> Follow requests </target>
+      </segment>
+    </unit>
+    <unit id="6537027644496489823">
+      <segment state="initial">
+        <source>Different fields</source>
+        <target>Champs différents</target>
       </segment>
     </unit>
     <unit id="6554529363159797991">
@@ -12491,6 +12755,12 @@
         <target>Référence du signalement externe</target>
       </segment>
     </unit>
+    <unit id="5161309645847446621">
+      <segment state="initial">
+        <source>Spot creation prevention</source>
+        <target>Prévention de la création de Spots en double</target>
+      </segment>
+    </unit>
     <unit id="5163862847546461994">
       <segment state="initial">
         <source>Training conditions</source>
@@ -12553,6 +12823,12 @@
       <segment state="initial">
         <source>Open released media</source>
         <target>Ouvrir le média publié</target>
+      </segment>
+    </unit>
+    <unit id="2366586888224215435">
+      <segment state="initial">
+        <source>Server attempts: <ph id="0" equiv="INTERPOLATION" disp="{{ item.attemptCount }}"/></source>
+        <target>Tentatives serveur : <ph id="0" equiv="INTERPOLATION" disp="{{ item.attemptCount }}"/></target>
       </segment>
     </unit>
     <unit id="2369409944839137310">
@@ -13379,6 +13655,12 @@
         <target>Afficher plus</target>
       </segment>
     </unit>
+    <unit id="7216896807322077893">
+      <segment state="initial">
+        <source>Guard blocks: <ph id="0" equiv="INTERPOLATION" disp="{{ item.guardBlockCount }}"/></source>
+        <target>Blocages côté client : <ph id="0" equiv="INTERPOLATION" disp="{{ item.guardBlockCount }}"/></target>
+      </segment>
+    </unit>
     <unit id="7222489710265178271">
       <segment state="initial">
         <source> Registration required </source>
@@ -13455,6 +13737,12 @@
       <segment state="initial">
         <source> Multiple organizations can verify a public spot without owning it. </source>
         <target> Plusieurs organisations peuvent vérifier un spot public sans en être propriétaires. </target>
+      </segment>
+    </unit>
+    <unit id="562017089674756617">
+      <segment state="initial">
+        <source>No prevented replays in the last 7 days.</source>
+        <target>Aucune relecture évitée au cours des 7 derniers jours.</target>
       </segment>
     </unit>
     <unit id="5621227577951541037">
@@ -13825,6 +14113,12 @@
         <target>Enter a rejection reason.</target>
       </segment>
     </unit>
+    <unit id="1726495281959581318">
+      <segment state="initial">
+        <source>App versions</source>
+        <target>Versions de l’application</target>
+      </segment>
+    </unit>
     <unit id="1731452447994913749">
       <segment state="initial">
         <source>Failed to update saved spot</source>
@@ -13929,6 +14223,12 @@
       <segment state="initial">
         <source>Assessment pending</source>
         <target>Évaluation en attente</target>
+      </segment>
+    </unit>
+    <unit id="1625483887199789079">
+      <segment state="initial">
+        <source> edits</source>
+        <target> modifications</target>
       </segment>
     </unit>
     <unit id="1632949913064020849">
@@ -14219,6 +14519,12 @@
         <target><ph id="0" equiv="INTERPOLATION" disp="{{ member.role }}"/></target>
       </segment>
     </unit>
+    <unit id="188931725069021470">
+      <segment state="initial">
+        <source>The redundant Spot is referenced by an organization.</source>
+        <target>Le Spot redondant est référencé par une organisation.</target>
+      </segment>
+    </unit>
     <unit id="1898900891846930901">
       <segment state="initial">
         <source>Community card suggestion submitted for review</source>
@@ -14358,6 +14664,12 @@
       <segment state="initial">
         <source> Sign Up </source>
         <target> S&apos;inscrire </target>
+      </segment>
+    </unit>
+    <unit id="7448808151142843482">
+      <segment state="initial">
+        <source>Created by</source>
+        <target>Créé par</target>
       </segment>
     </unit>
     <unit id="7462147415369156631">

@@ -57,4 +57,13 @@ public class NotificationSettingsPlugin extends Plugin {
       call.reject("Android notification manager is unavailable.");
     }
   }
+
+  @PluginMethod
+  public void dismissDeliveredNotification(PluginCall call) {
+    String threadKey = call.getString("threadKey");
+    if (threadKey != null && !threadKey.isEmpty()) {
+      NotificationManagerCompat.from(getContext()).cancel(threadKey, 0);
+    }
+    call.resolve();
+  }
 }

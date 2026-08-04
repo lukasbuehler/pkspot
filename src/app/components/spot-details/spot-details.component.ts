@@ -103,6 +103,8 @@ import { SpotReviewDialogComponent } from "../spot-review-dialog/spot-review-dia
 import { MatDialog, MatDialogModule } from "@angular/material/dialog";
 import { Inject } from "@angular/core";
 import { SpotReportSchema } from "../../../db/schemas/SpotReportSchema";
+import { publicSpotNoticeTypeForReportReason } from "../../../db/schemas/SpotPublicNotice";
+import { localizedPublicSpotWarning } from "./spot-public-warning";
 import { MatSelect, MatSelectModule } from "@angular/material/select";
 import { MediaPreviewGridComponent } from "../media-preview-grid/media-preview-grid.component";
 import { MatInput } from "@angular/material/input";
@@ -559,12 +561,13 @@ export class SpotDetailsComponent
   readonly saveClick = output<Spot | LocalSpot>();
   readonly discardClick = output<void>();
   readonly reviewSubmitted = output<Spot>();
+  readonly reportSubmitted = output<Spot>();
 
   // Media upload is handled in a dialog now
 
   getValueFromEventTarget = getValueFromEventTarget;
 
-  isSaving: boolean = false;
+  readonly isSaving = input(false);
 
   AmenityIcons = AmenityIcons;
   AmenityNegativeIcons = AmenityNegativeIcons;
@@ -575,6 +578,7 @@ export class SpotDetailsComponent
   GeneralAmenities = GeneralAmenities;
 
   canSaveSpot = computed(() => {
+    if (this.isSaving()) return false;
     const spot = this.spot();
     if (!spot) return false;
     if (spot instanceof Spot) return true;
@@ -696,9 +700,9 @@ export class SpotDetailsComponent
 
   report = signal<SpotReportSchema | null>(null);
   currentReport = computed(() => {
-    const report = this.report();
-    if (report) {
-      return report;
+    const privateReport = this.report();
+    if (this.isAdmin() && privateReport) {
+      return privateReport;
     }
 
     const spot = this.spot();
@@ -708,9 +712,10 @@ export class SpotDetailsComponent
           id: spot.id,
           name: spot.name(),
         },
-        reason:
-          spot.reportReason ??
-          $localize`:@@spot.report.reason.unknown:reported`,
+        reason: localizedPublicSpotWarning(
+          spot.publicNotice,
+          spot.reportReason,
+        ),
         user: {
           uid: "",
         },
@@ -1331,7 +1336,7 @@ export class SpotDetailsComponent
 
   async saveButtonClick() {
     const spot = this.spot();
-    if (!spot || !this.canSaveSpot()) {
+    if (!spot || this.isSaving() || !this.canSaveSpot()) {
       return;
     }
 
@@ -1341,18 +1346,14 @@ export class SpotDetailsComponent
       organization_admin_changes_available:
         spot instanceof Spot && this.isAdmin(),
     });
-    this.isSaving = true;
-
     if (spot instanceof Spot) {
       const relationshipSaveResult =
         await this._saveOrganizationRelationshipChangesIfNeeded(spot);
       if (relationshipSaveResult === "failed") {
-        this.isSaving = false;
         return;
       }
 
       if (relationshipSaveResult === "changed") {
-        this.isSaving = false;
         this.isEditing.set(false);
         return;
       }
@@ -2002,10 +2003,16 @@ export class SpotDetailsComponent
             return;
           }
 
-          this.report.set(result.report);
+          this.report.set(this.isAdmin() ? result.report : null);
           spot.isReported = true;
-          spot.reportReason = result.report.reason;
+          spot.reportReason = undefined;
+          spot.publicNotice = {
+            type: publicSpotNoticeTypeForReportReason(result.report.reason),
+            message: "",
+            source: "community_report",
+          };
           spot.reportCount += 1;
+          this.reportSubmitted.emit(spot);
           this._analyticsService.trackEvent("spot_report_submitted", {
             spot_id: spot.id,
             report_id: result.reportId,

@@ -12,6 +12,13 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function skippedWithoutRegistration(
+  data: admin.firestore.DocumentData,
+): boolean {
+  return data["status"] === "skipped" &&
+    data["failure_reason"] === "no_active_registration";
+}
+
 async function waitForDocument(
   path: string,
   predicate: (data: admin.firestore.DocumentData) => boolean,
@@ -59,7 +66,7 @@ runWithEmulator("notification function integrations", () => {
 
     const intent = await waitForDocument(
       `notification_intents/${intentId}`,
-      (data) => data["status"] === "pending",
+      skippedWithoutRegistration,
     );
     expect(intent).toEqual(
       expect.objectContaining({
@@ -129,6 +136,9 @@ runWithEmulator("notification function integrations", () => {
         display_name: "Mutual Follower",
         account_privacy: "public",
       }),
+      db.doc(`users/${userId}/private_data/main`).set({
+        notification_preferences: { follow_requests: true },
+      }),
     ]);
     await db.doc(`users/${userId}/following/${followerId}`).set({
       display_name: "Mutual Follower",
@@ -141,7 +151,7 @@ runWithEmulator("notification function integrations", () => {
 
     const intent = await waitForDocument(
       `notification_intents/${intentId}`,
-      (data) => data["status"] === "pending",
+      skippedWithoutRegistration,
     );
     expect(intent["channel_id"]).toBe("follow_relationships");
     expect(intent["payload"]["relationship"]).toBe("mutual");
@@ -327,6 +337,9 @@ runWithEmulator("notification function integrations", () => {
         account_privacy: "private",
         profile_visibility: "followers",
       }),
+      db.doc(`users/${requesterId}/private_data/main`).set({
+        notification_preferences: { follow_requests: true },
+      }),
     ]);
     await db.doc(`users/${requesterId}/following/${privateUserId}`).set({
       display_name: "Private Target",
@@ -335,7 +348,7 @@ runWithEmulator("notification function integrations", () => {
 
     const intent = await waitForDocument(
       `notification_intents/${intentId}`,
-      (data) => data["status"] === "pending",
+      skippedWithoutRegistration,
     );
     expect(intent).toEqual(
       expect.objectContaining({
@@ -371,7 +384,7 @@ runWithEmulator("notification function integrations", () => {
 
     const intent = await waitForDocument(
       `notification_intents/${intentId}`,
-      (data) => data["status"] === "pending",
+      skippedWithoutRegistration,
     );
     expect(intent).toEqual(
       expect.objectContaining({
@@ -416,7 +429,7 @@ runWithEmulator("notification function integrations", () => {
 
     const intent = await waitForDocument(
       `notification_intents/${intentId}`,
-      (data) => data["status"] === "pending",
+      skippedWithoutRegistration,
     );
     expect(intent).toEqual(
       expect.objectContaining({
@@ -457,7 +470,7 @@ runWithEmulator("notification function integrations", () => {
 
     const intent = await waitForDocument(
       `notification_intents/${intentId}`,
-      (data) => data["status"] === "pending",
+      skippedWithoutRegistration,
     );
     expect(intent).toEqual(
       expect.objectContaining({

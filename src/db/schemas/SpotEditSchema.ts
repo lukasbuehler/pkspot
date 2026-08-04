@@ -52,6 +52,10 @@ export interface SpotEditSchema
     | "automatic_immediate"
     | "community_vote"
     | "organization_review";
+  creation_submission_id?: string;
+  creation_channel?: "callable" | "legacy";
+  creation_platform?: "web" | "ios" | "android";
+  creation_app_version?: string;
   user: UserReferenceSchema;
   data: SpotEditDataSchema;
   prevData?: SpotEditDataSchema;

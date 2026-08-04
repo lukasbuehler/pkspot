@@ -4,6 +4,7 @@ export type ModerationActionType =
   | "publish_spot_warning"
   | "delete_media"
   | "delete_spot"
+  | "resolve_duplicate_spot"
   | "archive_contact_message"
   | "delete_contact_message"
   | "safety_case_decision";

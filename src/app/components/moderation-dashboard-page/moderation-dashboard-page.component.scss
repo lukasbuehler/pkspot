@@ -62,6 +62,60 @@
   background: var(--mat-sys-tertiary-container);
 }
 
+.creation-diagnostics {
+  padding: 1rem;
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 18px;
+  background: var(--mat-sys-primary-container);
+}
+
+.creation-diagnostics__windows {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.creation-diagnostics__windows h3,
+.creation-diagnostics__windows dl {
+  margin: 0;
+}
+
+.creation-diagnostics__windows dl {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.creation-diagnostics__windows dl div {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.creation-diagnostics__windows dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.creation-diagnostics__breakdown,
+.creation-diagnostics__cases {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.creation-diagnostics__cases a {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+  color: var(--mat-sys-on-primary-container);
+  text-decoration: none;
+}
+
 .age-assurance-maintenance__form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -177,7 +231,12 @@ mat-card-actions {
 @media (max-width: 840px) {
   .moderation-dashboard__grid,
   .moderation-dashboard__queue-grid,
+  .creation-diagnostics__windows,
   .age-assurance-maintenance__form {
     grid-template-columns: 1fr;
+  }
+
+  .creation-diagnostics__cases a {
+    grid-template-columns: 1fr auto;
   }
 }

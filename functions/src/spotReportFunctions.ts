@@ -3,6 +3,7 @@ import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
 import * as admin from "firebase-admin";
+import {FieldValue} from "firebase-admin/firestore";
 import { persistAuthoritativeReporter } from "./reportIdentity";
 import { publicSpotWarningForReason } from "./spotPublicWarning";
 
@@ -89,11 +90,11 @@ export const onSpotReportCreate = onDocumentCreated(
     await spotRef.update({
       is_reported: true,
       report_reason: publicWarning.message,
-      report_count: admin.firestore.FieldValue.increment(1),
-      latest_report_at: admin.firestore.FieldValue.serverTimestamp(),
+      report_count: FieldValue.increment(1),
+      latest_report_at: FieldValue.serverTimestamp(),
       public_notice: {
         ...publicWarning,
-        published_at: admin.firestore.FieldValue.serverTimestamp(),
+        published_at: FieldValue.serverTimestamp(),
         source: "community_report",
       },
     });
@@ -183,14 +184,14 @@ export const resolveSpotReport = onCall<ResolveSpotReportRequest>(
     const db = admin.firestore();
     const reportRef = db.doc(reportPath);
     const spotRef = db.collection("spots").doc(spotId);
-    const now = admin.firestore.FieldValue.serverTimestamp();
+    const now = FieldValue.serverTimestamp();
     const resolvedBy = { uid };
 
     await reportRef.update({
       status,
       resolvedAt: now,
       resolvedBy,
-      resolutionNote: resolutionNote || admin.firestore.FieldValue.delete(),
+      resolutionNote: resolutionNote || FieldValue.delete(),
     });
 
     const reportsSnapshot = await spotRef.collection("reports").get();
@@ -204,12 +205,12 @@ export const resolveSpotReport = onCall<ResolveSpotReportRequest>(
 
     if (!hasOpenReports) {
       await spotRef.update({
-        is_reported: admin.firestore.FieldValue.delete(),
-        report_reason: admin.firestore.FieldValue.delete(),
-        isReported: admin.firestore.FieldValue.delete(),
-        reportReason: admin.firestore.FieldValue.delete(),
-        latest_report_at: admin.firestore.FieldValue.delete(),
-        public_notice: admin.firestore.FieldValue.delete(),
+        is_reported: FieldValue.delete(),
+        report_reason: FieldValue.delete(),
+        isReported: FieldValue.delete(),
+        reportReason: FieldValue.delete(),
+        latest_report_at: FieldValue.delete(),
+        public_notice: FieldValue.delete(),
       });
     }
 

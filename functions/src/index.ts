@@ -85,6 +85,16 @@ export {
   reviewVerifiedSpotEdit,
   setSpotOrganizationRelationship,
 } from "./spotEditFunctions";
+export {
+  cleanupSpotCreateSubmissions,
+  createSpotSubmission,
+  getSpotCreationDiagnostics,
+  recordSpotCreateGuardBlock,
+} from "./spotCreationFunctions";
+export {
+  previewSpotDuplicateResolution,
+  resolveSpotDuplicate,
+} from "./spotDuplicateFunctions";
 export { syncVerifiedSpotOrganizationSnapshots } from "./organizationFunctions";
 export {
   processImportChunkOnCreate,
@@ -171,6 +181,7 @@ export {
 export {
   backfillReportReporterIdentities,
   migrateSpotReportsToPublicWarnings,
+  resyncReportedSpotsToTypesenseOnCreate,
   runSafetyDataCleanup,
 } from "./safetyDataMaintenanceFunctions";
 
@@ -230,6 +241,7 @@ export {
   onRootMediaReportNotificationWrite,
   onModerationActionNotificationCreate,
   onNewFollowerNotificationWrite,
+  onImmediateNotificationIntentCreate,
   onNotificationIntentWrite,
   onSpotReportNotificationWrite,
   onSpotEditNotificationWrite,

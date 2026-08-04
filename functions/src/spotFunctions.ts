@@ -31,6 +31,8 @@ const RUN_BACKFILL_TYPESENSE_DOC = `${MAINTENANCE_COLLECTION}/run-backfill-types
 const RUN_BACKFILL_LANDING_DOC = `${MAINTENANCE_COLLECTION}/run-backfill-landing`;
 const RUN_AUDIT_RESERVED_SLUGS_DOC = `${MAINTENANCE_COLLECTION}/run-audit-reserved-slugs`;
 const RUN_DETECT_DUPLICATE_SPOTS_DOC = `${MAINTENANCE_COLLECTION}/run-detect-duplicate-spots`;
+const DUPLICATE_SPOT_SCAN_STATE_DOC =
+  `${MAINTENANCE_COLLECTION}/spot-duplicate-scan`;
 const DUPLICATE_SPOT_RADIUS_METERS = 5;
 const isSpotRuntimeDoc = (docId: string): boolean =>
   docId !== "typesense" && !docId.startsWith("run-");
@@ -257,10 +259,11 @@ const _findNearbyDuplicateCandidates = async (
       const distanceMeters = _getDistanceMeters(location, candidateLocation);
       if (distanceMeters > DUPLICATE_SPOT_RADIUS_METERS) return;
 
+      const name = _getSpotNameForDuplicateFlag(candidateData);
       candidates.set(doc.id, {
         spot_id: doc.id,
         distance_m: Math.round(distanceMeters * 10) / 10,
-        name: _getSpotNameForDuplicateFlag(candidateData),
+        ...(name ? { name } : {}),
       });
     });
 
@@ -612,44 +615,69 @@ export const detectDuplicateSpots = onDocumentCreated(
     timeoutSeconds: 540,
     memory: "1GiB",
   },
-  async () => {
-    const spots = await admin.firestore().collection("spots").get();
-    let batch = admin.firestore().batch();
-    let batchSize = 0;
-    let checkedCount = 0;
-    let flaggedCount = 0;
+  async (event) => {
+    const db = admin.firestore();
+    const stateRef = db.doc(DUPLICATE_SPOT_SCAN_STATE_DOC);
+    await stateRef.set({
+      status: "RUNNING",
+      started_at: FieldValue.serverTimestamp(),
+      trigger_path: event.data?.ref.path ?? RUN_DETECT_DUPLICATE_SPOTS_DOC,
+    });
 
-    for (const spot of spots.docs) {
-      if (!isSpotRuntimeDoc(spot.id)) {
-        continue;
+    try {
+      const spots = await db.collection("spots").get();
+      let batch = db.batch();
+      let batchSize = 0;
+      let checkedCount = 0;
+      let flaggedCount = 0;
+
+      for (const spot of spots.docs) {
+        if (!isSpotRuntimeDoc(spot.id)) {
+          continue;
+        }
+
+        const duplicateCheck = await _findNearbyDuplicateCandidates(
+          spot.id,
+          spot.data() as SpotSchema,
+        );
+
+        batch.update(spot.ref, { duplicate_check: duplicateCheck });
+        batchSize += 1;
+        checkedCount += 1;
+        if (duplicateCheck.status === "possible_duplicate") {
+          flaggedCount += 1;
+        }
+
+        if (batchSize >= 450) {
+          await batch.commit();
+          batch = db.batch();
+          batchSize = 0;
+        }
       }
 
-      const duplicateCheck = await _findNearbyDuplicateCandidates(
-        spot.id,
-        spot.data() as SpotSchema,
-      );
-
-      batch.update(spot.ref, { duplicate_check: duplicateCheck });
-      batchSize += 1;
-      checkedCount += 1;
-      if (duplicateCheck.status === "possible_duplicate") {
-        flaggedCount += 1;
-      }
-
-      if (batchSize >= 450) {
+      if (batchSize > 0) {
         await batch.commit();
-        batch = admin.firestore().batch();
-        batchSize = 0;
       }
-    }
 
-    if (batchSize > 0) {
-      await batch.commit();
-    }
+      await stateRef.set({
+        status: "DONE",
+        completed_at: FieldValue.serverTimestamp(),
+        checked_count: checkedCount,
+        flagged_count: flaggedCount,
+      }, { merge: true });
+      await event.data?.ref.delete();
 
-    console.log(
-      `Duplicate spot scan completed. Checked ${checkedCount}, flagged ${flaggedCount}.`,
-    );
+      console.log(
+        `Duplicate spot scan completed. Checked ${checkedCount}, flagged ${flaggedCount}.`,
+      );
+    } catch (error) {
+      await stateRef.set({
+        status: "FAILED",
+        failed_at: FieldValue.serverTimestamp(),
+        error: error instanceof Error ? error.message : String(error),
+      }, { merge: true });
+      throw error;
+    }
   },
 );
 

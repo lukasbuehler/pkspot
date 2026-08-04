@@ -122,6 +122,7 @@ interface MarkerClickPayload {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotMapComponent implements AfterViewInit, OnDestroy {
+  readonly isSavingSpot = signal(false);
   @ViewChild("map") map: GoogleMap2dComponent | undefined;
 
   osmDataService = inject(OsmDataService);
@@ -141,6 +142,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   private _spotOpenRequestVersion = 0;
   private _lastFocusedSpotKey: string | null = null;
   private _lastStoredMapViewport: StoredMapViewport | null = null;
+  private readonly _blockedCreateInvocations = new Map<string, number>();
 
   selectedSpot = model<Spot | LocalSpot | null>(null); // input and output signal
   selectedSpotChallenges = model<SpotChallengePreview[]>([]);
@@ -1324,6 +1326,15 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
   }
 
   async saveSpot(spot: LocalSpot | Spot) {
+    if (this.isSavingSpot()) {
+      if (spot instanceof LocalSpot) {
+        this._blockedCreateInvocations.set(
+          spot.creationSubmissionId,
+          (this._blockedCreateInvocations.get(spot.creationSubmissionId) ?? 0) + 1,
+        );
+      }
+      return;
+    }
     if (!this._ageAssuranceService.canParticipatePublicly()) {
       this.snackBar.open(
         this._ageAssuranceService.getRestrictionMessage(),
@@ -1333,8 +1344,10 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    // Get the current polygon paths from the map component using the proper method
-    if (this.map && this.isEditing()) {
+    this.isSavingSpot.set(true);
+    try {
+      // Get the current polygon paths from the map component using the proper method
+      if (this.map && this.isEditing()) {
       // Try the main async method first
       let updatedPaths = await this.map.getSelectedSpotPolygonPaths();
 
@@ -1342,7 +1355,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         // Always update the spot's paths with the latest from the map
         spot.paths.set(updatedPaths);
       }
-    }
+      }
 
     if (spot instanceof LocalSpot && !this._hasEnoughDataForNewSpot(spot)) {
       this.snackBar.open(
@@ -1353,9 +1366,20 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    this._spotMapDataManager
+    await this._spotMapDataManager
       .saveSpot(spot, this.uneditedSpot)
       .then(async ({ spotId, editId }) => {
+        if (spot instanceof LocalSpot) {
+          const guardCount = this._blockedCreateInvocations.get(
+            spot.creationSubmissionId,
+          ) ?? 0;
+          this._blockedCreateInvocations.delete(spot.creationSubmissionId);
+          for (let index = 0; index < guardCount; index += 1) {
+            void this.spotEditsService
+              .recordCreateGuardBlock(spot.creationSubmissionId)
+              .catch(() => undefined);
+          }
+        }
         // Successfully updated - completely stop editing to destroy polygon
         this.isEditing.set(false);
 
@@ -1415,7 +1439,6 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         }
       })
       .catch((error) => {
-        this.isEditing.set(false);
         console.error("Error saving spot:", error);
         this.analyticsService.reportError(error, {
           context: "spot_save_failed",
@@ -1433,6 +1456,9 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         });
         this.snackBar.open($localize`Error saving spot`, $localize`Dismiss`);
       });
+    } finally {
+      this.isSavingSpot.set(false);
+    }
   }
 
   private _hasEnoughDataForNewSpot(spot: LocalSpot): boolean {

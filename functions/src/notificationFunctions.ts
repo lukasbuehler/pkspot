@@ -792,6 +792,25 @@ export const onNotificationIntentWrite = onDocumentWritten(
   },
 );
 
+/**
+ * Delivers newly-created intents that are already due without waiting for the
+ * scheduled dispatcher. The transactional claim in processIntent keeps this
+ * fast path safe when the recovery dispatcher observes the same intent.
+ */
+export const onImmediateNotificationIntentCreate = onDocumentCreated(
+  "notification_intents/{intentId}",
+  async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) return;
+
+    const intent = snapshot.data() as StoredIntent;
+    const sendAfter = adminTimestamp(intent.send_after);
+    if (!sendAfter || sendAfter.toMillis() > Date.now()) return;
+
+    await processIntent(snapshot.ref);
+  },
+);
+
 export const sendDueNotificationIntents = onSchedule(
   { schedule: "every 1 minutes", timeZone: "UTC" },
   async () => {

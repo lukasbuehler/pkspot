@@ -47,7 +47,7 @@ public class PKSpotMessagingService extends MessagingService {
         .setAutoCancel(true)
         .setOnlyAlertOnce(false)
         .setGroup(threadKey)
-        .setContentIntent(pendingIntent(path, intentId, "tap"));
+        .setContentIntent(pendingIntent(path, intentId, "tap", threadKey));
 
     Bitmap image = loadImage(data.get("image_url"));
     if (image != null) {
@@ -58,7 +58,7 @@ public class PKSpotMessagingService extends MessagingService {
               .setSummaryText(valueOr(data.get("body"), "")));
     }
 
-    addActions(builder, data.get("action_labels"), intentId, path);
+    addActions(builder, data.get("action_labels"), intentId, threadKey, path);
     try {
       NotificationManagerCompat.from(this).notify(threadKey, 0, builder.build());
     } catch (SecurityException ignored) {
@@ -70,6 +70,7 @@ public class PKSpotMessagingService extends MessagingService {
       NotificationCompat.Builder builder,
       String serializedActions,
       String intentId,
+      String threadKey,
       String returnPath) {
     if (serializedActions == null || intentId == null) return;
     try {
@@ -79,7 +80,7 @@ public class PKSpotMessagingService extends MessagingService {
         String action = item.optString("action");
         String title = item.optString("title");
         if (!action.isEmpty() && !title.isEmpty()) {
-          builder.addAction(0, title, pendingIntent(returnPath, intentId, action));
+          builder.addAction(0, title, pendingIntent(returnPath, intentId, action, threadKey));
         }
       }
     } catch (Exception ignored) {
@@ -87,7 +88,11 @@ public class PKSpotMessagingService extends MessagingService {
     }
   }
 
-  private PendingIntent pendingIntent(String returnPath, String intentId, String action) {
+  private PendingIntent pendingIntent(
+      String returnPath,
+      String intentId,
+      String action,
+      String threadKey) {
     Uri target = "tap".equals(action)
         ? Uri.parse("https://pkspot.app" + returnPath)
         : new Uri.Builder()
@@ -96,6 +101,7 @@ public class PKSpotMessagingService extends MessagingService {
             .path("/notifications")
             .appendQueryParameter("notification", intentId)
             .appendQueryParameter("notificationAction", action)
+            .appendQueryParameter("notificationThread", threadKey)
             .appendQueryParameter("returnTo", returnPath)
             .build();
     Intent intent = new Intent(Intent.ACTION_VIEW, target, this, MainActivity.class)

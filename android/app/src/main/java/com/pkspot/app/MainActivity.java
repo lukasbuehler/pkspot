@@ -1,6 +1,8 @@
 package com.pkspot.app;
 
+import android.content.Intent;
 import android.content.pm.PackageInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -9,6 +11,7 @@ import android.view.WindowManager;
 import android.webkit.WebView;
 
 import androidx.core.graphics.Insets;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.view.OnApplyWindowInsetsListener;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -29,11 +32,28 @@ public class MainActivity extends BridgeActivity {
     registerPlugin(DateTimePreferencesPlugin.class);
     registerPlugin(NotificationSettingsPlugin.class);
     super.onCreate(savedInstanceState);
+    dismissNotificationFromAction(getIntent());
     logWebViewStartupDiagnostics();
     // Enable edge-to-edge on Android versions before SDK 35, where it is not automatic.
     WindowCompat.enableEdgeToEdge(getWindow());
     Log.d(TAG, "onCreate: edge-to-edge enabled");
     setupImeInsetsGuard();
+  }
+
+  @Override
+  protected void onNewIntent(Intent intent) {
+    super.onNewIntent(intent);
+    dismissNotificationFromAction(intent);
+  }
+
+  private void dismissNotificationFromAction(Intent intent) {
+    Uri url = intent == null ? null : intent.getData();
+    if (url == null || url.getQueryParameter("notificationAction") == null) return;
+
+    String threadKey = url.getQueryParameter("notificationThread");
+    if (threadKey != null && !threadKey.isEmpty()) {
+      NotificationManagerCompat.from(this).cancel(threadKey, 0);
+    }
   }
 
   @Override

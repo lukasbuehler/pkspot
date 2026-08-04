@@ -397,6 +397,11 @@
         <source>Revoke adult eligibility for <ph id="0" equiv="PH" disp="previewCount"/> matching account(s)? Their public profiles and search visibility will be disabled.</source>
       </segment>
     </unit>
+    <unit id="3253131500235385358">
+      <segment>
+        <source>The redundant Spot is used by events.</source>
+      </segment>
+    </unit>
     <unit id="3255718056802293269">
       <segment>
         <source><pc id="0" equivStart="START_TAG_MAT_ICON" equivEnd="CLOSE_TAG_MAT_ICON" type="other" dispStart="&lt;mat-icon&gt;" dispEnd="&lt;/mat-icon&gt;">search</pc> Explore the Map </source>
@@ -405,6 +410,11 @@
     <unit id="4416413576346763682">
       <segment>
         <source>Pending</source>
+      </segment>
+    </unit>
+    <unit id="662676929097085827">
+      <segment>
+        <source>Preview failed</source>
       </segment>
     </unit>
     <unit id="6631641409682927358">
@@ -435,6 +445,11 @@
     <unit id="1021514752572704186">
       <segment>
         <source>Unfollow community</source>
+      </segment>
+    </unit>
+    <unit id="1022095499149608293">
+      <segment>
+        <source>The redundant Spot is saved in private lists.</source>
       </segment>
     </unit>
     <unit id="1025791844730471949">
@@ -475,6 +490,11 @@
     <unit id="4867740992596809732">
       <segment>
         <source>Verified organization removed</source>
+      </segment>
+    </unit>
+    <unit id="4873149362496451858">
+      <segment>
+        <source>Last 7 days</source>
       </segment>
     </unit>
     <unit id="4878825351052586194">
@@ -552,6 +572,11 @@
         <source> Built on <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font font-secondary marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">open</pc> ground. </source>
       </segment>
     </unit>
+    <unit id="69101851248491105">
+      <segment>
+        <source>The Spots were not created within ten seconds.</source>
+      </segment>
+    </unit>
     <unit id="6910865064463105075">
       <segment>
         <source>Communities</source>
@@ -580,6 +605,11 @@
     <unit id="3067846330176969856">
       <segment>
         <source>Keep typing to search</source>
+      </segment>
+    </unit>
+    <unit id="3070517441012877878">
+      <segment>
+        <source>Actual creations</source>
       </segment>
     </unit>
     <unit id="3076687427621376223">
@@ -665,6 +695,11 @@
     <unit id="744750008248382275">
       <segment>
         <source> Sign Up </source>
+      </segment>
+    </unit>
+    <unit id="7448808151142843482">
+      <segment>
+        <source>Created by</source>
       </segment>
     </unit>
     <unit id="7462147415369156631">
@@ -1162,6 +1197,11 @@
         <source>Failed to submit organization review</source>
       </segment>
     </unit>
+    <unit id="7824690700853674199">
+      <segment>
+        <source>Current review state</source>
+      </segment>
+    </unit>
     <unit id="78295015887661250">
       <segment>
         <source>Organization saved.</source>
@@ -1175,6 +1215,11 @@
     <unit id="7833933616390918367">
       <segment>
         <source>Recovery Failed</source>
+      </segment>
+    </unit>
+    <unit id="7837207064522723676">
+      <segment>
+        <source>Resolving…</source>
       </segment>
     </unit>
     <unit id="8661229474911203378">
@@ -1216,6 +1261,11 @@
         <source>Org approval</source>
       </segment>
     </unit>
+    <unit id="1396251268725844084">
+      <segment>
+        <source> check-ins</source>
+      </segment>
+    </unit>
     <unit id="5596960263969935910">
       <segment>
         <source>The password is too weak. Please use at least 6 characters.</source>
@@ -1239,6 +1289,11 @@
     <unit id="4771468580618188841">
       <segment>
         <source>Beginner friendly</source>
+      </segment>
+    </unit>
+    <unit id="4775607941086121140">
+      <segment>
+        <source> Actual creations, new-client adoption, and duplicate attempts blocked before they created another Spot. </source>
       </segment>
     </unit>
     <unit id="4798502935816311934">
@@ -1334,6 +1389,11 @@
     <unit id="2473567849440268466">
       <segment>
         <source>Community merge queued</source>
+      </segment>
+    </unit>
+    <unit id="2475812979768871750">
+      <segment>
+        <source>Resolve duplicate Spot</source>
       </segment>
     </unit>
     <unit id="2494595604764120182">
@@ -1765,6 +1825,11 @@
         <source>Enter a rejection reason.</source>
       </segment>
     </unit>
+    <unit id="1726495281959581318">
+      <segment>
+        <source>App versions</source>
+      </segment>
+    </unit>
     <unit id="1731452447994913749">
       <segment>
         <source>Failed to update saved spot</source>
@@ -1798,6 +1863,11 @@
     <unit id="161852954972763993">
       <segment>
         <source>Assessment pending</source>
+      </segment>
+    </unit>
+    <unit id="1625483887199789079">
+      <segment>
+        <source> edits</source>
       </segment>
     </unit>
     <unit id="7793821153334609761">
@@ -2389,6 +2459,11 @@
         <source>Event operation applied.</source>
       </segment>
     </unit>
+    <unit id="4992232621012041129">
+      <segment>
+        <source> events</source>
+      </segment>
+    </unit>
     <unit id="3304972143698843178">
       <segment>
         <source>Event</source>
@@ -2444,6 +2519,11 @@
         <source>HTML Embed Code</source>
       </segment>
     </unit>
+    <unit id="8228088429714277489">
+      <segment>
+        <source>Client guard blocks</source>
+      </segment>
+    </unit>
     <unit id="8229433345712490359">
       <segment>
         <source>The type of this file is not allowed.</source>
@@ -2467,6 +2547,16 @@
     <unit id="8275049945387417668">
       <segment>
         <source> Unable to process this request. Please try again later. </source>
+      </segment>
+    </unit>
+    <unit id="8294319077118655917">
+      <segment>
+        <source>Checking every dependency…</source>
+      </segment>
+    </unit>
+    <unit id="5161309645847446621">
+      <segment>
+        <source>Spot creation prevention</source>
       </segment>
     </unit>
     <unit id="5163862847546461994">
@@ -2542,6 +2632,11 @@
     <unit id="187187500641108332">
       <segment>
         <source><ph id="0" equiv="INTERPOLATION" disp="{{ member.role }}"/></source>
+      </segment>
+    </unit>
+    <unit id="188931725069021470">
+      <segment>
+        <source>The redundant Spot is referenced by an organization.</source>
       </segment>
     </unit>
     <unit id="1898900891846930901">
@@ -5865,6 +5960,11 @@
         <source>Decline</source>
       </segment>
     </unit>
+    <unit id="940154517504196358">
+      <segment>
+        <source>The redundant Spot is a home Spot.</source>
+      </segment>
+    </unit>
     <unit id="940241108431922998">
       <segment>
         <source>Ordinary harm</source>
@@ -6070,6 +6170,11 @@
         <source>Session starting soon</source>
       </segment>
     </unit>
+    <unit id="926904696530621187">
+      <segment>
+        <source>Recent prevented replays</source>
+      </segment>
+    </unit>
     <unit id="5061749540188881037">
       <segment>
         <source> Community cards, spot edit votes, and organization approval. </source>
@@ -6176,6 +6281,11 @@
         <source>Closed</source>
       </segment>
     </unit>
+    <unit id="7866308593166306703">
+      <segment>
+        <source>The redundant Spot has unrelated reports.</source>
+      </segment>
+    </unit>
     <unit id="7868084107533692439">
       <segment>
         <source>Ownership claim approved.</source>
@@ -6213,6 +6323,11 @@
     <unit id="7215101881367554791">
       <segment>
         <source>Show more</source>
+      </segment>
+    </unit>
+    <unit id="7216896807322077893">
+      <segment>
+        <source>Guard blocks: <ph id="0" equiv="INTERPOLATION" disp="{{ item.guardBlockCount }}"/></source>
       </segment>
     </unit>
     <unit id="8333618256474808727">
@@ -7051,6 +7166,11 @@
         <source>Spots Created</source>
       </segment>
     </unit>
+    <unit id="562017089674756617">
+      <segment>
+        <source>No prevented replays in the last 7 days.</source>
+      </segment>
+    </unit>
     <unit id="5621227577951541037">
       <segment>
         <source>Meet-up location changed</source>
@@ -7114,6 +7234,11 @@
     <unit id="2917314929120683887">
       <segment>
         <source> Continue </source>
+      </segment>
+    </unit>
+    <unit id="2919531974280550445">
+      <segment>
+        <source>Keep as canonical</source>
       </segment>
     </unit>
     <unit id="2925374545200384410">
@@ -7548,6 +7673,11 @@
     <unit id="7358591724624613220">
       <segment>
         <source>General event update</source>
+      </segment>
+    </unit>
+    <unit id="2330111619305505465">
+      <segment>
+        <source> reviews</source>
       </segment>
     </unit>
     <unit id="2330577642930707695">
@@ -8010,6 +8140,11 @@
         <source>General</source>
       </segment>
     </unit>
+    <unit id="4924460126413195683">
+      <segment>
+        <source>The redundant Spot has reviews.</source>
+      </segment>
+    </unit>
     <unit id="4927421686251357457">
       <segment>
         <source>A self-declared age range is stored, but it does not unlock a public profile.</source>
@@ -8083,6 +8218,11 @@
     <unit id="805182578389935261">
       <segment>
         <source>Latest information from <ph id="0" equiv="INTERPOLATION" disp="{{ event().organizer?.organization?.name ?? event().name }}"/>.</source>
+      </segment>
+    </unit>
+    <unit id="8072434875780801374">
+      <segment>
+        <source>Callable creations</source>
       </segment>
     </unit>
     <unit id="8076818699210267066">
@@ -8197,6 +8337,11 @@
     <unit id="7742018872696898961">
       <segment>
         <source>Current password is incorrect.</source>
+      </segment>
+    </unit>
+    <unit id="7747602784925344705">
+      <segment>
+        <source>The redundant Spot has check-ins.</source>
       </segment>
     </unit>
     <unit id="3631960501807863073">
@@ -8530,6 +8675,11 @@
         <source>Events</source>
       </segment>
     </unit>
+    <unit id="4274464833478730957">
+      <segment>
+        <source>The redundant Spot has too many edits for automatic resolution.</source>
+      </segment>
+    </unit>
     <unit id="427922060915202050">
       <segment>
         <source>The password is invalid!</source>
@@ -8650,9 +8800,19 @@
         <source>Create and improve spots</source>
       </segment>
     </unit>
+    <unit id="4522671720515582365">
+      <segment>
+        <source>Server replay blocks</source>
+      </segment>
+    </unit>
     <unit id="4522831263356539404">
       <segment>
         <source>Add at least one community card before submitting</source>
+      </segment>
+    </unit>
+    <unit id="4523261781339006646">
+      <segment>
+        <source>The redundant Spot has challenges.</source>
       </segment>
     </unit>
     <unit id="event_attendee_actions.aria">
@@ -9008,6 +9168,11 @@
         <source>Short message (optional)</source>
       </segment>
     </unit>
+    <unit id="1957532257248004790">
+      <segment>
+        <source>Duplicate Spot resolved</source>
+      </segment>
+    </unit>
     <unit id="3601523967492159201">
       <segment>
         <source>Could not create account!</source>
@@ -9061,6 +9226,11 @@
     <unit id="9180110319941008393">
       <segment>
         <source>Environment</source>
+      </segment>
+    </unit>
+    <unit id="9186529157286281693">
+      <segment>
+        <source>Last 24 hours</source>
       </segment>
     </unit>
     <unit id="8800490161127399172">
@@ -9363,6 +9533,36 @@
         <source>Open Map</source>
       </segment>
     </unit>
+    <unit id="spot.public-warning.access-concern">
+      <segment>
+        <source>Access to this Spot may be restricted or unavailable.</source>
+      </segment>
+    </unit>
+    <unit id="spot.public-warning.destroyed">
+      <segment>
+        <source>This Spot may have been removed or destroyed.</source>
+      </segment>
+    </unit>
+    <unit id="spot.public-warning.duplicate">
+      <segment>
+        <source>This Spot may be a duplicate.</source>
+      </segment>
+    </unit>
+    <unit id="spot.public-warning.inaccessible">
+      <segment>
+        <source>This Spot may be inaccessible.</source>
+      </segment>
+    </unit>
+    <unit id="spot.public-warning.other">
+      <segment>
+        <source>Information about this Spot may be outdated. Please use caution.</source>
+      </segment>
+    </unit>
+    <unit id="spot.public-warning.temporarily-closed">
+      <segment>
+        <source>This Spot may currently be closed.</source>
+      </segment>
+    </unit>
     <unit id="spot.ratings.header">
       <notes>
         <note category="description">Header for the ratings and reviews section</note>
@@ -9509,6 +9709,11 @@
         <source>Google controls the verification flow. Visit the Play Store and complete any age-confirmation prompt it shows.</source>
       </segment>
     </unit>
+    <unit id="8916763800099701529">
+      <segment>
+        <source>No image</source>
+      </segment>
+    </unit>
     <unit id="spot.edit_history.tooltip">
       <notes>
         <note category="description">Tooltip for edit history button</note>
@@ -9534,11 +9739,6 @@
       </notes>
       <segment>
         <source>Edit History</source>
-      </segment>
-    </unit>
-    <unit id="spot.report.reason.unknown">
-      <segment>
-        <source>reported</source>
       </segment>
     </unit>
     <unit id="spot.report.tooltip">
@@ -9600,15 +9800,6 @@
     <unit id="4481769637105317205">
       <segment>
         <source>waiting on votes</source>
-      </segment>
-    </unit>
-    <unit id="8486228314424763172">
-      <notes>
-        <note category="description">Label of the button to save changes</note>
-        <note category="meaning">Save changes button label</note>
-      </notes>
-      <segment>
-        <source> Save changes </source>
       </segment>
     </unit>
     <unit id="spot.edit.name.header">
@@ -9913,6 +10104,11 @@
     <unit id="8473658733830175441">
       <segment>
         <source> Newest changes first. Each entry shows exactly what was edited. </source>
+      </segment>
+    </unit>
+    <unit id="8480981018806747498">
+      <segment>
+        <source>Resolution failed</source>
       </segment>
     </unit>
     <unit id="8482930840277475324">
@@ -10663,16 +10859,6 @@
         <source>Your notification choices are saved, but this device is blocking notifications.</source>
       </segment>
     </unit>
-    <unit id="notifications.dismiss">
-      <segment>
-        <source>Dismiss</source>
-      </segment>
-    </unit>
-    <unit id="notifications.open">
-      <segment>
-        <source>Open</source>
-      </segment>
-    </unit>
     <unit id="8011758699583016596">
       <segment>
         <source>Spots in this area</source>
@@ -10686,6 +10872,11 @@
     <unit id="1536087519743707362">
       <segment>
         <source>Dismiss</source>
+      </segment>
+    </unit>
+    <unit id="1537951843700389856">
+      <segment>
+        <source> media</source>
       </segment>
     </unit>
     <unit id="6957965842552679691">
@@ -10706,6 +10897,11 @@
     <unit id="6020607686749008401">
       <segment>
         <source>Add verifying organization</source>
+      </segment>
+    </unit>
+    <unit id="6021873589005795997">
+      <segment>
+        <source>Open duplicate reports</source>
       </segment>
     </unit>
     <unit id="6024008212258429928">
@@ -10788,6 +10984,11 @@
         <source>Delete spot</source>
       </segment>
     </unit>
+    <unit id="4194579484399345888">
+      <segment>
+        <source>Resolve duplicate</source>
+      </segment>
+    </unit>
     <unit id="event_draft.notice.aria">
       <segment>
         <source>Draft event</source>
@@ -10826,6 +11027,11 @@
     <unit id="4439801928039075192">
       <segment>
         <source>Reset map orientation to north</source>
+      </segment>
+    </unit>
+    <unit id="4441535313812174996">
+      <segment>
+        <source>Delete the redundant Spot after the server repeats every safety check? This action is permanent and recorded in moderation provenance.</source>
       </segment>
     </unit>
     <unit id="6861514919146809253">
@@ -11107,6 +11313,11 @@
     <unit id="9156829285909106416">
       <segment>
         <source> Can&apos;t find what you&apos;re looking for? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [href]=&quot;discordUrl&quot; target=&quot;_blank&quot; (click)=&quot;trackContactChannelClick(&apos;discord&apos;, &apos;support_footer_discord&apos;)&quot; &gt;" dispEnd="&lt;/a &gt;">Join our Discord</pc> and we&apos;ll help you out! </source>
+      </segment>
+    </unit>
+    <unit id="9156941745198801775">
+      <segment>
+        <source>The Spots were created by different users.</source>
       </segment>
     </unit>
     <unit id="9166339501815416264">
@@ -11603,6 +11814,11 @@
         <source>Contact</source>
       </segment>
     </unit>
+    <unit id="7932219281550877290">
+      <segment>
+        <source>Unknown creator</source>
+      </segment>
+    </unit>
     <unit id="7941428823403788384">
       <segment>
         <source> Create </source>
@@ -11621,6 +11837,11 @@
     <unit id="5250149255644238520">
       <segment>
         <source>Note (optional)</source>
+      </segment>
+    </unit>
+    <unit id="7966917302907632321">
+      <segment>
+        <source>Platforms</source>
       </segment>
     </unit>
     <unit id="7976929923774557536">
@@ -11704,6 +11925,11 @@
     <unit id="2049290282534091182">
       <segment>
         <source>Moderation</source>
+      </segment>
+    </unit>
+    <unit id="2054475841130182990">
+      <segment>
+        <source>The initial CREATE payloads are different.</source>
       </segment>
     </unit>
     <unit id="1381308436651796702">
@@ -11879,6 +12105,11 @@
         <source>Spot Edits</source>
       </segment>
     </unit>
+    <unit id="878082957916142359">
+      <segment>
+        <source>Legacy creations</source>
+      </segment>
+    </unit>
     <unit id="8784425134270344261">
       <segment>
         <source>Early Bird</source>
@@ -11899,6 +12130,11 @@
         <source>Supporter</source>
       </segment>
     </unit>
+    <unit id="7882099563073009975">
+      <segment>
+        <source>Automatic resolution is blocked</source>
+      </segment>
+    </unit>
     <unit id="7898407865763195887">
       <segment>
         <source> Select the appropriate external reporting route </source>
@@ -11914,9 +12150,19 @@
         <source> No verified spots yet. </source>
       </segment>
     </unit>
+    <unit id="1360161996063164785">
+      <segment>
+        <source> Compare both Spots. Resolution remains blocked whenever the redundant copy has unique content or dependent activity. </source>
+      </segment>
+    </unit>
     <unit id="4127571452382238225">
       <segment>
         <source>Explorer</source>
+      </segment>
+    </unit>
+    <unit id="41428961214824167">
+      <segment>
+        <source>The redundant Spot contains unique content.</source>
       </segment>
     </unit>
     <unit id="4145496584631696119">
@@ -11932,6 +12178,15 @@
     <unit id="4152989558688224665">
       <segment>
         <source>Sensitive media hidden</source>
+      </segment>
+    </unit>
+    <unit id="4154173841101825575">
+      <notes>
+        <note category="description">Label of the button to save changes</note>
+        <note category="meaning">Save changes button label</note>
+      </notes>
+      <segment>
+        <source><pc id="0" equivStart="START_BLOCK_IF" equivEnd="CLOSE_BLOCK_IF" type="other" dispStart="@if (isSaving()) {" dispEnd="}"> Saving… </pc><pc id="1" equivStart="START_BLOCK_ELSE" equivEnd="CLOSE_BLOCK_ELSE" type="other" dispStart="@else {" dispEnd="}"> Save changes </pc></source>
       </segment>
     </unit>
     <unit id="3268843240047650795">
@@ -12358,6 +12613,11 @@
         <source> Follow requests </source>
       </segment>
     </unit>
+    <unit id="6537027644496489823">
+      <segment>
+        <source>Different fields</source>
+      </segment>
+    </unit>
     <unit id="6554529363159797991">
       <segment>
         <source>Creative</source>
@@ -12505,6 +12765,11 @@
     <unit id="2365683588441896071">
       <segment>
         <source>Open released media</source>
+      </segment>
+    </unit>
+    <unit id="2366586888224215435">
+      <segment>
+        <source>Server attempts: <ph id="0" equiv="INTERPOLATION" disp="{{ item.attemptCount }}"/></source>
       </segment>
     </unit>
     <unit id="2369409944839137310">
@@ -12715,11 +12980,6 @@
     <unit id="spot-preview-card.reported">
       <segment>
         <source>Reported</source>
-      </segment>
-    </unit>
-    <unit id="spot-preview-card.reported-with-reason">
-      <segment>
-        <source>Reported: <ph id="0" equiv="PH" disp="this._formatReportReason(reason)"/></source>
       </segment>
     </unit>
     <unit id="spot-type-description.art">

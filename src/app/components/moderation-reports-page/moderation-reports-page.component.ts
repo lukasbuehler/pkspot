@@ -26,6 +26,10 @@ import {
 } from "../../services/firebase/firestore/moderation-reports.service";
 import { ModerationActionType } from "../../../db/schemas/ModerationActionSchema";
 import { SpotWarningDialogComponent } from "../spot-warning-dialog/spot-warning-dialog.component";
+import {
+  SpotDuplicateResolutionDialogComponent,
+  SpotDuplicateResolutionDialogData,
+} from "../spot-duplicate-resolution-dialog/spot-duplicate-resolution-dialog.component";
 
 type ReportFilter =
   | "open"
@@ -214,6 +218,30 @@ export class ModerationReportsPageComponent implements OnDestroy {
     } finally {
       this.actionPath.set(null);
     }
+  }
+
+  isDuplicateSpotReport(report: ModerationReportItem): boolean {
+    return report.kind === "spot" && report.reason === "duplicate";
+  }
+
+  async openDuplicateResolution(report: ModerationReportItem): Promise<void> {
+    if (this.actionPath()) return;
+    const result = await firstValueFrom(
+      this._dialog.open<
+        SpotDuplicateResolutionDialogComponent,
+        SpotDuplicateResolutionDialogData,
+        { ok: true } | undefined
+      >(SpotDuplicateResolutionDialogComponent, {
+        data: { report },
+        width: "min(1100px, calc(100vw - 32px))",
+        maxWidth: "1100px",
+      }).afterClosed(),
+    );
+    if (!result) return;
+    await this.reload();
+    this._snackbar.open($localize`Duplicate Spot resolved`, undefined, {
+      duration: 4000,
+    });
   }
 
   async revealSensitiveMedia(report: ModerationReportItem): Promise<void> {

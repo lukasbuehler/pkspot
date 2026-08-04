@@ -1,8 +1,7 @@
 import { TestBed } from "@angular/core/testing";
-import { MatSnackBar } from "@angular/material/snack-bar";
 import { Router } from "@angular/router";
 import { webcrypto } from "node:crypto";
-import { BehaviorSubject, EMPTY } from "rxjs";
+import { BehaviorSubject } from "rxjs";
 import { AnalyticsService } from "./analytics.service";
 import { AuthenticationService } from "./firebase/authentication.service";
 import { FirestoreAdapterService } from "./firebase/firestore-adapter.service";
@@ -28,11 +27,9 @@ describe("PushNotificationsService", () => {
     getToken: vi.fn().mockResolvedValue("web-token-longer-than-twenty-characters"),
     deleteToken: vi.fn().mockResolvedValue(undefined),
     onMessage: vi.fn().mockResolvedValue(vi.fn()),
+    showNotification: vi.fn().mockResolvedValue(true),
   };
   const router = { navigateByUrl: vi.fn() };
-  const snackbar = {
-    open: vi.fn().mockReturnValue({ onAction: () => EMPTY }),
-  };
 
   beforeEach(() => {
     vi.stubGlobal("crypto", webcrypto);
@@ -47,7 +44,6 @@ describe("PushNotificationsService", () => {
         { provide: AuthenticationService, useValue: auth },
         { provide: FirestoreAdapterService, useValue: firestore },
         { provide: Router, useValue: router },
-        { provide: MatSnackBar, useValue: snackbar },
         { provide: AnalyticsService, useValue: { trackEvent: vi.fn() } },
         { provide: WebPushClientService, useValue: webPush },
       ],
@@ -140,5 +136,20 @@ describe("PushNotificationsService", () => {
     expect(webPush.requestPermission).not.toHaveBeenCalled();
     expect(webPush.getToken).toHaveBeenCalled();
     expect(service.registrationActive()).toBe(true);
+  });
+
+  it("shows foreground web messages as system notifications", async () => {
+    webPush.isSupported.mockResolvedValue(true);
+    const service = TestBed.inject(PushNotificationsService);
+    await service.initialize();
+    const listener = webPush.onMessage.mock.calls[0][0];
+    const message = {
+      data: { title: "Follow request", body: "Lukas wants to follow you" },
+    };
+
+    listener(message);
+    await vi.waitFor(() =>
+      expect(webPush.showNotification).toHaveBeenCalledWith(message),
+    );
   });
 });

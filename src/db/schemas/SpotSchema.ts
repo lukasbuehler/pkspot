@@ -8,6 +8,7 @@ import { SpotReportReason } from "./SpotReportSchema";
 import { SpotLandingSchema } from "./SpotLandingSchema";
 import { OrganizationReferenceSchema } from "./OrganizationSchema";
 import type { EventCardPreviewSchema } from "./EventSchema";
+import { PublicSpotNotice } from "./SpotPublicNotice";
 
 export type SpotId = string & { __brand: "SpotId" };
 export type SpotSlug = string & { __brand: "SpotSlug" };
@@ -126,16 +127,8 @@ export interface SpotSchema {
   report_reason?: SpotReportReason | string;
   report_count?: number;
   latest_report_at?: Timestamp | { seconds: number; nanoseconds: number };
-  public_notice?: {
-    type:
-      | "destroyed"
-      | "inaccessible"
-      | "temporarily_closed"
-      | "access_concern"
-      | "other";
-    message: string;
+  public_notice?: PublicSpotNotice & {
     published_at?: Timestamp | { seconds: number; nanoseconds: number };
-    source?: "moderator" | "community_report" | "legacy_report_migration";
   };
   duplicate_check?: {
     status: "clear" | "possible_duplicate";

@@ -52,6 +52,7 @@ import { EventId, EventSchema } from "../schemas/EventSchema";
  * in the Firestore database, hence it does not have an id.
  */
 export class LocalSpot {
+  readonly creationSubmissionId: string;
   names: WritableSignal<LocaleMap>;
   readonly name: Signal<string>;
 
@@ -78,6 +79,7 @@ export class LocalSpot {
   isIconic: boolean = false;
   isReported: boolean = false;
   reportReason: SpotSchema["report_reason"];
+  publicNotice: SpotSchema["public_notice"];
   reportCount: number = 0;
   stewardship: SpotSchema["stewardship"];
   management: SpotSchema["management"];
@@ -144,7 +146,13 @@ export class LocalSpot {
 
   paths: WritableSignal<google.maps.LatLngLiteral[][] | undefined>;
 
-  constructor(data: SpotSchema, readonly locale: LocaleCode) {
+  constructor(
+    data: SpotSchema,
+    readonly locale: LocaleCode,
+    creationSubmissionId?: string,
+  ) {
+    this.creationSubmissionId =
+      creationSubmissionId ?? LocalSpot._newCreationSubmissionId();
     this.names = signal(makeLocaleMapFromObject(data.name || {}));
     this.name = computed(() => {
       const namesMap = this.names();
@@ -282,6 +290,7 @@ export class LocalSpot {
     this.isReported =
       data.is_reported === true || legacyReportState.isReported === true;
     this.reportReason = data.report_reason ?? legacyReportState.reportReason;
+    this.publicNotice = data.public_notice;
     this.reportCount = data.report_count ?? 0;
     this.stewardship = data.stewardship;
     this.management = data.management;
@@ -474,6 +483,7 @@ export class LocalSpot {
     this.isReported =
       data.is_reported === true || legacyReportState.isReported === true;
     this.reportReason = data.report_reason ?? legacyReportState.reportReason;
+    this.publicNotice = data.public_notice;
     this.reportCount = data.report_count ?? 0;
     this.stewardship = data.stewardship;
     this.management = data.management;
@@ -712,7 +722,14 @@ export class LocalSpot {
 
   public clone(): LocalSpot {
     const dataCopy: SpotSchema = JSON.parse(JSON.stringify(this.data()));
-    return new LocalSpot(dataCopy, this.locale);
+    return new LocalSpot(dataCopy, this.locale, this.creationSubmissionId);
+  }
+
+  private static _newCreationSubmissionId(): string {
+    if (typeof globalThis.crypto?.randomUUID === "function") {
+      return globalThis.crypto.randomUUID();
+    }
+    return `${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}_${Math.random().toString(36).slice(2)}`;
   }
 
   private static makeUpcomingEvents(
@@ -811,6 +828,9 @@ export class Spot extends LocalSpot {
 
   public override clone(): Spot {
     const dataCopy = JSON.parse(JSON.stringify(this.data()));
+    dataCopy.public_notice = this.publicNotice
+      ? JSON.parse(JSON.stringify(this.publicNotice))
+      : undefined;
     return new Spot(this.id, dataCopy, this.locale);
   }
 

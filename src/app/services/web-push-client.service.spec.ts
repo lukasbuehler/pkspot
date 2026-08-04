@@ -20,7 +20,11 @@ vi.mock("firebase/messaging", () => ({
 
 describe("WebPushClientService", () => {
   const configuredVapidKey = environment.webPush.vapidKey;
-  const serviceWorkerRegistration = { scope: "https://pkspot.app/" };
+  const showNotification = vi.fn().mockResolvedValue(undefined);
+  const serviceWorkerRegistration = {
+    scope: "https://pkspot.app/",
+    showNotification,
+  };
   const register = vi.fn().mockResolvedValue(serviceWorkerRegistration);
   const requestPermission = vi.fn().mockResolvedValue("granted");
 
@@ -97,5 +101,48 @@ describe("WebPushClientService", () => {
 
     expect(onMessage).toHaveBeenCalledWith({ name: "messaging" }, listener);
     expect(deleteToken).toHaveBeenCalledWith({ name: "messaging" });
+  });
+
+  it("uses the service worker to show foreground messages as system notifications", async () => {
+    vi.stubGlobal("Notification", {
+      permission: "granted",
+      requestPermission,
+    });
+    const service = TestBed.inject(WebPushClientService);
+
+    await expect(
+      service.showNotification({
+        data: {
+          title: "Follow request",
+          body: "Lukas wants to follow you",
+          intent_id: "intent-1",
+          thread_key: "follow:user-1",
+          path: "/notifications",
+          action_labels: JSON.stringify([
+            { action: "accept_follow", title: "Accept" },
+          ]),
+        },
+      }),
+    ).resolves.toBe(true);
+
+    expect(showNotification).toHaveBeenCalledWith("Follow request", {
+      body: "Lukas wants to follow you",
+      icon: "/assets/icons/icon-192.webp",
+      badge: "/assets/icons/icon-96.webp",
+      tag: "follow:user-1",
+      renotify: true,
+      data: expect.objectContaining({ intent_id: "intent-1" }),
+      actions: [{ action: "accept_follow", title: "Accept" }],
+    });
+  });
+
+  it("does not show a system notification without granted permission", async () => {
+    const service = TestBed.inject(WebPushClientService);
+
+    await expect(
+      service.showNotification({ data: { title: "Follow request" } }),
+    ).resolves.toBe(false);
+
+    expect(showNotification).not.toHaveBeenCalled();
   });
 });

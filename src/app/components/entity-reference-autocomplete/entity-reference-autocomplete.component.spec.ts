@@ -68,6 +68,48 @@ describe("EntityReferenceAutocompleteComponent", () => {
     expect(valueChange).toHaveBeenCalledWith("spot-slug");
   });
 
+  it("excludes the current Spot from autocomplete results", async () => {
+    const component = await createComponent();
+    fixture.componentRef.setInput("excludedIds", ["reported-id"]);
+    const searchService = TestBed.inject(SearchService);
+    vi.mocked(searchService.searchSpots).mockResolvedValue({
+      hits: [
+        {
+          document: { id: "reported-id" },
+          preview: {
+            id: "reported-id" as SpotId,
+            slug: "reported-spot",
+            name: "Reported Spot",
+            locality: "Basel",
+            imageSrc: "",
+            isIconic: false,
+          },
+        },
+        {
+          document: { id: "other-id" },
+          preview: {
+            id: "other-id" as SpotId,
+            slug: "other-spot",
+            name: "Other Spot",
+            locality: "Basel",
+            imageSrc: "",
+            isIconic: false,
+          },
+        },
+      ],
+      found: 2,
+    } as never);
+
+    vi.useFakeTimers();
+    component.searchControl.setValue("spot");
+    await vi.advanceTimersByTimeAsync(251);
+    vi.useRealTimers();
+
+    expect(component.results().map((option) => option.id)).toEqual([
+      "other-spot",
+    ]);
+  });
+
   it("renders a selected spot with the existing compact spot preview card", async () => {
     const component = await createComponent();
     const spotPreview = {
