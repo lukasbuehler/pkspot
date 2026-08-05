@@ -1104,9 +1104,16 @@ export class FirestoreAdapterService {
       const data = await this.getCollectionNative<T>(
         collectionPath,
         filters,
-        constraints
+        constraints,
+        typeof startAfterDoc === "string" ? startAfterDoc : undefined,
       );
-      return { data: data as (T & { id: string })[], lastDoc: null };
+      const lastId = (data.at(-1) as {id?: unknown} | undefined)?.id;
+      return {
+        data: data as (T & { id: string })[],
+        lastDoc: typeof lastId === "string"
+          ? `${collectionPath}/${lastId}`
+          : null,
+      };
     }
     return this.trackPending(() =>
       runInInjectionContext(this.injector, async () => {
@@ -1179,7 +1186,8 @@ export class FirestoreAdapterService {
   private async getCollectionNative<T>(
     collectionPath: string,
     filters?: QueryFilter[],
-    constraints?: QueryConstraintOptions[]
+    constraints?: QueryConstraintOptions[],
+    startAfterReference?: string,
   ): Promise<T[]> {
     const options: GetCollectionOptions = {
       reference: collectionPath,
@@ -1230,6 +1238,12 @@ export class FirestoreAdapterService {
         })
         .filter((c): c is QueryNonFilterConstraint => c !== null);
       options.queryConstraints = mappedConstraints;
+    }
+    if (startAfterReference) {
+      options.queryConstraints = [
+        ...(options.queryConstraints ?? []),
+        {type: "startAfter", reference: startAfterReference},
+      ];
     }
 
     const result = await FirebaseFirestore.getCollection(options);

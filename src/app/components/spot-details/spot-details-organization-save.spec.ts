@@ -50,9 +50,9 @@ describe("SpotDetailsComponent organization relationship saving", () => {
     )?.[0];
 
     expect(source).toContain("this.isSaving() || this._isSaveFlowPending()");
-    expect(saveButtonClick).toContain("this._isSaveFlowPending.set(true)");
-    expect(saveButtonClick).toContain("finally");
-    expect(saveButtonClick).toContain("this._isSaveFlowPending.set(false)");
+    expect(saveButtonClick).toMatch(
+      /this\._isSaveFlowPending\.set\(true\)[\s\S]*?await[\s\S]*?finally\s*{[\s\S]*?this\._isSaveFlowPending\.set\(false\)/,
+    );
   });
 
   it("keeps verified organization badges available outside admin-only UI", () => {

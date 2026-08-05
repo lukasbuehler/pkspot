@@ -62,6 +62,7 @@ export class SpotDuplicateResolutionDialogComponent implements OnInit {
   private readonly _data = inject<SpotDuplicateResolutionDialogData>(MAT_DIALOG_DATA);
   private readonly _dialogRef = inject(MatDialogRef<SpotDuplicateResolutionDialogComponent>);
   private readonly _reports = inject(ModerationReportsService);
+  private _previewRequestGeneration = 0;
 
   readonly report = this._data.report;
   readonly candidateSpotId = signal(this._initialCandidateId());
@@ -77,6 +78,7 @@ export class SpotDuplicateResolutionDialogComponent implements OnInit {
     const preview = this.previewData();
     return Boolean(
       preview &&
+      preview.candidate.id === this.candidateSpotId() &&
       !this.isResolving() &&
       preview.eligibleCanonicalSpotIds.includes(this.canonicalSpotId()),
     );
@@ -87,6 +89,7 @@ export class SpotDuplicateResolutionDialogComponent implements OnInit {
   }
 
   onCandidateSelection(selection: EntityReferenceOption | null): void {
+    this._previewRequestGeneration += 1;
     this.candidateSpotId.set(selection?.id ?? "");
     this.previewData.set(null);
     this.canonicalSpotId.set("");
@@ -96,7 +99,8 @@ export class SpotDuplicateResolutionDialogComponent implements OnInit {
 
   async loadPreview(): Promise<void> {
     const candidateSpotId = this.candidateSpotId();
-    if (!candidateSpotId || this.isLoading()) return;
+    if (!candidateSpotId) return;
+    const requestGeneration = ++this._previewRequestGeneration;
     this.isLoading.set(true);
     this.errorMessage.set("");
     try {
@@ -104,15 +108,22 @@ export class SpotDuplicateResolutionDialogComponent implements OnInit {
         this.report.path,
         candidateSpotId,
       );
+      if (
+        requestGeneration !== this._previewRequestGeneration ||
+        candidateSpotId !== this.candidateSpotId()
+      ) return;
       this.previewData.set(preview);
       this.canonicalSpotId.set("");
     } catch (error) {
+      if (requestGeneration !== this._previewRequestGeneration) return;
       this.previewData.set(null);
       this.errorMessage.set(
         error instanceof Error ? error.message : $localize`Preview failed`,
       );
     } finally {
-      this.isLoading.set(false);
+      if (requestGeneration === this._previewRequestGeneration) {
+        this.isLoading.set(false);
+      }
     }
   }
 
@@ -125,7 +136,11 @@ export class SpotDuplicateResolutionDialogComponent implements OnInit {
   async resolve(): Promise<void> {
     const preview = this.previewData();
     const canonicalSpotId = this.canonicalSpotId();
-    if (!preview || !this.canResolve()) return;
+    if (
+      !preview ||
+      preview.candidate.id !== this.candidateSpotId() ||
+      !this.canResolve()
+    ) return;
     const redundantSpotId = preview.reported.id === canonicalSpotId
       ? preview.candidate.id
       : preview.reported.id;
@@ -184,7 +199,12 @@ export class SpotDuplicateResolutionDialogComponent implements OnInit {
     return typeof duplicateOf === "string"
       ? duplicateOf
       : typeof duplicateOf === "object" && duplicateOf !== null
-        ? (duplicateOf as {id?: string}).id ?? ""
+        ? this._stringId(duplicateOf)
         : "";
+  }
+
+  private _stringId(value: object): string {
+    const id: unknown = Reflect.get(value, "id");
+    return typeof id === "string" ? id : "";
   }
 }

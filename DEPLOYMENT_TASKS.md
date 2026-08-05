@@ -95,18 +95,20 @@ production duplicate.
       `attempt_count`, and `last_attempt_at` with `guard_block_count`) to report
       `Enabled`. Do this before deploying the diagnostics Function:
 
-      ```sh
-      npx firebase deploy --project prod --only firestore:indexes
-      ```
+  ```sh
+  npx firebase deploy --project prod --only firestore:indexes
+  ```
 
 - [ ] Deploy the backward-compatible duplicate administration, diagnostics,
       report-warning, safety-case, and immediate-notification Function updates:
 
-      ```sh
-      npx firebase deploy --project prod --only functions:getSpotCreationDiagnostics,functions:resolveSpotDuplicate,functions:detectDuplicateSpots,functions:onSpotReportCreate,functions:onModerationActionNotificationCreate,functions:onModerationActionSafetyCaseCreate,functions:onImmediateNotificationIntentCreate,functions:onNotificationIntentWrite
-      ```
+  ```sh
+  npx firebase deploy --project prod --only functions:getSpotCreationDiagnostics,functions:resolveSpotDuplicate,functions:detectDuplicateSpots,functions:onSpotReportCreate,functions:onModerationActionNotificationCreate,functions:onModerationActionSafetyCaseCreate,functions:onImmediateNotificationIntentCreate,functions:onNotificationIntentWrite
+  ```
 
-      Verify the deployment succeeds in `europe-west1`, duplicate-resolution
+      Verify every listed Function reports location `europe-west1` in the
+      Firebase Functions inventory; fail the release if any differs. Also verify
+      the deployment succeeds, duplicate-resolution
       replays create one moderation action, and an immediately due actionable
       notification has its in-app feed projection before delivery is claimed.
 

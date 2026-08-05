@@ -807,6 +807,43 @@ describe("FirestoreAdapterService (native)", () => {
       expect(result).toEqual([{ id: "doc1", name: "Doc 1" }]);
     });
 
+    it("should return and apply native collection pagination cursors", async () => {
+      (FirebaseFirestore.getCollection as Mock)
+        .mockResolvedValueOnce({
+          snapshots: [{id: "doc-200", data: {name: "Page 1"}}],
+        })
+        .mockResolvedValueOnce({
+          snapshots: [{id: "doc-201", data: {name: "Page 2"}}],
+        });
+
+      const firstPage = await service.getCollectionWithMetadata<{name: string}>(
+        "spots",
+        undefined,
+        [{type: "limit", limit: 200}],
+      );
+      const secondPage = await service.getCollectionWithMetadata<{name: string}>(
+        "spots",
+        undefined,
+        [{type: "limit", limit: 200}],
+        firstPage.lastDoc,
+      );
+
+      expect(firstPage.lastDoc).toBe("spots/doc-200");
+      expect(secondPage.data).toEqual([
+        {id: "doc-201", name: "Page 2"},
+      ]);
+      expect(FirebaseFirestore.getCollection).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          reference: "spots",
+          queryConstraints: [
+            {type: "limit", limit: 200},
+            {type: "startAfter", reference: "spots/doc-200"},
+          ],
+        }),
+      );
+    });
+
     it("should build composite filter for multiple conditions on Android", async () => {
       nativeMockPlatformService.getPlatform.mockReturnValue("android");
       const filters: QueryFilter[] = [

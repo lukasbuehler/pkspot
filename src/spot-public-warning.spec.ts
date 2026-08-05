@@ -42,6 +42,12 @@ describe("public Spot warnings", () => {
     expect(publicSpotWarningForReason("access_concern").message).toBe(
       "Access to this Spot may be restricted or unavailable.",
     );
+    expect(localizedPublicSpotWarning({type: "inaccessible"})).toBe(
+      "This Spot may be inaccessible.",
+    );
+    expect(localizedPublicSpotWarning({type: "access_concern"})).toBe(
+      "Access to this Spot may be restricted or unavailable.",
+    );
   });
 
   it("keeps private report text admin-only and localizes ordinary Spot warnings", () => {
