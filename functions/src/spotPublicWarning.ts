@@ -27,7 +27,13 @@ export const publicSpotWarningForReason = (
       message: "This Spot may have been removed or destroyed.",
     };
   }
-  if (type === "inaccessible" || type === "access_concern") {
+  if (type === "inaccessible") {
+    return {
+      type,
+      message: "This Spot may be inaccessible.",
+    };
+  }
+  if (type === "access_concern") {
     return {
       type,
       message: "Access to this Spot may be restricted or unavailable.",

@@ -1,4 +1,9 @@
-import { FieldValue, GeoPoint, Timestamp } from "firebase-admin/firestore";
+import {
+  FieldPath,
+  FieldValue,
+  GeoPoint,
+  Timestamp,
+} from "firebase-admin/firestore";
 import {
   onDocumentCreated,
   onDocumentWritten,
@@ -34,6 +39,8 @@ const RUN_DETECT_DUPLICATE_SPOTS_DOC = `${MAINTENANCE_COLLECTION}/run-detect-dup
 const DUPLICATE_SPOT_SCAN_STATE_DOC =
   `${MAINTENANCE_COLLECTION}/spot-duplicate-scan`;
 const DUPLICATE_SPOT_RADIUS_METERS = 5;
+const DUPLICATE_SCAN_PAGE_SIZE = 100;
+const DUPLICATE_SCAN_CONCURRENCY = 10;
 const isSpotRuntimeDoc = (docId: string): boolean =>
   docId !== "typesense" && !docId.startsWith("run-");
 
@@ -625,34 +632,54 @@ export const detectDuplicateSpots = onDocumentCreated(
     });
 
     try {
-      const spots = await db.collection("spots").get();
       let batch = db.batch();
       let batchSize = 0;
       let checkedCount = 0;
       let flaggedCount = 0;
+      let cursor: FirebaseFirestore.QueryDocumentSnapshot | undefined;
 
-      for (const spot of spots.docs) {
-        if (!isSpotRuntimeDoc(spot.id)) {
-          continue;
+      while (true) {
+        let query = db.collection("spots")
+          .select("location", "location_raw", "name", "tile_coordinates")
+          .orderBy(FieldPath.documentId())
+          .limit(DUPLICATE_SCAN_PAGE_SIZE);
+        if (cursor) query = query.startAfter(cursor);
+        const page = await query.get();
+        if (page.empty) break;
+
+        for (
+          let offset = 0;
+          offset < page.docs.length;
+          offset += DUPLICATE_SCAN_CONCURRENCY
+        ) {
+          const spots = page.docs
+            .slice(offset, offset + DUPLICATE_SCAN_CONCURRENCY)
+            .filter((spot) => isSpotRuntimeDoc(spot.id));
+          const results = await Promise.all(spots.map(async (spot) => ({
+            spot,
+            duplicateCheck: await _findNearbyDuplicateCandidates(
+              spot.id,
+              spot.data() as SpotSchema,
+            ),
+          })));
+
+          for (const {spot, duplicateCheck} of results) {
+            batch.update(spot.ref, { duplicate_check: duplicateCheck });
+            batchSize += 1;
+            checkedCount += 1;
+            if (duplicateCheck.status === "possible_duplicate") {
+              flaggedCount += 1;
+            }
+          }
+
+          if (batchSize >= 450) {
+            await batch.commit();
+            batch = db.batch();
+            batchSize = 0;
+          }
         }
-
-        const duplicateCheck = await _findNearbyDuplicateCandidates(
-          spot.id,
-          spot.data() as SpotSchema,
-        );
-
-        batch.update(spot.ref, { duplicate_check: duplicateCheck });
-        batchSize += 1;
-        checkedCount += 1;
-        if (duplicateCheck.status === "possible_duplicate") {
-          flaggedCount += 1;
-        }
-
-        if (batchSize >= 450) {
-          await batch.commit();
-          batch = db.batch();
-          batchSize = 0;
-        }
+        cursor = page.docs.at(-1);
+        if (page.size < DUPLICATE_SCAN_PAGE_SIZE) break;
       }
 
       if (batchSize > 0) {
@@ -665,8 +692,6 @@ export const detectDuplicateSpots = onDocumentCreated(
         checked_count: checkedCount,
         flagged_count: flaggedCount,
       }, { merge: true });
-      await event.data?.ref.delete();
-
       console.log(
         `Duplicate spot scan completed. Checked ${checkedCount}, flagged ${flaggedCount}.`,
       );
@@ -677,6 +702,12 @@ export const detectDuplicateSpots = onDocumentCreated(
         error: error instanceof Error ? error.message : String(error),
       }, { merge: true });
       throw error;
+    }
+
+    try {
+      await event.data?.ref.delete();
+    } catch (error) {
+      console.error("Duplicate scan completed but trigger cleanup failed", error);
     }
   },
 );

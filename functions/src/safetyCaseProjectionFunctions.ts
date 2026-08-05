@@ -459,11 +459,13 @@ const decisionForModerationAction = (
       reason: "The reported media was removed.",
     };
   }
-  if (actionType === "delete_spot") {
+  if (actionType === "delete_spot" || actionType === "resolve_duplicate_spot") {
     return {
       type: "unpublish_spot",
       outcome: "action_taken",
-      reason: "The reported Spot was removed.",
+      reason: actionType === "resolve_duplicate_spot" ?
+        "The duplicate Spot was merged into the canonical Spot." :
+        "The reported Spot was removed.",
     };
   }
   return undefined;

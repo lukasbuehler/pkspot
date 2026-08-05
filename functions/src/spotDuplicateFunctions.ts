@@ -390,13 +390,25 @@ export const previewSpotDuplicateResolution =
     },
   );
 
-const updateLeaderboards = async (
-  batch: FirebaseFirestore.WriteBatch,
+const leaderboardEntries = (
+  userId: string,
+  snapshot: FirebaseFirestore.DocumentSnapshot,
+  count: number,
+): unknown[] => {
+  const data = snapshot.data();
+  const entries = Array.isArray(data?.["entries"]) ? [...data["entries"]] : [];
+  const index = entries.findIndex((entry) => entry?.uid === userId);
+  if (index >= 0) entries[index] = {...entries[index], count};
+  entries.sort((left, right) => (right.count ?? 0) - (left.count ?? 0));
+  return entries.slice(0, 50);
+};
+
+const nextContributionCounts = (
   user: FirebaseFirestore.DocumentSnapshot,
   counts: {edits: number; creates: number; media: number},
-): Promise<void> => {
+): Record<string, number> => {
   const data = user.data() ?? {};
-  const next: Record<string, number> = {
+  return {
     spots_edited: Math.max(0, (data["spot_edits_count"] ?? 0) - counts.edits),
     spots_created: Math.max(
       0,
@@ -404,21 +416,6 @@ const updateLeaderboards = async (
     ),
     media_added: Math.max(0, (data["media_added_count"] ?? 0) - counts.media),
   };
-  for (const [leaderboardId, count] of Object.entries(next)) {
-    const ref = db.doc(`leaderboards/${leaderboardId}`);
-    const snapshot = await ref.get();
-    const leaderboardData = snapshot.data();
-    const entries = Array.isArray(leaderboardData?.["entries"]) ?
-      [...leaderboardData["entries"]] :
-      [];
-    const index = entries.findIndex((entry) => entry?.uid === user.id);
-    if (index >= 0) entries[index] = {...entries[index], count};
-    entries.sort((left, right) => (right.count ?? 0) - (left.count ?? 0));
-    batch.set(ref, {
-      entries: entries.slice(0, 50),
-      updated_at: FieldValue.serverTimestamp(),
-    }, {merge: true});
-  }
 };
 
 export const resolveSpotDuplicate = onCall<ResolveSpotDuplicateRequest>(
@@ -440,8 +437,7 @@ export const resolveSpotDuplicate = onCall<ResolveSpotDuplicateRequest>(
       .update(`${reportPath}:${canonicalSpotId}:${redundantSpotId}`)
       .digest("hex");
     const actionRef = db.doc(`moderation_actions/${actionId}`);
-    const existingAction = await actionRef.get();
-    if (existingAction.exists) {
+    if ((await actionRef.get()).exists) {
       return {ok: true, canonicalSpotId, redundantSpotId, replayed: true};
     }
     const reportedSpotId = db.doc(reportPath).parent.parent?.id;
@@ -478,9 +474,6 @@ export const resolveSpotDuplicate = onCall<ResolveSpotDuplicateRequest>(
       .where("spot_id", "==", redundant.id)
       .get();
     const creatorUid = redundant.createEdit.data()["user"]?.["uid"];
-    const creator = creatorUid ?
-      await db.doc(`users/${creatorUid}`).get() :
-      undefined;
     const approvedEdits = redundant.edits.filter(
       (edit) => edit.data()["approved"] === true,
     );
@@ -496,75 +489,101 @@ export const resolveSpotDuplicate = onCall<ResolveSpotDuplicateRequest>(
         0,
       ),
     };
-    const batch = db.batch();
-    aliases.docs.forEach((alias) => {
-      batch.update(alias.ref, {spot_id: canonical.id});
-    });
-    votes.flatMap((snapshot) => snapshot.docs).forEach((vote) => {
-      batch.delete(vote.ref);
-    });
-    redundant.edits.forEach((edit) => batch.delete(edit.ref));
     const redundantReports = await redundant.ref.collection("reports").get();
+    const sourceReportRef = db.doc(reportPath);
+    const sourceReportIsOnRedundant = reportPath.startsWith(
+      `spots/${redundant.id}/`,
+    );
+    const creatorRef = creatorUid ? db.doc(`users/${creatorUid}`) : null;
+    const leaderboardRefs = [
+      db.doc("leaderboards/spots_edited"),
+      db.doc("leaderboards/spots_created"),
+      db.doc("leaderboards/media_added"),
+    ];
     const writeCount =
       aliases.size +
       votes.reduce((sum, snapshot) => sum + snapshot.size, 0) +
       redundant.edits.length +
       redundantReports.size +
-      8;
+      2 +
+      (sourceReportIsOnRedundant ? 0 : 1) +
+      (creatorRef ? 4 : 0);
     if (writeCount > 480) {
       throw new HttpsError(
         "failed-precondition",
         "Resolution exceeds the safe write limit.",
       );
     }
-    redundantReports.docs.forEach((report) => batch.delete(report.ref));
-    const sourceReportRef = db.doc(reportPath);
-    if (!reportPath.startsWith(`spots/${redundant.id}/`)) {
-      batch.update(sourceReportRef, {
-        status: "resolved",
-        resolvedAt: FieldValue.serverTimestamp(),
-        resolvedBy: {uid: adminUid},
-        resolutionNote: "Resolved as a verified rapid-submit duplicate.",
+    const replayed = await db.runTransaction(async (transaction) => {
+      const action = await transaction.get(actionRef);
+      if (action.exists) return true;
+
+      const sourceReport = await transaction.get(sourceReportRef);
+      const creator = creatorRef ? await transaction.get(creatorRef) : null;
+      const leaderboards = creator?.exists ?
+        await Promise.all(leaderboardRefs.map((ref) => transaction.get(ref))) :
+        [];
+
+      aliases.docs.forEach((alias) => {
+        transaction.update(alias.ref, {spot_id: canonical.id});
       });
-    }
-    batch.delete(redundant.ref);
-    if (creator?.exists) {
-      const userData = creator.data() ?? {};
-      batch.set(creator.ref, {
-        spot_edits_count: Math.max(
-          0,
-          (userData["spot_edits_count"] ?? 0) - counts.edits,
-        ),
-        spot_creates_count: Math.max(
-          0,
-          (userData["spot_creates_count"] ?? 0) - counts.creates,
-        ),
-        media_added_count: Math.max(
-          0,
-          (userData["media_added_count"] ?? 0) - counts.media,
-        ),
-      }, {merge: true});
-      await updateLeaderboards(batch, creator, counts);
-    }
-    batch.set(actionRef, {
-      action_type: "resolve_duplicate_spot",
-      source_type: "spot_report",
-      source_path: reportPath,
-      source_snapshot: (await sourceReportRef.get()).data() ?? {},
-      target_type: "spot",
-      target_path: canonical.ref.path,
-      target_snapshot: canonical.data,
-      created_at: FieldValue.serverTimestamp(),
-      created_by: {uid: adminUid},
-      decision: {
-        canonical_spot_id: canonical.id,
-        redundant_spot_id: redundant.id,
-        preview_token: previewToken,
-        contribution_adjustment: counts,
-      },
+      votes.flatMap((snapshot) => snapshot.docs).forEach((vote) => {
+        transaction.delete(vote.ref);
+      });
+      redundant.edits.forEach((edit) => transaction.delete(edit.ref));
+      redundantReports.docs.forEach((report) => transaction.delete(report.ref));
+      if (!sourceReportIsOnRedundant) {
+        transaction.update(sourceReportRef, {
+          status: "resolved",
+          resolvedAt: FieldValue.serverTimestamp(),
+          resolvedBy: {uid: adminUid},
+          resolutionNote: "Resolved as a verified rapid-submit duplicate.",
+        });
+      }
+      transaction.delete(redundant.ref);
+
+      if (creator?.exists && creatorRef) {
+        const next = nextContributionCounts(creator, counts);
+        transaction.set(creatorRef, {
+          spot_edits_count: next["spots_edited"],
+          spot_creates_count: next["spots_created"],
+          media_added_count: next["media_added"],
+        }, {merge: true});
+        leaderboardRefs.forEach((ref, index) => {
+          const leaderboardId = ref.id;
+          transaction.set(ref, {
+            entries: leaderboardEntries(
+              creator.id,
+              leaderboards[index],
+              next[leaderboardId],
+            ),
+            updated_at: FieldValue.serverTimestamp(),
+          }, {merge: true});
+        });
+      }
+      transaction.create(actionRef, {
+        action_type: "resolve_duplicate_spot",
+        source_type: "spot_report",
+        source_path: reportPath,
+        source_snapshot: sourceReport.data() ?? {},
+        target_type: "spot",
+        target_path: canonical.ref.path,
+        target_snapshot: canonical.data,
+        created_at: FieldValue.serverTimestamp(),
+        created_by: {uid: adminUid},
+        decision: {
+          canonical_spot_id: canonical.id,
+          redundant_spot_id: redundant.id,
+          preview_token: previewToken,
+          contribution_adjustment: counts,
+        },
+      });
+      return false;
     });
-    await batch.commit();
-    if (!reportPath.startsWith(`spots/${redundant.id}/`)) {
+    if (replayed) {
+      return {ok: true, canonicalSpotId, redundantSpotId, replayed: true};
+    }
+    if (!sourceReportIsOnRedundant) {
       const remaining = await canonical.ref.collection("reports").get();
       const hasOpenReports = remaining.docs.some((report) => {
         const status = report.data()["status"];

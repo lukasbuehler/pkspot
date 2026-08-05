@@ -35,6 +35,15 @@ describe("public Spot warnings", () => {
     );
   });
 
+  it("keeps inaccessible and access-concern warnings distinct", () => {
+    expect(publicSpotWarningForReason("inaccessible").message).toBe(
+      "This Spot may be inaccessible.",
+    );
+    expect(publicSpotWarningForReason("access_concern").message).toBe(
+      "Access to this Spot may be restricted or unavailable.",
+    );
+  });
+
   it("keeps private report text admin-only and localizes ordinary Spot warnings", () => {
     const source = readFileSync(
       join(

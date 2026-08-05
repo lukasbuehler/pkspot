@@ -226,22 +226,27 @@ export class ModerationReportsPageComponent implements OnDestroy {
 
   async openDuplicateResolution(report: ModerationReportItem): Promise<void> {
     if (this.actionPath()) return;
-    const result = await firstValueFrom(
-      this._dialog.open<
-        SpotDuplicateResolutionDialogComponent,
-        SpotDuplicateResolutionDialogData,
-        { ok: true } | undefined
-      >(SpotDuplicateResolutionDialogComponent, {
-        data: { report },
-        width: "min(1100px, calc(100vw - 32px))",
-        maxWidth: "1100px",
-      }).afterClosed(),
-    );
-    if (!result) return;
-    await this.reload();
-    this._snackbar.open($localize`Duplicate Spot resolved`, undefined, {
-      duration: 4000,
-    });
+    this.actionPath.set(report.path);
+    try {
+      const result = await firstValueFrom(
+        this._dialog.open<
+          SpotDuplicateResolutionDialogComponent,
+          SpotDuplicateResolutionDialogData,
+          { ok: true } | undefined
+        >(SpotDuplicateResolutionDialogComponent, {
+          data: { report },
+          width: "min(1100px, calc(100vw - 32px))",
+          maxWidth: "1100px",
+        }).afterClosed(),
+      );
+      if (!result) return;
+      await this.reload();
+      this._snackbar.open($localize`Duplicate Spot resolved`, undefined, {
+        duration: 4000,
+      });
+    } finally {
+      this.actionPath.set(null);
+    }
   }
 
   async revealSensitiveMedia(report: ModerationReportItem): Promise<void> {

@@ -568,6 +568,7 @@ export class SpotDetailsComponent
   getValueFromEventTarget = getValueFromEventTarget;
 
   readonly isSaving = input(false);
+  private readonly _isSaveFlowPending = signal(false);
 
   AmenityIcons = AmenityIcons;
   AmenityNegativeIcons = AmenityNegativeIcons;
@@ -578,7 +579,7 @@ export class SpotDetailsComponent
   GeneralAmenities = GeneralAmenities;
 
   canSaveSpot = computed(() => {
-    if (this.isSaving()) return false;
+    if (this.isSaving() || this._isSaveFlowPending()) return false;
     const spot = this.spot();
     if (!spot) return false;
     if (spot instanceof Spot) return true;
@@ -1336,30 +1337,35 @@ export class SpotDetailsComponent
 
   async saveButtonClick() {
     const spot = this.spot();
-    if (!spot || this.isSaving() || !this.canSaveSpot()) {
+    if (!spot || !this.canSaveSpot()) {
       return;
     }
 
-    this._analyticsService.trackEvent("spot_edit_save_clicked", {
-      spot_id: spot instanceof Spot ? spot.id : null,
-      is_new_spot: this.isNewSpot,
-      organization_admin_changes_available:
-        spot instanceof Spot && this.isAdmin(),
-    });
-    if (spot instanceof Spot) {
-      const relationshipSaveResult =
-        await this._saveOrganizationRelationshipChangesIfNeeded(spot);
-      if (relationshipSaveResult === "failed") {
-        return;
+    this._isSaveFlowPending.set(true);
+    try {
+      this._analyticsService.trackEvent("spot_edit_save_clicked", {
+        spot_id: spot instanceof Spot ? spot.id : null,
+        is_new_spot: this.isNewSpot,
+        organization_admin_changes_available:
+          spot instanceof Spot && this.isAdmin(),
+      });
+      if (spot instanceof Spot) {
+        const relationshipSaveResult =
+          await this._saveOrganizationRelationshipChangesIfNeeded(spot);
+        if (relationshipSaveResult === "failed") {
+          return;
+        }
+
+        if (relationshipSaveResult === "changed") {
+          this.isEditing.set(false);
+          return;
+        }
       }
 
-      if (relationshipSaveResult === "changed") {
-        this.isEditing.set(false);
-        return;
-      }
+      this.saveClick.emit(spot);
+    } finally {
+      this._isSaveFlowPending.set(false);
     }
-
-    this.saveClick.emit(spot);
   }
 
   private async _ensureOrganizationsLoadedForAdmin(): Promise<void> {

@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SpotMapComponent } from "./spot-map.component";
 
@@ -48,5 +50,15 @@ describe("SpotMapComponent lifecycle", () => {
     component.onCommunityMarkerClick("zurich");
 
     expect(emit).not.toHaveBeenCalled();
+  });
+
+  it("records create guard blocks only for unsaved Local Spots", () => {
+    const source = readFileSync(
+      resolve("src/app/components/spot-map/spot-map.component.ts"),
+      "utf8",
+    );
+    expect(source.match(
+      /spot instanceof LocalSpot && !\(spot instanceof Spot\)/g,
+    )).toHaveLength(2);
   });
 });

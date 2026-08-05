@@ -356,23 +356,33 @@ export const getSpotCreationDiagnostics = onCall<Record<string, never>>(
       addMetric(last7Days, doc.data());
       if (doc.id >= twentyFourHoursAgo) addMetric(last24Hours, doc.data());
     }
-    const recent = await db.collection(CLAIMS_COLLECTION)
-      .where(
-        "last_attempt_at",
-        ">=",
-        Timestamp.fromMillis(now - 7 * 24 * 60 * 60 * 1000),
-      )
-      .orderBy("last_attempt_at", "desc")
-      .limit(200)
-      .get();
+    const cutoff = Timestamp.fromMillis(now - 7 * 24 * 60 * 60 * 1000);
+    const [retried, guardBlocked] = await Promise.all([
+      db.collection(CLAIMS_COLLECTION)
+        .where("last_attempt_at", ">=", cutoff)
+        .where("attempt_count", ">", 1)
+        .orderBy("last_attempt_at", "desc")
+        .limit(25)
+        .get(),
+      db.collection(CLAIMS_COLLECTION)
+        .where("last_attempt_at", ">=", cutoff)
+        .where("guard_block_count", ">", 0)
+        .orderBy("last_attempt_at", "desc")
+        .limit(25)
+        .get(),
+    ]);
+    const recent = [...new Map(
+      [...retried.docs, ...guardBlocked.docs].map((doc) => [doc.id, doc]),
+    ).values()].sort(
+      (left, right) =>
+        (right.data() as ClaimData).last_attempt_at.toMillis() -
+        (left.data() as ClaimData).last_attempt_at.toMillis(),
+    );
     return {
       last24Hours,
       last7Days,
-      recentPreventedCases: recent.docs
+      recentPreventedCases: recent
         .map((doc) => ({id: doc.id, data: doc.data() as ClaimData}))
-        .filter(
-          ({data}) => data.attempt_count > 1 || data.guard_block_count > 0,
-        )
         .map(({id, data}) => ({
           submissionId: id.slice(0, 12),
           spotId: data.spot_id,

@@ -11,7 +11,10 @@ describe("Spot creation idempotency UI contracts", () => {
     const map = read("src/app/components/spot-map/spot-map.component.ts");
 
     expect(component).toContain("readonly isSaving = input(false)");
-    expect(component).toContain("this.isSaving() || !this.canSaveSpot()");
+    expect(component).toContain(
+      "if (this.isSaving() || this._isSaveFlowPending()) return false;",
+    );
+    expect(component).toContain("if (!spot || !this.canSaveSpot())");
     expect(template.match(/\[disabled\]="!canSaveSpot\(\)"/g))
       .toHaveLength(2);
     expect(template.match(/Saving…/g)).toHaveLength(2);

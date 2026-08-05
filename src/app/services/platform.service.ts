@@ -29,7 +29,8 @@ export class PlatformService {
    * Returns the current platform: 'ios', 'android', or 'web'.
    */
   getPlatform(): "ios" | "android" | "web" {
-    return Capacitor.getPlatform() as "ios" | "android" | "web";
+    const platform = Capacitor.getPlatform();
+    return platform === "ios" || platform === "android" ? platform : "web";
   }
 
   /**

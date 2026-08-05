@@ -90,6 +90,26 @@ on the callable and must be released only after the indexes and Functions are
 active. This release does not authorize resolving or deleting any existing
 production duplicate.
 
+- [ ] Deploy `firestore.indexes.json` to production and wait for both new
+      `spot_create_submissions` diagnostics indexes (`last_attempt_at` with
+      `attempt_count`, and `last_attempt_at` with `guard_block_count`) to report
+      `Enabled`. Do this before deploying the diagnostics Function:
+
+      ```sh
+      npx firebase deploy --project prod --only firestore:indexes
+      ```
+
+- [ ] Deploy the backward-compatible duplicate administration, diagnostics,
+      report-warning, safety-case, and immediate-notification Function updates:
+
+      ```sh
+      npx firebase deploy --project prod --only functions:getSpotCreationDiagnostics,functions:resolveSpotDuplicate,functions:detectDuplicateSpots,functions:onSpotReportCreate,functions:onModerationActionNotificationCreate,functions:onModerationActionSafetyCaseCreate,functions:onImmediateNotificationIntentCreate,functions:onNotificationIntentWrite
+      ```
+
+      Verify the deployment succeeds in `europe-west1`, duplicate-resolution
+      replays create one moderation action, and an immediately due actionable
+      notification has its in-app feed projection before delivery is claimed.
+
 - [ ] Invoke `createSpotSubmission` twice with one non-production draft token
       and verify both responses point to one Spot/edit while the second reports
       `replayed: true`. Do not use a real reported duplicate for this check.

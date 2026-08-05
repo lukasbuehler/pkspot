@@ -1092,6 +1092,45 @@ export class FirestoreAdapterService {
     );
   }
 
+  /** Query one collection page and retain its cursor for web pagination. */
+  async getCollectionWithMetadata<T>(
+    collectionPath: string,
+    filters?: QueryFilter[],
+    constraints?: QueryConstraintOptions[],
+    startAfterDoc?: unknown
+  ): Promise<{ data: (T & { id: string })[]; lastDoc: unknown }> {
+    await this.ensureAppCheckReady();
+    if (this.shouldUseNativeQueryBridge()) {
+      const data = await this.getCollectionNative<T>(
+        collectionPath,
+        filters,
+        constraints
+      );
+      return { data: data as (T & { id: string })[], lastDoc: null };
+    }
+    return this.trackPending(() =>
+      runInInjectionContext(this.injector, async () => {
+        const collRef = collection(this.firestore, collectionPath);
+        const queryConstraints = this.buildWebQueryConstraints(
+          collectionPath,
+          filters,
+          constraints
+        );
+        if (startAfterDoc) {
+          queryConstraints.push(startAfter(startAfterDoc));
+        }
+        const snapshot = await getDocs(query(collRef, ...queryConstraints));
+        return {
+          data: snapshot.docs.map((docSnapshot) => ({
+            id: docSnapshot.id,
+            ...docSnapshot.data(),
+          })) as (T & { id: string })[],
+          lastDoc: snapshot.docs.at(-1) ?? null,
+        };
+      })
+    );
+  }
+
   private async getCollectionWeb<T>(
     collectionPath: string,
     filters?: QueryFilter[],

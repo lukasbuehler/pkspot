@@ -1,6 +1,34 @@
 {
   "indexes": [
     {
+      "collectionGroup": "spot_create_submissions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "last_attempt_at",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "attempt_count",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "spot_create_submissions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "last_attempt_at",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "guard_block_count",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "event_ownership_claims",
       "queryScope": "COLLECTION",
       "fields": [

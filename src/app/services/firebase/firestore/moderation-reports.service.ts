@@ -244,11 +244,24 @@ export class ModerationReportsService {
   }
 
   async getDuplicateSpotGroups(): Promise<ModerationDuplicateGroup[]> {
-    const spots = await this._firestoreAdapter.getCollection<DuplicateSpotDocument>(
-      "spots",
-      [{fieldPath: "duplicate_check.status", opStr: "==", value: "possible_duplicate"}],
-      [{type: "limit", limit: 500}],
-    );
+    const spots: DuplicateSpotDocument[] = [];
+    let cursor: unknown;
+    do {
+      const page = await this._firestoreAdapter.getCollectionWithMetadata<
+        DuplicateSpotDocument
+      >(
+        "spots",
+        [{
+          fieldPath: "duplicate_check.status",
+          opStr: "==",
+          value: "possible_duplicate",
+        }],
+        [{type: "limit", limit: 200}],
+        cursor,
+      );
+      spots.push(...page.data);
+      cursor = page.lastDoc;
+    } while (cursor);
     return groupDuplicateSpotCandidates(spots);
   }
 

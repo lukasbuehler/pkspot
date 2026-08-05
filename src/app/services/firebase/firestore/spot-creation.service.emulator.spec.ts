@@ -238,14 +238,22 @@ runWithEmulator("idempotent Spot creation", () => {
       redundantSpotId: redundant.id,
       previewToken: previewResult.data.previewToken,
     };
-    const resolved = await resolve(resolutionRequest);
-    expect(resolved.data.replayed).toBe(false);
+    const resolutions = await Promise.all([
+      resolve(resolutionRequest),
+      resolve(resolutionRequest),
+    ]);
+    expect(resolutions.map((result) => result.data.replayed).sort()).toEqual([
+      false,
+      true,
+    ]);
     expect((await redundant.get()).exists).toBe(false);
     expect((await db().doc("spot_slugs/lourdes-stairs-copy").get()).data()?.["spot_id"])
       .toBe(canonical.id);
     expect((await resolve(resolutionRequest)).data.replayed).toBe(true);
     expect((await db().collection("moderation_actions")
-      .where("action_type", "==", "resolve_duplicate_spot").get()).size).toBe(1);
+      .where("action_type", "==", "resolve_duplicate_spot")
+      .where("decision.redundant_spot_id", "==", redundant.id)
+      .get()).size).toBe(1);
   }, 90_000);
 
   it("scans unnamed duplicate candidates and records completion", async () => {

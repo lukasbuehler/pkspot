@@ -188,7 +188,10 @@ export class ModerationDashboardPageComponent implements OnDestroy {
         this._communityEditsService.getPendingKnowledgeEdits(),
         this._spotEditsService.getPendingModerationSpotEditQueues(),
         this._reportsService.getSpotCreationDiagnostics().catch(() => null),
-        this._reportsService.getDuplicateSpotGroups(),
+        this._reportsService.getDuplicateSpotGroups().catch((error) => {
+          console.warn("Failed to load duplicate Spot groups", error);
+          return [];
+        }),
       ]);
       this.reports.set(reports);
       this.contactMessages.set(contactMessages);

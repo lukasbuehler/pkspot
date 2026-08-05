@@ -1327,7 +1327,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   async saveSpot(spot: LocalSpot | Spot) {
     if (this.isSavingSpot()) {
-      if (spot instanceof LocalSpot) {
+      if (spot instanceof LocalSpot && !(spot instanceof Spot)) {
         this._blockedCreateInvocations.set(
           spot.creationSubmissionId,
           (this._blockedCreateInvocations.get(spot.creationSubmissionId) ?? 0) + 1,
@@ -1369,7 +1369,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     await this._spotMapDataManager
       .saveSpot(spot, this.uneditedSpot)
       .then(async ({ spotId, editId }) => {
-        if (spot instanceof LocalSpot) {
+        if (spot instanceof LocalSpot && !(spot instanceof Spot)) {
           const guardCount = this._blockedCreateInvocations.get(
             spot.creationSubmissionId,
           ) ?? 0;

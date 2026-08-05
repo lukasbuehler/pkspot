@@ -155,10 +155,6 @@ export class SpotDuplicateResolutionDialogComponent implements OnInit {
     this._dialogRef.close();
   }
 
-  trackCandidate(_index: number, candidate: SpotDuplicateCandidatePreview): string {
-    return candidate.id;
-  }
-
   blockerLabel(blocker: SpotDuplicateBlockerCode): string {
     switch (blocker) {
       case "different_creator": return $localize`The Spots were created by different users.`;
@@ -174,6 +170,7 @@ export class SpotDuplicateResolutionDialogComponent implements OnInit {
       case "home_spot": return $localize`The redundant Spot is a home Spot.`;
       case "organization_reference": return $localize`The redundant Spot is referenced by an organization.`;
       case "unrelated_reports": return $localize`The redundant Spot has unrelated reports.`;
+      default: return $localize`Automatic resolution is blocked`;
     }
   }
 
