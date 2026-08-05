@@ -7,6 +7,7 @@ import {
   buildLimitedUserProfile,
   buildPublicUserProfile,
   profileAudienceForUser,
+  publicProfileSyncAction,
 } from "./userProfileProjection";
 
 const db = admin.firestore();
@@ -109,19 +110,21 @@ export const syncPublicUserProfileOnWrite = onDocumentWritten(
   "users/{userId}",
   async (event) => {
     const userId = event.params.userId;
-    const publicProfile = event.data?.after.exists
-      ? buildPublicUserProfile(event.data.after.data() ?? {})
-      : null;
+    const action = publicProfileSyncAction(
+      event.data?.before.exists ? event.data.before.data() ?? {} : null,
+      event.data?.after.exists ? event.data.after.data() ?? {} : null,
+    );
+    if (action.type === "none") return;
     const publicProfileRef = db.doc(
       `${PUBLIC_PROFILE_COLLECTION}/${userId}`
     );
 
-    if (!publicProfile) {
+    if (action.type === "delete") {
       await publicProfileRef.delete();
       return;
     }
 
-    await publicProfileRef.set(publicProfile);
+    await publicProfileRef.set(action.profile);
   }
 );
 

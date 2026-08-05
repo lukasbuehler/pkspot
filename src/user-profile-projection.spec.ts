@@ -5,6 +5,7 @@ import {
   buildPublicUserProfile,
   effectivePublicProfileEnabled,
   profileAudienceForUser,
+  publicProfileSyncAction,
 } from "../functions/src/userProfileProjection";
 
 const adultPolicy = {
@@ -19,6 +20,30 @@ const adultPolicy = {
 };
 
 describe("user profile projections", () => {
+  it("skips unchanged and still-private public profile projections", () => {
+    expect(publicProfileSyncAction(
+      {display_name: "Private", contributions_count: 1},
+      {display_name: "Private", contributions_count: 2},
+    )).toEqual({type: "none"});
+
+    const publicProfile = {
+      ...adultPolicy,
+      display_name: "Public",
+      account_privacy: "public",
+      profile_visibility: "public",
+      public_profile_enabled: true,
+    };
+    expect(publicProfileSyncAction(publicProfile, {
+      ...publicProfile,
+      private_counter: 2,
+    })).toEqual({type: "none"});
+    expect(publicProfileSyncAction(publicProfile, {
+      ...publicProfile,
+      display_name: "Updated",
+    })).toMatchObject({type: "set", profile: {display_name: "Updated"}});
+    expect(publicProfileSyncAction(publicProfile, null)).toEqual({type: "delete"});
+  });
+
   it("publishes only a confirmed adult who explicitly opted in", () => {
     const profile = buildPublicUserProfile({
       ...adultPolicy,

@@ -114,6 +114,7 @@ const PROTECTED_SPOT_EDIT_FIELDS = new Set([
   "report_count",
   "reportReason",
   "report_reason",
+  "public_import_provenance",
   "latest_report_at",
   "thumbnail_medium_url",
   "thumbnail_small_url",

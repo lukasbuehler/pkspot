@@ -101,6 +101,9 @@ export {
   retryFailedImportChunksOnCreate,
 } from "./importFunctions";
 export { getPublicImportProvenance } from "./importProvenanceFunctions";
+export {
+  backfillPublicImportProvenanceOnCreate,
+} from "./importProvenanceMaintenanceFunctions";
 
 // fixes and migrations
 export {

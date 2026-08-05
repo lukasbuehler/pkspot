@@ -20,7 +20,6 @@ import { SpotId, SpotSchema } from "../../../../db/schemas/SpotSchema";
 import { UserReferenceSchema } from "../../../../db/schemas/UserSchema";
 import { UsersService } from "./users.service";
 import { AuthenticationService } from "../authentication.service";
-import { AnyMedia } from "../../../../db/models/Media";
 import { MediaSchema } from "../../../../db/schemas/Media";
 import {
   SpotEditVoteLabel,
@@ -685,43 +684,12 @@ export class SpotEditsService extends ConsentAwareService {
       "report_reason",
       "report_count",
       "latest_report_at",
+      "public_import_provenance",
     ].filter((field) => !allowedProtectedFields.has(field));
     return cleanDataForFirestore(
       spotData,
       fieldsToRemove
     ) as Partial<SpotSchema>;
-  }
-
-  /**
-   * Update spot media via a spot edit (UPDATE type).
-   * This creates an edit that will be processed by the cloud function.
-   *
-   * @param spotId - The ID of the spot
-   * @param media - The new media array
-   * @param userReference - The user making the edit
-   * @returns Promise<string> - The ID of the created edit
-   */
-  updateSpotMediaEdit(
-    spotId: SpotId,
-    media: AnyMedia[],
-    userReference: UserReferenceSchema
-  ): Promise<string> {
-    // Convert AnyMedia to MediaSchema using the getData() method
-    const mediaSchema: SpotSchema["media"] = media.map((mediaObj) =>
-      mediaObj.getData()
-    );
-
-    const editData = {
-      type: "UPDATE" as const,
-      timestamp: Timestamp.now(),
-      timestamp_raw_ms: Date.now(),
-      likes: 0,
-      approved: false,
-      user: userReference,
-      data: { media: mediaSchema },
-      modification_type: "OVERWRITE" as const,
-    };
-    return this.addSpotEdit(spotId, editData);
   }
 
   /**

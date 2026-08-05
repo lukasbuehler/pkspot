@@ -166,3 +166,18 @@ export const buildPublicUserProfile = (
     profile_projection_version: 1,
   };
 };
+
+export type PublicProfileSyncAction =
+  | {type: "none"}
+  | {type: "delete"}
+  | {type: "set"; profile: UserProfileProjection};
+
+export const publicProfileSyncAction = (
+  before: Record<string, unknown> | null,
+  after: Record<string, unknown> | null,
+): PublicProfileSyncAction => {
+  const previous = before ? buildPublicUserProfile(before) : null;
+  const next = after ? buildPublicUserProfile(after) : null;
+  if (JSON.stringify(previous) === JSON.stringify(next)) return {type: "none"};
+  return next ? {type: "set", profile: next} : {type: "delete"};
+};

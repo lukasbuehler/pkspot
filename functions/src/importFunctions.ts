@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { FieldValue, GeoPoint } from "firebase-admin/firestore";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { computeTileCoordinates } from "../../src/scripts/TileCoordinateHelpers";
+import { buildPublicImportProvenance } from "./importProvenanceProjection";
 
 interface ImportChunkSpot {
   name: string;
@@ -17,6 +18,7 @@ interface ImportChunkSpot {
   external_references?: {
     google_maps_place_id?: string;
     website_url?: string;
+    instagram_url?: string;
   };
 }
 
@@ -98,6 +100,7 @@ async function processImportChunk(
   const importSnap = await importRef.get();
   const importData = importSnap.data() as ImportDocument | undefined;
   const importCredits = importData?.credits || {};
+  const publicImportProvenance = buildPublicImportProvenance(importData);
   const strippingMode =
     importData?.stripping_mode === true ||
     importData?.legal?.public_abandoned_clause_used === true;
@@ -187,6 +190,7 @@ async function processImportChunk(
         external_references: spot.external_references,
         source: importId,
         import_id: importId,
+        public_import_provenance: publicImportProvenance,
         community_rebuild_deferred: true,
         is_iconic: false,
         rating: 0,

@@ -51,6 +51,10 @@ import {
   getSpotPreviewImage,
   SpotSchema,
 } from "./spotHelpers";
+import {
+  buildPublicImportProvenance,
+  publicImportProvenanceEqual,
+} from "./importProvenanceProjection";
 
 const COMMUNITY_PAGES_COLLECTION = "community_pages";
 const COMMUNITY_SLUGS_COLLECTION = "community_slugs";
@@ -1422,6 +1426,14 @@ const refreshCountryChildCommunities = async (
       db,
       countryCommunityKey
     );
+    if (
+      areValuesEqual(
+        pageSnapshot.data()?.childCommunities ?? [],
+        childCommunities,
+      )
+    ) {
+      continue;
+    }
     await pageRef.set({ childCommunities }, { merge: true });
   }
 };
@@ -1591,6 +1603,43 @@ export const rebuildCommunityPagesForSpotWrite = async (
   await refreshCountryChildCommunities(db, impactedCountryKeys);
 };
 
+export const syncPublicImportProvenanceForImport = async (
+  db: admin.firestore.Firestore,
+  importId: string,
+  beforeData: unknown,
+  afterData: unknown,
+): Promise<number> => {
+  const previous = buildPublicImportProvenance(beforeData);
+  const next = buildPublicImportProvenance(afterData);
+  if (publicImportProvenanceEqual(previous, next)) return 0;
+
+  const linkedSpots = new Map<string, FirebaseFirestore.QueryDocumentSnapshot>();
+  for (const field of ["import_id", "source"] as const) {
+    const snapshot = await db
+      .collection(SPOTS_COLLECTION)
+      .where(field, "==", importId)
+      .get();
+    for (const spot of snapshot.docs) linkedSpots.set(spot.id, spot);
+  }
+
+  const writer = db.bulkWriter();
+  let updated = 0;
+  for (const spot of linkedSpots.values()) {
+    if (
+      publicImportProvenanceEqual(
+        spot.data()["public_import_provenance"],
+        next,
+      )
+    ) {
+      continue;
+    }
+    writer.update(spot.ref, {public_import_provenance: next});
+    updated += 1;
+  }
+  await writer.close();
+  return updated;
+};
+
 export const rebuildCommunityPagesOnImportWrite = onDocumentWritten(
   { document: "imports/{importId}" },
   async (event) => {
@@ -1606,6 +1655,14 @@ export const rebuildCommunityPagesOnImportWrite = onDocumentWritten(
       ? ((event.data.after.data() as ImportRebuildDoc) ?? null)
       : null;
 
+    const db = admin.firestore();
+    await syncPublicImportProvenanceForImport(
+      db,
+      importId,
+      beforeData,
+      afterData,
+    );
+
     const completedAfterPartial =
       beforeData?.status === "PARTIAL" && afterData?.status === "COMPLETED";
     if (
@@ -1615,7 +1672,6 @@ export const rebuildCommunityPagesOnImportWrite = onDocumentWritten(
       return null;
     }
 
-    const db = admin.firestore();
     const generatedCount = await rebuildCommunityPagesForImportedSpots(
       db,
       importId

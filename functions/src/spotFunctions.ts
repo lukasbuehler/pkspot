@@ -9,6 +9,7 @@ import {
   onDocumentWritten,
 } from "firebase-functions/v2/firestore";
 import * as admin from "firebase-admin";
+import {isDeepStrictEqual} from "node:util";
 
 import { SpotSchema } from "./spotHelpers";
 import {
@@ -43,6 +44,24 @@ const DUPLICATE_SCAN_PAGE_SIZE = 100;
 const DUPLICATE_SCAN_CONCURRENCY = 10;
 const isSpotRuntimeDoc = (docId: string): boolean =>
   docId !== "typesense" && !docId.startsWith("run-");
+
+export const isPublicImportProvenanceOnlyWrite = (
+  beforeData: SpotSchema | undefined,
+  afterData: SpotSchema | undefined,
+): boolean => {
+  if (!beforeData || !afterData) return false;
+  if (
+    isDeepStrictEqual(
+      beforeData.public_import_provenance,
+      afterData.public_import_provenance,
+    )
+  ) {
+    return false;
+  }
+  const {public_import_provenance: _beforeProjection, ...beforeRest} = beforeData;
+  const {public_import_provenance: _afterProjection, ...afterRest} = afterData;
+  return isDeepStrictEqual(beforeRest, afterRest);
+};
 
 const isGeoPointValue = (value: unknown): value is GeoPoint => {
   if (value instanceof GeoPoint) {
@@ -492,6 +511,9 @@ export const updateSpotFieldsOnWrite = onDocumentWritten(
     const beforeData = event.data?.before?.data() as SpotSchema;
     const afterData = event.data?.after?.data() as SpotSchema;
     if (!afterData) {
+      return null;
+    }
+    if (isPublicImportProvenanceOnlyWrite(beforeData, afterData)) {
       return null;
     }
 
