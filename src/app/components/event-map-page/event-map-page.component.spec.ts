@@ -546,6 +546,34 @@ describe("EventMapPageComponent", () => {
         },
       }),
     );
+
+    const scheduleMarkerOccurrence = component
+      .programOccurrences()
+      .find((programOccurrence) => programOccurrence.kind === "custom_marker");
+    if (
+      !scheduleMarkerOccurrence ||
+      scheduleMarkerOccurrence.kind !== "custom_marker"
+    ) {
+      throw new Error("Expected a mapped custom marker occurrence");
+    }
+    component.selectedProgramItemId.set(scheduleMarkerOccurrence.item.id);
+    component.openProgramMarkerDetails(scheduleMarkerOccurrence);
+
+    expect(component.tab()).toBe("event");
+    expect(component.selectedCustomMarker()?.id).toBe("camp");
+    expect(component.selectedProgramItemId()).toBeNull();
+    expect(router.navigate).toHaveBeenLastCalledWith(
+      [],
+      expect.objectContaining({
+        queryParams: {
+          mapFilter: "event",
+          day: null,
+          spotId: null,
+          markerId: "camp",
+          programItemId: null,
+        },
+      }),
+    );
   });
 
   it("syncs selected event spots to the spotId query param and focuses them when the deferred map loads", () => {
