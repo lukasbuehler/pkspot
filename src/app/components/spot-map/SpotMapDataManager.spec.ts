@@ -1,7 +1,7 @@
 import { Injector, NgZone } from "@angular/core";
 import { describe, expect, it, vi } from "vitest";
 import { GeoPoint } from "firebase/firestore";
-import { Spot } from "../../../db/models/Spot";
+import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { User } from "../../../db/models/User";
 import { SpotId, SpotSchema } from "../../../db/schemas/SpotSchema";
 import { SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
@@ -103,6 +103,49 @@ function renderCachedSpotsForTile(
 }
 
 describe("SpotMapDataManager filters", () => {
+  it("shares an in-flight create and records the blocked invocation", async () => {
+    let resolveCreate!: (value: {spotId: SpotId; editId: string}) => void;
+    const create = new Promise<{spotId: SpotId; editId: string}>((resolve) => {
+      resolveCreate = resolve;
+    });
+    const spotEditsService = {
+      createSpotWithEdit: vi.fn().mockReturnValue(create),
+      recordCreateGuardBlock: vi.fn().mockResolvedValue(undefined),
+    };
+    const manager = new SpotMapDataManager(
+      "en",
+      makeInjector(new Map<unknown, unknown>([
+        [SpotEditsService, spotEditsService],
+        [AuthenticationService, {
+          isSignedIn: true,
+          user: {uid: "user-1"},
+        }],
+      ])),
+    );
+    const spot = new LocalSpot({
+      name: {en: "New Spot"},
+      location_raw: {lat: 47, lng: 8},
+    } as SpotSchema, "en");
+
+    const first = manager.saveSpot(spot);
+    const second = manager.saveSpot(spot.clone());
+    resolveCreate({spotId: "spot-1" as SpotId, editId: "edit-1"});
+
+    await expect(Promise.all([first, second])).resolves.toEqual([
+      {spotId: "spot-1", editId: "edit-1"},
+      {spotId: "spot-1", editId: "edit-1"},
+    ]);
+    expect(spotEditsService.createSpotWithEdit).toHaveBeenCalledTimes(1);
+    expect(spotEditsService.createSpotWithEdit).toHaveBeenCalledWith(
+      expect.any(Object),
+      spot.creationSubmissionId,
+    );
+    expect(spotEditsService.recordCreateGuardBlock).toHaveBeenCalledWith(
+      spot.creationSubmissionId,
+    );
+    expect(spot.clone().creationSubmissionId).toBe(spot.creationSubmissionId);
+  });
+
   it("loads a broad geographic spot sample at world zoom", () => {
     const manager = new SpotMapDataManager("en", makeInjector());
     const getOptions = (
@@ -466,6 +509,7 @@ describe("SpotMapDataManager filters", () => {
     });
     updatedSpot.rating = 4.5;
     updatedSpot.numReviews = 2;
+    updatedSpot.isReported = true;
 
     const searchService = {
       searchSpotsInBoundsWithFilter: vi.fn(),
@@ -485,6 +529,7 @@ describe("SpotMapDataManager filters", () => {
     const locallyUpdatedPreview = manager.visibleHighlightedSpots()[0];
     expect(locallyUpdatedPreview?.location_raw).toEqual(updatedSpot.location());
     expect(locallyUpdatedPreview?.rating).toBe(4.5);
+    expect(locallyUpdatedPreview?.isReported).toBe(true);
 
     const staleSearchPreview = (
       manager as unknown as {
@@ -497,6 +542,7 @@ describe("SpotMapDataManager filters", () => {
     expect(staleSearchPreview).toBe(locallyUpdatedPreview);
     expect(staleSearchPreview.location_raw).toEqual(updatedSpot.location());
     expect(staleSearchPreview.rating).toBe(4.5);
+    expect(staleSearchPreview.isReported).toBe(true);
   });
 });
 

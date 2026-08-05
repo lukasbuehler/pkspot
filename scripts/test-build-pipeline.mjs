@@ -74,6 +74,9 @@ const npmCommand = preferredNodeBinDir
   : process.platform === "win32"
     ? "npm.cmd"
     : "npm";
+const nodeCommand = preferredNodeBinDir
+  ? path.join(preferredNodeBinDir, process.platform === "win32" ? "node.exe" : "node")
+  : process.execPath;
 const runtimeEnv = preferredNodeBinDir
   ? {
       ...process.env,
@@ -459,7 +462,10 @@ async function main() {
 
   console.log("\n==> starting SSR smoke server");
   const serverLogs = [];
-  const serverProcess = spawn(npmCommand, ["run", "serve:ssr"], {
+  // Spawn the server itself instead of an npm wrapper. Signalling npm does not
+  // reliably terminate its child on Linux, which left otherwise successful CI
+  // jobs running until GitHub's six-hour limit.
+  const serverProcess = spawn(nodeCommand, [distProxyServerPath], {
     cwd: repoRoot,
     env: {
       ...runtimeEnv,

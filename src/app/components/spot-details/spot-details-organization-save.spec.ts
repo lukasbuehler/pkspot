@@ -43,6 +43,18 @@ describe("SpotDetailsComponent organization relationship saving", () => {
     expect(saveButtonClick).toContain("this.saveClick.emit(spot)");
   });
 
+  it("guards the organization save before its first await", () => {
+    const source = readFileSync(componentPath, "utf8");
+    const saveButtonClick = source.match(
+      /async saveButtonClick\(\)[\s\S]*?\n  private async _ensureOrganizationsLoadedForAdmin/
+    )?.[0];
+
+    expect(source).toContain("this.isSaving() || this._isSaveFlowPending()");
+    expect(saveButtonClick).toMatch(
+      /this\._isSaveFlowPending\.set\(true\)[\s\S]*?await[\s\S]*?finally\s*{[\s\S]*?this\._isSaveFlowPending\.set\(false\)/,
+    );
+  });
+
   it("keeps verified organization badges available outside admin-only UI", () => {
     const template = readFileSync(
       join(

@@ -6,6 +6,7 @@ import {
   OnDestroy,
   signal,
 } from "@angular/core";
+import {DecimalPipe} from "@angular/common";
 import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import { RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
@@ -21,6 +22,7 @@ import { Subscription } from "rxjs";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import {
   ModerationContactMessageItem,
+  ModerationDuplicateGroup,
   ModerationReportItem,
   ModerationReportsService,
 } from "../../services/firebase/firestore/moderation-reports.service";
@@ -39,12 +41,14 @@ import type {
   CommunityLocalizedTextSchema,
 } from "../../../db/schemas/CommunityPageSchema";
 import type { SpotEditSchema } from "../../../db/schemas/SpotEditSchema";
+import type { SpotCreationDiagnosticsResponse } from "../../../db/schemas/SpotCreationSchema";
 import { AgeAssuranceAdminService } from "../../services/age-assurance-admin.service";
 
 @Component({
   selector: "app-moderation-dashboard-page",
   imports: [
     SystemDatePipe,
+    DecimalPipe,
     RouterLink,
     MatButtonModule,
     MatCardModule,
@@ -81,6 +85,9 @@ export class ModerationDashboardPageComponent implements OnDestroy {
   readonly communityCardSuggestions = signal<CommunityKnowledgeEditItem[]>([]);
   readonly spotEditVotes = signal<ModerationSpotEditQueueItem[]>([]);
   readonly organizationSpotEdits = signal<ModerationSpotEditQueueItem[]>([]);
+  readonly spotCreationDiagnostics = signal<SpotCreationDiagnosticsResponse | null>(null);
+  readonly duplicateSpotGroups = signal<ModerationDuplicateGroup[]>([]);
+  readonly showAllDuplicateGroups = signal(false);
   private readonly _authSubscription: Subscription;
 
   readonly openReportCount = computed(
@@ -116,6 +123,36 @@ export class ModerationDashboardPageComponent implements OnDestroy {
       this.spotEditVotes().length +
       this.organizationSpotEdits().length,
   );
+  readonly needsReviewCount = computed(
+    () =>
+      this.openReportCount() +
+      this.pendingCommunityQueueCount() +
+      this.duplicateSpotGroups().length,
+  );
+  readonly visibleDuplicateSpotGroups = computed(() =>
+    this.showAllDuplicateGroups()
+      ? this.duplicateSpotGroups()
+      : this.duplicateSpotGroups().slice(0, 8),
+  );
+  readonly openDuplicateReportCount = computed(
+    () =>
+      this.reports().filter(
+        (report) =>
+          report.kind === "spot" &&
+          report.status === "open" &&
+          report.reason === "duplicate",
+      ).length,
+  );
+  readonly spotCreationPlatforms = computed(() =>
+    Object.entries(this.spotCreationDiagnostics()?.last7Days.platforms ?? {}).sort(
+      ([, left], [, right]) => right - left,
+    ),
+  );
+  readonly spotCreationAppVersions = computed(() =>
+    Object.entries(this.spotCreationDiagnostics()?.last7Days.appVersions ?? {}).sort(
+      ([, left], [, right]) => right - left,
+    ),
+  );
 
   constructor() {
     this._authSubscription = this.authService.authState$.subscribe(() => {
@@ -143,17 +180,26 @@ export class ModerationDashboardPageComponent implements OnDestroy {
         contactMessages,
         communityCardSuggestions,
         spotEditQueues,
+        spotCreationDiagnostics,
+        duplicateSpotGroups,
       ] = await Promise.all([
         this._reportsService.getReports(),
         this._reportsService.getContactMessages(),
         this._communityEditsService.getPendingKnowledgeEdits(),
         this._spotEditsService.getPendingModerationSpotEditQueues(),
+        this._reportsService.getSpotCreationDiagnostics().catch(() => null),
+        this._reportsService.getDuplicateSpotGroups().catch((error) => {
+          console.warn("Failed to load duplicate Spot groups", error);
+          return [];
+        }),
       ]);
       this.reports.set(reports);
       this.contactMessages.set(contactMessages);
       this.communityCardSuggestions.set(communityCardSuggestions);
       this.spotEditVotes.set(spotEditQueues.voting);
       this.organizationSpotEdits.set(spotEditQueues.organizationReview);
+      this.spotCreationDiagnostics.set(spotCreationDiagnostics);
+      this.duplicateSpotGroups.set(duplicateSpotGroups);
     } catch (error) {
       console.error("Failed to load moderation dashboard", error);
       this._snackbar.open($localize`Failed to load moderation dashboard`, undefined, {

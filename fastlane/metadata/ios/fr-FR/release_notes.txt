@@ -1,7 +1,7 @@
-PK Spot v1.1.3 — Contributions communautaires
+PK Spot v1.1.4 — Notifications et météo
 
 Nouveautés :
 
-• Les utilisateurs peuvent proposer des cartes de communauté.
-• File de modération pour que les admins examinent les votes de communautés et de spots.
-• Les pages de profil et le suivi ont reçu de petites améliorations.
+• Ajout de notifications : récapitulatifs de communautés, rappels d’événements et mises à jour des modifications de Spot soumises.
+• Ajout de la météo pour les Spots, la zone actuellement affichée sur la carte et les événements.
+• Événements améliorés : RSVP devient « Ajouter à Mes événements » et active les notifications.

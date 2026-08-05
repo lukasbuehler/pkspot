@@ -110,4 +110,21 @@ describe("SpotPreviewCardComponent", () => {
         .textContent,
     ).toContain("🇳🇴");
   });
+
+  it("shows only the localized reported badge for a Typesense preview", async () => {
+    const spot = {
+      id: "reported" as SpotId,
+      name: "Reported Spot",
+      locality: "Zurich",
+      imageSrc: "",
+      isIconic: false,
+      isReported: true,
+    } satisfies SpotPreviewData;
+
+    fixture.componentRef.setInput("spotData", spot);
+    await fixture.whenStable();
+
+    const badge = fixture.debugElement.query(By.css(".reported-chip"));
+    expect(badge.nativeElement.textContent).toContain("Reported");
+  });
 });

@@ -1,9 +1,9 @@
-export type PublicSpotWarningType =
-  | "destroyed"
-  | "inaccessible"
-  | "temporarily_closed"
-  | "access_concern"
-  | "other";
+import {
+  PublicSpotNoticeType,
+  publicSpotNoticeTypeForReportReason,
+} from "../../src/db/schemas/SpotPublicNotice";
+
+export type PublicSpotWarningType = PublicSpotNoticeType;
 
 export interface PublicSpotWarning {
   type: PublicSpotWarningType;
@@ -19,30 +19,35 @@ export interface PublicSpotWarning {
 export const publicSpotWarningForReason = (
   reasonValue: unknown,
 ): PublicSpotWarning => {
-  const reason =
-    typeof reasonValue === "string" ? reasonValue.trim().toLowerCase() : "";
+  const type = publicSpotNoticeTypeForReportReason(reasonValue);
 
-  if (reason.includes("destroy") || reason.includes("torn down")) {
+  if (type === "destroyed") {
     return {
       type: "destroyed",
       message: "This Spot may have been removed or destroyed.",
     };
   }
-  if (reason.includes("inaccessible") || reason.includes("access")) {
+  if (type === "inaccessible") {
     return {
-      type: "access_concern",
+      type,
+      message: "This Spot may be inaccessible.",
+    };
+  }
+  if (type === "access_concern") {
+    return {
+      type,
       message: "Access to this Spot may be restricted or unavailable.",
     };
   }
-  if (reason.includes("closed")) {
+  if (type === "temporarily_closed") {
     return {
       type: "temporarily_closed",
       message: "This Spot may currently be closed.",
     };
   }
-  if (reason.includes("duplicate")) {
+  if (type === "duplicate") {
     return {
-      type: "other",
+      type,
       message: "This Spot may be a duplicate.",
     };
   }

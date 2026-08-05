@@ -40,8 +40,6 @@ test.describe("Spot Details", () => {
     await openSpotDetailsFixture(page);
 
     const sheet = page.locator("app-bottom-sheet .sheet");
-    await page.locator("app-bottom-sheet .handle-region").click();
-    await page.waitForTimeout(500);
 
     await expect(sheet).toContainText("Riverside Training Walls");
     await expect(sheet.locator(".collapsible-header-info").first()).toHaveAttribute(

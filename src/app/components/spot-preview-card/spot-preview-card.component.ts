@@ -322,13 +322,7 @@ export class SpotPreviewCardComponent
         : spot.isReported === true;
     if (!isReported) return null;
 
-    const reason =
-      spot instanceof Spot || spot instanceof LocalSpot
-        ? spot.reportReason
-        : spot.reportReason;
-    return reason
-      ? $localize`:@@spot-preview-card.reported-with-reason:Reported: ${this._formatReportReason(reason)}`
-      : $localize`:@@spot-preview-card.reported:Reported`;
+    return $localize`:@@spot-preview-card.reported:Reported`;
   });
 
   spotType = computed(() => {
@@ -571,10 +565,6 @@ export class SpotPreviewCardComponent
 
   private _isStreetViewUrl(url: string): boolean {
     return /maps\.googleapis\.com\/maps\/api\/streetview/i.test(url);
-  }
-
-  private _formatReportReason(reason: string): string {
-    return reason.replace(/[_-]+/g, " ");
   }
 
   private _isStreetViewSrc(src: string): boolean {

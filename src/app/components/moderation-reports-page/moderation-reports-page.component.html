@@ -376,6 +376,17 @@
                       </button>
                     }
                     @if (report.kind === "spot") {
+                      @if (isDuplicateSpotReport(report)) {
+                        <button
+                          matButton="filled"
+                          type="button"
+                          [disabled]="actionPath() === report.path"
+                          (click)="openDuplicateResolution(report)"
+                        >
+                          <mat-icon>difference</mat-icon>
+                          <span i18n>Resolve duplicate</span>
+                        </button>
+                      }
                       <button
                         matButton="outlined"
                         type="button"

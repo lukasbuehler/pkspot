@@ -21,6 +21,17 @@ interface WebPushEnvironment {
   };
 }
 
+interface WebNotificationAction {
+  action: string;
+  title: string;
+}
+
+type WebNotificationOptions = NotificationOptions & {
+  actions?: WebNotificationAction[];
+  image?: string;
+  renotify?: boolean;
+};
+
 @Injectable({ providedIn: "root" })
 export class WebPushClientService {
   private readonly firebaseApp = inject(FIREBASE_APP);
@@ -28,18 +39,34 @@ export class WebPushClientService {
   private messagingModule: MessagingModule | null = null;
 
   async isSupported(): Promise<boolean> {
+    if (!isPlatformBrowser(this.platformId) || Capacitor.isNativePlatform()) {
+      return false;
+    }
+    const prerequisites = {
+      vapidConfigured: Boolean(this._vapidKey()),
+      notificationApi: typeof Notification !== "undefined",
+      serviceWorkerApi:
+        typeof navigator !== "undefined" && "serviceWorker" in navigator,
+    };
     if (
-      !isPlatformBrowser(this.platformId) ||
-      Capacitor.isNativePlatform() ||
-      !this._vapidKey() ||
-      typeof Notification === "undefined" ||
-      typeof navigator === "undefined" ||
-      !("serviceWorker" in navigator)
+      !prerequisites.vapidConfigured ||
+      !prerequisites.notificationApi ||
+      !prerequisites.serviceWorkerApi
     ) {
+      console.info("[WebPush] support check", {
+        ...prerequisites,
+        supported: false,
+      });
       return false;
     }
 
-    return (await this._messagingModule()).isSupported();
+    const supported = await (await this._messagingModule()).isSupported();
+    console.info("[WebPush] support check", {
+      ...prerequisites,
+      supported,
+      permission: this.permissionState(),
+    });
+    return supported;
   }
 
   permissionState(): NotificationPermissionState {
@@ -53,12 +80,26 @@ export class WebPushClientService {
   }
 
   async getToken(): Promise<string> {
-    const module = await this._messagingModule();
-    const serviceWorkerRegistration = await this._serviceWorkerRegistration();
-    return module.getToken(module.getMessaging(this.firebaseApp), {
-      vapidKey: this._vapidKey(),
-      serviceWorkerRegistration,
-    });
+    console.info("[WebPush] requesting FCM token", this._runtimeDiagnostics());
+    try {
+      const module = await this._messagingModule();
+      const serviceWorkerRegistration = await this._serviceWorkerRegistration();
+      const token = await module.getToken(module.getMessaging(this.firebaseApp), {
+        vapidKey: this._vapidKey(),
+        serviceWorkerRegistration,
+      });
+      console.info("[WebPush] FCM token received", {
+        ...this._runtimeDiagnostics(),
+        serviceWorkerScope: serviceWorkerRegistration.scope,
+      });
+      return token;
+    } catch (error) {
+      console.error("[WebPush] FCM token request failed", {
+        ...this._runtimeDiagnostics(),
+        error,
+      });
+      throw error;
+    }
   }
 
   async deleteToken(): Promise<void> {
@@ -70,7 +111,84 @@ export class WebPushClientService {
     listener: (message: WebPushMessage) => void,
   ): Promise<() => void> {
     const module = await this._messagingModule();
-    return module.onMessage(module.getMessaging(this.firebaseApp), listener);
+    console.info(
+      "[WebPush] foreground listener installed",
+      this._runtimeDiagnostics(),
+    );
+    return module.onMessage(module.getMessaging(this.firebaseApp), (message) => {
+      console.info(
+        "[WebPush] foreground FCM message received",
+        this._messageDiagnostics(message),
+      );
+      listener(message);
+    });
+  }
+
+  async showNotification(message: WebPushMessage): Promise<boolean> {
+    if (this.permissionState() !== "granted") {
+      console.warn("[WebPush] system notification skipped", {
+        ...this._runtimeDiagnostics(),
+        reason: "permission_not_granted",
+      });
+      return false;
+    }
+
+    const data = message.data ?? {};
+    const title = message.notification?.title ?? data["title"];
+    const body = message.notification?.body ?? data["body"];
+    if (!title && !body) {
+      console.warn("[WebPush] system notification skipped", {
+        ...this._messageDiagnostics(message),
+        reason: "missing_title_and_body",
+      });
+      return false;
+    }
+
+    const actions = this._notificationActions(data["action_labels"]);
+    const registration = await this._serviceWorkerRegistration();
+    const options: WebNotificationOptions = {
+      body: body ?? "",
+      icon: "/assets/icons/icon-192.webp",
+      badge: "/assets/icons/icon-96.webp",
+      tag: data["thread_key"] || data["intent_id"],
+      renotify: true,
+      data,
+      ...(data["image_url"] ? { image: data["image_url"] } : {}),
+      ...(actions.length ? { actions } : {}),
+    };
+    console.info("[WebPush] requesting system notification", {
+      ...this._messageDiagnostics(message),
+      serviceWorkerScope: registration.scope,
+    });
+    await registration.showNotification(title || "PK Spot", options);
+    console.info("[WebPush] browser accepted system notification request", {
+      ...this._messageDiagnostics(message),
+      displayConfirmationAvailable: false,
+    });
+    return true;
+  }
+
+  private _runtimeDiagnostics(): Record<string, unknown> {
+    return {
+      permission: this.permissionState(),
+      visibility:
+        typeof document === "undefined" ? "unavailable" : document.visibilityState,
+      serviceWorkerControlled:
+        typeof navigator !== "undefined" && "serviceWorker" in navigator
+          ? Boolean(navigator.serviceWorker.controller)
+          : false,
+    };
+  }
+
+  private _messageDiagnostics(message: WebPushMessage): Record<string, unknown> {
+    const data = message.data ?? {};
+    return {
+      intentId: data["intent_id"] ?? null,
+      type: data["type"] ?? null,
+      threadKey: data["thread_key"] ?? null,
+      hasTitle: Boolean(message.notification?.title ?? data["title"]),
+      hasBody: Boolean(message.notification?.body ?? data["body"]),
+    };
   }
 
   private async _serviceWorkerRegistration(): Promise<ServiceWorkerRegistration> {
@@ -95,5 +213,26 @@ export class WebPushClientService {
     permission: NotificationPermission,
   ): NotificationPermissionState {
     return permission === "default" ? "prompt" : permission;
+  }
+
+  private _notificationActions(
+    value: string | undefined,
+  ): WebNotificationAction[] {
+    try {
+      const actions: unknown = JSON.parse(value ?? "[]");
+      return Array.isArray(actions)
+        ? actions
+            .filter(
+              (item): item is WebNotificationAction =>
+                typeof item === "object" &&
+                item !== null &&
+                typeof (item as WebNotificationAction).action === "string" &&
+                typeof (item as WebNotificationAction).title === "string",
+            )
+            .slice(0, 2)
+        : [];
+    } catch {
+      return [];
+    }
   }
 }

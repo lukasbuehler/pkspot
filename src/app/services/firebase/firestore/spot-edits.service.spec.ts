@@ -14,6 +14,7 @@ import {
   SpotEditsService,
 } from "./spot-edits.service";
 import { UsersService } from "./users.service";
+import { PlatformService } from "../../platform.service";
 
 const createMockFirestoreAdapter = () => ({
   createDocumentId: vi.fn().mockReturnValue("generated-spot-id"),
@@ -41,7 +42,12 @@ const createMockUsersService = () => ({
 });
 
 const createMockFunctionsAdapter = () => ({
-  call: vi.fn().mockResolvedValue({ ok: true }),
+  call: vi.fn().mockResolvedValue({
+    ok: true,
+    spotId: "generated-spot-id",
+    editId: "create-edit-id",
+    replayed: false,
+  }),
 });
 
 const createMockAuthenticationService = () => ({
@@ -78,11 +84,13 @@ describe("SpotEditsService", () => {
   let mockFirestoreAdapter: ReturnType<typeof createMockFirestoreAdapter>;
   let mockUsersService: ReturnType<typeof createMockUsersService>;
   let mockAuthenticationService: ReturnType<typeof createMockAuthenticationService>;
+  let mockFunctionsAdapter: ReturnType<typeof createMockFunctionsAdapter>;
 
   beforeEach(() => {
     mockFirestoreAdapter = createMockFirestoreAdapter();
     mockUsersService = createMockUsersService();
     mockAuthenticationService = createMockAuthenticationService();
+    mockFunctionsAdapter = createMockFunctionsAdapter();
 
     TestBed.configureTestingModule({
       providers: [
@@ -90,7 +98,8 @@ describe("SpotEditsService", () => {
         { provide: FirestoreAdapterService, useValue: mockFirestoreAdapter },
         { provide: UsersService, useValue: mockUsersService },
         { provide: AuthenticationService, useValue: mockAuthenticationService },
-        { provide: FunctionsAdapterService, useValue: createMockFunctionsAdapter() },
+        { provide: FunctionsAdapterService, useValue: mockFunctionsAdapter },
+        { provide: PlatformService, useValue: { getPlatform: () => "web" } },
         { provide: ConsentService, useValue: createMockConsentService() },
         { provide: AnalyticsService, useValue: createMockAnalyticsService() },
       ],
@@ -245,47 +254,36 @@ describe("SpotEditsService", () => {
     ).resolves.toBe(false);
   });
 
-  it("creates new spots through a setDocument placeholder before the CREATE edit", async () => {
-    mockFirestoreAdapter.addDocument.mockResolvedValueOnce("create-edit-id");
-
+  it("creates new spots only through the idempotent callable", async () => {
     const result = await service.createSpotWithEdit(
       {
         name: { en: "New Spot" },
         location_raw: { lat: 47.3769, lng: 8.5417 },
         rating: 5,
       },
-      { uid: "user-1", display_name: "Test User" }
+      "submission_1234567890"
     );
 
     expect(result).toEqual({
       spotId: "generated-spot-id",
       editId: "create-edit-id",
     });
-    expect(mockFirestoreAdapter.createDocumentId).toHaveBeenCalledWith("spots");
-    expect(mockFirestoreAdapter.setDocument).toHaveBeenCalledWith(
-      "spots/generated-spot-id",
-      {}
-    );
-    expect(mockFirestoreAdapter.addDocument).toHaveBeenCalledWith(
-      "spots/generated-spot-id/edits",
-      expect.objectContaining({
-        type: "CREATE",
-        user: { uid: "user-1", display_name: "Test User" },
+    expect(mockFunctionsAdapter.call).toHaveBeenCalledWith(
+      "createSpotSubmission",
+      {
+        submissionId: "submission_1234567890",
         data: expect.objectContaining({
           name: { en: "New Spot" },
           location_raw: { lat: 47.3769, lng: 8.5417 },
         }),
-      })
+        client: { platform: "web", appVersion: expect.any(String) },
+      },
     );
-    expect(mockFirestoreAdapter.addDocument).not.toHaveBeenCalledWith(
-      "spots",
-      expect.anything()
-    );
+    expect(mockFirestoreAdapter.setDocument).not.toHaveBeenCalled();
+    expect(mockFirestoreAdapter.addDocument).not.toHaveBeenCalled();
   });
 
   it("sends CREATE edits with clean location-only payloads", async () => {
-    mockFirestoreAdapter.addDocument.mockResolvedValueOnce("create-edit-id");
-
     await service.createSpotWithEdit(
       {
         name: { en: "Location Only Park" },
@@ -298,17 +296,16 @@ describe("SpotEditsService", () => {
           lit: true,
         },
       },
-      { uid: "user-1", display_name: "Test User" }
+      "submission_abcdefghij"
     );
 
-    expect(mockFirestoreAdapter.addDocument).toHaveBeenCalledWith(
-      "spots/generated-spot-id/edits",
+    expect(mockFunctionsAdapter.call).toHaveBeenCalledWith(
+      "createSpotSubmission",
       expect.objectContaining({
-        type: "CREATE",
-        user: { uid: "user-1", display_name: "Test User" },
         data: {
           name: { en: "Location Only Park" },
           location: { latitude: 47.5596, longitude: 7.5886 },
+          location_raw: { lat: 47.5596, lng: 7.5886 },
           media: [],
           type: "park",
           access: "public",
@@ -316,7 +313,7 @@ describe("SpotEditsService", () => {
             lit: true,
           },
         },
-      })
+      }),
     );
   });
 

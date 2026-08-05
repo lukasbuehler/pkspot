@@ -1092,6 +1092,52 @@ export class FirestoreAdapterService {
     );
   }
 
+  /** Query one collection page and retain its cursor for web pagination. */
+  async getCollectionWithMetadata<T>(
+    collectionPath: string,
+    filters?: QueryFilter[],
+    constraints?: QueryConstraintOptions[],
+    startAfterDoc?: unknown
+  ): Promise<{ data: (T & { id: string })[]; lastDoc: unknown }> {
+    await this.ensureAppCheckReady();
+    if (this.shouldUseNativeQueryBridge()) {
+      const data = await this.getCollectionNative<T>(
+        collectionPath,
+        filters,
+        constraints,
+        typeof startAfterDoc === "string" ? startAfterDoc : undefined,
+      );
+      const lastId = (data.at(-1) as {id?: unknown} | undefined)?.id;
+      return {
+        data: data as (T & { id: string })[],
+        lastDoc: typeof lastId === "string"
+          ? `${collectionPath}/${lastId}`
+          : null,
+      };
+    }
+    return this.trackPending(() =>
+      runInInjectionContext(this.injector, async () => {
+        const collRef = collection(this.firestore, collectionPath);
+        const queryConstraints = this.buildWebQueryConstraints(
+          collectionPath,
+          filters,
+          constraints
+        );
+        if (startAfterDoc) {
+          queryConstraints.push(startAfter(startAfterDoc));
+        }
+        const snapshot = await getDocs(query(collRef, ...queryConstraints));
+        return {
+          data: snapshot.docs.map((docSnapshot) => ({
+            id: docSnapshot.id,
+            ...docSnapshot.data(),
+          })) as (T & { id: string })[],
+          lastDoc: snapshot.docs.at(-1) ?? null,
+        };
+      })
+    );
+  }
+
   private async getCollectionWeb<T>(
     collectionPath: string,
     filters?: QueryFilter[],
@@ -1140,7 +1186,8 @@ export class FirestoreAdapterService {
   private async getCollectionNative<T>(
     collectionPath: string,
     filters?: QueryFilter[],
-    constraints?: QueryConstraintOptions[]
+    constraints?: QueryConstraintOptions[],
+    startAfterReference?: string,
   ): Promise<T[]> {
     const options: GetCollectionOptions = {
       reference: collectionPath,
@@ -1191,6 +1238,12 @@ export class FirestoreAdapterService {
         })
         .filter((c): c is QueryNonFilterConstraint => c !== null);
       options.queryConstraints = mappedConstraints;
+    }
+    if (startAfterReference) {
+      options.queryConstraints = [
+        ...(options.queryConstraints ?? []),
+        {type: "startAfter", reference: startAfterReference},
+      ];
     }
 
     const result = await FirebaseFirestore.getCollection(options);

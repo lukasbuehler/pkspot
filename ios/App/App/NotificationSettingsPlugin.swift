@@ -10,7 +10,8 @@ public class NotificationSettingsPlugin: CAPPlugin, CAPBridgedPlugin {
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "openAppNotificationSettings", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getSystemNotificationStatus", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "setAutoInitEnabled", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "setAutoInitEnabled", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "dismissDeliveredNotification", returnType: CAPPluginReturnPromise)
     ]
 
     @objc func openAppNotificationSettings(_ call: CAPPluginCall) {
@@ -42,5 +43,30 @@ public class NotificationSettingsPlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func setAutoInitEnabled(_ call: CAPPluginCall) {
         Messaging.messaging().isAutoInitEnabled = call.getBool("enabled") ?? false
         call.resolve()
+    }
+
+    @objc func dismissDeliveredNotification(_ call: CAPPluginCall) {
+        guard let intentId = call.getString("intentId"), !intentId.isEmpty else {
+            call.resolve()
+            return
+        }
+        let threadKey = call.getString("threadKey")
+
+        UNUserNotificationCenter.current().getDeliveredNotifications { notifications in
+            let identifiers = notifications.compactMap { notification -> String? in
+                let userInfo = notification.request.content.userInfo
+                let deliveredIntentId = userInfo["intent_id"] as? String
+                let deliveredThreadKey = userInfo["thread_key"] as? String
+                return deliveredIntentId == intentId ||
+                    (threadKey != nil && deliveredThreadKey == threadKey)
+                    ? notification.request.identifier
+                    : nil
+            }
+            if !identifiers.isEmpty {
+                UNUserNotificationCenter.current()
+                    .removeDeliveredNotifications(withIdentifiers: identifiers)
+            }
+            call.resolve()
+        }
     }
 }

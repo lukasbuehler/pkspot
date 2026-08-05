@@ -351,6 +351,9 @@ runWithEmulator("CommunityEditsService emulator integration", () => {
       rating: 0,
       num_reviews: 0,
       media: [],
+      // This suite exercises the explicit merge callables. Defer the separate
+      // spot-write rebuild so it cannot race the merge/unmerge rebuild.
+      community_rebuild_deferred: true,
     });
     const writes: Promise<unknown>[] = [];
     for (let index = 0; index < 5; index += 1) {
@@ -368,6 +371,29 @@ runWithEmulator("CommunityEditsService emulator integration", () => {
       );
     }
     await Promise.all(writes);
+    await Promise.all(
+      writes.map((_, index) => {
+        const locality = index < 5 ? "copenhagen" : "frederiksberg";
+        const localityIndex = index < 5 ? index : index - 5;
+        return waitForAdminDocument(
+          `spots/dk-${locality}-${uid}-${localityIndex}`,
+          (data) => data?.["duplicate_check"] ?? null,
+        );
+      }),
+    );
+    await Promise.all([
+      ...Array.from({ length: 5 }, (_, index) =>
+        adminDb()
+          .doc(`spots/dk-copenhagen-${uid}-${index}`)
+          .set(spotDocument("Copenhagen", index), { merge: true }),
+      ),
+      ...Array.from({ length: 3 }, (_, index) =>
+        adminDb()
+          .doc(`spots/dk-frederiksberg-${uid}-${index}`)
+          .set(spotDocument("Frederiksberg", index, false), { merge: true }),
+      ),
+      adminDb().doc(`community_pages/${sourceKey}`).delete(),
+    ]);
     await adminDb().doc(`community_pages/${targetKey}`).set({
       communityKey: targetKey,
       scope: "locality",

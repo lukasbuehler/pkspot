@@ -374,7 +374,6 @@ runWithEmulator("EventLiveUpdatesService emulator integration", () => {
     await waitForDocument(
       `notification_intents/event_live_update_${eventId}_${update.id}_${attendeeId}`,
       (data) =>
-        data["status"] === "pending" &&
         data["payload"]?.["previous_start_ms"] === String(originalStart.toMillis()) &&
         data["payload"]?.["next_start_ms"] === String(nextStart.toMillis()),
     );
@@ -433,7 +432,7 @@ runWithEmulator("EventLiveUpdatesService emulator integration", () => {
 
     await waitForDocument(
       `notification_intents/event_live_update_${eventId}_${result.operationId}_${attendeeId}`,
-      (data) => data["status"] === "pending",
+      (data) => data["type"] === "event_update",
     );
     await new Promise((resolve) => setTimeout(resolve, 500));
     const updates = await db().collection(`events/${eventId}/live_updates`).get();

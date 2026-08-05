@@ -1442,6 +1442,24 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     });
   }
 
+  openProgramMarkerDetails(occurrence: EventProgramOccurrence): void {
+    if (!isEventProgramMarkerOccurrence(occurrence)) return;
+
+    this.selectedProgramItemId.set(null);
+    this.selectCustomMarker(occurrence.marker);
+    void this._router.navigate([], {
+      relativeTo: this._route,
+      queryParams: {
+        mapFilter: "event",
+        day: null,
+        spotId: null,
+        markerId: occurrence.ref.id,
+        programItemId: null,
+      },
+      queryParamsHandling: "merge",
+    });
+  }
+
   markerClick(markerIndex: number) {
     const marker = this.mapPriorityMarkers()[markerIndex];
     if (marker?.type === "event-custom") {

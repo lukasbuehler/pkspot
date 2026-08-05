@@ -1,0 +1,5 @@
+PK Spot v1.1.4 — Meldingen en weer
+
+• Meldingen toegevoegd: communityoverzichten, evenementherinneringen en updates over ingediende Spot-bewerkingen.
+• Weerinformatie toegevoegd voor Spots, het huidige kaartgebied en evenementen.
+• Evenementen verbeterd: RSVP heet nu ‘Toevoegen aan Mijn evenementen’ en schakelt meldingen in.

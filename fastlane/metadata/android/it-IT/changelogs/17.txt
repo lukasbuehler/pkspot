@@ -1,0 +1,5 @@
+PK Spot v1.1.4 — Notifiche e meteo
+
+• Aggiunte notifiche: riepiloghi delle community, promemoria eventi e aggiornamenti sulle modifiche di Spot inviate.
+• Aggiunte informazioni meteo per gli Spot, l’area corrente della mappa e gli eventi.
+• Eventi migliorati: RSVP ora si chiama «Aggiungi ai miei eventi» e attiva le notifiche.

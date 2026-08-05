@@ -52,4 +52,20 @@ describe("Android notification configuration", () => {
       expect(icon.readUInt32BE(20)).toBe(expectedSize);
     }
   });
+
+  it("dismisses a delivered notification when an action opens the app", () => {
+    const messagingService = readSource(
+      "android/app/src/main/java/com/pkspot/app/PKSpotMessagingService.java",
+    );
+    const activity = readSource(
+      "android/app/src/main/java/com/pkspot/app/MainActivity.java",
+    );
+
+    expect(messagingService).toContain(
+      '.appendQueryParameter("notificationThread", threadKey)',
+    );
+    expect(activity).toContain("dismissNotificationFromAction(getIntent())");
+    expect(activity).toContain("dismissNotificationFromAction(intent)");
+    expect(activity).toContain(".cancel(threadKey, 0)");
+  });
 });

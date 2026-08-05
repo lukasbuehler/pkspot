@@ -1356,6 +1356,32 @@ async function testAgePolicyParticipationGuards(restricted) {
 }
 
 async function testReadOnlyBackendCollections(owner, adminUser) {
+  await adminDb.doc("spot_create_submissions/server-claim").set({
+    uid: "owner",
+    spot_id: "public-spot",
+    submission_id: "private-token",
+  });
+  await adminDb.doc("spot_creation_metrics_hourly/2026-08-04T10").set({
+    actual_creates: 1,
+  });
+  for (const [label, path] of [
+    ["Spot creation claim", "spot_create_submissions/server-claim"],
+    ["Spot creation aggregate", "spot_creation_metrics_hourly/2026-08-04T10"],
+  ]) {
+    await assertDenied(`regular user read of ${label}`, () =>
+      getDoc(doc(owner.db, path))
+    );
+    await assertAllowed(`admin read of ${label}`, () =>
+      getDoc(doc(adminUser.db, path))
+    );
+    await assertDenied(`regular user write to ${label}`, () =>
+      setDoc(doc(owner.db, path), { attacker: true })
+    );
+    await assertDenied(`admin direct write to ${label}`, () =>
+      setDoc(doc(adminUser.db, path), { bypass: true })
+    );
+  }
+
   const pendingUploadQuery = query(
     collection(owner.db, "media_upload_status"),
     where("uid", "==", "owner"),

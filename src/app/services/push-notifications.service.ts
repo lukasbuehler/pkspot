@@ -1,5 +1,4 @@
 import { Injectable, LOCALE_ID, computed, inject, signal } from "@angular/core";
-import { MatSnackBar } from "@angular/material/snack-bar";
 import { Router } from "@angular/router";
 import { App } from "@capacitor/app";
 import { Capacitor, registerPlugin } from "@capacitor/core";
@@ -17,16 +16,17 @@ import {
 import { AuthenticationService } from "./firebase/authentication.service";
 import { FirestoreAdapterService } from "./firebase/firestore-adapter.service";
 import { AnalyticsService } from "./analytics.service";
-import {
-  WebPushClientService,
-  WebPushMessage,
-} from "./web-push-client.service";
+import { WebPushClientService } from "./web-push-client.service";
 
 interface NotificationSettingsPlugin {
   openAppNotificationSettings(): Promise<void>;
   getSystemNotificationStatus(): Promise<{ enabled: boolean }>;
   setAutoInitEnabled(options: { enabled: boolean }): Promise<void>;
   configureNotificationChannels(): Promise<void>;
+  dismissDeliveredNotification(options: {
+    intentId: string;
+    threadKey?: string;
+  }): Promise<void>;
 }
 
 const NotificationSettings = registerPlugin<NotificationSettingsPlugin>(
@@ -39,7 +39,6 @@ export class PushNotificationsService {
   private readonly auth = inject(AuthenticationService);
   private readonly firestore = inject(FirestoreAdapterService);
   private readonly router = inject(Router);
-  private readonly snackbar = inject(MatSnackBar);
   private readonly analytics = inject(AnalyticsService);
   private readonly webPush = inject(WebPushClientService);
   private readonly locale = inject(LOCALE_ID);
@@ -182,7 +181,10 @@ export class PushNotificationsService {
     });
     await FirebaseMessaging.addListener(
       "notificationActionPerformed",
-      (event) => this._openNotification(event),
+      (event) => {
+        this._dismissNativeNotification(event.notification.data);
+        this._openNotification(event);
+      },
     );
     await App.addListener("appStateChange", ({ isActive }) => {
       if (isActive) {
@@ -198,9 +200,11 @@ export class PushNotificationsService {
   }
 
   private async _installWebListeners(): Promise<void> {
-    await this.webPush.onMessage((message) =>
-      this._showWebForegroundNotification(message),
-    );
+    await this.webPush.onMessage((message) => {
+      void this.webPush.showNotification(message).catch((error) => {
+        console.warn("Failed to show foreground web notification", error);
+      });
+    });
     window.addEventListener("focus", () => {
       void this.refreshPermissionState().catch((error) => {
         console.warn("Failed to refresh web notification permission", error);
@@ -298,27 +302,19 @@ export class PushNotificationsService {
     );
   }
 
-  private _showWebForegroundNotification(message: WebPushMessage): void {
-    const text = [
-      message.notification?.title ?? message.data?.["title"],
-      message.notification?.body ?? message.data?.["body"],
-    ]
-      .filter((part): part is string => Boolean(part))
-      .join(": ");
-    if (!text) return;
+  private _dismissNativeNotification(data: unknown): void {
+    if (!data || typeof data !== "object") return;
+    const notificationData = data as Record<string, unknown>;
+    const intentId = notificationData["intent_id"];
+    const threadKey = notificationData["thread_key"];
+    if (typeof intentId !== "string" || !intentId) return;
 
-    const data = message.data ?? {};
-    const hasPath = this._notificationPath(data) !== null;
-    const ref = this.snackbar.open(
-      text,
-      hasPath
-        ? $localize`:@@notifications.open:Open`
-        : $localize`:@@notifications.dismiss:Dismiss`,
-      { duration: 8000 },
-    );
-    if (hasPath) {
-      ref.onAction().subscribe(() => this._openNotificationData(data));
-    }
+    void NotificationSettings.dismissDeliveredNotification({
+      intentId,
+      ...(typeof threadKey === "string" && threadKey ? { threadKey } : {}),
+    }).catch((error) => {
+      console.warn("Failed to dismiss acted-on notification", error);
+    });
   }
 
   private _openNotificationData(

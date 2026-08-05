@@ -21,6 +21,7 @@
         [spot]="panel.spot"
         [(challenge)]="selectedChallenge"
         [isEditing]="isEditing()"
+        [isSaving]="spotMap?.isSavingSpot() ?? false"
         [pendingVoteCount]="pendingSpotEditsCount()"
         [mapQueryParams]="activeMapQueryParams()"
         [openProgress]="
@@ -32,6 +33,7 @@
         (focusClick)="onSpotPanelFocus()"
         (saveClick)="onSpotPanelSave($event)"
         (reviewSubmitted)="onSpotPanelReviewSubmitted($event)"
+        (reportSubmitted)="onSpotPanelReportSubmitted($event)"
       ></app-map-spot-details-panel>
     }
     @case ("spot-challenges") {

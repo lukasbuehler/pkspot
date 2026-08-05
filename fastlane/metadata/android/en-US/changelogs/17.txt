@@ -1,0 +1,5 @@
+PK Spot v1.1.4 — Notifications & Weather
+
+• Added notifications: community digests, event reminders, and Spot edit submission updates.
+• Added weather information to Spots, the current map area, and events.
+• Improved Events: RSVP is now "Add to My Events" and enables notifications.

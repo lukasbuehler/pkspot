@@ -82,6 +82,79 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
+### Idempotent Spot creation and duplicate administration
+
+This release is additive for already-released clients: existing direct Spot
+creation rules and CREATE-edit processing remain available. New clients depend
+on the callable and must be released only after the indexes and Functions are
+active. This release does not authorize resolving or deleting any existing
+production duplicate.
+
+- [ ] Deploy `firestore.indexes.json` to production and wait for both new
+      `spot_create_submissions` diagnostics indexes (`last_attempt_at` with
+      `attempt_count`, and `last_attempt_at` with `guard_block_count`) to report
+      `Enabled`. Do this before deploying the diagnostics Function:
+
+  ```sh
+  npx firebase deploy --project prod --only firestore:indexes
+  ```
+
+- [ ] Deploy the backward-compatible duplicate administration, diagnostics,
+      report-warning, safety-case, and immediate-notification Function updates:
+
+  ```sh
+  npx firebase deploy --project prod --only functions:getSpotCreationDiagnostics,functions:resolveSpotDuplicate,functions:detectDuplicateSpots,functions:onSpotReportCreate,functions:onModerationActionNotificationCreate,functions:onModerationActionSafetyCaseCreate,functions:onImmediateNotificationIntentCreate,functions:onNotificationIntentWrite
+  ```
+
+      Verify every listed Function reports location `europe-west1` in the
+      Firebase Functions inventory; fail the release if any differs. Also verify
+      the deployment succeeds, duplicate-resolution
+      replays create one moderation action, and an immediately due actionable
+      notification has its in-app feed projection before delivery is claimed.
+
+- [ ] Invoke `createSpotSubmission` twice with one non-production draft token
+      and verify both responses point to one Spot/edit while the second reports
+      `replayed: true`. Do not use a real reported duplicate for this check.
+
+- [ ] Review the 71 unique production duplicate candidate groups in the
+      moderation dashboard. Do not resolve or delete candidates without a
+      separate administrator decision.
+
+- [ ] Release compatible web and mobile clients through their normal workflows.
+      Verify a failed/offline creation remains editable and retryable, a rapid
+      repeated save produces one Spot, and released older clients can still
+      create through the legacy path.
+
+- [ ] In the moderation dashboard, verify the 24-hour and 7-day actual creation
+      totals, callable-versus-legacy adoption, client guard blocks, server
+      replays, open duplicate report count, platform/app-version breakdown, and
+      canonical links for recent prevented cases. Confirm individual claims are
+      unavailable to non-admin clients, contain no token or IP data, expire after
+      30 days, and hourly aggregates expire after 12 months.
+
+### Immediate notification delivery
+
+The new Firestore trigger is additive and backward compatible. Existing clients
+continue to use the same notification documents and payloads; the scheduled
+dispatcher remains as the retry and future-reminder path.
+
+- [ ] Create a production follow request and verify its due intent is claimed in
+      a few seconds, exactly one delivery is recorded per active registration,
+      and the minute dispatcher does not deliver it again. After the mobile
+      release, verify Android and iOS action buttons remove their delivered OS
+      notification while still completing the action.
+
+### Reported Spot Typesense previews
+
+This rollout is additive and backward compatible. New clients render only the
+public `is_reported` state on preview cards; `report_reason` remains a sanitized
+compatibility field for released clients. Raw report documents and
+`public_notice` must not be added to Typesense.
+
+- [ ] Release the compatible client through the normal web and mobile workflows,
+      then confirm a reported Spot preview shows only the localized Reported
+      badge before opening the Spot.
+
 ### Firebase JS SDK client migration
 
 No Firebase backend deployment, schema migration, rules change, or data backfill

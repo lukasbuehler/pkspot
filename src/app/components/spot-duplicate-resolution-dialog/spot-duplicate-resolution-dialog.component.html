@@ -1,0 +1,112 @@
+<h2 mat-dialog-title i18n>Resolve duplicate Spot</h2>
+<mat-dialog-content>
+  <p class="mat-body-medium" i18n>
+    Compare both Spots. Resolution remains blocked whenever the redundant copy
+    has unique content or dependent activity.
+  </p>
+
+  <app-entity-reference-autocomplete
+    kind="spot"
+    [value]="candidateSpotId()"
+    [excludedIds]="excludedSpotIds()"
+    [disabled]="isLoading() || isResolving()"
+    (selectionChange)="onCandidateSelection($event)"
+  ></app-entity-reference-autocomplete>
+
+  @if (isLoading()) {
+    <div class="dialog-state">
+      <mat-spinner diameter="36"></mat-spinner>
+      <span i18n>Checking every dependency…</span>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="error-card" role="alert">
+      <mat-icon>warning</mat-icon>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  @if (previewData(); as preview) {
+    <div class="candidate-grid">
+      @for (candidate of [preview.reported, preview.candidate]; track candidate.id) {
+        <mat-card
+          appearance="outlined"
+          [class.candidate-card--selected]="canonicalSpotId() === candidate.id"
+        >
+          <mat-card-header>
+            <mat-card-title>{{ candidate.name }}</mat-card-title>
+            <mat-card-subtitle>{{ candidate.id }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            @if (candidate.media[0]?.src; as image) {
+              <img class="candidate-image" [src]="image" [alt]="candidate.name" />
+            } @else {
+              <div class="candidate-image candidate-image--empty">
+                <mat-icon>image</mat-icon>
+                <span i18n>No image</span>
+              </div>
+            }
+            @if (candidate.description) {
+              <p class="mat-body-small">{{ candidate.description }}</p>
+            }
+            <p class="mat-body-small">
+              <span i18n>Created by</span> {{ creatorLabel(candidate) }} ·
+              {{ candidate.createdAtMillis | systemDate: "medium" }}
+            </p>
+            <mat-chip-set>
+              <mat-chip>{{ candidate.media.length }} <span i18n>&nbsp;media</span></mat-chip>
+              <mat-chip>{{ candidate.editCount }} <span i18n>&nbsp;edits</span></mat-chip>
+              <mat-chip>{{ candidate.dependencies.reviews }} <span i18n>&nbsp;reviews</span></mat-chip>
+              <mat-chip>{{ candidate.dependencies.events }} <span i18n>&nbsp;events</span></mat-chip>
+              <mat-chip>{{ candidate.dependencies.checkIns }} <span i18n>&nbsp;check-ins</span></mat-chip>
+            </mat-chip-set>
+            @if (candidate.uniqueFields.length > 0) {
+              <p class="mat-label-medium" i18n>Different fields</p>
+              <p class="mat-body-small">{{ candidate.uniqueFields.join(", ") }}</p>
+            }
+          </mat-card-content>
+          <mat-card-actions>
+            <mat-radio-button
+              [checked]="canonicalSpotId() === candidate.id"
+              [disabled]="!preview.eligibleCanonicalSpotIds.includes(candidate.id) || isResolving()"
+              (change)="selectCanonical(candidate.id)"
+            >
+              <span i18n>Keep as canonical</span>
+            </mat-radio-button>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+
+    @if (preview.blockers.length > 0) {
+      <div class="warning-card" role="status">
+        <mat-icon>warning</mat-icon>
+        <div>
+          <strong i18n>Automatic resolution is blocked</strong>
+          <ul>
+            @for (blocker of preview.blockers; track blocker) {
+              <li>{{ blockerLabel(blocker) }}</li>
+            }
+          </ul>
+        </div>
+      </div>
+    }
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button matButton="text" type="button" (click)="close()" i18n>Cancel</button>
+  <button
+    matButton="filled"
+    type="button"
+    [disabled]="!canResolve()"
+    (click)="resolve()"
+  >
+    @if (isResolving()) {
+      <span i18n>Resolving…</span>
+    } @else {
+      <span i18n>Resolve duplicate</span>
+    }
+  </button>
+</mat-dialog-actions>

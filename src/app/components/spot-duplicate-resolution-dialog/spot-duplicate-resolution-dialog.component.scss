@@ -1,0 +1,69 @@
+:host {
+  display: block;
+}
+
+.candidate-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-block: 20px;
+}
+
+.candidate-card--selected {
+  outline: 2px solid var(--mat-sys-primary);
+}
+
+mat-card-header,
+mat-card-title,
+mat-card-subtitle {
+  min-width: 0;
+}
+
+mat-card-title,
+mat-card-subtitle {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.candidate-image {
+  width: 100%;
+  height: 180px;
+  margin-block: 12px;
+  border-radius: 13px;
+  object-fit: cover;
+  background: var(--mat-sys-surface-container-high);
+}
+
+.candidate-image--empty,
+.dialog-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.error-card,
+.warning-card {
+  display: flex;
+  gap: 12px;
+  margin-block: 16px;
+  padding: 16px;
+  border: 1px solid var(--mat-sys-error);
+  border-radius: 18px;
+  color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
+}
+
+.warning-card {
+  border-color: var(--mat-sys-tertiary);
+  color: var(--mat-sys-on-tertiary-container);
+  background: var(--mat-sys-tertiary-container);
+}
+
+@media (max-width: 720px) {
+  .candidate-grid {
+    grid-template-columns: 1fr;
+  }
+}

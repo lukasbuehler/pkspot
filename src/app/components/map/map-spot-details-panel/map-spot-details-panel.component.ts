@@ -24,6 +24,7 @@ export class MapSpotDetailsPanelComponent {
   pendingSpot = input<PendingSpotPanel | null>(null);
   spot = input<Spot | LocalSpot | null>(null);
   isEditing = input(false);
+  isSaving = input(false);
   pendingVoteCount = input(0);
   openProgress = input(1);
   mapQueryParams = input<Record<string, string> | null>(null);
@@ -37,4 +38,5 @@ export class MapSpotDetailsPanelComponent {
   focusClick = output<void>();
   saveClick = output<Spot | LocalSpot>();
   reviewSubmitted = output<Spot>();
+  reportSubmitted = output<Spot>();
 }

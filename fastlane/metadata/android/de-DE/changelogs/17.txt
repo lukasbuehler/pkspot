@@ -1,0 +1,5 @@
+PK Spot v1.1.4 — Benachrichtigungen & Wetter
+
+• Benachrichtigungen hinzugefügt: Community-Zusammenfassungen, Event-Erinnerungen und Updates zu eingereichten Spot-Bearbeitungen.
+• Wetter bei Spots, für den aktuellen Kartenausschnitt und bei Events hinzugefügt.
+• Events verbessert: Die RSVP-Funktion heißt jetzt „Zu Meine Events hinzufügen“ und aktiviert Benachrichtigungen.

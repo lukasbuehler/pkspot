@@ -1,7 +1,7 @@
-PK Spot v1.1.3 — Communitybijdragen
+PK Spot v1.1.4 — Meldingen en weer
 
 Nieuw:
 
-• Gebruikers kunnen nu suggesties voor communitykaarten indienen.
-• Moderatiewachtrij voor admins om community- en spotstemmen te beoordelen.
-• Profielpagina's en volgfuncties kregen kleine updates.
+• Meldingen toegevoegd: communityoverzichten, evenementherinneringen en updates over ingediende Spot-bewerkingen.
+• Weerinformatie toegevoegd voor Spots, het huidige kaartgebied en evenementen.
+• Evenementen verbeterd: RSVP heet nu ‘Toevoegen aan Mijn evenementen’ en schakelt meldingen in.

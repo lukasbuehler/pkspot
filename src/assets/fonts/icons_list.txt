@@ -29,6 +29,7 @@ qr_code_2
 image
 photo_camera
 delete
+difference
 more_vert
 checklist
 directions

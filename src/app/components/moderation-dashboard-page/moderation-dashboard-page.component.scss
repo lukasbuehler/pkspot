@@ -31,8 +31,114 @@
 
 .moderation-dashboard__stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.75rem;
+}
+
+.stat-card--attention {
+  border-color: var(--mat-sys-primary);
+  background: var(--mat-sys-primary-container);
+}
+
+.duplicate-review {
+  padding: 1rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.duplicate-review__count {
+  flex-shrink: 0;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+  font: var(--mat-sys-label-large);
+}
+
+.duplicate-review__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.duplicate-group {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 14px;
+  background: var(--mat-sys-surface-container);
+}
+
+.duplicate-group__header,
+.duplicate-group__spots a {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.duplicate-group__header {
+  margin-bottom: 0.5rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-large);
+}
+
+.duplicate-group__spots {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.duplicate-group__spots a {
+  min-width: 0;
+  padding: 0.55rem 0.65rem;
+  border-radius: 10px;
+  color: var(--mat-sys-primary);
+  text-decoration: none;
+}
+
+.duplicate-group__spots a:hover {
+  background: var(--mat-sys-surface-container-high);
+}
+
+.duplicate-group__spots a span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.duplicate-group__spots mat-icon {
+  flex-shrink: 0;
+}
+
+.duplicate-review__toggle {
+  align-self: center;
+}
+
+.moderation-dashboard__tools {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 14px;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.moderation-dashboard__tools summary {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 1rem;
+  cursor: pointer;
+  font: var(--mat-sys-title-medium);
+  list-style: none;
+}
+
+.moderation-dashboard__tools summary::-webkit-details-marker {
+  display: none;
+}
+
+.moderation-dashboard__tools-content {
+  display: grid;
+  gap: 1rem;
+  padding: 0 1rem 1rem;
 }
 
 .moderation-dashboard__grid {
@@ -60,6 +166,61 @@
   border-radius: 18px;
   color: var(--mat-sys-on-tertiary-container);
   background: var(--mat-sys-tertiary-container);
+}
+
+.creation-diagnostics {
+  padding: 1rem;
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 18px;
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+}
+
+.creation-diagnostics__windows {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.creation-diagnostics__windows h3,
+.creation-diagnostics__windows dl {
+  margin: 0;
+}
+
+.creation-diagnostics__windows dl {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.creation-diagnostics__windows dl div {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.creation-diagnostics__windows dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.creation-diagnostics__breakdown,
+.creation-diagnostics__cases {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.creation-diagnostics__cases a {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+  color: var(--mat-sys-on-primary-container);
+  text-decoration: none;
 }
 
 .age-assurance-maintenance__form {
@@ -175,9 +336,16 @@ mat-card-actions {
 }
 
 @media (max-width: 840px) {
+  .moderation-dashboard__stats,
+  .duplicate-review__grid,
   .moderation-dashboard__grid,
   .moderation-dashboard__queue-grid,
+  .creation-diagnostics__windows,
   .age-assurance-maintenance__form {
     grid-template-columns: 1fr;
+  }
+
+  .creation-diagnostics__cases a {
+    grid-template-columns: 1fr auto;
   }
 }

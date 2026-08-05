@@ -4,7 +4,8 @@
   <mat-radio-group
     color="warn"
     class="d-flex flex-column"
-    [(ngModel)]="data.reason"
+    [ngModel]="data.reason"
+    (ngModelChange)="onReasonChange($event)"
   >
     <mat-radio-button value="duplicate" i18n> Duplicate </mat-radio-button>
 
@@ -17,17 +18,18 @@
     >
     <mat-radio-button value="other" i18n>Other</mat-radio-button>
   </mat-radio-group>
-  @if(data.reason === 'duplicate') {
-  <p class="mat-body pt-3" i18n>Which spot is this spot a duplicate of?</p>
-  <mat-form-field class="w-100">
-    <mat-label i18n>Spot</mat-label>
-    <input
-      matInput
-      placeholder="Spot name"
-      [(ngModel)]="data.duplicateOf"
-      required
-    /> </mat-form-field
-  >}
+  @if (data.reason === 'duplicate') {
+    <div class="pt-3">
+      <p class="mat-body" i18n>Which spot is this spot a duplicate of?</p>
+      <app-entity-reference-autocomplete
+        kind="spot"
+        [value]="duplicateSpotId()"
+        [excludedIds]="excludedSpotIds"
+        [disabled]="isSubmitting()"
+        (selectionChange)="onDuplicateSpotSelection($event)"
+      />
+    </div>
+  }
   <p class="mat-body pt-3" i18n>
     Your report and identity are visible only to moderators. A moderator may
     publish a separate warning on the Spot without identifying you.
@@ -38,7 +40,7 @@
     Cancel
   </button>
   <button
-    [disabled]="!data.reason || isSubmitting()"
+    [disabled]="!canSubmit() || isSubmitting()"
     matButton="filled"
     color="warn"
     cdkFocusInitial

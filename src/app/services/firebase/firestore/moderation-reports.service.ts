@@ -15,6 +15,14 @@ import {
   QueryConstraintOptions,
 } from "../firestore-adapter.service";
 import { FunctionsAdapterService } from "../functions-adapter.service";
+import type {
+  PreviewSpotDuplicateResolutionRequest,
+  PreviewSpotDuplicateResolutionResponse,
+  ResolveSpotDuplicateRequest,
+  ResolveSpotDuplicateResponse,
+} from "../../../../db/schemas/SpotDuplicateResolutionSchema";
+import type { SpotCreationDiagnosticsResponse } from "../../../../db/schemas/SpotCreationSchema";
+import type { SpotSchema } from "../../../../db/schemas/SpotSchema";
 
 export type ModerationReportKind = "spot" | "media" | "profile";
 export type ModerationReportStatus = "open" | "resolved" | "dismissed";
@@ -75,6 +83,94 @@ export interface ModerationContactMessageItem {
   replayUrl?: string;
   raw: ContactMessageSchema;
 }
+
+export interface ModerationDuplicateSpot {
+  id: string;
+  label: string;
+}
+
+export interface ModerationDuplicateGroup {
+  id: string;
+  spots: ModerationDuplicateSpot[];
+  closestDistanceMeters: number;
+}
+
+type DuplicateSpotDocument = Partial<Pick<SpotSchema, "name" | "duplicate_check">> & {
+  id: string;
+};
+
+const spotLabel = (spot: DuplicateSpotDocument): string => {
+  for (const value of Object.values(spot.name ?? {})) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+    if (value && typeof value === "object" && "text" in value) {
+      const text = String(value.text ?? "").trim();
+      if (text) return text;
+    }
+  }
+  return spot.id;
+};
+
+export const groupDuplicateSpotCandidates = (
+  documents: DuplicateSpotDocument[],
+): ModerationDuplicateGroup[] => {
+  const spots = new Map<string, ModerationDuplicateSpot>();
+  const neighbors = new Map<string, Set<string>>();
+  const distances = new Map<string, number>();
+  const connect = (left: string, right: string, distance: number): void => {
+    neighbors.set(left, (neighbors.get(left) ?? new Set()).add(right));
+    neighbors.set(right, (neighbors.get(right) ?? new Set()).add(left));
+    const key = [left, right].sort().join(":");
+    distances.set(key, Math.min(distances.get(key) ?? Infinity, distance));
+  };
+
+  for (const document of documents) {
+    spots.set(document.id, {id: document.id, label: spotLabel(document)});
+    for (const candidate of document.duplicate_check?.candidates ?? []) {
+      const current = spots.get(candidate.spot_id);
+      spots.set(candidate.spot_id, {
+        id: candidate.spot_id,
+        label: current?.label ?? candidate.name ?? candidate.spot_id,
+      });
+      connect(document.id, candidate.spot_id, candidate.distance_m);
+    }
+  }
+
+  const visited = new Set<string>();
+  const groups: ModerationDuplicateGroup[] = [];
+  for (const first of neighbors.keys()) {
+    if (visited.has(first)) continue;
+    const pending = [first];
+    const ids: string[] = [];
+    visited.add(first);
+    while (pending.length > 0) {
+      const id = pending.pop()!;
+      ids.push(id);
+      for (const neighbor of neighbors.get(id) ?? []) {
+        if (!visited.has(neighbor)) {
+          visited.add(neighbor);
+          pending.push(neighbor);
+        }
+      }
+    }
+    ids.sort((left, right) =>
+      (spots.get(left)?.label ?? left).localeCompare(spots.get(right)?.label ?? right),
+    );
+    const groupDistances = [...distances.entries()]
+      .filter(([key]) => ids.some((id) => key.split(":").includes(id)))
+      .map(([, distance]) => distance);
+    groups.push({
+      id: ids.join(":"),
+      spots: ids.map((id) => spots.get(id) ?? {id, label: id}),
+      closestDistanceMeters: Math.min(...groupDistances),
+    });
+  }
+
+  return groups.sort(
+    (left, right) =>
+      right.spots.length - left.spots.length ||
+      left.spots[0].label.localeCompare(right.spots[0].label),
+  );
+};
 
 type HandleModerationActionRequest = {
   action_type: ModerationActionType;
@@ -138,6 +234,54 @@ export class ModerationReportsService {
     ].sort((left, right) => right.createdAtMillis - left.createdAtMillis);
 
     return this._withSpotPreviews(reports);
+  }
+
+  getSpotCreationDiagnostics(): Promise<SpotCreationDiagnosticsResponse> {
+    return this._functionsAdapter.call<Record<string, never>, SpotCreationDiagnosticsResponse>(
+      "getSpotCreationDiagnostics",
+      {},
+    );
+  }
+
+  async getDuplicateSpotGroups(): Promise<ModerationDuplicateGroup[]> {
+    const spots: DuplicateSpotDocument[] = [];
+    let cursor: unknown;
+    do {
+      const page = await this._firestoreAdapter.getCollectionWithMetadata<
+        DuplicateSpotDocument
+      >(
+        "spots",
+        [{
+          fieldPath: "duplicate_check.status",
+          opStr: "==",
+          value: "possible_duplicate",
+        }],
+        [{type: "limit", limit: 200}],
+        cursor,
+      );
+      spots.push(...page.data);
+      cursor = page.lastDoc;
+    } while (cursor);
+    return groupDuplicateSpotCandidates(spots);
+  }
+
+  previewSpotDuplicateResolution(
+    reportPath: string,
+    candidateSpotId: string,
+  ): Promise<PreviewSpotDuplicateResolutionResponse> {
+    return this._functionsAdapter.call<
+      PreviewSpotDuplicateResolutionRequest,
+      PreviewSpotDuplicateResolutionResponse
+    >("previewSpotDuplicateResolution", { reportPath, candidateSpotId });
+  }
+
+  resolveSpotDuplicate(
+    request: ResolveSpotDuplicateRequest,
+  ): Promise<ResolveSpotDuplicateResponse> {
+    return this._functionsAdapter.call<
+      ResolveSpotDuplicateRequest,
+      ResolveSpotDuplicateResponse
+    >("resolveSpotDuplicate", request);
   }
 
   async getContactMessages(

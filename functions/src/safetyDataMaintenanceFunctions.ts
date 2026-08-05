@@ -1,10 +1,15 @@
 import * as admin from "firebase-admin";
+import {onDocumentCreated} from "firebase-functions/v2/firestore";
 import {HttpsError, onCall} from "firebase-functions/v2/https";
 import {persistAuthoritativeReporter} from "./reportIdentity";
 import {publicSpotWarningForReason} from "./spotPublicWarning";
 
 const db = admin.firestore();
 const SPOT_REPORT_PRIVACY_STATE = "maintenance/spot-report-privacy";
+const RUN_RESYNC_REPORTED_SPOTS_TO_TYPESENSE =
+  "maintenance/run-resync-reported-spots-to-typesense";
+const SPOT_TYPESENSE_REPORT_RESYNC_STATE =
+  "maintenance/spot-typesense-report-resync";
 
 const assertAdmin = async (uid: string | undefined): Promise<void> => {
   if (!uid) {
@@ -100,6 +105,36 @@ export const backfillReportReporterIdentities = onCall(async (request) => {
     reports_without_uid: reportsWithoutUid,
   };
 });
+
+/**
+ * Forces the Typesense extension to revisit public reported-Spot fields.
+ * The marker is operator-only and intentionally contains no report details.
+ */
+export const resyncReportedSpotsToTypesenseOnCreate = onDocumentCreated(
+  {document: RUN_RESYNC_REPORTED_SPOTS_TO_TYPESENSE},
+  async (event) => {
+    const reportedSpots = await db
+      .collection("spots")
+      .where("is_reported", "==", true)
+      .get();
+    const forceSyncValue = Date.now();
+    const writer = db.bulkWriter();
+
+    for (const spot of reportedSpots.docs) {
+      writer.update(spot.ref, {_force_sync: forceSyncValue});
+    }
+    await writer.close();
+
+    await db.doc(SPOT_TYPESENSE_REPORT_RESYNC_STATE).set({
+      completed_at: admin.firestore.FieldValue.serverTimestamp(),
+      trigger_path: event.data?.ref.path ?? RUN_RESYNC_REPORTED_SPOTS_TO_TYPESENSE,
+      reported_spots_resynced: reportedSpots.size,
+      force_sync_value: forceSyncValue,
+    });
+
+    return event.data?.ref.delete();
+  },
+);
 
 const createdAtMillis = (value: unknown): number => {
   if (value instanceof admin.firestore.Timestamp) {

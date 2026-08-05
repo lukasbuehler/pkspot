@@ -717,62 +717,53 @@ export const onCommunityInfoNotificationWrite = onDocumentWritten(
   },
 );
 
-export const onNotificationIntentWrite = onDocumentWritten(
-  "notification_intents/{intentId}",
-  async (event) => {
-    const change = event.data;
-    if (!change) return;
+const syncNotificationFeedProjection = async (
+  intentId: string,
+  before: StoredIntent | null,
+  after: StoredIntent | null,
+): Promise<void> => {
+  const source = after ?? before;
+  if (!source?.recipient_uid) return;
 
-    const before = change.before.exists
-      ? (change.before.data() as StoredIntent)
-      : null;
-    const after = change.after.exists
-      ? (change.after.data() as StoredIntent)
-      : null;
-    const source = after ?? before;
-    if (!source?.recipient_uid) return;
+  if (before && after && sameFeedProjection(before, after)) return;
 
-    if (before && after && sameFeedProjection(before, after)) return;
-
-    const now = Timestamp.now();
-    const feedRef = admin
-      .firestore()
-      .doc(
-        `users/${source.recipient_uid}/notifications/${String(event.params.intentId)}`,
-      );
-    if (!after) {
-      await feedRef.set(
-        {
-          active: false,
-          invalidated_at_raw_ms: now.toMillis(),
-          updated_at_raw_ms: now.toMillis(),
-        },
-        { merge: true },
-      );
-      return;
-    }
-
-    const availableAt = adminTimestamp(after.send_after) ?? now;
-    const expiresAt =
-      adminTimestamp(after.expires_at) ??
-      Timestamp.fromMillis(now.toMillis() + 30 * DAY_MS);
-    const createdAt = adminTimestamp(after.created_at) ?? now;
-    const privateData = await admin.firestore()
-      .doc(`users/${source.recipient_uid}/private_data/main`)
-      .get();
-    const preferences = privateData.data()?.[
-      "notification_preferences"
-    ] as NotificationPreferencesSchema | undefined;
-    const active =
-      intentIsActive(after) && notificationPreferenceEnabled(preferences, after.type);
+  const now = Timestamp.now();
+  const feedRef = admin
+    .firestore()
+    .doc(`users/${source.recipient_uid}/notifications/${intentId}`);
+  if (!after) {
     await feedRef.set(
       {
+        active: false,
+        invalidated_at_raw_ms: now.toMillis(),
+        updated_at_raw_ms: now.toMillis(),
+      },
+      { merge: true },
+    );
+    return;
+  }
+
+  const availableAt = adminTimestamp(after.send_after) ?? now;
+  const expiresAt =
+    adminTimestamp(after.expires_at) ??
+    Timestamp.fromMillis(now.toMillis() + 30 * DAY_MS);
+  const createdAt = adminTimestamp(after.created_at) ?? now;
+  const privateData = await admin.firestore()
+    .doc(`users/${source.recipient_uid}/private_data/main`)
+    .get();
+  const preferences = privateData.data()?.[
+    "notification_preferences"
+  ] as NotificationPreferencesSchema | undefined;
+  const active = intentIsActive(after) &&
+    notificationPreferenceEnabled(preferences, after.type);
+  await feedRef.set(
+    {
         type: after.type,
         source_path: after.source_path,
-        dedupe_key: String(event.params.intentId),
+        dedupe_key: intentId,
         path: after.path,
         payload: after.payload,
-        thread_key: after.thread_key ?? String(event.params.intentId),
+        thread_key: after.thread_key ?? intentId,
         image_url: after.image_url || FieldValue.delete(),
         actions: after.actions ?? [],
         active,
@@ -786,9 +777,48 @@ export const onNotificationIntentWrite = onDocumentWritten(
         invalidated_at_raw_ms: active
           ? FieldValue.delete()
           : now.toMillis(),
-      },
-      { merge: true },
+    },
+    { merge: true },
+  );
+};
+
+export const onNotificationIntentWrite = onDocumentWritten(
+  "notification_intents/{intentId}",
+  async (event) => {
+    const change = event.data;
+    if (!change) return;
+
+    const before = change.before.exists
+      ? (change.before.data() as StoredIntent)
+      : null;
+    const after = change.after.exists
+      ? (change.after.data() as StoredIntent)
+      : null;
+    await syncNotificationFeedProjection(
+      String(event.params.intentId),
+      before,
+      after,
     );
+  },
+);
+
+/**
+ * Delivers newly-created intents that are already due without waiting for the
+ * scheduled dispatcher. The transactional claim in processIntent keeps this
+ * fast path safe when the recovery dispatcher observes the same intent.
+ */
+export const onImmediateNotificationIntentCreate = onDocumentCreated(
+  "notification_intents/{intentId}",
+  async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) return;
+
+    const intent = snapshot.data() as StoredIntent;
+    const sendAfter = adminTimestamp(intent.send_after);
+    if (!sendAfter || sendAfter.toMillis() > Date.now()) return;
+
+    await syncNotificationFeedProjection(snapshot.id, null, intent);
+    await processIntent(snapshot.ref);
   },
 );
 
@@ -2350,7 +2380,8 @@ function reportOutcomeForAction(value: unknown): ReportOutcome | null {
   return value === "keep_warning" ||
     value === "publish_spot_warning" ||
     value === "delete_media" ||
-    value === "delete_spot"
+    value === "delete_spot" ||
+    value === "resolve_duplicate_spot"
     ? "action_taken"
     : null;
 }

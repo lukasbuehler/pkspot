@@ -11,6 +11,7 @@
   [infoOnly]="false"
   [editable]="true"
   [isEditing]="isEditing()"
+  [isSaving]="isSaving()"
   [pendingVoteCount]="pendingVoteCount()"
   [mapQueryParams]="mapQueryParams()"
   [openProgress]="openProgress()"
@@ -21,4 +22,5 @@
   (focusClick)="focusClick.emit()"
   (saveClick)="saveClick.emit($event)"
   (reviewSubmitted)="reviewSubmitted.emit($event)"
+  (reportSubmitted)="reportSubmitted.emit($event)"
 ></app-spot-details>
