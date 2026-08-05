@@ -110,21 +110,28 @@ export const syncPublicUserProfileOnWrite = onDocumentWritten(
   "users/{userId}",
   async (event) => {
     const userId = event.params.userId;
-    const action = publicProfileSyncAction(
-      event.data?.before.exists ? event.data.before.data() ?? {} : null,
-      event.data?.after.exists ? event.data.after.data() ?? {} : null,
-    );
-    if (action.type === "none") return;
+    const userRef = db.doc(`users/${userId}`);
     const publicProfileRef = db.doc(
       `${PUBLIC_PROFILE_COLLECTION}/${userId}`
     );
 
-    if (action.type === "delete") {
-      await publicProfileRef.delete();
-      return;
-    }
+    await db.runTransaction(async (transaction) => {
+      const [user, persistedProfile] = await Promise.all([
+        transaction.get(userRef),
+        transaction.get(publicProfileRef),
+      ]);
+      const action = publicProfileSyncAction(
+        user.exists ? user.data() ?? {} : null,
+        persistedProfile.exists ? persistedProfile.data() ?? {} : null,
+      );
+      if (action.type === "none") return;
 
-    await publicProfileRef.set(action.profile);
+      if (action.type === "delete") {
+        transaction.delete(publicProfileRef);
+        return;
+      }
+      transaction.set(publicProfileRef, action.profile);
+    });
   }
 );
 

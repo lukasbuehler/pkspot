@@ -177,28 +177,32 @@ export const backfillPublicImportProvenanceOnCreate = onDocumentCreated(
           pendingWrites.push({ref: spot.ref, projection: imported.projection});
         }
 
-        if (!dryRun && pendingWrites.length > 0) {
-          const writer = db.bulkWriter();
-          for (const write of pendingWrites) {
-            writer.update(write.ref, {
-              public_import_provenance: write.projection,
-            });
-          }
-          await writer.close();
-          counts.written += pendingWrites.length;
-        }
-
         const last = page.docs.at(-1)!;
-        cursor = {
+        const nextCursor = {
           value: String(last.data()[phase]),
           document_id: last.id,
         };
-        await stateRef.set({
+        const checkpointCounts = {
+          ...counts,
+          written: counts.written + (dryRun ? 0 : pendingWrites.length),
+        };
+        const batch = db.batch();
+        if (!dryRun) {
+          for (const write of pendingWrites) {
+            batch.update(write.ref, {
+              public_import_provenance: write.projection,
+            });
+          }
+        }
+        batch.set(stateRef, {
           phase,
-          cursor,
-          counts,
+          cursor: nextCursor,
+          counts: checkpointCounts,
           updated_at: FieldValue.serverTimestamp(),
         }, {merge: true});
+        await batch.commit();
+        cursor = nextCursor;
+        Object.assign(counts, checkpointCounts);
         if (page.size < pageSize) {
           if (phase === "import_id") {
             phase = "source";

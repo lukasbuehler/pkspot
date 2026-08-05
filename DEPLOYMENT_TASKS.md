@@ -172,10 +172,10 @@ and watch extension traffic during the live run.
 - [ ] Reauthenticate Firebase, then deploy the compatible projection and
       write-containment Functions. Do not run the migration yet:
 
-      ```sh
-      firebase login --reauth
-      npx firebase deploy --project prod --only functions:getPublicImportProvenance,functions:processImportChunkOnCreate,functions:retryFailedImportChunksOnCreate,functions:rebuildCommunityPagesOnImportWrite,functions:updateSpotFieldsOnWrite,functions:patchCommunityPageOnWrite,functions:rebuildAllCommunityPages,functions:syncPublicUserProfileOnWrite,functions:backfillPublicImportProvenanceOnCreate
-      ```
+  ```sh
+  firebase login --reauth
+  npx firebase deploy --project prod --only functions:getPublicImportProvenance,functions:processImportChunkOnCreate,functions:retryFailedImportChunksOnCreate,functions:rebuildCommunityPagesOnImportWrite,functions:updateSpotFieldsOnWrite,functions:patchCommunityPageOnWrite,functions:rebuildAllCommunityPages,functions:syncPublicUserProfileOnWrite,functions:backfillPublicImportProvenanceOnCreate
+  ```
 
       Verify every deployed gen 2 Function is active in `europe-west1`, a new
       import writes either an object or explicit `null`, and the compatibility

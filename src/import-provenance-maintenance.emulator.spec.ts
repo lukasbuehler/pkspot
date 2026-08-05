@@ -14,7 +14,7 @@ const db = (): admin.firestore.Firestore => {
 };
 
 const waitForDone = async (
-  previousEventId?: string,
+  previousEventId: string | null,
 ): Promise<admin.firestore.DocumentData> => {
   const deadline = Date.now() + 20_000;
   const state = db().doc("maintenance/public-import-provenance-backfill");
@@ -23,7 +23,8 @@ const waitForDone = async (
     const data = snapshot.data();
     if (
       data?.["status"] === "DONE" &&
-      (!previousEventId || data["active_event_id"] !== previousEventId)
+      typeof data["active_event_id"] === "string" &&
+      data["active_event_id"] !== previousEventId
     ) return data;
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
@@ -88,8 +89,13 @@ runWithEmulator("public import provenance maintenance", () => {
     const trigger = store.doc(
       "maintenance/run-backfill-public-import-provenance",
     );
+    const previousEventId = (await store.doc(
+      "maintenance/public-import-provenance-backfill",
+    ).get()).data()?.["active_event_id"];
     await trigger.set({dry_run: true, page_size: 2});
-    const dryRun = await waitForDone();
+    const dryRun = await waitForDone(
+      typeof previousEventId === "string" ? previousEventId : null,
+    );
     expect(dryRun["dry_run"]).toBe(true);
     expect(dryRun["counts"]).toMatchObject({changed: 2, written: 0});
     expect((await attributedSpot.get()).data()).not.toHaveProperty(

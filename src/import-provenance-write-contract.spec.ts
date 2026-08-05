@@ -14,7 +14,10 @@ describe("public import provenance write contracts", () => {
     expect(imports).toContain("public_import_provenance: publicImportProvenance");
     expect(communities).toContain("publicImportProvenanceEqual(previous, next)");
     expect(communities).toContain('for (const field of ["import_id", "source"] as const)');
-    expect(communities).toContain("public_import_provenance: next");
+    expect(communities).toContain("transaction.get(importRef)");
+    expect(communities).toContain(
+      "public_import_provenance: currentProjection",
+    );
   });
 
   it("protects the server projection and skips redundant derived writes", () => {

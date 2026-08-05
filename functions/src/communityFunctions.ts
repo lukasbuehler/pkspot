@@ -58,6 +58,7 @@ import {
 
 const COMMUNITY_PAGES_COLLECTION = "community_pages";
 const COMMUNITY_SLUGS_COLLECTION = "community_slugs";
+const IMPORT_PROVENANCE_TRANSACTION_SIZE = 200;
 const COMMUNITY_MERGES_COLLECTION = "community_merges";
 const MAINTENANCE_COLLECTION = "maintenance";
 const SPOTS_COLLECTION = "spots";
@@ -1622,21 +1623,49 @@ export const syncPublicImportProvenanceForImport = async (
     for (const spot of snapshot.docs) linkedSpots.set(spot.id, spot);
   }
 
-  const writer = db.bulkWriter();
   let updated = 0;
-  for (const spot of linkedSpots.values()) {
-    if (
-      publicImportProvenanceEqual(
-        spot.data()["public_import_provenance"],
-        next,
-      )
-    ) {
-      continue;
-    }
-    writer.update(spot.ref, {public_import_provenance: next});
-    updated += 1;
+  const linkedSpotRefs = [...linkedSpots.values()].map((spot) => spot.ref);
+  for (
+    let offset = 0;
+    offset < linkedSpotRefs.length;
+    offset += IMPORT_PROVENANCE_TRANSACTION_SIZE
+  ) {
+    const spotRefs = linkedSpotRefs.slice(
+      offset,
+      offset + IMPORT_PROVENANCE_TRANSACTION_SIZE,
+    );
+    updated += await db.runTransaction(async (transaction) => {
+      const importRef = db.collection("imports").doc(importId);
+      const importSnapshot = await transaction.get(importRef);
+      const spotSnapshots = await Promise.all(
+        spotRefs.map((spotRef) => transaction.get(spotRef)),
+      );
+      const currentProjection = buildPublicImportProvenance(
+        importSnapshot.data(),
+      );
+      let transactionUpdates = 0;
+
+      for (const spot of spotSnapshots) {
+        const spotData = spot.data();
+        if (
+          !spot.exists ||
+          (spotData?.["import_id"] !== importId &&
+            spotData?.["source"] !== importId) ||
+          publicImportProvenanceEqual(
+            spotData?.["public_import_provenance"],
+            currentProjection,
+          )
+        ) {
+          continue;
+        }
+        transaction.update(spot.ref, {
+          public_import_provenance: currentProjection,
+        });
+        transactionUpdates += 1;
+      }
+      return transactionUpdates;
+    });
   }
-  await writer.close();
   return updated;
 };
 

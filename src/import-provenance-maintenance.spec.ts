@@ -14,6 +14,8 @@ describe("public import provenance maintenance", () => {
     expect(source).toContain('phase: BackfillPhase =');
     expect(source).toContain('.limit(pageSize)');
     expect(source).toContain('public_import_provenance: write.projection');
+    expect(source).toContain("batch.set(stateRef");
+    expect(source).toContain("await batch.commit()");
     expect(source.lastIndexOf('status: "DONE"')).toBeLessThan(
       source.lastIndexOf("await trigger.ref.delete()"),
     );
