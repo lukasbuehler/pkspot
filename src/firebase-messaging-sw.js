@@ -19,17 +19,43 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   const data = payload.data || {};
   const actions = parseActions(data.action_labels);
-  return self.registration.showNotification(data.title || "PK Spot", {
-    body: data.body || "",
-    icon: "/assets/icons/icon-192.webp",
-    badge: "/assets/icons/icon-96.webp",
-    tag: data.thread_key || data.intent_id,
-    renotify: true,
-    data,
-    ...(data.image_url ? { image: data.image_url } : {}),
-    ...(actions.length ? { actions } : {}),
-  });
+  const diagnostics = notificationDiagnostics(data);
+  console.info("[WebPush SW] background FCM message received", diagnostics);
+  return self.registration
+    .showNotification(data.title || "PK Spot", {
+      body: data.body || "",
+      icon: "/assets/icons/icon-192.webp",
+      badge: "/assets/icons/icon-96.webp",
+      tag: data.thread_key || data.intent_id,
+      renotify: true,
+      data,
+      ...(data.image_url ? { image: data.image_url } : {}),
+      ...(actions.length ? { actions } : {}),
+    })
+    .then(() => {
+      console.info("[WebPush SW] browser accepted system notification request", {
+        ...diagnostics,
+        displayConfirmationAvailable: false,
+      });
+    })
+    .catch((error) => {
+      console.error("[WebPush SW] system notification request failed", {
+        ...diagnostics,
+        error,
+      });
+      throw error;
+    });
 });
+
+function notificationDiagnostics(data) {
+  return {
+    intentId: data.intent_id || null,
+    type: data.type || null,
+    threadKey: data.thread_key || null,
+    hasTitle: Boolean(data.title),
+    hasBody: Boolean(data.body),
+  };
+}
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();

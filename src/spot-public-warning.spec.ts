@@ -67,8 +67,8 @@ describe("public Spot warnings", () => {
     expect(createUpdate).toContain("public_notice:");
     expect(createUpdate).not.toContain("reportData.reason");
     expect(createUpdate).not.toContain("reportData.user");
-    expect(clearUpdate).toContain("is_reported: admin.firestore.FieldValue.delete()");
-    expect(clearUpdate).toContain("report_reason: admin.firestore.FieldValue.delete()");
-    expect(clearUpdate).toContain("public_notice: admin.firestore.FieldValue.delete()");
+    expect(clearUpdate).toContain("is_reported: FieldValue.delete()");
+    expect(clearUpdate).toContain("report_reason: FieldValue.delete()");
+    expect(clearUpdate).toContain("public_notice: FieldValue.delete()");
   });
 });

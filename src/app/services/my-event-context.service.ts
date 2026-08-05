@@ -50,7 +50,10 @@ export class MyEventContextService {
         subscriptions.map((subscription) => subscription.eventId),
       ),
       catchError((error) => {
-        console.warn("Could not load legacy event subscriptions", error);
+        console.warn(
+          "[MyEvents] Legacy event subscription compatibility query failed; current push registration and delivery are unaffected.",
+          error,
+        );
         return of([]);
       }),
     ),

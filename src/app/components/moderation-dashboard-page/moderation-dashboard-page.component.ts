@@ -6,6 +6,7 @@ import {
   OnDestroy,
   signal,
 } from "@angular/core";
+import {DecimalPipe} from "@angular/common";
 import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import { RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
@@ -21,6 +22,7 @@ import { Subscription } from "rxjs";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import {
   ModerationContactMessageItem,
+  ModerationDuplicateGroup,
   ModerationReportItem,
   ModerationReportsService,
 } from "../../services/firebase/firestore/moderation-reports.service";
@@ -46,6 +48,7 @@ import { AgeAssuranceAdminService } from "../../services/age-assurance-admin.ser
   selector: "app-moderation-dashboard-page",
   imports: [
     SystemDatePipe,
+    DecimalPipe,
     RouterLink,
     MatButtonModule,
     MatCardModule,
@@ -83,6 +86,8 @@ export class ModerationDashboardPageComponent implements OnDestroy {
   readonly spotEditVotes = signal<ModerationSpotEditQueueItem[]>([]);
   readonly organizationSpotEdits = signal<ModerationSpotEditQueueItem[]>([]);
   readonly spotCreationDiagnostics = signal<SpotCreationDiagnosticsResponse | null>(null);
+  readonly duplicateSpotGroups = signal<ModerationDuplicateGroup[]>([]);
+  readonly showAllDuplicateGroups = signal(false);
   private readonly _authSubscription: Subscription;
 
   readonly openReportCount = computed(
@@ -117,6 +122,17 @@ export class ModerationDashboardPageComponent implements OnDestroy {
       this.communityCardSuggestions().length +
       this.spotEditVotes().length +
       this.organizationSpotEdits().length,
+  );
+  readonly needsReviewCount = computed(
+    () =>
+      this.openReportCount() +
+      this.pendingCommunityQueueCount() +
+      this.duplicateSpotGroups().length,
+  );
+  readonly visibleDuplicateSpotGroups = computed(() =>
+    this.showAllDuplicateGroups()
+      ? this.duplicateSpotGroups()
+      : this.duplicateSpotGroups().slice(0, 8),
   );
   readonly openDuplicateReportCount = computed(
     () =>
@@ -165,12 +181,14 @@ export class ModerationDashboardPageComponent implements OnDestroy {
         communityCardSuggestions,
         spotEditQueues,
         spotCreationDiagnostics,
+        duplicateSpotGroups,
       ] = await Promise.all([
         this._reportsService.getReports(),
         this._reportsService.getContactMessages(),
         this._communityEditsService.getPendingKnowledgeEdits(),
         this._spotEditsService.getPendingModerationSpotEditQueues(),
-        this._reportsService.getSpotCreationDiagnostics(),
+        this._reportsService.getSpotCreationDiagnostics().catch(() => null),
+        this._reportsService.getDuplicateSpotGroups(),
       ]);
       this.reports.set(reports);
       this.contactMessages.set(contactMessages);
@@ -178,6 +196,7 @@ export class ModerationDashboardPageComponent implements OnDestroy {
       this.spotEditVotes.set(spotEditQueues.voting);
       this.organizationSpotEdits.set(spotEditQueues.organizationReview);
       this.spotCreationDiagnostics.set(spotCreationDiagnostics);
+      this.duplicateSpotGroups.set(duplicateSpotGroups);
     } catch (error) {
       console.error("Failed to load moderation dashboard", error);
       this._snackbar.open($localize`Failed to load moderation dashboard`, undefined, {

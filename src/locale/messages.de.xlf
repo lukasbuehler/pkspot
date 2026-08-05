@@ -678,6 +678,12 @@
         <target>Über PK Spot</target>
       </segment>
     </unit>
+    <unit id="5284316660094190115">
+      <segment state="initial">
+        <source>Possible duplicate Spots</source>
+        <target>Mögliche doppelte Spots</target>
+      </segment>
+    </unit>
     <unit id="528729202947764595">
       <segment state="initial">
         <source> Live updates could not be loaded. </source>
@@ -914,6 +920,12 @@
       <segment state="initial">
         <source>Training log</source>
         <target>Training log</target>
+      </segment>
+    </unit>
+    <unit id="2598664947419243072">
+      <segment state="initial">
+        <source>Show fewer groups</source>
+        <target>Weniger Gruppen anzeigen</target>
       </segment>
     </unit>
     <unit id="2599075381042572471">
@@ -3091,6 +3103,12 @@
         <target>Besuchte Spots</target>
       </segment>
     </unit>
+    <unit id="151177198274180574">
+      <segment state="initial">
+        <source>Items needing review</source>
+        <target>Zu prüfende Einträge</target>
+      </segment>
+    </unit>
     <unit id="1512782188681945283">
       <segment state="initial">
         <source>Initializing map...</source>
@@ -3431,6 +3449,12 @@
       <segment state="initial">
         <source>Delete the redundant Spot after the server repeats every safety check? This action is permanent and recorded in moderation provenance.</source>
         <target>Den redundanten Spot löschen, nachdem der Server alle Sicherheitsprüfungen wiederholt hat? Diese Aktion ist dauerhaft und wird im Moderationsnachweis erfasst.</target>
+      </segment>
+    </unit>
+    <unit id="4444363789574465431">
+      <segment state="initial">
+        <source>Possible duplicate groups</source>
+        <target>Mögliche Duplikatgruppen</target>
       </segment>
     </unit>
     <unit id="events.calendar_local_time_note">
@@ -9623,12 +9647,6 @@
         <target>Nur Erinnerungen</target>
       </segment>
     </unit>
-    <unit id="4234811560247297731">
-      <segment state="initial">
-        <source>Media reports</source>
-        <target>Medienmeldungen</target>
-      </segment>
-    </unit>
     <unit id="aboutHeroSubtitle">
       <segment state="initial">
         <source> Find spots, join local communities, discover events and jams, and check in where parkour is happening around you. </source>
@@ -9948,12 +9966,6 @@
       <segment state="initial">
         <source> Record account, session, provenance, and available network context </source>
         <target> Konto-, Sitzungs-, Herkunfts- und verfügbare Netzwerkdaten festhalten </target>
-      </segment>
-    </unit>
-    <unit id="2820594571760643464">
-      <segment state="initial">
-        <source>Spot reports</source>
-        <target>Spot-Meldungen</target>
       </segment>
     </unit>
     <unit id="2826581353496868063">
@@ -11745,6 +11757,12 @@
         <target> Löschung geplant </target>
       </segment>
     </unit>
+    <unit id="3381045294076321290">
+      <segment state="initial">
+        <source>Diagnostics and maintenance</source>
+        <target>Diagnose und Wartung</target>
+      </segment>
+    </unit>
     <unit id="2902020729496987690">
       <segment state="initial">
         <source>Delete this contact message from the active inbox? The message will still be recorded in moderation provenance.</source>
@@ -12343,6 +12361,12 @@
         <target>Spot-Warnung veröffentlichen</target>
       </segment>
     </unit>
+    <unit id="7535313248110441577">
+      <segment state="initial">
+        <source>No possible duplicates found.</source>
+        <target>Keine möglichen Duplikate gefunden.</target>
+      </segment>
+    </unit>
     <unit id="7536618650694716867">
       <segment state="initial">
         <source> Find answers to common questions or reach out to us directly. </source>
@@ -12825,6 +12849,12 @@
       <segment state="initial">
         <source>A core challenge of this spot. An essential challenge for anyone seeking to master this spot.</source>
         <target>Eine Kern-Challenge dieses Spots. Eine essenzielle Herausforderung für alle, die diesen Spot meistern wollen.</target>
+      </segment>
+    </unit>
+    <unit id="2372675819412259320">
+      <segment state="initial">
+        <source>nearby Spots</source>
+        <target>nahegelegene Spots</target>
       </segment>
     </unit>
     <unit id="2384854885353072939">
@@ -14097,6 +14127,12 @@
         <target> Check-in </target>
       </segment>
     </unit>
+    <unit id="1700228850889551436">
+      <segment state="initial">
+        <source> Spots within five metres are grouped once. Open each Spot to compare it before resolving anything. </source>
+        <target> Spots im Umkreis von fünf Metern werden einmal gruppiert. Öffne jeden Spot zum Vergleichen, bevor du etwas zusammenführst. </target>
+      </segment>
+    </unit>
     <unit id="1713067112201230619">
       <segment state="initial">
         <source>Enter a rejection reason.</source>
@@ -14353,6 +14389,12 @@
         <target>@pkspot.app</target>
       </segment>
     </unit>
+    <unit id="389710465517051982">
+      <segment state="initial">
+        <source>Show all groups</source>
+        <target>Alle Gruppen anzeigen</target>
+      </segment>
+    </unit>
     <unit id="7772746290400709115">
       <segment state="initial">
         <source>Search Google Places near this spot</source>
@@ -14437,12 +14479,6 @@
         <target>Prüfgrund</target>
       </segment>
     </unit>
-    <unit id="1816655675231412974">
-      <segment state="initial">
-        <source>Profile reports</source>
-        <target>Profilmeldungen</target>
-      </segment>
-    </unit>
     <unit id="1820086832367799914">
       <segment state="initial">
         <source>Rejected by organization</source>
@@ -14477,6 +14513,12 @@
       <segment state="initial">
         <source> No events scheduled yet. </source>
         <target> Noch keine Veranstaltungen geplant. </target>
+      </segment>
+    </unit>
+    <unit id="1843089741973263035">
+      <segment state="initial">
+        <source>groups</source>
+        <target>Gruppen</target>
       </segment>
     </unit>
     <unit id="1848626050946308520">

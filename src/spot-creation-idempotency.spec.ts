@@ -34,7 +34,7 @@ describe("Spot creation idempotency UI contracts", () => {
     expect(model).toContain("new LocalSpot(dataCopy, this.locale, this.creationSubmissionId)");
   });
 
-  it("shows conservative side-by-side resolution and prevention diagnostics", () => {
+  it("shows conservative resolution and a focused duplicate review queue", () => {
     const dialog = read(
       "src/app/components/spot-duplicate-resolution-dialog/spot-duplicate-resolution-dialog.component.html",
     );
@@ -46,10 +46,9 @@ describe("Spot creation idempotency UI contracts", () => {
     expect(dialog).toContain("candidate.uniqueFields");
     expect(dialog).toContain("preview.blockers.length > 0");
     expect(dialog).toContain('[disabled]="!canResolve()"');
-    expect(dashboard).toContain("diagnostics.last24Hours.actualCreates");
-    expect(dashboard).toContain("diagnostics.last7Days.callableCreates");
-    expect(dashboard).toContain("openDuplicateReportCount()");
-    expect(dashboard).toContain("diagnostics.recentPreventedCases");
-    expect(dashboard).toContain("['/map/spots', item.spotId]");
+    expect(dashboard).toContain("visibleDuplicateSpotGroups()");
+    expect(dashboard).toContain("group.closestDistanceMeters");
+    expect(dashboard).toContain("['/map/spots', spot.id]");
+    expect(dashboard).toContain("Diagnostics and maintenance");
   });
 });

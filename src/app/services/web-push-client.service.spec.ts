@@ -95,11 +95,20 @@ describe("WebPushClientService", () => {
   it("uses Firebase Messaging for foreground delivery and sign-out cleanup", async () => {
     const service = TestBed.inject(WebPushClientService);
     const listener = vi.fn();
+    const message = {
+      data: { intent_id: "intent-1", type: "follow_request" },
+    };
 
     await service.onMessage(listener);
+    const firebaseListener = vi.mocked(onMessage).mock.calls[0][1];
+    firebaseListener(message);
     await service.deleteToken();
 
-    expect(onMessage).toHaveBeenCalledWith({ name: "messaging" }, listener);
+    expect(onMessage).toHaveBeenCalledWith(
+      { name: "messaging" },
+      expect.any(Function),
+    );
+    expect(listener).toHaveBeenCalledWith(message);
     expect(deleteToken).toHaveBeenCalledWith({ name: "messaging" });
   });
 

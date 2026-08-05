@@ -39,43 +39,91 @@
     </div>
   } @else {
     <div class="moderation-dashboard__stats">
+      <mat-card class="stat-card stat-card--attention">
+        <mat-card-content>
+          <span class="stat-card__value">{{ needsReviewCount() }}</span>
+          <span class="stat-card__label" i18n>Items needing review</span>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <span class="stat-card__value">{{ duplicateSpotGroups().length }}</span>
+          <span class="stat-card__label" i18n>Possible duplicate groups</span>
+        </mat-card-content>
+      </mat-card>
       <mat-card class="stat-card">
         <mat-card-content>
           <span class="stat-card__value">{{ openReportCount() }}</span>
           <span class="stat-card__label" i18n>Open reports</span>
         </mat-card-content>
       </mat-card>
-      <mat-card class="stat-card">
-        <mat-card-content>
-          <span class="stat-card__value">{{ spotReportCount() }}</span>
-          <span class="stat-card__label" i18n>Spot reports</span>
-        </mat-card-content>
-      </mat-card>
-      <mat-card class="stat-card">
-        <mat-card-content>
-          <span class="stat-card__value">{{ mediaReportCount() }}</span>
-          <span class="stat-card__label" i18n>Media reports</span>
-        </mat-card-content>
-      </mat-card>
-      <mat-card class="stat-card">
-        <mat-card-content>
-          <span class="stat-card__value">{{ profileReportCount() }}</span>
-          <span class="stat-card__label" i18n>Profile reports</span>
-        </mat-card-content>
-      </mat-card>
-      <mat-card class="stat-card">
-        <mat-card-content>
-          <span class="stat-card__value">{{ contactMessages().length }}</span>
-          <span class="stat-card__label" i18n>Contact messages</span>
-        </mat-card-content>
-      </mat-card>
-      <mat-card class="stat-card">
-        <mat-card-content>
-          <span class="stat-card__value">{{ pendingCommunityQueueCount() }}</span>
-          <span class="stat-card__label" i18n>Review queues</span>
-        </mat-card-content>
-      </mat-card>
     </div>
+
+    <section class="moderation-dashboard__panel duplicate-review">
+      <div class="moderation-dashboard__panel-header">
+        <div>
+          <h2 class="mat-title-large" i18n>Possible duplicate Spots</h2>
+          <p class="mat-body-medium text-secondary" i18n>
+            Spots within five metres are grouped once. Open each Spot to compare
+            it before resolving anything.
+          </p>
+        </div>
+        <span class="duplicate-review__count">
+          {{ duplicateSpotGroups().length }}
+          <span i18n>groups</span>
+        </span>
+      </div>
+
+      @if (duplicateSpotGroups().length === 0) {
+        <p class="mat-body-medium" i18n>No possible duplicates found.</p>
+      } @else {
+        <div class="duplicate-review__grid">
+          @for (group of visibleDuplicateSpotGroups(); track group.id) {
+            <article class="duplicate-group">
+              <div class="duplicate-group__header">
+                <strong>
+                  {{ group.spots.length }}
+                  <span i18n>nearby Spots</span>
+                </strong>
+                <span>
+                  {{ group.closestDistanceMeters | number: "1.0-1" }} m
+                </span>
+              </div>
+              <div class="duplicate-group__spots">
+                @for (spot of group.spots; track spot.id) {
+                  <a [routerLink]="['/map/spots', spot.id]">
+                    <span>{{ spot.label }}</span>
+                    <mat-icon>open_in_new</mat-icon>
+                  </a>
+                }
+              </div>
+            </article>
+          }
+        </div>
+        @if (duplicateSpotGroups().length > 8) {
+          <button
+            matButton="outlined"
+            class="duplicate-review__toggle"
+            type="button"
+            (click)="showAllDuplicateGroups.set(!showAllDuplicateGroups())"
+          >
+            <mat-icon>{{ showAllDuplicateGroups() ? "expand_less" : "expand_more" }}</mat-icon>
+            @if (showAllDuplicateGroups()) {
+              <span i18n>Show fewer groups</span>
+            } @else {
+              <span i18n>Show all groups</span>
+            }
+          </button>
+        }
+      }
+    </section>
+
+    <details class="moderation-dashboard__tools">
+      <summary>
+        <mat-icon>settings</mat-icon>
+        <span i18n>Diagnostics and maintenance</span>
+      </summary>
+      <div class="moderation-dashboard__tools-content">
 
     @if (spotCreationDiagnostics(); as diagnostics) {
       <section class="moderation-dashboard__panel creation-diagnostics">
@@ -214,6 +262,8 @@
         }
       </div>
     </section>
+      </div>
+    </details>
 
     <section class="moderation-dashboard__panel">
       <div class="moderation-dashboard__panel-header">

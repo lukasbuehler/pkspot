@@ -342,6 +342,11 @@
         <source>Training log</source>
       </segment>
     </unit>
+    <unit id="2598664947419243072">
+      <segment>
+        <source>Show fewer groups</source>
+      </segment>
+    </unit>
     <unit id="2599075381042572471">
       <segment>
         <source>No organization approvals waiting.</source>
@@ -1127,11 +1132,6 @@
         <source>Scan reason</source>
       </segment>
     </unit>
-    <unit id="1816655675231412974">
-      <segment>
-        <source>Profile reports</source>
-      </segment>
-    </unit>
     <unit id="1820086832367799914">
       <segment>
         <source>Rejected by organization</source>
@@ -1160,6 +1160,11 @@
     <unit id="1838132327858290953">
       <segment>
         <source> No events scheduled yet. </source>
+      </segment>
+    </unit>
+    <unit id="1843089741973263035">
+      <segment>
+        <source>groups</source>
       </segment>
     </unit>
     <unit id="1848626050946308520">
@@ -1820,6 +1825,11 @@
         <source> Check In </source>
       </segment>
     </unit>
+    <unit id="1700228850889551436">
+      <segment>
+        <source> Spots within five metres are grouped once. Open each Spot to compare it before resolving anything. </source>
+      </segment>
+    </unit>
     <unit id="1713067112201230619">
       <segment>
         <source>Enter a rejection reason.</source>
@@ -2477,11 +2487,6 @@
     <unit id="5840654029885029666">
       <segment>
         <source>Loading updates…</source>
-      </segment>
-    </unit>
-    <unit id="2820594571760643464">
-      <segment>
-        <source>Spot reports</source>
       </segment>
     </unit>
     <unit id="2826581353496868063">
@@ -6390,6 +6395,11 @@
         <source>Searching events...</source>
       </segment>
     </unit>
+    <unit id="151177198274180574">
+      <segment>
+        <source>Items needing review</source>
+      </segment>
+    </unit>
     <unit id="1512782188681945283">
       <segment>
         <source>Initializing map...</source>
@@ -7219,6 +7229,11 @@
     <unit id="3374611751897348808">
       <segment>
         <source> Deletion scheduled </source>
+      </segment>
+    </unit>
+    <unit id="3381045294076321290">
+      <segment>
+        <source>Diagnostics and maintenance</source>
       </segment>
     </unit>
     <unit id="2902020729496987690">
@@ -8397,11 +8412,6 @@
     <unit id="4228840569239247673">
       <segment>
         <source>Only Reminders</source>
-      </segment>
-    </unit>
-    <unit id="4234811560247297731">
-      <segment>
-        <source>Media reports</source>
       </segment>
     </unit>
     <unit id="aboutHeroSubtitle">
@@ -11034,6 +11044,11 @@
         <source>Delete the redundant Spot after the server repeats every safety check? This action is permanent and recorded in moderation provenance.</source>
       </segment>
     </unit>
+    <unit id="4444363789574465431">
+      <segment>
+        <source>Possible duplicate groups</source>
+      </segment>
+    </unit>
     <unit id="6861514919146809253">
       <segment>
         <source> No organization verifies this public spot yet. </source>
@@ -11118,6 +11133,11 @@
       </notes>
       <segment>
         <source>Update Review</source>
+      </segment>
+    </unit>
+    <unit id="7535313248110441577">
+      <segment>
+        <source>No possible duplicates found.</source>
       </segment>
     </unit>
     <unit id="7536618650694716867">
@@ -11220,6 +11240,11 @@
         <source>@pkspot.app</source>
       </segment>
     </unit>
+    <unit id="389710465517051982">
+      <segment>
+        <source>Show all groups</source>
+      </segment>
+    </unit>
     <unit id="event_page.loading">
       <segment>
         <source>Loading event</source>
@@ -11268,6 +11293,11 @@
     <unit id="5526007558904938886">
       <segment>
         <source>About PK Spot</source>
+      </segment>
+    </unit>
+    <unit id="5284316660094190115">
+      <segment>
+        <source>Possible duplicate Spots</source>
       </segment>
     </unit>
     <unit id="528729202947764595">
@@ -12775,6 +12805,11 @@
     <unit id="2369409944839137310">
       <segment>
         <source>A core challenge of this spot. An essential challenge for anyone seeking to master this spot.</source>
+      </segment>
+    </unit>
+    <unit id="2372675819412259320">
+      <segment>
+        <source>nearby Spots</source>
       </segment>
     </unit>
     <unit id="2384854885353072939">
