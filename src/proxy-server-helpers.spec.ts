@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   applySsrDocumentCacheHeaders,
   applyTrustedClientRegionHeader,
@@ -13,9 +13,14 @@ import {
   LONG_LIVED_ASSET_CACHE_CONTROL,
   MISSING_ASSET_CACHE_CONTROL,
   normalizeClientRegionHeader,
+  proxyPublicCallableRequest,
   REVALIDATING_ASSET_CACHE_CONTROL,
   sendMissingAssetResponse,
 } from "./proxy-server-helpers.mjs";
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe("proxy-server client region helpers", () => {
   it("should normalize a trusted client region header", () => {
@@ -135,7 +140,7 @@ describe("proxy-server client region helpers", () => {
       status: vi.fn(() => res),
     };
 
-    await handlePublicCallableRequest(
+    await proxyPublicCallableRequest(
       {
         body: { data: { importId: "pkspot-import" } },
         params: { functionName: "getPublicImportProvenance" },
@@ -163,7 +168,7 @@ describe("proxy-server client region helpers", () => {
       status: vi.fn(() => res),
     };
 
-    await handlePublicCallableRequest(
+    await proxyPublicCallableRequest(
       {
         body: { data: {} },
         params: { functionName: "adminFunction" },
@@ -174,6 +179,38 @@ describe("proxy-server client region helpers", () => {
 
     expect(fetchImpl).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(404);
+  });
+
+  it("should not treat Express next as the fetch implementation", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      headers: { get: vi.fn().mockReturnValue("application/json") },
+      status: 200,
+      text: vi.fn().mockResolvedValue('{"result":{"source_name":"Source"}}'),
+    });
+    vi.stubGlobal("fetch", fetchImpl);
+
+    const res = {
+      send: vi.fn(),
+      setHeader: vi.fn(),
+      status: vi.fn(() => res),
+    };
+    const next = vi.fn();
+
+    await handlePublicCallableRequest(
+      {
+        body: { data: { importId: "pkspot-import" } },
+        params: { functionName: "getPublicImportProvenance" },
+      },
+      res,
+      next,
+    );
+
+    expect(next).not.toHaveBeenCalled();
+    expect(fetchImpl).toHaveBeenCalledOnce();
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.send).toHaveBeenCalledWith(
+      '{"result":{"source_name":"Source"}}',
+    );
   });
 
   it("should cache fingerprinted browser assets for a long time", () => {
