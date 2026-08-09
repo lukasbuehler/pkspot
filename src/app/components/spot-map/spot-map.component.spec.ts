@@ -61,4 +61,15 @@ describe("SpotMapComponent lifecycle", () => {
       /spot instanceof LocalSpot && !\(spot instanceof Spot\)/g,
     )).toHaveLength(2);
   });
+
+  it("chooses the save snackbar from the processed edit disposition", () => {
+    const source = readFileSync(
+      resolve("src/app/components/spot-map/spot-map.component.ts"),
+      "utf8",
+    );
+
+    expect(source).toContain("waitForProcessingDisposition(spotId, editId)");
+    expect(source).toContain("spotEditAwaitsOrganizationReview(disposition)");
+    expect(source).not.toContain("const requiresOrganizationReview =");
+  });
 });

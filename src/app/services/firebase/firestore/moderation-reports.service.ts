@@ -113,6 +113,7 @@ const spotLabel = (spot: DuplicateSpotDocument): string => {
 export const groupDuplicateSpotCandidates = (
   documents: DuplicateSpotDocument[],
 ): ModerationDuplicateGroup[] => {
+  const liveSpotIds = new Set(documents.map((document) => document.id));
   const spots = new Map<string, ModerationDuplicateSpot>();
   const neighbors = new Map<string, Set<string>>();
   const distances = new Map<string, number>();
@@ -126,6 +127,10 @@ export const groupDuplicateSpotCandidates = (
   for (const document of documents) {
     spots.set(document.id, {id: document.id, label: spotLabel(document)});
     for (const candidate of document.duplicate_check?.candidates ?? []) {
+      // Candidate arrays are scan snapshots. A referenced Spot may since have
+      // been deleted or cleared by a newer scan, so only connect documents that
+      // are still in the authoritative live query result.
+      if (!liveSpotIds.has(candidate.spot_id)) continue;
       const current = spots.get(candidate.spot_id);
       spots.set(candidate.spot_id, {
         id: candidate.spot_id,

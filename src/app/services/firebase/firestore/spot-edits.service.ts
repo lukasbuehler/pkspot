@@ -65,6 +65,15 @@ export function spotEditAwaitsReviewOutcome(edit: SpotEditSchema): boolean {
   );
 }
 
+export function spotEditAwaitsOrganizationReview(
+  edit: SpotEditSchema,
+): boolean {
+  return (
+    edit.review_status === "pending" &&
+    (edit.review_kind === "managed" || edit.review_kind === "stewarded")
+  );
+}
+
 function spotEditHasProcessingDisposition(edit: SpotEditSchema): boolean {
   return Boolean(
     edit.processed_at ||
@@ -159,13 +168,21 @@ export class SpotEditsService extends ConsentAwareService {
     spotId: string,
     editId: string,
   ): Promise<boolean> {
+    return this.waitForProcessingDisposition(spotId, editId).then(
+      (edit) => edit ? spotEditAwaitsReviewOutcome(edit) : false,
+    );
+  }
+
+  waitForProcessingDisposition(
+    spotId: string,
+    editId: string,
+  ): Promise<SpotEditSchema | null> {
     return firstValueFrom(
       this.getSpotEditById$(spotId, editId).pipe(
         filter(spotEditHasProcessingDisposition),
-        map(spotEditAwaitsReviewOutcome),
         take(1),
         timeout({ first: 10_000 }),
-        catchError(() => of(false)),
+        catchError(() => of(null)),
       ),
     );
   }

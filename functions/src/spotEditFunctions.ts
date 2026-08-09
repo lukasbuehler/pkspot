@@ -192,8 +192,15 @@ export const applySpotEditOnCreate = onDocumentCreated(
           ? stewardOrganizationIds
           : [];
         const reviewOrganizationId = reviewOrganizationIds[0];
+        const submitterCanReview =
+          typeof submitterUid === "string" &&
+          !submitterIsAdmin &&
+          (await firstReviewableOrganizationId(
+            submitterUid,
+            reviewOrganizationIds
+          )) !== null;
 
-        if (reviewOrganizationId && !submitterIsAdmin) {
+        if (reviewOrganizationId && !submitterIsAdmin && !submitterCanReview) {
           const isManagedSpot = typeof managementOrganizationId === "string";
           await editSnapshot.ref.update({
             approved: false,

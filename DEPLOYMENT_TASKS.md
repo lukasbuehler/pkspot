@@ -103,7 +103,7 @@ production duplicate.
       report-warning, safety-case, and immediate-notification Function updates:
 
   ```sh
-  npx firebase deploy --project prod --only functions:getSpotCreationDiagnostics,functions:resolveSpotDuplicate,functions:detectDuplicateSpots,functions:onSpotReportCreate,functions:onModerationActionNotificationCreate,functions:onModerationActionSafetyCaseCreate,functions:onImmediateNotificationIntentCreate,functions:onNotificationIntentWrite
+  npx firebase deploy --project prod --only functions:getSpotCreationDiagnostics,functions:resolveSpotDuplicate,functions:detectDuplicateSpots,functions:applySpotEditOnCreate,functions:onSpotReportCreate,functions:onModerationActionNotificationCreate,functions:onModerationActionSafetyCaseCreate,functions:onImmediateNotificationIntentCreate,functions:onNotificationIntentWrite
   ```
 
       Verify every listed Function reports location `europe-west1` in the
@@ -111,6 +111,9 @@ production duplicate.
       the deployment succeeds, duplicate-resolution
       replays create one moderation action, and an immediately due actionable
       notification has its in-app feed projection before delivery is claimed.
+      Also verify an owner, admin, or reviewer of a Spot's reviewing organization
+      receives `APPROVED_IMMEDIATE`, while an ordinary member or outsider still
+      receives the pending organization-review disposition.
 
 - [ ] Invoke `createSpotSubmission` twice with one non-production draft token
       and verify both responses point to one Spot/edit while the second reports

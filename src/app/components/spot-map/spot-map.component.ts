@@ -95,7 +95,11 @@ import {
 import { SpotAccess, SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 import { AnalyticsService } from "../../services/analytics.service";
 import { NotificationOptInService } from "../../services/notification-opt-in.service";
-import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
+import {
+  spotEditAwaitsOrganizationReview,
+  spotEditAwaitsReviewOutcome,
+  SpotEditsService,
+} from "../../services/firebase/firestore/spot-edits.service";
 
 interface CommunityAreaOverlay {
   center: { lat: number; lng: number };
@@ -1383,23 +1387,22 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         // Successfully updated - completely stop editing to destroy polygon
         this.isEditing.set(false);
 
-        const requiresOrganizationReview =
-          spot instanceof Spot &&
-          (spot.management?.status === "managed" ||
-            (spot.stewardship?.organization_ids?.length ?? 0) > 0);
-        const saveMessage = requiresOrganizationReview
+        const disposition = editId
+          ? await this.spotEditsService.waitForProcessingDisposition(spotId, editId)
+          : null;
+        const awaitsOrganizationReview = disposition
+          ? spotEditAwaitsOrganizationReview(disposition)
+          : false;
+        const saveMessage = awaitsOrganizationReview
           ? $localize`Edit submitted for organization review`
           : $localize`Spot saved successfully`;
         this.snackBar.open(saveMessage, $localize`Dismiss`, { duration: 5000 });
-        if (editId) {
-          void this.spotEditsService
-            .waitForReviewOutcomeDisposition(spotId, editId)
-            .then((awaitingReview) => {
-              if (awaitingReview && !this._isDestroyed) {
-                return this.notificationOptIn.maybePrompt("spot_edit_updates");
-              }
-              return null;
-            });
+        if (
+          disposition &&
+          spotEditAwaitsReviewOutcome(disposition) &&
+          !this._isDestroyed
+        ) {
+          void this.notificationOptIn.maybePrompt("spot_edit_updates");
         }
 
         if ("id" in spot && spot.id) {

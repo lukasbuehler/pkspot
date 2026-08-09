@@ -44,4 +44,22 @@ describe("groupDuplicateSpotCandidates", () => {
       {id: "unnamed", label: "unnamed"},
     ]);
   });
+
+  it("drops deleted or no-longer-flagged candidates from stale scan data", () => {
+    const groups = groupDuplicateSpotCandidates([
+      {
+        id: "greenwood",
+        name: {en: "Greenwood"},
+        duplicate_check: {
+          status: "possible_duplicate",
+          radius_m: 5,
+          candidates: [
+            {spot_id: "deleted-copy", distance_m: 0, name: "Greenwood"},
+          ],
+        },
+      },
+    ]);
+
+    expect(groups).toEqual([]);
+  });
 });
