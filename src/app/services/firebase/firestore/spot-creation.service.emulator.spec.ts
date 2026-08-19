@@ -147,6 +147,57 @@ runWithEmulator("idempotent Spot creation", () => {
     ).rejects.toThrow(/cannot create public Spots/i);
   }, 90_000);
 
+  it("immediately applies edits from organization reviewers only", async () => {
+    const organizationId = "review-org";
+    const reviewerUid = "organization-reviewer";
+    const memberUid = "ordinary-member";
+    const spot = db().doc("spots/stewarded-spot");
+    await Promise.all([
+      spot.set({
+        name: {en: "Stewarded Spot"},
+        stewardship: {organization_ids: [organizationId]},
+      }),
+      db().doc(`users/${reviewerUid}`).set({display_name: "Reviewer"}),
+      db().doc(`users/${memberUid}`).set({display_name: "Member"}),
+      db().doc(`organizations/${organizationId}/members/${reviewerUid}`).set({
+        role: "reviewer",
+      }),
+      db().doc(`organizations/${organizationId}/members/${memberUid}`).set({
+        role: "member",
+      }),
+    ]);
+
+    const reviewerEdit = spot.collection("edits").doc("reviewer-edit");
+    await reviewerEdit.set({
+      type: "UPDATE",
+      user: {uid: reviewerUid},
+      data: {description: {en: "Approved directly"}},
+      timestamp: admin.firestore.Timestamp.now(),
+      timestamp_raw_ms: Date.now(),
+    });
+    await waitForProcessedEdit(reviewerEdit);
+    expect((await reviewerEdit.get()).data()).toMatchObject({
+      approved: true,
+      processing_status: "APPROVED_IMMEDIATE",
+    });
+
+    const memberEdit = spot.collection("edits").doc("member-edit");
+    await memberEdit.set({
+      type: "UPDATE",
+      user: {uid: memberUid},
+      data: {description: {en: "Needs review"}},
+      timestamp: admin.firestore.Timestamp.now(),
+      timestamp_raw_ms: Date.now() + 1,
+    });
+    await waitForProcessedEdit(memberEdit);
+    expect((await memberEdit.get()).data()).toMatchObject({
+      approved: false,
+      review_status: "pending",
+      review_kind: "stewarded",
+      processing_status: "PENDING_STEWARD_REVIEW",
+    });
+  }, 90_000);
+
   it("previews and idempotently resolves only a clear subset duplicate", async () => {
     const administrator = await authenticatedCallable(true);
     const creatorUid = "duplicate-creator";

@@ -2,6 +2,7 @@ import { Timestamp } from "firebase/firestore";
 import { SpotAccess, SpotTypes } from "./SpotTypeAndAccess";
 import { AmenitiesMap } from "./Amenities";
 import { UserReferenceSchema } from "./UserSchema";
+export type { PublicImportProvenance } from "./PublicImportProvenance";
 
 export type ImportStatus =
   | "PENDING"
@@ -30,15 +31,6 @@ export interface ImportCreditSchema {
  * Import records also contain uploader and review data, so clients must retrieve
  * this shape through the public provenance endpoint instead of reading imports.
  */
-export interface PublicImportProvenance {
-  source_name: string;
-  attribution_text?: string;
-  website_url?: string;
-  instagram_url?: string;
-  source_url?: string;
-  viewer_url?: string;
-}
-
 export interface ImportLegalSchema {
   confirmed_rights: boolean;
   confirmed_external_image_rights: boolean;

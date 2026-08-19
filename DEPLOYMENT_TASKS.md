@@ -179,7 +179,7 @@ production duplicate.
       report-warning, safety-case, and immediate-notification Function updates:
 
   ```sh
-  npx firebase deploy --project prod --only functions:getSpotCreationDiagnostics,functions:resolveSpotDuplicate,functions:detectDuplicateSpots,functions:onSpotReportCreate,functions:onModerationActionNotificationCreate,functions:onModerationActionSafetyCaseCreate,functions:onImmediateNotificationIntentCreate,functions:onNotificationIntentWrite
+  npx firebase deploy --project prod --only functions:getSpotCreationDiagnostics,functions:resolveSpotDuplicate,functions:detectDuplicateSpots,functions:applySpotEditOnCreate,functions:onSpotReportCreate,functions:onModerationActionNotificationCreate,functions:onModerationActionSafetyCaseCreate,functions:onImmediateNotificationIntentCreate,functions:onNotificationIntentWrite
   ```
 
       Verify every listed Function reports location `europe-west1` in the
@@ -187,6 +187,9 @@ production duplicate.
       the deployment succeeds, duplicate-resolution
       replays create one moderation action, and an immediately due actionable
       notification has its in-app feed projection before delivery is claimed.
+      Also verify an owner, admin, or reviewer of a Spot's reviewing organization
+      receives `APPROVED_IMMEDIATE`, while an ordinary member or outsider still
+      receives the pending organization-review disposition.
 
 - [ ] Invoke `createSpotSubmission` twice with one non-production draft token
       and verify both responses point to one Spot/edit while the second reports
@@ -230,6 +233,58 @@ compatibility field for released clients. Raw report documents and
 - [ ] Release the compatible client through the normal web and mobile workflows,
       then confirm a reported Spot preview shows only the localized Reported
       badge before opening the Spot.
+
+### Public import provenance and Spot-edit write containment
+
+The additive Spot projection is backward compatible: released clients continue
+to use `getPublicImportProvenance`, and new clients fall back to that callable
+only in the browser while a legacy Spot has no projection. The field is not part
+of the Typesense schema or extension allowlist. The one-time Spot writes below
+will nevertheless wake the Typesense extension, so use the default small pages
+and watch extension traffic during the live run.
+
+- [ ] Reauthenticate Firebase, then deploy the compatible projection and
+      write-containment Functions. Do not run the migration yet:
+
+  ```sh
+  firebase login --reauth
+  npx firebase deploy --project prod --only functions:getPublicImportProvenance,functions:processImportChunkOnCreate,functions:retryFailedImportChunksOnCreate,functions:rebuildCommunityPagesOnImportWrite,functions:updateSpotFieldsOnWrite,functions:patchCommunityPageOnWrite,functions:rebuildAllCommunityPages,functions:syncPublicUserProfileOnWrite,functions:backfillPublicImportProvenanceOnCreate
+  ```
+
+      Verify every deployed gen 2 Function is active in `europe-west1`, a new
+      import writes either an object or explicit `null`, and the compatibility
+      callable still serves an older client.
+
+- [ ] Immediately after the compatible Functions are verified, release the
+      field-aware, browser-only fallback client through the normal `main`
+      workflow. If `main` cannot be released immediately, pause import writes
+      until the client release completes so no new Spot misses its projection.
+      Verify localized SSR renders imported Spot attribution without invoking
+      `getPublicImportProvenance`; legacy production Spots must still load their
+      attribution after hydration.
+
+- [ ] In Firestore, create
+      `maintenance/run-backfill-public-import-provenance` with
+      `{ dry_run: true, page_size: 100 }`. Wait for the trigger document to be
+      deleted and `maintenance/public-import-provenance-backfill.status` to be
+      `DONE`; review `counts.changed`, `counts.missing_imports`, and confirm
+      `counts.written` is zero.
+
+- [ ] Delete/recreate the same trigger document with
+      `{ dry_run: false, page_size: 100 }`. Wait for retained state `DONE`,
+      confirm `counts.written` matches the reviewed candidates, rerun it once to
+      verify `counts.changed` and `counts.written` are zero, and sample an
+      attributed import plus an import with no public credit.
+
+- [ ] After the next 03:00 UTC sitemap cycle, correlate Cloud Functions
+      invocation logs, App Hosting requests, and crawler user agents. Confirm
+      there are no SSR-originated provenance calls; legacy clients and direct
+      browser fallback traffic may remain. Configure invocation and Firestore
+      read/write alerts initially at 3x the prior seven-day P95 baseline.
+
+Callable retirement, server-deduplicated UPDATE submissions, and bounded
+community-digest fan-out remain separate follow-ups because they require a
+supported-client or notification-policy decision.
 
 ### Firebase JS SDK client migration
 

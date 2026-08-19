@@ -1,3 +1,5 @@
+import {isDeepStrictEqual} from "node:util";
+
 export type UserProfileAudience =
   | "owner"
   | "followers"
@@ -165,4 +167,20 @@ export const buildPublicUserProfile = (
     ...buildFullUserProfile(user),
     profile_projection_version: 1,
   };
+};
+
+export type PublicProfileSyncAction =
+  | {type: "none"}
+  | {type: "delete"}
+  | {type: "set"; profile: UserProfileProjection};
+
+export const publicProfileSyncAction = (
+  source: Record<string, unknown> | null,
+  persisted: Record<string, unknown> | null,
+): PublicProfileSyncAction => {
+  const desired = source ? buildPublicUserProfile(source) : null;
+  if (isDeepStrictEqual(persisted, desired)) {
+    return {type: "none"};
+  }
+  return desired ? {type: "set", profile: desired} : {type: "delete"};
 };

@@ -51,9 +51,14 @@ import {
   getSpotPreviewImage,
   SpotSchema,
 } from "./spotHelpers";
+import {
+  buildPublicImportProvenance,
+  publicImportProvenanceEqual,
+} from "./importProvenanceProjection";
 
 const COMMUNITY_PAGES_COLLECTION = "community_pages";
 const COMMUNITY_SLUGS_COLLECTION = "community_slugs";
+const IMPORT_PROVENANCE_TRANSACTION_SIZE = 200;
 const COMMUNITY_MERGES_COLLECTION = "community_merges";
 const MAINTENANCE_COLLECTION = "maintenance";
 const SPOTS_COLLECTION = "spots";
@@ -1422,6 +1427,14 @@ const refreshCountryChildCommunities = async (
       db,
       countryCommunityKey
     );
+    if (
+      areValuesEqual(
+        pageSnapshot.data()?.childCommunities ?? [],
+        childCommunities,
+      )
+    ) {
+      continue;
+    }
     await pageRef.set({ childCommunities }, { merge: true });
   }
 };
@@ -1591,6 +1604,71 @@ export const rebuildCommunityPagesForSpotWrite = async (
   await refreshCountryChildCommunities(db, impactedCountryKeys);
 };
 
+export const syncPublicImportProvenanceForImport = async (
+  db: admin.firestore.Firestore,
+  importId: string,
+  beforeData: unknown,
+  afterData: unknown,
+): Promise<number> => {
+  const previous = buildPublicImportProvenance(beforeData);
+  const next = buildPublicImportProvenance(afterData);
+  if (publicImportProvenanceEqual(previous, next)) return 0;
+
+  const linkedSpots = new Map<string, FirebaseFirestore.QueryDocumentSnapshot>();
+  for (const field of ["import_id", "source"] as const) {
+    const snapshot = await db
+      .collection(SPOTS_COLLECTION)
+      .where(field, "==", importId)
+      .get();
+    for (const spot of snapshot.docs) linkedSpots.set(spot.id, spot);
+  }
+
+  let updated = 0;
+  const linkedSpotRefs = [...linkedSpots.values()].map((spot) => spot.ref);
+  for (
+    let offset = 0;
+    offset < linkedSpotRefs.length;
+    offset += IMPORT_PROVENANCE_TRANSACTION_SIZE
+  ) {
+    const spotRefs = linkedSpotRefs.slice(
+      offset,
+      offset + IMPORT_PROVENANCE_TRANSACTION_SIZE,
+    );
+    updated += await db.runTransaction(async (transaction) => {
+      const importRef = db.collection("imports").doc(importId);
+      const importSnapshot = await transaction.get(importRef);
+      const spotSnapshots = await Promise.all(
+        spotRefs.map((spotRef) => transaction.get(spotRef)),
+      );
+      const currentProjection = buildPublicImportProvenance(
+        importSnapshot.data(),
+      );
+      let transactionUpdates = 0;
+
+      for (const spot of spotSnapshots) {
+        const spotData = spot.data();
+        if (
+          !spot.exists ||
+          (spotData?.["import_id"] !== importId &&
+            spotData?.["source"] !== importId) ||
+          publicImportProvenanceEqual(
+            spotData?.["public_import_provenance"],
+            currentProjection,
+          )
+        ) {
+          continue;
+        }
+        transaction.update(spot.ref, {
+          public_import_provenance: currentProjection,
+        });
+        transactionUpdates += 1;
+      }
+      return transactionUpdates;
+    });
+  }
+  return updated;
+};
+
 export const rebuildCommunityPagesOnImportWrite = onDocumentWritten(
   { document: "imports/{importId}" },
   async (event) => {
@@ -1606,6 +1684,14 @@ export const rebuildCommunityPagesOnImportWrite = onDocumentWritten(
       ? ((event.data.after.data() as ImportRebuildDoc) ?? null)
       : null;
 
+    const db = admin.firestore();
+    await syncPublicImportProvenanceForImport(
+      db,
+      importId,
+      beforeData,
+      afterData,
+    );
+
     const completedAfterPartial =
       beforeData?.status === "PARTIAL" && afterData?.status === "COMPLETED";
     if (
@@ -1615,7 +1701,6 @@ export const rebuildCommunityPagesOnImportWrite = onDocumentWritten(
       return null;
     }
 
-    const db = admin.firestore();
     const generatedCount = await rebuildCommunityPagesForImportedSpots(
       db,
       importId
