@@ -1,7 +1,8 @@
 import {PLATFORM_ID, signal} from "@angular/core";
 import {TestBed} from "@angular/core/testing";
 import type {PublicImportProvenance} from "../../../db/schemas/PublicImportProvenance";
-import {LocalSpot} from "../../../db/models/Spot";
+import {LocalSpot, Spot} from "../../../db/models/Spot";
+import {SpotId} from "../../../db/schemas/SpotSchema";
 import {AnalyticsService} from "../../services/analytics.service";
 import {ImportsService} from "../../services/firebase/firestore/imports.service";
 import {SpotProvenanceComponent} from "./spot-provenance.component";
@@ -10,12 +11,13 @@ const spot = (
   projection: PublicImportProvenance | null | undefined,
 ): LocalSpot => ({
   source: signal("import-1"),
-  publicImportProvenance: projection,
+  publicImportProvenance: signal(projection),
 } as unknown as LocalSpot);
 
 const render = async (
   platformId: "browser" | "server",
   projection: PublicImportProvenance | null | undefined,
+  spotOverride?: Spot | LocalSpot,
 ) => {
   const imports = {
     getPublicProvenanceById: vi.fn().mockResolvedValue({
@@ -31,7 +33,7 @@ const render = async (
     ],
   });
   const fixture = TestBed.createComponent(SpotProvenanceComponent);
-  fixture.componentRef.setInput("spot", spot(projection));
+  fixture.componentRef.setInput("spot", spotOverride ?? spot(projection));
   await fixture.whenStable();
   await new Promise((resolve) => setTimeout(resolve, 0));
   await fixture.whenStable();
@@ -68,5 +70,38 @@ describe("SpotProvenanceComponent", () => {
     expect(imports.getPublicProvenanceById).toHaveBeenCalledOnce();
     expect(imports.getPublicProvenanceById).toHaveBeenCalledWith("import-1");
     expect(fixture.nativeElement.textContent).toContain("Fallback source");
+  });
+
+  it("updates projected attribution when an existing Spot refreshes", async () => {
+    const existingSpot = new Spot(
+      "spot-1" as SpotId,
+      {
+        name: {en: "Imported Spot"},
+        location_raw: {lat: 47, lng: 8},
+        address: null,
+        source: "import-1",
+        public_import_provenance: {
+          source_name: "Original source",
+        },
+      },
+      "en",
+    );
+    const {fixture} = await render("browser", undefined, existingSpot);
+
+    existingSpot.applyFromSchema({
+      name: {en: "Imported Spot"},
+      location_raw: {lat: 47, lng: 8},
+      address: null,
+      source: "import-1",
+      public_import_provenance: {
+        source_name: "Updated source",
+        attribution_text: "Updated attribution",
+      },
+    });
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).toContain("Updated source");
+    expect(fixture.nativeElement.textContent).toContain("Updated attribution");
+    expect(fixture.nativeElement.textContent).not.toContain("Original source");
   });
 });

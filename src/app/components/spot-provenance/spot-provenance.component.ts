@@ -44,7 +44,7 @@ export class SpotProvenanceComponent {
       const importId = this._importId();
       return this._isBrowser &&
         importId &&
-        spot?.publicImportProvenance === undefined
+        spot?.publicImportProvenance() === undefined
         ? {importId}
         : undefined;
     },
@@ -53,7 +53,7 @@ export class SpotProvenanceComponent {
   });
 
   private _importProvenance = computed<PublicImportProvenance | null>(() => {
-    const projection = this.spot()?.publicImportProvenance;
+    const projection = this.spot()?.publicImportProvenance();
     return projection !== undefined
       ? projection
       : (this._fallbackProvenance.value() ?? null);

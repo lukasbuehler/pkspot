@@ -167,11 +167,6 @@ of the Typesense schema or extension allowlist. The one-time Spot writes below
 will nevertheless wake the Typesense extension, so use the default small pages
 and watch extension traffic during the live run.
 
-- [ ] Release the field-aware, browser-only fallback client through the normal
-      `main` workflow. Verify localized SSR renders imported Spot attribution
-      without invoking `getPublicImportProvenance`; legacy production Spots must
-      still load their attribution after hydration.
-
 - [ ] Reauthenticate Firebase, then deploy the compatible projection and
       write-containment Functions. Do not run the migration yet:
 
@@ -183,6 +178,14 @@ and watch extension traffic during the live run.
       Verify every deployed gen 2 Function is active in `europe-west1`, a new
       import writes either an object or explicit `null`, and the compatibility
       callable still serves an older client.
+
+- [ ] Immediately after the compatible Functions are verified, release the
+      field-aware, browser-only fallback client through the normal `main`
+      workflow. If `main` cannot be released immediately, pause import writes
+      until the client release completes so no new Spot misses its projection.
+      Verify localized SSR renders imported Spot attribution without invoking
+      `getPublicImportProvenance`; legacy production Spots must still load their
+      attribution after hydration.
 
 - [ ] In Firestore, create
       `maintenance/run-backfill-public-import-provenance` with
