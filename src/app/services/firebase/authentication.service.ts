@@ -29,6 +29,7 @@ import {
   inMemoryPersistence,
   reauthenticateWithPopup,
   AuthProvider,
+  type UserCredential,
   connectAuthEmulator,
 } from "firebase/auth";
 import {
@@ -46,6 +47,7 @@ import { ConsentAwareService } from "../consent-aware.service";
 import { Capacitor } from "@capacitor/core";
 import {
   FirebaseAuthentication,
+  type SignInResult,
   User as CapacitorFirebaseUser,
 } from "@capacitor-firebase/authentication";
 import { Browser } from "@capacitor/browser";
@@ -1081,33 +1083,38 @@ export class AuthenticationService extends ConsentAwareService {
       // Ensure consent before creating account (which triggers reCAPTCHA).
       await this.executeWithConsent(async () => {
         stage = "firebase_auth";
-        const firebaseAuthResponse = await createUserWithEmailAndPassword(
-          this.auth!,
-          email,
-          confirmedPassword,
-        );
-        this.trackEventWithConsent("Create Account", {
-          props: { accountType: "Email and Password" },
-        });
+        let firebaseAuthResponse: UserCredential;
+        let newlyCreated = true;
+        try {
+          firebaseAuthResponse = await createUserWithEmailAndPassword(
+            this.auth!,
+            email,
+            confirmedPassword,
+          );
+          this.trackEventWithConsent("Create Account", {
+            props: { accountType: "Email and Password" },
+          });
+        } catch (error) {
+          if (!this._isEmailAlreadyInUse(error)) throw error;
+          newlyCreated = false;
+          firebaseAuthResponse = await signInWithEmailAndPassword(
+            this.auth!,
+            email,
+            confirmedPassword,
+          );
+        }
 
         const createdUser = firebaseAuthResponse.user;
         if (!createdUser) throw new Error("Firebase returned no user");
 
-        stage = "auth_profile";
-        await updateProfile(createdUser, { displayName });
-
-        stage = "public_profile";
-        await this._userService.addUser(createdUser.uid, displayName, {
-          verified_email: false,
-        });
-
-        stage = "private_settings";
-        await this._userService.initializePrivateData(createdUser.uid, {
-          settings: this._defaultUserSettings,
-        });
-
-        stage = "verification_email";
-        await sendEmailVerification(createdUser);
+        await this._completeEmailAccountSetup(
+          createdUser,
+          displayName,
+          newlyCreated,
+          (nextStage) => (stage = nextStage),
+          () => updateProfile(createdUser, { displayName }),
+          () => sendEmailVerification(createdUser),
+        );
       });
     } catch (error) {
       throw this._accountCreationError(stage, error, "web");
@@ -1140,34 +1147,35 @@ export class AuthenticationService extends ConsentAwareService {
       // Ensure consent before creating account
       await this.executeWithConsent(async () => {
         stage = "firebase_auth";
-        const result = await FirebaseAuthentication.createUserWithEmailAndPassword({
-          email,
-          password: confirmedPassword,
-        });
+        let result: SignInResult;
+        let newlyCreated = true;
+        try {
+          result = await FirebaseAuthentication.createUserWithEmailAndPassword({
+            email,
+            password: confirmedPassword,
+          });
+          this.trackEventWithConsent("Create Account", {
+            props: { accountType: "Email and Password" },
+          });
+        } catch (error) {
+          if (!this._isEmailAlreadyInUse(error)) throw error;
+          newlyCreated = false;
+          result = await FirebaseAuthentication.signInWithEmailAndPassword({
+            email,
+            password: confirmedPassword,
+          });
+        }
 
         if (!result.user) throw new Error("Firebase returned no user");
 
-        this.trackEventWithConsent("Create Account", {
-          props: { accountType: "Email and Password" },
-        });
-
-        stage = "auth_profile";
-        await FirebaseAuthentication.updateProfile({
+        await this._completeEmailAccountSetup(
+          result.user,
           displayName,
-        });
-
-        stage = "public_profile";
-        await this._userService.addUser(result.user.uid, displayName, {
-          verified_email: false,
-        });
-
-        stage = "private_settings";
-        await this._userService.initializePrivateData(result.user.uid, {
-          settings: this._defaultUserSettings,
-        });
-
-        stage = "verification_email";
-        await FirebaseAuthentication.sendEmailVerification();
+          newlyCreated,
+          (nextStage) => (stage = nextStage),
+          () => FirebaseAuthentication.updateProfile({ displayName }),
+          () => FirebaseAuthentication.sendEmailVerification(),
+        );
       });
     } catch (error) {
       throw this._accountCreationError(
@@ -1178,6 +1186,46 @@ export class AuthenticationService extends ConsentAwareService {
     } finally {
       this._isCreatingAccount = false;
     }
+  }
+
+  private async _completeEmailAccountSetup(
+    user: { uid: string; displayName?: string | null; emailVerified?: boolean },
+    displayName: string,
+    newlyCreated: boolean,
+    setStage: (stage: AccountCreationStage) => void,
+    updateAuthProfile: () => Promise<unknown>,
+    sendVerification: () => Promise<unknown>,
+  ): Promise<void> {
+    setStage("public_profile");
+    const setupState = await this._userService.getAccountSetupState(user.uid);
+
+    if (newlyCreated || !user.displayName) {
+      setStage("auth_profile");
+      await updateAuthProfile();
+    }
+
+    if (!setupState.publicProfileExists) {
+      setStage("public_profile");
+      await this._userService.addUser(user.uid, displayName, {
+        verified_email: user.emailVerified ?? false,
+      });
+    }
+
+    if (!setupState.privateDataExists) {
+      setStage("private_settings");
+      await this._userService.initializePrivateData(user.uid, {
+        settings: this._defaultUserSettings,
+      });
+    }
+
+    if (!user.emailVerified) {
+      setStage("verification_email");
+      await sendVerification();
+    }
+  }
+
+  private _isEmailAlreadyInUse(error: unknown): boolean {
+    return this._errorCode(error)?.endsWith("email-already-in-use") ?? false;
   }
 
   private _accountCreationError(

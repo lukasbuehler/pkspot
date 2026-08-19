@@ -66,6 +66,7 @@ describe("AuthenticationService", () => {
   let service: AuthenticationService;
   let usersServiceSpy: {
     getUserById: Mock;
+    getAccountSetupState: Mock;
     addUser: Mock;
     initializePrivateData: Mock;
     deleteUser: Mock;
@@ -91,6 +92,10 @@ describe("AuthenticationService", () => {
 
     usersServiceSpy = {
       getUserById: vi.fn().mockReturnValue(of(null)),
+      getAccountSetupState: vi.fn().mockResolvedValue({
+        publicProfileExists: false,
+        privateDataExists: false,
+      }),
       addUser: vi.fn().mockResolvedValue(undefined),
       initializePrivateData: vi.fn().mockResolvedValue(undefined),
       deleteUser: vi.fn().mockResolvedValue(undefined),
@@ -411,6 +416,78 @@ describe("AuthenticationService", () => {
     expect(
       JSON.stringify(analyticsServiceSpy.reportError.mock.calls),
     ).not.toContain("Raw provider error");
+  });
+
+  it("resumes incomplete setup when Firebase Auth already created the account", async () => {
+    const createdUser = {
+      ...firebaseUser,
+      uid: "recoverable-user",
+      displayName: null,
+      emailVerified: false,
+    };
+    (createUserWithEmailAndPassword as Mock)
+      .mockResolvedValueOnce({ user: createdUser })
+      .mockRejectedValueOnce({ code: "auth/email-already-in-use" });
+    (signInWithEmailAndPassword as Mock).mockResolvedValueOnce({
+      user: createdUser,
+    });
+    (updateProfile as Mock)
+      .mockRejectedValueOnce({ code: "auth/internal-error" })
+      .mockResolvedValueOnce(undefined);
+    (sendEmailVerification as Mock).mockResolvedValueOnce(undefined);
+
+    await expect(
+      service.createAccount("recover@example.test", "secret", "Recover Me"),
+    ).rejects.toEqual(
+      expect.objectContaining<AccountCreationError>({
+        stage: "auth_profile",
+      }),
+    );
+
+    await service.createAccount(
+      "recover@example.test",
+      "secret",
+      "Recover Me",
+    );
+
+    expect(signInWithEmailAndPassword).toHaveBeenCalledWith(
+      service.auth,
+      "recover@example.test",
+      "secret",
+    );
+    expect(usersServiceSpy.addUser).toHaveBeenCalledTimes(1);
+    expect(usersServiceSpy.initializePrivateData).toHaveBeenCalledTimes(1);
+    expect(sendEmailVerification).toHaveBeenCalledWith(createdUser);
+  });
+
+  it("does not overwrite completed setup while recovering an existing Auth account", async () => {
+    const existingUser = {
+      ...firebaseUser,
+      uid: "existing-user",
+      displayName: "Existing Name",
+      emailVerified: true,
+    };
+    (createUserWithEmailAndPassword as Mock).mockRejectedValueOnce({
+      code: "auth/email-already-in-use",
+    });
+    (signInWithEmailAndPassword as Mock).mockResolvedValueOnce({
+      user: existingUser,
+    });
+    usersServiceSpy.getAccountSetupState.mockResolvedValueOnce({
+      publicProfileExists: true,
+      privateDataExists: true,
+    });
+
+    await service.createAccount(
+      "existing@example.test",
+      "secret",
+      "Replacement Name",
+    );
+
+    expect(updateProfile).not.toHaveBeenCalled();
+    expect(usersServiceSpy.addUser).not.toHaveBeenCalled();
+    expect(usersServiceSpy.initializePrivateData).not.toHaveBeenCalled();
+    expect(sendEmailVerification).not.toHaveBeenCalled();
   });
 
   it("creates a profile for a new Google sign-in user", async () => {
