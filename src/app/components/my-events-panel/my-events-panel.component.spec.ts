@@ -126,6 +126,50 @@ describe("MyEventsPanelComponent", () => {
     );
   });
 
+  it("moves past going events out of Going and into Past", async () => {
+    const now = new Date("2026-08-10T12:00:00Z");
+    const pastGoing = buildEvent({}, "past-going-event");
+    const upcomingGoing = buildEvent(
+      {
+        name: "Swiss Championships 2026",
+        start: "2026-08-29T10:00:00Z",
+        end: "2026-08-30T18:00:00Z",
+      },
+      "upcoming-going-event",
+    );
+    const { dialog, fixture } = createComponent(upcomingGoing);
+    fixture.componentRef.setInput("goingEvents", [upcomingGoing, pastGoing]);
+    fixture.componentRef.setInput("now", now);
+
+    await fixture.whenStable();
+
+    expect(
+      fixture.componentInstance.upcomingGoingEvents().map(({ id }) => id),
+    ).toEqual(["upcoming-going-event"]);
+    expect(fixture.componentInstance.pastEvents().map(({ id }) => id)).toEqual([
+      "past-going-event",
+    ]);
+    expect(
+      fixture.debugElement.query(By.css('mat-button-toggle[value="going"]'))
+        .nativeElement.textContent,
+    ).toContain("1");
+    expect(
+      fixture.debugElement.query(By.css('mat-button-toggle[value="past"]'))
+        .nativeElement.textContent,
+    ).toContain("1");
+
+    fixture.componentInstance.openAllEvents();
+    expect(dialog.open).toHaveBeenCalledWith(
+      MyEventsDialogComponent,
+      expect.objectContaining({
+        data: expect.objectContaining({
+          goingEvents: [upcomingGoing],
+          pastEvents: [pastGoing],
+        }),
+      }),
+    );
+  });
+
   it("previews three events and opens the complete selected list", async () => {
     const events = Array.from({ length: 5 }, (_, index) =>
       buildEvent(
@@ -139,6 +183,7 @@ describe("MyEventsPanelComponent", () => {
     const { dialog, fixture } = createComponent(events[0]);
     fixture.componentRef.setInput("goingEvents", []);
     fixture.componentRef.setInput("savedEvents", events);
+    fixture.componentRef.setInput("now", new Date("2026-08-03T12:00:00Z"));
 
     await fixture.whenStable();
 

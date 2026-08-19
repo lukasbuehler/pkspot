@@ -101,6 +101,18 @@ describe("MapPageComponent URL-driven panel state", () => {
     expect(method).toContain("this.openGooglePlaceById(value.id)");
   });
 
+  it("opens pasted Maps links by exact place, coordinates, or query", () => {
+    const source = readFileSync(componentPath, "utf8");
+    const method = source.match(
+      /openSpotOrGooglePlace\([\s\S]*?\n  onSearchCommunityPreviewChange/
+    )?.[0];
+
+    expect(method).toContain('if (value.type === "map-link"');
+    expect(method).toContain("this.openGooglePlaceById(mapLink.placeId)");
+    expect(method).toContain("this.spotMap?.focusPoint(mapLink.location, 17)");
+    expect(method).toContain("this._searchService.searchPlaces(mapLink.query)");
+  });
+
   it("opens community search selections through the community URL helper", () => {
     const source = readFileSync(componentPath, "utf8");
     const method = source.match(

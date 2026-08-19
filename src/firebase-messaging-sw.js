@@ -62,8 +62,8 @@ self.addEventListener("notificationclick", (event) => {
   const data = event.notification.data || {};
   const action = event.action || "tap";
   const path = action === "tap"
-    ? safePath(data.path)
-    : actionPath(data.intent_id, action, data.path);
+    ? notificationPath(data)
+    : actionPath(data.intent_id, action, notificationPath(data));
   const targetUrl = new URL(path, self.location.origin).href;
 
   event.waitUntil(
@@ -100,8 +100,36 @@ function actionPath(intentId, action, returnTo) {
   return `/notifications?${params.toString()}`;
 }
 
+function notificationPath(data) {
+  const path = safePath(data.path);
+  if (data.type !== "community_spot_digest") return path;
+
+  const topSpotPath = safeOptionalPath(data.top_spot_path);
+  if (topSpotPath) return topSpotPath;
+
+  const firstSpotId = firstStringFromJsonArray(data.spot_ids);
+  if (firstSpotId) return `/map/spots/${encodeURIComponent(firstSpotId)}`;
+
+  return path === "/train" ? "/map" : path;
+}
+
 function safePath(value) {
+  return safeOptionalPath(value) || "/notifications";
+}
+
+function safeOptionalPath(value) {
   return typeof value === "string" && value.startsWith("/") && !value.startsWith("//")
     ? value
-    : "/notifications";
+    : null;
+}
+
+function firstStringFromJsonArray(value) {
+  try {
+    const parsed = JSON.parse(value || "[]");
+    return Array.isArray(parsed) && typeof parsed[0] === "string" && parsed[0]
+      ? parsed[0]
+      : null;
+  } catch {
+    return null;
+  }
 }

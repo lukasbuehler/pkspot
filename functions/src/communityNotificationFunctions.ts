@@ -171,13 +171,14 @@ export const sendCommunitySpotDigests = onSchedule(
       if (valid.length > 0) {
         const keys = [...new Set(valid.flatMap(({ item }) => item.community_keys))];
         const names = [...new Set(valid.flatMap(({ item }) => item.community_names))];
+        const topSpotPath = valid[0].item.spot_path;
         await createIntent(intentId, {
           recipientUid: uid,
           type: "community_spot_digest",
           sourcePath: `users/${uid}/community_spot_digest_items`,
           sendAfter: Timestamp.now(),
           expiresAt: Timestamp.fromMillis(Date.now() + 7 * DAY_MS),
-          path: "/train",
+          path: topSpotPath,
           channelId: "community_spot_digest",
           threadKey: `community-spot-digest:${week}`,
           imageUrl: valid[0]?.item.image_url,
@@ -187,6 +188,7 @@ export const sendCommunitySpotDigests = onSchedule(
             community_names: JSON.stringify(names),
             community_keys: JSON.stringify(keys),
             top_spot_name: valid[0]?.item.spot_name ?? "",
+            top_spot_path: topSpotPath,
           },
         });
       }

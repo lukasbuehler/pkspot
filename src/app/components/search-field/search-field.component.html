@@ -21,6 +21,7 @@
     [placeholder]="placeholderText()"
     [formControl]="spotSearchControl"
     [matAutocomplete]="spotAutocomplete"
+    (paste)="handlePaste($event)"
   />
   <mat-autocomplete
     #spotAutocomplete="matAutocomplete"

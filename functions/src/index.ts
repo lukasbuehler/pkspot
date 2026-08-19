@@ -229,6 +229,7 @@ export {
   cleanupExpiredOsmAmenityCache,
   getOsmAmenityTile,
 } from "./osmAmenityFunctions";
+export { resolveMapShortLink } from "./mapLinkFunctions";
 
 export {
   onEventNotificationSourceWrite,

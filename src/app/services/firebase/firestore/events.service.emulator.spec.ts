@@ -412,6 +412,46 @@ runWithEmulator("EventsService emulator integration", () => {
     });
   }, rsvpIntegrationTimeoutMs);
 
+  it("updates an RSVP written by a notification action from interested to going", async () => {
+    const uid = authService.user.uid;
+    expect(uid).toBeTruthy();
+    const eventId = `notification-action-rsvp-${uid}`;
+    const rsvpPath = `events/${eventId}/rsvps/${uid}`;
+    const now = admin.firestore.Timestamp.now();
+    await adminDb().doc(`events/${eventId}`).set({
+      name: "Notification action RSVP event",
+      published: true,
+      start: admin.firestore.Timestamp.fromDate(
+        new Date("2026-08-29T10:00:00.000Z"),
+      ),
+      end: admin.firestore.Timestamp.fromDate(
+        new Date("2026-08-30T18:00:00.000Z"),
+      ),
+    });
+    await adminDb().doc(rsvpPath).set({
+      user_id: uid,
+      event_id: eventId,
+      rsvp: "interested",
+      time_created: now,
+      time_updated: now,
+      time_updated_raw_ms: now.toMillis(),
+    });
+
+    await service.setMyRsvp(eventId, "going");
+
+    const updated = await TestBed.runInInjectionContext(() =>
+      getDoc(doc(firestore, rsvpPath)),
+    );
+    expect(updated.data()).toEqual(
+      expect.objectContaining({
+        user_id: uid,
+        event_id: eventId,
+        rsvp: "going",
+        time_updated_raw_ms: expect.any(Number),
+      }),
+    );
+  });
+
   it("creates and cancels a two-hour reminder intent from my RSVP", async () => {
     const uid = authService.user.uid;
     expect(uid).toBeTruthy();

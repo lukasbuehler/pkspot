@@ -45,4 +45,26 @@ describe("notification functions", () => {
       'actionType === "delete_spot" || actionType === "resolve_duplicate_spot"',
     );
   });
+
+  it("delivers notification navigation data needed by every click surface", () => {
+    const deliverySource = readFileSync(
+      resolve("functions/src/notificationFunctions.ts"),
+      "utf8",
+    );
+    const digestSource = readFileSync(
+      resolve("functions/src/communityNotificationFunctions.ts"),
+      "utf8",
+    );
+    const serviceWorkerSource = readFileSync(
+      resolve("src/firebase-messaging-sw.js"),
+      "utf8",
+    );
+
+    expect(digestSource).toContain("path: topSpotPath");
+    expect(digestSource).toContain("top_spot_path: topSpotPath");
+    expect(deliverySource).toContain('intent.payload["top_spot_path"]');
+    expect(deliverySource).toContain('intent.payload["spot_ids"]');
+    expect(serviceWorkerSource).toContain("notificationPath(data)");
+    expect(serviceWorkerSource).toContain('data.type !== "community_spot_digest"');
+  });
 });

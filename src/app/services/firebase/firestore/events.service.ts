@@ -550,6 +550,7 @@ export class EventsService extends ConsentAwareService {
       event_id: String(eventId),
       rsvp,
       time_updated: now,
+      time_updated_raw_ms: now.getTime(),
     };
     if (!existing) {
       data.time_created = now;

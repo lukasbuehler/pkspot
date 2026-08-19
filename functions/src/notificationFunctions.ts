@@ -1656,6 +1656,12 @@ async function deliverIntent(
       ...(intent.payload["operation_type"]
         ? { operation_type: intent.payload["operation_type"] }
         : {}),
+      ...(intent.payload["top_spot_path"]
+        ? { top_spot_path: intent.payload["top_spot_path"] }
+        : {}),
+      ...(intent.payload["spot_ids"]
+        ? { spot_ids: intent.payload["spot_ids"] }
+        : {}),
     };
     let response: admin.messaging.BatchResponse;
     try {
