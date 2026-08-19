@@ -135,4 +135,45 @@ describe("SearchFieldComponent", () => {
     });
     expect(fixture.componentInstance.spotSearchControl.value).toBe("");
   });
+
+  it("discards a slow Maps-link result after a newer paste resolves", async () => {
+    let resolveFirst!: (value: {
+      provider: "google";
+      format: "direct";
+      query: string;
+    }) => void;
+    mapLinks.isSupportedUrl.mockReturnValue(true);
+    mapLinks.resolve
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveFirst = resolve;
+        }),
+      )
+      .mockResolvedValueOnce({
+        provider: "apple",
+        format: "direct",
+        query: "New selection",
+      });
+    const selected = vi.fn();
+    fixture.componentInstance.spotSelected.subscribe(selected);
+    const paste = (value: string) =>
+      fixture.componentInstance.handlePaste({
+        clipboardData: { getData: () => value },
+        preventDefault: vi.fn(),
+      } as unknown as ClipboardEvent);
+
+    paste("https://www.google.com/maps/place/Old");
+    paste("https://maps.apple.com/?q=New");
+    await vi.waitFor(() => expect(selected).toHaveBeenCalledOnce());
+
+    resolveFirst({
+      provider: "google",
+      format: "direct",
+      query: "Old selection",
+    });
+    await Promise.resolve();
+
+    expect(selected).toHaveBeenCalledOnce();
+    expect(selected.mock.calls[0][0].mapLink.query).toBe("New selection");
+  });
 });

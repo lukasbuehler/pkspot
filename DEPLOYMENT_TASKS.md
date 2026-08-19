@@ -94,13 +94,15 @@ existing action-created RSVP documents can be changed in older and newer apps.
   npx firebase deploy --project prod --only firestore:rules
   ```
 
-      Verify a signed-in non-admin can change an existing Interested RSVP that
-      contains `time_updated_raw_ms` to Going, while writes to another user's
-      RSVP remain denied.
+  - Verify a signed-in non-admin can change an existing Interested RSVP that
+    contains `time_updated_raw_ms` to Going, while writes to another user's
+    RSVP remain denied.
 
 - [ ] Release web, Android, and iOS through their normal workflows. Verify past
-      Going and Saved events appear only under Past, and future Going events
-      remain under Going. No data backfill is required.
+      Going and Saved events appear only under Past, future Going events remain
+      under Going, future Saved events remain under Saved, and an event present
+      in both Going and Saved is displayed only once. No data backfill is
+      required.
 
 ### Email signup and notification-link repair
 
@@ -115,9 +117,9 @@ digest notifications whose historical path is `/train`.
   npx firebase deploy --project prod --only functions:sendCommunitySpotDigests,functions:sendDueNotificationIntents,functions:onImmediateNotificationIntentCreate,functions:onNotificationIntentWrite
   ```
 
-      Verify a test digest intent and its in-app projection both use the first
-      included Spot's `/s/{slug}` path, and that delivered FCM data carries the
-      same path. Do not operate an App Hosting rollout as part of this step.
+  - Verify a test digest intent and its in-app projection both use the first
+    included Spot's `/s/{slug}` path, and that delivered FCM data carries the
+    same path. Do not operate an App Hosting rollout as part of this step.
 
 - [ ] Release web, Android, and iOS through their normal workflows. Verify an
       email/password signup completes profile/private-data initialization before
@@ -153,10 +155,11 @@ does not log or persist the pasted URL.
   npx firebase deploy --project prod --only functions:resolveMapShortLink
   ```
 
-      Verify the Function is active in `europe-west1`, expands a
-      `maps.app.goo.gl` link, rejects an off-domain redirect, and records no raw
-      URL in application logs. Then verify full Google Maps, Google short, and
-      Apple Maps links pasted into map search open the expected location.
+  - Verify the Function is active in `europe-west1`, expands a
+    `maps.app.goo.gl` link, rejects requests without valid App Check, rejects an
+    off-domain redirect, and records no raw URL in application logs. Then
+    verify full Google Maps, Google short, and Apple Maps links pasted into map
+    search open the expected location.
 
 ### Idempotent Spot creation and duplicate administration
 

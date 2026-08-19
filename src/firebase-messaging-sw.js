@@ -118,9 +118,22 @@ function safePath(value) {
 }
 
 function safeOptionalPath(value) {
-  return typeof value === "string" && value.startsWith("/") && !value.startsWith("//")
-    ? value
-    : null;
+  if (
+    typeof value !== "string" ||
+    !value.startsWith("/") ||
+    value.startsWith("//")
+  ) {
+    return null;
+  }
+
+  try {
+    const resolved = new URL(value, self.location.origin);
+    return resolved.origin === self.location.origin
+      ? `${resolved.pathname}${resolved.search}${resolved.hash}`
+      : null;
+  } catch {
+    return null;
+  }
 }
 
 function firstStringFromJsonArray(value) {

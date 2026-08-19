@@ -293,6 +293,7 @@ const DENSE_MAP_PERFORMANCE_VARIANTS = new Set<DenseMapPerformanceVariant>([
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly _eventPromoDismissalsStorageKey =
     "pkspot.eventPromoDismissals.v1";
+  private _searchSelectionRequestId = 0;
 
   @ViewChild("spotMap", { static: false }) spotMap: SpotMapComponent | null =
     null;
@@ -2960,6 +2961,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async openSpotOrGooglePlace(value: SearchSelection): Promise<void> {
+    const requestId = ++this._searchSelectionRequestId;
     this._analytics.trackEvent("map_search_result_selected", {
       result_type: value.type,
       result_id: value.id,
@@ -2986,11 +2988,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       if (mapLink.query) {
         try {
           const place = (await this._searchService.searchPlaces(mapLink.query))[0];
+          if (requestId !== this._searchSelectionRequestId) return;
           if (place?.place_id) {
             this.openGooglePlaceById(place.place_id);
             return;
           }
         } catch (error) {
+          if (requestId !== this._searchSelectionRequestId) return;
           console.error("Failed to find the place from a pasted Maps link", error);
         }
       }

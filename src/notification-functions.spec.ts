@@ -1,7 +1,11 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { runInNewContext } from "node:vm";
 import { describe, expect, it } from "vitest";
-import { clampFcmTtlMs } from "../functions/src/notificationFunctions";
+import {
+  clampFcmTtlMs,
+  firstSpotIdPayload,
+} from "../functions/src/notificationFunctions";
 
 describe("notification functions", () => {
   it("clamps FCM transport TTLs independently from intent retention", () => {
@@ -11,6 +15,13 @@ describe("notification functions", () => {
     expect(clampFcmTtlMs(now - dayMs, now)).toBe(0);
     expect(clampFcmTtlMs(now + dayMs, now)).toBe(dayMs);
     expect(clampFcmTtlMs(now + 90 * dayMs, now)).toBe(28 * dayMs);
+  });
+
+  it("bounds legacy digest Spot IDs to one FCM payload item", () => {
+    const fullList = Array.from({ length: 500 }, (_, index) => `spot-${index}`);
+
+    expect(firstSpotIdPayload(JSON.stringify(fullList))).toBe('["spot-0"]');
+    expect(firstSpotIdPayload("not-json")).toBeUndefined();
   });
 
   it("immediately claims newly-created due intents and retains scheduled recovery", () => {
@@ -63,8 +74,40 @@ describe("notification functions", () => {
     expect(digestSource).toContain("path: topSpotPath");
     expect(digestSource).toContain("top_spot_path: topSpotPath");
     expect(deliverySource).toContain('intent.payload["top_spot_path"]');
-    expect(deliverySource).toContain('intent.payload["spot_ids"]');
+    expect(deliverySource).toContain(
+      'firstSpotIdPayload(intent.payload["spot_ids"])',
+    );
+    expect(deliverySource).toContain(
+      '...(fcmSpotIds ? { spot_ids: fcmSpotIds } : {})',
+    );
     expect(serviceWorkerSource).toContain("notificationPath(data)");
     expect(serviceWorkerSource).toContain('data.type !== "community_spot_digest"');
+  });
+
+  it("keeps service-worker notification paths on the app origin", () => {
+    const source = readFileSync(resolve("src/firebase-messaging-sw.js"), "utf8");
+    const context: Record<string, unknown> = {
+      URL,
+      URLSearchParams,
+      importScripts: () => undefined,
+      firebase: {
+        initializeApp: () => undefined,
+        messaging: () => ({ onBackgroundMessage: () => undefined }),
+      },
+      self: {
+        location: { origin: "https://pkspot.app" },
+        addEventListener: () => undefined,
+      },
+    };
+    runInNewContext(source, context);
+    const safeOptionalPath = context["safeOptionalPath"] as (
+      value: unknown,
+    ) => string | null;
+
+    expect(safeOptionalPath("/map/spots/test?tab=media#photo")).toBe(
+      "/map/spots/test?tab=media#photo",
+    );
+    expect(safeOptionalPath("/\\attacker.example")).toBeNull();
+    expect(safeOptionalPath("//attacker.example")).toBeNull();
   });
 });

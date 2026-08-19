@@ -434,7 +434,7 @@ runWithEmulator("EventsService emulator integration", () => {
       rsvp: "interested",
       time_created: now,
       time_updated: now,
-      time_updated_raw_ms: now.toMillis(),
+      time_updated_raw_ms: 1,
     });
 
     await service.setMyRsvp(eventId, "going");
@@ -450,6 +450,14 @@ runWithEmulator("EventsService emulator integration", () => {
         time_updated_raw_ms: expect.any(Number),
       }),
     );
+    const updatedData = updated.data() as {
+      time_updated: { toMillis: () => number };
+      time_updated_raw_ms: number;
+    };
+    expect(updatedData.time_updated_raw_ms).toBe(
+      updatedData.time_updated.toMillis(),
+    );
+    expect(updatedData.time_updated_raw_ms).not.toBe(1);
   });
 
   it("creates and cancels a two-hour reminder intent from my RSVP", async () => {

@@ -160,6 +160,7 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
   private _searchService = inject(SearchService);
   private readonly _mapLinkResolver = inject(MapLinkResolverService);
   private readonly _snackbar = inject(MatSnackBar);
+  private _mapLinkRequestId = 0;
   private _spotSearchSubscription?: Subscription;
   private readonly _minSearchQueryLength = 2;
   private _lastPreviewCommunityKey: string | null = null;
@@ -417,12 +418,14 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this._mapLinkRequestId += 1;
     this.emitCommunityPreviewChange(null);
     this.spotAndPlaceSearchResults$.complete();
     this._spotSearchSubscription?.unsubscribe();
   }
 
   optionSelected(event: MatAutocompleteSelectedEvent) {
+    this._mapLinkRequestId += 1;
     console.log("optionSelected:", event);
 
     this.emitCommunityPreviewChange(null);
@@ -433,24 +436,29 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
 
   handlePaste(event: ClipboardEvent): void {
     if (this.onlySpots()) return;
+    const requestId = ++this._mapLinkRequestId;
     const value = event.clipboardData?.getData("text/plain")?.trim() ?? "";
     if (!this._mapLinkResolver.isSupportedUrl(value)) return;
 
     event.preventDefault();
     this.spotSearchControl.setValue("");
     void this._mapLinkResolver.resolve(value).then(
-      (mapLink) =>
+      (mapLink) => {
+        if (requestId !== this._mapLinkRequestId) return;
         this.spotSelected.emit({
           type: "map-link",
           id: mapLink.provider,
           mapLink,
-        }),
-      () =>
+        });
+      },
+      () => {
+        if (requestId !== this._mapLinkRequestId) return;
         this._snackbar.open(
           $localize`Couldn't open that Maps link. Try pasting a full Google Maps or Apple Maps link.`,
           $localize`Dismiss`,
           { duration: 6_000 },
-        ),
+        );
+      },
     );
   }
 

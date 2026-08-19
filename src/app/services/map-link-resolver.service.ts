@@ -19,6 +19,17 @@ interface ShortLinkResponse {
 const GOOGLE_HOST_PATTERN = /^(?:(?:www|maps)\.)?google\.[a-z]{2,3}(?:\.[a-z]{2})?$/u;
 const GOOGLE_SHORT_HOSTS = new Set(["maps.app.goo.gl", "goo.gl"]);
 
+const isGoogleMapsPath = (url: URL): boolean =>
+  url.pathname === "/maps" || url.pathname.startsWith("/maps/");
+
+const isGoogleShortLink = (url: URL): boolean => {
+  const host = url.hostname.toLowerCase();
+  return (
+    host === "maps.app.goo.gl" ||
+    (host === "goo.gl" && isGoogleMapsPath(url))
+  );
+};
+
 @Injectable({ providedIn: "root" })
 export class MapLinkResolverService {
   private readonly functions = inject(FunctionsAdapterService);
@@ -36,7 +47,7 @@ export class MapLinkResolverService {
       throw new Error("Unsupported map URL");
     }
 
-    const isShort = GOOGLE_SHORT_HOSTS.has(initialUrl.hostname.toLowerCase());
+    const isShort = isGoogleShortLink(initialUrl);
     try {
       const resolvedUrl = isShort
         ? this.toUrl(
@@ -126,7 +137,10 @@ export class MapLinkResolverService {
   private providerFor(url: URL): MapLinkProvider | null {
     const host = url.hostname.toLowerCase();
     if (host === "maps.apple.com") return "apple";
-    if (GOOGLE_SHORT_HOSTS.has(host) || GOOGLE_HOST_PATTERN.test(host)) {
+    if (
+      (GOOGLE_SHORT_HOSTS.has(host) && isGoogleShortLink(url)) ||
+      (GOOGLE_HOST_PATTERN.test(host) && isGoogleMapsPath(url))
+    ) {
       return "google";
     }
     return null;

@@ -111,6 +111,12 @@ describe("MapPageComponent URL-driven panel state", () => {
     expect(method).toContain("this.openGooglePlaceById(mapLink.placeId)");
     expect(method).toContain("this.spotMap?.focusPoint(mapLink.location, 17)");
     expect(method).toContain("this._searchService.searchPlaces(mapLink.query)");
+    expect(method).toContain(
+      "const requestId = ++this._searchSelectionRequestId",
+    );
+    expect(method).toContain(
+      "if (requestId !== this._searchSelectionRequestId) return",
+    );
   });
 
   it("opens community search selections through the community URL helper", () => {

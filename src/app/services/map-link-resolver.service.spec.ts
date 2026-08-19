@@ -77,5 +77,7 @@ describe("MapLinkResolverService", () => {
   it("rejects lookalike and non-HTTPS hosts", () => {
     expect(service.isSupportedUrl("https://maps.google.com.evil.test/maps")).toBe(false);
     expect(service.isSupportedUrl("http://maps.apple.com/?q=Zurich")).toBe(false);
+    expect(service.isSupportedUrl("https://www.google.com/search?q=secret")).toBe(false);
+    expect(service.isSupportedUrl("https://goo.gl/not-a-map")).toBe(false);
   });
 });

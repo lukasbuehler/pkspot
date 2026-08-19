@@ -132,6 +132,18 @@ export function clampFcmTtlMs(
   return Math.min(FCM_MAX_TTL_MS, Math.max(0, expiresAtMs - nowMs));
 }
 
+export function firstSpotIdPayload(value: string): string | undefined {
+  try {
+    const parsed: unknown = JSON.parse(value);
+    const first = Array.isArray(parsed) ? parsed[0] : undefined;
+    return typeof first === "string" && first
+      ? JSON.stringify([first])
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 const PREFERENCE_BY_TYPE: Record<
   NotificationIntentType,
   NotificationPreferenceKey
@@ -1633,6 +1645,9 @@ async function deliverIntent(
     const actions = localizedActions(intent.actions ?? [], locale);
     const ttlMs = clampFcmTtlMs(intent.expires_at.toMillis());
     const actionData = JSON.stringify(actions.map(({ action }) => action));
+    const fcmSpotIds = intent.payload["spot_ids"]
+      ? firstSpotIdPayload(intent.payload["spot_ids"])
+      : undefined;
     const commonData = {
       intent_id: intentId,
       type: intent.type,
@@ -1659,9 +1674,7 @@ async function deliverIntent(
       ...(intent.payload["top_spot_path"]
         ? { top_spot_path: intent.payload["top_spot_path"] }
         : {}),
-      ...(intent.payload["spot_ids"]
-        ? { spot_ids: intent.payload["spot_ids"] }
-        : {}),
+      ...(fcmSpotIds ? { spot_ids: fcmSpotIds } : {}),
     };
     let response: admin.messaging.BatchResponse;
     try {
