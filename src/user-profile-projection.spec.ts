@@ -5,6 +5,7 @@ import {
   buildPublicUserProfile,
   effectivePublicProfileEnabled,
   profileAudienceForUser,
+  publicProfileSyncAction,
 } from "../functions/src/userProfileProjection";
 
 const adultPolicy = {
@@ -19,6 +20,56 @@ const adultPolicy = {
 };
 
 describe("user profile projections", () => {
+  it("reconciles the current source with the persisted public projection", () => {
+    expect(publicProfileSyncAction(
+      {display_name: "Private", contributions_count: 1},
+      null,
+    )).toEqual({type: "none"});
+
+    const publicProfile = {
+      ...adultPolicy,
+      display_name: "Public",
+      account_privacy: "public",
+      profile_visibility: "public",
+      public_profile_enabled: true,
+    };
+    const projectedProfile = buildPublicUserProfile(publicProfile)!;
+    expect(publicProfileSyncAction(publicProfile, projectedProfile))
+      .toEqual({type: "none"});
+    expect(publicProfileSyncAction({
+      ...publicProfile,
+      display_name: "Updated",
+    }, projectedProfile)).toMatchObject({
+      type: "set",
+      profile: {display_name: "Updated"},
+    });
+    expect(publicProfileSyncAction(null, projectedProfile))
+      .toEqual({type: "delete"});
+    expect(publicProfileSyncAction(null, null)).toEqual({type: "none"});
+  });
+
+  it("repairs reversed and duplicate event delivery from current state", () => {
+    const currentPrivateUser = {
+      display_name: "Private now",
+      account_privacy: "private",
+      profile_visibility: "followers",
+    };
+    const stalePublicProjection = buildPublicUserProfile({
+      ...adultPolicy,
+      display_name: "Previously public",
+      account_privacy: "public",
+      profile_visibility: "public",
+      public_profile_enabled: true,
+    })!;
+
+    expect(publicProfileSyncAction(
+      currentPrivateUser,
+      stalePublicProjection,
+    )).toEqual({type: "delete"});
+    expect(publicProfileSyncAction(currentPrivateUser, null))
+      .toEqual({type: "none"});
+  });
+
   it("publishes only a confirmed adult who explicitly opted in", () => {
     const profile = buildPublicUserProfile({
       ...adultPolicy,

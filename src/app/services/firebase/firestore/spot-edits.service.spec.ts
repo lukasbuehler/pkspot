@@ -10,6 +10,7 @@ import { AuthenticationService } from "../authentication.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
 import { FunctionsAdapterService } from "../functions-adapter.service";
 import {
+  spotEditAwaitsOrganizationReview,
   spotEditAwaitsReviewOutcome,
   SpotEditsService,
 } from "./spot-edits.service";
@@ -252,6 +253,24 @@ describe("SpotEditsService", () => {
     await expect(
       service.waitForReviewOutcomeDisposition("spot-1", "edit-2"),
     ).resolves.toBe(false);
+  });
+
+  it("distinguishes organization review from an immediately approved edit", () => {
+    const pending = {
+      ...buildEdit("pending-org", "user-1", 1),
+      review_status: "pending" as const,
+      review_kind: "stewarded" as const,
+      processing_status: "PENDING_STEWARD_REVIEW",
+    };
+    const approved = {
+      ...pending,
+      approved: true,
+      review_status: "approved" as const,
+      processing_status: "APPROVED_IMMEDIATE",
+    };
+
+    expect(spotEditAwaitsOrganizationReview(pending)).toBe(true);
+    expect(spotEditAwaitsOrganizationReview(approved)).toBe(false);
   });
 
   it("creates new spots only through the idempotent callable", async () => {

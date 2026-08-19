@@ -9,6 +9,7 @@ import { SpotLandingSchema } from "./SpotLandingSchema";
 import { OrganizationReferenceSchema } from "./OrganizationSchema";
 import type { EventCardPreviewSchema } from "./EventSchema";
 import { PublicSpotNotice } from "./SpotPublicNotice";
+import type { PublicImportProvenance } from "./PublicImportProvenance";
 
 export type SpotId = string & { __brand: "SpotId" };
 export type SpotSlug = string & { __brand: "SpotSlug" };
@@ -150,6 +151,12 @@ export interface SpotSchema {
 
   source?: string;
   import_id?: string;
+  /**
+   * `undefined` means a legacy imported Spot has not been projected yet,
+   * `null` means it was evaluated and has no public attribution, and an object
+   * contains the public-only import attribution.
+   */
+  public_import_provenance?: PublicImportProvenance | null;
   community_rebuild_deferred?: boolean;
 
   // Typesense helper fields
