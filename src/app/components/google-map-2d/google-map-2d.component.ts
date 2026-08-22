@@ -25,6 +25,7 @@ import {
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { SpotId } from "../../../db/schemas/SpotSchema";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
+import type { SeriesDocument } from "../../services/firebase/firestore/series.service";
 
 import {
   GoogleMap,
@@ -1350,6 +1351,7 @@ export class GoogleMap2dComponent
   readonly showOsmAttribution = input(false);
 
   readonly pointMarkers = input<MapPointMarker[]>([]);
+  readonly eventSeriesById = input<Record<string, SeriesDocument>>({});
   readonly communityDotMarkers = input<CommunityMapMarker[]>([]);
   readonly circleOverlays = input<MapCircleOverlay[]>([]);
   readonly boundsOverlays = input<MapBoundsOverlay[]>([]);
