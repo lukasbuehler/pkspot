@@ -6,7 +6,10 @@ import { NEVER, of } from "rxjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AnalyticsService } from "../../services/analytics.service";
 import { ConsentService } from "../../services/consent.service";
-import { AuthenticationService } from "../../services/firebase/authentication.service";
+import {
+  AccountCreationError,
+  AuthenticationService,
+} from "../../services/firebase/authentication.service";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { RecaptchaService } from "../../services/recaptcha.service";
 import { SignUpPageComponent } from "./sign-up-page.component";
@@ -109,5 +112,34 @@ describe("SignUpPageComponent", () => {
     expect(analytics.trackEvent).toHaveBeenCalledWith(
       "auth_sign_up_succeeded",
     );
+  });
+
+  it.each([
+    ["auth/wrong-password", "Current password is incorrect."],
+    ["auth/invalid-credential", "Invalid email or password."],
+    [
+      "auth/user-disabled",
+      "This account has been disabled. Please contact support.",
+    ],
+  ])("shows a useful recovery message for %s", async (code, message) => {
+    createAccount.mockRejectedValue(
+      new AccountCreationError("firebase_auth", code),
+    );
+    const formValue = {
+      displayName: "Existing User",
+      email: "existing@example.test",
+      password: "wrong-password",
+      repeatPassword: "wrong-password",
+      agreeCheck: true,
+    };
+
+    component.createAccountForm?.setValue(formValue);
+    component.tryCreateAccount(formValue);
+
+    await vi.waitFor(() => expect(component.signUpError).toBe(message));
+    expect(analytics.trackEvent).toHaveBeenCalledWith("auth_sign_up_failed", {
+      error_code: code,
+      failure_stage: "firebase_auth",
+    });
   });
 });

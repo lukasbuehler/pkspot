@@ -418,6 +418,43 @@ describe("AuthenticationService", () => {
     ).not.toContain("Raw provider error");
   });
 
+  it("attributes setup-state read failures to Firebase Auth while recording that the user exists", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    (createUserWithEmailAndPassword as Mock).mockResolvedValueOnce({
+      user: { ...firebaseUser, uid: "created-user" },
+    });
+    usersServiceSpy.getAccountSetupState.mockRejectedValueOnce({
+      code: "permission-denied",
+    });
+
+    await expect(
+      service.createAccount("created@example.test", "secret", "Created User"),
+    ).rejects.toEqual(
+      expect.objectContaining<AccountCreationError>({
+        stage: "firebase_auth",
+        code: "permission-denied",
+      }),
+    );
+    expect(consoleError).toHaveBeenCalledWith(
+      "[Auth] Email account creation failed",
+      expect.objectContaining({
+        stage: "firebase_auth",
+        firebase_user_created: true,
+      }),
+    );
+    expect(analyticsServiceSpy.reportError).toHaveBeenCalledWith(
+      expect.any(AccountCreationError),
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          failure_stage: "firebase_auth",
+          firebase_user_created: true,
+        }),
+      }),
+    );
+  });
+
   it("resumes incomplete setup when Firebase Auth already created the account", async () => {
     const createdUser = {
       ...firebaseUser,

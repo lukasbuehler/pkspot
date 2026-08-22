@@ -268,7 +268,7 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
           error_code: errorCode,
           failure_stage: failureStage,
         });
-        this.signUpError = $localize`Could not create account!`;
+        this.signUpError = this._getAccountCreationErrorMessage(errorCode);
         this._analytics.trackEvent("auth_sign_up_failed", {
           error_code: errorCode,
           failure_stage: failureStage,
@@ -301,5 +301,18 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
     }
 
     return null;
+  }
+
+  private _getAccountCreationErrorMessage(code: string | null): string {
+    switch (code) {
+      case "auth/wrong-password":
+        return $localize`Current password is incorrect.`;
+      case "auth/invalid-credential":
+        return $localize`Invalid email or password.`;
+      case "auth/user-disabled":
+        return $localize`This account has been disabled. Please contact support.`;
+      default:
+        return $localize`Could not create account!`;
+    }
   }
 }
