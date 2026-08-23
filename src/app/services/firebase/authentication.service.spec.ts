@@ -373,6 +373,7 @@ describe("AuthenticationService", () => {
         code: "auth/internal-error",
         platform: "web",
         firebase_user_created: true,
+        firebase_user_exists: true,
       },
     );
     expect(analyticsServiceSpy.reportError).toHaveBeenCalledWith(
@@ -393,6 +394,7 @@ describe("AuthenticationService", () => {
           error_code: "auth/internal-error",
           platform: "web",
           firebase_user_created: true,
+          firebase_user_exists: true,
           $exception_fingerprint:
             "email_account_creation:auth_profile:auth/internal-error",
         },
@@ -442,6 +444,7 @@ describe("AuthenticationService", () => {
       expect.objectContaining({
         stage: "firebase_auth",
         firebase_user_created: true,
+        firebase_user_exists: true,
       }),
     );
     expect(analyticsServiceSpy.reportError).toHaveBeenCalledWith(
@@ -450,6 +453,7 @@ describe("AuthenticationService", () => {
         properties: expect.objectContaining({
           failure_stage: "firebase_auth",
           firebase_user_created: true,
+          firebase_user_exists: true,
         }),
       }),
     );
@@ -495,6 +499,53 @@ describe("AuthenticationService", () => {
     expect(usersServiceSpy.addUser).toHaveBeenCalledTimes(1);
     expect(usersServiceSpy.initializePrivateData).toHaveBeenCalledTimes(1);
     expect(sendEmailVerification).toHaveBeenCalledWith(createdUser);
+  });
+
+  it("distinguishes a failed recovery from creating a Firebase user", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const existingUser = {
+      ...firebaseUser,
+      uid: "recoverable-user",
+      displayName: null,
+      emailVerified: false,
+    };
+    (createUserWithEmailAndPassword as Mock).mockRejectedValueOnce({
+      code: "auth/email-already-in-use",
+    });
+    (signInWithEmailAndPassword as Mock).mockResolvedValueOnce({
+      user: existingUser,
+    });
+    (updateProfile as Mock).mockRejectedValueOnce({
+      code: "auth/internal-error",
+    });
+
+    await expect(
+      service.createAccount("recover@example.test", "secret", "Recover Me"),
+    ).rejects.toEqual(
+      expect.objectContaining<AccountCreationError>({
+        stage: "auth_profile",
+        code: "auth/internal-error",
+      }),
+    );
+
+    expect(consoleError).toHaveBeenCalledWith(
+      "[Auth] Email account creation failed",
+      expect.objectContaining({
+        firebase_user_created: false,
+        firebase_user_exists: true,
+      }),
+    );
+    expect(analyticsServiceSpy.reportError).toHaveBeenCalledWith(
+      expect.any(AccountCreationError),
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          firebase_user_created: false,
+          firebase_user_exists: true,
+        }),
+      }),
+    );
   });
 
   it("does not overwrite completed setup while recovering an existing Auth account", async () => {

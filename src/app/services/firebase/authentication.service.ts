@@ -1080,6 +1080,7 @@ export class AuthenticationService extends ConsentAwareService {
 
     let stage: AccountCreationStage = "consent";
     let firebaseUserExists = false;
+    let firebaseUserCreated = false;
     try {
       // Ensure consent before creating account (which triggers reCAPTCHA).
       await this.executeWithConsent(async () => {
@@ -1092,6 +1093,7 @@ export class AuthenticationService extends ConsentAwareService {
             email,
             confirmedPassword,
           );
+          firebaseUserCreated = true;
           this.trackEventWithConsent("Create Account", {
             props: { accountType: "Email and Password" },
           });
@@ -1123,6 +1125,7 @@ export class AuthenticationService extends ConsentAwareService {
         stage,
         error,
         "web",
+        firebaseUserCreated,
         firebaseUserExists,
       );
     } finally {
@@ -1151,6 +1154,7 @@ export class AuthenticationService extends ConsentAwareService {
 
     let stage: AccountCreationStage = "consent";
     let firebaseUserExists = false;
+    let firebaseUserCreated = false;
     try {
       // Ensure consent before creating account
       await this.executeWithConsent(async () => {
@@ -1162,6 +1166,7 @@ export class AuthenticationService extends ConsentAwareService {
             email,
             password: confirmedPassword,
           });
+          firebaseUserCreated = true;
           this.trackEventWithConsent("Create Account", {
             props: { accountType: "Email and Password" },
           });
@@ -1191,6 +1196,7 @@ export class AuthenticationService extends ConsentAwareService {
         stage,
         error,
         Capacitor.getPlatform(),
+        firebaseUserCreated,
         firebaseUserExists,
       );
     } finally {
@@ -1241,6 +1247,7 @@ export class AuthenticationService extends ConsentAwareService {
     stage: AccountCreationStage,
     error: unknown,
     platform: string,
+    firebaseUserCreated: boolean,
     firebaseUserExists: boolean,
   ): AccountCreationError {
     const code = this._errorCode(error);
@@ -1249,7 +1256,8 @@ export class AuthenticationService extends ConsentAwareService {
       stage,
       code,
       platform,
-      firebase_user_created: firebaseUserExists,
+      firebase_user_created: firebaseUserCreated,
+      firebase_user_exists: firebaseUserExists,
     };
 
     console.error("[Auth] Email account creation failed", diagnostics);
@@ -1265,6 +1273,7 @@ export class AuthenticationService extends ConsentAwareService {
         error_code: code,
         platform,
         firebase_user_created: diagnostics.firebase_user_created,
+        firebase_user_exists: diagnostics.firebase_user_exists,
         $exception_fingerprint: `email_account_creation:${stage}:${code ?? "unknown"}`,
       },
     });
