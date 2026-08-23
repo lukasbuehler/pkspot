@@ -22,6 +22,7 @@ import { NotificationCenterService } from "../../services/notification-center.se
 import { NotificationActionsService } from "../../services/notification-actions.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
+import { resolveNotificationPath } from "../../services/notification-navigation";
 
 interface NotificationViewModel {
   id: string;
@@ -173,7 +174,7 @@ export class NotificationCenterPageComponent {
     return {
       id: item.id,
       ...this._copy(item),
-      path: item.path,
+      path: resolveNotificationPath(item),
       time: this._relativeDate(item.created_at_raw_ms),
       unread: !item.read_at_raw_ms,
       imageUrl: item.image_url,

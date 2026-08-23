@@ -30,6 +30,7 @@ import {
 } from "../../../db/models/Spot";
 import { SpotId } from "../../../db/schemas/SpotSchema";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
+import type { SeriesDocument } from "../../services/firebase/firestore/series.service";
 import { ActivatedRoute, Router } from "@angular/router";
 import { GeoPoint } from "firebase/firestore";
 import { firstValueFrom, Observable, retry, Subscription } from "rxjs";
@@ -216,6 +217,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     MapPointMarker[],
     MapPointMarker[] | null | undefined
   >([], { transform: (value) => (value ? [...value] : []) });
+  readonly eventSeriesById = input<Record<string, SeriesDocument>>({});
   readonly boundsOverlays = input<
     MapBoundsOverlay[],
     MapBoundsOverlay[] | null | undefined

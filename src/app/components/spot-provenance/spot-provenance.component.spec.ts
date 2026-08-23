@@ -46,7 +46,19 @@ describe("SpotProvenanceComponent", () => {
   it("never calls the compatibility Function during SSR", async () => {
     const {fixture, imports} = await render("server", undefined);
     expect(imports.getPublicProvenanceById).not.toHaveBeenCalled();
-    expect(fixture.nativeElement.textContent).toContain("import-1");
+    expect(fixture.nativeElement.textContent).not.toContain("import-1");
+  });
+
+  it("does not render projected attribution during SSR", async () => {
+    const {fixture, imports} = await render("server", {
+      source_name: "Projected source",
+      attribution_text: "Projected attribution",
+    });
+    expect(imports.getPublicProvenanceById).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).not.toContain("Projected source");
+    expect(fixture.nativeElement.textContent).not.toContain(
+      "Projected attribution",
+    );
   });
 
   it("renders a projected value without a Function call", async () => {

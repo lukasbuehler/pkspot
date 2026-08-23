@@ -1,6 +1,6 @@
 {
   "name": "pkspot",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "engines": {
     "node": "22"
   },
@@ -111,7 +111,7 @@
     "@capacitor/keyboard": "^8.0.3",
     "@capacitor/share": "^8.0.1",
     "@capacitor/splash-screen": "^8.0.1",
-    "@capawesome/capacitor-posthog": "^8.4.2",
+    "@capawesome/capacitor-posthog": "^8.5.0",
     "@formkit/auto-animate": "^0.9.0",
     "@types/jszip": "^3.4.1",
     "@videogular/ngx-videogular": "^8.0.0",

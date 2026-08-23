@@ -397,7 +397,11 @@ export class AnalyticsService {
   }
 
   reportError(error: unknown, options: ErrorReportOptions): void {
-    if (!this.isAvailable() || this.isLikelyBot()) {
+    if (
+      !this.isAvailable() ||
+      !this._consentService.hasConsent() ||
+      this.isLikelyBot()
+    ) {
       return;
     }
 
@@ -405,7 +409,7 @@ export class AnalyticsService {
 
     try {
       if (this.isNative()) {
-        this.sendNativeCapture("$exception", properties);
+        this.sendNativeException(error, properties);
 
         if (options.userFacing) {
           this.sendNativeCapture("User Encountered Error", properties);
@@ -420,6 +424,27 @@ export class AnalyticsService {
     } catch (reportingError) {
       console.warn("AnalyticsService: failed to report error", reportingError);
     }
+  }
+
+  private sendNativeException(
+    error: unknown,
+    properties: Record<string, unknown>,
+  ): void {
+    const summary = this.getErrorSummary(error);
+    const nativeProperties = this.withRequiredNativeAnalyticsProperties(
+      properties,
+    );
+
+    void CapacitorPostHog.captureException({
+      name: summary.name,
+      message: summary.message,
+      properties: nativeProperties,
+    }).catch((captureError) => {
+      console.warn(
+        "AnalyticsService: failed to send native exception",
+        captureError,
+      );
+    });
   }
 
   /**

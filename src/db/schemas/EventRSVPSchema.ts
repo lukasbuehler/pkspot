@@ -16,4 +16,5 @@ export interface EventRSVPSchema {
   rsvp: EventRSVPOption;
   time_created?: Timestamp | Date;
   time_updated: Timestamp | Date;
+  time_updated_raw_ms?: number;
 }

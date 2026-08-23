@@ -261,6 +261,34 @@ describe("EventCardComponent", () => {
       "https://firebasestorage.googleapis.com/v0/b/parkour-base-project.appspot.com/o/event_media%2Fbanner_800x800.png?alt=media",
     );
   });
+
+  it("renders event series logos when series metadata is available", () => {
+    fixture.componentRef.setInput(
+      "event",
+      buildEvent(
+        "event-123",
+        "2026-06-14T10:00:00.000Z",
+        "2026-06-15T10:00:00.000Z",
+        { series_ids: ["swiss-parkour-tour"] },
+      ),
+    );
+    fixture.componentRef.setInput("seriesById", {
+      "swiss-parkour-tour": {
+        id: "swiss-parkour-tour",
+        name: "Swiss Parkour Tour",
+        logo_src: "https://example.com/spt-logo.png",
+        logo_background_color: "white",
+      },
+    });
+
+    fixture.detectChanges();
+
+    const logo = fixture.debugElement.query(By.css(".series-badge img"));
+    expect(logo.nativeElement.getAttribute("src")).toBe(
+      "https://example.com/spt-logo.png",
+    );
+    expect(logo.nativeElement.getAttribute("alt")).toBe("Swiss Parkour Tour");
+  });
 });
 
 describe("EventCardComponent localization", () => {

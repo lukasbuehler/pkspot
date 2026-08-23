@@ -18,6 +18,7 @@ import { LocaleCode } from "../../../db/models/Interfaces";
 import { Spot } from "../../../db/models/Spot";
 import { SpotSelectionDataService } from "../../services/spot-selection-data.service";
 import { SearchFieldComponent } from "../search-field/search-field.component";
+import type { SearchSelection } from "../search-field/search-field.component";
 
 /**
  * Multi-spot picker that wraps `<app-search-field>` for autocomplete and
@@ -118,10 +119,7 @@ export class SpotPickerComponent {
     });
   }
 
-  onSpotSelected(selection: {
-    type: "place" | "spot" | "community" | "event";
-    id: string;
-  }): void {
+  onSpotSelected(selection: SearchSelection): void {
     if (this.disabled() || selection.type !== "spot") return;
     if (this.isFull()) return;
     const current = this.value();

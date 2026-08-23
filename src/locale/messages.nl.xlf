@@ -3229,6 +3229,12 @@
         <target>Spot met succes opgeslagen</target>
       </segment>
     </unit>
+    <unit id="5749779471450465026">
+      <segment state="translated">
+        <source>That Maps link did not contain a location.</source>
+        <target>Die Maps-link bevatte geen locatie.</target>
+      </segment>
+    </unit>
     <unit id="5753174679285423997">
       <segment state="initial">
         <source>Smart Scorecard</source>
@@ -13896,6 +13902,12 @@
       <segment state="initial">
         <source>Error uploading the profile picture.</source>
         <target>Fout bij het uploaden van de profielfoto.</target>
+      </segment>
+    </unit>
+    <unit id="7182428681839004095">
+      <segment state="translated">
+        <source>Couldn&apos;t open that Maps link. Try pasting a full Google Maps or Apple Maps link.</source>
+        <target>Die Maps-link kon niet worden geopend. Probeer een volledige Google Maps- of Apple Maps-link te plakken.</target>
       </segment>
     </unit>
     <unit id="7193934719093844817">

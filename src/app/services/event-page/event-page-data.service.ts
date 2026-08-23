@@ -232,17 +232,38 @@ export class EventPageDataService {
     event: PkEvent,
     spots: (Spot | LocalSpot)[],
   ): Promise<(SpotChallenge | null)[]> {
-    if (Object.keys(event.challengeSpotMap).length === 0) {
+    const challengeEntries = Object.entries(event.challengeSpotMap);
+    if (challengeEntries.length === 0) {
       return [];
     }
 
+    const spotsById = new Map<string, Spot>(
+      spots
+        .filter((spot): spot is Spot => spot instanceof Spot)
+        .map((spot) => [spot.id, spot]),
+    );
+    const missingSpotIds = [
+      ...new Set(
+        challengeEntries
+          .map(([, spotId]) => spotId)
+          .filter((spotId) => !spotsById.has(spotId)),
+      ),
+    ];
+    const missingSpots = await Promise.all(
+      missingSpotIds.map((spotId) =>
+        this._spotsService
+          .getSpotById(spotId as SpotId, this._locale)
+          .catch(() => null),
+      ),
+    );
+    missingSpots.forEach((spot) => {
+      if (spot) spotsById.set(spot.id, spot);
+    });
+
     return Promise.all(
-      Object.entries(event.challengeSpotMap).map(([challengeId, spotId]) => {
-        const spot = spots.find(
-          (candidate) =>
-            candidate instanceof Spot && candidate.id === (spotId as SpotId),
-        );
-        if (!(spot instanceof Spot)) {
+      challengeEntries.map(([challengeId, spotId]) => {
+        const spot = spotsById.get(spotId);
+        if (!spot) {
           return Promise.resolve(null);
         }
         return this._challengeService

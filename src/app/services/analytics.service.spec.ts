@@ -9,6 +9,7 @@ import { AnalyticsService, stripUtmParametersFromUrl } from "./analytics.service
 
 const capacitorPostHogMock = vi.hoisted(() => ({
   unregister: vi.fn(),
+  captureException: vi.fn(),
 }));
 
 vi.mock("@capawesome/capacitor-posthog", () => ({
@@ -189,5 +190,101 @@ describe("AnalyticsService native SDK metadata migration", () => {
     expect(properties).not.toHaveProperty("$lib");
     expect(properties).not.toHaveProperty("$lib_version");
     expect(properties["action"]).toBe("open");
+  });
+});
+
+describe("AnalyticsService error reporting", () => {
+  let service: AnalyticsService;
+  let consentService: { hasConsent: ReturnType<typeof vi.fn> };
+
+  const makeAvailable = (posthog: {
+    captureException: ReturnType<typeof vi.fn>;
+  }) => {
+    const internals = service as unknown as {
+      _initialized: boolean;
+      _posthog: typeof posthog;
+    };
+    internals._initialized = true;
+    internals._posthog = posthog;
+  };
+
+  beforeEach(() => {
+    consentService = { hasConsent: vi.fn(() => true) };
+    TestBed.configureTestingModule({
+      providers: [
+        AnalyticsService,
+        { provide: ConsentService, useValue: consentService },
+        {
+          provide: Router,
+          useValue: {
+            events: NEVER,
+            url: "/sign-up",
+          },
+        },
+        { provide: PLATFORM_ID, useValue: "browser" },
+      ],
+    });
+    service = TestBed.inject(AnalyticsService);
+  });
+
+  it("captures a handled web exception with diagnostic properties", () => {
+    const posthog = { captureException: vi.fn() };
+    makeAvailable(posthog);
+    const error = new Error("Safe failure summary");
+
+    service.reportError(error, {
+      context: "email_account_creation",
+      feature: "authentication",
+      handled: true,
+      properties: { failure_stage: "firebase_auth" },
+    });
+
+    expect(posthog.captureException).toHaveBeenCalledWith(
+      error,
+      expect.objectContaining({
+        error_context: "email_account_creation",
+        error_feature: "authentication",
+        error_handled: true,
+        failure_stage: "firebase_auth",
+      }),
+    );
+  });
+
+  it("does not report exceptions without analytics consent", () => {
+    consentService.hasConsent.mockReturnValue(false);
+    const posthog = { captureException: vi.fn() };
+    makeAvailable(posthog);
+
+    service.reportError(new Error("Not sent"), {
+      context: "email_account_creation",
+    });
+
+    expect(posthog.captureException).not.toHaveBeenCalled();
+  });
+
+  it("uses the native exception API instead of synthesizing an event", () => {
+    vi.mocked(CapacitorPostHog.captureException).mockResolvedValue();
+    const internals = service as unknown as {
+      _initialized: boolean;
+      isNative: () => boolean;
+    };
+    internals._initialized = true;
+    internals.isNative = () => true;
+
+    service.reportError(new Error("Safe native failure"), {
+      context: "email_account_creation",
+      properties: { failure_stage: "auth_profile" },
+    });
+
+    expect(CapacitorPostHog.captureException).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "Error",
+        message: "Safe native failure",
+        properties: expect.objectContaining({
+          error_context: "email_account_creation",
+          failure_stage: "auth_profile",
+        }),
+      }),
+    );
   });
 });

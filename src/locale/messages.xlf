@@ -1732,6 +1732,11 @@
         <source>Error uploading the profile picture.</source>
       </segment>
     </unit>
+    <unit id="7182428681839004095">
+      <segment>
+        <source>Couldn&apos;t open that Maps link. Try pasting a full Google Maps or Apple Maps link.</source>
+      </segment>
+    </unit>
     <unit id="4115668858470490289">
       <segment>
         <source>Challenge updated successfully</source>
@@ -10877,6 +10882,11 @@
     <unit id="5749021803913348721">
       <segment>
         <source>Spot saved successfully</source>
+      </segment>
+    </unit>
+    <unit id="5749779471450465026">
+      <segment>
+        <source>That Maps link did not contain a location.</source>
       </segment>
     </unit>
     <unit id="1536087519743707362">

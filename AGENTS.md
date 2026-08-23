@@ -49,6 +49,35 @@ These instructions apply to all work in this repository.
 
 If you hit the Codex sandbox error "Abort trap: 6", you need to run it outside the sandbox in the terminal.
 
+## Angular runtime debugging
+
+- For bugs involving runtime signal state, computed/effect dependencies,
+  dependency injection, browser-only behavior, rendering, network requests, or
+  performance, use Chrome DevTools MCP when its tools are available. Combine
+  runtime evidence with source inspection and regression tests; do not treat a
+  runtime graph alone as proof of the root cause.
+- Angular's in-page AI debugging tools are development-mode only. Run a local
+  development build and inspect that page rather than expecting the tools in a
+  production build.
+- In Chrome DevTools MCP, call `list_3p_developer_tools` after loading the app.
+  Angular 22 should expose `angular:signal_graph` and `angular:di_graph`.
+  Execute them with `execute_3p_developer_tool`:
+  - Use `angular:signal_graph` for a specific Angular component host element to
+    inspect signals, computeds, effects, template consumers, and dependency
+    edges.
+  - Use `angular:di_graph` to inspect application injector relationships and
+    provider resolution. Confirm important findings against the relevant
+    providers and injector scopes in source.
+- Use the regular Chrome DevTools MCP console, network, DOM snapshot, script
+  evaluation, and performance tools alongside the Angular-specific graphs when
+  they materially narrow the diagnosis.
+- Prefer an isolated browser profile and local fixtures. Do not inspect a
+  signed-in production session or expose tokens, cookies, personal data, or
+  other secrets unless the user explicitly authorizes that production scope.
+- If Chrome DevTools MCP or the Angular third-party tools are unavailable,
+  report the missing capability briefly and continue with Playwright, the
+  in-app browser, unit tests, and source-level debugging as appropriate.
+
 ## Translation workflow
 
 - The project uses Angular XLIFF 2.0 files in `src/locale`. `src/locale/messages.xlf` is the English source file; translated files are `messages.<locale>.xlf`.

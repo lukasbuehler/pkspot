@@ -1,7 +1,7 @@
 import { signal, type WritableSignal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { provideRouter } from "@angular/router";
+import { provideRouter, Router } from "@angular/router";
 import { BehaviorSubject } from "rxjs";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import {
@@ -10,6 +10,7 @@ import {
 } from "../../services/notification-center.service";
 import { NotificationCenterPageComponent } from "./notification-center-page.component";
 import { NotificationActionsService } from "../../services/notification-actions.service";
+import { NOTIFICATION_ACTION_IDS } from "../../../db/schemas/NotificationSchema";
 
 describe("NotificationCenterPageComponent", () => {
   let component: NotificationCenterPageComponent;
@@ -37,9 +38,9 @@ describe("NotificationCenterPageComponent", () => {
             loading: signal(false),
             failed: signal(false),
             refresh: vi.fn(),
-            markRead: vi.fn(),
-            markAllRead: vi.fn(),
-            dismiss: vi.fn(),
+            markRead: vi.fn().mockResolvedValue(undefined),
+            markAllRead: vi.fn().mockResolvedValue(undefined),
+            dismiss: vi.fn().mockResolvedValue(undefined),
           },
         },
         { provide: MatSnackBar, useValue: { open: vi.fn() } },
@@ -233,4 +234,38 @@ describe("NotificationCenterPageComponent", () => {
     );
     expect(fixture.nativeElement.textContent).toContain("3 new Spots worth a look");
   });
+
+  it("opens an existing Spot digest at its first Spot instead of /train", () => {
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, "navigateByUrl");
+    const now = Date.now();
+    items.set([{
+      id: "legacy-community-spots-1",
+      type: "community_spot_digest",
+      source_path: "users/user-1/community_spot_digest_items",
+      dedupe_key: "legacy-community-spots-1",
+      path: "/train",
+      payload: { spot_count: "1", spot_ids: '["spot-1"]' },
+      active: true,
+      created_at_raw_ms: now,
+      available_at_raw_ms: now,
+      expires_at_raw_ms: now + 86_400_000,
+      updated_at_raw_ms: now,
+    }]);
+
+    component.open(component.notifications()[0]);
+
+    expect(navigate).toHaveBeenCalledWith("/map/spots/spot-1");
+  });
+
+  it.each(NOTIFICATION_ACTION_IDS)(
+    "sends the %s notification action to the backend",
+    async (actionId) => {
+      const actions = TestBed.inject(NotificationActionsService);
+
+      await component.performAction("notification-1", actionId);
+
+      expect(actions.perform).toHaveBeenCalledWith("notification-1", actionId);
+    },
+  );
 });

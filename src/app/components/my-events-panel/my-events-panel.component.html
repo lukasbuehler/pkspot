@@ -28,7 +28,7 @@
       <span class="tab-content">
         <mat-icon>check_circle</mat-icon>
         <span i18n="@@my_events.going">Going</span>
-        <span class="tab-count">{{ goingEvents().length }}</span>
+        <span class="tab-count">{{ upcomingGoingEvents().length }}</span>
       </span>
     </mat-button-toggle>
     <mat-button-toggle value="saved">
@@ -42,7 +42,7 @@
       <span class="tab-content">
         <mat-icon>history</mat-icon>
         <span i18n="@@my_events.past">Past</span>
-        <span class="tab-count">{{ pastSavedEvents().length }}</span>
+        <span class="tab-count">{{ pastEvents().length }}</span>
       </span>
     </mat-button-toggle>
   </mat-button-toggle-group>

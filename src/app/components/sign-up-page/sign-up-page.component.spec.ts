@@ -6,7 +6,10 @@ import { NEVER, of } from "rxjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AnalyticsService } from "../../services/analytics.service";
 import { ConsentService } from "../../services/consent.service";
-import { AuthenticationService } from "../../services/firebase/authentication.service";
+import {
+  AccountCreationError,
+  AuthenticationService,
+} from "../../services/firebase/authentication.service";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { RecaptchaService } from "../../services/recaptcha.service";
 import { SignUpPageComponent } from "./sign-up-page.component";
@@ -14,9 +17,11 @@ import { SignUpPageComponent } from "./sign-up-page.component";
 describe("SignUpPageComponent", () => {
   let component: SignUpPageComponent;
   let createAccount: ReturnType<typeof vi.fn>;
+  let analytics: { trackEvent: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     createAccount = vi.fn();
+    analytics = { trackEvent: vi.fn() };
 
     TestBed.configureTestingModule({
       providers: [
@@ -27,7 +32,7 @@ describe("SignUpPageComponent", () => {
         },
         {
           provide: AnalyticsService,
-          useValue: { trackEvent: vi.fn() },
+          useValue: analytics,
         },
       ],
     });
@@ -58,7 +63,6 @@ describe("SignUpPageComponent", () => {
       password: "correct-horse",
       repeatPassword: "wrong-horse",
       agreeCheck: true,
-      inviteCode: "",
     };
 
     component.createAccountForm?.setValue(formValue);
@@ -75,7 +79,6 @@ describe("SignUpPageComponent", () => {
       password: "correct-horse",
       repeatPassword: "correct-horse",
       agreeCheck: false,
-      inviteCode: "",
     };
 
     component.createAccountForm?.setValue(formValue);
@@ -83,5 +86,60 @@ describe("SignUpPageComponent", () => {
 
     expect(component.signUpError).toMatch(/agree|terms/i);
     expect(createAccount).not.toHaveBeenCalled();
+  });
+
+  it("submits a valid email/password form without a hidden invite code", async () => {
+    createAccount.mockResolvedValue(undefined);
+    const formValue = {
+      displayName: "E2E User",
+      email: "E2E@Example.test ",
+      password: "correct-horse",
+      repeatPassword: "correct-horse",
+      agreeCheck: true,
+    };
+
+    component.createAccountForm?.setValue(formValue);
+    component.tryCreateAccount(formValue);
+
+    await vi.waitFor(() =>
+      expect(createAccount).toHaveBeenCalledWith(
+        "e2e@example.test",
+        "correct-horse",
+        "E2E User",
+      ),
+    );
+    expect(component.signUpError).toBe("");
+    expect(analytics.trackEvent).toHaveBeenCalledWith(
+      "auth_sign_up_succeeded",
+    );
+  });
+
+  it.each([
+    ["auth/wrong-password", "Current password is incorrect."],
+    ["auth/invalid-credential", "Invalid email or password."],
+    [
+      "auth/user-disabled",
+      "This account has been disabled. Please contact support.",
+    ],
+  ])("shows a useful recovery message for %s", async (code, message) => {
+    createAccount.mockRejectedValue(
+      new AccountCreationError("firebase_auth", code),
+    );
+    const formValue = {
+      displayName: "Existing User",
+      email: "existing@example.test",
+      password: "wrong-password",
+      repeatPassword: "wrong-password",
+      agreeCheck: true,
+    };
+
+    component.createAccountForm?.setValue(formValue);
+    component.tryCreateAccount(formValue);
+
+    await vi.waitFor(() => expect(component.signUpError).toBe(message));
+    expect(analytics.trackEvent).toHaveBeenCalledWith("auth_sign_up_failed", {
+      error_code: code,
+      failure_stage: "firebase_auth",
+    });
   });
 });

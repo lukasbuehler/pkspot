@@ -7,6 +7,7 @@ import { AuthenticationService } from "./firebase/authentication.service";
 import { FirestoreAdapterService } from "./firebase/firestore-adapter.service";
 import { PushNotificationsService } from "./push-notifications.service";
 import { WebPushClientService } from "./web-push-client.service";
+import { NOTIFICATION_ACTION_IDS } from "../../db/schemas/NotificationSchema";
 
 describe("PushNotificationsService", () => {
   const authState = new BehaviorSubject<{ uid: string } | null>(null);
@@ -29,7 +30,7 @@ describe("PushNotificationsService", () => {
     onMessage: vi.fn().mockResolvedValue(vi.fn()),
     showNotification: vi.fn().mockResolvedValue(true),
   };
-  const router = { navigateByUrl: vi.fn() };
+  const router = { navigate: vi.fn(), navigateByUrl: vi.fn() };
 
   beforeEach(() => {
     vi.stubGlobal("crypto", webcrypto);
@@ -152,4 +153,48 @@ describe("PushNotificationsService", () => {
       expect(webPush.showNotification).toHaveBeenCalledWith(message),
     );
   });
+
+  it("repairs taps on existing Spot digest notifications", () => {
+    const service = TestBed.inject(PushNotificationsService);
+
+    (
+      service as unknown as {
+        _openNotificationData(data: Record<string, unknown>): void;
+      }
+    )._openNotificationData({
+        type: "community_spot_digest",
+        path: "/train",
+        spot_ids: '["spot-1"]',
+      });
+
+    expect(router.navigateByUrl).toHaveBeenCalledWith("/map/spots/spot-1");
+  });
+
+  it.each(NOTIFICATION_ACTION_IDS)(
+    "routes the %s push action through the notification center",
+    (actionId) => {
+      const service = TestBed.inject(PushNotificationsService);
+
+      (
+        service as unknown as {
+          _openNotificationData(
+            data: Record<string, unknown>,
+            actionId?: string,
+          ): void;
+        }
+      )._openNotificationData({
+          intent_id: "intent-1",
+          type: "event_reminder",
+          path: "/events/city-jam",
+        }, actionId);
+
+      expect(router.navigate).toHaveBeenCalledWith(["/notifications"], {
+        queryParams: {
+          notification: "intent-1",
+          notificationAction: actionId,
+          returnTo: "/events/city-jam",
+        },
+      });
+    },
+  );
 });

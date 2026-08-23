@@ -3097,6 +3097,12 @@
         <target>Spot erfolgreich gespeichert</target>
       </segment>
     </unit>
+    <unit id="5749779471450465026">
+      <segment state="translated">
+        <source>That Maps link did not contain a location.</source>
+        <target>Dieser Maps-Link enthielt keinen Standort.</target>
+      </segment>
+    </unit>
     <unit id="1509543645001749494">
       <segment state="initial">
         <source>Visited Spots</source>
@@ -13649,6 +13655,12 @@
       <segment state="initial">
         <source>Error uploading the profile picture.</source>
         <target>Fehler beim Hochladen des Profilbilds.</target>
+      </segment>
+    </unit>
+    <unit id="7182428681839004095">
+      <segment state="translated">
+        <source>Couldn&apos;t open that Maps link. Try pasting a full Google Maps or Apple Maps link.</source>
+        <target>Dieser Maps-Link konnte nicht geöffnet werden. Füge stattdessen einen vollständigen Google Maps- oder Apple Maps-Link ein.</target>
       </segment>
     </unit>
     <unit id="7193934719093844817">

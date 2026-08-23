@@ -415,6 +415,53 @@ describe("EventPageDataService", () => {
     expect(spots[0]?.location()).toEqual({ lat: 49.1951, lng: 16.6068 });
   });
 
+  it("loads event challenges even when their parent Spots are only search previews or omitted from the event", async () => {
+    const challengeSpot = {
+      id: "challenge-spot",
+      name: () => "Challenge Spot",
+      location: () => ({ lat: 47.33, lng: 8.54 }),
+    };
+    const spotsService = {
+      getSpotById: vi.fn(() => Promise.resolve(challengeSpot)),
+    };
+    const challengeService = {
+      getSpotChallenge: vi.fn((spot, challengeId) =>
+        Promise.resolve({ id: challengeId, spot }),
+      ),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: EventsService, useValue: {} },
+        { provide: SpotsService, useValue: spotsService },
+        { provide: SpotChallengesService, useValue: challengeService },
+        { provide: SearchService, useValue: {} },
+        { provide: LOCALE_ID, useValue: "en" },
+      ],
+    });
+
+    const service = TestBed.inject(EventPageDataService);
+    const event = buildEvent("swissjam26", {
+      challenge_spot_map: {
+        "challenge-1": "challenge-spot",
+        "challenge-2": "challenge-spot",
+      },
+    });
+
+    const challenges = await service.loadEventChallenges(event, []);
+
+    expect(spotsService.getSpotById).toHaveBeenCalledOnce();
+    expect(spotsService.getSpotById).toHaveBeenCalledWith(
+      "challenge-spot",
+      "en",
+    );
+    expect(challengeService.getSpotChallenge).toHaveBeenCalledTimes(2);
+    expect(challenges.map((challenge) => challenge?.id)).toEqual([
+      "challenge-1",
+      "challenge-2",
+    ]);
+  });
+
   it("prioritizes event custom markers above challenge markers and spot markers", () => {
     TestBed.configureTestingModule({
       providers: [

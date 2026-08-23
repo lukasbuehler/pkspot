@@ -85,6 +85,7 @@ import { SlugsService } from "../../services/firebase/firestore/slugs.service";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { SearchFieldComponent } from "../search-field/search-field.component";
+import type { SearchSelection } from "../search-field/search-field.component";
 import {
   LocalSpotChallenge,
   SpotChallenge,
@@ -292,6 +293,7 @@ const DENSE_MAP_PERFORMANCE_VARIANTS = new Set<DenseMapPerformanceVariant>([
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly _eventPromoDismissalsStorageKey =
     "pkspot.eventPromoDismissals.v1";
+  private _searchSelectionRequestId = 0;
 
   @ViewChild("spotMap", { static: false }) spotMap: SpotMapComponent | null =
     null;
@@ -2958,19 +2960,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  openSpotOrGooglePlace(value: {
-    type: "place" | "spot" | "community" | "event";
-    id: string;
-    community?: CommunitySearchPreview;
-    event?: { id: string; slug?: string };
-    spot?: {
-      name?: string;
-      slug?: string;
-      imageSrc?: string;
-      locality?: string;
-      rating?: number;
-    };
-  }) {
+  async openSpotOrGooglePlace(value: SearchSelection): Promise<void> {
+    const requestId = ++this._searchSelectionRequestId;
     this._analytics.trackEvent("map_search_result_selected", {
       result_type: value.type,
       result_id: value.id,
@@ -2981,6 +2972,37 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     });
     if (value.type === "place") {
       this.openGooglePlaceById(value.id);
+      return;
+    }
+
+    if (value.type === "map-link" && value.mapLink) {
+      const mapLink = value.mapLink;
+      if (mapLink.placeId) {
+        this.openGooglePlaceById(mapLink.placeId);
+        return;
+      }
+      if (mapLink.location) {
+        this.spotMap?.focusPoint(mapLink.location, 17);
+        return;
+      }
+      if (mapLink.query) {
+        try {
+          const place = (await this._searchService.searchPlaces(mapLink.query))[0];
+          if (requestId !== this._searchSelectionRequestId) return;
+          if (place?.place_id) {
+            this.openGooglePlaceById(place.place_id);
+            return;
+          }
+        } catch (error) {
+          if (requestId !== this._searchSelectionRequestId) return;
+          console.error("Failed to find the place from a pasted Maps link", error);
+        }
+      }
+      this._snackbar.open(
+        $localize`That Maps link did not contain a location.`,
+        $localize`Dismiss`,
+        { duration: 5_000 },
+      );
       return;
     }
 

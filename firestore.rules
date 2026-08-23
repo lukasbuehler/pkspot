@@ -533,12 +533,17 @@ service cloud.firestore {
           'event_id',
           'rsvp',
           'time_created',
-          'time_updated'
+          'time_updated',
+          'time_updated_raw_ms'
         ])
         && request.resource.data.user_id == userId
         && request.resource.data.event_id == eventId
         && request.resource.data.rsvp in ['going', 'interested', 'notgoing']
         && request.resource.data.time_updated is timestamp
+        && (
+          !('time_updated_raw_ms' in request.resource.data)
+          || request.resource.data.time_updated_raw_ms is number
+        )
         && (
           !('time_created' in request.resource.data)
           || request.resource.data.time_created is timestamp

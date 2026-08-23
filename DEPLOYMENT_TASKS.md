@@ -82,6 +82,85 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
+### Event RSVP and My Events repair
+
+The Firestore rule change accepts the optional millisecond timestamp already
+written by notification actions. Deploy it before releasing the client so
+existing action-created RSVP documents can be changed in older and newer apps.
+
+- [ ] Deploy the RSVP-compatible Firestore rules:
+
+  ```sh
+  npx firebase deploy --project prod --only firestore:rules
+  ```
+
+  - Verify a signed-in non-admin can change an existing Interested RSVP that
+    contains `time_updated_raw_ms` to Going, while writes to another user's
+    RSVP remain denied.
+
+- [ ] Release web, Android, and iOS through their normal workflows. Verify past
+      Going and Saved events appear only under Past, future Going events remain
+      under Going, future Saved events remain under Saved, and an event present
+      in both Going and Saved is displayed only once. No data backfill is
+      required.
+
+### Email signup and notification-link repair
+
+The digest Function change is backward-compatible: existing clients can open
+the new canonical Spot path. The client additionally repairs already-projected
+digest notifications whose historical path is `/train`.
+
+- [ ] Deploy the community digest producer and notification delivery Functions
+      before releasing the clients:
+
+  ```sh
+  npx firebase deploy --project prod --only functions:sendCommunitySpotDigests,functions:sendDueNotificationIntents,functions:onImmediateNotificationIntentCreate,functions:onNotificationIntentWrite
+  ```
+
+  - Verify a test digest intent and its in-app projection both use the first
+    included Spot's `/s/{slug}` path, and that delivered FCM data carries the
+    same path. Do not operate an App Hosting rollout as part of this step.
+
+- [ ] Release web, Android, and iOS through their normal workflows. Verify an
+      email/password signup completes profile/private-data initialization before
+      redirecting. Tap one existing `/train` digest notification and one new
+      digest on each supported notification surface; the old item must open its
+      first Spot (or the map when old push data lacks Spot IDs), and the new item
+      must open its first Spot. Exercise every action offered by the test
+      notifications and confirm it is handled through the notification center.
+
+- [ ] Monitor the `auth_sign_up_failed` event and handled
+      `AccountCreationError` issues in PostHog by `failure_stage`, `error_code`,
+      and platform. Confirm exception payloads contain no email addresses,
+      display names, passwords, or raw Firebase errors. Check Functions logs for
+      digest delivery failures.
+
+- [ ] Configure PostHog source-map injection and upload in the production build
+      pipeline before relying on Error Tracking stack frames. Production builds
+      currently disable source maps. Use a PostHog personal API key with only
+      `error tracking write` and `organization read`, keep it in CI secrets, and
+      verify a release's symbol set plus one intentionally captured test error
+      before removing this item. The injected browser assets must be the same
+      assets released through the normal `main`-branch App Hosting workflow.
+
+### Google Maps and Apple Maps link paste
+
+The client parses full supported URLs locally. Google short links use a narrow,
+App Check-protected redirect resolver which validates every redirect hop and
+does not log or persist the pasted URL.
+
+- [ ] Deploy `functions:resolveMapShortLink` before releasing the 1.1.5 client:
+
+  ```sh
+  npx firebase deploy --project prod --only functions:resolveMapShortLink
+  ```
+
+  - Verify the Function is active in `europe-west1`, expands a
+    `maps.app.goo.gl` link, rejects requests without valid App Check, rejects an
+    off-domain redirect, and records no raw URL in application logs. Then
+    verify full Google Maps, Google short, and Apple Maps links pasted into map
+    search open the expected location.
+
 ### Idempotent Spot creation and duplicate administration
 
 This release is additive for already-released clients: existing direct Spot
@@ -183,9 +262,9 @@ and watch extension traffic during the live run.
       field-aware, browser-only fallback client through the normal `main`
       workflow. If `main` cannot be released immediately, pause import writes
       until the client release completes so no new Spot misses its projection.
-      Verify localized SSR renders imported Spot attribution without invoking
-      `getPublicImportProvenance`; legacy production Spots must still load their
-      attribution after hydration.
+      Verify localized SSR neither renders import-specific attribution nor
+      invokes `getPublicImportProvenance`; projected and legacy production Spots
+      must load their attribution after hydration.
 
 - [ ] In Firestore, create
       `maintenance/run-backfill-public-import-provenance` with

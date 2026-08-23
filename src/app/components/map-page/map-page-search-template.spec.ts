@@ -118,6 +118,13 @@ describe("MapPageComponent search template", () => {
   });
 
   it("enables desktop hover previews for event map markers", () => {
+    const spotMapTemplate = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/spot-map/spot-map.component.html",
+      ),
+      "utf8",
+    );
     const mapTemplate = readFileSync(
       join(
         process.cwd(),
@@ -141,8 +148,16 @@ describe("MapPageComponent search template", () => {
       'class="event-map-marker-preview"',
     );
     expect(eventMarkerTemplate).toContain("<app-event-card");
-    expect(eventMarkerTemplate).toContain('[compact]="true"');
+    expect(eventMarkerTemplate).not.toContain('[compact]="true"');
+    expect(eventMarkerTemplate).toContain('[seriesById]="seriesById()"');
     expect(eventMarkerTemplate).toContain('[showRsvp]="false"');
+    expect(activeTemplate()).toContain(
+      '[eventSeriesById]="visibleEventSeriesById()"',
+    );
+    expect(spotMapTemplate).toContain(
+      '[eventSeriesById]="eventSeriesById()"',
+    );
+    expect(mapTemplate).toContain('[seriesById]="eventSeriesById()"');
   });
 
   it("keeps map weather in the area panel without a floating weather chip", () => {

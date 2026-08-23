@@ -11,7 +11,10 @@ import {
   ReactiveFormsModule,
 } from "@angular/forms";
 import { Router, RouterLink, ActivatedRoute } from "@angular/router";
-import { AuthenticationService } from "../../services/firebase/authentication.service";
+import {
+  AccountCreationError,
+  AuthenticationService,
+} from "../../services/firebase/authentication.service";
 import { Auth, RecaptchaVerifier } from "firebase/auth";
 import { NgOptimizedImage } from "@angular/common";
 import { MatCheckbox } from "@angular/material/checkbox";
@@ -22,7 +25,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatDividerModule } from "@angular/material/divider";
 import { RecaptchaService } from "../../services/recaptcha.service";
 import { ConsentService } from "../../services/consent.service";
-import { Subscription, filter } from "rxjs";
+import { Subscription } from "rxjs";
 import { AutoScrollOnFocusDirective } from "../../directives/auto-scroll-on-focus.directive";
 import { AnalyticsService } from "../../services/analytics.service";
 
@@ -50,10 +53,9 @@ import { AnalyticsService } from "../../services/analytics.service";
 export class SignUpPageComponent implements OnInit, OnDestroy {
   createAccountForm: UntypedFormGroup | undefined;
   signUpError: string = "";
-  isInviteOnly: boolean = true;
   isSubmitting: boolean = false;
   private _returnUrl: string = "/profile";
-  private _authSubscription?: Subscription;
+  private readonly _subscriptions = new Subscription();
 
   constructor(
     private _authService: AuthenticationService,
@@ -85,7 +87,6 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
         password: ["", [Validators.required, Validators.minLength(6)]],
         repeatPassword: ["", [Validators.required]],
         agreeCheck: [false, [Validators.requiredTrue]],
-        inviteCode: ["", Validators.required],
       },
       {
         validators: [
@@ -115,32 +116,26 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
     // used to trigger reCAPTCHA setup on the server and crash SSR with
     // `auth/operation-not-supported-in-this-environment`.
     if (isPlatformBrowser(this._platformId)) {
-      this._consentService.consentGranted$.subscribe((hasConsent) => {
-        if (hasConsent && !this._recaptchaSetupCompleted) {
-          console.log("Consent granted, setting up reCAPTCHA");
-          this.setupSignUpReCaptcha();
-        }
-      });
+      this._subscriptions.add(
+        this._consentService.consentGranted$.subscribe((hasConsent) => {
+          if (hasConsent && !this._recaptchaSetupCompleted) {
+            console.log("Consent granted, setting up reCAPTCHA");
+            this.setupSignUpReCaptcha();
+          }
+        }),
+      );
     }
 
     // Get the return URL from query params, default to profile page
-    this._route.queryParams.subscribe((params) => {
-      this._returnUrl = params["returnUrl"] || "/profile";
-    });
-
-    // Listen for successful authentication to redirect
-    this._authSubscription = this._authService.authState$
-      .pipe(filter((user) => user !== null && !!user.uid))
-      .subscribe(() => {
-        // User is now authenticated, redirect to return URL
-        if (this.isSubmitting) {
-          this._router.navigateByUrl(this._returnUrl);
-        }
-      });
+    this._subscriptions.add(
+      this._route.queryParams.subscribe((params) => {
+        this._returnUrl = params["returnUrl"] || "/profile";
+      }),
+    );
   }
 
   ngOnDestroy() {
-    this._authSubscription?.unsubscribe();
+    this._subscriptions.unsubscribe();
   }
 
   setupSignUpReCaptcha() {
@@ -190,7 +185,6 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
     password: string;
     repeatPassword: string;
     agreeCheck: boolean;
-    inviteCode: string;
   }) {
     // Guard against double submissions
     if (this.isSubmitting) {
@@ -201,9 +195,15 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
     }
 
     this._analytics.trackEvent("auth_sign_up_attempted", {
-      has_invite_code: !!createAccountFormValue.inviteCode?.trim(),
       agreed_terms: !!createAccountFormValue.agreeCheck,
     });
+
+    const email = String(createAccountFormValue.email).toLowerCase().trim();
+    if (this.createAccountForm?.controls["email"].value !== email) {
+      this.createAccountForm?.controls["email"].setValue(email, {
+        emitEvent: false,
+      });
+    }
 
     if (this.createAccountForm?.invalid) {
       this.createAccountForm.markAllAsTouched();
@@ -216,21 +216,14 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
         repeat_password_invalid:
           this.createAccountForm.controls["repeatPassword"].invalid,
         terms_invalid: this.createAccountForm.controls["agreeCheck"].invalid,
-        invite_code_invalid:
-          this.createAccountForm.controls["inviteCode"].invalid,
       });
       return;
     }
 
-    let displayName = createAccountFormValue.displayName;
-    let email = createAccountFormValue.email;
+    const displayName = createAccountFormValue.displayName;
     const password = createAccountFormValue.password;
     const repeatedPassword = createAccountFormValue.repeatPassword;
     const agreeCheck = !!createAccountFormValue.agreeCheck;
-    const inviteCode = createAccountFormValue.inviteCode;
-
-    // trim, lower case and validate email address
-    email = String(email).toLowerCase().trim();
 
     // check that the repeated password matches the password
     if (!password || !repeatedPassword || password !== repeatedPassword) {
@@ -268,10 +261,17 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
         this._router.navigateByUrl(this._returnUrl);
       })
       .catch((err) => {
-        console.error("Cannot create account!", err);
-        this.signUpError = $localize`Could not create account!`;
+        const errorCode = this._getAuthErrorCode(err);
+        const failureStage =
+          err instanceof AccountCreationError ? err.stage : "unknown";
+        console.error("Account creation request failed", {
+          error_code: errorCode,
+          failure_stage: failureStage,
+        });
+        this.signUpError = this._getAccountCreationErrorMessage(errorCode);
         this._analytics.trackEvent("auth_sign_up_failed", {
-          error_code: this._getAuthErrorCode(err),
+          error_code: errorCode,
+          failure_stage: failureStage,
         });
         this.isSubmitting = false;
       });
@@ -291,10 +291,6 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
       return $localize`You need to agree to the terms and conditions!`;
     }
 
-    if (form.controls["inviteCode"].invalid) {
-      return $localize`Could not create account!`;
-    }
-
     return $localize`Could not create account!`;
   }
 
@@ -305,5 +301,18 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
     }
 
     return null;
+  }
+
+  private _getAccountCreationErrorMessage(code: string | null): string {
+    switch (code) {
+      case "auth/wrong-password":
+        return $localize`Current password is incorrect.`;
+      case "auth/invalid-credential":
+        return $localize`Invalid email or password.`;
+      case "auth/user-disabled":
+        return $localize`This account has been disabled. Please contact support.`;
+      default:
+        return $localize`Could not create account!`;
+    }
   }
 }

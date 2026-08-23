@@ -351,6 +351,7 @@
       @if (marker.type === "event") {
         <app-event-dot-marker
           [marker]="marker"
+          [seriesById]="eventSeriesById()"
           [hoverPreviewEnabled]="showSpotPreview()"
           (markerClick)="pointMarkerClick.emit($event)"
         ></app-event-dot-marker>

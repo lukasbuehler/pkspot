@@ -220,6 +220,23 @@
                       ></app-spot-list>
                     </section>
                   }
+                  @if (challenges().length > 0) {
+                    <section class="d-flex flex-column gap-2">
+                      <h2
+                        class="mat-title-medium m-0 px-3"
+                        i18n="@@event_map_page.challenge_plural"
+                      >
+                        Challenges
+                      </h2>
+                      <app-challenge-list
+                        class="event-challenge-list d-block px-3"
+                        [challenges]="challenges()"
+                        [withHrefLink]="false"
+                        [showIndexAsNumber]="true"
+                        (challengeClickIndex)="challengeClickedIndex($event)"
+                      ></app-challenge-list>
+                    </section>
+                  }
                 </div>
               }
               @case ("challenges") {

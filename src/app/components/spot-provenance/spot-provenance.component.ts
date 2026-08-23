@@ -1,4 +1,5 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -6,6 +7,7 @@ import {
   input,
   PLATFORM_ID,
   resource,
+  signal,
 } from "@angular/core";
 import {isPlatformBrowser} from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
@@ -27,6 +29,11 @@ export class SpotProvenanceComponent {
   private _importsService = inject(ImportsService);
   private _analytics = inject(AnalyticsService);
   private _isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private _hydrated = signal(false);
+
+  constructor() {
+    afterNextRender(() => this._hydrated.set(true));
+  }
 
   sourceRaw = computed(() => this.spot()?.source()?.trim() ?? "");
 
@@ -43,6 +50,7 @@ export class SpotProvenanceComponent {
       const spot = this.spot();
       const importId = this._importId();
       return this._isBrowser &&
+        this._hydrated() &&
         importId &&
         spot?.publicImportProvenance() === undefined
         ? {importId}
@@ -60,6 +68,10 @@ export class SpotProvenanceComponent {
   });
 
   sourceDisplayText = computed(() => {
+    if (!this._isBrowser || !this._hydrated()) {
+      return "";
+    }
+
     const provenance = this._importProvenance();
     if (provenance?.source_name) {
       return provenance.source_name;

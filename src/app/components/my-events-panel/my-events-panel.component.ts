@@ -37,27 +37,40 @@ export class MyEventsPanelComponent {
   readonly savedEvents = input<readonly PkEvent[]>([]);
   readonly now = input(new Date());
   readonly signedIn = input(false);
-  private readonly _savedEventGroups = computed(() => {
+  private readonly _eventGroups = computed(() => {
     const now = this.now();
-    const upcoming: PkEvent[] = [];
+    const going: PkEvent[] = [];
+    const saved: PkEvent[] = [];
     const past: PkEvent[] = [];
-    for (const event of this.savedEvents()) {
-      (event.isPast(now) ? past : upcoming).push(event);
+    const pastIds = new Set<string>();
+    for (const event of this.goingEvents()) {
+      if (event.isPast(now)) {
+        past.push(event);
+        pastIds.add(event.id);
+      } else {
+        going.push(event);
+      }
     }
-    return { upcoming, past };
+    for (const event of this.savedEvents()) {
+      if (event.isPast(now)) {
+        if (!pastIds.has(event.id)) past.push(event);
+      } else {
+        saved.push(event);
+      }
+    }
+    return { going, saved, past };
   });
-  readonly upcomingSavedEvents = computed(
-    () => this._savedEventGroups().upcoming,
-  );
-  readonly pastSavedEvents = computed(() => this._savedEventGroups().past);
+  readonly upcomingGoingEvents = computed(() => this._eventGroups().going);
+  readonly upcomingSavedEvents = computed(() => this._eventGroups().saved);
+  readonly pastEvents = computed(() => this._eventGroups().past);
   readonly selectedTab = linkedSignal<
     { going: number; saved: number; past: number },
     MyEventsTab
   >({
     source: () => ({
-      going: this.goingEvents().length,
+      going: this.upcomingGoingEvents().length,
       saved: this.upcomingSavedEvents().length,
-      past: this.pastSavedEvents().length,
+      past: this.pastEvents().length,
     }),
     computation: (source, previous) => {
       if (previous?.value && source[previous.value] > 0) {
@@ -71,9 +84,9 @@ export class MyEventsPanelComponent {
   readonly selectedEvents = computed(
     () =>
       ({
-        going: this.goingEvents(),
+        going: this.upcomingGoingEvents(),
         saved: this.upcomingSavedEvents(),
-        past: this.pastSavedEvents(),
+        past: this.pastEvents(),
       })[this.selectedTab()],
   );
   readonly previewEvents = computed(() => this.selectedEvents().slice(0, 3));
@@ -83,9 +96,9 @@ export class MyEventsPanelComponent {
     this._dialog.open(MyEventsDialogComponent, {
       ...MY_EVENTS_DIALOG_CONFIG,
       data: {
-        goingEvents: this.goingEvents(),
+        goingEvents: this.upcomingGoingEvents(),
         savedEvents: this.upcomingSavedEvents(),
-        pastEvents: this.pastSavedEvents(),
+        pastEvents: this.pastEvents(),
         initialTab: this.selectedTab(),
       },
     });

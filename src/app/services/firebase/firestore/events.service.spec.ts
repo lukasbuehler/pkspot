@@ -746,6 +746,7 @@ describe("EventsService", () => {
         rsvp: "going",
         time_created: expect.any(Date),
         time_updated: expect.any(Date),
+        time_updated_raw_ms: expect.any(Number),
       }),
       { merge: true },
     );
@@ -774,6 +775,7 @@ describe("EventsService", () => {
         event_id: "event-1",
         rsvp: "interested",
         time_updated: expect.any(Date),
+        time_updated_raw_ms: expect.any(Number),
       }),
     );
     expect(payload).not.toHaveProperty("time_created");
