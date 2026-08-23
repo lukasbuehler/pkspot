@@ -123,7 +123,12 @@ digest notifications whose historical path is `/train`.
 
 - [ ] Release web, Android, and iOS through their normal workflows. Verify an
       email/password signup completes profile/private-data initialization before
-      redirecting. Tap one existing `/train` digest notification and one new
+      redirecting. Open a fresh verification email and confirm it completes;
+      reopen the consumed link while signed in and confirm the already-verified
+      account shows success instead of an endless spinner. An invalid link for an
+      unverified account must show the actionable error and emit a privacy-safe
+      handled `AuthActionError` without its action code or raw Firebase message.
+      Tap one existing `/train` digest notification and one new
       digest on each supported notification surface; the old item must open its
       first Spot (or the map when old push data lacks Spot IDs), and the new item
       must open its first Spot. Exercise every action offered by the test

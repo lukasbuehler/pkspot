@@ -2,6 +2,7 @@ const assert = require("node:assert/strict");
 const admin = require("firebase-admin");
 const { initializeApp, deleteApp } = require("firebase/app");
 const {
+  applyActionCode,
   connectAuthEmulator,
   createUserWithEmailAndPassword,
   deleteUser,
@@ -11,6 +12,7 @@ const {
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
+  reload,
 } = require("firebase/auth");
 const {
   connectFirestoreEmulator,
@@ -123,9 +125,30 @@ async function main() {
   await updateProfile(created.user, { displayName: TEST_USER.displayName });
   await sendEmailVerification(created.user);
 
+  const oobResponse = await fetch(
+    `http://${AUTH_HOST}/emulator/v1/projects/${PROJECT_ID}/oobCodes`
+  );
+  assert.equal(oobResponse.ok, true, "Auth emulator should list action codes");
+  const { oobCodes } = await oobResponse.json();
+  const verificationCode = oobCodes.find(
+    (entry) =>
+      entry.requestType === "VERIFY_EMAIL" && entry.email === TEST_USER.email
+  );
+  assert.ok(verificationCode?.oobCode, "Verification action code should exist");
+
+  console.log("Applying the generated email verification action code...");
+  await applyActionCode(primary.auth, verificationCode.oobCode);
+  await reload(created.user);
+  assert.equal(created.user.emailVerified, true);
+  await assert.rejects(
+    () => applyActionCode(primary.auth, verificationCode.oobCode),
+    (error) => error?.code === "auth/invalid-action-code"
+  );
+
   const adminUser = await adminAuth.getUser(created.user.uid);
   assert.equal(adminUser.email, TEST_USER.email);
   assert.equal(adminUser.displayName, TEST_USER.displayName);
+  assert.equal(adminUser.emailVerified, true);
 
   console.log("Creating self-owned public and private profile documents...");
   await setDoc(doc(primary.db, `users/${created.user.uid}`), {
