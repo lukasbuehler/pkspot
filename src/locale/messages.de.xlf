@@ -11502,6 +11502,12 @@
         <target>Fehler beim Senden der Zurücksetzungs-E-Mail. Bitte versuche es erneut.</target>
       </segment>
     </unit>
+    <unit id="5075908458390286070">
+      <segment state="initial">
+        <source>An account already exists for this email. Sign in or reset your password.</source>
+        <target>Für diese E-Mail-Adresse gibt es bereits ein Konto. Melde dich an oder setze dein Passwort zurück.</target>
+      </segment>
+    </unit>
     <unit id="5078551942621038511">
       <segment state="initial">
         <source>Link to challenge copied to clipboard</source>
@@ -11897,8 +11903,8 @@
     </unit>
     <unit id="event_map_page.challenge_plural">
       <segment state="initial">
-        <source>Challenges</source>
-        <target>Herausforderungen</target>
+        <source> Challenges </source>
+        <target> Herausforderungen </target>
       </segment>
     </unit>
     <unit id="event_map_page.challenge_singular">

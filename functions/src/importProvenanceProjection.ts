@@ -40,4 +40,24 @@ export const buildPublicImportProvenance = (
 export const publicImportProvenanceEqual = (
   left: PublicImportProvenanceProjection | null | undefined,
   right: PublicImportProvenanceProjection | null | undefined,
-): boolean => JSON.stringify(left) === JSON.stringify(right);
+): boolean => {
+  if (left == null || right == null) return left === right;
+
+  const fields = [
+    "source_name",
+    "attribution_text",
+    "website_url",
+    "instagram_url",
+    "source_url",
+    "viewer_url",
+  ] as const;
+  const allowedFields = new Set<string>(fields);
+  if (
+    Object.keys(left).some((field) => !allowedFields.has(field)) ||
+    Object.keys(right).some((field) => !allowedFields.has(field))
+  ) {
+    return false;
+  }
+
+  return fields.every((field) => left[field] === right[field]);
+};

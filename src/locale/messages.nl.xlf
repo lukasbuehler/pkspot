@@ -11710,6 +11710,12 @@
         <target>Fout bij het verzenden van reset-e-mail. Probeer het opnieuw.</target>
       </segment>
     </unit>
+    <unit id="5075908458390286070">
+      <segment state="initial">
+        <source>An account already exists for this email. Sign in or reset your password.</source>
+        <target>Er bestaat al een account voor dit e-mailadres. Log in of stel je wachtwoord opnieuw in.</target>
+      </segment>
+    </unit>
     <unit id="5078551942621038511">
       <segment state="initial">
         <source>Link to challenge copied to clipboard</source>
@@ -12105,8 +12111,8 @@
     </unit>
     <unit id="event_map_page.challenge_plural">
       <segment state="initial">
-        <source>Challenges</source>
-        <target>Uitdagingen</target>
+        <source> Challenges </source>
+        <target> Uitdagingen </target>
       </segment>
     </unit>
     <unit id="event_map_page.challenge_singular">

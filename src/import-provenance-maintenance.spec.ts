@@ -1,28 +1,57 @@
-import {readFileSync} from "node:fs";
-import {join} from "node:path";
 import {describe, expect, it} from "vitest";
+import {
+  countsFrom,
+  cursorFrom,
+  isImportDocumentId,
+  pageSizeFrom,
+} from "../functions/src/importProvenanceMaintenanceFunctions";
 
-const source = readFileSync(
-  join(process.cwd(), "functions/src/importProvenanceMaintenanceFunctions.ts"),
-  "utf8",
-);
-
-describe("public import provenance maintenance", () => {
-  it("is dry-run-first, resumable, bounded, and deletes only a completed trigger", () => {
-    expect(source).toContain('trigger.data()?.["dry_run"] !== false');
-    expect(source).toContain('previousState?.["active_event_id"] === event.id');
-    expect(source).toContain('phase: BackfillPhase =');
-    expect(source).toContain('.limit(pageSize)');
-    expect(source).toContain('public_import_provenance: write.projection');
-    expect(source).toContain("batch.set(stateRef");
-    expect(source).toContain("await batch.commit()");
-    expect(source.lastIndexOf('status: "DONE"')).toBeLessThan(
-      source.lastIndexOf("await trigger.ref.delete()"),
-    );
+describe("public import provenance maintenance helpers", () => {
+  it("normalizes page sizes into the supported range", () => {
+    expect(pageSizeFrom(undefined)).toBe(100);
+    expect(pageSizeFrom(0)).toBe(1);
+    expect(pageSizeFrom(25)).toBe(25);
+    expect(pageSizeFrom(999)).toBe(250);
+    expect(pageSizeFrom(1.5)).toBe(100);
   });
 
-  it("does not treat ordinary source labels as import ids", () => {
-    expect(source).toContain('if (!imported.exists && phase === "source") continue;');
-    expect(source).toContain('phase === "source" && typeof data["import_id"] === "string"');
+  it("restores non-negative checkpoint counts", () => {
+    expect(countsFrom({
+      scanned: 10,
+      linked: -2,
+      changed: 3,
+      written: "4",
+      missing_imports: 1,
+    })).toEqual({
+      scanned: 10,
+      linked: 0,
+      changed: 3,
+      written: 0,
+      missing_imports: 1,
+    });
+    expect(countsFrom(null)).toEqual({
+      scanned: 0,
+      linked: 0,
+      changed: 0,
+      written: 0,
+      missing_imports: 0,
+    });
+  });
+
+  it("accepts only complete persisted cursors", () => {
+    expect(cursorFrom({value: "import-1", document_id: "spot-1"})).toEqual({
+      value: "import-1",
+      document_id: "spot-1",
+    });
+    expect(cursorFrom({value: "import-1"})).toBeNull();
+    expect(cursorFrom("import-1")).toBeNull();
+  });
+
+  it("rejects empty, path-like, and oversized import document ids", () => {
+    expect(isImportDocumentId("import-1")).toBe(true);
+    expect(isImportDocumentId(" ")).toBe(false);
+    expect(isImportDocumentId("imports/import-1")).toBe(false);
+    expect(isImportDocumentId("x".repeat(181))).toBe(false);
+    expect(isImportDocumentId(null)).toBe(false);
   });
 });

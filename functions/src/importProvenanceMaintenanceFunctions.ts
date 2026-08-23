@@ -30,12 +30,12 @@ const emptyCounts = (): BackfillCounts => ({
   missing_imports: 0,
 });
 
-const pageSizeFrom = (value: unknown): number =>
+export const pageSizeFrom = (value: unknown): number =>
   typeof value === "number" && Number.isInteger(value)
     ? Math.max(1, Math.min(MAX_PAGE_SIZE, value))
     : DEFAULT_PAGE_SIZE;
 
-const countsFrom = (value: unknown): BackfillCounts => {
+export const countsFrom = (value: unknown): BackfillCounts => {
   const data = value && typeof value === "object"
     ? value as Record<string, unknown>
     : {};
@@ -50,7 +50,7 @@ const countsFrom = (value: unknown): BackfillCounts => {
   };
 };
 
-const cursorFrom = (value: unknown): BackfillCursor | null => {
+export const cursorFrom = (value: unknown): BackfillCursor | null => {
   if (!value || typeof value !== "object") return null;
   const data = value as Record<string, unknown>;
   return typeof data["value"] === "string" &&
@@ -59,7 +59,7 @@ const cursorFrom = (value: unknown): BackfillCursor | null => {
     : null;
 };
 
-const isImportDocumentId = (value: unknown): value is string =>
+export const isImportDocumentId = (value: unknown): value is string =>
   typeof value === "string" &&
   value.trim().length > 0 &&
   value.length <= 180 &&
@@ -71,7 +71,7 @@ const isImportDocumentId = (value: unknown): value is string =>
  * starts a fresh run.
  */
 export const backfillPublicImportProvenanceOnCreate = onDocumentCreated(
-  {document: RUN_DOCUMENT, timeoutSeconds: 540},
+  {document: RUN_DOCUMENT, timeoutSeconds: 540, retry: true},
   async (event) => {
     const trigger = event.data;
     if (!trigger) return;

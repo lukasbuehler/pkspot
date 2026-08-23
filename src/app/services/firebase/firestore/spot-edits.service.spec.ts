@@ -12,6 +12,7 @@ import { FunctionsAdapterService } from "../functions-adapter.service";
 import {
   spotEditAwaitsOrganizationReview,
   spotEditAwaitsReviewOutcome,
+  spotEditProcessingFailed,
   SpotEditsService,
 } from "./spot-edits.service";
 import { UsersService } from "./users.service";
@@ -222,6 +223,21 @@ describe("SpotEditsService", () => {
         decision_source: "automatic_immediate",
       }),
     ).toBe(false);
+  });
+
+  it("recognizes terminal processing failures", () => {
+    expect(spotEditProcessingFailed({
+      ...buildEdit("failed", "user-1", 1),
+      processing_status: "ERROR",
+    })).toBe(true);
+    expect(spotEditProcessingFailed({
+      ...buildEdit("voting-failed", "user-1", 1),
+      processing_status: "VOTING_ERROR",
+    })).toBe(true);
+    expect(spotEditProcessingFailed({
+      ...buildEdit("approved", "user-1", 1),
+      processing_status: "APPROVED_IMMEDIATE",
+    })).toBe(false);
   });
 
   it("waits for the server disposition before deciding whether to prompt", async () => {

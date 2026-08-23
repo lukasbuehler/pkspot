@@ -68,7 +68,7 @@ describe("SignUpPageComponent", () => {
     component.createAccountForm?.setValue(formValue);
     component.tryCreateAccount(formValue);
 
-    expect(component.signUpError).toMatch(/password/i);
+    expect(component.signUpError()).toMatch(/password/i);
     expect(createAccount).not.toHaveBeenCalled();
   });
 
@@ -84,7 +84,7 @@ describe("SignUpPageComponent", () => {
     component.createAccountForm?.setValue(formValue);
     component.tryCreateAccount(formValue);
 
-    expect(component.signUpError).toMatch(/agree|terms/i);
+    expect(component.signUpError()).toMatch(/agree|terms/i);
     expect(createAccount).not.toHaveBeenCalled();
   });
 
@@ -108,14 +108,17 @@ describe("SignUpPageComponent", () => {
         "E2E User",
       ),
     );
-    expect(component.signUpError).toBe("");
+    expect(component.signUpError()).toBe("");
     expect(analytics.trackEvent).toHaveBeenCalledWith(
       "auth_sign_up_succeeded",
     );
   });
 
   it.each([
-    ["auth/wrong-password", "Current password is incorrect."],
+    [
+      "auth/wrong-password",
+      "An account already exists for this email. Sign in or reset your password.",
+    ],
     ["auth/invalid-credential", "Invalid email or password."],
     [
       "auth/user-disabled",
@@ -136,7 +139,7 @@ describe("SignUpPageComponent", () => {
     component.createAccountForm?.setValue(formValue);
     component.tryCreateAccount(formValue);
 
-    await vi.waitFor(() => expect(component.signUpError).toBe(message));
+    await vi.waitFor(() => expect(component.signUpError()).toBe(message));
     expect(analytics.trackEvent).toHaveBeenCalledWith("auth_sign_up_failed", {
       error_code: code,
       failure_stage: "firebase_auth",

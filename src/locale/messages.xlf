@@ -2757,7 +2757,7 @@
     </unit>
     <unit id="event_map_page.challenge_plural">
       <segment>
-        <source>Challenges</source>
+        <source> Challenges </source>
       </segment>
     </unit>
     <unit id="event_map_page.challenge_singular">
@@ -6198,6 +6198,11 @@
     <unit id="5075169696278804374">
       <segment>
         <source>Error sending reset email. Please try again.</source>
+      </segment>
+    </unit>
+    <unit id="5075908458390286070">
+      <segment>
+        <source>An account already exists for this email. Sign in or reset your password.</source>
       </segment>
     </unit>
     <unit id="map.event_loading_label">
