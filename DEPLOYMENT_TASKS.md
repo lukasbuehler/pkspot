@@ -262,9 +262,9 @@ and watch extension traffic during the live run.
       field-aware, browser-only fallback client through the normal `main`
       workflow. If `main` cannot be released immediately, pause import writes
       until the client release completes so no new Spot misses its projection.
-      Verify localized SSR renders imported Spot attribution without invoking
-      `getPublicImportProvenance`; legacy production Spots must still load their
-      attribution after hydration.
+      Verify localized SSR neither renders import-specific attribution nor
+      invokes `getPublicImportProvenance`; projected and legacy production Spots
+      must load their attribution after hydration.
 
 - [ ] In Firestore, create
       `maintenance/run-backfill-public-import-provenance` with
