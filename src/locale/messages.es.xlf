@@ -5844,6 +5844,12 @@
         <target> Dirección </target>
       </segment>
     </unit>
+    <unit id="8142225273689086841">
+      <segment state="initial">
+        <source>Check age range</source>
+        <target>Comprobar rango de edad</target>
+      </segment>
+    </unit>
     <unit id="8151017381798767627">
       <segment state="initial">
         <source>Embed</source>
@@ -10256,6 +10262,12 @@
         <target> No se ha podido procesar esta solicitud. Inténtalo de nuevo más tarde. </target>
       </segment>
     </unit>
+    <unit id="8281296766028455844">
+      <segment state="initial">
+        <source> PK Spot asks only for an age range, such as under 13, 13–17 or 18+. PK Spot does not ask Apple for your exact age or birthday. It stores the age band, a broad evidence category and the resulting eligibility—not an exact birth date, identity document, bank account or card number. It also records the provider and method category, when the result was checked, and the policy basis used for the decision. This lets PK Spot withdraw approvals if a later signal changes or a method is found unsuitable. Self-declared age alone does not unlock a public profile. </source>
+        <target> PK Spot solo solicita un rango de edad, como menor de 13, 13–17 o 18+. PK Spot no solicita a Apple tu edad exacta ni tu fecha de nacimiento. Guarda el rango de edad, una categoría general de evidencia y la elegibilidad resultante, no una fecha de nacimiento exacta, un documento de identidad, una cuenta bancaria ni un número de tarjeta. También registra el proveedor y la categoría del método, cuándo se comprobó el resultado y la base de la política utilizada para la decisión. Esto permite a PK Spot retirar aprobaciones si cambia una señal posterior o si se determina que un método no es adecuado. Una edad autodeclarada por sí sola no habilita un perfil público. </target>
+      </segment>
+    </unit>
     <unit id="8294319077118655917">
       <segment state="initial">
         <source>Checking every dependency…</source>
@@ -12551,6 +12563,12 @@
         <target> Las personas suscritas a este evento recibirán una notificación en directo. </target>
       </segment>
     </unit>
+    <unit id="6110205464196820998">
+      <segment state="initial">
+        <source>Continue to age range request</source>
+        <target>Continuar a la solicitud del rango de edad</target>
+      </segment>
+    </unit>
     <unit id="6111352634912339440">
       <segment state="initial">
         <source>Vision labels</source>
@@ -12795,6 +12813,12 @@
       <segment state="initial">
         <source>Spot creation prevention</source>
         <target>Prevención de creación duplicada de Spots</target>
+      </segment>
+    </unit>
+    <unit id="5161411570094992408">
+      <segment state="initial">
+        <source>Not now</source>
+        <target>Ahora no</target>
       </segment>
     </unit>
     <unit id="5163862847546461994">
@@ -13105,12 +13129,6 @@
       <segment state="initial">
         <source> Release Date <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE" equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other" dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;" dispEnd="&lt;/mat-slide-toggle&gt;"/></source>
         <target> Fecha de publicación <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE" equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other" dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;" dispEnd="&lt;/mat-slide-toggle&gt;"/></target>
-      </segment>
-    </unit>
-    <unit id="391711628671659880">
-      <segment state="initial">
-        <source> PK Spot stores an age band, a broad evidence category and the resulting eligibility—not an exact birth date, identity document, bank account or card number. It also records the provider and method category, when the result was checked, and the policy basis used for the decision. This lets PK Spot withdraw approvals if a later signal changes or a method is found unsuitable. Self-declared age alone does not unlock a public profile. </source>
-        <target> PK Spot almacena un grupo de edad, una categoría general de evidencia y la elegibilidad resultante, no la fecha de nacimiento exacta, un documento de identidad, una cuenta bancaria ni un número de tarjeta. También registra el proveedor y la categoría del método, cuándo se comprobó el resultado y la base de política utilizada para la decisión. Así, PK Spot puede retirar aprobaciones si cambia una señal posterior o si un método se considera inadecuado. Una edad autodeclarada por sí sola no permite activar un perfil público. </target>
       </segment>
     </unit>
     <unit id="8846151385804023521">

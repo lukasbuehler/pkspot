@@ -23,7 +23,8 @@ describe("AgeAssuranceInfoDialogComponent", () => {
     expect(text).toContain("Public identity needs a higher bar");
     expect(text).toContain("Core features remain available");
     expect(text).toContain("Sharing is separate from verification");
-    expect(text).toContain("not an exact birth date");
+    expect(text).toContain("asks only for an age range");
+    expect(text).toContain("does not ask Apple for your exact age or birthday");
     expect(text).toContain("Self-declared age alone");
   });
 });

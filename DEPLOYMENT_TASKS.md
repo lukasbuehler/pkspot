@@ -618,6 +618,13 @@ user's authoritative `users/{uid}` document.
 The backend and rules must precede the client. Existing clients continue using
 the legacy or v2 callable; neither can establish public-profile eligibility.
 
+- [ ] In the 1.1.5 iOS release, verify with a signed-in account on iOS 26 that
+      launching the app does not show Apple's age-range request. In Settings →
+      Profile access, tap `Check age range` and confirm PK Spot first explains
+      why it asks, that only ranges are requested, and that no exact age or
+      birthday is requested. Confirm `Not now` opens no system UI and Continue
+      opens Apple's age-range request.
+
 - [ ] In Google Play Console, confirm PK Spot is linked to Google Cloud project
       number `294969617102`, Play Integrity is enabled for `com.pkspot.app`, and
       the Play Integrity API is enabled in that Cloud project. The production

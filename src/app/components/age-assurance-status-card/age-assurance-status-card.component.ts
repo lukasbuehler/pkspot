@@ -9,6 +9,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatDialog } from "@angular/material/dialog";
 import { MatIcon } from "@angular/material/icon";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import { firstValueFrom } from "rxjs";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { PlatformService } from "../../services/platform.service";
 import { AgeAssuranceInfoDialogComponent } from "../age-assurance-info-dialog/age-assurance-info-dialog.component";
@@ -28,6 +29,9 @@ export class AgeAssuranceStatusCardComponent {
 
   readonly isAndroidApp =
     this._platform.isNative() && this._platform.getPlatform() === "android";
+  readonly isIosApp =
+    this._platform.isNative() && this._platform.getPlatform() === "ios";
+  readonly isNativeAgeAssuranceApp = this.isAndroidApp || this.isIosApp;
   readonly isChecking = computed(
     () => this.ageAssurance.checkState().status === "checking",
   );
@@ -101,6 +105,24 @@ export class AgeAssuranceStatusCardComponent {
 
   async recheck(): Promise<void> {
     this._storeOpenFailed.set(false);
+
+    if (this.isIosApp) {
+      const confirmed = await firstValueFrom(
+        this._dialog
+          .open(AgeAssuranceInfoDialogComponent, {
+            width: "min(680px, calc(100vw - 32px))",
+            maxWidth: "100vw",
+            maxHeight: "calc(100vh - 32px)",
+            autoFocus: false,
+            data: { confirmAgeRangeRequest: true },
+          })
+          .afterClosed(),
+      );
+      if (confirmed !== true) {
+        return;
+      }
+    }
+
     await this.ageAssurance.recheckNativeAgePolicyForCurrentUser();
   }
 

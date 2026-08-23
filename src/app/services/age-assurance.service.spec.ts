@@ -134,6 +134,38 @@ describe("AgeAssuranceService", () => {
     expect(nativeState.getBoundAgeSignal).toHaveBeenCalledTimes(2);
   });
 
+  it("does not request the iOS age range during automatic startup sync", async () => {
+    nativeState.platform = "ios";
+    nativeState.ageSignal = {
+      platform: "ios",
+      source: "ios_declared_age_range",
+      available: true,
+      ageLower: 18,
+      response: "shared",
+    };
+    nativeState.getAgeSignal.mockResolvedValue(nativeState.ageSignal);
+    const service = TestBed.inject(AgeAssuranceService);
+
+    await service.syncNativeAgePolicyForCurrentUser();
+
+    expect(nativeState.getAgeSignal).not.toHaveBeenCalled();
+    expect(functionsAdapter.callAuthenticatedAppChecked).not.toHaveBeenCalled();
+    expect(service.checkState().status).toBe("idle");
+
+    await service.recheckNativeAgePolicyForCurrentUser();
+
+    expect(nativeState.getAgeSignal).toHaveBeenCalledOnce();
+    expect(functionsAdapter.callAuthenticatedAppChecked).toHaveBeenCalledWith(
+      "updateAgePolicyV2",
+      expect.objectContaining({
+        signal: expect.objectContaining({
+          platform: "ios",
+          source: "ios_declared_age_range",
+        }),
+      }),
+    );
+  });
+
   it.each([
     [
       "self_declared",

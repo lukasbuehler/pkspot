@@ -140,6 +140,13 @@ export class AgeAssuranceService {
       return this._checkState();
     }
 
+    // Apple's Declared Age Range API may present system UI. Never invoke it
+    // from automatic startup synchronization; iOS requests must follow a
+    // user-initiated explanation and confirmation in account settings.
+    if (!force && platform === "ios") {
+      return this._checkState();
+    }
+
     this._checkState.set({ status: "checking", uid, platform });
     this._syncInFlight = this._performNativeSync(uid, platform);
     try {
