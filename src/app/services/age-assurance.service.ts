@@ -123,7 +123,13 @@ export class AgeAssuranceService {
     force: boolean,
   ): Promise<AgeAssuranceCheckState> {
     const uid = this._authService.user.uid;
-    if (!uid || !Capacitor.isNativePlatform()) {
+    if (!uid) {
+      if (this._checkState().uid !== undefined) {
+        this._checkState.set({ status: "idle" });
+      }
+      return this._checkState();
+    }
+    if (!Capacitor.isNativePlatform()) {
       return this._checkState();
     }
 
@@ -138,6 +144,10 @@ export class AgeAssuranceService {
     const platform = Capacitor.getPlatform();
     if (platform !== "android" && platform !== "ios") {
       return this._checkState();
+    }
+
+    if (this._checkState().uid !== uid) {
+      this._checkState.set({ status: "idle", uid, platform });
     }
 
     // Apple's Declared Age Range API may present system UI. Never invoke it

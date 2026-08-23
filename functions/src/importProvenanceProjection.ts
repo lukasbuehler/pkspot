@@ -37,6 +37,18 @@ export const buildPublicImportProvenance = (
   };
 };
 
+/** Resolves a Spot's import link, preferring the current field over legacy data. */
+export const spotLinksToImport = (
+  spotData: unknown,
+  importId: string,
+): boolean => {
+  if (!isRecord(spotData)) return false;
+  const currentImportId = spotData["import_id"];
+  return typeof currentImportId === "string"
+    ? currentImportId === importId
+    : spotData["source"] === importId;
+};
+
 export const publicImportProvenanceEqual = (
   left: PublicImportProvenanceProjection | null | undefined,
   right: PublicImportProvenanceProjection | null | undefined,

@@ -108,6 +108,25 @@ describe("AgeAssuranceStatusCardComponent", () => {
     expect(text).not.toContain("Adult eligibility is active");
   });
 
+  it.each([
+    "verified",
+    "self_declared",
+    "guardian_managed",
+    "not_shared",
+    "verification_required",
+  ] as const)("uses provider-neutral iOS text for %s", async (status) => {
+    platform = "ios";
+    await createComponent();
+    checkState.set({ status, platform: "ios" });
+    await fixture.whenStable();
+
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? "";
+    expect(text).toContain("mobile platform");
+    expect(text).not.toContain("Google Play");
+    expect(text).not.toContain("Google Account");
+    expect(text).not.toContain("Family Link");
+  });
+
   it("explains the iOS request before invoking the native age-range flow", async () => {
     platform = "ios";
     await createComponent();

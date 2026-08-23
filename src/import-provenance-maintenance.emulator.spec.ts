@@ -63,12 +63,14 @@ runWithEmulator("public import provenance maintenance", () => {
     const uncreditedImport = `uncredited-${suffix}`;
     const attributedSpot = store.doc(`spots/provenance-attributed-${suffix}`);
     const uncreditedSpot = store.doc(`spots/provenance-uncredited-${suffix}`);
+    const conflictingSpot = store.doc(`spots/provenance-conflicting-${suffix}`);
     const ordinarySpot = store.doc(`spots/provenance-ordinary-${suffix}`);
     const attributedImportRef = store.doc(`imports/${attributedImport}`);
     const uncreditedImportRef = store.doc(`imports/${uncreditedImport}`);
     createdReferences.push(
       attributedSpot,
       uncreditedSpot,
+      conflictingSpot,
       ordinarySpot,
       attributedImportRef,
       uncreditedImportRef,
@@ -84,6 +86,11 @@ runWithEmulator("public import provenance maintenance", () => {
         name: {en: "Uncredited"},
         source: uncreditedImport,
       }),
+      conflictingSpot.set({
+        name: {en: "Conflicting legacy link"},
+        import_id: attributedImport,
+        source: uncreditedImport,
+      }),
       ordinarySpot.set({name: {en: "Ordinary"}, source: "pkspot"}),
     ]);
     await Promise.all([
@@ -96,7 +103,9 @@ runWithEmulator("public import provenance maintenance", () => {
       }),
       uncreditedImportRef.set({credits: {}}),
     ]);
-    await waitForProjectionFields([attributedSpot]);
+    await waitForProjectionFields([attributedSpot, conflictingSpot]);
+    expect((await conflictingSpot.get()).data()?.["public_import_provenance"])
+      .toMatchObject({source_name: "Community Source"});
     await attributedSpot.update({
       public_import_provenance: admin.firestore.FieldValue.delete(),
     });

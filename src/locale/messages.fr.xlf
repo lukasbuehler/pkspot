@@ -5563,6 +5563,12 @@
         <target>Training log</target>
       </segment>
     </unit>
+    <unit id="9102167136172430388">
+      <segment state="initial">
+        <source>The mobile platform shared an 18+ range based on an age entered for the platform account. Because it was not independently checked, it cannot unlock a public profile.</source>
+        <target>La plateforme mobile a communiqué une tranche d’âge de 18 ans ou plus basée sur un âge renseigné dans le compte de la plateforme. Comme elle n’a pas été vérifiée de manière indépendante, elle ne peut pas débloquer un profil public.</target>
+      </segment>
+    </unit>
     <unit id="9107902639851774121">
       <segment state="initial">
         <source>Checking admin access...</source>
@@ -6790,6 +6796,12 @@
       <segment state="initial">
         <source>Event in </source>
         <target>Événement à </target>
+      </segment>
+    </unit>
+    <unit id="7648040324495665523">
+      <segment state="initial">
+        <source>The mobile platform is not sharing an age range with PK Spot. You can choose to check again.</source>
+        <target>La plateforme mobile ne partage aucune tranche d’âge avec PK Spot. Vous pouvez choisir de vérifier à nouveau.</target>
       </segment>
     </unit>
     <unit id="7672282077901429954">
@@ -12809,6 +12821,12 @@
         <target>Référence du signalement externe</target>
       </segment>
     </unit>
+    <unit id="5159743894930050077">
+      <segment state="initial">
+        <source>The mobile platform reports a guardian-managed age range.</source>
+        <target>La plateforme mobile indique une tranche d’âge gérée par un responsable légal.</target>
+      </segment>
+    </unit>
     <unit id="5161309645847446621">
       <segment state="initial">
         <source>Spot creation prevention</source>
@@ -13051,6 +13069,12 @@
       <segment state="initial">
         <source>Verifying Email</source>
         <target>Vérification de l&apos;e-mail</target>
+      </segment>
+    </unit>
+    <unit id="5412539639949623761">
+      <segment state="initial">
+        <source>The mobile platform requires you to confirm your age or set up supervision. Complete its instructions, then check again.</source>
+        <target>La plateforme mobile vous demande de confirmer votre âge ou de configurer une supervision. Suivez ses instructions, puis vérifiez à nouveau.</target>
       </segment>
     </unit>
     <unit id="541397324131531449">
@@ -13629,6 +13653,12 @@
       <segment state="initial">
         <source> Assess the UK link and any current or imminent danger </source>
         <target> Évaluer le lien avec le Royaume-Uni et tout danger actuel ou imminent </target>
+      </segment>
+    </unit>
+    <unit id="7122784988520930893">
+      <segment state="initial">
+        <source>The mobile platform supplied an independently checked 18+ result. Adult eligibility is active.</source>
+        <target>La plateforme mobile a fourni un résultat de 18 ans ou plus vérifié de manière indépendante. L’éligibilité adulte est active.</target>
       </segment>
     </unit>
     <unit id="7136600839935407372">

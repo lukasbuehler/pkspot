@@ -58,19 +58,29 @@ export class AgeAssuranceStatusCardComponent {
           ? $localize`Checking the age signal with Google Play…`
           : $localize`Checking the mobile platform age signal…`;
       case "verified":
-        return $localize`Google Play supplied an independently checked 18+ result. Adult eligibility is active.`;
+        return isGooglePlay
+          ? $localize`Google Play supplied an independently checked 18+ result. Adult eligibility is active.`
+          : $localize`The mobile platform supplied an independently checked 18+ result. Adult eligibility is active.`;
       case "self_declared":
-        return $localize`Google Play shared an 18+ range based on an age entered on the Google Account. Because it was not independently checked, it cannot unlock a public profile.`;
+        return isGooglePlay
+          ? $localize`Google Play shared an 18+ range based on an age entered on the Google Account. Because it was not independently checked, it cannot unlock a public profile.`
+          : $localize`The mobile platform shared an 18+ range based on an age entered for the platform account. Because it was not independently checked, it cannot unlock a public profile.`;
       case "guardian_managed":
-        return $localize`Google Play reports a guardian-managed age range. A parent can manage age sharing in Family Link.`;
+        return isGooglePlay
+          ? $localize`Google Play reports a guardian-managed age range. A parent can manage age sharing in Family Link.`
+          : $localize`The mobile platform reports a guardian-managed age range.`;
       case "not_verified":
         return isGooglePlay
           ? $localize`Google Play shared an age result, but it does not establish independently checked 18+ eligibility.`
           : $localize`The mobile platform shared an age result, but it does not establish independently checked 18+ eligibility.`;
       case "not_shared":
-        return $localize`Google Play is not sharing an age range with PK Spot. Enable “Share age range” for PK Spot in Google Play, then check again.`;
+        return isGooglePlay
+          ? $localize`Google Play is not sharing an age range with PK Spot. Enable “Share age range” for PK Spot in Google Play, then check again.`
+          : $localize`The mobile platform is not sharing an age range with PK Spot. You can choose to check again.`;
       case "verification_required":
-        return $localize`Google Play requires you to confirm your age or set up supervision. Open Google Play, complete its instructions, then check again.`;
+        return isGooglePlay
+          ? $localize`Google Play requires you to confirm your age or set up supervision. Open Google Play, complete its instructions, then check again.`
+          : $localize`The mobile platform requires you to confirm your age or set up supervision. Complete its instructions, then check again.`;
       case "unavailable":
         return isGooglePlay
           ? $localize`The age signal is currently unavailable. Make sure PK Spot was installed from Google Play and that the Play Store is up to date, then try again.`

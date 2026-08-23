@@ -40,7 +40,9 @@ export const countsFrom = (value: unknown): BackfillCounts => {
     ? value as Record<string, unknown>
     : {};
   const count = (key: keyof BackfillCounts): number =>
-    typeof data[key] === "number" ? Math.max(0, data[key]) : 0;
+    typeof data[key] === "number" && Number.isFinite(data[key])
+      ? Math.max(0, data[key])
+      : 0;
   return {
     scanned: count("scanned"),
     linked: count("linked"),

@@ -54,6 +54,7 @@ import {
 import {
   buildPublicImportProvenance,
   publicImportProvenanceEqual,
+  spotLinksToImport,
 } from "./importProvenanceProjection";
 
 const COMMUNITY_PAGES_COLLECTION = "community_pages";
@@ -1650,8 +1651,7 @@ export const syncPublicImportProvenanceForImport = async (
         const spotData = spot.data();
         if (
           !spot.exists ||
-          (spotData?.["import_id"] !== importId &&
-            spotData?.["source"] !== importId) ||
+          !spotLinksToImport(spotData, importId) ||
           publicImportProvenanceEqual(
             spotData?.["public_import_provenance"],
             currentProjection,

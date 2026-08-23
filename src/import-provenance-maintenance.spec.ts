@@ -19,15 +19,15 @@ describe("public import provenance maintenance helpers", () => {
     expect(countsFrom({
       scanned: 10,
       linked: -2,
-      changed: 3,
+      changed: Number.NaN,
       written: "4",
-      missing_imports: 1,
+      missing_imports: Number.POSITIVE_INFINITY,
     })).toEqual({
       scanned: 10,
       linked: 0,
-      changed: 3,
+      changed: 0,
       written: 0,
-      missing_imports: 1,
+      missing_imports: 0,
     });
     expect(countsFrom(null)).toEqual({
       scanned: 0,

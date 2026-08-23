@@ -2,6 +2,7 @@ import {describe, expect, it} from "vitest";
 import {
   buildPublicImportProvenance,
   publicImportProvenanceEqual,
+  spotLinksToImport,
 } from "../functions/src/importProvenanceProjection";
 import {
   BoundedTtlCache,
@@ -56,6 +57,14 @@ describe("public import provenance", () => {
       {...left, private_note: "remove me"} as typeof left,
       right,
     )).toBe(false);
+  });
+
+  it("prefers a Spot's import_id over its legacy source link", () => {
+    expect(spotLinksToImport({import_id: "import-a", source: "import-b"}, "import-a"))
+      .toBe(true);
+    expect(spotLinksToImport({import_id: "import-a", source: "import-b"}, "import-b"))
+      .toBe(false);
+    expect(spotLinksToImport({source: "import-b"}, "import-b")).toBe(true);
   });
 
   it("caches null, expires entries, and stays bounded", () => {

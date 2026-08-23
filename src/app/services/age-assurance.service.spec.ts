@@ -39,6 +39,7 @@ describe("AgeAssuranceService", () => {
   let functionsAdapter: {
     callAuthenticatedAppChecked: ReturnType<typeof vi.fn>;
   };
+  let authUser: { uid: string | null };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -76,6 +77,7 @@ describe("AgeAssuranceService", () => {
               }),
         ),
     };
+    authUser = { uid: "user-1" };
 
     TestBed.configureTestingModule({
       providers: [
@@ -83,7 +85,7 @@ describe("AgeAssuranceService", () => {
         {
           provide: AuthenticationService,
           useValue: {
-            user: { uid: "user-1" },
+            user: authUser,
           },
         },
         { provide: FunctionsAdapterService, useValue: functionsAdapter },
@@ -164,6 +166,35 @@ describe("AgeAssuranceService", () => {
         }),
       }),
     );
+  });
+
+  it("clears iOS check state across sign-out and account switches", async () => {
+    nativeState.platform = "ios";
+    nativeState.ageSignal = {
+      platform: "ios",
+      source: "ios_declared_age_range",
+      available: true,
+      ageLower: 18,
+      response: "shared",
+    };
+    nativeState.getAgeSignal.mockResolvedValue(nativeState.ageSignal);
+    const service = TestBed.inject(AgeAssuranceService);
+
+    await service.recheckNativeAgePolicyForCurrentUser();
+    expect(service.checkState().uid).toBe("user-1");
+
+    authUser.uid = null;
+    await service.syncNativeAgePolicyForCurrentUser();
+    expect(service.checkState()).toEqual({ status: "idle" });
+
+    authUser.uid = "user-2";
+    await service.syncNativeAgePolicyForCurrentUser();
+    expect(service.checkState()).toEqual({
+      status: "idle",
+      uid: "user-2",
+      platform: "ios",
+    });
+    expect(nativeState.getAgeSignal).toHaveBeenCalledOnce();
   });
 
   it.each([
