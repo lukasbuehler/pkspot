@@ -125,7 +125,7 @@ describe("SearchFieldComponent", () => {
       },
       preventDefault,
     } as unknown as ClipboardEvent);
-    await fixture.whenStable();
+    await vi.waitFor(() => expect(selected).toHaveBeenCalledOnce());
 
     expect(preventDefault).toHaveBeenCalledOnce();
     expect(selected).toHaveBeenCalledWith({
@@ -171,9 +171,54 @@ describe("SearchFieldComponent", () => {
       format: "direct",
       query: "Old selection",
     });
-    await Promise.resolve();
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(selected).toHaveBeenCalledOnce();
     expect(selected.mock.calls[0][0].mapLink.query).toBe("New selection");
+  });
+
+  it("discards a pending Maps-link result after the user types", async () => {
+    let resolveLink!: (value: {
+      provider: "google";
+      format: "direct";
+      query: string;
+    }) => void;
+    mapLinks.isSupportedUrl.mockReturnValue(true);
+    mapLinks.resolve.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveLink = resolve;
+      }),
+    );
+    const selected = vi.fn();
+    fixture.componentInstance.spotSelected.subscribe(selected);
+
+    fixture.componentInstance.handlePaste({
+      clipboardData: { getData: () => "https://maps.app.goo.gl/Old" },
+      preventDefault: vi.fn(),
+    } as unknown as ClipboardEvent);
+    fixture.componentInstance.handleSearchInput();
+    resolveLink({
+      provider: "google",
+      format: "direct",
+      query: "Old selection",
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(selected).not.toHaveBeenCalled();
+  });
+
+  it("shows an error without selecting when Maps-link resolution fails", async () => {
+    mapLinks.isSupportedUrl.mockReturnValue(true);
+    mapLinks.resolve.mockRejectedValueOnce(new Error("resolver unavailable"));
+    const selected = vi.fn();
+    fixture.componentInstance.spotSelected.subscribe(selected);
+
+    fixture.componentInstance.handlePaste({
+      clipboardData: { getData: () => "https://maps.app.goo.gl/Broken" },
+      preventDefault: vi.fn(),
+    } as unknown as ClipboardEvent);
+    await vi.waitFor(() => expect(snackbar.open).toHaveBeenCalledOnce());
+
+    expect(selected).not.toHaveBeenCalled();
   });
 });

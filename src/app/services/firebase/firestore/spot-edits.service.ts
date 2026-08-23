@@ -74,6 +74,11 @@ export function spotEditAwaitsOrganizationReview(
   );
 }
 
+export function spotEditProcessingFailed(edit: SpotEditSchema): boolean {
+  return edit.processing_status === "ERROR" ||
+    edit.processing_status === "VOTING_ERROR";
+}
+
 function spotEditHasProcessingDisposition(edit: SpotEditSchema): boolean {
   return Boolean(
     edit.processed_at ||

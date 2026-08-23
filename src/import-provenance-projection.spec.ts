@@ -39,6 +39,25 @@ describe("public import provenance", () => {
     expect(publicImportProvenanceEqual(undefined, null)).toBe(false);
   });
 
+  it("compares projections independently of field insertion order", () => {
+    const left = {
+      source_name: "Community map",
+      attribution_text: "Used with permission",
+      source_url: "https://example.test/source",
+    };
+    const right = {
+      source_url: "https://example.test/source",
+      source_name: "Community map",
+      attribution_text: "Used with permission",
+    };
+
+    expect(publicImportProvenanceEqual(left, right)).toBe(true);
+    expect(publicImportProvenanceEqual(
+      {...left, private_note: "remove me"} as typeof left,
+      right,
+    )).toBe(false);
+  });
+
   it("caches null, expires entries, and stays bounded", () => {
     const cache = new BoundedTtlCache<string | null>(2, 10);
     cache.set("one", null, 0);

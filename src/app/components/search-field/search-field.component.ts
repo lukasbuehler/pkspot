@@ -434,6 +434,10 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
     this.spotSelected.emit(event.option.value as SearchSelection);
   }
 
+  handleSearchInput(): void {
+    this._mapLinkRequestId += 1;
+  }
+
   handlePaste(event: ClipboardEvent): void {
     if (this.onlySpots()) return;
     const requestId = ++this._mapLinkRequestId;

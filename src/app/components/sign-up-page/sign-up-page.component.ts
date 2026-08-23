@@ -1,4 +1,12 @@
-import { Component, OnInit, OnDestroy, inject, PLATFORM_ID, ChangeDetectionStrategy } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  OnInit,
+  PLATFORM_ID,
+  inject,
+  signal,
+} from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { RecaptchaUnavailableInSsrError } from "../../services/recaptcha.service";
@@ -52,8 +60,8 @@ import { AnalyticsService } from "../../services/analytics.service";
 })
 export class SignUpPageComponent implements OnInit, OnDestroy {
   createAccountForm: UntypedFormGroup | undefined;
-  signUpError: string = "";
-  isSubmitting: boolean = false;
+  readonly signUpError = signal("");
+  readonly isSubmitting = signal(false);
   private _returnUrl: string = "/profile";
   private readonly _subscriptions = new Subscription();
 
@@ -187,7 +195,7 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
     agreeCheck: boolean;
   }) {
     // Guard against double submissions
-    if (this.isSubmitting) {
+    if (this.isSubmitting()) {
       console.warn(
         "Account creation already in progress, ignoring duplicate submission",
       );
@@ -207,7 +215,7 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
 
     if (this.createAccountForm?.invalid) {
       this.createAccountForm.markAllAsTouched();
-      this.signUpError = this._getCreateAccountValidationError();
+      this.signUpError.set(this._getCreateAccountValidationError());
       this._analytics.trackEvent("auth_sign_up_invalid", {
         display_name_invalid:
           this.createAccountForm.controls["displayName"].invalid,
@@ -228,7 +236,7 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
     // check that the repeated password matches the password
     if (!password || !repeatedPassword || password !== repeatedPassword) {
       console.error("Password and repeated password don't match");
-      this.signUpError = $localize`Password and repeated password don't match`;
+      this.signUpError.set($localize`Password and repeated password don't match`);
       this._analytics.trackEvent("auth_sign_up_invalid", {
         reason: "password_mismatch",
       });
@@ -238,7 +246,7 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
     // check if the terms of service and legal shebang was accepted
     if (!agreeCheck) {
       console.error("User did not agree!");
-      this.signUpError = $localize`You need to agree to the terms and conditions!`;
+      this.signUpError.set($localize`You need to agree to the terms and conditions!`);
       this._analytics.trackEvent("auth_sign_up_invalid", {
         reason: "terms_not_accepted",
       });
@@ -250,8 +258,8 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
   }
 
   private _createAccount(email: string, password: string, displayName: string) {
-    this.isSubmitting = true;
-    this.signUpError = "";
+    this.isSubmitting.set(true);
+    this.signUpError.set("");
 
     this._authService
       .createAccount(email, password, displayName)
@@ -268,12 +276,12 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
           error_code: errorCode,
           failure_stage: failureStage,
         });
-        this.signUpError = this._getAccountCreationErrorMessage(errorCode);
+        this.signUpError.set(this._getAccountCreationErrorMessage(errorCode));
         this._analytics.trackEvent("auth_sign_up_failed", {
           error_code: errorCode,
           failure_stage: failureStage,
         });
-        this.isSubmitting = false;
+        this.isSubmitting.set(false);
       });
   }
 
@@ -306,7 +314,7 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
   private _getAccountCreationErrorMessage(code: string | null): string {
     switch (code) {
       case "auth/wrong-password":
-        return $localize`Current password is incorrect.`;
+        return $localize`An account already exists for this email. Sign in or reset your password.`;
       case "auth/invalid-credential":
         return $localize`Invalid email or password.`;
       case "auth/user-disabled":

@@ -11512,6 +11512,12 @@
         <target>Erreur lors de l&apos;envoi de l&apos;e-mail de réinitialisation. Veuillez réessayer.</target>
       </segment>
     </unit>
+    <unit id="5075908458390286070">
+      <segment state="initial">
+        <source>An account already exists for this email. Sign in or reset your password.</source>
+        <target>Un compte existe déjà pour cette adresse e-mail. Connectez-vous ou réinitialisez votre mot de passe.</target>
+      </segment>
+    </unit>
     <unit id="5078551942621038511">
       <segment state="initial">
         <source>Link to challenge copied to clipboard</source>
@@ -11907,8 +11913,8 @@
     </unit>
     <unit id="event_map_page.challenge_plural">
       <segment state="initial">
-        <source>Challenges</source>
-        <target>Défis</target>
+        <source> Challenges </source>
+        <target> Défis </target>
       </segment>
     </unit>
     <unit id="event_map_page.challenge_singular">

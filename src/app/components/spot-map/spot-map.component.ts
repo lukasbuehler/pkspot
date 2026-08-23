@@ -99,6 +99,7 @@ import { NotificationOptInService } from "../../services/notification-opt-in.ser
 import {
   spotEditAwaitsOrganizationReview,
   spotEditAwaitsReviewOutcome,
+  spotEditProcessingFailed,
   SpotEditsService,
 } from "../../services/firebase/firestore/spot-edits.service";
 
@@ -1386,12 +1387,14 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
               .catch(() => undefined);
           }
         }
-        // Successfully updated - completely stop editing to destroy polygon
-        this.isEditing.set(false);
-
         const disposition = editId
           ? await this.spotEditsService.waitForProcessingDisposition(spotId, editId)
           : null;
+        if (disposition && spotEditProcessingFailed(disposition)) {
+          throw new Error("Spot edit processing failed");
+        }
+        // Successfully updated - completely stop editing to destroy polygon
+        this.isEditing.set(false);
         const awaitsOrganizationReview = disposition
           ? spotEditAwaitsOrganizationReview(disposition)
           : false;

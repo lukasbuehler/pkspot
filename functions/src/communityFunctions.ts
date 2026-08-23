@@ -1619,6 +1619,7 @@ export const syncPublicImportProvenanceForImport = async (
     const snapshot = await db
       .collection(SPOTS_COLLECTION)
       .where(field, "==", importId)
+      .select()
       .get();
     for (const spot of snapshot.docs) linkedSpots.set(spot.id, spot);
   }

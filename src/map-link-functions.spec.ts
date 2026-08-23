@@ -89,4 +89,38 @@ describe("map link redirect resolver", () => {
     expect(firstBody.cancel).toHaveBeenCalledOnce();
     expect(finalBody.cancel).toHaveBeenCalledOnce();
   });
+
+  it("allows five redirects and rejects a sixth", async () => {
+    let allowedHop = 0;
+    const allowedRequest = vi.fn().mockImplementation(async () => {
+      allowedHop += 1;
+      return allowedHop <= 5
+        ? redirect(`https://maps.app.goo.gl/allowed-${allowedHop}`)
+        : {
+            status: 200,
+            headers: new Headers(),
+            body: responseBody(),
+          };
+    });
+    await expect(
+      resolveMapRedirectChain(
+        "https://maps.app.goo.gl/allowed",
+        allowedRequest,
+      ),
+    ).resolves.toBe("https://maps.app.goo.gl/allowed-5");
+    expect(allowedRequest).toHaveBeenCalledTimes(6);
+
+    let excessiveHop = 0;
+    const excessiveRequest = vi.fn().mockImplementation(async () => {
+      excessiveHop += 1;
+      return redirect(`https://maps.app.goo.gl/excessive-${excessiveHop}`);
+    });
+    await expect(
+      resolveMapRedirectChain(
+        "https://maps.app.goo.gl/excessive",
+        excessiveRequest,
+      ),
+    ).rejects.toMatchObject({code: "resource-exhausted"});
+    expect(excessiveRequest).toHaveBeenCalledTimes(6);
+  });
 });

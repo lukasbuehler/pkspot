@@ -4,6 +4,7 @@ import {afterAll, describe, expect, it} from "vitest";
 const firestoreHost = process.env["FIRESTORE_EMULATOR_HOST"];
 const runWithEmulator = firestoreHost ? describe : describe.skip;
 let app: admin.app.App | undefined;
+const createdReferences: admin.firestore.DocumentReference[] = [];
 
 const db = (): admin.firestore.Firestore => {
   app ??= admin.initializeApp(
@@ -47,6 +48,11 @@ const waitForProjectionFields = async (
 
 runWithEmulator("public import provenance maintenance", () => {
   afterAll(async () => {
+    await Promise.all(
+      createdReferences.map((reference) =>
+        reference.delete().catch(() => undefined),
+      ),
+    );
     if (app) await app.delete();
   });
 
@@ -58,6 +64,15 @@ runWithEmulator("public import provenance maintenance", () => {
     const attributedSpot = store.doc(`spots/provenance-attributed-${suffix}`);
     const uncreditedSpot = store.doc(`spots/provenance-uncredited-${suffix}`);
     const ordinarySpot = store.doc(`spots/provenance-ordinary-${suffix}`);
+    const attributedImportRef = store.doc(`imports/${attributedImport}`);
+    const uncreditedImportRef = store.doc(`imports/${uncreditedImport}`);
+    createdReferences.push(
+      attributedSpot,
+      uncreditedSpot,
+      ordinarySpot,
+      attributedImportRef,
+      uncreditedImportRef,
+    );
 
     await Promise.all([
       attributedSpot.set({
@@ -72,14 +87,14 @@ runWithEmulator("public import provenance maintenance", () => {
       ordinarySpot.set({name: {en: "Ordinary"}, source: "pkspot"}),
     ]);
     await Promise.all([
-      store.doc(`imports/${attributedImport}`).set({
+      attributedImportRef.set({
         credits: {
           source_name: "Community Source",
           attribution_text: "Used with permission",
         },
         viewer_url: "https://example.test/map",
       }),
-      store.doc(`imports/${uncreditedImport}`).set({credits: {}}),
+      uncreditedImportRef.set({credits: {}}),
     ]);
     await waitForProjectionFields([attributedSpot]);
     await attributedSpot.update({
