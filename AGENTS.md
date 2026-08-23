@@ -122,6 +122,7 @@ If you hit the Codex sandbox error "Abort trap: 6", you need to run it outside t
 
 ## Deployment and App Hosting
 
+- Do routine implementation work directly on the local `development` branch; do not create feature PRs. Reserve GitHub PRs for `development` to `main` release merges. Before creating or changing a release PR, or pushing commits that would update it, ask the user for explicit approval. This includes editing PR metadata, commenting, requesting reviews, closing, reopening, or merging. Local commits and verification on `development` may proceed when otherwise authorized, but the user must have the final say over every GitHub action.
 - Do not create, start, promote, or otherwise operate Firebase App Hosting rollouts. The user deploys the web app by updating the `main` branch, which automatically rolls the update out to App Hosting.
 - Do not push or merge changes to `main` unless the user explicitly asks for that release. Local testing and backend-compatible development can remain on the current development branch while production clients and the production web app stay on their previous version.
 - Treat a request to deploy Firebase rules, functions, extensions, or other backend resources as separate from an App Hosting release. It never implies permission to update `main` or operate App Hosting.

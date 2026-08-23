@@ -18,6 +18,11 @@ import { applyActionCode, reload } from "firebase/auth";
 import { AnalyticsService } from "../../services/analytics.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { AuthActionPageComponent } from "./auth-action-page.component";
+import { resolveEmailActionAuth } from "./email-action-auth";
+
+vi.mock("./email-action-auth", () => ({
+  resolveEmailActionAuth: vi.fn(),
+}));
 
 describe("AuthActionPageComponent", () => {
   let fixture: ComponentFixture<AuthActionPageComponent>;
@@ -36,6 +41,10 @@ describe("AuthActionPageComponent", () => {
       user: { emailVerified: false },
       authState$: new BehaviorSubject({ emailVerified: false }),
     };
+    (resolveEmailActionAuth as Mock).mockImplementation((auth) => ({
+      auth,
+      apiKeySource: "app",
+    }));
 
     TestBed.configureTestingModule({
       imports: [AuthActionPageComponent],
@@ -54,6 +63,38 @@ describe("AuthActionPageComponent", () => {
         { provide: AnalyticsService, useValue: analyticsSpy },
       ],
     });
+  });
+
+  it("applies the code with Auth configured from the email link API key", async () => {
+    const linkAuth = { currentUser: null };
+    (resolveEmailActionAuth as Mock).mockReturnValueOnce({
+      auth: linkAuth,
+      apiKeySource: "link",
+    });
+    (applyActionCode as Mock).mockResolvedValueOnce(undefined);
+
+    TestBed.overrideProvider(ActivatedRoute, {
+      useValue: {
+        queryParams: of({
+          mode: "verifyEmail",
+          oobCode: "sensitive-oob-code",
+          apiKey: "link-api-key",
+        }),
+      },
+    });
+    fixture = TestBed.createComponent(AuthActionPageComponent);
+    await vi.waitFor(() => {
+      expect(fixture.componentInstance.state().status).toBe("success");
+    });
+
+    expect(resolveEmailActionAuth).toHaveBeenCalledWith(
+      authServiceStub.auth,
+      "link-api-key",
+    );
+    expect(applyActionCode).toHaveBeenCalledWith(
+      linkAuth,
+      "sensitive-oob-code",
+    );
   });
 
   it("replaces the spinner with a privacy-safe invalid-code error", async () => {

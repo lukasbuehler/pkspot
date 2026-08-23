@@ -12,6 +12,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import {
+  Auth,
   applyActionCode,
   verifyPasswordResetCode,
   confirmPasswordReset,
@@ -27,6 +28,7 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { AnalyticsService } from "../../services/analytics.service";
+import { resolveEmailActionAuth } from "./email-action-auth";
 
 type ActionMode = "verifyEmail" | "resetPassword" | "recoverEmail" | null;
 
@@ -61,6 +63,8 @@ export class AuthActionPageComponent implements OnInit {
 
   readonly mode = signal<ActionMode>(null);
   private readonly _oobCode = signal("");
+  private _actionAuth: Auth | null = null;
+  private _actionApiKeySource: "app" | "link" = "app";
   readonly state = signal<ActionState>({
     status: "loading",
     message: "",
@@ -92,6 +96,15 @@ export class AuthActionPageComponent implements OnInit {
       this.mode.set(params["mode"] as ActionMode);
       this._oobCode.set(params["oobCode"] || "");
 
+      if (this._authService.auth) {
+        const actionAuth = resolveEmailActionAuth(
+          this._authService.auth,
+          params["apiKey"],
+        );
+        this._actionAuth = actionAuth.auth;
+        this._actionApiKeySource = actionAuth.apiKeySource;
+      }
+
       if (!this._oobCode()) {
         this.state.set({
           status: "error",
@@ -107,7 +120,8 @@ export class AuthActionPageComponent implements OnInit {
 
   private async handleAction(): Promise<void> {
     // Ensure auth is available
-    if (!this._authService.auth) {
+    const actionAuth = this._actionAuth;
+    if (!actionAuth) {
       this.state.set({
         status: "error",
         title: $localize`Authentication Error`,
@@ -118,13 +132,13 @@ export class AuthActionPageComponent implements OnInit {
 
     switch (this.mode()) {
       case "verifyEmail":
-        await this.handleVerifyEmail();
+        await this.handleVerifyEmail(actionAuth);
         break;
       case "resetPassword":
-        await this.handleResetPassword();
+        await this.handleResetPassword(actionAuth);
         break;
       case "recoverEmail":
-        await this.handleRecoverEmail();
+        await this.handleRecoverEmail(actionAuth);
         break;
       default:
         this.state.set({
@@ -135,7 +149,7 @@ export class AuthActionPageComponent implements OnInit {
     }
   }
 
-  private async handleVerifyEmail(): Promise<void> {
+  private async handleVerifyEmail(actionAuth: Auth): Promise<void> {
     this.state.set({
       status: "loading",
       title: $localize`Verifying Email`,
@@ -143,7 +157,7 @@ export class AuthActionPageComponent implements OnInit {
     });
 
     try {
-      await applyActionCode(this._authService.auth, this._oobCode());
+      await applyActionCode(actionAuth, this._oobCode());
 
       try {
         await this.refreshCurrentUser();
@@ -175,7 +189,7 @@ export class AuthActionPageComponent implements OnInit {
     }
   }
 
-  private async handleResetPassword(): Promise<void> {
+  private async handleResetPassword(actionAuth: Auth): Promise<void> {
     this.state.set({
       status: "loading",
       title: $localize`Reset Password`,
@@ -185,7 +199,7 @@ export class AuthActionPageComponent implements OnInit {
     try {
       // Verify the code first to get the email
       this.passwordResetEmail = await verifyPasswordResetCode(
-        this._authService.auth,
+        actionAuth,
         this._oobCode()
       );
       this.state.set({
@@ -206,7 +220,12 @@ export class AuthActionPageComponent implements OnInit {
   }
 
   async submitNewPassword(): Promise<void> {
-    if (this.passwordResetForm.invalid || this.isResettingPassword()) {
+    const actionAuth = this._actionAuth;
+    if (
+      !actionAuth ||
+      this.passwordResetForm.invalid ||
+      this.isResettingPassword()
+    ) {
       return;
     }
 
@@ -215,7 +234,7 @@ export class AuthActionPageComponent implements OnInit {
 
     try {
       await confirmPasswordReset(
-        this._authService.auth,
+        actionAuth,
         this._oobCode(),
         newPassword
       );
@@ -238,7 +257,7 @@ export class AuthActionPageComponent implements OnInit {
     }
   }
 
-  private async handleRecoverEmail(): Promise<void> {
+  private async handleRecoverEmail(actionAuth: Auth): Promise<void> {
     this.state.set({
       status: "loading",
       title: $localize`Recovering Email`,
@@ -246,7 +265,7 @@ export class AuthActionPageComponent implements OnInit {
     });
 
     try {
-      await applyActionCode(this._authService.auth, this._oobCode());
+      await applyActionCode(actionAuth, this._oobCode());
       this.state.set({
         status: "success",
         title: $localize`Email Recovered`,
@@ -302,6 +321,7 @@ export class AuthActionPageComponent implements OnInit {
       userFacing: true,
       properties: {
         auth_action_mode: this.mode(),
+        auth_api_key_source: this._actionApiKeySource,
         error_code: code ?? "unknown",
         $exception_fingerprint: `auth_action:${action}:${code ?? "unknown"}`,
       },
