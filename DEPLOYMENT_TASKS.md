@@ -185,21 +185,14 @@ The client parses full supported URLs locally. Google short links use a narrow,
 App Check-protected redirect resolver which validates every redirect hop and
 does not log or persist the pasted URL.
 
-- [ ] Deploy `functions:resolveMapShortLink` before releasing the 1.1.5 client:
-
-  ```sh
-  npx firebase deploy --project prod --only functions:resolveMapShortLink
-  ```
-
-  - Verify the Function is active in `europe-west1`, expands a
-    `maps.app.goo.gl` link, rejects requests without valid App Check, rejects an
-    off-domain redirect, records no raw URL in application logs, and returns the
-    validated full Maps redirect without fetching the final Google Maps HTML
-    page. Then paste `https://maps.app.goo.gl/v53ih4b5vdjweTB57` into map
-    search: the pasted URL and an autocomplete loading indicator must remain
-    visible while resolving, and the result must open the Google Place for
-    `Spital Lachen AG` (with its destination coordinates as fallback). Also
-    verify full Google Maps and Apple Maps links open the expected location.
+- [ ] Complete the post-deployment Maps-link verification. Confirm requests
+      without valid App Check and off-domain redirects remain rejected, and
+      confirm application logs contain no raw pasted URLs. Then paste
+      `https://maps.app.goo.gl/v53ih4b5vdjweTB57` into map search: the pasted
+      URL and autocomplete loading indicator must remain visible while
+      resolving, and the result must open the Google Place for `Spital Lachen
+      AG` (with its destination coordinates as fallback). Also verify full
+      Google Maps and Apple Maps links open the expected location.
 
 ### Idempotent Spot creation and duplicate administration
 
