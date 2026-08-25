@@ -74,6 +74,22 @@ describe("MapLinkResolverService", () => {
     );
   });
 
+  it("extracts the destination from modern Google place URLs", async () => {
+    functions.callAppChecked.mockResolvedValue({
+      finalUrl:
+        "https://www.google.com/maps/place/Spital+Lachen+AG/@47.1887254,8.8399137,4111m/data=!3m2!1e3!4m6!3m5!1s0x479ab6093abf4e7b:0x42f90d610a59c0cf!8m2!3d47.1893231!4d8.8592046!16s%2Fg%2F1thd0sd3",
+    });
+
+    await expect(
+      service.resolve("https://maps.app.goo.gl/v53ih4b5vdjweTB57"),
+    ).resolves.toMatchObject({
+      provider: "google",
+      format: "short",
+      query: "Spital Lachen AG",
+      location: { lat: 47.1893231, lng: 8.8592046 },
+    });
+  });
+
   it("rejects lookalike and non-HTTPS hosts", () => {
     expect(service.isSupportedUrl("https://maps.google.com.evil.test/maps")).toBe(false);
     expect(service.isSupportedUrl("http://maps.apple.com/?q=Zurich")).toBe(false);

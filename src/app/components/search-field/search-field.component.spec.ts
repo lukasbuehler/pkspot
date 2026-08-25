@@ -136,6 +136,50 @@ describe("SearchFieldComponent", () => {
     expect(fixture.componentInstance.spotSearchControl.value).toBe("");
   });
 
+  it("shows progress while a pasted Maps link is resolving", async () => {
+    let resolveLink!: (value: {
+      provider: "google";
+      format: "short";
+      query: string;
+    }) => void;
+    mapLinks.isSupportedUrl.mockReturnValue(true);
+    mapLinks.resolve.mockReturnValue(
+      new Promise((resolve) => {
+        resolveLink = resolve;
+      }),
+    );
+    await fixture.whenStable();
+
+    fixture.componentInstance.handlePaste({
+      clipboardData: {
+        getData: () => "https://maps.app.goo.gl/v53ih4b5vdjweTB57",
+      },
+      preventDefault: vi.fn(),
+    } as unknown as ClipboardEvent);
+    await fixture.whenStable();
+
+    const input = fixture.debugElement.query(By.css("input"))
+      .nativeElement as HTMLInputElement;
+    expect(input.value).toBe("https://maps.app.goo.gl/v53ih4b5vdjweTB57");
+    expect(
+      fixture.nativeElement
+        .querySelector("mat-progress-spinner")
+        .getAttribute("aria-label"),
+    ).toBe("Opening Maps link...");
+    expect(document.body.textContent).toContain("Opening Maps link...");
+
+    resolveLink({
+      provider: "google",
+      format: "short",
+      query: "Spital Lachen AG",
+    });
+    await vi.waitFor(() => expect(input.value).toBe(""));
+
+    expect(fixture.nativeElement.textContent).not.toContain(
+      "Opening Maps link...",
+    );
+  });
+
   it("discards a slow Maps-link result after a newer paste resolves", async () => {
     let resolveFirst!: (value: {
       provider: "google";

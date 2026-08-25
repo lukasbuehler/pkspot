@@ -109,8 +109,12 @@ describe("MapPageComponent URL-driven panel state", () => {
 
     expect(method).toContain('if (value.type === "map-link"');
     expect(method).toContain("this.openGooglePlaceById(mapLink.placeId)");
+    expect(method).toContain('mapLink.provider === "google"');
+    expect(method?.indexOf('mapLink.provider === "google"')).toBeLessThan(
+      method?.indexOf("this.spotMap?.focusPoint(mapLink.location, 17)") ?? -1,
+    );
     expect(method).toContain("this.spotMap?.focusPoint(mapLink.location, 17)");
-    expect(method).toContain("this._searchService.searchPlaces(mapLink.query)");
+    expect(method).toContain("this.openGooglePlaceByQuery(mapLink.query");
     expect(method).toContain(
       "const requestId = ++this._searchSelectionRequestId",
     );

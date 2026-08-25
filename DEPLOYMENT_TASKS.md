@@ -193,9 +193,13 @@ does not log or persist the pasted URL.
 
   - Verify the Function is active in `europe-west1`, expands a
     `maps.app.goo.gl` link, rejects requests without valid App Check, rejects an
-    off-domain redirect, and records no raw URL in application logs. Then
-    verify full Google Maps, Google short, and Apple Maps links pasted into map
-    search open the expected location.
+    off-domain redirect, records no raw URL in application logs, and returns the
+    validated full Maps redirect without fetching the final Google Maps HTML
+    page. Then paste `https://maps.app.goo.gl/v53ih4b5vdjweTB57` into map
+    search: the pasted URL and an autocomplete loading indicator must remain
+    visible while resolving, and the result must open the Google Place for
+    `Spital Lachen AG` (with its destination coordinates as fallback). Also
+    verify full Google Maps and Apple Maps links open the expected location.
 
 ### Idempotent Spot creation and duplicate administration
 

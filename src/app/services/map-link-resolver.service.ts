@@ -106,6 +106,7 @@ export class MapLinkResolverService {
       this.parseCoordinates(url.searchParams.get("ll")) ??
       this.parseCoordinates(url.searchParams.get("coordinate")) ??
       this.parseCoordinates(queryValue) ??
+      this.parseCoordinatesFromGoogleData(url.pathname) ??
       this.parseCoordinatesFromGooglePath(url.pathname);
     const pathLabel =
       provider === "google"
@@ -159,6 +160,17 @@ export class MapLinkResolverService {
   ): google.maps.LatLngLiteral | undefined {
     const match = path.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/u);
     return match ? this.validCoordinates(Number(match[1]), Number(match[2])) : undefined;
+  }
+
+  private parseCoordinatesFromGoogleData(
+    path: string,
+  ): google.maps.LatLngLiteral | undefined {
+    const match = path.match(
+      /!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/u,
+    );
+    return match
+      ? this.validCoordinates(Number(match[1]), Number(match[2]))
+      : undefined;
   }
 
   private validCoordinates(

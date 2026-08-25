@@ -24,7 +24,7 @@ describe("map link redirect resolver", () => {
     await expect(
       resolveMapRedirectChain("https://maps.app.goo.gl/abc", request),
     ).resolves.toBe("https://www.google.com/maps/place/Test/@47,8,17z");
-    expect(request).toHaveBeenCalledTimes(2);
+    expect(request).toHaveBeenCalledOnce();
   });
 
   it("blocks off-domain redirects", async () => {
@@ -69,25 +69,17 @@ describe("map link redirect resolver", () => {
     expect(request).toHaveBeenCalledTimes(2);
   });
 
-  it("cancels every response body after reading redirect headers", async () => {
+  it("cancels the short-link response without fetching the Google Maps page", async () => {
     const firstBody = responseBody();
-    const finalBody = responseBody();
-    const request = vi
-      .fn()
-      .mockResolvedValueOnce({
-        ...redirect("https://www.google.com/maps/place/Test"),
-        body: firstBody,
-      })
-      .mockResolvedValueOnce({
-        status: 200,
-        headers: new Headers(),
-        body: finalBody,
-      });
+    const request = vi.fn().mockResolvedValueOnce({
+      ...redirect("https://www.google.com/maps/place/Test"),
+      body: firstBody,
+    });
 
     await resolveMapRedirectChain("https://maps.app.goo.gl/abc", request);
 
+    expect(request).toHaveBeenCalledOnce();
     expect(firstBody.cancel).toHaveBeenCalledOnce();
-    expect(finalBody.cancel).toHaveBeenCalledOnce();
   });
 
   it("allows five redirects and rejects a sixth", async () => {

@@ -57,7 +57,10 @@ export async function resolveMapRedirectChain(
   const visited = new Set<string>();
   const deadline = now() + REDIRECT_DEADLINE_MS;
   for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
-    if (!isAllowedMapLinkUrl(current) || current.toString().length > MAX_URL_LENGTH) {
+    if (
+      !isAllowedMapLinkUrl(current) ||
+      current.toString().length > MAX_URL_LENGTH
+    ) {
       throw new HttpsError("permission-denied", "The map link left the supported hosts.");
     }
     if (visited.has(current.toString())) {
@@ -88,6 +91,15 @@ export async function resolveMapRedirectChain(
       current = new URL(location, current);
     } catch {
       throw new HttpsError("failed-precondition", "The map link redirect is invalid.");
+    }
+    if (
+      !isAllowedMapLinkUrl(current) ||
+      current.toString().length > MAX_URL_LENGTH
+    ) {
+      throw new HttpsError("permission-denied", "The map link left the supported hosts.");
+    }
+    if (!isGoogleShortLink(current)) {
+      return current.toString();
     }
   }
 

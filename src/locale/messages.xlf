@@ -7501,6 +7501,11 @@
         <source>Events</source>
       </segment>
     </unit>
+    <unit id="searchField.openingMapsLink">
+      <segment>
+        <source>Opening Maps link...</source>
+      </segment>
+    </unit>
     <unit id="session_planner.form.add_co_host">
       <segment>
         <source> Add co-host </source>

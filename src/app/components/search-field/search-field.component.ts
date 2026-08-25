@@ -8,6 +8,8 @@ import {
   OnDestroy,
   OnInit,
   output,
+  signal,
+  viewChild,
 } from "@angular/core";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import {
@@ -160,6 +162,7 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
   private _searchService = inject(SearchService);
   private readonly _mapLinkResolver = inject(MapLinkResolverService);
   private readonly _snackbar = inject(MatSnackBar);
+  private readonly _autocompleteTrigger = viewChild(MatAutocompleteTrigger);
   private _mapLinkRequestId = 0;
   private _spotSearchSubscription?: Subscription;
   private readonly _minSearchQueryLength = 2;
@@ -202,6 +205,8 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
   onlySpots = input(false);
   readonly defaultPlaceholder = $localize`:@@search_field_default_placeholder:Find spots and more`;
   readonly clearContextLabel = $localize`:@@search_field_clear_context:Clear search filters`;
+  readonly openingMapLinkLabel = $localize`:@@searchField.openingMapsLink:Opening Maps link...`;
+  protected readonly mapLinkLoading = signal(false);
   readonly placeholderText = computed(
     () => this.contextLabel() || this.defaultPlaceholder
   );
@@ -426,6 +431,7 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
 
   optionSelected(event: MatAutocompleteSelectedEvent) {
     this._mapLinkRequestId += 1;
+    this.mapLinkLoading.set(false);
     console.log("optionSelected:", event);
 
     this.emitCommunityPreviewChange(null);
@@ -436,19 +442,29 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
 
   handleSearchInput(): void {
     this._mapLinkRequestId += 1;
+    this.mapLinkLoading.set(false);
   }
 
   handlePaste(event: ClipboardEvent): void {
     if (this.onlySpots()) return;
     const requestId = ++this._mapLinkRequestId;
     const value = event.clipboardData?.getData("text/plain")?.trim() ?? "";
-    if (!this._mapLinkResolver.isSupportedUrl(value)) return;
+    if (!this._mapLinkResolver.isSupportedUrl(value)) {
+      this.mapLinkLoading.set(false);
+      return;
+    }
 
     event.preventDefault();
-    this.spotSearchControl.setValue("");
+    this.mapLinkLoading.set(true);
+    this.spotSearchControl.setValue(value, { emitEvent: false });
+    queueMicrotask(() => {
+      const trigger = this._autocompleteTrigger();
+      if (trigger?.autocomplete) trigger.openPanel();
+    });
     void this._mapLinkResolver.resolve(value).then(
       (mapLink) => {
         if (requestId !== this._mapLinkRequestId) return;
+        this.finishMapLinkResolution();
         this.spotSelected.emit({
           type: "map-link",
           id: mapLink.provider,
@@ -457,6 +473,7 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
       },
       () => {
         if (requestId !== this._mapLinkRequestId) return;
+        this.finishMapLinkResolution();
         this._snackbar.open(
           $localize`Couldn't open that Maps link. Try pasting a full Google Maps or Apple Maps link.`,
           $localize`Dismiss`,
@@ -464,6 +481,12 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
         );
       },
     );
+  }
+
+  private finishMapLinkResolution(): void {
+    this.mapLinkLoading.set(false);
+    this.spotSearchControl.setValue("", { emitEvent: false });
+    this._autocompleteTrigger()?.closePanel();
   }
 
   hasVisibleResults(results: SearchFieldResults): boolean {

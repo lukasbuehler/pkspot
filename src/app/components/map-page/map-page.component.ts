@@ -2981,22 +2981,22 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         this.openGooglePlaceById(mapLink.placeId);
         return;
       }
+      if (
+        mapLink.provider === "google" &&
+        mapLink.query &&
+        (await this.openGooglePlaceByQuery(mapLink.query, requestId))
+      ) {
+        return;
+      }
       if (mapLink.location) {
         this.spotMap?.focusPoint(mapLink.location, 17);
         return;
       }
-      if (mapLink.query) {
-        try {
-          const place = (await this._searchService.searchPlaces(mapLink.query))[0];
-          if (requestId !== this._searchSelectionRequestId) return;
-          if (place?.place_id) {
-            this.openGooglePlaceById(place.place_id);
-            return;
-          }
-        } catch (error) {
-          if (requestId !== this._searchSelectionRequestId) return;
-          console.error("Failed to find the place from a pasted Maps link", error);
-        }
+      if (
+        mapLink.query &&
+        (await this.openGooglePlaceByQuery(mapLink.query, requestId))
+      ) {
+        return;
       }
       this._snackbar.open(
         $localize`That Maps link did not contain a location.`,
@@ -3045,6 +3045,23 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       locality: value.spot?.locality,
       rating: value.spot?.rating,
     });
+  }
+
+  private async openGooglePlaceByQuery(
+    query: string,
+    requestId: number,
+  ): Promise<boolean> {
+    try {
+      const place = (await this._searchService.searchPlaces(query))[0];
+      if (requestId !== this._searchSelectionRequestId) return true;
+      if (!place?.place_id) return false;
+      this.openGooglePlaceById(place.place_id);
+      return true;
+    } catch (error) {
+      if (requestId !== this._searchSelectionRequestId) return true;
+      console.error("Failed to find the place from a pasted Maps link", error);
+      return false;
+    }
   }
 
   onSearchCommunityPreviewChange(community: CommunitySearchPreview | null) {

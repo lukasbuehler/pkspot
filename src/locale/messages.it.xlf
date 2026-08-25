@@ -1042,6 +1042,12 @@
         <target>Eventi</target>
       </segment>
     </unit>
+    <unit id="searchField.openingMapsLink">
+      <segment state="initial">
+        <source>Opening Maps link...</source>
+        <target>Apertura del link di Maps...</target>
+      </segment>
+    </unit>
     <unit id="session_planner.form.add_co_host">
       <segment state="initial">
         <source> Add co-host </source>
