@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MatAutocompleteTrigger } from "@angular/material/autocomplete";
 import { By } from "@angular/platform-browser";
+import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SearchService } from "../../services/search.service";
 import { MapLinkResolverService } from "../../services/map-link-resolver.service";
@@ -55,6 +56,17 @@ describe("SearchFieldComponent", () => {
       ),
     ).not.toBeNull();
     expect(fixture.debugElement.query(By.css("button"))).toBeNull();
+  });
+
+  it("keeps the search status suffix inset from the field edge", () => {
+    const styles = readFileSync(
+      "src/app/components/search-field/search-field.component.scss",
+      "utf8",
+    );
+
+    expect(styles).toMatch(
+      /\.search-field-status-suffix\s*\{[^}]*padding-inline-end:\s*16px;/su,
+    );
   });
 
   it("shows active map context and emits when clearing it", () => {
