@@ -6516,6 +6516,12 @@
         <target>Vento</target>
       </segment>
     </unit>
+    <unit id="weather.state.chance_of_rain">
+      <segment state="initial">
+        <source>Chance of rain</source>
+        <target>Possibilità di pioggia</target>
+      </segment>
+    </unit>
     <unit id="weather.state.clear">
       <segment state="initial">
         <source>Clear</source>

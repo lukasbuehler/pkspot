@@ -10,9 +10,9 @@ import { MatIcon } from "@angular/material/icon";
 import { AccountPreferencesService } from "../../services/account-preferences.service";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 import {
-  WEATHER_STATES,
   getDailyWeatherForecastIconTone,
-  getWeatherStateIcon,
+  getWeatherForecastState,
+  getWeatherForecastStateIcon,
   type WeatherForecastIconTone,
 } from "../../weather/weather-display";
 import {
@@ -91,12 +91,18 @@ export class EventWeatherDaysComponent {
     if (!point) return { ...base, available: false, tone: "neutral" };
 
     const condition = point.condition ?? "unknown";
+    const context = {
+      ...point,
+      condition,
+      temperatureC: point.maxTemperatureC,
+    };
+    const state = getWeatherForecastState(context);
     const unit = this.accountPreferences.temperatureUnit(response.countryCode);
     return {
       ...base,
       available: true,
-      icon: getWeatherStateIcon(condition),
-      condition: WEATHER_STATES[condition].label,
+      icon: getWeatherForecastStateIcon(context),
+      condition: state.label,
       high:
         point.maxTemperatureC === undefined
           ? undefined
@@ -107,8 +113,7 @@ export class EventWeatherDaysComponent {
           : formatTemperature(point.minTemperatureC, unit, false),
       rainProbability: point.precipitationProbabilityPercent,
       tone: getDailyWeatherForecastIconTone({
-        condition,
-        temperatureC: point.maxTemperatureC,
+        ...context,
       }),
     };
   }

@@ -75,6 +75,25 @@ describe("WeatherIconButtonComponent", () => {
     );
   });
 
+  it("shows a neutral chance state for low-probability rain", async () => {
+    fixture.componentRef.setInput("weather", {
+      condition: "rain",
+      precipitationProbabilityPercent: 20,
+      precipitationMm: 0,
+    } satisfies WeatherIconData);
+
+    await fixture.whenStable();
+
+    const button = fixture.nativeElement.querySelector(
+      "button",
+    ) as HTMLButtonElement;
+    expect(
+      fixture.nativeElement.querySelector("mat-icon").textContent?.trim(),
+    ).toBe("cloud");
+    expect(button.getAttribute("aria-label")).toBe("Chance of rain");
+    expect(button.classList).not.toContain("is-wet");
+  });
+
   it("uses the preferred unit in the accessible label", async () => {
     temperatureUnitPreference.set("fahrenheit");
     fixture.componentRef.setInput("weather", {

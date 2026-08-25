@@ -1,8 +1,8 @@
 import {
-  WEATHER_STATES,
   getDailyWeatherForecastIconTone,
   getWeatherForecastIconTone,
-  getWeatherStateIcon,
+  getWeatherForecastState,
+  getWeatherForecastStateIcon,
   type WeatherCondition,
   type WeatherForecastIconTone,
 } from "./weather-display";
@@ -115,8 +115,13 @@ export function eventProgramDayWeather(
 ): EventProgramDayWeather | undefined {
   if (!point) return undefined;
   const condition = point.condition ?? "unknown";
+  const context = { ...point, condition };
   const tone = getDailyWeatherForecastIconTone({
-    condition,
+    ...context,
+    temperatureC: point.maxTemperatureC,
+  });
+  const state = getWeatherForecastState({
+    ...context,
     temperatureC: point.maxTemperatureC,
   });
   return {
@@ -126,8 +131,11 @@ export function eventProgramDayWeather(
       maxTemperatureC: point.maxTemperatureC,
       status: weatherStatusFromTone(tone),
     },
-    icon: getWeatherStateIcon(condition),
-    label: WEATHER_STATES[condition].label,
+    icon: getWeatherForecastStateIcon({
+      ...context,
+      temperatureC: point.maxTemperatureC,
+    }),
+    label: state.label,
     tone,
   };
 }

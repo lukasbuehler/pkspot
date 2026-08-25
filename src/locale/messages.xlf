@@ -11628,6 +11628,11 @@
         <source>Wind</source>
       </segment>
     </unit>
+    <unit id="weather.state.chance_of_rain">
+      <segment>
+        <source>Chance of rain</source>
+      </segment>
+    </unit>
     <unit id="weather.state.clear">
       <segment>
         <source>Clear</source>

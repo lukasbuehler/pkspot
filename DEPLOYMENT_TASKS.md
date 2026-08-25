@@ -104,6 +104,37 @@ existing action-created RSVP documents can be changed in older and newer apps.
       in both Going and Saved is displayed only once. No data backfill is
       required.
 
+### Spot event-card RSVP counts and weather threshold
+
+The event-preview trigger change is backward compatible and makes future RSVP
+aggregate changes self-healing. The maintenance run repairs previews that were
+already stale before the trigger fix. It scans event discovery documents and
+only refreshes Spots linked from those events; it does not scan every Spot.
+
+- [ ] Deploy the Spot event-preview trigger, its bounded backfill helper, and
+      the weather callable before releasing the client:
+
+  ```sh
+  npx firebase deploy --project prod --only functions:syncSpotUpcomingEventsOnEventWrite,functions:backfillSpotUpcomingEvents,functions:getWeather
+  ```
+
+  - Verify all three Functions report location `europe-west1`. Change one test
+    RSVP and confirm the canonical `events/{eventId}.rsvp_counts`, matching
+    `event_discovery/{eventId}.rsvp_counts`, and the linked
+    `spots/{spotId}.upcoming_events[].rsvp_counts` converge to the same value.
+
+- [ ] Create `maintenance/run-backfill-spot-upcoming-events` with any contents
+      once, wait for the Function to delete it, and verify the representative
+      Spot card that was stale now matches the event page. Check Function logs
+      for failures before continuing; recreating the maintenance document is
+      the retry mechanism.
+
+- [ ] Release the client through the normal web and mobile workflows. Verify a
+      49% precipitation forecast remains a neutral “Chance of rain” with its
+      percentage visible, while 50% or at least 0.2 mm uses the rain state.
+      Confirm a long promoted event title stays within the Spot side panel on
+      narrow and desktop layouts.
+
 ### Email signup and notification-link repair
 
 The digest Function change is backward-compatible: existing clients can open

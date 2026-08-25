@@ -84,7 +84,10 @@ form {
 
 .spot-event-grid {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .media-processing-note {

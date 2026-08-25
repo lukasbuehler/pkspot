@@ -12,9 +12,9 @@ import { MatIcon } from "@angular/material/icon";
 import { AccountPreferencesService } from "../../services/account-preferences.service";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
 import {
-  WEATHER_STATES,
   getWeatherForecastIconTone,
-  getWeatherStateIcon,
+  getWeatherForecastState,
+  getWeatherForecastStateIcon,
   type WeatherForecastIconTone,
 } from "../../weather/weather-display";
 import {
@@ -105,6 +105,8 @@ export class EventWeatherHoursComponent {
   ): EventWeatherHourView {
     const response = this.response();
     const condition = point.condition ?? "unknown";
+    const context = { ...point, condition };
+    const state = getWeatherForecastState(context);
     const unit = this.accountPreferences.temperatureUnit(response.countryCode);
     return {
       key: point.time,
@@ -113,22 +115,14 @@ export class EventWeatherHoursComponent {
         minute: "2-digit",
         timeZone: this.timeZone(),
       }),
-      icon: getWeatherStateIcon(condition, point.isDay),
-      condition: WEATHER_STATES[condition].label,
+      icon: getWeatherForecastStateIcon(context),
+      condition: state.label,
       temperature:
         point.temperatureC === undefined
           ? undefined
           : formatTemperature(point.temperatureC, unit, false),
       rainProbability: point.precipitationProbabilityPercent,
-      tone: getWeatherForecastIconTone({
-        condition,
-        temperatureC: point.temperatureC,
-        uvIndex: point.uvIndex,
-        precipitationMm: point.precipitationMm,
-        precipitationProbabilityPercent:
-          point.precipitationProbabilityPercent,
-        isDay: point.isDay,
-      }),
+      tone: getWeatherForecastIconTone(context),
       highlighted,
     };
   }

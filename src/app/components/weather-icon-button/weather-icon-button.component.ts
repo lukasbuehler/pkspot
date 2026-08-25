@@ -11,9 +11,9 @@ import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatIcon } from "@angular/material/icon";
 import { MatTooltip } from "@angular/material/tooltip";
 import {
-  WEATHER_STATES,
   type WeatherCondition,
-  getWeatherStateIcon,
+  getWeatherForecastState,
+  getWeatherForecastStateIcon,
 } from "../../weather/weather-display";
 import type { WeatherVisualStatus } from "../../weather/weather-warnings";
 import { AccountPreferencesService } from "../../services/account-preferences.service";
@@ -28,6 +28,8 @@ export interface WeatherIconData {
   temperatureC?: number;
   minTemperatureC?: number;
   maxTemperatureC?: number;
+  precipitationMm?: number;
+  precipitationProbabilityPercent?: number;
   status?: WeatherVisualStatus;
 }
 
@@ -104,8 +106,8 @@ export class WeatherIconButtonComponent {
 
   readonly pressed = output<void>();
 
-  protected readonly state = computed(
-    () => WEATHER_STATES[this.weather().condition],
+  protected readonly state = computed(() =>
+    getWeatherForecastState(this.weather()),
   );
   protected readonly status = computed<WeatherVisualStatus>(() => {
     const weather = this.weather();
@@ -127,7 +129,7 @@ export class WeatherIconButtonComponent {
     if (override) {
       return override;
     }
-    return getWeatherStateIcon(weather.condition, weather.isDay);
+    return getWeatherForecastStateIcon(weather);
   });
 
   protected readonly accessibleLabel = computed(() => {

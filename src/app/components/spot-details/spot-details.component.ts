@@ -396,6 +396,8 @@ export class SpotDetailsComponent
       isDay: point.isDay,
       label: alertDisplay?.label,
       temperatureC: point.temperatureC,
+      precipitationMm: point.precipitationMm,
+      precipitationProbabilityPercent: point.precipitationProbabilityPercent,
       status: getWeatherVisualStatus(response, {
         covered: this.spotWeatherContext().covered,
       }),
