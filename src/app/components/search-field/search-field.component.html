@@ -11,16 +11,17 @@
       <mat-icon>close</mat-icon>
     </button>
   } @else {
-    @if (mapLinkLoading()) {
-      <mat-progress-spinner
-        matSuffix
-        mode="indeterminate"
-        diameter="18"
-        [attr.aria-label]="openingMapLinkLabel"
-      ></mat-progress-spinner>
-    } @else {
-      <mat-icon matSuffix>search</mat-icon>
-    }
+    <span matSuffix class="search-field-status-suffix">
+      @if (mapLinkLoading()) {
+        <mat-progress-spinner
+          mode="indeterminate"
+          diameter="18"
+          [attr.aria-label]="openingMapLinkLabel"
+        ></mat-progress-spinner>
+      } @else {
+        <mat-icon>search</mat-icon>
+      }
+    </span>
   }
 
   <input

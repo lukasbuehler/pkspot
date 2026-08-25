@@ -49,6 +49,11 @@ describe("SearchFieldComponent", () => {
     expect(
       fixture.debugElement.query(By.css("mat-icon")).nativeElement.textContent,
     ).toContain("search");
+    expect(
+      fixture.nativeElement.querySelector(
+        ".mat-mdc-form-field-icon-suffix .search-field-status-suffix",
+      ),
+    ).not.toBeNull();
     expect(fixture.debugElement.query(By.css("button"))).toBeNull();
   });
 
@@ -166,6 +171,11 @@ describe("SearchFieldComponent", () => {
         .querySelector("mat-progress-spinner")
         .getAttribute("aria-label"),
     ).toBe("Opening Maps link...");
+    expect(
+      fixture.nativeElement.querySelector(
+        ".mat-mdc-form-field-icon-suffix .search-field-status-suffix mat-progress-spinner",
+      ),
+    ).not.toBeNull();
     expect(document.body.textContent).toContain("Opening Maps link...");
 
     resolveLink({
