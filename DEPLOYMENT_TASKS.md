@@ -88,17 +88,42 @@ The 1.1.5 client warns once per app load when attestation fails, but it does not
 enable enforcement. Enforcement must be staged per Firebase product so older
 mobile builds and App Hosting SSR are not accidentally denied.
 
-- [ ] Before enforcing Cloud Firestore, initialize SSR through
-      `FirebaseServerApp` at the existing `FIREBASE_APP` provider boundary so
-      the current resolvers and Firestore services remain hosting-neutral.
-      Forward a real browser App Check token when one is available. Select and
-      document the separate credential used for crawler/first-request SSR;
-      treat any dedicated SSR debug token as a revocable production bypass
-      secret, not as end-user attestation. Verify both App Hosting and the
-      Cloudflare trial can render a localized Spot URL with its Spot-specific
-      title, description, canonical, `og:image`, and `twitter:image` in the
-      initial HTML while Firestore App Check enforcement is enabled in a
-      non-production environment.
+- [ ] Register a dedicated Firebase Web app named `PK Spot SSR` before enabling
+      the server provider. This separate app ID makes SSR App Check traffic
+      distinguishable from browser traffic in Cloud Monitoring. Creating it is
+      an owner action:
+
+  ```sh
+  npx firebase apps:create WEB "PK Spot SSR" --project prod
+  ```
+
+      In Firebase Console > App Check, register that Web app, open **Manage
+      debug tokens**, and register a newly generated high-entropy token named
+      `App Hosting SSR`. Store the same value as an App Hosting runtime secret;
+      do not put it in Git, build-time variables, logs, or browser bundles:
+
+  ```sh
+  npx firebase apphosting:secrets:set pkspotSsrAppCheckDebugToken --project prod
+  ```
+
+      Then add runtime-only `apphosting.yaml` bindings for
+      `PKSPOT_SSR_FIREBASE_APP_ID` (the new Web app ID as a normal value) and
+      `PKSPOT_SSR_APP_CHECK_DEBUG_TOKEN` (secret
+      `pkspotSsrAppCheckDebugToken`). The code exchanges this revocable machine
+      credential for short-lived App Check JWTs, caches them, and refreshes
+      before expiry. It is a production bypass credential for the SSR tier,
+      not crawler or end-user attestation.
+- [ ] Deploy the configured SSR provider while Firestore enforcement remains
+      off. Render several localized Spot and event URLs, then confirm App Check
+      verification metrics contain valid traffic for the dedicated SSR app ID
+      and that exchange failures do not appear in server logs. Keep the
+      exchange client hosting-neutral: another runtime such as Cloudflare must
+      supply the same two values through its own secret/environment adapter.
+- [ ] Before enforcing Cloud Firestore, verify in a non-production environment
+      that a localized Spot URL includes its Spot-specific title, description,
+      canonical, `og:image`, and `twitter:image` in the initial SSR HTML while
+      enforcement is enabled. Revoke the SSR debug credential immediately if
+      it is exposed, register its replacement, and update the runtime secret.
 - [ ] Release the production web App Check change that attaches App Check to the
       default Firebase app, then verify that valid request metrics increase for
       Authentication, Cloud Firestore, Storage, and every protected callable
