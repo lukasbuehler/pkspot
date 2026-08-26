@@ -1,17 +1,14 @@
-import { PLATFORM_ID } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { UntypedFormBuilder } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NEVER, of } from "rxjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AnalyticsService } from "../../services/analytics.service";
-import { ConsentService } from "../../services/consent.service";
 import {
   AccountCreationError,
   AuthenticationService,
 } from "../../services/firebase/authentication.service";
 import { MetaTagService } from "../../services/meta-tag.service";
-import { RecaptchaService } from "../../services/recaptcha.service";
 import { SignUpPageComponent } from "./sign-up-page.component";
 
 describe("SignUpPageComponent", () => {
@@ -25,7 +22,6 @@ describe("SignUpPageComponent", () => {
 
     TestBed.configureTestingModule({
       providers: [
-        { provide: PLATFORM_ID, useValue: "server" },
         {
           provide: MetaTagService,
           useValue: { setStaticPageMetaTags: vi.fn() },
@@ -48,8 +44,6 @@ describe("SignUpPageComponent", () => {
           new UntypedFormBuilder(),
           { navigateByUrl: vi.fn() } as unknown as Router,
           { queryParams: of({}) } as unknown as ActivatedRoute,
-          { setupInvisibleRecaptcha: vi.fn() } as unknown as RecaptchaService,
-          { consentGranted$: NEVER } as unknown as ConsentService,
         ),
     );
 

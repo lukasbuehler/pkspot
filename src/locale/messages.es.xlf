@@ -3881,6 +3881,48 @@
         <target>Baños</target>
       </segment>
     </unit>
+    <unit id="app_check_error.body">
+      <segment state="translated">
+        <source> PK Spot could not verify this app installation. Some data and actions may not work until verification succeeds. </source>
+        <target> PK Spot no pudo verificar esta instalación de la aplicación. Es posible que algunos datos y acciones no funcionen hasta que la verificación se complete correctamente. </target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.continue">
+      <segment state="translated">
+        <source>Continue anyway</source>
+        <target>Continuar de todos modos</target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.native_hint">
+      <segment state="translated">
+        <source> Install PK Spot from the official app store, or use pkspot.app in your browser. </source>
+        <target> Instala PK Spot desde la tienda oficial de aplicaciones o usa pkspot.app en el navegador. </target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.open_web">
+      <segment state="translated">
+        <source>Open website</source>
+        <target>Abrir sitio web</target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.reload">
+      <segment state="translated">
+        <source>Reload</source>
+        <target>Recargar</target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.title">
+      <segment state="translated">
+        <source> App verification failed </source>
+        <target> La verificación de la aplicación ha fallado </target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.web_hint">
+      <segment state="translated">
+        <source> Reload the page, check your connection, disable aggressive script blocking, or use the official app. </source>
+        <target> Recarga la página, comprueba tu conexión, desactiva los bloqueadores de scripts agresivos o usa la aplicación oficial. </target>
+      </segment>
+    </unit>
     <unit id="auth_action.back_to_signin">
       <notes>
         <note category="description">Button to go back to account</note>

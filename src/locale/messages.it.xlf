@@ -4406,6 +4406,48 @@
         <target>Servizi igienici</target>
       </segment>
     </unit>
+    <unit id="app_check_error.body">
+      <segment state="translated">
+        <source> PK Spot could not verify this app installation. Some data and actions may not work until verification succeeds. </source>
+        <target> PK Spot non è riuscito a verificare questa installazione dell'app. Alcuni dati e azioni potrebbero non funzionare finché la verifica non avrà esito positivo. </target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.continue">
+      <segment state="translated">
+        <source>Continue anyway</source>
+        <target>Continua comunque</target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.native_hint">
+      <segment state="translated">
+        <source> Install PK Spot from the official app store, or use pkspot.app in your browser. </source>
+        <target> Installa PK Spot dallo store ufficiale oppure usa pkspot.app nel browser. </target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.open_web">
+      <segment state="translated">
+        <source>Open website</source>
+        <target>Apri sito web</target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.reload">
+      <segment state="translated">
+        <source>Reload</source>
+        <target>Ricarica</target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.title">
+      <segment state="translated">
+        <source> App verification failed </source>
+        <target> Verifica dell'app non riuscita </target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.web_hint">
+      <segment state="translated">
+        <source> Reload the page, check your connection, disable aggressive script blocking, or use the official app. </source>
+        <target> Ricarica la pagina, controlla la connessione, disattiva eventuali blocchi aggressivi degli script oppure usa l'app ufficiale. </target>
+      </segment>
+    </unit>
     <unit id="auth_action.back_to_signin">
       <notes>
         <note category="description">Button to go back to account</note>

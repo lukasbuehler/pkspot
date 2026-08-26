@@ -2228,6 +2228,41 @@
         <source>Toilets</source>
       </segment>
     </unit>
+    <unit id="app_check_error.body">
+      <segment>
+        <source> PK Spot could not verify this app installation. Some data and actions may not work until verification succeeds. </source>
+      </segment>
+    </unit>
+    <unit id="app_check_error.continue">
+      <segment>
+        <source>Continue anyway</source>
+      </segment>
+    </unit>
+    <unit id="app_check_error.native_hint">
+      <segment>
+        <source> Install PK Spot from the official app store, or use pkspot.app in your browser. </source>
+      </segment>
+    </unit>
+    <unit id="app_check_error.open_web">
+      <segment>
+        <source>Open website</source>
+      </segment>
+    </unit>
+    <unit id="app_check_error.reload">
+      <segment>
+        <source>Reload</source>
+      </segment>
+    </unit>
+    <unit id="app_check_error.title">
+      <segment>
+        <source> App verification failed </source>
+      </segment>
+    </unit>
+    <unit id="app_check_error.web_hint">
+      <segment>
+        <source> Reload the page, check your connection, disable aggressive script blocking, or use the official app. </source>
+      </segment>
+    </unit>
     <unit id="amenity.changing_room">
       <segment>
         <source>Changing Room</source>

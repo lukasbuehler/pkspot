@@ -4031,6 +4031,48 @@
         <target>Toiletten</target>
       </segment>
     </unit>
+    <unit id="app_check_error.body">
+      <segment state="translated">
+        <source> PK Spot could not verify this app installation. Some data and actions may not work until verification succeeds. </source>
+        <target> PK Spot kon deze app-installatie niet verifiëren. Sommige gegevens en acties werken mogelijk niet totdat de verificatie is geslaagd. </target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.continue">
+      <segment state="translated">
+        <source>Continue anyway</source>
+        <target>Toch doorgaan</target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.native_hint">
+      <segment state="translated">
+        <source> Install PK Spot from the official app store, or use pkspot.app in your browser. </source>
+        <target> Installeer PK Spot vanuit de officiële appwinkel of gebruik pkspot.app in je browser. </target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.open_web">
+      <segment state="translated">
+        <source>Open website</source>
+        <target>Website openen</target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.reload">
+      <segment state="translated">
+        <source>Reload</source>
+        <target>Opnieuw laden</target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.title">
+      <segment state="translated">
+        <source> App verification failed </source>
+        <target> App-verificatie mislukt </target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.web_hint">
+      <segment state="translated">
+        <source> Reload the page, check your connection, disable aggressive script blocking, or use the official app. </source>
+        <target> Laad de pagina opnieuw, controleer je verbinding, schakel agressieve scriptblokkering uit of gebruik de officiële app. </target>
+      </segment>
+    </unit>
     <unit id="auth_action.back_to_signin">
       <notes>
         <note category="description">Button to go back to account</note>

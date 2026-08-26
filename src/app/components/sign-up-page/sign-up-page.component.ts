@@ -3,13 +3,10 @@ import {
   Component,
   OnDestroy,
   OnInit,
-  PLATFORM_ID,
   inject,
   signal,
 } from "@angular/core";
-import { isPlatformBrowser } from "@angular/common";
 import { MetaTagService } from "../../services/meta-tag.service";
-import { RecaptchaUnavailableInSsrError } from "../../services/recaptcha.service";
 import {
   AbstractControl,
   UntypedFormBuilder,
@@ -23,7 +20,6 @@ import {
   AccountCreationError,
   AuthenticationService,
 } from "../../services/firebase/authentication.service";
-import { Auth, RecaptchaVerifier } from "firebase/auth";
 import { NgOptimizedImage } from "@angular/common";
 import { MatCheckbox } from "@angular/material/checkbox";
 import { MatInput } from "@angular/material/input";
@@ -31,8 +27,6 @@ import { MatFormField, MatLabel, MatHint } from "@angular/material/form-field";
 import { MatButton } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatDividerModule } from "@angular/material/divider";
-import { RecaptchaService } from "../../services/recaptcha.service";
-import { ConsentService } from "../../services/consent.service";
 import { Subscription } from "rxjs";
 import { AutoScrollOnFocusDirective } from "../../directives/auto-scroll-on-focus.directive";
 import { AnalyticsService } from "../../services/analytics.service";
@@ -70,14 +64,9 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
     private _formBuilder: UntypedFormBuilder,
     private _router: Router,
     private _route: ActivatedRoute,
-    private _recaptchaService: RecaptchaService,
-    private _consentService: ConsentService,
   ) {}
 
-  private _recaptchaSolved = false;
-  private _recaptchaSetupCompleted = false;
   private readonly _metaTagService = inject(MetaTagService);
-  private readonly _platformId = inject(PLATFORM_ID);
   private readonly _analytics = inject(AnalyticsService);
 
   ngOnInit(): void {
@@ -113,27 +102,6 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
       },
     );
 
-    // Don't setup reCAPTCHA immediately - wait for explicit user interaction
-    // This prevents API calls during page load even if consent was previously granted
-    console.log(
-      "Sign-up component initialized, waiting for user consent interaction",
-    );
-
-    // Listen for consent changes — but only when we're actually in a
-    // browser. ConsentService grants consent during pre-render, which
-    // used to trigger reCAPTCHA setup on the server and crash SSR with
-    // `auth/operation-not-supported-in-this-environment`.
-    if (isPlatformBrowser(this._platformId)) {
-      this._subscriptions.add(
-        this._consentService.consentGranted$.subscribe((hasConsent) => {
-          if (hasConsent && !this._recaptchaSetupCompleted) {
-            console.log("Consent granted, setting up reCAPTCHA");
-            this.setupSignUpReCaptcha();
-          }
-        }),
-      );
-    }
-
     // Get the return URL from query params, default to profile page
     this._subscriptions.add(
       this._route.queryParams.subscribe((params) => {
@@ -144,47 +112,6 @@ export class SignUpPageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this._subscriptions.unsubscribe();
-  }
-
-  setupSignUpReCaptcha() {
-    if (this._recaptchaSetupCompleted) {
-      console.log("reCAPTCHA already setup, skipping");
-      return;
-    }
-
-    console.log("Setting up reCAPTCHA with consent check");
-
-    // Use the consent-aware reCAPTCHA service
-    this._recaptchaService
-      .setupInvisibleRecaptcha(
-        this._authService.auth,
-        "reCaptchaDiv",
-        (response: any) => {
-          // reCAPTCHA solved, allow sign in
-          this._recaptchaSolved = true;
-          console.log("recaptcha solved", response);
-        },
-        () => {
-          // Response expired. Ask user to solve reCAPTCHA again.
-          console.error("Response expired");
-        },
-      )
-      .then((recaptcha) => {
-        this._recaptchaSetupCompleted = true;
-        // Guard against null and SSR; render may be undefined in some contexts
-        if (recaptcha && typeof (recaptcha as any).render === "function") {
-          (recaptcha as any).render();
-        }
-        console.log("reCAPTCHA setup completed");
-      })
-      .catch((error) => {
-        if (error instanceof RecaptchaUnavailableInSsrError) {
-          // Expected on SSR; nothing to do.
-          return;
-        }
-        console.error("Failed to setup reCAPTCHA:", error);
-        // Gracefully handle case where user hasn't granted consent
-      });
   }
 
   tryCreateAccount(createAccountFormValue: {

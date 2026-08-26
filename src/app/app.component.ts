@@ -92,7 +92,7 @@ import { buildUnembeddedUrlFromHref } from "./shared/embedded-url";
 import { MapPerformanceProfilerService } from "./services/map-performance-profiler.service";
 import { AppSettingsService } from "./services/app-settings.service";
 import { UiLanguageService } from "./services/ui-language.service";
-import { FirebaseAppCheckService } from "./services/firebase/app-check.service";
+import { AppCheckFailureWarningService } from "./services/firebase/app-check-failure-warning.service";
 import { PushNotificationsService } from "./services/push-notifications.service";
 import { trainingFeatureEnabled } from "./features/training-feature";
 import { MyEventContextService } from "./services/my-event-context.service";
@@ -214,7 +214,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   private _ageAssuranceService = inject(AgeAssuranceService);
   private _appSettings = inject(AppSettingsService);
   private _mapProfiler = inject(MapPerformanceProfilerService);
-  private _appCheckService = inject(FirebaseAppCheckService);
+  private _appCheckFailureWarning = inject(AppCheckFailureWarningService);
   private _pushNotifications = inject(PushNotificationsService);
   public checkInService = inject(CheckInService);
   readonly myEventContext = inject(MyEventContextService);
@@ -483,9 +483,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         if (granted) {
           void this.loadDeferredRobotoFonts();
-          void this._appCheckService.initialize().catch((error) => {
-            console.error("AppComponent: error initializing App Check", error);
-          });
+          void this._appCheckFailureWarning.initializeAndWarn();
 
           // set person + super-properties for consent so future events are labeled
           const version = this._consentService.CURRENT_TERMS_VERSION;

@@ -270,9 +270,9 @@ describe("FirebaseAppCheckService", () => {
     expect(service.status()).toEqual(expect.objectContaining({ state: "ready" }));
   });
 
-  it("keeps production web App Check enabled without binding it to the Firestore app while enforcement is off", async () => {
+  it("binds production web App Check to the default Firebase SDK app", async () => {
     expect(productionEnvironment.appCheck.enabled).toBe(true);
-    expect(productionEnvironment.appCheck.attachToFirebaseSdk).toBe(false);
+    expect(productionEnvironment.appCheck.attachToFirebaseSdk).toBeUndefined();
 
     const firebaseApp = {
       name: "[DEFAULT]",
@@ -294,19 +294,12 @@ describe("FirebaseAppCheckService", () => {
     const service = TestBed.inject(FirebaseAppCheckService);
     await service.initialize(productionEnvironment.appCheck);
 
-    expect(initializeFirebaseApp).toHaveBeenCalledWith(
-      firebaseApp.options,
-      "pkspot-app-check-probe"
-    );
     expect(initializeAppCheck).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "pkspot-app-check-probe" }),
-      expect.objectContaining({ isTokenAutoRefreshEnabled: false })
-    );
-    expect(initializeAppCheck).not.toHaveBeenCalledWith(
       firebaseApp,
-      expect.anything()
+      expect.objectContaining({ isTokenAutoRefreshEnabled: true })
     );
-    expect(getApps).toHaveBeenCalled();
+    expect(initializeFirebaseApp).not.toHaveBeenCalled();
+    expect(getApps).not.toHaveBeenCalled();
     expect(getToken).toHaveBeenCalledWith({ app: "app-check" });
     expect(service.status()).toEqual(
       expect.objectContaining({

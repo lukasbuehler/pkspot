@@ -82,6 +82,38 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
+### Firebase App Check enforcement readiness
+
+The 1.1.5 client warns once per app load when attestation fails, but it does not
+enable enforcement. Enforcement must be staged per Firebase product so older
+mobile builds and App Hosting SSR are not accidentally denied.
+
+- [ ] Before enforcing Cloud Firestore, initialize SSR through
+      `FirebaseServerApp` at the existing `FIREBASE_APP` provider boundary so
+      the current resolvers and Firestore services remain hosting-neutral.
+      Forward a real browser App Check token when one is available. Select and
+      document the separate credential used for crawler/first-request SSR;
+      treat any dedicated SSR debug token as a revocable production bypass
+      secret, not as end-user attestation. Verify both App Hosting and the
+      Cloudflare trial can render a localized Spot URL with its Spot-specific
+      title, description, canonical, `og:image`, and `twitter:image` in the
+      initial HTML while Firestore App Check enforcement is enabled in a
+      non-production environment.
+- [ ] Release the production web App Check change that attaches App Check to the
+      default Firebase app, then verify that valid request metrics increase for
+      Authentication, Cloud Firestore, Storage, and every protected callable
+      before enabling enforcement. Do not enforce a product while supported
+      Android, iOS, or cached web clients for that product still report
+      outdated-client or invalid requests.
+- [ ] Treat callables that already set `enforceAppCheck: true` as the first
+      production canaries; verify their legitimate traffic before changing any
+      product-wide setting. Then enable enforcement for one eligible Firebase
+      product at a time. After each change, smoke-test account creation and
+      verification, public Spot and event reads, authenticated writes, media
+      loading/upload, Maps-link resolution, and localized SSR. Monitor
+      invalid/unknown request metrics and the App Check failure warning; roll
+      back that product's enforcement if legitimate clients are rejected.
+
 ### Community event and Spot ranking repair
 
 The 1.1.5 client filters expired cached event previews at render time and sorts

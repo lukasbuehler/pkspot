@@ -1082,7 +1082,8 @@ export class AuthenticationService extends ConsentAwareService {
     let firebaseUserExists = false;
     let firebaseUserCreated = false;
     try {
-      // Ensure consent before creating account (which triggers reCAPTCHA).
+      // Account creation is consent-gated. App Check is initialized centrally
+      // and Firebase Auth applies any configured reCAPTCHA policy itself.
       await this.executeWithConsent(async () => {
         stage = "firebase_auth";
         let firebaseAuthResponse: UserCredential;
