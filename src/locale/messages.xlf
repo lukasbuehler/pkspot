@@ -6800,7 +6800,7 @@
     </unit>
     <unit id="7708270344948043036">
       <segment>
-        <source> <ph id="0" equiv="INTERPOLATION" disp="{{ uploading() ? &quot;Uploading...&quot; : &quot;Done&quot; }}"/> </source>
+        <source> <ph id="0" equiv="INTERPOLATION" disp="{{ report.incidentPath ? &quot;Open incident&quot; : &quot;Start incident&quot; }}"/> </source>
       </segment>
     </unit>
     <unit id="media.processing.status">

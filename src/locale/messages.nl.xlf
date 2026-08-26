@@ -2491,8 +2491,8 @@
     </unit>
     <unit id="7708270344948043036">
       <segment state="initial">
-        <source> <ph id="0" equiv="INTERPOLATION" disp="{{ uploading() ? &quot;Uploading...&quot; : &quot;Done&quot; }}"/> </source>
-        <target> <ph id="0" equiv="INTERPOLATION" disp="{{ uploading() ? &quot;Uploading...&quot; : &quot;Done&quot; }}"/> </target>
+        <source> <ph id="0" equiv="INTERPOLATION" disp="{{ report.incidentPath ? &quot;Open incident&quot; : &quot;Start incident&quot; }}"/> </source>
+        <target> <ph id="0" equiv="INTERPOLATION" disp="{{ report.incidentPath ? &quot;Open incident&quot; : &quot;Start incident&quot; }}"/> </target>
       </segment>
     </unit>
     <unit id="7724618434121262533">

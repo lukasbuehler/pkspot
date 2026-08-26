@@ -2401,8 +2401,8 @@
     </unit>
     <unit id="7708270344948043036">
       <segment state="initial">
-        <source> <ph id="0" equiv="INTERPOLATION" disp="{{ uploading() ? &quot;Uploading...&quot; : &quot;Done&quot; }}"/> </source>
-        <target> <ph id="0" equiv="INTERPOLATION" disp="{{ uploading() ? &quot;Uploading...&quot; : &quot;Done&quot; }}"/> </target>
+        <source> <ph id="0" equiv="INTERPOLATION" disp="{{ report.incidentPath ? &quot;Open incident&quot; : &quot;Start incident&quot; }}"/> </source>
+        <target> <ph id="0" equiv="INTERPOLATION" disp="{{ report.incidentPath ? &quot;Open incident&quot; : &quot;Start incident&quot; }}"/> </target>
       </segment>
     </unit>
     <unit id="7724618434121262533">
@@ -5572,7 +5572,7 @@
     <unit id="9102167136172430388">
       <segment state="initial">
         <source>The mobile platform shared an 18+ range based on an age entered for the platform account. Because it was not independently checked, it cannot unlock a public profile.</source>
-        <target>La piattaforma mobile ha condiviso una fascia 18+ basata sull'età inserita nell'account della piattaforma. Poiché non è stata verificata in modo indipendente, non può sbloccare un profilo pubblico.</target>
+        <target>La piattaforma mobile ha condiviso una fascia 18+ basata sull&apos;età inserita nell&apos;account della piattaforma. Poiché non è stata verificata in modo indipendente, non può sbloccare un profilo pubblico.</target>
       </segment>
     </unit>
     <unit id="9107902639851774121">
@@ -6813,7 +6813,7 @@
     <unit id="7648040324495665523">
       <segment state="initial">
         <source>The mobile platform is not sharing an age range with PK Spot. You can choose to check again.</source>
-        <target>La piattaforma mobile non sta condividendo una fascia d'età con PK Spot. Puoi scegliere di verificare di nuovo.</target>
+        <target>La piattaforma mobile non sta condividendo una fascia d&apos;età con PK Spot. Puoi scegliere di verificare di nuovo.</target>
       </segment>
     </unit>
     <unit id="7672282077901429954">
@@ -12836,7 +12836,7 @@
     <unit id="5159743894930050077">
       <segment state="initial">
         <source>The mobile platform reports a guardian-managed age range.</source>
-        <target>La piattaforma mobile segnala una fascia d'età gestita da un tutore.</target>
+        <target>La piattaforma mobile segnala una fascia d&apos;età gestita da un tutore.</target>
       </segment>
     </unit>
     <unit id="5161309645847446621">
@@ -13086,7 +13086,7 @@
     <unit id="5412539639949623761">
       <segment state="initial">
         <source>The mobile platform requires you to confirm your age or set up supervision. Complete its instructions, then check again.</source>
-        <target>La piattaforma mobile richiede di confermare l'età o configurare la supervisione. Segui le sue istruzioni, quindi verifica di nuovo.</target>
+        <target>La piattaforma mobile richiede di confermare l&apos;età o configurare la supervisione. Segui le sue istruzioni, quindi verifica di nuovo.</target>
       </segment>
     </unit>
     <unit id="541397324131531449">
@@ -13670,7 +13670,7 @@
     <unit id="7122784988520930893">
       <segment state="initial">
         <source>The mobile platform supplied an independently checked 18+ result. Adult eligibility is active.</source>
-        <target>La piattaforma mobile ha fornito un risultato 18+ verificato in modo indipendente. L'idoneità per adulti è attiva.</target>
+        <target>La piattaforma mobile ha fornito un risultato 18+ verificato in modo indipendente. L&apos;idoneità per adulti è attiva.</target>
       </segment>
     </unit>
     <unit id="7136600839935407372">

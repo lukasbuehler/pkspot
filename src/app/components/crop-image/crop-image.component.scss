@@ -29,6 +29,88 @@ image-cropper {
   );
   --cropper-color: var(--mat-sys-primary);
   --cropper-focus-border: 2px solid var(--mat-sys-primary);
+  --cropper-resize-square-bg: var(--mat-sys-primary);
+  --cropper-resize-square-border: 2px solid var(--mat-sys-on-primary);
+}
+
+// ngx-image-cropper does not expose handle sizing as an input or CSS variable.
+// Keep the visible grips compact while expanding every touch target to 44px.
+:host ::ng-deep image-cropper .ngx-ic-cropper .ngx-ic-resize {
+  line-height: 8px;
+  padding: 16px;
+}
+
+:host ::ng-deep image-cropper .ngx-ic-cropper .ngx-ic-resize .ngx-ic-square {
+  width: 8px;
+  height: 8px;
+}
+
+:host ::ng-deep image-cropper .ngx-ic-cropper .ngx-ic-resize.ngx-ic-topleft {
+  top: -22px;
+  left: -22px;
+}
+
+:host ::ng-deep image-cropper .ngx-ic-cropper .ngx-ic-resize.ngx-ic-top {
+  top: -22px;
+  left: calc(50% - 22px);
+}
+
+:host ::ng-deep image-cropper .ngx-ic-cropper .ngx-ic-resize.ngx-ic-topright {
+  top: -22px;
+  right: -22px;
+}
+
+:host ::ng-deep image-cropper .ngx-ic-cropper .ngx-ic-resize.ngx-ic-right {
+  top: calc(50% - 22px);
+  right: -22px;
+}
+
+:host ::ng-deep image-cropper .ngx-ic-cropper .ngx-ic-resize.ngx-ic-bottomright {
+  right: -22px;
+  bottom: -22px;
+}
+
+:host ::ng-deep image-cropper .ngx-ic-cropper .ngx-ic-resize.ngx-ic-bottom {
+  bottom: -22px;
+  left: calc(50% - 22px);
+}
+
+:host ::ng-deep image-cropper .ngx-ic-cropper .ngx-ic-resize.ngx-ic-bottomleft {
+  bottom: -22px;
+  left: -22px;
+}
+
+:host ::ng-deep image-cropper .ngx-ic-cropper .ngx-ic-resize.ngx-ic-left {
+  top: calc(50% - 22px);
+  left: -22px;
+}
+
+:host ::ng-deep image-cropper .ngx-ic-cropper .ngx-ic-resize-bar.ngx-ic-top {
+  top: -22px;
+  left: 22px;
+  width: calc(100% - 44px);
+  height: 44px;
+}
+
+:host ::ng-deep image-cropper .ngx-ic-cropper .ngx-ic-resize-bar.ngx-ic-right {
+  top: 22px;
+  right: -22px;
+  width: 44px;
+  height: calc(100% - 44px);
+}
+
+:host ::ng-deep image-cropper .ngx-ic-cropper .ngx-ic-resize-bar.ngx-ic-bottom {
+  bottom: -22px;
+  left: 22px;
+  width: calc(100% - 44px);
+  height: 44px;
+}
+
+:host ::ng-deep image-cropper .ngx-ic-cropper .ngx-ic-resize-bar.ngx-ic-left {
+  top: 22px;
+  left: -22px;
+  width: 44px;
+  height: calc(100% - 44px);
 }
 
 .crop-controls {

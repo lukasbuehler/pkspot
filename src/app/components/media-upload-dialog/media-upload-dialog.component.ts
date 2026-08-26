@@ -1,4 +1,12 @@
-import { Component, Inject, inject, signal, ViewChild, ChangeDetectionStrategy } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Inject,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from "@angular/core";
 import {
   MAT_DIALOG_DATA,
   MatDialogRef,
@@ -61,18 +69,25 @@ export class MediaUploadDialogComponent {
   }
 
   protected uploading = signal(false);
-
-  @ViewChild(MediaUpload) mediaUpload!: MediaUpload;
+  protected readonly mediaUpload = viewChild(MediaUpload);
+  protected readonly hasPendingMedia = computed(
+    () => this.mediaUpload()?.hasPendingMedia() ?? false,
+  );
+  protected readonly hasIncompleteRequiredCrop = computed(
+    () => this.mediaUpload()?.hasIncompleteRequiredCrop() ?? false,
+  );
 
   onUploadingChange(isUploading: boolean) {
     this.uploading.set(isUploading);
-    this.dialogRef.disableClose = isUploading; // Prevent closing via backdrop/escape
+    this.syncCloseProtection();
+  }
+
+  onMediaChanged(): void {
+    this.syncCloseProtection();
   }
 
   abort() {
-    if (this.mediaUpload) {
-      this.mediaUpload.cancelBatch();
-    }
+    this.mediaUpload()?.cancelBatch();
     this.uploading.set(false);
     this.dialogRef.disableClose = false;
     this.close();
@@ -102,9 +117,25 @@ export class MediaUploadDialogComponent {
         verticalPosition: "bottom",
       }
     );
+    this.syncCloseProtection();
+  }
+
+  confirm(): void {
+    const mediaUpload = this.mediaUpload();
+    if (!mediaUpload || this.uploading()) return;
+    if (mediaUpload.hasPendingMedia()) {
+      void mediaUpload.uploadStaged();
+      return;
+    }
+    this.close();
   }
 
   close() {
     this.dialogRef.close();
+  }
+
+  private syncCloseProtection(): void {
+    this.dialogRef.disableClose =
+      this.uploading() || (this.mediaUpload()?.hasPendingMedia() ?? false);
   }
 }

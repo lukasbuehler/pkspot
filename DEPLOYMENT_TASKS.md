@@ -82,6 +82,29 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
+### Community event and Spot ranking repair
+
+The 1.1.5 client filters expired cached event previews at render time and sorts
+community picks with the shared map priority. Deploying and rebuilding the
+generator also corrects the stored order for older clients and future pages.
+
+- [ ] Deploy the community page generator before releasing the 1.1.5 clients:
+
+  ```sh
+  npx firebase deploy --project prod --only functions:rebuildAllCommunityPages
+  ```
+
+- [ ] Request a full community rebuild and wait for the maintenance document
+      to report `status: DONE`:
+
+  ```sh
+  FIREBASE_PROJECT=parkour-base-project node scripts/request_community_rebuild.js
+  ```
+
+  - Verify Basel's Standout Spots use the same shared rating, access, iconic,
+    media, and report priority as the map, and no expired event is rendered on
+    a representative community page.
+
 ### Event RSVP and My Events repair
 
 The Firestore rule change accepts the optional millisecond timestamp already

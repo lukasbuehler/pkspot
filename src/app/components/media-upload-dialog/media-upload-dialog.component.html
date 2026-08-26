@@ -7,6 +7,8 @@
     [imageCropPolicy]="optionalMediaCropPolicy"
     [moderationTargetKind]="'spot'"
     [moderationTargetId]="data.spotId"
+    [showUploadAction]="false"
+    (changed)="onMediaChanged()"
     (mediaBatchUploaded)="onMediaBatchUploaded($event)"
     (isUploading)="onUploadingChange($event)"
   ></app-media-upload>
@@ -14,13 +16,29 @@
 <div mat-dialog-actions class="d-flex justify-content-between">
   <button
     mat-button
-    (click)="uploading() ? abort() : close()"
-    [color]="uploading() ? 'warn' : null"
+    (click)="abort()"
   >
-    {{ uploading() ? "Abort" : "Cancel" }}
+    @if (uploading()) {
+      <span i18n>Abort</span>
+    } @else if (hasPendingMedia()) {
+      <span i18n>Discard</span>
+    } @else {
+      <span i18n>Cancel</span>
+    }
   </button>
 
-  <button mat-stroked-button (click)="close()" [disabled]="uploading()" i18n>
-    {{ uploading() ? "Uploading..." : "Done" }}
+  <button
+    mat-flat-button
+    (click)="confirm()"
+    [disabled]="uploading() || hasIncompleteRequiredCrop()"
+  >
+    <mat-icon>{{ hasPendingMedia() ? "upload" : "check" }}</mat-icon>
+    @if (uploading()) {
+      <span i18n>Uploading…</span>
+    } @else if (hasPendingMedia()) {
+      <span i18n>Upload</span>
+    } @else {
+      <span i18n>Close</span>
+    }
   </button>
 </div>

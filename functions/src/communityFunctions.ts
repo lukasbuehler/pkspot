@@ -26,6 +26,7 @@ import { CommunityMergeSchema } from "../../src/db/schemas/CommunityMergeSchema"
 import { EventSchema } from "../../src/db/schemas/EventSchema";
 import { EVENT_DISCOVERY_COLLECTION } from "../../src/db/schemas/EventDiscoverySchema";
 import { SpotPreviewData } from "../../src/db/schemas/SpotPreviewData";
+import { getSpotPriority } from "../../src/db/schemas/SpotPriority";
 import {
   COMMUNITY_DEFAULT_IMAGE_PATH,
   COMMUNITY_PAGE_MIN_SPOTS,
@@ -447,18 +448,27 @@ const compareSpotsForCommunityPicks = (
   right: SpotSchema,
   center: { lat: number; lng: number } | null
 ): number => {
-  if ((right.is_iconic ?? false) !== (left.is_iconic ?? false)) {
-    return right.is_iconic ? 1 : -1;
+  const priorityDifference =
+    getSpotPriority({
+      rating: right.rating,
+      access: right.access,
+      isIconic: right.is_iconic,
+      isReported: right.is_reported,
+      hasMedia: hasSpotImage(right),
+    }) -
+    getSpotPriority({
+      rating: left.rating,
+      access: left.access,
+      isIconic: left.is_iconic,
+      isReported: left.is_reported,
+      hasMedia: hasSpotImage(left),
+    });
+  if (priorityDifference !== 0) {
+    return priorityDifference;
   }
 
   const leftRating = getRatingValue(left);
   const rightRating = getRatingValue(right);
-  if (leftRating > 0 || rightRating > 0) {
-    if (rightRating !== leftRating) {
-      return rightRating - leftRating;
-    }
-  }
-
   const leftReviews = getReviewCount(left);
   const rightReviews = getReviewCount(right);
   if (rightReviews !== leftReviews) {
@@ -480,20 +490,6 @@ const compareSpotsForCommunityPicks = (
 
 const hasSpotImage = (spot: SpotSchema): boolean =>
   getSpotPreviewImage(spot).trim().length > 0;
-
-const compareSpotsForCommunityPicksWithMediaPriority = (
-  left: SpotSchema,
-  right: SpotSchema,
-  center: { lat: number; lng: number } | null
-): number => {
-  const leftHasImage = hasSpotImage(left);
-  const rightHasImage = hasSpotImage(right);
-  if (rightHasImage !== leftHasImage) {
-    return rightHasImage ? 1 : -1;
-  }
-
-  return compareSpotsForCommunityPicks(left, right, center);
-};
 
 const hasPurposeBuiltParkourType = (spot: SpotSchema): boolean =>
   PURPOSE_BUILT_SPOT_TYPES.has(
@@ -518,11 +514,7 @@ const buildCommunityPickSections = (
   const pickedSpotIds = new Set<string>();
   const sortCandidates = (candidates: Array<{ id: string; data: SpotSchema }>) =>
     [...candidates].sort((left, right) =>
-      compareSpotsForCommunityPicksWithMediaPriority(
-        left.data,
-        right.data,
-        center
-      )
+      compareSpotsForCommunityPicks(left.data, right.data, center)
     );
   const takeSection = (
     category: CommunityPickCategory,
@@ -615,6 +607,7 @@ const buildSpotPreview = (
     countryName: getSpotCountryDisplayName(spot),
     imageSrc: getSpotPreviewImage(spot),
     isIconic: spot.is_iconic ?? false,
+    isReported: spot.is_reported,
     hideStreetview: spot.hide_streetview,
     rating: spot.rating,
     numReviews: spot.num_reviews,

@@ -19,6 +19,7 @@ import { AuthenticationService } from "../../services/firebase/authentication.se
 import { SearchService } from "../../services/search.service";
 import { CommunityEditsService } from "../../services/firebase/firestore/community-edits.service";
 import { NotificationOptInService } from "../../services/notification-opt-in.service";
+import { Event as PkEvent } from "../../../db/models/Event";
 
 const communityData: CommunityLandingPageData = {
   communityKey: "country:ch",
@@ -277,6 +278,56 @@ describe("CommunityLandingPageComponent", () => {
     expect(
       fixture.nativeElement.querySelector("app-spot-preview-card"),
     ).not.toBeNull();
+  });
+
+  it("hides expired event previews even when the cached community page is stale", () => {
+    const past = { id: "past", isPast: () => true } as PkEvent;
+    const upcoming = { id: "upcoming", isPast: () => false } as PkEvent;
+    fixture.componentRef.setInput("communityDataInput", {
+      ...communityData,
+      eventPreviews: [past, upcoming],
+    });
+
+    expect(fixture.componentInstance.communityEvents()).toEqual([upcoming]);
+    expect(fixture.componentInstance.visibleEvents()).toEqual([upcoming]);
+    expect(fixture.componentInstance.hasMoreEvents()).toBe(false);
+  });
+
+  it("uses shared map priority for cached community Spot picks", () => {
+    const offLimitsIconic: SpotPreviewData = {
+      id: "rocketman",
+      name: "Rocketman",
+      locality: "Basel",
+      imageSrc: "/rocketman.jpg",
+      isIconic: true,
+      access: "off-limits",
+      rating: 2.5,
+    };
+    const higherRatedPublic: SpotPreviewData = {
+      id: "overground",
+      name: "OVERGROUND",
+      locality: "Basel",
+      imageSrc: "/overground.jpg",
+      isIconic: false,
+      access: "public",
+      rating: 4.7,
+    };
+    fixture.componentRef.setInput("communityDataInput", {
+      ...communityData,
+      communityPicks: [
+        {
+          category: "standout",
+          title: "Standout Spots",
+          spots: [offLimitsIconic, higherRatedPublic],
+        },
+      ],
+    });
+
+    expect(
+      fixture.componentInstance.communityPickSections()[0]?.spots.map(
+        (spot) => spot.id,
+      ),
+    ).toEqual(["overground", "rocketman"]);
   });
 
   it("renders a crawler-readable text directory with spot links", () => {
