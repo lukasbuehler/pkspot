@@ -15,16 +15,25 @@ PK Spot is growing toward one app for Parkour spots, training, events, jams, and
 
 ### Version 1.1.5 - "Reliability & Bug Fixes"
 
-- Fixed email and password sign-up failures and improved privacy-safe error
-  reporting
-- Fixed notification links and actions that could open the wrong page or a 404
-- Fixed changing an Event response from Interested to Going
-- Moved completed Events from Going or Saved into Past
-- Restored Swiss Jam Event challenges when their parent Spots are not included
-  in the initial Event search results
 - Added support for pasting Google Maps and Apple Maps links into map search
 - Improved imported Spot attribution reliability and reduced redundant backend
   writes
+- Bug fixes:
+  - Fixed email and password sign-up failures and improved privacy-safe error
+    reporting
+  - Fixed notification links and actions that could open the wrong page or a 404
+  - Fixed changing an Event response from Interested to Going
+  - Moved completed Events from Going or Saved into Past
+  - Prevented the iOS age-range request from appearing at app startup and added
+    a clear explanation before users choose to request it in Settings
+  - Restored Swiss Jam Event challenges when their parent Spots are not included
+    in the initial Event search results
+  - Hid past Events from Community pages and aligned Community Spot ranking with
+    the main map
+  - Corrected stale RSVP counts on Spot Event cards and made rain status begin
+    at a 50% precipitation chance or measurable rainfall
+  - Improved media upload and crop controls, including clearer completion state,
+    Material rotation buttons, and larger mobile crop handles
 
 ### Version 1.1.4 - "Notifications & Weather"
 

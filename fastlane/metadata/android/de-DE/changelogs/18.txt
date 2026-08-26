@@ -1,7 +1,5 @@
 PK Spot v1.1.5 — Zuverlässigkeit & Fehlerbehebungen
 
-Was ist neu:
-
 • Links aus Google Maps und Apple Karten können direkt in die Kartensuche eingefügt werden.
 • Medienauswahl und Zuschneiden verbessert; Uploads werden nicht mehr so leicht versehentlich verworfen.
 • Die Abfrage der Altersgruppe wird jetzt zuerst erklärt und erscheint nicht mehr beim App-Start.

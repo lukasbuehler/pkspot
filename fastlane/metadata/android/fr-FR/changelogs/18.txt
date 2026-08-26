@@ -1,7 +1,5 @@
 PK Spot v1.1.5 — Fiabilité et corrections
 
-Nouveautés :
-
 • Collez des liens Google Maps et Apple Plans directement dans la recherche de la carte.
 • Amélioration de la sélection et du recadrage des médias, avec une validation d’envoi plus sûre.
 • La demande de tranche d’âge est maintenant expliquée et ne s’affiche plus au démarrage.
