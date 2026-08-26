@@ -617,13 +617,16 @@
             }
 
             <mat-card class="profile-section mat-elevation-z1">
-              <mat-card-header
+              <div
                 class="profile-section__header profile-section__header--split"
               >
-                <div>
-                  <mat-card-title class="mat-title-small" i18n
-                    >Contributions</mat-card-title
+                <div class="profile-section__heading">
+                  <h2
+                    class="profile-section__title mat-title-small"
+                    i18n="@@profile.stats.contributions"
                   >
+                    Contributions
+                  </h2>
                   <p class="mat-body-small text-muted m-0" i18n>
                     Public map activity from this profile.
                   </p>
@@ -636,7 +639,7 @@
                   <mat-icon>leaderboard</mat-icon>
                   <span i18n>Leaderboard</span>
                 </a>
-              </mat-card-header>
+              </div>
               <mat-card-content class="profile-section__content">
                 <div class="contribution-grid">
                   <div class="contribution-stat">

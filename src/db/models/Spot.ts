@@ -747,18 +747,20 @@ export class LocalSpot {
     previews: SpotSchema["upcoming_events"] | undefined,
     locale: LocaleCode
   ): PkEvent[] {
-    return (previews ?? []).map((preview) => {
-      const locationRaw = preview.location_raw ?? { lat: 0, lng: 0 };
-      const eventData = {
-        ...preview,
-        venue_string: preview.venue_string ?? "",
-        locality_string: preview.locality_string ?? "",
-        location:
-          preview.location ?? new GeoPoint(locationRaw.lat, locationRaw.lng),
-        location_raw: locationRaw,
-      } as EventSchema;
-      return new PkEvent(preview.id as EventId, eventData, locale);
-    });
+    return (previews ?? [])
+      .map((preview) => {
+        const locationRaw = preview.location_raw ?? { lat: 0, lng: 0 };
+        const eventData = {
+          ...preview,
+          venue_string: preview.venue_string ?? "",
+          locality_string: preview.locality_string ?? "",
+          location:
+            preview.location ?? new GeoPoint(locationRaw.lat, locationRaw.lng),
+          location_raw: locationRaw,
+        } as EventSchema;
+        return new PkEvent(preview.id as EventId, eventData, locale);
+      })
+      .filter((event) => !event.isPast());
   }
 
   private _makePathsFromBounds(

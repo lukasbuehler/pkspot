@@ -16,8 +16,6 @@ PK Spot is growing toward one app for Parkour spots, training, events, jams, and
 ### Version 1.1.5 - "Reliability & Bug Fixes"
 
 - Added support for pasting Google Maps and Apple Maps links into map search
-- Improved imported Spot attribution reliability and reduced redundant backend
-  writes
 - Bug fixes:
   - Fixed email and password sign-up failures and improved privacy-safe error
     reporting
@@ -34,6 +32,8 @@ PK Spot is growing toward one app for Parkour spots, training, events, jams, and
     at a 50% precipitation chance or measurable rainfall
   - Improved media upload and crop controls, including clearer completion state,
     Material rotation buttons, and larger mobile crop handles
+  - Improved imported Spot attribution reliability and reduced redundant backend
+    writes
 
 ### Version 1.1.4 - "Notifications & Weather"
 

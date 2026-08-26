@@ -283,14 +283,23 @@
   padding: 20px 24px 0;
 }
 
-.profile-section__header--split.mat-mdc-card-header {
+.profile-section__header--split {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+  padding: 20px 24px 0;
 }
 
 .profile-section__header .mat-mdc-card-title {
+  margin: 0 0 8px;
+}
+
+.profile-section__heading {
+  min-width: 0;
+}
+
+.profile-section__title {
   margin: 0 0 8px;
 }
 
@@ -415,7 +424,7 @@
 }
 
 @media (max-width: 559px) {
-  .profile-section__header--split.mat-mdc-card-header {
+  .profile-section__header--split {
     flex-direction: column;
   }
 

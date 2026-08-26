@@ -1,10 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { SpotEdit } from "./SpotEdit";
 import { SpotChallenge } from "./SpotChallenge";
 import { convertLocalSpotToSpot, LocalSpot, Spot } from "./Spot";
 import { SpotId } from "../schemas/SpotSchema";
 
 describe("Firestore mobile compatibility models", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("should format SpotEdit timestamps when only plain mobile timestamp objects are available", () => {
     const edit = new SpotEdit("edit-1", {
       data: {},
@@ -102,5 +106,41 @@ describe("Firestore mobile compatibility models", () => {
     expect(spot.isReported).toBe(true);
     expect(spot.publicNotice?.type).toBe("duplicate");
     expect(spot.clone().publicNotice?.type).toBe("duplicate");
+  });
+
+  it("drops expired cached event previews when hydrating a Spot", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-26T12:00:00.000Z"));
+    const timestamp = (iso: string) => ({
+      seconds: Math.floor(new Date(iso).getTime() / 1000),
+      nanoseconds: 0,
+    });
+    const spot = new Spot(
+      "event-spot" as SpotId,
+      {
+        name: { en: "Event Spot" },
+        location_raw: { lat: 47.3769, lng: 8.5417 },
+        address: null,
+        upcoming_events: [
+          {
+            id: "past-event",
+            name: "Past event",
+            start: timestamp("2026-08-25T10:00:00.000Z"),
+            end: timestamp("2026-08-25T12:00:00.000Z"),
+          },
+          {
+            id: "future-event",
+            name: "Future event",
+            start: timestamp("2026-08-27T10:00:00.000Z"),
+            end: timestamp("2026-08-27T12:00:00.000Z"),
+          },
+        ],
+      },
+      "en",
+    );
+
+    expect(spot.upcomingEvents().map((event) => event.id)).toEqual([
+      "future-event",
+    ]);
   });
 });

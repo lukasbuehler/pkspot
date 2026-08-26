@@ -117,6 +117,10 @@ export class MediaUploadDialogComponent {
         verticalPosition: "bottom",
       }
     );
+    if (!(this.mediaUpload()?.hasPendingMedia() ?? false)) {
+      this.close();
+      return;
+    }
     this.syncCloseProtection();
   }
 

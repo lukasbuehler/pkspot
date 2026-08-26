@@ -104,6 +104,7 @@ describe("MediaUploadDialogComponent", () => {
         verticalPosition: "bottom",
       }
     );
+    expect(dialogRef.close).toHaveBeenCalledOnce();
   });
 
   it("uploads staged media instead of letting Done discard it", async () => {
