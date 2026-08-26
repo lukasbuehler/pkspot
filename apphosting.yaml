@@ -35,3 +35,8 @@ env:
     value: "production"
     availability:
       - BUILD
+
+  - variable: PKSPOT_SSR_FIREBASE_APP_ID
+    value: "1:294969617102:web:08b892460adf0b16313e9f"
+    availability:
+      - RUNTIME

@@ -1,6 +1,22 @@
 import { getApps } from "firebase/app";
+import type { AppCheck, AppCheckOptions } from "firebase/app-check";
 import { describe, expect, it, vi } from "vitest";
 import { initializeFirebaseServerApp } from "./firebase-server.providers";
+
+const appCheckState = vi.hoisted(() => ({
+  options: undefined as AppCheckOptions | undefined,
+}));
+
+vi.mock("firebase/app-check", async (importOriginal) => {
+  const original = await importOriginal<typeof import("firebase/app-check")>();
+  return {
+    ...original,
+    initializeAppCheck: vi.fn((_app, options: AppCheckOptions) => {
+      appCheckState.options = options;
+      return {} as AppCheck;
+    }),
+  };
+});
 
 const baseConfig = {
   projectId: "demo-pkspot-ssr",
@@ -9,7 +25,7 @@ const baseConfig = {
 };
 
 describe("initializeFirebaseServerApp", () => {
-  it("initializes a distinct, reusable App Check client for SSR", () => {
+  it("supplies cached host-minted tokens to the SSR Firebase client", async () => {
     const environment = {
       PKSPOT_SSR_FIREBASE_APP_ID: "1:123:web:ssr",
     };
@@ -32,6 +48,17 @@ describe("initializeFirebaseServerApp", () => {
       app,
     );
     expect(getApps().filter(({ name }) => name === "PKSPOT_SSR")).toHaveLength(1);
+
+    const provider = appCheckState.options?.provider;
+    expect(provider).toBeDefined();
+    await expect(provider?.getToken()).resolves.toMatchObject({
+      token: "signed-token",
+    });
+    await expect(provider?.getToken()).resolves.toMatchObject({
+      token: "signed-token",
+    });
+    expect(tokenMinter.mintToken).toHaveBeenCalledOnce();
+    expect(tokenMinter.mintToken).toHaveBeenCalledWith("1:123:web:ssr");
   });
 
   it("preserves unattested SSR while the SSR app ID is absent", () => {

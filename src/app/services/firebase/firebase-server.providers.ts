@@ -53,6 +53,10 @@ export function initializeFirebaseServerApp(
     appId,
   });
   if (appCheckInitializedApp !== app) {
+    console.info("[SSR AppCheck] Initializing verified Firebase client.", {
+      appId,
+      projectId: baseConfig.projectId,
+    });
     const cachedTokenMinter = new CachedSsrAppCheckTokenMinter(tokenMinter);
     initializeAppCheck(app, {
       provider: new CustomProvider({

@@ -88,20 +88,6 @@ The 1.1.5 client warns once per app load when attestation fails, but it does not
 enable enforcement. Enforcement must be staged per Firebase product so older
 mobile builds and App Hosting SSR are not accidentally denied.
 
-- [ ] Register a dedicated Firebase Web app named `PK Spot SSR` before enabling
-      the server provider. This separate app ID makes SSR App Check traffic
-      distinguishable from browser traffic in Cloud Monitoring. Creating it is
-      an owner action:
-
-  ```sh
-  npx firebase apps:create WEB "PK Spot SSR" --project prod
-  ```
-
-      Add a runtime-only `apphosting.yaml` value named
-      `PKSPOT_SSR_FIREBASE_APP_ID` containing the new Web app ID. Do not create
-      an App Check debug token. The server uses Firebase Admin with App
-      Hosting's ambient Application Default Credentials to mint short-lived
-      App Check tokens and refreshes them before expiry.
 - [ ] Before enabling the SSR app ID, verify the App Hosting runtime service
       account (`firebase-app-hosting-compute@parkour-base-project.iam.gserviceaccount.com`)
       can sign its custom App Check assertion. Enable the IAM Service Account
@@ -113,8 +99,11 @@ mobile builds and App Hosting SSR are not accidentally denied.
 - [ ] Deploy the configured SSR provider while Firestore enforcement remains
       off. Render several localized Spot and event URLs, then confirm App Check
       verification metrics contain valid traffic for the dedicated SSR app ID
-      and that IAM signing or token-exchange failures do not appear in server
-      logs. The Cloudflare Workers + static-assets design and its required
+      (`1:294969617102:web:08b892460adf0b16313e9f`). In App Hosting logs, verify
+      `[SSR AppCheck] Token minted.` appears with a one-hour TTL and no
+      `[SSR AppCheck] Token mint failed.` entries. Logs include sanitized error
+      type/code/message data but never include the minted token. The Cloudflare
+      Workers + static-assets design and its required
       `SsrAppCheckTokenMinter` adapter are documented in
       `DATA_FLOW_AND_FUNCTIONS.md`; Angular SSR alone is not an attestation.
 - [ ] Before enforcing Cloud Firestore, verify in a non-production environment
