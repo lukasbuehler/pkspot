@@ -1,25 +1,36 @@
-import { EnvironmentProviders, makeEnvironmentProviders } from "@angular/core";
+import {
+  EnvironmentProviders,
+  InjectionToken,
+  Provider,
+  inject,
+  makeEnvironmentProviders,
+} from "@angular/core";
 import { getApps, initializeApp } from "firebase/app";
 import type { FirebaseApp, FirebaseOptions } from "firebase/app";
 import { CustomProvider, initializeAppCheck } from "firebase/app-check";
 import { getFirebaseConfig } from "./firebase-emulator.config";
 import { FIREBASE_APP } from "./firebase-client.providers";
-import { SsrAppCheckTokenExchange } from "./ssr-app-check-token";
-import type { SsrAppCheckTokenConfig } from "./ssr-app-check-token";
+import { CachedSsrAppCheckTokenMinter } from "./ssr-app-check-token";
+import type { SsrAppCheckTokenMinter } from "./ssr-app-check-token";
 
 const SSR_FIREBASE_APP_NAME = "PKSPOT_SSR";
 let appCheckInitializedApp: FirebaseApp | null = null;
 
 interface ServerEnvironment {
   readonly PKSPOT_SSR_FIREBASE_APP_ID?: string;
-  readonly PKSPOT_SSR_APP_CHECK_DEBUG_TOKEN?: string;
 }
 
-export function provideFirebaseServerClient(): EnvironmentProviders {
+export const SSR_APP_CHECK_TOKEN_MINTER =
+  new InjectionToken<SsrAppCheckTokenMinter>("SSR App Check token minter");
+
+export function provideFirebaseServerClient(
+  tokenMinterProvider: Provider,
+): EnvironmentProviders {
   return makeEnvironmentProviders([
+    tokenMinterProvider,
     {
       provide: FIREBASE_APP,
-      useFactory: initializeFirebaseServerApp,
+      useFactory: initializeFirebaseServerAppFromEnvironment,
     },
   ]);
 }
@@ -27,21 +38,25 @@ export function provideFirebaseServerClient(): EnvironmentProviders {
 export function initializeFirebaseServerApp(
   environment: ServerEnvironment = readServerEnvironment(),
   baseConfig: FirebaseOptions = getFirebaseConfig(),
+  tokenMinter: SsrAppCheckTokenMinter | null = null,
 ): FirebaseApp {
-  const tokenConfig = readTokenConfig(environment, baseConfig);
-  if (!tokenConfig) {
+  const appId = environment.PKSPOT_SSR_FIREBASE_APP_ID?.trim();
+  if (!appId) {
     return existingOrNewApp("[DEFAULT]", baseConfig);
+  }
+  if (!tokenMinter) {
+    throw new Error("SSR App Check requires a hosting token minter");
   }
 
   const app = existingOrNewApp(SSR_FIREBASE_APP_NAME, {
     ...baseConfig,
-    appId: tokenConfig.appId,
+    appId,
   });
   if (appCheckInitializedApp !== app) {
-    const tokenExchange = new SsrAppCheckTokenExchange(tokenConfig);
+    const cachedTokenMinter = new CachedSsrAppCheckTokenMinter(tokenMinter);
     initializeAppCheck(app, {
       provider: new CustomProvider({
-        getToken: () => tokenExchange.getToken(),
+        getToken: () => cachedTokenMinter.mintToken(appId),
       }),
       isTokenAutoRefreshEnabled: true,
     });
@@ -51,30 +66,14 @@ export function initializeFirebaseServerApp(
   return app;
 }
 
-function readTokenConfig(
-  environment: ServerEnvironment,
-  baseConfig: FirebaseOptions,
-): SsrAppCheckTokenConfig | null {
+function initializeFirebaseServerAppFromEnvironment(): FirebaseApp {
+  const environment = readServerEnvironment();
   const appId = environment.PKSPOT_SSR_FIREBASE_APP_ID?.trim();
-  const debugToken = environment.PKSPOT_SSR_APP_CHECK_DEBUG_TOKEN?.trim();
-  const projectId = baseConfig.projectId?.trim();
-  const apiKey = baseConfig.apiKey?.trim();
-
-  if (!appId && !debugToken) {
-    return null;
-  }
-  if (!appId || !debugToken) {
-    throw new Error(
-      "SSR App Check requires both the Firebase app ID and debug token",
-    );
-  }
-  if (!projectId || !apiKey) {
-    throw new Error(
-      "SSR App Check requires projectId and apiKey in the Firebase configuration",
-    );
-  }
-
-  return { appId, debugToken, projectId, apiKey };
+  return initializeFirebaseServerApp(
+    environment,
+    getFirebaseConfig(),
+    appId ? inject(SSR_APP_CHECK_TOKEN_MINTER) : null,
+  );
 }
 
 function existingOrNewApp(name: string, options: FirebaseOptions): FirebaseApp {

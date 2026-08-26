@@ -97,33 +97,32 @@ mobile builds and App Hosting SSR are not accidentally denied.
   npx firebase apps:create WEB "PK Spot SSR" --project prod
   ```
 
-      In Firebase Console > App Check, register that Web app, open **Manage
-      debug tokens**, and register a newly generated high-entropy token named
-      `App Hosting SSR`. Store the same value as an App Hosting runtime secret;
-      do not put it in Git, build-time variables, logs, or browser bundles:
-
-  ```sh
-  npx firebase apphosting:secrets:set pkspotSsrAppCheckDebugToken --project prod
-  ```
-
-      Then add runtime-only `apphosting.yaml` bindings for
-      `PKSPOT_SSR_FIREBASE_APP_ID` (the new Web app ID as a normal value) and
-      `PKSPOT_SSR_APP_CHECK_DEBUG_TOKEN` (secret
-      `pkspotSsrAppCheckDebugToken`). The code exchanges this revocable machine
-      credential for short-lived App Check JWTs, caches them, and refreshes
-      before expiry. It is a production bypass credential for the SSR tier,
-      not crawler or end-user attestation.
+      Add a runtime-only `apphosting.yaml` value named
+      `PKSPOT_SSR_FIREBASE_APP_ID` containing the new Web app ID. Do not create
+      an App Check debug token. The server uses Firebase Admin with App
+      Hosting's ambient Application Default Credentials to mint short-lived
+      App Check tokens and refreshes them before expiry.
+- [ ] Before enabling the SSR app ID, verify the App Hosting runtime service
+      account (`firebase-app-hosting-compute@parkour-base-project.iam.gserviceaccount.com`)
+      can sign its custom App Check assertion. Enable the IAM Service Account
+      Credentials API if needed and grant `iam.serviceAccounts.signBlob` only
+      on the signing service account (normally by granting **Service Account
+      Token Creator** to the runtime account on itself), not project-wide.
+      Verify the effective principal and narrow binding in IAM rather than
+      adding a downloaded service-account key.
 - [ ] Deploy the configured SSR provider while Firestore enforcement remains
       off. Render several localized Spot and event URLs, then confirm App Check
       verification metrics contain valid traffic for the dedicated SSR app ID
-      and that exchange failures do not appear in server logs. Keep the
-      exchange client hosting-neutral: another runtime such as Cloudflare must
-      supply the same two values through its own secret/environment adapter.
+      and that IAM signing or token-exchange failures do not appear in server
+      logs. The Cloudflare Workers + static-assets design and its required
+      `SsrAppCheckTokenMinter` adapter are documented in
+      `DATA_FLOW_AND_FUNCTIONS.md`; Angular SSR alone is not an attestation.
 - [ ] Before enforcing Cloud Firestore, verify in a non-production environment
       that a localized Spot URL includes its Spot-specific title, description,
       canonical, `og:image`, and `twitter:image` in the initial SSR HTML while
-      enforcement is enabled. Revoke the SSR debug credential immediately if
-      it is exposed, register its replacement, and update the runtime secret.
+      enforcement is enabled. Confirm static assets remain directly cacheable
+      and do not contain Admin credentials, App Check tokens, or SSR identity
+      material.
 - [ ] Release the production web App Check change that attaches App Check to the
       default Firebase app, then verify that valid request metrics increase for
       Authentication, Cloud Firestore, Storage, and every protected callable

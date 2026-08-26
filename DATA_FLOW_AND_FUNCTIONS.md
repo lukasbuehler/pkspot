@@ -124,6 +124,59 @@ for SDK callables, direct native calls, and same-origin SSR/public-callable prox
 Callable Auth/App Check tokens are supplied by the Firebase protocols; each
 handler still performs its own authorization checks.
 
+### SSR App Check identity and hosting adapters
+
+SSR uses the same Firebase Web SDK and `FIREBASE_APP` injection boundary as the
+browser, but it cannot use browser reCAPTCHA, Android Play Integrity, or Apple
+App Attest. A Firebase app ID identifies the SSR client in token claims and
+metrics; it is public metadata and is not sufficient proof for minting a token.
+
+The hosting-neutral contract is
+`SsrAppCheckTokenMinter.mintToken(appId)`. `CachedSsrAppCheckTokenMinter`
+deduplicates simultaneous renders, caches the returned short-lived token, and
+requests a replacement five minutes before expiry. The resulting token is
+provided to the Web SDK through `CustomProvider` before Firestore initializes.
+This path performs **0 Firestore reads and 0 Firestore writes**. One uncached
+App Hosting mint normally entails metadata/credential discovery when needed,
+an IAM `signBlob` request, and an App Check `exchangeCustomToken` request.
+
+The Node/App Hosting adapter is
+`FirebaseAdminAppCheckTokenMinter`. It calls Firebase Admin
+`createToken(appId)` using Application Default Credentials supplied by the App
+Hosting/Cloud Run runtime. It does not store a service-account JSON key or an
+App Check debug token. `PKSPOT_SSR_FIREBASE_APP_ID` selects the dedicated SSR
+Firebase Web app. If it is absent, SSR deliberately retains the current
+unattested behavior so the provider can be deployed and observed before
+enforcement; a configured app ID without a usable token minter fails closed.
+
+#### Future Cloudflare Workers + static assets adapter
+
+Static assets do not require SSR App Check: Cloudflare can serve them directly.
+Only requests rendered by the Angular SSR Worker need a token. Running Angular
+or enabling Workers' Node.js compatibility does not give the Worker a Google
+runtime identity, so the Worker must supply its own implementation of
+`SsrAppCheckTokenMinter`; it must not import the App Hosting
+`firebase-admin`/ADC adapter.
+
+The Cloudflare adapter must obtain a trusted signing capability without putting
+a private key in the static bundle. Preferred order:
+
+1. Workload Identity Federation or another short-lived identity exchange that
+   can authorize the Worker to sign the Firebase custom assertion.
+2. A narrowly scoped Google-hosted token broker that authenticates the Worker
+   and returns only a short-lived App Check token.
+3. A Cloudflare runtime secret containing signing material only as a last
+   resort, with rotation and leak response documented before use.
+
+The adapter returns `{ token, expireTimeMillis }`; the shared cache and Angular
+Firebase provider remain unchanged. Keep secrets in Worker bindings, never in
+`public/`, the static-assets manifest, client environment files, HTML, logs, or
+hydration state. Prefer a separate Firebase Web app such as
+`PK Spot SSR Cloudflare` so App Check metrics, IAM changes, rollback, and
+credential revocation remain independent from App Hosting. Before switching,
+run the same localized Spot/event initial-HTML tests with Firestore enforcement
+enabled in a non-production project.
+
 ### Direct client writes
 
 | User interaction | Primary writes | Immediate backend cascade |

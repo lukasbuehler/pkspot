@@ -5,12 +5,12 @@ import {
   LOCALE_ID,
 } from "@angular/core";
 import { appConfig } from "./app.config";
-import { provideFirebaseServerClient } from "./services/firebase/firebase-server.providers";
+import { provideFirebaseAppHostingClient } from "./services/firebase/firebase-app-hosting.providers";
 
 const serverConfig: ApplicationConfig = {
   providers: [
     provideServerRendering(),
-    provideFirebaseServerClient(),
+    provideFirebaseAppHostingClient(),
     { provide: LOCALE_ID, useValue: $localize.locale ?? "en" },
   ],
 };

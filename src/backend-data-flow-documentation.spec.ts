@@ -35,4 +35,13 @@ describe("backend data-flow documentation", () => {
     expect(documentation).toContain("event_discovery.rsvp_counts");
     expect(documentation).toContain("spots.upcoming_events[].rsvp_counts");
   });
+
+  it("documents the portable SSR App Check identity boundary", () => {
+    const documentation = read("DATA_FLOW_AND_FUNCTIONS.md");
+
+    expect(documentation).toContain("SsrAppCheckTokenMinter.mintToken(appId)");
+    expect(documentation).toContain("FirebaseAdminAppCheckTokenMinter");
+    expect(documentation).toContain("Future Cloudflare Workers + static assets adapter");
+    expect(documentation).toContain("0 Firestore reads and 0 Firestore writes");
+  });
 });

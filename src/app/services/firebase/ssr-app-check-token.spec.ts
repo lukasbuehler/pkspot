@@ -1,102 +1,87 @@
 import { describe, expect, it, vi } from "vitest";
-import { SsrAppCheckTokenExchange } from "./ssr-app-check-token";
+import { CachedSsrAppCheckTokenMinter } from "./ssr-app-check-token";
 
-const config = {
-  projectId: "parkour-base-project",
-  appId: "1:294969617102:web:ssr",
-  apiKey: "public-api-key",
-  debugToken: "server-secret",
-};
+const appId = "1:294969617102:web:ssr";
 
-describe("SsrAppCheckTokenExchange", () => {
-  it("exchanges the credential at the documented endpoint", async () => {
-    const fetcher = vi.fn(async () =>
-      Response.json({ token: "signed-app-check-token", ttl: "3600s" }),
-    );
-    const exchange = new SsrAppCheckTokenExchange(
-      config,
-      fetcher,
-      () => 1_000,
-    );
+describe("CachedSsrAppCheckTokenMinter", () => {
+  it("caches fresh tokens and deduplicates concurrent minting", async () => {
+    let resolveToken!: (token: {
+      token: string;
+      expireTimeMillis: number;
+    }) => void;
+    const delegate = {
+      mintToken: vi.fn(
+        () =>
+          new Promise<{ token: string; expireTimeMillis: number }>((resolve) => {
+            resolveToken = resolve;
+          }),
+      ),
+    };
+    const minter = new CachedSsrAppCheckTokenMinter(delegate, () => 0);
 
-    await expect(exchange.getToken()).resolves.toEqual({
-      token: "signed-app-check-token",
-      expireTimeMillis: 3_601_000,
-    });
-    expect(fetcher).toHaveBeenCalledWith(
-      "https://firebaseappcheck.googleapis.com/v1/projects/parkour-base-project/apps/1:294969617102:web:ssr:exchangeDebugToken?key=public-api-key",
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ debugToken: "server-secret" }),
-      },
-    );
-  });
+    const first = minter.mintToken(appId);
+    const concurrent = minter.mintToken(appId);
+    expect(delegate.mintToken).toHaveBeenCalledOnce();
+    expect(delegate.mintToken).toHaveBeenCalledWith(appId);
 
-  it("caches fresh tokens and deduplicates concurrent exchanges", async () => {
-    let resolveResponse!: (response: Response) => void;
-    const fetcher = vi.fn(
-      () =>
-        new Promise<Response>((resolve) => {
-          resolveResponse = resolve;
-        }),
-    );
-    const exchange = new SsrAppCheckTokenExchange(config, fetcher, () => 0);
-
-    const first = exchange.getToken();
-    const concurrent = exchange.getToken();
-    expect(fetcher).toHaveBeenCalledOnce();
-
-    resolveResponse(Response.json({ token: "cached", ttl: "3600s" }));
+    resolveToken({ token: "cached", expireTimeMillis: 3_600_000 });
     await expect(Promise.all([first, concurrent])).resolves.toEqual([
       { token: "cached", expireTimeMillis: 3_600_000 },
       { token: "cached", expireTimeMillis: 3_600_000 },
     ]);
-    await expect(exchange.getToken()).resolves.toEqual({
+    await expect(minter.mintToken(appId)).resolves.toEqual({
       token: "cached",
       expireTimeMillis: 3_600_000,
     });
-    expect(fetcher).toHaveBeenCalledOnce();
+    expect(delegate.mintToken).toHaveBeenCalledOnce();
   });
 
   it("refreshes a token before it expires", async () => {
     let now = 0;
-    const fetcher = vi
-      .fn()
-      .mockResolvedValueOnce(Response.json({ token: "first", ttl: "600s" }))
-      .mockResolvedValueOnce(Response.json({ token: "second", ttl: "600s" }));
-    const exchange = new SsrAppCheckTokenExchange(config, fetcher, () => now);
+    const delegate = {
+      mintToken: vi
+        .fn()
+        .mockResolvedValueOnce({ token: "first", expireTimeMillis: 600_000 })
+        .mockResolvedValueOnce({ token: "second", expireTimeMillis: 901_000 }),
+    };
+    const minter = new CachedSsrAppCheckTokenMinter(delegate, () => now);
 
-    await expect(exchange.getToken()).resolves.toMatchObject({ token: "first" });
+    await expect(minter.mintToken(appId)).resolves.toMatchObject({
+      token: "first",
+    });
     now = 301_000;
-    await expect(exchange.getToken()).resolves.toMatchObject({ token: "second" });
-    expect(fetcher).toHaveBeenCalledTimes(2);
-  });
-
-  it("reports safe failures without including the credential", async () => {
-    const exchange = new SsrAppCheckTokenExchange(
-      config,
-      vi.fn(async () => new Response("server-secret", { status: 403 })),
-    );
-
-    const error = await exchange.getToken().catch((reason: unknown) => reason);
-    expect(error).toBeInstanceOf(Error);
-    expect((error as Error).message).toBe(
-      "SSR App Check token exchange failed with HTTP 403",
-    );
-    expect((error as Error).message).not.toContain(config.debugToken);
+    await expect(minter.mintToken(appId)).resolves.toMatchObject({
+      token: "second",
+    });
+    expect(delegate.mintToken).toHaveBeenCalledTimes(2);
   });
 
   it.each([
-    { token: "valid", ttl: "not-a-duration" },
-    { token: "valid" },
-    { ttl: "3600s" },
-  ])("rejects invalid exchange responses", async (body) => {
-    const exchange = new SsrAppCheckTokenExchange(
-      config,
-      vi.fn(async () => Response.json(body)),
+    { token: "", expireTimeMillis: 3_600_000 },
+    { token: "expired", expireTimeMillis: 0 },
+  ])("rejects invalid tokens returned by an adapter", async (token) => {
+    const minter = new CachedSsrAppCheckTokenMinter(
+      { mintToken: vi.fn(async () => token) },
+      () => 1,
     );
 
-    await expect(exchange.getToken()).rejects.toThrow(/invalid (response|TTL)/);
+    await expect(minter.mintToken(appId)).rejects.toThrow(
+      "token minter returned an invalid token",
+    );
+  });
+
+  it("retries after a minting failure", async () => {
+    const delegate = {
+      mintToken: vi
+        .fn()
+        .mockRejectedValueOnce(new Error("IAM unavailable"))
+        .mockResolvedValueOnce({ token: "recovered", expireTimeMillis: 3_600_000 }),
+    };
+    const minter = new CachedSsrAppCheckTokenMinter(delegate, () => 0);
+
+    await expect(minter.mintToken(appId)).rejects.toThrow("IAM unavailable");
+    await expect(minter.mintToken(appId)).resolves.toMatchObject({
+      token: "recovered",
+    });
   });
 });

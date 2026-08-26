@@ -170,4 +170,26 @@ describe("Firebase adapter boundaries", () => {
       ).not.toContain("@angular/fire");
     }
   });
+
+  it("keeps the SSR token contract independent from its App Hosting adapter", () => {
+    const genericProvider = readFileSync(
+      resolve(
+        repoRoot,
+        "src/app/services/firebase/firebase-server.providers.ts",
+      ),
+      "utf8",
+    );
+    const appHostingProvider = readFileSync(
+      resolve(
+        repoRoot,
+        "src/app/services/firebase/firebase-app-hosting.providers.ts",
+      ),
+      "utf8",
+    );
+
+    expect(genericProvider).not.toContain("firebase-admin");
+    expect(appHostingProvider).toContain(
+      "createFirebaseAdminAppCheckTokenMinter",
+    );
+  });
 });
