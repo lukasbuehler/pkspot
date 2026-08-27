@@ -72,12 +72,26 @@ export async function resolveMapRedirectChain(
     if (remainingMs <= 0) {
       throw new HttpsError("deadline-exceeded", "The map link took too long to resolve.");
     }
-    const response = await request(current.toString(), {
-      method: "GET",
-      redirect: "manual",
-      signal: AbortSignal.timeout(remainingMs),
-      headers: { "User-Agent": "PKSpot/1.1 map-link-resolver" },
-    });
+    let response: RedirectResponse;
+    try {
+      response = await request(current.toString(), {
+        method: "GET",
+        redirect: "manual",
+        signal: AbortSignal.timeout(remainingMs),
+        headers: { "User-Agent": "PKSpot/1.1 map-link-resolver" },
+      });
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.name === "AbortError" || error.name === "TimeoutError")
+      ) {
+        throw new HttpsError(
+          "deadline-exceeded",
+          "The map link took too long to resolve.",
+        );
+      }
+      throw error;
+    }
     await response.body?.cancel().catch(() => undefined);
     if (response.status < 300 || response.status >= 400) {
       return current.toString();

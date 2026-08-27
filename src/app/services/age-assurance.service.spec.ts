@@ -136,6 +136,19 @@ describe("AgeAssuranceService", () => {
     expect(nativeState.getBoundAgeSignal).toHaveBeenCalledTimes(2);
   });
 
+  it("syncs again when the same user signs back in", async () => {
+    const service = TestBed.inject(AgeAssuranceService);
+
+    await service.syncNativeAgePolicyForCurrentUser();
+    authUser.uid = null;
+    await service.syncNativeAgePolicyForCurrentUser();
+    authUser.uid = "user-1";
+    await service.syncNativeAgePolicyForCurrentUser();
+
+    expect(nativeState.getBoundAgeSignal).toHaveBeenCalledTimes(2);
+    expect(service.checkState()).toMatchObject({ uid: "user-1" });
+  });
+
   it("does not request the iOS age range during automatic startup sync", async () => {
     nativeState.platform = "ios";
     nativeState.ageSignal = {

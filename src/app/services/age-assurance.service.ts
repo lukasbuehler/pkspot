@@ -124,6 +124,7 @@ export class AgeAssuranceService {
   ): Promise<AgeAssuranceCheckState> {
     const uid = this._authService.user.uid;
     if (!uid) {
+      this._lastSyncedUid = null;
       if (this._checkState().uid !== undefined) {
         this._checkState.set({ status: "idle" });
       }

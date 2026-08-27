@@ -200,7 +200,7 @@ only refreshes Spots linked from those events; it does not scan every Spot.
 - [ ] Release the client through the normal web and mobile workflows. Verify a
       49% precipitation forecast remains a neutral “Chance of rain” with its
       percentage visible, while 50% or at least 0.2 mm uses the rain state.
-      Confirm a long promoted event title stays within the Spot side panel on
+      Confirm a long title for a promoted event stays within the Spot side panel on
       narrow and desktop layouts.
 
 ### Email signup and notification-link repair

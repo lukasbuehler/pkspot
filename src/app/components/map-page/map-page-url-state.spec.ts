@@ -98,7 +98,7 @@ describe("MapPageComponent URL-driven panel state", () => {
     )?.[0];
 
     expect(method).toContain('if (value.type === "place")');
-    expect(method).toContain("this.openGooglePlaceById(value.id)");
+    expect(method).toContain("this.openGooglePlaceById(value.id, requestId)");
   });
 
   it("opens pasted Maps links by exact place, coordinates, or query", () => {
@@ -108,8 +108,11 @@ describe("MapPageComponent URL-driven panel state", () => {
     )?.[0];
 
     expect(method).toContain('if (value.type === "map-link"');
-    expect(method).toContain("this.openGooglePlaceById(mapLink.placeId)");
+    expect(method).toContain(
+      "this.openGooglePlaceById(mapLink.placeId, requestId)",
+    );
     expect(method).toContain('mapLink.provider === "google"');
+    expect(method).toContain('mapLink.provider !== "google"');
     expect(method?.indexOf('mapLink.provider === "google"')).toBeLessThan(
       method?.indexOf("this.spotMap?.focusPoint(mapLink.location, 17)") ?? -1,
     );
@@ -120,6 +123,14 @@ describe("MapPageComponent URL-driven panel state", () => {
     );
     expect(method).toContain(
       "if (requestId !== this._searchSelectionRequestId) return",
+    );
+    expect(method).toContain("this.openGooglePlaceById(place.place_id, requestId)");
+
+    const placeDetailsMethod = source.match(
+      /openGooglePlaceById\([\s\S]*?\n  private _focusGooglePlace/,
+    )?.[0];
+    expect(placeDetailsMethod).toContain(
+      "requestId !== this._searchSelectionRequestId",
     );
   });
 

@@ -69,6 +69,28 @@ describe("map link redirect resolver", () => {
     expect(request).toHaveBeenCalledTimes(2);
   });
 
+  it.each(["AbortError", "TimeoutError"])(
+    "reports a fetch %s as a controlled deadline error",
+    async (name) => {
+      const request = vi.fn().mockRejectedValue(
+        Object.assign(new Error("request timed out"), { name }),
+      );
+
+      await expect(
+        resolveMapRedirectChain("https://maps.app.goo.gl/abc", request),
+      ).rejects.toMatchObject({ code: "deadline-exceeded" });
+    },
+  );
+
+  it("preserves non-timeout fetch failures", async () => {
+    const failure = new Error("network unavailable");
+    const request = vi.fn().mockRejectedValue(failure);
+
+    await expect(
+      resolveMapRedirectChain("https://maps.app.goo.gl/abc", request),
+    ).rejects.toBe(failure);
+  });
+
   it("cancels the short-link response without fetching the Google Maps page", async () => {
     const firstBody = responseBody();
     const request = vi.fn().mockResolvedValueOnce({

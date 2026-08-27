@@ -2971,14 +2971,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       map_object_mode: this.mapObjectMode(),
     });
     if (value.type === "place") {
-      this.openGooglePlaceById(value.id);
+      this.openGooglePlaceById(value.id, requestId);
       return;
     }
 
     if (value.type === "map-link" && value.mapLink) {
       const mapLink = value.mapLink;
       if (mapLink.placeId) {
-        this.openGooglePlaceById(mapLink.placeId);
+        this.openGooglePlaceById(mapLink.placeId, requestId);
         return;
       }
       if (
@@ -2993,6 +2993,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         return;
       }
       if (
+        mapLink.provider !== "google" &&
         mapLink.query &&
         (await this.openGooglePlaceByQuery(mapLink.query, requestId))
       ) {
@@ -3055,7 +3056,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       const place = (await this._searchService.searchPlaces(query))[0];
       if (requestId !== this._searchSelectionRequestId) return true;
       if (!place?.place_id) return false;
-      this.openGooglePlaceById(place.place_id);
+      this.openGooglePlaceById(place.place_id, requestId);
       return true;
     } catch (error) {
       if (requestId !== this._searchSelectionRequestId) return true;
@@ -3068,7 +3069,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.searchPreviewCommunity.set(community);
   }
 
-  openGooglePlaceById(id: string) {
+  openGooglePlaceById(id: string, requestId?: number) {
     this._analytics.trackEvent("map_google_place_opened", {
       place_id: id,
       source: "search",
@@ -3077,6 +3078,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.mapsService
       .getGooglePlaceById(id, "location")
       .then((place) => {
+        if (
+          requestId !== undefined &&
+          requestId !== this._searchSelectionRequestId
+        ) {
+          return;
+        }
         console.debug("[DEBUG openGooglePlaceById] Got place:", place);
         this._focusGooglePlace(place);
       })
