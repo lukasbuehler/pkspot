@@ -8,6 +8,7 @@ import { MatButtonModule } from "@angular/material/button";
 import {
   MAT_DIALOG_DATA,
   MatDialogActions,
+  MatDialogClose,
   MatDialogContent,
   MatDialogTitle,
 } from "@angular/material/dialog";
@@ -21,50 +22,10 @@ import { FirebaseAppCheckStatus } from "../../services/firebase/app-check.servic
     MatDialogTitle,
     MatDialogContent,
     MatDialogActions,
+    MatDialogClose,
     MatIcon,
   ],
-  template: `
-    <h2 mat-dialog-title i18n="@@app_check_error.title">
-      App verification failed
-    </h2>
-    <mat-dialog-content>
-      <div class="d-flex gap-3 align-items-start">
-        <mat-icon color="warn" class="flex-shrink-0">verified_user</mat-icon>
-        <div>
-          <p i18n="@@app_check_error.body">
-            PK Spot could not verify this app installation. Data may not load
-            until verification succeeds.
-          </p>
-          @if (isNativePlatform()) {
-            <p i18n="@@app_check_error.native_hint">
-              Install PK Spot from the official app store, or use pkspot.app in
-              your browser.
-            </p>
-          } @else {
-            <p i18n="@@app_check_error.web_hint">
-              Reload the page, disable aggressive script blocking, or use the
-              official app.
-            </p>
-          }
-          @if (data.message) {
-            <p class="mat-body-small opacity-75 mb-0">
-              {{ data.message }}
-            </p>
-          }
-        </div>
-      </div>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      @if (isNativePlatform()) {
-        <a mat-button [href]="webUrl()">
-          <span i18n="@@app_check_error.open_web">Open website</span>
-        </a>
-      }
-      <button mat-flat-button color="primary" (click)="reload()">
-        <span i18n="@@app_check_error.reload">Reload</span>
-      </button>
-    </mat-dialog-actions>
-  `,
+  templateUrl: "./app-check-error-dialog.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppCheckErrorDialogComponent {

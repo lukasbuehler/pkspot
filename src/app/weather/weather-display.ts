@@ -249,14 +249,70 @@ const WET_FORECAST_CONDITIONS = new Set<WeatherCondition>([
 ]);
 
 export const HIGH_UV_INDEX_THRESHOLD = 8;
+export const MEANINGFUL_PRECIPITATION_PROBABILITY_PERCENT = 50;
+export const MEANINGFUL_PRECIPITATION_MM = 0.2;
+
+const CHANCE_OF_RAIN_STATE: WeatherStateDefinition = {
+  dayIcon: "cloud",
+  label: $localize`:@@weather.state.chance_of_rain:Chance of rain`,
+  tone: "neutral",
+};
+
+const LOW_CONFIDENCE_RAIN_CONDITIONS = new Set<WeatherCondition>([
+  "drizzle",
+  "rain",
+]);
+
+export function hasMeaningfulPrecipitation(
+  point: Pick<
+    WeatherForecastIconContext,
+    "precipitationMm" | "precipitationProbabilityPercent"
+  > | undefined,
+): boolean {
+  return (
+    (point?.precipitationProbabilityPercent ?? 0) >=
+      MEANINGFUL_PRECIPITATION_PROBABILITY_PERCENT ||
+    (point?.precipitationMm ?? 0) >= MEANINGFUL_PRECIPITATION_MM
+  );
+}
+
+function hasExplicitLowPrecipitationForecast(
+  point: WeatherForecastIconContext,
+): boolean {
+  return (
+    (point.precipitationProbabilityPercent !== undefined ||
+      point.precipitationMm !== undefined) &&
+    !hasMeaningfulPrecipitation(point)
+  );
+}
+
+export function getWeatherForecastState(
+  point: WeatherForecastIconContext,
+): WeatherStateDefinition {
+  if (
+    LOW_CONFIDENCE_RAIN_CONDITIONS.has(point.condition) &&
+    hasExplicitLowPrecipitationForecast(point)
+  ) {
+    return CHANCE_OF_RAIN_STATE;
+  }
+  return WEATHER_STATES[point.condition];
+}
+
+export function getWeatherForecastStateIcon(
+  point: WeatherForecastIconContext,
+): string {
+  const state = getWeatherForecastState(point);
+  return point.isDay === false ? state.nightIcon ?? state.dayIcon : state.dayIcon;
+}
 
 export function getWeatherForecastIconTone(
   point: WeatherForecastIconContext,
 ): WeatherForecastIconTone {
   if (
-    WET_FORECAST_CONDITIONS.has(point.condition) ||
-    (point.precipitationProbabilityPercent ?? 0) >= 40 ||
-    (point.precipitationMm ?? 0) >= 0.2
+    (WET_FORECAST_CONDITIONS.has(point.condition) &&
+      (!LOW_CONFIDENCE_RAIN_CONDITIONS.has(point.condition) ||
+        !hasExplicitLowPrecipitationForecast(point))) ||
+    hasMeaningfulPrecipitation(point)
   ) {
     return "wet";
   }
@@ -270,9 +326,20 @@ export function getWeatherForecastIconTone(
 }
 
 export function getDailyWeatherForecastIconTone(
-  point: Pick<WeatherForecastIconContext, "condition" | "temperatureC">,
+  point: Pick<
+    WeatherForecastIconContext,
+    | "condition"
+    | "temperatureC"
+    | "precipitationMm"
+    | "precipitationProbabilityPercent"
+  >,
 ): WeatherForecastIconTone {
-  if (WET_FORECAST_CONDITIONS.has(point.condition)) {
+  if (
+    (WET_FORECAST_CONDITIONS.has(point.condition) &&
+      (!LOW_CONFIDENCE_RAIN_CONDITIONS.has(point.condition) ||
+        !hasExplicitLowPrecipitationForecast(point))) ||
+    hasMeaningfulPrecipitation(point)
+  ) {
     return "wet";
   }
   return (point.temperatureC ?? -Infinity) >= 30 ? "warning" : "neutral";

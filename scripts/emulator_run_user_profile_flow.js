@@ -238,6 +238,17 @@ async function main() {
   assert.equal(publicProjection.data().verified_email, undefined);
   await waitForDocument("public_user_profiles/minor", false);
 
+  // A delayed older event may have recreated a stale projection. Any later
+  // source event must reconcile from current state, even when both event
+  // snapshots still describe a private user.
+  await db.doc("public_user_profiles/private-adult").set({
+    display_name: "Stale public projection",
+    profile_access: "full",
+  });
+  await waitForDocument("public_user_profiles/private-adult");
+  await db.doc("users/private-adult").update({spot_edits_count: 1});
+  await waitForDocument("public_user_profiles/private-adult", false);
+
   await db.doc("users/public-adult").update({
     public_profile_enabled: false,
     public_search: false,

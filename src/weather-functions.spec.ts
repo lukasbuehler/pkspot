@@ -503,6 +503,28 @@ describe("weather functions", () => {
     expect(insights.surfaceDrying.status).toBe("drying");
   });
 
+  it("classifies precipitation probability below 50 percent as low risk", () => {
+    const belowThreshold = buildWeatherInsights([
+      {
+        time: "2026-07-08T10:00:00Z",
+        precipitationProbabilityPercent: 49,
+        precipitationMm: 0,
+      },
+    ]);
+    const atThreshold = buildWeatherInsights([
+      {
+        time: "2026-07-08T10:00:00Z",
+        precipitationProbabilityPercent: 50,
+        precipitationMm: 0,
+      },
+    ]);
+
+    expect(belowThreshold.precipitationRisk).toBe("low");
+    expect(belowThreshold.rainStartsAt).toBeUndefined();
+    expect(atThreshold.precipitationRisk).toBe("medium");
+    expect(atThreshold.rainStartsAt).toBe("2026-07-08T10:00:00Z");
+  });
+
   it("derives event-level wettest, hottest, and dry windows", () => {
     const insights = buildEventInsights([
       {

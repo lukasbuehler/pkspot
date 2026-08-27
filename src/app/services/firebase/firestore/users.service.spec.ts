@@ -76,6 +76,25 @@ describe("UsersService", () => {
     );
   });
 
+  it("reports which account setup documents already exist", async () => {
+    adapter.getDocument
+      .mockResolvedValueOnce({ display_name: "Existing" })
+      .mockResolvedValueOnce(null);
+
+    await expect(service.getAccountSetupState("existing-user")).resolves.toEqual({
+      publicProfileExists: true,
+      privateDataExists: false,
+    });
+    expect(adapter.getDocument).toHaveBeenNthCalledWith(
+      1,
+      "users/existing-user",
+    );
+    expect(adapter.getDocument).toHaveBeenNthCalledWith(
+      2,
+      "users/existing-user/private_data/main",
+    );
+  });
+
   it("uses the deterministic screenshot profile without reading Firestore", async () => {
     (globalThis as ScreenshotGlobal).__PKSPOT_SCREENSHOT_USER_PROFILES__ = {
       "visual-user": {

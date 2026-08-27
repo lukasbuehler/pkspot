@@ -17,6 +17,7 @@ import { AuthenticationService } from "./firebase/authentication.service";
 import { FirestoreAdapterService } from "./firebase/firestore-adapter.service";
 import { AnalyticsService } from "./analytics.service";
 import { WebPushClientService } from "./web-push-client.service";
+import { resolveNotificationPath } from "./notification-navigation";
 
 interface NotificationSettingsPlugin {
   openAppNotificationSettings(): Promise<void>;
@@ -330,7 +331,7 @@ export class PushNotificationsService {
         update_type: notificationData["live_update_type"],
       });
     }
-    const path = this._notificationPath(notificationData);
+    const path = resolveNotificationPath(notificationData);
     const intentId = notificationData["intent_id"];
     if (
       actionId &&
@@ -341,23 +342,12 @@ export class PushNotificationsService {
         queryParams: {
           notification: intentId,
           notificationAction: actionId,
-          returnTo: path ?? "/notifications",
+          returnTo: path,
         },
       });
       return;
     }
-    if (path) void this.router.navigateByUrl(path);
-  }
-
-  private _notificationPath(
-    notificationData: Record<string, unknown>,
-  ): string | null {
-    const path = notificationData["path"];
-    return typeof path === "string" &&
-      path.startsWith("/") &&
-      !path.startsWith("//")
-      ? path
-      : null;
+    void this.router.navigateByUrl(path);
   }
 
   private _authenticatedUserId(): string | null {

@@ -137,11 +137,9 @@
           </mat-checkbox>
         </div>
 
-        <div id="reCaptchaDiv" class="d-flex justify-content-center"></div>
-
-        @if (signUpError) {
+        @if (signUpError()) {
           <div class="mt-3 alert alert-danger">
-            {{ signUpError }}
+            {{ signUpError() }}
           </div>
         }
 
@@ -150,7 +148,7 @@
             mat-flat-button
             color="accent"
             type="submit"
-            [disabled]="isSubmitting"
+            [disabled]="isSubmitting()"
           >
             <mat-icon>person_add</mat-icon>
             <span i18n>Create Account</span>

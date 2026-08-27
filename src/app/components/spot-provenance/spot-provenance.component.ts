@@ -1,12 +1,15 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
   inject,
   input,
+  PLATFORM_ID,
+  resource,
   signal,
 } from "@angular/core";
+import {isPlatformBrowser} from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { PublicImportProvenance } from "../../../db/schemas/ImportSchema";
@@ -25,8 +28,12 @@ export class SpotProvenanceComponent {
 
   private _importsService = inject(ImportsService);
   private _analytics = inject(AnalyticsService);
-  private _importLookupRequestId = 0;
-  private _importProvenance = signal<PublicImportProvenance | null>(null);
+  private _isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private _hydrated = signal(false);
+
+  constructor() {
+    afterNextRender(() => this._hydrated.set(true));
+  }
 
   sourceRaw = computed(() => this.spot()?.source()?.trim() ?? "");
 
@@ -38,7 +45,33 @@ export class SpotProvenanceComponent {
     return source;
   });
 
+  private _fallbackProvenance = resource({
+    params: () => {
+      const spot = this.spot();
+      const importId = this._importId();
+      return this._isBrowser &&
+        this._hydrated() &&
+        importId &&
+        spot?.publicImportProvenance() === undefined
+        ? {importId}
+        : undefined;
+    },
+    loader: ({params}) =>
+      this._importsService.getPublicProvenanceById(params.importId),
+  });
+
+  private _importProvenance = computed<PublicImportProvenance | null>(() => {
+    const projection = this.spot()?.publicImportProvenance();
+    return projection !== undefined
+      ? projection
+      : (this._fallbackProvenance.value() ?? null);
+  });
+
   sourceDisplayText = computed(() => {
+    if (!this._isBrowser || !this._hydrated()) {
+      return "";
+    }
+
     const provenance = this._importProvenance();
     if (provenance?.source_name) {
       return provenance.source_name;
@@ -94,35 +127,6 @@ export class SpotProvenanceComponent {
       link_type: linkType,
       source_name: this.sourceDisplayText() || null,
       destination_domain: this._destinationDomain(url),
-    });
-  }
-
-  constructor() {
-    effect(() => {
-      const requestId = ++this._importLookupRequestId;
-      const importId = this._importId();
-
-      this._importProvenance.set(null);
-
-      if (!importId) {
-        return;
-      }
-
-      void this._importsService
-        .getPublicProvenanceById(importId)
-        .then((provenance) => {
-          if (requestId !== this._importLookupRequestId) {
-            return;
-          }
-          this._importProvenance.set(provenance);
-        })
-        .catch((error) => {
-          if (requestId !== this._importLookupRequestId) {
-            return;
-          }
-          console.warn("Could not load import provenance", importId, error);
-          this._importProvenance.set(null);
-        });
     });
   }
 

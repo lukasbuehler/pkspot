@@ -14,6 +14,7 @@ import {
 } from "../markers/map-marker.model";
 import { EventCardComponent } from "../../event-card/event-card.component";
 import type { EventMapMarker } from "../map-event-map-items.model";
+import type { SeriesDocument } from "../../../services/firebase/firestore/series.service";
 
 /**
  * Logo-first event marker for promoted events on the map. It intentionally
@@ -28,6 +29,7 @@ import type { EventMapMarker } from "../map-event-map-items.model";
 })
 export class EventDotMarkerComponent {
   readonly marker = input.required<EventMapMarker>();
+  readonly seriesById = input<Record<string, SeriesDocument>>({});
   readonly hoverPreviewEnabled = input(false);
   readonly markerClick = output<EventMapMarker>();
   readonly previewVisible = signal(false);

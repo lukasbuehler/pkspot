@@ -158,6 +158,7 @@
         [availableCommunities]="availableCommunityMarkers()"
         (communityMarkerClick)="onCommunityMarkerClick($event)"
         [eventPointMarkers]="availableEventMarkers()"
+        [eventSeriesById]="visibleEventSeriesById()"
         [boundsOverlays]="selectedEventBoundsOverlays()"
         [polygonOverlays]="selectedEventPolygonOverlays()"
         (eventMarkerClick)="onEventMarkerClick($event)"

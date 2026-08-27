@@ -1,0 +1,6 @@
+PK Spot v1.1.5 — Reliability & Bug Fixes
+
+• Paste Google Maps and Apple Maps links directly into map search.
+• Improved media selection and cropping, with safer upload completion.
+• The age-range request is now explained first and no longer appears at startup.
+• Fixed account verification, notification links, Event responses and past Events, Community rankings, and Swiss Jam challenges.

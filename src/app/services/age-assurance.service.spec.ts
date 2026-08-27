@@ -7,6 +7,17 @@ import { FunctionsAdapterService } from "./firebase/functions-adapter.service";
 import { AgeAssuranceService } from "./age-assurance.service";
 import type { PlatformAgeSignal } from "./age-policy";
 
+function deferred<T>(): {
+  promise: Promise<T>;
+  resolve: (value: T) => void;
+} {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return { promise, resolve };
+}
+
 const nativeState = vi.hoisted(() => ({
   isNative: true,
   platform: "android" as "android" | "ios" | "web",
@@ -39,6 +50,7 @@ describe("AgeAssuranceService", () => {
   let functionsAdapter: {
     callAuthenticatedAppChecked: ReturnType<typeof vi.fn>;
   };
+  let authUser: { uid: string | null };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -76,6 +88,7 @@ describe("AgeAssuranceService", () => {
               }),
         ),
     };
+    authUser = { uid: "user-1" };
 
     TestBed.configureTestingModule({
       providers: [
@@ -83,7 +96,7 @@ describe("AgeAssuranceService", () => {
         {
           provide: AuthenticationService,
           useValue: {
-            user: { uid: "user-1" },
+            user: authUser,
           },
         },
         { provide: FunctionsAdapterService, useValue: functionsAdapter },
@@ -132,6 +145,150 @@ describe("AgeAssuranceService", () => {
 
     await service.recheckNativeAgePolicyForCurrentUser();
     expect(nativeState.getBoundAgeSignal).toHaveBeenCalledTimes(2);
+  });
+
+  it("syncs again when the same user signs back in", async () => {
+    const service = TestBed.inject(AgeAssuranceService);
+
+    await service.syncNativeAgePolicyForCurrentUser();
+    authUser.uid = null;
+    await service.syncNativeAgePolicyForCurrentUser();
+    authUser.uid = "user-1";
+    await service.syncNativeAgePolicyForCurrentUser();
+
+    expect(nativeState.getBoundAgeSignal).toHaveBeenCalledTimes(2);
+    expect(service.checkState()).toMatchObject({ uid: "user-1" });
+  });
+
+  it("does not request the iOS age range during automatic startup sync", async () => {
+    nativeState.platform = "ios";
+    nativeState.ageSignal = {
+      platform: "ios",
+      source: "ios_declared_age_range",
+      available: true,
+      ageLower: 18,
+      response: "shared",
+    };
+    nativeState.getAgeSignal.mockResolvedValue(nativeState.ageSignal);
+    const service = TestBed.inject(AgeAssuranceService);
+
+    await service.syncNativeAgePolicyForCurrentUser();
+
+    expect(nativeState.getAgeSignal).not.toHaveBeenCalled();
+    expect(functionsAdapter.callAuthenticatedAppChecked).not.toHaveBeenCalled();
+    expect(service.checkState().status).toBe("idle");
+
+    await service.recheckNativeAgePolicyForCurrentUser();
+
+    expect(nativeState.getAgeSignal).toHaveBeenCalledOnce();
+    expect(functionsAdapter.callAuthenticatedAppChecked).toHaveBeenCalledWith(
+      "updateAgePolicyV2",
+      expect.objectContaining({
+        signal: expect.objectContaining({
+          platform: "ios",
+          source: "ios_declared_age_range",
+        }),
+      }),
+    );
+  });
+
+  it("clears iOS check state across sign-out and account switches", async () => {
+    nativeState.platform = "ios";
+    nativeState.ageSignal = {
+      platform: "ios",
+      source: "ios_declared_age_range",
+      available: true,
+      ageLower: 18,
+      response: "shared",
+    };
+    nativeState.getAgeSignal.mockResolvedValue(nativeState.ageSignal);
+    const service = TestBed.inject(AgeAssuranceService);
+
+    await service.recheckNativeAgePolicyForCurrentUser();
+    expect(service.checkState().uid).toBe("user-1");
+
+    authUser.uid = null;
+    await service.syncNativeAgePolicyForCurrentUser();
+    expect(service.checkState()).toEqual({ status: "idle" });
+
+    authUser.uid = "user-2";
+    await service.syncNativeAgePolicyForCurrentUser();
+    expect(service.checkState()).toEqual({
+      status: "idle",
+      uid: "user-2",
+      platform: "ios",
+    });
+    expect(nativeState.getAgeSignal).toHaveBeenCalledOnce();
+  });
+
+  it("does not reuse or apply an iOS sync after its user signs out", async () => {
+    nativeState.platform = "ios";
+    const userOneSignal = {
+      platform: "ios",
+      source: "ios_declared_age_range",
+      available: true,
+      ageLower: 18,
+      response: "shared",
+    } satisfies PlatformAgeSignal;
+    const userTwoSignal = {
+      ...userOneSignal,
+      ageLower: 13,
+      ageUpper: 17,
+    } satisfies PlatformAgeSignal;
+    const pendingUserOneSignal = deferred<PlatformAgeSignal>();
+    nativeState.getAgeSignal
+      .mockReturnValueOnce(pendingUserOneSignal.promise)
+      .mockResolvedValueOnce(userTwoSignal);
+    const service = TestBed.inject(AgeAssuranceService);
+
+    const userOneSync = service.recheckNativeAgePolicyForCurrentUser();
+    await vi.waitFor(() => expect(nativeState.getAgeSignal).toHaveBeenCalledOnce());
+
+    authUser.uid = null;
+    await service.syncNativeAgePolicyForCurrentUser();
+    authUser.uid = "user-2";
+    await service.recheckNativeAgePolicyForCurrentUser();
+
+    pendingUserOneSignal.resolve(userOneSignal);
+    await userOneSync;
+
+    expect(nativeState.getAgeSignal).toHaveBeenCalledTimes(2);
+    expect(service.checkState()).toMatchObject({
+      uid: "user-2",
+      status: "not_verified",
+    });
+  });
+
+  it("keeps automatic iOS state scoped across A to B to A switches", async () => {
+    nativeState.platform = "ios";
+    nativeState.ageSignal = {
+      platform: "ios",
+      source: "ios_declared_age_range",
+      available: true,
+      ageLower: 18,
+      response: "shared",
+    };
+    nativeState.getAgeSignal.mockResolvedValue(nativeState.ageSignal);
+    const service = TestBed.inject(AgeAssuranceService);
+
+    await service.recheckNativeAgePolicyForCurrentUser();
+    authUser.uid = "user-2";
+    await service.syncNativeAgePolicyForCurrentUser();
+    expect(service.checkState()).toEqual({
+      status: "idle",
+      uid: "user-2",
+      platform: "ios",
+    });
+
+    authUser.uid = "user-1";
+    await service.syncNativeAgePolicyForCurrentUser();
+
+    expect(service.checkState()).toEqual({
+      status: "idle",
+      uid: "user-1",
+      platform: "ios",
+    });
+    expect(nativeState.getAgeSignal).toHaveBeenCalledOnce();
   });
 
   it.each([

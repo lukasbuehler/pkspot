@@ -1042,6 +1042,12 @@
         <target>Eventos</target>
       </segment>
     </unit>
+    <unit id="searchField.openingMapsLink">
+      <segment state="initial">
+        <source>Opening Maps link...</source>
+        <target>Abriendo enlace de Maps...</target>
+      </segment>
+    </unit>
     <unit id="session_planner.form.add_co_host">
       <segment state="initial">
         <source> Add co-host </source>
@@ -2395,8 +2401,8 @@
     </unit>
     <unit id="7708270344948043036">
       <segment state="initial">
-        <source> <ph id="0" equiv="INTERPOLATION" disp="{{ uploading() ? &quot;Uploading...&quot; : &quot;Done&quot; }}"/> </source>
-        <target> <ph id="0" equiv="INTERPOLATION" disp="{{ uploading() ? &quot;Uploading...&quot; : &quot;Done&quot; }}"/> </target>
+        <source> <ph id="0" equiv="INTERPOLATION" disp="{{ report.incidentPath ? &quot;Open incident&quot; : &quot;Start incident&quot; }}"/> </source>
+        <target> <ph id="0" equiv="INTERPOLATION" disp="{{ report.incidentPath ? &quot;Open incident&quot; : &quot;Start incident&quot; }}"/> </target>
       </segment>
     </unit>
     <unit id="7724618434121262533">
@@ -3095,6 +3101,12 @@
       <segment state="initial">
         <source>Spot saved successfully</source>
         <target>Spot guardado con éxito</target>
+      </segment>
+    </unit>
+    <unit id="5749779471450465026">
+      <segment state="translated">
+        <source>That Maps link did not contain a location.</source>
+        <target>Ese enlace de Maps no contenía una ubicación.</target>
       </segment>
     </unit>
     <unit id="1509543645001749494">
@@ -3867,6 +3879,48 @@
       <segment state="initial">
         <source>Toilets</source>
         <target>Baños</target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.body">
+      <segment state="translated">
+        <source> PK Spot could not verify this app installation. Some data and actions may not work until verification succeeds. </source>
+        <target> PK Spot no pudo verificar esta instalación de la aplicación. Es posible que algunos datos y acciones no funcionen hasta que la verificación se complete correctamente. </target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.continue">
+      <segment state="translated">
+        <source>Continue anyway</source>
+        <target>Continuar de todos modos</target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.native_hint">
+      <segment state="translated">
+        <source> Install PK Spot from the official app store, or use pkspot.app in your browser. </source>
+        <target> Instala PK Spot desde la tienda oficial de aplicaciones o usa pkspot.app en el navegador. </target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.open_web">
+      <segment state="translated">
+        <source>Open website</source>
+        <target>Abrir sitio web</target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.reload">
+      <segment state="translated">
+        <source>Reload</source>
+        <target>Recargar</target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.title">
+      <segment state="translated">
+        <source> App verification failed </source>
+        <target> La verificación de la aplicación ha fallado </target>
+      </segment>
+    </unit>
+    <unit id="app_check_error.web_hint">
+      <segment state="translated">
+        <source> Reload the page, check your connection, disable aggressive script blocking, or use the official app. </source>
+        <target> Recarga la página, comprueba tu conexión, desactiva los bloqueadores de scripts agresivos o usa la aplicación oficial. </target>
       </segment>
     </unit>
     <unit id="auth_action.back_to_signin">
@@ -5557,6 +5611,12 @@
         <target>Training log</target>
       </segment>
     </unit>
+    <unit id="9102167136172430388">
+      <segment state="initial">
+        <source>The mobile platform shared an 18+ range based on an age entered for the platform account. Because it was not independently checked, it cannot unlock a public profile.</source>
+        <target>La plataforma móvil ha compartido un intervalo de 18 años o más basado en una edad indicada en la cuenta de la plataforma. Como no se verificó de forma independiente, no puede habilitar un perfil público.</target>
+      </segment>
+    </unit>
     <unit id="9107902639851774121">
       <segment state="initial">
         <source>Checking admin access...</source>
@@ -5836,6 +5896,12 @@
       <segment state="initial">
         <source> Address </source>
         <target> Dirección </target>
+      </segment>
+    </unit>
+    <unit id="8142225273689086841">
+      <segment state="initial">
+        <source>Check age range</source>
+        <target>Comprobar rango de edad</target>
       </segment>
     </unit>
     <unit id="8151017381798767627">
@@ -6498,6 +6564,12 @@
         <target>Viento</target>
       </segment>
     </unit>
+    <unit id="weather.state.chance_of_rain">
+      <segment state="initial">
+        <source>Chance of rain</source>
+        <target>Posibilidad de lluvia</target>
+      </segment>
+    </unit>
     <unit id="weather.state.clear">
       <segment state="initial">
         <source>Clear</source>
@@ -6778,6 +6850,12 @@
       <segment state="initial">
         <source>Event in </source>
         <target>Evento en </target>
+      </segment>
+    </unit>
+    <unit id="7648040324495665523">
+      <segment state="initial">
+        <source>The mobile platform is not sharing an age range with PK Spot. You can choose to check again.</source>
+        <target>La plataforma móvil no comparte un intervalo de edad con PK Spot. Puedes volver a comprobarlo cuando quieras.</target>
       </segment>
     </unit>
     <unit id="7672282077901429954">
@@ -10250,6 +10328,12 @@
         <target> No se ha podido procesar esta solicitud. Inténtalo de nuevo más tarde. </target>
       </segment>
     </unit>
+    <unit id="8281296766028455844">
+      <segment state="initial">
+        <source> PK Spot asks only for an age range, such as under 13, 13–17 or 18+. PK Spot does not ask Apple for your exact age or birthday. It stores the age band, a broad evidence category and the resulting eligibility—not an exact birth date, identity document, bank account or card number. It also records the provider and method category, when the result was checked, and the policy basis used for the decision. This lets PK Spot withdraw approvals if a later signal changes or a method is found unsuitable. Self-declared age alone does not unlock a public profile. </source>
+        <target> PK Spot solo solicita un rango de edad, como menor de 13, 13–17 o 18+. PK Spot no solicita a Apple tu edad exacta ni tu fecha de nacimiento. Guarda el rango de edad, una categoría general de evidencia y la elegibilidad resultante, no una fecha de nacimiento exacta, un documento de identidad, una cuenta bancaria ni un número de tarjeta. También registra el proveedor y la categoría del método, cuándo se comprobó el resultado y la base de la política utilizada para la decisión. Esto permite a PK Spot retirar aprobaciones si cambia una señal posterior o si se determina que un método no es adecuado. Una edad autodeclarada por sí sola no habilita un perfil público. </target>
+      </segment>
+    </unit>
     <unit id="8294319077118655917">
       <segment state="initial">
         <source>Checking every dependency…</source>
@@ -11506,6 +11590,12 @@
         <target>Error al enviar el correo de restablecimiento. Por favor intenta de nuevo.</target>
       </segment>
     </unit>
+    <unit id="5075908458390286070">
+      <segment state="initial">
+        <source>An account already exists for this email. Sign in or reset your password.</source>
+        <target>Ya existe una cuenta con este correo electrónico. Inicia sesión o restablece tu contraseña.</target>
+      </segment>
+    </unit>
     <unit id="5078551942621038511">
       <segment state="initial">
         <source>Link to challenge copied to clipboard</source>
@@ -11901,8 +11991,8 @@
     </unit>
     <unit id="event_map_page.challenge_plural">
       <segment state="initial">
-        <source>Challenges</source>
-        <target>Desafíos</target>
+        <source> Challenges </source>
+        <target> Desafíos </target>
       </segment>
     </unit>
     <unit id="event_map_page.challenge_singular">
@@ -12539,6 +12629,12 @@
         <target> Las personas suscritas a este evento recibirán una notificación en directo. </target>
       </segment>
     </unit>
+    <unit id="6110205464196820998">
+      <segment state="initial">
+        <source>Continue to age range request</source>
+        <target>Continuar a la solicitud del rango de edad</target>
+      </segment>
+    </unit>
     <unit id="6111352634912339440">
       <segment state="initial">
         <source>Vision labels</source>
@@ -12779,10 +12875,22 @@
         <target>Referencia del informe externo</target>
       </segment>
     </unit>
+    <unit id="5159743894930050077">
+      <segment state="initial">
+        <source>The mobile platform reports a guardian-managed age range.</source>
+        <target>La plataforma móvil indica un intervalo de edad gestionado por un tutor.</target>
+      </segment>
+    </unit>
     <unit id="5161309645847446621">
       <segment state="initial">
         <source>Spot creation prevention</source>
         <target>Prevención de creación duplicada de Spots</target>
+      </segment>
+    </unit>
+    <unit id="5161411570094992408">
+      <segment state="initial">
+        <source>Not now</source>
+        <target>Ahora no</target>
       </segment>
     </unit>
     <unit id="5163862847546461994">
@@ -13017,6 +13125,12 @@
         <target>Verificando correo</target>
       </segment>
     </unit>
+    <unit id="5412539639949623761">
+      <segment state="initial">
+        <source>The mobile platform requires you to confirm your age or set up supervision. Complete its instructions, then check again.</source>
+        <target>La plataforma móvil requiere que confirmes tu edad o configures la supervisión. Sigue sus instrucciones y vuelve a comprobarlo.</target>
+      </segment>
+    </unit>
     <unit id="541397324131531449">
       <segment state="initial">
         <source>Go to your location</source>
@@ -13093,12 +13207,6 @@
       <segment state="initial">
         <source> Release Date <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE" equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other" dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;" dispEnd="&lt;/mat-slide-toggle&gt;"/></source>
         <target> Fecha de publicación <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE" equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other" dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;" dispEnd="&lt;/mat-slide-toggle&gt;"/></target>
-      </segment>
-    </unit>
-    <unit id="391711628671659880">
-      <segment state="initial">
-        <source> PK Spot stores an age band, a broad evidence category and the resulting eligibility—not an exact birth date, identity document, bank account or card number. It also records the provider and method category, when the result was checked, and the policy basis used for the decision. This lets PK Spot withdraw approvals if a later signal changes or a method is found unsuitable. Self-declared age alone does not unlock a public profile. </source>
-        <target> PK Spot almacena un grupo de edad, una categoría general de evidencia y la elegibilidad resultante, no la fecha de nacimiento exacta, un documento de identidad, una cuenta bancaria ni un número de tarjeta. También registra el proveedor y la categoría del método, cuándo se comprobó el resultado y la base de política utilizada para la decisión. Así, PK Spot puede retirar aprobaciones si cambia una señal posterior o si un método se considera inadecuado. Una edad autodeclarada por sí sola no permite activar un perfil público. </target>
       </segment>
     </unit>
     <unit id="8846151385804023521">
@@ -13601,6 +13709,12 @@
         <target> Evalúa el vínculo con el Reino Unido y cualquier peligro actual o inminente </target>
       </segment>
     </unit>
+    <unit id="7122784988520930893">
+      <segment state="initial">
+        <source>The mobile platform supplied an independently checked 18+ result. Adult eligibility is active.</source>
+        <target>La plataforma móvil proporcionó un resultado de 18 años o más verificado de forma independiente. La elegibilidad como adulto está activa.</target>
+      </segment>
+    </unit>
     <unit id="7136600839935407372">
       <segment state="initial">
         <source>Managed by</source>
@@ -13659,6 +13773,12 @@
       <segment state="initial">
         <source>Error uploading the profile picture.</source>
         <target>Error al subir la foto de perfil.</target>
+      </segment>
+    </unit>
+    <unit id="7182428681839004095">
+      <segment state="translated">
+        <source>Couldn&apos;t open that Maps link. Try pasting a full Google Maps or Apple Maps link.</source>
+        <target>No se pudo abrir ese enlace de Maps. Prueba a pegar un enlace completo de Google Maps o Apple Maps.</target>
       </segment>
     </unit>
     <unit id="7193934719093844817">

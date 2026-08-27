@@ -11,7 +11,7 @@ import {
   ImageCropperComponent,
   type ImageTransform,
 } from "ngx-image-cropper";
-import { MatButton } from "@angular/material/button";
+import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatIcon } from "@angular/material/icon";
 import { MatSlider, MatSliderThumb } from "@angular/material/slider";
 import {
@@ -34,6 +34,7 @@ import {
   imports: [
     ImageCropperComponent,
     MatButton,
+    MatIconButton,
     MatIcon,
     MatSlider,
     MatSliderThumb,

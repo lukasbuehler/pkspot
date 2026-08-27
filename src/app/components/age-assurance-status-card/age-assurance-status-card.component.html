@@ -22,7 +22,7 @@
       {{ statusText() }}
     </p>
 
-    @if (isAndroidApp) {
+    @if (isNativeAgeAssuranceApp) {
       <div class="age-assurance-card__actions">
         <button
           matButton="outlined"
@@ -37,6 +37,8 @@
           }
           @if (isChecking()) {
             <span i18n>Checking…</span>
+          } @else if (isIosApp && ageAssurance.checkState().status === "idle") {
+            <span i18n>Check age range</span>
           } @else {
             <span i18n>Check again</span>
           }

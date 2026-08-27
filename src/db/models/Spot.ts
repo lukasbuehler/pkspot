@@ -127,6 +127,12 @@ export class LocalSpot {
   access: WritableSignal<SpotAccess>;
 
   source = signal<string | undefined>(undefined);
+  private _publicImportProvenance: WritableSignal<
+    SpotSchema["public_import_provenance"]
+  >;
+  readonly publicImportProvenance: Signal<
+    SpotSchema["public_import_provenance"]
+  >;
 
   amenities: WritableSignal<AmenitiesMap>;
   amenitiesArray: Signal<{ name?: string; icon?: string }[]>;
@@ -196,6 +202,8 @@ export class LocalSpot {
     });
 
     this.source = signal<string | undefined>(data.source ?? undefined);
+    this._publicImportProvenance = signal(data.public_import_provenance);
+    this.publicImportProvenance = this._publicImportProvenance.asReadonly();
 
     this.descriptions = signal(
       data.description ? makeLocaleMapFromObject(data.description) : undefined
@@ -473,6 +481,8 @@ export class LocalSpot {
 
     // Settings and computed fields
     this.hideStreetview = data.hide_streetview ?? false;
+    this.source.set(data.source ?? undefined);
+    this._publicImportProvenance.set(data.public_import_provenance);
     // Do not mutate _streetview here; it is derived separately
 
     const legacyReportState = data as SpotSchema & {
@@ -606,6 +616,7 @@ export class LocalSpot {
         : undefined,
       bounds: this._makeBoundsFromPaths(this.paths() ?? []),
       hide_streetview: this.hideStreetview,
+      public_import_provenance: this.publicImportProvenance(),
     };
 
     // delete all the fields from the object that are undefined
@@ -736,18 +747,20 @@ export class LocalSpot {
     previews: SpotSchema["upcoming_events"] | undefined,
     locale: LocaleCode
   ): PkEvent[] {
-    return (previews ?? []).map((preview) => {
-      const locationRaw = preview.location_raw ?? { lat: 0, lng: 0 };
-      const eventData = {
-        ...preview,
-        venue_string: preview.venue_string ?? "",
-        locality_string: preview.locality_string ?? "",
-        location:
-          preview.location ?? new GeoPoint(locationRaw.lat, locationRaw.lng),
-        location_raw: locationRaw,
-      } as EventSchema;
-      return new PkEvent(preview.id as EventId, eventData, locale);
-    });
+    return (previews ?? [])
+      .map((preview) => {
+        const locationRaw = preview.location_raw ?? { lat: 0, lng: 0 };
+        const eventData = {
+          ...preview,
+          venue_string: preview.venue_string ?? "",
+          locality_string: preview.locality_string ?? "",
+          location:
+            preview.location ?? new GeoPoint(locationRaw.lat, locationRaw.lng),
+          location_raw: locationRaw,
+        } as EventSchema;
+        return new PkEvent(preview.id as EventId, eventData, locale);
+      })
+      .filter((event) => !event.isPast());
   }
 
   private _makePathsFromBounds(

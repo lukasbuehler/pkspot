@@ -30,6 +30,7 @@ import {
 } from "../../../db/models/Spot";
 import { SpotId } from "../../../db/schemas/SpotSchema";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
+import type { SeriesDocument } from "../../services/firebase/firestore/series.service";
 import { ActivatedRoute, Router } from "@angular/router";
 import { GeoPoint } from "firebase/firestore";
 import { firstValueFrom, Observable, retry, Subscription } from "rxjs";
@@ -95,7 +96,12 @@ import {
 import { SpotAccess, SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 import { AnalyticsService } from "../../services/analytics.service";
 import { NotificationOptInService } from "../../services/notification-opt-in.service";
-import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
+import {
+  spotEditAwaitsOrganizationReview,
+  spotEditAwaitsReviewOutcome,
+  spotEditProcessingFailed,
+  SpotEditsService,
+} from "../../services/firebase/firestore/spot-edits.service";
 
 interface CommunityAreaOverlay {
   center: { lat: number; lng: number };
@@ -212,6 +218,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     MapPointMarker[],
     MapPointMarker[] | null | undefined
   >([], { transform: (value) => (value ? [...value] : []) });
+  readonly eventSeriesById = input<Record<string, SeriesDocument>>({});
   readonly boundsOverlays = input<
     MapBoundsOverlay[],
     MapBoundsOverlay[] | null | undefined
@@ -1380,26 +1387,27 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
               .catch(() => undefined);
           }
         }
+        const disposition = editId
+          ? await this.spotEditsService.waitForProcessingDisposition(spotId, editId)
+          : null;
+        if (disposition && spotEditProcessingFailed(disposition)) {
+          throw new Error("Spot edit processing failed");
+        }
         // Successfully updated - completely stop editing to destroy polygon
         this.isEditing.set(false);
-
-        const requiresOrganizationReview =
-          spot instanceof Spot &&
-          (spot.management?.status === "managed" ||
-            (spot.stewardship?.organization_ids?.length ?? 0) > 0);
-        const saveMessage = requiresOrganizationReview
+        const awaitsOrganizationReview = disposition
+          ? spotEditAwaitsOrganizationReview(disposition)
+          : false;
+        const saveMessage = awaitsOrganizationReview
           ? $localize`Edit submitted for organization review`
           : $localize`Spot saved successfully`;
         this.snackBar.open(saveMessage, $localize`Dismiss`, { duration: 5000 });
-        if (editId) {
-          void this.spotEditsService
-            .waitForReviewOutcomeDisposition(spotId, editId)
-            .then((awaitingReview) => {
-              if (awaitingReview && !this._isDestroyed) {
-                return this.notificationOptIn.maybePrompt("spot_edit_updates");
-              }
-              return null;
-            });
+        if (
+          disposition &&
+          spotEditAwaitsReviewOutcome(disposition) &&
+          !this._isDestroyed
+        ) {
+          void this.notificationOptIn.maybePrompt("spot_edit_updates");
         }
 
         if ("id" in spot && spot.id) {

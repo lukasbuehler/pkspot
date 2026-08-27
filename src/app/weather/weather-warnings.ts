@@ -1,6 +1,8 @@
 import {
   HIGH_UV_INDEX_THRESHOLD,
   WEATHER_STATES,
+  getWeatherForecastState,
+  hasMeaningfulPrecipitation,
   type WeatherCondition,
   type WeatherWarning,
 } from "./weather-display";
@@ -94,6 +96,9 @@ export function getWeatherVisualStatus(
   const warnings = getWeatherWarnings(response, context);
   const current = response.current ?? response.forecast?.[0];
   const condition = current?.condition ?? "unknown";
+  const currentState = current
+    ? getWeatherForecastState({ ...current, condition })
+    : WEATHER_STATES.unknown;
 
   if (
     warnings.some((warning) => ATTENTION_WARNINGS.has(warning)) ||
@@ -104,8 +109,8 @@ export function getWeatherVisualStatus(
   if (
     !context.covered &&
     (response.insights.surfaceDrying.status === "wet" ||
-      WEATHER_STATES[condition].tone === "wet" ||
-      isMeaningfulRain(current))
+      currentState.tone === "wet" ||
+      hasMeaningfulPrecipitation(current))
   ) {
     return "wet";
   }
@@ -124,12 +129,5 @@ function isRelevantSevereCondition(
     condition === "thunderstorm" ||
     condition === "hail" ||
     condition === "heavy-snow"
-  );
-}
-
-function isMeaningfulRain(point: WeatherPoint | undefined): boolean {
-  return (
-    (point?.precipitationProbabilityPercent ?? 0) >= 40 ||
-    (point?.precipitationMm ?? 0) >= 0.2
   );
 }

@@ -156,6 +156,23 @@ export class UsersService extends ConsentAwareService {
     }
   }
 
+  async getAccountSetupState(userId: string): Promise<{
+    publicProfileExists: boolean;
+    privateDataExists: boolean;
+  }> {
+    const [publicProfile, privateData] = await Promise.all([
+      this._firestoreAdapter.getDocument(`users/${userId}`),
+      this._firestoreAdapter.getDocument(
+        `users/${userId}/private_data/${this._privateDataDocId}`,
+      ),
+    ]);
+
+    return {
+      publicProfileExists: publicProfile !== null,
+      privateDataExists: privateData !== null,
+    };
+  }
+
   async getAccessibleUserProfile(userId: string): Promise<User | null> {
     if (!userId) return null;
 

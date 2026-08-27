@@ -962,6 +962,11 @@
         <source>Verifying Email</source>
       </segment>
     </unit>
+    <unit id="5412539639949623761">
+      <segment>
+        <source>The mobile platform requires you to confirm your age or set up supervision. Complete its instructions, then check again.</source>
+      </segment>
+    </unit>
     <unit id="541397324131531449">
       <segment>
         <source>Go to your location</source>
@@ -1055,6 +1060,11 @@
     <unit id="publicLog.title">
       <segment>
         <source>Training log</source>
+      </segment>
+    </unit>
+    <unit id="9102167136172430388">
+      <segment>
+        <source>The mobile platform shared an 18+ range based on an age entered for the platform account. Because it was not independently checked, it cannot unlock a public profile.</source>
       </segment>
     </unit>
     <unit id="9107902639851774121">
@@ -1536,11 +1546,6 @@
         <source> Release Date <pc id="0" equivStart="START_TAG_MAT_SLIDE_TOGGLE" equivEnd="CLOSE_TAG_MAT_SLIDE_TOGGLE" type="other" dispStart="&lt;mat-slide-toggle class=&quot;ms-2&quot; [checked]=&quot;challenge()!.releaseDate&quot; color=&quot;primary&quot; (change)=&quot;onReleaseDateToggleChange($event)&quot; &gt;" dispEnd="&lt;/mat-slide-toggle&gt;"/></source>
       </segment>
     </unit>
-    <unit id="391711628671659880">
-      <segment>
-        <source> PK Spot stores an age band, a broad evidence category and the resulting eligibility—not an exact birth date, identity document, bank account or card number. It also records the provider and method category, when the result was checked, and the policy basis used for the decision. This lets PK Spot withdraw approvals if a later signal changes or a method is found unsuitable. Self-declared age alone does not unlock a public profile. </source>
-      </segment>
-    </unit>
     <unit id="8846151385804023521">
       <segment>
         <source>Classification</source>
@@ -1730,6 +1735,11 @@
     <unit id="7179268821614935361">
       <segment>
         <source>Error uploading the profile picture.</source>
+      </segment>
+    </unit>
+    <unit id="7182428681839004095">
+      <segment>
+        <source>Couldn&apos;t open that Maps link. Try pasting a full Google Maps or Apple Maps link.</source>
       </segment>
     </unit>
     <unit id="4115668858470490289">
@@ -2218,6 +2228,41 @@
         <source>Toilets</source>
       </segment>
     </unit>
+    <unit id="app_check_error.body">
+      <segment>
+        <source> PK Spot could not verify this app installation. Some data and actions may not work until verification succeeds. </source>
+      </segment>
+    </unit>
+    <unit id="app_check_error.continue">
+      <segment>
+        <source>Continue anyway</source>
+      </segment>
+    </unit>
+    <unit id="app_check_error.native_hint">
+      <segment>
+        <source> Install PK Spot from the official app store, or use pkspot.app in your browser. </source>
+      </segment>
+    </unit>
+    <unit id="app_check_error.open_web">
+      <segment>
+        <source>Open website</source>
+      </segment>
+    </unit>
+    <unit id="app_check_error.reload">
+      <segment>
+        <source>Reload</source>
+      </segment>
+    </unit>
+    <unit id="app_check_error.title">
+      <segment>
+        <source> App verification failed </source>
+      </segment>
+    </unit>
+    <unit id="app_check_error.web_hint">
+      <segment>
+        <source> Reload the page, check your connection, disable aggressive script blocking, or use the official app. </source>
+      </segment>
+    </unit>
     <unit id="amenity.changing_room">
       <segment>
         <source>Changing Room</source>
@@ -2444,6 +2489,11 @@
         <source>Powered by</source>
       </segment>
     </unit>
+    <unit id="8142225273689086841">
+      <segment>
+        <source>Check age range</source>
+      </segment>
+    </unit>
     <unit id="8151017381798767627">
       <segment>
         <source>Embed</source>
@@ -2554,14 +2604,29 @@
         <source> Unable to process this request. Please try again later. </source>
       </segment>
     </unit>
+    <unit id="8281296766028455844">
+      <segment>
+        <source> PK Spot asks only for an age range, such as under 13, 13–17 or 18+. PK Spot does not ask Apple for your exact age or birthday. It stores the age band, a broad evidence category and the resulting eligibility—not an exact birth date, identity document, bank account or card number. It also records the provider and method category, when the result was checked, and the policy basis used for the decision. This lets PK Spot withdraw approvals if a later signal changes or a method is found unsuitable. Self-declared age alone does not unlock a public profile. </source>
+      </segment>
+    </unit>
     <unit id="8294319077118655917">
       <segment>
         <source>Checking every dependency…</source>
       </segment>
     </unit>
+    <unit id="5159743894930050077">
+      <segment>
+        <source>The mobile platform reports a guardian-managed age range.</source>
+      </segment>
+    </unit>
     <unit id="5161309645847446621">
       <segment>
         <source>Spot creation prevention</source>
+      </segment>
+    </unit>
+    <unit id="5161411570094992408">
+      <segment>
+        <source>Not now</source>
       </segment>
     </unit>
     <unit id="5163862847546461994">
@@ -2752,7 +2817,7 @@
     </unit>
     <unit id="event_map_page.challenge_plural">
       <segment>
-        <source>Challenges</source>
+        <source> Challenges </source>
       </segment>
     </unit>
     <unit id="event_map_page.challenge_singular">
@@ -2778,6 +2843,11 @@
     <unit id="7629436164719717851">
       <segment>
         <source>Event in </source>
+      </segment>
+    </unit>
+    <unit id="7648040324495665523">
+      <segment>
+        <source>The mobile platform is not sharing an age range with PK Spot. You can choose to check again.</source>
       </segment>
     </unit>
     <unit id="event.attendance.invitation_required">
@@ -6195,6 +6265,11 @@
         <source>Error sending reset email. Please try again.</source>
       </segment>
     </unit>
+    <unit id="5075908458390286070">
+      <segment>
+        <source>An account already exists for this email. Sign in or reset your password.</source>
+      </segment>
+    </unit>
     <unit id="map.event_loading_label">
       <segment>
         <source> Loading event </source>
@@ -6760,7 +6835,7 @@
     </unit>
     <unit id="7708270344948043036">
       <segment>
-        <source> <ph id="0" equiv="INTERPOLATION" disp="{{ uploading() ? &quot;Uploading...&quot; : &quot;Done&quot; }}"/> </source>
+        <source> <ph id="0" equiv="INTERPOLATION" disp="{{ report.incidentPath ? &quot;Open incident&quot; : &quot;Start incident&quot; }}"/> </source>
       </segment>
     </unit>
     <unit id="media.processing.status">
@@ -7151,6 +7226,11 @@
         <source> Assess the UK link and any current or imminent danger </source>
       </segment>
     </unit>
+    <unit id="7122784988520930893">
+      <segment>
+        <source>The mobile platform supplied an independently checked 18+ result. Adult eligibility is active.</source>
+      </segment>
+    </unit>
     <unit id="7136600839935407372">
       <segment>
         <source>Managed by</source>
@@ -7454,6 +7534,11 @@
     <unit id="searchField.events">
       <segment>
         <source>Events</source>
+      </segment>
+    </unit>
+    <unit id="searchField.openingMapsLink">
+      <segment>
+        <source>Opening Maps link...</source>
       </segment>
     </unit>
     <unit id="session_planner.form.add_co_host">
@@ -10879,6 +10964,11 @@
         <source>Spot saved successfully</source>
       </segment>
     </unit>
+    <unit id="5749779471450465026">
+      <segment>
+        <source>That Maps link did not contain a location.</source>
+      </segment>
+    </unit>
     <unit id="1536087519743707362">
       <segment>
         <source>Dismiss</source>
@@ -11578,6 +11668,11 @@
         <source>Wind</source>
       </segment>
     </unit>
+    <unit id="weather.state.chance_of_rain">
+      <segment>
+        <source>Chance of rain</source>
+      </segment>
+    </unit>
     <unit id="weather.state.clear">
       <segment>
         <source>Clear</source>
@@ -12018,6 +12113,11 @@
     <unit id="3942730300546294278">
       <segment>
         <source> People subscribed to this event will receive a live notification. </source>
+      </segment>
+    </unit>
+    <unit id="6110205464196820998">
+      <segment>
+        <source>Continue to age range request</source>
       </segment>
     </unit>
     <unit id="6111352634912339440">

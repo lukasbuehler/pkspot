@@ -43,6 +43,7 @@ import {
   CommunityMergeInfoCardMode,
 } from "../../../db/schemas/CommunityPageSchema";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
+import { getSpotPriority } from "../../../db/schemas/SpotPriority";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import { countries } from "../../../scripts/Countries";
 import { buildSpotCanonicalPath } from "../../../scripts/SpotRouteHelpers";
@@ -232,7 +233,11 @@ export class CommunityLandingPageComponent {
   /** Maximum events shown above the spots before falling back to a "more" link. */
   private readonly EVENT_LIMIT = 3;
   /** Event previews embedded on the community document. */
-  communityEvents = computed(() => this.communityData()?.eventPreviews ?? []);
+  communityEvents = computed(() =>
+    (this.communityData()?.eventPreviews ?? []).filter(
+      (event) => !event.isPast(),
+    ),
+  );
   visibleEvents = computed(() =>
     this.communityEvents().slice(0, this.EVENT_LIMIT),
   );
@@ -385,9 +390,19 @@ export class CommunityLandingPageComponent {
     return data?.spots?.length ? data.spots : (data?.topRatedSpots ?? []);
   });
   communityPickSections = computed(() =>
-    (this.communityData()?.communityPicks ?? []).filter(
-      (section) => section.spots.length > 0,
-    ),
+    (this.communityData()?.communityPicks ?? [])
+      .filter((section) => section.spots.length > 0)
+      .map((section) => ({
+        ...section,
+        spots: [...section.spots].sort((left, right) => {
+          const priorityDifference =
+            this._spotPreviewPriority(right) -
+            this._spotPreviewPriority(left);
+          if (priorityDifference !== 0) return priorityDifference;
+          return (right.numReviews ?? right.num_reviews ?? 0) -
+            (left.numReviews ?? left.num_reviews ?? 0);
+        }),
+      })),
   );
   crawlerSpotDirectory = computed(() => {
     const data = this.communityData();
@@ -1134,6 +1149,16 @@ export class CommunityLandingPageComponent {
       return null;
     }
     return `${rating}/5 rating`;
+  }
+
+  private _spotPreviewPriority(spot: SpotPreviewData): number {
+    return getSpotPriority({
+      rating: spot.rating,
+      access: spot.access,
+      isIconic: spot.isIconic,
+      isReported: spot.isReported,
+      hasMedia: spot.imageSrc.trim().length > 0,
+    });
   }
 
   private _spotAmenityLabel(spot: SpotPreviewData): string | null {

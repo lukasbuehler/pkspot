@@ -14,7 +14,10 @@ import {
 } from "@angular/material/tooltip";
 import {
   WEATHER_STATES,
+  getWeatherForecastState,
+  getWeatherForecastStateIcon,
   getWeatherStateIcon,
+  hasMeaningfulPrecipitation,
   type WeatherCondition,
 } from "../../../weather/weather-display";
 import type {
@@ -65,9 +68,20 @@ export class MapWeatherChipComponent {
   protected readonly condition = computed<WeatherCondition>(
     () => this.current()?.condition ?? "unknown",
   );
+  protected readonly forecastState = computed(() => {
+    const current = this.current();
+    return current
+      ? getWeatherForecastState({ ...current, condition: this.condition() })
+      : WEATHER_STATES.unknown;
+  });
   protected readonly icon = computed(() =>
     this.primaryAlertDisplay()?.icon ??
-    getWeatherStateIcon(this.condition(), this.current()?.isDay),
+    (this.current()
+      ? getWeatherForecastStateIcon({
+          ...this.current()!,
+          condition: this.condition(),
+        })
+      : getWeatherStateIcon("unknown")),
   );
   protected readonly temperatureC = computed(
     () => this.current()?.temperatureC,
@@ -92,7 +106,7 @@ export class MapWeatherChipComponent {
   );
   protected readonly accessibleLabel = computed(() => {
     const parts = [
-      WEATHER_STATES[this.condition()].label,
+      this.forecastState().label,
       this.temperatureC() === undefined
         ? undefined
         : formatTemperature(
@@ -119,7 +133,10 @@ export class MapWeatherChipComponent {
       );
     }
 
-    if (this.isRainCondition(this.condition())) {
+    if (
+      this.forecastState().tone === "wet" ||
+      this.forecastState().tone === "severe"
+    ) {
       const rainStopsAt = response.insights.rainStopsAt;
       if (rainStopsAt) {
         const time = this.formatTime(rainStopsAt);
@@ -211,22 +228,14 @@ export class MapWeatherChipComponent {
   }
 
   private isRainExpected(point: WeatherPoint): boolean {
+    const state = getWeatherForecastState({
+      ...point,
+      condition: point.condition ?? "unknown",
+    });
     return (
-      this.isRainCondition(point.condition ?? "unknown") ||
-      (point.precipitationProbabilityPercent ?? 0) >= 40 ||
-      (point.precipitationMm ?? 0) >= 0.2
+      hasMeaningfulPrecipitation(point) ||
+      state.tone === "wet" ||
+      state.tone === "severe"
     );
-  }
-
-  private isRainCondition(condition: WeatherCondition): boolean {
-    return [
-      "drizzle",
-      "rain",
-      "heavy-rain",
-      "freezing-rain",
-      "sleet",
-      "thunderstorm",
-      "hail",
-    ].includes(condition);
   }
 }

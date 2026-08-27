@@ -11,7 +11,17 @@
       <mat-icon>close</mat-icon>
     </button>
   } @else {
-    <mat-icon matSuffix>search</mat-icon>
+    <span matSuffix class="search-field-status-suffix">
+      @if (mapLinkLoading()) {
+        <mat-progress-spinner
+          mode="indeterminate"
+          diameter="18"
+          [attr.aria-label]="openingMapLinkLabel"
+        ></mat-progress-spinner>
+      } @else {
+        <mat-icon>search</mat-icon>
+      }
+    </span>
   }
 
   <input
@@ -21,6 +31,8 @@
     [placeholder]="placeholderText()"
     [formControl]="spotSearchControl"
     [matAutocomplete]="spotAutocomplete"
+    (input)="handleSearchInput()"
+    (paste)="handlePaste($event)"
   />
   <mat-autocomplete
     #spotAutocomplete="matAutocomplete"
@@ -28,7 +40,17 @@
     (optionSelected)="optionSelected($event)"
     class="mt-2"
   >
-    @if (spotAndPlaceSearchResults$ | async; as results) {
+    @if (mapLinkLoading()) {
+      <mat-option class="searchStatusOption" disabled>
+        <div class="d-flex flex-row align-items-center gap-2 p-2">
+          <mat-progress-spinner
+            mode="indeterminate"
+            diameter="18"
+          ></mat-progress-spinner>
+          <span class="mat-body-medium">{{ openingMapLinkLabel }}</span>
+        </div>
+      </mat-option>
+    } @else if (spotAndPlaceSearchResults$ | async; as results) {
       @if (results.isShortQuery) {
         <mat-option class="searchStatusOption" disabled>
           <div class="d-flex flex-row align-items-center gap-2 p-2">

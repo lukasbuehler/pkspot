@@ -48,11 +48,7 @@ import { Post } from "../../../db/models/Post";
 import { StorageService } from "../../services/firebase/storage.service";
 import { from, Observable, of, Subscription } from "rxjs";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
-import {
-  MediaType,
-  LocaleCode,
-  LocaleMap,
-} from "../../../db/models/Interfaces";
+import { LocaleCode, LocaleMap } from "../../../db/models/Interfaces";
 import {
   AmenitiesMap,
   AmenityIcons,
@@ -400,6 +396,8 @@ export class SpotDetailsComponent
       isDay: point.isDay,
       label: alertDisplay?.label,
       temperatureC: point.temperatureC,
+      precipitationMm: point.precipitationMm,
+      precipitationProbabilityPercent: point.precipitationProbabilityPercent,
       status: getWeatherVisualStatus(response, {
         covered: this.spotWeatherContext().covered,
       }),
@@ -1686,72 +1684,6 @@ export class SpotDetailsComponent
       });
     } finally {
       this.isVisitedUpdating.set(false);
-    }
-  }
-
-  // addressChanged(newAddress: SpotAddressSchema) {
-  //   this.spot.address.set(newAddress);
-  // }
-
-  setNewMediaFromUpload(media: {
-    src: string;
-    is_sized: boolean;
-    type: MediaType;
-  }) {
-    console.log("Setting new media from upload");
-    const spot = this.spot();
-    if (!spot) {
-      console.error("No spot to add media to");
-      return;
-    }
-
-    this.spot.update((spot) => {
-      if (spot) {
-        if (!this.authenticationService.user.uid) {
-          console.error("User not signed in, cannot upload media");
-          return spot;
-        }
-
-        if (media.type !== MediaType.Image) {
-          console.error("Only images are allowed for now");
-          return spot;
-        }
-
-        if (!media.is_sized) {
-          console.error("Media is not sized, cannot upload");
-          return spot;
-        }
-
-        // Mark as processing since resized versions won't be ready immediately
-        spot.addMedia(
-          media.src,
-          media.type,
-          this.authenticationService.user.uid,
-          true,
-          true, // isProcessing = true for newly uploaded images
-        );
-      }
-      if (spot instanceof Spot && this.authenticationService.user?.uid) {
-        // if possible, already save the uploaded media via a spot edit
-        const userReference = createUserReference(
-          this.authenticationService.user.data!,
-        );
-        this._spotEditsService.updateSpotMediaEdit(
-          spot.id,
-          spot.userMedia(),
-          userReference,
-        );
-      }
-
-      console.debug("Spot after adding media", spot);
-      return spot;
-    });
-
-    const currentSpot = this.spot();
-    if (currentSpot instanceof Spot) {
-      this._analyticsService.trackEvent("Upload Spot Image", {
-        spotId: currentSpot.id,
-      });
     }
   }
 

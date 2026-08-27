@@ -3,6 +3,8 @@ import {
   WEATHER_WARNINGS,
   getDailyWeatherForecastIconTone,
   getWeatherForecastIconTone,
+  getWeatherForecastState,
+  getWeatherForecastStateIcon,
   getWeatherStateIcon,
 } from "./weather-display";
 
@@ -33,21 +35,33 @@ describe("weather display definitions", () => {
     expect(getWeatherStateIcon("rain", false)).toBe("rainy");
   });
 
-  it("colors wet forecasts before other forecast states", () => {
+  it("calls precipitation meaningful at 50 percent", () => {
     expect(
       getWeatherForecastIconTone({
         condition: "clear",
         temperatureC: 32,
-        precipitationProbabilityPercent: 40,
+        precipitationProbabilityPercent: 50,
         isDay: false,
       }),
     ).toBe("wet");
     expect(
       getWeatherForecastIconTone({
         condition: "rain",
-        precipitationProbabilityPercent: 10,
+        precipitationProbabilityPercent: 49,
       }),
-    ).toBe("wet");
+    ).toBe("neutral");
+  });
+
+  it("describes a low-probability rain condition as a chance, not rain", () => {
+    const point = {
+      condition: "rain" as const,
+      precipitationProbabilityPercent: 20,
+      precipitationMm: 0,
+      isDay: true,
+    };
+
+    expect(getWeatherForecastState(point).label).toBe("Chance of rain");
+    expect(getWeatherForecastStateIcon(point)).toBe("cloud");
   });
 
   it("colors hot and high-UV forecasts as warnings", () => {

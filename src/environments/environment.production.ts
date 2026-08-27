@@ -18,7 +18,6 @@ export const environment = {
     enabled: true,
     recaptchaEnterpriseSiteKey: "6LcxpBMtAAAAAMJs-idyJ6QVbkJYx82Fi0pUUNn5",
     debugToken: false,
-    attachToFirebaseSdk: false,
   },
   webPush: {
     vapidKey:

@@ -114,6 +114,7 @@ const PROTECTED_SPOT_EDIT_FIELDS = new Set([
   "report_count",
   "reportReason",
   "report_reason",
+  "public_import_provenance",
   "latest_report_at",
   "thumbnail_medium_url",
   "thumbnail_small_url",
@@ -191,8 +192,15 @@ export const applySpotEditOnCreate = onDocumentCreated(
           ? stewardOrganizationIds
           : [];
         const reviewOrganizationId = reviewOrganizationIds[0];
+        const submitterCanReview =
+          typeof submitterUid === "string" &&
+          !submitterIsAdmin &&
+          (await firstReviewableOrganizationId(
+            submitterUid,
+            reviewOrganizationIds
+          )) !== null;
 
-        if (reviewOrganizationId && !submitterIsAdmin) {
+        if (reviewOrganizationId && !submitterIsAdmin && !submitterCanReview) {
           const isManagedSpot = typeof managementOrganizationId === "string";
           await editSnapshot.ref.update({
             approved: false,

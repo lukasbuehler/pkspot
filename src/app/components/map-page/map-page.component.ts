@@ -85,6 +85,7 @@ import { SlugsService } from "../../services/firebase/firestore/slugs.service";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { SearchFieldComponent } from "../search-field/search-field.component";
+import type { SearchSelection } from "../search-field/search-field.component";
 import {
   LocalSpotChallenge,
   SpotChallenge,
@@ -292,6 +293,7 @@ const DENSE_MAP_PERFORMANCE_VARIANTS = new Set<DenseMapPerformanceVariant>([
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly _eventPromoDismissalsStorageKey =
     "pkspot.eventPromoDismissals.v1";
+  private _searchSelectionRequestId = 0;
 
   @ViewChild("spotMap", { static: false }) spotMap: SpotMapComponent | null =
     null;
@@ -2958,19 +2960,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  openSpotOrGooglePlace(value: {
-    type: "place" | "spot" | "community" | "event";
-    id: string;
-    community?: CommunitySearchPreview;
-    event?: { id: string; slug?: string };
-    spot?: {
-      name?: string;
-      slug?: string;
-      imageSrc?: string;
-      locality?: string;
-      rating?: number;
-    };
-  }) {
+  async openSpotOrGooglePlace(value: SearchSelection): Promise<void> {
+    const requestId = ++this._searchSelectionRequestId;
     this._analytics.trackEvent("map_search_result_selected", {
       result_type: value.type,
       result_id: value.id,
@@ -2980,7 +2971,39 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       map_object_mode: this.mapObjectMode(),
     });
     if (value.type === "place") {
-      this.openGooglePlaceById(value.id);
+      this.openGooglePlaceById(value.id, requestId);
+      return;
+    }
+
+    if (value.type === "map-link" && value.mapLink) {
+      const mapLink = value.mapLink;
+      if (mapLink.placeId) {
+        this.openGooglePlaceById(mapLink.placeId, requestId);
+        return;
+      }
+      if (
+        mapLink.provider === "google" &&
+        mapLink.query &&
+        (await this.openGooglePlaceByQuery(mapLink.query, requestId))
+      ) {
+        return;
+      }
+      if (mapLink.location) {
+        this.spotMap?.focusPoint(mapLink.location, 17);
+        return;
+      }
+      if (
+        mapLink.provider !== "google" &&
+        mapLink.query &&
+        (await this.openGooglePlaceByQuery(mapLink.query, requestId))
+      ) {
+        return;
+      }
+      this._snackbar.open(
+        $localize`That Maps link did not contain a location.`,
+        $localize`Dismiss`,
+        { duration: 5_000 },
+      );
       return;
     }
 
@@ -3025,11 +3048,28 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  private async openGooglePlaceByQuery(
+    query: string,
+    requestId: number,
+  ): Promise<boolean> {
+    try {
+      const place = (await this._searchService.searchPlaces(query))[0];
+      if (requestId !== this._searchSelectionRequestId) return true;
+      if (!place?.place_id) return false;
+      this.openGooglePlaceById(place.place_id, requestId);
+      return true;
+    } catch (error) {
+      if (requestId !== this._searchSelectionRequestId) return true;
+      console.error("Failed to find the place from a pasted Maps link", error);
+      return false;
+    }
+  }
+
   onSearchCommunityPreviewChange(community: CommunitySearchPreview | null) {
     this.searchPreviewCommunity.set(community);
   }
 
-  openGooglePlaceById(id: string) {
+  openGooglePlaceById(id: string, requestId?: number) {
     this._analytics.trackEvent("map_google_place_opened", {
       place_id: id,
       source: "search",
@@ -3038,6 +3078,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.mapsService
       .getGooglePlaceById(id, "location")
       .then((place) => {
+        if (
+          requestId !== undefined &&
+          requestId !== this._searchSelectionRequestId
+        ) {
+          return;
+        }
         console.debug("[DEBUG openGooglePlaceById] Got place:", place);
         this._focusGooglePlace(place);
       })

@@ -78,6 +78,28 @@ const buildLocalSpot = (name: string): LocalSpot =>
   );
 
 describe("EventMapPageComponent", () => {
+  it("shows loaded challenges in the All side-panel overview", () => {
+    const template = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/event-map-page/event-map-page.component.html",
+      ),
+      "utf8",
+    );
+    const allPanel = template.slice(
+      template.indexOf('@case ("all")'),
+      template.indexOf('@case ("challenges")'),
+    );
+
+    expect(allPanel).toContain("challenges().length > 0");
+    expect(allPanel).toContain("<app-challenge-list");
+    expect(allPanel).toContain('[challenges]="challenges()"');
+    expect(allPanel).toContain('[showIndexAsNumber]="true"');
+    expect(allPanel).toContain(
+      '(challengeClickIndex)="challengeClickedIndex($event)"',
+    );
+  });
+
   it("projects program occurrences into location details before long metadata", () => {
     const template = readFileSync(
       join(

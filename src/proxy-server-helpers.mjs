@@ -128,10 +128,10 @@ export function handleQrStickerRequest(req, res, next) {
   return res.redirect(302, target);
 }
 
-export async function handlePublicCallableRequest(
+export async function proxyPublicCallableRequest(
   req,
   res,
-  fetchImpl = fetch,
+  fetchImpl,
 ) {
   const functionName = req?.params?.functionName;
   if (!PUBLIC_CALLABLE_FUNCTIONS.has(functionName)) {
@@ -165,6 +165,11 @@ export async function handlePublicCallableRequest(
       },
     });
   }
+}
+
+/** Express-compatible handler; Express passes `next` as its third argument. */
+export async function handlePublicCallableRequest(req, res) {
+  return proxyPublicCallableRequest(req, res, fetch);
 }
 
 function hasVersionQuery(req) {

@@ -101,6 +101,9 @@ export {
   retryFailedImportChunksOnCreate,
 } from "./importFunctions";
 export { getPublicImportProvenance } from "./importProvenanceFunctions";
+export {
+  backfillPublicImportProvenanceOnCreate,
+} from "./importProvenanceMaintenanceFunctions";
 
 // fixes and migrations
 export {
@@ -229,6 +232,7 @@ export {
   cleanupExpiredOsmAmenityCache,
   getOsmAmenityTile,
 } from "./osmAmenityFunctions";
+export { resolveMapShortLink } from "./mapLinkFunctions";
 
 export {
   onEventNotificationSourceWrite,

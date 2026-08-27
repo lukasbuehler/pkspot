@@ -1,5 +1,5 @@
-PKSPOT_VERSION_NAME = "1.1.4" # Marketing version on iOS
-PKSPOT_VERSION_CODE = 17 # Version Code on Android and iOS Project version
+PKSPOT_VERSION_NAME = "1.1.5" # Marketing version on iOS
+PKSPOT_VERSION_CODE = 18 # Version Code on Android and iOS Project version
 PKSPOT_APP_IDENTIFIER = ENV.fetch("PKSPOT_APP_IDENTIFIER", "com.pkspot.app")
 PKSPOT_APPLE_APP_ID = ENV.fetch("PKSPOT_APPLE_APP_ID", "6757597683")
 PKSPOT_ANDROID_PACKAGE_NAME = ENV.fetch("PKSPOT_ANDROID_PACKAGE_NAME", "com.pkspot.app")

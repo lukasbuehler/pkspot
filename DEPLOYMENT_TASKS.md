@@ -82,6 +82,186 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
+### Firebase App Check enforcement readiness
+
+The 1.1.5 client warns once per app load when attestation fails, but it does not
+enable enforcement. Enforcement must be staged per Firebase product so older
+mobile builds and App Hosting SSR are not accidentally denied.
+
+- [ ] Before enabling the SSR app ID, verify the App Hosting runtime service
+      account (`firebase-app-hosting-compute@parkour-base-project.iam.gserviceaccount.com`)
+      can sign its custom App Check assertion. Enable the IAM Service Account
+      Credentials API if needed and grant `iam.serviceAccounts.signBlob` only
+      on the signing service account (normally by granting **Service Account
+      Token Creator** to the runtime account on itself), not project-wide.
+      Verify the effective principal and narrow binding in IAM rather than
+      adding a downloaded service-account key.
+- [ ] Deploy the configured SSR provider while Firestore enforcement remains
+      off. Render several localized Spot and event URLs, then confirm App Check
+      verification metrics contain valid traffic for the dedicated SSR app ID
+      (`1:294969617102:web:08b892460adf0b16313e9f`). In App Hosting logs, verify
+      `[SSR AppCheck] Token minted.` appears with a one-hour TTL and no
+      `[SSR AppCheck] Token mint failed.` entries. Logs include sanitized error
+      type/code/message data but never include the minted token. The Cloudflare
+      Workers + static-assets design and its required
+      `SsrAppCheckTokenMinter` adapter are documented in
+      `DATA_FLOW_AND_FUNCTIONS.md`; Angular SSR alone is not an attestation.
+- [ ] Before enforcing Cloud Firestore, verify in a non-production environment
+      that a localized Spot URL includes its Spot-specific title, description,
+      canonical, `og:image`, and `twitter:image` in the initial SSR HTML while
+      enforcement is enabled. Confirm static assets remain directly cacheable
+      and do not contain Admin credentials, App Check tokens, or SSR identity
+      material.
+- [ ] Release the production web App Check change that attaches App Check to the
+      default Firebase app, then verify that valid request metrics increase for
+      Authentication, Cloud Firestore, Storage, and every protected callable
+      before enabling enforcement. Do not enforce a product while supported
+      Android, iOS, or cached web clients for that product still report
+      outdated-client or invalid requests.
+- [ ] Treat callables that already set `enforceAppCheck: true` as the first
+      production canaries; verify their legitimate traffic before changing any
+      product-wide setting. Then enable enforcement for one eligible Firebase
+      product at a time. After each change, smoke-test account creation and
+      verification, public Spot and event reads, authenticated writes, media
+      loading/upload, Maps-link resolution, and localized SSR. Monitor
+      invalid/unknown request metrics and the App Check failure warning; roll
+      back that product's enforcement if legitimate clients are rejected.
+
+### Community event and Spot ranking repair
+
+The 1.1.5 client filters expired cached event previews at render time and sorts
+community picks with the shared map priority. Deploying and rebuilding the
+generator also corrects the stored order for older clients and future pages.
+
+- [ ] Deploy the community page generator before releasing the 1.1.5 clients:
+
+  ```sh
+  npx firebase deploy --project prod --only functions:rebuildAllCommunityPages
+  ```
+
+- [ ] Request a full community rebuild and wait for the maintenance document
+      to report `status: DONE`:
+
+  ```sh
+  FIREBASE_PROJECT=parkour-base-project node scripts/request_community_rebuild.js
+  ```
+
+  - Verify Basel's Standout Spots use the same shared rating, access, iconic,
+    media, and report priority as the map, and no expired event is rendered on
+    a representative community page.
+
+### Event RSVP and My Events repair
+
+The Firestore rule change accepts the optional millisecond timestamp already
+written by notification actions. Deploy it before releasing the client so
+existing action-created RSVP documents can be changed in older and newer apps.
+
+- [ ] Deploy the RSVP-compatible Firestore rules:
+
+  ```sh
+  npx firebase deploy --project prod --only firestore:rules
+  ```
+
+  - Verify a signed-in non-admin can change an existing Interested RSVP that
+    contains `time_updated_raw_ms` to Going, while writes to another user's
+    RSVP remain denied.
+
+- [ ] Release web, Android, and iOS through their normal workflows. Verify past
+      Going and Saved events appear only under Past, future Going events remain
+      under Going, future Saved events remain under Saved, and an event present
+      in both Going and Saved is displayed only once. No data backfill is
+      required.
+
+### Spot event-card RSVP counts and weather threshold
+
+The event-preview trigger change is backward compatible and makes future RSVP
+aggregate changes self-healing. The maintenance run repairs previews that were
+already stale before the trigger fix. It scans event discovery documents and
+only refreshes Spots linked from those events; it does not scan every Spot.
+
+- [ ] Deploy the Spot event-preview trigger, its bounded backfill helper, and
+      the weather callable before releasing the client:
+
+  ```sh
+  npx firebase deploy --project prod --only functions:syncSpotUpcomingEventsOnEventWrite,functions:backfillSpotUpcomingEvents,functions:getWeather
+  ```
+
+  - Verify all three Functions report location `europe-west1`. Change one test
+    RSVP and confirm the canonical `events/{eventId}.rsvp_counts`, matching
+    `event_discovery/{eventId}.rsvp_counts`, and the linked
+    `spots/{spotId}.upcoming_events[].rsvp_counts` converge to the same value.
+
+- [ ] Create `maintenance/run-backfill-spot-upcoming-events` with any contents
+      once, wait for the Function to delete it, and verify the representative
+      Spot card that was stale now matches the event page. Check Function logs
+      for failures before continuing; recreating the maintenance document is
+      the retry mechanism.
+
+- [ ] Release the client through the normal web and mobile workflows. Verify a
+      49% precipitation forecast remains a neutral “Chance of rain” with its
+      percentage visible, while 50% or at least 0.2 mm uses the rain state.
+      Confirm a long title for a promoted event stays within the Spot side panel on
+      narrow and desktop layouts.
+
+### Email signup and notification-link repair
+
+The digest Function change is backward-compatible: existing clients can open
+the new canonical Spot path. The client additionally repairs already-projected
+digest notifications whose historical path is `/train`.
+
+- [ ] Deploy the community digest producer and notification delivery Functions
+      before releasing the clients:
+
+  ```sh
+  npx firebase deploy --project prod --only functions:sendCommunitySpotDigests,functions:sendDueNotificationIntents,functions:onImmediateNotificationIntentCreate,functions:onNotificationIntentWrite
+  ```
+
+  - Verify a test digest intent and its in-app projection both use the first
+    included Spot's `/s/{slug}` path, and that delivered FCM data carries the
+    same path. Do not operate an App Hosting rollout as part of this step.
+
+- [ ] Release web, Android, and iOS through their normal workflows. Verify an
+      email/password signup completes profile/private-data initialization before
+      redirecting. Open a fresh verification email and confirm it completes;
+      reopen the consumed link while signed in and confirm the already-verified
+      account shows success instead of an endless spinner. An invalid link for an
+      unverified account must show the actionable error and emit a privacy-safe
+      handled `AuthActionError` without its action code or raw Firebase message.
+      Tap one existing `/train` digest notification and one new
+      digest on each supported notification surface; the old item must open its
+      first Spot (or the map when old push data lacks Spot IDs), and the new item
+      must open its first Spot. Exercise every action offered by the test
+      notifications and confirm it is handled through the notification center.
+
+- [ ] Monitor the `auth_sign_up_failed` event and handled
+      `AccountCreationError` issues in PostHog by `failure_stage`, `error_code`,
+      and platform. Confirm exception payloads contain no email addresses,
+      display names, passwords, or raw Firebase errors. Check Functions logs for
+      digest delivery failures.
+
+- [ ] Configure PostHog source-map injection and upload in the production build
+      pipeline before relying on Error Tracking stack frames. Production builds
+      currently disable source maps. Use a PostHog personal API key with only
+      `error tracking write` and `organization read`, keep it in CI secrets, and
+      verify a release's symbol set plus one intentionally captured test error
+      before removing this item. The injected browser assets must be the same
+      assets released through the normal `main`-branch App Hosting workflow.
+
+### Google Maps and Apple Maps link paste
+
+The client parses full supported URLs locally. Google short links use a narrow,
+App Check-protected redirect resolver which validates every redirect hop and
+does not log or persist the pasted URL.
+
+- [ ] Complete the post-deployment Maps-link verification. Confirm requests
+      without valid App Check and off-domain redirects remain rejected, and
+      confirm application logs contain no raw pasted URLs. Then paste
+      `https://maps.app.goo.gl/v53ih4b5vdjweTB57` into map search: the pasted
+      URL and autocomplete loading indicator must remain visible while
+      resolving, and the result must open the Google Place for `Spital Lachen
+      AG` (with its destination coordinates as fallback). Also verify full
+      Google Maps and Apple Maps links open the expected location.
+
 ### Idempotent Spot creation and duplicate administration
 
 This release is additive for already-released clients: existing direct Spot
@@ -103,7 +283,7 @@ production duplicate.
       report-warning, safety-case, and immediate-notification Function updates:
 
   ```sh
-  npx firebase deploy --project prod --only functions:getSpotCreationDiagnostics,functions:resolveSpotDuplicate,functions:detectDuplicateSpots,functions:onSpotReportCreate,functions:onModerationActionNotificationCreate,functions:onModerationActionSafetyCaseCreate,functions:onImmediateNotificationIntentCreate,functions:onNotificationIntentWrite
+  npx firebase deploy --project prod --only functions:getSpotCreationDiagnostics,functions:resolveSpotDuplicate,functions:detectDuplicateSpots,functions:applySpotEditOnCreate,functions:onSpotReportCreate,functions:onModerationActionNotificationCreate,functions:onModerationActionSafetyCaseCreate,functions:onImmediateNotificationIntentCreate,functions:onNotificationIntentWrite
   ```
 
       Verify every listed Function reports location `europe-west1` in the
@@ -111,6 +291,9 @@ production duplicate.
       the deployment succeeds, duplicate-resolution
       replays create one moderation action, and an immediately due actionable
       notification has its in-app feed projection before delivery is claimed.
+      Also verify an owner, admin, or reviewer of a Spot's reviewing organization
+      receives `APPROVED_IMMEDIATE`, while an ordinary member or outsider still
+      receives the pending organization-review disposition.
 
 - [ ] Invoke `createSpotSubmission` twice with one non-production draft token
       and verify both responses point to one Spot/edit while the second reports
@@ -154,6 +337,58 @@ compatibility field for released clients. Raw report documents and
 - [ ] Release the compatible client through the normal web and mobile workflows,
       then confirm a reported Spot preview shows only the localized Reported
       badge before opening the Spot.
+
+### Public import provenance and Spot-edit write containment
+
+The additive Spot projection is backward compatible: released clients continue
+to use `getPublicImportProvenance`, and new clients fall back to that callable
+only in the browser while a legacy Spot has no projection. The field is not part
+of the Typesense schema or extension allowlist. The one-time Spot writes below
+will nevertheless wake the Typesense extension, so use the default small pages
+and watch extension traffic during the live run.
+
+- [ ] Reauthenticate Firebase, then deploy the compatible projection and
+      write-containment Functions. Do not run the migration yet:
+
+  ```sh
+  firebase login --reauth
+  npx firebase deploy --project prod --only functions:getPublicImportProvenance,functions:processImportChunkOnCreate,functions:retryFailedImportChunksOnCreate,functions:rebuildCommunityPagesOnImportWrite,functions:updateSpotFieldsOnWrite,functions:patchCommunityPageOnWrite,functions:rebuildAllCommunityPages,functions:syncPublicUserProfileOnWrite,functions:backfillPublicImportProvenanceOnCreate
+  ```
+
+      Verify every deployed gen 2 Function is active in `europe-west1`, a new
+      import writes either an object or explicit `null`, and the compatibility
+      callable still serves an older client.
+
+- [ ] Immediately after the compatible Functions are verified, release the
+      field-aware, browser-only fallback client through the normal `main`
+      workflow. If `main` cannot be released immediately, pause import writes
+      until the client release completes so no new Spot misses its projection.
+      Verify localized SSR neither renders import-specific attribution nor
+      invokes `getPublicImportProvenance`; projected and legacy production Spots
+      must load their attribution after hydration.
+
+- [ ] In Firestore, create
+      `maintenance/run-backfill-public-import-provenance` with
+      `{ dry_run: true, page_size: 100 }`. Wait for the trigger document to be
+      deleted and `maintenance/public-import-provenance-backfill.status` to be
+      `DONE`; review `counts.changed`, `counts.missing_imports`, and confirm
+      `counts.written` is zero.
+
+- [ ] Delete/recreate the same trigger document with
+      `{ dry_run: false, page_size: 100 }`. Wait for retained state `DONE`,
+      confirm `counts.written` matches the reviewed candidates, rerun it once to
+      verify `counts.changed` and `counts.written` are zero, and sample an
+      attributed import plus an import with no public credit.
+
+- [ ] After the next 03:00 UTC sitemap cycle, correlate Cloud Functions
+      invocation logs, App Hosting requests, and crawler user agents. Confirm
+      there are no SSR-originated provenance calls; legacy clients and direct
+      browser fallback traffic may remain. Configure invocation and Firestore
+      read/write alerts initially at 3x the prior seven-day P95 baseline.
+
+Callable retirement, server-deduplicated UPDATE submissions, and bounded
+community-digest fan-out remain separate follow-ups because they require a
+supported-client or notification-policy decision.
 
 ### Firebase JS SDK client migration
 
@@ -478,6 +713,13 @@ user's authoritative `users/{uid}` document.
 
 The backend and rules must precede the client. Existing clients continue using
 the legacy or v2 callable; neither can establish public-profile eligibility.
+
+- [ ] In the 1.1.5 iOS release, verify with a signed-in account on iOS 26 that
+      launching the app does not show Apple's age-range request. In Settings →
+      Profile access, tap `Check age range` and confirm PK Spot first explains
+      why it asks, that only ranges are requested, and that no exact age or
+      birthday is requested. Confirm `Not now` opens no system UI and Continue
+      opens Apple's age-range request.
 
 - [ ] In Google Play Console, confirm PK Spot is linked to Google Cloud project
       number `294969617102`, Play Integrity is enabled for `com.pkspot.app`, and

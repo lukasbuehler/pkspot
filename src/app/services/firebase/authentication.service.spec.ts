@@ -15,7 +15,10 @@ import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { AnalyticsService } from "../analytics.service";
 import { ConsentService } from "../consent.service";
 import { UsersService } from "./firestore/users.service";
-import { AuthenticationService } from "./authentication.service";
+import {
+  AccountCreationError,
+  AuthenticationService,
+} from "./authentication.service";
 import { FIREBASE_APP } from "./firebase-client.providers";
 
 const authMock = vi.hoisted(() => ({
@@ -63,6 +66,7 @@ describe("AuthenticationService", () => {
   let service: AuthenticationService;
   let usersServiceSpy: {
     getUserById: Mock;
+    getAccountSetupState: Mock;
     addUser: Mock;
     initializePrivateData: Mock;
     deleteUser: Mock;
@@ -77,6 +81,7 @@ describe("AuthenticationService", () => {
     identifyUser: Mock;
     resetUser: Mock;
     trackEvent: Mock;
+    reportError: Mock;
   };
 
   beforeEach(() => {
@@ -87,6 +92,10 @@ describe("AuthenticationService", () => {
 
     usersServiceSpy = {
       getUserById: vi.fn().mockReturnValue(of(null)),
+      getAccountSetupState: vi.fn().mockResolvedValue({
+        publicProfileExists: false,
+        privateDataExists: false,
+      }),
       addUser: vi.fn().mockResolvedValue(undefined),
       initializePrivateData: vi.fn().mockResolvedValue(undefined),
       deleteUser: vi.fn().mockResolvedValue(undefined),
@@ -101,6 +110,7 @@ describe("AuthenticationService", () => {
       identifyUser: vi.fn(),
       resetUser: vi.fn(),
       trackEvent: vi.fn(),
+      reportError: vi.fn(),
     };
 
     TestBed.configureTestingModule({
@@ -333,6 +343,239 @@ describe("AuthenticationService", () => {
       service.createAccount("created@example.test", "secret", "Created User"),
     ).rejects.toThrow("Account creation is already in progress");
     expect(createUserWithEmailAndPassword).toHaveBeenCalledTimes(1);
+  });
+
+  it("identifies the failed account setup stage without logging account data", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    (createUserWithEmailAndPassword as Mock).mockResolvedValueOnce({
+      user: { ...firebaseUser, uid: "created-user" },
+    });
+    (updateProfile as Mock).mockRejectedValueOnce({
+      code: "auth/internal-error",
+      message:
+        "Raw provider error for private@example.test, Private Name, secret",
+    });
+
+    await expect(
+      service.createAccount("private@example.test", "secret", "Private Name"),
+    ).rejects.toEqual(
+      expect.objectContaining<AccountCreationError>({
+        stage: "auth_profile",
+        code: "auth/internal-error",
+      }),
+    );
+    expect(consoleError).toHaveBeenCalledWith(
+      "[Auth] Email account creation failed",
+      {
+        stage: "auth_profile",
+        code: "auth/internal-error",
+        platform: "web",
+        firebase_user_created: true,
+        firebase_user_exists: true,
+      },
+    );
+    expect(analyticsServiceSpy.reportError).toHaveBeenCalledWith(
+      expect.objectContaining<AccountCreationError>({
+        name: "AccountCreationError",
+        stage: "auth_profile",
+        code: "auth/internal-error",
+      }),
+      {
+        context: "email_account_creation",
+        feature: "authentication",
+        action: "create_account",
+        severity: "error",
+        handled: true,
+        userFacing: false,
+        properties: {
+          failure_stage: "auth_profile",
+          error_code: "auth/internal-error",
+          platform: "web",
+          firebase_user_created: true,
+          firebase_user_exists: true,
+          $exception_fingerprint:
+            "email_account_creation:auth_profile:auth/internal-error",
+        },
+      },
+    );
+    expect(JSON.stringify(consoleError.mock.calls)).not.toContain(
+      "private@example.test",
+    );
+    expect(JSON.stringify(consoleError.mock.calls)).not.toContain(
+      "Private Name",
+    );
+    expect(
+      JSON.stringify(analyticsServiceSpy.reportError.mock.calls),
+    ).not.toContain("private@example.test");
+    expect(
+      JSON.stringify(analyticsServiceSpy.reportError.mock.calls),
+    ).not.toContain("Private Name");
+    expect(
+      JSON.stringify(analyticsServiceSpy.reportError.mock.calls),
+    ).not.toContain("secret");
+    expect(
+      JSON.stringify(analyticsServiceSpy.reportError.mock.calls),
+    ).not.toContain("Raw provider error");
+  });
+
+  it("attributes setup-state read failures to Firebase Auth while recording that the user exists", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    (createUserWithEmailAndPassword as Mock).mockResolvedValueOnce({
+      user: { ...firebaseUser, uid: "created-user" },
+    });
+    usersServiceSpy.getAccountSetupState.mockRejectedValueOnce({
+      code: "permission-denied",
+    });
+
+    await expect(
+      service.createAccount("created@example.test", "secret", "Created User"),
+    ).rejects.toEqual(
+      expect.objectContaining<AccountCreationError>({
+        stage: "firebase_auth",
+        code: "permission-denied",
+      }),
+    );
+    expect(consoleError).toHaveBeenCalledWith(
+      "[Auth] Email account creation failed",
+      expect.objectContaining({
+        stage: "firebase_auth",
+        firebase_user_created: true,
+        firebase_user_exists: true,
+      }),
+    );
+    expect(analyticsServiceSpy.reportError).toHaveBeenCalledWith(
+      expect.any(AccountCreationError),
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          failure_stage: "firebase_auth",
+          firebase_user_created: true,
+          firebase_user_exists: true,
+        }),
+      }),
+    );
+  });
+
+  it("resumes incomplete setup when Firebase Auth already created the account", async () => {
+    const createdUser = {
+      ...firebaseUser,
+      uid: "recoverable-user",
+      displayName: null,
+      emailVerified: false,
+    };
+    (createUserWithEmailAndPassword as Mock)
+      .mockResolvedValueOnce({ user: createdUser })
+      .mockRejectedValueOnce({ code: "auth/email-already-in-use" });
+    (signInWithEmailAndPassword as Mock).mockResolvedValueOnce({
+      user: createdUser,
+    });
+    (updateProfile as Mock)
+      .mockRejectedValueOnce({ code: "auth/internal-error" })
+      .mockResolvedValueOnce(undefined);
+    (sendEmailVerification as Mock).mockResolvedValueOnce(undefined);
+
+    await expect(
+      service.createAccount("recover@example.test", "secret", "Recover Me"),
+    ).rejects.toEqual(
+      expect.objectContaining<AccountCreationError>({
+        stage: "auth_profile",
+      }),
+    );
+
+    await service.createAccount(
+      "recover@example.test",
+      "secret",
+      "Recover Me",
+    );
+
+    expect(signInWithEmailAndPassword).toHaveBeenCalledWith(
+      service.auth,
+      "recover@example.test",
+      "secret",
+    );
+    expect(usersServiceSpy.addUser).toHaveBeenCalledTimes(1);
+    expect(usersServiceSpy.initializePrivateData).toHaveBeenCalledTimes(1);
+    expect(sendEmailVerification).toHaveBeenCalledWith(createdUser);
+  });
+
+  it("distinguishes a failed recovery from creating a Firebase user", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const existingUser = {
+      ...firebaseUser,
+      uid: "recoverable-user",
+      displayName: null,
+      emailVerified: false,
+    };
+    (createUserWithEmailAndPassword as Mock).mockRejectedValueOnce({
+      code: "auth/email-already-in-use",
+    });
+    (signInWithEmailAndPassword as Mock).mockResolvedValueOnce({
+      user: existingUser,
+    });
+    (updateProfile as Mock).mockRejectedValueOnce({
+      code: "auth/internal-error",
+    });
+
+    await expect(
+      service.createAccount("recover@example.test", "secret", "Recover Me"),
+    ).rejects.toEqual(
+      expect.objectContaining<AccountCreationError>({
+        stage: "auth_profile",
+        code: "auth/internal-error",
+      }),
+    );
+
+    expect(consoleError).toHaveBeenCalledWith(
+      "[Auth] Email account creation failed",
+      expect.objectContaining({
+        firebase_user_created: false,
+        firebase_user_exists: true,
+      }),
+    );
+    expect(analyticsServiceSpy.reportError).toHaveBeenCalledWith(
+      expect.any(AccountCreationError),
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          firebase_user_created: false,
+          firebase_user_exists: true,
+        }),
+      }),
+    );
+  });
+
+  it("does not overwrite completed setup while recovering an existing Auth account", async () => {
+    const existingUser = {
+      ...firebaseUser,
+      uid: "existing-user",
+      displayName: "Existing Name",
+      emailVerified: true,
+    };
+    (createUserWithEmailAndPassword as Mock).mockRejectedValueOnce({
+      code: "auth/email-already-in-use",
+    });
+    (signInWithEmailAndPassword as Mock).mockResolvedValueOnce({
+      user: existingUser,
+    });
+    usersServiceSpy.getAccountSetupState.mockResolvedValueOnce({
+      publicProfileExists: true,
+      privateDataExists: true,
+    });
+
+    await service.createAccount(
+      "existing@example.test",
+      "secret",
+      "Replacement Name",
+    );
+
+    expect(updateProfile).not.toHaveBeenCalled();
+    expect(usersServiceSpy.addUser).not.toHaveBeenCalled();
+    expect(usersServiceSpy.initializePrivateData).not.toHaveBeenCalled();
+    expect(sendEmailVerification).not.toHaveBeenCalled();
   });
 
   it("creates a profile for a new Google sign-in user", async () => {

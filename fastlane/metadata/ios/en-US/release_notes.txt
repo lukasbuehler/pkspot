@@ -1,7 +1,8 @@
-PK Spot v1.1.4 — Notifications & Weather
+PK Spot v1.1.5 — Reliability & Bug Fixes
 
 What’s new:
 
-• Added notifications: community digests, event reminders, and Spot edit submission updates.
-• Added weather information to Spots, the current map area, and events.
-• Improved Events: RSVP is now “Add to My Events” and enables notifications.
+• Paste Google Maps and Apple Maps links directly into map search.
+• Improved media selection and cropping, with safer upload completion.
+• The age-range request is now explained first and no longer appears at startup.
+• Fixed account verification, notification links, Event responses and past Events, Community rankings, and Swiss Jam challenges.

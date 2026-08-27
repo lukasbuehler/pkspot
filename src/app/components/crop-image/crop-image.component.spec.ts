@@ -1,6 +1,8 @@
 import { TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { ImageCropperComponent } from "ngx-image-cropper";
+import { MatIconButton } from "@angular/material/button";
+import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CropImageComponent } from "./crop-image.component";
 import {
@@ -64,6 +66,27 @@ describe("CropImageComponent", () => {
     expect(component.zoom()).toBe(1);
     expect(cropper.resetCropperPosition).toHaveBeenCalled();
     expect(cropper.maintainAspectRatio).toBe(false);
+  });
+
+  it("renders rotation controls as Material icon buttons", () => {
+    const fixture = create(
+      new File(["photo"], "spot.jpg", { type: "image/jpeg" }),
+      false,
+    );
+
+    expect(fixture.debugElement.queryAll(By.directive(MatIconButton))).toHaveLength(2);
+  });
+
+  it("keeps crop resize targets at least 44px for touch input", () => {
+    const styles = readFileSync(
+      "src/app/components/crop-image/crop-image.component.scss",
+      "utf8",
+    );
+
+    expect(styles).toContain(".ngx-ic-resize");
+    expect(styles).toContain("padding: 16px");
+    expect(styles).toContain("height: 44px");
+    expect(styles).toContain("width: 44px");
   });
 
   it("emits a matching File only when Apply crops successfully", async () => {

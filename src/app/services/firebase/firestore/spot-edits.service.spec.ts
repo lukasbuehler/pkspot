@@ -10,7 +10,9 @@ import { AuthenticationService } from "../authentication.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
 import { FunctionsAdapterService } from "../functions-adapter.service";
 import {
+  spotEditAwaitsOrganizationReview,
   spotEditAwaitsReviewOutcome,
+  spotEditProcessingFailed,
   SpotEditsService,
 } from "./spot-edits.service";
 import { UsersService } from "./users.service";
@@ -223,6 +225,21 @@ describe("SpotEditsService", () => {
     ).toBe(false);
   });
 
+  it("recognizes terminal processing failures", () => {
+    expect(spotEditProcessingFailed({
+      ...buildEdit("failed", "user-1", 1),
+      processing_status: "ERROR",
+    })).toBe(true);
+    expect(spotEditProcessingFailed({
+      ...buildEdit("voting-failed", "user-1", 1),
+      processing_status: "VOTING_ERROR",
+    })).toBe(true);
+    expect(spotEditProcessingFailed({
+      ...buildEdit("approved", "user-1", 1),
+      processing_status: "APPROVED_IMMEDIATE",
+    })).toBe(false);
+  });
+
   it("waits for the server disposition before deciding whether to prompt", async () => {
     const initial = buildEdit("pending", "user-1", 1);
     mockFirestoreAdapter.documentSnapshots.mockReturnValue(
@@ -252,6 +269,24 @@ describe("SpotEditsService", () => {
     await expect(
       service.waitForReviewOutcomeDisposition("spot-1", "edit-2"),
     ).resolves.toBe(false);
+  });
+
+  it("distinguishes organization review from an immediately approved edit", () => {
+    const pending = {
+      ...buildEdit("pending-org", "user-1", 1),
+      review_status: "pending" as const,
+      review_kind: "stewarded" as const,
+      processing_status: "PENDING_STEWARD_REVIEW",
+    };
+    const approved = {
+      ...pending,
+      approved: true,
+      review_status: "approved" as const,
+      processing_status: "APPROVED_IMMEDIATE",
+    };
+
+    expect(spotEditAwaitsOrganizationReview(pending)).toBe(true);
+    expect(spotEditAwaitsOrganizationReview(approved)).toBe(false);
   });
 
   it("creates new spots only through the idempotent callable", async () => {

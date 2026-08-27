@@ -1,7 +1,8 @@
-PK Spot v1.1.4 — Notifications et météo
+PK Spot v1.1.5 — Fiabilité et corrections
 
 Nouveautés :
 
-• Ajout de notifications : récapitulatifs de communautés, rappels d’événements et mises à jour des modifications de Spot soumises.
-• Ajout de la météo pour les Spots, la zone actuellement affichée sur la carte et les événements.
-• Événements améliorés : RSVP devient « Ajouter à Mes événements » et active les notifications.
+• Collez des liens Google Maps et Apple Plans directement dans la recherche de la carte.
+• Amélioration de la sélection et du recadrage des médias, avec une validation d’envoi plus sûre.
+• La demande de tranche d’âge est maintenant expliquée et ne s’affiche plus au démarrage.
+• Correction de la vérification des comptes, des liens de notifications, des réponses et Événements passés, du classement des communautés et des défis Swiss Jam.

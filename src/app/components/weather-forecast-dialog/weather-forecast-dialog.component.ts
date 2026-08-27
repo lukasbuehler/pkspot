@@ -14,14 +14,15 @@ import {
 } from "@angular/material/dialog";
 import { MatIcon } from "@angular/material/icon";
 import {
-  WEATHER_STATES,
   WEATHER_WARNINGS,
   type WeatherCondition,
   type WeatherForecastIconTone,
   type WeatherWarningDefinition,
   getDailyWeatherForecastIconTone,
   getWeatherForecastIconTone,
-  getWeatherStateIcon,
+  getWeatherForecastState,
+  getWeatherForecastStateIcon,
+  hasMeaningfulPrecipitation,
 } from "../../weather/weather-display";
 import type {
   DailyWeatherPoint,
@@ -109,10 +110,15 @@ export class WeatherForecastDialogComponent {
   protected readonly current =
     this.response.current ?? this.response.forecast?.[0];
   protected readonly currentCondition = this.getCondition(this.current);
-  protected readonly currentState = WEATHER_STATES[this.currentCondition];
-  protected readonly currentIcon = getWeatherStateIcon(
-    this.currentCondition,
-    this.current?.isDay,
+  protected readonly currentContext = {
+    ...this.current,
+    condition: this.currentCondition,
+  };
+  protected readonly currentState = getWeatherForecastState(
+    this.currentContext,
+  );
+  protected readonly currentIcon = getWeatherForecastStateIcon(
+    this.currentContext,
   );
   protected readonly visualStatus = getWeatherVisualStatus(this.response, {
     covered: this.data.covered,
@@ -156,23 +162,18 @@ export class WeatherForecastDialogComponent {
     $localize`:@@weather.alert.source:Source:`;
   protected readonly hours = computed(() =>
     (this.response.forecast ?? []).map(
-      (point): WeatherHourView => ({
-        time: this.formatTime(point.time),
-        icon: getWeatherStateIcon(this.getCondition(point), point.isDay),
-        condition: WEATHER_STATES[this.getCondition(point)].label,
-        temperature: this.displayTemperature(point.temperatureC),
-        rainProbability: point.precipitationProbabilityPercent,
-        precipitationMm: point.precipitationMm,
-        iconTone: getWeatherForecastIconTone({
-          condition: this.getCondition(point),
-          temperatureC: point.temperatureC,
-          uvIndex: point.uvIndex,
+      (point): WeatherHourView => {
+        const context = { ...point, condition: this.getCondition(point) };
+        return {
+          time: this.formatTime(point.time),
+          icon: getWeatherForecastStateIcon(context),
+          condition: getWeatherForecastState(context).label,
+          temperature: this.displayTemperature(point.temperatureC),
+          rainProbability: point.precipitationProbabilityPercent,
           precipitationMm: point.precipitationMm,
-          precipitationProbabilityPercent:
-            point.precipitationProbabilityPercent,
-          isDay: point.isDay,
-        }),
-      }),
+          iconTone: getWeatherForecastIconTone(context),
+        };
+      },
     ),
   );
   protected readonly days = computed(() =>
@@ -196,6 +197,11 @@ export class WeatherForecastDialogComponent {
 
   private toDayView(point: DailyWeatherPoint): WeatherDayView {
     const condition = point.condition ?? "unknown";
+    const context = {
+      ...point,
+      condition,
+      temperatureC: point.maxTemperatureC,
+    };
     const date = new Date(`${point.date}T12:00:00Z`);
     return {
       date: this.dateTime.format(date, {
@@ -207,22 +213,23 @@ export class WeatherForecastDialogComponent {
         weekday: "short",
         timeZone: "UTC",
       }),
-      icon: getWeatherStateIcon(condition),
-      condition: WEATHER_STATES[condition].label,
+      icon: getWeatherForecastStateIcon(context),
+      condition: getWeatherForecastState(context).label,
       maxTemperature: this.displayTemperature(point.maxTemperatureC),
       minTemperature: this.displayTemperature(point.minTemperatureC),
       rainProbability: point.precipitationProbabilityPercent,
       precipitationMm: point.precipitationMm,
       iconTone: getDailyWeatherForecastIconTone({
-        condition,
-        temperatureC: point.maxTemperatureC,
+        ...context,
       }),
     };
   }
 
   private buildNarrative(): string {
     const insights = this.response.insights;
-    const isRaining = this.isRainCondition(this.currentCondition);
+    const isRaining = this.current
+      ? this.isCurrentlyRaining(this.current)
+      : false;
     const nextRain = this.findNextRain();
 
     if (isRaining && insights.rainStopsAt) {
@@ -246,11 +253,23 @@ export class WeatherForecastDialogComponent {
   }
 
   private isRainExpected(point: WeatherPoint): boolean {
+    const state = getWeatherForecastState({
+      ...point,
+      condition: this.getCondition(point),
+    });
     return (
-      this.isRainCondition(this.getCondition(point)) ||
-      (point.precipitationProbabilityPercent ?? 0) >= 40 ||
-      (point.precipitationMm ?? 0) >= 0.2
+      hasMeaningfulPrecipitation(point) ||
+      state.tone === "wet" ||
+      state.tone === "severe"
     );
+  }
+
+  private isCurrentlyRaining(point: WeatherPoint): boolean {
+    const state = getWeatherForecastState({
+      ...point,
+      condition: this.getCondition(point),
+    });
+    return state.tone === "wet" || state.tone === "severe";
   }
 
   private findNextRain(): WeatherPoint | undefined {
@@ -261,18 +280,6 @@ export class WeatherForecastDialogComponent {
       (point) =>
         new Date(point.time).getTime() > currentTime &&
         this.isRainExpected(point),
-    );
-  }
-
-  private isRainCondition(condition: WeatherCondition): boolean {
-    return (
-      condition === "drizzle" ||
-      condition === "rain" ||
-      condition === "heavy-rain" ||
-      condition === "freezing-rain" ||
-      condition === "sleet" ||
-      condition === "thunderstorm" ||
-      condition === "hail"
     );
   }
 

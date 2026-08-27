@@ -14,7 +14,7 @@
         <app-event-card
           class="event-map-marker-preview-card"
           [event]="event"
-          [compact]="true"
+          [seriesById]="seriesById()"
           [showRsvp]="false"
         ></app-event-card>
       } @else {

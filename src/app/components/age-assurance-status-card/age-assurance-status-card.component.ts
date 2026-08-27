@@ -9,6 +9,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatDialog } from "@angular/material/dialog";
 import { MatIcon } from "@angular/material/icon";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import { firstValueFrom } from "rxjs";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { PlatformService } from "../../services/platform.service";
 import { AgeAssuranceInfoDialogComponent } from "../age-assurance-info-dialog/age-assurance-info-dialog.component";
@@ -28,6 +29,9 @@ export class AgeAssuranceStatusCardComponent {
 
   readonly isAndroidApp =
     this._platform.isNative() && this._platform.getPlatform() === "android";
+  readonly isIosApp =
+    this._platform.isNative() && this._platform.getPlatform() === "ios";
+  readonly isNativeAgeAssuranceApp = this.isAndroidApp || this.isIosApp;
   readonly isChecking = computed(
     () => this.ageAssurance.checkState().status === "checking",
   );
@@ -54,19 +58,29 @@ export class AgeAssuranceStatusCardComponent {
           ? $localize`Checking the age signal with Google Play…`
           : $localize`Checking the mobile platform age signal…`;
       case "verified":
-        return $localize`Google Play supplied an independently checked 18+ result. Adult eligibility is active.`;
+        return isGooglePlay
+          ? $localize`Google Play supplied an independently checked 18+ result. Adult eligibility is active.`
+          : $localize`The mobile platform supplied an independently checked 18+ result. Adult eligibility is active.`;
       case "self_declared":
-        return $localize`Google Play shared an 18+ range based on an age entered on the Google Account. Because it was not independently checked, it cannot unlock a public profile.`;
+        return isGooglePlay
+          ? $localize`Google Play shared an 18+ range based on an age entered on the Google Account. Because it was not independently checked, it cannot unlock a public profile.`
+          : $localize`The mobile platform shared an 18+ range based on an age entered for the platform account. Because it was not independently checked, it cannot unlock a public profile.`;
       case "guardian_managed":
-        return $localize`Google Play reports a guardian-managed age range. A parent can manage age sharing in Family Link.`;
+        return isGooglePlay
+          ? $localize`Google Play reports a guardian-managed age range. A parent can manage age sharing in Family Link.`
+          : $localize`The mobile platform reports a guardian-managed age range.`;
       case "not_verified":
         return isGooglePlay
           ? $localize`Google Play shared an age result, but it does not establish independently checked 18+ eligibility.`
           : $localize`The mobile platform shared an age result, but it does not establish independently checked 18+ eligibility.`;
       case "not_shared":
-        return $localize`Google Play is not sharing an age range with PK Spot. Enable “Share age range” for PK Spot in Google Play, then check again.`;
+        return isGooglePlay
+          ? $localize`Google Play is not sharing an age range with PK Spot. Enable “Share age range” for PK Spot in Google Play, then check again.`
+          : $localize`The mobile platform is not sharing an age range with PK Spot. You can choose to check again.`;
       case "verification_required":
-        return $localize`Google Play requires you to confirm your age or set up supervision. Open Google Play, complete its instructions, then check again.`;
+        return isGooglePlay
+          ? $localize`Google Play requires you to confirm your age or set up supervision. Open Google Play, complete its instructions, then check again.`
+          : $localize`The mobile platform requires you to confirm your age or set up supervision. Complete its instructions, then check again.`;
       case "unavailable":
         return isGooglePlay
           ? $localize`The age signal is currently unavailable. Make sure PK Spot was installed from Google Play and that the Play Store is up to date, then try again.`
@@ -101,6 +115,24 @@ export class AgeAssuranceStatusCardComponent {
 
   async recheck(): Promise<void> {
     this._storeOpenFailed.set(false);
+
+    if (this.isIosApp) {
+      const confirmed = await firstValueFrom(
+        this._dialog
+          .open(AgeAssuranceInfoDialogComponent, {
+            width: "min(680px, calc(100vw - 32px))",
+            maxWidth: "100vw",
+            maxHeight: "calc(100vh - 32px)",
+            autoFocus: false,
+            data: { confirmAgeRangeRequest: true },
+          })
+          .afterClosed(),
+      );
+      if (confirmed !== true) {
+        return;
+      }
+    }
+
     await this.ageAssurance.recheckNativeAgePolicyForCurrentUser();
   }
 

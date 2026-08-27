@@ -82,6 +82,25 @@ async function waitForRsvpCounts(
   throw new Error(`Timed out waiting for RSVP counts on events/${eventId}`);
 }
 
+async function waitForSpotEventRsvpCounts(
+  spotId: string,
+  eventId: string,
+  expectedGoing: number,
+): Promise<void> {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    const snapshot = await adminDb().doc(`spots/${spotId}`).get();
+    const previews = snapshot.data()?.["upcoming_events"];
+    const preview = Array.isArray(previews)
+      ? previews.find((candidate) => candidate?.id === eventId)
+      : undefined;
+    if (preview?.rsvp_counts?.going === expectedGoing) return;
+    await sleep(250);
+  }
+  throw new Error(
+    `Timed out waiting for spots/${spotId} RSVP preview count ${expectedGoing}`,
+  );
+}
+
 async function waitForNotificationIntent(
   intentId: string,
   status: "pending" | "cancelled",
@@ -411,6 +430,104 @@ runWithEmulator("EventsService emulator integration", () => {
       total: 1,
     });
   }, rsvpIntegrationTimeoutMs);
+
+  it("propagates RSVP aggregates into Spot upcoming-event previews", async () => {
+    const uid = authService.user.uid;
+    expect(uid).toBeTruthy();
+    const suffix = `${Date.now()}-${uid}`;
+    const eventId = `spot-rsvp-event-${suffix}`;
+    const spotId = `spot-rsvp-preview-${suffix}`;
+    await adminDb().doc(`spots/${spotId}`).set({
+      name: { en: "RSVP preview Spot" },
+      location_raw: { lat: 47.3769, lng: 8.5417 },
+    });
+    await adminDb().doc(`events/${eventId}`).set({
+      name: "Spot RSVP preview event",
+      spot_ids: [spotId],
+      location_raw: { lat: 47.3769, lng: 8.5417 },
+      start: admin.firestore.Timestamp.fromDate(
+        new Date("2027-06-01T10:00:00.000Z"),
+      ),
+      end: admin.firestore.Timestamp.fromDate(
+        new Date("2027-06-01T12:00:00.000Z"),
+      ),
+      visibility: "public",
+      publication_state: "published",
+      published: true,
+    });
+
+    await service.setMyRsvp(eventId, "going");
+    await waitForRsvpCounts(eventId, {
+      going: 1,
+      interested: 0,
+      notgoing: 0,
+      total: 1,
+    });
+    await waitForSpotEventRsvpCounts(spotId, eventId, 1);
+
+    const previews = (await adminDb().doc(`spots/${spotId}`).get()).data()?.[
+      "upcoming_events"
+    ];
+    const preview = Array.isArray(previews)
+      ? previews.find(
+          (candidate: { id?: string }) => candidate.id === eventId,
+        )
+      : undefined;
+    expect(preview?.rsvp_counts).toMatchObject({
+      going: 1,
+      interested: 0,
+      notgoing: 0,
+      total: 1,
+    });
+  }, rsvpIntegrationTimeoutMs);
+
+  it("updates an RSVP written by a notification action from interested to going", async () => {
+    const uid = authService.user.uid;
+    expect(uid).toBeTruthy();
+    const eventId = `notification-action-rsvp-${uid}`;
+    const rsvpPath = `events/${eventId}/rsvps/${uid}`;
+    const now = admin.firestore.Timestamp.now();
+    await adminDb().doc(`events/${eventId}`).set({
+      name: "Notification action RSVP event",
+      published: true,
+      start: admin.firestore.Timestamp.fromDate(
+        new Date("2026-08-29T10:00:00.000Z"),
+      ),
+      end: admin.firestore.Timestamp.fromDate(
+        new Date("2026-08-30T18:00:00.000Z"),
+      ),
+    });
+    await adminDb().doc(rsvpPath).set({
+      user_id: uid,
+      event_id: eventId,
+      rsvp: "interested",
+      time_created: now,
+      time_updated: now,
+      time_updated_raw_ms: 1,
+    });
+
+    await service.setMyRsvp(eventId, "going");
+
+    const updated = await TestBed.runInInjectionContext(() =>
+      getDoc(doc(firestore, rsvpPath)),
+    );
+    expect(updated.data()).toEqual(
+      expect.objectContaining({
+        user_id: uid,
+        event_id: eventId,
+        rsvp: "going",
+        time_updated_raw_ms: expect.any(Number),
+      }),
+    );
+    const updatedData = updated.data() as {
+      time_updated: { toMillis: () => number };
+      time_updated_raw_ms: number;
+    };
+    expect(updatedData.time_updated_raw_ms).toBe(
+      updatedData.time_updated.toMillis(),
+    );
+    expect(updatedData.time_updated_raw_ms).not.toBe(1);
+  });
 
   it("creates and cancels a two-hour reminder intent from my RSVP", async () => {
     const uid = authService.user.uid;

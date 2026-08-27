@@ -250,3 +250,4 @@ mark_email_read
 emergency
 rate_review
 restore
+error

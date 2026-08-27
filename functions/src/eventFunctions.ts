@@ -57,6 +57,7 @@ const EVENT_SPOT_PREVIEW_SOURCE_FIELDS = [
   "external_source",
   "event_categories",
   "series_ids",
+  "rsvp_counts",
 ] as const;
 const TYPESENSE_HELPER_FIELDS = [
   "start_seconds",
@@ -1109,18 +1110,27 @@ export const updateAllEventsWithTypesenseFields = onDocumentCreated(
 /**
  * Backfill helper. Create a doc at
  * `maintenance/run-backfill-spot-upcoming-events` (any contents) to refresh the
- * `upcoming_events` previews on every runtime spot. The doc is deleted on
- * completion so a future create re-triggers the job.
+ * `upcoming_events` previews on spots referenced by runtime events. Limiting
+ * the scan to linked spots avoids reading every Spot for a small event set. The
+ * doc is deleted on completion so a future create re-triggers the job.
  */
 export const backfillSpotUpcomingEvents = onDocumentCreated(
   { document: RUN_BACKFILL_SPOT_UPCOMING_EVENTS_DOC, timeoutSeconds: 540 },
   async (event) => {
     const db = admin.firestore();
-    const spots = await db.collection(SPOTS_COLLECTION).get();
+    const events = await db.collection(EVENT_DISCOVERY_COLLECTION).get();
+    const linkedSpotIds = new Set<string>();
 
-    for (const spot of spots.docs) {
-      if (!isSpotRuntimeDoc(spot.id)) continue;
-      await _syncSpotUpcomingEventPreviews(db, spot.id);
+    for (const eventDoc of events.docs) {
+      if (!isEventRuntimeDoc(eventDoc.id)) continue;
+      for (const spotId of _spotIdsFromEvent(eventDoc.data() as EventSchema)) {
+        linkedSpotIds.add(spotId);
+      }
+    }
+
+    for (const spotId of linkedSpotIds) {
+      if (!isSpotRuntimeDoc(spotId)) continue;
+      await _syncSpotUpcomingEventPreviews(db, spotId);
     }
 
     return event.data?.ref.delete();

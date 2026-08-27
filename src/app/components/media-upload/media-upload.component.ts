@@ -90,6 +90,7 @@ export class MediaUpload implements OnInit, OnDestroy {
   readonly imageCropPolicy = input<ImageCropPolicy>(
     DISABLED_IMAGE_CROP_POLICY,
   );
+  readonly showUploadAction = input(true);
 
   readonly changed = output<void>();
   readonly newMedia = output<MediaUploadEvent>();

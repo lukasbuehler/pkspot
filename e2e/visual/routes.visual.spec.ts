@@ -895,6 +895,9 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
   );
 
   await page.goto(`/de${route.path}`, { waitUntil: "domcontentloaded" });
+  await page.addStyleTag({
+    content: ".grecaptcha-badge { visibility: hidden !important; }",
+  });
   await page.waitForSelector("app-root", { state: "attached", timeout: 20_000 });
 
   if (route.expectedPath) {

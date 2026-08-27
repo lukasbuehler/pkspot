@@ -26,6 +26,7 @@ import { CommunityMergeSchema } from "../../src/db/schemas/CommunityMergeSchema"
 import { EventSchema } from "../../src/db/schemas/EventSchema";
 import { EVENT_DISCOVERY_COLLECTION } from "../../src/db/schemas/EventDiscoverySchema";
 import { SpotPreviewData } from "../../src/db/schemas/SpotPreviewData";
+import { getSpotPriority } from "../../src/db/schemas/SpotPriority";
 import {
   COMMUNITY_DEFAULT_IMAGE_PATH,
   COMMUNITY_PAGE_MIN_SPOTS,
@@ -51,9 +52,15 @@ import {
   getSpotPreviewImage,
   SpotSchema,
 } from "./spotHelpers";
+import {
+  buildPublicImportProvenance,
+  publicImportProvenanceEqual,
+  spotLinksToImport,
+} from "./importProvenanceProjection";
 
 const COMMUNITY_PAGES_COLLECTION = "community_pages";
 const COMMUNITY_SLUGS_COLLECTION = "community_slugs";
+const IMPORT_PROVENANCE_TRANSACTION_SIZE = 200;
 const COMMUNITY_MERGES_COLLECTION = "community_merges";
 const MAINTENANCE_COLLECTION = "maintenance";
 const SPOTS_COLLECTION = "spots";
@@ -441,18 +448,27 @@ const compareSpotsForCommunityPicks = (
   right: SpotSchema,
   center: { lat: number; lng: number } | null
 ): number => {
-  if ((right.is_iconic ?? false) !== (left.is_iconic ?? false)) {
-    return right.is_iconic ? 1 : -1;
+  const priorityDifference =
+    getSpotPriority({
+      rating: right.rating,
+      access: right.access,
+      isIconic: right.is_iconic,
+      isReported: right.is_reported,
+      hasMedia: hasSpotImage(right),
+    }) -
+    getSpotPriority({
+      rating: left.rating,
+      access: left.access,
+      isIconic: left.is_iconic,
+      isReported: left.is_reported,
+      hasMedia: hasSpotImage(left),
+    });
+  if (priorityDifference !== 0) {
+    return priorityDifference;
   }
 
   const leftRating = getRatingValue(left);
   const rightRating = getRatingValue(right);
-  if (leftRating > 0 || rightRating > 0) {
-    if (rightRating !== leftRating) {
-      return rightRating - leftRating;
-    }
-  }
-
   const leftReviews = getReviewCount(left);
   const rightReviews = getReviewCount(right);
   if (rightReviews !== leftReviews) {
@@ -474,20 +490,6 @@ const compareSpotsForCommunityPicks = (
 
 const hasSpotImage = (spot: SpotSchema): boolean =>
   getSpotPreviewImage(spot).trim().length > 0;
-
-const compareSpotsForCommunityPicksWithMediaPriority = (
-  left: SpotSchema,
-  right: SpotSchema,
-  center: { lat: number; lng: number } | null
-): number => {
-  const leftHasImage = hasSpotImage(left);
-  const rightHasImage = hasSpotImage(right);
-  if (rightHasImage !== leftHasImage) {
-    return rightHasImage ? 1 : -1;
-  }
-
-  return compareSpotsForCommunityPicks(left, right, center);
-};
 
 const hasPurposeBuiltParkourType = (spot: SpotSchema): boolean =>
   PURPOSE_BUILT_SPOT_TYPES.has(
@@ -512,11 +514,7 @@ const buildCommunityPickSections = (
   const pickedSpotIds = new Set<string>();
   const sortCandidates = (candidates: Array<{ id: string; data: SpotSchema }>) =>
     [...candidates].sort((left, right) =>
-      compareSpotsForCommunityPicksWithMediaPriority(
-        left.data,
-        right.data,
-        center
-      )
+      compareSpotsForCommunityPicks(left.data, right.data, center)
     );
   const takeSection = (
     category: CommunityPickCategory,
@@ -609,6 +607,7 @@ const buildSpotPreview = (
     countryName: getSpotCountryDisplayName(spot),
     imageSrc: getSpotPreviewImage(spot),
     isIconic: spot.is_iconic ?? false,
+    isReported: spot.is_reported,
     hideStreetview: spot.hide_streetview,
     rating: spot.rating,
     numReviews: spot.num_reviews,
@@ -1422,6 +1421,14 @@ const refreshCountryChildCommunities = async (
       db,
       countryCommunityKey
     );
+    if (
+      areValuesEqual(
+        pageSnapshot.data()?.childCommunities ?? [],
+        childCommunities,
+      )
+    ) {
+      continue;
+    }
     await pageRef.set({ childCommunities }, { merge: true });
   }
 };
@@ -1591,6 +1598,71 @@ export const rebuildCommunityPagesForSpotWrite = async (
   await refreshCountryChildCommunities(db, impactedCountryKeys);
 };
 
+export const syncPublicImportProvenanceForImport = async (
+  db: admin.firestore.Firestore,
+  importId: string,
+  beforeData: unknown,
+  afterData: unknown,
+): Promise<number> => {
+  const previous = buildPublicImportProvenance(beforeData);
+  const next = buildPublicImportProvenance(afterData);
+  if (publicImportProvenanceEqual(previous, next)) return 0;
+
+  const linkedSpots = new Map<string, FirebaseFirestore.QueryDocumentSnapshot>();
+  for (const field of ["import_id", "source"] as const) {
+    const snapshot = await db
+      .collection(SPOTS_COLLECTION)
+      .where(field, "==", importId)
+      .select()
+      .get();
+    for (const spot of snapshot.docs) linkedSpots.set(spot.id, spot);
+  }
+
+  let updated = 0;
+  const linkedSpotRefs = [...linkedSpots.values()].map((spot) => spot.ref);
+  for (
+    let offset = 0;
+    offset < linkedSpotRefs.length;
+    offset += IMPORT_PROVENANCE_TRANSACTION_SIZE
+  ) {
+    const spotRefs = linkedSpotRefs.slice(
+      offset,
+      offset + IMPORT_PROVENANCE_TRANSACTION_SIZE,
+    );
+    updated += await db.runTransaction(async (transaction) => {
+      const importRef = db.collection("imports").doc(importId);
+      const importSnapshot = await transaction.get(importRef);
+      const spotSnapshots = await Promise.all(
+        spotRefs.map((spotRef) => transaction.get(spotRef)),
+      );
+      const currentProjection = buildPublicImportProvenance(
+        importSnapshot.data(),
+      );
+      let transactionUpdates = 0;
+
+      for (const spot of spotSnapshots) {
+        const spotData = spot.data();
+        if (
+          !spot.exists ||
+          !spotLinksToImport(spotData, importId) ||
+          publicImportProvenanceEqual(
+            spotData?.["public_import_provenance"],
+            currentProjection,
+          )
+        ) {
+          continue;
+        }
+        transaction.update(spot.ref, {
+          public_import_provenance: currentProjection,
+        });
+        transactionUpdates += 1;
+      }
+      return transactionUpdates;
+    });
+  }
+  return updated;
+};
+
 export const rebuildCommunityPagesOnImportWrite = onDocumentWritten(
   { document: "imports/{importId}" },
   async (event) => {
@@ -1606,6 +1678,14 @@ export const rebuildCommunityPagesOnImportWrite = onDocumentWritten(
       ? ((event.data.after.data() as ImportRebuildDoc) ?? null)
       : null;
 
+    const db = admin.firestore();
+    await syncPublicImportProvenanceForImport(
+      db,
+      importId,
+      beforeData,
+      afterData,
+    );
+
     const completedAfterPartial =
       beforeData?.status === "PARTIAL" && afterData?.status === "COMPLETED";
     if (
@@ -1615,7 +1695,6 @@ export const rebuildCommunityPagesOnImportWrite = onDocumentWritten(
       return null;
     }
 
-    const db = admin.firestore();
     const generatedCount = await rebuildCommunityPagesForImportedSpots(
       db,
       importId

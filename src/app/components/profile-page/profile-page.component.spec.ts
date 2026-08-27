@@ -146,4 +146,21 @@ describe("ProfilePageComponent", () => {
       /\.profile-overview__metadata-item\s*{[^}]*max-width:\s*100%[^}]*white-space:\s*normal/s,
     );
   });
+
+  it("keeps the Contributions heading in a custom split header", () => {
+    const template = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/profile-page/profile-page.component.html",
+      ),
+      "utf8",
+    );
+
+    expect(template).toMatch(
+      /<div\s+class="profile-section__header profile-section__header--split"/u,
+    );
+    expect(template).not.toMatch(
+      /<mat-card-header\s+class="profile-section__header profile-section__header--split"/u,
+    );
+  });
 });

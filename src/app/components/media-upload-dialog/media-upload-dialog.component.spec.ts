@@ -1,6 +1,7 @@
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { TestBed } from "@angular/core/testing";
+import { By } from "@angular/platform-browser";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MediaType } from "../../../db/models/Interfaces";
 import {
@@ -8,6 +9,8 @@ import {
   MediaUploadDialogData,
 } from "./media-upload-dialog.component";
 import { MediaUploadStatusService } from "../../services/firebase/firestore/media-upload-status.service";
+import { StorageService } from "../../services/firebase/storage.service";
+import { MediaUpload } from "../media-upload/media-upload.component";
 
 describe("MediaUploadDialogComponent", () => {
   let snackBar: {
@@ -50,6 +53,7 @@ describe("MediaUploadDialogComponent", () => {
         { provide: MatDialogRef, useValue: dialogRef },
         { provide: MAT_DIALOG_DATA, useValue: data },
         { provide: MediaUploadStatusService, useValue: mediaUploadStatusService },
+        { provide: StorageService, useValue: {} },
       ],
     });
   });
@@ -100,5 +104,50 @@ describe("MediaUploadDialogComponent", () => {
         verticalPosition: "bottom",
       }
     );
+    expect(dialogRef.close).toHaveBeenCalledOnce();
+  });
+
+  it("uploads staged media instead of letting Done discard it", async () => {
+    const fixture = TestBed.createComponent(MediaUploadDialogComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    const mediaUpload = fixture.debugElement.query(
+      By.directive(MediaUpload),
+    ).componentInstance as MediaUpload;
+    mediaUpload.mediaList.set([
+      {
+        id: "staged-1",
+        originalFile: new File(["image"], "spot.jpg", { type: "image/jpeg" }),
+        file: new File(["image"], "spot.jpg", { type: "image/jpeg" }),
+        originalPreviewSrc: "blob:preview",
+        previewSrc: "blob:preview",
+        icon: "image",
+        uploadProgress: 0,
+        type: MediaType.Image,
+        state: "staged",
+        isCropped: true,
+      },
+    ]);
+    const uploadStaged = vi
+      .spyOn(mediaUpload, "uploadStaged")
+      .mockResolvedValue(undefined);
+    fixture.detectChanges();
+    component.onMediaChanged();
+
+    component.confirm();
+
+    expect(uploadStaged).toHaveBeenCalledOnce();
+    expect(dialogRef.close).not.toHaveBeenCalled();
+    expect(dialogRef.disableClose).toBe(true);
+  });
+
+  it("closes only when no media remains to upload", () => {
+    const fixture = TestBed.createComponent(MediaUploadDialogComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.confirm();
+
+    expect(dialogRef.close).toHaveBeenCalledOnce();
   });
 });

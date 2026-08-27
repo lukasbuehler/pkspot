@@ -9,23 +9,23 @@
       />
 
       <!-- Loading State -->
-      @if (state.status === 'loading') {
+      @if (state().status === 'loading') {
       <div class="d-flex flex-column align-items-center gap-4">
         <mat-spinner diameter="48"></mat-spinner>
-        <h1 class="mat-headline-medium">{{ state.title }}</h1>
-        <p class="mat-body-large">{{ state.message }}</p>
+        <h1 class="mat-headline-medium">{{ state().title }}</h1>
+        <p class="mat-body-large">{{ state().message }}</p>
       </div>
       }
 
       <!-- Success State -->
-      @if (state.status === 'success') {
+      @if (state().status === 'success') {
       <div class="d-flex flex-column align-items-center gap-4">
         <mat-icon class="success-icon">check_circle</mat-icon>
-        <h1 class="mat-headline-medium">{{ state.title }}</h1>
-        <p class="mat-body-large">{{ state.message }}</p>
+        <h1 class="mat-headline-medium">{{ state().title }}</h1>
+        <p class="mat-body-large">{{ state().message }}</p>
 
         <div class="d-flex gap-3 mt-3">
-          @if (mode === 'verifyEmail') {
+          @if (mode() === 'verifyEmail') {
           <button mat-flat-button (click)="navigateToProfile()">
             <mat-icon>person</mat-icon>
             <span
@@ -34,7 +34,7 @@
               >Go to Profile</span
             >
           </button>
-          } @if (mode === 'resetPassword') {
+          } @if (mode() === 'resetPassword') {
           <button mat-flat-button (click)="navigateToSignIn()">
             <mat-icon>login</mat-icon>
             <span
@@ -43,7 +43,7 @@
               >Continue to account</span
             >
           </button>
-          } @if (mode === 'recoverEmail') {
+          } @if (mode() === 'recoverEmail') {
           <button mat-flat-button (click)="navigateToProfile()">
             <mat-icon>person</mat-icon>
             <span
@@ -58,14 +58,14 @@
       }
 
       <!-- Error State -->
-      @if (state.status === 'error') {
+      @if (state().status === 'error') {
       <div class="d-flex flex-column align-items-center gap-4">
         <mat-icon class="error-icon">error</mat-icon>
-        <h1 class="mat-headline-medium">{{ state.title }}</h1>
-        <p class="mat-body-large">{{ state.message }}</p>
+        <h1 class="mat-headline-medium">{{ state().title }}</h1>
+        <p class="mat-body-large">{{ state().message }}</p>
 
         <div class="d-flex gap-3 mt-3">
-          @if (mode === 'resetPassword') {
+          @if (mode() === 'resetPassword') {
           <button mat-flat-button (click)="navigateToForgotPassword()">
             <mat-icon>refresh</mat-icon>
             <span i18n="try again|Button to try again@@auth_action.try_again"
@@ -85,11 +85,11 @@
       }
 
       <!-- Password Reset Input State -->
-      @if (state.status === 'input_required' && mode === 'resetPassword') {
+      @if (state().status === 'input_required' && mode() === 'resetPassword') {
       <div class="d-flex flex-column align-items-center gap-4">
         <mat-icon class="reset-icon">lock_reset</mat-icon>
-        <h1 class="mat-headline-medium">{{ state.title }}</h1>
-        <p class="mat-body-large">{{ state.message }}</p>
+        <h1 class="mat-headline-medium">{{ state().title }}</h1>
+        <p class="mat-body-large">{{ state().message }}</p>
 
         <form
           [formGroup]="passwordResetForm"
@@ -154,10 +154,10 @@
           <button
             mat-flat-button
             type="submit"
-            [disabled]="passwordResetForm.invalid || isResettingPassword"
+            [disabled]="passwordResetForm.invalid || isResettingPassword()"
             class="full-width"
           >
-            @if (isResettingPassword) {
+            @if (isResettingPassword()) {
             <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
             } @else {
             <ng-container

@@ -8,6 +8,8 @@ import {
   OnDestroy,
   OnInit,
   output,
+  signal,
+  viewChild,
 } from "@angular/core";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import {
@@ -19,7 +21,6 @@ import { MatFormField, MatSuffix } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 import { BehaviorSubject, from, merge, of, Subscription } from "rxjs";
-import { SpotSchema } from "../../../db/schemas/SpotSchema";
 import { AsyncPipe } from "@angular/common";
 import { MatDividerModule } from "@angular/material/divider";
 import { MatOptionModule } from "@angular/material/core";
@@ -57,13 +58,17 @@ import { countries } from "../../../scripts/Countries";
 import { AutocompleteOverlayRepositionDirective } from "../../directives/autocomplete-overlay-reposition.directive";
 import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
 import { DateTimeFormatService } from "../../services/date-time-format.service";
+import { MapLinkResolverService } from "../../services/map-link-resolver.service";
+import type { MapLinkResolution } from "../../services/map-link-resolver.service";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
-interface SearchSelection {
-  type: "place" | "spot" | "community" | "event";
+export interface SearchSelection {
+  type: "place" | "spot" | "community" | "event" | "map-link";
   id: string;
   community?: CommunitySearchPreview;
   spot?: SearchSpotPreview;
   event?: EventSearchPreview;
+  mapLink?: MapLinkResolution;
 }
 
 interface SearchSpotHitDocument {
@@ -82,7 +87,7 @@ interface SearchSpotHitDocument {
   } | null;
 }
 
-interface SearchSpotPreview {
+export interface SearchSpotPreview {
   name?: string;
   slug?: string;
   imageSrc?: string;
@@ -155,6 +160,10 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
   contextClear = output<void>();
 
   private _searchService = inject(SearchService);
+  private readonly _mapLinkResolver = inject(MapLinkResolverService);
+  private readonly _snackbar = inject(MatSnackBar);
+  private readonly _autocompleteTrigger = viewChild(MatAutocompleteTrigger);
+  private _mapLinkRequestId = 0;
   private _spotSearchSubscription?: Subscription;
   private readonly _minSearchQueryLength = 2;
   private _lastPreviewCommunityKey: string | null = null;
@@ -196,6 +205,8 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
   onlySpots = input(false);
   readonly defaultPlaceholder = $localize`:@@search_field_default_placeholder:Find spots and more`;
   readonly clearContextLabel = $localize`:@@search_field_clear_context:Clear search filters`;
+  readonly openingMapLinkLabel = $localize`:@@searchField.openingMapsLink:Opening Maps link...`;
+  protected readonly mapLinkLoading = signal(false);
   readonly placeholderText = computed(
     () => this.contextLabel() || this.defaultPlaceholder
   );
@@ -412,18 +423,70 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this._mapLinkRequestId += 1;
     this.emitCommunityPreviewChange(null);
     this.spotAndPlaceSearchResults$.complete();
     this._spotSearchSubscription?.unsubscribe();
   }
 
   optionSelected(event: MatAutocompleteSelectedEvent) {
+    this._mapLinkRequestId += 1;
+    this.mapLinkLoading.set(false);
     console.log("optionSelected:", event);
 
     this.emitCommunityPreviewChange(null);
     this.spotSearchControl.setValue("");
 
     this.spotSelected.emit(event.option.value as SearchSelection);
+  }
+
+  handleSearchInput(): void {
+    this._mapLinkRequestId += 1;
+    this.mapLinkLoading.set(false);
+  }
+
+  handlePaste(event: ClipboardEvent): void {
+    if (this.onlySpots()) return;
+    const requestId = ++this._mapLinkRequestId;
+    const value = event.clipboardData?.getData("text/plain")?.trim() ?? "";
+    if (!this._mapLinkResolver.isSupportedUrl(value)) {
+      this.mapLinkLoading.set(false);
+      return;
+    }
+
+    event.preventDefault();
+    this.mapLinkLoading.set(true);
+    this.spotSearchControl.setValue(value, { emitEvent: false });
+    queueMicrotask(() => {
+      const trigger = this._autocompleteTrigger();
+      if (trigger?.autocomplete) trigger.openPanel();
+    });
+    void this._mapLinkResolver.resolve(value).then(
+      (mapLink) => {
+        if (requestId !== this._mapLinkRequestId) return;
+        this.finishMapLinkResolution();
+        this.spotSelected.emit({
+          type: "map-link",
+          id: mapLink.provider,
+          mapLink,
+        });
+      },
+      () => {
+        if (requestId !== this._mapLinkRequestId) return;
+        this.finishMapLinkResolution();
+        this._snackbar.open(
+          $localize`Couldn't open that Maps link. Try pasting a full Google Maps or Apple Maps link.`,
+          $localize`Dismiss`,
+          { duration: 6_000 },
+        );
+      },
+    );
+  }
+
+  private finishMapLinkResolution(): void {
+    this.mapLinkLoading.set(false);
+    this.spotSearchControl.setValue("", { emitEvent: false });
+    this._autocompleteTrigger()?.closePanel();
   }
 
   hasVisibleResults(results: SearchFieldResults): boolean {

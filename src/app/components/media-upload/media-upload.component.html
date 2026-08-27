@@ -126,21 +126,23 @@
       <mat-icon>attach_file</mat-icon>
       <span i18n>Select media</span>
     </button>
-    <button
-      mat-flat-button
-      type="button"
-      (click)="uploadStaged()"
-      [disabled]="
-        uploading() || !hasPendingMedia() || hasIncompleteRequiredCrop()
-      "
-    >
-      <mat-icon>upload</mat-icon>
-      @if (uploading()) {
-        <span i18n>Uploading…</span>
-      } @else {
-        <span i18n>Upload</span>
-      }
-    </button>
+    @if (showUploadAction()) {
+      <button
+        mat-flat-button
+        type="button"
+        (click)="uploadStaged()"
+        [disabled]="
+          uploading() || !hasPendingMedia() || hasIncompleteRequiredCrop()
+        "
+      >
+        <mat-icon>upload</mat-icon>
+        @if (uploading()) {
+          <span i18n>Uploading…</span>
+        } @else {
+          <span i18n>Upload</span>
+        }
+      </button>
+    }
   </div>
 
   @if (hasIncompleteRequiredCrop()) {
