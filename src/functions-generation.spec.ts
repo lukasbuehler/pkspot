@@ -134,6 +134,20 @@ describe("Cloud Functions generation policy", () => {
     );
   });
 
+  it("gives full community rebuilds a bounded maintenance window and terminal states", () => {
+    const communitySource = readFileSync(
+      resolve(functionsSourceRoot, "communityFunctions.ts"),
+      "utf8"
+    );
+
+    expect(communitySource).toMatch(
+      /export const rebuildAllCommunityPages = onDocumentCreated\(\s*\{ document: MANUAL_REBUILD_DOC, timeoutSeconds: 540 \}/u
+    );
+    expect(communitySource).toContain('status: "RUNNING"');
+    expect(communitySource).toContain('status: "DONE"');
+    expect(communitySource).toContain('status: "FAILED"');
+  });
+
   it("binds age policy to Play Integrity in App Check protected callables", () => {
     const indexSource = readFileSync(
       resolve(functionsSourceRoot, "index.ts"),

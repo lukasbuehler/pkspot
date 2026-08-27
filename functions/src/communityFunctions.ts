@@ -2381,20 +2381,40 @@ export const patchCommunityPageOnWrite = onDocumentWritten(
 );
 
 export const rebuildAllCommunityPages = onDocumentCreated(
-  { document: MANUAL_REBUILD_DOC },
+  { document: MANUAL_REBUILD_DOC, timeoutSeconds: 540 },
   async (event) => {
     const db = admin.firestore();
-    const result = await rebuildAllCommunityPagesForDb(db);
+    const request = event.data;
+    if (!request) return;
 
-    await event.data?.ref.set(
-      {
-        status: "DONE",
-        generated_count: result.generatedCount,
-        completed_at: FieldValue.serverTimestamp(),
-        warnings: result.warnings.length > 0 ? result.warnings : null,
-      },
+    await request.ref.set(
+      { status: "RUNNING", started_at: FieldValue.serverTimestamp() },
       { merge: true }
     );
+
+    try {
+      const result = await rebuildAllCommunityPagesForDb(db);
+
+      await request.ref.set(
+        {
+          status: "DONE",
+          generated_count: result.generatedCount,
+          completed_at: FieldValue.serverTimestamp(),
+          warnings: result.warnings.length > 0 ? result.warnings : null,
+        },
+        { merge: true }
+      );
+    } catch (error) {
+      await request.ref.set(
+        {
+          status: "FAILED",
+          failed_at: FieldValue.serverTimestamp(),
+          error_type: error instanceof Error ? error.name : "UnknownError",
+        },
+        { merge: true }
+      );
+      throw error;
+    }
   }
 );
 

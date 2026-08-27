@@ -2,7 +2,7 @@ PK Spot v1.1.5 — Affidabilità e correzioni
 
 Novità:
 
-• Incolla i link di Google Maps e Mappe di Apple direttamente nella ricerca della mappa.
+• Incolla i link alle mappe direttamente nella ricerca della mappa.
 • Migliorate la selezione e il ritaglio dei media, con una conferma di caricamento più sicura.
 • La richiesta della fascia d’età ora viene spiegata e non appare più all’avvio.
 • Corretti verifica dell’account, link delle notifiche, risposte e Eventi passati, classifiche delle community e sfide Swiss Jam.

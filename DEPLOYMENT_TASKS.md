@@ -88,32 +88,13 @@ The 1.1.5 client warns once per app load when attestation fails, but it does not
 enable enforcement. Enforcement must be staged per Firebase product so older
 mobile builds and App Hosting SSR are not accidentally denied.
 
-- [ ] Before enabling the SSR app ID, verify the App Hosting runtime service
-      account (`firebase-app-hosting-compute@parkour-base-project.iam.gserviceaccount.com`)
-      can sign its custom App Check assertion. Enable the IAM Service Account
-      Credentials API if needed and grant `iam.serviceAccounts.signBlob` only
-      on the signing service account (normally by granting **Service Account
-      Token Creator** to the runtime account on itself), not project-wide.
-      Verify the effective principal and narrow binding in IAM rather than
-      adding a downloaded service-account key.
-- [ ] Deploy the configured SSR provider while Firestore enforcement remains
-      off. Render several localized Spot and event URLs, then confirm App Check
-      verification metrics contain valid traffic for the dedicated SSR app ID
-      (`1:294969617102:web:08b892460adf0b16313e9f`). In App Hosting logs, verify
-      `[SSR AppCheck] Token minted.` appears with a one-hour TTL and no
-      `[SSR AppCheck] Token mint failed.` entries. Logs include sanitized error
-      type/code/message data but never include the minted token. The Cloudflare
-      Workers + static-assets design and its required
-      `SsrAppCheckTokenMinter` adapter are documented in
-      `DATA_FLOW_AND_FUNCTIONS.md`; Angular SSR alone is not an attestation.
 - [ ] Before enforcing Cloud Firestore, verify in a non-production environment
       that a localized Spot URL includes its Spot-specific title, description,
       canonical, `og:image`, and `twitter:image` in the initial SSR HTML while
       enforcement is enabled. Confirm static assets remain directly cacheable
       and do not contain Admin credentials, App Check tokens, or SSR identity
       material.
-- [ ] Release the production web App Check change that attaches App Check to the
-      default Firebase app, then verify that valid request metrics increase for
+- [ ] Verify that valid request metrics increase for
       Authentication, Cloud Firestore, Storage, and every protected callable
       before enabling enforcement. Do not enforce a product while supported
       Android, iOS, or cached web clients for that product still report
@@ -127,46 +108,17 @@ mobile builds and App Hosting SSR are not accidentally denied.
       invalid/unknown request metrics and the App Check failure warning; roll
       back that product's enforcement if legitimate clients are rejected.
 
-### Community event and Spot ranking repair
-
-The 1.1.5 client filters expired cached event previews at render time and sorts
-community picks with the shared map priority. Deploying and rebuilding the
-generator also corrects the stored order for older clients and future pages.
-
-- [ ] Deploy the community page generator before releasing the 1.1.5 clients:
-
-  ```sh
-  npx firebase deploy --project prod --only functions:rebuildAllCommunityPages
-  ```
-
-- [ ] Request a full community rebuild and wait for the maintenance document
-      to report `status: DONE`:
-
-  ```sh
-  FIREBASE_PROJECT=parkour-base-project node scripts/request_community_rebuild.js
-  ```
-
-  - Verify Basel's Standout Spots use the same shared rating, access, iconic,
-    media, and report priority as the map, and no expired event is rendered on
-    a representative community page.
-
 ### Event RSVP and My Events repair
 
 The Firestore rule change accepts the optional millisecond timestamp already
 written by notification actions. Deploy it before releasing the client so
 existing action-created RSVP documents can be changed in older and newer apps.
 
-- [ ] Deploy the RSVP-compatible Firestore rules:
+- [ ] Verify a signed-in non-admin can change an existing Interested RSVP that
+      contains `time_updated_raw_ms` to Going, while writes to another user's
+      RSVP remain denied.
 
-  ```sh
-  npx firebase deploy --project prod --only firestore:rules
-  ```
-
-  - Verify a signed-in non-admin can change an existing Interested RSVP that
-    contains `time_updated_raw_ms` to Going, while writes to another user's
-    RSVP remain denied.
-
-- [ ] Release web, Android, and iOS through their normal workflows. Verify past
+- [ ] Release Android and iOS through their normal workflows. Verify past
       Going and Saved events appear only under Past, future Going events remain
       under Going, future Saved events remain under Saved, and an event present
       in both Going and Saved is displayed only once. No data backfill is
@@ -179,25 +131,7 @@ aggregate changes self-healing. The maintenance run repairs previews that were
 already stale before the trigger fix. It scans event discovery documents and
 only refreshes Spots linked from those events; it does not scan every Spot.
 
-- [ ] Deploy the Spot event-preview trigger, its bounded backfill helper, and
-      the weather callable before releasing the client:
-
-  ```sh
-  npx firebase deploy --project prod --only functions:syncSpotUpcomingEventsOnEventWrite,functions:backfillSpotUpcomingEvents,functions:getWeather
-  ```
-
-  - Verify all three Functions report location `europe-west1`. Change one test
-    RSVP and confirm the canonical `events/{eventId}.rsvp_counts`, matching
-    `event_discovery/{eventId}.rsvp_counts`, and the linked
-    `spots/{spotId}.upcoming_events[].rsvp_counts` converge to the same value.
-
-- [ ] Create `maintenance/run-backfill-spot-upcoming-events` with any contents
-      once, wait for the Function to delete it, and verify the representative
-      Spot card that was stale now matches the event page. Check Function logs
-      for failures before continuing; recreating the maintenance document is
-      the retry mechanism.
-
-- [ ] Release the client through the normal web and mobile workflows. Verify a
+- [ ] Release the mobile clients through their normal workflows. Verify a
       49% precipitation forecast remains a neutral “Chance of rain” with its
       percentage visible, while 50% or at least 0.2 mm uses the rain state.
       Confirm a long title for a promoted event stays within the Spot side panel on
@@ -209,18 +143,11 @@ The digest Function change is backward-compatible: existing clients can open
 the new canonical Spot path. The client additionally repairs already-projected
 digest notifications whose historical path is `/train`.
 
-- [ ] Deploy the community digest producer and notification delivery Functions
-      before releasing the clients:
+- [ ] Verify a test digest intent and its in-app projection both use the first
+      included Spot's `/s/{slug}` path, and that delivered FCM data carries the
+      same path. Do not operate an App Hosting rollout as part of this step.
 
-  ```sh
-  npx firebase deploy --project prod --only functions:sendCommunitySpotDigests,functions:sendDueNotificationIntents,functions:onImmediateNotificationIntentCreate,functions:onNotificationIntentWrite
-  ```
-
-  - Verify a test digest intent and its in-app projection both use the first
-    included Spot's `/s/{slug}` path, and that delivered FCM data carries the
-    same path. Do not operate an App Hosting rollout as part of this step.
-
-- [ ] Release web, Android, and iOS through their normal workflows. Verify an
+- [ ] Release Android and iOS through their normal workflows. Verify an
       email/password signup completes profile/private-data initialization before
       redirecting. Open a fresh verification email and confirm it completes;
       reopen the consumed link while signed in and confirm the already-verified
@@ -247,20 +174,15 @@ digest notifications whose historical path is `/train`.
       before removing this item. The injected browser assets must be the same
       assets released through the normal `main`-branch App Hosting workflow.
 
-### Google Maps and Apple Maps link paste
+### Maps link paste
 
 The client parses full supported URLs locally. Google short links use a narrow,
 App Check-protected redirect resolver which validates every redirect hop and
 does not log or persist the pasted URL.
 
-- [ ] Complete the post-deployment Maps-link verification. Confirm requests
-      without valid App Check and off-domain redirects remain rejected, and
-      confirm application logs contain no raw pasted URLs. Then paste
-      `https://maps.app.goo.gl/v53ih4b5vdjweTB57` into map search: the pasted
-      URL and autocomplete loading indicator must remain visible while
-      resolving, and the result must open the Google Place for `Spital Lachen
-      AG` (with its destination coordinates as fallback). Also verify full
-      Google Maps and Apple Maps links open the expected location.
+- [ ] Complete the remaining post-deployment Maps-link verification. Confirm an
+      off-domain redirect is rejected, and verify full links from both supported
+      map providers open the expected location.
 
 ### Idempotent Spot creation and duplicate administration
 
@@ -270,30 +192,12 @@ on the callable and must be released only after the indexes and Functions are
 active. This release does not authorize resolving or deleting any existing
 production duplicate.
 
-- [ ] Deploy `firestore.indexes.json` to production and wait for both new
-      `spot_create_submissions` diagnostics indexes (`last_attempt_at` with
-      `attempt_count`, and `last_attempt_at` with `guard_block_count`) to report
-      `Enabled`. Do this before deploying the diagnostics Function:
-
-  ```sh
-  npx firebase deploy --project prod --only firestore:indexes
-  ```
-
-- [ ] Deploy the backward-compatible duplicate administration, diagnostics,
-      report-warning, safety-case, and immediate-notification Function updates:
-
-  ```sh
-  npx firebase deploy --project prod --only functions:getSpotCreationDiagnostics,functions:resolveSpotDuplicate,functions:detectDuplicateSpots,functions:applySpotEditOnCreate,functions:onSpotReportCreate,functions:onModerationActionNotificationCreate,functions:onModerationActionSafetyCaseCreate,functions:onImmediateNotificationIntentCreate,functions:onNotificationIntentWrite
-  ```
-
-      Verify every listed Function reports location `europe-west1` in the
-      Firebase Functions inventory; fail the release if any differs. Also verify
-      the deployment succeeds, duplicate-resolution
-      replays create one moderation action, and an immediately due actionable
-      notification has its in-app feed projection before delivery is claimed.
-      Also verify an owner, admin, or reviewer of a Spot's reviewing organization
-      receives `APPROVED_IMMEDIATE`, while an ordinary member or outsider still
-      receives the pending organization-review disposition.
+- [ ] With non-production fixtures, verify duplicate-resolution replays create
+      one moderation action and an immediately due actionable notification has
+      its in-app feed projection before delivery is claimed. Also verify an
+      owner, admin, or reviewer of a Spot's reviewing organization receives
+      `APPROVED_IMMEDIATE`, while an ordinary member or outsider still receives
+      the pending organization-review disposition.
 
 - [ ] Invoke `createSpotSubmission` twice with one non-production draft token
       and verify both responses point to one Spot/edit while the second reports
@@ -303,10 +207,10 @@ production duplicate.
       moderation dashboard. Do not resolve or delete candidates without a
       separate administrator decision.
 
-- [ ] Release compatible web and mobile clients through their normal workflows.
-      Verify a failed/offline creation remains editable and retryable, a rapid
-      repeated save produces one Spot, and released older clients can still
-      create through the legacy path.
+- [ ] Release compatible mobile clients through their normal workflows. Verify
+      web and mobile failed/offline creation remains editable and retryable, a
+      rapid repeated save produces one Spot, and released older clients can
+      still create through the legacy path.
 
 - [ ] In the moderation dashboard, verify the 24-hour and 7-day actual creation
       totals, callable-versus-legacy adoption, client guard blocks, server
@@ -334,9 +238,9 @@ public `is_reported` state on preview cards; `report_reason` remains a sanitized
 compatibility field for released clients. Raw report documents and
 `public_notice` must not be added to Typesense.
 
-- [ ] Release the compatible client through the normal web and mobile workflows,
-      then confirm a reported Spot preview shows only the localized Reported
-      badge before opening the Spot.
+- [ ] Release the compatible mobile clients through their normal workflows,
+      then confirm web and mobile reported Spot previews show only the localized
+      Reported badge before opening the Spot.
 
 ### Public import provenance and Spot-edit write containment
 
@@ -346,39 +250,6 @@ only in the browser while a legacy Spot has no projection. The field is not part
 of the Typesense schema or extension allowlist. The one-time Spot writes below
 will nevertheless wake the Typesense extension, so use the default small pages
 and watch extension traffic during the live run.
-
-- [ ] Reauthenticate Firebase, then deploy the compatible projection and
-      write-containment Functions. Do not run the migration yet:
-
-  ```sh
-  firebase login --reauth
-  npx firebase deploy --project prod --only functions:getPublicImportProvenance,functions:processImportChunkOnCreate,functions:retryFailedImportChunksOnCreate,functions:rebuildCommunityPagesOnImportWrite,functions:updateSpotFieldsOnWrite,functions:patchCommunityPageOnWrite,functions:rebuildAllCommunityPages,functions:syncPublicUserProfileOnWrite,functions:backfillPublicImportProvenanceOnCreate
-  ```
-
-      Verify every deployed gen 2 Function is active in `europe-west1`, a new
-      import writes either an object or explicit `null`, and the compatibility
-      callable still serves an older client.
-
-- [ ] Immediately after the compatible Functions are verified, release the
-      field-aware, browser-only fallback client through the normal `main`
-      workflow. If `main` cannot be released immediately, pause import writes
-      until the client release completes so no new Spot misses its projection.
-      Verify localized SSR neither renders import-specific attribution nor
-      invokes `getPublicImportProvenance`; projected and legacy production Spots
-      must load their attribution after hydration.
-
-- [ ] In Firestore, create
-      `maintenance/run-backfill-public-import-provenance` with
-      `{ dry_run: true, page_size: 100 }`. Wait for the trigger document to be
-      deleted and `maintenance/public-import-provenance-backfill.status` to be
-      `DONE`; review `counts.changed`, `counts.missing_imports`, and confirm
-      `counts.written` is zero.
-
-- [ ] Delete/recreate the same trigger document with
-      `{ dry_run: false, page_size: 100 }`. Wait for retained state `DONE`,
-      confirm `counts.written` matches the reviewed candidates, rerun it once to
-      verify `counts.changed` and `counts.written` are zero, and sample an
-      attributed import plus an import with no public credit.
 
 - [ ] After the next 03:00 UTC sitemap cycle, correlate Cloud Functions
       invocation logs, App Hosting requests, and crawler user agents. Confirm
@@ -406,14 +277,11 @@ Messaging.
       application restrictions in place; this check does not require making a
       Firebase key unrestricted.
 
-- [ ] Release the direct Firebase JS SDK client through the normal `main` and
-      mobile release workflows. Smoke-test production web and supported
-      Capacitor builds: restore a signed-in session after reload, sign in and
-      out, observe a realtime Firestore update without further interaction,
-      call a `europe-west1` Function, upload with visible progress, initialize
-      App Check, and register/receive web push. Confirm localized SSR returns
-      real HTML and production logs contain no browser-only Firebase or
-      `Service messaging is not available` errors.
+- [ ] Release the direct Firebase JS SDK client through the normal mobile
+      workflows. Smoke-test supported Capacitor builds: restore a signed-in
+      session after reload, sign in and out, observe a realtime Firestore update
+      without further interaction, call a `europe-west1` Function, upload with
+      visible progress, initialize App Check, and register/receive push.
 
 ### Unpublished locality community merges
 

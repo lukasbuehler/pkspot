@@ -2,7 +2,7 @@ PK Spot v1.1.5 — Betrouwbaarheid en oplossingen
 
 Nieuw:
 
-• Plak links van Google Maps en Apple Kaarten rechtstreeks in de kaartzoekfunctie.
+• Plak kaartlinks rechtstreeks in de kaartzoekfunctie.
 • Mediaselectie en bijsnijden verbeterd, met veiliger afronden van uploads.
 • De vraag naar de leeftijdscategorie wordt nu eerst uitgelegd en verschijnt niet meer bij het opstarten.
 • Problemen opgelost met accountverificatie, meldingslinks, reacties en voorbije evenementen, communityranglijsten en Swiss Jam-challenges.
