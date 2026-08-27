@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { MatSnackBar } from "@angular/material/snack-bar";
 import { provideRouter } from "@angular/router";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { Timestamp } from "firebase/firestore";
@@ -25,11 +26,12 @@ describe("SpotEditDetailsComponent", () => {
   let usersService: {
     getUserRefernceById: ReturnType<typeof vi.fn>;
   };
+  let snackBar: { open: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
     spotEditsService = {
       getSpotEditVoteByUserId$: vi.fn(() => of(null)),
-      setSpotEditVote: vi.fn(),
+      setSpotEditVote: vi.fn().mockResolvedValue(undefined),
       reviewVerifiedSpotEdit: vi.fn().mockResolvedValue(undefined),
     };
     organizationsService = {
@@ -38,6 +40,7 @@ describe("SpotEditDetailsComponent", () => {
     usersService = {
       getUserRefernceById: vi.fn().mockResolvedValue(null),
     };
+    snackBar = { open: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [SpotEditDetailsComponent, NoopAnimationsModule],
@@ -59,6 +62,7 @@ describe("SpotEditDetailsComponent", () => {
         { provide: SpotEditsService, useValue: spotEditsService },
         { provide: OrganizationsService, useValue: organizationsService },
         { provide: UsersService, useValue: usersService },
+        { provide: MatSnackBar, useValue: snackBar },
       ],
     }).compileComponents();
 
@@ -139,6 +143,35 @@ describe("SpotEditDetailsComponent", () => {
       "person@example.test"
     );
   });
+
+  it("confirms a community vote immediately while the aggregate refreshes", async () => {
+    const fixture = createFixture();
+    fixture.componentRef.setInput("spotId", "spot-1");
+    fixture.componentRef.setInput("spotEdit", makeCommunityVoteEdit());
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    clickButton(fixture, "Yes");
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const yesButton = Array.from(
+      fixture.nativeElement.querySelectorAll("button") as NodeListOf<HTMLButtonElement>
+    ).find((button) => button.textContent?.includes("Yes"));
+    expect(yesButton?.classList.contains("vote-selected")).toBe(true);
+    expect(spotEditsService.setSpotEditVote).toHaveBeenCalledWith(
+      "spot-1",
+      "community-vote",
+      1,
+      expect.objectContaining({ uid: "reviewer-user" })
+    );
+    expect(snackBar.open).toHaveBeenCalledWith(
+      "Vote recorded",
+      undefined,
+      { duration: 2200 }
+    );
+  });
 });
 
 function createFixture(): ComponentFixture<SpotEditDetailsComponent> {
@@ -175,6 +208,33 @@ function makeOrganizationReviewEdit(displayName = "Submitter"): SpotEdit {
     },
   };
   return new SpotEdit("edit-1", edit);
+}
+
+function makeCommunityVoteEdit(): SpotEdit {
+  const edit: SpotEditSchema = {
+    type: "UPDATE",
+    timestamp: Timestamp.fromMillis(1_718_800_000_000),
+    timestamp_raw_ms: 1_718_800_000_000,
+    approved: false,
+    visibility: "public",
+    processing_status: "VOTING_OPEN",
+    user: {
+      uid: "submitter-user",
+      display_name: "Submitter",
+    },
+    data: {
+      type: SpotTypes.PkPark,
+    },
+    vote_summary: {
+      yes_count: 0,
+      no_count: 0,
+      total_count: 0,
+      ratio_yes_to_no: null,
+      submitter_vote: null,
+      eligible_for_auto_approval: false,
+    },
+  };
+  return new SpotEdit("community-vote", edit);
 }
 
 function getButtonText(

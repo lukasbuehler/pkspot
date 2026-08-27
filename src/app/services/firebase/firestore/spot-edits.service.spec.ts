@@ -10,6 +10,7 @@ import { AuthenticationService } from "../authentication.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
 import { FunctionsAdapterService } from "../functions-adapter.service";
 import {
+  spotEditAwaitsCommunityVote,
   spotEditAwaitsOrganizationReview,
   spotEditAwaitsReviewOutcome,
   spotEditProcessingFailed,
@@ -221,6 +222,24 @@ describe("SpotEditsService", () => {
         approved: true,
         processing_status: "APPROVED_IMMEDIATE",
         decision_source: "automatic_immediate",
+      }),
+    ).toBe(false);
+  });
+
+  it("recognizes an open community vote without treating organization review as voting", () => {
+    expect(
+      spotEditAwaitsCommunityVote({
+        ...buildEdit("vote", "user-1", 1),
+        approved: false,
+        processing_status: "VOTING_OPEN",
+      }),
+    ).toBe(true);
+    expect(
+      spotEditAwaitsCommunityVote({
+        ...buildEdit("organization-review", "user-1", 1),
+        approved: false,
+        review_status: "pending",
+        processing_status: "PENDING_STEWARD_REVIEW",
       }),
     ).toBe(false);
   });

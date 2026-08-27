@@ -128,6 +128,17 @@ async function seedSecurityFixture() {
     type: "UPDATE",
     user: { uid: "owner" },
     timestamp_raw_ms: 1,
+    approved: false,
+    visibility: "public",
+    processing_status: "VOTING_OPEN",
+  });
+  batch.set(adminDb.doc("spots/public-spot/edits/closed-vote"), {
+    type: "UPDATE",
+    user: { uid: "owner" },
+    timestamp_raw_ms: 1,
+    approved: true,
+    visibility: "public",
+    processing_status: "APPROVED_VOTING",
   });
   batch.set(adminDb.doc("spots/public-spot/reviews/owner"), {
     rating: 4,
@@ -741,6 +752,27 @@ async function testSpotWriteGuards(anon, owner, other, adminUser) {
   );
   await assertDenied("vote payload impersonation", () =>
     setDoc(doc(other.db, "spots/public-spot/edits/public-edit/votes/other"), {
+      value: 1,
+      vote: "yes",
+      user: { uid: "owner" },
+    })
+  );
+  await assertDenied("vote value and label must agree", () =>
+    setDoc(doc(owner.db, "spots/public-spot/edits/public-edit/votes/owner"), {
+      value: 1,
+      vote: "no",
+      user: { uid: "owner" },
+    })
+  );
+  await assertDenied("cannot vote on private organization review", () =>
+    setDoc(doc(owner.db, "spots/verified-spot/edits/private-pending/votes/owner"), {
+      value: 1,
+      vote: "yes",
+      user: { uid: "owner" },
+    })
+  );
+  await assertDenied("cannot vote after an edit is approved", () =>
+    setDoc(doc(owner.db, "spots/public-spot/edits/closed-vote/votes/owner"), {
       value: 1,
       vote: "yes",
       user: { uid: "owner" },

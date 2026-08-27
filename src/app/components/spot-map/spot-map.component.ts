@@ -97,6 +97,7 @@ import { SpotAccess, SpotTypes } from "../../../db/schemas/SpotTypeAndAccess";
 import { AnalyticsService } from "../../services/analytics.service";
 import { NotificationOptInService } from "../../services/notification-opt-in.service";
 import {
+  spotEditAwaitsCommunityVote,
   spotEditAwaitsOrganizationReview,
   spotEditAwaitsReviewOutcome,
   spotEditProcessingFailed,
@@ -1398,9 +1399,14 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
         const awaitsOrganizationReview = disposition
           ? spotEditAwaitsOrganizationReview(disposition)
           : false;
+        const awaitsCommunityVote = disposition
+          ? spotEditAwaitsCommunityVote(disposition)
+          : false;
         const saveMessage = awaitsOrganizationReview
           ? $localize`Edit submitted for organization review`
-          : $localize`Spot saved successfully`;
+          : awaitsCommunityVote
+            ? $localize`Edit submitted for community voting`
+            : $localize`Spot saved successfully`;
         this.snackBar.open(saveMessage, $localize`Dismiss`, { duration: 5000 });
         if (
           disposition &&

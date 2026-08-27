@@ -841,9 +841,9 @@ async function testActivityQueriesUseRawTimestampDeterministically() {
   );
 }
 
-async function testForcedVotingFlowAppliesOnlyAfterEligibleVotes() {
-  const spotId = "integration-forced-voting";
-  const editId = "forced-vote-update";
+async function testCommunityVotingFlowAppliesOnlyAfterEligibleVotes() {
+  const spotId = "integration-community-voting";
+  const editId = "community-vote-update";
   await db.collection("spots").doc(spotId).set({
     name: { en: "Voting Base" },
     location: new admin.firestore.GeoPoint(47.0, 8.0),
@@ -851,7 +851,7 @@ async function testForcedVotingFlowAppliesOnlyAfterEligibleVotes() {
     media: [],
     address: null,
     source: "pkspot",
-    edit_policy: { force_voting: true },
+    edit_policy: { community_voting: true },
   });
 
   const oldEnoughForAutoApproval = Date.now() - 25 * 60 * 60 * 1000;
@@ -871,7 +871,7 @@ async function testForcedVotingFlowAppliesOnlyAfterEligibleVotes() {
       timestamp: Timestamp.fromMillis(oldEnoughForAutoApproval),
       timestamp_raw_ms: oldEnoughForAutoApproval,
     },
-    "VOTING_FORCED_TEST"
+    "VOTING_OPEN"
   );
 
   assert.equal(blockedEdit.vote_summary.total_count, 0);
@@ -921,7 +921,7 @@ async function testForcedVotingFlowAppliesOnlyAfterEligibleVotes() {
     return edit.approved === true && edit.processing_status === "APPROVED_VOTING"
       ? edit
       : null;
-  }, "forced voting edit approval");
+  }, "community voting edit approval");
 
   spot = await getSpot(spotId);
   assert.deepEqual(spot.name, { en: "Voting Applied" });
@@ -933,9 +933,9 @@ async function testForcedVotingFlowAppliesOnlyAfterEligibleVotes() {
   assert.equal(approvedEdit.vote_summary.eligible_for_auto_approval, true);
 }
 
-async function testForcedVotingRejectsWithoutSubmitterSupport() {
-  const spotId = "integration-forced-voting-no-submitter";
-  const editId = "forced-vote-without-submitter";
+async function testCommunityVotingRejectsWithoutSubmitterSupport() {
+  const spotId = "integration-community-voting-no-submitter";
+  const editId = "community-vote-without-submitter";
   await db.collection("spots").doc(spotId).set({
     name: { en: "Voting No Submitter Base" },
     location: new admin.firestore.GeoPoint(47.0, 8.0),
@@ -943,7 +943,7 @@ async function testForcedVotingRejectsWithoutSubmitterSupport() {
     media: [],
     address: null,
     source: "pkspot",
-    edit_policy: { force_voting: true },
+    edit_policy: { community_voting: true },
   });
 
   const oldEnoughForAutoApproval = Date.now() - 25 * 60 * 60 * 1000;
@@ -959,7 +959,7 @@ async function testForcedVotingRejectsWithoutSubmitterSupport() {
       timestamp: Timestamp.fromMillis(oldEnoughForAutoApproval),
       timestamp_raw_ms: oldEnoughForAutoApproval,
     },
-    "VOTING_FORCED_TEST"
+    "VOTING_OPEN"
   );
 
   for (const voter of [SECOND_USER, THIRD_USER]) {
@@ -986,10 +986,52 @@ async function testForcedVotingRejectsWithoutSubmitterSupport() {
   const spot = await getSpot(spotId);
 
   assert.equal(edit.approved, false);
-  assert.equal(edit.processing_status, "VOTING_FORCED_TEST");
+  assert.equal(edit.processing_status, "VOTING_OPEN");
   assert.equal(edit.vote_summary.submitter_vote, null);
   assert.equal(edit.vote_summary.eligible_for_auto_approval, false);
   assert.deepEqual(spot.name, { en: "Voting No Submitter Base" });
+}
+
+async function testCommunityVotingTakesPrecedenceForExternalEditors() {
+  const spotId = "integration-stewarded-community-voting";
+  const editId = "external-community-vote";
+  await db.collection("spots").doc(spotId).set({
+    name: { en: "Community Voting Base" },
+    location: new admin.firestore.GeoPoint(47.0, 8.0),
+    location_raw: { lat: 47.0, lng: 8.0 },
+    media: [],
+    address: null,
+    source: "pkspot",
+    edit_policy: { community_voting: true },
+    stewardship: {
+      organization_ids: ["wpf"],
+      organizations: {
+        wpf: {
+          status: "active",
+          organization_id: "wpf",
+          organization: { id: "wpf", name: "World's Parkour Family", slug: "wpf" },
+          stewarded_by_user_id: "admin",
+          stewarded_at: timestampAt(8650),
+        },
+      },
+    },
+  });
+
+  const edit = await createBlockedEdit(
+    spotId,
+    editId,
+    editPayload({
+      type: "UPDATE",
+      offsetMs: 8700,
+      user: SECOND_USER,
+      data: { name: { en: "Community Vote Proposal" } },
+    }),
+    "VOTING_OPEN"
+  );
+
+  assert.equal(edit.visibility, "public");
+  assert.equal(edit.review_status, undefined);
+  assert.equal(edit.vote_summary.total_count, 0);
 }
 
 async function testVerifiedSpotRoutesToOrganizationReview() {
@@ -1046,7 +1088,55 @@ async function testVerifiedSpotRoutesToOrganizationReview() {
   assert.deepEqual(spot.name, { en: "Verified Base" });
 }
 
-async function testAdminEditOnVerifiedSpotAppliesImmediately() {
+async function testTrustedOrganizationReviewerEditAppliesImmediately() {
+  const spotId = "integration-reviewer-verified-direct-edit";
+  const editId = "reviewer-direct-update";
+  await db
+    .collection("organizations")
+    .doc("wpf")
+    .collection("members")
+    .doc(USER.uid)
+    .set({ role: "reviewer" });
+  await db.collection("spots").doc(spotId).set({
+    name: { en: "Reviewer Verified Base" },
+    location: new admin.firestore.GeoPoint(47.0, 8.0),
+    location_raw: { lat: 47.0, lng: 8.0 },
+    media: [],
+    address: null,
+    source: "pkspot",
+    stewardship: {
+      organization_ids: ["wpf"],
+      organizations: {
+        wpf: {
+          status: "active",
+          organization_id: "wpf",
+          organization: { id: "wpf", name: "World's Parkour Family", slug: "wpf" },
+          stewarded_by_user_id: "admin",
+          stewarded_at: timestampAt(8950),
+        },
+      },
+    },
+  });
+
+  const edit = await createEdit(
+    spotId,
+    editId,
+    editPayload({
+      type: "UPDATE",
+      offsetMs: 9000,
+      data: { name: { en: "Reviewer Direct Update" } },
+    })
+  );
+  const spot = await getSpot(spotId);
+
+  assert.equal(edit.approved, true);
+  assert.equal(edit.visibility, "public");
+  assert.equal(edit.processing_status, "APPROVED_IMMEDIATE");
+  assert.equal(edit.review_status, undefined);
+  assert.deepEqual(spot.name, { en: "Reviewer Direct Update" });
+}
+
+async function testAdminEditBypassesCommunityVoting() {
   const spotId = "integration-admin-verified-direct-edit";
   const editId = "admin-direct-update";
   await db.collection("users").doc(ADMIN_USER.uid).set({
@@ -1060,6 +1150,7 @@ async function testAdminEditOnVerifiedSpotAppliesImmediately() {
     media: [],
     address: null,
     source: "pkspot",
+    edit_policy: { community_voting: true },
     stewardship: {
       organization_ids: ["wpf"],
       organizations: {
@@ -1098,7 +1189,7 @@ async function testUserContributionCounters() {
   const data = userSnap.data();
 
   assert.equal(data?.spot_creates_count, 2);
-  assert.equal(data?.spot_edits_count, 12);
+  assert.equal(data?.spot_edits_count, 13);
   assert.equal(data?.media_added_count, 4);
 }
 
@@ -1140,10 +1231,12 @@ async function main() {
   await testEmptyMediaAppendDoesNotDeleteExistingMedia();
   await testInvalidLocationEditDoesNotMutateSpot();
   await testActivityQueriesUseRawTimestampDeterministically();
-  await testForcedVotingFlowAppliesOnlyAfterEligibleVotes();
-  await testForcedVotingRejectsWithoutSubmitterSupport();
+  await testCommunityVotingFlowAppliesOnlyAfterEligibleVotes();
+  await testCommunityVotingRejectsWithoutSubmitterSupport();
+  await testCommunityVotingTakesPrecedenceForExternalEditors();
   await testVerifiedSpotRoutesToOrganizationReview();
-  await testAdminEditOnVerifiedSpotAppliesImmediately();
+  await testTrustedOrganizationReviewerEditAppliesImmediately();
+  await testAdminEditBypassesCommunityVoting();
   await testUserContributionCounters();
   await testLeaderboardsReflectApprovedEdits();
 

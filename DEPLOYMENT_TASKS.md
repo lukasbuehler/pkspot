@@ -82,6 +82,33 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
+### Community voting and trusted organization edits
+
+Community voting is an explicit Spot policy (`edit_policy.community_voting`),
+not a test switch. Compatible Functions must be active before a Spot is moved
+to that policy. The Firestore rule permits a vote only for a public, pending
+community-vote edit, so deploying the rules before the client is required.
+
+- [ ] Deploy the compatible Functions first, then deploy Firestore rules. Verify
+      the Functions deployment includes `applySpotEditOnCreate`,
+      `evaluateSpotEditVotesOnVoteWrite`, and
+      `evaluatePendingSpotEditVotesOnSchedule`, and that the rules deployment
+      succeeds before releasing the web client.
+
+- [ ] After both backend deployments succeed, make the separately approved
+      production data migration for Dame du Lac (`1QsdgLHOpzDIReNaFDLw`): replace
+      `edit_policy.force_voting` with `{ community_voting: true }`; change its
+      pending test edit to `VOTING_OPEN` and `visibility: "public"`; retain its
+      existing vote summary and timestamps. Read the current document and edit
+      ID immediately before the transaction, require the expected pending test
+      state, and abort rather than overwriting a newer outcome.
+
+- [ ] Release the web client through the normal `main`-branch workflow, then
+      verify with non-production fixtures and the real Dame du Lac vote that an
+      organization owner/admin/reviewer edit is immediately approved, an
+      ordinary member follows review, and a public community vote is visible,
+      records an immediate selected-vote state, and updates its server summary.
+
 ### Firebase App Check enforcement readiness
 
 The 1.1.5 client warns once per app load when attestation fails, but it does not

@@ -104,6 +104,40 @@ service cloud.firestore {
         );
     }
 
+    function isOpenCommunityVote(spotId, editId) {
+      let edit = get(/databases/$(database)/documents/spots/$(spotId)/edits/$(editId)).data;
+      return edit.type == 'UPDATE'
+        && edit.approved == false
+        && edit.visibility == 'public'
+        && edit.processing_status in [
+          'VOTING_OPEN',
+          // Kept for public edits created before the community-voting rename.
+          'VOTING_FORCED_TEST',
+          'BLOCKED_ICONIC_SPOT',
+          'BLOCKED_VERIFIED_SPOT'
+        ];
+    }
+
+    function validSpotEditVote() {
+      return request.resource.data.keys().hasOnly([
+          'value',
+          'vote',
+          'user',
+          'timestamp',
+          'timestamp_raw_ms'
+        ])
+        && (
+          (request.resource.data.value == 1 && request.resource.data.vote == 'yes')
+          || (request.resource.data.value == -1 && request.resource.data.vote == 'no')
+        )
+        && request.resource.data.user is map
+        && request.resource.data.user.uid is string
+        && (!('timestamp' in request.resource.data)
+          || request.resource.data.timestamp is timestamp)
+        && (!('timestamp_raw_ms' in request.resource.data)
+          || request.resource.data.timestamp_raw_ms is number);
+    }
+
     function requiresOrganizationReview(spotId) {
       let spot = get(/databases/$(database)/documents/spots/$(spotId)).data;
       return ('management' in spot && spot.management.status == 'managed')
@@ -1161,7 +1195,9 @@ service cloud.firestore {
           allow create, update: if request.auth.uid != null 
             && agePolicyAllowsPublicParticipation()
             && request.auth.uid == userId
-            && request.auth.uid == request.resource.data.user.uid;
+            && request.auth.uid == request.resource.data.user.uid
+            && validSpotEditVote()
+            && isOpenCommunityVote(spotId, editId);
           allow delete: if isAdmin();
         }
       }

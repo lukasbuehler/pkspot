@@ -92,9 +92,20 @@ const PENDING_VOTE_EDITS_LIMIT = 300;
 const PENDING_VOTE_EDITS_FALLBACK_SCAN_LIMIT = 900;
 const CALLABLE_CORS_OPTIONS = { cors: true, invoker: "public" as const };
 
-// Rollout control:
-// Keep legacy instant-apply behavior for iconic community spots until clients
-// with voting UI are broadly deployed. Flip to true when ready.
+type CommunityVoteProcessingStatus =
+  | "VOTING_OPEN"
+  | "BLOCKED_ICONIC_SPOT"
+  | "BLOCKED_VERIFIED_SPOT"
+  | "VOTING_FORCED_TEST";
+
+const LEGACY_COMMUNITY_VOTE_PROCESSING_STATUSES = new Set<CommunityVoteProcessingStatus>([
+  "BLOCKED_ICONIC_SPOT",
+  "BLOCKED_VERIFIED_SPOT",
+  "VOTING_FORCED_TEST",
+]);
+
+// Rollout control for iconic community Spots. Explicit `community_voting`
+// policies are already live and do not depend on this broader rollout flag.
 const VOTING_ON_LOCKED_SPOTS_ENABLED = false;
 
 const PROTECTED_SPOT_EDIT_FIELDS = new Set([
@@ -122,6 +133,7 @@ const PROTECTED_SPOT_EDIT_FIELDS = new Set([
   "time_created",
   "time_updated",
   "top_challenges",
+  "edit_policy",
 ]);
 const ADMIN_PROTECTED_SPOT_EDIT_FIELDS = new Set(["is_iconic"]);
 
@@ -172,8 +184,9 @@ export const applySpotEditOnCreate = onDocumentCreated(
       const spotData = spotSnapshot.exists ? (spotSnapshot.data() as any) : null;
 
       // Managed spots are authoritative org-controlled spots. Stewarded spots
-      // are public spots verified by one or more orgs; edits enter org review
-      // first, with a future path for community fallback if no steward responds.
+      // are public spots verified by one or more orgs. Trusted organization
+      // editors may apply their own edits immediately; other editors are routed
+      // to the configured community-vote or organization-review flow.
       if (editData.type === "UPDATE" && spotData) {
         const submitterUid = editData.user?.uid;
         const submitterIsAdmin =
@@ -192,15 +205,26 @@ export const applySpotEditOnCreate = onDocumentCreated(
           ? stewardOrganizationIds
           : [];
         const reviewOrganizationId = reviewOrganizationIds[0];
-        const submitterCanReview =
-          typeof submitterUid === "string" &&
-          !submitterIsAdmin &&
-          (await firstReviewableOrganizationId(
-            submitterUid,
-            reviewOrganizationIds
-          )) !== null;
+        const submitterReviewOrganizationId =
+          typeof submitterUid === "string" && !submitterIsAdmin
+            ? await firstReviewableOrganizationId(
+              submitterUid,
+              reviewOrganizationIds,
+            )
+            : null;
+        const submitterCanApplyImmediately =
+          submitterIsAdmin || submitterReviewOrganizationId !== null;
+        const communityVoteStatus = getCommunityVoteProcessingStatus(spotData);
 
-        if (reviewOrganizationId && !submitterIsAdmin && !submitterCanReview) {
+        if (!submitterCanApplyImmediately && communityVoteStatus) {
+          await openCommunityVote(
+            editSnapshot.ref,
+            communityVoteStatus,
+          );
+          return;
+        }
+
+        if (reviewOrganizationId && !submitterCanApplyImmediately) {
           const isManagedSpot = typeof managementOrganizationId === "string";
           await editSnapshot.ref.update({
             approved: false,
@@ -217,40 +241,6 @@ export const applySpotEditOnCreate = onDocumentCreated(
               : "Spot is verified by an organization and requires steward review.",
             processed_at: FieldValue.serverTimestamp(),
           });
-          return;
-        }
-
-        // Soft lock: keep iconic voting behavior separate from org review.
-        const isIconicSpot = spotData.is_iconic === true;
-        // Per-spot override to test voting UI before global rollout.
-        // Set `edit_policy.force_voting = true` on a spot document to force vote flow.
-        const forceVotingForSpot = spotData.edit_policy?.force_voting === true;
-        const useVotingForLockedSpots =
-          VOTING_ON_LOCKED_SPOTS_ENABLED && isIconicSpot;
-
-        if (useVotingForLockedSpots || forceVotingForSpot) {
-          const processingStatus = forceVotingForSpot
-            ? "VOTING_FORCED_TEST"
-            : isIconicSpot
-            ? "BLOCKED_ICONIC_SPOT"
-            : "BLOCKED_ICONIC_SPOT";
-          const blockedReason = forceVotingForSpot
-            ? "Spot edit forced into voting flow for testing."
-            : isIconicSpot
-            ? "Spot is iconic and locked for public edits."
-            : "Spot is iconic and locked for public edits.";
-
-          await editSnapshot.ref.update({
-            approved: false,
-            processing_status: processingStatus,
-            blocked_reason: blockedReason,
-            vote_summary: createEmptyVoteSummary(),
-            processed_at: FieldValue.serverTimestamp(),
-          });
-
-          console.log(
-            `Blocked edit ${editId} for spot ${spotId} (${processingStatus})`
-          );
           return;
         }
       }
@@ -330,6 +320,50 @@ function createEmptyVoteSummary(): SpotEditVoteSummary {
     submitter_vote: null,
     eligible_for_auto_approval: false,
   };
+}
+
+function getCommunityVoteProcessingStatus(
+  spotData: Record<string, unknown>,
+): "VOTING_OPEN" | "BLOCKED_ICONIC_SPOT" | null {
+  const editPolicy = spotData["edit_policy"];
+  if (
+    editPolicy &&
+    typeof editPolicy === "object" &&
+    (editPolicy as Record<string, unknown>)["community_voting"] === true
+  ) {
+    return "VOTING_OPEN";
+  }
+
+  return VOTING_ON_LOCKED_SPOTS_ENABLED && spotData["is_iconic"] === true
+    ? "BLOCKED_ICONIC_SPOT"
+    : null;
+}
+
+function isCommunityVoteProcessingStatus(
+  status: unknown,
+): status is CommunityVoteProcessingStatus {
+  return status === "VOTING_OPEN" ||
+    LEGACY_COMMUNITY_VOTE_PROCESSING_STATUSES.has(
+      status as CommunityVoteProcessingStatus,
+    );
+}
+
+async function openCommunityVote(
+  editRef: FirebaseFirestore.DocumentReference,
+  processingStatus: "VOTING_OPEN" | "BLOCKED_ICONIC_SPOT",
+): Promise<void> {
+  const blockedReason = processingStatus === "BLOCKED_ICONIC_SPOT"
+    ? "Spot is iconic and locked for public edits."
+    : "Community voting is enabled for this Spot.";
+
+  await editRef.update({
+    approved: false,
+    visibility: "public",
+    processing_status: processingStatus,
+    blocked_reason: blockedReason,
+    vote_summary: createEmptyVoteSummary(),
+    processed_at: FieldValue.serverTimestamp(),
+  });
 }
 
 function getErrorCode(error: unknown): string {
@@ -1126,6 +1160,10 @@ async function evaluatePendingEditVotes(
     return;
   }
 
+  if (!isCommunityVoteProcessingStatus(editData.processing_status)) {
+    return;
+  }
+
   if (!editData.user?.uid) {
     console.error(
       "Pending vote evaluation skipped because edit.user.uid is missing",
@@ -1161,12 +1199,7 @@ async function evaluatePendingEditVotes(
   // Keep summary fields fresh even before eligibility.
   await editRef.update({
     vote_summary: voteSummary,
-    processing_status:
-      editData.processing_status === "BLOCKED_ICONIC_SPOT" ||
-      editData.processing_status === "BLOCKED_VERIFIED_SPOT" ||
-      editData.processing_status === "VOTING_FORCED_TEST"
-        ? editData.processing_status
-        : "VOTING_OPEN",
+    processing_status: editData.processing_status,
     processed_at: FieldValue.serverTimestamp(),
   });
 

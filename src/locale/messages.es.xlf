@@ -756,12 +756,6 @@
         <target> Sí</target>
       </segment>
     </unit>
-    <unit id="2814854262892312665">
-      <segment state="initial">
-        <source>Voting test mode</source>
-        <target>Modo de prueba de votación</target>
-      </segment>
-    </unit>
     <unit id="2815997035296984338">
       <segment state="initial">
         <source> Check your connection and try again. </source>
@@ -16618,6 +16612,18 @@
       <segment state="translated">
         <source>Close menu</source>
         <target>Cerrar menú</target>
+      </segment>
+    </unit>
+    <unit id="6771537551438299677">
+      <segment state="translated">
+        <source>Edit submitted for community voting</source>
+        <target>Edición enviada a votación de la comunidad</target>
+      </segment>
+    </unit>
+    <unit id="4373758354193283240">
+      <segment state="translated">
+        <source>Vote recorded</source>
+        <target>Voto registrado</target>
       </segment>
     </unit>
   </file>

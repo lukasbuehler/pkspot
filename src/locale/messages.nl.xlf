@@ -846,12 +846,6 @@
         <target>Ja</target>
       </segment>
     </unit>
-    <unit id="2814854262892312665">
-      <segment state="initial">
-        <source>Voting test mode</source>
-        <target>Testmodus voor stemmen</target>
-      </segment>
-    </unit>
     <unit id="2815997035296984338">
       <segment state="initial">
         <source> Check your connection and try again. </source>
@@ -16618,6 +16612,18 @@
       <segment state="translated">
         <source>Close menu</source>
         <target>Menu sluiten</target>
+      </segment>
+    </unit>
+    <unit id="6771537551438299677">
+      <segment state="translated">
+        <source>Edit submitted for community voting</source>
+        <target>Wijziging ingediend voor stemming door de community</target>
+      </segment>
+    </unit>
+    <unit id="4373758354193283240">
+      <segment state="translated">
+        <source>Vote recorded</source>
+        <target>Stem geregistreerd</target>
       </segment>
     </unit>
   </file>

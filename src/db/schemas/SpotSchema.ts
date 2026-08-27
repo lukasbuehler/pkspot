@@ -36,6 +36,12 @@ export interface SpotManagementSchema {
   lock_edits: true;
 }
 
+/** Server-owned routing policy for edits proposed on this Spot. */
+export interface SpotEditPolicySchema {
+  /** External changes are resolved by the community vote instead of organization review. */
+  community_voting?: true;
+}
+
 /** @deprecated Use stewardship for public verification or management for exclusive control. */
 export interface SpotVerificationSchema {
   status: "verified";
@@ -92,6 +98,7 @@ export interface SpotSchema {
   upcoming_events?: EventCardPreviewSchema[];
 
   is_iconic?: boolean;
+  edit_policy?: SpotEditPolicySchema;
   stewardship?: SpotStewardshipStateSchema;
   management?: SpotManagementSchema;
   /** @deprecated Use stewardship or management. Kept for old clients during migration. */
