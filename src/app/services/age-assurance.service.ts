@@ -82,6 +82,12 @@ interface SyncedAgePolicy {
   response: UpdateAgePolicyResponse;
 }
 
+interface NativeSyncInFlight {
+  uid: string;
+  generation: number;
+  promise: Promise<AgeAssuranceCheckState>;
+}
+
 const NativeAgeAssurance = registerPlugin<AgeAssurancePlugin>("AgeAssurance");
 
 @Injectable({
@@ -94,7 +100,8 @@ export class AgeAssuranceService {
   private _authService = inject(AuthenticationService);
   private _platformId = inject(PLATFORM_ID);
   private _lastSyncedUid: string | null = null;
-  private _syncInFlight: Promise<AgeAssuranceCheckState> | null = null;
+  private _syncGeneration = 0;
+  private _syncInFlight: NativeSyncInFlight | null = null;
   private readonly _checkState = signal<AgeAssuranceCheckState>({
     status: "idle",
   });
@@ -124,6 +131,7 @@ export class AgeAssuranceService {
   ): Promise<AgeAssuranceCheckState> {
     const uid = this._authService.user.uid;
     if (!uid) {
+      this._invalidateSyncInFlight();
       this._lastSyncedUid = null;
       if (this._checkState().uid !== undefined) {
         this._checkState.set({ status: "idle" });
@@ -134,21 +142,23 @@ export class AgeAssuranceService {
       return this._checkState();
     }
 
-    if (!force && this._lastSyncedUid === uid) {
-      return this._checkState();
-    }
-
-    if (this._syncInFlight) {
-      return this._syncInFlight;
-    }
-
     const platform = Capacitor.getPlatform();
     if (platform !== "android" && platform !== "ios") {
       return this._checkState();
     }
 
     if (this._checkState().uid !== uid) {
+      this._invalidateSyncInFlight();
+      this._lastSyncedUid = null;
       this._checkState.set({ status: "idle", uid, platform });
+    }
+
+    if (!force && this._lastSyncedUid === uid) {
+      return this._checkState();
+    }
+
+    if (this._syncInFlight?.uid === uid) {
+      return this._syncInFlight.promise;
     }
 
     // Apple's Declared Age Range API may present system UI. Never invoke it
@@ -159,15 +169,23 @@ export class AgeAssuranceService {
     }
 
     this._checkState.set({ status: "checking", uid, platform });
-    this._syncInFlight = this._performNativeSync(uid, platform);
+    const generation = this._syncGeneration;
+    const promise = this._performNativeSync(uid, platform);
+    this._syncInFlight = { uid, generation, promise };
     try {
-      const state = await this._syncInFlight;
+      const state = await promise;
+      if (!this._isCurrentSync(uid, generation)) {
+        return this._checkState();
+      }
       this._checkState.set(state);
       if (state.status !== "error") {
         this._lastSyncedUid = uid;
       }
       return state;
     } catch (error) {
+      if (!this._isCurrentSync(uid, generation)) {
+        return this._checkState();
+      }
       console.warn("[AgeAssurance] Failed to sync native age policy", error);
       const state: AgeAssuranceCheckState = {
         status: "error",
@@ -177,8 +195,22 @@ export class AgeAssuranceService {
       this._checkState.set(state);
       return state;
     } finally {
-      this._syncInFlight = null;
+      if (this._isCurrentSync(uid, generation)) {
+        this._syncInFlight = null;
+      }
     }
+  }
+
+  private _invalidateSyncInFlight(): void {
+    this._syncGeneration += 1;
+    this._syncInFlight = null;
+  }
+
+  private _isCurrentSync(uid: string, generation: number): boolean {
+    return (
+      this._syncGeneration === generation &&
+      this._authService.user.uid === uid
+    );
   }
 
   private async _performNativeSync(
