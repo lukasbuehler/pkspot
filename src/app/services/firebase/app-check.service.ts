@@ -50,12 +50,6 @@ type ScreenshotGlobal = typeof globalThis & {
 
 const WEB_APPCHECK_PROBE_APP_NAME = "pkspot-app-check-probe";
 const WEB_APPCHECK_THROTTLE_STORAGE_PREFIX = "pkspot:app-check:web-throttle";
-const WEB_APPCHECK_DEFAULT_THROTTLE_MS = 24 * 60 * 60 * 1000;
-
-interface WebAppCheckThrottle {
-  retryAt: number;
-  message: string;
-}
 
 export function buildFirebaseAppCheckNativeInitializeOptions(
   settings: FirebaseAppCheckSettings | undefined,
@@ -185,12 +179,7 @@ export class FirebaseAppCheckService {
       return;
     }
 
-    const activeThrottle = this.getActiveWebThrottle(settings);
-    if (activeThrottle) {
-      this.logWebThrottle(platform, activeThrottle);
-      return;
-    }
-
+    this.clearLegacyWebThrottle(settings);
     this.configureWebDebugToken(settings);
     let appCheck: AppCheck;
     try {
@@ -204,7 +193,7 @@ export class FirebaseAppCheckService {
     }
     this.webAppCheck = appCheck;
 
-    await this.verifyWebToken(appCheck, platform, settings);
+    await this.verifyWebToken(appCheck, platform);
   }
 
   private async initializeNative(
@@ -228,14 +217,11 @@ export class FirebaseAppCheckService {
   private async verifyWebToken(
     appCheck: AppCheck,
     platform: string,
-    settings: FirebaseAppCheckSettings | undefined,
   ): Promise<void> {
     try {
       const result = await getToken(appCheck);
-      this.clearWebThrottle(settings);
       this.logSuccess(platform, result.token);
     } catch (error) {
-      this.rememberWebThrottle(settings, error);
       this.logFailure(platform, "getToken", error);
     }
   }
@@ -330,37 +316,8 @@ export class FirebaseAppCheckService {
     });
   }
 
-  private logWebThrottle(
-    platform: string,
-    throttle: WebAppCheckThrottle,
-  ): void {
-    const retryAt = new Date(throttle.retryAt);
-    const message = `App Check verification is throttled locally until ${retryAt.toISOString()}.`;
-
-    this._status.set({
-      state: "failed",
-      platform,
-      phase: "getToken",
-      appId: this.getFirebaseAppId(),
-      projectId: this.getFirebaseProjectId(),
-      message,
-    });
-    console.warn("[AppCheck] Token check skipped due to local throttle.", {
-      platform,
-      appId: this.getFirebaseAppId(),
-      projectId: this.getFirebaseProjectId(),
-      retryAt: retryAt.toISOString(),
-      previousMessage: throttle.message,
-    });
-    this.trackStatus("web_throttled", platform, {
-      phase: "getToken",
-      retry_at: retryAt.toISOString(),
-      previous_message: throttle.message,
-    });
-  }
-
   private trackStatus(
-    state: FirebaseAppCheckStatus["state"] | "web_throttled",
+    state: FirebaseAppCheckStatus["state"],
     platform: string,
     properties: Record<string, unknown> = {},
   ): void {
@@ -435,81 +392,7 @@ export class FirebaseAppCheckService {
     };
   }
 
-  private getActiveWebThrottle(
-    settings: FirebaseAppCheckSettings | undefined,
-  ): WebAppCheckThrottle | null {
-    if (settings?.debugToken) {
-      return null;
-    }
-
-    const key = this.getWebThrottleStorageKey(settings);
-    if (!key) {
-      return null;
-    }
-
-    try {
-      const rawThrottle = globalThis.localStorage?.getItem(key);
-      if (!rawThrottle) {
-        return null;
-      }
-
-      const parsedThrottle = JSON.parse(
-        rawThrottle,
-      ) as Partial<WebAppCheckThrottle>;
-      const retryAt = parsedThrottle.retryAt;
-      if (typeof retryAt !== "number" || retryAt <= Date.now()) {
-        globalThis.localStorage?.removeItem(key);
-        return null;
-      }
-
-      return {
-        retryAt,
-        message:
-          typeof parsedThrottle.message === "string"
-            ? parsedThrottle.message
-            : "Previous App Check request was throttled.",
-      };
-    } catch (error) {
-      console.warn("[AppCheck] Could not read local throttle state.", error);
-      return null;
-    }
-  }
-
-  private rememberWebThrottle(
-    settings: FirebaseAppCheckSettings | undefined,
-    error: unknown,
-  ): void {
-    if (!this.isInitialThrottleError(error)) {
-      return;
-    }
-
-    const key = this.getWebThrottleStorageKey(settings);
-    if (!key) {
-      return;
-    }
-
-    const message = this.formatErrorMessage(error);
-    const retryAt =
-      Date.now() +
-      (this.extractThrottleDurationMs(message) ??
-        WEB_APPCHECK_DEFAULT_THROTTLE_MS);
-
-    try {
-      globalThis.localStorage?.setItem(
-        key,
-        JSON.stringify({
-          retryAt,
-          message,
-        } satisfies WebAppCheckThrottle),
-      );
-    } catch (storageError) {
-      console.warn("[AppCheck] Could not persist local throttle state.", {
-        error: storageError,
-      });
-    }
-  }
-
-  private clearWebThrottle(
+  private clearLegacyWebThrottle(
     settings: FirebaseAppCheckSettings | undefined,
   ): void {
     const key = this.getWebThrottleStorageKey(settings);
@@ -520,7 +403,7 @@ export class FirebaseAppCheckService {
     try {
       globalThis.localStorage?.removeItem(key);
     } catch (error) {
-      console.warn("[AppCheck] Could not clear local throttle state.", error);
+      console.warn("[AppCheck] Could not clear legacy throttle state.", error);
     }
   }
 
@@ -534,39 +417,6 @@ export class FirebaseAppCheckService {
     }
 
     return `${WEB_APPCHECK_THROTTLE_STORAGE_PREFIX}:${appId}:${siteKey}`;
-  }
-
-  private isInitialThrottleError(error: unknown): boolean {
-    const code =
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      typeof (error as { code?: unknown }).code === "string"
-        ? (error as { code: string }).code
-        : "";
-    const message = this.formatErrorMessage(error);
-
-    return (
-      code === "appCheck/initial-throttle" ||
-      message.includes("appCheck/initial-throttle")
-    );
-  }
-
-  private extractThrottleDurationMs(message: string): number | null {
-    const match = message.match(
-      /Attempts allowed again after\s+(?:(\d+)d:)?(?:(\d+)h:)?(?:(\d+)m:)?(?:(\d+)s)?/,
-    );
-    if (!match) {
-      return null;
-    }
-
-    const [, days, hours, minutes, seconds] = match;
-    return (
-      Number(days ?? 0) * 24 * 60 * 60 * 1000 +
-      Number(hours ?? 0) * 60 * 60 * 1000 +
-      Number(minutes ?? 0) * 60 * 1000 +
-      Number(seconds ?? 0) * 1000
-    );
   }
 
   private getFirebaseAppId(): string | undefined {

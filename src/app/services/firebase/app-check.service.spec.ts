@@ -309,7 +309,7 @@ describe("FirebaseAppCheckService", () => {
     );
   });
 
-  it("stores the web App Check throttle after Firebase rejects token exchange", async () => {
+  it("leaves Firebase provider throttling in memory after a rejected token exchange", async () => {
     const throttleError = Object.assign(
       new Error(
         "AppCheck: 403 error. Attempts allowed again after 01d:00m:00s (appCheck/initial-throttle)."
@@ -341,16 +341,11 @@ describe("FirebaseAppCheckService", () => {
       attachToFirebaseSdk: false,
     });
 
-    const rawThrottle = globalThis.localStorage?.getItem(
-      "pkspot:app-check:web-throttle:web-app-id:site-key"
-    );
-
-    expect(rawThrottle).toBeTruthy();
-    expect(JSON.parse(rawThrottle ?? "{}")).toEqual(
-      expect.objectContaining({
-        message: throttleError.message,
-      })
-    );
+    expect(
+      globalThis.localStorage?.getItem(
+        "pkspot:app-check:web-throttle:web-app-id:site-key"
+      )
+    ).toBeNull();
     expect(service.status()).toEqual(
       expect.objectContaining({
         state: "failed",
@@ -361,7 +356,7 @@ describe("FirebaseAppCheckService", () => {
     );
   });
 
-  it("skips the web App Check probe while a local throttle is active", async () => {
+  it("clears a legacy persisted throttle and retries web initialization", async () => {
     const firebaseApp = {
       options: {
         appId: "web-app-id",
@@ -393,21 +388,17 @@ describe("FirebaseAppCheckService", () => {
       attachToFirebaseSdk: false,
     });
 
-    expect(initializeAppCheck).not.toHaveBeenCalled();
-    expect(getToken).not.toHaveBeenCalled();
-    expect(console.warn).toHaveBeenCalledWith(
-      "[AppCheck] Token check skipped due to local throttle.",
-      expect.objectContaining({
-        platform: "web",
-        appId: "web-app-id",
-        projectId: "parkour-base-project",
-      })
-    );
+    expect(initializeAppCheck).toHaveBeenCalledOnce();
+    expect(getToken).toHaveBeenCalledOnce();
+    expect(
+      globalThis.localStorage?.getItem(
+        "pkspot:app-check:web-throttle:web-app-id:site-key"
+      )
+    ).toBeNull();
     expect(service.status()).toEqual(
       expect.objectContaining({
-        state: "failed",
+        state: "ready",
         platform: "web",
-        phase: "getToken",
       })
     );
   });
