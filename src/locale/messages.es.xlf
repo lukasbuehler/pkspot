@@ -16770,5 +16770,17 @@
         <target>en los últimos 30 días</target>
       </segment>
     </unit>
+    <unit id="profile.actions.acceptFollowRequest">
+      <segment state="initial">
+        <source>Accept follow request</source>
+        <target>Aceptar solicitud de seguimiento</target>
+      </segment>
+    </unit>
+    <unit id="profile.followRequests.viewProfile">
+      <segment state="initial">
+        <source>View profile</source>
+        <target>Ver perfil</target>
+      </segment>
+    </unit>
   </file>
 </xliff>

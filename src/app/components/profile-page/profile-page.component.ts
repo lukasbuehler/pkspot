@@ -156,6 +156,8 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   loadingFollowing: boolean = false;
   isFollowing: boolean = false;
   isPendingFollowRequest: boolean = false;
+  isIncomingFollowRequest: boolean = false;
+  loadingIncomingFollowRequest: boolean = false;
   privateDataLoading: boolean = false;
   privateDataLoadFailed: boolean = false;
   savedSpotIds: string[] = [];
@@ -314,6 +316,8 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
     this.profileStartDuration = "";
     this.isFollowing = false;
     this.isPendingFollowRequest = false;
+    this.isIncomingFollowRequest = false;
+    this.loadingIncomingFollowRequest = false;
     this.profileSocialLinks = [];
     this._resetFollowRequestsState();
 
@@ -403,6 +407,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
           this._profileSubscriptions.add(followingSub);
 
           if (!this.isMyProfile) {
+            this.loadingIncomingFollowRequest = true;
             const requestSub = this._followingService
               .hasPendingFollowRequest$(myUserId, userId)
               .subscribe(
@@ -419,6 +424,25 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
                 }
               );
             this._profileSubscriptions.add(requestSub);
+
+            const incomingRequestSub = this._followingService
+              .hasIncomingFollowRequest$(myUserId, userId)
+              .subscribe(
+                (isIncomingFollowRequest) => {
+                  this.isIncomingFollowRequest = isIncomingFollowRequest;
+                  this.loadingIncomingFollowRequest = false;
+                  this._cdr.detectChanges();
+                },
+                (err) => {
+                  console.error(
+                    "There was an error checking their follow request"
+                  );
+                  console.error(err);
+                  this.loadingIncomingFollowRequest = false;
+                  this._cdr.detectChanges();
+                }
+              );
+            this._profileSubscriptions.add(incomingRequestSub);
           }
         }
 
@@ -499,13 +523,20 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   }
 
   followButtonClick(): void {
-    if (this.loadingFollowing || !this.user || this.isMyProfile) {
+    if (
+      this.loadingFollowing ||
+      this.loadingIncomingFollowRequest ||
+      !this.user ||
+      this.isMyProfile
+    ) {
       return;
     }
     this.loadingFollowing = true;
 
     if (this.user && !this.isMyProfile) {
-      if (this._authService.user.uid && this.isFollowing) {
+      if (this.isIncomingFollowRequest) {
+        this._acceptIncomingFollowRequest();
+      } else if (this._authService.user.uid && this.isFollowing) {
         // Already following this user, unfollow
         this._followingService
           .unfollowUser(this._authService.user.uid, this.userId)
@@ -609,6 +640,47 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   private _completeFollowAction(): void {
     this.loadingFollowing = false;
     this._cdr.markForCheck();
+  }
+
+  private _acceptIncomingFollowRequest(): void {
+    const currentUserId = this._authService.user.uid;
+    const currentUserData = this._authService.user.data?.data;
+    const requester = this.user;
+    if (!currentUserId || !currentUserData || !requester?.data) {
+      this._completeFollowAction();
+      this._snackbar.open(
+        $localize`There was an error approving the follow request.`,
+        "OK",
+        { duration: 5000 },
+      );
+      return;
+    }
+
+    this._followingService
+      .approveFollowRequest(currentUserId, currentUserData, {
+        uid: requester.uid,
+        display_name: requester.data.display_name,
+      })
+      .then(() => {
+        this.isIncomingFollowRequest = false;
+        this.isFollowing = true;
+        this._snackbar.open(
+          $localize`:@@notification_center.success.accepted:Follow request accepted`,
+          "OK",
+          {
+            duration: 3000,
+          },
+        );
+      })
+      .catch((error) => {
+        console.error("Failed to accept follow request", error);
+        this._snackbar.open(
+          $localize`There was an error approving the follow request.`,
+          "OK",
+          { duration: 5000 },
+        );
+      })
+      .finally(() => this._completeFollowAction());
   }
 
   private _loadFollowRequests(force = false) {

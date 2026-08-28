@@ -152,7 +152,7 @@ test.describe("profile privacy follow request workflows", () => {
     });
   });
 
-  test("profile owner can review and approve pending follow requests", async ({
+  test("profile owner can view and approve a pending follow request", async ({
     page,
     request,
   }) => {
@@ -177,13 +177,28 @@ test.describe("profile privacy follow request workflows", () => {
     await page.locator("#app-splash-screen").waitFor({ state: "detached" });
     await expect(profile).toContainText("Follow requests");
     await expect(profile).toContainText(requester.displayName);
+    const profileLink = profile.getByTestId("follow-request-profile");
+    await expect(
+      profileLink,
+    ).toHaveAttribute("href", new RegExp(`/u/${requester.uid}$`));
 
     await page.screenshot({
       path: `${screenshotDir}/profile-phase2-owner-requests.png`,
       fullPage: true,
     });
 
-    await profile.getByRole("button", { name: /Approve|Genehmigen/u }).click();
+    await profileLink.click();
+    await expect(page).toHaveURL(new RegExp(`/u/${requester.uid}$`));
+    const requesterProfile = page.locator("app-profile-page");
+    const followButton = requesterProfile.getByTestId("follow-action");
+    await expect(followButton).toContainText(
+      /Accept follow request|Folgeanfrage annehmen/u,
+    );
+
+    await followButton.click();
+    await expect(followButton).toContainText(/Unfollow|Entfolgen/u);
+
+    await page.goBack();
     await expect(profile).toContainText("No pending follow requests.");
   });
 });

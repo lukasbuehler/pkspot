@@ -191,7 +191,7 @@ export const onFollowRequestNotificationCreate = onDocumentWritten(
       sourcePath: snapshot.ref.path,
       sendAfter: Timestamp.now(),
       expiresAt: Timestamp.fromMillis(Date.now() + 30 * DAY_MS),
-      path: "/profile",
+      path: `/u/${encodeURIComponent(requesterId)}`,
       channelId: "follow_incoming",
       threadKey: `follow:${requesterId}`,
       imageUrl: stringValue(

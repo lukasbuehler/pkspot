@@ -209,6 +209,24 @@ only refreshes Spots linked from those events; it does not scan every Spot.
       Confirm a long title for a promoted event stays within the Spot side panel on
       narrow and desktop layouts.
 
+### Follow-request profile links
+
+The client repairs existing follow-request notification links using the requester
+ID in the intent payload. Deploy the compatible Function before releasing the
+client so new intents and FCM payloads link directly to the requester profile.
+
+- [ ] Build and deploy the notification Function, then create a private-account
+      follow request in a non-production fixture. Verify its stored intent,
+      in-app notification, and delivered FCM payload target `/u/{requesterId}`.
+      From the recipient profile, open the requester profile and verify the
+      primary action is “Accept follow request”; accepting it must create both
+      follow edges and remove the pending request.
+
+  ```sh
+  npm --prefix functions run build
+  npx firebase deploy --project prod --only functions:onFollowRequestNotificationCreate
+  ```
+
 ### Email signup and notification-link repair
 
 The digest Function change is backward-compatible: existing clients can open

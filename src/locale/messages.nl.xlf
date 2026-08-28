@@ -16770,5 +16770,17 @@
         <target>in de afgelopen 30 dagen</target>
       </segment>
     </unit>
+    <unit id="profile.actions.acceptFollowRequest">
+      <segment state="initial">
+        <source>Accept follow request</source>
+        <target>Volgverzoek accepteren</target>
+      </segment>
+    </unit>
+    <unit id="profile.followRequests.viewProfile">
+      <segment state="initial">
+        <source>View profile</source>
+        <target>Profiel bekijken</target>
+      </segment>
+    </unit>
   </file>
 </xliff>

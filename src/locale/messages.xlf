@@ -14055,5 +14055,15 @@
         <source>in the last 30 days</source>
       </segment>
     </unit>
+    <unit id="profile.actions.acceptFollowRequest">
+      <segment>
+        <source>Accept follow request</source>
+      </segment>
+    </unit>
+    <unit id="profile.followRequests.viewProfile">
+      <segment>
+        <source>View profile</source>
+      </segment>
+    </unit>
   </file>
 </xliff>
