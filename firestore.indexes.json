@@ -1,6 +1,20 @@
 {
   "indexes": [
     {
+      "collectionGroup": "check_in_aggregate_contributions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "eligibility",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "accepted_at",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "spot_create_submissions",
       "queryScope": "COLLECTION",
       "fields": [

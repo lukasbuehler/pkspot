@@ -78,7 +78,7 @@ export function isFiniteLatLngBounds(
 
 export function reportInvalidMapCoordinate(
   message: string,
-  value: unknown,
+  _value: unknown,
 ): void {
   let error: Error;
   try {
@@ -88,24 +88,8 @@ export function reportInvalidMapCoordinate(
   }
 
   console.warn(
-    `[MapCoordinateGuard] ${message}; value=${serializeInvalidMapValue(value)}\n${
+    `[MapCoordinateGuard] ${message}; coordinate details omitted\n${
       error.stack ?? String(error)
     }`,
   );
-}
-
-function serializeInvalidMapValue(value: unknown): string {
-  if (value === undefined) return "undefined";
-
-  try {
-    return JSON.stringify(value, (_key, item: unknown) => {
-      if (typeof item === "number" && !Number.isFinite(item)) {
-        return String(item);
-      }
-
-      return item;
-    });
-  } catch {
-    return String(value);
-  }
 }

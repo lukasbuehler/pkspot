@@ -293,7 +293,7 @@
     }
 
     <!-- Geolocation -->
-    @if (showGeolocation() && geolocation()) {
+    @if (showGeolocation() && locationAccess.enabled() && geolocation()) {
       <div #geolocationMarker class="geolocation-marker"></div>
       <map-advanced-marker
         [position]="geolocation()!.location"

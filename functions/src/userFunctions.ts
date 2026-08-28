@@ -242,14 +242,23 @@ export const onCheckInCreate = onDocumentCreated(
       .doc(userId)
       .collection("private_data")
       .doc("main");
+    const legacyVisitRef = admin
+      .firestore()
+      .collection("users")
+      .doc(userId)
+      .collection("legacy_check_in_spot_index")
+      .doc(spotId);
 
     try {
-      await privateDataRef.set(
-        {
-          visited_spots: admin.firestore.FieldValue.arrayUnion(spotId),
-        },
-        { merge: true }
-      );
+      await Promise.all([
+        privateDataRef.set(
+          {
+            visited_spots: admin.firestore.FieldValue.arrayUnion(spotId),
+          },
+          { merge: true }
+        ),
+        legacyVisitRef.set({legacy_visited: true}, {merge: true}),
+      ]);
       console.log(`Added spot ${spotId} to visited_spots for user ${userId}`);
     } catch (error) {
       console.error(`Error updating visited_spots for user ${userId}:`, error);

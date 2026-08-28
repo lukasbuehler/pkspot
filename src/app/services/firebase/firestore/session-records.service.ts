@@ -1,6 +1,12 @@
 import { Injectable, inject } from "@angular/core";
 import { Timestamp } from "firebase/firestore";
 import {
+  ConfirmCheckInRequest,
+  ConfirmCheckInResponse,
+  DeleteAllCheckInsResponse,
+  DeleteCheckInResponse,
+} from "../../../../db/schemas/CheckInActivitySchema";
+import {
   SessionPersonReference,
   SessionRecordDocument,
   SessionRecordSchema,
@@ -8,6 +14,7 @@ import {
 } from "../../../../db/schemas/SessionRecordSchema";
 import { AuthenticationService } from "../authentication.service";
 import { FirestoreAdapterService } from "../firestore-adapter.service";
+import { FunctionsAdapterService } from "../functions-adapter.service";
 
 export interface CreateManualSessionInput {
   startedAt: Date;
@@ -25,12 +32,21 @@ export interface UpdateSessionRecordInput {
   peoplePresent: readonly SessionPersonReference[];
 }
 
+export interface CheckInHistoryItem {
+  checkInId: string;
+  sessionRecordId: string;
+  spotId: string;
+  spotName?: string;
+  arrivedAtRawMs: number;
+}
+
 @Injectable({ providedIn: "root" })
 export class SessionRecordsService {
   static readonly CHECK_IN_IDLE_WINDOW_MS = 5 * 60 * 60 * 1000;
 
   private readonly firestore = inject(FirestoreAdapterService);
   private readonly auth = inject(AuthenticationService);
+  private readonly functions = inject(FunctionsAdapterService);
 
   async listMine(limit = 50): Promise<SessionRecordDocument[]> {
     return this.firestore.getCollection<SessionRecordDocument>(
@@ -130,105 +146,70 @@ export class SessionRecordsService {
     );
   }
 
-  async recordCheckIn(spotId: string, spotName?: string): Promise<string> {
-    const uid = this.requireUserId();
-    const now = Timestamp.now();
-    const nowMs = now.toMillis();
-    const recent = await this.firestore.getCollection<SessionRecordDocument>(
-      this.collectionPath(uid),
-      [
-        {
-          fieldPath: "last_activity_raw_ms",
-          opStr: ">=",
-          value: nowMs - SessionRecordsService.CHECK_IN_IDLE_WINDOW_MS,
-        },
-      ],
-      [
-        {
-          type: "orderBy",
-          fieldPath: "last_activity_raw_ms",
-          direction: "desc",
-        },
-        { type: "limit", limit: 1 },
-      ],
-    );
-    const current = recent[0];
-    if (!current) {
-      return this.firestore.addDocument(this.collectionPath(uid), {
-        owner_id: uid,
-        source: "check_in",
-        started_at: now,
-        started_at_raw_ms: nowMs,
-        last_activity_at: now,
-        last_activity_raw_ms: nowMs,
-        time_zone: this.systemTimeZone(),
-        spot_visits: [
-          {
-            spot_id: spotId,
-            ...(spotName ? { spot_name: spotName } : {}),
-            arrived_at: now,
-            arrived_at_raw_ms: nowMs,
-          },
-        ],
-        people_present: [],
-        time_created: now,
-        time_created_raw_ms: nowMs,
-        time_updated: now,
-        time_updated_raw_ms: nowMs,
-      } satisfies SessionRecordSchema);
-    }
+  confirmCheckIn(
+    input: ConfirmCheckInRequest,
+  ): Promise<ConfirmCheckInResponse> {
+    this.requireUserId();
+    return this.functions.callAuthenticatedAppChecked<
+      ConfirmCheckInRequest,
+      ConfirmCheckInResponse
+    >("confirmCheckIn", input);
+  }
 
-    const visits = this.appendCheckIn(
-      current.spot_visits ?? [],
-      spotId,
-      spotName,
-      now,
-      nowMs,
-    );
-    await this.firestore.updateDocument(
-      `${this.collectionPath(uid)}/${current.id}`,
+  async listCheckIns(limit = 200): Promise<CheckInHistoryItem[]> {
+    const sessions = await this.listMine(limit);
+    return sessions
+      .flatMap((session) =>
+        (session.spot_visits ?? []).flatMap((visit) => {
+          if (!visit.check_in_id) return [];
+          return [{
+            checkInId: visit.check_in_id,
+            sessionRecordId: session.id,
+            spotId: visit.spot_id,
+            ...(visit.spot_name ? { spotName: visit.spot_name } : {}),
+            arrivedAtRawMs: visit.arrived_at_raw_ms,
+          } satisfies CheckInHistoryItem];
+        }),
+      )
+      .sort((first, second) => second.arrivedAtRawMs - first.arrivedAtRawMs);
+  }
+
+  deleteCheckIn(checkInId: string): Promise<DeleteCheckInResponse> {
+    this.requireUserId();
+    return this.functions.callAuthenticatedAppChecked<
+      { checkInId: string },
+      DeleteCheckInResponse
+    >("deleteCheckIn", { checkInId });
+  }
+
+  deleteAllCheckIns(): Promise<DeleteAllCheckInsResponse> {
+    this.requireUserId();
+    return this.functions.callAuthenticatedAppChecked<
+      Record<string, never>,
+      DeleteAllCheckInsResponse
+    >("deleteAllCheckIns", {});
+  }
+
+  async exportCheckIns(): Promise<string> {
+    const checkIns = await this.listCheckIns(500);
+    return JSON.stringify(
       {
-        spot_visits: visits,
-        last_activity_at: now,
-        last_activity_raw_ms: nowMs,
-        time_updated: now,
-        time_updated_raw_ms: nowMs,
+        exported_at: new Date().toISOString(),
+        check_ins: checkIns.map((checkIn) => ({
+          spot_id: checkIn.spotId,
+          ...(checkIn.spotName ? { spot_name: checkIn.spotName } : {}),
+          checked_in_at: new Date(checkIn.arrivedAtRawMs).toISOString(),
+        })),
       },
+      null,
+      2,
     );
-    return current.id;
   }
 
   async delete(recordId: string): Promise<void> {
     await this.firestore.deleteDocument(
       `${this.collectionPath(this.requireUserId())}/${recordId}`,
     );
-  }
-
-  private appendCheckIn(
-    visits: readonly SessionSpotVisitSchema[],
-    spotId: string,
-    spotName: string | undefined,
-    now: Timestamp,
-    nowMs: number,
-  ): SessionSpotVisitSchema[] {
-    const next = visits.map((visit) => ({ ...visit }));
-    const last = next.at(-1);
-    if (last?.spot_id === spotId) {
-      last.left_at = now;
-      last.left_at_raw_ms = nowMs;
-      return next;
-    }
-    if (last && last.left_at_raw_ms === undefined) {
-      last.left_at = now;
-      last.left_at_raw_ms = nowMs;
-    }
-    next.push({
-      spot_id: spotId,
-      ...(spotName ? { spot_name: spotName } : {}),
-      arrived_at: now,
-      arrived_at_raw_ms: nowMs,
-    });
-    return next;
   }
 
   private manualSpotVisits(

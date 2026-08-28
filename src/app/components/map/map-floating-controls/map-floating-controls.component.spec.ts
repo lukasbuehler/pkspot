@@ -47,6 +47,20 @@ describe("MapFloatingControlsComponent", () => {
     expect(actions).toEqual(["north", "style", "location"]);
   });
 
+  it("keeps Locate-me available while location is off", () => {
+    fixture.componentRef.setInput("showControls", true);
+    fixture.componentRef.setInput("locationEnabled", false);
+    fixture.componentRef.setInput("geolocationIcon", "location_disabled");
+    fixture.detectChanges();
+
+    const locationButton = fixture.debugElement.query(
+      By.css(".map-location-control"),
+    );
+    expect(locationButton.classes["map-location-control--disabled"]).toBe(true);
+    expect(locationButton.nativeElement.disabled).toBe(false);
+    expect(fixture.componentInstance.geolocationTooltip()).toBe("Location is off");
+  });
+
   it("offers all configured creation actions from the FAB menu", async () => {
     const actions: string[] = [];
     fixture.componentInstance.createSpot.subscribe(() => actions.push("spot"));

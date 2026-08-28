@@ -507,7 +507,7 @@
         "extract-i18n": {
           "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",
           "options": {
-            "buildTarget": "pkspot:build:dev",
+            "buildTarget": "pkspot:build:production",
             "format": "xlf2",
             "outputPath": "src/locale",
             "targetFiles": [

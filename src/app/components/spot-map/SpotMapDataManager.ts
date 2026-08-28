@@ -1496,14 +1496,12 @@ export class SpotMapDataManager {
           } else {
             // Add as a new spot
             spots.push(newSpot);
-            console.debug("Added new spot to loaded spots", newSpot);
           }
         }
       } else {
         // There are no spots loaded for this 16 tile, add it to the loaded spots
         spots = [newSpot];
         this._spots.set(tileKey, spots);
-        console.debug("Added new spot to empty tile", newSpot);
       }
     }
 

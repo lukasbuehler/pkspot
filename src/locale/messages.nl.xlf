@@ -3153,12 +3153,6 @@
         <target>Knop met een route-icoon</target>
       </segment>
     </unit>
-    <unit id="6715130059718666635">
-      <segment state="initial">
-        <source>Contributions</source>
-        <target>Bijdragen</target>
-      </segment>
-    </unit>
     <unit id="6720692665733098220">
       <segment state="initial">
         <source>Reported externally</source>
@@ -13362,12 +13356,6 @@
         <target>Het mobiele platform vereist dat je je leeftijd bevestigt of toezicht instelt. Volg de instructies en controleer daarna opnieuw.</target>
       </segment>
     </unit>
-    <unit id="541397324131531449">
-      <segment state="initial">
-        <source>Go to your location</source>
-        <target>Ga naar je locatie</target>
-      </segment>
-    </unit>
     <unit id="5439680339974485805">
       <segment state="initial">
         <source>Publish live event update</source>
@@ -16624,6 +16612,162 @@
       <segment state="translated">
         <source>Vote recorded</source>
         <target>Stem geregistreerd</target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.status.on">
+      <segment state="initial">
+        <source>On while using the app</source>
+        <target>Aan tijdens het gebruik van de app</target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.status.temporary">
+      <segment state="initial">
+        <source>On temporarily</source>
+        <target>Tijdelijk aan</target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.status.off">
+      <segment state="initial">
+        <source>Off</source>
+        <target>Uit</target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.settings.title">
+      <segment state="initial">
+        <source>Location</source>
+        <target>Locatie</target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.settings.description">
+      <segment state="initial">
+        <source> Use location for the map position and nearby check-ins. It is off until you choose otherwise. </source>
+        <target> Gebruik locatie voor je positie op de kaart en check-ins in de buurt. Deze blijft uit totdat je anders kiest. </target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.settings.current">
+      <segment state="initial">
+        <source> Current setting: <ph id="0" equiv="INTERPOLATION" disp="{{ locationAccessLabel() }}"/> </source>
+        <target> Huidige instelling: <ph id="0" equiv="INTERPOLATION" disp="{{ locationAccessLabel() }}"/> </target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.settings.manage">
+      <segment state="initial">
+        <source>Manage location</source>
+        <target>Locatie beheren</target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.settings.off">
+      <segment state="initial">
+        <source>Turn off</source>
+        <target>Uitschakelen</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.deleteConfirm">
+      <segment state="initial">
+        <source>Delete this check-in from your private history?</source>
+        <target>Deze check-in uit je privégeschiedenis verwijderen?</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.clearConfirm">
+      <segment state="initial">
+        <source>Delete all check-ins from your private history? This cannot be undone.</source>
+        <target>Alle check-ins uit je privégeschiedenis verwijderen? Dit kan niet ongedaan worden gemaakt.</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.title">
+      <segment state="initial">
+        <source>Private check-ins</source>
+        <target>Privé-check-ins</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.description">
+      <segment state="initial">
+        <source>Only you can see this history. It never shares your precise location.</source>
+        <target>Alleen jij kunt deze geschiedenis zien. Je precieze locatie wordt nooit gedeeld.</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.export">
+      <segment state="initial">
+        <source>Export</source>
+        <target>Exporteren</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.clear">
+      <segment state="initial">
+        <source>Clear all</source>
+        <target>Alles wissen</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.delete">
+      <segment state="initial">
+        <source>Delete check-in</source>
+        <target>Check-in verwijderen</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.empty">
+      <segment state="initial">
+        <source>Your confirmed nearby check-ins will appear here.</source>
+        <target>Je bevestigde check-ins in de buurt verschijnen hier.</target>
+      </segment>
+    </unit>
+    <unit id="map.geolocation.tooltip">
+      <segment state="initial">
+        <source>Go to your location</source>
+        <target>Ga naar je locatie</target>
+      </segment>
+    </unit>
+    <unit id="map.geolocation.disabled.tooltip">
+      <segment state="initial">
+        <source>Location is off</source>
+        <target>Locatie staat uit</target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.title">
+      <segment state="initial">
+        <source>Use device location?</source>
+        <target>Apparaatlocatie gebruiken?</target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.explanation">
+      <segment state="initial">
+        <source> PK Spot uses your device location to show your position and find nearby Spots. Your precise location is not stored or shared. When you explicitly check in, PK Spot privately records the Spot and time in your training history. </source>
+        <target> PK Spot gebruikt de locatie van je apparaat om je positie te tonen en Spots in de buurt te vinden. Je precieze locatie wordt niet opgeslagen of gedeeld. Wanneer je expliciet incheckt, registreert PK Spot privé de Spot en het tijdstip in je trainingsgeschiedenis. </target>
+      </segment>
+    </unit>
+    <unit id="common.notNow">
+      <segment state="initial">
+        <source>Not now</source>
+        <target>Niet nu</target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.temporary">
+      <segment state="initial">
+        <source>Use for 5 minutes</source>
+        <target>5 minuten gebruiken</target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.persistent">
+      <segment state="initial">
+        <source>Use while using the app</source>
+        <target>Gebruiken tijdens het gebruik van de app</target>
+      </segment>
+    </unit>
+    <unit id="spot.activity.label">
+      <segment state="initial">
+        <source>Recently trained</source>
+        <target>Onlangs getraind</target>
+      </segment>
+    </unit>
+    <unit id="spot.activity.bucket">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ summary.bucket }}"/> people</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="{{ summary.bucket }}"/> personen</target>
+      </segment>
+    </unit>
+    <unit id="spot.activity.window">
+      <segment state="initial">
+        <source>in the last 30 days</source>
+        <target>in de afgelopen 30 dagen</target>
       </segment>
     </unit>
   </file>

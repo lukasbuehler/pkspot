@@ -6,6 +6,8 @@ export type SessionRecordSource = "manual" | "check_in";
 export type SessionPersonReference = Omit<UserReferenceSchema, "ref">;
 
 export interface SessionSpotVisitSchema {
+  /** Present only for server-confirmed nearby check-ins. */
+  check_in_id?: string;
   spot_id: string;
   spot_name?: string;
   arrived_at: Timestamp;

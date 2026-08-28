@@ -208,6 +208,7 @@ import {
 } from "../weather-forecast-dialog/weather-forecast-dialog.component";
 import { SpotAccessPickerComponent } from "../spot-access-picker/spot-access-picker.component";
 import { SpotTypePickerComponent } from "../spot-type-picker/spot-type-picker.component";
+import { SpotActivitySummaryComponent } from "../spot-activity-summary/spot-activity-summary.component";
 
 @Pipe({ name: "reverse" })
 export class ReversePipe implements PipeTransform {
@@ -323,6 +324,7 @@ type OrganizationRelationshipSaveResult = "unchanged" | "changed" | "failed";
     WeatherIconButtonComponent,
     SpotAccessPickerComponent,
     SpotTypePickerComponent,
+    SpotActivitySummaryComponent,
   ],
   host: {
     "[style.--open-progress]": "openProgressStyle",
@@ -421,6 +423,10 @@ export class SpotDetailsComponent
     } else {
       return null;
     }
+  });
+  readonly spotActivitySpotId = computed(() => {
+    const spot = this.spot();
+    return spot instanceof Spot ? spot.id : null;
   });
   spotSlugOrId = computed(() => {
     const spot = this.spot();

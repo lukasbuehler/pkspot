@@ -27,6 +27,7 @@ import { MatBadge } from "@angular/material/badge";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIcon } from "@angular/material/icon";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import { MatDialog } from "@angular/material/dialog";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { AppSettingsService } from "../../services/app-settings.service";
 import { AccountPreferencesService } from "../../services/account-preferences.service";
@@ -57,6 +58,8 @@ import type {
 } from "../../weather/weather-temperature";
 import { AgeAssuranceStatusCardComponent } from "../age-assurance-status-card/age-assurance-status-card.component";
 import { NotificationSettingsComponent } from "../notification-settings/notification-settings.component";
+import { LocationAccessService } from "../../services/location-access.service";
+import { LocationAccessDialogComponent } from "../location-access-dialog/location-access-dialog.component";
 
 @Component({
   selector: "app-settings-page",
@@ -114,6 +117,8 @@ export class SettingsPageComponent implements OnInit {
     private _analytics: AnalyticsService,
     private _usersService: UsersService,
     private _appCheckService: FirebaseAppCheckService,
+    private _dialog: MatDialog,
+    public locationAccess: LocationAccessService,
   ) {}
   languageCodes = languageCodes;
 
@@ -184,6 +189,27 @@ export class SettingsPageComponent implements OnInit {
     }
 
     return $localize`:@@settings.app_check.detail.default:App Check status is shown here for release testing.`;
+  }
+
+  locationAccessLabel(): string {
+    switch (this.locationAccess.mode()) {
+      case "on":
+        return $localize`:@@locationAccess.status.on:On while using the app`;
+      case "temporary":
+        return $localize`:@@locationAccess.status.temporary:On temporarily`;
+      default:
+        return $localize`:@@locationAccess.status.off:Off`;
+    }
+  }
+
+  manageLocationAccess(): void {
+    this._dialog.open(LocationAccessDialogComponent, {
+      maxWidth: "min(420px, 92vw)",
+    });
+  }
+
+  async disableLocationAccess(): Promise<void> {
+    await this.locationAccess.disable();
   }
 
   speedDialButtonConfig: SpeedDialFabButtonConfig = {

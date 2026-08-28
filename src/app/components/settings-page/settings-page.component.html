@@ -472,6 +472,22 @@
           </h3>
 
           <div class="my-4 p-3 rounded border">
+            <h3 class="mat-h3 m-0" i18n="@@locationAccess.settings.title">Location</h3>
+            <p class="mat-body mt-2 mb-3" i18n="@@locationAccess.settings.description">
+              Use location for the map position and nearby check-ins. It is off until you choose otherwise.
+            </p>
+            <p class="mat-body-small mt-0" i18n="@@locationAccess.settings.current">
+              Current setting: {{ locationAccessLabel() }}
+            </p>
+            <div class="d-flex gap-2 flex-wrap">
+              <button matButton="outlined" type="button" (click)="manageLocationAccess()" i18n="@@locationAccess.settings.manage">Manage location</button>
+              @if (locationAccess.enabled()) {
+                <button matButton="outlined" type="button" (click)="disableLocationAccess()" i18n="@@locationAccess.settings.off">Turn off</button>
+              }
+            </div>
+          </div>
+
+          <div class="my-4 p-3 rounded border">
             <h3 class="mat-h3 m-0" i18n>Language</h3>
             <p class="mat-body mt-2 mb-3" i18n>
               Choose the language used in the app.

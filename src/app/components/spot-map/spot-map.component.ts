@@ -1026,8 +1026,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
       return spot.id as string;
     }
 
-    const location = spot.location();
-    return `local-${location.lat}-${location.lng}`;
+    return "local";
   }
 
   // Spot loading /////////////////////////////////////////////////////////////
@@ -1605,7 +1604,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     if (!this.isDebug()) return;
 
     console.debug("[MapDebug][SpotMap]", event, {
-      ...payload,
+      detailKeys: Object.keys(payload).sort(),
       selectedSpot: this._getSelectedSpotKey(),
       timestamp: Math.round(performance.now()),
     });

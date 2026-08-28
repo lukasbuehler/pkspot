@@ -13,9 +13,8 @@ import { Spot } from "../../db/models/Spot";
 import { SpotId } from "../../db/schemas/SpotSchema";
 import { SpotPreviewData } from "../../db/schemas/SpotPreviewData";
 import { environment } from "../../environments/environment.default";
-import { trainingFeatureEnabled } from "../features/training-feature";
-import { AuthenticationService } from "./firebase/authentication.service";
 import { SessionRecordsService } from "./firebase/firestore/session-records.service";
+import { LocationAccessService } from "./location-access.service";
 
 @Injectable({
   providedIn: "root",
@@ -26,6 +25,7 @@ export class CheckInService {
   private _injector = inject(Injector);
   private _geolocationService?: GeolocationService;
   private _searchService?: SearchService;
+  private readonly _locationAccess = inject(LocationAccessService);
 
   // Configuration
   private readonly PROXIMITY_THRESHOLD_METERS = 50;
@@ -55,33 +55,16 @@ export class CheckInService {
     // Effect to monitor location changes and selected spot changes
     effect(() => {
       const locationState = this._getGeolocationService().currentLocation();
-      const selected = this.selectedSpot(); // depend on selected spot
+      this.selectedSpot(); // depend on selected spot
 
-      if (locationState && locationState.location) {
-        console.debug(
-          `[CheckIn Debug] Location update: (${locationState.location.lat.toFixed(
-            6,
-          )}, ${locationState.location.lng.toFixed(6)}), accuracy: ${
-            locationState.accuracy?.toFixed(0) ?? "?"
-          }m`,
-        );
+      if (this._locationAccess.enabled() && locationState?.location) {
         this._checkProximity(locationState.location, locationState.accuracy);
       } else {
-        console.debug(`[CheckIn Debug] No location available yet`);
+        this.currentProximitySpot.set(null);
       }
     });
 
-    // Attempt to start watching if we already have permissions
-    this._getGeolocationService()
-      .checkPermissions()
-      .then((granted) => {
-        if (granted) {
-          console.debug(
-            "Geolocation permissions already granted, starting watch...",
-          );
-          this._getGeolocationService().startWatching();
-        }
-      });
+    void this._locationAccess.startWatchingIfEnabled();
   }
 
   private _getGeolocationService(): GeolocationService {
@@ -146,10 +129,6 @@ export class CheckInService {
     }
   }
 
-  // State for speed calculation
-  private _lastLocation: google.maps.LatLngLiteral | null = null;
-  private _lastLocationTime: number = 0;
-  private readonly SPEED_LIMIT_MS = 25 / 3.6; // 25 km/h in m/s (~6.94 m/s)
   private readonly ACCURACY_THRESHOLD_METERS = 50;
 
   private async _checkProximity(
@@ -158,42 +137,10 @@ export class CheckInService {
   ) {
     // 0. Accuracy Filter
     if (accuracy > this.ACCURACY_THRESHOLD_METERS) {
-      console.debug(
-        `Proactive Check-in: Ignoring update due to low accuracy (${accuracy}m)`,
-      );
       this.currentProximitySpot.set(null);
       return;
     }
-
-    // 0. Speed Filter (prevent checks while driving/busing)
     const now = Date.now();
-    if (this._lastLocation) {
-      const distance = this._computeDistanceMeters(
-        this._lastLocation,
-        location,
-      );
-      const timeDiff = (now - this._lastLocationTime) / 1000; // seconds
-
-      if (timeDiff > 0) {
-        const speed = distance / timeDiff; // m/s
-        if (speed > this.SPEED_LIMIT_MS) {
-          console.debug(
-            `Proactive Check-in: Ignoring update due to high speed (${(
-              speed * 3.6
-            ).toFixed(1)} km/h)`,
-          );
-          // Update last location so we don't get stuck if they slow down
-          this._lastLocation = location;
-          this._lastLocationTime = now;
-          this.currentProximitySpot.set(null);
-          return;
-        }
-      }
-    }
-
-    // Update last location for next speed check
-    this._lastLocation = location;
-    this._lastLocationTime = now;
 
     // Throttle queries to save costs (Typesense is cheap but not free)
     if (this._isQuerying) {
@@ -210,43 +157,17 @@ export class CheckInService {
     this._isQuerying = true;
     this._lastQueryTime = now;
 
-    console.debug(
-      `[CheckIn Debug] Querying Typesense at (${location.lat.toFixed(
-        6,
-      )}, ${location.lng.toFixed(6)})`,
-    );
-
     // Use Typesense geo-radius search (single fast query vs 9 Firestore tile queries)
     // Search within 500m to catch spots with large bounds
     this._getSearchService()
       .searchSpotsNearLocation(location, 500, 50)
       .then((result) => {
         this._isQuerying = false;
-        console.debug(
-          `[CheckIn Debug] Typesense returned ${result.hits.length} hits (found: ${result.found})`,
-        );
-        if (result.hits.length > 0) {
-          // Log full first hit document to see all available fields
-          console.debug(
-            `[CheckIn Debug] Full first hit document:`,
-            JSON.stringify(result.hits[0].document, null, 2),
-          );
-          console.debug(
-            `[CheckIn Debug] First few hits summary:`,
-            result.hits.slice(0, 3).map((h) => ({
-              id: h.document?.id,
-              name: h.document?.name,
-              location: h.document?.location,
-              bounds: h.document?.bounds?.length ?? 0,
-              bounds_raw: h.document?.bounds_raw?.length ?? 0,
-            })),
-          );
-        }
         this._findClosestSpotFromHits(location, result.hits);
       })
-      .catch((error) => {
+      .catch(() => {
         this._isQuerying = false;
-        console.error("Check-in proximity search failed:", error);
+        console.error("Check-in proximity search failed.");
       });
   }
 
@@ -295,11 +216,6 @@ export class CheckInService {
     // Update signal
     // Only update if changed to avoid signal churn
     if (this.currentProximitySpot()?.id !== targetSpot?.id) {
-      console.log(
-        `Proactive Check-in: Found spot ${
-          targetSpot?.name
-        } (Selected: ${!!selectedSpotInRange})`,
-      );
       this.currentProximitySpot.set(targetSpot);
     }
   }
@@ -310,30 +226,12 @@ export class CheckInService {
    */
   private _findClosestSpotFromHits(
     currentLocation: google.maps.LatLngLiteral,
-    hits: any[],
+    hits: unknown[],
   ) {
     // Convert hits to SpotPreviewData objects
     const spots: SpotPreviewData[] = hits
       .map((hit) => this._getSearchService().getSpotPreviewFromHit(hit))
       .filter((spot): spot is SpotPreviewData => !!spot);
-
-    console.debug(
-      `[CheckIn Debug] Converted ${spots.length}/${hits.length} hits to Spot objects`,
-    );
-
-    if (spots.length > 0) {
-      // Calculate distances for debugging
-      spots.slice(0, 5).forEach((spot) => {
-        const dist = this._getEffectiveDistance(currentLocation, spot);
-        console.debug(
-          `[CheckIn Debug] Spot "${spot.name}" - distance: ${dist.toFixed(
-            1,
-          )}m, hasBounds: ${!!(
-            spot.bounds && spot.bounds.length > 0
-          )}, threshold: ${this.PROXIMITY_THRESHOLD_METERS}m`,
-        );
-      });
-    }
 
     // Use existing logic
     this._findClosestSpot(currentLocation, spots);
@@ -511,13 +409,14 @@ export class CheckInService {
 
   public async checkIn(spotId: SpotId): Promise<void> {
     if (!this.isEnabled) return;
-    const auth = this._injector.get(AuthenticationService);
-    if (trainingFeatureEnabled && auth.user.uid) {
-      const spot = this.currentProximitySpot();
-      await this._injector
-        .get(SessionRecordsService)
-        .recordCheckIn(spotId, spot?.id === spotId ? spot.name : undefined);
-    }
+    const location = this._getGeolocationService().currentLocation();
+    if (!this._locationAccess.enabled() || !location) return;
+    await this._injector.get(SessionRecordsService).confirmCheckIn({
+      spotId,
+      location: location.location,
+      accuracyMeters: location.accuracy,
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+    });
     this.dismissSpot(spotId);
   }
 }

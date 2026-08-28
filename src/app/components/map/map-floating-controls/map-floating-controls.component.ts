@@ -49,6 +49,7 @@ export class MapFloatingControlsComponent {
   );
   readonly geolocationLoading = input(false);
   readonly geolocationIcon = input("my_location");
+  readonly locationEnabled = input(true);
 
   readonly resetNorth = output<void>();
   readonly toggleMapStyle = output<void>();
@@ -59,6 +60,11 @@ export class MapFloatingControlsComponent {
   readonly planSession = output<void>();
 
   readonly createMenuLabel = $localize`:@@map.create.open_tooltip:Create on the map`;
+  readonly geolocationTooltip = computed(() =>
+    this.locationEnabled()
+      ? $localize`:@@map.geolocation.tooltip:Go to your location`
+      : $localize`:@@map.geolocation.disabled.tooltip:Location is off`,
+  );
   readonly createActions = computed(() => {
     const actions: MapFabMenuAction[] = [];
     if (this.showCreateSpot()) {

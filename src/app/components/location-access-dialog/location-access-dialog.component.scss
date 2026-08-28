@@ -1,0 +1,13 @@
+:host { display: block; }
+.location-access-dialog__icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 12px;
+  place-items: center;
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 13px;
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+}
+p { margin: 0; color: var(--mat-sys-on-surface-variant); }

@@ -501,7 +501,6 @@ export class MapsApiService extends ConsentAwareService {
     type: string = "point_of_interest",
     radius: number = 200,
   ): Promise<google.maps.places.Place | null> {
-    console.log("Searching for Google Place at location:", location);
     return Promise.reject(new Error("Not implemented"));
 
     // Use consent-aware execution for Places API calls
@@ -837,8 +836,6 @@ export class MapsApiService extends ConsentAwareService {
     type?: string,
     maxResults: number = 5,
   ): Promise<google.maps.places.Place[]> {
-    console.log("Fetching nearby places by distance:", location, type);
-
     // Early return if API not loaded
     if (!this._isApiLoaded()) {
       console.warn("Google Maps API not loaded yet");

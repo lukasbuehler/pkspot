@@ -202,6 +202,7 @@
       [mapStyle]="mapStyle"
       [geolocationLoading]="spotMap.geolocationLoading()"
       [geolocationIcon]="geolocationIcon()"
+      [locationEnabled]="locationAccess.enabled()"
       [showCreateSpot]="
         isSignedIn() &&
         ageAssurance.canParticipatePublicly() &&

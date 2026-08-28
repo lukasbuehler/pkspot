@@ -23,6 +23,30 @@
       <div><strong>{{ logs().length }}</strong><span i18n="@@trainingLog.entries">entries</span></div>
       <div><strong>{{ sessions().length }}</strong><span i18n="@@trainingLog.sessions">session records</span></div>
     </section>
+    <section class="check-in-history">
+      <div class="check-in-history__header">
+        <div>
+          <h2 i18n="@@trainingLog.checkIns.title">Private check-ins</h2>
+          <p i18n="@@trainingLog.checkIns.description">Only you can see this history. It never shares your precise location.</p>
+        </div>
+        <div class="actions">
+          <button matButton="outlined" type="button" (click)="exportCheckIns()" [disabled]="!checkIns().length"><mat-icon>download</mat-icon><span i18n="@@trainingLog.checkIns.export">Export</span></button>
+          <button matButton="outlined" type="button" (click)="clearCheckIns()" [disabled]="!checkIns().length"><mat-icon>delete_sweep</mat-icon><span i18n="@@trainingLog.checkIns.clear">Clear all</span></button>
+        </div>
+      </div>
+      @if (checkIns().length) {
+        <div class="check-in-history__list">
+          @for (checkIn of checkIns(); track checkIn.checkInId) {
+            <article class="check-in-history__item">
+              <div><strong>{{ checkIn.spotName || checkIn.spotId }}</strong><span>{{ checkIn.arrivedAtRawMs | systemDate: "medium" }}</span></div>
+              <button matIconButton type="button" (click)="removeCheckIn(checkIn)" i18n-aria-label="@@trainingLog.checkIns.delete" aria-label="Delete check-in"><mat-icon>delete</mat-icon></button>
+            </article>
+          }
+        </div>
+      } @else {
+        <p class="check-in-history__empty" i18n="@@trainingLog.checkIns.empty">Your confirmed nearby check-ins will appear here.</p>
+      }
+    </section>
     @if (logs().length) {
       <section class="entries">
         @for (entry of logs(); track entry.id) {

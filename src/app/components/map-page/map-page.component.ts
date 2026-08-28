@@ -77,6 +77,7 @@ import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { UsersService } from "../../services/firebase/firestore/users.service";
 import { GeolocationService } from "../../services/geolocation.service";
 import { CheckInService } from "../../services/check-in.service";
+import { LocationAccessService } from "../../services/location-access.service";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 import { Title } from "@angular/platform-browser";
@@ -106,6 +107,7 @@ import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { BottomSheetComponent } from "../bottom-sheet/bottom-sheet.component";
 import { StructuredDataService } from "../../services/structured-data.service";
 import { MatDialog } from "@angular/material/dialog";
+import { LocationAccessDialogComponent } from "../location-access-dialog/location-access-dialog.component";
 import { FilterChipsBarComponent } from "../filter-chips-bar/filter-chips-bar.component";
 import { MarkerSchema } from "../map/markers/map-marker.model";
 import {
@@ -376,6 +378,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     signal(null);
 
   geolocationService = inject(GeolocationService);
+  readonly locationAccess = inject(LocationAccessService);
   checkInService = inject(CheckInService);
   readonly checkInEnabled = environment.features.checkIns;
   proximityCheckInSpot = computed(() =>
@@ -383,6 +386,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   );
 
   geolocationIcon = computed(() => {
+    if (!this.locationAccess.enabled()) return "location_disabled";
     if (this.geolocationService.error()) return "location_disabled";
     if (this.geolocationService.currentLocation()) return "my_location";
     return "location_searching";
@@ -3763,9 +3767,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.selectedSpot.set(null);
     }
 
-    // Generic filter search
-    console.log(`Searching for ${selectedChip} spots in bounds:`, bounds);
-
     this._searchService
       .searchSpotsInBoundsWithFilter(
         bounds,
@@ -3775,7 +3776,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       )
       .then((result) => {
         const hits = result.hits || [];
-        console.log(`Found ${selectedChip} spots:`, hits);
 
         const previews: SpotPreviewData[] = hits
           .filter((h: any) => !!h)
@@ -3885,8 +3885,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         this.selectedSpot.set(null);
       }
 
-      console.log("Searching with custom filter:", result);
-
       this._searchService
         .searchSpotsWithCustomFilter(
           bounds,
@@ -3896,7 +3894,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         )
         .then((searchResult) => {
           const hits = searchResult.hits || [];
-          console.log("Found custom filter spots:", hits);
 
           const previews: SpotPreviewData[] = hits
             .filter((h: any) => !!h)
@@ -4284,6 +4281,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       has_current_location: !!this.geolocationService.currentLocation(),
       had_error: !!this.geolocationService.error(),
     });
+    if (!this.locationAccess.enabled()) {
+      this._dialog
+        .open(LocationAccessDialogComponent, {maxWidth: "min(420px, 92vw)"})
+        .afterClosed()
+        .subscribe((enabled) => {
+          if (enabled) this.spotMap?.focusOnGeolocation();
+        });
+      return;
+    }
     this.spotMap?.focusOnGeolocation();
   }
 
@@ -4338,8 +4344,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if ("location" in spot && typeof spot.location === "function") {
-      const location = spot.location();
-      return `local-${location.lat}_${location.lng}`;
+    return "local";
     }
 
     return null;
@@ -4353,7 +4358,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.appSettings.debugMode()) return;
 
     console.debug("[MapDebug][MapPage]", event, {
-      ...payload,
+      detailKeys: Object.keys(payload).sort(),
       selectedSpot: this._getSelectedSpotKey(this.selectedSpot()),
       selectedCommunity: this.selectedCommunityLanding()?.communityKey ?? null,
       selectedEvent: this.selectedEvent()?.id ?? null,

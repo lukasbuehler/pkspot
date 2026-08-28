@@ -24,6 +24,7 @@ import {
   SeriesService,
 } from "../../services/firebase/firestore/series.service";
 import { GeolocationService } from "../../services/geolocation.service";
+import { LocationAccessService } from "../../services/location-access.service";
 import {
   CommunitySearchPreview,
   EventDiscoveryItem,
@@ -75,6 +76,7 @@ export class TrainPageComponent {
   private readonly auth = inject(AuthenticationService);
   private readonly follows = inject(CommunityFollowsService);
   private readonly geolocation = inject(GeolocationService);
+  private readonly locationAccess = inject(LocationAccessService);
   private readonly notificationOptIn = inject(NotificationOptInService);
   private readonly search = inject(SearchService);
   private readonly series = inject(SeriesService);
@@ -127,7 +129,7 @@ export class TrainPageComponent {
   async useMyLocation(): Promise<void> {
     this.locating.set(true);
     try {
-      await this.geolocation.startWatching();
+      if (!(await this.locationAccess.startWatchingIfEnabled())) return;
       const timeoutAt = Date.now() + 10_000;
       while (!this.geolocation.currentLocation() && Date.now() < timeoutAt) {
         await new Promise((resolve) => setTimeout(resolve, 150));
@@ -223,14 +225,14 @@ export class TrainPageComponent {
       !this.isBrowser ||
       this.area() ||
       this.geolocation.currentLocation() ||
-      !(await this.geolocation.checkPermissions())
+      !this.locationAccess.enabled()
     ) {
       return;
     }
 
     this.locating.set(true);
     try {
-      await this.geolocation.startWatching();
+      await this.locationAccess.startWatchingIfEnabled();
       const timeoutAt = Date.now() + 5_000;
       while (
         !this.geolocation.currentLocation() &&

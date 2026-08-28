@@ -3021,12 +3021,6 @@
         <target>Bouton avec une icône d’itinéraire</target>
       </segment>
     </unit>
-    <unit id="6715130059718666635">
-      <segment state="initial">
-        <source>Contributions</source>
-        <target>Apports</target>
-      </segment>
-    </unit>
     <unit id="6720692665733098220">
       <segment state="initial">
         <source>Reported externally</source>
@@ -13125,12 +13119,6 @@
         <target>La plateforme mobile vous demande de confirmer votre âge ou de configurer une supervision. Suivez ses instructions, puis vérifiez à nouveau.</target>
       </segment>
     </unit>
-    <unit id="541397324131531449">
-      <segment state="initial">
-        <source>Go to your location</source>
-        <target>Aller à ta position</target>
-      </segment>
-    </unit>
     <unit id="5439680339974485805">
       <segment state="initial">
         <source>Publish live event update</source>
@@ -16624,6 +16612,162 @@
       <segment state="translated">
         <source>Vote recorded</source>
         <target>Vote enregistré</target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.status.on">
+      <segment state="initial">
+        <source>On while using the app</source>
+        <target>Activé pendant l’utilisation de l’application</target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.status.temporary">
+      <segment state="initial">
+        <source>On temporarily</source>
+        <target>Activé temporairement</target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.status.off">
+      <segment state="initial">
+        <source>Off</source>
+        <target>Désactivé</target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.settings.title">
+      <segment state="initial">
+        <source>Location</source>
+        <target>Position</target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.settings.description">
+      <segment state="initial">
+        <source> Use location for the map position and nearby check-ins. It is off until you choose otherwise. </source>
+        <target> Utilisez votre position pour l’emplacement sur la carte et les check-ins à proximité. Elle reste désactivée jusqu’à votre choix. </target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.settings.current">
+      <segment state="initial">
+        <source> Current setting: <ph id="0" equiv="INTERPOLATION" disp="{{ locationAccessLabel() }}"/> </source>
+        <target> Réglage actuel : <ph id="0" equiv="INTERPOLATION" disp="{{ locationAccessLabel() }}"/> </target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.settings.manage">
+      <segment state="initial">
+        <source>Manage location</source>
+        <target>Gérer la position</target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.settings.off">
+      <segment state="initial">
+        <source>Turn off</source>
+        <target>Désactiver</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.deleteConfirm">
+      <segment state="initial">
+        <source>Delete this check-in from your private history?</source>
+        <target>Supprimer ce check-in de votre historique privé ?</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.clearConfirm">
+      <segment state="initial">
+        <source>Delete all check-ins from your private history? This cannot be undone.</source>
+        <target>Supprimer tous les check-ins de votre historique privé ? Cette action est irréversible.</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.title">
+      <segment state="initial">
+        <source>Private check-ins</source>
+        <target>Check-ins privés</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.description">
+      <segment state="initial">
+        <source>Only you can see this history. It never shares your precise location.</source>
+        <target>Vous seul pouvez voir cet historique. Votre position précise n’est jamais partagée.</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.export">
+      <segment state="initial">
+        <source>Export</source>
+        <target>Exporter</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.clear">
+      <segment state="initial">
+        <source>Clear all</source>
+        <target>Tout effacer</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.delete">
+      <segment state="initial">
+        <source>Delete check-in</source>
+        <target>Supprimer le check-in</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.empty">
+      <segment state="initial">
+        <source>Your confirmed nearby check-ins will appear here.</source>
+        <target>Vos check-ins confirmés à proximité apparaîtront ici.</target>
+      </segment>
+    </unit>
+    <unit id="map.geolocation.tooltip">
+      <segment state="initial">
+        <source>Go to your location</source>
+        <target>Aller à votre position</target>
+      </segment>
+    </unit>
+    <unit id="map.geolocation.disabled.tooltip">
+      <segment state="initial">
+        <source>Location is off</source>
+        <target>La position est désactivée</target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.title">
+      <segment state="initial">
+        <source>Use device location?</source>
+        <target>Utiliser la position de l’appareil ?</target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.explanation">
+      <segment state="initial">
+        <source> PK Spot uses your device location to show your position and find nearby Spots. Your precise location is not stored or shared. When you explicitly check in, PK Spot privately records the Spot and time in your training history. </source>
+        <target> PK Spot utilise la position de votre appareil pour afficher votre position et trouver des Spots proches. Votre position précise n’est ni stockée ni partagée. Lorsque vous effectuez explicitement un check-in, PK Spot enregistre en privé le Spot et l’heure dans votre historique d’entraînement. </target>
+      </segment>
+    </unit>
+    <unit id="common.notNow">
+      <segment state="initial">
+        <source>Not now</source>
+        <target>Pas maintenant</target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.temporary">
+      <segment state="initial">
+        <source>Use for 5 minutes</source>
+        <target>Utiliser pendant 5 minutes</target>
+      </segment>
+    </unit>
+    <unit id="locationAccess.persistent">
+      <segment state="initial">
+        <source>Use while using the app</source>
+        <target>Utiliser pendant l’utilisation de l’application</target>
+      </segment>
+    </unit>
+    <unit id="spot.activity.label">
+      <segment state="initial">
+        <source>Recently trained</source>
+        <target>Entraînement récent</target>
+      </segment>
+    </unit>
+    <unit id="spot.activity.bucket">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ summary.bucket }}"/> people</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="{{ summary.bucket }}"/> personnes</target>
+      </segment>
+    </unit>
+    <unit id="spot.activity.window">
+      <segment state="initial">
+        <source>in the last 30 days</source>
+        <target>au cours des 30 derniers jours</target>
       </segment>
     </unit>
   </file>

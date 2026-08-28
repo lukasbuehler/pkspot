@@ -1,0 +1,12 @@
+@if (activity.value(); as summary) {
+  <section class="spot-activity-summary" aria-live="polite">
+    <span class="spot-activity-summary__icon" aria-hidden="true">
+      <mat-icon>groups</mat-icon>
+    </span>
+    <div>
+      <p class="mat-label-large" i18n="@@spot.activity.label">Recently trained</p>
+      <p class="mat-title-medium" i18n="@@spot.activity.bucket">{{ summary.bucket }} people</p>
+      <p class="mat-body-small" i18n="@@spot.activity.window">in the last 30 days</p>
+    </div>
+  </section>
+}

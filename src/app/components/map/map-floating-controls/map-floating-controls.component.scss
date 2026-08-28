@@ -21,6 +21,11 @@
   z-index: 1;
 }
 
+.map-location-control--disabled {
+  color: var(--mat-sys-on-surface-variant);
+  background: var(--mat-sys-surface-container-high);
+}
+
 @media (max-width: 599.99px) {
   .map-mini-fabs {
     bottom: 124px;

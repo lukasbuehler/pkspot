@@ -9,6 +9,15 @@ header p { margin: 0; color: var(--mat-sys-on-surface-variant); }
 .summary strong { font: var(--mat-sys-title-large); }
 .summary span { color: var(--mat-sys-on-surface-variant); }
 .entries { display: grid; gap: 12px; }
+.check-in-history { margin: 28px 0; padding: 18px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 18px; background: var(--mat-sys-surface-container-low); }
+.check-in-history__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.check-in-history h2, .check-in-history p { margin: 0; }
+.check-in-history h2 { font: var(--mat-sys-title-large); }
+.check-in-history__header p, .check-in-history__empty { margin-top: 4px; color: var(--mat-sys-on-surface-variant); }
+.check-in-history__list { display: grid; gap: 8px; margin-top: 16px; }
+.check-in-history__item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--mat-sys-outline-variant); }
+.check-in-history__item div { display: grid; gap: 2px; min-width: 0; }
+.check-in-history__item span { color: var(--mat-sys-on-surface-variant); font: var(--mat-sys-body-small); }
 .entry { padding: 18px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; background: var(--mat-sys-surface-container-low); }
 .entry-meta, .actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .entry-meta { color: var(--mat-sys-on-surface-variant); font: var(--mat-sys-label-medium); }
@@ -19,4 +28,4 @@ header p { margin: 0; color: var(--mat-sys-on-surface-variant); }
 .actions { margin-top: 12px; }
 .empty { min-height: 320px; display: grid; place-items: center; align-content: center; gap: 10px; text-align: center; color: var(--mat-sys-on-surface-variant); }
 .empty h2, .empty p { margin: 0; }
-@media (max-width: 600px) { .log-page { padding: 20px 16px 96px; } header { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 600px) { .log-page { padding: 20px 16px 96px; } header, .check-in-history__header { align-items: flex-start; flex-direction: column; } }

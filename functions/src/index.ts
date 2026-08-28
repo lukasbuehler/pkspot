@@ -213,6 +213,12 @@ export {
   updateAgePolicyV2,
 } from "./userFunctions";
 export {
+  confirmCheckIn,
+  deleteAllCheckIns,
+  deleteCheckIn,
+  recomputeCheckInActivity,
+} from "./checkInFunctions";
+export {
   beginAgeAssuranceV3,
   cleanupAgeAssuranceChallenges,
   invalidateAgeAssuranceApprovals,

@@ -6,6 +6,7 @@ import { AuthenticationService } from "../../services/firebase/authentication.se
 import { CommunityFollowsService } from "../../services/firebase/firestore/community-follows.service";
 import { SeriesService } from "../../services/firebase/firestore/series.service";
 import { GeolocationService } from "../../services/geolocation.service";
+import { LocationAccessService } from "../../services/location-access.service";
 import {
   EventDiscoverySearchResult,
   SearchService,
@@ -81,12 +82,20 @@ describe("TrainPageComponent", () => {
       searchTopSpotPreviewsNearLocation: vi.fn().mockResolvedValue([]),
     };
 
-    const component = createComponent({ geolocation, search, series });
+    const locationAccess = {
+      enabled: signal(true),
+      startWatchingIfEnabled: geolocation.startWatching,
+    };
+    const component = createComponent({
+      geolocation,
+      locationAccess,
+      search,
+      series,
+    });
 
     await vi.waitFor(() => expect(component.loading()).toBe(false));
 
-    expect(geolocation.checkPermissions).toHaveBeenCalledOnce();
-    expect(geolocation.startWatching).toHaveBeenCalledOnce();
+    expect(locationAccess.startWatchingIfEnabled).toHaveBeenCalledOnce();
     expect(search.searchTopSpotPreviewsNearLocation).toHaveBeenCalledWith(
       { lat: 47.3769, lng: 8.5417 },
       25,
@@ -104,8 +113,13 @@ describe("TrainPageComponent", () => {
       checkPermissions: vi.fn().mockResolvedValue(false),
       startWatching: vi.fn(),
     };
+    const locationAccess = {
+      enabled: signal(false),
+      startWatchingIfEnabled: vi.fn(),
+    };
     const component = createComponent({
       geolocation,
+      locationAccess,
       search: {
         searchEventDiscovery: vi.fn().mockResolvedValue({
           ...eventResult,
@@ -119,13 +133,13 @@ describe("TrainPageComponent", () => {
 
     await vi.waitFor(() => expect(component.loading()).toBe(false));
 
-    expect(geolocation.checkPermissions).toHaveBeenCalledOnce();
-    expect(geolocation.startWatching).not.toHaveBeenCalled();
+    expect(locationAccess.startWatchingIfEnabled).not.toHaveBeenCalled();
   });
 });
 
 function createComponent({
   geolocation,
+  locationAccess,
   search,
   series,
 }: {
@@ -134,6 +148,10 @@ function createComponent({
     error: ReturnType<typeof signal>;
     checkPermissions: ReturnType<typeof vi.fn>;
     startWatching: ReturnType<typeof vi.fn>;
+  };
+  locationAccess: {
+    enabled: ReturnType<typeof signal>;
+    startWatchingIfEnabled: ReturnType<typeof vi.fn>;
   };
   search: {
     searchEventDiscovery: ReturnType<typeof vi.fn>;
@@ -153,6 +171,7 @@ function createComponent({
       { provide: CommunityFollowsService, useValue: {} },
       { provide: NotificationOptInService, useValue: { maybePrompt: vi.fn() } },
       { provide: GeolocationService, useValue: geolocation },
+      { provide: LocationAccessService, useValue: locationAccess },
       { provide: SearchService, useValue: search },
       { provide: SeriesService, useValue: series },
       {

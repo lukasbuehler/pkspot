@@ -967,11 +967,6 @@
         <source>The mobile platform requires you to confirm your age or set up supervision. Complete its instructions, then check again.</source>
       </segment>
     </unit>
-    <unit id="541397324131531449">
-      <segment>
-        <source>Go to your location</source>
-      </segment>
-    </unit>
     <unit id="5903110565317428249">
       <segment>
         <source>Session</source>
@@ -7189,11 +7184,6 @@
     <unit id="2689184560704057247">
       <segment>
         <source>Follow request sent</source>
-      </segment>
-    </unit>
-    <unit id="6715130059718666635">
-      <segment>
-        <source>Contributions</source>
       </segment>
     </unit>
     <unit id="6720692665733098220">
@@ -13933,6 +13923,136 @@
     <unit id="4373758354193283240">
       <segment>
         <source>Vote recorded</source>
+      </segment>
+    </unit>
+    <unit id="locationAccess.status.on">
+      <segment>
+        <source>On while using the app</source>
+      </segment>
+    </unit>
+    <unit id="locationAccess.status.temporary">
+      <segment>
+        <source>On temporarily</source>
+      </segment>
+    </unit>
+    <unit id="locationAccess.status.off">
+      <segment>
+        <source>Off</source>
+      </segment>
+    </unit>
+    <unit id="locationAccess.settings.title">
+      <segment>
+        <source>Location</source>
+      </segment>
+    </unit>
+    <unit id="locationAccess.settings.description">
+      <segment>
+        <source> Use location for the map position and nearby check-ins. It is off until you choose otherwise. </source>
+      </segment>
+    </unit>
+    <unit id="locationAccess.settings.current">
+      <segment>
+        <source> Current setting: <ph id="0" equiv="INTERPOLATION" disp="{{ locationAccessLabel() }}"/> </source>
+      </segment>
+    </unit>
+    <unit id="locationAccess.settings.manage">
+      <segment>
+        <source>Manage location</source>
+      </segment>
+    </unit>
+    <unit id="locationAccess.settings.off">
+      <segment>
+        <source>Turn off</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.deleteConfirm">
+      <segment>
+        <source>Delete this check-in from your private history?</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.clearConfirm">
+      <segment>
+        <source>Delete all check-ins from your private history? This cannot be undone.</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.title">
+      <segment>
+        <source>Private check-ins</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.description">
+      <segment>
+        <source>Only you can see this history. It never shares your precise location.</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.export">
+      <segment>
+        <source>Export</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.clear">
+      <segment>
+        <source>Clear all</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.delete">
+      <segment>
+        <source>Delete check-in</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.checkIns.empty">
+      <segment>
+        <source>Your confirmed nearby check-ins will appear here.</source>
+      </segment>
+    </unit>
+    <unit id="map.geolocation.tooltip">
+      <segment>
+        <source>Go to your location</source>
+      </segment>
+    </unit>
+    <unit id="map.geolocation.disabled.tooltip">
+      <segment>
+        <source>Location is off</source>
+      </segment>
+    </unit>
+    <unit id="locationAccess.title">
+      <segment>
+        <source>Use device location?</source>
+      </segment>
+    </unit>
+    <unit id="locationAccess.explanation">
+      <segment>
+        <source> PK Spot uses your device location to show your position and find nearby Spots. Your precise location is not stored or shared. When you explicitly check in, PK Spot privately records the Spot and time in your training history. </source>
+      </segment>
+    </unit>
+    <unit id="common.notNow">
+      <segment>
+        <source>Not now</source>
+      </segment>
+    </unit>
+    <unit id="locationAccess.temporary">
+      <segment>
+        <source>Use for 5 minutes</source>
+      </segment>
+    </unit>
+    <unit id="locationAccess.persistent">
+      <segment>
+        <source>Use while using the app</source>
+      </segment>
+    </unit>
+    <unit id="spot.activity.label">
+      <segment>
+        <source>Recently trained</source>
+      </segment>
+    </unit>
+    <unit id="spot.activity.bucket">
+      <segment>
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ summary.bucket }}"/> people</source>
+      </segment>
+    </unit>
+    <unit id="spot.activity.window">
+      <segment>
+        <source>in the last 30 days</source>
       </segment>
     </unit>
   </file>

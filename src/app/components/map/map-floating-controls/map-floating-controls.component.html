@@ -34,13 +34,14 @@
       mat-mini-fab
       type="button"
       color="primary"
-      i18n-matTooltip
-      matTooltip="Go to your location"
+      class="map-location-control"
+      [class.map-location-control--disabled]="!locationEnabled()"
+      [matTooltip]="geolocationTooltip()"
       matTooltipPosition="left"
       matTooltipShowDelay="500"
       (click)="focusGeolocation.emit()"
     >
-      @if (geolocationLoading()) {
+      @if (geolocationLoading() && locationEnabled()) {
         <mat-progress-spinner
           mode="indeterminate"
           diameter="20"

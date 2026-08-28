@@ -104,6 +104,7 @@ CPU, timeout, and instance limits.
 | Community | Spot addresses/landing data, events' `community_keys`, authored community knowledge, and merge docs | `community_pages/{key}`, `community_slugs/{slug}` | Generated sections are disposable; authored cards/links are preserved and merged into regenerated pages. |
 | User profile | `users/{uid}` | adult opt-in `public_user_profiles/{uid}`, sitemap/search data | Public projection is field-limited. `getUserProfile` is the viewer-aware read boundary. |
 | Private user state | `users/{uid}/private_data/main` and private subcollections | selected public counters such as `visited_spots_count` | Never copy private arrays or notification preferences into public profiles. |
+| Explicit check-in | server-owned `users/{uid}/session_records/{id}` occurrence plus `check_in_lookup` / per-Spot reference count | private `visited_spots`, daily `spot_activity_public/{spotId}` bucket | Raw device coordinates are transient callable input only. The public document has no user IDs, exact count, timestamp, or live state. Legacy check-ins retain a server marker so their visited state cannot be removed by a new-style deletion. |
 | Follow graph | `users/{uid}/following`, `followers`, and `follow_requests` | `users.follower_count`, `following_count`, notification intents | Both edge directions are intentionally stored; actions must keep them consistent. |
 | Organization relationships | Spot `stewardship` / `management` | embedded organization snapshot and `organizations/{id}/verified_spots` / `managed_spots` | Organization name/logo changes fan out to every linked Spot and index entry. |
 | Import provenance | private `imports/{importId}` metadata | sanitized `spots.public_import_provenance` | The Spot projection is the public read path. The callable is a cached compatibility fallback. |
@@ -197,6 +198,7 @@ enabled in a non-production project.
 | Mark notification read/action | notification document or `performNotificationAction` | action can atomically change follow edges or RSVP/private event arrays |
 | Upload media | Storage `media_intake/{uid}/{uploadId}/...` | moderation, release, status/review docs, then Spot edit or profile update |
 | Contact message | `contact_messages/{id}` | Discord webhook |
+| Confirm/delete a check-in | `confirmCheckIn`, `deleteCheckIn`, `deleteAllCheckIns` App-Check-enforced callables | private session/visited state and deferred Spot-activity rollup |
 
 Direct writes cost one client write per changed document before rules-dependent
 reads and trigger cascades. The native adapter writes mobile-safe plain coordinate
@@ -210,9 +212,11 @@ The shipped app currently calls: `getWeather`, `getOsmAmenityTile`,
 `updateAgePolicyV2`, `getUserProfile`, `getPublicImportProvenance`, event
 registration/ownership/live-update callables, community edit/merge callables,
 Spot creation/edit/duplicate callables, notification migration/actions, media
-report/moderation callables, and public/admin safety-case callables. Callables not
-used by normal UI are maintenance or administrator tools; they remain listed in
-the complete inventory below.
+report/moderation callables, the private check-in callables `confirmCheckIn`,
+`deleteCheckIn`, and `deleteAllCheckIns`, and public/admin safety-case callables.
+`recomputeCheckInActivity` is a daily scheduler, not a client callable.
+Callables not used by normal UI are maintenance or administrator tools; they
+remain listed in the complete inventory below.
 
 ## 5. Spot write normalization and fan-out
 
@@ -451,12 +455,34 @@ communities independently while the chunk is loading.
   there. Restricted signed-in viewers add the viewer read and, depending on
   audience, follower and reciprocal-follow reads: maximum `4 R` total.
 
-### Counts and check-ins
+### Counts and explicit check-ins
 
 - Like write: `L_post R + 1 W` for `posts.like_count`.
 - Follower write: `F_u R + 1 W` for `users.follower_count`.
 - Following write: `F_u R + 1 W` for `users.following_count`.
-- Check-in create: `1 W` using `arrayUnion` on private `visited_spots`.
+- Legacy `users/{uid}/check_ins` documents continue to maintain old visited
+  markers. New check-ins do not use that direct client write path.
+- `confirmCheckIn` requires Auth and App Check, reads the user, Spot, dedupe,
+  hourly-rate, private-data, per-Spot count, integrity record, and up to 20
+  recent sessions. It writes or extends one private `source: check_in` session,
+  a lookup, per-Spot reference count, dedupe/rate state, an aggregate
+  contribution, and a rollup request. The client location is used only in the
+  transaction to apply the 50 m / 50 m-accuracy check and is never written.
+  The prior accepted Spot and server time enforce the impossible-travel check;
+  no prior device coordinate is retained.
+- `deleteCheckIn` removes one opaque occurrence from the private session and
+  deletes its lookup/contribution. It reads the per-Spot and legacy marker plus
+  a bounded legacy-check-in query, decrements the new-style reference count,
+  and removes `visited_spots` only after the last new-style occurrence while
+  preserving a legacy marker. `deleteAllCheckIns` repeats that same deletion
+  for the user's lookup documents. Neither operation changes an authored
+  training-log entry.
+- `recomputeCheckInActivity` runs once daily at 03:30 Europe/Zurich. For each
+  affected Spot it scans accepted contributions in the last 30 days, counts
+  distinct accounts, and writes only `2–4`, `5–9`, `10–24`, or `25+` to
+  `spot_activity_public/{spotId}` when at least two accounts qualify. It deletes
+  the public summary otherwise and deletes expired contribution documents. The
+  public summary is a one-time `get` client read, never a listener.
 - Private-data write: computes unique visited IDs from the trigger payload and
   performs `1 W` to `users.visited_spots_count`.
 
@@ -922,7 +948,7 @@ Source modules: [`spotReportFunctions.ts`](functions/src/spotReportFunctions.ts)
 | `backfillPublicUserProfiles` | admin callable | Reads all users and all existing projections; apply writes desired profiles, deletes stale, writes state. |
 | `activateUserProfilePrivacyCutover` | admin callable | Reads projection state and writes cutover state after exact confirmation. |
 | `cleanupOnUserDelete` | Auth user delete | Reads deleted user's `following` and `followers`; deletes every reciprocal edge, then deletes `users/{uid}`: `(F_following + F_followers) R + same number D + 1 user D`. It does not delete the deleted user's own remaining subcollections. The current batch implementation is only safe below 450 edges per direction and must be fixed before relying on larger-account cleanup. |
-| `onCheckInCreate` | create user check-in | One private-data `arrayUnion` write. |
+| `onCheckInCreate` | create legacy user check-in | Private-data `arrayUnion` plus a permanent server-only legacy-Spot marker. |
 | `syncVisitedSpotsCountOnPrivateDataWrite` | write private data | One public user counter write. |
 | `updateAgePolicy` | legacy authenticated callable | Reads/writes legacy age policy for old clients. |
 | `updateAgePolicyV2` | App Check authenticated callable | Reads/writes v2 policy/evidence-compatible profile state. |

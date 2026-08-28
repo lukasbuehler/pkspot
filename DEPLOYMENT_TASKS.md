@@ -82,6 +82,51 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
+### Private check-ins and delayed Spot activity
+
+The production, Android, and iOS build configurations contain the `training`
+and `checkIns` flags for this release; default, development, and CI remain off.
+Do not release a build with either production/native flag enabled until every
+backend step and device check below has succeeded.
+
+- [ ] Deploy the required Firestore index and wait for it to become `Enabled`:
+
+  ```sh
+  npx firebase deploy --project prod --only firestore:indexes
+  ```
+
+- [ ] Deploy the four compatible Functions, then Firestore rules. Confirm the
+      scheduled `recomputeCheckInActivity` job is present in `europe-west1` and
+      every callable reports `enforceAppCheck: true`:
+
+  ```sh
+  npx firebase deploy --project prod --only functions:confirmCheckIn,functions:deleteCheckIn,functions:deleteAllCheckIns,functions:recomputeCheckInActivity
+  npx firebase deploy --project prod --only firestore:rules
+  ```
+
+  Success condition: unauthenticated, missing-App-Check, and direct Firestore
+  attempts cannot create a check-in; only the `spot_activity_public/{spotId}`
+  document can be read by the public, and it cannot be listed.
+
+- [ ] On real Android and iOS release candidates, verify an App Check token is
+      attached to all three check-in callables and normal “while using the app”
+      location permission appears only after a person selects a persistent or
+      five-minute choice in the explanation dialog. With location Off, Locate-me
+      must remain visible with `location_disabled`, open the explanation dialog,
+      show no map dot, make no nearby-Spot lookup, and make no location-bearing
+      log. Confirm temporary access stops watching and clears state after five
+      minutes.
+
+- [ ] Only after the preceding backend and Android/iOS checks pass, build the
+      production web and native releases. Verify `environment.default.ts`,
+      `environment.development.ts`, and `environment.ci.ts` still keep both
+      flags false, and verify the private history can export/delete one
+      occurrence/delete all without changing a manual session or authored log.
+
+  Success condition: production Spot details make one non-realtime get for the
+  coarse “Recently trained” summary only; no visitor list, exact count, active
+  state, check-in notification, or public visited-Spot list is present.
+
 ### Community voting and trusted organization edits
 
 Community voting is an explicit Spot policy (`edit_policy.community_voting`),

@@ -448,6 +448,21 @@ async function seedSecurityFixture() {
   batch.set(adminDb.doc("users/owner/check_ins/check-in-1"), {
     spot_id: "public-spot",
   });
+  batch.set(adminDb.doc("users/owner/session_records/server-check-in"), {
+    owner_id: "owner",
+    source: "check_in",
+  });
+  batch.set(adminDb.doc("spot_activity_public/public-spot"), {
+    status: "recently_trained",
+    bucket: "2–4",
+    window_days: 30,
+  });
+  batch.set(
+    adminDb.doc(
+      "spots/public-spot/check_in_aggregate_contributions/private-check-in",
+    ),
+    { owner_id: "owner", eligibility: "accepted" }
+  );
   const notificationNow = Date.now();
   batch.set(adminDb.doc("users/owner/notifications/notification-1"), {
     type: "follow_request",
@@ -502,6 +517,20 @@ async function testPublicReadSurface(
   adminUser
 ) {
   await assertAllowed("anonymous spot read", () => getDoc(doc(anon.db, "spots/public-spot")));
+  await assertAllowed("anonymous reads coarse Spot activity by id", () =>
+    getDoc(doc(anon.db, "spot_activity_public/public-spot"))
+  );
+  await assertDenied("anonymous cannot list coarse Spot activity", () =>
+    getDocs(collection(anon.db, "spot_activity_public"))
+  );
+  await assertDenied("anonymous cannot read activity contributions", () =>
+    getDoc(
+      doc(
+        anon.db,
+        "spots/public-spot/check_in_aggregate_contributions/private-check-in"
+      )
+    )
+  );
   await assertAllowed("anonymous edit read", () =>
     getDoc(doc(anon.db, "spots/public-spot/edits/public-edit"))
   );
@@ -1014,6 +1043,7 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh, 
   await assertAllowed("owner writes own session record", () =>
     setDoc(doc(owner.db, "users/owner/session_records/session-1"), {
       owner_id: "owner",
+      source: "manual",
     })
   );
   await assertAllowed("owner reads own session records", () =>
@@ -1025,7 +1055,22 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh, 
   await assertDenied("owner cannot forge a session record owner", () =>
     setDoc(doc(owner.db, "users/owner/session_records/forged"), {
       owner_id: "other",
+      source: "manual",
     })
+  );
+  await assertDenied("owner cannot forge a check-in session", () =>
+    setDoc(doc(owner.db, "users/owner/session_records/forged-check-in"), {
+      owner_id: "owner",
+      source: "check_in",
+    })
+  );
+  await assertDenied("owner cannot alter a server check-in session", () =>
+    updateDoc(doc(owner.db, "users/owner/session_records/server-check-in"), {
+      source: "manual",
+    })
+  );
+  await assertDenied("owner cannot delete a server check-in session", () =>
+    deleteDoc(doc(owner.db, "users/owner/session_records/server-check-in"))
   );
   await assertAllowed("owner reads own following", () =>
     getDocs(collection(owner.db, "users/owner/following"))

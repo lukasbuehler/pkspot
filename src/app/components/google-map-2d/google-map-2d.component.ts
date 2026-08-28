@@ -71,6 +71,7 @@ import {
 } from "../map/community-dot-marker/community-dot-marker.component";
 import { MapPresenceDotMarkerComponent } from "../map/map-presence-dot-marker/map-presence-dot-marker.component";
 import { GeolocationService } from "../../services/geolocation.service";
+import { LocationAccessService } from "../../services/location-access.service";
 import { SpotPreviewMarkerComponent } from "../spot-preview-marker/spot-preview-marker.component";
 import {
   MapBoundsOverlay,
@@ -1746,6 +1747,7 @@ export class GoogleMap2dComponent
     private theme: ThemeService,
     private _hostElement: ElementRef<HTMLElement>,
     private geolocationService: GeolocationService,
+    readonly locationAccess: LocationAccessService,
     private snackBar: MatSnackBar,
     private _mapProfiler: MapPerformanceProfilerService,
     private _ngZone: NgZone,
@@ -2164,14 +2166,6 @@ export class GoogleMap2dComponent
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    // Check if selectedSpot has changed
-    if (changes["selectedSpot"]) {
-      console.debug("Selected spot changed:", {
-        previous: changes["selectedSpot"].previousValue,
-        current: changes["selectedSpot"].currentValue,
-      });
-    }
-
     // Reapply bound restriction if it changes
     if (changes["boundRestriction"] && this.googleMap?.googleMap) {
       this._applyBoundRestriction();
@@ -2678,10 +2672,7 @@ export class GoogleMap2dComponent
   }
 
   async initGeolocation() {
-    // Check permissions and auto-start if already granted
-    const hasPermission = await this.geolocationService.checkPermissions();
-    if (hasPermission) {
-      await this.geolocationService.startWatching();
+    if (await this.locationAccess.startWatchingIfEnabled()) {
       this._geolocationStarted = true;
     }
   }
@@ -2696,10 +2687,10 @@ export class GoogleMap2dComponent
   private _geolocationStarted = false;
 
   async useGeolocation() {
+    if (!this.locationAccess.enabled()) return;
     // Start watching if not already started
     if (!this._geolocationStarted) {
-      await this.geolocationService.startWatching();
-      this._geolocationStarted = true;
+      this._geolocationStarted = await this.locationAccess.startWatchingIfEnabled();
     }
 
     // Pan to current position if available, otherwise it will happen when location updates
@@ -3332,93 +3323,30 @@ export class GoogleMap2dComponent
   }
 
   /**
-   * Debug method to check the state of the selectedSpotPolygon ViewChild
-   * Can be called from browser console for debugging
-   */
-  debugPolygonState() {
-    if (this.selectedSpotPolygon?.polygon) {
-      const paths = this.selectedSpotPolygon.polygon.getPaths();
-      console.log("Polygon paths:", paths);
-
-      if (paths && paths.getLength() > 0) {
-        const firstPath = paths.getAt(0);
-        console.log("First path length:", firstPath.getLength());
-        for (let i = 0; i < firstPath.getLength(); i++) {
-          const point = firstPath.getAt(i);
-          console.log(`Point ${i}:`, { lat: point.lat(), lng: point.lng() });
-        }
-      }
-    }
-  }
-
-  /**
-   * Debug method to check polygon state - can be called from console
-   */
-  debugPolygonStateForSpotSwitch() {
-    console.log("=== POLYGON DEBUG FOR SPOT SWITCH ===");
-    console.log("selectedSpot:", this.selectedSpot);
-    console.log("isEditing():", this.isEditing());
-    console.log("selectedSpotPolygon ViewChild:", this.selectedSpotPolygon);
-
-    if (this.selectedSpotPolygon?.polygon) {
-      const paths = this.selectedSpotPolygon.polygon.getPaths();
-      console.log("Current polygon paths count:", paths.getLength());
-
-      for (let i = 0; i < paths.getLength(); i++) {
-        const path = paths.getAt(i);
-        console.log(`Path ${i} length:`, path.getLength());
-
-        if (path.getLength() > 0) {
-          console.log(`First point of path ${i}:`, {
-            lat: path.getAt(0).lat(),
-            lng: path.getAt(0).lng(),
-          });
-        }
-      }
-    }
-
-    console.log("selectedSpotPaths():", this.selectedSpotPaths());
-    console.log("selectedSpotFirstPath():", this.selectedSpotFirstPath());
-    console.log("=== END POLYGON DEBUG ===");
-  }
-
-  /**
    * Get the current paths of the selected spot polygon from the map component.
    * This should be called when saving to get the updated polygon data.
    */
   async getSelectedSpotPolygonPaths(): Promise<
     google.maps.LatLngLiteral[][] | null
   > {
-    if (!this.selectedSpot) {
-      console.log("No selected spot, returning null");
-      return null;
-    }
+    if (!this.selectedSpot) return null;
 
     if (this.isEditing()) {
-      console.log("🔄 In editing mode, trying to get live polygon paths...");
-
       // Try to get the current paths using the waiting method
       const livePaths = await this.waitForPolygonAndGetPaths();
       if (livePaths && livePaths.length > 0) {
-        console.log("✅ Got live polygon paths, updating spot");
         return livePaths;
       }
-
-      console.log(
-        "⚠️ Could not get live polygon paths, falling back to existing paths",
-      );
     }
 
     // Fall back to existing paths - DO NOT create default paths
     const selectedSpot = this.selectedSpot();
     const paths = selectedSpot?.paths();
     if (paths && paths.length > 0) {
-      console.log("Falling back to existing spot paths");
       return paths;
     }
 
     // Return null if no paths exist - don't create default paths
-    console.log("No paths exist, returning null");
     return null;
   }
 
@@ -3489,7 +3417,6 @@ export class GoogleMap2dComponent
   }
 
   onHighlightedSpotClick(spot: SpotPreviewData) {
-    console.log("Highlighted spot clicked:", spot);
     this.spotClick.emit(spot);
   }
 
@@ -3661,7 +3588,6 @@ export class GoogleMap2dComponent
               }
 
               if (paths.length > 0) {
-                console.log("✅ Successfully retrieved polygon paths");
                 return paths;
               }
             }
@@ -3677,7 +3603,6 @@ export class GoogleMap2dComponent
       }
     }
 
-    console.log("❌ Failed to get polygon paths after", maxRetries, "attempts");
     return null;
   }
 
@@ -3857,7 +3782,7 @@ export class GoogleMap2dComponent
     if (!this.isDebug()) return;
 
     console.debug("[MapDebug][GoogleMap2d]", event, {
-      ...payload,
+      detailKeys: Object.keys(payload).sort(),
       selectedSpot: this._debugSelectedSpotKey(),
       timestamp: Math.round(performance.now()),
     });
@@ -3960,7 +3885,6 @@ export class GoogleMap2dComponent
     if (!spot) return null;
     if ("id" in spot && spot.id) return spot.id as string;
 
-    const location = spot.location();
-    return `local-${location.lat}_${location.lng}`;
+    return "local";
   }
 }

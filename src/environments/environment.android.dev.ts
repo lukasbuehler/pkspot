@@ -6,6 +6,8 @@ export const environment = {
   production: false,
   features: {
     ...androidEnvironment.features,
+    training: false,
+    checkIns: false,
   },
   appCheck: {
     ...androidEnvironment.appCheck,

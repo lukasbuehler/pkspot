@@ -1101,6 +1101,13 @@ service cloud.firestore {
         ));
     }
 
+    match /spot_activity_public/{spotId} {
+      // Activity is deliberately a one-document, non-realtime public summary.
+      // Source contributions and exact counts remain server-only.
+      allow get: if true;
+      allow list, write: if false;
+    }
+
     match /spots/{spotId}
     {
       // all the spots are visible to everyone, authenticated or not
@@ -1468,11 +1475,26 @@ service cloud.firestore {
       }
 
       match /session_records/{sessionRecordId} {
-        allow read, delete: if request.auth.uid != null
-          && request.auth.uid == userId;
-        allow create, update: if request.auth.uid != null
+        // Nearby check-in sessions are server-owned so direct Firestore writes
+        // cannot bypass participation, proximity, or aggregate safeguards.
+        function isClientManagedSession(session) {
+          // Session records predate the explicit source field and were manual.
+          return !('source' in session) || session.source == 'manual';
+        }
+
+        allow read: if request.auth.uid != null && request.auth.uid == userId;
+        allow create: if request.auth.uid != null
           && request.auth.uid == userId
-          && request.resource.data.owner_id == userId;
+          && request.resource.data.owner_id == userId
+          && request.resource.data.source == 'manual';
+        allow update: if request.auth.uid != null
+          && request.auth.uid == userId
+          && isClientManagedSession(resource.data)
+          && isClientManagedSession(request.resource.data)
+          && request.resource.data.owner_id == resource.data.owner_id;
+        allow delete: if request.auth.uid != null
+          && request.auth.uid == userId
+          && isClientManagedSession(resource.data);
       }
 
       match /log_entries/{logEntryId} {
