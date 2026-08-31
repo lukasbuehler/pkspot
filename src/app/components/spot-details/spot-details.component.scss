@@ -82,6 +82,16 @@ form {
   flex-shrink: 0;
 }
 
+.spot-loading-header-reserve {
+  display: block;
+  width: 44%;
+  height: 8px;
+  margin-bottom: 4px;
+  border-radius: 8px;
+  background: var(--mat-sys-surface-variant);
+  opacity: 0.7;
+}
+
 .spot-event-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -120,26 +130,16 @@ form {
 }
 
 .spot-loading-media {
-  display: flex;
-  flex-direction: row;
+  display: block;
   overflow: hidden;
-  min-height: 150px;
-  max-height: 410px;
-  height: 26vh;
-  margin-left: -16px;
-  margin-right: -16px;
-  padding-left: 32px;
-  padding-right: 32px;
-
-  img {
-    height: 100%;
-    aspect-ratio: 1 / 1;
-    border-radius: 20px;
-    object-fit: cover;
-    overflow: hidden;
-    flex-shrink: 0;
-    background: var(--mat-sys-surface-container-high);
-  }
+  width: auto;
+  min-width: 112px;
+  max-width: min(76%, 420px);
+  height: clamp(150px, 26vh, 410px);
+  aspect-ratio: auto 5 / 4;
+  border-radius: 20px;
+  background: var(--mat-sys-surface-container-high);
+  object-fit: cover;
 }
 
 .spot-button-row button:not(:last-of-type) {

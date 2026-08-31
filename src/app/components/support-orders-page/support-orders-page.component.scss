@@ -1,0 +1,131 @@
+.support-orders-page {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 48px 16px 56px;
+}
+
+.back-link {
+  margin-bottom: 1rem;
+}
+
+.support-orders-page__header,
+.support-order-card__details,
+.support-order-card__shipping,
+.support-order-card__actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.support-orders-page__header,
+.support-order-card__details {
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.support-orders-page__header {
+  margin-bottom: 1.5rem;
+
+  h1,
+  p {
+    margin: 0;
+  }
+
+  h1 {
+    margin-bottom: 0.5rem;
+  }
+}
+
+.section-kicker,
+.support-order-card__shipping .mat-label-large,
+.support-order-card__details .mat-label-large {
+  margin: 0 0 0.25rem;
+  color: var(--mat-sys-primary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.support-orders-page__state {
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.support-orders-page__orders {
+  display: grid;
+  gap: 1rem;
+}
+
+.support-order-card {
+  padding: 1.25rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+  background: var(--mat-sys-surface-container);
+}
+
+.support-order-card__details {
+  h2,
+  p {
+    margin: 0;
+  }
+
+  h2 {
+    margin-bottom: 0.25rem;
+  }
+}
+
+.support-order-card__shipping {
+  flex-wrap: wrap;
+  margin: 1.25rem 0;
+  padding: 1rem 0;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+
+  > div {
+    min-width: min(100%, 250px);
+  }
+
+  address,
+  p {
+    margin: 0;
+    font-style: normal;
+  }
+}
+
+.support-order-card__actions {
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.status {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: 999px;
+  color: var(--mat-sys-on-surface-variant);
+  background: var(--mat-sys-surface-container-high);
+  white-space: nowrap;
+
+  &--fulfilled {
+    border-color: var(--mat-sys-secondary);
+    color: var(--mat-sys-on-secondary-container);
+    background: var(--mat-sys-secondary-container);
+  }
+}
+
+mat-spinner {
+  display: inline-flex;
+  margin-right: 0.5rem;
+}
+
+@media (max-width: 599px) {
+  .support-orders-page {
+    padding: 24px 12px 40px;
+  }
+
+  .support-orders-page__header {
+    flex-direction: column;
+  }
+}

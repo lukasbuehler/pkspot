@@ -79,6 +79,9 @@ node_modules/
 # dotenv environment variables file
 .env
 .env.local
+/functions/.env
+/functions/.env.*
+!/functions/.env.example
 
 SPH\ LOGOS\ ALL
 

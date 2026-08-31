@@ -82,6 +82,48 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
+### Development-only Stripe shop
+
+The web shop is intentionally experimental: it is enabled only by the
+development web environment. Production, Android, and iOS all keep the browser
+feature flag off, while the Functions runtime parameter defaults to disabled.
+Do not turn it on for a production project or release it in a native build
+without separately approved payment, tax, fulfillment, and privacy review.
+
+- [ ] For the `test` Firebase project only, create an uncommitted
+      `functions/.env.pkfrspot` with `SUPPORT_SHOP_ENABLED=true` and
+      `SUPPORT_SHOP_RETURN_URL` set to the exact development `/shop` URL
+      (for example `http://localhost:4200/shop`). The Function appends only a
+      trusted item path for direct support or sticker packs; it never trusts a
+      browser-provided redirect.
+- [ ] In Stripe **test mode** for that non-production project, set the two
+      Firebase Secrets, deploy the four compatible Functions and Firestore
+      rules, and register the deployed `stripeSupportWebhook` HTTPS endpoint
+      for `checkout.session.completed`,
+      `checkout.session.async_payment_succeeded`, and
+      `checkout.session.async_payment_failed`:
+
+  ```sh
+  npx firebase functions:secrets:set STRIPE_SECRET_KEY --project test
+  npx firebase functions:secrets:set STRIPE_WEBHOOK_SECRET --project test
+  npm --prefix functions run build
+  npx firebase deploy --project test --only functions:createSupportCheckout,functions:listSupportOrders,functions:markSupportOrderFulfilled,functions:stripeSupportWebhook,firestore:rules
+  ```
+
+  Enable TWINT in Stripe's test-mode payment methods for the Swiss CHF
+  Checkout flow. Do not store a Stripe secret in the Angular environment or
+  source tree.
+- [ ] Run a test direct-support checkout and one of each sticker-pack order.
+      Verify the browser return alone does not mark either order paid, the
+      signed webhook does, repeated delivery of the same Stripe event is
+      idempotent, a shipping address is retained only for the physical order,
+      and an admin with App Check can mark that paid physical order fulfilled.
+- [ ] Before any production or native release, verify all client flags and the
+      production `SUPPORT_SHOP_ENABLED` parameter remain `false`. Confirm a
+      request to the production webhook endpoint is acknowledged but ignored,
+      and that no Stripe production secret, payment method, or checkout
+      endpoint is activated as part of this experimental feature.
+
 ### Private check-ins and delayed Spot activity
 
 The production, Android, and iOS build configurations contain the `training`

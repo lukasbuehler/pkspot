@@ -55,6 +55,10 @@
             [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
           >
             @if (loadingSubtitle()) {
+              <span
+                class="spot-loading-header-reserve"
+                aria-hidden="true"
+              ></span>
               <span class="mat-label-large text-truncate">
                 {{ loadingSubtitle() }}
               </span>
@@ -64,28 +68,33 @@
       </mat-card-subtitle>
     </mat-card-header>
 
-    <div class="spot-loading-body p-3">
+    <mat-card-content class="pt-0">
       @if (loadingImageSrc()) {
-        <div class="spot-loading-media">
-          <img [src]="loadingImageSrc()!" [alt]="loadingTitle() || 'Spot'" />
-        </div>
+        <img
+          class="spot-loading-media mb-3 mt-1"
+          data-testid="spot-loading-media"
+          [src]="loadingImageSrc()!"
+          [alt]="loadingTitle() || 'Spot'"
+        />
       }
-      <div class="d-flex align-items-center gap-2">
-        <mat-progress-spinner
-          mode="indeterminate"
-          diameter="24"
-          aria-label="Loading spot"
-        ></mat-progress-spinner>
-        <span class="mat-body-medium" i18n="@@map.spot_loading_label">
-          Loading spot details
-        </span>
+      <div class="spot-loading-body pb-3">
+        <div class="d-flex align-items-center gap-2">
+          <mat-progress-spinner
+            mode="indeterminate"
+            diameter="24"
+            aria-label="Loading spot"
+          ></mat-progress-spinner>
+          <span class="mat-body-medium" i18n="@@map.spot_loading_label">
+            Loading spot details
+          </span>
+        </div>
+        <div class="panel-skeleton-lines" aria-hidden="true">
+          <span class="panel-skeleton-line" style="width: 92%"></span>
+          <span class="panel-skeleton-line" style="width: 76%"></span>
+          <span class="panel-skeleton-line" style="width: 84%"></span>
+        </div>
       </div>
-      <div class="panel-skeleton-lines" aria-hidden="true">
-        <span class="panel-skeleton-line" style="width: 92%"></span>
-        <span class="panel-skeleton-line" style="width: 76%"></span>
-        <span class="panel-skeleton-line" style="width: 84%"></span>
-      </div>
-    </div>
+    </mat-card-content>
   } @else if (spot()) {
     @if (!isEditing()) {
       <app-spot-activity-summary [spotId]="spotActivitySpotId()" />

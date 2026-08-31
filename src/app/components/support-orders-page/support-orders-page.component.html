@@ -1,0 +1,109 @@
+<section class="support-orders-page">
+  <a mat-button routerLink="/shop" class="back-link">
+    <mat-icon>arrow_back</mat-icon>
+    <span>Shop</span>
+  </a>
+
+  <header class="support-orders-page__header">
+    <div>
+      <p class="mat-label-large section-kicker">Admin</p>
+      <h1 class="mat-headline-medium">Shop order fulfillment</h1>
+      <p class="mat-body-medium">
+        Paid Sticker Support Packs only. Pack and send these manually with Swiss Post.
+      </p>
+    </div>
+    @if (isAdmin()) {
+      <button mat-stroked-button type="button" (click)="reload()">
+        <mat-icon>refresh</mat-icon>
+        <span>Refresh</span>
+      </button>
+    }
+  </header>
+
+  @if (!authResolved()) {
+    <div class="support-orders-page__state">
+      <mat-spinner diameter="32" />
+      <span>Checking admin access...</span>
+    </div>
+  } @else if (!isAdmin()) {
+    <div class="support-orders-page__state">Admin access required.</div>
+  } @else if (isLoading()) {
+    <div class="support-orders-page__state">
+      <mat-spinner diameter="32" />
+      <span>Loading paid sticker orders...</span>
+    </div>
+  } @else if (orders().length === 0) {
+    <div class="support-orders-page__state">
+      No paid sticker orders are waiting for fulfillment.
+    </div>
+  } @else {
+    <div class="support-orders-page__orders">
+      @for (order of orders(); track order.id) {
+        <mat-card class="support-order-card">
+          <div class="support-order-card__details">
+            <div>
+              <p class="mat-label-large">Order</p>
+              <h2 class="mat-title-large">{{ order.productName }}</h2>
+              <p class="mat-body-small">
+                {{ order.stickerCount }} <span>stickers</span> · {{ order.amountLabel }} ·
+                {{ order.paidAtMillis | systemDate: "medium" }}
+              </p>
+            </div>
+            @if (order.fulfillmentStatus === "fulfilled") {
+              <span class="status status--fulfilled">Fulfilled</span>
+            } @else {
+              <span class="status">Ready to pack</span>
+            }
+          </div>
+
+          <div class="support-order-card__shipping">
+            <div>
+              <p class="mat-label-large">Shipping address</p>
+              @if (order.shipping; as shipping) {
+                <address>
+                  @if (shipping.name) { <div>{{ shipping.name }}</div> }
+                  @if (shipping.line1) { <div>{{ shipping.line1 }}</div> }
+                  @if (shipping.line2) { <div>{{ shipping.line2 }}</div> }
+                  <div>{{ shipping.postalCode }} {{ shipping.city }}</div>
+                  <div>{{ shipping.country }}</div>
+                </address>
+              } @else {
+                <p>Stripe did not provide a shipping address.</p>
+              }
+            </div>
+            @if (order.customerEmail) {
+              <div>
+                <p class="mat-label-large">Customer email</p>
+                <a [href]="'mailto:' + order.customerEmail">{{ order.customerEmail }}</a>
+              </div>
+            }
+          </div>
+
+          <div class="support-order-card__actions">
+            @if (order.fulfillmentStatus === "fulfilled") {
+              <span class="mat-body-small">
+                <span>Marked fulfilled</span>
+                {{ order.fulfilledAtMillis | systemDate: "medium" }}
+              </span>
+            } @else {
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                [disabled]="fulfillingOrderId() !== ''"
+                (click)="markFulfilled(order)"
+              >
+                @if (fulfillingOrderId() === order.id) {
+                  <mat-spinner diameter="20" strokeWidth="3" />
+                } @else {
+                  <mat-icon>done</mat-icon>
+                }
+                <span>Mark fulfilled</span>
+              </button>
+            }
+          </div>
+        </mat-card>
+      }
+    </div>
+  }
+</section>

@@ -1459,6 +1459,34 @@ async function testReadOnlyBackendCollections(owner, adminUser) {
     );
   }
 
+  await adminDb.doc("support_orders/server-order").set({
+    kind: "physical_order",
+    payment: { status: "paid" },
+    customer: { email: "supporter@example.com" },
+    shipping: { line1: "Private Street 1" },
+  });
+  await adminDb.doc("support_shop_webhook_events/server-event").set({
+    order_id: "server-order",
+    stripe_event_id: "evt_private",
+  });
+  for (const [label, path] of [
+    ["support order", "support_orders/server-order"],
+    ["support shop webhook receipt", "support_shop_webhook_events/server-event"],
+  ]) {
+    await assertDenied(`regular user read of ${label}`, () =>
+      getDoc(doc(owner.db, path))
+    );
+    await assertDenied(`regular user write to ${label}`, () =>
+      setDoc(doc(owner.db, path), { attacker: true })
+    );
+    await assertDenied(`admin direct read of ${label}`, () =>
+      getDoc(doc(adminUser.db, path))
+    );
+    await assertDenied(`admin direct write to ${label}`, () =>
+      setDoc(doc(adminUser.db, path), { bypass: true })
+    );
+  }
+
   const pendingUploadQuery = query(
     collection(owner.db, "media_upload_status"),
     where("uid", "==", "owner"),

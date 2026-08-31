@@ -1,10 +1,17 @@
 import { test, expect, type Page } from "@playwright/test";
 import { acceptCurrentTerms } from "../fixtures/consent";
 
-async function openSpotFixture(page: Page, viewport = { width: 390, height: 844 }) {
+type SpotFixtureState = "loaded" | "loading";
+
+async function openSpotFixture(
+  page: Page,
+  viewport = { width: 390, height: 844 },
+  state: SpotFixtureState = "loaded",
+) {
   await page.setViewportSize(viewport);
   await acceptCurrentTerms(page);
-  await page.goto("/de/__visual/spot-bottom-sheet", {
+  const query = state === "loading" ? "?state=loading" : "";
+  await page.goto(`/de/__visual/spot-bottom-sheet${query}`, {
     waitUntil: "domcontentloaded",
   });
   await page.addStyleTag({
@@ -22,9 +29,13 @@ async function openSpotFixture(page: Page, viewport = { width: 390, height: 844 
     `,
   });
   await expect(page.locator("app-map-spot-details-panel")).toBeVisible();
-  await expect(page.locator("app-spot-details")).toContainText(
-    "Riverside Training Walls",
-  );
+  const details = page.locator("app-spot-details");
+  await expect(details).toContainText("Riverside Training Walls");
+  if (state === "loading") {
+    await expect(details).toContainText(
+      /Loading spot details|Spotdetails werden geladen/u,
+    );
+  }
   await page.waitForTimeout(700);
 }
 
@@ -81,6 +92,47 @@ async function expandSheetForFullContentSnapshot(page: Page): Promise<void> {
 }
 
 test.describe("Spot Details Visual Regression @visual", () => {
+  test("should match the pending Spot preview and align it with the finished carousel", async ({
+    page,
+  }) => {
+    await openSpotFixture(page, { width: 390, height: 844 }, "loading");
+
+    const sheet = page.locator("app-bottom-sheet .sheet");
+    const loadingMedia = page.getByTestId("spot-loading-media");
+    const loadingBox = await loadingMedia.boundingBox();
+    expect(loadingBox).not.toBeNull();
+    if (!loadingBox) return;
+
+    const sheetBox = await sheet.boundingBox();
+    expect(sheetBox).not.toBeNull();
+    if (!sheetBox) return;
+
+    await expect(page).toHaveScreenshot("spot-details-bottom-sheet-loading.png", {
+      clip: {
+        x: sheetBox.x,
+        y: sheetBox.y,
+        width: sheetBox.width,
+        height: Math.min(sheetBox.height, 510),
+      },
+      maxDiffPixels: 250,
+      animations: "disabled",
+    });
+
+    await openSpotFixture(page, { width: 390, height: 844 });
+    const resolvedMedia = page.locator(
+      "app-img-carousel .spot-img-container[data-media-index='0']",
+    );
+    await expect(resolvedMedia).toBeVisible();
+    const resolvedBox = await resolvedMedia.boundingBox();
+    expect(resolvedBox).not.toBeNull();
+    if (!resolvedBox) return;
+
+    expect(Math.abs(loadingBox.x - resolvedBox.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(loadingBox.y - resolvedBox.y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(loadingBox.width - resolvedBox.width)).toBeLessThanOrEqual(1);
+    expect(Math.abs(loadingBox.height - resolvedBox.height)).toBeLessThanOrEqual(1);
+  });
+
   test("should match full rich persisted spot details", async ({
     page,
   }) => {

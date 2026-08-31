@@ -2,12 +2,15 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  inject,
   signal,
   ViewChild,
 } from "@angular/core";
+import { ActivatedRoute } from "@angular/router";
 import { Timestamp } from "firebase/firestore";
 import { BottomSheetComponent } from "../../bottom-sheet/bottom-sheet.component";
 import { MapSpotDetailsPanelComponent } from "../../map/map-spot-details-panel/map-spot-details-panel.component";
+import { PendingSpotPanel } from "../../map/map-panel-view.model";
 import { Spot } from "../../../../db/models/Spot";
 import { MediaType } from "../../../../db/models/Interfaces";
 import { SpotId, SpotSchema } from "../../../../db/schemas/SpotSchema";
@@ -100,6 +103,15 @@ const visualSpotData: SpotSchema = {
   },
 };
 
+const visualPendingSpot: PendingSpotPanel = {
+  id: "visual-riverside-training-walls",
+  slug: "riverside-training-walls",
+  name: "Riverside Training Walls",
+  locality: "Zurich",
+  imageSrc: "/assets/swissjam/swissjam1.jpg",
+  rating: 4.6,
+};
+
 @Component({
   selector: "app-spot-bottom-sheet-visual-test-page",
   imports: [BottomSheetComponent, MapSpotDetailsPanelComponent],
@@ -108,10 +120,15 @@ const visualSpotData: SpotSchema = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotBottomSheetVisualTestPageComponent implements AfterViewInit {
+  private readonly route = inject(ActivatedRoute);
+
   @ViewChild(BottomSheetComponent)
   private bottomSheet?: BottomSheetComponent;
 
   readonly openProgress = signal(1);
+  readonly isLoading =
+    this.route.snapshot.queryParamMap.get("state") === "loading";
+  readonly pendingSpot = this.isLoading ? visualPendingSpot : null;
   readonly spot = new Spot(
     "visual-riverside-training-walls" as SpotId,
     visualSpotData,

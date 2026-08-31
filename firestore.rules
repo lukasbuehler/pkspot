@@ -1881,6 +1881,17 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
+    // Payments, supporter credits, shipping addresses, and webhook receipts are
+    // server-owned. The support-order admin screen uses App Check-protected
+    // callables that additionally verify the signed-in administrator.
+    match /support_orders/{orderId} {
+      allow read, write: if false;
+    }
+
+    match /support_shop_webhook_events/{eventId} {
+      allow read, write: if false;
+    }
+
     match /moderation_actions/{actionId} {
       allow read: if isAdmin();
       allow write: if false;

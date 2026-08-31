@@ -248,6 +248,12 @@ export {
   getOsmAmenityTile,
 } from "./osmAmenityFunctions";
 export { resolveMapShortLink } from "./mapLinkFunctions";
+export {
+  createSupportCheckout,
+  listSupportOrders,
+  markSupportOrderFulfilled,
+  stripeSupportWebhook,
+} from "./supportShopFunctions";
 
 export {
   onEventNotificationSourceWrite,

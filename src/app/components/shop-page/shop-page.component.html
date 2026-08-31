@@ -1,0 +1,46 @@
+<main class="shop-page">
+  <header class="shop-page__header">
+    <p class="mat-label-large shop-page__eyebrow">PK Spot</p>
+    <h1 class="mat-headline-large">Shop</h1>
+    <p class="mat-title-medium">PK Spot things, for the community.</p>
+  </header>
+
+  <section aria-label="Shop items">
+    <div class="shop-grid">
+      @for (item of items; track item.id) {
+        <a
+          class="shop-product"
+          [class.shop-product--unavailable]="!item.available"
+          [routerLink]="['/shop/item', item.id]"
+        >
+          <div class="shop-product__visual" aria-hidden="true">
+            @if (item.image; as image) {
+              <img [ngSrc]="image.src" alt="" fill />
+            } @else {
+              <mat-icon>{{ item.icon }}</mat-icon>
+            }
+          </div>
+          <div class="shop-product__details">
+            @if (!item.available) {
+              <p class="mat-label-large">Coming later</p>
+            }
+            <h3 class="mat-title-large">{{ item.name }}</h3>
+            <p class="mat-body-medium">{{ item.description }}</p>
+            <p class="mat-body-small">{{ item.detail }}</p>
+          </div>
+          <span class="shop-product__action">
+            <span>{{ item.available ? "View item" : "View details" }}</span>
+            <mat-icon>chevron_right</mat-icon>
+          </span>
+        </a>
+      }
+    </div>
+  </section>
+
+  @if (authService.isAdmin()) {
+    <a mat-stroked-button routerLink="/shop/orders" class="shop-page__admin-link">
+      <mat-icon>storefront</mat-icon>
+      <span>Manage paid sticker orders</span>
+    </a>
+  }
+</main>

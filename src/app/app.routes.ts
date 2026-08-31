@@ -3,9 +3,11 @@ import { contentResolver } from "./resolvers/content.resolver";
 import { communityLandingResolver } from "./resolvers/community-landing.resolver";
 import { environment } from "../environments/environment.default";
 import { trainingFeatureEnabled } from "./features/training-feature";
+import { supportShopFeatureEnabled } from "./features/support-shop-feature";
 
 export const ACCEPTANCE_FREE_PREFIXES = [
   "/about",
+  "/shop",
   "/support",
   "/contact",
   "/terms-of-service",
@@ -609,6 +611,34 @@ export const routes: Routes = [
     resolve: { content: contentResolver },
     data: { routeName: "About", acceptanceFree: true },
   },
+  ...(supportShopFeatureEnabled
+    ? [
+        {
+          path: "shop/orders",
+          loadComponent: () =>
+            import("./components/support-orders-page/support-orders-page.component").then(
+              (m) => m.SupportOrdersPageComponent,
+            ),
+          data: { routeName: "Shop order fulfillment", discoverable: false },
+        },
+        {
+          path: "shop/item/:itemId",
+          loadComponent: () =>
+            import("./components/shop-item-page/shop-item-page.component").then(
+              (m) => m.ShopItemPageComponent,
+            ),
+          data: { routeName: "Shop item", acceptanceFree: true },
+        },
+        {
+          path: "shop",
+          loadComponent: () =>
+            import("./components/shop-page/shop-page.component").then(
+              (m) => m.ShopPageComponent,
+            ),
+          data: { routeName: "Shop", acceptanceFree: true },
+        },
+      ]
+    : []),
   {
     path: "support",
     loadComponent: () =>

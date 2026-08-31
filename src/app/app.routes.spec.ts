@@ -125,6 +125,12 @@ describe("app routes", () => {
     expect(contactRoute?.data?.["acceptanceFree"]).toBe(true);
   });
 
+  it("should keep the development-only shop out of the default route table", () => {
+    expect(routes.find((route) => route.path === "shop")).toBeUndefined();
+    expect(routes.find((route) => route.path === "shop/orders")).toBeUndefined();
+    expect(routes.find((route) => route.path === "support/orders")).toBeUndefined();
+  });
+
   it("should keep unified safety cases hidden until email delivery is ready", () => {
     const intake = routes.find((route) => route.path === "safety");
     const caseView = routes.find(

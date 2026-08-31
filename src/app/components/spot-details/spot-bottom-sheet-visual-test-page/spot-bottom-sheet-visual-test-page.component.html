@@ -14,7 +14,8 @@
     (openProgressChange)="openProgress.set($event)"
   >
     <app-map-spot-details-panel
-      [spot]="spot"
+      [pendingSpot]="pendingSpot"
+      [spot]="isLoading ? null : spot"
       [openProgress]="openProgress()"
       [pendingVoteCount]="3"
       [liveUpdates]="false"
