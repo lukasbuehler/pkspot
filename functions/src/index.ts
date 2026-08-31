@@ -141,7 +141,9 @@ export {
 } from "./mediaReportFunctions";
 export {
   cleanupMediaReportSubmissionMetadata,
+  getOwnMediaReport,
   submitMediaReport,
+  withdrawOwnMediaReport,
 } from "./mediaReportSubmissionFunctions";
 export {
   addSafetyCaseMessage,
@@ -172,7 +174,14 @@ export {
 export { onContactMessageCreate } from "./contactMessageFunctions";
 
 // spot report functions
-export { onSpotReportCreate, resolveSpotReport } from "./spotReportFunctions";
+export {
+  getOwnReportForTarget,
+  listMyReports,
+  onSpotReportCreate,
+  resolveSpotReport,
+  submitSpotReport,
+  withdrawOwnSpotReport,
+} from "./spotReportFunctions";
 
 // moderation action functions
 export { handleModerationAction } from "./moderationActionFunctions";

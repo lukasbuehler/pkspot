@@ -1,0 +1,68 @@
+<main class="my-reports-page">
+  <header>
+    <h1 i18n>My reports</h1>
+    <p i18n>Manage the reports you have submitted. Only you and moderators can see these details.</p>
+  </header>
+
+  @if (!auth.isSignedIn) {
+    <mat-card class="state-card">
+      <mat-card-content>
+        <mat-icon>lock</mat-icon>
+        <h2 i18n>Sign in to see your reports</h2>
+        <a matButton="filled" color="primary" routerLink="/account" i18n>Sign in</a>
+      </mat-card-content>
+    </mat-card>
+  } @else if (loading()) {
+    <div class="loading-state"><mat-spinner diameter="40" /><span i18n>Loading your reports…</span></div>
+  } @else if (failed()) {
+    <mat-card class="state-card">
+      <mat-card-content>
+        <mat-icon>error</mat-icon>
+        <h2 i18n>Your reports could not be loaded</h2>
+        <button matButton="filled" color="primary" (click)="load()" i18n>Try again</button>
+      </mat-card-content>
+    </mat-card>
+  } @else if (reports().length === 0) {
+    <mat-card class="state-card">
+      <mat-card-content>
+        <mat-icon>flag</mat-icon>
+        <h2 i18n>You have not submitted any reports</h2>
+        <p i18n>Reports help keep PK Spot accurate and safe.</p>
+        <a matButton="filled" color="primary" routerLink="/map" i18n>Explore the map</a>
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    @if (openReports().length > 0) {
+      <section aria-labelledby="open-reports-heading">
+        <h2 id="open-reports-heading" i18n>Open reports</h2>
+        @for (report of openReports(); track report.kind + report.id) {
+          <a class="report-card" [routerLink]="reportPath(report)">
+            <mat-icon>flag</mat-icon>
+            <div>
+              <strong>{{ reportTitle(report) }}</strong>
+              <p>{{ report.reasons.join(', ') }}</p>
+              <span i18n>Open — edit or withdraw</span>
+            </div>
+            <mat-icon>chevron_right</mat-icon>
+          </a>
+        }
+      </section>
+    }
+    @if (historyReports().length > 0) {
+      <section aria-labelledby="report-history-heading">
+        <h2 id="report-history-heading" i18n>History</h2>
+        @for (report of historyReports(); track report.kind + report.id) {
+          <a class="report-card" [routerLink]="reportPath(report)">
+            <mat-icon>history</mat-icon>
+            <div>
+              <strong>{{ reportTitle(report) }}</strong>
+              <p>{{ report.reasons.join(', ') }}</p>
+              <span>{{ report.status }}</span>
+            </div>
+            <mat-icon>chevron_right</mat-icon>
+          </a>
+        }
+      </section>
+    }
+  }
+</main>

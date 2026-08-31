@@ -5,6 +5,10 @@ import {
   SubmitMediaReportRequest,
   SubmitMediaReportResponse,
 } from "../../../../db/schemas/MediaReportPolicy";
+import {
+  GetOwnReportResponse,
+  OwnReportSummary,
+} from "../../../../db/schemas/ReportLifecycleSchema";
 import { AnyMedia, StorageMedia } from "../../../../db/models/Media";
 import { FunctionsAdapterService } from "../functions-adapter.service";
 
@@ -35,35 +39,72 @@ export class MediaReportsService {
   /**
    * Submit a new media report to Firestore
    * @param media The media object to report
-   * @param reason The reason for the report
+   * @param reasons The reasons for the report
    * @param comment Optional comment from the reporter
    * @param locale Optional locale/language code of the reporter
    */
   async submitMediaReport(
     media: AnyMedia,
-    reason: MediaReportReason,
+    reasons: MediaReportReason[],
     comment: string,
     reporterEmail?: string,
     locale?: string,
     spotId?: string,
     context?: MediaReportSchema["context"],
-    targetId?: string
-  ): Promise<string> {
+    targetId?: string,
+    duplicateMediaUrl?: string,
+  ): Promise<SubmitMediaReportResponse> {
     const report: SubmitMediaReportRequest = {
       media: this.serializeMedia(media),
-      reason,
+      reasons,
       comment,
       ...(reporterEmail ? { reporterEmail } : {}),
       ...(locale && { locale }),
       ...(spotId && { spotId }),
       ...(context && { context }),
       ...(targetId && { targetId }),
+      ...(duplicateMediaUrl ? {duplicateMedia: {src: duplicateMediaUrl}} : {}),
     };
 
     const response = await this._functionsAdapter.callPublic<
       SubmitMediaReportRequest,
       SubmitMediaReportResponse
     >("submitMediaReport", report);
-    return response.reportId;
+    return response;
+  }
+
+  async getOwnMediaReport(
+    media: AnyMedia,
+    context?: MediaReportSchema["context"],
+    targetId?: string,
+  ): Promise<OwnReportSummary | null> {
+    const response = await this._functionsAdapter.call<
+      {
+        kind: "media";
+        media: {
+          type: string;
+          src: string;
+          context?: MediaReportSchema["context"];
+          targetId?: string;
+        };
+      },
+      GetOwnReportResponse
+    >("getOwnMediaReport", {
+      kind: "media",
+      media: {
+        type: media.type,
+        src: media.baseSrc,
+        ...(context ? { context } : {}),
+        ...(targetId ? { targetId } : {}),
+      },
+    });
+    return response.report;
+  }
+
+  withdrawOwnMediaReport(reportId: string): Promise<{ withdrawn: boolean }> {
+    return this._functionsAdapter.call(
+      "withdrawOwnMediaReport",
+      { kind: "media", reportId },
+    );
   }
 }

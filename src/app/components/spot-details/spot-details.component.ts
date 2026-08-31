@@ -94,12 +94,15 @@ import {
 } from "@angular/animations";
 import { MapsApiService } from "../../services/maps-api.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { SpotReportDialogComponent } from "../spot-report-dialog/spot-report-dialog.component";
+import {
+  SpotReportDialogComponent,
+  type SpotReportDialogResult,
+} from "../spot-report-dialog/spot-report-dialog.component";
 import { SpotReviewDialogComponent } from "../spot-review-dialog/spot-review-dialog.component";
 import { MatDialog, MatDialogModule } from "@angular/material/dialog";
 import { Inject } from "@angular/core";
 import { SpotReportSchema } from "../../../db/schemas/SpotReportSchema";
-import { publicSpotNoticeTypeForReportReason } from "../../../db/schemas/SpotPublicNotice";
+import type { OwnReportSummary } from "../../../db/schemas/ReportLifecycleSchema";
 import { localizedPublicSpotWarning } from "./spot-public-warning";
 import { MatSelect, MatSelectModule } from "@angular/material/select";
 import { MediaPreviewGridComponent } from "../media-preview-grid/media-preview-grid.component";
@@ -698,6 +701,8 @@ export class SpotDetailsComponent
   stateCtrl = new UntypedFormControl();
 
   report = signal<SpotReportSchema | null>(null);
+  ownReport = signal<OwnReportSummary | null>(null);
+  private _latestOwnReportRequestSpotId: string | null = null;
   currentReport = computed(() => {
     const privateReport = this.report();
     if (this.isAdmin() && privateReport) {
@@ -1812,6 +1817,8 @@ export class SpotDetailsComponent
 
     if (!(spot instanceof Spot)) {
       this._latestReportRequestSpotId = null;
+      this._latestOwnReportRequestSpotId = null;
+      this.ownReport.set(null);
       this._resetReportState();
       return;
     }
@@ -1821,6 +1828,22 @@ export class SpotDetailsComponent
     if (!this.isAdmin()) {
       this._latestReportRequestSpotId = spotId;
       this.report.set(null);
+      if (!this.authenticationService.isSignedIn) {
+        this.ownReport.set(null);
+        return;
+      }
+      this._latestOwnReportRequestSpotId = spotId;
+      try {
+        const report = await this._spotReportsService.getOwnSpotReport(spotId);
+        if (this._latestOwnReportRequestSpotId === spotId) {
+          this.ownReport.set(report);
+        }
+      } catch (error) {
+        console.warn("Failed to load own report for Spot", spotId, error);
+        if (this._latestOwnReportRequestSpotId === spotId) {
+          this.ownReport.set(null);
+        }
+      }
       return;
     }
 
@@ -1915,55 +1938,49 @@ export class SpotDetailsComponent
     )
       return;
 
-    const spotReportData: SpotReportSchema = {
-      spot: {
-        id: spot.id,
-        name: spot.name(),
-      },
-      user: {
-        uid: this.authenticationService.user.uid,
-        display_name: this.authenticationService.user.data.displayName,
-      },
-      reason: "",
-    };
     this._analyticsService.trackEvent("spot_report_opened", {
       spot_id: spot.id,
       report_count: spot.reportCount,
     });
     const dialogRef = this.dialog.open(SpotReportDialogComponent, {
-      data: spotReportData,
+      data: {
+        spotId: spot.id,
+        spotName: spot.name(),
+        report: this.ownReport(),
+      },
     });
     dialogRef
       .afterClosed()
       .subscribe(
-        (result?: { report?: SpotReportSchema; reportId?: string }) => {
-          if (!result?.report) {
+        (result?: SpotReportDialogResult) => {
+          if (!result?.reportId && !result?.withdrawn) {
             return;
           }
-
-          this.report.set(this.isAdmin() ? result.report : null);
-          spot.isReported = true;
-          spot.reportReason = undefined;
-          spot.publicNotice = {
-            type: publicSpotNoticeTypeForReportReason(result.report.reason),
-            message: "",
-            source: "community_report",
-          };
-          spot.reportCount += 1;
-          this.reportSubmitted.emit(spot);
+          void this.loadReportForSpot();
+          if (result.withdrawn) {
+            this._snackbar.open($localize`Your report was withdrawn.`, undefined, {duration: 4000});
+            return;
+          }
+          if (result.created) {
+            spot.isReported = true;
+            spot.reportCount += 1;
+            this.reportSubmitted.emit(spot);
+          }
           this._analyticsService.trackEvent("spot_report_submitted", {
             spot_id: spot.id,
             report_id: result.reportId,
-            reason: result.report.reason,
+            created: result.created,
           });
           this._snackbar.open(
-            $localize`Report submitted. Thanks for helping keep spots accurate.`,
+            result.created ?
+              $localize`Your report is pending. You can edit or withdraw it at any time.` :
+              $localize`Your report was updated.`,
             undefined,
             {
               duration: 4000,
             },
           );
-          void this._notificationOptIn.maybePrompt("report_updates");
+          if (result.created) void this._notificationOptIn.maybePrompt("report_updates");
         },
       );
   }

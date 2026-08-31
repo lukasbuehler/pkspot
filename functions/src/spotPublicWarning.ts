@@ -56,3 +56,24 @@ export const publicSpotWarningForReason = (
     message: "Information about this Spot may be outdated. Please use caution.",
   };
 };
+
+const warningPriority: Record<PublicSpotWarningType, number> = {
+  destroyed: 60,
+  inaccessible: 50,
+  temporarily_closed: 40,
+  access_concern: 30,
+  duplicate: 20,
+  other: 10,
+};
+
+/**
+ * A report may contain several private reasons. Keep the public surface
+ * deliberately small by exposing only the most safety-relevant neutral notice.
+ */
+export const publicSpotWarningForReasons = (
+  values: readonly unknown[],
+): PublicSpotWarning =>
+  values
+    .map((value) => publicSpotWarningForReason(value))
+    .sort((left, right) => warningPriority[right.type] - warningPriority[left.type])[0] ??
+  publicSpotWarningForReason("other");

@@ -1,14 +1,31 @@
 import {createHash} from "node:crypto";
 import * as admin from "firebase-admin";
+import * as logger from "firebase-functions/logger";
 import {FieldValue, Timestamp} from "firebase-admin/firestore";
 import {HttpsError, onCall} from "firebase-functions/v2/https";
 import {onSchedule} from "firebase-functions/v2/scheduler";
 import {
-  isGuestMediaReportReason,
-  isMediaReportReason,
+  areGuestMediaReportReasons,
+  isMediaReportReasons,
   type SubmitMediaReportRequest,
   type SubmitMediaReportResponse,
 } from "../../src/db/schemas/MediaReportPolicy";
+import type {
+  GetOwnReportResponse,
+  OwnReportSummary,
+  OwnReportTargetRequest,
+  WithdrawOwnReportRequest,
+} from "../../src/db/schemas/ReportLifecycleSchema";
+import {
+  isActiveReport,
+  recordValue,
+  reportClaimId,
+  reportReasons,
+  reportTargetKeyForMedia,
+  stringValue,
+  type UnknownRecord as LifecycleUnknownRecord,
+} from "./reportLifecycleHelpers";
+import {closeSafetyCaseForWithdrawnSource} from "./safetyCaseProjectionFunctions";
 
 const CALLABLE_OPTIONS = {cors: true, invoker: "public" as const};
 const HOUR_MS = 60 * 60 * 1_000;
@@ -20,6 +37,19 @@ const NETWORK_REPORTS_PER_HOUR = 60;
 const REPORTS_PER_TARGET_PER_DAY = 5;
 
 type UnknownRecord = Record<string, unknown>;
+
+const reportMatchesMediaTarget = (data: LifecycleUnknownRecord, targetKey: string): boolean => {
+  if (stringValue(data["target_key"]) === targetKey) return true;
+  const media = recordValue(data["media"]);
+  const type = stringValue(media["type"]);
+  const src = stringValue(media["src"]);
+  if (!type || !src) return false;
+  return reportTargetKeyForMedia(
+    {type, src},
+    stringValue(data["context"]),
+    stringValue(data["targetId"]),
+  ) === targetKey;
+};
 
 interface RateLimit {
   key: string;
@@ -127,6 +157,20 @@ const cleanMedia = (
   };
 };
 
+const cleanDuplicateMedia = (
+  value: unknown,
+  currentMedia: SubmitMediaReportRequest["media"],
+  required: boolean,
+): {type: string; src: string} | undefined => {
+  const input = recordValue(value);
+  const src = cleanUrl(input["src"], "duplicateMedia.src", required);
+  if (!src) return undefined;
+  if (src === currentMedia.src) {
+    throw new HttpsError("invalid-argument", "duplicateMedia must refer to different media.");
+  }
+  return {type: currentMedia.type, src};
+};
+
 const hash = (value: string): string =>
   createHash("sha256").update(`media-report-v1:${value}`).digest("hex");
 
@@ -198,13 +242,15 @@ export const submitMediaReport = onCall(
   CALLABLE_OPTIONS,
   async (request): Promise<SubmitMediaReportResponse> => {
     const input = (request.data ?? {}) as UnknownRecord;
-    const reason = input["reason"];
-    if (!isMediaReportReason(reason)) {
-      throw new HttpsError("invalid-argument", "Unsupported report reason.");
+    const rawReasons = input["reasons"] ??
+      (input["reason"] === undefined ? [] : [input["reason"]]);
+    if (!isMediaReportReasons(rawReasons)) {
+      throw new HttpsError("invalid-argument", "Select at least one supported report reason.");
     }
+    const reasons = [...new Set(rawReasons)];
 
     const uid = request.auth?.uid;
-    if (!uid && !isGuestMediaReportReason(reason)) {
+    if (!uid && !areGuestMediaReportReasons(reasons)) {
       throw new HttpsError(
         "unauthenticated",
         "Sign in to submit media quality reports.",
@@ -212,7 +258,20 @@ export const submitMediaReport = onCall(
     }
 
     const media = cleanMedia(input["media"]);
-    const comment = cleanText(input["comment"], "comment", 2_000) ?? "";
+    const duplicateMedia = cleanDuplicateMedia(
+      input["duplicateMedia"],
+      media,
+      reasons.includes("duplicate"),
+    );
+    if (!reasons.includes("duplicate") && input["duplicateMedia"] !== undefined) {
+      throw new HttpsError("invalid-argument", "duplicateMedia is only allowed with the duplicate reason.");
+    }
+    const comment = cleanText(
+      input["comment"],
+      "comment",
+      2_000,
+      reasons.includes("other"),
+    ) ?? "";
     const reporterEmail = uid ? undefined : cleanEmail(input["reporterEmail"]);
     const locale = cleanText(input["locale"], "locale", 20);
     const spotId = cleanText(input["spotId"], "spotId", 128);
@@ -236,9 +295,12 @@ export const submitMediaReport = onCall(
       ipAddress ?? `${appId ?? "no-app"}:${userAgent ?? "no-user-agent"}`,
     );
     const reporterIdentity = uid ? `uid:${uid}` : `network:${networkIdentity}`;
-    const targetIdentity = hash(
-      targetId ?? spotId ?? `${media.type}:${media.src}`,
+    const targetKey = reportTargetKeyForMedia(
+      media,
+      context as string | undefined,
+      targetId ?? spotId,
     );
+    const targetIdentity = hash(targetKey);
     const nowMs = Date.now();
     const hourStart = Math.floor(nowMs / HOUR_MS) * HOUR_MS;
     const dayStart = Math.floor(nowMs / DAY_MS) * DAY_MS;
@@ -271,14 +333,56 @@ export const submitMediaReport = onCall(
     ];
 
     const db = admin.firestore();
-    const reportRef = db.collection("reports").doc();
+    let reportRef: admin.firestore.DocumentReference | undefined;
+    let created = false;
     const now = Timestamp.now();
     await db.runTransaction(async (transaction) => {
+      const claimRef = uid ?
+        db.doc(`report_claims/${reportClaimId("media", uid, targetKey)}`) :
+        undefined;
+      const claim = claimRef ? await transaction.get(claimRef) : undefined;
+      const existingPath = stringValue(claim?.data()?.["open_report_path"]);
+      const claimedReport = existingPath ? await transaction.get(db.doc(existingPath)) : undefined;
+      const legacyReports = uid ? await transaction.get(
+        db.collection("reports").where("user.uid", "==", uid).limit(200),
+      ) : undefined;
+      const existing = claimedReport?.exists && isActiveReport(claimedReport.data() as LifecycleUnknownRecord) ?
+        claimedReport :
+        legacyReports?.docs.find((report) => {
+          const data = report.data() as LifecycleUnknownRecord;
+          return isActiveReport(data) && reportMatchesMediaTarget(data, targetKey);
+        });
+      if (uid && existing) {
+        reportRef = existing.ref;
+        transaction.update(existing.ref, {
+          media,
+          reasons,
+          reason: reasons[0],
+          comment,
+          ...(locale ? {locale} : {locale: FieldValue.delete()}),
+          ...(spotId ? {spotId} : {spotId: FieldValue.delete()}),
+          ...(context ? {context} : {context: FieldValue.delete()}),
+          ...(targetId ? {targetId} : {targetId: FieldValue.delete()}),
+          ...(duplicateMedia ? {duplicate_media: duplicateMedia} : {duplicate_media: FieldValue.delete()}),
+          updated_at: now,
+        });
+        transaction.set(claimRef!, {
+          kind: "media",
+          uid,
+          target: targetKey,
+          open_report_path: existing.ref.path,
+          updated_at: now,
+        }, {merge: true});
+        return;
+      }
       await enforceRateLimits(transaction, limits);
+      reportRef = db.collection("reports").doc();
+      created = true;
       transaction.create(reportRef, {
         kind: "media",
         media,
-        reason,
+        reasons,
+        reason: reasons[0],
         comment,
         user: uid ?
           {uid} :
@@ -289,12 +393,17 @@ export const submitMediaReport = onCall(
         createdAt: now,
         source: "user",
         status: "open",
+        updated_at: now,
+        target_key: targetKey,
         ...(locale ? {locale} : {}),
         ...(spotId ? {spotId} : {}),
         ...(context ? {context} : {}),
         ...(targetId ? {targetId} : {}),
+        ...(duplicateMedia ? {duplicate_media: duplicateMedia} : {}),
         submission: {
           channel: "callable",
+          canonical: true,
+          accepted_at: now,
           authenticated: Boolean(uid),
           app_check: Boolean(request.app),
           ...(appId ? {app_id: appId} : {}),
@@ -308,9 +417,114 @@ export const submitMediaReport = onCall(
           ),
         },
       });
+      if (claimRef) {
+        transaction.set(claimRef, {
+          kind: "media",
+          uid,
+          target: targetKey,
+          open_report_path: reportRef.path,
+          updated_at: now,
+        });
+      }
     });
 
-    return {reportId: reportRef.id};
+    return {reportId: reportRef!.id, created};
+  },
+);
+
+const mediaSummary = (
+  id: string,
+  data: LifecycleUnknownRecord,
+): OwnReportSummary => {
+  const media = recordValue(data["media"]);
+  const duplicateMedia = recordValue(data["duplicate_media"]);
+  const status = data["status"];
+  const safeStatus = status === "resolved" || status === "dismissed" || status === "withdrawn" ?
+    status :
+    "open";
+  return {
+    id,
+    kind: "media",
+    status: safeStatus,
+    reasons: reportReasons(data),
+    comment: stringValue(data["comment"]) ?? "",
+    ...(data["createdAt"] ? {createdAt: data["createdAt"]} : {}),
+    ...(data["updated_at"] ? {updatedAt: data["updated_at"]} : {}),
+    ...(data["withdrawn_at"] ? {withdrawnAt: data["withdrawn_at"]} : {}),
+    media: {
+      type: stringValue(media["type"]) ?? "image",
+      src: stringValue(media["src"]) ?? "",
+    },
+    ...(stringValue(duplicateMedia["src"]) ? {
+      duplicateMedia: {
+        type: stringValue(duplicateMedia["type"]) ?? "image",
+        src: stringValue(duplicateMedia["src"])!,
+      },
+    } : {}),
+    ...(stringValue(data["targetId"]) ? {targetId: stringValue(data["targetId"])} : {}),
+    ...(data["context"] === "spot" || data["context"] === "event" || data["context"] === "media" ?
+      {context: data["context"]} : {}),
+  };
+};
+
+export const getOwnMediaReport = onCall<OwnReportTargetRequest, Promise<GetOwnReportResponse>>(
+  CALLABLE_OPTIONS,
+  async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) throw new HttpsError("unauthenticated", "Sign in to view your reports.");
+    const target = request.data?.media;
+    if (request.data?.kind !== "media" || !target?.type || !target.src) {
+      throw new HttpsError("invalid-argument", "A media target is required.");
+    }
+    const targetKey = reportTargetKeyForMedia(target, target.context, target.targetId);
+    const db = admin.firestore();
+    const claim = await db.doc(
+      `report_claims/${reportClaimId("media", uid, targetKey)}`,
+    ).get();
+    const path = stringValue(claim.data()?.["open_report_path"]);
+    const claimedReport = path ? await db.doc(path).get() : undefined;
+    const report = claimedReport?.exists && isActiveReport(claimedReport.data() as LifecycleUnknownRecord) ?
+      claimedReport :
+      (await db.collection("reports").where("user.uid", "==", uid).limit(200).get()).docs.find((candidate) => {
+        const data = candidate.data() as LifecycleUnknownRecord;
+        return isActiveReport(data) && reportMatchesMediaTarget(data, targetKey);
+      });
+    if (!report?.exists || !isActiveReport(report.data() as LifecycleUnknownRecord)) {
+      return {report: null};
+    }
+    return {report: mediaSummary(report.id, report.data() as LifecycleUnknownRecord)};
+  },
+);
+
+export const withdrawOwnMediaReport = onCall<WithdrawOwnReportRequest, Promise<{withdrawn: boolean}>>(
+  CALLABLE_OPTIONS,
+  async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) throw new HttpsError("unauthenticated", "Sign in to withdraw a report.");
+    const reportId = cleanText(request.data?.reportId, "reportId", 128, true)!;
+    const db = admin.firestore();
+    const reportRef = db.doc(`reports/${reportId}`);
+    await db.runTransaction(async (transaction) => {
+      const report = await transaction.get(reportRef);
+      const data = report.data() as LifecycleUnknownRecord | undefined;
+      if (!report.exists || stringValue(recordValue(recordValue(data)["user"])["uid"]) !== uid) {
+        throw new HttpsError("permission-denied", "You can only withdraw your own report.");
+      }
+      if (!isActiveReport(data ?? {})) return;
+      const media = recordValue(data?.["media"]);
+      const targetKey = stringValue(data?.["target_key"]);
+      const now = Timestamp.now();
+      transaction.update(reportRef, {status: "withdrawn", withdrawn_at: now, updated_at: now});
+      if (targetKey) {
+        transaction.set(db.doc(`report_claims/${reportClaimId("media", uid, targetKey)}`), {
+          open_report_path: FieldValue.delete(),
+          updated_at: now,
+        }, {merge: true});
+      }
+      logger.info("Reporter withdrew media report", {reportId, mediaSrc: media["src"]});
+    });
+    await closeSafetyCaseForWithdrawnSource(reportRef.path);
+    return {withdrawn: true};
   },
 );
 

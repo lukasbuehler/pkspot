@@ -295,6 +295,10 @@
             </mat-card>
 
             <mat-menu #profileManagementMenu="matMenu">
+              <button mat-menu-item routerLink="/reports">
+                <mat-icon>flag</mat-icon>
+                <span i18n>My reports</span>
+              </button>
               <button mat-menu-item routerLink="/notifications">
                 <mat-icon
                   [matBadge]="notificationCenter.unreadCount()"

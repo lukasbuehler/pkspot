@@ -925,12 +925,11 @@
               (click)="openSpotReportDialog()"
             >
               <mat-icon>report</mat-icon>
-              <span
-                i18n="
-                  report button label|Label of the button to report the spot
-                "
-                >Report</span
-              >
+              @if (ownReport()) {
+                <span i18n>Edit your report</span>
+              } @else {
+                <span i18n="report button label|Label of the button to report the spot">Report</span>
+              }
             </button>
             @if (isAdmin()) {
               <button
@@ -958,6 +957,16 @@
               </button>
             }
           </div>
+          @if (ownReport()) {
+            <div class="reporter-report-state mb-3" role="status">
+              <mat-icon>flag</mat-icon>
+              <div>
+                <strong i18n>Your report is open</strong>
+                <p class="mb-0" i18n>Only you and moderators can see it. You can edit or withdraw it.</p>
+              </div>
+              <button matButton="text" type="button" (click)="openSpotReportDialog()" i18n>Edit</button>
+            </div>
+          }
           <mat-divider class="mb-3"></mat-divider>
         }
 

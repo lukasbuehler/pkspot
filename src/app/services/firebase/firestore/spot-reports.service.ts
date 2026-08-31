@@ -1,17 +1,24 @@
 import { Injectable, inject } from "@angular/core";
-import { Timestamp } from "firebase/firestore";
 import { SpotReportSchema } from "../../../../db/schemas/SpotReportSchema";
+import {
+  GetOwnReportResponse,
+  OwnReportSummary,
+  SubmitSpotReportRequest,
+  SubmitSpotReportResponse,
+} from "../../../../db/schemas/ReportLifecycleSchema";
 import { ConsentAwareService } from "../../consent-aware.service";
 import {
   FirestoreAdapterService,
   QueryFilter,
 } from "../firestore-adapter.service";
+import { FunctionsAdapterService } from "../functions-adapter.service";
 
 @Injectable({
   providedIn: "root",
 })
 export class SpotReportsService extends ConsentAwareService {
   private _firestoreAdapter = inject(FirestoreAdapterService);
+  private readonly _functionsAdapter = inject(FunctionsAdapterService);
 
   constructor() {
     super();
@@ -47,7 +54,7 @@ export class SpotReportsService extends ConsentAwareService {
       });
   }
 
-  // Now uses adapter for full native support
+  // Raw report reads remain moderator-only after the privacy migration.
   getSpotReportsByUserId(userId: string): Promise<SpotReportSchema> {
     console.log("getting all reports for a user");
     const filters: QueryFilter[] = [
@@ -64,16 +71,33 @@ export class SpotReportsService extends ConsentAwareService {
       });
   }
 
-  addSpotReport(report: SpotReportSchema) {
-    const spot_id: string = report.spot.id;
-
-    this.trackEventWithConsent("Add Spot Report", {
-      props: { spotId: spot_id },
+  async submitSpotReport(
+    report: SubmitSpotReportRequest,
+  ): Promise<SubmitSpotReportResponse> {
+    this.trackEventWithConsent("Submit Spot Report", {
+      props: { spotId: report.spotId, reasons: report.reasons },
     });
+    return this._functionsAdapter.call<
+      SubmitSpotReportRequest,
+      SubmitSpotReportResponse
+    >("submitSpotReport", report);
+  }
 
-    return this._firestoreAdapter.addDocument(`spots/${spot_id}/reports`, {
-      ...report,
-      createdAt: report.createdAt ?? Timestamp.now(),
-    });
+  async getOwnSpotReport(spotId: string): Promise<OwnReportSummary | null> {
+    const response = await this._functionsAdapter.call<
+      { kind: "spot"; spotId: string },
+      GetOwnReportResponse
+    >("getOwnReportForTarget", { kind: "spot", spotId });
+    return response.report;
+  }
+
+  withdrawOwnSpotReport(
+    spotId: string,
+    reportId: string,
+  ): Promise<{ withdrawn: boolean }> {
+    return this._functionsAdapter.call(
+      "withdrawOwnSpotReport",
+      { kind: "spot", spotId, reportId },
+    );
   }
 }

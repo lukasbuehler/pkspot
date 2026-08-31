@@ -442,6 +442,11 @@
         <source> Leave blank to add yourself. Use the Firebase Auth UID for another user. </source>
       </segment>
     </unit>
+    <unit id="6650633628037596693">
+      <segment>
+        <source>Try again</source>
+      </segment>
+    </unit>
     <unit id="1008017384716140525">
       <segment>
         <source>Event view</source>
@@ -532,6 +537,14 @@
         <source>Short title</source>
       </segment>
     </unit>
+    <unit id="6684528318338341449">
+      <notes>
+        <note category="description">media report title</note>
+      </notes>
+      <segment>
+        <source><pc id="0" equivStart="START_BLOCK_IF" equivEnd="CLOSE_BLOCK_IF" type="other" dispStart="@if (ownReport()) {" dispEnd="}"> Edit media report </pc><pc id="1" equivStart="START_BLOCK_ELSE" equivEnd="CLOSE_BLOCK_ELSE" type="other" dispStart="@else {" dispEnd="}"> Report Media </pc></source>
+      </segment>
+    </unit>
     <unit id="6684903098036930968">
       <segment>
         <source>Delete media</source>
@@ -555,6 +568,11 @@
     <unit id="6131531490320895458">
       <segment>
         <source>Select organization</source>
+      </segment>
+    </unit>
+    <unit id="6136284828823087442">
+      <segment>
+        <source>Your reports could not be loaded</source>
       </segment>
     </unit>
     <unit id="613943582301222071">
@@ -902,6 +920,11 @@
         <source>Vote to merge</source>
       </segment>
     </unit>
+    <unit id="311406302871713408">
+      <segment>
+        <source>Your report was updated.</source>
+      </segment>
+    </unit>
     <unit id="3114906098813455469">
       <segment>
         <source>Spot created</source>
@@ -1215,6 +1238,11 @@
     <unit id="7824690700853674199">
       <segment>
         <source>Current review state</source>
+      </segment>
+    </unit>
+    <unit id="7825696169404064512">
+      <segment>
+        <source>Please add the URL of the media this duplicates.</source>
       </segment>
     </unit>
     <unit id="78295015887661250">
@@ -1890,6 +1918,11 @@
         <source> edits</source>
       </segment>
     </unit>
+    <unit id="16262867878350001">
+      <segment>
+        <source>Reports help keep PK Spot accurate and safe.</source>
+      </segment>
+    </unit>
     <unit id="7793821153334609761">
       <segment>
         <source>Only visible to you.</source>
@@ -1913,6 +1946,11 @@
     <unit id="4344855956830123370">
       <segment>
         <source>Apply crop</source>
+      </segment>
+    </unit>
+    <unit id="434530867715201013">
+      <segment>
+        <source>Select every reason that applies:</source>
       </segment>
     </unit>
     <unit id="4386559202007821626">
@@ -2762,9 +2800,9 @@
         <source>Event cancelled</source>
       </segment>
     </unit>
-    <unit id="5682561296127892994">
+    <unit id="1210302373806182896">
       <segment>
-        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;"> Illegal or unsafe content: This may break the law or put someone at risk. </pc></source>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">Illegal or unsafe content: This may break the law or put someone at risk.</pc></source>
       </segment>
     </unit>
     <unit id="5684792847924520522">
@@ -6055,9 +6093,19 @@
         <source>Incident runbook</source>
       </segment>
     </unit>
+    <unit id="979884833201290493">
+      <segment>
+        <source>Open — edit or withdraw</source>
+      </segment>
+    </unit>
     <unit id="1102717806459547726">
       <segment>
         <source>Refresh</source>
+      </segment>
+    </unit>
+    <unit id="1115835486274544030">
+      <segment>
+        <source>Your report was withdrawn.</source>
       </segment>
     </unit>
     <unit id="1118027788072351320">
@@ -6183,6 +6231,11 @@
     <unit id="3321705607769130356">
       <segment>
         <source>{VAR_PLURAL, plural, =1 {The one problematic published event is shown below.} other {All <ph id="0" equiv="INTERPOLATION"/> problematic published events are shown below.}}</source>
+      </segment>
+    </unit>
+    <unit id="3332261437108791304">
+      <segment>
+        <source>Withdraw report</source>
       </segment>
     </unit>
     <unit id="8586908745456864217">
@@ -6410,6 +6463,11 @@
         <source>Guard blocks: <ph id="0" equiv="INTERPOLATION" disp="{{ item.guardBlockCount }}"/></source>
       </segment>
     </unit>
+    <unit id="8330499970959786492">
+      <segment>
+        <source>URL of the original media</source>
+      </segment>
+    </unit>
     <unit id="8333618256474808727">
       <segment>
         <source>Add translation</source>
@@ -6420,9 +6478,9 @@
         <source>Event restored</source>
       </segment>
     </unit>
-    <unit id="3248469257587489257">
+    <unit id="840870092040015279">
       <segment>
-        <source> Sign in to submit media quality reports. </source>
+        <source>Sign in to submit media quality reports.</source>
       </segment>
     </unit>
     <unit id="3249513483374643425">
@@ -6503,6 +6561,11 @@
     <unit id="2729703763662350648">
       <segment>
         <source> Everything on this page is public. Do not add your address, school, private training spots, phone number, or anything that shows where you usually are. </source>
+      </segment>
+    </unit>
+    <unit id="2732833127217604415">
+      <segment>
+        <source> Withdraw report </source>
       </segment>
     </unit>
     <unit id="2735597846335347226">
@@ -7191,11 +7254,6 @@
         <source>Follow request sent</source>
       </segment>
     </unit>
-    <unit id="6715130059718666635">
-      <segment>
-        <source>Contributions</source>
-      </segment>
-    </unit>
     <unit id="6720692665733098220">
       <segment>
         <source>Reported externally</source>
@@ -7730,6 +7788,11 @@
         <source> Verify now </source>
       </segment>
     </unit>
+    <unit id="5968539663160022460">
+      <segment>
+        <source>Update report</source>
+      </segment>
+    </unit>
     <unit id="2852131932578261096">
       <segment>
         <source>Apply operation</source>
@@ -7793,6 +7856,11 @@
     <unit id="574237115855339547">
       <segment>
         <source>Change E-mail address</source>
+      </segment>
+    </unit>
+    <unit id="1417211593309442476">
+      <segment>
+        <source>Only you and moderators can see it. You can edit or withdraw it.</source>
       </segment>
     </unit>
     <unit id="1426358485872019526">
@@ -7943,11 +8011,6 @@
     <unit id="5232615121937117490">
       <segment>
         <source>Organization created.</source>
-      </segment>
-    </unit>
-    <unit id="5235264493064101963">
-      <segment>
-        <source>Reporting...</source>
       </segment>
     </unit>
     <unit id="settings.notifications.all">
@@ -8399,11 +8462,6 @@
         <source>The notification is still sent immediately.</source>
       </segment>
     </unit>
-    <unit id="661456983704424737">
-      <segment>
-        <source> Your report and identity are visible only to moderators. A moderator may publish a separate warning on the Spot without identifying you. </source>
-      </segment>
-    </unit>
     <unit id="settings.profileAccess.save">
       <segment>
         <source>Save profile access</source>
@@ -8447,6 +8505,11 @@
     <unit id="3631960501807863073">
       <segment>
         <source>New password is too weak.</source>
+      </segment>
+    </unit>
+    <unit id="186236568870281953">
+      <segment>
+        <source>History</source>
       </segment>
     </unit>
     <unit id="1868606282505332204">
@@ -8870,11 +8933,6 @@
         <source>The e-mail address needs to be verified later.</source>
       </segment>
     </unit>
-    <unit id="6858819821660974006">
-      <segment>
-        <source> The report could not be submitted. Please wait and try again. </source>
-      </segment>
-    </unit>
     <unit id="6859805653263373747">
       <segment>
         <source>Keep your own list</source>
@@ -8938,6 +8996,11 @@
     <unit id="3297238960219201653">
       <segment>
         <source>About you</source>
+      </segment>
+    </unit>
+    <unit id="3297542874937204469">
+      <segment>
+        <source>Private Spot</source>
       </segment>
     </unit>
     <unit id="4101516597821779558">
@@ -9298,6 +9361,11 @@
         <source>Next month</source>
       </segment>
     </unit>
+    <unit id="2200939854834992572">
+      <segment>
+        <source>Edit report for &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data.spotName }}"/>&apos;</source>
+      </segment>
+    </unit>
     <unit id="2231151963929640898">
       <segment>
         <source>Edit submitted for organization review</source>
@@ -9413,6 +9481,11 @@
         <source>Check again</source>
       </segment>
     </unit>
+    <unit id="69928384265189430">
+      <segment>
+        <source>Loading your reports…</source>
+      </segment>
+    </unit>
     <unit id="6997602168024654529">
       <segment>
         <source>Not sure</source>
@@ -9495,6 +9568,11 @@
     <unit id="5578067080894660725">
       <segment>
         <source>{VAR_PLURAL, plural, =1 {used spot} other {used spots}}</source>
+      </segment>
+    </unit>
+    <unit id="5578898050255545720">
+      <segment>
+        <source>Your report is pending. You can edit or withdraw it at any time.</source>
       </segment>
     </unit>
     <unit id="spot.delete.aria_label">
@@ -9948,6 +10026,11 @@
         <source> Save the spot first to add images. </source>
       </segment>
     </unit>
+    <unit id="48343701354922250">
+      <segment>
+        <source>Submit report</source>
+      </segment>
+    </unit>
     <unit id="spot.edit.hide_streetview">
       <notes>
         <note category="description">Toggle to hide streetview</note>
@@ -10027,11 +10110,6 @@
     <unit id="4667715772382848347">
       <segment>
         <source>Profile not found</source>
-      </segment>
-    </unit>
-    <unit id="4673651466762876389">
-      <segment>
-        <source> Add an email only if you want administrators to contact you about the report. It is not verified unless you sign in. </source>
       </segment>
     </unit>
     <unit id="7772746290400709115">
@@ -10191,6 +10269,11 @@
         <source>Hide</source>
       </segment>
     </unit>
+    <unit id="8462239822005764062">
+      <segment>
+        <source>Please add details when selecting Other.</source>
+      </segment>
+    </unit>
     <unit id="8470446025763473581">
       <segment>
         <source>Added media</source>
@@ -10219,6 +10302,11 @@
     <unit id="8450335284128633458">
       <segment>
         <source>Failed to link Google Place</source>
+      </segment>
+    </unit>
+    <unit id="845207101929621525">
+      <segment>
+        <source> Your report could not be saved. Please check your connection and try again. </source>
       </segment>
     </unit>
     <unit id="2762746842237643658">
@@ -10329,6 +10417,11 @@
     <unit id="4608107035538313233">
       <segment>
         <source>Event info</source>
+      </segment>
+    </unit>
+    <unit id="4616666625375010169">
+      <segment>
+        <source> The report could not be submitted. Please check your connection and try again. </source>
       </segment>
     </unit>
     <unit id="4626291526592310042">
@@ -11006,7 +11099,12 @@
     </unit>
     <unit id="6024008212258429928">
       <segment>
-        <source>Report Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data!.spot.name }}"/>&apos;</source>
+        <source>Report Spot &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data.spotName }}"/>&apos;</source>
+      </segment>
+    </unit>
+    <unit id="603746038161851978">
+      <segment>
+        <source>Explore the map</source>
       </segment>
     </unit>
     <unit id="6044276004948174494">
@@ -11044,19 +11142,14 @@
         <source>Awaiting steward review</source>
       </segment>
     </unit>
-    <unit id="8425796083769561052">
-      <segment>
-        <source>What would you like to report this spot for?</source>
-      </segment>
-    </unit>
     <unit id="842636083604380757">
       <segment>
         <source>Age-assurance rollback</source>
       </segment>
     </unit>
-    <unit id="3278358550418950949">
+    <unit id="6621329748219109148">
       <segment>
-        <source> Duplicate </source>
+        <source>Duplicate</source>
       </segment>
     </unit>
     <unit id="4169782958054942297">
@@ -11114,14 +11207,14 @@
         <source>Does not exist</source>
       </segment>
     </unit>
-    <unit id="4430765953319659794">
-      <segment>
-        <source>It&apos;s a private spot and should not be on this spot map.</source>
-      </segment>
-    </unit>
     <unit id="4435688501296937772">
       <segment>
         <source>Google Play shared an age result, but it does not establish independently checked 18+ eligibility.</source>
+      </segment>
+    </unit>
+    <unit id="4439219818231058395">
+      <segment>
+        <source> A moderator may publish a separate warning on the Spot without identifying you. </source>
       </segment>
     </unit>
     <unit id="4439801928039075192">
@@ -11159,9 +11252,14 @@
         <source> Also block this user after reporting </source>
       </segment>
     </unit>
-    <unit id="4965889425715950321">
+    <unit id="678566336962698407">
       <segment>
-        <source>Which spot is this spot a duplicate of?</source>
+        <source>Which Spot is this a duplicate of?</source>
+      </segment>
+    </unit>
+    <unit id="4406719211202279831">
+      <segment>
+        <source>My reports</source>
       </segment>
     </unit>
     <unit id="4411678463999056889">
@@ -11440,12 +11538,17 @@
         <source>The Spots were created by different users.</source>
       </segment>
     </unit>
-    <unit id="9166339501815416264">
+    <unit id="3535574277480005049">
       <notes>
         <note category="description">guest report contact email label</note>
       </notes>
       <segment>
-        <source> Contact email (optional) </source>
+        <source>Contact email (optional)</source>
+      </segment>
+    </unit>
+    <unit id="9167637664887633063">
+      <segment>
+        <source>Sign in to see your reports</source>
       </segment>
     </unit>
     <unit id="9170384147435945980">
@@ -11873,25 +11976,12 @@
         <source> Agree and Continue </source>
       </segment>
     </unit>
-    <unit id="6946913675153584317">
-      <notes>
-        <note category="description">media report title</note>
-      </notes>
-      <segment>
-        <source>Report Media</source>
-      </segment>
-    </unit>
     <unit id="mediaReportSignInRequired">
       <notes>
         <note category="description">media report sign-in requirement</note>
       </notes>
       <segment>
-        <source> You can report safety, legal, privacy, and other concerns without an account. Sign in to submit quality reports. Reporter details are only visible to administrators handling the report. </source>
-      </segment>
-    </unit>
-    <unit id="5996977642855652872">
-      <segment>
-        <source>Please select the reason for this report:</source>
+        <source> You can report safety, legal, privacy, and other concerns without an account. Sign in to submit quality reports. </source>
       </segment>
     </unit>
     <unit id="3292760121831436112">
@@ -11901,12 +11991,12 @@
     </unit>
     <unit id="3294546743782337747">
       <segment>
-        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Not relevant: This media does not belong here or is misleading.</pc></source>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">Not relevant: This media does not belong here or is misleading.</pc></source>
       </segment>
     </unit>
     <unit id="2540890198002687328">
       <segment>
-        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Bad quality: This media is blurry, too dark, or generally poor quality.</pc></source>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">Bad quality: This media is blurry, too dark, or generally poor quality.</pc></source>
       </segment>
     </unit>
     <unit id="2542019946523691126">
@@ -11956,7 +12046,7 @@
     </unit>
     <unit id="5245603112373072943">
       <segment>
-        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">Duplicate: This media is already present.</pc></source>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">Duplicate: This media is already present.</pc></source>
       </segment>
     </unit>
     <unit id="5250149255644238520">
@@ -11984,9 +12074,9 @@
         <source>Loading events…</source>
       </segment>
     </unit>
-    <unit id="4819326588611894685">
+    <unit id="8643871239806885269">
       <segment>
-        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span &gt;"> Copyright infringement: This is my content and I did not give permission for it to be used here.</pc></source>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">Copyright infringement: This is my content and I did not give permission for it to be used here.</pc></source>
       </segment>
     </unit>
     <unit id="6203177034092506213">
@@ -11994,14 +12084,14 @@
         <source>Google Play shared an 18+ range based on an age entered on the Google Account. Because it was not independently checked, it cannot unlock a public profile.</source>
       </segment>
     </unit>
-    <unit id="6210875862708659535">
+    <unit id="5355398899123190235">
       <segment>
-        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;"> I&apos;m visible and have a problem with it. </pc></source>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">I&apos;m visible and have a problem with it.</pc></source>
       </segment>
     </unit>
-    <unit id="6668702982620905592">
+    <unit id="1281787446760003192">
       <segment>
-        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;"> This media violates the terms of service in other ways (nudity, violence, etc.) </pc></source>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">This media violates the terms of service in other ways.</pc></source>
       </segment>
     </unit>
     <unit id="6772316127315505952">
@@ -12039,14 +12129,6 @@
         <source>Media stream</source>
       </segment>
     </unit>
-    <unit id="2662644497259948010">
-      <notes>
-        <note category="description">report comment label</note>
-      </notes>
-      <segment>
-        <source>Comment</source>
-      </segment>
-    </unit>
     <unit id="2049290282534091182">
       <segment>
         <source>Moderation</source>
@@ -12070,14 +12152,6 @@
     <unit id="3490749389855555467">
       <segment>
         <source>Filter by event series</source>
-      </segment>
-    </unit>
-    <unit id="3493126540529865490">
-      <notes>
-        <note category="description">submitting label</note>
-      </notes>
-      <segment>
-        <source>Submitting...</source>
       </segment>
     </unit>
     <unit id="3496329623690827416">
@@ -12285,6 +12359,11 @@
         <source> Compare both Spots. Resolution remains blocked whenever the redundant copy has unique content or dependent activity. </source>
       </segment>
     </unit>
+    <unit id="1360510412098130395">
+      <segment>
+        <source>You have not submitted any reports</source>
+      </segment>
+    </unit>
     <unit id="4127571452382238225">
       <segment>
         <source>Explorer</source>
@@ -12303,6 +12382,11 @@
     <unit id="4152341800436198728">
       <segment>
         <source>Event Spot (optional)</source>
+      </segment>
+    </unit>
+    <unit id="4152641197702276591">
+      <segment>
+        <source>Manage the reports you have submitted. Only you and moderators can see these details.</source>
       </segment>
     </unit>
     <unit id="4152989558688224665">
@@ -12374,9 +12458,9 @@
         <source>Architect</source>
       </segment>
     </unit>
-    <unit id="2890458965362106208">
+    <unit id="2890396288953949539">
       <segment>
-        <source>Report submitted. Thanks for helping keep spots accurate.</source>
+        <source>Edit your report</source>
       </segment>
     </unit>
     <unit id="5646377711168880426">
@@ -12437,6 +12521,11 @@
     <unit id="3750896546807006672">
       <segment>
         <source>Could not publish the live update.</source>
+      </segment>
+    </unit>
+    <unit id="3755504016557306395">
+      <segment>
+        <source>Your report is open</source>
       </segment>
     </unit>
     <unit id="8998012040622657110">
@@ -12838,6 +12927,11 @@
         <source>Failed to save community knowledge</source>
       </segment>
     </unit>
+    <unit id="3407061818321766940">
+      <segment>
+        <source>Saving...</source>
+      </segment>
+    </unit>
     <unit id="3419813162979896839">
       <segment>
         <source>Legal hold</source>
@@ -12876,6 +12970,16 @@
     <unit id="5111937580799923602">
       <segment>
         <source>Media received. It will appear when processing finishes.</source>
+      </segment>
+    </unit>
+    <unit id="2350814362295235670">
+      <segment>
+        <source>Select every reason that applies. Your report and identity are visible only to moderators.</source>
+      </segment>
+    </unit>
+    <unit id="2355763793569353886">
+      <segment>
+        <source>More details (optional)</source>
       </segment>
     </unit>
     <unit id="2356800114048092419">

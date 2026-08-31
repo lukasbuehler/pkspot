@@ -1,7 +1,10 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { publicSpotWarningForReason } from "../functions/src/spotPublicWarning";
+import {
+  publicSpotWarningForReason,
+  publicSpotWarningForReasons,
+} from "../functions/src/spotPublicWarning";
 import {
   normalizePublicSpotNoticeType,
   publicSpotNoticeTypeForReportReason,
@@ -50,6 +53,14 @@ describe("public Spot warnings", () => {
     );
   });
 
+  it("uses the strongest neutral warning when several reasons apply", () => {
+    expect(publicSpotWarningForReason("private").type).toBe("access_concern");
+    expect(publicSpotWarningForReasons(["duplicate", "private", "torn down"])).toEqual({
+      type: "destroyed",
+      message: "This Spot may have been removed or destroyed.",
+    });
+  });
+
   it("keeps private report text admin-only and localizes ordinary Spot warnings", () => {
     const source = readFileSync(
       join(
@@ -66,24 +77,16 @@ describe("public Spot warnings", () => {
     expect(currentReport).toContain("localizedPublicSpotWarning(");
   });
 
-  it("publishes only sanitized report state and clears it after the final resolution", () => {
+  it("rebuilds public projection from active reports rather than report text", () => {
     const source = readFileSync(
-      join(process.cwd(), "functions/src/spotReportFunctions.ts"),
+      join(process.cwd(), "functions/src/reportLifecycleHelpers.ts"),
       "utf8",
     );
-    const createUpdate = source.match(
-      /await spotRef\.update\(\{[\s\S]*?\n    \}\);/,
-    )?.[0];
-    const clearUpdate = source.match(
-      /if \(!hasOpenReports\) \{[\s\S]*?\n    \}/,
-    )?.[0];
 
-    expect(createUpdate).toContain("report_reason: publicWarning.message");
-    expect(createUpdate).toContain("public_notice:");
-    expect(createUpdate).not.toContain("reportData.reason");
-    expect(createUpdate).not.toContain("reportData.user");
-    expect(clearUpdate).toContain("is_reported: FieldValue.delete()");
-    expect(clearUpdate).toContain("report_reason: FieldValue.delete()");
-    expect(clearUpdate).toContain("public_notice: FieldValue.delete()");
+    expect(source).toContain("publicSpotWarningForReasons(active.flatMap(reportReasons))");
+    expect(source).toContain("is_reported: true");
+    expect(source).toContain("report_reason: warning.message");
+    expect(source).toContain("public_notice:");
+    expect(source).toContain("clearSpotReportProjection");
   });
 });

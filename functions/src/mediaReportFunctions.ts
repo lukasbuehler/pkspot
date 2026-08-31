@@ -16,6 +16,7 @@ interface MediaReportSchema {
     source_page_url?: string;
   };
   reason: string;
+  reasons?: string[];
   comment: string;
   user: {
     uid?: string;
@@ -69,7 +70,7 @@ const handleMediaReportCreate = async (
         reportData.user,
       );
       logger.info(`New media report created: ${reportId}`, {
-        reason: reportData.reason,
+        reasons: reportData.reasons ?? [reportData.reason],
         reportedBy: reportData.user.uid,
         mediaUserId: reportData.media?.userId,
         source: reportData.source ?? "user",
@@ -79,6 +80,11 @@ const handleMediaReportCreate = async (
         logger.info("Skipping Discord notification for scanner media report", {
           reportId,
         });
+        return;
+      }
+
+      if (isEmulatorEnvironment) {
+        logger.info("Skipping Discord notification in the emulator", {reportId});
         return;
       }
 
@@ -208,7 +214,7 @@ const handleMediaReportCreate = async (
         fields: [
           {
             name: "Report Reason",
-            value: reportData.reason,
+            value: (reportData.reasons?.length ? reportData.reasons : [reportData.reason]).join(", "),
             inline: true,
           },
           {

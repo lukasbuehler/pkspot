@@ -5,7 +5,7 @@ import {
   inject,
   LOCALE_ID,
   signal,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
 } from "@angular/core";
 import {
   MAT_DIALOG_DATA,
@@ -16,7 +16,7 @@ import {
 } from "@angular/material/dialog";
 import { LocaleCode } from "../../db/models/Interfaces";
 import { MatButtonModule } from "@angular/material/button";
-import { MatRadioModule } from "@angular/material/radio";
+import { MatCheckboxModule } from "@angular/material/checkbox";
 import {
   ReactiveFormsModule,
   FormBuilder,
@@ -41,9 +41,11 @@ import { take } from "rxjs";
 import { NotificationOptInService } from "../services/notification-opt-in.service";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import {
-  isGuestMediaReportReason,
+  areGuestMediaReportReasons,
   isMediaReportReason,
 } from "../../db/schemas/MediaReportPolicy";
+import type { MediaReportReason } from "../../db/schemas/MediaReportPolicy";
+import type { OwnReportSummary } from "../../db/schemas/ReportLifecycleSchema";
 
 interface MediaReportDialogData {
   media: AnyMedia;
@@ -59,7 +61,7 @@ interface MediaReportDialogData {
     MatDialogContent,
     MatDialogActions,
     MatButtonModule,
-    MatRadioModule,
+    MatCheckboxModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -82,12 +84,13 @@ export class MediaReportDialogComponent implements AfterViewInit {
   userReference = signal<UserReferenceSchema | null | undefined>(null);
   isSubmitting = signal(false);
   isAuthenticated = signal(false);
-  selectedReason = signal("");
+  selectedReasons = signal<MediaReportReason[]>([]);
   submissionError = signal(false);
+  ownReport = signal<OwnReportSummary | null>(null);
   canSubmitReason = computed(
     () =>
-      this.isAuthenticated() ||
-      isGuestMediaReportReason(this.selectedReason()),
+      this.selectedReasons().length > 0 &&
+      (this.isAuthenticated() || areGuestMediaReportReasons(this.selectedReasons())),
   );
 
   reportForm: FormGroup;
@@ -112,16 +115,16 @@ export class MediaReportDialogComponent implements AfterViewInit {
 
   constructor() {
     this.reportForm = this._fb.group({
-      reason: ["", Validators.required],
       comment: [""],
+      duplicateMediaUrl: ["", Validators.maxLength(2_048)],
       reporterEmail: ["", [Validators.email, Validators.maxLength(240)]],
     });
     this._authService.authState$
       .pipe(takeUntilDestroyed())
-      .subscribe((user) => this.isAuthenticated.set(!!user?.uid));
-    this.reportForm.controls["reason"].valueChanges
-      .pipe(takeUntilDestroyed())
-      .subscribe((reason) => this.selectedReason.set(reason ?? ""));
+      .subscribe((user) => {
+        this.isAuthenticated.set(!!user?.uid);
+        if (user?.uid) void this.loadOwnReport();
+      });
   }
 
   ngAfterViewInit() {
@@ -145,35 +148,81 @@ export class MediaReportDialogComponent implements AfterViewInit {
   }
 
   onNoClick(): void {
-    this.dialogRef.close();
+    if (!this.isSubmitting()) this.dialogRef.close();
+  }
+
+  isReasonSelected(reason: MediaReportReason): boolean {
+    return this.selectedReasons().includes(reason);
+  }
+
+  toggleReason(reason: MediaReportReason, selected: boolean): void {
+    this.selectedReasons.update((reasons) => selected
+      ? [...new Set([...reasons, reason])]
+      : reasons.filter((value) => value !== reason),
+    );
+    if (reason === "duplicate" && !selected) {
+      this.reportForm.controls["duplicateMediaUrl"].setValue("");
+    }
+  }
+
+  get reportContext(): "spot" | "event" | "media" | undefined {
+    return this.dialogData.spotId ? "spot" : this.dialogData.context;
+  }
+
+  get reportTargetId(): string | undefined {
+    return this.dialogData.targetId ?? this.dialogData.spotId;
+  }
+
+  private async loadOwnReport(): Promise<void> {
+    try {
+      const report = await this._mediaReportsService.getOwnMediaReport(
+        this.dialogData.media,
+        this.reportContext,
+        this.reportTargetId,
+      );
+      this.ownReport.set(report);
+      if (!report) return;
+      this.selectedReasons.set(
+        report.reasons.filter(isMediaReportReason),
+      );
+      this.reportForm.controls["comment"].setValue(report.comment);
+      this.reportForm.controls["duplicateMediaUrl"].setValue(report.duplicateMedia?.src ?? "");
+    } catch (error) {
+      console.warn("Could not load existing media report", error);
+    }
   }
 
   submitReport(): void {
-    if (!this.canSubmitReason() || !this.reportForm.valid) {
+    const reasons = this.selectedReasons();
+    const comment = String(this.reportForm.controls["comment"].value ?? "").trim();
+    if (
+      !this.canSubmitReason() || !this.reportForm.valid ||
+      (reasons.includes("other") && !comment) ||
+      (reasons.includes("duplicate") && !this.duplicateMediaUrl())
+    ) {
       return;
     }
 
-    const { reason, comment, reporterEmail } = this.reportForm.value;
-    if (!isMediaReportReason(reason)) {
-      return;
-    }
+    const { reporterEmail } = this.reportForm.value;
     this.isSubmitting.set(true);
     this.submissionError.set(false);
+    this.dialogRef.disableClose = true;
 
     this._mediaReportsService
       .submitMediaReport(
         this.dialogData.media,
-        reason,
-        comment ?? "",
+        reasons,
+        comment,
         !this.isAuthenticated() ? reporterEmail || undefined : undefined,
         this.locale,
         this.dialogData.spotId,
-        this.dialogData.spotId ? "spot" : this.dialogData.context,
-        this.dialogData.targetId ?? this.dialogData.spotId
+        this.reportContext,
+        this.reportTargetId,
+        this.duplicateMediaUrl(),
       )
-      .then(() => {
+      .then((result) => {
         console.log("Media report submitted successfully");
-        if (this.isAuthenticated()) {
+        if (this.isAuthenticated() && result.created) {
           this.dialogRef
             .afterClosed()
             .pipe(take(1))
@@ -186,7 +235,32 @@ export class MediaReportDialogComponent implements AfterViewInit {
       .catch((error: unknown) => {
         console.error("Error submitting media report:", error);
         this.submissionError.set(true);
+      })
+      .finally(() => {
         this.isSubmitting.set(false);
+        this.dialogRef.disableClose = false;
       });
+  }
+
+  duplicateMediaUrl(): string {
+    return String(this.reportForm.controls["duplicateMediaUrl"].value ?? "").trim();
+  }
+
+  async withdrawReport(): Promise<void> {
+    const reportId = this.ownReport()?.id;
+    if (!reportId || this.isSubmitting()) return;
+    this.isSubmitting.set(true);
+    this.dialogRef.disableClose = true;
+    this.submissionError.set(false);
+    try {
+      await this._mediaReportsService.withdrawOwnMediaReport(reportId);
+      this.dialogRef.close(true);
+    } catch (error) {
+      console.error("Could not withdraw media report", error);
+      this.submissionError.set(true);
+    } finally {
+      this.isSubmitting.set(false);
+      this.dialogRef.disableClose = false;
+    }
   }
 }

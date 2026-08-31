@@ -587,7 +587,8 @@ export const resolveSpotDuplicate = onCall<ResolveSpotDuplicateRequest>(
       const remaining = await canonical.ref.collection("reports").get();
       const hasOpenReports = remaining.docs.some((report) => {
         const status = report.data()["status"];
-        return status !== "resolved" && status !== "dismissed";
+        return status !== "resolved" && status !== "dismissed" &&
+          status !== "withdrawn" && status !== "superseded";
       });
       if (!hasOpenReports) {
         await canonical.ref.update({

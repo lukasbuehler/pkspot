@@ -587,18 +587,18 @@ Legacy report sources are:
 - `user_reports/{reportId}`
 - `moderation_actions/{actionId}`
 
-Each create can independently invoke a report handler, a notification producer,
-and a safety-case projection. Projection handlers use deterministic case IDs and
-transactions so redelivery does not create duplicate cases. A newly projected
-case normally writes the public case, private intake, first event, optional
-access token, and optional email outbox entry. Existing cases are read and
-skipped or amended.
+New authenticated Spot and media reports use a canonical open-report claim keyed
+by `(uid, target)`. A retry or edit updates that record; a withdrawal, resolution,
+or dismissal makes a later new report possible. During the compatibility window,
+direct older-client Spot writes are folded into that same canonical record and
+the extra documents are marked `superseded`. Only the canonical-acceptance
+transition sends the moderation intake signal and creates its safety case.
 
-Spot reports additionally write public warning fields onto the Spot. Resolving a
-report reads all reports for that Spot before removing the warning, so the cost
-is `R_reports + 1 report W + 0..1 Spot W`. Media report processing can
-transactionally remove the reported media item from its Spot or event. Those
-target writes then invoke normal Spot/event projections.
+Report reasons and private details are never exposed to other users. A Spot's
+public warning is rebuilt from all active reports using a fixed severity order;
+one report update costs the claim/report transaction, `R_reports`, and one Spot
+projection write. Withdrawing closes only a pending linked safety case as
+reporter-withdrawn; it never restores moderated or scanner-removed media.
 
 Safety administration is intentionally variable and potentially destructive:
 case decisions can create moderation actions, update subject documents, remove
@@ -868,8 +868,14 @@ Source modules: [`mediaModerationFunctions.ts`](functions/src/mediaModerationFun
 | Export | Trigger/interface | Primary interaction and cost shape |
 | --- | --- | --- |
 | `onSpotReportCreate` | create nested Spot report | Reads reporter/Spot context, writes public warning fields, sends Discord. |
-| `resolveSpotReport` | admin callable | Updates report, reads all Spot reports, conditionally clears warning fields. |
+| `submitSpotReport` | authenticated callable | Transactionally creates or edits the caller's canonical open Spot report, then refreshes the neutral public warning. |
+| `getOwnReportForTarget` | authenticated callable | Returns the caller's private open Spot-report projection for the target. |
+| `withdrawOwnSpotReport` | authenticated callable | Closes the caller's open report, releases its claim, rebuilds the public warning, and closes only a pending safety case. |
+| `listMyReports` | authenticated callable | Returns the caller's safe open/history projections across Spot and media reports. |
+| `resolveSpotReport` | admin callable | Transitions report status, preserves evidence, and rebuilds the affected Spot warning. |
 | `submitMediaReport` | public callable | Validates/rate-limits context and writes canonical report plus private submission metadata. |
+| `getOwnMediaReport` | authenticated callable | Returns the caller's private open media-report projection for one target. |
+| `withdrawOwnMediaReport` | authenticated callable | Transitions the caller's report to withdrawn without reversing scanner or moderator media action. |
 | `onMediaReportCreate` | create `media_reports/{id}` | Legacy media report handling; may transactionally remove media from Spot/event. |
 | `onRootMediaReportCreate` | create `reports/{id}` | Root media/scanner report handling with the same target-removal policy. |
 | `cleanupMediaReportSubmissionMetadata` | daily schedule | Bounded expiry queries; strips/deletes private submission metadata. |
