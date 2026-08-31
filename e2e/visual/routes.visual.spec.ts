@@ -275,6 +275,13 @@ const routeVisualCases: RouteVisualCase[] = [
     maxDiffPixels: 1_500,
   },
   {
+    name: "my-reports",
+    path: "/reports",
+    signedIn: true,
+    fullPage: true,
+    maxDiffPixels: 1_500,
+  },
+  {
     name: "profile-own",
     path: "/profile",
     signedIn: true,
@@ -728,6 +735,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
             __PKSPOT_SCREENSHOT_EVENT_OWNERSHIP_CLAIMS__?: unknown[];
             __PKSPOT_SCREENSHOT_NOTIFICATIONS__?: unknown;
             __PKSPOT_SCREENSHOT_REPORT_OUTCOMES__?: unknown;
+            __PKSPOT_SCREENSHOT_MY_REPORTS__?: unknown;
           }
         );
         const screenshotUserData = {
@@ -787,6 +795,24 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
             decided_at_raw_ms: Date.now() - 60 * 60_000,
           },
         };
+        screenshotWindow.__PKSPOT_SCREENSHOT_MY_REPORTS__ = [
+          {
+            id: "visual-open-report",
+            kind: "spot",
+            status: "open",
+            reasons: ["private", "other"],
+            comment: "The gate is closed after training hours.",
+            spot: {id: "visual-spot", name: "Central Station"},
+          },
+          {
+            id: "visual-withdrawn-report",
+            kind: "media",
+            status: "withdrawn",
+            reasons: ["inappropriate"],
+            comment: "",
+            media: {type: "image", src: "assets/mock/visual-report.jpg"},
+          },
+        ];
         if (liveEventFixture) {
           (
             window as typeof window & {

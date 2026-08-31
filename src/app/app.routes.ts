@@ -590,6 +590,14 @@ export const routes: Routes = [
       ).then((m) => m.ReportOutcomePageComponent),
     data: { routeName: "Report update" },
   },
+  {
+    path: "reports",
+    loadComponent: () =>
+      import("./components/my-reports-page/my-reports-page.component").then(
+        (m) => m.MyReportsPageComponent,
+      ),
+    data: { routeName: "My reports" },
+  },
 
   // Other
   {

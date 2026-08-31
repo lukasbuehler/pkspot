@@ -9,7 +9,7 @@ describe("MediaReportsService", () => {
 
   beforeEach(() => {
     callPublic.mockReset();
-    callPublic.mockResolvedValue({ reportId: "report-1" });
+    callPublic.mockResolvedValue({ reportId: "report-1", created: true });
     TestBed.configureTestingModule({
       providers: [
         MediaReportsService,
@@ -23,12 +23,12 @@ describe("MediaReportsService", () => {
   });
 
   it("submits guest reports through the server endpoint", async () => {
-    const id = await service.submitMediaReport(
+    const result = await service.submitMediaReport(
       new ExternalImage(
         "https://example.test/image.jpg",
         "uploader-1",
       ),
-      "person did not consent",
+      ["person did not consent", "other"],
       "Please remove this",
       "reporter@example.test",
       "en",
@@ -37,7 +37,7 @@ describe("MediaReportsService", () => {
       "spot-1",
     );
 
-    expect(id).toBe("report-1");
+    expect(result).toEqual({reportId: "report-1", created: true});
     expect(callPublic).toHaveBeenCalledWith("submitMediaReport", {
       media: {
         type: "image",
@@ -45,7 +45,7 @@ describe("MediaReportsService", () => {
         userId: "uploader-1",
         is_in_storage: false,
       },
-      reason: "person did not consent",
+      reasons: ["person did not consent", "other"],
       comment: "Please remove this",
       reporterEmail: "reporter@example.test",
       locale: "en",

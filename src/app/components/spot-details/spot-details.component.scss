@@ -378,3 +378,25 @@ div.google-img-container {
   background: var(--mat-sys-surface);
   flex-shrink: 0;
 }
+
+.reporter-report-state {
+  align-items: center;
+  background: var(--mat-sys-primary-container);
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 18px;
+  color: var(--mat-sys-on-primary-container);
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+
+  mat-icon {
+    background: var(--mat-sys-primary);
+    border-radius: 13px;
+    color: var(--mat-sys-on-primary);
+    padding: 8px;
+  }
+
+  div {
+    flex: 1;
+  }
+}

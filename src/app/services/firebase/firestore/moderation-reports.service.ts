@@ -4,7 +4,10 @@ import { MediaType } from "../../../../db/models/Interfaces";
 import { StorageImage } from "../../../../db/models/Media";
 import { ContactMessageSchema } from "../../../../db/schemas/ContactMessageSchema";
 import type { MediaSchema } from "../../../../db/schemas/Media";
-import { MediaReportSchema } from "../../../../db/schemas/MediaReportSchema";
+import {
+  MediaReportSchema,
+  ReportModerationStatus,
+} from "../../../../db/schemas/MediaReportSchema";
 import { ModerationActionType } from "../../../../db/schemas/ModerationActionSchema";
 import { SpotReportSchema } from "../../../../db/schemas/SpotReportSchema";
 import { UserReportSchema } from "../../../../db/schemas/UserReportSchema";
@@ -25,7 +28,7 @@ import type { SpotCreationDiagnosticsResponse } from "../../../../db/schemas/Spo
 import type { SpotSchema } from "../../../../db/schemas/SpotSchema";
 
 export type ModerationReportKind = "spot" | "media" | "profile";
-export type ModerationReportStatus = "open" | "resolved" | "dismissed";
+export type ModerationReportStatus = ReportModerationStatus;
 
 export interface ModerationReportItem {
   id: string;
@@ -360,7 +363,7 @@ export class ModerationReportsService {
       path: report.path,
       kind: "spot",
       status,
-      reason: report.reason || "unknown",
+      reason: report.reasons?.join(", ") || report.reason || "unknown",
       createdAt: report.createdAt,
       createdAtMillis,
       reporterLabel: this._formatUser(report.user),
@@ -411,7 +414,7 @@ export class ModerationReportsService {
       path: report.path ?? `media_reports/${report.id}`,
       kind: "media",
       status,
-      reason: report.reason || "unknown",
+      reason: report.reasons?.join(", ") || report.reason || "unknown",
       createdAt: report.createdAt,
       createdAtMillis,
       reporterLabel: this._formatUser(report.user),
@@ -600,7 +603,7 @@ export class ModerationReportsService {
   private _normalizeStatus(
     status: ModerationReportStatus | undefined,
   ): ModerationReportStatus {
-    return status === "resolved" || status === "dismissed" ? status : "open";
+    return status ?? "open";
   }
 
   private _formatUser(user: MediaReportSchema["user"]): string {

@@ -1,157 +1,104 @@
-<h2 mat-dialog-title i18n="media report title">Report Media</h2>
+<h2 mat-dialog-title i18n="media report title">
+  @if (ownReport()) { Edit media report } @else { Report Media }
+</h2>
 <mat-dialog-content>
   @if (!isAuthenticated()) {
-  <p
-    class="mat-body-large"
-    i18n="media report sign-in requirement@@mediaReportSignInRequired"
-  >
-    You can report safety, legal, privacy, and other concerns without an
-    account. Sign in to submit quality reports. Reporter details are only
-    visible to administrators handling the report.
-  </p>
+    <p class="mat-body-large" i18n="media report sign-in requirement@@mediaReportSignInRequired">
+      You can report safety, legal, privacy, and other concerns without an account. Sign in to submit quality reports.
+    </p>
   }
-  <div
-    class="d-flex justify-content-center align-items-center flex-column mb-3 gap-3"
-  >
-    <div
-      class="rounded bg-black"
-      style="width: 200px; height: 200px; position: relative"
-    >
-      @if(getPreviewSrc(dialogData.media)) {
-      <img
-        [ngSrc]="getPreviewSrc(dialogData.media)!"
-        alt="Image to report"
-        style="object-fit: contain"
-        priority
-        fill
-      />} @else if (getVideoPreviewSrc(dialogData.media)) {
-        <video
-          [src]="getVideoPreviewSrc(dialogData.media)!"
-          muted
-          playsinline
-          style="width: 100%; height: 100%; object-fit: contain"
-        ></video>
+  <div class="d-flex justify-content-center align-items-center flex-column mb-3 gap-3">
+    <div class="rounded bg-black" style="width: 200px; height: 200px; position: relative">
+      @if (getPreviewSrc(dialogData.media)) {
+        <img [ngSrc]="getPreviewSrc(dialogData.media)!" alt="Image to report" style="object-fit: contain" priority fill />
+      } @else if (getVideoPreviewSrc(dialogData.media)) {
+        <video [src]="getVideoPreviewSrc(dialogData.media)!" muted playsinline style="width: 100%; height: 100%; object-fit: contain"></video>
       }
     </div>
   </div>
-  <p class="mat-body-large" i18n>Please select the reason for this report:</p>
+  <p class="mat-body-large" i18n>Select every reason that applies:</p>
   <form [formGroup]="reportForm">
-    <mat-radio-group
-      color="warn"
-      class="d-flex flex-column mb-3 gap-3"
-      formControlName="reason"
-    >
-      <mat-radio-button value="illegal or unsafe content" i18n>
-        <span class="mat-body-large">
-          Illegal or unsafe content: This may break the law or put someone at
-          risk.
-        </span>
-      </mat-radio-button>
-
-      <mat-radio-button value="copyright infringement" i18n="">
-        <span class="mat-body-large">
-          Copyright infringement: This is my content and I did not give
-          permission for it to be used here.</span
-        >
-      </mat-radio-button>
-
-      <mat-radio-button value="person did not consent" i18n>
-        <span class="mat-body-large">
-          I'm visible and have a problem with it.
-        </span>
-      </mat-radio-button>
-
-      <mat-radio-button value="tos violation" i18n>
-        <span class="mat-body-large">
-          This media violates the terms of service in other ways (nudity,
-          violence, etc.)
-        </span>
-      </mat-radio-button>
-
+    <div class="d-flex flex-column mb-3 gap-3">
+      <mat-checkbox [checked]="isReasonSelected('illegal or unsafe content')" [disabled]="isSubmitting()" (change)="toggleReason('illegal or unsafe content', $event.checked)" i18n>
+        <span class="mat-body-large">Illegal or unsafe content: This may break the law or put someone at risk.</span>
+      </mat-checkbox>
+      <mat-checkbox [checked]="isReasonSelected('copyright infringement')" [disabled]="isSubmitting()" (change)="toggleReason('copyright infringement', $event.checked)" i18n>
+        <span class="mat-body-large">Copyright infringement: This is my content and I did not give permission for it to be used here.</span>
+      </mat-checkbox>
+      <mat-checkbox [checked]="isReasonSelected('person did not consent')" [disabled]="isSubmitting()" (change)="toggleReason('person did not consent', $event.checked)" i18n>
+        <span class="mat-body-large">I'm visible and have a problem with it.</span>
+      </mat-checkbox>
+      <mat-checkbox [checked]="isReasonSelected('tos violation')" [disabled]="isSubmitting()" (change)="toggleReason('tos violation', $event.checked)" i18n>
+        <span class="mat-body-large">This media violates the terms of service in other ways.</span>
+      </mat-checkbox>
       @if (!isAuthenticated()) {
-      <p class="mat-body-small text-secondary" i18n>
-        Sign in to submit media quality reports.
-      </p>
+        <p class="mat-body-small text-secondary" i18n>Sign in to submit media quality reports.</p>
       }
+      <mat-checkbox [checked]="isReasonSelected('not relevant')" [disabled]="!isAuthenticated() || isSubmitting()" (change)="toggleReason('not relevant', $event.checked)" i18n>
+        <span class="mat-body-large">Not relevant: This media does not belong here or is misleading.</span>
+      </mat-checkbox>
+      <mat-checkbox [checked]="isReasonSelected('bad quality')" [disabled]="!isAuthenticated() || isSubmitting()" (change)="toggleReason('bad quality', $event.checked)" i18n>
+        <span class="mat-body-large">Bad quality: This media is blurry, too dark, or generally poor quality.</span>
+      </mat-checkbox>
+      <mat-checkbox [checked]="isReasonSelected('duplicate')" [disabled]="!isAuthenticated() || isSubmitting()" (change)="toggleReason('duplicate', $event.checked)" i18n>
+        <span class="mat-body-large">Duplicate: This media is already present.</span>
+      </mat-checkbox>
+      <mat-checkbox [checked]="isReasonSelected('other')" [disabled]="isSubmitting()" (change)="toggleReason('other', $event.checked)" i18n>
+        <span class="mat-body-large">Other</span>
+      </mat-checkbox>
+    </div>
 
-      <mat-radio-button value="not relevant" i18n
-        [disabled]="!isAuthenticated()"
-        ><span class="mat-body-large"
-          >Not relevant: This media does not belong here or is misleading.</span
-        ></mat-radio-button
-      >
-
-      <mat-radio-button value="bad quality" i18n
-        [disabled]="!isAuthenticated()"
-        ><span class="mat-body-large"
-          >Bad quality: This media is blurry, too dark, or generally poor
-          quality.</span
-        ></mat-radio-button
-      >
-
-      <mat-radio-button value="duplicate" i18n
-        [disabled]="!isAuthenticated()"
-        ><span class="mat-body-large"
-          >Duplicate: This media is already present.</span
-        ></mat-radio-button
-      >
-
-      <mat-radio-button value="other" i18n
-        ><span class="mat-body-large">Other</span></mat-radio-button
-      >
-    </mat-radio-group>
+    @if (isReasonSelected('duplicate')) {
+      <mat-form-field class="w-100" appearance="outline">
+        <mat-label i18n>URL of the original media</mat-label>
+        <input matInput type="url" formControlName="duplicateMediaUrl" autocomplete="url" />
+        @if (!duplicateMediaUrl()) {
+          <mat-error i18n>Please add the URL of the media this duplicates.</mat-error>
+        }
+      </mat-form-field>
+    }
 
     <mat-form-field class="w-100" appearance="outline">
-      <mat-label i18n="report comment label">Comment</mat-label>
-      <textarea matInput rows="3" formControlName="comment"></textarea>
+      <mat-label i18n="report comment label">More details (optional)</mat-label>
+      <textarea matInput rows="3" maxlength="2000" formControlName="comment"></textarea>
+      @if (isReasonSelected('other') && !reportForm.controls['comment'].value?.trim()) {
+        <mat-error i18n>Please add details when selecting Other.</mat-error>
+      }
     </mat-form-field>
 
     @if (!isAuthenticated()) {
-    <mat-form-field class="w-100" appearance="outline">
-      <mat-label i18n="guest report contact email label">
-        Contact email (optional)
-      </mat-label>
-      <input
-        matInput
-        type="email"
-        formControlName="reporterEmail"
-        autocomplete="email"
-      />
-      @if (reportForm.controls['reporterEmail'].hasError('email')) {
-      <mat-error i18n>Please enter a valid email address.</mat-error>
-      }
-    </mat-form-field>
-    <p class="mat-body-small text-secondary" i18n>
-      Add an email only if you want administrators to contact you about the
-      report. It is not verified unless you sign in.
-    </p>
+      <mat-form-field class="w-100" appearance="outline">
+        <mat-label i18n="guest report contact email label">Contact email (optional)</mat-label>
+        <input matInput type="email" formControlName="reporterEmail" autocomplete="email" />
+        @if (reportForm.controls['reporterEmail'].hasError('email')) {
+          <mat-error i18n>Please enter a valid email address.</mat-error>
+        }
+      </mat-form-field>
     }
     <p class="mat-body-small text-secondary" i18n>
-      To prevent report abuse, we keep technical information such as your IP
-      address and app verification status for up to 90 days.
+      To prevent report abuse, we keep technical information such as your IP address and app verification status for up to 90 days.
     </p>
-
     @if (submissionError()) {
-    <p class="mat-body-medium text-danger" role="alert" i18n>
-      The report could not be submitted. Please wait and try again.
-    </p>
+      <p class="mat-body-medium text-danger" role="alert" i18n>
+        The report could not be submitted. Please check your connection and try again.
+      </p>
     }
   </form>
 </mat-dialog-content>
-<mat-dialog-actions class="d-flex justify-content-end p-3">
-  <button matButton="outlined" (click)="onNoClick()" i18n="cancel button label">
-    Cancel
-  </button>
-  <button
-    matButton="filled"
-    color="warn"
-    (click)="submitReport()"
-    [disabled]="!canSubmitReason() || !reportForm.valid || isSubmitting()"
-  >
-    @if (isSubmitting()) {
-    <span i18n="submitting label">Submitting...</span>
-    } @else {
-    <span i18n="report button label">Report</span>
-    }
-  </button>
+<mat-dialog-actions class="d-flex justify-content-between p-3">
+  @if (ownReport()) {
+    <button matButton="text" color="warn" [disabled]="isSubmitting()" (click)="withdrawReport()" i18n>Withdraw report</button>
+  } @else { <span></span> }
+  <div class="d-flex gap-2">
+    <button matButton="outlined" [disabled]="isSubmitting()" (click)="onNoClick()" i18n="cancel button label">Cancel</button>
+    <button matButton="filled" color="warn" (click)="submitReport()" [disabled]="!canSubmitReason() || !reportForm.valid || isSubmitting() || (isReasonSelected('other') && !reportForm.controls['comment'].value?.trim()) || (isReasonSelected('duplicate') && !duplicateMediaUrl())">
+      @if (isSubmitting()) {
+        <span i18n="submitting label">Saving...</span>
+      } @else if (ownReport()) {
+        <span i18n="report update button label">Update report</span>
+      } @else {
+        <span i18n="report button label">Submit report</span>
+      }
+    </button>
+  </div>
 </mat-dialog-actions>

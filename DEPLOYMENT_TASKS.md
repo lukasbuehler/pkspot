@@ -154,6 +154,43 @@ community-vote edit, so deploying the rules before the client is required.
       ordinary member follows review, and a public community vote is visible,
       records an immediate selected-vote state, and updates its server summary.
 
+### Canonical editable Spot and media reports
+
+The new clients use callable upserts and withdrawals while the existing direct
+Spot-report rule remains temporarily available for supported older clients. The
+legacy bridge merges a rapid repeat into the reporter's canonical open report
+and records the bridge transition without sending another moderation intake.
+
+The web client is already merged to `main`. That does not deploy Firebase
+Functions, so complete the backend rollout and verification below before
+considering this report-lifecycle release complete.
+
+- [ ] Deploy the report lifecycle Functions before releasing clients:
+
+  ```sh
+  npx firebase deploy --project prod --only functions:submitSpotReport,functions:getOwnReportForTarget,functions:withdrawOwnSpotReport,functions:listMyReports,functions:submitMediaReport,functions:getOwnMediaReport,functions:withdrawOwnMediaReport,functions:onSpotReportCreate,functions:onSpotReportSafetyCaseCreate,functions:handleModerationAction
+  ```
+
+  - Confirm every callable is in `europe-west1`, an authenticated first report
+    produces exactly one intake alert and safety case, an edit produces neither,
+    and a withdrawal closes only its pending safety case as reporter-withdrawn.
+
+- [ ] After the Functions deployment, verify the released web client and the
+      next native release candidate: one user can submit, edit, and withdraw a
+      Spot report and a media report; `/reports` shows their open report and
+      terminal history; and another user cannot retrieve either report's
+      reasons or details.
+
+- [ ] Monitor Function logs and `report_claims` for legacy bridge activity,
+      duplicate canonical acceptances, and callable validation errors during the
+      supported-client window. The existing Firestore rules deliberately remain
+      unchanged in this release so old direct Spot reports can still be bridged.
+
+- [ ] Once supported-client adoption is confirmed, make a separate, reviewed
+      rules release that removes direct client creation of `spots/*/reports/*`.
+      Confirm bridge activity has remained at zero for the agreed observation
+      window before retiring the legacy path.
+
 ### Firebase App Check enforcement readiness
 
 The 1.1.5 client warns once per app load when attestation fails, but it does not
