@@ -29,13 +29,12 @@ describe("ShopPageComponent", () => {
     await fixture.whenStable();
   });
 
-  it("renders exactly the three current catalogue items", () => {
+  it("renders the current catalogue with sticker packs first", () => {
     expect(component.items.map((item) => item.name)).toEqual([
-      "Support PK Spot",
       "Nice Spot Sticker Support Pack",
-      "Super Secret Shirt",
+      "Support PK Spot",
     ]);
-    expect(fixture.nativeElement.textContent).toContain(
+    expect(fixture.nativeElement.textContent).not.toContain(
       "Super Secret Shirt",
     );
     expect(metaTagService.setStaticPageMetaTags).toHaveBeenCalledWith(

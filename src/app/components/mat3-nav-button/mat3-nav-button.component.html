@@ -2,6 +2,7 @@
   class="button-container"
   [class.active]="active()"
   [attr.aria-label]="accessibleLabel()"
+  [matMenuTriggerFor]="menu()"
 >
   @if(image()) {
   <div class="image">

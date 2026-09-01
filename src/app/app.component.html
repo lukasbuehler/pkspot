@@ -20,9 +20,7 @@
         priority
       />
     </a>
-    @for (button of navbarConfig(); track $index) { @if(button.spacerBefore) {
-    <div class="spacer"></div>
-    } @if(button.link) {
+    @for (button of desktopLeadingNavbarButtons(); track button.id) { @if(button.link) {
     <a
       [routerLink]="button.link"
       tabindex="-1"
@@ -48,6 +46,83 @@
     ></app-mat3-nav-button>
     } }
 
+    @if (hasNavbarOverflow()) {
+    <app-mat3-nav-button
+      [icon]="'more_vert'"
+      [label]="moreNavigationLabel"
+      [active]="overflowNavigationActive()"
+      [menu]="desktopMoreMenu"
+    ></app-mat3-nav-button>
+    }
+
+    <div class="nav-rail__footer">
+    @for (button of desktopTrailingNavbarButtons(); track button.id) {
+    @if(button.link) {
+    <a
+      [routerLink]="button.link"
+      tabindex="-1"
+      routerLinkActive="active"
+      #desktopButtonRla="routerLinkActive"
+    >
+      <app-mat3-nav-button
+        [icon]="button.icon"
+        [label]="button.name"
+        [image]="button.image ?? ''"
+        [active]="desktopButtonRla.isActive || !!button.active"
+        [liveIndicator]="!!button.liveIndicator"
+      ></app-mat3-nav-button>
+    </a>
+    } @else if(button.function) {
+    <app-mat3-nav-button
+      (click)="button.function()"
+      [icon]="button.icon"
+      [image]="button.image ?? ''"
+      [label]="button.name"
+      [active]="!!button.active"
+      [liveIndicator]="!!button.liveIndicator"
+    ></app-mat3-nav-button>
+    } }
+
+    <mat-menu #desktopMoreMenu="matMenu">
+      @for(button of overflowNavbarButtons(); track button.id) { @if(button.link) {
+      <a mat-menu-item [routerLink]="button.link">
+        @if(button.image) {
+        <img
+          [ngSrc]="button.image"
+          width="24"
+          height="24"
+          alt=""
+          class="rounded-circle"
+          style="margin-right: 12px"
+        />
+        } @else {
+        <mat-icon [class.material-symbols-rounded-outline]="isOutlineIcon(button.icon)">{{
+          button.icon
+        }}</mat-icon>
+        }
+        <span>{{ button.name }}</span>
+      </a>
+      } @else if(button.function) {
+      <button mat-menu-item (click)="button.function()">
+        @if(button.image) {
+        <img
+          [ngSrc]="button.image"
+          width="24"
+          height="24"
+          alt=""
+          class="rounded-circle"
+          style="margin-right: 12px"
+        />
+        } @else {
+        <mat-icon [class.material-symbols-rounded-outline]="isOutlineIcon(button.icon)">{{
+          button.icon
+        }}</mat-icon>
+        }
+        <span>{{ button.name }}</span>
+      </button>
+      } }
+    </mat-menu>
+
     <!-- terms  -->
     <span
       class="mat-body-small d-flex align-items-center flex-row mb-0 pb-1"
@@ -70,6 +145,7 @@
     <span class="mat-body-small mb-0" style="font-size: 10px; color: lightgray"
       >©2026 PK Spot
     </span>
+    </div>
   </app-nav-rail>
   } }
   <app-nav-rail-content class="flex-col">
@@ -92,7 +168,7 @@
       <mat-icon>menu</mat-icon>
     </button>
     <mat-menu #mainMenu="matMenu">
-      @for(button of navbarConfig(); track $index) { @if(button.link) {
+      @for(button of navbarConfig(); track button.id) { @if(button.link) {
       <a [routerLink]="button.link">
         <button mat-menu-item>
           @if(button.image) {
@@ -140,7 +216,7 @@
       class="mat-elevation-z0"
       [class.native-platform]="isNativePlatform"
     >
-      @for (button of navbarConfig(); track $index) { @if(button.link) {
+      @for (button of mobileLeadingNavbarButtons(); track button.id) { @if(button.link) {
       <a
         [routerLink]="button.link"
         tabindex="-1"
@@ -165,6 +241,81 @@
         [liveIndicator]="!!button.liveIndicator"
       ></app-mat3-nav-button>
       } }
+      @if (hasNavbarOverflow()) {
+      <app-mat3-nav-button
+        class="mobile-more-button"
+        [icon]="'more_horiz'"
+        [label]="moreNavigationLabel"
+        [active]="overflowNavigationActive()"
+        [menu]="mobileOverflowMenu"
+      ></app-mat3-nav-button>
+      }
+      @for (button of mobileTrailingNavbarButtons(); track button.id) { @if(button.link) {
+      <a
+        class="mobile-trailing-nav-button"
+        [routerLink]="button.link"
+        tabindex="-1"
+        routerLinkActive="active"
+        #mobileButtonRla="routerLinkActive"
+      >
+        <app-mat3-nav-button
+          [icon]="button.icon"
+          [label]="button.name"
+          [image]="button.image ?? ''"
+          [active]="mobileButtonRla.isActive || !!button.active"
+          [liveIndicator]="!!button.liveIndicator"
+        ></app-mat3-nav-button>
+      </a>
+      } @else if(button.function) {
+      <app-mat3-nav-button
+        class="mobile-trailing-nav-button"
+        (click)="button.function()"
+        [icon]="button.icon"
+        [image]="button.image ?? ''"
+        [label]="button.name"
+        [active]="!!button.active"
+        [liveIndicator]="!!button.liveIndicator"
+      ></app-mat3-nav-button>
+      } }
+      <mat-menu #mobileOverflowMenu="matMenu">
+        @for(button of overflowNavbarButtons(); track button.id) { @if(button.link) {
+        <a mat-menu-item [routerLink]="button.link">
+          @if(button.image) {
+          <img
+            [ngSrc]="button.image"
+            width="24"
+            height="24"
+            alt=""
+            class="rounded-circle"
+            style="margin-right: 12px"
+          />
+          } @else {
+          <mat-icon [class.material-symbols-rounded-outline]="isOutlineIcon(button.icon)">{{
+            button.icon
+          }}</mat-icon>
+          }
+          <span>{{ button.name }}</span>
+        </a>
+        } @else if(button.function) {
+        <button mat-menu-item (click)="button.function()">
+          @if(button.image) {
+          <img
+            [ngSrc]="button.image"
+            width="24"
+            height="24"
+            alt=""
+            class="rounded-circle"
+            style="margin-right: 12px"
+          />
+          } @else {
+          <mat-icon [class.material-symbols-rounded-outline]="isOutlineIcon(button.icon)">{{
+            button.icon
+          }}</mat-icon>
+          }
+          <span>{{ button.name }}</span>
+        </button>
+        } }
+      </mat-menu>
     </mat-toolbar>
     } } }
 

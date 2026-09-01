@@ -6,6 +6,7 @@ import {
   input,
 } from "@angular/core";
 import { MatIcon } from "@angular/material/icon";
+import { MatMenu, MatMenuModule } from "@angular/material/menu";
 
 @Component({
   selector: "app-mat3-nav-button",
@@ -15,7 +16,7 @@ import { MatIcon } from "@angular/material/icon";
   templateUrl: "./mat3-nav-button.component.html",
   styleUrls: ["./mat3-nav-button.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatIcon, NgOptimizedImage],
+  imports: [MatIcon, MatMenuModule, NgOptimizedImage],
 })
 export class Mat3NavButtonComponent {
   readonly icon = input("info");
@@ -23,6 +24,7 @@ export class Mat3NavButtonComponent {
   readonly image = input("");
   readonly active = input(false);
   readonly liveIndicator = input(false);
+  readonly menu = input<MatMenu | null>(null);
 
   readonly isOutlineIcon = computed(() => this.icon().endsWith("_border"));
   readonly accessibleLabel = computed(() =>

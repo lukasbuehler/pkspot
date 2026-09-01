@@ -9,7 +9,6 @@ import {
 } from "@angular/core";
 import { FormField, form, max, maxLength, min, submit } from "@angular/forms/signals";
 import { MatButtonModule } from "@angular/material/button";
-import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
@@ -19,12 +18,7 @@ import type {
   SupportOrderType,
   SupportShopProductId,
 } from "../../../db/schemas/SupportShopSchema";
-import {
-  SHIRT_SIZES,
-  STICKER_PACK_SIZES,
-  findShopItem,
-} from "../../features/shop-catalog";
-import type { ShirtSize } from "../../features/shop-catalog";
+import { STICKER_PACK_SIZES, findShopItem } from "../../features/shop-catalog";
 import { AnalyticsService } from "../../services/analytics.service";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { SupportShopService } from "../../services/support-shop.service";
@@ -35,7 +29,6 @@ import { SupportShopService } from "../../services/support-shop.service";
     FormField,
     NgOptimizedImage,
     MatButtonModule,
-    MatCheckboxModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -56,7 +49,6 @@ export class ShopItemPageComponent implements OnInit {
   readonly checkoutError = signal("");
   readonly checkoutState = signal<"success" | "cancelled" | "">("");
   readonly item = signal<ReturnType<typeof findShopItem>>(undefined);
-  readonly selectedShirtSize = signal<ShirtSize>("M");
   readonly selectedStickerPackId = signal<SupportShopProductId>(
     STICKER_PACK_SIZES[0]!.id,
   );
@@ -66,11 +58,9 @@ export class ShopItemPageComponent implements OnInit {
         (pack) => pack.id === this.selectedStickerPackId(),
       ) ?? STICKER_PACK_SIZES[0]!,
   );
-  readonly shirtSizes = SHIRT_SIZES;
   readonly stickerPackSizes = STICKER_PACK_SIZES;
   readonly supportModel = signal({
     amountChf: 10,
-    creditOptIn: false,
     publicName: "",
   });
   readonly supportForm = form(this.supportModel, (schema) => {
@@ -92,10 +82,6 @@ export class ShopItemPageComponent implements OnInit {
 
   selectStickerPack(productId: SupportShopProductId): void {
     this.selectedStickerPackId.set(productId);
-  }
-
-  selectShirtSize(size: ShirtSize): void {
-    this.selectedShirtSize.set(size);
   }
 
   async startDirectSupportCheckout(): Promise<void> {
@@ -140,16 +126,15 @@ export class ShopItemPageComponent implements OnInit {
     if (this.checkoutAction()) return;
 
     const model = this.supportModel();
+    const publicName = model.publicName.trim();
     this.checkoutAction.set(request.kind);
     this.checkoutError.set("");
     try {
       const result = await this._shop.createCheckout({
         ...request,
         supporterCredit: {
-          optedIn: model.creditOptIn,
-          ...(model.creditOptIn && model.publicName.trim()
-            ? { publicName: model.publicName.trim() }
-            : {}),
+          optedIn: !!publicName,
+          ...(publicName ? { publicName } : {}),
         },
       });
       this._analytics.trackEvent("support_checkout_started", {
@@ -157,7 +142,7 @@ export class ShopItemPageComponent implements OnInit {
         ...(request.kind === "physical_order"
           ? { product_id: request.productId }
           : { amount_bucket: amountBucket(request.amountChf) }),
-        supporter_credit_opt_in: model.creditOptIn,
+        supporter_credit_opt_in: !!publicName,
       });
       globalThis.location.assign(result.checkoutUrl);
     } catch (error) {

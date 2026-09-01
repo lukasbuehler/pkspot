@@ -10,4 +10,14 @@ div.nav-rail {
   ::ng-deep > * {
     margin-bottom: 20px;
   }
+
+  ::ng-deep .nav-rail__footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-top: auto;
+    gap: 8px;
+    padding-bottom: 4px;
+  }
 }

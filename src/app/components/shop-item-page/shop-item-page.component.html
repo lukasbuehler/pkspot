@@ -84,6 +84,20 @@
                 <mat-error>Enter an amount from CHF 10 to CHF 100.</mat-error>
               }
             </mat-form-field>
+            <div class="shop-item-page__supporter-name">
+              <mat-form-field appearance="outline">
+                <mat-label>Nickname (optional)</mat-label>
+                <input
+                  matInput
+                  [formField]="supportForm.publicName"
+                  aria-describedby="supporter-name-help"
+                />
+              </mat-form-field>
+              <p id="supporter-name-help" class="mat-body-small">
+                Add a nickname so we can thank you on the PK Spot supporters
+                page.
+              </p>
+            </div>
             <button
               mat-flat-button
               color="primary"
@@ -98,20 +112,6 @@
               <span>Continue to secure checkout</span>
             </button>
           </form>
-
-          <mat-checkbox [formField]="supportForm.creditOptIn">
-            Add me to a future PK Spot supporters page
-          </mat-checkbox>
-          @if (supportModel().creditOptIn) {
-            <mat-form-field
-              appearance="outline"
-              class="shop-item-page__public-name"
-            >
-              <mat-label>Public name or nickname (optional)</mat-label>
-              <input matInput [formField]="supportForm.publicName" />
-              <mat-hint>This is the only name we may show publicly.</mat-hint>
-            </mat-form-field>
-          }
           <p class="mat-body-small shop-item-page__note">
             Want to support PK Spot with more than CHF 100?
             <a routerLink="/contact" [queryParams]="{ topic: 'general' }"
@@ -188,47 +188,6 @@
         </section>
       }
 
-      @case ("super-secret-shirt") {
-        <section
-          class="shop-item-page__content"
-          aria-labelledby="shirt-size-title"
-        >
-          <h2 id="shirt-size-title" class="mat-headline-medium">
-            Choose your size
-          </h2>
-          <p class="mat-body-large">
-            The Super Secret Shirt is not available yet, but these are the
-            planned sizes.
-          </p>
-
-          <div
-            class="shop-item-page__options shop-item-page__options--sizes"
-            aria-label="Shirt size"
-          >
-            @for (size of shirtSizes; track size) {
-              <button
-                mat-stroked-button
-                type="button"
-                class="shop-item-page__option"
-                [class.shop-item-page__option--selected]="
-                  selectedShirtSize() === size
-                "
-                [attr.aria-pressed]="selectedShirtSize() === size"
-                (click)="selectShirtSize(size)"
-              >
-                {{ size }}
-              </button>
-            }
-          </div>
-
-          <p class="mat-body-medium">
-            Selected size: {{ selectedShirtSize() }}
-          </p>
-          <button mat-stroked-button type="button" disabled>
-            Not available yet
-          </button>
-        </section>
-      }
     }
 
     @if (checkoutError()) {

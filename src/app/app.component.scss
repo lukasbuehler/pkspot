@@ -35,8 +35,22 @@ mat-toolbar {
   }
 }
 
-.spacer {
-  flex: 1 1 auto;
+@media (max-width: 959.98px) {
+  mat-toolbar > a,
+  mat-toolbar > app-mat3-nav-button {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  mat-toolbar > .mobile-more-button {
+    order: 1;
+  }
+
+  mat-toolbar > .mobile-trailing-nav-button {
+    order: 2;
+  }
 }
 
 .profile-icon-button {

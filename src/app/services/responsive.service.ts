@@ -68,6 +68,10 @@ export class ResponsiveService {
    */
   readonly isDesktop = signal(this.detectInitialDesktop());
 
+  /** Current layout viewport width, kept fresh by the app shell on resize. */
+  private readonly _viewportWidth = signal<number | null>(this.getViewportWidth());
+  readonly viewportWidth = this._viewportWidth.asReadonly();
+
   /**
    * Current view mode
    */
@@ -97,6 +101,10 @@ export class ResponsiveService {
     if (this.isBrowser) {
       this.setupBreakpointListener();
     }
+  }
+
+  refreshViewport(): void {
+    this._viewportWidth.set(this.getViewportWidth());
   }
 
   /**
@@ -185,6 +193,7 @@ export class ResponsiveService {
         "(min-width: 960px)", // desktop
       ])
       .subscribe((result) => {
+        this.refreshViewport();
         const viewportMode = this.detectViewportMode();
         const isMobile =
           viewportMode === "mobile" ||

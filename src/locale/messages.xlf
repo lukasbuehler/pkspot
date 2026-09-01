@@ -6969,6 +6969,15 @@
         <source>Moderation</source>
       </segment>
     </unit>
+    <unit id="more.nav">
+      <notes>
+        <note category="description">A very short label that opens overflow navigation</note>
+        <note category="meaning">More navbar button label</note>
+      </notes>
+      <segment>
+        <source>More</source>
+      </segment>
+    </unit>
     <unit id="my_events.close">
       <segment>
         <source>Close My Events</source>
@@ -9511,6 +9520,15 @@
       </notes>
       <segment>
         <source>Share this spot</source>
+      </segment>
+    </unit>
+    <unit id="shop.nav">
+      <notes>
+        <note category="description">A very short label for the PK Spot shop</note>
+        <note category="meaning">Shop navbar button label</note>
+      </notes>
+      <segment>
+        <source>Shop</source>
       </segment>
     </unit>
     <unit id="share_spot_aria_label">

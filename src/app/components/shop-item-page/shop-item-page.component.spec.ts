@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ActivatedRoute, convertToParamMap, provideRouter } from "@angular/router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { findShopItem } from "../../features/shop-catalog";
 import { AnalyticsService } from "../../services/analytics.service";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { SupportShopService } from "../../services/support-shop.service";
@@ -10,16 +11,18 @@ describe("ShopItemPageComponent", () => {
   let component: ShopItemPageComponent;
   let fixture: ComponentFixture<ShopItemPageComponent>;
   const metaTagService = { setStaticPageMetaTags: vi.fn() };
+  const supportShopService = { createCheckout: vi.fn() };
 
   beforeEach(async () => {
     metaTagService.setStaticPageMetaTags.mockReset();
+    supportShopService.createCheckout.mockReset();
     await TestBed.configureTestingModule({
       imports: [ShopItemPageComponent],
       providers: [
         provideRouter([]),
         { provide: AnalyticsService, useValue: { trackEvent: vi.fn() } },
         { provide: MetaTagService, useValue: metaTagService },
-        { provide: SupportShopService, useValue: { createCheckout: vi.fn() } },
+        { provide: SupportShopService, useValue: supportShopService },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -69,5 +72,42 @@ describe("ShopItemPageComponent", () => {
       undefined,
       "/shop/item/nice-sticker-support-pack",
     );
+  });
+
+  it("always shows an optional nickname field for direct supporters", async () => {
+    component.item.set(findShopItem("support-pkspot"));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const content = fixture.nativeElement.textContent;
+    expect(content).toContain("Nickname (optional)");
+    expect(content).toContain(
+      "Add a nickname so we can thank you on the PK Spot supporters page.",
+    );
+    expect(fixture.nativeElement.querySelector("mat-checkbox")).toBeNull();
+    expect(fixture.nativeElement.querySelector("mat-hint")).toBeNull();
+  });
+
+  it("uses a supplied nickname as the supporters-page opt-in", async () => {
+    component.supportModel.update((model) => ({
+      ...model,
+      publicName: "  Mira  ",
+    }));
+    supportShopService.createCheckout.mockRejectedValueOnce(
+      new Error("Checkout test failure"),
+    );
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      await component.startDirectSupportCheckout();
+
+      expect(supportShopService.createCheckout).toHaveBeenCalledWith({
+        kind: "direct_support",
+        amountChf: 10,
+        supporterCredit: { optedIn: true, publicName: "Mira" },
+      });
+    } finally {
+      consoleError.mockRestore();
+    }
   });
 });

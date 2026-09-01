@@ -2057,6 +2057,16 @@
         <target>Moderatie</target>
       </segment>
     </unit>
+    <unit id="more.nav">
+      <notes>
+        <note category="description">A very short label that opens overflow navigation</note>
+        <note category="meaning">More navbar button label</note>
+      </notes>
+      <segment state="initial">
+        <source>More</source>
+        <target>Meer</target>
+      </segment>
+    </unit>
     <unit id="my_events.close">
       <segment state="initial">
         <source>Close My Events</source>
@@ -3145,6 +3155,16 @@
       <segment state="initial">
         <source>Share this spot</source>
         <target>Deze spot delen</target>
+      </segment>
+    </unit>
+    <unit id="shop.nav">
+      <notes>
+        <note category="description">A very short label for the PK Spot shop</note>
+        <note category="meaning">Shop navbar button label</note>
+      </notes>
+      <segment state="initial">
+        <source>Shop</source>
+        <target>Winkel</target>
       </segment>
     </unit>
     <unit id="share_spot_aria_label">

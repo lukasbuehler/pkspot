@@ -23,6 +23,16 @@
   }
 }
 
+@media (max-width: 959.98px) {
+  :host {
+    width: 100%;
+  }
+
+  .button-container {
+    width: 100%;
+  }
+}
+
 .live-indicator {
   position: absolute;
   top: 1px;

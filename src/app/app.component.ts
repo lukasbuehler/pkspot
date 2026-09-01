@@ -95,14 +95,19 @@ import { UiLanguageService } from "./services/ui-language.service";
 import { AppCheckFailureWarningService } from "./services/firebase/app-check-failure-warning.service";
 import { PushNotificationsService } from "./services/push-notifications.service";
 import { trainingFeatureEnabled } from "./features/training-feature";
+import { supportShopFeatureEnabled } from "./features/support-shop-feature";
+import { splitNavigationOverflow } from "./features/navbar-overflow";
 import { MyEventContextService } from "./services/my-event-context.service";
 
 interface ButtonBase {
+  id: string;
   name: string;
   icon: string;
+  overflowPriority: number;
   image?: string;
   active?: boolean;
   liveIndicator?: boolean;
+  alwaysVisible?: boolean;
 }
 
 interface LinkButton extends ButtonBase {
@@ -270,6 +275,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   isEmbedded: WritableSignal<boolean | null> = signal(null);
 
   onResize() {
+    this.responsive.refreshViewport();
     this.enforceAlainMode();
   }
 
@@ -379,10 +385,7 @@ export class AppComponent implements OnInit, AfterViewInit {
           // unless fully configured for i18n routing in the same app instance.
           // For Capacitor, we usually want to just navigate to the content.
           const segments = path.split("/");
-          if (
-            segments.length > 1 &&
-            isKnownUiLocalePrefix(segments[1])
-          ) {
+          if (segments.length > 1 && isKnownUiLocalePrefix(segments[1])) {
             // Remove the locale segment
             segments.splice(1, 1);
             path = segments.join("/");
@@ -832,10 +835,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   private stripLocalePrefix(pathname: string): string {
     const segments = pathname.split("/");
 
-    if (
-      segments.length > 1 &&
-      isKnownUiLocalePrefix(segments[1])
-    ) {
+    if (segments.length > 1 && isKnownUiLocalePrefix(segments[1])) {
       segments.splice(1, 1);
       return segments.join("/") || "/";
     }
@@ -1439,64 +1439,86 @@ html.pkspot-roboto-loaded body {
 
     const buttons: NavbarButtonConfig = [
       {
+        id: "map",
         name: $localize`:Map navbar button label|A very short label for the navbar map label@@map_label:Map`,
         link: "/map",
         icon: "map",
+        overflowPriority: 0,
       },
     ];
     if (trainingFeatureEnabled) {
       buttons.push({
+        id: "train",
         name: $localize`:Train navbar button label|A very short label for training planning@@train.nav:Train`,
         link: "/train",
         icon: "steps",
+        overflowPriority: 1,
       });
     }
 
     buttons.push({
+      id: "events",
       name: $localize`:Events navbar button label|A very short label for the navbar events page button@@events_label:Events`,
       link: "/events",
       icon: "event",
+      overflowPriority: 2,
       liveIndicator: this.myEventContext.hasLiveEvent(),
     });
 
-    // Drop "About" on tight viewports so the bottom toolbar fits 4 items
-    // (map, activity, events, profile/account).
-    if (!isCompact) {
+    if (supportShopFeatureEnabled) {
       buttons.push({
-        name: $localize`:About page navbar button label|A very short label for the navbar about page button@@about_page_label:About`,
-        link: "/about",
-        icon: "info",
+        id: "shop",
+        name: $localize`:Shop navbar button label|A very short label for the PK Spot shop@@shop.nav:Shop`,
+        link: "/shop",
+        icon: "shopping_bag",
+        overflowPriority: 3,
       });
+    }
 
-      if (this.authService.isAdmin()) {
-        buttons.push({
-          name: $localize`:Moderation navbar button label|A very short label for the admin moderation page button@@moderation_label:Moderation`,
-          link: "/moderation",
-          icon: "gavel",
-        });
-      }
+    // About is lowest priority, so compact navigation places it in More first.
+    buttons.push({
+      id: "about",
+      name: $localize`:About page navbar button label|A very short label for the navbar about page button@@about_page_label:About`,
+      link: "/about",
+      icon: "info",
+      overflowPriority: 4,
+    });
+
+    if (!signedIn && !isCompact) {
+      buttons.push({
+        id: "language",
+        spacerBefore: true,
+        name: $localize`:@@2826581353496868063:Language`,
+        function: () => this._uiLanguageService.changeLanguage(),
+        icon: "language",
+        overflowPriority: 5,
+        alwaysVisible: true,
+      });
+    }
+
+    if (!isCompact && this.authService.isAdmin()) {
+      buttons.push({
+        id: "moderation",
+        name: $localize`:Moderation navbar button label|A very short label for the admin moderation page button@@moderation_label:Moderation`,
+        link: "/moderation",
+        icon: "gavel",
+        overflowPriority: 6,
+      });
     }
 
     if (isOnMobileWeb) {
       buttons.push({
-        spacerBefore: true,
+        id: "get-app",
         name: $localize`:Get App navbar button label|A very short label for the navbar get app button@@get_app_label:Get App`,
         function: () => this.openPKSpotinAppStore(),
         icon: "mobile_border",
-      });
-    }
-
-    if (!signedIn && !isCompact) {
-      buttons.push({
-        spacerBefore: !isOnMobileWeb,
-        name: $localize`:@@2826581353496868063:Language`,
-        function: () => this._uiLanguageService.changeLanguage(),
-        icon: "language",
+        overflowPriority: 7,
       });
     }
 
     buttons.push({
-      spacerBefore: !isOnMobileWeb && (signedIn || isCompact),
+      id: "account",
+      spacerBefore: !isCompact,
       name: signedIn
         ? shortUserDisplayName || $localize`Profile`
         : $localize`:@@login.nav_label:Account`,
@@ -1504,6 +1526,8 @@ html.pkspot-roboto-loaded body {
         ? {
             link: "/profile",
             icon: "person",
+            overflowPriority: 8,
+            alwaysVisible: true,
             image: userPhoto || "",
             active:
               currentNavUrl.startsWith("/profile") ||
@@ -1512,6 +1536,8 @@ html.pkspot-roboto-loaded body {
         : {
             function: () => this.navigateToAccount(),
             icon: "manage_accounts",
+            overflowPriority: 8,
+            alwaysVisible: true,
             active:
               currentNavUrl.startsWith("/account") ||
               currentNavUrl.startsWith("/sign-in"),
@@ -1520,6 +1546,64 @@ html.pkspot-roboto-loaded body {
 
     return buttons;
   });
+
+  readonly navbarOverflow = computed(() =>
+    splitNavigationOverflow(
+      this.navbarConfig() ?? [],
+      this.responsive.viewMode() === "desktop"
+        ? 7
+        : this.responsive.viewMode() === "tablet"
+          ? 6
+          : 5,
+      this.responsive.viewMode() === "mobile"
+        ? this.mobileVisibleDestinationCount()
+        : Number.POSITIVE_INFINITY,
+    ),
+  );
+  readonly mobileVisibleDestinationCount = computed(() => {
+    const width = this.responsive.viewportWidth();
+
+    if (width === null || width >= 520) return 4;
+    if (width >= 390) return 3;
+    if (width >= 320) return 2;
+    return 1;
+  });
+  readonly visibleNavbarButtons = computed(() => this.navbarOverflow().visible);
+  readonly overflowNavbarButtons = computed(
+    () => this.navbarOverflow().overflow,
+  );
+  readonly desktopLeadingNavbarButtons = computed(() =>
+    this.visibleNavbarButtons().filter(
+      (button) => !button.spacerBefore && !button.alwaysVisible,
+    ),
+  );
+  readonly desktopTrailingNavbarButtons = computed(() =>
+    this.visibleNavbarButtons().filter(
+      (button) => button.spacerBefore || button.alwaysVisible,
+    ),
+  );
+  readonly mobileLeadingNavbarButtons = computed(() =>
+    this.visibleNavbarButtons().filter((button) => !button.alwaysVisible),
+  );
+  readonly mobileTrailingNavbarButtons = computed(() =>
+    this.visibleNavbarButtons().filter((button) => button.alwaysVisible),
+  );
+  readonly hasNavbarOverflow = computed(
+    () => this.overflowNavbarButtons().length > 0,
+  );
+  readonly moreNavigationLabel = $localize`:More navbar button label|A very short label that opens overflow navigation@@more.nav:More`;
+  readonly overflowNavigationActive = computed(() =>
+    this.overflowNavbarButtons().some(
+      (button) =>
+        !!button.active ||
+        (!!button.link && this.isNavbarLinkActive(button.link)),
+    ),
+  );
+
+  private isNavbarLinkActive(link: string): boolean {
+    const currentUrl = this.currentNavUrl();
+    return currentUrl === link || currentUrl.startsWith(`${link}/`);
+  }
 
   private isMobileAppStoreBrowser(): boolean {
     return this._platformService.isMobileAppStoreBrowser();
