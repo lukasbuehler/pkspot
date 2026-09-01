@@ -98,4 +98,30 @@ describe("splitNavigationOverflow", () => {
       "about",
     ]);
   });
+
+  it("keeps About in desktop More while language and account stay pinned", () => {
+    const result = splitNavigationOverflow(
+      [
+        { id: "map", overflowPriority: 0 },
+        { id: "train", overflowPriority: 1 },
+        { id: "events", overflowPriority: 2 },
+        { id: "shop", overflowPriority: 3 },
+        { id: "about", overflowPriority: 4 },
+        { id: "language", overflowPriority: 5, alwaysVisible: true },
+        { id: "account", overflowPriority: 6, alwaysVisible: true },
+      ],
+      7,
+      4,
+    );
+
+    expect(result.visible.map((item) => item.id)).toEqual([
+      "map",
+      "train",
+      "events",
+      "shop",
+      "language",
+      "account",
+    ]);
+    expect(result.overflow.map((item) => item.id)).toEqual(["about"]);
+  });
 });

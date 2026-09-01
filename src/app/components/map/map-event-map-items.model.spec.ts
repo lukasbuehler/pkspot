@@ -144,6 +144,20 @@ describe("map event map items", () => {
     expect(markers[0].imageFit).toBe("cover");
   });
 
+  it("uses the primary container color when an event has no marker background override", () => {
+    const markers = buildVisibleEventMarkers({
+      visibleEvents: [eventStub({ id: "event-2" })],
+      selectedEvent: null,
+      pendingEventRef: null,
+      mode: "events",
+      now,
+    });
+
+    expect(markers[0].imageBackgroundColor).toBe(
+      "var(--mat-sys-primary-container)",
+    );
+  });
+
   it("preserves the effective event logo background color", () => {
     const markers = buildVisibleEventMarkers({
       visibleEvents: [

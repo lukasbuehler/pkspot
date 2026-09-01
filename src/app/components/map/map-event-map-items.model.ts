@@ -10,6 +10,7 @@ import { eventImageDisplaySrc } from "../event-display/event-display.helpers";
 
 const eventBoundsColorFallback = "rgb(184 196 255)";
 const eventAreaColorFallback = "rgb(0 54 186)";
+const eventMarkerBackgroundFallback = "var(--mat-sys-primary-container)";
 
 export interface EventMapMarker extends MapPointMarker {
   previewEvent?: PkEvent;
@@ -61,7 +62,9 @@ export function buildVisibleEventMarkers({
           icons: [status === "live" ? "stars" : "event"],
           imageSrc: eventImageDisplaySrc(event.effectiveBadgeLogoSrc()),
           imageFit: event.effectiveBadgeLogoFit(),
-          imageBackgroundColor: event.effectiveBadgeLogoBackgroundColor(),
+          imageBackgroundColor:
+            event.effectiveBadgeLogoBackgroundColor() ??
+            eventMarkerBackgroundFallback,
           color: status === "live" ? "secondary" : "primary",
           type: "event",
           forceFullMarker: true,

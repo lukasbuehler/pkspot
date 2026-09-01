@@ -132,6 +132,10 @@ interface NavigationPerfEntry {
   lastPhaseAt: number;
 }
 
+// Keep the desktop rail focused on primary destinations. Secondary pages live
+// in More, while language and account remain in the footer.
+const DESKTOP_VISIBLE_DESTINATION_COUNT = 4;
+
 type NavigationPerfDetails = Record<string, unknown>;
 
 @Component({
@@ -1484,7 +1488,7 @@ html.pkspot-roboto-loaded body {
       overflowPriority: 4,
     });
 
-    if (!signedIn && !isCompact) {
+    if (!isCompact) {
       buttons.push({
         id: "language",
         spacerBefore: true,
@@ -1555,9 +1559,11 @@ html.pkspot-roboto-loaded body {
         : this.responsive.viewMode() === "tablet"
           ? 6
           : 5,
-      this.responsive.viewMode() === "mobile"
-        ? this.mobileVisibleDestinationCount()
-        : Number.POSITIVE_INFINITY,
+      this.responsive.viewMode() === "desktop"
+        ? DESKTOP_VISIBLE_DESTINATION_COUNT
+        : this.responsive.viewMode() === "mobile"
+          ? this.mobileVisibleDestinationCount()
+          : Number.POSITIVE_INFINITY,
     ),
   );
   readonly mobileVisibleDestinationCount = computed(() => {

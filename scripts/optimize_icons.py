@@ -166,6 +166,9 @@ def _build_subset(
         f"--text={icon_text}",
         f"--unicodes={unicode_list}",
         "--layout-features=",
+        # Material Symbols' rendered outlines depend on their original glyph IDs.
+        # Renumbered subsets can show detached fill and border shapes in Chromium.
+        "--retain-gids",
         "--no-hinting",
     ]
 
