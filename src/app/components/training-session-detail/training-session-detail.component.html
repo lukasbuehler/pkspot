@@ -9,7 +9,7 @@
     <section class="state-card"><mat-progress-spinner diameter="36" mode="indeterminate" /></section>
   } @else if (entry(); as log) {
     <header class="session-page__header">
-      <a class="back" routerLink="/train/log"><mat-icon>arrow_back</mat-icon><span i18n="@@trainingSessionDetail.back">Training log</span></a>
+      <a matButton="text" class="back" routerLink="/train/log"><mat-icon>arrow_back</mat-icon><span i18n="@@trainingSessionDetail.back">Training log</span></a>
       <div class="session-page__actions">
         <a matButton="outlined" [routerLink]="['/train/log', log.id, 'edit']"><mat-icon>edit</mat-icon><span i18n="@@trainingSessionDetail.edit">Edit</span></a>
         <button matButton type="button" class="delete-entry" [disabled]="deleting()" (click)="deleteEntry()"><mat-icon>delete</mat-icon><span i18n="@@trainingSessionDetail.delete">Delete</span></button>

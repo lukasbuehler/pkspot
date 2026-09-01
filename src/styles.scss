@@ -116,6 +116,12 @@ body:has(mat-toolbar.native-platform) {
   z-index: 10;
 }
 
+// Material's FAB base style sets `position: relative`; retain the reusable
+// page-level placement when the class is applied directly to a Material FAB.
+.app-page-fab.mat-mdc-fab {
+  position: fixed;
+}
+
 // Mobile and tablet layouts use the bottom navigation. `--nav-bar-height`
 // includes the native gesture-area inset and is reset to zero in Alain mode.
 @media (max-width: 959.98px) {

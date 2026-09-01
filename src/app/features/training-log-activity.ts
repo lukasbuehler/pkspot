@@ -26,6 +26,7 @@ export interface TrainingContributionDay {
   key: string;
   activity: TrainingActivityDay | null;
   isToday: boolean;
+  isFuture: boolean;
 }
 
 export interface TrainingContributionWeek {
@@ -134,19 +135,11 @@ export function buildTrainingContributionWeeks(
     },
     null,
   );
-  const latestActivity = days.reduce<Date | null>(
-    (latest, day) => {
-      const date = dateFromKey(day.key);
-      return !latest || date > latest ? date : latest;
-    },
-    null,
-  );
   const start = startOfWeek(
     earliestActivity && earliestActivity < minimumStart ? earliestActivity : minimumStart,
     firstWeekday,
   );
-  const lastVisibleDay = latestActivity && latestActivity > today ? latestActivity : today;
-  const end = addDays(startOfWeek(lastVisibleDay, firstWeekday), 6);
+  const end = addDays(startOfWeek(today, firstWeekday), 6);
   const weeks: TrainingContributionWeek[] = [];
 
   for (let weekStart = start; weekStart <= end; weekStart = addDays(weekStart, 7)) {
@@ -155,8 +148,9 @@ export function buildTrainingContributionWeeks(
       const key = dateKeyFromDate(date);
       return {
         key,
-        activity: activityByKey.get(key) ?? null,
+        activity: date > today ? null : activityByKey.get(key) ?? null,
         isToday: key === dateKeyFromDate(today),
+        isFuture: date > today,
       } satisfies TrainingContributionDay;
     });
     weeks.push({

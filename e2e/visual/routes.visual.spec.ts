@@ -451,12 +451,33 @@ test.describe("Route visual regression @visual", () => {
 
       if (route.assertContributionGraph) {
         const graph = page.locator("app-training-activity-contribution-graph");
+        const logFab = page.locator("a.app-page-fab");
+        const weekdayLabels = graph.locator(".weekday-labels");
         const activeWeeks = graph.locator(".week.week-active");
         const activeDays = activeWeeks.locator(".cell.day-active");
+        await expect(page.locator(".log-hero .back")).toHaveClass(
+          /mat-mdc-button-base/,
+        );
+        await expect(logFab).toHaveCount(1);
+        await expect(logFab).toHaveAttribute("href", /\/train\/log\/new$/);
+        await expect(
+          page.locator(".log-hero a[href$='/train/log/new']"),
+        ).toHaveCount(0);
+        expect(
+          await logFab.evaluate((element) => getComputedStyle(element).position),
+        ).toBe("fixed");
         await expect(activeWeeks).toHaveCount(2);
         await expect(activeDays).toHaveCount(3);
+        await expect(graph.locator(".week").last().locator(".cell")).toHaveCount(4);
+        await expect(weekdayLabels).toHaveCount(1);
+        await expect(
+          graph.locator(".contribution-graph__scroll .weekday-labels"),
+        ).toHaveCount(0);
+        await expect(
+          graph.locator(".contribution-graph__scroll > .weeks"),
+        ).toHaveCount(1);
 
-        const [weekColor, dayColor, activeWeekCellColor, activeDayColor] =
+        const [weekColor, dayColor, activeWeekCellColor, activeDayColor, styles] =
           await Promise.all([
             graph.locator(".legend-swatch.week").evaluate(
               (element) => getComputedStyle(element).backgroundColor,
@@ -470,9 +491,31 @@ test.describe("Route visual regression @visual", () => {
             activeDays.first().evaluate(
               (element) => getComputedStyle(element).backgroundColor,
             ),
+            graph.evaluate((element) => {
+              const graphCard = element.querySelector(".contribution-graph")!;
+              const style = getComputedStyle(graphCard);
+              return {
+                horizontalOverflow: getComputedStyle(
+                  element.querySelector(".contribution-graph__scroll")!,
+                ).overflowX,
+                verticalOverflow: getComputedStyle(
+                  element.querySelector(".contribution-graph__scroll")!,
+                ).overflowY,
+                activeWeekColor: style.getPropertyValue("--active-week-color").trim(),
+                activeDayColor: style.getPropertyValue("--active-day-color").trim(),
+                primary: style.getPropertyValue("--mat-sys-primary").trim(),
+                primaryContainer: style
+                  .getPropertyValue("--mat-sys-primary-container")
+                  .trim(),
+              };
+            }),
           ]);
         expect(activeWeekCellColor).toBe(weekColor);
         expect(activeDayColor).toBe(dayColor);
+        expect(styles.horizontalOverflow).toBe("auto");
+        expect(styles.verticalOverflow).toBe("hidden");
+        expect(styles.activeWeekColor).toBe(styles.primaryContainer);
+        expect(styles.activeDayColor).toBe(styles.primary);
       }
 
       await expect(page).toHaveScreenshot(`${route.name}-route.png`, {
@@ -482,6 +525,26 @@ test.describe("Route visual regression @visual", () => {
         maxDiffPixels: route.maxDiffPixels ?? 1_000,
         mask: masks,
       });
+
+      if (route.assertContributionGraph) {
+        const stickyLabels = await page
+          .locator("app-training-activity-contribution-graph")
+          .evaluate((element) => {
+            const labels = element.querySelector<HTMLElement>(".weekday-labels")!;
+            const scroll = element.querySelector<HTMLElement>(
+              ".contribution-graph__scroll",
+            )!;
+            scroll.style.inlineSize = "180px";
+            const before = labels.getBoundingClientRect().left;
+            scroll.scrollLeft = 160;
+            return {
+              labelOffset: Math.abs(labels.getBoundingClientRect().left - before),
+              scrollLeft: scroll.scrollLeft,
+            };
+          });
+        expect(stickyLabels.scrollLeft).toBeGreaterThan(0);
+        expect(stickyLabels.labelOffset).toBeLessThanOrEqual(0.1);
+      }
     });
   }
 });

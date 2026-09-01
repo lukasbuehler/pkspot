@@ -1,14 +1,11 @@
 <main class="log-page">
   <header class="log-hero">
     <div>
-      <a class="back" routerLink="/train"><mat-icon>arrow_back</mat-icon><span i18n>Train</span></a>
+      <a matButton="text" class="back" routerLink="/train"><mat-icon>arrow_back</mat-icon><span i18n>Train</span></a>
       <p class="eyebrow" i18n="@@trainingLog.eyebrow">Your movement archive</p>
       <h1 i18n="@@trainingLog.title">Training log</h1>
       <p i18n="@@trainingLog.subtitle">A private timeline for the Spots, sessions, and people that made up your training.</p>
     </div>
-    @if (signedIn()) {
-      <a matButton="filled" routerLink="/train/log/new"><mat-icon>add</mat-icon><span i18n="@@trainingLog.new">New entry</span></a>
-    }
   </header>
 
   @if (!signedIn()) {
@@ -135,3 +132,14 @@
     </section>
   }
 </main>
+
+@if (signedIn()) {
+  <a
+    matFab
+    color="primary"
+    class="app-page-fab"
+    routerLink="/train/log/new"
+    aria-label="New entry"
+    i18n-aria-label="@@trainingLog.new"
+  ><mat-icon>add</mat-icon></a>
+}

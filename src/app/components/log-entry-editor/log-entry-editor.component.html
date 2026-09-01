@@ -1,6 +1,6 @@
 <main class="editor-page">
   <header>
-    <a class="back" routerLink="/train/log"><mat-icon>arrow_back</mat-icon><span i18n>Training log</span></a>
+    <a matButton="text" class="back" routerLink="/train/log"><mat-icon>arrow_back</mat-icon><span i18n>Training log</span></a>
     <h1>{{ entryId ? ("Edit log entry") : ("New log entry") }}</h1>
     <p i18n="@@logEditor.intro">Describe your training and decide who can see the summary.</p>
   </header>

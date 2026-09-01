@@ -1,5 +1,5 @@
 <main class="public-log">
-  <a class="back" [routerLink]="['/u', userId]"><mat-icon>arrow_back</mat-icon><span i18n>Profile</span></a>
+  <a matButton="text" class="back" [routerLink]="['/u', userId]"><mat-icon>arrow_back</mat-icon><span i18n>Profile</span></a>
   <h1 i18n="@@publicLog.title">Training log</h1>
   <p i18n="@@publicLog.subtitle">Entries this person chose to share with you.</p>
   @if (loading()) {

@@ -254,3 +254,4 @@ rate_review
 restore
 error
 shopping_bag
+remove

@@ -113,7 +113,7 @@ describe("training log activity helpers", () => {
     ]);
   });
 
-  it("builds continuous Monday-first columns and marks active days within active weeks", () => {
+  it("builds continuous Monday-first columns and omits future days", () => {
     const days = buildTrainingActivityDays(entries);
     const weeks = buildTrainingContributionWeeks(
       days,
@@ -132,6 +132,16 @@ describe("training log activity helpers", () => {
       ["2026-08-08", false],
       ["2026-08-09", false],
     ]);
+    expect(activeWeek?.days.map((day) => day.isFuture)).toEqual([
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+    ]);
+    expect(weeks.at(-1)?.key).toBe("2026-08-03");
     expect(weeks.length).toBeGreaterThanOrEqual(27);
   });
 });

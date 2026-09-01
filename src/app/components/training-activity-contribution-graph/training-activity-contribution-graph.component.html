@@ -10,18 +10,18 @@
     </div>
   </header>
 
-  <div class="contribution-graph__scroll" tabindex="0" role="region" aria-label="Scrollable training history" i18n-aria-label="@@trainingContributionGraph.scrollable">
-    <div class="contribution-graph__body">
-      <div class="weekday-labels" aria-hidden="true">
-        @for (weekday of weekdays(); track $index) {
-          <span>{{ weekday }}</span>
-        }
-      </div>
+  <div class="contribution-graph__body">
+    <div class="weekday-labels" aria-hidden="true">
+      @for (weekday of weekdays(); track $index) {
+        <span>{{ weekday }}</span>
+      }
+    </div>
+    <div class="contribution-graph__scroll" tabindex="0" role="region" aria-label="Scrollable training history" i18n-aria-label="@@trainingContributionGraph.scrollable">
       <div class="weeks" role="list">
         @for (week of weeks(); track week.key) {
           <div class="week" role="listitem" [class.week-active]="week.hasActivity">
             @for (day of week.days; track day.key) {
-              @if (day.activity) {
+              @if (!day.isFuture && day.activity) {
                 <button
                   class="cell day-active"
                   type="button"
@@ -32,7 +32,7 @@
                   [title]="dayLabel(day)"
                   (click)="selectDay(day)"
                 ></button>
-              } @else {
+              } @else if (!day.isFuture) {
                 <span class="cell" [class.is-today]="day.isToday" aria-hidden="true"></span>
               }
             }
