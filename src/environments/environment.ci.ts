@@ -4,7 +4,9 @@ export const environment = {
   baseUrl: "https://pkspot.app",
   mapId: "e2926e5bfb22860c",
   features: {
-    training: false,
+    // Training is live in the shipped environments. Keep it enabled in CI so
+    // route builds and visual coverage exercise the same route table.
+    training: true,
     checkIns: false,
     supportShop: false,
     continuousEventCalendar: true,

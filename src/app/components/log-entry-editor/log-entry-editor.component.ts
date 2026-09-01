@@ -91,9 +91,16 @@ export class LogEntryEditorComponent {
     );
   }
 
-  addPerson(uid: string): void {
-    if (!uid || this.people().some((person) => person.uid === uid)) return;
-    this.people.update((people) => [...people, { uid }]);
+  addPerson(person: SessionPersonReference): void {
+    if (!person.uid || this.people().some((item) => item.uid === person.uid)) return;
+    this.people.update((people) => [
+      ...people,
+      {
+        uid: person.uid,
+        ...(person.display_name ? { display_name: person.display_name } : {}),
+        ...(person.profile_picture ? { profile_picture: person.profile_picture } : {}),
+      },
+    ]);
   }
 
   removePerson(uid: string): void {

@@ -13,7 +13,7 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { ActivatedRoute, RouterLink } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import type {
   SupportOrderType,
   SupportShopProductId,
@@ -21,6 +21,7 @@ import type {
 import { STICKER_PACK_SIZES, findShopItem } from "../../features/shop-catalog";
 import { AnalyticsService } from "../../services/analytics.service";
 import { MetaTagService } from "../../services/meta-tag.service";
+import { ShopCartService } from "../../services/shop-cart.service";
 import { SupportShopService } from "../../services/support-shop.service";
 
 @Component({
@@ -43,7 +44,9 @@ export class ShopItemPageComponent implements OnInit {
   private readonly _analytics = inject(AnalyticsService);
   private readonly _metaTagService = inject(MetaTagService);
   private readonly _route = inject(ActivatedRoute);
+  private readonly _router = inject(Router);
   private readonly _shop = inject(SupportShopService);
+  private readonly _cart = inject(ShopCartService);
 
   readonly checkoutAction = signal<SupportOrderType | "">("");
   readonly checkoutError = signal("");
@@ -93,11 +96,11 @@ export class ShopItemPageComponent implements OnInit {
     });
   }
 
-  async startStickerPackCheckout(): Promise<void> {
-    await this.startCheckout({
-      kind: "physical_order",
-      productId: this.selectedStickerPack().id,
-    });
+  addStickerPackToCart(): void {
+    const productId = this.selectedStickerPack().id;
+    this._cart.setStickerPack(productId);
+    this._analytics.trackEvent("shop_cart_updated", { product_id: productId });
+    void this._router.navigate(["/shop/cart"]);
   }
 
   private setMetaTags(item: ReturnType<typeof findShopItem>): void {

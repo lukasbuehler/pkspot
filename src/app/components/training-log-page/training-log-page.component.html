@@ -1,9 +1,10 @@
 <main class="log-page">
-  <header>
+  <header class="log-hero">
     <div>
       <a class="back" routerLink="/train"><mat-icon>arrow_back</mat-icon><span i18n>Train</span></a>
+      <p class="eyebrow" i18n="@@trainingLog.eyebrow">Your movement archive</p>
       <h1 i18n="@@trainingLog.title">Training log</h1>
-      <p i18n="@@trainingLog.subtitle">A private-first record of your training.</p>
+      <p i18n="@@trainingLog.subtitle">A private timeline for the Spots, sessions, and people that made up your training.</p>
     </div>
     @if (signedIn()) {
       <a matButton="filled" routerLink="/train/log/new"><mat-icon>add</mat-icon><span i18n="@@trainingLog.new">New entry</span></a>
@@ -19,15 +20,100 @@
   } @else if (loading()) {
     <section class="empty"><mat-progress-spinner diameter="36" mode="indeterminate" /></section>
   } @else {
-    <section class="summary">
-      <div><strong>{{ logs().length }}</strong><span i18n="@@trainingLog.entries">entries</span></div>
-      <div><strong>{{ sessions().length }}</strong><span i18n="@@trainingLog.sessions">session records</span></div>
+    <section class="summary" aria-label="Training summary" i18n-aria-label="@@trainingLog.summary.ariaLabel">
+      <div class="summary__lead">
+        <mat-icon>calendar_month</mat-icon>
+        <div>
+          <span i18n="@@trainingLog.summary.thisMonth">This month</span>
+          <strong>{{ monthSummary().sessionCount }}</strong>
+          <small i18n="@@trainingLog.summary.sessions">sessions</small>
+        </div>
+      </div>
+      <div>
+        <mat-icon>schedule</mat-icon>
+        <div><strong>{{ durationLabel(monthSummary().durationMinutes) }}</strong><span i18n="@@trainingLog.summary.trainingTime">training time</span></div>
+      </div>
+      <div>
+        <mat-icon>location_on</mat-icon>
+        <div><strong>{{ monthSummary().spotCount }}</strong><span i18n="@@trainingLog.summary.spots">Spots visited</span></div>
+      </div>
+      <div>
+        <mat-icon>history_edu</mat-icon>
+        <div><strong>{{ monthSummary().activityDays }}</strong><span i18n="@@trainingLog.summary.days">active days</span></div>
+      </div>
     </section>
+    <app-training-activity-contribution-graph
+      [days]="activityDays()"
+      [selectedDay]="selectedDay()"
+      (daySelected)="selectedDay.set($event)"
+    />
+    @if (logs().length) {
+      <section class="timeline">
+        <header class="timeline__header">
+          <div>
+            <p class="eyebrow" i18n="@@trainingLog.timeline.eyebrow">Session timeline</p>
+            <h2 i18n="@@trainingLog.timeline.title">Your training</h2>
+            @if (selectedDay()) {
+              <p i18n="@@trainingLog.timeline.filtered">Showing sessions linked to the selected day.</p>
+            } @else {
+              <p i18n="@@trainingLog.timeline.intro">Open a session to revisit where you trained, with whom, and what you wrote down.</p>
+            }
+          </div>
+          @if (selectedDay()) {
+            <button matButton="outlined" type="button" (click)="clearDayFilter()" i18n="@@trainingLog.timeline.showAll">Show all</button>
+          }
+        </header>
+        @if (timeline().length) {
+          <div class="timeline__groups">
+            @for (group of timeline(); track group.key) {
+              <section class="timeline__group">
+                <h3>{{ group.dateMs | systemDate: "mediumDate" }}</h3>
+                <div class="timeline__line">
+                  @for (item of group.entries; track item.entry.id) {
+                    <a class="session-card" [routerLink]="['/train/log', item.entry.id]">
+                      <div class="session-card__marker"><mat-icon>calendar_month</mat-icon></div>
+                      <div class="session-card__body">
+                        <div class="session-card__topline">
+                          <span class="visibility"><mat-icon>{{ item.entry.visibility === "private" ? "lock" : item.entry.visibility === "public" ? "public" : "groups" }}</mat-icon>{{ visibilityLabel(item.entry.visibility) }}</span>
+                          @if (item.includesCheckIn) {
+                            <span class="check-in-tag"><mat-icon>check_circle</mat-icon><span i18n="@@trainingLog.timeline.confirmedCheckIn">Confirmed check-in</span></span>
+                          }
+                        </div>
+                        <h4>{{ item.entry.note || "Training session" }}</h4>
+                        <div class="session-card__stats">
+                          <span><mat-icon>schedule</mat-icon>{{ durationLabel(item.durationMinutes) }}</span>
+                          <span><mat-icon>location_on</mat-icon>{{ item.spotCount }} <span i18n="@@trainingLog.timeline.spots">Spots</span></span>
+                          <span><mat-icon>calendar_month</mat-icon>{{ item.sessionCount }} <span i18n="@@trainingLog.timeline.sessions">sessions</span></span>
+                        </div>
+                      </div>
+                      <mat-icon class="session-card__arrow">chevron_right</mat-icon>
+                    </a>
+                  }
+                </div>
+              </section>
+            }
+          </div>
+        } @else {
+          @if (selectedDay()) {
+            <div class="timeline__empty" i18n="@@trainingLog.timeline.emptyFiltered">Nothing was logged for this day yet.</div>
+          } @else {
+            <div class="timeline__empty" i18n="@@trainingLog.timeline.emptyMonth">Nothing was logged in this month yet.</div>
+          }
+        }
+      </section>
+    } @else {
+      <section class="empty">
+        <mat-icon>history_edu</mat-icon>
+        <h2 i18n="@@trainingLog.emptyTitle">Your first entry starts here</h2>
+        <p i18n="@@trainingLog.emptyBody">Record what happened. It stays private unless you choose otherwise.</p>
+        <a matButton="filled" routerLink="/train/log/new" i18n="@@trainingLog.createFirst">Create first entry</a>
+      </section>
+    }
     <section class="check-in-history">
       <div class="check-in-history__header">
         <div>
           <h2 i18n="@@trainingLog.checkIns.title">Private check-ins</h2>
-          <p i18n="@@trainingLog.checkIns.description">Only you can see this history. It never shares your precise location.</p>
+          <p i18n="@@trainingLog.checkIns.description">Only you can see this archive. It never shares your precise location.</p>
         </div>
         <div class="actions">
           <button matButton="outlined" type="button" (click)="exportCheckIns()" [disabled]="!checkIns().length"><mat-icon>download</mat-icon><span i18n="@@trainingLog.checkIns.export">Export</span></button>
@@ -47,34 +133,5 @@
         <p class="check-in-history__empty" i18n="@@trainingLog.checkIns.empty">Your confirmed nearby check-ins will appear here.</p>
       }
     </section>
-    @if (logs().length) {
-      <section class="entries">
-        @for (entry of logs(); track entry.id) {
-          <article class="entry">
-            <div class="entry-meta">
-              <span>{{ entry.activity_at_raw_ms | systemDate: "mediumDate" }}</span>
-              <span class="visibility"><mat-icon>{{ entry.visibility === "private" ? "lock" : entry.visibility === "public" ? "public" : "group" }}</mat-icon>{{ entry.visibility }}</span>
-            </div>
-            <p>{{ entry.note || "Training session" }}</p>
-            <div class="session-summary">
-              @for (session of entry.session_summaries; track session.session_record_id) {
-                <span>{{ session.local_date }} · {{ session.duration_minutes || 0 }} min · {{ session.spot_count }} spots</span>
-              }
-            </div>
-            <div class="actions">
-              <a matButton [routerLink]="['/train/log', entry.id, 'edit']"><mat-icon>edit</mat-icon><span i18n>Edit</span></a>
-              <button matIconButton type="button" (click)="removeLog(entry.id)" aria-label="Delete log entry" i18n-aria-label><mat-icon>delete</mat-icon></button>
-            </div>
-          </article>
-        }
-      </section>
-    } @else {
-      <section class="empty">
-        <mat-icon>history_edu</mat-icon>
-        <h2 i18n="@@trainingLog.emptyTitle">Your first entry starts here</h2>
-        <p i18n="@@trainingLog.emptyBody">Record what happened. It stays private unless you choose otherwise.</p>
-        <a matButton="filled" routerLink="/train/log/new" i18n="@@trainingLog.createFirst">Create first entry</a>
-      </section>
-    }
   }
 </main>

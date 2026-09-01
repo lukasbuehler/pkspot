@@ -250,6 +250,7 @@ export {
 export { resolveMapShortLink } from "./mapLinkFunctions";
 export {
   createSupportCheckout,
+  listMySupportOrders,
   listSupportOrders,
   markSupportOrderFulfilled,
   stripeSupportWebhook,

@@ -1,5 +1,6 @@
 import { Injectable, inject } from "@angular/core";
 import type {
+  SupportOrderPaymentStatus,
   SupportOrderType,
   SupportShopProductId,
   SupporterCreditInput,
@@ -10,6 +11,7 @@ export interface CreateSupportCheckoutRequest {
   kind: SupportOrderType;
   amountChf?: number;
   productId?: SupportShopProductId;
+  checkoutDestination?: "cart";
   supporterCredit: SupporterCreditInput;
 }
 
@@ -37,6 +39,19 @@ export interface SupportOrderListItem {
   fulfilledAtMillis?: number;
 }
 
+/** A signed-in customer's order history deliberately excludes address and email data. */
+export interface MySupportOrderListItem {
+  id: string;
+  kind: SupportOrderType;
+  createdAtMillis: number;
+  paidAtMillis?: number;
+  amountRappen: number;
+  paymentStatus: SupportOrderPaymentStatus;
+  productName?: string;
+  stickerCount?: number;
+  fulfillmentStatus?: "unfulfilled" | "fulfilled";
+}
+
 @Injectable({ providedIn: "root" })
 export class SupportShopService {
   private readonly _functions = inject(FunctionsAdapterService);
@@ -55,6 +70,13 @@ export class SupportShopService {
       Record<string, never>,
       SupportOrderListItem[]
     >("listSupportOrders", {});
+  }
+
+  listMyOrders(): Promise<MySupportOrderListItem[]> {
+    return this._functions.callAuthenticatedAppChecked<
+      Record<string, never>,
+      MySupportOrderListItem[]
+    >("listMySupportOrders", {});
   }
 
   markPhysicalOrderFulfilled(orderId: string): Promise<void> {

@@ -63,6 +63,7 @@ beenhere
 add_photo_alternate
 reviews
 history
+shopping_cart
 read_more
 outlined_flag
 link_off

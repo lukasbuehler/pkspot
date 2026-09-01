@@ -18,7 +18,7 @@ describe("ShopPageComponent", () => {
         provideRouter([]),
         {
           provide: AuthenticationService,
-          useValue: { isAdmin: () => false },
+          useValue: { isAdmin: () => true },
         },
         { provide: MetaTagService, useValue: metaTagService },
       ],
@@ -36,6 +36,11 @@ describe("ShopPageComponent", () => {
     ]);
     expect(fixture.nativeElement.textContent).not.toContain(
       "Super Secret Shirt",
+    );
+    expect(fixture.nativeElement.textContent).toContain("My orders");
+    expect(fixture.nativeElement.textContent).toContain("My cart");
+    expect(fixture.nativeElement.textContent).toContain(
+      "Manage paid sticker orders",
     );
     expect(metaTagService.setStaticPageMetaTags).toHaveBeenCalledWith(
       "PK Spot Shop",

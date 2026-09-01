@@ -61,6 +61,26 @@ describe("parseSupportCheckoutInput", () => {
     ).toThrow("unsupported fields");
   });
 
+  it("only permits the server-known cart return destination", () => {
+    expect(
+      parseSupportCheckoutInput({
+        kind: "physical_order",
+        productId: "sticker-pack-standard",
+        checkoutDestination: "cart",
+        supporterCredit: { optedIn: false },
+      }),
+    ).toMatchObject({ checkoutDestination: "cart" });
+
+    expect(() =>
+      parseSupportCheckoutInput({
+        kind: "physical_order",
+        productId: "sticker-pack-standard",
+        checkoutDestination: "https://example.test/redirect",
+        supporterCredit: { optedIn: false },
+      }),
+    ).toThrow("supported checkout destination");
+  });
+
   it("does not accept a public supporter name without explicit opt-in", () => {
     expect(() =>
       parseSupportCheckoutInput({

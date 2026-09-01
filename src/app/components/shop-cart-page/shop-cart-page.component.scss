@@ -1,0 +1,142 @@
+.shop-cart-page {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  padding: 3rem 1rem;
+}
+
+.shop-cart-page__back-link {
+  margin: 0 0 2rem -0.5rem;
+}
+
+header {
+  margin-bottom: 2rem;
+
+  h1,
+  p {
+    margin: 0;
+  }
+
+  h1 {
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.shop-cart-page__item,
+.shop-cart-page__checkout,
+.shop-cart-page__notice,
+.shop-cart-page__empty,
+.shop-cart-page__error {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+  background: var(--mat-sys-surface-container);
+}
+
+.shop-cart-page__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1.25rem;
+
+  p,
+  h2 {
+    margin: 0;
+  }
+
+  h2 {
+    margin: 0.25rem 0;
+  }
+
+  > button {
+    grid-column: 1 / -1;
+    justify-self: start;
+    margin-left: -0.5rem;
+  }
+}
+
+.shop-cart-page__item .mat-label-large {
+  color: var(--mat-sys-primary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shop-cart-page__checkout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding: 1.25rem;
+
+  p {
+    margin: 0;
+  }
+}
+
+.shop-cart-page__notice,
+.shop-cart-page__error {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+
+  strong,
+  p {
+    margin: 0;
+  }
+
+  mat-icon {
+    color: var(--mat-sys-primary);
+  }
+}
+
+.shop-cart-page__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  text-align: center;
+
+  mat-icon {
+    width: 56px;
+    height: 56px;
+    color: var(--mat-sys-on-surface-variant);
+    font-size: 56px;
+  }
+
+  h2,
+  p {
+    margin: 1rem 0 0;
+  }
+
+  a {
+    margin-top: 1.5rem;
+  }
+}
+
+.shop-cart-page__error {
+  margin-top: 1rem;
+  border-color: var(--mat-sys-error);
+  color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
+}
+
+mat-spinner {
+  display: inline-flex;
+  margin-right: 0.5rem;
+}
+
+@media (max-width: 480px) {
+  .shop-cart-page__checkout {
+    align-items: stretch;
+
+    button {
+      width: 100%;
+    }
+  }
+}

@@ -1,0 +1,127 @@
+<main class="session-page">
+  @if (!signedIn()) {
+    <section class="state-card">
+      <mat-icon>lock</mat-icon>
+      <h1 i18n="@@trainingSessionDetail.signInTitle">Sign in to open this training session</h1>
+      <a matButton="filled" routerLink="/account" i18n="@@trainingSessionDetail.signIn">Sign in</a>
+    </section>
+  } @else if (loading()) {
+    <section class="state-card"><mat-progress-spinner diameter="36" mode="indeterminate" /></section>
+  } @else if (entry(); as log) {
+    <header class="session-page__header">
+      <a class="back" routerLink="/train/log"><mat-icon>arrow_back</mat-icon><span i18n="@@trainingSessionDetail.back">Training log</span></a>
+      <div class="session-page__actions">
+        <a matButton="outlined" [routerLink]="['/train/log', log.id, 'edit']"><mat-icon>edit</mat-icon><span i18n="@@trainingSessionDetail.edit">Edit</span></a>
+        <button matButton type="button" class="delete-entry" [disabled]="deleting()" (click)="deleteEntry()"><mat-icon>delete</mat-icon><span i18n="@@trainingSessionDetail.delete">Delete</span></button>
+      </div>
+    </header>
+
+    <section class="session-hero">
+      <div class="session-hero__topline">
+        <span><mat-icon>lock</mat-icon><span i18n="@@trainingSessionDetail.private">Private session</span></span>
+        <span>{{ log.activity_at_raw_ms | systemDate: "mediumDate" }}</span>
+      </div>
+      <div class="session-hero__heading">
+        <p i18n="@@trainingSessionDetail.eyebrow">Training session</p>
+        <h1 i18n="@@trainingSessionDetail.title">Your movement, remembered.</h1>
+      </div>
+      <div class="session-hero__metrics" aria-label="Session summary" i18n-aria-label="@@trainingSessionDetail.summary.ariaLabel">
+        <div><mat-icon>schedule</mat-icon><strong>{{ durationLabel(summary().durationMinutes) }}</strong><span i18n="@@trainingSessionDetail.duration">duration</span></div>
+        <div><mat-icon>location_on</mat-icon><strong>{{ summary().spotCount }}</strong><span i18n="@@trainingSessionDetail.spots">Spots</span></div>
+        <div><mat-icon>groups</mat-icon><strong>{{ summary().partnerCount }}</strong><span i18n="@@trainingSessionDetail.partners">training partners</span></div>
+      </div>
+    </section>
+
+    <section class="detail-section spots-section">
+      <div class="section-heading">
+        <div class="section-icon"><mat-icon>location_on</mat-icon></div>
+        <div><p i18n="@@trainingSessionDetail.spotsEyebrow">Your route through the city</p><h2 i18n="@@trainingSessionDetail.spotsTitle">Spots</h2></div>
+      </div>
+      @if (spots().length) {
+        <div class="spot-list">
+          @for (spot of spots(); track spot.id) {
+            <a class="spot-card" [routerLink]="['/map/spots', spot.slug || spot.id]">
+              @if (spot.imageSrc) {
+                <img [src]="spot.imageSrc" alt="" />
+              } @else {
+                <div class="spot-card__placeholder"><mat-icon>location_on</mat-icon></div>
+              }
+              <span>{{ spot.name }}</span>
+              <mat-icon>chevron_right</mat-icon>
+            </a>
+          }
+        </div>
+      } @else {
+        <p class="empty-copy" i18n="@@trainingSessionDetail.noSpots">No individual Spots were saved with this session.</p>
+      }
+    </section>
+
+    <section class="detail-section partners-section">
+      <div class="section-heading">
+        <div class="section-icon"><mat-icon>groups</mat-icon></div>
+        <div><p i18n="@@trainingSessionDetail.partnersEyebrow">Your crew</p><h2 i18n="@@trainingSessionDetail.partnersTitle">People who were there</h2></div>
+      </div>
+      @if (partners().length) {
+        <div class="partner-list">
+          @for (partner of partners(); track partner.uid) {
+            <article class="partner">
+              <div class="partner__avatar">
+                @if (partner.profile_picture) { <img [src]="partner.profile_picture" alt="" /> } @else { <span>{{ partner.initials }}</span> }
+              </div>
+              <span>{{ partner.display_name || partner.uid }}</span>
+            </article>
+          }
+        </div>
+      } @else {
+        <p class="empty-copy" i18n="@@trainingSessionDetail.noPartners">No training partners were added to this session.</p>
+      }
+      <p class="privacy-note"><mat-icon>lock</mat-icon><span i18n="@@trainingSessionDetail.partnersPrivacy">Only people you explicitly add appear here. This is never inferred from location or check-ins.</span></p>
+    </section>
+
+    <section class="detail-section description-section">
+      <div class="section-heading">
+        <div class="section-icon"><mat-icon>history_edu</mat-icon></div>
+        <div><p i18n="@@trainingSessionDetail.descriptionEyebrow">Your own words</p><h2 i18n="@@trainingSessionDetail.descriptionTitle">Description</h2></div>
+      </div>
+      @if (log.note) {
+        <p class="description">{{ log.note }}</p>
+      } @else {
+        <p class="empty-copy" i18n="@@trainingSessionDetail.noDescription">You did not add a description to this session.</p>
+      }
+    </section>
+
+    <section class="future-grid" aria-label="Upcoming session tools" i18n-aria-label="@@trainingSessionDetail.future.ariaLabel">
+      <article class="future-card">
+        <div class="section-icon"><mat-icon>outlined_flag</mat-icon></div>
+        <p class="future-card__label" i18n="@@trainingSessionDetail.movesLabel">Coming next</p>
+        <h2 i18n="@@trainingSessionDetail.movesTitle">Moves &amp; lines</h2>
+        <p i18n="@@trainingSessionDetail.movesCopy">Capture the precisions, flows, vaults, and challenges you practised—without turning a session into a spreadsheet.</p>
+      </article>
+      <article class="future-card">
+        <div class="section-icon"><mat-icon>fitness_center</mat-icon></div>
+        <p class="future-card__label" i18n="@@trainingSessionDetail.healthLabel">Future health connection</p>
+        <h2 i18n="@@trainingSessionDetail.healthTitle">Health &amp; fitness</h2>
+        <p i18n="@@trainingSessionDetail.healthCopy">With a future opt-in Apple Health or Health Connect link, compatible session metrics can live here. Nothing is connected yet.</p>
+      </article>
+    </section>
+
+    @if (sessions().length) {
+      <section class="session-records">
+        <h2 i18n="@@trainingSessionDetail.recordsTitle">Session records</h2>
+        @for (session of sessions(); track session.id) {
+          <div>
+            <span>{{ session.started_at_raw_ms | systemDate: "mediumDate" }} · {{ session.started_at_raw_ms | systemDate: "shortTime" }}</span>
+            <span>{{ sessionDuration(session) }} · {{ sessionSourceLabel(session) }}</span>
+          </div>
+        }
+      </section>
+    }
+  } @else {
+    <section class="state-card">
+      <mat-icon>history_edu</mat-icon>
+      <h1 i18n="@@trainingSessionDetail.errorTitle">This session is not available</h1>
+      <p>{{ error() }}</p>
+      <a matButton="outlined" routerLink="/train/log" i18n="@@trainingSessionDetail.return">Return to training log</a>
+    </section>
+  }
+</main>

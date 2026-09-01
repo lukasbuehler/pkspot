@@ -111,6 +111,7 @@ CPU, timeout, and instance limits.
 | Media upload | quarantined `media_intake/...` object and metadata | review/status docs, approved Storage object, Spot edit or profile URL, resized derivatives | Intake is not public until scanning/approval and side effects complete. |
 | Notifications | deterministic `notification_intents/{intentId}` | `users/{uid}/notifications/{intentId}` plus FCM delivery | The intent is durable/cancelable. The user feed is a projection; FCM acceptance is not proof of display. |
 | Safety case | `safety_cases/{caseId}` plus private intake/events | projections from legacy reports/actions, outbox and hold docs | Case actions can deliberately mutate or hold the reported target; inspect the case event trail before repairing target data. |
+| Development-only support shop | server-owned `support_orders/{orderId}` | Stripe Checkout Session, signed webhook receipt in `support_shop_webhook_events/{eventId}` | Prices, customer data, payment status, and shipping addresses are server-owned. Customer history is returned only through the App-Check-protected callable and never includes address or email. |
 | Sitemap | Firestore sources at generation time | public Storage `sitemap.xml` and IndexNow submissions | The file is a snapshot, regenerated nightly or by the manual HTTP handler. |
 | Weather/OSM | upstream APIs | bounded Firestore cache docs | Cache documents are disposable. A cache hit avoids the upstream request, not the initial cache document read. |
 | Search | Firestore documents selected by the installed extension | Typesense collections | The extension's live configuration is external to this repo; JSON schemas and alignment tests are the checked-in field contract, but the deployed source collection must be verified separately. |
@@ -214,6 +215,9 @@ registration/ownership/live-update callables, community edit/merge callables,
 Spot creation/edit/duplicate callables, notification migration/actions, media
 report/moderation callables, the private check-in callables `confirmCheckIn`,
 `deleteCheckIn`, and `deleteAllCheckIns`, and public/admin safety-case callables.
+The development-only Stripe shop additionally calls `createSupportCheckout` and,
+for a signed-in customer, `listMySupportOrders`. The shop stays disabled for
+production and native clients.
 `recomputeCheckInActivity` is a daily scheduler, not a client callable.
 Callables not used by normal UI are maintenance or administrator tools; they
 remain listed in the complete inventory below.
@@ -1032,6 +1036,21 @@ Source modules: [`weatherFunctions.ts`](functions/src/weatherFunctions.ts),
 [`osmAmenityFunctions.ts`](functions/src/osmAmenityFunctions.ts),
 [`mapLinkFunctions.ts`](functions/src/mapLinkFunctions.ts), and
 [`sitemapFunctions.ts`](functions/src/sitemapFunctions.ts).
+
+### Development-only Stripe support shop
+
+| Export | Trigger/interface | Primary interaction and cost shape |
+| --- | --- | --- |
+| `createSupportCheckout` | App Check callable; optional authenticated user | Validates a trusted donation or sticker-pack choice, creates one `support_orders` document, creates a Stripe Checkout Session, then records the session ID. A signed-in caller's UID is recorded only for their future history. |
+| `listMySupportOrders` | signed-in App Check callable | Queries the caller's `support_orders` by `user_id` and `created_at`, returning at most 100 non-PII summaries. It intentionally omits Stripe customer email and postal address. |
+| `listSupportOrders` | admin App Check callable | Reads up to 100 paid physical orders by `paid_at`; returns shipping address and email solely to the authenticated fulfilment administrator. |
+| `markSupportOrderFulfilled` | admin App Check callable | Transactionally reads one paid physical order and writes the server-owned fulfilment status and actor/timestamp. |
+| `stripeSupportWebhook` | signed Stripe HTTPS webhook | Retrieves the Stripe session, transactionally reads/writes the order and a webhook receipt. Payment confirmation, failure, and customer/shipping fields are webhook-owned rather than browser-controlled. |
+
+Source modules: [`supportShopFunctions.ts`](functions/src/supportShopFunctions.ts),
+[`supportShopCheckout.ts`](functions/src/supportShopCheckout.ts), and
+[`SupportShopSchema.ts`](src/db/schemas/SupportShopSchema.ts). The callable and
+webhook reject or ignore all requests while `SUPPORT_SHOP_ENABLED` is false.
 
 ## 15. Non-exported and external behavior
 

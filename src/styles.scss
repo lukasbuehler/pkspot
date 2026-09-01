@@ -104,6 +104,26 @@ body:has(mat-toolbar.native-platform) {
   --nav-bar-height: calc(80px + var(--bottom-nav-safe-area, 0px));
 }
 
+// Reusable placement for page-level floating actions. Map controls stay in the
+// map's coordinate space because they also need to clear its bottom sheet.
+.app-page-fab {
+  --app-page-fab-bottom-offset: 1.5rem;
+  --fab-menu-bottom-offset: var(--app-page-fab-bottom-offset);
+
+  position: fixed;
+  inset-inline-end: 1.5rem;
+  inset-block-end: var(--app-page-fab-bottom-offset);
+  z-index: 10;
+}
+
+// Mobile and tablet layouts use the bottom navigation. `--nav-bar-height`
+// includes the native gesture-area inset and is reset to zero in Alain mode.
+@media (max-width: 959.98px) {
+  .app-page-fab {
+    --app-page-fab-bottom-offset: calc(var(--nav-bar-height, 0px) + 1rem);
+  }
+}
+
 // Alain mode replaces the bottom navigation with a floating menu button. Expose
 // its occupied start edges so pages can opt into the axis that matches their
 // layout without coupling themselves to AppComponent's responsive state.

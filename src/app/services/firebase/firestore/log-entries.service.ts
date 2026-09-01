@@ -19,12 +19,18 @@ export interface SaveLogEntryInput {
   sessions: readonly SessionRecordDocument[];
 }
 
+interface ScreenshotGlobal {
+  __PKSPOT_SCREENSHOT_TRAINING_LOG_ENTRIES__?: LogEntryDocument[];
+}
+
 @Injectable({ providedIn: "root" })
 export class LogEntriesService {
   private readonly firestore = inject(FirestoreAdapterService);
   private readonly auth = inject(AuthenticationService);
 
   async listMine(limit = 50): Promise<LogEntryDocument[]> {
+    const fixture = this.screenshotEntries();
+    if (fixture) return fixture.slice(0, limit);
     return this.listForOwner(this.requireUserId(), limit);
   }
 
@@ -43,6 +49,8 @@ export class LogEntriesService {
   }
 
   async getMine(entryId: string): Promise<LogEntryDocument | null> {
+    const fixture = this.screenshotEntries();
+    if (fixture) return fixture.find((entry) => entry.id === entryId) ?? null;
     const result = await this.firestore.getDocument<LogEntrySchema>(
       `${this.collectionPath(this.requireUserId())}/${entryId}`,
     );
@@ -166,6 +174,12 @@ export class LogEntriesService {
 
   private collectionPath(uid: string): string {
     return `users/${uid}/log_entries`;
+  }
+
+  private screenshotEntries(): LogEntryDocument[] | null {
+    const fixture = (globalThis as ScreenshotGlobal)
+      .__PKSPOT_SCREENSHOT_TRAINING_LOG_ENTRIES__;
+    return fixture ? [...fixture] : null;
   }
 
   private requireUserId(): string {

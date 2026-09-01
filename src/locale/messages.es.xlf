@@ -3628,12 +3628,6 @@
         <target>Ocurrió un error. Por favor intenta de nuevo o solicita un nuevo enlace.</target>
       </segment>
     </unit>
-    <unit id="2017846716370702756">
-      <segment state="initial">
-        <source>Delete log entry</source>
-        <target>Delete log entry</target>
-      </segment>
-    </unit>
     <unit id="2019601691309455666">
       <segment state="initial">
         <source>Event Notifications</source>
@@ -13774,10 +13768,10 @@
         <target>Your first entry starts here</target>
       </segment>
     </unit>
-    <unit id="trainingLog.entries">
+    <unit id="trainingLog.eyebrow">
       <segment state="initial">
-        <source>entries</source>
-        <target>entries</target>
+        <source>Your movement archive</source>
+        <target>Your movement archive</target>
       </segment>
     </unit>
     <unit id="trainingLog.new">
@@ -13786,10 +13780,232 @@
         <target>New entry</target>
       </segment>
     </unit>
-    <unit id="trainingLog.sessions">
+    <unit id="trainingSessionDetail.back">
       <segment state="initial">
-        <source>session records</source>
-        <target>session records</target>
+        <source>Training log</source>
+        <target>Training log</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.delete">
+      <segment state="initial">
+        <source>Delete</source>
+        <target>Delete</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.deleteConfirm">
+      <segment state="initial">
+        <source>Delete this training session?</source>
+        <target>Delete this training session?</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.descriptionEyebrow">
+      <segment state="initial">
+        <source>Your own words</source>
+        <target>Your own words</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.descriptionTitle">
+      <segment state="initial">
+        <source>Description</source>
+        <target>Description</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.duration">
+      <segment state="initial">
+        <source>duration</source>
+        <target>duration</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.edit">
+      <segment state="initial">
+        <source>Edit</source>
+        <target>Edit</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.errorTitle">
+      <segment state="initial">
+        <source>This session is not available</source>
+        <target>This session is not available</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.eyebrow">
+      <segment state="initial">
+        <source>Training session</source>
+        <target>Training session</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.future.ariaLabel">
+      <segment state="initial">
+        <source>Upcoming session tools</source>
+        <target>Upcoming session tools</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.healthCopy">
+      <segment state="initial">
+        <source>With a future opt-in Apple Health or Health Connect link, compatible session metrics can live here. Nothing is connected yet.</source>
+        <target>With a future opt-in Apple Health or Health Connect link, compatible session metrics can live here. Nothing is connected yet.</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.healthLabel">
+      <segment state="initial">
+        <source>Future health connection</source>
+        <target>Future health connection</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.healthTitle">
+      <segment state="initial">
+        <source>Health &amp; fitness</source>
+        <target>Health &amp; fitness</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.invalid">
+      <segment state="initial">
+        <source>This training session could not be found.</source>
+        <target>This training session could not be found.</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.loadError">
+      <segment state="initial">
+        <source>Your training session could not be loaded.</source>
+        <target>Your training session could not be loaded.</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.movesCopy">
+      <segment state="initial">
+        <source>Capture the precisions, flows, vaults, and challenges you practised—without turning a session into a spreadsheet.</source>
+        <target>Capture the precisions, flows, vaults, and challenges you practised—without turning a session into a spreadsheet.</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.movesLabel">
+      <segment state="initial">
+        <source>Coming next</source>
+        <target>Coming next</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.movesTitle">
+      <segment state="initial">
+        <source>Moves &amp; lines</source>
+        <target>Moves &amp; lines</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.noDescription">
+      <segment state="initial">
+        <source>You did not add a description to this session.</source>
+        <target>You did not add a description to this session.</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.noPartners">
+      <segment state="initial">
+        <source>No training partners were added to this session.</source>
+        <target>No training partners were added to this session.</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.noSpots">
+      <segment state="initial">
+        <source>No individual Spots were saved with this session.</source>
+        <target>No individual Spots were saved with this session.</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.notFound">
+      <segment state="initial">
+        <source>This training session could not be found.</source>
+        <target>This training session could not be found.</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.partners">
+      <segment state="initial">
+        <source>training partners</source>
+        <target>training partners</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.partnersEyebrow">
+      <segment state="initial">
+        <source>Your crew</source>
+        <target>Your crew</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.partnersPrivacy">
+      <segment state="initial">
+        <source>Only people you explicitly add appear here. This is never inferred from location or check-ins.</source>
+        <target>Only people you explicitly add appear here. This is never inferred from location or check-ins.</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.partnersTitle">
+      <segment state="initial">
+        <source>People who were there</source>
+        <target>People who were there</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.private">
+      <segment state="initial">
+        <source>Private session</source>
+        <target>Private session</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.recordsTitle">
+      <segment state="initial">
+        <source>Session records</source>
+        <target>Session records</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.return">
+      <segment state="initial">
+        <source>Return to training log</source>
+        <target>Return to training log</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.signIn">
+      <segment state="initial">
+        <source>Sign in</source>
+        <target>Sign in</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.signInTitle">
+      <segment state="initial">
+        <source>Sign in to open this training session</source>
+        <target>Sign in to open this training session</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.source.checkIn">
+      <segment state="initial">
+        <source>Confirmed check-in</source>
+        <target>Confirmed check-in</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.source.manual">
+      <segment state="initial">
+        <source>Manual session</source>
+        <target>Manual session</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.spots">
+      <segment state="initial">
+        <source>Spots</source>
+        <target>Spots</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.spotsEyebrow">
+      <segment state="initial">
+        <source>Your route through the city</source>
+        <target>Your route through the city</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.spotsTitle">
+      <segment state="initial">
+        <source>Spots</source>
+        <target>Spots</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.summary.ariaLabel">
+      <segment state="initial">
+        <source>Session summary</source>
+        <target>Session summary</target>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.title">
+      <segment state="initial">
+        <source>Your movement, remembered.</source>
+        <target>Your movement, remembered.</target>
       </segment>
     </unit>
     <unit id="trainingLog.signIn">
@@ -13806,14 +14022,134 @@
     </unit>
     <unit id="trainingLog.subtitle">
       <segment state="initial">
-        <source>A private-first record of your training.</source>
-        <target>A private-first record of your training.</target>
+        <source>A private timeline for the Spots, sessions, and people that made up your training.</source>
+        <target>A private timeline for the Spots, sessions, and people that made up your training.</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.summary.ariaLabel">
+      <segment state="initial">
+        <source>Training summary</source>
+        <target>Training summary</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.summary.days">
+      <segment state="initial">
+        <source>active days</source>
+        <target>active days</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.summary.sessions">
+      <segment state="initial">
+        <source>sessions</source>
+        <target>sessions</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.summary.spots">
+      <segment state="initial">
+        <source>Spots visited</source>
+        <target>Spots visited</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.summary.thisMonth">
+      <segment state="initial">
+        <source>This month</source>
+        <target>This month</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.summary.trainingTime">
+      <segment state="initial">
+        <source>training time</source>
+        <target>training time</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.timeline.confirmedCheckIn">
+      <segment state="initial">
+        <source>Confirmed check-in</source>
+        <target>Confirmed check-in</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.timeline.emptyFiltered">
+      <segment state="initial">
+        <source>Nothing was logged for this day yet.</source>
+        <target>Nothing was logged for this day yet.</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.timeline.emptyMonth">
+      <segment state="initial">
+        <source>Nothing was logged in this month yet.</source>
+        <target>Nothing was logged in this month yet.</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.timeline.eyebrow">
+      <segment state="initial">
+        <source>Session timeline</source>
+        <target>Session timeline</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.timeline.filtered">
+      <segment state="initial">
+        <source>Showing sessions linked to the selected day.</source>
+        <target>Showing sessions linked to the selected day.</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.timeline.intro">
+      <segment state="initial">
+        <source>Open a session to revisit where you trained, with whom, and what you wrote down.</source>
+        <target>Open a session to revisit where you trained, with whom, and what you wrote down.</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.timeline.sessions">
+      <segment state="initial">
+        <source>sessions</source>
+        <target>sessions</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.timeline.showAll">
+      <segment state="initial">
+        <source>Show all</source>
+        <target>Show all</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.timeline.spots">
+      <segment state="initial">
+        <source>Spots</source>
+        <target>Spots</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.timeline.title">
+      <segment state="initial">
+        <source>Your training</source>
+        <target>Your training</target>
       </segment>
     </unit>
     <unit id="trainingLog.title">
       <segment state="initial">
         <source>Training log</source>
         <target>Training log</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.visibility.followers">
+      <segment state="initial">
+        <source>Followers</source>
+        <target>Followers</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.visibility.friends">
+      <segment state="initial">
+        <source>Friends</source>
+        <target>Friends</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.visibility.private">
+      <segment state="initial">
+        <source>Private</source>
+        <target>Private</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.visibility.public">
+      <segment state="initial">
+        <source>Public</source>
+        <target>Public</target>
       </segment>
     </unit>
     <unit id="7102657004519673825">
@@ -16834,7 +17170,7 @@
     </unit>
     <unit id="trainingLog.checkIns.description">
       <segment state="initial">
-        <source>Only you can see this history. It never shares your precise location.</source>
+        <source>Only you can see this archive. It never shares your precise location.</source>
         <target>Solo tú puedes ver este historial. Tu ubicación precisa nunca se comparte.</target>
       </segment>
     </unit>
@@ -16842,6 +17178,48 @@
       <segment state="initial">
         <source>Export</source>
         <target>Exportar</target>
+      </segment>
+    </unit>
+    <unit id="trainingContributionGraph.ariaLabel">
+      <segment state="initial">
+        <source>Training rhythm</source>
+        <target>Training rhythm</target>
+      </segment>
+    </unit>
+    <unit id="trainingContributionGraph.day">
+      <segment state="initial">
+        <source>Training day</source>
+        <target>Training day</target>
+      </segment>
+    </unit>
+    <unit id="trainingContributionGraph.legend">
+      <segment state="initial">
+        <source>Activity legend</source>
+        <target>Activity legend</target>
+      </segment>
+    </unit>
+    <unit id="trainingContributionGraph.scrollable">
+      <segment state="initial">
+        <source>Scrollable training history</source>
+        <target>Scrollable training history</target>
+      </segment>
+    </unit>
+    <unit id="trainingContributionGraph.subtitle">
+      <segment state="initial">
+        <source>Week by week</source>
+        <target>Week by week</target>
+      </segment>
+    </unit>
+    <unit id="trainingContributionGraph.title">
+      <segment state="initial">
+        <source>Training rhythm</source>
+        <target>Training rhythm</target>
+      </segment>
+    </unit>
+    <unit id="trainingContributionGraph.week">
+      <segment state="initial">
+        <source>Active week</source>
+        <target>Active week</target>
       </segment>
     </unit>
     <unit id="trainingLog.checkIns.clear">

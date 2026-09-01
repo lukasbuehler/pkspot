@@ -18,6 +18,9 @@ interface RouteVisualCase {
   eventMapLayout?: "full" | "embedded";
   eventIndexFixture?: boolean;
   liveEventFixture?: boolean;
+  assertFabAboveBottomNavigation?: string;
+  trainingLogFixture?: boolean;
+  assertContributionGraph?: boolean;
   fixedTime?: string;
   scrollToSelector?: string;
   assertCenteredProfile?: boolean;
@@ -129,6 +132,7 @@ const routeVisualCases: RouteVisualCase[] = [
     admin: true,
     eventIndexFixture: true,
     invalidEventFixture: true,
+    assertFabAboveBottomNavigation: "#eventsCreateFabMenu",
     openInvalidEventsDialog: true,
     fixedTime: "2026-07-20T12:00:00.000Z",
     maxDiffPixels: 2_000,
@@ -258,6 +262,45 @@ const routeVisualCases: RouteVisualCase[] = [
       axis: "block",
       target: ".notification-center__header",
     },
+  },
+  {
+    name: "training-log",
+    path: "/train/log",
+    signedIn: true,
+    trainingLogFixture: true,
+    assertContributionGraph: true,
+    fixedTime: "2026-08-20T12:00:00.000Z",
+    maxDiffPixels: 2_000,
+  },
+  {
+    name: "training-log-timeline",
+    path: "/train/log",
+    signedIn: true,
+    trainingLogFixture: true,
+    fixedTime: "2026-08-20T12:00:00.000Z",
+    scrollToSelector: ".timeline",
+    maxDiffPixels: 2_000,
+    maxDiffPixels: 2_000,
+  },
+  {
+    name: "training-session-detail",
+    path: "/train/log/visual-training-entry",
+    viewport: mobileViewport,
+    signedIn: true,
+    trainingLogFixture: true,
+    fixedTime: "2026-08-20T12:00:00.000Z",
+    maxDiffPixels: 2_000,
+  },
+  {
+    name: "training-session-detail-lower",
+    path: "/train/log/visual-training-entry",
+    viewport: mobileViewport,
+    signedIn: true,
+    trainingLogFixture: true,
+    fixedTime: "2026-08-20T12:00:00.000Z",
+    scrollToSelector: ".future-grid",
+    maxDiffPixels: 2_000,
+    maxDiffPixels: 2_000,
   },
   {
     name: "report-outcome",
@@ -406,6 +449,32 @@ test.describe("Route visual regression @visual", () => {
         }
       }
 
+      if (route.assertContributionGraph) {
+        const graph = page.locator("app-training-activity-contribution-graph");
+        const activeWeeks = graph.locator(".week.week-active");
+        const activeDays = activeWeeks.locator(".cell.day-active");
+        await expect(activeWeeks).toHaveCount(2);
+        await expect(activeDays).toHaveCount(3);
+
+        const [weekColor, dayColor, activeWeekCellColor, activeDayColor] =
+          await Promise.all([
+            graph.locator(".legend-swatch.week").evaluate(
+              (element) => getComputedStyle(element).backgroundColor,
+            ),
+            graph.locator(".legend-swatch.day").evaluate(
+              (element) => getComputedStyle(element).backgroundColor,
+            ),
+            activeWeeks.locator(".cell:not(.day-active)").first().evaluate(
+              (element) => getComputedStyle(element).backgroundColor,
+            ),
+            activeDays.first().evaluate(
+              (element) => getComputedStyle(element).backgroundColor,
+            ),
+          ]);
+        expect(activeWeekCellColor).toBe(weekColor);
+        expect(activeDayColor).toBe(dayColor);
+      }
+
       await expect(page).toHaveScreenshot(`${route.name}-route.png`, {
         animations: "disabled",
         clip: route.clip,
@@ -430,6 +499,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       invalidEventFixture,
       liveEventFixture,
       signedIn,
+      trainingLogFixture,
     }) => {
       localStorage.setItem("acceptedVersion", acceptedVersion);
       localStorage.setItem(
@@ -736,6 +806,8 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
             __PKSPOT_SCREENSHOT_NOTIFICATIONS__?: unknown;
             __PKSPOT_SCREENSHOT_REPORT_OUTCOMES__?: unknown;
             __PKSPOT_SCREENSHOT_MY_REPORTS__?: unknown;
+            __PKSPOT_SCREENSHOT_TRAINING_LOG_ENTRIES__?: unknown;
+            __PKSPOT_SCREENSHOT_TRAINING_SESSIONS__?: unknown;
           }
         );
         const screenshotUserData = {
@@ -813,6 +885,96 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
             media: {type: "image", src: "assets/mock/visual-report.jpg"},
           },
         ];
+        if (trainingLogFixture) {
+          const august = (day: number, hour: number) =>
+            Date.UTC(2026, 7, day, hour);
+          screenshotWindow.__PKSPOT_SCREENSHOT_TRAINING_SESSIONS__ = [
+            {
+              id: "visual-session-1",
+              owner_id: "visual-route-user",
+              source: "manual",
+              started_at_raw_ms: august(15, 15),
+              ended_at_raw_ms: august(15, 17),
+              last_activity_raw_ms: august(15, 17),
+              time_zone: "Europe/Zurich",
+              spot_visits: [
+                { spot_id: "lindenhof-walls", spot_name: "Lindenhof walls", arrived_at_raw_ms: august(15, 15) },
+                { spot_id: "central-rails", spot_name: "Central rails", arrived_at_raw_ms: august(15, 16) },
+              ],
+              people_present: [
+                { uid: "maya", display_name: "Maya A." },
+                { uid: "dario", display_name: "Dario" },
+              ],
+              time_created_raw_ms: august(15, 17),
+              time_updated_raw_ms: august(15, 17),
+            },
+            {
+              id: "visual-session-2",
+              owner_id: "visual-route-user",
+              source: "check_in",
+              started_at_raw_ms: august(12, 16),
+              ended_at_raw_ms: august(12, 17),
+              last_activity_raw_ms: august(12, 17),
+              time_zone: "Europe/Zurich",
+              spot_visits: [
+                { spot_id: "sihlcity-steps", spot_name: "Sihlcity steps", check_in_id: "visual-check-in-1", arrived_at_raw_ms: august(12, 16) },
+              ],
+              people_present: [],
+              time_created_raw_ms: august(12, 17),
+              time_updated_raw_ms: august(12, 17),
+            },
+            {
+              id: "visual-session-3",
+              owner_id: "visual-route-user",
+              source: "manual",
+              started_at_raw_ms: august(4, 18),
+              ended_at_raw_ms: august(4, 19),
+              last_activity_raw_ms: august(4, 19),
+              time_zone: "Europe/Zurich",
+              spot_visits: [
+                { spot_id: "langstrasse-ledges", spot_name: "Langstrasse ledges", arrived_at_raw_ms: august(4, 18) },
+              ],
+              people_present: [],
+              time_created_raw_ms: august(4, 19),
+              time_updated_raw_ms: august(4, 19),
+            },
+          ];
+          screenshotWindow.__PKSPOT_SCREENSHOT_TRAINING_LOG_ENTRIES__ = [
+            {
+              id: "visual-training-entry",
+              owner_id: "visual-route-user",
+              note: "Worked a smooth line from the ledge to the rails, then finished with precision practice. The flow finally started to feel natural.",
+              visibility: "private",
+              session_record_ids: ["visual-session-1"],
+              session_summaries: [{ session_record_id: "visual-session-1", local_date: "2026-08-15", duration_minutes: 120, spot_count: 2 }],
+              activity_at_raw_ms: august(15, 15),
+              time_created_raw_ms: august(15, 17),
+              time_updated_raw_ms: august(15, 17),
+            },
+            {
+              id: "visual-training-entry-2",
+              owner_id: "visual-route-user",
+              note: "Evening session after work.",
+              visibility: "private",
+              session_record_ids: ["visual-session-2"],
+              session_summaries: [{ session_record_id: "visual-session-2", local_date: "2026-08-12", duration_minutes: 60, spot_count: 1 }],
+              activity_at_raw_ms: august(12, 16),
+              time_created_raw_ms: august(12, 17),
+              time_updated_raw_ms: august(12, 17),
+            },
+            {
+              id: "visual-training-entry-3",
+              owner_id: "visual-route-user",
+              note: "A short technique reset.",
+              visibility: "friends",
+              session_record_ids: ["visual-session-3"],
+              session_summaries: [{ session_record_id: "visual-session-3", local_date: "2026-08-04", duration_minutes: 60, spot_count: 1 }],
+              activity_at_raw_ms: august(4, 18),
+              time_created_raw_ms: august(4, 19),
+              time_updated_raw_ms: august(4, 19),
+            },
+          ];
+        }
         if (liveEventFixture) {
           (
             window as typeof window & {
@@ -917,6 +1079,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       invalidEventFixture: route.invalidEventFixture === true,
       liveEventFixture: route.liveEventFixture === true,
       signedIn: route.signedIn === true,
+      trainingLogFixture: route.trainingLogFixture === true,
     },
   );
 
@@ -935,6 +1098,20 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
     .toBeGreaterThan(20);
   await page.waitForLoadState("load");
   await page.waitForTimeout(900);
+
+  if (route.assertFabAboveBottomNavigation) {
+    const fabBounds = await page
+      .locator(route.assertFabAboveBottomNavigation)
+      .boundingBox();
+    const navigationBounds = await page.locator("mat-toolbar").boundingBox();
+    expect(fabBounds).not.toBeNull();
+    expect(navigationBounds).not.toBeNull();
+    if (fabBounds && navigationBounds) {
+      expect(fabBounds.y + fabBounds.height + 8).toBeLessThanOrEqual(
+        navigationBounds.y,
+      );
+    }
+  }
 
   if (route.openFabMenu) {
     const launcher = page.locator("app-fab-menu .fab-menu__launcher");

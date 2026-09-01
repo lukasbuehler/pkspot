@@ -279,6 +279,14 @@ export const routes: Routes = [
           data: { routeName: "Edit Log Entry" },
         },
         {
+          path: "train/log/:entryId",
+          loadComponent: () =>
+            import("./components/training-session-detail/training-session-detail.component").then(
+              (m) => m.TrainingSessionDetailComponent,
+            ),
+          data: { routeName: "Training Session" },
+        },
+        {
           path: "u/:userID/logs",
           loadComponent: () =>
             import("./components/public-training-log/public-training-log.component").then(
@@ -620,6 +628,22 @@ export const routes: Routes = [
               (m) => m.SupportOrdersPageComponent,
             ),
           data: { routeName: "Shop order fulfillment", discoverable: false },
+        },
+        {
+          path: "shop/my-orders",
+          loadComponent: () =>
+            import("./components/my-shop-orders-page/my-shop-orders-page.component").then(
+              (m) => m.MyShopOrdersPageComponent,
+            ),
+          data: { routeName: "My shop orders", acceptanceFree: true },
+        },
+        {
+          path: "shop/cart",
+          loadComponent: () =>
+            import("./components/shop-cart-page/shop-cart-page.component").then(
+              (m) => m.ShopCartPageComponent,
+            ),
+          data: { routeName: "My shop cart", acceptanceFree: true },
         },
         {
           path: "shop/item/:itemId",

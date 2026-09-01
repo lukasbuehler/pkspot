@@ -1,0 +1,62 @@
+<main class="my-shop-orders-page">
+  <a mat-button routerLink="/shop" class="my-shop-orders-page__back-link">
+    <mat-icon>arrow_back</mat-icon>
+    <span>Shop</span>
+  </a>
+
+  <header>
+    <h1 class="mat-headline-large">My orders</h1>
+    <p class="mat-title-medium">Your PK Spot support and sticker orders.</p>
+  </header>
+
+  @if (!auth.isSignedIn) {
+    <section class="my-shop-orders-page__state">
+      <mat-icon>lock</mat-icon>
+      <h2 class="mat-headline-small">Sign in to see your orders</h2>
+      <p class="mat-body-large">
+        Orders are linked to your PK Spot account when you check out while signed in.
+      </p>
+      <a mat-flat-button routerLink="/account" color="primary">Sign in</a>
+    </section>
+  } @else if (loading()) {
+    <div class="my-shop-orders-page__loading">
+      <mat-spinner diameter="40" />
+      <span>Loading your orders…</span>
+    </div>
+  } @else if (failed()) {
+    <section class="my-shop-orders-page__state">
+      <mat-icon>error</mat-icon>
+      <h2 class="mat-headline-small">Your orders could not be loaded</h2>
+      <button mat-flat-button type="button" color="primary" (click)="load()">Try again</button>
+    </section>
+  } @else if (orders().length === 0) {
+    <section class="my-shop-orders-page__state">
+      <mat-icon>history</mat-icon>
+      <h2 class="mat-headline-small">You do not have any orders yet</h2>
+      <p class="mat-body-large">Support PK Spot or choose a Sticker Support Pack to see it here.</p>
+      <a mat-flat-button routerLink="/shop" color="primary">Explore the shop</a>
+    </section>
+  } @else {
+    <section class="my-shop-orders-page__list" aria-label="Your orders">
+      @for (order of orders(); track order.id) {
+        <article class="my-shop-orders-page__order">
+          <mat-icon>{{ order.kind === "physical_order" ? "storefront" : "volunteer_activism" }}</mat-icon>
+          <div>
+            <h2 class="mat-title-large">{{ order.title }}</h2>
+            <p class="mat-body-medium">
+              {{ order.paymentStatusLabel }} · {{ order.amountLabel }}
+            </p>
+            @if (order.stickerCount) {
+              <p class="mat-body-small">{{ order.stickerCount }} stickers</p>
+            }
+            @if (order.fulfillmentStatus === "fulfilled") {
+              <p class="mat-body-small">Fulfilled</p>
+            } @else if (order.fulfillmentStatus === "unfulfilled" && order.paymentStatus === "paid") {
+              <p class="mat-body-small">Preparing your sticker pack</p>
+            }
+          </div>
+        </article>
+      }
+    </section>
+  }
+</main>

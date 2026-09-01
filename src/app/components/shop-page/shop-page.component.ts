@@ -4,6 +4,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { RouterLink } from "@angular/router";
 import { SHOP_CATALOG } from "../../features/shop-catalog";
+import { ShopCartService } from "../../services/shop-cart.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { MetaTagService } from "../../services/meta-tag.service";
 
@@ -21,6 +22,7 @@ import { MetaTagService } from "../../services/meta-tag.service";
 })
 export class ShopPageComponent implements OnInit {
   private readonly _metaTagService = inject(MetaTagService);
+  readonly cart = inject(ShopCartService);
   readonly authService = inject(AuthenticationService);
   readonly items = SHOP_CATALOG;
 

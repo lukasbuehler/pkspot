@@ -40,6 +40,10 @@ export interface CheckInHistoryItem {
   arrivedAtRawMs: number;
 }
 
+interface ScreenshotGlobal {
+  __PKSPOT_SCREENSHOT_TRAINING_SESSIONS__?: SessionRecordDocument[];
+}
+
 @Injectable({ providedIn: "root" })
 export class SessionRecordsService {
   static readonly CHECK_IN_IDLE_WINDOW_MS = 5 * 60 * 60 * 1000;
@@ -49,6 +53,8 @@ export class SessionRecordsService {
   private readonly functions = inject(FunctionsAdapterService);
 
   async listMine(limit = 50): Promise<SessionRecordDocument[]> {
+    const fixture = this.screenshotSessions();
+    if (fixture) return fixture.slice(0, limit);
     return this.firestore.getCollection<SessionRecordDocument>(
       this.collectionPath(this.requireUserId()),
       [],
@@ -64,6 +70,8 @@ export class SessionRecordsService {
   }
 
   async getMine(recordId: string): Promise<SessionRecordDocument | null> {
+    const fixture = this.screenshotSessions();
+    if (fixture) return fixture.find((session) => session.id === recordId) ?? null;
     const result = await this.firestore.getDocument<SessionRecordSchema>(
       `${this.collectionPath(this.requireUserId())}/${recordId}`,
     );
@@ -250,6 +258,12 @@ export class SessionRecordsService {
 
   private collectionPath(uid: string): string {
     return `users/${uid}/session_records`;
+  }
+
+  private screenshotSessions(): SessionRecordDocument[] | null {
+    const fixture = (globalThis as ScreenshotGlobal)
+      .__PKSPOT_SCREENSHOT_TRAINING_SESSIONS__;
+    return fixture ? [...fixture] : null;
   }
 
   private systemTimeZone(): string {

@@ -1,8 +1,23 @@
 <main class="shop-page">
   <header class="shop-page__header">
-    <p class="mat-label-large shop-page__eyebrow">PK Spot</p>
-    <h1 class="mat-headline-large">Shop</h1>
-    <p class="mat-title-medium">PK Spot things, for the community.</p>
+    <div>
+      <p class="mat-label-large shop-page__eyebrow">PK Spot</p>
+      <h1 class="mat-headline-large">Shop</h1>
+      <p class="mat-title-medium">PK Spot things, for the community.</p>
+    </div>
+    <nav class="shop-page__actions" aria-label="Shop actions">
+      <a mat-stroked-button routerLink="/shop/my-orders">
+        <mat-icon>history</mat-icon>
+        <span>My orders</span>
+      </a>
+      <a mat-flat-button routerLink="/shop/cart">
+        <mat-icon>shopping_cart</mat-icon>
+        <span>My cart</span>
+        @if (cart.itemCount(); as itemCount) {
+          <span class="shop-page__cart-count">{{ itemCount }}</span>
+        }
+      </a>
+    </nav>
   </header>
 
   <section aria-label="Shop items">

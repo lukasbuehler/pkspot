@@ -1,0 +1,92 @@
+.my-shop-orders-page {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  padding: 3rem 1rem;
+}
+
+.my-shop-orders-page__back-link {
+  margin: 0 0 2rem -0.5rem;
+}
+
+header {
+  margin-bottom: 2rem;
+
+  h1,
+  p {
+    margin: 0;
+  }
+
+  h1 {
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.my-shop-orders-page__state,
+.my-shop-orders-page__order {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+  background: var(--mat-sys-surface-container);
+}
+
+.my-shop-orders-page__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  text-align: center;
+
+  mat-icon {
+    width: 48px;
+    height: 48px;
+    color: var(--mat-sys-on-surface-variant);
+    font-size: 48px;
+  }
+
+  h2,
+  p {
+    margin: 1rem 0 0;
+  }
+
+  a,
+  button {
+    margin-top: 1.5rem;
+  }
+}
+
+.my-shop-orders-page__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  gap: 1rem;
+}
+
+.my-shop-orders-page__list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.my-shop-orders-page__order {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+
+  > mat-icon {
+    color: var(--mat-sys-primary);
+  }
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  .mat-body-small {
+    margin-top: 0.25rem;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}

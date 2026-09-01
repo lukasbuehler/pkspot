@@ -1,0 +1,44 @@
+<section class="contribution-graph" aria-label="Training rhythm" i18n-aria-label="@@trainingContributionGraph.ariaLabel">
+  <header class="contribution-graph__header">
+    <div>
+      <h2 i18n="@@trainingContributionGraph.title">Training rhythm</h2>
+      <p i18n="@@trainingContributionGraph.subtitle">Week by week</p>
+    </div>
+    <div class="contribution-graph__legend" aria-label="Activity legend" i18n-aria-label="@@trainingContributionGraph.legend">
+      <span><i class="legend-swatch week" aria-hidden="true"></i><span i18n="@@trainingContributionGraph.week">Active week</span></span>
+      <span><i class="legend-swatch day" aria-hidden="true"></i><span i18n="@@trainingContributionGraph.day">Training day</span></span>
+    </div>
+  </header>
+
+  <div class="contribution-graph__scroll" tabindex="0" role="region" aria-label="Scrollable training history" i18n-aria-label="@@trainingContributionGraph.scrollable">
+    <div class="contribution-graph__body">
+      <div class="weekday-labels" aria-hidden="true">
+        @for (weekday of weekdays(); track $index) {
+          <span>{{ weekday }}</span>
+        }
+      </div>
+      <div class="weeks" role="list">
+        @for (week of weeks(); track week.key) {
+          <div class="week" role="listitem" [class.week-active]="week.hasActivity">
+            @for (day of week.days; track day.key) {
+              @if (day.activity) {
+                <button
+                  class="cell day-active"
+                  type="button"
+                  [class.is-selected]="selectedDay() === day.key"
+                  [class.is-today]="day.isToday"
+                  [attr.aria-label]="dayLabel(day)"
+                  [attr.aria-pressed]="selectedDay() === day.key"
+                  [title]="dayLabel(day)"
+                  (click)="selectDay(day)"
+                ></button>
+              } @else {
+                <span class="cell" [class.is-today]="day.isToday" aria-hidden="true"></span>
+              }
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>

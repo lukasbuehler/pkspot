@@ -54,7 +54,7 @@
             />
             <div class="people">
               <span class="people-label" i18n="@@logEditor.people">People who were there</span>
-              <app-user-picker value="" (valueChange)="addPerson($event)" />
+              <app-user-picker value="" (userSelected)="addPerson($event)" />
               @if (people().length) {
                 <div class="people-list">
                   @for (person of people(); track person.uid) {

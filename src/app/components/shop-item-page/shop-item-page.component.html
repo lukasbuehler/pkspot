@@ -175,15 +175,10 @@
             mat-flat-button
             color="primary"
             type="button"
-            [disabled]="checkoutAction() !== ''"
-            (click)="startStickerPackCheckout()"
+            (click)="addStickerPackToCart()"
           >
-            @if (checkoutAction() === "physical_order") {
-              <mat-spinner diameter="20" strokeWidth="3" />
-            } @else {
-              <mat-icon>storefront</mat-icon>
-            }
-            <span>Continue to secure checkout</span>
+            <mat-icon>shopping_cart</mat-icon>
+            <span>Add to cart</span>
           </button>
         </section>
       }

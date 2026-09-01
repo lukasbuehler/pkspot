@@ -96,8 +96,16 @@ without separately approved payment, tax, fulfillment, and privacy review.
       (for example `http://localhost:4200/shop`). The Function appends only a
       trusted item path for direct support or sticker packs; it never trusts a
       browser-provided redirect.
+- [ ] Deploy the `support_orders` `user_id ASC, created_at DESC` Firestore
+      index to the `test` project and wait until it reports `Enabled` before
+      enabling the authenticated customer order history:
+
+  ```sh
+  npx firebase deploy --project test --only firestore:indexes
+  ```
+
 - [ ] In Stripe **test mode** for that non-production project, set the two
-      Firebase Secrets, deploy the four compatible Functions and Firestore
+      Firebase Secrets, deploy the five compatible Functions and Firestore
       rules, and register the deployed `stripeSupportWebhook` HTTPS endpoint
       for `checkout.session.completed`,
       `checkout.session.async_payment_succeeded`, and
@@ -107,7 +115,7 @@ without separately approved payment, tax, fulfillment, and privacy review.
   npx firebase functions:secrets:set STRIPE_SECRET_KEY --project test
   npx firebase functions:secrets:set STRIPE_WEBHOOK_SECRET --project test
   npm --prefix functions run build
-  npx firebase deploy --project test --only functions:createSupportCheckout,functions:listSupportOrders,functions:markSupportOrderFulfilled,functions:stripeSupportWebhook,firestore:rules
+  npx firebase deploy --project test --only functions:createSupportCheckout,functions:listMySupportOrders,functions:listSupportOrders,functions:markSupportOrderFulfilled,functions:stripeSupportWebhook,firestore:rules
   ```
 
   Enable TWINT in Stripe's test-mode payment methods for the Swiss CHF

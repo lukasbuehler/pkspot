@@ -42,6 +42,7 @@ const checkoutCallableOptions = {
   secrets: [stripeSecretKey],
 };
 const adminCallableOptions = {enforceAppCheck: true};
+const customerCallableOptions = {enforceAppCheck: true};
 
 export const createSupportCheckout = onCall(
   checkoutCallableOptions,
@@ -181,6 +182,58 @@ export const listSupportOrders = onCall(
           fulfillment["status"] === "fulfilled" ? "fulfilled" : "unfulfilled",
         ...(timestampMillis(fulfillment["fulfilled_at"])
           ? {fulfilledAtMillis: timestampMillis(fulfillment["fulfilled_at"])}
+          : {}),
+      }];
+    });
+  },
+);
+
+/** Returns only the caller's own non-PII order summaries. */
+export const listMySupportOrders = onCall(
+  customerCallableOptions,
+  async (request: CallableRequest<unknown>) => {
+    assertSupportShopEnabled();
+    const uid = assertSignedInUser(request.auth?.uid);
+    const snapshot = await orders
+      .where("user_id", "==", uid)
+      .orderBy("created_at", "desc")
+      .limit(100)
+      .get();
+
+    return snapshot.docs.flatMap((document) => {
+      const data = document.data() as StoredSupportOrder & Record<string, unknown>;
+      if (data.kind !== "direct_support" && data.kind !== "physical_order") {
+        return [];
+      }
+      const product = isRecord(data["product"]) ? data["product"] : undefined;
+      const payment = isRecord(data["payment"]) ? data["payment"] : {};
+      const fulfillment = isRecord(data["fulfillment"])
+        ? data["fulfillment"]
+        : {};
+      const paymentStatus = payment["status"] === "paid"
+        ? "paid"
+        : payment["status"] === "failed"
+          ? "failed"
+          : "checkout_created";
+
+      return [{
+        id: document.id,
+        kind: data.kind,
+        createdAtMillis: timestampMillis(data["created_at"]),
+        ...(timestampMillis(data["paid_at"])
+          ? {paidAtMillis: timestampMillis(data["paid_at"])}
+          : {}),
+        amountRappen: numberOrZero(data["amount_total_rappen"]),
+        paymentStatus,
+        ...(product
+          ? {
+              productName: stringOrEmpty(product["name"]),
+              stickerCount: numberOrZero(product["sticker_count"]),
+              fulfillmentStatus:
+                fulfillment["status"] === "fulfilled"
+                  ? "fulfilled"
+                  : "unfulfilled",
+            }
           : {}),
       }];
     });
@@ -373,6 +426,9 @@ function normalizedReturnUrl(): string {
 }
 
 function checkoutReturnUrl(input: SupportCheckoutInput): string {
+  if (input.kind === "physical_order" && input.checkoutDestination === "cart") {
+    return `${normalizedReturnUrl()}/cart`;
+  }
   return `${normalizedReturnUrl()}/item/${checkoutItemId(input)}`;
 }
 
@@ -407,6 +463,11 @@ async function assertAdmin(uid: string | undefined): Promise<string> {
   if (user.data()?.["is_admin"] !== true) {
     throw new HttpsError("permission-denied", "Admin access required.");
   }
+  return uid;
+}
+
+function assertSignedInUser(uid: string | undefined): string {
+  if (!uid) throw new HttpsError("unauthenticated", "Sign in to see your shop orders.");
   return uid;
 }
 

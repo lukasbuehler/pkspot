@@ -1314,11 +1314,6 @@
         <source>An error occurred. Please try again or request a new link.</source>
       </segment>
     </unit>
-    <unit id="2017846716370702756">
-      <segment>
-        <source>Delete log entry</source>
-      </segment>
-    </unit>
     <unit id="2019601691309455666">
       <segment>
         <source>Event Notifications</source>
@@ -9200,9 +9195,9 @@
         <source>Your first entry starts here</source>
       </segment>
     </unit>
-    <unit id="trainingLog.entries">
+    <unit id="trainingLog.eyebrow">
       <segment>
-        <source>entries</source>
+        <source>Your movement archive</source>
       </segment>
     </unit>
     <unit id="trainingLog.new">
@@ -9210,9 +9205,194 @@
         <source>New entry</source>
       </segment>
     </unit>
-    <unit id="trainingLog.sessions">
+    <unit id="trainingSessionDetail.back">
       <segment>
-        <source>session records</source>
+        <source>Training log</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.delete">
+      <segment>
+        <source>Delete</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.deleteConfirm">
+      <segment>
+        <source>Delete this training session?</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.descriptionEyebrow">
+      <segment>
+        <source>Your own words</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.descriptionTitle">
+      <segment>
+        <source>Description</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.duration">
+      <segment>
+        <source>duration</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.edit">
+      <segment>
+        <source>Edit</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.errorTitle">
+      <segment>
+        <source>This session is not available</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.eyebrow">
+      <segment>
+        <source>Training session</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.future.ariaLabel">
+      <segment>
+        <source>Upcoming session tools</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.healthCopy">
+      <segment>
+        <source>With a future opt-in Apple Health or Health Connect link, compatible session metrics can live here. Nothing is connected yet.</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.healthLabel">
+      <segment>
+        <source>Future health connection</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.healthTitle">
+      <segment>
+        <source>Health &amp; fitness</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.invalid">
+      <segment>
+        <source>This training session could not be found.</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.loadError">
+      <segment>
+        <source>Your training session could not be loaded.</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.movesCopy">
+      <segment>
+        <source>Capture the precisions, flows, vaults, and challenges you practised—without turning a session into a spreadsheet.</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.movesLabel">
+      <segment>
+        <source>Coming next</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.movesTitle">
+      <segment>
+        <source>Moves &amp; lines</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.noDescription">
+      <segment>
+        <source>You did not add a description to this session.</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.noPartners">
+      <segment>
+        <source>No training partners were added to this session.</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.noSpots">
+      <segment>
+        <source>No individual Spots were saved with this session.</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.notFound">
+      <segment>
+        <source>This training session could not be found.</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.partners">
+      <segment>
+        <source>training partners</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.partnersEyebrow">
+      <segment>
+        <source>Your crew</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.partnersPrivacy">
+      <segment>
+        <source>Only people you explicitly add appear here. This is never inferred from location or check-ins.</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.partnersTitle">
+      <segment>
+        <source>People who were there</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.private">
+      <segment>
+        <source>Private session</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.recordsTitle">
+      <segment>
+        <source>Session records</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.return">
+      <segment>
+        <source>Return to training log</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.signIn">
+      <segment>
+        <source>Sign in</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.signInTitle">
+      <segment>
+        <source>Sign in to open this training session</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.source.checkIn">
+      <segment>
+        <source>Confirmed check-in</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.source.manual">
+      <segment>
+        <source>Manual session</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.spots">
+      <segment>
+        <source>Spots</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.spotsEyebrow">
+      <segment>
+        <source>Your route through the city</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.spotsTitle">
+      <segment>
+        <source>Spots</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.summary.ariaLabel">
+      <segment>
+        <source>Session summary</source>
+      </segment>
+    </unit>
+    <unit id="trainingSessionDetail.title">
+      <segment>
+        <source>Your movement, remembered.</source>
       </segment>
     </unit>
     <unit id="trainingLog.signIn">
@@ -9227,12 +9407,112 @@
     </unit>
     <unit id="trainingLog.subtitle">
       <segment>
-        <source>A private-first record of your training.</source>
+        <source>A private timeline for the Spots, sessions, and people that made up your training.</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.summary.ariaLabel">
+      <segment>
+        <source>Training summary</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.summary.days">
+      <segment>
+        <source>active days</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.summary.sessions">
+      <segment>
+        <source>sessions</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.summary.spots">
+      <segment>
+        <source>Spots visited</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.summary.thisMonth">
+      <segment>
+        <source>This month</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.summary.trainingTime">
+      <segment>
+        <source>training time</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.timeline.confirmedCheckIn">
+      <segment>
+        <source>Confirmed check-in</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.timeline.emptyFiltered">
+      <segment>
+        <source>Nothing was logged for this day yet.</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.timeline.emptyMonth">
+      <segment>
+        <source>Nothing was logged in this month yet.</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.timeline.eyebrow">
+      <segment>
+        <source>Session timeline</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.timeline.filtered">
+      <segment>
+        <source>Showing sessions linked to the selected day.</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.timeline.intro">
+      <segment>
+        <source>Open a session to revisit where you trained, with whom, and what you wrote down.</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.timeline.sessions">
+      <segment>
+        <source>sessions</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.timeline.showAll">
+      <segment>
+        <source>Show all</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.timeline.spots">
+      <segment>
+        <source>Spots</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.timeline.title">
+      <segment>
+        <source>Your training</source>
       </segment>
     </unit>
     <unit id="trainingLog.title">
       <segment>
         <source>Training log</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.visibility.followers">
+      <segment>
+        <source>Followers</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.visibility.friends">
+      <segment>
+        <source>Friends</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.visibility.private">
+      <segment>
+        <source>Private</source>
+      </segment>
+    </unit>
+    <unit id="trainingLog.visibility.public">
+      <segment>
+        <source>Public</source>
       </segment>
     </unit>
     <unit id="1218334388194408974">
@@ -14109,12 +14389,47 @@
     </unit>
     <unit id="trainingLog.checkIns.description">
       <segment>
-        <source>Only you can see this history. It never shares your precise location.</source>
+        <source>Only you can see this archive. It never shares your precise location.</source>
       </segment>
     </unit>
     <unit id="trainingLog.checkIns.export">
       <segment>
         <source>Export</source>
+      </segment>
+    </unit>
+    <unit id="trainingContributionGraph.ariaLabel">
+      <segment>
+        <source>Training rhythm</source>
+      </segment>
+    </unit>
+    <unit id="trainingContributionGraph.day">
+      <segment>
+        <source>Training day</source>
+      </segment>
+    </unit>
+    <unit id="trainingContributionGraph.legend">
+      <segment>
+        <source>Activity legend</source>
+      </segment>
+    </unit>
+    <unit id="trainingContributionGraph.scrollable">
+      <segment>
+        <source>Scrollable training history</source>
+      </segment>
+    </unit>
+    <unit id="trainingContributionGraph.subtitle">
+      <segment>
+        <source>Week by week</source>
+      </segment>
+    </unit>
+    <unit id="trainingContributionGraph.title">
+      <segment>
+        <source>Training rhythm</source>
+      </segment>
+    </unit>
+    <unit id="trainingContributionGraph.week">
+      <segment>
+        <source>Active week</source>
       </segment>
     </unit>
     <unit id="trainingLog.checkIns.clear">

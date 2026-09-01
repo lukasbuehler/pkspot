@@ -3,6 +3,7 @@ export const DIRECT_SUPPORT_MIN_RAPPEN = 1_000;
 export const DIRECT_SUPPORT_MAX_RAPPEN = 10_000;
 
 export type SupportOrderType = "direct_support" | "physical_order";
+export type SupportCheckoutDestination = "cart";
 export type SupportOrderPaymentStatus =
   | "checkout_created"
   | "paid"
@@ -78,6 +79,7 @@ export interface PhysicalOrderCheckoutInput {
   kind: "physical_order";
   product: SupportShopProduct;
   supporterCredit: SupporterCreditInput;
+  checkoutDestination?: SupportCheckoutDestination;
 }
 
 export type SupportCheckoutInput =
@@ -109,7 +111,12 @@ export function parseSupportCheckoutInput(value: unknown): SupportCheckoutInput 
   }
 
   if (kind === "physical_order") {
-    assertOnlyKeys(value, ["kind", "productId", "supporterCredit"]);
+    assertOnlyKeys(value, [
+      "kind",
+      "productId",
+      "supporterCredit",
+      "checkoutDestination",
+    ]);
     const productId = value["productId"];
     const product =
       typeof productId === "string"
@@ -118,10 +125,26 @@ export function parseSupportCheckoutInput(value: unknown): SupportCheckoutInput 
     if (!product) {
       throw new SupportShopValidationError("Choose a supported Sticker Support Pack.");
     }
-    return { kind, product, supporterCredit };
+    const checkoutDestination = parseCheckoutDestination(
+      value["checkoutDestination"],
+    );
+    return {
+      kind,
+      product,
+      supporterCredit,
+      ...(checkoutDestination ? { checkoutDestination } : {}),
+    };
   }
 
   throw new SupportShopValidationError("Choose a supported way to support PK Spot.");
+}
+
+function parseCheckoutDestination(
+  value: unknown,
+): SupportCheckoutDestination | undefined {
+  if (value === undefined) return undefined;
+  if (value === "cart") return value;
+  throw new SupportShopValidationError("Choose a supported checkout destination.");
 }
 
 export function formatChf(rappen: number): string {

@@ -1,19 +1,52 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+} from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import { RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import type { LogEntryDocument } from "../../../db/schemas/LogEntrySchema";
+import {
+  type LogEntryDocument,
+  type LogEntryVisibility,
+} from "../../../db/schemas/LogEntrySchema";
 import type { SessionRecordDocument } from "../../../db/schemas/SessionRecordSchema";
 import type { CheckInHistoryItem } from "../../services/firebase/firestore/session-records.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
+import {
+  buildTrainingActivityDays,
+  buildTrainingTimeline,
+  formatDuration,
+  monthKey,
+  summarizeTrainingMonth,
+} from "../../features/training-log-activity";
 import { LogEntriesService } from "../../services/firebase/firestore/log-entries.service";
 import { SessionRecordsService } from "../../services/firebase/firestore/session-records.service";
+import { TrainingActivityContributionGraphComponent } from "../training-activity-contribution-graph/training-activity-contribution-graph.component";
+
+interface TimelineEntry {
+  entry: LogEntryDocument;
+  durationMinutes: number;
+  spotCount: number;
+  sessionCount: number;
+  includesCheckIn: boolean;
+}
 
 @Component({
   selector: "app-training-log-page",
-  imports: [SystemDatePipe, RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [
+    SystemDatePipe,
+    RouterLink,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    TrainingActivityContributionGraphComponent,
+  ],
   templateUrl: "./training-log-page.component.html",
   styleUrl: "./training-log-page.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,12 +61,62 @@ export class TrainingLogPageComponent {
   readonly sessions = signal<SessionRecordDocument[]>([]);
   readonly checkIns = signal<CheckInHistoryItem[]>([]);
   readonly signedIn = signal(!!this.auth.user.uid);
+  readonly selectedDay = signal<string | null>(null);
+  readonly activityDays = computed(() => buildTrainingActivityDays(this.logs()));
+  readonly monthSummary = computed(() =>
+    summarizeTrainingMonth(this.activityDays(), monthKey(Date.now())),
+  );
+  readonly timeline = computed(() => {
+    const sourceBySessionId = new Map(
+      this.sessions().map((session) => [session.id, session.source]),
+    );
+    const selectedDay = this.selectedDay();
+    return buildTrainingTimeline(this.logs(), selectedDay).map((group) => ({
+      ...group,
+      entries: group.entries.map((entry): TimelineEntry => ({
+        entry,
+        durationMinutes: entry.session_summaries.reduce(
+          (total, session) => total + (session.duration_minutes ?? 0),
+          0,
+        ),
+        spotCount: entry.session_summaries.reduce(
+          (total, session) => total + session.spot_count,
+          0,
+        ),
+        sessionCount: entry.session_summaries.length,
+        includesCheckIn: entry.session_record_ids.some(
+          (id) => sourceBySessionId.get(id) === "check_in",
+        ),
+      })),
+    }));
+  });
 
   constructor() {
-    this.auth.authState$.subscribe((user) => {
+    this.auth.authState$.pipe(takeUntilDestroyed()).subscribe((user) => {
       this.signedIn.set(!!user?.uid);
       void this.load();
     });
+  }
+
+  clearDayFilter(): void {
+    this.selectedDay.set(null);
+  }
+
+  durationLabel(minutes: number): string {
+    return formatDuration(minutes);
+  }
+
+  visibilityLabel(visibility: LogEntryVisibility): string {
+    switch (visibility) {
+      case "friends":
+        return $localize`:@@trainingLog.visibility.friends:Friends`;
+      case "public":
+        return $localize`:@@trainingLog.visibility.public:Public`;
+      case "followers":
+        return $localize`:@@trainingLog.visibility.followers:Followers`;
+      default:
+        return $localize`:@@trainingLog.visibility.private:Private`;
+    }
   }
 
   async removeLog(id: string): Promise<void> {
