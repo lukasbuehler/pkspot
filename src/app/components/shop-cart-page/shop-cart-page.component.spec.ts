@@ -10,6 +10,7 @@ describe("ShopCartPageComponent", () => {
   let component: ShopCartPageComponent;
   let fixture: ComponentFixture<ShopCartPageComponent>;
   const metaTagService = { setStaticPageMetaTags: vi.fn() };
+  const supportShopService = { createCheckout: vi.fn() };
 
   beforeEach(async () => {
     localStorage.clear();
@@ -19,7 +20,7 @@ describe("ShopCartPageComponent", () => {
       providers: [
         provideRouter([]),
         { provide: MetaTagService, useValue: metaTagService },
-        { provide: SupportShopService, useValue: { createCheckout: vi.fn() } },
+        { provide: SupportShopService, useValue: supportShopService },
         {
           provide: ActivatedRoute,
           useValue: { snapshot: { queryParamMap: convertToParamMap({}) } },
@@ -51,5 +52,25 @@ describe("ShopCartPageComponent", () => {
       "/shop/cart",
     );
     expect(component.cart.itemCount()).toBe(1);
+  });
+
+  it("sends the direct-support display name with cart checkout", async () => {
+    const cart = TestBed.inject(ShopCartService);
+    cart.setDirectSupport({ amountChf: 25, displayName: "Mira" });
+    supportShopService.createCheckout.mockRejectedValueOnce(new Error("test"));
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      await component.checkout();
+
+      expect(supportShopService.createCheckout).toHaveBeenCalledWith({
+        kind: "direct_support",
+        amountChf: 25,
+        checkoutDestination: "cart",
+        supporterCredit: { optedIn: true, publicName: "Mira" },
+      });
+    } finally {
+      consoleError.mockRestore();
+    }
   });
 });

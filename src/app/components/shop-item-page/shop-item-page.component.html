@@ -65,7 +65,7 @@
 
           <form
             class="shop-item-page__checkout"
-            (submit)="$event.preventDefault(); startDirectSupportCheckout()"
+            (submit)="$event.preventDefault(); addDirectSupportToCart()"
           >
             <mat-form-field appearance="outline">
               <mat-label>Support amount</mat-label>
@@ -84,32 +84,23 @@
                 <mat-error>Enter an amount from CHF 10 to CHF 100.</mat-error>
               }
             </mat-form-field>
-            <div class="shop-item-page__supporter-name">
+            <div class="shop-item-page__display-name">
               <mat-form-field appearance="outline">
-                <mat-label>Nickname (optional)</mat-label>
+                <mat-label>Display name (optional)</mat-label>
                 <input
                   matInput
-                  [formField]="supportForm.publicName"
-                  aria-describedby="supporter-name-help"
+                  [formField]="supportForm.displayName"
+                  aria-describedby="display-name-help"
                 />
               </mat-form-field>
-              <p id="supporter-name-help" class="mat-body-small">
-                Add a nickname so we can thank you on the PK Spot supporters
-                page.
+              <p id="display-name-help" class="mat-body-small">
+                Optional. Display names are manually reviewed before appearing
+                publicly on the PK Spot supporters page.
               </p>
             </div>
-            <button
-              mat-flat-button
-              color="primary"
-              type="submit"
-              [disabled]="checkoutAction() !== ''"
-            >
-              @if (checkoutAction() === "direct_support") {
-                <mat-spinner diameter="20" strokeWidth="3" />
-              } @else {
-                <mat-icon>volunteer_activism</mat-icon>
-              }
-              <span>Continue to secure checkout</span>
+            <button mat-flat-button color="primary" type="submit">
+              <mat-icon>shopping_cart</mat-icon>
+              <span>Add to cart</span>
             </button>
           </form>
           <p class="mat-body-small shop-item-page__note">
@@ -183,10 +174,6 @@
         </section>
       }
 
-    }
-
-    @if (checkoutError()) {
-      <div class="shop-error" role="alert">{{ checkoutError() }}</div>
     }
   } @else {
     <section class="shop-item-page__missing">

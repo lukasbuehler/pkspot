@@ -18,6 +18,8 @@ interface RouteVisualCase {
   eventMapLayout?: "full" | "embedded";
   eventIndexFixture?: boolean;
   liveEventFixture?: boolean;
+  trainFixture?: boolean;
+  assertTrainPage?: boolean;
   assertFabAboveBottomNavigation?: string;
   trainingLogFixture?: boolean;
   assertContributionGraph?: boolean;
@@ -38,6 +40,65 @@ const alainMobileViewport = { width: 390, height: 680 };
 
 const routeVisualCases: RouteVisualCase[] = [
   { name: "map", path: "/map", maxDiffPixels: 80_000 },
+  {
+    name: "train",
+    path: "/train",
+    signedIn: true,
+    trainFixture: true,
+    trainingLogFixture: true,
+    assertTrainPage: true,
+    fixedTime: "2026-08-20T12:00:00.000Z",
+    fullPage: true,
+    maxDiffPixels: 2_000,
+  },
+  {
+    name: "train-mobile",
+    path: "/train",
+    viewport: mobileViewport,
+    signedIn: true,
+    trainFixture: true,
+    trainingLogFixture: true,
+    assertTrainPage: true,
+    fixedTime: "2026-08-20T12:00:00.000Z",
+    fullPage: true,
+    maxDiffPixels: 2_000,
+  },
+  {
+    name: "train-alain",
+    path: "/train",
+    viewport: alainMobileViewport,
+    signedIn: true,
+    trainFixture: true,
+    trainingLogFixture: true,
+    assertTrainPage: true,
+    fixedTime: "2026-08-20T12:00:00.000Z",
+    assertAlainClearance: {
+      axis: "block",
+      target: ".train-header",
+    },
+    maxDiffPixels: 2_000,
+  },
+  {
+    name: "train-spots",
+    path: "/train",
+    signedIn: true,
+    trainFixture: true,
+    trainingLogFixture: true,
+    assertTrainPage: true,
+    fixedTime: "2026-08-20T12:00:00.000Z",
+    scrollToSelector: ".spot-preview-grid",
+    maxDiffPixels: 2_000,
+  },
+  {
+    name: "train-community-events",
+    path: "/train",
+    signedIn: true,
+    trainFixture: true,
+    trainingLogFixture: true,
+    fixedTime: "2026-08-20T12:00:00.000Z",
+    scrollToSelector: ".community-event-preview-grid",
+    maxDiffPixels: 2_000,
+  },
   {
     name: "events",
     path: "/events",
@@ -518,6 +579,41 @@ test.describe("Route visual regression @visual", () => {
         expect(styles.activeDayColor).toBe(styles.primary);
       }
 
+      if (route.assertTrainPage) {
+        const contextButton = page.locator("button.training-context-button");
+        const trainingHistory = page.locator("section.training-history");
+        await expect(contextButton).toHaveClass(/mat-mdc-button-base/);
+        await expect(page.locator(".train-nav")).toHaveCount(0);
+        await expect(trainingHistory).toBeVisible();
+        await expect(
+          trainingHistory.locator("app-training-activity-contribution-graph"),
+        ).toHaveCount(1);
+        await expect(
+          trainingHistory.locator("app-training-activity-contribution-graph button.cell"),
+        ).toHaveCount(0);
+        await expect(trainingHistory.locator(".training-history__metrics > div")).toHaveCount(4);
+        await expect(trainingHistory.locator("a[href$='/train/log']")).toHaveClass(
+          /mat-mdc-button-base/,
+        );
+        const [headerBounds, contextBounds] = await Promise.all([
+          page.locator(".train-header > div").boundingBox(),
+          contextButton.boundingBox(),
+        ]);
+        expect(headerBounds).not.toBeNull();
+        expect(contextBounds).not.toBeNull();
+        expect(contextBounds!.y).toBeGreaterThanOrEqual(headerBounds!.y + 4);
+        await expect(page.locator(".log-prompt")).toHaveCount(0);
+        await expect(page.locator("app-event-discovery-card")).toHaveCount(3);
+        expect(
+          await page.locator("app-event-discovery-card").evaluateAll((cards) =>
+            cards.every((card) => !card.classList.contains("compact")),
+          ),
+        ).toBe(true);
+        await expect(page.locator(".section-heading > a[href$='/events']")).toHaveCount(0);
+        await expect(page.locator(".event-section-actions a[href$='/events']")).toHaveCount(2);
+        await expect(page.locator("app-spot-preview-card")).toHaveCount(4);
+      }
+
       await expect(page).toHaveScreenshot(`${route.name}-route.png`, {
         animations: "disabled",
         clip: route.clip,
@@ -551,6 +647,14 @@ test.describe("Route visual regression @visual", () => {
 
 async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
   await page.setViewportSize(route.viewport ?? desktopViewport);
+  if (route.trainFixture) {
+    await page.context().grantPermissions(["geolocation"]);
+    await page.context().setGeolocation({
+      latitude: 47.3769,
+      longitude: 8.5417,
+      accuracy: 20,
+    });
+  }
   if (route.fixedTime) {
     await page.clock.setFixedTime(new Date(route.fixedTime));
   }
@@ -562,6 +666,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       invalidEventFixture,
       liveEventFixture,
       signedIn,
+      trainFixture,
       trainingLogFixture,
     }) => {
       localStorage.setItem("acceptedVersion", acceptedVersion);
@@ -573,6 +678,176 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
         }),
       );
       localStorage.setItem("mapStyle", "roadmap");
+
+      if (trainFixture) {
+        localStorage.setItem(
+          "pkspot_location_access",
+          JSON.stringify({ mode: "on" }),
+        );
+        (
+          window as typeof window & {
+            __PKSPOT_SCREENSHOT_TRAIN_PAGE__?: unknown;
+            __PKSPOT_SCREENSHOT_COMMUNITY_FOLLOWS__?: unknown;
+          }
+        ).__PKSPOT_SCREENSHOT_TRAIN_PAGE__ = {
+          nearbyEvents: [
+            {
+              id: "visual-evening-lines",
+              slug: "visual-evening-lines",
+              name: "Evening lines at the river",
+              venueString: "Riverside rails",
+              localityString: "Zurich, Switzerland",
+              isSponsored: false,
+              hasOrganization: false,
+              hasVenueSpot: true,
+              venueSpotCount: 1,
+              location: [47.3773, 8.539],
+              startSeconds: Date.UTC(2026, 7, 20, 16) / 1_000,
+              endSeconds: Date.UTC(2026, 7, 20, 19) / 1_000,
+              timeZone: "Europe/Zurich",
+              lifecycleStatus: "planned",
+              eventLinks: [],
+              ticketOptions: [],
+              spotIds: ["visual-riverside-rails"],
+              communityKeys: ["locality:ch:zh:zurich"],
+              seriesIds: [],
+              eventCategories: ["jam"],
+              rsvpCounts: { going: 7, interested: 3, notgoing: 0, total: 10 },
+              seriesRoles: [],
+              qualifiesToKeys: [],
+              requiredQualifierKeys: [],
+            },
+            {
+              id: "visual-saturday-session",
+              slug: "visual-saturday-session",
+              name: "Saturday flow session",
+              venueString: "Lindenhof walls",
+              localityString: "Zurich, Switzerland",
+              isSponsored: false,
+              hasOrganization: false,
+              hasVenueSpot: true,
+              venueSpotCount: 1,
+              location: [47.3707, 8.5392],
+              startSeconds: Date.UTC(2026, 7, 22, 10) / 1_000,
+              endSeconds: Date.UTC(2026, 7, 22, 13) / 1_000,
+              timeZone: "Europe/Zurich",
+              lifecycleStatus: "planned",
+              eventLinks: [],
+              ticketOptions: [],
+              spotIds: ["visual-lindenhof-walls"],
+              communityKeys: ["locality:ch:zh:zurich"],
+              seriesIds: [],
+              eventCategories: ["session"],
+              rsvpCounts: { going: 4, interested: 5, notgoing: 0, total: 9 },
+              seriesRoles: [],
+              qualifiesToKeys: [],
+              requiredQualifierKeys: [],
+            },
+          ],
+          communityEvents: [
+            {
+              id: "visual-geneva-gathering",
+              slug: "visual-geneva-gathering",
+              name: "Geneva community gathering",
+              venueString: "Parc des Bastions",
+              localityString: "Geneva, Switzerland",
+              isSponsored: false,
+              hasOrganization: false,
+              hasVenueSpot: false,
+              venueSpotCount: 0,
+              location: [46.2044, 6.1432],
+              startSeconds: Date.UTC(2026, 7, 30, 11) / 1_000,
+              endSeconds: Date.UTC(2026, 7, 30, 16) / 1_000,
+              timeZone: "Europe/Zurich",
+              lifecycleStatus: "planned",
+              eventLinks: [],
+              ticketOptions: [],
+              spotIds: [],
+              communityKeys: ["country:ch"],
+              seriesIds: [],
+              eventCategories: ["jam"],
+              rsvpCounts: { going: 13, interested: 8, notgoing: 0, total: 21 },
+              seriesRoles: [],
+              qualifiesToKeys: [],
+              requiredQualifierKeys: [],
+            },
+          ],
+          spots: [
+            {
+              id: "visual-riverside-rails",
+              slug: "visual-riverside-rails",
+              name: "Riverside rails",
+              locality: "Zurich",
+              countryCode: "CH",
+              imageSrc: "",
+              isIconic: true,
+              rating: 9,
+              location_raw: { lat: 47.3773, lng: 8.539 },
+              amenities: { dry: false, lighting: true },
+            },
+            {
+              id: "visual-lindenhof-walls",
+              slug: "visual-lindenhof-walls",
+              name: "Lindenhof walls",
+              locality: "Zurich",
+              countryCode: "CH",
+              imageSrc: "",
+              isIconic: false,
+              rating: 8,
+              location_raw: { lat: 47.3707, lng: 8.5392 },
+              amenities: { dry: true, lighting: false },
+            },
+            {
+              id: "visual-central-rails",
+              slug: "visual-central-rails",
+              name: "Central rails",
+              locality: "Zurich",
+              countryCode: "CH",
+              imageSrc: "",
+              isIconic: false,
+              rating: 8,
+              location_raw: { lat: 47.38, lng: 8.53 },
+              amenities: { dry: true, lighting: true },
+            },
+            {
+              id: "visual-university-ledges",
+              slug: "visual-university-ledges",
+              name: "University ledges",
+              locality: "Zurich",
+              countryCode: "CH",
+              imageSrc: "",
+              isIconic: false,
+              rating: 7,
+              location_raw: { lat: 47.385, lng: 8.548 },
+              amenities: { dry: false, lighting: false },
+            },
+          ],
+          communities: [
+            {
+              id: "country-ch",
+              communityKey: "country:ch",
+              slug: "switzerland",
+              displayName: "Switzerland",
+              totalSpots: 240,
+              canonicalPath: "/map/communities/switzerland",
+            },
+          ],
+        };
+        (
+          window as typeof window & {
+            __PKSPOT_SCREENSHOT_COMMUNITY_FOLLOWS__?: unknown;
+          }
+        ).__PKSPOT_SCREENSHOT_COMMUNITY_FOLLOWS__ = [
+          {
+            id: "visual-country-ch-follow",
+            community_key: "country:ch",
+            scope: "country",
+            display_name: "Switzerland",
+            canonical_path: "/map/communities/switzerland",
+            time_created_raw_ms: Date.UTC(2026, 0, 1),
+          },
+        ];
+      }
 
       if (eventIndexFixture) {
         (
@@ -1142,6 +1417,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       invalidEventFixture: route.invalidEventFixture === true,
       liveEventFixture: route.liveEventFixture === true,
       signedIn: route.signedIn === true,
+      trainFixture: route.trainFixture === true,
       trainingLogFixture: route.trainingLogFixture === true,
     },
   );

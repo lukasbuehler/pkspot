@@ -86,7 +86,7 @@
   }
 }
 
-.shop-item-page__supporter-name {
+.shop-item-page__display-name {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -188,8 +188,7 @@
   }
 }
 
-.shop-notice,
-.shop-error {
+.shop-notice {
   display: flex;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
@@ -217,18 +216,6 @@
   mat-icon {
     color: var(--mat-sys-secondary);
   }
-}
-
-.shop-error {
-  margin-top: 1rem;
-  border-color: var(--mat-sys-error);
-  color: var(--mat-sys-on-error-container);
-  background: var(--mat-sys-error-container);
-}
-
-mat-spinner {
-  display: inline-flex;
-  margin-right: 0.5rem;
 }
 
 @media (min-width: 600px) {

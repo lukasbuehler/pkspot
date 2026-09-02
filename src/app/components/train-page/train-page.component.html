@@ -1,74 +1,38 @@
 <main class="train-page">
   <header class="train-header">
     <div>
-      <p class="eyebrow" i18n="@@train.eyebrow">Plan your training</p>
-      <h1>
-        @if (displayName()) {
-          <span i18n="@@train.greetingNamed"
-            >Hey {{ displayName() }}, let's train!</span
-          >
-        } @else {
-          <span i18n="@@train.greeting">Let's train!</span>
-        }
-      </h1>
+      <p class="eyebrow" i18n="@@train.eyebrow">Train</p>
+      <h1 i18n="@@train.title">Find your next session</h1>
+      <p class="header-summary" i18n="@@train.summary">
+        Nearby Spots and events from the communities you follow.
+      </p>
     </div>
-    @if (signedIn()) {
-      <a matButton="filled" routerLink="/train/log">
-        <mat-icon>book_2</mat-icon>
-        <span i18n="@@train.openLog">Training log</span>
-      </a>
-    }
-  </header>
 
-  <section class="context-bar" aria-label="Training conditions" i18n-aria-label>
-    <div class="context-item">
-      <mat-icon>location_on</mat-icon>
-      <div>
-        <strong>{{ area()?.displayName || "Near you" }}</strong>
-        <span i18n="@@train.searchRadius">Within {{ radiusKm() }} km</span>
-      </div>
-    </div>
-    @if (weather(); as forecast) {
-      <div class="context-item weather">
-        <mat-icon>{{ weatherIcon() }}</mat-icon>
-        <div>
-          <strong
-            >{{ forecast.current?.temperatureC | number: "1.0-0" }}°</strong
-          >
-          <span>{{ forecast.insights.summary }}</span>
-        </div>
-      </div>
-    }
     <button
       matButton
       type="button"
-      (click)="useMyLocation()"
+      class="training-context-button"
       [disabled]="locating()"
+      (click)="openContext()"
+      aria-label="Change training area or view weather"
+      i18n-aria-label="@@train.context.open"
     >
-      <mat-icon>my_location</mat-icon>
-      <span i18n="@@train.useLocation">Use my location</span>
+      <mat-icon>location_on</mat-icon>
+      @if (area()?.displayName; as areaLabel) {
+        <span class="training-context-button__area">{{ areaLabel }}</span>
+      } @else {
+        <span class="training-context-button__area" i18n="@@train.nearYou">Near you</span>
+      }
+      @if (contextWeather(); as weather) {
+        <span class="training-context-button__conditions">
+          <mat-icon class="training-context-button__weather" aria-hidden="true">{{ weather.icon }}</mat-icon>
+          @if (weather.temperature) {
+            <span>{{ weather.temperature }}</span>
+          }
+        </span>
+      }
     </button>
-  </section>
-  <!-- 
-  <section class="area-search">
-    <app-search-field
-      appearance="outline"
-      [contextLabel]="area()?.displayName || null"
-      (spotSelected)="chooseArea($event)"
-      (contextClear)="clearArea()"
-    />
-    @if (area(); as selectedArea) {
-      <button
-        matButton
-        type="button"
-        [disabled]="!signedIn()"
-        (click)="toggleFollow(selectedArea)"
-      >
-        <mat-icon>{{ isFollowing(selectedArea.communityKey) ? "bookmark_added" : "bookmark_add" }}</mat-icon>
-        <span>{{ isFollowing(selectedArea.communityKey) ? "Following" : "Follow community" }}</span>
-      </button>
-    }
-  </section> -->
+  </header>
 
   @if (loading()) {
     <div class="state">
@@ -77,22 +41,121 @@
   } @else if (error()) {
     <p class="state">{{ error() }}</p>
   } @else {
+    @if (signedIn()) {
+      <section class="training-history">
+        <header class="training-history__header">
+          <div>
+            <p class="eyebrow" i18n="@@train.history.eyebrow">Your training</p>
+            <h2 i18n="@@train.history.title">Training history</h2>
+            <p class="training-history__period" i18n="@@trainingLog.summary.thisMonth">This month</p>
+          </div>
+          <a matButton="outlined" routerLink="/train/log">
+            <mat-icon>history_edu</mat-icon>
+            <span i18n="@@train.history.allLogs">View all logs</span>
+          </a>
+        </header>
+
+        <div class="training-history__metrics">
+          <div>
+            <mat-icon>calendar_month</mat-icon>
+            <strong>{{ trainingMonthSummary().sessionCount }}</strong>
+            <span i18n="@@trainingLog.summary.sessions">sessions</span>
+          </div>
+          <div>
+            <mat-icon>schedule</mat-icon>
+            <strong>{{ trainingDurationLabel(trainingMonthSummary().durationMinutes) }}</strong>
+            <span i18n="@@trainingLog.summary.trainingTime">training time</span>
+          </div>
+          <div>
+            <mat-icon>location_on</mat-icon>
+            <strong>{{ trainingMonthSummary().spotCount }}</strong>
+            <span i18n="@@trainingLog.summary.spots">Spots visited</span>
+          </div>
+          <div>
+            <mat-icon>history_edu</mat-icon>
+            <strong>{{ trainingMonthSummary().activityDays }}</strong>
+            <span i18n="@@trainingLog.summary.days">active days</span>
+          </div>
+        </div>
+
+        <app-training-activity-contribution-graph
+          [days]="trainingActivityDays()"
+          [interactive]="false"
+        />
+      </section>
+    }
+
+    @if (nearbyEventOptions().length) {
+      <section class="train-section train-section--first">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" i18n="@@train.nearbyEvents.eyebrow">Happening soon</p>
+            <h2 i18n="@@train.nearbyEvents.title">Events near your area</h2>
+            @if (hasTrainingArea()) {
+              <p class="section-summary" i18n="@@train.nearbyEvents.summary">
+                The soonest upcoming sessions within reach.
+              </p>
+            }
+          </div>
+        </div>
+
+        <div class="preview-grid event-preview-grid">
+          @for (event of nearbyEventOptions(); track event.id) {
+            <app-event-discovery-card
+              [event]="event"
+              [seriesById]="seriesById()"
+            />
+          }
+        </div>
+        <div class="event-section-actions">
+          <a matButton="text" routerLink="/events" i18n="@@train.allEvents">All events</a>
+        </div>
+      </section>
+    }
+
+    @if (communityEventOptions().length) {
+      <section class="train-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" i18n="@@train.communityEvents.eyebrow">Your communities</p>
+            <h2 i18n="@@train.communityEvents.title">Events from people you follow</h2>
+            <p class="section-summary" i18n="@@train.communityEvents.summary">
+              Worth knowing about, even when they are farther away.
+            </p>
+          </div>
+        </div>
+
+        <div class="preview-grid event-preview-grid community-event-preview-grid">
+          @for (event of communityEventOptions(); track event.id) {
+            <app-event-discovery-card
+              [event]="event"
+              [seriesById]="seriesById()"
+            />
+          }
+        </div>
+        <div class="event-section-actions">
+          <a matButton="text" routerLink="/events" i18n="@@train.allEvents">All events</a>
+        </div>
+      </section>
+    }
+
     <section class="train-section">
       <div class="section-heading">
         <div>
-          <p class="eyebrow" i18n="@@train.nearbySpots">Nearby spots</p>
-          <h2 i18n="@@train.bestSpots">Best spots in your area</h2>
+          <p class="eyebrow" i18n="@@train.nearbySpots">Nearby Spots</p>
+          <h2 i18n="@@train.bestSpots">Good places to train within reach</h2>
           @if (weatherFilterActive()) {
             <span class="weather-filter-note">
               <mat-icon>rainy</mat-icon>
               <span i18n="@@train.weatherDryFilter">
-                Dry spots prioritized for the forecast
+                Dry Spots are prioritised for the forecast.
               </span>
             </span>
           }
         </div>
-        <a matButton routerLink="/map" i18n="@@train.openMap">Open map</a>
+        <a matButton="text" routerLink="/map" i18n="@@train.openMap">Open map</a>
       </div>
+
       <div class="spot-filter-row">
         <app-filter-chips-bar
           appearance="solid"
@@ -105,6 +168,7 @@
           (filterChange)="setSpotFilter($event)"
         />
       </div>
+
       @if (bestSpots().length) {
         <div class="preview-grid spot-preview-grid">
           @for (spot of bestSpots(); track spot.id) {
@@ -123,100 +187,19 @@
           }
         </div>
       } @else if (!hasTrainingArea()) {
-        <p class="empty" i18n="@@train.spotsNeedArea">
-          Use your location or choose an area to see nearby spots.
-        </p>
+        <div class="empty empty--context">
+          <mat-icon>location_on</mat-icon>
+          <p i18n="@@train.spotsNeedArea">
+            Choose a training area to see nearby Spots.
+          </p>
+          <button matButton="tonal" type="button" (click)="openContext()" i18n="@@train.context.chooseAction">
+            Choose area
+          </button>
+        </div>
       } @else {
         <p class="empty" i18n="@@train.noSpots">
-          No spots found in this area yet.
+          No Spots found in this area yet.
         </p>
-      }
-    </section>
-
-    <section class="train-section">
-      @if (todayOptions().length) {
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow" i18n="@@train.bestOptions">Best options</p>
-            <h2 i18n="@@train.goodOptions">Good options today and this week</h2>
-          </div>
-          <a matButton routerLink="/events" i18n="@@train.allEvents"
-            >All events</a
-          >
-        </div>
-
-        <div class="preview-grid event-preview-grid">
-          @for (event of todayOptions(); track event.id) {
-            <app-event-discovery-card
-              [event]="event"
-              [seriesById]="seriesById()"
-            />
-          }
-        </div>
-      }
-    </section>
-
-    <section class="train-section">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow" i18n="@@train.communitiesEyebrow">Your network</p>
-          <h2 i18n="@@train.followedCommunities">Communities you follow</h2>
-        </div>
-      </div>
-      @if (!signedIn()) {
-        <p class="empty" i18n="@@train.signInCommunities">
-          Sign in to follow training communities.
-        </p>
-      } @else if (followedCommunities().length) {
-        <div class="community-row">
-          @for (
-            community of followedCommunities();
-            track community.communityKey
-          ) {
-            <article class="community-item">
-              <a [routerLink]="community.canonicalPath">
-                <mat-icon>groups</mat-icon>
-                <span>{{ community.displayName }}</span>
-              </a>
-              <button
-                matIconButton
-                type="button"
-                (click)="toggleFollow(community)"
-                aria-label="Unfollow community"
-                i18n-aria-label
-              >
-                <mat-icon>bookmark_added</mat-icon>
-              </button>
-            </article>
-          }
-        </div>
-      } @else {
-        <p class="empty" i18n="@@train.noCommunities">
-          Choose an area above, then follow communities from their pages.
-        </p>
-      }
-    </section>
-
-    <section class="log-prompt">
-      <div class="prompt-icon"><mat-icon>history_edu</mat-icon></div>
-      <div>
-        <p class="eyebrow" i18n="@@train.personalRecord">
-          Your personal record
-        </p>
-        <h2 i18n="@@train.logPrompt">Finished training? Add it to your log.</h2>
-        <p i18n="@@train.logPrivacy">
-          Session records stay private. You choose what a log entry shares.
-        </p>
-      </div>
-      @if (signedIn()) {
-        <a matButton="filled" routerLink="/train/log/new">
-          <mat-icon>add</mat-icon>
-          <span i18n="@@train.addLog">Add log entry</span>
-        </a>
-      } @else {
-        <a matButton="filled" routerLink="/account" i18n="@@train.signInToLog"
-          >Sign in to log</a
-        >
       }
     </section>
   }

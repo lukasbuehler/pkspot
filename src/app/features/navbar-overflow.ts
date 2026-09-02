@@ -2,11 +2,45 @@ export interface OverflowNavigationItem {
   id: string;
   overflowPriority: number;
   alwaysVisible?: boolean;
+  spacerBefore?: boolean;
 }
 
 export interface NavigationOverflow<T> {
   visible: readonly T[];
   overflow: readonly T[];
+}
+
+export type DesktopLeadingSlotCount<T> =
+  | number
+  | null
+  | ((navigation: NavigationOverflow<T>) => number);
+
+/**
+ * Chooses the largest source-item capacity that fits the measured leading
+ * desktop rail. The More button consumes one leading slot only when needed.
+ */
+export function desktopNavigationSlotCount<T extends OverflowNavigationItem>(
+  items: readonly T[],
+  leadingSlotCount: DesktopLeadingSlotCount<T>,
+): number {
+  if (leadingSlotCount === null) return items.length;
+
+  const minimumSlotCount = Math.min(items.length, 2);
+  for (let slotCount = items.length; slotCount >= minimumSlotCount; slotCount--) {
+    const navigation = splitNavigationOverflow(items, slotCount);
+    const availableLeadingSlots =
+      typeof leadingSlotCount === "function"
+        ? leadingSlotCount(navigation)
+        : leadingSlotCount;
+    const requiredLeadingSlots =
+      navigation.visible.filter(
+        (item) => !item.alwaysVisible && !item.spacerBefore,
+      ).length + (navigation.overflow.length ? 1 : 0);
+
+    if (requiredLeadingSlots <= availableLeadingSlots) return slotCount;
+  }
+
+  return minimumSlotCount;
 }
 
 /**

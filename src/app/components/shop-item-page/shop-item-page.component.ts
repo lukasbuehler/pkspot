@@ -12,17 +12,12 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
-import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import type {
-  SupportOrderType,
-  SupportShopProductId,
-} from "../../../db/schemas/SupportShopSchema";
+import type { SupportShopProductId } from "../../../db/schemas/SupportShopSchema";
 import { STICKER_PACK_SIZES, findShopItem } from "../../features/shop-catalog";
 import { AnalyticsService } from "../../services/analytics.service";
 import { MetaTagService } from "../../services/meta-tag.service";
 import { ShopCartService } from "../../services/shop-cart.service";
-import { SupportShopService } from "../../services/support-shop.service";
 
 @Component({
   selector: "app-shop-item-page",
@@ -33,7 +28,6 @@ import { SupportShopService } from "../../services/support-shop.service";
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatProgressSpinnerModule,
     RouterLink,
   ],
   templateUrl: "./shop-item-page.component.html",
@@ -45,11 +39,8 @@ export class ShopItemPageComponent implements OnInit {
   private readonly _metaTagService = inject(MetaTagService);
   private readonly _route = inject(ActivatedRoute);
   private readonly _router = inject(Router);
-  private readonly _shop = inject(SupportShopService);
   private readonly _cart = inject(ShopCartService);
 
-  readonly checkoutAction = signal<SupportOrderType | "">("");
-  readonly checkoutError = signal("");
   readonly checkoutState = signal<"success" | "cancelled" | "">("");
   readonly item = signal<ReturnType<typeof findShopItem>>(undefined);
   readonly selectedStickerPackId = signal<SupportShopProductId>(
@@ -64,12 +55,12 @@ export class ShopItemPageComponent implements OnInit {
   readonly stickerPackSizes = STICKER_PACK_SIZES;
   readonly supportModel = signal({
     amountChf: 10,
-    publicName: "",
+    displayName: "",
   });
   readonly supportForm = form(this.supportModel, (schema) => {
     min(schema.amountChf, 10);
     max(schema.amountChf, 100);
-    maxLength(schema.publicName, 80);
+    maxLength(schema.displayName, 80);
   });
 
   ngOnInit(): void {
@@ -87,12 +78,20 @@ export class ShopItemPageComponent implements OnInit {
     this.selectedStickerPackId.set(productId);
   }
 
-  async startDirectSupportCheckout(): Promise<void> {
+  async addDirectSupportToCart(): Promise<void> {
     await submit(this.supportForm, async () => {
-      await this.startCheckout({
-        kind: "direct_support",
-        amountChf: this.supportModel().amountChf,
+      const { amountChf, displayName } = this.supportModel();
+      const cleanedDisplayName = displayName.trim();
+      this._cart.setDirectSupport({
+        amountChf,
+        displayName: cleanedDisplayName,
       });
+      this._analytics.trackEvent("shop_cart_updated", {
+        item_kind: "direct_support",
+        amount_bucket: amountBucket(amountChf),
+        has_display_name: !!cleanedDisplayName,
+      });
+      void this._router.navigate(["/shop/cart"]);
     });
   }
 
@@ -121,45 +120,6 @@ export class ShopItemPageComponent implements OnInit {
     );
   }
 
-  private async startCheckout(
-    request:
-      | { kind: "direct_support"; amountChf: number }
-      | { kind: "physical_order"; productId: SupportShopProductId },
-  ): Promise<void> {
-    if (this.checkoutAction()) return;
-
-    const model = this.supportModel();
-    const publicName = model.publicName.trim();
-    this.checkoutAction.set(request.kind);
-    this.checkoutError.set("");
-    try {
-      const result = await this._shop.createCheckout({
-        ...request,
-        supporterCredit: {
-          optedIn: !!publicName,
-          ...(publicName ? { publicName } : {}),
-        },
-      });
-      this._analytics.trackEvent("support_checkout_started", {
-        support_type: request.kind,
-        ...(request.kind === "physical_order"
-          ? { product_id: request.productId }
-          : { amount_bucket: amountBucket(request.amountChf) }),
-        supporter_credit_opt_in: !!publicName,
-      });
-      globalThis.location.assign(result.checkoutUrl);
-    } catch (error) {
-      console.error("Could not start PK Spot shop checkout", error);
-      this.checkoutError.set(
-        "Could not start secure checkout. Please try again or contact us if the problem continues.",
-      );
-      this._analytics.trackEvent("support_checkout_failed", {
-        support_type: request.kind,
-      });
-    } finally {
-      this.checkoutAction.set("");
-    }
-  }
 }
 
 function amountBucket(amount: number): "10-24" | "25-49" | "50-100" {

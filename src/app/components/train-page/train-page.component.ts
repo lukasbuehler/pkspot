@@ -6,10 +6,11 @@ import {
   inject,
   signal,
 } from "@angular/core";
-import { DecimalPipe, isPlatformBrowser } from "@angular/common";
+import { isPlatformBrowser } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { MatButtonModule } from "@angular/material/button";
+import { MatDialog } from "@angular/material/dialog";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import {
@@ -18,7 +19,6 @@ import {
 } from "../spot-map/spot-filter-config";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { CommunityFollowsService } from "../../services/firebase/firestore/community-follows.service";
-import { NotificationOptInService } from "../../services/notification-opt-in.service";
 import {
   SeriesDocument,
   SeriesService,
@@ -27,7 +27,6 @@ import { GeolocationService } from "../../services/geolocation.service";
 import { LocationAccessService } from "../../services/location-access.service";
 import {
   CommunitySearchPreview,
-  EventDiscoveryItem,
   SearchService,
 } from "../../services/search.service";
 import { WeatherService } from "../../weather/weather.service";
@@ -35,31 +34,44 @@ import type { WeatherResponse } from "../../weather/weather.models";
 import { getWeatherStateIcon } from "../../weather/weather-display";
 import { shouldRecommendDrySpots } from "../../weather/spot-weather-context";
 import type { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
+import type { LogEntryDocument } from "../../../db/schemas/LogEntrySchema";
 import { EventDiscoveryCardComponent } from "../events-page/event-discovery-card.component";
 import { FilterChipsBarComponent } from "../filter-chips-bar/filter-chips-bar.component";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
+import { TrainingActivityContributionGraphComponent } from "../training-activity-contribution-graph/training-activity-contribution-graph.component";
 import {
   resolveTrainingCenter,
   resolveTrainingSpotRadiusKm,
 } from "./training-area";
-
-interface AreaSelection {
-  type: "place" | "spot" | "community" | "event";
-  community?: CommunitySearchPreview;
-}
-
-interface RankedEvent extends EventDiscoveryItem {
-  distanceKm?: number;
-  followed: boolean;
-  live: boolean;
-}
+import { LocationAccessDialogComponent } from "../location-access-dialog/location-access-dialog.component";
+import {
+  TrainContextDialogComponent,
+  type TrainContextDialogAction,
+  type TrainContextDialogData,
+} from "../train-context-dialog/train-context-dialog.component";
+import {
+  rankCommunityTrainingEvents,
+  rankNearbyTrainingEvents,
+  rankTrainingSpots,
+  type RankedTrainingEvent,
+} from "./training-recommendations";
+import {
+  WeatherForecastDialogComponent,
+  type WeatherForecastDialogData,
+} from "../weather-forecast-dialog/weather-forecast-dialog.component";
+import {
+  buildTrainingActivityDays,
+  formatDuration,
+  monthKey,
+  summarizeTrainingMonth,
+} from "../../features/training-log-activity";
+import { LogEntriesService } from "../../services/firebase/firestore/log-entries.service";
 
 type SpotFilterSource = "user" | "weather" | null;
 
 @Component({
   selector: "app-train-page",
   imports: [
-    DecimalPipe,
     RouterLink,
     MatButtonModule,
     MatIconModule,
@@ -67,6 +79,7 @@ type SpotFilterSource = "user" | "weather" | null;
     EventDiscoveryCardComponent,
     FilterChipsBarComponent,
     SpotPreviewCardComponent,
+    TrainingActivityContributionGraphComponent,
   ],
   templateUrl: "./train-page.component.html",
   styleUrl: "./train-page.component.scss",
@@ -77,17 +90,20 @@ export class TrainPageComponent {
   private readonly follows = inject(CommunityFollowsService);
   private readonly geolocation = inject(GeolocationService);
   private readonly locationAccess = inject(LocationAccessService);
-  private readonly notificationOptIn = inject(NotificationOptInService);
+  private readonly dialog = inject(MatDialog);
   private readonly search = inject(SearchService);
   private readonly series = inject(SeriesService);
   private readonly weatherService = inject(WeatherService);
+  private readonly logsService = inject(LogEntriesService);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly loading = signal(true);
   readonly locating = signal(false);
   readonly error = signal("");
-  readonly events = signal<RankedEvent[]>([]);
+  readonly nearbyEvents = signal<RankedTrainingEvent[]>([]);
+  readonly communityEvents = signal<RankedTrainingEvent[]>([]);
   readonly spots = signal<SpotPreviewData[]>([]);
+  readonly trainingLogs = signal<LogEntryDocument[]>([]);
   readonly selectedSpotFilter = signal("");
   readonly spotFilterSource = signal<SpotFilterSource>(null);
   readonly seriesById = signal<Record<string, SeriesDocument>>({});
@@ -95,7 +111,6 @@ export class TrainPageComponent {
   readonly weather = signal<WeatherResponse | null>(null);
   readonly area = signal<CommunitySearchPreview | null>(null);
   readonly signedIn = signal(false);
-  readonly displayName = signal("");
   readonly radiusKm = signal(25);
   readonly weatherIcon = computed(() =>
     getWeatherStateIcon(
@@ -107,7 +122,27 @@ export class TrainPageComponent {
     () => !!this.geolocation.currentLocation()?.location || !!this.area(),
   );
   readonly bestSpots = computed(() => this.spots().slice(0, 4));
-  readonly todayOptions = computed(() => this.events().slice(0, 6));
+  readonly trainingActivityDays = computed(() =>
+    buildTrainingActivityDays(this.trainingLogs()),
+  );
+  readonly trainingMonthSummary = computed(() =>
+    summarizeTrainingMonth(this.trainingActivityDays(), monthKey(Date.now())),
+  );
+  readonly nearbyEventOptions = computed(() => this.nearbyEvents().slice(0, 3));
+  readonly communityEventOptions = computed(() =>
+    this.communityEvents().slice(0, 3),
+  );
+  readonly contextWeather = computed(() => {
+    const weather = this.weather();
+    if (!weather) return null;
+    const temperature = weather.current?.temperatureC;
+    return {
+      icon: this.weatherIcon(),
+      summary: weather.insights.summary,
+      temperature:
+        temperature === undefined ? null : `${Math.round(temperature)}°`,
+    };
+  });
   readonly weatherFilterActive = computed(
     () =>
       this.spotFilterSource() === "weather" &&
@@ -117,16 +152,43 @@ export class TrainPageComponent {
   constructor() {
     this.auth.authState$.pipe(takeUntilDestroyed()).subscribe((user) => {
       this.signedIn.set(!!user?.uid);
-      this.displayName.set(
-        (this.auth.user.data?.displayName || "")
-          .trim()
-          .split(/\s+/)[0] ?? "",
-      );
       void this.initialize();
     });
   }
 
+  openContext(): void {
+    this.dialog
+      .open<
+        TrainContextDialogComponent,
+        TrainContextDialogData,
+        TrainContextDialogAction
+      >(TrainContextDialogComponent, {
+        data: {
+          area: this.area(),
+          weather: this.contextWeather(),
+        },
+        width: "520px",
+        maxWidth: "calc(100vw - 24px)",
+        autoFocus: "dialog",
+        restoreFocus: true,
+      })
+      .afterClosed()
+      .subscribe((action) => this.handleContextAction(action));
+  }
+
   async useMyLocation(): Promise<void> {
+    if (!this.locationAccess.enabled()) {
+      this.dialog
+        .open(LocationAccessDialogComponent, {
+          maxWidth: "min(420px, 92vw)",
+        })
+        .afterClosed()
+        .subscribe((enabled) => {
+          if (enabled) void this.useMyLocation();
+        });
+      return;
+    }
+
     this.locating.set(true);
     try {
       if (!(await this.locationAccess.startWatchingIfEnabled())) return;
@@ -143,13 +205,12 @@ export class TrainPageComponent {
     }
   }
 
-  chooseArea(selection: AreaSelection): void {
-    if (!selection.community) return;
-    this.area.set(selection.community);
+  chooseArea(area: CommunitySearchPreview): void {
+    this.area.set(area);
     void this.load();
   }
 
-  clearArea(): void {
+  clearTrainingArea(): void {
     this.area.set(null);
     void this.load();
   }
@@ -160,34 +221,23 @@ export class TrainPageComponent {
     void this.loadSpots();
   }
 
-  async toggleFollow(community: CommunitySearchPreview): Promise<void> {
-    if (!this.signedIn()) return;
-    const current = this.followedCommunities();
-    const exists = current.some(
-      (item) => item.communityKey === community.communityKey,
-    );
-    if (exists) {
-      await this.follows.unfollow(community.communityKey);
-      this.followedCommunities.set(
-        current.filter((item) => item.communityKey !== community.communityKey),
-      );
-    } else {
-      await this.follows.follow(community);
-      this.followedCommunities.set([...current, community]);
-      const decision = await this.notificationOptIn.maybePrompt("community_updates");
-      if (decision === "context" || decision === "all") {
-        await this.follows.setNotifications(community.communityKey, {
-          eventNotifications: true,
-          spotDigestNotifications: true,
-        });
-      }
-    }
-    await this.loadEvents();
-  }
-
-  isFollowing(communityKey: string): boolean {
-    return this.followedCommunities().some(
-      (community) => community.communityKey === communityKey,
+  openWeatherForecast(): void {
+    const weather = this.weather();
+    if (!weather) return;
+    this.dialog.open<WeatherForecastDialogComponent, WeatherForecastDialogData>(
+      WeatherForecastDialogComponent,
+      {
+        data: {
+          spotName: "",
+          response: weather,
+          context: "map-region",
+        },
+        width: "680px",
+        maxWidth: "calc(100vw - 24px)",
+        maxHeight: "calc(100dvh - 24px)",
+        autoFocus: "dialog",
+        restoreFocus: true,
+      },
     );
   }
 
@@ -205,7 +255,11 @@ export class TrainPageComponent {
       } else {
         this.followedCommunities.set([]);
       }
-      await Promise.all([this.loadEvents(), this.loadWeather()]);
+      await Promise.all([
+        this.loadEvents(),
+        this.loadWeather(),
+        this.loadTrainingHistory(),
+      ]);
       await this.loadSpots();
     } catch (error) {
       console.error("[Train] failed to load dashboard", error);
@@ -248,55 +302,51 @@ export class TrainPageComponent {
 
   private async loadEvents(): Promise<void> {
     const nowSeconds = Math.floor(Date.now() / 1000);
-    const result = await this.search.searchEventDiscovery({
-      endsAfterSeconds: nowSeconds,
-      startsBeforeSeconds: nowSeconds + 7 * 24 * 60 * 60,
-      sort: "upcoming",
-      perPage: 250,
-    });
-    const center = this.center();
-    const followKeys = new Set(
-      this.followedCommunities().map((community) => community.communityKey),
+    const followedCommunityKeys = this.followedCommunities().map(
+      (community) => community.communityKey,
     );
-    const ranked = result.items.map((event): RankedEvent => {
-      const point = event.location ?? event.boundsCenter;
-      return {
-        ...event,
-        distanceKm: center && point ? distanceKm(center, point) : undefined,
-        followed: event.communityKeys.some((key) => followKeys.has(key)),
-        live: event.startSeconds <= nowSeconds && event.endSeconds >= nowSeconds,
-      };
-    });
-    const availableRadius =
-      [25, 50, 100].find((radius) =>
-        ranked.some(
-          (event) =>
-            event.distanceKm === undefined || event.distanceKm <= radius,
-        ),
-      ) ?? 100;
-    this.radiusKm.set(availableRadius);
-    const visibleEvents = ranked
-      .filter(
-        (event) =>
-          !center ||
-          event.distanceKm === undefined ||
-          event.distanceKm <= availableRadius,
-      )
-      .sort(
-        (a, b) =>
-          Number(b.live) - Number(a.live) ||
-          Number(b.followed) - Number(a.followed) ||
-          Number(b.kind === "session" || b.kind === "class") -
-            Number(a.kind === "session" || a.kind === "class") ||
-          (a.distanceKm ?? Number.MAX_SAFE_INTEGER) -
-            (b.distanceKm ?? Number.MAX_SAFE_INTEGER) ||
-          a.startSeconds - b.startSeconds,
-      );
-    this.events.set(visibleEvents);
-    await this.loadSeries(visibleEvents.slice(0, 6));
+    const [nearbyResult, communityResult] = await Promise.all([
+      this.search.searchEventDiscovery({
+        endsAfterSeconds: nowSeconds,
+        startsBeforeSeconds: nowSeconds + 14 * 24 * 60 * 60,
+        sort: "upcoming",
+        perPage: 250,
+      }),
+      followedCommunityKeys.length
+        ? this.search.searchEventDiscovery({
+            endsAfterSeconds: nowSeconds,
+            startsBeforeSeconds: nowSeconds + 30 * 24 * 60 * 60,
+            areaKeys: followedCommunityKeys,
+            sort: "upcoming",
+            perPage: 250,
+          })
+        : Promise.resolve({ items: [] }),
+    ]);
+    const center = this.center();
+    const nearby = rankNearbyTrainingEvents(
+      nearbyResult.items,
+      nowSeconds,
+      center,
+    );
+    this.radiusKm.set(nearby.radiusKm);
+    this.nearbyEvents.set(nearby.items);
+
+    const nearbyEventIds = new Set(nearby.items.map((event) => event.id));
+    const communityEvents = rankCommunityTrainingEvents(
+      communityResult.items,
+      nowSeconds,
+      center,
+    ).filter((event) => !nearbyEventIds.has(event.id));
+    this.communityEvents.set(communityEvents);
+    await this.loadSeries([
+      ...nearby.items.slice(0, 3),
+      ...communityEvents.slice(0, 3),
+    ]);
   }
 
-  private async loadSeries(events: readonly RankedEvent[]): Promise<void> {
+  private async loadSeries(
+    events: readonly RankedTrainingEvent[],
+  ): Promise<void> {
     const ids = [...new Set(events.flatMap((event) => event.seriesIds))];
     if (ids.length === 0) {
       this.seriesById.set({});
@@ -321,14 +371,14 @@ export class TrainPageComponent {
       const filterMode = getFilterModeFromUrlParam(
         this.selectedSpotFilter(),
       );
-      this.spots.set(
-        await this.search.searchTopSpotPreviewsNearLocation(
-          { lat: center[0], lng: center[1] },
-          resolveTrainingSpotRadiusKm(this.area()),
-          4,
-          filterMode,
-        ),
+      const radiusKm = resolveTrainingSpotRadiusKm(this.area());
+      const candidates = await this.search.searchTopSpotPreviewsNearLocation(
+        { lat: center[0], lng: center[1] },
+        radiusKm,
+        12,
+        filterMode,
       );
+      this.spots.set(rankTrainingSpots(candidates, center, radiusKm, 4));
     } catch (error) {
       console.warn("[Train] nearby spots unavailable", error);
       this.spots.set([]);
@@ -356,11 +406,46 @@ export class TrainPageComponent {
     }
   }
 
+  trainingDurationLabel(minutes: number): string {
+    return formatDuration(minutes);
+  }
+
+  private async loadTrainingHistory(): Promise<void> {
+    if (!this.signedIn()) {
+      this.trainingLogs.set([]);
+      return;
+    }
+    try {
+      this.trainingLogs.set(await this.logsService.listMine());
+    } catch (error) {
+      console.warn("[Train] training history unavailable", error);
+      this.trainingLogs.set([]);
+    }
+  }
+
   private applyWeatherSpotFilter(weather: WeatherResponse | null): void {
     if (this.spotFilterSource() === "user") return;
     const useDryFilter = shouldRecommendDrySpots(weather);
     this.selectedSpotFilter.set(useDryFilter ? SpotFilterMode.Dry : "");
     this.spotFilterSource.set(useDryFilter ? "weather" : null);
+  }
+
+  private handleContextAction(action: TrainContextDialogAction | undefined): void {
+    if (!action) return;
+    switch (action.kind) {
+      case "use-location":
+        void this.useMyLocation();
+        return;
+      case "choose-area":
+        this.chooseArea(action.area);
+        return;
+      case "clear-area":
+        this.clearTrainingArea();
+        return;
+      case "show-weather":
+        this.openWeatherForecast();
+        return;
+    }
   }
 
   private center(): [number, number] | undefined {
@@ -369,16 +454,4 @@ export class TrainPageComponent {
       this.geolocation.currentLocation()?.location,
     );
   }
-}
-
-function distanceKm(a: [number, number], b: [number, number]): number {
-  const toRad = (value: number) => (value * Math.PI) / 180;
-  const lat = toRad(b[0] - a[0]);
-  const lng = toRad(b[1] - a[1]);
-  const value =
-    Math.sin(lat / 2) ** 2 +
-    Math.cos(toRad(a[0])) *
-      Math.cos(toRad(b[0])) *
-      Math.sin(lng / 2) ** 2;
-  return 6371 * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
 }

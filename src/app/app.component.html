@@ -6,7 +6,7 @@
 <app-nav-rail-container>
   @defer (when responsive.isInitialized()) { @if(responsive.viewMode() ===
   'desktop' && !alainMode) {
-  <app-nav-rail class="mat-elevation-z3">
+  <app-nav-rail #desktopNavigationRail class="mat-elevation-z3">
     <a
       routerLink="/"
       class="text-decoration-none text-center text-light text-wrap p-2 logo"
@@ -23,6 +23,7 @@
     @for (button of desktopLeadingNavbarButtons(); track button.id) { @if(button.link) {
     <a
       [routerLink]="button.link"
+      data-desktop-leading-navigation
       tabindex="-1"
       routerLinkActive="active"
       #desktopButtonRla="routerLinkActive"
@@ -37,6 +38,7 @@
     </a>
     } @else if(button.function) {
     <app-mat3-nav-button
+      data-desktop-leading-navigation
       (click)="button.function()"
       [icon]="button.icon"
       [image]="button.image ?? ''"
@@ -48,6 +50,7 @@
 
     @if (hasNavbarOverflow()) {
     <app-mat3-nav-button
+      data-desktop-leading-navigation
       [icon]="'more_vert'"
       [label]="moreNavigationLabel"
       [active]="overflowNavigationActive()"
@@ -55,11 +58,13 @@
     ></app-mat3-nav-button>
     }
 
-    <div class="nav-rail__footer">
+    <div #desktopNavigationFooter class="nav-rail__footer">
     @for (button of desktopTrailingNavbarButtons(); track button.id) {
     @if(button.link) {
     <a
       [routerLink]="button.link"
+      data-desktop-trailing-navigation
+      [attr.data-navigation-id]="button.id"
       tabindex="-1"
       routerLinkActive="active"
       #desktopButtonRla="routerLinkActive"
@@ -74,6 +79,8 @@
     </a>
     } @else if(button.function) {
     <app-mat3-nav-button
+      data-desktop-trailing-navigation
+      [attr.data-navigation-id]="button.id"
       (click)="button.function()"
       [icon]="button.icon"
       [image]="button.image ?? ''"

@@ -16,6 +16,9 @@ export class CommunityFollowsService {
   private readonly users = inject(UsersService);
 
   async listMine(limit = 100): Promise<CommunityFollowDocument[]> {
+    const screenshotFixture = readScreenshotCommunityFollows();
+    if (screenshotFixture) return screenshotFixture.slice(0, limit);
+
     const uid = this.requireUserId();
     return this.firestore.getCollection<CommunityFollowDocument>(
       `users/${uid}/community_follows`,
@@ -103,4 +106,13 @@ export class CommunityFollowsService {
     if (!uid) throw new Error("Community follows require a signed-in user.");
     return uid;
   }
+}
+
+function readScreenshotCommunityFollows(): CommunityFollowDocument[] | null {
+  const fixture = (
+    globalThis as typeof globalThis & {
+      __PKSPOT_SCREENSHOT_COMMUNITY_FOLLOWS__?: CommunityFollowDocument[];
+    }
+  ).__PKSPOT_SCREENSHOT_COMMUNITY_FOLLOWS__;
+  return fixture ?? null;
 }

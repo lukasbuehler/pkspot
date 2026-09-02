@@ -79,6 +79,15 @@ describe("parseSupportCheckoutInput", () => {
         supporterCredit: { optedIn: false },
       }),
     ).toThrow("supported checkout destination");
+
+    expect(
+      parseSupportCheckoutInput({
+        kind: "direct_support",
+        amountChf: 10,
+        checkoutDestination: "cart",
+        supporterCredit: { optedIn: false },
+      }),
+    ).toMatchObject({ checkoutDestination: "cart" });
   });
 
   it("does not accept a public supporter name without explicit opt-in", () => {

@@ -1,11 +1,14 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   LOCALE_ID,
+  afterNextRender,
   computed,
   inject,
   input,
   output,
+  viewChild,
 } from "@angular/core";
 import type { LocaleCode } from "../../../db/models/Interfaces";
 import {
@@ -23,9 +26,11 @@ import {
 export class TrainingActivityContributionGraphComponent {
   private readonly locale = inject(LOCALE_ID) as LocaleCode;
   private readonly firstWeekday = localeFirstWeekday(this.locale);
+  private readonly scrollContainer = viewChild<ElementRef<HTMLElement>>("scrollContainer");
 
   readonly days = input<readonly TrainingActivityDay[]>([]);
   readonly selectedDay = input<string | null>(null);
+  readonly interactive = input(true);
   readonly daySelected = output<string | null>();
   readonly weekdays = computed(() => {
     const formatter = new Intl.DateTimeFormat(this.locale, { weekday: "narrow" });
@@ -36,6 +41,13 @@ export class TrainingActivityContributionGraphComponent {
   readonly weeks = computed(() =>
     buildTrainingContributionWeeks(this.days(), this.firstWeekday),
   );
+
+  constructor() {
+    afterNextRender(() => {
+      const container = this.scrollContainer()?.nativeElement;
+      if (container) container.scrollLeft = container.scrollWidth;
+    });
+  }
 
   selectDay(day: TrainingContributionDay): void {
     if (!day.activity) return;

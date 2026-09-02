@@ -466,6 +466,18 @@ export class SearchService {
     const keys = SearchService._uniqueFilterValues(communityKeys);
     if (keys.length === 0) return [];
 
+    const screenshotFixture = readScreenshotTrainPageFixture();
+    if (screenshotFixture) {
+      const order = new Map(keys.map((key, index) => [key, index]));
+      return screenshotFixture.communities
+        .filter((community) => order.has(community.communityKey))
+        .sort(
+          (left, right) =>
+            (order.get(left.communityKey) ?? Number.MAX_SAFE_INTEGER) -
+            (order.get(right.communityKey) ?? Number.MAX_SAFE_INTEGER),
+        );
+    }
+
     const result = await this.client
       .collections(this.TYPESENSE_COLLECTION_COMMUNITIES)
       .documents()
@@ -954,6 +966,11 @@ export class SearchService {
     maxResults = 4,
     filterMode = SpotFilterMode.None,
   ): Promise<SpotPreviewData[]> {
+    const screenshotFixture = readScreenshotTrainPageFixture();
+    if (screenshotFixture) {
+      return screenshotFixture.spots.slice(0, Math.min(20, Math.max(1, maxResults)));
+    }
+
     const lat = location.lat.toFixed(6);
     const lng = location.lng.toFixed(6);
     const safeRadiusKm = Math.min(20_000, Math.max(0.1, radiusKm));
@@ -1381,6 +1398,22 @@ export class SearchService {
     const seriesIds = SearchService._uniqueFilterValues(options.seriesIds);
     const sortDirection =
       options.sort === "past" ? "desc" : "asc";
+    const screenshotFixture = readScreenshotTrainPageFixture();
+    if (screenshotFixture) {
+      const items = (
+        areaKeys.length > 0
+          ? screenshotFixture.communityEvents
+          : screenshotFixture.nearbyEvents
+      ).slice(0, perPage);
+      return {
+        items,
+        found: items.length,
+        page,
+        facets: { categories: [], series: [], communities: [] },
+        invalidItems: [],
+        invalidItemCount: 0,
+      };
+    }
     const filters = SearchService._joinFilters([
       "published:=true",
       options.startsBeforeSeconds === undefined
@@ -2650,4 +2683,20 @@ export interface EventDiscoverySearchResult {
   facets: EventDiscoveryFacets;
   invalidItems: EventSearchPreview[];
   invalidItemCount: number;
+}
+
+interface ScreenshotTrainPageFixture {
+  nearbyEvents: EventDiscoveryItem[];
+  communityEvents: EventDiscoveryItem[];
+  spots: SpotPreviewData[];
+  communities: CommunitySearchPreview[];
+}
+
+function readScreenshotTrainPageFixture(): ScreenshotTrainPageFixture | null {
+  const fixture = (
+    globalThis as typeof globalThis & {
+      __PKSPOT_SCREENSHOT_TRAIN_PAGE__?: ScreenshotTrainPageFixture;
+    }
+  ).__PKSPOT_SCREENSHOT_TRAIN_PAGE__;
+  return fixture ?? null;
 }

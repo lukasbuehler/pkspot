@@ -25,12 +25,38 @@ describe("ShopCartService", () => {
     expect(cart.product()?.stickerCount).toBe(25);
     expect(cart.itemCount()).toBe(1);
     expect(localStorage.getItem("pkspot:shop-cart:v1")).toBe(
-      "sticker-pack-huge",
+      JSON.stringify({ kind: "physical_order", productId: "sticker-pack-huge" }),
     );
 
     cart.clear();
 
     expect(cart.product()).toBeNull();
     expect(localStorage.getItem("pkspot:shop-cart:v1")).toBeNull();
+  });
+
+  it("persists an optional direct-support display name with the selected amount", () => {
+    TestBed.configureTestingModule({
+      providers: [
+        ShopCartService,
+        { provide: PLATFORM_ID, useValue: "browser" },
+      ],
+    });
+    const cart = TestBed.inject(ShopCartService);
+
+    cart.setDirectSupport({ amountChf: 42.5, displayName: "  Mira  " });
+
+    expect(cart.directSupport()).toEqual({
+      kind: "direct_support",
+      amountChf: 42.5,
+      displayName: "Mira",
+      priceLabel: "CHF 42.50",
+    });
+    expect(localStorage.getItem("pkspot:shop-cart:v1")).toBe(
+      JSON.stringify({
+        kind: "direct_support",
+        amountChf: 42.5,
+        displayName: "Mira",
+      }),
+    );
   });
 });

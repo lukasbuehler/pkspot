@@ -26,7 +26,7 @@ export class ShopCartPageComponent implements OnInit {
   ngOnInit(): void {
     this._metaTagService.setStaticPageMetaTags(
       "My cart | PK Spot Shop",
-      "Your selected PK Spot Sticker Support Pack.",
+      "Your selected PK Spot shop item.",
       undefined,
       "/shop/cart",
     );
@@ -39,18 +39,30 @@ export class ShopCartPageComponent implements OnInit {
   }
 
   async checkout(): Promise<void> {
-    const product = this.cart.product();
-    if (!product || this.checkoutAction()) return;
+    const item = this.cart.item();
+    if (!item || this.checkoutAction()) return;
 
     this.checkoutAction.set(true);
     this.checkoutError.set("");
     try {
-      const result = await this._shop.createCheckout({
-        kind: "physical_order",
-        productId: product.id,
-        checkoutDestination: "cart",
-        supporterCredit: { optedIn: false },
-      });
+      const result = await this._shop.createCheckout(
+        item.kind === "direct_support"
+          ? {
+              kind: "direct_support",
+              amountChf: item.amountChf,
+              checkoutDestination: "cart",
+              supporterCredit: {
+                optedIn: !!item.displayName,
+                ...(item.displayName ? { publicName: item.displayName } : {}),
+              },
+            }
+          : {
+              kind: "physical_order",
+              productId: item.product.id,
+              checkoutDestination: "cart",
+              supporterCredit: { optedIn: false },
+            },
+      );
       globalThis.location.assign(result.checkoutUrl);
     } catch (error) {
       console.error("Could not start PK Spot shop checkout", error);

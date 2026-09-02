@@ -426,7 +426,7 @@ function normalizedReturnUrl(): string {
 }
 
 function checkoutReturnUrl(input: SupportCheckoutInput): string {
-  if (input.kind === "physical_order" && input.checkoutDestination === "cart") {
+  if (input.checkoutDestination === "cart") {
     return `${normalizedReturnUrl()}/cart`;
   }
   return `${normalizedReturnUrl()}/item/${checkoutItemId(input)}`;

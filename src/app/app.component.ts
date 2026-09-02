@@ -3,6 +3,8 @@ import {
   ApplicationRef,
   Component,
   computed,
+  DestroyRef,
+  ElementRef,
   inject,
   OnInit,
   signal,
@@ -96,7 +98,11 @@ import { AppCheckFailureWarningService } from "./services/firebase/app-check-fai
 import { PushNotificationsService } from "./services/push-notifications.service";
 import { trainingFeatureEnabled } from "./features/training-feature";
 import { supportShopFeatureEnabled } from "./features/support-shop-feature";
-import { splitNavigationOverflow } from "./features/navbar-overflow";
+import {
+  desktopNavigationSlotCount,
+  splitNavigationOverflow,
+  type NavigationOverflow,
+} from "./features/navbar-overflow";
 import { MyEventContextService } from "./services/my-event-context.service";
 
 interface ButtonBase {
@@ -132,9 +138,11 @@ interface NavigationPerfEntry {
   lastPhaseAt: number;
 }
 
-// Keep the desktop rail focused on primary destinations. Secondary pages live
-// in More, while language and account remain in the footer.
-const DESKTOP_VISIBLE_DESTINATION_COUNT = 4;
+interface DesktopNavigationRailMeasurement {
+  leadingHeightWithoutLanguage: number;
+  languageFooterHeight: number;
+  buttonStep: number;
+}
 
 type NavigationPerfDetails = Record<string, unknown>;
 
@@ -195,6 +203,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   private _snackbar = inject(MatSnackBar);
   private _structuredDataService = inject(StructuredDataService);
   private _appRef = inject(ApplicationRef);
+  private readonly _destroyRef = inject(DestroyRef);
   readonly responsive = inject(ResponsiveService);
   private readonly _platformService = inject(PlatformService);
   private readonly _uiLanguageService = inject(UiLanguageService);
@@ -228,6 +237,25 @@ export class AppComponent implements OnInit, AfterViewInit {
   public checkInService = inject(CheckInService);
   readonly myEventContext = inject(MyEventContextService);
   readonly checkInEnabled = environment.features.checkIns;
+  private readonly _desktopNavigationRailMeasurement = signal<DesktopNavigationRailMeasurement | null>(
+    null,
+  );
+  private _desktopNavigationRail?: HTMLElement;
+  private _desktopNavigationFooter?: HTMLElement;
+  private _desktopNavigationLayoutObserver?: ResizeObserver;
+  private _desktopNavigationMeasurementFrame?: number;
+
+  @ViewChild("desktopNavigationRail", { read: ElementRef })
+  set desktopNavigationRail(element: ElementRef<HTMLElement> | undefined) {
+    this._desktopNavigationRail = element?.nativeElement;
+    this.observeDesktopNavigationLayout();
+  }
+
+  @ViewChild("desktopNavigationFooter", { read: ElementRef })
+  set desktopNavigationFooter(element: ElementRef<HTMLElement> | undefined) {
+    this._desktopNavigationFooter = element?.nativeElement;
+    this.observeDesktopNavigationLayout();
+  }
 
   constructor(
     public router: Router,
@@ -238,6 +266,16 @@ export class AppComponent implements OnInit, AfterViewInit {
     private _metaTagService: MetaTagService,
   ) {
     this.matIconRegistry.setDefaultFontSetClass("material-symbols-rounded");
+
+    this._destroyRef.onDestroy(() => {
+      this._desktopNavigationLayoutObserver?.disconnect();
+      if (
+        this._desktopNavigationMeasurementFrame !== undefined &&
+        typeof window !== "undefined"
+      ) {
+        window.cancelAnimationFrame(this._desktopNavigationMeasurementFrame);
+      }
+    });
 
     this.enforceAlainMode();
   }
@@ -281,6 +319,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   onResize() {
     this.responsive.refreshViewport();
     this.enforceAlainMode();
+    this.scheduleDesktopNavigationMeasurement();
   }
 
   enforceAlainMode() {
@@ -1469,25 +1508,6 @@ html.pkspot-roboto-loaded body {
       liveIndicator: this.myEventContext.hasLiveEvent(),
     });
 
-    if (supportShopFeatureEnabled) {
-      buttons.push({
-        id: "shop",
-        name: $localize`:Shop navbar button label|A very short label for the PK Spot shop@@shop.nav:Shop`,
-        link: "/shop",
-        icon: "shopping_bag",
-        overflowPriority: 3,
-      });
-    }
-
-    // About is lowest priority, so compact navigation places it in More first.
-    buttons.push({
-      id: "about",
-      name: $localize`:About page navbar button label|A very short label for the navbar about page button@@about_page_label:About`,
-      link: "/about",
-      icon: "info",
-      overflowPriority: 4,
-    });
-
     if (!isCompact) {
       buttons.push({
         id: "language",
@@ -1495,10 +1515,28 @@ html.pkspot-roboto-loaded body {
         name: $localize`:@@2826581353496868063:Language`,
         function: () => this._uiLanguageService.changeLanguage(),
         icon: "language",
-        overflowPriority: 5,
-        alwaysVisible: true,
+        overflowPriority: 3,
       });
     }
+
+    if (supportShopFeatureEnabled) {
+      buttons.push({
+        id: "shop",
+        name: $localize`:Shop navbar button label|A very short label for the PK Spot shop@@shop.nav:Shop`,
+        link: "/shop",
+        icon: "shopping_bag",
+        overflowPriority: 4,
+      });
+    }
+
+    // About is lowest priority, so More absorbs it before primary navigation.
+    buttons.push({
+      id: "about",
+      name: $localize`:About page navbar button label|A very short label for the navbar about page button@@about_page_label:About`,
+      link: "/about",
+      icon: "info",
+      overflowPriority: 5,
+    });
 
     if (!isCompact && this.authService.isAdmin()) {
       buttons.push({
@@ -1551,21 +1589,28 @@ html.pkspot-roboto-loaded body {
     return buttons;
   });
 
-  readonly navbarOverflow = computed(() =>
-    splitNavigationOverflow(
+  readonly navbarOverflow = computed(() => {
+    const viewMode = this.responsive.viewMode();
+
+    return splitNavigationOverflow(
       this.navbarConfig() ?? [],
-      this.responsive.viewMode() === "desktop"
-        ? 7
-        : this.responsive.viewMode() === "tablet"
+      viewMode === "desktop"
+        ? desktopNavigationSlotCount(
+            this.navbarConfig() ?? [],
+            (navigation) =>
+              this.getDesktopLeadingSlotCount(
+                navigation,
+                this._desktopNavigationRailMeasurement(),
+              ),
+          )
+        : viewMode === "tablet"
           ? 6
           : 5,
-      this.responsive.viewMode() === "desktop"
-        ? DESKTOP_VISIBLE_DESTINATION_COUNT
-        : this.responsive.viewMode() === "mobile"
-          ? this.mobileVisibleDestinationCount()
-          : Number.POSITIVE_INFINITY,
-    ),
-  );
+      viewMode === "mobile"
+        ? this.mobileVisibleDestinationCount()
+        : Number.POSITIVE_INFINITY,
+    );
+  });
   readonly mobileVisibleDestinationCount = computed(() => {
     const width = this.responsive.viewportWidth();
 
@@ -1605,6 +1650,110 @@ html.pkspot-roboto-loaded body {
         (!!button.link && this.isNavbarLinkActive(button.link)),
     ),
   );
+
+  private observeDesktopNavigationLayout(): void {
+    this._desktopNavigationLayoutObserver?.disconnect();
+
+    const rail = this._desktopNavigationRail?.querySelector<HTMLElement>(
+      ".nav-rail",
+    );
+    const footer = this._desktopNavigationFooter;
+    if (!rail || !footer || typeof ResizeObserver === "undefined") return;
+
+    this._desktopNavigationLayoutObserver = new ResizeObserver(() =>
+      this.scheduleDesktopNavigationMeasurement(),
+    );
+    this._desktopNavigationLayoutObserver.observe(rail);
+    this._desktopNavigationLayoutObserver.observe(footer);
+    this.scheduleDesktopNavigationMeasurement();
+  }
+
+  private scheduleDesktopNavigationMeasurement(): void {
+    if (
+      this._desktopNavigationMeasurementFrame !== undefined ||
+      typeof window === "undefined"
+    ) {
+      return;
+    }
+
+    this._desktopNavigationMeasurementFrame = window.requestAnimationFrame(() => {
+      this._desktopNavigationMeasurementFrame = undefined;
+      this.measureDesktopNavigationLayout();
+    });
+  }
+
+  private measureDesktopNavigationLayout(): void {
+    if (this.responsive.viewMode() !== "desktop") return;
+
+    const rail = this._desktopNavigationRail?.querySelector<HTMLElement>(
+      ".nav-rail",
+    );
+    const footer = this._desktopNavigationFooter;
+    const firstLeadingButton = rail?.querySelector<HTMLElement>(
+      "[data-desktop-leading-navigation]",
+    );
+    if (!rail || !footer || !firstLeadingButton) return;
+
+    const railRect = rail.getBoundingClientRect();
+    const footerRect = footer.getBoundingClientRect();
+    const buttonRect = firstLeadingButton.getBoundingClientRect();
+    const buttonMargin = Number.parseFloat(
+      getComputedStyle(firstLeadingButton).marginBottom,
+    );
+    const buttonStep =
+      buttonRect.height + (Number.isFinite(buttonMargin) ? buttonMargin : 0);
+    if (railRect.height <= 0 || buttonStep <= 0) return;
+
+    const footerGap = Number.parseFloat(getComputedStyle(footer).rowGap);
+    const footerButton = footer.querySelector<HTMLElement>(
+      "[data-desktop-trailing-navigation]",
+    );
+    if (!footerButton) return;
+
+    const languageFooterButton = footer.querySelector<HTMLElement>(
+      '[data-navigation-id="language"]',
+    );
+    const languageFooterHeight =
+      footerButton.getBoundingClientRect().height +
+      (Number.isFinite(footerGap) ? footerGap : 0);
+    const footerHeightWithoutLanguage =
+      footerRect.height - (languageFooterButton ? languageFooterHeight : 0);
+    const nextMeasurement = {
+      leadingHeightWithoutLanguage:
+        railRect.bottom - footerHeightWithoutLanguage - buttonRect.top,
+      languageFooterHeight,
+      buttonStep,
+    };
+    const currentMeasurement = this._desktopNavigationRailMeasurement();
+    if (
+      !currentMeasurement ||
+      currentMeasurement.leadingHeightWithoutLanguage !==
+        nextMeasurement.leadingHeightWithoutLanguage ||
+      currentMeasurement.languageFooterHeight !==
+        nextMeasurement.languageFooterHeight ||
+      currentMeasurement.buttonStep !== nextMeasurement.buttonStep
+    ) {
+      this._desktopNavigationRailMeasurement.set(nextMeasurement);
+    }
+  }
+
+  private getDesktopLeadingSlotCount(
+    navigation: NavigationOverflow<NavbarButton>,
+    measurement: DesktopNavigationRailMeasurement | null,
+  ): number {
+    if (!measurement) return this.navbarConfig()?.length ?? 0;
+
+    const languageIsVisible = navigation.visible.some(
+      (button) => button.spacerBefore && !button.alwaysVisible,
+    );
+    const leadingHeight =
+      measurement.leadingHeightWithoutLanguage -
+      (languageIsVisible ? measurement.languageFooterHeight : 0);
+    return Math.max(
+      0,
+      Math.floor((leadingHeight + 0.5) / measurement.buttonStep),
+    );
+  }
 
   private isNavbarLinkActive(link: string): boolean {
     const currentUrl = this.currentNavUrl();

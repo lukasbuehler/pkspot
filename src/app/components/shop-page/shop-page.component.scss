@@ -157,6 +157,17 @@
   }
 }
 
+// Alain Mode replaces the bottom navigation with an app-level menu FAB that
+// overlays this corner. Keep the page heading below its tap target.
+@media (max-height: 499.98px), (max-width: 767.98px) and (max-height: 699.98px) {
+  .shop-page {
+    padding-block-start: max(
+      80px,
+      calc(72px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
+    );
+  }
+}
+
 mat-spinner {
   display: inline-flex;
   margin-right: 0.5rem;

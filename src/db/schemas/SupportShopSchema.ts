@@ -73,6 +73,7 @@ export interface DirectSupportCheckoutInput {
   kind: "direct_support";
   amountRappen: number;
   supporterCredit: SupporterCreditInput;
+  checkoutDestination?: SupportCheckoutDestination;
 }
 
 export interface PhysicalOrderCheckoutInput {
@@ -102,11 +103,20 @@ export function parseSupportCheckoutInput(value: unknown): SupportCheckoutInput 
   const supporterCredit = parseSupporterCredit(value["supporterCredit"]);
 
   if (kind === "direct_support") {
-    assertOnlyKeys(value, ["kind", "amountChf", "supporterCredit"]);
+    assertOnlyKeys(value, [
+      "kind",
+      "amountChf",
+      "supporterCredit",
+      "checkoutDestination",
+    ]);
+    const checkoutDestination = parseCheckoutDestination(
+      value["checkoutDestination"],
+    );
     return {
       kind,
       amountRappen: parseDirectSupportAmount(value["amountChf"]),
       supporterCredit,
+      ...(checkoutDestination ? { checkoutDestination } : {}),
     };
   }
 

@@ -4,25 +4,24 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { findShopItem } from "../../features/shop-catalog";
 import { AnalyticsService } from "../../services/analytics.service";
 import { MetaTagService } from "../../services/meta-tag.service";
-import { SupportShopService } from "../../services/support-shop.service";
+import { ShopCartService } from "../../services/shop-cart.service";
 import { ShopItemPageComponent } from "./shop-item-page.component";
 
 describe("ShopItemPageComponent", () => {
   let component: ShopItemPageComponent;
   let fixture: ComponentFixture<ShopItemPageComponent>;
   const metaTagService = { setStaticPageMetaTags: vi.fn() };
-  const supportShopService = { createCheckout: vi.fn() };
 
   beforeEach(async () => {
     metaTagService.setStaticPageMetaTags.mockReset();
-    supportShopService.createCheckout.mockReset();
     await TestBed.configureTestingModule({
       imports: [ShopItemPageComponent],
       providers: [
-        provideRouter([]),
+        provideRouter([
+          { path: "shop/cart", component: ShopItemPageComponent },
+        ]),
         { provide: AnalyticsService, useValue: { trackEvent: vi.fn() } },
         { provide: MetaTagService, useValue: metaTagService },
-        { provide: SupportShopService, useValue: supportShopService },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -74,40 +73,30 @@ describe("ShopItemPageComponent", () => {
     );
   });
 
-  it("always shows an optional nickname field for direct supporters", async () => {
+  it("always shows an optional display name and its public-review terms", async () => {
     component.item.set(findShopItem("support-pkspot"));
     fixture.detectChanges();
     await fixture.whenStable();
 
     const content = fixture.nativeElement.textContent;
-    expect(content).toContain("Nickname (optional)");
+    expect(content).toContain("Display name (optional)");
     expect(content).toContain(
-      "Add a nickname so we can thank you on the PK Spot supporters page.",
+      "Display names are manually reviewed before appearing publicly on the PK Spot supporters page.",
     );
     expect(fixture.nativeElement.querySelector("mat-checkbox")).toBeNull();
     expect(fixture.nativeElement.querySelector("mat-hint")).toBeNull();
   });
 
-  it("uses a supplied nickname as the supporters-page opt-in", async () => {
+  it("adds the supplied display name to the direct-support cart item", async () => {
     component.supportModel.update((model) => ({
       ...model,
-      publicName: "  Mira  ",
+      displayName: "  Mira  ",
     }));
-    supportShopService.createCheckout.mockRejectedValueOnce(
-      new Error("Checkout test failure"),
-    );
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    await component.addDirectSupportToCart();
 
-    try {
-      await component.startDirectSupportCheckout();
-
-      expect(supportShopService.createCheckout).toHaveBeenCalledWith({
-        kind: "direct_support",
-        amountChf: 10,
-        supporterCredit: { optedIn: true, publicName: "Mira" },
-      });
-    } finally {
-      consoleError.mockRestore();
-    }
+    expect(TestBed.inject(ShopCartService).directSupport()).toMatchObject({
+      amountChf: 10,
+      displayName: "Mira",
+    });
   });
 });

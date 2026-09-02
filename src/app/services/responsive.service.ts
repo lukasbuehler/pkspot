@@ -72,6 +72,12 @@ export class ResponsiveService {
   private readonly _viewportWidth = signal<number | null>(this.getViewportWidth());
   readonly viewportWidth = this._viewportWidth.asReadonly();
 
+  /** Current layout viewport height, kept fresh by the app shell on resize. */
+  private readonly _viewportHeight = signal<number | null>(
+    this.getViewportHeight(),
+  );
+  readonly viewportHeight = this._viewportHeight.asReadonly();
+
   /**
    * Current view mode
    */
@@ -105,6 +111,7 @@ export class ResponsiveService {
 
   refreshViewport(): void {
     this._viewportWidth.set(this.getViewportWidth());
+    this._viewportHeight.set(this.getViewportHeight());
   }
 
   /**
@@ -234,6 +241,27 @@ export class ResponsiveService {
           (width): width is number => typeof width === "number" && width > 0
         )
       )
+    );
+  }
+
+  private getViewportHeight(): number | null {
+    if (!this.isBrowser || typeof window === "undefined") return null;
+
+    const visualViewportHeight =
+      typeof window.visualViewport?.height === "number"
+        ? window.visualViewport.height
+        : null;
+    const documentHeight =
+      typeof document !== "undefined"
+        ? document.documentElement.clientHeight
+        : null;
+
+    return Math.round(
+      Math.min(
+        ...[visualViewportHeight, documentHeight, window.innerHeight].filter(
+          (height): height is number => typeof height === "number" && height > 0,
+        ),
+      ),
     );
   }
 

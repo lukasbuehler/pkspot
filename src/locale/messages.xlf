@@ -452,11 +452,6 @@
         <source>Event view</source>
       </segment>
     </unit>
-    <unit id="1021514752572704186">
-      <segment>
-        <source>Unfollow community</source>
-      </segment>
-    </unit>
     <unit id="1022095499149608293">
       <segment>
         <source>The redundant Spot is saved in private lists.</source>
@@ -1968,6 +1963,11 @@
         <source>Close</source>
       </segment>
     </unit>
+    <unit id="common.or">
+      <segment>
+        <source>or</source>
+      </segment>
+    </unit>
     <unit id="common.dismiss">
       <segment>
         <source>Dismiss</source>
@@ -2655,11 +2655,6 @@
     <unit id="5161411570094992408">
       <segment>
         <source>Not now</source>
-      </segment>
-    </unit>
-    <unit id="5163862847546461994">
-      <segment>
-        <source>Training conditions</source>
       </segment>
     </unit>
     <unit id="5176605689144016167">
@@ -9036,69 +9031,39 @@
         <source>By creating an account, you agree to our <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> and confirm you meet the age requirements or have parent/guardian consent, and that you will contribute content under the license terms described within.</source>
       </segment>
     </unit>
-    <unit id="train.addLog">
-      <segment>
-        <source>Add log entry</source>
-      </segment>
-    </unit>
     <unit id="train.allEvents">
       <segment>
         <source>All events</source>
       </segment>
     </unit>
-    <unit id="train.bestOptions">
-      <segment>
-        <source>Best options</source>
-      </segment>
-    </unit>
     <unit id="train.bestSpots">
       <segment>
-        <source>Best spots in your area</source>
-      </segment>
-    </unit>
-    <unit id="train.communitiesEyebrow">
-      <segment>
-        <source>Your network</source>
+        <source>Good places to train within reach</source>
       </segment>
     </unit>
     <unit id="train.eyebrow">
       <segment>
-        <source>Plan your training</source>
+        <source>Train</source>
       </segment>
     </unit>
-    <unit id="train.followedCommunities">
+    <unit id="train.history.allLogs">
       <segment>
-        <source>Communities you follow</source>
+        <source>View all logs</source>
       </segment>
     </unit>
-    <unit id="train.goodOptions">
+    <unit id="train.history.eyebrow">
       <segment>
-        <source>Good options today and this week</source>
+        <source>Your training</source>
       </segment>
     </unit>
-    <unit id="train.greeting">
+    <unit id="train.history.title">
       <segment>
-        <source>Let&apos;s train!</source>
-      </segment>
-    </unit>
-    <unit id="train.greetingNamed">
-      <segment>
-        <source>Hey <ph id="0" equiv="INTERPOLATION" disp="{{ displayName() }}"/>, let&apos;s train!</source>
+        <source>Training history</source>
       </segment>
     </unit>
     <unit id="train.loadError">
       <segment>
         <source>Training options could not be loaded.</source>
-      </segment>
-    </unit>
-    <unit id="train.logPrivacy">
-      <segment>
-        <source> Session records stay private. You choose what a log entry shares. </source>
-      </segment>
-    </unit>
-    <unit id="train.logPrompt">
-      <segment>
-        <source>Finished training? Add it to your log.</source>
       </segment>
     </unit>
     <unit id="train.nav">
@@ -9112,47 +9077,17 @@
     </unit>
     <unit id="train.nearbySpots">
       <segment>
-        <source>Nearby spots</source>
-      </segment>
-    </unit>
-    <unit id="train.noCommunities">
-      <segment>
-        <source> Choose an area above, then follow communities from their pages. </source>
+        <source>Nearby Spots</source>
       </segment>
     </unit>
     <unit id="train.noSpots">
       <segment>
-        <source> No spots found in this area yet. </source>
-      </segment>
-    </unit>
-    <unit id="train.openLog">
-      <segment>
-        <source>Training log</source>
+        <source> No Spots found in this area yet. </source>
       </segment>
     </unit>
     <unit id="train.openMap">
       <segment>
         <source>Open map</source>
-      </segment>
-    </unit>
-    <unit id="train.personalRecord">
-      <segment>
-        <source> Your personal record </source>
-      </segment>
-    </unit>
-    <unit id="train.searchRadius">
-      <segment>
-        <source>Within <ph id="0" equiv="INTERPOLATION" disp="{{ radiusKm() }}"/> km</source>
-      </segment>
-    </unit>
-    <unit id="train.signInCommunities">
-      <segment>
-        <source> Sign in to follow training communities. </source>
-      </segment>
-    </unit>
-    <unit id="train.signInToLog">
-      <segment>
-        <source>Sign in to log</source>
       </segment>
     </unit>
     <unit id="train.spotFilters">
@@ -9162,7 +9097,7 @@
     </unit>
     <unit id="train.spotsNeedArea">
       <segment>
-        <source> Use your location or choose an area to see nearby spots. </source>
+        <source> Choose a training area to see nearby Spots. </source>
       </segment>
     </unit>
     <unit id="train.useLocation">
@@ -9172,7 +9107,97 @@
     </unit>
     <unit id="train.weatherDryFilter">
       <segment>
-        <source> Dry spots prioritized for the forecast </source>
+        <source> Dry Spots are prioritised for the forecast. </source>
+      </segment>
+    </unit>
+    <unit id="train.communityEvents.eyebrow">
+      <segment>
+        <source>Your communities</source>
+      </segment>
+    </unit>
+    <unit id="train.communityEvents.summary">
+      <segment>
+        <source> Worth knowing about, even when they are farther away. </source>
+      </segment>
+    </unit>
+    <unit id="train.communityEvents.title">
+      <segment>
+        <source>Events from people you follow</source>
+      </segment>
+    </unit>
+    <unit id="train.context.chooseAction">
+      <segment>
+        <source> Choose area </source>
+      </segment>
+    </unit>
+    <unit id="train.context.clearArea">
+      <segment>
+        <source>Clear training area</source>
+      </segment>
+    </unit>
+    <unit id="train.context.close">
+      <segment>
+        <source>Close training area</source>
+      </segment>
+    </unit>
+    <unit id="train.context.eyebrow">
+      <segment>
+        <source> Training area </source>
+      </segment>
+    </unit>
+    <unit id="train.context.intro">
+      <segment>
+        <source> Use your location for nearby ideas, or search for a community to plan a session somewhere else. </source>
+      </segment>
+    </unit>
+    <unit id="train.context.open">
+      <segment>
+        <source>Change training area or view weather</source>
+      </segment>
+    </unit>
+    <unit id="train.context.title">
+      <segment>
+        <source>Choose your training area</source>
+      </segment>
+    </unit>
+    <unit id="train.context.weatherAction">
+      <segment>
+        <source> View forecast </source>
+      </segment>
+    </unit>
+    <unit id="train.context.weatherHint">
+      <segment>
+        <source>See the next few hours before you head out.</source>
+      </segment>
+    </unit>
+    <unit id="train.nearbyEvents.eyebrow">
+      <segment>
+        <source>Happening soon</source>
+      </segment>
+    </unit>
+    <unit id="train.nearbyEvents.summary">
+      <segment>
+        <source> The soonest upcoming sessions within reach. </source>
+      </segment>
+    </unit>
+    <unit id="train.nearbyEvents.title">
+      <segment>
+        <source>Events near your area</source>
+      </segment>
+    </unit>
+    <unit id="train.summary">
+      <segment>
+        <source> Nearby Spots and events from the communities you follow. </source>
+      </segment>
+    </unit>
+    <unit id="train.title">
+      <segment>
+        <source>Find your next session</source>
+      </segment>
+    </unit>
+    <unit id="train.nearYou">
+      <segment>
+        <source>Near you</source>
       </segment>
     </unit>
     <unit id="trainingLog.createFirst">

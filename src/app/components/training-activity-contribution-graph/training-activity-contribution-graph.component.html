@@ -16,12 +16,12 @@
         <span>{{ weekday }}</span>
       }
     </div>
-    <div class="contribution-graph__scroll" tabindex="0" role="region" aria-label="Scrollable training history" i18n-aria-label="@@trainingContributionGraph.scrollable">
+    <div #scrollContainer class="contribution-graph__scroll" tabindex="0" role="region" aria-label="Scrollable training history" i18n-aria-label="@@trainingContributionGraph.scrollable">
       <div class="weeks" role="list">
         @for (week of weeks(); track week.key) {
           <div class="week" role="listitem" [class.week-active]="week.hasActivity">
             @for (day of week.days; track day.key) {
-              @if (!day.isFuture && day.activity) {
+              @if (!day.isFuture && day.activity && interactive()) {
                 <button
                   class="cell day-active"
                   type="button"
@@ -33,7 +33,12 @@
                   (click)="selectDay(day)"
                 ></button>
               } @else if (!day.isFuture) {
-                <span class="cell" [class.is-today]="day.isToday" aria-hidden="true"></span>
+                <span
+                  class="cell"
+                  [class.day-active]="!!day.activity"
+                  [class.is-today]="day.isToday"
+                  aria-hidden="true"
+                ></span>
               }
             }
           </div>

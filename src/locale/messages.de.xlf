@@ -2739,12 +2739,6 @@
         <target>Eventansicht</target>
       </segment>
     </unit>
-    <unit id="1021514752572704186">
-      <segment state="initial">
-        <source>Unfollow community</source>
-        <target>Unfollow community</target>
-      </segment>
-    </unit>
     <unit id="1022095499149608293">
       <segment state="initial">
         <source>The redundant Spot is saved in private lists.</source>
@@ -10591,6 +10585,12 @@
         <target>Schließen</target>
       </segment>
     </unit>
+    <unit id="common.or">
+      <segment state="translated">
+        <source>or</source>
+        <target>oder</target>
+      </segment>
+    </unit>
     <unit id="common.not_now">
       <segment state="initial">
         <source> Not now </source>
@@ -12990,12 +12990,6 @@
         <target>Nicht jetzt</target>
       </segment>
     </unit>
-    <unit id="5163862847546461994">
-      <segment state="initial">
-        <source>Training conditions</source>
-        <target>Training conditions</target>
-      </segment>
-    </unit>
     <unit id="5176605689144016167">
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">⚠️ Important:</pc> When embedding this content on your website, you are responsible for obtaining user consent for third-party services (Google Maps, analytics, etc.). Ensure your site has a clear consent banner or terms that users agree to before viewing embedded content. </source>
@@ -13568,82 +13562,46 @@
         <target>Durch die Erstellung eines Kontos stimmst du unseren <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a routerLink=&quot;/terms-of-service&quot;&gt;" dispEnd="&lt;/a&gt;">Terms of Service</pc> zu und bestätigst, dass du die Altersanforderungen erfüllst oder die Zustimmung eines Elternteils oder Erziehungsberechtigten hast und Inhalte unter den darin beschriebenen Lizenzbedingungen beitragen wirst.</target>
       </segment>
     </unit>
-    <unit id="train.addLog">
-      <segment state="initial">
-        <source>Add log entry</source>
-        <target>Add log entry</target>
-      </segment>
-    </unit>
     <unit id="train.allEvents">
       <segment state="initial">
         <source>All events</source>
         <target>All events</target>
       </segment>
     </unit>
-    <unit id="train.bestOptions">
-      <segment state="initial">
-        <source>Best options</source>
-        <target>Best options</target>
-      </segment>
-    </unit>
     <unit id="train.bestSpots">
       <segment state="translated">
-        <source>Best spots in your area</source>
-        <target>Die besten Spots in deiner Nähe</target>
-      </segment>
-    </unit>
-    <unit id="train.communitiesEyebrow">
-      <segment state="initial">
-        <source>Your network</source>
-        <target>Your network</target>
+        <source>Good places to train within reach</source>
+        <target>Gute Trainings-Spots in Reichweite</target>
       </segment>
     </unit>
     <unit id="train.eyebrow">
-      <segment state="initial">
-        <source>Plan your training</source>
-        <target>Plan your training</target>
+      <segment state="translated">
+        <source>Train</source>
+        <target>Train</target>
       </segment>
     </unit>
-    <unit id="train.followedCommunities">
-      <segment state="initial">
-        <source>Communities you follow</source>
-        <target>Communities you follow</target>
+    <unit id="train.history.allLogs">
+      <segment state="translated">
+        <source>View all logs</source>
+        <target>Alle Logs ansehen</target>
       </segment>
     </unit>
-    <unit id="train.goodOptions">
-      <segment state="initial">
-        <source>Good options today and this week</source>
-        <target>Good options today and this week</target>
+    <unit id="train.history.eyebrow">
+      <segment state="translated">
+        <source>Your training</source>
+        <target>Dein Training</target>
       </segment>
     </unit>
-    <unit id="train.greeting">
-      <segment state="initial">
-        <source>Let&apos;s train!</source>
-        <target>Let&apos;s train!</target>
-      </segment>
-    </unit>
-    <unit id="train.greetingNamed">
-      <segment state="initial">
-        <source>Hey <ph id="0" equiv="INTERPOLATION" disp="{{ displayName() }}"/>, let&apos;s train!</source>
-        <target>Hey <ph id="0" equiv="INTERPOLATION" disp="{{ displayName() }}"/>, let&apos;s train!</target>
+    <unit id="train.history.title">
+      <segment state="translated">
+        <source>Training history</source>
+        <target>Trainingsverlauf</target>
       </segment>
     </unit>
     <unit id="train.loadError">
       <segment state="initial">
         <source>Training options could not be loaded.</source>
         <target>Training options could not be loaded.</target>
-      </segment>
-    </unit>
-    <unit id="train.logPrivacy">
-      <segment state="initial">
-        <source> Session records stay private. You choose what a log entry shares. </source>
-        <target> Session records stay private. You choose what a log entry shares. </target>
-      </segment>
-    </unit>
-    <unit id="train.logPrompt">
-      <segment state="initial">
-        <source>Finished training? Add it to your log.</source>
-        <target>Finished training? Add it to your log.</target>
       </segment>
     </unit>
     <unit id="train.nav">
@@ -13658,56 +13616,20 @@
     </unit>
     <unit id="train.nearbySpots">
       <segment state="translated">
-        <source>Nearby spots</source>
+        <source>Nearby Spots</source>
         <target>Spots in der Nähe</target>
-      </segment>
-    </unit>
-    <unit id="train.noCommunities">
-      <segment state="initial">
-        <source> Choose an area above, then follow communities from their pages. </source>
-        <target> Choose an area above, then follow communities from their pages. </target>
       </segment>
     </unit>
     <unit id="train.noSpots">
       <segment state="translated">
-        <source> No spots found in this area yet. </source>
+        <source> No Spots found in this area yet. </source>
         <target> In diesem Gebiet wurden noch keine Spots gefunden. </target>
-      </segment>
-    </unit>
-    <unit id="train.openLog">
-      <segment state="initial">
-        <source>Training log</source>
-        <target>Training log</target>
       </segment>
     </unit>
     <unit id="train.openMap">
       <segment state="translated">
         <source>Open map</source>
         <target>Karte öffnen</target>
-      </segment>
-    </unit>
-    <unit id="train.personalRecord">
-      <segment state="initial">
-        <source> Your personal record </source>
-        <target> Your personal record </target>
-      </segment>
-    </unit>
-    <unit id="train.searchRadius">
-      <segment state="initial">
-        <source>Within <ph id="0" equiv="INTERPOLATION" disp="{{ radiusKm() }}"/> km</source>
-        <target>Within <ph id="0" equiv="INTERPOLATION" disp="{{ radiusKm() }}"/> km</target>
-      </segment>
-    </unit>
-    <unit id="train.signInCommunities">
-      <segment state="initial">
-        <source> Sign in to follow training communities. </source>
-        <target> Sign in to follow training communities. </target>
-      </segment>
-    </unit>
-    <unit id="train.signInToLog">
-      <segment state="initial">
-        <source>Sign in to log</source>
-        <target>Sign in to log</target>
       </segment>
     </unit>
     <unit id="train.spotFilters">
@@ -13718,8 +13640,8 @@
     </unit>
     <unit id="train.spotsNeedArea">
       <segment state="translated">
-        <source> Use your location or choose an area to see nearby spots. </source>
-        <target> Verwende deinen Standort oder wähle ein Gebiet aus, um Spots in der Nähe zu sehen. </target>
+        <source> Choose a training area to see nearby Spots. </source>
+        <target> Wähle einen Trainingsbereich, um Spots in deiner Nähe zu sehen. </target>
       </segment>
     </unit>
     <unit id="train.useLocation">
@@ -13730,8 +13652,116 @@
     </unit>
     <unit id="train.weatherDryFilter">
       <segment state="translated">
-        <source> Dry spots prioritized for the forecast </source>
-        <target> Trockene Spots werden aufgrund der Vorhersage bevorzugt. </target>
+        <source> Dry Spots are prioritised for the forecast. </source>
+        <target> Trockene Spots werden für die Vorhersage bevorzugt. </target>
+      </segment>
+    </unit>
+    <unit id="train.communityEvents.eyebrow">
+      <segment state="translated">
+        <source>Your communities</source>
+        <target>Deine Communities</target>
+      </segment>
+    </unit>
+    <unit id="train.communityEvents.summary">
+      <segment state="translated">
+        <source> Worth knowing about, even when they are farther away. </source>
+        <target> Auch interessant, wenn sie weiter weg sind. </target>
+      </segment>
+    </unit>
+    <unit id="train.communityEvents.title">
+      <segment state="translated">
+        <source>Events from people you follow</source>
+        <target>Events von Menschen, denen du folgst</target>
+      </segment>
+    </unit>
+    <unit id="train.context.chooseAction">
+      <segment state="translated">
+        <source> Choose area </source>
+        <target> Bereich wählen </target>
+      </segment>
+    </unit>
+    <unit id="train.context.clearArea">
+      <segment state="translated">
+        <source>Clear training area</source>
+        <target>Trainingsbereich zurücksetzen</target>
+      </segment>
+    </unit>
+    <unit id="train.context.close">
+      <segment state="translated">
+        <source>Close training area</source>
+        <target>Trainingsbereich schließen</target>
+      </segment>
+    </unit>
+    <unit id="train.context.eyebrow">
+      <segment state="translated">
+        <source> Training area </source>
+        <target> Trainingsbereich </target>
+      </segment>
+    </unit>
+    <unit id="train.context.intro">
+      <segment state="translated">
+        <source> Use your location for nearby ideas, or search for a community to plan a session somewhere else. </source>
+        <target> Nutze deinen Standort für Ideen in der Nähe oder suche nach einer Community, um eine Session an einem anderen Ort zu planen. </target>
+      </segment>
+    </unit>
+    <unit id="train.context.open">
+      <segment state="translated">
+        <source>Change training area or view weather</source>
+        <target>Trainingsbereich ändern oder Wetter ansehen</target>
+      </segment>
+    </unit>
+    <unit id="train.context.title">
+      <segment state="translated">
+        <source>Choose your training area</source>
+        <target>Wähle deinen Trainingsbereich</target>
+      </segment>
+    </unit>
+    <unit id="train.context.weatherAction">
+      <segment state="translated">
+        <source> View forecast </source>
+        <target> Vorhersage ansehen </target>
+      </segment>
+    </unit>
+    <unit id="train.context.weatherHint">
+      <segment state="translated">
+        <source>See the next few hours before you head out.</source>
+        <target>Sieh dir die nächsten Stunden an, bevor du losgehst.</target>
+      </segment>
+    </unit>
+    <unit id="train.nearbyEvents.eyebrow">
+      <segment state="translated">
+        <source>Happening soon</source>
+        <target>Demnächst</target>
+      </segment>
+    </unit>
+    <unit id="train.nearbyEvents.summary">
+      <segment state="translated">
+        <source> The soonest upcoming sessions within reach. </source>
+        <target> Die nächsten Sessions, die du gut erreichen kannst. </target>
+      </segment>
+    </unit>
+    <unit id="train.nearbyEvents.title">
+      <segment state="translated">
+        <source>Events near your area</source>
+        <target>Events in deiner Nähe</target>
+      </segment>
+    </unit>
+    <unit id="train.summary">
+      <segment state="translated">
+        <source> Nearby Spots and events from the communities you follow. </source>
+        <target> Spots in deiner Nähe und Events aus den Communities, denen du folgst. </target>
+      </segment>
+    </unit>
+    <unit id="train.title">
+      <segment state="translated">
+        <source>Find your next session</source>
+        <target>Finde deine nächste Session</target>
+      </segment>
+    </unit>
+    <unit id="train.nearYou">
+      <segment state="translated">
+        <source>Near you</source>
+        <target>In deiner Nähe</target>
       </segment>
     </unit>
     <unit id="trainingLog.createFirst">
