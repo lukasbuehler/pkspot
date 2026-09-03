@@ -3,16 +3,19 @@ import {
   EventBoundsSchema,
   EventCustomMarkerSchema,
   EventCategory,
+  EventCommunityBroadcastMode,
   EventFeaturedParticipantSchema,
   EventImageFit,
   EventAttendanceSchema,
   EventDisplayedLifecycleStatus,
   EventDiscoverability,
   EventKind,
+  EventListingTier,
   EventLifecycleStatus,
   EventNotificationPolicy,
   EventOwnerSchema,
   EventPriority,
+  EventRegionKey,
   EventProgramItemSchema,
   EventProgramPlanSchema,
   EventProgramRuntimeOverrideSchema,
@@ -48,6 +51,7 @@ import {
   legacyExactTiming,
 } from "../utils/event-timing";
 import type { MediaSchema } from "../schemas/Media";
+import type { UserReferenceSchema } from "../schemas/UserSchema";
 import { LocaleCode, LocaleMap } from "./Interfaces";
 import {
   getBestLocale,
@@ -124,6 +128,7 @@ export class Event {
   readonly logoBackgroundColor?: string;
   readonly media: MediaSchema[];
   readonly organizer?: EventOrganizerSchema;
+  readonly organizerUser?: UserReferenceSchema;
   readonly organizerName?: string;
   readonly organizerAccess?: "view" | "edit";
   readonly featuredParticipants: EventFeaturedParticipant[];
@@ -141,6 +146,10 @@ export class Event {
   readonly eventLinks: EventLinkSchema[];
   readonly ticketOptions: EventTicketOption[];
   readonly eventCategories: EventCategory[];
+  readonly listingTier: EventListingTier;
+  readonly countryCode?: string;
+  readonly regionKeys: EventRegionKey[];
+  readonly communityBroadcast: EventCommunityBroadcastMode;
   readonly timeZone?: string;
   readonly program?: EventProgram;
 
@@ -198,8 +207,11 @@ export class Event {
     this.logoBackgroundColor = data.logo_background_color;
     this.media = data.media ?? [];
     this.organizer = data.organizer;
+    this.organizerUser = data.organizer_user;
     this.organizerName =
-      data.organizer?.organization.name ?? data.organizer_name;
+      data.organizer?.organization.name ??
+      data.organizer_user?.display_name ??
+      data.organizer_name;
     this.organizerAccess = data.organizer_access;
     this.featuredParticipants = data.featured_participants ?? [];
     this.venueString = data.venue_string ?? "";
@@ -250,6 +262,10 @@ export class Event {
       badge: option.badge,
     }));
     this.eventCategories = data.event_categories ?? [];
+    this.listingTier = data.listing_tier ?? "formal";
+    this.countryCode = data.country_code;
+    this.regionKeys = data.region_keys ?? [];
+    this.communityBroadcast = data.community_broadcast ?? "none";
     this.timeZone = data.time_zone;
     this.program = data.program
       ? Event.mapProgram(data.program, locale)

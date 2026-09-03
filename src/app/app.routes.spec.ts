@@ -167,13 +167,11 @@ describe("app routes", () => {
     expect(embeddedMapIndex).toBeLessThan(embeddedInfoIndex);
   });
 
-  it("should keep session planning disabled for this release", () => {
-    const sessionPlanner = findRoute("events/session/new");
+  it("should register the lightweight adult community event planner", () => {
+    const communityPlanner = findRoute("events/community/new");
 
-    expect(sessionPlanner.loadComponent).toBeUndefined();
-    expect(sessionPlanner.pathMatch).toBe("full");
-    expect(sessionPlanner.data?.["discoverable"]).toBe(false);
-    expect(getRedirectTarget(sessionPlanner)).toBe("/events");
+    expect(communityPlanner.loadComponent).toBeTypeOf("function");
+    expect(communityPlanner.data?.["discoverable"]).toBe(false);
   });
 
   it("should redirect legacy embedded event URLs to the embedded event map", () => {

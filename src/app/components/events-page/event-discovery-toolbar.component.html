@@ -50,6 +50,34 @@
       </mat-chip-set>
     }
 
+    @if (listingTierOptions().length > 0) {
+      <mat-chip-set aria-label="Filter by listing type" i18n-aria-label>
+        @for (tier of listingTierOptions(); track tier.id) {
+          <mat-chip-option
+            [selected]="selectedListingTiers().includes(tier.id)"
+            (click)="listingTierToggled.emit(tier.id)"
+          >
+            {{ tier.label }}
+            <span class="filter-count">{{ tier.count }}</span>
+          </mat-chip-option>
+        }
+      </mat-chip-set>
+    }
+
+    @if (regionOptions().length > 0) {
+      <mat-chip-set aria-label="Filter by region" i18n-aria-label>
+        @for (region of regionOptions(); track region.id) {
+          <mat-chip-option
+            [selected]="selectedRegions().includes(region.id)"
+            (click)="regionToggled.emit(region.id)"
+          >
+            {{ region.label }}
+            <span class="filter-count">{{ region.count }}</span>
+          </mat-chip-option>
+        }
+      </mat-chip-set>
+    }
+
     @if (hasFilters()) {
       <button mat-button type="button" (click)="filtersCleared.emit()">
         <mat-icon>filter_alt_off</mat-icon>

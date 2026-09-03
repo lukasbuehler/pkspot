@@ -59,6 +59,15 @@ export {
   submitEventOwnershipClaim,
 } from "./eventOwnershipClaimFunctions";
 export {
+  cancelCommunityEvent,
+  createCommunityEvent,
+  createFormalEvent,
+  demoteCommunityEventsWhenProfileBecomesPrivate,
+  reviewEventSuggestion,
+  submitEventSuggestion,
+  updateCommunityEvent,
+} from "./eventAuthoringFunctions";
+export {
   rebuildEventDiscovery,
   rebuildEventDiscoveryOnCreate,
   syncEventDiscoveryOnEventWrite,

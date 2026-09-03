@@ -19,7 +19,10 @@ import { AssetUrlService } from "./asset-url.service";
 import type { EventRSVPCountsSchema } from "../../db/schemas/EventRSVPSchema";
 import type {
   EventCategory,
+  EventCommunityBroadcastMode,
   EventKind,
+  EventListingTier,
+  EventRegionKey,
   EventLinkKind,
   EventLinkSchema,
   EventLifecycleStatus,
@@ -1232,6 +1235,15 @@ export class SearchService {
       eventCategories: Array.isArray(doc?.event_categories)
         ? doc.event_categories
         : [],
+      listingTier:
+        doc?.listing_tier === "community" ? "community" : "formal",
+      countryCode:
+        typeof doc?.country_code === "string" ? doc.country_code : undefined,
+      regionKeys: Array.isArray(doc?.region_keys)
+        ? doc.region_keys.filter(SearchService._isEventRegionKey)
+        : [],
+      communityBroadcast:
+        doc?.community_broadcast === "on_publish" ? "on_publish" : "none",
       kind:
         doc?.kind === "session" ||
         doc?.kind === "class" ||
@@ -1317,6 +1329,10 @@ export class SearchService {
       community_keys: preview.communityKeys,
       series_ids: preview.seriesIds,
       event_categories: preview.eventCategories,
+      listing_tier: preview.listingTier,
+      country_code: preview.countryCode,
+      region_keys: preview.regionKeys,
+      community_broadcast: preview.communityBroadcast,
       rsvp_counts: preview.rsvpCounts,
       series_roles: preview.seriesRoles,
       qualifies_to_keys: preview.qualifiesToKeys,
@@ -1395,6 +1411,7 @@ export class SearchService {
     const query = options.query?.trim() || "*";
     const areaKeys = SearchService._uniqueFilterValues(options.areaKeys);
     const categories = SearchService._uniqueFilterValues(options.categories);
+    const regionKeys = SearchService._uniqueFilterValues(options.regionKeys);
     const seriesIds = SearchService._uniqueFilterValues(options.seriesIds);
     const sortDirection =
       options.sort === "past" ? "desc" : "asc";
@@ -1409,7 +1426,13 @@ export class SearchService {
         items,
         found: items.length,
         page,
-        facets: { categories: [], series: [], communities: [] },
+        facets: {
+          categories: [],
+          series: [],
+          communities: [],
+          listingTiers: [],
+          regions: [],
+        },
         invalidItems: [],
         invalidItemCount: 0,
       };
@@ -1428,11 +1451,15 @@ export class SearchService {
       SearchService._arrayFilter("community_keys", areaKeys),
       SearchService._arrayFilter("event_categories", categories),
       SearchService._arrayFilter("series_ids", seriesIds),
+      options.listingTiers?.length
+        ? SearchService._arrayFilter("listing_tier", options.listingTiers)
+        : undefined,
+      SearchService._arrayFilter("region_keys", regionKeys),
     ]);
     const chronologicalSort = `start_seconds:${sortDirection}`;
 
-    try {
-      const response = await this.client
+    const search = (legacySchema: boolean) =>
+      this.client
         .collections<TypesenseEventDocument>(this.TYPESENSE_COLLECTION_EVENTS)
         .documents()
         .search(
@@ -1440,9 +1467,27 @@ export class SearchService {
             q: query,
             query_by: "name,slug,locality_string,venue_string,description",
             query_by_weights: "6,5,4,3,1",
-            filter_by: filters,
+            filter_by: legacySchema
+              ? SearchService._joinFilters([
+                  "published:=true",
+                  options.startsBeforeSeconds === undefined
+                    ? undefined
+                    : `start_seconds:<=${Math.trunc(options.startsBeforeSeconds)}`,
+                  options.endsAfterSeconds === undefined
+                    ? undefined
+                    : `end_seconds:>=${Math.trunc(options.endsAfterSeconds)}`,
+                  options.endsBeforeSeconds === undefined
+                    ? undefined
+                    : `end_seconds:<${Math.trunc(options.endsBeforeSeconds)}`,
+                  SearchService._arrayFilter("community_keys", areaKeys),
+                  SearchService._arrayFilter("event_categories", categories),
+                  SearchService._arrayFilter("series_ids", seriesIds),
+                ])
+              : filters,
             sort_by: chronologicalSort,
-            facet_by: "event_categories,series_ids,community_keys",
+            facet_by: legacySchema
+              ? "event_categories,series_ids,community_keys"
+              : "event_categories,series_ids,community_keys,listing_tier,region_keys",
             max_facet_values: 100,
             per_page: perPage,
             page,
@@ -1451,17 +1496,40 @@ export class SearchService {
           { abortSignal: options.abortSignal },
         );
 
+    try {
+      let legacySchema = false;
+      let response;
+      try {
+        response = await search(false);
+      } catch (error) {
+        if (!SearchService._isMissingEventDiscoveryFacet(error)) throw error;
+        console.warn(
+          "Typesense event schema is awaiting event discovery facets; using legacy formal-event fallback.",
+        );
+        legacySchema = true;
+        response = await search(true);
+      }
+
       const previews = (response.hits ?? []).map((hit) =>
         this.getEventPreviewFromHit(hit),
       );
-      const invalidItems = previews.filter(
+      // Until the new Typesense fields are deployed, the old schema can only
+      // truthfully answer the Worldwide/Event view. Do not silently show an
+      // unfiltered result set for a Community or region-specific request.
+      const legacyQueryNeedsNewFields =
+        !!options.regionKeys?.length ||
+        (!!options.listingTiers?.length &&
+          !options.listingTiers.includes("formal"));
+      const compatiblePreviews =
+        legacySchema && legacyQueryNeedsNewFields ? [] : previews;
+      const invalidItems = compatiblePreviews.filter(
         (preview) =>
           !preview.id ||
           preview.startSeconds === undefined ||
           preview.endSeconds === undefined ||
           (preview.timing?.mode !== "date_only" && !preview.timeZone),
       );
-      const items = previews
+      const items = compatiblePreviews
         .filter(
           (
             preview,
@@ -1484,7 +1552,7 @@ export class SearchService {
 
       return {
         items,
-        found: response.found ?? items.length,
+        found: legacySchema ? items.length : (response.found ?? items.length),
         page: response.page ?? page,
         facets: SearchService._readEventDiscoveryFacets(
           response.facet_counts,
@@ -2341,7 +2409,31 @@ export class SearchService {
       categories: values("event_categories"),
       series: values("series_ids"),
       communities: values("community_keys"),
+      listingTiers: values("listing_tier"),
+      regions: values("region_keys"),
     };
+  }
+
+  private static _isEventRegionKey(value: unknown): value is EventRegionKey {
+    return (
+      value === "africa" ||
+      value === "asia" ||
+      value === "europe" ||
+      value === "north-america" ||
+      value === "south-america" ||
+      value === "oceania"
+    );
+  }
+
+  private static _isMissingEventDiscoveryFacet(error: unknown): boolean {
+    const message = error instanceof Error ? error.message : String(error);
+    return (
+      (message.includes("Could not find a facet field") ||
+        message.includes("Could not find a filter field")) &&
+      ["listing_tier", "region_keys"].some(
+        (field) => message.includes(field),
+      )
+    );
   }
 
   private static _readRsvpCounts(
@@ -2625,6 +2717,10 @@ export interface EventSearchPreview {
   communityKeys: string[];
   seriesIds: string[];
   eventCategories: string[];
+  listingTier: EventListingTier;
+  countryCode?: string;
+  regionKeys: EventRegionKey[];
+  communityBroadcast: EventCommunityBroadcastMode;
   kind?: EventKind;
   rsvpCounts?: EventRSVPCountsSchema;
   seriesRoles: string[];
@@ -2650,6 +2746,8 @@ export interface EventDiscoverySearchOptions {
   endsBeforeSeconds?: number;
   areaKeys?: readonly string[];
   categories?: readonly EventCategory[];
+  listingTiers?: readonly EventListingTier[];
+  regionKeys?: readonly EventRegionKey[];
   seriesIds?: readonly string[];
   sort?: EventDiscoverySort;
   page?: number;
@@ -2666,6 +2764,8 @@ export interface EventDiscoveryFacets {
   categories: EventDiscoveryFacetValue[];
   series: EventDiscoveryFacetValue[];
   communities: EventDiscoveryFacetValue[];
+  listingTiers: EventDiscoveryFacetValue[];
+  regions: EventDiscoveryFacetValue[];
 }
 
 export interface EventDiscoveryItem extends EventSearchPreview {

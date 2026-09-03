@@ -7,6 +7,8 @@ interface RouteVisualCase {
   viewport?: { width: number; height: number };
   signedIn?: boolean;
   admin?: boolean;
+  verifiedAdult?: boolean;
+  publicProfile?: boolean;
   openFabMenu?: boolean;
   openInvalidEventsDialog?: boolean;
   openProfilePrivacySelect?: boolean;
@@ -174,6 +176,43 @@ const routeVisualCases: RouteVisualCase[] = [
     maxDiffPixels: 2_000,
     eventIndexFixture: true,
     fixedTime: "2026-07-20T12:00:00.000Z",
+  },
+  {
+    name: "events-community-europe",
+    path: "/events?view=list&tier=community&region=europe",
+    fullPage: true,
+    maxDiffPixels: 2_000,
+    eventIndexFixture: true,
+    fixedTime: "2026-07-20T12:00:00.000Z",
+  },
+  {
+    name: "event-plan-community-authoring",
+    path: "/events/community/new",
+    viewport: mobileViewport,
+    signedIn: true,
+    verifiedAdult: true,
+    publicProfile: true,
+    fullPage: true,
+    maxDiffPixels: 2_000,
+  },
+  {
+    name: "event-suggest-authoring",
+    path: "/events/suggest",
+    viewport: mobileViewport,
+    signedIn: true,
+    verifiedAdult: true,
+    fullPage: true,
+    maxDiffPixels: 2_000,
+  },
+  {
+    name: "event-create-authoring",
+    path: "/events/new",
+    viewport: mobileViewport,
+    signedIn: true,
+    admin: true,
+    verifiedAdult: true,
+    fullPage: true,
+    maxDiffPixels: 2_000,
   },
   {
     name: "events-admin-create",
@@ -665,9 +704,11 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       eventIndexFixture,
       invalidEventFixture,
       liveEventFixture,
+      publicProfile,
       signedIn,
       trainFixture,
       trainingLogFixture,
+      verifiedAdult,
     }) => {
       localStorage.setItem("acceptedVersion", acceptedVersion);
       localStorage.setItem(
@@ -869,6 +910,9 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
               community_keys: ["country:ch", "region:bs", "locality:ch:bs:basel"],
               event_categories: ["jam"],
               series_ids: ["community-jam-series"],
+              listing_tier: "community",
+              country_code: "CH",
+              region_keys: ["europe"],
               rsvp_counts: { going: 8, interested: 4, notgoing: 0, total: 12 },
             },
             {
@@ -882,6 +926,9 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
               end: "2026-09-20T18:00:00.000Z",
               time_zone: "Europe/Zurich",
               event_categories: ["camp"],
+              listing_tier: "formal",
+              country_code: "CH",
+              region_keys: ["europe"],
               ticket_options: [
                 {
                   id: "weekend",
@@ -950,6 +997,9 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
               ],
               event_categories: ["competition"],
               series_ids: ["parkour-earth"],
+              listing_tier: "formal",
+              country_code: "CH",
+              region_keys: ["europe"],
               rsvp_counts: { going: 3, interested: 6, notgoing: 0, total: 9 },
             },
             {
@@ -964,6 +1014,9 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
               time_zone: "Europe/Zurich",
               community_keys: ["country:ch", "region:be", "locality:ch:be:bern"],
               event_categories: ["camp"],
+              listing_tier: "community",
+              country_code: "CH",
+              region_keys: ["europe"],
               rsvp_counts: { going: 5, interested: 2, notgoing: 0, total: 7 },
             },
             {
@@ -1052,7 +1105,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
           seriesById: {
             "community-jam-series": {
               id: "community-jam-series",
-              name: "Community Jam Series",
+              name: "Community Meetup Series",
             },
             "parkour-earth": {
               id: "parkour-earth",
@@ -1176,7 +1229,19 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
             participation_state: "allowed",
             source: "manual",
             platform: "web",
+            ...(verifiedAdult
+              ? {
+                  adult_eligibility: "verified",
+                  age_range: { lower: 18, upper: 120 },
+                  assurance: {
+                    status: "active",
+                    client_integrity: "play_integrity_request_bound",
+                    approval_basis: "visual-fixture",
+                  },
+                }
+              : {}),
           },
+          public_profile_enabled: publicProfile === true,
           account_privacy: "public",
           profile_visibility: "public",
           is_admin: admin,
@@ -1416,9 +1481,11 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       eventIndexFixture: route.eventIndexFixture === true,
       invalidEventFixture: route.invalidEventFixture === true,
       liveEventFixture: route.liveEventFixture === true,
+      publicProfile: route.publicProfile === true,
       signedIn: route.signedIn === true,
       trainFixture: route.trainFixture === true,
       trainingLogFixture: route.trainingLogFixture === true,
+      verifiedAdult: route.verifiedAdult === true,
     },
   );
 

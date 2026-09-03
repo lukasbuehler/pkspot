@@ -70,6 +70,20 @@
           >
             <mat-icon>share</mat-icon>
           </button>
+          @if (event.published) {
+            <button
+              mat-icon-button
+              class="event-nav-action"
+              type="button"
+              aria-label="Report event"
+              matTooltip="Report event"
+              i18n-aria-label
+              i18n-matTooltip
+              (click)="openEventReport()"
+            >
+              <mat-icon>flag</mat-icon>
+            </button>
+          }
           <app-event-live-update-organizer-menu
             [event]="event"
             [canEdit]="canEditEvent()"
@@ -137,6 +151,22 @@
             }
           </div>
         </aside>
+      }
+
+      @if (isReportingEvent()) {
+        <section class="event-report-panel" aria-label="Report this event" i18n-aria-label>
+          <div class="event-report-panel__heading">
+            <div>
+              <h2 class="mat-title-large" i18n>Report this event</h2>
+              <p class="mat-body-medium" i18n>Reports are private and go directly to the PK Spot safety team.</p>
+            </div>
+            <button mat-button type="button" (click)="closeEventReport()" i18n>Close</button>
+          </div>
+          <app-safety-case-form
+            [preset]="eventReportPreset()"
+            (submitted)="onEventReportSubmitted()"
+          />
+        </section>
       }
 
       <header class="event-heading pb-3">

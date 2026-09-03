@@ -11,6 +11,10 @@ import {
   EventPromoRegionSchema,
   EventSchema,
 } from "../../src/db/schemas/EventSchema";
+import {
+  eventRegionsForCountry,
+  normalizeEventCountryCode,
+} from "../../src/db/schemas/EventGeography";
 import { EVENT_DISCOVERY_COLLECTION } from "../../src/db/schemas/EventDiscoverySchema";
 import { normalizeEventModel } from "../../src/db/schemas/EventNormalization";
 import {
@@ -675,6 +679,20 @@ const _addTypesenseFields = async (
   );
 
   Object.assign(out, _deriveLocalizedLegacyFields(eventData));
+
+  // Missing tier data is deliberately materialized as formal so a new
+  // `listing_tier:=formal` Typesense filter keeps legacy events discoverable.
+  out.listing_tier = eventData.listing_tier ?? "formal";
+  const countryFromCommunityKey = (eventData.community_keys ?? [])
+    .map((key) => /^country:([a-z]{2})$/iu.exec(key)?.[1])
+    .find((country): country is string => !!country);
+  const country = normalizeEventCountryCode(
+    eventData.country_code ?? countryFromCommunityKey,
+  );
+  if (country) {
+    if (eventData.country_code) out.country_code = country;
+    out.region_keys = eventRegionsForCountry(country);
+  }
 
   out.promo_starts_at_seconds = _timestampSeconds(eventData.promo_starts_at);
   out.has_organization = eventData.organizer?.type === "organization";

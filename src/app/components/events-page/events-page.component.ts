@@ -16,6 +16,8 @@ import { MatIconModule } from "@angular/material/icon";
 import { ActivatedRoute, ParamMap, Router } from "@angular/router";
 import {
   type EventCategory,
+  type EventListingTier,
+  type EventRegionKey,
   type EventSchema,
 } from "../../../db/schemas/EventSchema";
 import { AnalyticsService } from "../../services/analytics.service";
@@ -56,6 +58,8 @@ import {
 import {
   type EventCategoryFilterOption,
   EventDiscoveryToolbarComponent,
+  type EventListingTierFilterOption,
+  type EventRegionFilterOption,
   type EventSeriesFilterOption,
   type EventsListPeriod,
 } from "./event-discovery-toolbar.component";
@@ -73,8 +77,10 @@ import {
 import { MyEventsPanelComponent } from "../my-events-panel/my-events-panel.component";
 import { EventNotificationMigrationService } from "../../services/event-notification-migration.service";
 import { NotificationPreferencesService } from "../../services/notification-preferences.service";
+import { AgeAssuranceService } from "../../services/age-assurance.service";
+import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
 
-type EventCreateAction = "event" | "session";
+type EventCreateAction = "event" | "community" | "suggest";
 
 interface EventFabMenuAction extends FabMenuAction {
   id: EventCreateAction;
@@ -103,6 +109,8 @@ interface DiscoveryRequest {
   query: string;
   areaKeys: string[];
   categories: EventCategory[];
+  listingTiers: EventListingTier[];
+  regionKeys: EventRegionKey[];
   seriesIds: string[];
   period: EventsListPeriod;
   month: string;
@@ -151,6 +159,8 @@ export class EventsPageComponent {
   private readonly _notificationPreferences = inject(
     NotificationPreferencesService,
   );
+  private readonly _ageAssurance = inject(AgeAssuranceService);
+  private readonly _organizations = inject(OrganizationsService);
   readonly myEventContext = inject(MyEventContextService);
   readonly continuousCalendarEnabled =
     environment.features.continuousEventCalendar;
@@ -165,6 +175,15 @@ export class EventsPageComponent {
 
   readonly isAdmin = computed(() => this._auth.isAdmin());
   readonly isSignedIn = computed(() => !!this._authState()?.uid);
+  readonly canAuthorCommunity = computed(
+    () => this.isSignedIn() && this._ageAssurance.hasVerifiedAdultEligibility(),
+  );
+  readonly managedFormalOrganizationCount = signal(0);
+  readonly canAuthorFormal = computed(
+    () =>
+      this.canAuthorCommunity() &&
+      (this.isAdmin() || this.managedFormalOrganizationCount() > 0),
+  );
   readonly nonLiveGoingEvents = computed(() =>
     this.myEventContext
       .goingEvents()
@@ -186,14 +205,27 @@ export class EventsPageComponent {
   });
   readonly createMenuLabel = $localize`:@@events.create_menu_tooltip:Create event`;
   readonly createActions = computed<EventFabMenuAction[]>(() => {
-    if (!this.isAdmin()) return [];
-    return [
+    if (!this.canAuthorCommunity()) return [];
+    const actions: EventFabMenuAction[] = [
       {
-        id: "event",
-        icon: "calendar_add_on",
-        label: $localize`:@@events.create:Create event`,
+        id: "community",
+        icon: "groups",
+        label: $localize`:@@events.plan_community_event:Plan a community event`,
+      },
+      {
+        id: "suggest",
+        icon: "rate_review",
+        label: $localize`:@@events.suggest_event:Suggest an Event`,
       },
     ];
+    if (this.canAuthorFormal()) {
+      actions.unshift({
+        id: "event",
+        icon: "calendar_add_on",
+        label: $localize`:@@events.create:Create Event`,
+      });
+    }
+    return actions;
   });
 
   readonly containerWidth = signal(0);
@@ -209,6 +241,12 @@ export class EventsPageComponent {
     equal: sameOrderedValues,
   });
   readonly selectedSeriesIds = signal<string[]>([], {
+    equal: sameOrderedValues,
+  });
+  readonly selectedListingTiers = signal<EventListingTier[]>([], {
+    equal: sameOrderedValues,
+  });
+  readonly selectedRegions = signal<EventRegionKey[]>([], {
     equal: sameOrderedValues,
   });
   readonly period = signal<EventsListPeriod>("upcoming");
@@ -256,6 +294,8 @@ export class EventsPageComponent {
       query: this.query(),
       areaKeys: this.discoveryAreaKeys(),
       categories: this.selectedCategories(),
+      listingTiers: this.selectedListingTiers(),
+      regionKeys: this.selectedRegions(),
       seriesIds: this.selectedSeriesIds(),
       period: this.period(),
       month: this.month(),
@@ -269,6 +309,8 @@ export class EventsPageComponent {
         query: params.query,
         areaKeys: params.areaKeys,
         categories: params.categories,
+        listingTiers: params.listingTiers,
+        regionKeys: params.regionKeys,
         seriesIds: params.seriesIds,
         abortSignal,
       };
@@ -390,6 +432,42 @@ export class EventsPageComponent {
       .sort((left, right) => left.label.localeCompare(right.label));
   });
 
+  readonly listingTierFilterOptions = computed<EventListingTierFilterOption[]>(
+    () => {
+      const counts = new Map(
+        (this.filterDiscoveryResult()?.facets.listingTiers ?? []).map(
+          (facet) => [facet.value, facet.count],
+        ),
+      );
+      return [
+        {
+          id: "formal",
+          label: $localize`:@@events.listing_tier_event:Events`,
+          count: counts.get("formal") ?? 0,
+        },
+        {
+          id: "community",
+          label: $localize`:@@events.listing_tier_community:Community events`,
+          count: counts.get("community") ?? 0,
+        },
+      ];
+    },
+  );
+
+  readonly regionFilterOptions = computed<EventRegionFilterOption[]>(() => {
+    const counts = new Map(
+      (this.filterDiscoveryResult()?.facets.regions ?? []).map((facet) => [
+        facet.value,
+        facet.count,
+      ]),
+    );
+    return EVENT_REGION_FILTERS.map((region) => ({
+      id: region,
+      label: regionLabel(region),
+      count: counts.get(region) ?? 0,
+    }));
+  });
+
   readonly draftsResource = resource({
     params: () => (this.isAdmin() ? true : undefined),
     loader: async () => {
@@ -410,6 +488,8 @@ export class EventsPageComponent {
       query: request.query,
       areaKeys: request.areaKeys,
       categories: request.categories,
+      listingTiers: request.listingTiers,
+      regionKeys: request.regionKeys,
       seriesIds: request.seriesIds,
       period: this.period(),
       month: this.month(),
@@ -423,6 +503,8 @@ export class EventsPageComponent {
       query: request.query,
       areaKeys: request.areaKeys,
       categories: request.categories,
+      listingTiers: request.listingTiers,
+      regionKeys: request.regionKeys,
       seriesIds: request.seriesIds,
       startsBeforeSeconds: request.startsBeforeSeconds,
       endsAfterSeconds: request.endsAfterSeconds,
@@ -435,6 +517,10 @@ export class EventsPageComponent {
     this._route.queryParamMap
       .pipe(takeUntilDestroyed())
       .subscribe((params) => this._readQueryParams(params));
+
+    this._auth.authState$
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => void this._loadManagedFormalOrganizations());
 
     effect(() => {
       if (
@@ -451,6 +537,20 @@ export class EventsPageComponent {
       this._migrationCheckStarted = true;
       void this._notificationMigration.maybePrompt(count);
     });
+  }
+
+  private async _loadManagedFormalOrganizations(): Promise<void> {
+    if (!this.isSignedIn()) {
+      this.managedFormalOrganizationCount.set(0);
+      return;
+    }
+    try {
+      const organizations = await this._organizations.getManagerOrganizations();
+      this.managedFormalOrganizationCount.set(organizations.length);
+    } catch (error) {
+      console.warn("Unable to load formal-event organization permissions", error);
+      this.managedFormalOrganizationCount.set(0);
+    }
   }
 
   onContainerResize(rect: DOMRectReadOnly): void {
@@ -515,6 +615,20 @@ export class EventsPageComponent {
     void this._updateQueryParams({ series: serializeList(values) });
   }
 
+  toggleListingTier(tier: EventListingTier): void {
+    this.resultLimit.set(LIST_PAGE_SIZE);
+    void this._updateQueryParams({
+      tier: serializeList(toggleValue(this.selectedListingTiers(), tier)),
+    });
+  }
+
+  toggleRegion(region: EventRegionKey): void {
+    this.resultLimit.set(LIST_PAGE_SIZE);
+    void this._updateQueryParams({
+      region: serializeList(toggleValue(this.selectedRegions(), region)),
+    });
+  }
+
   clearFilters(): void {
     this.areaAliases.set([]);
     this.resultLimit.set(LIST_PAGE_SIZE);
@@ -523,6 +637,8 @@ export class EventsPageComponent {
       area: null,
       category: null,
       series: null,
+      tier: null,
+      region: null,
     });
   }
 
@@ -586,11 +702,17 @@ export class EventsPageComponent {
   }
 
   onCreateAction(action: string): void {
-    if (action !== "event") return;
+    const routes: Record<EventCreateAction, string[]> = {
+      event: ["/events/new"],
+      community: ["/events/community/new"],
+      suggest: ["/events/suggest"],
+    };
+    if (!(action in routes)) return;
     this._analytics.trackEvent("event_create_clicked", {
       surface: "events_page",
+      kind: action,
     });
-    void this._router.navigate(["/events/new"]);
+    void this._router.navigate(routes[action as EventCreateAction]);
   }
 
   private _readQueryParams(params: ParamMap): void {
@@ -611,6 +733,10 @@ export class EventsPageComponent {
       parseList(params, "category").filter(isEventCategory),
     );
     this.selectedSeriesIds.set(parseList(params, "series"));
+    this.selectedListingTiers.set(
+      parseList(params, "tier").filter(isEventListingTier),
+    );
+    this.selectedRegions.set(parseList(params, "region").filter(isEventRegionKey));
     this.period.set(params.get("when") === "past" ? "past" : "upcoming");
     const month = params.get("month") ?? "";
     this._hasValidMonthParam = isMonthKey(month);
@@ -732,6 +858,18 @@ export class EventsPageComponent {
         ) {
           return false;
         }
+        if (
+          request.listingTiers.length > 0 &&
+          !request.listingTiers.includes(event.listingTier)
+        ) {
+          return false;
+        }
+        if (
+          request.regionKeys.length > 0 &&
+          !event.regionKeys.some((region) => request.regionKeys.includes(region))
+        ) {
+          return false;
+        }
         if (range) {
           return (
             event.startSeconds <= range.queryEndSeconds &&
@@ -783,8 +921,32 @@ const EVENT_CATEGORY_SET: ReadonlySet<EventCategory> = new Set(
   EVENT_CATEGORY_FILTERS,
 );
 
+const EVENT_LISTING_TIER_SET: ReadonlySet<EventListingTier> = new Set([
+  "formal",
+  "community",
+]);
+const EVENT_REGION_FILTERS = [
+  "africa",
+  "asia",
+  "europe",
+  "north-america",
+  "south-america",
+  "oceania",
+] satisfies EventRegionKey[];
+const EVENT_REGION_SET: ReadonlySet<EventRegionKey> = new Set(
+  EVENT_REGION_FILTERS,
+);
+
 function isEventCategory(value: string): value is EventCategory {
   return EVENT_CATEGORY_SET.has(value as EventCategory);
+}
+
+function isEventListingTier(value: string): value is EventListingTier {
+  return EVENT_LISTING_TIER_SET.has(value as EventListingTier);
+}
+
+function isEventRegionKey(value: string): value is EventRegionKey {
+  return EVENT_REGION_SET.has(value as EventRegionKey);
 }
 
 function categoryLabel(category: EventCategory): string {
@@ -810,6 +972,23 @@ function categoryLabel(category: EventCategory): string {
   }
 }
 
+function regionLabel(region: EventRegionKey): string {
+  switch (region) {
+    case "africa":
+      return $localize`:@@event_region.africa:Africa`;
+    case "asia":
+      return $localize`:@@event_region.asia:Asia`;
+    case "europe":
+      return $localize`:@@event_region.europe:Europe`;
+    case "north-america":
+      return $localize`:@@event_region.north_america:North America`;
+    case "south-america":
+      return $localize`:@@event_region.south_america:South America`;
+    case "oceania":
+      return $localize`:@@event_region.oceania:Oceania`;
+  }
+}
+
 function defaultDayForMonth(month: string, now = new Date()): string {
   const today = eventLocalDateKey(
     now,
@@ -826,6 +1005,12 @@ function sameOrderedValues<T>(
     left.length === right.length &&
     left.every((value, index) => value === right[index])
   );
+}
+
+function toggleValue<T>(values: readonly T[], value: T): T[] {
+  return values.includes(value)
+    ? values.filter((item) => item !== value)
+    : [...values, value];
 }
 
 function categoryIcon(category: EventCategory): string {
@@ -929,6 +1114,10 @@ function screenshotEventPreview(
     communityKeys: event.community_keys ?? [],
     seriesIds: event.series_ids ?? [],
     eventCategories: event.event_categories ?? [],
+    listingTier: event.listing_tier ?? "formal",
+    countryCode: event.country_code,
+    regionKeys: event.region_keys ?? [],
+    communityBroadcast: event.community_broadcast ?? "none",
     rsvpCounts: event.rsvp_counts ?? {
       going: 0,
       interested: 0,
@@ -1001,5 +1190,7 @@ function buildFixtureFacets(
     categories: count(items.flatMap((event) => event.eventCategories)),
     series: count(items.flatMap((event) => event.seriesIds)),
     communities: count(items.flatMap((event) => event.communityKeys)),
+    listingTiers: count(items.map((event) => event.listingTier)),
+    regions: count(items.flatMap((event) => event.regionKeys)),
   };
 }

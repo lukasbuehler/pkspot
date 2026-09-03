@@ -824,6 +824,13 @@ Source modules: [`spotCreationFunctions.ts`](functions/src/spotCreationFunctions
 | `applyEventOperationalChange` | manager callable | Transactionally updates canonical operational fields and operation metadata. |
 | `publishEventLiveUpdate` | manager callable | Creates a published live-update document and subscriber notification fan-out source. |
 | `onEventLiveUpdateCreate` | create `events/{eventId}/live_updates/{updateId}` | Queries subscribers/relationships and creates deterministic notification intents. |
+| `createCommunityEvent` | verified-adult App-Check callable | Reads the caller profile and, in a transaction, active public listings; writes one RSVP-only Community event and its immutable slug. |
+| `updateCommunityEvent` | verified-adult organizer App-Check callable | Transactionally verifies user ownership and rewrites the constrained Community event fields without changing tier, owner, slug, or prior broadcast choice. |
+| `cancelCommunityEvent` | verified-adult organizer App-Check callable | Transactionally verifies ownership and marks the Community event cancelled. |
+| `createFormalEvent` | verified-adult organization-leader/admin App-Check callable | Reads the caller/profile and organization authority where supplied; atomically writes an organization Event with immutable owner/organizer and slug. |
+| `submitEventSuggestion` | verified-adult App-Check callable | Validates input and writes one private `event_suggestions/{id}` review record. |
+| `reviewEventSuggestion` | verified-adult admin App-Check callable | Transactionally records rejection or creates one canonical organization Event and slug on approval. |
+| `demoteCommunityEventsWhenProfileBecomesPrivate` | update `users/{uid}` | When unlisted authoring is enabled, converts affected public Community events to unlisted and removes discovery/broadcast fields. |
 
 Source modules: [`eventFunctions.ts`](functions/src/eventFunctions.ts),
 [`eventDiscoveryFunctions.ts`](functions/src/eventDiscoveryFunctions.ts),
@@ -831,7 +838,8 @@ Source modules: [`eventFunctions.ts`](functions/src/eventFunctions.ts),
 [`eventTimingMaintenanceFunctions.ts`](functions/src/eventTimingMaintenanceFunctions.ts),
 [`eventTimeZoneFunctions.ts`](functions/src/eventTimeZoneFunctions.ts),
 [`eventOwnershipClaimFunctions.ts`](functions/src/eventOwnershipClaimFunctions.ts), and
-[`eventLiveUpdateFunctions.ts`](functions/src/eventLiveUpdateFunctions.ts).
+[`eventLiveUpdateFunctions.ts`](functions/src/eventLiveUpdateFunctions.ts), and
+[`eventAuthoringFunctions.ts`](functions/src/eventAuthoringFunctions.ts).
 
 ### Event registration
 

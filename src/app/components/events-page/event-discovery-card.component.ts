@@ -163,6 +163,11 @@ export class EventDiscoveryCardComponent {
       .join(", ") ||
     $localize`:@@event.venue_tba:Venue to be announced`,
   );
+  readonly communityLabel = computed(() =>
+    this.event().listingTier === "community"
+      ? $localize`:@@event_listing.community:Community event`
+      : null,
+  );
 
   trackClick(): void {
     const event = this.event();

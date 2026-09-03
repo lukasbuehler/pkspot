@@ -1,0 +1,33 @@
+<main class="event-suggestion-page container">
+  <a mat-button routerLink="/events"><mat-icon>arrow_back</mat-icon><span i18n>Events</span></a>
+  <header>
+    <h1 class="mat-headline-large" i18n>Suggest an Event</h1>
+    <p class="mat-body-large" i18n>Send an Event to PK Spot staff for review. It will not be published from this form.</p>
+  </header>
+
+  @if (!eligible()) {
+    <section class="status-card">
+      <mat-icon>verified_user</mat-icon>
+      <div>
+        <h2 class="mat-title-medium" i18n>Verified 18+ status required</h2>
+        <p class="mat-body-medium" i18n>Suggestions require your current server-confirmed adult assurance.</p>
+      </div>
+    </section>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <mat-form-field appearance="outline"><mat-label i18n>Event title</mat-label><input matInput formControlName="name" required /></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label i18n>Organizer</mat-label><input matInput formControlName="organizerName" /></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label i18n>Description</mat-label><textarea matInput formControlName="description" rows="4"></textarea></mat-form-field>
+      <div class="form-grid">
+        <mat-form-field appearance="outline"><mat-label i18n>City</mat-label><input matInput formControlName="locality" /></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label i18n>Country</mat-label><mat-select formControlName="countryCode"><mat-option value="" i18n>Not specified</mat-option>@for (country of countries; track country.code) {<mat-option [value]="country.code">{{ country.label }}</mat-option>}</mat-select></mat-form-field>
+      </div>
+      <div class="form-grid">
+        <mat-form-field appearance="outline"><mat-label i18n>Starts</mat-label><input matInput type="datetime-local" formControlName="startsAt" required /></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label i18n>Ends</mat-label><input matInput type="datetime-local" formControlName="endsAt" required /></mat-form-field>
+      </div>
+      <mat-form-field appearance="outline"><mat-label i18n>Official link</mat-label><input matInput type="url" formControlName="sourceUrl" /></mat-form-field>
+      <div class="actions"><a mat-button routerLink="/events" i18n>Cancel</a><button mat-flat-button type="submit" [disabled]="saving()">@if (saving()) { <mat-spinner diameter="20" /> }<span i18n>Send suggestion</span></button></div>
+    </form>
+  }
+</main>

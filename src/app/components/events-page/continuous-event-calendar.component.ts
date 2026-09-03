@@ -15,7 +15,11 @@ import {
 } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
-import type { EventCategory } from "../../../db/schemas/EventSchema";
+import type {
+  EventCategory,
+  EventListingTier,
+  EventRegionKey,
+} from "../../../db/schemas/EventSchema";
 import type { SeriesDocument } from "../../services/firebase/firestore/series.service";
 import type {
   EventDiscoverySearchResult,
@@ -41,6 +45,8 @@ export interface ContinuousEventCalendarLoadRequest {
   query: string;
   areaKeys: string[];
   categories: EventCategory[];
+  listingTiers: EventListingTier[];
+  regionKeys: EventRegionKey[];
   seriesIds: string[];
   startsBeforeSeconds: number;
   endsAfterSeconds: number;
@@ -80,6 +86,8 @@ export class ContinuousEventCalendarComponent {
   readonly query = input("");
   readonly areaKeys = input<readonly string[]>([]);
   readonly categories = input<readonly EventCategory[]>([]);
+  readonly listingTiers = input<readonly EventListingTier[]>([]);
+  readonly regionKeys = input<readonly EventRegionKey[]>([]);
   readonly seriesIds = input<readonly string[]>([]);
   readonly seriesById = input<Record<string, SeriesDocument>>({});
   readonly loadEvents = input.required<ContinuousEventCalendarLoader>();
@@ -106,6 +114,8 @@ export class ContinuousEventCalendarComponent {
       query: this.query(),
       areaKeys: [...this.areaKeys()],
       categories: [...this.categories()],
+      listingTiers: [...this.listingTiers()],
+      regionKeys: [...this.regionKeys()],
       seriesIds: [...this.seriesIds()],
       startsBeforeSeconds: this.queryCalendar().queryEndSeconds,
       endsAfterSeconds: this.queryCalendar().queryStartSeconds,
@@ -115,6 +125,8 @@ export class ContinuousEventCalendarComponent {
         query: params.query,
         areaKeys: params.areaKeys,
         categories: params.categories,
+        listingTiers: params.listingTiers,
+        regionKeys: params.regionKeys,
         seriesIds: params.seriesIds,
         startsBeforeSeconds: params.startsBeforeSeconds,
         endsAfterSeconds: params.endsAfterSeconds,

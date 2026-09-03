@@ -452,10 +452,31 @@ export const routes: Routes = [
     data: { routeName: "Create Event" },
   },
   {
-    path: "events/session/new",
-    redirectTo: () => "/events",
-    pathMatch: "full",
-    data: { routeName: "Events", discoverable: false },
+    path: "events/community/new",
+    loadComponent: () =>
+      import("./components/community-activity-create-page/community-activity-create-page.component").then(
+        (m) => m.CommunityEventCreatePageComponent,
+      ),
+    data: { routeName: "Plan a community event", discoverable: false },
+  },
+  // Keep local links from the short-lived Jam/Session experiment working.
+  { path: "events/jam/new", redirectTo: "/events/community/new", pathMatch: "full" },
+  { path: "events/session/new", redirectTo: "/events/community/new", pathMatch: "full" },
+  {
+    path: "events/suggest",
+    loadComponent: () =>
+      import("./components/event-suggestion-page/event-suggestion-page.component").then(
+        (m) => m.EventSuggestionPageComponent,
+      ),
+    data: { routeName: "Suggest an Event", discoverable: false },
+  },
+  {
+    path: "events/:slug/edit",
+    loadComponent: () =>
+      import("./components/community-activity-create-page/community-activity-create-page.component").then(
+        (m) => m.CommunityEventCreatePageComponent,
+      ),
+    data: { routeName: "Edit community event", editCommunityEvent: true, discoverable: false },
   },
   {
     path: "event/swissjam25",

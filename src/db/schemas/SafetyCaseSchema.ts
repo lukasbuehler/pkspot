@@ -72,6 +72,7 @@ export const SAFETY_CASE_DECISION_TYPES = [
   "publish_warning",
   "restrict_media",
   "unpublish_spot",
+  "unpublish_event",
   "restrict_profile",
   "restrict_account",
   "confirm_automated_media_decision",

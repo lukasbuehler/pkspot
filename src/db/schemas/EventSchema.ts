@@ -3,6 +3,7 @@ import type { LocaleMap } from "../models/Interfaces";
 import type { MediaSchema } from "./Media";
 import { OrganizationReferenceSchema } from "./OrganizationSchema";
 import { EventRSVPCountsSchema } from "./EventRSVPSchema";
+import type { UserReferenceSchema } from "./UserSchema";
 
 export type EventId = string & { __brand: "EventId" };
 export type EventSlug = string & { __brand: "EventSlug" };
@@ -42,6 +43,28 @@ export const EVENT_KINDS = [
   "other",
 ] as const;
 export type EventKind = (typeof EVENT_KINDS)[number];
+
+/** Missing legacy values intentionally read as `formal`. */
+export const EVENT_LISTING_TIERS = ["formal", "community"] as const;
+export type EventListingTier = (typeof EVENT_LISTING_TIERS)[number];
+
+/** Stable first-release regional discovery vocabulary. */
+export const EVENT_REGION_KEYS = [
+  "africa",
+  "asia",
+  "europe",
+  "north-america",
+  "south-america",
+  "oceania",
+] as const;
+export type EventRegionKey = (typeof EVENT_REGION_KEYS)[number];
+
+export const EVENT_COMMUNITY_BROADCAST_MODES = [
+  "none",
+  "on_publish",
+] as const;
+export type EventCommunityBroadcastMode =
+  (typeof EVENT_COMMUNITY_BROADCAST_MODES)[number];
 
 export const EVENT_SCHEDULE_MODES = [
   "single",
@@ -168,7 +191,7 @@ export interface EventBoundsSchema {
 }
 
 export interface EventAreaPolygonSchema {
-  points: Array<{ lat: number; lng: number }>;
+  points: { lat: number; lng: number }[];
   /**
    * Optional display/editor label for this cutout. Legacy documents may still
    * include an unlabeled outer mask ring as the first entry; current clients
@@ -264,6 +287,9 @@ export interface EventCardPreviewSchema {
   event_categories?: EventCategory[];
   series_ids?: string[];
   rsvp_counts?: EventRSVPCountsSchema;
+  listing_tier?: EventListingTier;
+  country_code?: string;
+  region_keys?: EventRegionKey[];
 }
 
 export interface EventOrganizerSchema {
@@ -544,9 +570,9 @@ export interface EventSchema {
   slug?: string;
 
   /**
-   * Banner image for event-page header and calendar card. Optional —
-   * free-tier user-created events won't have one. Components should fall
-   * back gracefully when missing.
+   * Cover image for organization Event headers and cards. The stored field
+   * name is retained for compatibility; Community events never accept uploads.
+   * Components must fall back gracefully when it is absent.
    */
   banner_src?: string;
   /**
@@ -575,8 +601,10 @@ export interface EventSchema {
    */
   media?: MediaSchema[];
 
-  /** Organizer responsible for the event. User organizers can be added later. */
+  /** Organizer responsible for the event. */
   organizer?: EventOrganizerSchema;
+  /** Public user snapshot for a community organizer, server authored only. */
+  organizer_user?: UserReferenceSchema;
   /** Plain-text organizer for events without a PK Spot organization. */
   organizer_name?: string;
   /** Featured people, groups, and acts visible on the event page. */
@@ -606,6 +634,14 @@ export interface EventSchema {
 
   /** Top-level browse/filter categories for the attendable event itself. */
   event_categories?: EventCategory[];
+  /** Formal is the implicit legacy tier. */
+  listing_tier?: EventListingTier;
+  /** ISO 3166-1 alpha-2 country selected for regional discovery. */
+  country_code?: string;
+  /** Server-derived continent keys; locationless legacy events omit them. */
+  region_keys?: EventRegionKey[];
+  /** One-time community follower broadcast choice at first publication. */
+  community_broadcast?: EventCommunityBroadcastMode;
   /** IANA time zone used to group and render program items by local event day. */
   time_zone?: string;
   /** Event-owned schedule/program data, including alternate plans. */

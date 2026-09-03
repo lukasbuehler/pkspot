@@ -1550,7 +1550,12 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   // ---------------------------------------------------------------------
 
   startEditingEvent(): void {
-    if (!this.canEditEvent()) return;
+    const event = this.event();
+    if (!event || !this.canEditEvent()) return;
+    if (event.listingTier === "community") {
+      void this._router.navigate(["/events", event.slug ?? event.id, "edit"]);
+      return;
+    }
     this.isEditingEvent.set(true);
   }
 

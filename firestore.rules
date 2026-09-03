@@ -179,7 +179,14 @@ service cloud.firestore {
         'is_sponsored',
         'promo_starts_at',
         'promo_region',
-        'promo_radius_m'
+        'promo_radius_m',
+        // Community authoring is server-mediated so tier, organizer identity,
+        // region derivation, and one-time broadcast consent cannot be forged.
+        'listing_tier',
+        'country_code',
+        'region_keys',
+        'community_broadcast',
+        'organizer_user'
       ];
     }
 
@@ -1655,6 +1662,7 @@ service cloud.firestore {
           isAdmin()
           || (
             eventCanEdit(eventId, resource.data)
+            && resource.data.get('listing_tier', 'formal') != 'community'
             && request.resource.data.owner == resource.data.owner
             && (
               eventCanManage(resource.data)

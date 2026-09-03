@@ -57,6 +57,9 @@ describe("Event", () => {
     expect(event.scheduleMode).toBe("single");
     expect(event.lifecycleStatus).toBe("planned");
     expect(event.priority).toBe("normal");
+    expect(event.listingTier).toBe("formal");
+    expect(event.regionKeys).toEqual([]);
+    expect(event.communityBroadcast).toBe("none");
     expect(event.owner).toBeUndefined();
     expect(event.attendance).toEqual({
       social: "rsvp",

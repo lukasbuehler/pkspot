@@ -124,6 +124,10 @@ import {
   EventQrDialogComponent,
   type EventQrDialogData,
 } from "../event-qr-dialog/event-qr-dialog.component";
+import {
+  SafetyCaseFormComponent,
+  type SafetyCaseFormPreset,
+} from "../safety-case-form/safety-case-form.component";
 
 interface VisibleSeriesTag {
   seriesId: string;
@@ -162,6 +166,7 @@ type ProgramMapMarker = MarkerSchema & {
     EventProgramDayChipsComponent,
     EventNowNextCardComponent,
     EventTicketListComponent,
+    SafetyCaseFormComponent,
   ],
   templateUrl: "./event-page.component.html",
   styleUrl: "./event-page.component.scss",
@@ -213,6 +218,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly isCrawler = signal(this.isBrowser() && isBot());
   readonly isEditingEvent = signal(false);
   readonly isSavingEvent = signal(false);
+  readonly isReportingEvent = signal(false);
   readonly isEventDescriptionExpanded = signal(false);
   readonly currentRsvp = signal<EventRSVPOption | null>(null);
   readonly now = signal(new Date());
@@ -230,6 +236,38 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly isSignedIn = computed(() => !!this._authService.user.uid);
   readonly canEditEvent = signal(false);
   readonly canManageEvent = signal(false);
+  readonly eventReportPreset = computed<SafetyCaseFormPreset>(() => {
+    const event = this.event();
+    if (!event) return {};
+    return {
+      caseType: "report",
+      category: "other_safety",
+      subject: {
+        type: "event",
+        path: `events/${event.id}`,
+        label: event.name,
+        ...(event.owner?.type === "user" ? { owner_uid: event.owner.user_id } : {}),
+      },
+      summary: $localize`:@@event_report.default_summary:Report: ${event.name}`,
+    };
+  });
+
+  openEventReport(): void {
+    this.isReportingEvent.set(true);
+  }
+
+  closeEventReport(): void {
+    this.isReportingEvent.set(false);
+  }
+
+  onEventReportSubmitted(): void {
+    this.closeEventReport();
+    this._snackbar.open(
+      $localize`:@@event_report.submitted:Your report has been sent securely.`,
+      $localize`:@@common.dismiss:Dismiss`,
+      { duration: 4_000 },
+    );
+  }
 
   openOwnershipClaimDialog(): void {
     const event = this.event();
@@ -1069,9 +1107,13 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   }
 
   startEditingEvent(): void {
-    if (this.canEditEvent()) {
-      this.isEditingEvent.set(true);
+    const event = this.event();
+    if (!event || !this.canEditEvent()) return;
+    if (event.listingTier === "community") {
+      void this._router.navigate(["/events", event.slug ?? event.id, "edit"]);
+      return;
     }
+    this.isEditingEvent.set(true);
   }
 
   cancelEditingEvent(): void {

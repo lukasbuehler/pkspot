@@ -700,6 +700,69 @@ presentation/type fields.
       removal outcomes, immutable audit record, and notifications. Keep the
       request entry point hidden until this succeeds.
 
+### Event discovery and adult community authoring
+
+Keep this rollout additive. Missing `listing_tier` is read as `formal`; this is
+an internal owner classification, while the UI labels public organization items
+as Events and user-organized items as Community events. Do not make unlisted
+community events available while supported clients can still list `/events`
+directly.
+
+- [ ] Update the production `events_v1` Typesense schema with optional
+      `listing_tier`, `country_code`, `region_keys`, and
+      `community_broadcast` fields before deploying the
+      Functions/client that write or filter them. Then deploy Functions,
+      Firestore rules, and the `events` active-community-listing composite
+      index from `firestore.indexes.json`.
+
+  Success condition: the callable endpoints require both Authentication and
+  App Check; public Community-event documents project to `event_discovery`, while
+  a direct client write cannot set tier, country, region, organizer-user, or
+  broadcast fields.
+
+- [ ] Run the existing `run-backfill-event-typesense-fields` maintenance flow
+      after the schema is live. It must materialize `listing_tier: formal` for
+      legacy Events and backfill `region_keys` only from a valid explicit
+      `country_code` or `community_keys` value of the exact form
+      `country:XX`; never derive a country from locality text. Rebuild
+      `event_discovery` and wait for the Firestore-to-Typesense extension to
+      finish indexing.
+
+  Success condition: a legacy Event remains in the Events filter; a known
+  country Event appears only in its expected region; a locationless Event
+  Event remains Worldwide-only.
+
+- [ ] Verify production with test accounts before exposing authoring broadly:
+      active verified-18+ evidence is accepted; absent/expired evidence and
+      missing App Check are rejected; organization owner/admin direct Event
+      publishing works; a public Community event requires a public profile;
+      the three-active-public-listing cap is atomic; a cancelled Community event
+      frees capacity; and an opt-out Community event creates no community
+      notification intent. Verify suggestion rejection retains its private
+      audit outcome and approval creates exactly one canonical Event
+      plus slug atomically.
+
+- [ ] Keep `legacyEventListCompatibilityEnabled()` and
+      `unlistedCommunityAuthoringEnabled()` aligned until the oldest supported
+      mobile and web client no longer lists `/events`. During this window,
+      ship public Community authoring only. Do not turn on unlisted UI or
+      profile-publicity demotion.
+
+- [ ] After that client-retirement verification, change both compatibility
+      switches in one reviewed backend/rules deployment, then expose the
+      public/unlisted visibility control. Verify an unlisted Community event is
+      openable by direct link and RSVP-able, absent from `event_discovery`,
+      Typesense, regional results, and broadcasts; verify removing the
+      organizer's public profile demotes their public Community events to
+      unlisted and removes their discovery projection.
+
+- [ ] Confirm the Events list and calendar label only Community events; region
+      and tier URL filters restore correctly; cover-image placeholders render
+      for Events without a cover; and Community authoring never offers media,
+      tickets, or programs.
+      Release the web/native client through the normal `main` workflow only
+      after those production checks. Do not operate App Hosting directly.
+
 ### Organization image cropping and media processing
 
 The Functions and storage rules must be deployed before the organization editor

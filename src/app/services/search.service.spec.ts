@@ -1423,7 +1423,9 @@ describe("SearchService", () => {
             "event_categories:=[`jam`,`competition`] && " +
             "series_ids:=[`parkour-earth`]",
           sort_by: "start_seconds:desc",
-          facet_by: "event_categories,series_ids,community_keys",
+          facet_by:
+            "event_categories,series_ids,community_keys,listing_tier," +
+            "region_keys",
           page: 2,
           per_page: 40,
         }),
@@ -1439,7 +1441,52 @@ describe("SearchService", () => {
         categories: [{ value: "jam", count: 1 }],
         series: [{ value: "parkour-earth", count: 1 }],
         communities: [{ value: "country:ch", count: 1 }],
+        listingTiers: [],
+        regions: [],
       });
+    });
+
+    it("falls back safely when the deployed schema cannot filter discovery tiers", async () => {
+      typesenseSearchMock
+        .mockRejectedValueOnce(
+          new Error("Could not find a filter field named `listing_tier` in the schema."),
+        )
+        .mockResolvedValueOnce({
+          hits: [{ document: validDocument }],
+          found: 1,
+          page: 1,
+        });
+
+      const result = await service.searchEventDiscovery({
+        listingTiers: ["formal"],
+      });
+
+      expect(typesenseSearchMock).toHaveBeenCalledTimes(2);
+      expect(typesenseSearchMock.mock.calls[1][0]).toMatchObject({
+        filter_by: "published:=true",
+        facet_by: "event_categories,series_ids,community_keys",
+      });
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].listingTier).toBe("formal");
+    });
+
+    it("does not mislabel legacy search results as Community activities", async () => {
+      typesenseSearchMock
+        .mockRejectedValueOnce(
+          new Error("Could not find a filter field named `listing_tier` in the schema."),
+        )
+        .mockResolvedValueOnce({
+          hits: [{ document: validDocument }],
+          found: 1,
+          page: 1,
+        });
+
+      const result = await service.searchEventDiscovery({
+        listingTiers: ["community"],
+      });
+
+      expect(result.items).toEqual([]);
+      expect(result.found).toBe(0);
     });
 
     it("uses wildcard search and excludes invalid time-zone projections", async () => {

@@ -20,6 +20,8 @@ import { EventsPageComponent } from "./events-page.component";
 import { MyEventContextService } from "../../services/my-event-context.service";
 import { EventNotificationMigrationService } from "../../services/event-notification-migration.service";
 import { NotificationPreferencesService } from "../../services/notification-preferences.service";
+import { AgeAssuranceService } from "../../services/age-assurance.service";
+import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
 
 interface ScreenshotGlobal {
   __PKSPOT_SCREENSHOT_EVENT_INDEX__?: unknown;
@@ -29,7 +31,13 @@ const EMPTY_RESULT: EventDiscoverySearchResult = {
   items: [],
   found: 0,
   page: 1,
-  facets: { categories: [], series: [], communities: [] },
+  facets: {
+    categories: [],
+    series: [],
+    communities: [],
+    listingTiers: [],
+    regions: [],
+  },
   invalidItems: [],
   invalidItemCount: 0,
 };
@@ -53,6 +61,9 @@ const INVALID_EVENT_PREVIEW: EventSearchPreview = {
   communityKeys: ["country:ch"],
   seriesIds: [],
   eventCategories: ["jam"],
+  listingTier: "formal",
+  regionKeys: [],
+  communityBroadcast: "none",
   rsvpCounts: { going: 2, interested: 1, notgoing: 0, total: 3 },
   seriesRoles: [],
   qualifiesToKeys: [],
@@ -157,6 +168,18 @@ function createComponent(options?: {
           options?.signedIn ? { uid: "signed-in", data: null } : null,
           options?.admin,
         ),
+      },
+      {
+        provide: AgeAssuranceService,
+        useValue: {
+          hasVerifiedAdultEligibility: vi.fn().mockReturnValue(
+            options?.admin === true,
+          ),
+        },
+      },
+      {
+        provide: OrganizationsService,
+        useValue: { getManagerOrganizations: vi.fn().mockResolvedValue([]) },
       },
       {
         provide: AnalyticsService,
@@ -279,6 +302,8 @@ describe("EventsPageComponent", () => {
         area: "country:ch",
         category: "jam,competition,unknown",
         series: "parkour-earth,swissjam",
+        tier: "formal,community,unknown",
+        region: "europe,north-america,unknown",
         when: "past",
       },
     });
@@ -293,17 +318,27 @@ describe("EventsPageComponent", () => {
       "parkour-earth",
       "swissjam",
     ]);
+    expect(component.selectedListingTiers()).toEqual(["formal", "community"]);
+    expect(component.selectedRegions()).toEqual(["europe", "north-america"]);
     expect(component.period()).toBe("past");
 
     queryParams.next(convertToParamMap({ view: "list", when: "upcoming" }));
     expect(component.view()).toBe("list");
     expect(component.query()).toBe("");
     expect(component.selectedCategories()).toEqual([]);
+    expect(component.selectedListingTiers()).toEqual([]);
+    expect(component.selectedRegions()).toEqual([]);
   });
 
   it("uses Typesense for public results and never requests public Firestore events", async () => {
     const { component, searchService, eventsService } = createComponent({
-      queryParams: { view: "list", area: "region:zh", category: "jam" },
+      queryParams: {
+        view: "list",
+        area: "region:zh",
+        category: "jam",
+        tier: "community",
+        region: "europe",
+      },
     });
     await flushResources();
 
@@ -311,6 +346,8 @@ describe("EventsPageComponent", () => {
       expect.objectContaining({
         areaKeys: ["region:zh"],
         categories: ["jam"],
+        listingTiers: ["community"],
+        regionKeys: ["europe"],
         sort: "upcoming",
         page: 1,
         perPage: 24,
@@ -388,6 +425,9 @@ describe("EventsPageComponent", () => {
     expect(component.drafts()).toEqual([draft]);
     expect(component.createActions().map((action) => action.id)).toEqual([
       "event",
+      "jam",
+      "session",
+      "suggest",
     ]);
   });
 
@@ -493,6 +533,14 @@ describe("EventsPageComponent", () => {
     expect(router.navigate).toHaveBeenLastCalledWith([], {
       relativeTo: expect.anything(),
       queryParams: { category: "competition" },
+      queryParamsHandling: "merge",
+      replaceUrl: false,
+    });
+
+    component.toggleRegion("europe");
+    expect(router.navigate).toHaveBeenLastCalledWith([], {
+      relativeTo: expect.anything(),
+      queryParams: { region: "europe" },
       queryParamsHandling: "merge",
       replaceUrl: false,
     });

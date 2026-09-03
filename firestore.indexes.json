@@ -1,6 +1,28 @@
 {
   "indexes": [
     {
+      "collectionGroup": "events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "owner.user_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "listing_tier",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "visibility",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lifecycle_status",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "support_orders",
       "queryScope": "COLLECTION",
       "fields": [

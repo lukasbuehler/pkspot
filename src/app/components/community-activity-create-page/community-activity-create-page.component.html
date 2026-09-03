@@ -1,0 +1,112 @@
+<main class="community-event-page container">
+  <a mat-button routerLink="/events">
+    <mat-icon>arrow_back</mat-icon>
+    <span i18n>Events</span>
+  </a>
+
+  <header class="page-header">
+    <span class="type-icon"><mat-icon>groups</mat-icon></span>
+    <div>
+      <h1 class="mat-headline-large">{{ heading }}</h1>
+      <p class="mat-body-large">{{ description }}</p>
+    </div>
+  </header>
+
+  @if (!signedIn()) {
+    <section class="status-card" role="status">
+      <mat-icon>login</mat-icon>
+      <div>
+        <h2 class="mat-title-medium" i18n>Sign in to plan a community event</h2>
+        <p class="mat-body-medium" i18n>Community events are created by verified adult community members.</p>
+      </div>
+    </section>
+  } @else if (!hasVerifiedAdultEligibility()) {
+    <section class="status-card" role="status">
+      <mat-icon>verified_user</mat-icon>
+      <div>
+        <h2 class="mat-title-medium" i18n>Verified 18+ status required</h2>
+        <p class="mat-body-medium" i18n>Your currently active server-confirmed adult assurance is required before publishing a community event.</p>
+      </div>
+    </section>
+  } @else if (!hasPublicProfile()) {
+    <section class="status-card" role="status">
+      <mat-icon>visibility_off</mat-icon>
+      <div>
+        <h2 class="mat-title-medium" i18n>A public profile is required</h2>
+        <p class="mat-body-medium" i18n>Public community events show their organizer.</p>
+      </div>
+    </section>
+  } @else if (loading()) {
+    <section class="status-card" role="status">
+      <mat-spinner diameter="28" />
+      <p class="mat-body-medium" i18n>Loading community event…</p>
+    </section>
+  } @else {
+    <form class="authoring-form" [formGroup]="form" (ngSubmit)="submit()">
+      <mat-form-field appearance="outline">
+        <mat-label i18n>Title</mat-label>
+        <input matInput formControlName="name" maxlength="160" required />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label i18n>Description</mat-label>
+        <textarea matInput formControlName="description" rows="4" maxlength="2000"></textarea>
+      </mat-form-field>
+
+      <div class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label i18n>City</mat-label>
+          <input matInput formControlName="locality" maxlength="160" required />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label i18n>Country</mat-label>
+          <mat-select formControlName="countryCode" required>
+            @for (country of countries; track country.code) {
+              <mat-option [value]="country.code">{{ country.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label i18n>Starts</mat-label>
+          <input matInput type="datetime-local" formControlName="startsAt" required />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label i18n>Ends</mat-label>
+          <input matInput type="datetime-local" formControlName="endsAt" required />
+        </mat-form-field>
+      </div>
+
+      @if (form.controls.locality.value && form.controls.countryCode.value) {
+        <mat-checkbox formControlName="broadcast">
+          <span i18n>Notify followers of the local community when I publish</span>
+        </mat-checkbox>
+        <p class="field-hint" i18n>Off by default. This can only be chosen when the community event is first published.</p>
+      }
+
+      <p class="field-hint" i18n>Community events use RSVP attendance. Tickets, programmes, and media uploads are not part of this first release.</p>
+
+      <div class="actions">
+        <a mat-button routerLink="/events" i18n>Cancel</a>
+        <button mat-flat-button type="submit" [disabled]="saving()">
+          @if (saving()) { <mat-spinner diameter="20" /> }
+          <span i18n>{{ editing ? "Save" : "Publish" }} community event</span>
+        </button>
+        @if (editing) {
+          <button
+            mat-button
+            class="cancel-community-event"
+            type="button"
+            [disabled]="saving() || cancelling()"
+            (click)="cancelEvent()"
+            i18n
+          >
+            Cancel community event
+          </button>
+        }
+      </div>
+    </form>
+  }
+</main>

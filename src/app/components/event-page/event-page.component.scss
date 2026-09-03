@@ -356,6 +356,26 @@ a.featured-participant-name {
   border-radius: 18px;
 }
 
+.event-report-panel {
+  margin-block: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: 18px;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.event-report-panel__heading {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.event-report-panel__heading h2,
+.event-report-panel__heading p {
+  margin: 0;
+}
+
 .event-cancellation-notice__icon {
   display: grid;
   flex: 0 0 40px;

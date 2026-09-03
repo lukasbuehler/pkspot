@@ -173,6 +173,30 @@
       "optional": true
     },
     {
+      "name": "listing_tier",
+      "type": "string",
+      "facet": true,
+      "optional": true
+    },
+    {
+      "name": "country_code",
+      "type": "string",
+      "facet": true,
+      "optional": true
+    },
+    {
+      "name": "region_keys",
+      "type": "string[]",
+      "facet": true,
+      "optional": true
+    },
+    {
+      "name": "community_broadcast",
+      "type": "string",
+      "optional": true,
+      "index": false
+    },
+    {
       "name": "lifecycle_status",
       "type": "string",
       "facet": true,

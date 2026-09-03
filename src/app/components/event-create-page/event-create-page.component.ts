@@ -17,6 +17,10 @@ import {
   EventEditFormComponent,
   EventEditPatch,
 } from "../event-edit-form/event-edit-form.component";
+import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
+import { EventAuthoringService } from "../../services/event-authoring.service";
+import { AgeAssuranceService } from "../../services/age-assurance.service";
+import type { EventId } from "../../../db/schemas/EventSchema";
 
 /**
  * Standalone create page at `/events/new`. Hosts the shared
@@ -39,11 +43,21 @@ import {
 export class EventCreatePageComponent implements OnInit {
   private _authService = inject(AuthenticationService);
   private _eventsService = inject(EventsService);
+  private _organizationsService = inject(OrganizationsService);
+  private _authoring = inject(EventAuthoringService);
+  private _ageAssurance = inject(AgeAssuranceService);
   private _router = inject(Router);
   private _snackbar = inject(MatSnackBar);
   private _metaTagService = inject(MetaTagService);
 
   readonly isAdmin = computed(() => this._authService.isAdmin());
+  readonly managedOrganizationIds = signal<ReadonlySet<string>>(new Set());
+  readonly organizationEligibilityLoading = signal(true);
+  readonly canCreateFormalEvent = computed(
+    () =>
+      this._ageAssurance.hasVerifiedAdultEligibility() &&
+      (this.isAdmin() || this.managedOrganizationIds().size > 0),
+  );
 
   readonly saving = signal<boolean>(false);
 
@@ -55,10 +69,11 @@ export class EventCreatePageComponent implements OnInit {
       "/events/new"
     );
     this._metaTagService.setRobotsContent("noindex,nofollow");
+    void this._loadFormalEventEligibility();
   }
 
   async onSave(patch: EventEditPatch): Promise<void> {
-    if (!this.isAdmin()) return;
+    if (!this.canCreateFormalEvent()) return;
     const ownerId = this._authService.user.uid;
     if (!ownerId) {
       this._snackbar.open(
@@ -68,19 +83,57 @@ export class EventCreatePageComponent implements OnInit {
       );
       return;
     }
+    const organizationId =
+      patch.organizer?.type === "organization"
+        ? patch.organizer.organization.id
+        : undefined;
+    if (!this.isAdmin() && (!organizationId || !this.managedOrganizationIds().has(organizationId))) {
+      this._snackbar.open(
+        $localize`:@@event_create.snackbar.organization_required:Choose an organization you own or administer before creating an Event.`,
+        $localize`:@@common.dismiss:Dismiss`,
+        { duration: 5_000 },
+      );
+      return;
+    }
+    const start = dateTimeToIso(patch.start);
+    const end = dateTimeToIso(patch.end);
+    if (!start || !end) {
+      this._snackbar.open(
+        $localize`:@@event_create.snackbar.times_required:Enter an exact start and end time before creating the event.`,
+        $localize`:@@common.dismiss:Dismiss`,
+        { duration: 5_000 },
+      );
+      return;
+    }
     this.saving.set(true);
     try {
-      const event = await this._eventsService.createEvent({
-        ...patch,
-        owner: patch.owner ?? { type: "user", user_id: ownerId },
+      const created = await this._authoring.createFormalEvent({
+        name: patch.name ?? "",
+        ...(englishDescription(patch.description_i18n)
+          ? { description: englishDescription(patch.description_i18n) }
+          : {}),
+        ...(patch.locality_string ? { locality: patch.locality_string } : {}),
+        startsAt: start,
+        endsAt: end,
+        ...(patch.time_zone ? { timeZone: patch.time_zone } : {}),
+        ...(patch.organizer_name ? { organizerName: patch.organizer_name } : {}),
+        ...(organizationId ? { organizationId } : {}),
+        ...(patch.banner_src ? { coverImageUrl: patch.banner_src } : {}),
       });
+      // Ownership and slug creation are server-authoritative. The editor can
+      // still supply the rest of the mature Event fields afterwards.
+      const formalPatch = { ...patch };
+      delete formalPatch.owner;
+      delete formalPatch.slug;
+      delete formalPatch.initialCollaboratorIds;
+      await this._eventsService.updateEvent(created.eventId as EventId, formalPatch);
       this._snackbar.open(
         $localize`:@@event_create.snackbar.created:Event created.`,
         $localize`:@@common.dismiss:Dismiss`,
         { duration: 3000 }
       );
       // Land on the new event's detail page.
-      this._router.navigate(["/events", event.slug ?? event.id]);
+      this._router.navigate(["/events", created.slug]);
     } catch (err) {
       console.error("Failed to create event", err);
       this._snackbar.open(
@@ -95,4 +148,32 @@ export class EventCreatePageComponent implements OnInit {
   onCancel(): void {
     this._router.navigate(["/events"]);
   }
+
+  private async _loadFormalEventEligibility(): Promise<void> {
+    try {
+      const organizations = await this._organizationsService.getManagerOrganizations();
+      this.managedOrganizationIds.set(new Set(organizations.map((organization) => organization.id)));
+    } catch (error) {
+      console.warn("Unable to load managed organizations for Event authoring", error);
+      this.managedOrganizationIds.set(new Set());
+    } finally {
+      this.organizationEligibilityLoading.set(false);
+    }
+  }
+}
+
+function dateTimeToIso(value: unknown): string | undefined {
+  if (value instanceof Date) return value.toISOString();
+  if (value && typeof value === "object" && "toDate" in value && typeof value.toDate === "function") {
+    const date = value.toDate();
+    return date instanceof Date ? date.toISOString() : undefined;
+  }
+  return undefined;
+}
+
+function englishDescription(value: unknown): string | undefined {
+  if (!value || typeof value !== "object" || !("en" in value) || typeof value.en !== "string") {
+    return undefined;
+  }
+  return value.en.trim() || undefined;
 }

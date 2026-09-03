@@ -1,5 +1,11 @@
 <xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en" trgLang="nl">
   <file id="ngi18n" original="ng.template">
+    <unit id="1806667489382256324">
+      <segment state="initial">
+        <source>Category</source>
+        <target>Category</target>
+      </segment>
+    </unit>
     <unit id="1814768182936887464">
       <segment state="initial">
         <source>Scan reason</source>
@@ -392,6 +398,12 @@
         <target>Verwijderd</target>
       </segment>
     </unit>
+    <unit id="6392361494636232622">
+      <segment state="initial">
+        <source>PK Spot service</source>
+        <target>PK Spot service</target>
+      </segment>
+    </unit>
     <unit id="6396144908605095471">
       <segment state="initial">
         <source> Members will be added to the organization selected above. </source>
@@ -588,6 +600,12 @@
         <target>waiting on votes</target>
       </segment>
     </unit>
+    <unit id="4493161543971750886">
+      <segment state="initial">
+        <source>Privacy or data use</source>
+        <target>Privacy or data use</target>
+      </segment>
+    </unit>
     <unit id="8461609631969932886">
       <segment state="initial">
         <source>Hide</source>
@@ -750,6 +768,12 @@
         <target>E-mailadres</target>
       </segment>
     </unit>
+    <unit id="6824976364666397501">
+      <segment state="initial">
+        <source>Report a safety concern</source>
+        <target>Report a safety concern</target>
+      </segment>
+    </unit>
     <unit id="5506176846620350292">
       <segment state="initial">
         <source>Your email address has been successfully recovered. You may want to change your password if you didn&apos;t make this change.</source>
@@ -808,6 +832,12 @@
       <segment state="initial">
         <source>No events available to embed.</source>
         <target>Geen evenementen beschikbaar om in te sluiten.</target>
+      </segment>
+    </unit>
+    <unit id="5568689893936032210">
+      <segment state="initial">
+        <source>Off by default. This can only be chosen when the activity is first published.</source>
+        <target>Off by default. This can only be chosen when the activity is first published.</target>
       </segment>
     </unit>
     <unit id="5574644924997298566">
@@ -928,6 +958,12 @@
         <target>Herauthenticatie mislukt. Account niet verwijderd.</target>
       </segment>
     </unit>
+    <unit id="1494956089085338936">
+      <segment state="initial">
+        <source>Describe what happened and what outcome you need.</source>
+        <target>Describe what happened and what outcome you need.</target>
+      </segment>
+    </unit>
     <unit id="6309828574111583895">
       <segment state="initial">
         <source>Change password</source>
@@ -988,6 +1024,12 @@
         <target>E-mail geverifieerd!</target>
       </segment>
     </unit>
+    <unit id="137117898027178128">
+      <segment state="initial">
+        <source>Community activities use RSVP attendance. Tickets, programmes, and media uploads are not part of this first release.</source>
+        <target>Community activities use RSVP attendance. Tickets, programmes, and media uploads are not part of this first release.</target>
+      </segment>
+    </unit>
     <unit id="1381308436651796702">
       <segment state="initial">
         <source>No logo</source>
@@ -1028,6 +1070,12 @@
       <segment state="final">
         <source>Map Spots</source>
         <target>Kaart-Spots</target>
+      </segment>
+    </unit>
+    <unit id="2580257792587718487">
+      <segment state="initial">
+        <source>Verified 18+ status required</source>
+        <target>Verified 18+ status required</target>
       </segment>
     </unit>
     <unit id="2592135485980390676">
@@ -2161,6 +2209,12 @@
         <target> Spots door jou geverifieerd </target>
       </segment>
     </unit>
+    <unit id="3514079164376470263">
+      <segment state="initial">
+        <source>Dangerous activity</source>
+        <target>Dangerous activity</target>
+      </segment>
+    </unit>
     <unit id="3517550046701184661">
       <segment state="initial">
         <source>Show less</source>
@@ -2457,6 +2511,12 @@
         <target>Servicevoorwaarden</target>
       </segment>
     </unit>
+    <unit id="5701618810648052610">
+      <segment state="initial">
+        <source>Title</source>
+        <target>Title</target>
+      </segment>
+    </unit>
     <unit id="5717355661357017349">
       <segment state="initial">
         <source> Try again </source>
@@ -2577,6 +2637,12 @@
         <target> Vraag ons deze beperking te beoordelen </target>
       </segment>
     </unit>
+    <unit id="7740572490638436380">
+      <segment state="initial">
+        <source>What happened, and what would you like us to do?</source>
+        <target>What happened, and what would you like us to do?</target>
+      </segment>
+    </unit>
     <unit id="7742018872696898961">
       <segment state="initial">
         <source>Current password is incorrect.</source>
@@ -2671,6 +2737,12 @@
       <segment state="initial">
         <source>Not sure</source>
         <target>Niet zeker</target>
+      </segment>
+    </unit>
+    <unit id="3002792374831127014">
+      <segment state="initial">
+        <source>Event title</source>
+        <target>Event title</target>
       </segment>
     </unit>
     <unit id="3013055597615607317">
@@ -2817,6 +2889,12 @@
         <target>Het herhaalde wachtwoord moet overeenkomen met het ingevoerde wachtwoord.</target>
       </segment>
     </unit>
+    <unit id="5265692635538057834">
+      <segment state="initial">
+        <source>Starts</source>
+        <target>Starts</target>
+      </segment>
+    </unit>
     <unit id="5274576717459953946">
       <segment state="initial">
         <source>Containment summary</source>
@@ -2911,6 +2989,12 @@
       <segment state="initial">
         <source>Archive</source>
         <target>Archiveren</target>
+      </segment>
+    </unit>
+    <unit id="1072652673171439933">
+      <segment state="initial">
+        <source>Public Jams and Sessions show their organizer. Unlisted sharing will be introduced after the current app-compatibility rollout.</source>
+        <target>Public Jams and Sessions show their organizer. Unlisted sharing will be introduced after the current app-compatibility rollout.</target>
       </segment>
     </unit>
     <unit id="1083158108298637572">
@@ -3009,6 +3093,12 @@
         <target>Bron bekijken</target>
       </segment>
     </unit>
+    <unit id="6480397588679623769">
+      <segment state="initial">
+        <source>Provide at least 10 characters and no more than 4000.</source>
+        <target>Provide at least 10 characters and no more than 4000.</target>
+      </segment>
+    </unit>
     <unit id="6482719729528694797">
       <segment state="initial">
         <source>Why this approval basis is no longer accepted</source>
@@ -3031,6 +3121,12 @@
       <segment state="initial">
         <source>Follow request declined</source>
         <target>Follow request declined</target>
+      </segment>
+    </unit>
+    <unit id="1922856447604899399">
+      <segment state="initial">
+        <source>What do you need to do?</source>
+        <target>What do you need to do?</target>
       </segment>
     </unit>
     <unit id="1927584134608367160">
@@ -3073,6 +3169,12 @@
       <segment state="initial">
         <source>Outdoor</source>
         <target>Buiten</target>
+      </segment>
+    </unit>
+    <unit id="1999955189900316314">
+      <segment state="initial">
+        <source>Could not submit this case. Please try again.</source>
+        <target>Could not submit this case. Please try again.</target>
       </segment>
     </unit>
     <unit id="3601523967492159201">
@@ -3243,6 +3345,12 @@
         <target> Kenmerken en voorzieningen </target>
       </segment>
     </unit>
+    <unit id="8004315903155516282">
+      <segment state="initial">
+        <source>Suggest an Event</source>
+        <target>Suggest an Event</target>
+      </segment>
+    </unit>
     <unit id="8011758699583016596">
       <segment state="initial">
         <source>Spots in this area</source>
@@ -3289,6 +3397,12 @@
       <segment state="initial">
         <source>Unverified contact email</source>
         <target>Niet-geverifieerd contactadres</target>
+      </segment>
+    </unit>
+    <unit id="579084822382819407">
+      <segment state="initial">
+        <source>Photo or video</source>
+        <target>Photo or video</target>
       </segment>
     </unit>
     <unit id="1509543645001749494">
@@ -3370,6 +3484,18 @@
       <segment state="initial">
         <source>Moved</source>
         <target>Verplaatst</target>
+      </segment>
+    </unit>
+    <unit id="6008995610936337562">
+      <segment state="initial">
+        <source>What is this about?</source>
+        <target>What is this about?</target>
+      </segment>
+    </unit>
+    <unit id="601278657052307519">
+      <segment state="initial">
+        <source>Spam or a malicious link</source>
+        <target>Spam or a malicious link</target>
       </segment>
     </unit>
     <unit id="6020607686749008401">
@@ -3484,6 +3610,12 @@
       <segment state="initial">
         <source> Your report could not be saved. Please check your connection and try again. </source>
         <target> Your report could not be saved. Please check your connection and try again. </target>
+      </segment>
+    </unit>
+    <unit id="3261642323287960585">
+      <segment state="initial">
+        <source>Sexual content</source>
+        <target>Sexual content</target>
       </segment>
     </unit>
     <unit id="3268843240047650795">
@@ -3836,6 +3968,12 @@
       <segment state="initial">
         <source> Record the external action, reference, and follow-up </source>
         <target> Leg de externe actie, referentie en opvolging vast </target>
+      </segment>
+    </unit>
+    <unit id="2314075913167237221">
+      <segment state="initial">
+        <source>City</source>
+        <target>City</target>
       </segment>
     </unit>
     <unit id="2325032840535506648">
@@ -5820,6 +5958,12 @@
         <target>Log uit bij je account.</target>
       </segment>
     </unit>
+    <unit id="9140895998943713645">
+      <segment state="initial">
+        <source>Age-assurance decision</source>
+        <target>Age-assurance decision</target>
+      </segment>
+    </unit>
     <unit id="9147694429145547851">
       <segment state="initial">
         <source>Validating your reset link...</source>
@@ -5887,6 +6031,12 @@
       <segment state="initial">
         <source>Environment</source>
         <target>Omgeving</target>
+      </segment>
+    </unit>
+    <unit id="9184146641429032568">
+      <segment state="initial">
+        <source>Jams and Sessions are created by verified adult community members.</source>
+        <target>Jams and Sessions are created by verified adult community members.</target>
       </segment>
     </unit>
     <unit id="9186529157286281693">
@@ -5979,6 +6129,12 @@
         <target> Gesteund door de <pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;pkspot-font marker-accent&quot;&gt;" dispEnd="&lt;/span&gt;">community</pc>. </target>
       </segment>
     </unit>
+    <unit id="934990675622429392">
+      <segment state="initial">
+        <source>Safety process or legal duty</source>
+        <target>Safety process or legal duty</target>
+      </segment>
+    </unit>
     <unit id="940154517504196358">
       <segment state="initial">
         <source>The redundant Spot is a home Spot.</source>
@@ -5995,6 +6151,18 @@
       <segment state="initial">
         <source>This E-Mail address is not valid!</source>
         <target>Dit e-mailadres is ongeldig!</target>
+      </segment>
+    </unit>
+    <unit id="95213720452925222">
+      <segment state="initial">
+        <source>Not specified</source>
+        <target>Not specified</target>
+      </segment>
+    </unit>
+    <unit id="962179517602562850">
+      <segment state="initial">
+        <source>Privacy or doxxing</source>
+        <target>Privacy or doxxing</target>
       </segment>
     </unit>
     <unit id="967806009511704497">
@@ -6093,6 +6261,12 @@
       <segment state="initial">
         <source> Address </source>
         <target> Adres </target>
+      </segment>
+    </unit>
+    <unit id="8138554183860371861">
+      <segment state="initial">
+        <source> Cancel activity </source>
+        <target> Cancel activity </target>
       </segment>
     </unit>
     <unit id="8142225273689086841">
@@ -6477,6 +6651,12 @@
       <segment state="initial">
         <source> Notification types </source>
         <target> Meldingstypen </target>
+      </segment>
+    </unit>
+    <unit id="6121666591027850264">
+      <segment state="initial">
+        <source>Checking formal event authoring access…</source>
+        <target>Checking formal event authoring access…</target>
       </segment>
     </unit>
     <unit id="6128805594305699476">
@@ -7748,19 +7928,19 @@
     </unit>
     <unit id="event_create.restricted.back">
       <segment state="initial">
-        <source> Back to events </source>
+        <source> Suggest an Event </source>
         <target> Terug naar evenementen </target>
       </segment>
     </unit>
     <unit id="event_create.restricted.body">
       <segment state="initial">
-        <source> Event creation is currently limited to PK Spot admins. If you&apos;d like to add an event to the map, get in touch with us. </source>
-        <target> Evenementen maken is momenteel beperkt tot PK Spot-admins. Neem contact met ons op als je een evenement aan de kaart wilt toevoegen. </target>
+        <source> Events can be created by PK Spot admins and organization owners or admins. You can still suggest an Event for staff review. </source>
+        <target>Evenementen kunnen worden gemaakt door PK Spot-beheerders en eigenaars of beheerders van organisaties. Je kunt nog steeds een evenement ter beoordeling voorstellen.</target>
       </segment>
     </unit>
     <unit id="event_create.restricted.title">
       <segment state="initial">
-        <source> Admin only </source>
+        <source> Organization leader access required </source>
         <target> Alleen admins </target>
       </segment>
     </unit>
@@ -7776,10 +7956,22 @@
         <target>Kon het evenement niet maken. Bekijk de console voor details.</target>
       </segment>
     </unit>
+    <unit id="event_create.snackbar.organization_required">
+      <segment state="initial">
+        <source>Choose an organization you own or administer before creating an Event.</source>
+        <target>Kies een organisatie waarvan je eigenaar of beheerder bent voordat je een evenement maakt.</target>
+      </segment>
+    </unit>
     <unit id="event_create.snackbar.owner_required">
       <segment state="initial">
         <source>Sign in again before creating an event.</source>
         <target>Log opnieuw in voordat je een evenement maakt.</target>
+      </segment>
+    </unit>
+    <unit id="event_create.snackbar.times_required">
+      <segment state="initial">
+        <source>Enter an exact start and end time before creating the event.</source>
+        <target>Enter an exact start and end time before creating the event.</target>
       </segment>
     </unit>
     <unit id="event_description.show_less">
@@ -7922,7 +8114,7 @@
     </unit>
     <unit id="event_edit.banner_fit">
       <segment state="initial">
-        <source>Banner fit</source>
+        <source>Cover fit</source>
         <target>Bannerpassing</target>
       </segment>
     </unit>
@@ -7940,13 +8132,13 @@
     </unit>
     <unit id="event_edit.banner_label">
       <segment state="initial">
-        <source> Banner image </source>
+        <source> Cover image </source>
         <target> Bannerafbeelding </target>
       </segment>
     </unit>
     <unit id="event_edit.banner_preview">
       <segment state="initial">
-        <source> Banner preview </source>
+        <source> Cover preview </source>
         <target> Vista previa del banner </target>
       </segment>
     </unit>
@@ -9816,6 +10008,18 @@
         <target>Nog <ph id="0" equiv="eventCount" disp="day.hiddenEventCount"/> evenementen op <ph id="1" equiv="localDate" disp="date"/> tonen</target>
       </segment>
     </unit>
+    <unit id="events.community_activity_jam">
+      <segment state="initial">
+        <source>Community Jams</source>
+        <target>Community Jams</target>
+      </segment>
+    </unit>
+    <unit id="events.community_activity_session">
+      <segment state="initial">
+        <source>Community Sessions</source>
+        <target>Community Sessions</target>
+      </segment>
+    </unit>
     <unit id="events.count_many">
       <segment state="initial">
         <source><ph id="0" equiv="eventCount" disp="count"/> events</source>
@@ -9830,7 +10034,7 @@
     </unit>
     <unit id="events.create">
       <segment state="initial">
-        <source>Create event</source>
+        <source>Create Event</source>
         <target>Evenement maken</target>
       </segment>
     </unit>
@@ -9868,6 +10072,12 @@
       <segment state="initial">
         <source>Starts <ph id="0" equiv="PH" disp="relative"/></source>
         <target>Begint <ph id="0" equiv="PH" disp="relative"/></target>
+      </segment>
+    </unit>
+    <unit id="events.suggest_event">
+      <segment state="initial">
+        <source>Suggest an Event</source>
+        <target>Suggest an Event</target>
       </segment>
     </unit>
     <unit id="events.status.upcoming_event_relative">
@@ -10153,6 +10363,12 @@
         <target>Binnen</target>
       </segment>
     </unit>
+    <unit id="4302668244346549580">
+      <segment state="initial">
+        <source>Email for updates (optional when signed in)</source>
+        <target>Email for updates (optional when signed in)</target>
+      </segment>
+    </unit>
     <unit id="4320994550381609480">
       <segment state="initial">
         <source>Pioneer</source>
@@ -10369,6 +10585,12 @@
         <target>Evenementkop weergeven</target>
       </segment>
     </unit>
+    <unit id="7858093315829323396">
+      <segment state="initial">
+        <source>Age assurance</source>
+        <target>Age assurance</target>
+      </segment>
+    </unit>
     <unit id="7860386256947196622">
       <segment state="translated">
         <source>Review events</source>
@@ -10391,6 +10613,12 @@
       <segment state="initial">
         <source>Ownership claim approved.</source>
         <target>Ownership claim approved.</target>
+      </segment>
+    </unit>
+    <unit id="7880605355244228662">
+      <segment state="initial">
+        <source>Media consent</source>
+        <target>Media consent</target>
       </segment>
     </unit>
     <unit id="7881945331295450373">
@@ -10505,6 +10733,12 @@
       <segment state="initial">
         <source>HTML Embed Code</source>
         <target>HTML-inbedcode</target>
+      </segment>
+    </unit>
+    <unit id="8225018754533371665">
+      <segment state="initial">
+        <source>Loading activity…</source>
+        <target>Loading activity…</target>
       </segment>
     </unit>
     <unit id="8228088429714277489">
@@ -10833,6 +11067,78 @@
       <segment state="initial">
         <source>Sign in to see link</source>
         <target>Sign in to see link</target>
+      </segment>
+    </unit>
+    <unit id="community_activity.cancel_failed">
+      <segment state="initial">
+        <source>Couldn&apos;t cancel this activity. Please try again.</source>
+        <target>Couldn&apos;t cancel this activity. Please try again.</target>
+      </segment>
+    </unit>
+    <unit id="community_activity.cancelled">
+      <segment state="initial">
+        <source>Your activity is cancelled.</source>
+        <target>Your activity is cancelled.</target>
+      </segment>
+    </unit>
+    <unit id="community_activity.create_failed">
+      <segment state="initial">
+        <source>Couldn&apos;t publish this activity. Please try again.</source>
+        <target>Couldn&apos;t publish this activity. Please try again.</target>
+      </segment>
+    </unit>
+    <unit id="community_activity.created">
+      <segment state="initial">
+        <source>Your activity is published.</source>
+        <target>Your activity is published.</target>
+      </segment>
+    </unit>
+    <unit id="community_activity.edit_jam_heading">
+      <segment state="initial">
+        <source>Edit Jam</source>
+        <target>Edit Jam</target>
+      </segment>
+    </unit>
+    <unit id="community_activity.edit_session_heading">
+      <segment state="initial">
+        <source>Edit Session</source>
+        <target>Edit Session</target>
+      </segment>
+    </unit>
+    <unit id="community_activity.invalid_times">
+      <segment state="initial">
+        <source>Choose an end time after the start time.</source>
+        <target>Choose an end time after the start time.</target>
+      </segment>
+    </unit>
+    <unit id="community_activity.plan_jam_description">
+      <segment state="initial">
+        <source>Bring your local parkour community together.</source>
+        <target>Bring your local parkour community together.</target>
+      </segment>
+    </unit>
+    <unit id="community_activity.plan_jam_heading">
+      <segment state="initial">
+        <source>Plan a Jam</source>
+        <target>Plan a Jam</target>
+      </segment>
+    </unit>
+    <unit id="community_activity.plan_session_description">
+      <segment state="initial">
+        <source>Plan a local parkour training session.</source>
+        <target>Plan a local parkour training session.</target>
+      </segment>
+    </unit>
+    <unit id="community_activity.plan_session_heading">
+      <segment state="initial">
+        <source>Plan a Session</source>
+        <target>Plan a Session</target>
+      </segment>
+    </unit>
+    <unit id="community_activity.updated">
+      <segment state="initial">
+        <source>Your activity is updated.</source>
+        <target>Your activity is updated.</target>
       </segment>
     </unit>
     <unit id="contact.aside.crew.body">
@@ -11197,6 +11503,12 @@
         <target> <ph id="0" equiv="ICU" disp="{data.events.length, plural, =1 {The one problematic published event is shown below.} other {All {{ data.events.length }} problematic published events are shown below.}}" subFlows="2516091138808940382"/> Deze evenementen worden uitgesloten van de openbare zoekfunctie totdat hun coördinaten, lokale tijdzone en evenementdatums geldig zijn. </target>
       </segment>
     </unit>
+    <unit id="4734349318830134239">
+      <segment state="initial">
+        <source>Ends</source>
+        <target>Ends</target>
+      </segment>
+    </unit>
     <unit id="4744376889247353452">
       <segment state="initial">
         <source>Curator</source>
@@ -11225,6 +11537,12 @@
       <segment state="initial">
         <source> This profile does not exist or is no longer available. </source>
         <target> This profile does not exist or is no longer available. </target>
+      </segment>
+    </unit>
+    <unit id="7778065148063995265">
+      <segment state="initial">
+        <source>Community Jam</source>
+        <target>Community Jam</target>
       </segment>
     </unit>
     <unit id="6680262533217185088">
@@ -11326,6 +11644,12 @@
         <target>Doel</target>
       </segment>
     </unit>
+    <unit id="4856886645538428653">
+      <segment state="initial">
+        <source>Enter a valid email address or leave it blank.</source>
+        <target>Enter a valid email address or leave it blank.</target>
+      </segment>
+    </unit>
     <unit id="profile.actions.unblock">
       <segment state="initial">
         <source>Unblock</source>
@@ -11366,6 +11690,12 @@
       <segment state="initial">
         <source>Schedule updated</source>
         <target>Planning bijgewerkt</target>
+      </segment>
+    </unit>
+    <unit id="4897177574141849318">
+      <segment state="initial">
+        <source>Unsafe place or access information</source>
+        <target>Unsafe place or access information</target>
       </segment>
     </unit>
     <unit id="7053728652419731548">
@@ -11432,6 +11762,12 @@
       <segment state="initial">
         <source>Community merge queued</source>
         <target>Community merge queued</target>
+      </segment>
+    </unit>
+    <unit id="2473999022194734610">
+      <segment state="initial">
+        <source>Your currently active server-confirmed adult assurance is required before publishing a community activity.</source>
+        <target>Your currently active server-confirmed adult assurance is required before publishing a community activity.</target>
       </segment>
     </unit>
     <unit id="2475812979768871750">
@@ -11528,6 +11864,12 @@
       <segment state="initial">
         <source>Independently checked 18+ eligibility is available.</source>
         <target>Er is een onafhankelijk gecontroleerde geschiktheid van 18 jaar of ouder beschikbaar.</target>
+      </segment>
+    </unit>
+    <unit id="2112768397949905814">
+      <segment state="initial">
+        <source>Enter a valid email address.</source>
+        <target>Enter a valid email address.</target>
       </segment>
     </unit>
     <unit id="2114926278043068343">
@@ -11651,6 +11993,12 @@
         <target>Niet beheerd</target>
       </segment>
     </unit>
+    <unit id="3808291968368675401">
+      <segment state="initial">
+        <source>Add a short summary.</source>
+        <target>Add a short summary.</target>
+      </segment>
+    </unit>
     <unit id="3812784998942541864">
       <segment state="initial">
         <source>Network fingerprint</source>
@@ -11697,6 +12045,12 @@
       <segment state="initial">
         <source>Not available</source>
         <target>Niet beschikbaar</target>
+      </segment>
+    </unit>
+    <unit id="3845136227654022046">
+      <segment state="initial">
+        <source>Harassment or hate</source>
+        <target>Harassment or hate</target>
       </segment>
     </unit>
     <unit id="3849719587486813146">
@@ -11868,6 +12222,12 @@
         <target>Nieuwe Challenge succesvol opgeslagen</target>
       </segment>
     </unit>
+    <unit id="5051467674731031610">
+      <segment state="initial">
+        <source>Report this event</source>
+        <target>Report this event</target>
+      </segment>
+    </unit>
     <unit id="5061749540188881037">
       <segment state="initial">
         <source> Community cards, spot edit votes, and organization approval. </source>
@@ -11896,6 +12256,12 @@
       <segment state="initial">
         <source>Link to challenge copied to clipboard</source>
         <target>Link naar Challenge gekopieerd naar klembord</target>
+      </segment>
+    </unit>
+    <unit id="5097731679946084974">
+      <segment state="initial">
+        <source>Send a formal event to PK Spot staff for review. It will not be published from this form.</source>
+        <target>Send a formal event to PK Spot staff for review. It will not be published from this form.</target>
       </segment>
     </unit>
     <unit id="event_page.loading">
@@ -11952,6 +12318,12 @@
         <target>Event hersteld</target>
       </segment>
     </unit>
+    <unit id="8407220471361845948">
+      <segment state="initial">
+        <source>Paste the PK Spot URL if you have it.</source>
+        <target>Paste the PK Spot URL if you have it.</target>
+      </segment>
+    </unit>
     <unit id="840870092040015279">
       <segment state="initial">
         <source>Sign in to submit media quality reports.</source>
@@ -11988,10 +12360,22 @@
         <target>Mediastream</target>
       </segment>
     </unit>
+    <unit id="2648624934226238207">
+      <segment state="initial">
+        <source>Item link, path, or identifier (optional)</source>
+        <target>Item link, path, or identifier (optional)</target>
+      </segment>
+    </unit>
     <unit id="2676566549378671128">
       <segment state="initial">
         <source>{VAR_PLURAL, plural, =1 {verified spot} other {verified spots}}</source>
         <target>{VAR_PLURAL, plural, =1 {geverifieerde spot} other {geverifieerde spots}}</target>
+      </segment>
+    </unit>
+    <unit id="2682985820323207989">
+      <segment state="initial">
+        <source>Filter by listing type</source>
+        <target>Filter by listing type</target>
       </segment>
     </unit>
     <unit id="2684344419716682750">
@@ -12162,6 +12546,12 @@
         <target>Dit contactbericht uit de actieve inbox verwijderen? Het bericht blijft vastgelegd in de moderatieherkomst.</target>
       </segment>
     </unit>
+    <unit id="2907120007943470857">
+      <segment state="initial">
+        <source>Organizer</source>
+        <target>Organizer</target>
+      </segment>
+    </unit>
     <unit id="2914629792519664709">
       <segment state="initial">
         <source>Public Spot warning published</source>
@@ -12178,6 +12568,12 @@
       <segment state="initial">
         <source>Keep as canonical</source>
         <target>Als canoniek behouden</target>
+      </segment>
+    </unit>
+    <unit id="2923069032301679554">
+      <segment state="initial">
+        <source>Reports are private and go directly to the PK Spot safety team.</source>
+        <target>Reports are private and go directly to the PK Spot safety team.</target>
       </segment>
     </unit>
     <unit id="2925374545200384410">
@@ -12232,6 +12628,12 @@
       <segment state="initial">
         <source>Edit Profile</source>
         <target>Profiel bewerken</target>
+      </segment>
+    </unit>
+    <unit id="2988814765436950391">
+      <segment state="initial">
+        <source>Another service complaint</source>
+        <target>Another service complaint</target>
       </segment>
     </unit>
     <unit id="2996324673054626783">
@@ -12400,10 +12802,22 @@
         <target>Beschrijving</target>
       </segment>
     </unit>
+    <unit id="1584093308232863634">
+      <segment state="initial">
+        <source>Submit securely</source>
+        <target>Submit securely</target>
+      </segment>
+    </unit>
     <unit id="158781460362336598">
       <segment state="initial">
         <source>You were successfully signed out!</source>
         <target>Je bent succesvol uitgelogd!</target>
+      </segment>
+    </unit>
+    <unit id="1589136879717771714">
+      <segment state="initial">
+        <source>Automated media decision</source>
+        <target>Automated media decision</target>
       </segment>
     </unit>
     <unit id="1593391712749316624">
@@ -12554,6 +12968,12 @@
       <segment state="translated">
         <source>Local time zone and start time are missing</source>
         <target>Lokale tijdzone en starttijd ontbreken</target>
+      </segment>
+    </unit>
+    <unit id="5365781103448127790">
+      <segment state="initial">
+        <source>Send suggestion</source>
+        <target>Send suggestion</target>
       </segment>
     </unit>
     <unit id="5366185394283274884">
@@ -12880,10 +13300,22 @@
         <target>De oorspronkelijke CREATE-gegevens verschillen.</target>
       </segment>
     </unit>
+    <unit id="2058170987045762192">
+      <segment state="initial">
+        <source>Filter by region</source>
+        <target>Filter by region</target>
+      </segment>
+    </unit>
     <unit id="6529676412063915412">
       <segment state="initial">
         <source> Follow requests </source>
         <target> Follow requests </target>
+      </segment>
+    </unit>
+    <unit id="6530779476034323471">
+      <segment state="initial">
+        <source>Sign in to plan an activity</source>
+        <target>Sign in to plan an activity</target>
       </segment>
     </unit>
     <unit id="6537027644496489823">
@@ -13054,6 +13486,12 @@
         <target>Kern</target>
       </segment>
     </unit>
+    <unit id="3989796638927342332">
+      <segment state="initial">
+        <source>Make a complaint</source>
+        <target>Make a complaint</target>
+      </segment>
+    </unit>
     <unit id="3991755043359697718">
       <segment state="initial">
         <source>Remove selected file</source>
@@ -13138,6 +13576,12 @@
         <target>Filteren op evenementcategorie</target>
       </segment>
     </unit>
+    <unit id="3480235560414212524">
+      <segment state="initial">
+        <source> Reports are private. We keep the information needed to investigate, prevent abuse, explain decisions, and handle an appeal. Network and device security metadata is removed after 90 days. </source>
+        <target> Reports are private. We keep the information needed to investigate, prevent abuse, explain decisions, and handle an appeal. Network and device security metadata is removed after 90 days. </target>
+      </segment>
+    </unit>
     <unit id="3483311644139102304">
       <segment state="initial">
         <source>All Event Challenges</source>
@@ -13154,6 +13598,12 @@
       <segment state="initial">
         <source>Program item</source>
         <target>Programmaonderdeel</target>
+      </segment>
+    </unit>
+    <unit id="3496653775940285146">
+      <segment state="initial">
+        <source>Use 5–140 characters.</source>
+        <target>Use 5–140 characters.</target>
       </segment>
     </unit>
     <unit id="5101446301405691745">
@@ -13232,6 +13682,12 @@
       <segment state="initial">
         <source>Not now</source>
         <target>Niet nu</target>
+      </segment>
+    </unit>
+    <unit id="516176798986294299">
+      <segment state="initial">
+        <source>Country</source>
+        <target>Country</target>
       </segment>
     </unit>
     <unit id="5176605689144016167">
@@ -13418,6 +13874,12 @@
         <target> Externe melding niet vereist </target>
       </segment>
     </unit>
+    <unit id="2293350537164432279">
+      <segment state="initial">
+        <source>Filter by community activity type</source>
+        <target>Filter by community activity type</target>
+      </segment>
+    </unit>
     <unit id="7374538640222631357">
       <segment state="initial">
         <source>This challenge is still private to you!</source>
@@ -13482,6 +13944,12 @@
       <segment state="initial">
         <source>The mobile platform requires you to confirm your age or set up supervision. Complete its instructions, then check again.</source>
         <target>Het mobiele platform vereist dat je je leeftijd bevestigt of toezicht instelt. Volg de instructies en controleer daarna opnieuw.</target>
+      </segment>
+    </unit>
+    <unit id="5430715841913413045">
+      <segment state="initial">
+        <source>Content or account decision</source>
+        <target>Content or account decision</target>
       </segment>
     </unit>
     <unit id="5439680339974485805">
@@ -13568,6 +14036,12 @@
         <target> <ph id="0" equiv="ICU" disp="{invalidItemCount, plural, =1 {One published event has invalid discovery data and was not shown.} other {{{invalidItemCount}} published events have invalid discovery data and were not shown.} }" subFlows="3991033213392190792"/> </target>
       </segment>
     </unit>
+    <unit id="8865873236948038164">
+      <segment state="initial">
+        <source>Report event</source>
+        <target>Report event</target>
+      </segment>
+    </unit>
     <unit id="8876716314997684812">
       <segment state="initial">
         <source>Event management</source>
@@ -13652,6 +14126,12 @@
         <target> Illegale inhoud </target>
       </segment>
     </unit>
+    <unit id="5995912307085156285">
+      <segment state="initial">
+        <source>Potentially illegal content</source>
+        <target>Potentially illegal content</target>
+      </segment>
+    </unit>
     <unit id="3959902123742995673">
       <segment state="initial">
         <source>Could not sign in with Google!</source>
@@ -13680,6 +14160,12 @@
       <segment state="initial">
         <source>Share media</source>
         <target>Media delen</target>
+      </segment>
+    </unit>
+    <unit id="8520138691875188234">
+      <segment state="initial">
+        <source> Guests receive a one-time verification link. Your email and identity are visible only to authorised moderators. </source>
+        <target> Guests receive a one-time verification link. Your email and identity are visible only to authorised moderators. </target>
       </segment>
     </unit>
     <unit id="8525213662266893834">
@@ -13716,6 +14202,12 @@
       <segment state="translated">
         <source>{VAR_PLURAL, plural, =1 {The one problematic published event is shown below.} other {All <ph id="0" equiv="INTERPOLATION"/> problematic published events are shown below.}}</source>
         <target>{VAR_PLURAL, plural, =1 {Het enige gepubliceerde evenement met een probleem wordt hieronder weergegeven.} other {Alle <ph id="0" equiv="INTERPOLATION"/> gepubliceerde evenementen met problemen worden hieronder weergegeven.}}</target>
+      </segment>
+    </unit>
+    <unit id="333127453752502509">
+      <segment state="initial">
+        <source>Formal Event</source>
+        <target>Formal Event</target>
       </segment>
     </unit>
     <unit id="3332261437108791304">
@@ -13758,6 +14250,12 @@
       <segment state="initial">
         <source> We don&apos;t have a PK Spot community page for this route yet. </source>
         <target>We hebben nog geen PK Spot-communitypagina voor deze route.</target>
+      </segment>
+    </unit>
+    <unit id="8392870453812180370">
+      <segment state="initial">
+        <source>Community Session</source>
+        <target>Community Session</target>
       </segment>
     </unit>
     <unit id="spot_picker.limit_hint">
@@ -14446,6 +14944,12 @@
         <target>Beheerd door</target>
       </segment>
     </unit>
+    <unit id="7137059156368381236">
+      <segment state="initial">
+        <source>Official link</source>
+        <target>Official link</target>
+      </segment>
+    </unit>
     <unit id="7138068972563490768">
       <segment state="translated">
         <source> An event&apos;s local time zone is derived from its map coordinates. It places the event on the correct local calendar day and keeps its start and end times accurate through daylight-saving changes. </source>
@@ -14506,6 +15010,12 @@
         <target>Die Maps-link kon niet worden geopend. Probeer een volledige Google Maps- of Apple Maps-link te plakken.</target>
       </segment>
     </unit>
+    <unit id="7183346391731740218">
+      <segment state="initial">
+        <source>Child safety</source>
+        <target>Child safety</target>
+      </segment>
+    </unit>
     <unit id="7193934719093844817">
       <segment state="initial">
         <source>Challenge at <ph id="0" equiv="PH" disp="spotName"/></source>
@@ -14534,6 +15044,12 @@
       <segment state="initial">
         <source>Guard blocks: <ph id="0" equiv="INTERPOLATION" disp="{{ item.guardBlockCount }}"/></source>
         <target>Clientblokkeringen: <ph id="0" equiv="INTERPOLATION" disp="{{ item.guardBlockCount }}"/></target>
+      </segment>
+    </unit>
+    <unit id="721979004226425951">
+      <segment state="initial">
+        <source>How a report was handled</source>
+        <target>How a report was handled</target>
       </segment>
     </unit>
     <unit id="7222489710265178271">
@@ -14722,6 +15238,12 @@
         <target>Afgeschermde notities</target>
       </segment>
     </unit>
+    <unit id="8968543130328972761">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ editing ? &quot;Save&quot; : &quot;Publish&quot; }}"/> <ph id="1" equiv="INTERPOLATION_1" disp="{{ subtype() === &quot;jam&quot; ? &quot;Jam&quot; : &quot;Session&quot; }}"/></source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="{{ editing ? &quot;Save&quot; : &quot;Publish&quot; }}"/> <ph id="1" equiv="INTERPOLATION_1" disp="{{ subtype() === &quot;jam&quot; ? &quot;Jam&quot; : &quot;Session&quot; }}"/></target>
+      </segment>
+    </unit>
     <unit id="8972434095994344487">
       <segment state="initial">
         <source>Community card rejected</source>
@@ -14776,6 +15298,12 @@
         <target>Geen</target>
       </segment>
     </unit>
+    <unit id="6261837376343461951">
+      <segment state="initial">
+        <source>Self-harm or suicide</source>
+        <target>Self-harm or suicide</target>
+      </segment>
+    </unit>
     <unit id="6266780676699111627">
       <segment state="initial">
         <source> Latest open spot and media reports. </source>
@@ -14786,6 +15314,12 @@
       <segment state="initial">
         <source>Authentication Error</source>
         <target>Authenticatiefout</target>
+      </segment>
+    </unit>
+    <unit id="6283880478744342457">
+      <segment state="initial">
+        <source>Notify followers of the local community when I publish</source>
+        <target>Notify followers of the local community when I publish</target>
       </segment>
     </unit>
     <unit id="6299599810982807013">
@@ -14822,6 +15356,12 @@
       <segment state="initial">
         <source> All Challenges of <ph id="0" equiv="INTERPOLATION" disp="{{ spotName() }}"/> </source>
         <target> Alle challenges van <ph id="0" equiv="INTERPOLATION" disp="{{ selectedSpot()!.name() }}"/> </target>
+      </segment>
+    </unit>
+    <unit id="4032923208630289183">
+      <segment state="initial">
+        <source>Suggestions require your current server-confirmed adult assurance.</source>
+        <target>Suggestions require your current server-confirmed adult assurance.</target>
       </segment>
     </unit>
     <unit id="4043049091728011235">
@@ -14906,6 +15446,12 @@
       <segment state="initial">
         <source>Editor</source>
         <target>Bewerker</target>
+      </segment>
+    </unit>
+    <unit id="3747597665217141319">
+      <segment state="initial">
+        <source>Another safety concern</source>
+        <target>Another safety concern</target>
       </segment>
     </unit>
     <unit id="3750896546807006672">
@@ -15136,6 +15682,12 @@
         <target>Reports help keep PK Spot accurate and safe.</target>
       </segment>
     </unit>
+    <unit id="1629110082218932522">
+      <segment state="initial">
+        <source>Short summary</source>
+        <target>Short summary</target>
+      </segment>
+    </unit>
     <unit id="1632949913064020849">
       <segment state="initial">
         <source>Dismissed</source>
@@ -15262,6 +15814,12 @@
         <target> Gemaakt in Zürich, Zwitserland. Open data. Open code. ©2026 PK Spot. </target>
       </segment>
     </unit>
+    <unit id="2705202013183370950">
+      <segment state="initial">
+        <source>A public profile is required</source>
+        <target>A public profile is required</target>
+      </segment>
+    </unit>
     <unit id="2706312198973609080">
       <segment state="initial">
         <source>Updating…</source>
@@ -15376,6 +15934,12 @@
         <target>Organisatie kiezen</target>
       </segment>
     </unit>
+    <unit id="2075947254275135132">
+      <segment state="initial">
+        <source>Problem making a report</source>
+        <target>Problem making a report</target>
+      </segment>
+    </unit>
     <unit id="2081295007072116210">
       <segment state="initial">
         <source>Searching PK Spot...</source>
@@ -15482,6 +16046,18 @@
         <target>Vind spots en meer</target>
       </segment>
     </unit>
+    <unit id="events.listing_tier_community">
+      <segment state="initial">
+        <source>Community events</source>
+        <target>Community-evenementen</target>
+      </segment>
+    </unit>
+    <unit id="events.listing_tier_formal">
+      <segment state="initial">
+        <source>Formal Events</source>
+        <target>Formal Events</target>
+      </segment>
+    </unit>
     <unit id="events.live_events_heading">
       <segment state="initial">
         <source> Happening now </source>
@@ -15492,6 +16068,36 @@
       <segment state="initial">
         <source>now</source>
         <target>nu</target>
+      </segment>
+    </unit>
+    <unit id="events.plan_jam">
+      <segment state="initial">
+        <source>Plan a Jam</source>
+        <target>Plan a Jam</target>
+      </segment>
+    </unit>
+    <unit id="events.plan_session">
+      <segment state="initial">
+        <source>Plan a Session</source>
+        <target>Plan a Session</target>
+      </segment>
+    </unit>
+    <unit id="event_listing.community_jam">
+      <segment state="initial">
+        <source>Community Jam</source>
+        <target>Community Jam</target>
+      </segment>
+    </unit>
+    <unit id="event_listing.community_session">
+      <segment state="initial">
+        <source>Community Session</source>
+        <target>Community Session</target>
+      </segment>
+    </unit>
+    <unit id="event_listing.formal">
+      <segment state="initial">
+        <source>Formal Event</source>
+        <target>Formal Event</target>
       </segment>
     </unit>
     <unit id="event_map_page.back_to_event">
@@ -15800,6 +16406,42 @@
         <target>Meer tonen</target>
       </segment>
     </unit>
+    <unit id="event_region.africa">
+      <segment state="initial">
+        <source>Africa</source>
+        <target>Africa</target>
+      </segment>
+    </unit>
+    <unit id="event_region.asia">
+      <segment state="initial">
+        <source>Asia</source>
+        <target>Asia</target>
+      </segment>
+    </unit>
+    <unit id="event_region.europe">
+      <segment state="initial">
+        <source>Europe</source>
+        <target>Europe</target>
+      </segment>
+    </unit>
+    <unit id="event_region.north_america">
+      <segment state="initial">
+        <source>North America</source>
+        <target>North America</target>
+      </segment>
+    </unit>
+    <unit id="event_region.oceania">
+      <segment state="initial">
+        <source>Oceania</source>
+        <target>Oceania</target>
+      </segment>
+    </unit>
+    <unit id="event_region.south_america">
+      <segment state="initial">
+        <source>South America</source>
+        <target>South America</target>
+      </segment>
+    </unit>
     <unit id="event_registration.cancel">
       <segment state="initial">
         <source>Cancel registration</source>
@@ -15938,6 +16580,18 @@
         <target>Op de wachtlijst</target>
       </segment>
     </unit>
+    <unit id="event_report.default_summary">
+      <segment state="initial">
+        <source>Report: <ph id="0" equiv="PH" disp="event.name"/></source>
+        <target>Report: <ph id="0" equiv="PH" disp="event.name"/></target>
+      </segment>
+    </unit>
+    <unit id="event_report.submitted">
+      <segment state="initial">
+        <source>Your report has been sent securely.</source>
+        <target>Your report has been sent securely.</target>
+      </segment>
+    </unit>
     <unit id="event_series_role.championship">
       <segment state="initial">
         <source>Championship</source>
@@ -16056,6 +16710,36 @@
       <segment state="initial">
         <source> Event notifications </source>
         <target> Evenementmeldingen </target>
+      </segment>
+    </unit>
+    <unit id="event_suggestion.failed">
+      <segment state="initial">
+        <source>Couldn&apos;t send your suggestion. Please try again.</source>
+        <target>Couldn&apos;t send your suggestion. Please try again.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestion.invalid_times">
+      <segment state="initial">
+        <source>Choose an end time after the start time.</source>
+        <target>Choose an end time after the start time.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestion.meta_description">
+      <segment state="initial">
+        <source>Suggest a parkour Event for staff review.</source>
+        <target>Stel een parkourevenement voor aan het PK Spot-team ter beoordeling.</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestion.meta_title">
+      <segment state="initial">
+        <source>Suggest an Event</source>
+        <target>Suggest an Event</target>
+      </segment>
+    </unit>
+    <unit id="event_suggestion.submitted">
+      <segment state="initial">
+        <source>Thanks — your suggestion is ready for staff review.</source>
+        <target>Thanks — your suggestion is ready for staff review.</target>
       </segment>
     </unit>
     <unit id="event_tickets.availability.coming_soon">
@@ -17342,5 +18026,28 @@
         <target>Profiel bekijken</target>
       </segment>
     </unit>
+    <unit id="community_event.edit_heading"><segment state="initial"><source>Edit community event</source><target>Edit community event</target></segment></unit>
+    <unit id="community_event.plan_heading"><segment state="initial"><source>Plan a community event</source><target>Plan a community event</target></segment></unit>
+    <unit id="community_event.description"><segment state="initial"><source>Bring your local parkour community together.</source><target>Bring your local parkour community together.</target></segment></unit>
+    <unit id="community_event.updated"><segment state="initial"><source>Your community event is updated.</source><target>Your community event is updated.</target></segment></unit>
+    <unit id="community_event.created"><segment state="initial"><source>Your community event is published.</source><target>Your community event is published.</target></segment></unit>
+    <unit id="community_event.create_failed"><segment state="initial"><source>Couldn&apos;t publish this community event. Please try again.</source><target>Couldn&apos;t publish this community event. Please try again.</target></segment></unit>
+    <unit id="community_event.cancelled"><segment state="initial"><source>Your community event is cancelled.</source><target>Your community event is cancelled.</target></segment></unit>
+    <unit id="community_event.cancel_failed"><segment state="initial"><source>Couldn&apos;t cancel this community event. Please try again.</source><target>Couldn&apos;t cancel this community event. Please try again.</target></segment></unit>
+    <unit id="events.plan_community_event"><segment state="initial"><source>Plan a community event</source><target>Plan a community event</target></segment></unit>
+    <unit id="events.listing_tier_event"><segment state="initial"><source>Events</source><target>Events</target></segment></unit>
+    <unit id="event_listing.community"><segment state="initial"><source>Community event</source><target>Community event</target></segment></unit>
+    <unit id="6241445530231242277"><segment state="initial"><source>Sign in to plan a community event</source><target>Sign in to plan a community event</target></segment></unit>
+    <unit id="1723550153638974909"><segment state="initial"><source>Community events are created by verified adult community members.</source><target>Community events are created by verified adult community members.</target></segment></unit>
+    <unit id="1739404177510113816"><segment state="initial"><source>Your currently active server-confirmed adult assurance is required before publishing a community event.</source><target>Your currently active server-confirmed adult assurance is required before publishing a community event.</target></segment></unit>
+    <unit id="5462767174124636395"><segment state="initial"><source>Public community events show their organizer.</source><target>Public community events show their organizer.</target></segment></unit>
+    <unit id="4205547259664450146"><segment state="initial"><source>Loading community event…</source><target>Loading community event…</target></segment></unit>
+    <unit id="4299657868649430560"><segment state="initial"><source>Community events use RSVP attendance. Tickets, programmes, and media uploads are not part of this first release.</source><target>Community events use RSVP attendance. Tickets, programmes, and media uploads are not part of this first release.</target></segment></unit>
+    <unit id="7219162063306578420"><segment state="initial"><source>{$INTERPOLATION} community event</source><target>{$INTERPOLATION} community event</target></segment></unit>
+    <unit id="3628985727060093047"><segment state="initial"><source>Off by default. This can only be chosen when the community event is first published.</source><target>Off by default. This can only be chosen when the community event is first published.</target></segment></unit>
+    <unit id="7962838458002654901"><segment state="initial"><source> Cancel community event </source><target> Cancel community event </target></segment></unit>
+    <unit id="3792622364508901777"><segment state="initial"><source>Send an Event to PK Spot staff for review. It will not be published from this form.</source><target>Send an Event to PK Spot staff for review. It will not be published from this form.</target></segment></unit>
+    <unit id="552004881794875858"><segment state="initial"><source>Community event</source><target>Community event</target></segment></unit>
+    <unit id="2008167069818962786"><segment state="initial"><source>Checking Event authoring access…</source><target>Checking Event authoring access…</target></segment></unit>
   </file>
 </xliff>
