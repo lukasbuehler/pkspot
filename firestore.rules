@@ -93,6 +93,53 @@ service cloud.firestore {
         && request.resource.data.time_updated_raw_ms is number;
     }
 
+    function validRecoveryPause(userId) {
+      return request.resource.data.keys().hasAll([
+          'owner_id',
+          'started_on',
+          'reason',
+          'time_created',
+          'time_created_raw_ms',
+          'time_updated',
+          'time_updated_raw_ms'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'owner_id',
+          'started_on',
+          'ended_on',
+          'reason',
+          'note',
+          'time_created',
+          'time_created_raw_ms',
+          'time_updated',
+          'time_updated_raw_ms'
+        ])
+        && request.resource.data.owner_id == userId
+        && request.resource.data.started_on is string
+        && request.resource.data.started_on.matches('^\\d{4}-\\d{2}-\\d{2}$')
+        && (!('ended_on' in request.resource.data)
+          || (
+            request.resource.data.ended_on is string
+            && request.resource.data.ended_on.matches('^\\d{4}-\\d{2}-\\d{2}$')
+            && request.resource.data.ended_on >= request.resource.data.started_on
+          ))
+        && request.resource.data.reason in [
+          'injury',
+          'illness',
+          'personal_break',
+          'other'
+        ]
+        && (!('note' in request.resource.data)
+          || (
+            request.resource.data.note is string
+            && request.resource.data.note.size() <= 500
+          ))
+        && request.resource.data.time_created is timestamp
+        && request.resource.data.time_created_raw_ms is number
+        && request.resource.data.time_updated is timestamp
+        && request.resource.data.time_updated_raw_ms is number;
+    }
+
     function canReadSpotEdit() {
       return !('visibility' in resource.data)
         || resource.data.visibility != 'private'
@@ -1516,6 +1563,24 @@ service cloud.firestore {
           && request.resource.data.time_created_raw_ms
             == resource.data.time_created_raw_ms
           && validLogEntry(userId);
+        allow delete: if request.auth.uid != null
+          && request.auth.uid == userId;
+      }
+
+      // Recovery pauses are a private training-history aid. They are not
+      // safety reports, public profile activity, or notification sources.
+      match /recovery_pauses/{pauseId} {
+        allow read: if request.auth.uid != null && request.auth.uid == userId;
+        allow create: if request.auth.uid != null
+          && request.auth.uid == userId
+          && validRecoveryPause(userId);
+        allow update: if request.auth.uid != null
+          && request.auth.uid == userId
+          && request.resource.data.owner_id == resource.data.owner_id
+          && request.resource.data.time_created == resource.data.time_created
+          && request.resource.data.time_created_raw_ms
+            == resource.data.time_created_raw_ms
+          && validRecoveryPause(userId);
         allow delete: if request.auth.uid != null
           && request.auth.uid == userId;
       }

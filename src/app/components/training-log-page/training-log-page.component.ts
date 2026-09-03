@@ -9,32 +9,61 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import { RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
+import { MatDialog } from "@angular/material/dialog";
 import { MatIconModule } from "@angular/material/icon";
+import { MatMenuModule } from "@angular/material/menu";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import {
   type LogEntryDocument,
   type LogEntryVisibility,
 } from "../../../db/schemas/LogEntrySchema";
 import type { SessionRecordDocument } from "../../../db/schemas/SessionRecordSchema";
+import type { RecoveryPauseDocument } from "../../../db/schemas/RecoveryPauseSchema";
 import type { CheckInHistoryItem } from "../../services/firebase/firestore/session-records.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import {
   buildTrainingActivityDays,
   buildTrainingTimeline,
+  dateKeyToMs,
   formatDuration,
   monthKey,
   summarizeTrainingMonth,
+  type TrainingContributionSelection,
 } from "../../features/training-log-activity";
 import { LogEntriesService } from "../../services/firebase/firestore/log-entries.service";
+import { RecoveryPausesService } from "../../services/firebase/firestore/recovery-pauses.service";
 import { SessionRecordsService } from "../../services/firebase/firestore/session-records.service";
 import { TrainingActivityContributionGraphComponent } from "../training-activity-contribution-graph/training-activity-contribution-graph.component";
+import {
+  RecoveryPauseDialogComponent,
+  type RecoveryPauseDialogData,
+  type RecoveryPauseDialogResult,
+} from "../recovery-pause-dialog/recovery-pause-dialog.component";
 
-interface TimelineEntry {
+interface TrainingTimelineSession {
+  kind: "training";
+  id: string;
   entry: LogEntryDocument;
   durationMinutes: number;
   spotCount: number;
   sessionCount: number;
   includesCheckIn: boolean;
+}
+
+interface TrainingTimelineRecovery {
+  kind: "recovery";
+  id: string;
+  pause: RecoveryPauseDocument;
+  startedOnMs: number;
+  endedOnMs?: number;
+}
+
+type TrainingTimelineItem = TrainingTimelineSession | TrainingTimelineRecovery;
+
+interface TrainingTimelineGroup {
+  key: string;
+  dateMs: number;
+  entries: readonly TrainingTimelineItem[];
 }
 
 @Component({
@@ -44,6 +73,7 @@ interface TimelineEntry {
     RouterLink,
     MatButtonModule,
     MatIconModule,
+    MatMenuModule,
     MatProgressSpinnerModule,
     TrainingActivityContributionGraphComponent,
   ],
@@ -54,14 +84,17 @@ interface TimelineEntry {
 export class TrainingLogPageComponent {
   private readonly auth = inject(AuthenticationService);
   private readonly logsService = inject(LogEntriesService);
+  private readonly recoveryPausesService = inject(RecoveryPausesService);
   private readonly sessionsService = inject(SessionRecordsService);
+  private readonly dialog = inject(MatDialog);
 
   readonly loading = signal(true);
   readonly logs = signal<LogEntryDocument[]>([]);
+  readonly recoveryPauses = signal<RecoveryPauseDocument[]>([]);
   readonly sessions = signal<SessionRecordDocument[]>([]);
   readonly checkIns = signal<CheckInHistoryItem[]>([]);
   readonly signedIn = signal(!!this.auth.user.uid);
-  readonly selectedDay = signal<string | null>(null);
+  readonly selection = signal<TrainingContributionSelection | null>(null);
   readonly activityDays = computed(() => buildTrainingActivityDays(this.logs()));
   readonly monthSummary = computed(() =>
     summarizeTrainingMonth(this.activityDays(), monthKey(Date.now())),
@@ -70,25 +103,59 @@ export class TrainingLogPageComponent {
     const sourceBySessionId = new Map(
       this.sessions().map((session) => [session.id, session.source]),
     );
-    const selectedDay = this.selectedDay();
-    return buildTrainingTimeline(this.logs(), selectedDay).map((group) => ({
-      ...group,
-      entries: group.entries.map((entry): TimelineEntry => ({
-        entry,
-        durationMinutes: entry.session_summaries.reduce(
-          (total, session) => total + (session.duration_minutes ?? 0),
-          0,
-        ),
-        spotCount: entry.session_summaries.reduce(
-          (total, session) => total + session.spot_count,
-          0,
-        ),
-        sessionCount: entry.session_summaries.length,
-        includesCheckIn: entry.session_record_ids.some(
-          (id) => sourceBySessionId.get(id) === "check_in",
-        ),
-      })),
-    }));
+    const selection = this.selection();
+    const groups = new Map<string, TrainingTimelineItem[]>();
+    if (selection?.kind !== "recovery-pause") {
+      const selectedDay = selection?.kind === "training-day"
+        ? selection.dayKey
+        : null;
+      for (const group of buildTrainingTimeline(this.logs(), selectedDay)) {
+        groups.set(
+          group.key,
+          group.entries.map((entry): TrainingTimelineSession => ({
+            kind: "training",
+            id: entry.id,
+            entry,
+            durationMinutes: entry.session_summaries.reduce(
+              (total, session) => total + (session.duration_minutes ?? 0),
+              0,
+            ),
+            spotCount: entry.session_summaries.reduce(
+              (total, session) => total + session.spot_count,
+              0,
+            ),
+            sessionCount: entry.session_summaries.length,
+            includesCheckIn: entry.session_record_ids.some(
+              (id) => sourceBySessionId.get(id) === "check_in",
+            ),
+          })),
+        );
+      }
+    }
+    for (const pause of this.recoveryPauses()) {
+      if (selection?.kind === "training-day") continue;
+      if (
+        selection?.kind === "recovery-pause" &&
+        selection.recoveryPauseId !== pause.id
+      ) {
+        continue;
+      }
+      const entry: TrainingTimelineRecovery = {
+        kind: "recovery",
+        id: pause.id,
+        pause,
+        startedOnMs: dateKeyToMs(pause.started_on),
+        ...(pause.ended_on ? { endedOnMs: dateKeyToMs(pause.ended_on) } : {}),
+      };
+      groups.set(pause.started_on, [...(groups.get(pause.started_on) ?? []), entry]);
+    }
+    return [...groups.entries()]
+      .map(([key, entries]): TrainingTimelineGroup => ({
+        key,
+        dateMs: dateKeyToMs(key),
+        entries,
+      }))
+      .sort((left, right) => right.key.localeCompare(left.key));
   });
 
   constructor() {
@@ -98,8 +165,28 @@ export class TrainingLogPageComponent {
     });
   }
 
-  clearDayFilter(): void {
-    this.selectedDay.set(null);
+  clearHistorySelection(): void {
+    this.selection.set(null);
+  }
+
+  openRecoveryDialog(pause?: RecoveryPauseDocument): void {
+    this.dialog
+      .open<
+        RecoveryPauseDialogComponent,
+        RecoveryPauseDialogData,
+        RecoveryPauseDialogResult
+      >(RecoveryPauseDialogComponent, {
+        data: pause ? { pause } : {},
+        width: "520px",
+        maxWidth: "calc(100vw - 24px)",
+        maxHeight: "calc(100dvh - 24px)",
+        autoFocus: "dialog",
+        restoreFocus: true,
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result?.changed) void this.load();
+      });
   }
 
   durationLabel(minutes: number): string {
@@ -116,6 +203,19 @@ export class TrainingLogPageComponent {
         return $localize`:@@trainingLog.visibility.followers:Followers`;
       default:
         return $localize`:@@trainingLog.visibility.private:Private`;
+    }
+  }
+
+  recoveryReasonLabel(pause: RecoveryPauseDocument): string {
+    switch (pause.reason) {
+      case "illness":
+        return $localize`:@@recoveryPause.reason.illness:Illness`;
+      case "personal_break":
+        return $localize`:@@recoveryPause.reason.personalBreak:Personal break`;
+      case "other":
+        return $localize`:@@recoveryPause.reason.other:Other`;
+      default:
+        return $localize`:@@recoveryPause.reason.injury:Injury`;
     }
   }
 
@@ -154,12 +254,14 @@ export class TrainingLogPageComponent {
       return;
     }
     this.loading.set(true);
-    const [logs, sessions] = await Promise.all([
+    const [logs, sessions, recoveryPauses] = await Promise.all([
       this.logsService.listMine(),
       this.sessionsService.listMine(),
+      this.recoveryPausesService.listMine(),
     ]);
     this.logs.set(logs);
     this.sessions.set(sessions);
+    this.recoveryPauses.set(recoveryPauses);
     this.checkIns.set(
       sessions
         .flatMap((session) =>

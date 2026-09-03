@@ -1,0 +1,59 @@
+<header class="recovery-dialog__header">
+  <div>
+    <p class="recovery-dialog__eyebrow" i18n="@@recoveryPause.eyebrow">Your training history</p>
+    <h2 mat-dialog-title i18n="@@recoveryPause.title">Recovery pause</h2>
+  </div>
+  <button matIconButton type="button" mat-dialog-close aria-label="Close recovery pause" i18n-aria-label="@@recoveryPause.close">
+    <mat-icon>close</mat-icon>
+  </button>
+</header>
+
+<mat-dialog-content>
+  <p class="recovery-dialog__intro" i18n="@@recoveryPause.intro">Save private context for time away from training. It is never shared or sent as a notification.</p>
+
+  <form [formGroup]="form" (ngSubmit)="save()" id="recovery-pause-form">
+    <div class="recovery-dialog__dates">
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@recoveryPause.startDate">Start date</mat-label>
+        <input matInput type="date" formControlName="startedOn" [max]="today" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label i18n="@@recoveryPause.endDate">End date</mat-label>
+        <input matInput type="date" formControlName="endedOn" [min]="form.controls.startedOn.value" [max]="today" />
+        <mat-hint i18n="@@recoveryPause.endDateHint">Leave empty while recovery is ongoing.</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@recoveryPause.reason">Reason</mat-label>
+      <mat-select formControlName="reason">
+        @for (reason of reasons; track reason) {
+          <mat-option [value]="reason">{{ reasonLabel(reason) }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label i18n="@@recoveryPause.note">Private note (optional)</mat-label>
+      <textarea matInput formControlName="note" rows="4" [maxlength]="noteMaxLength"></textarea>
+      <mat-hint i18n="@@recoveryPause.noteHint">Keep this short and personal. Do not include anyone else's medical information.</mat-hint>
+      <mat-hint align="end">{{ noteLength() }}/{{ noteMaxLength }}</mat-hint>
+    </mat-form-field>
+
+    @if (error()) { <p class="recovery-dialog__error">{{ error() }}</p> }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @if (isEditing) {
+    <button matButton type="button" class="recovery-dialog__delete" [disabled]="saving()" (click)="delete()">
+      <mat-icon>delete</mat-icon>
+      <span i18n="@@recoveryPause.delete">Delete</span>
+    </button>
+  }
+  <button matButton type="button" mat-dialog-close [disabled]="saving()" i18n="@@common.cancel">Cancel</button>
+  <button matButton="filled" type="submit" form="recovery-pause-form" [disabled]="saving()">
+    @if (saving()) { <mat-progress-spinner diameter="18" mode="indeterminate" /> }
+    <span i18n="@@recoveryPause.save">Save recovery pause</span>
+  </button>
+</mat-dialog-actions>

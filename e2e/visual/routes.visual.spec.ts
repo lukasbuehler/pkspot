@@ -10,6 +10,7 @@ interface RouteVisualCase {
   verifiedAdult?: boolean;
   publicProfile?: boolean;
   openFabMenu?: boolean;
+  openRecoveryPauseDialog?: boolean;
   openInvalidEventsDialog?: boolean;
   openProfilePrivacySelect?: boolean;
   invalidEventFixture?: boolean;
@@ -385,6 +386,15 @@ const routeVisualCases: RouteVisualCase[] = [
     maxDiffPixels: 2_000,
   },
   {
+    name: "recovery-pause-dialog",
+    path: "/train/log",
+    signedIn: true,
+    trainingLogFixture: true,
+    openRecoveryPauseDialog: true,
+    fixedTime: "2026-08-20T12:00:00.000Z",
+    maxDiffPixels: 2_000,
+  },
+  {
     name: "training-session-detail",
     path: "/train/log/visual-training-entry",
     viewport: mobileViewport,
@@ -553,7 +563,7 @@ test.describe("Route visual regression @visual", () => {
 
       if (route.assertContributionGraph) {
         const graph = page.locator("app-training-activity-contribution-graph");
-        const logFab = page.locator("a.app-page-fab");
+        const logFab = page.locator("button.app-page-fab");
         const weekdayLabels = graph.locator(".weekday-labels");
         const activeWeeks = graph.locator(".week.week-active");
         const activeDays = activeWeeks.locator(".cell.day-active");
@@ -561,10 +571,15 @@ test.describe("Route visual regression @visual", () => {
           /mat-mdc-button-base/,
         );
         await expect(logFab).toHaveCount(1);
-        await expect(logFab).toHaveAttribute("href", /\/train\/log\/new$/);
+        await expect(logFab).toHaveClass(/mat-mdc-button-base/);
         await expect(
           page.locator(".log-hero a[href$='/train/log/new']"),
         ).toHaveCount(0);
+        await logFab.click();
+        await expect(
+          page.locator(".cdk-overlay-container .mat-mdc-menu-item"),
+        ).toHaveCount(2);
+        await page.keyboard.press("Escape");
         expect(
           await logFab.evaluate((element) => getComputedStyle(element).position),
         ).toBe("fixed");
@@ -587,7 +602,7 @@ test.describe("Route visual regression @visual", () => {
             graph.locator(".legend-swatch.day").evaluate(
               (element) => getComputedStyle(element).backgroundColor,
             ),
-            activeWeeks.locator(".cell:not(.day-active)").first().evaluate(
+            activeWeeks.locator(".cell:not(.day-active):not(.recovery-pause)").first().evaluate(
               (element) => getComputedStyle(element).backgroundColor,
             ),
             activeDays.first().evaluate(
@@ -618,6 +633,8 @@ test.describe("Route visual regression @visual", () => {
         expect(styles.verticalOverflow).toBe("hidden");
         expect(styles.activeWeekColor).toBe(styles.primaryContainer);
         expect(styles.activeDayColor).toBe(styles.primary);
+        await expect(graph.locator(".legend-swatch.recovery")).toHaveCount(1);
+        await expect(graph.locator(".cell.recovery-pause")).toHaveCount(5);
       }
 
       if (route.assertTrainPage) {
@@ -1201,6 +1218,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
             __PKSPOT_SCREENSHOT_MY_REPORTS__?: unknown;
             __PKSPOT_SCREENSHOT_TRAINING_LOG_ENTRIES__?: unknown;
             __PKSPOT_SCREENSHOT_TRAINING_SESSIONS__?: unknown;
+            __PKSPOT_SCREENSHOT_RECOVERY_PAUSES__?: unknown;
           }
         );
         const screenshotUserData = {
@@ -1379,6 +1397,18 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
               time_updated_raw_ms: august(4, 19),
             },
           ];
+          screenshotWindow.__PKSPOT_SCREENSHOT_RECOVERY_PAUSES__ = [
+            {
+              id: "visual-recovery-pause",
+              owner_id: "visual-route-user",
+              started_on: "2026-08-06",
+              ended_on: "2026-08-10",
+              reason: "injury",
+              note: "A quiet reset before getting back to lines.",
+              time_created_raw_ms: august(6, 9),
+              time_updated_raw_ms: august(6, 9),
+            },
+          ];
         }
         if (liveEventFixture) {
           (
@@ -1526,6 +1556,15 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
     await expect(launcher).toBeVisible();
     await launcher.click();
     await expect(page.locator(".fab-menu__actions")).toBeVisible();
+  }
+
+  if (route.openRecoveryPauseDialog) {
+    await page.locator("button.app-page-fab").click();
+    await page
+      .locator(".cdk-overlay-container .mat-mdc-menu-item")
+      .nth(1)
+      .click();
+    await expect(page.locator("app-recovery-pause-dialog")).toBeVisible();
   }
 
   if (route.openInvalidEventsDialog) {

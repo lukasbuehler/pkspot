@@ -41,32 +41,37 @@
     </section>
     <app-training-activity-contribution-graph
       [days]="activityDays()"
-      [selectedDay]="selectedDay()"
-      (daySelected)="selectedDay.set($event)"
+      [recoveryPauses]="recoveryPauses()"
+      [selected]="selection()"
+      (selectionChange)="selection.set($event)"
     />
-    @if (logs().length) {
-      <section class="timeline">
-        <header class="timeline__header">
-          <div>
-            <p class="eyebrow" i18n="@@trainingLog.timeline.eyebrow">Session timeline</p>
-            <h2 i18n="@@trainingLog.timeline.title">Your training</h2>
-            @if (selectedDay()) {
+    <section class="timeline">
+      <header class="timeline__header">
+        <div>
+          <p class="eyebrow" i18n="@@trainingLog.timeline.eyebrow">Session timeline</p>
+          <h2 i18n="@@trainingLog.timeline.title">Your training</h2>
+          @if (selection(); as selected) {
+            @if (selected.kind === "training-day") {
               <p i18n="@@trainingLog.timeline.filtered">Showing sessions linked to the selected day.</p>
             } @else {
-              <p i18n="@@trainingLog.timeline.intro">Open a session to revisit where you trained, with whom, and what you wrote down.</p>
+              <p i18n="@@recoveryPause.timeline.filtered">Showing the selected recovery pause.</p>
             }
-          </div>
-          @if (selectedDay()) {
-            <button matButton="outlined" type="button" (click)="clearDayFilter()" i18n="@@trainingLog.timeline.showAll">Show all</button>
+          } @else {
+            <p i18n="@@trainingLog.timeline.intro">Open a session to revisit where you trained, with whom, and what you wrote down.</p>
           }
-        </header>
-        @if (timeline().length) {
-          <div class="timeline__groups">
-            @for (group of timeline(); track group.key) {
-              <section class="timeline__group">
-                <h3>{{ group.dateMs | systemDate: "mediumDate" }}</h3>
-                <div class="timeline__line">
-                  @for (item of group.entries; track item.entry.id) {
+        </div>
+        @if (selection()) {
+          <button matButton="outlined" type="button" (click)="clearHistorySelection()" i18n="@@trainingLog.timeline.showAll">Show all</button>
+        }
+      </header>
+      @if (timeline().length) {
+        <div class="timeline__groups">
+          @for (group of timeline(); track group.key) {
+            <section class="timeline__group">
+              <h3>{{ group.dateMs | systemDate: "mediumDate" }}</h3>
+              <div class="timeline__line">
+                @for (item of group.entries; track item.id) {
+                  @if (item.kind === "training") {
                     <a class="session-card" [routerLink]="['/train/log', item.entry.id]">
                       <div class="session-card__marker"><mat-icon>calendar_month</mat-icon></div>
                       <div class="session-card__body">
@@ -85,27 +90,43 @@
                       </div>
                       <mat-icon class="session-card__arrow">chevron_right</mat-icon>
                     </a>
+                  } @else {
+                    <article class="session-card recovery-card">
+                      <div class="session-card__marker"><mat-icon>event_busy</mat-icon></div>
+                      <div class="session-card__body">
+                        <span class="visibility"><mat-icon>lock</mat-icon><span i18n="@@recoveryPause.private">Private</span></span>
+                        <h4 i18n="@@recoveryPause.timeline.title">Recovery pause</h4>
+                        <p class="session-card__stats recovery-card__range">
+                          {{ recoveryReasonLabel(item.pause) }} ·
+                          @if (item.endedOnMs) {
+                            <span i18n="@@recoveryPause.timeline.range">{{ item.startedOnMs | systemDate: "mediumDate" }} to {{ item.endedOnMs | systemDate: "mediumDate" }}</span>
+                          } @else {
+                            <span i18n="@@recoveryPause.timeline.ongoing">Started {{ item.startedOnMs | systemDate: "mediumDate" }} · ongoing</span>
+                          }
+                        </p>
+                        @if (item.pause.note) { <p class="session-card__stats recovery-card__note">{{ item.pause.note }}</p> }
+                      </div>
+                      <button matIconButton type="button" (click)="openRecoveryDialog(item.pause)" aria-label="Edit recovery pause" i18n-aria-label="@@recoveryPause.edit"><mat-icon>edit</mat-icon></button>
+                    </article>
                   }
-                </div>
-              </section>
-            }
-          </div>
-        } @else {
-          @if (selectedDay()) {
-            <div class="timeline__empty" i18n="@@trainingLog.timeline.emptyFiltered">Nothing was logged for this day yet.</div>
-          } @else {
-            <div class="timeline__empty" i18n="@@trainingLog.timeline.emptyMonth">Nothing was logged in this month yet.</div>
+                }
+              </div>
+            </section>
           }
+        </div>
+      } @else {
+        @if (selection()) {
+          <div class="timeline__empty" i18n="@@trainingLog.timeline.emptyFiltered">Nothing was logged for this day yet.</div>
+        } @else {
+          <section class="empty">
+            <mat-icon>history_edu</mat-icon>
+            <h2 i18n="@@trainingLog.emptyTitle">Your first entry starts here</h2>
+            <p i18n="@@trainingLog.emptyBody">Record what happened. It stays private unless you choose otherwise.</p>
+            <a matButton="filled" routerLink="/train/log/new" i18n="@@trainingLog.createFirst">Create first entry</a>
+          </section>
         }
-      </section>
-    } @else {
-      <section class="empty">
-        <mat-icon>history_edu</mat-icon>
-        <h2 i18n="@@trainingLog.emptyTitle">Your first entry starts here</h2>
-        <p i18n="@@trainingLog.emptyBody">Record what happened. It stays private unless you choose otherwise.</p>
-        <a matButton="filled" routerLink="/train/log/new" i18n="@@trainingLog.createFirst">Create first entry</a>
-      </section>
-    }
+      }
+    </section>
     <section class="check-in-history">
       <div class="check-in-history__header">
         <div>
@@ -134,12 +155,23 @@
 </main>
 
 @if (signedIn()) {
-  <a
+  <button
     matFab
     color="primary"
     class="app-page-fab"
-    routerLink="/train/log/new"
-    aria-label="New entry"
-    i18n-aria-label="@@trainingLog.new"
-  ><mat-icon>add</mat-icon></a>
+    type="button"
+    [matMenuTriggerFor]="newEntryMenu"
+    aria-label="Add to training log"
+    i18n-aria-label="@@trainingLog.add"
+  ><mat-icon>add</mat-icon></button>
+  <mat-menu #newEntryMenu="matMenu">
+    <button mat-menu-item routerLink="/train/log/new">
+      <mat-icon>add</mat-icon>
+      <span i18n="@@trainingLog.new">New training entry</span>
+    </button>
+    <button mat-menu-item type="button" (click)="openRecoveryDialog()">
+      <mat-icon>event_busy</mat-icon>
+      <span i18n="@@recoveryPause.add">Log recovery pause</span>
+    </button>
+  </mat-menu>
 }

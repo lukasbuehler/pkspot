@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { LogEntryDocument } from "../../db/schemas/LogEntrySchema";
+import type { RecoveryPauseDocument } from "../../db/schemas/RecoveryPauseSchema";
 import {
   buildTrainingActivityDays,
   buildTrainingContributionWeeks,
@@ -60,6 +61,18 @@ const entries: LogEntryDocument[] = [
   },
 ];
 
+const recoveryPause: RecoveryPauseDocument = {
+  id: "recovery-1",
+  owner_id: "user-1",
+  started_on: "2026-08-03",
+  ended_on: "2026-08-05",
+  reason: "injury",
+  time_created: {} as RecoveryPauseDocument["time_created"],
+  time_created_raw_ms: 0,
+  time_updated: {} as RecoveryPauseDocument["time_updated"],
+  time_updated_raw_ms: 0,
+};
+
 describe("training log activity helpers", () => {
   it("aggregates sessions, duration, spots, and distinct entries by local training day", () => {
     const days = buildTrainingActivityDays(entries);
@@ -117,6 +130,7 @@ describe("training log activity helpers", () => {
     const days = buildTrainingActivityDays(entries);
     const weeks = buildTrainingContributionWeeks(
       days,
+      [],
       1,
       new Date("2026-08-05T12:00:00"),
     );
@@ -143,5 +157,35 @@ describe("training log activity helpers", () => {
     ]);
     expect(weeks.at(-1)?.key).toBe("2026-08-03");
     expect(weeks.length).toBeGreaterThanOrEqual(27);
+  });
+
+  it("shows recovery dates without changing activity totals or future cells", () => {
+    const days = buildTrainingActivityDays(entries);
+    const weeks = buildTrainingContributionWeeks(
+      days,
+      [recoveryPause],
+      1,
+      new Date("2026-08-05T12:00:00"),
+    );
+    const activeWeek = weeks.find((week) => week.key === "2026-08-03");
+
+    expect(activeWeek?.hasActivity).toBe(true);
+    expect(activeWeek?.days.map((day) => [
+      day.key,
+      !!day.activity,
+      day.recoveryPause?.id ?? null,
+    ])).toEqual([
+      ["2026-08-03", false, "recovery-1"],
+      ["2026-08-04", true, "recovery-1"],
+      ["2026-08-05", false, "recovery-1"],
+      ["2026-08-06", false, null],
+      ["2026-08-07", false, null],
+      ["2026-08-08", false, null],
+      ["2026-08-09", false, null],
+    ]);
+    expect(summarizeTrainingMonth(days, "2026-08")).toMatchObject({
+      sessionCount: 3,
+      activityDays: 2,
+    });
   });
 });

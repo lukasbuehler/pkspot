@@ -7,6 +7,7 @@
     <div class="contribution-graph__legend" aria-label="Activity legend" i18n-aria-label="@@trainingContributionGraph.legend">
       <span><i class="legend-swatch week" aria-hidden="true"></i><span i18n="@@trainingContributionGraph.week">Active week</span></span>
       <span><i class="legend-swatch day" aria-hidden="true"></i><span i18n="@@trainingContributionGraph.day">Training day</span></span>
+      <span><i class="legend-swatch recovery" aria-hidden="true"></i><span i18n="@@trainingContributionGraph.recovery">Recovery pause</span></span>
     </div>
   </header>
 
@@ -21,14 +22,16 @@
         @for (week of weeks(); track week.key) {
           <div class="week" role="listitem" [class.week-active]="week.hasActivity">
             @for (day of week.days; track day.key) {
-              @if (!day.isFuture && day.activity && interactive()) {
+              @if (!day.isFuture && (day.activity || day.recoveryPause) && interactive()) {
                 <button
-                  class="cell day-active"
+                  class="cell"
                   type="button"
-                  [class.is-selected]="selectedDay() === day.key"
+                  [class.day-active]="!!day.activity"
+                  [class.recovery-pause]="!day.activity && !!day.recoveryPause"
+                  [class.is-selected]="isSelected(day)"
                   [class.is-today]="day.isToday"
                   [attr.aria-label]="dayLabel(day)"
-                  [attr.aria-pressed]="selectedDay() === day.key"
+                  [attr.aria-pressed]="isSelected(day)"
                   [title]="dayLabel(day)"
                   (click)="selectDay(day)"
                 ></button>
@@ -36,6 +39,7 @@
                 <span
                   class="cell"
                   [class.day-active]="!!day.activity"
+                  [class.recovery-pause]="!day.activity && !!day.recoveryPause"
                   [class.is-today]="day.isToday"
                   aria-hidden="true"
                 ></span>

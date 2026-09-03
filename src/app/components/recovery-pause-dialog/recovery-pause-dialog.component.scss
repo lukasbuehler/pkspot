@@ -1,0 +1,44 @@
+.recovery-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 16px 0 24px;
+
+  h2 { margin: 2px 0 0; padding: 0; }
+}
+
+.recovery-dialog__eyebrow {
+  margin: 0;
+  color: var(--mat-sys-tertiary);
+  font: var(--mat-sys-label-large);
+}
+
+mat-dialog-content {
+  min-width: min(460px, calc(100vw - 72px));
+  padding-top: 16px;
+}
+
+.recovery-dialog__intro,
+.recovery-dialog__error {
+  margin: 0;
+}
+
+.recovery-dialog__intro { color: var(--mat-sys-on-surface-variant); }
+.recovery-dialog__error { color: var(--mat-sys-error); }
+
+form { display: grid; gap: 14px; margin-top: 20px; }
+mat-form-field { width: 100%; }
+
+.recovery-dialog__dates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.recovery-dialog__delete { color: var(--mat-sys-error); margin-right: auto; }
+
+@media (max-width: 599.98px) {
+  mat-dialog-content { min-width: 0; }
+  .recovery-dialog__dates { grid-template-columns: 1fr; gap: 0; }
+}

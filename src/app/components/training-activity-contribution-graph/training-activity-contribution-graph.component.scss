@@ -24,6 +24,7 @@ p { margin: 1px 0 0; color: var(--mat-sys-on-surface-variant); font: var(--mat-s
 .legend-swatch { display: block; width: 10px; height: 10px; border-radius: 3px; }
 .legend-swatch.week { background: var(--active-week-color); }
 .legend-swatch.day { background: var(--active-day-color); }
+.legend-swatch.recovery { border: 1px solid var(--mat-sys-tertiary); background: repeating-linear-gradient(-45deg, var(--mat-sys-tertiary-container) 0 3px, var(--mat-sys-surface-container-high) 3px 6px); }
 
 .contribution-graph__scroll { min-width: 0; overflow-x: auto; overflow-y: hidden; padding-bottom: 4px; }
 .contribution-graph__scroll:focus-visible { outline: 3px solid var(--mat-sys-primary); outline-offset: 4px; }
@@ -38,9 +39,15 @@ p { margin: 1px 0 0; color: var(--mat-sys-on-surface-variant); font: var(--mat-s
 .cell.day-active { cursor: pointer; border: 0; background: var(--active-day-color); }
 .cell.day-active[aria-hidden="true"] { cursor: default; }
 .week-active .cell.day-active { background: var(--active-day-color); }
+.cell.recovery-pause { cursor: pointer; border-color: var(--mat-sys-tertiary); background: repeating-linear-gradient(-45deg, var(--mat-sys-tertiary-container) 0 5px, var(--mat-sys-surface-container-high) 5px 10px); }
+.cell.recovery-pause[aria-hidden="true"] { cursor: default; }
+.week-active .cell.recovery-pause { background: repeating-linear-gradient(-45deg, var(--mat-sys-tertiary-container) 0 5px, var(--mat-sys-surface-container-high) 5px 10px); }
 .cell.day-active:hover { background: var(--mat-sys-primary-fixed); }
+.cell.recovery-pause:hover { background: var(--mat-sys-tertiary-fixed); }
 .cell.day-active:focus-visible,
 .cell.is-selected { outline: 2px solid var(--mat-sys-primary); outline-offset: 2px; }
+.cell.recovery-pause:focus-visible,
+.cell.recovery-pause.is-selected { outline-color: var(--mat-sys-tertiary); }
 .cell.is-today { border-color: var(--mat-sys-primary); }
 
 @media (max-width: 599.98px) {

@@ -41,6 +41,11 @@ app-training-activity-contribution-graph { display: block; margin-top: 16px; }
 .session-card__stats span { display: inline-flex; align-items: center; gap: 4px; }
 .session-card__stats mat-icon { width: 16px; height: 16px; font-size: 16px; color: var(--mat-sys-primary); }
 .session-card__arrow { color: var(--mat-sys-on-surface-variant); }
+.recovery-card { border-color: var(--mat-sys-tertiary); background: var(--mat-sys-tertiary-container); color: var(--mat-sys-on-tertiary-container); }
+.recovery-card .session-card__marker { background: var(--mat-sys-tertiary); color: var(--mat-sys-on-tertiary); }
+.recovery-card__range, .recovery-card__note { margin: 0; }
+.recovery-card__note { margin-top: 8px; white-space: pre-wrap; }
+.recovery-card button { color: var(--mat-sys-on-tertiary-container); }
 .timeline__empty { margin-top: 20px; padding: 22px; border: 1px dashed var(--mat-sys-outline); border-radius: 18px; color: var(--mat-sys-on-surface-variant); text-align: center; }
 
 .check-in-history { margin: 44px 0 0; padding: 20px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 20px; background: var(--mat-sys-surface-container-low); }

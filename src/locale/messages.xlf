@@ -15133,5 +15133,39 @@
     <unit id="event_edit.temporary_spot_draw_area"><segment><source>Draw area on map</source></segment></unit>
     <unit id="event_edit.temporary_spot_clear_area"><segment><source>Clear map area</source></segment></unit>
     <unit id="event_edit.custom_markers_map_hint"><segment><source>Add a marker, then drag its M pin in the Event Map to place it. Coordinate fields remain available for precise corrections.</source></segment></unit>
+    <unit id="recoveryPause.saveError"><segment><source>Could not save this recovery pause.</source></segment></unit>
+    <unit id="recoveryPause.deleteConfirm"><segment><source>Delete this recovery pause?</source></segment></unit>
+    <unit id="recoveryPause.deleteError"><segment><source>Could not delete this recovery pause.</source></segment></unit>
+    <unit id="recoveryPause.reason.illness"><segment><source>Illness</source></segment></unit>
+    <unit id="recoveryPause.reason.personalBreak"><segment><source>Personal break</source></segment></unit>
+    <unit id="recoveryPause.reason.other"><segment><source>Other</source></segment></unit>
+    <unit id="recoveryPause.reason.injury"><segment><source>Injury</source></segment></unit>
+    <unit id="recoveryPause.close"><segment><source>Close recovery pause</source></segment></unit>
+    <unit id="recoveryPause.eyebrow"><segment><source>Your training history</source></segment></unit>
+    <unit id="recoveryPause.title"><segment><source>Recovery pause</source></segment></unit>
+    <unit id="recoveryPause.intro"><segment><source>Save private context for time away from training. It is never shared or sent as a notification.</source></segment></unit>
+    <unit id="recoveryPause.startDate"><segment><source>Start date</source></segment></unit>
+    <unit id="recoveryPause.endDate"><segment><source>End date</source></segment></unit>
+    <unit id="recoveryPause.endDateHint"><segment><source>Leave empty while recovery is ongoing.</source></segment></unit>
+    <unit id="recoveryPause.reason"><segment><source>Reason</source></segment></unit>
+    <unit id="recoveryPause.note"><segment><source>Private note (optional)</source></segment></unit>
+    <unit id="recoveryPause.noteHint"><segment><source>Keep this short and personal. Do not include anyone else&apos;s medical information.</source></segment></unit>
+    <unit id="recoveryPause.save"><segment><source>Save recovery pause</source></segment></unit>
+    <unit id="recoveryPause.delete"><segment><source>Delete</source></segment></unit>
+    <unit id="recoveryPause.timeline.filtered"><segment><source>Showing the selected recovery pause.</source></segment></unit>
+    <unit id="recoveryPause.edit"><segment><source>Edit recovery pause</source></segment></unit>
+    <unit id="recoveryPause.private"><segment><source>Private</source></segment></unit>
+    <unit id="recoveryPause.timeline.title"><segment><source>Recovery pause</source></segment></unit>
+    <unit id="recoveryPause.timeline.range"><segment><source><ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> to <ph id="1" equiv="INTERPOLATION_1" disp="{{ item.endedOnMs | systemDate: &quot;mediumDate&quot; }}"/></source></segment></unit>
+    <unit id="recoveryPause.timeline.ongoing"><segment><source>Started <ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> · ongoing</source></segment></unit>
+    <unit id="trainingLog.add"><segment><source>Add to training log</source></segment></unit>
+    <unit id="recoveryPause.add"><segment><source>Log recovery pause</source></segment></unit>
+    <unit id="trainingContributionGraph.recovery"><segment><source>Recovery pause</source></segment></unit>
+    <unit id="recoveryPause.validation.invalidDate"><segment><source>Choose valid recovery dates.</source></segment></unit>
+    <unit id="recoveryPause.validation.futureDate"><segment><source>Recovery dates cannot be in the future.</source></segment></unit>
+    <unit id="recoveryPause.validation.endBeforeStart"><segment><source>The recovery end date must be after the start date.</source></segment></unit>
+    <unit id="recoveryPause.validation.reason"><segment><source>Choose a recovery reason.</source></segment></unit>
+    <unit id="recoveryPause.validation.noteLength"><segment><source>Keep your private note under 500 characters.</source></segment></unit>
+    <unit id="recoveryPause.validation.overlap"><segment><source>Recovery pauses cannot overlap. End or edit the existing pause first.</source></segment></unit>
   </file>
 </xliff>

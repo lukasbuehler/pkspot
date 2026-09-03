@@ -82,6 +82,20 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
+### Private recovery pauses
+
+- [ ] Deploy Firestore rules before any client release that exposes private
+      recovery pauses:
+
+  ```sh
+  npx firebase deploy --project prod --only firestore:rules
+  ```
+
+  Success condition: a signed-in owner can create, update, and delete
+  `/users/{uid}/recovery_pauses`, while another account cannot read or write
+  those records. No Function, index, migration, or Typesense deployment is
+  required.
+
 ### Development-only Stripe shop
 
 The web shop is intentionally experimental: it is enabled only by the

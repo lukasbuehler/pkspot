@@ -18057,5 +18057,39 @@
     <unit id="event_edit.temporary_spot_draw_area"><segment state="initial"><source>Draw area on map</source><target>Bereich auf Karte zeichnen</target></segment></unit>
     <unit id="event_edit.temporary_spot_clear_area"><segment state="initial"><source>Clear map area</source><target>Kartenbereich löschen</target></segment></unit>
     <unit id="event_edit.custom_markers_map_hint"><segment state="initial"><source>Add a marker, then drag its M pin in the Event Map to place it. Coordinate fields remain available for precise corrections.</source><target>Füge einen Marker hinzu und ziehe anschließend seinen M-Pin auf der Eventkarte, um ihn zu platzieren. Koordinatenfelder bleiben für präzise Korrekturen verfügbar.</target></segment></unit>
+    <unit id="recoveryPause.saveError"><segment state="initial"><source>Could not save this recovery pause.</source><target>Diese Trainingspause konnte nicht gespeichert werden.</target></segment></unit>
+    <unit id="recoveryPause.deleteConfirm"><segment state="initial"><source>Delete this recovery pause?</source><target>Diese Trainingspause löschen?</target></segment></unit>
+    <unit id="recoveryPause.deleteError"><segment state="initial"><source>Could not delete this recovery pause.</source><target>Diese Trainingspause konnte nicht gelöscht werden.</target></segment></unit>
+    <unit id="recoveryPause.reason.illness"><segment state="initial"><source>Illness</source><target>Krankheit</target></segment></unit>
+    <unit id="recoveryPause.reason.personalBreak"><segment state="initial"><source>Personal break</source><target>Persönliche Pause</target></segment></unit>
+    <unit id="recoveryPause.reason.other"><segment state="initial"><source>Other</source><target>Anderes</target></segment></unit>
+    <unit id="recoveryPause.reason.injury"><segment state="initial"><source>Injury</source><target>Verletzung</target></segment></unit>
+    <unit id="recoveryPause.close"><segment state="initial"><source>Close recovery pause</source><target>Trainingspause schließen</target></segment></unit>
+    <unit id="recoveryPause.eyebrow"><segment state="initial"><source>Your training history</source><target>Dein Trainingsverlauf</target></segment></unit>
+    <unit id="recoveryPause.title"><segment state="initial"><source>Recovery pause</source><target>Trainingspause</target></segment></unit>
+    <unit id="recoveryPause.intro"><segment state="initial"><source>Save private context for time away from training. It is never shared or sent as a notification.</source><target>Speichere privaten Kontext für eine Trainingspause. Er wird nie geteilt oder als Benachrichtigung gesendet.</target></segment></unit>
+    <unit id="recoveryPause.startDate"><segment state="initial"><source>Start date</source><target>Startdatum</target></segment></unit>
+    <unit id="recoveryPause.endDate"><segment state="initial"><source>End date</source><target>Enddatum</target></segment></unit>
+    <unit id="recoveryPause.endDateHint"><segment state="initial"><source>Leave empty while recovery is ongoing.</source><target>Leer lassen, solange die Erholung andauert.</target></segment></unit>
+    <unit id="recoveryPause.reason"><segment state="initial"><source>Reason</source><target>Grund</target></segment></unit>
+    <unit id="recoveryPause.note"><segment state="initial"><source>Private note (optional)</source><target>Private Notiz (optional)</target></segment></unit>
+    <unit id="recoveryPause.noteHint"><segment state="initial"><source>Keep this short and personal. Do not include anyone else&apos;s medical information.</source><target>Halte diese Notiz kurz und persönlich. Gib keine medizinischen Informationen anderer Personen an.</target></segment></unit>
+    <unit id="recoveryPause.save"><segment state="initial"><source>Save recovery pause</source><target>Trainingspause speichern</target></segment></unit>
+    <unit id="recoveryPause.delete"><segment state="initial"><source>Delete</source><target>Löschen</target></segment></unit>
+    <unit id="recoveryPause.timeline.filtered"><segment state="initial"><source>Showing the selected recovery pause.</source><target>Die ausgewählte Trainingspause wird angezeigt.</target></segment></unit>
+    <unit id="recoveryPause.edit"><segment state="initial"><source>Edit recovery pause</source><target>Trainingspause bearbeiten</target></segment></unit>
+    <unit id="recoveryPause.private"><segment state="initial"><source>Private</source><target>Privat</target></segment></unit>
+    <unit id="recoveryPause.timeline.title"><segment state="initial"><source>Recovery pause</source><target>Trainingspause</target></segment></unit>
+    <unit id="recoveryPause.timeline.range"><segment state="initial"><source><ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> to <ph id="1" equiv="INTERPOLATION_1" disp="{{ item.endedOnMs | systemDate: &quot;mediumDate&quot; }}"/></source><target><ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> bis <ph id="1" equiv="INTERPOLATION_1" disp="{{ item.endedOnMs | systemDate: &quot;mediumDate&quot; }}"/></target></segment></unit>
+    <unit id="recoveryPause.timeline.ongoing"><segment state="initial"><source>Started <ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> · ongoing</source><target>Begonnen am <ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> · läuft noch</target></segment></unit>
+    <unit id="trainingLog.add"><segment state="initial"><source>Add to training log</source><target>Zum Trainingsprotokoll hinzufügen</target></segment></unit>
+    <unit id="recoveryPause.add"><segment state="initial"><source>Log recovery pause</source><target>Trainingspause eintragen</target></segment></unit>
+    <unit id="trainingContributionGraph.recovery"><segment state="initial"><source>Recovery pause</source><target>Trainingspause</target></segment></unit>
+    <unit id="recoveryPause.validation.invalidDate"><segment state="initial"><source>Choose valid recovery dates.</source><target>Wähle gültige Erholungsdaten.</target></segment></unit>
+    <unit id="recoveryPause.validation.futureDate"><segment state="initial"><source>Recovery dates cannot be in the future.</source><target>Erholungsdaten dürfen nicht in der Zukunft liegen.</target></segment></unit>
+    <unit id="recoveryPause.validation.endBeforeStart"><segment state="initial"><source>The recovery end date must be after the start date.</source><target>Das Ende der Trainingspause muss nach dem Startdatum liegen.</target></segment></unit>
+    <unit id="recoveryPause.validation.reason"><segment state="initial"><source>Choose a recovery reason.</source><target>Wähle einen Grund für die Trainingspause.</target></segment></unit>
+    <unit id="recoveryPause.validation.noteLength"><segment state="initial"><source>Keep your private note under 500 characters.</source><target>Halte deine private Notiz unter 500 Zeichen.</target></segment></unit>
+    <unit id="recoveryPause.validation.overlap"><segment state="initial"><source>Recovery pauses cannot overlap. End or edit the existing pause first.</source><target>Trainingspausen dürfen sich nicht überschneiden. Beende oder bearbeite zuerst die bestehende Pause.</target></segment></unit>
   </file>
 </xliff>

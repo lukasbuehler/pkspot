@@ -1,4 +1,5 @@
 import type { LogEntryDocument } from "../../db/schemas/LogEntrySchema";
+import type { RecoveryPauseDocument } from "../../db/schemas/RecoveryPauseSchema";
 
 export interface TrainingActivityDay {
   key: string;
@@ -25,6 +26,7 @@ export interface TrainingLogMonthSummary {
 export interface TrainingContributionDay {
   key: string;
   activity: TrainingActivityDay | null;
+  recoveryPause: RecoveryPauseDocument | null;
   isToday: boolean;
   isFuture: boolean;
 }
@@ -34,6 +36,10 @@ export interface TrainingContributionWeek {
   hasActivity: boolean;
   days: readonly TrainingContributionDay[];
 }
+
+export type TrainingContributionSelection =
+  | { kind: "training-day"; dayKey: string }
+  | { kind: "recovery-pause"; recoveryPauseId: string };
 
 export function buildTrainingActivityDays(
   entries: readonly LogEntryDocument[],
@@ -122,21 +128,22 @@ export function filterTrainingEntriesByMonth(
  */
 export function buildTrainingContributionWeeks(
   days: readonly TrainingActivityDay[],
+  recoveryPauses: readonly RecoveryPauseDocument[],
   firstWeekday: 0 | 1,
   now = new Date(),
 ): TrainingContributionWeek[] {
   const activityByKey = new Map(days.map((day) => [day.key, day]));
   const today = atNoon(now);
   const minimumStart = addDays(today, -26 * 7);
-  const earliestActivity = days.reduce<Date | null>(
-    (earliest, day) => {
-      const date = dateFromKey(day.key);
+  const earliestRecord = [...days.map((day) => day.key), ...recoveryPauses.map((pause) => pause.started_on)]
+    .reduce<Date | null>((earliest, key) => {
+      const date = dateFromKey(key);
       return !earliest || date < earliest ? date : earliest;
     },
     null,
   );
   const start = startOfWeek(
-    earliestActivity && earliestActivity < minimumStart ? earliestActivity : minimumStart,
+    earliestRecord && earliestRecord < minimumStart ? earliestRecord : minimumStart,
     firstWeekday,
   );
   const end = addDays(startOfWeek(today, firstWeekday), 6);
@@ -149,6 +156,7 @@ export function buildTrainingContributionWeeks(
       return {
         key,
         activity: date > today ? null : activityByKey.get(key) ?? null,
+        recoveryPause: date > today ? null : recoveryPauseOn(key, recoveryPauses, today),
         isToday: key === dateKeyFromDate(today),
         isFuture: date > today,
       } satisfies TrainingContributionDay;
@@ -235,4 +243,15 @@ function addDays(date: Date, amount: number): Date {
 
 function startOfWeek(date: Date, firstWeekday: 0 | 1): Date {
   return addDays(date, -((date.getDay() - firstWeekday + 7) % 7));
+}
+
+function recoveryPauseOn(
+  key: string,
+  recoveryPauses: readonly RecoveryPauseDocument[],
+  today: Date,
+): RecoveryPauseDocument | null {
+  const todayKey = dateKeyFromDate(today);
+  return recoveryPauses.find((pause) =>
+    pause.started_on <= key && key <= (pause.ended_on ?? todayKey),
+  ) ?? null;
 }

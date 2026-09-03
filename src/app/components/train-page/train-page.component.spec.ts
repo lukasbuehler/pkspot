@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { CommunityFollowsService } from "../../services/firebase/firestore/community-follows.service";
 import { LogEntriesService } from "../../services/firebase/firestore/log-entries.service";
+import { RecoveryPausesService } from "../../services/firebase/firestore/recovery-pauses.service";
 import { SeriesService } from "../../services/firebase/firestore/series.service";
 import { GeolocationService } from "../../services/geolocation.service";
 import { LocationAccessService } from "../../services/location-access.service";
@@ -255,6 +256,7 @@ function createComponent({
   authUser = null,
   follows = { listMine: vi.fn().mockResolvedValue([]) },
   logs = { listMine: vi.fn().mockResolvedValue([]) },
+  recoveryPauses = { listMine: vi.fn().mockResolvedValue([]) },
   geolocation,
   locationAccess,
   search,
@@ -263,6 +265,7 @@ function createComponent({
   authUser?: { uid: string } | null;
   follows?: { listMine: ReturnType<typeof vi.fn> };
   logs?: { listMine: ReturnType<typeof vi.fn> };
+  recoveryPauses?: { listMine: ReturnType<typeof vi.fn> };
   geolocation: {
     currentLocation: ReturnType<typeof signal>;
     error: ReturnType<typeof signal>;
@@ -290,6 +293,7 @@ function createComponent({
       { provide: AuthenticationService, useValue: auth },
       { provide: CommunityFollowsService, useValue: follows },
       { provide: LogEntriesService, useValue: logs },
+      { provide: RecoveryPausesService, useValue: recoveryPauses },
       { provide: GeolocationService, useValue: geolocation },
       { provide: LocationAccessService, useValue: locationAccess },
       { provide: SearchService, useValue: search },

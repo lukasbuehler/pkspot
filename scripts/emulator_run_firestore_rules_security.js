@@ -1072,6 +1072,43 @@ async function testUserPrivacyAndPrivilegeEscalation(anon, owner, other, fresh, 
   await assertDenied("owner cannot delete a server check-in session", () =>
     deleteDoc(doc(owner.db, "users/owner/session_records/server-check-in"))
   );
+  const recoveryPausePath = "users/owner/recovery_pauses/recovery-1";
+  const recoveryNow = Timestamp.now();
+  const recoveryPause = {
+    owner_id: "owner",
+    started_on: "2026-08-03",
+    ended_on: "2026-08-07",
+    reason: "injury",
+    note: "Private context only.",
+    time_created: recoveryNow,
+    time_created_raw_ms: Date.now(),
+    time_updated: recoveryNow,
+    time_updated_raw_ms: Date.now(),
+  };
+  await assertAllowed("owner writes own recovery pause", () =>
+    setDoc(doc(owner.db, recoveryPausePath), recoveryPause)
+  );
+  await assertAllowed("owner reads own recovery pauses", () =>
+    getDocs(collection(owner.db, "users/owner/recovery_pauses"))
+  );
+  await assertDenied("other user reads owner recovery pause", () =>
+    getDoc(doc(other.db, recoveryPausePath))
+  );
+  await assertDenied("other user lists owner recovery pauses", () =>
+    getDocs(collection(other.db, "users/owner/recovery_pauses"))
+  );
+  await assertDenied("other user creates an owner recovery pause", () =>
+    setDoc(doc(other.db, "users/owner/recovery_pauses/recovery-2"), recoveryPause)
+  );
+  await assertDenied("other user updates owner recovery pause", () =>
+    updateDoc(doc(other.db, recoveryPausePath), { note: "Compromised" })
+  );
+  await assertDenied("owner adds location data to recovery pause", () =>
+    setDoc(doc(owner.db, "users/owner/recovery_pauses/with-location"), {
+      ...recoveryPause,
+      spot_id: "public-spot",
+    })
+  );
   await assertAllowed("owner reads own following", () =>
     getDocs(collection(owner.db, "users/owner/following"))
   );

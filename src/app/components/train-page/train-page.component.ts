@@ -35,6 +35,7 @@ import { getWeatherStateIcon } from "../../weather/weather-display";
 import { shouldRecommendDrySpots } from "../../weather/spot-weather-context";
 import type { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import type { LogEntryDocument } from "../../../db/schemas/LogEntrySchema";
+import type { RecoveryPauseDocument } from "../../../db/schemas/RecoveryPauseSchema";
 import { EventDiscoveryCardComponent } from "../events-page/event-discovery-card.component";
 import { FilterChipsBarComponent } from "../filter-chips-bar/filter-chips-bar.component";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
@@ -66,6 +67,7 @@ import {
   summarizeTrainingMonth,
 } from "../../features/training-log-activity";
 import { LogEntriesService } from "../../services/firebase/firestore/log-entries.service";
+import { RecoveryPausesService } from "../../services/firebase/firestore/recovery-pauses.service";
 
 type SpotFilterSource = "user" | "weather" | null;
 
@@ -95,6 +97,7 @@ export class TrainPageComponent {
   private readonly series = inject(SeriesService);
   private readonly weatherService = inject(WeatherService);
   private readonly logsService = inject(LogEntriesService);
+  private readonly recoveryPausesService = inject(RecoveryPausesService);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly loading = signal(true);
@@ -104,6 +107,7 @@ export class TrainPageComponent {
   readonly communityEvents = signal<RankedTrainingEvent[]>([]);
   readonly spots = signal<SpotPreviewData[]>([]);
   readonly trainingLogs = signal<LogEntryDocument[]>([]);
+  readonly trainingRecoveryPauses = signal<RecoveryPauseDocument[]>([]);
   readonly selectedSpotFilter = signal("");
   readonly spotFilterSource = signal<SpotFilterSource>(null);
   readonly seriesById = signal<Record<string, SeriesDocument>>({});
@@ -413,13 +417,20 @@ export class TrainPageComponent {
   private async loadTrainingHistory(): Promise<void> {
     if (!this.signedIn()) {
       this.trainingLogs.set([]);
+      this.trainingRecoveryPauses.set([]);
       return;
     }
     try {
-      this.trainingLogs.set(await this.logsService.listMine());
+      const [logs, recoveryPauses] = await Promise.all([
+        this.logsService.listMine(),
+        this.recoveryPausesService.listMine(),
+      ]);
+      this.trainingLogs.set(logs);
+      this.trainingRecoveryPauses.set(recoveryPauses);
     } catch (error) {
       console.warn("[Train] training history unavailable", error);
       this.trainingLogs.set([]);
+      this.trainingRecoveryPauses.set([]);
     }
   }
 
