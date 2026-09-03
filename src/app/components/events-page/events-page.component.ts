@@ -205,7 +205,10 @@ export class EventsPageComponent {
   });
   readonly createMenuLabel = $localize`:@@events.create_menu_tooltip:Create event`;
   readonly createActions = computed<EventFabMenuAction[]>(() => {
-    if (!this.canAuthorCommunity()) return [];
+    // Keep the launcher available after sign-in so the authoring pages can
+    // explain and resolve an unavailable adult-assurance state. Publishing is
+    // still protected by the server-side authoring checks.
+    if (!this.isSignedIn()) return [];
     const actions: EventFabMenuAction[] = [
       {
         id: "community",

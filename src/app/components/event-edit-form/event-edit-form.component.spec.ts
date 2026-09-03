@@ -10,6 +10,7 @@ import { MapsApiService } from "../../services/maps-api.service";
 import { SearchService } from "../../services/search.service";
 import { EventEditFormComponent } from "./event-edit-form.component";
 import { EventTimeZoneService } from "../../services/event-time-zone.service";
+import { SpotSelectionDataService } from "../../services/spot-selection-data.service";
 
 const baseEvent = {
   name: "Editable Event",
@@ -80,6 +81,12 @@ describe("EventEditFormComponent", () => {
             resolve: vi.fn().mockResolvedValue("Europe/Zurich"),
           },
         },
+        {
+          provide: SpotSelectionDataService,
+          useValue: {
+            resolve: vi.fn(),
+          },
+        },
       ],
     })
       .overrideProvider(MatDialog, {
@@ -125,6 +132,58 @@ describe("EventEditFormComponent", () => {
 
     expect(component.areaPath()).toEqual(drawnArea);
     expect(component.areaTouched()).toBe(true);
+  });
+
+  it("starts a new formal event with an editable local description", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+
+    fixture.detectChanges();
+
+    expect(Object.values(component.descriptionLocaleMap ?? {})).toEqual([
+      { text: "", provider: "user" },
+    ]);
+  });
+
+  it("updates custom marker and temporary Spot geometry from the Event Map", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+
+    component.addCustomMarker();
+    const markerId = component.customMarkers()[0].id;
+    component.onCustomMarkerMapLocationChange({
+      id: markerId,
+      location: { lat: 47.38, lng: 8.54 },
+    });
+
+    component.addInlineSpot();
+    const spotKey = component.inlineSpots()[0].key;
+    component.onInlineSpotMapLocationChange({
+      id: spotKey,
+      location: { lat: 47.39, lng: 8.55 },
+    });
+    component.onInlineSpotAreaChange({
+      id: spotKey,
+      areaPath: [
+        { lat: 47.4, lng: 8.5 },
+        { lat: 47.4, lng: 8.6 },
+        { lat: 47.3, lng: 8.6 },
+      ],
+    });
+
+    expect(component.customMarkers()[0]).toMatchObject({
+      lat: 47.38,
+      lng: 8.54,
+    });
+    expect(component.inlineSpots()[0]).toMatchObject({
+      lat: 47.39,
+      lng: 8.55,
+      bounds: [
+        { lat: 47.4, lng: 8.5 },
+        { lat: 47.4, lng: 8.6 },
+        { lat: 47.3, lng: 8.6 },
+      ],
+    });
   });
 
   it("searches published communities and links the selected community key", async () => {

@@ -1,6 +1,11 @@
 @if (mapsApiService.isApiLoaded()) {
   <div class="bounds-picker">
-    @if (!internalAreaPath()) {
+    @if (inlineSpotAreaPlacementId()) {
+      <p class="mat-label-medium picker-hint" i18n="@@bounds_picker.inline_spot_area_hint">
+        Click the map to place this temporary Spot’s area. You can then drag the
+        area or its points to refine it.
+      </p>
+    } @else if (!internalAreaPath()) {
       <p class="mat-label-medium picker-hint">
         <ng-container i18n="@@bounds_picker.hint_empty">
           Drag the pin to the event location. Click the map to add an optional
@@ -50,7 +55,48 @@
         [options]="markerOptions"
         (mapDragend)="onLocationDragEnd($event)"
       ></map-marker>
+      @for (spot of eventSpots(); track spot.id) {
+        @if (spot.location; as location) {
+          <map-marker
+            [position]="location"
+            [options]="eventSpotMarkerOptions"
+          ></map-marker>
+        }
+      }
+      @for (marker of customMarkers(); track marker.id) {
+        @if (marker.location; as location) {
+          <map-marker
+            [position]="location"
+            [options]="customMarkerOptions"
+            (mapDragend)="onCustomMarkerDragEnd(marker.id, $event)"
+          ></map-marker>
+        }
+      }
+      @for (spot of inlineSpots(); track spot.id) {
+        @if (spot.areaPath; as areaPath) {
+          <map-polygon
+            [paths]="areaPath"
+            [options]="inlineSpotPolygonOptions"
+            (polygonInitialized)="onInlineSpotPolygonInitialized(spot.id, $event)"
+            (polygonDragend)="onInlineSpotPolygonChanged(spot.id)"
+            (polygonMouseup)="onInlineSpotPolygonChanged(spot.id)"
+          ></map-polygon>
+        }
+        @if (spot.location; as location) {
+          <map-marker
+            [position]="location"
+            [options]="inlineSpotMarkerOptions"
+            (mapDragend)="onInlineSpotDragEnd(spot.id, $event)"
+          ></map-marker>
+        }
+      }
     </google-map>
+    @if (eventSpots().length || customMarkers().length || inlineSpots().length) {
+      <p class="mat-label-small picker-legend" i18n="@@bounds_picker.legend">
+        S = event Spot · M = custom marker · T = temporary event Spot. Drag M
+        and T markers directly on the map.
+      </p>
+    }
   </div>
 } @else {
   <div class="bounds-picker-loading">

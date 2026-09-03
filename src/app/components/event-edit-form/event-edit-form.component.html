@@ -76,23 +76,20 @@
       }
     </mat-form-field>
 
-    <div class="d-flex flex-row gap-2 flex-wrap">
-      <mat-form-field appearance="outline" class="flex-grow-1">
-        <mat-label i18n="@@event_edit.venue">Venue name</mat-label>
-        <input matInput formControlName="venue_string" />
-        <mat-hint i18n="@@event_edit.venue_optional">
-          Optional — shown as “Venue to be announced” when empty.
-        </mat-hint>
-      </mat-form-field>
-      <mat-form-field appearance="outline" class="flex-grow-1">
-        <mat-label i18n="@@event_edit.locality">Locality</mat-label>
-        <input
-          matInput
-          formControlName="locality_string"
-          placeholder="City, Country"
-        />
-      </mat-form-field>
-    </div>
+    @if (!isSessionPlanner()) {
+      <div class="d-flex flex-column gap-1">
+        <p class="mat-label-medium m-0" i18n="@@event_edit.description">
+          Description
+        </p>
+        <app-locale-map-edit-field
+          class="w-100"
+          i18n-placeholder="@@event_edit.description"
+          placeholder="Description"
+          [isTextArea]="true"
+          [(localeMap)]="descriptionLocaleMap"
+        ></app-locale-map-edit-field>
+      </div>
+    }
 
     <div class="d-flex flex-column gap-2">
       <p class="mat-label-medium m-0 text-muted" i18n="@@event_edit.schedule_label">
@@ -251,11 +248,40 @@
         </div>
       }
     </div>
+  </section>
+
+  <section class="form-section event-map-section">
+    <div class="event-map-heading">
+      <div>
+        <h3 class="mat-title-medium section-title" i18n="@@event_edit.map_heading">
+          Event Map
+        </h3>
+        <p class="mat-body-small text-muted m-0" i18n="@@event_edit.map_heading_hint">
+          Set the event area and main location, then add the Spots and markers
+          people need on the day.
+        </p>
+      </div>
+    </div>
+
+    <div class="d-flex flex-row gap-2 flex-wrap">
+      <mat-form-field appearance="outline" class="flex-grow-1">
+        <mat-label i18n="@@event_edit.venue">Venue name</mat-label>
+        <input matInput formControlName="venue_string" />
+        <mat-hint i18n="@@event_edit.venue_optional">
+          Optional — shown as “Venue to be announced” when empty.
+        </mat-hint>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="flex-grow-1">
+        <mat-label i18n="@@event_edit.locality">Locality</mat-label>
+        <input
+          matInput
+          formControlName="locality_string"
+          placeholder="City, Country"
+        />
+      </mat-form-field>
+    </div>
 
     <div class="d-flex flex-column gap-2">
-      <p class="mat-label-medium m-0 text-muted" i18n="@@event_edit.area_label">
-        Optional venue and map location
-      </p>
       <p
         class="mat-body-small location-explanation m-0"
         i18n="@@event_edit.location_explanation"
@@ -339,8 +365,16 @@
         [areaPath]="areaPath()"
         [location]="location()"
         [centerHint]="location()"
+        [eventSpots]="eventSpotMapPoints()"
+        [customMarkers]="customMarkerMapPoints()"
+        [inlineSpots]="inlineSpotMapPoints()"
+        [inlineSpotAreaPlacementId]="inlineSpotAreaPlacementTarget()"
         (areaChange)="onAreaChange($event)"
         (locationChange)="onLocationChange($event)"
+        (customMarkerLocationChange)="onCustomMarkerMapLocationChange($event)"
+        (inlineSpotLocationChange)="onInlineSpotMapLocationChange($event)"
+        (inlineSpotAreaChange)="onInlineSpotAreaChange($event)"
+        (inlineSpotAreaPlacementHandled)="inlineSpotAreaPlacementTarget.set(null)"
       ></app-bounds-picker>
       @if (!areaPath()) {
         <p
@@ -357,6 +391,10 @@
         Add legacy mobile app area compatibility
       </mat-checkbox>
     </div>
+
+    @if (!isSessionPlanner()) {
+      <ng-container [ngTemplateOutlet]="eventMapItemsTemplate()"></ng-container>
+    }
   </section>
 
   @if (isSessionPlanner()) {
@@ -501,14 +539,6 @@
       </div>
 
       <div class="d-flex flex-column gap-3">
-        <app-locale-map-edit-field
-          class="w-100"
-          i18n-placeholder="@@event_edit.description"
-          placeholder="Description"
-          [isTextArea]="true"
-          [(localeMap)]="descriptionLocaleMap"
-        ></app-locale-map-edit-field>
-
         <mat-form-field appearance="outline">
           <mat-label i18n="@@event_edit.event_categories">
             Event categories
@@ -2742,6 +2772,7 @@
           </div>
         </mat-expansion-panel>
 
+        <ng-template #eventMapItems>
         <mat-divider />
 
         <!-- ----------------- Spots ----------------- -->
@@ -2850,6 +2881,37 @@
                       >
                         <mat-icon>delete</mat-icon>
                       </button>
+                    </div>
+
+                    <div class="map-item-placement-actions">
+                      <p class="mat-label-small text-muted m-0" i18n="@@event_edit.temporary_spot_map_hint">
+                        Drag this temporary Spot’s T marker in the map above to
+                        place it. Its area is optional.
+                      </p>
+                      <div class="d-flex flex-row gap-2 flex-wrap">
+                        <button
+                          mat-stroked-button
+                          type="button"
+                          (click)="startInlineSpotAreaPlacement(spot.key)"
+                          [disabled]="saving()"
+                        >
+                          <mat-icon>add_location</mat-icon>
+                          <span i18n="@@event_edit.temporary_spot_draw_area">
+                            Draw area on map
+                          </span>
+                        </button>
+                        @if (spot.bounds.length > 0) {
+                          <button
+                            mat-button
+                            type="button"
+                            (click)="clearInlineSpotArea(spot.key)"
+                            [disabled]="saving()"
+                            i18n="@@event_edit.temporary_spot_clear_area"
+                          >
+                            Clear map area
+                          </button>
+                        }
+                      </div>
                     </div>
 
                     <div class="tmp-fields">
@@ -3060,6 +3122,10 @@
               <span i18n="@@event_edit.custom_marker_add">Add marker</span>
             </button>
           </div>
+          <p class="mat-label-small text-muted m-0" i18n="@@event_edit.custom_markers_map_hint">
+            Add a marker, then drag its M pin in the Event Map to place it.
+            Coordinate fields remain available for precise corrections.
+          </p>
           @if (customMarkers().length > 0) {
             <div class="custom-marker-list">
               @for (marker of customMarkers(); track marker.id) {
@@ -3297,6 +3363,7 @@
             </p>
           }
         </div>
+        </ng-template>
 
         <mat-divider />
 

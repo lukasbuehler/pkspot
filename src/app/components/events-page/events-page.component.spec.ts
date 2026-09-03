@@ -124,6 +124,7 @@ interface TestContext {
 function createComponent(options?: {
   queryParams?: Record<string, string>;
   admin?: boolean;
+  adult?: boolean;
   signedIn?: boolean;
   drafts?: PkEvent[];
   searchResult?: EventDiscoverySearchResult;
@@ -173,7 +174,7 @@ function createComponent(options?: {
         provide: AgeAssuranceService,
         useValue: {
           hasVerifiedAdultEligibility: vi.fn().mockReturnValue(
-            options?.admin === true,
+            options?.adult ?? options?.admin === true,
           ),
         },
       },
@@ -425,17 +426,31 @@ describe("EventsPageComponent", () => {
     expect(component.drafts()).toEqual([draft]);
     expect(component.createActions().map((action) => action.id)).toEqual([
       "event",
-      "jam",
-      "session",
+      "community",
       "suggest",
     ]);
   });
 
-  it("does not offer event or session creation to non-admin users", async () => {
+  it("keeps community authoring reachable while adult eligibility is pending", async () => {
     const { component } = createComponent({ signedIn: true });
     await flushResources();
 
-    expect(component.createActions()).toEqual([]);
+    expect(component.createActions().map((action) => action.id)).toEqual([
+      "community",
+      "suggest",
+    ]);
+  });
+
+  it("routes FAB selections to their matching authoring flows", () => {
+    const { component, router } = createComponent({ signedIn: true });
+
+    component.onCreateAction("community");
+    component.onCreateAction("suggest");
+
+    expect(router.navigate).toHaveBeenNthCalledWith(1, [
+      "/events/community/new",
+    ]);
+    expect(router.navigate).toHaveBeenNthCalledWith(2, ["/events/suggest"]);
   });
 
   it("opens invalid event previews for admins only", async () => {

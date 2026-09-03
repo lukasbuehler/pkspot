@@ -15125,5 +15125,13 @@
     <unit id="3792622364508901777"><segment><source>Send an Event to PK Spot staff for review. It will not be published from this form.</source></segment></unit>
     <unit id="552004881794875858"><segment><source>Community event</source></segment></unit>
     <unit id="2008167069818962786"><segment><source>Checking Event authoring access…</source></segment></unit>
+    <unit id="bounds_picker.inline_spot_area_hint"><segment><source>Click the map to place this temporary Spot’s area. You can then drag the area or its points to refine it.</source></segment></unit>
+    <unit id="bounds_picker.legend"><segment><source>S = event Spot · M = custom marker · T = temporary event Spot. Drag M and T markers directly on the map.</source></segment></unit>
+    <unit id="event_edit.map_heading"><segment><source>Event Map</source></segment></unit>
+    <unit id="event_edit.map_heading_hint"><segment><source>Set the event area and main location, then add the Spots and markers people need on the day.</source></segment></unit>
+    <unit id="event_edit.temporary_spot_map_hint"><segment><source>Drag this temporary Spot’s T marker in the map above to place it. Its area is optional.</source></segment></unit>
+    <unit id="event_edit.temporary_spot_draw_area"><segment><source>Draw area on map</source></segment></unit>
+    <unit id="event_edit.temporary_spot_clear_area"><segment><source>Clear map area</source></segment></unit>
+    <unit id="event_edit.custom_markers_map_hint"><segment><source>Add a marker, then drag its M pin in the Event Map to place it. Coordinate fields remain available for precise corrections.</source></segment></unit>
   </file>
 </xliff>
