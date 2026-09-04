@@ -11,24 +11,32 @@ import {
 type CartProduct = SupportShopProduct & { priceLabel: string };
 type StoredCartItem = StoredPhysicalOrderCartItem | StoredDirectSupportCartItem;
 
-interface StoredPhysicalOrderCartItem {
+interface StoredCartItemBase {
+  id: string;
+}
+
+interface StoredPhysicalOrderCartItem extends StoredCartItemBase {
   kind: "physical_order";
   productId: SupportShopProductId;
 }
 
-interface StoredDirectSupportCartItem {
+interface StoredDirectSupportCartItem extends StoredCartItemBase {
   kind: "direct_support";
   amountChf: number;
   displayName: string;
 }
 
-export interface PhysicalOrderCartItem {
+interface ShopCartItemBase {
+  id: string;
+}
+
+export interface PhysicalOrderCartItem extends ShopCartItemBase {
   kind: "physical_order";
   product: CartProduct;
   priceLabel: string;
 }
 
-export interface DirectSupportCartItem {
+export interface DirectSupportCartItem extends ShopCartItemBase {
   kind: "direct_support";
   amountChf: number;
   displayName: string;
@@ -38,56 +46,44 @@ export interface DirectSupportCartItem {
 export type ShopCartItem = PhysicalOrderCartItem | DirectSupportCartItem;
 
 /**
- * Stores one pending shop item on this device. This keeps the initial cart
- * intentionally small while retaining the direct-support display name through
- * navigation and a page refresh.
+ * Stores pending shop items on this device. Prices are rendered from the local
+ * catalogue but are always validated again by the checkout Cloud Function.
  */
 @Injectable({ providedIn: "root" })
 export class ShopCartService {
   private static readonly STORAGE_KEY = "pkspot:shop-cart:v1";
   private readonly _platformId = inject(PLATFORM_ID);
-  private readonly _storedItem = signal<StoredCartItem | null>(
-    this.readStoredItem(),
+  private readonly _storedItems = signal<readonly StoredCartItem[]>(
+    this.readStoredItems(),
   );
 
-  readonly item = computed<ShopCartItem | null>(() => {
-    const storedItem = this._storedItem();
-    if (!storedItem) return null;
+  readonly items = computed<readonly ShopCartItem[]>(() =>
+    this._storedItems().flatMap(toCartItems),
+  );
+  readonly itemCount = computed(() => this.items().length);
+  readonly totalRappen = computed(() =>
+    this.items().reduce(
+      (total, item) =>
+        total +
+        (item.kind === "direct_support"
+          ? Math.round(item.amountChf * 100)
+          : item.product.priceRappen),
+      0,
+    ),
+  );
+  readonly totalPriceLabel = computed(() => formatChf(this.totalRappen()));
 
-    if (storedItem.kind === "direct_support") {
-      return {
-        ...storedItem,
-        priceLabel: formatChf(Math.round(storedItem.amountChf * 100)),
-      };
+  addStickerPack(productId: SupportShopProductId): void {
+    if (!findProduct(productId)) {
+      throw new RangeError("Choose a supported Sticker Support Pack.");
     }
-
-    const product = findProduct(storedItem.productId);
-    if (!product) return null;
-    const cartProduct = toCartProduct(product);
-    return {
-      kind: "physical_order",
-      product: cartProduct,
-      priceLabel: cartProduct.priceLabel,
-    };
-  });
-  readonly product = computed<CartProduct | null>(() => {
-    const item = this.item();
-    return item?.kind === "physical_order" ? item.product : null;
-  });
-  readonly directSupport = computed<DirectSupportCartItem | null>(() => {
-    const item = this.item();
-    return item?.kind === "direct_support" ? item : null;
-  });
-  readonly itemCount = computed(() => (this.item() ? 1 : 0));
-
-  setStickerPack(productId: SupportShopProductId): void {
-    this.setItem({ kind: "physical_order", productId });
+    this.storeItems([
+      ...this._storedItems(),
+      { id: createCartItemId(), kind: "physical_order", productId },
+    ]);
   }
 
-  setDirectSupport(input: {
-    amountChf: number;
-    displayName: string;
-  }): void {
+  addDirectSupport(input: { amountChf: number; displayName: string }): void {
     const amountRappen = Math.round(input.amountChf * 100);
     if (
       !Number.isFinite(input.amountChf) ||
@@ -103,50 +99,69 @@ export class ShopCartService {
       throw new RangeError("A display name must be 80 characters or fewer.");
     }
 
-    this.setItem({
-      kind: "direct_support",
-      amountChf: input.amountChf,
-      displayName,
-    });
+    this.storeItems([
+      ...this._storedItems(),
+      {
+        id: createCartItemId(),
+        kind: "direct_support",
+        amountChf: input.amountChf,
+        displayName,
+      },
+    ]);
+  }
+
+  remove(itemId: string): void {
+    this.storeItems(
+      this._storedItems().filter((item) => item.id !== itemId),
+    );
   }
 
   clear(): void {
-    this._storedItem.set(null);
+    this.storeItems([]);
+  }
+
+  private storeItems(items: readonly StoredCartItem[]): void {
+    this._storedItems.set(items);
     if (isPlatformBrowser(this._platformId)) {
-      localStorage.removeItem(ShopCartService.STORAGE_KEY);
+      if (items.length) {
+        localStorage.setItem(ShopCartService.STORAGE_KEY, JSON.stringify(items));
+      } else {
+        localStorage.removeItem(ShopCartService.STORAGE_KEY);
+      }
     }
   }
 
-  private setItem(item: StoredCartItem): void {
-    this._storedItem.set(item);
-    if (isPlatformBrowser(this._platformId)) {
-      localStorage.setItem(ShopCartService.STORAGE_KEY, JSON.stringify(item));
-    }
-  }
-
-  private readStoredItem(): StoredCartItem | null {
-    if (!isPlatformBrowser(this._platformId)) return null;
+  private readStoredItems(): readonly StoredCartItem[] {
+    if (!isPlatformBrowser(this._platformId)) return [];
     const storedValue = localStorage.getItem(ShopCartService.STORAGE_KEY);
-    if (!storedValue) return null;
+    if (!storedValue) return [];
 
-    // The first shop release stored a product ID directly. Keep existing carts.
+    // The first release stored a product ID or one object directly. Keep that
+    // pending item when upgrading it to a multi-item cart.
     if (findProduct(storedValue)) {
-      return {
+      return [{
+        id: createCartItemId(),
         kind: "physical_order",
         productId: storedValue as SupportShopProductId,
-      };
+      }];
     }
 
     try {
-      return parseStoredItem(JSON.parse(storedValue));
+      const parsedValue: unknown = JSON.parse(storedValue);
+      const values = Array.isArray(parsedValue) ? parsedValue : [parsedValue];
+      return values.flatMap((value) => {
+        const item = parseStoredItem(value);
+        return item ? [item] : [];
+      });
     } catch {
-      return null;
+      return [];
     }
   }
 }
 
 function parseStoredItem(value: unknown): StoredCartItem | null {
   if (!isRecord(value) || typeof value["kind"] !== "string") return null;
+  const id = parseCartItemId(value["id"]) ?? createCartItemId();
 
   if (
     value["kind"] === "physical_order" &&
@@ -154,6 +169,7 @@ function parseStoredItem(value: unknown): StoredCartItem | null {
   ) {
     return findProduct(value["productId"])
       ? {
+          id,
           kind: "physical_order",
           productId: value["productId"] as SupportShopProductId,
         }
@@ -175,6 +191,7 @@ function parseStoredItem(value: unknown): StoredCartItem | null {
       displayName.length <= 80
     ) {
       return {
+        id,
         kind: "direct_support",
         amountChf: value["amountChf"],
         displayName,
@@ -183,6 +200,36 @@ function parseStoredItem(value: unknown): StoredCartItem | null {
   }
 
   return null;
+}
+
+function toCartItems(storedItem: StoredCartItem): readonly ShopCartItem[] {
+  if (storedItem.kind === "direct_support") {
+    return [{
+      ...storedItem,
+      priceLabel: formatChf(Math.round(storedItem.amountChf * 100)),
+    }];
+  }
+
+  const product = findProduct(storedItem.productId);
+  if (!product) return [];
+  const cartProduct = toCartProduct(product);
+  return [{
+    id: storedItem.id,
+    kind: "physical_order",
+    product: cartProduct,
+    priceLabel: cartProduct.priceLabel,
+  }];
+}
+
+function parseCartItemId(value: unknown): string | undefined {
+  return typeof value === "string" && /^[A-Za-z0-9_-]{1,80}$/u.test(value)
+    ? value
+    : undefined;
+}
+
+function createCartItemId(): string {
+  return globalThis.crypto?.randomUUID?.() ??
+    `cart-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 function findProduct(productId: string): SupportShopProduct | undefined {

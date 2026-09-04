@@ -15,9 +15,11 @@ describe("parseSupportCheckoutInput", () => {
         supporterCredit: { optedIn: true, publicName: "  Mira  " },
       }),
     ).toEqual({
-      kind: "direct_support",
-      amountRappen: 4_250,
-      supporterCredit: { optedIn: true, publicName: "Mira" },
+      items: [{
+        kind: "direct_support",
+        amountRappen: 4_250,
+        supporterCredit: { optedIn: true, publicName: "Mira" },
+      }],
     });
   });
 
@@ -43,12 +45,14 @@ describe("parseSupportCheckoutInput", () => {
         supporterCredit: { optedIn: false },
       }),
     ).toMatchObject({
-      kind: "physical_order",
-      product: {
-        id: "sticker-pack-huge",
-        priceRappen: 3_500,
-        stickerCount: 25,
-      },
+      items: [{
+        kind: "physical_order",
+        product: {
+          id: "sticker-pack-huge",
+          priceRappen: 3_500,
+          stickerCount: 25,
+        },
+      }],
     });
 
     expect(() =>
@@ -88,6 +92,39 @@ describe("parseSupportCheckoutInput", () => {
         supporterCredit: { optedIn: false },
       }),
     ).toMatchObject({ checkoutDestination: "cart" });
+  });
+
+  it("accepts a bounded cart of independently validated items", () => {
+    expect(
+      parseSupportCheckoutInput({
+        items: [
+          {
+            kind: "physical_order",
+            productId: "sticker-pack-standard",
+            supporterCredit: { optedIn: false },
+          },
+          {
+            kind: "direct_support",
+            amountChf: 25,
+            supporterCredit: { optedIn: true, publicName: "Mira" },
+          },
+        ],
+        checkoutDestination: "cart",
+      }),
+    ).toMatchObject({
+      checkoutDestination: "cart",
+      items: [
+        { kind: "physical_order", product: { id: "sticker-pack-standard" } },
+        { kind: "direct_support", amountRappen: 2_500 },
+      ],
+    });
+
+    expect(() =>
+      parseSupportCheckoutInput({
+        items: [],
+        checkoutDestination: "cart",
+      }),
+    ).toThrow("Choose between 1 and");
   });
 
   it("does not accept a public supporter name without explicit opt-in", () => {

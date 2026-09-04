@@ -8,7 +8,9 @@ import {HttpsError, onCall, onRequest, type CallableRequest, type Request} from 
 import Stripe = require("stripe");
 import {
   SUPPORT_SHOP_CURRENCY,
+  SUPPORT_SHOP_MAX_CART_ITEMS,
   type SupportCheckoutInput,
+  type SupportCheckoutItem,
   type SupportOrderType,
   SupportShopValidationError,
   parseSupportCheckoutInput,
@@ -29,12 +31,18 @@ const supportShopReturnUrl = defineString("SUPPORT_SHOP_RETURN_URL", {default: "
 const stripeSecretKey = defineSecret("STRIPE_SECRET_KEY");
 const stripeWebhookSecret = defineSecret("STRIPE_WEBHOOK_SECRET");
 const orders = db.collection("support_orders");
+const checkouts = db.collection("support_shop_checkouts");
 const webhookEvents = db.collection("support_shop_webhook_events");
 
 interface StoredSupportOrder {
   kind: SupportOrderType;
   payment?: {status?: unknown; checkout_session_id?: unknown};
   fulfillment?: {status?: unknown; fulfilled_at?: unknown};
+}
+
+interface StoredSupportCheckout {
+  order_ids?: unknown;
+  payment?: {status?: unknown; checkout_session_id?: unknown};
 }
 
 const checkoutCallableOptions = {
@@ -49,38 +57,71 @@ export const createSupportCheckout = onCall(
   async (request: CallableRequest<unknown>): Promise<{checkoutUrl: string}> => {
     assertSupportShopEnabled();
     const input = parseCheckoutInput(request.data);
-    const orderRef = orders.doc();
+    const checkoutRef = checkouts.doc();
+    const orderRefs = input.items.map(() => orders.doc());
     const now = admin.firestore.Timestamp.now();
-    const order = checkoutDraft(input, request.auth?.uid, now);
-    await orderRef.create(order);
+    const draftBatch = db.batch();
+    draftBatch.create(checkoutRef, checkoutDraft(checkoutRef.id, orderRefs, now));
+    input.items.forEach((item, index) => {
+      draftBatch.create(
+        orderRefs[index]!,
+        orderDraft(item, request.auth?.uid, checkoutRef.id, now),
+      );
+    });
+    await draftBatch.commit();
 
     try {
       const checkout = await stripeClient().checkout.sessions.create(
         createSupportCheckoutSessionParams(
           input,
-          orderRef.id,
+          checkoutRef.id,
           checkoutReturnUrl(input),
         ),
-        {idempotencyKey: `pkspot-support-checkout-${orderRef.id}`},
+        {idempotencyKey: `pkspot-support-checkout-${checkoutRef.id}`},
       );
       if (!checkout.url) {
         throw new HttpsError("internal", "Stripe did not return a Checkout URL.");
       }
-      await orderRef.update({
-        payment: {
-          status: "checkout_created",
-          checkout_session_id: checkout.id,
-        },
-        updated_at: admin.firestore.Timestamp.now(),
+      const payment = {
+        status: "checkout_created",
+        checkout_session_id: checkout.id,
+      };
+      await db.runTransaction(async (transaction) => {
+        const [checkoutSnapshot, ...orderSnapshots] = await Promise.all([
+          transaction.get(checkoutRef),
+          ...orderRefs.map((orderRef) => transaction.get(orderRef)),
+        ]);
+        if (!checkoutSnapshot.exists) {
+          throw new Error(`Support checkout ${checkoutRef.id} was not found.`);
+        }
+        const storedCheckout = checkoutSnapshot.data() as StoredSupportCheckout;
+        if (storedCheckout.payment?.status === "paid") return;
+
+        const now = admin.firestore.Timestamp.now();
+        transaction.update(checkoutRef, {payment, updated_at: now});
+        orderSnapshots.forEach((snapshot, index) => {
+          const order = snapshot.data() as StoredSupportOrder | undefined;
+          if (snapshot.exists && order?.payment?.status !== "paid") {
+            transaction.update(orderRefs[index]!, {payment, updated_at: now});
+          }
+        });
       });
       return {checkoutUrl: checkout.url};
     } catch (error) {
-      await orderRef.update({
+      const failedBatch = db.batch();
+      failedBatch.update(checkoutRef, {
         payment: {status: "failed"},
         updated_at: admin.firestore.Timestamp.now(),
       });
+      orderRefs.forEach((orderRef) => {
+        failedBatch.update(orderRef, {
+          payment: {status: "failed"},
+          updated_at: admin.firestore.Timestamp.now(),
+        });
+      });
+      await failedBatch.commit();
       logger.error("Unable to create Stripe Checkout Session", {
-        order_id: orderRef.id,
+        checkout_id: checkoutRef.id,
         error: error instanceof Error ? error.message : "unknown",
       });
       if (error instanceof HttpsError) throw error;
@@ -275,15 +316,112 @@ export const markSupportOrderFulfilled = onCall(
 
 async function processStripeSupportEvent(event: Stripe.Event): Promise<void> {
   const receivedSession = event.data.object as Stripe.Checkout.Session;
+  const checkoutId = receivedSession.metadata?.["pkspot_support_checkout_id"];
   const orderId = receivedSession.metadata?.["pkspot_support_order_id"];
-  if (!orderId) return;
+  if (!checkoutId && !orderId) return;
 
   const session = await stripeClient().checkout.sessions.retrieve(receivedSession.id, {
-    expand: ["line_items", "payment_intent"],
+    expand: ["payment_intent"],
   });
   const paymentPaid = shouldMarkSupportOrderPaid(event.type, session);
   const paymentFailed = event.type === "checkout.session.async_payment_failed";
   if (!paymentPaid && !paymentFailed) return;
+
+  if (checkoutId) {
+    await processCartStripeSupportEvent(
+      event,
+      session,
+      checkoutId,
+      paymentPaid,
+      paymentFailed,
+    );
+    return;
+  }
+
+  await processLegacyStripeSupportEvent(
+    event,
+    session,
+    orderId!,
+    paymentPaid,
+    paymentFailed,
+  );
+}
+
+async function processCartStripeSupportEvent(
+  event: Stripe.Event,
+  session: Stripe.Checkout.Session,
+  checkoutId: string,
+  paymentPaid: boolean,
+  paymentFailed: boolean,
+): Promise<void> {
+  const checkoutRef = checkouts.doc(checkoutId);
+  const eventRef = webhookEvents.doc(event.id);
+  await db.runTransaction(async (transaction) => {
+    const [processed, checkoutSnapshot] = await Promise.all([
+      transaction.get(eventRef),
+      transaction.get(checkoutRef),
+    ]);
+    if (processed.exists) return;
+    if (!checkoutSnapshot.exists) {
+      throw new Error(`Support checkout ${checkoutId} was not found.`);
+    }
+
+    const checkout = checkoutSnapshot.data() as StoredSupportCheckout;
+    const orderIds = readOrderIds(checkout.order_ids);
+    const orderRefs = orderIds.map((id) => orders.doc(id));
+    const orderSnapshots = await Promise.all(
+      orderRefs.map((orderRef) => transaction.get(orderRef)),
+    );
+    if (orderSnapshots.some((snapshot) => !snapshot.exists)) {
+      throw new Error(`Support checkout ${checkoutId} has a missing order.`);
+    }
+
+    const storedSessionId = checkout.payment?.checkout_session_id;
+    if (storedSessionId && storedSessionId !== session.id) {
+      throw new Error(`Stripe Session did not match support checkout ${checkoutId}.`);
+    }
+
+    const now = admin.firestore.Timestamp.now();
+    if (paymentPaid && checkout.payment?.status !== "paid") {
+      transaction.update(checkoutRef, paidCheckoutUpdate(session, now));
+      orderSnapshots.forEach((snapshot, index) => {
+        const order = snapshot.data() as StoredSupportOrder;
+        if (order.payment?.status !== "paid") {
+          transaction.update(orderRefs[index]!, paidOrderUpdate(session, now, order));
+        }
+      });
+    } else if (paymentFailed && checkout.payment?.status !== "paid") {
+      const payment = {
+        ...(isRecord(checkout.payment) ? checkout.payment : {}),
+        status: "failed",
+        checkout_session_id: session.id,
+      };
+      transaction.update(checkoutRef, {payment, updated_at: now});
+      orderRefs.forEach((orderRef, index) => {
+        const order = orderSnapshots[index]!.data() as StoredSupportOrder;
+        if (order.payment?.status !== "paid") {
+          transaction.update(orderRef, {payment, updated_at: now});
+        }
+      });
+    }
+    transaction.create(eventRef, {
+      stripe_event_id: event.id,
+      stripe_event_type: event.type,
+      stripe_checkout_session_id: session.id,
+      checkout_id: checkoutId,
+      order_ids: orderIds,
+      processed_at: now,
+    });
+  });
+}
+
+async function processLegacyStripeSupportEvent(
+  event: Stripe.Event,
+  session: Stripe.Checkout.Session,
+  orderId: string,
+  paymentPaid: boolean,
+  paymentFailed: boolean,
+): Promise<void> {
 
   const orderRef = orders.doc(orderId);
   const eventRef = webhookEvents.doc(event.id);
@@ -304,7 +442,7 @@ async function processStripeSupportEvent(event: Stripe.Event): Promise<void> {
 
     const now = admin.firestore.Timestamp.now();
     if (paymentPaid && order.payment?.status !== "paid") {
-      transaction.update(orderRef, paidOrderUpdate(session, now));
+      transaction.update(orderRef, paidOrderUpdate(session, now, order));
     } else if (paymentFailed && order.payment?.status !== "paid") {
       transaction.update(orderRef, {
         payment: {
@@ -326,8 +464,25 @@ async function processStripeSupportEvent(event: Stripe.Event): Promise<void> {
 }
 
 function checkoutDraft(
-  input: SupportCheckoutInput,
+  checkoutId: string,
+  orderRefs: readonly FirebaseFirestore.DocumentReference[],
+  now: admin.firestore.Timestamp,
+): Record<string, unknown> {
+  return {
+    schema_version: 1,
+    checkout_id: checkoutId,
+    order_ids: orderRefs.map((orderRef) => orderRef.id),
+    currency: SUPPORT_SHOP_CURRENCY,
+    payment: {status: "checkout_created"},
+    created_at: now,
+    updated_at: now,
+  };
+}
+
+function orderDraft(
+  input: SupportCheckoutItem,
   userId: string | undefined,
+  checkoutId: string,
   now: admin.firestore.Timestamp,
 ): Record<string, unknown> {
   const base = {
@@ -338,6 +493,7 @@ function checkoutDraft(
     supporter_credit: input.supporterCredit,
     created_at: now,
     updated_at: now,
+    checkout_id: checkoutId,
     ...(userId ? {user_id: userId} : {}),
   };
   if (input.kind === "direct_support") {
@@ -367,6 +523,33 @@ function checkoutDraft(
 }
 
 function paidOrderUpdate(
+  session: Stripe.Checkout.Session,
+  now: admin.firestore.Timestamp,
+  order: StoredSupportOrder,
+): Record<string, unknown> {
+  const shippingDetails = shippingDetailsFrom(session);
+  return {
+    payment: {
+      status: "paid",
+      checkout_session_id: session.id,
+      ...(idFrom(session.payment_intent)
+        ? {payment_intent_id: idFrom(session.payment_intent)}
+        : {}),
+      ...(idFrom(session.customer) ? {customer_id: idFrom(session.customer)} : {}),
+    },
+    currency: session.currency ?? SUPPORT_SHOP_CURRENCY,
+    ...(order.kind === "physical_order" && session.customer_details?.email
+      ? {customer: {email: session.customer_details.email}}
+      : {}),
+    ...(order.kind === "physical_order" && shippingDetails
+      ? {shipping: shippingDetails}
+      : {}),
+    paid_at: now,
+    updated_at: now,
+  };
+}
+
+function paidCheckoutUpdate(
   session: Stripe.Checkout.Session,
   now: admin.firestore.Timestamp,
 ): Record<string, unknown> {
@@ -429,7 +612,7 @@ function checkoutReturnUrl(input: SupportCheckoutInput): string {
   if (input.checkoutDestination === "cart") {
     return `${normalizedReturnUrl()}/cart`;
   }
-  return `${normalizedReturnUrl()}/item/${checkoutItemId(input)}`;
+  return `${normalizedReturnUrl()}/item/${checkoutItemId(input.items[0]!)}`;
 }
 
 function stripeClient(): Stripe {
@@ -455,6 +638,22 @@ function parseCheckoutInput(value: unknown): SupportCheckoutInput {
     }
     throw error;
   }
+}
+
+function readOrderIds(value: unknown): string[] {
+  if (
+    !Array.isArray(value) ||
+    !value.length ||
+    value.length > SUPPORT_SHOP_MAX_CART_ITEMS ||
+    value.some(
+      (orderId) =>
+        typeof orderId !== "string" ||
+        !/^[A-Za-z0-9_-]{8,128}$/u.test(orderId),
+    )
+  ) {
+    throw new Error("Support checkout has invalid order IDs.");
+  }
+  return value;
 }
 
 async function assertAdmin(uid: string | undefined): Promise<string> {

@@ -4,8 +4,14 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { MetaTagService } from "../../services/meta-tag.service";
-import { ShopCartService } from "../../services/shop-cart.service";
-import { SupportShopService } from "../../services/support-shop.service";
+import {
+  ShopCartService,
+  type ShopCartItem,
+} from "../../services/shop-cart.service";
+import {
+  SupportShopService,
+  type CreateSupportCheckoutItemRequest,
+} from "../../services/support-shop.service";
 
 @Component({
   selector: "app-shop-cart-page",
@@ -26,7 +32,7 @@ export class ShopCartPageComponent implements OnInit {
   ngOnInit(): void {
     this._metaTagService.setStaticPageMetaTags(
       "My cart | PK Spot Shop",
-      "Your selected PK Spot shop item.",
+      "Your selected PK Spot shop items.",
       undefined,
       "/shop/cart",
     );
@@ -39,29 +45,17 @@ export class ShopCartPageComponent implements OnInit {
   }
 
   async checkout(): Promise<void> {
-    const item = this.cart.item();
-    if (!item || this.checkoutAction()) return;
+    const items = this.cart.items();
+    if (!items.length || this.checkoutAction()) return;
 
     this.checkoutAction.set(true);
     this.checkoutError.set("");
     try {
       const result = await this._shop.createCheckout(
-        item.kind === "direct_support"
-          ? {
-              kind: "direct_support",
-              amountChf: item.amountChf,
-              checkoutDestination: "cart",
-              supporterCredit: {
-                optedIn: !!item.displayName,
-                ...(item.displayName ? { publicName: item.displayName } : {}),
-              },
-            }
-          : {
-              kind: "physical_order",
-              productId: item.product.id,
-              checkoutDestination: "cart",
-              supporterCredit: { optedIn: false },
-            },
+        {
+          items: items.map(toCheckoutItem),
+          checkoutDestination: "cart",
+        },
       );
       globalThis.location.assign(result.checkoutUrl);
     } catch (error) {
@@ -74,4 +68,21 @@ export class ShopCartPageComponent implements OnInit {
     }
   }
 
+}
+
+function toCheckoutItem(item: ShopCartItem): CreateSupportCheckoutItemRequest {
+  return item.kind === "direct_support"
+    ? {
+        kind: "direct_support",
+        amountChf: item.amountChf,
+        supporterCredit: {
+          optedIn: !!item.displayName,
+          ...(item.displayName ? { publicName: item.displayName } : {}),
+        },
+      }
+    : {
+        kind: "physical_order",
+        productId: item.product.id,
+        supporterCredit: { optedIn: false },
+      };
 }

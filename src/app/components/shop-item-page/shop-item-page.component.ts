@@ -82,7 +82,7 @@ export class ShopItemPageComponent implements OnInit {
     await submit(this.supportForm, async () => {
       const { amountChf, displayName } = this.supportModel();
       const cleanedDisplayName = displayName.trim();
-      this._cart.setDirectSupport({
+      this._cart.addDirectSupport({
         amountChf,
         displayName: cleanedDisplayName,
       });
@@ -97,7 +97,7 @@ export class ShopItemPageComponent implements OnInit {
 
   addStickerPackToCart(): void {
     const productId = this.selectedStickerPack().id;
-    this._cart.setStickerPack(productId);
+    this._cart.addStickerPack(productId);
     this._analytics.trackEvent("shop_cart_updated", { product_id: productId });
     void this._router.navigate(["/shop/cart"]);
   }

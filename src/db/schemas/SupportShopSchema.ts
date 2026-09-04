@@ -1,6 +1,7 @@
 export const SUPPORT_SHOP_CURRENCY = "chf";
 export const DIRECT_SUPPORT_MIN_RAPPEN = 1_000;
 export const DIRECT_SUPPORT_MAX_RAPPEN = 10_000;
+export const SUPPORT_SHOP_MAX_CART_ITEMS = 20;
 
 export type SupportOrderType = "direct_support" | "physical_order";
 export type SupportCheckoutDestination = "cart";
@@ -83,9 +84,14 @@ export interface PhysicalOrderCheckoutInput {
   checkoutDestination?: SupportCheckoutDestination;
 }
 
-export type SupportCheckoutInput =
+export type SupportCheckoutItem =
   | DirectSupportCheckoutInput
   | PhysicalOrderCheckoutInput;
+
+export interface SupportCheckoutInput {
+  items: readonly SupportCheckoutItem[];
+  checkoutDestination?: SupportCheckoutDestination;
+}
 
 export class SupportShopValidationError extends Error {
   constructor(message: string) {
@@ -97,6 +103,43 @@ export class SupportShopValidationError extends Error {
 export function parseSupportCheckoutInput(value: unknown): SupportCheckoutInput {
   if (!isRecord(value)) {
     throw new SupportShopValidationError("Checkout details are required.");
+  }
+
+  if (Array.isArray(value["items"])) {
+    assertOnlyKeys(value, ["items", "checkoutDestination"]);
+    const checkoutDestination = parseCheckoutDestination(
+      value["checkoutDestination"],
+    );
+    if (checkoutDestination !== "cart") {
+      throw new SupportShopValidationError(
+        "Multiple items must use the cart checkout destination.",
+      );
+    }
+    if (!value["items"].length || value["items"].length > SUPPORT_SHOP_MAX_CART_ITEMS) {
+      throw new SupportShopValidationError(
+        `Choose between 1 and ${SUPPORT_SHOP_MAX_CART_ITEMS} shop items.`,
+      );
+    }
+    return {
+      items: value["items"].map((item) => parseSupportCheckoutItem(item)),
+      checkoutDestination,
+    };
+  }
+
+  // Keep single-item requests from an already-open shop page compatible while
+  // new carts use the explicit items array above.
+  const item = parseSupportCheckoutItem(value);
+  return {
+    items: [item],
+    ...(item.checkoutDestination
+      ? { checkoutDestination: item.checkoutDestination }
+      : {}),
+  };
+}
+
+function parseSupportCheckoutItem(value: unknown): SupportCheckoutItem {
+  if (!isRecord(value)) {
+    throw new SupportShopValidationError("Each shop item must be an object.");
   }
 
   const kind = value["kind"];

@@ -6,7 +6,7 @@
 
   <header>
     <h1 class="mat-headline-large">My cart</h1>
-    <p class="mat-title-medium">Your selected PK Spot shop item.</p>
+    <p class="mat-title-medium">Your selected PK Spot shop items.</p>
   </header>
 
   @if (checkoutState() === "success") {
@@ -22,40 +22,44 @@
       <mat-icon>info</mat-icon>
       <div>
         <strong>Checkout was cancelled.</strong>
-        <p>Your selected item is still in your cart.</p>
+        <p>Your selected items are still in your cart.</p>
       </div>
     </section>
   }
 
-  @if (cart.item(); as item) {
-    <section class="shop-cart-page__item" aria-label="Cart item">
-      @if (item.kind === "physical_order") {
-        <div>
-          <p class="mat-label-large">Sticker Support Pack</p>
-          <h2 class="mat-title-large">{{ item.product.name }}</h2>
-          <p class="mat-body-medium">
-            {{ item.product.stickerCount }} stickers · Shipping within Switzerland included
-          </p>
-        </div>
-        <strong class="mat-title-medium">{{ item.product.priceLabel }}</strong>
-      } @else {
-        <div>
-          <p class="mat-label-large">Support PK Spot</p>
-          <h2 class="mat-title-large">One-time support</h2>
-          @if (item.displayName) {
-            <p class="mat-body-medium">Display name: {{ item.displayName }}</p>
+  @if (cart.items().length) {
+    <div class="shop-cart-page__items" aria-label="Cart items">
+      @for (item of cart.items(); track item.id) {
+        <section class="shop-cart-page__item">
+          @if (item.kind === "physical_order") {
+            <div>
+              <p class="mat-label-large">Sticker Support Pack</p>
+              <h2 class="mat-title-large">{{ item.product.name }}</h2>
+              <p class="mat-body-medium">
+                {{ item.product.stickerCount }} stickers · Shipping within Switzerland included
+              </p>
+            </div>
+            <strong class="mat-title-medium">{{ item.product.priceLabel }}</strong>
+          } @else {
+            <div>
+              <p class="mat-label-large">Support PK Spot</p>
+              <h2 class="mat-title-large">One-time support</h2>
+              @if (item.displayName) {
+                <p class="mat-body-medium">Display name: {{ item.displayName }}</p>
+              }
+              <p class="mat-body-small">
+                Display names are manually reviewed before appearing publicly on the PK Spot supporters page.
+              </p>
+            </div>
+            <strong class="mat-title-medium">{{ item.priceLabel }}</strong>
           }
-          <p class="mat-body-small">
-            Display names are manually reviewed before appearing publicly on the PK Spot supporters page.
-          </p>
-        </div>
-        <strong class="mat-title-medium">{{ item.priceLabel }}</strong>
+          <button mat-button type="button" (click)="cart.remove(item.id)">Remove</button>
+        </section>
       }
-      <button mat-button type="button" (click)="cart.clear()">Remove</button>
-    </section>
+    </div>
 
     <div class="shop-cart-page__checkout">
-      <p class="mat-title-medium">Total <strong>{{ item.priceLabel }}</strong></p>
+      <p class="mat-title-medium">Total <strong>{{ cart.totalPriceLabel() }}</strong></p>
       <button
         mat-flat-button
         color="primary"

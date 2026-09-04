@@ -1961,6 +1961,10 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /support_shop_checkouts/{checkoutId} {
+      allow read, write: if false;
+    }
+
     match /support_shop_webhook_events/{eventId} {
       allow read, write: if false;
     }

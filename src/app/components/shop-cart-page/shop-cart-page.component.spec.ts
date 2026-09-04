@@ -33,15 +33,22 @@ describe("ShopCartPageComponent", () => {
     await fixture.whenStable();
   });
 
-  it("shows the stored pack and provides a secure cart checkout", async () => {
+  it("shows every stored item, their combined total, and a secure cart checkout", async () => {
     const cart = TestBed.inject(ShopCartService);
-    cart.setStickerPack("sticker-pack-large");
-    fixture.detectChanges();
+    cart.addStickerPack("sticker-pack-large");
+    cart.addDirectSupport({ amountChf: 25, displayName: "Mira" });
     await fixture.whenStable();
 
     expect(fixture.nativeElement.textContent).toContain(
       "Large Sticker Support Pack",
     );
+    expect(fixture.nativeElement.textContent).toContain("One-time support");
+    expect(fixture.nativeElement.textContent).toContain("CHF 45.00");
+    expect(
+      [...fixture.nativeElement.querySelectorAll("button")].filter(
+        (button: HTMLButtonElement) => button.textContent?.includes("Remove"),
+      ),
+    ).toHaveLength(2);
     expect(fixture.nativeElement.textContent).toContain(
       "Continue to secure checkout",
     );
@@ -51,12 +58,13 @@ describe("ShopCartPageComponent", () => {
       undefined,
       "/shop/cart",
     );
-    expect(component.cart.itemCount()).toBe(1);
+    expect(component.cart.itemCount()).toBe(2);
   });
 
-  it("sends the direct-support display name with cart checkout", async () => {
+  it("sends every cart item, including the direct-support display name, to checkout", async () => {
     const cart = TestBed.inject(ShopCartService);
-    cart.setDirectSupport({ amountChf: 25, displayName: "Mira" });
+    cart.addStickerPack("sticker-pack-large");
+    cart.addDirectSupport({ amountChf: 25, displayName: "Mira" });
     supportShopService.createCheckout.mockRejectedValueOnce(new Error("test"));
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
@@ -64,10 +72,19 @@ describe("ShopCartPageComponent", () => {
       await component.checkout();
 
       expect(supportShopService.createCheckout).toHaveBeenCalledWith({
-        kind: "direct_support",
-        amountChf: 25,
+        items: [
+          {
+            kind: "physical_order",
+            productId: "sticker-pack-large",
+            supporterCredit: { optedIn: false },
+          },
+          {
+            kind: "direct_support",
+            amountChf: 25,
+            supporterCredit: { optedIn: true, publicName: "Mira" },
+          },
+        ],
         checkoutDestination: "cart",
-        supporterCredit: { optedIn: true, publicName: "Mira" },
       });
     } finally {
       consoleError.mockRestore();

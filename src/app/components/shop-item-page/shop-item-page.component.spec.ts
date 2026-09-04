@@ -94,9 +94,8 @@ describe("ShopItemPageComponent", () => {
     }));
     await component.addDirectSupportToCart();
 
-    expect(TestBed.inject(ShopCartService).directSupport()).toMatchObject({
-      amountChf: 10,
-      displayName: "Mira",
-    });
+    expect(TestBed.inject(ShopCartService).items()).toMatchObject([
+      { amountChf: 10, displayName: "Mira" },
+    ]);
   });
 });

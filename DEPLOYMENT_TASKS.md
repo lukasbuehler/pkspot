@@ -108,8 +108,8 @@ without separately approved payment, tax, fulfillment, and privacy review.
       `functions/.env.pkfrspot` with `SUPPORT_SHOP_ENABLED=true` and
       `SUPPORT_SHOP_RETURN_URL` set to the exact development `/shop` URL
       (for example `http://localhost:4200/shop`). The Function appends only a
-      trusted item path for direct support or sticker packs; it never trusts a
-      browser-provided redirect.
+      trusted cart path for multi-item checkout, or a server-known legacy item
+      path; it never trusts a browser-provided redirect.
 - [ ] Deploy the `support_orders` `user_id ASC, created_at DESC` Firestore
       index to the `test` project and wait until it reports `Enabled` before
       enabling the authenticated customer order history:
@@ -135,11 +135,12 @@ without separately approved payment, tax, fulfillment, and privacy review.
   Enable TWINT in Stripe's test-mode payment methods for the Swiss CHF
   Checkout flow. Do not store a Stripe secret in the Angular environment or
   source tree.
-- [ ] Run a test direct-support checkout and one of each sticker-pack order.
-      Verify the browser return alone does not mark either order paid, the
-      signed webhook does, repeated delivery of the same Stripe event is
-      idempotent, a shipping address is retained only for the physical order,
-      and an admin with App Check can mark that paid physical order fulfilled.
+- [ ] Run a test mixed-cart checkout containing direct support and at least one
+      sticker pack, plus a cart with multiple sticker packs. Verify the browser
+      return alone does not mark any child order paid, the signed webhook marks
+      every matching child order paid exactly once, shipping is retained only
+      for physical orders, and an admin with App Check can mark each paid
+      physical order fulfilled.
 - [ ] Before any production or native release, verify all client flags and the
       production `SUPPORT_SHOP_ENABLED` parameter remain `false`. Confirm a
       request to the production webhook endpoint is acknowledged but ignored,

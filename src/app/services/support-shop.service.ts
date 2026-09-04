@@ -7,12 +7,25 @@ import type {
 } from "../../db/schemas/SupportShopSchema";
 import { FunctionsAdapterService } from "./firebase/functions-adapter.service";
 
-export interface CreateSupportCheckoutRequest {
-  kind: SupportOrderType;
-  amountChf?: number;
-  productId?: SupportShopProductId;
-  checkoutDestination?: "cart";
+interface DirectSupportCheckoutItemRequest {
+  kind: "direct_support";
+  amountChf: number;
   supporterCredit: SupporterCreditInput;
+}
+
+interface PhysicalOrderCheckoutItemRequest {
+  kind: "physical_order";
+  productId: SupportShopProductId;
+  supporterCredit: SupporterCreditInput;
+}
+
+export type CreateSupportCheckoutItemRequest =
+  | DirectSupportCheckoutItemRequest
+  | PhysicalOrderCheckoutItemRequest;
+
+export interface CreateSupportCheckoutRequest {
+  items: readonly CreateSupportCheckoutItemRequest[];
+  checkoutDestination: "cart";
 }
 
 export interface SupportCheckoutResponse {

@@ -35,6 +35,11 @@ header {
   background: var(--mat-sys-surface-container);
 }
 
+.shop-cart-page__items {
+  display: grid;
+  gap: 1rem;
+}
+
 .shop-cart-page__item {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
