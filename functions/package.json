@@ -38,6 +38,7 @@
     "uuid": "^11.1.1"
   },
   "overrides": {
+    "browserslist": "4.28.8",
     "firebase-admin": {
       "@google-cloud/firestore": "^8.6.0"
     },
@@ -54,7 +55,8 @@
     "teeny-request": {
       "uuid": "^11.1.1"
     },
-    "js-yaml": "^4.2.0",
+    "js-yaml": "4.3.2",
+    "qs": "6.16.0",
     "ts-deepmerge": "^8.0.0"
   }
 }
