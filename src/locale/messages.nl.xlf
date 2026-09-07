@@ -18091,5 +18091,11 @@
     <unit id="recoveryPause.validation.reason"><segment state="initial"><source>Choose a recovery reason.</source><target>Kies een herstelreden.</target></segment></unit>
     <unit id="recoveryPause.validation.noteLength"><segment state="initial"><source>Keep your private note under 500 characters.</source><target>Houd je privénotitie onder 500 tekens.</target></segment></unit>
     <unit id="recoveryPause.validation.overlap"><segment state="initial"><source>Recovery pauses cannot overlap. End or edit the existing pause first.</source><target>Herstelpauzes mogen niet overlappen. Beëindig of bewerk eerst de bestaande pauze.</target></segment></unit>
+    <unit id="trainingLog.loadError">
+      <segment state="initial">
+        <source>Your training log could not be loaded.</source>
+        <target>Je trainingslogboek kon niet worden geladen.</target>
+      </segment>
+    </unit>
   </file>
 </xliff>

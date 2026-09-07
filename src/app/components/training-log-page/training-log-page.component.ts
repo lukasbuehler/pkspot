@@ -87,8 +87,10 @@ export class TrainingLogPageComponent {
   private readonly recoveryPausesService = inject(RecoveryPausesService);
   private readonly sessionsService = inject(SessionRecordsService);
   private readonly dialog = inject(MatDialog);
+  private loadGeneration = 0;
 
   readonly loading = signal(true);
+  readonly loadFailed = signal(false);
   readonly logs = signal<LogEntryDocument[]>([]);
   readonly recoveryPauses = signal<RecoveryPauseDocument[]>([]);
   readonly sessions = signal<SessionRecordDocument[]>([]);
@@ -248,37 +250,53 @@ export class TrainingLogPageComponent {
     URL.revokeObjectURL(url);
   }
 
-  private async load(): Promise<void> {
-    if (!this.auth.user.uid) {
+  async load(): Promise<void> {
+    const generation = ++this.loadGeneration;
+    const uid = this.auth.user.uid;
+    this.loadFailed.set(false);
+    this.logs.set([]);
+    this.sessions.set([]);
+    this.recoveryPauses.set([]);
+    this.checkIns.set([]);
+    if (!uid) {
       this.loading.set(false);
       return;
     }
     this.loading.set(true);
-    const [logs, sessions, recoveryPauses] = await Promise.all([
-      this.logsService.listMine(),
-      this.sessionsService.listMine(),
-      this.recoveryPausesService.listMine(),
-    ]);
-    this.logs.set(logs);
-    this.sessions.set(sessions);
-    this.recoveryPauses.set(recoveryPauses);
-    this.checkIns.set(
-      sessions
-        .flatMap((session) =>
-          (session.spot_visits ?? []).flatMap((visit) =>
-            visit.check_in_id
-              ? [{
-                  checkInId: visit.check_in_id,
-                  sessionRecordId: session.id,
-                  spotId: visit.spot_id,
-                  ...(visit.spot_name ? { spotName: visit.spot_name } : {}),
-                  arrivedAtRawMs: visit.arrived_at_raw_ms,
-                }]
-              : [],
-          ),
-        )
-        .sort((first, second) => second.arrivedAtRawMs - first.arrivedAtRawMs),
-    );
-    this.loading.set(false);
+    try {
+      const [logs, sessions, recoveryPauses] = await Promise.all([
+        this.logsService.listMine(),
+        this.sessionsService.listMine(),
+        this.recoveryPausesService.listMine(),
+      ]);
+      // An earlier account's private history must never replace a newer load.
+      if (generation !== this.loadGeneration || uid !== this.auth.user.uid) return;
+      this.logs.set(logs);
+      this.sessions.set(sessions);
+      this.recoveryPauses.set(recoveryPauses);
+      this.checkIns.set(
+        sessions
+          .flatMap((session) =>
+            (session.spot_visits ?? []).flatMap((visit) =>
+              visit.check_in_id
+                ? [{
+                    checkInId: visit.check_in_id,
+                    sessionRecordId: session.id,
+                    spotId: visit.spot_id,
+                    ...(visit.spot_name ? { spotName: visit.spot_name } : {}),
+                    arrivedAtRawMs: visit.arrived_at_raw_ms,
+                  }]
+                : [],
+            ),
+          )
+          .sort((first, second) => second.arrivedAtRawMs - first.arrivedAtRawMs),
+      );
+    } catch {
+      if (generation === this.loadGeneration && uid === this.auth.user.uid) {
+        this.loadFailed.set(true);
+      }
+    } finally {
+      if (generation === this.loadGeneration) this.loading.set(false);
+    }
   }
 }

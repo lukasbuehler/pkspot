@@ -15167,5 +15167,10 @@
     <unit id="recoveryPause.validation.reason"><segment><source>Choose a recovery reason.</source></segment></unit>
     <unit id="recoveryPause.validation.noteLength"><segment><source>Keep your private note under 500 characters.</source></segment></unit>
     <unit id="recoveryPause.validation.overlap"><segment><source>Recovery pauses cannot overlap. End or edit the existing pause first.</source></segment></unit>
+    <unit id="trainingLog.loadError">
+      <segment>
+        <source>Your training log could not be loaded.</source>
+      </segment>
+    </unit>
   </file>
 </xliff>

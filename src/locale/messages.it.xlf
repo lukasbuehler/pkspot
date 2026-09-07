@@ -18091,5 +18091,11 @@
     <unit id="recoveryPause.validation.reason"><segment state="initial"><source>Choose a recovery reason.</source><target>Scegli un motivo di recupero.</target></segment></unit>
     <unit id="recoveryPause.validation.noteLength"><segment state="initial"><source>Keep your private note under 500 characters.</source><target>Mantieni la nota privata sotto i 500 caratteri.</target></segment></unit>
     <unit id="recoveryPause.validation.overlap"><segment state="initial"><source>Recovery pauses cannot overlap. End or edit the existing pause first.</source><target>Le pause di recupero non possono sovrapporsi. Termina o modifica prima la pausa esistente.</target></segment></unit>
+    <unit id="trainingLog.loadError">
+      <segment state="initial">
+        <source>Your training log could not be loaded.</source>
+        <target>Impossibile caricare il tuo diario di allenamento.</target>
+      </segment>
+    </unit>
   </file>
 </xliff>

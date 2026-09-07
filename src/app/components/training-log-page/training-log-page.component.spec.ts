@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { MatDialog } from "@angular/material/dialog";
+import { provideRouter } from "@angular/router";
 import { BehaviorSubject } from "rxjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { LogEntryDocument } from "../../../db/schemas/LogEntrySchema";
@@ -78,19 +79,92 @@ describe("TrainingLogPageComponent", () => {
       expect.objectContaining({ kind: "training", id: trainingEntry.id }),
     ]);
   });
+
+  it("stops loading on a denied collection and can retry successfully", async () => {
+    const listPauses = vi.fn()
+      .mockRejectedValueOnce(new Error("Missing or insufficient permissions."))
+      .mockResolvedValue([recoveryPause]);
+    const component = createComponent(listPauses);
+
+    await vi.waitFor(() => expect(component.loading()).toBe(false));
+    expect(component.loadFailed()).toBe(true);
+    expect(component.logs()).toEqual([]);
+
+    await component.load();
+    expect(component.loadFailed()).toBe(false);
+    expect(component.loading()).toBe(false);
+    expect(component.logs()).toEqual([trainingEntry]);
+    expect(component.recoveryPauses()).toEqual([recoveryPause]);
+  });
+
+  it("does not restore private history when a request finishes after sign-out", async () => {
+    let resolvePauses!: (pauses: RecoveryPauseDocument[]) => void;
+    const component = createComponent(() => new Promise((resolve) => {
+      resolvePauses = resolve;
+    }));
+    const auth = TestBed.inject(AuthenticationService);
+    auth.user.uid = "";
+    await component.load();
+    resolvePauses([recoveryPause]);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(component.loading()).toBe(false);
+    expect(component.logs()).toEqual([]);
+    expect(component.recoveryPauses()).toEqual([]);
+  });
+
+  it("renders an error and retries through the button in a zoneless view", async () => {
+    const listPauses = vi.fn().mockRejectedValue(new Error("Permission denied"));
+    createComponent(listPauses);
+    const fixture = TestBed.createComponent(TrainingLogPageComponent);
+    await fixture.whenStable();
+    const element: HTMLElement = fixture.nativeElement;
+    expect(element.querySelector('[role="alert"]')?.textContent)
+      .toContain("Your training log could not be loaded.");
+    expect(element.querySelector("mat-progress-spinner")).toBeNull();
+
+    listPauses.mockResolvedValue([recoveryPause]);
+    element.querySelector<HTMLButtonElement>('[role="alert"] button')!.click();
+    await fixture.whenStable();
+    expect(element.querySelector('[role="alert"]')).toBeNull();
+    expect(element.textContent).toContain(trainingEntry.note);
+  });
+
+  it("ignores a stale failure after a newer request succeeds", async () => {
+    let rejectPauses!: (reason: Error) => void;
+    const listPauses = vi.fn()
+      .mockImplementationOnce(() => new Promise((_, reject) => {
+        rejectPauses = reject;
+      }))
+      .mockResolvedValue([recoveryPause]);
+    const component = createComponent(listPauses);
+    await component.load();
+    rejectPauses(new Error("Late failure"));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(component.loadFailed()).toBe(false);
+    expect(component.loading()).toBe(false);
+    expect(component.recoveryPauses()).toEqual([recoveryPause]);
+  });
 });
 
-function createComponent(): TrainingLogPageComponent {
+function createComponent(
+  listPauses: () => Promise<RecoveryPauseDocument[]> = vi.fn().mockResolvedValue([recoveryPause]),
+): TrainingLogPageComponent {
   const auth = {
     authState$: new BehaviorSubject({ uid: "user-1" }),
     user: { uid: "user-1", data: null },
   };
   TestBed.configureTestingModule({
+    imports: [TrainingLogPageComponent],
     providers: [
+      provideRouter([]),
       TrainingLogPageComponent,
       { provide: AuthenticationService, useValue: auth },
       { provide: LogEntriesService, useValue: { listMine: vi.fn().mockResolvedValue([trainingEntry]) } },
-      { provide: RecoveryPausesService, useValue: { listMine: vi.fn().mockResolvedValue([recoveryPause]) } },
+      { provide: RecoveryPausesService, useValue: { listMine: listPauses } },
       { provide: SessionRecordsService, useValue: { listMine: vi.fn().mockResolvedValue([]) } },
       { provide: MatDialog, useValue: { open: vi.fn() } },
     ],

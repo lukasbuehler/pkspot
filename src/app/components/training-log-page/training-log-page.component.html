@@ -16,6 +16,11 @@
     </section>
   } @else if (loading()) {
     <section class="empty"><mat-progress-spinner diameter="36" mode="indeterminate" /></section>
+  } @else if (loadFailed()) {
+    <section class="empty" role="alert">
+      <p i18n="@@trainingLog.loadError">Your training log could not be loaded.</p>
+      <button matButton="outlined" type="button" (click)="load()" i18n="@@notification_center.retry">Retry</button>
+    </section>
   } @else {
     <section class="summary" aria-label="Training summary" i18n-aria-label="@@trainingLog.summary.ariaLabel">
       <div class="summary__lead">
