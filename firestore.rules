@@ -534,10 +534,10 @@ service cloud.firestore {
         && validEventTiming(eventData);
     }
 
-    // Temporary rollout switch. While true, old app versions may still list
-    // /events directly, so new writes must remain globally public.
+    // Supported clients (1.1.4+) list event_discovery. Canonical enumeration
+    // remains admin-only so private and unlisted events cannot leak via list.
     function legacyEventListCompatibilityEnabled() {
-      return true;
+      return false;
     }
 
     function eventIsLegacyListCompatible(eventData) {

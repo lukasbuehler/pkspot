@@ -569,8 +569,11 @@ async function testPublicReadSurface(
   await assertDenied("anonymous draft event read", () =>
     getDoc(doc(anon.db, "events/unpublished-event"))
   );
-  await assertAllowed("legacy clients can temporarily enumerate canonical events", () =>
+  await assertDenied("ordinary clients cannot enumerate canonical events", () =>
     getDocs(collection(owner.db, "events"))
+  );
+  await assertDenied("anonymous clients cannot enumerate canonical events", () =>
+    getDocs(collection(anon.db, "events"))
   );
   await assertAllowed("admins can list canonical events", () =>
     getDocs(collection(adminUser.db, "events"))
@@ -1914,7 +1917,7 @@ async function testEventWriteGuards(owner, other, orgManager, adminUser) {
       owner: { type: "user", user_id: "other" },
     })
   );
-  await assertDenied("private creation remains disabled during compatibility", () =>
+  await assertDenied("ordinary clients cannot directly create private canonical events", () =>
     setDoc(doc(owner.db, "events/owner-private-event"), {
       name: "Owner Private Event",
       owner: { type: "user", user_id: "owner" },
@@ -1924,7 +1927,7 @@ async function testEventWriteGuards(owner, other, orgManager, adminUser) {
       viewer_policy: { audience: "invited" },
     })
   );
-  await assertDenied("unlisted creation remains disabled during compatibility", () =>
+  await assertDenied("ordinary clients cannot directly create unlisted canonical events", () =>
     setDoc(doc(owner.db, "events/owner-unlisted-event"), {
       name: "Owner Unlisted Event",
       owner: { type: "user", user_id: "owner" },

@@ -84,14 +84,11 @@ compatibility behavior remains to be tracked.
 
 ### Private recovery pauses
 
-- [ ] Deploy Firestore rules before any client release that exposes private
-      recovery pauses:
+- [ ] Following the maintainer-reported rules deployment on 2026-09-07,
+      verify recovery-pause access with owner and other-account test sessions
+      before the client release.
 
-  ```sh
-  npx firebase deploy --project prod --only firestore:rules
-  ```
-
-  Success condition: a signed-in owner can create, update, and delete
+  Success condition: a signed-in owner can list, create, update, and delete
   `/users/{uid}/recovery_pauses`, while another account cannot read or write
   those records. No Function, index, migration, or Typesense deployment is
   required.
@@ -149,10 +146,36 @@ without separately approved payment, tax, fulfillment, and privacy review.
 
 ### Private check-ins and delayed Spot activity
 
-The production, Android, and iOS build configurations contain the `training`
-and `checkIns` flags for this release; default, development, and CI remain off.
-Do not release a build with either production/native flag enabled until every
-backend step and device check below has succeeded.
+Training is enabled in every build configuration. Check-ins are enabled in
+default, development, production, Android, and iOS; CI disables check-ins.
+Development connects to the production Firebase project. These flags do not
+prove backend readiness: complete the backend steps and device checks below
+before releasing the enabled clients.
+
+The production Functions inventory checked on 2026-09-07 has the legacy
+`onCheckInCreate` and `syncVisitedSpotsCountOnPrivateDataWrite`, but none of
+`confirmCheckIn`, `deleteCheckIn`, `deleteAllCheckIns`, or
+`recomputeCheckInActivity`. A rules-only deployment does not enable the new
+check-in flow or its public activity rollup. Recheck this inventory when
+performing the deployment below.
+
+- [ ] Resolve the check-in deletion/integrity edge cases before release:
+      deleting the latest check-in must not reset the short-lived
+      impossible-travel guard, and confirming again during the four-hour
+      cooldown must not return a deleted check-in/session as a success. Cover
+      both flows through the callable emulator tests. Keep any retained abuse
+      prevention state minimal and time-bounded, without raw coordinates.
+- [ ] Exercise the scheduled rollup with accepted, excluded, duplicate,
+      deleted, and expired contributions from multiple accounts. Cover a new
+      confirmation concurrent with rollup completion so a stale rollup cannot
+      delete its queued job. Verify only distinct accepted accounts in the
+      last 30 days affect the public buckets, with no public document below
+      two accounts.
+- [ ] Verify the deployed legacy `onCheckInCreate` only maintains private
+      visited-Spot compatibility and does not add unvalidated legacy writes to
+      the new public activity statistics. Keep legacy history/export/deletion
+      and retirement of direct `users/{uid}/check_ins` writes as a separate
+      compatibility decision after checking supported-client usage.
 
 - [ ] Deploy the required Firestore index and wait for it to become `Enabled`:
 
@@ -183,9 +206,8 @@ backend step and device check below has succeeded.
       minutes.
 
 - [ ] Only after the preceding backend and Android/iOS checks pass, build the
-      production web and native releases. Verify `environment.default.ts`,
-      `environment.development.ts`, and `environment.ci.ts` still keep both
-      flags false, and verify the private history can export/delete one
+      production web and native releases. Verify the intended feature flags
+      for each build configuration and that the private history can export/delete one
       occurrence/delete all without changing a manual session or authored log.
 
   Success condition: production Spot details make one non-realtime get for the
@@ -229,6 +251,12 @@ and records the bridge transition without sending another moderation intake.
 The web client is already merged to `main`. That does not deploy Firebase
 Functions, so complete the backend rollout and verification below before
 considering this report-lifecycle release complete.
+
+The production Functions inventory checked on 2026-09-07 still lacks
+`submitSpotReport`, `getOwnReportForTarget`, `withdrawOwnSpotReport`,
+`listMyReports`, `getOwnMediaReport`, and `withdrawOwnMediaReport`.
+`submitMediaReport` exists, but its presence alone does not verify the new
+lifecycle implementation. Recheck the inventory at deployment time.
 
 - [ ] Deploy the report lifecycle Functions before releasing clients:
 
@@ -685,22 +713,41 @@ release. Re-enable them only in the dedicated follow-up described in
       metrics review. Do not mark recorded measures complete based only on a
       successful code deployment.
 
+### Android release optimisation follow-up
+
+- [ ] Resume the existing work in
+      `/Users/lukas/.codex/worktrees/46ef/pkspot` instead of duplicating it.
+      Its uncommitted changes enable release minification/resource shrinking
+      and include separate restore-credentials and messaging work. Review and
+      integrate those concerns separately on `development`. The maintainer's
+      Play Console screenshot reports 3% obfuscation with a February 2027
+      deadline and separately recommends bitmap image optimisation. Verify a
+      signed release build, retained Capacitor/plugin entry points, mapping
+      output, and real-device flows before shipping the optimisation change.
+
 ### Flexible event timing, locationless discovery, and ownership claims
 
 Keep these steps in order. The production `events_v1` schema is aligned with the
 repository schema, including optional location bounds and the new searchable
 presentation/type fields.
 
-- [ ] Keep `legacyEventListCompatibilityEnabled()` enabled while supported
-      released clients still list the canonical `/events` collection. During
-      this window, create only globally discoverable public events, including
-      through Admin SDK maintenance tools; Firestore rules enforce that
-      constraint for client writes but cannot constrain Admin SDK writes.
+The maintainer reviewed 1.1.4/1.1.5 adoption on 2026-09-07 and considered legacy
+retirement ready. This cutover uses 1.1.4 as the compatibility floor. Release
+commits `86ff555b` (Android version
+17 / 1.1.4) and `bd050e69` (18 / 1.1.5) both use `event_discovery` for ordinary
+event lists; canonical listing is only for administrators or an SSR fallback.
+The local rules now disable `legacyEventListCompatibilityEnabled()`. This does
+not establish that the new rules have been deployed. Older installed clients
+are not assumed to have disappeared; clients relying on canonical enumeration
+must update.
 
-  Success condition: released web and mobile clients can still list and open
-  existing events, while the new client lists public events from
-  `event_discovery`. Retire the switch and deploy Firestore rules only after the
-  oldest supported mobile version no longer lists `/events` directly.
+- [ ] Deploy the event-list restriction with
+      `npx firebase deploy --project prod --only firestore:rules`, then verify
+      1.1.4 and 1.1.5 event list/calendar/organization views and direct event
+      links. Verify anonymous and ordinary authenticated canonical `/events`
+      list requests fail while public `event_discovery` listing and authorized
+      direct reads work. Keep non-public authoring and profile demotion off
+      until this production check succeeds.
 
 - [ ] When the first globally discoverable locationless date-only event is ready
       for publication, verify it appears in production Typesense without a time
@@ -722,6 +769,13 @@ an internal owner classification, while the UI labels public organization items
 as Events and user-organized items as Community events. Do not make unlisted
 community events available while supported clients can still list `/events`
 directly.
+
+The production Functions inventory checked on 2026-09-07 lacks
+`createCommunityEvent`, `updateCommunityEvent`, `cancelCommunityEvent`,
+`createFormalEvent`, `submitEventSuggestion`, `reviewEventSuggestion`, and
+`demoteCommunityEventsWhenProfileBecomesPrivate`. Deploy the compatible
+authoring backend as part of the ordered rollout below before treating client
+authoring failures as age-verification failures.
 
 - [ ] Update the production `events_v1` Typesense schema with optional
       `listing_tier`, `country_code`, `region_keys`, and
@@ -757,15 +811,12 @@ directly.
       audit outcome and approval creates exactly one canonical Event
       plus slug atomically.
 
-- [ ] Keep `legacyEventListCompatibilityEnabled()` and
-      `unlistedCommunityAuthoringEnabled()` aligned until the oldest supported
-      mobile and web client no longer lists `/events`. During this window,
-      ship public Community authoring only. Do not turn on unlisted UI or
-      profile-publicity demotion.
-
-- [ ] After that client-retirement verification, change both compatibility
-      switches in one reviewed backend/rules deployment, then expose the
-      public/unlisted visibility control. Verify an unlisted Community event is
+- [ ] After the canonical-list restriction and supported-client checks above
+      succeed in production, enable `unlistedCommunityAuthoringEnabled()` in
+      the backend, deploy the authoring/demotion Functions, and then expose
+      public/unlisted visibility in the Community editor and enable
+      `privateAccessRolloutEnabled` in the formal Event editor. Both authoring
+      controls remain off in the current source. Verify an unlisted Community event is
       openable by direct link and RSVP-able, absent from `event_discovery`,
       Typesense, regional results, and broadcasts; verify removing the
       organizer's public profile demotes their public Community events to
