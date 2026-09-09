@@ -112,7 +112,10 @@ compatibility behavior remains to be tracked.
   those records. No Function, index, migration, or Typesense deployment is
   required.
 
-### Development-only Stripe shop
+### Development-only Stripe shop (deferred beyond 1.2)
+
+The shop is not part of the 1.2 release scope. Keep its code for a later release
+and retain the production/native feature gates below.
 
 The web shop is intentionally experimental: it is enabled only by the
 development web environment. Production, Android, and iOS all keep the browser

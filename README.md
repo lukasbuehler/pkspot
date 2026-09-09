@@ -13,6 +13,16 @@ PK Spot is growing toward one app for Parkour spots, training, events, jams, and
 
 ## Release Notes
 
+### Version 1.2 - "Training Update"
+
+- New Training page - with activity graphs, session details, and recovery pauses
+- New Check-ins and Spot activity statistics
+- Added optional age verification with OneID and improved native age signals
+- Native gallery photo sharing with location-based Spot suggestions
+- Improved Events, community voting, Spot editing, following, and reports
+- Android performance and startup fixes; added account restoration
+- Bug fixes, privacy improvements, and legacy Event discovery cleanup
+
 ### Version 1.1.5 - "Reliability & Bug Fixes"
 
 - Added support for pasting Google Maps and Apple Maps links into map search
