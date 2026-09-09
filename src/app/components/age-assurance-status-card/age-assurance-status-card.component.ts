@@ -13,6 +13,7 @@ import { firstValueFrom } from "rxjs";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { PlatformService } from "../../services/platform.service";
 import { AgeAssuranceInfoDialogComponent } from "../age-assurance-info-dialog/age-assurance-info-dialog.component";
+import { AdultVerificationDialogComponent } from "../adult-verification-dialog/adult-verification-dialog.component";
 
 @Component({
   selector: "app-age-assurance-status-card",
@@ -148,6 +149,15 @@ export class AgeAssuranceStatusCardComponent {
 
   openInfo(): void {
     this._dialog.open(AgeAssuranceInfoDialogComponent, {
+      width: "min(680px, calc(100vw - 32px))",
+      maxWidth: "100vw",
+      maxHeight: "calc(100vh - 32px)",
+      autoFocus: false,
+    });
+  }
+
+  openVerification(): void {
+    this._dialog.open(AdultVerificationDialogComponent, {
       width: "min(680px, calc(100vw - 32px))",
       maxWidth: "100vw",
       maxHeight: "calc(100vh - 32px)",

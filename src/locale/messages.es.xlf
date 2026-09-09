@@ -30,6 +30,12 @@
         <target>1 edición</target>
       </segment>
     </unit>
+    <unit id="3786612121005562547">
+      <segment state="initial">
+        <source>Verification could not be started. You can try another method or try again later.</source>
+        <target>Verification could not be started. You can try another method or try again later.</target>
+      </segment>
+    </unit>
     <unit id="3789771835244333891">
       <segment state="initial">
         <source> — No black-box algorithms, no hidden tracking. <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://github.com/lukasbuehler/pkspot&quot; (click)=&quot;trackOutboundLinkClick(&apos;github&apos;, &apos;https://github.com/lukasbuehler/pkspot&apos;, &apos;View on GitHub&apos;)&quot; &gt;" dispEnd="&lt;/a &gt;">View on GitHub</pc>. </source>
@@ -732,12 +738,6 @@
         <target>No hay eventos disponibles para insertar.</target>
       </segment>
     </unit>
-    <unit id="5568689893936032210">
-      <segment state="initial">
-        <source>Off by default. This can only be chosen when the activity is first published.</source>
-        <target>Off by default. This can only be chosen when the activity is first published.</target>
-      </segment>
-    </unit>
     <unit id="5574644924997298566">
       <segment state="initial">
         <source>Could not load organizations</source>
@@ -920,12 +920,6 @@
       <segment state="initial">
         <source>Email Verified!</source>
         <target>¡Correo verificado!</target>
-      </segment>
-    </unit>
-    <unit id="137117898027178128">
-      <segment state="initial">
-        <source>Community activities use RSVP attendance. Tickets, programmes, and media uploads are not part of this first release.</source>
-        <target>Community activities use RSVP attendance. Tickets, programmes, and media uploads are not part of this first release.</target>
       </segment>
     </unit>
     <unit id="1381308436651796702">
@@ -2559,6 +2553,12 @@
         <target>Informante</target>
       </segment>
     </unit>
+    <unit id="7314366616785648252">
+      <segment state="initial">
+        <source>Ask Apple to share an 18+ range on a supported iPhone or iPad installation.</source>
+        <target>Ask Apple to share an 18+ range on a supported iPhone or iPad installation.</target>
+      </segment>
+    </unit>
     <unit id="7317396157754495933">
       <segment state="initial">
         <source>Uploader ID</source>
@@ -2671,6 +2671,12 @@
       <segment state="initial">
         <source>Instagram</source>
         <target>app Instagram</target>
+      </segment>
+    </unit>
+    <unit id="309182425721385503">
+      <segment state="initial">
+        <source>Use OneID’s privacy-preserving 18+ check when it is available for your account.</source>
+        <target>Use OneID’s privacy-preserving 18+ check when it is available for your account.</target>
       </segment>
     </unit>
     <unit id="6858563845386603352">
@@ -2847,12 +2853,6 @@
         <target>Archivar</target>
       </segment>
     </unit>
-    <unit id="1072652673171439933">
-      <segment state="initial">
-        <source>Public Jams and Sessions show their organizer. Unlisted sharing will be introduced after the current app-compatibility rollout.</source>
-        <target>Public Jams and Sessions show their organizer. Unlisted sharing will be introduced after the current app-compatibility rollout.</target>
-      </segment>
-    </unit>
     <unit id="1083158108298637572">
       <segment state="initial">
         <source>Failed to submit vote</source>
@@ -2937,6 +2937,12 @@
         <target>La contraseña y su repetición no coinciden</target>
       </segment>
     </unit>
+    <unit id="646725257540411206">
+      <segment state="initial">
+        <source>Verify my age</source>
+        <target>Verify my age</target>
+      </segment>
+    </unit>
     <unit id="6477168744321037366">
       <segment state="initial">
         <source>Could not apply the event operation.</source>
@@ -2959,6 +2965,12 @@
       <segment state="initial">
         <source>Why this approval basis is no longer accepted</source>
         <target>Por qué ya no se acepta esta base de aprobación</target>
+      </segment>
+    </unit>
+    <unit id="6483130493535015475">
+      <segment state="initial">
+        <source>Apple age range</source>
+        <target>Apple age range</target>
       </segment>
     </unit>
     <unit id="6484510802892706344">
@@ -3265,6 +3277,12 @@
       <segment state="initial">
         <source>Spots Created</source>
         <target>Spots creados</target>
+      </segment>
+    </unit>
+    <unit id="1528946323951752035">
+      <segment state="initial">
+        <source> This is optional. PK Spot’s normal features and private check-ins stay available without it. Verification only unlocks adult-only features, including making your profile public and current-location sharing when that feature is available. </source>
+        <target> This is optional. PK Spot’s normal features and private check-ins stay available without it. Verification only unlocks adult-only features, including making your profile public and current-location sharing when that feature is available. </target>
       </segment>
     </unit>
     <unit id="1534029177398918729">
@@ -3674,6 +3692,12 @@
       <segment state="initial">
         <source>Spot report</source>
         <target>Reporte de spot</target>
+      </segment>
+    </unit>
+    <unit id="8666275494339219378">
+      <segment state="initial">
+        <source>OneID</source>
+        <target>OneID</target>
       </segment>
     </unit>
     <unit id="8672443665211234755">
@@ -5865,12 +5889,6 @@
         <target>Entorno</target>
       </segment>
     </unit>
-    <unit id="9184146641429032568">
-      <segment state="initial">
-        <source>Jams and Sessions are created by verified adult community members.</source>
-        <target>Jams and Sessions are created by verified adult community members.</target>
-      </segment>
-    </unit>
     <unit id="9186529157286281693">
       <segment state="initial">
         <source>Last 24 hours</source>
@@ -5977,6 +5995,12 @@
       <segment state="initial">
         <source>Ordinary harm</source>
         <target>Daño ordinario</target>
+      </segment>
+    </unit>
+    <unit id="943622778225300320">
+      <segment state="initial">
+        <source>(recommended)</source>
+        <target>(recommended)</target>
       </segment>
     </unit>
     <unit id="947995176992343811">
@@ -6093,12 +6117,6 @@
       <segment state="initial">
         <source> Address </source>
         <target> Dirección </target>
-      </segment>
-    </unit>
-    <unit id="8138554183860371861">
-      <segment state="initial">
-        <source> Cancel activity </source>
-        <target> Cancel activity </target>
       </segment>
     </unit>
     <unit id="8142225273689086841">
@@ -6483,12 +6501,6 @@
       <segment state="initial">
         <source> Notification types </source>
         <target> Tipos de notificación </target>
-      </segment>
-    </unit>
-    <unit id="6121666591027850264">
-      <segment state="initial">
-        <source>Checking formal event authoring access…</source>
-        <target>Checking formal event authoring access…</target>
       </segment>
     </unit>
     <unit id="6128805594305699476">
@@ -7872,12 +7884,6 @@
         <target> +<ph id="0" equiv="INTERPOLATION" disp="{{ selectedOptions().length - 1 }}"/> más </target>
       </segment>
     </unit>
-    <unit id="event_edit.area_label">
-      <segment state="initial">
-        <source> Optional venue and map location </source>
-        <target> Área del evento </target>
-      </segment>
-    </unit>
     <unit id="event_edit.attendance_eligibility">
       <segment state="initial">
         <source> Who may attend? </source>
@@ -8162,8 +8168,8 @@
     </unit>
     <unit id="event_edit.description">
       <segment state="initial">
-        <source>Description</source>
-        <target>Descripción</target>
+        <source> Description </source>
+        <target> Descripción </target>
       </segment>
     </unit>
     <unit id="event_edit.end_date">
@@ -9840,18 +9846,6 @@
         <target>Mostrar <ph id="0" equiv="eventCount" disp="day.hiddenEventCount"/> eventos más el <ph id="1" equiv="localDate" disp="date"/></target>
       </segment>
     </unit>
-    <unit id="events.community_activity_jam">
-      <segment state="initial">
-        <source>Community Jams</source>
-        <target>Community Jams</target>
-      </segment>
-    </unit>
-    <unit id="events.community_activity_session">
-      <segment state="initial">
-        <source>Community Sessions</source>
-        <target>Community Sessions</target>
-      </segment>
-    </unit>
     <unit id="events.count_many">
       <segment state="initial">
         <source><ph id="0" equiv="eventCount" disp="count"/> events</source>
@@ -10567,12 +10561,6 @@
         <target>Código HTML de integración</target>
       </segment>
     </unit>
-    <unit id="8225018754533371665">
-      <segment state="initial">
-        <source>Loading activity…</source>
-        <target>Loading activity…</target>
-      </segment>
-    </unit>
     <unit id="8228088429714277489">
       <segment state="initial">
         <source>Client guard blocks</source>
@@ -10901,76 +10889,10 @@
         <target>Sign in to see link</target>
       </segment>
     </unit>
-    <unit id="community_activity.cancel_failed">
-      <segment state="initial">
-        <source>Couldn&apos;t cancel this activity. Please try again.</source>
-        <target>Couldn&apos;t cancel this activity. Please try again.</target>
-      </segment>
-    </unit>
-    <unit id="community_activity.cancelled">
-      <segment state="initial">
-        <source>Your activity is cancelled.</source>
-        <target>Your activity is cancelled.</target>
-      </segment>
-    </unit>
-    <unit id="community_activity.create_failed">
-      <segment state="initial">
-        <source>Couldn&apos;t publish this activity. Please try again.</source>
-        <target>Couldn&apos;t publish this activity. Please try again.</target>
-      </segment>
-    </unit>
-    <unit id="community_activity.created">
-      <segment state="initial">
-        <source>Your activity is published.</source>
-        <target>Your activity is published.</target>
-      </segment>
-    </unit>
-    <unit id="community_activity.edit_jam_heading">
-      <segment state="initial">
-        <source>Edit Jam</source>
-        <target>Edit Jam</target>
-      </segment>
-    </unit>
-    <unit id="community_activity.edit_session_heading">
-      <segment state="initial">
-        <source>Edit Session</source>
-        <target>Edit Session</target>
-      </segment>
-    </unit>
     <unit id="community_activity.invalid_times">
       <segment state="initial">
         <source>Choose an end time after the start time.</source>
         <target>Choose an end time after the start time.</target>
-      </segment>
-    </unit>
-    <unit id="community_activity.plan_jam_description">
-      <segment state="initial">
-        <source>Bring your local parkour community together.</source>
-        <target>Bring your local parkour community together.</target>
-      </segment>
-    </unit>
-    <unit id="community_activity.plan_jam_heading">
-      <segment state="initial">
-        <source>Plan a Jam</source>
-        <target>Plan a Jam</target>
-      </segment>
-    </unit>
-    <unit id="community_activity.plan_session_description">
-      <segment state="initial">
-        <source>Plan a local parkour training session.</source>
-        <target>Plan a local parkour training session.</target>
-      </segment>
-    </unit>
-    <unit id="community_activity.plan_session_heading">
-      <segment state="initial">
-        <source>Plan a Session</source>
-        <target>Plan a Session</target>
-      </segment>
-    </unit>
-    <unit id="community_activity.updated">
-      <segment state="initial">
-        <source>Your activity is updated.</source>
-        <target>Your activity is updated.</target>
       </segment>
     </unit>
     <unit id="contact.aside.crew.body">
@@ -11365,16 +11287,16 @@
         <target>Canal de denuncia externo</target>
       </segment>
     </unit>
+    <unit id="4764767270165536588">
+      <segment state="initial">
+        <source>Google Play</source>
+        <target>Google Play</target>
+      </segment>
+    </unit>
     <unit id="7774690298639065150">
       <segment state="initial">
         <source> This profile does not exist or is no longer available. </source>
         <target> This profile does not exist or is no longer available. </target>
-      </segment>
-    </unit>
-    <unit id="7778065148063995265">
-      <segment state="initial">
-        <source>Community Jam</source>
-        <target>Community Jam</target>
       </segment>
     </unit>
     <unit id="6680262533217185088">
@@ -11594,12 +11516,6 @@
       <segment state="initial">
         <source>Community merge queued</source>
         <target>Community merge queued</target>
-      </segment>
-    </unit>
-    <unit id="2473999022194734610">
-      <segment state="initial">
-        <source>Your currently active server-confirmed adult assurance is required before publishing a community activity.</source>
-        <target>Your currently active server-confirmed adult assurance is required before publishing a community activity.</target>
       </segment>
     </unit>
     <unit id="2475812979768871750">
@@ -12018,6 +11934,12 @@
         <target>No se pudo publicar la advertencia del Spot</target>
       </segment>
     </unit>
+    <unit id="5064990594411752447">
+      <segment state="initial">
+        <source> PK Spot asks providers only whether you are 18 or older. It does not request or store your name, exact date of birth, address, document, selfie, bank details or phone number. </source>
+        <target> PK Spot asks providers only whether you are 18 or older. It does not request or store your name, exact date of birth, address, document, selfie, bank details or phone number. </target>
+      </segment>
+    </unit>
     <unit id="5075169696278804374">
       <segment state="initial">
         <source>Error sending reset email. Please try again.</source>
@@ -12034,12 +11956,6 @@
       <segment state="initial">
         <source>Link to challenge copied to clipboard</source>
         <target>Enlace al Challenge copiado al portapapeles</target>
-      </segment>
-    </unit>
-    <unit id="5097731679946084974">
-      <segment state="initial">
-        <source>Send a formal event to PK Spot staff for review. It will not be published from this form.</source>
-        <target>Send a formal event to PK Spot staff for review. It will not be published from this form.</target>
       </segment>
     </unit>
     <unit id="event_page.loading">
@@ -12662,6 +12578,12 @@
         <target>Nuevo final</target>
       </segment>
     </unit>
+    <unit id="8913794084097958305">
+      <segment state="initial">
+        <source>Verify</source>
+        <target>Verify</target>
+      </segment>
+    </unit>
     <unit id="891476879467146439">
       <segment state="initial">
         <source>Google controls the verification flow. Visit the Play Store and complete any age-confirmation prompt it shows.</source>
@@ -13066,6 +12988,12 @@
         <target>Arriesgado</target>
       </segment>
     </unit>
+    <unit id="2047776319256281403">
+      <segment state="initial">
+        <source>Use Google Play’s age signal on a supported Android installation.</source>
+        <target>Use Google Play’s age signal on a supported Android installation.</target>
+      </segment>
+    </unit>
     <unit id="2049290282534091182">
       <segment state="initial">
         <source>Moderation</source>
@@ -13088,12 +13016,6 @@
       <segment state="initial">
         <source> Follow requests </source>
         <target> Follow requests </target>
-      </segment>
-    </unit>
-    <unit id="6530779476034323471">
-      <segment state="initial">
-        <source>Sign in to plan an activity</source>
-        <target>Sign in to plan an activity</target>
       </segment>
     </unit>
     <unit id="6537027644496489823">
@@ -13610,12 +13532,6 @@
         <target> Denuncia externa no necesaria </target>
       </segment>
     </unit>
-    <unit id="2293350537164432279">
-      <segment state="initial">
-        <source>Filter by community activity type</source>
-        <target>Filter by community activity type</target>
-      </segment>
-    </unit>
     <unit id="7374538640222631357">
       <segment state="initial">
         <source>This challenge is still private to you!</source>
@@ -13898,6 +13814,12 @@
         <target>Compartir medios</target>
       </segment>
     </unit>
+    <unit id="8511422471788362899">
+      <segment state="initial">
+        <source>Not available on this installation yet.</source>
+        <target>Not available on this installation yet.</target>
+      </segment>
+    </unit>
     <unit id="8520138691875188234">
       <segment state="initial">
         <source> Guests receive a one-time verification link. Your email and identity are visible only to authorised moderators. </source>
@@ -13940,12 +13862,6 @@
         <target>{VAR_PLURAL, plural, =1 {A continuación se muestra el único evento publicado con problemas.} other {A continuación se muestran todos los <ph id="0" equiv="INTERPOLATION"/> eventos publicados con problemas.}}</target>
       </segment>
     </unit>
-    <unit id="333127453752502509">
-      <segment state="initial">
-        <source>Formal Event</source>
-        <target>Formal Event</target>
-      </segment>
-    </unit>
     <unit id="3332261437108791304">
       <segment state="initial">
         <source>Withdraw report</source>
@@ -13986,12 +13902,6 @@
       <segment state="initial">
         <source> We don&apos;t have a PK Spot community page for this route yet. </source>
         <target>Todavía no tenemos una página de comunidad de PK Spot para esta ruta.</target>
-      </segment>
-    </unit>
-    <unit id="8392870453812180370">
-      <segment state="initial">
-        <source>Community Session</source>
-        <target>Community Session</target>
       </segment>
     </unit>
     <unit id="spot_picker.limit_hint">
@@ -14274,8 +14184,8 @@
     </unit>
     <unit id="trainingLog.new">
       <segment state="initial">
-        <source>New entry</source>
-        <target>New entry</target>
+        <source>New training entry</source>
+        <target>New training entry</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.back">
@@ -14570,12 +14480,6 @@
       <segment state="initial">
         <source>Nothing was logged for this day yet.</source>
         <target>Nothing was logged for this day yet.</target>
-      </segment>
-    </unit>
-    <unit id="trainingLog.timeline.emptyMonth">
-      <segment state="initial">
-        <source>Nothing was logged in this month yet.</source>
-        <target>Nothing was logged in this month yet.</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.eyebrow">
@@ -14956,12 +14860,6 @@
         <target>Todos los participantes</target>
       </segment>
     </unit>
-    <unit id="8968543130328972761">
-      <segment state="initial">
-        <source><ph id="0" equiv="INTERPOLATION" disp="{{ editing ? &quot;Save&quot; : &quot;Publish&quot; }}"/> <ph id="1" equiv="INTERPOLATION_1" disp="{{ subtype() === &quot;jam&quot; ? &quot;Jam&quot; : &quot;Session&quot; }}"/></source>
-        <target><ph id="0" equiv="INTERPOLATION" disp="{{ editing ? &quot;Save&quot; : &quot;Publish&quot; }}"/> <ph id="1" equiv="INTERPOLATION_1" disp="{{ subtype() === &quot;jam&quot; ? &quot;Jam&quot; : &quot;Session&quot; }}"/></target>
-      </segment>
-    </unit>
     <unit id="8972434095994344487">
       <segment state="initial">
         <source>Community card rejected</source>
@@ -15152,6 +15050,12 @@
       <segment state="initial">
         <source> Are you sure? Enter your password to confirm deletion. </source>
         <target> ¿Estás seguro? Ingresa tu contraseña para confirmar la eliminación. </target>
+      </segment>
+    </unit>
+    <unit id="3741605829844535332">
+      <segment state="initial">
+        <source>Starting…</source>
+        <target>Starting…</target>
       </segment>
     </unit>
     <unit id="3742557968359744247">
@@ -16052,12 +15956,6 @@
         <target>Eventos comunitarios</target>
       </segment>
     </unit>
-    <unit id="events.listing_tier_formal">
-      <segment state="initial">
-        <source>Formal Events</source>
-        <target>Formal Events</target>
-      </segment>
-    </unit>
     <unit id="events.live_events_heading">
       <segment state="initial">
         <source> Happening now </source>
@@ -16068,36 +15966,6 @@
       <segment state="initial">
         <source>now</source>
         <target>ahora</target>
-      </segment>
-    </unit>
-    <unit id="events.plan_jam">
-      <segment state="initial">
-        <source>Plan a Jam</source>
-        <target>Plan a Jam</target>
-      </segment>
-    </unit>
-    <unit id="events.plan_session">
-      <segment state="initial">
-        <source>Plan a Session</source>
-        <target>Plan a Session</target>
-      </segment>
-    </unit>
-    <unit id="event_listing.community_jam">
-      <segment state="initial">
-        <source>Community Jam</source>
-        <target>Community Jam</target>
-      </segment>
-    </unit>
-    <unit id="event_listing.community_session">
-      <segment state="initial">
-        <source>Community Session</source>
-        <target>Community Session</target>
-      </segment>
-    </unit>
-    <unit id="event_listing.formal">
-      <segment state="initial">
-        <source>Formal Event</source>
-        <target>Formal Event</target>
       </segment>
     </unit>
     <unit id="event_map_page.back_to_event">
@@ -16726,7 +16594,7 @@
     </unit>
     <unit id="event_suggestion.meta_description">
       <segment state="initial">
-        <source>Suggest a parkour Event for staff review.</source>
+        <source>Suggest a formal parkour event for staff review.</source>
         <target>Sugiere un evento de parkour al equipo de PK Spot para su revisión.</target>
       </segment>
     </unit>
@@ -18026,71 +17894,396 @@
         <target>Ver perfil</target>
       </segment>
     </unit>
-    <unit id="community_event.edit_heading"><segment state="initial"><source>Edit community event</source><target>Editar evento comunitario</target></segment></unit>
-    <unit id="community_event.plan_heading"><segment state="initial"><source>Plan a community event</source><target>Planear un evento comunitario</target></segment></unit>
-    <unit id="community_event.description"><segment state="initial"><source>Bring your local parkour community together.</source><target>Reúne a tu comunidad local de parkour.</target></segment></unit>
-    <unit id="community_event.updated"><segment state="initial"><source>Your community event is updated.</source><target>Tu evento comunitario se ha actualizado.</target></segment></unit>
-    <unit id="community_event.created"><segment state="initial"><source>Your community event is published.</source><target>Tu evento comunitario se ha publicado.</target></segment></unit>
-    <unit id="community_event.create_failed"><segment state="initial"><source>Couldn&apos;t publish this community event. Please try again.</source><target>No se pudo publicar este evento comunitario. Inténtalo de nuevo.</target></segment></unit>
-    <unit id="community_event.cancelled"><segment state="initial"><source>Your community event is cancelled.</source><target>Tu evento comunitario se ha cancelado.</target></segment></unit>
-    <unit id="community_event.cancel_failed"><segment state="initial"><source>Couldn&apos;t cancel this community event. Please try again.</source><target>No se pudo cancelar este evento comunitario. Inténtalo de nuevo.</target></segment></unit>
-    <unit id="events.plan_community_event"><segment state="initial"><source>Plan a community event</source><target>Planear un evento comunitario</target></segment></unit>
-    <unit id="events.listing_tier_event"><segment state="initial"><source>Events</source><target>Eventos</target></segment></unit>
-    <unit id="event_listing.community"><segment state="initial"><source>Community event</source><target>Evento comunitario</target></segment></unit>
-    <unit id="6241445530231242277"><segment state="initial"><source>Sign in to plan a community event</source><target>Inicia sesión para planear un evento comunitario</target></segment></unit>
-    <unit id="1723550153638974909"><segment state="initial"><source>Community events are created by verified adult community members.</source><target>Los eventos comunitarios los crean miembros adultos verificados de la comunidad.</target></segment></unit>
-    <unit id="1739404177510113816"><segment state="initial"><source>Your currently active server-confirmed adult assurance is required before publishing a community event.</source><target>Se requiere tu comprobación activa de mayoría de edad confirmada por el servidor para publicar un evento comunitario.</target></segment></unit>
-    <unit id="5462767174124636395"><segment state="initial"><source>Public community events show their organizer.</source><target>Los eventos comunitarios públicos muestran quién los organiza.</target></segment></unit>
-    <unit id="4205547259664450146"><segment state="initial"><source>Loading community event…</source><target>Cargando evento comunitario…</target></segment></unit>
-    <unit id="4299657868649430560"><segment state="initial"><source>Community events use RSVP attendance. Tickets, programmes, and media uploads are not part of this first release.</source><target>Los eventos comunitarios usan asistencia RSVP. Las entradas, los programas y las cargas de medios no forman parte de esta primera versión.</target></segment></unit>
-    <unit id="7219162063306578420"><segment state="initial"><source>{$INTERPOLATION} community event</source><target>{$INTERPOLATION} evento comunitario</target></segment></unit>
-    <unit id="3628985727060093047"><segment state="initial"><source>Off by default. This can only be chosen when the community event is first published.</source><target>Desactivado de forma predeterminada. Solo puede elegirse al publicar el evento comunitario por primera vez.</target></segment></unit>
-    <unit id="7962838458002654901"><segment state="initial"><source> Cancel community event </source><target> Cancelar evento comunitario </target></segment></unit>
-    <unit id="3792622364508901777"><segment state="initial"><source>Send an Event to PK Spot staff for review. It will not be published from this form.</source><target>Envía un evento al equipo de PK Spot para su revisión. No se publicará desde este formulario.</target></segment></unit>
-    <unit id="552004881794875858"><segment state="initial"><source>Community event</source><target>Evento comunitario</target></segment></unit>
-    <unit id="2008167069818962786"><segment state="initial"><source>Checking Event authoring access…</source><target>Comprobando el acceso para crear eventos…</target></segment></unit>
-    <unit id="bounds_picker.inline_spot_area_hint"><segment state="initial"><source>Click the map to place this temporary Spot’s area. You can then drag the area or its points to refine it.</source><target>Haz clic en el mapa para colocar el área de este Spot temporal. Después puedes arrastrar el área o sus puntos para ajustarla.</target></segment></unit>
-    <unit id="bounds_picker.legend"><segment state="initial"><source>S = event Spot · M = custom marker · T = temporary event Spot. Drag M and T markers directly on the map.</source><target>S = Spot del evento · M = marcador personalizado · T = Spot temporal del evento. Arrastra los marcadores M y T directamente en el mapa.</target></segment></unit>
-    <unit id="event_edit.map_heading"><segment state="initial"><source>Event Map</source><target>Mapa del evento</target></segment></unit>
-    <unit id="event_edit.map_heading_hint"><segment state="initial"><source>Set the event area and main location, then add the Spots and markers people need on the day.</source><target>Define el área y la ubicación principal del evento, y añade después los Spots y marcadores que la gente necesitará ese día.</target></segment></unit>
-    <unit id="event_edit.temporary_spot_map_hint"><segment state="initial"><source>Drag this temporary Spot’s T marker in the map above to place it. Its area is optional.</source><target>Arrastra el marcador T de este Spot temporal en el mapa de arriba para colocarlo. Su área es opcional.</target></segment></unit>
-    <unit id="event_edit.temporary_spot_draw_area"><segment state="initial"><source>Draw area on map</source><target>Dibujar área en el mapa</target></segment></unit>
-    <unit id="event_edit.temporary_spot_clear_area"><segment state="initial"><source>Clear map area</source><target>Borrar área del mapa</target></segment></unit>
-    <unit id="event_edit.custom_markers_map_hint"><segment state="initial"><source>Add a marker, then drag its M pin in the Event Map to place it. Coordinate fields remain available for precise corrections.</source><target>Añade un marcador y arrastra su pin M en el mapa del evento para colocarlo. Los campos de coordenadas siguen disponibles para correcciones precisas.</target></segment></unit>
-    <unit id="recoveryPause.saveError"><segment state="initial"><source>Could not save this recovery pause.</source><target>No se pudo guardar esta pausa de recuperación.</target></segment></unit>
-    <unit id="recoveryPause.deleteConfirm"><segment state="initial"><source>Delete this recovery pause?</source><target>¿Eliminar esta pausa de recuperación?</target></segment></unit>
-    <unit id="recoveryPause.deleteError"><segment state="initial"><source>Could not delete this recovery pause.</source><target>No se pudo eliminar esta pausa de recuperación.</target></segment></unit>
-    <unit id="recoveryPause.reason.illness"><segment state="initial"><source>Illness</source><target>Enfermedad</target></segment></unit>
-    <unit id="recoveryPause.reason.personalBreak"><segment state="initial"><source>Personal break</source><target>Descanso personal</target></segment></unit>
-    <unit id="recoveryPause.reason.other"><segment state="initial"><source>Other</source><target>Otro</target></segment></unit>
-    <unit id="recoveryPause.reason.injury"><segment state="initial"><source>Injury</source><target>Lesión</target></segment></unit>
-    <unit id="recoveryPause.close"><segment state="initial"><source>Close recovery pause</source><target>Cerrar pausa de recuperación</target></segment></unit>
-    <unit id="recoveryPause.eyebrow"><segment state="initial"><source>Your training history</source><target>Tu historial de entrenamiento</target></segment></unit>
-    <unit id="recoveryPause.title"><segment state="initial"><source>Recovery pause</source><target>Pausa de recuperación</target></segment></unit>
-    <unit id="recoveryPause.intro"><segment state="initial"><source>Save private context for time away from training. It is never shared or sent as a notification.</source><target>Guarda contexto privado para el tiempo lejos del entrenamiento. Nunca se comparte ni se envía como notificación.</target></segment></unit>
-    <unit id="recoveryPause.startDate"><segment state="initial"><source>Start date</source><target>Fecha de inicio</target></segment></unit>
-    <unit id="recoveryPause.endDate"><segment state="initial"><source>End date</source><target>Fecha de fin</target></segment></unit>
-    <unit id="recoveryPause.endDateHint"><segment state="initial"><source>Leave empty while recovery is ongoing.</source><target>Déjala vacía mientras la recuperación siga en curso.</target></segment></unit>
-    <unit id="recoveryPause.reason"><segment state="initial"><source>Reason</source><target>Motivo</target></segment></unit>
-    <unit id="recoveryPause.note"><segment state="initial"><source>Private note (optional)</source><target>Nota privada (opcional)</target></segment></unit>
-    <unit id="recoveryPause.noteHint"><segment state="initial"><source>Keep this short and personal. Do not include anyone else&apos;s medical information.</source><target>Mantén esta nota breve y personal. No incluyas información médica de otras personas.</target></segment></unit>
-    <unit id="recoveryPause.save"><segment state="initial"><source>Save recovery pause</source><target>Guardar pausa de recuperación</target></segment></unit>
-    <unit id="recoveryPause.delete"><segment state="initial"><source>Delete</source><target>Eliminar</target></segment></unit>
-    <unit id="recoveryPause.timeline.filtered"><segment state="initial"><source>Showing the selected recovery pause.</source><target>Mostrando la pausa de recuperación seleccionada.</target></segment></unit>
-    <unit id="recoveryPause.edit"><segment state="initial"><source>Edit recovery pause</source><target>Editar pausa de recuperación</target></segment></unit>
-    <unit id="recoveryPause.private"><segment state="initial"><source>Private</source><target>Privado</target></segment></unit>
-    <unit id="recoveryPause.timeline.title"><segment state="initial"><source>Recovery pause</source><target>Pausa de recuperación</target></segment></unit>
-    <unit id="recoveryPause.timeline.range"><segment state="initial"><source><ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> to <ph id="1" equiv="INTERPOLATION_1" disp="{{ item.endedOnMs | systemDate: &quot;mediumDate&quot; }}"/></source><target><ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> hasta <ph id="1" equiv="INTERPOLATION_1" disp="{{ item.endedOnMs | systemDate: &quot;mediumDate&quot; }}"/></target></segment></unit>
-    <unit id="recoveryPause.timeline.ongoing"><segment state="initial"><source>Started <ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> · ongoing</source><target>Iniciada el <ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> · en curso</target></segment></unit>
-    <unit id="trainingLog.add"><segment state="initial"><source>Add to training log</source><target>Añadir al registro de entrenamiento</target></segment></unit>
-    <unit id="recoveryPause.add"><segment state="initial"><source>Log recovery pause</source><target>Registrar pausa de recuperación</target></segment></unit>
-    <unit id="trainingContributionGraph.recovery"><segment state="initial"><source>Recovery pause</source><target>Pausa de recuperación</target></segment></unit>
-    <unit id="recoveryPause.validation.invalidDate"><segment state="initial"><source>Choose valid recovery dates.</source><target>Elige fechas de recuperación válidas.</target></segment></unit>
-    <unit id="recoveryPause.validation.futureDate"><segment state="initial"><source>Recovery dates cannot be in the future.</source><target>Las fechas de recuperación no pueden estar en el futuro.</target></segment></unit>
-    <unit id="recoveryPause.validation.endBeforeStart"><segment state="initial"><source>The recovery end date must be after the start date.</source><target>La fecha de fin de recuperación debe ser posterior a la fecha de inicio.</target></segment></unit>
-    <unit id="recoveryPause.validation.reason"><segment state="initial"><source>Choose a recovery reason.</source><target>Elige un motivo de recuperación.</target></segment></unit>
-    <unit id="recoveryPause.validation.noteLength"><segment state="initial"><source>Keep your private note under 500 characters.</source><target>Mantén tu nota privada por debajo de 500 caracteres.</target></segment></unit>
-    <unit id="recoveryPause.validation.overlap"><segment state="initial"><source>Recovery pauses cannot overlap. End or edit the existing pause first.</source><target>Las pausas de recuperación no pueden solaparse. Primero termina o edita la pausa existente.</target></segment></unit>
+    <unit id="community_event.edit_heading">
+      <segment state="initial">
+        <source>Edit community event</source>
+        <target>Editar evento comunitario</target>
+      </segment>
+    </unit>
+    <unit id="community_event.plan_heading">
+      <segment state="initial">
+        <source>Plan a community event</source>
+        <target>Planear un evento comunitario</target>
+      </segment>
+    </unit>
+    <unit id="community_event.description">
+      <segment state="initial">
+        <source>Bring your local parkour community together.</source>
+        <target>Reúne a tu comunidad local de parkour.</target>
+      </segment>
+    </unit>
+    <unit id="community_event.updated">
+      <segment state="initial">
+        <source>Your community event is updated.</source>
+        <target>Tu evento comunitario se ha actualizado.</target>
+      </segment>
+    </unit>
+    <unit id="community_event.created">
+      <segment state="initial">
+        <source>Your community event is published.</source>
+        <target>Tu evento comunitario se ha publicado.</target>
+      </segment>
+    </unit>
+    <unit id="community_event.create_failed">
+      <segment state="initial">
+        <source>Couldn&apos;t publish this community event. Please try again.</source>
+        <target>No se pudo publicar este evento comunitario. Inténtalo de nuevo.</target>
+      </segment>
+    </unit>
+    <unit id="community_event.cancelled">
+      <segment state="initial">
+        <source>Your community event is cancelled.</source>
+        <target>Tu evento comunitario se ha cancelado.</target>
+      </segment>
+    </unit>
+    <unit id="community_event.cancel_failed">
+      <segment state="initial">
+        <source>Couldn&apos;t cancel this community event. Please try again.</source>
+        <target>No se pudo cancelar este evento comunitario. Inténtalo de nuevo.</target>
+      </segment>
+    </unit>
+    <unit id="events.plan_community_event">
+      <segment state="initial">
+        <source>Plan a community event</source>
+        <target>Planear un evento comunitario</target>
+      </segment>
+    </unit>
+    <unit id="events.listing_tier_event">
+      <segment state="initial">
+        <source>Events</source>
+        <target>Eventos</target>
+      </segment>
+    </unit>
+    <unit id="event_listing.community">
+      <segment state="initial">
+        <source>Community event</source>
+        <target>Evento comunitario</target>
+      </segment>
+    </unit>
+    <unit id="6241445530231242277">
+      <segment state="initial">
+        <source>Sign in to plan a community event</source>
+        <target>Inicia sesión para planear un evento comunitario</target>
+      </segment>
+    </unit>
+    <unit id="1723550153638974909">
+      <segment state="initial">
+        <source>Community events are created by verified adult community members.</source>
+        <target>Los eventos comunitarios los crean miembros adultos verificados de la comunidad.</target>
+      </segment>
+    </unit>
+    <unit id="1739404177510113816">
+      <segment state="initial">
+        <source>Your currently active server-confirmed adult assurance is required before publishing a community event.</source>
+        <target>Se requiere tu comprobación activa de mayoría de edad confirmada por el servidor para publicar un evento comunitario.</target>
+      </segment>
+    </unit>
+    <unit id="5462767174124636395">
+      <segment state="initial">
+        <source>Public community events show their organizer.</source>
+        <target>Los eventos comunitarios públicos muestran quién los organiza.</target>
+      </segment>
+    </unit>
+    <unit id="4205547259664450146">
+      <segment state="initial">
+        <source>Loading community event…</source>
+        <target>Cargando evento comunitario…</target>
+      </segment>
+    </unit>
+    <unit id="4299657868649430560">
+      <segment state="initial">
+        <source>Community events use RSVP attendance. Tickets, programmes, and media uploads are not part of this first release.</source>
+        <target>Los eventos comunitarios usan asistencia RSVP. Las entradas, los programas y las cargas de medios no forman parte de esta primera versión.</target>
+      </segment>
+    </unit>
+    <unit id="7219162063306578420">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ editing ? &quot;Save&quot; : &quot;Publish&quot; }}"/> community event</source>
+        <target>{$INTERPOLATION} evento comunitario</target>
+      </segment>
+    </unit>
+    <unit id="3628985727060093047">
+      <segment state="initial">
+        <source>Off by default. This can only be chosen when the community event is first published.</source>
+        <target>Desactivado de forma predeterminada. Solo puede elegirse al publicar el evento comunitario por primera vez.</target>
+      </segment>
+    </unit>
+    <unit id="7962838458002654901">
+      <segment state="initial">
+        <source> Cancel community event </source>
+        <target> Cancelar evento comunitario </target>
+      </segment>
+    </unit>
+    <unit id="3792622364508901777">
+      <segment state="initial">
+        <source>Send an Event to PK Spot staff for review. It will not be published from this form.</source>
+        <target>Envía un evento al equipo de PK Spot para su revisión. No se publicará desde este formulario.</target>
+      </segment>
+    </unit>
+    <unit id="552004881794875858">
+      <segment state="initial">
+        <source>Community event</source>
+        <target>Evento comunitario</target>
+      </segment>
+    </unit>
+    <unit id="2008167069818962786">
+      <segment state="initial">
+        <source>Checking Event authoring access…</source>
+        <target>Comprobando el acceso para crear eventos…</target>
+      </segment>
+    </unit>
+    <unit id="bounds_picker.inline_spot_area_hint">
+      <segment state="initial">
+        <source> Click the map to place this temporary Spot’s area. You can then drag the area or its points to refine it. </source>
+        <target> Haz clic en el mapa para colocar el área de este Spot temporal. Después puedes arrastrar el área o sus puntos para ajustarla. </target>
+      </segment>
+    </unit>
+    <unit id="bounds_picker.legend">
+      <segment state="initial">
+        <source> S = event Spot · M = custom marker · T = temporary event Spot. Drag M and T markers directly on the map. </source>
+        <target> S = Spot del evento · M = marcador personalizado · T = Spot temporal del evento. Arrastra los marcadores M y T directamente en el mapa. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.map_heading">
+      <segment state="initial">
+        <source> Event Map </source>
+        <target> Mapa del evento </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.map_heading_hint">
+      <segment state="initial">
+        <source> Set the event area and main location, then add the Spots and markers people need on the day. </source>
+        <target> Define el área y la ubicación principal del evento, y añade después los Spots y marcadores que la gente necesitará ese día. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_map_hint">
+      <segment state="initial">
+        <source> Drag this temporary Spot’s T marker in the map above to place it. Its area is optional. </source>
+        <target> Arrastra el marcador T de este Spot temporal en el mapa de arriba para colocarlo. Su área es opcional. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_draw_area">
+      <segment state="initial">
+        <source> Draw area on map </source>
+        <target> Dibujar área en el mapa </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_clear_area">
+      <segment state="initial">
+        <source> Clear map area </source>
+        <target> Borrar área del mapa </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.custom_markers_map_hint">
+      <segment state="initial">
+        <source> Add a marker, then drag its M pin in the Event Map to place it. Coordinate fields remain available for precise corrections. </source>
+        <target> Añade un marcador y arrastra su pin M en el mapa del evento para colocarlo. Los campos de coordenadas siguen disponibles para correcciones precisas. </target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.saveError">
+      <segment state="initial">
+        <source>Could not save this recovery pause.</source>
+        <target>No se pudo guardar esta pausa de recuperación.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.deleteConfirm">
+      <segment state="initial">
+        <source>Delete this recovery pause?</source>
+        <target>¿Eliminar esta pausa de recuperación?</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.deleteError">
+      <segment state="initial">
+        <source>Could not delete this recovery pause.</source>
+        <target>No se pudo eliminar esta pausa de recuperación.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.reason.illness">
+      <segment state="initial">
+        <source>Illness</source>
+        <target>Enfermedad</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.reason.personalBreak">
+      <segment state="initial">
+        <source>Personal break</source>
+        <target>Descanso personal</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.reason.other">
+      <segment state="initial">
+        <source>Other</source>
+        <target>Otro</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.reason.injury">
+      <segment state="initial">
+        <source>Injury</source>
+        <target>Lesión</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.close">
+      <segment state="initial">
+        <source>Close recovery pause</source>
+        <target>Cerrar pausa de recuperación</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.eyebrow">
+      <segment state="initial">
+        <source>Your training history</source>
+        <target>Tu historial de entrenamiento</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.title">
+      <segment state="initial">
+        <source>Recovery pause</source>
+        <target>Pausa de recuperación</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.intro">
+      <segment state="initial">
+        <source>Save private context for time away from training. It is never shared or sent as a notification.</source>
+        <target>Guarda contexto privado para el tiempo lejos del entrenamiento. Nunca se comparte ni se envía como notificación.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.startDate">
+      <segment state="initial">
+        <source>Start date</source>
+        <target>Fecha de inicio</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.endDate">
+      <segment state="initial">
+        <source>End date</source>
+        <target>Fecha de fin</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.endDateHint">
+      <segment state="initial">
+        <source>Leave empty while recovery is ongoing.</source>
+        <target>Déjala vacía mientras la recuperación siga en curso.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.reason">
+      <segment state="initial">
+        <source>Reason</source>
+        <target>Motivo</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.note">
+      <segment state="initial">
+        <source>Private note (optional)</source>
+        <target>Nota privada (opcional)</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.noteHint">
+      <segment state="initial">
+        <source>Keep this short and personal. Do not include anyone else&apos;s medical information.</source>
+        <target>Mantén esta nota breve y personal. No incluyas información médica de otras personas.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.save">
+      <segment state="initial">
+        <source>Save recovery pause</source>
+        <target>Guardar pausa de recuperación</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.delete">
+      <segment state="initial">
+        <source>Delete</source>
+        <target>Eliminar</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.timeline.filtered">
+      <segment state="initial">
+        <source>Showing the selected recovery pause.</source>
+        <target>Mostrando la pausa de recuperación seleccionada.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.edit">
+      <segment state="initial">
+        <source>Edit recovery pause</source>
+        <target>Editar pausa de recuperación</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.private">
+      <segment state="initial">
+        <source>Private</source>
+        <target>Privado</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.timeline.title">
+      <segment state="initial">
+        <source>Recovery pause</source>
+        <target>Pausa de recuperación</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.timeline.range">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> to <ph id="1" equiv="INTERPOLATION_1" disp="{{ item.endedOnMs | systemDate: &quot;mediumDate&quot; }}"/></source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> hasta <ph id="1" equiv="INTERPOLATION_1" disp="{{ item.endedOnMs | systemDate: &quot;mediumDate&quot; }}"/></target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.timeline.ongoing">
+      <segment state="initial">
+        <source>Started <ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> · ongoing</source>
+        <target>Iniciada el <ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> · en curso</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.add">
+      <segment state="initial">
+        <source>Add to training log</source>
+        <target>Añadir al registro de entrenamiento</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.add">
+      <segment state="initial">
+        <source>Log recovery pause</source>
+        <target>Registrar pausa de recuperación</target>
+      </segment>
+    </unit>
+    <unit id="trainingContributionGraph.recovery">
+      <segment state="initial">
+        <source>Recovery pause</source>
+        <target>Pausa de recuperación</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.validation.invalidDate">
+      <segment state="initial">
+        <source>Choose valid recovery dates.</source>
+        <target>Elige fechas de recuperación válidas.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.validation.futureDate">
+      <segment state="initial">
+        <source>Recovery dates cannot be in the future.</source>
+        <target>Las fechas de recuperación no pueden estar en el futuro.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.validation.endBeforeStart">
+      <segment state="initial">
+        <source>The recovery end date must be after the start date.</source>
+        <target>La fecha de fin de recuperación debe ser posterior a la fecha de inicio.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.validation.reason">
+      <segment state="initial">
+        <source>Choose a recovery reason.</source>
+        <target>Elige un motivo de recuperación.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.validation.noteLength">
+      <segment state="initial">
+        <source>Keep your private note under 500 characters.</source>
+        <target>Mantén tu nota privada por debajo de 500 caracteres.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.validation.overlap">
+      <segment state="initial">
+        <source>Recovery pauses cannot overlap. End or edit the existing pause first.</source>
+        <target>Las pausas de recuperación no pueden solaparse. Primero termina o edita la pausa existente.</target>
+      </segment>
+    </unit>
     <unit id="trainingLog.loadError">
       <segment state="initial">
         <source>Your training log could not be loaded.</source>

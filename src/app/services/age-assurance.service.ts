@@ -57,6 +57,20 @@ interface UpdateAgePolicyResponse {
   verified_at?: string;
 }
 
+export interface ExternalAgeVerificationAvailability {
+  providers: Array<{
+    provider: "oneid";
+    available: boolean;
+    method: "age_check";
+  }>;
+}
+
+export interface ExternalAgeVerificationAttempt {
+  attempt_id: string;
+  provider: "oneid";
+  verification_url: string;
+}
+
 export type AgeAssuranceCheckStatus =
   | "idle"
   | "checking"
@@ -124,6 +138,20 @@ export class AgeAssuranceService {
       return;
     }
     await NativeAgeAssurance.openPlayStoreListing();
+  }
+
+  async externalVerificationAvailability(): Promise<ExternalAgeVerificationAvailability> {
+    return this._functionsAdapter.callAuthenticatedAppChecked<
+      Record<string, never>,
+      ExternalAgeVerificationAvailability
+    >("externalAgeVerificationAvailability", {});
+  }
+
+  async beginOneIdAgeVerification(): Promise<ExternalAgeVerificationAttempt> {
+    return this._functionsAdapter.callAuthenticatedAppChecked<
+      { provider: "oneid" },
+      ExternalAgeVerificationAttempt
+    >("beginExternalAgeVerification", { provider: "oneid" });
   }
 
   private async _syncNativeAgePolicyForCurrentUser(
@@ -293,12 +321,17 @@ export class AgeAssuranceService {
     }
 
     const policy = this._authService.user.data?.data?.age_policy;
-    return (
-      policy?.adult_eligibility === "verified" &&
-      policy.assurance?.status === "active" &&
-      policy.assurance?.client_integrity ===
-        "play_integrity_request_bound"
-    );
+    const assurance = policy?.assurance;
+    const strongEvidence =
+      assurance?.evidence_strength === "independently_checked" ||
+      assurance?.evidence_strength === "verified_identity";
+    return policy?.adult_eligibility === "verified" &&
+      policy.age_range?.lower !== undefined && policy.age_range.lower >= 18 &&
+      assurance?.status === "active" && typeof assurance.approval_basis === "string" &&
+      (assurance.client_integrity === "play_integrity_request_bound" ||
+        assurance.client_integrity === "server_to_server_oidc" ||
+        (assurance.client_integrity === "firebase_app_check" &&
+          assurance.method?.provider === "apple" && strongEvidence));
   }
 
   adultEvidenceStrength(): AgeEvidenceStrength {

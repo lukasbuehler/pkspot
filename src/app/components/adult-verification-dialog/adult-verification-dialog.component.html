@@ -1,0 +1,31 @@
+<h2 mat-dialog-title i18n>Verify my age</h2>
+
+<mat-dialog-content>
+  <p class="mat-body-medium" i18n>
+    This is optional. PK Spot’s normal features and private check-ins stay available without it.
+    Verification only unlocks adult-only features, including making your profile public and current-location sharing when that feature is available.
+  </p>
+  <p class="mat-body-small verification-dialog__privacy" i18n>
+    PK Spot asks providers only whether you are 18 or older. It does not request or store your name, exact date of birth, address, document, selfie, bank details or phone number.
+  </p>
+
+  <div class="verification-dialog__options">
+    @for (option of options(); track option.id) {
+      <section class="verification-dialog__option" [class.verification-dialog__option--unavailable]="option.state === 'unavailable'">
+        <div class="verification-dialog__icon" aria-hidden="true"><mat-icon>verified_user</mat-icon></div>
+        <div class="verification-dialog__copy">
+          <h3 class="mat-title-small">{{ option.title }} @if (option.recommended) { <span i18n>(recommended)</span> }</h3>
+          <p class="mat-body-small">{{ option.description }}</p>
+          @if (option.state === "unavailable") { <p class="mat-body-small" i18n>Not available on this installation yet.</p> }
+        </div>
+        <button matButton="outlined" type="button" [disabled]="option.state === 'unavailable' || activeProvider() !== null" (click)="start(option.id)">
+          @if (activeProvider() === option.id) { <mat-spinner diameter="18" strokeWidth="2" /> <span i18n>Starting…</span> }
+          @else { <span i18n>Verify</span> }
+        </button>
+      </section>
+    }
+  </div>
+  @if (error(); as message) { <p class="verification-dialog__error mat-body-small" role="alert">{{ message }}</p> }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end"><button matButton="filled" type="button" mat-dialog-close i18n>Not now</button></mat-dialog-actions>

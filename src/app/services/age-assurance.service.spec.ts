@@ -404,7 +404,9 @@ describe("AgeAssuranceService", () => {
           assurance: {
             status: "active",
             client_integrity: "play_integrity_request_bound",
+            approval_basis: "google_play:platform_age_signal:tier_c:request_bound:v1",
           },
+          age_range: { lower: 18 },
         },
       },
     };

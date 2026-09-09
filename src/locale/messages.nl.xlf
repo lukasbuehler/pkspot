@@ -132,6 +132,12 @@
         <target>1 bewerking</target>
       </segment>
     </unit>
+    <unit id="3786612121005562547">
+      <segment state="initial">
+        <source>Verification could not be started. You can try another method or try again later.</source>
+        <target>Verification could not be started. You can try another method or try again later.</target>
+      </segment>
+    </unit>
     <unit id="3789771835244333891">
       <segment state="initial">
         <source> — No black-box algorithms, no hidden tracking. <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a href=&quot;https://github.com/lukasbuehler/pkspot&quot; (click)=&quot;trackOutboundLinkClick(&apos;github&apos;, &apos;https://github.com/lukasbuehler/pkspot&apos;, &apos;View on GitHub&apos;)&quot; &gt;" dispEnd="&lt;/a &gt;">View on GitHub</pc>. </source>
@@ -834,12 +840,6 @@
         <target>Geen evenementen beschikbaar om in te sluiten.</target>
       </segment>
     </unit>
-    <unit id="5568689893936032210">
-      <segment state="initial">
-        <source>Off by default. This can only be chosen when the activity is first published.</source>
-        <target>Off by default. This can only be chosen when the activity is first published.</target>
-      </segment>
-    </unit>
     <unit id="5574644924997298566">
       <segment state="initial">
         <source>Could not load organizations</source>
@@ -1022,12 +1022,6 @@
       <segment state="initial">
         <source>Email Verified!</source>
         <target>E-mail geverifieerd!</target>
-      </segment>
-    </unit>
-    <unit id="137117898027178128">
-      <segment state="initial">
-        <source>Community activities use RSVP attendance. Tickets, programmes, and media uploads are not part of this first release.</source>
-        <target>Community activities use RSVP attendance. Tickets, programmes, and media uploads are not part of this first release.</target>
       </segment>
     </unit>
     <unit id="1381308436651796702">
@@ -2661,6 +2655,12 @@
         <target>Melder</target>
       </segment>
     </unit>
+    <unit id="7314366616785648252">
+      <segment state="initial">
+        <source>Ask Apple to share an 18+ range on a supported iPhone or iPad installation.</source>
+        <target>Ask Apple to share an 18+ range on a supported iPhone or iPad installation.</target>
+      </segment>
+    </unit>
     <unit id="7317396157754495933">
       <segment state="initial">
         <source>Uploader ID</source>
@@ -2773,6 +2773,12 @@
       <segment state="initial">
         <source>Instagram</source>
         <target>Instagram-app</target>
+      </segment>
+    </unit>
+    <unit id="309182425721385503">
+      <segment state="initial">
+        <source>Use OneID’s privacy-preserving 18+ check when it is available for your account.</source>
+        <target>Use OneID’s privacy-preserving 18+ check when it is available for your account.</target>
       </segment>
     </unit>
     <unit id="6858563845386603352">
@@ -2991,12 +2997,6 @@
         <target>Archiveren</target>
       </segment>
     </unit>
-    <unit id="1072652673171439933">
-      <segment state="initial">
-        <source>Public Jams and Sessions show their organizer. Unlisted sharing will be introduced after the current app-compatibility rollout.</source>
-        <target>Public Jams and Sessions show their organizer. Unlisted sharing will be introduced after the current app-compatibility rollout.</target>
-      </segment>
-    </unit>
     <unit id="1083158108298637572">
       <segment state="initial">
         <source>Failed to submit vote</source>
@@ -3081,6 +3081,12 @@
         <target>Het wachtwoord en het herhaalde wachtwoord komen niet overeen</target>
       </segment>
     </unit>
+    <unit id="646725257540411206">
+      <segment state="initial">
+        <source>Verify my age</source>
+        <target>Verify my age</target>
+      </segment>
+    </unit>
     <unit id="6477168744321037366">
       <segment state="initial">
         <source>Could not apply the event operation.</source>
@@ -3103,6 +3109,12 @@
       <segment state="initial">
         <source>Why this approval basis is no longer accepted</source>
         <target>Waarom deze goedkeuringsgrondslag niet langer wordt geaccepteerd</target>
+      </segment>
+    </unit>
+    <unit id="6483130493535015475">
+      <segment state="initial">
+        <source>Apple age range</source>
+        <target>Apple age range</target>
       </segment>
     </unit>
     <unit id="6484510802892706344">
@@ -3433,6 +3445,12 @@
       <segment state="initial">
         <source>Spots Created</source>
         <target>Gemaakte spots</target>
+      </segment>
+    </unit>
+    <unit id="1528946323951752035">
+      <segment state="initial">
+        <source> This is optional. PK Spot’s normal features and private check-ins stay available without it. Verification only unlocks adult-only features, including making your profile public and current-location sharing when that feature is available. </source>
+        <target> This is optional. PK Spot’s normal features and private check-ins stay available without it. Verification only unlocks adult-only features, including making your profile public and current-location sharing when that feature is available. </target>
       </segment>
     </unit>
     <unit id="1534029177398918729">
@@ -3842,6 +3860,12 @@
       <segment state="initial">
         <source>Spot report</source>
         <target>Reporte de spot</target>
+      </segment>
+    </unit>
+    <unit id="8666275494339219378">
+      <segment state="initial">
+        <source>OneID</source>
+        <target>OneID</target>
       </segment>
     </unit>
     <unit id="8672443665211234755">
@@ -6033,12 +6057,6 @@
         <target>Omgeving</target>
       </segment>
     </unit>
-    <unit id="9184146641429032568">
-      <segment state="initial">
-        <source>Jams and Sessions are created by verified adult community members.</source>
-        <target>Jams and Sessions are created by verified adult community members.</target>
-      </segment>
-    </unit>
     <unit id="9186529157286281693">
       <segment state="initial">
         <source>Last 24 hours</source>
@@ -6145,6 +6163,12 @@
       <segment state="initial">
         <source>Ordinary harm</source>
         <target>Reguliere schade</target>
+      </segment>
+    </unit>
+    <unit id="943622778225300320">
+      <segment state="initial">
+        <source>(recommended)</source>
+        <target>(recommended)</target>
       </segment>
     </unit>
     <unit id="947995176992343811">
@@ -6261,12 +6285,6 @@
       <segment state="initial">
         <source> Address </source>
         <target> Adres </target>
-      </segment>
-    </unit>
-    <unit id="8138554183860371861">
-      <segment state="initial">
-        <source> Cancel activity </source>
-        <target> Cancel activity </target>
       </segment>
     </unit>
     <unit id="8142225273689086841">
@@ -6651,12 +6669,6 @@
       <segment state="initial">
         <source> Notification types </source>
         <target> Meldingstypen </target>
-      </segment>
-    </unit>
-    <unit id="6121666591027850264">
-      <segment state="initial">
-        <source>Checking formal event authoring access…</source>
-        <target>Checking formal event authoring access…</target>
       </segment>
     </unit>
     <unit id="6128805594305699476">
@@ -8040,12 +8052,6 @@
         <target> +<ph id="0" equiv="INTERPOLATION" disp="{{ selectedOptions().length - 1 }}"/> meer </target>
       </segment>
     </unit>
-    <unit id="event_edit.area_label">
-      <segment state="initial">
-        <source> Optional venue and map location </source>
-        <target> Evenementgebied </target>
-      </segment>
-    </unit>
     <unit id="event_edit.attendance_eligibility">
       <segment state="initial">
         <source> Who may attend? </source>
@@ -8330,8 +8336,8 @@
     </unit>
     <unit id="event_edit.description">
       <segment state="initial">
-        <source>Description</source>
-        <target>Beschrijving</target>
+        <source> Description </source>
+        <target> Beschrijving </target>
       </segment>
     </unit>
     <unit id="event_edit.end_date">
@@ -10008,18 +10014,6 @@
         <target>Nog <ph id="0" equiv="eventCount" disp="day.hiddenEventCount"/> evenementen op <ph id="1" equiv="localDate" disp="date"/> tonen</target>
       </segment>
     </unit>
-    <unit id="events.community_activity_jam">
-      <segment state="initial">
-        <source>Community Jams</source>
-        <target>Community Jams</target>
-      </segment>
-    </unit>
-    <unit id="events.community_activity_session">
-      <segment state="initial">
-        <source>Community Sessions</source>
-        <target>Community Sessions</target>
-      </segment>
-    </unit>
     <unit id="events.count_many">
       <segment state="initial">
         <source><ph id="0" equiv="eventCount" disp="count"/> events</source>
@@ -10735,12 +10729,6 @@
         <target>HTML-inbedcode</target>
       </segment>
     </unit>
-    <unit id="8225018754533371665">
-      <segment state="initial">
-        <source>Loading activity…</source>
-        <target>Loading activity…</target>
-      </segment>
-    </unit>
     <unit id="8228088429714277489">
       <segment state="initial">
         <source>Client guard blocks</source>
@@ -11069,76 +11057,10 @@
         <target>Sign in to see link</target>
       </segment>
     </unit>
-    <unit id="community_activity.cancel_failed">
-      <segment state="initial">
-        <source>Couldn&apos;t cancel this activity. Please try again.</source>
-        <target>Couldn&apos;t cancel this activity. Please try again.</target>
-      </segment>
-    </unit>
-    <unit id="community_activity.cancelled">
-      <segment state="initial">
-        <source>Your activity is cancelled.</source>
-        <target>Your activity is cancelled.</target>
-      </segment>
-    </unit>
-    <unit id="community_activity.create_failed">
-      <segment state="initial">
-        <source>Couldn&apos;t publish this activity. Please try again.</source>
-        <target>Couldn&apos;t publish this activity. Please try again.</target>
-      </segment>
-    </unit>
-    <unit id="community_activity.created">
-      <segment state="initial">
-        <source>Your activity is published.</source>
-        <target>Your activity is published.</target>
-      </segment>
-    </unit>
-    <unit id="community_activity.edit_jam_heading">
-      <segment state="initial">
-        <source>Edit Jam</source>
-        <target>Edit Jam</target>
-      </segment>
-    </unit>
-    <unit id="community_activity.edit_session_heading">
-      <segment state="initial">
-        <source>Edit Session</source>
-        <target>Edit Session</target>
-      </segment>
-    </unit>
     <unit id="community_activity.invalid_times">
       <segment state="initial">
         <source>Choose an end time after the start time.</source>
         <target>Choose an end time after the start time.</target>
-      </segment>
-    </unit>
-    <unit id="community_activity.plan_jam_description">
-      <segment state="initial">
-        <source>Bring your local parkour community together.</source>
-        <target>Bring your local parkour community together.</target>
-      </segment>
-    </unit>
-    <unit id="community_activity.plan_jam_heading">
-      <segment state="initial">
-        <source>Plan a Jam</source>
-        <target>Plan a Jam</target>
-      </segment>
-    </unit>
-    <unit id="community_activity.plan_session_description">
-      <segment state="initial">
-        <source>Plan a local parkour training session.</source>
-        <target>Plan a local parkour training session.</target>
-      </segment>
-    </unit>
-    <unit id="community_activity.plan_session_heading">
-      <segment state="initial">
-        <source>Plan a Session</source>
-        <target>Plan a Session</target>
-      </segment>
-    </unit>
-    <unit id="community_activity.updated">
-      <segment state="initial">
-        <source>Your activity is updated.</source>
-        <target>Your activity is updated.</target>
       </segment>
     </unit>
     <unit id="contact.aside.crew.body">
@@ -11533,16 +11455,16 @@
         <target>Externe meldroute</target>
       </segment>
     </unit>
+    <unit id="4764767270165536588">
+      <segment state="initial">
+        <source>Google Play</source>
+        <target>Google Play</target>
+      </segment>
+    </unit>
     <unit id="7774690298639065150">
       <segment state="initial">
         <source> This profile does not exist or is no longer available. </source>
         <target> This profile does not exist or is no longer available. </target>
-      </segment>
-    </unit>
-    <unit id="7778065148063995265">
-      <segment state="initial">
-        <source>Community Jam</source>
-        <target>Community Jam</target>
       </segment>
     </unit>
     <unit id="6680262533217185088">
@@ -11762,12 +11684,6 @@
       <segment state="initial">
         <source>Community merge queued</source>
         <target>Community merge queued</target>
-      </segment>
-    </unit>
-    <unit id="2473999022194734610">
-      <segment state="initial">
-        <source>Your currently active server-confirmed adult assurance is required before publishing a community activity.</source>
-        <target>Your currently active server-confirmed adult assurance is required before publishing a community activity.</target>
       </segment>
     </unit>
     <unit id="2475812979768871750">
@@ -12240,6 +12156,12 @@
         <target>Spot-waarschuwing kon niet worden gepubliceerd</target>
       </segment>
     </unit>
+    <unit id="5064990594411752447">
+      <segment state="initial">
+        <source> PK Spot asks providers only whether you are 18 or older. It does not request or store your name, exact date of birth, address, document, selfie, bank details or phone number. </source>
+        <target> PK Spot asks providers only whether you are 18 or older. It does not request or store your name, exact date of birth, address, document, selfie, bank details or phone number. </target>
+      </segment>
+    </unit>
     <unit id="5075169696278804374">
       <segment state="initial">
         <source>Error sending reset email. Please try again.</source>
@@ -12256,12 +12178,6 @@
       <segment state="initial">
         <source>Link to challenge copied to clipboard</source>
         <target>Link naar Challenge gekopieerd naar klembord</target>
-      </segment>
-    </unit>
-    <unit id="5097731679946084974">
-      <segment state="initial">
-        <source>Send a formal event to PK Spot staff for review. It will not be published from this form.</source>
-        <target>Send a formal event to PK Spot staff for review. It will not be published from this form.</target>
       </segment>
     </unit>
     <unit id="event_page.loading">
@@ -12884,6 +12800,12 @@
         <target>Nieuw einde</target>
       </segment>
     </unit>
+    <unit id="8913794084097958305">
+      <segment state="initial">
+        <source>Verify</source>
+        <target>Verify</target>
+      </segment>
+    </unit>
     <unit id="891476879467146439">
       <segment state="initial">
         <source>Google controls the verification flow. Visit the Play Store and complete any age-confirmation prompt it shows.</source>
@@ -13288,6 +13210,12 @@
         <target>Gevaarlijk</target>
       </segment>
     </unit>
+    <unit id="2047776319256281403">
+      <segment state="initial">
+        <source>Use Google Play’s age signal on a supported Android installation.</source>
+        <target>Use Google Play’s age signal on a supported Android installation.</target>
+      </segment>
+    </unit>
     <unit id="2049290282534091182">
       <segment state="initial">
         <source>Moderation</source>
@@ -13310,12 +13238,6 @@
       <segment state="initial">
         <source> Follow requests </source>
         <target> Follow requests </target>
-      </segment>
-    </unit>
-    <unit id="6530779476034323471">
-      <segment state="initial">
-        <source>Sign in to plan an activity</source>
-        <target>Sign in to plan an activity</target>
       </segment>
     </unit>
     <unit id="6537027644496489823">
@@ -13874,12 +13796,6 @@
         <target> Externe melding niet vereist </target>
       </segment>
     </unit>
-    <unit id="2293350537164432279">
-      <segment state="initial">
-        <source>Filter by community activity type</source>
-        <target>Filter by community activity type</target>
-      </segment>
-    </unit>
     <unit id="7374538640222631357">
       <segment state="initial">
         <source>This challenge is still private to you!</source>
@@ -14162,6 +14078,12 @@
         <target>Media delen</target>
       </segment>
     </unit>
+    <unit id="8511422471788362899">
+      <segment state="initial">
+        <source>Not available on this installation yet.</source>
+        <target>Not available on this installation yet.</target>
+      </segment>
+    </unit>
     <unit id="8520138691875188234">
       <segment state="initial">
         <source> Guests receive a one-time verification link. Your email and identity are visible only to authorised moderators. </source>
@@ -14204,12 +14126,6 @@
         <target>{VAR_PLURAL, plural, =1 {Het enige gepubliceerde evenement met een probleem wordt hieronder weergegeven.} other {Alle <ph id="0" equiv="INTERPOLATION"/> gepubliceerde evenementen met problemen worden hieronder weergegeven.}}</target>
       </segment>
     </unit>
-    <unit id="333127453752502509">
-      <segment state="initial">
-        <source>Formal Event</source>
-        <target>Formal Event</target>
-      </segment>
-    </unit>
     <unit id="3332261437108791304">
       <segment state="initial">
         <source>Withdraw report</source>
@@ -14250,12 +14166,6 @@
       <segment state="initial">
         <source> We don&apos;t have a PK Spot community page for this route yet. </source>
         <target>We hebben nog geen PK Spot-communitypagina voor deze route.</target>
-      </segment>
-    </unit>
-    <unit id="8392870453812180370">
-      <segment state="initial">
-        <source>Community Session</source>
-        <target>Community Session</target>
       </segment>
     </unit>
     <unit id="spot_picker.limit_hint">
@@ -14538,8 +14448,8 @@
     </unit>
     <unit id="trainingLog.new">
       <segment state="initial">
-        <source>New entry</source>
-        <target>New entry</target>
+        <source>New training entry</source>
+        <target>New training entry</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.back">
@@ -14834,12 +14744,6 @@
       <segment state="initial">
         <source>Nothing was logged for this day yet.</source>
         <target>Nothing was logged for this day yet.</target>
-      </segment>
-    </unit>
-    <unit id="trainingLog.timeline.emptyMonth">
-      <segment state="initial">
-        <source>Nothing was logged in this month yet.</source>
-        <target>Nothing was logged in this month yet.</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.eyebrow">
@@ -15238,12 +15142,6 @@
         <target>Afgeschermde notities</target>
       </segment>
     </unit>
-    <unit id="8968543130328972761">
-      <segment state="initial">
-        <source><ph id="0" equiv="INTERPOLATION" disp="{{ editing ? &quot;Save&quot; : &quot;Publish&quot; }}"/> <ph id="1" equiv="INTERPOLATION_1" disp="{{ subtype() === &quot;jam&quot; ? &quot;Jam&quot; : &quot;Session&quot; }}"/></source>
-        <target><ph id="0" equiv="INTERPOLATION" disp="{{ editing ? &quot;Save&quot; : &quot;Publish&quot; }}"/> <ph id="1" equiv="INTERPOLATION_1" disp="{{ subtype() === &quot;jam&quot; ? &quot;Jam&quot; : &quot;Session&quot; }}"/></target>
-      </segment>
-    </unit>
     <unit id="8972434095994344487">
       <segment state="initial">
         <source>Community card rejected</source>
@@ -15434,6 +15332,12 @@
       <segment state="initial">
         <source> Are you sure? Enter your password to confirm deletion. </source>
         <target> Weet je het zeker? Voer je wachtwoord in om de verwijdering te bevestigen. </target>
+      </segment>
+    </unit>
+    <unit id="3741605829844535332">
+      <segment state="initial">
+        <source>Starting…</source>
+        <target>Starting…</target>
       </segment>
     </unit>
     <unit id="3742557968359744247">
@@ -16052,12 +15956,6 @@
         <target>Community-evenementen</target>
       </segment>
     </unit>
-    <unit id="events.listing_tier_formal">
-      <segment state="initial">
-        <source>Formal Events</source>
-        <target>Formal Events</target>
-      </segment>
-    </unit>
     <unit id="events.live_events_heading">
       <segment state="initial">
         <source> Happening now </source>
@@ -16068,36 +15966,6 @@
       <segment state="initial">
         <source>now</source>
         <target>nu</target>
-      </segment>
-    </unit>
-    <unit id="events.plan_jam">
-      <segment state="initial">
-        <source>Plan a Jam</source>
-        <target>Plan a Jam</target>
-      </segment>
-    </unit>
-    <unit id="events.plan_session">
-      <segment state="initial">
-        <source>Plan a Session</source>
-        <target>Plan a Session</target>
-      </segment>
-    </unit>
-    <unit id="event_listing.community_jam">
-      <segment state="initial">
-        <source>Community Jam</source>
-        <target>Community Jam</target>
-      </segment>
-    </unit>
-    <unit id="event_listing.community_session">
-      <segment state="initial">
-        <source>Community Session</source>
-        <target>Community Session</target>
-      </segment>
-    </unit>
-    <unit id="event_listing.formal">
-      <segment state="initial">
-        <source>Formal Event</source>
-        <target>Formal Event</target>
       </segment>
     </unit>
     <unit id="event_map_page.back_to_event">
@@ -16726,7 +16594,7 @@
     </unit>
     <unit id="event_suggestion.meta_description">
       <segment state="initial">
-        <source>Suggest a parkour Event for staff review.</source>
+        <source>Suggest a formal parkour event for staff review.</source>
         <target>Stel een parkourevenement voor aan het PK Spot-team ter beoordeling.</target>
       </segment>
     </unit>
@@ -18026,71 +17894,396 @@
         <target>Profiel bekijken</target>
       </segment>
     </unit>
-    <unit id="community_event.edit_heading"><segment state="initial"><source>Edit community event</source><target>Edit community event</target></segment></unit>
-    <unit id="community_event.plan_heading"><segment state="initial"><source>Plan a community event</source><target>Plan a community event</target></segment></unit>
-    <unit id="community_event.description"><segment state="initial"><source>Bring your local parkour community together.</source><target>Bring your local parkour community together.</target></segment></unit>
-    <unit id="community_event.updated"><segment state="initial"><source>Your community event is updated.</source><target>Your community event is updated.</target></segment></unit>
-    <unit id="community_event.created"><segment state="initial"><source>Your community event is published.</source><target>Your community event is published.</target></segment></unit>
-    <unit id="community_event.create_failed"><segment state="initial"><source>Couldn&apos;t publish this community event. Please try again.</source><target>Couldn&apos;t publish this community event. Please try again.</target></segment></unit>
-    <unit id="community_event.cancelled"><segment state="initial"><source>Your community event is cancelled.</source><target>Your community event is cancelled.</target></segment></unit>
-    <unit id="community_event.cancel_failed"><segment state="initial"><source>Couldn&apos;t cancel this community event. Please try again.</source><target>Couldn&apos;t cancel this community event. Please try again.</target></segment></unit>
-    <unit id="events.plan_community_event"><segment state="initial"><source>Plan a community event</source><target>Plan a community event</target></segment></unit>
-    <unit id="events.listing_tier_event"><segment state="initial"><source>Events</source><target>Events</target></segment></unit>
-    <unit id="event_listing.community"><segment state="initial"><source>Community event</source><target>Community event</target></segment></unit>
-    <unit id="6241445530231242277"><segment state="initial"><source>Sign in to plan a community event</source><target>Sign in to plan a community event</target></segment></unit>
-    <unit id="1723550153638974909"><segment state="initial"><source>Community events are created by verified adult community members.</source><target>Community events are created by verified adult community members.</target></segment></unit>
-    <unit id="1739404177510113816"><segment state="initial"><source>Your currently active server-confirmed adult assurance is required before publishing a community event.</source><target>Your currently active server-confirmed adult assurance is required before publishing a community event.</target></segment></unit>
-    <unit id="5462767174124636395"><segment state="initial"><source>Public community events show their organizer.</source><target>Public community events show their organizer.</target></segment></unit>
-    <unit id="4205547259664450146"><segment state="initial"><source>Loading community event…</source><target>Loading community event…</target></segment></unit>
-    <unit id="4299657868649430560"><segment state="initial"><source>Community events use RSVP attendance. Tickets, programmes, and media uploads are not part of this first release.</source><target>Community events use RSVP attendance. Tickets, programmes, and media uploads are not part of this first release.</target></segment></unit>
-    <unit id="7219162063306578420"><segment state="initial"><source>{$INTERPOLATION} community event</source><target>{$INTERPOLATION} community event</target></segment></unit>
-    <unit id="3628985727060093047"><segment state="initial"><source>Off by default. This can only be chosen when the community event is first published.</source><target>Off by default. This can only be chosen when the community event is first published.</target></segment></unit>
-    <unit id="7962838458002654901"><segment state="initial"><source> Cancel community event </source><target> Cancel community event </target></segment></unit>
-    <unit id="3792622364508901777"><segment state="initial"><source>Send an Event to PK Spot staff for review. It will not be published from this form.</source><target>Send an Event to PK Spot staff for review. It will not be published from this form.</target></segment></unit>
-    <unit id="552004881794875858"><segment state="initial"><source>Community event</source><target>Community event</target></segment></unit>
-    <unit id="2008167069818962786"><segment state="initial"><source>Checking Event authoring access…</source><target>Checking Event authoring access…</target></segment></unit>
-    <unit id="bounds_picker.inline_spot_area_hint"><segment state="initial"><source>Click the map to place this temporary Spot’s area. You can then drag the area or its points to refine it.</source><target>Klik op de kaart om het gebied van deze tijdelijke Spot te plaatsen. Daarna kun je het gebied of de punten verslepen om het aan te passen.</target></segment></unit>
-    <unit id="bounds_picker.legend"><segment state="initial"><source>S = event Spot · M = custom marker · T = temporary event Spot. Drag M and T markers directly on the map.</source><target>S = evenementen-Spot · M = aangepaste markering · T = tijdelijke evenementen-Spot. Sleep M- en T-markeringen rechtstreeks op de kaart.</target></segment></unit>
-    <unit id="event_edit.map_heading"><segment state="initial"><source>Event Map</source><target>Evenementkaart</target></segment></unit>
-    <unit id="event_edit.map_heading_hint"><segment state="initial"><source>Set the event area and main location, then add the Spots and markers people need on the day.</source><target>Stel het evenementgebied en de hoofdlocatie in en voeg daarna de Spots en markeringen toe die mensen op de dag zelf nodig hebben.</target></segment></unit>
-    <unit id="event_edit.temporary_spot_map_hint"><segment state="initial"><source>Drag this temporary Spot’s T marker in the map above to place it. Its area is optional.</source><target>Sleep de T-markering van deze tijdelijke Spot op de kaart hierboven om hem te plaatsen. Het gebied is optioneel.</target></segment></unit>
-    <unit id="event_edit.temporary_spot_draw_area"><segment state="initial"><source>Draw area on map</source><target>Gebied op kaart tekenen</target></segment></unit>
-    <unit id="event_edit.temporary_spot_clear_area"><segment state="initial"><source>Clear map area</source><target>Kaartgebied wissen</target></segment></unit>
-    <unit id="event_edit.custom_markers_map_hint"><segment state="initial"><source>Add a marker, then drag its M pin in the Event Map to place it. Coordinate fields remain available for precise corrections.</source><target>Voeg een markering toe en sleep daarna de M-pin op de evenementkaart om hem te plaatsen. Coördinatenvelden blijven beschikbaar voor nauwkeurige correcties.</target></segment></unit>
-    <unit id="recoveryPause.saveError"><segment state="initial"><source>Could not save this recovery pause.</source><target>Deze herstelpauze kon niet worden opgeslagen.</target></segment></unit>
-    <unit id="recoveryPause.deleteConfirm"><segment state="initial"><source>Delete this recovery pause?</source><target>Deze herstelpauze verwijderen?</target></segment></unit>
-    <unit id="recoveryPause.deleteError"><segment state="initial"><source>Could not delete this recovery pause.</source><target>Deze herstelpauze kon niet worden verwijderd.</target></segment></unit>
-    <unit id="recoveryPause.reason.illness"><segment state="initial"><source>Illness</source><target>Ziekte</target></segment></unit>
-    <unit id="recoveryPause.reason.personalBreak"><segment state="initial"><source>Personal break</source><target>Persoonlijke pauze</target></segment></unit>
-    <unit id="recoveryPause.reason.other"><segment state="initial"><source>Other</source><target>Overig</target></segment></unit>
-    <unit id="recoveryPause.reason.injury"><segment state="initial"><source>Injury</source><target>Blessure</target></segment></unit>
-    <unit id="recoveryPause.close"><segment state="initial"><source>Close recovery pause</source><target>Herstelpauze sluiten</target></segment></unit>
-    <unit id="recoveryPause.eyebrow"><segment state="initial"><source>Your training history</source><target>Je trainingsgeschiedenis</target></segment></unit>
-    <unit id="recoveryPause.title"><segment state="initial"><source>Recovery pause</source><target>Herstelpauze</target></segment></unit>
-    <unit id="recoveryPause.intro"><segment state="initial"><source>Save private context for time away from training. It is never shared or sent as a notification.</source><target>Sla privécontext op voor tijd weg van training. Deze wordt nooit gedeeld of als melding verstuurd.</target></segment></unit>
-    <unit id="recoveryPause.startDate"><segment state="initial"><source>Start date</source><target>Startdatum</target></segment></unit>
-    <unit id="recoveryPause.endDate"><segment state="initial"><source>End date</source><target>Einddatum</target></segment></unit>
-    <unit id="recoveryPause.endDateHint"><segment state="initial"><source>Leave empty while recovery is ongoing.</source><target>Laat leeg zolang het herstel nog bezig is.</target></segment></unit>
-    <unit id="recoveryPause.reason"><segment state="initial"><source>Reason</source><target>Reden</target></segment></unit>
-    <unit id="recoveryPause.note"><segment state="initial"><source>Private note (optional)</source><target>Privénotitie (optioneel)</target></segment></unit>
-    <unit id="recoveryPause.noteHint"><segment state="initial"><source>Keep this short and personal. Do not include anyone else&apos;s medical information.</source><target>Houd deze notitie kort en persoonlijk. Neem geen medische informatie van anderen op.</target></segment></unit>
-    <unit id="recoveryPause.save"><segment state="initial"><source>Save recovery pause</source><target>Herstelpauze opslaan</target></segment></unit>
-    <unit id="recoveryPause.delete"><segment state="initial"><source>Delete</source><target>Verwijderen</target></segment></unit>
-    <unit id="recoveryPause.timeline.filtered"><segment state="initial"><source>Showing the selected recovery pause.</source><target>De geselecteerde herstelpauze wordt getoond.</target></segment></unit>
-    <unit id="recoveryPause.edit"><segment state="initial"><source>Edit recovery pause</source><target>Herstelpauze bewerken</target></segment></unit>
-    <unit id="recoveryPause.private"><segment state="initial"><source>Private</source><target>Privé</target></segment></unit>
-    <unit id="recoveryPause.timeline.title"><segment state="initial"><source>Recovery pause</source><target>Herstelpauze</target></segment></unit>
-    <unit id="recoveryPause.timeline.range"><segment state="initial"><source><ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> to <ph id="1" equiv="INTERPOLATION_1" disp="{{ item.endedOnMs | systemDate: &quot;mediumDate&quot; }}"/></source><target><ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> tot <ph id="1" equiv="INTERPOLATION_1" disp="{{ item.endedOnMs | systemDate: &quot;mediumDate&quot; }}"/></target></segment></unit>
-    <unit id="recoveryPause.timeline.ongoing"><segment state="initial"><source>Started <ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> · ongoing</source><target>Gestart op <ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> · bezig</target></segment></unit>
-    <unit id="trainingLog.add"><segment state="initial"><source>Add to training log</source><target>Toevoegen aan trainingslog</target></segment></unit>
-    <unit id="recoveryPause.add"><segment state="initial"><source>Log recovery pause</source><target>Herstelpauze vastleggen</target></segment></unit>
-    <unit id="trainingContributionGraph.recovery"><segment state="initial"><source>Recovery pause</source><target>Herstelpauze</target></segment></unit>
-    <unit id="recoveryPause.validation.invalidDate"><segment state="initial"><source>Choose valid recovery dates.</source><target>Kies geldige hersteldatums.</target></segment></unit>
-    <unit id="recoveryPause.validation.futureDate"><segment state="initial"><source>Recovery dates cannot be in the future.</source><target>Hersteldatums mogen niet in de toekomst liggen.</target></segment></unit>
-    <unit id="recoveryPause.validation.endBeforeStart"><segment state="initial"><source>The recovery end date must be after the start date.</source><target>De einddatum van het herstel moet na de startdatum liggen.</target></segment></unit>
-    <unit id="recoveryPause.validation.reason"><segment state="initial"><source>Choose a recovery reason.</source><target>Kies een herstelreden.</target></segment></unit>
-    <unit id="recoveryPause.validation.noteLength"><segment state="initial"><source>Keep your private note under 500 characters.</source><target>Houd je privénotitie onder 500 tekens.</target></segment></unit>
-    <unit id="recoveryPause.validation.overlap"><segment state="initial"><source>Recovery pauses cannot overlap. End or edit the existing pause first.</source><target>Herstelpauzes mogen niet overlappen. Beëindig of bewerk eerst de bestaande pauze.</target></segment></unit>
+    <unit id="community_event.edit_heading">
+      <segment state="initial">
+        <source>Edit community event</source>
+        <target>Edit community event</target>
+      </segment>
+    </unit>
+    <unit id="community_event.plan_heading">
+      <segment state="initial">
+        <source>Plan a community event</source>
+        <target>Plan a community event</target>
+      </segment>
+    </unit>
+    <unit id="community_event.description">
+      <segment state="initial">
+        <source>Bring your local parkour community together.</source>
+        <target>Bring your local parkour community together.</target>
+      </segment>
+    </unit>
+    <unit id="community_event.updated">
+      <segment state="initial">
+        <source>Your community event is updated.</source>
+        <target>Your community event is updated.</target>
+      </segment>
+    </unit>
+    <unit id="community_event.created">
+      <segment state="initial">
+        <source>Your community event is published.</source>
+        <target>Your community event is published.</target>
+      </segment>
+    </unit>
+    <unit id="community_event.create_failed">
+      <segment state="initial">
+        <source>Couldn&apos;t publish this community event. Please try again.</source>
+        <target>Couldn&apos;t publish this community event. Please try again.</target>
+      </segment>
+    </unit>
+    <unit id="community_event.cancelled">
+      <segment state="initial">
+        <source>Your community event is cancelled.</source>
+        <target>Your community event is cancelled.</target>
+      </segment>
+    </unit>
+    <unit id="community_event.cancel_failed">
+      <segment state="initial">
+        <source>Couldn&apos;t cancel this community event. Please try again.</source>
+        <target>Couldn&apos;t cancel this community event. Please try again.</target>
+      </segment>
+    </unit>
+    <unit id="events.plan_community_event">
+      <segment state="initial">
+        <source>Plan a community event</source>
+        <target>Plan a community event</target>
+      </segment>
+    </unit>
+    <unit id="events.listing_tier_event">
+      <segment state="initial">
+        <source>Events</source>
+        <target>Events</target>
+      </segment>
+    </unit>
+    <unit id="event_listing.community">
+      <segment state="initial">
+        <source>Community event</source>
+        <target>Community event</target>
+      </segment>
+    </unit>
+    <unit id="6241445530231242277">
+      <segment state="initial">
+        <source>Sign in to plan a community event</source>
+        <target>Sign in to plan a community event</target>
+      </segment>
+    </unit>
+    <unit id="1723550153638974909">
+      <segment state="initial">
+        <source>Community events are created by verified adult community members.</source>
+        <target>Community events are created by verified adult community members.</target>
+      </segment>
+    </unit>
+    <unit id="1739404177510113816">
+      <segment state="initial">
+        <source>Your currently active server-confirmed adult assurance is required before publishing a community event.</source>
+        <target>Your currently active server-confirmed adult assurance is required before publishing a community event.</target>
+      </segment>
+    </unit>
+    <unit id="5462767174124636395">
+      <segment state="initial">
+        <source>Public community events show their organizer.</source>
+        <target>Public community events show their organizer.</target>
+      </segment>
+    </unit>
+    <unit id="4205547259664450146">
+      <segment state="initial">
+        <source>Loading community event…</source>
+        <target>Loading community event…</target>
+      </segment>
+    </unit>
+    <unit id="4299657868649430560">
+      <segment state="initial">
+        <source>Community events use RSVP attendance. Tickets, programmes, and media uploads are not part of this first release.</source>
+        <target>Community events use RSVP attendance. Tickets, programmes, and media uploads are not part of this first release.</target>
+      </segment>
+    </unit>
+    <unit id="7219162063306578420">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ editing ? &quot;Save&quot; : &quot;Publish&quot; }}"/> community event</source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="{{ editing ? &quot;Save&quot; : &quot;Publish&quot; }}"/> community event</target>
+      </segment>
+    </unit>
+    <unit id="3628985727060093047">
+      <segment state="initial">
+        <source>Off by default. This can only be chosen when the community event is first published.</source>
+        <target>Off by default. This can only be chosen when the community event is first published.</target>
+      </segment>
+    </unit>
+    <unit id="7962838458002654901">
+      <segment state="initial">
+        <source> Cancel community event </source>
+        <target> Cancel community event </target>
+      </segment>
+    </unit>
+    <unit id="3792622364508901777">
+      <segment state="initial">
+        <source>Send an Event to PK Spot staff for review. It will not be published from this form.</source>
+        <target>Send an Event to PK Spot staff for review. It will not be published from this form.</target>
+      </segment>
+    </unit>
+    <unit id="552004881794875858">
+      <segment state="initial">
+        <source>Community event</source>
+        <target>Community event</target>
+      </segment>
+    </unit>
+    <unit id="2008167069818962786">
+      <segment state="initial">
+        <source>Checking Event authoring access…</source>
+        <target>Checking Event authoring access…</target>
+      </segment>
+    </unit>
+    <unit id="bounds_picker.inline_spot_area_hint">
+      <segment state="initial">
+        <source> Click the map to place this temporary Spot’s area. You can then drag the area or its points to refine it. </source>
+        <target> Klik op de kaart om het gebied van deze tijdelijke Spot te plaatsen. Daarna kun je het gebied of de punten verslepen om het aan te passen. </target>
+      </segment>
+    </unit>
+    <unit id="bounds_picker.legend">
+      <segment state="initial">
+        <source> S = event Spot · M = custom marker · T = temporary event Spot. Drag M and T markers directly on the map. </source>
+        <target> S = evenementen-Spot · M = aangepaste markering · T = tijdelijke evenementen-Spot. Sleep M- en T-markeringen rechtstreeks op de kaart. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.map_heading">
+      <segment state="initial">
+        <source> Event Map </source>
+        <target> Evenementkaart </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.map_heading_hint">
+      <segment state="initial">
+        <source> Set the event area and main location, then add the Spots and markers people need on the day. </source>
+        <target> Stel het evenementgebied en de hoofdlocatie in en voeg daarna de Spots en markeringen toe die mensen op de dag zelf nodig hebben. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_map_hint">
+      <segment state="initial">
+        <source> Drag this temporary Spot’s T marker in the map above to place it. Its area is optional. </source>
+        <target> Sleep de T-markering van deze tijdelijke Spot op de kaart hierboven om hem te plaatsen. Het gebied is optioneel. </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_draw_area">
+      <segment state="initial">
+        <source> Draw area on map </source>
+        <target> Gebied op kaart tekenen </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.temporary_spot_clear_area">
+      <segment state="initial">
+        <source> Clear map area </source>
+        <target> Kaartgebied wissen </target>
+      </segment>
+    </unit>
+    <unit id="event_edit.custom_markers_map_hint">
+      <segment state="initial">
+        <source> Add a marker, then drag its M pin in the Event Map to place it. Coordinate fields remain available for precise corrections. </source>
+        <target> Voeg een markering toe en sleep daarna de M-pin op de evenementkaart om hem te plaatsen. Coördinatenvelden blijven beschikbaar voor nauwkeurige correcties. </target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.saveError">
+      <segment state="initial">
+        <source>Could not save this recovery pause.</source>
+        <target>Deze herstelpauze kon niet worden opgeslagen.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.deleteConfirm">
+      <segment state="initial">
+        <source>Delete this recovery pause?</source>
+        <target>Deze herstelpauze verwijderen?</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.deleteError">
+      <segment state="initial">
+        <source>Could not delete this recovery pause.</source>
+        <target>Deze herstelpauze kon niet worden verwijderd.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.reason.illness">
+      <segment state="initial">
+        <source>Illness</source>
+        <target>Ziekte</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.reason.personalBreak">
+      <segment state="initial">
+        <source>Personal break</source>
+        <target>Persoonlijke pauze</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.reason.other">
+      <segment state="initial">
+        <source>Other</source>
+        <target>Overig</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.reason.injury">
+      <segment state="initial">
+        <source>Injury</source>
+        <target>Blessure</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.close">
+      <segment state="initial">
+        <source>Close recovery pause</source>
+        <target>Herstelpauze sluiten</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.eyebrow">
+      <segment state="initial">
+        <source>Your training history</source>
+        <target>Je trainingsgeschiedenis</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.title">
+      <segment state="initial">
+        <source>Recovery pause</source>
+        <target>Herstelpauze</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.intro">
+      <segment state="initial">
+        <source>Save private context for time away from training. It is never shared or sent as a notification.</source>
+        <target>Sla privécontext op voor tijd weg van training. Deze wordt nooit gedeeld of als melding verstuurd.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.startDate">
+      <segment state="initial">
+        <source>Start date</source>
+        <target>Startdatum</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.endDate">
+      <segment state="initial">
+        <source>End date</source>
+        <target>Einddatum</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.endDateHint">
+      <segment state="initial">
+        <source>Leave empty while recovery is ongoing.</source>
+        <target>Laat leeg zolang het herstel nog bezig is.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.reason">
+      <segment state="initial">
+        <source>Reason</source>
+        <target>Reden</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.note">
+      <segment state="initial">
+        <source>Private note (optional)</source>
+        <target>Privénotitie (optioneel)</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.noteHint">
+      <segment state="initial">
+        <source>Keep this short and personal. Do not include anyone else&apos;s medical information.</source>
+        <target>Houd deze notitie kort en persoonlijk. Neem geen medische informatie van anderen op.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.save">
+      <segment state="initial">
+        <source>Save recovery pause</source>
+        <target>Herstelpauze opslaan</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.delete">
+      <segment state="initial">
+        <source>Delete</source>
+        <target>Verwijderen</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.timeline.filtered">
+      <segment state="initial">
+        <source>Showing the selected recovery pause.</source>
+        <target>De geselecteerde herstelpauze wordt getoond.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.edit">
+      <segment state="initial">
+        <source>Edit recovery pause</source>
+        <target>Herstelpauze bewerken</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.private">
+      <segment state="initial">
+        <source>Private</source>
+        <target>Privé</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.timeline.title">
+      <segment state="initial">
+        <source>Recovery pause</source>
+        <target>Herstelpauze</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.timeline.range">
+      <segment state="initial">
+        <source><ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> to <ph id="1" equiv="INTERPOLATION_1" disp="{{ item.endedOnMs | systemDate: &quot;mediumDate&quot; }}"/></source>
+        <target><ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> tot <ph id="1" equiv="INTERPOLATION_1" disp="{{ item.endedOnMs | systemDate: &quot;mediumDate&quot; }}"/></target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.timeline.ongoing">
+      <segment state="initial">
+        <source>Started <ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> · ongoing</source>
+        <target>Gestart op <ph id="0" equiv="INTERPOLATION" disp="{{ item.startedOnMs | systemDate: &quot;mediumDate&quot; }}"/> · bezig</target>
+      </segment>
+    </unit>
+    <unit id="trainingLog.add">
+      <segment state="initial">
+        <source>Add to training log</source>
+        <target>Toevoegen aan trainingslog</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.add">
+      <segment state="initial">
+        <source>Log recovery pause</source>
+        <target>Herstelpauze vastleggen</target>
+      </segment>
+    </unit>
+    <unit id="trainingContributionGraph.recovery">
+      <segment state="initial">
+        <source>Recovery pause</source>
+        <target>Herstelpauze</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.validation.invalidDate">
+      <segment state="initial">
+        <source>Choose valid recovery dates.</source>
+        <target>Kies geldige hersteldatums.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.validation.futureDate">
+      <segment state="initial">
+        <source>Recovery dates cannot be in the future.</source>
+        <target>Hersteldatums mogen niet in de toekomst liggen.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.validation.endBeforeStart">
+      <segment state="initial">
+        <source>The recovery end date must be after the start date.</source>
+        <target>De einddatum van het herstel moet na de startdatum liggen.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.validation.reason">
+      <segment state="initial">
+        <source>Choose a recovery reason.</source>
+        <target>Kies een herstelreden.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.validation.noteLength">
+      <segment state="initial">
+        <source>Keep your private note under 500 characters.</source>
+        <target>Houd je privénotitie onder 500 tekens.</target>
+      </segment>
+    </unit>
+    <unit id="recoveryPause.validation.overlap">
+      <segment state="initial">
+        <source>Recovery pauses cannot overlap. End or edit the existing pause first.</source>
+        <target>Herstelpauzes mogen niet overlappen. Beëindig of bewerk eerst de bestaande pauze.</target>
+      </segment>
+    </unit>
     <unit id="trainingLog.loadError">
       <segment state="initial">
         <source>Your training log could not be loaded.</source>

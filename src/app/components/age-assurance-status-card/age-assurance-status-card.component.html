@@ -22,6 +22,15 @@
       {{ statusText() }}
     </p>
 
+    @if (!ageAssurance.hasVerifiedAdultEligibility()) {
+      <div class="age-assurance-card__actions">
+        <button matButton="filled" type="button" (click)="openVerification()">
+          <mat-icon>verified_user</mat-icon>
+          <span i18n>Verify my age</span>
+        </button>
+      </div>
+    }
+
     @if (isNativeAgeAssuranceApp) {
       <div class="age-assurance-card__actions">
         <button
