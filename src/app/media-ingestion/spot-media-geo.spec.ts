@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  averageSpotPhotoCoordinates,
   BOUNDS_MATCH_RADIUS_METERS,
   POINT_MATCH_RADIUS_METERS,
   distanceMeters,
@@ -50,6 +51,13 @@ describe("spot media matching", () => {
     expect(rankSpotMediaCandidates(point, [{ id: "crossing", bounds }])).toHaveLength(1);
   });
 
+  it("suggests averaged coordinates, including across the date line", () => {
+    expect(averageSpotPhotoCoordinates([{ lat: 47, lng: 8 }, { lat: 47.0002, lng: 8.0002 }]).lat)
+      .toBeCloseTo(47.0001);
+    expect(Math.abs(averageSpotPhotoCoordinates([{ lat: 0, lng: 179.999 }, { lat: 0, lng: -179.999 }]).lng))
+      .toBeCloseTo(180);
+  });
+
   it("ignores invalid coordinates instead of matching or looping over them", () => {
     expect(rankSpotMediaCandidates(origin, [{ id: "invalid", bounds: [
       { lat: 0, lng: Infinity }, { lat: 1, lng: 0 }, { lat: 0, lng: 1 },
@@ -58,7 +66,7 @@ describe("spot media matching", () => {
       .toEqual([]);
   });
 
-  it("groups conservatively around a medoid instead of transitive chains", () => {
+  it("groups conservatively around an average instead of transitive chains", () => {
     const latitude = 51.05;
     const metresToDegrees = (metres: number) => metres / 111_000;
     const groups = groupSpotMediaCoordinates([

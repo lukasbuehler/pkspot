@@ -1173,6 +1173,11 @@ No gallery-sharing feature is ready to release from this foundation alone.
 
 - [ ] Implement the direct photos-only flow: share/select photos, confirm suggested
       Spot groups, upload, and show retry/cancel/progress without a draft inbox.
+      Use photo EXIF/shared metadata, never the device's current location as the
+      photo location. Individual photo coordinates and capture times stay local;
+      fetch candidate Spot data without sending exact photo positions. For new
+      Spots, suggest the local group average and let the user drag the pin; only
+      the confirmed Spot location is submitted through normal Spot creation.
       Reuse the shared Spot picker in the Angular app. Locationless photos require
       explicit assignment. Keep user-uploaded Spot videos out of this feature.
 - [ ] Port Android image-only share intents and iOS Share Extension after the

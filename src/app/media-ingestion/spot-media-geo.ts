@@ -172,18 +172,18 @@ export interface SpotMediaCoordinateGroup {
   assetIds: string[];
 }
 
-function medoid(points: SpotMediaCoordinate[]): SpotMediaCoordinate {
-  return points.reduce((best, candidate) => {
-    const candidateTotal = points.reduce(
-      (total, point) => total + distanceMeters(candidate, point),
-      0,
-    );
-    const bestTotal = points.reduce(
-      (total, point) => total + distanceMeters(best, point),
-      0,
-    );
-    return candidateTotal < bestTotal ? candidate : best;
-  });
+/** Average nearby photo coordinates locally; handle groups crossing the date line. */
+export function averageSpotPhotoCoordinates(points: readonly SpotMediaCoordinate[]): SpotMediaCoordinate {
+  if (!points.length || points.some((point) => !isCoordinate(point))) {
+    throw new Error("Photo coordinates are missing or invalid");
+  }
+  const origin = points[0].lng;
+  const lat = points.reduce((sum, point) => sum + point.lat, 0) / points.length;
+  const longitude = points.reduce((sum, point) => {
+    const delta = ((point.lng - origin + 540) % 360) - 180;
+    return sum + origin + delta;
+  }, 0) / points.length;
+  return { lat, lng: ((longitude + 540) % 360) - 180 };
 }
 
 /** Deterministic, conservative grouping for assets without an existing Spot. */
@@ -194,7 +194,7 @@ export function groupSpotMediaCoordinates(
   for (const asset of assets.filter((item) => isCoordinate(item.coordinate)).sort((a, b) => a.id.localeCompare(b.id))) {
     const group = groups.find((candidate) => {
       const proposed = [...candidate, asset];
-      const center = medoid(proposed.map((item) => item.coordinate));
+      const center = averageSpotPhotoCoordinates(proposed.map((item) => item.coordinate));
       return proposed.every(
         (item) =>
           distanceMeters(center, item.coordinate) <= PROPOSED_GROUP_RADIUS_METERS,
@@ -204,7 +204,7 @@ export function groupSpotMediaCoordinates(
     else groups.push([asset]);
   }
   return groups.map((group, index) => {
-    const coordinate = medoid(group.map((item) => item.coordinate));
+    const coordinate = averageSpotPhotoCoordinates(group.map((item) => item.coordinate));
     return {
       id: `proposal-${index + 1}`,
       coordinate,
