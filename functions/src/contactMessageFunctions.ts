@@ -28,6 +28,7 @@ export const onContactMessageCreate = onDocumentCreated(
   {
     document: "contact_messages/{messageId}",
     secrets: [discordContactWebhookUrl],
+    retry: true,
   },
   async (event) => {
     const messageId = event.params.messageId;
@@ -43,7 +44,7 @@ export const onContactMessageCreate = onDocumentCreated(
       logger.error(
         "DISCORD_CONTACT_WEBHOOK_URL secret not set. Set it with: firebase functions:secrets:set DISCORD_CONTACT_WEBHOOK_URL"
       );
-      return;
+      throw new Error("Contact Discord webhook is not configured");
     }
 
     const userLabel = messageData.user
@@ -73,7 +74,7 @@ export const onContactMessageCreate = onDocumentCreated(
         },
         {
           name: "User",
-          value: userLabel,
+          value: truncateDiscordField(userLabel),
           inline: false,
         },
         ...(messageData.auth_email
@@ -143,19 +144,17 @@ export const onContactMessageCreate = onDocumentCreated(
 
     const response = await fetch(webhookUrl, {
       method: "POST",
+      signal: AbortSignal.timeout(15_000),
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         content: null,
+        allowed_mentions: { parse: [] },
         embeds: [embed],
       }),
     });
 
     if (!response.ok) {
-      logger.error(
-        `Discord contact webhook failed with status ${response.status}:`,
-        await response.text()
-      );
-      return;
+      throw new Error(`Discord contact webhook failed with status ${response.status}`);
     }
 
     logger.info(`Discord notification sent for contact message ${messageId}`);
@@ -163,6 +162,7 @@ export const onContactMessageCreate = onDocumentCreated(
 );
 
 function truncateDiscordField(value: string, maxLength = 1000): string {
+  if (!value) return "Not provided";
   if (value.length <= maxLength) {
     return value;
   }

@@ -111,7 +111,7 @@ Keep changes small and focused where possible. For code changes, prefer existing
 ### Bug reports
 
 For bug reports, please open an issue in this GitHub repository.
-You can also reach out on Instagram, Discord, or by email at [contact@lukasbuehler.ch](mailto:contact@lukasbuehler.ch).
+You can also reach out on Instagram, Discord, or by email at [support@pkspot.app](mailto:support@pkspot.app).
 
 ### Feature requests
 

@@ -101,6 +101,28 @@ compatibility behavior remains to be tracked.
 - [ ] Audit the unclassified log entries: the supplied buckets account for 83 of
       the reported 99 errors, leaving 16 not explained by this breakdown.
 
+### Contact delivery and support address
+
+Public contact links now use `support@pkspot.app`. The Discord trigger retries
+failed requests; a separate Resend email trigger is implemented locally and has
+not been deployed or tested with real mail. Messages remain in the private inbox.
+
+- [ ] Confirm the support mailbox exists and select the sending provider. The
+      current email implementation uses Resend; verify `pkspot.app` in that
+      account and configure its required DNS records without replacing existing
+      SPF senders. Store the API key as `CONTACT_RESEND_API_KEY` in Firebase
+      Secrets. If the existing mailbox SMTP service is preferred, adapt the
+      transport before deploying the email trigger.
+- [ ] Deploy `onContactMessageEmailCreate` after provider setup and separately
+      deploy the retry fix for `onContactMessageCreate` with a valid
+      `DISCORD_CONTACT_WEBHOOK_URL`. Submit an authorized test message and verify
+      receipt at support, Reply-To behavior, and retry/idempotency. Neither the
+      return screen nor a Firestore write alone proves notification delivery.
+- [ ] Check `contact_email_delivery` for `needs_review` after delivery outages.
+      Automatic email delivery stops after 23 hours to avoid resending beyond
+      the provider's idempotency window. Existing messages need a deliberate,
+      separately authorized replay; deploying a creation trigger does not backfill.
+
 ### Private recovery pauses
 
 - [ ] Following the maintainer-reported rules deployment on 2026-09-07,

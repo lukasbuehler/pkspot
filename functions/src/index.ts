@@ -181,6 +181,7 @@ export {
 
 // contact message functions
 export { onContactMessageCreate } from "./contactMessageFunctions";
+export { onContactMessageEmailCreate } from "./contactEmailFunctions";
 
 // spot report functions
 export {
