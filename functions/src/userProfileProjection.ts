@@ -65,7 +65,7 @@ export const hasVerifiedAdultEligibility = (
     lower >= 18 &&
     isRecord(assurance) &&
     assurance["status"] === "active" &&
-    assurance["client_integrity"] === "play_integrity_request_bound"
+    (assurance["client_integrity"] === "play_integrity_request_bound" || assurance["client_integrity"] === "apple_app_attest_request_bound")
   );
 };
 

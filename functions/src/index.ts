@@ -301,3 +301,5 @@ export {
   onCommunitySpotRecommendationWrite,
   sendCommunitySpotDigests,
 } from "./communityNotificationFunctions";
+
+export {beginAppleAgeAssurance, finishAppleAgeAssurance} from "./appleAgeAssuranceFunctions";

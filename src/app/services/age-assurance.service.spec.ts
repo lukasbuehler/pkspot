@@ -31,6 +31,8 @@ const nativeState = vi.hoisted(() => ({
   } as PlatformAgeSignal,
   getAgeSignal: vi.fn(),
   getBoundAgeSignal: vi.fn(),
+  getAppleAttestKey: vi.fn(),
+  getBoundAppleAgeSignal: vi.fn(),
   openPlayStoreListing: vi.fn(),
 }));
 
@@ -41,6 +43,8 @@ vi.mock("@capacitor/core", () => ({
   },
   registerPlugin: vi.fn(() => ({
     getAgeSignal: nativeState.getAgeSignal,
+    getAppleAttestKey: nativeState.getAppleAttestKey,
+    getBoundAppleAgeSignal: nativeState.getBoundAppleAgeSignal,
     getBoundAgeSignal: nativeState.getBoundAgeSignal,
     openPlayStoreListing: nativeState.openPlayStoreListing,
   })),
@@ -69,12 +73,16 @@ describe("AgeAssuranceService", () => {
       signal: nativeState.ageSignal,
       integrityToken: "integrity-token",
     });
+    nativeState.getAppleAttestKey.mockResolvedValue({ keyId: "apple-key" });
+    nativeState.getBoundAppleAgeSignal.mockImplementation(async () => ({
+      signal: await nativeState.getAgeSignal(), keyId: "apple-key", payload: "bound-payload", proof: "proof",
+    }));
     nativeState.openPlayStoreListing.mockResolvedValue(undefined);
     functionsAdapter = {
       callAuthenticatedAppChecked: vi
         .fn()
         .mockImplementation((name: string) =>
-          name === "beginAgeAssuranceV3"
+          (name === "beginAgeAssuranceV3" || name === "beginAppleAgeAssurance")
             ? Promise.resolve({
                 challenge_id: "challenge-1",
                 challenge_nonce: "nonce-1",
@@ -182,13 +190,8 @@ describe("AgeAssuranceService", () => {
 
     expect(nativeState.getAgeSignal).toHaveBeenCalledOnce();
     expect(functionsAdapter.callAuthenticatedAppChecked).toHaveBeenCalledWith(
-      "updateAgePolicyV2",
-      expect.objectContaining({
-        signal: expect.objectContaining({
-          platform: "ios",
-          source: "ios_declared_age_range",
-        }),
-      }),
+      "finishAppleAgeAssurance",
+      { key_id: "apple-key", payload: "bound-payload", proof: "proof" },
     );
   });
 
@@ -333,7 +336,7 @@ describe("AgeAssuranceService", () => {
   it("uses the server-confirmed result for immediate adult eligibility", async () => {
     functionsAdapter.callAuthenticatedAppChecked.mockImplementation(
       (name: string) =>
-        name === "beginAgeAssuranceV3"
+        (name === "beginAgeAssuranceV3" || name === "beginAppleAgeAssurance")
           ? Promise.resolve({
               challenge_id: "challenge-1",
               challenge_nonce: "nonce-1",

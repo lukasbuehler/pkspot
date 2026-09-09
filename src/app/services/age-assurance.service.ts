@@ -18,6 +18,10 @@ import { environment } from "../../environments/environment.default";
 
 interface AgeAssurancePlugin {
   getAgeSignal(): Promise<PlatformAgeSignal>;
+  getAppleAttestKey(input: { uid: string }): Promise<{ keyId: string }>;
+  getBoundAppleAgeSignal(input: { uid: string; challengeId: string; challengeNonce: string; keyRegistered: boolean }): Promise<{
+    signal: PlatformAgeSignal; keyId: string; payload: string; proof: string;
+  }>;
   getBoundAgeSignal(input: {
     uid: string;
     challengeId: string;
@@ -248,10 +252,22 @@ export class AgeAssuranceService {
     const synced =
       platform === "android"
         ? await this._syncRequestBoundAndroidPolicy(uid)
-        : await this._syncUnboundCompatibilityPolicy(
-            await NativeAgeAssurance.getAgeSignal(),
-          );
+        : await this._syncRequestBoundApplePolicy(uid);
     return this._checkStateForResult(uid, platform, synced);
+  }
+
+  private async _syncRequestBoundApplePolicy(uid: string): Promise<SyncedAgePolicy> {
+    const key = await NativeAgeAssurance.getAppleAttestKey({ uid });
+    const challenge = await this._functionsAdapter.callAuthenticatedAppChecked<
+      { key_id: string }, { challenge_id: string; challenge_nonce: string; key_registered: boolean }
+    >("beginAppleAgeAssurance", { key_id: key.keyId });
+    const bound = await NativeAgeAssurance.getBoundAppleAgeSignal({ uid,
+      challengeId: challenge.challenge_id, challengeNonce: challenge.challenge_nonce,
+      keyRegistered: challenge.key_registered });
+    const response = await this._functionsAdapter.callAuthenticatedAppChecked<
+      { key_id: string; payload: string; proof: string }, UpdateAgePolicyResponse
+    >("finishAppleAgeAssurance", { key_id: bound.keyId, payload: bound.payload, proof: bound.proof });
+    return { signal: bound.signal, response };
   }
 
   private async _syncRequestBoundAndroidPolicy(
@@ -330,8 +346,7 @@ export class AgeAssuranceService {
       assurance?.status === "active" && typeof assurance.approval_basis === "string" &&
       (assurance.client_integrity === "play_integrity_request_bound" ||
         assurance.client_integrity === "server_to_server_oidc" ||
-        (assurance.client_integrity === "firebase_app_check" &&
-          assurance.method?.provider === "apple" && strongEvidence));
+        (assurance.client_integrity === "apple_app_attest_request_bound" && strongEvidence));
   }
 
   adultEvidenceStrength(): AgeEvidenceStrength {

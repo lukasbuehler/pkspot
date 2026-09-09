@@ -1316,6 +1316,25 @@ async function testPublicUserProfileGuards(
       public_search: true,
     })
   );
+  await adminDb.doc("users/adult").update({
+    "age_policy.assurance.client_integrity": "firebase_app_check",
+    "age_policy.assurance.method": { provider: "apple" },
+  });
+  await assertDenied("unbound Apple relay cannot enable a public profile", () =>
+    updateDoc(doc(adult.db, "users/adult"), { public_profile_enabled: true })
+  );
+  await adminDb.doc("users/adult").update({
+    "age_policy.assurance.client_integrity": "apple_app_attest_request_bound",
+  });
+  await assertAllowed("bound Apple approval can enable a public profile", () =>
+    updateDoc(doc(adult.db, "users/adult"), { public_profile_enabled: true })
+  );
+  await assertDenied("owner cannot inject an Apple attestation key", () =>
+    setDoc(doc(adult.db, "users/adult/apple_age_keys/forged"), { public_key: "forged", counter: 0 })
+  );
+  await adminDb.doc("users/adult").update({
+    "age_policy.assurance.client_integrity": "play_integrity_request_bound",
+  });
   await assertDenied("user without verified adult eligibility cannot enable public profile", () =>
     updateDoc(doc(restricted.db, "users/restricted"), {
       public_profile_enabled: true,

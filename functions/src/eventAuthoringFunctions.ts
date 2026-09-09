@@ -152,7 +152,7 @@ const hasVerifiedAdultEvidence = (user: UserSchema): boolean => {
     policy?.adult_eligibility === "verified" &&
     (policy.age_range?.lower ?? -1) >= 18 &&
     policy.assurance?.status === "active" &&
-    policy.assurance.client_integrity === "play_integrity_request_bound" &&
+    (policy.assurance.client_integrity === "play_integrity_request_bound" || policy.assurance.client_integrity === "apple_app_attest_request_bound") &&
     typeof policy.assurance.approval_basis === "string" &&
     policy.assurance.approval_basis.length > 0
   );

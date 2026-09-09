@@ -873,12 +873,7 @@ service cloud.firestore {
             && request.resource.data.get('age_policy', {}).get('assurance', {}).get('status', '') == 'active'
             && request.resource.data.get('age_policy', {}).get('assurance', {}).get('approval_basis', '') is string
             && (
-              request.resource.data.get('age_policy', {}).get('assurance', {}).get('client_integrity', '') in ['play_integrity_request_bound', 'server_to_server_oidc']
-              || (
-                request.resource.data.get('age_policy', {}).get('assurance', {}).get('client_integrity', '') == 'firebase_app_check'
-                && request.resource.data.get('age_policy', {}).get('assurance', {}).get('method', {}).get('provider', '') == 'apple'
-                && request.resource.data.get('age_policy', {}).get('assurance', {}).get('evidence_strength', '') in ['independently_checked', 'verified_identity']
-              )
+              request.resource.data.get('age_policy', {}).get('assurance', {}).get('client_integrity', '') in ['play_integrity_request_bound', 'apple_app_attest_request_bound', 'server_to_server_oidc']
             )
           )
         )

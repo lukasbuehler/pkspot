@@ -160,9 +160,8 @@ const NATIVE_APP_IDS = {
 
 /**
  * Compatibility endpoint for native platform signals. Android remains
- * restriction-only unless it uses the request-bound v3 flow. Apple's Declared
- * Age Range has no server-verifiable response binding, so an eligible Apple
- * result is explicitly marked as an App-Check-protected client relay.
+ * restriction-only unless it uses the request-bound v3 flow. Unbound Apple
+ * responses also cannot grant adulthood; the App Attest flow binds age fields.
  */
 export const updateAgePolicyV2 = onCall(
   { enforceAppCheck: true },
@@ -193,7 +192,6 @@ export const updateAgePolicyV2 = onCall(
       signalVersion: 2,
       clientIntegrity: "firebase_app_check",
       cryptographicallyBound: false,
-      allowStrongClientRelay: signal.platform === "ios",
     });
     const evaluatedAt = admin.firestore.Timestamp.now();
     const verificationId = randomUUID();

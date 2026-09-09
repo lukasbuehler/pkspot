@@ -988,10 +988,11 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
       Tier C fixtures, preview the basis, apply the invalidation, and confirm
       adult eligibility, public profile opt-in, and public search are disabled
       while `age_assurance_records` retains the historical decision.
-- [ ] Release blocker for the local multi-provider verification checkpoint: do not
-      deploy the changed age-policy Functions/rules until the Apple client-relay
-      acceptance decision is resolved. App Check does not authenticate the supplied
-      age fields. Restore fail-closed behavior or implement approved payload binding.
+- [ ] Apple request binding is implemented locally; `APPLE_BOUND_AGE_ENABLED`
+      defaults to false. The compatibility endpoint and profile rules now reject
+      unbound Apple approvals. Before enabling, verify real App Attest registration
+      and assertions from a signed iOS build against a non-production backend;
+      malformed-payload and synthetic-signature unit tests are not device evidence.
 - [ ] Before enabling OneID, require ID-token/UserInfo subject equality; preserve
       existing participation restrictions and valid independent evidence across
       inconclusive checks; align event authoring/profile projections with the approved
@@ -1026,17 +1027,25 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
       run the iPad app on an Apple Silicon Mac with macOS 26+ where Apple exposes
       the API. Record whether the iPad compatibility runtime presents the system
       request; do not treat it as a native macOS target.
-- [ ] Review the Apple residual limitation before release: Firebase App Check
-      attests the PK Spot installation, but Apple does not expose a
-      server-cryptographically-bound Declared Age Range response in this flow.
-      PK Spot therefore records `client_relay_not_cryptographically_bound` and
-      accepts only active 18+ independently checked or identity-checked Apple
-      declarations. If this assurance level is not acceptable after device
-      testing, invalidate the `apple:platform_age_signal:*:app_check_client_relay:v1`
-      approval bases before enabling the client action.
+- [ ] For Apple request binding, enable the App Attest capability and regenerate
+      provisioning profiles. Both the manual age assertion and Firebase App Check
+      remain required. The verifier pins team `WJ3MX3Y7U8`, bundle `com.pkspot.app`,
+      and production App Attest attestations; simulator/debug proofs are not accepted.
+      Verify these values against the signed target before deployment.
+- [ ] Deploy `beginAppleAgeAssurance`, `finishAppleAgeAssurance`, `updateAgePolicyV2`,
+      `cleanupAgeAssuranceChallenges`, `cleanupOnUserDelete`, the affected profile/
+      Event consumers, and Firestore rules in the test project first. Enable
+      `APPLE_BOUND_AGE_ENABLED` only there for signed-device tests. Cover first key
+      registration, subsequent assertions, expired/replayed/tampered challenges,
+      account switching, concurrent counters, reinstall, declined sharing, and
+      weak declarations. Confirm no unbound endpoint grants adulthood and account
+      deletion removes `apple_age_keys` and its pending challenge. Review the
+      `node-app-attest` verifier with a real Apple attestation before production.
+      Bindings authenticate the native request, not an Apple-signed age certificate;
+      approval still depends on the declaration method and separately approved policy.
 - [ ] Run a non-production invalidation for each new basis, including
       `oneid:financial_attribute:age_check:server_to_server_oidc:v1`, and any
-      Apple basis actually returned by device testing. Confirm adult eligibility,
+      Apple request-bound basis actually returned by device testing. Confirm adult eligibility,
       public-profile opt-in, and public search are disabled while historical
       `age_assurance_records` remain available only to administrators.
 

@@ -101,6 +101,7 @@ export interface UserAgePolicySchema {
       | "unverified_client"
       | "firebase_app_check"
       | "play_integrity_request_bound"
+      | "apple_app_attest_request_bound"
       | "server_to_server_oidc";
     app_id?: string;
     verification_id?: string;
