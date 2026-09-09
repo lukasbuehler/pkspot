@@ -970,11 +970,57 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
       Tier C fixtures, preview the basis, apply the invalidation, and confirm
       adult eligibility, public profile opt-in, and public search are disabled
       while `age_assurance_records` retains the historical decision.
-- [ ] Before adding browser age-assurance providers, require a signed or
-      backend-to-backend provider result rather than accepting a client-asserted
-      outcome. Map it into the existing PK Spot age bands, confidence classes,
-      method categories, provider method, policy basis, verification timestamp,
-      and audit record without storing unnecessary identity data.
+- [ ] Release blocker for the local multi-provider verification checkpoint: do not
+      deploy the changed age-policy Functions/rules until the Apple client-relay
+      acceptance decision is resolved. App Check does not authenticate the supplied
+      age fields. Restore fail-closed behavior or implement approved payload binding.
+- [ ] Before enabling OneID, require ID-token/UserInfo subject equality; preserve
+      existing participation restrictions and valid independent evidence across
+      inconclusive checks; align event authoring/profile projections with the approved
+      provider policy; validate actual evidence-method strength; and add callback
+      security/recovery/rate-limit tests. The current disabled-by-default implementation
+      is an unfinished foundation, not production-ready verification.
+- [ ] Configure OneID in its sandbox before enabling the fallback: create an
+      Age Check/Age Verification OIDC client with only `openid age_over_18
+      product:age_check` scopes, register the exact HTTPS
+      `oneIdAgeVerificationCallback` URL, and confirm its returned userinfo has
+      only `sub` and `age_over_18` for this journey. Do not enable any profile,
+      DOB, address, contact, identity, document, selfie, bank-account, or
+      mobile-number scope. Set `ONEID_AGE_VERIFICATION_ENABLED=false` until a
+      sandbox callback has passed.
+- [ ] Store `ONEID_CLIENT_SECRET` as a Firebase Functions secret. Set
+      `ONEID_CLIENT_ID`, `ONEID_REDIRECT_URI`, and `ONEID_ENVIRONMENT=sandbox`
+      as server-side Function parameters only; never put any of them in Angular
+      environments, Firestore, logs, or source control. Deploy the Functions
+      before a client release, then repeat the sandbox flow with a test account.
+      Success condition: a signed OIDC ID token, matching issuer/audience/nonce,
+      one-time PKCE code, matching opaque state, and authoritative userinfo
+      result are required; the redirect by itself changes nothing.
+- [ ] Verify the OneID callback rejects unknown, expired, owned-by-another,
+      mismatched-state, mismatched-nonce, replayed, duplicate, invalid-signature,
+      and failed-token-exchange responses. Confirm a duplicate completed callback
+      is idempotent, the attempt consumes its temporary verifier/nonce, and the
+      audit record stores only the 18+ outcome and hashed opaque transaction
+      reference—not provider identity data.
+- [ ] Test Apple Declared Age Range on an entitled signed iPhone/iPad running
+      iOS/iPadOS 26+. Check decline, unavailable API, weak/self-declared,
+      guardian, independently checked, and 18+ strong outcomes. Then explicitly
+      run the iPad app on an Apple Silicon Mac with macOS 26+ where Apple exposes
+      the API. Record whether the iPad compatibility runtime presents the system
+      request; do not treat it as a native macOS target.
+- [ ] Review the Apple residual limitation before release: Firebase App Check
+      attests the PK Spot installation, but Apple does not expose a
+      server-cryptographically-bound Declared Age Range response in this flow.
+      PK Spot therefore records `client_relay_not_cryptographically_bound` and
+      accepts only active 18+ independently checked or identity-checked Apple
+      declarations. If this assurance level is not acceptable after device
+      testing, invalidate the `apple:platform_age_signal:*:app_check_client_relay:v1`
+      approval bases before enabling the client action.
+- [ ] Run a non-production invalidation for each new basis, including
+      `oneid:financial_attribute:age_check:server_to_server_oidc:v1`, and any
+      Apple basis actually returned by device testing. Confirm adult eligibility,
+      public-profile opt-in, and public search are disabled while historical
+      `age_assurance_records` remain available only to administrators.
 
 ### Online-safety operational readiness
 

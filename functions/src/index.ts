@@ -243,6 +243,12 @@ export {
   updateAgePolicyV3,
 } from "./ageAssuranceFunctions";
 export {
+  beginExternalAgeVerification,
+  cleanupExternalAgeVerificationAttempts,
+  externalAgeVerificationAvailability,
+  oneIdAgeVerificationCallback,
+} from "./externalAgeVerificationFunctions";
+export {
   activateUserProfilePrivacyCutover,
   backfillPublicUserProfiles,
   getUserProfile,

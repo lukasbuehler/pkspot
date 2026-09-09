@@ -208,8 +208,9 @@ supported.
 
 ### Client-visible callables
 
-The shipped app currently calls: `getWeather`, `getOsmAmenityTile`,
-`resolveMapShortLink`, `beginAgeAssuranceV3`, `updateAgePolicyV3`, legacy
+The current source calls (deployment must be verified separately): `getWeather`, `getOsmAmenityTile`,
+`resolveMapShortLink`, `beginAgeAssuranceV3`, `updateAgePolicyV3`,
+`externalAgeVerificationAvailability`, `beginExternalAgeVerification`, legacy
 `updateAgePolicyV2`, `getUserProfile`, `getPublicImportProvenance`, event
 registration/ownership/live-update callables, community edit/merge callables,
 Spot creation/edit/duplicate callables, notification migration/actions, media
@@ -498,10 +499,18 @@ distributed counters. Their cost grows linearly with the relationship count.
 Age-policy callables read the authenticated user and platform signal/evidence
 documents, then write `users.age_policy` plus short-lived challenge/evidence
 state as applicable. The v3 flow keeps ranges/evidence strength, not exact
-birthdays, in the product model. `cleanupAgeAssuranceChallenges` deletes expired
-challenge documents; `invalidateAgeAssuranceApprovals` is an admin dry-run/apply
-maintenance path. Legacy `updateAgePolicy` and `updateAgePolicyV2` remain exported
-for released-client compatibility.
+birthdays, in the product model. The OneID implementation is an unreleased,
+disabled-by-default foundation with unresolved review blockers tracked in
+`DEPLOYMENT_TASKS.md`; this description is not evidence of production readiness.
+The optional OneID boundary creates a private,
+single-use attempt bound to the Firebase UID and sends only opaque state to
+OneID. Its HTTPS callback validates OIDC issuer/audience/nonce and PKCE, obtains
+the authoritative `age_over_18` result server-to-server, and stores only the
+outcome, policy metadata, and a hashed transaction reference. A browser redirect
+cannot grant access. `cleanupAgeAssuranceChallenges` deletes expired challenge
+documents; `invalidateAgeAssuranceApprovals` is an admin dry-run/apply maintenance
+path. Legacy `updateAgePolicy` and `updateAgePolicyV2` remain exported for
+released-client compatibility.
 
 ## 9. Media Storage pipeline
 
@@ -972,6 +981,10 @@ Source modules: [`spotReportFunctions.ts`](functions/src/spotReportFunctions.ts)
 | `updateAgePolicyV2` | App Check authenticated callable | Reads/writes v2 policy/evidence-compatible profile state. |
 | `beginAgeAssuranceV3` | App Check authenticated callable | Reads user/policy and writes short-lived challenge/evidence state. |
 | `updateAgePolicyV3` | App Check authenticated callable | Reads user/challenge/platform signal and writes v3 policy/profile privacy consequences. |
+| `externalAgeVerificationAvailability` | App Check callable | Returns whether the server-side OneID fallback is configured; no identity data. |
+| `beginExternalAgeVerification` | App Check authenticated callable | Creates one opaque, expiring UID-bound OneID OIDC attempt and returns the hosted URL. |
+| `oneIdAgeVerificationCallback` | OneID HTTPS redirect/callback | Validates PKCE and signed OIDC response, obtains only `age_over_18` server-to-server, then transactionally consumes the attempt and updates policy/audit state. |
+| `cleanupExternalAgeVerificationAttempts` | daily schedule | Deletes bounded expired external attempts, including temporary nonce and PKCE verifier material. |
 | `invalidateAgeAssuranceApprovals` | admin callable | Dry-run/apply scan of affected users; conditional policy writes. |
 | `cleanupAgeAssuranceChallenges` | daily schedule | Reads bounded expired challenges and deletes them. |
 | `fixSpotLocations` | create legacy fix doc | Full Spot repair migration for coordinate shape; writes affected Spots. |

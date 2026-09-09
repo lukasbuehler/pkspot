@@ -1,4 +1,5 @@
 import * as admin from "firebase-admin";
+import {randomUUID} from "node:crypto";
 import {
   onDocumentCreated,
   onDocumentWritten,
@@ -158,9 +159,10 @@ const NATIVE_APP_IDS = {
 } as const;
 
 /**
- * Compatibility endpoint for already-built native clients. App Check attests
- * the installation but does not bind the age payload, so this path can update
- * participation restrictions but can never grant adult-only eligibility.
+ * Compatibility endpoint for native platform signals. Android remains
+ * restriction-only unless it uses the request-bound v3 flow. Apple's Declared
+ * Age Range has no server-verifiable response binding, so an eligible Apple
+ * result is explicitly marked as an App-Check-protected client relay.
  */
 export const updateAgePolicyV2 = onCall(
   { enforceAppCheck: true },
@@ -191,21 +193,54 @@ export const updateAgePolicyV2 = onCall(
       signalVersion: 2,
       clientIntegrity: "firebase_app_check",
       cryptographicallyBound: false,
+      allowStrongClientRelay: signal.platform === "ios",
     });
-    await admin.firestore().collection("users").doc(uid).set(
-      {
-        age_policy: {
-          ...policy,
-          signal_updated_at: admin.firestore.FieldValue.serverTimestamp(),
-        },
-        ...(policy.adult_eligibility === "verified"
-          ? {}
-          : {
-              ...profileAccessFieldsForPrivacy("private", false),
-            }),
-      },
-      { merge: true }
-    );
+    const evaluatedAt = admin.firestore.Timestamp.now();
+    const verificationId = randomUUID();
+    const assurance = {
+      ...policy.assurance,
+      verification_id: verificationId,
+      status: "active",
+      evaluated_at: evaluatedAt,
+      ...(policy.adult_eligibility === "verified" ? {verified_at: evaluatedAt} : {}),
+    };
+    const assuranceForUser = {
+      ...assurance,
+      ...(policy.adult_eligibility === "verified" ? {} : {
+        approval_basis: admin.firestore.FieldValue.delete(),
+      }),
+    };
+    const userRef = admin.firestore().collection("users").doc(uid);
+    const recordRef = userRef.collection("age_assurance_records").doc(verificationId);
+    await admin.firestore().runTransaction(async (transaction) => {
+      const existing = await transaction.get(userRef);
+      const previousAssurance = existing.data()?.["age_policy"]?.["assurance"];
+      const previousVerificationId =
+        previousAssurance && typeof previousAssurance["verification_id"] === "string" ?
+          previousAssurance["verification_id"] : undefined;
+      transaction.set(userRef, {
+        age_policy: {...policy, assurance: assuranceForUser, signal_updated_at: evaluatedAt},
+        ...(policy.adult_eligibility === "verified" ? {} : profileAccessFieldsForPrivacy("private", false)),
+      }, {merge: true});
+      transaction.create(recordRef, {
+        verification_id: verificationId,
+        user_id: uid,
+        status: "active",
+        outcome: policy.adult_eligibility,
+        age_band: policy.age_band,
+        age_range: policy.age_range ?? null,
+        participation_state: policy.participation_state,
+        assurance,
+        source: policy.source,
+        platform: policy.platform,
+        created_at: evaluatedAt,
+      });
+      if (previousVerificationId && previousVerificationId !== verificationId) {
+        transaction.set(userRef.collection("age_assurance_records").doc(previousVerificationId), {
+          status: "superseded", superseded_at: evaluatedAt, superseded_by: verificationId,
+        }, {merge: true});
+      }
+    });
 
     return {
       ok: true,

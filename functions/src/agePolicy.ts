@@ -34,6 +34,7 @@ export type AgeAssuranceConfidence =
 export type AgeAssuranceProvider =
   | "google_play"
   | "apple"
+  | "oneid"
   | "external";
 
 export type AgeAssuranceMethodCategory =
@@ -71,6 +72,8 @@ export interface AgePolicyBuildContext {
     | "firebase_app_check"
     | "play_integrity_request_bound";
   cryptographicallyBound: boolean;
+  /** Apple has no server-verifiable response binding; App Check proves the app, not this payload. */
+  allowStrongClientRelay?: boolean;
 }
 
 export interface ServerAgePolicy {
@@ -418,10 +421,13 @@ const approvalBasisForSignal = (
   signal: NativeAgeSignal,
   context: AgePolicyBuildContext
 ): string | undefined => {
-  if (!context.cryptographicallyBound) return undefined;
+  if (!context.cryptographicallyBound && !context.allowStrongClientRelay) {
+    return undefined;
+  }
   const provider = providerForSignal(signal);
   const method = providerMethodForSignal(signal);
-  return `${provider}:platform_age_signal:${method}:request_bound:v1`;
+  const binding = context.cryptographicallyBound ? "request_bound" : "app_check_client_relay";
+  return `${provider}:platform_age_signal:${method}:${binding}:v1`;
 };
 
 export const buildServerAgePolicy = (
@@ -433,7 +439,7 @@ export const buildServerAgePolicy = (
   const confidence = confidenceForEvidence(evidenceStrength);
   const ageBand = ageBandForRange(signal.ageLower, signal.ageUpper);
   const adultEligibility =
-    context.cryptographicallyBound &&
+    (context.cryptographicallyBound || context.allowStrongClientRelay === true) &&
     ageBand === "18_plus" &&
     (evidenceStrength === "independently_checked" ||
       evidenceStrength === "verified_identity") ?
