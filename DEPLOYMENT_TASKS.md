@@ -1132,6 +1132,35 @@ Hosting:
       search performance. Keep the `de-CH` redirects in place indefinitely; they
       preserve existing links and transfer search signals to `/de`.
 
+### Native gallery photos (selective integration; not enabled)
+
+The complete earlier prototype is preserved in local commit `813cac7e` on
+`codex/native-media-ingestion`. Its reusable Spot matching and JPEG preparation
+helpers are integrated on `development`; the draft inbox, video intake, native
+share entry points, and moderation changes are not activated or merged wholesale.
+No gallery-sharing feature is ready to release from this foundation alone.
+
+- [ ] Implement the direct photos-only flow: share/select photos, confirm suggested
+      Spot groups, upload, and show retry/cancel/progress without a draft inbox.
+      Reuse the shared Spot picker in the Angular app. Locationless photos require
+      explicit assignment. Keep user-uploaded Spot videos out of this feature.
+- [ ] Port Android image-only share intents and iOS Share Extension after the
+      direct flow is ready. Add the native plugins to the app targets/bridges,
+      configure iOS App Groups and signing, and validate extension authentication
+      and App Check before allowing uploads from the extension. Do not rely on
+      the iOS extension automatically launching the containing app.
+- [ ] Finish native HEIC/orientation/capture-time handling, memory-bounded image
+      preparation, and local metadata use. Verify uploaded derivatives contain
+      no source GPS/EXIF; unavailable metadata must not prevent manual assignment.
+- [ ] Replace the prototype's persistence and retry behavior: commit local files
+      and assignments atomically before deleting originals, preserve progress on
+      repeated native delivery, and make server attachment atomic/idempotent.
+      Keep native originals until preparation and durable handoff succeed.
+- [ ] Cover new routes with fixture-based visual tests and test cold/warm sharing,
+      offline recovery, cancellation, repeated delivery, multi-Spot batches,
+      malformed metadata, and denied permissions on real iOS and Android devices.
+      Existing matching/preparation unit tests do not establish native readiness.
+
 ### Android quality and Restore Credentials readiness
 
 The August 2026 Android vitals overview had limited data and no aggregate
