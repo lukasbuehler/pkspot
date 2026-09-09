@@ -1,6 +1,34 @@
 {
   "indexes": [
     {
+      "collectionGroup": "spot_create_submissions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "last_attempt_at",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "attempt_count",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "spot_create_submissions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "last_attempt_at",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "guard_block_count",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "events",
       "queryScope": "COLLECTION",
       "fields": [
@@ -540,6 +568,24 @@
       "collectionGroup": "used_spots",
       "fieldPath": "spot_id",
       "indexes": [
+        {
+          "queryScope": "COLLECTION_GROUP",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "private",
+      "fieldPath": "metadata_expires_at",
+      "indexes": [
+        {
+          "queryScope": "COLLECTION",
+          "order": "ASCENDING"
+        },
+        {
+          "queryScope": "COLLECTION",
+          "order": "DESCENDING"
+        },
         {
           "queryScope": "COLLECTION_GROUP",
           "order": "ASCENDING"

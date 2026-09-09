@@ -1,3 +1,5 @@
+import { RESPONSE } from "../../express.token";
+import { handleSpotResolutionError } from "./spot-resolution-error";
 import { inject } from "@angular/core";
 import { ResolveFn, ActivatedRouteSnapshot } from "@angular/router";
 import { LOCALE_ID } from "@angular/core";
@@ -14,6 +16,7 @@ export const spotResolver: ResolveFn<Spot | null> = async (
   const slugsService = inject(SlugsService);
   const consentService = inject(ConsentService);
   const locale = inject(LOCALE_ID);
+  const response = inject(RESPONSE, { optional: true });
 
   const spotIdOrSlug = route.paramMap.get("spot");
 
@@ -37,7 +40,7 @@ export const spotResolver: ResolveFn<Spot | null> = async (
     const spot = await spotsService.getSpotById(spotId, locale);
     return spot;
   } catch (error) {
-    console.error("Error resolving spot:", error);
+    handleSpotResolutionError(error, response);
     return null;
   }
 };

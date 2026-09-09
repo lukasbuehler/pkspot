@@ -25,7 +25,7 @@ env:
       - RUNTIME
 
   - variable: NG_ALLOWED_HOSTS
-    value: "pkspot.app"
+    value: "pkspot.app,pkspot--parkour-base-project.europe-west4.hosted.app"
     availability:
       - BUILD
       - RUNTIME

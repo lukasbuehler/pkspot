@@ -1,8 +1,10 @@
+import { RESPONSE } from "../../express.token";
+import { SpotLoadError } from "../../db/models/SpotLoadError";
 import { DOCUMENT } from "@angular/common";
 import { TestBed } from "@angular/core/testing";
 import { LOCALE_ID, PLATFORM_ID } from "@angular/core";
 import { Meta, Title } from "@angular/platform-browser";
-import { convertToParamMap } from "@angular/router";
+import { ActivatedRouteSnapshot, convertToParamMap } from "@angular/router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { contentResolver } from "./content.resolver";
 import { MetaTagService } from "../services/meta-tag.service";
@@ -159,6 +161,7 @@ describe("contentResolver", () => {
     TestBed.configureTestingModule({
       providers: [
         MetaTagService,
+        { provide: RESPONSE, useValue: null },
         { provide: DOCUMENT, useValue: testDocument },
         { provide: Meta, useValue: metaMock },
         { provide: Title, useValue: titleMock },
@@ -171,6 +174,44 @@ describe("contentResolver", () => {
         { provide: ConsentService, useValue: consentService },
       ],
     });
+  });
+
+  it.each([
+    ["not_found", 404],
+    ["missing_location", 503],
+  ] as const)("returns a controlled %s fallback without an application error", async (reason, status) => {
+    const response = { status: vi.fn() };
+    TestBed.overrideProvider(RESPONSE, { useValue: response });
+    slugsService.getSpotIdFromSpotSlug.mockResolvedValue("unavailable-spot");
+    spotsService.getSpotById.mockRejectedValue(new SpotLoadError("unavailable-spot", reason));
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+    const warnLog = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const result = await TestBed.runInInjectionContext(() => contentResolver(createRouteSnapshot("unavailable-spot") as ActivatedRouteSnapshot));
+      expect(result).not.toHaveProperty("spot");
+      expect(response.status).toHaveBeenCalledWith(status);
+      expect(getMetaContent(testDocument, 'meta[name="robots"]')).toBe("noindex,nofollow");
+      expect(errorLog).not.toHaveBeenCalled();
+    } finally {
+      errorLog.mockRestore();
+      warnLog.mockRestore();
+    }
+  });
+
+  it("keeps backend failures visible and does not misclassify them as missing Spots", async () => {
+    const response = { status: vi.fn() };
+    TestBed.overrideProvider(RESPONSE, { useValue: response });
+    const failure = new Error("Firestore unavailable");
+    spotsService.getSpotById.mockRejectedValue(failure);
+    slugsService.getSpotIdFromSpotSlug.mockResolvedValue("spot");
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      await TestBed.runInInjectionContext(() => contentResolver(createRouteSnapshot("spot") as ActivatedRouteSnapshot));
+      expect(response.status).toHaveBeenCalledWith(500);
+      expect(errorLog).toHaveBeenCalledWith("Error resolving spot content:", failure);
+    } finally {
+      errorLog.mockRestore();
+    }
   });
 
   it("should render spot-specific SSR social tags for the imax route", async () => {

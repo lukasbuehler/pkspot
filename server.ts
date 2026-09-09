@@ -12,7 +12,7 @@ function getAllowedHosts(): string[] {
   const defaultHosts = ["localhost", "127.0.0.1", "[::1]"];
   const configuredHosts = (process.env["NG_ALLOWED_HOSTS"] ?? "")
     .split(",")
-    .map((host) => host.trim())
+    .map((host) => host.trim().toLowerCase())
     .filter((host) => host.length > 0);
 
   return [...new Set([...defaultHosts, ...configuredHosts])];
@@ -65,7 +65,13 @@ export function app(): express.Express {
 
   // All regular routes use the Angular engine
   server.get("*", (req, res, next) => {
-    const { protocol, originalUrl, baseUrl, headers } = req;
+    // Reject unknown hosts before invoking Angular. Never allow all Cloud Run
+    // hosts or derive the allowlist from an untrusted forwarded header.
+    if (!allowedHosts.includes(req.hostname.toLowerCase())) {
+      res.status(400).send("Invalid request host");
+      return;
+    }
+    const { protocol, originalUrl } = req;
 
     commonEngine
       .render({

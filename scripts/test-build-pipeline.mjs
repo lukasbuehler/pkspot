@@ -470,7 +470,7 @@ async function main() {
     env: {
       ...runtimeEnv,
       PORT: serverPort,
-      NG_ALLOWED_HOSTS: "pkspot.app",
+      NG_ALLOWED_HOSTS: "pkspot.app,pkspot--parkour-base-project.europe-west4.hosted.app",
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -983,6 +983,11 @@ async function main() {
       "Should allow request with configured Host: pkspot.app"
     );
 
+    const appHostingStatus = runCurl([
+      "-H", "Host: pkspot--parkour-base-project.europe-west4.hosted.app", `${baseUrl}/en/`,
+    ]);
+    assert.equal(appHostingStatus, "200", "Should allow the configured App Hosting hostname");
+
     // 2. Verify that localhost is still allowed by default
     const localhostStatus = runCurl(["-H", "Host: localhost", `${baseUrl}/en/`]);
     assert.equal(
@@ -991,11 +996,11 @@ async function main() {
       "Should allow request with Host: localhost"
     );
 
-    // 3. Verify that an unauthorized host is BLOCKED (returns 500)
+    // 3. Verify that an unauthorized host is BLOCKED (returns 400)
     const unauthorizedHostStatus = runCurl(["-H", "Host: unauthorized.example.com", `${baseUrl}/en/`]);
     assert.equal(
       unauthorizedHostStatus,
-      "500",
+      "400",
       "Should block request with unauthorized Host"
     );
 

@@ -1,3 +1,5 @@
+import { RESPONSE } from "../../express.token";
+import { handleSpotResolutionError } from "./spot-resolution-error";
 import { inject } from "@angular/core";
 import { ResolveFn, ActivatedRouteSnapshot } from "@angular/router";
 import { LOCALE_ID } from "@angular/core";
@@ -50,6 +52,7 @@ export const contentResolver: ResolveFn<RouteContentData> = async (
   const consentService = inject(ConsentService);
   const metaTagService = inject(MetaTagService);
   const locale = inject(LOCALE_ID);
+  const response = inject(RESPONSE, { optional: true });
 
   // Determine content type from route path
   const contentType = determineContentType(route);
@@ -66,6 +69,7 @@ export const contentResolver: ResolveFn<RouteContentData> = async (
         consentService,
         metaTagService,
         locale,
+        response,
       });
 
     case "event":
@@ -202,8 +206,9 @@ async function resolveSpotContent(
 
     return result;
   } catch (error) {
-    console.error("Error resolving spot content:", error);
+    handleSpotResolutionError(error, services.response);
     services.metaTagService.setDefaultMapMetaTags("/map");
+    services.metaTagService.setRobotsContent("noindex,nofollow");
     return result;
   }
 }

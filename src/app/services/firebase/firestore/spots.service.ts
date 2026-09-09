@@ -2,6 +2,7 @@ import { Injectable, inject, Injector } from "@angular/core";
 import type { QuerySnapshot, DocumentData } from "firebase/firestore";
 import { Observable, forkJoin, of, from, throwError } from "rxjs";
 import { map, take, timeout, catchError } from "rxjs/operators";
+import { SpotLoadError } from "../../../../db/models/SpotLoadError";
 import { Spot } from "../../../../db/models/Spot";
 import { SpotId } from "../../../../db/schemas/SpotSchema";
 import { SpotSchema } from "../../../../db/schemas/SpotSchema";
@@ -43,7 +44,7 @@ export class SpotsService extends ConsentAwareService {
         if (data) {
           return this.hydrateSpot(data.id as SpotId, data, locale);
         } else {
-          throw new Error("Error! This Spot does not exist.");
+          throw new SpotLoadError(spotId, "not_found");
         }
       });
   }
@@ -55,7 +56,7 @@ export class SpotsService extends ConsentAwareService {
       .documentSnapshots<SpotSchema & { id: string }>(`spots/${spotId}`)
       .pipe(
         map((d) => {
-          if (!d) throw new Error("Error! This Spot does not exist.");
+          if (!d) throw new SpotLoadError(spotId, "not_found");
           return this.hydrateSpot(d.id as SpotId, d, locale);
         })
       );
@@ -240,9 +241,7 @@ export class SpotsService extends ConsentAwareService {
     locale: LocaleCode
   ): Spot {
     if (!parseFirestoreGeoPoint(spotData.location, spotData.location_raw)) {
-      throw new Error(
-        `Spot ${spotId} does not have a usable location yet.`
-      );
+      throw new SpotLoadError(spotId, "missing_location");
     }
 
     return new Spot(spotId, spotData, locale);

@@ -82,6 +82,28 @@ Keep an item unchecked until the action has actually been performed and verified
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.
 
+### Production error follow-up (2026-09-09)
+
+- [ ] Deploy `firestore.indexes.json` with `npx firebase deploy --project prod --only firestore:indexes`.
+      Wait for the two `spot_create_submissions` collection indexes
+      (`last_attempt_at DESC` + `attempt_count DESC` / `guard_block_count DESC`)
+      and the `private.metadata_expires_at ASC` collection-group index to become ready.
+      Re-run `getSpotCreationDiagnostics` as an administrator and verify the next
+      `cleanupSafetyCaseSecurityMetadata` run completes. Index deployment is separate
+      from the web release; no query-code deployment is required for these indexes.
+- [ ] On the next maintainer-approved main release, verify `/en` through the custom
+      domain and `pkspot--parkour-base-project.europe-west4.hosted.app` returns 200.
+      Unknown Host headers should return a controlled 400; Cloud Run requests
+      forwarded with an allowed hostname should render normally. Do not wildcard
+      all hosted.app/run.app domains.
+- [ ] Verify a deleted Spot returns HTTP 404 and no application ERROR, an incomplete
+      Spot returns a controlled 503/noindex fallback, and a genuine backend failure
+      remains observable. Review records `6yrlKXeJ1JpYNFmUWG31` and
+      `CazctHllD3YJfih3gju6` read-only, then repair location/location_raw only from
+      verified source coordinates; the fallback does not repair production data.
+- [ ] Audit the unclassified log entries: the supplied buckets account for 83 of
+      the reported 99 errors, leaving 16 not explained by this breakdown.
+
 ### Private recovery pauses
 
 - [ ] Following the maintainer-reported rules deployment on 2026-09-07,
