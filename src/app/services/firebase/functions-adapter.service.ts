@@ -79,6 +79,20 @@ export class FunctionsAdapterService {
     });
   }
 
+  /**
+   * Calls a deliberately public callable without asking the native Firebase
+   * SDK for an ID token. Restore Credentials uses this before any account has
+   * been restored, so there is intentionally no authenticated user yet.
+   */
+  async callUnauthenticated<TRequest, TResponse>(
+    functionName: string,
+    payload: TRequest,
+  ): Promise<TResponse> {
+    return this.trackPending(() =>
+      this.callDirect<TRequest, TResponse>(functionName, payload, {}),
+    );
+  }
+
   async callAppChecked<TRequest, TResponse>(
     functionName: string,
     payload: TRequest,

@@ -18,12 +18,15 @@ import org.json.JSONObject;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.io.InputStream;
 import java.util.Map;
 import java.util.Objects;
 
 import io.capawesome.capacitorjs.plugins.firebase.messaging.MessagingService;
 
 public class PKSpotMessagingService extends MessagingService {
+  private static final int MAX_NOTIFICATION_IMAGE_EDGE_PX = 1024;
+
   @Override
   public void onMessageReceived(@NonNull RemoteMessage message) {
     super.onMessageReceived(message);
@@ -115,19 +118,45 @@ public class PKSpotMessagingService extends MessagingService {
 
   private Bitmap loadImage(String imageUrl) {
     if (imageUrl == null || imageUrl.isEmpty()) return null;
-    HttpURLConnection connection = null;
     try {
-      connection = (HttpURLConnection) new URL(imageUrl).openConnection();
+      URL url = new URL(imageUrl);
+      BitmapFactory.Options bounds = new BitmapFactory.Options();
+      bounds.inJustDecodeBounds = true;
+      decodeImage(url, bounds);
+      if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null;
+
+      BitmapFactory.Options decode = new BitmapFactory.Options();
+      decode.inSampleSize = sampleSize(bounds.outWidth, bounds.outHeight);
+      decode.inPreferredConfig = Bitmap.Config.ARGB_8888;
+      return decodeImage(url, decode);
+    } catch (Exception ignored) {
+      return null;
+    }
+  }
+
+  private Bitmap decodeImage(URL url, BitmapFactory.Options options) throws Exception {
+    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+    try {
       connection.setConnectTimeout(4000);
       connection.setReadTimeout(6000);
       connection.setDoInput(true);
       connection.connect();
-      return BitmapFactory.decodeStream(connection.getInputStream());
-    } catch (Exception ignored) {
-      return null;
+      try (InputStream stream = connection.getInputStream()) {
+        return BitmapFactory.decodeStream(stream, null, options);
+      }
     } finally {
-      if (connection != null) connection.disconnect();
+      connection.disconnect();
     }
+  }
+
+  private int sampleSize(int width, int height) {
+    int sampleSize = 1;
+    while (
+        width / sampleSize > MAX_NOTIFICATION_IMAGE_EDGE_PX ||
+        height / sampleSize > MAX_NOTIFICATION_IMAGE_EDGE_PX) {
+      sampleSize *= 2;
+    }
+    return sampleSize;
   }
 
   private String channelFor(String type) {

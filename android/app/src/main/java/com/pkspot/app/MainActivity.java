@@ -31,6 +31,7 @@ public class MainActivity extends BridgeActivity {
     registerPlugin(AgeAssurancePlugin.class);
     registerPlugin(DateTimePreferencesPlugin.class);
     registerPlugin(NotificationSettingsPlugin.class);
+    registerPlugin(RestoreCredentialsPlugin.class);
     super.onCreate(savedInstanceState);
     dismissNotificationFromAction(getIntent());
     logWebViewStartupDiagnostics();

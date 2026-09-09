@@ -205,6 +205,13 @@ export {
 
 export { cleanupOnUserDelete } from "./authFunctions";
 export { assignSignupNumberOnCreate } from "./userSignupFunctions";
+export {
+  beginRestoreCredentialAuthentication,
+  beginRestoreCredentialRegistration,
+  cleanupExpiredRestoreCredentialChallenges,
+  finishRestoreCredentialAuthentication,
+  finishRestoreCredentialRegistration,
+} from "./restoreCredentialFunctions";
 
 export {
   onCheckInCreate,
