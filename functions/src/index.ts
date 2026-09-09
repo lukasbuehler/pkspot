@@ -223,6 +223,9 @@ export {
 
 export { cleanupOnUserDelete } from "./authFunctions";
 export { assignSignupNumberOnCreate } from "./userSignupFunctions";
+// Restore Credentials are intentionally not exported until the security and
+// device-transfer checks in DEPLOYMENT_TASKS.md are complete.
+
 
 export {
   onCheckInCreate,

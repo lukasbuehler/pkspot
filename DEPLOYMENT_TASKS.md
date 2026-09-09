@@ -734,15 +734,11 @@ release. Re-enable them only in the dedicated follow-up described in
 
 ### Android release optimisation follow-up
 
-- [ ] Resume the existing work in
-      `/Users/lukas/.codex/worktrees/46ef/pkspot` instead of duplicating it.
-      Its uncommitted changes enable release minification/resource shrinking
-      and include separate restore-credentials and messaging work. Review and
-      integrate those concerns separately on `development`. The maintainer's
-      Play Console screenshot reports 3% obfuscation with a February 2027
-      deadline and separately recommends bitmap image optimisation. Verify a
-      signed release build, retained Capacitor/plugin entry points, mapping
-      output, and real-device flows before shipping the optimisation change.
+- [ ] The `46ef` work is now integrated locally on `development`: release
+      minification/resource shrinking, bounded notification bitmaps, and the
+      Android 9 launch fix. Verify a signed release build, retained
+      Capacitor/plugin entry points, mapping output, and real-device flows
+      before shipping. Account restoration remains disabled separately below.
 
 ### Flexible event timing, locationless discovery, and ownership claims
 
@@ -1132,3 +1128,98 @@ Hosting:
 - [ ] Over the following weeks, monitor the Page indexing report and German
       search performance. Keep the `de-CH` redirects in place indefinitely; they
       preserve existing links and transfer search signals to `/de`.
+
+### Android quality and Restore Credentials readiness
+
+The August 2026 Android vitals overview had limited data and no aggregate
+crash, ANR, memory, start-up, rendering, or battery rate. A subsequent crash
+detail identified one Android 9 launch cluster; treat the following as a
+release-readiness sequence, not as evidence that the current release exceeds a
+Play threshold. Restore Credentials are checkpointed but disabled: the Angular
+injection token defaults to false, the manifest does not register the backup
+agent, and the Functions entry point does not export restoration endpoints.
+The quality fixes can ship independently.
+
+- [ ] Before enabling restoration, implement server-side credential revocation
+      for explicit sign-out/account deletion, prevent in-flight restoration or
+      provisioning from overriding a later sign-in/sign-out, and revalidate the
+      credential counter inside the consuming transaction. Test disabled and
+      revoked accounts, concurrent challenges, and device-transfer races.
+- [ ] Add and deploy the `restore_credentials.credential_id` collection-group
+      index, verify it is ready, and test the actual lookup. Only after these
+      checks and the device checks below pass, restore the Function exports,
+      deploy them, register the backup agent, and enable the client token.
+      Do not enable or deploy restoration as part of the Android quality fix.
+
+- [ ] The Android 9 production crash on Motorola moto e6 play was caused by
+      `windowLayoutInDisplayCutoutMode="always"`: value 3 is unsupported below
+      Android 11 and AppCompat fails while Capacitor creates its content view.
+      Before releasing, cold-launch the signed binary on Android 9 (or an API 28
+      emulator) and an Android 15+ device with a simulated display cutout. The
+      Android 9 launch must reach the WebView; Android 15+ must remain
+      edge-to-edge with safe-area content unobscured. Do not restore the
+      unsupported `always` XML value; Android 15 interprets `shortEdges` as
+      `always` for this non-floating, target-SDK-36 activity.
+
+- [ ] Deploy the five Restore Credentials Functions before releasing an Android
+      client that calls them:
+
+  ```sh
+  npm --prefix functions run build
+  npx firebase deploy --project prod --only functions:beginRestoreCredentialRegistration,functions:finishRestoreCredentialRegistration,functions:beginRestoreCredentialAuthentication,functions:finishRestoreCredentialAuthentication,functions:cleanupExpiredRestoreCredentialChallenges
+  ```
+
+  Success condition: every Function is in `europe-west1`; registration rejects
+  requests without both Firebase Auth and App Check; authentication accepts no
+  client-supplied origin, has a short-lived one-time challenge and network rate
+  limit, validates the WebAuthn signature and counter, and only issues a custom
+  token for a still-existing Firebase account.
+
+- [ ] Before that deploy, compare the production Android signing-certificate
+      SHA-256 fingerprints in `https://pkspot.app/.well-known/assetlinks.json`
+      with the server-owned Android WebAuthn origins in
+      `restoreCredentialFunctions.ts`. Include every current production signing
+      certificate required for supported releases; never add a debug or local
+      certificate to the production origin allow-list.
+
+- [ ] Build a signed release after the missing local mobile environment files
+      (`src/environments/environment.android.ts` and its shared
+      `environment.android` import) are available in the release environment:
+
+  ```sh
+  npm run build:android:prod
+  cd android && ./gradlew :app:bundleRelease
+  ```
+
+  Inspect the release bundle with Android Studio's APK Analyzer and retain the
+  mapping file. Confirm R8 minification, optimization, and resource shrinking
+  are enabled, then smoke-test every custom Capacitor plugin, notifications,
+  App Check, Google sign-in (including the Custom Tabs fallback), media, maps,
+  deep links, and age assurance on the release-signed binary. Increment the
+  Android version code only as part of the approved store release.
+
+- [ ] Test Restore Credentials on a Play-services-capable Android 9+ device and
+      a second device transfer. A normal first install must remain signed out
+      with no sheet or account chooser. A restore key may be provisioned only
+      after a user deliberately completes Android sign-in or sign-up; then
+      transfer the app with cloud backup and a device-to-device setup. Confirm
+      Android's backup callback restores the account without opening the app;
+      if setup networking is unavailable, confirm the first foreground launch
+      retries silently. Confirm explicit sign-out and account deletion clear
+      the local/cloud restore credential and a subsequent transfer does not
+      sign the user back in.
+
+- [ ] Preserve the existing notification consent decision. The background
+      restore signs Firebase Auth in but intentionally does not re-enable FCM
+      auto-initialization or send a registration token before the user opens
+      PK Spot. Once opened, verify the existing consent-aware notification
+      service restores a previously granted registration. Do not add background
+      notification reactivation without a separate product/privacy decision.
+
+- [ ] Watch Play Console for populated P50/P90 RSS, bitmap-memory, DEX, crash,
+      ANR, startup, rendering, and battery data after enough release users have
+      accumulated. Record the exact affected Android version, percentile,
+      device class, and time window before making further memory changes.
+      Confirm notification images stay bounded to a 1024 px longest edge; use a
+      heap/profile capture to identify any other concrete allocation source
+      before changing WebView cache behavior or image rendering.
