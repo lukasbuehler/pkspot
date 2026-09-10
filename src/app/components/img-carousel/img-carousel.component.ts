@@ -65,6 +65,7 @@ interface ExternalMediaPreference {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ImgCarouselComponent implements AfterViewInit, OnDestroy {
+  readonly imageDescription = input("PK Spot");
   media = input<AnyMedia[] | undefined>();
   processingMedia = input<PendingMediaPreview[]>([]);
   spotId = input<string | undefined>();

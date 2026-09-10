@@ -40,6 +40,7 @@
             ) {
               <img
                 [ngSrc]="getImageSrc($index, mediaObj)"
+                [alt]="imageDescription()"
                 fill
                 [priority]="$index === 0"
                 [attr.referrerpolicy]="getReferrerPolicyForMedia(mediaObj)"

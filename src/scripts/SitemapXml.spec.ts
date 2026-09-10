@@ -292,3 +292,22 @@ describe("sitemapXml", () => {
     });
   });
 });
+
+describe("crawler privacy and photos", () => {
+  it("includes first-party photos in every localized Spot entry, but never reported/intake/external media", () => {
+    const { xml } = buildSitemapXml({ includeStaticPages: false, spots: [{ id: "photo-spot", data: { media: [
+      { type: "image", isInStorage: true, src: "https://firebasestorage.googleapis.com/v0/b/parkour-base-project.appspot.com/o/spot_pictures%2Fphoto.jpg?alt=media&token=private" },
+      { type: "image", isInStorage: true, isReported: true, src: "https://firebasestorage.googleapis.com/v0/b/parkour-base-project.appspot.com/o/spot_pictures%2Fhidden.jpg?alt=media" },
+      { type: "image", isInStorage: true, src: "https://firebasestorage.googleapis.com/v0/b/parkour-base-project.appspot.com/o/media_intake%2Fpending.jpg?alt=media" },
+      { type: "image", isInStorage: false, src: "https://external.example/photo.jpg" },
+    ] } }] });
+    expect(xml.match(/<image:image>/g)).toHaveLength(SUPPORTED_LOCALES.length);
+    expect(xml).toContain("photo_800x800.jpg?alt=media");
+    expect(xml).not.toMatch(/token=|hidden.jpg|pending.jpg|external.example/);
+  });
+  it("excludes unlisted and private sessions even when published", () => {
+    for (const visibility of ["private", "unlisted"]) {
+      expect(buildEventSitemapEntry("session", { published: true, visibility }, "2026-09-10")).toBeNull();
+    }
+  });
+});

@@ -33,6 +33,7 @@ export interface UserSitemapData {
 }
 
 export interface SpotSitemapData {
+  media?: Array<{ type?: string; src?: string; isInStorage?: boolean; isReported?: boolean }>;
   slug?: string;
   time_updated?: { seconds: number; nanoseconds: number };
 }
@@ -47,6 +48,8 @@ export interface CommunitySitemapData {
 }
 
 export interface EventSitemapData {
+  visibility?: string;
+  publication_state?: string;
   slug?: string;
   canonicalPath?: string;
   published?: boolean;
@@ -84,10 +87,37 @@ export interface SitemapBuildResult {
   stats: SitemapGenerationStats;
 }
 
+function escapeXml(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+}
+
+/** Publish only first-party, unreported Spot photos. External consent-gated media
+ * and intake files must never be advertised to crawlers by this sitemap.
+ */
+export function spotSitemapImages(spot: SpotSitemapData): string[] {
+  const images = new Set<string>();
+  for (const media of spot.media ?? []) {
+    if (media.type !== "image" || media.isReported || !media.isInStorage || !media.src) continue;
+    try {
+      const url = new URL(media.src, BASE_URL);
+      if (url.protocol !== "https:" || url.hostname !== "firebasestorage.googleapis.com" ||
+          !decodeURIComponent(url.pathname).startsWith("/v0/b/parkour-base-project.appspot.com/o/spot_pictures/")) continue;
+      // Match the structured-data photo size, without publishing download tokens.
+      url.pathname = url.pathname.replace(/(?:_\d+x\d+)?(\.[a-zA-Z]+)$/, "_800x800$1");
+      url.search = "?alt=media";
+      url.hash = "";
+      images.add(url.href);
+    } catch { /* Malformed legacy media must not stop sitemap generation. */ }
+  }
+  return [...images].slice(0, 1000);
+}
+
 function buildSitemapHeader(): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 `;
 }
 
@@ -98,7 +128,8 @@ function generateUrlWithHreflang(
   path: string,
   lastmod: string,
   changefreq: string,
-  priority: string
+  priority: string,
+  images: readonly string[] = []
 ): string {
   let xml = "";
 
@@ -122,6 +153,9 @@ function generateUrlWithHreflang(
     xml += `    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE_URL}/${DEFAULT_LOCALE}${path}"/>
 `;
 
+    for (const image of images) {
+      xml += `    <image:image><image:loc>${escapeXml(image)}</image:loc></image:image>\n`;
+    }
     xml += `  </url>
 `;
   }
@@ -276,7 +310,7 @@ function buildSpotEntries(
     spotCount += 1;
     const lastmod = getLastModDate(spot.data.time_updated, fallbackDate);
     const priority = slug ? "0.9" : "0.8";
-    xml += generateUrlWithHreflang(path, lastmod, "weekly", priority);
+    xml += generateUrlWithHreflang(path, lastmod, "weekly", priority, spotSitemapImages(spot.data));
   }
 
   return { xml, spotCount, slugCount };
@@ -432,7 +466,9 @@ export function buildEventSitemapEntry(
   data: EventSitemapData,
   fallbackDate: string
 ): ResolvedSitemapEntry | null {
-  if (data.published === false || data.status === "draft") {
+  if (data.published === false || data.status === "draft" ||
+      (data.visibility !== undefined && data.visibility !== "public") ||
+      (data.publication_state !== undefined && data.publication_state !== "published")) {
     return null;
   }
 

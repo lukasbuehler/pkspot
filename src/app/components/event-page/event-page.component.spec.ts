@@ -442,8 +442,8 @@ describe("EventInfoPageComponent", () => {
         expect(router.navigate).toHaveBeenCalledWith(["/events"]);
       } else {
         expect(router.navigate).not.toHaveBeenCalled();
-        expect(component.isLoadingEvent()).toBe(!loadFails);
-        expect(component.eventLoadFailed()).toBe(loadFails);
+        expect(component.isLoadingEvent()).toBe(false);
+        expect(component.eventLoadFailed()).toBe(true);
       }
     },
   );

@@ -60,6 +60,18 @@ describe("EventPageDataService", () => {
     expect(eventsService.getEventBySlugOrId).toHaveBeenCalledWith("city-jam");
   });
 
+  it("preserves load failures instead of treating them as a missing event", async () => {
+    const failure = new Error("temporarily unavailable");
+    TestBed.configureTestingModule({ providers: [
+      { provide: EventsService, useValue: { getEventBySlugOrId: vi.fn().mockRejectedValue(failure) } },
+      { provide: SpotsService, useValue: {} },
+      { provide: SpotChallengesService, useValue: {} },
+      { provide: SearchService, useValue: {} },
+      { provide: LOCALE_ID, useValue: "en" },
+    ] });
+    await expect(TestBed.inject(EventPageDataService).loadEventBySlugOrId("city-jam")).rejects.toBe(failure);
+  });
+
   it("loads compact event cards through search", async () => {
     const event = buildEvent("skills-open");
     const search = {

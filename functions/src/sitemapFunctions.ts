@@ -1,3 +1,4 @@
+import { spotSitemapImages } from "./sitemapXml";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { onRequest } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
@@ -115,7 +116,7 @@ async function _generateAndUploadSitemap(): Promise<{
     console.log("Streaming spots from Firestore...");
     const spotsStream = db
       .collection("spots")
-      .select("slug", "time_updated")
+      .select("slug", "time_updated", "media")
       .stream();
 
     for await (const doc of spotsStream as AsyncIterable<FirebaseFirestore.QueryDocumentSnapshot>) {
@@ -133,7 +134,8 @@ async function _generateAndUploadSitemap(): Promise<{
           entry.path,
           entry.lastmod,
           entry.changefreq,
-          entry.priority
+          entry.priority,
+          spotSitemapImages(data)
         )
       );
       indexNowUrls.push(...buildLocalizedIndexNowUrls(entry.path));
@@ -206,6 +208,8 @@ async function _generateAndUploadSitemap(): Promise<{
       .select(
         "slug",
         "published",
+        "visibility",
+        "publication_state",
         "time_updated",
         "start"
       )

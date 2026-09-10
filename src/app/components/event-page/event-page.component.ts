@@ -1,3 +1,6 @@
+import { RESPONSE } from "../../../express.token";
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -173,6 +176,8 @@ type ProgramMapMarker = MarkerSchema & {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventInfoPageComponent implements OnInit, OnDestroy {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private _route = inject(ActivatedRoute);
   private _router = inject(Router);
   private _snackbar = inject(MatSnackBar);
@@ -180,6 +185,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   private _eventsService = inject(EventsService);
   private _authService = inject(AuthenticationService);
   private _analytics = inject(AnalyticsService);
+  private readonly serverResponse = inject(RESPONSE, { optional: true });
   private _structuredData = inject(StructuredDataService);
   private _metaTags = inject(MetaTagService);
   private _eventPageData = inject(EventPageDataService);
@@ -1017,6 +1023,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
           method: "native_share",
         });
       } catch (err) {
+      this.featureTelemetry.failure("event-page", "shareEvent", err);
         console.error("Couldn't share this event", err);
         this._analytics.trackEvent("share_event_failed", {
           surface: "event_info_page",
@@ -1036,6 +1043,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
           method: "web_share",
         });
       } catch (err) {
+      this.featureTelemetry.failure("event-page", "shareEvent", err);
         console.error("Couldn't share this event", err);
         this._analytics.trackEvent("share_event_failed", {
           surface: "event_info_page",
@@ -1148,6 +1156,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         { duration: 3000 },
       );
     } catch (err) {
+      this.featureTelemetry.failure("event-page", "onSaveEvent", err);
       console.error("Failed to save event", err);
       this._snackbar.open(
         $localize`:@@event_edit.snackbar.save_failed:Couldn't save the event. Check the console for details.`,
@@ -1172,6 +1181,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       );
       void this._router.navigate(["/events"]);
     } catch (err) {
+      this.featureTelemetry.failure("event-page", "onDeleteEvent", err);
       console.error("Failed to delete event", err);
       this._snackbar.open(
         $localize`:@@event_edit.snackbar.delete_failed:Couldn't delete the event.`,
@@ -1217,16 +1227,28 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     const requestVersion = ++this._eventLoadRequestVersion;
     this.isLoadingEvent.set(true);
     this.eventLoadFailed.set(false);
-    const loaded = await this._eventPageData.loadEventBySlugOrId(slug);
-
-    if (requestVersion !== this._eventLoadRequestVersion) return;
-    if (!loaded) {
-      if (this.isBrowser()) {
-        void this._router.navigate(["/events"]);
+    try {
+      const loaded = await this._eventPageData.loadEventBySlugOrId(slug);
+      if (requestVersion !== this._eventLoadRequestVersion) return;
+      if (!loaded) {
+        this._setEventLoadFailure(404);
+        return;
       }
-      return;
+      this._setEvent(loaded);
+    } catch (error) {
+      if (requestVersion !== this._eventLoadRequestVersion) return;
+      this.featureTelemetry.failure("event-page", "load", error);
+      this._setEventLoadFailure(503);
     }
-    this._setEvent(loaded);
+  }
+
+  private _setEventLoadFailure(status: 404 | 503): void {
+    this.serverResponse?.status(status);
+    this.event.set(null);
+    this.isLoadingEvent.set(false);
+    this.eventLoadFailed.set(true);
+    this._structuredData.removeStructuredData("event");
+    this._metaTags.setRobotsContent("noindex,follow");
   }
 
   private _setEvent(event: PkEvent): void {
@@ -1313,6 +1335,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
           address: {
             "@type": "PostalAddress",
             addressLocality: event.localityString || undefined,
+            addressCountry: event.countryCode || undefined,
           },
           geo: {
             "@type": "GeoCoordinates",
@@ -1324,17 +1347,21 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     return {
       "@type": "Event",
       name: event.name,
-      startDate: event.timing?.start_date ?? event.start.toISOString(),
+      startDate: event.timing && !event.timing.start_time
+        ? event.timing.start_date
+        : event.start.toISOString(),
       endDate:
         event.timing?.mode === "open_end"
           ? undefined
-          : (event.timing?.end_date ??
-            event.timing?.start_date ??
-            event.end.toISOString()),
+          : event.timing && !event.timing.end_time
+            ? (event.timing.end_date ?? event.timing.start_date)
+            : event.end.toISOString(),
       eventAttendanceMode: event.location
         ? "https://schema.org/OfflineEventAttendanceMode"
         : "https://schema.org/MixedEventAttendanceMode",
-      eventStatus: "https://schema.org/EventScheduled",
+      eventStatus: event.lifecycleStatus === "cancelled"
+        ? "https://schema.org/EventCancelled"
+        : "https://schema.org/EventScheduled",
       location: structuredLocation,
       image: [
         ...this._eventStructuredImages(event).map((src) =>

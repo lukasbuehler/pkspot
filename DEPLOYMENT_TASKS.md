@@ -78,6 +78,33 @@ run data migrations, or complete third-party service tasks.
 
 ## Release-specific pending actions
 
+### v1.2 analytics coverage and crawler verification
+
+- After client release, verify PostHog `feature_action_started`,
+  `feature_action_succeeded`, `feature_action_failed`, `operation_failed`, and
+  exception records on web/iOS/Android with analytics permitted. Filter by
+  `feature`, `action`, and `client_version`. Exercise activity logging, check-ins,
+  recovery pauses, following, My Events, age-provider operations, and upload vs
+  processing completion separately. Confirm denied reads/writes, callable errors,
+  listener failures, handled screen errors and unhandled browser rejections are
+  visible. New properties must contain no IDs, payloads, photo coordinates,
+  notes, age results, tokens, or raw error text. Backend-only scheduled/trigger
+  failures remain in Cloud Logging; this is client instrumentation.
+- Deploy `generateSitemapOnSchedule` and `generateSitemapManual`, then use the
+  existing sitemap regeneration procedure below. Download the live XML and check
+  `image:image` entries, public-only events, canonical host, valid XML and the
+  50 MB uncompressed sitemap limit. No functions have been deployed for this change.
+- After the web release, use Search Console URL Inspection for an event and a
+  photo-bearing Spot (for example `/en/events/swissjam26` and
+  `/en/map/spots/0184hQEj1uHQvLugm7J3`). Inspect rendered HTML, selected canonical,
+  indexing exclusion reason and image access; submit the regenerated sitemap and
+  request reindexing as appropriate. Verify missing events return 404, temporary
+  failures return 503, and Spot images have alt text. Anonymous HTTP checks on
+  2026-09-10 confirmed real event/Spot HTML, Event/Place JSON-LD, a public photo
+  returning HTTP 200, and no legacy canonical host in the sitemap. These checks
+  do not establish Google's actual indexing decision.
+
+
 ### Voluntary native review requests
 
 - With analytics permitted, verify `store_review_request_attempted`,

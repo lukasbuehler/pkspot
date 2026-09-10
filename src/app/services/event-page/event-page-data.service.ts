@@ -60,6 +60,8 @@ export class EventPageDataService {
       loaded = await this._eventsService.getEventBySlugOrId(slugOrId);
     } catch (err) {
       console.warn("EventPageDataService: failed to load event", err);
+      // A network/permission failure is not evidence that the event was deleted.
+      if (slugOrId !== "swissjam25") throw err;
     }
 
     if (!loaded && slugOrId === "swissjam25") {
