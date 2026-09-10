@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -88,6 +90,8 @@ type SpotFilterSource = "user" | "weather" | null;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TrainPageComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly auth = inject(AuthenticationService);
   private readonly follows = inject(CommunityFollowsService);
   private readonly geolocation = inject(GeolocationService);
@@ -266,6 +270,7 @@ export class TrainPageComponent {
       ]);
       await this.loadSpots();
     } catch (error) {
+      this.featureTelemetry.failure("train-page", "load", error);
       console.error("[Train] failed to load dashboard", error);
       this.error.set($localize`:@@train.loadError:Training options could not be loaded.`);
     } finally {

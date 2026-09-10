@@ -1,3 +1,4 @@
+import { FeatureTelemetryService } from "../../feature-telemetry.service";
 import { Injectable, inject } from "@angular/core";
 import { Timestamp } from "firebase/firestore";
 import {
@@ -25,6 +26,8 @@ interface ScreenshotGlobal {
 
 @Injectable({ providedIn: "root" })
 export class LogEntriesService {
+  private readonly telemetry = inject(FeatureTelemetryService);
+
   private readonly firestore = inject(FirestoreAdapterService);
   private readonly auth = inject(AuthenticationService);
 
@@ -58,42 +61,17 @@ export class LogEntriesService {
   }
 
   async create(input: SaveLogEntryInput): Promise<string> {
-    const uid = this.requireUserId();
-    if (input.sessions.length === 0) {
-      throw new Error("A log entry requires at least one session record.");
-    }
-    const now = Timestamp.now();
-    const activityAtMs = Math.min(
-      ...input.sessions.map((session) => session.started_at_raw_ms),
-    );
-    return this.firestore.addDocument(this.collectionPath(uid), {
-      owner_id: uid,
-      note: input.note.trim(),
-      visibility: input.visibility,
-      session_record_ids: input.sessions.map((session) => session.id),
-      session_summaries: input.sessions.map((session) =>
-        this.summary(session),
-      ),
-      activity_at: Timestamp.fromMillis(activityAtMs),
-      activity_at_raw_ms: activityAtMs,
-      time_created: now,
-      time_created_raw_ms: now.toMillis(),
-      time_updated: now,
-      time_updated_raw_ms: now.toMillis(),
-    } satisfies LogEntrySchema);
-  }
-
-  async update(entryId: string, input: SaveLogEntryInput): Promise<void> {
-    if (input.sessions.length === 0) {
-      throw new Error("A log entry requires at least one session record.");
-    }
-    const activityAtMs = Math.min(
-      ...input.sessions.map((session) => session.started_at_raw_ms),
-    );
-    const now = Timestamp.now();
-    await this.firestore.updateDocument(
-      `${this.collectionPath(this.requireUserId())}/${entryId}`,
-      {
+    return this.telemetry.run("activity_log", "create", async () => {
+      const uid = this.requireUserId();
+      if (input.sessions.length === 0) {
+        throw new Error("A log entry requires at least one session record.");
+      }
+      const now = Timestamp.now();
+      const activityAtMs = Math.min(
+        ...input.sessions.map((session) => session.started_at_raw_ms),
+      );
+      return this.firestore.addDocument(this.collectionPath(uid), {
+        owner_id: uid,
         note: input.note.trim(),
         visibility: input.visibility,
         session_record_ids: input.sessions.map((session) => session.id),
@@ -102,16 +80,50 @@ export class LogEntriesService {
         ),
         activity_at: Timestamp.fromMillis(activityAtMs),
         activity_at_raw_ms: activityAtMs,
+        time_created: now,
+        time_created_raw_ms: now.toMillis(),
         time_updated: now,
         time_updated_raw_ms: now.toMillis(),
-      },
-    );
+      } satisfies LogEntrySchema);
+
+    }, true);
+  }
+
+  async update(entryId: string, input: SaveLogEntryInput): Promise<void> {
+    return this.telemetry.run("activity_log", "update", async () => {
+      if (input.sessions.length === 0) {
+        throw new Error("A log entry requires at least one session record.");
+      }
+      const activityAtMs = Math.min(
+        ...input.sessions.map((session) => session.started_at_raw_ms),
+      );
+      const now = Timestamp.now();
+      await this.firestore.updateDocument(
+        `${this.collectionPath(this.requireUserId())}/${entryId}`,
+        {
+          note: input.note.trim(),
+          visibility: input.visibility,
+          session_record_ids: input.sessions.map((session) => session.id),
+          session_summaries: input.sessions.map((session) =>
+            this.summary(session),
+          ),
+          activity_at: Timestamp.fromMillis(activityAtMs),
+          activity_at_raw_ms: activityAtMs,
+          time_updated: now,
+          time_updated_raw_ms: now.toMillis(),
+        },
+      );
+
+    }, true);
   }
 
   async delete(entryId: string): Promise<void> {
-    await this.firestore.deleteDocument(
-      `${this.collectionPath(this.requireUserId())}/${entryId}`,
-    );
+    return this.telemetry.run("activity_log", "delete", async () => {
+      await this.firestore.deleteDocument(
+        `${this.collectionPath(this.requireUserId())}/${entryId}`,
+      );
+
+    }, true);
   }
 
   private async allowedVisibilities(

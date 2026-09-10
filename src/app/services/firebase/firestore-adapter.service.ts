@@ -1,3 +1,4 @@
+import { FeatureTelemetryService } from "../feature-telemetry.service";
 import {
   Injectable,
   inject,
@@ -91,6 +92,8 @@ export type FirestoreDeleteFieldValue =
   providedIn: "root",
 })
 export class FirestoreAdapterService {
+  private readonly telemetry = inject(FeatureTelemetryService);
+
   private platformService = inject(PlatformService);
   private appCheckService = inject(FirebaseAppCheckService);
   private firestore = inject(FIREBASE_FIRESTORE);
@@ -142,10 +145,14 @@ export class FirestoreAdapterService {
           if (unsubscribed) {
             return;
           }
-          const subscription = createObservable().subscribe(observer);
+          const subscription = createObservable().subscribe({
+            next: value => observer.next(value),
+            complete: () => observer.complete(),
+            error: error => { this.telemetry.failure("firestore", "listen", error); observer.error(error); },
+          });
           teardown = () => subscription.unsubscribe();
         })
-        .catch((error) => observer.error(error));
+        .catch((error) => { this.telemetry.failure("firestore", "listen_initialize", error); observer.error(error); });
 
       return () => {
         unsubscribed = true;
@@ -880,12 +887,15 @@ export class FirestoreAdapterService {
    * @returns Promise resolving to document data or null if not found
    */
   async getDocument<T>(path: string): Promise<T | null> {
-    await this.ensureAppCheckReady();
-    return this.trackPending(() =>
-      this.platformService.isNative()
-        ? this.getDocumentNative<T>(path)
-        : this.getDocumentWeb<T>(path),
-    );
+    return this.telemetry.run("firestore", "getDocument", async () => {
+      await this.ensureAppCheckReady();
+      return this.trackPending(() =>
+        this.platformService.isNative()
+          ? this.getDocumentNative<T>(path)
+          : this.getDocumentWeb<T>(path),
+      );
+
+    }, false);
   }
 
   private async getDocumentWeb<T>(path: string): Promise<T | null> {
@@ -928,11 +938,14 @@ export class FirestoreAdapterService {
     data: T,
     options?: { merge?: boolean }
   ): Promise<void> {
-    await this.ensureAppCheckReady();
-    if (this.platformService.isNative()) {
-      return this.setDocumentNative(path, data, options);
-    }
-    return this.setDocumentWeb(path, data, options);
+    return this.telemetry.run("firestore", "setDocument", async () => {
+      await this.ensureAppCheckReady();
+      if (this.platformService.isNative()) {
+        return this.setDocumentNative(path, data, options);
+      }
+      return this.setDocumentWeb(path, data, options);
+
+    }, false);
   }
 
   private async setDocumentWeb<T extends Record<string, any>>(
@@ -967,11 +980,14 @@ export class FirestoreAdapterService {
     path: string,
     data: Partial<T>
   ): Promise<void> {
-    await this.ensureAppCheckReady();
-    if (this.platformService.isNative()) {
-      return this.updateDocumentNative(path, data);
-    }
-    return this.updateDocumentWeb(path, data);
+    return this.telemetry.run("firestore", "updateDocument", async () => {
+      await this.ensureAppCheckReady();
+      if (this.platformService.isNative()) {
+        return this.updateDocumentNative(path, data);
+      }
+      return this.updateDocumentWeb(path, data);
+
+    }, false);
   }
 
   private async updateDocumentWeb<T extends Record<string, any>>(
@@ -999,11 +1015,14 @@ export class FirestoreAdapterService {
    * @param path Full document path
    */
   async deleteDocument(path: string): Promise<void> {
-    await this.ensureAppCheckReady();
-    if (this.platformService.isNative()) {
-      return this.deleteDocumentNative(path);
-    }
-    return this.deleteDocumentWeb(path);
+    return this.telemetry.run("firestore", "deleteDocument", async () => {
+      await this.ensureAppCheckReady();
+      if (this.platformService.isNative()) {
+        return this.deleteDocumentNative(path);
+      }
+      return this.deleteDocumentWeb(path);
+
+    }, false);
   }
 
   private async deleteDocumentWeb(path: string): Promise<void> {
@@ -1029,11 +1048,14 @@ export class FirestoreAdapterService {
     collectionPath: string,
     data: T
   ): Promise<string> {
-    await this.ensureAppCheckReady();
-    if (this.platformService.isNative()) {
-      return this.addDocumentNative(collectionPath, data);
-    }
-    return this.addDocumentWeb(collectionPath, data);
+    return this.telemetry.run("firestore", "addDocument", async () => {
+      await this.ensureAppCheckReady();
+      if (this.platformService.isNative()) {
+        return this.addDocumentNative(collectionPath, data);
+      }
+      return this.addDocumentWeb(collectionPath, data);
+
+    }, false);
   }
 
   private async addDocumentWeb<T extends Record<string, any>>(
@@ -1075,21 +1097,24 @@ export class FirestoreAdapterService {
     filters?: QueryFilter[],
     constraints?: QueryConstraintOptions[]
   ): Promise<T[]> {
-    await this.ensureAppCheckReady();
-    const useNativeBridge = this.shouldUseNativeQueryBridge();
-    return this.trackPending(() =>
-      this.runCollectionQuery(
-        "getCollection",
-        collectionPath,
-        useNativeBridge,
-        filters,
-        constraints,
-        () =>
-          useNativeBridge
-            ? this.getCollectionNative<T>(collectionPath, filters, constraints)
-            : this.getCollectionWeb<T>(collectionPath, filters, constraints),
-      ),
-    );
+    return this.telemetry.run("firestore", "getCollection", async () => {
+      await this.ensureAppCheckReady();
+      const useNativeBridge = this.shouldUseNativeQueryBridge();
+      return this.trackPending(() =>
+        this.runCollectionQuery(
+          "getCollection",
+          collectionPath,
+          useNativeBridge,
+          filters,
+          constraints,
+          () =>
+            useNativeBridge
+              ? this.getCollectionNative<T>(collectionPath, filters, constraints)
+              : this.getCollectionWeb<T>(collectionPath, filters, constraints),
+        ),
+      );
+
+    }, false);
   }
 
   /** Query one collection page and retain its cursor for web pagination. */
@@ -1099,43 +1124,46 @@ export class FirestoreAdapterService {
     constraints?: QueryConstraintOptions[],
     startAfterDoc?: unknown
   ): Promise<{ data: (T & { id: string })[]; lastDoc: unknown }> {
-    await this.ensureAppCheckReady();
-    if (this.shouldUseNativeQueryBridge()) {
-      const data = await this.getCollectionNative<T>(
-        collectionPath,
-        filters,
-        constraints,
-        typeof startAfterDoc === "string" ? startAfterDoc : undefined,
-      );
-      const lastId = (data.at(-1) as {id?: unknown} | undefined)?.id;
-      return {
-        data: data as (T & { id: string })[],
-        lastDoc: typeof lastId === "string"
-          ? `${collectionPath}/${lastId}`
-          : null,
-      };
-    }
-    return this.trackPending(() =>
-      runInInjectionContext(this.injector, async () => {
-        const collRef = collection(this.firestore, collectionPath);
-        const queryConstraints = this.buildWebQueryConstraints(
+    return this.telemetry.run("firestore", "getCollectionWithMetadata", async () => {
+      await this.ensureAppCheckReady();
+      if (this.shouldUseNativeQueryBridge()) {
+        const data = await this.getCollectionNative<T>(
           collectionPath,
           filters,
-          constraints
+          constraints,
+          typeof startAfterDoc === "string" ? startAfterDoc : undefined,
         );
-        if (startAfterDoc) {
-          queryConstraints.push(startAfter(startAfterDoc));
-        }
-        const snapshot = await getDocs(query(collRef, ...queryConstraints));
+        const lastId = (data.at(-1) as { id?: unknown } | undefined)?.id;
         return {
-          data: snapshot.docs.map((docSnapshot) => ({
-            id: docSnapshot.id,
-            ...docSnapshot.data(),
-          })) as (T & { id: string })[],
-          lastDoc: snapshot.docs.at(-1) ?? null,
+          data: data as (T & { id: string })[],
+          lastDoc: typeof lastId === "string"
+            ? `${collectionPath}/${lastId}`
+            : null,
         };
-      })
-    );
+      }
+      return this.trackPending(() =>
+        runInInjectionContext(this.injector, async () => {
+          const collRef = collection(this.firestore, collectionPath);
+          const queryConstraints = this.buildWebQueryConstraints(
+            collectionPath,
+            filters,
+            constraints
+          );
+          if (startAfterDoc) {
+            queryConstraints.push(startAfter(startAfterDoc));
+          }
+          const snapshot = await getDocs(query(collRef, ...queryConstraints));
+          return {
+            data: snapshot.docs.map((docSnapshot) => ({
+              id: docSnapshot.id,
+              ...docSnapshot.data(),
+            })) as (T & { id: string })[],
+            lastDoc: snapshot.docs.at(-1) ?? null,
+          };
+        })
+      );
+
+    }, false);
   }
 
   private async getCollectionWeb<T>(
@@ -1325,7 +1353,7 @@ export class FirestoreAdapterService {
             this.removeSnapshotListenerSafe(id);
           }
         })
-        .catch((error) => observer.error(error));
+        .catch((error) => { this.telemetry.failure("firestore", "listen_initialize", error); observer.error(error); });
 
       // Cleanup function
       return () => {
@@ -1460,7 +1488,7 @@ export class FirestoreAdapterService {
             this.removeSnapshotListenerSafe(id);
           }
         })
-        .catch((error) => observer.error(error));
+        .catch((error) => { this.telemetry.failure("firestore", "listen_initialize", error); observer.error(error); });
 
       // Cleanup function
       return () => {
@@ -1507,21 +1535,24 @@ export class FirestoreAdapterService {
     filters?: QueryFilter[],
     constraints?: QueryConstraintOptions[]
   ): Promise<T[]> {
-    await this.ensureAppCheckReady();
-    const useNativeBridge = this.shouldUseNativeQueryBridge();
-    return this.trackPending(() =>
-      this.runCollectionQuery(
-        "getCollectionGroup",
-        collectionId,
-        useNativeBridge,
-        filters,
-        constraints,
-        () =>
-          useNativeBridge
-            ? this.getCollectionGroupNative<T>(collectionId, filters, constraints)
-            : this.getCollectionGroupWeb<T>(collectionId, filters, constraints),
-      ),
-    );
+    return this.telemetry.run("firestore", "getCollectionGroup", async () => {
+      await this.ensureAppCheckReady();
+      const useNativeBridge = this.shouldUseNativeQueryBridge();
+      return this.trackPending(() =>
+        this.runCollectionQuery(
+          "getCollectionGroup",
+          collectionId,
+          useNativeBridge,
+          filters,
+          constraints,
+          () =>
+            useNativeBridge
+              ? this.getCollectionGroupNative<T>(collectionId, filters, constraints)
+              : this.getCollectionGroupWeb<T>(collectionId, filters, constraints),
+        ),
+      );
+
+    }, false);
   }
 
   private async getCollectionGroupWeb<T>(
@@ -1575,30 +1606,33 @@ export class FirestoreAdapterService {
     constraints?: QueryConstraintOptions[],
     startAfterDoc?: any
   ): Promise<{ data: Array<T & { id: string; path: string }>; lastDoc: any }> {
-    await this.ensureAppCheckReady();
-    if (this.shouldUseNativeQueryBridge()) {
-      console.warn(
-        "getCollectionGroupWithMetadata pagination not fully supported on native yet."
+    return this.telemetry.run("firestore", "getCollectionGroupWithMetadata", async () => {
+      await this.ensureAppCheckReady();
+      if (this.shouldUseNativeQueryBridge()) {
+        console.warn(
+          "getCollectionGroupWithMetadata pagination not fully supported on native yet."
+        );
+        // Native fallback (no pagination support yet)
+        const docs = await this.getCollectionGroupNative<T>(
+          collectionId,
+          filters,
+          constraints
+        );
+        return {
+          data: docs.map((d: any) => ({ ...d, path: "" })),
+          lastDoc: null,
+        };
+      }
+      return this.trackPending(() =>
+        this.getCollectionGroupWebWithMetadata<T>(
+          collectionId,
+          filters,
+          constraints,
+          startAfterDoc,
+        ),
       );
-      // Native fallback (no pagination support yet)
-      const docs = await this.getCollectionGroupNative<T>(
-        collectionId,
-        filters,
-        constraints
-      );
-      return {
-        data: docs.map((d: any) => ({ ...d, path: "" })),
-        lastDoc: null,
-      };
-    }
-    return this.trackPending(() =>
-      this.getCollectionGroupWebWithMetadata<T>(
-        collectionId,
-        filters,
-        constraints,
-        startAfterDoc,
-      ),
-    );
+
+    }, false);
   }
 
   private async getCollectionGroupWebWithMetadata<T>(
@@ -1864,7 +1898,7 @@ export class FirestoreAdapterService {
             this.removeSnapshotListenerSafe(id);
           }
         })
-        .catch((error) => observer.error(error));
+        .catch((error) => { this.telemetry.failure("firestore", "listen_initialize", error); observer.error(error); });
 
       // Cleanup function
       return () => {
@@ -1948,7 +1982,7 @@ export class FirestoreAdapterService {
               this.removeSnapshotListenerSafe(id);
             }
           })
-          .catch((error) => observer.error(error));
+          .catch((error) => { this.telemetry.failure("firestore", "listen_initialize", error); observer.error(error); });
 
         // Cleanup function
         return () => {

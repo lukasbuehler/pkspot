@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -46,6 +48,8 @@ type UserActivityItem = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserActivityComponent implements OnDestroy {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   userId = input<string>("");
   displayName = input<string>("");
 
@@ -116,6 +120,7 @@ export class UserActivityComponent implements OnDestroy {
         this._sortItems([...currentItems, ...newItems])
       );
     } catch (error) {
+      this.featureTelemetry.failure("user-activity", "loadMore", error);
       if (version === this._loadVersion) {
         console.error("Error loading more user activity:", error);
         this.loadError.set(true);
@@ -179,6 +184,7 @@ export class UserActivityComponent implements OnDestroy {
 
       this.items.set(this._sortItems(items));
     } catch (error) {
+      this.featureTelemetry.failure("user-activity", "_loadInitial", error);
       if (version === this._loadVersion) {
         console.error("Error loading user activity:", error);
         this.loadError.set(true);

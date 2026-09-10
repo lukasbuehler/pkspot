@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   Component,
   computed,
@@ -100,6 +102,8 @@ import { buildSpotChallengeCanonicalPath } from "../../../scripts/SpotRouteHelpe
   styleUrl: "./challenge-detail.component.scss",
 })
 export class ChallengeDetailComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private _challengeService = inject(SpotChallengesService);
   authenticationService = inject(AuthenticationService);
   private _snackbar = inject(MatSnackBar);
@@ -368,6 +372,7 @@ export class ChallengeDetailComponent {
           dialogTitle: "Share Challenge",
         });
       } catch (err) {
+      this.featureTelemetry.failure("challenge-detail", "shareChallenge", err);
         console.error("Couldn't share this challenge");
         console.error(err);
       }
@@ -376,6 +381,7 @@ export class ChallengeDetailComponent {
       try {
         await navigator.share(shareData);
       } catch (err) {
+      this.featureTelemetry.failure("challenge-detail", "shareChallenge", err);
         console.error("Couldn't share this challenge");
         console.error(err);
       }

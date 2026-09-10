@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -48,6 +50,8 @@ interface CommunityEventRouteData {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CommunityEventCreatePageComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly _formBuilder = inject(FormBuilder).nonNullable;
   private readonly _route = inject(ActivatedRoute);
   private readonly _router = inject(Router);
@@ -170,6 +174,7 @@ export class CommunityEventCreatePageComponent {
         await this._router.navigate(["/events", result.slug]);
       }
     } catch (error) {
+      this.featureTelemetry.failure("community-activity-create-page", "submit", error);
       console.error("Unable to create community event", error);
       this._snackBar.open(
         error instanceof Error
@@ -195,6 +200,7 @@ export class CommunityEventCreatePageComponent {
       );
       await this._router.navigate(["/events", event.slug ?? event.id]);
     } catch (error) {
+      this.featureTelemetry.failure("community-activity-create-page", "cancelEvent", error);
       console.error("Unable to cancel community event", error);
       this._snackBar.open(
         error instanceof Error
@@ -229,6 +235,7 @@ export class CommunityEventCreatePageComponent {
         broadcast: event.communityBroadcast === "on_publish",
       });
     } catch (error) {
+      this.featureTelemetry.failure("community-activity-create-page", "_loadExistingEvent", error);
       console.error("Unable to load community event", error);
       await this._router.navigate(["/events", slug]);
     } finally {

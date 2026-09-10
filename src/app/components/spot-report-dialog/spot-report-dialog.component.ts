@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -55,6 +57,8 @@ export interface SpotReportDialogResult {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotReportDialogComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   readonly data = inject<SpotReportDialogData>(MAT_DIALOG_DATA);
   readonly dialogRef = inject(MatDialogRef<SpotReportDialogComponent>);
   private readonly _spotReportsService = inject(SpotReportsService);
@@ -136,6 +140,7 @@ export class SpotReportDialogComponent {
       });
       this.dialogRef.close({reportId: result.reportId, created: result.created});
     } catch (error) {
+      this.featureTelemetry.failure("spot-report-dialog", "submitReport", error);
       this._analytics.trackEvent("spot_report_submit_failed", {
         spot_id: this.data.spotId,
         reasons: this.selectedReasons(),
@@ -158,6 +163,7 @@ export class SpotReportDialogComponent {
       await this._spotReportsService.withdrawOwnSpotReport(this.data.spotId, reportId);
       this.dialogRef.close({withdrawn: true});
     } catch (error) {
+      this.featureTelemetry.failure("spot-report-dialog", "withdrawReport", error);
       console.error("Could not withdraw Spot report", error);
       this.submissionError.set(true);
     } finally {

@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -34,6 +36,8 @@ import { MyEventsService } from "../../services/my-events.service";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventRegistrationComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly _registrations = inject(EventRegistrationsService);
   private readonly _auth = inject(AuthenticationService);
   private readonly _analytics = inject(AnalyticsService);
@@ -140,6 +144,7 @@ export class EventRegistrationComponent {
         registration_status: result.status,
       });
     } catch (error) {
+      this.featureTelemetry.failure("event-registration", "register", error);
       console.error("Failed to register for event", error);
       this.errorMessage.set(
         $localize`:@@event_registration.register_failed:Couldn't register. Try again in a moment.`,
@@ -164,6 +169,7 @@ export class EventRegistrationComponent {
         event_id: eventId,
       });
     } catch (error) {
+      this.featureTelemetry.failure("event-registration", "cancel", error);
       console.error("Failed to cancel event registration", error);
       this.errorMessage.set(
         $localize`:@@event_registration.cancel_failed:Couldn't cancel your registration. Try again in a moment.`,

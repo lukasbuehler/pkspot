@@ -1,6 +1,7 @@
 import {
   ApplicationConfig,
   ErrorHandler,
+  provideBrowserGlobalErrorListeners,
   LOCALE_ID,
   DOCUMENT,
   inject,
@@ -57,6 +58,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptorsFromDi(), withFetch()),
     provideAnimations(),
     { provide: ErrorHandler, useClass: ApplicationErrorHandler },
+    provideBrowserGlobalErrorListeners(),
     // provideExperimentalZonelessChangeDetection(),
     {
       provide: WINDOW,

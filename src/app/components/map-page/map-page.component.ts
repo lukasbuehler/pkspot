@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   Component,
   ViewChild,
@@ -293,6 +295,8 @@ const DENSE_MAP_PERFORMANCE_VARIANTS = new Set<DenseMapPerformanceVariant>([
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly _eventPromoDismissalsStorageKey =
     "pkspot.eventPromoDismissals.v1";
   private _searchSelectionRequestId = 0;
@@ -3063,6 +3067,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.openGooglePlaceById(place.place_id, requestId);
       return true;
     } catch (error) {
+      this.featureTelemetry.failure("map-page", "openGooglePlaceByQuery", error);
       if (requestId !== this._searchSelectionRequestId) return true;
       console.error("Failed to find the place from a pasted Maps link", error);
       return false;

@@ -1,3 +1,4 @@
+import { FeatureTelemetryService } from "./feature-telemetry.service";
 import { Injectable, inject, signal } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 import { Capacitor, registerPlugin } from "@capacitor/core";
@@ -112,6 +113,8 @@ const NativeAgeAssurance = registerPlugin<AgeAssurancePlugin>("AgeAssurance");
   providedIn: "root",
 })
 export class AgeAssuranceService {
+  private readonly telemetry = inject(FeatureTelemetryService);
+
   static readonly mockPolicyStateStorageKey = "pkspot.mockAgePolicyState.v1";
 
   private _functionsAdapter = inject(FunctionsAdapterService);
@@ -152,10 +155,13 @@ export class AgeAssuranceService {
   }
 
   async beginOneIdAgeVerification(): Promise<ExternalAgeVerificationAttempt> {
-    return this._functionsAdapter.callAuthenticatedAppChecked<
-      { provider: "oneid" },
-      ExternalAgeVerificationAttempt
-    >("beginExternalAgeVerification", { provider: "oneid" });
+    return this.telemetry.run("age_verification", "beginOneIdAgeVerification", async () => {
+      return this._functionsAdapter.callAuthenticatedAppChecked<
+        { provider: "oneid" },
+        ExternalAgeVerificationAttempt
+      >("beginExternalAgeVerification", { provider: "oneid" });
+
+    }, true);
   }
 
   private async _syncNativeAgePolicyForCurrentUser(
@@ -202,7 +208,7 @@ export class AgeAssuranceService {
 
     this._checkState.set({ status: "checking", uid, platform });
     const generation = this._syncGeneration;
-    const promise = this._performNativeSync(uid, platform);
+    const promise = this.telemetry.run("age_verification", "native_sync", () => this._performNativeSync(uid, platform));
     this._syncInFlight = { uid, generation, promise };
     try {
       const state = await promise;

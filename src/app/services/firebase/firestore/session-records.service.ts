@@ -1,3 +1,4 @@
+import { FeatureTelemetryService } from "../../feature-telemetry.service";
 import { Injectable, inject } from "@angular/core";
 import { Timestamp } from "firebase/firestore";
 import {
@@ -46,6 +47,8 @@ interface ScreenshotGlobal {
 
 @Injectable({ providedIn: "root" })
 export class SessionRecordsService {
+  private readonly telemetry = inject(FeatureTelemetryService);
+
   static readonly CHECK_IN_IDLE_WINDOW_MS = 5 * 60 * 60 * 1000;
 
   private readonly firestore = inject(FirestoreAdapterService);
@@ -79,89 +82,98 @@ export class SessionRecordsService {
   }
 
   async createManual(input: CreateManualSessionInput): Promise<string> {
-    const uid = this.requireUserId();
-    const now = Timestamp.now();
-    const startedAt = Timestamp.fromDate(input.startedAt);
-    const endedAt = input.endedAt
-      ? Timestamp.fromDate(input.endedAt)
-      : undefined;
-    const lastActivity = endedAt ?? startedAt;
-    return this.firestore.addDocument(this.collectionPath(uid), {
-      owner_id: uid,
-      source: "manual",
-      started_at: startedAt,
-      started_at_raw_ms: input.startedAt.getTime(),
-      ...(endedAt
-        ? {
+    return this.telemetry.run("check_in_and_session", "createManual", async () => {
+      const uid = this.requireUserId();
+      const now = Timestamp.now();
+      const startedAt = Timestamp.fromDate(input.startedAt);
+      const endedAt = input.endedAt
+        ? Timestamp.fromDate(input.endedAt)
+        : undefined;
+      const lastActivity = endedAt ?? startedAt;
+      return this.firestore.addDocument(this.collectionPath(uid), {
+        owner_id: uid,
+        source: "manual",
+        started_at: startedAt,
+        started_at_raw_ms: input.startedAt.getTime(),
+        ...(endedAt
+          ? {
             ended_at: endedAt,
             ended_at_raw_ms: input.endedAt!.getTime(),
           }
-        : {}),
-      last_activity_at: lastActivity,
-      last_activity_raw_ms:
-        input.endedAt?.getTime() ?? input.startedAt.getTime(),
-      time_zone: input.timeZone ?? this.systemTimeZone(),
-      spot_visits: this.manualSpotVisits(
-        input.spotIds ?? [],
-        startedAt,
-        input.startedAt.getTime(),
-        endedAt,
-        input.endedAt?.getTime(),
-      ),
-      people_present: this.cleanPeople(input.peoplePresent ?? []),
-      time_created: now,
-      time_created_raw_ms: now.toMillis(),
-      time_updated: now,
-      time_updated_raw_ms: now.toMillis(),
-    } satisfies SessionRecordSchema);
+          : {}),
+        last_activity_at: lastActivity,
+        last_activity_raw_ms:
+          input.endedAt?.getTime() ?? input.startedAt.getTime(),
+        time_zone: input.timeZone ?? this.systemTimeZone(),
+        spot_visits: this.manualSpotVisits(
+          input.spotIds ?? [],
+          startedAt,
+          input.startedAt.getTime(),
+          endedAt,
+          input.endedAt?.getTime(),
+        ),
+        people_present: this.cleanPeople(input.peoplePresent ?? []),
+        time_created: now,
+        time_created_raw_ms: now.toMillis(),
+        time_updated: now,
+        time_updated_raw_ms: now.toMillis(),
+      } satisfies SessionRecordSchema);
+
+    }, true);
   }
 
   async update(
     recordId: string,
     input: UpdateSessionRecordInput,
   ): Promise<void> {
-    const startedAt = Timestamp.fromDate(input.startedAt);
-    const endedAt = input.endedAt
-      ? Timestamp.fromDate(input.endedAt)
-      : undefined;
-    const now = Timestamp.now();
-    await this.firestore.updateDocument(
-      `${this.collectionPath(this.requireUserId())}/${recordId}`,
-      {
-        started_at: startedAt,
-        started_at_raw_ms: input.startedAt.getTime(),
-        ...(endedAt
-          ? {
+    return this.telemetry.run("check_in_and_session", "update", async () => {
+      const startedAt = Timestamp.fromDate(input.startedAt);
+      const endedAt = input.endedAt
+        ? Timestamp.fromDate(input.endedAt)
+        : undefined;
+      const now = Timestamp.now();
+      await this.firestore.updateDocument(
+        `${this.collectionPath(this.requireUserId())}/${recordId}`,
+        {
+          started_at: startedAt,
+          started_at_raw_ms: input.startedAt.getTime(),
+          ...(endedAt
+            ? {
               ended_at: endedAt,
               ended_at_raw_ms: input.endedAt!.getTime(),
             }
-          : {}),
-        last_activity_at: endedAt ?? startedAt,
-        last_activity_raw_ms:
-          input.endedAt?.getTime() ?? input.startedAt.getTime(),
-        time_zone: input.timeZone,
-        spot_visits: this.manualSpotVisits(
-          input.spotIds,
-          startedAt,
-          input.startedAt.getTime(),
-          endedAt,
-          input.endedAt?.getTime(),
-        ),
-        people_present: this.cleanPeople(input.peoplePresent),
-        time_updated: now,
-        time_updated_raw_ms: now.toMillis(),
-      },
-    );
+            : {}),
+          last_activity_at: endedAt ?? startedAt,
+          last_activity_raw_ms:
+            input.endedAt?.getTime() ?? input.startedAt.getTime(),
+          time_zone: input.timeZone,
+          spot_visits: this.manualSpotVisits(
+            input.spotIds,
+            startedAt,
+            input.startedAt.getTime(),
+            endedAt,
+            input.endedAt?.getTime(),
+          ),
+          people_present: this.cleanPeople(input.peoplePresent),
+          time_updated: now,
+          time_updated_raw_ms: now.toMillis(),
+        },
+      );
+
+    }, true);
   }
 
   confirmCheckIn(
     input: ConfirmCheckInRequest,
   ): Promise<ConfirmCheckInResponse> {
-    this.requireUserId();
-    return this.functions.callAuthenticatedAppChecked<
-      ConfirmCheckInRequest,
-      ConfirmCheckInResponse
-    >("confirmCheckIn", input);
+    return this.telemetry.run("check_in_and_session", "confirmCheckIn", async () => {
+      this.requireUserId();
+      return this.functions.callAuthenticatedAppChecked<
+        ConfirmCheckInRequest,
+        ConfirmCheckInResponse
+      >("confirmCheckIn", input);
+
+    }, true);
   }
 
   async listCheckIns(limit = 200): Promise<CheckInHistoryItem[]> {
@@ -183,41 +195,53 @@ export class SessionRecordsService {
   }
 
   deleteCheckIn(checkInId: string): Promise<DeleteCheckInResponse> {
-    this.requireUserId();
-    return this.functions.callAuthenticatedAppChecked<
-      { checkInId: string },
-      DeleteCheckInResponse
-    >("deleteCheckIn", { checkInId });
+    return this.telemetry.run("check_in_and_session", "deleteCheckIn", async () => {
+      this.requireUserId();
+      return this.functions.callAuthenticatedAppChecked<
+        { checkInId: string },
+        DeleteCheckInResponse
+      >("deleteCheckIn", { checkInId });
+
+    }, true);
   }
 
   deleteAllCheckIns(): Promise<DeleteAllCheckInsResponse> {
-    this.requireUserId();
-    return this.functions.callAuthenticatedAppChecked<
-      Record<string, never>,
-      DeleteAllCheckInsResponse
-    >("deleteAllCheckIns", {});
+    return this.telemetry.run("check_in_and_session", "deleteAllCheckIns", async () => {
+      this.requireUserId();
+      return this.functions.callAuthenticatedAppChecked<
+        Record<string, never>,
+        DeleteAllCheckInsResponse
+      >("deleteAllCheckIns", {});
+
+    }, true);
   }
 
   async exportCheckIns(): Promise<string> {
-    const checkIns = await this.listCheckIns(500);
-    return JSON.stringify(
-      {
-        exported_at: new Date().toISOString(),
-        check_ins: checkIns.map((checkIn) => ({
-          spot_id: checkIn.spotId,
-          ...(checkIn.spotName ? { spot_name: checkIn.spotName } : {}),
-          checked_in_at: new Date(checkIn.arrivedAtRawMs).toISOString(),
-        })),
-      },
-      null,
-      2,
-    );
+    return this.telemetry.run("check_in_and_session", "exportCheckIns", async () => {
+      const checkIns = await this.listCheckIns(500);
+      return JSON.stringify(
+        {
+          exported_at: new Date().toISOString(),
+          check_ins: checkIns.map((checkIn) => ({
+            spot_id: checkIn.spotId,
+            ...(checkIn.spotName ? { spot_name: checkIn.spotName } : {}),
+            checked_in_at: new Date(checkIn.arrivedAtRawMs).toISOString(),
+          })),
+        },
+        null,
+        2,
+      );
+
+    }, true);
   }
 
   async delete(recordId: string): Promise<void> {
-    await this.firestore.deleteDocument(
-      `${this.collectionPath(this.requireUserId())}/${recordId}`,
-    );
+    return this.telemetry.run("check_in_and_session", "delete", async () => {
+      await this.firestore.deleteDocument(
+        `${this.collectionPath(this.requireUserId())}/${recordId}`,
+      );
+
+    }, true);
   }
 
   private manualSpotVisits(

@@ -1,3 +1,4 @@
+import { FeatureTelemetryService } from "../../feature-telemetry.service";
 import { Injectable, inject } from "@angular/core";
 import { Timestamp } from "firebase/firestore";
 import {
@@ -24,6 +25,8 @@ interface ScreenshotGlobal {
 
 @Injectable({ providedIn: "root" })
 export class RecoveryPausesService {
+  private readonly telemetry = inject(FeatureTelemetryService);
+
   private readonly firestore = inject(FirestoreAdapterService);
   private readonly auth = inject(AuthenticationService);
 
@@ -41,46 +44,55 @@ export class RecoveryPausesService {
   }
 
   async create(input: SaveRecoveryPauseInput): Promise<string> {
-    const uid = this.requireUserId();
-    this.assertValid(input, await this.listMine());
-    const now = Timestamp.now();
-    return this.firestore.addDocument(this.collectionPath(uid), {
-      owner_id: uid,
-      started_on: input.startedOn,
-      ...(input.endedOn ? { ended_on: input.endedOn } : {}),
-      reason: input.reason,
-      ...(input.note?.trim() ? { note: input.note.trim() } : {}),
-      time_created: now,
-      time_created_raw_ms: now.toMillis(),
-      time_updated: now,
-      time_updated_raw_ms: now.toMillis(),
-    } satisfies RecoveryPauseSchema);
+    return this.telemetry.run("recovery_pause", "create", async () => {
+      const uid = this.requireUserId();
+      this.assertValid(input, await this.listMine());
+      const now = Timestamp.now();
+      return this.firestore.addDocument(this.collectionPath(uid), {
+        owner_id: uid,
+        started_on: input.startedOn,
+        ...(input.endedOn ? { ended_on: input.endedOn } : {}),
+        reason: input.reason,
+        ...(input.note?.trim() ? { note: input.note.trim() } : {}),
+        time_created: now,
+        time_created_raw_ms: now.toMillis(),
+        time_updated: now,
+        time_updated_raw_ms: now.toMillis(),
+      } satisfies RecoveryPauseSchema);
+
+    }, true);
   }
 
   async update(id: string, input: SaveRecoveryPauseInput): Promise<void> {
-    this.assertValid(input, await this.listMine(), id);
-    const now = Timestamp.now();
-    await this.firestore.updateDocument<Record<string, unknown>>(
-      `${this.collectionPath(this.requireUserId())}/${id}`,
-      {
-        started_on: input.startedOn,
-        ...(input.endedOn
-          ? { ended_on: input.endedOn }
-          : { ended_on: this.firestore.deleteFieldValue() }),
-        reason: input.reason,
-        ...(input.note?.trim()
-          ? { note: input.note.trim() }
-          : { note: this.firestore.deleteFieldValue() }),
-        time_updated: now,
-        time_updated_raw_ms: now.toMillis(),
-      },
-    );
+    return this.telemetry.run("recovery_pause", "update", async () => {
+      this.assertValid(input, await this.listMine(), id);
+      const now = Timestamp.now();
+      await this.firestore.updateDocument<Record<string, unknown>>(
+        `${this.collectionPath(this.requireUserId())}/${id}`,
+        {
+          started_on: input.startedOn,
+          ...(input.endedOn
+            ? { ended_on: input.endedOn }
+            : { ended_on: this.firestore.deleteFieldValue() }),
+          reason: input.reason,
+          ...(input.note?.trim()
+            ? { note: input.note.trim() }
+            : { note: this.firestore.deleteFieldValue() }),
+          time_updated: now,
+          time_updated_raw_ms: now.toMillis(),
+        },
+      );
+
+    }, true);
   }
 
   delete(id: string): Promise<void> {
-    return this.firestore.deleteDocument(
-      `${this.collectionPath(this.requireUserId())}/${id}`,
-    );
+    return this.telemetry.run("recovery_pause", "delete", async () => {
+      return this.firestore.deleteDocument(
+        `${this.collectionPath(this.requireUserId())}/${id}`,
+      );
+
+    }, true);
   }
 
   assertValid(

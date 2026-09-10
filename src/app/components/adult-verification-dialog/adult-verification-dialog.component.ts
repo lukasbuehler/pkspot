@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {ChangeDetectionStrategy, Component, computed, inject, signal} from "@angular/core";
 import {MatButtonModule} from "@angular/material/button";
 import {MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle} from "@angular/material/dialog";
@@ -27,6 +29,8 @@ interface ProviderOption {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdultVerificationDialogComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly ageAssurance = inject(AgeAssuranceService);
   private readonly platform = inject(PlatformService);
   private readonly dialogRef = inject(MatDialogRef<AdultVerificationDialogComponent>);
@@ -86,7 +90,8 @@ export class AdultVerificationDialogComponent {
         window.location.assign(attempt.verification_url);
       }
       this.dialogRef.close();
-    } catch {
+    } catch (caughtFailure) {
+      this.featureTelemetry.failure("adult-verification-dialog", "start", caughtFailure);
       this._error.set($localize`Verification could not be started. You can try another method or try again later.`);
       if (provider === "oneid") this._oneIdState.set("error");
     } finally {

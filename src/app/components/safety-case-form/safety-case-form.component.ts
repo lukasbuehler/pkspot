@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -53,6 +55,8 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SafetyCaseFormComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly safetyCases = inject(SafetyCasesService);
   private readonly snackbar = inject(MatSnackBar);
   private readonly locale = inject(LOCALE_ID);
@@ -195,6 +199,7 @@ export class SafetyCaseFormComponent {
         });
         this.submitted.emit(result);
       } catch (error) {
+      this.featureTelemetry.failure("safety-case-form", "submitCase", error);
         console.error("Could not submit safety case", error);
         this.snackbar.open(
           error instanceof Error

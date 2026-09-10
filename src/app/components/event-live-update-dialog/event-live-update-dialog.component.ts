@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
 import { FormField, form, maxLength, required, submit } from "@angular/forms/signals";
 import { MatButtonModule } from "@angular/material/button";
@@ -90,6 +92,8 @@ const UPDATE_TYPE_OPTIONS: readonly UpdateTypeOption[] = [
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventLiveUpdateDialogComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly liveUpdates = inject(EventLiveUpdatesService);
   private readonly analytics = inject(AnalyticsService);
   private readonly snackbar = inject(MatSnackBar);
@@ -166,6 +170,7 @@ export class EventLiveUpdateDialogComponent {
       });
       this.dialogRef.close(true);
     } catch (error) {
+      this.featureTelemetry.failure("event-live-update-dialog", "publishUpdate", error);
       console.error("Could not publish event live update", error);
       this.snackbar.open(
         error instanceof Error

@@ -1,3 +1,4 @@
+import { FeatureTelemetryService } from "../feature-telemetry.service";
 import {
   Injectable,
   PendingTasks,
@@ -33,6 +34,8 @@ type CallableSuccessResponse = {
   providedIn: "root",
 })
 export class FunctionsAdapterService {
+  private readonly telemetry = inject(FeatureTelemetryService);
+
   private readonly functions = inject(FIREBASE_FUNCTIONS);
   private readonly firebaseApp = inject(FIREBASE_APP);
   private readonly platformService = inject(PlatformService);
@@ -43,40 +46,46 @@ export class FunctionsAdapterService {
     functionName: string,
     payload: TRequest,
   ): Promise<TResponse> {
-    return this.trackPending(() =>
-      this.platformService.isNative()
-        ? this.callNative<TRequest, TResponse>(functionName, payload, true)
-        : this.callWeb<TRequest, TResponse>(functionName, payload),
-    );
+    return this.telemetry.run("callable", functionName, async () => {
+      return this.trackPending(() =>
+        this.platformService.isNative()
+          ? this.callNative<TRequest, TResponse>(functionName, payload, true)
+          : this.callWeb<TRequest, TResponse>(functionName, payload),
+      );
+
+    }, false);
   }
 
   async callPublic<TRequest, TResponse>(
     functionName: string,
     payload: TRequest,
   ): Promise<TResponse> {
-    return this.trackPending(() => {
-      if (this.platformService.isNative()) {
-        return this.callNative<TRequest, TResponse>(
-          functionName,
-          payload,
-          false,
-          true,
-        );
-      }
+    return this.telemetry.run("callable", functionName, async () => {
+      return this.trackPending(() => {
+        if (this.platformService.isNative()) {
+          return this.callNative<TRequest, TResponse>(
+            functionName,
+            payload,
+            false,
+            true,
+          );
+        }
 
-      if (
-        environment.production &&
-        typeof window !== "undefined" &&
-        SAME_ORIGIN_PUBLIC_CALLABLES.has(functionName)
-      ) {
-        return this.callSameOriginPublic<TRequest, TResponse>(
-          functionName,
-          payload,
-        );
-      }
+        if (
+          environment.production &&
+          typeof window !== "undefined" &&
+          SAME_ORIGIN_PUBLIC_CALLABLES.has(functionName)
+        ) {
+          return this.callSameOriginPublic<TRequest, TResponse>(
+            functionName,
+            payload,
+          );
+        }
 
-      return this.callWeb<TRequest, TResponse>(functionName, payload);
-    });
+        return this.callWeb<TRequest, TResponse>(functionName, payload);
+      });
+
+    }, false);
   }
 
   /**
@@ -88,41 +97,50 @@ export class FunctionsAdapterService {
     functionName: string,
     payload: TRequest,
   ): Promise<TResponse> {
-    return this.trackPending(() =>
-      this.callDirect<TRequest, TResponse>(functionName, payload, {}),
-    );
+    return this.telemetry.run("callable", functionName, async () => {
+      return this.trackPending(() =>
+        this.callDirect<TRequest, TResponse>(functionName, payload, {}),
+      );
+
+    }, false);
   }
 
   async callAppChecked<TRequest, TResponse>(
     functionName: string,
     payload: TRequest,
   ): Promise<TResponse> {
-    return this.trackPending(async () => {
-      const appCheckToken = await this.appCheckService.getTokenForRequest();
-      return this.callDirect<TRequest, TResponse>(functionName, payload, {
-        "X-Firebase-AppCheck": appCheckToken,
+    return this.telemetry.run("callable", functionName, async () => {
+      return this.trackPending(async () => {
+        const appCheckToken = await this.appCheckService.getTokenForRequest();
+        return this.callDirect<TRequest, TResponse>(functionName, payload, {
+          "X-Firebase-AppCheck": appCheckToken,
+        });
       });
-    });
+
+    }, false);
   }
 
   async callAuthenticatedAppChecked<TRequest, TResponse>(
     functionName: string,
     payload: TRequest,
   ): Promise<TResponse> {
-    return this.trackPending(async () => {
-      const [appCheckToken, authToken] = await Promise.all([
-        this.appCheckService.getTokenForRequest(),
-        this.getAuthenticationToken(),
-      ]);
-      if (!authToken) {
-        throw new Error("An authenticated Firebase user is required");
-      }
+    return this.telemetry.run("callable", functionName, async () => {
+      return this.trackPending(async () => {
+        const [appCheckToken, authToken] = await Promise.all([
+          this.appCheckService.getTokenForRequest(),
+          this.getAuthenticationToken(),
+        ]);
+        if (!authToken) {
+          throw new Error("An authenticated Firebase user is required");
+        }
 
-      return this.callDirect<TRequest, TResponse>(functionName, payload, {
-        Authorization: `Bearer ${authToken}`,
-        "X-Firebase-AppCheck": appCheckToken,
+        return this.callDirect<TRequest, TResponse>(functionName, payload, {
+          Authorization: `Bearer ${authToken}`,
+          "X-Firebase-AppCheck": appCheckToken,
+        });
       });
-    });
+
+    }, false);
   }
 
   private async trackPending<T>(operation: () => Promise<T>): Promise<T> {

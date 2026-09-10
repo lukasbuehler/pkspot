@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -49,6 +51,8 @@ type OrganizationFormTarget = "create" | "edit";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrganizationAdminPageComponent implements OnDestroy {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly organizationsService = inject(OrganizationsService);
   private readonly mediaUploadStatusService = inject(MediaUploadStatusService);
   private readonly storageService = inject(StorageService);
@@ -249,6 +253,7 @@ export class OrganizationAdminPageComponent implements OnDestroy {
         { duration: 3000 },
       );
     } catch (error) {
+      this.featureTelemetry.failure("organization-admin-page", "createOrganization", error);
       console.error("Failed to create organization:", error);
       this.showError(
         $localize`The organization was created or updated only partially. Review it and retry the logo if needed.`,
@@ -334,6 +339,7 @@ export class OrganizationAdminPageComponent implements OnDestroy {
         { duration: 3000 },
       );
     } catch (error) {
+      this.featureTelemetry.failure("organization-admin-page", "saveOrganization", error);
       console.error("Failed to save organization:", error);
       this.showError($localize`Organization changes could not be saved.`);
     } finally {

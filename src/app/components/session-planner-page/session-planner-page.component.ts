@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -36,6 +38,8 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SessionPlannerPageComponent implements OnInit {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly auth = inject(AuthenticationService);
   private readonly events = inject(EventsService);
   private readonly ageAssurance = inject(AgeAssuranceService);
@@ -108,6 +112,7 @@ export class SessionPlannerPageComponent implements OnInit {
       );
       await this.router.navigate(["/events", event.slug ?? event.id]);
     } catch (error) {
+      this.featureTelemetry.failure("session-planner-page", "onSave", error);
       console.error("Failed to create session", error);
       this.snackbar.open(
         $localize`:@@session_planner.failed:Couldn't create the session. Please try again.`,

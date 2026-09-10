@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -58,6 +60,8 @@ type ReportFilter =
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ModerationReportsPageComponent implements OnDestroy {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly _reportsService = inject(ModerationReportsService);
   private readonly _snackbar = inject(MatSnackBar);
   private readonly _dialog = inject(MatDialog);
@@ -125,6 +129,7 @@ export class ModerationReportsPageComponent implements OnDestroy {
     try {
       this.reports.set(await this._reportsService.getReports());
     } catch (error) {
+      this.featureTelemetry.failure("moderation-reports-page", "reload", error);
       console.error("Failed to load moderation reports", error);
       this._snackbar.open($localize`Failed to load reports`, undefined, {
         duration: 4000,
@@ -193,6 +198,7 @@ export class ModerationReportsPageComponent implements OnDestroy {
           duration: 3000,
         });
       } catch (error) {
+      this.featureTelemetry.failure("moderation-reports-page", "handle", error);
         console.error("Failed to publish Spot warning", error);
         this._snackbar.open($localize`Failed to publish Spot warning`, undefined, {
           duration: 4000,
@@ -211,6 +217,7 @@ export class ModerationReportsPageComponent implements OnDestroy {
         duration: 3000,
       });
     } catch (error) {
+      this.featureTelemetry.failure("moderation-reports-page", "handle", error);
       console.error("Failed to handle report", error);
       this._snackbar.open($localize`Failed to handle report`, undefined, {
         duration: 4000,
@@ -269,6 +276,7 @@ export class ModerationReportsPageComponent implements OnDestroy {
         [report.path]: url,
       }));
     } catch (error) {
+      this.featureTelemetry.failure("moderation-reports-page", "revealSensitiveMedia", error);
       console.error("Failed to load sensitive media", error);
       this._snackbar.open($localize`Failed to load quarantined media`, undefined, {
         duration: 4000,
@@ -293,6 +301,7 @@ export class ModerationReportsPageComponent implements OnDestroy {
       }
       await this._router.navigate(["/moderation/incidents", incidentId]);
     } catch (error) {
+      this.featureTelemetry.failure("moderation-reports-page", "openIncident", error);
       console.error("Failed to open safety incident", error);
       this._snackbar.open($localize`Failed to open safety incident`, undefined, {
         duration: 4000,

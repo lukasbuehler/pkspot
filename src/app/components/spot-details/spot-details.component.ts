@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   Component,
   OnInit,
@@ -339,6 +341,8 @@ type OrganizationRelationshipSaveResult = "unchanged" | "changed" | "failed";
 export class SpotDetailsComponent
   implements OnInit, AfterViewInit, OnChanges, OnDestroy
 {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   public locale: LocaleCode = inject(LOCALE_ID);
   private _challengeService = inject(SpotChallengesService);
   private _structuredDataService = inject(StructuredDataService);
@@ -1446,6 +1450,7 @@ export class SpotDetailsComponent
 
       return hasChanges ? "changed" : "unchanged";
     } catch (error) {
+      this.featureTelemetry.failure("spot-details", "_saveOrganizationRelationshipChangesIfNeeded", error);
       console.error("Failed to update spot organization relationship", error);
       this._snackbar.open(
         $localize`Failed to update spot organization settings`,
@@ -1472,6 +1477,7 @@ export class SpotDetailsComponent
         duration: 2200,
       });
     } catch (error) {
+      this.featureTelemetry.failure("spot-details", "removeStewardedOrganization", error);
       console.error("Failed to remove stewarded organization", error);
       this._snackbar.open(
         $localize`Failed to remove verified organization`,
@@ -1734,6 +1740,7 @@ export class SpotDetailsComponent
           dialogTitle: "Share Spot",
         });
       } catch (err) {
+      this.featureTelemetry.failure("spot-details", "shareSpot", err);
         console.error("Couldn't share this spot");
         console.error(err);
       }
@@ -1742,6 +1749,7 @@ export class SpotDetailsComponent
       try {
         await navigator.share(shareData);
       } catch (err) {
+      this.featureTelemetry.failure("spot-details", "shareSpot", err);
         console.error("Couldn't share this spot");
         console.error(err);
       }

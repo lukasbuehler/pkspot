@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -56,6 +58,8 @@ interface SessionDetailSummary {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TrainingSessionDetailComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly auth = inject(AuthenticationService);
@@ -174,6 +178,7 @@ export class TrainingSessionDetailComponent {
       this.sessions.set(sessions);
       this.spots.set(await this.resolveSpots(sessions));
     } catch (error) {
+      this.featureTelemetry.failure("training-session-detail", "load", error);
       console.error("[Training session] failed to load", error);
       this.error.set(
         error instanceof Error

@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -39,6 +41,8 @@ import { parseFirestoreTimestamp } from "../../../scripts/Helpers";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotEditDetailsComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   spotEdit = input<SpotEdit>();
   spotId = input<string | null>(null);
   private readonly _dateTime = inject(DateTimeFormatService);
@@ -299,6 +303,7 @@ export class SpotEditDetailsComponent {
         { duration: 2200 }
       );
     } catch (error) {
+      this.featureTelemetry.failure("spot-edit-details", "_reviewOrganizationEdit", error);
       console.error("Failed to review organization edit", error);
       this._snackBar.open(
         $localize`Failed to submit organization review`,
@@ -338,6 +343,7 @@ export class SpotEditDetailsComponent {
         duration: 2200,
       });
     } catch (error) {
+      this.featureTelemetry.failure("spot-edit-details", "_submitVote", error);
       console.error("Failed to submit spot edit vote", error);
       this._snackBar.open(
         $localize`Failed to submit vote`,

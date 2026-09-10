@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   AfterViewInit,
   Component,
@@ -129,6 +131,8 @@ interface MarkerClickPayload {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotMapComponent implements AfterViewInit, OnDestroy {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   readonly isSavingSpot = signal(false);
   @ViewChild("map") map: GoogleMap2dComponent | undefined;
 
@@ -1079,6 +1083,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
               lng: spot.location.longitude,
             });
           } catch (error) {
+      this.featureTelemetry.failure("spot-map", "openSpotByWhateverMeansNecessary", error);
             console.error(
               "error focusing spot location (seems not to be GeoPoint even though it should be):",
               error,

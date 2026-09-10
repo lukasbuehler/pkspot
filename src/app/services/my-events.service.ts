@@ -1,3 +1,4 @@
+import { FeatureTelemetryService } from "./feature-telemetry.service";
 import { isPlatformBrowser } from "@angular/common";
 import {
   Injectable,
@@ -24,6 +25,8 @@ const LOCAL_SAVED_EVENTS_KEY = "pkspot:saved-events:v1";
 
 @Injectable({ providedIn: "root" })
 export class MyEventsService {
+  private readonly telemetry = inject(FeatureTelemetryService);
+
   private readonly _auth = inject(AuthenticationService);
   private readonly _analytics = inject(AnalyticsService);
   private readonly _events = inject(EventsService);
@@ -86,12 +89,15 @@ export class MyEventsService {
     eventId: string,
     defaultNotificationLevel: EventNotificationLevel = "none",
   ): Promise<void> {
-    const userId = this.userId();
-    if (!userId) {
-      this._setLocalSaved(eventId, true);
-      return;
-    }
-    await this.setRsvp(eventId, "interested", defaultNotificationLevel);
+    return this.telemetry.run("my_events", "saveEvent", async () => {
+      const userId = this.userId();
+      if (!userId) {
+        this._setLocalSaved(eventId, true);
+        return;
+      }
+      await this.setRsvp(eventId, "interested", defaultNotificationLevel);
+
+    }, true);
   }
 
   async markGoing(
@@ -106,55 +112,61 @@ export class MyEventsService {
     rsvp: EventRSVPOption,
     defaultNotificationLevel: EventNotificationLevel,
   ): Promise<void> {
-    const userId = this.userId();
-    if (!userId) {
-      throw new Error("Sign in before changing event attendance.");
-    }
+    return this.telemetry.run("my_events", "setRsvp", async () => {
+      const userId = this.userId();
+      if (!userId) {
+        throw new Error("Sign in before changing event attendance.");
+      }
 
-    const permissionRequest = this._notificationPermissionRequest(
-      defaultNotificationLevel,
-    );
-    await this._events.setMyRsvp(eventId, rsvp);
-    await this._recordRelationship(
-      userId,
-      eventId,
-      rsvp === "going" ? "going" : rsvp === "interested" ? "saved" : null,
-    );
+      const permissionRequest = this._notificationPermissionRequest(
+        defaultNotificationLevel,
+      );
+      await this._events.setMyRsvp(eventId, rsvp);
+      await this._recordRelationship(
+        userId,
+        eventId,
+        rsvp === "going" ? "going" : rsvp === "interested" ? "saved" : null,
+      );
 
-    if (
-      (rsvp === "going" || rsvp === "interested") &&
-      defaultNotificationLevel !== "none"
-    ) {
-      void Promise.all([
-        this._liveUpdates.ensureDefaultNotificationLevel(
-          eventId,
-          defaultNotificationLevel,
-          this._preferences.preferences().event_reminder_offsets_minutes,
-        ),
-        permissionRequest,
-      ])
-        .then(([created]) => {
-          if (created) {
-            this._analytics.trackEvent("event_notifications_auto_enabled", {
-              event_id: eventId,
-              notification_level: defaultNotificationLevel,
-            });
-          }
-        })
-        .catch((error) =>
-          console.warn("Could not apply default event notifications", error),
-        );
-    }
+      if (
+        (rsvp === "going" || rsvp === "interested") &&
+        defaultNotificationLevel !== "none"
+      ) {
+        void Promise.all([
+          this._liveUpdates.ensureDefaultNotificationLevel(
+            eventId,
+            defaultNotificationLevel,
+            this._preferences.preferences().event_reminder_offsets_minutes,
+          ),
+          permissionRequest,
+        ])
+          .then(([created]) => {
+            if (created) {
+              this._analytics.trackEvent("event_notifications_auto_enabled", {
+                event_id: eventId,
+                notification_level: defaultNotificationLevel,
+              });
+            }
+          })
+          .catch((error) =>
+            console.warn("Could not apply default event notifications", error),
+          );
+      }
+
+    }, true);
   }
 
   async clearRsvp(eventId: string): Promise<void> {
-    const userId = this.userId();
-    if (!userId) {
-      this._setLocalSaved(eventId, false);
-      return;
-    }
-    await this._events.clearMyRsvp(eventId);
-    await this._recordRelationship(userId, eventId, null);
+    return this.telemetry.run("my_events", "clearRsvp", async () => {
+      const userId = this.userId();
+      if (!userId) {
+        this._setLocalSaved(eventId, false);
+        return;
+      }
+      await this._events.clearMyRsvp(eventId);
+      await this._recordRelationship(userId, eventId, null);
+
+    }, true);
   }
 
   async recordRegistration(

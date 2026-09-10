@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -41,6 +43,8 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ModerationCasesPageComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly safetyCases = inject(SafetyCasesService);
   private readonly snackbar = inject(MatSnackBar);
   readonly auth = inject(AuthenticationService);
@@ -95,6 +99,7 @@ export class ModerationCasesPageComponent {
     try {
       this.cases.set(await this.safetyCases.listAdminCases());
     } catch (error) {
+      this.featureTelemetry.failure("moderation-cases-page", "reload", error);
       console.error("Could not load safety cases", error);
       this.snackbar.open($localize`Could not load safety cases.`, undefined, {
         duration: 5000,

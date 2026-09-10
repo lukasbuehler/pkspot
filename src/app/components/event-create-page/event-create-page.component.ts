@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -41,6 +43,8 @@ import type { EventId } from "../../../db/schemas/EventSchema";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventCreatePageComponent implements OnInit {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private _authService = inject(AuthenticationService);
   private _eventsService = inject(EventsService);
   private _organizationsService = inject(OrganizationsService);
@@ -135,6 +139,7 @@ export class EventCreatePageComponent implements OnInit {
       // Land on the new event's detail page.
       this._router.navigate(["/events", created.slug]);
     } catch (err) {
+      this.featureTelemetry.failure("event-create-page", "onSave", err);
       console.error("Failed to create event", err);
       this._snackbar.open(
         $localize`:@@event_create.snackbar.failed:Couldn't create the event. Check the console for details.`,

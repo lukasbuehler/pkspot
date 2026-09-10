@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
 import { ReactiveFormsModule, FormControl, FormGroup, Validators } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
@@ -53,6 +55,8 @@ export interface RecoveryPauseDialogResult {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RecoveryPauseDialogComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   readonly data = inject<RecoveryPauseDialogData>(MAT_DIALOG_DATA);
   private readonly pauses = inject(RecoveryPausesService);
   private readonly dialogRef = inject<
@@ -106,6 +110,7 @@ export class RecoveryPauseDialogComponent {
       else await this.pauses.create(input);
       this.dialogRef.close({ changed: true });
     } catch (error) {
+      this.featureTelemetry.failure("recovery-pause-dialog", "save", error);
       this.error.set(
         error instanceof Error
           ? error.message
@@ -125,6 +130,7 @@ export class RecoveryPauseDialogComponent {
       await this.pauses.delete(this.data.pause.id);
       this.dialogRef.close({ changed: true });
     } catch (error) {
+      this.featureTelemetry.failure("recovery-pause-dialog", "delete", error);
       this.error.set(
         error instanceof Error
           ? error.message

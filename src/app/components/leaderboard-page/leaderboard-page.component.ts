@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   Component,
   OnInit,
@@ -55,6 +57,8 @@ interface UserData {
   styleUrl: "./leaderboard-page.component.scss",
 })
 export class LeaderboardPageComponent implements OnInit {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private _firestoreAdapter = inject(FirestoreAdapterService);
   private _authService = inject(AuthenticationService);
   private _platformId = inject(PLATFORM_ID);
@@ -131,6 +135,7 @@ export class LeaderboardPageComponent implements OnInit {
       this.leaderboardData = entries;
       this._cdr.detectChanges();
     } catch (error) {
+      this.featureTelemetry.failure("leaderboard-page", "loadLeaderboard", error);
       console.error("Error loading leaderboard:", error);
     } finally {
       this.isLoading = false;

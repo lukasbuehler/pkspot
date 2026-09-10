@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -40,6 +42,8 @@ import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ModerationMediaPageComponent implements OnDestroy {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly _mediaService = inject(ModerationMediaService);
   private readonly _snackbar = inject(MatSnackBar);
   readonly authService = inject(AuthenticationService);
@@ -77,6 +81,7 @@ export class ModerationMediaPageComponent implements OnDestroy {
       this.previewUrls.set({});
       this.media.set(await this._mediaService.getUploadStream());
     } catch (error) {
+      this.featureTelemetry.failure("moderation-media-page", "reload", error);
       console.error("Failed to load moderation media stream", error);
       this._snackbar.open($localize`Failed to load media stream`, undefined, {
         duration: 4000,
@@ -103,6 +108,7 @@ export class ModerationMediaPageComponent implements OnDestroy {
       const url = await this._mediaService.getQuarantinedPreview(item.id);
       this.previewUrls.update((urls) => ({ ...urls, [item.id]: url }));
     } catch (error) {
+      this.featureTelemetry.failure("moderation-media-page", "reveal", error);
       console.error("Failed to load quarantined media", error);
       this._snackbar.open($localize`Failed to load quarantined media`, undefined, {
         duration: 4000,
@@ -140,6 +146,7 @@ export class ModerationMediaPageComponent implements OnDestroy {
         duration: 3000,
       });
     } catch (error) {
+      this.featureTelemetry.failure("moderation-media-page", "markSafe", error);
       console.error("Failed to release moderated media", error);
       this._snackbar.open($localize`Failed to release media`, undefined, {
         duration: 4000,

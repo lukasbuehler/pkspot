@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -33,6 +35,8 @@ type DisplayShopOrder = MySupportOrderListItem & {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MyShopOrdersPageComponent implements OnInit {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly _destroyRef = inject(DestroyRef);
   private readonly _metaTagService = inject(MetaTagService);
   private readonly _shop = inject(SupportShopService);
@@ -73,6 +77,7 @@ export class MyShopOrdersPageComponent implements OnInit {
     try {
       this.orders.set((await this._shop.listMyOrders()).map(toDisplayOrder));
     } catch (error) {
+      this.featureTelemetry.failure("my-shop-orders-page", "load", error);
       console.error("Could not load PK Spot shop orders", error);
       this.failed.set(true);
     } finally {

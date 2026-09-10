@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   Component,
   OnInit,
@@ -95,6 +97,8 @@ import { LocationAccessDialogComponent } from "../location-access-dialog/locatio
   host: { ngSkipHydration: "true" },
 })
 export class SettingsPageComponent implements OnInit {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   readonly appVersion = version;
   readonly reviewPlatform = Capacitor.getPlatform();
   readonly appleReviewUrl = `${APP_LINKS.appleAppStoreUrl}?action=write-review`;
@@ -658,6 +662,7 @@ export class SettingsPageComponent implements OnInit {
           try {
             console.error("Re-auth error details:", JSON.stringify(err));
           } catch (e) {
+      this.featureTelemetry.failure("settings-page", "deleteAccount", e);
             console.error("Could not stringify error");
           }
 

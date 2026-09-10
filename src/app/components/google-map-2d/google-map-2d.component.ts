@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   OnInit,
   ChangeDetectorRef,
@@ -274,6 +276,8 @@ export class GoogleMap2dComponent
   extends MapBase
   implements OnChanges, AfterViewInit, OnDestroy
 {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private static readonly ZOOM_SYNC_EPSILON = 0.5;
   private static readonly CAMERA_JUMP_WINDOW_MS = 600;
   private static readonly MAX_CAMERA_ZOOM_JUMP = 3;
@@ -3592,6 +3596,7 @@ export class GoogleMap2dComponent
               }
             }
           } catch (error) {
+      this.featureTelemetry.failure("google-map-2d", "waitForPolygonAndGetPaths", error);
             console.error("❌ Error getting paths:", error);
           }
         }

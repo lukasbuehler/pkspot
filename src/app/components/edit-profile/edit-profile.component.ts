@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   Component,
   Inject,
@@ -86,6 +88,8 @@ import { PROFILE_IMAGE_CROP_POLICY } from "../crop-image/image-crop-policy";
   ],
 })
 export class EditProfileComponent implements OnInit {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   protected readonly userInput = input<User | undefined>(undefined, {
     alias: "user",
   });
@@ -150,8 +154,8 @@ export class EditProfileComponent implements OnInit {
     // Update nationalityCode when countryControl changes (if valid selection)
     this.countryControl.valueChanges.subscribe((value) => {
       const val = (value || "").toLowerCase();
-      /* 
-          Try to find a match. 
+      /*
+          Try to find a match.
           If user types "Germany", we find code "DE".
           If user types "DE", check if it matches a code directly (also acceptable).
        */
@@ -374,6 +378,7 @@ export class EditProfileComponent implements OnInit {
       this.hasProfilePictureError = false;
       this.isProfilePictureLoaded = true;
     } catch (err) {
+      this.featureTelemetry.failure("edit-profile", "_performProfilePictureUploadAndSave", err);
       console.error("Error uploading or saving profile picture:", err);
       this.isUpdatingProfilePicture = false;
       throw err instanceof Error

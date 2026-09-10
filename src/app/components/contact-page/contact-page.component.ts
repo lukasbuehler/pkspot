@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -49,6 +51,8 @@ import { AnalyticsService } from "../../services/analytics.service";
   ],
 })
 export class ContactPageComponent implements OnInit {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly _formBuilder = inject(FormBuilder);
   private readonly _contactMessagesService = inject(ContactMessagesService);
   private readonly _authService = inject(AuthenticationService);
@@ -189,6 +193,7 @@ export class ContactPageComponent implements OnInit {
         website: "",
       });
     } catch (error) {
+      this.featureTelemetry.failure("contact-page", "submitContactMessage", error);
       console.error("Failed to submit contact message", error);
       this._analyticsService.trackEvent("contact_submit_failed", {
         topic: this.topic(),

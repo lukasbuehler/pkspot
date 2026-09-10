@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -41,6 +43,8 @@ import {
   ],
 })
 export class CropImageComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   readonly imageFile = input.required<File>();
   readonly policy = input<ImageCropPolicy>(PROFILE_IMAGE_CROP_POLICY);
   readonly imageCropped = output<File>();
@@ -95,6 +99,7 @@ export class CropImageComponent {
         }),
       );
     } catch (error) {
+      this.featureTelemetry.failure("crop-image", "saveCroppedImage", error);
       console.error("Error creating cropped image:", error);
       this.hasLoadError.set(true);
     } finally {

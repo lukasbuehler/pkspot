@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -45,6 +47,8 @@ type ScreenshotGlobal = typeof globalThis & {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventRsvpComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private _injector = inject(Injector);
   private _eventsService?: EventsService;
   private _authService?: AuthenticationService;
@@ -182,6 +186,7 @@ export class EventRsvpComponent {
         rsvp: next,
       });
     } catch (err) {
+      this.featureTelemetry.failure("event-rsvp", "selectRsvp", err);
       console.error("Failed to save event RSVP", err);
       this.selectedRsvp.set(previousSelected);
       this.loadedRsvp.set(previousLoaded);
@@ -226,6 +231,7 @@ export class EventRsvpComponent {
         storage: "device",
       });
     } catch (err) {
+      this.featureTelemetry.failure("event-rsvp", "selectInterested", err);
       console.error("Failed to save event locally", err);
       this.errorMessage.set(
         $localize`:@@event_rsvp.save_failed:Couldn't save your response. Try again in a moment.`,
@@ -264,6 +270,7 @@ export class EventRsvpComponent {
         previous_rsvp: previousRelationship,
       });
     } catch (err) {
+      this.featureTelemetry.failure("event-rsvp", "clearRsvp", err);
       console.error("Failed to clear event RSVP", err);
       this.selectedRsvp.set(previousSelected);
       this.loadedRsvp.set(previousLoaded);
@@ -317,6 +324,7 @@ export class EventRsvpComponent {
       this.relationshipFallbackSuppressed.set(false);
       this.rsvpChanged.emit(rsvp);
     } catch (err) {
+      this.featureTelemetry.failure("event-rsvp", "_loadRsvp", err);
       if (version !== this._loadVersion) return;
       console.error("Failed to load event RSVP", err);
       this.errorMessage.set(

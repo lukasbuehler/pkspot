@@ -1,3 +1,4 @@
+import { FeatureTelemetryService } from "../../feature-telemetry.service";
 import { Injectable, inject } from "@angular/core";
 import { Timestamp } from "firebase/firestore";
 import { map, Observable, from, Subscription } from "rxjs";
@@ -19,6 +20,8 @@ import { Capacitor } from "@capacitor/core";
   providedIn: "root",
 })
 export class FollowingService extends ConsentAwareService {
+  private readonly telemetry = inject(FeatureTelemetryService);
+
   private _firestoreAdapter = inject(FirestoreAdapterService);
 
   constructor() {
@@ -116,41 +119,44 @@ export class FollowingService extends ConsentAwareService {
     otherUserId: string,
     otherUserData: UserSchema
   ): Promise<void> {
-    if (!myUserId) {
-      return Promise.reject("Your User ID is empty");
-    }
-    if (!otherUserId) {
-      return Promise.reject(
-        "The User ID of the user you want to follow is empty"
-      );
-    }
-    if (!otherUserData || !otherUserData.display_name) {
-      return Promise.reject(
-        "The User data of the user you want to follow is not valid"
-      );
-    }
-
-    // Note: We no longer store profile_picture here.
-    // Profile picture URLs are derived from user IDs using getProfilePictureUrl().
-    let followingData: FollowingDataSchema = {
-      display_name: otherUserData.display_name,
-      start_following: new Timestamp(Date.now() / 1000, 0),
-      start_following_raw_ms: Date.now(),
-    };
-
-    let followerData: FollowingDataSchema = {
-      display_name: myUserData.display_name,
-      start_following: new Timestamp(Date.now() / 1000, 0),
-      start_following_raw_ms: Date.now(),
-    };
-    return this._firestoreAdapter
-      .setDocument(`users/${myUserId}/following/${otherUserId}`, followingData)
-      .then(() => {
-        return this._firestoreAdapter.setDocument(
-          `users/${otherUserId}/followers/${myUserId}`,
-          followerData
+    return this.telemetry.run("following", "followUser", async () => {
+      if (!myUserId) {
+        return Promise.reject("Your User ID is empty");
+      }
+      if (!otherUserId) {
+        return Promise.reject(
+          "The User ID of the user you want to follow is empty"
         );
-      });
+      }
+      if (!otherUserData || !otherUserData.display_name) {
+        return Promise.reject(
+          "The User data of the user you want to follow is not valid"
+        );
+      }
+
+      // Note: We no longer store profile_picture here.
+      // Profile picture URLs are derived from user IDs using getProfilePictureUrl().
+      let followingData: FollowingDataSchema = {
+        display_name: otherUserData.display_name,
+        start_following: new Timestamp(Date.now() / 1000, 0),
+        start_following_raw_ms: Date.now(),
+      };
+
+      let followerData: FollowingDataSchema = {
+        display_name: myUserData.display_name,
+        start_following: new Timestamp(Date.now() / 1000, 0),
+        start_following_raw_ms: Date.now(),
+      };
+      return this._firestoreAdapter
+        .setDocument(`users/${myUserId}/following/${otherUserId}`, followingData)
+        .then(() => {
+          return this._firestoreAdapter.setDocument(
+            `users/${otherUserId}/followers/${myUserId}`,
+            followerData
+          );
+        });
+
+    }, true);
   }
 
   requestToFollowUser(
@@ -158,34 +164,40 @@ export class FollowingService extends ConsentAwareService {
     myUserData: UserSchema,
     otherUserId: string
   ): Promise<void> {
-    if (!myUserId) {
-      return Promise.reject("Your User ID is empty");
-    }
-    if (!otherUserId) {
-      return Promise.reject(
-        "The User ID of the user you want to follow is empty"
+    return this.telemetry.run("following", "requestToFollowUser", async () => {
+      if (!myUserId) {
+        return Promise.reject("Your User ID is empty");
+      }
+      if (!otherUserId) {
+        return Promise.reject(
+          "The User ID of the user you want to follow is empty"
+        );
+      }
+      if (!myUserData || !myUserData.display_name) {
+        return Promise.reject("Your user data is not valid");
+      }
+
+      const requestData: FollowRequestDataSchema = {
+        display_name: myUserData.display_name,
+        requested_at: new Timestamp(Date.now() / 1000, 0),
+        requested_at_raw_ms: Date.now(),
+      };
+
+      return this._firestoreAdapter.setDocument(
+        `users/${otherUserId}/follow_requests/${myUserId}`,
+        requestData
       );
-    }
-    if (!myUserData || !myUserData.display_name) {
-      return Promise.reject("Your user data is not valid");
-    }
 
-    const requestData: FollowRequestDataSchema = {
-      display_name: myUserData.display_name,
-      requested_at: new Timestamp(Date.now() / 1000, 0),
-      requested_at_raw_ms: Date.now(),
-    };
-
-    return this._firestoreAdapter.setDocument(
-      `users/${otherUserId}/follow_requests/${myUserId}`,
-      requestData
-    );
+    }, true);
   }
 
   cancelFollowRequest(myUserId: string, otherUserId: string): Promise<void> {
-    return this._firestoreAdapter.deleteDocument(
-      `users/${otherUserId}/follow_requests/${myUserId}`
-    );
+    return this.telemetry.run("following", "cancelFollowRequest", async () => {
+      return this._firestoreAdapter.deleteDocument(
+        `users/${otherUserId}/follow_requests/${myUserId}`
+      );
+
+    }, true);
   }
 
   approveFollowRequest(
@@ -193,50 +205,59 @@ export class FollowingService extends ConsentAwareService {
     myUserData: UserSchema,
     request: FollowRequestSchema
   ): Promise<void> {
-    if (!myUserId || !request.uid) {
-      return Promise.reject("The follow request is not valid");
-    }
-    if (!myUserData?.display_name) {
-      return Promise.reject("Your user data is not valid");
-    }
+    return this.telemetry.run("following", "approveFollowRequest", async () => {
+      if (!myUserId || !request.uid) {
+        return Promise.reject("The follow request is not valid");
+      }
+      if (!myUserData?.display_name) {
+        return Promise.reject("Your user data is not valid");
+      }
 
-    const now = Date.now();
-    const followingData: FollowingDataSchema = {
-      display_name: myUserData.display_name,
-      start_following: new Timestamp(now / 1000, 0),
-      start_following_raw_ms: now,
-    };
-    const followerData: FollowingDataSchema = {
-      display_name: request.display_name,
-      start_following: new Timestamp(now / 1000, 0),
-      start_following_raw_ms: now,
-    };
+      const now = Date.now();
+      const followingData: FollowingDataSchema = {
+        display_name: myUserData.display_name,
+        start_following: new Timestamp(now / 1000, 0),
+        start_following_raw_ms: now,
+      };
+      const followerData: FollowingDataSchema = {
+        display_name: request.display_name,
+        start_following: new Timestamp(now / 1000, 0),
+        start_following_raw_ms: now,
+      };
 
-    return this._firestoreAdapter
-      .setDocument(`users/${request.uid}/following/${myUserId}`, followingData)
-      .then(() =>
-        this._firestoreAdapter.setDocument(
-          `users/${myUserId}/followers/${request.uid}`,
-          followerData
+      return this._firestoreAdapter
+        .setDocument(`users/${request.uid}/following/${myUserId}`, followingData)
+        .then(() =>
+          this._firestoreAdapter.setDocument(
+            `users/${myUserId}/followers/${request.uid}`,
+            followerData
+          )
         )
-      )
-      .then(() => this.rejectFollowRequest(myUserId, request.uid));
+        .then(() => this.rejectFollowRequest(myUserId, request.uid));
+
+    }, true);
   }
 
   rejectFollowRequest(myUserId: string, requesterId: string): Promise<void> {
-    return this._firestoreAdapter.deleteDocument(
-      `users/${myUserId}/follow_requests/${requesterId}`
-    );
+    return this.telemetry.run("following", "rejectFollowRequest", async () => {
+      return this._firestoreAdapter.deleteDocument(
+        `users/${myUserId}/follow_requests/${requesterId}`
+      );
+
+    }, true);
   }
 
   unfollowUser(myUserId: string, otherUserId: string) {
-    return this._firestoreAdapter
-      .deleteDocument(`users/${myUserId}/following/${otherUserId}`)
-      .then(() => {
-        return this._firestoreAdapter.deleteDocument(
-          `users/${otherUserId}/followers/${myUserId}`
-        );
-      });
+    return this.telemetry.run("following", "unfollowUser", async () => {
+      return this._firestoreAdapter
+        .deleteDocument(`users/${myUserId}/following/${otherUserId}`)
+        .then(() => {
+          return this._firestoreAdapter.deleteDocument(
+            `users/${otherUserId}/followers/${myUserId}`
+          );
+        });
+
+    }, true);
   }
 
   getFollowersOfUser(

@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -34,6 +36,8 @@ export interface EventAddDialogData {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventAddDialogComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly _dialogRef = inject(
     MatDialogRef<EventAddDialogComponent, MyEventRelationship>,
   );
@@ -82,6 +86,7 @@ export class EventAddDialogComponent {
       });
       this._dialogRef.close(relationship);
     } catch (error) {
+      this.featureTelemetry.failure("event-add-dialog", "choose", error);
       console.error("Could not add event to My Events", error);
       this.error.set(
         $localize`:@@event_add.save_failed:Couldn't save this event. Try again in a moment.`,

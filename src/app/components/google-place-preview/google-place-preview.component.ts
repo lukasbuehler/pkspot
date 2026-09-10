@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   Component,
   computed,
@@ -44,6 +46,8 @@ import { DateTimeFormatService } from "../../services/date-time-format.service";
   styleUrls: ["./google-place-preview.component.scss"],
 })
 export class GooglePlacePreviewComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private _maps = inject(MapsApiService);
   private _analytics = inject(AnalyticsService);
   private _platform = inject(PlatformService);
@@ -206,6 +210,7 @@ export class GooglePlacePreviewComponent {
         const details = await this._maps.getGooglePlaceById(id, "rich");
         this.place.set(details);
       } catch (e: unknown) {
+      this.featureTelemetry.failure("google-place-preview", "_loadDetails", e);
         console.warn("Failed to load Google Place details", e);
         this.error.set(
           typeof e === "string"

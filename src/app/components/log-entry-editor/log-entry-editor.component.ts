@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import { StoreReviewService } from "../../reviews/store-review.service";
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
 import { SystemDatePipe } from "../../pipes/system-date.pipe";
@@ -44,6 +46,8 @@ import { UserPickerComponent } from "../user-picker/user-picker.component";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LogEntryEditorComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly reviews = inject(StoreReviewService);
@@ -152,6 +156,7 @@ export class LogEntryEditorComponent {
       const navigated = await this.router.navigateByUrl("/train/log");
       if (navigated && !this.entryId) this.reviews.offerAfterCompletion();
     } catch (error) {
+      this.featureTelemetry.failure("log-entry-editor", "save", error);
       console.error("[Training log] save failed", error);
       this.error.set(
         error instanceof Error
@@ -179,6 +184,7 @@ export class LogEntryEditorComponent {
         this.showNewSession.set(true);
       }
     } catch (error) {
+      this.featureTelemetry.failure("log-entry-editor", "load", error);
       this.error.set(error instanceof Error ? error.message : String(error));
     } finally {
       this.loading.set(false);

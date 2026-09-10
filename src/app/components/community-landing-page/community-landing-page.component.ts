@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import { NgOptimizedImage } from "@angular/common";
 import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import {
@@ -124,6 +126,8 @@ interface CommunityInfoCardView {
   },
 })
 export class CommunityLandingPageComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private _route = inject(ActivatedRoute);
   private _authService = inject(AuthenticationService);
   private _landingPagesService = inject(LandingPagesService);
@@ -618,6 +622,7 @@ export class CommunityLandingPageComponent {
         card_count: cards.length,
       });
     } catch (error) {
+      this.featureTelemetry.failure("community-landing-page", "saveKnowledgeCards", error);
       console.error("Failed to save community knowledge cards", error);
       this._analytics.trackEvent("community_knowledge_save_failed", {
         ...this._communityAnalyticsProperties(),
@@ -684,6 +689,7 @@ export class CommunityLandingPageComponent {
         duration: 3000,
       });
     } catch (error) {
+      this.featureTelemetry.failure("community-landing-page", "saveCommunityMerge", error);
       console.error("Failed to queue community merge", error);
       this._snackbar.open($localize`Failed to queue community merge`, undefined, {
         duration: 5000,
@@ -723,6 +729,7 @@ export class CommunityLandingPageComponent {
         this.selectedLocalityMergeKey.set("");
       }
     } catch (error) {
+      this.featureTelemetry.failure("community-landing-page", "loadLocalityMergeAdminState", error);
       console.error("Failed to load unpublished locality merges", error);
       this.localityMergeLoadFailed.set(true);
       this._snackbar.open("Failed to load unpublished localities", undefined, {
@@ -809,6 +816,7 @@ export class CommunityLandingPageComponent {
         { duration: 4000 },
       );
     } catch (error) {
+      this.featureTelemetry.failure("community-landing-page", "_saveUnpublishedLocalityMerge", error);
       console.error(`Failed to ${action} unpublished locality`, error);
       this._snackbar.open(
         action === "merge"

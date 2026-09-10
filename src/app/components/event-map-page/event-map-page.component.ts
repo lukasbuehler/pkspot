@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   Component,
   inject,
@@ -169,6 +171,8 @@ type EventMapTab = "all" | "event" | "spots" | "challenges" | "program";
   styleUrl: "./event-map-page.component.scss",
 })
 export class EventMapPageComponent implements OnInit, OnDestroy {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private _spotMap: SpotMapComponent | GoogleMap2dComponent | undefined;
 
   /**
@@ -1006,6 +1010,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
           method: "native_share",
         });
       } catch (err) {
+      this.featureTelemetry.failure("event-map-page", "shareEvent", err);
         console.error("Couldn't share this event", err);
         this._analytics.trackEvent("share_event_failed", {
           surface: "event_map_page",
@@ -1022,6 +1027,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
           method: "web_share",
         });
       } catch (err) {
+      this.featureTelemetry.failure("event-map-page", "shareEvent", err);
         console.error("Couldn't share this event", err);
         this._analytics.trackEvent("share_event_failed", {
           surface: "event_map_page",
@@ -1582,6 +1588,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
         { duration: 3000 },
       );
     } catch (err) {
+      this.featureTelemetry.failure("event-map-page", "onSaveEvent", err);
       console.error("Failed to save event", err);
       this._snackbar.open(
         $localize`:@@event_edit.snackbar.save_failed:Couldn't save the event. Check the console for details.`,
@@ -1607,6 +1614,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
       // Leave the page — the event no longer exists.
       this._router.navigate(["/events"]);
     } catch (err) {
+      this.featureTelemetry.failure("event-map-page", "onDeleteEvent", err);
       console.error("Failed to delete event", err);
       this._snackbar.open(
         $localize`:@@event_edit.snackbar.delete_failed:Couldn't delete the event.`,

@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -36,6 +38,8 @@ type DisplaySupportOrder = SupportOrderListItem & { amountLabel: string };
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SupportOrdersPageComponent implements OnDestroy {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly _shop = inject(SupportShopService);
   private readonly _snackBar = inject(MatSnackBar);
   readonly authService = inject(AuthenticationService);
@@ -73,6 +77,7 @@ export class SupportOrdersPageComponent implements OnDestroy {
         })),
       );
     } catch (error) {
+      this.featureTelemetry.failure("support-orders-page", "reload", error);
       console.error("Could not load PK Spot shop orders", error);
       this._snackBar.open("Could not load shop orders.", undefined, {
         duration: 4_000,
@@ -102,6 +107,7 @@ export class SupportOrdersPageComponent implements OnDestroy {
         duration: 3_000,
       });
     } catch (error) {
+      this.featureTelemetry.failure("support-orders-page", "markFulfilled", error);
       console.error("Could not mark PK Spot shop order fulfilled", error);
       this._snackBar.open("Could not update this shop order.", undefined, {
         duration: 4_000,

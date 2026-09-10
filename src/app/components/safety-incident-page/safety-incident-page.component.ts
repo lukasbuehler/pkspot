@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -54,6 +56,8 @@ import { Subscription } from "rxjs";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SafetyIncidentPageComponent implements OnDestroy {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly _route = inject(ActivatedRoute);
   private readonly _incidents = inject(SafetyIncidentsService);
   private readonly _snackbar = inject(MatSnackBar);
@@ -159,6 +163,7 @@ export class SafetyIncidentPageComponent implements OnDestroy {
         });
       }
     } catch (error) {
+      this.featureTelemetry.failure("safety-incident-page", "load", error);
       console.error("Failed to load safety incident", error);
       this._snackbar.open($localize`Failed to load safety incident`, undefined, {
         duration: 4000,
@@ -190,6 +195,7 @@ export class SafetyIncidentPageComponent implements OnDestroy {
         duration: 3000,
       });
     } catch (error) {
+      this.featureTelemetry.failure("safety-incident-page", "save", error);
       console.error("Failed to save safety incident", error);
       this._snackbar.open($localize`Failed to save safety incident`, undefined, {
         duration: 4000,

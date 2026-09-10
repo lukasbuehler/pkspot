@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -39,6 +41,8 @@ import { MetaTagService } from "../../services/meta-tag.service";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventSuggestionPageComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly _formBuilder = inject(FormBuilder).nonNullable;
   private readonly _auth = inject(AuthenticationService);
   private readonly _ageAssurance = inject(AgeAssuranceService);
@@ -121,6 +125,7 @@ export class EventSuggestionPageComponent {
       );
       await this._router.navigate(["/events"]);
     } catch (error) {
+      this.featureTelemetry.failure("event-suggestion-page", "submit", error);
       console.error("Unable to submit event suggestion", error);
       this._snackBar.open(
         error instanceof Error

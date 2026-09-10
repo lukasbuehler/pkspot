@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
@@ -21,6 +23,8 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ShopCartPageComponent implements OnInit {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly _metaTagService = inject(MetaTagService);
   private readonly _route = inject(ActivatedRoute);
   private readonly _shop = inject(SupportShopService);
@@ -59,6 +63,7 @@ export class ShopCartPageComponent implements OnInit {
       );
       globalThis.location.assign(result.checkoutUrl);
     } catch (error) {
+      this.featureTelemetry.failure("shop-cart-page", "checkout", error);
       console.error("Could not start PK Spot shop checkout", error);
       this.checkoutError.set(
         "Could not start secure checkout. Please try again or contact us if the problem continues.",

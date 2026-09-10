@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
 import { RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
@@ -22,6 +24,8 @@ import { ReporterReportsService } from "../../services/firebase/firestore/report
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MyReportsPageComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   private readonly _reports = inject(ReporterReportsService);
   readonly auth = inject(AuthenticationService);
   readonly reports = signal<OwnReportSummary[]>([]);
@@ -44,6 +48,7 @@ export class MyReportsPageComponent {
     try {
       this.reports.set(await this._reports.listMine());
     } catch (error) {
+      this.featureTelemetry.failure("my-reports-page", "load", error);
       console.error("Could not load reporter reports", error);
       this.failed.set(true);
     } finally {

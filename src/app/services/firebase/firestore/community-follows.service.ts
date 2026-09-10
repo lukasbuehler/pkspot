@@ -1,3 +1,4 @@
+import { FeatureTelemetryService } from "../../feature-telemetry.service";
 import { Injectable, inject } from "@angular/core";
 import { Timestamp } from "firebase/firestore";
 import {
@@ -11,6 +12,8 @@ import { UsersService } from "./users.service";
 
 @Injectable({ providedIn: "root" })
 export class CommunityFollowsService {
+  private readonly telemetry = inject(FeatureTelemetryService);
+
   private readonly firestore = inject(FirestoreAdapterService);
   private readonly auth = inject(AuthenticationService);
   private readonly users = inject(UsersService);
@@ -45,21 +48,24 @@ export class CommunityFollowsService {
   }
 
   async follow(community: CommunitySearchPreview): Promise<void> {
-    const uid = this.requireUserId();
-    const now = Timestamp.now();
-    await this.firestore.setDocument(this.path(uid, community.communityKey), {
-      community_key: community.communityKey,
-      scope: community.scope ?? "locality",
-      display_name: community.displayName,
-      canonical_path:
-        community.canonicalPath ??
-        `/map/communities/${encodeURIComponent(community.slug)}`,
-      ...(community.imageUrl ? { image_url: community.imageUrl } : {}),
-      time_created: now,
-      time_created_raw_ms: now.toMillis(),
-      event_notifications: false,
-      spot_digest_notifications: false,
-    } satisfies CommunityFollowSchema);
+    return this.telemetry.run("community_follow", "follow", async () => {
+      const uid = this.requireUserId();
+      const now = Timestamp.now();
+      await this.firestore.setDocument(this.path(uid, community.communityKey), {
+        community_key: community.communityKey,
+        scope: community.scope ?? "locality",
+        display_name: community.displayName,
+        canonical_path:
+          community.canonicalPath ??
+          `/map/communities/${encodeURIComponent(community.slug)}`,
+        ...(community.imageUrl ? { image_url: community.imageUrl } : {}),
+        time_created: now,
+        time_created_raw_ms: now.toMillis(),
+        event_notifications: false,
+        spot_digest_notifications: false,
+      } satisfies CommunityFollowSchema);
+
+    }, true);
   }
 
   async setNotifications(
@@ -69,32 +75,38 @@ export class CommunityFollowsService {
       spotDigestNotifications?: boolean;
     },
   ): Promise<void> {
-    const uid = this.requireUserId();
-    const now = Timestamp.now();
-    await this.firestore.setDocument(
-      this.path(uid, communityKey),
-      {
-        ...(settings.eventNotifications === undefined
-          ? {}
-          : { event_notifications: settings.eventNotifications }),
-        ...(settings.spotDigestNotifications === undefined
-          ? {}
-          : { spot_digest_notifications: settings.spotDigestNotifications }),
-        time_updated: now,
-        time_updated_raw_ms: now.toMillis(),
-      },
-      { merge: true },
-    );
-    if (settings.spotDigestNotifications && typeof Intl !== "undefined") {
-      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (timeZone) await this.users.updatePrivateData(uid, { time_zone: timeZone });
-    }
+    return this.telemetry.run("community_follow", "setNotifications", async () => {
+      const uid = this.requireUserId();
+      const now = Timestamp.now();
+      await this.firestore.setDocument(
+        this.path(uid, communityKey),
+        {
+          ...(settings.eventNotifications === undefined
+            ? {}
+            : { event_notifications: settings.eventNotifications }),
+          ...(settings.spotDigestNotifications === undefined
+            ? {}
+            : { spot_digest_notifications: settings.spotDigestNotifications }),
+          time_updated: now,
+          time_updated_raw_ms: now.toMillis(),
+        },
+        { merge: true },
+      );
+      if (settings.spotDigestNotifications && typeof Intl !== "undefined") {
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (timeZone) await this.users.updatePrivateData(uid, { time_zone: timeZone });
+      }
+
+    }, true);
   }
 
   async unfollow(communityKey: string): Promise<void> {
-    await this.firestore.deleteDocument(
-      this.path(this.requireUserId(), communityKey),
-    );
+    return this.telemetry.run("community_follow", "unfollow", async () => {
+      await this.firestore.deleteDocument(
+        this.path(this.requireUserId(), communityKey),
+      );
+
+    }, true);
   }
 
   private path(uid: string, communityKey: string): string {

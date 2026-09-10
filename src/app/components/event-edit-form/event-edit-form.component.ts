@@ -1,3 +1,5 @@
+import { inject as injectFeatureTelemetry } from "@angular/core";
+import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -376,6 +378,8 @@ export type EventEditPatch = Omit<
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventEditFormComponent {
+  private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
+
   readonly optionalMediaCropPolicy = OPTIONAL_MEDIA_CROP_POLICY;
   readonly squareIconCropPolicy = SQUARE_ICON_CROP_POLICY;
   /** Existing event to edit. When null, the form is in create mode. */
@@ -2534,7 +2538,8 @@ export class EventEditFormComponent {
       ) {
         this.form.controls["time_zone"].setValue(timeZone);
       }
-    } catch {
+    } catch (caughtFailure) {
+      this.featureTelemetry.failure("event-edit-form", "_resolveLocationTimeZone", caughtFailure);
       this.timeZoneError.set(
         $localize`:@@event_edit.time_zone_resolve_error:Time zone could not be derived. Enter it manually before saving a timed event.`,
       );

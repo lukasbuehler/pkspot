@@ -1,3 +1,4 @@
+import { FeatureTelemetryService } from "../feature-telemetry.service";
 import { Injectable, inject } from "@angular/core";
 import { Observable } from "rxjs";
 import { AuthenticationService } from "./authentication.service";
@@ -19,6 +20,8 @@ export interface StorageUploadResult {
   providedIn: "root",
 })
 export class StorageService {
+  private readonly telemetry = inject(FeatureTelemetryService);
+
   private storageAdapter = inject(StorageAdapterService);
   private authService = inject(AuthenticationService);
 
@@ -70,103 +73,105 @@ export class StorageService {
     targetKind?: MediaUploadTargetKind,
     targetId?: string
   ): Promise<StorageUploadResult> {
-    if (!this.isBrowser) {
-      return Promise.reject(
-        "Firebase Storage is not available on the server (SSR)"
-      );
-    }
+    return this.telemetry.run("media_upload", "setUploadToStorageWithResult", async () => {
+      if (!this.isBrowser) {
+        return Promise.reject(
+          "Firebase Storage is not available on the server (SSR)"
+        );
+      }
 
-    let uid: string | null = null;
-    if (this.authService.isSignedIn) {
-      uid = this.authService.user?.uid ?? null;
-    } else {
-      return Promise.reject("User is not signed in");
-    }
+      let uid: string | null = null;
+      if (this.authService.isSignedIn) {
+        uid = this.authService.user?.uid ?? null;
+      } else {
+        return Promise.reject("User is not signed in");
+      }
 
-    if (uid === null) {
-      return Promise.reject("User is not signed in");
-    }
+      if (uid === null) {
+        return Promise.reject("User is not signed in");
+      }
 
-    const normalizedFileEnding =
-      fileEnding?.toLowerCase() ?? this.getExtensionFromContentType(blob.type);
+      const normalizedFileEnding =
+        fileEnding?.toLowerCase() ?? this.getExtensionFromContentType(blob.type);
 
-    // Build the full storage path
-    const storageFilename = filename ?? generateUUID();
-    const extension = normalizedFileEnding ? "." + normalizedFileEnding : "";
-    const storagePath = `${location}/${storageFilename}${extension}`;
-    const resolvedTargetKind = targetKind ?? this.defaultTargetKind(location);
+      // Build the full storage path
+      const storageFilename = filename ?? generateUUID();
+      const extension = normalizedFileEnding ? "." + normalizedFileEnding : "";
+      const storagePath = `${location}/${storageFilename}${extension}`;
+      const resolvedTargetKind = targetKind ?? this.defaultTargetKind(location);
 
-    // Determine content type from blob or file extension
-    let contentType = blob.type;
-    if (!contentType && normalizedFileEnding) {
-      const mimeTypes: Record<string, string> = {
-        jpg: "image/jpeg",
-        jpeg: "image/jpeg",
-        png: "image/png",
-        gif: "image/gif",
-        webp: "image/webp",
-        mp4: "video/mp4",
-        mov: "video/quicktime",
-        webm: "video/webm",
-        kml: "application/vnd.google-earth.kml+xml",
-        kmz: "application/vnd.google-earth.kmz",
-      };
-      contentType = mimeTypes[normalizedFileEnding] || "";
-    }
+      // Determine content type from blob or file extension
+      let contentType = blob.type;
+      if (!contentType && normalizedFileEnding) {
+        const mimeTypes: Record<string, string> = {
+          jpg: "image/jpeg",
+          jpeg: "image/jpeg",
+          png: "image/png",
+          gif: "image/gif",
+          webp: "image/webp",
+          mp4: "video/mp4",
+          mov: "video/quicktime",
+          webm: "video/webm",
+          kml: "application/vnd.google-earth.kml+xml",
+          kmz: "application/vnd.google-earth.kmz",
+        };
+        contentType = mimeTypes[normalizedFileEnding] || "";
+      }
 
-    if (this.requiresModeration(location)) {
-      const uploadId = generateUUID();
-      const intakeExtension =
-        normalizedFileEnding ?? this.getExtensionFromContentType(contentType);
-      const intakeFilename = `${uploadId}${intakeExtension ? "." + intakeExtension : ""}`;
-      const intakePath = `${StorageBucket.MediaIntake}/${uid}/${uploadId}/${intakeFilename}`;
-      const approvedPath = `${location}/${storageFilename}${
-        location === StorageBucket.ProfilePictures ? "" : extension
-      }`;
+      if (this.requiresModeration(location)) {
+        const uploadId = generateUUID();
+        const intakeExtension =
+          normalizedFileEnding ?? this.getExtensionFromContentType(contentType);
+        const intakeFilename = `${uploadId}${intakeExtension ? "." + intakeExtension : ""}`;
+        const intakePath = `${StorageBucket.MediaIntake}/${uid}/${uploadId}/${intakeFilename}`;
+        const approvedPath = `${location}/${storageFilename}${location === StorageBucket.ProfilePictures ? "" : extension
+          }`;
+
+        return this.storageAdapter
+          .uploadFile({
+            data: blob,
+            path: intakePath,
+            metadata: {
+              uid: uid,
+              contentType: contentType || undefined,
+              cacheControl: cacheControl,
+              customMetadata: {
+                upload_id: uploadId,
+                destination_folder: location,
+                destination_filename: storageFilename,
+                target_kind: resolvedTargetKind,
+                ...(targetId ? { target_id: targetId } : {}),
+                ...(cacheControl ? { cache_control: cacheControl } : {}),
+              },
+            },
+            onProgress: progressCallback,
+          })
+          .then(() => ({
+            url: this.storageAdapter.buildPublicUrl(approvedPath),
+            uploadId,
+            path: approvedPath,
+            targetKind: resolvedTargetKind,
+            ...(targetId ? { targetId } : {}),
+          }));
+      }
 
       return this.storageAdapter
         .uploadFile({
           data: blob,
-          path: intakePath,
+          path: storagePath,
           metadata: {
             uid: uid,
             contentType: contentType || undefined,
             cacheControl: cacheControl,
-            customMetadata: {
-              upload_id: uploadId,
-              destination_folder: location,
-              destination_filename: storageFilename,
-              target_kind: resolvedTargetKind,
-              ...(targetId ? { target_id: targetId } : {}),
-              ...(cacheControl ? { cache_control: cacheControl } : {}),
-            },
           },
           onProgress: progressCallback,
         })
-        .then(() => ({
-          url: this.storageAdapter.buildPublicUrl(approvedPath),
-          uploadId,
-          path: approvedPath,
-          targetKind: resolvedTargetKind,
-          ...(targetId ? { targetId } : {}),
+        .then((url) => ({
+          url,
+          path: storagePath,
         }));
-    }
 
-    return this.storageAdapter
-      .uploadFile({
-        data: blob,
-        path: storagePath,
-        metadata: {
-          uid: uid,
-          contentType: contentType || undefined,
-          cacheControl: cacheControl,
-        },
-        onProgress: progressCallback,
-      })
-      .then((url) => ({
-        url,
-        path: storagePath,
-      }));
+    }, true);
   }
 
   private requiresModeration(location: StorageBucket): boolean {
