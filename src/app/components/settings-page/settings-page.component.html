@@ -736,6 +736,23 @@
             </div>
           </div>
 
+          <div class="my-4">
+            <h3 class="mat-h3" i18n="@@settings.review.heading">Review PK Spot</h3>
+            <p class="mat-body" i18n="@@settings.review.description">
+              PK Spot grows through its community. An honest store review helps others discover the app.
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+              @if (reviewPlatform !== 'android') {
+                <a matButton="outlined" [href]="appleReviewUrl" target="_blank" rel="noopener noreferrer"
+                  i18n="@@settings.review.apple">Review on the App Store</a>
+              }
+              @if (reviewPlatform !== 'ios') {
+                <a matButton="outlined" [href]="googleReviewUrl" target="_blank" rel="noopener noreferrer"
+                  i18n="@@settings.review.google">Review on Google Play</a>
+              }
+            </div>
+          </div>
+
           <!-- Crew Credits Section -->
           <div class="my-4">
             <h3 class="mat-h3 mb-3" i18n>The Crew</h3>

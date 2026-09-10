@@ -15394,6 +15394,30 @@
         <target> Acceso al perfil </target>
       </segment>
     </unit>
+    <unit id="settings.review.apple">
+      <segment state="initial">
+        <source>Review on the App Store</source>
+        <target>Valorar en el App Store</target>
+      </segment>
+    </unit>
+    <unit id="settings.review.description">
+      <segment state="initial">
+        <source> PK Spot grows through its community. An honest store review helps others discover the app. </source>
+        <target>PK Spot crece gracias a su comunidad. Una reseña sincera en la tienda ayuda a otras personas a descubrir la app.</target>
+      </segment>
+    </unit>
+    <unit id="settings.review.google">
+      <segment state="initial">
+        <source>Review on Google Play</source>
+        <target>Valorar en Google Play</target>
+      </segment>
+    </unit>
+    <unit id="settings.review.heading">
+      <segment state="initial">
+        <source>Review PK Spot</source>
+        <target>Valorar PK Spot</target>
+      </segment>
+    </unit>
     <unit id="1697308124827757255">
       <segment state="initial">
         <source> This account limits expanded profile details to its approved audience. </source>

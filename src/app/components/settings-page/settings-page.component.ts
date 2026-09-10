@@ -40,6 +40,8 @@ import { UiLanguageService } from "../../services/ui-language.service";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { ContributionStatusNoteComponent } from "../contribution-status-note/contribution-status-note.component";
 import { version } from "../../../../package.json";
+import { Capacitor } from "@capacitor/core";
+import { APP_LINKS } from "../../shared/app-links";
 import crew from "../../../assets/data/crew.json";
 import { AnalyticsService } from "../../services/analytics.service";
 import { UsersService } from "../../services/firebase/firestore/users.service";
@@ -94,6 +96,9 @@ import { LocationAccessDialogComponent } from "../location-access-dialog/locatio
 })
 export class SettingsPageComponent implements OnInit {
   readonly appVersion = version;
+  readonly reviewPlatform = Capacitor.getPlatform();
+  readonly appleReviewUrl = `${APP_LINKS.appleAppStoreUrl}?action=write-review`;
+  readonly googleReviewUrl = APP_LINKS.googlePlayStoreUrl;
   readonly crew = crew;
   readonly appCheckStatus = this._appCheckService.status;
   readonly publicProfilePrivacyLabel =

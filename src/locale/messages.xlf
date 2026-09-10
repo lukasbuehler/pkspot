@@ -6353,6 +6353,26 @@
         <source> Profile access </source>
       </segment>
     </unit>
+    <unit id="settings.review.apple">
+      <segment>
+        <source>Review on the App Store</source>
+      </segment>
+    </unit>
+    <unit id="settings.review.description">
+      <segment>
+        <source> PK Spot grows through its community. An honest store review helps others discover the app. </source>
+      </segment>
+    </unit>
+    <unit id="settings.review.google">
+      <segment>
+        <source>Review on Google Play</source>
+      </segment>
+    </unit>
+    <unit id="settings.review.heading">
+      <segment>
+        <source>Review PK Spot</source>
+      </segment>
+    </unit>
     <unit id="1697308124827757255">
       <segment>
         <source> This account limits expanded profile details to its approved audience. </source>
