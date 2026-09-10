@@ -460,8 +460,8 @@ export const routes: Routes = [
     data: { routeName: "Plan a community event", discoverable: false },
   },
   // Keep local links from the short-lived Jam/Session experiment working.
-  { path: "events/jam/new", redirectTo: "/events/community/new", pathMatch: "full" },
-  { path: "events/session/new", redirectTo: "/events/community/new", pathMatch: "full" },
+  { path: "events/jam/new", redirectTo: () => "/events/community/new", pathMatch: "full" },
+  { path: "events/session/new", redirectTo: () => "/events/community/new", pathMatch: "full" },
   {
     path: "events/suggest",
     loadComponent: () =>

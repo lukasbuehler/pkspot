@@ -1095,3 +1095,11 @@ Not every important interaction is a Function export:
 When adding a Function, projection, aggregate, or client write path, update this
 document in the same change. Include the canonical source, trigger, fan-out
 variables, retry/idempotency behavior, compatibility impact, and repair trail.
+
+### Additional v1.2 support and Apple assurance functions
+
+| Export | Boundary | Data flow |
+| --- | --- | --- |
+| `onContactMessageEmailCreate` | contact creation trigger | Sends support email through Resend; records delivery state in `contact_email_delivery`. Pending provider setup/deployment. |
+| `beginAppleAgeAssurance` | authenticated iOS App Check callable | Creates a short-lived age challenge and checks registered App Attest key state. Disabled pending device validation. |
+| `finishAppleAgeAssurance` | authenticated iOS App Check callable | Verifies the bound App Attest response, consumes the challenge, and stores only key/counter and derived policy/evidence. Disabled pending device validation. |
