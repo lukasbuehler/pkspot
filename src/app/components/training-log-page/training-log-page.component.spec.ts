@@ -1,3 +1,4 @@
+import { StoreReviewService } from "../../reviews/store-review.service";
 import { TestBed } from "@angular/core/testing";
 import { MatDialog } from "@angular/material/dialog";
 import { provideRouter } from "@angular/router";
@@ -160,6 +161,7 @@ function createComponent(
   TestBed.configureTestingModule({
     imports: [TrainingLogPageComponent],
     providers: [
+        { provide: StoreReviewService, useValue: { registerCompletionSurface: () => () => {} } },
       provideRouter([]),
       TrainingLogPageComponent,
       { provide: AuthenticationService, useValue: auth },

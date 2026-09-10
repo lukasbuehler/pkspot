@@ -28,6 +28,7 @@ public class MainActivity extends BridgeActivity {
     // Keep the Capacitor WebView full-height when the Android IME opens.
     getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
     Log.d(TAG, "onCreate: set SOFT_INPUT_ADJUST_NOTHING before BridgeActivity setup");
+    registerPlugin(StoreReviewPlugin.class);
     registerPlugin(AgeAssurancePlugin.class);
     registerPlugin(DateTimePreferencesPlugin.class);
     registerPlugin(NotificationSettingsPlugin.class);

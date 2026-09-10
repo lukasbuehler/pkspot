@@ -78,6 +78,21 @@ run data migrations, or complete third-party service tasks.
 
 ## Release-specific pending actions
 
+### Voluntary native review requests
+
+- Before shipping native builds, verify the review flow on iOS development devices
+  and a Google Play internal-test installation. TestFlight does not display the
+  StoreKit review prompt, and store quotas may suppress production prompts.
+- Verify 14 days since first observed native use, three distinct usage days and
+  three newly logged activities, then five quiet seconds after returning to the
+  successfully loaded activity overview. Editing an entry does not count. No
+  prompt during an unfinished session, upload, overlay, backgrounding or interaction.
+- Verify that input or navigation cancels the opportunity, including while Play
+  prepares its sheet; every request attempt starts a six-calendar-month cooldown.
+  History stays on the device and resets when app data is cleared. Settings links
+  remain independent. No backend deployment is needed.
+
+
 Keep an item unchecked until the action has actually been performed and verified.
 Remove a completed release-specific section once no follow-up monitoring or
 compatibility behavior remains to be tracked.

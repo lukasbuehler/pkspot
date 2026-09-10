@@ -1,3 +1,4 @@
+import { StoreReviewService } from "../../reviews/store-review.service";
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
 import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
@@ -45,6 +46,7 @@ import { UserPickerComponent } from "../user-picker/user-picker.component";
 export class LogEntryEditorComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly reviews = inject(StoreReviewService);
   private readonly logs = inject(LogEntriesService);
   private readonly sessionRecords = inject(SessionRecordsService);
 
@@ -143,8 +145,12 @@ export class LogEntryEditorComponent {
         sessions: selected,
       };
       if (this.entryId) await this.logs.update(this.entryId, input);
-      else await this.logs.create(input);
-      await this.router.navigateByUrl("/train/log");
+      else {
+        await this.logs.create(input);
+        this.reviews.recordActivity();
+      }
+      const navigated = await this.router.navigateByUrl("/train/log");
+      if (navigated && !this.entryId) this.reviews.offerAfterCompletion();
     } catch (error) {
       console.error("[Training log] save failed", error);
       this.error.set(

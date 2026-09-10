@@ -1,3 +1,5 @@
+import { DestroyRef } from "@angular/core";
+import { StoreReviewService } from "../../reviews/store-review.service";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -161,6 +163,11 @@ export class TrainingLogPageComponent {
   });
 
   constructor() {
+    const unregister = inject(StoreReviewService).registerCompletionSurface(() =>
+      this.signedIn() && !this.loading() && !this.loadFailed() &&
+      this.sessions().every(session => !!session.ended_at_raw_ms),
+    );
+    inject(DestroyRef).onDestroy(unregister);
     this.auth.authState$.pipe(takeUntilDestroyed()).subscribe((user) => {
       this.signedIn.set(!!user?.uid);
       void this.load();

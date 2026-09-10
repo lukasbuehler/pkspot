@@ -1,3 +1,4 @@
+import { StoreReviewService } from "./reviews/store-review.service";
 import {
   AfterViewInit,
   ApplicationRef,
@@ -350,6 +351,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     await this.waitForNextPaint();
     await this.hideSplashScreens();
   }
+
+  private readonly storeReview = inject(StoreReviewService);
 
   async ngOnInit() {
     // Wire initial layout-affecting state before any awaited startup work.
