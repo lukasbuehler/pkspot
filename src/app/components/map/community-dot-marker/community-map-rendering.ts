@@ -34,6 +34,20 @@ export function shouldShowCommunityAreaPresence(
   return !community.pinVisible || community.showAreaPresence === true;
 }
 
+/** Full locality pins yield once their geographic circle is larger than the pin. */
+export function shouldShowCommunityPin(
+  community: CommunityMapMarker,
+  zoom: number,
+): boolean {
+  if (!community.pinVisible) return false;
+  if (community.scope !== "locality" || !shouldShowCommunityAreaPresence(community)) {
+    return true;
+  }
+
+  // The icon pin is approximately 48 CSS pixels before its marker scale.
+  return communityCircleDiameterPx(community, zoom) <= 48 * (community.pinSize ?? 0.86);
+}
+
 export function shouldShowCommunityDot(
   community: CommunityMapMarker,
   zoom: number,

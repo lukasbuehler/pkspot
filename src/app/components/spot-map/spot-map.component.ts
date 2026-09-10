@@ -47,6 +47,7 @@ import {
   limitCommunityDotsPerTile,
   shouldShowCommunityAreaPresence,
   shouldShowCommunityDot,
+  shouldShowCommunityPin,
 } from "../map/community-dot-marker/community-map-rendering";
 import { VisibleViewport } from "../maps/map-base";
 import {
@@ -440,7 +441,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
 
   readonly communityPointMarkers = computed<MapPointMarker[]>(() =>
     this.availableCommunities()
-      .filter((community) => community.pinVisible)
+      .filter((community) => shouldShowCommunityPin(community, this.mapZoom()))
       .map((community) => ({
         id: `community:${community.communityKey}`,
         name: community.displayName,
