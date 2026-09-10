@@ -1,3 +1,4 @@
+import { AnalyticsService } from "../services/analytics.service";
 import { MediaType } from "../../db/models/Interfaces";
 import { TestBed } from "@angular/core/testing";
 import { NavigationStart, Router } from "@angular/router";
@@ -14,15 +15,18 @@ import { StoreReviewService } from "./store-review.service";
 
 describe("quiet native reviews", () => {
   const now = new Date("2026-09-10T12:00:00Z").getTime();
+  const trackEvent = vi.fn();
   let ready = true;
   let service: StoreReviewService;
   const eligible = () => ({ firstUsed: now - 15 * 86400000, days: ["2026-08-25", "2026-09-01", "2026-09-10"], actions: 3 });
   beforeEach(() => {
+    trackEvent.mockReset();
     vi.useFakeTimers(); vi.setSystemTime(now); native.enabled = true;
     native.prepare.mockReset().mockResolvedValue(undefined);
     native.request.mockReset().mockResolvedValue(undefined); ready = true;
     localStorage.setItem(REVIEW_HISTORY_KEY, JSON.stringify(eligible()));
     TestBed.configureTestingModule({ providers: [
+      { provide: AnalyticsService, useValue: { trackEvent } },
       { provide: Router, useValue: { events: new Subject() } },
       { provide: MatDialog, useValue: { openDialogs: [], afterOpened: new Subject() } },
       { provide: MediaUploadStatusService, useValue: { localUploads: () => [] } },
@@ -37,6 +41,9 @@ describe("quiet native reviews", () => {
   it("waits five seconds and persists cooldown before requesting", async () => {
     start(); await vi.advanceTimersByTimeAsync(4999); expect(native.request).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(1); expect(native.request).toHaveBeenCalledOnce();
+    expect(trackEvent.mock.calls.map(call => call[0])).toEqual([
+      "store_review_request_attempted", "store_review_request_returned",
+    ]);
     expect(JSON.parse(localStorage.getItem(REVIEW_HISTORY_KEY)!).lastAttempt).toBe(now + 5000);
     service.offerAfterCompletion(); await vi.advanceTimersByTimeAsync(6000);
     expect(native.request).toHaveBeenCalledOnce();
@@ -82,6 +89,19 @@ describe("quiet native reviews", () => {
     start(); vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("full"); });
     await vi.advanceTimersByTimeAsync(5000);
     expect(native.request).not.toHaveBeenCalled(); vi.restoreAllMocks();
+  });
+  it("tracks preparation failures without recording a shown popup", async () => {
+    native.prepare.mockRejectedValue(new Error("private native details"));
+    start(); await vi.advanceTimersByTimeAsync(5000);
+    expect(trackEvent).toHaveBeenCalledExactlyOnceWith("store_review_api_failed", {
+      surface: "activity_log", trigger: "activity_saved", stage: "prepare",
+    });
+    expect(native.request).not.toHaveBeenCalled();
+  });
+  it("keeps review behavior independent of analytics failures", async () => {
+    trackEvent.mockImplementation(() => { throw new Error("unavailable"); });
+    start(); await vi.advanceTimersByTimeAsync(5000);
+    expect(native.request).toHaveBeenCalledOnce();
   });
   it("never requests on web", async () => {
     native.enabled = false; start(); await vi.advanceTimersByTimeAsync(5000);

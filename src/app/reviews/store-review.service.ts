@@ -1,3 +1,4 @@
+import { AnalyticsService } from "../services/analytics.service";
 import { MediaUploadStatusService } from "../services/firebase/firestore/media-upload-status.service";
 import { DestroyRef, Injectable, inject } from "@angular/core";
 import { DOCUMENT } from "@angular/common";
@@ -15,6 +16,7 @@ export const NativeStoreReview = registerPlugin<{
 /** Local, capped engagement counts only: no location, sentiment or review outcome. */
 @Injectable({ providedIn: "root" })
 export class StoreReviewService {
+  private readonly analytics = inject(AnalyticsService);
   private readonly document = inject(DOCUMENT);
   private readonly router = inject(Router);
   private readonly uploads = Capacitor.isNativePlatform() ? inject(MediaUploadStatusService) : undefined;
@@ -68,14 +70,31 @@ export class StoreReviewService {
 
   private async attempt(generation: number): Promise<void> {
     if (!this.safe(generation)) return;
+    let stage: "prepare" | "request" = "prepare";
     try {
       // Play's preparation is asynchronous. Recheck cancellation before displaying anything.
       await NativeStoreReview.prepare();
       if (!this.safe(generation) || !this.history) return;
       this.history.lastAttempt = Date.now();
       if (!this.persist()) return; // Never prompt without a durable cooldown.
+      stage = "request";
+      this.trackReview("store_review_request_attempted");
       await NativeStoreReview.request();
-    } catch { /* Store availability must never interrupt the user's task. */ }
+      // Native completion does not prove that a dialog appeared or a review was submitted.
+      this.trackReview("store_review_request_returned");
+    } catch {
+      this.trackReview("store_review_api_failed", stage);
+    }
+  }
+
+  private trackReview(event: string, stage?: "prepare" | "request"): void {
+    try {
+      this.analytics.trackEvent(event, {
+        surface: "activity_log",
+        trigger: "activity_saved",
+        ...(stage ? { stage } : {}),
+      });
+    } catch { /* Analytics must not affect the review flow or cooldown. */ }
   }
 
   private safe(generation: number): boolean {

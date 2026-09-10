@@ -80,6 +80,12 @@ run data migrations, or complete third-party service tasks.
 
 ### Voluntary native review requests
 
+- With analytics permitted, verify `store_review_request_attempted`,
+  `store_review_request_returned`, and `store_review_api_failed` in PostHog on
+  the released native build. A returned API call does not prove display or a
+  submitted review. Settings links use `outbound_link_clicked` with
+  `link_type=app_store_review` or `google_play_review`.
+
 - Before shipping native builds, verify the review flow on iOS development devices
   and a Google Play internal-test installation. TestFlight does not display the
   StoreKit review prompt, and store quotas may suppress production prompts.

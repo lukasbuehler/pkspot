@@ -743,11 +743,11 @@
             </p>
             <div class="d-flex flex-wrap gap-2">
               @if (reviewPlatform !== 'android') {
-                <a matButton="outlined" [href]="appleReviewUrl" target="_blank" rel="noopener noreferrer"
+                <a matButton="outlined" [href]="appleReviewUrl" (click)="trackOutboundLinkClick('app_store_review', appleReviewUrl, 'Review on the App Store')" target="_blank" rel="noopener noreferrer"
                   i18n="@@settings.review.apple">Review on the App Store</a>
               }
               @if (reviewPlatform !== 'ios') {
-                <a matButton="outlined" [href]="googleReviewUrl" target="_blank" rel="noopener noreferrer"
+                <a matButton="outlined" [href]="googleReviewUrl" (click)="trackOutboundLinkClick('google_play_review', googleReviewUrl, 'Review on Google Play')" target="_blank" rel="noopener noreferrer"
                   i18n="@@settings.review.google">Review on Google Play</a>
               }
             </div>
