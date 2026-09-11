@@ -84,7 +84,7 @@
     "@angular/cdk": "^22.0.2",
     "@angular/common": "^22.0.8",
     "@angular/compiler": "^22.0.8",
-    "@angular/core": "^22.0.8",
+    "@angular/core": "^22.1.0",
     "@angular/forms": "^22.0.8",
     "@angular/google-maps": "^22.0.2",
     "@angular/localize": "^22.0.8",
