@@ -193,7 +193,12 @@ function hasFingerprintInFilename(filePath) {
   }
 
   const filename = filePath.split(/[\\/]/u).pop() ?? "";
-  return /-[a-z0-9]{8,}(?=\.[^.]+$)/iu.test(filename);
+  // Angular's generated chunks can use URL-safe base64 hashes. Limit that
+  // alphabet to bundle names so stable hyphenated assets still revalidate.
+  return (
+    /-[a-z0-9]{8,}(?=\.[^.]+$)/iu.test(filename) ||
+    /^(?:chunk|main|polyfills|styles)-[a-z0-9_-]{8,}\.(?:js|css)$/iu.test(filename)
+  );
 }
 
 export function getStaticAssetCacheControl(req, filePath) {

@@ -229,6 +229,26 @@ describe("proxy-server client region helpers", () => {
     ).toBe(LONG_LIVED_ASSET_CACHE_CONTROL);
   });
 
+  it.each(["chunk--dOjjt-a.js", "main-a_Bc-123.js", "styles-a_Bc-123.css"])(
+    "recognizes URL-safe build hashes in %s",
+    (filename) => {
+      expect(getStaticAssetCacheControl(
+        { originalUrl: `/en/${filename}` },
+        `/app/browser/en/${filename}`,
+      )).toBe(LONG_LIVED_ASSET_CACHE_CONTROL);
+    },
+  );
+
+  it.each(["material-symbols-rounded.woff2", "training-card-editor.js"])(
+    "keeps stable hyphenated assets revalidating: %s",
+    (filename) => {
+      expect(getStaticAssetCacheControl(
+        { originalUrl: `/en/assets/${filename}` },
+        `/app/browser/en/assets/${filename}`,
+      )).toBe(REVALIDATING_ASSET_CACHE_CONTROL);
+    },
+  );
+
   it("should require revalidation for stable browser asset URLs", () => {
     expect(
       getStaticAssetCacheControl(

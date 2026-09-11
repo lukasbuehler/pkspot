@@ -355,7 +355,8 @@ function isVersionedAssetUrl(assetUrl) {
   const filename = path.basename(url.pathname);
   return (
     url.searchParams.has("v") ||
-    /-[a-z0-9]{8,}(?=\.[^.]+$)/iu.test(filename)
+    /-[a-z0-9]{8,}(?=\.[^.]+$)/iu.test(filename) ||
+    /^(?:chunk|main|polyfills|styles)-[a-z0-9_-]{8,}\.(?:js|css)$/iu.test(filename)
   );
 }
 
