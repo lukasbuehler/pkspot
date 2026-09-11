@@ -80,21 +80,21 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^22.0.8",
+    "@angular/animations": "22.1.4",
     "@angular/cdk": "^22.0.2",
-    "@angular/common": "^22.0.8",
-    "@angular/compiler": "^22.0.8",
-    "@angular/core": "^22.0.8",
-    "@angular/forms": "^22.0.8",
+    "@angular/common": "22.1.4",
+    "@angular/compiler": "22.1.4",
+    "@angular/core": "22.1.4",
+    "@angular/forms": "22.1.4",
     "@angular/google-maps": "^22.0.2",
-    "@angular/localize": "^22.0.8",
+    "@angular/localize": "22.1.4",
     "@angular/material": "^22.0.2",
-    "@angular/platform-browser": "^22.0.8",
-    "@angular/platform-browser-dynamic": "^22.0.8",
-    "@angular/platform-server": "^22.0.8",
-    "@angular/router": "^22.0.8",
-    "@angular/service-worker": "^22.0.8",
-    "@angular/ssr": "^22.0.9",
+    "@angular/platform-browser": "22.1.4",
+    "@angular/platform-browser-dynamic": "22.1.4",
+    "@angular/platform-server": "22.1.4",
+    "@angular/router": "22.1.4",
+    "@angular/service-worker": "22.1.4",
+    "@angular/ssr": "22.1.4",
     "@capacitor-firebase/app-check": "^8.3.0",
     "@capacitor-firebase/authentication": "^8.3.0",
     "@capacitor-firebase/firestore": "^8.3.0",
@@ -133,10 +133,10 @@
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "^2.6.1",
     "@analogjs/vitest-angular": "^2.6.1",
-    "@angular/build": "~22.0.9",
-    "@angular/cli": "~22.0.9",
-    "@angular/compiler-cli": "^22.0.8",
-    "@angular/language-service": "^22.0.8",
+    "@angular/build": "22.1.4",
+    "@angular/cli": "22.1.4",
+    "@angular/compiler-cli": "22.1.4",
+    "@angular/language-service": "22.1.4",
     "@apphosting/adapter-angular": "^17.2.17",
     "@capacitor/cli": "^8.4.0",
     "@playwright/test": "^1.60.0",
@@ -156,7 +156,7 @@
     "schema-dts": "^1.1.5",
     "typescript": "6.0.3",
     "typescript-eslint": "8.61.0",
-    "vitest": "^4.1.8",
+    "vitest": "4.1.11",
     "webpack-bundle-analyzer": "^5.3.0"
   },
   "overrides": {
@@ -174,7 +174,7 @@
     "@babel/core": "^7.29.7",
     "esbuild": "^0.28.1",
     "follow-redirects": "^1.15.12",
-    "hono": "4.12.34",
+    "hono": "4.13.5",
     "@hono/node-server": "^2.0.10",
     "@modelcontextprotocol/sdk": "1.30.0",
     "lodash": "^4.18.1",
@@ -229,6 +229,8 @@
     },
     "teeny-request": {
       "uuid": "^14.0.0"
-    }
+    },
+    "js-yaml": "4.3.2",
+    "morgan": "1.12.0"
   }
 }
