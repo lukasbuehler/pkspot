@@ -132,17 +132,11 @@ run data migrations, or complete third-party service tasks.
   Event, authentication, and navigation flows still work. Angular framework,
   SSR and build tooling are aligned to 22.1.4. Do not include unfinished 1.2
   features in this release. PR-open workflow triggers remain unchanged.
-- Separately deploy the Sharp-dependent image/moderation entry points from this
-  hotfix checkout after Functions compilation and image-processing checks:
-
-  ```sh
-  npx firebase deploy --project prod --only functions:processImageUpload,functions:backfillStorageImageSizes,functions:processMediaIntakeUpload,functions:markMediaUploadSafe,functions:reconcilePublishedMediaReviews,functions:runMediaIntakeBackfill,functions:runMediaModerationAudit
-  ```
-
-  Verify deployed revisions use Sharp 0.35.4/libheif 1.23.2 and an authorized
-  image upload completes moderation and derivative generation. Updating web
-  hosting does not patch existing Functions revisions. Do not trigger backfills
-  as part of this deployment. No backend deployment has been performed yet.
+- Verify an authorized production image upload completes moderation and
+  derivative generation on the updated Sharp 0.35.4 Functions. Local image and
+  emulator checks passed; deployed revisions and their source lockfiles were
+  verified, but no new production test image was uploaded. Do not trigger
+  backfills for this verification.
 - Re-run root, production-only root, Functions and Horizn importer audits before
   release. The hotfix clears production and Functions advisories. Root tooling
   still reports three moderate package findings: csv-parse, stream-json and their
