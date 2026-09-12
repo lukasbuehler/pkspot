@@ -10,6 +10,7 @@ interface RouteVisualCase {
   verifiedAdult?: boolean;
   publicProfile?: boolean;
   openFabMenu?: boolean;
+  openNavigationFab?: boolean;
   openRecoveryPauseDialog?: boolean;
   openInvalidEventsDialog?: boolean;
   openProfilePrivacySelect?: boolean;
@@ -374,6 +375,25 @@ const routeVisualCases: RouteVisualCase[] = [
     assertContributionGraph: true,
     fixedTime: "2026-08-20T12:00:00.000Z",
     maxDiffPixels: 2_000,
+  },
+  {
+    name: "training-log-fab",
+    path: "/train/log",
+    viewport: mobileViewport,
+    signedIn: true,
+    trainingLogFixture: true,
+    openFabMenu: true,
+    fixedTime: "2026-08-20T12:00:00.000Z",
+  },
+  {
+    name: "navigation-fab-landscape",
+    path: "/train/log",
+    viewport: { width: 844, height: 390 },
+    signedIn: true,
+    trainingLogFixture: true,
+    openNavigationFab: true,
+    assertAlainClearance: { axis: "block", target: ".log-page .back" },
+    fixedTime: "2026-08-20T12:00:00.000Z",
   },
   {
     name: "training-log-timeline",
@@ -1558,10 +1578,23 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
     await expect(page.locator(".fab-menu__actions")).toBeVisible();
   }
 
+  if (route.openNavigationFab) {
+    const launcher = page.locator("#alainMenuButton .fab-menu__launcher");
+    await launcher.click();
+    const actions = page.locator("#alainMenuButton .fab-menu__actions");
+    await expect(actions).toBeVisible();
+    const bounds = await actions.boundingBox();
+    expect(bounds!.y).toBeGreaterThan(60);
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(route.viewport!.height);
+    await actions.locator("button").last().scrollIntoViewIfNeeded();
+    await expect(actions.locator("button").last()).toBeInViewport();
+    await actions.evaluate((element) => { element.scrollTop = 0; });
+  }
+
   if (route.openRecoveryPauseDialog) {
-    await page.locator("button.app-page-fab").click();
+    await page.locator("#trainingLogFabMenu .fab-menu__launcher").click();
     await page
-      .locator(".cdk-overlay-container .mat-mdc-menu-item")
+      .locator("#trainingLogFabMenu .fab-menu__action")
       .nth(1)
       .click();
     await expect(page.locator("app-recovery-pause-dialog")).toBeVisible();

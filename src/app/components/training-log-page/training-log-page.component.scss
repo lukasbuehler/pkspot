@@ -63,3 +63,9 @@ app-training-activity-contribution-graph { display: block; margin-top: 16px; }
 
 @media (max-width: 799.98px) { .summary { grid-template-columns: repeat(2, 1fr); } .summary__lead { grid-column: span 2; } }
 @media (max-width: 599.98px) { .log-page { padding: 20px 16px 96px; } .log-hero, .timeline__header, .check-in-history__header { align-items: flex-start; flex-direction: column; } .log-hero > a, .timeline__header > button { align-self: stretch; } .summary { grid-template-columns: 1fr 1fr; } .summary > div { min-height: 78px; padding: 12px; } .summary__lead { grid-column: span 2; } .session-card { gap: 10px; padding: 14px 12px; } .session-card__arrow { display: none; } .session-card h4 { white-space: normal; } .check-in-history { padding: 16px; } .actions { width: 100%; } }
+
+@media (max-height: 499.99px), (max-width: 767.99px) and (max-height: 699.99px) {
+  .log-page {
+    padding-block-start: max(80px, calc(72px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))));
+  }
+}

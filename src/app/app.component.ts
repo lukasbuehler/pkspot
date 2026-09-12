@@ -1,3 +1,4 @@
+import { FabMenuComponent, type FabMenuAction } from "./components/fab-menu/fab-menu.component";
 import { StoreReviewService } from "./reviews/store-review.service";
 import {
   AfterViewInit,
@@ -51,7 +52,7 @@ import { environment } from "../environments/environment.default";
 import { isBot } from "../scripts/Helpers";
 import { ACCEPTANCE_FREE_PREFIXES } from "./app.routes";
 import { NgOptimizedImage, PathLocationStrategy } from "@angular/common";
-import { MatButtonModule, MatFabButton } from "@angular/material/button";
+import { MatButtonModule } from "@angular/material/button";
 import { MatIcon, MatIconRegistry } from "@angular/material/icon";
 import {
   MatMenuTrigger,
@@ -155,6 +156,7 @@ type NavigationPerfDetails = Record<string, unknown>;
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.scss"],
   imports: [
+    FabMenuComponent,
     NavRailContainerComponent,
     NavRailComponent,
     RouterLink,
@@ -165,7 +167,6 @@ type NavigationPerfDetails = Record<string, unknown>;
     MatMenu,
     MatMenuItem,
     MatIcon,
-    MatFabButton,
     Mat3NavButtonComponent,
     NgOptimizedImage,
     MatMenuModule,
@@ -1591,6 +1592,23 @@ html.pkspot-roboto-loaded body {
 
     return buttons;
   });
+
+  readonly navigationMenuLabel = $localize`Navigation`;
+  readonly navigationFabActions = computed<readonly FabMenuAction[]>(() =>
+    (this.navbarConfig() ?? []).map((button) => ({
+      id: button.id,
+      label: button.name,
+      icon: button.icon,
+      image: button.image,
+      outlineIcon: this.isOutlineIcon(button.icon),
+    })),
+  );
+
+  onNavigationFabAction(id: string): void {
+    const button = this.navbarConfig()?.find((button) => button.id === id);
+    if (button?.link) void this.router.navigateByUrl(button.link);
+    else button?.function?.();
+  }
 
   readonly navbarOverflow = computed(() => {
     const viewMode = this.responsive.viewMode();

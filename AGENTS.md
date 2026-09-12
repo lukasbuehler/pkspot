@@ -149,6 +149,11 @@ If you hit the Codex sandbox error "Abort trap: 6", you need to run it outside t
 - Tertiary, surface variants, and outline tokens are general-purpose and can be used freely for UI structure.
 - Do not use the green accent for static decoration — overuse breaks the "this is happening live" signal.
 
+## FAB menus
+
+- Use the shared `app-fab-menu` (`src/app/components/fab-menu`) for FABs that open multiple actions, as on the Events page. Do not attach a `mat-menu` or introduce another speed-dial implementation for these launchers.
+- Use `direction="down"` and `alignment="start"` for top-left navigation; page-action FABs use the default upward menu. Keep viewport scrolling, safe-area clearance, accessible labels, and existing navigation/actions intact.
+
 ## Floating navigation clearance
 
 - Alain Mode replaces the usual navigation with the app-level `#alainMenuButton` FAB in the top-left whenever the viewport is under 500px high, or is under 768px wide and under 700px high. A scrolling page whose content begins at the top must reserve this space in its own styles; use the same media condition and `padding-block-start: max(80px, calc(72px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))))`.

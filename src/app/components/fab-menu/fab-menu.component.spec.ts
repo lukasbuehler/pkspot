@@ -80,6 +80,20 @@ describe("FabMenuComponent", () => {
     expect(fixture.componentInstance.isOpen()).toBe(false);
   });
 
+  it("supports top navigation with profile images and outlined icons", async () => {
+    fixture.componentRef.setInput("direction", "down");
+    fixture.componentRef.setInput("alignment", "start");
+    fixture.componentRef.setInput("actions", [
+      { ...actions[0], image: "/assets/avatar.png" },
+      { ...actions[1], outlineIcon: true },
+    ]);
+    fixture.componentInstance.isOpen.set(true);
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector(".fab-menu--down.fab-menu--start")).not.toBeNull();
+    expect(fixture.nativeElement.querySelector("img").getAttribute("alt")).toBe("");
+    expect(fixture.nativeElement.querySelector(".material-symbols-rounded-outline")).not.toBeNull();
+  });
+
   it("does not dispatch disabled actions", async () => {
     const selected = vi.fn();
     fixture.componentInstance.actionSelected.subscribe(selected);

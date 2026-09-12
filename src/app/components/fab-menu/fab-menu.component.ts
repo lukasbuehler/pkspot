@@ -19,6 +19,8 @@ export interface FabMenuAction {
   icon: string;
   label: string;
   ariaLabel?: string;
+  image?: string;
+  outlineIcon?: boolean;
   disabled?: boolean;
 }
 
@@ -51,6 +53,7 @@ export class FabMenuComponent {
   readonly launcherIcon = input("add");
   readonly closeLabel = input(DEFAULT_CLOSE_LABEL);
   readonly alignment = input<FabMenuAlignment>("end");
+  readonly direction = input<"up" | "down">("up");
   readonly colorSet = input<FabMenuColorSet>("primary");
 
   readonly actionSelected = output<string>();

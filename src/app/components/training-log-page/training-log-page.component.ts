@@ -9,11 +9,11 @@ import {
 } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { SystemDatePipe } from "../../pipes/system-date.pipe";
-import { RouterLink } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialog } from "@angular/material/dialog";
 import { MatIconModule } from "@angular/material/icon";
-import { MatMenuModule } from "@angular/material/menu";
+import { FabMenuComponent, type FabMenuAction } from "../fab-menu/fab-menu.component";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import {
   type LogEntryDocument,
@@ -75,7 +75,7 @@ interface TrainingTimelineGroup {
     RouterLink,
     MatButtonModule,
     MatIconModule,
-    MatMenuModule,
+    FabMenuComponent,
     MatProgressSpinnerModule,
     TrainingActivityContributionGraphComponent,
   ],
@@ -84,6 +84,18 @@ interface TrainingTimelineGroup {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TrainingLogPageComponent {
+  private readonly router = inject(Router);
+  readonly addLabel = $localize`:@@trainingLog.add:Add to training log`;
+  readonly addActions: readonly FabMenuAction[] = [
+    { id: "activity", icon: "add", label: $localize`:@@trainingLog.new:New training entry` },
+    { id: "recovery", icon: "event_busy", label: $localize`:@@recoveryPause.add:Log recovery pause` },
+  ];
+
+  onAddAction(action: string): void {
+    if (action === "activity") void this.router.navigateByUrl("/train/log/new");
+    if (action === "recovery") this.openRecoveryDialog();
+  }
+
   private readonly auth = inject(AuthenticationService);
   private readonly logsService = inject(LogEntriesService);
   private readonly recoveryPausesService = inject(RecoveryPausesService);

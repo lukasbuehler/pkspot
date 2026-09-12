@@ -160,23 +160,11 @@
 </main>
 
 @if (signedIn()) {
-  <button
-    matFab
-    color="primary"
+  <app-fab-menu
+    id="trainingLogFabMenu"
     class="app-page-fab"
-    type="button"
-    [matMenuTriggerFor]="newEntryMenu"
-    aria-label="Add to training log"
-    i18n-aria-label="@@trainingLog.add"
-  ><mat-icon>add</mat-icon></button>
-  <mat-menu #newEntryMenu="matMenu">
-    <button mat-menu-item routerLink="/train/log/new">
-      <mat-icon>add</mat-icon>
-      <span i18n="@@trainingLog.new">New training entry</span>
-    </button>
-    <button mat-menu-item type="button" (click)="openRecoveryDialog()">
-      <mat-icon>event_busy</mat-icon>
-      <span i18n="@@recoveryPause.add">Log recovery pause</span>
-    </button>
-  </mat-menu>
+    [actions]="addActions"
+    [launcherLabel]="addLabel"
+    (actionSelected)="onAddAction($event)"
+  />
 }

@@ -892,6 +892,12 @@
         <target>Impostazioni generali</target>
       </segment>
     </unit>
+    <unit id="1348774649041038169">
+      <segment state="translated">
+        <source>Navigation</source>
+        <target>Navigazione</target>
+      </segment>
+    </unit>
     <unit id="1356237918552845367">
       <segment state="initial">
         <source>Cartographer</source>

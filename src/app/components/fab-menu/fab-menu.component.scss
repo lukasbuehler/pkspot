@@ -165,3 +165,25 @@
     transition: none;
   }
 }
+
+// Top-anchored navigation expands into the viewport without moving its launcher.
+.fab-menu--down {
+  position: relative;
+  flex-direction: column;
+
+  .fab-menu__actions {
+    position: absolute;
+    top: 64px;
+    left: 0;
+    max-height: calc(100dvh - var(--fab-menu-top-offset, 24px) - 80px - env(safe-area-inset-bottom, 0px));
+    width: max-content;
+    max-width: calc(100vw - var(--safe-area-inset-left, 0px) - var(--safe-area-inset-right, 0px) - 32px);
+  }
+}
+
+.fab-menu__avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  margin-inline-end: 8px;
+  flex-shrink: 0;
+}
