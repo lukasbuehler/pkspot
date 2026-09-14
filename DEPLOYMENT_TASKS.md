@@ -182,6 +182,11 @@ run data migrations, or complete third-party service tasks.
 
 ### September 2026 dependency security hotfix
 
+- Preserve Angular build-tool compatibility when updating security overrides:
+  the builder pins Vite 8.1.5. Forcing Vite 7 ignores SSR prebundle defines and
+  crashes `ng serve` in event replay. Refresh local dependencies with
+  `npm ci --ignore-scripts` and restart development servers after this update.
+
 - Release the reviewed main-based hotfix through the normal main/App Hosting
   workflow. Verify the localized web app renders real SSR HTML and key map,
   Event, authentication, and navigation flows still work. Angular framework,

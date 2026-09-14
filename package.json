@@ -208,7 +208,6 @@
       "picomatch": "^2.3.2"
     },
     "vite": {
-      ".": "^7.3.5",
       "picomatch": "^4.0.4"
     },
     "tinyglobby": {
