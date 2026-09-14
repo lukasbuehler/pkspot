@@ -1,3 +1,4 @@
+import { currentPlaceLocalization } from "../../src/scripts/CommunityPlaceNames";
 import * as admin from "firebase-admin";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import {
@@ -786,6 +787,8 @@ const buildCommunityChildSummary = (
     communityKey: page.communityKey || pageId,
     scope: page.scope,
     displayName: page.displayName,
+    place_localization: currentPlaceLocalization(page),
+    place_name_overrides: page.place_name_overrides,
     preferredSlug: page.preferredSlug,
     canonicalPath:
       page.canonicalPath || buildCommunityLandingPath(page.preferredSlug),

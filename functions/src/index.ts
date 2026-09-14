@@ -303,3 +303,9 @@ export {
 } from "./communityNotificationFunctions";
 
 export {beginAppleAgeAssurance, finishAppleAgeAssurance} from "./appleAgeAssuranceFunctions";
+
+export {
+  enqueueCommunityPlaceLocalization,
+  enrichCommunityPlaceLocalizations,
+  backfillCommunityPlaceLocalizations,
+} from "./communityPlaceLocalizationFunctions";

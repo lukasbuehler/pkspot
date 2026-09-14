@@ -78,6 +78,31 @@ run data migrations, or complete third-party service tasks.
 
 ## Release-specific pending actions
 
+### Community place names and SSR localization
+
+- Set `GEONAMES_USERNAME=pkspot` in the Functions deployment environment; the default
+  is empty and scheduled enrichment then performs no requests.
+- Deploy only when authorized: `enqueueCommunityPlaceLocalization`,
+  `enrichCommunityPlaceLocalizations`, `backfillCommunityPlaceLocalizations` in
+  `europe-west1`. Jobs are backend-only under `community_place_localization_jobs`;
+  the existing default-deny rules cover them. The scheduled worker processes at
+  most 20 jobs/hour (at most two GeoNames requests per job). No new composite
+  index is required. Review `needs-review` jobs; never guess an ambiguous town.
+- After deployment and explicit backfill authorization, invoke the admin/App-Check
+  callable `backfillCommunityPlaceLocalizations` with `{}` and repeat with
+  `{startAfter: nextCursor}` until `nextCursor` is null. This queues batches of 50
+  documents; API work remains rate-limited. Verify localized names, stable slugs,
+  preserved overrides and GeoNames attribution on actual pages before claiming
+  the migration complete. Country names need no enrichment. To retry a reviewed
+  failed match, correct its geography or remove its queue document and rerun the
+  backfill. Keep curated `place_name_overrides` / `place_phrase_overrides` separate
+  from provider data; these are server-owned and never overwritten by enrichment.
+- Keep legacy English `title`, `description`, `displayName` and geography fields
+  for released clients. New SSR/browser presentation derives localized text
+  without external lookups. Future name locales are data only, not enabled app
+  languages. Verify French, Italian, German, Spanish and Dutch titles, headings,
+  descriptions, and canonical/hreflang tags after the web release.
+
 ### v1.2 analytics coverage and crawler verification
 
 - After client release, verify PostHog `feature_action_started`,
