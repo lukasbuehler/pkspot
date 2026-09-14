@@ -1,4 +1,5 @@
-import type { CommunityPageSchema, CommunityPlaceLocalization } from "../../src/db/schemas/CommunityPageSchema";
+import type { PlaceNameSource } from "../../src/scripts/EntityPlaceNames";
+import type { CommunityPlaceLocalization } from "../../src/db/schemas/CommunityPageSchema";
 import { COMMUNITY_NAME_LOCALES, communityPlaceFingerprint } from "../../src/scripts/CommunityPlaceNames";
 
 const record = (value: unknown): Record<string, unknown> | undefined =>
@@ -9,7 +10,7 @@ const normalized = (value: unknown): string => clean(value).normalize("NFKD").re
 
 export const placeFingerprint = communityPlaceFingerprint;
 
-export function canEnrichPlace(page: CommunityPageSchema | undefined): page is CommunityPageSchema {
+export function canEnrichPlace(page: PlaceNameSource | undefined): page is PlaceNameSource {
   const center = page?.bounds_center;
   return !!page && page.published && !page.redirect_to_community_key && page.scope === "locality" &&
     !!page.geography.countryCode && !!page.geography.localityName && !!center &&
@@ -24,7 +25,7 @@ function distanceKm(a: readonly number[], b: readonly number[]): number {
   return 6371 * 2 * Math.asin(Math.sqrt(Math.min(1, h)));
 }
 
-export function selectGeoNamesMatch(payload: unknown, page: CommunityPageSchema): number | null {
+export function selectGeoNamesMatch(payload: unknown, page: PlaceNameSource): number | null {
   const results = record(payload)?.["geonames"];
   if (!Array.isArray(results) || !canEnrichPlace(page)) return null;
   const expectedNames = [page.geography.localityName, page.geography.localityLocalName].map(normalized).filter(Boolean);
@@ -66,7 +67,7 @@ export class GeoNamesError extends Error {
 }
 
 export async function enrichPlaceNames(
-  page: CommunityPageSchema,
+  page: PlaceNameSource,
   username: string,
   request: typeof fetch = fetch,
 ): Promise<CommunityPlaceLocalization | null> {
@@ -99,5 +100,7 @@ export async function enrichPlaceNames(
   }
   const names = extractPlaceNames(feature);
   if (!Object.keys(names).length) return null;
-  return { source: "geonames", geonamesId, names, fingerprint: placeFingerprint(page), updatedAtMs: Date.now() };
+  const center: [number, number] = [Number(record(feature)?.["lat"]), Number(record(feature)?.["lng"])];
+  if (!Number.isFinite(center[0]) || !Number.isFinite(center[1]) || Math.abs(center[0]) > 90 || Math.abs(center[1]) > 180) throw new GeoNamesError("invalid-response");
+  return { source: "geonames", geonamesId, center, names, fingerprint: placeFingerprint(page), updatedAtMs: Date.now() };
 }

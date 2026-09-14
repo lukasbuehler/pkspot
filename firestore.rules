@@ -1332,6 +1332,12 @@ service cloud.firestore {
     // Materialized community landing pages and slug aliases are public read-only
     // data used by SSR and crawlers. Knowledge changes go through community
     // edits; admin clients may still request merge patches directly.
+    // Public GeoNames labels only. Source coordinates and enrichment jobs are private.
+    match /place_names/{key} {
+      allow get: if true;
+      allow list, write: if false;
+    }
+
     match /community_pages/{communityKey} {
       allow read: if true;
       allow update: if isAdmin() && onlyCommunityMergeRequestChanged();

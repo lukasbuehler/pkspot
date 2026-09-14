@@ -1,3 +1,4 @@
+import { enrichSharedPlace } from "./sharedPlaceEnrichment";
 import * as admin from "firebase-admin";
 import { defineString } from "firebase-functions/params";
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
@@ -5,7 +6,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { info } from "firebase-functions/logger";
 import type { CommunityPageSchema } from "../../src/db/schemas/CommunityPageSchema";
-import { canEnrichPlace, enrichPlaceNames, placeFingerprint } from "./communityPlaceNames";
+import { canEnrichPlace, placeFingerprint } from "./communityPlaceNames";
 import { enqueueCommunityPlace, enqueueCommunityPlaceBatch, processCommunityPlaces } from "./communityPlaceLocalizationStore";
 
 const username = defineString("GEONAMES_USERNAME", { default: "" });
@@ -25,7 +26,7 @@ export const enrichCommunityPlaceLocalizations = onSchedule(
   { schedule: "every 60 minutes", region: "europe-west1", timeoutSeconds: 540, maxInstances: 1 },
   async () => {
     if (!username.value()) return;
-    const counts = await processCommunityPlaces(admin.firestore(), (page) => enrichPlaceNames(page, username.value()));
+    const counts = await processCommunityPlaces(admin.firestore(), (page) => enrichSharedPlace(admin.firestore(), page, username.value()));
     info("Community place localization batch", counts);
   },
 );

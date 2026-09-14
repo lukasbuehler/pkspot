@@ -7,7 +7,7 @@ export const COMMUNITY_NAME_LOCALES = [
 ] as const;
 
 // Stable, non-secret identity shared with readers so stale enrichment is ignored.
-export function communityPlaceFingerprint(page: CommunityPageSchema): string {
+export function communityPlaceFingerprint(page: Pick<CommunityPageSchema, "communityKey" | "scope" | "geography">): string {
   return JSON.stringify([
     page.communityKey, page.scope, page.geography.countryCode,
     page.geography.regionCode, page.geography.regionName,

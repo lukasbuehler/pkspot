@@ -309,3 +309,6 @@ export {
   enrichCommunityPlaceLocalizations,
   backfillCommunityPlaceLocalizations,
 } from "./communityPlaceLocalizationFunctions";
+
+export { queueSpotPlaceNames, queueEventPlaceNames, enrichEntityPlaceNames,
+  publishEntityPlaceNames, backfillEntityPlaceNames } from "./entityPlaceLocalization";

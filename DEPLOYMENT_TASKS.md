@@ -78,6 +78,30 @@ run data migrations, or complete third-party service tasks.
 
 ## Release-specific pending actions
 
+### Spot and Event localization
+
+- Deploy Firestore rules before releasing the client: `place_names/{key}` permits
+  public single-document reads only. `place_name_sources` and `place_name_jobs`
+  remain covered by default-deny rules. They are never exposed in SSR payloads.
+- With explicit backend deployment authorization, deploy `queueSpotPlaceNames`,
+  `queueEventPlaceNames`, `enrichEntityPlaceNames`, `publishEntityPlaceNames`,
+  `backfillEntityPlaceNames`, plus the updated `enrichCommunityPlaceLocalizations`
+  in `europe-west1`. Set `GEONAMES_USERNAME=pkspot`. Each hourly worker handles at
+  most 20 jobs (40 provider requests); the two workers share cached town results.
+- After authorization, call `backfillEntityPlaceNames` as an App Check-verified
+  admin, first with `{collection: "spots"}`, then `{collection: "events"}`.
+  Repeat each collection with `{collection, startAfter: nextCursor}` until null.
+  Private, restricted and community Event sources are skipped. Verify that a
+  town without a community page receives names and that source coordinates are
+  absent from public `place_names` records. Ambiguous names stay unlocalized.
+- Verify a French/Italian Spot and Event after the web release: translated titles,
+  visible summaries, metadata, unchanged names/slugs, source-language labels,
+  Event timezone and cancellation/past state. Confirm restricted pages retain
+  their existing noindex behavior. New lookups are read-only Firestore requests;
+  SSR never calls GeoNames. Existing plain fields remain unchanged for old apps.
+- Posts remain out of scope until their separate refactor. No Post publishing,
+  authoring, routing or schema changes are included in this release work.
+
 ### Community place names and SSR localization
 
 - Set `GEONAMES_USERNAME=pkspot` in the Functions deployment environment; the default

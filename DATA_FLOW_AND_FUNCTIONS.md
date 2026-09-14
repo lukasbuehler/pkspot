@@ -116,6 +116,33 @@ CPU, timeout, and instance limits.
 | Weather/OSM | upstream APIs | bounded Firestore cache docs | Cache documents are disposable. A cache hit avoids the upstream request, not the initial cache document read. |
 | Search | Firestore documents selected by the installed extension | Typesense collections | The extension's live configuration is external to this repo; JSON schemas and alignment tests are the checked-in field contract, but the deployed source collection must be verified separately. |
 
+### Geographic name enrichment
+
+Geographic labels are optional derived data. They never replace canonical names,
+addresses, IDs, slugs or contributor descriptions. Angular renders localized copy
+from stored facts and XLIFF; it does not call GeoNames during SSR.
+
+| Functions | Data flow and operations |
+| --- | --- |
+| `enqueueCommunityPlaceLocalization`, `backfillCommunityPlaceLocalizations` | Eligible locality community writes or explicit admin pagination enqueue `community_place_localization_jobs`. The backfill scans at most 50 community documents per call. Each enqueue reads the page and job, and writes a job only when needed. |
+| `enrichCommunityPlaceLocalizations` | Processes at most 20 due jobs per hour using transactional leases and delayed retries. Reads a shared `place_names` entry first. A cache miss uses at most two GeoNames requests. Updates community enrichment and any existing parent child-summary entries; preserves overrides and unrelated counts. |
+| `queueSpotPlaceNames`, `queueEventPlaceNames`, `backfillEntityPlaceNames` | Canonical country/locality and a coarse geographic key select a private `place_name_sources` document and `place_name_jobs` entry. A source is created once per key; subsequent enqueues are idempotent. Unchanged geographic writes do not enqueue. Explicit admin backfill scans 50 Spots or Events per call. Draft, private, viewer-restricted and community Events do not seed the cache. |
+| `enrichEntityPlaceNames` | Uses the same lease/retry processor, with at most 20 jobs per hour. Reuses the public town-name cache before contacting GeoNames. Exact lookup coordinates remain in private source records. |
+| `publishEntityPlaceNames` | Projects a completed private source to `place_names/{key}`. Publishes only the key, provider, GeoNames ID, names and provider town centroid. No entity IDs, source coordinates, participant data or job metadata are published. |
+
+Each worker queries at most 20 due jobs, reads the source/job to claim a lease,
+and reads them again before committing a result. GeoNames failures store a
+sanitized category and a future retry time; ambiguous matches wait for review.
+The two workers can make up to 80 provider requests per hour in total before
+cache reuse. Concurrent misses or trigger redelivery can repeat a lookup.
+
+A Spot or public Event detail load performs at most one additional single-document
+Firestore read per uncached geographic key in the app service cache. No lookup is
+performed without enough location information. The client checks the provider town
+centroid against the entity and falls back to the recorded name for missing,
+ambiguous or distant matches. Public list/write access to `place_names` is denied;
+`place_name_sources`, `place_name_jobs` and community jobs remain server-only.
+
 ## 4. Client interaction boundaries
 
 The Angular/Capacitor app uses

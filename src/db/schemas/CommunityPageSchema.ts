@@ -9,6 +9,8 @@ export type CommunityScope = "country" | "region" | "locality";
 export interface CommunityPlaceLocalization {
   source: "geonames";
   geonamesId: number;
+  /** Public town centroid supplied by GeoNames, never an entity location. */
+  center?: [number, number];
   names: Record<string, string>;
   fingerprint: string;
   updatedAtMs: number;

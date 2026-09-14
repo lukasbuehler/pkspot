@@ -1,16 +1,19 @@
+import type { PlaceNameSource } from "../../src/scripts/EntityPlaceNames";
 import { FieldPath, Timestamp, type Firestore } from "firebase-admin/firestore";
 import type { CommunityPageSchema, CommunityPlaceLocalization } from "../../src/db/schemas/CommunityPageSchema";
 import { canEnrichPlace, placeFingerprint, GeoNamesError } from "./communityPlaceNames";
 
 const QUEUE = "community_place_localization_jobs";
 const PAGES = "community_pages";
+export const DEFAULT_PLACE_STORE = { pages: PAGES, queue: QUEUE };
+export type PlaceStore = typeof DEFAULT_PLACE_STORE;
 const DAY = 86_400_000;
 
-export async function enqueueCommunityPlace(db: Firestore, id: string, force = false): Promise<boolean> {
+export async function enqueueCommunityPlace(db: Firestore, id: string, force = false, store: PlaceStore = DEFAULT_PLACE_STORE): Promise<boolean> {
   return db.runTransaction(async (tx) => {
-    const pageRef = db.collection(PAGES).doc(id), jobRef = db.collection(QUEUE).doc(id);
+    const pageRef = db.collection(store.pages).doc(id), jobRef = db.collection(store.queue).doc(id);
     const [snapshot, job] = await tx.getAll(pageRef, jobRef);
-    const page = snapshot.data() as CommunityPageSchema | undefined;
+    const page = snapshot.data() as PlaceNameSource | undefined;
     if (!canEnrichPlace(page)) return false;
     const fingerprint = placeFingerprint(page);
     if (!force && (page.place_localization?.fingerprint === fingerprint || job.data()?.fingerprint === fingerprint)) return false;
@@ -31,15 +34,16 @@ export async function enqueueCommunityPlaceBatch(db: Firestore, after?: string):
 /** Sequential batches cap API use at 40 requests/hour, including backfills. */
 export async function processCommunityPlaces(
   db: Firestore,
-  enrich: (page: CommunityPageSchema) => Promise<CommunityPlaceLocalization | null>,
+  enrich: (page: PlaceNameSource) => Promise<CommunityPlaceLocalization | null>,
+  store: PlaceStore = DEFAULT_PLACE_STORE,
 ): Promise<{ completed: number; review: number; failed: number }> {
-  const jobs = await db.collection(QUEUE).where("nextAttemptAt", "<=", Timestamp.now()).orderBy("nextAttemptAt").limit(20).get();
+  const jobs = await db.collection(store.queue).where("nextAttemptAt", "<=", Timestamp.now()).orderBy("nextAttemptAt").limit(20).get();
   const counts = { completed: 0, review: 0, failed: 0 };
   for (const job of jobs.docs) {
-    const pageRef = db.collection(PAGES).doc(job.id);
+    const pageRef = db.collection(store.pages).doc(job.id);
     const claimed = await db.runTransaction(async (tx) => {
       const [currentJob, pageDoc] = await tx.getAll(job.ref, pageRef);
-      const data = currentJob.data(), page = pageDoc.data() as CommunityPageSchema | undefined;
+      const data = currentJob.data(), page = pageDoc.data() as PlaceNameSource | undefined;
       if (!data || data.nextAttemptAt.toMillis() > Date.now()) return null;
       if (!canEnrichPlace(page) || placeFingerprint(page) !== data.fingerprint) {
         tx.delete(job.ref); return null;
@@ -56,7 +60,7 @@ export async function processCommunityPlaces(
     catch (failure) { error = failure instanceof GeoNamesError ? failure : new GeoNamesError("unavailable"); }
     const outcome = await db.runTransaction(async (tx) => {
       const [currentJob, currentPage] = await tx.getAll(job.ref, pageRef);
-      const data = currentJob.data(), page = currentPage.data() as CommunityPageSchema | undefined;
+      const data = currentJob.data(), page = currentPage.data() as PlaceNameSource | undefined;
       // A newer request, lease or geography change wins over this in-flight response.
       if (!data || data.fingerprint !== claimed.fingerprint || data.nextAttemptAt.toMillis() !== claimed.lease) return;
       if (!canEnrichPlace(page) || placeFingerprint(page) !== claimed.fingerprint) { tx.delete(job.ref); return; }
