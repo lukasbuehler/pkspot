@@ -129,6 +129,12 @@ run data migrations, or complete third-party service tasks.
 
 ### v1.2 analytics coverage and crawler verification
 
+- After the web release, inspect community JSON-LD: breadcrumb trails have a
+  localized name, and Spot directory entries contain no `aggregateRating`.
+  Confirm eligible individual Spot pages still contain their ratings. Reinspect
+  affected community URLs in Search Console after recrawling; report labels and
+  review-snippet attribution may take time to update.
+
 - After client release, verify PostHog `feature_action_started`,
   `feature_action_succeeded`, `feature_action_failed`, `operation_failed`, and
   exception records on web/iOS/Android with analytics permitted. Filter by

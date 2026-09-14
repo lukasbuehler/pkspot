@@ -132,6 +132,7 @@ export class StructuredDataService {
   ): Record<string, unknown> {
     return {
       "@type": "BreadcrumbList",
+      name: items.map((item) => item.name).join(" > "),
       itemListElement: items.map((item, index) => ({
         "@type": "ListItem",
         position: index + 1,
@@ -561,10 +562,13 @@ export class StructuredDataService {
   ): Record<string, unknown> {
     const listItems = spots.map((spot, index) => {
       if (spot instanceof Spot || spot instanceof LocalSpot) {
+        const item = this.generateSpotPlaceData(spot);
+        // Directory entries identify Spots; review markup belongs on their detail pages.
+        delete item["aggregateRating"];
         return {
           "@type": "ListItem",
           position: index + 1,
-          item: this.generateSpotPlaceData(spot),
+          item,
         };
       } else {
         // SpotPreviewData - create minimal Place data
@@ -611,18 +615,6 @@ export class StructuredDataService {
 
         if (spot.imageSrc) {
           placeItem["image"] = this.normalizeAbsoluteUrl(spot.imageSrc);
-        }
-
-        const reviewCount = this.getSpotPreviewReviewCount(spot);
-        if (isReviewEligible && spot.rating && reviewCount) {
-          placeItem["aggregateRating"] = {
-            "@type": "AggregateRating",
-            ratingValue: spot.rating,
-            bestRating: 5,
-            worstRating: 1,
-            ratingCount: reviewCount,
-            reviewCount: reviewCount,
-          };
         }
 
         return {
@@ -703,13 +695,6 @@ export class StructuredDataService {
       return undefined;
     }
     return /^https?:\/\//i.test(trimmed) ? trimmed : undefined;
-  }
-
-  private getSpotPreviewReviewCount(spot: SpotPreviewData): number | undefined {
-    return (
-      this.getPositiveInteger(spot.numReviews) ??
-      this.getPositiveInteger(spot.num_reviews)
-    );
   }
 
   private getPositiveInteger(value: unknown): number | undefined {
