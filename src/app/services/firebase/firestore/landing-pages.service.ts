@@ -1,4 +1,6 @@
-import { Injectable, inject } from "@angular/core";
+import { communityCopy, communityPickTitle } from "../../../localization/community-copy";
+import { localizedPlaceName } from "../../../../scripts/CommunityPlaceNames";
+import { Injectable, inject, LOCALE_ID } from "@angular/core";
 import { Event as PkEvent } from "../../../../db/models/Event";
 import {
   CommunityChildSummarySchema,
@@ -53,6 +55,10 @@ export interface CommunityLandingPageData {
   requestedSlug: string;
   canonicalPath: string;
   title: string;
+  heading?: string;
+  communityDirectoryHeading?: string;
+  spotDirectoryHeading?: string;
+  hasGeoNamesAttribution?: boolean;
   description: string;
   imageUrl: string;
   hasCustomImage: boolean;
@@ -119,6 +125,7 @@ const publicCommunityInfoCard = (
   providedIn: "root",
 })
 export class LandingPagesService {
+  private readonly locale = inject(LOCALE_ID);
   private _firestoreAdapter = inject(FirestoreAdapterService);
   private _assetUrls = inject(AssetUrlService);
   private _functionsAdapter = inject(FunctionsAdapterService);
@@ -163,6 +170,7 @@ export class LandingPagesService {
     requestedSlug: string,
     limitCount: number,
   ): CommunityLandingPageData {
+    const copy = communityCopy(pageDoc, this.locale);
     const topRatedSpots = (pageDoc.topRatedSpots ?? []).slice(0, limitCount);
     const drySpots = (pageDoc.drySpots ?? []).slice(0, limitCount);
     const spots = (pageDoc.spots ?? pageDoc.topRatedSpots ?? []).slice(
@@ -172,6 +180,7 @@ export class LandingPagesService {
     const communityPicks = (pageDoc.communityPicks ?? [])
       .map((section) => ({
         ...section,
+        title: communityPickTitle(section.category),
         spots: (section.spots ?? []).slice(0, limitCount),
       }))
       .filter((section) => section.spots.length > 0);
@@ -188,12 +197,16 @@ export class LandingPagesService {
     return {
       communityKey: pageDoc.communityKey,
       scope: pageDoc.scope,
-      displayName: pageDoc.displayName,
+      displayName: copy.name,
       preferredSlug: pageDoc.preferredSlug,
       requestedSlug,
       canonicalPath,
-      title: pageDoc.title,
-      description: pageDoc.description,
+      title: copy.title,
+      heading: copy.heading,
+      communityDirectoryHeading: copy.communityDirectoryHeading,
+      spotDirectoryHeading: copy.spotDirectoryHeading,
+      hasGeoNamesAttribution: !!pageDoc.place_localization || (pageDoc.childCommunities ?? []).some((child) => !!child.place_localization),
+      description: copy.description,
       imageUrl:
         this._assetUrls.resolveBundledAssetUrl(
           pageDoc.image?.url || "assets/banner_1200x630.png",
@@ -203,7 +216,7 @@ export class LandingPagesService {
         : false,
       country: {
         code: pageDoc.geography.countryCode,
-        name: pageDoc.geography.countryName || pageDoc.displayName,
+        name: copy.country,
         slug: countrySlug,
       },
       region: pageDoc.geography.regionName
@@ -216,12 +229,16 @@ export class LandingPagesService {
       locality:
         pageDoc.scope === "locality" && pageDoc.geography.localityName
           ? {
-              name: pageDoc.geography.localityName,
+              name: copy.name,
               slug: pageDoc.preferredSlug,
             }
           : undefined,
       breadcrumbs: (pageDoc.breadcrumbs ?? []).map((breadcrumb) => ({
         ...breadcrumb,
+        name: breadcrumb.path === "/map" ? $localize`:@@community.breadcrumb.map:Map`
+          : breadcrumb.path === pageDoc.canonicalPath ? copy.name
+          : breadcrumb.name === pageDoc.geography.countryName ? copy.country
+          : breadcrumb.name,
         path: this._normalizeCommunityPath(breadcrumb.path),
       })),
       totalSpotCount: pageDoc.counts?.totalSpots ?? 0,
@@ -237,7 +254,10 @@ export class LandingPagesService {
       organisations: pageDoc.organisations ?? [],
       athletes: pageDoc.athletes ?? [],
       events: pageDoc.events ?? [],
-      childCommunities: pageDoc.childCommunities ?? [],
+      childCommunities: (pageDoc.childCommunities ?? []).map((child) => ({
+        ...child,
+        displayName: localizedPlaceName(child.place_localization, child.place_name_overrides, this.locale, child.displayName),
+      })),
       eventPreviews: (pageDoc.eventPreviews ?? []).map((eventPreview) =>
         this._mapEventPreview(eventPreview),
       ),

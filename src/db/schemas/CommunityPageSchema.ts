@@ -5,6 +5,15 @@ import { SpotPreviewData } from "./SpotPreviewData";
 
 export type CommunityScope = "country" | "region" | "locality";
 
+/** Server-owned enrichment; never changes keys, slugs, or geographic identity. */
+export interface CommunityPlaceLocalization {
+  source: "geonames";
+  geonamesId: number;
+  names: Record<string, string>;
+  fingerprint: string;
+  updatedAtMs: number;
+}
+
 export interface CommunityGeographySchema {
   countryCode?: string;
   countryName?: string;
@@ -110,6 +119,10 @@ export interface CommunityChildSummarySchema {
   communityKey: string;
   scope: CommunityScope;
   displayName: string;
+  place_localization?: CommunityPlaceLocalization;
+  /** Reviewed overrides are separate so automatic enrichment never replaces them. */
+  place_name_overrides?: Record<string, string>;
+  place_phrase_overrides?: Record<string, string>;
   preferredSlug: string;
   canonicalPath: string;
   totalSpotCount: number;
@@ -141,6 +154,10 @@ export interface CommunityPageSchema {
   communityKey: string;
   scope: CommunityScope;
   displayName: string;
+  place_localization?: CommunityPlaceLocalization;
+  /** Reviewed overrides are separate so automatic enrichment never replaces them. */
+  place_name_overrides?: Record<string, string>;
+  place_phrase_overrides?: Record<string, string>;
   preferredSlug: string;
   allSlugs: string[];
   canonicalPath: string;

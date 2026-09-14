@@ -370,7 +370,7 @@ describe("CommunityLandingPageComponent", () => {
       ...fixture.nativeElement.querySelectorAll(".spot-text-directory a"),
     ] as HTMLAnchorElement[];
 
-    expect(directory?.textContent).toContain("Parkour spots in Zuerich");
+    expect(directory?.textContent).toContain("Parkour Spots in Zuerich");
     expect(directory?.textContent).toContain("MFO Park");
     expect(directory?.textContent).toContain("Zuerich");
     expect(directory?.textContent).toContain("parkour park");

@@ -285,7 +285,7 @@ export class CommunityLandingPageComponent {
     }
 
     const data = this.communityData();
-    return data?.displayName ?? "";
+    return data?.heading ?? data?.displayName ?? "";
   });
 
   introText = computed(() => {
@@ -298,7 +298,7 @@ export class CommunityLandingPageComponent {
       return "We could not find a PK Spot community page for this route yet.";
     }
 
-    return $localize`Find parkour spots, events, and local community info for ${data.displayName}.`;
+    return data.description;
   });
 
   scopeLabel = computed(() => {
@@ -309,7 +309,11 @@ export class CommunityLandingPageComponent {
       return "Community";
     }
 
-    return `${scope.charAt(0).toUpperCase()}${scope.slice(1)} Community`;
+    switch (scope) {
+      case "country": return $localize`:@@community.scope.country:Country community`;
+      case "region": return $localize`:@@community.scope.region:Regional community`;
+      case "locality": return $localize`:@@community.scope.locality:Local community`;
+    }
   });
 
   parentBreadcrumb = computed(() => {
@@ -416,7 +420,7 @@ export class CommunityLandingPageComponent {
   crawlerSpotDirectoryHeading = computed(() => {
     const data = this.communityData();
     return data
-      ? `Parkour spots in ${data.displayName}`
+      ? data.spotDirectoryHeading ?? `Parkour Spots in ${data.displayName}`
       : "Parkour spot directory";
   });
 

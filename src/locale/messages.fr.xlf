@@ -2571,12 +2571,6 @@
         <target>Identifiant de l’auteur de l’import</target>
       </segment>
     </unit>
-    <unit id="7322684769836148535">
-      <segment state="initial">
-        <source>Find parkour spots, events, and local community info for <ph id="0" equiv="PH" disp="data.displayName"/>.</source>
-        <target>Find parkour spots, events, and local community info for <ph id="0" equiv="PH" disp="data.displayName"/>.</target>
-      </segment>
-    </unit>
     <unit id="7323901917278002498">
       <segment state="initial">
         <source>Sign in instead?</source>
@@ -10823,6 +10817,30 @@
         <target> Pas maintenant </target>
       </segment>
     </unit>
+    <unit id="community.directory.communities">
+      <segment state="translated">
+        <source>Communities <ph id="0" equiv="LOCATION" disp="phrase"/></source>
+        <target>Communautés <ph id="0" equiv="LOCATION" disp="phrase"/></target>
+      </segment>
+    </unit>
+    <unit id="community.directory.countryLabel">
+      <segment state="translated">
+        <source>Country Directory</source>
+        <target>Annuaire du pays</target>
+      </segment>
+    </unit>
+    <unit id="community.directory.spotLabel">
+      <segment state="translated">
+        <source>Spot Directory</source>
+        <target>Répertoire des Spots</target>
+      </segment>
+    </unit>
+    <unit id="community.directory.spots">
+      <segment state="translated">
+        <source>Parkour Spots <ph id="0" equiv="LOCATION" disp="phrase"/></source>
+        <target>Spots de parkour <ph id="0" equiv="LOCATION" disp="phrase"/></target>
+      </segment>
+    </unit>
     <unit id="community.discover_more_events">
       <segment state="initial">
         <source> Discover more events → </source>
@@ -10889,10 +10907,106 @@
         <target> Conocimiento local </target>
       </segment>
     </unit>
+    <unit id="community.picks.dry">
+      <segment state="translated">
+        <source>Dry training Spots</source>
+        <target>Spots pour s’entraîner au sec</target>
+      </segment>
+    </unit>
+    <unit id="community.picks.fallback">
+      <segment state="translated">
+        <source>Explore Spots</source>
+        <target>Explorer les Spots</target>
+      </segment>
+    </unit>
+    <unit id="community.picks.night">
+      <segment state="translated">
+        <source>Spots for evening training</source>
+        <target>Spots pour s’entraîner le soir</target>
+      </segment>
+    </unit>
+    <unit id="community.picks.parkour">
+      <segment state="translated">
+        <source>Parkour parks</source>
+        <target>Parcs de parkour</target>
+      </segment>
+    </unit>
+    <unit id="community.picks.standout">
+      <segment state="translated">
+        <source>Standout Spots</source>
+        <target>Spots remarquables</target>
+      </segment>
+    </unit>
+    <unit id="community.picks.summer">
+      <segment state="translated">
+        <source>Spots for summer training</source>
+        <target>Spots pour s’entraîner en été</target>
+      </segment>
+    </unit>
+    <unit id="community.placeNames.attribution">
+      <segment state="translated">
+        <source>Place names:</source>
+        <target>Noms de lieux :</target>
+      </segment>
+    </unit>
+    <unit id="community.scope.country">
+      <segment state="translated">
+        <source>Country community</source>
+        <target>Communauté nationale</target>
+      </segment>
+    </unit>
+    <unit id="community.scope.locality">
+      <segment state="translated">
+        <source>Local community</source>
+        <target>Communauté locale</target>
+      </segment>
+    </unit>
+    <unit id="community.scope.region">
+      <segment state="translated">
+        <source>Regional community</source>
+        <target>Communauté régionale</target>
+      </segment>
+    </unit>
+    <unit id="community.seo.description">
+      <segment state="translated">
+        <source>Discover parkour Spots <ph id="0" equiv="LOCATION" disp="phrase"/>. Explore the map, find places to train, and connect with the local community on PK Spot.</source>
+        <target>Découvrez des Spots de parkour <ph id="0" equiv="LOCATION" disp="phrase"/>. Explorez la carte, trouvez des lieux pour vous entraîner et rejoignez la communauté locale sur PK Spot.</target>
+      </segment>
+    </unit>
+    <unit id="community.seo.heading">
+      <segment state="translated">
+        <source>Parkour <ph id="0" equiv="LOCATION" disp="phrase"/></source>
+        <target>Parkour <ph id="0" equiv="LOCATION" disp="phrase"/></target>
+      </segment>
+    </unit>
+    <unit id="community.seo.title">
+      <segment state="translated">
+        <source><ph id="0" equiv="HEADING" disp="qualified"/> | PK Spot Community</source>
+        <target><ph id="0" equiv="HEADING" disp="qualified"/> | Communauté PK Spot</target>
+      </segment>
+    </unit>
     <unit id="community.sign_in_to_see_link">
       <segment state="initial">
         <source>Sign in to see link</source>
         <target>Sign in to see link</target>
+      </segment>
+    </unit>
+    <unit id="community.stats.dry">
+      <segment state="translated">
+        <source>Dry Spots</source>
+        <target>Spots au sec</target>
+      </segment>
+    </unit>
+    <unit id="community.stats.top">
+      <segment state="translated">
+        <source>Top rated Spots</source>
+        <target>Spots les mieux notés</target>
+      </segment>
+    </unit>
+    <unit id="community.stats.total">
+      <segment state="translated">
+        <source>Total Spots</source>
+        <target>Total des Spots</target>
       </segment>
     </unit>
     <unit id="community_activity.invalid_times">
@@ -17070,6 +17184,12 @@
       <segment state="initial">
         <source> Event map </source>
         <target> Carte de l’événement </target>
+      </segment>
+    </unit>
+    <unit id="community.breadcrumb.map">
+      <segment state="translated">
+        <source>Map</source>
+        <target>Carte</target>
       </segment>
     </unit>
     <unit id="community.destination_change_selection">

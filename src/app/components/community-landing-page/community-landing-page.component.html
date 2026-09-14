@@ -102,7 +102,7 @@
               @if (data.scope === "country") {
                 <span>{{ scopeLabel() }}</span>
               } @else {
-                <span>{{ scopeLabel() }} in</span>
+                <span>{{ scopeLabel() }} ·</span>
                 @if (countryBreadcrumb(); as country) {
                   @if (panelMode()) {
                     <a
@@ -149,6 +149,9 @@
                   {{ introText() }}
                 </span>
               }
+              @if (data.hasGeoNamesAttribution) {
+                <p class="mat-body-small"><span i18n="@@community.placeNames.attribution">Place names:</span> <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">GeoNames</a></p>
+              }
             </div>
           </div>
         </app-map-info-panel>
@@ -170,7 +173,7 @@
             @if (parentBreadcrumb(); as parent) {
               <p class="eyebrow m-0">
                 <a [routerLink]="parent.path">{{ parent.name }}</a>
-                / {{ heading() }}
+                / {{ data.displayName }}
               </p>
             } @else {
               <p class="eyebrow m-0">{{ scopeLabel() }}</p>
@@ -183,19 +186,22 @@
               }
             </h1>
             <p class="mat-body-large intro-copy mb-4">{{ introText() }}</p>
+            @if (data.hasGeoNamesAttribution) {
+              <p class="mat-body-small"><span i18n="@@community.placeNames.attribution">Place names:</span> <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">GeoNames</a></p>
+            }
 
             <div class="stats-grid">
               <div class="stat-card">
                 <div class="stat-value">{{ totalSpotCount() }}</div>
-                <div class="stat-label">Total Spots</div>
+                <div class="stat-label" i18n="@@community.stats.total">Total Spots</div>
               </div>
               <div class="stat-card">
                 <div class="stat-value">{{ topRatedCount() }}</div>
-                <div class="stat-label">Top Rated Spots</div>
+                <div class="stat-label" i18n="@@community.stats.top">Top rated Spots</div>
               </div>
               <div class="stat-card">
                 <div class="stat-value">{{ dryCount() }}</div>
-                <div class="stat-label">Dry Spots</div>
+                <div class="stat-label" i18n="@@community.stats.dry">Dry Spots</div>
               </div>
             </div>
           </mat-card-content>
@@ -512,8 +518,8 @@
       @if (childCommunities().length > 0) {
         <section class="content-section">
           <div class="section-heading">
-            <p class="section-eyebrow m-0">Country Directory</p>
-            <h2 class="mat-title-large m-0">Communities in {{ heading() }}</h2>
+            <p class="section-eyebrow m-0" i18n="@@community.directory.countryLabel">Country Directory</p>
+            <h2 class="mat-title-large m-0">{{ data.communityDirectoryHeading ?? data.displayName }}</h2>
           </div>
 
           <div class="community-directory-grid">
@@ -558,7 +564,7 @@
       @if (!panelMode() && crawlerSpotDirectory().length > 0) {
         <section class="content-section spot-text-directory">
           <div class="section-heading">
-            <p class="section-eyebrow m-0">Spot Directory</p>
+            <p class="section-eyebrow m-0" i18n="@@community.directory.spotLabel">Spot Directory</p>
             <h2 class="mat-title-large m-0">
               {{ crawlerSpotDirectoryHeading() }}
             </h2>

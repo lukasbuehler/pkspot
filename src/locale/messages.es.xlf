@@ -2571,12 +2571,6 @@
         <target>ID de quien subió el archivo</target>
       </segment>
     </unit>
-    <unit id="7322684769836148535">
-      <segment state="initial">
-        <source>Find parkour spots, events, and local community info for <ph id="0" equiv="PH" disp="data.displayName"/>.</source>
-        <target>Find parkour spots, events, and local community info for <ph id="0" equiv="PH" disp="data.displayName"/>.</target>
-      </segment>
-    </unit>
     <unit id="7323901917278002498">
       <segment state="initial">
         <source>Sign in instead?</source>
@@ -10823,6 +10817,30 @@
         <target> Ahora no </target>
       </segment>
     </unit>
+    <unit id="community.directory.communities">
+      <segment state="translated">
+        <source>Communities <ph id="0" equiv="LOCATION" disp="phrase"/></source>
+        <target>Comunidades <ph id="0" equiv="LOCATION" disp="phrase"/></target>
+      </segment>
+    </unit>
+    <unit id="community.directory.countryLabel">
+      <segment state="translated">
+        <source>Country Directory</source>
+        <target>Directorio del país</target>
+      </segment>
+    </unit>
+    <unit id="community.directory.spotLabel">
+      <segment state="translated">
+        <source>Spot Directory</source>
+        <target>Directorio de Spots</target>
+      </segment>
+    </unit>
+    <unit id="community.directory.spots">
+      <segment state="translated">
+        <source>Parkour Spots <ph id="0" equiv="LOCATION" disp="phrase"/></source>
+        <target>Spots de parkour <ph id="0" equiv="LOCATION" disp="phrase"/></target>
+      </segment>
+    </unit>
     <unit id="community.discover_more_events">
       <segment state="initial">
         <source> Discover more events → </source>
@@ -10889,10 +10907,106 @@
         <target> Conocimiento local </target>
       </segment>
     </unit>
+    <unit id="community.picks.dry">
+      <segment state="translated">
+        <source>Dry training Spots</source>
+        <target>Spots para entrenar en seco</target>
+      </segment>
+    </unit>
+    <unit id="community.picks.fallback">
+      <segment state="translated">
+        <source>Explore Spots</source>
+        <target>Explorar Spots</target>
+      </segment>
+    </unit>
+    <unit id="community.picks.night">
+      <segment state="translated">
+        <source>Spots for evening training</source>
+        <target>Spots para entrenar por la tarde</target>
+      </segment>
+    </unit>
+    <unit id="community.picks.parkour">
+      <segment state="translated">
+        <source>Parkour parks</source>
+        <target>Parques de parkour</target>
+      </segment>
+    </unit>
+    <unit id="community.picks.standout">
+      <segment state="translated">
+        <source>Standout Spots</source>
+        <target>Spots destacados</target>
+      </segment>
+    </unit>
+    <unit id="community.picks.summer">
+      <segment state="translated">
+        <source>Spots for summer training</source>
+        <target>Spots para entrenar en verano</target>
+      </segment>
+    </unit>
+    <unit id="community.placeNames.attribution">
+      <segment state="translated">
+        <source>Place names:</source>
+        <target>Nombres de lugares:</target>
+      </segment>
+    </unit>
+    <unit id="community.scope.country">
+      <segment state="translated">
+        <source>Country community</source>
+        <target>Comunidad nacional</target>
+      </segment>
+    </unit>
+    <unit id="community.scope.locality">
+      <segment state="translated">
+        <source>Local community</source>
+        <target>Comunidad local</target>
+      </segment>
+    </unit>
+    <unit id="community.scope.region">
+      <segment state="translated">
+        <source>Regional community</source>
+        <target>Comunidad regional</target>
+      </segment>
+    </unit>
+    <unit id="community.seo.description">
+      <segment state="translated">
+        <source>Discover parkour Spots <ph id="0" equiv="LOCATION" disp="phrase"/>. Explore the map, find places to train, and connect with the local community on PK Spot.</source>
+        <target>Descubre Spots de parkour <ph id="0" equiv="LOCATION" disp="phrase"/>. Explora el mapa, encuentra lugares para entrenar y conecta con la comunidad local en PK Spot.</target>
+      </segment>
+    </unit>
+    <unit id="community.seo.heading">
+      <segment state="translated">
+        <source>Parkour <ph id="0" equiv="LOCATION" disp="phrase"/></source>
+        <target>Parkour <ph id="0" equiv="LOCATION" disp="phrase"/></target>
+      </segment>
+    </unit>
+    <unit id="community.seo.title">
+      <segment state="translated">
+        <source><ph id="0" equiv="HEADING" disp="qualified"/> | PK Spot Community</source>
+        <target><ph id="0" equiv="HEADING" disp="qualified"/> | Comunidad PK Spot</target>
+      </segment>
+    </unit>
     <unit id="community.sign_in_to_see_link">
       <segment state="initial">
         <source>Sign in to see link</source>
         <target>Sign in to see link</target>
+      </segment>
+    </unit>
+    <unit id="community.stats.dry">
+      <segment state="translated">
+        <source>Dry Spots</source>
+        <target>Spots en seco</target>
+      </segment>
+    </unit>
+    <unit id="community.stats.top">
+      <segment state="translated">
+        <source>Top rated Spots</source>
+        <target>Spots mejor valorados</target>
+      </segment>
+    </unit>
+    <unit id="community.stats.total">
+      <segment state="translated">
+        <source>Total Spots</source>
+        <target>Total de Spots</target>
       </segment>
     </unit>
     <unit id="community_activity.invalid_times">
@@ -17070,6 +17184,12 @@
       <segment state="initial">
         <source> Event map </source>
         <target> Mapa del evento </target>
+      </segment>
+    </unit>
+    <unit id="community.breadcrumb.map">
+      <segment state="translated">
+        <source>Map</source>
+        <target>Mapa</target>
       </segment>
     </unit>
     <unit id="community.destination_change_selection">

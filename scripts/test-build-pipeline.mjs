@@ -664,6 +664,25 @@ async function main() {
       /Communities in Switzerland|Country Directory/i,
     ]);
 
+    // A translated shell must also expose translated crawler metadata. These
+    // pages use stored community facts; rendering must not depend on GeoNames.
+    for (const [locale, heading, description] of [
+      ["fr", "Parkour en Suisse", "Découvrez des Spots de parkour en Suisse"],
+      ["it", "Parkour in Svizzera", "Scopri gli Spots di parkour in Svizzera"],
+    ]) {
+      const response = await fetchWithTimeout(
+        `${baseUrl}/${locale}/map/communities/switzerland`,
+        { headers: { "user-agent": "Googlebot/2.1" } },
+        `${locale} localized community SSR route`
+      );
+      assert.equal(response.status, 200);
+      const html = await response.text();
+      assert.match(html, new RegExp(`<title>${heading}[^<]*</title>`));
+      assert.match(html, new RegExp(`<meta name="description"[^>]+content="${description}`));
+      assert.match(html, new RegExp(`<link rel="canonical"[^>]+href="https://pkspot.app/${locale}/map/communities/switzerland"`));
+      assertBodyCrawlerContent(html, `${locale} localized community`, [new RegExp(heading)]);
+    }
+
     const zurichCommunityResponse = await fetchWithTimeout(
       `${baseUrl}/en/map/communities/zuerich`,
       {

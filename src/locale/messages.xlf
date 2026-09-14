@@ -2068,6 +2068,26 @@
         <source> Not now </source>
       </segment>
     </unit>
+    <unit id="community.directory.communities">
+      <segment>
+        <source>Communities <ph id="0" equiv="LOCATION" disp="phrase"/></source>
+      </segment>
+    </unit>
+    <unit id="community.directory.countryLabel">
+      <segment>
+        <source>Country Directory</source>
+      </segment>
+    </unit>
+    <unit id="community.directory.spotLabel">
+      <segment>
+        <source>Spot Directory</source>
+      </segment>
+    </unit>
+    <unit id="community.directory.spots">
+      <segment>
+        <source>Parkour Spots <ph id="0" equiv="LOCATION" disp="phrase"/></source>
+      </segment>
+    </unit>
     <unit id="community.discover_more_events">
       <segment>
         <source> Discover more events → </source>
@@ -2123,9 +2143,89 @@
         <source> Local Knowledge </source>
       </segment>
     </unit>
+    <unit id="community.picks.dry">
+      <segment>
+        <source>Dry training Spots</source>
+      </segment>
+    </unit>
+    <unit id="community.picks.fallback">
+      <segment>
+        <source>Explore Spots</source>
+      </segment>
+    </unit>
+    <unit id="community.picks.night">
+      <segment>
+        <source>Spots for evening training</source>
+      </segment>
+    </unit>
+    <unit id="community.picks.parkour">
+      <segment>
+        <source>Parkour parks</source>
+      </segment>
+    </unit>
+    <unit id="community.picks.standout">
+      <segment>
+        <source>Standout Spots</source>
+      </segment>
+    </unit>
+    <unit id="community.picks.summer">
+      <segment>
+        <source>Spots for summer training</source>
+      </segment>
+    </unit>
+    <unit id="community.placeNames.attribution">
+      <segment>
+        <source>Place names:</source>
+      </segment>
+    </unit>
+    <unit id="community.scope.country">
+      <segment>
+        <source>Country community</source>
+      </segment>
+    </unit>
+    <unit id="community.scope.locality">
+      <segment>
+        <source>Local community</source>
+      </segment>
+    </unit>
+    <unit id="community.scope.region">
+      <segment>
+        <source>Regional community</source>
+      </segment>
+    </unit>
+    <unit id="community.seo.description">
+      <segment>
+        <source>Discover parkour Spots <ph id="0" equiv="LOCATION" disp="phrase"/>. Explore the map, find places to train, and connect with the local community on PK Spot.</source>
+      </segment>
+    </unit>
+    <unit id="community.seo.heading">
+      <segment>
+        <source>Parkour <ph id="0" equiv="LOCATION" disp="phrase"/></source>
+      </segment>
+    </unit>
+    <unit id="community.seo.title">
+      <segment>
+        <source><ph id="0" equiv="HEADING" disp="qualified"/> | PK Spot Community</source>
+      </segment>
+    </unit>
     <unit id="community.sign_in_to_see_link">
       <segment>
         <source>Sign in to see link</source>
+      </segment>
+    </unit>
+    <unit id="community.stats.dry">
+      <segment>
+        <source>Dry Spots</source>
+      </segment>
+    </unit>
+    <unit id="community.stats.top">
+      <segment>
+        <source>Top rated Spots</source>
+      </segment>
+    </unit>
+    <unit id="community.stats.total">
+      <segment>
+        <source>Total Spots</source>
       </segment>
     </unit>
     <unit id="community_activity.invalid_times">
@@ -9222,11 +9322,6 @@
         <source>Uploader ID</source>
       </segment>
     </unit>
-    <unit id="7322684769836148535">
-      <segment>
-        <source>Find parkour spots, events, and local community info for <ph id="0" equiv="PH" disp="data.displayName"/>.</source>
-      </segment>
-    </unit>
     <unit id="7323901917278002498">
       <segment>
         <source>Sign in instead?</source>
@@ -14305,6 +14400,11 @@
     <unit id="search_field_default_placeholder">
       <segment>
         <source>Find spots and more</source>
+      </segment>
+    </unit>
+    <unit id="community.breadcrumb.map">
+      <segment>
+        <source>Map</source>
       </segment>
     </unit>
     <unit id="community.destination_change_selection">
