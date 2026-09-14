@@ -47,3 +47,24 @@ describe("event structured schedule", () => {
     expect(open['endDate']).toBeUndefined();
   });
 });
+
+
+describe("restricted event metadata", () => {
+  it.each([
+    { viewerPolicy: { audience: "invited" } },
+    { viewerPolicy: { audience: "organization_members", organization_id: "club" } },
+    { listingTier: "community" },
+  ])("keeps restricted public legacy records out of search: %j", (restriction) => {
+    const meta = { setStaticPageMetaTags: vi.fn(), setRobotsContent: vi.fn(), setEventMetaTags: vi.fn() };
+    const structured = { removeStructuredData: vi.fn(), addStructuredData: vi.fn() };
+    const component = Object.assign(Object.create(EventInfoPageComponent.prototype), {
+      _metaTags: meta, _structuredData: structured,
+      _eventPageData: { eventCanonicalPath: () => "/events/restricted" },
+    }) as { _syncEventSeoData(event: unknown): void };
+    component._syncEventSeoData({ published: true, visibility: "public", name: "Restricted name", ...restriction });
+    expect(meta.setRobotsContent).toHaveBeenCalledWith("noindex,nofollow");
+    expect(meta.setEventMetaTags).not.toHaveBeenCalled();
+    expect(structured.addStructuredData).not.toHaveBeenCalled();
+    expect(structured.removeStructuredData).toHaveBeenCalledWith("event");
+  });
+});

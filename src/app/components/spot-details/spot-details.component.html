@@ -680,6 +680,11 @@
           </div>
         }
 
+        <p class="mat-body-medium">{{ localizedCopy()?.description }}</p>
+        @if (spot()?.placeNames()) {
+          <p class="mat-body-small"><span i18n="@@community.placeNames.attribution">Place names:</span> <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">GeoNames</a></p>
+        }
+
         <!-- Spot Description -->
         @if (spot()?.description()) {
           <div>

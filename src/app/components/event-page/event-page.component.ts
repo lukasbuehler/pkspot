@@ -1,3 +1,5 @@
+import { eventCopy, eventPlaceCopy } from "../../localization/entity-copy";
+import { contentLanguageLabel } from "../../../scripts/LocalizedContent";
 import { RESPONSE } from "../../../express.token";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
@@ -296,14 +298,13 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly description = computed(() => {
     const event = this.event();
     if (!event) return "";
-    return (
-      event.description ??
-      (event.localityString
-        ? $localize`Event in ` + event.localityString
-        : $localize`:@@event.description_without_location:Event details`) +
-        ` (${this.dateRange()})`
-    );
+    return event.description ?? "";
   });
+  readonly localizedCopy = computed(() => {
+    const event = this.event();
+    return event ? eventCopy(event, this._locale, this.dateRange()) : null;
+  });
+  readonly descriptionLanguageLabel = computed(() => contentLanguageLabel(this.event()?.descriptionLocale, this._locale));
   readonly hasLongDescription = computed(() => {
     const description = this.description();
     if (!description) return false;
@@ -1294,7 +1295,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       this._metaTags.setRobotsContent("noindex,nofollow");
       return;
     }
-    if (event.visibility !== "public") {
+    if (event.visibility !== "public" || event.viewerPolicy || event.listingTier === "community") {
       this._structuredData.removeStructuredData("event");
       this._metaTags.setStaticPageMetaTags(
         $localize`:@@event_unlisted.meta.title:Unlisted event`,
@@ -1305,11 +1306,12 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       this._metaTags.setRobotsContent("noindex,nofollow");
       return;
     }
-    const description = this.description();
+    const copy = eventCopy(event, this._locale, this.dateRange());
+    const description = copy.description;
     const image = this._eventSocialImage(event);
 
     this._metaTags.setEventMetaTags(
-      { name: event.name, image, description },
+      { name: event.name, title: copy.title, image, description },
       canonicalPath,
     );
 
@@ -1334,7 +1336,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
           name: event.venueString || event.localityString || event.name,
           address: {
             "@type": "PostalAddress",
-            addressLocality: event.localityString || undefined,
+            addressLocality: eventPlaceCopy(event, this._locale).locality || undefined,
             addressCountry: event.countryCode || undefined,
           },
           geo: {

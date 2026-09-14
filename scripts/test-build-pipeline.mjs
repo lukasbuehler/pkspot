@@ -611,7 +611,7 @@ async function main() {
     assertDynamicSsrCacheHeaders(socialPreviewResponse, "Spot SSR route");
     const socialPreviewHtml = await socialPreviewResponse.text();
     assertCrawlerSurface(socialPreviewHtml, "Spot SSR route", {
-      title: /Sportzentrum Josef - Zürich \| PK Spot/,
+      title: /Sportzentrum Josef: Parkour Spot in Zürich \| PK Spot/,
       ogUrl:
         /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/map\/spots\/josefhalle"/,
       body: /Sportzentrum Josef/i,
@@ -622,7 +622,7 @@ async function main() {
     ]);
     assert.match(
       socialPreviewHtml,
-      /<meta property="og:title"[^>]+content="Sportzentrum Josef - Zürich \| PK Spot"/,
+      /<meta property="og:title"[^>]+content="Sportzentrum Josef: Parkour Spot in Zürich \| PK Spot"/,
       "Spot SSR HTML should include the spot-specific OpenGraph title"
     );
     assert.match(
@@ -635,6 +635,25 @@ async function main() {
       /<meta property="og:title"[^>]+content="PK Spot - The spot for Parkour and Freerunning"/,
       "Spot SSR HTML should not fall back to the default OpenGraph title"
     );
+
+    for (const [locale, spotLabel, eventLabel] of [
+      ["fr", "Spot de parkour", "Événement de parkour"],
+      ["it", "Spot di parkour", "Evento di parkour"],
+    ]) {
+      for (const [route, name, label] of [
+        ["map/spots/josefhalle", "Sportzentrum Josef", spotLabel],
+        ["events/swissjam25", "Swiss Jam 2025", eventLabel],
+      ]) {
+        const response = await fetchWithTimeout(`${baseUrl}/${locale}/${route}`,
+          { headers: { "user-agent": "Googlebot/2.1" } }, `${locale} entity localization`);
+        assert.equal(response.status, 200);
+        const html = await response.text();
+        assert.match(html, new RegExp(`<title>${name}[^<]*${label}[^<]*</title>`));
+        assert.match(html, new RegExp(`<meta name="description"[^>]+content="${label}`));
+        assert.match(html, new RegExp(`<link rel="canonical"[^>]+href="https://pkspot.app/${locale}/${route}"`));
+        assertBodyCrawlerContent(html, `${locale} ${route}`, [new RegExp(name), new RegExp(label)]);
+      }
+    }
 
     const communityPreviewResponse = await fetchWithTimeout(
       `${baseUrl}/en/map/communities/switzerland`,
@@ -779,7 +798,7 @@ async function main() {
     assertDynamicSsrCacheHeaders(eventPreviewResponse, "Event SSR route");
     const eventPreviewHtml = await eventPreviewResponse.text();
     assertCrawlerSurface(eventPreviewHtml, "Event SSR route", {
-      title: /Swiss Jam 2025 \| PK Spot/,
+      title: /Swiss Jam 2025: Parkour event [^<]* \| PK Spot/,
       ogUrl:
         /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/events\/swissjam25"/,
       body: /Swiss Jam 2025/,
@@ -790,7 +809,7 @@ async function main() {
     ]);
     assert.match(
       eventPreviewHtml,
-      /<meta property="og:title"[^>]+content="Swiss Jam 2025 \| PK Spot"/,
+      /<meta property="og:title"[^>]+content="Swiss Jam 2025: Parkour event [^"]* \| PK Spot"/,
       "Event SSR HTML should include the event-specific OpenGraph title"
     );
     assert.match(

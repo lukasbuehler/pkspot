@@ -6103,6 +6103,24 @@
         <target>{VAR_PLURAL, plural, =0 {sin reseñas} =1 {1 reseña} other {<ph id="0" equiv="INTERPOLATION"/> reseñas}}</target>
       </segment>
     </unit>
+    <unit id="spot.structured.access">
+      <segment state="translated">
+        <source>Spot access</source>
+        <target>Acceso al Spot</target>
+      </segment>
+    </unit>
+    <unit id="spot.structured.photo">
+      <segment state="translated">
+        <source>Photo of <ph id="0" equiv="NAME" disp="spot.name()"/></source>
+        <target>Foto de <ph id="0" equiv="NAME" disp="spot.name()"/></target>
+      </segment>
+    </unit>
+    <unit id="spot.structured.type">
+      <segment state="translated">
+        <source>Spot type</source>
+        <target>Tipo de Spot</target>
+      </segment>
+    </unit>
     <unit id="spot.verified.tooltip">
       <segment state="initial">
         <source>Verified by <ph id="0" equiv="INTERPOLATION" disp="{{ steward.organization.name }}"/></source>
@@ -7073,12 +7091,6 @@
         <target> PK Spot te ayuda a encontrar spots de parkour, descubrir comunidades y eventos, hacer check-in y compartir conocimiento local útil. </target>
       </segment>
     </unit>
-    <unit id="7629436164719717851">
-      <segment state="initial">
-        <source>Event in </source>
-        <target>Evento en </target>
-      </segment>
-    </unit>
     <unit id="7648040324495665523">
       <segment state="initial">
         <source>The mobile platform is not sharing an age range with PK Spot. You can choose to check again.</source>
@@ -7260,10 +7272,100 @@
         <target> Solo para miembros de la organización </target>
       </segment>
     </unit>
-    <unit id="event.description_without_location">
-      <segment state="initial">
-        <source>Event details</source>
-        <target>Event details</target>
+    <unit id="event.copy.cancelled">
+      <segment state="translated">
+        <source>This event has been cancelled.</source>
+        <target>Este evento se ha cancelado.</target>
+      </segment>
+    </unit>
+    <unit id="event.copy.fallback_title">
+      <segment state="translated">
+        <source><ph id="0" equiv="NAME" disp="event.name || $localize`:@@event.copy.label:Event`"/> | PK Spot</source>
+        <target><ph id="0" equiv="NAME" disp="event.name || $localize`:@@event.copy.label:Event`"/> | PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="event.copy.kind.class">
+      <segment state="translated">
+        <source>Class</source>
+        <target>Clase</target>
+      </segment>
+    </unit>
+    <unit id="event.copy.kind.competition">
+      <segment state="translated">
+        <source>Competition</source>
+        <target>Competición</target>
+      </segment>
+    </unit>
+    <unit id="event.copy.kind.festival">
+      <segment state="translated">
+        <source>Festival</source>
+        <target>Festival</target>
+      </segment>
+    </unit>
+    <unit id="event.copy.kind.session">
+      <segment state="translated">
+        <source>Training session</source>
+        <target>Sesión de entrenamiento</target>
+      </segment>
+    </unit>
+    <unit id="event.copy.kind.workshop">
+      <segment state="translated">
+        <source>Workshop</source>
+        <target>Taller</target>
+      </segment>
+    </unit>
+    <unit id="event.copy.label">
+      <segment state="translated">
+        <source>Event</source>
+        <target>Evento</target>
+      </segment>
+    </unit>
+    <unit id="event.copy.live">
+      <segment state="translated">
+        <source>This event is happening now.</source>
+        <target>Este evento está en curso.</target>
+      </segment>
+    </unit>
+    <unit id="event.copy.location">
+      <segment state="translated">
+        <source>Parkour event <ph id="0" equiv="LOCATION" disp="place.phrase"/></source>
+        <target>Evento de parkour <ph id="0" equiv="LOCATION" disp="place.phrase"/></target>
+      </segment>
+    </unit>
+    <unit id="event.copy.no_location">
+      <segment state="translated">
+        <source>Parkour event on PK Spot</source>
+        <target>Evento de parkour en PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="event.copy.organizer">
+      <segment state="translated">
+        <source>Organized by <ph id="0" equiv="ORGANIZER" disp="organizer"/>.</source>
+        <target>Organizado por <ph id="0" equiv="ORGANIZER" disp="organizer"/>.</target>
+      </segment>
+    </unit>
+    <unit id="event.copy.past">
+      <segment state="translated">
+        <source>This event has ended.</source>
+        <target>Este evento ha terminado.</target>
+      </segment>
+    </unit>
+    <unit id="event.copy.title">
+      <segment state="translated">
+        <source><ph id="0" equiv="NAME" disp="name"/>: <ph id="1" equiv="HEADING" disp="heading"/> | PK Spot</source>
+        <target><ph id="0" equiv="NAME" disp="name"/>: <ph id="1" equiv="HEADING" disp="heading"/> | PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="event.copy.type">
+      <segment state="translated">
+        <source>Type: <ph id="0" equiv="TYPE" disp="kind"/>.</source>
+        <target>Tipo: <ph id="0" equiv="TYPE" disp="kind"/>.</target>
+      </segment>
+    </unit>
+    <unit id="event.copy.upcoming">
+      <segment state="translated">
+        <source>Find event details and planning information on PK Spot.</source>
+        <target>Consulta los detalles del evento y la información para planificar en PK Spot.</target>
       </segment>
     </unit>
     <unit id="event.timing.date_only_label">
@@ -9992,6 +10094,48 @@
         <target>Cerrar spot</target>
       </segment>
     </unit>
+    <unit id="spot.copy.access">
+      <segment state="translated">
+        <source>Access: <ph id="0" equiv="ACCESS" disp="access"/>.</source>
+        <target>Acceso: <ph id="0" equiv="ACCESS" disp="access"/>.</target>
+      </segment>
+    </unit>
+    <unit id="spot.copy.explanation">
+      <segment state="translated">
+        <source>Explore photos, location details and training information on PK Spot.</source>
+        <target>Descubre fotos, detalles de la ubicación e información para entrenar en PK Spot.</target>
+      </segment>
+    </unit>
+    <unit id="spot.copy.location">
+      <segment state="translated">
+        <source>Parkour Spot <ph id="0" equiv="LOCATION" disp="place.phrase"/></source>
+        <target>Spot de parkour <ph id="0" equiv="LOCATION" disp="place.phrase"/></target>
+      </segment>
+    </unit>
+    <unit id="spot.copy.no_location">
+      <segment state="translated">
+        <source>Parkour Spot on PK Spot</source>
+        <target>Spot de parkour en PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="spot.copy.rating">
+      <segment state="translated">
+        <source>Rated <ph id="0" equiv="RATING" disp="rating"/> out of 5.</source>
+        <target>Valoración: <ph id="0" equiv="RATING" disp="rating"/> de 5.</target>
+      </segment>
+    </unit>
+    <unit id="spot.copy.title">
+      <segment state="translated">
+        <source><ph id="0" equiv="NAME" disp="name"/>: <ph id="1" equiv="HEADING" disp="heading"/> | PK Spot</source>
+        <target><ph id="0" equiv="NAME" disp="name"/>: <ph id="1" equiv="HEADING" disp="heading"/> | PK Spot</target>
+      </segment>
+    </unit>
+    <unit id="spot.copy.type">
+      <segment state="translated">
+        <source>Type: <ph id="0" equiv="TYPE" disp="type"/>.</source>
+        <target>Tipo: <ph id="0" equiv="TYPE" disp="type"/>.</target>
+      </segment>
+    </unit>
     <unit id="spot.google_maps.header">
       <notes>
         <note category="description">Header for the Google Maps section</note>
@@ -11217,6 +11361,12 @@
       <segment state="initial">
         <source>Share a spot map</source>
         <target>Compartir un mapa de spots</target>
+      </segment>
+    </unit>
+    <unit id="content.original_language">
+      <segment state="translated">
+        <source>Original language: <ph id="0" equiv="LANGUAGE" disp="language"/></source>
+        <target>Idioma original: <ph id="0" equiv="LANGUAGE" disp="language"/></target>
       </segment>
     </unit>
     <unit id="crop.cancel">

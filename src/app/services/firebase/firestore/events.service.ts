@@ -1,3 +1,4 @@
+import { PlaceNamesService } from "../../place-names.service";
 import { Injectable, LOCALE_ID, inject } from "@angular/core";
 import { Timestamp } from "firebase/firestore";
 import {
@@ -123,6 +124,7 @@ export class EventsService extends ConsentAwareService {
     this._authService.authorizationStateResolved$;
   private _assetUrls = inject(AssetUrlService);
   private _locale = inject(LOCALE_ID);
+  private readonly placeNames = inject(PlaceNamesService);
 
   constructor() {
     super();
@@ -620,7 +622,7 @@ export class EventsService extends ConsentAwareService {
       this._assetUrls.resolveEventAssetUrls(doc),
       this._locale,
     );
-    return (await this.canViewEvent(event)) ? event : null;
+    return (await this.canViewEvent(event)) ? this.withPlaceNames(event) : null;
   }
 
   observeEventBySlugOrId(slugOrId: string): Observable<Event | null> {
@@ -663,14 +665,21 @@ export class EventsService extends ConsentAwareService {
           (event.published && event.visibility !== "private") ||
           this._isAdmin()
         ) {
-          return of(event);
+          return event.published && event.visibility === "public" ? from(this.withPlaceNames(event)) : of(event);
         }
         if (!event.published && !event.owner) return of(null);
         return from(this.canViewEvent(event)).pipe(
-          map((canView) => (canView ? event : null)),
+          map((canView) => canView ? event : null),
         );
       }),
     );
+  }
+
+  private async withPlaceNames(event: Event): Promise<Event> {
+    if (!event.published || event.visibility !== "public" || event.viewerPolicy || event.listingTier === "community") return event;
+    event.placeNames = await this.placeNames.get({ countryCode: event.countryCode,
+      locality: event.localityString, lat: event.location?.lat, lng: event.location?.lng });
+    return event;
   }
 
   private _toEvent(eventId: EventId, doc: EventDocument): Event {

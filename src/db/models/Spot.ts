@@ -1,3 +1,4 @@
+import type { EntityPlaceNames } from "../../scripts/EntityPlaceNames";
 import { LocaleMap, MediaType, LocaleCode } from "./Interfaces";
 import { AmenitiesMap } from "../schemas/Amenities";
 import { makeAmenitiesArray, makeSmartAmenitiesArray } from "./Amenities";
@@ -116,6 +117,7 @@ export class LocalSpot {
   numChallenges = signal<number>(0); // integer
 
   address: WritableSignal<SpotAddressSchema | null>;
+  readonly placeNames = signal<EntityPlaceNames | undefined>(undefined);
   formattedAddress: Signal<string>;
   localityString: Signal<string>;
 

@@ -178,7 +178,7 @@ describe("EventInfoPageComponent", () => {
     expect(metaTagService.setEventMetaTags).toHaveBeenLastCalledWith(
       expect.objectContaining({
         name: "Dummy City Jam",
-        description: "A dummy event page for crawler-readable parkour jam info.",
+        description: expect.stringContaining("Parkour event in Dummy City"),
       }),
       "/events/dummy-city-jam",
     );
@@ -187,11 +187,11 @@ describe("EventInfoPageComponent", () => {
       expect.objectContaining({
         "@type": "Event",
         name: "Dummy City Jam",
-        description: "A dummy event page for crawler-readable parkour jam info.",
+        description: expect.stringContaining("Parkour event in Dummy City"),
         location: expect.objectContaining({
           name: "Dummy Training Hall",
           address: expect.objectContaining({
-            addressLocality: "Dummy City, Switzerland",
+            addressLocality: "Dummy City",
           }),
         }),
         url: "https://pkspot.app/en/events/dummy-city-jam",
@@ -665,7 +665,7 @@ describe("EventInfoPageComponent", () => {
     expect(metaTagService.setEventMetaTags).toHaveBeenLastCalledWith(
       expect.objectContaining({
         name: "Swiss Jam 2026",
-        description: expect.stringContaining("Event in Zurich, Switzerland"),
+        description: expect.stringContaining("Parkour event in Zurich"),
       }),
       "/events/swissjam26",
     );
@@ -709,7 +709,7 @@ describe("EventInfoPageComponent", () => {
     expect(metaTagService.setEventMetaTags).toHaveBeenLastCalledWith(
       expect.objectContaining({
         name: "WPF Camp",
-        description: expect.stringContaining("Event in Zurich, Switzerland"),
+        description: expect.stringContaining("Parkour event in Zurich"),
       }),
       "/events/wpf-camp",
     );

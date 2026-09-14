@@ -65,7 +65,7 @@ export class EventPageDataService {
     }
 
     if (!loaded && slugOrId === "swissjam25") {
-      loaded = new PkEvent("swissjam25" as EventId, SWISSJAM25_STATIC);
+      loaded = new PkEvent("swissjam25" as EventId, SWISSJAM25_STATIC, this._locale);
     }
 
     return loaded;
@@ -608,6 +608,6 @@ export class EventPageDataService {
 
   private _staticFallbackEvent(slugOrId: string): PkEvent | null {
     if (slugOrId !== "swissjam25") return null;
-    return new PkEvent("swissjam25" as EventId, SWISSJAM25_STATIC);
+    return new PkEvent("swissjam25" as EventId, SWISSJAM25_STATIC, this._locale);
   }
 }

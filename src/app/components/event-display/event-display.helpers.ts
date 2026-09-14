@@ -1,3 +1,4 @@
+import { eventPlaceCopy } from "../../localization/entity-copy";
 import { Event as PkEvent } from "../../../db/models/Event";
 import {
   AnyMedia,
@@ -98,7 +99,7 @@ export function isRemoteExternalMedia(
 
 export function eventVenueLine(event: PkEvent): string {
   return (
-    [event.venueString, event.localityString].filter(Boolean).join(", ") ||
+    [event.venueString, eventPlaceCopy(event).label].filter(Boolean).join(", ") ||
     $localize`:@@event.venue_tba:Venue to be announced`
   );
 }

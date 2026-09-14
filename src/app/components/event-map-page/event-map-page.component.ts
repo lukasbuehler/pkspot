@@ -1,3 +1,4 @@
+import { eventCopy } from "../../localization/entity-copy";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
@@ -914,7 +915,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   private _syncEventSeoData(event: PkEvent): void {
     const canonicalPath = this._eventCanonicalPath(event);
-    if (!event.published || event.visibility !== "public") {
+    if (!event.published || event.visibility !== "public" || event.viewerPolicy || event.listingTier === "community") {
       const isDraft = !event.published;
       this.metaTagService.setStaticPageMetaTags(
         isDraft
@@ -929,13 +930,15 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
       this.metaTagService.setRobotsContent("noindex,nofollow");
       return;
     }
-    const description = this._eventDescription(event);
+    const copy = eventCopy(event, this.locale);
+    const description = copy.description;
     const image =
       eventImageDisplaySrc(event.bannerSrc) ?? "assets/banner_1200x630.png";
 
     this.metaTagService.setEventMetaTags(
       {
         name: event.name,
+        title: copy.title,
         image,
         description,
       },
@@ -949,15 +952,6 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
 
   private _eventCanonicalPath(event: PkEvent): string {
     return this._eventPageData.eventCanonicalPath(event);
-  }
-
-  private _eventDescription(event: PkEvent): string {
-    const range = this._dateTime.formatDateRange(event.start, event.end);
-
-    return (
-      event.description ??
-      $localize`Event in ` + event.localityString + ` (${range})`
-    );
   }
 
   trackWebsiteClick() {

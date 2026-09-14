@@ -1,3 +1,5 @@
+import type { EntityPlaceNames } from "../../scripts/EntityPlaceNames";
+import { selectLocalizedContent } from "../../scripts/LocalizedContent";
 import { GeoPoint, Timestamp } from "firebase/firestore";
 import {
   EventBoundsSchema,
@@ -119,6 +121,7 @@ export class Event {
   readonly name: string;
   readonly description?: string;
   readonly descriptions?: LocaleMap;
+  readonly descriptionLocale?: string;
 
   readonly bannerSrc?: string;
   readonly bannerFit: EventImageFit;
@@ -135,6 +138,7 @@ export class Event {
 
   readonly venueString: string;
   readonly localityString: string;
+  placeNames?: EntityPlaceNames;
   readonly location?: { lat: number; lng: number };
   readonly hasLocation: boolean;
   readonly start: Date;
@@ -192,13 +196,14 @@ export class Event {
   readonly notificationPolicy: EventNotificationPolicy;
   readonly published: boolean;
 
-  constructor(id: EventId, data: EventSchema, locale: LocaleCode = "en") {
+  constructor(id: EventId, data: EventSchema, readonly locale: LocaleCode = "en") {
     this.id = id;
     this.slug = data.slug;
     this.name = data.name;
     this.descriptions = Event.mapDescriptionLocaleMap(data);
-    this.description =
-      Event.descriptionForLocale(this.descriptions, locale) ?? data.description;
+    const selectedDescription = selectLocalizedContent(data.description_i18n, locale, data.description);
+    this.description = selectedDescription.text || undefined;
+    this.descriptionLocale = selectedDescription.locale;
     this.bannerSrc = data.banner_src;
     this.bannerFit = data.banner_fit ?? "cover";
     this.bannerAccentColor = data.banner_accent_color;

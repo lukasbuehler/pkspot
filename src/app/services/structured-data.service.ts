@@ -1,3 +1,4 @@
+import { spotCopy } from "../localization/entity-copy";
 import { DOCUMENT, isPlatformServer } from "@angular/common";
 import { inject, Injectable, LOCALE_ID, PLATFORM_ID } from "@angular/core";
 import { Meta, Title } from "@angular/platform-browser";
@@ -284,7 +285,7 @@ export class StructuredDataService {
     const placeData: SpotStructuredData = {
       "@type": isReviewEligible ? "SportsActivityLocation" : "Place",
       name: spot.name(),
-      description: spot.description() || undefined,
+      description: spotCopy(spot, this.locale).description,
       geo: {
         "@type": "GeoCoordinates",
         latitude: spot.location().lat,
@@ -335,6 +336,7 @@ export class StructuredDataService {
     const address = spot.address();
     if (address) {
       const addressLocality =
+        spotCopy(spot, this.locale).place.locality ||
         getDisplayLocalityName(address) ||
         getDisplaySublocalityName(address) ||
         this.getSpotLocality(spot);
@@ -389,7 +391,7 @@ export class StructuredDataService {
     if (type !== SpotTypes.Other) {
       properties.push({
         "@type": "PropertyValue",
-        name: "Spot type",
+        name: $localize`:@@spot.structured.type:Spot type`,
         value: SpotTypesNames[type],
       });
     }
@@ -397,7 +399,7 @@ export class StructuredDataService {
     if (access !== SpotAccess.Other) {
       properties.push({
         "@type": "PropertyValue",
-        name: "Spot access",
+        name: $localize`:@@spot.structured.access:Spot access`,
         value: SpotAccessNames[access],
       });
     }
@@ -406,6 +408,8 @@ export class StructuredDataService {
   }
 
   private getSpotLocality(spot: Spot | LocalSpot): string | undefined {
+    const translatedLocality = spotCopy(spot, this.locale).place.locality;
+    if (translatedLocality) return translatedLocality;
     const locality = spot.localityString()?.trim();
     if (!locality) {
       return undefined;
@@ -475,7 +479,7 @@ export class StructuredDataService {
           contentUrl: contentUrl,
           url: contentUrl,
           thumbnailUrl: thumbnailUrl,
-          description: `Photo of ${spot.name()} parkour spot`,
+          description: $localize`:@@spot.structured.photo:Photo of ${spot.name()}:NAME:`,
         };
 
         // Add thumbnail if available (for StorageImage)

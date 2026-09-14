@@ -228,13 +228,13 @@ describe("contentResolver", () => {
     expect(result.spot).toBe(imaxSpot);
     expect(slugsService.getSpotIdFromSpotSlug).toHaveBeenCalledWith("imax");
     expect(spotsService.getSpotById).toHaveBeenCalledWith("spot-imax", "en");
-    expect(titleMock.setTitle).toHaveBeenCalledWith("IMAX - London | PK Spot");
+    expect(titleMock.setTitle).toHaveBeenCalledWith("IMAX: Parkour Spot in London | PK Spot");
 
     expect(getMetaContent(testDocument, 'meta[property="og:title"]')).toBe(
-      "IMAX - London | PK Spot"
+      "IMAX: Parkour Spot in London | PK Spot"
     );
     expect(getMetaContent(testDocument, 'meta[name="twitter:title"]')).toBe(
-      "IMAX - London | PK Spot"
+      "IMAX: Parkour Spot in London | PK Spot"
     );
 
     const image = getMetaContent(testDocument, 'meta[property="og:image"]');
@@ -248,9 +248,9 @@ describe("contentResolver", () => {
       testDocument,
       'meta[name="description"]'
     );
-    expect(description).toContain("Parkour spot in London, GB.");
+    expect(description).toContain("Parkour Spot in London.");
     expect(description).toContain("Rated 4.6 out of 5.");
-    expect(description).toContain("Big concrete playground beside the cinema.");
+    expect(description).not.toContain("Big concrete playground beside the cinema.");
     expect(description).not.toContain(
       "Discover photos, details, and training info."
     );
@@ -324,7 +324,7 @@ describe("contentResolver", () => {
 
     expect(result.spot).toBe(imaxSpot);
     expect(getMetaContent(testDocument, 'meta[property="og:title"]')).toBe(
-      "IMAX - London | PK Spot"
+      "IMAX: Parkour Spot in London | PK Spot"
     );
     expect(
       getMetaContent(testDocument, 'meta[property="og:url"]')

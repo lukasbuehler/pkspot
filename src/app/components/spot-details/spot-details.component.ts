@@ -1,3 +1,4 @@
+import { spotCopy } from "../../localization/entity-copy";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
@@ -344,6 +345,10 @@ export class SpotDetailsComponent
   private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
 
   public locale: LocaleCode = inject(LOCALE_ID);
+  readonly localizedCopy = computed(() => {
+    const spot = this.spot();
+    return spot ? spotCopy(spot, this.locale) : null;
+  });
   private _challengeService = inject(SpotChallengesService);
   private _structuredDataService = inject(StructuredDataService);
   private _metaTagService = inject(MetaTagService);

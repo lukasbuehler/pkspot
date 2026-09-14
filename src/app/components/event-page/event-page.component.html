@@ -175,6 +175,10 @@
             <h1 class="mat-heading-medium">{{ event.name }}</h1>
 
             <app-event-summary-meta [event]="event"></app-event-summary-meta>
+            <p class="mat-body-medium">{{ localizedCopy()?.heading }}</p>
+            @if (event.placeNames) {
+              <p class="mat-body-small"><span i18n="@@community.placeNames.attribution">Place names:</span> <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">GeoNames</a></p>
+            }
 
             @if (organizerName()) {
               <div class="event-organizer">
@@ -223,10 +227,14 @@
         </section>
       }
 
+      @if (descriptionLanguageLabel()) {
+        <p class="mat-body-small">{{ descriptionLanguageLabel() }}</p>
+      }
       @if (description()) {
         <section class="event-section">
           <p
             id="event-description"
+            [attr.lang]="event.descriptionLocale || null"
             class="event-description"
             [class.event-description--collapsed]="
               hasLongDescription() && !isEventDescriptionExpanded()

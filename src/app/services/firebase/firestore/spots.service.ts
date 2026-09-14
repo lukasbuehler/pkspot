@@ -1,7 +1,8 @@
+import { PlaceNamesService } from "../../place-names.service";
 import { Injectable, inject, Injector } from "@angular/core";
 import type { QuerySnapshot, DocumentData } from "firebase/firestore";
 import { Observable, forkJoin, of, from, throwError } from "rxjs";
-import { map, take, timeout, catchError } from "rxjs/operators";
+import { switchMap, map, take, timeout, catchError } from "rxjs/operators";
 import { SpotLoadError } from "../../../../db/models/SpotLoadError";
 import { Spot } from "../../../../db/models/Spot";
 import { SpotId } from "../../../../db/schemas/SpotSchema";
@@ -22,6 +23,7 @@ import {
 })
 export class SpotsService extends ConsentAwareService {
   private _injector = inject(Injector);
+  private readonly placeNames = inject(PlaceNamesService);
   private _firestoreAdapter = inject(FirestoreAdapterService);
   private get storageService(): StorageService {
     // Lazily resolve to avoid circular DI during construction
@@ -42,7 +44,7 @@ export class SpotsService extends ConsentAwareService {
       .getDocument<SpotSchema & { id: string }>(`spots/${spotId}`)
       .then((data) => {
         if (data) {
-          return this.hydrateSpot(data.id as SpotId, data, locale);
+          return this.hydrateLocalizedSpot(data.id as SpotId, data, locale);
         } else {
           throw new SpotLoadError(spotId, "not_found");
         }
@@ -55,9 +57,9 @@ export class SpotsService extends ConsentAwareService {
     return this._firestoreAdapter
       .documentSnapshots<SpotSchema & { id: string }>(`spots/${spotId}`)
       .pipe(
-        map((d) => {
+        switchMap((d) => {
           if (!d) throw new SpotLoadError(spotId, "not_found");
-          return this.hydrateSpot(d.id as SpotId, d, locale);
+          return from(this.hydrateLocalizedSpot(d.id as SpotId, d, locale));
         })
       );
   }
@@ -118,11 +120,11 @@ export class SpotsService extends ConsentAwareService {
     ];
     return this._firestoreAdapter
       .getCollection<SpotSchema & { id: string }>("spots", filters)
-      .then((docs) => {
+      .then(async (docs) => {
         if (docs && docs.length > 0) {
           for (const spotDoc of docs) {
             try {
-              return this.hydrateSpot(
+              return await this.hydrateLocalizedSpot(
                 spotDoc.id as SpotId,
                 spotDoc as SpotSchema,
                 locale
@@ -233,6 +235,13 @@ export class SpotsService extends ConsentAwareService {
       }
     });
     return newSpots;
+  }
+
+  private async hydrateLocalizedSpot(id: SpotId, data: SpotSchema, locale: LocaleCode): Promise<Spot> {
+    const spot = this.hydrateSpot(id, data, locale);
+    spot.placeNames.set(await this.placeNames.get({ countryCode: data.address?.country?.code,
+      locality: data.address?.locality, lat: spot.location().lat, lng: spot.location().lng }));
+    return spot;
   }
 
   private hydrateSpot(

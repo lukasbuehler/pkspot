@@ -2403,6 +2403,11 @@
         <source>Share a spot map</source>
       </segment>
     </unit>
+    <unit id="content.original_language">
+      <segment>
+        <source>Original language: <ph id="0" equiv="LANGUAGE" disp="language"/></source>
+      </segment>
+    </unit>
     <unit id="crop.cancel">
       <notes>
         <note category="description">Cancel action</note>
@@ -3078,11 +3083,6 @@
         <source>Error uploading media. Try again.</source>
       </segment>
     </unit>
-    <unit id="7629436164719717851">
-      <segment>
-        <source>Event in </source>
-      </segment>
-    </unit>
     <unit id="7648040324495665523">
       <segment>
         <source>The mobile platform is not sharing an age range with PK Spot. You can choose to check again.</source>
@@ -3098,9 +3098,84 @@
         <source> Organization members only </source>
       </segment>
     </unit>
-    <unit id="event.description_without_location">
+    <unit id="event.copy.cancelled">
       <segment>
-        <source>Event details</source>
+        <source>This event has been cancelled.</source>
+      </segment>
+    </unit>
+    <unit id="event.copy.fallback_title">
+      <segment>
+        <source><ph id="0" equiv="NAME" disp="event.name || $localize`:@@event.copy.label:Event`"/> | PK Spot</source>
+      </segment>
+    </unit>
+    <unit id="event.copy.kind.class">
+      <segment>
+        <source>Class</source>
+      </segment>
+    </unit>
+    <unit id="event.copy.kind.competition">
+      <segment>
+        <source>Competition</source>
+      </segment>
+    </unit>
+    <unit id="event.copy.kind.festival">
+      <segment>
+        <source>Festival</source>
+      </segment>
+    </unit>
+    <unit id="event.copy.kind.session">
+      <segment>
+        <source>Training session</source>
+      </segment>
+    </unit>
+    <unit id="event.copy.kind.workshop">
+      <segment>
+        <source>Workshop</source>
+      </segment>
+    </unit>
+    <unit id="event.copy.label">
+      <segment>
+        <source>Event</source>
+      </segment>
+    </unit>
+    <unit id="event.copy.live">
+      <segment>
+        <source>This event is happening now.</source>
+      </segment>
+    </unit>
+    <unit id="event.copy.location">
+      <segment>
+        <source>Parkour event <ph id="0" equiv="LOCATION" disp="place.phrase"/></source>
+      </segment>
+    </unit>
+    <unit id="event.copy.no_location">
+      <segment>
+        <source>Parkour event on PK Spot</source>
+      </segment>
+    </unit>
+    <unit id="event.copy.organizer">
+      <segment>
+        <source>Organized by <ph id="0" equiv="ORGANIZER" disp="organizer"/>.</source>
+      </segment>
+    </unit>
+    <unit id="event.copy.past">
+      <segment>
+        <source>This event has ended.</source>
+      </segment>
+    </unit>
+    <unit id="event.copy.title">
+      <segment>
+        <source><ph id="0" equiv="NAME" disp="name"/>: <ph id="1" equiv="HEADING" disp="heading"/> | PK Spot</source>
+      </segment>
+    </unit>
+    <unit id="event.copy.type">
+      <segment>
+        <source>Type: <ph id="0" equiv="TYPE" disp="kind"/>.</source>
+      </segment>
+    </unit>
+    <unit id="event.copy.upcoming">
+      <segment>
+        <source>Find event details and planning information on PK Spot.</source>
       </segment>
     </unit>
     <unit id="event.timing.date_only_label">
@@ -10273,6 +10348,41 @@
         <source>Close Spot</source>
       </segment>
     </unit>
+    <unit id="spot.copy.access">
+      <segment>
+        <source>Access: <ph id="0" equiv="ACCESS" disp="access"/>.</source>
+      </segment>
+    </unit>
+    <unit id="spot.copy.explanation">
+      <segment>
+        <source>Explore photos, location details and training information on PK Spot.</source>
+      </segment>
+    </unit>
+    <unit id="spot.copy.location">
+      <segment>
+        <source>Parkour Spot <ph id="0" equiv="LOCATION" disp="place.phrase"/></source>
+      </segment>
+    </unit>
+    <unit id="spot.copy.no_location">
+      <segment>
+        <source>Parkour Spot on PK Spot</source>
+      </segment>
+    </unit>
+    <unit id="spot.copy.rating">
+      <segment>
+        <source>Rated <ph id="0" equiv="RATING" disp="rating"/> out of 5.</source>
+      </segment>
+    </unit>
+    <unit id="spot.copy.title">
+      <segment>
+        <source><ph id="0" equiv="NAME" disp="name"/>: <ph id="1" equiv="HEADING" disp="heading"/> | PK Spot</source>
+      </segment>
+    </unit>
+    <unit id="spot.copy.type">
+      <segment>
+        <source>Type: <ph id="0" equiv="TYPE" disp="type"/>.</source>
+      </segment>
+    </unit>
     <unit id="share_spot_tooltip">
       <notes>
         <note category="description">The tootltip of the share spot icon button</note>
@@ -10530,6 +10640,21 @@
       </notes>
       <segment>
         <source>{VAR_PLURAL, plural, =0 {no reviews} =1 {1 review} other {<ph id="0" equiv="INTERPOLATION"/> reviews}}</source>
+      </segment>
+    </unit>
+    <unit id="spot.structured.access">
+      <segment>
+        <source>Spot access</source>
+      </segment>
+    </unit>
+    <unit id="spot.structured.photo">
+      <segment>
+        <source>Photo of <ph id="0" equiv="NAME" disp="spot.name()"/></source>
+      </segment>
+    </unit>
+    <unit id="spot.structured.type">
+      <segment>
+        <source>Spot type</source>
       </segment>
     </unit>
     <unit id="spot.verified.tooltip">
