@@ -1,3 +1,4 @@
+import { communityPreviewNames } from "../../scripts/CommunityPlaceNames";
 import { Injectable, LOCALE_ID, inject } from "@angular/core";
 import { SearchClient } from "typesense";
 import { environment } from "../../environments/environment.default";
@@ -356,16 +357,10 @@ export class SearchService {
       id: doc?.id ?? doc?.communityKey ?? "",
       communityKey: doc?.communityKey ?? doc?.id ?? "",
       slug: doc?.preferredSlug ?? "",
-      displayName: doc?.displayName ?? "",
+      ...communityPreviewNames(doc ?? {}, this._locale),
       scope: doc?.scope,
       countryCode:
         doc?.["geography.countryCode"] ?? geography?.countryCode ?? undefined,
-      countryName:
-        doc?.["geography.countryName"] ?? geography?.countryName ?? undefined,
-      regionName:
-        doc?.["geography.regionName"] ?? geography?.regionName ?? undefined,
-      localityName:
-        doc?.["geography.localityName"] ?? geography?.localityName ?? undefined,
       totalSpots,
       imageUrl: this._assetUrls.resolveBundledAssetUrl(
         doc?.["image.url"] ?? doc?.image?.url ?? undefined,
@@ -1838,6 +1833,8 @@ export class SearchService {
     ].join(",");
 
     const communityIncludeFields = [
+      "place_localization.names",
+      "place_name_overrides",
       "communityKey",
       "scope",
       "displayName",

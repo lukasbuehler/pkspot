@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { communityLocationPhrase, localizedCountryName, localizedPlaceName, communityPlaceFingerprint, currentPlaceLocalization } from "./CommunityPlaceNames";
+import { communityPreviewNames, communityLocationPhrase, localizedCountryName, localizedPlaceName, communityPlaceFingerprint, currentPlaceLocalization } from "./CommunityPlaceNames";
 import type { CommunityPageSchema } from "../db/schemas/CommunityPageSchema";
 
 const munichPage = {
@@ -30,5 +30,23 @@ describe("community place presentation", () => {
     expect(currentPlaceLocalization({ ...munichPage, place_localization: localization })).toBe(localization);
     expect(currentPlaceLocalization({ ...munichPage, geography: { ...munichPage.geography, localityName: "Berlin" }, place_localization: localization })).toBeUndefined();
     expect(communityPlaceFingerprint({ ...munichPage, counts: { totalSpots: 99, topRated: 1, dry: 0 } })).toBe(localization.fingerprint);
+  });
+});
+
+describe("community preview names", () => {
+  const prague = { displayName: "Prague", scope: "locality", geography: {countryCode: "CZ", countryName: "Czech Republic", regionName: "Prague"}, place_localization: {names: {de: "Prag", it: "Praga"}} };
+  it("localizes stored town and country names without repeating the city", () => {
+    expect(communityPreviewNames(prague, "de")).toEqual({displayName: "Prag", countryName: "Tschechien", localityName: "Prag", regionName: undefined});
+  });
+  it("handles flattened preview fields and locale fallback", () => {
+    expect(communityPreviewNames({displayName: "Prague", scope: "locality", "geography.countryCode": "CZ", "place_localization.names.de": "Prag"}, "de-CH").displayName).toBe("Prag");
+  });
+  it("prefers curated overrides and keeps original names when translations are absent", () => {
+    expect(communityPreviewNames({...prague,place_name_overrides:{de:"Prag (kuratiert)"}}, "de").displayName).toBe("Prag (kuratiert)");
+    expect(communityPreviewNames(prague, "nl").displayName).toBe("Prague");
+    expect(communityPreviewNames({...prague,place_localization:{names:{de:42}}}, "de").displayName).toBe("Prague");
+  });
+  it("localizes countries without requiring stored provider data", () => {
+    expect(communityPreviewNames({displayName:"Austria",scope:"country",geography:{countryCode:"AT"}}, "de").displayName).toBe("Österreich");
   });
 });

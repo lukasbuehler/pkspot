@@ -31,6 +31,33 @@ export function localizedPlaceName(
     localization?.names[locale] || localization?.names[language] || fallback;
 }
 
+/** Typesense previews may contain nested objects or flattened field paths. */
+export function communityPreviewNames(document: Record<string, unknown>, locale: string) {
+  const object = (value: unknown): Record<string, unknown> =>
+    value !== null && typeof value === "object" ? value as Record<string, unknown> : {};
+  const geography = object(document["geography"]);
+  const field = (name: string): string => {
+    const value = document[`geography.${name}`] ?? geography[name];
+    return typeof value === "string" ? value : "";
+  };
+  const language = locale.split("-")[0];
+  const readName = (path: string, nested: unknown): string | undefined => {
+    const names = object(document[path] ?? nested);
+    return [document[`${path}.${locale}`], names[locale], document[`${path}.${language}`], names[language]]
+      .find((value): value is string => typeof value === "string" && !!value.trim());
+  };
+  const original = typeof document["displayName"] === "string" ? document["displayName"] : "";
+  const countryName = localizedCountryName(field("countryCode"), locale, field("countryName") || (document["scope"] === "country" ? original : ""));
+  const displayName = readName("place_name_overrides", document["place_name_overrides"]) ||
+    (document["scope"] === "country" ? countryName : readName("place_localization.names", object(document["place_localization"])["names"])) || original;
+  return {
+    displayName, countryName,
+    // Avoid repeating the same city as its administrative region in the subtitle.
+    regionName: field("regionName") === original ? undefined : field("regionName") || undefined,
+    localityName: document["scope"] === "locality" ? displayName : field("localityName") || undefined,
+  };
+}
+
 export function localizedCountryName(code: string | undefined, locale: string, fallback: string): string {
   if (!code || !/^[a-z]{2}$/i.test(code)) return fallback;
   try {

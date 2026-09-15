@@ -121,6 +121,11 @@ run data migrations, or complete third-party service tasks.
   Dutch metadata and canonical/hreflang tags. The visible community h1 should
   contain only the localized place name, and browser navigation must retain the
   community-specific tab title instead of resetting it to the generic map title.
+- After the client release, verify viewport community cards, markers and search
+  previews use localized country names and stored `place_localization.names` /
+  `place_name_overrides`. These are existing stored Typesense fields requested
+  for display, with no new index or per-card Firestore lookup. Unenriched towns
+  retain their original names until the remaining community backfill completes.
 
 ### v1.2 analytics coverage and crawler verification
 
