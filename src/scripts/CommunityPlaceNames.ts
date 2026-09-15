@@ -50,12 +50,20 @@ export function communityPreviewNames(document: Record<string, unknown>, locale:
   const countryName = localizedCountryName(field("countryCode"), locale, field("countryName") || (document["scope"] === "country" ? original : ""));
   const displayName = readName("place_name_overrides", document["place_name_overrides"]) ||
     (document["scope"] === "country" ? countryName : readName("place_localization.names", object(document["place_localization"])["names"])) || original;
+  const regionName = readName("place_localization.region.names", object(object(document["place_localization"])["region"])["names"]) || field("regionName");
   return {
     displayName, countryName,
     // Avoid repeating the same city as its administrative region in the subtitle.
-    regionName: field("regionName") === original ? undefined : field("regionName") || undefined,
+    regionName: regionName === displayName || field("regionName") === original ? undefined : regionName || undefined,
     localityName: document["scope"] === "locality" ? displayName : field("localityName") || undefined,
   };
+}
+
+/** Region subtitles share the same exact/base-locale fallback as town names. */
+export function localizedCommunityRegion(page: CommunityPageSchema, locale: string): string {
+  const localization = currentPlaceLocalization(page);
+  const names = page.scope === "region" ? localization?.names : localization?.region?.names;
+  return names?.[locale] || names?.[locale.split("-")[0]] || page.geography.regionName || "";
 }
 
 export function localizedCountryName(code: string | undefined, locale: string, fallback: string): string {

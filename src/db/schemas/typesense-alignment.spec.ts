@@ -800,6 +800,7 @@ describe("Typesense communities_v1 ↔ CommunityPageSchema", () => {
     "visibility_bounds_east",
     "visibility_bounds_west",
     "google_maps_place_id",
+    "place_localization.region.names",
   ] as const;
 
   // CommunityPageSchema marks all of these as required strings/numbers/arrays
@@ -854,6 +855,7 @@ describe("Typesense communities_v1 ↔ CommunityPageSchema", () => {
     "geography.regionLocalName": "string",
     "geography.localityName": "string",
     "geography.localityLocalName": "string",
+    "place_localization.region.names": "object",
     "relationships.parentKeys": "string[]",
     "counts.totalSpots": "int32",
     "counts.topRated": "int32",
@@ -872,6 +874,7 @@ describe("Typesense communities_v1 ↔ CommunityPageSchema", () => {
   const mapping: CollectionMapping = {
     communityKey: { kind: "direct", source: "communityKey" },
     scope: { kind: "direct", source: "scope" },
+    "place_localization.region.names": { kind: "direct", source: "place_localization.region.names" },
     displayName: { kind: "direct", source: "displayName" },
     title: { kind: "direct", source: "title" },
     description: { kind: "direct", source: "description" },

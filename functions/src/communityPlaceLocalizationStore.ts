@@ -16,7 +16,7 @@ export async function enqueueCommunityPlace(db: Firestore, id: string, force = f
     const page = snapshot.data() as PlaceNameSource | undefined;
     if (!canEnrichPlace(page)) return false;
     const fingerprint = placeFingerprint(page);
-    if (!force && (page.place_localization?.fingerprint === fingerprint || job.data()?.fingerprint === fingerprint)) return false;
+    if (!force && ((page.place_localization?.fingerprint === fingerprint && page.place_localization.version === 2) || job.data()?.fingerprint === fingerprint)) return false;
     tx.set(jobRef, { fingerprint, attempts: 0, nextAttemptAt: Timestamp.now(), status: "pending" });
     return true;
   });
@@ -31,7 +31,7 @@ export async function enqueueCommunityPlaceBatch(db: Firestore, after?: string):
   return { scanned: pages.size, queued, nextCursor: pages.size === 50 ? pages.docs[pages.size - 1].id : null };
 }
 
-/** Sequential batches cap API use at 40 requests/hour, including backfills. */
+/** Sequential batches cap API use at 80 requests/hour, including backfills. */
 export async function processCommunityPlaces(
   db: Firestore,
   enrich: (page: PlaceNameSource) => Promise<CommunityPlaceLocalization | null>,

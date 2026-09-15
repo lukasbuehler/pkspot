@@ -1834,6 +1834,7 @@ export class SearchService {
 
     const communityIncludeFields = [
       "place_localization.names",
+      "place_localization.region.names",
       "place_name_overrides",
       "communityKey",
       "scope",

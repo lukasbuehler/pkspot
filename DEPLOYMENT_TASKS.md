@@ -86,7 +86,7 @@ run data migrations, or complete third-party service tasks.
 - With explicit backend deployment authorization, deploy `queueSpotPlaceNames`,
   `queueEventPlaceNames`, `enrichEntityPlaceNames`, `publishEntityPlaceNames`,
   `backfillEntityPlaceNames` in `europe-west1`. Set `GEONAMES_USERNAME=pkspot`. Each hourly worker handles at
-  most 20 jobs (40 provider requests); the two workers share cached town results.
+  most 20 jobs (at most 80 provider requests); the two workers share cached town results.
 - After authorization, call `backfillEntityPlaceNames` as an App Check-verified
   admin, first with `{collection: "spots"}`, then `{collection: "events"}`.
   Repeat each collection with `{collection, startAfter: nextCursor}` until null.
@@ -103,11 +103,20 @@ run data migrations, or complete third-party service tasks.
 
 ### Community place names and SSR localization
 
+- Deploy the backward-compatible region upgrade to `enqueueCommunityPlaceLocalization`,
+  `enrichCommunityPlaceLocalizations` and `backfillCommunityPlaceLocalizations` in
+  `europe-west1`. Verify Catania/Sizilien, Cagliari/Sardinien and Málaga/Andalusien,
+  unchanged legacy geography/slugs, and automatic Typesense synchronization of
+  `place_localization.region.names`. This optional stored object is display-only;
+  it does not require a search reindex. Existing schemas already retain the field.
+
 - For the remaining communities, after explicit backfill authorization, invoke the admin/App-Check
   callable `backfillCommunityPlaceLocalizations` with `{}` and repeat with
   `{startAfter: nextCursor}` until `nextCursor` is null. This queues batches of 50
-  documents; the deployed worker handles at most 20 jobs/hour and two GeoNames
-  requests per job. Review `needs-review` matches instead of guessing.
+  documents; the deployed worker handles at most 20 jobs/hour and at most four GeoNames
+  requests per job (town search/details, hierarchy, region details). Region details
+  are cached by provider ID across towns. Rebuilds automatically enqueue version-1
+  town records for regional enrichment; existing version-2 records are retained. Review `needs-review` matches instead of guessing.
   Verify localized names, stable slugs,
   preserved overrides and GeoNames attribution on actual pages before claiming
   the migration complete. Country names need no enrichment. To retry a reviewed

@@ -15,9 +15,10 @@ export const enqueueCommunityPlaceLocalization = onDocumentWritten(
   { document: "community_pages/{communityKey}", region: "europe-west1" },
   async (event) => {
     const after = event.data?.after.data() as CommunityPageSchema | undefined;
-    const before = event.data?.before.data() as CommunityPageSchema | undefined;
     if (!canEnrichPlace(after)) return;
-    if (canEnrichPlace(before) && placeFingerprint(before) === placeFingerprint(after)) return;
+    if (after.place_localization?.version === 2 && after.place_localization.fingerprint === placeFingerprint(after)) return;
+    // Rebuilds also upgrade older town-only enrichment; ordinary queue deduplication
+    // prevents count updates from resetting pending or ambiguous jobs.
     await enqueueCommunityPlace(admin.firestore(), event.params.communityKey);
   },
 );

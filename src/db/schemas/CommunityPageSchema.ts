@@ -5,6 +5,13 @@ import { SpotPreviewData } from "./SpotPreviewData";
 
 export type CommunityScope = "country" | "region" | "locality";
 
+/** First-level administrative region resolved through the town's provider hierarchy. */
+export interface CommunityRegionLocalization {
+  geonamesId: number;
+  countryCode: string;
+  names: Record<string, string>;
+}
+
 /** Server-owned enrichment; never changes keys, slugs, or geographic identity. */
 export interface CommunityPlaceLocalization {
   source: "geonames";
@@ -12,6 +19,9 @@ export interface CommunityPlaceLocalization {
   /** Public town centroid supplied by GeoNames, never an entity location. */
   center?: [number, number];
   names: Record<string, string>;
+  /** Version 2 includes an administrative-region lookup, even when none exists. */
+  version?: 2;
+  region?: CommunityRegionLocalization;
   fingerprint: string;
   updatedAtMs: number;
 }

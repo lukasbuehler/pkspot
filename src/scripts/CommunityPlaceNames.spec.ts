@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { communityPreviewNames, communityLocationPhrase, localizedCountryName, localizedPlaceName, communityPlaceFingerprint, currentPlaceLocalization } from "./CommunityPlaceNames";
+import { localizedCommunityRegion, communityPreviewNames, communityLocationPhrase, localizedCountryName, localizedPlaceName, communityPlaceFingerprint, currentPlaceLocalization } from "./CommunityPlaceNames";
 import type { CommunityPageSchema } from "../db/schemas/CommunityPageSchema";
 
 const munichPage = {
@@ -48,5 +48,19 @@ describe("community preview names", () => {
   });
   it("localizes countries without requiring stored provider data", () => {
     expect(communityPreviewNames({displayName:"Austria",scope:"country",geography:{countryCode:"AT"}}, "de").displayName).toBe("Österreich");
+  });
+});
+
+
+describe("regional display names", () => {
+  const page = { ...munichPage, place_localization: {source: "geonames" as const, geonamesId: 1, names: {de:"München"}, region: {geonamesId: 2, countryCode: "DE", names:{de:"Bayern"}}, fingerprint:communityPlaceFingerprint(munichPage), updatedAtMs:1} };
+  it("uses the base locale and preserves raw fallback without trusting stale geography", () => {
+    expect(localizedCommunityRegion(page, "de-CH")).toBe("Bayern");
+    expect(localizedCommunityRegion(page, "ko")).toBe("Bavaria");
+    expect(localizedCommunityRegion({...page,geography:{...page.geography,regionName:"Hesse"}}, "de")).toBe("Hesse");
+  });
+  it("supports both nested and flattened Typesense region fields", () => {
+    expect(communityPreviewNames(page, "de-CH").regionName).toBe("Bayern");
+    expect(communityPreviewNames({displayName:"Catania",scope:"locality","geography.regionName":"Sicilia","place_localization.region.names.de":"Sizilien"}, "de").regionName).toBe("Sizilien");
   });
 });

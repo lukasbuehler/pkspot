@@ -16,6 +16,8 @@ export interface EntityPlaceNames {
   geonamesId: number;
   center?: [number, number];
   names: Record<string, string>;
+  version?: 2;
+  region?: CommunityPlaceLocalization["region"];
 }
 
 /** A coarse geographic key separates namesakes without publishing source coordinates. */
@@ -63,7 +65,7 @@ export function entityPlaceSource(input: EntityPlaceInput): PlaceNameSource | un
 }
 
 export function publicPlaceNames(key: string, localization: CommunityPlaceLocalization): EntityPlaceNames {
-  return { key, source: "geonames", geonamesId: localization.geonamesId, names: localization.names, ...(localization.center ? { center: localization.center } : {}) };
+  return { key, source: "geonames", geonamesId: localization.geonamesId, names: localization.names, ...(localization.version ? { version: localization.version } : {}), ...(localization.region ? { region: localization.region } : {}), ...(localization.center ? { center: localization.center } : {}) };
 }
 
 export function placeNamesMatch(names: EntityPlaceNames, input: EntityPlaceInput): boolean {

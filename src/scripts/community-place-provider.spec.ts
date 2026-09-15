@@ -11,6 +11,12 @@ describe("GeoNames enrichment", () => {
     }
     expect(selectGeoNamesMatch({ geonames: [feature, { ...feature, geonameId: 2 }] }, page)).toBeNull();
   });
+  it("matches first-level region pages without applying the town centroid radius", () => {
+    const regional = {...page,scope:"region" as const};
+    const bavaria = {...feature,name:"Bavaria",toponymName:"Bayern",fcl:"A",fcode:"ADM1",lat:"49.5"};
+    expect(selectGeoNamesMatch({geonames:[bavaria]}, regional)).toBe(feature.geonameId);
+    expect(selectGeoNamesMatch({geonames:[{...bavaria,fcode:"ADM2"}]}, regional)).toBeNull();
+  });
   it("selects preferred current names, preserving scripts without inventing translations", () => {
     expect(extractPlaceNames({ alternateNames: [
       { lang: "it", name: "Old", isHistoric: true }, { lang: "it", name: "Alternative" },

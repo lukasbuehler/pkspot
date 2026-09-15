@@ -80,6 +80,7 @@
 
     { "name": "image.url", "type": "string", "optional": false, "index": false },
     { "name": "published", "type": "bool", "facet": true, "optional": false },
+    { "name": "place_localization.region.names", "type": "object", "optional": true, "index": false },
     { "name": "_force_sync", "type": "int64", "optional": true, "index": false }
   ],
   "default_sorting_field": "counts.totalSpots",

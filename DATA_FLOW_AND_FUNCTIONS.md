@@ -124,16 +124,16 @@ from stored facts and XLIFF; it does not call GeoNames during SSR.
 
 | Functions | Data flow and operations |
 | --- | --- |
-| `enqueueCommunityPlaceLocalization`, `backfillCommunityPlaceLocalizations` | Eligible locality community writes or explicit admin pagination enqueue `community_place_localization_jobs`. The backfill scans at most 50 community documents per call. Each enqueue reads the page and job, and writes a job only when needed. |
-| `enrichCommunityPlaceLocalizations` | Processes at most 20 due jobs per hour using transactional leases and delayed retries. Reads a shared `place_names` entry first. A cache miss uses at most two GeoNames requests. Updates community enrichment and any existing parent child-summary entries; preserves overrides and unrelated counts. |
+| `enqueueCommunityPlaceLocalization`, `backfillCommunityPlaceLocalizations` | Eligible locality and first-level region community writes or explicit admin pagination enqueue `community_place_localization_jobs`. The backfill scans at most 50 community documents per call. Each enqueue reads the page and job, and writes a job only when needed. |
+| `enrichCommunityPlaceLocalizations` | Processes at most 20 due jobs per hour using transactional leases and delayed retries. Reads a shared `place_names` entry first. A cache miss uses at most four GeoNames requests: town search/details, hierarchy and region details. Shared `region_place_names/{geonamesId}` records cache all region languages, with client access denied. Version 2 records mark a completed hierarchy lookup; rebuilds upgrade older records. Updates community enrichment and any existing parent child-summary entries; preserves overrides and unrelated counts. |
 | `queueSpotPlaceNames`, `queueEventPlaceNames`, `backfillEntityPlaceNames` | Canonical country/locality and a coarse geographic key select a private `place_name_sources` document and `place_name_jobs` entry. A source is created once per key; subsequent enqueues are idempotent. Unchanged geographic writes do not enqueue. Explicit admin backfill scans 50 Spots or Events per call. Draft, private, viewer-restricted and community Events do not seed the cache. |
 | `enrichEntityPlaceNames` | Uses the same lease/retry processor, with at most 20 jobs per hour. Reuses the public town-name cache before contacting GeoNames. Exact lookup coordinates remain in private source records. |
-| `publishEntityPlaceNames` | Projects a completed private source to `place_names/{key}`. Publishes only the key, provider, GeoNames ID, names and provider town centroid. No entity IDs, source coordinates, participant data or job metadata are published. |
+| `publishEntityPlaceNames` | Projects a completed private source to `place_names/{key}`. Publishes only the key, provider, GeoNames ID, names, optional first-level region labels and provider town centroid. No entity IDs, source coordinates, participant data or job metadata are published. |
 
 Each worker queries at most 20 due jobs, reads the source/job to claim a lease,
 and reads them again before committing a result. GeoNames failures store a
 sanitized category and a future retry time; ambiguous matches wait for review.
-The two workers can make up to 80 provider requests per hour in total before
+The two workers can make up to 160 provider requests per hour in total before
 cache reuse. Concurrent misses or trigger redelivery can repeat a lookup.
 
 A Spot or public Event detail load performs at most one additional single-document

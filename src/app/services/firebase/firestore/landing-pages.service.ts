@@ -1,5 +1,5 @@
 import { communityCopy, communityPickTitle } from "../../../localization/community-copy";
-import { localizedPlaceName } from "../../../../scripts/CommunityPlaceNames";
+import { localizedPlaceName, localizedCommunityRegion } from "../../../../scripts/CommunityPlaceNames";
 import { Injectable, inject, LOCALE_ID } from "@angular/core";
 import { Event as PkEvent } from "../../../../db/models/Event";
 import {
@@ -222,7 +222,7 @@ export class LandingPagesService {
       region: pageDoc.geography.regionName
         ? {
             code: pageDoc.geography.regionCode,
-            name: pageDoc.geography.regionName,
+            name: localizedCommunityRegion(pageDoc, this.locale),
             slug: pageDoc.geography.regionSlug,
           }
         : undefined,
@@ -238,6 +238,7 @@ export class LandingPagesService {
         name: breadcrumb.path === "/map" ? $localize`:@@community.breadcrumb.map:Map`
           : breadcrumb.path === pageDoc.canonicalPath ? copy.name
           : breadcrumb.name === pageDoc.geography.countryName ? copy.country
+          : breadcrumb.name === pageDoc.geography.regionName ? localizedCommunityRegion(pageDoc, this.locale)
           : breadcrumb.name,
         path: this._normalizeCommunityPath(breadcrumb.path),
       })),
