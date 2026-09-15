@@ -93,6 +93,11 @@ run data migrations, or complete third-party service tasks.
   Private, restricted and community Event sources are skipped. Verify that a
   town without a community page receives names and that source coordinates are
   absent from public `place_names` records. Ambiguous names stay unlocalized.
+- Complete Spot preview localization separately: loaded Spot models now render
+  their locality labels using cached translations, but plain map/search preview
+  records still contain the original locality strings. Materialize the narrow
+  translated labels into those previews without adding per-card cache reads.
+  Preserve reverse-geocoded address fields and formatted street addresses.
 - Verify a French/Italian Spot and Event after the web release: translated titles,
   visible summaries, metadata, unchanged names/slugs, source-language labels,
   Event timezone and cancellation/past state. Confirm restricted pages retain
@@ -102,13 +107,6 @@ run data migrations, or complete third-party service tasks.
   authoring, routing or schema changes are included in this release work.
 
 ### Community place names and SSR localization
-
-- Deploy the backward-compatible region upgrade to `enqueueCommunityPlaceLocalization`,
-  `enrichCommunityPlaceLocalizations` and `backfillCommunityPlaceLocalizations` in
-  `europe-west1`. Verify Catania/Sizilien, Cagliari/Sardinien and Málaga/Andalusien,
-  unchanged legacy geography/slugs, and automatic Typesense synchronization of
-  `place_localization.region.names`. This optional stored object is display-only;
-  it does not require a search reindex. Existing schemas already retain the field.
 
 - For the remaining communities, after explicit backfill authorization, invoke the admin/App-Check
   callable `backfillCommunityPlaceLocalizations` with `{}` and repeat with
@@ -132,7 +130,8 @@ run data migrations, or complete third-party service tasks.
   community-specific tab title instead of resetting it to the generic map title.
 - After the client release, verify viewport community cards, markers and search
   previews use localized country names and stored `place_localization.names` /
-  `place_name_overrides`. These are existing stored Typesense fields requested
+  `place_name_overrides`, plus `place_localization.region.names` in regional
+  subtitles. These are stored Typesense fields requested
   for display, with no new index or per-card Firestore lookup. Unenriched towns
   retain their original names until the remaining community backfill completes.
 
