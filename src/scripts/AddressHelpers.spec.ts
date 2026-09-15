@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  localizedSpotAddress,
   getDisplayCountryName,
   getDisplayFormattedAddress,
   getDisplayLocationName,
@@ -44,4 +45,17 @@ describe("AddressHelpers", () => {
       }),
     ).toBe("Norge");
   });
+});
+
+
+it("renders cached town and region names in the viewer locale without changing geocoded data", () => {
+  const address = {locality:"Prague",localityLocal:"Praha",region:{name:"Prague",localName:"Hlavní město Praha"},country:{code:"CZ",name:"Czech Republic"},formatted:"Original street address"};
+  const place = {key:"CZ:prague:50:14",source:"geonames" as const,geonamesId:1,names:{de:"Prag"},region:{geonamesId:2,countryCode:"CZ",names:{de:"Hauptstadt Prag"}}};
+  const translated = localizedSpotAddress(address, place, "de-CH");
+  expect(getDisplayLocalityString(translated)).toBe("Prag, CZ");
+  expect(translated?.region?.localName).toBe("Hauptstadt Prag");
+  expect(translated?.country?.localName).toBe("Tschechien");
+  expect(translated?.formatted).toBe(address.formatted);
+  expect(address.localityLocal).toBe("Praha");
+  expect(getDisplayLocalityString(localizedSpotAddress(address, undefined, "de"))).toBe("Praha, CZ");
 });

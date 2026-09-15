@@ -285,7 +285,7 @@ export class SpotPreviewCardComponent
     if (!spot) return "";
 
     if (spot instanceof Spot || spot instanceof LocalSpot) {
-      return getDisplayLocalityName(spot.address()) ?? "";
+      return getDisplayLocalityName(spot.localizedAddress()) ?? "";
     }
 
     return this.getPreviewLocalityName(spot.locality, this.countryCode());

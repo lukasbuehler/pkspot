@@ -1,6 +1,22 @@
 import type { SpotSchema } from "../db/schemas/SpotSchema";
+import type { EntityPlaceNames } from "./EntityPlaceNames";
+import { localizedCountryName } from "./CommunityPlaceNames";
 
 type SpotAddress = SpotSchema["address"];
+
+/** Presentation only: preserve reverse-geocoded source fields and street addresses. */
+export function localizedSpotAddress(address: SpotAddress, place: EntityPlaceNames | undefined, locale: string): SpotAddress {
+  if (!address) return address;
+  const language = locale.split("-")[0];
+  const locality = place?.names[locale] || place?.names[language];
+  const region = place?.region?.names[locale] || place?.region?.names[language];
+  return {
+    ...address,
+    ...(locality ? { localityLocal: locality } : {}),
+    ...(address.region && region ? { region: { ...address.region, localName: region } } : {}),
+    ...(address.country ? { country: { ...address.country, localName: localizedCountryName(address.country.code, locale, getDisplayCountryName(address) || "") } } : {}),
+  };
+}
 
 export function getDisplayCountryName(address: SpotAddress): string | undefined {
   return (

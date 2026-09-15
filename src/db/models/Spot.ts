@@ -33,6 +33,7 @@ import {
   parseFirestoreGeoPoint,
 } from "../../scripts/Helpers";
 import {
+  localizedSpotAddress,
   getDisplayCountryName,
   getDisplayFormattedAddress,
   getDisplayLocalityString,
@@ -118,6 +119,7 @@ export class LocalSpot {
 
   address: WritableSignal<SpotAddressSchema | null>;
   readonly placeNames = signal<EntityPlaceNames | undefined>(undefined);
+  readonly localizedAddress = computed(() => localizedSpotAddress(this.address(), this.placeNames(), this.locale));
   formattedAddress: Signal<string>;
   localityString: Signal<string>;
 
@@ -386,7 +388,7 @@ export class LocalSpot {
     this.formattedAddress = computed(
       () => getDisplayFormattedAddress(this.address()) ?? ""
     );
-    this.localityString = computed(() => getDisplayLocalityString(this.address()));
+    this.localityString = computed(() => getDisplayLocalityString(this.localizedAddress()));
 
     // set google place id
     if (data.external_references?.google_maps_place_id) {
