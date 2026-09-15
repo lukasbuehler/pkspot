@@ -151,9 +151,6 @@
                   {{ introText() }}
                 </span>
               }
-              @if (data.hasGeoNamesAttribution) {
-                <p class="mat-body-small"><span i18n="@@community.placeNames.attribution">Place names:</span> <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">GeoNames</a></p>
-              }
             </div>
           </div>
         </app-map-info-panel>
@@ -188,9 +185,6 @@
               }
             </h1>
             <p class="mat-body-large intro-copy mb-4">{{ introText() }}</p>
-            @if (data.hasGeoNamesAttribution) {
-              <p class="mat-body-small"><span i18n="@@community.placeNames.attribution">Place names:</span> <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">GeoNames</a></p>
-            }
 
             <div class="stats-grid">
               <div class="stat-card">
@@ -590,6 +584,14 @@
       <p class="mat-body-small page-updated-text">
         Source data updated {{ lastUpdated | systemDate: "longDate" }}.
       </p>
+    }
+    @if (data.hasGeoNamesAttribution) {
+      <footer class="community-attribution mat-body-small">
+        <span i18n="@@community.placeNames.attribution">Place names:</span>
+        <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">GeoNames</a>
+        <span aria-hidden="true">·</span>
+        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="license noopener noreferrer">CC BY 4.0</a>
+      </footer>
     }
   </div>
 

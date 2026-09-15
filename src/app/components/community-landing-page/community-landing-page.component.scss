@@ -481,3 +481,17 @@
     pointer-events: none;
   }
 }
+
+.community-attribution {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35em;
+  margin-block: 24px 8px;
+  color: var(--mat-sys-on-surface-variant);
+
+  a {
+    color: inherit;
+    text-underline-offset: 2px;
+  }
+}
