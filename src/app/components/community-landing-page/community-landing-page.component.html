@@ -90,12 +90,12 @@
         >
           <div mapInfoMeta>
             <div class="d-flex flex-row gap-1 align-items-center pb-1">
-              <span class="mat-label-large text-nowrap text-truncate">
-                {{ totalSpotCount() }} spots
+              <span class="mat-label-large text-nowrap text-truncate" i18n="@@community.stats.spot_count">
+                {{ totalSpotCount() }} Spots
               </span>
               @if (dryCount() > 0) {
                 <span>·</span>
-                <span class="mat-label-large text-nowrap text-truncate">
+                <span class="mat-label-large text-nowrap text-truncate" i18n="@@community.stats.dry_count">
                   {{ dryCount() }} dry
                 </span>
               }

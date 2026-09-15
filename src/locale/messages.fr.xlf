@@ -3493,9 +3493,9 @@
       </segment>
     </unit>
     <unit id="4172345182949733528">
-      <segment state="initial">
+      <segment state="translated">
         <source>Train</source>
-        <target>Train</target>
+        <target>S’entraîner</target>
       </segment>
     </unit>
     <unit id="4172689758346256013">
@@ -11141,6 +11141,18 @@
         <target>Spots au sec</target>
       </segment>
     </unit>
+    <unit id="community.stats.dry_count">
+      <segment state="translated">
+        <source> <ph id="0" equiv="INTERPOLATION" disp="{{ dryCount() }}"/> dry </source>
+        <target> <ph id="0" equiv="INTERPOLATION" disp="{{ dryCount() }}"/> au sec </target>
+      </segment>
+    </unit>
+    <unit id="community.stats.spot_count">
+      <segment state="translated">
+        <source> <ph id="0" equiv="INTERPOLATION" disp="{{ totalSpotCount() }}"/> Spots </source>
+        <target> <ph id="0" equiv="INTERPOLATION" disp="{{ totalSpotCount() }}"/> Spots </target>
+      </segment>
+    </unit>
     <unit id="community.stats.top">
       <segment state="translated">
         <source>Top rated Spots</source>
@@ -14235,7 +14247,7 @@
     <unit id="train.eyebrow">
       <segment state="translated">
         <source>Train</source>
-        <target>Entraînement</target>
+        <target>S’entraîner</target>
       </segment>
     </unit>
     <unit id="train.loadError">
@@ -14249,9 +14261,9 @@
         <note category="description">A very short label for training planning</note>
         <note category="meaning">Train navbar button label</note>
       </notes>
-      <segment state="initial">
+      <segment state="translated">
         <source>Train</source>
-        <target>Train</target>
+        <target>S’entraîner</target>
       </segment>
     </unit>
     <unit id="train.nearbySpots">
