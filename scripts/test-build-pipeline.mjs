@@ -685,9 +685,9 @@ async function main() {
 
     // A translated shell must also expose translated crawler metadata. These
     // pages use stored community facts; rendering must not depend on GeoNames.
-    for (const [locale, heading, description] of [
-      ["fr", "Parkour en Suisse", "Découvrez des Spots de parkour en Suisse"],
-      ["it", "Parkour in Svizzera", "Scopri gli Spots di parkour in Svizzera"],
+    for (const [locale, heading, description, placeName] of [
+      ["fr", "Parkour en Suisse", "Découvrez des Spots de parkour en Suisse", "Suisse"],
+      ["it", "Parkour in Svizzera", "Scopri gli Spots di parkour in Svizzera", "Svizzera"],
     ]) {
       const response = await fetchWithTimeout(
         `${baseUrl}/${locale}/map/communities/switzerland`,
@@ -699,7 +699,7 @@ async function main() {
       assert.match(html, new RegExp(`<title>${heading}[^<]*</title>`));
       assert.match(html, new RegExp(`<meta name="description"[^>]+content="${description}`));
       assert.match(html, new RegExp(`<link rel="canonical"[^>]+href="https://pkspot.app/${locale}/map/communities/switzerland"`));
-      assertBodyCrawlerContent(html, `${locale} localized community`, [new RegExp(heading)]);
+      assertBodyCrawlerContent(html, `${locale} localized community`, [new RegExp(`<h1[^>]*>\\s*${placeName}\\s*</h1>`)]);
     }
 
     const zurichCommunityResponse = await fetchWithTimeout(

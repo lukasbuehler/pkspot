@@ -159,6 +159,16 @@ describe("CommunityLandingPageComponent", () => {
     fixture.destroy();
   });
 
+  it.each([true, false])("uses only the localized place name in an h1 (panel: %s)", (panelMode) => {
+    fixture.componentRef.setInput("communityDataInput", {
+      ...communityData, displayName: "Prag", heading: "Parkour in Prag",
+    });
+    fixture.componentRef.setInput("panelMode", panelMode);
+    fixture.detectChanges();
+    const heading = fixture.nativeElement.querySelector("h1") as HTMLHeadingElement;
+    expect(heading.textContent?.trim()).toBe("Prag");
+  });
+
   it("emits child community paths from panel-mode links", () => {
     const openCommunityPath = vi.fn();
     fixture.componentRef.setInput("communityDataInput", communityData);

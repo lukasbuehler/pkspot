@@ -85,8 +85,7 @@ run data migrations, or complete third-party service tasks.
   remain covered by default-deny rules. They are never exposed in SSR payloads.
 - With explicit backend deployment authorization, deploy `queueSpotPlaceNames`,
   `queueEventPlaceNames`, `enrichEntityPlaceNames`, `publishEntityPlaceNames`,
-  `backfillEntityPlaceNames`, plus the updated `enrichCommunityPlaceLocalizations`
-  in `europe-west1`. Set `GEONAMES_USERNAME=pkspot`. Each hourly worker handles at
+  `backfillEntityPlaceNames` in `europe-west1`. Set `GEONAMES_USERNAME=pkspot`. Each hourly worker handles at
   most 20 jobs (40 provider requests); the two workers share cached town results.
 - After authorization, call `backfillEntityPlaceNames` as an App Check-verified
   admin, first with `{collection: "spots"}`, then `{collection: "events"}`.
@@ -104,18 +103,12 @@ run data migrations, or complete third-party service tasks.
 
 ### Community place names and SSR localization
 
-- Set `GEONAMES_USERNAME=pkspot` in the Functions deployment environment; the default
-  is empty and scheduled enrichment then performs no requests.
-- Deploy only when authorized: `enqueueCommunityPlaceLocalization`,
-  `enrichCommunityPlaceLocalizations`, `backfillCommunityPlaceLocalizations` in
-  `europe-west1`. Jobs are backend-only under `community_place_localization_jobs`;
-  the existing default-deny rules cover them. The scheduled worker processes at
-  most 20 jobs/hour (at most two GeoNames requests per job). No new composite
-  index is required. Review `needs-review` jobs; never guess an ambiguous town.
-- After deployment and explicit backfill authorization, invoke the admin/App-Check
+- For the remaining communities, after explicit backfill authorization, invoke the admin/App-Check
   callable `backfillCommunityPlaceLocalizations` with `{}` and repeat with
   `{startAfter: nextCursor}` until `nextCursor` is null. This queues batches of 50
-  documents; API work remains rate-limited. Verify localized names, stable slugs,
+  documents; the deployed worker handles at most 20 jobs/hour and two GeoNames
+  requests per job. Review `needs-review` matches instead of guessing.
+  Verify localized names, stable slugs,
   preserved overrides and GeoNames attribution on actual pages before claiming
   the migration complete. Country names need no enrichment. To retry a reviewed
   failed match, correct its geography or remove its queue document and rerun the
@@ -124,8 +117,10 @@ run data migrations, or complete third-party service tasks.
 - Keep legacy English `title`, `description`, `displayName` and geography fields
   for released clients. New SSR/browser presentation derives localized text
   without external lookups. Future name locales are data only, not enabled app
-  languages. Verify French, Italian, German, Spanish and Dutch titles, headings,
-  descriptions, and canonical/hreflang tags after the web release.
+  languages. After the web release, verify French, Italian, German, Spanish and
+  Dutch metadata and canonical/hreflang tags. The visible community h1 should
+  contain only the localized place name, and browser navigation must retain the
+  community-specific tab title instead of resetting it to the generic map title.
 
 ### v1.2 analytics coverage and crawler verification
 

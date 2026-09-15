@@ -3,6 +3,7 @@
     <header class="panel-header">
       <app-map-info-panel
         [title]="heading()"
+        [primaryHeading]="true"
         [titleTooltip]="heading()"
         [titleSuffix]="countryFlag()"
         [typeLabel]="heading() ? 'Community' : ''"
@@ -75,6 +76,7 @@
       <header class="panel-header">
         <app-map-info-panel
           [title]="heading()"
+        [primaryHeading]="true"
           [titleTooltip]="heading()"
           [titleSuffix]="countryFlag()"
           typeLabel="Community"

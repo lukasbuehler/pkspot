@@ -2349,10 +2349,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this._focusCommunityPreviewOnMap(community);
     });
 
-    // Effect to update meta tags when spot/challenge changes (for client-side navigation)
+    // Keep client navigation metadata aligned with the selected map entity.
     effect(() => {
       const spot = this.selectedSpot();
       const challenge = this.selectedChallenge();
+      const community = this.selectedCommunityLanding();
 
       if (challenge && challenge instanceof SpotChallenge) {
         const spotPathSegment = challenge.spot.slug ?? challenge.spot.id;
@@ -2366,6 +2367,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             ? buildSpotCanonicalPath(spot.slug ?? spot.id)
             : undefined;
         this.metaTagService.setSpotMetaTags(spot, canonicalPath);
+      } else if (community) {
+        this.metaTagService.setCommunityLandingMetaTags(
+          community.title, community.description, community.imageUrl, community.canonicalPath,
+        );
       } else if (!this.isServer) {
         this.metaTagService.setDefaultMapMetaTags("/map");
       }

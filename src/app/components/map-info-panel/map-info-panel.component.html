@@ -31,12 +31,21 @@
             {{ icon() }}
           </mat-icon>
         }
-        <span
-          [matTooltip]="titleTooltip() || title()"
-          class="text-truncate d-block map-info-panel-title"
-        >
-          {{ title() }}
-        </span>
+        @if (primaryHeading()) {
+          <h1
+            [matTooltip]="titleTooltip() || title()"
+            class="text-truncate d-block map-info-panel-title"
+          >
+            {{ title() }}
+          </h1>
+        } @else {
+          <span
+            [matTooltip]="titleTooltip() || title()"
+            class="text-truncate d-block map-info-panel-title"
+          >
+            {{ title() }}
+          </span>
+        }
         @if (titleSuffix()) {
           <span aria-hidden="true">{{ titleSuffix() }}</span>
         }

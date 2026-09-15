@@ -285,7 +285,7 @@ export class CommunityLandingPageComponent {
     }
 
     const data = this.communityData();
-    return data?.heading ?? data?.displayName ?? "";
+    return data?.displayName ?? "";
   });
 
   introText = computed(() => {
