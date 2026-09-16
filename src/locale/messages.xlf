@@ -3093,6 +3093,11 @@
         <source>Error uploading media. Try again.</source>
       </segment>
     </unit>
+    <unit id="3195131600670933293">
+      <segment>
+        <source>Check verification result</source>
+      </segment>
+    </unit>
     <unit id="7648040324495665523">
       <segment>
         <source>The mobile platform is not sharing an age range with PK Spot. You can choose to check again.</source>
@@ -6397,6 +6402,11 @@
         <source>Program plan changed</source>
       </segment>
     </unit>
+    <unit id="4948402020923235503">
+      <segment>
+        <source>OneID could not confirm that you are 18 or older. You can try another available method.</source>
+      </segment>
+    </unit>
     <unit id="forgotPassword.title">
       <notes>
         <note category="description">forgot password title</note>
@@ -6728,11 +6738,6 @@
         <source>Failed to publish Spot warning</source>
       </segment>
     </unit>
-    <unit id="5064990594411752447">
-      <segment>
-        <source> PK Spot asks providers only whether you are 18 or older. It does not request or store your name, exact date of birth, address, document, selfie, bank details or phone number. </source>
-      </segment>
-    </unit>
     <unit id="5075169696278804374">
       <segment>
         <source>Error sending reset email. Please try again.</source>
@@ -6956,6 +6961,11 @@
     <unit id="4046179348234171126">
       <segment>
         <source> Spots we use </source>
+      </segment>
+    </unit>
+    <unit id="1502330665583066827">
+      <segment>
+        <source>Verification was cancelled. You can start again whenever you are ready.</source>
       </segment>
     </unit>
     <unit id="1509543645001749494">
@@ -7693,6 +7703,11 @@
         <source>Follow</source>
       </segment>
     </unit>
+    <unit id="2672219549033683765">
+      <segment>
+        <source>The result could not be checked. Reconnect and check again; your verification may already have completed.</source>
+      </segment>
+    </unit>
     <unit id="2676566549378671128">
       <segment>
         <source>{VAR_PLURAL, plural, =1 {verified spot} other {verified spots}}</source>
@@ -7711,6 +7726,11 @@
     <unit id="2689184560704057247">
       <segment>
         <source>Follow request sent</source>
+      </segment>
+    </unit>
+    <unit id="670977948324445637">
+      <segment>
+        <source>Your verification is being processed. Please wait a moment.</source>
       </segment>
     </unit>
     <unit id="6720692665733098220">
@@ -8392,6 +8412,11 @@
         <source>Media upload stream</source>
       </segment>
     </unit>
+    <unit id="8629512492631913631">
+      <segment>
+        <source>This verification expired. Please start a new check.</source>
+      </segment>
+    </unit>
     <unit id="8637857575623979078">
       <segment>
         <source> No edits yet for this spot. </source>
@@ -8996,6 +9021,11 @@
         <source>The redundant Spot has check-ins.</source>
       </segment>
     </unit>
+    <unit id="7750271523131098480">
+      <segment>
+        <source>Complete the check with OneID, then check the result here. You can close this window and return later.</source>
+      </segment>
+    </unit>
     <unit id="3631960501807863073">
       <segment>
         <source>New password is too weak.</source>
@@ -9410,6 +9440,11 @@
     <unit id="7323901917278002498">
       <segment>
         <source>Sign in instead?</source>
+      </segment>
+    </unit>
+    <unit id="7324215850350092195">
+      <segment>
+        <source>OneID confirmed your 18+ result. Your account’s existing participation rules still apply.</source>
       </segment>
     </unit>
     <unit id="7329217250595054697">
@@ -10153,6 +10188,11 @@
     <unit id="6496554534263466402">
       <segment>
         <source>Follow request declined</source>
+      </segment>
+    </unit>
+    <unit id="1941154295789586465">
+      <segment>
+        <source> PK Spot requests only an 18+ result. OneID may ask you for documents, a selfie or other details depending on the method you choose. PK Spot does not store these details. Available methods depend on your country and OneID. </source>
       </segment>
     </unit>
     <unit id="1948163304836345687">
@@ -11175,6 +11215,11 @@
     <unit id="6965432395310138943">
       <segment>
         <source>Public contributions are unavailable for this account right now. You can still browse spots and manage private saved or visited spots.</source>
+      </segment>
+    </unit>
+    <unit id="6375351468021064509">
+      <segment>
+        <source>Verification could not be completed. Please start a new check.</source>
       </segment>
     </unit>
     <unit id="6377092763030946894">

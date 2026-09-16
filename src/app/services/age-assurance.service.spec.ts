@@ -119,7 +119,7 @@ describe("AgeAssuranceService", () => {
       source: "oneid_age_check", adult_eligibility: "verified", age_range: {lower: 18},
       assurance: {status: "active", client_integrity: "server_to_server_oidc",
         approval_basis: ONEID_APPROVAL_BASIS,
-        method: {provider: "oneid", category: "financial_attribute", provider_method: "age_check"}},
+        method: {provider: "oneid", category: "external_verification", provider_method: "age_check"}},
     };
     Object.assign(authUser, {data: {data: {age_policy: policy}}});
     const service = TestBed.inject(AgeAssuranceService);
@@ -129,6 +129,18 @@ describe("AgeAssuranceService", () => {
     policy.assurance.approval_basis = ONEID_APPROVAL_BASIS;
     policy.assurance.method.provider_method = "unapproved";
     expect(service.hasVerifiedAdultEligibility()).toBe(false);
+  });
+
+  it("times out a lost external response without retrying the start", async () => {
+    vi.useFakeTimers();
+    try {
+      functionsAdapter.callAuthenticatedAppChecked.mockReturnValue(new Promise(() => {}));
+      const pending = TestBed.inject(AgeAssuranceService).beginOneIdAgeVerification();
+      const rejected = expect(pending).rejects.toMatchObject({code: "deadline-exceeded"});
+      await vi.advanceTimersByTimeAsync(20_000);
+      await rejected;
+      expect(functionsAdapter.callAuthenticatedAppChecked).toHaveBeenCalledOnce();
+    } finally { vi.useRealTimers(); }
   });
 
   it("syncs native age policy through the Functions adapter", async () => {

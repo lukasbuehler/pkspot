@@ -16,6 +16,7 @@ describe("AdultVerificationDialogComponent", () => {
   let fixture: ComponentFixture<AdultVerificationDialogComponent>;
   const ageAssurance = {
     externalVerificationAvailability: vi.fn(),
+    externalVerificationStatus: vi.fn(),
     beginOneIdAgeVerification: vi.fn(),
     recheckNativeAgePolicyForCurrentUser: vi.fn(),
   };
@@ -25,6 +26,7 @@ describe("AdultVerificationDialogComponent", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     native.isNative = false;
+    ageAssurance.externalVerificationStatus.mockResolvedValue("idle");
     platform.isNative.mockReturnValue(false);
     platform.getPlatform.mockReturnValue("web");
     ageAssurance.externalVerificationAvailability.mockResolvedValue({providers: [{provider: "oneid", available: false, method: "age_check"}]});
@@ -61,4 +63,20 @@ describe("AdultVerificationDialogComponent", () => {
     await fixture.componentInstance.start("oneid");
     expect(ageAssurance.beginOneIdAgeVerification).not.toHaveBeenCalled();
   });
+  it("recovers a completed result after reopening without trusting URL parameters", async () => {
+    ageAssurance.externalVerificationStatus.mockResolvedValue("verified");
+    await fixture.componentInstance.refreshStatus();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain("OneID confirmed your 18+ result");
+  });
+  it("shows a retryable connection error and clears the spinner", async () => {
+    ageAssurance.externalVerificationStatus.mockRejectedValue({code: "unavailable"});
+    await fixture.componentInstance.refreshStatus();
+    expect(fixture.componentInstance.checking()).toBe(false);
+    expect(fixture.componentInstance.error()).toContain("Reconnect");
+    ageAssurance.externalVerificationStatus.mockResolvedValue("pending");
+    await fixture.componentInstance.refreshStatus();
+    expect(fixture.componentInstance.error()).toBeNull();
+  });
+
 });

@@ -6,7 +6,7 @@
     Verification only unlocks adult-only features, including making your profile public and current-location sharing when that feature is available.
   </p>
   <p class="mat-body-small verification-dialog__privacy" i18n>
-    PK Spot asks providers only whether you are 18 or older. It does not request or store your name, exact date of birth, address, document, selfie, bank details or phone number.
+    PK Spot requests only an 18+ result. OneID may ask you for documents, a selfie or other details depending on the method you choose. PK Spot does not store these details. Available methods depend on your country and OneID.
   </p>
 
   <div class="verification-dialog__options">
@@ -25,6 +25,8 @@
       </section>
     }
   </div>
+  @if (statusMessage(); as message) { <p role="status">{{ message }}</p> }
+  <button matButton type="button" [disabled]="checking()" (click)="retry()" i18n>Check verification result</button>
   @if (error(); as message) { <p class="verification-dialog__error mat-body-small" role="alert">{{ message }}</p> }
 </mat-dialog-content>
 

@@ -290,6 +290,12 @@
         <target> Noch keine genutzten Spots. </target>
       </segment>
     </unit>
+    <unit id="6375351468021064509">
+      <segment state="initial">
+        <source>Verification could not be completed. Please start a new check.</source>
+        <target>Die Verifizierung konnte nicht abgeschlossen werden. Bitte starte eine neue Prüfung.</target>
+      </segment>
+    </unit>
     <unit id="6377092763030946894">
       <segment state="initial">
         <source>Custom URL added</source>
@@ -412,6 +418,12 @@
       <segment state="initial">
         <source>Program plan changed</source>
         <target>Programmplan geändert</target>
+      </segment>
+    </unit>
+    <unit id="4948402020923235503">
+      <segment state="initial">
+        <source>OneID could not confirm that you are 18 or older. You can try another available method.</source>
+        <target>OneID konnte nicht bestätigen, dass du mindestens 18 Jahre alt bist. Du kannst eine andere verfügbare Methode ausprobieren.</target>
       </segment>
     </unit>
     <unit id="8922105621109418817">
@@ -2553,6 +2565,12 @@
         <target>Der redundante Spot hat Check-ins.</target>
       </segment>
     </unit>
+    <unit id="7750271523131098480">
+      <segment state="initial">
+        <source>Complete the check with OneID, then check the result here. You can close this window and return later.</source>
+        <target>Schließe die Prüfung bei OneID ab und prüfe dann hier das Ergebnis. Du kannst dieses Fenster schließen und später zurückkehren.</target>
+      </segment>
+    </unit>
     <unit id="730589419287534524">
       <segment state="initial">
         <source>Reporter</source>
@@ -2575,6 +2593,12 @@
       <segment state="initial">
         <source>Sign in instead?</source>
         <target>Lieber anmelden?</target>
+      </segment>
+    </unit>
+    <unit id="7324215850350092195">
+      <segment state="initial">
+        <source>OneID confirmed your 18+ result. Your account’s existing participation rules still apply.</source>
+        <target>OneID hat bestätigt, dass du mindestens 18 Jahre alt bist. Die bestehenden Teilnahmeregeln deines Kontos gelten weiterhin.</target>
       </segment>
     </unit>
     <unit id="7329217250595054697">
@@ -3009,6 +3033,12 @@
         <target>Prüfanfragen werden geladen...</target>
       </segment>
     </unit>
+    <unit id="1941154295789586465">
+      <segment state="initial">
+        <source> PK Spot requests only an 18+ result. OneID may ask you for documents, a selfie or other details depending on the method you choose. PK Spot does not store these details. Available methods depend on your country and OneID. </source>
+        <target>PK Spot fordert nur ein Ergebnis zur Altersgrenze von 18 Jahren an. OneID kann je nach gewählter Methode Dokumente, ein Selfie oder andere Angaben anfordern. PK Spot speichert diese Angaben nicht. Die verfügbaren Methoden hängen von deinem Land und OneID ab.</target>
+      </segment>
+    </unit>
     <unit id="1948163304836345687">
       <segment state="initial">
         <source>You need to agree to the terms and conditions!</source>
@@ -3167,6 +3197,12 @@
         <target>Knopf mit &apos;Navigation&apos; Grafik</target>
       </segment>
     </unit>
+    <unit id="670977948324445637">
+      <segment state="initial">
+        <source>Your verification is being processed. Please wait a moment.</source>
+        <target>Deine Verifizierung wird verarbeitet. Bitte warte einen Moment.</target>
+      </segment>
+    </unit>
     <unit id="6720692665733098220">
       <segment state="initial">
         <source>Reported externally</source>
@@ -3247,6 +3283,12 @@
       <segment state="translated">
         <source>That Maps link did not contain a location.</source>
         <target>Dieser Maps-Link enthielt keinen Standort.</target>
+      </segment>
+    </unit>
+    <unit id="1502330665583066827">
+      <segment state="initial">
+        <source>Verification was cancelled. You can start again whenever you are ready.</source>
+        <target>Die Verifizierung wurde abgebrochen. Du kannst jederzeit neu beginnen.</target>
       </segment>
     </unit>
     <unit id="1509543645001749494">
@@ -3658,6 +3700,12 @@
       <segment state="initial">
         <source>Media upload stream</source>
         <target>Stream der Medien-Uploads</target>
+      </segment>
+    </unit>
+    <unit id="8629512492631913631">
+      <segment state="initial">
+        <source>This verification expired. Please start a new check.</source>
+        <target>Diese Verifizierung ist abgelaufen. Bitte starte eine neue Prüfung.</target>
       </segment>
     </unit>
     <unit id="8637857575623979078">
@@ -12476,12 +12524,6 @@
         <target>Spot-Warnung konnte nicht veröffentlicht werden</target>
       </segment>
     </unit>
-    <unit id="5064990594411752447">
-      <segment state="initial">
-        <source> PK Spot asks providers only whether you are 18 or older. It does not request or store your name, exact date of birth, address, document, selfie, bank details or phone number. </source>
-        <target> PK Spot asks providers only whether you are 18 or older. It does not request or store your name, exact date of birth, address, document, selfie, bank details or phone number. </target>
-      </segment>
-    </unit>
     <unit id="5075169696278804374">
       <segment state="initial">
         <source>Error sending reset email. Please try again.</source>
@@ -12600,6 +12642,12 @@
       <segment state="initial">
         <source>Item link, path, or identifier (optional)</source>
         <target>Item link, path, or identifier (optional)</target>
+      </segment>
+    </unit>
+    <unit id="2672219549033683765">
+      <segment state="initial">
+        <source>The result could not be checked. Reconnect and check again; your verification may already have completed.</source>
+        <target>Das Ergebnis konnte nicht geprüft werden. Stelle die Verbindung wieder her und prüfe es erneut. Deine Verifizierung könnte bereits abgeschlossen sein.</target>
       </segment>
     </unit>
     <unit id="2676566549378671128">
@@ -12960,6 +13008,12 @@
       <segment state="initial">
         <source>Error uploading media. Try again.</source>
         <target>Fehler beim Hochladen der Medien. Versuche es erneut.</target>
+      </segment>
+    </unit>
+    <unit id="3195131600670933293">
+      <segment state="initial">
+        <source>Check verification result</source>
+        <target>Verifizierungsergebnis prüfen</target>
       </segment>
     </unit>
     <unit id="spot.delete.aria_label">

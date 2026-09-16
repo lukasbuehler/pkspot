@@ -1,3 +1,4 @@
+import { AdultVerificationDialogComponent } from "../adult-verification-dialog/adult-verification-dialog.component";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
@@ -308,9 +309,14 @@ export class SettingsPageComponent implements OnInit {
       $localize`Manage your profile and account settings.`
     );
 
+    let resumeVerification = this.route.snapshot.queryParamMap.get("oneid") === "return";
     this.emailAddress = this.authService?.user?.email || "";
     this.authService.authState$.subscribe((user) => {
       this.emailAddress = user?.email;
+      if (user?.uid && resumeVerification) {
+        resumeVerification = false;
+        this._dialog.open(AdultVerificationDialogComponent);
+      }
       this.syncProfileAccessSettings();
       if (!user || !user.uid) {
         this.router.navigate(["/account"]);

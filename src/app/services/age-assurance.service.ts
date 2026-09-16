@@ -77,6 +77,18 @@ export interface ExternalAgeVerificationAttempt {
   verification_url: string;
 }
 
+export type ExternalVerificationStatus = "idle" | "pending" | "processing" | "verified" | "not_verified" | "cancelled" | "expired" | "failed";
+
+/** A lost response does not imply the server stopped. Recover through the status endpoint. */
+export async function externalVerificationRequest<T>(request: Promise<T>): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([request, new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(Object.assign(new Error("Verification request timed out"), {code: "deadline-exceeded"})), 20_000);
+    })]);
+  } finally { if (timer) clearTimeout(timer); }
+}
+
 export type AgeAssuranceCheckStatus =
   | "idle"
   | "checking"
@@ -149,20 +161,20 @@ export class AgeAssuranceService {
   }
 
   async externalVerificationAvailability(): Promise<ExternalAgeVerificationAvailability> {
-    return this._functionsAdapter.callAuthenticatedAppChecked<
-      Record<string, never>,
-      ExternalAgeVerificationAvailability
-    >("externalAgeVerificationAvailability", {});
+    return this.telemetry.run("age_verification", "availability", () => externalVerificationRequest(
+      this._functionsAdapter.callAuthenticatedAppChecked<Record<string, never>, ExternalAgeVerificationAvailability>("externalAgeVerificationAvailability", {})), false);
+  }
+
+  async externalVerificationStatus(): Promise<ExternalVerificationStatus> {
+    return this.telemetry.run("age_verification", "status", async () => {
+      const result = await externalVerificationRequest(this._functionsAdapter.callAuthenticatedAppChecked<Record<string, never>, {status: ExternalVerificationStatus}>("externalAgeVerificationStatus", {}));
+      return result.status;
+    }, false);
   }
 
   async beginOneIdAgeVerification(): Promise<ExternalAgeVerificationAttempt> {
-    return this.telemetry.run("age_verification", "beginOneIdAgeVerification", async () => {
-      return this._functionsAdapter.callAuthenticatedAppChecked<
-        { provider: "oneid" },
-        ExternalAgeVerificationAttempt
-      >("beginExternalAgeVerification", { provider: "oneid" });
-
-    }, true);
+    return this.telemetry.run("age_verification", "beginOneIdAgeVerification", () => externalVerificationRequest(
+      this._functionsAdapter.callAuthenticatedAppChecked<{provider: "oneid"}, ExternalAgeVerificationAttempt>("beginExternalAgeVerification", {provider: "oneid"})));
   }
 
   private async _syncNativeAgePolicyForCurrentUser(
@@ -329,6 +341,8 @@ export class AgeAssuranceService {
   }
 
   hasVerifiedAdultEligibility(): boolean {
+    // A completed external fallback can supersede an earlier unavailable native check.
+    if (hasApprovedOneIdAdultPolicy(this._authService.user.data?.data?.age_policy)) return true;
     const checkState = this._checkState();
     if (checkState.uid === this._authService.user.uid) {
       if (checkState.status === "verified") {
