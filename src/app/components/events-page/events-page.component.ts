@@ -80,7 +80,7 @@ import { NotificationPreferencesService } from "../../services/notification-pref
 import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { OrganizationsService } from "../../services/firebase/firestore/organizations.service";
 
-type EventCreateAction = "event" | "community" | "suggest";
+type EventCreateAction = "event" | "community" | "suggest" | "session";
 
 interface EventFabMenuAction extends FabMenuAction {
   id: EventCreateAction;
@@ -221,6 +221,7 @@ export class EventsPageComponent {
         label: $localize`:@@events.suggest_event:Suggest an Event`,
       },
     ];
+    if (environment.features.plannedSessions) actions.unshift({ id: "session", icon: "add", label: $localize`:@@planned.plan:Plan a session` });
     if (this.canAuthorFormal()) {
       actions.unshift({
         id: "event",
@@ -707,6 +708,7 @@ export class EventsPageComponent {
   onCreateAction(action: string): void {
     const routes: Record<EventCreateAction, string[]> = {
       event: ["/events/new"],
+      session: ["/events/session/new"],
       community: ["/events/community/new"],
       suggest: ["/events/suggest"],
     };

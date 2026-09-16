@@ -4,6 +4,7 @@ export const environment = {
   baseUrl: "https://pkspot.app",
   mapId: "e2926e5bfb22860c",
   features: {
+    plannedSessions: false,
     training: true,
     checkIns: true,
     supportShop: false,

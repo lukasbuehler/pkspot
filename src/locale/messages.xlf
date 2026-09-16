@@ -13212,6 +13212,231 @@
         <source>Parkour Spots, Events &amp; Communities | PK Spot</source>
       </segment>
     </unit>
+    <unit id="planned.attendees">
+      <segment>
+        <source>Show shared attendance</source>
+      </segment>
+    </unit>
+    <unit id="planned.audience">
+      <segment>
+        <source>Who can view?</source>
+      </segment>
+    </unit>
+    <unit id="planned.back">
+      <segment>
+        <source>Back</source>
+      </segment>
+    </unit>
+    <unit id="planned.cancel">
+      <segment>
+        <source>Cancel session</source>
+      </segment>
+    </unit>
+    <unit id="planned.cancelled">
+      <segment>
+        <source>Cancelled</source>
+      </segment>
+    </unit>
+    <unit id="planned.community">
+      <segment>
+        <source>Community sessions</source>
+      </segment>
+    </unit>
+    <unit id="planned.complete">
+      <segment>
+        <source>Choose a Spot and complete the session details.</source>
+      </segment>
+    </unit>
+    <unit id="planned.confirmCancel">
+      <segment>
+        <source>Confirm cancellation for everyone</source>
+      </segment>
+    </unit>
+    <unit id="planned.description">
+      <segment>
+        <source>Plan your next training session on PK Spot.</source>
+      </segment>
+    </unit>
+    <unit id="planned.edit">
+      <segment>
+        <source>Edit details</source>
+      </segment>
+    </unit>
+    <unit id="planned.empty">
+      <segment>
+        <source>No sessions here yet.</source>
+      </segment>
+    </unit>
+    <unit id="planned.end">
+      <segment>
+        <source>Ends</source>
+      </segment>
+    </unit>
+    <unit id="planned.failed">
+      <segment>
+        <source>This action could not be completed. Check your access and try again.</source>
+      </segment>
+    </unit>
+    <unit id="planned.invitations">
+      <segment>
+        <source>Show invitations</source>
+      </segment>
+    </unit>
+    <unit id="planned.invite">
+      <segment>
+        <source>Invite</source>
+      </segment>
+    </unit>
+    <unit id="planned.inviteOnly">
+      <segment>
+        <source>Only explicitly invited accounts can open this session. Forwarding the link does not grant access.</source>
+      </segment>
+    </unit>
+    <unit id="planned.link">
+      <segment>
+        <source>You can share this page’s link. Only verified adults can publish attendance.</source>
+      </segment>
+    </unit>
+    <unit id="planned.loading">
+      <segment>
+        <source>Loading…</source>
+      </segment>
+    </unit>
+    <unit id="planned.log">
+      <segment>
+        <source>Log what you did</source>
+      </segment>
+    </unit>
+    <unit id="planned.manage">
+      <segment>
+        <source>Manage session</source>
+      </segment>
+    </unit>
+    <unit id="planned.mine">
+      <segment>
+        <source>My sessions</source>
+      </segment>
+    </unit>
+    <unit id="planned.mutual">
+      <segment>
+        <source>Invite only people you already know and mutually follow. They choose whether to share attendance.</source>
+      </segment>
+    </unit>
+    <unit id="planned.notes">
+      <segment>
+        <source>Notes</source>
+      </segment>
+    </unit>
+    <unit id="planned.openSpot">
+      <segment>
+        <source>Open Spot and check in</source>
+      </segment>
+    </unit>
+    <unit id="planned.plan">
+      <segment>
+        <source>Plan a session</source>
+      </segment>
+    </unit>
+    <unit id="planned.privacy">
+      <segment>
+        <source>Private sessions require an invitation, even with a link. Invitations do not reveal attendance. Community session details can be shared with anyone.</source>
+      </segment>
+    </unit>
+    <unit id="planned.private">
+      <segment>
+        <source>Invited accounts only</source>
+      </segment>
+    </unit>
+    <unit id="planned.privateSave">
+      <segment>
+        <source>Saving privately adds this to your sessions. The organizer and other users cannot see your save or reminders.</source>
+      </segment>
+    </unit>
+    <unit id="planned.public">
+      <segment>
+        <source>Anyone with the link, discovery for verified adults</source>
+      </segment>
+    </unit>
+    <unit id="planned.reminder">
+      <segment>
+        <source>Remind me 30 minutes before</source>
+      </segment>
+    </unit>
+    <unit id="planned.remove">
+      <segment>
+        <source>Remove my plan</source>
+      </segment>
+    </unit>
+    <unit id="planned.report">
+      <segment>
+        <source>Contact support about this session</source>
+      </segment>
+    </unit>
+    <unit id="planned.retry">
+      <segment>
+        <source>Try again</source>
+      </segment>
+    </unit>
+    <unit id="planned.revoke">
+      <segment>
+        <source>Revoke access</source>
+      </segment>
+    </unit>
+    <unit id="planned.saved">
+      <segment>
+        <source>Saved to My sessions</source>
+      </segment>
+    </unit>
+    <unit id="planned.saveDetails">
+      <segment>
+        <source>Save session</source>
+      </segment>
+    </unit>
+    <unit id="planned.savePlan">
+      <segment>
+        <source>Save my plan</source>
+      </segment>
+    </unit>
+    <unit id="planned.sessions">
+      <segment>
+        <source>Sessions</source>
+      </segment>
+    </unit>
+    <unit id="planned.signin">
+      <segment>
+        <source>Sign in to save or plan sessions</source>
+      </segment>
+    </unit>
+    <unit id="planned.start">
+      <segment>
+        <source>Starts</source>
+      </segment>
+    </unit>
+    <unit id="planned.timezone">
+      <segment>
+        <source>Enter times in your device’s current time zone.</source>
+      </segment>
+    </unit>
+    <unit id="planned.title">
+      <segment>
+        <source>Session title</source>
+      </segment>
+    </unit>
+    <unit id="planned.unavailable">
+      <segment>
+        <source>Session planning is not enabled yet.</source>
+      </segment>
+    </unit>
+    <unit id="planned.visible">
+      <segment>
+        <source>Share my attendance (with the organizer for private sessions, with verified adults for community sessions)</source>
+      </segment>
+    </unit>
+    <unit id="planned.yourPlan">
+      <segment>
+        <source>Your plan</source>
+      </segment>
+    </unit>
     <unit id="7724618434121262533">
       <segment>
         <source>Unnamed Drinking Water spot</source>

@@ -1,3 +1,5 @@
+import { environment } from "../../../environments/environment.default";
+import { RouterLink } from "@angular/router";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -24,13 +26,14 @@ import type { MyEventsTab } from "./my-events.types";
     MatButton,
     MatButtonToggleModule,
     MatIconModule,
-    MyEventListComponent,
+    MyEventListComponent, RouterLink,
   ],
   templateUrl: "./my-events-panel.component.html",
   styleUrl: "./my-events-panel.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MyEventsPanelComponent {
+  readonly plannedSessionsEnabled = environment.features.plannedSessions;
   private readonly _dialog = inject(MatDialog);
 
   readonly goingEvents = input<readonly PkEvent[]>([]);

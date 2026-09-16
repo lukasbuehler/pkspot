@@ -30,3 +30,21 @@
   border-radius: 13px;
   background: color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
 }
+
+form, section { display: grid; gap: 1rem; margin-block: 1.5rem; }
+article { padding: 1rem; border: 1px solid var(--mat-sys-outline-variant); border-radius: 18px; margin-block: .75rem; }
+.notes { white-space: pre-wrap; overflow-wrap: anywhere; }
+nav { display: flex; flex-wrap: wrap; }
+@media (max-height: 499px), (max-width: 767px) and (max-height: 699px) {
+  .session-planner-page { padding-block-start: max(80px, calc(72px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))) !important; }
+}
+
+section {
+  padding: 1rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+  gap: .75rem;
+}
+section h2, section p { margin: 0; }
+form > button, section > button { justify-self: start; }
+.session-planner-page { padding-block-end: 100px !important; }

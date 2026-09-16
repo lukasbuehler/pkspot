@@ -6,6 +6,7 @@ interface RouteVisualCase {
   path: string;
   viewport?: { width: number; height: number };
   signedIn?: boolean;
+  plannedSessionFixture?: "planner" | "private" | "community";
   admin?: boolean;
   verifiedAdult?: boolean;
   publicProfile?: boolean;
@@ -43,6 +44,10 @@ const mobileViewport = { width: 390, height: 844 };
 const alainMobileViewport = { width: 390, height: 680 };
 
 const routeVisualCases: RouteVisualCase[] = [
+  { name: "session-planner-mobile", path: "/events/session/new", signedIn: true, plannedSessionFixture: "planner", viewport: alainMobileViewport, fullPage: true, assertAlainClearance: { axis: "block", target: "app-session-planner-page h1" } },
+  { name: "session-private", path: "/events/session/visual-session", signedIn: true, plannedSessionFixture: "private", fullPage: true },
+  { name: "session-community-link", path: "/events/session/visual-session", plannedSessionFixture: "community", viewport: mobileViewport, fullPage: true },
+
   { name: "map", path: "/map", maxDiffPixels: 80_000 },
   {
     name: "train",
@@ -739,6 +744,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
   await page.addInitScript(
     ({
       acceptedVersion,
+      plannedSessionFixture,
       admin,
       eventIndexFixture,
       invalidEventFixture,
@@ -750,6 +756,16 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       verifiedAdult,
     }) => {
       localStorage.setItem("acceptedVersion", acceptedVersion);
+      if (plannedSessionFixture) {
+        (globalThis as typeof globalThis & { __PKSPOT_PLANNED_SESSION_FIXTURE__?: unknown }).__PKSPOT_PLANNED_SESSION_FIXTURE__ = {
+          session: { id: "visual-session", title: "Evening training", notes: "Bring water and choose your own pace.", spotId: "visual-spot",
+            startsAt: Date.UTC(2027, 0, 15, 16), endsAt: Date.UTC(2027, 0, 15, 18), timeZone: "Europe/Zurich",
+            audience: plannedSessionFixture === "community" ? "community" : "private", ownerUid: signedIn ? "visual-route-user" : "", cancelled: false, revision: 1 },
+          isOwner: !!signedIn, canAttendVisibly: !!signedIn,
+          mine: signedIn ? { saved: true, reminder: false, attendance: "private" } : null,
+        };
+      }
+
       localStorage.setItem(
         "lastLocationAndZoom",
         JSON.stringify({
@@ -1529,6 +1545,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
     },
     {
       acceptedVersion: CURRENT_TERMS_VERSION,
+      plannedSessionFixture: route.plannedSessionFixture,
       admin: route.admin === true,
       eventIndexFixture: route.eventIndexFixture === true,
       invalidEventFixture: route.invalidEventFixture === true,

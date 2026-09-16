@@ -1,3 +1,4 @@
+import { PlannedSessionsService } from "../../services/planned-sessions.service";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import { StoreReviewService } from "../../reviews/store-review.service";
@@ -53,6 +54,7 @@ export class LogEntryEditorComponent {
   private readonly reviews = inject(StoreReviewService);
   private readonly logs = inject(LogEntriesService);
   private readonly sessionRecords = inject(SessionRecordsService);
+  private readonly plannedSessions = inject(PlannedSessionsService);
 
   readonly entryId = this.route.snapshot.paramMap.get("entryId");
   readonly loading = signal(true);
@@ -180,6 +182,14 @@ export class LogEntryEditorComponent {
           visibility: entry.visibility,
         });
         this.selectedIds.set(entry.session_record_ids);
+      } else if (this.route.snapshot.queryParamMap.get("plannedSession")) {
+        const { session } = await this.plannedSessions.get(this.route.snapshot.queryParamMap.get("plannedSession")!);
+        // A plan is only a suggestion. No activity or check-in is created until
+        // the person confirms what they actually did in this editor.
+        this.showNewSession.set(true);
+        this.spotIds.set([session.spotId]);
+        const now = Date.now();
+        if (session.startsAt < now) this.sessionForm.setValue({ startedAt: toLocalInput(new Date(session.startsAt)), endedAt: toLocalInput(new Date(Math.min(session.endsAt, now))) });
       } else if (sessions.length === 0) {
         this.showNewSession.set(true);
       }

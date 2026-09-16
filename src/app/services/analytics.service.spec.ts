@@ -5,7 +5,7 @@ import { Posthog as CapacitorPostHog } from "@capawesome/capacitor-posthog";
 import { NEVER } from "rxjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ConsentService } from "./consent.service";
-import { AnalyticsService, stripUtmParametersFromUrl } from "./analytics.service";
+import { AnalyticsService, stripUtmParametersFromUrl, redactPlanningUrl } from "./analytics.service";
 
 const capacitorPostHogMock = vi.hoisted(() => ({
   unregister: vi.fn(),
@@ -286,5 +286,15 @@ describe("AnalyticsService error reporting", () => {
         }),
       }),
     );
+  });
+});
+
+describe("private session analytics URLs", () => {
+  it.each(["https://pkspot.app/de/events/session/secret", "/events/session/secret", "/train/log/new?plannedSession=secret"])("redacts %s", url => {
+    expect(redactPlanningUrl(url)).toBe("/events/sessions");
+  });
+  it("preserves ordinary event and Spot URLs", () => {
+    expect(redactPlanningUrl("/events/jam")).toBe("/events/jam");
+    expect(redactPlanningUrl("/map/spots/abc")).toBe("/map/spots/abc");
   });
 });

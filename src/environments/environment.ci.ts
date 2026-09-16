@@ -6,6 +6,7 @@ export const environment = {
   features: {
     // Training is live in the shipped environments. Keep it enabled in CI so
     // route builds and visual coverage exercise the same route table.
+    plannedSessions: false,
     training: true,
     checkIns: false,
     supportShop: false,

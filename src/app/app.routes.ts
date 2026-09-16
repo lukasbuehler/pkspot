@@ -461,7 +461,11 @@ export const routes: Routes = [
   },
   // Keep local links from the short-lived Jam/Session experiment working.
   { path: "events/jam/new", redirectTo: () => "/events/community/new", pathMatch: "full" },
-  { path: "events/session/new", redirectTo: () => "/events/community/new", pathMatch: "full" },
+  ...["events/session/new", "events/session/:sessionId", "events/sessions"].map(path => ({
+    path,
+    loadComponent: () => import("./components/session-planner-page/session-planner-page.component").then(m => m.SessionPlannerPageComponent),
+    data: { routeName: "Sessions", discoverable: false, sessionList: path === "events/sessions" },
+  })),
   {
     path: "events/suggest",
     loadComponent: () =>

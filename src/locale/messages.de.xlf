@@ -3856,6 +3856,276 @@
         <target>Parkour-Spots, Events &amp; Communities | PK Spot</target>
       </segment>
     </unit>
+    <unit id="planned.attendees">
+      <segment state="translated">
+        <source>Show shared attendance</source>
+        <target>Geteilte Teilnahme anzeigen</target>
+      </segment>
+    </unit>
+    <unit id="planned.audience">
+      <segment state="translated">
+        <source>Who can view?</source>
+        <target>Wer kann die Session sehen?</target>
+      </segment>
+    </unit>
+    <unit id="planned.back">
+      <segment state="translated">
+        <source>Back</source>
+        <target>Zurück</target>
+      </segment>
+    </unit>
+    <unit id="planned.cancel">
+      <segment state="translated">
+        <source>Cancel session</source>
+        <target>Session absagen</target>
+      </segment>
+    </unit>
+    <unit id="planned.cancelled">
+      <segment state="translated">
+        <source>Cancelled</source>
+        <target>Abgesagt</target>
+      </segment>
+    </unit>
+    <unit id="planned.community">
+      <segment state="translated">
+        <source>Community sessions</source>
+        <target>Community-Sessions</target>
+      </segment>
+    </unit>
+    <unit id="planned.complete">
+      <segment state="translated">
+        <source>Choose a Spot and complete the session details.</source>
+        <target>Wähle einen Spot und vervollständige die Sessiondetails.</target>
+      </segment>
+    </unit>
+    <unit id="planned.confirmCancel">
+      <segment state="translated">
+        <source>Confirm cancellation for everyone</source>
+        <target>Absage für alle bestätigen</target>
+      </segment>
+    </unit>
+    <unit id="planned.description">
+      <segment state="translated">
+        <source>Plan your next training session on PK Spot.</source>
+        <target>Plane deine nächste Trainingseinheit auf PK Spot.</target>
+      </segment>
+    </unit>
+    <unit id="planned.edit">
+      <segment state="translated">
+        <source>Edit details</source>
+        <target>Details bearbeiten</target>
+      </segment>
+    </unit>
+    <unit id="planned.empty">
+      <segment state="translated">
+        <source>No sessions here yet.</source>
+        <target>Hier gibt es noch keine Sessions.</target>
+      </segment>
+    </unit>
+    <unit id="planned.end">
+      <segment state="translated">
+        <source>Ends</source>
+        <target>Ende</target>
+      </segment>
+    </unit>
+    <unit id="planned.failed">
+      <segment state="translated">
+        <source>This action could not be completed. Check your access and try again.</source>
+        <target>Diese Aktion konnte nicht abgeschlossen werden. Prüfe deinen Zugriff und versuche es erneut.</target>
+      </segment>
+    </unit>
+    <unit id="planned.invitations">
+      <segment state="translated">
+        <source>Show invitations</source>
+        <target>Einladungen anzeigen</target>
+      </segment>
+    </unit>
+    <unit id="planned.invite">
+      <segment state="translated">
+        <source>Invite</source>
+        <target>Einladen</target>
+      </segment>
+    </unit>
+    <unit id="planned.inviteOnly">
+      <segment state="translated">
+        <source>Only explicitly invited accounts can open this session. Forwarding the link does not grant access.</source>
+        <target>Nur ausdrücklich eingeladene Konten können diese Session öffnen. Das Weiterleiten des Links gewährt keinen Zugriff.</target>
+      </segment>
+    </unit>
+    <unit id="planned.link">
+      <segment state="translated">
+        <source>You can share this page’s link. Only verified adults can publish attendance.</source>
+        <target>Du kannst den Link dieser Seite teilen. Nur verifizierte Erwachsene können ihre Teilnahme veröffentlichen.</target>
+      </segment>
+    </unit>
+    <unit id="planned.loading">
+      <segment state="translated">
+        <source>Loading…</source>
+        <target>Wird geladen…</target>
+      </segment>
+    </unit>
+    <unit id="planned.log">
+      <segment state="translated">
+        <source>Log what you did</source>
+        <target>Aktivität eintragen</target>
+      </segment>
+    </unit>
+    <unit id="planned.manage">
+      <segment state="translated">
+        <source>Manage session</source>
+        <target>Session verwalten</target>
+      </segment>
+    </unit>
+    <unit id="planned.mine">
+      <segment state="translated">
+        <source>My sessions</source>
+        <target>Meine Sessions</target>
+      </segment>
+    </unit>
+    <unit id="planned.mutual">
+      <segment state="translated">
+        <source>Invite only people you already know and mutually follow. They choose whether to share attendance.</source>
+        <target>Lade nur Personen ein, die du bereits kennst und denen du gegenseitig folgst. Sie entscheiden selbst, ob sie ihre Teilnahme teilen.</target>
+      </segment>
+    </unit>
+    <unit id="planned.notes">
+      <segment state="translated">
+        <source>Notes</source>
+        <target>Notizen</target>
+      </segment>
+    </unit>
+    <unit id="planned.openSpot">
+      <segment state="translated">
+        <source>Open Spot and check in</source>
+        <target>Spot öffnen und einchecken</target>
+      </segment>
+    </unit>
+    <unit id="planned.plan">
+      <segment state="translated">
+        <source>Plan a session</source>
+        <target>Session planen</target>
+      </segment>
+    </unit>
+    <unit id="planned.privacy">
+      <segment state="translated">
+        <source>Private sessions require an invitation, even with a link. Invitations do not reveal attendance. Community session details can be shared with anyone.</source>
+        <target>Private Sessions erfordern auch mit Link eine Einladung. Einladungen verraten nichts über die Teilnahme. Details von Community-Sessions können mit allen geteilt werden.</target>
+      </segment>
+    </unit>
+    <unit id="planned.private">
+      <segment state="translated">
+        <source>Invited accounts only</source>
+        <target>Nur eingeladene Konten</target>
+      </segment>
+    </unit>
+    <unit id="planned.privateSave">
+      <segment state="translated">
+        <source>Saving privately adds this to your sessions. The organizer and other users cannot see your save or reminders.</source>
+        <target>Privates Speichern fügt diese Session deinen Sessions hinzu. Veranstalter und andere Nutzer sehen weder deine Speicherung noch deine Erinnerungen.</target>
+      </segment>
+    </unit>
+    <unit id="planned.public">
+      <segment state="translated">
+        <source>Anyone with the link, discovery for verified adults</source>
+        <target>Alle mit dem Link, Entdeckung für verifizierte Erwachsene</target>
+      </segment>
+    </unit>
+    <unit id="planned.reminder">
+      <segment state="translated">
+        <source>Remind me 30 minutes before</source>
+        <target>30 Minuten vorher erinnern</target>
+      </segment>
+    </unit>
+    <unit id="planned.remove">
+      <segment state="translated">
+        <source>Remove my plan</source>
+        <target>Meinen Plan entfernen</target>
+      </segment>
+    </unit>
+    <unit id="planned.report">
+      <segment state="translated">
+        <source>Contact support about this session</source>
+        <target>Support zu dieser Session kontaktieren</target>
+      </segment>
+    </unit>
+    <unit id="planned.retry">
+      <segment state="translated">
+        <source>Try again</source>
+        <target>Erneut versuchen</target>
+      </segment>
+    </unit>
+    <unit id="planned.revoke">
+      <segment state="translated">
+        <source>Revoke access</source>
+        <target>Zugriff entziehen</target>
+      </segment>
+    </unit>
+    <unit id="planned.saved">
+      <segment state="translated">
+        <source>Saved to My sessions</source>
+        <target>In Meine Sessions gespeichert</target>
+      </segment>
+    </unit>
+    <unit id="planned.saveDetails">
+      <segment state="translated">
+        <source>Save session</source>
+        <target>Session speichern</target>
+      </segment>
+    </unit>
+    <unit id="planned.savePlan">
+      <segment state="translated">
+        <source>Save my plan</source>
+        <target>Meinen Plan speichern</target>
+      </segment>
+    </unit>
+    <unit id="planned.sessions">
+      <segment state="translated">
+        <source>Sessions</source>
+        <target>Sessions</target>
+      </segment>
+    </unit>
+    <unit id="planned.signin">
+      <segment state="translated">
+        <source>Sign in to save or plan sessions</source>
+        <target>Anmelden, um Sessions zu speichern oder zu planen</target>
+      </segment>
+    </unit>
+    <unit id="planned.start">
+      <segment state="translated">
+        <source>Starts</source>
+        <target>Beginn</target>
+      </segment>
+    </unit>
+    <unit id="planned.timezone">
+      <segment state="translated">
+        <source>Enter times in your device’s current time zone.</source>
+        <target>Gib die Zeiten in der aktuellen Zeitzone deines Geräts ein.</target>
+      </segment>
+    </unit>
+    <unit id="planned.title">
+      <segment state="translated">
+        <source>Session title</source>
+        <target>Sessiontitel</target>
+      </segment>
+    </unit>
+    <unit id="planned.unavailable">
+      <segment state="translated">
+        <source>Session planning is not enabled yet.</source>
+        <target>Die Sessionplanung ist noch nicht aktiviert.</target>
+      </segment>
+    </unit>
+    <unit id="planned.visible">
+      <segment state="translated">
+        <source>Share my attendance (with the organizer for private sessions, with verified adults for community sessions)</source>
+        <target>Meine Teilnahme teilen (bei privaten Sessions mit dem Veranstalter, bei Community-Sessions mit verifizierten Erwachsenen)</target>
+      </segment>
+    </unit>
+    <unit id="planned.yourPlan">
+      <segment state="translated">
+        <source>Your plan</source>
+        <target>Dein Plan</target>
+      </segment>
+    </unit>
     <unit id="amenities.covered">
       <segment state="initial">
         <source>Dry spot</source>

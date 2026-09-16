@@ -1,52 +1,87 @@
 <main class="session-planner-page container py-4">
-  @if (!authReady()) {
-    <section class="state-card" aria-live="polite">
-      <mat-progress-spinner mode="indeterminate" diameter="36" />
-      <p class="mat-body-large m-0" i18n="@@session_planner.loading">
-        Loading session planner…
-      </p>
-    </section>
-  } @else if (!signedIn()) {
-    <section class="state-card">
-      <mat-icon class="state-icon">login</mat-icon>
-      <h1 class="mat-headline-small m-0" i18n="@@session_planner.sign_in_title">
-        Sign in to plan a session
-      </h1>
-      <p class="mat-body-large m-0" i18n="@@session_planner.sign_in_body">
-        Sessions have a real owner so you can update the details and manage
-        attendance later.
-      </p>
-      <a
-        mat-flat-button
-        routerLink="/sign-in"
-        [queryParams]="{ returnUrl: '/events/session/new' }"
-      >
-        <mat-icon>login</mat-icon>
-        <span i18n="@@session_planner.sign_in_action">Sign in</span>
-      </a>
-    </section>
-  } @else if (!canPlan()) {
-    <section class="state-card">
-      <mat-icon class="state-icon">lock</mat-icon>
-      <h1
-        class="mat-headline-small m-0"
-        i18n="@@session_planner.restricted_title"
-      >
-        Session planning is unavailable
-      </h1>
-      <p class="mat-body-large m-0">{{ restrictionMessage() }}</p>
-      <a mat-stroked-button routerLink="/events">
-        <span i18n="@@session_planner.back">Back to events</span>
-      </a>
-    </section>
+  <h1>{{ heading() }}</h1>
+  <nav><a mat-button routerLink="/events/sessions" i18n="@@planned.sessions">Sessions</a><a mat-button routerLink="/events/session/new" i18n="@@planned.plan">Plan a session</a></nav>
+  @if (!enabled) {
+    <p i18n="@@planned.unavailable">Session planning is not enabled yet.</p>
   } @else {
-    <app-event-edit-form
-      mode="session"
-      [event]="null"
-      [saving]="saving()"
-      [showDeleteButton]="false"
-      (save)="onSave($event)"
-      (cancel)="onCancel()"
-    />
+    @if (error()) { <p role="alert">{{ error() }}</p><button mat-button (click)="load()" i18n="@@planned.retry">Try again</button> }
+    @if (loading()) { <p aria-live="polite" i18n="@@planned.loading">Loading…</p> }
+    @if (!signedIn()) { <a mat-flat-button routerLink="/sign-in" i18n="@@planned.signin">Sign in to save or plan sessions</a> }
+    @if (listMode && signedIn()) {
+      <button mat-button (click)="browse(false)" i18n="@@planned.mine">My sessions</button>
+      @if (adult()) { <button mat-button (click)="browse(true)" i18n="@@planned.community">Community sessions</button> }
+      @for (item of items(); track item.session.id) {
+        <article><a [routerLink]="['/events/session', item.session.id]">{{ item.session.title }}</a><p>{{ item.session.startsAt | systemDate: 'short' }}</p>
+          @if (item.session.cancelled) { <p i18n="@@planned.cancelled">Cancelled</p> }
+        </article>
+      } @empty { @if (!loading()) { <p i18n="@@planned.empty">No sessions here yet.</p> } }
+    }
+    @if ((signedIn() && !id() && !listMode) || editing()) {
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <mat-form-field><mat-label i18n="@@planned.title">Session title</mat-label><input matInput formControlName="title" maxlength="100" /></mat-form-field>
+        <app-spot-picker label="Spot" [max]="1" [value]="spots()" (valueChange)="spots.set($event)" />
+        <mat-form-field><mat-label i18n="@@planned.start">Starts</mat-label><input matInput type="datetime-local" formControlName="start" /></mat-form-field>
+        <mat-form-field><mat-label i18n="@@planned.end">Ends</mat-label><input matInput type="datetime-local" formControlName="end" /></mat-form-field>
+        <p i18n="@@planned.timezone">Enter times in your device’s current time zone.</p>
+        <mat-form-field><mat-label i18n="@@planned.notes">Notes</mat-label><textarea matInput formControlName="notes" maxlength="2000"></textarea></mat-form-field>
+        @if (!editing()) {
+          <mat-form-field><mat-label i18n="@@planned.audience">Who can view?</mat-label><mat-select formControlName="audience">
+            <mat-option value="private" i18n="@@planned.private">Invited accounts only</mat-option>
+            @if (adult()) { <mat-option value="community" i18n="@@planned.public">Anyone with the link, discovery for verified adults</mat-option> }
+          </mat-select></mat-form-field>
+        }
+        <p i18n="@@planned.privacy">Private sessions require an invitation, even with a link. Invitations do not reveal attendance. Community session details can be shared with anyone.</p>
+        <button mat-flat-button type="submit" [disabled]="saving()" i18n="@@planned.saveDetails">Save session</button>
+        @if (editing()) { <button mat-button type="button" (click)="editing.set(false)" i18n="@@planned.back">Back</button> }
+      </form>
+    }
+    @if (view(); as v) {
+      @if (!editing()) {
+        <p>{{ v.session.startsAt | systemDate: 'short' }} → {{ v.session.endsAt | systemDate: 'short' }}</p>
+        <p class="notes">{{ v.session.notes }}</p>
+        <a mat-button [routerLink]="['/map/spots', v.session.spotId]" i18n="@@planned.openSpot">Open Spot and check in</a>
+        @if (v.session.cancelled) { <p role="status" i18n="@@planned.cancelled">Cancelled</p> }
+        @if (v.session.audience === 'community') {
+          <button mat-stroked-button [cdkCopyToClipboard]="shareUrl()" (cdkCopyToClipboardCopied)="copied.set($event)" i18n="@@event_qr.copy">Copy link</button>
+          @if (copied() === true) { <p role="status" i18n="@@event_qr.copied"> Link copied. </p> }
+          @if (copied() === false) { <p role="alert" i18n="@@event_qr.copy_failed">Couldn't copy the link.</p> }
+          <p i18n="@@planned.link">You can share this page’s link. Only verified adults can publish attendance.</p>
+        } @else { <p i18n="@@planned.inviteOnly">Only explicitly invited accounts can open this session. Forwarding the link does not grant access.</p> }
+        @if (signedIn()) {
+          <section>
+            <h2 i18n="@@planned.yourPlan">Your plan</h2>
+            <p i18n="@@planned.privateSave">Saving privately adds this to your sessions. The organizer and other users cannot see your save or reminders.</p>
+            @if (v.mine?.saved) { <p role="status" i18n="@@planned.saved">Saved to My sessions</p> }
+            <mat-checkbox [checked]="reminder()" (change)="reminder.set($event.checked)" i18n="@@planned.reminder">Remind me 30 minutes before</mat-checkbox>
+            @if (v.canAttendVisibly) {
+              <mat-checkbox [checked]="visible()" (change)="visible.set($event.checked)" i18n="@@planned.visible">Share my attendance (with the organizer for private sessions, with verified adults for community sessions)</mat-checkbox>
+            }
+            <button mat-flat-button [disabled]="saving() || v.session.cancelled" (click)="save(true)" i18n="@@planned.savePlan">Save my plan</button>
+            @if (v.mine?.saved) { <button mat-button [disabled]="saving()" (click)="save(false)" i18n="@@planned.remove">Remove my plan</button> }
+          </section>
+          @if (v.isOwner || (adult() && v.session.audience === 'community')) {
+            <button mat-button (click)="loadAttendees()" i18n="@@planned.attendees">Show shared attendance</button>
+            @for (person of attendees(); track person.uid) { <p>{{ person.name }}</p> }
+          }
+          @if (v.isOwner) {
+            <section><h2 i18n="@@planned.manage">Manage session</h2>
+              @if (!v.session.cancelled) { <button mat-button (click)="edit()" i18n="@@planned.edit">Edit details</button>
+                <button mat-button (click)="confirmCancel.set(!confirmCancel())" i18n="@@planned.cancel">Cancel session</button>
+                @if (confirmCancel()) { <button mat-flat-button [disabled]="saving()" (click)="cancel()" i18n="@@planned.confirmCancel">Confirm cancellation for everyone</button> }
+              }
+              @if (v.session.audience === 'private') {
+                <p i18n="@@planned.mutual">Invite only people you already know and mutually follow. They choose whether to share attendance.</p>
+                <app-user-picker [value]="invitee()" (valueChange)="invitee.set($event)" />
+                <button mat-button [disabled]="!invitee() || saving() || v.session.cancelled" (click)="invite()" i18n="@@planned.invite">Invite</button>
+                <button mat-button (click)="loadInvitations()" i18n="@@planned.invitations">Show invitations</button>
+                @for (uid of invitations(); track uid) { <div><app-user-picker [value]="uid" [disabled]="true" /><button mat-button [disabled]="saving()" (click)="revoke(uid)" i18n="@@planned.revoke">Revoke access</button></div> }
+              }
+            </section>
+          }
+          <a mat-button routerLink="/train/log/new" [queryParams]="{ plannedSession: v.session.id }" i18n="@@planned.log">Log what you did</a>
+        }
+        <a mat-button routerLink="/contact" i18n="@@planned.report">Contact support about this session</a>
+      }
+    }
   }
 </main>

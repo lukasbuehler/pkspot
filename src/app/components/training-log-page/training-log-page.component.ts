@@ -1,3 +1,4 @@
+import { environment } from "../../../environments/environment.default";
 import { DestroyRef } from "@angular/core";
 import { StoreReviewService } from "../../reviews/store-review.service";
 import {
@@ -87,11 +88,13 @@ export class TrainingLogPageComponent {
   private readonly router = inject(Router);
   readonly addLabel = $localize`:@@trainingLog.add:Add to training log`;
   readonly addActions: readonly FabMenuAction[] = [
+    ...(environment.features.plannedSessions ? [{ id: "session", icon: "add", label: $localize`:@@planned.plan:Plan a session` }] : []),
     { id: "activity", icon: "add", label: $localize`:@@trainingLog.new:New training entry` },
     { id: "recovery", icon: "event_busy", label: $localize`:@@recoveryPause.add:Log recovery pause` },
   ];
 
   onAddAction(action: string): void {
+    if (action === "session") void this.router.navigateByUrl("/events/session/new");
     if (action === "activity") void this.router.navigateByUrl("/train/log/new");
     if (action === "recovery") this.openRecoveryDialog();
   }

@@ -70,3 +70,5 @@
     </p>
   }
 </section>
+
+@if (plannedSessionsEnabled && signedIn()) { <a mat-button routerLink="/events/sessions" i18n="@@planned.mine">My sessions</a> }
