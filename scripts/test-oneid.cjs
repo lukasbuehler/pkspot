@@ -4,10 +4,10 @@ const {createRequire} = require('node:module');
 const load = createRequire(require('node:path').resolve('functions/package.json'));
 const admin = load('firebase-admin');
 if (!process.env.FIRESTORE_EMULATOR_HOST) throw new Error('Firestore emulator required');
-Object.assign(process.env, {ONEID_PRODUCT: 'age_check', ONEID_AGE_VERIFICATION_ENABLED: 'true', ONEID_AGE_CHECK_METHOD_APPROVED: 'true', ONEID_CLIENT_ID: 'test-client', ONEID_CLIENT_SECRET: 'test-secret', ONEID_REDIRECT_URI: 'https://pkspot.example/callback'});
+Object.assign(process.env, {ONEID_ENVIRONMENT: 'production', ONEID_PRODUCT: 'age_check', ONEID_AGE_VERIFICATION_ENABLED: 'true', ONEID_AGE_CHECK_METHOD_APPROVED: 'true', ONEID_CLIENT_ID: 'test-client', ONEID_CLIENT_SECRET: 'test-secret', ONEID_REDIRECT_URI: 'https://pkspot.example/callback'});
 admin.initializeApp({projectId: 'demo-pkspot'});
 const jose = load('jose');
-const issuer = 'https://controller.sandbox.myoneid.co.uk';
+let issuer = 'https://controller.myoneid.co.uk';
 const db = admin.firestore();
 const originalFetch = global.fetch;
 let server, base, keys, jwk, current, nonce, subject = 'same-subject', result = true, failToken = false, expiredToken = false, failStage = '', invalidSignature = false, wrongNonce = false;
@@ -18,8 +18,8 @@ require.cache[load.resolve('jose')].exports = {
 };
 const {beginExternalAgeVerification, oneIdAgeVerificationCallback, oneIdAgeResult, externalAgeVerificationStatus} = require('../functions/lib/functions/src/externalAgeVerificationFunctions.js');
 before(async () => {
-  keys = await jose.generateKeyPair('RS256');
-  jwk = {...await jose.exportJWK(keys.publicKey), kid: 'test', alg: 'RS256', use: 'sig'};
+  keys = await jose.generateKeyPair('PS256');
+  jwk = {...await jose.exportJWK(keys.publicKey), kid: 'test', alg: 'PS256', use: 'sig'};
   const app = load('express')();
   app.get('/callback', oneIdAgeVerificationCallback);
   server = await new Promise(resolve => { const listening = app.listen(0, '127.0.0.1', () => resolve(listening)); });
@@ -31,7 +31,7 @@ before(async () => {
     if (address === `${issuer}/jwks`) return Response.json({keys: [jwk]});
     if (address === `${issuer}/token`) {
       if (failToken) return Response.json({}, {status: 400});
-      const idToken = await new jose.SignJWT({nonce: wrongNonce ? "wrong-nonce" : nonce}).setProtectedHeader({alg: 'RS256', kid: 'test'}).setIssuer(issuer).setAudience('test-client').setSubject('same-subject').setIssuedAt().setExpirationTime(expiredToken ? '0s' : '5m').sign(keys.privateKey);
+      const idToken = await new jose.SignJWT({nonce: wrongNonce ? "wrong-nonce" : nonce}).setProtectedHeader({alg: 'PS256', kid: 'test'}).setIssuer(issuer).setAudience('test-client').setSubject('same-subject').setIssuedAt().setExpirationTime(expiredToken ? '0s' : '5m').sign(keys.privateKey);
       return Response.json({access_token: 'test-access', id_token: invalidSignature ? `${idToken.slice(0, idToken.lastIndexOf(".") + 1)}AAAA` : idToken});
     }
     if (address === `${issuer}/userinfo`) return Response.json({sub: subject, age_over_18: result});
@@ -142,6 +142,23 @@ test('timeouts at discovery, token exchange and UserInfo fail cleanly and allow 
     assert.equal((await db.doc(`users/${uid}`).get()).data().age_policy.adult_eligibility, undefined);
   }
   failStage = '';
+});
+test('sandbox results are isolated and only allowlisted accounts can start', async () => {
+  process.env.ONEID_ENVIRONMENT = 'sandbox';
+  issuer = 'https://controller.sandbox.myoneid.co.uk';
+  process.env.ONEID_SANDBOX_TEST_UIDS = 'sandbox-tester,sandbox-negative';
+  await assert.rejects(beginExternalAgeVerification.run({auth: {uid: 'outsider'}, data: {provider: 'oneid'}}), {code: 'permission-denied'});
+  for (const [uid, confirmed] of [['sandbox-tester', true], ['sandbox-negative', false]]) {
+    const previous = {participation_state: 'read_only_age_restricted'};
+    await begin(uid, previous); result = confirmed;
+    assert.equal((await callback()).status, 200);
+    assert.deepEqual((await db.doc(`users/${uid}`).get()).data().age_policy, previous);
+    assert.equal((await db.collection(`users/${uid}/age_assurance_records`).get()).size, 0);
+    assert.deepEqual(await externalAgeVerificationStatus.run({auth: {uid}}), {status: confirmed ? 'sandbox_verified' : 'sandbox_not_verified'});
+  }
+  await begin('sandbox-tester-2').then(() => assert.fail('not allowlisted'), error => assert.equal(error.code, 'permission-denied'));
+  process.env.ONEID_ENVIRONMENT = 'production';
+  issuer = 'https://controller.myoneid.co.uk';
 });
 test('authenticated start is rate limited and requires method approval', async () => {
   await begin('rate');

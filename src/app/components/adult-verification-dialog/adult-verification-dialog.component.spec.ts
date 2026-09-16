@@ -18,6 +18,7 @@ describe("AdultVerificationDialogComponent", () => {
     externalVerificationAvailability: vi.fn(),
     externalVerificationStatus: vi.fn(),
     beginOneIdAgeVerification: vi.fn(),
+    openOneIdBrowser: vi.fn(),
     recheckNativeAgePolicyForCurrentUser: vi.fn(),
   };
   const platform = {isNative: vi.fn(), getPlatform: vi.fn()};

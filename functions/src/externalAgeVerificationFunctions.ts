@@ -18,6 +18,10 @@ const oneIdMethodApproved = defineBoolean("ONEID_AGE_CHECK_METHOD_APPROVED", {de
 const oneIdProduct = defineString("ONEID_PRODUCT", {default: "age_check"});
 const oneIdClientId = defineString("ONEID_CLIENT_ID", {default: ""});
 const oneIdRedirectUri = defineString("ONEID_REDIRECT_URI", {default: ""});
+const oneIdSandboxTestUids = defineString("ONEID_SANDBOX_TEST_UIDS", {default: ""});
+const oneIdReturnUrl = defineString("ONEID_RETURN_URL", {default: "https://pkspot.app/settings/profile?oneid=return"});
+const sandboxUserAllowed = (uid: string | undefined): boolean => configuredEnvironment() === "production" ||
+  !!uid && oneIdSandboxTestUids.value().split(",").map(value => value.trim()).includes(uid);
 const oneIdClientSecret = defineSecret("ONEID_CLIENT_SECRET");
 
 type OneIdEnvironment = "sandbox" | "production";
@@ -36,13 +40,14 @@ interface ExternalAttempt {
   method: "age_check";
   threshold: 18;
   product?: OneIdProduct;
+  environment: OneIdEnvironment;
   state_hash: string;
   nonce: string;
   code_verifier: string;
   expires_at: admin.firestore.Timestamp;
   processing_at?: admin.firestore.Timestamp;
   consumed_at?: admin.firestore.Timestamp;
-  outcome?: "verified" | "not_verified" | "failed" | "cancelled" | "expired";
+  outcome?: "verified" | "not_verified" | "failed" | "cancelled" | "expired" | "sandbox_verified" | "sandbox_not_verified";
 }
 
 const hash = (value: string): string =>
@@ -99,10 +104,10 @@ export const buildOneIdAuthorizationUrl = (
 
 export const externalAgeVerificationAvailability = onCall(
   {enforceAppCheck: true},
-  async () => externalVerificationStep("availability", async () => ({
+  async request => externalVerificationStep("availability", async () => ({
     providers: [{
       provider: "oneid",
-      available: oneIdEnabled.value() && oneIdMethodApproved.value() && Boolean(oneIdClientId.value().trim()) && Boolean(oneIdRedirectUri.value().trim()),
+      available: sandboxUserAllowed(request.auth?.uid) && oneIdEnabled.value() && oneIdMethodApproved.value() && Boolean(oneIdClientId.value().trim()) && Boolean(oneIdRedirectUri.value().trim()),
       method: "age_check",
       product: oneIdProduct.value(),
     }],
@@ -118,6 +123,7 @@ export const beginExternalAgeVerification = onCall(
     if (data["provider"] !== "oneid") {
       throw new HttpsError("invalid-argument", "Unsupported age verification provider.");
     }
+    if (!sandboxUserAllowed(uid)) throw new HttpsError("permission-denied", "This account is not enabled for sandbox testing.");
     const config = oneIdConfiguration();
     const state = randomBytes(32).toString("base64url");
     const nonce = randomBytes(32).toString("base64url");
@@ -152,6 +158,7 @@ export const beginExternalAgeVerification = onCall(
         method: "age_check",
         threshold: 18,
         product: config.product,
+        environment: configuredEnvironment(),
         state_hash: hash(state),
         nonce,
         code_verifier: codeVerifier,
@@ -232,7 +239,19 @@ export const oneIdAgeResult = async (
   return {verified, transactionReference: `oneid:${hash(`${nonce}:${tokens.idToken}`)}`};
 };
 
-const callbackPage = (message: string): string => `<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1"><title>PK Spot age verification</title><main><h1>PK Spot</h1><p>${message}</p><p><a href="https://pkspot.app/settings/profile?oneid=return">Return to PK Spot</a></p></main>`;
+export const externalVerificationReturnUrl = (): string => {
+  const candidate = oneIdReturnUrl.value() || "https://pkspot.app/settings/profile?oneid=return";
+  try {
+    const url = new URL(candidate);
+    const local = configuredEnvironment() === "sandbox" && url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname);
+    if ((url.protocol === "https:" || local) && !url.username && !url.password) return url.toString();
+  } catch { /* Fall back to a known app URL, never reflect callback input. */ }
+  return "https://pkspot.app/settings/profile?oneid=return";
+};
+const callbackPage = (message: string): string => {
+  const href = externalVerificationReturnUrl().replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+  return `<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1"><title>PK Spot age verification</title><main><h1>PK Spot</h1><p>${message}</p><p><a href="${href}">Return to PK Spot</a></p></main>`;
+};
 
 export const oneIdAgeVerificationCallback = onRequest(
   {secrets: [oneIdClientSecret], timeoutSeconds: 60},
@@ -279,6 +298,7 @@ export const oneIdAgeVerificationCallback = onRequest(
       }
       const code = requiredQueryString(request.query["code"], "code");
       const config = oneIdConfiguration();
+      if (claimed.environment !== configuredEnvironment() || !sandboxUserAllowed(claimed.uid)) throw new HttpsError("failed-precondition", "Verification environment changed. Please start again.");
       if ((claimed.product ?? "age_check") !== config.product) throw new HttpsError("failed-precondition", "Verification configuration changed. Please start again.");
       const result = await oneIdAgeResult(config, claimed.nonce, code, claimed.code_verifier);
       const evaluatedAt = admin.firestore.Timestamp.now();
@@ -303,6 +323,14 @@ export const oneIdAgeVerificationCallback = onRequest(
         const user = await transaction.get(userRef);
         if (!user.exists) throw new HttpsError("permission-denied", "User account unavailable.");
         if (latestAttempt.data()?.["expires_at"]?.toMillis() <= Date.now()) throw new HttpsError("failed-precondition", "This verification attempt expired.");
+        if (claimed.environment === "sandbox") {
+          // Test evidence never enters the live policy or its approval audit trail.
+          transaction.update(attemptRef, {
+            consumed_at: evaluatedAt, outcome: result.verified ? "sandbox_verified" : "sandbox_not_verified",
+            code_verifier: admin.firestore.FieldValue.delete(), nonce: admin.firestore.FieldValue.delete(),
+          });
+          return;
+        }
         const previous = user.data()?.["age_policy"] as UserAgePolicySchema | undefined;
         const previousId = previous?.assurance?.verification_id;
         const apply = shouldApplyOneIdPolicy(previous, result.verified);
@@ -336,7 +364,7 @@ export const oneIdAgeVerificationCallback = onRequest(
         }
       }));
       externalVerificationLog("callback", "succeeded");
-      response.status(200).type("html").send(callbackPage(result.verified ? "Your 18+ result was recorded." : "OneID could not confirm that you are 18 or older."));
+      response.status(200).type("html").send(callbackPage(claimed.environment === "sandbox" ? "Sandbox test completed. Your real age eligibility has not changed." : result.verified ? "Your 18+ result was recorded." : "OneID could not confirm that you are 18 or older."));
       return;
     } catch (error) {
       externalVerificationLog("callback", "failed", error);

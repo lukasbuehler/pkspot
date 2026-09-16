@@ -1,5 +1,6 @@
 import Capacitor
 import Foundation
+import UIKit
 import CryptoKit
 import DeviceCheck
 
@@ -12,10 +13,27 @@ public class AgeAssurancePlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "AgeAssurancePlugin"
     public let jsName = "AgeAssurance"
     public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "openVerificationBrowser", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getAgeSignal", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getAppleAttestKey", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getBoundAppleAgeSignal", returnType: CAPPluginReturnPromise)
     ]
+
+    @objc func openVerificationBrowser(_ call: CAPPluginCall) {
+        guard let raw = call.getString("url"), let url = URL(string: raw),
+              url.scheme == "https", url.user == nil, url.password == nil,
+              ["controller.myoneid.co.uk", "controller.sandbox.myoneid.co.uk"].contains(url.host ?? "") else {
+            call.reject("Invalid verification URL", "invalid-argument")
+            return
+        }
+        DispatchQueue.main.async {
+            // OneID requires the default browser, not SFSafariViewController.
+            UIApplication.shared.open(url, options: [:]) { opened in
+                if opened { call.resolve() }
+                else { call.reject("Could not open verification browser", "unavailable") }
+            }
+        }
+    }
 
     private var boundRequestRunning = false
 

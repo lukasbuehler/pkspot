@@ -8417,6 +8417,11 @@
         <source>This verification expired. Please start a new check.</source>
       </segment>
     </unit>
+    <unit id="8633874041147510496">
+      <segment>
+        <source>Sandbox test completed. Your real age eligibility has not changed.</source>
+      </segment>
+    </unit>
     <unit id="8637857575623979078">
       <segment>
         <source> No edits yet for this spot. </source>

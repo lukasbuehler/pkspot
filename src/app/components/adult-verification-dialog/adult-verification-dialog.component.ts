@@ -5,9 +5,8 @@ import {MatButtonModule} from "@angular/material/button";
 import {MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle} from "@angular/material/dialog";
 import {MatIcon} from "@angular/material/icon";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
-import {Browser} from "@capacitor/browser";
 import {Capacitor} from "@capacitor/core";
-import {AgeAssuranceService, ExternalVerificationStatus, externalVerificationRequest} from "../../services/age-assurance.service";
+import {AgeAssuranceService, ExternalVerificationStatus} from "../../services/age-assurance.service";
 import {PlatformService} from "../../services/platform.service";
 
 type ProviderId = "google_play" | "apple" | "oneid";
@@ -75,6 +74,8 @@ export class AdultVerificationDialogComponent {
 
   readonly statusMessage = computed(() => {
     switch (this.externalStatus()) {
+      case "sandbox_verified":
+      case "sandbox_not_verified": return $localize`Sandbox test completed. Your real age eligibility has not changed.`;
       case "pending": return $localize`Complete the check with OneID, then check the result here. You can close this window and return later.`;
       case "processing": return $localize`Your verification is being processed. Please wait a moment.`;
       case "verified": return $localize`OneID confirmed your 18+ result. Your account’s existing participation rules still apply.`;
@@ -131,7 +132,7 @@ export class AdultVerificationDialogComponent {
       const attempt = await this.ageAssurance.beginOneIdAgeVerification();
       this.externalStatus.set("pending");
       if (Capacitor.isNativePlatform()) {
-        await this.featureTelemetry.run("age_verification", "open_provider", () => externalVerificationRequest(Browser.open({url: attempt.verification_url})));
+        await this.ageAssurance.openOneIdBrowser(attempt.verification_url);
         this.pollUntil = Date.now() + 90_000;
         void this.refreshStatus();
       } else if (typeof window !== "undefined") {

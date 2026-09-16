@@ -32,6 +32,7 @@ interface AgeAssurancePlugin {
     signal: PlatformAgeSignal;
     integrityToken: string;
   }>;
+  openVerificationBrowser(input: {url: string}): Promise<void>;
   openPlayStoreListing(): Promise<void>;
 }
 
@@ -77,7 +78,7 @@ export interface ExternalAgeVerificationAttempt {
   verification_url: string;
 }
 
-export type ExternalVerificationStatus = "idle" | "pending" | "processing" | "verified" | "not_verified" | "cancelled" | "expired" | "failed";
+export type ExternalVerificationStatus = "sandbox_verified" | "sandbox_not_verified" | "idle" | "pending" | "processing" | "verified" | "not_verified" | "cancelled" | "expired" | "failed";
 
 /** A lost response does not imply the server stopped. Recover through the status endpoint. */
 export async function externalVerificationRequest<T>(request: Promise<T>): Promise<T> {
@@ -158,6 +159,11 @@ export class AgeAssuranceService {
       return;
     }
     await NativeAgeAssurance.openPlayStoreListing();
+  }
+
+  async openOneIdBrowser(url: string): Promise<void> {
+    return this.telemetry.run("age_verification", "open_provider", () => externalVerificationRequest(
+      NativeAgeAssurance.openVerificationBrowser({url})));
   }
 
   async externalVerificationAvailability(): Promise<ExternalAgeVerificationAvailability> {

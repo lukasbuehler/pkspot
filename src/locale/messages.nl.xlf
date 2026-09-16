@@ -3876,6 +3876,12 @@
         <target>Deze verificatie is verlopen. Start een nieuwe controle.</target>
       </segment>
     </unit>
+    <unit id="8633874041147510496">
+      <segment state="initial">
+        <source>Sandbox test completed. Your real age eligibility has not changed.</source>
+        <target>Sandboxtest voltooid. Je daadwerkelijke leeftijdsstatus is niet gewijzigd.</target>
+      </segment>
+    </unit>
     <unit id="8637857575623979078">
       <segment state="initial">
         <source> No edits yet for this spot. </source>

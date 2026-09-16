@@ -1154,20 +1154,26 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
       document countries/types, method routing and fallback availability for this client.
       References: https://docs.oneid.uk/services/age-overview,
       https://docs.oneid.uk/services/age-assure, https://docs.oneid.uk/guides/errors.
-- [ ] In OneID Console, replace the earlier `pkfrspot` return URL with
-      `https://europe-west1-parkour-base-project.cloudfunctions.net/oneIdAgeVerificationCallback`.
-      The maintainer selected `parkour-base-project`, created `ONEID_CLIENT_SECRET`,
-      and supplied sandbox client ID `871bf6d5-ee46-4a29-8f2f-1488bdd3930d`.
-      Local ignored project configuration has that client, callback and sandbox
-      environment; both enablement flags remain false. Confirm the selected product
-      before setting `ONEID_PRODUCT`. The generated Console URL included `profile`,
-      `age_over_21` and `age_over_25`; the app must still request only the intended
-      18+ scopes and freshly generated state/nonce/PKCE values.
-      Because this is the live Firebase project, isolate sandbox users/results
-      before enabling: simulated OneID results must not unlock real adult features.
+- [ ] Before enabling the sandbox on `parkour-base-project`, set
+      `ONEID_SANDBOX_TEST_UIDS` to the explicitly selected Firebase Auth test UIDs.
+      The registered client is Age Check, the maintainer has corrected the return
+      URL to `https://europe-west1-parkour-base-project.cloudfunctions.net/oneIdAgeVerificationCallback`,
+      and the secret is created. Local project configuration uses this callback,
+      the supplied client ID, `ONEID_PRODUCT=age_check` and sandbox environment.
+      Sandbox attempts are server-tagged and cannot update live age policy or
+      approval audit records. Changing environments during an attempt rejects it.
+      Set `ONEID_RETURN_URL` to the intended development UI; locally it is
+      `http://localhost:4200/settings/profile?oneid=return`. On a device, use a
+      reachable HTTPS development URL. Both enabling flags remain false pending
+      the test UID selection and a deliberate targeted deployment.
+- [ ] Build updated native apps before testing OneID on iOS/Android. The existing
+      AgeAssurance bridge now opens the default system browser using UIApplication
+      and ACTION_VIEW, not an in-app browser. Validate browser opening and return
+      links on real devices; Angular/unit checks do not compile or validate native code.
 - [ ] Register the exact HTTPS `oneIdAgeVerificationCallback` redirect URL and
-      validate discovery/token/UserInfo/JWKS endpoints against the pinned issuer
-      origin. Review any extra provider origin explicitly. Verify nonce, PKCE,
+      validate any future discovery endpoint changes against the pinned issuer
+      origin. Public sandbox metadata was checked: token `/token`, UserInfo `/userinfo`,
+      JWKS `/keys`, S256 and PS256 match the implementation. Verify nonce, PKCE,
       returned fields, consent screens and method switching against OneID sandbox;
       local `npm run test:emulator:oneid` uses simulated responses and test keys.
 - [ ] Deploy `externalAgeVerificationStatus`, availability/start/callback/cleanup
