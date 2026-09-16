@@ -84,7 +84,6 @@ function writeWranglerConfig() {
           directory: "browser",
         },
         observability: { enabled: true },
-        limits: { cpu_ms: 1000 },
       },
       null,
       2

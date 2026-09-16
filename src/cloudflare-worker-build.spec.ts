@@ -17,5 +17,6 @@ describe("Cloudflare Worker build", () => {
     );
     expect(buildScript).toContain('main: "worker.mjs"');
     expect(buildScript).toContain('directory: "browser"');
+    expect(buildScript).not.toContain("cpu_ms");
   });
 });
