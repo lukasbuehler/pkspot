@@ -80,7 +80,7 @@ import { LocaleCode, MediaType } from "../../../db/models/Interfaces";
 import { MarkerSchema } from "../map/markers/map-marker.model";
 import { createUserReference, generateUUID } from "../../../scripts/Helpers";
 import { languageCodes } from "../../../scripts/Languages";
-import JSZip from "jszip";
+import JSZip from "jszip/dist/jszip.min.js";
 import { MapsApiService } from "../../services/maps-api.service";
 import { AmenitiesMap } from "../../../db/schemas/Amenities";
 import { ImportsService } from "../../services/firebase/firestore/imports.service";

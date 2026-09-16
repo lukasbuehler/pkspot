@@ -267,13 +267,6 @@
               "outputPath": "dist/pkspot-cloudflare",
               "outputMode": "server",
               "server": "src/main.cloudflare.ts",
-              "externalDependencies": [
-                "axios",
-                "jszip",
-                "pngjs",
-                "qrcode",
-                "typesense"
-              ],
               "ssr": {
                 "entry": "server.cloudflare.ts",
                 "platform": "neutral"

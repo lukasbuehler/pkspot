@@ -61,7 +61,7 @@ export class EventQrDialogComponent {
     if (!dataUrl) return;
     const anchor = document.createElement("a");
     anchor.href = dataUrl;
-    anchor.download = `${safeFileName(this.data.event.slug ?? this.data.event.name)}-pkspot-qr.png`;
+    anchor.download = `${safeFileName(this.data.event.slug ?? this.data.event.name)}-pkspot-qr.svg`;
     anchor.click();
     this._analytics.trackEvent("event_qr_downloaded", {
       event_id: this.data.event.id,
@@ -70,13 +70,15 @@ export class EventQrDialogComponent {
 
   private async _generateQrCode(): Promise<void> {
     try {
-      const { toDataURL } = await import("qrcode");
+      const { toString } = await import("qrcode/lib/browser.js");
+      const svg = await toString(this.data.url, {
+        errorCorrectionLevel: "M",
+        margin: 2,
+        type: "svg",
+        width: 640,
+      });
       this.qrDataUrl.set(
-        await toDataURL(this.data.url, {
-          errorCorrectionLevel: "M",
-          margin: 2,
-          width: 640,
-        }),
+        `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
       );
     } catch (error) {
       console.error("Could not generate event QR code", error);

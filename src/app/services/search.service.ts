@@ -1,5 +1,5 @@
 import { Injectable, LOCALE_ID, inject } from "@angular/core";
-import { SearchClient } from "typesense";
+import { TypesenseSearchClient } from "./typesense-search-client";
 import { environment } from "../../environments/environment.default";
 import { MapsApiService } from "./maps-api.service";
 import { AmenitiesMap } from "../../db/schemas/Amenities";
@@ -63,7 +63,7 @@ export class SearchService {
   private readonly SPOT_GROUP_LIMIT = 5;
   private readonly SPOT_OVERVIEW_GROUP_LIMIT = 1;
 
-  private readonly client: SearchClient = new SearchClient({
+  private readonly client = new TypesenseSearchClient({
     nodes: [
       {
         host: environment.keys.typesense.host,
