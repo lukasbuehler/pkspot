@@ -1528,6 +1528,12 @@ async function deliverIntent(
   }
 
   const db = admin.firestore();
+  if (intent.payload["session_id"]) {
+    const { plannedSessionReminderAllowed } = await import("./plannedSessionFunctions");
+    if (!await plannedSessionReminderAllowed(intent.recipient_uid, intent.payload["session_id"], intent.payload["session_revision"], intent.payload["session_update"] === "true")) {
+      return { status: "skipped", deliveryCount: 0, reason: "session_unavailable" };
+    }
+  }
   if (intent.type === "community_event") {
     const eventId = intent.payload["event_id"];
     const eventSnapshot = eventId
@@ -1884,6 +1890,18 @@ export function notificationCopy(
   const p = intent.payload;
   const language = pushLanguage(locale);
   const text = PUSH_TEXT[language];
+  if (p["session_id"]) {
+    // No names, location or attendance are sent to the lock screen.
+    const bodies: Record<string, [string, string]> = {
+      en: ["A saved session starts soon. Open PK Spot for details.", "A saved session has changed. Open PK Spot for details."],
+      de: ["Eine gespeicherte Session beginnt bald. Details findest du in PK Spot.", "Eine gespeicherte Session wurde geändert. Details findest du in PK Spot."],
+      fr: ["Une session enregistrée commence bientôt. Ouvre PK Spot pour les détails.", "Une session enregistrée a changé. Ouvre PK Spot pour les détails."],
+      it: ["Una sessione salvata inizia a breve. Apri PK Spot per i dettagli.", "Una sessione salvata è cambiata. Apri PK Spot per i dettagli."],
+      es: ["Una sesión guardada empieza pronto. Abre PK Spot para ver los detalles.", "Una sesión guardada ha cambiado. Abre PK Spot para ver los detalles."],
+      nl: ["Een opgeslagen sessie begint binnenkort. Open PK Spot voor details.", "Een opgeslagen sessie is gewijzigd. Open PK Spot voor details."],
+    };
+    return { title: "PK Spot", body: (bodies[language] ?? bodies["en"])[p["session_update"] === "true" ? 1 : 0] };
+  }
   if (intent.type === "follow_request") {
     return {
       title: text.followRequestTitle(p["requester_name"]),

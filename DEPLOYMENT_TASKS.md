@@ -1430,3 +1430,40 @@ The quality fixes can ship independently.
       Confirm notification images stay bounded to a 1024 px longest edge; use a
       heap/profile capture to identify any other concrete allocation source
       before changing WebView cache behavior or image rendering.
+
+### Planned training sessions (disabled until coordinated validation)
+
+The new `planned_sessions` flow is separate from legacy Events and completed
+SessionRecords. All environment flags and `PLANNED_SESSIONS_ENABLED` default to
+false. Local implementation does not enable production session planning.
+
+- [ ] Deploy the additive `planned_sessions` and `session_plans` indexes and
+      server-only rules first. Verify the collection-group `sessionId` index is
+      READY. Older clients continue to use legacy Events; do not copy private
+      plans into `events`, `event_discovery`, Typesense, or sitemap exports.
+- [ ] Deploy `plannedSessions`, `schedulePlannedSessionReminder`,
+      `refreshPlannedSessionPlans`, `sendDueNotificationIntents` and `onImmediateNotificationIntentCreate`
+      with their new send-time access checks, and `cleanupOnUserDelete`. Keep
+      `PLANNED_SESSIONS_ENABLED=false` until the non-production checks pass.
+- [ ] Test authenticated callables with real App Check in a non-production
+      project, including private invitation/revocation, reciprocal blocks,
+      anonymous community link views, private saves, explicit visible attendance,
+      edits/cancellation and account deletion. `npm run
+      test:emulator:planned-sessions` tests handler transactions and Firestore
+      read denial; it does not attest a device or exercise a deployed callable.
+- [ ] Test reminder delivery on web, Android and iOS with notification preferences
+      enabled. Only generic copy may reach the lock screen. Check time changes,
+      cancellation, revoked invitations, deleted accounts and notification taps.
+      Native store builds may need the existing `/events` link rules adjusted if
+      they constrain route depth. No check-in or activity is created by saving.
+- [ ] Before enabling community discovery, align the session adult-evidence
+      predicate with the reviewed OneID policy. OneID is deliberately not accepted
+      by the new authoring predicate until its existing finalization tasks pass.
+- [ ] Review the limited first session release: one existing Spot per session,
+      no recurrence, no organization-managed minor rosters, at most 50 private
+      invitations, and support contact rather than a dedicated session report
+      intake. Finish scoped session reporting and moderation before enabling
+      broader community discovery. Friendship never implicitly reveals attendance.
+- [ ] After these checks, enable the server parameter before enabling
+      `features.plannedSessions` in the intended clients. Verify the updated UI
+      and private save/check-in/activity flow locally before any web release.

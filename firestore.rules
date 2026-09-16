@@ -1401,6 +1401,18 @@ service cloud.firestore {
       }
     }
     
+    // Server-only planned meetings. Public links use a redacted callable;
+    // no client (including an older app) may enumerate these documents.
+    match /planned_sessions/{sessionId}/{document=**} {
+      allow read, write: if false;
+    }
+    match /users/{uid}/session_plans/{sessionId} {
+      allow read, write: if false;
+    }
+    match /planned_session_limits/{uid} {
+      allow read, write: if false;
+    }
+
     match /users/{userId} 
     {
       // Released clients still read this legacy profile document. The

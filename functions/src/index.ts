@@ -312,3 +312,5 @@ export {
 
 export { queueSpotPlaceNames, queueEventPlaceNames, enrichEntityPlaceNames,
   publishEntityPlaceNames, backfillEntityPlaceNames } from "./entityPlaceLocalization";
+
+export { plannedSessions, schedulePlannedSessionReminder, refreshPlannedSessionPlans } from "./plannedSessionFunctions";

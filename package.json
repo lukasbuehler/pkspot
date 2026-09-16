@@ -79,7 +79,8 @@
     "notification:test": "npm --prefix functions run build && node scripts/send_test_notification.js",
     "test:notification-cli": "node --test scripts/send_test_notification.test.js",
     "test:emulator:community-localization": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only firestore --project demo-pkspot \"node scripts/emulator_run_community_place_localization.js\"",
-    "test:emulator:entity-localization": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only firestore --project demo-pkspot \"node scripts/emulator_run_entity_place_localization.js\""
+    "test:emulator:entity-localization": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only firestore --project demo-pkspot \"node scripts/emulator_run_entity_place_localization.js\"",
+    "test:emulator:planned-sessions": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only auth,firestore --project demo-pkspot \"node --test scripts/test-planned-sessions.cjs\""
   },
   "private": true,
   "dependencies": {

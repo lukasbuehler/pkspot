@@ -1130,3 +1130,24 @@ variables, retry/idempotency behavior, compatibility impact, and repair trail.
 | `onContactMessageEmailCreate` | contact creation trigger | Sends support email through Resend; records delivery state in `contact_email_delivery`. Pending provider setup/deployment. |
 | `beginAppleAgeAssurance` | authenticated iOS App Check callable | Creates a short-lived age challenge and checks registered App Attest key state. Disabled pending device validation. |
 | `finishAppleAgeAssurance` | authenticated iOS App Check callable | Verifies the bound App Attest response, consumes the challenge, and stores only key/counter and derived policy/evidence. Disabled pending device validation. |
+
+### Planned sessions
+
+Planned meetings use `planned_sessions/{id}` and private
+`users/{uid}/session_plans/{id}` indexes, separate from performed SessionRecords
+and the legacy Event model. The `plannedSessions` callable owns all reads and
+writes. Every private read checks an explicit invitation and reciprocal blocks;
+community link reads expose only meeting details. Only verified adults may use
+community discovery or opt into its visible attendance. Private attendance is
+shared with the host only after an explicit opt-in. Invitations require mutual
+following and do not imply attendance. Ending mutual following also ends private
+invitation access.
+
+Private saves have no public counters or host notifications. The reminder trigger
+queues generic notification intents from the private plan. The dispatcher checks
+access, current revision, cancellation, participation and reminder preferences
+again before sending. Edits refresh private indexes and queue generic updates;
+account deletion removes owned meetings and private plans. Analytics redact
+session-specific routes and suppress save-outcome events. Planning and saving do
+not create check-ins, Spot activity statistics or activity-log entries; the log
+editor only offers a user-confirmed prefill.

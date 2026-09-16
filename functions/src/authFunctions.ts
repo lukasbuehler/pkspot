@@ -16,6 +16,9 @@ export const cleanupOnUserDelete = functions.auth
 
     console.log(`Cleaning up data for deleted user ${userId}`);
 
+    const { deletePlannedSessionData } = await import("./plannedSessionFunctions");
+    await deletePlannedSessionData(userId);
+
     // Batch delete logic for followers and following
     // Note: If a user has thousands of followers, this might need chunking,
     // but for now we'll do simpler batch processing.
