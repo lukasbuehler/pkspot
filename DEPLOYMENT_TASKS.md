@@ -1146,6 +1146,11 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
       use `oneid:provider_threshold:server_to_server_oidc:v3` and record the product,
       not a guessed underlying method. Reviewed v2 bank decisions remain accepted.
       Old v1 approvals require re-verification.
+- [ ] Validate the sandbox client after switching its product to `age_verification`
+      in both OneID Console and `ONEID_PRODUCT`. Requests remain limited to
+      `openid age_over_18 product:age_verification`. Allowlisted sandbox testers
+      have 100 starts per UTC day with a 10-second cooldown; production retains
+      five starts per UTC day and a 60-second cooldown.
 - [ ] Confirm coverage/pricing in the OneID account. The published age overview
       lists UK bank, international eID and wallet for Age Check, adds mobile networks
       for Age Verification, and the Age Assure page documents document scanning.

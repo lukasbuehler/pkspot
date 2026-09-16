@@ -156,12 +156,21 @@ test('sandbox results are isolated and only allowlisted accounts can start', asy
     assert.equal((await db.collection(`users/${uid}/age_assurance_records`).get()).size, 0);
     assert.deepEqual(await externalAgeVerificationStatus.run({auth: {uid}}), {status: confirmed ? 'sandbox_verified' : 'sandbox_not_verified'});
   }
+  const day = Math.floor(Date.now() / 86400000);
+  const rateRef = db.doc('age_assurance_external_limits/sandbox-tester');
+  await rateRef.set({day, count: 5, last_started_ms: Date.now() - 11_000});
+  await begin('sandbox-tester');
+  await assert.rejects(beginExternalAgeVerification.run({auth: {uid: 'sandbox-tester'}, data: {provider: 'oneid'}}), {code: 'resource-exhausted'});
+  await rateRef.set({day, count: 100, last_started_ms: 0});
+  await assert.rejects(beginExternalAgeVerification.run({auth: {uid: 'sandbox-tester'}, data: {provider: 'oneid'}}), {code: 'resource-exhausted'});
   await begin('sandbox-tester-2').then(() => assert.fail('not allowlisted'), error => assert.equal(error.code, 'permission-denied'));
   process.env.ONEID_ENVIRONMENT = 'production';
   issuer = 'https://controller.myoneid.co.uk';
 });
 test('authenticated start is rate limited and requires method approval', async () => {
   await begin('rate');
+  await assert.rejects(beginExternalAgeVerification.run({auth: {uid: 'rate'}, data: {provider: 'oneid'}}), {code: 'resource-exhausted'});
+  await db.doc('age_assurance_external_limits/rate').set({day: Math.floor(Date.now() / 86400000), count: 5, last_started_ms: 0});
   await assert.rejects(beginExternalAgeVerification.run({auth: {uid: 'rate'}, data: {provider: 'oneid'}}), {code: 'resource-exhausted'});
   process.env.ONEID_AGE_CHECK_METHOD_APPROVED = 'false';
   await assert.rejects(beginExternalAgeVerification.run({auth: {uid: 'other'}, data: {provider: 'oneid'}}), {code: 'failed-precondition'});

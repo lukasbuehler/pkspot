@@ -138,7 +138,15 @@ export const beginExternalAgeVerification = onCall(
       const rate = (await transaction.get(rateRef)).data();
       const day = Math.floor(now.toMillis() / 86400000);
       const count = rate?.["day"] === day ? Number(rate["count"]) : 0;
-      if (count >= 5 || now.toMillis() - Number(rate?.["last_started_ms"] ?? 0) < 60_000) {
+      // Sandbox is restricted to explicitly allowlisted testers and never grants
+      // eligibility. Permit repeated integration tests without weakening production.
+      const sandbox = configuredEnvironment() === "sandbox";
+      const dailyLimit = sandbox ? 100 : 5;
+      const cooldownMs = sandbox ? 10_000 : 60_000;
+      if (count >= dailyLimit) {
+        throw new HttpsError("resource-exhausted", "Daily age verification limit reached. Please try again tomorrow.");
+      }
+      if (now.toMillis() - Number(rate?.["last_started_ms"] ?? 0) < cooldownMs) {
         throw new HttpsError("resource-exhausted", "Please wait before starting another age check.");
       }
       // A fresh start supersedes an abandoned journey. A late callback must not
