@@ -1140,8 +1140,9 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
       scopes. The product's default data may differ: verify the actual response and
       do not silently broaden scopes to make a method work.
       `ONEID_AGE_CHECK_METHOD_APPROVED` retains its parameter name for compatibility,
-      but now approves the configured journey, not a bank-only method. Keep it and
-      `ONEID_AGE_VERIFICATION_ENABLED` false until vendor checks pass. New decisions
+      but now approves the configured journey, not a bank-only method. For production
+      verification, keep it and `ONEID_AGE_VERIFICATION_ENABLED` false until vendor
+      checks pass. The isolated, UID-restricted sandbox is enabled. New decisions
       use `oneid:provider_threshold:server_to_server_oidc:v3` and record the product,
       not a guessed underlying method. Reviewed v2 bank decisions remain accepted.
       Old v1 approvals require re-verification.
@@ -1154,49 +1155,45 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
       document countries/types, method routing and fallback availability for this client.
       References: https://docs.oneid.uk/services/age-overview,
       https://docs.oneid.uk/services/age-assure, https://docs.oneid.uk/guides/errors.
-- [ ] Before enabling the sandbox on `parkour-base-project`, set
-      `ONEID_SANDBOX_TEST_UIDS` to the explicitly selected Firebase Auth test UIDs.
-      The registered client is Age Check, the maintainer has corrected the return
-      URL to `https://europe-west1-parkour-base-project.cloudfunctions.net/oneIdAgeVerificationCallback`,
-      and the secret is created. Local project configuration uses this callback,
-      the supplied client ID, `ONEID_PRODUCT=age_check` and sandbox environment.
-      Sandbox attempts are server-tagged and cannot update live age policy or
-      approval audit records. Changing environments during an attempt rejects it.
-      Set `ONEID_RETURN_URL` to the intended development UI; locally it is
-      `http://localhost:4200/settings/profile?oneid=return`. On a device, use a
-      reachable HTTPS development URL. Both enabling flags remain false pending
-      the test UID selection and a deliberate targeted deployment.
+- [ ] Complete an authenticated OneID sandbox journey from the local development
+      UI using the selected tester account. Test both Model Bank age outcomes,
+      cancellation and reconnect. Confirm real age policy and approval records remain
+      unchanged. The deployed return link points to
+      `http://localhost:4200/settings/profile?oneid=return`; set a reachable HTTPS
+      development URL before device testing. This is provider validation still to do,
+      not implied by successful deployment or unauthenticated endpoint checks.
 - [ ] Build updated native apps before testing OneID on iOS/Android. The existing
       AgeAssurance bridge now opens the default system browser using UIApplication
       and ACTION_VIEW, not an in-app browser. Validate browser opening and return
       links on real devices; Angular/unit checks do not compile or validate native code.
-- [ ] Register the exact HTTPS `oneIdAgeVerificationCallback` redirect URL and
-      validate any future discovery endpoint changes against the pinned issuer
+- [ ] Validate any future discovery endpoint changes against the pinned issuer
       origin. Public sandbox metadata was checked: token `/token`, UserInfo `/userinfo`,
       JWKS `/keys`, S256 and PS256 match the implementation. Verify nonce, PKCE,
       returned fields, consent screens and method switching against OneID sandbox;
       local `npm run test:emulator:oneid` uses simulated responses and test keys.
-- [ ] Deploy `externalAgeVerificationStatus`, availability/start/callback/cleanup
-      functions, the affected policy consumers and Firestore rules before the new
-      client. Test cancelled/expired/interrupted journeys, offline/reconnect, app
+- [ ] Before production verification, deploy the affected policy consumers and
+      Firestore rules. The five OneID sandbox functions are deployed; the production
+      consumers/rules were deliberately outside that deployment. Test app
       backgrounding and returning through `/settings/profile?oneid=return` on web,
-      Android and iOS. The return URL contains no result or attempt credentials;
-      the client fetches status through an owner-only App Check callable. Verify
-      universal/app links and locale handling on signed devices.
+      Android and iOS. The client fetches results through an owner-only callable;
+      the return URL itself never grants eligibility.
 - [ ] Verify Cloud Logging entries for each backend stage and consent-gated client
       failure telemetry. Application logs contain only stage/outcome/safe error codes.
       Review infrastructure request logs separately: callback query strings contain
       temporary codes/state and must be excluded/redacted from retained request logs
       before enabling live verification. Confirm provider retention and PK Spot audit
       retention/revocation policy with the broader safety release checklist.
-- [ ] Bind the already-created `ONEID_CLIENT_SECRET` at deployment. Set
-      `ONEID_CLIENT_ID`, `ONEID_REDIRECT_URI`, `ONEID_PRODUCT`, and `ONEID_ENVIRONMENT=sandbox`
-      as server-side Function parameters only; never put any of them in Angular
-      environments, Firestore, logs, or source control. Deploy the Functions
-      before a client release, then repeat the sandbox flow with a test account.
-      Success condition: a signed OIDC ID token, matching issuer/audience/nonce,
-      one-time PKCE code, matching opaque state, and authoritative userinfo
-      result are required; the redirect by itself changes nothing.
+- [ ] Before enabling production verification, replace sandbox credentials with
+      a separately approved production client/secret and repeat the complete flow.
+      The deployed sandbox start/callback already bind `ONEID_CLIENT_SECRET` version 1.
+- [ ] Resolve unrelated `STRIPE_SECRET_KEY` discovery before a normal full-entry-point
+      Functions deploy, or use a narrowly scoped deployment entry point. The sandbox
+      deployment used a temporary package with the compiled Functions output and a
+      main entry that initializes Admin/global europe-west1 options and exports only
+      availability, start, status, callback and cleanup from
+      `lib/functions/src/externalAgeVerificationFunctions.js`. Its deploy filter named
+      exactly those five functions. Do not create dummy Stripe secrets or deploy shop
+      functions merely to unblock OneID.
 - [ ] Verify the OneID callback rejects unknown, expired, owned-by-another,
       mismatched-state, mismatched-nonce, replayed, duplicate, invalid-signature,
       and failed-token-exchange responses. Confirm a duplicate completed callback
