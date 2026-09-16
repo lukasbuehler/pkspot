@@ -1154,6 +1154,17 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
       document countries/types, method routing and fallback availability for this client.
       References: https://docs.oneid.uk/services/age-overview,
       https://docs.oneid.uk/services/age-assure, https://docs.oneid.uk/guides/errors.
+- [ ] In OneID Console, replace the earlier `pkfrspot` return URL with
+      `https://europe-west1-parkour-base-project.cloudfunctions.net/oneIdAgeVerificationCallback`.
+      The maintainer selected `parkour-base-project`, created `ONEID_CLIENT_SECRET`,
+      and supplied sandbox client ID `871bf6d5-ee46-4a29-8f2f-1488bdd3930d`.
+      Local ignored project configuration has that client, callback and sandbox
+      environment; both enablement flags remain false. Confirm the selected product
+      before setting `ONEID_PRODUCT`. The generated Console URL included `profile`,
+      `age_over_21` and `age_over_25`; the app must still request only the intended
+      18+ scopes and freshly generated state/nonce/PKCE values.
+      Because this is the live Firebase project, isolate sandbox users/results
+      before enabling: simulated OneID results must not unlock real adult features.
 - [ ] Register the exact HTTPS `oneIdAgeVerificationCallback` redirect URL and
       validate discovery/token/UserInfo/JWKS endpoints against the pinned issuer
       origin. Review any extra provider origin explicitly. Verify nonce, PKCE,
@@ -1172,7 +1183,7 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
       temporary codes/state and must be excluded/redacted from retained request logs
       before enabling live verification. Confirm provider retention and PK Spot audit
       retention/revocation policy with the broader safety release checklist.
-- [ ] Store `ONEID_CLIENT_SECRET` as a Firebase Functions secret. Set
+- [ ] Bind the already-created `ONEID_CLIENT_SECRET` at deployment. Set
       `ONEID_CLIENT_ID`, `ONEID_REDIRECT_URI`, `ONEID_PRODUCT`, and `ONEID_ENVIRONMENT=sandbox`
       as server-side Function parameters only; never put any of them in Angular
       environments, Firestore, logs, or source control. Deploy the Functions
