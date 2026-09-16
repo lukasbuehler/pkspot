@@ -190,13 +190,23 @@ or operate the App Hosting production rollout.
       Verify its `workers.dev` URL first, including every locale's initial HTML,
       canonical and social metadata, hashed assets, 404 status, Firebase reads,
       and App Check.
-- [ ] Replace the existing `edge-test.pkspot.app` CNAME to
-      `origin.pkspot.app` with a proxied placeholder origin, then route
-      `edge-test.pkspot.app/*` to `pkspot-web`. The Worker redirects unprefixed
-      paths by `Accept-Language` and dispatches locale-prefixed paths to the
-      matching Angular SSR bundle. This avoids the previous Cloudflare-to-App-
-      Hosting TLS hop. Do not change the apex `pkspot.app` records during the
-      trial.
+- [ ] Before testing browser integrations, authorize the exact trial origins.
+      Add `https://edge-test.pkspot.app` and, only while it remains useful,
+      `https://pkspot-web.lukasmc6.workers.dev` to the production browser API
+      key's website restrictions without broadening its API restrictions. Add
+      both hostnames to Firebase Authentication's authorized domains if sign-in
+      will be tested there. The reCAPTCHA Enterprise key already permits
+      `edge-test.pkspot.app` when its verified domain list contains `pkspot.app`;
+      add the exact `pkspot-web.lukasmc6.workers.dev` hostname separately for
+      App Check testing on the Worker preview. Do not disable domain
+      verification or authorize all of `workers.dev`.
+- [ ] Remove the existing `edge-test.pkspot.app` CNAME to `origin.pkspot.app`,
+      then attach `edge-test.pkspot.app` to `pkspot-web` as a Cloudflare Worker
+      Custom Domain. Cloudflare should create the replacement DNS record and
+      certificate directly for the Worker. Verify the certificate is active,
+      unprefixed paths redirect by `Accept-Language`, and locale-prefixed paths
+      reach the matching Angular SSR bundle. Do not change the apex
+      `pkspot.app` records during the trial.
 - [ ] Put WAF and bot rules into log-only mode first. Confirm verified search
       crawlers and social-card fetchers receive SSR HTML and public images
       without a challenge before enabling blocking or managed challenges.

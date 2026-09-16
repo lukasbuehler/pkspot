@@ -23,6 +23,10 @@ const buildScript = readFileSync(
   resolve(process.cwd(), "scripts/cloudflare-workers.mjs"),
   "utf8",
 );
+const indexHtml = readFileSync(
+  resolve(process.cwd(), "src/index.html"),
+  "utf8",
+);
 const angularWorkspace = JSON.parse(
   readFileSync(resolve(process.cwd(), "angular.json"), "utf8"),
 ) as AngularWorkspace;
@@ -46,5 +50,14 @@ describe("Cloudflare Worker build", () => {
 
     expect(cloudflareConfiguration.externalDependencies).toBeUndefined();
     expect(cloudflareConfiguration.ssr.platform).toBe("neutral");
+  });
+
+  it("keeps browser icons inside each localized build", () => {
+    expect(indexHtml).toContain('href="assets/icons/favicon-16x16.png"');
+    expect(indexHtml).toContain('href="assets/icons/apple-touch-icon.png"');
+    expect(indexHtml).toContain('href="favicon.ico"');
+    expect(indexHtml).not.toMatch(
+      /href="\/(?:assets\/icons\/)?(?:favicon|apple-touch-icon)/u,
+    );
   });
 });
