@@ -80,145 +80,6 @@
             deletion.
           </p>
 
-          <div class="account-id-card my-4">
-            <div class="account-id-card__icon" aria-hidden="true">
-              <mat-icon>badge</mat-icon>
-            </div>
-            <div>
-              <h3 class="mat-title-medium m-0" i18n="@@settings.account.userId">
-                User ID
-              </h3>
-              <p
-                class="mat-body-small m-0"
-                i18n="@@settings.account.userIdDescription"
-              >
-                Your unique account identifier.
-              </p>
-              <code class="account-id-card__value">{{
-                authService.user.uid
-              }}</code>
-            </div>
-          </div>
-
-          <section class="profile-access-card">
-            <header class="profile-access-header">
-              <h3 class="mat-h3 m-0" i18n="@@settings.profileAccess.title">
-                Profile access
-              </h3>
-              <p class="mat-body m-0" i18n="@@settings.profileAccess.description">
-                One privacy setting controls who can see your expanded profile
-                and whether new followers need your approval.
-              </p>
-            </header>
-
-            <div class="profile-access-control">
-              <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-label i18n="@@settings.profileAccess.privacy">
-                  Profile privacy
-                </mat-label>
-                <mat-select
-                  [ngModel]="profilePrivacy"
-                  (ngModelChange)="setProfilePrivacy($event)"
-                >
-                  <mat-option
-                    value="public"
-                    [disabled]="!canSelectPublicProfile"
-                  >
-                    {{ publicProfilePrivacyLabel }}
-                  </mat-option>
-                  <mat-option value="private">
-                    {{ privateProfilePrivacyLabel }}
-                  </mat-option>
-                </mat-select>
-              </mat-form-field>
-
-              @if (profilePrivacy === "public") {
-                <p
-                  class="profile-access-help mat-body-small"
-                  i18n="@@settings.profileAccess.publicHelp"
-                >
-                  Anyone can view your expanded profile and follow you without
-                  approval.
-                </p>
-              } @else {
-                <p
-                  class="profile-access-help mat-body-small"
-                  i18n="@@settings.profileAccess.privateHelp"
-                >
-                  Only approved followers can view your expanded profile.
-                </p>
-              }
-            </div>
-
-            <div class="profile-access-options">
-              <app-age-assurance-status-card />
-
-              <div class="profile-access-option">
-                <div>
-                  <h4 class="mat-title-medium m-0" i18n>
-                    Search engine discovery
-                  </h4>
-                  <p class="mat-body-small m-0 text-muted" i18n>
-                    Include this profile in PK Spot user search and public
-                    sitemaps. This is always off for children and profiles
-                    without independently checked adult eligibility.
-                  </p>
-                </div>
-                <mat-slide-toggle
-                  color="primary"
-                  [checked]="publicSearch"
-                  [disabled]="profilePrivacy !== 'public'"
-                  (change)="setPublicSearch($event.checked)"
-                  aria-label="Allow profile search indexing"
-                  i18n-aria-label
-                ></mat-slide-toggle>
-              </div>
-            </div>
-
-            @if (!ageAssurance.hasVerifiedAdultEligibility()) {
-              <div class="profile-access-eligibility">
-                <p
-                  class="mat-body-small m-0"
-                  i18n="@@settings.profileAccess.publicEligibility"
-                >
-                  Public profiles stay unavailable until the platform supplies
-                  an independently checked result establishing that this account
-                  is 18 or older. A self-declared age range is not enough.
-                </p>
-                <a mat-button routerLink="/contact" i18n>
-                  Report an incorrect age-assurance decision
-                </a>
-              </div>
-            }
-            <button
-              class="profile-access-save"
-              mat-flat-button
-              color="primary"
-              [disabled]="isSavingProfileAccess || !hasProfileAccessChanges"
-              (click)="saveProfileAccessSettings()"
-            >
-              @if(isSavingProfileAccess) {
-              <mat-spinner diameter="20" strokeWidth="2"></mat-spinner>
-              } @else {
-                <span i18n="@@settings.profileAccess.save"
-                  >Save profile access</span
-                >
-              }
-            </button>
-          </section>
-
-          <div class="my-4 p-3 rounded border">
-            <div class="d-flex justify-content-between align-items-center gap-3">
-              <div>
-                <h3 class="mat-h3 m-0" i18n>Session</h3>
-                <p class="mat-body m-0" i18n>Sign out of your account.</p>
-              </div>
-              <button mat-stroked-button color="primary" (click)="logOut()" i18n>
-                Sign out
-              </button>
-            </div>
-          </div>
-
           <!-- Email Section -->
           <div class="my-4 p-3 rounded border">
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -397,6 +258,145 @@
             }
           </div>
           }
+
+          <app-age-assurance-status-card class="my-4" />
+
+          <section class="profile-access-card">
+            <header class="profile-access-header">
+              <h3 class="mat-h3 m-0" i18n="@@settings.profileAccess.title">
+                Profile access
+              </h3>
+              <p class="mat-body m-0" i18n="@@settings.profileAccess.description">
+                One privacy setting controls who can see your expanded profile
+                and whether new followers need your approval.
+              </p>
+            </header>
+
+            <div class="profile-access-control">
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label i18n="@@settings.profileAccess.privacy">
+                  Profile privacy
+                </mat-label>
+                <mat-select
+                  [ngModel]="profilePrivacy"
+                  (ngModelChange)="setProfilePrivacy($event)"
+                >
+                  <mat-option
+                    value="public"
+                    [disabled]="!canSelectPublicProfile"
+                  >
+                    {{ publicProfilePrivacyLabel }}
+                  </mat-option>
+                  <mat-option value="private">
+                    {{ privateProfilePrivacyLabel }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              @if (profilePrivacy === "public") {
+                <p
+                  class="profile-access-help mat-body-small"
+                  i18n="@@settings.profileAccess.publicHelp"
+                >
+                  Anyone can view your expanded profile and follow you without
+                  approval.
+                </p>
+              } @else {
+                <p
+                  class="profile-access-help mat-body-small"
+                  i18n="@@settings.profileAccess.privateHelp"
+                >
+                  Only approved followers can view your expanded profile.
+                </p>
+              }
+            </div>
+
+            <div class="profile-access-options">
+              <div class="profile-access-option">
+                <div>
+                  <h4 class="mat-title-medium m-0" i18n>
+                    Search engine discovery
+                  </h4>
+                  <p class="mat-body-small m-0 text-muted" i18n>
+                    Include this profile in PK Spot user search and public
+                    sitemaps. This is always off for children and profiles
+                    without independently checked adult eligibility.
+                  </p>
+                </div>
+                <mat-slide-toggle
+                  color="primary"
+                  [checked]="publicSearch"
+                  [disabled]="profilePrivacy !== 'public'"
+                  (change)="setPublicSearch($event.checked)"
+                  aria-label="Allow profile search indexing"
+                  i18n-aria-label
+                ></mat-slide-toggle>
+              </div>
+            </div>
+
+            @if (!ageAssurance.hasVerifiedAdultEligibility()) {
+              <div class="profile-access-eligibility">
+                <p
+                  class="mat-body-small m-0"
+                  i18n="@@settings.profileAccess.publicEligibility"
+                >
+                  Public profiles stay unavailable until the platform supplies
+                  an independently checked result establishing that this account
+                  is 18 or older. A self-declared age range is not enough.
+                </p>
+                <a mat-button routerLink="/contact" i18n>
+                  Report an incorrect age-assurance decision
+                </a>
+              </div>
+            }
+            <button
+              class="profile-access-save"
+              mat-flat-button
+              color="primary"
+              [disabled]="isSavingProfileAccess || !hasProfileAccessChanges"
+              (click)="saveProfileAccessSettings()"
+            >
+              @if(isSavingProfileAccess) {
+              <mat-spinner diameter="20" strokeWidth="2"></mat-spinner>
+              } @else {
+                <span i18n="@@settings.profileAccess.save"
+                  >Save profile access</span
+                >
+              }
+            </button>
+          </section>
+
+          <div class="account-id-card my-4">
+            <div class="account-id-card__icon" aria-hidden="true">
+              <mat-icon>badge</mat-icon>
+            </div>
+            <div>
+              <h3 class="mat-title-medium m-0" i18n="@@settings.account.userId">
+                User ID
+              </h3>
+              <p
+                class="mat-body-small m-0"
+                i18n="@@settings.account.userIdDescription"
+              >
+                Your unique account identifier.
+              </p>
+              <code class="account-id-card__value">{{
+                authService.user.uid
+              }}</code>
+            </div>
+          </div>
+
+          <div class="my-4 p-3 rounded border">
+            <div class="d-flex justify-content-between align-items-center gap-3">
+              <div>
+                <h3 class="mat-h3 m-0" i18n>Session</h3>
+                <p class="mat-body m-0" i18n>Sign out of your account.</p>
+              </div>
+              <button mat-stroked-button color="primary" (click)="logOut()" i18n>
+                Sign out
+              </button>
+            </div>
+          </div>
 
           <!-- Delete Account Section -->
           <div class="my-4 p-3 rounded border border-danger">
