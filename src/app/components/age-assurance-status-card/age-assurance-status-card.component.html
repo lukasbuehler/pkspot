@@ -5,7 +5,7 @@
   <div class="age-assurance-card__content">
     <div class="age-assurance-card__heading">
       <h4 id="adult-eligibility-title" class="mat-title-medium m-0" i18n>
-        Adult eligibility for public profiles
+        Age verification
       </h4>
       <button
         mat-icon-button
@@ -30,6 +30,12 @@
         </button>
       </div>
     }
+
+    <div class="age-assurance-card__actions">
+      <a matButton="text" routerLink="/contact" i18n>
+        Report an incorrect age-assurance decision
+      </a>
+    </div>
 
     @if (isNativeAgeAssuranceApp) {
       <div class="age-assurance-card__actions">

@@ -384,12 +384,6 @@
         <target>Der redundante Spot hat Bewertungen.</target>
       </segment>
     </unit>
-    <unit id="4927421686251357457">
-      <segment state="initial">
-        <source>A self-declared age range is stored, but it does not unlock a public profile.</source>
-        <target>Eine selbst angegebene Altersgruppe ist gespeichert, schaltet aber kein öffentliches Profil frei.</target>
-      </segment>
-    </unit>
     <unit id="4930506384627295710">
       <segment state="initial">
         <source>Settings</source>
@@ -412,6 +406,12 @@
       <segment state="initial">
         <source>Back to sign in</source>
         <target>Zurück zur Anmeldung</target>
+      </segment>
+    </unit>
+    <unit id="4941272339252687044">
+      <segment state="translated">
+        <source> Age verification </source>
+        <target>Altersverifizierung</target>
       </segment>
     </unit>
     <unit id="4941861844629832860">
@@ -878,12 +878,6 @@
       <segment state="initial">
         <source>Change password</source>
         <target>Passwort ändern</target>
-      </segment>
-    </unit>
-    <unit id="1327134574485464733">
-      <segment state="initial">
-        <source> Adult eligibility for public profiles </source>
-        <target> Volljährigkeitsberechtigung für öffentliche Profile </target>
       </segment>
     </unit>
     <unit id="1330427292857858931">
@@ -2962,9 +2956,9 @@
       </segment>
     </unit>
     <unit id="646725257540411206">
-      <segment state="initial">
+      <segment state="translated">
         <source>Verify my age</source>
-        <target>Verify my age</target>
+        <target>Mein Alter verifizieren</target>
       </segment>
     </unit>
     <unit id="6477168744321037366">
@@ -6114,10 +6108,10 @@
         <target>Training log</target>
       </segment>
     </unit>
-    <unit id="9102167136172430388">
-      <segment state="initial">
-        <source>The mobile platform shared an 18+ range based on an age entered for the platform account. Because it was not independently checked, it cannot unlock a public profile.</source>
-        <target>Die mobile Plattform hat eine Altersspanne ab 18 Jahren geteilt, die auf einer Altersangabe im Plattformkonto basiert. Da sie nicht unabhängig überprüft wurde, kann sie kein öffentliches Profil freischalten.</target>
+    <unit id="5691718088491056716">
+      <segment state="translated">
+        <source>The mobile platform shared an 18+ range based on an age entered for the platform account. Because it was not independently checked, it does not confirm adult eligibility.</source>
+        <target>Die mobile Plattform hat eine Altersgruppe ab 18 Jahren anhand der Altersangabe im Plattformkonto übermittelt. Da diese nicht unabhängig geprüft wurde, bestätigt sie nicht deine Volljährigkeit.</target>
       </segment>
     </unit>
     <unit id="9107902639851774121">
@@ -6249,12 +6243,6 @@
         <target> Nur bestätigte Follower können dein erweitertes Profil sehen. </target>
       </segment>
     </unit>
-    <unit id="settings.profileAccess.publicEligibility">
-      <segment state="initial">
-        <source> Public profiles stay unavailable until the platform supplies an independently checked result establishing that this account is 18 or older. A self-declared age range is not enough. </source>
-        <target> Öffentliche Profile bleiben nicht verfügbar, bis die Plattform mit einem unabhängig geprüften Ergebnis bestätigt, dass dieses Konto mindestens 18 Jahre alt ist. Eine selbst angegebene Altersgruppe reicht nicht aus. </target>
-      </segment>
-    </unit>
     <unit id="settings.profileAccess.publicHelp">
       <segment state="initial">
         <source> Anyone can view your expanded profile and follow you without approval. </source>
@@ -6355,6 +6343,12 @@
       <segment state="initial">
         <source>Open — edit or withdraw</source>
         <target>Open — edit or withdraw</target>
+      </segment>
+    </unit>
+    <unit id="987307797836003655">
+      <segment state="translated">
+        <source>A self-declared age range is stored, but it does not confirm adult eligibility.</source>
+        <target>Eine selbst angegebene Altersgruppe ist gespeichert, bestätigt aber nicht deine Volljährigkeit.</target>
       </segment>
     </unit>
     <unit id="991761096918819245">
@@ -13284,10 +13278,10 @@
         <target>Google Play verlangt, dass du dein Alter bestätigst oder eine Elternaufsicht einrichtest. Öffne Google Play, folge den Anweisungen und prüfe dann erneut.</target>
       </segment>
     </unit>
-    <unit id="6203177034092506213">
-      <segment state="initial">
-        <source>Google Play shared an 18+ range based on an age entered on the Google Account. Because it was not independently checked, it cannot unlock a public profile.</source>
-        <target>Google Play hat eine Altersspanne ab 18 Jahren auf Grundlage einer im Google-Konto eingetragenen Altersangabe geteilt. Da sie nicht unabhängig geprüft wurde, kann sie kein öffentliches Profil freischalten.</target>
+    <unit id="4236769780988253586">
+      <segment state="translated">
+        <source>Google Play shared an 18+ range based on an age entered on the Google Account. Because it was not independently checked, it does not confirm adult eligibility.</source>
+        <target>Google Play hat eine Altersgruppe ab 18 Jahren anhand der Altersangabe im Google-Konto übermittelt. Da diese nicht unabhängig geprüft wurde, bestätigt sie nicht deine Volljährigkeit.</target>
       </segment>
     </unit>
     <unit id="5355398899123190235">
@@ -15994,6 +15988,12 @@
       <segment state="initial">
         <source> Profile access </source>
         <target> Profilzugriff </target>
+      </segment>
+    </unit>
+    <unit id="settings.profileAccess.verificationRequired">
+      <segment state="translated">
+        <source> Verify that you are 18 or older to enable a public profile and search discovery. Your profile stays private until then. </source>
+        <target>Bestätige, dass du mindestens 18 Jahre alt bist, um ein öffentliches Profil und die Auffindbarkeit über die Suche zu aktivieren. Bis dahin bleibt dein Profil privat.</target>
       </segment>
     </unit>
     <unit id="settings.review.apple">

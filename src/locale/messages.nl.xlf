@@ -486,12 +486,6 @@
         <target>De overbodige Spot heeft beoordelingen.</target>
       </segment>
     </unit>
-    <unit id="4927421686251357457">
-      <segment state="initial">
-        <source>A self-declared age range is stored, but it does not unlock a public profile.</source>
-        <target>Er is een zelf opgegeven leeftijdscategorie opgeslagen, maar die ontgrendelt geen openbaar profiel.</target>
-      </segment>
-    </unit>
     <unit id="4930506384627295710">
       <segment state="initial">
         <source>Settings</source>
@@ -514,6 +508,12 @@
       <segment state="initial">
         <source>Back to sign in</source>
         <target>Terug naar inloggen</target>
+      </segment>
+    </unit>
+    <unit id="4941272339252687044">
+      <segment state="translated">
+        <source> Age verification </source>
+        <target>Leeftijdsverificatie</target>
       </segment>
     </unit>
     <unit id="4941861844629832860">
@@ -980,12 +980,6 @@
       <segment state="initial">
         <source>Change password</source>
         <target>Wachtwoord wijzigen</target>
-      </segment>
-    </unit>
-    <unit id="1327134574485464733">
-      <segment state="initial">
-        <source> Adult eligibility for public profiles </source>
-        <target> Volwassenstatus voor openbare profielen </target>
       </segment>
     </unit>
     <unit id="1330427292857858931">
@@ -3106,9 +3100,9 @@
       </segment>
     </unit>
     <unit id="646725257540411206">
-      <segment state="initial">
+      <segment state="translated">
         <source>Verify my age</source>
-        <target>Verify my age</target>
+        <target>Mijn leeftijd verifiëren</target>
       </segment>
     </unit>
     <unit id="6477168744321037366">
@@ -6282,10 +6276,10 @@
         <target>Training log</target>
       </segment>
     </unit>
-    <unit id="9102167136172430388">
-      <segment state="initial">
-        <source>The mobile platform shared an 18+ range based on an age entered for the platform account. Because it was not independently checked, it cannot unlock a public profile.</source>
-        <target>Het mobiele platform heeft een leeftijdscategorie van 18+ gedeeld op basis van een leeftijd die voor het platformaccount is opgegeven. Omdat die niet onafhankelijk is gecontroleerd, kan hiermee geen openbaar profiel worden ontgrendeld.</target>
+    <unit id="5691718088491056716">
+      <segment state="translated">
+        <source>The mobile platform shared an 18+ range based on an age entered for the platform account. Because it was not independently checked, it does not confirm adult eligibility.</source>
+        <target>Het mobiele platform heeft een leeftijdscategorie van 18 jaar of ouder gedeeld op basis van de leeftijd die in het platformaccount is ingevuld. Omdat die niet onafhankelijk is gecontroleerd, bevestigt dit niet dat je meerderjarig bent.</target>
       </segment>
     </unit>
     <unit id="9107902639851774121">
@@ -6417,12 +6411,6 @@
         <target> Alleen goedgekeurde volgers kunnen je uitgebreide profiel zien. </target>
       </segment>
     </unit>
-    <unit id="settings.profileAccess.publicEligibility">
-      <segment state="initial">
-        <source> Public profiles stay unavailable until the platform supplies an independently checked result establishing that this account is 18 or older. A self-declared age range is not enough. </source>
-        <target> Openbare profielen blijven niet beschikbaar totdat het platform een onafhankelijk gecontroleerd resultaat levert waaruit blijkt dat dit account 18 jaar of ouder is. Een zelf opgegeven leeftijdscategorie is niet voldoende. </target>
-      </segment>
-    </unit>
     <unit id="settings.profileAccess.publicHelp">
       <segment state="initial">
         <source> Anyone can view your expanded profile and follow you without approval. </source>
@@ -6523,6 +6511,12 @@
       <segment state="initial">
         <source>Open — edit or withdraw</source>
         <target>Open — edit or withdraw</target>
+      </segment>
+    </unit>
+    <unit id="987307797836003655">
+      <segment state="translated">
+        <source>A self-declared age range is stored, but it does not confirm adult eligibility.</source>
+        <target>Er is een zelf opgegeven leeftijdscategorie opgeslagen, maar die bevestigt niet dat je meerderjarig bent.</target>
       </segment>
     </unit>
     <unit id="991761096918819245">
@@ -13516,10 +13510,10 @@
         <target>Google Play vereist dat je je leeftijd bevestigt of toezicht instelt. Open Google Play, volg de instructies en controleer opnieuw.</target>
       </segment>
     </unit>
-    <unit id="6203177034092506213">
-      <segment state="initial">
-        <source>Google Play shared an 18+ range based on an age entered on the Google Account. Because it was not independently checked, it cannot unlock a public profile.</source>
-        <target>Google Play heeft een categorie van 18 jaar of ouder gedeeld op basis van een leeftijd die in het Google-account is ingevoerd. Omdat deze niet onafhankelijk is gecontroleerd, kan hiermee geen openbaar profiel worden ontgrendeld.</target>
+    <unit id="4236769780988253586">
+      <segment state="translated">
+        <source>Google Play shared an 18+ range based on an age entered on the Google Account. Because it was not independently checked, it does not confirm adult eligibility.</source>
+        <target>Google Play heeft een leeftijdscategorie van 18 jaar of ouder gedeeld op basis van de leeftijd die in het Google-account is ingevuld. Omdat die niet onafhankelijk is gecontroleerd, bevestigt dit niet dat je meerderjarig bent.</target>
       </segment>
     </unit>
     <unit id="5355398899123190235">
@@ -16286,6 +16280,12 @@
       <segment state="initial">
         <source> Profile access </source>
         <target> Profieltoegang </target>
+      </segment>
+    </unit>
+    <unit id="settings.profileAccess.verificationRequired">
+      <segment state="translated">
+        <source> Verify that you are 18 or older to enable a public profile and search discovery. Your profile stays private until then. </source>
+        <target>Bevestig dat je 18 jaar of ouder bent om een openbaar profiel en vindbaarheid via zoeken in te schakelen. Tot die tijd blijft je profiel privé.</target>
       </segment>
     </unit>
     <unit id="settings.review.apple">

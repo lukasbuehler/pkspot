@@ -1,3 +1,4 @@
+import { RouterLink } from "@angular/router";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -17,7 +18,7 @@ import { AdultVerificationDialogComponent } from "../adult-verification-dialog/a
 
 @Component({
   selector: "app-age-assurance-status-card",
-  imports: [MatButtonModule, MatIcon, MatProgressSpinner],
+  imports: [MatButtonModule, MatIcon, MatProgressSpinner, RouterLink],
   templateUrl: "./age-assurance-status-card.component.html",
   styleUrl: "./age-assurance-status-card.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -64,8 +65,8 @@ export class AgeAssuranceStatusCardComponent {
           : $localize`The mobile platform supplied an independently checked 18+ result. Adult eligibility is active.`;
       case "self_declared":
         return isGooglePlay
-          ? $localize`Google Play shared an 18+ range based on an age entered on the Google Account. Because it was not independently checked, it cannot unlock a public profile.`
-          : $localize`The mobile platform shared an 18+ range based on an age entered for the platform account. Because it was not independently checked, it cannot unlock a public profile.`;
+          ? $localize`Google Play shared an 18+ range based on an age entered on the Google Account. Because it was not independently checked, it does not confirm adult eligibility.`
+          : $localize`The mobile platform shared an 18+ range based on an age entered for the platform account. Because it was not independently checked, it does not confirm adult eligibility.`;
       case "guardian_managed":
         return isGooglePlay
           ? $localize`Google Play reports a guardian-managed age range. A parent can manage age sharing in Family Link.`
@@ -96,7 +97,7 @@ export class AgeAssuranceStatusCardComponent {
         }
         switch (this.ageAssurance.adultEvidenceStrength()) {
           case "self_declared":
-            return $localize`A self-declared age range is stored, but it does not unlock a public profile.`;
+            return $localize`A self-declared age range is stored, but it does not confirm adult eligibility.`;
           case "guardian_managed":
             return $localize`The platform reports a guardian-managed age range.`;
           case "independently_checked":

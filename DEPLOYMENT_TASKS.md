@@ -1151,6 +1151,13 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
       `openid age_over_18 product:age_verification`. Allowlisted sandbox testers
       have 100 starts per UTC day with a 10-second cooldown; production retains
       five starts per UTC day and a 60-second cooldown.
+- [ ] Ask OneID to confirm/enable multi-method sandbox journeys for this client.
+      After Console and backend both changed to `age_verification`, the tester
+      still sees only UK Bank. Confirm mobile-network, international eID and
+      document fallback availability, required product/configuration, and whether
+      the threshold-only scopes suffice. Do not assume changing to Age Assure
+      enables these methods. Testing docs demonstrate Model Bank but do not
+      establish full sandbox method coverage: https://docs.oneid.uk/guides/testing.
 - [ ] Confirm coverage/pricing in the OneID account. The published age overview
       lists UK bank, international eID and wallet for Age Check, adds mobile networks
       for Age Verification, and the Age Assure page documents document scanning.

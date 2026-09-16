@@ -1115,9 +1115,9 @@
         <source>Training log</source>
       </segment>
     </unit>
-    <unit id="9102167136172430388">
+    <unit id="5691718088491056716">
       <segment>
-        <source>The mobile platform shared an 18+ range based on an age entered for the platform account. Because it was not independently checked, it cannot unlock a public profile.</source>
+        <source>The mobile platform shared an 18+ range based on an age entered for the platform account. Because it was not independently checked, it does not confirm adult eligibility.</source>
       </segment>
     </unit>
     <unit id="9107902639851774121">
@@ -6397,6 +6397,11 @@
         <source>Back to sign in</source>
       </segment>
     </unit>
+    <unit id="4941272339252687044">
+      <segment>
+        <source> Age verification </source>
+      </segment>
+    </unit>
     <unit id="4941861844629832860">
       <segment>
         <source>Program plan changed</source>
@@ -6548,6 +6553,11 @@
         <source> Profile access </source>
       </segment>
     </unit>
+    <unit id="settings.profileAccess.verificationRequired">
+      <segment>
+        <source> Verify that you are 18 or older to enable a public profile and search discovery. Your profile stays private until then. </source>
+      </segment>
+    </unit>
     <unit id="settings.review.apple">
       <segment>
         <source>Review on the App Store</source>
@@ -6691,11 +6701,6 @@
     <unit id="settings.profileAccess.privateHelp">
       <segment>
         <source> Only approved followers can view your expanded profile. </source>
-      </segment>
-    </unit>
-    <unit id="settings.profileAccess.publicEligibility">
-      <segment>
-        <source> Public profiles stay unavailable until the platform supplies an independently checked result establishing that this account is 18 or older. A self-declared age range is not enough. </source>
       </segment>
     </unit>
     <unit id="settings.profileAccess.publicHelp">
@@ -7588,11 +7593,6 @@
         <source>Could not sign in with Google!</source>
       </segment>
     </unit>
-    <unit id="1327134574485464733">
-      <segment>
-        <source> Adult eligibility for public profiles </source>
-      </segment>
-    </unit>
     <unit id="1330427292857858931">
       <segment>
         <source>No Apple ID found on this device. Please sign in to your Apple ID in your device settings and try again.</source>
@@ -8282,6 +8282,11 @@
         <source>The age signal is currently unavailable. Make sure PK Spot was installed from Google Play and that the Play Store is up to date, then try again.</source>
       </segment>
     </unit>
+    <unit id="987307797836003655">
+      <segment>
+        <source>A self-declared age range is stored, but it does not confirm adult eligibility.</source>
+      </segment>
+    </unit>
     <unit id="991761096918819245">
       <segment>
         <source>Not verified</source>
@@ -8825,11 +8830,6 @@
     <unit id="4924460126413195683">
       <segment>
         <source>The redundant Spot has reviews.</source>
-      </segment>
-    </unit>
-    <unit id="4927421686251357457">
-      <segment>
-        <source>A self-declared age range is stored, but it does not unlock a public profile.</source>
       </segment>
     </unit>
     <unit id="4930506384627295710">
@@ -13097,9 +13097,9 @@
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">Copyright infringement: This is my content and I did not give permission for it to be used here.</pc></source>
       </segment>
     </unit>
-    <unit id="6203177034092506213">
+    <unit id="4236769780988253586">
       <segment>
-        <source>Google Play shared an 18+ range based on an age entered on the Google Account. Because it was not independently checked, it cannot unlock a public profile.</source>
+        <source>Google Play shared an 18+ range based on an age entered on the Google Account. Because it was not independently checked, it does not confirm adult eligibility.</source>
       </segment>
     </unit>
     <unit id="5355398899123190235">

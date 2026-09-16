@@ -1,3 +1,7 @@
+.settings-box {
+  border-radius: 18px;
+}
+
 .settings-page-container {
   height: 100%;
   overflow-y: scroll;
@@ -127,7 +131,7 @@ button.menuButton.selected {
   align-items: flex-start;
   background: var(--mat-sys-surface-container);
   border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 8px;
+  border-radius: 18px;
   color: var(--mat-sys-on-surface-variant);
   display: flex;
   gap: 12px;
