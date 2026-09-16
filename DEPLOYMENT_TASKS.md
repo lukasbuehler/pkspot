@@ -1131,28 +1131,49 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
       unbound Apple approvals. Before enabling, verify real App Attest registration
       and assertions from a signed iOS build against a non-production backend;
       malformed-payload and synthetic-signature unit tests are not device evidence.
-- [ ] Validate OneID's actual evidence method before enabling it. Local code now
-      binds UserInfo to the signed ID-token subject, preserves restrictions and
-      independent evidence, limits starts, and uses the shared v2 approval policy
-      in client, event, profile, Firestore rules and session consumers. `ONEID_AGE_CHECK_METHOD_APPROVED`
-      defaults to false: set it only after the provider journey is confirmed to use
-      the approved bank-backed Age Check method. This parameter does not verify
-      vendor configuration. Old v1 approvals must be rechecked, not relabelled.
-      Run `npm run test:emulator:oneid` for local callback regression coverage;
-      its signing keys and provider responses are fixtures, not vendor validation.
-      Confirm sandbox metadata uses the pinned issuer's HTTPS origin for token,
-      UserInfo and JWKS endpoints before deployment. Review any required additional
-      endpoint origin explicitly rather than relaxing the check globally.
-- [ ] Configure OneID in its sandbox before enabling the fallback: create an
-      Age Check/Age Verification OIDC client with only `openid age_over_18
-      product:age_check` scopes, register the exact HTTPS
-      `oneIdAgeVerificationCallback` URL, and confirm its returned userinfo has
-      only `sub` and `age_over_18` for this journey. Do not enable any profile,
-      DOB, address, contact, identity, document, selfie, bank-account, or
-      mobile-number scope. Set `ONEID_AGE_VERIFICATION_ENABLED=false` until a
-      sandbox callback has passed.
+- [ ] Configure a OneID sandbox client for a hosted multi-method/fallback journey.
+      Set `ONEID_PRODUCT` to `age_check`, `age_verification`, or `age_assure` only
+      after confirming the enabled methods and threshold-only scope contract with
+      OneID. Requested scopes remain `openid age_over_18 product:<configured product>`.
+      Hosted document/selfie/mobile/bank/eID methods are allowed with user consent;
+      PK Spot does not request identity, DOB, document-image, bank-account or contact
+      scopes. The product's default data may differ: verify the actual response and
+      do not silently broaden scopes to make a method work.
+      `ONEID_AGE_CHECK_METHOD_APPROVED` retains its parameter name for compatibility,
+      but now approves the configured journey, not a bank-only method. Keep it and
+      `ONEID_AGE_VERIFICATION_ENABLED` false until vendor checks pass. New decisions
+      use `oneid:provider_threshold:server_to_server_oidc:v3` and record the product,
+      not a guessed underlying method. Reviewed v2 bank decisions remain accepted.
+      Old v1 approvals require re-verification.
+- [ ] Confirm coverage/pricing in the OneID account. The published age overview
+      lists UK bank, international eID and wallet for Age Check, adds mobile networks
+      for Age Verification, and the Age Assure page documents document scanning.
+      Mobile coverage is market/operator-dependent; do not promise worldwide bank
+      or mobile coverage, or Swiss availability. Standalone credit-card age checks
+      are not confirmed by the reviewed docs. Ask OneID about card support,
+      document countries/types, method routing and fallback availability for this client.
+      References: https://docs.oneid.uk/services/age-overview,
+      https://docs.oneid.uk/services/age-assure, https://docs.oneid.uk/guides/errors.
+- [ ] Register the exact HTTPS `oneIdAgeVerificationCallback` redirect URL and
+      validate discovery/token/UserInfo/JWKS endpoints against the pinned issuer
+      origin. Review any extra provider origin explicitly. Verify nonce, PKCE,
+      returned fields, consent screens and method switching against OneID sandbox;
+      local `npm run test:emulator:oneid` uses simulated responses and test keys.
+- [ ] Deploy `externalAgeVerificationStatus`, availability/start/callback/cleanup
+      functions, the affected policy consumers and Firestore rules before the new
+      client. Test cancelled/expired/interrupted journeys, offline/reconnect, app
+      backgrounding and returning through `/settings/profile?oneid=return` on web,
+      Android and iOS. The return URL contains no result or attempt credentials;
+      the client fetches status through an owner-only App Check callable. Verify
+      universal/app links and locale handling on signed devices.
+- [ ] Verify Cloud Logging entries for each backend stage and consent-gated client
+      failure telemetry. Application logs contain only stage/outcome/safe error codes.
+      Review infrastructure request logs separately: callback query strings contain
+      temporary codes/state and must be excluded/redacted from retained request logs
+      before enabling live verification. Confirm provider retention and PK Spot audit
+      retention/revocation policy with the broader safety release checklist.
 - [ ] Store `ONEID_CLIENT_SECRET` as a Firebase Functions secret. Set
-      `ONEID_CLIENT_ID`, `ONEID_REDIRECT_URI`, and `ONEID_ENVIRONMENT=sandbox`
+      `ONEID_CLIENT_ID`, `ONEID_REDIRECT_URI`, `ONEID_PRODUCT`, and `ONEID_ENVIRONMENT=sandbox`
       as server-side Function parameters only; never put any of them in Angular
       environments, Firestore, logs, or source control. Deploy the Functions
       before a client release, then repeat the sandbox flow with a test account.
@@ -1188,7 +1209,7 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
       Bindings authenticate the native request, not an Apple-signed age certificate;
       approval still depends on the declaration method and separately approved policy.
 - [ ] Run a non-production invalidation for each new basis, including
-      `oneid:financial_attribute:age_check:server_to_server_oidc:v2`, and any
+      `oneid:provider_threshold:server_to_server_oidc:v3`, reviewed v2 records, and any
       Apple request-bound basis actually returned by device testing. Confirm adult eligibility,
       public-profile opt-in, and public search are disabled while historical
       `age_assurance_records` remain available only to administrators.
@@ -1464,7 +1485,7 @@ false. Local implementation does not enable production session planning.
 - [ ] Before enabling community discovery, complete the OneID vendor finalization
       checks above. Deploy the updated Firestore profile rules alongside the
       OneID and profile/event functions before enabling the provider. The session
-      predicate accepts only the shared reviewed v2 policy; the provider and planned-session feature flags remain disabled.
+      predicate accepts only the shared reviewed OneID policy; the provider and planned-session feature flags remain disabled.
 - [ ] Review the limited first session release: one existing Spot per session,
       no recurrence, no organization-managed minor rosters, at most 50 private
       invitations, and support contact rather than a dedicated session report

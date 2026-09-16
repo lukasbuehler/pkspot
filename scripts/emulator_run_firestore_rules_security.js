@@ -1348,6 +1348,17 @@ async function testPublicUserProfileGuards(
   await assertDenied("unapproved OneID method cannot enable a public profile", () =>
     updateDoc(doc(adult.db, "users/adult"), {public_profile_enabled: true})
   );
+  await adminDb.doc("users/adult").update({
+    "age_policy.assurance.approval_basis": "oneid:provider_threshold:server_to_server_oidc:v3",
+    "age_policy.assurance.method": {provider: "oneid", category: "external_verification", provider_method: "age_verification"},
+  });
+  await assertAllowed("reviewed multi-method OneID proof can enable a public profile", () =>
+    updateDoc(doc(adult.db, "users/adult"), {public_profile_enabled: true})
+  );
+  await adminDb.doc("users/adult").update({"age_policy.assurance.method.provider_method": "unapproved"});
+  await assertDenied("unknown OneID product cannot enable a public profile", () =>
+    updateDoc(doc(adult.db, "users/adult"), {public_profile_enabled: true})
+  );
   await assertDenied("owner cannot inject an Apple attestation key", () =>
     setDoc(doc(adult.db, "users/adult/apple_age_keys/forged"), { public_key: "forged", counter: 0 })
   );

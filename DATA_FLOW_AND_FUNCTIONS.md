@@ -529,6 +529,13 @@ state as applicable. The v3 flow keeps ranges/evidence strength, not exact
 birthdays, in the product model. The OneID implementation is an unreleased,
 disabled-by-default foundation with unresolved review blockers tracked in
 `DEPLOYMENT_TASKS.md`; this description is not evidence of production readiness.
+The configured OneID hosted product can offer multiple methods and fallbacks.
+Only threshold scopes are requested; underlying document/bank/mobile/eID steps
+stay with the provider. New records label the configured product as external
+verification rather than guessing a bank evidence category. Structured backend
+logs contain stage/outcome/safe error code only. Owner-only status recovery handles
+browser closure and lost responses; no callback query value grants client eligibility.
+
 The optional OneID boundary creates a private,
 single-use attempt bound to the Firebase UID and sends only opaque state to
 OneID. Its HTTPS callback validates OIDC issuer/audience/nonce and PKCE, obtains
@@ -1010,6 +1017,7 @@ Source modules: [`spotReportFunctions.ts`](functions/src/spotReportFunctions.ts)
 | `updateAgePolicyV3` | App Check authenticated callable | Reads user/challenge/platform signal and writes v3 policy/profile privacy consequences. |
 | `externalAgeVerificationAvailability` | App Check callable | Returns whether the server-side OneID fallback is configured; no identity data. |
 | `beginExternalAgeVerification` | App Check authenticated callable | Creates one opaque, expiring UID-bound OneID OIDC attempt and returns the hosted URL. |
+| `externalAgeVerificationStatus` | App Check authenticated callable | Returns only the caller’s latest attempt status; clears expired attempts and interrupted callbacks without granting eligibility. |
 | `oneIdAgeVerificationCallback` | OneID HTTPS redirect/callback | Validates PKCE and signed OIDC response, obtains only `age_over_18` server-to-server, then transactionally consumes the attempt and updates policy/audit state. |
 | `cleanupExternalAgeVerificationAttempts` | daily schedule | Deletes bounded expired external attempts, including temporary nonce and PKCE verifier material. |
 | `invalidateAgeAssuranceApprovals` | admin callable | Dry-run/apply scan of affected users; conditional policy writes. |

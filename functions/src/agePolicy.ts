@@ -44,6 +44,7 @@ export type AgeAssuranceMethodCategory =
   | "age_estimation"
   | "mobile_network"
   | "financial_attribute"
+  | "external_verification"
   | "digital_identity"
   | "government_id"
   | "email_estimation"

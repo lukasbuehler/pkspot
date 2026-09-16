@@ -6,7 +6,7 @@ import type { UserAgePolicySchema, UserSchema } from "./db/schemas/UserSchema";
 const policy: UserAgePolicySchema = {
   source: "oneid_age_check", adult_eligibility: "verified", age_range: { lower: 18 },
   assurance: { status: "active", client_integrity: "server_to_server_oidc", approval_basis: ONEID_APPROVAL_BASIS,
-    method: { provider: "oneid", category: "financial_attribute", provider_method: "age_check" } },
+    method: { provider: "oneid", category: "external_verification", provider_method: "age_check" } },
 };
 describe("OneID trust boundary", () => {
   it.each([true, false])("accepts only a matching signed-token subject (%s)", result => {

@@ -250,6 +250,7 @@ export {
   beginExternalAgeVerification,
   cleanupExternalAgeVerificationAttempts,
   externalAgeVerificationAvailability,
+  externalAgeVerificationStatus,
   oneIdAgeVerificationCallback,
 } from "./externalAgeVerificationFunctions";
 export {

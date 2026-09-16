@@ -1,3 +1,5 @@
+import {externalVerificationLog, externalVerificationStep} from "./externalAgeVerificationTelemetry";
+import {ONEID_PRODUCTS, OneIdProduct} from "../../src/db/utils/external-age-policy";
 import {createHash, randomBytes, randomUUID} from "node:crypto";
 import * as admin from "firebase-admin";
 import {onCall, onRequest, HttpsError} from "firebase-functions/v2/https";
@@ -11,8 +13,9 @@ import {profileAccessFieldsForPrivacy} from "../../src/db/utils/profile-access";
 const ATTEMPTS = "age_assurance_external_attempts";
 const ATTEMPT_LIFETIME_MS = 10 * 60 * 1000;
 const oneIdEnabled = defineBoolean("ONEID_AGE_VERIFICATION_ENABLED", {default: false});
-// Enable only after the client journey is contractually limited to the approved bank-backed Age Check method.
+// Approve the configured hosted journey and its threshold-only response contract before enabling.
 const oneIdMethodApproved = defineBoolean("ONEID_AGE_CHECK_METHOD_APPROVED", {default: false});
+const oneIdProduct = defineString("ONEID_PRODUCT", {default: "age_check"});
 const oneIdClientId = defineString("ONEID_CLIENT_ID", {default: ""});
 const oneIdRedirectUri = defineString("ONEID_REDIRECT_URI", {default: ""});
 const oneIdClientSecret = defineSecret("ONEID_CLIENT_SECRET");
@@ -24,6 +27,7 @@ interface OneIdConfiguration {
   clientSecret: string;
   redirectUri: string;
   issuer: string;
+  product?: OneIdProduct;
 }
 
 interface ExternalAttempt {
@@ -31,13 +35,14 @@ interface ExternalAttempt {
   provider: "oneid";
   method: "age_check";
   threshold: 18;
+  product?: OneIdProduct;
   state_hash: string;
   nonce: string;
   code_verifier: string;
   expires_at: admin.firestore.Timestamp;
   processing_at?: admin.firestore.Timestamp;
   consumed_at?: admin.firestore.Timestamp;
-  outcome?: "verified" | "not_verified" | "failed";
+  outcome?: "verified" | "not_verified" | "failed" | "cancelled" | "expired";
 }
 
 const hash = (value: string): string =>
@@ -61,7 +66,9 @@ const oneIdConfiguration = (): OneIdConfiguration => {
   if (!oneIdEnabled.value() || !oneIdMethodApproved.value() || !clientId || !clientSecret || !redirectUri.startsWith("https://")) {
     throw new HttpsError("failed-precondition", "OneID age verification is not configured yet.");
   }
-  return {clientId, clientSecret, redirectUri, issuer: oneIdIssuerFor(configuredEnvironment())};
+  const product = oneIdProduct.value();
+  if (!ONEID_PRODUCTS.some(value => value === product)) throw new HttpsError("failed-precondition", "Unsupported OneID product.");
+  return {clientId, clientSecret, redirectUri, product: product as OneIdProduct, issuer: oneIdIssuerFor(configuredEnvironment())};
 };
 
 const requiredQueryString = (value: unknown, field: string): string => {
@@ -82,7 +89,7 @@ export const buildOneIdAuthorizationUrl = (
   url.searchParams.set("redirect_uri", config.redirectUri);
   url.searchParams.set("response_type", "code");
   // Request only a threshold result. Never request profile, identity, DOB, contact, or account scopes.
-  url.searchParams.set("scope", "openid age_over_18 product:age_check");
+  url.searchParams.set("scope", `openid age_over_18 product:${config.product ?? "age_check"}`);
   url.searchParams.set("state", state);
   url.searchParams.set("nonce", nonce);
   url.searchParams.set("code_challenge", hash(codeVerifier));
@@ -92,18 +99,19 @@ export const buildOneIdAuthorizationUrl = (
 
 export const externalAgeVerificationAvailability = onCall(
   {enforceAppCheck: true},
-  async () => ({
+  async () => externalVerificationStep("availability", async () => ({
     providers: [{
       provider: "oneid",
       available: oneIdEnabled.value() && oneIdMethodApproved.value() && Boolean(oneIdClientId.value().trim()) && Boolean(oneIdRedirectUri.value().trim()),
       method: "age_check",
+      product: oneIdProduct.value(),
     }],
-  }),
+  })),
 );
 
 export const beginExternalAgeVerification = onCall(
   {enforceAppCheck: true, secrets: [oneIdClientSecret]},
-  async (request) => {
+  async (request) => externalVerificationStep("start", async () => {
     const uid = request.auth?.uid;
     if (!uid) throw new HttpsError("unauthenticated", "Authentication is required.");
     const data = isRecord(request.data) ? request.data : {};
@@ -126,12 +134,24 @@ export const beginExternalAgeVerification = onCall(
       if (count >= 5 || now.toMillis() - Number(rate?.["last_started_ms"] ?? 0) < 60_000) {
         throw new HttpsError("resource-exhausted", "Please wait before starting another age check.");
       }
-      transaction.set(rateRef, {day, count: count + 1, last_started_ms: now.toMillis()});
+      // A fresh start supersedes an abandoned journey. A late callback must not
+      // overwrite a newer verification decision.
+      const previousId = rate?.["latest_attempt_id"];
+      if (typeof previousId === "string") {
+        const previousRef = admin.firestore().collection(ATTEMPTS).doc(previousId);
+        const previous = await transaction.get(previousRef);
+        if (previous.exists && !previous.data()?.["consumed_at"]) transaction.update(previousRef, {
+          outcome: "cancelled", consumed_at: now,
+          code_verifier: admin.firestore.FieldValue.delete(), nonce: admin.firestore.FieldValue.delete(),
+        });
+      }
+      transaction.set(rateRef, {day, count: count + 1, last_started_ms: now.toMillis(), latest_attempt_id: attemptRef.id});
       transaction.create(attemptRef, {
         uid,
         provider: "oneid",
         method: "age_check",
         threshold: 18,
+        product: config.product,
         state_hash: hash(state),
         nonce,
         code_verifier: codeVerifier,
@@ -144,7 +164,7 @@ export const beginExternalAgeVerification = onCall(
       provider: "oneid" as const,
       verification_url: buildOneIdAuthorizationUrl(config, state, nonce, codeVerifier),
     };
-  },
+  }),
 );
 
 const getOneIdOpenIdConfiguration = async (issuer: string): Promise<Record<string, string>> => {
@@ -195,25 +215,24 @@ export const oneIdAgeResult = async (
   code: string,
   codeVerifier: string,
 ): Promise<{verified: boolean; transactionReference: string}> => {
-  const oidc = await getOneIdOpenIdConfiguration(config.issuer);
-  const tokens = await exchangeOneIdCode(config, oidc, code, codeVerifier);
-  const verifiedIdToken = await jwtVerify(tokens.idToken, createRemoteJWKSet(new URL(oidc["jwks_uri"])), {
+  const oidc = await externalVerificationStep("discovery", () => getOneIdOpenIdConfiguration(config.issuer));
+  const tokens = await externalVerificationStep("token_exchange", () => exchangeOneIdCode(config, oidc, code, codeVerifier));
+  const verifiedIdToken = await externalVerificationStep("signature", () => jwtVerify(tokens.idToken, createRemoteJWKSet(new URL(oidc["jwks_uri"])), {
     issuer: config.issuer,
     audience: config.clientId,
     requiredClaims: ["iss", "aud", "sub", "iat", "exp", "nonce"],
+  }));
+  const result = await externalVerificationStep("userinfo", async () => {
+    const response = await fetch(oidc["userinfo_endpoint"], {signal: AbortSignal.timeout(10_000), redirect: "error", headers: {Authorization: `Bearer ${tokens.accessToken}`}});
+    const data: unknown = await response.json().catch(() => ({}));
+    if (!response.ok || !isRecord(data)) throw new HttpsError("permission-denied", "OneID did not return a usable age result.");
+    return data;
   });
-  if (verifiedIdToken.payload["nonce"] !== nonce) {
-    throw new HttpsError("permission-denied", "OneID returned a mismatched verification response.");
-  }
-  const response = await fetch(oidc["userinfo_endpoint"], {signal: AbortSignal.timeout(10_000), redirect: "error", headers: {Authorization: `Bearer ${tokens.accessToken}`}});
-  const result: unknown = await response.json().catch(() => ({}));
-  if (!response.ok || !isRecord(result) || typeof result["sub"] !== "string" || typeof result["age_over_18"] !== "boolean") {
-    throw new HttpsError("permission-denied", "OneID did not return a usable age result.");
-  }
-  return {verified: validateOneIdThresholdResult(verifiedIdToken.payload, result, nonce), transactionReference: `oneid:${hash(`${nonce}:${tokens.idToken}`)}`};
+  const verified = await externalVerificationStep("subject_binding", async () => validateOneIdThresholdResult(verifiedIdToken.payload, result, nonce));
+  return {verified, transactionReference: `oneid:${hash(`${nonce}:${tokens.idToken}`)}`};
 };
 
-const callbackPage = (message: string): string => `<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1"><title>PK Spot age verification</title><main><h1>PK Spot</h1><p>${message}</p><p>You can return to the app.</p></main>`;
+const callbackPage = (message: string): string => `<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1"><title>PK Spot age verification</title><main><h1>PK Spot</h1><p>${message}</p><p><a href="https://pkspot.app/settings/profile?oneid=return">Return to PK Spot</a></p></main>`;
 
 export const oneIdAgeVerificationCallback = onRequest(
   {secrets: [oneIdClientSecret], timeoutSeconds: 60},
@@ -222,11 +241,12 @@ export const oneIdAgeVerificationCallback = onRequest(
     // caller-supplied UID. Never log callback URLs or provider payloads.
     response.set("Cache-Control", "no-store");
     response.set("Referrer-Policy", "no-referrer");
+    response.set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; base-uri 'none'");
+    externalVerificationLog("callback", "started");
     let claimedRef: admin.firestore.DocumentReference | undefined;
     try {
       if (request.method !== "GET") throw new HttpsError("invalid-argument", "Unsupported callback method.");
       const state = requiredQueryString(request.query["state"], "state");
-      const code = requiredQueryString(request.query["code"], "code");
       const attemptSnapshot = await admin.firestore().collection(ATTEMPTS).where("state_hash", "==", hash(state)).limit(1).get();
       if (attemptSnapshot.empty) throw new HttpsError("permission-denied", "Unknown verification attempt.");
       const attemptRef = attemptSnapshot.docs[0].ref;
@@ -249,7 +269,17 @@ export const oneIdAgeVerificationCallback = onRequest(
       }
 
       claimedRef = attemptRef;
+      if (request.query["error"] !== undefined) {
+        const cancelled = request.query["error"] === "access_denied" && request.query["error_oneid"] === "OneID.OIDC.Redirect.UserCancelled";
+        await attemptRef.update({outcome: cancelled ? "cancelled" : "failed", consumed_at: admin.firestore.Timestamp.now(),
+          code_verifier: admin.firestore.FieldValue.delete(), nonce: admin.firestore.FieldValue.delete()});
+        externalVerificationLog("provider_return", cancelled ? "cancelled" : "failed");
+        response.status(200).type("html").send(callbackPage(cancelled ? "Verification was cancelled. You can try again when you are ready." : "The provider could not complete verification. Please return to PK Spot and try again."));
+        return;
+      }
+      const code = requiredQueryString(request.query["code"], "code");
       const config = oneIdConfiguration();
+      if ((claimed.product ?? "age_check") !== config.product) throw new HttpsError("failed-precondition", "Verification configuration changed. Please start again.");
       const result = await oneIdAgeResult(config, claimed.nonce, code, claimed.code_verifier);
       const evaluatedAt = admin.firestore.Timestamp.now();
       const verificationId = randomUUID();
@@ -257,22 +287,22 @@ export const oneIdAgeVerificationCallback = onRequest(
       const assurance = {
         signal_version: 3,
         policy_version: 1,
-        evidence_strength: result.verified ? "verified_identity" : "unknown",
-        confidence: result.verified ? "strongly_verified" : "none",
+        evidence_strength: result.verified ? "independently_checked" : "unknown",
+        confidence: result.verified ? "verified" : "none",
         client_integrity: "server_to_server_oidc",
-        method: {provider: "oneid", category: "financial_attribute", provider_method: "age_check"},
+        method: {provider: "oneid", category: "external_verification", provider_method: config.product},
         approval_basis: ONEID_APPROVAL_BASIS,
         verification_id: verificationId,
         status: "active",
         evaluated_at: evaluatedAt,
         ...(result.verified ? {verified_at: evaluatedAt} : {}),
       };
-      await admin.firestore().runTransaction(async (transaction) => {
+      await externalVerificationStep("persist_result", () => admin.firestore().runTransaction(async (transaction) => {
         const latestAttempt = await transaction.get(attemptRef);
         if (!latestAttempt.exists || latestAttempt.data()?.["consumed_at"]) return;
         const user = await transaction.get(userRef);
         if (!user.exists) throw new HttpsError("permission-denied", "User account unavailable.");
-        if (latestAttempt.data()?.["expires_at"]?.toMillis() <= evaluatedAt.toMillis()) throw new HttpsError("failed-precondition", "This verification attempt expired.");
+        if (latestAttempt.data()?.["expires_at"]?.toMillis() <= Date.now()) throw new HttpsError("failed-precondition", "This verification attempt expired.");
         const previous = user.data()?.["age_policy"] as UserAgePolicySchema | undefined;
         const previousId = previous?.assurance?.verification_id;
         const apply = shouldApplyOneIdPolicy(previous, result.verified);
@@ -304,19 +334,21 @@ export const oneIdAgeVerificationCallback = onRequest(
         if (apply && typeof previousId === "string" && previousId !== verificationId) {
           transaction.set(userRef.collection("age_assurance_records").doc(previousId), {status: "superseded", superseded_at: evaluatedAt, superseded_by: verificationId}, {merge: true});
         }
-      });
+      }));
+      externalVerificationLog("callback", "succeeded");
       response.status(200).type("html").send(callbackPage(result.verified ? "Your 18+ result was recorded." : "OneID could not confirm that you are 18 or older."));
       return;
     } catch (error) {
+      externalVerificationLog("callback", "failed", error);
       if (claimedRef) {
         // Token exchange is single-use. Fail this attempt explicitly and erase
         // temporary credentials; a retry starts a fresh PKCE flow.
-        await admin.firestore().runTransaction(async tx => {
+        await externalVerificationStep("failure_cleanup", () => admin.firestore().runTransaction(async tx => {
           const latest = await tx.get(claimedRef!);
           if (!latest.exists || latest.data()?.["consumed_at"]) return;
           tx.update(claimedRef!, {outcome: "failed", consumed_at: admin.firestore.Timestamp.now(),
             code_verifier: admin.firestore.FieldValue.delete(), nonce: admin.firestore.FieldValue.delete()});
-        });
+        })).catch(() => undefined);
       }
       const message = error instanceof HttpsError ? error.message : "The verification could not be completed. You can try again from PK Spot.";
       response.status(400).type("html").send(callbackPage(message));
@@ -325,14 +357,43 @@ export const oneIdAgeVerificationCallback = onRequest(
   },
 );
 
+/** Owner-only recovery after browser closure, a lost response or a terminated callback. */
+export const externalAgeVerificationStatus = onCall(
+  {enforceAppCheck: true},
+  async request => externalVerificationStep("status", async () => {
+    const uid = request.auth?.uid;
+    if (!uid) throw new HttpsError("unauthenticated", "Authentication is required.");
+    const db = admin.firestore();
+    const rate = (await db.doc(`age_assurance_external_limits/${uid}`).get()).data();
+    const id = rate?.["latest_attempt_id"];
+    if (typeof id !== "string") return {status: "idle"};
+    return db.runTransaction(async tx => {
+      const ref = db.collection(ATTEMPTS).doc(id);
+      const attempt = (await tx.get(ref)).data() as ExternalAttempt | undefined;
+      if (!attempt || attempt.uid !== uid) return {status: "idle"};
+      if (attempt.consumed_at) return {status: attempt.outcome ?? "failed"};
+      const expired = attempt.expires_at.toMillis() <= Date.now();
+      const interrupted = attempt.processing_at && Date.now() - attempt.processing_at.toMillis() > 90_000;
+      if (expired || interrupted) {
+        const status = expired ? "expired" : "failed";
+        tx.update(ref, {outcome: status, consumed_at: admin.firestore.Timestamp.now(),
+          code_verifier: admin.firestore.FieldValue.delete(), nonce: admin.firestore.FieldValue.delete()});
+        externalVerificationLog("recovery", expired ? "expired" : "failed");
+        return {status};
+      }
+      return {status: attempt.processing_at ? "processing" : "pending"};
+    });
+  }),
+);
+
 export const cleanupExternalAgeVerificationAttempts = onSchedule(
   {schedule: "29 3 * * *", timeZone: "Europe/Zurich"},
-  async () => {
+  async () => externalVerificationStep("cleanup", async () => {
     const expired = await admin.firestore().collection(ATTEMPTS)
       .where("expires_at", "<=", admin.firestore.Timestamp.now()).limit(500).get();
     if (expired.empty) return;
     const batch = admin.firestore().batch();
     expired.docs.forEach((attempt) => batch.delete(attempt.ref));
     await batch.commit();
-  },
+  }),
 );
