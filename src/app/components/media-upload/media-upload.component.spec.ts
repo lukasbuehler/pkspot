@@ -239,9 +239,8 @@ describe("MediaUpload", () => {
 
     fixture.componentRef.setInput("imageCropPolicy", SQUARE_ICON_CROP_POLICY);
     component.onSelectFiles(inputWithFiles([original]));
-    await flushPromises();
+    await vi.waitFor(() => expect(dialog.open).toHaveBeenCalled());
 
-    expect(dialog.open).toHaveBeenCalled();
     expect(component.mediaList()[0]).toMatchObject({
       originalFile: original,
       file: cropped,

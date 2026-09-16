@@ -25,10 +25,7 @@ import {
   canCropImage,
   type ImageCropPolicy,
 } from "../crop-image/image-crop-policy";
-import {
-  ImageCropDialogComponent,
-  type ImageCropDialogData,
-} from "../crop-image/image-crop-dialog.component";
+import type { ImageCropDialogData } from "../crop-image/image-crop-dialog.component";
 
 export type MediaUploadState =
   | "staged"
@@ -176,8 +173,11 @@ export class MediaUpload implements OnInit, OnDestroy {
     }
 
     this.updateMedia(id, { state: "editing" });
+    const { ImageCropDialogComponent } = await import(
+      "../crop-image/image-crop-dialog.component"
+    );
     const ref = this.dialog.open<
-      ImageCropDialogComponent,
+      InstanceType<typeof ImageCropDialogComponent>,
       ImageCropDialogData,
       File | undefined
     >(ImageCropDialogComponent, {
