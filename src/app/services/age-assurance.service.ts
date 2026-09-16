@@ -1,6 +1,7 @@
+import { normalizeUiLocale } from "../config/ui-locales";
 import { hasApprovedOneIdAdultPolicy } from "../../db/utils/external-age-policy";
 import { FeatureTelemetryService } from "./feature-telemetry.service";
-import { Injectable, inject, signal } from "@angular/core";
+import { Injectable, inject, signal, LOCALE_ID } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { PLATFORM_ID } from "@angular/core";
@@ -134,6 +135,7 @@ export class AgeAssuranceService {
   private _functionsAdapter = inject(FunctionsAdapterService);
   private _authService = inject(AuthenticationService);
   private _platformId = inject(PLATFORM_ID);
+  private readonly uiLocale = inject(LOCALE_ID);
   private _lastSyncedUid: string | null = null;
   private _syncGeneration = 0;
   private _syncInFlight: NativeSyncInFlight | null = null;
@@ -180,7 +182,7 @@ export class AgeAssuranceService {
 
   async beginOneIdAgeVerification(): Promise<ExternalAgeVerificationAttempt> {
     return this.telemetry.run("age_verification", "beginOneIdAgeVerification", () => externalVerificationRequest(
-      this._functionsAdapter.callAuthenticatedAppChecked<{provider: "oneid"}, ExternalAgeVerificationAttempt>("beginExternalAgeVerification", {provider: "oneid"})));
+      this._functionsAdapter.callAuthenticatedAppChecked<{provider: "oneid"; locale: string}, ExternalAgeVerificationAttempt>("beginExternalAgeVerification", {provider: "oneid", locale: normalizeUiLocale(this.uiLocale)})));
   }
 
   private async _syncNativeAgePolicyForCurrentUser(

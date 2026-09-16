@@ -1,5 +1,5 @@
 import { ONEID_APPROVAL_BASIS } from "../../db/utils/external-age-policy";
-import { PLATFORM_ID } from "@angular/core";
+import { PLATFORM_ID, LOCALE_ID } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { Capacitor } from "@capacitor/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -129,6 +129,14 @@ describe("AgeAssuranceService", () => {
     policy.assurance.approval_basis = ONEID_APPROVAL_BASIS;
     policy.assurance.method.provider_method = "unapproved";
     expect(service.hasVerifiedAdultEligibility()).toBe(false);
+  });
+
+  it("sends the current UI locale with the verification attempt", async () => {
+    TestBed.overrideProvider(LOCALE_ID, {useValue: "de"});
+    functionsAdapter.callAuthenticatedAppChecked.mockResolvedValue({});
+    await TestBed.inject(AgeAssuranceService).beginOneIdAgeVerification();
+    expect(functionsAdapter.callAuthenticatedAppChecked).toHaveBeenCalledWith(
+      "beginExternalAgeVerification", {provider: "oneid", locale: "de"});
   });
 
   it("times out a lost external response without retrying the start", async () => {

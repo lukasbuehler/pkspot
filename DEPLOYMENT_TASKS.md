@@ -1155,11 +1155,10 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
       document countries/types, method routing and fallback availability for this client.
       References: https://docs.oneid.uk/services/age-overview,
       https://docs.oneid.uk/services/age-assure, https://docs.oneid.uk/guides/errors.
-- [ ] Complete an authenticated OneID sandbox journey from the local development
-      UI using the selected tester account. Test both Model Bank age outcomes,
+- [ ] The tester completed a successful bank sandbox journey. Test both Model Bank age outcomes,
       cancellation and reconnect. Confirm real age policy and approval records remain
-      unchanged. The deployed return link points to
-      `http://localhost:4200/settings/profile?oneid=return`; set a reachable HTTPS
+      unchanged. Return links now use the attempt locale and Settings → Account
+      (`http://localhost:4200/<locale>/settings/account?oneid=return`); set a reachable HTTPS
       development URL before device testing. This is provider validation still to do,
       not implied by successful deployment or unauthenticated endpoint checks.
 - [ ] Build updated native apps before testing OneID on iOS/Android. The existing

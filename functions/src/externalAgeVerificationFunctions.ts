@@ -35,6 +35,7 @@ interface OneIdConfiguration {
 }
 
 interface ExternalAttempt {
+  locale?: string;
   uid: string;
   provider: "oneid";
   method: "age_check";
@@ -158,6 +159,7 @@ export const beginExternalAgeVerification = onCall(
         method: "age_check",
         threshold: 18,
         product: config.product,
+        locale: verificationLocale(data["locale"]),
         environment: configuredEnvironment(),
         state_hash: hash(state),
         nonce,
@@ -239,17 +241,24 @@ export const oneIdAgeResult = async (
   return {verified, transactionReference: `oneid:${hash(`${nonce}:${tokens.idToken}`)}`};
 };
 
-export const externalVerificationReturnUrl = (): string => {
-  const candidate = oneIdReturnUrl.value() || "https://pkspot.app/settings/profile?oneid=return";
+// Only a language identifier crosses the client boundary, never a return URL.
+const verificationLocale = (value: unknown): string =>
+  typeof value === "string" && ["en", "de", "fr", "it", "es", "nl"].includes(value) ? value : "en";
+
+export const externalVerificationReturnUrl = (locale?: unknown): string => {
+  let url = new URL("https://pkspot.app");
   try {
-    const url = new URL(candidate);
-    const local = configuredEnvironment() === "sandbox" && url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname);
-    if ((url.protocol === "https:" || local) && !url.username && !url.password) return url.toString();
-  } catch { /* Fall back to a known app URL, never reflect callback input. */ }
-  return "https://pkspot.app/settings/profile?oneid=return";
+    const configured = new URL(oneIdReturnUrl.value());
+    const local = configuredEnvironment() === "sandbox" && configured.protocol === "http:" && ["localhost", "127.0.0.1"].includes(configured.hostname);
+    if ((configured.protocol === "https:" || local) && !configured.username && !configured.password) url = configured;
+  } catch { /* Keep the trusted fallback origin. */ }
+  url.pathname = `/${verificationLocale(locale)}/settings/account`;
+  url.search = "?oneid=return";
+  url.hash = "";
+  return url.toString();
 };
-const callbackPage = (message: string): string => {
-  const href = externalVerificationReturnUrl().replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+const callbackPage = (message: string, locale?: unknown): string => {
+  const href = externalVerificationReturnUrl(locale).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
   return `<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1"><title>PK Spot age verification</title><main><h1>PK Spot</h1><p>${message}</p><p><a href="${href}">Return to PK Spot</a></p></main>`;
 };
 
@@ -262,12 +271,15 @@ export const oneIdAgeVerificationCallback = onRequest(
     response.set("Referrer-Policy", "no-referrer");
     response.set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; base-uri 'none'");
     externalVerificationLog("callback", "started");
+    let returnLocale: unknown;
+    const page = (message: string) => callbackPage(message, returnLocale);
     let claimedRef: admin.firestore.DocumentReference | undefined;
     try {
       if (request.method !== "GET") throw new HttpsError("invalid-argument", "Unsupported callback method.");
       const state = requiredQueryString(request.query["state"], "state");
       const attemptSnapshot = await admin.firestore().collection(ATTEMPTS).where("state_hash", "==", hash(state)).limit(1).get();
       if (attemptSnapshot.empty) throw new HttpsError("permission-denied", "Unknown verification attempt.");
+      returnLocale = attemptSnapshot.docs[0].data()["locale"];
       const attemptRef = attemptSnapshot.docs[0].ref;
       const now = admin.firestore.Timestamp.now();
       const claimed = await admin.firestore().runTransaction(async (transaction) => {
@@ -283,7 +295,7 @@ export const oneIdAgeVerificationCallback = onRequest(
         return attempt;
       });
       if (!claimed) {
-        response.status(200).type("html").send(callbackPage("This verification was already received."));
+        response.status(200).type("html").send(page("This verification was already received."));
         return;
       }
 
@@ -293,7 +305,7 @@ export const oneIdAgeVerificationCallback = onRequest(
         await attemptRef.update({outcome: cancelled ? "cancelled" : "failed", consumed_at: admin.firestore.Timestamp.now(),
           code_verifier: admin.firestore.FieldValue.delete(), nonce: admin.firestore.FieldValue.delete()});
         externalVerificationLog("provider_return", cancelled ? "cancelled" : "failed");
-        response.status(200).type("html").send(callbackPage(cancelled ? "Verification was cancelled. You can try again when you are ready." : "The provider could not complete verification. Please return to PK Spot and try again."));
+        response.status(200).type("html").send(page(cancelled ? "Verification was cancelled. You can try again when you are ready." : "The provider could not complete verification. Please return to PK Spot and try again."));
         return;
       }
       const code = requiredQueryString(request.query["code"], "code");
@@ -364,7 +376,7 @@ export const oneIdAgeVerificationCallback = onRequest(
         }
       }));
       externalVerificationLog("callback", "succeeded");
-      response.status(200).type("html").send(callbackPage(claimed.environment === "sandbox" ? "Sandbox test completed. Your real age eligibility has not changed." : result.verified ? "Your 18+ result was recorded." : "OneID could not confirm that you are 18 or older."));
+      response.status(200).type("html").send(page(claimed.environment === "sandbox" ? "Sandbox test completed. Your real age eligibility has not changed." : result.verified ? "Your 18+ result was recorded." : "OneID could not confirm that you are 18 or older."));
       return;
     } catch (error) {
       externalVerificationLog("callback", "failed", error);
@@ -379,7 +391,7 @@ export const oneIdAgeVerificationCallback = onRequest(
         })).catch(() => undefined);
       }
       const message = error instanceof HttpsError ? error.message : "The verification could not be completed. You can try again from PK Spot.";
-      response.status(400).type("html").send(callbackPage(message));
+      response.status(400).type("html").send(page(message));
       return;
     }
   },

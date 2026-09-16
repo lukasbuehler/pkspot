@@ -16,7 +16,7 @@ let server, base, keys, jwk, current, nonce, subject = 'same-subject', result = 
 require.cache[load.resolve('jose')].exports = {
   ...jose, createRemoteJWKSet: () => jose.createLocalJWKSet({keys: [jwk]}),
 };
-const {beginExternalAgeVerification, oneIdAgeVerificationCallback, oneIdAgeResult, externalAgeVerificationStatus} = require('../functions/lib/functions/src/externalAgeVerificationFunctions.js');
+const {beginExternalAgeVerification, oneIdAgeVerificationCallback, oneIdAgeResult, externalAgeVerificationStatus, externalVerificationReturnUrl} = require('../functions/lib/functions/src/externalAgeVerificationFunctions.js');
 before(async () => {
   keys = await jose.generateKeyPair('PS256');
   jwk = {...await jose.exportJWK(keys.publicKey), kid: 'test', alg: 'PS256', use: 'sig'};
@@ -40,9 +40,9 @@ before(async () => {
   };
 });
 after(async () => { global.fetch = originalFetch; server.closeAllConnections(); server.close(); await db.terminate(); await admin.app().delete(); });
-async function begin(uid, age_policy = {}) {
+async function begin(uid, age_policy = {}, locale = "en") {
   await db.doc(`users/${uid}`).set({age_policy});
-  current = await beginExternalAgeVerification.run({auth: {uid}, data: {provider: 'oneid'}});
+  current = await beginExternalAgeVerification.run({auth: {uid}, data: {provider: 'oneid', locale}});
   nonce = new URL(current.verification_url).searchParams.get('nonce');
   subject = 'same-subject'; result = true; failToken = false; expiredToken = false; failStage = ''; invalidSignature = false; wrongNonce = false;
   return current;
@@ -165,4 +165,16 @@ test('authenticated start is rate limited and requires method approval', async (
   await assert.rejects(beginExternalAgeVerification.run({auth: {uid: 'rate'}, data: {provider: 'oneid'}}), {code: 'resource-exhausted'});
   process.env.ONEID_AGE_CHECK_METHOD_APPROVED = 'false';
   await assert.rejects(beginExternalAgeVerification.run({auth: {uid: 'other'}, data: {provider: 'oneid'}}), {code: 'failed-precondition'});
+  process.env.ONEID_AGE_CHECK_METHOD_APPROVED = 'true';
+});
+
+test('returns to the originating locale and account tab, including replay and cancellation', async () => {
+  await begin('localized-return', {}, 'de');
+  assert.match(await (await callback()).text(), /https:\/\/pkspot.app\/de\/settings\/account\?oneid=return/);
+  assert.match(await (await callback()).text(), /\/de\/settings\/account/);
+  await begin('localized-cancel', {}, 'fr');
+  const state = new URL(current.verification_url).searchParams.get('state');
+  const response = await fetch(`${base}/callback?state=${encodeURIComponent(state)}&error=OneID.OIDC.Redirect.UserCancelled`);
+  assert.match(await response.text(), /\/fr\/settings\/account/);
+  assert.equal(externalVerificationReturnUrl('https://attacker.example'), 'https://pkspot.app/en/settings/account?oneid=return');
 });
