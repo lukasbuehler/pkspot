@@ -198,7 +198,23 @@ async function fetchWithTimeout(url, options = {}, description = url) {
   }
 }
 
+// Check actual SSR output: metadata service unit tests cannot catch missing templates.
+function assertPageIdentity(html, routeLabel, expectedHeading) {
+  const head = html.match(/<head\b[^>]*>([\s\S]*?)<\/head>/i)?.[1] || "";
+  const titles = [...head.matchAll(/<title\b[^>]*>([\s\S]*?)<\/title>/gi)];
+  assert.equal(titles.length, 1, `${routeLabel} should have exactly one document title`);
+  assert.match(titles[0][1], expectedHeading, `${routeLabel} title should identify the page`);
+  const descriptions = [...head.matchAll(/<meta\b(?=[^>]*\bname="description")(?=[^>]*\bcontent="([^\"]+)")[^>]*>/gi)];
+  assert.equal(descriptions.length, 1, `${routeLabel} needs one nonempty meta description`);
+  const body = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
+  const headings = [...body.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/gi)];
+  assert.equal(headings.length, 1, `${routeLabel} should have exactly one primary H1`);
+  const text = headings[0][1].replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  assert.match(text, expectedHeading, `${routeLabel} H1 should identify the page`);
+}
+
 function assertCrawlerSurface(html, routeLabel, expected = {}) {
+  assertPageIdentity(html, routeLabel, expected.heading);
   assert.match(html, /<!doctype html>/i, `${routeLabel} should return HTML`);
   assert.match(
     html,
@@ -611,7 +627,8 @@ async function main() {
     assertDynamicSsrCacheHeaders(socialPreviewResponse, "Spot SSR route");
     const socialPreviewHtml = await socialPreviewResponse.text();
     assertCrawlerSurface(socialPreviewHtml, "Spot SSR route", {
-      title: /Sportzentrum Josef: Parkour Spot in Zürich \| PK Spot/,
+      heading: /Sportzentrum Josef/i,
+      title: /Sportzentrum Josef: Parkour Spot in Z[üu]rich \| PK Spot/,
       ogUrl:
         /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/map\/spots\/josefhalle"/,
       body: /Sportzentrum Josef/i,
@@ -622,7 +639,7 @@ async function main() {
     ]);
     assert.match(
       socialPreviewHtml,
-      /<meta property="og:title"[^>]+content="Sportzentrum Josef: Parkour Spot in Zürich \| PK Spot"/,
+      /<meta property="og:title"[^>]+content="Sportzentrum Josef: Parkour Spot in Z[üu]rich \| PK Spot"/,
       "Spot SSR HTML should include the spot-specific OpenGraph title"
     );
     assert.match(
@@ -648,6 +665,7 @@ async function main() {
           { headers: { "user-agent": "Googlebot/2.1" } }, `${locale} entity localization`);
         assert.equal(response.status, 200);
         const html = await response.text();
+        assertPageIdentity(html, `${locale} ${route}`, new RegExp(escapeRegExp(name)));
         assert.match(html, new RegExp(`<title>${name}[^<]*${label}[^<]*</title>`));
         assert.match(html, new RegExp(`<meta name="description"[^>]+content="${label}`));
         assert.match(html, new RegExp(`<link rel="canonical"[^>]+href="https://pkspot.app/${locale}/${route}"`));
@@ -673,6 +691,7 @@ async function main() {
     assertDynamicSsrCacheHeaders(communityPreviewResponse, "Community SSR route");
     const communityPreviewHtml = await communityPreviewResponse.text();
     assertCrawlerSurface(communityPreviewHtml, "Community SSR route", {
+      heading: /Switzerland/i,
       title: /Switzerland/i,
       ogUrl:
         /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/map\/communities\/switzerland"/,
@@ -696,6 +715,7 @@ async function main() {
       );
       assert.equal(response.status, 200);
       const html = await response.text();
+      assertPageIdentity(html, `${locale} community`, new RegExp(escapeRegExp(placeName)));
       assert.match(html, new RegExp(`<title>${heading}[^<]*</title>`));
       assert.match(html, new RegExp(`<meta name="description"[^>]+content="${description}`));
       assert.match(html, new RegExp(`<link rel="canonical"[^>]+href="https://pkspot.app/${locale}/map/communities/switzerland"`));
@@ -723,13 +743,14 @@ async function main() {
     );
     const zurichCommunityHtml = await zurichCommunityResponse.text();
     assertCrawlerSurface(zurichCommunityHtml, "Zurich community SSR route", {
-      title: /Parkour in Zürich, Switzerland \| PK Spot Community/,
+      heading: /Z[üu]rich/i,
+      title: /Parkour in Z[üu]rich, Switzerland \| PK Spot Community/,
       ogUrl:
         /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/map\/communities\/zuerich"/,
-      body: /Zürich/i,
+      body: /Z[üu]rich/i,
     });
     assertBodyCrawlerContent(zurichCommunityHtml, "Zurich community SSR route", [
-      /Zürich/i,
+      /Z[üu]rich/i,
       /Sportzentrum Josef|Josefhalle/i,
       /href="\/en\/map\/spots\/josefhalle"|href="\/map\/spots\/josefhalle"/i,
     ]);
@@ -747,6 +768,7 @@ async function main() {
     assert.equal(mapResponse.status, 200, "Map SSR route should render");
     assertDynamicSsrCacheHeaders(mapResponse, "Map SSR route");
     const mapHtml = await mapResponse.text();
+    assertPageIdentity(mapHtml, "Map SSR route", /parkour|spots/i);
     assert.match(mapHtml, /<!doctype html>/i, "Map SSR route should return HTML");
     assertBodyCrawlerContent(mapHtml, "Map SSR route", [
       /PK Spot/i,
@@ -770,6 +792,7 @@ async function main() {
     );
     assertDynamicSsrCacheHeaders(eventsPageResponse, "Events SSR route");
     const eventsPageHtml = await eventsPageResponse.text();
+    assertPageIdentity(eventsPageHtml, "Events directory SSR", /events/i);
     assertBodyCrawlerContent(eventsPageHtml, "Events SSR route", [
       /Events/,
       /Discover parkour events around the world/,
@@ -798,6 +821,7 @@ async function main() {
     assertDynamicSsrCacheHeaders(eventPreviewResponse, "Event SSR route");
     const eventPreviewHtml = await eventPreviewResponse.text();
     assertCrawlerSurface(eventPreviewHtml, "Event SSR route", {
+      heading: /Swiss Jam 2025/i,
       title: /Swiss Jam 2025: Parkour event [^<]* \| PK Spot/,
       ogUrl:
         /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/events\/swissjam25"/,
@@ -862,11 +886,24 @@ async function main() {
     assertDynamicSsrCacheHeaders(profilePreviewResponse, "Profile SSR route");
     const profilePreviewHtml = await profilePreviewResponse.text();
     assertCrawlerSurface(profilePreviewHtml, "Profile SSR route", {
+      heading: /Lukas|profile|PK Spot user/i,
       title: /\| PK Spot/,
       ogUrl:
         /<meta property="og:url"[^>]+content="https:\/\/pkspot\.app\/en\/u\/lukas"/,
       body: /profile|spots|activity|Lukas/i,
     });
+
+    for (const [route, heading] of [
+      ["about", /about|PK Spot|parkour/i], ["contact", /contact/i], ["support", /support/i],
+      ["terms-of-service", /terms/i], ["privacy-policy", /privacy/i],
+      ["impressum", /impressum|legal/i],
+    ]) {
+      const response = await fetchWithTimeout(`${baseUrl}/en/${route}`, {
+        redirect: "manual", headers: { "user-agent": "Googlebot/2.1" },
+      }, `${route} identity SSR`);
+      assert.equal(response.status, 200, `${route} should render`);
+      assertPageIdentity(await response.text(), `${route} SSR`, heading);
+    }
 
     const notFoundResponse = await fetchWithTimeout(
       `${baseUrl}/en/this-route-should-not-exist`,

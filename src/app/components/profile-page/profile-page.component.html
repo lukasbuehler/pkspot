@@ -1,6 +1,7 @@
 <div class="profile-page">
   @if (isLoading) {
     <div class="profile-state" aria-live="polite">
+      <h1 class="visually-hidden">{{ fallbackProfileName }}</h1>
       <mat-spinner
         diameter="48"
         strokeWidth="4"
@@ -15,7 +16,7 @@
             class="profile-blocked-container profile-state profile-state--panel"
           >
             <mat-icon class="profile-state__icon">block_border</mat-icon>
-            <h2 class="mat-headline-small" i18n>You have blocked this user</h2>
+            <h1 class="mat-headline-small" i18n>You have blocked this user</h1>
             <p class="mat-body-large" i18n>
               Unblock them to see their profile and posts.
             </p>
@@ -694,7 +695,7 @@
     } @else {
       <div class="profile-state" aria-live="polite">
         <mat-icon class="profile-state__icon">person</mat-icon>
-        <h2 class="mat-headline-small" i18n>Profile not found</h2>
+        <h1 class="mat-headline-small" i18n>Profile not found</h1>
         <p class="mat-body-medium" i18n>
           This profile does not exist or is no longer available.
         </p>

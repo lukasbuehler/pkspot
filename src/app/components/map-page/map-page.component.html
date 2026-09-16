@@ -281,18 +281,14 @@
   </div>
 </ng-template>
 
-<!--
-  SEO: a single, crawler-readable <h1> for the map route. Hidden visually
-  with Bootstrap's `.visually-hidden` (see styles.scss bootstrap import) so
-  the layout doesn't shift, but Google + screen readers see "Parkour Spot
-  route's main parkour discovery message as the page heading. Placed outside
-  the responsive branches so it
-  always renders.
--->
-@if (!selectedCommunityLanding()) {
-<h1 class="visually-hidden" i18n="@@map.h1">
-  PK Spot — find spots, communities, and events near you
-</h1>
+<!-- Keep one primary heading outside responsive map branches. Community pages
+     provide their own visible H1; Spot routes identify the selected Spot. -->
+@if (selectedSpot(); as headingSpot) {
+  <h1 class="visually-hidden">{{ headingSpot.name() }}</h1>
+} @else if (!selectedCommunityLanding()) {
+  <h1 class="visually-hidden" i18n="@@map.h1">
+    PK Spot — find spots, communities, and events near you
+  </h1>
 }
 
 @if (!responsiveService.isInitialized() && !isServer) {
