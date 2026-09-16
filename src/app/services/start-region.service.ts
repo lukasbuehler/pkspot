@@ -1,7 +1,13 @@
-import { Injectable, LOCALE_ID, PLATFORM_ID, TransferState, inject, makeStateKey } from "@angular/core";
+import {
+  Injectable,
+  LOCALE_ID,
+  PLATFORM_ID,
+  REQUEST,
+  TransferState,
+  inject,
+  makeStateKey,
+} from "@angular/core";
 import { isPlatformBrowser, isPlatformServer } from "@angular/common";
-import { Request } from "express";
-import { REQUEST } from "../../express.token";
 import { ConsentService } from "./consent.service";
 
 export type StartRegionBucket =
@@ -424,7 +430,7 @@ export class StartRegionService {
   private _transferState = inject(TransferState);
   private _consentService = inject(ConsentService);
   private _locale = inject(LOCALE_ID, { optional: true });
-  private _request = inject(REQUEST, { optional: true }) as Request | null;
+  private _request = inject(REQUEST);
 
   resolveStartRegion(): StartRegionResolution {
     if (!this._consentService.hasConsent()) {
@@ -490,7 +496,7 @@ export class StartRegionService {
   private _getServerCountryCode(): string | undefined {
     if (isPlatformServer(this._platformId)) {
       const normalizedCountry = normalizeCountryCode(
-        this._request?.headers["x-pkspot-client-region"]
+        this._request?.headers.get("x-pkspot-client-region")
       );
 
       if (normalizedCountry) {
@@ -520,8 +526,8 @@ export class StartRegionService {
     }
 
     if (isPlatformServer(this._platformId)) {
-      const acceptLanguage = this._request?.headers["accept-language"];
-      if (typeof acceptLanguage === "string") {
+      const acceptLanguage = this._request?.headers.get("accept-language");
+      if (acceptLanguage) {
         for (const entry of acceptLanguage.split(",")) {
           const localeTag = entry.split(";")[0]?.trim();
           if (localeTag) {

@@ -76,7 +76,10 @@
     "deploy:prod:functions": "npx firebase use prod && cd ./functions && npm run build && npx firebase deploy --only functions && cd ..",
     "rebuild:communities": "node scripts/request_community_rebuild.js",
     "notification:test": "npm --prefix functions run build && node scripts/send_test_notification.js",
-    "test:notification-cli": "node --test scripts/send_test_notification.test.js"
+    "test:notification-cli": "node --test scripts/send_test_notification.test.js",
+    "build:cloudflare": "node scripts/cloudflare-workers.mjs build",
+    "cloudflare:dry-run": "node scripts/cloudflare-workers.mjs dry-run",
+    "cloudflare:preview": "node scripts/cloudflare-workers.mjs preview"
   },
   "private": true,
   "dependencies": {
@@ -157,7 +160,8 @@
     "typescript": "6.0.3",
     "typescript-eslint": "8.61.0",
     "vitest": "4.1.11",
-    "webpack-bundle-analyzer": "^5.3.0"
+    "webpack-bundle-analyzer": "^5.3.0",
+    "wrangler": "^4.125.0"
   },
   "overrides": {
     "@xmldom/xmldom": "0.9.12",

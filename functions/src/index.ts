@@ -233,6 +233,9 @@ export {
   getOsmAmenityTile,
 } from "./osmAmenityFunctions";
 export { resolveMapShortLink } from "./mapLinkFunctions";
+export {
+  mintCloudflareSsrAppCheckToken,
+} from "./cloudflareSsrAppCheckFunctions";
 
 export {
   onEventNotificationSourceWrite,

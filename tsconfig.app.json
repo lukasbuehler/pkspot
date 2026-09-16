@@ -4,7 +4,13 @@
     "outDir": "../out-tsc/app",
     "types": ["node", "@angular/localize"]
   },
-  "files": ["src/main.ts", "src/main.server.ts", "server.ts"],
+  "files": [
+    "src/main.ts",
+    "src/main.server.ts",
+    "src/main.cloudflare.ts",
+    "server.ts",
+    "server.cloudflare.ts"
+  ],
   "include": [
     "src/**/*.d.ts"
   ],

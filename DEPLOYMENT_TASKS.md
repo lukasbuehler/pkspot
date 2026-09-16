@@ -158,6 +158,49 @@ mobile builds and App Hosting SSR are not accidentally denied.
       invalid/unknown request metrics and the App Check failure warning; roll
       back that product's enforcement if legitimate clients are rejected.
 
+### Cloudflare edge SSR trial
+
+The Cloudflare trial is additive and must stay on `edge-test.pkspot.app` until
+all localized SSR, Firebase, crawler, and cache checks pass. It does not replace
+or operate the App Hosting production rollout.
+
+- [ ] Create a separate Firebase Web app named `PK Spot SSR Cloudflare`. Set its
+      app ID as the `CLOUDFLARE_SSR_FIREBASE_APP_ID` Function secret and create
+      a random, independent `CLOUDFLARE_SSR_TOKEN_BROKER_SECRET`:
+
+  ```sh
+  npx firebase apps:create WEB "PK Spot SSR Cloudflare" --project prod
+  npx firebase functions:secrets:set CLOUDFLARE_SSR_FIREBASE_APP_ID --project prod
+  npx firebase functions:secrets:set CLOUDFLARE_SSR_TOKEN_BROKER_SECRET --project prod
+  npx firebase deploy --project prod --only functions:mintCloudflareSsrAppCheckToken
+  ```
+
+      Configure the `pkspot-web` Worker with the app ID, deployed broker URL,
+      and broker secret as `PKSPOT_SSR_FIREBASE_APP_ID`,
+      `PKSPOT_SSR_APP_CHECK_BROKER_URL`, and
+      `PKSPOT_SSR_APP_CHECK_BROKER_SECRET` secrets. Never put these values in a
+      Wrangler config, client environment file, static asset, or build log.
+- [ ] Build the combined six-locale Worker with `npm run build:cloudflare`, then
+      run `npm run cloudflare:dry-run`. In Workers Builds, use
+      `npm run build:cloudflare` as the build command and
+      `npx wrangler deploy --config dist/pkspot-cloudflare-worker/wrangler.jsonc`
+      as the deploy command. Confirm the upload remains below the current
+      Workers script-size limit and starts within Cloudflare's limit.
+- [ ] Deploy the generated `pkspot-web` Worker without attaching `pkspot.app`.
+      Verify its `workers.dev` URL first, including every locale's initial HTML,
+      canonical and social metadata, hashed assets, 404 status, Firebase reads,
+      and App Check.
+- [ ] Replace the existing `edge-test.pkspot.app` CNAME to
+      `origin.pkspot.app` with a proxied placeholder origin, then route
+      `edge-test.pkspot.app/*` to `pkspot-web`. The Worker redirects unprefixed
+      paths by `Accept-Language` and dispatches locale-prefixed paths to the
+      matching Angular SSR bundle. This avoids the previous Cloudflare-to-App-
+      Hosting TLS hop. Do not change the apex `pkspot.app` records during the
+      trial.
+- [ ] Put WAF and bot rules into log-only mode first. Confirm verified search
+      crawlers and social-card fetchers receive SSR HTML and public images
+      without a challenge before enabling blocking or managed challenges.
+
 ### Community event and Spot ranking repair
 
 The 1.1.5 client filters expired cached event previews at render time and sorts

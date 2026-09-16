@@ -279,6 +279,22 @@ describe("Cloud Functions generation policy", () => {
     expect(source).not.toContain("process.env.GCE_METADATA_HOST ??=");
   });
 
+  it("keeps the Cloudflare SSR token broker narrow and cost bounded", () => {
+    const source = readFileSync(
+      resolve(functionsSourceRoot, "cloudflareSsrAppCheckFunctions.ts"),
+      "utf8",
+    );
+
+    expect(source).toContain("CLOUDFLARE_SSR_TOKEN_BROKER_SECRET");
+    expect(source).toContain("CLOUDFLARE_SSR_FIREBASE_APP_ID");
+    expect(source).toContain('invoker: "public"');
+    expect(source).toContain("maxInstances: 2");
+    expect(source).toContain('response.set("Cache-Control", "no-store")');
+    expect(source).toContain("getAppCheck().createToken");
+    expect(source).not.toContain("credential.cert");
+    expect(source).not.toContain("private_key");
+  });
+
   it("keeps Storage metadata auth on a gaxios version with compatible headers", () => {
     const functionsPackage = JSON.parse(
       readFileSync(resolve(functionsRoot, "package.json"), "utf8")

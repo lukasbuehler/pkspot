@@ -5,13 +5,10 @@ import {
   effect,
   inject,
   PLATFORM_ID,
-  Optional,
-  Inject,
+  REQUEST,
 } from "@angular/core";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { isPlatformBrowser } from "@angular/common";
-import { REQUEST } from "../../express.token";
-import { Request } from "express";
 
 /**
  * Responsive view mode based on screen size breakpoints
@@ -39,7 +36,7 @@ export class ResponsiveService {
   private breakpointObserver = inject(BreakpointObserver);
   private platformId = inject(PLATFORM_ID);
   private isBrowser = isPlatformBrowser(this.platformId);
-  private request = inject(REQUEST, { optional: true }) as Request | null;
+  private request = inject(REQUEST);
   private _initializationCheckScheduled = false;
 
   /**
@@ -152,11 +149,11 @@ export class ResponsiveService {
     if (!this.request) return false;
 
     // Check modern Client Hints header
-    const secChUaMobile = this.request.headers["sec-ch-ua-mobile"];
+    const secChUaMobile = this.request.headers.get("sec-ch-ua-mobile");
     if (secChUaMobile === "?1") return true;
     if (secChUaMobile === "?0") return false;
 
-    const ua = this.request.headers["user-agent"] || "";
+    const ua = this.request.headers.get("user-agent") ?? "";
     // Added 'Mobile' to the regex to catch more general mobile user agents
     return /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(
       ua
@@ -168,7 +165,7 @@ export class ResponsiveService {
    */
   private isTabletUserAgent(): boolean {
     if (!this.request) return false;
-    const ua = this.request.headers["user-agent"] || "";
+    const ua = this.request.headers.get("user-agent") ?? "";
     return /iPad|Android(?!.*Mobile)/i.test(ua);
   }
 

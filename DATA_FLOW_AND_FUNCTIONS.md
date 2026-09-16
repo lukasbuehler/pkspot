@@ -149,7 +149,7 @@ Firebase Web app. If it is absent, SSR deliberately retains the current
 unattested behavior so the provider can be deployed and observed before
 enforcement; a configured app ID without a usable token minter fails closed.
 
-#### Future Cloudflare Workers + static assets adapter
+#### Cloudflare Workers + static assets adapter
 
 Static assets do not require SSR App Check: Cloudflare can serve them directly.
 Only requests rendered by the Angular SSR Worker need a token. Running Angular
@@ -158,13 +158,34 @@ runtime identity, so the Worker must supply its own implementation of
 `SsrAppCheckTokenMinter`; it must not import the App Hosting
 `firebase-admin`/ADC adapter.
 
+The Cloudflare build uses `src/main.cloudflare.ts` and
+`provideFirebaseCloudflareClient()` as a compile-time boundary from the normal
+App Hosting bootstrap. Wrangler enables `nodejs_compat`, which exposes encrypted
+Worker bindings through `process.env`. `PKSPOT_SSR_FIREBASE_APP_ID` selects the
+dedicated Cloudflare SSR app; `PKSPOT_SSR_APP_CHECK_BROKER_URL` and
+`PKSPOT_SSR_APP_CHECK_BROKER_SECRET` configure its token broker. If the app ID
+is absent, SSR remains unattested for the pre-enforcement trial. If the app ID
+is present but either broker binding is absent, initialization fails closed.
+
+One `pkspot-web` Worker packages Angular's six-locale SSR output and localized
+static assets. Angular's generated server entry redirects unprefixed requests
+to the preferred supported locale from `Accept-Language` and resolves
+locale-prefixed requests with the matching localized server bundle. This keeps
+Git integration, runtime secrets, routing, logs, and deployment ownership in
+one Cloudflare project.
+
 The Cloudflare adapter must obtain a trusted signing capability without putting
 a private key in the static bundle. Preferred order:
 
 1. Workload Identity Federation or another short-lived identity exchange that
    can authorize the Worker to sign the Firebase custom assertion.
 2. A narrowly scoped Google-hosted token broker that authenticates the Worker
-   and returns only a short-lived App Check token.
+   and returns only a short-lived App Check token. PK Spot implements this as
+   `mintCloudflareSsrAppCheckToken`: it accepts only the configured dedicated
+   SSR Firebase app ID, compares the Worker bearer secret in constant time, and
+   returns `{ token, expireTimeMillis }` with `Cache-Control: no-store`. The
+   Function is capped at two instances to limit runaway compute while the edge
+   caches and deduplicates short-lived tokens.
 3. A Cloudflare runtime secret containing signing material only as a last
    resort, with rotation and leak response documented before use.
 

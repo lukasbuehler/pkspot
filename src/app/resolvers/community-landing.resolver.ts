@@ -1,7 +1,5 @@
-import { inject } from "@angular/core";
+import { inject, RESPONSE_INIT } from "@angular/core";
 import { ResolveFn } from "@angular/router";
-import type { Response } from "express";
-import { RESPONSE } from "../../express.token";
 import {
   buildCommunityLandingPath,
   normalizeCommunitySlug,
@@ -27,7 +25,7 @@ export const communityLandingResolver: ResolveFn<
   const landingPagesService = inject(LandingPagesService);
   const metaTagService = inject(MetaTagService);
   const structuredDataService = inject(StructuredDataService);
-  const response = inject(RESPONSE, { optional: true }) as Response | null;
+  const responseInit = inject(RESPONSE_INIT);
 
   const requestedSlug = normalizeCommunitySlug(route.paramMap.get("slug"));
   const pageData = await landingPagesService.getCommunityPage(requestedSlug);
@@ -40,7 +38,7 @@ export const communityLandingResolver: ResolveFn<
     const canonicalPath = buildCommunityLandingPath(requestedSlug);
     const pageTitle = `${humanizeSlugSegment(requestedSlug)} Community`;
 
-    response?.status(404);
+    if (responseInit) responseInit.status = 404;
     metaTagService.setStaticPageMetaTags(
       `${pageTitle} Not Found`,
       "This PK Spot community landing page could not be found.",
@@ -86,7 +84,7 @@ export const communityLandingResolver: ResolveFn<
     };
   }
 
-  response?.status(200);
+  if (responseInit) responseInit.status = 200;
 
   metaTagService.setCommunityLandingMetaTags(
     pageData.title,

@@ -1,7 +1,7 @@
+import { RESPONSE_INIT } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { describe, beforeEach, expect, it, vi } from "vitest";
 import { convertToParamMap } from "@angular/router";
-import { RESPONSE } from "../../express.token";
 import { communityLandingResolver } from "./community-landing.resolver";
 import { MetaTagService } from "../services/meta-tag.service";
 import { StructuredDataService } from "../services/structured-data.service";
@@ -30,22 +30,20 @@ describe("communityLandingResolver", () => {
   let metaTagService: ReturnType<typeof createMockMetaTagService>;
   let structuredDataService: ReturnType<typeof createMockStructuredDataService>;
   let landingPagesService: ReturnType<typeof createMockLandingPagesService>;
-  let response: { status: ReturnType<typeof vi.fn> };
+  let responseInit: ResponseInit;
 
   beforeEach(() => {
     metaTagService = createMockMetaTagService();
     structuredDataService = createMockStructuredDataService();
     landingPagesService = createMockLandingPagesService();
-    response = {
-      status: vi.fn().mockReturnThis(),
-    };
+    responseInit = { status: 200 };
 
     TestBed.configureTestingModule({
       providers: [
         { provide: MetaTagService, useValue: metaTagService },
         { provide: StructuredDataService, useValue: structuredDataService },
         { provide: LandingPagesService, useValue: landingPagesService },
-        { provide: RESPONSE, useValue: response },
+        { provide: RESPONSE_INIT, useValue: responseInit },
       ],
     });
   });
@@ -99,7 +97,7 @@ describe("communityLandingResolver", () => {
     expect(structuredDataService.removeStructuredData).toHaveBeenCalledWith(
       "community-spots"
     );
-    expect(response.status).toHaveBeenCalledWith(200);
+    expect(responseInit.status).toBe(200);
   });
 
   it("should mark missing pages as 404 and noindex", async () => {
@@ -120,6 +118,6 @@ describe("communityLandingResolver", () => {
     expect(metaTagService.setRobotsContent).toHaveBeenCalledWith(
       "noindex,nofollow"
     );
-    expect(response.status).toHaveBeenCalledWith(404);
+    expect(responseInit.status).toBe(404);
   });
 });

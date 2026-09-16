@@ -245,6 +245,52 @@
                 }
               ]
             },
+            "cloudflare": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.default.ts",
+                  "with": "src/environments/environment.production.ts"
+                }
+              ],
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": {
+                  "inline": true
+                }
+              },
+              "sourceMap": false,
+              "outputHashing": "all",
+              "outputPath": "dist/pkspot-cloudflare",
+              "outputMode": "server",
+              "server": "src/main.cloudflare.ts",
+              "externalDependencies": [
+                "axios",
+                "jszip",
+                "pngjs",
+                "qrcode",
+                "typesense"
+              ],
+              "ssr": {
+                "entry": "server.cloudflare.ts",
+                "platform": "neutral"
+              },
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "4mb",
+                  "maximumError": "5mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb",
+                  "maximumError": "8kb"
+                }
+              ]
+            },
             "dev-optim": {
               "fileReplacements": [
                 {
