@@ -246,12 +246,11 @@ Public contact links now use `support@pkspot.app`. The Discord trigger retries
 failed requests; a separate Resend email trigger is implemented locally and has
 not been deployed or tested with real mail. Messages remain in the private inbox.
 
-- [ ] Confirm the support mailbox exists and select the sending provider. The
-      current email implementation uses Resend; verify `pkspot.app` in that
-      account and configure its required DNS records without replacing existing
-      SPF senders. Store the API key as `CONTACT_RESEND_API_KEY` in Firebase
-      Secrets. If the existing mailbox SMTP service is preferred, adapt the
-      transport before deploying the email trigger.
+- [ ] Confirm the support mailbox receives mail and verify `pkspot.app` in Resend.
+      Configure its required DNS records without replacing existing SPF senders.
+      The maintainer created `CONTACT_RESEND_API_KEY` version 1 in Google Cloud
+      Secret Manager with send-only access to this domain; deployment and a real
+      delivery test remain outstanding.
 - [ ] Deploy `onContactMessageEmailCreate` after provider setup and separately
       deploy the retry fix for `onContactMessageCreate` with a valid
       `DISCORD_CONTACT_WEBHOOK_URL`. Submit an authorized test message and verify
@@ -1132,12 +1131,18 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
       unbound Apple approvals. Before enabling, verify real App Attest registration
       and assertions from a signed iOS build against a non-production backend;
       malformed-payload and synthetic-signature unit tests are not device evidence.
-- [ ] Before enabling OneID, require ID-token/UserInfo subject equality; preserve
-      existing participation restrictions and valid independent evidence across
-      inconclusive checks; align event authoring/profile projections with the approved
-      provider policy; validate actual evidence-method strength; and add callback
-      security/recovery/rate-limit tests. The current disabled-by-default implementation
-      is an unfinished foundation, not production-ready verification.
+- [ ] Validate OneID's actual evidence method before enabling it. Local code now
+      binds UserInfo to the signed ID-token subject, preserves restrictions and
+      independent evidence, limits starts, and uses the shared v2 approval policy
+      in client, event, profile, Firestore rules and session consumers. `ONEID_AGE_CHECK_METHOD_APPROVED`
+      defaults to false: set it only after the provider journey is confirmed to use
+      the approved bank-backed Age Check method. This parameter does not verify
+      vendor configuration. Old v1 approvals must be rechecked, not relabelled.
+      Run `npm run test:emulator:oneid` for local callback regression coverage;
+      its signing keys and provider responses are fixtures, not vendor validation.
+      Confirm sandbox metadata uses the pinned issuer's HTTPS origin for token,
+      UserInfo and JWKS endpoints before deployment. Review any required additional
+      endpoint origin explicitly rather than relaxing the check globally.
 - [ ] Configure OneID in its sandbox before enabling the fallback: create an
       Age Check/Age Verification OIDC client with only `openid age_over_18
       product:age_check` scopes, register the exact HTTPS
@@ -1183,7 +1188,7 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
       Bindings authenticate the native request, not an Apple-signed age certificate;
       approval still depends on the declaration method and separately approved policy.
 - [ ] Run a non-production invalidation for each new basis, including
-      `oneid:financial_attribute:age_check:server_to_server_oidc:v1`, and any
+      `oneid:financial_attribute:age_check:server_to_server_oidc:v2`, and any
       Apple request-bound basis actually returned by device testing. Confirm adult eligibility,
       public-profile opt-in, and public search are disabled while historical
       `age_assurance_records` remain available only to administrators.
@@ -1456,9 +1461,10 @@ false. Local implementation does not enable production session planning.
       cancellation, revoked invitations, deleted accounts and notification taps.
       Native store builds may need the existing `/events` link rules adjusted if
       they constrain route depth. No check-in or activity is created by saving.
-- [ ] Before enabling community discovery, align the session adult-evidence
-      predicate with the reviewed OneID policy. OneID is deliberately not accepted
-      by the new authoring predicate until its existing finalization tasks pass.
+- [ ] Before enabling community discovery, complete the OneID vendor finalization
+      checks above. Deploy the updated Firestore profile rules alongside the
+      OneID and profile/event functions before enabling the provider. The session
+      predicate accepts only the shared reviewed v2 policy; the provider and planned-session feature flags remain disabled.
 - [ ] Review the limited first session release: one existing Spot per session,
       no recurrence, no organization-managed minor rosters, at most 50 private
       invitations, and support contact rather than a dedicated session report

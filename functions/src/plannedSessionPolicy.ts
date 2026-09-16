@@ -1,9 +1,11 @@
+import { hasApprovedOneIdAdultPolicy } from "./externalAgeVerificationPolicy";
 import { HttpsError } from "firebase-functions/v2/https";
 import type { PlannedSessionInput } from "../../src/db/schemas/PlannedSessionSchema";
 import type { UserSchema } from "../../src/db/schemas/UserSchema";
 
 export function sessionAdult(user: UserSchema | undefined): boolean {
   const policy = user?.age_policy;
+  if (sessionParticipation(user) && hasApprovedOneIdAdultPolicy(policy)) return true;
   return sessionParticipation(user) && policy?.adult_eligibility === "verified" &&
     (policy.age_range?.lower ?? -1) >= 18 && policy.assurance?.status === "active" &&
     ["play_integrity_request_bound", "apple_app_attest_request_bound"].includes(policy.assurance.client_integrity ?? "") &&

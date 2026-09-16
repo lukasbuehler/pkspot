@@ -1,3 +1,4 @@
+import { ONEID_APPROVAL_BASIS } from "../../db/utils/external-age-policy";
 import { PLATFORM_ID } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { Capacitor } from "@capacitor/core";
@@ -111,6 +112,23 @@ describe("AgeAssuranceService", () => {
         { provide: PLATFORM_ID, useValue: "browser" },
       ],
     });
+  });
+
+  it("accepts only the reviewed OneID policy in the client", () => {
+    const policy = {
+      source: "oneid_age_check", adult_eligibility: "verified", age_range: {lower: 18},
+      assurance: {status: "active", client_integrity: "server_to_server_oidc",
+        approval_basis: ONEID_APPROVAL_BASIS,
+        method: {provider: "oneid", category: "financial_attribute", provider_method: "age_check"}},
+    };
+    Object.assign(authUser, {data: {data: {age_policy: policy}}});
+    const service = TestBed.inject(AgeAssuranceService);
+    expect(service.hasVerifiedAdultEligibility()).toBe(true);
+    policy.assurance.approval_basis = "oneid:financial_attribute:age_check:server_to_server_oidc:v1";
+    expect(service.hasVerifiedAdultEligibility()).toBe(false);
+    policy.assurance.approval_basis = ONEID_APPROVAL_BASIS;
+    policy.assurance.method.provider_method = "unapproved";
+    expect(service.hasVerifiedAdultEligibility()).toBe(false);
   });
 
   it("syncs native age policy through the Functions adapter", async () => {

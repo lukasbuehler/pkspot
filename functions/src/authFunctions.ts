@@ -18,6 +18,7 @@ export const cleanupOnUserDelete = functions.auth
 
     const { deletePlannedSessionData } = await import("./plannedSessionFunctions");
     await deletePlannedSessionData(userId);
+    await db.doc(`age_assurance_external_limits/${userId}`).delete();
 
     // Batch delete logic for followers and following
     // Note: If a user has thousands of followers, this might need chunking,

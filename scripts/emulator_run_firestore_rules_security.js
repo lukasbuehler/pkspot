@@ -1329,6 +1329,25 @@ async function testPublicUserProfileGuards(
   await assertAllowed("bound Apple approval can enable a public profile", () =>
     updateDoc(doc(adult.db, "users/adult"), { public_profile_enabled: true })
   );
+  await adminDb.doc("users/adult").update({
+    "age_policy.source": "oneid_age_check",
+    "age_policy.assurance.client_integrity": "server_to_server_oidc",
+    "age_policy.assurance.approval_basis": "oneid:financial_attribute:age_check:server_to_server_oidc:v1",
+    "age_policy.assurance.method": {provider: "oneid", category: "financial_attribute", provider_method: "age_check"},
+  });
+  await assertDenied("legacy OneID proof cannot enable a public profile", () =>
+    updateDoc(doc(adult.db, "users/adult"), {public_profile_enabled: true})
+  );
+  await adminDb.doc("users/adult").update({
+    "age_policy.assurance.approval_basis": "oneid:financial_attribute:age_check:server_to_server_oidc:v2",
+  });
+  await assertAllowed("reviewed OneID proof can enable a public profile", () =>
+    updateDoc(doc(adult.db, "users/adult"), {public_profile_enabled: true})
+  );
+  await adminDb.doc("users/adult").update({"age_policy.assurance.method.provider_method": "unapproved"});
+  await assertDenied("unapproved OneID method cannot enable a public profile", () =>
+    updateDoc(doc(adult.db, "users/adult"), {public_profile_enabled: true})
+  );
   await assertDenied("owner cannot inject an Apple attestation key", () =>
     setDoc(doc(adult.db, "users/adult/apple_age_keys/forged"), { public_key: "forged", counter: 0 })
   );

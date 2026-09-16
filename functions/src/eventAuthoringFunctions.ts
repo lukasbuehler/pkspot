@@ -1,3 +1,4 @@
+import { hasApprovedOneIdAdultPolicy } from "./externalAgeVerificationPolicy";
 import * as admin from "firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
@@ -148,6 +149,7 @@ const requireUser = async (uid: string): Promise<UserSchema> => {
 
 const hasVerifiedAdultEvidence = (user: UserSchema): boolean => {
   const policy = user.age_policy;
+  if (hasApprovedOneIdAdultPolicy(policy)) return true;
   return (
     policy?.adult_eligibility === "verified" &&
     (policy.age_range?.lower ?? -1) >= 18 &&

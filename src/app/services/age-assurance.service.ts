@@ -1,3 +1,4 @@
+import { hasApprovedOneIdAdultPolicy } from "../../db/utils/external-age-policy";
 import { FeatureTelemetryService } from "./feature-telemetry.service";
 import { Injectable, inject, signal } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
@@ -351,7 +352,7 @@ export class AgeAssuranceService {
       policy.age_range?.lower !== undefined && policy.age_range.lower >= 18 &&
       assurance?.status === "active" && typeof assurance.approval_basis === "string" &&
       (assurance.client_integrity === "play_integrity_request_bound" ||
-        assurance.client_integrity === "server_to_server_oidc" ||
+        hasApprovedOneIdAdultPolicy(policy) ||
         (assurance.client_integrity === "apple_app_attest_request_bound" && strongEvidence));
   }
 

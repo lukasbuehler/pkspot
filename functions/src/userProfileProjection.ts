@@ -1,3 +1,4 @@
+import { hasApprovedOneIdAdultPolicy } from "./externalAgeVerificationPolicy";
 import {isDeepStrictEqual} from "node:util";
 
 export type UserProfileAudience =
@@ -51,6 +52,7 @@ export const hasVerifiedAdultEligibility = (
   user: Record<string, unknown>
 ): boolean => {
   const policy = user["age_policy"];
+  if (hasApprovedOneIdAdultPolicy(policy)) return true;
   if (
     !isRecord(policy) ||
     policy["adult_eligibility"] !== "verified"
