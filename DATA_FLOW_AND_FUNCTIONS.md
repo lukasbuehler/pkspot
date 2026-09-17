@@ -719,16 +719,48 @@ Checked-in contracts:
 The schemas live in [`typesense/`](typesense/) and are verified against Firestore
 field maps by
 [`typesense-alignment.spec.ts`](src/db/schemas/typesense-alignment.spec.ts).
-The Firebase extension installation/configuration is **not checked into this
-repository**, so its deployed source collections, allowlist, retry settings, and
-exact Typesense request counts must be verified in Firebase Extensions/Function
-logs. In particular, the schema/alignment code treats `event_discovery` as the
-public search shape while comments in `eventFunctions.ts` still describe the
-canonical Event as extension input. The repository alone cannot prove which
-collection production watches; verify it before debugging privacy or indexing
-behavior. Every watched Firestore create/update/delete can cause one extension
-invocation and one corresponding Typesense upsert/delete, including
-server-derived writebacks.
+
+### Production extension inventory (observed 2026-09-17)
+
+The currently installed `typesense/firestore-typesense-search@2.1.0`
+extensions all use the Typesense Cloud Zurich host
+`g5re3ouiqm0j8bc9p-1.a1.typesense.net`, Firestore database `(default)` in
+`eur3`, and run their own Functions in `europe-west6`. Their admin API key is
+external secret state and is deliberately not recorded here.
+
+`search.pkspot.app` is the Cloudflare-proxied stable hostname for that same
+Cloud cluster. It returned `GET /health` as HTTP 200 through Cloudflare's Zurich
+edge on 2026-09-17. The checked-in production and CI client configurations use
+this hostname; already-released clients still use the direct Cloud hostname
+until their normal update path reaches them.
+
+| Extension instance | Firestore source | Typesense collection | Field selection |
+| --- | --- | --- | --- |
+| `firestore-typesense-search` | `spots` | `spots_v2` | Explicit public/search helper allowlist: name, search text, thumbnails, rating, address, amenities, type, access, geometry, report state and force-sync fields. |
+| `firestore-typesense-events` | `event_discovery` | `events_v1` | Unset, so the extension receives every field from the public disposable discovery projection. |
+| `firestore-typesense-search-communities` | `community_pages` | `communities_v1` | Unset, so the extension receives every field from the generated public community page. |
+
+There is no production user-index extension. Any future `users_v1` sync must
+read only `public_user_profiles`, and index only profiles with explicit
+`public_search == true`; it must never read from `users` or private
+subcollections.
+
+The custom Functions replacement will preserve those source boundaries and use
+explicit typed projections rather than forwarding arbitrary Firestore fields.
+It must remain idempotent for at-least-once, unordered Firestore events and
+support a checkpointed backfill and reconciliation pass. The managed Firebase
+Extensions service is being sunset, so this is planned migration work rather
+than an assumption that the installed instances can be reconfigured forever.
+
+Community localization needs distinct display and search contracts. Add
+`place_localization.names: object` and `place_name_overrides: object` to the
+Typesense collection as returned, `index: false` fields, alongside the existing
+`place_localization.region.names` object. This preserves each locale-to-name
+mapping so clients can choose the active locale, with reviewed overrides taking
+precedence. Add a separate bounded `localized_search_names: string[]` indexed
+field containing only the approved localized locality and region strings used
+for matching. It must not replace canonical names/slugs or index the full
+localization object.
 
 ### Weather and OSM caches
 
@@ -1159,3 +1191,8 @@ account deletion removes owned meetings and private plans. Analytics redact
 session-specific routes and suppress save-outcome events. Planning and saving do
 not create check-ins, Spot activity statistics or activity-log entries; the log
 editor only offers a user-confirmed prefill.
+
+| Export | Boundary | Data flow |
+| --- | --- | --- |
+| `schedulePlannedSessionReminder` | `users/{uid}/session_plans/{id}` write trigger | When a saved private plan enables reminders, reads the current session and idempotently queues a generic reminder intent. It skips cancelled or past sessions and never derives reminders from RSVPs or public counters. |
+| `refreshPlannedSessionPlans` | `planned_sessions/{id}` update trigger | Pages through matching private session plans, refreshes their start time and revision from current session state, and idempotently queues generic update intents only for saved plans. It never exposes saver identities to the host. |

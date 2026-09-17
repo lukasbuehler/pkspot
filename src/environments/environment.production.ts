@@ -38,7 +38,7 @@ export const environment = {
       apiKey: "AIzaSyBweX0jjdbdrIy2slKPf6ZAhvl6XHz4AlI",
     },
     typesense: {
-      host: "g5re3ouiqm0j8bc9p-1.a1.typesense.net",
+      host: "search.pkspot.app",
       apiKey: "7yxCDDLoGisH1vDtl2ZBfIglrr3OXsVk",
     },
     posthog: {

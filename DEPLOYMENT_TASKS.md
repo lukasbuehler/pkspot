@@ -106,6 +106,52 @@ run data migrations, or complete third-party service tasks.
 - Posts remain out of scope until their separate refactor. No Post publishing,
   authoring, routing or schema changes are included in this release work.
 
+### Search endpoint and self-hosted Typesense migration
+
+The current Typesense Cloud cluster remains the live source until all steps
+below have passed. `search.pkspot.app` is now a stable Cloudflare-proxied
+hostname whose origin is that existing Cloud cluster. This does not move data;
+already-released clients still use the direct host until their normal update
+path reaches them.
+
+- [ ] In the next compatible web and mobile release, load a versioned public
+      search connection configuration on app start. Its initial primary is
+      `search.pkspot.app`; its bundled and runtime fallback is the current
+      Typesense Cloud host. Each endpoint carries its own collection-restricted
+      search key. Never return an admin key. Cache the configuration for a
+      bounded period and retain the bundled fallback when it cannot be fetched.
+- [ ] Implement the self-managed Europe Functions sync before changing the
+      current extension. Preserve the verified public source boundaries:
+      `spots -> spots_v2`, `event_discovery -> events_v1`, and
+      `community_pages -> communities_v1`. Use typed projections, current
+      document reads, idempotent upsert/delete, retry-safe dual targets,
+      checkpointed backfill and reconciliation. Keep admin keys in Functions
+      secrets and deploy in `europe-west1`.
+- [ ] Before enabling public-user search, use only
+      `public_user_profiles` with `public_search == true`. Do not index
+      `users`, private subcollections, age evidence, contact data, or follower
+      edges. Apply the checked-in `users_v1` schema and verify a consent
+      withdrawal removes the result.
+- [ ] Add explicit localized Community fields to `communities_v1`:
+      `place_localization.names` and `place_name_overrides` as returned,
+      `index: false` objects for locale-correct client rendering, plus a bounded
+      indexed `localized_search_names: string[]` field for matching localized
+      locality and region strings. Preserve override precedence over provider
+      names. Update the schema contract, projection and client query fields,
+      then backfill and verify searches find each localized name while the
+      client renders its active locale without changing canonical names or
+      slugs.
+- [ ] Provision the Zurich `e2-small` VM, persistent disk, backups, alerts and
+      Cloudflare Tunnel. Import the current Typesense schemas and snapshot,
+      enable custom-function dual writes, run the full backfill, and reconcile
+      collection counts, IDs, geo filters, facets and representative search
+      results before changing the custom hostname origin.
+- [ ] Cut the runtime primary configuration to the VM endpoint only after the
+      comparison is clean. Retain the direct Typesense Cloud fallback and dual
+      synchronization for the agreed old-client support window. Do not disable
+      the extension or terminate Typesense Cloud until those older clients are
+      no longer supported and the VM restore procedure has been verified.
+
 ### Community place names and SSR localization
 
 - For the remaining communities, after explicit backfill authorization, invoke the admin/App-Check
