@@ -1516,6 +1516,14 @@ The quality fixes can ship independently.
       heap/profile capture to identify any other concrete allocation source
       before changing WebView cache behavior or image rendering.
 
+### Optional Other event category
+
+- [ ] Deploy `updateEventFieldsOnWrite` with the normalization correction before
+      releasing the client fix. A fallback `kind: other` must not re-add the
+      deselected `other` category. Verify editing `event_categories` from
+      `[jam, other]` to `[jam]` remains `[jam]` after the trigger settles.
+      Preserve explicitly selected Other categories; do not bulk-remove them.
+
 ### Event authoring permissions correction
 
 - [ ] Release the client alias-reader fix with the next web/native update. Keep

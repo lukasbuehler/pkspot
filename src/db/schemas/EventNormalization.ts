@@ -341,7 +341,9 @@ export const normalizeEventModel = (
     invalid.push("owner");
   }
 
-  if (data.kind && includes(EVENT_KINDS, data.kind)) {
+  // "other" is also the fallback for unclassified or mixed-category events.
+  // It must not become a visible tag unless the editor explicitly selected it.
+  if (data.kind && data.kind !== "other" && includes(EVENT_KINDS, data.kind)) {
     const compatibilityCategory = legacyCategoryForEventKind(data.kind);
     const categories = data.event_categories ?? [];
     if (!categories.includes(compatibilityCategory)) {

@@ -150,6 +150,15 @@ describe("event model normalization", () => {
     });
   });
 
+  it.each([{ categories: [] }, { categories: ["jam"] }, { categories: ["jam", "other"] }] as const)(
+    "does not turn a fallback kind into a selected category: %j",
+    ({ categories }) => {
+      const event_categories = [...categories];
+      const result = normalizeEventModel({ kind: "other", event_categories });
+      expect(result.patch.event_categories).toBeUndefined();
+    },
+  );
+
   it("is idempotent once all normalized and compatibility fields exist", () => {
     const normalized: Partial<EventSchema> = {
       publication_state: "published",

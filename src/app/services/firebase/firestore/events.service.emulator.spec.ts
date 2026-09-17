@@ -589,6 +589,8 @@ runWithEmulator("EventsService emulator integration", () => {
       .doc(`events/${eventId}`)
       .set({
         name: "Editable emulator event",
+        kind: "other",
+        event_categories: ["jam", "other"],
         venue_string: "Old venue",
         locality_string: "Zurich, Switzerland",
         location_raw: { lat: 47.3769, lng: 8.5417 },
@@ -603,6 +605,7 @@ runWithEmulator("EventsService emulator integration", () => {
 
     await service.updateEvent(eventId, {
       name: "Updated emulator event",
+      event_categories: ["jam"],
       is_outdoor: false,
       venue_string: "New venue",
       locality_string: "Zurich, Switzerland",
@@ -661,6 +664,7 @@ runWithEmulator("EventsService emulator integration", () => {
     expect(data).toEqual(
       expect.objectContaining({
         name: "Updated emulator event",
+        event_categories: ["jam"],
         is_outdoor: false,
         venue_string: "New venue",
         location_raw: { lat: 47.4, lng: 8.5 },
