@@ -1518,10 +1518,15 @@ The quality fixes can ship independently.
 
 ### Event authoring permissions correction
 
+- [ ] Release the client alias-reader fix with the next web/native update. Keep
+      existing `event_slugs` aliases when changing canonical slugs. New server
+      aliases must remain lowercase for older clients; the new reader also
+      accepts the mixed-case aliases emitted by the initial authoring backend.
+
 - [ ] Test authenticated live calls from the updated UI: an unverified admin can
       create a formal event and review suggestions; an unverified ordinary user
       can submit a suggestion but cannot create a formal event. Confirm the
-      created event opens and the editor's follow-up update succeeds. The three
+      editor's follow-up update succeeds. The three
       functions are deployed in `europe-west1`; ACTIVE state, localhost CORS
       preflight (204), and unauthenticated rejection (401) were verified for each.
 

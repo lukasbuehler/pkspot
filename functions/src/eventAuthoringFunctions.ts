@@ -208,8 +208,10 @@ const requireOrganizationManager = async (
   };
 };
 
-const communitySlug = (eventId: string): string => `community-event-${eventId}`;
-const formalSlug = (eventId: string): string => `event-${eventId}`;
+// Released clients only resolve lowercase slug aliases. Firestore IDs are mixed
+// case, so normalize only the alias; keep event_id in its original case.
+const communitySlug = (eventId: string): string => `community-event-${eventId.toLowerCase()}`;
+const formalSlug = (eventId: string): string => `event-${eventId.toLowerCase()}`;
 
 const activePublicCommunityListings = async (
   transaction: admin.firestore.Transaction,

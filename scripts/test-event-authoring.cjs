@@ -14,7 +14,11 @@ test('unverified admin creates formal event; ordinary unverified user cannot', a
   await db.doc('users/author-admin').set({is_admin:true});
   await db.doc('users/author-user').set({is_admin:false});
   const result = await call('createFormalEvent', 'author-admin', input);
-  assert.equal((await db.doc(`events/${result.eventId}`).get()).data().listing_tier, 'formal');
+  const event = (await db.doc(`events/${result.eventId}`).get()).data();
+  assert.equal(event.listing_tier, 'formal');
+  assert.match(result.slug, /^[a-z0-9-]+$/);
+  assert.equal(event.slug, result.slug);
+  assert.equal((await db.doc(`event_slugs/${result.slug}`).get()).data().event_id, result.eventId);
   await assert.rejects(call('createFormalEvent', 'author-user', input), {code:'permission-denied'});
 });
 test('unverified user submits a private suggestion and staff can review it', async () => {

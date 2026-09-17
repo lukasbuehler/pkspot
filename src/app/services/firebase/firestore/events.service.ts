@@ -842,7 +842,8 @@ export class EventsService extends ConsentAwareService {
   }
 
   private async _resolveEventId(slugOrId: string): Promise<string | null> {
-    if (/^[a-z0-9-]+$/.test(slugOrId)) {
+    // Also accept aliases emitted by the initial mixed-case server slug generator.
+    if (/^[a-z0-9-]+$/i.test(slugOrId)) {
       try {
         const slugDoc =
           await this._firestoreAdapter.getDocument<EventSlugDocument>(
