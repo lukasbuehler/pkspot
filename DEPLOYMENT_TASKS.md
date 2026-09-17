@@ -1530,12 +1530,12 @@ The quality fixes can ship independently.
 
 ### Event authoring permissions correction
 
-- [ ] Deploy `createFormalEvent`, `submitEventSuggestion`, and `reviewEventSuggestion`
-      before testing the updated local UI against live functions. Admins no longer
-      need adult verification for formal event creation/review. Signed-in users
-      with an existing profile may submit suggestions; moderation, rate limits,
-      and non-admin organization authoring checks remain. Verify with an unverified
-      admin, an unverified ordinary account, and an unauthenticated caller.
+- [ ] Test authenticated live calls from the updated UI: an unverified admin can
+      create a formal event and review suggestions; an unverified ordinary user
+      can submit a suggestion but cannot create a formal event. Confirm the
+      created event opens and the editor's follow-up update succeeds. The three
+      functions are deployed in `europe-west1`; ACTIVE state, localhost CORS
+      preflight (204), and unauthenticated rejection (401) were verified for each.
 
 ### Planned training sessions (disabled until coordinated validation)
 
