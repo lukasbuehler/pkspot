@@ -3021,10 +3021,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if (value.type === "event") {
-      // Search dispatched an event hit. The preview panel's route guard
-      // loads the full document — we just navigate by slug/id.
+      // Search opens the same full event page as markers and event cards.
       const slugOrId = value.event?.slug ?? value.event?.id ?? value.id;
-      this.openEventPath(slugOrId, null);
+      await this.router.navigate(["/events", slugOrId]);
       return;
     }
 
