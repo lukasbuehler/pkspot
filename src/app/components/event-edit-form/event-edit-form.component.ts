@@ -29,6 +29,7 @@ import {
   MatAutocompleteModule,
   MatAutocompleteSelectedEvent,
 } from "@angular/material/autocomplete";
+import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatDatepickerModule } from "@angular/material/datepicker";
@@ -355,6 +356,7 @@ export type EventEditPatch = Omit<
     MatAutocompleteModule,
     MatButtonModule,
     MatCheckboxModule,
+    MatSlideToggleModule,
     MatChipsModule,
     MatDatepickerModule,
     MatNativeDateModule,
@@ -434,6 +436,7 @@ export class EventEditFormComponent {
   form: FormGroup = this._fb.group({
     name: ["", Validators.required],
     venue_string: [""],
+    is_outdoor: [true],
     locality_string: [""],
     location_lat: [null as number | null],
     location_lng: [null as number | null],
@@ -822,6 +825,7 @@ export class EventEditFormComponent {
         slug: e.slug ?? "",
         organizer_query: e.organizerName ?? "",
         venue_string: e.venueString,
+        is_outdoor: e.isOutdoor,
         locality_string: e.localityString,
         location_lat: e.location?.lat ?? null,
         location_lng: e.location?.lng ?? null,
@@ -2275,6 +2279,7 @@ export class EventEditFormComponent {
       description_i18n: this._descriptionI18nPatch(),
       slug: trimOrUndefined(v.slug?.toLowerCase()),
       venue_string: trimOrUndefined(v.venue_string) ?? null,
+      is_outdoor: v.is_outdoor !== false,
       locality_string: trimOrUndefined(v.locality_string) ?? null,
       timing,
       start: Timestamp.fromDate(compatibility.start),

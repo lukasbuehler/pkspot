@@ -610,6 +610,8 @@ export interface EventSchema {
   /** Featured people, groups, and acts visible on the event page. */
   featured_participants?: EventFeaturedParticipantSchema[];
 
+  /** False for indoor events. Missing values preserve legacy outdoor forecasts. */
+  is_outdoor?: boolean;
   venue_string?: string;
   locality_string?: string;
   /** Preferred event pin location. Bounds are optional; this is the anchor. */

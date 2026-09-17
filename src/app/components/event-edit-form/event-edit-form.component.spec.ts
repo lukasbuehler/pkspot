@@ -970,6 +970,19 @@ describe("EventEditFormComponent", () => {
     );
   });
 
+  it("defaults to outdoor and preserves an indoor choice when editing and saving", async () => {
+    const fixture = await setup();
+    const component = fixture.componentInstance;
+    expect(component.form.controls.is_outdoor.value).toBe(true);
+    fixture.componentRef.setInput("event", eventWith("indoor", { is_outdoor: false }));
+    fixture.detectChanges();
+    expect(component.form.controls.is_outdoor.value).toBe(false);
+    const saved = vi.fn();
+    component.save.subscribe(saved);
+    component.onSubmit();
+    expect(saved).toHaveBeenCalledWith(expect.objectContaining({ is_outdoor: false }));
+  });
+
   it("loads and serializes the event categories", async () => {
     const fixture = await setup();
     const component = fixture.componentInstance;

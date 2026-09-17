@@ -603,6 +603,7 @@ runWithEmulator("EventsService emulator integration", () => {
 
     await service.updateEvent(eventId, {
       name: "Updated emulator event",
+      is_outdoor: false,
       venue_string: "New venue",
       locality_string: "Zurich, Switzerland",
       location_raw: { lat: 47.4, lng: 8.5 },
@@ -660,6 +661,7 @@ runWithEmulator("EventsService emulator integration", () => {
     expect(data).toEqual(
       expect.objectContaining({
         name: "Updated emulator event",
+        is_outdoor: false,
         venue_string: "New venue",
         location_raw: { lat: 47.4, lng: 8.5 },
         publication_state: "published",

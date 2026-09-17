@@ -137,6 +137,7 @@ export class Event {
   readonly featuredParticipants: EventFeaturedParticipant[];
 
   readonly venueString: string;
+  readonly isOutdoor: boolean;
   readonly localityString: string;
   placeNames?: EntityPlaceNames;
   readonly location?: { lat: number; lng: number };
@@ -220,6 +221,7 @@ export class Event {
     this.organizerAccess = data.organizer_access;
     this.featuredParticipants = data.featured_participants ?? [];
     this.venueString = data.venue_string ?? "";
+    this.isOutdoor = data.is_outdoor !== false;
     this.localityString = data.locality_string ?? "";
     this.location =
       Event.toLatLng(data.location_raw, data.location) ??

@@ -474,6 +474,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       if (
         !this.isBrowser() ||
         !event ||
+        !event.isOutdoor ||
         !event.location ||
         !Number.isFinite(event.location.lat) ||
         !Number.isFinite(event.location.lng) ||

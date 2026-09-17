@@ -68,41 +68,7 @@ const seriesServiceStub = () => ({
   getSeriesByIds: vi.fn(async () => ({})),
 });
 
-describe("EventInfoPageComponent", () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [
-        {
-          provide: WeatherService,
-          useValue: {
-            isEventForecastAvailable: vi.fn(() => false),
-            getEventForecastForTileAt: vi.fn(),
-          },
-        },
-        { provide: MatDialog, useValue: { open: vi.fn() } },
-      ],
-    });
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-    TestBed.resetTestingModule();
-  });
-
-  it("keeps ownership claim requests hidden until rollout verification", () => {
-    const template = readFileSync(
-      join(
-        process.cwd(),
-        "src/app/components/event-page/event-page.component.html",
-      ),
-      "utf8",
-    );
-
-    expect(template).not.toContain("canRequestOwnership");
-    expect(template).not.toContain("ownershipClaimRequested");
-  });
-
-  it("exposes dummy event info as text and structured data for crawlers", () => {
+const setupEventComponent = () => {
     const structuredDataService = {
       addStructuredData: vi.fn(),
       removeStructuredData: vi.fn(),
@@ -159,6 +125,62 @@ describe("EventInfoPageComponent", () => {
     const component = TestBed.runInInjectionContext(
       () => new EventInfoPageComponent(),
     );
+    return { component, structuredDataService, metaTagService };
+};
+
+describe("EventInfoPageComponent", () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: WeatherService,
+          useValue: {
+            isEventForecastAvailable: vi.fn(() => false),
+            getEventForecastForTileAt: vi.fn(),
+          },
+        },
+        { provide: MatDialog, useValue: { open: vi.fn() } },
+      ],
+    });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    TestBed.resetTestingModule();
+  });
+
+  it("keeps ownership claim requests hidden until rollout verification", () => {
+    const template = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/event-page/event-page.component.html",
+      ),
+      "utf8",
+    );
+
+    expect(template).not.toContain("canRequestOwnership");
+    expect(template).not.toContain("ownershipClaimRequested");
+  });
+
+  it("requests forecasts for legacy outdoor events but not indoor events", async () => {
+    const { component, structuredDataService, metaTagService } = setupEventComponent();
+    const weather = TestBed.inject(WeatherService);
+    vi.mocked(weather.isEventForecastAvailable).mockReturnValue(true);
+    vi.mocked(weather.getEventForecastForTileAt).mockImplementation(() => new Promise(() => {}));
+    component.isBrowser.set(true);
+    const location_raw = { lat: 47.4, lng: 8.5 };
+    component.event.set(buildEvent("indoor", "Indoor", { is_outdoor: false, location_raw }));
+    flushSignalEffects();
+    await flushPromises();
+    expect(weather.getEventForecastForTileAt).not.toHaveBeenCalled();
+    component.event.set(buildEvent("outdoor", "Outdoor", { location_raw }));
+    flushSignalEffects();
+    await flushPromises();
+    expect(weather.getEventForecastForTileAt).toHaveBeenCalledOnce();
+  });
+
+  it("exposes dummy event info as text and structured data for crawlers", () => {
+    const { component, structuredDataService, metaTagService } = setupEventComponent();
     const event = buildEvent("dummy-city-jam", "Dummy City Jam", {
       description: "A dummy event page for crawler-readable parkour jam info.",
       organizer_name: "Independent Jam Crew",

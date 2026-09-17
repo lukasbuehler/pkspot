@@ -15857,5 +15857,15 @@
         <source>Your training log could not be loaded.</source>
       </segment>
     </unit>
+    <unit id="event_edit.outdoor">
+      <segment>
+        <source>Outdoor event</source>
+      </segment>
+    </unit>
+    <unit id="event_edit.outdoor_hint">
+      <segment>
+        <source>Show the weather forecast. Keep this on for covered outdoor venues; turn it off for indoor events.</source>
+      </segment>
+    </unit>
   </file>
 </xliff>

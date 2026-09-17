@@ -18932,5 +18932,17 @@
         <target>Impossibile caricare il tuo diario di allenamento.</target>
       </segment>
     </unit>
+    <unit id="event_edit.outdoor">
+      <segment state="translated">
+        <source>Outdoor event</source>
+        <target>Evento all’aperto</target>
+      </segment>
+    </unit>
+    <unit id="event_edit.outdoor_hint">
+      <segment state="translated">
+        <source>Show the weather forecast. Keep this on for covered outdoor venues; turn it off for indoor events.</source>
+        <target>Mostra le previsioni meteo. Lascia attiva questa opzione per i luoghi all’aperto coperti; disattivala per gli eventi al chiuso.</target>
+      </segment>
+    </unit>
   </file>
 </xliff>
