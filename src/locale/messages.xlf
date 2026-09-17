@@ -15867,5 +15867,10 @@
         <source>Show the weather forecast. Keep this on for covered outdoor venues; turn it off for indoor events.</source>
       </segment>
     </unit>
+    <unit id="event_info.open_spot_map">
+      <segment>
+        <source>Open Spot on map</source>
+      </segment>
+    </unit>
   </file>
 </xliff>

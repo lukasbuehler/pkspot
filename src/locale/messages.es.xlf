@@ -18944,5 +18944,11 @@
         <target>Mostrar la previsión del tiempo. Mantén esta opción activada para espacios exteriores cubiertos; desactívala para eventos en interiores.</target>
       </segment>
     </unit>
+    <unit id="event_info.open_spot_map">
+      <segment state="translated">
+        <source>Open Spot on map</source>
+        <target>Abrir el Spot en el mapa</target>
+      </segment>
+    </unit>
   </file>
 </xliff>

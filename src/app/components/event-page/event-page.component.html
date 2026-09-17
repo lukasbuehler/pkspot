@@ -441,12 +441,11 @@
               <a
                 matButton="filled"
                 [routerLink]="mapRoute()"
-                aria-label="Open event map"
-                matTooltip="Open event map"
-                i18n-matTooltip="@@event_info.open_map"
+                [attr.aria-label]="openMapLabel()"
+                [matTooltip]="openMapLabel()"
               >
                 <mat-icon>open_in_full</mat-icon>
-                <span i18n="@@event_info.open_map">Open full map</span>
+                <span>{{ openMapLabel() }}</span>
               </a>
             </div>
 
@@ -489,6 +488,8 @@
                 color="primary"
                 style="position: absolute; right: 16px; bottom: 32px"
                 [routerLink]="mapRoute()"
+                [attr.aria-label]="openMapLabel()"
+                [matTooltip]="openMapLabel()"
               >
                 <mat-icon>open_in_full</mat-icon>
               </a>
@@ -508,9 +509,8 @@
               <a
                 mat-icon-button
                 [routerLink]="mapRoute()"
-                aria-label="Open event map"
-                matTooltip="Open event map"
-                i18n-matTooltip="@@event_info.open_map"
+                [attr.aria-label]="openMapLabel()"
+                [matTooltip]="openMapLabel()"
               >
                 <mat-icon>open_in_full</mat-icon>
               </a>

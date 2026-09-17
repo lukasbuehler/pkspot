@@ -324,6 +324,9 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     const ids = [...new Set(event.spotIds)];
     return ids.length === 1 ? ids[0] : null;
   });
+  readonly openMapLabel = computed(() => this.singleMapSpotId()
+    ? $localize`:@@event_info.open_spot_map:Open Spot on map`
+    : $localize`:@@event_info.open_map:Open event map`);
   readonly mapRoute = computed(() => {
     const event = this.event();
     const spotId = this.singleMapSpotId();

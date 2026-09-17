@@ -18944,5 +18944,11 @@
         <target>Toon de weersverwachting. Laat dit aan voor overdekte buitenlocaties; zet het uit voor evenementen binnen.</target>
       </segment>
     </unit>
+    <unit id="event_info.open_spot_map">
+      <segment state="translated">
+        <source>Open Spot on map</source>
+        <target>Spot op de kaart openen</target>
+      </segment>
+    </unit>
   </file>
 </xliff>

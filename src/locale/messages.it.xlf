@@ -18944,5 +18944,11 @@
         <target>Mostra le previsioni meteo. Lascia attiva questa opzione per i luoghi all’aperto coperti; disattivala per gli eventi al chiuso.</target>
       </segment>
     </unit>
+    <unit id="event_info.open_spot_map">
+      <segment state="translated">
+        <source>Open Spot on map</source>
+        <target>Apri lo Spot sulla mappa</target>
+      </segment>
+    </unit>
   </file>
 </xliff>
