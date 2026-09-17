@@ -47,8 +47,12 @@ run data migrations, or complete third-party service tasks.
 
    - Apply the schema change to the matching production Typesense collection
      before releasing code that writes, filters, sorts, or queries the new field.
-   - Verify the production collection schema contains the expected field and
-     type. Add any required document backfill to the post-deployment actions.
+   - Verify the live collection against the checked-in schema, including field
+     types and `facet` flags. Local contract tests do not verify production.
+   - Deploy the matching projection/helper functions, run required backfills,
+     and wait for indexing before verifying the actual client query, including
+     facets, filters, and sorting. Confirm legacy documents remain in filtered
+     results; a successful unfiltered query alone is insufficient.
 5. Deploy compatible Firebase Functions or rules before the web app when the new
    client depends on them. Preserve support for already-released web and mobile
    clients.
@@ -994,36 +998,20 @@ as Events and user-organized items as Community events. Do not make unlisted
 community events available while supported clients can still list `/events`
 directly.
 
-The production Functions inventory checked on 2026-09-07 lacks
-`createCommunityEvent`, `updateCommunityEvent`, `cancelCommunityEvent`,
-`createFormalEvent`, `submitEventSuggestion`, `reviewEventSuggestion`, and
-`demoteCommunityEventsWhenProfileBecomesPrivate`. Deploy the compatible
-authoring backend as part of the ordered rollout below before treating client
-authoring failures as age-verification failures.
+The remaining legacy Community-event endpoints are `createCommunityEvent`,
+`updateCommunityEvent`, `cancelCommunityEvent`, and
+`demoteCommunityEventsWhenProfileBecomesPrivate`. Verify their deployment status
+before enabling that flow. Formal-event authoring has separate remaining live
+checks below.
 
-- [ ] Update the production `events_v1` Typesense schema with optional
-      `listing_tier`, `country_code`, `region_keys`, and
-      `community_broadcast` fields before deploying the
-      Functions/client that write or filter them. Then deploy Functions,
-      Firestore rules, and the `events` active-community-listing composite
-      index from `firestore.indexes.json`.
+- [ ] Before enabling legacy Community-event authoring, deploy its remaining
+      Functions, Firestore rules, and the `events` active-community-listing
+      composite index from `firestore.indexes.json`.
 
   Success condition: the callable endpoints require both Authentication and
   App Check; public Community-event documents project to `event_discovery`, while
   a direct client write cannot set tier, country, region, organizer-user, or
   broadcast fields.
-
-- [ ] Run the existing `run-backfill-event-typesense-fields` maintenance flow
-      after the schema is live. It must materialize `listing_tier: formal` for
-      legacy Events and backfill `region_keys` only from a valid explicit
-      `country_code` or `community_keys` value of the exact form
-      `country:XX`; never derive a country from locality text. Rebuild
-      `event_discovery` and wait for the Firestore-to-Typesense extension to
-      finish indexing.
-
-  Success condition: a legacy Event remains in the Events filter; a known
-  country Event appears only in its expected region; a locationless Event
-  Event remains Worldwide-only.
 
 - [ ] Verify production with test accounts before exposing authoring broadly:
       active verified-18+ evidence is accepted; absent/expired evidence and
