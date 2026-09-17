@@ -316,8 +316,18 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   });
 
   readonly name = computed(() => this.event()?.name ?? "");
+  readonly singleMapSpotId = computed(() => {
+    const event = this.event();
+    // Count declared locations, not loaded previews: an unloaded second Spot
+    // must not make a multi-location event look like a single-Spot event.
+    if (!event || event.inlineSpots.length || event.customMarkers.length) return null;
+    const ids = [...new Set(event.spotIds)];
+    return ids.length === 1 ? ids[0] : null;
+  });
   readonly mapRoute = computed(() => {
     const event = this.event();
+    const spotId = this.singleMapSpotId();
+    if (spotId) return ["/map/spots", spotId];
     return event ? ["/events", event.slug ?? event.id, "map"] : ["/events"];
   });
   readonly organizer = computed(() => this.event()?.organizer?.organization);
@@ -849,6 +859,10 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   }
 
   openMapForSpot(spot: Spot | LocalSpot | SpotPreviewData | SpotId): void {
+    if (this.singleMapSpotId()) {
+      void this._router.navigate(this.mapRoute());
+      return;
+    }
     const spotId = this._eventMapSpotQueryParam(spot);
     if (!spotId) return;
 
@@ -879,6 +893,10 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     if (index === undefined) return;
     const occurrence = this.mapPriorityMarkers()[index]?.programOccurrence;
     if (!occurrence) return;
+    if (this.singleMapSpotId()) {
+      void this._router.navigate(this.mapRoute());
+      return;
+    }
     void this._router.navigate(this.mapRoute(), {
       queryParams: {
         mapFilter: "program",
