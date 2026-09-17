@@ -13,7 +13,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { EventCreatePageComponent } from "./event-create-page.component";
 
 describe("EventCreatePageComponent", () => {
-  it("creates formal events through the secured callable for an organization leader", async () => {
+  it.each([false, true])("creates formal events for an organization leader or unverified admin (%s)", async (admin) => {
     const authoring = {
       createFormalEvent: vi.fn().mockResolvedValue({
         eventId: "formal-1",
@@ -28,14 +28,14 @@ describe("EventCreatePageComponent", () => {
         {
           provide: AuthenticationService,
           useValue: {
-            isAdmin: () => false,
+            isAdmin: () => admin,
             user: { uid: "leader-1" },
           },
         },
         { provide: EventAuthoringService, useValue: authoring },
         {
           provide: AgeAssuranceService,
-          useValue: { hasVerifiedAdultEligibility: () => true },
+          useValue: { hasVerifiedAdultEligibility: () => !admin },
         },
         { provide: EventsService, useValue: events },
         {

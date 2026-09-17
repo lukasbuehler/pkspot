@@ -59,8 +59,8 @@ export class EventCreatePageComponent implements OnInit {
   readonly organizationEligibilityLoading = signal(true);
   readonly canCreateFormalEvent = computed(
     () =>
-      this._ageAssurance.hasVerifiedAdultEligibility() &&
-      (this.isAdmin() || this.managedOrganizationIds().size > 0),
+      this.isAdmin() ||
+      (this._ageAssurance.hasVerifiedAdultEligibility() && this.managedOrganizationIds().size > 0),
   );
 
   readonly saving = signal<boolean>(false);

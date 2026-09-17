@@ -181,8 +181,8 @@ export class EventsPageComponent {
   readonly managedFormalOrganizationCount = signal(0);
   readonly canAuthorFormal = computed(
     () =>
-      this.canAuthorCommunity() &&
-      (this.isAdmin() || this.managedFormalOrganizationCount() > 0),
+      this.isSignedIn() && (this.isAdmin() ||
+      (this.canAuthorCommunity() && this.managedFormalOrganizationCount() > 0)),
   );
   readonly nonLiveGoingEvents = computed(() =>
     this.myEventContext
@@ -211,9 +211,9 @@ export class EventsPageComponent {
     if (!this.isSignedIn()) return [];
     const actions: EventFabMenuAction[] = [
       {
-        id: "community",
+        id: "session",
         icon: "groups",
-        label: $localize`:@@events.plan_community_event:Plan a community event`,
+        label: $localize`:@@planned.plan:Plan a session`,
       },
       {
         id: "suggest",
@@ -221,7 +221,6 @@ export class EventsPageComponent {
         label: $localize`:@@events.suggest_event:Suggest an Event`,
       },
     ];
-    if (environment.features.plannedSessions) actions.unshift({ id: "session", icon: "add", label: $localize`:@@planned.plan:Plan a session` });
     if (this.canAuthorFormal()) {
       actions.unshift({
         id: "event",
@@ -709,7 +708,7 @@ export class EventsPageComponent {
     const routes: Record<EventCreateAction, string[]> = {
       event: ["/events/new"],
       session: ["/events/session/new"],
-      community: ["/events/community/new"],
+      community: ["/events/session/new"],
       suggest: ["/events/suggest"],
     };
     if (!(action in routes)) return;

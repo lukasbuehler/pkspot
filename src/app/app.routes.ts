@@ -453,11 +453,8 @@ export const routes: Routes = [
   },
   {
     path: "events/community/new",
-    loadComponent: () =>
-      import("./components/community-activity-create-page/community-activity-create-page.component").then(
-        (m) => m.CommunityEventCreatePageComponent,
-      ),
-    data: { routeName: "Plan a community event", discoverable: false },
+    redirectTo: () => "/events/session/new",
+    pathMatch: "full",
   },
   // Keep local links from the short-lived Jam/Session experiment working.
   { path: "events/jam/new", redirectTo: () => "/events/community/new", pathMatch: "full" },

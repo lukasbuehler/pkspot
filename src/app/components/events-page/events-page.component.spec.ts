@@ -414,6 +414,7 @@ describe("EventsPageComponent", () => {
     const draft = buildEvent("draft-jam", "Draft Jam");
     const { component, eventsService } = createComponent({
       admin: true,
+      adult: false,
       signedIn: true,
       drafts: [draft],
     });
@@ -426,7 +427,7 @@ describe("EventsPageComponent", () => {
     expect(component.drafts()).toEqual([draft]);
     expect(component.createActions().map((action) => action.id)).toEqual([
       "event",
-      "community",
+      "session",
       "suggest",
     ]);
   });
@@ -436,7 +437,7 @@ describe("EventsPageComponent", () => {
     await flushResources();
 
     expect(component.createActions().map((action) => action.id)).toEqual([
-      "community",
+      "session",
       "suggest",
     ]);
   });
@@ -448,7 +449,7 @@ describe("EventsPageComponent", () => {
     component.onCreateAction("suggest");
 
     expect(router.navigate).toHaveBeenNthCalledWith(1, [
-      "/events/community/new",
+      "/events/session/new",
     ]);
     expect(router.navigate).toHaveBeenNthCalledWith(2, ["/events/suggest"]);
   });

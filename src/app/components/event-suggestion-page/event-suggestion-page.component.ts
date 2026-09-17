@@ -19,7 +19,6 @@ import { MatSelectModule } from "@angular/material/select";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { Router, RouterLink } from "@angular/router";
 import { EVENT_COUNTRY_CODES } from "../../../db/schemas/EventGeography";
-import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { AuthenticationService } from "../../services/firebase/authentication.service";
 import { EventAuthoringService } from "../../services/event-authoring.service";
 import { MetaTagService } from "../../services/meta-tag.service";
@@ -45,7 +44,6 @@ export class EventSuggestionPageComponent {
 
   private readonly _formBuilder = inject(FormBuilder).nonNullable;
   private readonly _auth = inject(AuthenticationService);
-  private readonly _ageAssurance = inject(AgeAssuranceService);
   private readonly _authoring = inject(EventAuthoringService);
   private readonly _router = inject(Router);
   private readonly _snackBar = inject(MatSnackBar);
@@ -57,7 +55,7 @@ export class EventSuggestionPageComponent {
 
   readonly signedIn = computed(() => !!this._authState()?.uid);
   readonly eligible = computed(
-    () => this.signedIn() && this._ageAssurance.hasVerifiedAdultEligibility(),
+    () => this.signedIn(),
   );
   readonly saving = signal(false);
   readonly timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";

@@ -548,7 +548,8 @@ export const createFormalEvent = onCall(
   async (request): Promise<{ eventId: string; slug: string }> => {
     const uid = request.auth?.uid;
     if (!uid) throw new HttpsError("unauthenticated", "Sign in to create an event.");
-    const user = await requireVerifiedAdult(uid);
+    const user = await requireUser(uid);
+    if (!isAdmin(user)) await requireVerifiedAdult(uid);
     const input = record(request.data) as unknown as FormalEventInput;
     const organizationId = cleanText(input.organizationId, "Organization", 128, false);
     const organizer = organizationId
@@ -583,7 +584,7 @@ export const submitEventSuggestion = onCall(
   async (request): Promise<{ suggestionId: string }> => {
     const uid = request.auth?.uid;
     if (!uid) throw new HttpsError("unauthenticated", "Sign in to suggest an event.");
-    await requireVerifiedAdult(uid);
+    await requireUser(uid);
     const input = record(request.data) as unknown as FormalEventInput & {
       sourceUrl?: unknown;
     };
@@ -632,7 +633,7 @@ export const reviewEventSuggestion = onCall(
   async (request): Promise<{ ok: true; eventId?: string; slug?: string }> => {
     const uid = request.auth?.uid;
     if (!uid) throw new HttpsError("unauthenticated", "Sign in to review suggestions.");
-    const reviewer = await requireVerifiedAdult(uid);
+    const reviewer = await requireUser(uid);
     if (!isAdmin(reviewer)) throw new HttpsError("permission-denied", "Administrator access required.");
     const input = record(request.data);
     const suggestionId = cleanText(input["suggestionId"], "Suggestion", 128)!;

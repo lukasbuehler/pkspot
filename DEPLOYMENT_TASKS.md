@@ -1528,11 +1528,22 @@ The quality fixes can ship independently.
       heap/profile capture to identify any other concrete allocation source
       before changing WebView cache behavior or image rendering.
 
+### Event authoring permissions correction
+
+- [ ] Deploy `createFormalEvent`, `submitEventSuggestion`, and `reviewEventSuggestion`
+      before testing the updated local UI against live functions. Admins no longer
+      need adult verification for formal event creation/review. Signed-in users
+      with an existing profile may submit suggestions; moderation, rate limits,
+      and non-admin organization authoring checks remain. Verify with an unverified
+      admin, an unverified ordinary account, and an unauthenticated caller.
+
 ### Planned training sessions (disabled until coordinated validation)
 
 The new `planned_sessions` flow is separate from legacy Events and completed
-SessionRecords. All environment flags and `PLANNED_SESSIONS_ENABLED` default to
-false. Local implementation does not enable production session planning.
+SessionRecords. The development UI flag is enabled; production/native flags and
+`PLANNED_SESSIONS_ENABLED` remain false. Local implementation does not enable
+production session planning. Legacy `/events/community/new` links now redirect
+to the private-first session planner.
 
 - [ ] Deploy the additive `planned_sessions` and `session_plans` indexes and
       server-only rules first. Verify the collection-group `sessionId` index is

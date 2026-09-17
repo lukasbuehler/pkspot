@@ -3672,6 +3672,12 @@
         <target>Gruppi di possibili duplicati</target>
       </segment>
     </unit>
+    <unit id="4454275408486607727">
+      <segment state="translated">
+        <source>Sign in to suggest an event</source>
+        <target>Accedi per suggerire un evento</target>
+      </segment>
+    </unit>
     <unit id="events.calendar_local_time_note">
       <segment state="final">
         <source> Event dates use each venue’s local time. </source>
@@ -12810,6 +12816,12 @@
         <target>Accesso dal browser</target>
       </segment>
     </unit>
+    <unit id="8098118069468026355">
+      <segment state="translated">
+        <source>Your suggestion will be reviewed before publication.</source>
+        <target>La tua proposta verrà esaminata prima della pubblicazione.</target>
+      </segment>
+    </unit>
     <unit id="3345432039674927349">
       <segment state="initial">
         <source>Could not complete the age-assurance rollback</source>
@@ -15578,12 +15590,6 @@
       <segment state="initial">
         <source> All Challenges of <ph id="0" equiv="INTERPOLATION" disp="{{ spotName() }}"/> </source>
         <target> Tutte le challenge di <ph id="0" equiv="INTERPOLATION" disp="{{ selectedSpot()!.name() }}"/> </target>
-      </segment>
-    </unit>
-    <unit id="4032923208630289183">
-      <segment state="initial">
-        <source>Suggestions require your current server-confirmed adult assurance.</source>
-        <target>Suggestions require your current server-confirmed adult assurance.</target>
       </segment>
     </unit>
     <unit id="4043049091728011235">
@@ -18582,12 +18588,6 @@
       <segment state="initial">
         <source>Couldn&apos;t cancel this community event. Please try again.</source>
         <target>Couldn&apos;t cancel this community event. Please try again.</target>
-      </segment>
-    </unit>
-    <unit id="events.plan_community_event">
-      <segment state="initial">
-        <source>Plan a community event</source>
-        <target>Plan a community event</target>
       </segment>
     </unit>
     <unit id="events.listing_tier_event">
