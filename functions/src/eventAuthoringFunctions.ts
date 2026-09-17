@@ -47,6 +47,7 @@ interface CommunityEventInput {
 
 interface FormalEventInput {
   name: unknown;
+  slug?: unknown;
   description?: unknown;
   locality?: unknown;
   countryCode?: unknown;
@@ -212,6 +213,16 @@ const requireOrganizationManager = async (
 // case, so normalize only the alias; keep event_id in its original case.
 const communitySlug = (eventId: string): string => `community-event-${eventId.toLowerCase()}`;
 const formalSlug = (eventId: string): string => `event-${eventId.toLowerCase()}`;
+
+const requestedFormalSlug = (value: unknown, eventId: string): string => {
+  if (value === undefined || value === "") return formalSlug(eventId);
+  if (typeof value !== "string" || value.length > 160 ||
+      !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value) ||
+      ["new", "suggest", "session", "sessions", "community", "jam"].includes(value)) {
+    throw new HttpsError("invalid-argument", "Choose a URL slug using lowercase letters, numbers and hyphens.");
+  }
+  return value;
+};
 
 const activePublicCommunityListings = async (
   transaction: admin.firestore.Transaction,
@@ -407,7 +418,7 @@ const formalEvent = (
     ...(cleanText(input.description, "Description", 5_000, false)
       ? { description: cleanText(input.description, "Description", 5_000, false) }
       : {}),
-    slug: formalSlug(eventId),
+    slug: requestedFormalSlug(input.slug, eventId),
     ...(cleanText(input.locality, "City", 160, false)
       ? { locality_string: cleanText(input.locality, "City", 160, false) }
       : {}),
@@ -573,6 +584,10 @@ export const createFormalEvent = onCall(
       organizer,
     );
     await db.runTransaction(async (transaction) => {
+      const alias = await transaction.get(db.doc(`event_slugs/${event.slug}`));
+      if (alias.exists) {
+        throw new HttpsError("already-exists", "This event URL is already in use.");
+      }
       await enforceAuthoringRateLimit(transaction, uid, "formal");
       transaction.create(eventRef, event);
       transaction.create(db.doc(`event_slugs/${event.slug}`), { event_id: eventRef.id });

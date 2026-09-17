@@ -27,6 +27,7 @@ export interface FormalEventSuggestionInput {
 
 export interface FormalEventAuthoringInput {
   name: string;
+  slug?: string;
   description?: string;
   locality?: string;
   startsAt: string;

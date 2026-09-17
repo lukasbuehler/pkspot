@@ -113,6 +113,7 @@ export class EventCreatePageComponent implements OnInit {
     try {
       const created = await this._authoring.createFormalEvent({
         name: patch.name ?? "",
+        ...(patch.slug ? { slug: patch.slug } : {}),
         ...(englishDescription(patch.description_i18n)
           ? { description: englishDescription(patch.description_i18n) }
           : {}),

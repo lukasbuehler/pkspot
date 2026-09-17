@@ -1526,7 +1526,9 @@ The quality fixes can ship independently.
 - [ ] Test authenticated live calls from the updated UI: an unverified admin can
       create a formal event and review suggestions; an unverified ordinary user
       can submit a suggestion but cannot create a formal event. Confirm the
-      editor's follow-up update succeeds. The three
+      editor's follow-up update succeeds. With the updated client, verify a
+      chosen URL slug is used and a duplicate slug creates no event. Older
+      clients omit the optional slug and retain automatic URL generation. The three
       functions are deployed in `europe-west1`; ACTIVE state, localhost CORS
       preflight (204), and unauthenticated rejection (401) were verified for each.
 

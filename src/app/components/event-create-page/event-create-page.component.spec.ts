@@ -60,6 +60,7 @@ describe("EventCreatePageComponent", () => {
 
     await component.onSave({
       name: "Club Jam",
+      slug: "club-jam-26",
       description_i18n: { en: "A proper club event." },
       locality_string: "Zurich",
       start: Timestamp.fromDate(new Date("2026-10-01T15:00:00.000Z")),
@@ -74,6 +75,7 @@ describe("EventCreatePageComponent", () => {
     expect(authoring.createFormalEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "Club Jam",
+        slug: "club-jam-26",
         organizationId: "club-1",
         startsAt: "2026-10-01T15:00:00.000Z",
       }),

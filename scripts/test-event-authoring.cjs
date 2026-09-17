@@ -28,3 +28,16 @@ test('unverified user submits a private suggestion and staff can review it', asy
   assert.equal((await db.doc(`event_suggestions/${result.suggestionId}`).get()).data().status, 'rejected');
   await assert.rejects(call('submitEventSuggestion', undefined, input), {code:'unauthenticated'});
 });
+
+test('custom event slug is reserved atomically and invalid or duplicate slugs do not create events', async () => {
+  await db.doc('users/slug-admin').set({is_admin:true});
+  const result = await call('createFormalEvent', 'slug-admin', {...input, slug:'chosen-jam-26'});
+  assert.equal(result.slug, 'chosen-jam-26');
+  assert.equal((await db.doc(`event_slugs/${result.slug}`).get()).data().event_id, result.eventId);
+  const before = (await db.collection('events').get()).size;
+  await assert.rejects(call('createFormalEvent', 'slug-admin', {...input, slug:result.slug}), {code:'already-exists'});
+  for (const slug of ['new', 'sessions', 'UpperCase', 'invalid/path', 'x'.repeat(161)]) {
+    await assert.rejects(call('createFormalEvent', 'slug-admin', {...input, slug}), {code:'invalid-argument'});
+  }
+  assert.equal((await db.collection('events').get()).size, before);
+});
