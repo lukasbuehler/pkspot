@@ -82,35 +82,44 @@ run data migrations, or complete third-party service tasks.
 
 ## Release-specific pending actions
 
-### Share cards (local prototype, not enabled in production)
+### Share cards (implemented locally, disabled until backend/native verification)
 
-Run `npm run share-cards:lab` and open `http://127.0.0.1:4318` to review
-fixture PNGs and downloads. The lab calls `functions/src/shareCards/render.ts`
-directly; it exports no Cloud Function, reads no production data, and stores no
-cards. Run `npm run test:share-cards` for renderer and preparation-policy tests.
+The lab (`npm run share-cards:lab`, port 4318) and backend use the same renderer.
+Only Share clicks generate cards, regardless of rating. There is no backfill,
+edit-triggered generation, or crawler-triggered generation. Spot and Event Share
+buttons use the common service; community/profile targets are supported by the
+backend for future share entry points. Static route artwork remains unchanged.
 
-- [ ] Approve photo, collage and no-photo layouts in the lab before integration.
-      Include public profile and landing/events/map/training page cards. Bundle
-      the same Roboto font and PK Spot logo with any future deployed renderer.
-- [ ] Wire a trusted, rate-limited preparation job into the share dialog before
-      copying/sharing the URL. Resolve canonical public data and approved media
-      server-side. Public-profile discovery eligibility must be checked on the
-      server, not accepted from client input. Never render private profiles,
-      restricted sessions, participant lists, or activity/location history.
-- [ ] Pre-generate publicly discoverable event cards when card content changes;
-      pre-generate public Spot cards with average rating >= 2 or a featured flag.
-      Missing/zero ratings do not qualify. Generate static cards for the public
-      landing, events, map and training pages. All-community generation is a
-      later rollout; keep community/profile preparation explicit initially.
-- [ ] Deploy storage access, versioned metadata and generation workers before
-      switching SSR Open Graph image URLs. Keep existing photos/default artwork
-      until a replacement is ready. Bot requests only read existing metadata and
-      images. Directly copied links can use the fallback if no card exists yet.
-      Coalesce unchanged inputs, include font/logo/template revisions in keys,
-      bound retained revisions, and revoke images when content becomes private
-      or source media is removed. Verify first-share behavior and crawler caches
-      on actual sharing platforms before release; local PNG rendering is not
-      evidence of a platform preview refresh.
+- [ ] Deploy backend first, without changing App Hosting or `main`:
+      `firebase deploy --project parkour-base-project --only functions:prepareShareCard,functions:shareCardImage,functions:invalidateSpotShareCard,functions:invalidateEventShareCard,functions:invalidateCommunityShareCard,functions:invalidateProfileShareCard,functions:cleanupShareCards`.
+      The functions build bundles the exact font, logo and fallback into `lib`.
+      Confirm `share_cards/` Storage objects have no public ACL/download tokens
+      and direct anonymous reads are denied. Existing deny-by-default rules cover
+      the new Storage folder and `share_cards`/`share_card_limits` collections;
+      no schema/index/backfill or existing document write change is required.
+- [ ] Verify App Check for signed-in and signed-out preparation on web/iOS/Android.
+      Test generation, reuse, timeout/offline plain-link sharing, and a second
+      Share tap when browser gesture activation expires. Confirm sanitized
+      `share-card` failures/outcomes in consent-enabled PostHog and backend logs.
+      Native bridge failures must fall back to ordinary link sharing.
+- [ ] Run native builds and device tests for `LinkPreview`: iOS uses
+      `UIActivityItemSource`/`LPLinkMetadata`; Android uses a text/plain link with a
+      ClipData thumbnail and no `EXTRA_STREAM`. Verify multiple receiving apps
+      receive a link, never an image attachment. Native UI results are not proof
+      of delivery or of the receiving app refreshing its cached preview.
+- [ ] Enable `features.shareCards` in the intended web/native environments only
+      after the backend and native checks pass. Until then, existing metadata
+      and ordinary sharing remain enabled. Native environment files are local,
+      so set the flag in those release configurations explicitly too.
+      Verify deployed SSR `og:image` and Twitter images point at the read-only
+      gated endpoint for entity routes. No-card responses use bundled artwork;
+      canonical page URLs remain unchanged. Preview text currently uses English
+      or the source name fallback; cards are shared across UI locales.
+- [ ] Verify privacy/deletion and selected-media removal/replacement block the
+      old image immediately at the endpoint, before cleanup runs. Check source
+      triggers delete stored cards and daily cleanup removes orphaned uploads
+      and expired rate-limit records. Existing external preview caches cannot
+      be revoked. Verify actual WhatsApp/Messages/Discord preview behavior.
 
 
 ### Spot and Event localization

@@ -315,3 +315,6 @@ export { queueSpotPlaceNames, queueEventPlaceNames, enrichEntityPlaceNames,
   publishEntityPlaceNames, backfillEntityPlaceNames } from "./entityPlaceLocalization";
 
 export { plannedSessions, schedulePlannedSessionReminder, refreshPlannedSessionPlans } from "./plannedSessionFunctions";
+
+export { prepareShareCard, shareCardImage, cleanupShareCards, invalidateSpotShareCard, invalidateEventShareCard,
+  invalidateCommunityShareCard, invalidateProfileShareCard } from "./shareCards/functions";

@@ -84,6 +84,7 @@
     "test:emulator:event-authoring": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only firestore --project demo-pkspot \"node --test scripts/test-event-authoring.cjs\"",
     "test:emulator:oneid": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only firestore --project demo-pkspot \"node --test scripts/test-oneid.cjs\"",
     "share-cards:lab": "npm --prefix functions run build && node scripts/share-cards/server.mjs",
+    "test:emulator:share-cards": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only firestore,storage --project demo-pkspot \"node scripts/share-cards/emulator.test.cjs\"",
     "test:share-cards": "npm --prefix functions run build && node --test scripts/share-cards/render.test.cjs"
   },
   "private": true,
