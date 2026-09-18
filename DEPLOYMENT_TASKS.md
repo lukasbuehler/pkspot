@@ -82,6 +82,37 @@ run data migrations, or complete third-party service tasks.
 
 ## Release-specific pending actions
 
+### Share cards (local prototype, not enabled in production)
+
+Run `npm run share-cards:lab` and open `http://127.0.0.1:4318` to review
+fixture PNGs and downloads. The lab calls `functions/src/shareCards/render.ts`
+directly; it exports no Cloud Function, reads no production data, and stores no
+cards. Run `npm run test:share-cards` for renderer and preparation-policy tests.
+
+- [ ] Approve photo, collage and no-photo layouts in the lab before integration.
+      Include public profile and landing/events/map/training page cards. Bundle
+      the same Roboto font and PK Spot logo with any future deployed renderer.
+- [ ] Wire a trusted, rate-limited preparation job into the share dialog before
+      copying/sharing the URL. Resolve canonical public data and approved media
+      server-side. Public-profile discovery eligibility must be checked on the
+      server, not accepted from client input. Never render private profiles,
+      restricted sessions, participant lists, or activity/location history.
+- [ ] Pre-generate publicly discoverable event cards when card content changes;
+      pre-generate public Spot cards with average rating >= 2 or a featured flag.
+      Missing/zero ratings do not qualify. Generate static cards for the public
+      landing, events, map and training pages. All-community generation is a
+      later rollout; keep community/profile preparation explicit initially.
+- [ ] Deploy storage access, versioned metadata and generation workers before
+      switching SSR Open Graph image URLs. Keep existing photos/default artwork
+      until a replacement is ready. Bot requests only read existing metadata and
+      images. Directly copied links can use the fallback if no card exists yet.
+      Coalesce unchanged inputs, include font/logo/template revisions in keys,
+      bound retained revisions, and revoke images when content becomes private
+      or source media is removed. Verify first-share behavior and crawler caches
+      on actual sharing platforms before release; local PNG rendering is not
+      evidence of a platform preview refresh.
+
+
 ### Spot and Event localization
 
 - Deploy Firestore rules before releasing the client: `place_names/{key}` permits

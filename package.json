@@ -82,7 +82,9 @@
     "test:emulator:entity-localization": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only firestore --project demo-pkspot \"node scripts/emulator_run_entity_place_localization.js\"",
     "test:emulator:planned-sessions": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only auth,firestore --project demo-pkspot \"node --test scripts/test-planned-sessions.cjs\"",
     "test:emulator:event-authoring": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only firestore --project demo-pkspot \"node --test scripts/test-event-authoring.cjs\"",
-    "test:emulator:oneid": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only firestore --project demo-pkspot \"node --test scripts/test-oneid.cjs\""
+    "test:emulator:oneid": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only firestore --project demo-pkspot \"node --test scripts/test-oneid.cjs\"",
+    "share-cards:lab": "npm --prefix functions run build && node scripts/share-cards/server.mjs",
+    "test:share-cards": "npm --prefix functions run build && node --test scripts/share-cards/render.test.cjs"
   },
   "private": true,
   "dependencies": {
