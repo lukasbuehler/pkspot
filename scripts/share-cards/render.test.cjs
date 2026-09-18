@@ -39,3 +39,12 @@ test('preparation policy gates public eligibility and the two-star boundary', ()
   for(const kind of ['community','profile']) assert.equal(shouldPrepareShareCard({...base,kind}),false);
   for(const kind of ['spot','event','community','profile','page']) assert.equal(shouldPrepareShareCard({...base,kind,publiclyDiscoverable:false,trigger:'share_dialog',rating:5}),false);
 });
+test('ratings appear only for rated Spots and reject invalid values', async () => {
+  const plain = await renderShareCard(input, assets);
+  assert.deepEqual(await renderShareCard({...input,rating:0},assets), plain);
+  assert.notDeepEqual(await renderShareCard({...input,rating:4.2},assets), plain);
+  const event = {...input,kind:'event'};
+  assert.deepEqual(await renderShareCard({...event,rating:4.2},assets), await renderShareCard(event,assets));
+  for(const rating of [-1,6,NaN,Infinity,'4.2']) await assert.rejects(renderShareCard({...input,rating},assets));
+  assert.notEqual(shareCardFingerprint(input),shareCardFingerprint({...input,rating:4.2}));
+});

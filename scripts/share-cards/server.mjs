@@ -46,6 +46,7 @@ createServer(async (request, response) => {
         if (typeof data[field] !== 'string') throw new Error('Text fields must be strings');
         input[field] = data[field];
       }
+      input.rating = input.kind === 'spot' ? data.rating ?? undefined : undefined;
       const png = await renderShareCard(input, assets);
       response.setHeader('Content-Type', 'image/png');
       response.setHeader('X-Card-Fingerprint', shareCardFingerprint(input));

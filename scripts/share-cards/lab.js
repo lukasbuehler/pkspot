@@ -9,7 +9,7 @@ async function render() {
   try {
     const values = Object.fromEntries(['title', 'subtitle', 'detail'].map(key => [key, byId(key).value]));
     const response = await fetch('/render', { method: 'POST', signal: active.signal,
-      headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...values, fixture: byId('fixture').value, photoCount: Number(byId('photos').value) }) });
+      headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...values, rating: byId('rating').value === '' ? null : Number(byId('rating').value), fixture: byId('fixture').value, photoCount: Number(byId('photos').value) }) });
     if (!response.ok) throw new Error(await response.text());
     const blob = await response.blob();
     if (active !== request) return;
@@ -28,6 +28,8 @@ async function render() {
 function chooseFixture() {
   const fixture = fixtures.find(item => item.id === byId('fixture').value);
   for (const key of ['title', 'subtitle', 'detail']) byId(key).value = fixture[key] ?? '';
+  byId('rating-field').hidden = fixture.kind !== 'spot';
+  byId('rating').value = fixture.rating ?? '';
   byId('photos').replaceChildren(...Array.from({ length: fixture.photoCount + 1 }, (_, count) => new Option(String(count), String(count))));
   byId('photos').value = fixture.photoCount;
   void render();

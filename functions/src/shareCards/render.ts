@@ -10,12 +10,14 @@ export interface ShareCardInput {
   subtitle: string;
   detail?: string;
   label?: string;
+  /** Average Spot rating out of five. Missing or zero means unrated. */
+  rating?: number;
   /** A caller must authorize publication before supplying public data here. */
   audience: "public" | "restricted";
   photos?: Buffer[];
 }
 export interface ShareCardAssets { fontFile: string; logo?: Buffer }
-export const SHARE_CARD_VERSION = "prototype-1";
+export const SHARE_CARD_VERSION = "prototype-2";
 export const SHARE_CARD_SIZE = { width: 1200, height: 630 };
 const escapeText = (value: string): string => value.replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" })[c]!);
@@ -27,6 +29,9 @@ export async function renderShareCard(input: ShareCardInput, assets: ShareCardAs
   if (input.audience !== "public") throw new Error("Restricted content cannot produce a public share card");
   if (!input.title.trim() || input.title.length > 240 || input.subtitle.length > 240 || (input.detail?.length ?? 0) > 160) {
     throw new Error("Share card text is missing or too long");
+  }
+  if (input.rating !== undefined && (!Number.isFinite(input.rating) || input.rating < 0 || input.rating > 5)) {
+    throw new Error("Spot rating must be between zero and five");
   }
   const photos = (input.photos ?? []).slice(0, 3);
   const layers: OverlayOptions[] = [];
@@ -59,15 +64,19 @@ export async function renderShareCard(input: ShareCardInput, assets: ShareCardAs
     } }).resize({ width, height, fit: "inside", withoutEnlargement: true }).png().toBuffer();
     layers.push({ input: png, left, top });
   };
-  await addText((input.label ?? input.kind).slice(0, 40).toUpperCase(), 78, 65, 700, 30, 24, "#b9bdff", true);
+  await addText((input.label ?? input.kind).slice(0, 40).toUpperCase(), 78, 63, 700, 36, 30, "#b9bdff", true);
+  if (input.kind === "spot" && input.rating && input.rating > 0) {
+    layers.push({ input: svg(`<rect x="966" y="48" width="178" height="64" rx="24" fill="#18191f" fill-opacity=".9"/><path d="m1000 63 5 11 12 2-9 9 2 12-10-6-11 6 2-12-9-9 13-2z" fill="#b9bdff"/>`) });
+    await addText(input.rating.toFixed(1), 1030, 65, 96, 38, 34, "#f4f3ff", true);
+  }
   await addText(input.title, 56, 155, photos.length ? 630 : 930, 246, 76, "#f4f3ff", true);
-  await addText(input.subtitle, 58, 429, 900, 65, 31, "#e2e0eb");
-  await addText(input.detail ?? "", 58, 510, 780, 38, 24, "#b9bdff");
+  await addText(input.subtitle, 58, 429, 1020, 72, 38, "#e2e0eb");
+  await addText(input.detail ?? "", 58, 510, 1020, 42, 30, "#b9bdff");
   if (assets.logo) {
-    const logo = await sharp(assets.logo).resize({ width: 140, height: 58, fit: "inside" }).png().toBuffer();
-    layers.push({ input: logo, left: 1000, top: 540 });
-  } else await addText("PK SPOT", 980, 550, 170, 40, 27, "#f4f3ff", true);
-  await addText("pkspot.app", 58, 575, 250, 25, 19, "#aaa8b8");
+    const logo = await sharp(assets.logo).resize({ width: 220, height: 58, fit: "inside" }).png().toBuffer();
+    layers.push({ input: logo, left: 924, top: 565 });
+  } else await addText("PK SPOT", 924, 565, 220, 42, 36, "#f4f3ff", true);
+  await addText("pkspot.app", 58, 575, 300, 30, 25, "#aaa8b8");
   return sharp({ create: { ...SHARE_CARD_SIZE, channels: 4, background: "#18191f" } })
     .composite(layers).png().toBuffer();
 }
