@@ -200,6 +200,7 @@ const enqueueRollup = (
   transaction.set(db.doc(`check_in_activity_rollups/${spotId}`), {
     spot_id: spotId,
     next_rollup_at: now,
+    revision: FieldValue.increment(1),
   }, {merge: true});
 };
 
@@ -220,16 +221,14 @@ const deleteCheckInForUser = async (uid: string, checkInId: string): Promise<boo
     const privateDataRef = db.doc(`users/${uid}/private_data/main`);
     const indexRef = db.doc(`users/${uid}/check_in_spot_index/${spotId}`);
     const legacyIndexRef = db.doc(`users/${uid}/legacy_check_in_spot_index/${spotId}`);
-    const integrityRef = db.doc(`users/${uid}/check_in_integrity/main`);
     const contributionRef = db.doc(`spots/${spotId}/check_in_aggregate_contributions/${checkInId}`);
     const legacyCheckIns = db.collection(`users/${uid}/check_ins`)
       .where("spot_id", "==", spotId)
       .limit(1);
-    const [sessionSnapshot, indexSnapshot, legacyIndexSnapshot, integritySnapshot, legacyCheckInsSnapshot] = await Promise.all([
+    const [sessionSnapshot, indexSnapshot, legacyIndexSnapshot, legacyCheckInsSnapshot] = await Promise.all([
       transaction.get(sessionRef),
       transaction.get(indexRef),
       transaction.get(legacyIndexRef),
-      transaction.get(integrityRef),
       transaction.get(legacyCheckIns),
     ]);
     const session = sessionSnapshot.data() ?? {};
@@ -269,9 +268,8 @@ const deleteCheckInForUser = async (uid: string, checkInId: string): Promise<boo
       transaction.update(indexRef, {visit_count: remainingCount});
     }
 
-    if (integritySnapshot.data()?.["last_check_in_id"] === checkInId) {
-      transaction.delete(integrityRef);
-    }
+    // Deleting history must not reset the short-lived anti-abuse window.
+    // Its expiry is independent of the check-in and it contains no raw GPS.
     transaction.delete(lookupRef);
     transaction.delete(contributionRef);
     enqueueRollup(transaction, spotId, now);
@@ -320,6 +318,11 @@ export const confirmCheckIn = onCall(
         previousAt !== undefined && previousCheckInId && previousSessionId &&
         nowMs - previousAt < CHECK_IN_COOLDOWN_MS
       ) {
+        const previous = await transaction.get(db.doc(`users/${uid}/check_in_lookup/${previousCheckInId}`));
+        const previousSession = await transaction.get(sessionCollection.doc(previousSessionId));
+        if (!previous.exists || !previousSession.exists) {
+          throw new HttpsError("resource-exhausted", "Please wait before checking in at this Spot again.");
+        }
         return {
           checkInId: previousCheckInId,
           sessionRecordId: previousSessionId,
@@ -347,7 +350,7 @@ export const confirmCheckIn = onCall(
       const integrity = integritySnapshot.data() ?? {};
       const priorSpotId = stringValue(integrity["last_accepted_spot_id"]);
       const priorAcceptedAt = numberValue(integrity["last_accepted_at_raw_ms"]);
-      if (eligibility === "accepted" && center && priorSpotId && priorAcceptedAt) {
+      if (eligibility === "accepted" && center && priorSpotId && priorAcceptedAt && nowMs - priorAcceptedAt < CHECK_IN_COOLDOWN_MS) {
         const priorSpot = await transaction.get(db.doc(`spots/${priorSpotId}`));
         const priorCenter = spotCenter(priorSpot.data());
         if (priorCenter) {
@@ -446,7 +449,7 @@ export const confirmCheckIn = onCall(
         transaction.set(integrityRef, {
           last_accepted_spot_id: input.spotId,
           last_accepted_at_raw_ms: nowMs,
-          last_check_in_id: checkInId,
+          expires_at: Timestamp.fromMillis(nowMs + CHECK_IN_COOLDOWN_MS),
         });
       }
       enqueueRollup(transaction, input.spotId, now);
@@ -486,6 +489,8 @@ export const deleteAllCheckIns = onCall(
 );
 
 const rebuildSpotActivity = async (spotId: string, now: Timestamp): Promise<void> => {
+  const jobRef = db.doc(`check_in_activity_rollups/${spotId}`);
+  const originalJob = await jobRef.get();
   const cutoff = Timestamp.fromMillis(now.toMillis() - ACTIVITY_WINDOW_MS);
   const contributions = db.collection(`spots/${spotId}/check_in_aggregate_contributions`);
   const accepted = await contributions
@@ -498,7 +503,6 @@ const rebuildSpotActivity = async (spotId: string, now: Timestamp): Promise<void
       .filter((uid): uid is string => Boolean(uid)),
   );
   const publicRef = db.doc(`spot_activity_public/${spotId}`);
-  const jobRef = db.doc(`check_in_activity_rollups/${spotId}`);
   const bucket = checkInActivityBucket(accounts.size);
   while (true) {
     const expired = await contributions.where("accepted_at", "<", cutoff).limit(400).get();
@@ -512,10 +516,16 @@ const rebuildSpotActivity = async (spotId: string, now: Timestamp): Promise<void
     .where("accepted_at", ">=", cutoff)
     .limit(1)
     .get();
-  if (!bucket) await publicRef.delete();
-  else await publicRef.set({status: "recently_trained", bucket, window_days: 30} satisfies SpotActivityPublicSchema);
-  if (remaining.empty) await jobRef.delete();
-  else await jobRef.set({spot_id: spotId, next_rollup_at: Timestamp.fromMillis(now.toMillis() + DAY_MS)});
+  await db.runTransaction(async transaction => {
+    const latest = await transaction.get(jobRef);
+    // A confirmation/deletion during the reads enqueues a newer job. Never
+    // publish stale counts or erase that work; the next pass recomputes it.
+    if (!originalJob.updateTime || !latest.updateTime?.isEqual(originalJob.updateTime)) return;
+    if (!bucket) transaction.delete(publicRef);
+    else transaction.set(publicRef, {status: "recently_trained", bucket, window_days: 30} satisfies SpotActivityPublicSchema);
+    if (remaining.empty) transaction.delete(jobRef);
+    else transaction.set(jobRef, {spot_id: spotId, next_rollup_at: Timestamp.fromMillis(now.toMillis() + DAY_MS)});
+  });
 };
 
 export const recomputeCheckInActivity = onSchedule(

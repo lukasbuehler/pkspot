@@ -156,6 +156,15 @@ runWithEmulator("private check-in callables", () => {
       data: { deleted: true },
     });
     expect((await sessionRef.get()).exists).toBe(false);
+    await expect(client.confirm(request(spotId))).rejects.toThrow(/wait before checking in/i);
+    const integrity = (await db().doc(`users/${client.uid}/check_in_integrity/main`).get()).data()!;
+    expect(integrity["last_accepted_spot_id"]).toBe(spotId);
+    expect(integrity["expires_at"].toMillis()).toBeGreaterThan(Date.now());
+    const farSpot = `after-delete-${client.uid}`;
+    await seedSpot(farSpot, { lat: 48.8566, lng: 2.3522 });
+    const far = await client.confirm({ ...request(farSpot), location: { lat: 48.8566, lng: 2.3522 } });
+    expect((await db().doc(`spots/${farSpot}/check_in_aggregate_contributions/${far.data.checkInId}`).get()).data()?.["exclusion_reason"])
+      .toBe("impossible_travel");
     expect((await db().doc(`users/${client.uid}/private_data/main`).get()).data()?.["visited_spots"])
       .not.toContain(spotId);
     expect((await db().doc(`users/${client.uid}/log_entries/authored`).get()).exists).toBe(true);

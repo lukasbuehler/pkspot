@@ -90,13 +90,14 @@ edit-triggered generation, or crawler-triggered generation. Spot and Event Share
 buttons use the common service; community/profile targets are supported by the
 backend for future share entry points. Static route artwork remains unchanged.
 
-- [ ] Deploy backend first, without changing App Hosting or `main`:
-      `firebase deploy --project parkour-base-project --only functions:prepareShareCard,functions:shareCardImage,functions:invalidateSpotShareCard,functions:invalidateEventShareCard,functions:invalidateCommunityShareCard,functions:invalidateProfileShareCard,functions:cleanupShareCards`.
-      The functions build bundles the exact font, logo and fallback into `lib`.
-      Confirm `share_cards/` Storage objects have no public ACL/download tokens
-      and direct anonymous reads are denied. Existing deny-by-default rules cover
-      the new Storage folder and `share_cards`/`share_card_limits` collections;
-      no schema/index/backfill or existing document write change is required.
+The seven share-card functions are deployed in `europe-west1` (2026-09-18).
+A targeted temporary entry point avoided unrelated Stripe-secret discovery.
+The public fallback returned a 1200×630 PNG and preparation without App Check
+returned 401. The local web development flag is enabled; production/native
+remain disabled. Existing image processors skip the `share_cards/` prefix.
+
+- [ ] After successful preparation through the app, confirm generated Storage
+      objects have no public ACL/download tokens and direct anonymous reads fail.
 - [ ] Verify App Check for signed-in and signed-out preparation on web/iOS/Android.
       Test generation, reuse, timeout/offline plain-link sharing, and a second
       Share tap when browser gesture activation expires. Confirm sanitized
@@ -431,17 +432,20 @@ The production Functions inventory checked on 2026-09-07 has the legacy
 check-in flow or its public activity rollup. Recheck this inventory when
 performing the deployment below.
 
-- [ ] Resolve the check-in deletion/integrity edge cases before release:
-      deleting the latest check-in must not reset the short-lived
-      impossible-travel guard, and confirming again during the four-hour
-      cooldown must not return a deleted check-in/session as a success. Cover
-      both flows through the callable emulator tests. Keep any retained abuse
-      prevention state minimal and time-bounded, without raw coordinates.
-- [ ] Exercise the scheduled rollup with accepted, excluded, duplicate,
-      deleted, and expired contributions from multiple accounts. Cover a new
-      confirmation concurrent with rollup completion so a stale rollup cannot
-      delete its queued job. Verify only distinct accepted accounts in the
-      last 30 days affect the public buckets, with no public document below
+- [ ] Deploy the check-in deletion/integrity corrections with the Functions below.
+      Deleted confirmations return a cooldown error instead of a deleted record;
+      deleting history preserves the four-hour travel guard without raw GPS.
+      Deploy the `check_in_integrity.expires_at` TTL policy from
+      `firestore.indexes.json` and verify it is active. Expired guards are ignored
+      immediately; physical TTL deletion is asynchronous. Legacy guards without
+      expiry are ignored after four hours and need a bounded expiry backfill
+      before release. Rollups now compare the queued job version transactionally
+      before publishing counts or deleting/rescheduling work.
+- [ ] After deployment, verify the rollup with controlled accepted, excluded,
+      duplicate, deleted and expired contributions. Local callable deletion tests
+      and `npm run test:emulator:check-in-rollups` cover distinct-account counting,
+      expiry and concurrent enqueue preservation. Confirm deployed buckets include
+      only distinct accepted accounts in the last 30 days and stay absent below
       two accounts.
 - [ ] Verify the deployed legacy `onCheckInCreate` only maintains private
       visited-Spot compatibility and does not add unvalidated legacy writes to
@@ -1241,12 +1245,15 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
       document countries/types, method routing and fallback availability for this client.
       References: https://docs.oneid.uk/services/age-overview,
       https://docs.oneid.uk/services/age-assure, https://docs.oneid.uk/guides/errors.
-- [ ] The tester completed a successful bank sandbox journey. Test both Model Bank age outcomes,
+- [ ] The tester confirmed completing the Model Bank sandbox journey. Test any still-unverified Model Bank age outcome,
       cancellation and reconnect. Confirm real age policy and approval records remain
       unchanged. Return links now use the attempt locale and Settings → Account
       (`http://localhost:4200/<locale>/settings/account?oneid=return`); set a reachable HTTPS
       development URL before device testing. This is provider validation still to do,
       not implied by successful deployment or unauthenticated endpoint checks.
+- [ ] Deploy `oneIdAgeVerificationCallback` to publish the styled return page.
+      The layout is shared by sandbox and production; only the result copy differs.
+      It keeps no-store/no-referrer, an explicit return link and no external assets.
 - [ ] Build updated native apps before testing OneID on iOS/Android. The existing
       AgeAssurance bridge now opens the default system browser using UIApplication
       and ACTION_VIEW, not an in-app browser. Validate browser opening and return
@@ -1585,7 +1592,11 @@ The quality fixes can ship independently.
 The new `planned_sessions` flow is separate from legacy Events and completed
 SessionRecords. The development UI flag is enabled; production/native flags and
 `PLANNED_SESSIONS_ENABLED` remain false. Local implementation does not enable
-production session planning. Legacy `/events/community/new` links now redirect
+production session planning. Logging from a planned session now suggests matching
+private activity records instead of always creating another manual record. Private
+check-in history also links directly to the owner-only activity editor; these record
+identifiers are stripped from analytics URLs. Neither action logs activity until the
+user saves it. Legacy `/events/community/new` links now redirect
 to the private-first session planner.
 
 - [ ] Deploy the additive `planned_sessions` and `session_plans` indexes and

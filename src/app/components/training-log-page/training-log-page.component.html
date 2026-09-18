@@ -148,6 +148,7 @@
           @for (checkIn of checkIns(); track checkIn.checkInId) {
             <article class="check-in-history__item">
               <div><strong>{{ checkIn.spotName || checkIn.spotId }}</strong><span>{{ checkIn.arrivedAtRawMs | systemDate: "medium" }}</span></div>
+              <a mat-button routerLink="/train/log/new" [queryParams]="{ sessionRecord: checkIn.sessionRecordId }" i18n="@@planned.log">Log what you did</a>
               <button matIconButton type="button" (click)="removeCheckIn(checkIn)" i18n-aria-label="@@trainingLog.checkIns.delete" aria-label="Delete check-in"><mat-icon>delete</mat-icon></button>
             </article>
           }

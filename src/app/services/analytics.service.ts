@@ -44,6 +44,7 @@ interface PendingUserIdentity {
 export function redactPlanningUrl(value: string): string {
   try {
     const url = new URL(value, "https://pkspot.app");
+    if (url.searchParams.has("sessionRecord")) return "/train/log/new";
     if (/\/events\/session(?:\/|$)/.test(url.pathname) || url.searchParams.has("plannedSession")) return "/events/sessions";
   } catch { /* Not a URL property. */ }
   return value;

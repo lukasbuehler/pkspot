@@ -1,3 +1,4 @@
+import { matchingPlannedSessionRecords } from "./planned-session-records";
 import { PlannedSessionsService } from "../../services/planned-sessions.service";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
@@ -182,11 +183,21 @@ export class LogEntryEditorComponent {
           visibility: entry.visibility,
         });
         this.selectedIds.set(entry.session_record_ids);
+      } else if (this.route.snapshot.queryParamMap.get("sessionRecord")) {
+        const id = this.route.snapshot.queryParamMap.get("sessionRecord")!;
+        // Always load through the owner-only service, including older records
+        // outside the initial list. A URL never establishes ownership.
+        const record = sessions.find(session => session.id === id) ?? await this.sessionRecords.getMine(id);
+        if (!record) throw new Error($localize`:@@logEditor.notFound:Log entry not found.`);
+        if (!sessions.some(session => session.id === id)) this.sessions.set([...sessions, record]);
+        this.selectedIds.set([id]);
       } else if (this.route.snapshot.queryParamMap.get("plannedSession")) {
         const { session } = await this.plannedSessions.get(this.route.snapshot.queryParamMap.get("plannedSession")!);
         // A plan is only a suggestion. No activity or check-in is created until
         // the person confirms what they actually did in this editor.
-        this.showNewSession.set(true);
+        const matching = matchingPlannedSessionRecords(sessions, session);
+        this.selectedIds.set(matching);
+        this.showNewSession.set(matching.length === 0);
         this.spotIds.set([session.spotId]);
         const now = Date.now();
         if (session.startsAt < now) this.sessionForm.setValue({ startedAt: toLocalInput(new Date(session.startsAt)), endedAt: toLocalInput(new Date(Math.min(session.endsAt, now))) });

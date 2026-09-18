@@ -293,6 +293,9 @@ describe("private session analytics URLs", () => {
   it.each(["https://pkspot.app/de/events/session/secret", "/events/session/secret", "/train/log/new?plannedSession=secret"])("redacts %s", url => {
     expect(redactPlanningUrl(url)).toBe("/events/sessions");
   });
+  it("redacts private check-in record links", () => {
+    expect(redactPlanningUrl("/train/log/new?sessionRecord=private-id")).toBe("/train/log/new");
+  });
   it("preserves ordinary event and Spot URLs", () => {
     expect(redactPlanningUrl("/events/jam")).toBe("/events/jam");
     expect(redactPlanningUrl("/map/spots/abc")).toBe("/map/spots/abc");
