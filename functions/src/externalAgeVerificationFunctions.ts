@@ -267,7 +267,9 @@ export const externalVerificationReturnUrl = (locale?: unknown): string => {
 };
 const callbackPage = (message: string, locale?: unknown): string => {
   const href = externalVerificationReturnUrl(locale).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
-  return `<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1"><title>PK Spot age verification</title><main><h1>PK Spot</h1><p>${message}</p><p><a href="${href}">Return to PK Spot</a></p></main>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>PK Spot age verification</title><style>
+:root{color-scheme:dark light;font-family:system-ui,sans-serif;background:var(--mat-sys-surface,#101014);color:var(--mat-sys-on-surface,#e5e3ec)}*{box-sizing:border-box}body{margin:0;min-height:100svh;display:grid;place-items:center;padding:24px}main{width:100%;max-width:480px;padding:32px;border:1px solid var(--mat-sys-outline-variant,#494752);border-radius:28px;background:var(--mat-sys-surface-container,#1b1b20)}header{font-weight:800;letter-spacing:.04em;color:var(--mat-sys-primary,#c5c3ff)}h1{font-size:1.6rem;margin:28px 0 16px}p{line-height:1.6}a{display:inline-block;margin-top:16px;padding:12px 22px;border-radius:999px;background:var(--mat-sys-primary,#c5c3ff);color:var(--mat-sys-on-primary,#211f54);text-decoration:none;font-weight:600}a:focus-visible{outline:3px solid currentColor;outline-offset:4px}
+</style></head><body><main><header>PK SPOT</header><h1>Age verification</h1><p>${message}</p><a href="${href}">Return to PK Spot</a></main></body></html>`;
 };
 
 export const oneIdAgeVerificationCallback = onRequest(
@@ -277,7 +279,7 @@ export const oneIdAgeVerificationCallback = onRequest(
     // caller-supplied UID. Never log callback URLs or provider payloads.
     response.set("Cache-Control", "no-store");
     response.set("Referrer-Policy", "no-referrer");
-    response.set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; base-uri 'none'");
+    response.set("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'");
     externalVerificationLog("callback", "started");
     let returnLocale: unknown;
     const page = (message: string) => callbackPage(message, returnLocale);

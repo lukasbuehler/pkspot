@@ -58,7 +58,7 @@ test('OIDC validation accepts a genuinely signed test token with a local key sou
 });
 test('signed callback preserves participation restrictions and consumes PKCE state', async () => {
   await begin('restricted', {participation_state: 'read_only_age_restricted', required_regulatory_features: ['parental_consent']});
-  { const response = await callback(); const body = await response.text(); if (response.status !== 200) console.error(body); assert.equal(response.status, 200, body); }
+  { const response = await callback(); const body = await response.text(); if (response.status !== 200) console.error(body); assert.equal(response.status, 200, body); assert.match(body, /<h1>Age verification<\/h1>/); assert.match(response.headers.get('content-security-policy'), /style-src 'unsafe-inline'/); assert.equal(response.headers.get('referrer-policy'), 'no-referrer'); }
   const policy = (await db.doc('users/restricted').get()).data().age_policy;
   assert.equal(policy.participation_state, 'read_only_age_restricted');
   assert.deepEqual(policy.required_regulatory_features, ['parental_consent']);
