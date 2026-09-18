@@ -4,6 +4,8 @@ export const environment = {
   baseUrl: "https://pkspot.app",
   mapId: "e2926e5bfb22860c",
   features: {
+    // Enable after the share-card backend and native bridges are verified.
+    shareCards: false,
     // Training is live in the shipped environments. Keep it enabled in CI so
     // route builds and visual coverage exercise the same route table.
     plannedSessions: false,

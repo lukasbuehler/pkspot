@@ -5158,11 +5158,6 @@
         <source> Featured people, groups &amp; acts </source>
       </segment>
     </unit>
-    <unit id="event_info.link_copied">
-      <segment>
-        <source>Event link copied to clipboard.</source>
-      </segment>
-    </unit>
     <unit id="event_info.map_label">
       <segment>
         <source> Event map </source>
@@ -10456,6 +10451,26 @@
         <source>Shop</source>
       </segment>
     </unit>
+    <unit id="share_card.copied">
+      <segment>
+        <source>Link copied.</source>
+      </segment>
+    </unit>
+    <unit id="share_card.failed">
+      <segment>
+        <source>Couldn&apos;t share the link. Please try again.</source>
+      </segment>
+    </unit>
+    <unit id="share_card.ready">
+      <segment>
+        <source>Your link is ready.</source>
+      </segment>
+    </unit>
+    <unit id="share_card.share">
+      <segment>
+        <source>Share</source>
+      </segment>
+    </unit>
     <unit id="share_spot_aria_label">
       <notes>
         <note category="description">The aria label of the share spot icon button</note>
@@ -11362,11 +11377,6 @@
         <source>Meet-up time</source>
       </segment>
     </unit>
-    <unit id="6670068416688791508">
-      <segment>
-        <source>Cannot share a spot that hasn&apos;t been saved yet</source>
-      </segment>
-    </unit>
     <unit id="6677729099911177594">
       <segment>
         <source>No storage destination is configured.</source>
@@ -11385,11 +11395,6 @@
     <unit id="752097609696171501">
       <segment>
         <source>Time mentioned in update (optional)</source>
-      </segment>
-    </unit>
-    <unit id="7523630390926625638">
-      <segment>
-        <source>Link to spot copied to clipboard</source>
       </segment>
     </unit>
     <unit id="7524812215223500531">
@@ -15859,12 +15864,12 @@
     </unit>
     <unit id="event_edit.outdoor">
       <segment>
-        <source>Outdoor event</source>
+        <source> Outdoor event </source>
       </segment>
     </unit>
     <unit id="event_edit.outdoor_hint">
       <segment>
-        <source>Show the weather forecast. Keep this on for covered outdoor venues; turn it off for indoor events.</source>
+        <source> Show the weather forecast. Keep this on for covered outdoor venues; turn it off for indoor events. </source>
       </segment>
     </unit>
     <unit id="event_info.open_spot_map">

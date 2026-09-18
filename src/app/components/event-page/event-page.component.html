@@ -66,9 +66,9 @@
             aria-label="Share event"
             matTooltip="Share event"
             i18n-matTooltip="@@event_info.share"
-            (click)="shareEvent()"
+            [disabled]="shareCards.preparing()" [attr.aria-busy]="shareCards.preparing()" (click)="shareEvent()"
           >
-            <mat-icon>share</mat-icon>
+            <mat-icon>{{ shareCards.preparing() ? 'hourglass_empty' : 'share' }}</mat-icon>
           </button>
           @if (event.published) {
             <button
@@ -350,8 +350,8 @@
             <span i18n>Directions</span>
           </button>
         }
-        <button mat-stroked-button type="button" (click)="shareEvent()">
-          <mat-icon>share</mat-icon>
+        <button mat-stroked-button type="button" [disabled]="shareCards.preparing()" [attr.aria-busy]="shareCards.preparing()" (click)="shareEvent()">
+          <mat-icon>{{ shareCards.preparing() ? 'hourglass_empty' : 'share' }}</mat-icon>
           <span i18n="@@event_info.share_button">Share</span>
         </button>
       </section>

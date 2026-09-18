@@ -57,8 +57,8 @@
                 <mat-icon>open_in_new</mat-icon>
               </a>
             }
-            <button mat-icon-button class="d-flex" (click)="shareEvent()">
-              <mat-icon>share</mat-icon>
+            <button mat-icon-button class="d-flex" [disabled]="shareCards.preparing()" [attr.aria-busy]="shareCards.preparing()" (click)="shareEvent()">
+              <mat-icon>{{ shareCards.preparing() ? 'hourglass_empty' : 'share' }}</mat-icon>
             </button>
             @if (canEditEvent()) {
               <button

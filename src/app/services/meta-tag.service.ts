@@ -1,3 +1,4 @@
+import { shareCardTargetFromPath, shareCardImageUrl } from "../../scripts/ShareCardHelpers";
 import { spotCopy } from "../localization/entity-copy";
 import { DOCUMENT, isPlatformServer } from "@angular/common";
 import { inject, Injectable, LOCALE_ID, PLATFORM_ID } from "@angular/core";
@@ -57,8 +58,10 @@ export class MetaTagService {
     description: string,
     canonicalUrl?: string,
   ) {
-    const normalizedImage =
-      this.normalizeAbsoluteUrl(image_src) || this.defaultImageUrl;
+    const target = canonicalUrl ? shareCardTargetFromPath(new URL(canonicalUrl, environment.baseUrl).pathname) : null;
+    const normalizedImage = environment.features.shareCards && target
+      ? shareCardImageUrl(environment.keys.firebaseConfig.projectId, target, true)
+      : this.normalizeAbsoluteUrl(image_src) || this.defaultImageUrl;
 
     // Title
     this.titleService.setTitle(title);

@@ -1,3 +1,4 @@
+import { ShareCardService } from "../../services/share-card.service";
 import { eventCopy } from "../../localization/entity-copy";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
@@ -172,6 +173,7 @@ type EventMapTab = "all" | "event" | "spots" | "challenges" | "program";
   styleUrl: "./event-map-page.component.scss",
 })
 export class EventMapPageComponent implements OnInit, OnDestroy {
+  readonly shareCards = inject(ShareCardService);
   private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
 
   private _spotMap: SpotMapComponent | GoogleMap2dComponent | undefined;
@@ -970,82 +972,13 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     return true;
   }
 
-  async shareEvent() {
+  async shareEvent(): Promise<void> {
     const event = this.event();
     if (!event) return;
-
-    const { buildAbsoluteUrlNoLocale } =
-      await import("../../../scripts/Helpers");
-    const link = buildAbsoluteUrlNoLocale(`/events/${event.slug ?? event.id}`);
-
-    const shareData = {
-      title: event.name,
-      text: `PK Spot: ${event.name}`,
-      url: link,
-    };
-    this._analytics.trackEvent("share_event_clicked", {
-      surface: "event_map_page",
-      event_id: event.id,
-      event_slug: event.slug ?? null,
-      event_name: event.name,
-      event_status: event.status(),
-    });
-
-    const { Capacitor } = await import("@capacitor/core");
-    const isNative = Capacitor.isNativePlatform();
-
-    if (isNative) {
-      const { Share } = await import("@capacitor/share");
-      try {
-        await Share.share({ ...shareData, dialogTitle: "Share Event" });
-        this._analytics.trackEvent("share_event_succeeded", {
-          surface: "event_map_page",
-          event_id: event.id,
-          method: "native_share",
-        });
-      } catch (err) {
-      this.featureTelemetry.failure("event-map-page", "shareEvent", err);
-        console.error("Couldn't share this event", err);
-        this._analytics.trackEvent("share_event_failed", {
-          surface: "event_map_page",
-          event_id: event.id,
-          method: "native_share",
-        });
-      }
-    } else if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-        this._analytics.trackEvent("share_event_succeeded", {
-          surface: "event_map_page",
-          event_id: event.id,
-          method: "web_share",
-        });
-      } catch (err) {
-      this.featureTelemetry.failure("event-map-page", "shareEvent", err);
-        console.error("Couldn't share this event", err);
-        this._analytics.trackEvent("share_event_failed", {
-          surface: "event_map_page",
-          event_id: event.id,
-          method: "web_share",
-        });
-      }
-    } else {
-      navigator.clipboard.writeText(`${event.name} - PK Spot \n${link}`);
-      this._analytics.trackEvent("share_event_succeeded", {
-        surface: "event_map_page",
-        event_id: event.id,
-        method: "clipboard",
-      });
-      this._snackbar.open(
-        `Link to ${event.name} event copied to clipboard`,
-        "Dismiss",
-        {
-          duration: 3000,
-          horizontalPosition: "center",
-          verticalPosition: "top",
-        },
-      );
-    }
+    const { buildAbsoluteUrlNoLocale } = await import("../../../scripts/Helpers");
+    this._analytics.trackEvent("share_event_clicked", { surface: "event_map_page", event_id: event.id });
+    await this.shareCards.share({ kind: "event", id: String(event.id) },
+      buildAbsoluteUrlNoLocale(`/events/${event.slug ?? event.id}`), event.name);
   }
 
   openEventWeather(selection: EventWeatherSelection): void {

@@ -393,9 +393,9 @@
                   i18n-aria-label="
                     Share spot aria label|The aria label of the share spot icon
                     button@@share_spot_aria_label"
-                  (click)="shareSpot(); $event.stopPropagation()"
+                  [disabled]="shareCards.preparing()" [attr.aria-busy]="shareCards.preparing()" (click)="shareSpot(); $event.stopPropagation()"
                 >
-                  <mat-icon>share</mat-icon>
+                  <mat-icon>{{ shareCards.preparing() ? 'hourglass_empty' : 'share' }}</mat-icon>
                 </button>
               } @else {
                 <button

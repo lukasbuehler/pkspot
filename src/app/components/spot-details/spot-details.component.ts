@@ -1,3 +1,4 @@
+import { ShareCardService } from "../../services/share-card.service";
 import { spotCopy } from "../../localization/entity-copy";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
@@ -342,6 +343,7 @@ type OrganizationRelationshipSaveResult = "unchanged" | "changed" | "failed";
 export class SpotDetailsComponent
   implements OnInit, AfterViewInit, OnChanges, OnDestroy
 {
+  readonly shareCards = inject(ShareCardService);
   private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
 
   public locale: LocaleCode = inject(LOCALE_ID);
@@ -1713,66 +1715,13 @@ export class SpotDetailsComponent
     this.spot()?.userMedia.set(newSpotMedia);
   }
 
-  async shareSpot() {
+  async shareSpot(): Promise<void> {
     const spot = this.spot();
-    if (!(spot instanceof Spot)) {
-      console.error($localize`Cannot share a spot that hasn't been saved yet`);
-      return;
-    }
-
-    // Build domain-agnostic share link without locale prefix
-    const { buildAbsoluteUrlNoLocale } =
-      await import("../../../scripts/Helpers");
-    const idOrSlug = spot.slug ?? spot.id;
-    const link = buildAbsoluteUrlNoLocale(buildSpotCanonicalPath(idOrSlug));
-
-    const shareData = {
-      title: "Spot: " + spot.name(),
-      text: `PK Spot: ${spot.name()}`,
-      url: link,
-    };
-
-    // Use Capacitor Share on native iOS/Android, navigator.share on web browser
-    const { Capacitor } = await import("@capacitor/core");
-    const isNative = Capacitor.isNativePlatform();
-
-    if (isNative) {
-      // Use Capacitor Share plugin for native apps
-      const { Share } = await import("@capacitor/share");
-      try {
-        await Share.share({
-          ...shareData,
-          dialogTitle: "Share Spot",
-        });
-      } catch (err) {
-      this.featureTelemetry.failure("spot-details", "shareSpot", err);
-        console.error("Couldn't share this spot");
-        console.error(err);
-      }
-    } else if (navigator.share) {
-      // Use Web Share API on browser
-      try {
-        await navigator.share(shareData);
-      } catch (err) {
-      this.featureTelemetry.failure("spot-details", "shareSpot", err);
-        console.error("Couldn't share this spot");
-        console.error(err);
-      }
-    } else {
-      // Fallback to clipboard
-      navigator.clipboard.writeText(`${spot.name()} Spot - PK Spot \n${link}`);
-      this._snackbar.open(
-        $localize`Link to spot copied to clipboard`,
-        "Dismiss",
-        {
-          duration: 3000,
-          horizontalPosition: "center",
-          verticalPosition: "top",
-        },
-      );
-    }
-
+    if (!spot || !(spot instanceof Spot)) return;
+    const { buildAbsoluteUrlNoLocale } = await import("../../../scripts/Helpers");
     this._analyticsService.trackEvent("Share Spot", { spotId: spot.id });
+    await this.shareCards.share({ kind: "spot", id: String(spot.id) },
+      buildAbsoluteUrlNoLocale(buildSpotCanonicalPath(spot.slug ?? spot.id)), spot.name());
   }
 
   openSpotInMaps(mapsType?: "google" | "apple") {

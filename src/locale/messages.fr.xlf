@@ -3155,6 +3155,30 @@
         <target>Boutique</target>
       </segment>
     </unit>
+    <unit id="share_card.copied">
+      <segment state="initial">
+        <source>Link copied.</source>
+        <target>Lien copié.</target>
+      </segment>
+    </unit>
+    <unit id="share_card.failed">
+      <segment state="initial">
+        <source>Couldn&apos;t share the link. Please try again.</source>
+        <target>Impossible de partager le lien. Réessaie.</target>
+      </segment>
+    </unit>
+    <unit id="share_card.ready">
+      <segment state="initial">
+        <source>Your link is ready.</source>
+        <target>Ton lien est prêt.</target>
+      </segment>
+    </unit>
+    <unit id="share_card.share">
+      <segment state="initial">
+        <source>Share</source>
+        <target>Partager</target>
+      </segment>
+    </unit>
     <unit id="share_spot_aria_label">
       <notes>
         <note category="description">The aria label of the share spot icon button</note>
@@ -13432,12 +13456,6 @@
         <target>Heure de rendez-vous</target>
       </segment>
     </unit>
-    <unit id="6670068416688791508">
-      <segment state="initial">
-        <source>Cannot share a spot that hasn&apos;t been saved yet</source>
-        <target>Impossible de partager un Spot qui n&apos;a pas encore été enregistré</target>
-      </segment>
-    </unit>
     <unit id="6677729099911177594">
       <segment state="initial">
         <source>No storage destination is configured.</source>
@@ -13484,12 +13502,6 @@
       <segment state="initial">
         <source>Time mentioned in update (optional)</source>
         <target>Heure mentionnée dans la mise à jour (facultatif)</target>
-      </segment>
-    </unit>
-    <unit id="7523630390926625638">
-      <segment state="initial">
-        <source>Link to spot copied to clipboard</source>
-        <target>Lien vers le Spot copié dans le presse-papiers</target>
       </segment>
     </unit>
     <unit id="7524812215223500531">
@@ -17408,12 +17420,6 @@
         <target>Prévisions pas encore disponibles</target>
       </segment>
     </unit>
-    <unit id="event_info.link_copied">
-      <segment state="initial">
-        <source>Event link copied to clipboard.</source>
-        <target>Lien de l’événement copié dans le presse-papiers.</target>
-      </segment>
-    </unit>
     <unit id="event_edit.private_audience">
       <segment state="initial">
         <source> Who can open this event? </source>
@@ -18934,14 +18940,14 @@
     </unit>
     <unit id="event_edit.outdoor">
       <segment state="translated">
-        <source>Outdoor event</source>
-        <target>Événement en plein air</target>
+        <source> Outdoor event </source>
+        <target> Événement en plein air </target>
       </segment>
     </unit>
     <unit id="event_edit.outdoor_hint">
       <segment state="translated">
-        <source>Show the weather forecast. Keep this on for covered outdoor venues; turn it off for indoor events.</source>
-        <target>Afficher les prévisions météo. Gardez cette option activée pour les lieux extérieurs couverts ; désactivez-la pour les événements en intérieur.</target>
+        <source> Show the weather forecast. Keep this on for covered outdoor venues; turn it off for indoor events. </source>
+        <target> Afficher les prévisions météo. Gardez cette option activée pour les lieux extérieurs couverts ; désactivez-la pour les événements en intérieur. </target>
       </segment>
     </unit>
     <unit id="event_info.open_spot_map">
