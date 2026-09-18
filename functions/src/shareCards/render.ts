@@ -17,7 +17,7 @@ export interface ShareCardInput {
   photos?: Buffer[];
 }
 export interface ShareCardAssets { fontFile: string; logo?: Buffer }
-export const SHARE_CARD_VERSION = "prototype-2";
+export const SHARE_CARD_VERSION = "prototype-3";
 export const SHARE_CARD_SIZE = { width: 1200, height: 630 };
 const escapeText = (value: string): string => value.replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" })[c]!);
@@ -42,19 +42,20 @@ export async function renderShareCard(input: ShareCardInput, assets: ShareCardAs
       <path d="M620 630V465L800 360V565L1000 450V235L1200 120"/>
       <path d="M890 235L1000 295M1080 145L1200 215"/>
     </g><circle cx="995" cy="215" r="62" fill="#b9bdff" opacity=".1"/>`) });
-  // One hero photo; optional supporting crops. Failed media degrades to artwork.
+  // Start photos inside the fully opaque gradient so their left edge is hidden.
+  // Optional supporting crops share that same edge; failed media uses artwork.
   for (const [index, photo] of photos.entries()) {
     const collage = photos.length > 1;
-    const box = !collage ? { left: 550, top: 0, width: 650, height: 630 }
-      : index === 0 ? { left: 620, top: 0, width: 580, height: 410 }
-      : { left: index === 1 ? 620 : 912, top: 416, width: photos.length === 2 ? 580 : 288, height: 214 };
+    const box = !collage ? { left: 300, top: 0, width: 900, height: 630 }
+      : index === 0 ? { left: 300, top: 0, width: 900, height: 410 }
+      : { left: index === 1 ? 300 : 753, top: 416, width: photos.length === 2 ? 900 : 447, height: 214 };
     try {
       const image = await sharp(photo, { limitInputPixels: 40_000_000 }).rotate()
         .resize(box.width, box.height, { fit: "cover", position: "attention" }).png().toBuffer();
       layers.push({ input: image, left: box.left, top: box.top });
     } catch { /* Keep a valid, intentionally designed fallback for broken photos. */ }
   }
-  layers.push({ input: svg(`<defs><linearGradient id="shade"><stop offset="0" stop-color="#18191f"/><stop offset=".43" stop-color="#18191f"/><stop offset=".8" stop-color="#18191f" stop-opacity=".22"/><stop offset="1" stop-color="#18191f" stop-opacity=".12"/></linearGradient></defs><rect width="1200" height="630" fill="url(#shade)"/><rect x="56" y="62" width="5" height="28" rx="2" fill="#b9bdff"/>`) });
+  layers.push({ input: svg(`<defs><linearGradient id="shade"><stop offset="0" stop-color="#18191f"/><stop offset=".3" stop-color="#18191f"/><stop offset=".48" stop-color="#18191f" stop-opacity=".88"/><stop offset=".8" stop-color="#18191f" stop-opacity=".22"/><stop offset="1" stop-color="#18191f" stop-opacity=".12"/></linearGradient></defs><rect width="1200" height="630" fill="url(#shade)"/><rect x="56" y="62" width="5" height="28" rx="2" fill="#b9bdff"/>`) });
   const addText = async (text: string, left: number, top: number, width: number, height: number, size: number, color: string, bold = false) => {
     if (!text) return;
     const png = await sharp({ text: {
@@ -66,8 +67,17 @@ export async function renderShareCard(input: ShareCardInput, assets: ShareCardAs
   };
   await addText((input.label ?? input.kind).slice(0, 40).toUpperCase(), 78, 63, 700, 36, 30, "#b9bdff", true);
   if (input.kind === "spot" && input.rating && input.rating > 0) {
-    layers.push({ input: svg(`<rect x="966" y="48" width="178" height="64" rx="24" fill="#18191f" fill-opacity=".9"/><path d="m1000 63 5 11 12 2-9 9 2 12-10-6-11 6 2-12-9-9 13-2z" fill="#b9bdff"/>`) });
-    await addText(input.rating.toFixed(1), 1030, 65, 96, 38, 34, "#f4f3ff", true);
+    const rating = await sharp({ text: {
+      text: `<span foreground="#f4f3ff">${input.rating.toFixed(1)}</span>`,
+      font: "Roboto Bold 34", fontfile: assets.fontFile, rgba: true,
+    } }).png().toBuffer({ resolveWithObject: true });
+    // Size the pill from actual glyph bounds for balanced padding on both sides.
+    const padding = 22, starSize = 34, gap = 12, height = 64;
+    const width = padding * 2 + starSize + gap + rating.info.width;
+    const left = SHARE_CARD_SIZE.width - 56 - width;
+    layers.push({ input: svg(`<rect x="${left}" y="48" width="${width}" height="${height}" rx="${height / 2}" fill="#18191f" fill-opacity=".9"/><g transform="translate(${left + padding} 63)"><path d="m17 0 5 11 12 2-9 9 2 12-10-6-11 6 2-12-9-9 13-2z" fill="#b9bdff"/></g>`) });
+    layers.push({ input: rating.data, left: left + padding + starSize + gap,
+      top: 48 + Math.round((height - rating.info.height) / 2) });
   }
   await addText(input.title, 56, 155, photos.length ? 630 : 930, 246, 76, "#f4f3ff", true);
   await addText(input.subtitle, 58, 429, 1020, 72, 38, "#e2e0eb");
@@ -76,7 +86,6 @@ export async function renderShareCard(input: ShareCardInput, assets: ShareCardAs
     const logo = await sharp(assets.logo).resize({ width: 220, height: 58, fit: "inside" }).png().toBuffer();
     layers.push({ input: logo, left: 924, top: 565 });
   } else await addText("PK SPOT", 924, 565, 220, 42, 36, "#f4f3ff", true);
-  await addText("pkspot.app", 58, 575, 300, 30, 25, "#aaa8b8");
   return sharp({ create: { ...SHARE_CARD_SIZE, channels: 4, background: "#18191f" } })
     .composite(layers).png().toBuffer();
 }
