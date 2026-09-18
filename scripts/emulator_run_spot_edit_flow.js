@@ -1194,7 +1194,11 @@ async function testUserContributionCounters() {
 }
 
 async function testLeaderboardsReflectApprovedEdits() {
-  const editedLeaderboard = await db.collection("leaderboards").doc("spots_edited").get();
+  const editedLeaderboard = await waitFor(async () => {
+    const snapshot = await db.collection("leaderboards").doc("spots_edited").get();
+    return snapshot.data()?.entries.find((entry) => entry.uid === USER.uid)?.count === 13
+      ? snapshot : null;
+  }, "all approved edits reflected in leaderboard");
   const createdLeaderboard = await db.collection("leaderboards").doc("spots_created").get();
   const mediaLeaderboard = await db.collection("leaderboards").doc("media_added").get();
 
@@ -1208,7 +1212,7 @@ async function testLeaderboardsReflectApprovedEdits() {
     .data()
     ?.entries.find((entry) => entry.uid === USER.uid);
 
-  assert.equal(editedEntry?.count, 12);
+  assert.equal(editedEntry?.count, 13);
   assert.equal("profile_picture" in editedEntry, false);
   assert.equal(createdEntry?.count, 2);
   assert.equal(mediaEntry?.count, 4);
