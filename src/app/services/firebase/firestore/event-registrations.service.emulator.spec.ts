@@ -366,7 +366,8 @@ runWithEmulator("EventRegistrationsService emulator integration", () => {
       await adminDb().doc(`events/${eventId}/admission/state`).get()
     ).data();
     expect(reconciledState).toMatchObject({ registered: 2, waitlisted: 0 });
-  });
+  }, 45_000); // Includes emulator cold start and asynchronous Firestore triggers.
+
 
   it("enforces organization-member attendance eligibility", async () => {
     const eventId = `member-event-${primaryUid}`;
