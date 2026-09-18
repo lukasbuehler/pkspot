@@ -1196,3 +1196,23 @@ editor only offers a user-confirmed prefill.
 | --- | --- | --- |
 | `schedulePlannedSessionReminder` | `users/{uid}/session_plans/{id}` write trigger | When a saved private plan enables reminders, reads the current session and idempotently queues a generic reminder intent. It skips cancelled or past sessions and never derives reminders from RSVPs or public counters. |
 | `refreshPlannedSessionPlans` | `planned_sessions/{id}` update trigger | Pages through matching private session plans, refreshes their start time and revision from current session state, and idempotently queues generic update intents only for saved plans. It never exposes saver identities to the host. |
+
+### On-demand share cards
+
+| Function | Trigger and data flow |
+| --- | --- |
+| `prepareShareCard` | App Check-protected Share action. Reads canonical public presentation and source image metadata, applies a private rate limit, and acquires a `share_cards` lease. Reuses a matching card or renders a PNG into private `share_cards/` Storage. Rechecks source eligibility before publishing metadata. Does not write to canonical entities. |
+| `shareCardImage` | Read-only HTTP endpoint. Resolves an optional slug, reads canonical public eligibility and card metadata, and checks source media generations. Serves the stored image or bundled fallback; private/missing entities return 404. Never renders or writes. |
+| `invalidateSpotShareCard` | Spot write. Changed public presentation invalidates stale card metadata and deletes its stored image. |
+| `invalidateEventShareCard` | Event write. Same invalidation, including loss of public discovery eligibility. |
+| `invalidateCommunityShareCard` | Community write. Same invalidation, including unpublishing or merging. |
+| `invalidateProfileShareCard` | User write. Same invalidation, including loss of public-search eligibility. |
+| `cleanupShareCards` | Daily schedule. Scans old card objects, checks current references and eligibility, removes invalid/orphaned images and metadata, and deletes expired rate-limit documents. |
+
+Preparation uses bounded canonical/card/rate-limit document reads and transactional
+writes, plus Storage metadata checks for at most three selected images. Rendering
+adds source downloads and one PNG upload. Invalidation uses canonical/card reads,
+then a metadata delete and Storage delete when stale. Cleanup costs scale with the
+number of old Storage objects examined. Retries can repeat those operations.
+No entity, Typesense or sitemap write is triggered by preparation. Image responses
+are not cacheable at the origin; external recipients may retain their own previews.
