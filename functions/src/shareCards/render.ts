@@ -12,11 +12,13 @@ export interface ShareCardInput {
   label?: string;
   /** Average Spot rating out of five. Missing or zero means unrated. */
   rating?: number;
+  /** Static brand cards can place the icon above the background artwork. */
+  showBrandIcon?: boolean;
   /** A caller must authorize publication before supplying public data here. */
   audience: "public" | "restricted";
   photos?: Buffer[];
 }
-export interface ShareCardAssets { fontFile: string; logo?: Buffer }
+export interface ShareCardAssets { fontFile: string; logo?: Buffer; icon?: Buffer }
 export const SHARE_CARD_VERSION = "prototype-3";
 export const SHARE_CARD_SIZE = { width: 1200, height: 630 };
 const escapeText = (value: string): string => value.replace(/[&<>"']/g, (c) =>
@@ -82,6 +84,10 @@ export async function renderShareCard(input: ShareCardInput, assets: ShareCardAs
   await addText(input.title, 56, 155, photos.length ? 630 : 930, 246, 76, "#f4f3ff", true);
   await addText(input.subtitle, 58, 429, 1020, 72, 38, "#e2e0eb");
   await addText(input.detail ?? "", 58, 510, 1020, 42, 30, "#b9bdff");
+  if (input.showBrandIcon && assets.icon) {
+    const icon = await sharp(assets.icon).resize(200, 200, { fit: "inside" }).png().toBuffer();
+    layers.push({ input: icon, left: 944, top: 108 });
+  }
   if (assets.logo) {
     const logo = await sharp(assets.logo).resize({ width: 220, height: 58, fit: "inside" }).png().toBuffer();
     layers.push({ input: logo, left: 924, top: 565 });

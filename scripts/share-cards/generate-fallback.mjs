@@ -10,6 +10,7 @@ const asset = path => new URL(`../../src/assets/${path}`, import.meta.url);
 // Keep the existing URL so all current metadata and backend bundles use it.
 const image = await renderShareCard({ ...fallbackCard, audience: 'public' }, {
   fontFile: fileURLToPath(asset('fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf')),
+  icon: await readFile(asset('icons/android-chrome-512x512.png')),
   logo: await readFile(asset('brand/pkspot/pkspot_logo_oneline_dark.png')),
 });
 await writeFile(asset('banner_1200x630.png'), image);

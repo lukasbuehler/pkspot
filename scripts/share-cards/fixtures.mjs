@@ -2,7 +2,7 @@ const photo = 'src/assets/events/swissjam/swissjam1.jpg';
 const second = 'src/assets/events/swissjam/swissjam2.jpg';
 const third = 'src/assets/events/swissjam/swissjam0.jpg';
 // Shared by the local lab and the checked-in static fallback generator.
-export const fallbackCard = { id: 'fallback', kind: 'page', label: 'PK Spot', title: 'Find your place.\nMake your move.', subtitle: 'Parkour Spots, events and your next session.', detail: 'Built for the parkour community', photos: [] };
+export const fallbackCard = { id: 'fallback', kind: 'page', label: 'PK Spot', showBrandIcon: true, title: 'Find your spot.\nMake your move.', subtitle: 'Parkour Spots, events and your next session.', detail: 'Built for the parkour community', photos: [] };
 export const fixtures = [
   fallbackCard,
   { id: 'spot-photo', rating: 4.2, kind: 'spot', label: 'Spot', title: 'Grandstand Parkour Park', subtitle: 'Luzern, Switzerland', detail: 'Find your next training spot', photos: [photo] },

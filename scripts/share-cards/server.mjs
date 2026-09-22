@@ -9,6 +9,7 @@ const { renderShareCard, shareCardFingerprint } = require('../../functions/lib/f
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const assets = {
   fontFile: resolve(root, 'src/assets/fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf'),
+  icon: await readFile(resolve(root, 'src/assets/icons/android-chrome-512x512.png')),
   logo: await readFile(resolve(root, 'src/assets/brand/pkspot/pkspot_logo_oneline_dark.png')),
 };
 const loaded = await Promise.all(fixtures.map(async fixture => ({ ...fixture, audience: 'public',
