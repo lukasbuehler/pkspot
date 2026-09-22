@@ -85,6 +85,12 @@ run data migrations, or complete third-party service tasks.
 ### Share cards (implemented locally, disabled until backend/native verification)
 
 The lab (`npm run share-cards:lab`, port 4318) and backend use the same renderer.
+The branded static fallback is generated with `npm run share-cards:fallback`
+and checked in as `src/assets/banner_1200x630.png`.
+- [ ] Deploy `functions:shareCardImage` to `parkour-base-project` to publish the
+      updated bundled fallback. Verify a public entity without a prepared card
+      returns the branded image. The static website fallback ships with the next
+      normal web release; no runtime image generation is required.
 Only Share clicks generate cards, regardless of rating. There is no backfill,
 edit-triggered generation, or crawler-triggered generation. Spot and Event Share
 buttons use the common service; community/profile targets are supported by the
