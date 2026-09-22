@@ -1,3 +1,4 @@
+import { readStreetViewPanorama, streetViewCamera, StreetViewPanorama } from "../../scripts/StreetViewHelpers";
 import {
   Injectable,
   signal,
@@ -106,6 +107,8 @@ export class MapsApiService extends ConsentAwareService {
    * Maps spot/location cache key -> whether a panorama is available.
    */
   private streetViewMetadataCache = new Map<string, boolean>();
+  // Session-only metadata: use the same panorama for distance, bearing and image.
+  private streetViewPanoramas = new Map<string, StreetViewPanorama>();
   /**
    * Dedupes concurrent metadata checks for the same location.
    */
@@ -580,7 +583,7 @@ export class MapsApiService extends ConsentAwareService {
       }
     }
 
-    const url = this._makeStreetViewImageUrl(location, imageWidth, imageHeight);
+    const url = this._makeStreetViewImageUrl(location, imageWidth, imageHeight, metadataCacheKey);
 
     if (spotId) {
       //   console.debug(
@@ -643,23 +646,25 @@ export class MapsApiService extends ConsentAwareService {
   private _makeStreetViewMetadataUrl(
     location: google.maps.LatLngLiteral,
   ): string {
-    return `https://maps.googleapis.com/maps/api/streetview/metadata?size=800x800&location=${
-      location.lat
-    },${location.lng}&fov=${120}&return_error_code=${true}&source=outdoor&key=${
-      environment.keys.firebaseConfig.apiKey
-    }`;
+    return `https://maps.googleapis.com/maps/api/streetview/metadata?location=${location.lat},${location.lng}&source=outdoor&key=${environment.keys.firebaseConfig.apiKey}`;
   }
 
   private _makeStreetViewImageUrl(
     location: google.maps.LatLngLiteral,
     imageWidth: number,
     imageHeight: number,
+    metadataCacheKey: string,
   ): string {
-    return `https://maps.googleapis.com/maps/api/streetview?size=${imageWidth}x${imageHeight}&location=${
-      location.lat
-    },${location.lng}&fov=${120}&return_error_code=${true}&source=outdoor&key=${
-      environment.keys.firebaseConfig.apiKey
-    }`;
+    const panorama = this.streetViewPanoramas.get(metadataCacheKey);
+    const camera = panorama ? streetViewCamera(panorama, location) : { fov: 110, pitch: 0, heading: undefined };
+    const params = new URLSearchParams({
+      size: `${imageWidth}x${imageHeight}`, location: `${location.lat},${location.lng}`,
+      fov: camera.fov.toFixed(2), pitch: String(camera.pitch),
+      return_error_code: "true", source: "outdoor", key: environment.keys.firebaseConfig.apiKey,
+    });
+    if (panorama) params.set("pano", panorama.pano_id);
+    if (camera.heading !== undefined) params.set("heading", camera.heading.toFixed(2));
+    return `https://maps.googleapis.com/maps/api/streetview?${params}`;
   }
 
   async hasStreetViewPanoramaForLocation(
@@ -699,6 +704,8 @@ export class MapsApiService extends ConsentAwareService {
             : "UNKNOWN";
 
       if (status === "OK") {
+        const panorama = readStreetViewPanorama(data);
+        if (panorama) this.streetViewPanoramas.set(cacheKey, panorama);
         this._setStreetViewMetadataAvailability(cacheKey, true);
         return true;
       }
@@ -741,6 +748,7 @@ export class MapsApiService extends ConsentAwareService {
     }
 
     this.streetViewMetadataCache.set(cacheKey, value);
+    if (!value) this.streetViewPanoramas.delete(cacheKey);
   }
 
   // Instance method instead of static to access consent checking
@@ -781,7 +789,7 @@ export class MapsApiService extends ConsentAwareService {
     }
 
     return new ExternalImage(
-      this._makeStreetViewImageUrl(location, 400, 400),
+      this._makeStreetViewImageUrl(location, 400, 400, this._getStreetViewMetadataCacheKey(spotId ?? location)),
       "streetview",
     );
   }
