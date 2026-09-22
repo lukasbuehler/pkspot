@@ -3311,6 +3311,12 @@
         <target>De link kon niet worden gedeeld. Probeer het opnieuw.</target>
       </segment>
     </unit>
+    <unit id="share_card.preparing">
+      <segment state="initial">
+        <source>Preparing your link…</source>
+        <target>Je link wordt voorbereid…</target>
+      </segment>
+    </unit>
     <unit id="share_card.ready">
       <segment state="initial">
         <source>Your link is ready.</source>

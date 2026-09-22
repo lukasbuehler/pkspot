@@ -10461,6 +10461,11 @@
         <source>Couldn&apos;t share the link. Please try again.</source>
       </segment>
     </unit>
+    <unit id="share_card.preparing">
+      <segment>
+        <source>Preparing your link…</source>
+      </segment>
+    </unit>
     <unit id="share_card.ready">
       <segment>
         <source>Your link is ready.</source>

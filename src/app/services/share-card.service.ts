@@ -1,6 +1,8 @@
 import { Injectable, Injector, inject, signal } from "@angular/core";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { Dialog } from "@angular/cdk/dialog";
+import { SharePreparationComponent } from "../components/share-preparation/share-preparation.component";
 import { FunctionsAdapterService } from "./firebase/functions-adapter.service";
 import { FeatureTelemetryService } from "./feature-telemetry.service";
 import { environment } from "../../environments/environment.default";
@@ -27,6 +29,11 @@ export class ShareCardService {
     if (this.active()) return;
     this.active.set(true);
     let imageBase64: string | undefined;
+    const overlay = environment.features.shareCards ? this.injector.get(Dialog).open(SharePreparationComponent, {
+      width: "100vw", height: "100dvh", maxWidth: "100vw",
+      disableClose: true, autoFocus: "dialog",
+      ariaLabel: $localize`:@@share_card.preparing:Preparing your link…`,
+    }) : undefined;
     try {
       if (environment.features.shareCards) {
         try {
@@ -38,7 +45,7 @@ export class ShareCardService {
           }
         } catch (error) { this.telemetry.failure("share-card", "prepare-preview", error); }
       }
-    } finally { this.active.set(false); }
+    } finally { overlay?.close(); this.active.set(false); }
     const open = async () => {
       try {
         if (Capacitor.isNativePlatform()) {

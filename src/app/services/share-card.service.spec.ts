@@ -1,3 +1,4 @@
+import { Dialog } from "@angular/cdk/dialog";
 import { TestBed } from "@angular/core/testing";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -11,6 +12,7 @@ vi.mock("@capacitor/share", () => ({ Share: { share: plainShare } }));
 vi.mock("@capacitor/core", () => ({ Capacitor: { isNativePlatform: () => true, isPluginAvailable: () => true }, registerPlugin: () => ({share:nativeShare}) }));
 describe("ShareCardService failure isolation", () => {
   const call = vi.fn(), failure = vi.fn(), outcome = vi.fn();
+  const close = vi.fn(), open = vi.fn(() => ({ close }));
   const enabled = environment.features.shareCards;
   beforeEach(() => {
     vi.clearAllMocks(); environment.features.shareCards = true;
@@ -18,6 +20,7 @@ describe("ShareCardService failure isolation", () => {
     TestBed.configureTestingModule({ providers: [ShareCardService,
       {provide:FunctionsAdapterService,useValue:{callAppChecked:call}},
       {provide:FeatureTelemetryService,useValue:{failure,outcome}},
+      {provide:Dialog,useValue:{open}},
       {provide:MatSnackBar,useValue:{open:vi.fn()}},
     ] });
   });
@@ -33,7 +36,10 @@ describe("ShareCardService failure isolation", () => {
     const service=TestBed.inject(ShareCardService);
     const work=service.share({kind:"spot",id:"spot"},"https://pkspot.app/map/spots/spot","Spot");
     expect(service.preparing()).toBe(true);
+    expect(open).toHaveBeenCalledOnce();
+    expect(close).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(8000); await work;
+    expect(close).toHaveBeenCalledOnce();
     expect(service.preparing()).toBe(false); expect(nativeShare).toHaveBeenCalledOnce();
     expect(failure).toHaveBeenCalledWith("share-card","prepare-preview",{code:"deadline-exceeded"});
   });
