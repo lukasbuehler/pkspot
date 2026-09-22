@@ -25,10 +25,10 @@ describe("OSM attribution and privacy disclosure", () => {
       'href="https://www.openstreetmap.org/copyright"',
     );
     expect(mapStyles).toMatch(
-      /\.osm-attribution\s*\{[\s\S]*bottom:\s*14px[\s\S]*right:\s*0/u,
+      /\.osm-attribution\s*\{[\s\S]*bottom:\s*calc\(var\(--navigation-bottom-clearance, 0px\) \+ 14px\)[\s\S]*right:\s*var\(--safe-area-inset-right/u,
     );
     expect(mapStyles).toContain(
-      "bottom: calc(var(--bottom-sheet-closed-height, 140px) + 14px)",
+      "var(--bottom-sheet-closed-height, 90px) + 14px",
     );
   });
 

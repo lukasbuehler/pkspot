@@ -43,7 +43,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       this.bottomSheet.nativeElement,
       this.currentOffset,
       0,
-      this.getAlwaysVisible(this.bottomSheet.nativeElement)
+      this.getAlwaysVisible(this.bottomSheet.nativeElement),
     );
   }
 
@@ -57,7 +57,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       this.bottomSheet.nativeElement,
       this.currentOffset,
       alwaysVisible,
-      alwaysVisible
+      alwaysVisible,
     );
   }
 
@@ -72,9 +72,9 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   /**
    * Height of the visible portion when the sheet is closed.
    * This controls how much of the sheet "peeks" above the bottom.
-   * Default: 140px
+   * Default: 90px
    */
-  closedHeight = input<number>(90);
+  closedHeight = input<number>(178);
 
   private hostEl = inject(ElementRef);
 
@@ -83,7 +83,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     effect(() => {
       this.hostEl.nativeElement.style.setProperty(
         "--bottom-sheet-closed-height",
-        `${this.closedHeight()}px`
+        `${this.closedHeight()}px`,
       );
     });
   }
@@ -153,7 +153,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       // Sheet is closed or partially open - shift by the delta
       const newOffset = Math.max(
         0,
-        Math.min(this.currentOffset + offsetDelta, newAlwaysVisible)
+        Math.min(this.currentOffset + offsetDelta, newAlwaysVisible),
       );
       this.currentOffset = newOffset;
       sheetEl.style.transform = `translateY(${newOffset}px)`;
@@ -167,7 +167,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
 
   private checkScrollableUp(
     target: HTMLElement | null,
-    sheetEl: HTMLElement
+    sheetEl: HTMLElement,
   ): boolean {
     // Use tracked offset instead of reading offsetTop
     if (this.currentOffset !== 0) return false;
@@ -191,7 +191,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
    */
   private checkScrollableDown(
     target: HTMLElement | null,
-    sheetEl: HTMLElement
+    sheetEl: HTMLElement,
   ): boolean {
     if (this.currentOffset !== 0) return false;
     let el = target;
@@ -218,7 +218,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   private calculateTargetOffset(
     velocity: number,
     currentOffset: number,
-    alwaysVisible: number
+    alwaysVisible: number,
   ): { targetOffset: number; overflowY: "scroll" | "hidden" } {
     const middlePoint = alwaysVisible / 2;
 
@@ -242,7 +242,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     sheetEl: HTMLElement,
     fromOffset: number,
     targetOffset: number,
-    alwaysVisible: number
+    alwaysVisible: number,
   ): void {
     if (this.contentElement) {
       this.contentElement.style.overflowY =
@@ -260,7 +260,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         timeProgress,
         fromOffset,
         distance,
-        this.animationDurationMs
+        this.animationDurationMs,
       );
 
       this.currentOffset = current;
@@ -281,7 +281,8 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
 
   private syncContentOverflow(): void {
     if (!this.contentElement) return;
-    this.contentElement.style.overflowY = this.currentOffset === 0 ? "scroll" : "hidden";
+    this.contentElement.style.overflowY =
+      this.currentOffset === 0 ? "scroll" : "hidden";
   }
 
   // ─── Lifecycle ─────────────────────────────────────────────────────
@@ -300,7 +301,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       this.renderer.setStyle(
         this.handleRegion.nativeElement,
         "touch-action",
-        "none"
+        "none",
       );
     }
 
@@ -378,7 +379,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       let hasPointerCapture = false;
       const isScrollableUp = this.checkScrollableUp(
         event.target as HTMLElement,
-        sheetEl
+        sheetEl,
       );
 
       const shiftY = event.clientY - this.currentOffset;
@@ -459,7 +460,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         const { targetOffset, overflowY } = this.calculateTargetOffset(
           velocity,
           offset,
-          alwaysVisible
+          alwaysVisible,
         );
         this.contentElement!.style.overflowY = overflowY;
         this.animateToPosition(sheetEl, offset, targetOffset, alwaysVisible);
@@ -469,17 +470,17 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       const removePointerMove = this.renderer.listen(
         "document",
         "pointermove",
-        moveAt
+        moveAt,
       );
       const removePointerUp = this.renderer.listen(
         "document",
         "pointerup",
-        stopDrag
+        stopDrag,
       );
       const removePointerCancel = this.renderer.listen(
         "document",
         "pointercancel",
-        stopDrag
+        stopDrag,
       );
     };
 
@@ -505,7 +506,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         (event) => {
           event.stopPropagation();
           handlePointerDown(event as PointerEvent);
-        }
+        },
       );
     }
 
@@ -539,7 +540,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
           const target = event.target as HTMLElement | null;
           if (target) {
             const interactiveElement = target.closest(
-              "button, a, [data-no-expand], mat-icon-button, [mat-button], [mat-flat-button], [mat-stroked-button], [mat-icon-button]"
+              "button, a, [data-no-expand], mat-icon-button, [mat-button], [mat-flat-button], [mat-stroked-button], [mat-icon-button]",
             );
             if (interactiveElement) {
               // Let the button/link click through without expanding
@@ -607,19 +608,19 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         document.documentElement,
         "touchmove",
         handleTouchMove,
-        { passive: false }
+        { passive: false },
       );
       removeTouchEnd = this.addTouchListener(
         document.documentElement,
         "touchend",
         handleTouchEnd,
-        { passive: true }
+        { passive: true },
       );
       removeTouchCancel = this.addTouchListener(
         document.documentElement,
         "touchcancel",
         handleTouchEnd,
-        { passive: true }
+        { passive: true },
       );
     };
 
@@ -640,7 +641,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
           this.cleanupTouchListeners(
             removeTouchMove,
             removeTouchEnd,
-            removeTouchCancel
+            removeTouchCancel,
           );
           this.syncContentOverflow();
           this.activeTouchId = null;
@@ -662,7 +663,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
             this.cleanupTouchListeners(
               removeTouchMove,
               removeTouchEnd,
-              removeTouchCancel
+              removeTouchCancel,
             );
             this.activeTouchId = null;
             originalTarget = null;
@@ -705,7 +706,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       this.cleanupTouchListeners(
         removeTouchMove,
         removeTouchEnd,
-        removeTouchCancel
+        removeTouchCancel,
       );
 
       if (!hasDragged) {
@@ -728,7 +729,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
       const { targetOffset, overflowY } = this.calculateTargetOffset(
         velocity,
         offset,
-        alwaysVisible
+        alwaysVisible,
       );
       this.contentElement!.style.overflowY = overflowY;
       this.animateToPosition(sheetEl, offset, targetOffset, alwaysVisible);
@@ -749,7 +750,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
           event.stopPropagation();
           handleTouchStart(event);
         },
-        { passive: true }
+        { passive: true },
       );
     }
   }
@@ -767,7 +768,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   private cleanupTouchListeners(
     removeTouchMove: (() => void) | null,
     removeTouchEnd: (() => void) | null,
-    removeTouchCancel: (() => void) | null
+    removeTouchCancel: (() => void) | null,
   ): void {
     removeTouchMove?.();
     removeTouchEnd?.();
@@ -778,7 +779,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
     target: HTMLElement,
     eventName: string,
     handler: (event: TouchEvent) => void,
-    options: AddEventListenerOptions
+    options: AddEventListenerOptions,
   ): () => void {
     target.addEventListener(eventName, handler as EventListener, options);
     const remove = () =>
@@ -890,7 +891,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
   private addListener(
     target: HTMLElement,
     eventName: string,
-    handler: (event: Event) => void
+    handler: (event: Event) => void,
   ) {
     const remove = this.renderer.listen(target, eventName, handler);
     this.destroyListeners.push(remove);

@@ -18,7 +18,7 @@ import {
   provideClientHydration,
   BrowserModule,
   withI18nSupport,
-  withIncrementalHydration,
+  withNoIncrementalHydration,
 } from "@angular/platform-browser";
 import { MAT_DIALOG_DEFAULT_OPTIONS } from "@angular/material/dialog";
 import { MAT_MENU_SCROLL_STRATEGY } from "@angular/material/menu";
@@ -26,7 +26,7 @@ import { Overlay } from "@angular/cdk/overlay";
 import { provideNativeDateAdapter } from "@angular/material/core";
 
 import { routes } from "./app.routes";
-import { provideRouter } from "@angular/router";
+import { provideRouter, withInMemoryScrolling } from "@angular/router";
 import { WINDOW, windowProvider } from "./providers/window";
 import { ApplicationErrorHandler } from "./services/application-error-handler.service";
 import { MapPerformanceProfilerService } from "./services/map-performance-profiler.service";
@@ -40,7 +40,13 @@ export const appConfig: ApplicationConfig = {
       inject(MapPerformanceProfilerService).ensureInstalled();
     }),
     provideAppInitializer(() => inject(DateTimeFormatService).initialize()),
-    provideRouter(routes),
+    provideRouter(
+      routes,
+      withInMemoryScrolling({
+        anchorScrolling: "enabled",
+        scrollPositionRestoration: "enabled",
+      }),
+    ),
     BrowserModule,
     {
       provide: MAT_DIALOG_DEFAULT_OPTIONS,
@@ -54,7 +60,10 @@ export const appConfig: ApplicationConfig = {
       deps: [Overlay],
     },
     provideNativeDateAdapter(),
-    provideClientHydration(withI18nSupport(), withIncrementalHydration()),
+    // The app has no `@defer (... hydrate ...)` blocks. Disabling incremental
+    // hydration also keeps its browser-only event replay initializer out of
+    // Vite's dev SSR runtime, where it would otherwise access `window`.
+    provideClientHydration(withI18nSupport(), withNoIncrementalHydration()),
     provideHttpClient(withInterceptorsFromDi(), withFetch()),
     provideAnimations(),
     { provide: ErrorHandler, useClass: ApplicationErrorHandler },

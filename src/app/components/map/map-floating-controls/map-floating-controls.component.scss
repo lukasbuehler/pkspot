@@ -3,19 +3,23 @@
 }
 
 .map-mini-fabs {
-  bottom: 32px;
+  bottom: calc(var(--navigation-bottom-clearance, 0px) + 32px);
   display: flex;
   flex-direction: column;
   gap: 15px;
   position: absolute;
-  right: 20px;
+  right: calc(
+    20px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px))
+  );
   z-index: 1;
 }
 
 .create-fab-menu {
-  --fab-menu-bottom-offset: 30px;
+  --fab-menu-bottom-offset: calc(
+    var(--navigation-bottom-clearance, 0px) + 30px
+  );
 
-  bottom: 32px;
+  bottom: calc(var(--navigation-bottom-clearance, 0px) + 32px);
   left: 20px;
   position: absolute;
   z-index: 1;
@@ -28,14 +32,21 @@
 
 @media (max-width: 599.99px) {
   .map-mini-fabs {
-    bottom: 124px;
+    bottom: calc(
+      var(--navigation-bottom-clearance, 0px) +
+        var(--bottom-sheet-closed-height, 90px) + 34px
+    );
   }
 
   .create-fab-menu {
     --fab-menu-bottom-offset: calc(
-      var(--bottom-sheet-closed-height, 140px) + 30px
+      var(--navigation-bottom-clearance, 0px) +
+        var(--bottom-sheet-closed-height, 90px) + 30px
     );
 
-    bottom: calc(var(--bottom-sheet-closed-height, 140px) + 30px);
+    bottom: calc(
+      var(--navigation-bottom-clearance, 0px) +
+        var(--bottom-sheet-closed-height, 90px) + 30px
+    );
   }
 }

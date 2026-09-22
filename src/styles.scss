@@ -19,24 +19,23 @@ html {
 
   /* Ensure padding is included in width calculations to prevent horizontal overflow */
   box-sizing: border-box;
-  /* Prevent any horizontal scrolling caused by safe area calculations */
-  overflow-x: hidden;
+  /* Keep document scrolling on the platform root while clipping only accidental overflow. */
+  min-height: 100%;
+  overflow-x: clip;
 }
 
-body,
-html {
+body {
   margin: 0;
-  height: 100%;
+  min-height: 100%;
   color: white;
 
-  overscroll-behavior-y: contain;
-  position: fixed; // Fixed position prevents the whole webview from scrolling/shifting
   width: 100%;
-  overflow: hidden;
+  overflow-x: clip;
   background-color: var(--mat-app-background-color);
 
-  // Default nav bar height (80px). Changed by mat-toolbar.native-platform to 95px.
-  --nav-bar-height: 80px;
+  // AppComponent owns the live navigation clearance for its descendants.
+  --nav-bar-height: 0px;
+  --navigation-bottom-clearance: 0px;
   --toolbar-native-extra: 20px;
   --bottom-nav-safe-area: 0px;
 
@@ -98,12 +97,6 @@ html.native-platform.platform-ios:not(.running-on-macos-or-ipad) {
   }
 }
 
-// When the nav bar has native-platform class, expose its full occupied height
-// globally so fixed map/content layers stop above the gesture safe area too.
-body:has(mat-toolbar.native-platform) {
-  --nav-bar-height: calc(80px + var(--bottom-nav-safe-area, 0px));
-}
-
 // Reusable placement for page-level floating actions. Map controls stay in the
 // map's coordinate space because they also need to clear its bottom sheet.
 .app-page-fab {
@@ -122,12 +115,17 @@ body:has(mat-toolbar.native-platform) {
   position: fixed;
 }
 
-// Mobile and tablet layouts use the bottom navigation. `--nav-bar-height`
-// includes the native gesture-area inset and is reset to zero in Alain mode.
-@media (max-width: 959.98px) {
-  .app-page-fab {
-    --app-page-fab-bottom-offset: calc(var(--nav-bar-height, 0px) + 1rem);
-  }
+app-root.has-floating-bottom-navigation .app-page-fab {
+  --app-page-fab-bottom-offset: calc(
+    var(--navigation-bottom-clearance, 0px) + 1rem
+  );
+}
+
+// This selector must remain global: the footer is emitted by AppComponent,
+// while the spacing contract is inherited from the document root.
+body:has(.terms-footer) {
+  // The footer's 36px text row is in addition to its own safe-area padding.
+  --terms-footer-offset: 36px;
 }
 
 // Alain mode replaces the bottom navigation with a floating menu button. Expose
@@ -306,12 +304,12 @@ body:has(#alainMenuButton) {
   pointer-events: auto !important;
 }
 
-// Ensure app-root handles scrolling since body is fixed/hidden
+// The document is the normal scroll container. The app shell only provides a
+// safe-area-aware coordinate space for fixed navigation and immersive routes.
 app-root {
   display: block;
-  height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
+  min-height: 100dvh;
+  overflow: visible;
 
   /* Apply safe area padding here to the scrolling container */
   --status-bar-height: 0px;
@@ -327,10 +325,18 @@ app-root {
   // );
 
   box-sizing: border-box;
-
-  // Create a positioning context so absolute children (like the menu button)
-  // are positioned relative to this container (starting below the safe area padding)
   position: relative;
+
+  --navigation-bottom-clearance: 0px;
+  --nav-bar-height: 0px;
+
+  &.has-floating-bottom-navigation {
+    --navigation-bottom-clearance: calc(
+      88px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) +
+        var(--terms-footer-offset, 0px)
+    );
+    --nav-bar-height: var(--navigation-bottom-clearance);
+  }
 
   // Only apply status bar height on Android native - not on iOS or macOS
   .native-platform.platform-android:not(.running-on-macos-or-ipad) & {
@@ -338,6 +344,22 @@ app-root {
       --status-bar-height: 24px;
     }
     // In landscape, we hide the status bar via JS, so height should be 0 (default)
+  }
+}
+
+// Maps are immersive workspaces rather than document pages. Keep this route
+// viewport-bound while every other route uses ordinary document scrolling.
+app-root.immersive-map-route {
+  height: 100dvh;
+  overflow: hidden;
+
+  app-nav-rail-container,
+  app-nav-rail-content,
+  .nav-rail-container,
+  .nav-rail-content,
+  .main-content {
+    height: 100%;
+    min-height: 0;
   }
 }
 

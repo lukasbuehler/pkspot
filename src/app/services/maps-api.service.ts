@@ -501,23 +501,7 @@ export class MapsApiService extends ConsentAwareService {
     type: string = "point_of_interest",
     radius: number = 200,
   ): Promise<google.maps.places.Place | null> {
-    return Promise.reject(new Error("Not implemented"));
-
-    // Use consent-aware execution for Places API calls
-    return this.executeWithConsent(async () => {
-      const request: google.maps.places.SearchNearbyRequest = {
-        fields: ["displayName", "location", "businessStatus"],
-        locationRestriction: {
-          center: location,
-          radius: radius,
-        },
-        includedPrimaryTypes: [type],
-        maxResultCount: 1,
-      };
-
-      const { places } = await google.maps.places.Place.searchNearby(request);
-      return places.length > 0 ? places[0] : null;
-    });
+    throw new Error("Google Place lookup by location is not implemented.");
   }
 
   getPhotoURLOfGooglePlace(

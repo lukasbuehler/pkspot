@@ -14,6 +14,68 @@ backend can differ until Functions, rules, indexes, Typesense configuration, and
 data migrations are released. Deployment order and outstanding production work
 remain in [`DEPLOYMENT_TASKS.md`](DEPLOYMENT_TASKS.md).
 
+### Planned Sessions and Activities boundary (not current implementation)
+
+The private 9 September 2026 child-risk and DPIA/data-flow addenda record a
+proposed significant change. The following is an architectural constraint, not
+a description of deployed code and not evidence of legal compliance:
+
+```text
+adult-only Community Session discovery
+  <- server-authorized restricted projection
+  <- canonical Community Session
+       |-- field-limited public/forwardable share projection
+       |     (description + location/time + lifecycle only)
+       |-- per-user private Saves -> personal reminders only
+       |-- separate restricted adult attendance records
+       `-- no participant/save/check-in/activity joins in public output
+
+specific-account private Session grants
+  `-- no bearer-link or friendship-derived access
+
+private explicit check-in ----\
+                              +--> optional draft/reference for private Activity
+manual Activity --------------/     (never automatic publication)
+```
+
+Terminology for that planned model: an **Event** is an organized occasion; a
+**Session** is a planned training block/meetup independent of an Event; an
+**Activity** records what actually happened. `Training log` is planned to
+become `Activity log`, with Training, Competition, Workshop, Event attendance
+and Other types. Event/Session references are optional and manual Activities
+remain possible.
+
+The current branch does not yet satisfy that contract in all paths:
+
+- `event_discovery` is universally readable and therefore cannot carry the
+  adult-discovery-only Community Session projection;
+- the existing Session planner uses the Event model and a client-visible public
+  participation check, which is not proof of server enforcement for the new
+  design;
+- current `log_entries` support public/follower/friend visibility, with some
+  read eligibility derived from follow relationships, and require session
+  records rather than optional references;
+- Event Save, RSVP, registration and reminder mechanisms already exist and
+  must not be reused in a way that turns a private Session Save into attendance,
+  an organizer signal or a public count;
+- OneID remains disabled and all adult-only consumers must use the same active,
+  provider-neutral server-confirmed eligibility predicate. App Check, App
+  Attest or Play Integrity provenance alone is not an authenticated age result.
+
+Before launch, verify the canonical read/write paths and every projection:
+Firestore, callables, SSR, link previews, Typesense/search, notifications,
+calendars, exports, analytics, caches and moderator tooling. Tests must include
+signed-out, age-unknown, expired/revoked evidence, blocked/unfriended accounts,
+forwarded URLs, role removal, privacy changes, old clients and cross-account
+attempts. Saves, attendance, check-ins and Activities must use separate storage
+and authorization decisions; a Save must be owner-facing only and must not
+produce an organizer-visible identity, count or signal.
+
+The public Terms and Privacy Policy still describe the current product. They
+must be reconciled with the implemented Session/Save/attendance/Activity facts
+before release, but are intentionally not rewritten by this documentation-only
+design review.
+
 ## 1. How to read the operation counts
 
 The counts below are **logical document operations performed by PK Spot code**,

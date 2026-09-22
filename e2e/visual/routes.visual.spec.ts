@@ -721,6 +721,34 @@ test.describe("Route visual regression @visual", () => {
       }
     });
   }
+
+  test("uses the passport-unfolded rail while documents retain window scrolling", async ({
+    page,
+  }) => {
+    await prepareRoute(page, {
+      name: "passport-unfolded-navigation",
+      path: "/about",
+      // Galaxy Z Fold8's unfolded panel is 4:3. Browser CSS dimensions depend
+      // on Android density, so use a representative 4:3 layout viewport.
+      viewport: { width: 720, height: 960 },
+    });
+
+    await expect(page.locator("app-root")).toHaveClass(/has-navigation-rail/);
+    await expect(page.locator("app-nav-rail")).toHaveCount(1);
+    await expect(page.locator(".floating-bottom-navigation")).toHaveCount(0);
+
+    const scrolling = await page.locator("body").evaluate(() => ({
+      bodyOverflowY: getComputedStyle(document.body).overflowY,
+      mainOverflowY: getComputedStyle(
+        document.querySelector(".main-content")!,
+      ).overflowY,
+      scrollingElement: document.scrollingElement?.tagName,
+    }));
+
+    expect(scrolling.bodyOverflowY).not.toBe("hidden");
+    expect(scrolling.mainOverflowY).not.toMatch(/auto|scroll/);
+    expect(scrolling.scrollingElement).toBe("HTML");
+  });
 });
 
 async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {

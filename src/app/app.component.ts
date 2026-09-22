@@ -55,7 +55,6 @@ import { NgOptimizedImage, PathLocationStrategy } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIcon, MatIconRegistry } from "@angular/material/icon";
 import {
-  MatMenuTrigger,
   MatMenu,
   MatMenuItem,
   MatMenuModule,
@@ -105,6 +104,11 @@ import {
   splitNavigationOverflow,
   type NavigationOverflow,
 } from "./features/navbar-overflow";
+import {
+  getNavigationLayout,
+  isAlainViewport,
+  type NavigationLayout,
+} from "./features/navigation-layout";
 import { MyEventContextService } from "./services/my-event-context.service";
 
 interface ButtonBase {
@@ -152,6 +156,9 @@ type NavigationPerfDetails = Record<string, unknown>;
   selector: "app-root",
   host: {
     "(window:resize)": "onResize()",
+    "[class.has-floating-bottom-navigation]": "usesFloatingBottomNavigation()",
+    "[class.has-navigation-rail]": "usesNavigationRail()",
+    "[class.immersive-map-route]": "isImmersiveMapRoute()",
   },
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.scss"],
@@ -163,7 +170,6 @@ type NavigationPerfDetails = Record<string, unknown>;
     NavRailContentComponent,
     RouterOutlet,
     MatToolbar,
-    MatMenuTrigger,
     MatMenu,
     MatMenuItem,
     MatIcon,
@@ -308,10 +314,25 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
   });
 
-  alainMode: boolean = false;
+  readonly alainMode = signal(false);
 
-  /** True when running with a non-production environment (dev/ios dev config) */
-  isDevMode: boolean = !environment.production;
+  /**
+   * Content density keeps the established 600/960px breakpoints. Navigation
+   * instead follows the available viewport shape, so an unfolded phone can
+   * use a rail without being treated as a desktop page everywhere else.
+   */
+  readonly navigationLayout = computed<NavigationLayout>(() =>
+    getNavigationLayout({
+      width: this.responsive.viewportWidth(),
+      height: this.responsive.viewportHeight(),
+    }),
+  );
+  readonly usesNavigationRail = computed(
+    () => this.navigationLayout() === "rail",
+  );
+  readonly usesFloatingBottomNavigation = computed(
+    () => this.navigationLayout() === "bottom",
+  );
 
   /** True when running as a native iOS or Android app via Capacitor */
   isNativePlatform: boolean = Capacitor.isNativePlatform();
@@ -326,19 +347,15 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   enforceAlainMode() {
     if (typeof window !== "undefined") {
-      // Enable alain mode when:
-      // 1. Height is very small (< 500px) - handles landscape mobile
-      // 2. OR both height < 700 and width < 768 - handles portrait mobile
-      const isLandscapeMobile = window.innerHeight < 500;
-      const isPortraitMobile =
-        window.innerHeight < 700 && window.innerWidth < 768;
-
-      const nextAlainMode = isLandscapeMobile || isPortraitMobile;
-      if (this.alainMode === nextAlainMode) {
+      const nextAlainMode = isAlainViewport({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+      if (this.alainMode() === nextAlainMode) {
         return;
       }
 
-      this.alainMode = nextAlainMode;
+      this.alainMode.set(nextAlainMode);
       GlobalVariables.alainMode.next(nextAlainMode);
       this._analyticsService.trackEvent("Alain Mode Changed", {
         alainMode: nextAlainMode,
@@ -682,16 +699,6 @@ export class AppComponent implements OnInit, AfterViewInit {
           try {
             const isBrowser =
               typeof window !== "undefined" && typeof document !== "undefined";
-
-            // Reset scroll position of the main content container on navigation
-            // This is needed because we use a custom scroll container (.main-content)
-            // not the viewport, so Angular's scrollPositionRestoration doesn't work
-            if (isBrowser) {
-              const mainContent = document.querySelector(".main-content");
-              if (mainContent) {
-                mainContent.scrollTop = 0;
-              }
-            }
 
             const url = isBrowser
               ? window.location.href
@@ -1456,6 +1463,9 @@ html.pkspot-roboto-loaded body {
   userPhoto = signal<string | undefined>(undefined);
   isSignedIn = signal(false);
   currentNavUrl = signal<string>(this.router.url);
+  readonly isImmersiveMapRoute = computed(() =>
+    /^\/map(?:[/?]|$)/.test(this.currentNavUrl()),
+  );
 
   // Engagement tracking state (initialized in ngOnInit)
   private _engagement: any = null;
@@ -1481,7 +1491,7 @@ html.pkspot-roboto-loaded body {
     const shortUserDisplayName = this.shortUserDisplayName();
     const userPhoto = this.userPhoto();
     const currentNavUrl = this.currentNavUrl();
-    const isCompact = this.responsive.viewMode() !== "desktop";
+    const isCompact = !this.usesNavigationRail();
     const isOnMobileWeb = this.isMobileAppStoreBrowser();
 
     const buttons: NavbarButtonConfig = [
@@ -1611,11 +1621,11 @@ html.pkspot-roboto-loaded body {
   }
 
   readonly navbarOverflow = computed(() => {
-    const viewMode = this.responsive.viewMode();
+    const navigationLayout = this.navigationLayout();
 
     return splitNavigationOverflow(
       this.navbarConfig() ?? [],
-      viewMode === "desktop"
+      navigationLayout === "rail"
         ? desktopNavigationSlotCount(
             this.navbarConfig() ?? [],
             (navigation) =>
@@ -1624,10 +1634,8 @@ html.pkspot-roboto-loaded body {
                 this._desktopNavigationRailMeasurement(),
               ),
           )
-        : viewMode === "tablet"
-          ? 6
-          : 5,
-      viewMode === "mobile"
+        : 5,
+      navigationLayout === "bottom"
         ? this.mobileVisibleDestinationCount()
         : Number.POSITIVE_INFINITY,
     );
@@ -1704,7 +1712,7 @@ html.pkspot-roboto-loaded body {
   }
 
   private measureDesktopNavigationLayout(): void {
-    if (this.responsive.viewMode() !== "desktop") return;
+    if (!this.usesNavigationRail()) return;
 
     const rail = this._desktopNavigationRail?.querySelector<HTMLElement>(
       ".nav-rail",

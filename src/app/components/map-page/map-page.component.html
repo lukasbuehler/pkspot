@@ -344,7 +344,7 @@
       <ng-container *ngTemplateOutlet="sidebarContent"></ng-container>
     </mat-drawer>
 
-    <div class="position-relative overflow-hidden h-100 w-100">
+    <div class="map-canvas-container position-relative h-100 w-100">
       <ng-container *ngTemplateOutlet="mapContent"></ng-container>
       @if (visibleIslandContent()) {
         <div class="map-context-host">
@@ -425,6 +425,7 @@
     <app-bottom-sheet
       class="map-bottom-sheet d-flex"
       @fadeInOut
+      [closedHeight]="alainMode ? 90 : 178"
       (isAtTopChange)="bottomSheetOpen.set($event)"
       (openProgressChange)="bottomSheetProgress.set($event)"
     >
