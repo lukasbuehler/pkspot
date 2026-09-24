@@ -160,9 +160,12 @@ mobile builds and App Hosting SSR are not accidentally denied.
 
 ### Cloudflare edge SSR trial
 
-The Cloudflare trial is additive and must stay on `edge-test.pkspot.app` until
+The Cloudflare trial is additive and must stay on `test.pkspot.app` until
 all localized SSR, Firebase, crawler, and cache checks pass. It does not replace
-or operate the App Hosting production rollout.
+or operate the App Hosting production rollout. The stable test hostname and its
+`*.test.pkspot.app` branch previews must return `X-Robots-Tag: noindex,
+nofollow, noarchive`; canonical and social URLs must continue to use
+`https://pkspot.app`.
 
 - [ ] Create a separate Firebase Web app named `PK Spot SSR Cloudflare`. Set its
       app ID as the `CLOUDFLARE_SSR_FIREBASE_APP_ID` Function secret and create
@@ -191,25 +194,30 @@ or operate the App Hosting production rollout.
       canonical and social metadata, hashed assets, 404 status, Firebase reads,
       and App Check.
 - [ ] Before testing browser integrations, authorize the exact trial origins.
-      Add `https://edge-test.pkspot.app` and, only while it remains useful,
+      Add `https://test.pkspot.app` and, only while it remains useful,
       `https://pkspot-web.lukasmc6.workers.dev` to the production browser API
       key's website restrictions without broadening its API restrictions. Add
       both hostnames to Firebase Authentication's authorized domains if sign-in
       will be tested there. The reCAPTCHA Enterprise key already permits
-      `edge-test.pkspot.app` when its verified domain list contains `pkspot.app`;
+      `test.pkspot.app` when its verified domain list contains `pkspot.app`;
       add the exact `pkspot-web.lukasmc6.workers.dev` hostname separately for
       App Check testing on the Worker preview. Do not disable domain
       verification or authorize all of `workers.dev`.
-- [ ] Remove the existing `edge-test.pkspot.app` CNAME to `origin.pkspot.app`,
-      then attach `edge-test.pkspot.app` to `pkspot-web` as a Cloudflare Worker
-      Custom Domain. Cloudflare should create the replacement DNS record and
-      certificate directly for the Worker. Verify the certificate is active,
-      unprefixed paths redirect by `Accept-Language`, and locale-prefixed paths
-      reach the matching Angular SSR bundle. Do not change the apex
-      `pkspot.app` records during the trial.
+- [ ] After deploying the hostname update, verify `test.pkspot.app` serves the
+      Worker through Cloudflare's managed DNS and certificate, unprefixed paths
+      redirect by `Accept-Language`, locale-prefixed paths reach the matching
+      Angular SSR bundle, and responses include the test-site `X-Robots-Tag`.
+      Keep the apex `pkspot.app` records on App Hosting during the trial.
 - [ ] Put WAF and bot rules into log-only mode first. Confirm verified search
       crawlers and social-card fetchers receive SSR HTML and public images
       without a challenge before enabling blocking or managed challenges.
+- [ ] Keep `www.pkspot.app`, `pkfrspot.com`, `pk-spot.com`, and
+      `parkourspot.app` on their existing Firebase redirects throughout the
+      trial. At the production cutover, move them to Cloudflare Bulk Redirects
+      or Redirect Rules instead of Hostpoint forwarding. Preserve the path and
+      query string, issue a permanent redirect to `https://pkspot.app`, verify
+      HTTPS for every source hostname, and remove each Firebase redirect only
+      after its Cloudflare replacement passes those checks.
 
 ### Community event and Spot ranking repair
 

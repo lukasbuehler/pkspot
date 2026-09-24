@@ -23,6 +23,10 @@ const buildScript = readFileSync(
   resolve(process.cwd(), "scripts/cloudflare-workers.mjs"),
   "utf8",
 );
+const cloudflareServer = readFileSync(
+  resolve(process.cwd(), "server.cloudflare.ts"),
+  "utf8",
+);
 const indexHtml = readFileSync(
   resolve(process.cwd(), "src/index.html"),
   "utf8",
@@ -42,6 +46,19 @@ describe("Cloudflare Worker build", () => {
     expect(buildScript).toContain('main: "worker.mjs"');
     expect(buildScript).toContain('directory: "browser"');
     expect(buildScript).not.toContain("cpu_ms");
+  });
+
+  it("accepts the stable test host and its branch preview hosts", () => {
+    expect(cloudflareServer).toContain('"test.pkspot.app"');
+    expect(cloudflareServer).toContain('"*.test.pkspot.app"');
+    expect(cloudflareServer).not.toContain("edge-test.pkspot.app");
+  });
+
+  it("keeps test and preview deployments out of search indexes", () => {
+    expect(buildScript).toContain("isTestHostname");
+    expect(buildScript).toContain(
+      'headers.set("X-Robots-Tag", "noindex, nofollow, noarchive")',
+    );
   });
 
   it("bundles dependencies used by browser chunks", () => {

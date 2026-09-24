@@ -2,7 +2,8 @@ import { AngularAppEngine, createRequestHandler } from "@angular/ssr";
 
 const angularApp = new AngularAppEngine({
   allowedHosts: [
-    "edge-test.pkspot.app",
+    "test.pkspot.app",
+    "*.test.pkspot.app",
     "*.workers.dev",
     "localhost",
     "127.0.0.1",
