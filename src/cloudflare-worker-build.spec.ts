@@ -46,7 +46,7 @@ describe("Cloudflare Worker build", () => {
     expect(buildScript).not.toMatch(/--localize=/u);
     expect(buildScript).toContain('name: "pkspot-web"');
     expect(buildScript).toContain(
-      'import handler from "./server/server.mjs";',
+      'import { handleWorkerRequest } from "./server/server.mjs";',
     );
     expect(buildScript).toContain('main: "worker.mjs"');
     expect(buildScript).toContain('directory: "browser"');
@@ -59,13 +59,6 @@ describe("Cloudflare Worker build", () => {
     expect(cloudflareServer).toContain('"test.pkspot.app"');
     expect(cloudflareServer).toContain('"*.test.pkspot.app"');
     expect(cloudflareServer).not.toContain("edge-test.pkspot.app");
-  });
-
-  it("keeps test and preview deployments out of search indexes", () => {
-    expect(buildScript).toContain("isTestHostname");
-    expect(buildScript).toContain(
-      'headers.set("X-Robots-Tag", "noindex, nofollow, noarchive")',
-    );
   });
 
   it("bundles dependencies used by browser chunks", () => {

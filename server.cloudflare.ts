@@ -1,4 +1,6 @@
 import { AngularAppEngine, createRequestHandler } from "@angular/ssr";
+import { SsrRequestScope } from "./src/ssr-request-scope";
+import { createCloudflareRequestHandler } from "./src/cloudflare-request-handler";
 
 const angularApp = new AngularAppEngine({
   allowedHosts: [
@@ -11,8 +13,15 @@ const angularApp = new AngularAppEngine({
   ],
 });
 
-export const reqHandler = createRequestHandler((request) =>
-  angularApp.handle(request)
-);
+export const reqHandler = createRequestHandler(async (request) => {
+  const scope = new SsrRequestScope();
+  try {
+    return await angularApp.handle(request, scope);
+  } finally {
+    await scope.close();
+  }
+});
 
 export default reqHandler;
+
+export const handleWorkerRequest = createCloudflareRequestHandler(reqHandler);

@@ -78,6 +78,7 @@
     "notification:test": "npm --prefix functions run build && node scripts/send_test_notification.js",
     "test:notification-cli": "node --test scripts/send_test_notification.test.js",
     "build:cloudflare": "node scripts/cloudflare-workers.mjs build",
+    "test:cloudflare": "node scripts/test-cloudflare-routes.mjs",
     "cloudflare:dry-run": "node scripts/cloudflare-workers.mjs dry-run",
     "cloudflare:preview": "node scripts/cloudflare-workers.mjs preview"
   },

@@ -188,7 +188,11 @@ nofollow, noarchive`; canonical and social URLs must continue to use
       using the registered production browser app ID while overriding only its
       restricted API key for the test origin.
 - [ ] Build the combined six-locale Worker with `npm run build:cloudflare`, then
-      run `npm run cloudflare:dry-run`. In Workers Builds, use
+      run `npm run test:cloudflare -- --skip-build --compare-express` after
+      `npm run test:build`, and run `npm run cloudflare:dry-run`. The route
+      smoke test reads public IMAX and Swiss Jam fixtures and must pass repeated
+      and overlapping SSR requests, all locales, deep links, and shared assets.
+      In Workers Builds, use
       `npm run build:cloudflare` as the build command and
       `npx wrangler deploy --config dist/pkspot-cloudflare-worker/wrangler.jsonc`
       as the deploy command. Confirm the upload remains below the current
@@ -213,7 +217,9 @@ nofollow, noarchive`; canonical and social URLs must continue to use
 - [ ] After deploying the hostname update, verify `test.pkspot.app` serves the
       Worker through Cloudflare's managed DNS and certificate, unprefixed paths
       redirect by `Accept-Language`, locale-prefixed paths reach the matching
-      Angular SSR bundle, and responses include the test-site `X-Robots-Tag`.
+      Angular SSR bundle, dynamic Spot routes such as `/en/map/spots/imax`
+      return Spot-specific `200` HTML instead of redirecting to `/en/map`, and
+      responses include the test-site `X-Robots-Tag`.
       Keep the apex `pkspot.app` records on App Hosting during the trial.
 - [ ] Put WAF and bot rules into log-only mode first. Confirm verified search
       crawlers and social-card fetchers receive SSR HTML and public images
