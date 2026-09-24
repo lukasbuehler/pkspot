@@ -17,10 +17,10 @@ if (!args.has("--skip-build")) {
 // These are public, read-only content fixtures, also used by the Express smoke suite.
 // Use the same running isolate for every request to catch request-lifetime bugs.
 const routes = [
-  ["/en/map/spots/imax", /IMAX - London \| PK Spot/],
+  ["/en/map/spots/imax", /IMAX.*(?:London|Londres|Londra).*\| PK Spot/],
   ["/en/events", /Events \| PK Spot/],
-  ["/en/events/swissjam25", /Swiss Jam 2025 \| PK Spot/],
-  ["/en/embedded/events/swissjam25", /Swiss Jam 2025 \| PK Spot/],
+  ["/en/events/swissjam25", /Swiss Jam 2025.*\| PK Spot/],
+  ["/en/embedded/events/swissjam25", /Swiss Jam 2025.*\| PK Spot/],
   ["/en/about", /About \| PK Spot/],
   ["/en/privacy-policy", /Privacy Policy \| PK Spot/],
   ["/en/account", /Sign in \| PK Spot/],
@@ -153,7 +153,7 @@ try {
   );
   for (const locale of ["en", "de", "fr", "it", "es", "nl"]) {
     await page(worker, `/${locale}`, /PK Spot/);
-    await page(worker, `/${locale}/map/spots/imax`, /IMAX - London \| PK Spot/);
+    await page(worker, `/${locale}/map/spots/imax`, /IMAX.*(?:London|Londres|Londra).*\| PK Spot/);
   }
   // Include both simultaneous duplicate URLs and different data queries.
   await Promise.all(

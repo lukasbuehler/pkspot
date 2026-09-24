@@ -2694,7 +2694,7 @@ export class GoogleMap2dComponent
     if (!this.locationAccess.enabled()) return;
     // Start watching if not already started
     if (!this._geolocationStarted) {
-      this._geolocationStarted = await this.locationAccess.startWatchingIfEnabled();
+      this._geolocationStarted = await this.locationAccess.startWatchingIfEnabled({ requestPermission: true });
     }
 
     // Pan to current position if available, otherwise it will happen when location updates

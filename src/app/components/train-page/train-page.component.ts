@@ -199,7 +199,7 @@ export class TrainPageComponent {
 
     this.locating.set(true);
     try {
-      if (!(await this.locationAccess.startWatchingIfEnabled())) return;
+      if (!(await this.locationAccess.startWatchingIfEnabled({ requestPermission: true }))) return;
       const timeoutAt = Date.now() + 10_000;
       while (!this.geolocation.currentLocation() && Date.now() < timeoutAt) {
         await new Promise((resolve) => setTimeout(resolve, 150));

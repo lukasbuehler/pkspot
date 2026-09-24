@@ -626,6 +626,14 @@ until staging parity and the cutover checks below pass; the local branch merge
 does not deploy either host. Review the draft build-19 mobile changelogs before
 store submission.
 
+- [ ] After publishing the reviewed 1.2 revision to both hosts, verify that map,
+      training, and about pages never open a location permission prompt on load,
+      including a granted browser permission without an app opt-in, and a saved
+      location opt-in whose browser grant expired. Only
+      an explicit location action may request permission. The browser regression
+      is `e2e/tests/location-permission.spec.ts`; set `PKSPOT_LOCATION_TEST_URL`
+      to a local Worker origin to exercise its staging browser configuration.
+
 The Cloudflare trial is additive and must stay on `test.pkspot.app` until
 all localized SSR, Firebase, crawler, and cache checks pass. It does not replace
 or operate the App Hosting production rollout. The stable test hostname and its

@@ -56,7 +56,13 @@ export class LocationAccessService {
     await this.geolocation.stopWatching();
   }
 
-  async startWatchingIfEnabled(): Promise<boolean> {
+  async startWatchingIfEnabled(
+    { requestPermission = false }: { requestPermission?: boolean } = {},
+  ): Promise<boolean> {
+    if (!this.enabled()) return false;
+    // A saved app preference is not a current browser/OS permission grant.
+    // Startup must never open a permission prompt after a grant expires.
+    if (!requestPermission && !(await this.geolocation.checkPermissions())) return false;
     if (!this.enabled()) return false;
     await this.geolocation.startWatching();
     return true;
