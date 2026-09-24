@@ -20,28 +20,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
 
-    func applicationWillResignActive(_ application: UIApplication) {
-        // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
-        // Use this method to pause ongoing tasks, disable timers, and invalidate graphics rendering callbacks. Games should use this method to pause the game.
-    }
-
-    func applicationDidEnterBackground(_ application: UIApplication) {
-        // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
-        // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
-    }
-
-    func applicationWillEnterForeground(_ application: UIApplication) {
-        // Called as part of the transition from the background to the active state; here you can undo many of the changes made on entering the background.
-    }
-
-    func applicationDidBecomeActive(_ application: UIApplication) {
-        // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
-    }
-
-    func applicationWillTerminate(_ application: UIApplication) {
-        // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
-    }
-
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
         // Handle Firebase Auth URL callbacks
         if Auth.auth().canHandle(url) {
@@ -188,6 +166,49 @@ private final class GooglePlacesFirebaseAppCheckTokenProvider: NSObject, GMSPlac
             }
 
             completion(token, nil)
+        }
+    }
+}
+
+/// UIKit owns the scene window. Keep app-wide Firebase initialization in
+/// AppDelegate and forward scene links through the existing Capacitor/Auth path.
+/// This lives with AppDelegate so both maintained Xcode projects compile it.
+class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+    var window: UIWindow?
+
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession,
+               options connectionOptions: UIScene.ConnectionOptions) {
+        guard scene is UIWindowScene else { return }
+        // UIKit instantiates Main.storyboard from the scene manifest. Preserve
+        // the window accessor used by existing Capacitor plugins.
+        (UIApplication.shared.delegate as? AppDelegate)?.window = window
+        window?.rootViewController?.loadViewIfNeeded()
+        self.scene(scene, openURLContexts: connectionOptions.urlContexts)
+        for activity in connectionOptions.userActivities {
+            self.scene(scene, continue: activity)
+        }
+    }
+
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        guard let delegate = UIApplication.shared.delegate as? AppDelegate else { return }
+        for context in URLContexts {
+            var options: [UIApplication.OpenURLOptionsKey: Any] = [
+                .openInPlace: context.options.openInPlace
+            ]
+            if let source = context.options.sourceApplication { options[.sourceApplication] = source }
+            if let annotation = context.options.annotation { options[.annotation] = annotation }
+            _ = delegate.application(UIApplication.shared, open: context.url, options: options)
+        }
+    }
+
+    func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
+        _ = (UIApplication.shared.delegate as? AppDelegate)?.application(
+            UIApplication.shared, continue: userActivity, restorationHandler: { _ in })
+    }
+
+    func sceneDidDisconnect(_ scene: UIScene) {
+        if let delegate = UIApplication.shared.delegate as? AppDelegate, delegate.window === window {
+            delegate.window = nil
         }
     }
 }

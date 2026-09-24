@@ -82,6 +82,13 @@ run data migrations, or complete third-party service tasks.
 
 ## Release-specific pending actions
 
+### iOS scene lifecycle
+
+- [ ] With the new scene manifest, verify cold launch on an existing supported
+      physical iOS device, then background/resume, cold/warm universal
+      links, Google sign-in callbacks, notification taps, and native sharing.
+      Simulator launch and web SSR checks do not establish device readiness.
+
 ### Share cards (implemented locally, disabled until backend/native verification)
 
 The lab (`npm run share-cards:lab`, port 4318) and backend use the same renderer.
