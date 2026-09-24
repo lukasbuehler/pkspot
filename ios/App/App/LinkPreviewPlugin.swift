@@ -28,7 +28,9 @@ private final class PreviewLinkItem: NSObject, UIActivityItemSource {
 public class LinkPreviewPlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "LinkPreviewPlugin"
     public let jsName = "LinkPreview"
-    public let pluginMethods = [CAPPluginMethod(name: "share", returnType: CAPPluginReturnPromise)]
+    public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "share", returnType: CAPPluginReturnPromise)
+    ]
 
     @objc func share(_ call: CAPPluginCall) {
         guard let value = call.getString("url"), let url = URL(string: value),
