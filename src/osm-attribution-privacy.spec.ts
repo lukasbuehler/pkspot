@@ -28,9 +28,9 @@ describe("OSM attribution and privacy disclosure", () => {
       'href="https://www.openstreetmap.org/copyright"',
     );
     expect(mapStyles).toMatch(
-      /\.osm-attribution\s*\{[\s\S]*bottom:\s*calc\(var\(--map-bottom-obstruction, 0px\) \+ 14px\)[\s\S]*right:\s*var\(--safe-area-inset-right/u,
+      /\.osm-attribution\s*\{[\s\S]*bottom:\s*calc\(var\(--map-attribution-bottom\) \+ 14px\)[\s\S]*right:\s*var\(--map-attribution-right/u,
     );
-    expect(mapStyles).toContain("bottom: var(--map-bottom-obstruction, 0px) !important;");
+    expect(mapStyles).toContain("bottom: var(--map-attribution-bottom) !important;");
     expect(mapPageStyles).toMatch(
       /:host\.map-with-bottom-sheet\s*\{[\s\S]*--map-bottom-obstruction:\s*var\(--map-sheet-closed-height, 0px\)/u,
     );

@@ -1,4 +1,9 @@
-import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  RESPONSE_INIT,
+} from "@angular/core";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 import { RouterLink } from "@angular/router";
@@ -10,8 +15,10 @@ import { RouterLink } from "@angular/router";
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatIconModule, MatButtonModule, RouterLink],
 })
-export class NotFoundPageComponent implements OnInit {
-  constructor() {}
+export class NotFoundPageComponent {
+  private readonly responseInit = inject(RESPONSE_INIT);
 
-  ngOnInit() {}
+  constructor() {
+    if (this.responseInit) this.responseInit.status = 404;
+  }
 }

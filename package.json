@@ -87,7 +87,11 @@
     "share-cards:lab": "npm --prefix functions run build && node scripts/share-cards/server.mjs",
     "share-cards:fallback": "npm --prefix functions run build && node scripts/share-cards/generate-fallback.mjs && node scripts/share-cards/bundle.mjs",
     "test:emulator:share-cards": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only firestore,storage --project demo-pkspot \"node scripts/share-cards/emulator.test.cjs\"",
-    "test:share-cards": "npm --prefix functions run build && node --test scripts/share-cards/render.test.cjs"
+    "test:share-cards": "npm --prefix functions run build && node --test scripts/share-cards/render.test.cjs",
+    "build:cloudflare": "node scripts/cloudflare-workers.mjs build",
+    "test:cloudflare": "node scripts/test-cloudflare-routes.mjs",
+    "cloudflare:dry-run": "node scripts/cloudflare-workers.mjs dry-run",
+    "cloudflare:preview": "node scripts/cloudflare-workers.mjs preview"
   },
   "private": true,
   "dependencies": {
@@ -168,7 +172,8 @@
     "typescript": "6.0.3",
     "typescript-eslint": "8.61.0",
     "vitest": "4.1.11",
-    "webpack-bundle-analyzer": "^5.3.0"
+    "webpack-bundle-analyzer": "^5.3.0",
+    "wrangler": "^4.125.0"
   },
   "overrides": {
     "@xmldom/xmldom": "0.9.12",

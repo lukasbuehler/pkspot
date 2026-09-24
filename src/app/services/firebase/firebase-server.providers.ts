@@ -14,7 +14,7 @@ import { CachedSsrAppCheckTokenMinter } from "./ssr-app-check-token";
 import type { SsrAppCheckTokenMinter } from "./ssr-app-check-token";
 
 const SSR_FIREBASE_APP_NAME = "PKSPOT_SSR";
-let appCheckInitializedApp: FirebaseApp | null = null;
+const appCheckInitializedApps = new WeakSet<FirebaseApp>();
 
 interface ServerEnvironment {
   readonly PKSPOT_SSR_FIREBASE_APP_ID?: string;
@@ -39,20 +39,21 @@ export function initializeFirebaseServerApp(
   environment: ServerEnvironment = readServerEnvironment(),
   baseConfig: FirebaseOptions = getFirebaseConfig(),
   tokenMinter: SsrAppCheckTokenMinter | null = null,
+  options: { name?: string; autoRefresh?: boolean } = {},
 ): FirebaseApp {
   const appId = environment.PKSPOT_SSR_FIREBASE_APP_ID?.trim();
   if (!appId) {
-    return existingOrNewApp("[DEFAULT]", baseConfig);
+    return existingOrNewApp(options.name ?? "[DEFAULT]", baseConfig);
   }
   if (!tokenMinter) {
     throw new Error("SSR App Check requires a hosting token minter");
   }
 
-  const app = existingOrNewApp(SSR_FIREBASE_APP_NAME, {
+  const app = existingOrNewApp(options.name ?? SSR_FIREBASE_APP_NAME, {
     ...baseConfig,
     appId,
   });
-  if (appCheckInitializedApp !== app) {
+  if (!appCheckInitializedApps.has(app)) {
     console.info("[SSR AppCheck] Initializing verified Firebase client.", {
       appId,
       projectId: baseConfig.projectId,
@@ -62,9 +63,9 @@ export function initializeFirebaseServerApp(
       provider: new CustomProvider({
         getToken: () => cachedTokenMinter.mintToken(appId),
       }),
-      isTokenAutoRefreshEnabled: true,
+      isTokenAutoRefreshEnabled: options.autoRefresh ?? true,
     });
-    appCheckInitializedApp = app;
+    appCheckInitializedApps.add(app);
   }
 
   return app;

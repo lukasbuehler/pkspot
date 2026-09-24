@@ -1,0 +1,5 @@
+PK Spot 1.2
+
+Navigation améliorée sur les téléphones, tablettes et écrans pliables.
+Meilleurs espacements aux bords de l’écran, commandes de carte et gestes du panneau inférieur.
+Liens internes plus fiables et messages de vérification de l’application plus clairs.

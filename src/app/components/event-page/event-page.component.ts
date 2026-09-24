@@ -1,7 +1,7 @@
 import { ShareCardService } from "../../services/share-card.service";
 import { eventCopy, eventPlaceCopy } from "../../localization/entity-copy";
 import { contentLanguageLabel } from "../../../scripts/LocalizedContent";
-import { RESPONSE } from "../../../express.token";
+import { RESPONSE_INIT } from "@angular/core";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
@@ -189,7 +189,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   private _eventsService = inject(EventsService);
   private _authService = inject(AuthenticationService);
   private _analytics = inject(AnalyticsService);
-  private readonly serverResponse = inject(RESPONSE, { optional: true });
+  private readonly serverResponse = inject(RESPONSE_INIT, { optional: true });
   private _structuredData = inject(StructuredDataService);
   private _metaTags = inject(MetaTagService);
   private _eventPageData = inject(EventPageDataService);
@@ -1200,7 +1200,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   }
 
   private _setEventLoadFailure(status: 404 | 503): void {
-    this.serverResponse?.status(status);
+    if (this.serverResponse) this.serverResponse.status = status;
     this.event.set(null);
     this.isLoadingEvent.set(false);
     this.eventLoadFailed.set(true);

@@ -275,6 +275,9 @@ export {
   markSupportOrderFulfilled,
   stripeSupportWebhook,
 } from "./supportShopFunctions";
+export {
+  mintCloudflareSsrAppCheckToken,
+} from "./cloudflareSsrAppCheckFunctions";
 
 export {
   onEventNotificationSourceWrite,

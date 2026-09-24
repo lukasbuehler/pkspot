@@ -8,7 +8,7 @@ const readSource = (path: string): string =>
 describe("release version alignment", () => {
   it("keeps native projects and Fastlane aligned with package.json", () => {
     const packageVersion = JSON.parse(readSource("package.json")).version as string;
-    const expectedBuild = 18;
+    const expectedBuild = 19;
     const android = readSource("android/app/build.gradle");
     const fastlane = readSource("fastlane/Fastfile");
 
@@ -28,7 +28,7 @@ describe("release version alignment", () => {
     for (const locale of ["de-DE", "en-US", "es-ES", "fr-FR", "it-IT", "nl-NL"]) {
       expect(
         existsSync(
-          resolve(`fastlane/metadata/android/${locale}/changelogs/18.txt`),
+          resolve(`fastlane/metadata/android/${locale}/changelogs/19.txt`),
         ),
       ).toBe(true);
     }

@@ -28,7 +28,6 @@ import {
   connectStorageEmulator,
   getStorage,
 } from "firebase/storage";
-import { environment } from "../../../environments/environment.default";
 import {
   getFirebaseConfig,
   getFirebaseEmulatorSettings,
@@ -44,11 +43,14 @@ export const FIREBASE_FUNCTIONS = new InjectionToken<Functions>(
 export const FIREBASE_STORAGE = new InjectionToken<FirebaseStorage | null>(
   "Firebase Storage",
 );
+export const FIREBASE_USE_FETCH_STREAMS = new InjectionToken<boolean>(
+  "Firebase Firestore fetch streams",
+  { factory: () => false },
+);
 
-let firestoreInstance: Firestore | null = null;
-let firestoreEmulatorConnected = false;
-let functionsEmulatorConnected = false;
-let storageEmulatorConnected = false;
+const firestoreInstances = new WeakMap<FirebaseApp, Firestore>();
+const functionsEmulatorConnections = new WeakSet<Functions>();
+const storageEmulatorConnections = new WeakSet<FirebaseStorage>();
 
 export function provideFirebaseClient(): EnvironmentProviders {
   return makeEnvironmentProviders([
@@ -79,16 +81,18 @@ function initializeFirebaseApp(): FirebaseApp {
 }
 
 function initializeFirebaseFirestore(): Firestore {
-  if (firestoreInstance) return firestoreInstance;
-
   const app = inject(FIREBASE_APP);
+  const existing = firestoreInstances.get(app);
+  if (existing) return existing;
+  const useFetchStreams = inject(FIREBASE_USE_FETCH_STREAMS);
+  let firestoreInstance: Firestore;
 
   try {
     firestoreInstance = initializeFirestore(app, {
       experimentalForceLongPolling: true,
       // Supported by the Firebase web SDK but not currently exposed publicly.
-      // @ts-expect-error useFetchStreams is an intentionally retained WebView setting.
-      useFetchStreams: false,
+      // @ts-expect-error useFetchStreams is required by fetch-only SSR runtimes.
+      useFetchStreams,
       localCache: memoryLocalCache(),
     });
   } catch (error) {
@@ -103,28 +107,28 @@ function initializeFirebaseFirestore(): Firestore {
   }
 
   const emulator = getFirebaseEmulatorSettings();
-  if (emulator && !firestoreEmulatorConnected) {
+  if (emulator) {
     connectFirestoreEmulator(
       firestoreInstance,
       emulator.firestore.host,
       emulator.firestore.port,
     );
-    firestoreEmulatorConnected = true;
   }
 
+  firestoreInstances.set(app, firestoreInstance);
   return firestoreInstance;
 }
 
 function initializeFirebaseFunctions(): Functions {
   const functions = getFunctions(inject(FIREBASE_APP), "europe-west1");
   const emulator = getFirebaseEmulatorSettings();
-  if (emulator && !functionsEmulatorConnected) {
+  if (emulator && !functionsEmulatorConnections.has(functions)) {
     connectFunctionsEmulator(
       functions,
       emulator.functions.host,
       emulator.functions.port,
     );
-    functionsEmulatorConnected = true;
+    functionsEmulatorConnections.add(functions);
   }
   return functions;
 }
@@ -134,9 +138,9 @@ function initializeFirebaseStorage(): FirebaseStorage | null {
 
   const storage = getStorage(inject(FIREBASE_APP));
   const emulator = getFirebaseEmulatorSettings();
-  if (emulator && !storageEmulatorConnected) {
+  if (emulator && !storageEmulatorConnections.has(storage)) {
     connectStorageEmulator(storage, emulator.storage.host, emulator.storage.port);
-    storageEmulatorConnected = true;
+    storageEmulatorConnections.add(storage);
   }
   return storage;
 }

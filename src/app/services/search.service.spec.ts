@@ -12,9 +12,8 @@ import {
 const typesenseSearchMock = vi.hoisted(() => vi.fn());
 const typesenseMultiSearchMock = vi.hoisted(() => vi.fn());
 
-// Mock the Typesense SearchClient
-vi.mock("typesense", () => ({
-  SearchClient: function SearchClient() {
+vi.mock("./typesense-search-client", () => ({
+  TypesenseSearchClient: function TypesenseSearchClient() {
     return {
       multiSearch: {
         perform: typesenseMultiSearchMock,

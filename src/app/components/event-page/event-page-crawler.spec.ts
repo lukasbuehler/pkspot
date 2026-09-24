@@ -5,7 +5,7 @@ import { EventInfoPageComponent } from "./event-page.component";
 
 describe("event crawler failures", () => {
   it.each([404, 503] as const)("returns HTTP %s instead of a loading page with status 200", async (status) => {
-    const response = { status: vi.fn() };
+    const response: ResponseInit = {};
     const meta = { setRobotsContent: vi.fn() };
     const loading = signal(true), failed = signal(false);
     const component = Object.assign(Object.create(EventInfoPageComponent.prototype), {
@@ -17,7 +17,7 @@ describe("event crawler failures", () => {
       event: signal(null), isLoadingEvent: loading, eventLoadFailed: failed,
     }) as { _loadEventFromRoute(params: ParamMap): Promise<void> };
     await component._loadEventFromRoute(convertToParamMap({ slug: "missing" }));
-    expect(response.status).toHaveBeenCalledWith(status);
+    expect(response.status).toBe(status);
     expect(meta.setRobotsContent).toHaveBeenCalledWith("noindex,follow");
     expect(loading()).toBe(false); expect(failed()).toBe(true);
   });

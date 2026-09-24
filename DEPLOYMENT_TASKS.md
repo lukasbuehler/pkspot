@@ -618,6 +618,86 @@ mobile builds and App Hosting SSR are not accidentally denied.
       invalid/unknown request metrics and the App Check failure warning; roll
       back that product's enforcement if legitimate clients are rejected.
 
+### Cloudflare edge SSR trial
+
+For 1.2, release the same reviewed revision to Firebase App Hosting production
+and Cloudflare staging at `test.pkspot.app`. Keep production on App Hosting
+until staging parity and the cutover checks below pass; the local branch merge
+does not deploy either host. Review the draft build-19 mobile changelogs before
+store submission.
+
+The Cloudflare trial is additive and must stay on `test.pkspot.app` until
+all localized SSR, Firebase, crawler, and cache checks pass. It does not replace
+or operate the App Hosting production rollout. The stable test hostname and its
+`*.test.pkspot.app` branch previews must return `X-Robots-Tag: noindex,
+nofollow, noarchive`; canonical and social URLs must continue to use
+`https://pkspot.app`.
+
+- [ ] Create a separate Firebase Web app named `PK Spot SSR Cloudflare`. Set its
+      app ID as the `CLOUDFLARE_SSR_FIREBASE_APP_ID` Function secret and create
+      a random, independent `CLOUDFLARE_SSR_TOKEN_BROKER_SECRET`:
+
+  ```sh
+  npx firebase apps:create WEB "PK Spot SSR Cloudflare" --project prod
+  npx firebase functions:secrets:set CLOUDFLARE_SSR_FIREBASE_APP_ID --project prod
+  npx firebase functions:secrets:set CLOUDFLARE_SSR_TOKEN_BROKER_SECRET --project prod
+  npx firebase deploy --project prod --only functions:mintCloudflareSsrAppCheckToken
+  ```
+
+      Configure the `pkspot-web` Worker with the app ID, deployed broker URL,
+      and broker secret as `PKSPOT_SSR_FIREBASE_APP_ID`,
+      `PKSPOT_SSR_APP_CHECK_BROKER_URL`, and
+      `PKSPOT_SSR_APP_CHECK_BROKER_SECRET` secrets. Never put these values in a
+      Wrangler config, client environment file, static asset, or build log. Do
+      not reuse App Hosting's existing SSR app ID
+      (`1:294969617102:web:08b892460adf0b16313e9f`). The browser bundle keeps
+      using the registered production browser app ID while overriding only its
+      restricted API key for the test origin.
+- [ ] Build the combined six-locale Worker with `npm run build:cloudflare`, then
+      run `npm run test:cloudflare -- --skip-build --compare-express` after
+      `npm run test:build`, and run `npm run cloudflare:dry-run`. The route
+      smoke test reads public IMAX and Swiss Jam fixtures and must pass repeated
+      and overlapping SSR requests, all locales, deep links, and shared assets.
+      In Workers Builds, use
+      `npm run build:cloudflare` as the build command and
+      `npx wrangler deploy --config dist/pkspot-cloudflare-worker/wrangler.jsonc`
+      as the deploy command. Confirm the upload remains below the current
+      Workers script-size limit and starts within Cloudflare's limit.
+- [ ] Deploy the generated `pkspot-web` Worker without attaching `pkspot.app`.
+      Verify its `workers.dev` URL first, including every locale's initial HTML,
+      canonical and social metadata, hashed assets, 404 status, Firebase reads,
+      and App Check.
+- [ ] Before testing browser integrations, authorize the exact trial origins.
+      Keep the restricted staging browser API key in
+      `src/environments/firebase.staging.json`, which is shared by the staging
+      Angular environment and its generated Cloudflare web-push workers. Keep
+      `https://test.pkspot.app/*` and
+      `https://*.test.pkspot.app/*` as its website restrictions, and authorize
+      only the Google APIs the browser actually uses. Add `test.pkspot.app` and
+      any branch preview hosts to Firebase Authentication's authorized domains
+      if sign-in will be tested there. The reCAPTCHA Enterprise key already
+      permits `test.pkspot.app` when its verified domain list contains `pkspot.app`;
+      add the exact `pkspot-web.lukasmc6.workers.dev` hostname separately for
+      App Check testing on the Worker preview. Do not disable domain
+      verification or authorize all of `workers.dev`.
+- [ ] After deploying the hostname update, verify `test.pkspot.app` serves the
+      Worker through Cloudflare's managed DNS and certificate, unprefixed paths
+      redirect by `Accept-Language`, locale-prefixed paths reach the matching
+      Angular SSR bundle, dynamic Spot routes such as `/en/map/spots/imax`
+      return Spot-specific `200` HTML instead of redirecting to `/en/map`, and
+      responses include the test-site `X-Robots-Tag`.
+      Keep the apex `pkspot.app` records on App Hosting during the trial.
+- [ ] Put WAF and bot rules into log-only mode first. Confirm verified search
+      crawlers and social-card fetchers receive SSR HTML and public images
+      without a challenge before enabling blocking or managed challenges.
+- [ ] Keep `www.pkspot.app`, `pkfrspot.com`, `pk-spot.com`, and
+      `parkourspot.app` on their existing Firebase redirects throughout the
+      trial. At the production cutover, move them to Cloudflare Bulk Redirects
+      or Redirect Rules instead of Hostpoint forwarding. Preserve the path and
+      query string, issue a permanent redirect to `https://pkspot.app`, verify
+      HTTPS for every source hostname, and remove each Firebase redirect only
+      after its Cloudflare replacement passes those checks.
+
 ### Event RSVP and My Events repair
 
 The Firestore rule change accepts the optional millisecond timestamp already

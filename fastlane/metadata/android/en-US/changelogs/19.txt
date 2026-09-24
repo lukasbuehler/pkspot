@@ -1,0 +1,5 @@
+PK Spot 1.2
+
+Improved navigation for phones, tablets and foldable screens.
+Better safe-area spacing, map controls and bottom-sheet gestures.
+More reliable in-app links and clearer app-verification errors.

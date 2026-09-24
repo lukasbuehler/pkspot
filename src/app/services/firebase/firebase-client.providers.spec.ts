@@ -6,6 +6,7 @@ import {
   FIREBASE_FIRESTORE,
   FIREBASE_FUNCTIONS,
   FIREBASE_STORAGE,
+  FIREBASE_USE_FETCH_STREAMS,
   provideFirebaseClient,
 } from "./firebase-client.providers";
 
@@ -29,5 +30,6 @@ describe("provideFirebaseClient", () => {
     expect(functions.app).toBe(app);
     expect(functions.region).toBe("europe-west1");
     expect(TestBed.inject(FIREBASE_STORAGE)).toBeNull();
+    expect(TestBed.inject(FIREBASE_USE_FETCH_STREAMS)).toBe(false);
   });
 });

@@ -1,4 +1,4 @@
-import { RESPONSE } from "../../express.token";
+import { RESPONSE_INIT } from "@angular/core";
 import { handleSpotResolutionError } from "./spot-resolution-error";
 import { inject } from "@angular/core";
 import { ResolveFn, ActivatedRouteSnapshot } from "@angular/router";
@@ -52,7 +52,7 @@ export const contentResolver: ResolveFn<RouteContentData> = async (
   const consentService = inject(ConsentService);
   const metaTagService = inject(MetaTagService);
   const locale = inject(LOCALE_ID);
-  const response = inject(RESPONSE, { optional: true });
+  const response = inject(RESPONSE_INIT, { optional: true });
 
   // Determine content type from route path
   const contentType = determineContentType(route);

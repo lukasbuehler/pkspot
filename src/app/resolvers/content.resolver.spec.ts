@@ -1,4 +1,4 @@
-import { RESPONSE } from "../../express.token";
+import { RESPONSE_INIT } from "@angular/core";
 import { SpotLoadError } from "../../db/models/SpotLoadError";
 import { DOCUMENT } from "@angular/common";
 import { TestBed } from "@angular/core/testing";
@@ -161,7 +161,7 @@ describe("contentResolver", () => {
     TestBed.configureTestingModule({
       providers: [
         MetaTagService,
-        { provide: RESPONSE, useValue: null },
+        { provide: RESPONSE_INIT, useValue: null },
         { provide: DOCUMENT, useValue: testDocument },
         { provide: Meta, useValue: metaMock },
         { provide: Title, useValue: titleMock },
@@ -180,8 +180,8 @@ describe("contentResolver", () => {
     ["not_found", 404],
     ["missing_location", 503],
   ] as const)("returns a controlled %s fallback without an application error", async (reason, status) => {
-    const response = { status: vi.fn() };
-    TestBed.overrideProvider(RESPONSE, { useValue: response });
+    const response: ResponseInit = {};
+    TestBed.overrideProvider(RESPONSE_INIT, { useValue: response });
     slugsService.getSpotIdFromSpotSlug.mockResolvedValue("unavailable-spot");
     spotsService.getSpotById.mockRejectedValue(new SpotLoadError("unavailable-spot", reason));
     const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
@@ -189,7 +189,7 @@ describe("contentResolver", () => {
     try {
       const result = await TestBed.runInInjectionContext(() => contentResolver(createRouteSnapshot("unavailable-spot") as ActivatedRouteSnapshot));
       expect(result).not.toHaveProperty("spot");
-      expect(response.status).toHaveBeenCalledWith(status);
+      expect(response.status).toBe(status);
       expect(getMetaContent(testDocument, 'meta[name="robots"]')).toBe("noindex,nofollow");
       expect(errorLog).not.toHaveBeenCalled();
     } finally {
@@ -199,15 +199,15 @@ describe("contentResolver", () => {
   });
 
   it("keeps backend failures visible and does not misclassify them as missing Spots", async () => {
-    const response = { status: vi.fn() };
-    TestBed.overrideProvider(RESPONSE, { useValue: response });
+    const response: ResponseInit = {};
+    TestBed.overrideProvider(RESPONSE_INIT, { useValue: response });
     const failure = new Error("Firestore unavailable");
     spotsService.getSpotById.mockRejectedValue(failure);
     slugsService.getSpotIdFromSpotSlug.mockResolvedValue("spot");
     const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
     try {
       await TestBed.runInInjectionContext(() => contentResolver(createRouteSnapshot("spot") as ActivatedRouteSnapshot));
-      expect(response.status).toHaveBeenCalledWith(500);
+      expect(response.status).toBe(500);
       expect(errorLog).toHaveBeenCalledWith("Error resolving spot content:", failure);
     } finally {
       errorLog.mockRestore();
