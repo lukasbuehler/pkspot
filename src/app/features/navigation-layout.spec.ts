@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { getNavigationLayout, isAlainViewport } from "./navigation-layout";
+import {
+  getMapPanelLayout,
+  getNavigationLayout,
+  isAlainViewport,
+} from "./navigation-layout";
 
 describe("navigation layout", () => {
   it("keeps short or compact viewports in Alain menu mode", () => {
@@ -19,5 +23,16 @@ describe("navigation layout", () => {
 
   it("uses the floating bottom navigation on ordinary phones", () => {
     expect(getNavigationLayout({ width: 390, height: 844 })).toBe("bottom");
+  });
+
+  it("keeps map panels aligned with the navigation shell", () => {
+    // This was previously the broken range: a bottom nav with a side drawer.
+    expect(getMapPanelLayout({ width: 620, height: 900 })).toBe("bottom-sheet");
+    expect(getMapPanelLayout({ width: 669, height: 951 })).toBe("drawer-overlay");
+    expect(getMapPanelLayout({ width: 960, height: 720 })).toBe("drawer-side");
+    expect(getMapPanelLayout({ width: 436, height: 314 })).toBe(
+      "drawer-overlay",
+    );
+    expect(getMapPanelLayout({ width: 678, height: 466 })).toBe("drawer-overlay");
   });
 });

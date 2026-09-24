@@ -4,6 +4,7 @@
  * every 640px-wide page behave like desktop content.
  */
 export type NavigationLayout = "rail" | "bottom" | "menu";
+export type MapPanelLayout = "bottom-sheet" | "drawer-overlay" | "drawer-side";
 
 export interface NavigationViewport {
   width: number | null;
@@ -30,4 +31,26 @@ export function getNavigationLayout(
   }
 
   return "bottom";
+}
+
+/**
+ * The map presentation must follow the shell navigation choice. Keeping this
+ * in one pure helper prevents a narrow viewport from getting a bottom bar and
+ * a side drawer at the same time.
+ */
+export function getMapPanelLayout(
+  viewport: NavigationViewport,
+): MapPanelLayout {
+  const navigation = getNavigationLayout(viewport);
+
+  if (navigation === "bottom") return "bottom-sheet";
+
+  const { height, width } = viewport;
+  if (navigation === "menu") {
+    return height !== null && height < 500
+      ? "drawer-overlay"
+      : "bottom-sheet";
+  }
+
+  return width !== null && width < 768 ? "drawer-overlay" : "drawer-side";
 }

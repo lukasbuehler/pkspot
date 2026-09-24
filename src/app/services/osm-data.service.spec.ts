@@ -70,6 +70,13 @@ describe("OsmDataService", () => {
       "gray",
       "gray",
     ]);
+    expect(markers.map((marker) => marker.presentation)).toEqual([
+      "amenity",
+      "amenity",
+      "amenity",
+      "amenity",
+      "amenity",
+    ]);
     expect(
       Math.max(...markers.map((marker) => Number(marker.priority))),
     ).toBeLessThan(

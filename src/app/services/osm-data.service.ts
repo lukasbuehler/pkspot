@@ -208,6 +208,7 @@ export class OsmDataService {
         name: element.name,
         description: operator,
         color: OSM_AMENITY_MARKER_COLOR,
+        presentation: "amenity",
         priority: OSM_AMENITY_MARKER_PRIORITY.drinkingWater,
         type: "drinking_water",
       };
@@ -224,6 +225,7 @@ export class OsmDataService {
         name: element.name ?? $localize`Unnamed Drinking Water spot`,
         description: operator,
         color: OSM_AMENITY_MARKER_COLOR,
+        presentation: "amenity",
         priority: OSM_AMENITY_MARKER_PRIORITY.drinkingWater,
         type: "drinking_water",
       };
@@ -255,6 +257,7 @@ export class OsmDataService {
       name: element.name ?? $localize`Unnamed Toilet`,
       description: detailsParts.join(" • "),
       color: OSM_AMENITY_MARKER_COLOR,
+      presentation: "amenity",
       priority: isFree
         ? OSM_AMENITY_MARKER_PRIORITY.toilet.free
         : isPaid

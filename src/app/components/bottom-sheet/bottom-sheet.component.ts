@@ -74,7 +74,7 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
    * This controls how much of the sheet "peeks" above the bottom.
    * Default: 90px
    */
-  closedHeight = input<number>(178);
+  closedHeight = input<number>(90);
 
   private hostEl = inject(ElementRef);
 

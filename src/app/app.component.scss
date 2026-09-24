@@ -57,7 +57,8 @@ mat-toolbar {
   );
   height: 72px;
   min-height: 72px;
-  padding: 4px;
+  padding-left: 16px;
+  padding-right: 16px;
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 36px;
   background: color-mix(
@@ -65,8 +66,8 @@ mat-toolbar {
     var(--mat-sys-surface-container-high) 94%,
     transparent
   );
-  box-shadow: 0 8px 24px
-    color-mix(in srgb, var(--mat-sys-shadow) 28%, transparent);
+  box-shadow: 0px 50px 40px 40px
+    color-mix(in srgb, var(--mat-sys-shadow) 88%, transparent);
   backdrop-filter: blur(16px);
 
   &.native-platform {
@@ -134,13 +135,32 @@ mat-toolbar {
     left: calc(
       16px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px))
     );
-    top: calc(16px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
+    top: calc(
+      16px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))
+    );
   }
 }
 
 #alainMenuButton.native-platform {
   @media (max-width: 599.99px) {
     top: var(--safe-area-inset-top, env(safe-area-inset-top, 8px));
+  }
+}
+
+// Short immersive maps use an overlay drawer whose search field has a 16px
+// panel inset. Align the app-level menu FAB with that field without changing
+// the compact portrait bottom-sheet presentation.
+:host.immersive-map-route #alainMenuButton {
+  @media (max-height: 499.98px) {
+    --fab-menu-top-offset: calc(
+      16px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))
+    );
+    left: calc(
+      16px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px))
+    );
+    top: calc(
+      16px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))
+    );
   }
 }
 

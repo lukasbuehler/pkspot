@@ -100,6 +100,47 @@
   }
 }
 
+// Amenities provide map context. They deliberately avoid both the primary-pin
+// capsule and its pointer, which are reserved for destinations.
+.amenity-marker {
+  align-items: center;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--mat-sys-shadow) 18%, transparent);
+  display: flex;
+  gap: 2px;
+  height: 36px;
+  justify-content: center;
+  min-width: 36px;
+  padding-inline: 8px;
+  transform: translateY(50%);
+
+  mat-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+  }
+
+  &--primary {
+    background-color: var(--mat-sys-primary-container);
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  &--secondary {
+    background-color: var(--mat-sys-secondary-container);
+    color: var(--mat-sys-on-secondary-container);
+  }
+
+  &--tertiary {
+    background-color: var(--mat-sys-tertiary-container);
+    color: var(--mat-sys-on-tertiary-container);
+  }
+
+  &--gray {
+    background-color: var(--mat-sys-surface-container-highest);
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
 .clickable {
   cursor: pointer;
 }

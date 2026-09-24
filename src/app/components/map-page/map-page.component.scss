@@ -2,11 +2,15 @@
   height: 100%;
   position: relative;
   display: block;
+  --map-overlay-panel-width: min(50%, 480px);
+  --map-bottom-obstruction: 0px;
+}
 
-  // Centralized variable for the bottom sheet's visible height when closed.
-  // This is used by child components (e.g., Google Maps controls, FABs) to offset elements.
-  // Keep one content row visible below the handle and filter chips.
-  --bottom-sheet-closed-height: 90px;
+:host.map-with-bottom-sheet {
+  // The sheet and floating navigation share the physical bottom edge. Map
+  // controls only clear the sheet's visible peek height, not the navigation
+  // pill that floats above both layers.
+  --map-bottom-obstruction: var(--map-sheet-closed-height, 0px);
 }
 
 app-spot-map {
@@ -27,6 +31,10 @@ app-spot-map {
       -1 * var(--safe-area-inset-left, env(safe-area-inset-left, 0px))
     );
   }
+}
+
+:host.map-with-bottom-sheet app-spot-map {
+  left: calc(-1 * var(--safe-area-inset-left, env(safe-area-inset-left, 0px)));
 }
 
 .map-container {
@@ -75,11 +83,9 @@ mat-drawer,
   }
 }
 
-@media (min-width: 640px) and (max-width: 767.98px) {
-  mat-drawer,
-  .search-field-container {
-    width: 50%;
-  }
+mat-drawer.map-overlay-drawer,
+.search-field-container.map-overlay-drawer {
+  width: var(--map-overlay-panel-width);
 }
 
 .alain-spacer {
@@ -103,8 +109,8 @@ mat-drawer,
   top: calc(50% - 36px / 2);
 }
 
-mat-drawer-container.compact-sidenav.sidenav-open .sidenav-toggle {
-  left: calc(100% - (80px + 5px * 2) + 5px);
+mat-drawer-container.map-overlay-drawer.sidenav-open .sidenav-toggle {
+  left: calc(var(--map-overlay-panel-width) + 5px);
 }
 
 .sidenav-toggle__button {
@@ -114,7 +120,9 @@ mat-drawer-container.compact-sidenav.sidenav-open .sidenav-toggle {
 }
 
 .map-bottom-sheet {
-  bottom: 0; //var(--navigation-bottom-clearance, 0px);
+  // A floating nav overlays the sheet. Anchoring the sheet above it made the
+  // entire map UI look artificially raised on passport-shaped displays.
+  bottom: 0;
   position: absolute;
   top: calc(
     72px - min(8px, var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
