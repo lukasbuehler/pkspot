@@ -181,6 +181,33 @@
   }
 }
 
+// A definite height lets flex form a new column when the natural-size action
+// pills no longer fit above the bottom safe area.
+.fab-menu--down.fab-menu--column-wrap .fab-menu__actions {
+  align-content: flex-start;
+  align-items: flex-start;
+  box-sizing: border-box;
+  flex-flow: column wrap;
+  height: calc(
+    100dvh - var(--fab-menu-top-offset, 24px) - 80px -
+      env(safe-area-inset-bottom, 0px)
+  );
+  max-height: none;
+  max-width: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  pointer-events: none;
+  width: calc(
+    100vw - var(--fab-menu-inline-start-offset, 0px) -
+      var(--fab-menu-inline-end-offset, 0px)
+  );
+}
+
+.fab-menu--down.fab-menu--column-wrap
+  .fab-menu__action.mat-mdc-unelevated-button {
+  pointer-events: auto;
+}
+
 .fab-menu__avatar {
   border-radius: 50%;
   object-fit: cover;

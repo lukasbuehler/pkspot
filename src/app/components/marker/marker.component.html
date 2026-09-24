@@ -1,3 +1,41 @@
+@if (variant() === "amenity") {
+  @if (hasAmenityContent()) {
+    <div
+      class="amenity-marker"
+      [class.amenity-marker--primary]="isPrimary()"
+      [class.amenity-marker--secondary]="isSecondary()"
+      [class.amenity-marker--tertiary]="isTertiary()"
+      [class.amenity-marker--gray]="isGray()"
+      [class.clickable]="clickable()"
+      [style.scale]="size()"
+      (click)="onClick($event)"
+      (blur)="onBlur()"
+      matRipple
+      [matRippleDisabled]="!clickable()"
+    >
+      @if (imageSrc()) {
+        <span
+          class="marker-image-shell"
+          [style.background-color]="
+            imageBackgroundColor() ??
+            'var(--mat-sys-surface-container-highest)'
+          "
+        >
+          <img
+            [src]="imageSrc()"
+            [style.object-fit]="imageFit()"
+            alt=""
+            class="marker-image"
+          />
+        </span>
+      } @else {
+        @for (icon of icons() ?? []; track $index) {
+          <mat-icon>{{ icon.trim() }}</mat-icon>
+        }
+      }
+    </div>
+  }
+} @else {
 <div
   class="pin-marker"
   [class.pin-primary]="isPrimary()"
@@ -66,3 +104,4 @@
     />
   </svg>
 </div>
+}

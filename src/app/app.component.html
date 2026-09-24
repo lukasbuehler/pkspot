@@ -1,11 +1,7 @@
-<!-- DEV MODE warning banner - only shows in non-production builds -->
-@if(isDevMode) {
-<!-- <div class="dev-mode-banner">⚠️ DEV MODE - This is NOT a production build</div> -->
-} @if(!isEmbedded()) {
+@if(!isEmbedded()) {
 <!-- is not embedded  -->
 <app-nav-rail-container>
-  @defer (when responsive.isInitialized()) { @if(responsive.viewMode() ===
-  'desktop' && !alainMode) {
+  @defer (when responsive.isInitialized()) { @if(navigationLayout() === 'rail') {
   <app-nav-rail #desktopNavigationRail class="mat-elevation-z3">
     <a
       routerLink="/"
@@ -161,7 +157,7 @@
       <router-outlet></router-outlet>
     </div>
 
-    @if(alainMode) {
+    @if(alainMode()) {
     <!-- Alain Mode: Menu button (shows in any view mode when alainMode is true) -->
     <app-fab-menu
       id="alainMenuButton"
@@ -171,14 +167,14 @@
       launcherIcon="menu"
       alignment="start"
       direction="down"
+      layout="column-wrap"
       (actionSelected)="onNavigationFabAction($event)"
     />
     } @else {
-    <!-- Bottom navigation bar (only when NOT in alainMode and mobile/tablet) -->
-    @defer (when responsive.isInitialized()) { @if(responsive.viewMode() ===
-    'mobile' || responsive.viewMode() === 'tablet') {
+    <!-- Bottom navigation is a floating compact-phone affordance. -->
+    @defer (when responsive.isInitialized()) { @if(navigationLayout() === 'bottom') {
     <mat-toolbar
-      class="mat-elevation-z0"
+      class="floating-bottom-navigation mat-elevation-z2"
       [class.native-platform]="isNativePlatform"
     >
       @for (button of mobileLeadingNavbarButtons(); track button.id) { @if(button.link) {
@@ -289,12 +285,12 @@
     checkInService.currentProximitySpot(); as spot) {
     <div
       class="check-in-chip-container d-flex justify-content-center w-100 p-2 overflow-hidden"
-      [style.bottom]="!responsive.isDesktop() ? '80px' : 'auto'"
-      [style.top]="!responsive.isDesktop() ? 'auto' : '10px'"
-      style="position: absolute; z-index: 1000; pointer-events: none"
+      [style.bottom]="usesNavigationRail() ? 'auto' : 'var(--navigation-bottom-clearance, 0px)'"
+      [style.top]="usesNavigationRail() ? '10px' : 'auto'"
+      style="position: fixed; z-index: 1000; pointer-events: none"
       [@slideVertical]="{
         value: '*',
-        params: { startPos: !responsive.isDesktop() ? '100%' : '-100%' }
+        params: { startPos: usesNavigationRail() ? '-100%' : '100%' }
       }"
     >
       <div
@@ -346,16 +342,9 @@
     <!-- Terms and Privacy -->
 
     @defer (when responsive.isInitialized()) { @if((!policyAccepted || !userId)
-    && (responsive.viewMode() === 'mobile' || responsive.viewMode() ===
-    'tablet') && !isNativePlatform) {
+    && navigationLayout() === 'bottom' && !isNativePlatform) {
     <div
       class="terms-footer mat-body-small justify-content-around align-items-center flex-row mb-0 pb-1 gap-3 px-5"
-      style="
-        background-color: #1f1f23;
-        font-size: 10px;
-        color: gray;
-        display: flex;
-      "
     >
       <a routerLink="/terms-of-service" i18n="@@terms.short">Terms</a>
       <a routerLink="/privacy-policy" i18n="@@policy.short">Policy</a>

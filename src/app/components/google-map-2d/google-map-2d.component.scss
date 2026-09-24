@@ -8,14 +8,14 @@
 .osm-attribution {
   align-items: center;
   background: rgba(0, 0, 0, 0.7);
-  bottom: 14px;
+  bottom: calc(var(--map-bottom-obstruction, 0px) + 14px);
   color: #fff;
   display: inline-flex;
   font-size: 10px;
   line-height: 16px;
   padding: 0 6px;
   position: absolute;
-  right: 0;
+  right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
   text-decoration: none;
   z-index: 2;
 
@@ -117,28 +117,15 @@
   flex-direction: column;
   bottom: 100px;
 
-  @media (max-width: 599px) {
-    // Use the centralized variable from map-page for bottom sheet offset
-    bottom: calc(var(--bottom-sheet-closed-height, 140px) + 30px) !important;
-  }
+  bottom: calc(var(--map-bottom-obstruction, 0px) + 30px) !important;
 }
 
-/* Moves the Google Logo and Copyright text up when bottom sheet is visible */
+/* The bottom-sheet map presentation owns one shared obstruction value. */
 :host.with-bottom-offset {
-  .osm-attribution {
-    @media (max-width: 599px) {
-      // Preserve the regular 14px map-edge spacing above the closed sheet.
-      bottom: calc(var(--bottom-sheet-closed-height, 140px) + 14px);
-    }
-  }
-
   ::ng-deep .gmnoprint a,
   ::ng-deep .gmnoprint span,
   ::ng-deep .gm-style-cc,
   ::ng-deep div.gm-logo {
-    @media (max-width: 599px) {
-      // Use the centralized variable from map-page for bottom sheet offset
-      bottom: var(--bottom-sheet-closed-height, 140px) !important;
-    }
+    bottom: var(--map-bottom-obstruction, 0px) !important;
   }
 }

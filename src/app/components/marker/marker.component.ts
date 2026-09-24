@@ -16,6 +16,7 @@ import type {
 } from "../map/markers/map-marker.model";
 
 export type MarkerSchema = MapMarkerSchema;
+export type MarkerVariant = "pin" | "amenity";
 
 @Component({
   selector: "app-marker",
@@ -67,13 +68,12 @@ export class MarkerComponent {
   isIconic = input<boolean>(false);
   isCheckIn = input<boolean>(false);
   color = input<MapMarkerColor>("primary");
+  variant = input<MarkerVariant>("pin");
   size = input<number>(1);
   title = input<string | null | undefined>(null);
 
   isExpanded = signal<boolean>(false);
-  readonly isPrimary = computed(
-    () => this.color() === "primary" || (!this.isIconic() && !this.isCheckIn())
-  );
+  readonly isPrimary = computed(() => this.color() === "primary");
   readonly isSecondary = computed(
     () => (this.color() === "secondary" && !this.isIconic()) || this.isCheckIn()
   );
@@ -82,6 +82,9 @@ export class MarkerComponent {
   );
   readonly isGray = computed(
     () => this.color() === "gray" && !this.isIconic() && !this.isCheckIn()
+  );
+  readonly hasAmenityContent = computed(
+    () => Boolean(this.imageSrc()) || (this.icons()?.length ?? 0) > 0,
   );
 
   onClick($event?: MouseEvent) {

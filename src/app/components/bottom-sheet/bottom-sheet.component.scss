@@ -38,9 +38,17 @@ div.sheet {
   }
 
   > div.content {
+    // Parents with an overlaying bottom control can reserve scroll space here
+    // without moving the sheet's physical bottom edge.
+    box-sizing: border-box;
     overflow-y: scroll;
     height: calc(100% - $handle-region-height);
     overflow-x: hidden;
+    padding-block-end: var(--bottom-sheet-content-bottom-clearance, 0px);
+    scroll-padding-block-end: var(
+      --bottom-sheet-content-bottom-clearance,
+      0px
+    );
     // Prevent iOS rubber-band/overshoot scrolling which interferes with
     // the ability to drag the bottom sheet down when content is at top
     overscroll-behavior: none;

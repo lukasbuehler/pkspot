@@ -2,47 +2,46 @@
   height: 100%;
   position: relative;
   display: block;
+  --map-overlay-panel-width: min(50%, 480px);
+  --map-bottom-obstruction: 0px;
+}
 
-  // Centralized variable for the bottom sheet's visible height when closed.
-  // This is used by child components (e.g., Google Maps controls, FABs) to offset elements.
-  // Keep one content row visible below the handle and filter chips.
-  --bottom-sheet-closed-height: 90px;
+// The map must occupy the physical viewport, even if an ancestor later gains
+// document padding for a floating navigation bar. Its controls and sheet are
+// positioned in this coordinate space.
+:host-context(app-root.immersive-map-route) {
+  height: 100dvh;
+}
+
+:host.map-with-bottom-sheet {
+  // The sheet and floating navigation share the physical bottom edge. Map
+  // controls only clear the sheet's visible peek height, not the navigation
+  // pill that floats above both layers.
+  --map-bottom-obstruction: var(--map-sheet-closed-height, 0px);
 }
 
 app-spot-map {
   // Ensure the map is behind the UI elements which use z-index
   z-index: 0;
+  position: absolute;
+  top: calc(-1 * var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
+  bottom: 0;
+  left: 0;
+  right: calc(
+    -1 * var(--safe-area-inset-right, env(safe-area-inset-right, 0px))
+  );
 
-  // On mobile: Use position: fixed to break out of parent overflow constraints
-  // This allows the map to fill the entire viewport, including behind the notch (top only)
+  // Compact maps also extend through the leading safe area. Rail layouts keep
+  // their map edge aligned to the rail and only extend into the trailing area.
   @media (max-width: 599.99px) {
-    position: fixed;
-    // Extend into safe areas - use var() first (Android injects correct values), env() fallback (iOS)
-    top: calc(-1 * var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
     left: calc(
       -1 * var(--safe-area-inset-left, env(safe-area-inset-left, 0px))
     );
-    right: calc(
-      -1 * var(--safe-area-inset-right, env(safe-area-inset-right, 0px))
-    );
-    // Stop above the bottom nav bar (uses CSS variable that's 80px on web, 95px on native)
-    bottom: var(--nav-bar-height, 80px);
-    width: calc(
-      100% + var(--safe-area-inset-left, env(safe-area-inset-left, 0px)) +
-        var(--safe-area-inset-right, env(safe-area-inset-right, 0px))
-    );
-    // Height is from top safe area to above bottom nav bar
-    height: auto;
   }
+}
 
-  // On desktop: Use position: absolute so the map respects the sidepanel layout
-  @media (min-width: 600px) {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-  }
+:host.map-with-bottom-sheet app-spot-map {
+  left: calc(-1 * var(--safe-area-inset-left, env(safe-area-inset-left, 0px)));
 }
 
 .map-container {
@@ -91,6 +90,11 @@ mat-drawer,
   }
 }
 
+mat-drawer.map-overlay-drawer,
+.search-field-container.map-overlay-drawer {
+  width: var(--map-overlay-panel-width);
+}
+
 .alain-spacer {
   width: 56px;
 }
@@ -112,8 +116,8 @@ mat-drawer,
   top: calc(50% - 36px / 2);
 }
 
-mat-drawer-container.compact-sidenav.sidenav-open .sidenav-toggle {
-  left: calc(100% - (80px + 5px * 2) + 5px);
+mat-drawer-container.map-overlay-drawer.sidenav-open .sidenav-toggle {
+  left: calc(var(--map-overlay-panel-width) + 5px);
 }
 
 .sidenav-toggle__button {
@@ -123,12 +127,23 @@ mat-drawer-container.compact-sidenav.sidenav-open .sidenav-toggle {
 }
 
 .map-bottom-sheet {
+  // A floating nav overlays the sheet. Anchoring the sheet above it made the
+  // entire map UI look artificially raised on passport-shaped displays. Keep
+  // the sheet at that physical edge, but let its scrollable content finish
+  // above the navigation pill.
+  --bottom-sheet-content-bottom-clearance: calc(
+    var(--navigation-bottom-clearance, 0px) + 16px
+  );
   bottom: 0;
   position: absolute;
   top: calc(
     72px - min(8px, var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
   );
   width: 100%;
+}
+
+.map-canvas-container {
+  overflow: visible;
 }
 
 .map-context-host {

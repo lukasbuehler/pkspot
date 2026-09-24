@@ -72,7 +72,11 @@ export class ResponsiveService {
   private readonly _viewportWidth = signal<number | null>(this.getViewportWidth());
   readonly viewportWidth = this._viewportWidth.asReadonly();
 
-  /** Current layout viewport height, kept fresh by the app shell on resize. */
+  /**
+   * Current layout viewport height, kept fresh by the app shell on resize.
+   * Deliberately uses `innerHeight` rather than VisualViewport so opening the
+   * keyboard never switches the navigation placement.
+   */
   private readonly _viewportHeight = signal<number | null>(
     this.getViewportHeight(),
   );
@@ -246,11 +250,6 @@ export class ResponsiveService {
 
   private getViewportHeight(): number | null {
     if (!this.isBrowser || typeof window === "undefined") return null;
-
-    const visualViewportHeight =
-      typeof window.visualViewport?.height === "number"
-        ? window.visualViewport.height
-        : null;
     const documentHeight =
       typeof document !== "undefined"
         ? document.documentElement.clientHeight
@@ -258,7 +257,7 @@ export class ResponsiveService {
 
     return Math.round(
       Math.min(
-        ...[visualViewportHeight, documentHeight, window.innerHeight].filter(
+        ...[documentHeight, window.innerHeight].filter(
           (height): height is number => typeof height === "number" && height > 0,
         ),
       ),

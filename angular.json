@@ -160,6 +160,7 @@
           },
           "configurations": {
             "dev": {
+              "browser": "src/main.dev.ts",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.default.ts",

@@ -105,6 +105,10 @@ import {
   MatSidenavModule,
 } from "@angular/material/sidenav";
 import { ResponsiveService } from "../../services/responsive.service";
+import {
+  getMapPanelLayout,
+  type MapPanelLayout,
+} from "../../features/navigation-layout";
 import { AgeAssuranceService } from "../../services/age-assurance.service";
 import { BottomSheetComponent } from "../bottom-sheet/bottom-sheet.component";
 import { StructuredDataService } from "../../services/structured-data.service";
@@ -230,6 +234,10 @@ const DENSE_MAP_PERFORMANCE_VARIANTS = new Set<DenseMapPerformanceVariant>([
 
 @Component({
   selector: "app-map-page",
+  host: {
+    "[class.map-with-bottom-sheet]": "usesMapBottomSheet()",
+    "[style.--map-sheet-closed-height.px]": "mapSheetClosedHeight()",
+  },
   templateUrl: "./map-page.component.html",
   styleUrls: ["./map-page.component.scss"],
   animations: [
@@ -442,7 +450,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.spotMap?.spotMapData.updatePreviewFromSpot(spot);
   }
 
-  alainMode: boolean = false;
+  readonly alainMode = signal(false);
 
   isServer: boolean;
 
@@ -450,15 +458,32 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   bottomSheetOpen = signal<boolean>(false);
   bottomSheetProgress = signal<number>(0);
 
-  // Start closed to prevent flash - will open when desktop is confirmed
+  /** The map panel follows the shell navigation decision, not a second set of breakpoints. */
+  readonly mapPanelLayout = computed<MapPanelLayout>(() =>
+    getMapPanelLayout({
+      width: this.responsiveService.viewportWidth(),
+      height: this.responsiveService.viewportHeight(),
+    }),
+  );
+  readonly usesMapBottomSheet = computed(
+    () => this.mapPanelLayout() === "bottom-sheet",
+  );
+  readonly usesMapDrawer = computed(
+    () => this.mapPanelLayout() !== "bottom-sheet",
+  );
+  readonly usesOverlayMapDrawer = computed(
+    () => this.mapPanelLayout() === "drawer-overlay",
+  );
+  readonly mapSheetClosedHeight = computed(() => (this.alainMode() ? 90 : 178));
+
+  // Start closed to prevent flash. The drawer opens when its layout is ready.
   sidenavOpen = signal<boolean>(false);
   sidebarContentIsScrolling = signal<boolean>(false);
-  compactSidenavRange = signal<boolean>(false);
-  compactTabletSidenavOpen = computed(
-    () => this.sidenavOpen() && this.compactSidenavRange(),
+  overlayMapDrawerOpen = computed(
+    () => this.sidenavOpen() && this.usesOverlayMapDrawer(),
   );
   mapSidenavMode = computed<"over" | "side">(() =>
-    this.compactSidenavRange() ? "over" : "side",
+    this.usesOverlayMapDrawer() ? "over" : "side",
   );
 
   // Height of the top spacer in the sidebar/bottom-sheet to match chip listbox
@@ -466,8 +491,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   chipsSpacerHeight = signal<number>(132);
 
   spotListLimit = computed(() => {
-    // If mobile and bottom sheet is "closed" (progress < 0.2), limit the list
-    if (this.responsiveService.isMobile() && this.bottomSheetProgress() <= 0) {
+    // Keep the compact bottom-sheet preview short until the sheet opens.
+    if (this.usesMapBottomSheet() && this.bottomSheetProgress() <= 0) {
       return 2;
     }
     if (this.mapObjectMode() === "all") {
@@ -542,7 +567,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private _routerSubscription?: Subscription;
   private _locationSubscription?: SubscriptionLike;
   private _breakpointSubscription?: Subscription;
-  private _compactSidenavBreakpointSubscription?: Subscription;
   private _consentSubscription?: Subscription;
   private _authStateSubscription?: Subscription;
   private _privateDataSubscription?: Subscription;
@@ -1035,7 +1059,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   visibleIslandContent = computed<MapIslandContent | null>(() => {
     if (
-      this.responsiveService.isMobile() &&
+      this.usesMapBottomSheet() &&
       (this.bottomSheetOpen() || this.bottomSheetProgress() > 0.05)
     ) {
       return null;
@@ -1985,7 +2009,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   ) {
     this._alainModeSubscription = GlobalVariables.alainMode.subscribe(
       (value) => {
-        this.alainMode = value;
+        this.alainMode.set(value);
       },
     );
 
@@ -2011,14 +2035,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         denseMapPerformanceVariant: this._denseMapPerformanceVariant(),
       });
       this._loadEventPromoDismissals();
-      const compactSidenavQuery =
-        "(min-width: 600px) and (max-width: 767.98px)";
-      this.compactSidenavRange.set(
-        this.breakpointObserver.isMatched(compactSidenavQuery),
-      );
-      this._compactSidenavBreakpointSubscription = this.breakpointObserver
-        .observe(compactSidenavQuery)
-        .subscribe((state) => this.compactSidenavRange.set(state.matches));
     }
 
     // Communities are admin-curated and small enough for the SEO list to load
@@ -2455,46 +2471,25 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       });
     });
 
-    // Open sidenav by default on desktop once responsive detection is confirmed
+    // Open a drawer by default only when this map presentation has one.
     effect(() => {
       const isInitialized = this.responsiveService.isInitialized();
-      const isNotMobile = this.responsiveService.isNotMobile();
-      if (isInitialized && isNotMobile) {
+      const usesMapDrawer = this.usesMapDrawer();
+      if (isInitialized && usesMapDrawer) {
         this.sidenavOpen.set(true);
       }
     });
 
     effect(() => {
       this.responsiveService.isInitialized();
-      this.responsiveService.isNotMobile();
       this.sidenavOpen();
-      this.compactSidenavRange();
+      this.usesMapDrawer();
+      this.usesOverlayMapDrawer();
       this.mapSidenavMode();
       this._scheduleDrawerContentMarginRefresh();
       this._schedulePanelScrollListenerAttachment();
     });
 
-    // Effect to peek bottom sheet when proximity spot is detected
-    effect(() => {
-      const spot = this.checkInService.currentProximitySpot();
-      const isMobile = this.responsiveService.isMobile();
-      const isSheetOpen = this.bottomSheetOpen();
-      const progress = this.bottomSheetProgress();
-
-      // If we have a spot, we are on mobile, and the sheet is fully closed (progress <= 0),
-      // we don't necessarily need to "open" it (maximize), but we should ensure the user knows it's there.
-      // The bottom sheet by default "peeks" at closedHeight.
-      // So if content is added to sidebarContent, it should be visible in the peek area.
-      // We might want to ensure we don't accidentally hide it if we have logic that hides the sheet?
-      // But currently the sheet is always present.
-      // We could optionally bounce it or something, but just showing the content is a good start.
-
-      // If the user is on the map and a spot is detected, maybe we want to make sure the bottom sheet isn't obscured?
-      // But standard behavior is enough.
-
-      // Optional: If we want to force open it slightly more or something?
-      // For now, let's rely on the template update.
-    });
   }
 
   setVisibleSpots(spots: Spot[]) {
@@ -5054,7 +5049,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private _openInfoPanel() {
-    if (this.responsiveService.isNotMobile()) {
+    if (this.usesMapDrawer()) {
       this.sidenavOpen.set(true);
     }
   }
@@ -5355,7 +5350,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this._locationSubscription?.unsubscribe();
     this._alainModeSubscription?.unsubscribe();
     this._breakpointSubscription?.unsubscribe();
-    this._compactSidenavBreakpointSubscription?.unsubscribe();
     this._consentSubscription?.unsubscribe();
     this._authStateSubscription?.unsubscribe();
     this._privateDataSubscription?.unsubscribe();

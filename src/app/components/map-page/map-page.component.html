@@ -25,7 +25,7 @@
         [pendingVoteCount]="pendingSpotEditsCount()"
         [mapQueryParams]="activeMapQueryParams()"
         [openProgress]="
-          responsiveService.isMobile() ? bottomSheetProgress() : 1
+          usesMapBottomSheet() ? bottomSheetProgress() : 1
         "
         (isEditingChange)="onSpotPanelEditingChange($event)"
         (dismiss)="closeSpot()"
@@ -64,7 +64,7 @@
         [event]="panel.event"
         [pendingEvent]="panel.pendingEvent"
         [openProgress]="
-          responsiveService.isMobile() ? bottomSheetProgress() : 1
+          usesMapBottomSheet() ? bottomSheetProgress() : 1
         "
         [backLabel]="panelBackTarget()?.label ?? null"
         [backTypeLabel]="panelBackTarget()?.typeLabel ?? null"
@@ -78,7 +78,7 @@
         [community]="panel.community"
         [pendingCommunity]="panel.pendingCommunity"
         [openProgress]="
-          responsiveService.isMobile() ? bottomSheetProgress() : 1
+          usesMapBottomSheet() ? bottomSheetProgress() : 1
         "
         [backLabel]="panelBackTarget()?.label ?? null"
         [backTypeLabel]="panelBackTarget()?.typeLabel ?? null"
@@ -109,10 +109,10 @@
         [spotListLimit]="spotListLimit()"
         [mapZoom]="spotMap ? spotMap.mapZoom() : null"
         [openProgress]="
-          responsiveService.isMobile() ? bottomSheetProgress() : 1
+          usesMapBottomSheet() ? bottomSheetProgress() : 1
         "
         [enableSpotListAnimation]="
-          !responsiveService.isMobile() || bottomSheetOpen()
+          !usesMapBottomSheet() || bottomSheetOpen()
         "
         (modeChange)="mapObjectModeChanged($event)"
         (spotSelect)="selectSpot($event)"
@@ -149,7 +149,7 @@
         (filterBoundsChange)="onFilterBoundsChange($event)"
         (viewportBoundsChange)="onViewportBoundsChange($event)"
         (visibleViewportChange)="onVisibleViewportChange($event)"
-        [bottomSheetOffset]="true"
+        [bottomSheetOffset]="usesMapBottomSheet()"
         [isDebug]="appSettings.debugMode()"
         [showSpots]="showMapSpots()"
         [showVisibleSpotPins]="showVisibleSpotPins()"
@@ -197,7 +197,7 @@
   @if (spotMap) {
     <app-map-floating-controls
       @fastFadeOut
-      [showControls]="!compactTabletSidenavOpen()"
+      [showControls]="!overlayMapDrawerOpen()"
       [showResetNorth]="spotMap.headingIsNotNorth()"
       [mapStyle]="mapStyle"
       [geolocationLoading]="spotMap.geolocationLoading()"
@@ -206,18 +206,18 @@
       [showCreateSpot]="
         isSignedIn() &&
         ageAssurance.canParticipatePublicly() &&
-        !compactTabletSidenavOpen() &&
+        !overlayMapDrawerOpen() &&
         !selectedSpot() &&
         !isEditing() &&
         spotMap.mapZoom() >= 14 &&
         !(
-          responsiveService.isMobile() &&
+          usesMapBottomSheet() &&
           (bottomSheetOpen() || bottomSheetProgress() > 0)
         )
       "
       [showCreateEvent]="
         authService.isAdmin() &&
-        !compactTabletSidenavOpen() &&
+        !overlayMapDrawerOpen() &&
         !selectedSpot() &&
         !isEditing()
       "
@@ -246,10 +246,10 @@
   <div
     class="filter-chips-switcher"
     [style.opacity]="
-      responsiveService.isMobile() ? 1 - bottomSheetProgress() : 1
+      usesMapBottomSheet() ? 1 - bottomSheetProgress() : 1
     "
     [style.pointer-events]="
-      responsiveService.isMobile() && bottomSheetProgress() > 0.95
+      usesMapBottomSheet() && bottomSheetProgress() > 0.95
         ? 'none'
         : null
     "
@@ -298,12 +298,13 @@
     <mat-icon class="map-status-icon">map</mat-icon>
     <p class="mat-title-medium" i18n>Preparing map layout...</p>
   </div>
-} @else if (responsiveService.isNotMobile()) {
+} @else if (usesMapDrawer()) {
   <div
     class="position-absolute p-3 d-flex gap-2 flex-column search-field-container"
+    [class.map-overlay-drawer]="usesOverlayMapDrawer()"
   >
     <div class="d-flex flex-row gap-3">
-      @if (alainMode) {
+      @if (alainMode()) {
         <div class="alain-spacer flex-shrink-0"></div>
       }
       <app-search-field
@@ -328,7 +329,7 @@
     #drawerContainer
     class="h-100 bg-transparent"
     [class.sidenav-open]="sidenavOpen()"
-    [class.compact-sidenav]="compactSidenavRange()"
+    [class.map-overlay-drawer]="usesOverlayMapDrawer()"
     [hasBackdrop]="false"
   >
     <mat-drawer
@@ -337,12 +338,13 @@
       position="start"
       [mode]="mapSidenavMode()"
       class="bg-transparent info-panel"
+      [class.map-overlay-drawer]="usesOverlayMapDrawer()"
     >
       <div [style.height.px]="chipsSpacerHeight()"></div>
       <ng-container *ngTemplateOutlet="sidebarContent"></ng-container>
     </mat-drawer>
 
-    <div class="position-relative overflow-hidden h-100 w-100">
+    <div class="map-canvas-container position-relative h-100 w-100">
       <ng-container *ngTemplateOutlet="mapContent"></ng-container>
       @if (visibleIslandContent()) {
         <div class="map-context-host">
@@ -389,7 +391,7 @@
       class="search-bar-overlay position-absolute top-0 start-0 end-0 d-flex flex-column gap-1"
     >
       <div class="d-flex flex-row gap-2 align-items-center">
-        @if (alainMode && responsiveService.isMobile()) {
+        @if (alainMode() && usesMapBottomSheet()) {
           <div class="alain-spacer flex-shrink-0"></div>
         }
         <app-search-field
@@ -423,6 +425,7 @@
     <app-bottom-sheet
       class="map-bottom-sheet d-flex"
       @fadeInOut
+      [closedHeight]="mapSheetClosedHeight()"
       (isAtTopChange)="bottomSheetOpen.set($event)"
       (openProgressChange)="bottomSheetProgress.set($event)"
     >
