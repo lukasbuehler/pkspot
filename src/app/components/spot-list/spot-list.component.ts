@@ -113,7 +113,7 @@ export class SpotListComponent {
     spot: SpotPreviewData | Spot | LocalSpot,
     spotIndex: number,
   ): void {
-    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) {
+    if (event.button > 0 || event.metaKey || event.ctrlKey || event.shiftKey) {
       return;
     }
 

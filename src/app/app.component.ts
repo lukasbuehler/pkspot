@@ -16,6 +16,7 @@ import {
   NgZone,
   ChangeDetectionStrategy,
   effect,
+  untracked,
 } from "@angular/core";
 import {
   trigger,
@@ -43,11 +44,11 @@ import {
   RouteConfigLoadEnd,
   RouterModule,
 } from "@angular/router";
-import { filter } from "rxjs/operators";
+import { filter, map } from "rxjs/operators";
+import { toSignal } from "@angular/core/rxjs-interop";
 import { AuthenticationService } from "./services/firebase/authentication.service";
 import { StorageService } from "./services/firebase/storage.service";
 import { ResponsiveService } from "./services/responsive.service";
-import { GlobalVariables } from "../scripts/global";
 import { environment } from "../environments/environment.default";
 import { isBot } from "../scripts/Helpers";
 import { ACCEPTANCE_FREE_PREFIXES } from "./app.routes";
@@ -104,11 +105,6 @@ import {
   splitNavigationOverflow,
   type NavigationOverflow,
 } from "./features/navbar-overflow";
-import {
-  getNavigationLayout,
-  isAlainViewport,
-  type NavigationLayout,
-} from "./features/navigation-layout";
 import { MyEventContextService } from "./services/my-event-context.service";
 
 interface ButtonBase {
@@ -284,8 +280,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         window.cancelAnimationFrame(this._desktopNavigationMeasurementFrame);
       }
     });
-
-    this.enforceAlainMode();
   }
 
   hasAds = false;
@@ -314,19 +308,14 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
   });
 
-  readonly alainMode = signal(false);
+  readonly alainMode = this.responsive.alainMode;
 
   /**
    * Content density keeps the established 600/960px breakpoints. Navigation
    * instead follows the available viewport shape, so an unfolded phone can
    * use a rail without being treated as a desktop page everywhere else.
    */
-  readonly navigationLayout = computed<NavigationLayout>(() =>
-    getNavigationLayout({
-      width: this.responsive.viewportWidth(),
-      height: this.responsive.viewportHeight(),
-    }),
-  );
+  readonly navigationLayout = this.responsive.navigationLayout;
   readonly usesNavigationRail = computed(
     () => this.navigationLayout() === "rail",
   );
@@ -341,27 +330,17 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   onResize() {
     this.responsive.refreshViewport();
-    this.enforceAlainMode();
     this.scheduleDesktopNavigationMeasurement();
   }
 
-  enforceAlainMode() {
+  private readonly trackNavigationMode = effect(() => {
+    const alainMode = this.alainMode();
     if (typeof window !== "undefined") {
-      const nextAlainMode = isAlainViewport({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-      if (this.alainMode() === nextAlainMode) {
-        return;
-      }
-
-      this.alainMode.set(nextAlainMode);
-      GlobalVariables.alainMode.next(nextAlainMode);
-      this._analyticsService.trackEvent("Alain Mode Changed", {
-        alainMode: nextAlainMode,
-      });
+      untracked(() => this._analyticsService.trackEvent("Alain Mode Changed", {
+        alainMode,
+      }));
     }
-  }
+  });
 
   async ngAfterViewInit() {
     await this.waitForInitialRenderState();
@@ -692,7 +671,6 @@ export class AppComponent implements OnInit, AfterViewInit {
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
         const nav = event as NavigationEnd;
-        this.currentNavUrl.set(nav.urlAfterRedirects);
         this.checkWelcomeDialogForCurrentRoute();
 
         const send = () => {
@@ -1462,7 +1440,15 @@ html.pkspot-roboto-loaded body {
   shortUserDisplayName = signal<string | undefined>(undefined);
   userPhoto = signal<string | undefined>(undefined);
   isSignedIn = signal(false);
-  currentNavUrl = signal<string>(this.router.url);
+  // Subscribe during construction. Analytics initialization can outlive the
+  // initial navigation; missing that event leaves the map shell at zero height.
+  readonly currentNavUrl = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map((event) => event.urlAfterRedirects),
+    ),
+    { initialValue: this.router.url },
+  );
   readonly isImmersiveMapRoute = computed(() =>
     /^\/map(?:[/?]|$)/.test(this.currentNavUrl()),
   );

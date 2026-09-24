@@ -482,6 +482,15 @@ const routeVisualCases: RouteVisualCase[] = [
     assertCenteredProfile: true,
   },
   { name: "account", path: "/account", fullPage: true, maxDiffPixels: 1_000 },
+  ...[
+    { name: "account-alain-portrait", viewport: { width: 466, height: 678 } },
+    { name: "account-alain-landscape", viewport: { width: 844, height: 390 } },
+  ].map(({ name, viewport }): RouteVisualCase => ({
+    name,
+    viewport,
+    path: "/account",
+    assertAlainClearance: { axis: "block", target: ".account-page .language-strip" },
+  })),
   { name: "sign-up", path: "/sign-up", fullPage: true, maxDiffPixels: 1_000 },
   {
     name: "forgot-password",
@@ -726,6 +735,189 @@ test.describe("Route visual regression @visual", () => {
       }
     });
   }
+
+  test("keeps the map edge-to-edge while controls clear simulated safe areas", async ({ page }) => {
+    await prepareRoute(page, {
+      name: "map-safe-area",
+      path: "/map",
+      viewport: { width: 960, height: 720 },
+    });
+    await page.addStyleTag({ content: `:root {
+      --safe-area-inset-top: 24px;
+      --safe-area-inset-right: 84px;
+      --safe-area-inset-left: 16px;
+    }` });
+    const map = page.locator("app-map-page app-spot-map");
+    await expect(map).toBeVisible();
+    const bounds = await map.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.y).toBeCloseTo(0, 0);
+    expect(bounds!.x + bounds!.width).toBeCloseTo(960, 0);
+    await page.setViewportSize({ width: 390, height: 650 });
+    await expect(page.locator("app-root")).not.toHaveClass(/has-navigation-rail/);
+    const compactBounds = await map.boundingBox();
+    expect(compactBounds!.x).toBeCloseTo(0, 0);
+    expect(compactBounds!.width).toBeCloseTo(390, 0);
+    const search = await page.locator(".search-bar-overlay app-search-field").boundingBox();
+    expect(search!.y).toBeGreaterThanOrEqual(24);
+    expect(search!.x + search!.width).toBeLessThanOrEqual(390 - 84);
+  });
+
+  test("keeps landscape drawer content aligned with search across safe-area changes", async ({ page }) => {
+    await prepareRoute(page, { name: "map-landscape-safe-area", path: "/map", viewport: { width: 678, height: 466 } });
+    for (const left of [84, 0, 84]) {
+      await page.evaluate((inset) => {
+        document.documentElement.style.setProperty("--safe-area-inset-left", `${inset}px`);
+        document.documentElement.style.setProperty("--safe-area-inset-right", `${84 - inset}px`);
+      }, left);
+      const search = page.locator(".search-field-container");
+      const drawer = page.locator(".info-panel .mat-drawer-inner-container");
+      await expect(search).toBeVisible();
+      await expect(drawer).toBeVisible();
+      await expect.poll(async () => {
+        const a = (await search.boundingBox())!;
+        const b = (await drawer.boundingBox())!;
+        return Math.abs(a.x - b.x) + Math.abs(a.width - b.width);
+      }).toBeLessThan(1);
+      expect((await drawer.boundingBox())!.width).toBeGreaterThanOrEqual(330);
+      await expect(page.locator(".map-mini-fabs")).toBeVisible();
+    }
+  });
+
+  test("keeps sheet surfaces safe and the native menu aligned through rotation", async ({ page }) => {
+    await prepareRoute(page, { name: "map-sheet-safe-area", path: "/map", viewport: { width: 466, height: 678 } });
+    for (const viewport of [{ width: 466, height: 678 }, { width: 678, height: 466 }, { width: 466, height: 678 }, { width: 390, height: 844 }]) {
+      await page.setViewportSize(viewport);
+      const landscape = viewport.height < 500;
+      await page.evaluate(({ landscape }) => {
+        const root = document.documentElement.style;
+        root.setProperty("--safe-area-inset-left", landscape ? "84px" : "0px");
+        root.setProperty("--safe-area-inset-right", landscape ? "0px" : "44px");
+        root.setProperty("--safe-area-inset-top", "24px");
+        root.setProperty("--safe-area-inset-bottom", "34px");
+        document.querySelector("#alainMenuButton")?.classList.add("native-platform");
+      }, { landscape });
+      if (viewport.height < 700) {
+        const search = page.locator("app-map-page app-search-field");
+        const menu = page.locator("#alainMenuButton .fab-menu__launcher");
+        await expect(menu).toBeVisible();
+        await expect.poll(async () => {
+          const a = (await search.boundingBox())!;
+          const b = (await menu.boundingBox())!;
+          return Math.abs(a.y - b.y);
+        }).toBeLessThan(1);
+      }
+      if (!landscape) {
+        const sheet = page.locator(".map-bottom-sheet");
+        await expect(sheet).toBeVisible();
+        const bounds = (await sheet.boundingBox())!;
+        expect(bounds.x).toBeCloseTo(0, 0);
+        expect(bounds.width).toBeCloseTo(viewport.width - 44, 0);
+        expect(await page.locator(".handle-region").evaluate(el => getComputedStyle(el).userSelect)).toBe("none");
+        const padding = await sheet.locator(".content").evaluate(el => parseFloat(getComputedStyle(el).paddingBottom));
+        expect(padding).toBeGreaterThanOrEqual(50);
+      } else {
+        const panel = page.locator(".info-panel");
+        await expect(panel).toBeVisible();
+        expect((await panel.boundingBox())!.y).toBeCloseTo(0, 0);
+        expect(await panel.evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe("rgba(0, 0, 0, 0)");
+        const map = page.locator("app-spot-map");
+        expect((await map.boundingBox())!.x).toBeCloseTo(84, 0);
+        await page.locator(".sidenav-toggle button").click();
+        await expect(panel).not.toBeVisible();
+        expect((await map.boundingBox())!.x).toBeCloseTo(84, 0);
+      }
+    }
+  });
+
+  test("centers the book layout seam including the navigation rail", async ({ page }) => {
+    await prepareRoute(page, { name: "map-book-seam", path: "/map", viewport: { width: 951, height: 669 } });
+    for (const left of [0, 84]) {
+      await page.evaluate(inset => {
+        document.documentElement.style.setProperty("--safe-area-inset-left", `${inset}px`);
+        document.documentElement.style.setProperty("--safe-area-inset-right", `${84 - inset}px`);
+      }, left);
+      for (const selector of [".info-panel", ".search-field-container"]) {
+        await expect.poll(async () => {
+          const bounds = (await page.locator(selector).boundingBox())!;
+          return Math.abs(bounds.x + bounds.width - 951 / 2);
+        }).toBeLessThan(1);
+      }
+    }
+  });
+
+  test("keeps map credits inside safe edges", async ({ page }) => {
+    await prepareRoute(page, { name: "map-credits", path: "/map", viewport: { width: 960, height: 720 } });
+    await expect(page.locator(".gm-style-cc").first()).toBeAttached({ timeout: 15000 });
+    for (const viewport of [{ width: 960, height: 720 }, { width: 466, height: 678 }]) {
+      await page.setViewportSize(viewport);
+      await page.evaluate(() => {
+        document.documentElement.style.setProperty("--safe-area-inset-right", "84px");
+        document.documentElement.style.setProperty("--safe-area-inset-bottom", "34px");
+      });
+      const credits = page.locator("app-google-map-2d div:has(> .gm-style-cc):not(.gmnoprint)");
+      await expect(credits).toBeVisible();
+      await expect.poll(async () => {
+        const box = (await credits.boundingBox())!;
+        return box.x + box.width;
+      }).toBeLessThanOrEqual(viewport.width - 84 - 8);
+      const box = (await credits.boundingBox())!;
+      expect(box.y + box.height).toBeLessThanOrEqual(viewport.height - 34);
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      const controls = (await page.locator(".map-mini-fabs").boundingBox())!;
+      expect(controls.y + controls.height).toBeLessThanOrEqual(box.y - 14);
+      const logo = page.locator("app-google-map-2d .gm-logo");
+      await expect(logo).toBeVisible();
+      expect((await logo.boundingBox())!.y + (await logo.boundingBox())!.height).toBeLessThanOrEqual(viewport.height - 34);
+    }
+  });
+
+  test("scrolls the chip row horizontally without dragging the bottom sheet", async ({ page }) => {
+    await prepareRoute(page, { name: "sheet-chip-gesture", path: "/map", viewport: { width: 390, height: 650 } });
+    const sheet = page.locator(".map-bottom-sheet .sheet");
+    await sheet.locator(".handle-region").click();
+    await expect.poll(() => sheet.evaluate(el => getComputedStyle(el).transform)).toBe("matrix(1, 0, 0, 1, 0, 0)");
+    const row = sheet.locator(".chips-scroll-area").first();
+    await expect(row).toBeVisible();
+    expect(await row.locator("button").first().evaluate(el => getComputedStyle(el).touchAction)).toBe("pan-x");
+    const before = await sheet.evaluate(el => getComputedStyle(el).transform);
+    const box = (await row.boundingBox())!;
+    await page.mouse.move(box.x + box.width * 0.7, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 40, box.y + box.height / 2 + 18, { steps: 12 });
+    await page.mouse.up();
+    expect(await row.evaluate(el => el.scrollLeft)).toBeGreaterThan(20);
+    expect(await sheet.evaluate(el => getComputedStyle(el).transform)).toBe(before);
+    const touchPrevented = await row.evaluate(el => {
+      const target = el.querySelector("button")!;
+      const rect = target.getBoundingClientRect();
+      const touch = (x: number, y: number) => new Touch({ identifier: 7, target, clientX: x, clientY: y, pageX: x, pageY: y });
+      const start = touch(rect.x + 40, rect.y + 15);
+      target.dispatchEvent(new TouchEvent("touchstart", { bubbles: true, touches: [start], changedTouches: [start] }));
+      const moved = touch(rect.x - 40, rect.y + 30);
+      const move = new TouchEvent("touchmove", { bubbles: true, cancelable: true, touches: [moved], changedTouches: [moved] });
+      target.dispatchEvent(move);
+      target.dispatchEvent(new TouchEvent("touchend", { bubbles: true, changedTouches: [moved] }));
+      return move.defaultPrevented;
+    });
+    expect(touchPrevented).toBe(false);
+    expect(await sheet.evaluate(el => getComputedStyle(el).transform)).toBe(before);
+  });
+
+  test("keeps the rail and Alain menu exclusive when unfolding without window resize", async ({ page }) => {
+    await prepareRoute(page, { name: "navigation-unfold", path: "/about", viewport: { width: 466, height: 678 } });
+    await expect(page.locator("#alainMenuButton")).toBeVisible();
+    // Emulate WebKit updating layout via visualViewport rather than window resize.
+    await page.evaluate(() => {
+      Object.defineProperty(window, "innerWidth", { configurable: true, value: 951 });
+      Object.defineProperty(window, "innerHeight", { configurable: true, value: 669 });
+      Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: 951 });
+      Object.defineProperty(document.documentElement, "clientHeight", { configurable: true, value: 669 });
+      window.visualViewport!.dispatchEvent(new Event("resize"));
+    });
+    await expect(page.locator("app-nav-rail")).toBeVisible();
+    await expect(page.locator("#alainMenuButton")).toHaveCount(0);
+  });
 
   test("uses the passport-unfolded rail while documents retain window scrolling", async ({
     page,

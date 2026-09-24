@@ -1,9 +1,13 @@
 :host {
   display: contents;
+  // Leave space for both attribution rows above the physical safe edge.
+  --map-control-bottom: calc(
+    max(var(--map-bottom-obstruction, 0px), var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))) + 40px
+  );
 }
 
 .map-mini-fabs {
-  bottom: calc(var(--map-bottom-obstruction, 0px) + 32px);
+  bottom: var(--map-control-bottom);
   display: flex;
   flex-direction: column;
   gap: 15px;
@@ -15,11 +19,9 @@
 }
 
 .create-fab-menu {
-  --fab-menu-bottom-offset: calc(
-    var(--map-bottom-obstruction, 0px) + 30px
-  );
+  --fab-menu-bottom-offset: var(--map-control-bottom);
 
-  bottom: calc(var(--map-bottom-obstruction, 0px) + 32px);
+  bottom: var(--map-control-bottom);
   left: 20px;
   position: absolute;
   z-index: 1;

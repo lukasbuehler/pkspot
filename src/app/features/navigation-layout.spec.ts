@@ -81,9 +81,6 @@ describe("navigation layout", () => {
     expect(mapStyles).toMatch(
       /:host-context\(app-root\.immersive-map-route\)\s*{[^}]*height:\s*100dvh/s,
     );
-    expect(mapStyles).toMatch(
-      /\.map-bottom-sheet\s*{[^}]*--bottom-sheet-content-bottom-clearance:\s*calc\(\s*var\(--navigation-bottom-clearance,\s*0px\)\s*\+\s*16px\s*\)/s,
-    );
     expect(aboutStyles).toMatch(
       /\.about-page-background\s*{[^}]*margin-block-end:\s*calc\(-1 \* var\(--navigation-bottom-clearance,\s*0px\)\)[^}]*padding-block-end:\s*var\(--navigation-bottom-clearance,\s*0px\)/s,
     );

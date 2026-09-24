@@ -74,7 +74,6 @@ import {
   NgTemplateOutlet,
 } from "@angular/common";
 import { StorageService } from "../../services/firebase/storage.service";
-import { GlobalVariables } from "../../../scripts/global";
 import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { UsersService } from "../../services/firebase/firestore/users.service";
 import { GeolocationService } from "../../services/geolocation.service";
@@ -450,7 +449,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.spotMap?.spotMapData.updatePreviewFromSpot(spot);
   }
 
-  readonly alainMode = signal(false);
+  readonly alainMode = this.responsiveService.alainMode;
 
   isServer: boolean;
 
@@ -479,7 +478,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   // Start closed to prevent flash. The drawer opens when its layout is ready.
   sidenavOpen = signal<boolean>(false);
   sidebarContentIsScrolling = signal<boolean>(false);
-  overlayMapDrawerOpen = computed(
+  readonly overlayMapDrawerOpen = computed(
     () => this.sidenavOpen() && this.usesOverlayMapDrawer(),
   );
   mapSidenavMode = computed<"over" | "side">(() =>
@@ -563,7 +562,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.sidenavOpen.update((open) => !open);
   }
 
-  private _alainModeSubscription?: Subscription;
   private _routerSubscription?: Subscription;
   private _locationSubscription?: SubscriptionLike;
   private _breakpointSubscription?: Subscription;
@@ -2007,12 +2005,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     public appSettings: AppSettingsService,
     private _mapProfiler: MapPerformanceProfilerService,
   ) {
-    this._alainModeSubscription = GlobalVariables.alainMode.subscribe(
-      (value) => {
-        this.alainMode.set(value);
-      },
-    );
-
     this.isServer = isPlatformServer(platformId);
     this.selectedCommunityLanding.set(this._getCommunityLandingFromRoute());
 
@@ -5348,7 +5340,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.closeSpot();
     this._routerSubscription?.unsubscribe();
     this._locationSubscription?.unsubscribe();
-    this._alainModeSubscription?.unsubscribe();
     this._breakpointSubscription?.unsubscribe();
     this._consentSubscription?.unsubscribe();
     this._authStateSubscription?.unsubscribe();

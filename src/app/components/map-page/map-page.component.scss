@@ -2,7 +2,11 @@
   height: 100%;
   position: relative;
   display: block;
-  --map-overlay-panel-width: min(50%, 480px);
+  // Keep the usable panel width independent of the camera/status strip.
+  --map-overlay-content-width: min(50%, 480px);
+  --map-overlay-panel-width: calc(
+    var(--map-overlay-content-width) + var(--map-leading-safe-area, 0px)
+  );
   --map-bottom-obstruction: 0px;
 }
 
@@ -24,24 +28,7 @@ app-spot-map {
   // Ensure the map is behind the UI elements which use z-index
   z-index: 0;
   position: absolute;
-  top: calc(-1 * var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
-  bottom: 0;
-  left: 0;
-  right: calc(
-    -1 * var(--safe-area-inset-right, env(safe-area-inset-right, 0px))
-  );
-
-  // Compact maps also extend through the leading safe area. Rail layouts keep
-  // their map edge aligned to the rail and only extend into the trailing area.
-  @media (max-width: 599.99px) {
-    left: calc(
-      -1 * var(--safe-area-inset-left, env(safe-area-inset-left, 0px))
-    );
-  }
-}
-
-:host.map-with-bottom-sheet app-spot-map {
-  left: calc(-1 * var(--safe-area-inset-left, env(safe-area-inset-left, 0px)));
+  inset: 0;
 }
 
 .map-container {
@@ -49,16 +36,21 @@ app-spot-map {
   height: 100%;
 }
 
-// Smart top padding for the search bar overlay container
-// Uses default padding when no safe area (mobile browser), but removes it when
-// there IS a safe area (native app with notch) to avoid double spacing
+// Insets belong to controls, not to the map canvas or its clipping ancestors.
 .search-bar-overlay {
-  padding: 0.5rem;
-  // Default 8px top padding, reduced by the safe area inset amount (clamped to 0 minimum)
-  padding-top: max(
-    0px,
-    calc(8px - var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
-  );
+  padding: 8px;
+  padding-top: calc(8px + max(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)), var(--status-bar-height, 0px)));
+  padding-left: calc(8px + var(--map-leading-safe-area, 0px));
+  padding-right: calc(8px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px)));
+}
+.search-field-container {
+  margin-top: max(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)), var(--status-bar-height, 0px));
+  margin-left: var(--map-leading-safe-area, 0px);
+}
+.info-panel {
+  background-color: var(--mat-sys-surface-container-low);
+  padding-top: max(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)), var(--status-bar-height, 0px));
+  padding-left: var(--map-leading-safe-area, 0px);
 }
 
 // Angular Material supplies this element as the drawer's scroll container.
@@ -90,9 +82,40 @@ mat-drawer,
   }
 }
 
-mat-drawer.map-overlay-drawer,
-.search-field-container.map-overlay-drawer {
+mat-drawer.map-overlay-drawer {
   width: var(--map-overlay-panel-width);
+}
+// In the short menu layout, reserve a continuous surface along the leading
+// unsafe edge even when the drawer is closed. A rail already owns this area
+// in taller layouts, where --map-leading-safe-area is zero.
+mat-drawer-container.map-overlay-drawer {
+  .map-canvas-container {
+    background-color: var(--mat-sys-surface-container-low);
+  }
+  app-spot-map {
+    left: var(--map-leading-safe-area, 0px);
+    // The canvas already clears the leading inset in this presentation.
+    --map-attribution-leading-inset: 0px;
+    width: auto;
+  }
+  .sidenav-toggle {
+    left: calc(var(--map-leading-safe-area, 0px) + 5px);
+  }
+}
+.search-field-container.map-overlay-drawer {
+  width: var(--map-overlay-content-width);
+}
+
+// In the two-column rail layout, the rail belongs to the left "page" too.
+// Half of the remaining map workspace would push the seam past screen center.
+// Keep larger desktop layouts on their existing one-third panel sizing.
+@media (min-width: 768px) and (max-width: 1199.98px) {
+  :host-context(app-root.has-navigation-rail) {
+    mat-drawer,
+    .search-field-container {
+      width: calc(100% - 50vw);
+    }
+  }
 }
 
 .alain-spacer {
@@ -132,14 +155,16 @@ mat-drawer-container.map-overlay-drawer.sidenav-open .sidenav-toggle {
   // the sheet at that physical edge, but let its scrollable content finish
   // above the navigation pill.
   --bottom-sheet-content-bottom-clearance: calc(
-    var(--navigation-bottom-clearance, 0px) + 16px
+    max(var(--navigation-bottom-clearance, 0px), var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))) + 16px
   );
   bottom: 0;
   position: absolute;
   top: calc(
-    72px - min(8px, var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
+    72px + max(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)), var(--status-bar-height, 0px))
   );
-  width: 100%;
+  // Keep both the surface and its grip balanced within the usable width.
+  left: var(--map-leading-safe-area, 0px);
+  right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
 }
 
 .map-canvas-container {

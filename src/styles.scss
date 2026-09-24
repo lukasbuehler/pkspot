@@ -13,9 +13,10 @@ button:focus {
 html {
   /* Native Safe Area Padding for iOS/Android notch and navigation */
   /* On Android, our MainActivity injects --safe-area-inset-* with correct orientation values.
-     On iOS, env() works correctly. We use var() first (for Android), with env() as fallback (for iOS). */
+     On iOS, AppViewController supplies UIKit insets after load and rotation.
+     Browser builds fall back to CSS env() values. */
 
-  /* Safe Area handling moved to app-root to avoid conflict with fixed body */
+  /* Inset content and controls, while immersive backgrounds remain edge-to-edge. */
 
   /* Ensure padding is included in width calculations to prevent horizontal overflow */
   box-sizing: border-box;
@@ -124,8 +125,7 @@ app-root.has-floating-bottom-navigation .app-page-fab {
 // This selector must remain global: the footer is emitted by AppComponent,
 // while the spacing contract is inherited from the document root.
 body:has(.terms-footer) {
-  // The footer's 36px text row is in addition to its own safe-area padding.
-  --terms-footer-offset: 36px;
+  --terms-footer-offset: 24px;
 }
 
 // Alain mode replaces the bottom navigation with a floating menu button. Expose
@@ -311,19 +311,7 @@ app-root {
   min-height: 100dvh;
   overflow: visible;
 
-  /* Apply safe area padding here to the scrolling container */
   --status-bar-height: 0px;
-  padding-top: max(
-    var(--safe-area-inset-top, env(safe-area-inset-top, 0px)),
-    var(--status-bar-height)
-  );
-  padding-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
-  padding-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
-  // padding-bottom: var(
-  //   --safe-area-inset-bottom,
-  //   env(safe-area-inset-bottom, 0px)
-  // );
-
   box-sizing: border-box;
   position: relative;
 
@@ -331,9 +319,13 @@ app-root {
   --nav-bar-height: 0px;
 
   &.has-floating-bottom-navigation {
-    --navigation-bottom-clearance: calc(
-      88px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) +
+    // The safe area already supplies the outer gap on gesture-navigation phones.
+    --navigation-bottom-offset: calc(
+      max(12px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))) +
         var(--terms-footer-offset, 0px)
+    );
+    --navigation-bottom-clearance: calc(
+      76px + var(--navigation-bottom-offset)
     );
     --nav-bar-height: var(--navigation-bottom-clearance);
   }
@@ -346,6 +338,20 @@ app-root {
     // In landscape, we hide the status bar via JS, so height should be 0 (default)
   }
 }
+
+// Backgrounds fill the viewport. Only document content and navigation reserve
+// safe areas; fixed overlays already use viewport-relative safe-area offsets.
+app-root:not(.immersive-map-route) .main-content {
+  padding-top: max(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)), var(--status-bar-height));
+  padding-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+}
+app-root:not(.has-navigation-rail) {
+  --map-leading-safe-area: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+  &:not(.immersive-map-route) .main-content {
+    padding-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+  }
+}
+app-root.has-navigation-rail { --map-leading-safe-area: 0px; }
 
 // Maps are immersive workspaces rather than document pages. Keep this route
 // viewport-bound while every other route uses ordinary document scrolling.
@@ -422,3 +428,17 @@ app-root.immersive-map-route {
 // .flex-basis-0 {
 //   flex-basis: 0 !important;
 // }
+
+// Center this failure dialog within the usable rectangle, not behind a cutout.
+.cdk-global-overlay-wrapper:has(.app-check-safe-dialog) {
+  box-sizing: border-box;
+  padding: calc(16px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
+    calc(16px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px)))
+    calc(16px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)))
+    calc(16px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px)));
+
+  .app-check-safe-dialog {
+    max-width: min(560px, 100%) !important;
+    max-height: 100%;
+  }
+}

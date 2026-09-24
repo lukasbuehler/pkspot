@@ -61,6 +61,11 @@ div.handle-region {
   justify-content: center;
   align-items: center;
   touch-action: none;
+  // A drag grip must not start WebKit text selection or its long-press loupe.
+  // Keep selection available in the actual sheet content.
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 
   margin-left: 16px;
   margin-right: 16px;
@@ -108,6 +113,12 @@ div.sheet > div.content {
     .mat-mdc-mini-fab,
     .mdc-button {
       touch-action: pan-y !important;
+    }
+
+    // Material chips contain buttons. Their horizontal scroller must retain
+    // pan-x instead of intersecting it with the vertical button rule above.
+    [data-horizontal-scroll] button {
+      touch-action: pan-x !important;
     }
   }
 }

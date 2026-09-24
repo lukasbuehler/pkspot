@@ -197,7 +197,7 @@
   @if (spotMap) {
     <app-map-floating-controls
       @fastFadeOut
-      [showControls]="!overlayMapDrawerOpen()"
+      [showControls]="true"
       [showResetNorth]="spotMap.headingIsNotNorth()"
       [mapStyle]="mapStyle"
       [geolocationLoading]="spotMap.geolocationLoading()"
@@ -337,7 +337,7 @@
       [opened]="sidenavOpen()"
       position="start"
       [mode]="mapSidenavMode()"
-      class="bg-transparent info-panel"
+      class="info-panel"
       [class.map-overlay-drawer]="usesOverlayMapDrawer()"
     >
       <div [style.height.px]="chipsSpacerHeight()"></div>

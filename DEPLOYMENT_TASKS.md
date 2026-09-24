@@ -82,11 +82,30 @@ run data migrations, or complete third-party service tasks.
 
 ## Release-specific pending actions
 
-### iOS scene lifecycle
+### iOS scene lifecycle and Capacitor 8.5.2
 
 - [ ] With the new scene manifest, verify cold launch on an existing supported
       physical iOS device, then background/resume, cold/warm universal
       links, Google sign-in callbacks, notification taps, and native sharing.
+      Test cold launch, rotation, folding/unfolding, and keyboard opening on
+      iPhone Duo: navigation must follow layout width/height without rotating
+      first, and controls must clear safe areas once. Check menu/search alignment,
+      the sheet's horizontal safe edges and non-selectable handle, and continuous
+      drawer backgrounds under top/side insets. The map fills the viewport except
+      for the reserved leading unsafe strip in the short overlay-drawer layout.
+      Verify folding keeps the rail and Alain menu mutually exclusive, and map
+      mini FABs remain available beside an open half-width drawer.
+      Confirm horizontal chip swipes inside the sheet scroll the row without
+      moving the sheet, while vertical sheet dragging still works on-device.
+      Check Google/OSM credits and the Google logo clear safe edges and rounded
+      corners, with the map FABs above the credit rows.
+      Recheck nested native links and document reloads with locale prefixes,
+      query parameters and fragments after syncing the new mobile entry pages.
+      Confirm the requested route opens and no missing index.html error occurs.
+      Tap spot cards in the map sheet and confirm selection does not reload the
+      WebView. Check the App Check failure dialog with a long error URL stays
+      inside safe edges, and the native menu FAB retains its top gap off the map.
+      Rebuild/sync native assets before testing (`npm run build:ios:dev`).
       Simulator launch and web SSR checks do not establish device readiness.
 
 ### Share cards (implemented locally, disabled until backend/native verification)

@@ -384,6 +384,10 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
 
       const shiftY = event.clientY - this.currentOffset;
       const initialY = event.clientY;
+      const initialX = event.clientX;
+      const isHorizontalScrollTarget =
+        event.target instanceof Element &&
+        event.target.closest(this.horizontalScrollSelector) !== null;
       const startTime = performance.now();
       const startY = event.pageY;
       let hasDragged = false;
@@ -397,6 +401,15 @@ export class BottomSheetComponent implements AfterViewInit, OnDestroy {
         const pageY = moveEvent.pageY;
 
         if (!hasDragged) {
+          const deltaX = Math.abs(moveEvent.clientX - initialX);
+          const deltaY = Math.abs(moveEvent.clientY - initialY);
+          if (isHorizontalScrollTarget && deltaX > this.minDragDistance && deltaX > deltaY) {
+            removePointerMove();
+            removePointerUp();
+            removePointerCancel();
+            this.activePointerId = null;
+            return;
+          }
           if (Math.abs(pageY - initialY) <= this.minDragDistance) return;
 
           hasDragged = true;

@@ -343,9 +343,7 @@
 
     @defer (when responsive.isInitialized()) { @if((!policyAccepted || !userId)
     && navigationLayout() === 'bottom' && !isNativePlatform) {
-    <div
-      class="terms-footer mat-body-small justify-content-around align-items-center flex-row mb-0 pb-1 gap-3 px-5"
-    >
+    <div class="terms-footer">
       <a routerLink="/terms-of-service" i18n="@@terms.short">Terms</a>
       <a routerLink="/privacy-policy" i18n="@@policy.short">Policy</a>
       <a routerLink="/support" i18n>Support</a>

@@ -3,19 +3,23 @@
   height: 100%;
   position: relative;
   width: 100%;
+  --map-attribution-bottom: calc(
+    max(var(--map-bottom-obstruction, 0px), var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)))
+  );
+  --map-attribution-right: calc(8px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px)));
 }
 
 .osm-attribution {
   align-items: center;
   background: rgba(0, 0, 0, 0.7);
-  bottom: calc(var(--map-bottom-obstruction, 0px) + 14px);
+  bottom: calc(var(--map-attribution-bottom) + 14px);
   color: #fff;
   display: inline-flex;
   font-size: 10px;
   line-height: 16px;
   padding: 0 6px;
   position: absolute;
-  right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+  right: var(--map-attribution-right);
   text-decoration: none;
   z-index: 2;
 
@@ -120,12 +124,14 @@
   bottom: calc(var(--map-bottom-obstruction, 0px) + 30px) !important;
 }
 
-/* The bottom-sheet map presentation owns one shared obstruction value. */
-:host.with-bottom-offset {
-  ::ng-deep .gmnoprint a,
-  ::ng-deep .gmnoprint span,
-  ::ng-deep .gm-style-cc,
-  ::ng-deep div.gm-logo {
-    bottom: var(--map-bottom-obstruction, 0px) !important;
-  }
+// Move the complete Google credit row, not its individual links/spans. Moving
+// nested text independently can separate it from its background and hit target.
+:host ::ng-deep div:has(> .gm-style-cc):not(.gmnoprint) {
+  bottom: var(--map-attribution-bottom) !important;
+  right: var(--map-attribution-right) !important;
+}
+
+:host ::ng-deep div.gm-logo {
+  bottom: var(--map-attribution-bottom) !important;
+  left: calc(16px + var(--map-attribution-leading-inset, var(--map-leading-safe-area, 0px))) !important;
 }

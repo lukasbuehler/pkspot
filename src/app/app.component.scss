@@ -48,13 +48,7 @@ mat-toolbar {
     12px,
     calc(12px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px)))
   );
-  inset-block-end: max(
-    12px,
-    calc(
-      12px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) +
-        var(--terms-footer-offset, 0px)
-    )
-  );
+  inset-block-end: var(--navigation-bottom-offset, 12px);
   height: 72px;
   min-height: 72px;
   padding-left: 16px;
@@ -155,7 +149,7 @@ mat-toolbar {
 
 #alainMenuButton.native-platform {
   @media (max-width: 599.99px) {
-    top: var(--safe-area-inset-top, env(safe-area-inset-top, 8px));
+    top: calc(8px + max(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)), var(--status-bar-height, 0px)));
   }
 }
 
@@ -163,6 +157,12 @@ mat-toolbar {
 // panel inset. Align the app-level menu FAB with that field without changing
 // the compact portrait bottom-sheet presentation.
 :host.immersive-map-route #alainMenuButton {
+  // The portrait search row uses 8px, including on native platforms.
+  --fab-menu-inline-start-offset: calc(8px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px)));
+  --fab-menu-inline-end-offset: calc(8px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px)));
+  --fab-menu-top-offset: calc(8px + max(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)), var(--status-bar-height, 0px)));
+  left: var(--fab-menu-inline-start-offset);
+  top: var(--fab-menu-top-offset);
   @media (max-height: 499.98px) {
     --fab-menu-inline-start-offset: calc(
       16px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px))
@@ -177,7 +177,7 @@ mat-toolbar {
       16px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px))
     );
     top: calc(
-      16px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))
+      16px + max(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)), var(--status-bar-height, 0px))
     );
   }
 }
@@ -219,24 +219,32 @@ a {
   }
 }
 
-// Terms/Policy footer that appears for non-signed-in users on mobile
-// This sets a CSS variable that child components (like map-page) can use
-// to offset their content when the footer is visible
+// Keep the signed-out web links above the floating bar's shadow.
 .terms-footer {
   box-sizing: border-box;
   display: flex;
-  min-height: 24px;
-  padding-block-end: var(
-    --safe-area-inset-bottom,
-    env(safe-area-inset-bottom, 0px)
-  );
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 8px;
+  height: var(--terms-footer-offset, 24px);
+  padding-inline: calc(12px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px)))
+    calc(12px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px)));
   position: fixed;
   inset-inline: 0;
-  inset-block-end: 0;
-  z-index: 999; // Below nav but above map
-  background-color: var(--mat-sys-surface-container-high);
-  color: var(--mat-sys-on-surface-variant);
+  inset-block-end: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  z-index: 1001;
+  background: transparent;
+  color: var(--mat-sys-on-surface, white);
   font-size: 10px;
+  line-height: 16px;
+  white-space: nowrap;
+
+  a {
+    color: inherit;
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+  }
 }
 
 .check-in-chip {

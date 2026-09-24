@@ -11,20 +11,20 @@
 		4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 4D22ABE82AF431CB00220026 /* CapApp-SPM */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
+		504EC30D1FED79650016851F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30B1FED79650016851F /* Main.storyboard */; };
+		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
+		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
+		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
 		80A610012F1F000100000001 /* AgeAssurancePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A610002F1F000100000001 /* AgeAssurancePlugin.swift */; };
 		80A610032F1F000100000003 /* GooglePlacePhotoPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A610022F1F000100000003 /* GooglePlacePhotoPlugin.swift */; };
 		80A610052F1F000100000005 /* GooglePlaces in Frameworks */ = {isa = PBXBuildFile; productRef = 80A610042F1F000100000004 /* GooglePlaces */; };
 		80A610082F1F000100000008 /* AppViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A610072F1F000100000007 /* AppViewController.swift */; };
 		80A6100A2F1F00010000000A /* NotificationSettingsPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A610092F1F000100000009 /* NotificationSettingsPlugin.swift */; };
+		80A6100B2F1F00010000000B /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 80A6100D2F1F00010000000D /* FirebaseMessaging */; };
 		80A6100F2F1F00010000000F /* DateTimePreferencesPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80A6100E2F1F00010000000E /* DateTimePreferencesPlugin.swift */; };
+		80D508C62F01488800B544DF /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 80D508C52F01488800B544DF /* GoogleService-Info.plist */; };
 		81B7100F2F1F00010000000F /* StoreReviewPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B7100E2F1F00010000000E /* StoreReviewPlugin.swift */; };
 		91B7100F2F1F00010000000F /* LinkPreviewPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B7100E2F1F00010000000E /* LinkPreviewPlugin.swift */; };
-		80A6100B2F1F00010000000B /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 80A6100D2F1F00010000000D /* FirebaseMessaging */; };
-		504EC30D1FED79650016851F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30B1FED79650016851F /* Main.storyboard */; };
-		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
-		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
-		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
-		80D508C62F01488800B544DF /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 80D508C52F01488800B544DF /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,20 +32,20 @@
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* PK Spot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "PK Spot.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		504EC3071FED79650016851F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		80A610002F1F000100000001 /* AgeAssurancePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgeAssurancePlugin.swift; sourceTree = "<group>"; };
-		80A610022F1F000100000003 /* GooglePlacePhotoPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GooglePlacePhotoPlugin.swift; sourceTree = "<group>"; };
-		80A610072F1F000100000007 /* AppViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewController.swift; sourceTree = "<group>"; };
-		80A610092F1F000100000009 /* NotificationSettingsPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsPlugin.swift; sourceTree = "<group>"; };
-		80A6100E2F1F00010000000E /* DateTimePreferencesPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateTimePreferencesPlugin.swift; sourceTree = "<group>"; };
-		81B7100E2F1F00010000000E /* StoreReviewPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreReviewPlugin.swift; sourceTree = "<group>"; };
-		91B7100E2F1F00010000000E /* LinkPreviewPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkPreviewPlugin.swift; sourceTree = "<group>"; };
 		504EC30C1FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		504EC30E1FED79650016851F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		504EC3111FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		504EC3131FED79650016851F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
+		80A610002F1F000100000001 /* AgeAssurancePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgeAssurancePlugin.swift; sourceTree = "<group>"; };
+		80A610022F1F000100000003 /* GooglePlacePhotoPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GooglePlacePhotoPlugin.swift; sourceTree = "<group>"; };
+		80A610072F1F000100000007 /* AppViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewController.swift; sourceTree = "<group>"; };
+		80A610092F1F000100000009 /* NotificationSettingsPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsPlugin.swift; sourceTree = "<group>"; };
+		80A6100E2F1F00010000000E /* DateTimePreferencesPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateTimePreferencesPlugin.swift; sourceTree = "<group>"; };
 		80CC6AE32F12A0470084B21F /* PK Spot.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "PK Spot.entitlements"; sourceTree = "<group>"; };
 		80D508C52F01488800B544DF /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		81B7100E2F1F00010000000E /* StoreReviewPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreReviewPlugin.swift; sourceTree = "<group>"; };
+		91B7100E2F1F00010000000E /* LinkPreviewPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkPreviewPlugin.swift; sourceTree = "<group>"; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -344,7 +344,7 @@
 				CODE_SIGN_ENTITLEMENTS = "PK Spot.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 19;
 				DEVELOPMENT_TEAM = WJ3MX3Y7U8;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "PK Spot";
@@ -354,7 +354,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.5;
+				MARKETING_VERSION = 1.2;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
 				PRODUCT_BUNDLE_IDENTIFIER = com.pkspot.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -372,7 +372,7 @@
 				CODE_SIGN_ENTITLEMENTS = "PK Spot.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 19;
 				DEVELOPMENT_TEAM = WJ3MX3Y7U8;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "PK Spot";
@@ -382,7 +382,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.5;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.pkspot.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -415,15 +415,14 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		80A6100C2F1F00010000000C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 12.7.0;
-			};
+/* Begin XCLocalSwiftPackageReference section */
+		D4C12C0A2AAA248700AAC8A2 /* XCLocalSwiftPackageReference "CapApp-SPM" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "CapApp-SPM";
 		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
 		80A610062F1F000100000006 /* XCRemoteSwiftPackageReference "ios-places-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/googlemaps/ios-places-sdk";
@@ -432,14 +431,15 @@
 				version = 10.14.0;
 			};
 		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCLocalSwiftPackageReference section */
-		D4C12C0A2AAA248700AAC8A2 /* XCLocalSwiftPackageReference "CapApp-SPM" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = "CapApp-SPM";
+		80A6100C2F1F00010000000C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.7.0;
+			};
 		};
-/* End XCLocalSwiftPackageReference section */
+/* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		4D22ABE82AF431CB00220026 /* CapApp-SPM */ = {
