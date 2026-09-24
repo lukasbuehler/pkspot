@@ -182,7 +182,11 @@ nofollow, noarchive`; canonical and social URLs must continue to use
       and broker secret as `PKSPOT_SSR_FIREBASE_APP_ID`,
       `PKSPOT_SSR_APP_CHECK_BROKER_URL`, and
       `PKSPOT_SSR_APP_CHECK_BROKER_SECRET` secrets. Never put these values in a
-      Wrangler config, client environment file, static asset, or build log.
+      Wrangler config, client environment file, static asset, or build log. Do
+      not reuse App Hosting's existing SSR app ID
+      (`1:294969617102:web:08b892460adf0b16313e9f`). The browser bundle keeps
+      using the registered production browser app ID while overriding only its
+      restricted API key for the test origin.
 - [ ] Build the combined six-locale Worker with `npm run build:cloudflare`, then
       run `npm run cloudflare:dry-run`. In Workers Builds, use
       `npm run build:cloudflare` as the build command and
@@ -194,12 +198,15 @@ nofollow, noarchive`; canonical and social URLs must continue to use
       canonical and social metadata, hashed assets, 404 status, Firebase reads,
       and App Check.
 - [ ] Before testing browser integrations, authorize the exact trial origins.
-      Add `https://test.pkspot.app` and, only while it remains useful,
-      `https://pkspot-web.lukasmc6.workers.dev` to the production browser API
-      key's website restrictions without broadening its API restrictions. Add
-      both hostnames to Firebase Authentication's authorized domains if sign-in
-      will be tested there. The reCAPTCHA Enterprise key already permits
-      `test.pkspot.app` when its verified domain list contains `pkspot.app`;
+      Keep the restricted staging browser API key in
+      `src/environments/firebase.staging.json`, which is shared by the staging
+      Angular environment and its generated Cloudflare web-push workers. Keep
+      `https://test.pkspot.app/*` and
+      `https://*.test.pkspot.app/*` as its website restrictions, and authorize
+      only the Google APIs the browser actually uses. Add `test.pkspot.app` and
+      any branch preview hosts to Firebase Authentication's authorized domains
+      if sign-in will be tested there. The reCAPTCHA Enterprise key already
+      permits `test.pkspot.app` when its verified domain list contains `pkspot.app`;
       add the exact `pkspot-web.lukasmc6.workers.dev` hostname separately for
       App Check testing on the Worker preview. Do not disable domain
       verification or authorize all of `workers.dev`.

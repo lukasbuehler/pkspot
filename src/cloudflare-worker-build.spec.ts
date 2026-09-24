@@ -10,6 +10,7 @@ interface AngularWorkspace {
           configurations: {
             cloudflare: {
               externalDependencies?: string[];
+              fileReplacements: Array<{ replace: string; with: string }>;
               ssr: { platform: string };
             };
           };
@@ -21,6 +22,10 @@ interface AngularWorkspace {
 
 const buildScript = readFileSync(
   resolve(process.cwd(), "scripts/cloudflare-workers.mjs"),
+  "utf8",
+);
+const stagingEnvironment = readFileSync(
+  resolve(process.cwd(), "src/environments/environment.staging.ts"),
   "utf8",
 );
 const cloudflareServer = readFileSync(
@@ -45,6 +50,8 @@ describe("Cloudflare Worker build", () => {
     );
     expect(buildScript).toContain('main: "worker.mjs"');
     expect(buildScript).toContain('directory: "browser"');
+    expect(buildScript).toContain("rewriteFirebaseMessagingServiceWorkers");
+    expect(buildScript).toContain('"firebase-messaging-sw.js"');
     expect(buildScript).not.toContain("cpu_ms");
   });
 
@@ -67,6 +74,26 @@ describe("Cloudflare Worker build", () => {
 
     expect(cloudflareConfiguration.externalDependencies).toBeUndefined();
     expect(cloudflareConfiguration.ssr.platform).toBe("neutral");
+  });
+
+  it("uses the dedicated staging browser environment instead of production", () => {
+    const cloudflareConfiguration =
+      angularWorkspace.projects.pkspot.architect.build.configurations.cloudflare;
+
+    expect(cloudflareConfiguration.fileReplacements).toEqual([
+      {
+        replace: "src/environments/environment.default.ts",
+        with: "src/environments/environment.staging.ts",
+      },
+    ]);
+    expect(buildScript).toContain('"firebase.staging.json"');
+    expect(stagingEnvironment).toContain('name: "Staging"');
+    expect(stagingEnvironment).toContain(
+      'from "./firebase.staging.json"',
+    );
+    expect(stagingEnvironment).not.toContain(
+      "1:294969617102:web:08b892460adf0b16313e9f",
+    );
   });
 
   it("keeps browser icons inside each localized build", () => {

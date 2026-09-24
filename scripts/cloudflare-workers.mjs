@@ -1,6 +1,8 @@
 import { execFileSync } from "node:child_process";
 import {
   existsSync,
+  readdirSync,
+  readFileSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -23,6 +25,7 @@ if (action === "build") {
 }
 
 function buildWorker() {
+  const browserApiKey = readCloudflareFirebaseConfig().apiKey;
   rmSync(outputDir, { recursive: true, force: true });
   execFileSync(
     process.execPath,
@@ -34,6 +37,7 @@ function buildWorker() {
     ],
     { cwd: repoRoot, env: process.env, stdio: "inherit" }
   );
+  rewriteFirebaseMessagingServiceWorkers(browserApiKey);
   writeFileSync(
     path.join(outputDir, "worker.mjs"),
     [
@@ -59,6 +63,56 @@ function buildWorker() {
     ].join("\n"),
   );
   writeWranglerConfig();
+}
+
+function readCloudflareFirebaseConfig() {
+  const configPath = path.join(
+    repoRoot,
+    "src",
+    "environments",
+    "firebase.staging.json"
+  );
+  const config = JSON.parse(readFileSync(configPath, "utf8"));
+  if (typeof config.apiKey !== "string" || !config.apiKey.trim()) {
+    throw new Error("Cloudflare Firebase config requires a public API key.");
+  }
+  return config;
+}
+
+function rewriteFirebaseMessagingServiceWorkers(apiKey) {
+  const serviceWorkerName = "firebase-messaging-sw.js";
+  const serviceWorkerPaths = findFiles(
+    path.join(outputDir, "browser"),
+    serviceWorkerName
+  );
+
+  if (serviceWorkerPaths.length === 0) {
+    throw new Error(`Cloudflare build did not contain ${serviceWorkerName}.`);
+  }
+
+  for (const serviceWorkerPath of serviceWorkerPaths) {
+    const source = readFileSync(serviceWorkerPath, "utf8");
+    const apiKeyPattern = /apiKey:\s*"[^"]*"/gu;
+    const matches = source.match(apiKeyPattern) ?? [];
+    if (matches.length !== 1) {
+      throw new Error(
+        `Expected one Firebase API key in ${serviceWorkerPath}, found ${matches.length}.`
+      );
+    }
+
+    writeFileSync(
+      serviceWorkerPath,
+      source.replace(apiKeyPattern, `apiKey: ${JSON.stringify(apiKey)}`)
+    );
+  }
+}
+
+function findFiles(directory, fileName) {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const entryPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) return findFiles(entryPath, fileName);
+    return entry.isFile() && entry.name === fileName ? [entryPath] : [];
+  });
 }
 
 function runWrangler(args) {

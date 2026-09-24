@@ -249,7 +249,7 @@
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.default.ts",
-                  "with": "src/environments/environment.production.ts"
+                  "with": "src/environments/environment.staging.ts"
                 }
               ],
               "optimization": {
