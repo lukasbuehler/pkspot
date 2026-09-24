@@ -6,6 +6,13 @@
   --map-bottom-obstruction: 0px;
 }
 
+// The map must occupy the physical viewport, even if an ancestor later gains
+// document padding for a floating navigation bar. Its controls and sheet are
+// positioned in this coordinate space.
+:host-context(app-root.immersive-map-route) {
+  height: 100dvh;
+}
+
 :host.map-with-bottom-sheet {
   // The sheet and floating navigation share the physical bottom edge. Map
   // controls only clear the sheet's visible peek height, not the navigation
@@ -121,7 +128,12 @@ mat-drawer-container.map-overlay-drawer.sidenav-open .sidenav-toggle {
 
 .map-bottom-sheet {
   // A floating nav overlays the sheet. Anchoring the sheet above it made the
-  // entire map UI look artificially raised on passport-shaped displays.
+  // entire map UI look artificially raised on passport-shaped displays. Keep
+  // the sheet at that physical edge, but let its scrollable content finish
+  // above the navigation pill.
+  --bottom-sheet-content-bottom-clearance: calc(
+    var(--navigation-bottom-clearance, 0px) + 16px
+  );
   bottom: 0;
   position: absolute;
   top: calc(

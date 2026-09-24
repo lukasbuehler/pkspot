@@ -26,6 +26,7 @@ export interface FabMenuAction {
 
 export type FabMenuAlignment = "start" | "end";
 export type FabMenuColorSet = "primary" | "secondary" | "tertiary";
+export type FabMenuLayout = "vertical" | "column-wrap";
 
 const DEFAULT_CLOSE_LABEL = $localize`:@@fab_menu.close:Close menu`;
 
@@ -54,6 +55,7 @@ export class FabMenuComponent {
   readonly closeLabel = input(DEFAULT_CLOSE_LABEL);
   readonly alignment = input<FabMenuAlignment>("end");
   readonly direction = input<"up" | "down">("up");
+  readonly layout = input<FabMenuLayout>("vertical");
   readonly colorSet = input<FabMenuColorSet>("primary");
 
   readonly actionSelected = output<string>();
@@ -64,6 +66,13 @@ export class FabMenuComponent {
   readonly directAction = computed(() =>
     this.actions().length === 1 ? this.actions()[0] : undefined,
   );
+  readonly actionAnimationDelays = computed(() => {
+    const actions = this.actions();
+
+    return actions.map((_, index) =>
+      (this.direction() === "down" ? index : actions.length - index - 1) * 45,
+    );
+  });
 
   toggle(): void {
     if (!this.isMenu()) return;

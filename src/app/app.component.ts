@@ -1552,7 +1552,9 @@ html.pkspot-roboto-loaded body {
       overflowPriority: 5,
     });
 
-    if (!isCompact && this.authService.isAdmin()) {
+    // Compact navigation routes lower-priority destinations through More, so
+    // administrators retain access without crowding out the primary actions.
+    if (this.authService.isAdmin()) {
       buttons.push({
         id: "moderation",
         name: $localize`:Moderation navbar button label|A very short label for the admin moderation page button@@moderation_label:Moderation`,

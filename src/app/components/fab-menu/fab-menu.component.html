@@ -3,6 +3,7 @@
     class="fab-menu"
     [class.fab-menu--down]="direction() === 'down'"
     [class.fab-menu--start]="alignment() === 'start'"
+    [class.fab-menu--column-wrap]="layout() === 'column-wrap'"
     [class.fab-menu--secondary]="colorSet() === 'secondary'"
     [class.fab-menu--tertiary]="colorSet() === 'tertiary'"
   >
@@ -54,9 +55,7 @@
             animate.enter="fab-menu__action--enter"
             [disabled]="action.disabled ?? false"
             [attr.aria-label]="action.ariaLabel ?? action.label"
-            [style.animation-delay.ms]="
-              (actions().length - $index - 1) * 45
-            "
+            [style.animation-delay.ms]="actionAnimationDelays()[$index]"
             (click)="selectAction(action)"
           >
             @if (action.image) {

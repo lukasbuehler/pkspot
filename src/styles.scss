@@ -350,6 +350,9 @@ app-root {
 // Maps are immersive workspaces rather than document pages. Keep this route
 // viewport-bound while every other route uses ordinary document scrolling.
 app-root.immersive-map-route {
+  // The map has a viewport-bound canvas and owns its own sheet/control
+  // offsets. Do not let the document shell reduce the canvas height.
+  --document-navigation-bottom-clearance: 0px;
   height: 100dvh;
   overflow: hidden;
 

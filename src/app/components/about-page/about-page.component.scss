@@ -2,6 +2,16 @@
 // Swiss-grid layout with street-culture marker accents
 // ============================================
 
+.about-page-background {
+  // The shared document shell reserves room for the floating nav. Extend the
+  // page background into that space so the final section does not end on the
+  // app shell's surface color.
+  box-sizing: border-box;
+  margin-block-end: calc(-1 * var(--navigation-bottom-clearance, 0px));
+  min-height: 100%;
+  padding-block-end: var(--navigation-bottom-clearance, 0px);
+}
+
 .about-page {
   --about-divider: var(--mat-sys-outline-variant, rgba(255, 255, 255, 0.12));
 

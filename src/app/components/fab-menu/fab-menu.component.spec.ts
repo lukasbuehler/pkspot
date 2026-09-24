@@ -83,13 +83,23 @@ describe("FabMenuComponent", () => {
   it("supports top navigation with profile images and outlined icons", async () => {
     fixture.componentRef.setInput("direction", "down");
     fixture.componentRef.setInput("alignment", "start");
+    fixture.componentRef.setInput("layout", "column-wrap");
     fixture.componentRef.setInput("actions", [
       { ...actions[0], image: "/assets/avatar.png" },
       { ...actions[1], outlineIcon: true },
     ]);
     fixture.componentInstance.isOpen.set(true);
     await fixture.whenStable();
-    expect(fixture.nativeElement.querySelector(".fab-menu--down.fab-menu--start")).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelector(
+        ".fab-menu--down.fab-menu--start.fab-menu--column-wrap",
+      ),
+    ).not.toBeNull();
+    expect(
+      [
+        ...fixture.nativeElement.querySelectorAll(".fab-menu__action"),
+      ].map((button: HTMLButtonElement) => button.style.animationDelay),
+    ).toEqual(["0ms", "45ms"]);
     expect(fixture.nativeElement.querySelector("img").getAttribute("alt")).toBe("");
     expect(fixture.nativeElement.querySelector(".material-symbols-rounded-outline")).not.toBeNull();
   });

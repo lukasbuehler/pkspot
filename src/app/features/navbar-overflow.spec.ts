@@ -102,6 +102,30 @@ describe("splitNavigationOverflow", () => {
     ]);
   });
 
+  it("keeps admin Moderation available in the compact More menu", () => {
+    const result = splitNavigationOverflow(
+      [
+        { id: "map", overflowPriority: 0 },
+        { id: "train", overflowPriority: 1 },
+        { id: "events", overflowPriority: 2 },
+        { id: "shop", overflowPriority: 4 },
+        { id: "about", overflowPriority: 5 },
+        { id: "moderation", overflowPriority: 6 },
+        { id: "account", overflowPriority: 8, alwaysVisible: true },
+      ],
+      5,
+      3,
+    );
+
+    expect(result.visible.map((item) => item.id)).toEqual([
+      "map",
+      "train",
+      "events",
+      "account",
+    ]);
+    expect(result.overflow.map((item) => item.id)).toContain("moderation");
+  });
+
   const desktopItems = [
     { id: "map", overflowPriority: 0 },
     { id: "train", overflowPriority: 1 },

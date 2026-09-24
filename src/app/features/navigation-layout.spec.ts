@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   getMapPanelLayout,
   getNavigationLayout,
@@ -34,5 +36,58 @@ describe("navigation layout", () => {
       "drawer-overlay",
     );
     expect(getMapPanelLayout({ width: 678, height: 466 })).toBe("drawer-overlay");
+  });
+
+  it("reserves document space only for the floating bottom navigation", () => {
+    const contentStyles = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/nav-rail-content/nav-rail-content.component.scss",
+      ),
+      "utf8",
+    );
+    const settingsStyles = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/settings-page/settings-page.component.scss",
+      ),
+      "utf8",
+    );
+    const aboutStyles = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/about-page/about-page.component.scss",
+      ),
+      "utf8",
+    );
+    const mapStyles = readFileSync(
+      join(
+        process.cwd(),
+        "src/app/components/map-page/map-page.component.scss",
+      ),
+      "utf8",
+    );
+    const globalStyles = readFileSync(
+      join(process.cwd(), "src/styles.scss"),
+      "utf8",
+    );
+
+    expect(contentStyles).toMatch(
+      /\.main-content\s*{[^}]*padding-block-end:\s*var\(\s*--document-navigation-bottom-clearance,\s*var\(--navigation-bottom-clearance,\s*0px\)\s*\)/s,
+    );
+    expect(globalStyles).toMatch(
+      /app-root\.immersive-map-route\s*{[^}]*--document-navigation-bottom-clearance:\s*0px/s,
+    );
+    expect(mapStyles).toMatch(
+      /:host-context\(app-root\.immersive-map-route\)\s*{[^}]*height:\s*100dvh/s,
+    );
+    expect(mapStyles).toMatch(
+      /\.map-bottom-sheet\s*{[^}]*--bottom-sheet-content-bottom-clearance:\s*calc\(\s*var\(--navigation-bottom-clearance,\s*0px\)\s*\+\s*16px\s*\)/s,
+    );
+    expect(aboutStyles).toMatch(
+      /\.about-page-background\s*{[^}]*margin-block-end:\s*calc\(-1 \* var\(--navigation-bottom-clearance,\s*0px\)\)[^}]*padding-block-end:\s*var\(--navigation-bottom-clearance,\s*0px\)/s,
+    );
+    expect(settingsStyles).not.toMatch(/overflow-y:\s*scroll/);
+    expect(settingsStyles).not.toMatch(/padding-bottom:\s*100px/);
   });
 });
