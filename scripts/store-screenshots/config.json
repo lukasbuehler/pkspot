@@ -5,23 +5,32 @@
   "captureRoot": "output/store-screenshots/captures",
   "outputMode": "composed",
   "localStorage": {
-    "acceptedVersion": "5",
+    "acceptedVersion": "6",
     "lastLocationAndZoom": {
-      "location": { "lat": 47.3769, "lng": 8.5417 },
+      "location": {
+        "lat": 47.3769,
+        "lng": 8.5417
+      },
       "zoom": 13
     },
     "mapStyle": "roadmap"
   },
-  "fixedTime": "2026-07-04T08:00:00.000Z",
+  "fixedTime": "2026-08-19T11:37:00.000Z",
   "mockAuthUser": {
     "uid": "store-screenshot-user",
-    "email": "screenshot@pkspot.app",
+    "email": "screenshot@example.test",
     "emailVerified": true,
-    "providerId": "store-screenshot"
-  },
-  "mockEventRsvps": {
-    "wpfcamp": "interested",
-    "wpf-camp": "interested"
+    "providerId": "store-screenshot",
+    "data": {
+      "display_name": "Alex",
+      "verified_email": true,
+      "public_profile_enabled": false,
+      "age_policy": {
+        "participation_state": "allowed",
+        "source": "manual",
+        "platform": "web"
+      }
+    }
   },
   "systemUi": {
     "time": "13:37",
@@ -29,34 +38,71 @@
     "gestureBar": true
   },
   "ssr": {
+    "distRoot": "dist/store-screenshots",
     "port": 4300,
     "script": "scripts/store-screenshots/ssr-server.mjs",
-    "buildCommand": ["npm", "run", "build:store-screenshots"]
+    "buildCommand": [
+      "npm",
+      "run",
+      "build:store-screenshots"
+    ]
   },
   "defaultLocale": "en-US",
   "locales": [
-    { "id": "en-US", "appLocale": "en", "androidLocale": "en-US" },
-    { "id": "de-DE", "appLocale": "de", "androidLocale": "de-DE" },
-    { "id": "es-ES", "appLocale": "es", "androidLocale": "es-ES" },
-    { "id": "fr-FR", "appLocale": "fr", "androidLocale": "fr-FR" },
-    { "id": "it", "appLocale": "it", "androidLocale": "it-IT" },
-    { "id": "nl-NL", "appLocale": "nl", "androidLocale": "nl-NL" }
+    {
+      "id": "en-US",
+      "appLocale": "en",
+      "androidLocale": "en-US"
+    },
+    {
+      "id": "de-DE",
+      "appLocale": "de",
+      "androidLocale": "de-DE"
+    },
+    {
+      "id": "es-ES",
+      "appLocale": "es",
+      "androidLocale": "es-ES"
+    },
+    {
+      "id": "fr-FR",
+      "appLocale": "fr",
+      "androidLocale": "fr-FR"
+    },
+    {
+      "id": "it",
+      "appLocale": "it",
+      "androidLocale": "it-IT"
+    },
+    {
+      "id": "nl-NL",
+      "appLocale": "nl",
+      "androidLocale": "nl-NL"
+    }
   ],
   "devices": [
     {
       "id": "iphone65",
       "name": "iPhone 17",
       "outputFilePattern": "Apple iPhone 17 Screenshot {index}.png",
-      "output": { "width": 1242, "height": 2688 },
+      "output": {
+        "width": 1242,
+        "height": 2688
+      },
       "viewport": {
-        "width": 414,
-        "height": 896,
+        "width": 402,
+        "height": 874,
         "deviceScaleFactor": 3,
         "isMobile": true,
         "hasTouch": true
       },
       "nativePlatform": "ios",
-      "safeArea": { "top": 59, "right": 0, "bottom": 34, "left": 0 },
+      "safeArea": {
+        "top": 59,
+        "right": 0,
+        "bottom": 34,
+        "left": 0
+      },
       "systemUi": {
         "statusInsetX": 36,
         "statusTopOffset": 4
@@ -71,24 +117,37 @@
           "height": 2760,
           "clipRadius": 170,
           "screenClipRadius": 118,
-          "screen": { "x": 72, "y": 69, "width": 1206, "height": 2622 }
+          "screen": {
+            "x": 72,
+            "y": 69,
+            "width": 1206,
+            "height": 2622
+          }
         }
       }
     },
     {
       "id": "ipad129",
-      "name": "iPad Pro 12.9 Display",
+      "name": "iPad Pro (M5) 13-inch",
       "outputFilePattern": "Apple iPad Pro 12.9 Inch Screenshot {index}.png",
-      "output": { "width": 2048, "height": 2732 },
+      "output": {
+        "width": 2048,
+        "height": 2732
+      },
       "viewport": {
-        "width": 1024,
-        "height": 1366,
+        "width": 1032,
+        "height": 1376,
         "deviceScaleFactor": 2,
         "isMobile": true,
         "hasTouch": true
       },
       "nativePlatform": "ios",
-      "safeArea": { "top": 24, "right": 0, "bottom": 20, "left": 0 },
+      "safeArea": {
+        "top": 24,
+        "right": 0,
+        "bottom": 20,
+        "left": 0
+      },
       "frame": {
         "kind": "ipad",
         "border": 18,
@@ -99,7 +158,12 @@
           "height": 3000,
           "clipRadius": 120,
           "screenClipRadius": 72,
-          "screen": { "x": 118, "y": 124, "width": 2064, "height": 2752 }
+          "screen": {
+            "x": 118,
+            "y": 124,
+            "width": 2064,
+            "height": 2752
+          }
         }
       }
     },
@@ -109,7 +173,10 @@
       "outputRoot": "fastlane/metadata/android",
       "outputPathPattern": "{androidLocale}/images/phoneScreenshots/Google Pixel 7 Screenshot {index}.png",
       "deviceScreenshotRoot": "fastlane/generated/device-screenshots/android",
-      "output": { "width": 1080, "height": 1920 },
+      "output": {
+        "width": 1080,
+        "height": 1920
+      },
       "viewport": {
         "width": 360,
         "height": 800,
@@ -118,7 +185,12 @@
         "hasTouch": true
       },
       "nativePlatform": "android",
-      "safeArea": { "top": 48, "right": 0, "bottom": 24, "left": 0 },
+      "safeArea": {
+        "top": 48,
+        "right": 0,
+        "bottom": 24,
+        "left": 0
+      },
       "frame": {
         "kind": "android-phone",
         "border": 14,
@@ -129,7 +201,12 @@
           "height": 2361,
           "clipRadius": 58,
           "screenClipRadius": 42,
-          "screen": { "x": 36, "y": 47, "width": 1034, "height": 2253 }
+          "screen": {
+            "x": 36,
+            "y": 47,
+            "width": 1034,
+            "height": 2253
+          }
         }
       }
     },
@@ -139,7 +216,10 @@
       "outputRoot": "fastlane/metadata/android",
       "outputPathPattern": "{androidLocale}/images/tenInchScreenshots/Samsung Galaxy Tab S7 Screenshot {index}.png",
       "deviceScreenshotRoot": "fastlane/generated/device-screenshots/android",
-      "output": { "width": 1600, "height": 2560 },
+      "output": {
+        "width": 1600,
+        "height": 2560
+      },
       "viewport": {
         "width": 800,
         "height": 1280,
@@ -148,196 +228,228 @@
         "hasTouch": true
       },
       "nativePlatform": "android",
-      "safeArea": { "top": 24, "right": 0, "bottom": 24, "left": 0 },
-      "frame": { "kind": "android-tablet", "border": 16, "radius": 34 }
+      "safeArea": {
+        "top": 24,
+        "right": 0,
+        "bottom": 24,
+        "left": 0
+      },
+      "frame": {
+        "kind": "android-tablet",
+        "border": 16,
+        "radius": 34
+      }
     }
   ],
   "captures": [
     {
-      "id": "spot",
-      "path": "/{appLocale}/__visual/spot-bottom-sheet",
-      "waitForSelector": "app-map-spot-details-panel, app-spot-details",
+      "id": "map",
+      "dismissSelectors": ["app-map-island .event-island .island-actions button:last-child"],
+      "path": "/{appLocale}/map",
+      "waitForSelector": ".gm-style app-marker",
       "settleMs": 5000,
       "hideSelectors": [
-        ".dev-mode-banner",
-        "app-footer",
-        "footer",
-        ".terms-footer"
+        ".dev-mode-banner"
       ]
     },
     {
-      "id": "map",
-      "path": "/{appLocale}/map?filters=dry",
-      "waitForSelector": "app-root",
+      "id": "spot",
+      "expandSheet": true,
+      "path": "/{appLocale}/map/spots/imax",
+      "waitForSelector": "app-spot-details img",
       "settleMs": 5000,
-      "hideSelectors": [".dev-mode-banner"]
+      "hideSelectors": [
+        ".dev-mode-banner"
+      ]
     },
     {
       "id": "event",
-      "path": "/{appLocale}/events/wpf-camp",
-      "waitForSelector": "app-event-info-page, app-event-display",
+      "path": "/{appLocale}/events/swissjam26",
+      "mockEventRsvps": { "swissjam26": "interested" },
+      "waitForSelector": ".event-heading h1",
       "settleMs": 5000,
-      "hideSelectors": [".dev-mode-banner"]
+      "hideSelectors": [
+        ".dev-mode-banner"
+      ]
+    },
+    {
+      "id": "community",
+      "expandSheet": true,
+      "path": "/{appLocale}/map/communities/zuerich",
+      "waitForSelector": ".community-panel-body",
+      "settleMs": 5000,
+      "hideSelectors": [
+        ".dev-mode-banner"
+      ]
+    },
+    {
+      "id": "training",
+      "path": "/{appLocale}/train/log",
+      "waitForSelector": ".session-card",
+      "fixture": "training",
+      "scrollToSelector": "app-training-activity-contribution-graph",
+      "systemUi": { "statusBackground": "#0e0e11" },
+      "settleMs": 5000,
+      "hideSelectors": [
+        ".dev-mode-banner"
+      ]
     }
   ],
   "deviceScreenshots": [
     {
       "capture": "map",
       "index": 1
+    },
+    {
+      "capture": "spot",
+      "index": 2
+    },
+    {
+      "capture": "event",
+      "index": 3
+    },
+    {
+      "capture": "community",
+      "index": 4
+    },
+    {
+      "capture": "training",
+      "index": 5
     }
   ],
   "scenes": [
     {
       "id": "discover",
       "copyKey": "discover",
+      "capture": "map",
       "index": 1,
-      "accent": "#a9b7ff",
-      "layouts": {
-        "iphone65": {
-          "text": { "x": 88, "y": 1900, "width": 720, "align": "left" },
-          "placements": [
-            {
-              "capture": "map",
-              "x": 230,
-              "y": 500,
-              "width": 660,
-              "rotate": -9,
-              "imageScale": 1
-            }
-          ]
-        },
-        "ipad129": {
-          "text": { "x": 170, "y": 220, "width": 740, "align": "left" },
-          "placements": [
-            {
-              "capture": "map",
-              "x": 1030,
-              "y": 520,
-              "width": 760,
-              "rotate": -7,
-              "imageScale": 1
-            }
-          ]
-        },
-        "androidPhone": {
-          "text": { "x": 78, "y": 1370, "width": 720, "align": "left" },
-          "placements": [
-            {
-              "capture": "map",
-              "x": 320,
-              "y": 260,
-              "width": 500,
-              "rotate": -7,
-              "imageScale": 1
-            }
-          ]
-        },
-        "androidTablet10": {
-          "text": { "x": 130, "y": 220, "width": 640, "align": "left" },
-          "placements": [
-            {
-              "capture": "map",
-              "x": 840,
-              "y": 540,
-              "width": 590,
-              "rotate": -6,
-              "imageScale": 1
-            }
-          ]
-        }
-      }
+      "background": "#17191e",
+      "accent": "#c2ccff",
+      "foreground": "#ffffff",
+      "muted": "#d6d9e0"
     },
     {
-      "id": "weather",
-      "copyKey": "weather",
+      "id": "details",
+      "copyKey": "details",
+      "capture": "spot",
       "index": 2,
-      "accent": "#8dd8ff",
-      "layouts": {
-        "iphone65": {
-          "text": { "x": 120, "y": 200, "width": 1000, "align": "center" },
-          "placements": [
-            { "capture": "map", "x": 330, "y": 690, "width": 585, "rotate": 0 }
-          ]
-        },
-        "ipad129": {
-          "text": { "x": 300, "y": 240, "width": 1448, "align": "center" },
-          "placements": [
-            { "capture": "map", "x": 620, "y": 620, "width": 820, "rotate": 0 }
-          ]
-        },
-        "androidPhone": {
-          "text": { "x": 110, "y": 170, "width": 860, "align": "center" },
-          "placements": [
-            { "capture": "map", "x": 285, "y": 500, "width": 510, "rotate": 0 }
-          ]
-        },
-        "androidTablet10": {
-          "text": { "x": 250, "y": 220, "width": 1100, "align": "center" },
-          "placements": [
-            { "capture": "map", "x": 475, "y": 610, "width": 650, "rotate": 0 }
-          ]
-        }
-      }
+      "background": "#f2f4f7",
+      "accent": "#2545bd",
+      "foreground": "#17191e",
+      "muted": "#515760"
     },
     {
       "id": "event",
       "copyKey": "event",
+      "capture": "event",
       "index": 3,
-      "accent": "#7ef0a4",
-      "layouts": {
-        "iphone65": {
-          "text": { "x": 120, "y": 200, "width": 1000, "align": "center" },
-          "placements": [
-            {
-              "capture": "event",
-              "x": 120,
-              "y": 760,
-              "width": 500,
-              "rotate": -4
-            },
-            { "capture": "map", "x": 570, "y": 840, "width": 500, "rotate": 4 }
-          ]
-        },
-        "ipad129": {
-          "text": { "x": 300, "y": 240, "width": 1448, "align": "center" },
-          "placements": [
-            {
-              "capture": "event",
-              "x": 390,
-              "y": 680,
-              "width": 760,
-              "rotate": -5
-            },
-            { "capture": "map", "x": 940, "y": 760, "width": 760, "rotate": 5 }
-          ]
-        },
-        "androidPhone": {
-          "text": { "x": 110, "y": 170, "width": 860, "align": "center" },
-          "placements": [
-            {
-              "capture": "event",
-              "x": 105,
-              "y": 570,
-              "width": 430,
-              "rotate": -4
-            },
-            { "capture": "map", "x": 540, "y": 640, "width": 430, "rotate": 4 }
-          ]
-        },
-        "androidTablet10": {
-          "text": { "x": 250, "y": 220, "width": 1100, "align": "center" },
-          "placements": [
-            {
-              "capture": "event",
-              "x": 285,
-              "y": 650,
-              "width": 590,
-              "rotate": -5
-            },
-            { "capture": "map", "x": 735, "y": 730, "width": 590, "rotate": 5 }
-          ]
-        }
-      }
+      "background": "#2346bb",
+      "accent": "#ffffff",
+      "foreground": "#ffffff",
+      "muted": "#e0e7ff"
+    },
+    {
+      "id": "community",
+      "copyKey": "community",
+      "capture": "community",
+      "index": 4,
+      "background": "#edf0f5",
+      "accent": "#2545bd",
+      "foreground": "#17191e",
+      "muted": "#515760"
+    },
+    {
+      "id": "training",
+      "copyKey": "training",
+      "capture": "training",
+      "index": 5,
+      "background": "#17191e",
+      "accent": "#c2ccff",
+      "foreground": "#ffffff",
+      "muted": "#d6d9e0"
     }
-  ]
+  ],
+  "defaultDevices": [
+    "iphone65",
+    "ipad129",
+    "androidPhone"
+  ],
+  "layouts": {
+    "iphone65": {
+      "text": {
+        "x": 88,
+        "y": 110,
+        "width": 1066,
+        "align": "left",
+        "fontSize": 144,
+        "subtitleSize": 44,
+        "maxHeight": 450
+      },
+      "placements": [
+        {
+          "x": 147,
+          "y": 665,
+          "width": 948,
+          "rotate": 0
+        }
+      ]
+    },
+    "ipad129": {
+      "text": {
+        "x": 144,
+        "y": 110,
+        "width": 1760,
+        "align": "left",
+        "fontSize": 156,
+        "subtitleSize": 50,
+        "maxHeight": 385
+      },
+      "placements": [
+        {
+          "x": 212,
+          "y": 540,
+          "width": 1624,
+          "rotate": 0
+        }
+      ]
+    },
+    "androidPhone": {
+      "text": {
+        "x": 76,
+        "y": 76,
+        "width": 928,
+        "align": "left",
+        "fontSize": 110,
+        "subtitleSize": 37,
+        "maxHeight": 350
+      },
+      "placements": [
+        {
+          "x": 195,
+          "y": 448,
+          "width": 690,
+          "rotate": 0
+        }
+      ]
+    },
+    "androidTablet10": {
+      "text": {
+        "x": 112,
+        "y": 100,
+        "width": 1376,
+        "align": "left",
+        "fontSize": 136,
+        "subtitleSize": 46,
+        "maxHeight": 410
+      },
+      "placements": [
+        {
+          "x": 223,
+          "y": 530,
+          "width": 1154,
+          "rotate": 0
+        }
+      ]
+    }
+  }
 }

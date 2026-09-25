@@ -1,15 +1,27 @@
 {
-  "brand": "PK Spot",
   "discover": {
-    "title": "Discover legendary spots",
-    "subtitle": "Find real parkour places with photos, details, ratings, and community updates."
+    "title": "Find your next Spot",
+    "subtitle": "Parkour places worth exploring."
   },
-  "weather": {
-    "title": "Rain or snow",
-    "subtitle": "Filter for dry or indoor spots with one tap."
+  "details": {
+    "title": "Know before you go",
+    "subtitle": "Photos, ratings, details. Even the weather."
   },
   "event": {
-    "title": "Find events and jams",
-    "subtitle": "Open details, maps, dates, and registration links in one place."
-  }
+    "title": "Find your next jam",
+    "subtitle": "Events that bring us together."
+  },
+  "community": {
+    "title": "Explore the local scene",
+    "subtitle": "Local knowledge. Spots. Communities."
+  },
+  "training": {
+    "title": "Keep your training story",
+    "subtitle": "Your sessions, in your own words."
+  },
+  "trainingNotes": [
+    "Worked on precision jumps and found a new line along the walls.",
+    "An evening session by the river.",
+    "Back to the basics. Feeling more confident."
+  ]
 }

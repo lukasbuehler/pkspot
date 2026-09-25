@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, "../..");
+const distRoot = path.resolve(repoRoot, process.env.STORE_SCREENSHOT_DIST_ROOT ?? "dist/store-screenshots");
 const port = Number(process.env["PORT"] ?? process.env["STORE_SCREENSHOT_SSR_PORT"] ?? 4300);
 const locales = (process.env["STORE_SCREENSHOT_SSR_LOCALES"] ?? "en,de,it,fr,es,nl")
   .split(",")
@@ -32,8 +33,8 @@ server.use(
 );
 
 for (const locale of locales) {
-  const browserDistFolder = path.join(repoRoot, "dist/pkspot/browser", locale);
-  const serverBundlePath = path.join(repoRoot, "dist/pkspot/server", locale, "server.mjs");
+  const browserDistFolder = path.join(distRoot, "browser", locale);
+  const serverBundlePath = path.join(distRoot, "server", locale, "server.mjs");
 
   if (!existsSync(browserDistFolder) || !existsSync(serverBundlePath)) {
     throw new Error(
@@ -75,7 +76,7 @@ function shutdown() {
 
 function findFirstExistingBrowserDistFolder() {
   for (const locale of locales) {
-    const browserDistFolder = path.join(repoRoot, "dist/pkspot/browser", locale);
+    const browserDistFolder = path.join(distRoot, "browser", locale);
     if (existsSync(browserDistFolder)) {
       return browserDistFolder;
     }

@@ -2,9 +2,10 @@ import { chromium } from "@playwright/test";
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import http from "node:http";
-import { copyFile, mkdir, readFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
+import { installSceneFixtures } from "./store-screenshots/fixtures.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, "..");
@@ -24,7 +25,7 @@ const selectedLocales = filterByIds(
 );
 const selectedDevices = filterByIds(
   config.devices,
-  args.devices,
+  args.devices ?? config.defaultDevices,
   "device",
 );
 const selectedScenes = filterByIds(
@@ -41,7 +42,7 @@ if (outputMode === "device") {
 } else {
   for (const scene of selectedScenes) {
     for (const device of selectedDevices) {
-      const layout = scene.layouts[device.id];
+      const layout = getSceneLayout(scene, device);
       if (!layout) continue;
       for (const placement of layout.placements) {
         captureIds.add(placement.capture);
@@ -120,8 +121,10 @@ async function writeDeviceScreenshots() {
 }
 
 async function captureAppRoutes(browserInstance) {
-  for (const locale of selectedLocales) {
-    for (const device of selectedDevices) {
+  const jobs = selectedLocales.flatMap(locale => selectedDevices.map(device => ({ locale, device })));
+  // Bound simultaneous Maps loads, and finish every context before closing Chromium.
+  while (jobs.length) {
+    const results = await Promise.allSettled(jobs.splice(0, 3).map(async ({ locale, device }) => {
       const context = await browserInstance.newContext({
         viewport: {
           width: device.viewport.width,
@@ -145,6 +148,7 @@ async function captureAppRoutes(browserInstance) {
             getMockAuthUser(capture),
             getMockEventRsvps(capture),
           );
+          await installSceneFixtures(page, capture, await loadLocaleCopy(locale), config);
           const url = routeUrl(capture.path, locale);
           const capturePath = getDeviceScreenshotPath(locale, device, capture.id);
           await ensureDir(path.dirname(capturePath));
@@ -161,19 +165,48 @@ async function captureAppRoutes(browserInstance) {
 
           await applyCaptureStyles(page, device, capture);
           if (capture.waitForSelector) {
-            try {
-              await page.waitForSelector(capture.waitForSelector, {
-                state: "visible",
-                timeout: 15_000,
-              });
-            } catch {
-              console.warn(
-                `[store-screenshots] ${capture.id}: selector not found before capture: ${capture.waitForSelector}`,
-              );
-            }
+            await page.waitForSelector(capture.waitForSelector, {
+              state: "visible",
+              timeout: 30_000,
+            });
           }
 
           await page.waitForTimeout(capture.settleMs ?? 800);
+          if (capture.expandSheet) {
+            const handle = page.locator('app-bottom-sheet .handle-region');
+            if (await handle.isVisible()) {
+              // Routes may already open their sheet; never blindly toggle it closed.
+              const bounds = await handle.boundingBox();
+              if (bounds.y > device.viewport.height * 0.4) await handle.click();
+              await page.waitForFunction(() => {
+                const sheet = document.querySelector('app-bottom-sheet .handle-region');
+                return sheet.getBoundingClientRect().top < innerHeight * 0.4;
+              });
+              await page.waitForTimeout(500);
+            }
+          }
+          if (capture.scrollToSelector) {
+            const target = page.locator(capture.scrollToSelector).first();
+            await target.evaluate((element, clearance) => {
+              element.scrollIntoView({ block: 'start', behavior: 'instant' });
+              let parent = element.parentElement;
+              while (parent) {
+                if (parent.scrollHeight > parent.clientHeight && /auto|scroll/.test(getComputedStyle(parent).overflowY)) {
+                  parent.scrollTop -= clearance;
+                  return;
+                }
+                parent = parent.parentElement;
+              }
+              window.scrollBy({ top: -clearance, behavior: 'instant' });
+            }, device.safeArea.top);
+            await page.waitForTimeout(400);
+          }
+          for (const selector of capture.dismissSelectors ?? []) {
+            const button = page.locator(selector).first();
+            if (await button.isVisible()) await button.click();
+          }
+          await page.locator('mat-snack-bar-container').waitFor({ state: 'hidden', timeout: 15_000 });
+          await page.evaluate(() => document.fonts.ready);
           await page.screenshot({
             path: capturePath,
             fullPage: false,
@@ -184,23 +217,34 @@ async function captureAppRoutes(browserInstance) {
             `[store-screenshots] captured ${locale.id}/${device.id}/${capture.id}`,
           );
         }
+      } catch (error) {
+        const failedPage = context.pages().at(-1);
+        if (failedPage) {
+          const failureRoot = path.join(repoRoot, 'output/store-screenshots/failures');
+          await ensureDir(failureRoot);
+          const name = `${locale.id}-${device.id}`;
+          await failedPage.screenshot({ path: path.join(failureRoot, `${name}.png`) });
+          await writeFile(path.join(failureRoot, `${name}.txt`), await failedPage.locator('body').innerText());
+        }
+        throw error;
       } finally {
         await context.close();
       }
-    }
+    }));
+    const failure = results.find(result => result.status === 'rejected');
+    if (failure) throw failure.reason;
   }
 }
 
 async function composeStoreScreenshots(browserInstance) {
-  const permanentMarkerUrl = fileUrl("src/assets/fonts/PermanentMarker-Regular.ttf");
-  const robotoUrl = fileUrl("src/assets/fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf");
+  const robotoUrl = await dataUrl(path.join(repoRoot, "src/assets/fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf"), "font/ttf");
 
   for (const locale of selectedLocales) {
     const copy = await loadLocaleCopy(locale);
 
     for (const device of selectedDevices) {
       for (const scene of selectedScenes) {
-        const layout = scene.layouts[device.id];
+        const layout = getSceneLayout(scene, device);
         if (!layout) continue;
 
         const outputPath = getFinalScreenshotPath(locale, device, scene.index);
@@ -212,7 +256,6 @@ async function composeStoreScreenshots(browserInstance) {
           layout,
           copy,
           locale,
-          permanentMarkerUrl,
           robotoUrl,
         });
         const page = await browserInstance.newPage({
@@ -222,13 +265,60 @@ async function composeStoreScreenshots(browserInstance) {
         });
         await page.setContent(html, { waitUntil: "load" });
         await page.evaluate(() => document.fonts?.ready);
-        await page.waitForTimeout(150);
+        await validateComposition(page, `${locale.id}/${device.id}/${scene.id}`);
         await page.screenshot({ path: outputPath, fullPage: false, animations: "disabled" });
         await page.close();
         console.log(`[store-screenshots] wrote ${path.relative(repoRoot, outputPath)}`);
       }
     }
   }
+  await writePreviewGallery();
+}
+
+function getSceneLayout(scene, device) {
+  if (scene.layouts?.[device.id]) return scene.layouts[device.id];
+  const layout = config.layouts?.[device.id];
+  return layout ? { ...layout, placements: layout.placements.map(placement => ({ ...placement, capture: scene.capture })) } : null;
+}
+
+async function validateComposition(page, label) {
+  const errors = await page.evaluate(async () => {
+    await Promise.all([...document.images].map(image => image.decode()));
+    const copy = document.querySelector('.copy');
+    const title = copy.querySelector('.title');
+    const originalSize = parseFloat(getComputedStyle(title).fontSize);
+    // Localized headlines may need a third line; keep them within the same band.
+    for (let size = originalSize; size >= originalSize * 0.72; size -= 1) {
+      title.style.fontSize = `${size}px`;
+      if (copy.getBoundingClientRect().bottom <= Number(copy.dataset.maxBottom)) break;
+    }
+    const bounds = copy.getBoundingClientRect();
+    const devices = [...document.querySelectorAll('.device')].map(device => device.getBoundingClientRect());
+    const failures = [];
+    if (bounds.bottom > Number(copy.dataset.maxBottom)) failures.push('Text exceeds its reserved space');
+    if (copy.scrollWidth > copy.clientWidth) failures.push('Text overflows horizontally');
+    if (devices.some(device => device.top < bounds.bottom + 32)) failures.push('Text overlaps a device');
+    if (devices.some(device => device.left < 0 || device.right > innerWidth || device.bottom > innerHeight)) failures.push('Device extends outside the canvas');
+    if (!document.fonts.check('800 96px "Roboto Store"')) failures.push('Headline font did not load');
+    return failures;
+  });
+  if (errors.length) throw new Error(`${label}: ${errors.join('; ')}`);
+}
+
+async function writePreviewGallery() {
+  const previewRoot = path.join(repoRoot, 'output/store-screenshots');
+  await ensureDir(previewRoot);
+  const galleryDevices = config.devices.filter(device => config.defaultDevices.includes(device.id));
+  const sections = config.locales.flatMap(locale => galleryDevices.map(device => {
+    const figures = config.scenes.filter(scene => getSceneLayout(scene, device) && existsSync(getFinalScreenshotPath(locale, device, scene.index))).map(scene => {
+      const src = path.relative(previewRoot, getFinalScreenshotPath(locale, device, scene.index));
+      return `<figure><a href="${escapeHtml(src)}" target="_blank"><img src="${escapeHtml(src)}" alt="${escapeHtml(scene.id)}" loading="lazy"></a><figcaption>${scene.index}. ${escapeHtml(scene.id)}</figcaption></figure>`;
+    }).join('');
+    if (!figures) return '';
+    return `<section><h2>${escapeHtml(locale.id)} / ${escapeHtml(device.name)}</h2><div class="screenshots">${figures}</div></section>`;
+  })).join('');
+  await writeFile(path.join(previewRoot, 'index.html'), `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PK Spot store screenshots</title><style>body{margin:0;padding:32px;background:#e8ebef;color:#202329;font:16px system-ui}h1{font-size:28px}h2{font-size:18px;margin:32px 0 16px}.screenshots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}figure{margin:0}img{display:block;width:100%;height:auto}figcaption{margin-top:8px;color:#535a65}@media(max-width:900px){.screenshots{grid-template-columns:repeat(2,minmax(0,1fr))}}</style><h1>PK Spot store screenshots</h1>${sections}</html>`);
+  console.log('[store-screenshots] Preview: output/store-screenshots/index.html');
 }
 
 async function buildSceneHtml({
@@ -237,7 +327,6 @@ async function buildSceneHtml({
   layout,
   copy,
   locale,
-  permanentMarkerUrl,
   robotoUrl,
 }) {
   const sceneCopy = copy[scene.copyKey];
@@ -257,7 +346,7 @@ async function buildSceneHtml({
     placements.push(
       renderDeviceFrame({
         device,
-        placement,
+        placement: { systemUi: config.captures.find(capture => capture.id === placement.capture)?.systemUi, ...placement },
         imageDataUrl: await dataUrl(capturePath, "image/png"),
         frameDataUrl: await loadFrameAssetDataUrl(device),
       }),
@@ -266,21 +355,15 @@ async function buildSceneHtml({
 
   const text = layout.text;
   const textAlign = text.align ?? "left";
-  const isTablet = isTabletDevice(device);
-
   return `<!doctype html>
 <html>
 <head>
   <meta charset="utf-8">
   <style>
     @font-face {
-      font-family: "Permanent Marker Store";
-      src: url("${permanentMarkerUrl}") format("truetype");
-      font-display: block;
-    }
-    @font-face {
       font-family: "Roboto Store";
       src: url("${robotoUrl}") format("truetype");
+      font-weight: 100 900;
       font-display: block;
     }
     * { box-sizing: border-box; }
@@ -289,21 +372,18 @@ async function buildSceneHtml({
       height: ${device.output.height}px;
       margin: 0;
       overflow: hidden;
-      background: #12161f;
+      background: ${scene.background};
     }
     body {
       font-family: "Roboto Store", system-ui, sans-serif;
-      color: #f7f8ff;
+      color: ${scene.foreground};
     }
     .canvas {
       position: relative;
       width: ${device.output.width}px;
       height: ${device.output.height}px;
       overflow: hidden;
-      background:
-        linear-gradient(160deg, rgba(169, 183, 255, 0.14), transparent 42%),
-        linear-gradient(20deg, rgba(126, 240, 164, 0.09), transparent 45%),
-        #12161f;
+      background: ${scene.background};
     }
     .copy {
       position: absolute;
@@ -316,21 +396,20 @@ async function buildSceneHtml({
     .title {
       margin: 0;
       color: ${scene.accent ?? "#a9b7ff"};
-      font-family: "Permanent Marker Store", "Roboto Store", system-ui, sans-serif;
-      font-size: ${isTablet ? 118 : 96}px;
-      line-height: 0.9;
+      font-family: "Roboto Store", system-ui, sans-serif;
+      font-size: ${text.fontSize}px;
+      font-weight: 800;
+      line-height: 1.02;
       letter-spacing: 0;
-      text-transform: uppercase;
       text-wrap: balance;
-      text-shadow: 0 10px 34px rgba(0, 0, 0, 0.45);
     }
     .subtitle {
-      max-width: 940px;
-      margin: 34px ${textAlign === "center" ? "auto" : "0"} 0;
-      color: rgba(247, 248, 255, 0.86);
-      font-size: ${isTablet ? 52 : 42}px;
-      line-height: 1.12;
-      font-weight: 800;
+      max-width: 100%;
+      margin: 32px ${textAlign === "center" ? "auto" : "0"} 0;
+      color: ${scene.muted};
+      font-size: ${text.subtitleSize}px;
+      line-height: 1.3;
+      font-weight: 450;
       letter-spacing: 0;
       text-wrap: balance;
     }
@@ -343,7 +422,7 @@ async function buildSceneHtml({
       transform: rotate(var(--rotate));
       transform-origin: center;
       z-index: var(--z, 10);
-      filter: drop-shadow(0 50px 60px rgba(0, 0, 0, 0.48));
+      filter: drop-shadow(0 24px 36px rgba(0, 0, 0, 0.22));
     }
     .device.frame-asset {
       aspect-ratio: var(--frame-w) / var(--frame-h);
@@ -365,7 +444,7 @@ async function buildSceneHtml({
       display: block;
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: fill;
       transform: scale(var(--image-scale, 1));
       transform-origin: center;
     }
@@ -451,6 +530,13 @@ async function buildSceneHtml({
       font-weight: 800;
       letter-spacing: 0;
     }
+    .device-system-ui::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: var(--status-height);
+      background: var(--status-background, transparent);
+    }
     .device-status-time {
       min-width: 4.8em;
     }
@@ -514,7 +600,7 @@ async function buildSceneHtml({
 </head>
 <body>
   <main class="canvas">
-    <section class="copy">
+    <section class="copy" data-max-bottom="${text.y + text.maxHeight}">
       <h1 class="title">${escapeHtml(sceneCopy.title)}</h1>
       <p class="subtitle">${escapeHtml(sceneCopy.subtitle)}</p>
     </section>
@@ -636,6 +722,7 @@ function getSystemUiStyle(device, placement, asset, systemUi) {
     `--status-x: ${formatCssPx(statusX)}`,
     `--status-top: ${formatCssPx(statusTop)}`,
     `--status-height: ${formatCssPx(statusHeight)}`,
+    `--status-background: ${systemUi.statusBackground ?? 'transparent'}`,
     `--status-font: ${formatCssPx(statusFont)}`,
     `--status-icon-size: ${formatCssPx(statusIconSize)}`,
     `--status-icon-gap: ${formatCssPx(statusIconGap)}`,
@@ -764,15 +851,6 @@ async function applyCaptureStyles(page, device, capture) {
         display: none !important;
       }
 
-      body {
-        --nav-bar-height: calc(80px + ${device.safeArea.bottom}px) !important;
-      }
-
-      mat-toolbar {
-        height: calc(80px + ${device.safeArea.bottom}px) !important;
-        padding-bottom: ${device.safeArea.bottom}px !important;
-      }
-
       ${hiddenSelectors ? `${hiddenSelectors} { visibility: hidden !important; }` : ""}
     `,
   });
@@ -780,7 +858,7 @@ async function applyCaptureStyles(page, device, capture) {
 
 function getLocalStorageSeed(capture) {
   return {
-    acceptedVersion: "5",
+    acceptedVersion: "6",
     ...(config.localStorage ?? {}),
     ...(capture.localStorage ?? {}),
   };
@@ -829,10 +907,6 @@ function logBrowserDiagnostics(page, locale, device, capture) {
 function routeUrl(routeTemplate, locale) {
   const routePath = routeTemplate.replaceAll("{appLocale}", locale.appLocale);
   return new URL(routePath, baseUrl).href;
-}
-
-function getCapturePath(locale, device, captureId) {
-  return path.join(captureRoot, locale.id, device.id, `${captureId}.png`);
 }
 
 function getDeviceScreenshotPath(locale, device, captureId) {
@@ -922,10 +996,6 @@ async function dataUrl(filePath, mimeType) {
   return `data:${mimeType};base64,${buffer.toString("base64")}`;
 }
 
-function fileUrl(relativePath) {
-  return pathToFileURL(path.join(repoRoot, relativePath)).href;
-}
-
 async function ensureDir(dirPath) {
   await mkdir(dirPath, { recursive: true });
 }
@@ -958,7 +1028,7 @@ function printSelection() {
   }
   console.log(`Output mode: ${outputMode}`);
   console.log(
-    `SSR server: ${shouldManageSsrServer() ? "managed from dist/pkspot" : "external"}`,
+    `SSR server: ${shouldManageSsrServer() ? `managed from ${config.ssr.distRoot}` : "external"}`,
   );
 }
 
@@ -971,9 +1041,9 @@ Options:
   --mode <mode>          Output mode: device or composed.
   --locales <ids>        Comma-separated locale ids, for example en-US,de-DE.
   --devices <ids>        Comma-separated device ids, for example iphone65,ipad129.
-  --scenes <ids>         Comma-separated scene ids, for example discover,weather.
-  --no-ssr-server        Do not auto-start the local SSR server from dist/pkspot.
-  --skip-capture         Reuse existing files in output/store-screenshots/captures.
+  --scenes <ids>         Comma-separated scene ids, for example discover,details.
+  --no-ssr-server        Do not auto-start the local screenshot SSR server.
+  --skip-capture         Recompose from fastlane/generated/device-screenshots.
   --capture-only         Capture app routes without composing final store screenshots.
   --output-root <path>   Override final screenshot output folder.
   --capture-root <path>  Override raw route capture output folder.
@@ -1017,6 +1087,7 @@ async function maybeStartSsrServer() {
       ...process.env,
       PORT: port,
       STORE_SCREENSHOT_SSR_LOCALES: appLocales.join(","),
+      STORE_SCREENSHOT_DIST_ROOT: config.ssr.distRoot,
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -1046,8 +1117,8 @@ function assertSelectedLocaleBuildsExist() {
     .map((locale) => locale.appLocale)
     .filter((locale) => {
       return (
-        !existsSync(path.join(repoRoot, "dist/pkspot/browser", locale)) ||
-        !existsSync(path.join(repoRoot, "dist/pkspot/server", locale, "server.mjs"))
+        !existsSync(path.join(repoRoot, config.ssr.distRoot, "browser", locale)) ||
+        !existsSync(path.join(repoRoot, config.ssr.distRoot, "server", locale, "server.mjs"))
       );
     });
 

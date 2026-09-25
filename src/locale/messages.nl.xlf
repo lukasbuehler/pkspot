@@ -11570,7 +11570,7 @@
     <unit id="community.local_knowledge_heading">
       <segment state="initial">
         <source> Local Knowledge </source>
-        <target> Conocimiento local </target>
+        <target> Lokale kennis </target>
       </segment>
     </unit>
     <unit id="community.picks.dry">
@@ -15385,7 +15385,7 @@
     <unit id="trainingLog.timeline.eyebrow">
       <segment state="initial">
         <source>Session timeline</source>
-        <target>Session timeline</target>
+        <target>Sessietijdlijn</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.filtered">
@@ -15397,13 +15397,13 @@
     <unit id="trainingLog.timeline.intro">
       <segment state="initial">
         <source>Open a session to revisit where you trained, with whom, and what you wrote down.</source>
-        <target>Open a session to revisit where you trained, with whom, and what you wrote down.</target>
+        <target>Open een sessie om terug te zien waar je trainde, met wie en wat je opschreef.</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.sessions">
       <segment state="initial">
         <source>sessions</source>
-        <target>sessions</target>
+        <target>sessies</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.showAll">
@@ -15421,7 +15421,7 @@
     <unit id="trainingLog.timeline.title">
       <segment state="initial">
         <source>Your training</source>
-        <target>Your training</target>
+        <target>Jouw training</target>
       </segment>
     </unit>
     <unit id="trainingLog.title">
@@ -15445,7 +15445,7 @@
     <unit id="trainingLog.visibility.private">
       <segment state="initial">
         <source>Private</source>
-        <target>Private</target>
+        <target>Privé</target>
       </segment>
     </unit>
     <unit id="trainingLog.visibility.public">
@@ -18425,43 +18425,43 @@
     <unit id="trainingContributionGraph.ariaLabel">
       <segment state="initial">
         <source>Training rhythm</source>
-        <target>Training rhythm</target>
+        <target>Trainingsritme</target>
       </segment>
     </unit>
     <unit id="trainingContributionGraph.day">
       <segment state="initial">
         <source>Training day</source>
-        <target>Training day</target>
+        <target>Trainingsdag</target>
       </segment>
     </unit>
     <unit id="trainingContributionGraph.legend">
       <segment state="initial">
         <source>Activity legend</source>
-        <target>Activity legend</target>
+        <target>Activiteitenlegenda</target>
       </segment>
     </unit>
     <unit id="trainingContributionGraph.scrollable">
       <segment state="initial">
         <source>Scrollable training history</source>
-        <target>Scrollable training history</target>
+        <target>Scrollbare trainingsgeschiedenis</target>
       </segment>
     </unit>
     <unit id="trainingContributionGraph.subtitle">
       <segment state="initial">
         <source>Week by week</source>
-        <target>Week by week</target>
+        <target>Week na week</target>
       </segment>
     </unit>
     <unit id="trainingContributionGraph.title">
       <segment state="initial">
         <source>Training rhythm</source>
-        <target>Training rhythm</target>
+        <target>Trainingsritme</target>
       </segment>
     </unit>
     <unit id="trainingContributionGraph.week">
       <segment state="initial">
         <source>Active week</source>
-        <target>Active week</target>
+        <target>Actieve week</target>
       </segment>
     </unit>
     <unit id="trainingLog.checkIns.clear">

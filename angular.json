@@ -183,6 +183,7 @@
               "baseHref": "/de/"
             },
             "store-screenshots": {
+              "outputPath": "dist/store-screenshots",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.default.ts",

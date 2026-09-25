@@ -15121,7 +15121,7 @@
     <unit id="trainingLog.timeline.eyebrow">
       <segment state="initial">
         <source>Session timeline</source>
-        <target>Session timeline</target>
+        <target>Historique des sessions</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.filtered">
@@ -15133,7 +15133,7 @@
     <unit id="trainingLog.timeline.intro">
       <segment state="initial">
         <source>Open a session to revisit where you trained, with whom, and what you wrote down.</source>
-        <target>Open a session to revisit where you trained, with whom, and what you wrote down.</target>
+        <target>Ouvre une session pour retrouver les lieux, les partenaires et tes notes.</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.sessions">
@@ -15157,7 +15157,7 @@
     <unit id="trainingLog.timeline.title">
       <segment state="initial">
         <source>Your training</source>
-        <target>Your training</target>
+        <target>Ton entraînement</target>
       </segment>
     </unit>
     <unit id="trainingLog.title">
@@ -15181,7 +15181,7 @@
     <unit id="trainingLog.visibility.private">
       <segment state="initial">
         <source>Private</source>
-        <target>Private</target>
+        <target>Privé</target>
       </segment>
     </unit>
     <unit id="trainingLog.visibility.public">
@@ -18425,43 +18425,43 @@
     <unit id="trainingContributionGraph.ariaLabel">
       <segment state="initial">
         <source>Training rhythm</source>
-        <target>Training rhythm</target>
+        <target>Rythme d’entraînement</target>
       </segment>
     </unit>
     <unit id="trainingContributionGraph.day">
       <segment state="initial">
         <source>Training day</source>
-        <target>Training day</target>
+        <target>Jour d’entraînement</target>
       </segment>
     </unit>
     <unit id="trainingContributionGraph.legend">
       <segment state="initial">
         <source>Activity legend</source>
-        <target>Activity legend</target>
+        <target>Légende des activités</target>
       </segment>
     </unit>
     <unit id="trainingContributionGraph.scrollable">
       <segment state="initial">
         <source>Scrollable training history</source>
-        <target>Scrollable training history</target>
+        <target>Historique d’entraînement défilant</target>
       </segment>
     </unit>
     <unit id="trainingContributionGraph.subtitle">
       <segment state="initial">
         <source>Week by week</source>
-        <target>Week by week</target>
+        <target>Au fil des semaines</target>
       </segment>
     </unit>
     <unit id="trainingContributionGraph.title">
       <segment state="initial">
         <source>Training rhythm</source>
-        <target>Training rhythm</target>
+        <target>Rythme d’entraînement</target>
       </segment>
     </unit>
     <unit id="trainingContributionGraph.week">
       <segment state="initial">
         <source>Active week</source>
-        <target>Active week</target>
+        <target>Semaine active</target>
       </segment>
     </unit>
     <unit id="trainingLog.checkIns.clear">

@@ -1,15 +1,27 @@
 {
-  "brand": "PK Spot",
   "discover": {
-    "title": "Ontdek legendarische spots",
-    "subtitle": "Vind echte parkourplekken met foto's, details, beoordelingen en updates."
+    "title": "Vind je volgende Spot",
+    "subtitle": "Parkourplekken om te ontdekken."
   },
-  "weather": {
-    "title": "Regen of sneeuw",
-    "subtitle": "Filter droge of indoor spots met een tik."
+  "details": {
+    "title": "Ga voorbereid op pad",
+    "subtitle": "Foto’s, beoordelingen, details. Ook het weer."
   },
   "event": {
-    "title": "Vind events en jams",
-    "subtitle": "Open details, kaarten, data en registratielinks op een plek."
-  }
+    "title": "Vind je volgende jam",
+    "subtitle": "Events die ons samenbrengen."
+  },
+  "community": {
+    "title": "Ontdek de lokale scene",
+    "subtitle": "Lokale kennis. Spots. Community’s."
+  },
+  "training": {
+    "title": "Bewaar je trainingsverhaal",
+    "subtitle": "Jouw sessies, in je eigen woorden."
+  },
+  "trainingNotes": [
+    "Precisiesprongen geoefend en een nieuwe lijn langs de muren gevonden.",
+    "Een avondsessie aan de rivier.",
+    "Terug naar de basis. Het voelt steeds zekerder."
+  ]
 }

@@ -1,15 +1,27 @@
 {
-  "brand": "PK Spot",
   "discover": {
-    "title": "Descubre spots legendarios",
-    "subtitle": "Encuentra lugares reales de parkour con fotos, detalles, valoraciones y novedades."
+    "title": "Encuentra tu próximo Spot",
+    "subtitle": "Lugares de Parkour por descubrir."
   },
-  "weather": {
-    "title": "Lluvia o nieve",
-    "subtitle": "Filtra spots secos o interiores con un toque."
+  "details": {
+    "title": "Prepara tu próxima sesión",
+    "subtitle": "Fotos, valoraciones, detalles. Y el tiempo."
   },
   "event": {
-    "title": "Encuentra eventos y jams",
-    "subtitle": "Abre detalles, mapas, fechas y enlaces de registro en un solo lugar."
-  }
+    "title": "Encuentra tu próximo jam",
+    "subtitle": "Eventos que nos reúnen."
+  },
+  "community": {
+    "title": "Descubre la escena local",
+    "subtitle": "Consejos locales. Spots. Comunidades."
+  },
+  "training": {
+    "title": "Tu historia de entrenamiento",
+    "subtitle": "Tus sesiones, con tus propias palabras."
+  },
+  "trainingNotes": [
+    "Practiqué saltos de precisión y encontré una nueva línea por los muros.",
+    "Una sesión al atardecer junto al río.",
+    "De vuelta a lo básico. Cada vez con más confianza."
+  ]
 }
