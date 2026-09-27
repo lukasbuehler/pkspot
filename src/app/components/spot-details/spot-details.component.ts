@@ -1,9 +1,11 @@
+import { createLazyDialogOpener } from "../../utils/create-lazy-dialog-opener";
 import { ShareCardService } from "../../services/share-card.service";
 import { spotCopy } from "../../localization/entity-copy";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   Component,
+  DestroyRef,
   OnInit,
   ViewChild,
   OnChanges,
@@ -185,7 +187,7 @@ import { Timestamp } from "firebase/firestore";
 import { Router, RouterLink } from "@angular/router";
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
 // import { SpotAmenityToggleComponent } from "../spot-amenity-toggle/spot-amenity-toggle.component";
-import { SpotAmenitiesDialogComponent } from "../spot-amenities-dialog/spot-amenities-dialog.component";
+import type { SpotAmenitiesDialogComponent } from "../spot-amenities-dialog/spot-amenities-dialog.component";
 import { GooglePlacePreviewComponent } from "../google-place-preview/google-place-preview.component";
 import { FancyCounterComponent } from "../fancy-counter/fancy-counter.component";
 import { UserReferenceSchema } from "../../../db/schemas/UserSchema";
@@ -2284,11 +2286,20 @@ export class SpotDetailsComponent
     });
   }
 
-  openSpotAmenitiesDialog() {
+  readonly openSpotAmenitiesDialog = createLazyDialogOpener(
+    async () =>
+      (await import("../spot-amenities-dialog/spot-amenities-dialog.component")).SpotAmenitiesDialogComponent,
+    (component) => this._showSpotAmenitiesDialog(component),
+    inject(DestroyRef),
+  );
+
+  private _showSpotAmenitiesDialog(
+    dialogComponent: typeof SpotAmenitiesDialogComponent,
+  ) {
     const spot = this.spot();
     if (!spot) return;
 
-    const ref = this.dialog.open(SpotAmenitiesDialogComponent, {
+    const ref = this.dialog.open(dialogComponent, {
       data: { amenities: spot.amenities() },
       width: "640px",
     });

@@ -1,8 +1,10 @@
+import { createLazyDialogOpener } from "../../utils/create-lazy-dialog-opener";
 import { ResizeObserverDirective } from "../../directives/resize-observer.directive";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   Component,
+  DestroyRef,
   ViewChild,
   AfterViewInit,
   OnInit,
@@ -116,7 +118,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { LocationAccessDialogComponent } from "../location-access-dialog/location-access-dialog.component";
 import { FilterChipsBarComponent } from "../filter-chips-bar/filter-chips-bar.component";
 import { MarkerSchema } from "../map/markers/map-marker.model";
-import {
+import type {
   CustomFilterDialogComponent,
   CustomFilterParams,
 } from "../custom-filter-dialog/custom-filter-dialog.component";
@@ -3810,7 +3812,16 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   /**
    * Opens the custom filter dialog and applies the selected filters.
    */
-  openCustomFilterDialog(): void {
+  readonly openCustomFilterDialog = createLazyDialogOpener(
+    async () =>
+      (await import("../custom-filter-dialog/custom-filter-dialog.component")).CustomFilterDialogComponent,
+    (component) => this._showCustomFilterDialog(component),
+    inject(DestroyRef),
+  );
+
+  private _showCustomFilterDialog(
+    dialogComponent: typeof CustomFilterDialogComponent,
+  ): void {
     this._analytics.trackEvent("map_custom_filter_opened", {
       selected_filter: this.selectedFilter() || null,
       has_existing_custom_filter: !!this.customFilterParams(),
@@ -3823,7 +3834,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const editableState = this._getEditableFilterParams();
-    const dialogRef = this._dialog.open(CustomFilterDialogComponent, {
+    const dialogRef = this._dialog.open(dialogComponent, {
       width: "400px",
       maxWidth: "90vw",
       maxHeight: "90vh",
