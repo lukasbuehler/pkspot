@@ -82,6 +82,25 @@ run data migrations, or complete third-party service tasks.
 
 ## Release-specific pending actions
 
+### Public status page
+
+- [ ] In Better Stack, create the public `PK Spot Status` page on the Free
+      plan with one monitor for `https://pkspot.app/de/map`. Confirm that the
+      custom subdomain is available without a paid upgrade or payment method,
+      and that the current personal-project terms are acceptable before
+      incorporation. Keep the Better Stack default status-page URL as the
+      fallback. Success condition: the monitor is healthy and the public page
+      is visible while logged out.
+- [ ] In Cloudflare DNS, add the Better Stack custom-domain CNAME for `status`
+      with DNS-only mode. Do not proxy it through Cloudflare or add a Worker or
+      Firebase route. Success condition: `https://status.pkspot.app` resolves,
+      presents valid HTTPS, and serves the Better Stack status page.
+- [ ] After the web release, open the Support page in a clean browser and
+      verify that the System status link opens the public status page in a new
+      tab. Before incorporating PK Spot, re-check Better Stack Free eligibility
+      and move to a permitted plan or provider if the personal-project terms no
+      longer apply.
+
 ### iOS scene lifecycle and Capacitor 8.5.2
 
 - [ ] With the new scene manifest, verify cold launch on an existing supported
@@ -671,6 +690,11 @@ nofollow, noarchive`; canonical and social URLs must continue to use
       `npx wrangler deploy --config dist/pkspot-cloudflare-worker/wrangler.jsonc`
       as the deploy command. Confirm the upload remains below the current
       Workers script-size limit and starts within Cloudflare's limit.
+      Keep final Worker minification and Angular critical CSS inlining enabled.
+      After deploying, verify that localized SSR HTML contains critical styles
+      and loads the full stylesheet without blocking rendering. Repeat the
+      mobile Lighthouse comparison on `test.pkspot.app/en` and `pkspot.app/en`
+      using fresh profiles; local route tests do not prove a live speedup.
 - [ ] Deploy the generated `pkspot-web` Worker without attaching `pkspot.app`.
       Verify its `workers.dev` URL first, including every locale's initial HTML,
       canonical and social metadata, hashed assets, 404 status, Firebase reads,

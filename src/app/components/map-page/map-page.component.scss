@@ -283,3 +283,13 @@ mat-drawer-container.sidenav-open .map-context-host {
 ::ng-deep .glass .mdc-evolution-chip__action--primary::before {
   border: none;
 }
+
+// Keep a content preview above the navigation pill as native insets arrive or
+// change on rotation. Measuring a CSS box also catches changes without resize.
+.map-sheet-peek-measure {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+  width: 0;
+  height: calc(90px + max(var(--navigation-bottom-clearance, 0px), var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))));
+}

@@ -127,6 +127,7 @@ function writeWranglerConfig() {
         $schema: "../../node_modules/wrangler/config-schema.json",
         name: "pkspot-web",
         main: "worker.mjs",
+        minify: true,
         compatibility_date: "2026-08-20",
         compatibility_flags: ["nodejs_compat"],
         assets: {

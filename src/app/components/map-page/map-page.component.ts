@@ -1,3 +1,4 @@
+import { ResizeObserverDirective } from "../../directives/resize-observer.directive";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
@@ -278,6 +279,7 @@ const DENSE_MAP_PERFORMANCE_VARIANTS = new Set<DenseMapPerformanceVariant>([
     ]),
   ],
   imports: [
+    ResizeObserverDirective,
     SpotMapComponent,
     MatButtonModule,
     MatIconModule,
@@ -473,7 +475,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly usesOverlayMapDrawer = computed(
     () => this.mapPanelLayout() === "drawer-overlay",
   );
-  readonly mapSheetClosedHeight = computed(() => (this.alainMode() ? 90 : 178));
+  // CSS resolves navigation and safe-area clearance; the observer keeps the
+  // sheet gesture geometry and map controls in the same coordinate space.
+  readonly mapSheetClosedHeight = signal(178);
 
   // Start closed to prevent flash. The drawer opens when its layout is ready.
   sidenavOpen = signal<boolean>(false);

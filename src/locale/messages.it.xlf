@@ -14564,6 +14564,12 @@
         <target>Supporto</target>
       </segment>
     </unit>
+    <unit id="support.status.link">
+      <segment state="initial">
+        <source>System status</source>
+        <target>Stato del sistema</target>
+      </segment>
+    </unit>
     <unit id="terms.long">
       <segment state="initial">
         <source>Terms of Service</source>

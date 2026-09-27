@@ -49,6 +49,7 @@ describe("Cloudflare Worker build", () => {
       'import { handleWorkerRequest } from "./server/server.mjs";',
     );
     expect(buildScript).toContain('main: "worker.mjs"');
+    expect(buildScript).toContain("minify: true");
     expect(buildScript).toContain('directory: "browser"');
     expect(buildScript).toContain("rewriteFirebaseMessagingServiceWorkers");
     expect(buildScript).toContain('"firebase-messaging-sw.js"');

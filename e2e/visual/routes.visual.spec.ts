@@ -802,6 +802,35 @@ test.describe("Route visual regression @visual", () => {
     expect(search!.x + search!.width).toBeLessThanOrEqual(390 - 84);
   });
 
+  test("keeps a content peek above navigation when Android insets arrive and rotate", async ({ page }) => {
+    await prepareRoute(page, {
+      name: "android-sheet-peek", path: "/map", signedIn: true,
+      viewport: { width: 390, height: 844 },
+    });
+    const sheet = page.locator(".map-bottom-sheet .sheet");
+    const nav = page.locator(".floating-bottom-navigation");
+    for (const bottom of [0, 24, 34]) {
+      await page.evaluate((inset) => {
+        document.documentElement.style.setProperty("--safe-area-inset-top", "32px");
+        document.documentElement.style.setProperty("--safe-area-inset-bottom", `${inset}px`);
+      }, bottom);
+      await expect.poll(async () => {
+        const panel = (await sheet.boundingBox())!;
+        const bar = (await nav.boundingBox())!;
+        return bar.y - panel.y;
+      }).toBeGreaterThanOrEqual(90);
+      const search = await page.locator(".search-bar-overlay app-search-field").boundingBox();
+      expect(search!.y).toBeGreaterThanOrEqual(40);
+      await page.setViewportSize({ width: 844, height: 390 });
+      await page.setViewportSize({ width: 390, height: 844 });
+      await expect.poll(async () => {
+        const panel = (await sheet.boundingBox())!;
+        const bar = (await nav.boundingBox())!;
+        return bar.y - panel.y;
+      }).toBeGreaterThanOrEqual(90);
+    }
+  });
+
   test("keeps landscape drawer content aligned with search across safe-area changes", async ({ page }) => {
     await prepareRoute(page, { name: "map-landscape-safe-area", path: "/map", viewport: { width: 678, height: 466 } });
     for (const left of [84, 0, 84]) {

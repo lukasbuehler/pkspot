@@ -1,3 +1,9 @@
+<div
+  class="map-sheet-peek-measure"
+  aria-hidden="true"
+  appResizeObserver
+  (resize)="mapSheetClosedHeight.set($event.height)"
+></div>
 <ng-template #sidebarContent>
   <app-map-check-in-banner
     @fadeInOut

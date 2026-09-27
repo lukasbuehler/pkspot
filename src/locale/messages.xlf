@@ -11174,6 +11174,11 @@
         <source>Support</source>
       </segment>
     </unit>
+    <unit id="support.status.link">
+      <segment>
+        <source>System status</source>
+      </segment>
+    </unit>
     <unit id="spot_access_label">
       <segment>
         <source>Spot Access</source>

@@ -19,6 +19,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.WebViewListener;
 
 public class MainActivity extends BridgeActivity {
   private static final String TAG = "PKSpotMainActivity";
@@ -34,6 +35,17 @@ public class MainActivity extends BridgeActivity {
     registerPlugin(DateTimePreferencesPlugin.class);
     registerPlugin(NotificationSettingsPlugin.class);
     registerPlugin(RestoreCredentialsPlugin.class);
+    // Insets can arrive while the WebView still contains its initial document.
+    // Replay them into every loaded document, including a WebView reload.
+    bridgeBuilder.addWebViewListener(new WebViewListener() {
+      @Override
+      public void onPageLoaded(WebView webView) {
+        View decorView = getWindow().getDecorView();
+        WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(decorView);
+        if (insets != null) injectSafeAreaInsets(insets);
+        ViewCompat.requestApplyInsets(decorView);
+      }
+    });
     super.onCreate(savedInstanceState);
     dismissNotificationFromAction(getIntent());
     logWebViewStartupDiagnostics();
@@ -87,65 +99,67 @@ public class MainActivity extends BridgeActivity {
     View decorView = getWindow().getDecorView();
 
     ViewCompat.setOnApplyWindowInsetsListener(decorView, (view, windowInsetsCompat) -> {
-      // Get native safe regions in physical pixels. Android WebView's CSS
-      // env(safe-area-inset-*) is unreliable after rotation, and displayCutout
-      // alone does not include gesture or 3-button navigation bars.
-      Insets cutout = windowInsetsCompat.getInsets(WindowInsetsCompat.Type.displayCutout());
-      Insets systemBars = windowInsetsCompat.getInsets(WindowInsetsCompat.Type.systemBars());
-      Insets mandatorySystemGestures = windowInsetsCompat.getInsets(WindowInsetsCompat.Type.mandatorySystemGestures());
-      Insets ime = windowInsetsCompat.getInsets(WindowInsetsCompat.Type.ime());
-      boolean imeVisible = windowInsetsCompat.isVisible(WindowInsetsCompat.Type.ime());
-
-      // Convert from physical pixels to CSS pixels (divide by density)
-      float density = getResources().getDisplayMetrics().density;
-      int topCss = pxToCss(maxInset(cutout.top, systemBars.top), density);
-      int bottomCss = pxToCss(maxInset(cutout.bottom, systemBars.bottom, mandatorySystemGestures.bottom), density);
-      int leftCss = pxToCss(maxInset(cutout.left, systemBars.left, mandatorySystemGestures.left), density);
-      int rightCss = pxToCss(maxInset(cutout.right, systemBars.right, mandatorySystemGestures.right), density);
-
-      Log.d(
-          TAG,
-          "safeAreaInsets: cutoutCss=(" + topCss + "," + rightCss + "," + bottomCss + "," + leftCss + ")" +
-              " systemBars=(" + systemBars.top + "," + systemBars.right + "," + systemBars.bottom + "," + systemBars.left + ")" +
-              " mandatoryGestures=(" + mandatorySystemGestures.top + "," + mandatorySystemGestures.right + "," + mandatorySystemGestures.bottom + "," + mandatorySystemGestures.left + ")" +
-              " imeBottom=" + ime.bottom +
-              " imeVisible=" + imeVisible);
-
-      // Inject CSS that sets our variables (these take priority over broken env())
-      String js = String.format(
-          "(function() {" +
-              "  var style = document.getElementById('android-safe-area-override');" +
-              "  if (!style) {" +
-              "    style = document.createElement('style');" +
-              "    style.id = 'android-safe-area-override';" +
-              "    document.head.appendChild(style);" +
-              "  }" +
-              "  style.textContent = ':root { " +
-              "--safe-area-inset-top: %dpx !important; " +
-              "--safe-area-inset-bottom: %dpx !important; " +
-              "--safe-area-inset-left: %dpx !important; " +
-              "--safe-area-inset-right: %dpx !important; }';" +
-              "})();",
-          topCss, bottomCss, leftCss, rightCss);
-
-      // Execute the JavaScript in the WebView
-      runOnUiThread(() -> {
-        try {
-          WebView webView = getBridge().getWebView();
-          if (webView != null) {
-            webView.evaluateJavascript(js, null);
-          }
-        } catch (Exception e) {
-          // WebView may not be ready yet
-          Log.d(TAG, "safeAreaInsets: failed to inject CSS", e);
-        }
-      });
-
+      injectSafeAreaInsets(windowInsetsCompat);
       return windowInsetsCompat;
     });
-
-    // Request insets to be applied
     ViewCompat.requestApplyInsets(decorView);
+  }
+
+  private void injectSafeAreaInsets(WindowInsetsCompat windowInsetsCompat) {
+    // Get native safe regions in physical pixels. Android WebView's CSS
+    // env(safe-area-inset-*) is unreliable after rotation, and displayCutout
+    // alone does not include gesture or 3-button navigation bars.
+    Insets cutout = windowInsetsCompat.getInsets(WindowInsetsCompat.Type.displayCutout());
+    Insets systemBars = windowInsetsCompat.getInsets(WindowInsetsCompat.Type.systemBars());
+    Insets mandatorySystemGestures = windowInsetsCompat.getInsets(WindowInsetsCompat.Type.mandatorySystemGestures());
+    Insets ime = windowInsetsCompat.getInsets(WindowInsetsCompat.Type.ime());
+    boolean imeVisible = windowInsetsCompat.isVisible(WindowInsetsCompat.Type.ime());
+
+    // Convert from physical pixels to CSS pixels (divide by density)
+    float density = getResources().getDisplayMetrics().density;
+    int topCss = pxToCss(maxInset(cutout.top, systemBars.top), density);
+    int bottomCss = pxToCss(maxInset(cutout.bottom, systemBars.bottom, mandatorySystemGestures.bottom), density);
+    int leftCss = pxToCss(maxInset(cutout.left, systemBars.left, mandatorySystemGestures.left), density);
+    int rightCss = pxToCss(maxInset(cutout.right, systemBars.right, mandatorySystemGestures.right), density);
+
+    Log.d(
+        TAG,
+        "safeAreaInsets: cutoutCss=(" + topCss + "," + rightCss + "," + bottomCss + "," + leftCss + ")" +
+            " systemBars=(" + systemBars.top + "," + systemBars.right + "," + systemBars.bottom + "," + systemBars.left + ")" +
+            " mandatoryGestures=(" + mandatorySystemGestures.top + "," + mandatorySystemGestures.right + "," + mandatorySystemGestures.bottom + "," + mandatorySystemGestures.left + ")" +
+            " imeBottom=" + ime.bottom +
+            " imeVisible=" + imeVisible);
+
+    // Inject CSS that sets our variables (these take priority over broken env())
+    String js = String.format(
+        "(function() {" +
+            "  var style = document.getElementById('android-safe-area-override');" +
+            "  if (!style) {" +
+            "    style = document.createElement('style');" +
+            "    style.id = 'android-safe-area-override';" +
+            "    document.head.appendChild(style);" +
+            "  }" +
+            "  style.textContent = ':root { " +
+            "--safe-area-inset-top: %dpx !important; " +
+            "--safe-area-inset-bottom: %dpx !important; " +
+            "--safe-area-inset-left: %dpx !important; " +
+            "--safe-area-inset-right: %dpx !important; }';" +
+            "})();",
+        topCss, bottomCss, leftCss, rightCss);
+
+    // Execute the JavaScript in the WebView
+    runOnUiThread(() -> {
+      try {
+        WebView webView = getBridge().getWebView();
+        if (webView != null) {
+          webView.evaluateJavascript(js, null);
+        }
+      } catch (Exception e) {
+        // WebView may not be ready yet
+        Log.d(TAG, "safeAreaInsets: failed to inject CSS", e);
+      }
+    });
+
   }
 
   private int pxToCss(int pixels, float density) {

@@ -122,6 +122,7 @@ export class SupportPageComponent implements OnInit {
 
   readonly discordUrl = "https://discord.gg/Th5vx4KnQb";
   readonly instagramUrl = "https://instagram.com/pkspot.app";
+  readonly statusPageUrl = "https://status.pkspot.app";
 
   trackContactChannelClick(channel: ContactChannel, ctaId: string): void {
     this._analytics.trackContactChannelClick(channel, "support_page", {
