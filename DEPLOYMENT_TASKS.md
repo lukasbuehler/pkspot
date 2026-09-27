@@ -690,9 +690,12 @@ nofollow, noarchive`; canonical and social URLs must continue to use
       `npx wrangler deploy --config dist/pkspot-cloudflare-worker/wrangler.jsonc`
       as the deploy command. Confirm the upload remains below the current
       Workers script-size limit and starts within Cloudflare's limit.
-      Keep final Worker minification and Angular critical CSS inlining enabled.
-      After deploying, verify that localized SSR HTML contains critical styles
-      and loads the full stylesheet without blocking rendering. Repeat the
+      Keep final Worker minification enabled and runtime critical CSS inlining
+      disabled. Staging reproduced HTTP 503 / Cloudflare 1102 after enabling
+      inlining; inspect Worker logs for exceededCpu versus exceededMemory.
+      After an approved deployment, repeat sequential and concurrent requests
+      and confirm no resource-limit errors before considering the rollback
+      verified. Investigate build-time critical CSS separately. Repeat the
       mobile Lighthouse comparison on `test.pkspot.app/en` and `pkspot.app/en`
       using fresh profiles; local route tests do not prove a live speedup.
 - [ ] Deploy the generated `pkspot-web` Worker without attaching `pkspot.app`.

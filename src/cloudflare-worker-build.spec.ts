@@ -10,6 +10,7 @@ interface AngularWorkspace {
           configurations: {
             cloudflare: {
               externalDependencies?: string[];
+              optimization: { styles: { inlineCritical: boolean } };
               fileReplacements: Array<{ replace: string; with: string }>;
               ssr: { platform: string };
             };
@@ -54,6 +55,15 @@ describe("Cloudflare Worker build", () => {
     expect(buildScript).toContain("rewriteFirebaseMessagingServiceWorkers");
     expect(buildScript).toContain('"firebase-messaging-sw.js"');
     expect(buildScript).not.toContain("cpu_ms");
+  });
+
+  it("avoids request-time critical CSS extraction in the Worker", () => {
+    // Angular scans the full stylesheet against SSR HTML on cache misses.
+    // Keep that CPU cost out of the constrained Worker request budget.
+    expect(
+      angularWorkspace.projects.pkspot.architect.build.configurations.cloudflare
+        .optimization.styles.inlineCritical,
+    ).toBe(false);
   });
 
   it("accepts the stable test host and its branch preview hosts", () => {

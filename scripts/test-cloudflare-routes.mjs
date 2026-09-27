@@ -85,15 +85,14 @@ async function page(base, route, title, status = 200) {
   assert.equal(response.status, status, `${base}${route}`);
   assert.match(response.headers.get("content-type") ?? "", /text\/html/);
   const html = await response.text();
-  // Exercise critical CSS in the actual runtime, including localized and
-  // concurrent responses. A build flag alone cannot prove the Worker inlines it.
-  assert.match(html, /data-beasties-container/, `Critical CSS missing: ${route}`);
   const activeHtml = html.replace(/<noscript>[\s\S]*?<\/noscript>/g, "");
   const stylesheets = [...activeHtml.matchAll(/<link\b[^>]*rel="stylesheet"[^>]*>/g)];
   assert.ok(stylesheets.length, `Stylesheet missing: ${route}`);
   for (const [stylesheet] of stylesheets) {
-    assert.match(stylesheet, /media="print"/, `Render-blocking CSS: ${route}`);
-    assert.match(stylesheet, /onload=/, `Stylesheet activation missing: ${route}`);
+    // Express may inline CSS; Worker responses use an ordinary blocking link.
+    if (/media="print"/.test(stylesheet)) {
+      assert.match(stylesheet, /onload=/, `Stylesheet activation missing: ${route}`);
+    }
   }
   assert.match(
     html,
@@ -202,6 +201,11 @@ try {
   await missing.body?.cancel();
   checks++;
   const html = await page(worker, "/en/about", /About/);
+  assert.doesNotMatch(
+    html,
+    /data-beasties-container/,
+    "Worker must not perform request-time critical CSS extraction",
+  );
   const files = [...html.matchAll(/(?:src|href)="([^"\s]+\.(?:js|css))"/g)].map(
     (match) => match[1],
   );
