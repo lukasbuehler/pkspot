@@ -121,7 +121,6 @@ interface DiscoveryRequest {
 
 const WIDE_CALENDAR_MIN_WIDTH = 1120;
 const LIST_PAGE_SIZE = 24;
-const VIEW_STORAGE_KEY = "eventsDiscoveryView";
 
 @Component({
   selector: "app-events-page",
@@ -234,9 +233,6 @@ export class EventsPageComponent {
   readonly containerWidth = signal(0);
   readonly explicitView = signal<EventsDiscoveryView | null>(null);
   readonly legacyCalendarRequested = signal(false);
-  readonly rememberedView = signal<EventsDiscoveryView | null>(
-    readRememberedView(),
-  );
   readonly query = signal("");
   readonly areaKey = signal("");
   readonly areaAliases = signal<string[]>([]);
@@ -264,7 +260,6 @@ export class EventsPageComponent {
     () =>
       this.explicitView() ??
       (this.legacyCalendarRequested() ? "calendar" : null) ??
-      this.rememberedView() ??
       "list",
   );
   readonly calendarRange = computed(() =>
@@ -563,8 +558,6 @@ export class EventsPageComponent {
 
   onViewChange(view: EventsDiscoveryView): void {
     this.explicitView.set(view);
-    this.rememberedView.set(view);
-    rememberView(view);
     this._analytics.trackEvent("events_view_changed", { view });
     void this._updateQueryParams(
       view === "calendar"
@@ -1062,18 +1055,6 @@ function seriesFallbackLabel(seriesId: string): string {
     .filter(Boolean)
     .map((word) => `${word[0]?.toUpperCase() ?? ""}${word.slice(1)}`)
     .join(" ");
-}
-
-function readRememberedView(): EventsDiscoveryView | null {
-  if (typeof localStorage === "undefined") return null;
-  const value = localStorage.getItem(VIEW_STORAGE_KEY);
-  return value === "calendar" || value === "list" ? value : null;
-}
-
-function rememberView(view: EventsDiscoveryView): void {
-  if (typeof localStorage !== "undefined") {
-    localStorage.setItem(VIEW_STORAGE_KEY, view);
-  }
 }
 
 function screenshotEventPreview(

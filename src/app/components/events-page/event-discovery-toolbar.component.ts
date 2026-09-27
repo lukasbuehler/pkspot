@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   input,
   output,
 } from "@angular/core";
@@ -14,6 +15,7 @@ import type {
   EventRegionKey,
 } from "../../../db/schemas/EventSchema";
 import type { EventsDiscoveryView } from "./event-discovery-view-toggle.component";
+import { FilterChipsBarComponent } from "../filter-chips-bar/filter-chips-bar.component";
 export type EventsListPeriod = "upcoming" | "past";
 
 export interface EventCategoryFilterOption {
@@ -46,6 +48,7 @@ export interface EventRegionFilterOption {
 @Component({
   selector: "app-event-discovery-toolbar",
   imports: [
+    FilterChipsBarComponent,
     MatButtonModule,
     MatButtonToggleModule,
     MatChipsModule,
@@ -66,6 +69,16 @@ export class EventDiscoveryToolbarComponent {
     [],
   );
   readonly regionOptions = input<readonly EventRegionFilterOption[]>([]);
+  readonly regionChips = computed(() => this.regionOptions().map(region => ({
+    urlParam: region.id,
+    label: `${region.label} ${region.count}`,
+  })));
+
+  toggleRegion(value: string): void {
+    const region = this.regionOptions().find(option => option.id === value);
+    if (region) this.regionToggled.emit(region.id);
+  }
+
   readonly selectedCategories = input<readonly EventCategory[]>([]);
   readonly selectedSeriesIds = input<readonly string[]>([]);
   readonly selectedListingTiers = input<readonly EventListingTier[]>([]);

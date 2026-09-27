@@ -708,6 +708,22 @@ test.describe("Route visual regression @visual", () => {
         await expect(page.locator("app-spot-preview-card")).toHaveCount(4);
       }
 
+      if (route.name === "events-mobile-list") {
+        const regionBar = page.locator(".region-filters");
+        await expect(regionBar).toBeVisible();
+        const chipTops = await regionBar.locator("mat-chip-option").evaluateAll(
+          chips => chips.map(chip => Math.round(chip.getBoundingClientRect().top)),
+        );
+        expect(new Set(chipTops).size).toBe(1);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth))
+          .toBeLessThanOrEqual(route.viewport!.width);
+        const scroller = regionBar.locator(".chips-scroll-area");
+        await expect(regionBar.locator(".scroll-button.right")).toBeVisible();
+        await regionBar.locator(".scroll-button.right").click();
+        await expect.poll(() => scroller.evaluate(element => element.scrollLeft)).toBeGreaterThan(0);
+        await scroller.evaluate(element => element.scrollTo({ left: 0, behavior: "instant" }));
+      }
+
       await expect(page).toHaveScreenshot(`${route.name}-route.png`, {
         animations: "disabled",
         clip: route.clip,

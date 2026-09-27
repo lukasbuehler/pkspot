@@ -30,8 +30,8 @@
       (pointerleave)="onScrollPointerEnd($event)"
     >
       <mat-chip-listbox
-        [multiple]="false"
-        [value]="renderedSelectedFilter()"
+        [multiple]="selectedFilters() !== null"
+        [value]="selectedFilters() ?? renderedSelectedFilter()"
         [attr.aria-label]="ariaLabel() ?? quickFiltersLabel"
       >
         @if (showSavedChip()) {
@@ -65,7 +65,7 @@
             [class.glass]="appearance() === 'glass'"
             [class.solid-chip]="appearance() === 'solid'"
             [value]="filter.urlParam"
-            [selected]="renderedSelectedFilter() === filter.urlParam"
+            [selected]="selectedFilters()?.includes(filter.urlParam) ?? (renderedSelectedFilter() === filter.urlParam)"
             (click)="onPresetChipClick(filter.urlParam, $event)"
           >
             @if (filter.icon) {

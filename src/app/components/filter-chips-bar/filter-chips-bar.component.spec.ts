@@ -27,6 +27,20 @@ describe("FilterChipsBarComponent", () => {
     fixture.componentRef.setInput("showClearChip", false);
   });
 
+  it("preserves multiple selections and emits the clicked value for toggling", () => {
+    fixture.componentRef.setInput("selectedFilters", ["spots", "events"]);
+    fixture.detectChanges();
+    const toggled = vi.fn();
+    const single = vi.fn();
+    fixture.componentInstance.filterToggled.subscribe(toggled);
+    fixture.componentInstance.filterChange.subscribe(single);
+    expect(fixture.nativeElement.querySelectorAll(".mdc-evolution-chip--selected").length).toBe(2);
+    fixture.componentInstance.onPresetChipClick("spots");
+    expect(toggled).toHaveBeenCalledWith("spots");
+    expect(single).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.selectedFilters()).toEqual(["spots", "events"]);
+  });
+
   it("falls back to the first chip when the active chip is deselected in required mode", () => {
     const emitted: string[] = [];
     fixture.componentInstance.filterChange.subscribe((value) =>

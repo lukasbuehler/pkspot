@@ -65,17 +65,18 @@
     }
 
     @if (regionOptions().length > 0) {
-      <mat-chip-set aria-label="Filter by region" i18n-aria-label>
-        @for (region of regionOptions(); track region.id) {
-          <mat-chip-option
-            [selected]="selectedRegions().includes(region.id)"
-            (click)="regionToggled.emit(region.id)"
-          >
-            {{ region.label }}
-            <span class="filter-count">{{ region.count }}</span>
-          </mat-chip-option>
-        }
-      </mat-chip-set>
+      <app-filter-chips-bar
+        class="region-filters"
+        [presetFilters]="regionChips()"
+        [selectedFilters]="selectedRegions()"
+        [showFiltersChip]="false"
+        [showClearChip]="false"
+        appearance="solid"
+        selectionRole="primary"
+        ariaLabel="Filter by region"
+        i18n-ariaLabel
+        (filterToggled)="toggleRegion($event)"
+      />
     }
 
     @if (hasFilters()) {

@@ -263,7 +263,8 @@ describe("EventsPageComponent", () => {
     expect(notificationMigration.maybePrompt).not.toHaveBeenCalled();
   });
 
-  it("defaults to the list until the user explicitly chooses a view", () => {
+  it("defaults to list even when a previous visit remembered calendar", () => {
+    globalThis.localStorage?.setItem("eventsDiscoveryView", "calendar");
     const { component } = createComponent();
 
     component.containerWidth.set(1200);
@@ -274,9 +275,7 @@ describe("EventsPageComponent", () => {
 
     component.onViewChange("calendar");
     expect(component.view()).toBe("calendar");
-    expect(globalThis.localStorage?.getItem("eventsDiscoveryView")).toBe(
-      "calendar",
-    );
+
   });
 
   it("keeps calendar links without an explicit view backward compatible", () => {
@@ -292,7 +291,7 @@ describe("EventsPageComponent", () => {
     expect(component.selectedDay()).toBe("2026-08-14");
   });
 
-  it("lets URL state override the remembered view and restores filters", () => {
+  it("honors explicit URL views and restores filters", () => {
     globalThis.localStorage?.setItem("eventsDiscoveryView", "list");
     const { component, queryParams } = createComponent({
       queryParams: {
