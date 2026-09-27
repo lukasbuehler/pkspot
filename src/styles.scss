@@ -101,11 +101,13 @@ html.native-platform.platform-ios:not(.running-on-macos-or-ipad) {
 // Reusable placement for page-level floating actions. Map controls stay in the
 // map's coordinate space because they also need to clear its bottom sheet.
 .app-page-fab {
-  --app-page-fab-bottom-offset: 1.5rem;
+  --app-page-fab-bottom-offset: calc(1.5rem + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
+  --fab-menu-inline-start-offset: calc(1.5rem + var(--safe-area-inset-left, env(safe-area-inset-left, 0px)));
+  --fab-menu-inline-end-offset: calc(1.5rem + var(--safe-area-inset-right, env(safe-area-inset-right, 0px)));
   --fab-menu-bottom-offset: var(--app-page-fab-bottom-offset);
 
   position: fixed;
-  inset-inline-end: 1.5rem;
+  right: var(--fab-menu-inline-end-offset);
   inset-block-end: var(--app-page-fab-bottom-offset);
   z-index: 10;
 }
@@ -118,7 +120,7 @@ html.native-platform.platform-ios:not(.running-on-macos-or-ipad) {
 
 app-root.has-floating-bottom-navigation .app-page-fab {
   --app-page-fab-bottom-offset: calc(
-    var(--navigation-bottom-clearance, 0px) + 1rem
+    max(var(--navigation-bottom-clearance, 0px), var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))) + 1rem
   );
 }
 
@@ -353,11 +355,11 @@ app-root:not(.has-navigation-rail) {
 }
 app-root.has-navigation-rail { --map-leading-safe-area: 0px; }
 
-// Maps are immersive workspaces rather than document pages. Keep this route
-// viewport-bound while every other route uses ordinary document scrolling.
-app-root.immersive-map-route {
-  // The map has a viewport-bound canvas and owns its own sheet/control
-  // offsets. Do not let the document shell reduce the canvas height.
+// Map workspaces need a definite viewport height; document routes scroll freely.
+app-root.immersive-map-route,
+app-root.event-map-route {
+  // Each map owns its controls and bottom clearance. Avoid reserving that
+  // space a second time in the document shell.
   --document-navigation-bottom-clearance: 0px;
   height: 100dvh;
   overflow: hidden;
@@ -441,4 +443,10 @@ app-root.immersive-map-route {
     max-width: min(560px, 100%) !important;
     max-height: 100%;
   }
+}
+
+// Embedded event maps share the viewport with their promotional footer.
+app-root.event-map-route .embedded-content {
+  flex-basis: 0;
+  overflow: hidden;
 }

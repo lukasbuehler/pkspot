@@ -195,6 +195,8 @@ const routeVisualCases: RouteVisualCase[] = [
   {
     name: "event-plan-community-authoring",
     path: "/events/community/new",
+    plannedSessionFixture: "community",
+    expectedPath: /\/events\/session\/new$/,
     viewport: mobileViewport,
     signedIn: true,
     verifiedAdult: true,
@@ -236,7 +238,7 @@ const routeVisualCases: RouteVisualCase[] = [
   {
     name: "events-invalid-data-dialog",
     path: "/events?view=list",
-    viewport: { width: 900, height: 900 },
+    viewport: { width: 390, height: 844 },
     signedIn: true,
     admin: true,
     eventIndexFixture: true,
@@ -597,7 +599,7 @@ test.describe("Route visual regression @visual", () => {
 
       if (route.assertContributionGraph) {
         const graph = page.locator("app-training-activity-contribution-graph");
-        const logFab = page.locator("button.app-page-fab");
+        const logFab = page.locator("app-fab-menu.app-page-fab .fab-menu__launcher");
         const weekdayLabels = graph.locator(".weekday-labels");
         const activeWeeks = graph.locator(".week.week-active");
         const activeDays = activeWeeks.locator(".cell.day-active");
@@ -611,11 +613,11 @@ test.describe("Route visual regression @visual", () => {
         ).toHaveCount(0);
         await logFab.click();
         await expect(
-          page.locator(".cdk-overlay-container .mat-mdc-menu-item"),
+          page.locator("app-fab-menu.app-page-fab .fab-menu__action"),
         ).toHaveCount(2);
         await page.keyboard.press("Escape");
         expect(
-          await logFab.evaluate((element) => getComputedStyle(element).position),
+          await page.locator("app-fab-menu.app-page-fab").evaluate((element) => getComputedStyle(element).position),
         ).toBe("fixed");
         await expect(activeWeeks).toHaveCount(2);
         await expect(activeDays).toHaveCount(3);
@@ -736,6 +738,43 @@ test.describe("Route visual regression @visual", () => {
     });
   }
 
+  test("keeps page and navigation FABs inside simulated safe edges", async ({ page }) => {
+    await prepareRoute(page, { name: "events-fab-safe-edges", path: "/events", signedIn: true, admin: true, eventIndexFixture: true, viewport: { width: 960, height: 480 } });
+    await page.evaluate(() => {
+      for (const [edge, value] of Object.entries({ top: 28, left: 48, right: 72, bottom: 34 })) {
+        document.documentElement.style.setProperty(`--safe-area-inset-${edge}`, `${value}px`);
+      }
+    });
+    const pageFab = page.locator("app-fab-menu.app-page-fab");
+    const menuFab = page.locator("#alainMenuButton");
+    await expect(pageFab).toBeVisible();
+    const action = (await pageFab.boundingBox())!;
+    expect(960 - action.x - action.width).toBeCloseTo(72 + 24, 0);
+    expect(480 - action.y - action.height).toBeCloseTo(34 + 24, 0);
+    const nav = (await menuFab.boundingBox())!;
+    expect(nav.x).toBeCloseTo(48 + 16, 0);
+    expect(nav.y).toBeCloseTo(28 + 16, 0);
+    await menuFab.locator(".fab-menu__launcher").click();
+    const expanded = (await menuFab.locator(".fab-menu__actions").boundingBox())!;
+    expect(expanded.y + expanded.height).toBeLessThanOrEqual(480 - 34);
+    expect(expanded.x + expanded.width).toBeLessThanOrEqual(960 - 72);
+    await page.keyboard.press("Escape");
+    await expect(page).toHaveScreenshot("events-fab-safe-edges.png", { animations: "disabled" });
+  });
+
+  test("pads native floating navigation above and below its buttons", async ({ page }) => {
+    await prepareRoute(page, { name: "native-nav-padding", path: "/about", viewport: mobileViewport });
+    const nav = page.locator(".floating-bottom-navigation");
+    await nav.evaluate(element => element.classList.add("native-platform"));
+    const box = (await nav.boundingBox())!;
+    for (const button of await nav.locator(".button-container").all()) {
+      const child = (await button.boundingBox())!;
+      expect(child.y - box.y).toBeGreaterThanOrEqual(4);
+      expect(box.y + box.height - child.y - child.height).toBeGreaterThanOrEqual(4);
+    }
+    await expect(nav).toHaveScreenshot("native-nav-padding.png", { animations: "disabled" });
+  });
+
   test("keeps the map edge-to-edge while controls clear simulated safe areas", async ({ page }) => {
     await prepareRoute(page, {
       name: "map-safe-area",
@@ -846,25 +885,31 @@ test.describe("Route visual regression @visual", () => {
     }
   });
 
-  test("keeps map credits inside safe edges", async ({ page }) => {
+  test("aligns map credits with mini FABs inside safe edges", async ({ page }) => {
     await prepareRoute(page, { name: "map-credits", path: "/map", viewport: { width: 960, height: 720 } });
     await expect(page.locator(".gm-style-cc").first()).toBeAttached({ timeout: 15000 });
-    for (const viewport of [{ width: 960, height: 720 }, { width: 466, height: 678 }]) {
+    for (const { viewport, rightInset } of [
+      { viewport: { width: 960, height: 720 }, rightInset: 0 },
+      { viewport: { width: 466, height: 678 }, rightInset: 0 },
+      { viewport: { width: 960, height: 720 }, rightInset: 84 },
+      { viewport: { width: 466, height: 678 }, rightInset: 84 },
+    ]) {
       await page.setViewportSize(viewport);
-      await page.evaluate(() => {
-        document.documentElement.style.setProperty("--safe-area-inset-right", "84px");
+      await page.evaluate((inset) => {
+        document.documentElement.style.setProperty("--safe-area-inset-right", `${inset}px`);
         document.documentElement.style.setProperty("--safe-area-inset-bottom", "34px");
-      });
+      }, rightInset);
       const credits = page.locator("app-google-map-2d div:has(> .gm-style-cc):not(.gmnoprint)");
       await expect(credits).toBeVisible();
       await expect.poll(async () => {
         const box = (await credits.boundingBox())!;
         return box.x + box.width;
-      }).toBeLessThanOrEqual(viewport.width - 84 - 8);
+      }).toBeCloseTo(viewport.width - rightInset - 20, 0);
       const box = (await credits.boundingBox())!;
       expect(box.y + box.height).toBeLessThanOrEqual(viewport.height - 34);
       expect(box.x).toBeGreaterThanOrEqual(0);
       const controls = (await page.locator(".map-mini-fabs").boundingBox())!;
+      expect(box.x + box.width).toBeCloseTo(controls.x + controls.width, 0);
       expect(controls.y + controls.height).toBeLessThanOrEqual(box.y - 14);
       const logo = page.locator("app-google-map-2d .gm-logo");
       await expect(logo).toBeVisible();
@@ -1780,7 +1825,9 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
 
   await page.goto(`/de${route.path}`, { waitUntil: "domcontentloaded" });
   await page.addStyleTag({
-    content: ".grecaptcha-badge { visibility: hidden !important; }",
+    // The partner carousel uses requestAnimationFrame, so Playwright's CSS
+    // animation disabling does not freeze its inline transform.
+    content: ".grecaptcha-badge { visibility: hidden !important; } app-about-page .carousel-track { transform: none !important; }",
   });
   await page.waitForSelector("app-root", { state: "attached", timeout: 20_000 });
 
@@ -1792,7 +1839,12 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
     .poll(async () => (await page.locator("body").innerText()).trim().length)
     .toBeGreaterThan(20);
   await page.waitForLoadState("load");
+  await expect(page.locator("#app-splash-screen")).toHaveCount(0);
   await page.waitForTimeout(900);
+
+  if (route.name === "event-plan-community-authoring") {
+    await expect(page.locator("app-session-planner-page form")).toBeVisible();
+  }
 
   if (route.assertFabAboveBottomNavigation) {
     const fabBounds = await page
@@ -1943,6 +1995,12 @@ async function waitForStableEventMap(
 
   await expect(eventMap).toBeVisible();
   await expect(mapSurface).toBeVisible();
+  await expect.poll(async () => {
+    const bounds = await mapSurface.boundingBox();
+    const viewport = page.viewportSize();
+    return !!bounds && !!viewport && bounds.height >= 150 &&
+      bounds.y + bounds.height <= viewport.height + 1;
+  }).toBe(true);
 
   if (layout === "embedded") {
     const promo = page.locator(".embedded-promo");

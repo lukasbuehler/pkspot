@@ -1,17 +1,19 @@
-De spot voor alles Parkour.
+Vind je volgende Parkour-Spot, bekijk hoe die eruitziet voordat je erheen gaat en ontdek lokale evenementen en communities. Of je nu dicht bij huis traint of een nieuwe plek verkent, PK Spot helpt je kiezen waar je naartoe gaat.
 
-PK Spot helpt je trainingsplekken te vinden, in te checken op spots, te ontdekken wat er in de buurt gebeurt en contact te maken met je lokale parkourcommunity.
+Vind je volgende Spot
+Verken de kaart voor Parkour- en Freerunning-Spots, dicht bij huis of op reis. Verfijn je zoekopdracht met filters en sla plekken op die je wilt uitproberen.
 
-VIND SPOTS
-Ontdek parkourspots om je heen met foto's, beoordelingen, tags en filters voor indoor, overdekte, verlichte, droge, water- en speciaal gebouwde trainingsplekken.
+Ga goed voorbereid op pad
+Bekijk foto's, beoordelingen en praktische informatie, zoals beschutting, verlichting en drinkwater. Bekijk het weer bij een Spot om je sessie te plannen.
 
-CHECK IN
-Laat de community zien waar training actief is en houd een lichte geschiedenis bij van de spots die je bezoekt.
+Ontdek evenementen en jams
+Vind Parkour-evenementen, bekijk de details en geef aan welke je interesseren of waar je naartoe gaat.
 
-ONTDEK WAT ER GEBEURT
-Vind events, jams en communitypagina's zodra ze worden toegevoegd, zodat je makkelijker ziet waar mensen trainen en samenkomen.
+Maak contact met je community
+Ontdek lokale communities en volg degene die je interessant vindt. Voeg Spots toe, draag foto's bij en help de informatie nuttig te houden voor anderen.
 
-GEBOUWD MET DE COMMUNITY
-PK Spot is open source en communitygedreven. Spotdata die door de community wordt bijgedragen, wordt gedeeld onder CC BY-NC-SA 4.0 om actieve parkourcommunities te ondersteunen.
+Houd je training bij
+Houd een privélogboek van je sessies bij met notities, activiteitengrafieken en herstelpauzes. Kijk terug op waar en hoe je hebt getraind, in je eigen tempo.
 
-PK Spot begon in Zürich en groeit richting één app voor parkourspots, training, events, jams en community.
+Ontwikkeld met de community
+PK Spot is open source en krijgt vorm dankzij de mensen die het gebruiken. Begonnen in Zürich, ontwikkeld met de Parkour-community.

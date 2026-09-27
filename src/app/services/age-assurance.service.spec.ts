@@ -1,8 +1,9 @@
+import { environment } from "../../environments/environment.default";
 import { ONEID_APPROVAL_BASIS } from "../../db/utils/external-age-policy";
 import { PLATFORM_ID, LOCALE_ID } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { Capacitor } from "@capacitor/core";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthenticationService } from "./firebase/authentication.service";
 import { FunctionsAdapterService } from "./firebase/functions-adapter.service";
 import { AgeAssuranceService } from "./age-assurance.service";
@@ -57,7 +58,11 @@ describe("AgeAssuranceService", () => {
   };
   let authUser: { uid: string | null };
 
+  const originalProviders = { ...environment.features.ageVerification };
+  afterEach(() => Object.assign(environment.features.ageVerification, originalProviders));
+
   beforeEach(() => {
+    Object.assign(environment.features.ageVerification, { google_play: true, apple: true, oneid: true });
     vi.clearAllMocks();
     nativeState.isNative = true;
     nativeState.platform = "android";
@@ -112,6 +117,28 @@ describe("AgeAssuranceService", () => {
         { provide: PLATFORM_ID, useValue: "browser" },
       ],
     });
+  });
+
+  it("blocks disabled OneID even when invoked directly", async () => {
+    environment.features.ageVerification.oneid = false;
+    const service = TestBed.inject(AgeAssuranceService);
+    expect(await service.externalVerificationAvailability()).toEqual({ providers: [] });
+    expect(await service.externalVerificationStatus()).toBe("idle");
+    await expect(service.beginOneIdAgeVerification()).rejects.toThrow("disabled");
+    await service.openOneIdBrowser("https://example.com");
+    expect(functionsAdapter.callAuthenticatedAppChecked).not.toHaveBeenCalled();
+  });
+
+  it.each(["android", "ios"] as const)("blocks disabled %s native verification", async (platform) => {
+    nativeState.platform = platform;
+    environment.features.ageVerification[platform === "android" ? "google_play" : "apple"] = false;
+    const service = TestBed.inject(AgeAssuranceService);
+    await service.syncNativeAgePolicyForCurrentUser();
+    await service.recheckNativeAgePolicyForCurrentUser();
+    expect(functionsAdapter.callAuthenticatedAppChecked).not.toHaveBeenCalled();
+    expect(nativeState.getAppleAttestKey).not.toHaveBeenCalled();
+    expect(nativeState.getBoundAgeSignal).not.toHaveBeenCalled();
+    expect(nativeState.getAgeSignal).not.toHaveBeenCalled();
   });
 
   it("accepts only the reviewed OneID policy in the client", () => {

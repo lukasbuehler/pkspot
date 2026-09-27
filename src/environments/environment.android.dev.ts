@@ -1,3 +1,4 @@
+import { ageVerificationProviders } from "./age-verification";
 import { environment as androidEnvironment } from "./environment.android";
 
 export const environment = {
@@ -6,6 +7,7 @@ export const environment = {
   production: false,
   features: {
     ...androidEnvironment.features,
+    ageVerification: { ...ageVerificationProviders, oneid: true },
     supportShop: false,
   },
   appCheck: {

@@ -1,8 +1,10 @@
-PK Spot v1.1.5 — Reliability & Bug Fixes
+PK Spot 1.2: Training Update
 
-What’s new:
+Your training now has its own space in PK Spot.
 
-• Paste map links directly into map search.
-• Improved media selection and cropping, with safer upload completion.
-• The age-range request is now explained first and no longer appears at startup.
-• Fixed account verification, notification links, Event responses and past Events, Community rankings, and Swiss Jam challenges.
+• Keep a private training log with session details and activity graphs.
+• Add recovery pauses when you need time away from training.
+• Check in at Spots and explore recent Spot activity.
+• Enjoy smoother navigation and improved map controls.
+• Improvements to Events, community voting, Spot editing, following and reports.
+• Bug fixes and privacy improvements throughout the app.

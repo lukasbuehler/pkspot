@@ -1,3 +1,4 @@
+import { ageVerificationProviders } from "./age-verification";
 import { environment as iosEnvironment } from "./environment.ios";
 
 export const environment = {
@@ -6,6 +7,7 @@ export const environment = {
   production: false,
   features: {
     ...iosEnvironment.features,
+    ageVerification: { ...ageVerificationProviders, oneid: true },
     supportShop: false,
   },
   appCheck: {

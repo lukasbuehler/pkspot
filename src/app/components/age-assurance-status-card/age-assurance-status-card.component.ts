@@ -33,12 +33,14 @@ export class AgeAssuranceStatusCardComponent {
     this._platform.isNative() && this._platform.getPlatform() === "android";
   readonly isIosApp =
     this._platform.isNative() && this._platform.getPlatform() === "ios";
-  readonly isNativeAgeAssuranceApp = this.isAndroidApp || this.isIosApp;
+  readonly isNativeAgeAssuranceApp =
+    (this.isAndroidApp && this.ageAssurance.isProviderEnabled("google_play")) ||
+    (this.isIosApp && this.ageAssurance.isProviderEnabled("apple"));
   readonly isChecking = computed(
     () => this.ageAssurance.checkState().status === "checking",
   );
   readonly showPlayStoreAction = computed(() => {
-    if (!this.isAndroidApp) return false;
+    if (!this.isAndroidApp || !this.ageAssurance.isProviderEnabled("google_play")) return false;
     const status = this.ageAssurance.checkState().status;
     return (
       status === "idle" ||
@@ -116,6 +118,7 @@ export class AgeAssuranceStatusCardComponent {
   });
 
   async recheck(): Promise<void> {
+    if (!this.isNativeAgeAssuranceApp) return;
     this._storeOpenFailed.set(false);
 
     if (this.isIosApp) {

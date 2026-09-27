@@ -1,10 +1,11 @@
+import { ageVerificationProviders } from "./age-verification";
 export const environment = {
   name: "Default",
   production: false,
   baseUrl: "https://pkspot.app",
   mapId: "e2926e5bfb22860c",
   features: {
-    // Enable after the share-card backend and native bridges are verified.
+    ageVerification: { ...ageVerificationProviders },
     shareCards: false,
     plannedSessions: false,
     training: true,

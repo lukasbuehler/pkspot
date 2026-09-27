@@ -1,3 +1,4 @@
+import { AgeVerificationProvider } from "../../environments/age-verification";
 import { normalizeUiLocale } from "../config/ui-locales";
 import { hasApprovedOneIdAdultPolicy } from "../../db/utils/external-age-policy";
 import { FeatureTelemetryService } from "./feature-telemetry.service";
@@ -145,6 +146,10 @@ export class AgeAssuranceService {
 
   readonly checkState = this._checkState.asReadonly();
 
+  isProviderEnabled(provider: AgeVerificationProvider): boolean {
+    return environment.features.ageVerification[provider];
+  }
+
   async syncNativeAgePolicyForCurrentUser(): Promise<AgeAssuranceCheckState> {
     return this._syncNativeAgePolicyForCurrentUser(false);
   }
@@ -155,6 +160,7 @@ export class AgeAssuranceService {
 
   async openPlayStoreListing(): Promise<void> {
     if (
+      !this.isProviderEnabled("google_play") ||
       !Capacitor.isNativePlatform() ||
       Capacitor.getPlatform() !== "android"
     ) {
@@ -164,16 +170,19 @@ export class AgeAssuranceService {
   }
 
   async openOneIdBrowser(url: string): Promise<void> {
+    if (!this.isProviderEnabled("oneid")) return;
     return this.telemetry.run("age_verification", "open_provider", () => externalVerificationRequest(
       NativeAgeAssurance.openVerificationBrowser({url})));
   }
 
   async externalVerificationAvailability(): Promise<ExternalAgeVerificationAvailability> {
+    if (!this.isProviderEnabled("oneid")) return { providers: [] };
     return this.telemetry.run("age_verification", "availability", () => externalVerificationRequest(
       this._functionsAdapter.callAuthenticatedAppChecked<Record<string, never>, ExternalAgeVerificationAvailability>("externalAgeVerificationAvailability", {})), false);
   }
 
   async externalVerificationStatus(): Promise<ExternalVerificationStatus> {
+    if (!this.isProviderEnabled("oneid")) return "idle";
     return this.telemetry.run("age_verification", "status", async () => {
       const result = await externalVerificationRequest(this._functionsAdapter.callAuthenticatedAppChecked<Record<string, never>, {status: ExternalVerificationStatus}>("externalAgeVerificationStatus", {}));
       return result.status;
@@ -181,6 +190,7 @@ export class AgeAssuranceService {
   }
 
   async beginOneIdAgeVerification(): Promise<ExternalAgeVerificationAttempt> {
+    if (!this.isProviderEnabled("oneid")) throw new Error("OneID verification is disabled in this build");
     return this.telemetry.run("age_verification", "beginOneIdAgeVerification", () => externalVerificationRequest(
       this._functionsAdapter.callAuthenticatedAppChecked<{provider: "oneid"; locale: string}, ExternalAgeVerificationAttempt>("beginExternalAgeVerification", {provider: "oneid", locale: normalizeUiLocale(this.uiLocale)})));
   }
@@ -203,6 +213,10 @@ export class AgeAssuranceService {
 
     const platform = Capacitor.getPlatform();
     if (platform !== "android" && platform !== "ios") {
+      return this._checkState();
+    }
+
+    if (!this.isProviderEnabled(platform === "android" ? "google_play" : "apple")) {
       return this._checkState();
     }
 

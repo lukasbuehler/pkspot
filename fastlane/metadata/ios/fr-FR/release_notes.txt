@@ -1,8 +1,10 @@
-PK Spot v1.1.5 — Fiabilité et corrections
+PK Spot 1.2 : Mise à jour entraînement
 
-Nouveautés :
+Votre entraînement a désormais son propre espace dans PK Spot.
 
-• Collez des liens cartographiques directement dans la recherche de la carte.
-• Amélioration de la sélection et du recadrage des médias, avec une validation d’envoi plus sûre.
-• La demande de tranche d’âge est maintenant expliquée et ne s’affiche plus au démarrage.
-• Correction de la vérification des comptes, des liens de notifications, des réponses et Événements passés, du classement des communautés et des défis Swiss Jam.
+• Tenez un journal d’entraînement privé avec les détails de vos séances et des graphiques d’activité.
+• Ajoutez des pauses de récupération lorsque vous avez besoin de faire une pause dans votre entraînement.
+• Faites un check-in sur les Spots et découvrez leur activité récente.
+• Profitez d’une navigation plus fluide et de commandes de carte améliorées.
+• Améliorations des Événements, des votes communautaires, de la modification des Spots, des abonnements et des signalements.
+• Corrections de bugs et améliorations de la confidentialité dans toute l’app.

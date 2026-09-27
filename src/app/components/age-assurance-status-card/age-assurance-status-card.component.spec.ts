@@ -15,6 +15,7 @@ describe("AgeAssuranceStatusCardComponent", () => {
   let fixture: ComponentFixture<AgeAssuranceStatusCardComponent>;
   let checkState: WritableSignal<AgeAssuranceCheckState>;
   let ageAssurance: {
+    isProviderEnabled: ReturnType<typeof vi.fn>;
     checkState: typeof checkState;
     hasVerifiedAdultEligibility: ReturnType<typeof vi.fn>;
     adultEvidenceStrength: ReturnType<typeof vi.fn>;
@@ -28,6 +29,7 @@ describe("AgeAssuranceStatusCardComponent", () => {
     checkState = signal<AgeAssuranceCheckState>({ status: "idle" });
     platform = "android";
     ageAssurance = {
+      isProviderEnabled: vi.fn(() => true),
       checkState,
       hasVerifiedAdultEligibility: vi.fn(() => false),
       adultEvidenceStrength: vi.fn(() => "unknown"),

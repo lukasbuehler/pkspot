@@ -52,6 +52,8 @@ export class FabMenuComponent {
   readonly actions = input.required<readonly FabMenuAction[]>();
   readonly launcherLabel = input.required<string>();
   readonly launcherIcon = input("add");
+  // Dynamic menus can retain a stable launcher as available actions change.
+  readonly collapseSingleAction = input(true);
   readonly closeLabel = input(DEFAULT_CLOSE_LABEL);
   readonly alignment = input<FabMenuAlignment>("end");
   readonly direction = input<"up" | "down">("up");
@@ -62,9 +64,14 @@ export class FabMenuComponent {
 
   readonly isOpen = signal(false);
   readonly menuId = `${this.hostId}Actions`;
-  readonly isMenu = computed(() => this.actions().length >= 2);
+  readonly isMenu = computed(
+    () => this.actions().length > 0 &&
+      (!this.collapseSingleAction() || this.actions().length >= 2),
+  );
   readonly directAction = computed(() =>
-    this.actions().length === 1 ? this.actions()[0] : undefined,
+    this.collapseSingleAction() && this.actions().length === 1
+      ? this.actions()[0]
+      : undefined,
   );
   readonly actionAnimationDelays = computed(() => {
     const actions = this.actions();

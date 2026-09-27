@@ -61,6 +61,26 @@ describe("MapFloatingControlsComponent", () => {
     expect(fixture.componentInstance.geolocationTooltip()).toBe("Location is off");
   });
 
+  it("keeps the plus menu stable when opening the sheet removes the Spot action", async () => {
+    fixture.componentRef.setInput("showControls", true);
+    fixture.componentRef.setInput("showCreateSpot", true);
+    fixture.componentRef.setInput("showCreateEvent", true);
+    await fixture.whenStable();
+    const launcher = fixture.nativeElement.querySelector("#mapCreateFabMenu .fab-menu__launcher") as HTMLButtonElement;
+    expect(launcher.textContent?.trim()).toBe("add");
+    fixture.componentRef.setInput("showCreateSpot", false);
+    await fixture.whenStable();
+    expect(launcher.textContent?.trim()).toBe("add");
+    launcher.click();
+    await fixture.whenStable();
+    expect(launcher.getAttribute("aria-expanded")).toBe("true");
+    expect(fixture.nativeElement.querySelectorAll("#mapCreateFabMenu .fab-menu__action")).toHaveLength(1);
+    launcher.click();
+    fixture.componentRef.setInput("showCreateSpot", true);
+    await fixture.whenStable();
+    expect(launcher.textContent?.trim()).toBe("add");
+  });
+
   it("offers all configured creation actions from the FAB menu", async () => {
     const actions: string[] = [];
     fixture.componentInstance.createSpot.subscribe(() => actions.push("spot"));

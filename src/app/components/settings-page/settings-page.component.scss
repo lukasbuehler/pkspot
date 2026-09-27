@@ -158,18 +158,3 @@ button.menuButton.selected {
     color: var(--mat-sys-error);
   }
 }
-
-#saveSpeedDial {
-  position: absolute;
-  z-index: 2;
-  right: 50px;
-
-  @media (max-width: 959px) {
-    // small screen
-    bottom: calc(110px);
-  }
-  @media (min-width: 960px) {
-    // desktop (large screen)
-    bottom: calc(30px);
-  }
-}

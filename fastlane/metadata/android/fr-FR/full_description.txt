@@ -1,17 +1,19 @@
-Le spot pour tout le Parkour.
+Trouvez votre prochain Spot de Parkour, découvrez à quoi il ressemble avant de vous y rendre et explorez les événements et communautés locales. Que vous vous entraîniez près de chez vous ou découvriez une nouvelle ville, PK Spot vous aide à choisir votre prochaine destination.
 
-PK Spot vous aide à trouver des lieux d'entraînement, à vous checker sur les spots, à découvrir ce qui se passe près de vous et à rejoindre votre communauté parkour locale.
+Trouvez votre prochain Spot
+Explorez la carte pour trouver des Spots de Parkour et de Freerunning, près de chez vous ou en voyage. Affinez votre recherche avec les filtres et enregistrez les lieux que vous souhaitez essayer.
 
-TROUVER DES SPOTS
-Explorez les spots de parkour autour de vous avec photos, notes, tags et filtres pour les lieux en intérieur, couverts, éclairés, secs, aquatiques ou construits pour l'entraînement.
+Préparez votre séance
+Consultez les photos, les notes et les informations pratiques, comme les espaces couverts, l'éclairage ou l'eau potable. Regardez la météo d'un Spot pour préparer votre séance.
 
-SE CHECKER
-Montrez à la communauté où l'entraînement est actif et gardez un historique léger des spots que vous visitez.
+Découvrez des événements et des jams
+Trouvez des événements de Parkour, consultez les détails et indiquez ceux qui vous intéressent ou auxquels vous participez.
 
-DÉCOUVRIR CE QUI SE PASSE
-Trouvez les événements, jams et pages de communauté au fur et à mesure de leur ajout, pour voir plus facilement où les gens s'entraînent et se retrouvent.
+Rejoignez votre communauté
+Découvrez les communautés locales et suivez celles qui vous intéressent. Ajoutez des Spots, contribuez avec vos photos et aidez à garder les informations utiles pour les autres.
 
-CONSTRUIT AVEC LA COMMUNAUTÉ
-PK Spot est open source et porté par la communauté. Les données de spots partagées par la communauté sont publiées sous licence CC BY-NC-SA 4.0 pour soutenir les communautés parkour actives.
+Gardez une trace de vos entraînements
+Tenez un journal privé de vos séances avec des notes, des graphiques d'activité et des pauses de récupération. Retrouvez où et comment vous vous êtes entraîné, à votre rythme.
 
-PK Spot est né à Zurich et évolue vers une app pour les spots, l'entraînement, les événements, les jams et la communauté parkour.
+Développé avec la communauté
+PK Spot est open source et façonné par les personnes qui l'utilisent. Né à Zurich, développé avec la communauté Parkour.

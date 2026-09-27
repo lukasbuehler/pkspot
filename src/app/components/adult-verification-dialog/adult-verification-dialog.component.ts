@@ -45,7 +45,7 @@ export class AdultVerificationDialogComponent {
 
   readonly options = computed<ProviderOption[]>(() => {
     const platform = this.platform.getPlatform();
-    return [
+    const options: ProviderOption[] = [
       {
         id: "google_play",
         title: $localize`Google Play`,
@@ -68,6 +68,7 @@ export class AdultVerificationDialogComponent {
         state: this._oneIdState(),
       },
     ];
+    return options.filter((option) => this.ageAssurance.isProviderEnabled(option.id));
   });
   readonly activeProvider = this._activeProvider.asReadonly();
   readonly error = this._error.asReadonly();
@@ -102,7 +103,7 @@ export class AdultVerificationDialogComponent {
   }
 
   async refreshStatus(): Promise<void> {
-    if (this.checking() || this.destroyed) return;
+    if (!this.ageAssurance.isProviderEnabled("oneid") || this.checking() || this.destroyed) return;
     if (this.pollTimer) clearTimeout(this.pollTimer);
     this.checking.set(true);
     try {
@@ -118,7 +119,7 @@ export class AdultVerificationDialogComponent {
   }
 
   async start(provider: ProviderId): Promise<void> {
-    if (this.activeProvider() !== null ||
+    if (!this.ageAssurance.isProviderEnabled(provider) || this.activeProvider() !== null ||
       (provider === "oneid" && this.options().find((option) => option.id === provider)?.state === "unavailable")) return;
     this._activeProvider.set(provider);
     this._error.set(null);
@@ -148,6 +149,7 @@ export class AdultVerificationDialogComponent {
   }
 
   private async loadOneIdAvailability(): Promise<void> {
+    if (!this.ageAssurance.isProviderEnabled("oneid")) return;
     try {
       const availability = await this.ageAssurance.externalVerificationAvailability();
       this._oneIdState.set(availability.providers.find((provider) => provider.provider === "oneid")?.available ? "available" : "unavailable");

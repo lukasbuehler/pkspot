@@ -22,3 +22,11 @@
   width: min(720px, calc(100vw - 120px));
   margin-left: 64px;
 }
+
+.map-controls-surface {
+  position: relative;
+  margin-top: 32px;
+  height: 320px;
+  width: 100%;
+  background: var(--mat-sys-surface-container);
+}

@@ -20,9 +20,11 @@
 
 .create-fab-menu {
   --fab-menu-bottom-offset: var(--map-control-bottom);
+  --fab-menu-inline-start-offset: calc(20px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px)));
+  --fab-menu-inline-end-offset: calc(20px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px)));
 
   bottom: var(--map-control-bottom);
-  left: 20px;
+  left: calc(20px + var(--map-leading-safe-area, var(--safe-area-inset-left, env(safe-area-inset-left, 0px))));
   position: absolute;
   z-index: 1;
 }

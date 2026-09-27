@@ -6,7 +6,12 @@
   --map-attribution-bottom: calc(
     max(var(--map-bottom-obstruction, 0px), var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)))
   );
-  --map-attribution-right: calc(8px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px)));
+  // Logo corner clearance is measured from the physical edge. A safe inset
+  // or raised sheet already provides clearance; do not add another full inset.
+  --map-attribution-corner-inset: max(0px, calc(24px - var(--map-attribution-bottom)));
+  // Match the right edge of the map mini FABs at every viewport size.
+  --map-attribution-right: calc(20px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px)));
+  --map-attribution-left: max(8px, var(--map-attribution-leading-inset, var(--map-leading-safe-area, 0px)), calc(var(--map-attribution-corner-inset) - var(--map-leading-safe-area, 0px)));
 }
 
 .osm-attribution {
@@ -133,5 +138,6 @@
 
 :host ::ng-deep div.gm-logo {
   bottom: var(--map-attribution-bottom) !important;
-  left: calc(16px + var(--map-attribution-leading-inset, var(--map-leading-safe-area, 0px))) !important;
+  left: var(--map-attribution-left) !important;
+  margin: 0 !important;
 }

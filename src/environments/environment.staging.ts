@@ -1,3 +1,4 @@
+import { ageVerificationProviders } from "./age-verification";
 import firebaseConfig from "./firebase.staging.json";
 
 export const environment = {
@@ -7,7 +8,8 @@ export const environment = {
   baseUrl: "https://pkspot.app",
   mapId: "e2926e5bfb22860c",
   features: {
-    shareCards: false,
+    ageVerification: { ...ageVerificationProviders },
+    shareCards: true,
     plannedSessions: false,
     training: true,
     checkIns: true,

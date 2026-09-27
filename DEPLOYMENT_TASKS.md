@@ -108,7 +108,7 @@ run data migrations, or complete third-party service tasks.
       Rebuild/sync native assets before testing (`npm run build:ios:dev`).
       Simulator launch and web SSR checks do not establish device readiness.
 
-### Share cards (implemented locally, disabled until backend/native verification)
+### Share cards (enabled for 1.2; release verification pending)
 
 The lab (`npm run share-cards:lab`, port 4318) and backend use the same renderer.
 The branded static fallback is generated with `npm run share-cards:fallback`
@@ -125,8 +125,9 @@ backend for future share entry points. Static route artwork remains unchanged.
 The seven share-card functions are deployed in `europe-west1` (2026-09-18).
 A targeted temporary entry point avoided unrelated Stripe-secret discovery.
 The public fallback returned a 1200×630 PNG and preparation without App Check
-returned 401. The local web development flag is enabled; production/native
-remain disabled. Existing image processors skip the `share_cards/` prefix.
+returned 401. The 1.2 web, staging and native release configurations enable
+enhanced share cards; CI keeps preparation disabled for deterministic fixtures.
+Existing image processors skip the `share_cards/` prefix.
 
 - [ ] After successful preparation through the app, confirm generated Storage
       objects have no public ACL/download tokens and direct anonymous reads fail.
@@ -140,10 +141,9 @@ remain disabled. Existing image processors skip the `share_cards/` prefix.
       ClipData thumbnail and no `EXTRA_STREAM`. Verify multiple receiving apps
       receive a link, never an image attachment. Native UI results are not proof
       of delivery or of the receiving app refreshing its cached preview.
-- [ ] Enable `features.shareCards` in the intended web/native environments only
-      after the backend and native checks pass. Until then, existing metadata
-      and ordinary sharing remain enabled. Native environment files are local,
-      so set the flag in those release configurations explicitly too.
+- [ ] Before releasing the enabled share-card flow, complete the backend and
+      native checks above. Native environment files are local: verify
+      `features.shareCards: true` in both release configurations.
       Verify deployed SSR `og:image` and Twitter images point at the read-only
       gated endpoint for entity routes. No-card responses use bundled artwork;
       canonical page URLs remain unchanged. Preview text currently uses English
@@ -1329,6 +1329,15 @@ the legacy or v2 callable; neither can establish public-profile eligibility.
       unbound Apple approvals. Before enabling, verify real App Attest registration
       and assertions from a signed iOS build against a non-production backend;
       malformed-payload and synthetic-signature unit tests are not device evidence.
+
+For 1.2, `features.ageVerification` independently gates `google_play`, `apple`,
+and `oneid`. OneID is disabled in release/staging/CI builds and enabled only in
+web/iOS/Android development configurations. Native release environment files
+are local; retain the shared provider defaults there. This is a client rollout
+gate, not server authorization: existing backend availability, sandbox allowlists,
+and eligibility checks remain authoritative. Do not globally disable the shared
+OneID sandbox backend while development testing still uses it.
+
 - [ ] Configure a OneID sandbox client for a hosted multi-method/fallback journey.
       Set `ONEID_PRODUCT` to `age_check`, `age_verification`, or `age_assure` only
       after confirming the enabled methods and threshold-only scope contract with

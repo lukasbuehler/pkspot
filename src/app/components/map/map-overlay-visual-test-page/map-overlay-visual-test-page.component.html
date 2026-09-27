@@ -7,4 +7,12 @@
       [showFiltersChip]="false"
     ></app-filter-chips-bar>
   </section>
+  <section class="map-controls-surface" aria-label="Map controls fixture">
+    <button type="button" class="sheet-toggle" (click)="sheetOpen.set(!sheetOpen())">Toggle sheet</button>
+    <app-map-floating-controls
+      [showControls]="true"
+      [showCreateSpot]="!sheetOpen()"
+      [showCreateEvent]="true"
+    />
+  </section>
 </main>

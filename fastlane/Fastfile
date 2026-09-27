@@ -115,7 +115,9 @@ platform :android do
       skip_upload_screenshots: true,
       track: "production",
       release_status: "draft",
-      changes_not_sent_for_review: true
+      changes_not_sent_for_review: true,
+      # Stop if Google requires automatic review instead of silently submitting.
+      rescue_changes_not_sent_for_review: false
     )
   end
 

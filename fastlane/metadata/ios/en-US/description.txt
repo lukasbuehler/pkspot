@@ -1,17 +1,19 @@
-THE SPOT FOR EVERYTHING PARKOUR.
+Find your next Parkour Spot, see what it's like before you go, and discover local Events and communities. Whether you're training close to home or exploring somewhere new, PK Spot helps you decide where to go next.
 
-PK Spot helps you find places to train, check in at spots, discover what is happening nearby, and connect with your local parkour community.
+Find your next Spot
+Explore the map for Parkour and Freerunning Spots near home or wherever you travel. Use filters to narrow your search and save the places you want to try.
 
-FIND SPOTS
-Explore parkour spots around you with photos, ratings, tags, and filters for indoor, covered, lit, dry, water, and purpose-built training places.
+Know before you go
+Browse photos, ratings and practical details such as shelter, lighting and drinking water. Check the weather at a Spot to help plan your session.
 
-CHECK IN
-Let the community know where training is active and keep a lightweight history of the spots you visit.
+Discover Events and jams
+Find Parkour Events, explore the details and mark the ones you're interested in or going to.
 
-DISCOVER WHAT IS HAPPENING
-Find events, jams, and community pages as they are added, so it is easier to see where people train and gather.
+Connect with your community
+Discover local communities and follow the ones that matter to you. Add Spots, contribute photos and help keep information useful for the next person.
 
-BUILT WITH THE COMMUNITY
-PK Spot is open source and community driven. Spot data contributed by the community is shared under CC BY-NC-SA 4.0 so active parkour communities can build on it.
+Keep your training story
+Keep a private log of your sessions with notes, activity graphs and recovery pauses. Look back at where and how you've trained, at your own pace.
 
-PK Spot started in Zurich and is growing toward one app for parkour spots, training, events, jams, and community.
+Built with the community
+PK Spot is open source and shaped by the people who use it. Started in Zurich, built with the Parkour community.

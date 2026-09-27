@@ -155,6 +155,7 @@ type NavigationPerfDetails = Record<string, unknown>;
     "[class.has-floating-bottom-navigation]": "usesFloatingBottomNavigation()",
     "[class.has-navigation-rail]": "usesNavigationRail()",
     "[class.immersive-map-route]": "isImmersiveMapRoute()",
+    "[class.event-map-route]": "isEventMapRoute()",
   },
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.scss"],
@@ -1451,6 +1452,10 @@ html.pkspot-roboto-loaded body {
   );
   readonly isImmersiveMapRoute = computed(() =>
     /^\/map(?:[/?]|$)/.test(this.currentNavUrl()),
+  );
+
+  readonly isEventMapRoute = computed(() =>
+    /^\/(?:embedded\/)?events\/[^/?]+\/map(?:[/?]|$)/.test(this.currentNavUrl()),
   );
 
   // Engagement tracking state (initialized in ngOnInit)

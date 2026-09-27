@@ -15,6 +15,7 @@ vi.mock("@capacitor/browser", () => ({Browser: {open: vi.fn()}}));
 describe("AdultVerificationDialogComponent", () => {
   let fixture: ComponentFixture<AdultVerificationDialogComponent>;
   const ageAssurance = {
+    isProviderEnabled: vi.fn(() => true),
     externalVerificationAvailability: vi.fn(),
     externalVerificationStatus: vi.fn(),
     beginOneIdAgeVerification: vi.fn(),
@@ -26,6 +27,7 @@ describe("AdultVerificationDialogComponent", () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    ageAssurance.isProviderEnabled.mockReturnValue(true);
     native.isNative = false;
     ageAssurance.externalVerificationStatus.mockResolvedValue("idle");
     platform.isNative.mockReturnValue(false);
@@ -41,6 +43,19 @@ describe("AdultVerificationDialogComponent", () => {
     }).compileComponents();
     fixture = TestBed.createComponent(AdultVerificationDialogComponent);
     await fixture.whenStable();
+  });
+
+  it("hides disabled providers and makes no OneID requests", async () => {
+    fixture.destroy();
+    vi.clearAllMocks();
+    ageAssurance.isProviderEnabled.mockImplementation((...args: unknown[]) => args[0] !== "oneid");
+    fixture = TestBed.createComponent(AdultVerificationDialogComponent);
+    await fixture.whenStable();
+    expect(fixture.componentInstance.options().map(option => option.id)).toEqual(["google_play", "apple"]);
+    await fixture.componentInstance.start("oneid");
+    expect(ageAssurance.externalVerificationAvailability).not.toHaveBeenCalled();
+    expect(ageAssurance.externalVerificationStatus).not.toHaveBeenCalled();
+    expect(ageAssurance.beginOneIdAgeVerification).not.toHaveBeenCalled();
   });
 
   it("keeps verification optional and presents providers in the required order", () => {
