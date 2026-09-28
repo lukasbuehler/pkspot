@@ -19,7 +19,6 @@
 .not-found-state {
   padding: 48px 0;
   text-align: center;
-  color: var(--mat-sys-on-surface-variant);
 }
 
 // Always 2 columns — works in both the sidebar panel mode (narrow) and the
@@ -50,7 +49,6 @@
   font-size: 0.75rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--mat-sys-on-surface-variant);
 }
 
 .hero-card {
@@ -88,7 +86,6 @@
   font-size: 0.875rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--mat-sys-on-surface-variant);
 }
 
 .eyebrow a {
@@ -174,7 +171,6 @@
   margin-top: 8px;
   padding: 4px 9px;
   border-radius: 999px;
-  color: var(--mat-sys-on-surface-variant);
   background: var(--mat-sys-surface-container-high);
   font-size: 0.75rem;
   font-weight: 500;
@@ -237,7 +233,6 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--mat-sys-on-surface-variant);
 }
 
 .community-locality-merge-error {
@@ -286,10 +281,6 @@
   display: grid;
 }
 
-.community-merged-locality-row small {
-  color: var(--mat-sys-on-surface-variant);
-}
-
 .community-danger-zone {
   border-color: var(--mat-sys-error);
   border-radius: 8px;
@@ -301,10 +292,6 @@
   color: var(--mat-sys-error);
   display: flex;
   gap: 8px;
-}
-
-.community-danger-zone .community-admin-settings p {
-  color: var(--mat-sys-on-surface-variant);
 }
 
 .community-knowledge-dialog {
@@ -340,10 +327,6 @@
   border-radius: 15px;
   color: var(--mat-sys-on-primary-container);
   background: var(--mat-sys-primary-container);
-}
-
-.community-knowledge-dialog-header p {
-  color: var(--mat-sys-on-surface-variant);
 }
 
 .community-knowledge-dialog-content {
@@ -415,14 +398,11 @@
   line-height: 1.3;
 }
 
-
-
 .manual-state {
   margin-bottom: 24px;
   padding: 16px 20px;
   border-radius: 18px;
   background: var(--mat-sys-surface-container-low);
-  color: var(--mat-sys-on-surface-variant);
 }
 
 .spot-text-directory {
@@ -438,10 +418,6 @@
   padding-left: 20px;
 }
 
-.spot-text-directory-list li {
-  color: var(--mat-sys-on-surface-variant);
-}
-
 .spot-text-directory-list a {
   color: var(--mat-sys-primary);
   font-weight: 600;
@@ -452,6 +428,17 @@
   text-decoration: underline;
 }
 
+// Shared secondary text color keeps this component within the mobile CSS budget.
+.not-found-state,
+.section-eyebrow,
+.eyebrow,
+.local-info-disclosure,
+.community-locality-merge-loading,
+.community-merged-locality-row small,
+.community-danger-zone .community-admin-settings p,
+.community-knowledge-dialog-header p,
+.manual-state,
+.spot-text-directory-list li,
 .stat-label,
 .local-info-body,
 .community-link-meta,
@@ -493,7 +480,6 @@
     text-underline-offset: 2px;
   }
 }
-
 
 // Keep intrinsic card height available while the sheet reveals the section.
 // The inner clip includes its spacing, so collapsed cards leave no empty gap.
