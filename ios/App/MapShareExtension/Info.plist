@@ -35,5 +35,7 @@
 		<key>NSExtensionPrincipalClass</key>
 		<string>$(PRODUCT_MODULE_NAME).ShareViewController</string>
 	</dict>
+	<key>TypesenseSearchKey</key>
+	<string>7yxCDDLoGisH1vDtl2ZBfIglrr3OXsVk</string>
 </dict>
 </plist>

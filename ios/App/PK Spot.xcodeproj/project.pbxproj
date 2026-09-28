@@ -31,6 +31,9 @@
 		283F6A61E88D4A729D0AB756 /* SharedMapStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AB2F9847AB24C44A7A28755 /* SharedMapStore.swift */; };
 		653975D6D2DD41F2B774A734 /* MapSharePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043D99B9C0E24748910D487B /* MapSharePlugin.swift */; };
 		EA9B74FDEC454778B428A193 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 2F92A2B323D3431B87939641 /* Localizable.xcstrings */; };
+		7B878ADD972E40CBA6167E36 /* MapLinkResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F7E8A75E32C4173BFB958A7 /* MapLinkResolver.swift */; };
+		8903EAF5225541DE813153CF /* NearbySpotSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3099C64C2904CB080439A89 /* NearbySpotSearch.swift */; };
+		A35AA5025C474CA9A976AAD5 /* MapLinkResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F7E8A75E32C4173BFB958A7 /* MapLinkResolver.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -57,6 +60,8 @@
 		2AB2F9847AB24C44A7A28755 /* SharedMapStore.swift */ = {isa = PBXFileReference; name = "SharedMapStore.swift"; path = "MapShareExtension/SharedMapStore.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
 		043D99B9C0E24748910D487B /* MapSharePlugin.swift */ = {isa = PBXFileReference; name = "MapSharePlugin.swift"; path = "App/MapSharePlugin.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
 		2F92A2B323D3431B87939641 /* Localizable.xcstrings */ = {isa = PBXFileReference; name = "Localizable.xcstrings"; path = "MapShareExtension/Localizable.xcstrings"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = text.json.xcstrings; explicitFileType = undefined; includeInIndex = 0; };
+		6F7E8A75E32C4173BFB958A7 /* MapLinkResolver.swift */ = {isa = PBXFileReference; name = "MapLinkResolver.swift"; path = "MapShareExtension/MapLinkResolver.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
+		B3099C64C2904CB080439A89 /* NearbySpotSearch.swift */ = {isa = PBXFileReference; name = "NearbySpotSearch.swift"; path = "MapShareExtension/NearbySpotSearch.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -91,6 +96,8 @@
 				2AB2F9847AB24C44A7A28755 /* SharedMapStore.swift */,
 				043D99B9C0E24748910D487B /* MapSharePlugin.swift */,
 				2F92A2B323D3431B87939641 /* Localizable.xcstrings */,
+				6F7E8A75E32C4173BFB958A7 /* MapLinkResolver.swift */,
+				B3099C64C2904CB080439A89 /* NearbySpotSearch.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -262,6 +269,7 @@
 				80A610032F1F000100000003 /* GooglePlacePhotoPlugin.swift in Sources */,
 				283F6A61E88D4A729D0AB756 /* SharedMapStore.swift in Sources */,
 				653975D6D2DD41F2B774A734 /* MapSharePlugin.swift in Sources */,
+				A35AA5025C474CA9A976AAD5 /* MapLinkResolver.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -271,6 +279,8 @@
 			files = (
 				26251697C001475887BF728E /* ShareViewController.swift in Sources */,
 				4583FF6436EC42C1BEE20BFF /* SharedMapStore.swift in Sources */,
+				7B878ADD972E40CBA6167E36 /* MapLinkResolver.swift in Sources */,
+				8903EAF5225541DE813153CF /* NearbySpotSearch.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
