@@ -118,6 +118,33 @@ run data migrations, or complete third-party service tasks.
       the remaining policy definitions are verified in Google Cloud without
       generating synthetic failures or public status-page incidents.
 
+### Live function alert follow-up (2026-09-28)
+
+- [ ] Repair the expiry-query/index mismatch in
+      `cleanupSafetyCaseSecurityMetadata`. The live 02:40 UTC run failed because
+      `safety_case_rate_limits.expires_at` lacks a collection ascending index.
+      The checked-in configuration also disables indexing for the queried
+      `safety_case_access_tokens.expires_at` and `safety_case_sessions.expires_at`.
+      Preserve TTL and older clients; add the required indexes before deploying
+      any cleanup changes. Success: indexes ready and the next scheduled cleanup
+      completes without `FAILED_PRECONDITION`.
+- [ ] Reconcile the three rejected Spot Typesense updates observed in the last
+      24 hours: two lack `location`, one lacks the required sort field `rating`.
+      Inspect the source records and normalizer before repairing or reindexing;
+      retain `location_raw` and legacy coordinate compatibility. Success: affected
+      documents index successfully without fabricated coordinates.
+- [ ] Investigate the 17 `getWeather` HTTP 503s and improve sanitized upstream
+      diagnostics. The separately logged Google weather-alert 404s are caught
+      and are not proof of the 503 cause. Check Overpass reliability as well:
+      `getOsmAmenityTile` returned 21 HTTP 503s, with upstream 12-second timeouts
+      and 504s. Verify fallback/backoff and recovery before changing providers.
+- [ ] Refine the live `PK Spot Functions: non-OK execution` policy after approval.
+      It currently sums every function/status together, including profile 404s
+      and authorization 401/403s. Keep actionable failures visible, distinguish
+      expected rejections, and retain function/region identity in alerts.
+      Verify the resulting policy and observed incidents without synthetic
+      production failures. No monitoring settings were changed during this audit.
+
 ### iOS scene lifecycle and Capacitor 8.5.2
 
 - [ ] With the new scene manifest, verify cold launch on an existing supported
