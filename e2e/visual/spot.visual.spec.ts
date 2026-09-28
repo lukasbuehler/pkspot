@@ -253,3 +253,17 @@ for (const mode of ["target", "review"]) {
     await expect(page.locator(".mat-mdc-dialog-surface")).toHaveScreenshot(`shared-photo-${mode}.png`);
   });
 }
+
+for (const width of [390, 1000]) {
+  test(`shared map drafts ${width} @visual`, async ({page}) => {
+    await page.setViewportSize({width, height: 844});
+    await acceptCurrentTerms(page);
+    await page.goto("/de/__visual/spot-bottom-sheet?mapdrafts=1");
+    const dialog = page.locator("app-shared-map-drafts-dialog");
+    await expect(dialog.locator("article")).toHaveCount(2);
+    await expect(dialog.getByRole("button", {name: "Spot erstellen"})).toHaveCount(1);
+    await expect(page.locator(".mat-mdc-dialog-surface")).toHaveScreenshot(`shared-map-drafts-${width}.png`);
+    await dialog.getByRole("button", {name: "Entwurf entfernen"}).first().click();
+    await expect(dialog.locator("article")).toHaveCount(1);
+  });
+}

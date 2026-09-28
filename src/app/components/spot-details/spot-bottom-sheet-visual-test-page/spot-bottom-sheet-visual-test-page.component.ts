@@ -143,6 +143,7 @@ export class SpotBottomSheetVisualTestPageComponent implements AfterViewInit {
   constructor() {
     afterNextRender(() => {
       if (this.route.snapshot.queryParamMap.has("crop")) void this.openCropFixture();
+      if (this.route.snapshot.queryParamMap.has("mapdrafts")) void this.openMapDraftFixture();
       if (this.route.snapshot.queryParamMap.has("photos")) void this.openPhotoFixture();
       if (this.route.snapshot.queryParamMap.get("report") === "edit") {
         this.dialog.open(SpotReportDialogComponent, {
@@ -154,6 +155,19 @@ export class SpotBottomSheetVisualTestPageComponent implements AfterViewInit {
         });
       }
     });
+  }
+
+  private async openMapDraftFixture(): Promise<void> {
+    const {SharedMapDraftsDialogComponent} = await import("../../shared-map-drafts-dialog/shared-map-drafts-dialog.component");
+    const {NativeMapShareService} = await import("../../../services/native-map-share.service");
+    const drafts = signal([
+      {id: "new", text: "https://maps.apple.com/?ll=47.3,8.5", name: "Training walls by the river", location: {lat: 47.3, lng: 8.5}},
+      {id: "known", text: "https://maps.apple.com/?ll=47.4,8.6", name: "Riverside Spot", spotId: "fixture", location: {lat: 47.4, lng: 8.6}},
+    ]);
+    const injector = Injector.create({parent: this.injector, providers: [{provide: NativeMapShareService, useValue: {
+      drafts, reviewDraft: () => Promise.resolve(), removeDraft: (id: string) => drafts.update(items => items.filter(item => item.id !== id)),
+    }}]});
+    this.dialog.open(SharedMapDraftsDialogComponent, {injector, width: "560px", maxHeight: "80dvh"});
   }
 
   private async openPhotoFixture(): Promise<void> {
