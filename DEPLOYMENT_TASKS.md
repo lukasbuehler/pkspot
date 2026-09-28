@@ -128,16 +128,31 @@ run data migrations, or complete third-party service tasks.
       Preserve TTL and older clients; add the required indexes before deploying
       any cleanup changes. Success: indexes ready and the next scheduled cleanup
       completes without `FAILED_PRECONDITION`.
-- [ ] Reconcile the three rejected Spot Typesense updates observed in the last
-      24 hours: two lack `location`, one lacks the required sort field `rating`.
-      Inspect the source records and normalizer before repairing or reindexing;
-      retain `location_raw` and legacy coordinate compatibility. Success: affected
-      documents index successfully without fabricated coordinates.
-- [ ] Investigate the 17 `getWeather` HTTP 503s and improve sanitized upstream
-      diagnostics. The separately logged Google weather-alert 404s are caught
-      and are not proof of the 503 cause. Check Overpass reliability as well:
-      `getOsmAmenityTile` returned 21 HTTP 503s, with upstream 12-second timeouts
-      and 504s. Verify fallback/backoff and recovery before changing providers.
+- [ ] Prevent Typesense from indexing incomplete Spot creation writes. The two
+      affected Spots were verified in live `spots_v2` with valid coordinates and
+      ratings on 2026-09-28, so no repair/backfill is needed for them. Creation
+      currently reserves an empty parent document, applies the CREATE edit, then
+      normalizes fields in another trigger. The extension indexes intermediate
+      snapshots; `location` is required and `rating` is the default sort field.
+      Keep the existing search contract and older creation clients compatible;
+      index only prepared records rather than inventing coordinates or making
+      incomplete Spots searchable. Verify initial creation and subsequent edits
+      without missing-field indexing failures.
+- [ ] After approval, deploy the compatible Overpass outage handling and weather
+      diagnostics: `firebase deploy --only functions:getOsmAmenityTile,functions:getWeather --project parkour-base-project`.
+      Deploy before the updated client. New clients send `acceptUnavailable: true`
+      and receive an explicit unavailable state with retry timing, without caching
+      an empty tile. Older clients retain their 503/retry behavior, so these can
+      still appear in the broad non-OK alert until those clients migrate or the
+      policy is refined. Expected upstream failures are informational; internal
+      and configuration failures still surface. Local verification: 54 focused
+      tests, two cache emulator tests, Functions build and build/SSR smoke passed.
+      Verify live stale fallback, cold outage response and eventual recovery.
+- [ ] Diagnose the 17 historical `getWeather` HTTP 503s after deploying its
+      sanitized upstream diagnostics. Existing logs do not establish their cause;
+      caught Google weather-alert 404s are not proof of the forecast failure.
+      Inspect provider, endpoint and upstream HTTP status on the next failure,
+      then fix and verify the specific cause. Never log API keys or coordinates.
 - [ ] Refine the live `PK Spot Functions: non-OK execution` policy after approval.
       It currently sums every function/status together, including profile 404s
       and authorization 401/403s. Keep actionable failures visible, distinguish

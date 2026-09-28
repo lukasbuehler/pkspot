@@ -1,6 +1,7 @@
-import { describe, expect, it, afterEach } from "vitest";
+import { describe, expect, it, afterEach, vi } from "vitest";
 import {
   buildEventInsights,
+  fetchWeatherUpstream,
   buildWeatherAlertCacheKey,
   buildWeatherCacheKey,
   buildWeatherInsights,
@@ -20,6 +21,19 @@ import type { WeatherPoint } from "../functions/src/weatherFunctions";
 describe("weather functions", () => {
   afterEach(() => {
     delete process.env.WEATHER_PROVIDER;
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("records provider and status without logging sensitive weather request parameters", async () => {
+    const warn = vi.fn();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("private body", {status: 403})));
+    const result = await fetchWeatherUpstream(new URL("https://weather.googleapis.com/v1/currentConditions:lookup?key=secret&location.latitude=47"), "google", warn);
+    expect(result.status).toBe(403);
+    expect(warn).toHaveBeenCalledWith("Weather upstream rejected request", {
+      provider: "google", endpoint: "/v1/currentConditions:lookup", upstreamStatus: 403,
+    });
+    expect(JSON.stringify(warn.mock.calls)).not.toMatch(/secret|latitude|private body/);
   });
 
   it("normalizes weather response country codes", () => {

@@ -5,6 +5,7 @@ import { Timestamp } from "firebase-admin/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { CallableRequest, HttpsError, onCall } from "firebase-functions/v2/https";
 import { googleAPIKey } from "./secrets";
+import * as logger from "firebase-functions/logger";
 
 export type WeatherProvider = "google" | "open-meteo";
 export type WeatherCondition =
@@ -974,7 +975,7 @@ async function fetchOpenMeteoWeather(
     url.searchParams.set("apikey", apiKey);
   }
 
-  const response = await fetch(url);
+  const response = await fetchWeatherUpstream(url, "open-meteo");
   if (!response.ok) {
     throw new HttpsError(
       "unavailable",
@@ -1011,6 +1012,28 @@ async function fetchOpenMeteoWeather(
   };
 }
 
+/** Log upstream status without URL queries, API keys, coordinates or response bodies. */
+export async function fetchWeatherUpstream(
+  url: URL,
+  provider: WeatherProvider,
+  logWarning: typeof logger.warn = logger.warn,
+): Promise<Response> {
+  const context = {provider, endpoint: url.pathname};
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      logWarning("Weather upstream rejected request", {...context, upstreamStatus: response.status});
+    }
+    return response;
+  } catch (error) {
+    logWarning("Weather upstream transport failed", {
+      ...context,
+      errorName: error instanceof Error ? error.name : "UnknownError",
+    });
+    throw error;
+  }
+}
+
 async function fetchGoogleJson<T>(
   endpoint: string,
   apiKey: string,
@@ -1026,7 +1049,7 @@ async function fetchGoogleJson<T>(
     url.searchParams.set(key, value);
   }
 
-  const response = await fetch(url);
+  const response = await fetchWeatherUpstream(url, "google");
   if (!response.ok) {
     throw new HttpsError(
       "unavailable",
@@ -1058,7 +1081,7 @@ async function fetchGoogleWeatherAlerts(
     url.searchParams.set("languageCode", languageCode);
   }
 
-  const response = await fetch(url);
+  const response = await fetchWeatherUpstream(url, "google");
   if (!response.ok) {
     throw new HttpsError(
       "unavailable",
