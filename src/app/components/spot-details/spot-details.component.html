@@ -97,7 +97,6 @@
     </mat-card-content>
   } @else if (spot()) {
     @if (!isEditing()) {
-      <app-spot-activity-summary [spotId]="spotActivitySpotId()" />
       <mat-card-header class="pb-2 pt-0 px-3 d-flex flex-column-reverse">
         <mat-card-title class="d-flex align-items-center w-100 gap-1">
           <span
@@ -417,6 +416,11 @@
           }
         </mat-card-subtitle>
       </mat-card-header>
+      <div class="spot-activity-reveal"
+        [attr.data-collapsed]="openProgress() < 0.1"
+        [attr.aria-hidden]="openProgress() < 0.1">
+        <div><app-spot-activity-summary [spotId]="spotActivitySpotId()" /></div>
+      </div>
     }
     <mat-card-content class="pt-0">
       @if (!isEditing()) {

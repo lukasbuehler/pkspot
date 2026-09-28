@@ -1,3 +1,4 @@
+import { SpotActivityService } from "../../../services/firebase/firestore/spot-activity.service";
 import {ImageCropDialogComponent} from "../../crop-image/image-crop-dialog.component";
 import {OPTIONAL_MEDIA_CROP_POLICY} from "../../crop-image/image-crop-policy";
 import {
@@ -122,7 +123,10 @@ const visualPendingSpot: PendingSpotPanel = {
 @Component({
   selector: "app-spot-bottom-sheet-visual-test-page",
   imports: [BottomSheetComponent, MapSpotDetailsPanelComponent],
-  providers: [{
+  providers: [{provide: SpotActivityService, useFactory: () => {
+    const route = inject(ActivatedRoute);
+    return {get: async () => route.snapshot.queryParamMap.has("activity") ? {status: "recently_trained", bucket: "2–4", window_days: 30} : null};
+  }}, {
     provide: SpotReportsService,
     useValue: {
       getOwnSpotReport: async () => ({
@@ -204,7 +208,8 @@ export class SpotBottomSheetVisualTestPageComponent implements AfterViewInit {
     "visual-riverside-training-walls" as SpotId,
     this.route.snapshot.queryParamMap.has("report")
       ? {...visualSpotData, is_reported: true, report_reason: "torn down"}
-      : visualSpotData,
+      : {...visualSpotData, ...(this.route.snapshot.queryParamMap.has("shortTitle")
+          ? {name: {en: "Lindenhof", de: "Lindenhof"}} : {})},
     "de",
   );
 

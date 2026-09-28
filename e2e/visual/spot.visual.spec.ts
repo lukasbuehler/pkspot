@@ -7,10 +7,12 @@ async function openSpotFixture(
   page: Page,
   viewport = { width: 390, height: 844 },
   state: SpotFixtureState = "loaded",
+  extraQuery = "",
+  title = "Riverside Training Walls",
 ) {
   await page.setViewportSize(viewport);
   await acceptCurrentTerms(page);
-  const query = state === "loading" ? "?state=loading" : "";
+  const query = `?state=${state}${extraQuery}`;
   await page.goto(`/de/__visual/spot-bottom-sheet${query}`, {
     waitUntil: "domcontentloaded",
   });
@@ -30,7 +32,7 @@ async function openSpotFixture(
   });
   await expect(page.locator("app-map-spot-details-panel")).toBeVisible();
   const details = page.locator("app-spot-details");
-  await expect(details).toContainText("Riverside Training Walls");
+  await expect(details).toContainText(title);
   if (state === "loading") {
     await expect(details).toContainText(
       /Loading spot details|Spotdetails werden geladen/u,
@@ -265,5 +267,29 @@ for (const width of [390, 1000]) {
     await expect(page.locator(".mat-mdc-dialog-surface")).toHaveScreenshot(`shared-map-drafts-${width}.png`);
     await dialog.getByRole("button", {name: "Entwurf entfernen"}).first().click();
     await expect(dialog.locator("article")).toHaveCount(1);
+  });
+}
+
+for (const name of ["Lindenhof", "Riverside Training Walls"]) {
+  test(`spot title and activity hierarchy ${name} @visual`, async ({page}) => {
+    await openSpotFixture(page, undefined, 'loaded', `&activity=1${name === 'Lindenhof' ? '&shortTitle=1' : ''}`, name);
+    const title = page.locator('.spot-title-text').first();
+    const badge = page.locator('.spot-kind-label').first();
+    const activity = page.locator('.spot-activity-reveal');
+    await expect(activity).toContainText('2–4');
+    const titleBox = await title.evaluate(element => {
+      const text = document.createRange();
+      text.selectNodeContents(element);
+      const rect = text.getBoundingClientRect();
+      return {y: rect.y, height: rect.height};
+    });
+    const badgeBox = (await badge.boundingBox())!;
+    expect(Math.abs(titleBox.y + titleBox.height / 2 - badgeBox.y - badgeBox.height / 2)).toBeLessThanOrEqual(3);
+    const headerBox = (await page.locator('mat-card-header').first().boundingBox())!;
+    expect((await activity.boundingBox())!.y).toBeGreaterThanOrEqual(headerBox.y + headerBox.height - 1);
+    await expect(page.locator('app-spot-details')).toHaveScreenshot(`spot-header-${name === 'Lindenhof' ? 'short' : 'long'}.png`, {animations:'disabled'});
+    await page.locator('app-bottom-sheet .handle-region').click();
+    await expect(activity).toHaveAttribute('aria-hidden', 'true');
+    await expect.poll(async () => (await activity.boundingBox())?.height).toBe(0);
   });
 }

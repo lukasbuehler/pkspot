@@ -72,12 +72,16 @@ form {
   justify-content: space-around;
 }
 
+// Reserve the same title-row height before and after details load, while
+// centering the name and badges together rather than padding the text box.
+mat-card-title {
+  min-height: 2lh;
+}
+
 .spot-title-text {
   min-width: 0;
   white-space: normal;
   overflow-wrap: anywhere;
-  // Keep preview and resolved media aligned when header badges make the name wrap.
-  min-height: 2lh;
 }
 
 .spot-kind-label {
@@ -390,4 +394,18 @@ div.google-img-container {
   div {
     flex: 1;
   }
+}
+
+.spot-activity-reveal {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: var(--open-progress, 1);
+  transition: grid-template-rows 200ms ease-out, opacity 200ms ease-out;
+
+  &[data-collapsed="true"] { grid-template-rows: 0fr; opacity: 0; }
+  &[data-collapsed="false"] { grid-template-rows: 1fr; }
+  > div { min-height: 0; overflow: hidden; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spot-activity-reveal { transition: none; }
 }
