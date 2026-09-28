@@ -11,7 +11,8 @@ export const onContactMessageEmailCreate = onDocumentCreated({
   document: "contact_messages/{messageId}",
   region: "europe-west1",
   secrets: [resendKey],
-  retry: true,
+  // Enable automatic retries only after the delivery policy is approved.
+  retry: false,
 }, async (event) => {
   if (!event.data) return;
   const delivery = admin.firestore().doc(`contact_email_delivery/${event.params.messageId}`);

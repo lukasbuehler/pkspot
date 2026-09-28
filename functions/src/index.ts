@@ -278,6 +278,7 @@ export {
 export {
   mintCloudflareSsrAppCheckToken,
 } from "./cloudflareSsrAppCheckFunctions";
+export { monitoringHealth } from "./monitoringHealthFunction";
 
 export {
   onEventNotificationSourceWrite,
