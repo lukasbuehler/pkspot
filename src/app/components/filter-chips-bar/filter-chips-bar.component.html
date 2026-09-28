@@ -68,7 +68,9 @@
             [selected]="selectedFilters()?.includes(filter.urlParam) ?? (renderedSelectedFilter() === filter.urlParam)"
             (click)="onPresetChipClick(filter.urlParam, $event)"
           >
-            @if (filter.icon) {
+            @if (filter.imageSrc) {
+              <img matChipAvatar class="preset-image" [src]="filter.imageSrc" [style.background]="filter.imageBackground" alt="" />
+            } @else if (filter.icon) {
               <mat-icon matChipAvatar>{{ filter.icon }}</mat-icon>
             }
             <span>{{ filter.label }}</span>

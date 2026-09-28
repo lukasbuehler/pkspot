@@ -1,3 +1,4 @@
+import { CheckInLogPromptComponent } from '../check-in-log-prompt/check-in-log-prompt.component';
 import { environment } from "../../../environments/environment.default";
 import { DestroyRef } from "@angular/core";
 import { StoreReviewService } from "../../reviews/store-review.service";
@@ -72,6 +73,7 @@ interface TrainingTimelineGroup {
 @Component({
   selector: "app-training-log-page",
   imports: [
+    CheckInLogPromptComponent,
     SystemDatePipe,
     RouterLink,
     MatButtonModule,
@@ -114,6 +116,9 @@ export class TrainingLogPageComponent {
   readonly checkIns = signal<CheckInHistoryItem[]>([]);
   readonly signedIn = signal(!!this.auth.user.uid);
   readonly selection = signal<TrainingContributionSelection | null>(null);
+  readonly logBySession = computed(() => new Map(
+    this.logs().flatMap(log => log.session_record_ids.map(id => [id, log.id] as const)),
+  ));
   readonly activityDays = computed(() => buildTrainingActivityDays(this.logs()));
   readonly monthSummary = computed(() =>
     summarizeTrainingMonth(this.activityDays(), monthKey(Date.now())),

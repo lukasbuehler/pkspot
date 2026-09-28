@@ -1,9 +1,12 @@
+import { MatExpansionModule } from '@angular/material/expansion';
+import { SpotSelectionDataService } from '../../services/spot-selection-data.service';
+import type { LocaleCode } from '../../../db/models/Interfaces';
 import { matchingPlannedSessionRecords } from "./planned-session-records";
 import { PlannedSessionsService } from "../../services/planned-sessions.service";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import { StoreReviewService } from "../../reviews/store-review.service";
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, LOCALE_ID, computed, inject, signal } from "@angular/core";
 import { SystemDatePipe } from "../../pipes/system-date.pipe";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
@@ -30,6 +33,7 @@ import { UserPickerComponent } from "../user-picker/user-picker.component";
 @Component({
   selector: "app-log-entry-editor",
   imports: [
+    MatExpansionModule,
     SystemDatePipe,
     ReactiveFormsModule,
     RouterLink,
@@ -54,10 +58,17 @@ export class LogEntryEditorComponent {
   private readonly router = inject(Router);
   private readonly reviews = inject(StoreReviewService);
   private readonly logs = inject(LogEntriesService);
+  private readonly spotData = inject(SpotSelectionDataService);
+  private readonly locale = inject(LOCALE_ID) as LocaleCode;
+  readonly spotNames = signal<ReadonlyMap<string, string>>(new Map());
+  readonly detailsExpanded = signal(false);
   private readonly sessionRecords = inject(SessionRecordsService);
   private readonly plannedSessions = inject(PlannedSessionsService);
 
   readonly entryId = this.route.snapshot.paramMap.get("entryId");
+  readonly title = this.entryId
+    ? $localize`:@@logEditor.editTitle:Edit log entry`
+    : $localize`:@@logEditor.newTitle:New log entry`;
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly error = signal("");
@@ -70,7 +81,15 @@ export class LogEntryEditorComponent {
     const selected = new Set(this.selectedIds());
     return this.sessions().filter((session) => selected.has(session.id));
   });
-  readonly visibilities = LOG_ENTRY_VISIBILITIES;
+  readonly sessionPlaces = computed(() => new Map(this.sessions().map(session => [
+    session.id, session.spot_visits.map(visit => visit.spot_name || this.spotNames().get(visit.spot_id) || $localize`:@@training.loadingSpot:Loading Spot…`).join(', '),
+  ])));
+  readonly visibilities = LOG_ENTRY_VISIBILITIES.map(value => ({ value, label:
+    value === 'public' ? $localize`:@@trainingLog.visibility.public:Public` :
+    value === 'friends' ? $localize`:@@trainingLog.visibility.friends:Friends` :
+    value === 'followers' ? $localize`:@@trainingLog.visibility.followers:Followers` :
+    $localize`:@@trainingLog.visibility.private:Private`,
+  }));
 
   readonly form = new FormGroup({
     note: new FormControl("", { nonNullable: true }),
@@ -143,7 +162,8 @@ export class LogEntryEditorComponent {
       }
       if (selected.length === 0) {
         this.showNewSession.set(true);
-        this.error.set($localize`:@@logEditor.sessionRequired:Select a session record or add one below.`);
+        this.detailsExpanded.set(true);
+        this.error.set($localize`:@@logEditor.sessionRequired:Choose a training session or add when and where you trained below.`);
         return;
       }
       const input = {
@@ -209,6 +229,9 @@ export class LogEntryEditorComponent {
       this.error.set(error instanceof Error ? error.message : String(error));
     } finally {
       this.loading.set(false);
+      this.detailsExpanded.set(!this.selectedIds().length || this.showNewSession());
+      void this.spotData.resolveVisitNames(this.sessions().flatMap(session => session.spot_visits), this.locale)
+        .then(names => this.spotNames.set(names));
     }
   }
 }

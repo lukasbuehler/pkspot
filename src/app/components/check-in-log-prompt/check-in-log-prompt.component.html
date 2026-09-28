@@ -1,0 +1,14 @@
+@if (session(); as checkIn) {
+  <section class="prompt" aria-labelledby="check-in-log-heading">
+    <div class="prompt-icon"><mat-icon aria-hidden="true">history_edu</mat-icon></div>
+    <div class="prompt-body">
+      <h2 id="check-in-log-heading" i18n="@@checkInLogPrompt.title">How was your training?</h2>
+      <p>{{ place() }}{{ place() ? ' · ' : '' }}{{ checkIn.started_at_raw_ms | systemDate: 'mediumDate' }}</p>
+      <p i18n="@@checkInLogPrompt.body">Your check-in is saved. Add a note if you want to remember what you practised.</p>
+      <div class="prompt-actions">
+        <a matButton="filled" routerLink="/train/log/new" [queryParams]="{ sessionRecord: checkIn.id }" i18n="@@planned.log">Log what you did</a>
+        <button matButton type="button" (click)="dismiss()" i18n="@@checkInLogPrompt.dismiss">No thanks</button>
+      </div>
+    </div>
+  </section>
+}

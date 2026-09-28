@@ -1,3 +1,4 @@
+import { SpotSelectionDataService } from '../../services/spot-selection-data.service';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { describe, expect, it, vi } from 'vitest';
@@ -19,9 +20,10 @@ const record: SessionRecordDocument = {
 function setup(query: Record<string, string>, records: SessionRecordDocument[], lookup: SessionRecordDocument | null = null) {
   const getMine = vi.fn().mockResolvedValue(lookup), createManual = vi.fn(), create = vi.fn();
   TestBed.configureTestingModule({ providers: [
+    { provide: SpotSelectionDataService, useValue: { resolveVisitNames: vi.fn().mockResolvedValue(new Map([["spot", "Riverside"]])) } },
     { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({}), queryParamMap: convertToParamMap(query) } } },
     { provide: Router, useValue: { navigateByUrl: vi.fn() } },
-    { provide: StoreReviewService, useValue: {} },
+    { provide: StoreReviewService, useValue: { recordActivity: vi.fn(), offerAfterCompletion: vi.fn() } },
     { provide: FeatureTelemetryService, useValue: { failure: vi.fn() } },
     { provide: SessionRecordsService, useValue: { listMine: vi.fn().mockResolvedValue(records), getMine, createManual } },
     { provide: LogEntriesService, useValue: { create } },
@@ -30,6 +32,15 @@ function setup(query: Record<string, string>, records: SessionRecordDocument[], 
   return { component: TestBed.runInInjectionContext(() => new LogEntryEditorComponent()), getMine, createManual, create };
 }
 describe('private activity handoff', () => {
+  it('saves a note against the selected check-in without creating another session', async () => {
+    const { component, createManual, create } = setup({ sessionRecord: 'mine' }, [record]);
+    await vi.waitFor(() => expect(component.loading()).toBe(false));
+    component.form.controls.note.setValue('Worked on quiet landings');
+    await component.save();
+    expect(create).toHaveBeenCalledWith({ note: 'Worked on quiet landings', visibility: 'private', sessions: [record] });
+    expect(createManual).not.toHaveBeenCalled();
+    await vi.waitFor(() => expect(component.sessionPlaces().get('mine')).toBe('Riverside'));
+  });
   it('selects an existing planned-session check-in without creating activity on page load', async () => {
     const { component, createManual, create } = setup({ plannedSession: 'plan' }, [record]);
     await vi.waitFor(() => expect(component.loading()).toBe(false));

@@ -82,7 +82,6 @@ export class NotificationSettingsComponent implements OnInit {
   readonly savingPreferences = signal(false);
   readonly savingCommunityPreferences = signal(false);
 
-  readonly notificationColumns = ["notification", "enabled"] as const;
   readonly communityColumns = ["community", "events", "spots"] as const;
 
   readonly notificationRows: readonly NotificationPreferenceRow[] = [

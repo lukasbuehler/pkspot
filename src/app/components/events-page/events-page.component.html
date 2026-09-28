@@ -172,16 +172,11 @@
   }
 
   @if (isAdmin() && (draftsResource.isLoading() || drafts().length > 0)) {
-    <section class="drafts-section">
-      <div class="drafts-heading">
-        <span class="status-icon"><mat-icon>visibility_off</mat-icon></span>
-        <div>
-          <h2 class="mat-title-large" i18n>Admin drafts</h2>
+    <mat-expansion-panel class="drafts-section">
+      <mat-expansion-panel-header><mat-panel-title><mat-icon>visibility_off</mat-icon><span i18n>Admin drafts</span></mat-panel-title></mat-expansion-panel-header>
           <p class="mat-body-medium" i18n>
             Unpublished events are kept separate from public search results.
           </p>
-        </div>
-      </div>
       @if (draftsResource.isLoading()) {
         <p class="mat-body-medium" i18n>Loading drafts…</p>
       } @else {
@@ -194,7 +189,7 @@
           }
         </div>
       }
-    </section>
+    </mat-expansion-panel>
   }
 </main>
 

@@ -42,10 +42,11 @@
     <p class="state">{{ error() }}</p>
   } @else {
     @if (signedIn()) {
+      <app-check-in-log-prompt [sessions]="trainingSessions()" [logs]="trainingLogs()" />
       <section class="training-history">
         <header class="training-history__header">
           <div>
-            <p class="eyebrow" i18n="@@train.history.eyebrow">Your training</p>
+
             <h2 i18n="@@train.history.title">Training history</h2>
             <p class="training-history__period" i18n="@@trainingLog.summary.thisMonth">This month</p>
           </div>
@@ -78,11 +79,7 @@
           </div>
         </div>
 
-        <app-training-activity-contribution-graph
-          [days]="trainingActivityDays()"
-          [recoveryPauses]="trainingRecoveryPauses()"
-          [interactive]="false"
-        />
+
       </section>
     }
 

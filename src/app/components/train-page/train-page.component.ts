@@ -1,3 +1,6 @@
+import { CheckInLogPromptComponent } from '../check-in-log-prompt/check-in-log-prompt.component';
+import { SessionRecordsService } from '../../services/firebase/firestore/session-records.service';
+import type { SessionRecordDocument } from '../../../db/schemas/SessionRecordSchema';
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
@@ -37,11 +40,9 @@ import { getWeatherStateIcon } from "../../weather/weather-display";
 import { shouldRecommendDrySpots } from "../../weather/spot-weather-context";
 import type { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import type { LogEntryDocument } from "../../../db/schemas/LogEntrySchema";
-import type { RecoveryPauseDocument } from "../../../db/schemas/RecoveryPauseSchema";
 import { EventDiscoveryCardComponent } from "../events-page/event-discovery-card.component";
 import { FilterChipsBarComponent } from "../filter-chips-bar/filter-chips-bar.component";
 import { SpotPreviewCardComponent } from "../spot-preview-card/spot-preview-card.component";
-import { TrainingActivityContributionGraphComponent } from "../training-activity-contribution-graph/training-activity-contribution-graph.component";
 import {
   resolveTrainingCenter,
   resolveTrainingSpotRadiusKm,
@@ -69,13 +70,13 @@ import {
   summarizeTrainingMonth,
 } from "../../features/training-log-activity";
 import { LogEntriesService } from "../../services/firebase/firestore/log-entries.service";
-import { RecoveryPausesService } from "../../services/firebase/firestore/recovery-pauses.service";
 
 type SpotFilterSource = "user" | "weather" | null;
 
 @Component({
   selector: "app-train-page",
   imports: [
+    CheckInLogPromptComponent,
     RouterLink,
     MatButtonModule,
     MatIconModule,
@@ -83,7 +84,6 @@ type SpotFilterSource = "user" | "weather" | null;
     EventDiscoveryCardComponent,
     FilterChipsBarComponent,
     SpotPreviewCardComponent,
-    TrainingActivityContributionGraphComponent,
   ],
   templateUrl: "./train-page.component.html",
   styleUrl: "./train-page.component.scss",
@@ -100,8 +100,10 @@ export class TrainPageComponent {
   private readonly search = inject(SearchService);
   private readonly series = inject(SeriesService);
   private readonly weatherService = inject(WeatherService);
+  private readonly sessionsService = inject(SessionRecordsService);
+  private historyGeneration = 0;
+  readonly trainingSessions = signal<SessionRecordDocument[]>([]);
   private readonly logsService = inject(LogEntriesService);
-  private readonly recoveryPausesService = inject(RecoveryPausesService);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly loading = signal(true);
@@ -111,7 +113,6 @@ export class TrainPageComponent {
   readonly communityEvents = signal<RankedTrainingEvent[]>([]);
   readonly spots = signal<SpotPreviewData[]>([]);
   readonly trainingLogs = signal<LogEntryDocument[]>([]);
-  readonly trainingRecoveryPauses = signal<RecoveryPauseDocument[]>([]);
   readonly selectedSpotFilter = signal("");
   readonly spotFilterSource = signal<SpotFilterSource>(null);
   readonly seriesById = signal<Record<string, SeriesDocument>>({});
@@ -420,22 +421,20 @@ export class TrainPageComponent {
   }
 
   private async loadTrainingHistory(): Promise<void> {
-    if (!this.signedIn()) {
-      this.trainingLogs.set([]);
-      this.trainingRecoveryPauses.set([]);
-      return;
-    }
+    const generation = ++this.historyGeneration;
+    const uid = this.auth.user.uid;
+    this.trainingLogs.set([]);
+    this.trainingSessions.set([]);
+    if (!uid) return;
     try {
-      const [logs, recoveryPauses] = await Promise.all([
-        this.logsService.listMine(),
-        this.recoveryPausesService.listMine(),
+      const [logs, sessions] = await Promise.all([
+        this.logsService.listMine(), this.sessionsService.listMine(),
       ]);
+      if (generation !== this.historyGeneration || uid !== this.auth.user.uid) return;
       this.trainingLogs.set(logs);
-      this.trainingRecoveryPauses.set(recoveryPauses);
+      this.trainingSessions.set(sessions);
     } catch (error) {
       console.warn("[Train] training history unavailable", error);
-      this.trainingLogs.set([]);
-      this.trainingRecoveryPauses.set([]);
     }
   }
 

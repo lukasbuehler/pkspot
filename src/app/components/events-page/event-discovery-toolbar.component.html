@@ -12,59 +12,22 @@
       </mat-button-toggle-group>
     }
 
-    @if (categoryOptions().length > 0) {
-      <mat-chip-set aria-label="Filter by event category" i18n-aria-label>
-        @for (category of categoryOptions(); track category.id) {
-          <mat-chip-option
-            [selected]="selectedCategories().includes(category.id)"
-            (click)="categoryToggled.emit(category.id)"
-          >
-            <mat-icon matChipAvatar>{{ category.icon }}</mat-icon>
-            {{ category.label }}
-            <span class="filter-count">{{ category.count }}</span>
-          </mat-chip-option>
-        }
-      </mat-chip-set>
+    @if (detailChips().length > 0) {
+      <app-filter-chips-bar
+        class="detail-filters"
+        [presetFilters]="detailChips()"
+        [selectedFilters]="selectedDetails()"
+        [showFiltersChip]="false"
+        [showClearChip]="false"
+        appearance="solid"
+        selectionRole="primary"
+        ariaLabel="Filters"
+        i18n-ariaLabel="@@filters_chip_label"
+        (filterToggled)="toggleDetail($event)"
+      />
     }
 
-    @if (seriesOptions().length > 0) {
-      <mat-chip-set aria-label="Filter by event series" i18n-aria-label>
-        @for (series of seriesOptions(); track series.id) {
-          <mat-chip-option
-            [selected]="selectedSeriesIds().includes(series.id)"
-            (click)="seriesToggled.emit(series.id)"
-          >
-            @if (series.logoSrc) {
-              <span
-                matChipAvatar
-                class="series-avatar"
-                [style.background]="series.logoBackground"
-              >
-                <img [src]="series.logoSrc" alt="" />
-              </span>
-            }
-            {{ series.label }}
-            <span class="filter-count">{{ series.count }}</span>
-          </mat-chip-option>
-        }
-      </mat-chip-set>
-    }
-
-    @if (listingTierOptions().length > 0) {
-      <mat-chip-set aria-label="Filter by listing type" i18n-aria-label>
-        @for (tier of listingTierOptions(); track tier.id) {
-          <mat-chip-option
-            [selected]="selectedListingTiers().includes(tier.id)"
-            (click)="listingTierToggled.emit(tier.id)"
-          >
-            {{ tier.label }}
-            <span class="filter-count">{{ tier.count }}</span>
-          </mat-chip-option>
-        }
-      </mat-chip-set>
-    }
-
-    @if (regionOptions().length > 0) {
+    @if (regionChips().length > 0) {
       <app-filter-chips-bar
         class="region-filters"
         [presetFilters]="regionChips()"

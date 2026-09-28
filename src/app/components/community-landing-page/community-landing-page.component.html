@@ -207,103 +207,112 @@
 
     @if (!data.notFound) {
       @if (communityInfoCards().length > 0) {
-        <section class="content-section local-info-section">
-          <div class="section-heading section-heading-row">
-            <h2
-              class="mat-title-large m-0 collapsible"
-              [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
-              i18n="@@community.local_knowledge_heading"
-            >
-              Local Knowledge
-            </h2>
-            @if (canSuggestKnowledge()) {
-              <button
-                mat-icon-button
-                type="button"
-                class="d-flex"
-                [attr.aria-label]="knowledgeEditActionLabel()"
-                [matTooltip]="knowledgeEditActionLabel()"
-                (click)="startKnowledgeEdit()"
-              >
-                <mat-icon>{{ canEditKnowledge() ? "edit" : "add" }}</mat-icon>
-              </button>
-            }
-          </div>
+        <div
+          class="knowledge-reveal"
+          [style.grid-template-rows]="knowledgeRevealProgress() + 'fr'"
+          [style.opacity]="knowledgeRevealProgress()"
+          [attr.inert]="knowledgeRevealProgress() === 0 ? '' : null"
+          [attr.aria-hidden]="knowledgeRevealProgress() === 0 ? 'true' : null"
+        >
+          <div class="knowledge-reveal-content">
+            <section class="content-section local-info-section">
+              <div class="section-heading section-heading-row">
+                <h2
+                  class="mat-title-large m-0"
+                  i18n="@@community.local_knowledge_heading"
+                >
+                  Local Knowledge
+                </h2>
+                @if (canSuggestKnowledge()) {
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="d-flex"
+                    [attr.aria-label]="knowledgeEditActionLabel()"
+                    [matTooltip]="knowledgeEditActionLabel()"
+                    (click)="startKnowledgeEdit()"
+                  >
+                    <mat-icon>{{ canEditKnowledge() ? "edit" : "add" }}</mat-icon>
+                  </button>
+                }
+              </div>
 
-          <div class="local-info-grid">
-            @for (card of communityInfoCards(); track card.id) {
-              <mat-card class="local-info-card border">
-                <mat-card-content>
-                  <div class="local-info-card-header">
-                    <span class="local-info-icon" aria-hidden="true">
-                      <mat-icon>{{ card.icon }}</mat-icon>
-                    </span>
-                    <div class="local-info-title-block">
-                      <h3 class="mat-title-medium m-0">{{ card.title }}</h3>
-                      @if (card.disclosure) {
-                        <span class="local-info-disclosure">
-                          @if (card.disclosureIcon) {
-                            <mat-icon aria-hidden="true">{{
-                              card.disclosureIcon
-                            }}</mat-icon>
-                          }
-                          <span>{{ card.disclosure }}</span>
+              <div class="local-info-grid">
+                @for (card of communityInfoCards(); track card.id) {
+                  <mat-card class="local-info-card border">
+                    <mat-card-content>
+                      <div class="local-info-card-header">
+                        <span class="local-info-icon" aria-hidden="true">
+                          <mat-icon>{{ card.icon }}</mat-icon>
                         </span>
-                      }
-                    </div>
-                  </div>
+                        <div class="local-info-title-block">
+                          <h3 class="mat-title-medium m-0">{{ card.title }}</h3>
+                          @if (card.disclosure) {
+                            <span class="local-info-disclosure">
+                              @if (card.disclosureIcon) {
+                                <mat-icon aria-hidden="true">{{
+                                  card.disclosureIcon
+                                }}</mat-icon>
+                              }
+                              <span>{{ card.disclosure }}</span>
+                            </span>
+                          }
+                        </div>
+                      </div>
 
-                  @if (card.body) {
-                    <p class="mat-body-medium local-info-body">
-                      {{ card.body }}
-                    </p>
-                  }
-
-                  @if (card.cta; as cta) {
-                    <div class="local-info-actions">
-                      @if (cta.target === "url") {
-                        <a
-                          mat-stroked-button
-                          [href]="cta.url"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          (click)="trackCommunityInfoCtaClick(card, cta)"
-                        >
-                          <mat-icon>link</mat-icon>
-                          <span>{{ cta.label }}</span>
-                        </a>
-                      } @else {
-                        <a
-                          mat-stroked-button
-                          [routerLink]="cta.path"
-                          (click)="trackCommunityInfoCtaClick(card, cta)"
-                        >
-                          <mat-icon>{{
-                            cta.target === "spot" ? "place" : "event"
-                          }}</mat-icon>
-                          <span>{{ cta.label }}</span>
-                        </a>
+                      @if (card.body) {
+                        <p class="mat-body-medium local-info-body">
+                          {{ card.body }}
+                        </p>
                       }
-                    </div>
-                  } @else if (card.requiresSignInForCta) {
-                    <div class="local-info-actions">
-                      <a
-                        mat-stroked-button
-                        routerLink="/sign-in"
-                        [queryParams]="signInQueryParams()"
-                      >
-                        <mat-icon>login</mat-icon>
-                        <span i18n="@@community.sign_in_to_see_link"
-                          >Sign in to see link</span
-                        >
-                      </a>
-                    </div>
-                  }
-                </mat-card-content>
-              </mat-card>
-            }
+
+                      @if (card.cta; as cta) {
+                        <div class="local-info-actions">
+                          @if (cta.target === "url") {
+                            <a
+                              mat-stroked-button
+                              [href]="cta.url"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              (click)="trackCommunityInfoCtaClick(card, cta)"
+                            >
+                              <mat-icon>link</mat-icon>
+                              <span>{{ cta.label }}</span>
+                            </a>
+                          } @else {
+                            <a
+                              mat-stroked-button
+                              [routerLink]="cta.path"
+                              (click)="trackCommunityInfoCtaClick(card, cta)"
+                            >
+                              <mat-icon>{{
+                                cta.target === "spot" ? "place" : "event"
+                              }}</mat-icon>
+                              <span>{{ cta.label }}</span>
+                            </a>
+                          }
+                        </div>
+                      } @else if (card.requiresSignInForCta) {
+                        <div class="local-info-actions">
+                          <a
+                            mat-stroked-button
+                            routerLink="/sign-in"
+                            [queryParams]="signInQueryParams()"
+                          >
+                            <mat-icon>login</mat-icon>
+                            <span i18n="@@community.sign_in_to_see_link"
+                              >Sign in to see link</span
+                            >
+                          </a>
+                        </div>
+                      }
+                    </mat-card-content>
+                  </mat-card>
+                }
+              </div>
+            </section>
           </div>
-        </section>
+        </div>
       }
 
       @if (visibleEvents().length > 0) {

@@ -74,6 +74,8 @@ export class TrainingSessionDetailComponent {
   readonly entry = signal<LogEntryDocument | null>(null);
   readonly sessions = signal<SessionRecordDocument[]>([]);
   readonly spots = signal<TrainingSpot[]>([]);
+  readonly sessionTitle = computed(() => this.spots().map(spot => spot.name).join(' · ') ||
+    $localize`:@@trainingSessionDetail.eyebrow:Training session`);
   readonly error = signal("");
   readonly deleting = signal(false);
   readonly partners = computed(() => {
@@ -211,7 +213,7 @@ export class TrainingSessionDetailComponent {
             ...(spot.previewImageSrc() ? { imageSrc: spot.previewImageSrc() } : {}),
           } satisfies TrainingSpot;
         } catch {
-          return { id, name: visit.spot_name || id } satisfies TrainingSpot;
+          return { id, name: visit.spot_name || $localize`:@@training.spotUnavailable:Unavailable Spot` } satisfies TrainingSpot;
         }
       }),
     );

@@ -142,6 +142,9 @@ export class CommunityLandingPageComponent {
   communityDataInput = input<CommunityPanelData | null | undefined>(undefined);
   panelMode = input(false);
   openProgress = input<number>(1);
+  readonly knowledgeRevealProgress = computed(() =>
+    this.panelMode() ? Math.min(1, Math.max(0, this.openProgress())) : 1,
+  );
   backLabel = input<string | null>(null);
   backTypeLabel = input<string | null>(null);
   loading = input(false);

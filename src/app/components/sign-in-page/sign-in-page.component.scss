@@ -32,6 +32,7 @@
 
 // Compact inline language strip (no card chrome)
 .language-strip {
+  flex-wrap: wrap;
   display: flex;
   align-items: center;
   justify-content: flex-end;

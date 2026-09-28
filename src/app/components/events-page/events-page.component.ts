@@ -1,3 +1,8 @@
+import { Event as PkEvent } from '../../../db/models/Event';
+import type { EventId } from '../../../db/schemas/EventSchema';
+import type { LocaleCode } from '../../../db/models/Interfaces';
+import { Timestamp } from 'firebase/firestore';
+import { MatExpansionModule } from '@angular/material/expansion';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -97,6 +102,7 @@ type ScreenshotEventSchema = Omit<
 
 interface ScreenshotEventIndex {
   events: ScreenshotEventSchema[];
+  drafts?: ScreenshotEventSchema[];
   seriesById?: Record<string, SeriesDocument>;
 }
 
@@ -125,6 +131,7 @@ const LIST_PAGE_SIZE = 24;
 @Component({
   selector: "app-events-page",
   imports: [
+    MatExpansionModule,
     MatButtonModule,
     MatIconModule,
     ResizeObserverDirective,
@@ -469,7 +476,12 @@ export class EventsPageComponent {
   readonly draftsResource = resource({
     params: () => (this.isAdmin() ? true : undefined),
     loader: async () => {
-      if (this._screenshotEventIndex()) return [];
+      const fixture = this._screenshotEventIndex();
+      if (fixture) return (fixture.drafts ?? []).map(event => new PkEvent(event.id as EventId, {
+        ...event,
+        start: Timestamp.fromDate(new Date(event.start)),
+        end: Timestamp.fromDate(new Date(event.end)),
+      }, this._locale as LocaleCode));
       const events = await this._events.getEvents({
         includeUnpublished: true,
         sortByNext: true,

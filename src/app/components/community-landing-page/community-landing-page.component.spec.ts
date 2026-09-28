@@ -543,6 +543,33 @@ describe("CommunityLandingPageComponent", () => {
     );
   });
 
+  it("keeps knowledge out of the collapsed map peek and restores it when opened", () => {
+    fixture.componentRef.setInput("communityDataInput", {
+      ...communityData,
+      infoCards: [{ id: "chat", title: { en: "Local chat" }, category: "chat", priority: 1 }],
+    });
+    fixture.componentRef.setInput("panelMode", true);
+    fixture.componentRef.setInput("openProgress", 0);
+    fixture.detectChanges();
+    const reveal = fixture.nativeElement.querySelector(".knowledge-reveal") as HTMLElement;
+    const card = reveal.querySelector(".local-info-card");
+    expect(reveal.style.gridTemplateRows).toBe("0fr");
+    expect(reveal.hasAttribute("inert")).toBe(true);
+
+    fixture.componentRef.setInput("openProgress", 0.5);
+    fixture.detectChanges();
+    expect(reveal.style.gridTemplateRows).toBe("0.5fr");
+    expect(reveal.querySelector(".local-info-card")).toBe(card);
+    expect(reveal.hasAttribute("inert")).toBe(false);
+
+    fixture.componentRef.setInput("openProgress", 0);
+    fixture.componentRef.setInput("panelMode", false);
+    fixture.detectChanges();
+    expect(reveal.style.gridTemplateRows).toBe("1fr");
+    expect(reveal.hasAttribute("inert")).toBe(false);
+    expect(reveal.textContent).toContain("Local chat");
+  });
+
   it("shows the community knowledge contact CTA after chat cards", () => {
     fixture.componentRef.setInput("communityDataInput", {
       ...communityData,

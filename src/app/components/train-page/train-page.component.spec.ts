@@ -1,3 +1,4 @@
+import { SessionRecordsService } from '../../services/firebase/firestore/session-records.service';
 import { PLATFORM_ID, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { MatDialog } from "@angular/material/dialog";
@@ -284,7 +285,7 @@ function createComponent({
 }): TrainPageComponent {
   const auth = {
     authState$: new BehaviorSubject(authUser),
-    user: { uid: null, data: null },
+    user: { uid: authUser?.uid ?? null, data: null },
   };
 
   TestBed.configureTestingModule({
@@ -293,6 +294,7 @@ function createComponent({
       { provide: AuthenticationService, useValue: auth },
       { provide: CommunityFollowsService, useValue: follows },
       { provide: LogEntriesService, useValue: logs },
+      { provide: SessionRecordsService, useValue: { listMine: vi.fn().mockResolvedValue([]) } },
       { provide: RecoveryPausesService, useValue: recoveryPauses },
       { provide: GeolocationService, useValue: geolocation },
       { provide: LocationAccessService, useValue: locationAccess },

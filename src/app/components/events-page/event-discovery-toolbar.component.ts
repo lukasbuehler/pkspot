@@ -7,7 +7,6 @@ import {
 } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
-import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
 import type {
   EventCategory,
@@ -51,7 +50,6 @@ export interface EventRegionFilterOption {
     FilterChipsBarComponent,
     MatButtonModule,
     MatButtonToggleModule,
-    MatChipsModule,
     MatIconModule,
   ],
   templateUrl: "./event-discovery-toolbar.component.html",
@@ -69,7 +67,7 @@ export class EventDiscoveryToolbarComponent {
     [],
   );
   readonly regionOptions = input<readonly EventRegionFilterOption[]>([]);
-  readonly regionChips = computed(() => this.regionOptions().map(region => ({
+  readonly regionChips = computed(() => this.regionOptions().filter(region => region.count > 0 || this.selectedRegions().includes(region.id)).map(region => ({
     urlParam: region.id,
     label: `${region.label} ${region.count}`,
   })));
@@ -83,6 +81,32 @@ export class EventDiscoveryToolbarComponent {
   readonly selectedSeriesIds = input<readonly string[]>([]);
   readonly selectedListingTiers = input<readonly EventListingTier[]>([]);
   readonly selectedRegions = input<readonly EventRegionKey[]>([]);
+
+  readonly detailChips = computed(() => [
+    ...this.categoryOptions().filter(option => option.count > 0 || this.selectedCategories().includes(option.id)).map(option => ({
+      urlParam: `category:${option.id}`, label: `${option.label} ${option.count}`, icon: option.icon,
+    })),
+    ...this.seriesOptions().filter(option => option.count > 0 || this.selectedSeriesIds().includes(option.id)).map(option => ({
+      urlParam: `series:${option.id}`, label: `${option.label} ${option.count}`, imageSrc: option.logoSrc, imageBackground: option.logoBackground,
+    })),
+    ...this.listingTierOptions().filter(option => option.count > 0 || this.selectedListingTiers().includes(option.id)).map(option => ({
+      urlParam: `tier:${option.id}`, label: `${option.label} ${option.count}`,
+    })),
+  ]);
+  readonly selectedDetails = computed(() => [
+    ...this.selectedCategories().map(id => `category:${id}`),
+    ...this.selectedSeriesIds().map(id => `series:${id}`),
+    ...this.selectedListingTiers().map(id => `tier:${id}`),
+  ]);
+
+  toggleDetail(value: string): void {
+    const category = this.categoryOptions().find(option => `category:${option.id}` === value);
+    if (category) { this.categoryToggled.emit(category.id); return; }
+    const series = this.seriesOptions().find(option => `series:${option.id}` === value);
+    if (series) { this.seriesToggled.emit(series.id); return; }
+    const tier = this.listingTierOptions().find(option => `tier:${option.id}` === value);
+    if (tier) this.listingTierToggled.emit(tier.id);
+  }
 
   readonly periodChange = output<EventsListPeriod>();
   readonly categoryToggled = output<EventCategory>();

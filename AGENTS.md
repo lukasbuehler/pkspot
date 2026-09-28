@@ -150,6 +150,10 @@ If you hit the Codex sandbox error "Abort trap: 6", you need to run it outside t
 - Tertiary, surface variants, and outline tokens are general-purpose and can be used freely for UI structure.
 - Do not use the green accent for static decoration — overuse breaks the "this is happening live" signal.
 
+## Expansion panels
+
+- Use Angular Material `mat-expansion-panel` for expandable panels. Do not build custom disclosure panels or use native `details`/`summary` as substitutes.
+
 ## FAB menus
 
 - Use the shared `app-fab-menu` (`src/app/components/fab-menu`) for FABs that open multiple actions, as on the Events page. Do not attach a `mat-menu` or introduce another speed-dial implementation for these launchers.

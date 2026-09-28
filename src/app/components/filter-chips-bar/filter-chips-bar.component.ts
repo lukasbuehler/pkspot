@@ -28,6 +28,8 @@ export interface PresetFilterChip {
   urlParam: string;
   label: string;
   icon?: string;
+  imageSrc?: string;
+  imageBackground?: string;
 }
 
 export type FilterChipsBarAppearance = "glass" | "solid";
