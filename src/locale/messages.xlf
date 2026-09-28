@@ -1900,6 +1900,11 @@
         <source>Link to challenge copied to clipboard</source>
       </segment>
     </unit>
+    <unit id="5092426811369162632">
+      <segment>
+        <source>Selected location</source>
+      </segment>
+    </unit>
     <unit id="5092563105818406233">
       <segment>
         <source>Remove draft</source>
@@ -7626,6 +7631,11 @@
     <unit id="5324713868940196306">
       <segment>
         <source>There is already a spot at this location.</source>
+      </segment>
+    </unit>
+    <unit id="1921077401852097555">
+      <segment>
+        <source>Create Spot here</source>
       </segment>
     </unit>
     <unit id="1922856447604899399">

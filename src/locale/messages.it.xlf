@@ -3039,6 +3039,12 @@
         <target>Follow request declined</target>
       </segment>
     </unit>
+    <unit id="1921077401852097555">
+      <segment state="initial">
+        <source>Create Spot here</source>
+        <target>Crea uno Spot qui</target>
+      </segment>
+    </unit>
     <unit id="1922856447604899399">
       <segment state="initial">
         <source>What do you need to do?</source>
@@ -12655,6 +12661,12 @@
       <segment state="initial">
         <source>Link to challenge copied to clipboard</source>
         <target>Link al Challenge copiato negli appunti</target>
+      </segment>
+    </unit>
+    <unit id="5092426811369162632">
+      <segment state="initial">
+        <source>Selected location</source>
+        <target>Posizione selezionata</target>
       </segment>
     </unit>
     <unit id="5092563105818406233">

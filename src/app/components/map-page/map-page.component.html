@@ -135,6 +135,7 @@
   @if (mapsService.isApiLoaded()) {
     @defer {
       <app-spot-map
+        [allowLocationSelection]="true"
         @fadeInOut
         #spotMap
         id="spotMap"

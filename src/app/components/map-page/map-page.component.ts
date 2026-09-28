@@ -239,6 +239,7 @@ const DENSE_MAP_PERFORMANCE_VARIANTS = new Set<DenseMapPerformanceVariant>([
   selector: "app-map-page",
   host: {
     "[class.map-with-bottom-sheet]": "usesMapBottomSheet()",
+    "[class.map-with-overlay-panel]": "usesOverlayMapDrawer() && sidenavOpen()",
     "[style.--map-sheet-closed-height.px]": "mapSheetClosedHeight()",
   },
   templateUrl: "./map-page.component.html",

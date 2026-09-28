@@ -1,7 +1,11 @@
+import { MatButtonModule } from "@angular/material/button";
+import { observeMapLongPress } from "./map-long-press";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import {
   OnInit,
+  afterNextRender,
+  Injector,
   ChangeDetectorRef,
   Component,
   ElementRef,
@@ -254,6 +258,7 @@ interface WatchedMapCanvas {
     MapPresenceDotMarkerComponent,
     SpotPreviewMarkerComponent,
     MatSnackBarModule,
+    MatButtonModule,
   ],
   animations: [
     trigger("fadeInOut", [
@@ -704,7 +709,70 @@ export class GoogleMap2dComponent
     };
   }
 
+  readonly allowLocationSelection = input(false);
+  readonly createSpotAt = output<google.maps.LatLngLiteral>();
+  readonly droppedLocation = signal<google.maps.LatLngLiteral | null>(null);
+  readonly droppedLocations = computed(() => {
+    const location = this.droppedLocation();
+    return location ? [location] : [];
+  });
+  private readonly locationRenderInjector = injectFeatureTelemetry(Injector);
+  private removeLongPress?: () => void;
+  private longPressMap?: google.maps.Map;
+
+  createAtDroppedLocation() {
+    const location = this.droppedLocation();
+    if (!location) return;
+    this.droppedLocation.set(null);
+    this.createSpotAt.emit(location);
+  }
+
+  navigateToDroppedLocation() {
+    const location = this.droppedLocation();
+    if (location) this.mapsApiService.openDirectionsInMaps(location);
+  }
+
+  private attachLongPress() {
+    const map = this.googleMap?.googleMap;
+    if (!map || this.longPressMap === map) return;
+    this.removeLongPress?.();
+    this.longPressMap = map;
+    // The projection converts the touched pixel into a location, including after pans/zooms.
+    const overlay = new google.maps.OverlayView();
+    overlay.onAdd = () => {};
+    overlay.draw = () => {};
+    overlay.onRemove = () => {};
+    overlay.setMap(map);
+    const detach = observeMapLongPress(map.getDiv(),
+      () => this.allowLocationSelection() && !this.isEditing(),
+      (x, y) => {
+        const rect = map.getDiv().getBoundingClientRect();
+        const location = overlay.getProjection()?.fromContainerPixelToLatLng(
+          new google.maps.Point(x - rect.left, y - rect.top));
+        if (!location) return;
+        const point = location.toJSON();
+        this.droppedLocation.set(point);
+        afterNextRender(() => {
+          if (this.droppedLocation() !== point) return;
+          const card = this._hostElement.nativeElement.querySelector<HTMLElement>(".dropped-location-actions");
+          const pixel = overlay.getProjection()?.fromLatLngToContainerPixel(location);
+          if (!card || !pixel) return;
+          const box = card.getBoundingClientRect();
+          const mapBox = map.getDiv().getBoundingClientRect();
+          const pinX = mapBox.left + pixel.x;
+          const pinY = mapBox.top + pixel.y;
+          // Keep the newly dropped pin visible if the action card covers the chosen pixel.
+          if (pinX >= box.left - 20 && pinX <= box.right + 20 &&
+              pinY >= box.top - 8 && pinY <= box.bottom + 40) {
+            map.panBy(0, pinY - box.top + 40);
+          }
+        }, { injector: this.locationRenderInjector });
+      });
+    this.removeLongPress = () => { detach(); overlay.setMap(null); };
+  }
+
   onMapClick(event: google.maps.MapMouseEvent | google.maps.IconMouseEvent) {
+    this.droppedLocation.set(null);
     if (!event.latLng) return;
 
     // Check if it's a POI click (IconMouseEvent has placeId)
@@ -1930,7 +1998,8 @@ export class GoogleMap2dComponent
     this._updateMapConfig();
   }
 
-  onMapReady() {
+  onMapReady(initializedMap?: GoogleMap) {
+    if (initializedMap) this.googleMap = initializedMap;
     if (!this.googleMap) {
       console.error("GoogleMap component is not available!");
       return;
@@ -1959,6 +2028,7 @@ export class GoogleMap2dComponent
       this._hasInitializedNativeMap = true;
     }
 
+    this.attachLongPress();
     this._ensurePassiveGeolocationWatch();
 
     const boundRestriction = this.boundRestriction();
@@ -2203,6 +2273,7 @@ export class GoogleMap2dComponent
   }
 
   ngOnDestroy() {
+    this.removeLongPress?.();
     if (this.isApiLoadedSubscription)
       this.isApiLoadedSubscription.unsubscribe();
     if (this.consentSubscription) this.consentSubscription.unsubscribe();

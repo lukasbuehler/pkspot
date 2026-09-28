@@ -293,3 +293,7 @@ mat-drawer-container.sidenav-open .map-context-host {
   width: 0;
   height: calc(90px + max(var(--navigation-bottom-clearance, 0px), var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))));
 }
+
+:host.map-with-overlay-panel {
+  --map-side-obstruction: var(--map-overlay-panel-width);
+}

@@ -4,6 +4,7 @@
     id="googleMap"
     [options]="mapOptions"
     (mapClick)="onMapClick($event)"
+    (mapInitialized)="onMapReady(googleMap)"
     width="100%"
     height="100%"
     class="postition-relative"
@@ -147,6 +148,12 @@
         [paths]="selectedSpotFirstPath()"
         (polygonClick)="spotClick.emit(selectedSpot()!)"
       ></map-polygon>
+    }
+    @if (allowLocationSelection() && !isEditing()) {
+      @for (location of droppedLocations(); track location) {
+        <div #locationPin class="dropped-location-pin" aria-hidden="true"></div>
+        <map-advanced-marker [position]="location" [content]="locationPin" [zIndex]="10000" />
+      }
     }
     <!-- selected spot marker -->
     @if (selectedSpot()) {
@@ -426,6 +433,15 @@
     >
       Amenity data © OpenStreetMap contributors
     </a>
+  }
+  @if (allowLocationSelection() && !isEditing() && droppedLocation()) {
+    <section class="dropped-location-actions" data-location-actions (keydown.escape)="droppedLocation.set(null)" aria-label="Selected location" i18n-aria-label>
+      <div class="location-heading"><strong i18n>Selected location</strong><button mat-button (click)="droppedLocation.set(null)" i18n>Close</button></div>
+      <div class="location-buttons">
+        <button mat-flat-button (click)="createAtDroppedLocation()" i18n>Create Spot here</button>
+        <button mat-stroked-button (click)="navigateToDroppedLocation()" i18n>Directions</button>
+      </div>
+    </section>
   }
 } @else {
   <div

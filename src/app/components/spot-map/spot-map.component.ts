@@ -171,6 +171,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     NonNullable<google.maps.MapOptions["gestureHandling"]>
   >("greedy");
   isClickable = input<boolean>(true);
+  readonly allowLocationSelection = input(false);
   showAmenities = input<boolean>(false);
   centerStart = input<google.maps.LatLngLiteral | null>(null);
   showSpotPreview = input<boolean>(false);

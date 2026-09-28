@@ -141,3 +141,42 @@
   left: var(--map-attribution-left) !important;
   margin: 0 !important;
 }
+
+.dropped-location-pin {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--mat-sys-on-primary);
+  border-radius: 50% 50% 50% 0;
+  background: var(--mat-sys-primary);
+  box-shadow: var(--mat-sys-level2);
+  transform: rotate(-45deg);
+  animation: location-drop 240ms ease-out;
+}
+@keyframes location-drop {
+  from { opacity: 0; translate: 0 -30px; }
+  to { opacity: 1; translate: 0 0; }
+}
+.dropped-location-actions {
+  position: absolute;
+  z-index: 5;
+  bottom: calc(var(--map-attribution-bottom) + 160px);
+  left: auto;
+  right: max(16px, var(--safe-area-inset-right, env(safe-area-inset-right, 0px)));
+  width: max-content;
+  max-width: calc(100% - var(--map-side-obstruction, 0px) - 32px - var(--safe-area-inset-right, env(safe-area-inset-right, 0px)) - var(--safe-area-inset-left, env(safe-area-inset-left, 0px)));
+  max-height: calc(100% - var(--map-attribution-bottom) - 280px);
+  overflow-y: auto;
+  margin-inline: 0;
+  padding: 12px 16px 16px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 24px;
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+  box-shadow: var(--mat-sys-level3);
+  .location-heading, .location-buttons { display: flex; align-items: center; gap: 12px; }
+  .location-heading { justify-content: space-between; }
+  .location-buttons { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dropped-location-pin { animation: none; }
+}
