@@ -1,11 +1,16 @@
-<h2 mat-dialog-title>
-  @if (isEditing) {
-    <span i18n>Edit report for '{{ data.spotName }}'</span>
-  } @else {
-    <span i18n>Report Spot '{{ data.spotName }}'</span>
-  }
-</h2>
+<h2 mat-dialog-title><span i18n>Report Spot '{{ data.spotName }}'</span></h2>
 <mat-dialog-content>
+  @if (loading()) {
+    <div class="loading-overlay" role="status">
+      <mat-spinner diameter="40" aria-label="Loading your report" i18n-aria-label />
+    </div>
+  } @else if (loadError()) {
+    <div class="loading-overlay" role="alert">
+      <p i18n>Your report could not be loaded. Please try again.</p>
+      <button mat-button (click)="loadReport()" i18n>Try again</button>
+    </div>
+  }
+  <div class="report-fields" [class.concealed]="loading() || loadError()" [attr.inert]="loading() || loadError() ? '' : null">
   <p i18n>Select every reason that applies. Your report and identity are visible only to moderators.</p>
   <div class="d-flex flex-column gap-2">
     @for (reason of reasons; track reason.value) {
@@ -34,7 +39,15 @@
   }
 
   <mat-form-field class="w-100 pt-3" appearance="outline">
-    <mat-label i18n>More details (optional)</mat-label>
+    <mat-label i18n>Language</mat-label>
+    <mat-select [value]="commentLocale()" [disabled]="isSubmitting()" (selectionChange)="commentLocale.set($event.value)">
+      @for (language of languages; track language.code) {
+        <mat-option [value]="language.code">{{ language.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field class="w-100 pt-3" appearance="outline">
+    <mat-label i18n>Private details (optional)</mat-label>
     <textarea
       matInput
       rows="4"
@@ -50,22 +63,19 @@
   </mat-form-field>
 
   <p class="mat-body pt-1" i18n>
-    A moderator may publish a separate warning on the Spot without identifying you.
+    This note is private and visible only to you and moderators. A moderator may publish a separate warning without including your note or identity.
   </p>
   @if (submissionError()) {
     <p class="mat-body-medium text-danger" role="alert" i18n>
       Your report could not be saved. Please check your connection and try again.
     </p>
   }
+  </div>
 </mat-dialog-content>
 <mat-dialog-actions class="d-flex justify-content-between p-3">
-  @if (isEditing) {
-    <button matButton="text" color="warn" [disabled]="isSubmitting()" (click)="withdrawReport()" i18n>
+    <button [class.concealed]="!isEditing || loading() || loadError()" matButton="text" color="warn" [disabled]="isSubmitting()" (click)="withdrawReport()" i18n>
       Withdraw report
     </button>
-  } @else {
-    <span></span>
-  }
   <div class="d-flex gap-2">
     <button matButton="outlined" [disabled]="isSubmitting()" (click)="onNoClick()" i18n="cancel button label">
       Cancel
@@ -80,7 +90,7 @@
       @if (isSubmitting()) {
         <span i18n>Saving...</span>
       } @else if (isEditing) {
-        <span i18n>Update report</span>
+        <span i18n>Edit report</span>
       } @else {
         <span i18n>Submit report</span>
       }

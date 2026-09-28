@@ -723,11 +723,6 @@ export class SpotDetailsComponent
   ownReport = signal<OwnReportSummary | null>(null);
   private _latestOwnReportRequestSpotId: string | null = null;
   currentReport = computed(() => {
-    const privateReport = this.report();
-    if (this.isAdmin() && privateReport) {
-      return privateReport;
-    }
-
     const spot = this.spot();
     if (spot instanceof Spot && spot.isReported) {
       return {
@@ -1913,6 +1908,9 @@ export class SpotDetailsComponent
       report_count: spot.reportCount,
     });
     const dialogRef = this.dialog.open(SpotReportDialogComponent, {
+      width: "560px",
+      maxWidth: "calc(100vw - 32px)",
+      height: "min(780px, calc(100dvh - 32px))",
       data: {
         spotId: spot.id,
         spotName: spot.name(),

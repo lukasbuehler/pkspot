@@ -90,6 +90,7 @@ export interface ModerationContactMessageItem {
 export interface ModerationDuplicateSpot {
   id: string;
   label: string;
+  createdAtMillis?: number;
 }
 
 export interface ModerationDuplicateGroup {
@@ -98,7 +99,7 @@ export interface ModerationDuplicateGroup {
   closestDistanceMeters: number;
 }
 
-type DuplicateSpotDocument = Partial<Pick<SpotSchema, "name" | "duplicate_check">> & {
+type DuplicateSpotDocument = Partial<Pick<SpotSchema, "name" | "duplicate_check" | "time_created">> & {
   id: string;
 };
 
@@ -128,7 +129,10 @@ export const groupDuplicateSpotCandidates = (
   };
 
   for (const document of documents) {
-    spots.set(document.id, {id: document.id, label: spotLabel(document)});
+    spots.set(document.id, {
+      id: document.id, label: spotLabel(document),
+      ...(document.time_created ? {createdAtMillis: document.time_created.seconds * 1000} : {}),
+    });
     for (const candidate of document.duplicate_check?.candidates ?? []) {
       // Candidate arrays are scan snapshots. A referenced Spot may since have
       // been deleted or cleared by a newer scan, so only connect documents that
@@ -138,6 +142,7 @@ export const groupDuplicateSpotCandidates = (
       spots.set(candidate.spot_id, {
         id: candidate.spot_id,
         label: current?.label ?? candidate.name ?? candidate.spot_id,
+        ...(current?.createdAtMillis !== undefined ? {createdAtMillis: current.createdAtMillis} : {}),
       });
       connect(document.id, candidate.spot_id, candidate.distance_m);
     }
@@ -252,6 +257,8 @@ export class ModerationReportsService {
   }
 
   async getDuplicateSpotGroups(): Promise<ModerationDuplicateGroup[]> {
+    const fixture = (globalThis as {__PKSPOT_SCREENSHOT_DUPLICATES__?: ModerationDuplicateGroup[]}).__PKSPOT_SCREENSHOT_DUPLICATES__;
+    if (fixture) return fixture;
     const spots: DuplicateSpotDocument[] = [];
     let cursor: unknown;
     do {

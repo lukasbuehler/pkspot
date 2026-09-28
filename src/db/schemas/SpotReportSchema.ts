@@ -28,6 +28,7 @@ export interface SpotReportSchema {
   duplicateOf?: SpotData;
   /** Private reporter context; never copied to a public Spot warning. */
   comment?: string;
+  comment_locale?: string;
   user: ModerationReporterSchema;
   createdAt?: unknown;
   status?: ReportModerationStatus;

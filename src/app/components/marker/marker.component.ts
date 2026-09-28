@@ -67,6 +67,7 @@ export class MarkerComponent {
   clickable = input<boolean>(false);
   isIconic = input<boolean>(false);
   isCheckIn = input<boolean>(false);
+  reported = input(false);
   color = input<MapMarkerColor>("primary");
   variant = input<MarkerVariant>("pin");
   size = input<number>(1);

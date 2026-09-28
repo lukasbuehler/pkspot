@@ -74,6 +74,10 @@ form {
 
 .spot-title-text {
   min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  // Keep preview and resolved media aligned when header badges make the name wrap.
+  min-height: 2lh;
 }
 
 .spot-kind-label {
@@ -192,19 +196,6 @@ app-img-carousel {
   flex-basis: 0;
 }
 
-.report-info {
-  margin-left: -16px;
-  margin-right: -16px;
-  padding: 16px;
-  display: flex;
-  justify-content: center;
-  background-color: var(--mat-sys-error-container);
-  margin-bottom: 10px;
-
-  > * {
-    color: var(--mat-sys-on-error-container);
-  }
-}
 
 div.hist-grid-container {
   display: grid;

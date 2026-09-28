@@ -421,6 +421,16 @@
   ],
   "fieldOverrides": [
     {
+      "collectionGroup": "reports",
+      "fieldPath": "user.uid",
+      "indexes": [
+        { "queryScope": "COLLECTION", "order": "ASCENDING" },
+        { "queryScope": "COLLECTION", "order": "DESCENDING" },
+        { "queryScope": "COLLECTION", "arrayConfig": "CONTAINS" },
+        { "queryScope": "COLLECTION_GROUP", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "notifications",
       "fieldPath": "expires_at",
       "ttl": true,

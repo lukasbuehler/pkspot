@@ -66,8 +66,8 @@ runWithEmulator("Spot report lifecycle", () => {
     const submit = httpsCallable<SubmitSpotReportRequest, SubmitSpotReportResponse>(functions, "submitSpotReport");
 
     const [first, retry] = await Promise.all([
-      submit({spotId, reasons: ["private"], comment: ""}),
-      submit({spotId, reasons: ["torn down"], comment: ""}),
+      submit({spotId, reasons: ["private"], comment: "", comment_locale: "de"}),
+      submit({spotId, reasons: ["torn down"], comment: "", comment_locale: "de"}),
     ]);
     const reports = await db.collection(`spots/${spotId}/reports`).get();
     const reportId = first.data.reportId;
@@ -81,7 +81,7 @@ runWithEmulator("Spot report lifecycle", () => {
       "listMyReports",
     );
     await expect(listMine({})).resolves.toEqual({
-      data: {reports: [expect.objectContaining({id: reportId, reasons: expect.any(Array), status: "open"})]},
+      data: {reports: [expect.objectContaining({id: reportId, reasons: expect.any(Array), status: "open", comment_locale: "de"})]},
     });
 
     await expect(submit({spotId, reasons: ["other"], comment: ""})).rejects.toThrow(/comment is required/i);
@@ -91,7 +91,7 @@ runWithEmulator("Spot report lifecycle", () => {
       functions,
       "withdrawOwnSpotReport",
     );
-    await expect(withdraw({kind: "spot", spotId, reportId})).resolves.toEqual({withdrawn: true});
+    await expect(withdraw({kind: "spot", spotId, reportId})).resolves.toEqual({data: {withdrawn: true}});
     expect((await db.doc(`spots/${spotId}/reports/${reportId}`).get()).data()?.["status"]).toBe("withdrawn");
 
     const later = await submit({spotId, reasons: ["does not exist"], comment: ""});

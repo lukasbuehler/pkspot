@@ -33,6 +33,8 @@ interface ResolveSpotReportRequest {
 }
 
 const discordWebhookUrl = defineSecret("DISCORD_WEBHOOK_URL");
+const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
+const reportSecrets = isEmulator ? [] : [discordWebhookUrl];
 const SPOT_COMMENT_MAXIMUM = 1_000;
 
 const cleanText = (
@@ -106,6 +108,7 @@ const reportSummary = (
     status: safeStatus,
     reasons: reportReasons(data),
     comment: stringValue(data["comment"]) ?? "",
+    ...(stringValue(data["comment_locale"]) ? {comment_locale: stringValue(data["comment_locale"])} : {}),
     ...(data["createdAt"] ? {createdAt: data["createdAt"]} : {}),
     ...(data["updated_at"] ? {updatedAt: data["updated_at"]} : {}),
     ...(data["withdrawn_at"] ? {withdrawnAt: data["withdrawn_at"]} : {}),
@@ -153,6 +156,7 @@ const sendSpotReportDiscord = async (
   reportId: string,
   report: UnknownRecord,
 ): Promise<void> => {
+  if (isEmulator) return;
   const webhookUrl = discordWebhookUrl.value();
   if (!webhookUrl) {
     logger.error("DISCORD_WEBHOOK_URL secret not set. Set it with: firebase functions:secrets:set DISCORD_WEBHOOK_URL");
@@ -201,7 +205,7 @@ const sendSpotReportDiscord = async (
  * into one canonical report until it is safe to reject the legacy path.
  */
 export const onSpotReportCreate = onDocumentCreated(
-  {document: "spots/{spotId}/reports/{reportId}", secrets: [discordWebhookUrl]},
+  {document: "spots/{spotId}/reports/{reportId}", secrets: reportSecrets},
   async (event) => {
     const source = event.data;
     if (!source) return;
@@ -267,6 +271,7 @@ export const onSpotReportCreate = onDocumentCreated(
 );
 
 export const submitSpotReport = onCall<SubmitSpotReportRequest, Promise<SubmitSpotReportResponse>>(
+  {secrets: reportSecrets},
   async (request) => {
     const uid = request.auth?.uid;
     if (!uid) throw new HttpsError("unauthenticated", "Sign in to report a Spot.");
@@ -278,12 +283,18 @@ export const submitSpotReport = onCall<SubmitSpotReportRequest, Promise<SubmitSp
       throw new HttpsError("invalid-argument", "duplicateOf is only allowed with the duplicate reason.");
     }
 
+    const commentLocale = cleanText(request.data?.comment_locale, "comment_locale", 35, false);
+    if (commentLocale && !/^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/.test(commentLocale)) {
+      throw new HttpsError("invalid-argument", "Invalid comment language.");
+    }
     const db = admin.firestore();
     const spotRef = db.doc(`spots/${spotId}`);
     const claimRef = db.doc(`report_claims/${reportClaimId("spot", uid, spotId)}`);
     let reportRef: admin.firestore.DocumentReference | undefined;
     let created = false;
     await db.runTransaction(async (transaction) => {
+      // Firestore may retry after a concurrent report claimed this target.
+      created = false;
       const [spot, claim, reports] = await Promise.all([
         transaction.get(spotRef),
         transaction.get(claimRef),
@@ -305,6 +316,7 @@ export const submitSpotReport = onCall<SubmitSpotReportRequest, Promise<SubmitSp
           reasons,
           reason: reasons[0],
           comment,
+          ...(commentLocale ? {comment_locale: commentLocale} : {}),
           ...(duplicateOf ? {duplicateOf} : {duplicateOf: FieldValue.delete()}),
           updated_at: now,
         });
@@ -325,6 +337,7 @@ export const submitSpotReport = onCall<SubmitSpotReportRequest, Promise<SubmitSp
         reasons,
         reason: reasons[0],
         comment,
+        ...(commentLocale ? {comment_locale: commentLocale} : {}),
         ...(duplicateOf ? {duplicateOf} : {}),
         user: {uid},
         createdAt: now,

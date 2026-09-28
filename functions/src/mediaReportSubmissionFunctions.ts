@@ -337,6 +337,8 @@ export const submitMediaReport = onCall(
     let created = false;
     const now = Timestamp.now();
     await db.runTransaction(async (transaction) => {
+      // Only the committed attempt determines whether intake is new.
+      created = false;
       const claimRef = uid ?
         db.doc(`report_claims/${reportClaimId("media", uid, targetKey)}`) :
         undefined;

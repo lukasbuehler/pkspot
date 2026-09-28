@@ -8,6 +8,19 @@ interface FieldOverride {
 }
 
 describe("Firestore index contracts", () => {
+  it("supports listing a user's reports across Spot and media collections", () => {
+    const config = JSON.parse(readFileSync("firestore.indexes.json", "utf8")) as {
+      fieldOverrides: FieldOverride[];
+    };
+    const index = config.fieldOverrides.find(
+      field => field.collectionGroup === "reports" && field.fieldPath === "user.uid",
+    );
+    expect(index?.indexes).toContainEqual({
+      order: "ASCENDING",
+      queryScope: "COLLECTION_GROUP",
+    });
+  });
+
   it.each(["registrations", "rsvps"])(
     "supports %s notification migration lookups by user",
     (collectionGroup) => {

@@ -217,7 +217,12 @@ runWithEmulator("media report submission callable", () => {
       targetId: uid,
     };
 
-    const first = await submit({...target, reasons: ["bad quality"]});
+    const [first, retry] = await Promise.all([
+      submit({...target, reasons: ["bad quality"]}),
+      submit({...target, reasons: ["bad quality"]}),
+    ]);
+    expect(retry.data.reportId).toBe(first.data.reportId);
+    expect([first.data.created, retry.data.created].filter(Boolean)).toHaveLength(1);
     const updated = await submit({...target, reasons: ["bad quality", "other"]});
     const report = await waitForReport(
       first.data.reportId,

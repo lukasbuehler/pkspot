@@ -61,7 +61,7 @@ describe("public Spot warnings", () => {
     });
   });
 
-  it("keeps private report text admin-only and localizes ordinary Spot warnings", () => {
+  it("uses localized public warnings for everyone, including administrators", () => {
     const source = readFileSync(
       join(
         process.cwd(),
@@ -73,7 +73,7 @@ describe("public Spot warnings", () => {
       /currentReport = computed\([\s\S]*?\n  private _latestReportRequestSpotId/,
     )?.[0];
 
-    expect(currentReport).toContain("this.isAdmin() && privateReport");
+    expect(currentReport).not.toContain("this.report()");
     expect(currentReport).toContain("localizedPublicSpotWarning(");
   });
 

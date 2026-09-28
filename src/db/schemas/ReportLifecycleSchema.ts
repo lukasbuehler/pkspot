@@ -5,6 +5,7 @@ export interface SubmitSpotReportRequest {
   spotId: string;
   reasons: SpotReportReason[];
   comment?: string;
+  comment_locale?: string;
   duplicateOf?: { id: string; name?: string };
 }
 
@@ -30,6 +31,7 @@ export interface OwnReportSummary {
   status: "open" | "resolved" | "dismissed" | "withdrawn";
   reasons: (SpotReportReason | MediaReportReason | string)[];
   comment: string;
+  comment_locale?: string;
   createdAt?: unknown;
   updatedAt?: unknown;
   withdrawnAt?: unknown;

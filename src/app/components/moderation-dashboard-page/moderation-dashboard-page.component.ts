@@ -91,7 +91,6 @@ export class ModerationDashboardPageComponent implements OnDestroy {
   readonly organizationSpotEdits = signal<ModerationSpotEditQueueItem[]>([]);
   readonly spotCreationDiagnostics = signal<SpotCreationDiagnosticsResponse | null>(null);
   readonly duplicateSpotGroups = signal<ModerationDuplicateGroup[]>([]);
-  readonly showAllDuplicateGroups = signal(false);
   private readonly _authSubscription: Subscription;
 
   readonly openReportCount = computed(
@@ -132,11 +131,6 @@ export class ModerationDashboardPageComponent implements OnDestroy {
       this.openReportCount() +
       this.pendingCommunityQueueCount() +
       this.duplicateSpotGroups().length,
-  );
-  readonly visibleDuplicateSpotGroups = computed(() =>
-    this.showAllDuplicateGroups()
-      ? this.duplicateSpotGroups()
-      : this.duplicateSpotGroups().slice(0, 8),
   );
   readonly openDuplicateReportCount = computed(
     () =>

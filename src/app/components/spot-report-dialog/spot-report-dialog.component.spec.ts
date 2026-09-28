@@ -16,6 +16,8 @@ import {
   MatDialogTitle,
 } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { MatSelectModule } from "@angular/material/select";
 import { MatInputModule } from "@angular/material/input";
 import { By } from "@angular/platform-browser";
 import { AnalyticsService } from "../../services/analytics.service";
@@ -40,6 +42,7 @@ describe("SpotReportDialogComponent", () => {
   let fixture: ComponentFixture<SpotReportDialogComponent>;
   const dialogRef = { close: vi.fn(), disableClose: false };
   const spotReports = {
+    getOwnSpotReport: vi.fn().mockResolvedValue(null),
     submitSpotReport: vi.fn(),
     withdrawOwnSpotReport: vi.fn(),
   };
@@ -67,6 +70,8 @@ describe("SpotReportDialogComponent", () => {
           MatDialogTitle,
           MatFormFieldModule,
           MatInputModule,
+          MatSelectModule,
+          MatProgressSpinnerModule,
           EntityReferenceAutocompleteStub,
         ],
       },
@@ -74,6 +79,17 @@ describe("SpotReportDialogComponent", () => {
     await TestBed.compileComponents();
     fixture = TestBed.createComponent(SpotReportDialogComponent);
     await fixture.whenStable();
+  });
+
+  it("keeps the title and fields mounted behind the loading spinner", () => {
+    const title = fixture.nativeElement.querySelector("h2").textContent;
+    const textarea = fixture.nativeElement.querySelector("textarea");
+    fixture.componentInstance.loading.set(true);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector("mat-spinner")).not.toBeNull();
+    expect(fixture.nativeElement.querySelector("textarea")).toBe(textarea);
+    expect(fixture.nativeElement.querySelector(".report-fields").hasAttribute("inert")).toBe(true);
+    expect(fixture.nativeElement.querySelector("h2").textContent).toBe(title);
   });
 
   it("uses the Spot autocomplete and excludes the reported Spot", () => {
@@ -118,9 +134,36 @@ describe("SpotReportDialogComponent", () => {
       spotId: "reported-id",
       reasons: ["duplicate", "private"],
       comment: "",
+      comment_locale: "en",
       duplicateOf: {id: "duplicate-id", name: "Duplicate Spot"},
     });
     expect(dialogRef.close).toHaveBeenCalledWith({reportId: "report-id", created: true});
+  });
+
+  it("loads an existing report before allowing edits or withdrawal", async () => {
+    const report = {id: "existing", kind: "spot", status: "open", reasons: ["torn down"], comment: "Removed", comment_locale: "de"} as const;
+    spotReports.getOwnSpotReport.mockResolvedValueOnce(report);
+    const component = fixture.componentInstance;
+    const loading = component.loadReport();
+    expect(component.canSubmit()).toBe(false);
+    await loading;
+    fixture.detectChanges();
+    expect(component.isEditing).toBe(true);
+    expect(component.comment()).toBe("Removed");
+    expect(component.commentLocale()).toBe("de");
+    expect(fixture.nativeElement.textContent).toContain("Edit report");
+    spotReports.withdrawOwnSpotReport.mockResolvedValueOnce({withdrawn: true});
+    await component.withdrawReport();
+    expect(spotReports.withdrawOwnSpotReport).toHaveBeenCalledWith("reported-id", "existing");
+  });
+
+  it("blocks submission after a failed lookup instead of silently creating a report", async () => {
+    spotReports.getOwnSpotReport.mockRejectedValueOnce(new Error("offline"));
+    const component = fixture.componentInstance;
+    await component.loadReport();
+    component.selectedReasons.set(["private"]);
+    expect(component.loadError()).toBe(true);
+    expect(component.canSubmit()).toBe(false);
   });
 
   it("requires details for Other", () => {

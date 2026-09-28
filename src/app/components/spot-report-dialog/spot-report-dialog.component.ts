@@ -3,6 +3,7 @@ import { FeatureTelemetryService } from "../../services/feature-telemetry.servic
 import {
   ChangeDetectionStrategy,
   Component,
+  LOCALE_ID,
   inject,
   signal,
 } from "@angular/core";
@@ -17,6 +18,9 @@ import {
 } from "@angular/material/dialog";
 import { FormsModule } from "@angular/forms";
 import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { MatSelectModule } from "@angular/material/select";
+import { languageCodes } from "../../../scripts/Languages";
 import { MatInputModule } from "@angular/material/input";
 import type { SpotReportReason } from "../../../db/schemas/SpotReportSchema";
 import type { OwnReportSummary } from "../../../db/schemas/ReportLifecycleSchema";
@@ -50,6 +54,8 @@ export interface SpotReportDialogResult {
     FormsModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
+    MatProgressSpinnerModule,
     EntityReferenceAutocompleteComponent,
   ],
   templateUrl: "./spot-report-dialog.component.html",
@@ -63,6 +69,13 @@ export class SpotReportDialogComponent {
   readonly dialogRef = inject(MatDialogRef<SpotReportDialogComponent>);
   private readonly _spotReportsService = inject(SpotReportsService);
   private readonly _analytics = inject(AnalyticsService);
+  readonly report = signal(this.data.report ?? null);
+  readonly loading = signal(true);
+  readonly loadError = signal(false);
+  readonly commentLocale = signal(inject(LOCALE_ID).split("-")[0]);
+  readonly languages = Object.entries(languageCodes).map(([code, language]) => ({
+    code, name: language.name_native ?? language.name_english,
+  }));
   readonly isSubmitting = signal(false);
   readonly submissionError = signal(false);
   readonly selectedReasons = signal<string[]>(this.data.report?.reasons ?? []);
@@ -79,7 +92,29 @@ export class SpotReportDialogComponent {
   ] as const;
 
   get isEditing(): boolean {
-    return Boolean(this.data.report?.id);
+    return Boolean(this.report()?.id);
+  }
+
+  constructor() {
+    void this.loadReport();
+  }
+
+  async loadReport(): Promise<void> {
+    this.loading.set(true);
+    this.loadError.set(false);
+    try {
+      const report = await this._spotReportsService.getOwnSpotReport(this.data.spotId);
+      this.report.set(report);
+      this.selectedReasons.set(report?.reasons ?? []);
+      this.comment.set(report?.comment ?? "");
+      if (report?.comment_locale) this.commentLocale.set(report.comment_locale);
+      this.duplicateSpotId.set(report?.duplicateOf?.id ?? "");
+      this.duplicateSpotName.set(report?.duplicateOf?.name ?? "");
+    } catch {
+      this.loadError.set(true);
+    } finally {
+      this.loading.set(false);
+    }
   }
 
   onNoClick(): void {
@@ -111,7 +146,7 @@ export class SpotReportDialogComponent {
 
   canSubmit(): boolean {
     const reasons = this.selectedReasons();
-    return reasons.length > 0 &&
+    return !this.loading() && !this.loadError() && reasons.length > 0 &&
       (!reasons.includes("duplicate") || Boolean(this.duplicateSpotId())) &&
       (!reasons.includes("other") || Boolean(this.comment().trim()));
   }
@@ -131,6 +166,7 @@ export class SpotReportDialogComponent {
         spotId: this.data.spotId,
         reasons: this.selectedReasons() as SpotReportReason[],
         comment: this.comment().trim(),
+        comment_locale: this.commentLocale(),
         ...(this.selectedReasons().includes("duplicate") ? {
           duplicateOf: {
             id: this.duplicateSpotId(),
@@ -154,7 +190,7 @@ export class SpotReportDialogComponent {
   }
 
   async withdrawReport(): Promise<void> {
-    const reportId = this.data.report?.id;
+    const reportId = this.report()?.id;
     if (!reportId || this.isSubmitting()) return;
     this.isSubmitting.set(true);
     this.dialogRef.disableClose = true;
