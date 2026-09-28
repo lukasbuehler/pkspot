@@ -219,6 +219,21 @@ runWithEmulator("private check-in callables", () => {
     await expect(client.confirm(request(firstSpot))).rejects.toThrow(/cannot check in/i);
   }, 90_000);
 
+  it("bridges an older client's check-in into private visited history without public activity", async () => {
+    const client = await authenticatedCallable();
+    const spotId = `legacy-only-${client.uid}`;
+    await seedSpot(spotId);
+    await db().doc(`users/${client.uid}/check_ins/legacy`).set({spot_id: spotId});
+
+    await expect.poll(async () =>
+      (await db().doc(`users/${client.uid}/legacy_check_in_spot_index/${spotId}`).get()).data()?.["legacy_visited"],
+    {timeout: 20_000}).toBe(true);
+    expect((await db().doc(`users/${client.uid}/private_data/main`).get()).data()?.["visited_spots"])
+      .toContain(spotId);
+    expect((await db().collection(`spots/${spotId}/check_in_aggregate_contributions`).get()).empty).toBe(true);
+    expect((await db().doc(`spot_activity_public/${spotId}`).get()).exists).toBe(false);
+  }, 90_000);
+
   it("does not remove a visited Spot marker that is also backed by a legacy check-in", async () => {
     const client = await authenticatedCallable();
     const spotId = `legacy-${client.uid}`;

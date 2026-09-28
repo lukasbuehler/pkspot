@@ -1,4 +1,5 @@
 import * as admin from "firebase-admin";
+import {FieldValue} from "firebase-admin/firestore";
 import {randomUUID} from "node:crypto";
 import {
   onDocumentCreated,
@@ -286,7 +287,7 @@ export const onCheckInCreate = onDocumentCreated(
       await Promise.all([
         privateDataRef.set(
           {
-            visited_spots: admin.firestore.FieldValue.arrayUnion(spotId),
+            visited_spots: FieldValue.arrayUnion(spotId),
           },
           { merge: true }
         ),
