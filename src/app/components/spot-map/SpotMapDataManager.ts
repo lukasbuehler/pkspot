@@ -15,7 +15,7 @@ import { SpotsService } from "../../services/firebase/firestore/spots.service";
 import { SpotEditsService } from "../../services/firebase/firestore/spot-edits.service";
 import { UsersService } from "../../services/firebase/firestore/users.service";
 import { LocaleCode } from "../../../db/models/Interfaces";
-import { OsmDataService } from "../../services/osm-data.service";
+import { OsmDataService, OsmAmenityUnavailableError } from "../../services/osm-data.service";
 import { MapHelpers } from "../../../scripts/MapHelpers";
 import { createUserReference } from "../../../scripts/Helpers";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
@@ -807,8 +807,10 @@ export class SpotMapDataManager {
             this._pendingAmenityTiles.delete(tileKey);
             this._amenityTileRetryAfter.set(
               tileKey,
-              Date.now() + this.AMENITY_TILE_RETRY_MS
+              Date.now() + (error instanceof OsmAmenityUnavailableError
+                ? error.retryAfterSeconds * 1000 : this.AMENITY_TILE_RETRY_MS)
             );
+            if (error instanceof OsmAmenityUnavailableError) return;
             console.warn(
               "[SpotMapDataManager] Amenity tile unavailable; retrying later",
               error

@@ -30,6 +30,15 @@ describe("OsmDataService", () => {
     service = TestBed.inject(OsmDataService);
   });
 
+  it("does not cache an unavailable response as an empty tile", async () => {
+    const tile = {zoom: 12, x: 2145, y: 1432} as const;
+    functions.callAppChecked.mockResolvedValueOnce({...response([]), status: "unavailable", retryAfterSeconds: 45});
+    await expect(service.getAmenityMarkers(tile)).rejects.toMatchObject({retryAfterSeconds: 45});
+    functions.callAppChecked.mockResolvedValueOnce(response([amenity(1, "drinking_water")]));
+    expect(await service.getAmenityMarkers(tile)).toHaveLength(1);
+    expect(functions.callAppChecked).toHaveBeenCalledTimes(2);
+  });
+
   it("keeps every OSM amenity below Spot markers", async () => {
     functions.callAppChecked.mockResolvedValue(response([
       amenity(1, "drinking_water"),
@@ -47,7 +56,7 @@ describe("OsmDataService", () => {
 
     expect(functions.callAppChecked).toHaveBeenCalledWith(
       "getOsmAmenityTile",
-      { zoom: 12, x: 2145, y: 1432 },
+      { zoom: 12, x: 2145, y: 1432, acceptUnavailable: true },
     );
     expect(markers.map((marker) => marker.id)).toEqual([
       "osm-node-1",
@@ -205,8 +214,8 @@ describe("OsmDataService", () => {
     expect(
       functions.callAppChecked.mock.calls.map((call) => call[1]),
     ).toEqual([
-      startTile,
-      { zoom: 12, x: startTile.x + 1, y: startTile.y },
+      {...startTile, acceptUnavailable: true},
+      { zoom: 12, x: startTile.x + 1, y: startTile.y, acceptUnavailable: true },
     ]);
   });
 

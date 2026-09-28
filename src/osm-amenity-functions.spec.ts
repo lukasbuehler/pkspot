@@ -2,6 +2,9 @@ import { Timestamp } from "firebase-admin/firestore";
 import { describe, expect, it } from "vitest";
 import {
   OSM_AMENITY_TILE_ZOOM,
+  OverpassResponseError,
+  isExpectedOverpassFailure,
+  unavailableAmenityResponse,
   OSM_ATTRIBUTION,
   OVERPASS_ENDPOINTS,
   OVERPASS_REQUEST_HEADERS,
@@ -15,6 +18,24 @@ import {
 
 describe("OSM amenity functions", () => {
   const tile = { zoom: OSM_AMENITY_TILE_ZOOM, x: 2145, y: 1432 } as const;
+
+  it("returns an explicit outage only to clients that can distinguish it from empty data", () => {
+    expect(unavailableAmenityResponse(tile, 61_000, 1_000, true)).toMatchObject({
+      status: "unavailable", amenities: [], stale: true, retryAfterSeconds: 60,
+    });
+    expect(() => unavailableAmenityResponse(tile, 61_000, 1_000, false)).toThrow(
+      "Amenity data is temporarily unavailable.",
+    );
+  });
+
+  it("separates expected provider failures from configuration and internal failures", () => {
+    expect(isExpectedOverpassFailure(new OverpassResponseError(504, 0, "Gateway timeout"))).toBe(true);
+    expect(isExpectedOverpassFailure(new DOMException("Timed out", "AbortError"))).toBe(true);
+    expect(isExpectedOverpassFailure(new TypeError("fetch failed"))).toBe(true);
+    expect(isExpectedOverpassFailure(new OverpassResponseError(400, 0, "Bad query"))).toBe(false);
+    expect(isExpectedOverpassFailure(new Error("Firestore unavailable"))).toBe(false);
+    expect(isExpectedOverpassFailure(new TypeError("Programming error"))).toBe(false);
+  });
 
   it("accepts only canonical zoom-12 tile requests", () => {
     expect(parseOsmAmenityTileRequest(tile)).toEqual(tile);
