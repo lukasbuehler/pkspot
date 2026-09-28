@@ -94,22 +94,9 @@ run data migrations, or complete third-party service tasks.
 
 ### Public status page
 
-- [ ] In Better Stack, create the public `PK Spot Status` page on the Free
-      plan with one monitor for `https://pkspot.app/de/map`. Confirm that the
-      custom subdomain is available without a paid upgrade or payment method,
-      and that the current personal-project terms are acceptable before
-      incorporation. Keep the Better Stack default status-page URL as the
-      fallback. Success condition: the monitor is healthy and the public page
-      is visible while logged out.
-- [ ] In Cloudflare DNS, add the Better Stack custom-domain CNAME for `status`
-      with DNS-only mode. Do not proxy it through Cloudflare or add a Worker or
-      Firebase route. Success condition: `https://status.pkspot.app` resolves,
-      presents valid HTTPS, and serves the Better Stack status page.
-- [ ] After the web release, open the Support page in a clean browser and
-      verify that the System status link opens the public status page in a new
-      tab. Before incorporating PK Spot, re-check Better Stack Free eligibility
-      and move to a permitted plan or provider if the personal-project terms no
-      longer apply.
+- [ ] After the web release, verify the Support page's System status link opens
+      `https://status.pkspot.app` in a new tab. Before incorporation, re-check
+      Better Stack Free eligibility; move to a permitted plan if needed.
 
 ### External backend canary
 
@@ -456,132 +443,47 @@ contact messages to support; it is not general user notification email.
   those records. No Function, index, migration, or Typesense deployment is
   required.
 
-### Development-only Stripe shop (deferred beyond 1.2)
-
-The shop is not part of the 1.2 release scope. Keep its code for a later release
-and retain the production/native feature gates below.
-
-The web shop is intentionally experimental: it is enabled only by the
-development web environment. Production, Android, and iOS all keep the browser
-feature flag off, while the Functions runtime parameter defaults to disabled.
-Do not turn it on for a production project or release it in a native build
-without separately approved payment, tax, fulfillment, and privacy review.
-
-- [ ] For the `test` Firebase project only, create an uncommitted
-      `functions/.env.pkfrspot` with `SUPPORT_SHOP_ENABLED=true` and
-      `SUPPORT_SHOP_RETURN_URL` set to the exact development `/shop` URL
-      (for example `http://localhost:4200/shop`). The Function appends only a
-      trusted cart path for multi-item checkout, or a server-known legacy item
-      path; it never trusts a browser-provided redirect.
-- [ ] Deploy the `support_orders` `user_id ASC, created_at DESC` Firestore
-      index to the `test` project and wait until it reports `Enabled` before
-      enabling the authenticated customer order history:
-
-  ```sh
-  npx firebase deploy --project test --only firestore:indexes
-  ```
-
-- [ ] In Stripe **test mode** for that non-production project, set the two
-      Firebase Secrets, deploy the five compatible Functions and Firestore
-      rules, and register the deployed `stripeSupportWebhook` HTTPS endpoint
-      for `checkout.session.completed`,
-      `checkout.session.async_payment_succeeded`, and
-      `checkout.session.async_payment_failed`:
-
-  ```sh
-  npx firebase functions:secrets:set STRIPE_SECRET_KEY --project test
-  npx firebase functions:secrets:set STRIPE_WEBHOOK_SECRET --project test
-  npm --prefix functions run build
-  npx firebase deploy --project test --only functions:createSupportCheckout,functions:listMySupportOrders,functions:listSupportOrders,functions:markSupportOrderFulfilled,functions:stripeSupportWebhook,firestore:rules
-  ```
-
-  Enable TWINT in Stripe's test-mode payment methods for the Swiss CHF
-  Checkout flow. Do not store a Stripe secret in the Angular environment or
-  source tree.
-- [ ] Run a test mixed-cart checkout containing direct support and at least one
-      sticker pack, plus a cart with multiple sticker packs. Verify the browser
-      return alone does not mark any child order paid, the signed webhook marks
-      every matching child order paid exactly once, shipping is retained only
-      for physical orders, and an admin with App Check can mark each paid
-      physical order fulfilled.
-- [ ] Before any production or native release, verify all client flags and the
-      production `SUPPORT_SHOP_ENABLED` parameter remain `false`. Confirm a
-      request to the production webhook endpoint is acknowledged but ignored,
-      and that no Stripe production secret, payment method, or checkout
-      endpoint is activated as part of this experimental feature.
-
 ### Private check-ins and delayed Spot activity
 
-Training is enabled in every build configuration. Check-ins are enabled in
-default, development, production, Android, and iOS; CI disables check-ins.
-Development connects to the production Firebase project. These flags do not
-prove backend readiness: complete the backend steps and device checks below
-before releasing the enabled clients.
+Check-ins are enabled in development, web production, Android and iOS; CI disables
+check-ins. Development uses production Firebase. The 2026-09-28 live inventory
+confirms all four new Functions are absent. The required aggregate composite
+index is READY. The deployed legacy trigger preserves private visited history
+but lacks the new legacy lookup index. Client flags do not establish readiness.
 
-The production Functions inventory rechecked on 2026-09-28 has the legacy
-`onCheckInCreate` and `syncVisitedSpotsCountOnPrivateDataWrite`, but none of
-`confirmCheckIn`, `deleteCheckIn`, `deleteAllCheckIns`, or
-`recomputeCheckInActivity`. A rules-only deployment does not enable the new
-check-in flow or its public activity rollup. Recheck this inventory when
-performing the deployment below.
-
-- [ ] Deploy the check-in deletion/integrity corrections with the Functions below.
-      Deleted confirmations return a cooldown error instead of a deleted record;
-      deleting history preserves the four-hour travel guard without raw GPS.
-      Deploy the `check_in_integrity.expires_at` TTL policy from
-      `firestore.indexes.json` and verify it is active. Expired guards are ignored
-      immediately; physical TTL deletion is asynchronous. Legacy guards without
-      expiry are ignored after four hours and need a bounded expiry backfill
-      before release. Rollups now compare the queued job version transactionally
-      before publishing counts or deleting/rescheduling work.
-- [ ] After deployment, verify the rollup with controlled accepted, excluded,
-      duplicate, deleted and expired contributions. Local callable deletion tests
-      and `npm run test:emulator:check-in-rollups` cover distinct-account counting,
-      expiry and concurrent enqueue preservation. Confirm deployed buckets include
-      only distinct accepted accounts in the last 30 days and stay absent below
-      two accounts.
-- [ ] Verify the deployed legacy `onCheckInCreate` only maintains private
-      visited-Spot compatibility and does not add unvalidated legacy writes to
-      the new public activity statistics. Keep legacy history/export/deletion
-      and retirement of direct `users/{uid}/check_ins` writes as a separate
-      compatibility decision after checking supported-client usage.
-
-- [ ] Deploy the required Firestore index and wait for it to become `Enabled`:
-
-  ```sh
-  npx firebase deploy --project prod --only firestore:indexes
-  ```
-
-- [ ] Deploy the four compatible Functions, then Firestore rules. Confirm the
-      scheduled `recomputeCheckInActivity` job is present in `europe-west1` and
-      every callable reports `enforceAppCheck: true`:
-
-  ```sh
-  npx firebase deploy --project prod --only functions:confirmCheckIn,functions:deleteCheckIn,functions:deleteAllCheckIns,functions:recomputeCheckInActivity
-  npx firebase deploy --project prod --only firestore:rules
-  ```
-
-  Success condition: unauthenticated, missing-App-Check, and direct Firestore
-  attempts cannot create a check-in; only the `spot_activity_public/{spotId}`
-  document can be read by the public, and it cannot be listed.
-
-- [ ] On real Android and iOS release candidates, verify an App Check token is
-      attached to all three check-in callables and normal “while using the app”
-      location permission appears only after a person selects a persistent or
-      five-minute choice in the explanation dialog. With location Off, Locate-me
-      must remain visible with `location_disabled`, open the explanation dialog,
-      show no map dot, make no nearby-Spot lookup, and make no location-bearing
-      log. Confirm temporary access stops watching and clears state after five
-      minutes.
-
-- [ ] Only after the preceding backend and Android/iOS checks pass, build the
-      production web and native releases. Verify the intended feature flags
-      for each build configuration and that the private history can export/delete one
-      occurrence/delete all without changing a manual session or authored log.
-
-  Success condition: production Spot details make one non-realtime get for the
-  coarse “Recently trained” summary only; no visitor list, exact count, active
-  state, check-in notification, or public visited-Spot list is present.
+- [ ] Enable the missing `check_in_integrity.expires_at` TTL policy and verify ACTIVE:
+      `gcloud firestore fields ttls update expires_at --collection-group=check_in_integrity --enable-ttl --project=parkour-base-project`.
+      Ignore expired guards immediately; physical TTL deletion is asynchronous.
+      Audit legacy guards without expiry and apply a bounded expiry backfill if
+      any exist. Guards without expiry are ignored after four hours.
+- [ ] Deploy the four additive Functions and compatible legacy lookup writer:
+      `npx firebase deploy --project prod --only functions:confirmCheckIn,functions:deleteCheckIn,functions:deleteAllCheckIns,functions:recomputeCheckInActivity,functions:onCheckInCreate`.
+      Verify all are ACTIVE in `europe-west1`, the scheduler exists, and the
+      three callables enforce App Check. Keep legacy check-ins out of public
+      aggregates; retain private history/export/deletion and visited markers.
+- [ ] After Functions deployment, verify missing Auth/App Check and direct writes
+      cannot create new-style check-ins; public summaries permit single-document
+      reads only. The required check-in rules are already deployed (source
+      compared 2026-09-28). Do not bundle a full rules deploy with this batch:
+      the local file also retires canonical Event-list compatibility and adds
+      unrelated age/localization/planning rules that need their own review.
+- [ ] Verify deployed accepted, excluded, duplicate, deleted and expired
+      contributions with controlled fixtures. Buckets count distinct accepted
+      accounts over 30 days and remain absent below two accounts. Rollup writes
+      must preserve concurrent queued jobs; deletion must retain the four-hour
+      travel guard without GPS and reject confirmation of a deleted occurrence.
+      Local prerequisites: `npm run test:emulator:check-ins` and
+      `npm run test:emulator:check-in-rollups`.
+- [ ] On Android/iOS release candidates, verify App Check on all three callables,
+      explicit location consent, and five-minute expiry. With location Off:
+      Locate-me stays visible, opens the explanation, shows no dot, performs no
+      nearby lookup, and emits no location-bearing logs. Persistent OS permission
+      must appear only after the person's choice. Test private export, single/all
+      deletion, and preservation of manual sessions, authored logs and legacy visits.
+- [ ] After backend and device checks, release clients and verify Spot details
+      makes one non-realtime read for the coarse “Recently trained” card. No
+      visitor list, exact count, live presence, check-in notification, or public
+      visited-Spot list may appear.
 
 ### Community voting and trusted organization edits
 
@@ -1085,92 +987,6 @@ required; released clients continue reading the first `spot_ref`.
   Spots, multi-location blocks show every Spot, marker times match the effective
   program times, and an older client still displays the first linked Spot.
 
-### Unified safety cases, complaints, and appeals
-
-This rollout is additive and does not require releasing the new web or mobile
-clients at the same time. Keep the existing report collections and handlers in
-place: the projection triggers deliberately bridge them into `safety_cases`.
-The client routes and entry points are intentionally hidden in the current
-release. Re-enable them only in the dedicated follow-up described in
-`feature-passes/unified-safety-cases/README.md`.
-
-- [ ] Implement and test a self-managed Gen 2 email-delivery Function for
-      `safety_case_email_outbox`, adapting only the useful queue-claim and
-      delivery-state behavior from Firebase's Apache-2.0 Trigger Email source.
-      Use Secret Manager for the transactional provider credentials and keep the
-      existing `to` plus `message.{subject,text,html}` producer contract.
-
-- [ ] Confirm a transactional email provider, verified sending domain, sender,
-      monitored reply-to address, secret ownership, bounce handling, and
-      delivery monitoring. Deploy the email-delivery Function before any
-      safety-case producer Functions.
-
-  Success condition: a controlled server-created document with `to` and
-  `message.{subject,text,html}` is delivered, and the Function changes
-  `delivery.state` from `PENDING` through processing to `SUCCESS`. A deliberate
-  invalid-recipient test reaches `ERROR` without exposing its document to
-  clients.
-
-- [ ] Verify ordinary and administrator web clients cannot directly
-      read or write `safety_cases`, their private/event subcollections,
-      `safety_case_access_tokens`, `safety_case_sessions`,
-      `safety_case_rate_limits`, `safety_case_email_outbox`,
-      `safety_case_holds`, or `safety_case_metrics`; an administrator can read
-      but cannot directly write `moderation_holds/**` through the Storage client
-      SDK.
-
-- [ ] Build and deploy the compatible safety-case Functions and the changed
-      public-profile projection:
-
-  ```sh
-  npm --prefix functions run build
-  npx firebase deploy --project prod --only functions:submitSafetyCase,functions:exchangeSafetyCaseAccessLink,functions:getSafetyCaseView,functions:addSafetyCaseMessage,functions:appealSafetyCaseDecision,functions:cleanupSafetyCaseSecurityMetadata,functions:listSafetyCases,functions:getAdminSafetyCase,functions:updateSafetyCase,functions:decideSafetyCase,functions:restoreSafetyCaseDecision,functions:onSpotReportSafetyCaseCreate,functions:onRootReportSafetyCaseCreate,functions:onLegacyMediaReportSafetyCaseCreate,functions:onUserReportSafetyCaseCreate,functions:onModerationActionSafetyCaseCreate,functions:backfillSafetyCases,functions:aggregateSafetyCaseMetrics,functions:syncPublicUserProfileOnWrite
-  ```
-
-  Success condition: all Functions are in `europe-west1`; existing report
-  clients continue to work; a new legacy report creates one deterministic
-  safety case; retries do not create duplicates; and a non-active moderation
-  state removes the affected public profile projection.
-
-- [ ] Exercise the private access path before releasing clients: submit one
-      signed-in case and one guest case, verify the guest email, exchange its
-      one-time 24-hour link once, reload with the scoped 30-day session, add
-      information, and confirm another account and a token for another case are
-      denied.
-
-- [ ] As an authenticated administrator, invoke `backfillSafetyCases` with
-      `{ "dry_run": true }`. Reconcile `reports_scanned`, `existing`,
-      `would_create`, and `moderation_actions_scanned` against the legacy
-      report/action collections. Inspect a sample from every source type.
-
-- [ ] Only after accepting the dry run, invoke `backfillSafetyCases` with
-      `{ "dry_run": false }`. Historical imports must not send retrospective
-      acknowledgement emails. Re-run the dry run and confirm every historical
-      source is now counted as `existing` and `would_create == 0`.
-
-- [ ] With controlled fixtures only, verify one reversible decision for each
-      applicable target class: media, Spot, public warning, profile, and
-      account. Confirm the hold is written before the visible restriction, the
-      public reason and reviewer are recorded, an appeal is linked to the
-      original case, and a successful appeal restores the exact held state.
-      Record why if staffing makes a different appeal reviewer impossible.
-
-- [ ] Verify the daily metrics document, overdue queue, email delivery states,
-      and the security-metadata cleanup. Use aged test fixtures to confirm
-      network/device fields are removed after 90 days while the case, evidence,
-      decisions, and correspondence remain.
-
-- [ ] Release the localized clients through the normal `main`/store workflows
-      only after the backend verification above. Verify `/safety`,
-      `/safety/cases/:reference`, `/moderation/cases`, the account-settings
-      age-assurance complaint link, terms, privacy information, and support
-      navigation. Do not operate App Hosting directly.
-
-- [ ] Update `docs/README.md` and the affected assessments with the production
-      release date, versions, evidence, actual response capacity, and first
-      metrics review. Do not mark recorded measures complete based only on a
-      successful code deployment.
-
 ### Android release optimisation follow-up
 
 - [ ] The `46ef` work is now integrated locally on `development`: release
@@ -1641,9 +1457,9 @@ Spot or prefills the normal creation flow. Drafts remain until explicitly remove
 The extension does not launch the containing app or call Firebase; web and Android
 short-link resolution remain unchanged.
 
-- [ ] Enable `group.com.pkspot.app.media` for the app (`com.pkspot.app`) and
-      Maps Share Extension (`com.pkspot.app.mapshare`) in Apple signing. Refresh
-      provisioning profiles and build/install from Xcode. Both project files
+- [ ] Verify provisioning for the registered `group.com.pkspot.app.media` on
+      the app (`com.pkspot.app`) and Maps Share Extension (`com.pkspot.app.mapshare`).
+      Refresh profiles and build/install from Xcode. Both project files
       contain the target, embedded extension, shared store and bridge registration.
       Success: Google Maps and Apple Maps offer PK Spot; direct and short links
       show the selected pin (not the camera center), nearby matches and a map
@@ -1792,6 +1608,151 @@ The quality fixes can ship independently.
       clients omit the optional slug and retain automatic URL generation. The three
       functions are deployed in `europe-west1`; ACTIVE state, localhost CORS
       preflight (204), and unauthenticated rejection (401) were verified for each.
+
+## Deferred feature rollouts
+
+These features are disabled or hidden in 1.2. The tasks remain pending, but are
+not permission to enable them and do not block shipping the enabled 1.2 scope.
+
+### Development-only Stripe shop (deferred beyond 1.2)
+
+The shop is not part of the 1.2 release scope. Keep its code for a later release
+and retain the production/native feature gates below.
+
+The web shop is intentionally experimental: it is enabled only by the
+development web environment. Production, Android, and iOS all keep the browser
+feature flag off, while the Functions runtime parameter defaults to disabled.
+Do not turn it on for a production project or release it in a native build
+without separately approved payment, tax, fulfillment, and privacy review.
+
+- [ ] For the `test` Firebase project only, create an uncommitted
+      `functions/.env.pkfrspot` with `SUPPORT_SHOP_ENABLED=true` and
+      `SUPPORT_SHOP_RETURN_URL` set to the exact development `/shop` URL
+      (for example `http://localhost:4200/shop`). The Function appends only a
+      trusted cart path for multi-item checkout, or a server-known legacy item
+      path; it never trusts a browser-provided redirect.
+- [ ] Deploy the `support_orders` `user_id ASC, created_at DESC` Firestore
+      index to the `test` project and wait until it reports `Enabled` before
+      enabling the authenticated customer order history:
+
+  ```sh
+  npx firebase deploy --project test --only firestore:indexes
+  ```
+
+- [ ] In Stripe **test mode** for that non-production project, set the two
+      Firebase Secrets, deploy the five compatible Functions and Firestore
+      rules, and register the deployed `stripeSupportWebhook` HTTPS endpoint
+      for `checkout.session.completed`,
+      `checkout.session.async_payment_succeeded`, and
+      `checkout.session.async_payment_failed`:
+
+  ```sh
+  npx firebase functions:secrets:set STRIPE_SECRET_KEY --project test
+  npx firebase functions:secrets:set STRIPE_WEBHOOK_SECRET --project test
+  npm --prefix functions run build
+  npx firebase deploy --project test --only functions:createSupportCheckout,functions:listMySupportOrders,functions:listSupportOrders,functions:markSupportOrderFulfilled,functions:stripeSupportWebhook,firestore:rules
+  ```
+
+  Enable TWINT in Stripe's test-mode payment methods for the Swiss CHF
+  Checkout flow. Do not store a Stripe secret in the Angular environment or
+  source tree.
+- [ ] Run a test mixed-cart checkout containing direct support and at least one
+      sticker pack, plus a cart with multiple sticker packs. Verify the browser
+      return alone does not mark any child order paid, the signed webhook marks
+      every matching child order paid exactly once, shipping is retained only
+      for physical orders, and an admin with App Check can mark each paid
+      physical order fulfilled.
+- [ ] Before any production or native release, verify all client flags and the
+      production `SUPPORT_SHOP_ENABLED` parameter remain `false`. Confirm a
+      request to the production webhook endpoint is acknowledged but ignored,
+      and that no Stripe production secret, payment method, or checkout
+      endpoint is activated as part of this experimental feature.
+
+### Unified safety cases, complaints, and appeals
+
+This rollout is additive and does not require releasing the new web or mobile
+clients at the same time. Keep the existing report collections and handlers in
+place: the projection triggers deliberately bridge them into `safety_cases`.
+The client routes and entry points are intentionally hidden in the current
+release. Re-enable them only in the dedicated follow-up described in
+`feature-passes/unified-safety-cases/README.md`.
+
+- [ ] Implement and test a self-managed Gen 2 email-delivery Function for
+      `safety_case_email_outbox`, adapting only the useful queue-claim and
+      delivery-state behavior from Firebase's Apache-2.0 Trigger Email source.
+      Use Secret Manager for the transactional provider credentials and keep the
+      existing `to` plus `message.{subject,text,html}` producer contract.
+
+- [ ] Confirm a transactional email provider, verified sending domain, sender,
+      monitored reply-to address, secret ownership, bounce handling, and
+      delivery monitoring. Deploy the email-delivery Function before any
+      safety-case producer Functions.
+
+  Success condition: a controlled server-created document with `to` and
+  `message.{subject,text,html}` is delivered, and the Function changes
+  `delivery.state` from `PENDING` through processing to `SUCCESS`. A deliberate
+  invalid-recipient test reaches `ERROR` without exposing its document to
+  clients.
+
+- [ ] Verify ordinary and administrator web clients cannot directly
+      read or write `safety_cases`, their private/event subcollections,
+      `safety_case_access_tokens`, `safety_case_sessions`,
+      `safety_case_rate_limits`, `safety_case_email_outbox`,
+      `safety_case_holds`, or `safety_case_metrics`; an administrator can read
+      but cannot directly write `moderation_holds/**` through the Storage client
+      SDK.
+
+- [ ] Build and deploy the compatible safety-case Functions and the changed
+      public-profile projection:
+
+  ```sh
+  npm --prefix functions run build
+  npx firebase deploy --project prod --only functions:submitSafetyCase,functions:exchangeSafetyCaseAccessLink,functions:getSafetyCaseView,functions:addSafetyCaseMessage,functions:appealSafetyCaseDecision,functions:cleanupSafetyCaseSecurityMetadata,functions:listSafetyCases,functions:getAdminSafetyCase,functions:updateSafetyCase,functions:decideSafetyCase,functions:restoreSafetyCaseDecision,functions:onSpotReportSafetyCaseCreate,functions:onRootReportSafetyCaseCreate,functions:onLegacyMediaReportSafetyCaseCreate,functions:onUserReportSafetyCaseCreate,functions:onModerationActionSafetyCaseCreate,functions:backfillSafetyCases,functions:aggregateSafetyCaseMetrics,functions:syncPublicUserProfileOnWrite
+  ```
+
+  Success condition: all Functions are in `europe-west1`; existing report
+  clients continue to work; a new legacy report creates one deterministic
+  safety case; retries do not create duplicates; and a non-active moderation
+  state removes the affected public profile projection.
+
+- [ ] Exercise the private access path before releasing clients: submit one
+      signed-in case and one guest case, verify the guest email, exchange its
+      one-time 24-hour link once, reload with the scoped 30-day session, add
+      information, and confirm another account and a token for another case are
+      denied.
+
+- [ ] As an authenticated administrator, invoke `backfillSafetyCases` with
+      `{ "dry_run": true }`. Reconcile `reports_scanned`, `existing`,
+      `would_create`, and `moderation_actions_scanned` against the legacy
+      report/action collections. Inspect a sample from every source type.
+
+- [ ] Only after accepting the dry run, invoke `backfillSafetyCases` with
+      `{ "dry_run": false }`. Historical imports must not send retrospective
+      acknowledgement emails. Re-run the dry run and confirm every historical
+      source is now counted as `existing` and `would_create == 0`.
+
+- [ ] With controlled fixtures only, verify one reversible decision for each
+      applicable target class: media, Spot, public warning, profile, and
+      account. Confirm the hold is written before the visible restriction, the
+      public reason and reviewer are recorded, an appeal is linked to the
+      original case, and a successful appeal restores the exact held state.
+      Record why if staffing makes a different appeal reviewer impossible.
+
+- [ ] Verify the daily metrics document, overdue queue, email delivery states,
+      and the security-metadata cleanup. Use aged test fixtures to confirm
+      network/device fields are removed after 90 days while the case, evidence,
+      decisions, and correspondence remain.
+
+- [ ] Release the localized clients through the normal `main`/store workflows
+      only after the backend verification above. Verify `/safety`,
+      `/safety/cases/:reference`, `/moderation/cases`, the account-settings
+      age-assurance complaint link, terms, privacy information, and support
+      navigation. Do not operate App Hosting directly.
+
+- [ ] Update `docs/README.md` and the affected assessments with the production
+      release date, versions, evidence, actual response capacity, and first
+      metrics review. Do not mark recorded measures complete based only on a
+      successful code deployment.
 
 ### Planned training sessions (disabled until coordinated validation)
 
