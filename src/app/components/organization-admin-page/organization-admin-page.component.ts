@@ -152,7 +152,8 @@ export class OrganizationAdminPageComponent implements OnDestroy {
             policy: SQUARE_ICON_CROP_POLICY,
             title: $localize`Crop organization logo`,
           },
-          maxWidth: "100vw",
+          width: "720px",
+      maxWidth: "100vw",
           maxHeight: "100dvh",
           panelClass: "image-crop-dialog-panel",
         })

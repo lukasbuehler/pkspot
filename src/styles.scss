@@ -404,20 +404,18 @@ app-root.event-map-route {
   color: var(--app-access-private) !important;
 }
 
-@media (max-width: 600px) {
-  .image-crop-dialog-panel {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    height: 100dvh !important;
-
-    .mat-mdc-dialog-container,
-    .mat-mdc-dialog-surface {
-      width: 100vw !important;
-      max-width: 100vw !important;
-      height: 100dvh !important;
-      border-radius: 0;
-    }
-  }
+.cdk-global-overlay-wrapper:has(.image-crop-dialog-panel) {
+  box-sizing: border-box;
+  padding: calc(16px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))
+    calc(16px + var(--safe-area-inset-right, env(safe-area-inset-right, 0px)))
+    calc(16px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)))
+    calc(16px + var(--safe-area-inset-left, env(safe-area-inset-left, 0px)));
+}
+.cdk-overlay-pane.mat-mdc-dialog-panel.image-crop-dialog-panel {
+  --crop-safe-height: calc(100dvh - 32px - var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) - var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
+  max-width: 100% !important;
+  max-height: var(--crop-safe-height) !important;
+  .mat-mdc-dialog-surface { max-height: var(--crop-safe-height); overflow: auto; }
 }
 
 /* Alternative: Hide the badge entirely if preferred (only if you show the reCAPTCHA terms elsewhere) */
@@ -449,4 +447,14 @@ app-root.event-map-route {
 app-root.event-map-route .embedded-content {
   flex-basis: 0;
   overflow: hidden;
+}
+
+// Scope system typography to these page hosts. Emit it once rather than
+// duplicating the same token set in each lazy component stylesheet.
+app-train-page,
+app-training-log-page,
+app-log-entry-editor,
+app-training-session-detail,
+app-notification-settings {
+  @include mat.theme((typography: Roboto));
 }

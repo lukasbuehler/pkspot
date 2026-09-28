@@ -223,7 +223,8 @@ export class EditProfileComponent implements OnInit {
             policy: PROFILE_IMAGE_CROP_POLICY,
             title: $localize`Crop profile picture`,
           },
-          maxWidth: "100vw",
+          width: "720px",
+      maxWidth: "100vw",
           maxHeight: "100dvh",
           panelClass: "image-crop-dialog-panel",
         })
