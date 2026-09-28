@@ -113,24 +113,15 @@ run data migrations, or complete third-party service tasks.
 
 ### External backend canary
 
-The 2026-09-28 live inventory confirms that `monitoringHealth` is not deployed.
-Read-only verification on 2026-09-28 confirmed that secret version 1 is enabled
-and matches the maintainer-provided token (compared without printing it). Both
-authenticated and unauthenticated endpoint requests return 404; Google Cloud
-confirms the function is absent in europe-west1. The monitoring/health document
-is also absent. This is a separate shared secret for the backend monitor, not
-search or SSR App Check.
-
-- [ ] The secret is configured. Deploy only this function with
-      `firebase deploy --only functions:monitoringHealth --project parkour-base-project`.
-      Create a Firestore document at
-      `monitoring/health` with `{ "ok": true }`, then configure the Better
-      Stack HTTP monitor with the function URL, the
-      `X-PKSpot-Health-Token` request header, a 200 response expectation, and
-      the `ok` keyword. Keep the monitor at the Free-plan three-minute
-      frequency. Success condition: requests with the correct header return
-      `200 {"ok":true}`, requests without it return `401`, and Firestore
-      failures return `503` without exposing data.
+- [ ] Configure the Better Stack HTTP monitor for
+      `https://europe-west1-parkour-base-project.cloudfunctions.net/monitoringHealth`
+      with `X-PKSpot-Health-Token` set to the configured
+      `BETTERSTACK_HEALTHCHECK_TOKEN`, expected status 200 and the `ok` keyword.
+      Keep the monitor at the Free-plan three-minute frequency. Success:
+      Better Stack reports healthy from its own probe locations. Function
+      deployment, the canary document, authenticated GET/HEAD 200 responses,
+      missing/invalid-token 401 responses and Cache-Control: no-store were
+      verified on 2026-09-28. Live Firestore failure injection was not performed.
 - [ ] Add native Google Cloud Monitoring policies for function
       latency/timeouts and Firestore `UNAVAILABLE` or `DEADLINE_EXCEEDED`
       responses. The email notification channel and the initial policies for
@@ -1651,18 +1642,23 @@ resolve short URLs inside the extension, or perform authenticated writes.
       multi-Spot batches using local photo metadata, never device location. Keep
       precise photo locations/capture times local, use the shared Spot picker,
       and route confirmed new-Spot positions through normal Spot creation.
-- [ ] Build the full iOS Maps extension experience: resolve the location, show
-      nearby Spot candidates and a map preview, then perform explicit Save,
-      Visited or Create actions within the extension. The local-link handoff is
-      not the intended finished experience. First configure shared Firebase Auth
-      Keychain access while preserving existing signed-in users and sign-out
-      behavior, and verify a production App Check provider from the signed Share
-      Extension on a physical device. Do not assume the main app App Attest
-      configuration works in this extension type. App Group file access alone
-      does not configure authentication or App Check. Reuse existing private
-      bookmarks/visited_spots fields and the createSpotSubmission contract,
-      preserving moderation, consent and older-client compatibility. Do not
-      present queued actions as completed writes or bypass App Check enforcement.
+- [ ] Decide the iOS Maps extension flow after the App Check investigation.
+      Apple documents Share Extensions as unsupported by App Attest. Firebase
+      supports shared Auth via Keychain, but no confirmed Share Extension App
+      Check solution has been established. Investigate DeviceCheck separately;
+      do not disable enforcement or rely on cached tokens remaining valid.
+      Preferred proposed alternative: resolve supported map links, show nearby
+      public Typesense results and save structured drafts in the App Group.
+      The main app displays pending drafts via a count beside the unchanged add
+      FAB and lets the user review/publish through normal authenticated flows.
+      Typesense does not require Firebase App Check; the existing short-link
+      resolver callable does, so native short-link expansion needs its own
+      allowlisted, bounded implementation and device verification.
+- [ ] Design an owner-only contribution list for created and edited Spots,
+      separate from unpublished local drafts. Derive it from real submission/edit
+      records, preserve existing fields, enforce owner-only reads and avoid
+      indexing this personal history in public Typesense collections. Plan a
+      compatible backfill for older contributions before presenting it as complete.
 
 ### Android quality and Restore Credentials readiness
 
