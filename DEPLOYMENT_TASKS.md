@@ -114,11 +114,16 @@ run data migrations, or complete third-party service tasks.
 ### External backend canary
 
 The 2026-09-28 live inventory confirms that `monitoringHealth` is not deployed.
-The maintainer reports configuring `BETTERSTACK_HEALTHCHECK_TOKEN`; its deployed binding is not yet verified. This is a separate shared secret
-for the Better Stack backend health monitor, not search or SSR App Check.
+Read-only verification on 2026-09-28 confirmed that secret version 1 is enabled
+and matches the maintainer-provided token (compared without printing it). Both
+authenticated and unauthenticated endpoint requests return 404; Google Cloud
+confirms the function is absent in europe-west1. The monitoring/health document
+is also absent. This is a separate shared secret for the backend monitor, not
+search or SSR App Check.
 
-- [ ] Deploy `monitoringHealth` after setting the Firebase Functions secret
-      `BETTERSTACK_HEALTHCHECK_TOKEN`. Create a Firestore document at
+- [ ] The secret is configured. Deploy only this function with
+      `firebase deploy --only functions:monitoringHealth --project parkour-base-project`.
+      Create a Firestore document at
       `monitoring/health` with `{ "ok": true }`, then configure the Better
       Stack HTTP monitor with the function URL, the
       `X-PKSpot-Health-Token` request header, a 200 response expectation, and
@@ -1646,9 +1651,18 @@ resolve short URLs inside the extension, or perform authenticated writes.
       multi-Spot batches using local photo metadata, never device location. Keep
       precise photo locations/capture times local, use the shared Spot picker,
       and route confirmed new-Spot positions through normal Spot creation.
-- [ ] iOS photo intake and in-extension Spot recognition/create/save/visited
-      actions require a separate authenticated, App-Checked flow. Do not present
-      a locally queued action as an already completed server mutation.
+- [ ] Build the full iOS Maps extension experience: resolve the location, show
+      nearby Spot candidates and a map preview, then perform explicit Save,
+      Visited or Create actions within the extension. The local-link handoff is
+      not the intended finished experience. First configure shared Firebase Auth
+      Keychain access while preserving existing signed-in users and sign-out
+      behavior, and verify a production App Check provider from the signed Share
+      Extension on a physical device. Do not assume the main app App Attest
+      configuration works in this extension type. App Group file access alone
+      does not configure authentication or App Check. Reuse existing private
+      bookmarks/visited_spots fields and the createSpotSubmission contract,
+      preserving moderation, consent and older-client compatibility. Do not
+      present queued actions as completed writes or bypass App Check enforcement.
 
 ### Android quality and Restore Credentials readiness
 
