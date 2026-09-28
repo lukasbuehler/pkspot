@@ -182,6 +182,7 @@ export {
 // contact message functions
 export { onContactMessageCreate } from "./contactMessageFunctions";
 export { onContactMessageEmailCreate } from "./contactEmailFunctions";
+export { onContactMessageReceiptCreate } from "./contactReceiptFunctions";
 
 // spot report functions
 export {

@@ -414,6 +414,18 @@ compatibility behavior remains to be tracked.
 
 ### Contact delivery and support address
 
+- [ ] Deploy the additive sender receipt trigger after local verification:
+      `npx firebase deploy --project prod --only functions:onContactMessageReceiptCreate`.
+      It reuses `CONTACT_RESEND_API_KEY`; existing support and Discord triggers
+      stay independent. No client update or backfill is required. Submit a new
+      contact message with a controlled email address and verify the receipt,
+      Reply-To `support@pkspot.app`, and `contact_receipt_delivery/{messageId}`
+      status `sent`. Non-email contact handles receive no receipt. A second
+      message to the same address within an hour must record `recipient_cooldown`
+      while support/Discord delivery continues. Verify malformed addresses,
+      duplicate event delivery, and expired-event review before enabling retries.
+      The receipt is currently English; localized receipts can follow separately.
+
 Public contact links use `support@pkspot.app`. The Resend contact-email
 trigger is deployed and active in `europe-west1`, bound to
 `CONTACT_RESEND_API_KEY` version 1. Automatic email retries are disabled.
@@ -506,7 +518,7 @@ Development connects to the production Firebase project. These flags do not
 prove backend readiness: complete the backend steps and device checks below
 before releasing the enabled clients.
 
-The production Functions inventory checked on 2026-09-07 has the legacy
+The production Functions inventory rechecked on 2026-09-28 has the legacy
 `onCheckInCreate` and `syncVisitedSpotsCountOnPrivateDataWrite`, but none of
 `confirmCheckIn`, `deleteCheckIn`, `deleteAllCheckIns`, or
 `recomputeCheckInActivity`. A rules-only deployment does not enable the new
