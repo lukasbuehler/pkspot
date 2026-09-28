@@ -142,6 +142,9 @@ test.describe("Spot Details Visual Regression @visual", () => {
     const sheet = page.locator("app-bottom-sheet .sheet");
     const details = sheet.locator("app-spot-details");
 
+    const title = details.locator('.spot-title-text').first();
+    await expect(title).toHaveText('Riverside Training Walls');
+    expect(await title.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
     await expect(details).toContainText(/Details|Eigenschaften/u);
     await expect(details).toContainText(
       /Features and amenities|Eigenschaften und Annehmlichkeiten/u,
@@ -190,3 +193,63 @@ test.describe("Spot Details Visual Regression @visual", () => {
     });
   });
 });
+
+
+test("shows an existing Spot report with localized edit and withdrawal actions @visual", async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await acceptCurrentTerms(page);
+  await page.goto("/de/__visual/spot-bottom-sheet?report=edit");
+  const dialog = page.locator("app-spot-report-dialog");
+  await expect(dialog).toContainText("Meldung bearbeiten");
+  await expect(dialog).toContainText("Meldung zurückziehen");
+  await expect(dialog.locator("textarea")).toHaveValue("Die Trainingsmauer wurde entfernt.");
+  await expect(dialog.locator("mat-select")).toContainText("Deutsch");
+  await expect(page.locator("mat-dialog-container")).toHaveScreenshot("spot-report-edit-mobile.png", {animations: "disabled"});
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".spot-access-warning")).toContainText("entfernt");
+  await expect(page.locator(".spot-access-warning")).toHaveScreenshot("spot-report-warning.png", {animations: "disabled"});
+});
+
+for (const viewport of [{width: 390, height: 844}, {width: 844, height: 390}]) {
+  test(`crop dialog stays within safe areas ${viewport.width} @visual`, async ({page}) => {
+    await page.setViewportSize(viewport);
+    await acceptCurrentTerms(page);
+    await page.goto("/de/__visual/spot-bottom-sheet?crop=1");
+    await page.evaluate(() => {
+      const style = document.documentElement.style;
+      style.setProperty("--safe-area-inset-top", "32px");
+      style.setProperty("--safe-area-inset-bottom", "24px");
+      style.setProperty("--safe-area-inset-left", "28px");
+      style.setProperty("--safe-area-inset-right", "0px");
+    });
+    const dialog = page.locator("app-image-crop-dialog");
+    const surface = page.locator(".image-crop-dialog-panel .mat-mdc-dialog-surface");
+    await expect(dialog.locator("image-cropper img").first()).toBeVisible();
+    const bounds = await surface.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.x).toBeGreaterThanOrEqual(28);
+    expect(bounds!.y).toBeGreaterThanOrEqual(32);
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width);
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(viewport.height - 24);
+    expect(await surface.evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+    await expect(surface).toHaveScreenshot(`crop-safe-area-${viewport.width}.png`);
+    const apply = dialog.locator(".crop-actions button").last();
+    await apply.scrollIntoViewIfNeeded();
+    await expect(apply).toBeEnabled();
+    await apply.click();
+    await expect(dialog).toHaveCount(0);
+  });
+}
+
+for (const mode of ["target", "review"]) {
+  test(`shared photo ${mode} @visual`, async ({page}) => {
+    await page.setViewportSize({width: 390, height: 844});
+    await acceptCurrentTerms(page);
+    await page.goto(`/de/__visual/spot-bottom-sheet?photos=${mode}`);
+    const dialog = page.locator(mode === "target" ? "app-shared-photo-target-dialog" : "app-media-upload-dialog");
+    await expect(dialog).toBeVisible();
+    if (mode === "target") await expect(dialog.locator("app-spot-picker")).toBeVisible();
+    else await expect(dialog.locator("app-media-upload img").first()).toBeVisible();
+    await expect(page.locator(".mat-mdc-dialog-surface")).toHaveScreenshot(`shared-photo-${mode}.png`);
+  });
+}

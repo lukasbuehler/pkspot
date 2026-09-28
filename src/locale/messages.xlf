@@ -23,12 +23,17 @@
     </unit>
     <unit id="logEditor.addSession">
       <segment>
-        <source>Add a session record</source>
+        <source>Add a training session</source>
       </segment>
     </unit>
     <unit id="logEditor.arrived">
       <segment>
         <source>Arrived</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.editTitle">
+      <segment>
+        <source>Edit log entry</source>
       </segment>
     </unit>
     <unit id="logEditor.entryHelp">
@@ -38,7 +43,7 @@
     </unit>
     <unit id="logEditor.entryTitle">
       <segment>
-        <source>Log entry</source>
+        <source>What did you practise?</source>
       </segment>
     </unit>
     <unit id="logEditor.intro">
@@ -54,6 +59,11 @@
     <unit id="logEditor.left">
       <segment>
         <source>Left</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.newTitle">
+      <segment>
+        <source>New log entry</source>
       </segment>
     </unit>
     <unit id="logEditor.note">
@@ -83,17 +93,22 @@
     </unit>
     <unit id="logEditor.sessionRequired">
       <segment>
-        <source>Select a session record or add one below.</source>
+        <source>Choose a training session or add when and where you trained below.</source>
       </segment>
     </unit>
     <unit id="logEditor.sessionsHelp">
       <segment>
-        <source>Choose what this entry describes. Raw session details remain private.</source>
+        <source>Choose when and where you trained. These details stay private.</source>
       </segment>
     </unit>
     <unit id="logEditor.sessionsTitle">
       <segment>
-        <source>Session records</source>
+        <source>Training sessions</source>
+      </segment>
+    </unit>
+    <unit id="logEditor.trainingDetails">
+      <segment>
+        <source>Training details</source>
       </segment>
     </unit>
     <unit id="logEditor.visibility">
@@ -347,11 +362,6 @@
         <source>Training log</source>
       </segment>
     </unit>
-    <unit id="2598664947419243072">
-      <segment>
-        <source>Show fewer groups</source>
-      </segment>
-    </unit>
     <unit id="2599075381042572471">
       <segment>
         <source>No organization approvals waiting.</source>
@@ -575,6 +585,11 @@
         <source><ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/android.svg&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"/> Google Play </source>
       </segment>
     </unit>
+    <unit id="424981292175076013">
+      <segment>
+        <source>Loading your report</source>
+      </segment>
+    </unit>
     <unit id="6131531490320895458">
       <segment>
         <source>Select organization</source>
@@ -583,6 +598,11 @@
     <unit id="6136284828823087442">
       <segment>
         <source>Your reports could not be loaded</source>
+      </segment>
+    </unit>
+    <unit id="6138468027048267884">
+      <segment>
+        <source>Your report could not be loaded. Please try again.</source>
       </segment>
     </unit>
     <unit id="613943582301222071">
@@ -1070,11 +1090,6 @@
         <source>Open Source</source>
       </segment>
     </unit>
-    <unit id="6988922790953403967">
-      <segment>
-        <source>Spot warning:</source>
-      </segment>
-    </unit>
     <unit id="9131908454374854077">
       <segment>
         <source>Sign out of your account.</source>
@@ -1238,11 +1253,6 @@
     <unit id="1838132327858290953">
       <segment>
         <source> No events scheduled yet. </source>
-      </segment>
-    </unit>
-    <unit id="1843089741973263035">
-      <segment>
-        <source>groups</source>
       </segment>
     </unit>
     <unit id="1848626050946308520">
@@ -1639,6 +1649,11 @@
         <source>Report event</source>
       </segment>
     </unit>
+    <unit id="5007909911776062380">
+      <segment>
+        <source>Private details (optional)</source>
+      </segment>
+    </unit>
     <unit id="501118076159295384">
       <segment>
         <source> The Challenge will only be available starting from the release date. Before that it will be private to you. </source>
@@ -1933,9 +1948,29 @@
         <source> Check In </source>
       </segment>
     </unit>
-    <unit id="1700228850889551436">
+    <unit id="checkInLogPrompt.body">
       <segment>
-        <source> Spots within five metres are grouped once. Open each Spot to compare it before resolving anything. </source>
+        <source>Your check-in is saved. Add a note if you want to remember what you practised.</source>
+      </segment>
+    </unit>
+    <unit id="checkInLogPrompt.dismiss">
+      <segment>
+        <source>No thanks</source>
+      </segment>
+    </unit>
+    <unit id="checkInLogPrompt.title">
+      <segment>
+        <source>How was your training?</source>
+      </segment>
+    </unit>
+    <unit id="checkInLogPrompt.view">
+      <segment>
+        <source>View log entry</source>
+      </segment>
+    </unit>
+    <unit id="5296463977031840068">
+      <segment>
+        <source>Spots within five metres are grouped once. Open each Spot to compare it before resolving anything.</source>
       </segment>
     </unit>
     <unit id="1713067112201230619">
@@ -2965,11 +3000,6 @@
     <unit id="3471970565051584693">
       <segment>
         <source>Manual review required</source>
-      </segment>
-    </unit>
-    <unit id="3476705213231355222">
-      <segment>
-        <source>Filter by event category</source>
       </segment>
     </unit>
     <unit id="3480235560414212524">
@@ -6433,6 +6463,11 @@
         <source> Enter your E-mail address and you will receive an E-mail with instructions to reset your password. </source>
       </segment>
     </unit>
+    <unit id="8107008206264750363">
+      <segment>
+        <source>Choose where these photos belong. Nothing is uploaded until you confirm.</source>
+      </segment>
+    </unit>
     <unit id="8112656553208307790">
       <segment>
         <source>Spot Import from KML / KMZ</source>
@@ -6986,6 +7021,11 @@
     <unit id="1744316082077040772">
       <segment>
         <source>Loading Google Maps® API...</source>
+      </segment>
+    </unit>
+    <unit id="1748501315573340630">
+      <segment>
+        <source>Sign in to upload photos.</source>
       </segment>
     </unit>
     <unit id="1748972213745441743">
@@ -7703,11 +7743,6 @@
         <source>{VAR_PLURAL, plural, =1 {verified spot} other {verified spots}}</source>
       </segment>
     </unit>
-    <unit id="2682985820323207989">
-      <segment>
-        <source>Filter by listing type</source>
-      </segment>
-    </unit>
     <unit id="2684344419716682750">
       <segment>
         <source>Badges</source>
@@ -8288,6 +8323,9 @@
       </segment>
     </unit>
     <unit id="5968539663160022460">
+      <notes>
+        <note category="description">report update button label</note>
+      </notes>
       <segment>
         <source>Update report</source>
       </segment>
@@ -8780,16 +8818,6 @@
     <unit id="settings.notifications.system_blocked_snackbar">
       <segment>
         <source>PK Spot notifications are enabled, but your device is blocking them. You can allow them in system settings.</source>
-      </segment>
-    </unit>
-    <unit id="settings.notifications.table_aria">
-      <segment>
-        <source>Notification preferences</source>
-      </segment>
-    </unit>
-    <unit id="settings.notifications.table_notification">
-      <segment>
-        <source>Notification</source>
       </segment>
     </unit>
     <unit id="settings.notifications.types_description">
@@ -9402,6 +9430,11 @@
         <source>Delete this spot and all of its reviews and edits? This cannot be undone.</source>
       </segment>
     </unit>
+    <unit id="7731291064785610495">
+      <segment>
+        <source>Choose a Spot</source>
+      </segment>
+    </unit>
     <unit id="7731400165510918396">
       <segment>
         <source>Reason for rollback</source>
@@ -9507,6 +9540,11 @@
         <source>The redundant Spot has challenges.</source>
       </segment>
     </unit>
+    <unit id="452720082253540555">
+      <segment>
+        <source>Edit report</source>
+      </segment>
+    </unit>
     <unit id="event_attendee_actions.aria">
       <segment>
         <source>Attendance and notifications</source>
@@ -9604,11 +9642,6 @@
     <unit id="train.history.allLogs">
       <segment>
         <source>View all logs</source>
-      </segment>
-    </unit>
-    <unit id="train.history.eyebrow">
-      <segment>
-        <source>Your training</source>
       </segment>
     </unit>
     <unit id="train.history.title">
@@ -9775,11 +9808,6 @@
         <source>Your first entry starts here</source>
       </segment>
     </unit>
-    <unit id="trainingLog.eyebrow">
-      <segment>
-        <source>Your movement archive</source>
-      </segment>
-    </unit>
     <unit id="trainingLog.new">
       <segment>
         <source>New training entry</source>
@@ -9800,14 +9828,9 @@
         <source>Delete this training session?</source>
       </segment>
     </unit>
-    <unit id="trainingSessionDetail.descriptionEyebrow">
-      <segment>
-        <source>Your own words</source>
-      </segment>
-    </unit>
     <unit id="trainingSessionDetail.descriptionTitle">
       <segment>
-        <source>Description</source>
+        <source>Your note</source>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.duration">
@@ -9830,26 +9853,6 @@
         <source>Training session</source>
       </segment>
     </unit>
-    <unit id="trainingSessionDetail.future.ariaLabel">
-      <segment>
-        <source>Upcoming session tools</source>
-      </segment>
-    </unit>
-    <unit id="trainingSessionDetail.healthCopy">
-      <segment>
-        <source>With a future opt-in Apple Health or Health Connect link, compatible session metrics can live here. Nothing is connected yet.</source>
-      </segment>
-    </unit>
-    <unit id="trainingSessionDetail.healthLabel">
-      <segment>
-        <source>Future health connection</source>
-      </segment>
-    </unit>
-    <unit id="trainingSessionDetail.healthTitle">
-      <segment>
-        <source>Health &amp; fitness</source>
-      </segment>
-    </unit>
     <unit id="trainingSessionDetail.invalid">
       <segment>
         <source>This training session could not be found.</source>
@@ -9858,26 +9861,6 @@
     <unit id="trainingSessionDetail.loadError">
       <segment>
         <source>Your training session could not be loaded.</source>
-      </segment>
-    </unit>
-    <unit id="trainingSessionDetail.movesCopy">
-      <segment>
-        <source>Capture the precisions, flows, vaults, and challenges you practised—without turning a session into a spreadsheet.</source>
-      </segment>
-    </unit>
-    <unit id="trainingSessionDetail.movesLabel">
-      <segment>
-        <source>Coming next</source>
-      </segment>
-    </unit>
-    <unit id="trainingSessionDetail.movesTitle">
-      <segment>
-        <source>Moves &amp; lines</source>
-      </segment>
-    </unit>
-    <unit id="trainingSessionDetail.noDescription">
-      <segment>
-        <source>You did not add a description to this session.</source>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.noPartners">
@@ -9900,11 +9883,6 @@
         <source>training partners</source>
       </segment>
     </unit>
-    <unit id="trainingSessionDetail.partnersEyebrow">
-      <segment>
-        <source>Your crew</source>
-      </segment>
-    </unit>
     <unit id="trainingSessionDetail.partnersPrivacy">
       <segment>
         <source>Only people you explicitly add appear here. This is never inferred from location or check-ins.</source>
@@ -9918,11 +9896,6 @@
     <unit id="trainingSessionDetail.private">
       <segment>
         <source>Private session</source>
-      </segment>
-    </unit>
-    <unit id="trainingSessionDetail.recordsTitle">
-      <segment>
-        <source>Session records</source>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.return">
@@ -9955,11 +9928,6 @@
         <source>Spots</source>
       </segment>
     </unit>
-    <unit id="trainingSessionDetail.spotsEyebrow">
-      <segment>
-        <source>Your route through the city</source>
-      </segment>
-    </unit>
     <unit id="trainingSessionDetail.spotsTitle">
       <segment>
         <source>Spots</source>
@@ -9968,11 +9936,6 @@
     <unit id="trainingSessionDetail.summary.ariaLabel">
       <segment>
         <source>Session summary</source>
-      </segment>
-    </unit>
-    <unit id="trainingSessionDetail.title">
-      <segment>
-        <source>Your movement, remembered.</source>
       </segment>
     </unit>
     <unit id="trainingLog.signIn">
@@ -10028,11 +9991,6 @@
     <unit id="trainingLog.timeline.emptyFiltered">
       <segment>
         <source>Nothing was logged for this day yet.</source>
-      </segment>
-    </unit>
-    <unit id="trainingLog.timeline.eyebrow">
-      <segment>
-        <source>Session timeline</source>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.filtered">
@@ -10238,11 +10196,6 @@
     <unit id="3628374603023447227">
       <segment>
         <source>Next month</source>
-      </segment>
-    </unit>
-    <unit id="2200939854834992572">
-      <segment>
-        <source>Edit report for &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data.spotName }}"/>&apos;</source>
       </segment>
     </unit>
     <unit id="2231151963929640898">
@@ -11199,6 +11152,11 @@
         <source>Private</source>
       </segment>
     </unit>
+    <unit id="3680814338700283151">
+      <segment>
+        <source> This note is private and visible only to you and moderators. A moderator may publish a separate warning without including your note or identity. </source>
+      </segment>
+    </unit>
     <unit id="3689301942396726798">
       <segment>
         <source> Include provenance, retrieval time, relevant session or IP data, and who retrieved it. </source>
@@ -11235,6 +11193,11 @@
     <unit id="1315161140061795296">
       <segment>
         <source>lowercase letters, numbers, and hyphens only</source>
+      </segment>
+    </unit>
+    <unit id="6962699013778688473">
+      <segment>
+        <source>Continue</source>
       </segment>
     </unit>
     <unit id="6964548934732214977">
@@ -11320,6 +11283,11 @@
     <unit id="845207101929621525">
       <segment>
         <source> Your report could not be saved. Please check your connection and try again. </source>
+      </segment>
+    </unit>
+    <unit id="8453764144686440551">
+      <segment>
+        <source>Could not prepare shared photos. Share up to 8 JPEG, PNG or WebP photos and try again.</source>
       </segment>
     </unit>
     <unit id="2762746842237643658">
@@ -12230,11 +12198,6 @@
         <source>Google Play shared an age result, but it does not establish independently checked 18+ eligibility.</source>
       </segment>
     </unit>
-    <unit id="4439219818231058395">
-      <segment>
-        <source> A moderator may publish a separate warning on the Spot without identifying you. </source>
-      </segment>
-    </unit>
     <unit id="4439801928039075192">
       <segment>
         <source>Reset map orientation to north</source>
@@ -12461,11 +12424,6 @@
         <source>@pkspot.app</source>
       </segment>
     </unit>
-    <unit id="389710465517051982">
-      <segment>
-        <source>Show all groups</source>
-      </segment>
-    </unit>
     <unit id="event_page.loading">
       <segment>
         <source>Loading event</source>
@@ -12563,7 +12521,7 @@
     </unit>
     <unit id="9156829285909106416">
       <segment>
-        <source> Can&apos;t find what you&apos;re looking for? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [href]=&quot;discordUrl&quot; target=&quot;_blank&quot; (click)=&quot;trackContactChannelClick(&apos;discord&apos;, &apos;support_footer_discord&apos;)&quot; &gt;" dispEnd="&lt;/a &gt;">Join our Discord</pc> and we&apos;ll help you out! </source>
+        <source> Can&apos;t find what you&apos;re looking for? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [href]=&quot;discordUrl&quot; target=&quot;_blank&quot; (click)=&quot; trackContactChannelClick(&apos;discord&apos;, &apos;support_footer_discord&apos;) &quot; &gt;" dispEnd="&lt;/a &gt;">Join our Discord</pc> and we&apos;ll help you out! </source>
       </segment>
     </unit>
     <unit id="9156941745198801775">
@@ -13112,6 +13070,11 @@
         <source>Loading events…</source>
       </segment>
     </unit>
+    <unit id="4819516601509004966">
+      <segment>
+        <source>Could not load duplicate Spots. Please try again.</source>
+      </segment>
+    </unit>
     <unit id="8643871239806885269">
       <segment>
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">Copyright infringement: This is my content and I did not give permission for it to be used here.</pc></source>
@@ -13200,11 +13163,6 @@
     <unit id="1388712764439031120">
       <segment>
         <source>Open link</source>
-      </segment>
-    </unit>
-    <unit id="3490749389855555467">
-      <segment>
-        <source>Filter by event series</source>
       </segment>
     </unit>
     <unit id="3496329623690827416">
@@ -13532,6 +13490,11 @@
         <source>Your event options</source>
       </segment>
     </unit>
+    <unit id="6594343562190328136">
+      <segment>
+        <source>Preparing photos…</source>
+      </segment>
+    </unit>
     <unit id="6598126152282792001">
       <segment>
         <source>Unnamed Toilet</source>
@@ -13739,6 +13702,11 @@
     <unit id="7278934602174139871">
       <segment>
         <source>Reveal only when you are ready to review it.</source>
+      </segment>
+    </unit>
+    <unit id="7281459030550552514">
+      <segment>
+        <source>Review duplicate Spots</source>
       </segment>
     </unit>
     <unit id="7291914812028273055">
@@ -14301,6 +14269,9 @@
       </segment>
     </unit>
     <unit id="2355763793569353886">
+      <notes>
+        <note category="description">report comment label</note>
+      </notes>
       <segment>
         <source>More details (optional)</source>
       </segment>
@@ -15437,6 +15408,16 @@
         <source>Export</source>
       </segment>
     </unit>
+    <unit id="training.loadingSpot">
+      <segment>
+        <source>Loading Spot…</source>
+      </segment>
+    </unit>
+    <unit id="training.spotUnavailable">
+      <segment>
+        <source>Unavailable Spot</source>
+      </segment>
+    </unit>
     <unit id="trainingContributionGraph.ariaLabel">
       <segment>
         <source>Training rhythm</source>
@@ -15620,6 +15601,11 @@
     <unit id="4205547259664450146">
       <segment>
         <source>Loading community event…</source>
+      </segment>
+    </unit>
+    <unit id="4207916966377787111">
+      <segment>
+        <source>Created</source>
       </segment>
     </unit>
     <unit id="4299657868649430560">

@@ -82,6 +82,16 @@ run data migrations, or complete third-party service tasks.
 
 ## Release-specific pending actions
 
+### Android Maps sharing and mobile cropping
+
+- [ ] Build and install the updated Android app to register the new text-share target.
+      Verify Google Maps sharing from both a stopped and running PK Spot app,
+      keyboard clipboard insertion of a short Maps link, and crop controls in
+      portrait and landscape with display cutouts. `resolveMapShortLink` is
+      deployed and ACTIVE in europe-west1; existing callable payloads are unchanged.
+      Local browser tests do not prove Android share-sheet delivery.
+
+
 ### Public status page
 
 - [ ] In Better Stack, create the public `PK Spot Status` page on the Free
@@ -100,6 +110,30 @@ run data migrations, or complete third-party service tasks.
       tab. Before incorporating PK Spot, re-check Better Stack Free eligibility
       and move to a permitted plan or provider if the personal-project terms no
       longer apply.
+
+### External backend canary
+
+The 2026-09-28 live inventory confirms that `monitoringHealth` is not deployed.
+The maintainer reports configuring `BETTERSTACK_HEALTHCHECK_TOKEN`; its deployed binding is not yet verified. This is a separate shared secret
+for the Better Stack backend health monitor, not search or SSR App Check.
+
+- [ ] Deploy `monitoringHealth` after setting the Firebase Functions secret
+      `BETTERSTACK_HEALTHCHECK_TOKEN`. Create a Firestore document at
+      `monitoring/health` with `{ "ok": true }`, then configure the Better
+      Stack HTTP monitor with the function URL, the
+      `X-PKSpot-Health-Token` request header, a 200 response expectation, and
+      the `ok` keyword. Keep the monitor at the Free-plan three-minute
+      frequency. Success condition: requests with the correct header return
+      `200 {"ok":true}`, requests without it return `401`, and Firestore
+      failures return `503` without exposing data.
+- [ ] Add native Google Cloud Monitoring policies for function
+      latency/timeouts and Firestore `UNAVAILABLE` or `DEADLINE_EXCEEDED`
+      responses. The email notification channel and the initial policies for
+      non-OK Cloud Function executions and App Hosting Cloud Run 5xx responses
+      are already created and verified in `parkour-base-project`. Keep the
+      Better Stack Google Monitoring integration disabled. Success condition:
+      the remaining policy definitions are verified in Google Cloud without
+      generating synthetic failures or public status-page incidents.
 
 ### iOS scene lifecycle and Capacitor 8.5.2
 
@@ -384,20 +418,20 @@ compatibility behavior remains to be tracked.
 
 ### Contact delivery and support address
 
-Public contact links now use `support@pkspot.app`. The Discord trigger retries
-failed requests; a separate Resend email trigger is implemented locally and has
-not been deployed or tested with real mail. Messages remain in the private inbox.
+Public contact links use `support@pkspot.app`. The Resend contact-email
+trigger is deployed and active in `europe-west1`, bound to
+`CONTACT_RESEND_API_KEY` version 1. Automatic email retries are disabled.
+The existing Discord trigger remains unchanged. This integration forwards
+contact messages to support; it is not general user notification email.
 
-- [ ] Confirm the support mailbox receives mail and verify `pkspot.app` in Resend.
-      Configure its required DNS records without replacing existing SPF senders.
-      The maintainer created `CONTACT_RESEND_API_KEY` version 1 in Google Cloud
-      Secret Manager with send-only access to this domain; deployment and a real
-      delivery test remain outstanding.
-- [ ] Deploy `onContactMessageEmailCreate` after provider setup and separately
-      deploy the retry fix for `onContactMessageCreate` with a valid
-      `DISCORD_CONTACT_WEBHOOK_URL`. Submit an authorized test message and verify
-      receipt at support, Reply-To behavior, and retry/idempotency. Neither the
-      return screen nor a Firestore write alone proves notification delivery.
+- [ ] Verify Reply-To behavior for contact emails. The maintainer confirmed actual
+      support-mailbox receipt on 2026-09-28; Discord delivery is also confirmed.
+- [ ] Decide whether to enable automatic contact retries. Resend requests carry
+      an idempotency key and stop automatic delivery after 23 hours. Discord
+      lacks provider idempotency, so ambiguous delivery plus retry can duplicate
+      an alert. Until approved and deployed, failed emails need deliberate review
+      and separately authorized replay.
+
 - [ ] Check `contact_email_delivery` for `needs_review` after delivery outages.
       Automatic email delivery stops after 23 hours to avoid resending beyond
       the provider's idempotency window. Existing messages need a deliberate,
@@ -579,26 +613,12 @@ The web client is already merged to `main`. That does not deploy Firebase
 Functions, so complete the backend rollout and verification below before
 considering this report-lifecycle release complete.
 
-The production Functions inventory checked on 2026-09-07 still lacks
-`submitSpotReport`, `getOwnReportForTarget`, `withdrawOwnSpotReport`,
-`listMyReports`, `getOwnMediaReport`, and `withdrawOwnMediaReport`.
-`submitMediaReport` exists, but its presence alone does not verify the new
-lifecycle implementation. Recheck the inventory at deployment time.
-
-- [ ] Deploy the report lifecycle Functions before releasing clients:
-
-  ```sh
-  npx firebase deploy --project prod --only functions:submitSpotReport,functions:getOwnReportForTarget,functions:withdrawOwnSpotReport,functions:listMyReports,functions:submitMediaReport,functions:getOwnMediaReport,functions:withdrawOwnMediaReport,functions:onSpotReportCreate,functions:onSpotReportSafetyCaseCreate,functions:handleModerationAction
-  ```
-
-  - Confirm every callable is in `europe-west1`, an authenticated first report
-    produces exactly one intake alert and safety case, an edit produces neither,
-    and a withdrawal closes only its pending safety case as reporter-withdrawn.
-
-- [ ] After the Functions deployment, verify the released web client and the
+- [ ] Verify the released web client and the
       next native release candidate: one user can submit, edit, and withdraw a
-      Spot report and a media report; `/reports` shows their open report and
-      terminal history; and another user cannot retrieve either report's
+      Spot report and a media report; the first submission produces exactly one
+      intake alert and safety case, edits produce neither, and withdrawal closes
+      only its pending case as reporter-withdrawn. `/reports` must show the open
+      report and terminal history; and another user cannot retrieve either report's
       reasons or details.
 
 - [ ] Monitor Function logs and `report_claims` for legacy bridge activity,
@@ -660,7 +680,14 @@ or operate the App Hosting production rollout. The stable test hostname and its
 nofollow, noarchive`; canonical and social URLs must continue to use
 `https://pkspot.app`.
 
-- [ ] Create a separate Firebase Web app named `PK Spot SSR Cloudflare`. Set its
+The 2026-09-28 live inventory confirms `mintCloudflareSsrAppCheckToken` is
+absent and neither `CLOUDFLARE_SSR_FIREBASE_APP_ID` nor
+`CLOUDFLARE_SSR_TOKEN_BROKER_SECRET` exists in Secret Manager. Worker bindings
+and the dedicated Firebase app identity remain unverified. Inspect existing apps
+before creating another. This broker is for web SSR App Check, not the Typesense
+search proxy.
+
+- [ ] Identify or create a separate Firebase Web app named `PK Spot SSR Cloudflare`. Set its
       app ID as the `CLOUDFLARE_SSR_FIREBASE_APP_ID` Function secret and create
       a random, independent `CLOUDFLARE_SSR_TOKEN_BROKER_SECRET`:
 
@@ -1590,39 +1617,38 @@ Hosting:
       search performance. Keep the `de-CH` redirects in place indefinitely; they
       preserve existing links and transfer search signals to `/de`.
 
-### Native gallery photos (selective integration; not enabled)
+### Experimental native sharing for 1.2
 
-The complete earlier prototype is preserved in local commit `813cac7e` on
-`codex/native-media-ingestion`. Its reusable Spot matching and JPEG preparation
-helpers are integrated on `development`; the draft inbox, video intake, native
-share entry points, and moderation changes are not activated or merged wholesale.
-No gallery-sharing feature is ready to release from this foundation alone.
+Android image shares now enter the shared Spot picker and existing moderated
+upload dialog. This first slice accepts up to eight photos for one existing Spot,
+prepares JPEG derivatives without source EXIF, and retains private native copies
+until upload completion or explicit discard. It has no advertised navigation
+entry. Video intake, automatic EXIF grouping and new-Spot creation remain deferred.
+The original larger prototype stays on `codex/native-media-ingestion`.
 
-- [ ] Implement the direct photos-only flow: share/select photos, confirm suggested
-      Spot groups, upload, and show retry/cancel/progress without a draft inbox.
-      Use photo EXIF/shared metadata, never the device's current location as the
-      photo location. Individual photo coordinates and capture times stay local;
-      fetch candidate Spot data without sending exact photo positions. For new
-      Spots, suggest the local group average and let the user drag the pin; only
-      the confirmed Spot location is submitted through normal Spot creation.
-      Reuse the shared Spot picker in the Angular app. Locationless photos require
-      explicit assignment. Keep user-uploaded Spot videos out of this feature.
-- [ ] Port Android image-only share intents and iOS Share Extension after the
-      direct flow is ready. Add the native plugins to the app targets/bridges,
-      configure iOS App Groups and signing, and validate extension authentication
-      and App Check before allowing uploads from the extension. Do not rely on
-      the iOS extension automatically launching the containing app.
-- [ ] Finish native HEIC/orientation/capture-time handling, memory-bounded image
-      preparation, and local metadata use. Verify uploaded derivatives contain
-      no source GPS/EXIF; unavailable metadata must not prevent manual assignment.
-- [ ] Replace the prototype's persistence and retry behavior: commit local files
-      and assignments atomically before deleting originals, preserve progress on
-      repeated native delivery, and make server attachment atomic/idempotent.
-      Keep native originals until preparation and durable handoff succeed.
-- [ ] Cover new routes with fixture-based visual tests and test cold/warm sharing,
-      offline recovery, cancellation, repeated delivery, multi-Spot batches,
-      malformed metadata, and denied permissions on real iOS and Android devices.
-      Existing matching/preparation unit tests do not establish native readiness.
+iOS has a separate Maps URL/text Share Extension that saves links locally and
+resumes them when PK Spot next opens. It does not launch the containing app,
+resolve short URLs inside the extension, or perform authenticated writes.
+
+- [ ] Enable `group.com.pkspot.app.media` for the app (`com.pkspot.app`) and
+      Maps Share Extension (`com.pkspot.app.mapshare`) in Apple signing. Refresh
+      provisioning profiles and build/install from Xcode. Both project files
+      contain the target, embedded extension, shared store and bridge registration.
+      Success: Google Maps and Apple Maps offer PK Spot, saving a link survives
+      app termination, and opening PK Spot resolves it without duplicate delivery.
+- [ ] Install the new Android build and verify single/multiple photo sharing from
+      Google Photos with PK Spot stopped and running. Check signed-out recovery,
+      cancellation, failed preparation, interrupted upload, retry and explicit
+      discard. Confirm originals are retained until completion/discard and
+      uploaded derivatives contain no GPS/EXIF. Browser tests and compilation do
+      not prove URI grants, photo decoding or native share-sheet delivery.
+- [ ] Before extending this feature, implement automatic Spot suggestions and
+      multi-Spot batches using local photo metadata, never device location. Keep
+      precise photo locations/capture times local, use the shared Spot picker,
+      and route confirmed new-Spot positions through normal Spot creation.
+- [ ] iOS photo intake and in-extension Spot recognition/create/save/visited
+      actions require a separate authenticated, App-Checked flow. Do not present
+      a locally queued action as an already completed server mutation.
 
 ### Android quality and Restore Credentials readiness
 

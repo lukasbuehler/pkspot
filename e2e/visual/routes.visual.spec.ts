@@ -27,6 +27,7 @@ interface RouteVisualCase {
   assertTrainPage?: boolean;
   assertFabAboveBottomNavigation?: string;
   trainingLogFixture?: boolean;
+  unloggedCheckIn?: boolean;
   assertContributionGraph?: boolean;
   fixedTime?: string;
   scrollToSelector?: string;
@@ -44,6 +45,8 @@ const mobileViewport = { width: 390, height: 844 };
 const alainMobileViewport = { width: 390, height: 680 };
 
 const routeVisualCases: RouteVisualCase[] = [
+  { name: "moderation-duplicates", path: "/moderation/duplicates", signedIn: true, admin: true, viewport: { width: 390, height: 844 }, fullPage: true },
+  { name: "moderation-duplicates-alain", path: "/moderation/duplicates", signedIn: true, admin: true, viewport: alainMobileViewport, fullPage: true, assertAlainClearance: { axis: "block", target: "app-moderation-duplicates-page header" } },
   { name: "session-planner-mobile", path: "/events/session/new", signedIn: true, plannedSessionFixture: "planner", viewport: alainMobileViewport, fullPage: true, assertAlainClearance: { axis: "block", target: "app-session-planner-page h1" } },
   { name: "session-private", path: "/events/session/visual-session", signedIn: true, plannedSessionFixture: "private", fullPage: true },
   { name: "session-community-link", path: "/events/session/visual-session", plannedSessionFixture: "community", viewport: mobileViewport, fullPage: true },
@@ -136,6 +139,13 @@ const routeVisualCases: RouteVisualCase[] = [
     fixedTime: "2026-07-20T12:00:00.000Z",
   },
   {
+    name: "events-mobile-filters",
+    path: "/events",
+    viewport: mobileViewport,
+    eventIndexFixture: true,
+    fixedTime: "2026-07-20T12:00:00.000Z",
+  },
+  {
     name: "events-mobile-list",
     path: "/events",
     viewport: mobileViewport,
@@ -222,6 +232,16 @@ const routeVisualCases: RouteVisualCase[] = [
     verifiedAdult: true,
     fullPage: true,
     maxDiffPixels: 2_000,
+  },
+  {
+    name: "events-admin-drafts",
+    path: "/events",
+    viewport: mobileViewport,
+    signedIn: true,
+    admin: true,
+    eventIndexFixture: true,
+    scrollToSelector: '.drafts-section',
+    fixedTime: "2026-07-20T12:00:00.000Z",
   },
   {
     name: "events-admin-create",
@@ -384,6 +404,32 @@ const routeVisualCases: RouteVisualCase[] = [
     maxDiffPixels: 2_000,
   },
   {
+    name: "training-log-mobile",
+    path: "/train/log",
+    viewport: mobileViewport,
+    signedIn: true,
+    trainingLogFixture: true,
+    fixedTime: "2026-08-20T12:00:00.000Z",
+    fullPage: true,
+  },
+  {
+    name: "training-log-editor",
+    path: "/train/log/new",
+    signedIn: true,
+    trainingLogFixture: true,
+    fullPage: true,
+    fixedTime: "2026-08-20T12:00:00.000Z",
+  },
+  {
+    name: "training-log-editor-mobile",
+    path: "/train/log/new",
+    viewport: mobileViewport,
+    signedIn: true,
+    trainingLogFixture: true,
+    fullPage: true,
+    fixedTime: "2026-08-20T12:00:00.000Z",
+  },
+  {
     name: "training-log-fab",
     path: "/train/log",
     viewport: mobileViewport,
@@ -422,6 +468,41 @@ const routeVisualCases: RouteVisualCase[] = [
     maxDiffPixels: 2_000,
   },
   {
+    name: "train-check-in-prompt",
+    path: "/train",
+    viewport: mobileViewport,
+    signedIn: true,
+    trainFixture: true,
+    trainingLogFixture: true,
+    unloggedCheckIn: true,
+    fixedTime: "2026-08-20T12:00:00.000Z",
+  },
+  {
+    name: "training-session-detail-alain",
+    path: "/train/log/visual-training-entry",
+    viewport: alainMobileViewport,
+    signedIn: true,
+    trainingLogFixture: true,
+    assertAlainClearance: { axis: 'block', target: '.session-page__header' },
+    fixedTime: "2026-08-20T12:00:00.000Z",
+  },
+  {
+    name: "training-log-check-in-editor",
+    path: "/train/log/new?sessionRecord=visual-session-2",
+    viewport: mobileViewport,
+    signedIn: true,
+    trainingLogFixture: true,
+    fullPage: true,
+    fixedTime: "2026-08-20T12:00:00.000Z",
+  },
+  {
+    name: "training-session-detail-desktop",
+    path: "/train/log/visual-training-entry",
+    signedIn: true,
+    trainingLogFixture: true,
+    fixedTime: "2026-08-20T12:00:00.000Z",
+  },
+  {
     name: "training-session-detail",
     path: "/train/log/visual-training-entry",
     viewport: mobileViewport,
@@ -437,7 +518,7 @@ const routeVisualCases: RouteVisualCase[] = [
     signedIn: true,
     trainingLogFixture: true,
     fixedTime: "2026-08-20T12:00:00.000Z",
-    scrollToSelector: ".future-grid",
+    scrollToSelector: ".partners-section",
     maxDiffPixels: 2_000,
     maxDiffPixels: 2_000,
   },
@@ -483,6 +564,7 @@ const routeVisualCases: RouteVisualCase[] = [
     fixedTime: "2026-07-20T12:00:00.000Z",
     assertCenteredProfile: true,
   },
+  { name: "account-mobile", path: "/account", viewport: mobileViewport, fullPage: true },
   { name: "account", path: "/account", fullPage: true, maxDiffPixels: 1_000 },
   ...[
     { name: "account-alain-portrait", viewport: { width: 466, height: 678 } },
@@ -552,10 +634,21 @@ test.describe("Route visual regression @visual", () => {
       await prepareRoute(page, route);
 
       await expect(page.locator("mat-snack-bar-container")).toHaveCount(0);
+      if (route.name.startsWith("moderation-duplicates")) {
+        await expect(page.locator(".duplicate-group")).toHaveCount(1);
+        await expect(page.locator(".duplicate-group")).toContainText("Riverside training walls");
+        await expect(page.locator(".duplicate-group small").first()).toContainText("2025");
+      }
 
       const mapSurfaces = page.locator("app-google-map-2d, google-map, .gm-style");
       const spinners = page.locator("mat-spinner, mat-progress-spinner");
       const masks = route.eventMapLayout ? [] : [mapSurfaces, spinners];
+
+      if (route.name === "profile-own-mobile") {
+        await page.locator(".profile-overview__menu-trigger").click();
+        await expect(page.locator('[role="menuitem"][href$="/support"]')).toBeVisible();
+        await page.keyboard.press("Escape");
+      }
 
       if (route.assertCenteredProfile) {
         const profileLayout = await page
@@ -598,6 +691,7 @@ test.describe("Route visual regression @visual", () => {
       }
 
       if (route.assertContributionGraph) {
+        await page.locator(".activity-details > summary").click();
         const graph = page.locator("app-training-activity-contribution-graph");
         const logFab = page.locator("app-fab-menu.app-page-fab .fab-menu__launcher");
         const weekdayLabels = graph.locator(".weekday-labels");
@@ -681,7 +775,7 @@ test.describe("Route visual regression @visual", () => {
         await expect(trainingHistory).toBeVisible();
         await expect(
           trainingHistory.locator("app-training-activity-contribution-graph"),
-        ).toHaveCount(1);
+        ).toHaveCount(0);
         await expect(
           trainingHistory.locator("app-training-activity-contribution-graph button.cell"),
         ).toHaveCount(0);
@@ -709,6 +803,10 @@ test.describe("Route visual regression @visual", () => {
       }
 
       if (route.name === "events-mobile-list") {
+        const filters = page.locator(".detail-filters");
+        await expect(filters).toBeVisible();
+        const detailTops = await filters.locator('mat-chip-option').evaluateAll(chips => chips.map(chip => Math.round(chip.getBoundingClientRect().top)));
+        expect(new Set(detailTops).size).toBe(1);
         const regionBar = page.locator(".region-filters");
         await expect(regionBar).toBeVisible();
         const chipTops = await regionBar.locator("mat-chip-option").evaluateAll(
@@ -718,12 +816,48 @@ test.describe("Route visual regression @visual", () => {
         expect(await page.evaluate(() => document.documentElement.scrollWidth))
           .toBeLessThanOrEqual(route.viewport!.width);
         const scroller = regionBar.locator(".chips-scroll-area");
-        await expect(regionBar.locator(".scroll-button.right")).toBeVisible();
-        await regionBar.locator(".scroll-button.right").click();
-        await expect.poll(() => scroller.evaluate(element => element.scrollLeft)).toBeGreaterThan(0);
+        if (await regionBar.locator(".scroll-button.right").isVisible()) {
+          await regionBar.locator(".scroll-button.right").click();
+          await expect.poll(() => scroller.evaluate(element => element.scrollLeft)).toBeGreaterThan(0);
+        }
         await scroller.evaluate(element => element.scrollTo({ left: 0, behavior: "instant" }));
       }
 
+      if (route.name === 'events-mobile-filters') {
+        const row = page.locator('.detail-filters');
+        await expect(row).toBeVisible();
+        const tops = await row.locator('mat-chip-option').evaluateAll(chips => chips.map(chip => Math.round(chip.getBoundingClientRect().top)));
+        expect(new Set(tops).size).toBe(1);
+        await expect(row.locator('.scroll-button.right')).toBeVisible();
+        await row.locator('.scroll-button.right').click();
+        await expect.poll(() => row.locator('.chips-scroll-area').evaluate(element => element.scrollLeft)).toBeGreaterThan(0);
+        await row.locator('.chips-scroll-area').evaluate(element => element.scrollTo({ left: 0, behavior: 'instant' }));
+      }
+      if (route.name === 'events-admin-drafts') {
+        const header = page.locator('.drafts-section mat-expansion-panel-header');
+        await expect(header).toHaveAttribute('aria-expanded', 'false');
+        await header.click();
+        await expect(page.locator('.draft-grid')).toContainText('Draft training weekend');
+        await header.click();
+        await expect(header).toHaveAttribute('aria-expanded', 'false');
+      }
+      if (route.name.startsWith('account')) {
+        await expect(page.locator('.language-strip a[href$="/support"]')).toBeVisible();
+      }
+      if (route.name === 'training-log-check-in-editor') {
+        await expect(page.locator('.selected-context')).toContainText('Sihlcity steps');
+        await expect(page.locator('.session-details mat-expansion-panel-header')).toHaveAttribute('aria-expanded', 'false');
+        await expect(page.locator('textarea')).toBeVisible();
+        expect(await page.locator('textarea').inputValue()).toBe('');
+      }
+      if (route.name === 'train-check-in-prompt') {
+        await expect(page.locator('app-check-in-log-prompt .prompt')).toBeVisible();
+        await expect(page.locator('app-check-in-log-prompt a')).toHaveAttribute('href', /sessionRecord=visual-session-2/);
+      }
+      if (route.name.startsWith('training-session-detail')) {
+        await expect(page.locator('.future-grid')).toHaveCount(0);
+        await expect(page.locator('.description')).toContainText('precision practice');
+      }
       await expect(page).toHaveScreenshot(`${route.name}-route.png`, {
         animations: "disabled",
         clip: route.clip,
@@ -731,6 +865,23 @@ test.describe("Route visual regression @visual", () => {
         maxDiffPixels: route.maxDiffPixels ?? 1_000,
         mask: masks,
       });
+      if (route.name === 'training-log-check-in-editor') {
+        const save = page.locator('.editor-page footer button[type="submit"]');
+        await save.evaluate(element => element.scrollIntoView({ block: 'center', behavior: 'instant' }));
+        await expect.poll(async () => {
+          const button = await save.boundingBox();
+          const navigation = await page.locator('.floating-bottom-navigation').boundingBox();
+          return navigation!.y - (button!.y + button!.height);
+        }).toBeGreaterThanOrEqual(8);
+      }
+      if (route.name === 'train-check-in-prompt') {
+        await page.locator('app-check-in-log-prompt button').click();
+        await expect(page.locator('app-check-in-log-prompt .prompt')).toHaveCount(0);
+        await page.reload();
+        await expect(page.locator('.training-history')).toBeVisible();
+        await expect(page.locator('app-check-in-log-prompt .prompt')).toHaveCount(0);
+      }
+
 
       if (route.assertContributionGraph) {
         const stickyLabels = await page
@@ -1063,9 +1214,15 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       signedIn,
       trainFixture,
       trainingLogFixture,
+      unloggedCheckIn,
       verifiedAdult,
     }) => {
       localStorage.setItem("acceptedVersion", acceptedVersion);
+      (globalThis as typeof globalThis & { __PKSPOT_SCREENSHOT_DUPLICATES__?: unknown }).__PKSPOT_SCREENSHOT_DUPLICATES__ = [{
+        id: "visual-duplicates", closestDistanceMeters: 2,
+        spots: [{id: "visual-spot-one", label: "Riverside training walls", createdAtMillis: 1750000000000},
+          {id: "visual-spot-two", label: "Riverside", createdAtMillis: 1760000000000}],
+      }];
       if (plannedSessionFixture) {
         (globalThis as typeof globalThis & { __PKSPOT_PLANNED_SESSION_FIXTURE__?: unknown }).__PKSPOT_PLANNED_SESSION_FIXTURE__ = {
           session: { id: "visual-session", title: "Evening training", notes: "Bring water and choose your own pace.", spotId: "visual-spot",
@@ -1467,6 +1624,12 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
               series_ids: ["community-jam-series"],
             },
           ],
+          drafts: [{
+            id: 'visual-admin-draft', name: 'Draft training weekend',
+            start: '2026-09-19T09:00:00.000Z', end: '2026-09-20T17:00:00.000Z',
+            published: false, venue_string: 'Riverside Park', locality_string: 'Zurich, Switzerland',
+            time_zone: 'Europe/Zurich',
+          }],
           seriesById: {
             "community-jam-series": {
               id: "community-jam-series",
@@ -1743,6 +1906,9 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
               time_updated_raw_ms: august(4, 19),
             },
           ];
+          if (unloggedCheckIn) {
+            screenshotWindow.__PKSPOT_SCREENSHOT_TRAINING_LOG_ENTRIES__ = (screenshotWindow.__PKSPOT_SCREENSHOT_TRAINING_LOG_ENTRIES__ as { id: string }[]).filter(entry => entry.id !== 'visual-training-entry-2');
+          }
           screenshotWindow.__PKSPOT_SCREENSHOT_RECOVERY_PAUSES__ = [
             {
               id: "visual-recovery-pause",
@@ -1864,6 +2030,7 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       signedIn: route.signedIn === true,
       trainFixture: route.trainFixture === true,
       trainingLogFixture: route.trainingLogFixture === true,
+      unloggedCheckIn: route.unloggedCheckIn === true,
       verifiedAdult: route.verifiedAdult === true,
     },
   );

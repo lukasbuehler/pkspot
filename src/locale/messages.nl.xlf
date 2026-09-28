@@ -48,12 +48,6 @@
         <target> Nog geen evenementen gepland. </target>
       </segment>
     </unit>
-    <unit id="1843089741973263035">
-      <segment state="initial">
-        <source>groups</source>
-        <target>groepen</target>
-      </segment>
-    </unit>
     <unit id="1848626050946308520">
       <segment state="initial">
         <source>{VAR_PLURAL, plural, =1 {1 unread} other {<ph id="0" equiv="INTERPOLATION"/> unread}}</source>
@@ -188,6 +182,12 @@
       <segment state="initial">
         <source>About</source>
         <target>Over</target>
+      </segment>
+    </unit>
+    <unit id="8107008206264750363">
+      <segment state="translated">
+        <source>Choose where these photos belong. Nothing is uploaded until you confirm.</source>
+        <target>Kies bij welke Spot deze foto’s horen. Er wordt niets geüpload voordat je bevestigt.</target>
       </segment>
     </unit>
     <unit id="8112656553208307790">
@@ -633,7 +633,7 @@
     <unit id="8462239822005764062">
       <segment state="initial">
         <source>Please add details when selecting Other.</source>
-        <target>Please add details when selecting Other.</target>
+        <target>Voeg details toe als je Anders selecteert.</target>
       </segment>
     </unit>
     <unit id="8470446025763473581">
@@ -873,7 +873,7 @@
     <unit id="5578898050255545720">
       <segment state="initial">
         <source>Your report is pending. You can edit or withdraw it at any time.</source>
-        <target>Your report is pending. You can edit or withdraw it at any time.</target>
+        <target>Je melding is in behandeling. Je kunt deze op elk moment bewerken of intrekken.</target>
       </segment>
     </unit>
     <unit id="5596960263969935910">
@@ -1088,12 +1088,6 @@
       <segment state="initial">
         <source>Training log</source>
         <target>Training log</target>
-      </segment>
-    </unit>
-    <unit id="2598664947419243072">
-      <segment state="initial">
-        <source>Show fewer groups</source>
-        <target>Minder groepen tonen</target>
       </segment>
     </unit>
     <unit id="2599075381042572471">
@@ -2619,6 +2613,12 @@
         <target>Deze spot en alle reviews en bewerkingen verwijderen? Dit kan niet ongedaan worden gemaakt.</target>
       </segment>
     </unit>
+    <unit id="7731291064785610495">
+      <segment state="translated">
+        <source>Choose a Spot</source>
+        <target>Kies een Spot</target>
+      </segment>
+    </unit>
     <unit id="7731400165510918396">
       <segment state="initial">
         <source>Reason for rollback</source>
@@ -2703,6 +2703,12 @@
         <target>Oorspronkelijke afbeelding</target>
       </segment>
     </unit>
+    <unit id="6962699013778688473">
+      <segment state="initial">
+        <source>Continue</source>
+        <target>Continue</target>
+      </segment>
+    </unit>
     <unit id="6964548934732214977">
       <segment state="initial">
         <source> Only lowercase letters, numbers, and hyphens are allowed. </source>
@@ -2737,12 +2743,6 @@
       <segment state="initial">
         <source>Open Source</source>
         <target>Open source</target>
-      </segment>
-    </unit>
-    <unit id="6988922790953403967">
-      <segment state="initial">
-        <source>Spot warning:</source>
-        <target>Spot-waarschuwing:</target>
       </segment>
     </unit>
     <unit id="69928384265189430">
@@ -2887,6 +2887,12 @@
       <segment state="initial">
         <source>The redundant Spot has challenges.</source>
         <target>De overbodige Spot heeft uitdagingen.</target>
+      </segment>
+    </unit>
+    <unit id="452720082253540555">
+      <segment state="initial">
+        <source>Edit report</source>
+        <target>Melding bewerken</target>
       </segment>
     </unit>
     <unit id="event_attendee_actions.aria">
@@ -3271,6 +3277,12 @@
       <segment state="initial">
         <source>Private</source>
         <target>Privé</target>
+      </segment>
+    </unit>
+    <unit id="3680814338700283151">
+      <segment state="translated">
+        <source> This note is private and visible only to you and moderators. A moderator may publish a separate warning without including your note or identity. </source>
+        <target>Deze notitie is privé en alleen zichtbaar voor jou en moderators. Een moderator kan een aparte waarschuwing publiceren zonder je notitie of identiteit te vermelden.</target>
       </segment>
     </unit>
     <unit id="3689301942396726798">
@@ -3693,7 +3705,13 @@
     <unit id="845207101929621525">
       <segment state="initial">
         <source> Your report could not be saved. Please check your connection and try again. </source>
-        <target> Your report could not be saved. Please check your connection and try again. </target>
+        <target>Je melding kon niet worden opgeslagen. Controleer je verbinding en probeer het opnieuw.</target>
+      </segment>
+    </unit>
+    <unit id="8453764144686440551">
+      <segment state="translated">
+        <source>Could not prepare shared photos. Share up to 8 JPEG, PNG or WebP photos and try again.</source>
+        <target>De gedeelde foto’s konden niet worden voorbereid. Deel maximaal 8 JPEG-, PNG- of WebP-foto’s en probeer het opnieuw.</target>
       </segment>
     </unit>
     <unit id="3261642323287960585">
@@ -3771,7 +3789,7 @@
     <unit id="1115835486274544030">
       <segment state="initial">
         <source>Your report was withdrawn.</source>
-        <target>Your report was withdrawn.</target>
+        <target>Je melding is ingetrokken.</target>
       </segment>
     </unit>
     <unit id="1118027788072351320">
@@ -3844,12 +3862,6 @@
       <segment state="initial">
         <source>Google Play shared an age result, but it does not establish independently checked 18+ eligibility.</source>
         <target>Google Play heeft een leeftijdsresultaat gedeeld, maar dit toont geen onafhankelijk gecontroleerde geschiktheid van 18 jaar of ouder aan.</target>
-      </segment>
-    </unit>
-    <unit id="4439219818231058395">
-      <segment state="initial">
-        <source> A moderator may publish a separate warning on the Spot without identifying you. </source>
-        <target> A moderator may publish a separate warning on the Spot without identifying you. </target>
       </segment>
     </unit>
     <unit id="4439801928039075192">
@@ -6356,7 +6368,7 @@
     </unit>
     <unit id="9156829285909106416">
       <segment state="initial">
-        <source> Can&apos;t find what you&apos;re looking for? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [href]=&quot;discordUrl&quot; target=&quot;_blank&quot; (click)=&quot;trackContactChannelClick(&apos;discord&apos;, &apos;support_footer_discord&apos;)&quot; &gt;" dispEnd="&lt;/a &gt;">Join our Discord</pc> and we&apos;ll help you out! </source>
+        <source> Can&apos;t find what you&apos;re looking for? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [href]=&quot;discordUrl&quot; target=&quot;_blank&quot; (click)=&quot; trackContactChannelClick(&apos;discord&apos;, &apos;support_footer_discord&apos;) &quot; &gt;" dispEnd="&lt;/a &gt;">Join our Discord</pc> and we&apos;ll help you out! </source>
         <target> Kun je niet vinden wat je zoekt? <pc id="0" equivStart="START_LINK" equivEnd="CLOSE_LINK" type="link" dispStart="&lt;a [href]=&quot;discordUrl&quot; target=&quot;_blank&quot;&gt;" dispEnd="&lt;/a&gt;">Word lid van onze Discord</pc> en we helpen je verder! </target>
       </segment>
     </unit>
@@ -7019,18 +7031,6 @@
         <target>PK Spot-meldingen zijn ingeschakeld, maar je apparaat blokkeert ze. Je kunt ze toestaan in de systeeminstellingen.</target>
       </segment>
     </unit>
-    <unit id="settings.notifications.table_aria">
-      <segment state="initial">
-        <source>Notification preferences</source>
-        <target>Meldingsvoorkeuren</target>
-      </segment>
-    </unit>
-    <unit id="settings.notifications.table_notification">
-      <segment state="initial">
-        <source>Notification</source>
-        <target>Melding</target>
-      </segment>
-    </unit>
     <unit id="settings.notifications.types_description">
       <segment state="initial">
         <source> Select the updates you want PK Spot to send. </source>
@@ -7055,6 +7055,12 @@
         <target><ph id="0" equiv="TAG_IMG" type="image" disp="&lt;img src=&quot;assets/logos/android.svg&quot; alt=&quot;&quot; style=&quot;height: 20px&quot; class=&quot;me-2&quot; /&gt;"/> Google Play </target>
       </segment>
     </unit>
+    <unit id="424981292175076013">
+      <segment state="translated">
+        <source>Loading your report</source>
+        <target>Je melding wordt geladen</target>
+      </segment>
+    </unit>
     <unit id="6131531490320895458">
       <segment state="initial">
         <source>Select organization</source>
@@ -7065,6 +7071,12 @@
       <segment state="initial">
         <source>Your reports could not be loaded</source>
         <target>Your reports could not be loaded</target>
+      </segment>
+    </unit>
+    <unit id="6138468027048267884">
+      <segment state="initial">
+        <source>Your report could not be loaded. Please try again.</source>
+        <target>Je melding kon niet worden geladen. Probeer het opnieuw.</target>
       </segment>
     </unit>
     <unit id="613943582301222071">
@@ -11346,33 +11358,39 @@
       </segment>
     </unit>
     <unit id="logEditor.addSession">
-      <segment state="initial">
-        <source>Add a session record</source>
-        <target>Add a session record</target>
+      <segment state="translated">
+        <source>Add a training session</source>
+        <target>Trainingssessie toevoegen</target>
       </segment>
     </unit>
     <unit id="logEditor.arrived">
-      <segment state="initial">
+      <segment state="translated">
         <source>Arrived</source>
-        <target>Arrived</target>
+        <target>Aangekomen</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.editTitle">
+      <segment state="translated">
+        <source>Edit log entry</source>
+        <target>Logboeknotitie bewerken</target>
       </segment>
     </unit>
     <unit id="logEditor.entryHelp">
-      <segment state="initial">
+      <segment state="translated">
         <source>Add the part you want to remember or share.</source>
-        <target>Add the part you want to remember or share.</target>
+        <target>Noteer wat je wilt onthouden of delen.</target>
       </segment>
     </unit>
     <unit id="logEditor.entryTitle">
-      <segment state="initial">
-        <source>Log entry</source>
-        <target>Log entry</target>
+      <segment state="translated">
+        <source>What did you practise?</source>
+        <target>Wat heb je geoefend?</target>
       </segment>
     </unit>
     <unit id="logEditor.intro">
-      <segment state="initial">
+      <segment state="translated">
         <source>Describe your training and decide who can see the summary.</source>
-        <target>Describe your training and decide who can see the summary.</target>
+        <target>Beschrijf je training en bepaal wie de samenvatting kan zien.</target>
       </segment>
     </unit>
     <unit id="logEditor.invalidTimes">
@@ -11382,15 +11400,21 @@
       </segment>
     </unit>
     <unit id="logEditor.left">
-      <segment state="initial">
+      <segment state="translated">
         <source>Left</source>
-        <target>Left</target>
+        <target>Vertrokken</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.newTitle">
+      <segment state="translated">
+        <source>New log entry</source>
+        <target>Nieuwe logboeknotitie</target>
       </segment>
     </unit>
     <unit id="logEditor.note">
-      <segment state="initial">
+      <segment state="translated">
         <source>Note</source>
-        <target>Note</target>
+        <target>Notitie</target>
       </segment>
     </unit>
     <unit id="logEditor.notFound">
@@ -11400,15 +11424,15 @@
       </segment>
     </unit>
     <unit id="logEditor.people">
-      <segment state="initial">
+      <segment state="translated">
         <source>People who were there</source>
-        <target>People who were there</target>
+        <target>Wie waren erbij?</target>
       </segment>
     </unit>
     <unit id="logEditor.save">
-      <segment state="initial">
+      <segment state="translated">
         <source>Save entry</source>
-        <target>Save entry</target>
+        <target>Notitie opslaan</target>
       </segment>
     </unit>
     <unit id="logEditor.saveError">
@@ -11418,33 +11442,39 @@
       </segment>
     </unit>
     <unit id="logEditor.sessionRequired">
-      <segment state="initial">
-        <source>Select a session record or add one below.</source>
-        <target>Select a session record or add one below.</target>
+      <segment state="translated">
+        <source>Choose a training session or add when and where you trained below.</source>
+        <target>Kies een trainingssessie of vul hieronder in wanneer en waar je hebt getraind.</target>
       </segment>
     </unit>
     <unit id="logEditor.sessionsHelp">
-      <segment state="initial">
-        <source>Choose what this entry describes. Raw session details remain private.</source>
-        <target>Choose what this entry describes. Raw session details remain private.</target>
+      <segment state="translated">
+        <source>Choose when and where you trained. These details stay private.</source>
+        <target>Kies wanneer en waar je hebt getraind. Deze gegevens blijven privé.</target>
       </segment>
     </unit>
     <unit id="logEditor.sessionsTitle">
-      <segment state="initial">
-        <source>Session records</source>
-        <target>Session records</target>
+      <segment state="translated">
+        <source>Training sessions</source>
+        <target>Trainingssessies</target>
+      </segment>
+    </unit>
+    <unit id="logEditor.trainingDetails">
+      <segment state="translated">
+        <source>Training details</source>
+        <target>Trainingsdetails</target>
       </segment>
     </unit>
     <unit id="logEditor.visibility">
-      <segment state="initial">
+      <segment state="translated">
         <source>Visibility</source>
-        <target>Visibility</target>
+        <target>Zichtbaarheid</target>
       </segment>
     </unit>
     <unit id="logEditor.visibilityHint">
-      <segment state="initial">
+      <segment state="translated">
         <source>Private is the default. Shared summaries never include exact spots, times, or people.</source>
-        <target>Private is the default. Shared summaries never include exact spots, times, or people.</target>
+        <target>Standaard privé. Gedeelde samenvattingen bevatten nooit exacte Spots, tijden of personen.</target>
       </segment>
     </unit>
     <unit id="login.nav_label">
@@ -12178,6 +12208,12 @@
         <target>Evenementen laden…</target>
       </segment>
     </unit>
+    <unit id="4819516601509004966">
+      <segment state="translated">
+        <source>Could not load duplicate Spots. Please try again.</source>
+        <target>Dubbele Spots konden niet worden geladen. Probeer het opnieuw.</target>
+      </segment>
+    </unit>
     <unit id="8643871239806885269">
       <segment state="initial">
         <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot;&gt;" dispEnd="&lt;/span&gt;">Copyright infringement: This is my content and I did not give permission for it to be used here.</pc></source>
@@ -12193,7 +12229,7 @@
     <unit id="48343701354922250">
       <segment state="initial">
         <source>Submit report</source>
-        <target>Submit report</target>
+        <target>Melding versturen</target>
       </segment>
     </unit>
     <unit id="4854396465510517671">
@@ -12371,6 +12407,9 @@
       </segment>
     </unit>
     <unit id="5968539663160022460">
+      <notes>
+        <note category="description">report update button label</note>
+      </notes>
       <segment state="initial">
         <source>Update report</source>
         <target>Update report</target>
@@ -12639,12 +12678,6 @@
       <segment state="initial">
         <source>@pkspot.app</source>
         <target>@pkspot.app</target>
-      </segment>
-    </unit>
-    <unit id="389710465517051982">
-      <segment state="initial">
-        <source>Show all groups</source>
-        <target>Alle groepen tonen</target>
       </segment>
     </unit>
     <unit id="7801350351736394974">
@@ -12922,12 +12955,6 @@
       <segment state="initial">
         <source>{VAR_PLURAL, plural, =1 {verified spot} other {verified spots}}</source>
         <target>{VAR_PLURAL, plural, =1 {geverifieerde spot} other {geverifieerde spots}}</target>
-      </segment>
-    </unit>
-    <unit id="2682985820323207989">
-      <segment state="initial">
-        <source>Filter by listing type</source>
-        <target>Filter by listing type</target>
       </segment>
     </unit>
     <unit id="2684344419716682750">
@@ -13233,7 +13260,7 @@
     <unit id="311406302871713408">
       <segment state="initial">
         <source>Your report was updated.</source>
-        <target>Your report was updated.</target>
+        <target>Je melding is bijgewerkt.</target>
       </segment>
     </unit>
     <unit id="3114906098813455469">
@@ -13912,6 +13939,12 @@
         <target>Jouw evenementopties</target>
       </segment>
     </unit>
+    <unit id="6594343562190328136">
+      <segment state="translated">
+        <source>Preparing photos…</source>
+        <target>Foto’s voorbereiden…</target>
+      </segment>
+    </unit>
     <unit id="6598126152282792001">
       <segment state="initial">
         <source>Unnamed Toilet</source>
@@ -14128,12 +14161,6 @@
         <target>Handmatige controle vereist</target>
       </segment>
     </unit>
-    <unit id="3476705213231355222">
-      <segment state="initial">
-        <source>Filter by event category</source>
-        <target>Filteren op evenementcategorie</target>
-      </segment>
-    </unit>
     <unit id="3480235560414212524">
       <segment state="initial">
         <source> Reports are private. We keep the information needed to investigate, prevent abuse, explain decisions, and handle an appeal. Network and device security metadata is removed after 90 days. </source>
@@ -14144,12 +14171,6 @@
       <segment state="initial">
         <source>All Event Challenges</source>
         <target>Alle evenement-uitdagingen</target>
-      </segment>
-    </unit>
-    <unit id="3490749389855555467">
-      <segment state="initial">
-        <source>Filter by event series</source>
-        <target>Filteren op evenementenreeks</target>
       </segment>
     </unit>
     <unit id="3496329623690827416">
@@ -14287,13 +14308,16 @@
     <unit id="2350814362295235670">
       <segment state="initial">
         <source>Select every reason that applies. Your report and identity are visible only to moderators.</source>
-        <target>Select every reason that applies. Your report and identity are visible only to moderators.</target>
+        <target>Selecteer alle redenen die van toepassing zijn. Alleen moderators kunnen je melding en identiteit zien.</target>
       </segment>
     </unit>
     <unit id="2355763793569353886">
+      <notes>
+        <note category="description">report comment label</note>
+      </notes>
       <segment state="initial">
         <source>More details (optional)</source>
-        <target>More details (optional)</target>
+        <target>Meer details (optioneel)</target>
       </segment>
     </unit>
     <unit id="2356800114048092419">
@@ -14370,12 +14394,6 @@
       <segment state="initial">
         <source>Privacy First</source>
         <target>Privacy eerst</target>
-      </segment>
-    </unit>
-    <unit id="2200939854834992572">
-      <segment state="initial">
-        <source>Edit report for &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data.spotName }}"/>&apos;</source>
-        <target>Edit report for &apos;<ph id="0" equiv="INTERPOLATION" disp="{{ data.spotName }}"/>&apos;</target>
       </segment>
     </unit>
     <unit id="2231151963929640898">
@@ -14636,6 +14654,12 @@
         <target>Error saving profile access settings.</target>
       </segment>
     </unit>
+    <unit id="5007909911776062380">
+      <segment state="translated">
+        <source>Private details (optional)</source>
+        <target>Privégegevens (optioneel)</target>
+      </segment>
+    </unit>
     <unit id="501118076159295384">
       <segment state="initial">
         <source> The Challenge will only be available starting from the release date. Before that it will be private to you. </source>
@@ -14765,7 +14789,7 @@
     <unit id="3332261437108791304">
       <segment state="initial">
         <source>Withdraw report</source>
-        <target>Withdraw report</target>
+        <target>Melding intrekken</target>
       </segment>
     </unit>
     <unit id="8586908745456864217">
@@ -15028,12 +15052,6 @@
         <target>Alle logs bekijken</target>
       </segment>
     </unit>
-    <unit id="train.history.eyebrow">
-      <segment state="translated">
-        <source>Your training</source>
-        <target>Jouw training</target>
-      </segment>
-    </unit>
     <unit id="train.history.title">
       <segment state="translated">
         <source>Training history</source>
@@ -15082,12 +15100,6 @@
         <target>Your first entry starts here</target>
       </segment>
     </unit>
-    <unit id="trainingLog.eyebrow">
-      <segment state="initial">
-        <source>Your movement archive</source>
-        <target>Your movement archive</target>
-      </segment>
-    </unit>
     <unit id="trainingLog.new">
       <segment state="initial">
         <source>New training entry</source>
@@ -15112,16 +15124,10 @@
         <target>Delete this training session?</target>
       </segment>
     </unit>
-    <unit id="trainingSessionDetail.descriptionEyebrow">
-      <segment state="initial">
-        <source>Your own words</source>
-        <target>Your own words</target>
-      </segment>
-    </unit>
     <unit id="trainingSessionDetail.descriptionTitle">
-      <segment state="initial">
-        <source>Description</source>
-        <target>Description</target>
+      <segment state="translated">
+        <source>Your note</source>
+        <target>Je notitie</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.duration">
@@ -15148,30 +15154,6 @@
         <target>Training session</target>
       </segment>
     </unit>
-    <unit id="trainingSessionDetail.future.ariaLabel">
-      <segment state="initial">
-        <source>Upcoming session tools</source>
-        <target>Upcoming session tools</target>
-      </segment>
-    </unit>
-    <unit id="trainingSessionDetail.healthCopy">
-      <segment state="initial">
-        <source>With a future opt-in Apple Health or Health Connect link, compatible session metrics can live here. Nothing is connected yet.</source>
-        <target>With a future opt-in Apple Health or Health Connect link, compatible session metrics can live here. Nothing is connected yet.</target>
-      </segment>
-    </unit>
-    <unit id="trainingSessionDetail.healthLabel">
-      <segment state="initial">
-        <source>Future health connection</source>
-        <target>Future health connection</target>
-      </segment>
-    </unit>
-    <unit id="trainingSessionDetail.healthTitle">
-      <segment state="initial">
-        <source>Health &amp; fitness</source>
-        <target>Health &amp; fitness</target>
-      </segment>
-    </unit>
     <unit id="trainingSessionDetail.invalid">
       <segment state="initial">
         <source>This training session could not be found.</source>
@@ -15182,30 +15164,6 @@
       <segment state="initial">
         <source>Your training session could not be loaded.</source>
         <target>Your training session could not be loaded.</target>
-      </segment>
-    </unit>
-    <unit id="trainingSessionDetail.movesCopy">
-      <segment state="initial">
-        <source>Capture the precisions, flows, vaults, and challenges you practised—without turning a session into a spreadsheet.</source>
-        <target>Capture the precisions, flows, vaults, and challenges you practised—without turning a session into a spreadsheet.</target>
-      </segment>
-    </unit>
-    <unit id="trainingSessionDetail.movesLabel">
-      <segment state="initial">
-        <source>Coming next</source>
-        <target>Coming next</target>
-      </segment>
-    </unit>
-    <unit id="trainingSessionDetail.movesTitle">
-      <segment state="initial">
-        <source>Moves &amp; lines</source>
-        <target>Moves &amp; lines</target>
-      </segment>
-    </unit>
-    <unit id="trainingSessionDetail.noDescription">
-      <segment state="initial">
-        <source>You did not add a description to this session.</source>
-        <target>You did not add a description to this session.</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.noPartners">
@@ -15232,12 +15190,6 @@
         <target>training partners</target>
       </segment>
     </unit>
-    <unit id="trainingSessionDetail.partnersEyebrow">
-      <segment state="initial">
-        <source>Your crew</source>
-        <target>Your crew</target>
-      </segment>
-    </unit>
     <unit id="trainingSessionDetail.partnersPrivacy">
       <segment state="initial">
         <source>Only people you explicitly add appear here. This is never inferred from location or check-ins.</source>
@@ -15254,12 +15206,6 @@
       <segment state="initial">
         <source>Private session</source>
         <target>Private session</target>
-      </segment>
-    </unit>
-    <unit id="trainingSessionDetail.recordsTitle">
-      <segment state="initial">
-        <source>Session records</source>
-        <target>Session records</target>
       </segment>
     </unit>
     <unit id="trainingSessionDetail.return">
@@ -15298,12 +15244,6 @@
         <target>Spots</target>
       </segment>
     </unit>
-    <unit id="trainingSessionDetail.spotsEyebrow">
-      <segment state="initial">
-        <source>Your route through the city</source>
-        <target>Your route through the city</target>
-      </segment>
-    </unit>
     <unit id="trainingSessionDetail.spotsTitle">
       <segment state="initial">
         <source>Spots</source>
@@ -15314,12 +15254,6 @@
       <segment state="initial">
         <source>Session summary</source>
         <target>Session summary</target>
-      </segment>
-    </unit>
-    <unit id="trainingSessionDetail.title">
-      <segment state="initial">
-        <source>Your movement, remembered.</source>
-        <target>Your movement, remembered.</target>
       </segment>
     </unit>
     <unit id="trainingLog.signIn">
@@ -15386,12 +15320,6 @@
       <segment state="initial">
         <source>Nothing was logged for this day yet.</source>
         <target>Nothing was logged for this day yet.</target>
-      </segment>
-    </unit>
-    <unit id="trainingLog.timeline.eyebrow">
-      <segment state="initial">
-        <source>Session timeline</source>
-        <target>Sessietijdlijn</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.filtered">
@@ -15620,6 +15548,12 @@
       <segment state="initial">
         <source>Reveal only when you are ready to review it.</source>
         <target>Toon het alleen wanneer je klaar bent om het te beoordelen.</target>
+      </segment>
+    </unit>
+    <unit id="7281459030550552514">
+      <segment state="translated">
+        <source>Review duplicate Spots</source>
+        <target>Dubbele Spots bekijken</target>
       </segment>
     </unit>
     <unit id="7291914812028273055">
@@ -16086,10 +16020,34 @@
         <target> Inchecken </target>
       </segment>
     </unit>
-    <unit id="1700228850889551436">
+    <unit id="checkInLogPrompt.body">
+      <segment state="translated">
+        <source>Your check-in is saved. Add a note if you want to remember what you practised.</source>
+        <target>Je check-in is opgeslagen. Voeg een notitie toe als je wilt onthouden wat je hebt geoefend.</target>
+      </segment>
+    </unit>
+    <unit id="checkInLogPrompt.dismiss">
+      <segment state="translated">
+        <source>No thanks</source>
+        <target>Nee, bedankt</target>
+      </segment>
+    </unit>
+    <unit id="checkInLogPrompt.title">
+      <segment state="translated">
+        <source>How was your training?</source>
+        <target>Hoe was je training?</target>
+      </segment>
+    </unit>
+    <unit id="checkInLogPrompt.view">
+      <segment state="translated">
+        <source>View log entry</source>
+        <target>Bekijk logboeknotitie</target>
+      </segment>
+    </unit>
+    <unit id="5296463977031840068">
       <segment state="initial">
-        <source> Spots within five metres are grouped once. Open each Spot to compare it before resolving anything. </source>
-        <target> Spots binnen vijf meter worden één keer gegroepeerd. Open elke Spot om ze te vergelijken voordat je een duplicaat oplost. </target>
+        <source>Spots within five metres are grouped once. Open each Spot to compare it before resolving anything.</source>
+        <target>Spots binnen vijf meter worden één keer gegroepeerd. Open elke Spot om ze te vergelijken voordat je een duplicaat oplost.</target>
       </segment>
     </unit>
     <unit id="1713067112201230619">
@@ -16126,6 +16084,12 @@
       <segment state="initial">
         <source>Loading Google Maps® API...</source>
         <target>Google Maps® API laden...</target>
+      </segment>
+    </unit>
+    <unit id="1748501315573340630">
+      <segment state="translated">
+        <source>Sign in to upload photos.</source>
+        <target>Log in om foto’s te uploaden.</target>
       </segment>
     </unit>
     <unit id="1748972213745441743">
@@ -16555,7 +16519,7 @@
     <unit id="2732833127217604415">
       <segment state="initial">
         <source> Withdraw report </source>
-        <target> Withdraw report </target>
+        <target>Melding intrekken</target>
       </segment>
     </unit>
     <unit id="2735597846335347226">
@@ -18428,6 +18392,18 @@
         <target>Exporteren</target>
       </segment>
     </unit>
+    <unit id="training.loadingSpot">
+      <segment state="translated">
+        <source>Loading Spot…</source>
+        <target>Spot laden…</target>
+      </segment>
+    </unit>
+    <unit id="training.spotUnavailable">
+      <segment state="translated">
+        <source>Unavailable Spot</source>
+        <target>Spot niet beschikbaar</target>
+      </segment>
+    </unit>
     <unit id="trainingContributionGraph.ariaLabel">
       <segment state="initial">
         <source>Training rhythm</source>
@@ -18648,6 +18624,12 @@
       <segment state="initial">
         <source>Loading community event…</source>
         <target>Loading community event…</target>
+      </segment>
+    </unit>
+    <unit id="4207916966377787111">
+      <segment state="translated">
+        <source>Created</source>
+        <target>Aangemaakt</target>
       </segment>
     </unit>
     <unit id="4299657868649430560">

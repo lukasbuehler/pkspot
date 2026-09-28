@@ -1,11 +1,18 @@
+import {ImageCropDialogComponent} from "../../crop-image/image-crop-dialog.component";
+import {OPTIONAL_MEDIA_CROP_POLICY} from "../../crop-image/image-crop-policy";
 import {
   AfterViewInit,
+  afterNextRender,
+  Injector,
   ChangeDetectionStrategy,
   Component,
   inject,
   signal,
   ViewChild,
 } from "@angular/core";
+import { MatDialog } from "@angular/material/dialog";
+import { SpotReportDialogComponent } from "../../spot-report-dialog/spot-report-dialog.component";
+import { SpotReportsService } from "../../../services/firebase/firestore/spot-reports.service";
 import { ActivatedRoute } from "@angular/router";
 import { Timestamp } from "firebase/firestore";
 import { BottomSheetComponent } from "../../bottom-sheet/bottom-sheet.component";
@@ -115,12 +122,62 @@ const visualPendingSpot: PendingSpotPanel = {
 @Component({
   selector: "app-spot-bottom-sheet-visual-test-page",
   imports: [BottomSheetComponent, MapSpotDetailsPanelComponent],
+  providers: [{
+    provide: SpotReportsService,
+    useValue: {
+      getOwnSpotReport: async () => ({
+        id: "visual-report", kind: "spot", status: "open",
+        reasons: ["torn down"], comment: "Die Trainingsmauer wurde entfernt.", comment_locale: "de",
+      }),
+    },
+  }],
   templateUrl: "./spot-bottom-sheet-visual-test-page.component.html",
   styleUrl: "./spot-bottom-sheet-visual-test-page.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotBottomSheetVisualTestPageComponent implements AfterViewInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly dialog = inject(MatDialog);
+  private readonly injector = inject(Injector);
+
+  constructor() {
+    afterNextRender(() => {
+      if (this.route.snapshot.queryParamMap.has("crop")) void this.openCropFixture();
+      if (this.route.snapshot.queryParamMap.has("photos")) void this.openPhotoFixture();
+      if (this.route.snapshot.queryParamMap.get("report") === "edit") {
+        this.dialog.open(SpotReportDialogComponent, {
+      width: "560px",
+      maxWidth: "calc(100vw - 32px)",
+      height: "min(780px, calc(100dvh - 32px))",
+          injector: this.injector,
+          data: {spotId: this.spot.id, spotName: this.spot.name()},
+        });
+      }
+    });
+  }
+
+  private async openPhotoFixture(): Promise<void> {
+    if (this.route.snapshot.queryParamMap.get("photos") === "target") {
+      const {SharedPhotoTargetDialogComponent} = await import("../../shared-photo-target-dialog/shared-photo-target-dialog.component");
+      this.dialog.open(SharedPhotoTargetDialogComponent, {width: "560px"});
+      return;
+    }
+    const {MediaUploadDialogComponent} = await import("../../media-upload-dialog/media-upload-dialog.component");
+    const blob = await (await fetch("/assets/swissjam/swissjam1.jpg")).blob();
+    this.dialog.open(MediaUploadDialogComponent, {
+      width: "680px",
+      data: {spotId: this.spot.id, initialFiles: [new File([blob], "shared-photo.jpg", {type: "image/jpeg"})]},
+    });
+  }
+
+  private async openCropFixture(): Promise<void> {
+    const blob = await (await fetch("/assets/swissjam/swissjam1.jpg")).blob();
+    this.dialog.open(ImageCropDialogComponent, {
+      data: {file: new File([blob], "training.jpg", {type: "image/jpeg"}), policy: OPTIONAL_MEDIA_CROP_POLICY},
+      width: "720px", maxWidth: "100vw", maxHeight: "100dvh",
+      panelClass: "image-crop-dialog-panel", autoFocus: "dialog",
+    });
+  }
 
   @ViewChild(BottomSheetComponent)
   private bottomSheet?: BottomSheetComponent;
@@ -131,7 +188,9 @@ export class SpotBottomSheetVisualTestPageComponent implements AfterViewInit {
   readonly pendingSpot = this.isLoading ? visualPendingSpot : null;
   readonly spot = new Spot(
     "visual-riverside-training-walls" as SpotId,
-    visualSpotData,
+    this.route.snapshot.queryParamMap.has("report")
+      ? {...visualSpotData, is_reported: true, report_reason: "torn down"}
+      : visualSpotData,
     "de",
   );
 
