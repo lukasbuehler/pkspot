@@ -18,7 +18,7 @@ export async function readSpotPhotoCoordinate(file: Blob): Promise<SpotMediaCoor
 }
 
 /**
- * Photos-only preparation foundation; not yet connected to gallery entry points.
+ * Photos-only preparation shared by the experimental Android gallery handoff.
  * Re-encoding drops original EXIF. Failure never returns an uploadable original.
  * Native HEIC decoding and capture-time extraction are separate release work.
  */

@@ -194,7 +194,11 @@ export class MapLinkResolverService {
 
   private toUrl(value: string): URL | null {
     try {
-      const url = new URL(value.trim());
+      // Share sheets can include a place title before the URL.
+      const candidate = value.trim().match(/https:\/\/[^\s<>]+/gu)?.find((text) => {
+        try { return this.providerFor(new URL(text)) !== null; } catch { return false; }
+      });
+      const url = new URL(candidate ?? value.trim());
       return url.protocol === "https:" ? url : null;
     } catch {
       return null;

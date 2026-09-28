@@ -1,3 +1,4 @@
+import {NativeMapShareService} from "../../services/native-map-share.service";
 import { createLazyDialogOpener } from "../../utils/create-lazy-dialog-opener";
 import { ResizeObserverDirective } from "../../directives/resize-observer.directive";
 import { inject as injectFeatureTelemetry } from "@angular/core";
@@ -321,6 +322,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Signal to track when the map is ready for interaction */
   mapReady = signal<boolean>(false);
+  private readonly nativeMapShare = inject(NativeMapShareService);
+  private readonly sharedMapEffect = effect(() => {
+    const selection = this.nativeMapShare.pending();
+    if (!selection || !this.mapReady()) return;
+    untracked(() => {
+      this.nativeMapShare.consume();
+      void this.openSpotOrGooglePlace({type: "map-link", id: selection.provider, mapLink: selection});
+    });
+  });
 
   pendingTasks = inject(PendingTasks);
   responsiveService = inject(ResponsiveService);

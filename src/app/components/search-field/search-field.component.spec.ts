@@ -243,6 +243,20 @@ describe("SearchFieldComponent", () => {
     expect(selected.mock.calls[0][0].mapLink.query).toBe("New selection");
   });
 
+  it("opens a Maps link inserted by a keyboard without a paste event", async () => {
+    const link = {provider: "google", format: "short", location: {lat: 47, lng: 8}};
+    mapLinks.isSupportedUrl.mockReturnValue(true);
+    mapLinks.resolve.mockResolvedValue(link);
+    const selected = vi.fn();
+    fixture.componentInstance.spotSelected.subscribe(selected);
+    const input = fixture.nativeElement.querySelector("input") as HTMLInputElement;
+    input.value = "https://maps.app.goo.gl/example";
+    input.dispatchEvent(new Event("input", {bubbles: true}));
+    await fixture.whenStable();
+    expect(mapLinks.resolve).toHaveBeenCalledWith(input.value || "https://maps.app.goo.gl/example");
+    expect(selected).toHaveBeenCalledWith({type: "map-link", id: "google", mapLink: link});
+  });
+
   it("discards a pending Maps-link result after the user types", async () => {
     let resolveLink!: (value: {
       provider: "google";

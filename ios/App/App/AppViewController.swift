@@ -49,6 +49,7 @@ class AppViewController: CAPBridgeViewController {
 
         bridge?.registerPluginInstance(StoreReviewPlugin())
         bridge?.registerPluginInstance(LinkPreviewPlugin())
+        bridge?.registerPluginInstance(MapSharePlugin())
         bridge?.registerPluginInstance(AgeAssurancePlugin())
         bridge?.registerPluginInstance(DateTimePreferencesPlugin())
         bridge?.registerPluginInstance(GooglePlacePhotoPlugin())

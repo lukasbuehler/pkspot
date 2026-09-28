@@ -31,7 +31,7 @@
     [placeholder]="placeholderText()"
     [formControl]="spotSearchControl"
     [matAutocomplete]="spotAutocomplete"
-    (input)="handleSearchInput()"
+    (input)="handleSearchInput($event)"
     (paste)="handlePaste($event)"
   />
   <mat-autocomplete

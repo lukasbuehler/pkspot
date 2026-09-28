@@ -130,6 +130,10 @@ export class MediaUpload implements OnInit, OnDestroy {
     const files = Array.from(
       (eventTarget as HTMLInputElement | null)?.files ?? [],
     );
+    this.stageFiles(files);
+  }
+
+  stageFiles(files: File[]): void {
     if (files.length === 0) return;
 
     this.hasError = false;
@@ -186,6 +190,7 @@ export class MediaUpload implements OnInit, OnDestroy {
         policy: this.imageCropPolicy(),
         title: $localize`Crop image`,
       },
+      width: "720px",
       maxWidth: "100vw",
       maxHeight: "100dvh",
       panelClass: "image-crop-dialog-panel",

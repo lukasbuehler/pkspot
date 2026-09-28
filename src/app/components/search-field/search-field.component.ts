@@ -223,7 +223,7 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
         debounceTime(250),
         distinctUntilChanged(),
         switchMap((query) => {
-          if (query.length < this._minSearchQueryLength) {
+          if (query.length < this._minSearchQueryLength || (!this.onlySpots() && this._mapLinkResolver.isSupportedUrl(query))) {
             return of(this.buildShortQueryResults(query));
           }
 
@@ -440,14 +440,17 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
     this.spotSelected.emit(event.option.value as SearchSelection);
   }
 
-  handleSearchInput(): void {
+  handleSearchInput(event?: Event): void {
     this._mapLinkRequestId += 1;
     this.mapLinkLoading.set(false);
+    const value = event?.target instanceof HTMLInputElement ? event.target.value : "";
+    if (value && !this.onlySpots() && this._mapLinkResolver.isSupportedUrl(value)) {
+      this.openMapLink(value);
+    }
   }
 
   handlePaste(event: ClipboardEvent): void {
     if (this.onlySpots()) return;
-    const requestId = ++this._mapLinkRequestId;
     const value = event.clipboardData?.getData("text/plain")?.trim() ?? "";
     if (!this._mapLinkResolver.isSupportedUrl(value)) {
       this.mapLinkLoading.set(false);
@@ -455,6 +458,11 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
     }
 
     event.preventDefault();
+    this.openMapLink(value);
+  }
+
+  private openMapLink(value: string): void {
+    const requestId = ++this._mapLinkRequestId;
     this.mapLinkLoading.set(true);
     this.spotSearchControl.setValue(value, { emitEvent: false });
     queueMicrotask(() => {

@@ -21,6 +21,13 @@ describe("MapLinkResolverService", () => {
     service = TestBed.inject(MapLinkResolverService);
   });
 
+  it("accepts share-sheet text containing a place title before a URL", async () => {
+    const text = "Dropped pin\nhttps://maps.app.goo.gl/example?g_st=ac";
+    functions.callAppChecked.mockResolvedValue({finalUrl: "https://www.google.com/maps?q=47.58,7.58"});
+    expect(service.isSupportedUrl(text)).toBe(true);
+    await expect(service.resolve(text)).resolves.toMatchObject({location: {lat: 47.58, lng: 7.58}});
+  });
+
   it("parses Google place IDs without contacting the backend", async () => {
     await expect(
       service.resolve(

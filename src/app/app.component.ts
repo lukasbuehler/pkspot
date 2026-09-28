@@ -1,3 +1,5 @@
+import {NativePhotoShareService} from "./media-ingestion/native-photo-share.service";
+import {NativeMapShareService} from "./services/native-map-share.service";
 import { FabMenuComponent, type FabMenuAction } from "./components/fab-menu/fab-menu.component";
 import { StoreReviewService } from "./reviews/store-review.service";
 import {
@@ -362,6 +364,8 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     this._keyboardService.init();
     this._mapProfiler.ensureInstalled();
+    void this._injector.get(NativeMapShareService).initialize();
+    void this._injector.get(NativePhotoShareService).initialize().catch(() => console.warn("Photo sharing initialization failed"));
     this.installNavigationPerformanceLogging();
 
     this.router.events
