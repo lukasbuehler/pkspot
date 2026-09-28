@@ -1,3 +1,9 @@
+const native = vi.hoisted(() => ({pending: vi.fn(), acknowledge: vi.fn(), addListener: vi.fn()}));
+vi.mock("@capacitor/core", () => ({
+  Capacitor: {isNativePlatform: () => true, getPlatform: () => "ios"},
+  registerPlugin: () => native,
+}));
+vi.mock("@capacitor/app", () => ({App: {addListener: vi.fn()}}));
 import {TestBed} from "@angular/core/testing";
 import {Router} from "@angular/router";
 import {MatSnackBar} from "@angular/material/snack-bar";
@@ -12,6 +18,8 @@ describe("NativeMapShareService", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     router.navigate.mockResolvedValue(true);
+    native.pending.mockResolvedValue({links: []});
+    native.acknowledge.mockResolvedValue(undefined);
     TestBed.configureTestingModule({providers: [
       {provide: MapLinkResolverService, useValue: resolver},
       {provide: Router, useValue: router}, {provide: MatSnackBar, useValue: snackbar},
@@ -46,4 +54,29 @@ describe("NativeMapShareService", () => {
     expect(router.navigate).not.toHaveBeenCalled();
     expect(service.pending()).toBeNull();
   });
+  it("lists iOS drafts without automatic navigation or a Firebase resolver call", async () => {
+    const draft = {id: "one", text: "https://maps.google.com/maps?q=47,8", location: {lat: 47, lng: 8}, name: "Walls"};
+    native.pending.mockResolvedValue({links: [draft]});
+    await service.initialize();
+    expect(service.drafts()).toEqual([draft]);
+    expect(resolver.resolve).not.toHaveBeenCalled();
+    expect(router.navigate).not.toHaveBeenCalled();
+    await service.reviewDraft(draft, true);
+    expect(service.pending()).toMatchObject({location: draft.location, draftName: "Walls", create: true});
+    service.consume();
+    expect(service.drafts()).toHaveLength(1);
+    expect(native.acknowledge).not.toHaveBeenCalled();
+    await service.removeDraft("one");
+    expect(native.acknowledge).toHaveBeenCalledWith({id: "one"});
+    expect(service.drafts()).toEqual([]);
+  });
+  it("keeps the draft visible if native removal fails", async () => {
+    native.pending.mockResolvedValue({links: [{id: "one", text: "link"}]});
+    await service.initialize();
+    native.acknowledge.mockRejectedValue(new Error("storage unavailable"));
+    await service.removeDraft("one");
+    expect(service.drafts()).toHaveLength(1);
+    expect(snackbar.open).toHaveBeenCalled();
+  });
+
 });

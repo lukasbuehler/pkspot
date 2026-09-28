@@ -1260,7 +1260,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     this.mapsAPIService.storeMapStyle(newMapStyle);
   }
 
-  createSpot() {
+  createSpot(initialLocation?: google.maps.LatLngLiteral, initialName?: string) {
     if (!this.authService.isSignedIn) {
       // TODO show sign in dialog
       alert("Please sign in to create a spot"); // TODO
@@ -1279,7 +1279,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     if (!this.map || !this.map.googleMap) return;
 
     let center_coordinates: google.maps.LatLngLiteral | undefined =
-      this.map.googleMap.getCenter()?.toJSON();
+      initialLocation ?? this.map.googleMap.getCenter()?.toJSON();
 
     if (!isFiniteLatLngLiteral(center_coordinates)) {
       reportInvalidMapCoordinate(
@@ -1307,7 +1307,7 @@ export class SpotMapComponent implements AfterViewInit, OnDestroy {
     this.selectedSpot.set(
       new LocalSpot(
         {
-          name: { [this.locale]: $localize`Unnamed Spot` }, // TODO change to user lang
+          name: { [this.locale]: initialName?.trim().slice(0, 200) || $localize`Unnamed Spot` },
           location: new GeoPoint(
             center_coordinates.lat,
             center_coordinates.lng,

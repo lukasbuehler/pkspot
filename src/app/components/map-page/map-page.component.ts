@@ -322,13 +322,20 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Signal to track when the map is ready for interaction */
   mapReady = signal<boolean>(false);
-  private readonly nativeMapShare = inject(NativeMapShareService);
+  readonly nativeMapShare = inject(NativeMapShareService);
   private readonly sharedMapEffect = effect(() => {
     const selection = this.nativeMapShare.pending();
     if (!selection || !this.mapReady()) return;
     untracked(() => {
       this.nativeMapShare.consume();
-      void this.openSpotOrGooglePlace({type: "map-link", id: selection.provider, mapLink: selection});
+      if (selection.spotId) {
+        void this.openSpotOrGooglePlace({type: "spot", id: selection.spotId});
+      } else if (selection.create && selection.location) {
+        this.spotMap?.focusPoint(selection.location, 18);
+        this.spotMap?.createSpot(selection.location, selection.draftName);
+      } else {
+        void this.openSpotOrGooglePlace({type: "map-link", id: selection.provider, mapLink: selection});
+      }
     });
   });
 
@@ -4312,6 +4319,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     this.spotMap?.focusOnGeolocation();
+  }
+
+  async openSharedDrafts(): Promise<void> {
+    const {SharedMapDraftsDialogComponent} = await import("../shared-map-drafts-dialog/shared-map-drafts-dialog.component");
+    this._dialog.open(SharedMapDraftsDialogComponent, {width: "560px", maxHeight: "80dvh"});
   }
 
   onCreateSpot(): void {

@@ -5,8 +5,22 @@ import {MatSnackBar} from "@angular/material/snack-bar";
 import {Capacitor, registerPlugin, type PluginListenerHandle} from "@capacitor/core";
 import {MapLinkResolverService, type MapLinkResolution} from "./map-link-resolver.service";
 
+export interface SharedMapDraft {
+  id: string;
+  text: string;
+  location?: {lat: number; lng: number};
+  name?: string;
+  spotId?: string;
+  createdAt?: number;
+}
+export interface SharedMapSelection extends MapLinkResolution {
+  spotId?: string;
+  draftName?: string;
+  create?: boolean;
+}
+
 const MapShare = registerPlugin<{
-  pending(): Promise<{links: {id: string; text: string}[]}>;
+  pending(): Promise<{links: SharedMapDraft[]}>;
   acknowledge(input: {id: string}): Promise<void>;
   addListener(event: "mapShared", listener: (event: {text: string}) => void): Promise<PluginListenerHandle>;
 }>("MapShare");
@@ -16,11 +30,12 @@ export class NativeMapShareService {
   private readonly resolver = inject(MapLinkResolverService);
   private readonly router = inject(Router);
   private readonly snackbar = inject(MatSnackBar);
-  private readonly selection = signal<MapLinkResolution | null>(null);
+  private readonly selection = signal<SharedMapSelection | null>(null);
   readonly pending = this.selection.asReadonly();
   private initialized = false;
   private requestId = 0;
-  private pendingNativeId: string | null = null;
+  private readonly draftState = signal<SharedMapDraft[]>([]);
+  readonly drafts = this.draftState.asReadonly();
   private checkingPending = false;
 
   async initialize(): Promise<void> {
@@ -46,10 +61,7 @@ export class NativeMapShareService {
     this.checkingPending = true;
     try {
       const {links} = await MapShare.pending();
-      const link = links[0];
-      if (!link) return;
-      this.pendingNativeId = link.id;
-      if (!(await this.receive(link.text))) this.pendingNativeId = null;
+      this.draftState.set(links);
     } catch {
       console.warn("Could not read pending Maps shares");
     } finally { this.checkingPending = false; }
@@ -75,10 +87,32 @@ export class NativeMapShareService {
     }
   }
 
+  async reviewDraft(draft: SharedMapDraft, create = false): Promise<void> {
+    // Reading a draft never deletes it. Cancellation or failed publication must
+    // leave it available; removal is an explicit action in the draft list.
+    if (!draft.location && !draft.spotId) {
+      await this.receive(draft.text);
+      return;
+    }
+    await this.router.navigate(["/map"]);
+    this.selection.set({
+      provider: draft.text.includes("maps.apple.com") ? "apple" : "google",
+      format: "direct", location: draft.location,
+      spotId: draft.spotId, draftName: draft.name, create,
+    });
+  }
+
+  async removeDraft(id: string): Promise<void> {
+    try {
+      await MapShare.acknowledge({id});
+      this.draftState.update(drafts => drafts.filter(draft => draft.id !== id));
+    } catch {
+      this.snackbar.open($localize`Could not remove the draft. Please try again.`, $localize`Dismiss`, {duration: 6000});
+    }
+  }
+
   consume(): void {
     this.selection.set(null);
-    const id = this.pendingNativeId;
-    this.pendingNativeId = null;
-    if (id) void MapShare.acknowledge({id}).catch(() => console.warn("Could not acknowledge Maps share"));
+
   }
 }

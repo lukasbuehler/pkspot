@@ -432,6 +432,12 @@
         <target>OneID no pudo confirmar que tienes al menos 18 años. Puedes probar otro método disponible.</target>
       </segment>
     </unit>
+    <unit id="4948964893418791905">
+      <segment state="initial">
+        <source>Could not remove the draft. Please try again.</source>
+        <target>No se pudo eliminar el borrador. Inténtalo de nuevo.</target>
+      </segment>
+    </unit>
     <unit id="8922105621109418817">
       <segment state="initial">
         <source>This media was flagged by automated safety scanning and may be disturbing. Reveal it for manual moderation?</source>
@@ -492,6 +498,12 @@
       <segment state="initial">
         <source>License</source>
         <target>Licencia</target>
+      </segment>
+    </unit>
+    <unit id="688068968100316908">
+      <segment state="initial">
+        <source>Create Spot</source>
+        <target>Crear Spot</target>
       </segment>
     </unit>
     <unit id="688499259866327762">
@@ -2838,7 +2850,7 @@
     <unit id="6650633628037596693">
       <segment state="initial">
         <source>Try again</source>
-        <target>Try again</target>
+        <target>Reintentar</target>
       </segment>
     </unit>
     <unit id="1008017384716140525">
@@ -2941,6 +2953,12 @@
       <segment state="initial">
         <source>Operation</source>
         <target>Operación</target>
+      </segment>
+    </unit>
+    <unit id="1285384124958444119">
+      <segment state="initial">
+        <source>No pending drafts.</source>
+        <target>No hay borradores pendientes.</target>
       </segment>
     </unit>
     <unit id="1292744805065412409">
@@ -12172,6 +12190,12 @@
         <target>No se han podido actualizar las notificaciones del evento. Inténtalo de nuevo.</target>
       </segment>
     </unit>
+    <unit id="2432544873473701865">
+      <segment state="initial">
+        <source>Spot drafts</source>
+        <target>Borradores de Spots</target>
+      </segment>
+    </unit>
     <unit id="2446227100022235850">
       <segment state="initial">
         <source>Please enter a valid email address.</source>
@@ -12631,6 +12655,12 @@
       <segment state="initial">
         <source>Link to challenge copied to clipboard</source>
         <target>Enlace al Challenge copiado al portapapeles</target>
+      </segment>
+    </unit>
+    <unit id="5092563105818406233">
+      <segment state="initial">
+        <source>Remove draft</source>
+        <target>Eliminar borrador</target>
       </segment>
     </unit>
     <unit id="event_page.loading">
@@ -16180,6 +16210,12 @@
         <target>Publicar actualización en directo</target>
       </segment>
     </unit>
+    <unit id="5769290742758201658">
+      <segment state="initial">
+        <source>View on map</source>
+        <target>Ver en el mapa</target>
+      </segment>
+    </unit>
     <unit id="5789685393585856728">
       <segment state="initial">
         <source>Unverified contact email</source>
@@ -16316,6 +16352,12 @@
       <segment state="initial">
         <source>Use 5–140 characters.</source>
         <target>Use 5–140 characters.</target>
+      </segment>
+    </unit>
+    <unit id="4590053177684821603">
+      <segment state="initial">
+        <source>Saved on this device. Review a draft before publishing. Opening it keeps it here until you remove it.</source>
+        <target>Guardados en este dispositivo. Revisa cada borrador antes de publicarlo. Abrirlo no lo elimina.</target>
       </segment>
     </unit>
     <unit id="4590398956969854643">

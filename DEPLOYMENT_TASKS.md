@@ -1622,16 +1622,23 @@ until upload completion or explicit discard. It has no advertised navigation
 entry. Video intake, automatic EXIF grouping and new-Spot creation remain deferred.
 The original larger prototype stays on `codex/native-media-ingestion`.
 
-iOS has a separate Maps URL/text Share Extension that saves links locally and
-resumes them when PK Spot next opens. It does not launch the containing app,
-resolve short URLs inside the extension, or perform authenticated writes.
+iOS Maps shares now resolve supported links with native HTTP, show a MapKit
+preview and read-only nearby Typesense results, and save structured App Group
+drafts. The map add menu shows a pending-draft count. Review opens a matched
+Spot or prefills the normal creation flow. Drafts remain until explicitly removed.
+The extension does not launch the containing app or call Firebase; web and Android
+short-link resolution remain unchanged.
 
 - [ ] Enable `group.com.pkspot.app.media` for the app (`com.pkspot.app`) and
       Maps Share Extension (`com.pkspot.app.mapshare`) in Apple signing. Refresh
       provisioning profiles and build/install from Xcode. Both project files
       contain the target, embedded extension, shared store and bridge registration.
-      Success: Google Maps and Apple Maps offer PK Spot, saving a link survives
-      app termination, and opening PK Spot resolves it without duplicate delivery.
+      Success: Google Maps and Apple Maps offer PK Spot; direct and short links
+      show the selected pin (not the camera center), nearby matches and a map
+      preview. Saving survives app termination. Opening PK Spot shows the draft
+      count without redirecting unexpectedly; review/create/cancel retain the
+      draft and explicit removal persists. Also test offline/error recovery and
+      links without exact coordinates. Signed device behavior remains unverified.
 - [ ] Install the new Android build and verify single/multiple photo sharing from
       Google Photos with PK Spot stopped and running. Check signed-out recovery,
       cancellation, failed preparation, interrupted upload, retry and explicit
@@ -1642,18 +1649,13 @@ resolve short URLs inside the extension, or perform authenticated writes.
       multi-Spot batches using local photo metadata, never device location. Keep
       precise photo locations/capture times local, use the shared Spot picker,
       and route confirmed new-Spot positions through normal Spot creation.
-- [ ] Decide the iOS Maps extension flow after the App Check investigation.
-      Apple documents Share Extensions as unsupported by App Attest. Firebase
-      supports shared Auth via Keychain, but no confirmed Share Extension App
-      Check solution has been established. Investigate DeviceCheck separately;
-      do not disable enforcement or rely on cached tokens remaining valid.
-      Preferred proposed alternative: resolve supported map links, show nearby
-      public Typesense results and save structured drafts in the App Group.
-      The main app displays pending drafts via a count beside the unchanged add
-      FAB and lets the user review/publish through normal authenticated flows.
-      Typesense does not require Firebase App Check; the existing short-link
-      resolver callable does, so native short-link expansion needs its own
-      allowlisted, bounded implementation and device verification.
+- [ ] Verify native nearby search and MapKit previews on a signed device using
+      `search.pkspot.app`. The extension uses the existing public search-only key
+      in its Info.plist; rotate that copy alongside the web/mobile search key.
+      A live read-only nearby query returned 200, including object-form translated
+      names. Swift tests cover parser accuracy, rejected redirect hosts/loops,
+      legacy link-only drafts and both Typesense name shapes. Simulator compilation
+      and browser snapshots do not prove the share-sheet or App Group handoff.
 - [ ] Design an owner-only contribution list for created and edited Spots,
       separate from unpublished local drafts. Derive it from real submission/edit
       records, preserve existing fields, enforce owner-only reads and avoid

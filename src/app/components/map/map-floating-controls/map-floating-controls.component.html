@@ -59,6 +59,8 @@
       class="create-fab-menu"
       alignment="start"
       [actions]="createActions()"
+      [matBadge]="draftCount()"
+      [matBadgeHidden]="!draftCount()"
       [collapseSingleAction]="false"
       [launcherLabel]="createMenuLabel"
       (actionSelected)="onCreateAction($event)"

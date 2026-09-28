@@ -14,7 +14,10 @@ import {
   FabMenuComponent,
 } from "../../fab-menu/fab-menu.component";
 
+import {MatBadgeModule} from "@angular/material/badge";
+
 type MapCreateAction =
+  | "drafts"
   | "spot"
   | "import-spots"
   | "event"
@@ -28,6 +31,7 @@ interface MapFabMenuAction extends FabMenuAction {
   selector: "app-map-floating-controls",
   imports: [
     MatButtonModule,
+    MatBadgeModule,
     MatIconModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
@@ -38,6 +42,8 @@ interface MapFabMenuAction extends FabMenuAction {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MapFloatingControlsComponent {
+  readonly draftCount = input(0);
+  readonly reviewDrafts = output<void>();
   readonly showControls = input(false);
   readonly showCreateSpot = input(false);
   readonly showImportSpots = input(false);
@@ -67,6 +73,9 @@ export class MapFloatingControlsComponent {
   );
   readonly createActions = computed(() => {
     const actions: MapFabMenuAction[] = [];
+    if (this.draftCount()) {
+      actions.push({id: "drafts", icon: "edit", label: $localize`Spot drafts`});
+    }
     if (this.showCreateSpot()) {
       actions.push({
         id: "spot",
@@ -100,6 +109,9 @@ export class MapFloatingControlsComponent {
 
   onCreateAction(action: string): void {
     switch (action) {
+      case "drafts":
+        this.reviewDrafts.emit();
+        break;
       case "spot":
         this.createSpot.emit();
         break;

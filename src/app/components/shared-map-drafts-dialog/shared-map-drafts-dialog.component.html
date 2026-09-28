@@ -1,0 +1,18 @@
+<h2 mat-dialog-title i18n>Spot drafts</h2>
+<mat-dialog-content>
+  <p i18n>Saved on this device. Review a draft before publishing. Opening it keeps it here until you remove it.</p>
+  @for (draft of shares.drafts(); track draft.id) {
+    <article>
+      <h3>{{ draft.name || 'Spot' }}</h3>
+      @if (draft.location; as point) { <p>{{ point.lat }}, {{ point.lng }}</p> }
+      <div class="actions">
+        <button mat-button (click)="review(draft)" i18n>View on map</button>
+        @if (draft.location && !draft.spotId) {
+          <button mat-flat-button (click)="review(draft, true)" i18n>Create Spot</button>
+        }
+        <button mat-button (click)="shares.removeDraft(draft.id)" i18n>Remove draft</button>
+      </div>
+    </article>
+  } @empty { <p i18n>No pending drafts.</p> }
+</mat-dialog-content>
+<mat-dialog-actions align="end"><button mat-button mat-dialog-close i18n>Close</button></mat-dialog-actions>

@@ -115,4 +115,15 @@ describe("MapFloatingControlsComponent", () => {
     expect(fabMenu.actions()).toHaveLength(4);
     expect(fabMenu.alignment()).toBe("start");
   });
+  it("offers pending drafts even when creating a Spot is unavailable", () => {
+    fixture.componentRef.setInput("showControls", true);
+    fixture.componentRef.setInput("draftCount", 2);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.createActions().map(action => action.id)).toEqual(["drafts"]);
+    const listener = vi.fn();
+    fixture.componentInstance.reviewDrafts.subscribe(listener);
+    fixture.componentInstance.onCreateAction("drafts");
+    expect(listener).toHaveBeenCalled();
+  });
+
 });

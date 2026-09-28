@@ -230,6 +230,8 @@
       (resetNorth)="onResetNorth()"
       (toggleMapStyle)="onToggleMapStyle()"
       (focusGeolocation)="onFocusGeolocation()"
+      [draftCount]="nativeMapShare.drafts().length"
+      (reviewDrafts)="openSharedDrafts()"
       (createSpot)="onCreateSpot()"
       (createEvent)="onCreateEvent()"
     ></app-map-floating-controls>

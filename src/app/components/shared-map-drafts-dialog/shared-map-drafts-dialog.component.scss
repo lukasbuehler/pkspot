@@ -1,0 +1,5 @@
+:host { display: block; min-width: 0; }
+article { border: 1px solid var(--mat-sys-outline-variant); border-radius: 18px; padding: 16px; margin-block: 16px; }
+h3 { overflow-wrap: anywhere; }
+p { color: var(--mat-sys-on-surface-variant); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }

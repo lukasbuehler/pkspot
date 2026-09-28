@@ -1000,6 +1000,11 @@
         <source>Notify followers of the local community when I publish</source>
       </segment>
     </unit>
+    <unit id="4590053177684821603">
+      <segment>
+        <source>Saved on this device. Review a draft before publishing. Opening it keeps it here until you remove it.</source>
+      </segment>
+    </unit>
     <unit id="4590398956969854643">
       <segment>
         <source>Unable to process this request. Please try again later.</source>
@@ -1469,6 +1474,11 @@
         <source>Could not update event notifications. Please try again.</source>
       </segment>
     </unit>
+    <unit id="2432544873473701865">
+      <segment>
+        <source>Spot drafts</source>
+      </segment>
+    </unit>
     <unit id="2446227100022235850">
       <segment>
         <source>Please enter a valid email address.</source>
@@ -1888,6 +1898,11 @@
     <unit id="5078551942621038511">
       <segment>
         <source>Link to challenge copied to clipboard</source>
+      </segment>
+    </unit>
+    <unit id="5092563105818406233">
+      <segment>
+        <source>Remove draft</source>
       </segment>
     </unit>
     <unit id="bookmark_spot_aria_label">
@@ -2945,6 +2960,11 @@
     <unit id="576032629082435529">
       <segment>
         <source>Publish live update</source>
+      </segment>
+    </unit>
+    <unit id="5769290742758201658">
+      <segment>
+        <source>View on map</source>
       </segment>
     </unit>
     <unit id="5789685393585856728">
@@ -6435,6 +6455,11 @@
     <unit id="4948402020923235503">
       <segment>
         <source>OneID could not confirm that you are 18 or older. You can try another available method.</source>
+      </segment>
+    </unit>
+    <unit id="4948964893418791905">
+      <segment>
+        <source>Could not remove the draft. Please try again.</source>
       </segment>
     </unit>
     <unit id="forgotPassword.title">
@@ -10088,6 +10113,11 @@
         <source>Operation</source>
       </segment>
     </unit>
+    <unit id="1285384124958444119">
+      <segment>
+        <source>No pending drafts.</source>
+      </segment>
+    </unit>
     <unit id="1292744805065412409">
       <segment>
         <source>Sign in to view visited spots</source>
@@ -11100,6 +11130,11 @@
     <unit id="6877113876835666202">
       <segment>
         <source>License</source>
+      </segment>
+    </unit>
+    <unit id="688068968100316908">
+      <segment>
+        <source>Create Spot</source>
       </segment>
     </unit>
     <unit id="688499259866327762">

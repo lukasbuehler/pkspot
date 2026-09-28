@@ -432,6 +432,12 @@
         <target>OneID konnte nicht bestätigen, dass du mindestens 18 Jahre alt bist. Du kannst eine andere verfügbare Methode ausprobieren.</target>
       </segment>
     </unit>
+    <unit id="4948964893418791905">
+      <segment state="initial">
+        <source>Could not remove the draft. Please try again.</source>
+        <target>Der Entwurf konnte nicht entfernt werden. Versuche es erneut.</target>
+      </segment>
+    </unit>
     <unit id="8922105621109418817">
       <segment state="initial">
         <source>This media was flagged by automated safety scanning and may be disturbing. Reveal it for manual moderation?</source>
@@ -492,6 +498,12 @@
       <segment state="initial">
         <source>License</source>
         <target>Lizenz</target>
+      </segment>
+    </unit>
+    <unit id="688068968100316908">
+      <segment state="initial">
+        <source>Create Spot</source>
+        <target>Spot erstellen</target>
       </segment>
     </unit>
     <unit id="688499259866327762">
@@ -2838,7 +2850,7 @@
     <unit id="6650633628037596693">
       <segment state="initial">
         <source>Try again</source>
-        <target>Try again</target>
+        <target>Erneut versuchen</target>
       </segment>
     </unit>
     <unit id="1008017384716140525">
@@ -2941,6 +2953,12 @@
       <segment state="initial">
         <source>Operation</source>
         <target>Änderung</target>
+      </segment>
+    </unit>
+    <unit id="1285384124958444119">
+      <segment state="initial">
+        <source>No pending drafts.</source>
+        <target>Keine ausstehenden Entwürfe.</target>
       </segment>
     </unit>
     <unit id="1292744805065412409">
@@ -12162,6 +12180,12 @@
         <target>Event-Benachrichtigungen konnten nicht aktualisiert werden. Bitte versuche es erneut.</target>
       </segment>
     </unit>
+    <unit id="2432544873473701865">
+      <segment state="initial">
+        <source>Spot drafts</source>
+        <target>Spot-Entwürfe</target>
+      </segment>
+    </unit>
     <unit id="2446227100022235850">
       <segment state="initial">
         <source>Please enter a valid email address.</source>
@@ -12621,6 +12645,12 @@
       <segment state="initial">
         <source>Link to challenge copied to clipboard</source>
         <target>Link zur Challenge in die Zwischenablage kopiert</target>
+      </segment>
+    </unit>
+    <unit id="5092563105818406233">
+      <segment state="initial">
+        <source>Remove draft</source>
+        <target>Entwurf entfernen</target>
       </segment>
     </unit>
     <unit id="event_page.loading">
@@ -16170,6 +16200,12 @@
         <target>Live-Update veröffentlichen</target>
       </segment>
     </unit>
+    <unit id="5769290742758201658">
+      <segment state="initial">
+        <source>View on map</source>
+        <target>Auf der Karte ansehen</target>
+      </segment>
+    </unit>
     <unit id="5789685393585856728">
       <segment state="initial">
         <source>Unverified contact email</source>
@@ -16306,6 +16342,12 @@
       <segment state="initial">
         <source>Use 5–140 characters.</source>
         <target>Use 5–140 characters.</target>
+      </segment>
+    </unit>
+    <unit id="4590053177684821603">
+      <segment state="initial">
+        <source>Saved on this device. Review a draft before publishing. Opening it keeps it here until you remove it.</source>
+        <target>Auf diesem Gerät gespeichert. Prüfe einen Entwurf vor dem Veröffentlichen. Er bleibt hier, bis du ihn entfernst.</target>
       </segment>
     </unit>
     <unit id="4590398956969854643">
