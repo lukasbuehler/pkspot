@@ -1,3 +1,4 @@
+import { SpotSelectionDataService } from "../../services/spot-selection-data.service";
 import { StoreReviewService } from "../../reviews/store-review.service";
 import { TestBed } from "@angular/core/testing";
 import { MatDialog } from "@angular/material/dialog";
@@ -47,6 +48,18 @@ const recoveryPause: RecoveryPauseDocument = {
 
 describe("TrainingLogPageComponent", () => {
   beforeEach(() => TestBed.resetTestingModule());
+
+  it("resolves missing check-in names instead of displaying document IDs", async () => {
+    const component = createComponent();
+    await vi.waitFor(() => expect(component.loading()).toBe(false));
+    const names = TestBed.inject(SpotSelectionDataService);
+    vi.mocked(names.resolveVisitNames).mockResolvedValue(new Map([["opaque-id", "Polyterrasse"]]));
+    vi.mocked(TestBed.inject(SessionRecordsService).listMine).mockResolvedValue([{
+      id: "session", spot_visits: [{spot_id: "opaque-id", check_in_id: "check-in", arrived_at_raw_ms: 1}],
+    } as unknown as import("../../../db/schemas/SessionRecordSchema").SessionRecordDocument]);
+    await component.load();
+    await vi.waitFor(() => expect(component.spotNames().get("opaque-id")).toBe("Polyterrasse"));
+  });
 
   it("focuses a selected recovery pause without treating it as a session", async () => {
     const component = createComponent();
@@ -161,6 +174,7 @@ function createComponent(
   TestBed.configureTestingModule({
     imports: [TrainingLogPageComponent],
     providers: [
+      { provide: SpotSelectionDataService, useValue: { resolveVisitNames: vi.fn().mockResolvedValue(new Map()) } },
         { provide: StoreReviewService, useValue: { registerCompletionSurface: () => () => {} } },
       provideRouter([]),
       TrainingLogPageComponent,

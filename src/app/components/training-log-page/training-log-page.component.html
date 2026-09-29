@@ -72,7 +72,7 @@
         <div class="check-in-history__list">
           @for (checkIn of checkIns(); track checkIn.checkInId) {
             <article class="check-in-history__item">
-              <div><strong>{{ checkIn.spotName || checkIn.spotId }}</strong><span>{{ checkIn.arrivedAtRawMs | systemDate: "medium" }}</span></div>
+              <div><strong>{{ checkIn.spotName || spotNames().get(checkIn.spotId) || loadingSpotLabel }}</strong><span>{{ checkIn.arrivedAtRawMs | systemDate: "medium" }}</span></div>
               @if (logBySession().get(checkIn.sessionRecordId); as entryId) {
                 <a mat-button [routerLink]="['/train/log', entryId]" i18n="@@checkInLogPrompt.view">View log entry</a>
               } @else {

@@ -1,5 +1,6 @@
+import { SpotSelectionDataService } from "../../services/spot-selection-data.service";
 import { isPlatformBrowser } from '@angular/common';
-import { ChangeDetectionStrategy, Component, PLATFORM_ID, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, PLATFORM_ID, LOCALE_ID, resource, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -30,7 +31,15 @@ export class CheckInLogPromptComponent {
       this.logs().some(log => log.session_record_ids.includes(latest.id))) return null;
     return latest;
   });
-  readonly place = computed(() => this.session()?.spot_visits.map(visit => visit.spot_name).filter(Boolean).join(', '));
+  private readonly spotData = inject(SpotSelectionDataService);
+  private readonly locale = inject(LOCALE_ID);
+  private readonly names = resource({
+    params: () => this.session()?.spot_visits,
+    loader: ({ params }) => this.spotData.resolveVisitNames(params, this.locale),
+  });
+  readonly place = computed(() => this.session()?.spot_visits.map(visit =>
+    visit.spot_name || this.names.value()?.get(visit.spot_id) || $localize`:@@training.loadingSpot:Loading Spot…`
+  ).join(', '));
 
   dismiss(): void {
     const session = this.session();

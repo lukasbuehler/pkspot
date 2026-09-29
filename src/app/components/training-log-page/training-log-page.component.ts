@@ -1,3 +1,5 @@
+import { LOCALE_ID } from "@angular/core";
+import { SpotSelectionDataService } from "../../services/spot-selection-data.service";
 import { CheckInLogPromptComponent } from '../check-in-log-prompt/check-in-log-prompt.component';
 import { environment } from "../../../environments/environment.default";
 import { DestroyRef } from "@angular/core";
@@ -88,6 +90,10 @@ interface TrainingTimelineGroup {
 })
 export class TrainingLogPageComponent {
   private readonly router = inject(Router);
+  private readonly spotData = inject(SpotSelectionDataService);
+  private readonly locale = inject(LOCALE_ID);
+  readonly spotNames = signal<ReadonlyMap<string, string>>(new Map());
+  readonly loadingSpotLabel = $localize`:@@training.loadingSpot:Loading Spot…`;
   readonly addLabel = $localize`:@@trainingLog.add:Add to training log`;
   readonly addActions: readonly FabMenuAction[] = [
     ...(environment.features.plannedSessions ? [{ id: "session", icon: "add", label: $localize`:@@planned.plan:Plan a session` }] : []),
@@ -285,6 +291,7 @@ export class TrainingLogPageComponent {
     this.sessions.set([]);
     this.recoveryPauses.set([]);
     this.checkIns.set([]);
+    this.spotNames.set(new Map());
     if (!uid) {
       this.loading.set(false);
       return;
@@ -300,6 +307,10 @@ export class TrainingLogPageComponent {
       if (generation !== this.loadGeneration || uid !== this.auth.user.uid) return;
       this.logs.set(logs);
       this.sessions.set(sessions);
+      void this.spotData.resolveVisitNames(sessions.flatMap(session => session.spot_visits), this.locale)
+        .then(names => {
+          if (generation === this.loadGeneration && uid === this.auth.user.uid) this.spotNames.set(names);
+        });
       this.recoveryPauses.set(recoveryPauses);
       this.checkIns.set(
         sessions

@@ -1,6 +1,7 @@
+import { SpotSelectionDataService } from "../../services/spot-selection-data.service";
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { LogEntryDocument } from '../../../db/schemas/LogEntrySchema';
 import type { SessionRecordDocument } from '../../../db/schemas/SessionRecordSchema';
 import { CheckInLogPromptComponent } from './check-in-log-prompt.component';
@@ -10,7 +11,7 @@ const session = (id: string, started: number, owner = 'owner') => ({
   spot_visits: [{ spot_id: 'spot', spot_name: 'Riverside' }],
 } as SessionRecordDocument);
 function setup(sessions = [session('latest', 2), session('older', 1)], logs: LogEntryDocument[] = []) {
-  TestBed.configureTestingModule({ imports: [CheckInLogPromptComponent], providers: [provideRouter([])] });
+  TestBed.configureTestingModule({ imports: [CheckInLogPromptComponent], providers: [{ provide: SpotSelectionDataService, useValue: { resolveVisitNames: vi.fn().mockResolvedValue(new Map([["spot", "Riverside"]])) } }, provideRouter([])] });
   const fixture = TestBed.createComponent(CheckInLogPromptComponent);
   fixture.componentRef.setInput('sessions', sessions);
   fixture.componentRef.setInput('logs', logs);
@@ -18,6 +19,14 @@ function setup(sessions = [session('latest', 2), session('older', 1)], logs: Log
 }
 describe('check-in log prompt', () => {
   beforeEach(() => { TestBed.resetTestingModule(); localStorage.clear(); });
+  it('looks up the place for an older check-in without a saved name', async () => {
+    const older = session('latest', 2);
+    delete older.spot_visits[0].spot_name;
+    const fixture = setup([older]);
+    await fixture.whenStable();
+    expect(fixture.componentInstance.place()).toBe('Riverside');
+    expect(fixture.nativeElement.textContent).toContain('Riverside');
+  });
   it('offers the latest check-in and stops prompting after its entry is saved', () => {
     const fixture = setup();
     expect(fixture.componentInstance.session()?.id).toBe('latest');
