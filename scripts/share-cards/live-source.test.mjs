@@ -42,3 +42,36 @@ test('decodes Firestore timestamps and nested public presentation fields', () =>
     media: { arrayValue: { values: [{ stringValue: 'photo' }] } },
   } } }), { start: { seconds: 1790676000 }, rating: 4.5, media: ['photo'] });
 });
+
+test('resolves Spot and Event slug aliases before applying public eligibility', async () => {
+  for (const kind of ['spot', 'event']) {
+    const reads = [];
+    const access = {
+      readDocument: async (collection, id) => {
+        reads.push([collection, id]);
+        if (collection === `${kind}_slugs`) return { [`${kind}_id`]: 'resolved-id' };
+        if (id === 'resolved-id') return kind === 'spot' ? { name: { en: { text: 'Resolved' } } } : { published: false };
+      },
+      readBySlug: () => { throw new Error('alias should resolve'); },
+      readPhoto: () => { throw new Error('no media'); },
+    };
+    if (kind === 'spot') assert.equal((await loadLiveSource(kind, 'My-Slug', access)).title, 'Resolved');
+    else await assert.rejects(loadLiveSource(kind, 'My-Slug', access), /not eligible/);
+    assert.deepEqual(reads, [[`${kind}s`, 'My-Slug'], [`${kind}_slugs`, 'my-slug'], [`${kind}s`, 'resolved-id']]);
+  }
+});
+test('falls back to legacy slug fields and handles missing slugs', async () => {
+  for (const kind of ['spot', 'event']) {
+    const access = { readDocument: async () => undefined, readPhoto: async () => null,
+      readBySlug: async (collection, slug) => {
+        assert.equal(collection, `${kind}s`); assert.equal(slug, 'unknown');
+        return undefined;
+      } };
+    await assert.rejects(loadLiveSource(kind, 'unknown', access), /not eligible/);
+  }
+  assert.equal((await loadLiveSource('spot', 'legacy', {
+    readDocument: async () => undefined,
+    readBySlug: async () => ({ name: { en: { text: 'Legacy Spot' } } }),
+    readPhoto: async () => null,
+  })).title, 'Legacy Spot');
+});

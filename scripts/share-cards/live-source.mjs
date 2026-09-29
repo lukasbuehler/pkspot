@@ -6,14 +6,14 @@ const { projectCard, collections, storageMediaPath, shareCardMediaCandidates } =
 const { DEFAULT_STORAGE_BUCKET } = require('../../functions/lib/functions/src/storageBucket.js');
 const execute = promisify(execFile);
 let token, tokenExpires = 0;
-async function cloudRead(url) {
+async function cloudRead(url, body) {
   if (!token || Date.now() >= tokenExpires) {
     try {
       const { stdout } = await execute('gcloud', ['auth', 'print-access-token'], { timeout: 15000 });
       token = stdout.trim(); tokenExpires = Date.now() + 240000;
     } catch { throw new Error('Google Cloud login unavailable. Run gcloud auth login and retry.'); }
   }
-  const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(20000) });
+  const response = await fetch(url, { method: body ? 'POST' : 'GET', body: body ? JSON.stringify(body) : undefined, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(20000) });
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(`Google Cloud read failed (${response.status}). Check your gcloud login and project access.`);
   return response;
@@ -30,6 +30,14 @@ async function readDocument(collection, id) {
   const response = await cloudRead(`https://firestore.googleapis.com/v1/projects/parkour-base-project/databases/(default)/documents/${collection}/${encodeURIComponent(id)}`);
   return response ? decodeFields((await response.json()).fields ?? {}) : undefined;
 }
+async function readBySlug(collection, slug) {
+  const response = await cloudRead('https://firestore.googleapis.com/v1/projects/parkour-base-project/databases/(default)/documents:runQuery', {
+    structuredQuery: { from: [{ collectionId: collection }],
+      where: { fieldFilter: { field: { fieldPath: 'slug' }, op: 'EQUAL', value: { stringValue: slug } } }, limit: 1 },
+  });
+  const document = (await response.json()).find(row => row.document)?.document;
+  return document ? decodeFields(document.fields ?? {}) : undefined;
+}
 async function readPhoto(src) {
   const path = storageMediaPath(src, DEFAULT_STORAGE_BUCKET);
   if (!path) return null;
@@ -44,12 +52,23 @@ async function readPhoto(src) {
   }
   return null;
 }
-export async function loadLiveSource(kind, id, access = { readDocument, readPhoto }) {
+export async function loadLiveSource(kind, id, access = { readDocument, readPhoto, readBySlug }) {
   if (!['spot', 'event', 'community'].includes(kind) || typeof id !== 'string' ||
       !/^[\w:.-]{1,200}$/.test(id) || id === '.' || id === '..') {
-    throw new Error('Choose a type and enter a valid entity ID.');
+    throw new Error('Choose a type and enter a valid entity ID or slug.');
   }
-  const source = projectCard(kind, await access.readDocument(collections[kind], id));
+  let document = await access.readDocument(collections[kind], id);
+  if (!document && kind !== 'community') {
+    const slug = id.toLowerCase();
+    const alias = await access.readDocument(`${kind}_slugs`, slug);
+    const target = alias?.[`${kind}_id`];
+    if (typeof target === 'string' && /^[\w:.-]{1,200}$/.test(target)) {
+      document = await access.readDocument(collections[kind], target);
+    }
+    // Older entities can have a slug without a corresponding alias document.
+    if (!document) document = await access.readBySlug(collections[kind], slug);
+  }
+  const source = projectCard(kind, document);
   if (!source) throw new Error('Not found or not eligible for a public share card.');
   const photos = (await Promise.all(source.media.map(access.readPhoto))).filter(Boolean);
   return { ...source.input, photos };
