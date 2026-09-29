@@ -102,32 +102,7 @@ import {
   toUsableMapCenterLiteral,
 } from "../../shared/map-coordinate-utils";
 
-function enumerateTileRangeX(
-  start: number,
-  end: number,
-  zoom: number,
-): number[] {
-  const tileCount = 1 << zoom;
-  const normalize = (value: number) => {
-    const mod = value % tileCount;
-    return mod < 0 ? mod + tileCount : mod;
-  };
-
-  const from = normalize(start);
-  const to = normalize(end);
-  const range: number[] = [];
-
-  range.push(from);
-
-  let current = from;
-  const safetyLimit = tileCount + 1;
-  while (current !== to && range.length <= safetyLimit) {
-    current = (current + 1) % tileCount;
-    range.push(current);
-  }
-
-  return range;
-}
+import { calculateViewportTiles } from "./viewport-tiles";
 
 interface SpotPreviewAreaOverlay {
   id: string;
@@ -1614,77 +1589,21 @@ export class GoogleMap2dComponent
 
   boundsToRender = signal<google.maps.LatLngBounds | null>(null);
 
-  private _previouslyVisibleTiles: TilesObject | null = null;
+  private readonly _settledViewport = signal<{
+    bounds: google.maps.LatLngBoundsLiteral;
+    zoom: number;
+    center: google.maps.LatLngLiteral;
+  } | null>(null);
+
+  // Capture bounds and zoom together at idle. Reading live zoom here can combine
+  // a new vector-map zoom with old bounds and enumerate millions of tiles.
   visibleTiles = computed<TilesObject | null>(() => {
-    const zoom = this.googleMap?.getZoom(); // this needs to be getZoom because _zoom is still outdated if panning
-    const boundsToRender = this.boundsToRender();
-
-    if (!boundsToRender || typeof zoom !== "number") {
-      return null;
-    }
-
-    // Use an integer zoom for tile calculations. Google Maps may report
-    // fractional zoom levels during smooth zooming; tile systems expect
-    // integer zooms. Flooring the zoom ensures consistent tile keys and
-    // allows the cluster logic to handle zooms below the minimum cluster
-    // zoom (e.g., 2 or 3) by mapping them to the cluster zoom levels.
-    const intZoom = Math.max(0, Math.floor(zoom));
-
-    const neTile = MapHelpers.getTileCoordinatesForLocationAndZoom(
-      boundsToRender.getNorthEast().toJSON(),
-      intZoom,
-    );
-    const swTile = MapHelpers.getTileCoordinatesForLocationAndZoom(
-      boundsToRender.getSouthWest().toJSON(),
-      intZoom,
-    );
-
-    // Check if we cover effectively the whole world horizontally
-    const tilesObj: TilesObject = {
-      zoom: intZoom,
-      tiles: [],
-      ne: neTile,
-      sw: swTile,
-      center: boundsToRender.getCenter().toJSON(),
-      viewportBounds: boundsToRender.toJSON(),
-    };
-
-    // Check if we cover effectively the whole world horizontally
-    const ne = boundsToRender.getNorthEast();
-    const sw = boundsToRender.getSouthWest();
-    const lngDiff = ne.lng() - sw.lng();
-    // Special case: when east === west, the viewport has wrapped around the entire world (360°)
-    const isFullWorldWrap = sw.lng() === ne.lng();
-    const lngSpan = isFullWorldWrap
-      ? 360
-      : lngDiff < 0
-        ? lngDiff + 360
-        : lngDiff;
-
-    // Maximum valid tile index for Y at this zoom level
-    const maxTileIndex = (1 << intZoom) - 1;
-    const clampY = (y: number) => Math.max(0, Math.min(maxTileIndex, y));
-
-    let xRange: number[];
-    if (lngSpan > 359 || isFullWorldWrap) {
-      const tileCount = 1 << intZoom;
-      xRange = Array.from({ length: tileCount }, (_, i) => i);
-    } else {
-      xRange = enumerateTileRangeX(swTile.x, neTile.x, intZoom);
-    }
-
-    // Clamp Y values to valid tile bounds before iterating
-    const yMin = clampY(Math.min(swTile.y, neTile.y));
-    const yMax = clampY(Math.max(swTile.y, neTile.y));
-
-    xRange.forEach((x) => {
-      for (let y = yMin; y <= yMax; y++) {
-        tilesObj.tiles.push({ x, y });
-      }
-    });
-
-    this._previouslyVisibleTiles = tilesObj;
-    return tilesObj;
+    const viewport = this._settledViewport();
+    if (!viewport) return null;
+    const tiles = calculateViewportTiles(viewport.bounds, viewport.zoom);
+    return tiles
+      ? { ...tiles, center: viewport.center, viewportBounds: viewport.bounds }
+      : null;
   });
 
   /**
@@ -1905,8 +1824,9 @@ export class GoogleMap2dComponent
       this._updateMapConfig();
     });
 
-    effect(() => {
-      const enableVectorMaps = this._appSettings.enableVectorMaps();
+    // Native recreation reads camera signals. Keep those incidental reads out
+    // of this subscription, or zoom animation frames can recreate the map.
+    bindSignalToImperativeApi(this._appSettings.enableVectorMaps, (enableVectorMaps) => {
       if (!this._hasInitializedNativeMap) {
         void this._updateMapConfig();
         return;
@@ -2970,7 +2890,7 @@ export class GoogleMap2dComponent
 
     this._rememberValidCamera(camera);
     this._commitSettledCameraZoom(camera.zoom, "idle");
-    this._executeBoundsChange();
+    this._executeBoundsChange(camera);
     this.centerChanged();
     this._recordMapProfile("idle");
   }
@@ -3266,7 +3186,7 @@ export class GoogleMap2dComponent
     }, 0);
   }
 
-  private _executeBoundsChange() {
+  private _executeBoundsChange(camera: MapCameraSnapshot) {
     if (!this.googleMap) return;
     const bounds = this.googleMap.getBounds()!;
     const boundsDebug = bounds?.toJSON();
@@ -3275,6 +3195,11 @@ export class GoogleMap2dComponent
       return;
     }
 
+    this._settledViewport.set({
+      bounds: bounds.toJSON(),
+      zoom: camera.zoom,
+      center: camera.center,
+    });
     this.boundsToRender.set(bounds);
     this._debugMapEvent("boundsChanged", {
       center: bounds.getCenter().toJSON(),

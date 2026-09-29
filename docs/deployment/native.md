@@ -6,6 +6,12 @@ Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure a
 
 ### Android Maps sharing and mobile cropping
 
+- [ ] Rebuild Android and stress-test vector-map panning and pinch zooming.
+      Verify the map and navigation remain responsive, including after
+      background/resume. Local fixes isolate rendering-setting changes from
+      camera signals and bound tile allocation; the reported full WebView
+      freeze still requires reproduction and confirmation on the device.
+
 - [ ] Build and install the updated Android app to register the new text-share target.
       Verify Google Maps sharing from both a stopped and running PK Spot app,
       keyboard clipboard insertion of a short Maps link, and crop controls in
