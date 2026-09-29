@@ -10480,6 +10480,12 @@
         <target>Este Spot está marcado como fuera de límites. No entrenes aquí sin permiso explícito de la persona propietaria o administradora.</target>
       </segment>
     </unit>
+    <unit id="spot.activity.recentSummary">
+      <segment state="translated">
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;spot-activity-summary__count&quot;&gt;" dispEnd="&lt;/span&gt;"><ph id="1" equiv="INTERPOLATION" disp="{{ count }}"/></pc> trained here recently</source>
+        <target><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;spot-activity-summary__count&quot;&gt;" dispEnd="&lt;/span&gt;"><ph id="1" equiv="INTERPOLATION" disp="{{ count }}"/></pc> personas han entrenado aquí recientemente</target>
+      </segment>
+    </unit>
     <unit id="spot.close.tooltip">
       <notes>
         <note category="description">Tooltip for close spot button</note>
@@ -18564,24 +18570,6 @@
       <segment state="initial">
         <source>Use while using the app</source>
         <target>Usar mientras usas la aplicación</target>
-      </segment>
-    </unit>
-    <unit id="spot.activity.label">
-      <segment state="initial">
-        <source>Recently trained</source>
-        <target>Entrenaron recientemente</target>
-      </segment>
-    </unit>
-    <unit id="spot.activity.bucket">
-      <segment state="initial">
-        <source><ph id="0" equiv="INTERPOLATION" disp="{{ summary.bucket }}"/> people</source>
-        <target><ph id="0" equiv="INTERPOLATION" disp="{{ summary.bucket }}"/> personas</target>
-      </segment>
-    </unit>
-    <unit id="spot.activity.window">
-      <segment state="initial">
-        <source>in the last 30 days</source>
-        <target>en los últimos 30 días</target>
       </segment>
     </unit>
     <unit id="profile.actions.acceptFollowRequest">

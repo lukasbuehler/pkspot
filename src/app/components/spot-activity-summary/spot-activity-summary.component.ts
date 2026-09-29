@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   input,
+  computed,
   resource,
 } from "@angular/core";
 import { MatIconModule } from "@angular/material/icon";
@@ -20,6 +21,11 @@ export class SpotActivitySummaryComponent {
     params: () => this.spotId(),
     loader: ({ params }) =>
       params ? this.spotActivity.get(params) : Promise.resolve(null),
+  });
+
+  readonly recentCount = computed(() => {
+    const summary = this.activity.value();
+    return summary ? `${summary.bucket.split("–")[0].replace("+", "")}+` : null;
   });
 
   constructor(private readonly spotActivity: SpotActivityService) {}

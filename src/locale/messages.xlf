@@ -10387,6 +10387,11 @@
         <source>This spot is marked as off-limits. Do not train here without clear permission from the owner or manager.</source>
       </segment>
     </unit>
+    <unit id="spot.activity.recentSummary">
+      <segment>
+        <source><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;spot-activity-summary__count&quot;&gt;" dispEnd="&lt;/span&gt;"><ph id="1" equiv="INTERPOLATION" disp="{{ count }}"/></pc> trained here recently</source>
+      </segment>
+    </unit>
     <unit id="spot.close.tooltip">
       <notes>
         <note category="description">Tooltip for close spot button</note>
@@ -15551,21 +15556,6 @@
     <unit id="locationAccess.persistent">
       <segment>
         <source>Use while using the app</source>
-      </segment>
-    </unit>
-    <unit id="spot.activity.label">
-      <segment>
-        <source>Recently trained</source>
-      </segment>
-    </unit>
-    <unit id="spot.activity.bucket">
-      <segment>
-        <source><ph id="0" equiv="INTERPOLATION" disp="{{ summary.bucket }}"/> people</source>
-      </segment>
-    </unit>
-    <unit id="spot.activity.window">
-      <segment>
-        <source>in the last 30 days</source>
       </segment>
     </unit>
     <unit id="profile.actions.acceptFollowRequest">

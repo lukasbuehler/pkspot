@@ -1,25 +1,19 @@
 .spot-activity-summary {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
-  margin: 0 16px 16px;
-  padding: 12px;
-  border: 1px solid var(--mat-sys-primary);
-  border-radius: 18px;
-  color: var(--mat-sys-on-primary-container);
-  background: var(--mat-sys-primary-container);
+  margin: 0 16px 12px;
+  color: var(--mat-sys-on-surface-variant);
 }
 
-.spot-activity-summary__icon {
-  display: grid;
-  width: 40px;
-  height: 40px;
-  place-items: center;
-  border-radius: 13px;
-  color: var(--mat-sys-on-primary);
-  background: var(--mat-sys-primary);
+mat-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
 }
 
-p {
-  margin: 0;
+.spot-activity-summary__count {
+  color: var(--mat-sys-primary);
+  font-weight: 600;
 }

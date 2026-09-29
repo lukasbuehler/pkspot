@@ -72,12 +72,6 @@ form {
   justify-content: space-around;
 }
 
-// Reserve the same title-row height before and after details load, while
-// centering the name and badges together rather than padding the text box.
-mat-card-title {
-  min-height: 2lh;
-}
-
 .spot-title-text {
   min-width: 0;
   white-space: normal;
@@ -93,7 +87,8 @@ mat-card-title {
 .spot-loading-header-reserve {
   display: block;
   width: 44%;
-  height: 8px;
+  height: 1lh;
+  min-height: 24px; // Match the metadata row's Material icons.
   margin-bottom: 4px;
   border-radius: 8px;
   background: var(--mat-sys-surface-variant);
@@ -408,4 +403,21 @@ div.google-img-container {
 }
 @media (prefers-reduced-motion: reduce) {
   .spot-activity-reveal { transition: none; }
+}
+
+// Loading uses the same one-line typography as the finished header. Known
+// titles keep their real wrapping; only missing text receives a skeleton.
+.spot-loading-title {
+  display: inline-block;
+  width: min(14ch, 65%);
+  height: 1lh;
+  border-radius: 4px;
+  background: var(--mat-sys-surface-variant);
+}
+
+.spot-loading-badge {
+  flex: 0 0 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--mat-sys-surface-variant);
 }

@@ -14,23 +14,24 @@
   style="box-shadow: none"
 >
   @if (loading()) {
-    <mat-card-header class="pb-2 px-3 d-flex flex-column-reverse">
+    <mat-card-header class="pb-2 pt-0 px-3 d-flex flex-column-reverse">
       <mat-card-title class="d-flex align-items-center w-100 gap-1">
         <span
           class="flex-grow-1 w-100 overflow-hidden d-flex flex-row align-items-center gap-2"
         >
-          <span
-            [matTooltip]="loadingTitle()"
-            class="d-block spot-title-text"
-          >
-            {{ loadingTitle() || "Spot" }}
-          </span>
+          <span class="spot-loading-badge" aria-hidden="true"></span>
+          @if (loadingTitle()) {
+            <span [matTooltip]="loadingTitle()" class="d-block spot-title-text">{{ loadingTitle() }}</span>
+          } @else {
+            <span class="spot-loading-title" aria-hidden="true"></span>
+          }
           <span
             i18n
             class="mat-label-small px-1 border rounded spot-kind-label"
           >
             Spot
           </span>
+          <span class="spot-loading-badge" aria-hidden="true"></span>
         </span>
 
         @if (dismissable()) {
@@ -54,14 +55,13 @@
             class="collapsible-header-info"
             [attr.data-collapsed]="openProgress() < 0.1 ? 'true' : null"
           >
+            <span class="spot-loading-header-reserve" aria-hidden="true"></span>
             @if (loadingSubtitle()) {
-              <span
-                class="spot-loading-header-reserve"
-                aria-hidden="true"
-              ></span>
-              <span class="mat-label-large text-truncate">
+              <span class="text-truncate d-flex align-items-center gap-1">
                 {{ loadingSubtitle() }}
               </span>
+            } @else {
+              <span class="spot-loading-header-reserve" aria-hidden="true"></span>
             }
           </div>
         </div>

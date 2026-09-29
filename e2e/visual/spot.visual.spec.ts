@@ -276,7 +276,9 @@ for (const name of ["Lindenhof", "Riverside Training Walls"]) {
     const title = page.locator('.spot-title-text').first();
     const badge = page.locator('.spot-kind-label').first();
     const activity = page.locator('.spot-activity-reveal');
-    await expect(activity).toContainText('2–4');
+    await expect(activity).toContainText('2+');
+    await expect(activity).not.toContainText('30');
+    expect((await activity.boundingBox())!.height).toBeLessThan(60);
     const titleBox = await title.evaluate(element => {
       const text = document.createRange();
       text.selectNodeContents(element);
