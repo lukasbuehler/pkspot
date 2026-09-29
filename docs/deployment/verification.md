@@ -4,6 +4,14 @@ Browser, product-flow and operational checks. These entries are not a list of mi
 
 Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure and maintenance rules. Each task is owned here; do not duplicate it in another checklist.
 
+### Temporary Lindenhof activity preview
+
+- [ ] Before releasing 1.2, remove the development-only Lindenhof override in
+      `SpotActivityService.get` (`8CHFHRFUCozO9yeLEq6N`) and its preview-specific
+      tests after visual review. It displays fabricated `10–24` people over 30
+      days without writing to Firebase; production environments bypass it.
+      Verify Lindenhof reads `spot_activity_public` normally after removal.
+
 ### Public status page
 
 - [ ] After the web release, verify the Support page's System status link opens
