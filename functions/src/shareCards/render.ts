@@ -20,7 +20,7 @@ export interface ShareCardInput {
   photos?: Buffer[];
 }
 export interface ShareCardAssets { fontFile: string; logo?: Buffer; icon?: Buffer }
-export const SHARE_CARD_VERSION = "prototype-7";
+export const SHARE_CARD_VERSION = "prototype-8";
 export const SHARE_CARD_SIZE = { width: 1200, height: 630 };
 const escapeText = (value: string): string => value.replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" })[c]!);
