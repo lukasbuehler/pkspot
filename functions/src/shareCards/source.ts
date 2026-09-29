@@ -61,3 +61,9 @@ export function storageMediaPath(value: string, bucket: string): string | null {
     return /^(spot_pictures|event_media)\/[\w./-]+$/.test(path) && !path.includes("..") ? path : null;
   } catch { return /^(spot_pictures|event_media)\/[\w.-]+$/.test(value) ? value : null; }
 }
+
+/** Legacy uploads may have no extension and retain only resized derivatives. */
+export function shareCardMediaCandidates(path: string): string[] {
+  const resized = path.replace(/(?:_\d+x\d+)?(\.[^./]+)?$/, "_800x800$1");
+  return [...new Set([resized, path])];
+}

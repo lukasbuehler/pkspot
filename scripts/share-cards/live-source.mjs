@@ -2,7 +2,7 @@ import { createRequire } from 'node:module';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 const require = createRequire(import.meta.url);
-const { projectCard, collections, storageMediaPath } = require('../../functions/lib/functions/src/shareCards/source.js');
+const { projectCard, collections, storageMediaPath, shareCardMediaCandidates } = require('../../functions/lib/functions/src/shareCards/source.js');
 const { DEFAULT_STORAGE_BUCKET } = require('../../functions/lib/functions/src/storageBucket.js');
 const execute = promisify(execFile);
 let token, tokenExpires = 0;
@@ -33,8 +33,7 @@ async function readDocument(collection, id) {
 async function readPhoto(src) {
   const path = storageMediaPath(src, DEFAULT_STORAGE_BUCKET);
   if (!path) return null;
-  const resized = path.replace(/(?:_\d+x\d+)?(\.[^.]+)$/, '_800x800$1');
-  for (const candidate of new Set([resized, path])) {
+  for (const candidate of shareCardMediaCandidates(path)) {
     const url = `https://storage.googleapis.com/storage/v1/b/${DEFAULT_STORAGE_BUCKET}/o/${encodeURIComponent(candidate)}`;
     const response = await cloudRead(url);
     if (!response) continue;

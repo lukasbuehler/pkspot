@@ -62,3 +62,14 @@ test('media resolution cannot escape the published folders or fetch arbitrary ho
   assert.equal(storageMediaPath(`https://firebasestorage.googleapis.com/v0/b/${bucket}/o/spot_pictures%2Fphoto.jpg?alt=media`,bucket),'spot_pictures/photo.jpg');
   for(const url of ['https://127.0.0.1/private','media_intake/a.jpg','spot_pictures/../secret.jpg',`https://firebasestorage.googleapis.com/v0/b/other/o/spot_pictures%2Fa.jpg`]) assert.equal(storageMediaPath(url,bucket),null);
 });
+
+test('media candidates resolve extensionless legacy uploads and existing derivatives', () => {
+  const { shareCardMediaCandidates } = require('../../functions/lib/functions/src/shareCards/source.js');
+  for (const [path, resized] of [
+    ['spot_pictures/photo', 'spot_pictures/photo_800x800'],
+    ['spot_pictures/photo.jpg', 'spot_pictures/photo_800x800.jpg'],
+    ['spot_pictures/photo_400x400', 'spot_pictures/photo_800x800'],
+    ['event_media/photo_400x400.png', 'event_media/photo_800x800.png'],
+  ]) assert.deepEqual(shareCardMediaCandidates(path), [resized, path]);
+  assert.deepEqual(shareCardMediaCandidates('spot_pictures/photo_800x800'), ['spot_pictures/photo_800x800']);
+});

@@ -8,7 +8,7 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { DEFAULT_STORAGE_BUCKET } from "../storageBucket";
 import { renderShareCard } from "./render";
-import { collections, EntityKind, projectCard, sourceFingerprint, storageMediaPath } from "./source";
+import { collections, EntityKind, projectCard, sourceFingerprint, storageMediaPath, shareCardMediaCandidates } from "./source";
 
 const db = admin.firestore();
 const bucket = () => admin.storage().bucket(DEFAULT_STORAGE_BUCKET);
@@ -39,8 +39,7 @@ async function mediaState(media: string[]) {
   return Promise.all(media.map(async src => {
     const path = storageMediaPath(src, bucket().name);
     if (!path) return null;
-    const resized = path.replace(/(?:_\d+x\d+)?(\.[^.]+)$/, "_800x800$1");
-    for (const candidate of [...new Set([resized, path])]) {
+    for (const candidate of shareCardMediaCandidates(path)) {
       try {
         const [metadata] = await bucket().file(candidate).getMetadata();
         if (Number(metadata.size) > 12 * 1024 * 1024 || !metadata.contentType?.startsWith("image/")) continue;

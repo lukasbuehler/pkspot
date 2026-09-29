@@ -80,6 +80,11 @@ and checked in as `src/assets/banner_1200x630.png`.
       updated bundled fallback. Verify a public entity without a prepared card
       returns the branded image. The static website fallback ships with the next
       normal web release; no runtime image generation is required.
+- [ ] Deploy the compatible extensionless-photo resolver in
+      `prepareShareCard`, `shareCardImage`, and `cleanupShareCards`. Legacy Spot
+      originals may be absent while `_800x800` derivatives exist. Verify a fresh
+      Aumatten card (`idlc5zspvPuoau1YYBbG`) includes its two eligible photos.
+      The local preview lab uses the same resolver; this does not deploy it.
 Only Share clicks generate cards, regardless of rating. There is no backfill,
 edit-triggered generation, or crawler-triggered generation. Spot and Event Share
 buttons use the common service; community/profile targets are supported by the
