@@ -109,15 +109,6 @@ run data migrations, or complete third-party service tasks.
       deployment, the canary document, authenticated GET/HEAD 200 responses,
       missing/invalid-token 401 responses and Cache-Control: no-store were
       verified on 2026-09-28. Live Firestore failure injection was not performed.
-- [ ] Add native Google Cloud Monitoring policies for function
-      latency/timeouts and Firestore `UNAVAILABLE` or `DEADLINE_EXCEEDED`
-      responses. The email notification channel and the initial policies for
-      non-OK Cloud Function executions and App Hosting Cloud Run 5xx responses
-      are already created and verified in `parkour-base-project`. Keep the
-      Better Stack Google Monitoring integration disabled. Success condition:
-      the remaining policy definitions are verified in Google Cloud without
-      generating synthetic failures or public status-page incidents.
-
 ### Live function alert follow-up (2026-09-28)
 
 - [ ] Repair the expiry-query/index mismatch in
@@ -138,27 +129,20 @@ run data migrations, or complete third-party service tasks.
       index only prepared records rather than inventing coordinates or making
       incomplete Spots searchable. Verify initial creation and subsequent edits
       without missing-field indexing failures.
-- [ ] After approval, deploy the compatible Overpass outage handling and weather
-      diagnostics: `firebase deploy --only functions:getOsmAmenityTile,functions:getWeather --project parkour-base-project`.
-      Deploy before the updated client. New clients send `acceptUnavailable: true`
-      and receive an explicit unavailable state with retry timing, without caching
-      an empty tile. Older clients retain their 503/retry behavior, so these can
-      still appear in the broad non-OK alert until those clients migrate or the
-      policy is refined. Expected upstream failures are informational; internal
-      and configuration failures still surface. Local verification: 54 focused
-      tests, two cache emulator tests, Functions build and build/SSR smoke passed.
-      Verify live stale fallback, cold outage response and eventual recovery.
-- [ ] Diagnose the 17 historical `getWeather` HTTP 503s after deploying its
-      sanitized upstream diagnostics. Existing logs do not establish their cause;
-      caught Google weather-alert 404s are not proof of the forecast failure.
-      Inspect provider, endpoint and upstream HTTP status on the next failure,
-      then fix and verify the specific cause. Never log API keys or coordinates.
-- [ ] Refine the live `PK Spot Functions: non-OK execution` policy after approval.
-      It currently sums every function/status together, including profile 404s
-      and authorization 401/403s. Keep actionable failures visible, distinguish
-      expected rejections, and retain function/region identity in alerts.
-      Verify the resulting policy and observed incidents without synthetic
-      production failures. No monitoring settings were changed during this audit.
+- [ ] Verify real client traffic on deployed Overpass revision
+      `getosmamenitytile-00004-zeq`, then release the client that sends
+      `acceptUnavailable: true`. Confirm unavailable responses are retried rather
+      than cached as empty tiles, stale fallback and eventual recovery. Legacy
+      clients intentionally retain their 503/retry contract. Seven handler/cache
+      emulator tests pass; no synthetic upstream outage was induced in production.
+- [ ] Fix weather coverage handling separately from true upstream outages.
+      Google API metrics on 2026-09-29 show 43 forecast 404s per forecast endpoint
+      over 24 hours, plus four forecast 503s. The current function maps both to
+      callable 503. Treat unsupported locations as unavailable coverage, preserve
+      older client behavior, and verify recovery/fallback without inventing data.
+      Sanitized upstream diagnostics remain local; after approval deploy only
+      `functions:getWeather`. Correlate future per-request logs before attributing
+      every historical failure to missing coverage. Never log keys or coordinates.
 
 ### iOS scene lifecycle and Capacitor 8.5.2
 
