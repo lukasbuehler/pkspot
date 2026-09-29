@@ -689,7 +689,10 @@ async function getCachedGoogleWeatherAlerts(
       expiresAt: expiresAt.toISOString(),
     };
   } catch (error) {
-    console.error("Google weather alerts request failed", error);
+    if (!(error instanceof HttpsError && error.code === "not-found")) {
+      // Coverage gaps are expected; retain diagnostics for actual upstream failures.
+      console.error("Google weather alerts request failed", error);
+    }
     return {
       alerts: [],
       status: "unavailable",
@@ -1021,7 +1024,9 @@ export async function fetchWeatherUpstream(
   const context = {provider, endpoint: url.pathname};
   try {
     const response = await fetch(url);
-    if (!response.ok) {
+    if (provider === "google" && response.status === 404) {
+      logger.info("Weather coverage unavailable", {...context, upstreamStatus: 404});
+    } else if (!response.ok) {
       logWarning("Weather upstream rejected request", {...context, upstreamStatus: response.status});
     }
     return response;
@@ -1034,7 +1039,22 @@ export async function fetchWeatherUpstream(
   }
 }
 
-async function fetchGoogleJson<T>(
+/** Google documents 404 as absent location coverage, not a service outage.
+ * Keep the callable error contract for older clients; never cache fabricated forecasts.
+ */
+function assertGoogleWeatherResponse(response: Response): void {
+  if (response.status === 404) {
+    throw new HttpsError("not-found", "Weather coverage is unavailable for this location.", {
+      reason: "coverage-unavailable",
+      provider: "google",
+    });
+  }
+  if (!response.ok) {
+    throw new HttpsError("unavailable", `Google Weather request failed: ${response.status}`);
+  }
+}
+
+export async function fetchGoogleJson<T>(
   endpoint: string,
   apiKey: string,
   location: WeatherLocation,
@@ -1050,12 +1070,7 @@ async function fetchGoogleJson<T>(
   }
 
   const response = await fetchWeatherUpstream(url, "google");
-  if (!response.ok) {
-    throw new HttpsError(
-      "unavailable",
-      `Google Weather request failed: ${response.status} ${response.statusText}`
-    );
-  }
+  assertGoogleWeatherResponse(response);
 
   return (await response.json()) as T;
 }
@@ -1082,12 +1097,7 @@ async function fetchGoogleWeatherAlerts(
   }
 
   const response = await fetchWeatherUpstream(url, "google");
-  if (!response.ok) {
-    throw new HttpsError(
-      "unavailable",
-      `Google Weather alerts request failed: ${response.status} ${response.statusText}`
-    );
-  }
+  assertGoogleWeatherResponse(response);
 
   const data = (await response.json()) as GoogleWeatherAlertsResponse;
   return {
