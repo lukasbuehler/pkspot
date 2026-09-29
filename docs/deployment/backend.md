@@ -81,7 +81,7 @@ and checked in as `src/assets/banner_1200x630.png`.
       returns the branded image. The static website fallback ships with the next
       normal web release; no runtime image generation is required.
 - [ ] Deploy the centered photo crops and entity-specific faint backgrounds
-      plus logo shadow (renderer `prototype-8`) and compatible
+      plus logo shadow (renderer `prototype-9`) and compatible
       extensionless-photo resolver in
       `prepareShareCard`, `shareCardImage`, and `cleanupShareCards`. Legacy Spot
       originals may be absent while `_800x800` derivatives exist. Verify a fresh

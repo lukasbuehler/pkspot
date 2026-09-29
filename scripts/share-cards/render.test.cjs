@@ -110,3 +110,12 @@ test('photo-free cards use distinct entity-specific background artwork', async (
   }
   for(let i=0;i<crops.length;i++) for(let j=i+1;j<crops.length;j++) assert.notDeepEqual(crops[i],crops[j]);
 });
+
+test('Spot camera foreshortens both ground axes and preserves straight edges', () => {
+  const {projectSpotPoint: project} = require('../../functions/lib/functions/src/shareCards/placeholder.js');
+  const distance = (a,b) => Math.hypot(a[0]-b[0],a[1]-b[1]);
+  assert.ok(distance(project([0,0,0]),project([1,0,0])) > distance(project([0,10,0]),project([1,10,0])));
+  assert.ok(distance(project([0,0,0]),project([0,1,0])) > distance(project([0,10,0]),project([0,11,0])));
+  const [a,b,c] = [[0,0,1],[0,4,1],[0,8,1]].map(project);
+  assert.ok(Math.abs((b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])) < 1e-8);
+});

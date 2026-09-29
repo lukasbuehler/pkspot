@@ -1,11 +1,26 @@
 type Point3 = readonly [number, number, number];
 
-/** One projection for every corner keeps parallel wall edges consistent.
- * Layout follows the reference: left enclosure, stairs, central divider, low right wall. */
-function project([x, depth, height]: Point3): string {
-  const scale = 1 / (1 + depth * 0.055);
-  return `${(790 + (x * 66 + depth * 36) * scale).toFixed(2)},${(640 - (depth * 45 + height * 62) * scale).toFixed(2)}`;
+const dot = (a: Point3, b: Point3): number => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const unit = (v: Point3): Point3 => {
+  const length = Math.hypot(...v);
+  return [v[0] / length, v[1] / length, v[2] / length];
+};
+const eye: Point3 = [7, -12, 9];
+const forward = unit([-7, 17, -9]);
+const right = unit([17, 7, 0]);
+const up: Point3 = [
+  right[1] * forward[2], -right[0] * forward[2],
+  right[0] * forward[1] - right[1] * forward[0],
+];
+
+/** Pinhole camera aimed at [0, 5, 0]. Camera-space depth includes all three
+ * axes, so walls converge consistently and near geometry is visibly larger. */
+export function projectSpotPoint(point: Point3): readonly [number, number] {
+  const relative: Point3 = [point[0] - eye[0], point[1] - eye[1], point[2] - eye[2]];
+  const scale = 1150 / dot(relative, forward);
+  return [900 + dot(relative, right) * scale, 450 - dot(relative, up) * scale];
 }
+const project = (point: Point3): string => projectSpotPoint(point).map(value => value.toFixed(2)).join(',');
 
 function wall(x: number, depth: number, width: number, length: number, height: number): string {
   const a: Point3 = [x, depth, 0], b: Point3 = [x + width, depth, 0];
