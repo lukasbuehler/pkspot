@@ -5483,8 +5483,22 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     return /^\/map\/(?:spots|events|communities)\/[^/]+/u.test(currentPath);
   }
 
-  spotCheckIn(spotId: SpotId) {
-    this.checkInService.checkIn(spotId);
+  readonly checkInPending = signal(false);
+
+  async spotCheckIn(spotId: SpotId): Promise<void> {
+    if (this.checkInPending()) return;
+    this.checkInPending.set(true);
+    try {
+      await this.checkInService.checkIn(spotId);
+    } catch {
+      this._snackbar.open(
+        $localize`:@@checkin.failed:Could not check in. Please try again.`,
+        $localize`:@@common.dismiss:Dismiss`,
+        {duration: 6000},
+      );
+    } finally {
+      this.checkInPending.set(false);
+    }
   }
 
   dismissCheckInSpot(spotId: SpotId) {

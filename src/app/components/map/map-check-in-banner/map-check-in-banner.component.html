@@ -21,6 +21,8 @@
 
     <div class="check-in-banner__actions">
       <button
+        [disabled]="pending()"
+        [attr.aria-busy]="pending()"
         mat-flat-button
         color="accent"
         class="flex-grow-1"

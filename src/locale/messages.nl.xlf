@@ -16074,6 +16074,12 @@
         <target> Inchecken </target>
       </segment>
     </unit>
+    <unit id="checkin.failed">
+      <segment state="initial">
+        <source>Could not check in. Please try again.</source>
+        <target>Inchecken is mislukt. Probeer het opnieuw.</target>
+      </segment>
+    </unit>
     <unit id="checkInLogPrompt.body">
       <segment state="translated">
         <source>Your check-in is saved. Add a note if you want to remember what you practised.</source>

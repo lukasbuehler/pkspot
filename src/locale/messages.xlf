@@ -1968,6 +1968,11 @@
         <source> Check In </source>
       </segment>
     </unit>
+    <unit id="checkin.failed">
+      <segment>
+        <source>Could not check in. Please try again.</source>
+      </segment>
+    </unit>
     <unit id="checkInLogPrompt.body">
       <segment>
         <source>Your check-in is saved. Add a note if you want to remember what you practised.</source>

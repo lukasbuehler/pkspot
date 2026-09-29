@@ -8,6 +8,7 @@
   <app-map-check-in-banner
     @fadeInOut
     [spot]="proximityCheckInSpot()"
+    [pending]="checkInPending()"
     (spotSelect)="selectSpot($event)"
     (checkIn)="spotCheckIn($event)"
     (dismiss)="dismissCheckInSpot($event)"

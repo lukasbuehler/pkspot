@@ -473,8 +473,11 @@ contact messages to support; it is not general user notification email.
 
 Check-ins are enabled in development, web production, Android and iOS; CI disables
 check-ins. Development uses production Firebase. The 2026-09-28 live inventory
-confirms all four new Functions are absent. The required aggregate composite
-index is READY. The deployed legacy trigger preserves private visited history
+confirms all four new Functions are absent. Rechecking `confirmCheckIn` on
+2026-09-29 returned resource-not-found; its HTTP 404 is surfaced by browsers as
+a CORS error. Deploying the batch below is required to restore confirmation.
+The five callable integration tests and two rollup emulator tests passed again
+on 2026-09-29. The required aggregate composite index is READY. The deployed legacy trigger preserves private visited history
 but lacks the new legacy lookup index. Client flags do not establish readiness.
 
 - [ ] Enable the missing `check_in_integrity.expires_at` TTL policy and verify ACTIVE:

@@ -14,6 +14,7 @@ import { SpotId } from "../../../../db/schemas/SpotSchema";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MapCheckInBannerComponent {
+  pending = input(false);
   spot = input<SpotPreviewData | null>(null);
 
   spotSelect = output<SpotPreviewData>();

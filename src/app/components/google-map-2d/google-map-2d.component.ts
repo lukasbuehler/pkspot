@@ -155,6 +155,7 @@ interface MarkerCollisionLayoutCache {
 }
 
 interface VisibleRegularSpotMarkersCache {
+  checkInSpotId: string | null;
   spots: (LocalSpot | Spot)[];
   highlightedSpots: SpotPreviewData[];
   selectedSpot: LocalSpot | Spot | null;
@@ -164,6 +165,7 @@ interface VisibleRegularSpotMarkersCache {
 }
 
 interface VisibleHighlightedSpotPreviewsCache {
+  checkInSpotId: string | null;
   spots: SpotPreviewData[];
   selectedSpotId: string | null;
   visibleSpots: SpotPreviewData[];
@@ -952,22 +954,25 @@ export class GoogleMap2dComponent
     const selectedSpot = this.selectedSpot();
     const selectedSpotId =
       selectedSpot && "id" in selectedSpot ? selectedSpot.id : null;
+    const checkInSpotId = this.shouldShowCheckInMarker() ? this.checkInSpot()?.id ?? null : null;
 
     if (
       this._visibleHighlightedSpotPreviewsCache &&
       this._visibleHighlightedSpotPreviewsCache.spots === spots &&
+      this._visibleHighlightedSpotPreviewsCache.checkInSpotId === checkInSpotId &&
       this._visibleHighlightedSpotPreviewsCache.selectedSpotId ===
         selectedSpotId
     ) {
       return this._visibleHighlightedSpotPreviewsCache.visibleSpots;
     }
 
-    // Only filter out the selected spot - don't filter by bounds.
-    const visibleSpots = selectedSpotId
-      ? spots.filter((spot) => spot.id !== selectedSpotId)
+    // The dedicated check-in marker replaces the normal pill for the same Spot.
+    const visibleSpots = selectedSpotId || checkInSpotId
+      ? spots.filter((spot) => spot.id !== selectedSpotId && spot.id !== checkInSpotId)
       : spots;
 
     this._visibleHighlightedSpotPreviewsCache = {
+      checkInSpotId,
       spots,
       selectedSpotId,
       visibleSpots,
@@ -984,6 +989,7 @@ export class GoogleMap2dComponent
     const selectedSpot = this.selectedSpot();
     const isEditing = this.isEditing();
     const highlightedSpots = this._getVisibleHighlightedSpotPreviews();
+    const checkInSpotId = this.shouldShowCheckInMarker() ? this.checkInSpot()?.id ?? null : null;
 
     if (!shouldRenderRegularSpotMarkers) {
       return [];
@@ -993,6 +999,7 @@ export class GoogleMap2dComponent
     if (
       this._visibleRegularSpotMarkersCache &&
       this._visibleRegularSpotMarkersCache.spots === spots &&
+      this._visibleRegularSpotMarkersCache.checkInSpotId === checkInSpotId &&
       this._visibleRegularSpotMarkersCache.highlightedSpots ===
         highlightedSpots &&
       this._visibleRegularSpotMarkersCache.selectedSpot === selectedSpot &&
@@ -1006,12 +1013,14 @@ export class GoogleMap2dComponent
     const highlightedSpotIds = new Set(highlightedSpots.map((spot) => spot.id));
     const visibleSpots = spots.filter(
       (spot) =>
+        !("id" in spot && spot.id === checkInSpotId) &&
         !this.isSelectedSpotBeingEdited(spot) &&
         !this.isSameAsSelectedSpot(spot) &&
         !this._hasHighlightedPreviewMarker(spot, highlightedSpotIds),
     );
 
     this._visibleRegularSpotMarkersCache = {
+      checkInSpotId,
       spots: spots,
       highlightedSpots,
       selectedSpot,

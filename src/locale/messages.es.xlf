@@ -15804,6 +15804,12 @@
         <target> Check-in </target>
       </segment>
     </unit>
+    <unit id="checkin.failed">
+      <segment state="initial">
+        <source>Could not check in. Please try again.</source>
+        <target>No se pudo registrar tu llegada. Inténtalo de nuevo.</target>
+      </segment>
+    </unit>
     <unit id="checkInLogPrompt.body">
       <segment state="translated">
         <source>Your check-in is saved. Add a note if you want to remember what you practised.</source>
