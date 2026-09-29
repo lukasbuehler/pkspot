@@ -52,7 +52,9 @@ Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure a
 - Release the reviewed main-based hotfix through the normal main/App Hosting
   workflow. Verify the localized web app renders real SSR HTML and key map,
   Event, authentication, and navigation flows still work. Angular framework,
-  SSR and build tooling are aligned to 22.1.4. Do not include unfinished 1.2
+  SSR and build tooling are aligned to 22.1.6 locally, including the malformed
+  DOCTYPE SSR denial-of-service fix. This dependency update still needs the
+  authorized web release. Do not include unfinished 1.2
   features in this release. PR-open workflow triggers remain unchanged.
 - Verify an authorized production image upload completes moderation and
   derivative generation on the updated Sharp 0.35.4 Functions. Local image and
@@ -60,13 +62,11 @@ Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure a
   verified, but no new production test image was uploaded. Do not trigger
   backfills for this verification.
 - Re-run root, production-only root, Functions and Horizn importer audits before
-  release. The hotfix clears production and Functions advisories. Root tooling
-  still reports three moderate package findings: csv-parse, stream-json and their
-  parent firebase-tools (two underlying advisories). Do not force npm's proposed
-  Firebase CLI downgrade or override stream-json 1.x with 3.x: Firebase CLI uses
-  CommonJS extensionless subpaths, while 3.x exports ESM src paths. Resolve this
-  in a separate compatible CLI update; avoid untrusted Auth/database import
-  files in the meantime.
+  release. All four audits reported zero vulnerabilities on 2026-09-29.
+  Firebase CLI 15.31.0 supports the patched csv-parse and stream-json versions;
+  retain its upstream integration rather than forcing those major versions
+  into an older CLI. The scoped xcode UUID override uses the CommonJS-compatible
+  11.1.1 release; project parsing and ID generation were verified locally.
 - Assess the Angular host-binding advisory against native
   rendering before deciding whether a separate expedited store build is needed.
 
