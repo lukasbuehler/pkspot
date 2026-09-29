@@ -2,7 +2,6 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  margin: 0 16px 12px;
   color: var(--mat-sys-on-surface-variant);
 }
 
@@ -17,3 +16,7 @@ mat-icon {
   color: var(--mat-sys-primary);
   font-weight: 600;
 }
+
+.spot-activity-summary { margin: 0; }
+.compact { font: inherit; }
+.compact-count { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }

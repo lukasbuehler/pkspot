@@ -21,7 +21,11 @@
         >
           <span class="spot-loading-badge" aria-hidden="true"></span>
           @if (loadingTitle()) {
-            <span [matTooltip]="loadingTitle()" class="d-block spot-title-text">{{ loadingTitle() }}</span>
+            <span
+              [matTooltip]="loadingTitle()"
+              class="d-block spot-title-text"
+              >{{ loadingTitle() }}</span
+            >
           } @else {
             <span class="spot-loading-title" aria-hidden="true"></span>
           }
@@ -61,7 +65,10 @@
                 {{ loadingSubtitle() }}
               </span>
             } @else {
-              <span class="spot-loading-header-reserve" aria-hidden="true"></span>
+              <span
+                class="spot-loading-header-reserve"
+                aria-hidden="true"
+              ></span>
             }
           </div>
         </div>
@@ -97,7 +104,7 @@
     </mat-card-content>
   } @else if (spot()) {
     @if (!isEditing()) {
-      <mat-card-header class="pb-2 pt-0 px-3 d-flex flex-column-reverse">
+      <mat-card-header class="pb-2 pt-0 px-3 d-flex flex-column">
         <mat-card-title class="d-flex align-items-center w-100 gap-1">
           <span
             class="flex-grow-1 w-100 overflow-hidden d-flex flex-row align-items-center gap-2"
@@ -392,7 +399,9 @@
                   i18n-aria-label="
                     Share spot aria label|The aria label of the share spot icon
                     button@@share_spot_aria_label"
-                  [disabled]="shareCards.preparing()" [attr.aria-busy]="shareCards.preparing()" (click)="shareSpot(); $event.stopPropagation()"
+                  [disabled]="shareCards.preparing()"
+                  [attr.aria-busy]="shareCards.preparing()"
+                  (click)="shareSpot(); $event.stopPropagation()"
                 >
                   <mat-icon>share</mat-icon>
                 </button>
@@ -415,12 +424,16 @@
             </div>
           }
         </mat-card-subtitle>
+        <div
+          class="spot-activity-reveal collapsible-header-info"
+          [attr.data-collapsed]="openProgress() < 0.1"
+          [attr.aria-hidden]="openProgress() < 0.1"
+        >
+          <div class="pt-1">
+            <app-spot-activity-summary [spotId]="spotActivitySpotId()" />
+          </div>
+        </div>
       </mat-card-header>
-      <div class="spot-activity-reveal"
-        [attr.data-collapsed]="openProgress() < 0.1"
-        [attr.aria-hidden]="openProgress() < 0.1">
-        <div><app-spot-activity-summary [spotId]="spotActivitySpotId()" /></div>
-      </div>
     }
     <mat-card-content class="pt-0">
       @if (!isEditing()) {
@@ -682,7 +695,15 @@
 
         <p class="mat-body-medium">{{ localizedCopy()?.description }}</p>
         @if (spot()?.placeNames()) {
-          <p class="mat-body-small"><span i18n="@@community.placeNames.attribution">Place names:</span> <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">GeoNames</a></p>
+          <p class="mat-body-small">
+            <span i18n="@@community.placeNames.attribution">Place names:</span>
+            <a
+              href="https://www.geonames.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              >GeoNames</a
+            >
+          </p>
         }
 
         <!-- Spot Description -->
@@ -944,7 +965,12 @@
               @if (ownReport()) {
                 <span i18n>Edit your report</span>
               } @else {
-                <span i18n="report button label|Label of the button to report the spot">Report</span>
+                <span
+                  i18n="
+                    report button label|Label of the button to report the spot
+                  "
+                  >Report</span
+                >
               }
             </button>
             @if (isAdmin()) {
@@ -978,9 +1004,19 @@
               <mat-icon>flag</mat-icon>
               <div>
                 <strong i18n>Your report is open</strong>
-                <p class="mb-0" i18n>Only you and moderators can see it. You can edit or withdraw it.</p>
+                <p class="mb-0" i18n>
+                  Only you and moderators can see it. You can edit or withdraw
+                  it.
+                </p>
               </div>
-              <button matButton="text" type="button" (click)="openSpotReportDialog()" i18n>Edit</button>
+              <button
+                matButton="text"
+                type="button"
+                (click)="openSpotReportDialog()"
+                i18n
+              >
+                Edit
+              </button>
             </div>
           }
           <mat-divider class="mb-3"></mat-divider>

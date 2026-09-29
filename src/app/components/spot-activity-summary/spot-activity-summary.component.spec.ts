@@ -16,6 +16,10 @@ describe("compact Spot activity", () => {
       expect(fixture.nativeElement.textContent).toContain(`${label} trained here recently`);
       expect(fixture.nativeElement.textContent).not.toContain("30 days");
       expect(fixture.nativeElement.querySelector(".spot-activity-summary__count").textContent).toBe(label);
+      fixture.componentRef.setInput("compact", true);
+      await fixture.whenStable();
+      expect(fixture.nativeElement.querySelector(".compact-count .spot-activity-summary__count").textContent).toBe(label);
+      expect(fixture.nativeElement.querySelector(".cdk-visually-hidden").textContent).toContain("trained here recently");
     });
   }
   it("shows no row when the public activity threshold is not met", async () => {

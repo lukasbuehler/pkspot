@@ -1,7 +1,11 @@
 @if (recentCount(); as count) {
-  <p class="spot-activity-summary mat-body-medium" aria-live="polite">
-    <mat-icon aria-hidden="true">group</mat-icon>
-    <span i18n="@@spot.activity.recentSummary"
+  <p class="spot-activity-summary mat-title-medium" aria-live="polite" [class.compact]="compact()">
+    @if (compact()) {
+      <span class="compact-count" [matTooltip]="description.textContent || ''" aria-hidden="true">
+        <mat-icon>groups</mat-icon><span class="spot-activity-summary__count">{{ count }}</span>
+      </span>
+    }
+    <span #description [class.cdk-visually-hidden]="compact()" i18n="@@spot.activity.recentSummary"
       ><span class="spot-activity-summary__count">{{ count }}</span> trained
       here recently</span
     >

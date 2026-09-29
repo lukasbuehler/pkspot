@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SpotPreviewData } from "../../../db/schemas/SpotPreviewData";
 import { SpotId } from "../../../db/schemas/SpotSchema";
 import { MapsApiService } from "../../services/maps-api.service";
+import { SpotActivityService } from "../../services/firebase/firestore/spot-activity.service";
 import { StorageService } from "../../services/firebase/storage.service";
 import { SpotPreviewCardComponent } from "./spot-preview-card.component";
 
@@ -32,6 +33,7 @@ describe("SpotPreviewCardComponent", () => {
         provideNoopAnimations(),
         { provide: MapsApiService, useValue: mapsApiService },
         { provide: StorageService, useValue: {} },
+        { provide: SpotActivityService, useValue: {get: vi.fn().mockResolvedValue(null)} },
       ],
     }).compileComponents();
 

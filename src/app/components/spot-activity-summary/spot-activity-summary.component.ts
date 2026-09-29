@@ -5,17 +5,19 @@ import {
   computed,
   resource,
 } from "@angular/core";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatIconModule } from "@angular/material/icon";
 import { SpotActivityService } from "../../services/firebase/firestore/spot-activity.service";
 
 @Component({
   selector: "app-spot-activity-summary",
-  imports: [MatIconModule],
+  imports: [MatIconModule, MatTooltipModule],
   templateUrl: "./spot-activity-summary.component.html",
   styleUrl: "./spot-activity-summary.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpotActivitySummaryComponent {
+  readonly compact = input(false);
   readonly spotId = input<string | null>(null);
   readonly activity = resource({
     params: () => this.spotId(),

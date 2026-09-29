@@ -287,7 +287,7 @@ for (const name of ["Lindenhof", "Riverside Training Walls"]) {
     });
     const badgeBox = (await badge.boundingBox())!;
     expect(Math.abs(titleBox.y + titleBox.height / 2 - badgeBox.y - badgeBox.height / 2)).toBeLessThanOrEqual(3);
-    const headerBox = (await page.locator('mat-card-header').first().boundingBox())!;
+    const headerBox = (await page.locator('mat-card-subtitle').first().boundingBox())!;
     expect((await activity.boundingBox())!.y).toBeGreaterThanOrEqual(headerBox.y + headerBox.height - 1);
     await expect(page.locator('app-spot-details')).toHaveScreenshot(`spot-header-${name === 'Lindenhof' ? 'short' : 'long'}.png`, {animations:'disabled'});
     await page.locator('app-bottom-sheet .handle-region').click();

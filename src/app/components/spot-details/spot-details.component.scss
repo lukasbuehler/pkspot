@@ -312,8 +312,8 @@ div.google-img-container {
   max-height: calc(var(--open-progress, 1) * 100px);
   overflow: hidden;
   transition:
-    opacity 0.2s ease-out,
-    max-height 0.2s ease-out;
+    opacity 0.2s linear,
+    max-height 0.2s linear;
 
   // When fully collapsed, prevent interaction
   pointer-events: auto;
@@ -391,18 +391,8 @@ div.google-img-container {
   }
 }
 
-.spot-activity-reveal {
-  display: grid;
-  grid-template-rows: 1fr;
-  opacity: var(--open-progress, 1);
-  transition: grid-template-rows 200ms ease-out, opacity 200ms ease-out;
-
-  &[data-collapsed="true"] { grid-template-rows: 0fr; opacity: 0; }
-  &[data-collapsed="false"] { grid-template-rows: 1fr; }
-  > div { min-height: 0; overflow: hidden; }
-}
 @media (prefers-reduced-motion: reduce) {
-  .spot-activity-reveal { transition: none; }
+  .collapsible-header-info { transition: none; }
 }
 
 // Loading uses the same one-line typography as the finished header. Known

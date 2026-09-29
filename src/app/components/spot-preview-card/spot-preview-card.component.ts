@@ -44,6 +44,7 @@ import {
 } from "../../../db/schemas/SpotTypeAndAccess";
 
 import { MatTooltipModule } from "@angular/material/tooltip";
+import { SpotActivitySummaryComponent } from "../spot-activity-summary/spot-activity-summary.component";
 import { MediaPlaceholderComponent } from "../media-placeholder/media-placeholder.component";
 
 type SpotPreviewCardData = SpotPreviewData & {
@@ -62,6 +63,7 @@ type SpotPreviewCardData = SpotPreviewData & {
     NgOptimizedImage,
     SpotRatingComponent,
     MediaPlaceholderComponent,
+    SpotActivitySummaryComponent,
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
@@ -86,6 +88,7 @@ export class SpotPreviewCardComponent
   forcePlaceholderContainer = input<boolean>(false);
 
   spotData = input<Spot | LocalSpot | SpotPreviewCardData | null>(null);
+  readonly activitySpotId = computed(() => this.shouldLoadMedia() ? this._getSpotId(this.spotData()) : undefined);
   isIconicSpot = computed(() => {
     const spot = this.spotData();
     if (!spot) return false;
