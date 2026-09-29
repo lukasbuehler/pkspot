@@ -497,6 +497,7 @@ function removeProtectedSpotEditFields(
 ): Record<string, unknown> {
   return Object.fromEntries(
     Object.entries(data).filter(([key]) => {
+      if (key === "recent_activity_min_30d" || key.startsWith("recent_activity_min_30d.")) return false;
       if (!PROTECTED_SPOT_EDIT_FIELDS.has(key)) {
         return true;
       }

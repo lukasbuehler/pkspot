@@ -1,6 +1,7 @@
 {
   "name": "spots_v2",
   "fields": [
+    { "name": "recent_activity_min_30d", "type": "int32", "optional": true, "facet": true, "sort": true },
     { "name": "name", "type": "object", "optional": false, "index": false },
     {
       "name": "description",

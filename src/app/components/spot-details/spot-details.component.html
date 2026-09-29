@@ -430,7 +430,7 @@
           [attr.aria-hidden]="openProgress() < 0.1"
         >
           <div class="pt-1">
-            <app-spot-activity-summary [spotId]="spotActivitySpotId()" />
+            <app-spot-activity-summary [spotId]="spotActivitySpotId()" [activityMin]="spotActivityMin()" />
           </div>
         </div>
       </mat-card-header>

@@ -43,3 +43,8 @@ export const checkInActivityBucket = (
   if (accounts < 25) return "10–24";
   return "25+";
 };
+
+/** Only the published lower bounds are allowed into public Spot/search data. */
+export type RecentActivityMin30d = 2 | 5 | 10 | 25;
+export const normalizeRecentActivityMin30d = (value: unknown): RecentActivityMin30d | null =>
+  value === 2 || value === 5 || value === 10 || value === 25 ? value : null;

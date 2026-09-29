@@ -87,7 +87,7 @@
         </span>
         }
         @if (activitySpotId(); as id) {
-          <app-spot-activity-summary [spotId]="id" [compact]="true" />
+          <app-spot-activity-summary [spotId]="id" [activityMin]="spotData()?.recent_activity_min_30d" [compact]="true" />
         }
         </div>
       </div>

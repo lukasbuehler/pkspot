@@ -1,3 +1,4 @@
+import { normalizeRecentActivityMin30d } from "../../db/schemas/CheckInActivitySchema";
 import { communityPreviewNames } from "../../scripts/CommunityPlaceNames";
 import { Injectable, LOCALE_ID, inject } from "@angular/core";
 import { TypesenseSearchClient } from "./typesense-search-client";
@@ -320,6 +321,7 @@ export class SearchService {
               ? doc.reportReason
               : undefined,
         hideStreetview: hideStreetview,
+        recent_activity_min_30d: normalizeRecentActivityMin30d(doc.recent_activity_min_30d),
         rating: doc.rating ?? undefined,
         num_reviews: doc.num_reviews ?? undefined,
         amenities: amenities || undefined,

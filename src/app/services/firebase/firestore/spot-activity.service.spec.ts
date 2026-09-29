@@ -1,33 +1,21 @@
-import { TestBed } from "@angular/core/testing";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { environment } from "../../../../environments/environment.default";
-import { FirestoreAdapterService } from "../firestore-adapter.service";
 import { SpotActivityService } from "./spot-activity.service";
 
-describe("temporary Lindenhof activity preview", () => {
-  const production = environment.production;
-  const getDocument = vi.fn().mockResolvedValue(null);
-  beforeEach(() => {
-    getDocument.mockClear();
+describe("Spot activity projection and temporary preview", () => {
+  const original = environment.production;
+  afterEach(() => { environment.production = original; });
+  it("uses only valid stored bands", () => {
+    const service = new SpotActivityService();
+    for (const count of [2,5,10,25]) expect(service.displayMin("other", count)).toBe(count);
+    for (const value of [undefined,null,0,1,3,24,100,"10"]) expect(service.displayMin("other", value)).toBeNull();
+  });
+  it("previews Lindenhof only in development", () => {
+    const service = new SpotActivityService();
     environment.production = false;
-    TestBed.configureTestingModule({providers: [
-      {provide: FirestoreAdapterService, useValue: {getDocument}},
-    ]});
-  });
-  afterEach(() => { environment.production = production; });
-
-  it("shows the synthetic range only for the chosen Spot in development", async () => {
-    expect(await TestBed.inject(SpotActivityService).get("8CHFHRFUCozO9yeLEq6N"))
-      .toEqual({status: "recently_trained", bucket: "10–24", window_days: 30});
-    expect(getDocument).not.toHaveBeenCalled();
-  });
-  it("continues reading real data for every other Spot", async () => {
-    await TestBed.inject(SpotActivityService).get("another-spot");
-    expect(getDocument).toHaveBeenCalledWith("spot_activity_public/another-spot");
-  });
-  it("never substitutes synthetic activity in production", async () => {
+    expect(service.displayMin("8CHFHRFUCozO9yeLEq6N", null)).toBe(10);
     environment.production = true;
-    expect(await TestBed.inject(SpotActivityService).get("8CHFHRFUCozO9yeLEq6N")).toBeNull();
-    expect(getDocument).toHaveBeenCalledWith("spot_activity_public/8CHFHRFUCozO9yeLEq6N");
+    expect(service.displayMin("8CHFHRFUCozO9yeLEq6N", null)).toBeNull();
+    expect(service.displayMin("8CHFHRFUCozO9yeLEq6N", 5)).toBe(5);
   });
 });

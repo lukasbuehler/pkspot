@@ -11,7 +11,7 @@ import type {
   DeleteCheckInResponse,
   SpotActivityPublicSchema,
 } from "../../src/db/schemas/CheckInActivitySchema";
-import {checkInActivityBucket} from "../../src/db/schemas/CheckInActivitySchema";
+import {checkInActivityBucket, normalizeRecentActivityMin30d} from "../../src/db/schemas/CheckInActivitySchema";
 
 const db = admin.firestore();
 const CALLABLE_OPTIONS = {
@@ -518,10 +518,17 @@ const rebuildSpotActivity = async (spotId: string, now: Timestamp): Promise<void
     .limit(1)
     .get();
   await db.runTransaction(async transaction => {
-    const latest = await transaction.get(jobRef);
+    const spotRef = db.doc(`spots/${spotId}`);
+    const [latest, spot] = await Promise.all([transaction.get(jobRef), transaction.get(spotRef)]);
     // A confirmation/deletion during the reads enqueues a newer job. Never
     // publish stale counts or erase that work; the next pass recomputes it.
     if (!originalJob.updateTime || !latest.updateTime?.isEqual(originalJob.updateTime)) return;
+    const activityMin = bucket ? normalizeRecentActivityMin30d(Number.parseInt(bucket, 10)) : null;
+    // Explicit null clears optional Typesense fields, including partial-update syncs.
+    // Never recreate a deleted Spot or trigger indexing when its band is unchanged.
+    if (spot.exists && (spot.get("recent_activity_min_30d") ?? null) !== activityMin) {
+      transaction.update(spotRef, {recent_activity_min_30d: activityMin});
+    }
     if (!bucket) transaction.delete(publicRef);
     else transaction.set(publicRef, {status: "recently_trained", bucket, window_days: 30} satisfies SpotActivityPublicSchema);
     if (remaining.empty) transaction.delete(jobRef);

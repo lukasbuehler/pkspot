@@ -235,6 +235,26 @@ contact messages to support; it is not general user notification email.
 
 ### Private check-ins and delayed Spot activity
 
+- [ ] Before releasing the new activity UI, add the optional, faceted, sortable
+      `int32` field `recent_activity_min_30d` to the live Spots Typesense
+      collection using `typesense/typesense_spots_v2_schema.json`. Verify the
+      Firestore sync includes this field and forwards explicit null updates.
+- [ ] Deploy `recomputeCheckInActivity`, `applySpotEditOnCreate`,
+      `reviewVerifiedSpotEdit`, `evaluateSpotEditVotesOnVoteWrite`, and
+      `evaluatePendingSpotEditVotesOnSchedule` in `europe-west1`. The edit
+      handlers must protect the new server-owned field before clients release.
+      Wait for the next 03:30 Europe/Zurich rollup or run its scheduler job once
+      after deployment. Existing active queue entries populate Spot documents;
+      no all-Spots rewrite is needed. Retain legacy `spot_activity_public`
+      writes until older supported clients no longer read them.
+- [ ] Verify a controlled accepted-account fixture produces the same lower bound
+      (2, 5, 10 or 25) in its Spot document and Typesense hit. After deletion or
+      expiry drops it below two, verify Firestore contains null and Typesense
+      no longer returns the count. Confirm unchanged bands do not rewrite the
+      Spot, and details/cards read the projection without activity-document
+      requests. Do not treat local emulator coverage as proof of live sync.
+
+
 - [ ] Deploy the additive Spot-name snapshot correction with
       `npx firebase deploy --project prod --only functions:confirmCheckIn`.
       Verify a new check-in retains the name from both legacy string translations
@@ -273,7 +293,7 @@ controlled live data outcomes still need the checks below.
       must appear only after the person's choice. Test private export, single/all
       deletion, and preservation of manual sessions, authored logs and legacy visits.
 - [ ] After backend and device checks, release clients and verify Spot details
-      makes one non-realtime read for the coarse “Recently trained” card. No
+      uses the Spot document projection for the coarse activity text. No
       visitor list, exact count, live presence, check-in notification, or public
       visited-Spot list may appear.
 

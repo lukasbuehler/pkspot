@@ -1,3 +1,4 @@
+import { normalizeRecentActivityMin30d, type RecentActivityMin30d } from "../schemas/CheckInActivitySchema";
 import type { EntityPlaceNames } from "../../scripts/EntityPlaceNames";
 import { LocaleMap, MediaType, LocaleCode } from "./Interfaces";
 import { AmenitiesMap } from "../schemas/Amenities";
@@ -87,6 +88,7 @@ export class LocalSpot {
   management: SpotSchema["management"];
   /** @deprecated Use stewardship or management. */
   verification: SpotSchema["verification"];
+  recent_activity_min_30d: RecentActivityMin30d | null = null;
   rating: number = 0; // from 0-5, where 0 means no rating. Default is 0, 1-5 set by cloud function.
   numReviews: number; // integer
 
@@ -307,6 +309,7 @@ export class LocalSpot {
     this.stewardship = data.stewardship;
     this.management = data.management;
     this.verification = data.verification;
+    this.recent_activity_min_30d = normalizeRecentActivityMin30d(data.recent_activity_min_30d);
     this.rating = data.rating ?? 0;
     this.numReviews = data.num_reviews ?? 0;
     this.ratingHistogram = signal(
@@ -502,6 +505,7 @@ export class LocalSpot {
     this.stewardship = data.stewardship;
     this.management = data.management;
     this.verification = data.verification;
+    this.recent_activity_min_30d = normalizeRecentActivityMin30d(data.recent_activity_min_30d);
     this.rating = data.rating ?? 0;
     this.numReviews = data.num_reviews ?? 0;
     this.ratingHistogram.set(
@@ -607,6 +611,7 @@ export class LocalSpot {
       stewardship: this.stewardship,
       management: this.management,
       verification: this.verification,
+      recent_activity_min_30d: this.recent_activity_min_30d,
       rating: this.rating || undefined, // 0 will be removed (0 means no rating)
       num_reviews: this.numReviews,
       rating_histogram: this.ratingHistogram(),
@@ -869,6 +874,7 @@ export class Spot extends LocalSpot {
       isReported: this.isReported,
       reportReason: this.reportReason,
       hideStreetview: this.hideStreetview,
+      recent_activity_min_30d: this.recent_activity_min_30d,
       rating: this.rating || undefined,
       amenities: this.amenities(),
       bounds: this.data().bounds,

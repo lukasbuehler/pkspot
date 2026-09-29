@@ -33,7 +33,7 @@ describe("SpotPreviewCardComponent", () => {
         provideNoopAnimations(),
         { provide: MapsApiService, useValue: mapsApiService },
         { provide: StorageService, useValue: {} },
-        { provide: SpotActivityService, useValue: {get: vi.fn().mockResolvedValue(null)} },
+        { provide: SpotActivityService, useValue: {displayMin: (_id: string, value: number | null) => value ?? null} },
       ],
     }).compileComponents();
 

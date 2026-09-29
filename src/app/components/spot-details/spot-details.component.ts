@@ -440,6 +440,7 @@ export class SpotDetailsComponent
       return null;
     }
   });
+  readonly spotActivityMin = computed(() => this.spot()?.recent_activity_min_30d);
   readonly spotActivitySpotId = computed(() => {
     const spot = this.spot();
     return spot instanceof Spot ? spot.id : null;

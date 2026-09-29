@@ -3,7 +3,6 @@ import {
   Component,
   input,
   computed,
-  resource,
 } from "@angular/core";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatIconModule } from "@angular/material/icon";
@@ -19,15 +18,10 @@ import { SpotActivityService } from "../../services/firebase/firestore/spot-acti
 export class SpotActivitySummaryComponent {
   readonly compact = input(false);
   readonly spotId = input<string | null>(null);
-  readonly activity = resource({
-    params: () => this.spotId(),
-    loader: ({ params }) =>
-      params ? this.spotActivity.get(params) : Promise.resolve(null),
-  });
-
+  readonly activityMin = input<number | null | undefined>(null);
   readonly recentCount = computed(() => {
-    const summary = this.activity.value();
-    return summary ? `${summary.bucket.split("–")[0].replace("+", "")}+` : null;
+    const count = this.spotActivity.displayMin(this.spotId(), this.activityMin());
+    return count ? `${count}+` : null;
   });
 
   constructor(private readonly spotActivity: SpotActivityService) {}

@@ -15,6 +15,7 @@ async function contribution(spot, id, owner, eligibility = 'accepted', at = now)
 }
 async function enqueue(spot) { await db.doc(`check_in_activity_rollups/${spot}`).set({ spot_id: spot, next_rollup_at: Timestamp.fromMillis(0), revision: admin.firestore.FieldValue.increment(1) }, { merge: true }); }
 test('rollup counts distinct accepted accounts only and removes expired activity', async () => {
+  await db.doc(`spots/${root}`).set({name: 'Rollup fixture'});
   await Promise.all([contribution(root, 'a', 'one'), contribution(root, 'duplicate', 'one'),
     contribution(root, 'excluded', 'two', 'excluded'), contribution(root, 'old', 'three', 'accepted', Timestamp.fromMillis(1))]);
   await enqueue(root); await recomputeCheckInActivity.run({});
@@ -22,9 +23,17 @@ test('rollup counts distinct accepted accounts only and removes expired activity
   assert.equal((await db.doc(`spots/${root}/check_in_aggregate_contributions/old`).get()).exists, false);
   await contribution(root, 'b', 'two'); await enqueue(root); await recomputeCheckInActivity.run({});
   assert.equal((await db.doc(`spot_activity_public/${root}`).get()).data().status, 'recently_trained');
+  assert.equal((await db.doc(`spots/${root}`).get()).get('recent_activity_min_30d'), 2);
+  const unchanged = await db.doc(`spots/${root}`).get();
+  await enqueue(root); await recomputeCheckInActivity.run({});
+  assert.ok((await db.doc(`spots/${root}`).get()).updateTime.isEqual(unchanged.updateTime));
+  await db.doc(`spots/${root}/check_in_aggregate_contributions/b`).delete();
+  await enqueue(root); await recomputeCheckInActivity.run({});
+  assert.equal((await db.doc(`spots/${root}`).get()).get('recent_activity_min_30d'), null);
+  assert.equal((await db.doc(`spot_activity_public/${root}`).get()).exists, false);
 });
 test('a concurrent contribution is recomputed rather than overwritten by the old rollup', async () => {
-  const spot = `${root}-race`; await contribution(spot, 'a', 'one'); await enqueue(spot);
+  const spot = `${root}-race`; await db.doc(`spots/${spot}`).set({name:'Race fixture'}); await contribution(spot, 'a', 'one'); await enqueue(spot);
   const original = Query.prototype.get; let injected = false;
   Query.prototype.get = async function (...args) {
     const snapshot = await original.apply(this, args);
@@ -38,3 +47,21 @@ test('a concurrent contribution is recomputed rather than overwritten by the old
   assert.equal((await db.doc(`spot_activity_public/${spot}`).get()).data().status, 'recently_trained');
 });
 after(async () => { await db.terminate(); await admin.app().delete(); });
+
+test('does not recreate a deleted Spot during a queued rollup', async () => {
+  const spot = `${root}-deleted`;
+  await contribution(spot, 'a', 'one'); await contribution(spot, 'b', 'two');
+  await enqueue(spot); await recomputeCheckInActivity.run({});
+  assert.equal((await db.doc(`spots/${spot}`).get()).exists, false);
+});
+
+test('expires a published band and removes its daily job when all contributions age out', async () => {
+  const spot = `${root}-expired`;
+  await db.doc(`spots/${spot}`).set({recent_activity_min_30d: 5});
+  await db.doc(`spot_activity_public/${spot}`).set({status: 'recently_trained', bucket: '5–9', window_days: 30});
+  await contribution(spot, 'old', 'one', 'accepted', Timestamp.fromMillis(1));
+  await enqueue(spot); await recomputeCheckInActivity.run({});
+  assert.equal((await db.doc(`spots/${spot}`).get()).get('recent_activity_min_30d'), null);
+  assert.equal((await db.doc(`spot_activity_public/${spot}`).get()).exists, false);
+  assert.equal((await db.doc(`check_in_activity_rollups/${spot}`).get()).exists, false);
+});

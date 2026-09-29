@@ -185,6 +185,17 @@ describe("SearchService", () => {
       expect(preview.location?.longitude).toBe(11.5678);
     });
 
+    it("preserves only published activity bands from search", () => {
+      for (const value of [2, 5, 10, 25, null, undefined, 3, 42]) {
+        const preview = service.getSpotPreviewFromHit({
+          document: { id: "activity", name: "Test", recent_activity_min_30d: value },
+        });
+        expect(preview.recent_activity_min_30d).toBe(
+          [2, 5, 10, 25].includes(value as number) ? value : null,
+        );
+      }
+    });
+
     it("should parse location object correctly", () => {
       const hit = {
         document: {

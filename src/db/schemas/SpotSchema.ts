@@ -1,3 +1,4 @@
+import type { RecentActivityMin30d } from "./CheckInActivitySchema";
 import type { GeoPoint, Timestamp } from "firebase/firestore";
 import { LocaleMap } from "../models/Interfaces";
 import { SpotReviewSchema } from "./SpotReviewSchema";
@@ -103,6 +104,8 @@ export interface SpotSchema {
   management?: SpotManagementSchema;
   /** @deprecated Use stewardship or management. Kept for old clients during migration. */
   verification?: SpotVerificationSchema;
+  /** Server-owned distinct-account activity band over the last 30 days. Null clears expired activity. */
+  recent_activity_min_30d?: RecentActivityMin30d | null;
   rating?: number; // from 0-5, where 0 means no rating. Default is 0, 1-5 set by cloud function.
   num_reviews?: number; // integer
   rating_histogram?: {
