@@ -246,12 +246,6 @@ aggregate composite index is READY. Five callable integration tests, two rollup
 emulator tests and build/SSR checks passed. Authenticated device behavior and
 controlled live data outcomes still need the checks below.
 
-- [ ] Verify `check_in_integrity.expires_at` TTL becomes ACTIVE. Enabling was
-      submitted on 2026-09-29 and latest verified state is CREATING:
-      `gcloud firestore fields ttls list --collection-group=check_in_integrity --project=parkour-base-project`.
-      The pre-deployment audit found zero existing guards, so no legacy expiry
-      backfill was needed. Expired guards are ignored immediately; physical TTL
-      deletion is asynchronous.
 - [ ] After Functions deployment, verify missing Auth/App Check and direct writes
       cannot create new-style check-ins; public summaries permit single-document
       reads only. The required check-in rules are already deployed (source
