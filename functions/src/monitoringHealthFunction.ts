@@ -19,7 +19,7 @@ const hasValidToken = (request: Request, expectedToken: string): boolean => {
 export const monitoringHealth = onRequest(
   {
     cors: false,
-    concurrency: 1,
+    concurrency: 2,
     invoker: "public",
     maxInstances: 1,
     memory: "256MiB",

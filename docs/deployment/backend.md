@@ -16,12 +16,14 @@ Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure a
       instance startups and successful reads, but no matching 500 or handler
       Firestore error. A separate 05:31:45 CEST request logged a platform
       connection 503 (0.4 ms), followed by startup and 200 responses within
-      three seconds. Live settings: maxInstances=1, concurrency=1, no minimum,
-      timeout=10 seconds. Capacity/startup or frontend failure is a hypothesis,
+      three seconds. On 2026-09-29, deployed and verified concurrency=2,
+      maxInstances=1, no minimum and timeout=10 seconds. Two concurrent
+      authenticated probes returned 200 with no-store; a missing token returned
+      401. Keep the existing Better Stack monitor and observe incident recurrence.
+      Capacity/startup or frontend failure remains a hypothesis,
       not a confirmed Firestore outage. Instance startups occurred at 18:28:56
-      and 01:14:28 UTC, after the supplied failure timestamps. Next, compare
-      frontend and direct Cloud Run endpoint behavior and test a bounded
-      concurrency/capacity adjustment only after deployment approval. Retain
+      and 01:14:28 UTC, after the supplied failure timestamps. If failures
+      recur, compare frontend and direct Cloud Run endpoint behavior. Retain
       any future probe request IDs and observe subsequent probe cycles before
       closing this task; the supplied headers contain no correlation ID.
       Keep real failures non-200; do not add cached-success responses.
@@ -227,24 +229,21 @@ contact messages to support; it is not general user notification email.
 ### Private check-ins and delayed Spot activity
 
 Check-ins are enabled in development, web production, Android and iOS; CI disables
-check-ins. Development uses production Firebase. The 2026-09-28 live inventory
-confirms all four new Functions are absent. Rechecking `confirmCheckIn` on
-2026-09-29 returned resource-not-found; its HTTP 404 is surfaced by browsers as
-a CORS error. Deploying the batch below is required to restore confirmation.
-The five callable integration tests and two rollup emulator tests passed again
-on 2026-09-29. The required aggregate composite index is READY. The deployed legacy trigger preserves private visited history
-but lacks the new legacy lookup index. Client flags do not establish readiness.
+check-ins. Development uses production Firebase. On 2026-09-29 the four new
+Functions and compatible `onCheckInCreate` update were deployed and verified
+ACTIVE in `europe-west1`. All three callables return localhost preflight 204 and
+reject requests lacking credentials with 401; their deployed source enforces
+App Check. The statistics scheduler is ENABLED at 03:30 Europe/Zurich. The
+aggregate composite index is READY. Five callable integration tests, two rollup
+emulator tests and build/SSR checks passed. Authenticated device behavior and
+controlled live data outcomes still need the checks below.
 
-- [ ] Enable the missing `check_in_integrity.expires_at` TTL policy and verify ACTIVE:
-      `gcloud firestore fields ttls update expires_at --collection-group=check_in_integrity --enable-ttl --project=parkour-base-project`.
-      Ignore expired guards immediately; physical TTL deletion is asynchronous.
-      Audit legacy guards without expiry and apply a bounded expiry backfill if
-      any exist. Guards without expiry are ignored after four hours.
-- [ ] Deploy the four additive Functions and compatible legacy lookup writer:
-      `npx firebase deploy --project prod --only functions:confirmCheckIn,functions:deleteCheckIn,functions:deleteAllCheckIns,functions:recomputeCheckInActivity,functions:onCheckInCreate`.
-      Verify all are ACTIVE in `europe-west1`, the scheduler exists, and the
-      three callables enforce App Check. Keep legacy check-ins out of public
-      aggregates; retain private history/export/deletion and visited markers.
+- [ ] Verify `check_in_integrity.expires_at` TTL becomes ACTIVE. Enabling was
+      submitted on 2026-09-29 and latest verified state is CREATING:
+      `gcloud firestore fields ttls list --collection-group=check_in_integrity --project=parkour-base-project`.
+      The pre-deployment audit found zero existing guards, so no legacy expiry
+      backfill was needed. Expired guards are ignored immediately; physical TTL
+      deletion is asynchronous.
 - [ ] After Functions deployment, verify missing Auth/App Check and direct writes
       cannot create new-style check-ins; public summaries permit single-document
       reads only. The required check-in rules are already deployed (source
