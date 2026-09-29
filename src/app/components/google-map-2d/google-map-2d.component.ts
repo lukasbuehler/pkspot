@@ -192,6 +192,7 @@ interface FilteredPointMarkersCache {
 }
 
 interface VisibleHighlightedSpotAreasCache {
+  selectedSpotId: string | null;
   spots: SpotPreviewData[];
   areas: SpotPreviewAreaOverlay[];
 }
@@ -1363,20 +1364,26 @@ export class GoogleMap2dComponent
       return this._emptyHighlightedSpotAreas;
     }
 
-    const spots = this._getVisibleHighlightedSpotPreviews();
+    // Pin replacement must not remove the Spot's geographic footprint.
+    const spots = this.highlightedSpots();
+    const selectedSpot = this.selectedSpot();
+    const selectedSpotId = selectedSpot && "id" in selectedSpot ? selectedSpot.id : null;
     if (
       this._visibleHighlightedSpotAreasCache &&
-      this._visibleHighlightedSpotAreasCache.spots === spots
+      this._visibleHighlightedSpotAreasCache.spots === spots &&
+      this._visibleHighlightedSpotAreasCache.selectedSpotId === selectedSpotId
     ) {
       return this._visibleHighlightedSpotAreasCache.areas;
     }
 
     const areas = spots
+      .filter((spot) => spot.id !== selectedSpotId)
       .map((spot) => this._getSpotPreviewAreaOverlay(spot))
       .filter((area): area is SpotPreviewAreaOverlay => !!area);
 
     this._visibleHighlightedSpotAreasCache = {
       spots,
+      selectedSpotId,
       areas,
     };
 

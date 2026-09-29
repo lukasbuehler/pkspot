@@ -89,13 +89,13 @@
 
   &.pin-check-in {
     > div {
-      background-color: var(--mat-sys-tertiary) !important;
-      border-color: var(--mat-sys-on-tertiary) !important;
-      color: var(--mat-sys-on-tertiary) !important;
+      background-color: var(--mat-sys-secondary) !important;
+      border-color: var(--mat-sys-on-secondary) !important;
+      color: var(--mat-sys-on-secondary) !important;
     }
 
     > svg {
-      fill: var(--mat-sys-tertiary) !important;
+      fill: var(--mat-sys-secondary) !important;
     }
   }
 }

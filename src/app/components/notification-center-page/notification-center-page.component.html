@@ -77,7 +77,7 @@
             (click)="open(notification)"
           >
             <span class="notification-row__icon" aria-hidden="true">
-              <mat-icon>{{ notification.icon }}</mat-icon>
+              <mat-icon [style.color]="notification.icon === 'beenhere' ? 'var(--mat-sys-secondary)' : null">{{ notification.icon }}</mat-icon>
               @if (notification.imageUrl) {
                 <img
                   [src]="notification.imageUrl"

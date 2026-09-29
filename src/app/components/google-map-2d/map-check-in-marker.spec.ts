@@ -25,6 +25,22 @@ describe('check-in marker replacement', () => {
     expect(component._getVisibleHighlightedSpotPreviews()).toEqual(spots);
   });
 
+  it('retains circles and polygons while replacing their check-in pills', () => {
+    const spots = [{id: 'nearby', location: {latitude: 47, longitude: 8}},
+      {id: 'area', bounds_raw: [{lat: 47, lng: 8}, {lat: 47.001, lng: 8}, {lat: 47, lng: 8.001}]}];
+    const selected = signal<{id: string} | null>(null);
+    const component = Object.assign(Object.create(GoogleMap2dComponent.prototype), {
+      _zoom: () => 18, highlightedSpots: () => spots, selectedSpot: selected,
+      shouldShowCheckInMarker: () => true, checkInSpot: () => ({id: 'nearby'}),
+    }) as GoogleMap2dComponent;
+    expect(component.getVisibleHighlightedSpotAreas()).toEqual([
+      expect.objectContaining({id: 'nearby-location-radius', center: {lat: 47, lng: 8}}),
+      expect.objectContaining({id: 'area-bounds', path: spots[1].bounds_raw}),
+    ]);
+    selected.set({id: 'area'});
+    expect(component.getVisibleHighlightedSpotAreas()).toHaveLength(1);
+  });
+
   it('also replaces regular Spot markers without hiding neighboring Spots', () => {
     const spots = [{id: 'nearby'}, {id: 'other'}];
     const show = signal(true);
