@@ -2,6 +2,7 @@ import { createRequire } from "node:module";
 import type { OverlayOptions } from "sharp";
 const sharp = createRequire(__filename)("sharp") as typeof import("sharp").default;
 import { createHash } from "node:crypto";
+import { spotPlaceholderWireframe } from "./placeholder";
 
 export type ShareCardKind = "spot" | "event" | "community" | "profile" | "page";
 export interface ShareCardInput {
@@ -19,7 +20,7 @@ export interface ShareCardInput {
   photos?: Buffer[];
 }
 export interface ShareCardAssets { fontFile: string; logo?: Buffer; icon?: Buffer }
-export const SHARE_CARD_VERSION = "prototype-4";
+export const SHARE_CARD_VERSION = "prototype-5";
 export const SHARE_CARD_SIZE = { width: 1200, height: 630 };
 const escapeText = (value: string): string => value.replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" })[c]!);
@@ -39,11 +40,7 @@ export async function renderShareCard(input: ShareCardInput, assets: ShareCardAs
   const layers: OverlayOptions[] = [];
   const svg = (body: string): Buffer => Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">${body}</svg>`);
   layers.push({ input: svg(`<rect width="1200" height="630" fill="#18191f"/>
-    <g fill="none" stroke="#b9bdff" stroke-width="3" opacity=".22">
-      <path d="M710 630V335L890 235V530L1080 420V145L1200 75"/>
-      <path d="M620 630V465L800 360V565L1000 450V235L1200 120"/>
-      <path d="M890 235L1000 295M1080 145L1200 215"/>
-    </g><circle cx="995" cy="215" r="62" fill="#b9bdff" opacity=".1"/>`) });
+    ${spotPlaceholderWireframe}`) });
   // Start photos inside the fully opaque gradient so their left edge is hidden.
   // Optional supporting crops share that same edge; failed media uses artwork.
   for (const [index, photo] of photos.entries()) {

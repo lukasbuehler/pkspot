@@ -80,7 +80,8 @@ and checked in as `src/assets/banner_1200x630.png`.
       updated bundled fallback. Verify a public entity without a prepared card
       returns the branded image. The static website fallback ships with the next
       normal web release; no runtime image generation is required.
-- [ ] Deploy the centered photo crops (renderer `prototype-4`) and compatible
+- [ ] Deploy the centered photo crops and faint Spot wireframe fallback
+      (renderer `prototype-5`) and compatible
       extensionless-photo resolver in
       `prepareShareCard`, `shareCardImage`, and `cleanupShareCards`. Legacy Spot
       originals may be absent while `_800x800` derivatives exist. Verify a fresh

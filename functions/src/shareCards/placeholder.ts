@@ -1,0 +1,19 @@
+/** Main edges traced from the author's src/assets/spot_placeholder.png drawing.
+ * Keep this as vector geometry so faint background lines remain crisp. */
+export const spotPlaceholderWireframe = `<g transform="translate(350 -20) scale(1.12)"
+  fill="none" stroke="#b9bdff" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" opacity=".23">
+  <path d="M0 263 138 246V205H180V239L285 227V199H349V226H586V201H642V230L800 233
+    M0 425 285 316V199 M307 199V309 M349 199V226 M138 246V205 M586 226V201"/>
+  <path d="M221 344 317 311V346 M221 344 444 352 550 328 398 323 398 348
+    M221 344V408L444 418V352 M444 418 550 329
+    M317 326 434 272H517L495 289H434V308L398 323
+    M434 272V308 M495 289V325L517 309V272"/>
+  <path d="M517 309H568L560 329 M568 309V328
+    M550 329 720 338 711 318 M595 308 800 312
+    M550 329 539 362 720 393V338 M539 362 627 365V380H644"/>
+  <path d="M444 380 520 383 M444 401 511 404
+    M540 381 630 386V400L531 397 M532 407 634 411V425L525 421
+    M550 329 405 600 M539 362 445 600
+    M636 392 647 393 654 467 570 460 568 530 653 533 654 467
+    M636 392V460H570 M647 393 654 467"/>
+</g>`;
