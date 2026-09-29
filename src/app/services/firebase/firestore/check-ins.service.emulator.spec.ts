@@ -101,7 +101,7 @@ async function seedSpot(
   location: { lat: number; lng: number } = { lat: 47.3769, lng: 8.5417 },
 ): Promise<void> {
   await db().doc(`spots/${spotId}`).set({
-    name: { en: `Spot ${spotId}` },
+    name: { en: { text: `Spot ${spotId}`, provider: "user" } },
     location_raw: location,
   });
 }
@@ -148,6 +148,7 @@ runWithEmulator("private check-in callables", () => {
     const session = (await sessionRef.get()).data()!;
     expect(session["source"]).toBe("check_in");
     expect(session["spot_visits"]).toHaveLength(1);
+    expect(session["spot_visits"]).toEqual([expect.objectContaining({spot_name: expect.stringMatching(/^Spot /)})]);
     expect(JSON.stringify(session)).not.toContain("47.3769");
     expect((await db().doc(`users/${client.uid}/private_data/main`).get()).data()?.["visited_spots"])
       .toContain(spotId);

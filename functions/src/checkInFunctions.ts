@@ -133,10 +133,11 @@ const spotNameFrom = (spot: RecordValue): string | undefined => {
   const name = spot["name"];
   if (typeof name === "string") return name.slice(0, 200);
   if (!isRecord(name)) return undefined;
-  const preferred = stringValue(name["en"]);
+  const textFrom = (value: unknown): string | undefined =>
+    stringValue(isRecord(value) ? value["text"] : value);
+  const preferred = textFrom(name["en"]);
   if (preferred) return preferred.slice(0, 200);
-  const fallback = Object.values(name).find((value): value is string => typeof value === "string" && Boolean(value.trim()));
-  return fallback?.slice(0, 200);
+  return Object.values(name).map(textFrom).find(Boolean)?.slice(0, 200);
 };
 
 const parseConfirmInput = (value: unknown): ConfirmCheckInRequest => {

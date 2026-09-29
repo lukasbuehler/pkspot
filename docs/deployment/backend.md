@@ -228,6 +228,14 @@ contact messages to support; it is not general user notification email.
 
 ### Private check-ins and delayed Spot activity
 
+- [ ] Deploy the additive Spot-name snapshot correction with
+      `npx firebase deploy --project prod --only functions:confirmCheckIn`.
+      Verify a new check-in retains the name from both legacy string translations
+      and `{text, provider}` translations. The updated client resolves names for
+      existing nameless visits through the shared cached lookup; no history
+      rewrite or backfill is required. The structured-name emulator write passed
+      on 2026-09-29. This correction is local, separate from the earlier rollout.
+
 Check-ins are enabled in development, web production, Android and iOS; CI disables
 check-ins. Development uses production Firebase. On 2026-09-29 the four new
 Functions and compatible `onCheckInCreate` update were deployed and verified
