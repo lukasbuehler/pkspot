@@ -101,3 +101,12 @@ test('logo shadow darkens its surroundings without darkening the lettering', asy
   assert.ok(red(921,585) < red(900,585) - 10, 'soft shadow extends outside the logo');
   assert.equal(red(930,585), 255, 'logo remains white');
 });
+
+test('photo-free cards use distinct entity-specific background artwork', async () => {
+  const crops = [];
+  for (const kind of ['spot','event','profile','community','page']) {
+    const png = await renderShareCard({...input,kind,title:'Example',subtitle:''}, assets);
+    crops.push(await sharp(png).extract({left:700,top:250,width:450,height:250}).png().toBuffer());
+  }
+  for(let i=0;i<crops.length;i++) for(let j=i+1;j<crops.length;j++) assert.notDeepEqual(crops[i],crops[j]);
+});
