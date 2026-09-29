@@ -1,52 +1,35 @@
-type Point3 = readonly [number, number, number];
-
-const dot = (a: Point3, b: Point3): number => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const unit = (v: Point3): Point3 => {
-  const length = Math.hypot(...v);
-  return [v[0] / length, v[1] / length, v[2] / length];
-};
-const eye: Point3 = [7, -12, 9];
-const forward = unit([-7, 17, -9]);
-const right = unit([17, 7, 0]);
-const up: Point3 = [
-  right[1] * forward[2], -right[0] * forward[2],
-  right[0] * forward[1] - right[1] * forward[0],
-];
-
-/** Pinhole camera aimed at [0, 5, 0]. Camera-space depth includes all three
- * axes, so walls converge consistently and near geometry is visibly larger. */
-export function projectSpotPoint(point: Point3): readonly [number, number] {
-  const relative: Point3 = [point[0] - eye[0], point[1] - eye[1], point[2] - eye[2]];
-  const scale = 1150 / dot(relative, forward);
-  return [900 + dot(relative, right) * scale, 450 - dot(relative, up) * scale];
-}
-const project = (point: Point3): string => projectSpotPoint(point).map(value => value.toFixed(2)).join(',');
-
-function wall(x: number, depth: number, width: number, length: number, height: number): string {
-  const a: Point3 = [x, depth, 0], b: Point3 = [x + width, depth, 0];
-  const c: Point3 = [x + width, depth + length, 0];
-  const top = ([px, py]: Point3): Point3 => [px, py, height];
-  const polygon = (points: Point3[]) => `<polygon points="${points.map(project).join(' ')}"/>`;
-  return polygon([a, b, top(b), top(a)]) + polygon([b, c, top(c), top(b)]) +
-    polygon([top(a), top(b), top(c), top([x, depth + length, 0])]);
-}
-
-// Filled faces occlude hidden edges before the group's faint opacity is applied.
-// Stair blocks overlap in depth, so their risers meet their treads without gaps.
-const spotPlaceholderWireframe = `<g fill="#18191f" stroke="#b9bdff" stroke-width="1.5"
-  stroke-linejoin="miter" opacity=".23">
-  ${wall(-7, 12, 15, 0.25, 2.8)}
-  ${wall(-7, 2, 0.25, 10, 2.8)}
-  ${wall(-3.9, 9, 3.9, 0.24, 1.4)}
-  ${wall(-3.9, 5, 0.24, 4, 1.4)}
-  ${wall(-1.5, 7, 1.5, 0.24, 1.0)}
-  ${wall(0, 7, 4.8, 0.24, 1.0)}
-  ${[6, 5, 4, 3].map(depth => wall(-1.5, depth, 5, 1, (depth - 2) * 0.23)).join('')}
-  ${wall(-3.9, 5, 2.4, 0.24, 1.4)}
-  ${wall(3.5, 2, 0.24, 3, 0.9)}
-  ${wall(2.1, 2, 1.4, 0.24, 0.9)}
-  ${wall(0, -1, 0.24, 8, 1.25)}
+/** Visible face boundaries from src/assets/spot_placeholder.png.
+ * Preserve occlusion: do not connect corners across openings or hidden faces. */
+const spotPlaceholderWireframe = `<g transform="translate(350 -20) scale(1.12)"
+  fill="none" stroke="#b9bdff" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" opacity=".23">
+  <!-- Rear wall and pillars. Lower edges stop where foreground walls occlude them. -->
+  <path d="M0 263 137 245V205H180V239L284 227V199H349V226L585 228V201H642V230L800 233
+    M146 205V244 M290 199V319 M307 199V314 M349 199V226
+    M0 425 221 344"/>
+  <!-- Left enclosure: top rim, inner wall, and solid front face. -->
+  <path d="M221 344 317 310 328 316 433 271 517 270 495 290V324
+    M241 341 317 315V344 M328 316V345
+    M328 316 434 274V307L398 323 M434 307 455 307 456 304H485V319
+    M434 274 506 273 495 290 M517 270V308L495 324
+    M221 344 444 352V418L222 408Z M241 341 398 347
+    M398 347V323L550 329 M398 323 495 324"/>
+  <!-- Rear cross-wall. Its underside steps down behind the stair flight. -->
+  <path d="M517 308H568L560 329 M568 308V329 M568 315H594V330
+    M550 329 720 336 711 319 703 318 713 332 550 329
+    M550 329 549 362 627 366 628 377 667 379 670 391 720 393 721 367 800 370
+    M720 336 800 339"/>
+  <!-- Stair treads stop against the central and right-hand walls. -->
+  <path d="M446 381 518 383 M446 393 513 395 M446 402 509 404
+    M544 384 626 386V399L539 397
+    M538 408 633 410 M537 421 634 424 M651 411 676 413V427L651 426"/>
+  <!-- Short right-hand stair wall and its top cap. -->
+  <path d="M635 389 648 389 654 467V533L568 530 569 459 635 460Z
+    M635 389V460 M569 459 649 463 648 389 M569 465 654 467"/>
+  <!-- Draw the continuous divider last. Its solid faces hide stair edges behind it. -->
+  <path fill="#18191f" d="M550 330V362L467 600H416Z"/>
+  <path fill="#18191f" d="M537 330H550L416 600H384Z"/>
 </g>`;
+
 
 // Each entity keeps its own visual cue, with the same subdued stroke treatment.
 const linework = (body: string): string => `<g fill="none" stroke="#b9bdff" stroke-width="2"
