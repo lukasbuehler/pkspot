@@ -34,6 +34,31 @@ function chooseFixture() {
   byId('photos').value = fixture.photoCount;
   void render();
 }
+byId('entity-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  request?.abort();
+  byId('load-entity').disabled = true;
+  byId('render').disabled = true;
+  byId('fixture').disabled = true;
+  byId('photos').disabled = true;
+  status.textContent = 'Loading public entity and photos…';
+  try {
+    const response = await fetch('/entity', { method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind: byId('kind').value, id: byId('entity-id').value.trim() }) });
+    if (!response.ok) throw new Error(await response.text());
+    const source = await response.json();
+    fixtures = fixtures.filter(item => !item.id.startsWith('live:'));
+    fixtures.push(source);
+    for (const option of [...byId('fixture').options]) if (option.value.startsWith('live:')) option.remove();
+    byId('fixture').add(new Option(`${source.kind} · ${source.title}`, source.id));
+    byId('fixture').value = source.id;
+    chooseFixture();
+  } catch (error) { status.textContent = `Could not load: ${error.message}`; }
+  finally {
+    for (const id of ['load-entity', 'render', 'fixture', 'photos']) byId(id).disabled = false;
+  }
+});
 byId('render').addEventListener('click', render);
 byId('fixture').addEventListener('change', chooseFixture);
 byId('photos').addEventListener('change', render);

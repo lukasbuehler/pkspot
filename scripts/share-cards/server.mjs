@@ -4,6 +4,9 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { fixtures } from './fixtures.mjs';
+import { loadLiveSource } from './live-source.mjs';
+import { randomUUID } from 'node:crypto';
+const liveSources = new Map();
 const require = createRequire(import.meta.url);
 const { renderShareCard, shareCardFingerprint } = require('../../functions/lib/functions/src/shareCards/render.js');
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -30,7 +33,7 @@ createServer(async (request, response) => {
       response.setHeader('Content-Type', 'application/json');
       return response.end(JSON.stringify(fixtures.map(({ photos, ...fixture }) => ({ ...fixture, photoCount: photos.length }))));
     }
-    if (request.method === 'POST' && url.pathname === '/render') {
+    if (request.method === 'POST' && ['/render', '/entity'].includes(url.pathname)) {
       if (request.headers.origin && request.headers.origin !== `http://${request.headers.host}`) {
         response.writeHead(403); return response.end('Local origin required');
       }
@@ -40,7 +43,17 @@ createServer(async (request, response) => {
         if (Buffer.byteLength(body) > 8192) { response.writeHead(413); return response.end('Input too large'); }
       }
       const data = JSON.parse(body);
-      const fixture = loaded.find(item => item.id === data.fixture);
+      if (url.pathname === '/entity') {
+        const input = await loadLiveSource(data.kind, data.id?.trim());
+        const id = `live:${randomUUID()}`;
+        // Keep only a few recent local previews, never persist source data.
+        if (liveSources.size >= 8) liveSources.delete(liveSources.keys().next().value);
+        liveSources.set(id, input);
+        const { photos, ...fields } = input;
+        response.setHeader('Content-Type', 'application/json');
+        return response.end(JSON.stringify({ ...fields, id, photoCount: photos.length }));
+      }
+      const fixture = liveSources.get(data.fixture) ?? loaded.find(item => item.id === data.fixture);
       if (!fixture) throw new Error('Choose a fixture');
       const input = { ...fixture, photos: fixture.photos.slice(0, Math.max(0, Math.min(3, Number(data.photoCount) || 0))) };
       for (const field of ['title', 'subtitle', 'detail']) {

@@ -88,7 +88,7 @@
     "share-cards:lab": "npm --prefix functions run build && node scripts/share-cards/server.mjs",
     "share-cards:fallback": "npm --prefix functions run build && node scripts/share-cards/generate-fallback.mjs && node scripts/share-cards/bundle.mjs",
     "test:emulator:share-cards": "npm --prefix functions run build && node scripts/run_firebase_with_local_java.js emulators:exec --only firestore,storage --project demo-pkspot \"node scripts/share-cards/emulator.test.cjs\"",
-    "test:share-cards": "npm --prefix functions run build && node --test scripts/share-cards/render.test.cjs",
+    "test:share-cards": "npm --prefix functions run build && node --test scripts/share-cards/render.test.cjs scripts/share-cards/live-source.test.mjs",
     "build:cloudflare": "node scripts/cloudflare-workers.mjs build",
     "test:cloudflare": "node scripts/test-cloudflare-routes.mjs",
     "cloudflare:dry-run": "node scripts/cloudflare-workers.mjs dry-run",
