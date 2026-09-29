@@ -19,7 +19,7 @@ export interface ShareCardInput {
   photos?: Buffer[];
 }
 export interface ShareCardAssets { fontFile: string; logo?: Buffer; icon?: Buffer }
-export const SHARE_CARD_VERSION = "prototype-3";
+export const SHARE_CARD_VERSION = "prototype-4";
 export const SHARE_CARD_SIZE = { width: 1200, height: 630 };
 const escapeText = (value: string): string => value.replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" })[c]!);
@@ -53,7 +53,7 @@ export async function renderShareCard(input: ShareCardInput, assets: ShareCardAs
       : { left: index === 1 ? 300 : 753, top: 416, width: photos.length === 2 ? 900 : 447, height: 214 };
     try {
       const image = await sharp(photo, { limitInputPixels: 40_000_000 }).rotate()
-        .resize(box.width, box.height, { fit: "cover", position: "attention" }).png().toBuffer();
+        .resize(box.width, box.height, { fit: "cover", position: "centre" }).png().toBuffer();
       layers.push({ input: image, left: box.left, top: box.top });
     } catch { /* Keep a valid, intentionally designed fallback for broken photos. */ }
   }

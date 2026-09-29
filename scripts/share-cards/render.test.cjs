@@ -73,3 +73,21 @@ test('media candidates resolve extensionless legacy uploads and existing derivat
   ]) assert.deepEqual(shareCardMediaCandidates(path), [resized, path]);
   assert.deepEqual(shareCardMediaCandidates('spot_pictures/photo_800x800'), ['spot_pictures/photo_800x800']);
 });
+
+
+test('collage tiles preserve the center of portrait photos', async () => {
+  const photo = await sharp(Buffer.from(`<svg width="900" height="1200">
+    <rect width="900" height="1200" fill="red"/>
+    <rect y="500" width="900" height="200" fill="#00ff00"/>
+  </svg>`)).png().toBuffer();
+  for (const count of [1, 2, 3]) {
+    const png = await renderShareCard({...input, photos: Array(count).fill(photo)}, assets);
+    const {data, info} = await sharp(png).raw().toBuffer({resolveWithObject: true});
+    const centers = count === 1 ? [[1100, 315]] : [[1100, 205], [1100, 523]];
+    if (count === 3) centers.push([700, 523]);
+    for (const [x, y] of centers) {
+      const offset = (y * info.width + x) * info.channels;
+      assert.ok(data[offset + 1] > data[offset] * 2, `${count}-photo tile at ${x},${y} must show the green center`);
+    }
+  }
+});
