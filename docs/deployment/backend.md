@@ -8,16 +8,22 @@ Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure a
 
 - [ ] Investigate intermittent Better Stack failures before declaring the probe
       reliable. The monitor is configured and notifying (maintainer confirmed
-      2026-09-29). Reported HTML 500 incidents: 2026-09-28 20:28 CEST and
-      2026-09-29 03:14 CEST. Google logs in both five-minute windows contain
+      2026-09-29). Better Stack supplied exact Google Frontend HTML 500 headers:
+      2026-09-28 18:28:22 UTC (incident 60 seconds) and 2026-09-29 01:14:22 UTC
+      (incident 39 seconds), both text/html, 323 bytes. Project-wide ERROR logs
+      in those windows contain no matching entry. These are not the handler's
+      explicit JSON 503 response. Google logs in both five-minute windows contain
       instance startups and successful reads, but no matching 500 or handler
       Firestore error. A separate 05:31:45 CEST request logged a platform
       connection 503 (0.4 ms), followed by startup and 200 responses within
       three seconds. Live settings: maxInstances=1, concurrency=1, no minimum,
       timeout=10 seconds. Capacity/startup or frontend failure is a hypothesis,
-      not a confirmed Firestore outage. Correlate Better Stack response headers,
-      exact probe timestamps and request IDs; then test any bounded scaling
-      adjustment and observe subsequent probe cycles before closing this task.
+      not a confirmed Firestore outage. Instance startups occurred at 18:28:56
+      and 01:14:28 UTC, after the supplied failure timestamps. Next, compare
+      frontend and direct Cloud Run endpoint behavior and test a bounded
+      concurrency/capacity adjustment only after deployment approval. Retain
+      any future probe request IDs and observe subsequent probe cycles before
+      closing this task; the supplied headers contain no correlation ID.
       Keep real failures non-200; do not add cached-success responses.
       Existing endpoint: `https://europe-west1-parkour-base-project.cloudfunctions.net/monitoringHealth`,
       `X-PKSpot-Health-Token` authentication, expected 200 plus `ok`.
