@@ -91,3 +91,13 @@ test('collage tiles preserve the center of portrait photos', async () => {
     }
   }
 });
+
+test('logo shadow darkens its surroundings without darkening the lettering', async () => {
+  const photo = await sharp({create:{width:900,height:630,channels:4,background:'white'}}).png().toBuffer();
+  const logo = await sharp({create:{width:220,height:40,channels:4,background:'white'}}).png().toBuffer();
+  const card = await renderShareCard({...input,photos:[photo]}, {...assets,logo});
+  const {data,info} = await sharp(card).raw().toBuffer({resolveWithObject:true});
+  const red = (x,y) => data[(y * info.width + x) * info.channels];
+  assert.ok(red(921,585) < red(900,585) - 10, 'soft shadow extends outside the logo');
+  assert.equal(red(930,585), 255, 'logo remains white');
+});

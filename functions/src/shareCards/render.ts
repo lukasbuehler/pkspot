@@ -20,7 +20,7 @@ export interface ShareCardInput {
   photos?: Buffer[];
 }
 export interface ShareCardAssets { fontFile: string; logo?: Buffer; icon?: Buffer }
-export const SHARE_CARD_VERSION = "prototype-5";
+export const SHARE_CARD_VERSION = "prototype-6";
 export const SHARE_CARD_SIZE = { width: 1200, height: 630 };
 const escapeText = (value: string): string => value.replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" })[c]!);
@@ -87,6 +87,12 @@ export async function renderShareCard(input: ShareCardInput, assets: ShareCardAs
   }
   if (assets.logo) {
     const logo = await sharp(assets.logo).resize({ width: 220, height: 58, fit: "inside" }).png().toBuffer();
+    // Blur the glyph alpha, not a rectangular backing, and leave room for the halo.
+    const shadow = await sharp(logo).ensureAlpha()
+      .linear([0, 0, 0, 0.85], [0, 0, 0, 0])
+      .extend({ top: 12, bottom: 12, left: 12, right: 12, background: '#00000000' })
+      .blur(4).png().toBuffer();
+    layers.push({ input: shadow, left: 912, top: 555 });
     layers.push({ input: logo, left: 924, top: 565 });
   } else await addText("PK SPOT", 924, 565, 220, 42, 36, "#f4f3ff", true);
   return sharp({ create: { ...SHARE_CARD_SIZE, channels: 4, background: "#18191f" } })
