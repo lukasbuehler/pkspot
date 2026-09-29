@@ -19,7 +19,6 @@
         <span
           class="flex-grow-1 w-100 overflow-hidden d-flex flex-row align-items-center gap-2"
         >
-          <span class="spot-loading-badge" aria-hidden="true"></span>
           @if (loadingTitle()) {
             <span
               [matTooltip]="loadingTitle()"
@@ -35,7 +34,6 @@
           >
             Spot
           </span>
-          <span class="spot-loading-badge" aria-hidden="true"></span>
         </span>
 
         @if (dismissable()) {
