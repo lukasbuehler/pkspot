@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "pkspot-mcp",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-09-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  // Add the mcp.pkspot.app custom-domain route only at the approved deployment.
+  "vars": { "PUBLIC_ORIGIN": "https://mcp.pkspot.app" },
+  "durable_objects": {
+    "bindings": [{ "name": "QUOTAS", "class_name": "QuotaStore" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["QuotaStore"] }],
+  "limits": { "cpu_ms": 50 },
+  // Do not capture tool arguments, raw URLs, network identifiers or responses.
+  "observability": { "enabled": false }
+}

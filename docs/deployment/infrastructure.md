@@ -4,6 +4,60 @@ Cloudflare production cutover and self-hosted Typesense are separate projects, n
 
 Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure and maintenance rules. Each task is owned here; do not duplicate it in another checklist.
 
+### Public PK Spot MCP Worker
+
+The standalone service lives in `mcp/` and does not depend on the Typesense VM
+migration or a web/mobile release. Deployment and directory submissions require
+separate maintainer approval. It provides anonymous, read-only discovery and
+individual detail tools, with no exports or pagination.
+
+- [ ] Run `npm ci --prefix mcp --ignore-scripts`, `npm --prefix mcp run check`,
+      `npm --prefix mcp test`, `npm --prefix mcp run build`, and the repository
+      `npm run test:build`. The MCP build command is a Wrangler dry run.
+- [ ] Create a dedicated search-only Typesense key restricted to `spots_v2`,
+      `events_v1`, and `communities_v1`. From `mcp/`, use
+      `npx wrangler secret put TYPESENSE_SEARCH_KEY` and
+      `npx wrangler secret put QUOTA_SECRET` (at least 32 random characters).
+      Configure `TYPESENSE_ORIGIN=https://search.pkspot.app` and the actual
+      `FIRESTORE_PROJECT_ID` in Worker variables. Do not reuse an admin key.
+- [ ] Verify anonymous REST reads of the existing public Spot, Community and
+      Event documents against deployed Firestore rules and App Check policy.
+      Search only reads IDs from Typesense, then rechecks current public records.
+      Confirm unpublished/unlisted/private Events and hidden Community cards
+      never appear, even with stale Typesense hits or direct ID requests.
+      Permission-denied records are withheld. If legitimate public reads are
+      blocked, retain the existing protection and resolve a narrow public read
+      integration before launch; do not disable App Check or use an Admin bypass.
+- [ ] Add the custom-domain route for `mcp.pkspot.app` in `mcp/wrangler.jsonc`
+      after domain approval, deploy with `npm --prefix mcp run deploy`, and verify
+      `/health` and `/mcp`. Wrangler provisions the `QuotaStore` SQLite Durable
+      Object migration. Keep `workers_dev` and preview URLs disabled. Configure
+      edge request-rate protection without browser challenges on `/mcp`.
+- [ ] Test initialization, tools/list and all six tools in both ChatGPT and
+      Claude. Cover text and community-reference searches, optional host location,
+      timezone-aware dates, empty results, upstream outages and rejected bulk
+      parameters. Verify canonical links and required import attribution.
+      Tune the constants in `mcp/src/quota.ts` using observed provider egress:
+      anonymous provider IPs can represent many people. Quotas use daily HMACs
+      of Cloudflare-provided IPs and a global daily Durable Object. Every request
+      consumes a request slot, including malformed requests and protocol discovery.
+      Searches additionally reserve ten record slots and detail reads reserve one.
+      Confirm 429/Retry-After, persistence across Worker
+      restarts, the global cap, and fail-closed behavior on quota failures.
+      This discourages extraction but cannot prevent distributed copying, and
+      existing public web/search access has separate exposure to audit.
+- [ ] Approve the MCP privacy disclosure before setting optional
+      `POSTHOG_API_KEY` and `POSTHOG_HOST` (EU or US ingestion origin). Verify
+      event-only `mcp_tool_completed` metrics with no queries, result content,
+      network identifiers or persistent person profiles. Confirm analytics
+      failures do not break discovery. These metrics measure tool calls, not
+      conversation views, link clicks, unique users or cross-platform funnels.
+- [ ] Prepare and separately approve ChatGPT and Claude directory submissions,
+      including verified publisher/domain, policy/support links, test cases and
+      review materials. The MCP server itself is not a submitted directory listing.
+      For rollback, remove/disable the Worker route and directory connection;
+      existing PK Spot clients and search remain independent.
+
 ### Search endpoint and self-hosted Typesense migration
 
 The current Typesense Cloud cluster remains the live source until all steps
