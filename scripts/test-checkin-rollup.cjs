@@ -65,3 +65,35 @@ test('expires a published band and removes its daily job when all contributions 
   assert.equal((await db.doc(`spot_activity_public/${spot}`).get()).exists, false);
   assert.equal((await db.doc(`check_in_activity_rollups/${spot}`).get()).exists, false);
 });
+
+test('advancing the clock expires a band without any new check-ins', async () => {
+  const spot = `${root}-clock`;
+  const dayMs = 24 * 60 * 60 * 1000;
+  const start = now.toMillis();
+  let clock = start;
+  const realNow = Timestamp.now;
+  Timestamp.now = () => Timestamp.fromMillis(clock);
+  try {
+    await db.doc(`spots/${spot}`).set({name: 'Clock fixture'});
+    await contribution(spot, 'first', 'one', 'accepted', Timestamp.fromMillis(start));
+    await contribution(spot, 'second', 'two', 'accepted', Timestamp.fromMillis(start));
+    // Another visit by the same account must not keep the other account active.
+    await contribution(spot, 'repeat', 'one', 'accepted', Timestamp.fromMillis(start + dayMs));
+    clock = start + dayMs;
+    await enqueue(spot); await recomputeCheckInActivity.run({});
+    assert.equal((await db.doc(`spots/${spot}`).get()).get('recent_activity_min_30d'), 2);
+    clock = start + 30 * dayMs;
+    await recomputeCheckInActivity.run({});
+    assert.equal((await db.doc(`spots/${spot}`).get()).get('recent_activity_min_30d'), 2);
+    clock = start + 31 * dayMs;
+    await recomputeCheckInActivity.run({});
+    assert.equal((await db.doc(`spots/${spot}`).get()).get('recent_activity_min_30d'), null);
+    assert.equal((await db.doc(`spot_activity_public/${spot}`).get()).exists, false);
+    assert.equal((await db.doc(`spots/${spot}/check_in_aggregate_contributions/repeat`).get()).exists, true);
+    clock = start + 32 * dayMs;
+    await recomputeCheckInActivity.run({});
+    assert.equal((await db.doc(`check_in_activity_rollups/${spot}`).get()).exists, false);
+  } finally {
+    Timestamp.now = realNow;
+  }
+});
