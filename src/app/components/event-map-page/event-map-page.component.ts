@@ -22,6 +22,7 @@ import { SpotMapComponent } from "../spot-map/spot-map.component";
 import {
   isPlatformBrowser,
   LocationStrategy,
+  NgTemplateOutlet,
 } from "@angular/common";
 import { LocalSpot, Spot } from "../../../db/models/Spot";
 import type { AnyMedia } from "../../../db/models/Media";
@@ -103,7 +104,7 @@ import { EventProgramOccurrenceListComponent } from "../event-program-occurrence
 import { EventProgramMapScheduleComponent } from "../event-program-map-schedule/event-program-map-schedule.component";
 import {
   eventProgramDays,
-  eventProgramLocationVisits,
+  eventProgramMapLocationVisits,
   eventProgramSpotRefs,
   isEventProgramMarkerOccurrence,
   isEventProgramSpotOccurrence,
@@ -133,6 +134,7 @@ type EventMapTab = "all" | "event" | "spots" | "challenges" | "program";
 @Component({
   selector: "app-event-map-page",
   imports: [
+    NgTemplateOutlet,
     SpotListComponent,
     MatButtonModule,
     MatIconModule,
@@ -468,7 +470,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
     ),
   );
   readonly programLocationVisits = computed(() =>
-    eventProgramLocationVisits(
+    eventProgramMapLocationVisits(
       this.programOccurrences(),
       this.selectedProgramDay(),
       this.now(),
@@ -503,7 +505,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
         icons: place.icons,
         number: time,
         badge: additionalVisits > 0 ? `+${additionalVisits}` : undefined,
-        color: eventProgramLocationColor(visit),
+        color: eventProgramLocationColor(visit, this.selectedProgramDay()),
         priority: "required",
         ignoreCollisions: true,
         type: "event-program",

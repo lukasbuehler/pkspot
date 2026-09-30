@@ -113,7 +113,7 @@ import { EventNowNextCardComponent } from "../event-now-next-card/event-now-next
 import { EventTicketListComponent } from "../event-ticket-list/event-ticket-list.component";
 import {
   eventProgramDays,
-  eventProgramLocationVisits,
+  eventProgramMapLocationVisits,
   isEventProgramMarkerOccurrence,
   isEventProgramSpotOccurrence,
   resolveEventProgramOccurrences,
@@ -474,7 +474,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
   readonly programLocationVisits = computed(() =>
     this.selectedProgramDay() === null
       ? []
-      : eventProgramLocationVisits(
+      : eventProgramMapLocationVisits(
           this.programOccurrences(),
           this.selectedProgramDay() ?? "",
           this.now(),
@@ -629,7 +629,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         icons: place.icons,
         number: time,
         badge: additionalVisits > 0 ? `+${additionalVisits}` : undefined,
-        color: eventProgramLocationColor(visit),
+        color: eventProgramLocationColor(visit, this.selectedProgramDay()),
         priority: "required",
         ignoreCollisions: true,
         type: "event-program",

@@ -1404,6 +1404,7 @@ export class GoogleMap2dComponent
     east: number;
 } | null>(null);
   readonly fitToBounds = input<google.maps.LatLngBoundsLiteral | null>(null);
+  readonly fitBoundsPadding = input<number | google.maps.Padding>(40);
   readonly minZoom = input<number | null>(null);
   /**
    * Whether to apply a bottom offset (via CSS) to the Google Maps logo/copyright.
@@ -2175,7 +2176,7 @@ export class GoogleMap2dComponent
 
     this._allowProgrammaticCameraJump("fit-to-bounds-input");
     this._runWhenMapViewportReady("fit-to-bounds-input", () => {
-      this.googleMap?.fitBounds(this.fitToBounds()!, 40);
+      this.googleMap?.fitBounds(this.fitToBounds()!, this.fitBoundsPadding());
     });
   }
 
@@ -2185,7 +2186,7 @@ export class GoogleMap2dComponent
       this._applyBoundRestriction();
     }
 
-    if (changes["fitToBounds"] && this.googleMap?.googleMap) {
+    if ((changes["fitToBounds"] || changes["fitBoundsPadding"]) && this.googleMap?.googleMap) {
       this._applyFitBounds();
     }
 

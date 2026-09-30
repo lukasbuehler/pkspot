@@ -106,11 +106,11 @@ export class EventPageDataService {
     );
 
     const normalized = this._normalizeBounds(bounds);
-    // Leave room to pan beyond edge pins without changing the event geometry.
+    // Leave room to pan beyond pins, with extra headroom for the day chips.
     const latitudePadding = (normalized.north - normalized.south) * 0.1;
     const longitudePadding = (normalized.east - normalized.west) * 0.1;
     return this._normalizeBounds({
-      north: normalized.north + latitudePadding,
+      north: normalized.north + latitudePadding * 6,
       south: normalized.south - latitudePadding,
       east: normalized.east + longitudePadding,
       west: normalized.west - longitudePadding,

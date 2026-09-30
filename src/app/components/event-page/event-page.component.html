@@ -462,6 +462,7 @@
                 id="eventInfoMap"
                 [showGeolocation]="false"
                 [fitToBounds]="mapPreviewBounds()"
+                [fitBoundsPadding]="{ top: 100, right: 40, bottom: 40, left: 40 }"
                 [boundRestriction]="mapPreviewBounds()!"
                 [polygons]="areaPolygon() ? [areaPolygon()!] : []"
                 [minZoom]="3"

@@ -6,6 +6,7 @@ import {
   effectiveProgramItem,
   eventProgramDays,
   eventProgramLocationVisits,
+  eventProgramMapLocationVisits,
   eventProgramSpotRefs,
   eventProgramSpotVisits,
   resolveEventProgramOccurrences,
@@ -41,6 +42,27 @@ function item(
 }
 
 describe("event program Spot helpers", () => {
+  it("retains other days without duplicating a selected-day location", () => {
+    const a = localSpot("A");
+    const b = localSpot("B");
+    const items = [
+      item({ id: "today", spot_ref: { kind: "spot", id: "a" } }),
+      item({ id: "tomorrow-a", start: new Date("2026-08-06T10:00:00Z"),
+        end: new Date("2026-08-06T12:00:00Z"), spot_ref: { kind: "spot", id: "a" } }),
+      item({ id: "tomorrow-b", start: new Date("2026-08-06T10:00:00Z"),
+        end: new Date("2026-08-06T12:00:00Z"), spot_ref: { kind: "spot", id: "b" } }),
+    ];
+    const now = new Date("2026-08-05T09:00:00Z");
+    const occurrences = resolveEventProgramOccurrences(items, [
+      { ref: { kind: "spot", id: "a" }, spot: a },
+      { ref: { kind: "spot", id: "b" }, spot: b },
+    ], "UTC", now);
+    const visits = eventProgramMapLocationVisits(occurrences, "2026-08-05", now);
+    expect(visits.map((visit) => visit.representative.item.id)).toEqual(["today", "tomorrow-b"]);
+    expect(visits[0].occurrences).toHaveLength(1);
+    expect(eventProgramMapLocationVisits(occurrences, "", now)[0].occurrences).toHaveLength(2);
+  });
+
   it("prefers deduplicated spot_refs and falls back to spot_ref", () => {
     expect(eventProgramSpotRefs(item())).toEqual([
       { kind: "spot", id: "legacy" },

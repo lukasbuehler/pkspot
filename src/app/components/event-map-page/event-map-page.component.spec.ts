@@ -121,7 +121,10 @@ describe("EventMapPageComponent", () => {
       '(spotSelected)="openProgramSpotDetails($event)"',
     );
 
-    const spotsPanel = template.slice(template.indexOf('@case ("spots")'));
+    const programPanel = template.slice(template.indexOf('@case ("program")'), template.indexOf('@case ("spots")'));
+    expect(programPanel).toContain('[ngTemplateOutlet]="spotDetailsPanel"');
+    expect(programPanel).not.toContain("selected-program-spot");
+    const spotsPanel = template.slice(template.indexOf('<ng-template #spotDetailsPanel>'));
     const spotProgramIndex = spotsPanel.indexOf("spot-program-section");
     const spotDetailsIndex = spotsPanel.indexOf("<app-spot-details");
     const spotDetailsEnd = spotsPanel.indexOf(
@@ -479,6 +482,11 @@ describe("EventMapPageComponent", () => {
         number: expect.stringContaining("4"),
       }),
     ]);
+
+    component.selectedProgramDay.set("2026-06-15");
+    expect(component.mapPriorityMarkers()).toHaveLength(2);
+    expect(component.mapPriorityMarkers().every((marker) => marker.color === "gray")).toBe(true);
+    component.selectedProgramDay.set("2026-06-14");
 
     component.now.set(new Date("2026-06-14T16:30:00.000Z"));
     expect(component.mapPriorityMarkers()[1]).toEqual(

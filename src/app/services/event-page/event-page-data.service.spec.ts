@@ -280,7 +280,7 @@ describe("EventPageDataService", () => {
         { lat: 47.2, lng: 8.9 },
       ]),
     ).toEqual({
-      north: 47.86,
+      north: expect.closeTo(48.16),
       south: 47.14,
       east: 8.97,
       west: expect.closeTo(8.13),
@@ -309,7 +309,7 @@ describe("EventPageDataService", () => {
     });
 
     expect(service.eventMapBounds(event)).toEqual({
-      north: 47.41,
+      north: expect.closeTo(47.46),
       south: 47.29,
       east: 8.61,
       west: 8.49,
@@ -587,8 +587,8 @@ describe("EventPageDataService", () => {
       lat: paths.getAt(0).getAt(index).lat(),
       lng: paths.getAt(0).getAt(index).lng(),
     }));
-    expect(Math.max(...outer.map((point) => point.lat))).toBeCloseTo(47.47);
-    expect(Math.min(...outer.map((point) => point.lat))).toBeCloseTo(47.23);
+    expect(Math.max(...outer.map((point) => point.lat))).toBeCloseTo(47.545);
+    expect(Math.min(...outer.map((point) => point.lat))).toBeCloseTo(47.205);
     expect(Math.max(...outer.map((point) => point.lng))).toBeCloseTo(8.67);
     expect(Math.min(...outer.map((point) => point.lng))).toBeCloseTo(8.43);
   });
