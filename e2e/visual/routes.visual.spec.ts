@@ -585,6 +585,8 @@ const routeVisualCases: RouteVisualCase[] = [
   { name: "about", path: "/about", fullPage: true, maxDiffPixels: 2_000 },
   { name: "support", path: "/support", fullPage: true, maxDiffPixels: 2_000 },
   { name: "contact", path: "/contact", fullPage: true, maxDiffPixels: 1_000 },
+  { name: "contact-alain", path: "/contact", viewport: alainMobileViewport,
+    assertAlainClearance: { axis: "block", target: ".contact-page .back-link" } },
   {
     name: "terms-of-service",
     path: "/terms-of-service",
@@ -1217,6 +1219,9 @@ async function prepareRoute(page: Page, route: RouteVisualCase): Promise<void> {
       unloggedCheckIn,
       verifiedAdult,
     }) => {
+      // Visual fixtures exercise local UI, not reCAPTCHA or App Check providers.
+      (globalThis as typeof globalThis & { __PKSPOT_STORE_SCREENSHOT__?: boolean })
+        .__PKSPOT_STORE_SCREENSHOT__ = true;
       localStorage.setItem("acceptedVersion", acceptedVersion);
       (globalThis as typeof globalThis & { __PKSPOT_SCREENSHOT_DUPLICATES__?: unknown }).__PKSPOT_SCREENSHOT_DUPLICATES__ = [{
         id: "visual-duplicates", closestDistanceMeters: 2,

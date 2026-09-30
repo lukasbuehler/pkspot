@@ -1,6 +1,14 @@
 import { test, expect, type Page } from "@playwright/test";
 import { acceptCurrentTerms } from "../fixtures/consent";
 
+test.beforeEach(async ({ page }) => {
+  // Visual fixtures must not depend on the external App Check challenge.
+  await page.addInitScript(() => {
+    (globalThis as typeof globalThis & { __PKSPOT_STORE_SCREENSHOT__?: boolean })
+      .__PKSPOT_STORE_SCREENSHOT__ = true;
+  });
+});
+
 type SpotFixtureState = "loaded" | "loading";
 
 async function openSpotFixture(
