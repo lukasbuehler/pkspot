@@ -13,7 +13,8 @@
     "bindings": [{ "name": "QUOTAS", "class_name": "QuotaStore" }]
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["QuotaStore"] }],
-  "limits": { "cpu_ms": 50 },
+  // Omit limits.cpu_ms: custom CPU limits require Workers Paid.
+  // Workers Free applies its default 10 ms CPU limit per HTTP request.
   // Do not capture tool arguments, raw URLs, network identifiers or responses.
   "observability": { "enabled": false }
 }
