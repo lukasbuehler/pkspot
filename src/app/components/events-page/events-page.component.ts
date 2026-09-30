@@ -346,7 +346,9 @@ export class EventsPageComponent {
   });
 
   readonly discoveryResult = linkedSignal({
-    source: () => this.discoveryResource.value(),
+    // Resource.value() throws after a rejected load. Keep derivations readable
+    // so the error/retry UI can render, including during SSR.
+    source: () => this.discoveryResource.hasValue() ? this.discoveryResource.value() : undefined,
     computation: (result, previous): EventDiscoverySearchResult | null =>
       result ?? previous?.value ?? null,
   });
@@ -365,7 +367,7 @@ export class EventsPageComponent {
       (await this._search.searchInvalidEventDiscovery({ abortSignal })),
   });
   readonly invalidEvents = computed(
-    () => this.invalidEventsResource.value() ?? [],
+    () => this.invalidEventsResource.hasValue() ? this.invalidEventsResource.value() : [],
   );
   readonly calendar = computed(() =>
     buildEventCalendarMonth(
@@ -396,7 +398,7 @@ export class EventsPageComponent {
       this._screenshotSeriesById() ?? this._series.getSeriesByIds(params),
   });
   readonly seriesById = computed(
-    () => this.seriesResource.value() ?? this._screenshotSeriesById() ?? {},
+    () => (this.seriesResource.hasValue() ? this.seriesResource.value() : undefined) ?? this._screenshotSeriesById() ?? {},
   );
 
   readonly categoryFilterOptions = computed<EventCategoryFilterOption[]>(() => {
@@ -489,7 +491,7 @@ export class EventsPageComponent {
       return events.filter((event) => !event.published);
     },
   });
-  readonly drafts = computed(() => this.draftsResource.value() ?? []);
+  readonly drafts = computed(() => this.draftsResource.hasValue() ? this.draftsResource.value() : []);
   readonly loadContinuousCalendarEvents: ContinuousEventCalendarLoader = (
     request,
   ) => {

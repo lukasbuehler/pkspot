@@ -236,6 +236,25 @@ describe("EventsPageComponent", () => {
     globalThis.localStorage?.removeItem("eventsDiscoveryView");
   });
 
+  it("keeps error-state derivations readable and recovers after retry", async () => {
+    const { component, searchService } = createComponent({ platform: "server" });
+    const failure = new Error("Typesense request failed with HTTP 403.");
+    searchService.searchEventDiscovery.mockRejectedValue(failure);
+    await flushResources();
+
+    expect(component.discoveryResource.error()).toBe(failure);
+    expect(component.discoveryResource.isLoading()).toBe(false);
+    expect(component.events()).toEqual([]);
+    expect(() => component.categoryFilterOptions()).not.toThrow();
+    expect(() => component.facetSeriesIds()).not.toThrow();
+
+    searchService.searchEventDiscovery.mockResolvedValue(EMPTY_RESULT);
+    component.retry();
+    await flushResources();
+    expect(component.discoveryResource.error()).toBeUndefined();
+    expect(component.discoveryResult()).toEqual(EMPTY_RESULT);
+  });
+
   it("offers the event notification migration for future personal events", () => {
     const event = buildEvent("future-event", "Future Event", {
       published: true,
