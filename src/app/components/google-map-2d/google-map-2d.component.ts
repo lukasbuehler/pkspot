@@ -1227,6 +1227,7 @@ export class GoogleMap2dComponent
             lng: spot.location.longitude,
           },
           priority: getSpotMarkerPriority({
+            recent_activity_min_30d: spot.recent_activity_min_30d,
             rating: spot.rating,
             access: spot.access,
             isIconic: spot.isIconic,
@@ -1252,6 +1253,7 @@ export class GoogleMap2dComponent
         kind: "spot",
         location: spot.location(),
         priority: getSpotMarkerPriority({
+          recent_activity_min_30d: spot.recent_activity_min_30d,
           rating: spot.rating,
           access: spot.access(),
           isIconic: spot.isIconic,

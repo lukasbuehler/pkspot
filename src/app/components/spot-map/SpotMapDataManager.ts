@@ -128,6 +128,7 @@ export class SpotMapDataManager {
   private _sortByPriority(a: Spot, b: Spot): number {
     const priorityDifference =
       getSpotMarkerPriority({
+        recent_activity_min_30d: b.recent_activity_min_30d,
         rating: b.rating ?? this.defaultRating,
         access: b.access(),
         isIconic: b.isIconic,
@@ -135,6 +136,7 @@ export class SpotMapDataManager {
         hasMedia: this._hasUserProvidedMedia(b),
       }) -
       getSpotMarkerPriority({
+        recent_activity_min_30d: a.recent_activity_min_30d,
         rating: a.rating ?? this.defaultRating,
         access: a.access(),
         isIconic: a.isIconic,
@@ -151,6 +153,7 @@ export class SpotMapDataManager {
   ): number {
     const priorityDifference =
       getSpotMarkerPriority({
+        recent_activity_min_30d: b.recent_activity_min_30d,
         rating: b.rating,
         access: b.access,
         isIconic: b.isIconic,
@@ -158,6 +161,7 @@ export class SpotMapDataManager {
         hasMedia: !!b.imageSrc,
       }) -
       getSpotMarkerPriority({
+        recent_activity_min_30d: a.recent_activity_min_30d,
         rating: a.rating,
         access: a.access,
         isIconic: a.isIconic,

@@ -315,6 +315,7 @@ export class SpotPreviewMarkerComponent {
     const priority =
       spot instanceof Spot || spot instanceof LocalSpot
         ? getSpotMarkerPriority({
+            recent_activity_min_30d: spot.recent_activity_min_30d,
             rating: spot.rating,
             access: spot.access(),
             isIconic: spot.isIconic,
@@ -322,6 +323,7 @@ export class SpotPreviewMarkerComponent {
             hasMedia: spot.userMedia().some((media) => !media.isReported),
           })
         : getSpotMarkerPriority({
+            recent_activity_min_30d: spot.recent_activity_min_30d,
             rating: spot.rating,
             access: spot.access,
             isIconic: spot.isIconic,

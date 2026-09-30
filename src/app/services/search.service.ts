@@ -146,6 +146,7 @@ export class SearchService {
   private getSpotPriorityFromHit(hit: any): number {
     const doc = hit?.document || hit;
     return getSpotPriority({
+      recent_activity_min_30d: doc?.recent_activity_min_30d,
       rating: doc?.rating,
       access: doc?.access,
       isIconic: doc?.is_iconic ?? doc?.isIconic,

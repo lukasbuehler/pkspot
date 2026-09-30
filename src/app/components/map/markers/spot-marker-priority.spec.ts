@@ -9,6 +9,18 @@ describe("getSpotMarkerPriority", () => {
     expect(getSpotMarkerPriority({})).toBe(150);
   });
 
+  it("balances activity against quality without changing the rating", () => {
+    const spot = {rating: 4, recent_activity_min_30d: 2};
+    const inactiveFiveStar = getSpotMarkerPriority({rating: 5});
+    expect(getSpotMarkerPriority(spot)).toBeLessThan(inactiveFiveStar);
+    expect(spot.rating).toBe(4);
+    expect(getSpotMarkerPriority({...spot, recent_activity_min_30d: 5})).toBe(inactiveFiveStar);
+    expect(getSpotMarkerPriority({...spot, recent_activity_min_30d: 10})).toBeGreaterThan(inactiveFiveStar);
+    expect(getSpotMarkerPriority({rating: 3, recent_activity_min_30d: 25})).toBeGreaterThan(inactiveFiveStar);
+    expect(getSpotMarkerPriority({...spot, recent_activity_min_30d: null})).toBe(400);
+    expect(getSpotMarkerPriority({...spot, recent_activity_min_30d: 1000})).toBe(400);
+  });
+
   it("adds a 50 point boost for spots with media", () => {
     expect(getSpotMarkerPriority({ rating: 4.5, hasMedia: true })).toBe(500);
     expect(getSpotMarkerPriority({ rating: 0, hasMedia: true })).toBe(200);

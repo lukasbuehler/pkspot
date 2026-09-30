@@ -1168,6 +1168,7 @@ export class CommunityLandingPageComponent {
 
   private _spotPreviewPriority(spot: SpotPreviewData): number {
     return getSpotPriority({
+      recent_activity_min_30d: spot.recent_activity_min_30d,
       rating: spot.rating,
       access: spot.access,
       isIconic: spot.isIconic,
