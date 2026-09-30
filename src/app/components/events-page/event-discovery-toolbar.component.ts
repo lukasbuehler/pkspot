@@ -67,7 +67,7 @@ export class EventDiscoveryToolbarComponent {
     [],
   );
   readonly regionOptions = input<readonly EventRegionFilterOption[]>([]);
-  readonly regionChips = computed(() => this.regionOptions().filter(region => region.count > 0 || this.selectedRegions().includes(region.id)).map(region => ({
+  readonly regionChips = computed(() => this.regionOptions().map(region => ({
     urlParam: region.id,
     label: `${region.label} ${region.count}`,
   })));
@@ -83,13 +83,13 @@ export class EventDiscoveryToolbarComponent {
   readonly selectedRegions = input<readonly EventRegionKey[]>([]);
 
   readonly detailChips = computed(() => [
-    ...this.categoryOptions().filter(option => option.count > 0 || this.selectedCategories().includes(option.id)).map(option => ({
+    ...this.categoryOptions().map(option => ({
       urlParam: `category:${option.id}`, label: `${option.label} ${option.count}`, icon: option.icon,
     })),
-    ...this.seriesOptions().filter(option => option.count > 0 || this.selectedSeriesIds().includes(option.id)).map(option => ({
+    ...this.seriesOptions().map(option => ({
       urlParam: `series:${option.id}`, label: `${option.label} ${option.count}`, imageSrc: option.logoSrc, imageBackground: option.logoBackground,
     })),
-    ...this.listingTierOptions().filter(option => option.count > 0 || this.selectedListingTiers().includes(option.id)).map(option => ({
+    ...this.listingTierOptions().map(option => ({
       urlParam: `tier:${option.id}`, label: `${option.label} ${option.count}`,
     })),
   ]);

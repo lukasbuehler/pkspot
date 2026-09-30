@@ -376,7 +376,7 @@ export class EventsPageComponent {
       this.events(),
     ),
   );
-  readonly facetSeriesIds = computed(() => [
+  private readonly currentFacetSeriesIds = computed(() => [
     ...new Set([
       ...(this.filterDiscoveryResult()?.facets.series.map(
         (facet) => facet.value,
@@ -388,6 +388,20 @@ export class EventsPageComponent {
       ...this.invalidEvents().flatMap((event) => event.seriesIds),
     ]),
   ]);
+  // Filtered search facets omit zero-count series. Keep discovered choices
+  // within the same browsing scope so selecting a chip cannot erase its peers.
+  readonly facetSeriesIds = linkedSignal({
+    source: () => ({
+      ids: this.currentFacetSeriesIds(),
+      filtered: !!(this.selectedCategories().length || this.selectedSeriesIds().length ||
+        this.selectedListingTiers().length || this.selectedRegions().length),
+      scope: JSON.stringify([this.query(), this.discoveryAreaKeys(), this.view(), this.period(), this.month()]),
+    }),
+    computation: (source, previous): string[] => [...new Set([
+      ...(source.filtered && previous?.source.scope === source.scope ? previous.value : []),
+      ...source.ids,
+    ])],
+  });
 
   readonly seriesResource = resource({
     params: () => {
@@ -413,10 +427,7 @@ export class EventsPageComponent {
       icon: categoryIcon(category),
       label: categoryLabel(category),
       count: counts.get(category) ?? 0,
-    })).filter(
-      (option) =>
-        option.count > 0 || this.selectedCategories().includes(option.id),
-    );
+    }));
   });
 
   readonly seriesFilterOptions = computed<EventSeriesFilterOption[]>(() => {

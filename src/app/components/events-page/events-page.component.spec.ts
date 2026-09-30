@@ -420,12 +420,31 @@ describe("EventsPageComponent", () => {
       },
     });
 
-    expect(component.categoryFilterOptions()).toEqual([
+    expect(component.categoryFilterOptions()).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: "competition", count: 4 }),
-    ]);
+      expect.objectContaining({ id: "jam", count: 0 }),
+    ]));
     expect(component.seriesFilterOptions()).toEqual([
       expect.objectContaining({ id: "parkour-earth", count: 3 }),
     ]);
+  });
+
+  it("retains discovered series when a filter removes them from result facets", async () => {
+    const { component } = createComponent({ queryParams: { view: "calendar", month: "2026-08" } });
+    await flushResources();
+    component.onContinuousCalendarResult({ ...EMPTY_RESULT, facets: {
+      ...EMPTY_RESULT.facets, series: [{ value: "series-a", count: 2 }, { value: "series-b", count: 1 }],
+    }});
+    expect(component.facetSeriesIds()).toEqual(["series-a", "series-b"]);
+    component.selectedCategories.set(["jam"]);
+    component.onContinuousCalendarResult({ ...EMPTY_RESULT, facets: {
+      ...EMPTY_RESULT.facets, series: [{ value: "series-a", count: 1 }],
+    }});
+    expect(component.seriesFilterOptions()).toEqual(expect.arrayContaining([
+      expect.objectContaining({id: "series-b", count: 0}),
+    ]));
+    component.selectedCategories.set([]);
+    expect(component.facetSeriesIds()).toEqual(["series-a"]);
   });
 
   it("keeps authorized drafts in a separate Firestore request", async () => {
