@@ -11,6 +11,12 @@ migration or a web/mobile release. Deployment and directory submissions require
 separate maintainer approval. It provides anonymous, read-only discovery and
 individual detail tools, with no exports or pagination.
 
+- [ ] Deploy the native-fetch receiver and manual-redirect fixes, then verify
+      live MCP search and detail reads. Local workerd now completes a public
+      Typesense-to-Firestore read; deployed data access still needs retesting.
+      Verify persisted logs/traces redact query strings. Check the dashboard's
+      issue detection setting after deployment: Wrangler 4.132.0 and 4.143.0
+      do not recognize `observability.issue_detection`.
 - [ ] Run `npm ci --prefix mcp --ignore-scripts`, `npm --prefix mcp run check`,
       `npm --prefix mcp test`, `npm --prefix mcp run build`, and the repository
       `npm run test:build`. The MCP build command is a Wrangler dry run.

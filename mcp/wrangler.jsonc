@@ -8,13 +8,21 @@
   "workers_dev": false,
   "preview_urls": false,
   // Add the mcp.pkspot.app custom-domain route only at the approved deployment.
-  "vars": { "PUBLIC_ORIGIN": "https://mcp.pkspot.app" },
+  "vars": {
+    "FIRESTORE_PROJECT_ID": "parkour-base-project",
+    "PUBLIC_ORIGIN": "https://mcp.pkspot.app",
+    "TYPESENSE_ORIGIN": "https://search.pkspot.app"
+  },
   "durable_objects": {
     "bindings": [{ "name": "QUOTAS", "class_name": "QuotaStore" }]
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["QuotaStore"] }],
   // Omit limits.cpu_ms: custom CPU limits require Workers Paid.
   // Workers Free applies its default 10 ms CPU limit per HTTP request.
-  // Do not capture tool arguments, raw URLs, network identifiers or responses.
-  "observability": { "enabled": false }
+  "observability": {
+    "redact_query_string": true,
+    "logs": { "enabled": true, "head_sampling_rate": 1, "invocation_logs": true, "persist": true },
+    "traces": { "enabled": true, "head_sampling_rate": 1, "persist": true }
+    // issue_detection remains dashboard-managed until Wrangler supports it.
+  }
 }

@@ -73,6 +73,17 @@ describe("discovery contracts", () => {
 
 describe("backend boundary", () => {
   const env = { FIRESTORE_PROJECT_ID: "test-project", TYPESENSE_ORIGIN: "https://search.example", TYPESENSE_SEARCH_KEY: "test-key" } as Environment;
+  it("does not invoke native fetch with the data service as its receiver", async () => {
+    vi.stubGlobal("fetch", function (this: unknown) {
+      if (this !== undefined && this !== globalThis) throw new TypeError("Illegal invocation");
+      return Promise.resolve(Response.json({ hits: [], fields: {} }));
+    });
+    try {
+      const db = new PublicData(env);
+      expect(await db.search("spot", { q: "park" })).toEqual([]);
+      expect(await db.read("spot", "public-spot")).toEqual({});
+    } finally { vi.unstubAllGlobals(); }
+  });
   it("requests only candidate IDs and decodes public Firestore fields", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValueOnce(Response.json({ hits: [{ document: { id: "ok" } }, { document: { id: "../bad" } }] }))
       .mockResolvedValueOnce(Response.json({ fields: { name: { mapValue: { fields: { en: { stringValue: "Name" } } } },
@@ -87,7 +98,16 @@ describe("backend boundary", () => {
   it("fails closed on denied reads and never follows upstream redirects", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 403 }));
     expect(await new PublicData(env, fetcher).read("event", "hidden")).toBeNull();
-    expect(fetcher.mock.calls[0]![1]?.redirect).toBe("error");
+    expect(fetcher.mock.calls[0]![1]?.redirect).toBe("manual");
+  });
+  it("rejects upstream redirects without following them", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, {
+      status: 302, headers: { Location: "https://other.example" },
+    }));
+    const db = new PublicData(env, fetcher);
+    await expect(db.read("spot", "public-spot")).rejects.toThrow("unavailable");
+    await expect(db.search("spot", { q: "park" })).rejects.toThrow("unavailable");
+    for (const call of fetcher.mock.calls) expect(call[1]?.redirect).toBe("manual");
   });
   it("analytics is opt-in, minimal and cannot break search", async () => {
     const fetcher = vi.fn<typeof fetch>().mockRejectedValue(new Error("offline"));

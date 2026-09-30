@@ -48,12 +48,13 @@ export interface DataSource {
   search(kind: Kind, parameters: Record<string, string>): Promise<string[]>;
 }
 export class PublicData implements DataSource {
-  constructor(private readonly env: Environment, private readonly fetcher: typeof fetch = fetch) {}
+  // Keep native fetch a global call: workerd rejects a PublicData receiver.
+  constructor(private readonly env: Environment, private readonly fetcher: typeof fetch = (input, init) => fetch(input, init)) {}
 
   async read(kind: Kind, id: string): Promise<Document | null> {
     const collection = { spot: "spots", event: "events", community: "community_pages" }[kind];
     const url = `https://firestore.googleapis.com/v1/projects/${this.env.FIRESTORE_PROJECT_ID}/databases/(default)/documents/${collection}/${encodeURIComponent(id)}`;
-    const response = await this.fetcher(url, { signal: AbortSignal.timeout(5000), redirect: "error" });
+    const response = await this.fetcher(url, { signal: AbortSignal.timeout(5000), redirect: "manual" });
     if (response.status === 404 || response.status === 403) return null;
     if (!response.ok) throw new ServiceError("unavailable");
     return decodeFields(record(await response.json()).fields);
@@ -66,7 +67,7 @@ export class PublicData implements DataSource {
     url.search = new URLSearchParams({ ...parameters, include_fields: "id", highlight_fields: "none",
       per_page: parameters.per_page ?? "10", page: "1" }).toString();
     const response = await this.fetcher(url, { headers: { "X-TYPESENSE-API-KEY": this.env.TYPESENSE_SEARCH_KEY },
-      signal: AbortSignal.timeout(5000), redirect: "error" });
+      signal: AbortSignal.timeout(5000), redirect: "manual" });
     if (!response.ok) throw new ServiceError("unavailable");
     const hits = record(await response.json()).hits;
     if (!Array.isArray(hits)) throw new ServiceError("unavailable");

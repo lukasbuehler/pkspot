@@ -13,7 +13,7 @@ export async function capture(env: Environment, metric: Metric, fetcher: typeof 
       body: JSON.stringify({ api_key: env.POSTHOG_API_KEY, event: "mcp_tool_completed",
         distinct_id: crypto.randomUUID(), properties: { ...metric, surface: "mcp",
           $process_person_profile: false, $geoip_disable: true } }),
-      signal: AbortSignal.timeout(2000), redirect: "error",
+      signal: AbortSignal.timeout(2000), redirect: "manual",
     });
   } catch { /* Analytics must not affect discovery or emit sensitive diagnostics. */ }
 }
