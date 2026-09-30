@@ -6,15 +6,20 @@ export interface ContactEmailInput {
 
 /** User input is body text/Reply-To only; it never controls sender or recipient. */
 export function buildContactEmail(id: string, input: ContactEmailInput) {
-  const contact = typeof input.contact_info === "string" ? input.contact_info.trim() : "";
-  const replyTo = contact.length <= 254 && /^[^\s<>@,;]+@[^\s<>@,;]+\.[^\s<>@,;]+$/u.test(contact)
-    ? contact : undefined;
-  const message = typeof input.message === "string" ? input.message.slice(0, 20_000) : "";
+  const contact =
+    typeof input.contact_info === "string" ? input.contact_info.trim() : "";
+  const replyTo =
+    contact.length <= 254 &&
+    /^[^\s<>@,;]+@[^\s<>@,;]+\.[^\s<>@,;]+$/u.test(contact)
+      ? contact
+      : undefined;
+  const message =
+    typeof input.message === "string" ? input.message.slice(0, 20_000) : "";
   return {
-    from: "PK Spot contact <support@pkspot.app>",
+    from: "PK Spot Contact Form <support@pkspot.app>",
     to: ["support@pkspot.app"],
-    subject: "New PK Spot contact message",
-    ...(replyTo ? {reply_to: replyTo} : {}),
+    subject: "New PK Spot Contact Form message",
+    ...(replyTo ? { reply_to: replyTo } : {}),
     text: `Contact message: ${id}\nTopic: ${String(input.topic ?? "general").slice(0, 80)}\nReply contact: ${contact.slice(0, 1000)}\n\n${message}`,
   };
 }
