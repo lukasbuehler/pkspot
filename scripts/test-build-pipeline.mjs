@@ -905,6 +905,14 @@ async function main() {
       assertPageIdentity(await response.text(), `${route} SSR`, heading);
     }
 
+    for (const route of ["map/spots/not-a-real-spot", "events/not-a-real-event"]) {
+      const response = await fetchWithTimeout(`${baseUrl}/en/${route}`, {
+        redirect: "manual", headers: { "user-agent": "Googlebot/2.1" },
+      }, `missing entity ${route}`);
+      assert.equal(response.status, 404, `${route} must remain a 404, not a redirect or server error`);
+      assert.match(await response.text(), /<!doctype html>/i, "Missing entities should still render HTML");
+    }
+
     const notFoundResponse = await fetchWithTimeout(
       `${baseUrl}/en/this-route-should-not-exist`,
       {

@@ -1,3 +1,4 @@
+import { relevantMapCommunities } from "./visible-communities";
 import {NativeMapShareService} from "../../services/native-map-share.service";
 import { createLazyDialogOpener } from "../../utils/create-lazy-dialog-opener";
 import { ResizeObserverDirective } from "../../directives/resize-observer.directive";
@@ -625,6 +626,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
    * only when the user actually opens a community.
    */
   private _promotableCommunities = signal<CommunitySearchPreview[]>([]);
+  private _mapCommunityCandidates: CommunitySearchPreview[] = [];
   private _visibleMapCommunities = signal<CommunitySearchPreview[]>([]);
   /** Latest visible viewport. Drives the map-island event/community context. */
   private _viewport = signal<VisibleViewport | null>(null);
@@ -2090,16 +2092,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
           })
           .then((result) => {
             if (requestVersion !== this._mapObjectSearchVersion) return;
+            this._mapCommunityCandidates = result.communities;
             const visibleCommunities = this._mergeVisibleCommunities(
               result.communities,
               viewport,
             );
             const counts = {
               ...result.counts,
-              communities: Math.max(
-                result.counts.communities,
-                visibleCommunities.length,
-              ),
+              communities: visibleCommunities.length,
             };
 
             this._baseMapObjectCounts.set(counts);
@@ -2512,12 +2512,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this._recordMapProfile("visible-spots-change", {
       count: spots?.length ?? 0,
     });
-    if (!spots || spots.length === 0) {
-      this.visibleSpots = [];
-      return;
-    }
-
-    this.visibleSpots = spots;
+    this.visibleSpots = spots ?? [];
+    this._refreshVisibleCommunitiesFromLoadedList();
   }
 
   // Initialization ///////////////////////////////////////////////////////////
@@ -2550,21 +2546,17 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const visibleCommunities = this._mergeVisibleCommunities(
-      this._visibleMapCommunities(),
+      this._mapCommunityCandidates,
       viewport,
     );
-    if (visibleCommunities.length === 0) {
-      return;
-    }
-
     this._visibleMapCommunities.set(visibleCommunities);
     this._baseMapObjectCounts.update((counts) => ({
       ...counts,
-      communities: Math.max(counts.communities, visibleCommunities.length),
+      communities: visibleCommunities.length,
     }));
     this.mapObjectCounts.update((counts) => ({
       ...counts,
-      communities: Math.max(counts.communities, visibleCommunities.length),
+      communities: visibleCommunities.length,
     }));
   }
 
@@ -2588,7 +2580,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }
 
-    return [...visibleByKey.values()];
+    const { north, south, east, west } = viewport.bbox;
+    const spotCountries = this.visibleSpots.filter((spot) => {
+      const { lat, lng } = spot.location();
+      return lat >= south && lat <= north &&
+        (west <= east ? lng >= west && lng <= east : lng >= west || lng <= east);
+    }).map((spot) => spot.address()?.country?.code ?? "");
+    return relevantMapCommunities([...visibleByKey.values()], viewport, spotCountries);
   }
 
   private _visibleCommunitiesFromLoadedList(
@@ -3940,6 +3938,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   updateMapURL() {
+    // Browser history reflects interactive selection. During SSR a missing Spot
+    // must retain its requested URL and 404, not become a redirect to /map.
+    if (this.isServer) return;
     // Only update URL if we're currently on the map page
     // This prevents interfering with navigation away from the map
     if (!this.router.url.startsWith("/map")) {
