@@ -14,11 +14,18 @@ describe("getSpotMarkerPriority", () => {
     const inactiveFiveStar = getSpotMarkerPriority({rating: 5});
     expect(getSpotMarkerPriority(spot)).toBeLessThan(inactiveFiveStar);
     expect(spot.rating).toBe(4);
-    expect(getSpotMarkerPriority({...spot, recent_activity_min_30d: 5})).toBe(inactiveFiveStar);
+    expect(getSpotMarkerPriority({...spot, recent_activity_min_30d: 5})).toBeGreaterThan(inactiveFiveStar);
     expect(getSpotMarkerPriority({...spot, recent_activity_min_30d: 10})).toBeGreaterThan(inactiveFiveStar);
     expect(getSpotMarkerPriority({rating: 3, recent_activity_min_30d: 25})).toBeGreaterThan(inactiveFiveStar);
     expect(getSpotMarkerPriority({...spot, recent_activity_min_30d: null})).toBe(400);
     expect(getSpotMarkerPriority({...spot, recent_activity_min_30d: 1000})).toBe(400);
+  });
+
+  it("ranks a recently active two-star Spot above photos but below a better-rated Spot with photos", () => {
+    const active = getSpotMarkerPriority({ rating: 2, recent_activity_min_30d: 2 });
+    expect(active).toBe(260);
+    expect(active).toBeGreaterThan(getSpotMarkerPriority({ rating: 2, hasMedia: true }));
+    expect(active).toBeLessThan(getSpotMarkerPriority({ rating: 2.5, hasMedia: true }));
   });
 
   it("adds a 50 point boost for spots with media", () => {

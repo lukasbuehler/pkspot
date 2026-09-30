@@ -16,7 +16,8 @@ export const MEDIA_SPOT_BOOST = 50;
 export const REPORTED_SPOT_PENALTY = -200;
 
 // Additive ranking points, not a change to the displayed star rating.
-const ACTIVITY_BOOST = { 2: 50, 5: 100, 10: 175, 25: 250 } as const;
+// Even the smallest activity band outweighs the photo bonus at equal ratings.
+const ACTIVITY_BOOST = { 2: 60, 5: 110, 10: 185, 25: 260 } as const;
 
 const ACCESS_PENALTIES: Record<string, number> = {
   residential: -25,
