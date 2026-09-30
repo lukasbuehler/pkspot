@@ -9,6 +9,7 @@ export const environment = {
     ...iosEnvironment.features,
     ageVerification: { ...ageVerificationProviders, oneid: true },
     supportShop: false,
+    mapPerformanceProfiling: true,
   },
   appCheck: {
     ...iosEnvironment.appCheck,

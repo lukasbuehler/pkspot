@@ -9,6 +9,7 @@ export const environment = {
     ...androidEnvironment.features,
     ageVerification: { ...ageVerificationProviders, oneid: true },
     supportShop: false,
+    mapPerformanceProfiling: true,
   },
   appCheck: {
     ...androidEnvironment.appCheck,

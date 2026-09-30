@@ -6,7 +6,14 @@ Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure a
 
 ### Android Maps sharing and mobile cropping
 
-- [ ] Rebuild Android and stress-test vector-map panning and pinch zooming.
+- [ ] Rebuild Android/iOS development binaries and stress-test vector-map panning
+      and pinch zooming. Enable Settings > General > Developer options > Record
+      map diagnostics first. After a failure, use Copy capture there; if frozen,
+      restart and copy the retained previous session. Also collect `[MapProfile]`
+      device logs. Capture includes map coordinates and stays local until shared.
+      Verify canvas pixel/CSS sizes, viewport scale, camera changes, gesture
+      counts, WebGL loss and recovery events. Disable and clear capture afterward.
+      Production builds keep profiling unavailable.
       Verify the map and navigation remain responsive, including after
       background/resume. Local fixes isolate rendering-setting changes from
       camera signals and bound tile allocation; the reported full WebView

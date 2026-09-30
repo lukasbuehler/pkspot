@@ -1993,6 +1993,8 @@ export class GoogleMap2dComponent
     this._subscribeToTiltChanges();
     this._subscribeToMapCapabilitiesChanges();
     this._watchMapCanvasContextLoss();
+    this._removeMapDiagnostics?.();
+    this._removeMapDiagnostics = this._mapProfiler.registerMap(this.googleMap.googleMap!);
     void this._updateFeatureBoundaryStyle();
 
     if (this.isDebug()) {
@@ -2210,7 +2212,10 @@ export class GoogleMap2dComponent
     }
   }
 
+  private _removeMapDiagnostics?: () => void;
+
   ngOnDestroy() {
+    this._removeMapDiagnostics?.();
     this.removeLongPress?.();
     if (this.isApiLoadedSubscription)
       this.isApiLoadedSubscription.unsubscribe();
@@ -3173,6 +3178,8 @@ export class GoogleMap2dComponent
     this._lastObservedNativeIntegerZoom = Math.floor(fallback.zoom);
     this._setCommunityVisualZoom(fallback.zoom);
     this._hasInitializedNativeMap = false;
+    this._removeMapDiagnostics?.();
+    this._removeMapDiagnostics = undefined;
     this.googleMap = undefined;
     this.optionsInitialized.set(false);
     this.cdr.detectChanges();

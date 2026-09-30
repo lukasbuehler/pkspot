@@ -1,3 +1,4 @@
+import { MapPerformanceProfilerService } from "../../services/map-performance-profiler.service";
 import { AdultVerificationDialogComponent } from "../adult-verification-dialog/adult-verification-dialog.component";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
@@ -100,7 +101,18 @@ import { LocationAccessDialogComponent } from "../location-access-dialog/locatio
 export class SettingsPageComponent implements OnInit {
   private readonly featureTelemetry = injectFeatureTelemetry(FeatureTelemetryService);
 
+  readonly mapProfiler = injectFeatureTelemetry(MapPerformanceProfilerService);
   readonly appVersion = version;
+
+  async copyMapDiagnostics(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(this.mapProfiler.exportCapture());
+      this._snackbar.open("Map diagnostics copied", undefined, { duration: 3000 });
+    } catch {
+      this._snackbar.open("Could not copy diagnostics. Please try again.", undefined, { duration: 5000 });
+    }
+  }
+
   readonly reviewPlatform = Capacitor.getPlatform();
   readonly appleReviewUrl = `${APP_LINKS.appleAppStoreUrl}?action=write-review`;
   readonly googleReviewUrl = APP_LINKS.googlePlayStoreUrl;

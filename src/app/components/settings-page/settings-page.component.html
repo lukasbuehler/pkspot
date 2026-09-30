@@ -624,6 +624,17 @@
                 Enable Map Debug Mode
               </mat-slide-toggle>
             </div>
+            @if (mapProfiler.available) {
+              <div class="mt-4">
+                <h3 class="mat-h3">Map performance capture</h3>
+                <p class="mat-body">Record camera, gestures, rendering and performance locally. Captures can include map coordinates. Nothing is uploaded automatically. The previous session is retained after restarting the app.</p>
+                <mat-slide-toggle [checked]="mapProfiler.enabled()" (change)="mapProfiler.setEnabled($event.checked)">Record map diagnostics</mat-slide-toggle>
+                <div class="mt-3 d-flex gap-2">
+                  <button mat-stroked-button (click)="copyMapDiagnostics()">Copy capture</button>
+                  <button mat-button (click)="mapProfiler.clearBreadcrumbs()">Clear capture</button>
+                </div>
+              </div>
+            }
           </mat-expansion-panel>
 
           <!--

@@ -12,7 +12,7 @@ export const environment = {
     checkIns: true,
     supportShop: false,
     continuousEventCalendar: true,
-    mapPerformanceProfiling: false,
+    mapPerformanceProfiling: true,
     streetView: {
       preview: false,
       detail: true,
