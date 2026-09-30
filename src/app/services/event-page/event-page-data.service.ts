@@ -105,7 +105,16 @@ export class EventPageDataService {
       baseBounds,
     );
 
-    return this._normalizeBounds(bounds);
+    const normalized = this._normalizeBounds(bounds);
+    // Leave room to pan beyond edge pins without changing the event geometry.
+    const latitudePadding = (normalized.north - normalized.south) * 0.1;
+    const longitudePadding = (normalized.east - normalized.west) * 0.1;
+    return this._normalizeBounds({
+      north: normalized.north + latitudePadding,
+      south: normalized.south - latitudePadding,
+      east: normalized.east + longitudePadding,
+      west: normalized.west - longitudePadding,
+    });
   }
 
   private _boundsAroundPoint(

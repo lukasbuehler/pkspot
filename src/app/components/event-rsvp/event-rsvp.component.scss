@@ -109,7 +109,7 @@
 
   .rsvp-main {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     width: 100%;
     min-width: 0;
     justify-content: flex-start;
@@ -118,16 +118,16 @@
 
   .rsvp-counts {
     flex: 1 1 auto;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     min-width: 0;
     gap: 0.5rem;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .rsvp-count {
     flex: 0 1 auto;
     min-width: 0;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .rsvp-count-number,
@@ -138,8 +138,8 @@
 
   .rsvp-count-label {
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow: visible;
+
+    white-space: normal;
   }
 }

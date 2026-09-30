@@ -638,18 +638,12 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
     }),
   );
   readonly mapPriorityMarkers = computed<ProgramMapMarker[]>(() =>
-    this.programFilterActive()
-      ? [
-          ...this.mapMarkers().map((marker) => ({
-            ...marker,
-            color: "gray" as const,
-          })),
-          ...this.programMapMarkers(),
-        ]
-      : this.mapMarkers(),
+    this.programFilterActive() ? this.programMapMarkers() : this.mapMarkers(),
   );
   readonly mapPreviewSpotMarkers = computed<SpotPreviewData[]>(() =>
-    this._eventPageData.spotPreviewMarkers(this.spots()),
+    this.programFilterActive()
+      ? []
+      : this._eventPageData.spotPreviewMarkers(this.spots()),
   );
   readonly eventLocationMarker = computed<MarkerSchema | null>(() =>
     this._eventPageData.eventLocationMarker(this.event()),
@@ -668,7 +662,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
       this.isBrowser() &&
       !this.isCrawler() &&
       !!this.mapPreviewBounds() &&
-      (this.mapMarkers().length > 0 || this.mapPreviewSpotMarkers().length > 0),
+      (this.mapMarkers().length > 0 || this.spots().length > 0),
   );
 
   constructor() {
@@ -1162,9 +1156,7 @@ export class EventInfoPageComponent implements OnInit, OnDestroy {
         next: (loaded) => {
           if (requestVersion !== this._eventLoadRequestVersion) return;
           if (!loaded) {
-            if (this.isBrowser()) {
-              void this._router.navigate(["/events"]);
-            }
+            this._setEventLoadFailure(404);
             return;
           }
           this._setEvent(loaded);

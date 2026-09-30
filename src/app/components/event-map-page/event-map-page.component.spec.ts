@@ -463,7 +463,7 @@ describe("EventMapPageComponent", () => {
     ).toEqual(["dinner"]);
     component.selectedCustomMarker.set(null);
 
-    expect(component.highlightedSpots()).toEqual([eventSpotPreview]);
+    expect(component.highlightedSpots()).toEqual([]);
     expect(component.mapPriorityMarkers()).toEqual([
       expect.objectContaining({
         type: "event-program",

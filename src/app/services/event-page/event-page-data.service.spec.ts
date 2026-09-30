@@ -280,10 +280,10 @@ describe("EventPageDataService", () => {
         { lat: 47.2, lng: 8.9 },
       ]),
     ).toEqual({
-      north: 47.8,
-      south: 47.2,
-      east: 8.9,
-      west: 8.2,
+      north: 47.86,
+      south: 47.14,
+      east: 8.97,
+      west: expect.closeTo(8.13),
     });
   });
 
@@ -309,10 +309,10 @@ describe("EventPageDataService", () => {
     });
 
     expect(service.eventMapBounds(event)).toEqual({
-      north: 47.4,
-      south: 47.3,
-      east: 8.6,
-      west: 8.5,
+      north: 47.41,
+      south: 47.29,
+      east: 8.61,
+      west: 8.49,
     });
   });
 
@@ -587,10 +587,10 @@ describe("EventPageDataService", () => {
       lat: paths.getAt(0).getAt(index).lat(),
       lng: paths.getAt(0).getAt(index).lng(),
     }));
-    expect(Math.max(...outer.map((point) => point.lat))).toBeCloseTo(47.45);
-    expect(Math.min(...outer.map((point) => point.lat))).toBeCloseTo(47.25);
-    expect(Math.max(...outer.map((point) => point.lng))).toBeCloseTo(8.65);
-    expect(Math.min(...outer.map((point) => point.lng))).toBeCloseTo(8.45);
+    expect(Math.max(...outer.map((point) => point.lat))).toBeCloseTo(47.47);
+    expect(Math.min(...outer.map((point) => point.lat))).toBeCloseTo(47.23);
+    expect(Math.max(...outer.map((point) => point.lng))).toBeCloseTo(8.67);
+    expect(Math.min(...outer.map((point) => point.lng))).toBeCloseTo(8.43);
   });
 
   it("ignores legacy outer rings and uses the visible viewport for the cutout", () => {

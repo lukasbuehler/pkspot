@@ -404,12 +404,12 @@ describe("EventInfoPageComponent", () => {
   });
 
   it.each([
-    { platform: "server", shouldRedirect: false, loadFails: false },
-    { platform: "browser", shouldRedirect: true, loadFails: false },
-    { platform: "browser", shouldRedirect: false, loadFails: true },
+    { platform: "server", loadFails: false },
+    { platform: "browser", loadFails: false },
+    { platform: "browser", loadFails: true },
   ])(
     "handles a missing or failed event load on $platform",
-    async ({ platform, shouldRedirect, loadFails }) => {
+    async ({ platform, loadFails }) => {
       const router = { navigate: vi.fn() };
       const eventsService = {
         getEventBySlugOrId: vi.fn().mockResolvedValue(null),
@@ -480,13 +480,9 @@ describe("EventInfoPageComponent", () => {
       component.ngOnInit();
       await flushPromises();
 
-      if (shouldRedirect) {
-        expect(router.navigate).toHaveBeenCalledWith(["/events"]);
-      } else {
-        expect(router.navigate).not.toHaveBeenCalled();
-        expect(component.isLoadingEvent()).toBe(false);
-        expect(component.eventLoadFailed()).toBe(true);
-      }
+      expect(router.navigate).not.toHaveBeenCalled();
+      expect(component.isLoadingEvent()).toBe(false);
+      expect(component.eventLoadFailed()).toBe(true);
     },
   );
 

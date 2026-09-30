@@ -336,7 +336,10 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
   );
   readonly bounds = computed(() => {
     const event = this.event();
-    return event ? this._eventPageData.eventMapBounds(event) : null;
+    return event ? this._eventPageData.eventMapBounds(event, [
+      ...this.customMarkers().map((marker) => marker.location),
+      ...this.spots().map((spot) => spot.location()),
+    ]) : null;
   });
   readonly focusZoom = computed(() => this.event()?.focusZoom ?? 18);
   /** Live event status, recomputed against the current event's dates. */
@@ -379,7 +382,7 @@ export class EventMapPageComponent implements OnInit, OnDestroy {
    */
   readonly highlightedSpots = computed<SpotPreviewData[]>(() => {
     const tab = this.tab();
-    return tab === "all" || tab === "spots" || tab === "program"
+    return tab === "all" || tab === "spots"
       ? this._eventPageData.spotPreviewMarkers(this.spots())
       : [];
   });
