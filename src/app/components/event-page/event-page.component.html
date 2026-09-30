@@ -22,7 +22,7 @@
         <a
           mat-button
           routerLink="/events"
-          aria-label="Back to all events"
+          aria-label="Back to all events" i18n-aria-label
           matTooltip="Back to all events"
           i18n-matTooltip="@@event_page.back_to_events"
         >
@@ -51,7 +51,7 @@
               [href]="url"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Open event website"
+              aria-label="Open event website" i18n-aria-label
               matTooltip="Open event website"
               i18n-matTooltip="@@event_info.open_website"
               (click)="trackWebsiteClick()"
@@ -63,7 +63,7 @@
             mat-icon-button
             class="event-nav-action"
             type="button"
-            aria-label="Share event"
+            aria-label="Share event" i18n-aria-label
             matTooltip="Share event"
             i18n-matTooltip="@@event_info.share"
             [disabled]="shareCards.preparing()" [attr.aria-busy]="shareCards.preparing()" (click)="shareEvent()"
@@ -75,7 +75,7 @@
               mat-icon-button
               class="event-nav-action"
               type="button"
-              aria-label="Report event"
+              aria-label="Report event" i18n-aria-label
               matTooltip="Report event"
               i18n-aria-label
               i18n-matTooltip

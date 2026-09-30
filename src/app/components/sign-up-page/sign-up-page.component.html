@@ -72,6 +72,7 @@
             required
             appAutoScrollOnFocus
           />
+          <mat-error i18n="@@signup.email_invalid">Enter a valid email address.</mat-error>
           <mat-hint i18n
             >The e-mail address needs to be verified later.</mat-hint
           >
@@ -85,6 +86,7 @@
             required
             appAutoScrollOnFocus
           />
+          <mat-error i18n="@@signup.password_short">Use at least 6 characters.</mat-error>
           <mat-hint i18n>Choose a strong password.</mat-hint>
         </mat-form-field>
         <mat-form-field appearance="outline">
@@ -93,9 +95,11 @@
             matInput
             type="password"
             formControlName="repeatPassword"
+            [errorStateMatcher]="repeatPasswordMatcher"
             required
             appAutoScrollOnFocus
           />
+          <mat-error i18n="@@signup.password_mismatch">The passwords must match.</mat-error>
           <mat-hint i18n
             >The repeated password needs to match the password
             entered.</mat-hint
@@ -146,7 +150,6 @@
         <div class="mt-5 mb-5 d-flex flex-row justify-content-center">
           <button
             mat-flat-button
-            color="accent"
             type="submit"
             [disabled]="isSubmitting()"
           >

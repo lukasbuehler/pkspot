@@ -158,3 +158,21 @@ button.menuButton.selected {
     color: var(--mat-sys-error);
   }
 }
+
+@media (max-width: 767.98px) {
+  div.menu {
+    flex-direction: row !important;
+    overflow-x: auto;
+    margin-bottom: 1.5rem !important;
+    border-radius: 12px;
+  }
+  button.menuButton {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  button.menuButton.selected {
+    border-left: 0;
+    border-bottom: 2px solid var(--mat-sys-primary);
+    padding-left: 18px;
+  }
+}

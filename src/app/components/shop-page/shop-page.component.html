@@ -2,17 +2,17 @@
   <header class="shop-page__header">
     <div>
       <p class="mat-label-large shop-page__eyebrow">PK Spot</p>
-      <h1 class="mat-headline-large">Shop</h1>
-      <p class="mat-title-medium">PK Spot things, for the community.</p>
+      <h1 class="mat-headline-large" i18n>Shop</h1>
+      <p class="mat-title-medium" i18n>PK Spot things, for the community.</p>
     </div>
-    <nav class="shop-page__actions" aria-label="Shop actions">
+    <nav class="shop-page__actions" aria-label="Shop actions" i18n-aria-label>
       <a mat-stroked-button routerLink="/shop/my-orders">
         <mat-icon>history</mat-icon>
-        <span>My orders</span>
+        <span i18n>My orders</span>
       </a>
       <a mat-flat-button routerLink="/shop/cart">
         <mat-icon>shopping_cart</mat-icon>
-        <span>My cart</span>
+        <span i18n>My cart</span>
         @if (cart.itemCount(); as itemCount) {
           <span class="shop-page__cart-count">{{ itemCount }}</span>
         }
@@ -20,7 +20,7 @@
     </nav>
   </header>
 
-  <section aria-label="Shop items">
+  <section aria-label="Shop items" i18n-aria-label>
     <div class="shop-grid">
       @for (item of items; track item.id) {
         <a
@@ -37,14 +37,14 @@
           </div>
           <div class="shop-product__details">
             @if (!item.available) {
-              <p class="mat-label-large">Coming later</p>
+              <p class="mat-label-large" i18n>Coming later</p>
             }
             <h3 class="mat-title-large">{{ item.name }}</h3>
             <p class="mat-body-medium">{{ item.description }}</p>
             <p class="mat-body-small">{{ item.detail }}</p>
           </div>
           <span class="shop-product__action">
-            <span>{{ item.available ? "View item" : "View details" }}</span>
+            @if (item.available) {<span i18n>View item</span>} @else {<span i18n>View details</span>}
             <mat-icon>chevron_right</mat-icon>
           </span>
         </a>
@@ -55,7 +55,7 @@
   @if (authService.isAdmin()) {
     <a mat-stroked-button routerLink="/shop/orders" class="shop-page__admin-link">
       <mat-icon>storefront</mat-icon>
-      <span>Manage paid sticker orders</span>
+      <span i18n>Manage paid sticker orders</span>
     </a>
   }
 </main>

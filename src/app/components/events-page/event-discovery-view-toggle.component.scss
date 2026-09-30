@@ -23,3 +23,8 @@ mat-button-toggle {
     flex: 1;
   }
 }
+
+mat-button-toggle-group {
+  --mat-button-toggle-selected-state-background-color: var(--mat-sys-primary-container);
+  --mat-button-toggle-selected-state-text-color: var(--mat-sys-on-primary-container);
+}

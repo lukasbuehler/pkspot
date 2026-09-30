@@ -46,75 +46,75 @@ export class SupportPageComponent implements OnInit {
 
   readonly faqCategories: FaqCategory[] = [
     {
-      title: "Account & Profile",
+      title: $localize`Account & Profile`,
       icon: "person",
       items: [
         {
-          question: "How do I delete my account?",
+          question: $localize`How do I delete my account?`,
           answer:
-            "Go to Settings > Account > Delete Account. You'll be asked to confirm this action. Note that this will permanently delete all your data and cannot be undone.",
+            $localize`Go to Settings > Account > Delete Account. You'll be asked to confirm this action. Note that this will permanently delete all your data and cannot be undone.`,
         },
         {
-          question: "How do I change my email address?",
+          question: $localize`How do I change my email address?`,
           answer:
-            "Go to Settings > Account and you'll find the option to update your email address. You'll need to verify the new email before the change takes effect.",
+            $localize`Go to Settings > Account and you'll find the option to update your email address. You'll need to verify the new email before the change takes effect.`,
         },
         {
-          question: "I can't verify my email, what do I do?",
+          question: $localize`I can't verify my email, what do I do?`,
           answer:
-            "Check your spam folder first. If you still can't find the verification email, go to Settings > Account and request a new verification email. If problems persist, contact us on Discord.",
+            $localize`Check your spam folder first. If you still can't find the verification email, go to Settings > Account and request a new verification email. If problems persist, contact us on Discord.`,
         },
         {
-          question: "How do I change my profile picture?",
+          question: $localize`How do I change my profile picture?`,
           answer:
-            "Tap on your profile picture in your profile page, and you can select a new image from your device.",
+            $localize`Tap on your profile picture in your profile page, and you can select a new image from your device.`,
         },
       ],
     },
     {
-      title: "Using the Map",
+      title: $localize`Using the Map`,
       icon: "map",
       items: [
         {
-          question: "How do I add a new spot?",
+          question: $localize`How do I add a new spot?`,
           answer:
-            "Tap the '+' button on the map when zoomed in close enough. Place the marker at the spot location, fill in the details like name, description, and amenities, then submit for review.",
+            $localize`Tap the '+' button on the map when zoomed in close enough. Place the marker at the spot location, fill in the details like name, description, and amenities, then submit for review.`,
         },
         {
-          question: "How do I report or edit an incorrect spot?",
+          question: $localize`How do I report or edit an incorrect spot?`,
           answer:
-            "Open the spot details and tap the edit icon. You can suggest changes which will be reviewed by the community. For serious issues, use the report button.",
+            $localize`Open the spot details and tap the edit icon. You can suggest changes which will be reviewed by the community. For serious issues, use the report button.`,
         },
         {
-          question: "What are the map filters?",
+          question: $localize`What are the map filters?`,
           answer:
-            "Filters let you find spots with specific features like being covered from rain, lit at night, indoor, or having specific amenities. Access them from the filter button on the map.",
+            $localize`Filters let you find spots with specific features like being covered from rain, lit at night, indoor, or having specific amenities. Access them from the filter button on the map.`,
         },
         {
-          question: "Why can't I see any spots in my area?",
+          question: $localize`Why can't I see any spots in my area?`,
           answer:
-            "PK Spot relies on community contributions. If there are no spots in your area yet, be the first to add one!",
+            $localize`PK Spot relies on community contributions. If there are no spots in your area yet, be the first to add one!`,
         },
       ],
     },
     {
-      title: "App & Technical",
+      title: $localize`App & Technical`,
       icon: "mobile",
       items: [
         {
-          question: "The app is crashing, what should I do?",
+          question: $localize`The app is crashing, what should I do?`,
           answer:
-            "Try clearing the app cache or reinstalling. If problems persist, please report the issue on our Discord with details about your device and what you were doing when it crashed.",
+            $localize`Try clearing the app cache or reinstalling. If problems persist, please report the issue on our Discord with details about your device and what you were doing when it crashed.`,
         },
         {
-          question: "How do I install the app on my phone?",
+          question: $localize`How do I install the app on my phone?`,
           answer:
-            "PK Spot is available on iOS and Android. You can also install it as a Progressive Web App (PWA) by opening the menu in your browser and selecting 'Add to Home Screen' or 'Install'.",
+            $localize`PK Spot is available on iOS and Android. You can also install it as a Progressive Web App (PWA) by opening the menu in your browser and selecting 'Add to Home Screen' or 'Install'.`,
         },
         {
-          question: "Is my data safe?",
+          question: $localize`Is my data safe?`,
           answer:
-            "Yes! We take privacy seriously. We don't sell your data and use industry-standard security. Check our Privacy Policy for full details.",
+            $localize`Yes! We take privacy seriously. We don't sell your data and use industry-standard security. Check our Privacy Policy for full details.`,
         },
       ],
     },

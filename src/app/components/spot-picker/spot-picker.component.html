@@ -13,7 +13,7 @@
   @if (max() > 0) {
     <p class="mat-label-small picker-hint">
       <ng-container i18n="@@spot_picker.limit_hint">
-        Up to {{ max() }} spots
+        Up to {{ max() }} {max(), plural, =1 {Spot} other {Spots}}
       </ng-container>
       ({{ value().length }}/{{ max() }})
     </p>

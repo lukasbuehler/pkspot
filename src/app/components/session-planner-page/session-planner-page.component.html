@@ -14,7 +14,7 @@
         <article><a [routerLink]="['/events/session', item.session.id]">{{ item.session.title }}</a><p>{{ item.session.startsAt | systemDate: 'short' }}</p>
           @if (item.session.cancelled) { <p i18n="@@planned.cancelled">Cancelled</p> }
         </article>
-      } @empty { @if (!loading()) { <p i18n="@@planned.empty">No sessions here yet.</p> } }
+      } @empty { @if (!loading() && !error()) { <p i18n="@@planned.empty">No sessions here yet.</p> } }
     }
     @if ((signedIn() && !id() && !listMode) || editing()) {
       <form [formGroup]="form" (ngSubmit)="submit()">

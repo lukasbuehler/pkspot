@@ -40,7 +40,7 @@
             <mat-icon>flag</mat-icon>
             <div>
               <strong>{{ reportTitle(report) }}</strong>
-              <p>{{ report.reasons.join(', ') }}</p>
+              <p>{{ report.reasonLabel }}</p>
               <span i18n>Open — edit or withdraw</span>
             </div>
             <mat-icon>chevron_right</mat-icon>
@@ -56,8 +56,8 @@
             <mat-icon>history</mat-icon>
             <div>
               <strong>{{ reportTitle(report) }}</strong>
-              <p>{{ report.reasons.join(', ') }}</p>
-              <span>{{ report.status }}</span>
+              <p>{{ report.reasonLabel }}</p>
+              <span>{{ report.statusLabel }}</span>
             </div>
             <mat-icon>chevron_right</mat-icon>
           </a>

@@ -69,8 +69,8 @@ export class LeaderboardPageComponent implements OnInit {
   displayedColumns: string[] = [
     "rank",
     "user",
-    "spot_creates_count",
     "spot_edits_count",
+    "spot_creates_count",
     "media_added_count",
   ];
 
@@ -148,6 +148,11 @@ export class LeaderboardPageComponent implements OnInit {
       return;
     }
 
+    this.sortColumn = sort.active as keyof LeaderboardEntry;
+    this.sortDirection = sort.direction;
+    this.displayedColumns = ["rank", "user", sort.active,
+      ...["spot_edits_count", "spot_creates_count", "media_added_count"].filter((column) => column !== sort.active),
+    ];
     const data = [...this.leaderboardData];
     const isAsc = sort.direction === "asc";
 

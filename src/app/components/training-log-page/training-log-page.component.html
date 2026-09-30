@@ -125,8 +125,8 @@
                         <h4>{{ item.entry.note || "Training session" }}</h4>
                         <div class="session-card__stats">
                           <span><mat-icon>schedule</mat-icon>{{ durationLabel(item.durationMinutes) }}</span>
-                          <span><mat-icon>location_on</mat-icon>{{ item.spotCount }} <span i18n="@@trainingLog.timeline.spots">Spots</span></span>
-                          <span><mat-icon>calendar_month</mat-icon>{{ item.sessionCount }} <span i18n="@@trainingLog.timeline.sessions">sessions</span></span>
+                          <span><mat-icon>location_on</mat-icon><span i18n="@@trainingLog.timeline.spotCount">{item.spotCount, plural, =1 {1 Spot} other {{{ item.spotCount }} Spots}}</span></span>
+                          <span><mat-icon>calendar_month</mat-icon><span i18n="@@trainingLog.timeline.sessionCount">{item.sessionCount, plural, =1 {1 session} other {{{ item.sessionCount }} sessions}}</span></span>
                         </div>
                       </div>
                       <mat-icon class="session-card__arrow">chevron_right</mat-icon>

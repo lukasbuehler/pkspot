@@ -567,9 +567,9 @@
                     >
                       <mat-icon>bookmark</mat-icon>
                       <span i18n>Saved Spots</span>
-                      <span class="private-spot-count">
-                        ({{ savedSpotIds.length }})</span
-                      >
+                      @if (!privateDataLoading && !privateDataLoadFailed) {
+                        <span class="private-spot-count">({{ savedSpotIds.length }})</span>
+                      }
                     </button>
 
                     <button
@@ -581,9 +581,9 @@
                     >
                       <mat-icon>beenhere</mat-icon>
                       <span i18n>Visited Spots</span>
-                      <span class="private-spot-count">
-                        ({{ visitedSpotIds.length }})</span
-                      >
+                      @if (!privateDataLoading && !privateDataLoadFailed) {
+                        <span class="private-spot-count">({{ visitedSpotIds.length }})</span>
+                      }
                     </button>
                   </div>
                 </mat-card-content>

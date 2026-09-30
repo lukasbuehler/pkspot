@@ -610,6 +610,11 @@
         <source>Organization members</source>
       </segment>
     </unit>
+    <unit id="6147096546149362686">
+      <segment>
+        <source>Using the Map</source>
+      </segment>
+    </unit>
     <unit id="6150046349171143373">
       <segment>
         <source>PK Spot could not securely check the mobile platform age signal. Please try again.</source>
@@ -1065,6 +1070,11 @@
         <source>Email Verified!</source>
       </segment>
     </unit>
+    <unit id="1371449879775297874">
+      <segment>
+        <source>Shop items</source>
+      </segment>
+    </unit>
     <unit id="553543363816145762">
       <segment>
         <source>Your email address has been successfully verified. You can now access all features of PK Spot.</source>
@@ -1098,6 +1108,11 @@
     <unit id="9131908454374854077">
       <segment>
         <source>Sign out of your account.</source>
+      </segment>
+    </unit>
+    <unit id="9134186591632250216">
+      <segment>
+        <source>Copyright infringement</source>
       </segment>
     </unit>
     <unit id="9140895998943713645">
@@ -1200,6 +1215,16 @@
         <source> Add a short bio so your public profile tells people who you are. </source>
       </segment>
     </unit>
+    <unit id="2959460274535789482">
+      <segment>
+        <source>The app is crashing, what should I do?</source>
+      </segment>
+    </unit>
+    <unit id="2960388461422932845">
+      <segment>
+        <source>Person did not consent</source>
+      </segment>
+    </unit>
     <unit id="2969365666988952758">
       <segment>
         <source>Recovering Email</source>
@@ -1293,6 +1318,11 @@
     <unit id="5516877052541003749">
       <segment>
         <source>Failed to submit organization review</source>
+      </segment>
+    </unit>
+    <unit id="7821457763115783830">
+      <segment>
+        <source>Account &amp; Profile</source>
       </segment>
     </unit>
     <unit id="7824690700853674199">
@@ -1487,6 +1517,11 @@
     <unit id="2447699454820524710">
       <segment>
         <source>The available evidence does not currently establish 18+ eligibility.</source>
+      </segment>
+    </unit>
+    <unit id="2469314021754225074">
+      <segment>
+        <source>How do I delete my account?</source>
       </segment>
     </unit>
     <unit id="2472016265373616532">
@@ -1717,6 +1752,11 @@
         <source>Moderation action recorded</source>
       </segment>
     </unit>
+    <unit id="2171420900172240739">
+      <segment>
+        <source>Withdrawn</source>
+      </segment>
+    </unit>
     <unit id="2173680923654077460">
       <segment>
         <source>Checking the mobile platform age signal…</source>
@@ -1900,6 +1940,11 @@
         <source>Link to challenge copied to clipboard</source>
       </segment>
     </unit>
+    <unit id="5088439136498133748">
+      <segment>
+        <source>Check your spam folder first. If you still can&apos;t find the verification email, go to Settings &gt; Account and request a new verification email. If problems persist, contact us on Discord.</source>
+      </segment>
+    </unit>
     <unit id="5092426811369162632">
       <segment>
         <source>Selected location</source>
@@ -2003,6 +2048,11 @@
         <source>Enter a rejection reason.</source>
       </segment>
     </unit>
+    <unit id="1716052484074407499">
+      <segment>
+        <source>Why can&apos;t I see any spots in my area?</source>
+      </segment>
+    </unit>
     <unit id="1726495281959581318">
       <segment>
         <source>App versions</source>
@@ -2086,6 +2136,11 @@
     <unit id="434530867715201013">
       <segment>
         <source>Select every reason that applies:</source>
+      </segment>
+    </unit>
+    <unit id="4352094314853787439">
+      <segment>
+        <source>Yes! We take privacy seriously. We don&apos;t sell your data and use industry-standard security. Check our Privacy Policy for full details.</source>
       </segment>
     </unit>
     <unit id="4386559202007821626">
@@ -2912,6 +2967,11 @@
         <source> PK Spot asks only for an age range, such as under 13, 13–17 or 18+. PK Spot does not ask Apple for your exact age or birthday. It stores the age band, a broad evidence category and the resulting eligibility—not an exact birth date, identity document, bank account or card number. It also records the provider and method category, when the result was checked, and the policy basis used for the decision. This lets PK Spot withdraw approvals if a later signal changes or a method is found unsuitable. Self-declared age alone does not unlock a public profile. </source>
       </segment>
     </unit>
+    <unit id="8288692748225980838">
+      <segment>
+        <source>Tap the &apos;+&apos; button on the map when zoomed in close enough. Place the marker at the spot location, fill in the details like name, description, and amenities, then submit for review.</source>
+      </segment>
+    </unit>
     <unit id="8294319077118655917">
       <segment>
         <source>Checking every dependency…</source>
@@ -3143,6 +3203,11 @@
         <source>Moderation reports</source>
       </segment>
     </unit>
+    <unit id="3173209211164608224">
+      <segment>
+        <source><ph id="0" equiv="PH" disp="product.stickerCount"/> stickers</source>
+      </segment>
+    </unit>
     <unit id="3180781358486363266">
       <segment>
         <source>Update program item</source>
@@ -3156,6 +3221,11 @@
     <unit id="3195131600670933293">
       <segment>
         <source>Check verification result</source>
+      </segment>
+    </unit>
+    <unit id="7602303323284138919">
+      <segment>
+        <source>My cart</source>
       </segment>
     </unit>
     <unit id="7648040324495665523">
@@ -6368,6 +6438,11 @@
         <source>Events</source>
       </segment>
     </unit>
+    <unit id="events.upcoming">
+      <segment>
+        <source>Upcoming events</source>
+      </segment>
+    </unit>
     <unit id="events_label">
       <notes>
         <note category="description">A very short label for the navbar events page button</note>
@@ -6593,6 +6668,11 @@
         <source>No results found</source>
       </segment>
     </unit>
+    <unit id="1660046583116975957">
+      <segment>
+        <source>Tap on your profile picture in your profile page, and you can select a new image from your device.</source>
+      </segment>
+    </unit>
     <unit id="1669593749761062093">
       <segment>
         <source>Failed to handle report</source>
@@ -6681,6 +6761,11 @@
     <unit id="6340970481322850527">
       <segment>
         <source>Return to sign in</source>
+      </segment>
+    </unit>
+    <unit id="6350615969580028001">
+      <segment>
+        <source>Shop actions</source>
       </segment>
     </unit>
     <unit id="6350961303290386382">
@@ -6991,6 +7076,11 @@
     <unit id="840870092040015279">
       <segment>
         <source>Sign in to submit media quality reports.</source>
+      </segment>
+    </unit>
+    <unit id="3243356092316492196">
+      <segment>
+        <source>How do I install the app on my phone?</source>
       </segment>
     </unit>
     <unit id="3249513483374643425">
@@ -7693,6 +7783,11 @@
         <source> Restrict access and contain further distribution </source>
       </segment>
     </unit>
+    <unit id="8731046002621153148">
+      <segment>
+        <source>Try clearing the app cache or reinstalling. If problems persist, please report the issue on our Discord with details about your device and what you were doing when it crashed.</source>
+      </segment>
+    </unit>
     <unit id="8736188664022016115">
       <segment>
         <source>Could not sign in with Apple!</source>
@@ -7818,6 +7913,11 @@
         <source> Your managed spots </source>
       </segment>
     </unit>
+    <unit id="7107156952572073315">
+      <segment>
+        <source>5, 10, 25 or 50 stickers</source>
+      </segment>
+    </unit>
     <unit id="7113790156926964344">
       <segment>
         <source>No matching events</source>
@@ -7898,6 +7998,11 @@
         <source>Media Added</source>
       </segment>
     </unit>
+    <unit id="5385906161252826395">
+      <segment>
+        <source>Manage paid sticker orders</source>
+      </segment>
+    </unit>
     <unit id="5387369293317164071">
       <segment>
         <source>Unnamed Spot</source>
@@ -7976,6 +8081,11 @@
     <unit id="2939078539557591403">
       <segment>
         <source>Preview affected accounts</source>
+      </segment>
+    </unit>
+    <unit id="294733429660547646">
+      <segment>
+        <source>Check-in</source>
       </segment>
     </unit>
     <unit id="settings.temperature.aria_label">
@@ -8370,6 +8480,11 @@
         <source>Update report</source>
       </segment>
     </unit>
+    <unit id="2850809594572783393">
+      <segment>
+        <source>Not relevant</source>
+      </segment>
+    </unit>
     <unit id="2852131932578261096">
       <segment>
         <source>Apply operation</source>
@@ -8383,6 +8498,11 @@
     <unit id="2855049153368933927">
       <segment>
         <source>Current E-mail</source>
+      </segment>
+    </unit>
+    <unit id="2860666001916448553">
+      <segment>
+        <source>Back to all events</source>
       </segment>
     </unit>
     <unit id="2861306361489095884">
@@ -8435,9 +8555,14 @@
         <source>Change E-mail address</source>
       </segment>
     </unit>
-    <unit id="1417211593309442476">
+    <unit id="6886003891093930326">
       <segment>
-        <source>Only you and moderators can see it. You can edit or withdraw it.</source>
+        <source> Only you and moderators can see it. You can edit or withdraw it. </source>
+      </segment>
+    </unit>
+    <unit id="1403609706001572962">
+      <segment>
+        <source>I can&apos;t verify my email, what do I do?</source>
       </segment>
     </unit>
     <unit id="1426358485872019526">
@@ -8458,6 +8583,11 @@
     <unit id="3588415639242079458">
       <segment>
         <source>New password</source>
+      </segment>
+    </unit>
+    <unit id="6431080344212430103">
+      <segment>
+        <source>Bad quality</source>
       </segment>
     </unit>
     <unit id="6431756795596367554">
@@ -8508,6 +8638,16 @@
     <unit id="8656126574213649581">
       <segment>
         <source>Confirm new password</source>
+      </segment>
+    </unit>
+    <unit id="8658317676793040364">
+      <segment>
+        <source>PK Spot is available on iOS and Android. You can also install it as a Progressive Web App (PWA) by opening the menu in your browser and selecting &apos;Add to Home Screen&apos; or &apos;Install&apos;.</source>
+      </segment>
+    </unit>
+    <unit id="6308412905104409373">
+      <segment>
+        <source>View item</source>
       </segment>
     </unit>
     <unit id="6309828574111583895">
@@ -8900,6 +9040,11 @@
         <source>Choose and crop logo</source>
       </segment>
     </unit>
+    <unit id="5189291414020124701">
+      <segment>
+        <source>Is my data safe?</source>
+      </segment>
+    </unit>
     <unit id="519026501519052552">
       <segment>
         <source>Manage your profile and account settings.</source>
@@ -8945,6 +9090,11 @@
         <source>Email changed successfully. Please verify your new email.</source>
       </segment>
     </unit>
+    <unit id="8025586841088932797">
+      <segment>
+        <source>What are the map filters?</source>
+      </segment>
+    </unit>
     <unit id="8036493504964207254">
       <segment>
         <source>Awaiting organization review</source>
@@ -8963,6 +9113,11 @@
     <unit id="8072434875780801374">
       <segment>
         <source>Callable creations</source>
+      </segment>
+    </unit>
+    <unit id="8075900986566576709">
+      <segment>
+        <source>Coming later</source>
       </segment>
     </unit>
     <unit id="8076818699210267066">
@@ -9029,6 +9184,11 @@
         <source>Activate program plan</source>
       </segment>
     </unit>
+    <unit id="1571996928480119000">
+      <segment>
+        <source>Share event</source>
+      </segment>
+    </unit>
     <unit id="1577979859082287846">
       <segment>
         <source>This email is already in use.</source>
@@ -9052,6 +9212,11 @@
     <unit id="6446631772000124223">
       <segment>
         <source>Password must be at least 6 characters</source>
+      </segment>
+    </unit>
+    <unit id="9067558040232302554">
+      <segment>
+        <source>How do I change my email address?</source>
       </segment>
     </unit>
     <unit id="9068926282349592226">
@@ -9082,6 +9247,11 @@
     <unit id="7742018872696898961">
       <segment>
         <source>Current password is incorrect.</source>
+      </segment>
+    </unit>
+    <unit id="7742164960555824051">
+      <segment>
+        <source>PK Spot things, for the community.</source>
       </segment>
     </unit>
     <unit id="7747602784925344705">
@@ -9169,14 +9339,29 @@
         <source>Account mismatch. Please sign in to the correct account.</source>
       </segment>
     </unit>
+    <unit id="3447984798553416436">
+      <segment>
+        <source>Nice Spot Sticker Support Pack</source>
+      </segment>
+    </unit>
     <unit id="3456162150342793287">
       <segment>
         <source> We believe the map belongs to the athletes, not a corporation. PK Spot is open source, privacy-first, and community owned. </source>
       </segment>
     </unit>
+    <unit id="1472354653162750894">
+      <segment>
+        <source>Open event website</source>
+      </segment>
+    </unit>
     <unit id="1486755545881068533">
       <segment>
         <source>Re-authentication failed. Account not deleted.</source>
+      </segment>
+    </unit>
+    <unit id="1489333176937623478">
+      <segment>
+        <source>PK Spot relies on community contributions. If there are no spots in your area yet, be the first to add one!</source>
       </segment>
     </unit>
     <unit id="1494956089085338936">
@@ -9400,6 +9585,11 @@
         <source> Create account </source>
       </segment>
     </unit>
+    <unit id="signup.email_invalid">
+      <segment>
+        <source>Enter a valid email address.</source>
+      </segment>
+    </unit>
     <unit id="signup.meta.description">
       <segment>
         <source>Create a free PK Spot account to find spots, check in, and connect with your local parkour community.</source>
@@ -9408,6 +9598,16 @@
     <unit id="signup.meta.title">
       <segment>
         <source>Create account</source>
+      </segment>
+    </unit>
+    <unit id="signup.password_mismatch">
+      <segment>
+        <source>The passwords must match.</source>
+      </segment>
+    </unit>
+    <unit id="signup.password_short">
+      <segment>
+        <source>Use at least 6 characters.</source>
       </segment>
     </unit>
     <unit id="5701618810648052610">
@@ -9538,6 +9738,11 @@
     <unit id="6969445338945867053">
       <segment>
         <source>Create a new account</source>
+      </segment>
+    </unit>
+    <unit id="6849734841047073254">
+      <segment>
+        <source>App &amp; Technical</source>
       </segment>
     </unit>
     <unit id="6858563845386603352">
@@ -9978,6 +10183,11 @@
         <source>Session summary</source>
       </segment>
     </unit>
+    <unit id="trainingLog.session.spotCount">
+      <segment>
+        <source>{VAR_PLURAL, plural, =1 {1 Spot} other {<ph id="0" equiv="INTERPOLATION"/> Spots}}</source>
+      </segment>
+    </unit>
     <unit id="trainingLog.signIn">
       <segment>
         <source>Sign in</source>
@@ -10043,9 +10253,9 @@
         <source>Open a session to revisit where you trained, with whom, and what you wrote down.</source>
       </segment>
     </unit>
-    <unit id="trainingLog.timeline.sessions">
+    <unit id="trainingLog.timeline.sessionCount">
       <segment>
-        <source>sessions</source>
+        <source>{VAR_PLURAL, plural, =1 {1 session} other {<ph id="0" equiv="INTERPOLATION"/> sessions}}</source>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.showAll">
@@ -10053,9 +10263,9 @@
         <source>Show all</source>
       </segment>
     </unit>
-    <unit id="trainingLog.timeline.spots">
+    <unit id="trainingLog.timeline.spotCount">
       <segment>
-        <source>Spots</source>
+        <source>{VAR_PLURAL, plural, =1 {1 Spot} other {<ph id="0" equiv="INTERPOLATION"/> Spots}}</source>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.title">
@@ -10243,9 +10453,19 @@
         <source>Next month</source>
       </segment>
     </unit>
+    <unit id="2201356960370913450">
+      <segment>
+        <source>{VAR_PLURAL, plural, =1 {Spot} other {Spots}}</source>
+      </segment>
+    </unit>
     <unit id="2231151963929640898">
       <segment>
         <source>Edit submitted for organization review</source>
+      </segment>
+    </unit>
+    <unit id="2233560223291461480">
+      <segment>
+        <source>Manual</source>
       </segment>
     </unit>
     <unit id="223483240416376467">
@@ -10655,6 +10875,11 @@
     <unit id="1780673444278901710">
       <segment>
         <source>Reporting decision summary</source>
+      </segment>
+    </unit>
+    <unit id="1782760576339691907">
+      <segment>
+        <source>Go to Settings &gt; Account and you&apos;ll find the option to update your email address. You&apos;ll need to verify the new email before the change takes effect.</source>
       </segment>
     </unit>
     <unit id="1792190533431059127">
@@ -11074,6 +11299,11 @@
         <source>Public</source>
       </segment>
     </unit>
+    <unit id="8940432368628537952">
+      <segment>
+        <source>Go to Settings &gt; Account &gt; Delete Account. You&apos;ll be asked to confirm this action. Note that this will permanently delete all your data and cannot be undone.</source>
+      </segment>
+    </unit>
     <unit id="8942517704279686805">
       <notes>
         <note category="description">Placeholder of the spot description edit field</note>
@@ -11101,6 +11331,11 @@
     <unit id="4662484626065169408">
       <segment>
         <source>Revoked adult eligibility for <ph id="0" equiv="PH" disp="processed"/> account(s)</source>
+      </segment>
+    </unit>
+    <unit id="4664742793863132957">
+      <segment>
+        <source>Terms of service violation</source>
       </segment>
     </unit>
     <unit id="4667715772382848347">
@@ -11164,7 +11399,7 @@
     </unit>
     <unit id="spot_picker.limit_hint">
       <segment>
-        <source> Up to <ph id="0" equiv="INTERPOLATION" disp="{{ max() }}"/> spots </source>
+        <source> Up to <ph id="0" equiv="INTERPOLATION" disp="{{ max() }}"/> <ph id="1" equiv="ICU" disp="{max(), plural, =1 {Spot} other {Spots}}" subFlows="2201356960370913450"/> </source>
       </segment>
     </unit>
     <unit id="spot_type_label">
@@ -11197,6 +11432,11 @@
         <source>Shown amenities</source>
       </segment>
     </unit>
+    <unit id="3646247581011421406">
+      <segment>
+        <source>How do I change my profile picture?</source>
+      </segment>
+    </unit>
     <unit id="3665571050825458932">
       <segment>
         <source> Move and resize the crop area. Use zoom or rotation when needed. </source>
@@ -11210,6 +11450,11 @@
     <unit id="3680814338700283151">
       <segment>
         <source> This note is private and visible only to you and moderators. A moderator may publish a separate warning without including your note or identity. </source>
+      </segment>
+    </unit>
+    <unit id="3687813860684285439">
+      <segment>
+        <source>Open the spot details and tap the edit icon. You can suggest changes which will be reviewed by the community. For serious issues, use the report button.</source>
       </segment>
     </unit>
     <unit id="3689301942396726798">
@@ -11278,6 +11523,11 @@
     <unit id="6381490568322624964">
       <segment>
         <source>Deleted</source>
+      </segment>
+    </unit>
+    <unit id="6383039941486033298">
+      <segment>
+        <source>PK Spot stickers for the real world, with Swiss shipping included.</source>
       </segment>
     </unit>
     <unit id="6392361494636232622">
@@ -11360,6 +11610,11 @@
         <source>Edit event</source>
       </segment>
     </unit>
+    <unit id="2776617638046368313">
+      <segment>
+        <source>View details</source>
+      </segment>
+    </unit>
     <unit id="2781971407154812080">
       <segment>
         <source>Unlinked Google Place</source>
@@ -11398,6 +11653,11 @@
     <unit id="8890858578819685573">
       <segment>
         <source>Failed to unlink Google Place</source>
+      </segment>
+    </unit>
+    <unit id="8891745002645853349">
+      <segment>
+        <source>Vector map rendering</source>
       </segment>
     </unit>
     <unit id="8894493214990278764">
@@ -12113,6 +12373,11 @@
         <source>{VAR_PLURAL, plural, =1 {member} other {members}}</source>
       </segment>
     </unit>
+    <unit id="6959547043904768184">
+      <segment>
+        <source> Enable vector maps </source>
+      </segment>
+    </unit>
     <unit id="6001163963116907226">
       <segment>
         <source>Moved</source>
@@ -12176,6 +12441,11 @@
     <unit id="8412870208077922475">
       <segment>
         <source>Checking…</source>
+      </segment>
+    </unit>
+    <unit id="8417842421847722492">
+      <segment>
+        <source>My orders</source>
       </segment>
     </unit>
     <unit id="8425534745547037864">
@@ -12414,6 +12684,11 @@
         <source>Discord Community</source>
       </segment>
     </unit>
+    <unit id="3572620215430537942">
+      <segment>
+        <source>How do I add a new spot?</source>
+      </segment>
+    </unit>
     <unit id="3572703815662689324">
       <segment>
         <source>Program item updated</source>
@@ -12512,6 +12787,11 @@
     <unit id="1142555682966582117">
       <segment>
         <source>Not required</source>
+      </segment>
+    </unit>
+    <unit id="1147358182484006761">
+      <segment>
+        <source>Shop</source>
       </segment>
     </unit>
     <unit id="1165007284037457711">
@@ -13085,6 +13365,11 @@
         <source>Unknown creator</source>
       </segment>
     </unit>
+    <unit id="7939156787719949830">
+      <segment>
+        <source>Filters let you find spots with specific features like being covered from rain, lit at night, indoor, or having specific amenities. Access them from the filter button on the map.</source>
+      </segment>
+    </unit>
     <unit id="7941428823403788384">
       <segment>
         <source> Create </source>
@@ -13178,6 +13463,11 @@
     <unit id="2621801407969969391">
       <segment>
         <source> Work in order. Do not preview or forward restricted-match media. </source>
+      </segment>
+    </unit>
+    <unit id="263287223361374817">
+      <segment>
+        <source>CHF 10–100</source>
       </segment>
     </unit>
     <unit id="2638434417265535082">
@@ -13585,6 +13875,11 @@
         <source>Location/Spot change</source>
       </segment>
     </unit>
+    <unit id="9017499308763862338">
+      <segment>
+        <source>Choose a one-time amount to help keep PK Spot moving.</source>
+      </segment>
+    </unit>
     <unit id="9019759608416406738">
       <segment>
         <source>Early Adopter</source>
@@ -13613,6 +13908,16 @@
     <unit id="8773657518706700849">
       <segment>
         <source>Spot Edits</source>
+      </segment>
+    </unit>
+    <unit id="877683860580860100">
+      <segment>
+        <source>Illegal or unsafe content</source>
+      </segment>
+    </unit>
+    <unit id="877827579793920145">
+      <segment>
+        <source>How do I report or edit an incorrect spot?</source>
       </segment>
     </unit>
     <unit id="878082957916142359">
@@ -13787,6 +14092,11 @@
     <unit id="5646377711168880426">
       <segment>
         <source> <ph id="0" equiv="ICU" disp="{data.events.length, plural, =1 {The one problematic published event is shown below.} other {All {{ data.events.length }} problematic published events are shown below.}}" subFlows="2516091138808940382"/> They are excluded from public discovery until their coordinates, local time zone, and event dates are valid. </source>
+      </segment>
+    </unit>
+    <unit id="5646680746394158532">
+      <segment>
+        <source> Enable smoother fractional zoom and vector map effects. Raster rendering is the default because it is more stable on some mobile WebViews. </source>
       </segment>
     </unit>
     <unit id="4734349318830134239">
@@ -14276,6 +14586,11 @@
     <unit id="3407061818321766940">
       <segment>
         <source>Saving...</source>
+      </segment>
+    </unit>
+    <unit id="3410770871410760104">
+      <segment>
+        <source>Support PK Spot</source>
       </segment>
     </unit>
     <unit id="3419813162979896839">

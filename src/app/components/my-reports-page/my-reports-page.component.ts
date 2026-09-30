@@ -1,3 +1,4 @@
+import { reportReasonsLabel, reportStatusLabels } from "../../shared/report-labels";
 import { inject as injectFeatureTelemetry } from "@angular/core";
 import { FeatureTelemetryService } from "../../services/feature-telemetry.service";
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
@@ -29,8 +30,11 @@ export class MyReportsPageComponent {
   private readonly _reports = inject(ReporterReportsService);
   readonly auth = inject(AuthenticationService);
   readonly reports = signal<OwnReportSummary[]>([]);
-  readonly openReports = computed(() => this.reports().filter((report) => report.status === "open"));
-  readonly historyReports = computed(() => this.reports().filter((report) => report.status !== "open"));
+  readonly labeledReports = computed(() => this.reports().map((report) => ({
+    ...report, reasonLabel: reportReasonsLabel(report.reasons), statusLabel: reportStatusLabels[report.status],
+  })));
+  readonly openReports = computed(() => this.labeledReports().filter((report) => report.status === "open"));
+  readonly historyReports = computed(() => this.labeledReports().filter((report) => report.status !== "open"));
   readonly loading = signal(true);
   readonly failed = signal(false);
 

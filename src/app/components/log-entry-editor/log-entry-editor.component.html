@@ -57,7 +57,7 @@
                 <div>
                   @if (sessionPlaces().get(session.id); as places) { <strong>{{ places }}</strong> }
                   <strong>{{ session.started_at_raw_ms | systemDate: "mediumDate" }}</strong>
-                  <span>{{ session.started_at_raw_ms | systemDate: "shortTime" }} · {{ session.spot_visits.length }} spots · {{ session.source === "check_in" ? "Check-in" : "Manual" }}</span>
+                  <span>{{ session.started_at_raw_ms | systemDate: "shortTime" }} · <span i18n="@@trainingLog.session.spotCount">{session.spot_visits.length, plural, =1 {1 Spot} other {{{ session.spot_visits.length }} Spots}}</span> · @if (session.source === "check_in") {<span i18n>Check-in</span>} @else {<span i18n>Manual</span>}</span>
                 </div>
                 </mat-checkbox>
               </div>

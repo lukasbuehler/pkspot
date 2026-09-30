@@ -88,7 +88,11 @@
         <div class="section-heading">
           <div>
             <p class="eyebrow" i18n="@@train.nearbyEvents.eyebrow">Happening soon</p>
-            <h2 i18n="@@train.nearbyEvents.title">Events near your area</h2>
+            @if (hasTrainingArea()) {
+              <h2 i18n="@@train.nearbyEvents.title">Events near your area</h2>
+            } @else {
+              <h2 i18n="@@events.upcoming">Upcoming events</h2>
+            }
             @if (hasTrainingArea()) {
               <p class="section-summary" i18n="@@train.nearbyEvents.summary">
                 The soonest upcoming sessions within reach.

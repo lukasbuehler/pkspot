@@ -47,7 +47,7 @@ describe("MyReportsPageComponent", () => {
     const component = fixture.componentInstance;
 
     expect(reporterReports.listMine).toHaveBeenCalledOnce();
-    expect(component.openReports()).toEqual([reports[0]]);
-    expect(component.historyReports()).toEqual([reports[1]]);
+    expect(component.openReports()).toEqual([expect.objectContaining({ ...reports[0], reasonLabel: "Private Spot, Other", statusLabel: "Open" })]);
+    expect(component.historyReports()).toEqual([expect.objectContaining(reports[1])]);
   });
 });

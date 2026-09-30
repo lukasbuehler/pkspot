@@ -570,13 +570,14 @@
           </div>
 
           <div class="my-4">
-            <h3 class="mat-h3">Vector map rendering</h3>
-            <p class="mat-body">
+            <h3 class="mat-h3" i18n>Vector map rendering</h3>
+            <p class="mat-body" i18n>
               Enable smoother fractional zoom and vector map effects. Raster
               rendering is the default because it is more stable on some mobile
               WebViews.
             </p>
             <mat-slide-toggle
+              i18n
               [checked]="appSettings.enableVectorMaps()"
               (change)="appSettings.enableVectorMaps.set($event.checked)"
               color="primary"

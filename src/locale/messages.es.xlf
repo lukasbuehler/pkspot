@@ -150,6 +150,12 @@
         <target>Resumen de la decisión de denuncia</target>
       </segment>
     </unit>
+    <unit id="1782760576339691907">
+      <segment state="initial">
+        <source>Go to Settings &gt; Account and you&apos;ll find the option to update your email address. You&apos;ll need to verify the new email before the change takes effect.</source>
+        <target>Go to Settings &gt; Account and you&apos;ll find the option to update your email address. You&apos;ll need to verify the new email before the change takes effect.</target>
+      </segment>
+    </unit>
     <unit id="1792190533431059127">
       <segment state="initial">
         <source>Mark this media as safe and release it publicly? This records your administrator decision.</source>
@@ -272,6 +278,12 @@
         <target>Volver a Iniciar sesión</target>
       </segment>
     </unit>
+    <unit id="6350615969580028001">
+      <segment state="initial">
+        <source>Shop actions</source>
+        <target>Shop actions</target>
+      </segment>
+    </unit>
     <unit id="6350961303290386382">
       <segment state="initial">
         <source>Reveal to review</source>
@@ -312,6 +324,12 @@
       <segment state="initial">
         <source>Deleted</source>
         <target>Eliminado</target>
+      </segment>
+    </unit>
+    <unit id="6383039941486033298">
+      <segment state="initial">
+        <source>PK Spot stickers for the real world, with Swiss shipping included.</source>
+        <target>PK Spot stickers for the real world, with Swiss shipping included.</target>
       </segment>
     </unit>
     <unit id="6392361494636232622">
@@ -454,6 +472,12 @@
       <segment state="initial">
         <source>Public</source>
         <target>Público</target>
+      </segment>
+    </unit>
+    <unit id="8940432368628537952">
+      <segment state="initial">
+        <source>Go to Settings &gt; Account &gt; Delete Account. You&apos;ll be asked to confirm this action. Note that this will permanently delete all your data and cannot be undone.</source>
+        <target>Go to Settings &gt; Account &gt; Delete Account. You&apos;ll be asked to confirm this action. Note that this will permanently delete all your data and cannot be undone.</target>
       </segment>
     </unit>
     <unit id="8942517704279686805">
@@ -828,10 +852,16 @@
         <target> Comprueba tu conexión e inténtalo de nuevo. </target>
       </segment>
     </unit>
-    <unit id="1417211593309442476">
+    <unit id="6886003891093930326">
       <segment state="initial">
-        <source>Only you and moderators can see it. You can edit or withdraw it.</source>
-        <target>Only you and moderators can see it. You can edit or withdraw it.</target>
+        <source> Only you and moderators can see it. You can edit or withdraw it. </source>
+        <target> Only you and moderators can see it. You can edit or withdraw it. </target>
+      </segment>
+    </unit>
+    <unit id="1403609706001572962">
+      <segment state="initial">
+        <source>I can&apos;t verify my email, what do I do?</source>
+        <target>I can&apos;t verify my email, what do I do?</target>
       </segment>
     </unit>
     <unit id="1426358485872019526">
@@ -880,16 +910,34 @@
         <target><pc id="0" equivStart="START_TAG_SPAN" equivEnd="CLOSE_TAG_SPAN" type="other" dispStart="&lt;span class=&quot;mat-body-large&quot; &gt;" dispEnd="&lt;/span &gt;">No es una foto de este Spot: Esta imagen no muestra el Spot o es engañosa.</pc></target>
       </segment>
     </unit>
+    <unit id="1472354653162750894">
+      <segment state="initial">
+        <source>Open event website</source>
+        <target>Open event website</target>
+      </segment>
+    </unit>
     <unit id="1486755545881068533">
       <segment state="initial">
         <source>Re-authentication failed. Account not deleted.</source>
         <target>Falló la reautenticación. Cuenta no eliminada.</target>
       </segment>
     </unit>
+    <unit id="1489333176937623478">
+      <segment state="initial">
+        <source>PK Spot relies on community contributions. If there are no spots in your area yet, be the first to add one!</source>
+        <target>PK Spot relies on community contributions. If there are no spots in your area yet, be the first to add one!</target>
+      </segment>
+    </unit>
     <unit id="1494956089085338936">
       <segment state="initial">
         <source>Describe what happened and what outcome you need.</source>
         <target>Describe what happened and what outcome you need.</target>
+      </segment>
+    </unit>
+    <unit id="6308412905104409373">
+      <segment state="initial">
+        <source>View item</source>
+        <target>View item</target>
       </segment>
     </unit>
     <unit id="6309828574111583895">
@@ -950,6 +998,12 @@
       <segment state="initial">
         <source>Email Verified!</source>
         <target>¡Correo verificado!</target>
+      </segment>
+    </unit>
+    <unit id="1371449879775297874">
+      <segment state="initial">
+        <source>Shop items</source>
+        <target>Shop items</target>
       </segment>
     </unit>
     <unit id="1381308436651796702">
@@ -2155,6 +2209,12 @@
         <target>Comprobar de nuevo</target>
       </segment>
     </unit>
+    <unit id="3572620215430537942">
+      <segment state="initial">
+        <source>How do I add a new spot?</source>
+        <target>How do I add a new spot?</target>
+      </segment>
+    </unit>
     <unit id="3572703815662689324">
       <segment state="initial">
         <source>Program item updated</source>
@@ -2271,6 +2331,12 @@
         <target>Regístrate aquí</target>
       </segment>
     </unit>
+    <unit id="signup.email_invalid">
+      <segment state="initial">
+        <source>Enter a valid email address.</source>
+        <target>Enter a valid email address.</target>
+      </segment>
+    </unit>
     <unit id="signup.meta.description">
       <segment state="initial">
         <source>Create a free PK Spot account to find spots, check in, and connect with your local parkour community.</source>
@@ -2281,6 +2347,18 @@
       <segment state="initial">
         <source>Create account</source>
         <target>Crear cuenta</target>
+      </segment>
+    </unit>
+    <unit id="signup.password_mismatch">
+      <segment state="initial">
+        <source>The passwords must match.</source>
+        <target>The passwords must match.</target>
+      </segment>
+    </unit>
+    <unit id="signup.password_short">
+      <segment state="initial">
+        <source>Use at least 6 characters.</source>
+        <target>Use at least 6 characters.</target>
       </segment>
     </unit>
     <unit id="account.about.button">
@@ -2571,6 +2649,12 @@
         <target>La contraseña actual es incorrecta.</target>
       </segment>
     </unit>
+    <unit id="7742164960555824051">
+      <segment state="initial">
+        <source>PK Spot things, for the community.</source>
+        <target>PK Spot things, for the community.</target>
+      </segment>
+    </unit>
     <unit id="7747602784925344705">
       <segment state="initial">
         <source>The redundant Spot has check-ins.</source>
@@ -2713,6 +2797,12 @@
       <segment state="initial">
         <source>Use OneID’s privacy-preserving 18+ check when it is available for your account.</source>
         <target>Use OneID’s privacy-preserving 18+ check when it is available for your account.</target>
+      </segment>
+    </unit>
+    <unit id="6849734841047073254">
+      <segment state="initial">
+        <source>App &amp; Technical</source>
+        <target>App &amp; Technical</target>
       </segment>
     </unit>
     <unit id="6858563845386603352">
@@ -3153,6 +3243,12 @@
         <target>Servicios mostrados</target>
       </segment>
     </unit>
+    <unit id="3646247581011421406">
+      <segment state="initial">
+        <source>How do I change my profile picture?</source>
+        <target>How do I change my profile picture?</target>
+      </segment>
+    </unit>
     <unit id="3665571050825458932">
       <segment state="initial">
         <source> Move and resize the crop area. Use zoom or rotation when needed. </source>
@@ -3169,6 +3265,12 @@
       <segment state="translated">
         <source> This note is private and visible only to you and moderators. A moderator may publish a separate warning without including your note or identity. </source>
         <target>Esta nota es privada y solo podéis verla tú y los moderadores. Un moderador puede publicar una advertencia aparte sin incluir tu nota ni tu identidad.</target>
+      </segment>
+    </unit>
+    <unit id="3687813860684285439">
+      <segment state="initial">
+        <source>Open the spot details and tap the edit icon. You can suggest changes which will be reviewed by the community. For serious issues, use the report button.</source>
+        <target>Open the spot details and tap the edit icon. You can suggest changes which will be reviewed by the community. For serious issues, use the report button.</target>
       </segment>
     </unit>
     <unit id="3689301942396726798">
@@ -3327,6 +3429,12 @@
         <target>Spots en esta zona</target>
       </segment>
     </unit>
+    <unit id="5385906161252826395">
+      <segment state="initial">
+        <source>Manage paid sticker orders</source>
+        <target>Manage paid sticker orders</target>
+      </segment>
+    </unit>
     <unit id="5387369293317164071">
       <segment state="initial">
         <source>Unnamed Spot</source>
@@ -3438,6 +3546,12 @@
         <target>{VAR_PLURAL, plural, =1 {miembro} other {miembros}}</target>
       </segment>
     </unit>
+    <unit id="6959547043904768184">
+      <segment state="initial">
+        <source> Enable vector maps </source>
+        <target> Enable vector maps </target>
+      </segment>
+    </unit>
     <unit id="6001163963116907226">
       <segment state="initial">
         <source>Moved</source>
@@ -3514,6 +3628,12 @@
       <segment state="initial">
         <source>Checking…</source>
         <target>Comprobando…</target>
+      </segment>
+    </unit>
+    <unit id="8417842421847722492">
+      <segment state="initial">
+        <source>My orders</source>
+        <target>My orders</target>
       </segment>
     </unit>
     <unit id="8425534745547037864">
@@ -3684,6 +3804,12 @@
         <target>No necesaria</target>
       </segment>
     </unit>
+    <unit id="1147358182484006761">
+      <segment state="initial">
+        <source>Shop</source>
+        <target>Shop</target>
+      </segment>
+    </unit>
     <unit id="1165007284037457711">
       <segment state="initial">
         <source> Your Private Spot Lists </source>
@@ -3802,6 +3928,12 @@
       <segment state="initial">
         <source>Confirm new password</source>
         <target>Confirmar nueva contraseña</target>
+      </segment>
+    </unit>
+    <unit id="8658317676793040364">
+      <segment state="initial">
+        <source>PK Spot is available on iOS and Android. You can also install it as a Progressive Web App (PWA) by opening the menu in your browser and selecting &apos;Add to Home Screen&apos; or &apos;Install&apos;.</source>
+        <target>PK Spot is available on iOS and Android. You can also install it as a Progressive Web App (PWA) by opening the menu in your browser and selecting &apos;Add to Home Screen&apos; or &apos;Install&apos;.</target>
       </segment>
     </unit>
     <unit id="8661229474911203378">
@@ -6084,6 +6216,12 @@
         <target>Cambio de ubicación/Spot</target>
       </segment>
     </unit>
+    <unit id="9017499308763862338">
+      <segment state="initial">
+        <source>Choose a one-time amount to help keep PK Spot moving.</source>
+        <target>Choose a one-time amount to help keep PK Spot moving.</target>
+      </segment>
+    </unit>
     <unit id="9019759608416406738">
       <segment state="initial">
         <source>Early Adopter</source>
@@ -6124,6 +6262,12 @@
       <segment state="initial">
         <source>Photographer</source>
         <target>Fotógrafo</target>
+      </segment>
+    </unit>
+    <unit id="9067558040232302554">
+      <segment state="initial">
+        <source>How do I change my email address?</source>
+        <target>How do I change my email address?</target>
       </segment>
     </unit>
     <unit id="9068926282349592226">
@@ -6208,6 +6352,12 @@
       <segment state="initial">
         <source>Sign out of your account.</source>
         <target>Cierra sesión de tu cuenta.</target>
+      </segment>
+    </unit>
+    <unit id="9134186591632250216">
+      <segment state="initial">
+        <source>Copyright infringement</source>
+        <target>Copyright infringement</target>
       </segment>
     </unit>
     <unit id="9140895998943713645">
@@ -6433,6 +6583,12 @@
       <segment state="initial">
         <source>Not verified</source>
         <target>No verificado</target>
+      </segment>
+    </unit>
+    <unit id="6431080344212430103">
+      <segment state="initial">
+        <source>Bad quality</source>
+        <target>Bad quality</target>
       </segment>
     </unit>
     <unit id="6431756795596367554">
@@ -6945,6 +7101,12 @@
       <segment state="initial">
         <source>Organization members</source>
         <target>Miembros de la organización</target>
+      </segment>
+    </unit>
+    <unit id="6147096546149362686">
+      <segment state="initial">
+        <source>Using the Map</source>
+        <target>Using the Map</target>
       </segment>
     </unit>
     <unit id="6150046349171143373">
@@ -7485,6 +7647,12 @@
       <segment state="initial">
         <source> PK Spot helps you find parkour spots, discover communities and events, check in, and share useful local knowledge. </source>
         <target> PK Spot te ayuda a encontrar spots de parkour, descubrir comunidades y eventos, hacer check-in y compartir conocimiento local útil. </target>
+      </segment>
+    </unit>
+    <unit id="7602303323284138919">
+      <segment state="initial">
+        <source>My cart</source>
+        <target>My cart</target>
       </segment>
     </unit>
     <unit id="7648040324495665523">
@@ -10416,6 +10584,12 @@
         <target>Eventos</target>
       </segment>
     </unit>
+    <unit id="events.upcoming">
+      <segment state="initial">
+        <source>Upcoming events</source>
+        <target>Upcoming events</target>
+      </segment>
+    </unit>
     <unit id="events_label">
       <notes>
         <note category="description">A very short label for the navbar events page button</note>
@@ -10771,6 +10945,12 @@
         <target>Select every reason that applies:</target>
       </segment>
     </unit>
+    <unit id="4352094314853787439">
+      <segment state="initial">
+        <source>Yes! We take privacy seriously. We don&apos;t sell your data and use industry-standard security. Check our Privacy Policy for full details.</source>
+        <target>Yes! We take privacy seriously. We don&apos;t sell your data and use industry-standard security. Check our Privacy Policy for full details.</target>
+      </segment>
+    </unit>
     <unit id="4386559202007821626">
       <segment state="initial">
         <source>The Crew</source>
@@ -10867,6 +11047,12 @@
         <target>Guarda favoritos y vuelve más tarde a los spots donde quieres entrenar.</target>
       </segment>
     </unit>
+    <unit id="2850809594572783393">
+      <segment state="initial">
+        <source>Not relevant</source>
+        <target>Not relevant</target>
+      </segment>
+    </unit>
     <unit id="2852131932578261096">
       <segment state="initial">
         <source>Apply operation</source>
@@ -10883,6 +11069,12 @@
       <segment state="initial">
         <source>Current E-mail</source>
         <target>Correo electrónico actual</target>
+      </segment>
+    </unit>
+    <unit id="2860666001916448553">
+      <segment state="initial">
+        <source>Back to all events</source>
+        <target>Back to all events</target>
       </segment>
     </unit>
     <unit id="2861306361489095884">
@@ -10913,6 +11105,12 @@
       <segment state="initial">
         <source>Edit your report</source>
         <target>Edit your report</target>
+      </segment>
+    </unit>
+    <unit id="7821457763115783830">
+      <segment state="initial">
+        <source>Account &amp; Profile</source>
+        <target>Account &amp; Profile</target>
       </segment>
     </unit>
     <unit id="7824690700853674199">
@@ -11041,6 +11239,12 @@
         <target>Creador desconocido</target>
       </segment>
     </unit>
+    <unit id="7939156787719949830">
+      <segment state="initial">
+        <source>Filters let you find spots with specific features like being covered from rain, lit at night, indoor, or having specific amenities. Access them from the filter button on the map.</source>
+        <target>Filters let you find spots with specific features like being covered from rain, lit at night, indoor, or having specific amenities. Access them from the filter button on the map.</target>
+      </segment>
+    </unit>
     <unit id="7941428823403788384">
       <segment state="initial">
         <source> Create </source>
@@ -11147,6 +11351,12 @@
       <segment state="initial">
         <source> PK Spot asks only for an age range, such as under 13, 13–17 or 18+. PK Spot does not ask Apple for your exact age or birthday. It stores the age band, a broad evidence category and the resulting eligibility—not an exact birth date, identity document, bank account or card number. It also records the provider and method category, when the result was checked, and the policy basis used for the decision. This lets PK Spot withdraw approvals if a later signal changes or a method is found unsuitable. Self-declared age alone does not unlock a public profile. </source>
         <target> PK Spot solo solicita un rango de edad, como menor de 13, 13–17 o 18+. PK Spot no solicita a Apple tu edad exacta ni tu fecha de nacimiento. Guarda el rango de edad, una categoría general de evidencia y la elegibilidad resultante, no una fecha de nacimiento exacta, un documento de identidad, una cuenta bancaria ni un número de tarjeta. También registra el proveedor y la categoría del método, cuándo se comprobó el resultado y la base de la política utilizada para la decisión. Esto permite a PK Spot retirar aprobaciones si cambia una señal posterior o si se determina que un método no es adecuado. Una edad autodeclarada por sí sola no habilita un perfil público. </target>
+      </segment>
+    </unit>
+    <unit id="8288692748225980838">
+      <segment state="initial">
+        <source>Tap the &apos;+&apos; button on the map when zoomed in close enough. Place the marker at the spot location, fill in the details like name, description, and amenities, then submit for review.</source>
+        <target>Tap the &apos;+&apos; button on the map when zoomed in close enough. Place the marker at the spot location, fill in the details like name, description, and amenities, then submit for review.</target>
       </segment>
     </unit>
     <unit id="8294319077118655917">
@@ -11875,6 +12085,12 @@
         <target> Restringe el acceso y evita una mayor difusión </target>
       </segment>
     </unit>
+    <unit id="8731046002621153148">
+      <segment state="initial">
+        <source>Try clearing the app cache or reinstalling. If problems persist, please report the issue on our Discord with details about your device and what you were doing when it crashed.</source>
+        <target>Try clearing the app cache or reinstalling. If problems persist, please report the issue on our Discord with details about your device and what you were doing when it crashed.</target>
+      </segment>
+    </unit>
     <unit id="8736188664022016115">
       <segment state="initial">
         <source>Could not sign in with Apple!</source>
@@ -11909,6 +12125,18 @@
       <segment state="initial">
         <source>Spot Edits</source>
         <target>Ediciones de Spot</target>
+      </segment>
+    </unit>
+    <unit id="877683860580860100">
+      <segment state="initial">
+        <source>Illegal or unsafe content</source>
+        <target>Illegal or unsafe content</target>
+      </segment>
+    </unit>
+    <unit id="877827579793920145">
+      <segment state="initial">
+        <source>How do I report or edit an incorrect spot?</source>
+        <target>How do I report or edit an incorrect spot?</target>
       </segment>
     </unit>
     <unit id="878082957916142359">
@@ -11957,6 +12185,12 @@
       <segment state="translated">
         <source> <ph id="0" equiv="ICU" disp="{data.events.length, plural, =1 {The one problematic published event is shown below.} other {All {{ data.events.length }} problematic published events are shown below.}}" subFlows="2516091138808940382"/> They are excluded from public discovery until their coordinates, local time zone, and event dates are valid. </source>
         <target> <ph id="0" equiv="ICU" disp="{data.events.length, plural, =1 {The one problematic published event is shown below.} other {All {{ data.events.length }} problematic published events are shown below.}}" subFlows="2516091138808940382"/> Estos eventos se excluyen de la búsqueda pública hasta que sus coordenadas, su zona horaria local y sus fechas sean válidas. </target>
+      </segment>
+    </unit>
+    <unit id="5646680746394158532">
+      <segment state="initial">
+        <source> Enable smoother fractional zoom and vector map effects. Raster rendering is the default because it is more stable on some mobile WebViews. </source>
+        <target> Enable smoother fractional zoom and vector map effects. Raster rendering is the default because it is more stable on some mobile WebViews. </target>
       </segment>
     </unit>
     <unit id="4734349318830134239">
@@ -12220,6 +12454,12 @@
         <target>Las pruebas disponibles no establecen actualmente que la cuenta tenga al menos 18 años.</target>
       </segment>
     </unit>
+    <unit id="2469314021754225074">
+      <segment state="initial">
+        <source>How do I delete my account?</source>
+        <target>How do I delete my account?</target>
+      </segment>
+    </unit>
     <unit id="2472016265373616532">
       <segment state="initial">
         <source>Open Data License</source>
@@ -12408,6 +12648,12 @@
       <segment state="initial">
         <source>Moderation action recorded</source>
         <target>Acción de moderación registrada</target>
+      </segment>
+    </unit>
+    <unit id="2171420900172240739">
+      <segment state="initial">
+        <source>Withdrawn</source>
+        <target>Withdrawn</target>
       </segment>
     </unit>
     <unit id="2173680923654077460">
@@ -12669,6 +12915,12 @@
         <target>Enlace al Challenge copiado al portapapeles</target>
       </segment>
     </unit>
+    <unit id="5088439136498133748">
+      <segment state="initial">
+        <source>Check your spam folder first. If you still can&apos;t find the verification email, go to Settings &gt; Account and request a new verification email. If problems persist, contact us on Discord.</source>
+        <target>Check your spam folder first. If you still can&apos;t find the verification email, go to Settings &gt; Account and request a new verification email. If problems persist, contact us on Discord.</target>
+      </segment>
+    </unit>
     <unit id="5092426811369162632">
       <segment state="initial">
         <source>Selected location</source>
@@ -12747,6 +12999,12 @@
         <target>Inicia sesión para enviar informes sobre la calidad del contenido multimedia.</target>
       </segment>
     </unit>
+    <unit id="3243356092316492196">
+      <segment state="initial">
+        <source>How do I install the app on my phone?</source>
+        <target>How do I install the app on my phone?</target>
+      </segment>
+    </unit>
     <unit id="3249513483374643425">
       <segment state="initial">
         <source>Add</source>
@@ -12769,6 +13027,12 @@
       <segment state="initial">
         <source> Work in order. Do not preview or forward restricted-match media. </source>
         <target> Sigue los pasos en orden. No previsualices ni reenvíes contenido con una coincidencia restringida. </target>
+      </segment>
+    </unit>
+    <unit id="263287223361374817">
+      <segment state="initial">
+        <source>CHF 10–100</source>
+        <target>CHF 10–100</target>
       </segment>
     </unit>
     <unit id="2638434417265535082">
@@ -12861,6 +13125,12 @@
         <target>Editar evento</target>
       </segment>
     </unit>
+    <unit id="2776617638046368313">
+      <segment state="initial">
+        <source>View details</source>
+        <target>View details</target>
+      </segment>
+    </unit>
     <unit id="2781971407154812080">
       <segment state="initial">
         <source>Unlinked Google Place</source>
@@ -12903,6 +13173,12 @@
         <target>Correo cambiado exitosamente. Por favor verifica tu nuevo correo.</target>
       </segment>
     </unit>
+    <unit id="8025586841088932797">
+      <segment state="initial">
+        <source>What are the map filters?</source>
+        <target>What are the map filters?</target>
+      </segment>
+    </unit>
     <unit id="8036493504964207254">
       <segment state="initial">
         <source>Awaiting organization review</source>
@@ -12925,6 +13201,12 @@
       <segment state="initial">
         <source>Callable creations</source>
         <target>Creaciones mediante función</target>
+      </segment>
+    </unit>
+    <unit id="8075900986566576709">
+      <segment state="initial">
+        <source>Coming later</source>
+        <target>Coming later</target>
       </segment>
     </unit>
     <unit id="8076818699210267066">
@@ -13023,6 +13305,12 @@
         <target>Revisar las cuentas afectadas</target>
       </segment>
     </unit>
+    <unit id="294733429660547646">
+      <segment state="initial">
+        <source>Check-in</source>
+        <target>Check-in</target>
+      </segment>
+    </unit>
     <unit id="profile.actions.report">
       <segment state="initial">
         <source>Report</source>
@@ -13039,6 +13327,18 @@
       <segment state="initial">
         <source> Add a short bio so your public profile tells people who you are. </source>
         <target> Añade una breve biografía para que tu perfil público muestre quién eres. </target>
+      </segment>
+    </unit>
+    <unit id="2959460274535789482">
+      <segment state="initial">
+        <source>The app is crashing, what should I do?</source>
+        <target>The app is crashing, what should I do?</target>
+      </segment>
+    </unit>
+    <unit id="2960388461422932845">
+      <segment state="initial">
+        <source>Person did not consent</source>
+        <target>Person did not consent</target>
       </segment>
     </unit>
     <unit id="2969365666988952758">
@@ -13137,6 +13437,12 @@
         <target>Reportes de moderación</target>
       </segment>
     </unit>
+    <unit id="3173209211164608224">
+      <segment state="initial">
+        <source><ph id="0" equiv="PH" disp="product.stickerCount"/> stickers</source>
+        <target><ph id="0" equiv="PH" disp="product.stickerCount"/> stickers</target>
+      </segment>
+    </unit>
     <unit id="3180781358486363266">
       <segment state="initial">
         <source>Update program item</source>
@@ -13207,6 +13513,12 @@
       <segment state="initial">
         <source>Activate program plan</source>
         <target>Activar plan del programa</target>
+      </segment>
+    </unit>
+    <unit id="1571996928480119000">
+      <segment state="initial">
+        <source>Share event</source>
+        <target>Share event</target>
       </segment>
     </unit>
     <unit id="1577979859082287846">
@@ -13957,6 +14269,12 @@
         <target>Saving...</target>
       </segment>
     </unit>
+    <unit id="3410770871410760104">
+      <segment state="initial">
+        <source>Support PK Spot</source>
+        <target>Support PK Spot</target>
+      </segment>
+    </unit>
     <unit id="3419813162979896839">
       <segment state="initial">
         <source>Legal hold</source>
@@ -13985,6 +14303,12 @@
       <segment state="initial">
         <source>Account mismatch. Please sign in to the correct account.</source>
         <target>Discrepancia de cuenta. Por favor, inicia sesión en la cuenta correcta.</target>
+      </segment>
+    </unit>
+    <unit id="3447984798553416436">
+      <segment state="initial">
+        <source>Nice Spot Sticker Support Pack</source>
+        <target>Nice Spot Sticker Support Pack</target>
       </segment>
     </unit>
     <unit id="3456162150342793287">
@@ -14087,6 +14411,12 @@
       <segment state="initial">
         <source>Add a short title.</source>
         <target>Añade un título corto.</target>
+      </segment>
+    </unit>
+    <unit id="5189291414020124701">
+      <segment state="initial">
+        <source>Is my data safe?</source>
+        <target>Is my data safe?</target>
       </segment>
     </unit>
     <unit id="519026501519052552">
@@ -14204,10 +14534,22 @@
         <target>Privacidad primero</target>
       </segment>
     </unit>
+    <unit id="2201356960370913450">
+      <segment state="initial">
+        <source>{VAR_PLURAL, plural, =1 {Spot} other {Spots}}</source>
+        <target>{VAR_PLURAL, plural, =1 {Spot} other {Spots}}</target>
+      </segment>
+    </unit>
     <unit id="2231151963929640898">
       <segment state="initial">
         <source>Edit submitted for organization review</source>
         <target>Edición enviada para revisión de la organización</target>
+      </segment>
+    </unit>
+    <unit id="2233560223291461480">
+      <segment state="initial">
+        <source>Manual</source>
+        <target>Manual</target>
       </segment>
     </unit>
     <unit id="223483240416376467">
@@ -14456,6 +14798,12 @@
         <target>No se pudo desvincular Google Place</target>
       </segment>
     </unit>
+    <unit id="8891745002645853349">
+      <segment state="initial">
+        <source>Vector map rendering</source>
+        <target>Vector map rendering</target>
+      </segment>
+    </unit>
     <unit id="8894493214990278764">
       <segment state="initial">
         <source>Error saving profile access settings.</source>
@@ -14638,7 +14986,7 @@
     </unit>
     <unit id="spot_picker.limit_hint">
       <segment state="initial">
-        <source> Up to <ph id="0" equiv="INTERPOLATION" disp="{{ max() }}"/> spots </source>
+        <source> Up to <ph id="0" equiv="INTERPOLATION" disp="{{ max() }}"/> <ph id="1" equiv="ICU" disp="{max(), plural, =1 {Spot} other {Spots}}" subFlows="2201356960370913450"/> </source>
         <target> Hasta <ph id="0" equiv="INTERPOLATION" disp="{{ max() }}"/> spots </target>
       </segment>
     </unit>
@@ -15064,6 +15412,12 @@
         <target>Session summary</target>
       </segment>
     </unit>
+    <unit id="trainingLog.session.spotCount">
+      <segment state="initial">
+        <source>{VAR_PLURAL, plural, =1 {1 Spot} other {<ph id="0" equiv="INTERPOLATION"/> Spots}}</source>
+        <target>{VAR_PLURAL, plural, =1 {1 Spot} other {<ph id="0" equiv="INTERPOLATION"/> Spots}}</target>
+      </segment>
+    </unit>
     <unit id="trainingLog.signIn">
       <segment state="initial">
         <source>Sign in</source>
@@ -15142,10 +15496,10 @@
         <target>Abre una sesión para recordar dónde entrenaste, con quién y qué anotaste.</target>
       </segment>
     </unit>
-    <unit id="trainingLog.timeline.sessions">
+    <unit id="trainingLog.timeline.sessionCount">
       <segment state="initial">
-        <source>sessions</source>
-        <target>sesiones</target>
+        <source>{VAR_PLURAL, plural, =1 {1 session} other {<ph id="0" equiv="INTERPOLATION"/> sessions}}</source>
+        <target>{VAR_PLURAL, plural, =1 {1 session} other {<ph id="0" equiv="INTERPOLATION"/> sessions}}</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.showAll">
@@ -15154,10 +15508,10 @@
         <target>Show all</target>
       </segment>
     </unit>
-    <unit id="trainingLog.timeline.spots">
+    <unit id="trainingLog.timeline.spotCount">
       <segment state="initial">
-        <source>Spots</source>
-        <target>Spots</target>
+        <source>{VAR_PLURAL, plural, =1 {1 Spot} other {<ph id="0" equiv="INTERPOLATION"/> Spots}}</source>
+        <target>{VAR_PLURAL, plural, =1 {1 Spot} other {<ph id="0" equiv="INTERPOLATION"/> Spots}}</target>
       </segment>
     </unit>
     <unit id="trainingLog.timeline.title">
@@ -15200,6 +15554,12 @@
       <segment state="initial">
         <source> Your managed spots </source>
         <target> Tus spots gestionados </target>
+      </segment>
+    </unit>
+    <unit id="7107156952572073315">
+      <segment state="initial">
+        <source>5, 10, 25 or 50 stickers</source>
+        <target>5, 10, 25 or 50 stickers</target>
       </segment>
     </unit>
     <unit id="7113790156926964344">
@@ -15852,6 +16212,12 @@
         <target>Enter a rejection reason.</target>
       </segment>
     </unit>
+    <unit id="1716052484074407499">
+      <segment state="initial">
+        <source>Why can&apos;t I see any spots in my area?</source>
+        <target>Why can&apos;t I see any spots in my area?</target>
+      </segment>
+    </unit>
     <unit id="1726495281959581318">
       <segment state="initial">
         <source>App versions</source>
@@ -16040,6 +16406,12 @@
       <segment state="initial">
         <source>Reset password</source>
         <target>Restablecer contraseña</target>
+      </segment>
+    </unit>
+    <unit id="1660046583116975957">
+      <segment state="initial">
+        <source>Tap on your profile picture in your profile page, and you can select a new image from your device.</source>
+        <target>Tap on your profile picture in your profile page, and you can select a new image from your device.</target>
       </segment>
     </unit>
     <unit id="1669593749761062093">
@@ -16448,6 +16820,12 @@
       <segment state="initial">
         <source>Revoked adult eligibility for <ph id="0" equiv="PH" disp="processed"/> account(s)</source>
         <target>Se revocó la elegibilidad de adulto de <ph id="0" equiv="PH" disp="processed"/> cuenta(s)</target>
+      </segment>
+    </unit>
+    <unit id="4664742793863132957">
+      <segment state="initial">
+        <source>Terms of service violation</source>
+        <target>Terms of service violation</target>
       </segment>
     </unit>
     <unit id="4667715772382848347">
