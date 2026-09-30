@@ -4,14 +4,6 @@ Browser, product-flow and operational checks. These entries are not a list of mi
 
 Use [the deployment index](../../DEPLOYMENT_TASKS.md) for the shared procedure and maintenance rules. Each task is owned here; do not duplicate it in another checklist.
 
-### Temporary Lindenhof activity preview
-
-- [ ] Before releasing 1.2, remove the development-only Lindenhof override in
-      `SpotActivityService.displayMin` (`8CHFHRFUCozO9yeLEq6N`) and its preview-specific
-      tests after visual review. It displays a fabricated `10+` activity band
-      without writing to Firebase; production environments bypass it.
-      Verify Lindenhof displays its stored `recent_activity_min_30d` normally after removal.
-
 ### Public status page
 
 - [ ] After the web release, verify the Support page's System status link opens
@@ -454,14 +446,3 @@ unsupported storage destination.
       clients omit the optional slug and retain automatic URL generation. The three
       functions are deployed in `europe-west1`; ACTIVE state, localhost CORS
       preflight (204), and unauthenticated rejection (401) were verified for each.
-
-### Full-suite release gate
-
-- [ ] Resolve the four failures from the 2026-09-29 full unit run before the
-      1.2 client release, then rerun `npm run test:all`:
-      `backend-data-flow-documentation.spec.ts` omits two Function exports;
-      `package-manifest-imports.spec.ts` flags the Functions emulator test import;
-      `spot-creation-idempotency.spec.ts` expects an old duplicate-list binding;
-      `map-page-url-state.spec.ts` rejects the community-selection setter.
-      The run passed 1,920 tests with 64 skipped. These failures are outside
-      the activity projection's focused coverage.

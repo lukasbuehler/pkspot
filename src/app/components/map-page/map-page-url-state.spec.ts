@@ -84,7 +84,7 @@ describe("MapPageComponent URL-driven panel state", () => {
   it("opens spot search selections through the spot URL helper", () => {
     const source = readFileSync(componentPath, "utf8");
     const method = source.match(
-      /openSpotOrGooglePlace\([\s\S]*?\n  onSearchCommunityPreviewChange/
+      /\n  (?:async )?openSpotOrGooglePlace\([\s\S]*?\n  onSearchCommunityPreviewChange/
     )?.[0];
 
     expect(method).toContain("this.openSpotPath");
@@ -94,7 +94,7 @@ describe("MapPageComponent URL-driven panel state", () => {
   it("opens Google Place search selections on the map", () => {
     const source = readFileSync(componentPath, "utf8");
     const method = source.match(
-      /openSpotOrGooglePlace\([\s\S]*?\n  onSearchCommunityPreviewChange/
+      /\n  (?:async )?openSpotOrGooglePlace\([\s\S]*?\n  onSearchCommunityPreviewChange/
     )?.[0];
 
     expect(method).toContain('if (value.type === "place")');
@@ -104,7 +104,7 @@ describe("MapPageComponent URL-driven panel state", () => {
   it("opens pasted Maps links by exact place, coordinates, or query", () => {
     const source = readFileSync(componentPath, "utf8");
     const method = source.match(
-      /openSpotOrGooglePlace\([\s\S]*?\n  onSearchCommunityPreviewChange/
+      /\n  (?:async )?openSpotOrGooglePlace\([\s\S]*?\n  onSearchCommunityPreviewChange/
     )?.[0];
 
     expect(method).toContain('if (value.type === "map-link"');
@@ -137,7 +137,7 @@ describe("MapPageComponent URL-driven panel state", () => {
   it("opens community search selections through the community URL helper", () => {
     const source = readFileSync(componentPath, "utf8");
     const method = source.match(
-      /openSpotOrGooglePlace\([\s\S]*?\n  onSearchCommunityPreviewChange/
+      /\n  (?:async )?openSpotOrGooglePlace\([\s\S]*?\n  onSearchCommunityPreviewChange/
     )?.[0];
 
     expect(method).toContain("this.onIslandOpenCommunity(communityPreview)");

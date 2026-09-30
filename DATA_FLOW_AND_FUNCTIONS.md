@@ -1250,7 +1250,7 @@ variables, retry/idempotency behavior, compatibility impact, and repair trail.
 
 | Export | Boundary | Data flow |
 | --- | --- | --- |
-| `onContactMessageEmailCreate` | contact creation trigger | Sends support email through Resend; records delivery state in `contact_email_delivery`. Pending provider setup/deployment. |
+| `onContactMessageEmailCreate` | contact creation trigger | Sends support email through Resend; records delivery state in `contact_email_delivery`. Support delivery deployed; sender receipt deploy tracked separately. |
 | `beginAppleAgeAssurance` | authenticated iOS App Check callable | Creates a short-lived age challenge and checks registered App Attest key state. Disabled pending device validation. |
 | `finishAppleAgeAssurance` | authenticated iOS App Check callable | Verifies the bound App Attest response, consumes the challenge, and stores only key/counter and derived policy/evidence. Disabled pending device validation. |
 
@@ -1299,3 +1299,10 @@ then a metadata delete and Storage delete when stale. Cleanup costs scale with t
 number of old Storage objects examined. Retries can repeat those operations.
 No entity, Typesense or sitemap write is triggered by preparation. Image responses
 are not cacheable at the origin; external recipients may retain their own previews.
+
+### Contact receipt and health probe
+
+| Export | Boundary | Data flow |
+| --- | --- | --- |
+| `onContactMessageReceiptCreate` | New `contact_messages/{messageId}` | Independent Resend acknowledgement, validated recipient, hashed recipient cooldown in `contact_receipt_limits`, and delivery state in `contact_receipt_delivery`. Provider idempotency uses the message ID; events older than 23 hours require review. Automatic retries are disabled; no historical backfill. |
+| `monitoringHealth` | Token-authenticated HTTP GET/HEAD | Reads the Firestore health probe document. Returns uncached health status, never cached success on a failed read. It is an operational canary, not a client write path. |

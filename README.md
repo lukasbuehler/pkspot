@@ -1,4 +1,8 @@
-# PK Spot ([pkspot.app](https://pkspot.app))
+# PK Spot – [pkspot.app](https://pkspot.app)
+
+[![Better Stack Badge](https://uptime.betterstack.com/status-badges/v2/monitor/2yty4.svg)](https://status.pkspot.app)
+[![Tests](https://github.com/lukasbuehler/pkspot/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/lukasbuehler/pkspot/actions/workflows/test.yml)
+<!-- [![GitHub Repo stars](https://img.shields.io/github/stars/lukasbuehler/pkspot)](https://github.com/lukasbuehler/pkspot) -->
 
 **The spot for everything parkour.**
 
@@ -8,8 +12,12 @@ PK Spot is growing toward one app for Parkour spots, training, events, jams, and
 
 <!-- ## Download on the App Store and Google Play -->
 
-<!-- <a href="https://apps.apple.com/app/pk-spot-parkour-freerunning/id6757597683"><img style="height: 50px;" src="https://developer.apple.com/app-store/marketing/guidelines/images/badge-example-preferred_2x.png"></a>
-<a href="https://play.google.com/store/apps/details?id=com.pkspot.app"><img style="height: 50px; margin-top: -10px; margin-bottom: -5px" src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png"></a> -->
+
+## Download the app
+
+<a href="https://apps.apple.com/app/pk-spot-parkour-freerunning/id6757597683"><img style="height: 50px; padding: 11px" src="https://developer.apple.com/app-store/marketing/guidelines/images/badge-example-preferred_2x.png"></a>
+<a href="https://play.google.com/store/apps/details?id=com.pkspot.app"><img style="height: 71px" src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png"></a>
+
 
 ## Release Notes
 
@@ -17,11 +25,10 @@ PK Spot is growing toward one app for Parkour spots, training, events, jams, and
 
 - New Training page - with activity graphs, session details, and recovery pauses
 - New Check-ins and Spot activity statistics
-- Added optional age verification with OneID and improved native age signals
-- Native gallery photo sharing with location-based Spot suggestions
 - Improved Events, community voting, Spot editing, following, and reports
-- Android performance and startup fixes; added account restoration
+- Android performance and startup fixes
 - Bug fixes, privacy improvements, and legacy Event discovery cleanup
+- Experimental: Android gallery photo sharing and iOS Maps sharing
 
 ### Version 1.1.5 - "Reliability & Bug Fixes"
 
@@ -351,20 +358,3 @@ Material Symbols are self-hosted and subsetted for performance.
 ```
 npm run icons:optimize
 ```
-
-<!-- ### Working with Typesense for full-text search
-
-I use the Firebase Typesense extension.
-
-#### Changing the Schema
-
-[Typesense Collections Documentation](https://typesense.org/docs/0.24.0/api/collections.html#create-a-collection)
-
-#### Backfilling
-
-Add a document to the Firestore collection `typesense_sync` named `backfill` with the following content:
-
-```
-firestore_collections: ["spots"],
-trigger: true
-``` -->

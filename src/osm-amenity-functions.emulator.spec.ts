@@ -1,7 +1,7 @@
 import * as admin from "firebase-admin";
 import {createRequire} from "node:module";
 import {resolve} from "node:path";
-import type {CallableRequest} from "firebase-functions/v2/https";
+import type {CallableRequest} from "../functions/node_modules/firebase-functions/lib/v2/providers/https";
 const functionsRequire = createRequire(resolve("functions/package.json"));
 const functionAdmin: typeof admin = functionsRequire("firebase-admin");
 import { Timestamp } from "firebase-admin/firestore";
