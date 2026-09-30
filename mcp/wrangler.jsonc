@@ -1,4 +1,5 @@
 {
+  // Cloudflare Builds uses /mcp as its repository root and watches mcp/**.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "pkspot-mcp",
   "main": "src/worker.ts",
