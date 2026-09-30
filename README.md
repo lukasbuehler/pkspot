@@ -1,7 +1,7 @@
 # PK Spot – [pkspot.app](https://pkspot.app)
 
 [![Better Stack Badge](https://uptime.betterstack.com/status-badges/v2/monitor/2yty4.svg)](https://status.pkspot.app)
-[![Tests](https://github.com/lukasbuehler/pkspot/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/lukasbuehler/pkspot/actions/workflows/test.yml)
+<!-- [![Tests](https://github.com/lukasbuehler/pkspot/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/lukasbuehler/pkspot/actions/workflows/test.yml) -->
 <!-- [![GitHub Repo stars](https://img.shields.io/github/stars/lukasbuehler/pkspot)](https://github.com/lukasbuehler/pkspot) -->
 
 **The spot for everything parkour.**
