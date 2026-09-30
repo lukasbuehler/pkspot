@@ -235,19 +235,20 @@ contact messages to support; it is not general user notification email.
 
 ### Private check-ins and delayed Spot activity
 
-- [ ] Verify a controlled accepted-account fixture produces the same lower bound
-      (2, 5, 10 or 25) in its Spot document and Typesense hit. After deletion or
-      expiry drops it below two, verify Firestore contains null and Typesense
-      no longer returns the count. Confirm unchanged bands do not rewrite the
-      Spot, and details/cards read the projection without activity-document
-      requests. Retain legacy `spot_activity_public` writes while supported
-      older clients still read them. The schema, extension field allowlist and
-      five projection/edit-protection Functions are deployed and ACTIVE.
-      A manual production rollup returned 200 on 2026-09-29; Polyterrasse
-      remained below threshold in Firestore and Typesense. Its queue is eligible
-      for the regular 2026-09-30 03:30 Europe/Zurich run. Published-band and
-      expiry propagation still need real live verification; source inspection
-      confirms the installed extension preserves null, but is not runtime proof.
+- [ ] Verify live clearing of `recent_activity_min_30d` through the extension
+      after rollup expiry or deletion drops activity below two accounts.
+      On 2026-09-30, the maintainer authorized a Walchestrasse
+      (`hJEYB7GqWYz1ujo7rKWg`) simulation: the Spot field was set to 2,
+      and its Typesense document was verified to contain 2. No check-in,
+      account contribution, or legacy summary was fabricated.
+      The rollup queue is eligible on 2026-10-01 at 03:30 Europe/Zurich,
+      so it must clear the simulated value unless real accepted contributions
+      support a band. Verify the Spot becomes null and Typesense no longer
+      returns a count; do not remove real activity if new check-ins qualify.
+      The five rollup emulator tests cover distinct-account deduplication,
+      deletion, concurrent updates, unchanged bands and simulated time advancing
+      through expiry without new check-ins. Keep legacy
+      `spot_activity_public` writes for supported older clients.
 
 
 - [ ] Deploy the additive Spot-name snapshot correction with
