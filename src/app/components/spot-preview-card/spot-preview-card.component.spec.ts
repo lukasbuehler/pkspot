@@ -40,6 +40,20 @@ describe("SpotPreviewCardComponent", () => {
     fixture = TestBed.createComponent(SpotPreviewCardComponent);
   });
 
+  it("shows one paid icon for commercial access while preserving fee indicators for public access", () => {
+    const spot = { id: "paid" as SpotId, name: "Paid Spot", locality: "Zurich", imageSrc: "", access: "commercial", amenities: { entry_fee: true } };
+    fixture.componentRef.setInput("spotData", spot);
+    fixture.detectChanges();
+    const paidIcons = () => fixture.debugElement.queryAll(By.css("mat-icon"))
+      .filter(icon => icon.nativeElement.textContent.trim() === "paid");
+    expect(paidIcons()).toHaveLength(1);
+    expect(fixture.componentInstance.spotAmenitiesArray().some(amenity => amenity.icon === "paid")).toBe(false);
+    fixture.componentRef.setInput("spotData", { ...spot, access: "public" });
+    fixture.detectChanges();
+    expect(paidIcons()).toHaveLength(1);
+    expect(fixture.componentInstance.spotAmenitiesArray().some(amenity => amenity.icon === "paid")).toBe(true);
+  });
+
   it("uses the shared card border unless borders are disabled", () => {
     fixture.detectChanges();
 

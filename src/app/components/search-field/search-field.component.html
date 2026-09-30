@@ -361,7 +361,8 @@
                   @for (
                     amenity of getSpotImportantAmenities(
                       hit.preview?.amenities || hit.document.amenities,
-                      hit.document.type
+                      hit.document.type,
+                      hit.document.access
                     );
                     track $index
                   ) {

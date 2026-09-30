@@ -795,9 +795,10 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
    */
   getSpotImportantAmenities(
     amenities?: AmenitiesMap,
-    spotType?: string
+    spotType?: string,
+    spotAccess?: string
   ): { name?: string; icon?: string }[] {
     if (!amenities) return [];
-    return getImportantAmenities(amenities, spotType);
+    return getImportantAmenities(amenities, spotType, spotAccess);
   }
 }

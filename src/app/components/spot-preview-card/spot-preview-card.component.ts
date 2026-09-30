@@ -119,7 +119,7 @@ export class SpotPreviewCardComponent
     const spotType =
       "type" in spot && typeof spot.type === "string" ? spot.type : undefined;
     return spot.amenities
-      ? getImportantAmenities(spot.amenities, spotType)
+      ? getImportantAmenities(spot.amenities, spotType, this.spotAccess())
       : [];
   });
   showInfoButton = input<boolean>(true);
